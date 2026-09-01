@@ -43,6 +43,13 @@ struct RossLi {
   Numeric operator()(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth) const;
 };
 
+/** Construct exact scalar Lambertian Fourier modes.
+ *
+ * Only mode zero is nonzero.  Additional zero modes are returned so the
+ * result can be combined directly with azimuth-dependent surface models.
+ */
+[[nodiscard]] std::vector<BDRF> lambertian_fourier_modes(Numeric albedo, Index number_of_modes);
+
 /** Convert an azimuth-resolved scalar BRDF into the cosine Fourier modes
  * expected by disort::main_data.
  *
@@ -54,5 +61,29 @@ struct RossLi {
  * receive its positive magnitude.
  */
 std::vector<BDRF> fourier_modes(RawFunction raw, Index number_of_modes, Index azimuth_quadrature_points = 100);
+
+/** Form a weighted sum of two already-projected scalar surface models.
+ *
+ * A missing higher mode in either input is treated as zero.  Weights must be
+ * finite and nonnegative, but need not sum to one; this permits both convex
+ * mixtures and deliberate scaling of a surface operator.
+ */
+[[nodiscard]] std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
+                                                      Numeric           first_weight,
+                                                      std::vector<BDRF> second,
+                                                      Numeric           second_weight);
+
+/** Construct a scalar Cox-Munk/Lambertian mixture.
+ *
+ * `cox_munk_fraction` weights the Cox-Munk operator and its complement
+ * weights a Lambertian surface with the supplied albedo.
+ */
+[[nodiscard]] std::vector<BDRF> cox_munk_lambertian_fourier_modes(Numeric cox_munk_fraction,
+                                                                  Numeric lambertian_albedo,
+                                                                  Numeric wind_speed,
+                                                                  Numeric refractive_index,
+                                                                  bool    shadowing,
+                                                                  Index   number_of_modes,
+                                                                  Index   azimuth_quadrature_points = 100);
 
 }  // namespace disort::brdf

@@ -62,6 +62,21 @@ void fill_combined(rtepack::muelmat&       cosine,
       }
     }
 }
+
+void check_albedo(const Numeric albedo) {
+  if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
+    throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
+}
+
+void check_weight(const Numeric weight) {
+  if (not std::isfinite(weight) or weight < 0.0)
+    throw std::domain_error("BPrDF mixture weights must be finite and nonnegative");
+}
+
+void check_fraction(const Numeric fraction) {
+  if (not std::isfinite(fraction) or fraction < 0.0 or fraction > 1.0)
+    throw std::domain_error("BPrDF mixture fraction must be finite and in [0, 1]");
+}
 }  // namespace
 
 rtepack::muelmat CoxMunk::operator()(const Numeric outgoing_mu,
@@ -104,6 +119,31 @@ rtepack::muelmat Fresnel::operator()(const Numeric incident_mu) const {
   const Complex rv               = (refractive_index * mu - transmitted_mu) / (refractive_index * mu + transmitted_mu);
   const Complex rh               = (mu - refractive_index * transmitted_mu) / (mu + refractive_index * transmitted_mu);
   return rtepack::fresnel_reflectance(rv, rh);
+}
+
+std::vector<BDRF> lambertian_fourier_modes(const Numeric albedo, const Index number_of_modes) {
+  check_albedo(albedo);
+  if (number_of_modes < 0) throw std::invalid_argument("The number of Lambertian Fourier modes cannot be negative");
+
+  std::vector<BDRF> result;
+  result.reserve(static_cast<std::size_t>(number_of_modes));
+  for (Index mode = 0; mode < number_of_modes; ++mode) {
+    const auto evaluate = [coefficient = mode == 0 ? 2.0 * albedo * Constant::inv_pi : 0.0](
+                              rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
+      output = rtepack::muelmat{0.0};
+      if (coefficient != 0.0)
+        for (Index i = 0; i < output.nrows(); ++i)
+          for (Index j = 0; j < output.ncols(); ++j) output[i, j][0, 0] = coefficient;
+    };
+    const auto zero = [](rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
+      output = rtepack::muelmat{0.0};
+    };
+    result.push_back(BDRF{.cosine      = BDRF::func_t{evaluate},
+                          .sine        = BDRF::func_t{zero},
+                          .beam_cosine = BDRF::func_t{evaluate},
+                          .beam_sine   = BDRF::func_t{zero}});
+  }
+  return result;
 }
 
 std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, const Index azimuth_quadrature_points) {
@@ -243,6 +283,95 @@ std::vector<BDRF> fresnel_fourier_modes(const Numeric refractive_index, const In
         .beam_sine   = BDRF::func_t{unsupported_beam}});
   }
   return result;
+}
+
+std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
+                                        const Numeric     first_weight,
+                                        std::vector<BDRF> second,
+                                        const Numeric     second_weight) {
+  check_weight(first_weight);
+  check_weight(second_weight);
+
+  struct Components {
+    std::vector<BDRF> first;
+    Numeric           first_weight;
+    std::vector<BDRF> second;
+    Numeric           second_weight;
+  };
+  auto components =
+      std::make_shared<Components>(Components{std::move(first), first_weight, std::move(second), second_weight});
+  const auto number_of_modes = std::max(components->first.size(), components->second.size());
+
+  std::vector<BDRF> result;
+  result.reserve(number_of_modes);
+  for (std::size_t mode = 0; mode < number_of_modes; ++mode) {
+    const auto evaluate = [components, mode](const bool                   beam,
+                                             const Index                  alpha,
+                                             rtepack::muelmat_matrix_view output,
+                                             const ConstVectorView&       outgoing,
+                                             const ConstVectorView&       incoming) {
+      output = rtepack::muelmat{0.0};
+      rtepack::muelmat_matrix scratch(output.nrows(), output.ncols(), rtepack::muelmat{0.0});
+      const auto              add = [&](const std::vector<BDRF>& modes, const Numeric weight) {
+        if (weight == 0.0 or mode >= modes.size()) return;
+        if (beam)
+          modes[mode].beam(alpha, scratch, outgoing, incoming);
+        else
+          modes[mode](alpha, scratch, outgoing, incoming);
+        for (Index i = 0; i < output.nrows(); ++i)
+          for (Index j = 0; j < output.ncols(); ++j) output[i, j] += weight * scratch[i, j];
+      };
+      add(components->first, components->first_weight);
+      add(components->second, components->second_weight);
+    };
+    result.push_back(BDRF{.cosine      = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view output,
+                                                                 const ConstVectorView&       outgoing,
+                                                                 const ConstVectorView&       incoming) {
+                            evaluate(false, cosine_mode, output, outgoing, incoming);
+                          }},
+                          .sine        = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view output,
+                                                                 const ConstVectorView&       outgoing,
+                                                                 const ConstVectorView&       incoming) {
+                            evaluate(false, sine_mode, output, outgoing, incoming);
+                          }},
+                          .beam_cosine = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view output,
+                                                                 const ConstVectorView&       outgoing,
+                                                                 const ConstVectorView&       incoming) {
+                            evaluate(true, cosine_mode, output, outgoing, incoming);
+                          }},
+                          .beam_sine   = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view output,
+                                                                 const ConstVectorView&       outgoing,
+                                                                 const ConstVectorView&       incoming) {
+                            evaluate(true, sine_mode, output, outgoing, incoming);
+                          }}});
+  }
+  return result;
+}
+
+std::vector<BDRF> fresnel_lambertian_fourier_modes(const Numeric fresnel_fraction,
+                                                   const Numeric lambertian_albedo,
+                                                   const Numeric refractive_index,
+                                                   const Index   number_of_modes) {
+  check_fraction(fresnel_fraction);
+  return combine_fourier_modes(fresnel_fourier_modes(refractive_index, number_of_modes),
+                               fresnel_fraction,
+                               lambertian_fourier_modes(lambertian_albedo, number_of_modes),
+                               1.0 - fresnel_fraction);
+}
+
+std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fraction,
+                                                    const Numeric lambertian_albedo,
+                                                    const Numeric wind_speed,
+                                                    const Numeric refractive_index,
+                                                    const bool    shadowing,
+                                                    const Index   number_of_modes,
+                                                    const Index   azimuth_quadrature_points) {
+  check_fraction(cox_munk_fraction);
+  return combine_fourier_modes(
+      cox_munk_fourier_modes(wind_speed, refractive_index, shadowing, number_of_modes, azimuth_quadrature_points),
+      cox_munk_fraction,
+      lambertian_fourier_modes(lambertian_albedo, number_of_modes),
+      1.0 - cox_munk_fraction);
 }
 
 }  // namespace vdisort::brdf

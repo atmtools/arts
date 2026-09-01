@@ -26,6 +26,21 @@ Numeric shadow_eta(const Numeric mu, const Numeric slope_variance) {
       root_variance / (std::sqrt(Constant::pi) * cotangent) * std::exp(-cotangent * cotangent / slope_variance);
   return 0.5 * (first - std::erfc(cotangent / root_variance));
 }
+
+void check_albedo(const Numeric albedo) {
+  if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
+    throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
+}
+
+void check_weight(const Numeric weight) {
+  if (not std::isfinite(weight) or weight < 0.0)
+    throw std::domain_error("BRDF mixture weights must be finite and nonnegative");
+}
+
+void check_fraction(const Numeric fraction) {
+  if (not std::isfinite(fraction) or fraction < 0.0 or fraction > 1.0)
+    throw std::domain_error("BRDF mixture fraction must be finite and in [0, 1]");
+}
 }  // namespace
 
 Numeric Hapke::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
@@ -128,6 +143,20 @@ Numeric RossLi::operator()(const Numeric outgoing_mu, const Numeric incoming_mu,
   return std::max(0.0, isotropic + geometric * this->geometric + volumetric * volume);
 }
 
+std::vector<BDRF> lambertian_fourier_modes(const Numeric albedo, const Index number_of_modes) {
+  check_albedo(albedo);
+  if (number_of_modes < 0) throw std::invalid_argument("The number of Lambertian Fourier modes cannot be negative");
+
+  std::vector<BDRF> result;
+  result.reserve(static_cast<std::size_t>(number_of_modes));
+  for (Index mode = 0; mode < number_of_modes; ++mode) {
+    result.emplace_back(
+        BDRF{[coefficient = mode == 0 ? albedo : 0.0](
+                 MatrixView output, const ConstVectorView&, const ConstVectorView&) { output = coefficient; }});
+  }
+  return result;
+}
+
 std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, const Index azimuth_quadrature_points) {
   if (not raw) throw std::invalid_argument("A raw BRDF function is required");
   if (number_of_modes < 0) throw std::invalid_argument("The number of BRDF Fourier modes cannot be negative");
@@ -160,6 +189,58 @@ std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, co
         }});
   }
   return result;
+}
+
+std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
+                                        const Numeric     first_weight,
+                                        std::vector<BDRF> second,
+                                        const Numeric     second_weight) {
+  check_weight(first_weight);
+  check_weight(second_weight);
+
+  struct Components {
+    std::vector<BDRF> first;
+    Numeric           first_weight;
+    std::vector<BDRF> second;
+    Numeric           second_weight;
+  };
+  auto components =
+      std::make_shared<Components>(Components{std::move(first), first_weight, std::move(second), second_weight});
+  const auto number_of_modes = std::max(components->first.size(), components->second.size());
+
+  std::vector<BDRF> result;
+  result.reserve(number_of_modes);
+  for (std::size_t mode = 0; mode < number_of_modes; ++mode) {
+    result.emplace_back(
+        BDRF{[components, mode](MatrixView output, const ConstVectorView& outgoing, const ConstVectorView& incoming) {
+          output = 0.0;
+          Matrix     scratch(output.nrows(), output.ncols());
+          const auto add = [&](const std::vector<BDRF>& modes, const Numeric weight) {
+            if (weight == 0.0 or mode >= modes.size()) return;
+            modes[mode](scratch, outgoing, incoming);
+            for (Index i = 0; i < output.nrows(); ++i)
+              for (Index j = 0; j < output.ncols(); ++j) output[i, j] += weight * scratch[i, j];
+          };
+          add(components->first, components->first_weight);
+          add(components->second, components->second_weight);
+        }});
+  }
+  return result;
+}
+
+std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fraction,
+                                                    const Numeric lambertian_albedo,
+                                                    const Numeric wind_speed,
+                                                    const Numeric refractive_index,
+                                                    const bool    shadowing,
+                                                    const Index   number_of_modes,
+                                                    const Index   azimuth_quadrature_points) {
+  check_fraction(cox_munk_fraction);
+  return combine_fourier_modes(
+      fourier_modes(CoxMunk{wind_speed, refractive_index, shadowing}, number_of_modes, azimuth_quadrature_points),
+      cox_munk_fraction,
+      lambertian_fourier_modes(lambertian_albedo, number_of_modes),
+      1.0 - cox_munk_fraction);
 }
 
 }  // namespace disort::brdf

@@ -1,5 +1,6 @@
 #include <arts_constants.h>
 #include <rtepack_multitype.h>
+#include <vdisort-brdf.h>
 #include <vdisort.h>
 
 #include <cmath>
@@ -786,6 +787,68 @@ void test_spectral_phase_matrix_split() {
   expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
   expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");
 }
+
+void test_combined_surface_models() {
+  constexpr Numeric lambertian_albedo = 0.8;
+  constexpr Numeric fresnel_fraction  = 0.02;
+  const Vector      outgoing{0.2, 0.7};
+  const Vector      incoming{0.2, 0.7};
+
+  const auto lambert = vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 3);
+  for (Index mode = 0; mode < 3; ++mode) {
+    rtepack::muelmat_matrix value(2, 2, rtepack::muelmat{0.0});
+    lambert[mode](vdisort::cosine_mode, value, outgoing, incoming);
+    for (Index i = 0; i < value.nrows(); ++i)
+      for (Index j = 0; j < value.ncols(); ++j)
+        for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+          for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+            expect_close(value[i, j][so, si],
+                         mode == 0 and so == 0 and si == 0 ? 2.0 * lambertian_albedo * Constant::inv_pi : 0.0,
+                         "depolarizing Lambertian mode");
+  }
+
+  const auto fresnel  = vdisort::brdf::fresnel_fourier_modes(1.5, 3);
+  const auto combined = vdisort::brdf::fresnel_lambertian_fourier_modes(fresnel_fraction, lambertian_albedo, 1.5, 3);
+  for (Index mode = 0; mode < 3; ++mode) {
+    for (Index alpha = 0; alpha < 2; ++alpha) {
+      rtepack::muelmat_matrix actual(2, 2, rtepack::muelmat{0.0});
+      rtepack::muelmat_matrix specular(2, 2, rtepack::muelmat{0.0});
+      rtepack::muelmat_matrix diffuse(2, 2, rtepack::muelmat{0.0});
+      combined[mode](alpha, actual, outgoing, incoming);
+      fresnel[mode](alpha, specular, outgoing, incoming);
+      lambert[mode](alpha, diffuse, outgoing, incoming);
+      for (Index i = 0; i < actual.nrows(); ++i)
+        for (Index j = 0; j < actual.ncols(); ++j)
+          for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+            for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+              expect_close(actual[i, j][so, si],
+                           fresnel_fraction * specular[i, j][so, si] + (1.0 - fresnel_fraction) * diffuse[i, j][so, si],
+                           "Fresnel/Lambertian mixture");
+    }
+  }
+
+  constexpr Numeric cox_fraction = 0.35;
+  const Vector      beam_mu{0.4};
+  const auto        cox = vdisort::brdf::cox_munk_fourier_modes(5.0, 1.34, true, 2, 24);
+  const auto        rough =
+      vdisort::brdf::cox_munk_lambertian_fourier_modes(cox_fraction, lambertian_albedo, 5.0, 1.34, true, 2, 24);
+  for (Index mode = 0; mode < 2; ++mode) {
+    for (Index alpha = 0; alpha < 2; ++alpha) {
+      rtepack::muelmat_matrix actual(2, 1, rtepack::muelmat{0.0});
+      rtepack::muelmat_matrix specular(2, 1, rtepack::muelmat{0.0});
+      rtepack::muelmat_matrix diffuse(2, 1, rtepack::muelmat{0.0});
+      rough[mode].beam(alpha, actual, outgoing, beam_mu);
+      cox[mode].beam(alpha, specular, outgoing, beam_mu);
+      lambert[mode].beam(alpha, diffuse, outgoing, beam_mu);
+      for (Index i = 0; i < actual.nrows(); ++i)
+        for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+          for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+            expect_close(actual[i, 0][so, si],
+                         cox_fraction * specular[i, 0][so, si] + (1.0 - cox_fraction) * diffuse[i, 0][so, si],
+                         "Cox-Munk/Lambertian beam mixture");
+    }
+  }
+}
 }  // namespace
 
 int main() try {
@@ -804,6 +867,7 @@ int main() try {
   test_delta_m_correction_api_overlap();
   test_combined_matrix_transform();
   test_spectral_phase_matrix_split();
+  test_combined_surface_models();
   std::cout << "vdisort tests passed\n";
   return 0;
 } catch (const std::exception& error) {

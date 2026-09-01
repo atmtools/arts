@@ -43,6 +43,55 @@ def _sun_halo_profile(scattering_angle, center=np.deg2rad(22.0)):
     return 1.0 + 80.0 * np.exp(-0.5 * ((scattering_angle - center) / width) ** 2)
 
 
+def test_combined_surface_models():
+    """Compose polarized surface operators after their Fourier projection."""
+    mu = np.array([0.2, 0.7])
+    lambertian_albedo = 0.8
+    fresnel_fraction = 0.02
+    number_of_modes = 3
+
+    lambertian = arts.vdisort.lambertian_fourier_modes(
+        lambertian_albedo, number_of_modes
+    )
+    fresnel = arts.vdisort.fresnel_fourier_modes(1.5, number_of_modes)
+    generic = arts.vdisort.combine_fourier_modes(
+        fresnel, fresnel_fraction, lambertian, 1.0 - fresnel_fraction
+    )
+    named = arts.vdisort.fresnel_lambertian_fourier_modes(
+        fresnel_fraction, lambertian_albedo, 1.5, number_of_modes
+    )
+
+    for mode in range(number_of_modes):
+        for alpha in (arts.vdisort.cosine_mode, arts.vdisort.sine_mode):
+            expected = fresnel_fraction * np.asarray(fresnel[mode](alpha, mu, mu))
+            expected += (1.0 - fresnel_fraction) * np.asarray(
+                lambertian[mode](alpha, mu, mu)
+            )
+            np.testing.assert_allclose(generic[mode](alpha, mu, mu), expected)
+            np.testing.assert_allclose(named[mode](alpha, mu, mu), expected)
+
+    first_lambertian = np.asarray(
+        lambertian[0](arts.vdisort.cosine_mode, mu, mu)
+    ).reshape(2, 4, 2, 4)
+    np.testing.assert_allclose(
+        first_lambertian[:, 0, :, 0], 2.0 * lambertian_albedo / np.pi
+    )
+    first_lambertian[:, 0, :, 0] = 0.0
+    np.testing.assert_allclose(first_lambertian, 0.0)
+
+    rough = arts.vdisort.cox_munk_lambertian_fourier_modes(
+        0.35, lambertian_albedo, 5.0, 1.34, True, 2, 24
+    )
+    assert len(rough) == 2
+    assert np.isfinite(rough[0](arts.vdisort.cosine_mode, mu, mu)).all()
+
+    scalar = arts.disort.cox_munk_lambertian_fourier_modes(
+        0.35, lambertian_albedo, 5.0, 1.34, True, 2, 24
+    )
+    assert len(scalar) == 2
+    assert np.isfinite(scalar[0](mu, mu)).all()
+
+
 def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
     """Rayleigh first Mueller column in each outgoing local-meridian frame."""
     mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
@@ -302,6 +351,153 @@ def test_fresnel_brewster_angle():
         )
         error_plot.legend()
         error_plot.grid(True, which="both", alpha=0.25)
+        plt.show()
+
+
+def test_fresnel_lambertian_depolarization():
+    """Show how a depolarizing Lambertian component dilutes Fresnel Q."""
+    refractive_index = 1.5
+    lambertian_albedo = 0.2
+    fresnel_fractions = (1.0, 0.5, 0.1, 0.02, 0.0)
+    nquad = 24
+    npositive = nquad // 2
+    depth = 1.0e-8
+
+    nodes, _ = np.polynomial.legendre.leggauss(npositive)
+    mu = 0.5 * (nodes + 1.0)
+    quadrature_angle = np.arccos(mu)
+    phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
+    boundary_down = np.zeros((2, 1, npositive, 4))
+    boundary_down[arts.vdisort.cosine_mode, 0, :, 0] = 1.0
+
+    def reflected_stokes(modes):
+        model = arts.cppvdisort(
+            tau_arr=np.array([depth]),
+            omega_arr=np.array([0.0]),
+            NQuad=nquad,
+            phase_matrix=phase,
+            mu0=0.5,
+            beam_stokes=np.zeros(4),
+            phi0=0.0,
+            b_neg=boundary_down,
+            BDRF_Fourier_modes=modes,
+        )
+        return np.asarray(model.u(np.array([depth]), np.array([0.0])))[
+            0, 0, :npositive
+        ]
+
+    pure_fresnel = reflected_stokes(
+        arts.vdisort.fresnel_fourier_modes(refractive_index, 1)
+    )
+    pure_lambertian = reflected_stokes(
+        arts.vdisort.lambertian_fourier_modes(lambertian_albedo, 1)
+    )
+
+    reflected = {}
+    degree_of_linear_polarization = {}
+    previous_peak = np.inf
+    for fraction in fresnel_fractions:
+        value = reflected_stokes(
+            arts.vdisort.fresnel_lambertian_fourier_modes(
+                fraction, lambertian_albedo, refractive_index, 1
+            )
+        )
+        expected = fraction * pure_fresnel + (1.0 - fraction) * pure_lambertian
+        np.testing.assert_allclose(value, expected, rtol=2.0e-8, atol=2.0e-12)
+        np.testing.assert_allclose(value[:, 2:], 0.0, atol=2.0e-12)
+
+        dolp = np.divide(
+            np.abs(value[:, 1]),
+            value[:, 0],
+            out=np.zeros_like(value[:, 0]),
+            where=value[:, 0] > 0.0,
+        )
+        reflected[fraction] = value
+        degree_of_linear_polarization[fraction] = dolp
+        assert np.max(dolp) <= previous_peak + 2.0e-12
+        previous_peak = np.max(dolp)
+
+    np.testing.assert_allclose(
+        degree_of_linear_polarization[0.0], 0.0, atol=2.0e-12
+    )
+    assert np.max(degree_of_linear_polarization[1.0]) > 0.99
+    assert np.max(degree_of_linear_polarization[0.02]) < 0.1
+
+    if "ARTS_HEADLESS" not in os.environ:
+        import matplotlib.pyplot as plt
+
+        angle = np.linspace(0.0, 0.5 * np.pi - 1.0e-6, 500)
+        dense_rv, dense_rh = _fresnel_amplitudes(
+            np.cos(angle), refractive_index
+        )
+        fresnel_i = 0.5 * (dense_rv**2 + dense_rh**2)
+        fresnel_q = 0.5 * (dense_rv**2 - dense_rh**2)
+
+        _, (intensity_plot, polarization_plot) = plt.subplots(
+            1, 2, figsize=(12, 4), constrained_layout=True
+        )
+        for fraction in fresnel_fractions:
+            mixed_i = (
+                fraction * fresnel_i
+                + (1.0 - fraction) * lambertian_albedo
+            )
+            mixed_q = fraction * fresnel_q
+            dense_dolp = np.divide(
+                np.abs(mixed_q),
+                mixed_i,
+                out=np.zeros_like(mixed_i),
+                where=mixed_i > 0.0,
+            )
+            label = f"{100.0 * fraction:g}% Fresnel"
+            line = intensity_plot.plot(
+                np.rad2deg(angle), mixed_i, label=label
+            )[0]
+            intensity_plot.plot(
+                np.rad2deg(quadrature_angle),
+                reflected[fraction][:, 0],
+                "o",
+                color=line.get_color(),
+                fillstyle="none",
+                markersize=4,
+            )
+            polarization_plot.plot(
+                np.rad2deg(angle),
+                100.0 * dense_dolp,
+                color=line.get_color(),
+                label=label,
+            )
+            polarization_plot.plot(
+                np.rad2deg(quadrature_angle),
+                100.0 * degree_of_linear_polarization[fraction],
+                "o",
+                color=line.get_color(),
+                fillstyle="none",
+                markersize=4,
+            )
+
+        brewster_angle = np.rad2deg(np.arctan(refractive_index))
+        for axis in (intensity_plot, polarization_plot):
+            axis.axvline(
+                brewster_angle,
+                color="black",
+                linestyle="--",
+                label="Brewster angle" if axis is intensity_plot else None,
+            )
+            axis.set_xlim(0.0, 90.0)
+            axis.grid(True, alpha=0.25)
+        intensity_plot.set(
+            xlabel="Positive incidence angle [degree]",
+            ylabel="Reflected Stokes I",
+            title=f"Fresnel + Lambertian (A={lambertian_albedo:g})",
+        )
+        polarization_plot.set(
+            xlabel="Positive incidence angle [degree]",
+            ylabel="Degree of linear polarization [%]",
+            title="Depolarization by the Lambertian component",
+            ylim=(-2.0, 102.0),
+        )
+        intensity_plot.legend(ncols=2)
+        polarization_plot.legend(ncols=2)
         plt.show()
 
 
@@ -636,10 +832,12 @@ def test_optically_thin_sun_halo():
 
 
 if __name__ == "__main__":
+    test_combined_surface_models()
     test_phase_helpers()
     test_bdrf()
     test_absorbing_stokes_field()
     test_fresnel_brewster_angle()
+    test_fresnel_lambertian_depolarization()
     test_optically_thin_rayleigh_atmosphere()
     test_nonprincipal_plane_rayleigh_polarization()
     test_optically_thin_sun_halo()

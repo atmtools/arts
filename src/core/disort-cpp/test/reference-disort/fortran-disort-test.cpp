@@ -668,6 +668,22 @@ void test_raw_brdfs_and_fourier_helper() {
                          mode == 0 ? reflectance : 0.0,
                          2e-13);
   }
+
+  constexpr Numeric cox_fraction = 0.02;
+  const auto        combined     = cox_munk_lambertian_fourier_modes(cox_fraction, reflectance, 5.0, 1.34, true, 4, 32);
+  const auto        cox          = fourier_modes(CoxMunk{5.0, 1.34, true}, 4, 32);
+  const auto        lambert      = lambertian_fourier_modes(reflectance, 4);
+  for (Index mode = 0; mode < 4; ++mode) {
+    const Matrix actual        = combined[mode](outgoing, incoming);
+    const Matrix cox_value     = cox[mode](outgoing, incoming);
+    const Matrix lambert_value = lambert[mode](outgoing, incoming);
+    for (Index i = 0; i < actual.nrows(); ++i)
+      for (Index j = 0; j < actual.ncols(); ++j)
+        expect_reference(std::format("combined scalar BRDF mode {}", mode),
+                         actual[i, j],
+                         cox_fraction * cox_value[i, j] + (1.0 - cox_fraction) * lambert_value[i, j],
+                         2e-13);
+  }
 }
 
 disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {

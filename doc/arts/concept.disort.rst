@@ -765,9 +765,41 @@ The separately assembled reflected direct-beam vector is
 These are the :math:`\boldsymbol{\mathcal R}_m` and
 :math:`\boldsymbol d_m` objects used in the global bottom row below.
 
-The built-in raw physical models are scalar.  Embedding them in VDISORT tests
-therefore exercises only the Mueller :math:`(0,0)` element.  A genuinely
-polarizing surface requires Mueller-valued cosine and sine Fourier modes.
+The scalar core provides Hapke, Cox--Munk, RPV, Ross--Li, and exact Lambertian
+operators.  The vector core provides a polarized Cox--Munk operator, an ideal
+flat-interface Fresnel operator, and an exact fully depolarizing Lambertian
+operator.  For the latter, only the :math:`I\leftarrow I` element of combined
+cosine mode zero is nonzero.  In the raw VDISORT normalization its value is
+:math:`2A/\pi`; the factors in the boundary quadrature above recover the
+hemispherical Lambertian albedo :math:`A`.
+
+Surface operators can be combined *after* Fourier projection.  If models
+:math:`a` and :math:`b` have mode operators
+:math:`\boldsymbol R^{am}_a` and :math:`\boldsymbol R^{am}_b`, their weighted
+combination is simply
+
+.. math::
+
+   \boldsymbol R^{am}_{\mathrm{mix}}
+      =w_a\boldsymbol R^{am}_a+w_b\boldsymbol R^{am}_b.
+
+The same sum is applied to the direct-beam callbacks.  Missing higher modes
+are zero, so an azimuth-independent Lambertian operator can be mixed directly
+with a multi-mode surface.  Named factories provide Cox--Munk/Lambertian
+mixtures in both cores and ideal-Fresnel/Lambertian mixtures in VDISORT; the
+generic combiner permits other pairs and repeated composition.  The named
+factories use complementary fractions, whereas the generic weights need not
+sum to one.
+
+An ideal Fresnel surface is a directional delta distribution.  Its diffuse
+operator is exact on matching native quadrature directions, but its reflected
+direct beam generally lies off that grid.  Mixing it with Lambertian reflection
+does not remove this limitation.  A Cox--Munk/Lambertian mixture supplies a
+finite-width polarized specular lobe and is therefore the beam-compatible
+choice.  Surface thermal emission is a separate boundary input: for a physical
+opaque surface it must be derived from the directional hemispherical
+reflectance of the complete mixture, rather than inferred from the mixture
+weights alone.
 
 Global boundary-value matrix
 ****************************

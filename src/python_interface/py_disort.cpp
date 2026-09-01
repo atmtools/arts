@@ -1,3 +1,4 @@
+#include <disort-brdf.h>
 #include <disort.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/function.h>
@@ -90,6 +91,29 @@ void py_disort(py::module_& m) try {
   auto vecs  = py::bind_vector<std::vector<DisortBDRF>, py::rv_policy::reference_internal>(disort_nm, "ArrayOfBDRF");
   vecs.doc() = "An array of BDRF functions";
   generic_interface(vecs);
+
+  disort_nm.def("lambertian_fourier_modes",
+                &disort::brdf::lambertian_fourier_modes,
+                "albedo"_a,
+                "number_of_modes"_a,
+                "Construct exact scalar Lambertian Fourier modes");
+  disort_nm.def("combine_fourier_modes",
+                &disort::brdf::combine_fourier_modes,
+                "first"_a,
+                "first_weight"_a,
+                "second"_a,
+                "second_weight"_a,
+                "Form a weighted sum of two scalar Fourier-mode surface models");
+  disort_nm.def("cox_munk_lambertian_fourier_modes",
+                &disort::brdf::cox_munk_lambertian_fourier_modes,
+                "cox_munk_fraction"_a,
+                "lambertian_albedo"_a,
+                "wind_speed"_a,
+                "refractive_index"_a,
+                "shadowing"_a,
+                "number_of_modes"_a,
+                "azimuth_quadrature_points"_a = 100,
+                "Construct a scalar Cox-Munk/Lambertian Fourier-mode mixture");
 
   // VDISORT PYTHON INTERFACE BEGIN: a Fourier BRDF mode has cosine and sine
   // Mueller-matrix callbacks.  Each callback returns [4*n_out, 4*n_in].
@@ -217,6 +241,35 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "refractive_index"_a,
                  "number_of_modes"_a,
                  "Construct quadrature-normalized VDISORT Fourier modes for an ideal Fresnel surface");
+  vdisort_nm.def("lambertian_fourier_modes",
+                 &vdisort::brdf::lambertian_fourier_modes,
+                 "albedo"_a,
+                 "number_of_modes"_a,
+                 "Construct exact fully depolarizing Lambertian VDISORT Fourier modes");
+  vdisort_nm.def("combine_fourier_modes",
+                 &vdisort::brdf::combine_fourier_modes,
+                 "first"_a,
+                 "first_weight"_a,
+                 "second"_a,
+                 "second_weight"_a,
+                 "Form a weighted sum of two polarized Fourier-mode surface models");
+  vdisort_nm.def("fresnel_lambertian_fourier_modes",
+                 &vdisort::brdf::fresnel_lambertian_fourier_modes,
+                 "fresnel_fraction"_a,
+                 "lambertian_albedo"_a,
+                 "refractive_index"_a,
+                 "number_of_modes"_a,
+                 "Construct an ideal Fresnel/depolarizing-Lambertian VDISORT mixture");
+  vdisort_nm.def("cox_munk_lambertian_fourier_modes",
+                 &vdisort::brdf::cox_munk_lambertian_fourier_modes,
+                 "cox_munk_fraction"_a,
+                 "lambertian_albedo"_a,
+                 "wind_speed"_a,
+                 "refractive_index"_a,
+                 "shadowing"_a,
+                 "number_of_modes"_a,
+                 "azimuth_quadrature_points"_a = 100,
+                 "Construct a rough Fresnel Cox-Munk/depolarizing-Lambertian VDISORT mixture");
   // VDISORT PYTHON INTERFACE END
 
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
