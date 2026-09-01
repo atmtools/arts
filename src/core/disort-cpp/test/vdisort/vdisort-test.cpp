@@ -6,6 +6,7 @@
 #include <cmath>
 #include <iostream>
 
+#include "disort-brdf.h"
 #include "disort.h"
 #include "test-adapter.h"
 
@@ -849,6 +850,22 @@ void test_combined_surface_models() {
     }
   }
 }
+
+void test_scalar_and_polarized_cox_munk_overlap() {
+  for (const Numeric refractive_index : {1.34, 0.75})
+    for (const bool shadowing : {false, true})
+      for (const Numeric outgoing_mu : {0.15, 0.5, 0.9})
+        for (const Numeric incoming_mu : {0.2, 0.65})
+          for (const Numeric azimuth : {0.0, 0.7, 2.4}) {
+            const disort::brdf::CoxMunk scalar{
+                .wind_speed = 7.0, .refractive_index = refractive_index, .shadowing = shadowing};
+            const vdisort::brdf::CoxMunk polarized{
+                .wind_speed = 7.0, .refractive_index = refractive_index, .shadowing = shadowing};
+            expect_close(polarized(outgoing_mu, incoming_mu, azimuth)[0, 0],
+                         scalar(outgoing_mu, incoming_mu, azimuth),
+                         "scalar/polarized Cox-Munk M00 overlap");
+          }
+}
 }  // namespace
 
 int main() try {
@@ -868,6 +885,7 @@ int main() try {
   test_combined_matrix_transform();
   test_spectral_phase_matrix_split();
   test_combined_surface_models();
+  test_scalar_and_polarized_cox_munk_overlap();
   std::cout << "vdisort tests passed\n";
   return 0;
 } catch (const std::exception& error) {

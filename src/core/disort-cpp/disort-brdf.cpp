@@ -1,5 +1,6 @@
 #include "disort-brdf.h"
 
+#include <common.h>
 #include <legendre.h>
 
 #include <algorithm>
@@ -17,30 +18,6 @@ Numeric checked_mu(const Numeric mu) {
 
 Numeric unit_clamp(const Numeric value) { return std::clamp(value, -1.0, 1.0); }
 
-Numeric shadow_eta(const Numeric mu, const Numeric slope_variance) {
-  const Numeric sine = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  if (sine == 0.0) return 0.0;
-  const Numeric cotangent     = mu / sine;
-  const Numeric root_variance = std::sqrt(slope_variance);
-  const Numeric first =
-      root_variance / (std::sqrt(Constant::pi) * cotangent) * std::exp(-cotangent * cotangent / slope_variance);
-  return 0.5 * (first - std::erfc(cotangent / root_variance));
-}
-
-void check_albedo(const Numeric albedo) {
-  if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
-    throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
-}
-
-void check_weight(const Numeric weight) {
-  if (not std::isfinite(weight) or weight < 0.0)
-    throw std::domain_error("BRDF mixture weights must be finite and nonnegative");
-}
-
-void check_fraction(const Numeric fraction) {
-  if (not std::isfinite(fraction) or fraction < 0.0 or fraction > 1.0)
-    throw std::domain_error("BRDF mixture fraction must be finite and in [0, 1]");
-}
 }  // namespace
 
 Numeric Hapke::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
@@ -66,33 +43,10 @@ Numeric Hapke::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, 
 Numeric CoxMunk::operator()(const Numeric outgoing_mu,
                             const Numeric incoming_mu,
                             const Numeric relative_azimuth) const {
-  const Numeric mu_r = checked_mu(outgoing_mu);
-  const Numeric mu_i = checked_mu(incoming_mu);
-  if (wind_speed < 0.0 or refractive_index <= 0.0) throw std::domain_error("Invalid Cox-Munk BRDF parameters");
-
-  const Numeric sin_i       = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
-  const Numeric sin_r       = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
-  const Numeric cos_theta   = unit_clamp(-mu_i * mu_r + sin_i * sin_r * std::cos(relative_azimuth));
-  const Numeric denominator = 2.0 * (1.0 - cos_theta);
-  if (denominator == 0.0) return 0.0;
-  const Numeric mu_n_sq = (mu_i + mu_r) * (mu_i + mu_r) / denominator;
-  if (mu_n_sq <= 0.0) return 0.0;
-
-  const Numeric slope_variance = 0.003 + 0.00512 * wind_speed;
-  const Numeric probability = std::exp(-(1.0 - mu_n_sq) / (slope_variance * mu_n_sq)) / (Constant::pi * slope_variance);
-  const Numeric sin_li      = std::sqrt(std::max(0.0, 1.0 - 0.5 * (1.0 - cos_theta)));
-  const Numeric cos_li      = std::sqrt(std::max(0.0, 0.5 * (1.0 - cos_theta)));
-  const Numeric sin_lt      = sin_li / refractive_index;
-  Numeric       fresnel     = 1.0;
-  if (sin_lt <= 1.0) {
-    const Numeric cos_lt = std::sqrt(std::max(0.0, 1.0 - sin_lt * sin_lt));
-    const Numeric rs     = (cos_li - refractive_index * cos_lt) / (cos_li + refractive_index * cos_lt);
-    const Numeric rp     = (refractive_index * cos_li - cos_lt) / (cos_lt + refractive_index * cos_li);
-    fresnel              = 0.5 * (rs * rs + rp * rp);
-  }
-  Numeric result = probability * fresnel / (4.0 * mu_i * mu_r * mu_n_sq * mu_n_sq);
-  if (shadowing) result /= shadow_eta(mu_i, slope_variance) + shadow_eta(mu_r, slope_variance) + 1.0;
-  return result;
+  const auto reflection = disort_common::cox_munk_reflection(
+      outgoing_mu, incoming_mu, relative_azimuth, wind_speed, refractive_index, shadowing);
+  return 0.5 * reflection.factor *
+         (std::norm(reflection.amplitudes.vertical) + std::norm(reflection.amplitudes.horizontal));
 }
 
 Numeric RPV::operator()(const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) const {
@@ -144,14 +98,14 @@ Numeric RossLi::operator()(const Numeric outgoing_mu, const Numeric incoming_mu,
 }
 
 std::vector<BDRF> lambertian_fourier_modes(const Numeric albedo, const Index number_of_modes) {
-  check_albedo(albedo);
+  const Numeric coefficient = Constant::pi * disort_common::lambertian_brdf(albedo);
   if (number_of_modes < 0) throw std::invalid_argument("The number of Lambertian Fourier modes cannot be negative");
 
   std::vector<BDRF> result;
   result.reserve(static_cast<std::size_t>(number_of_modes));
   for (Index mode = 0; mode < number_of_modes; ++mode) {
     result.emplace_back(
-        BDRF{[coefficient = mode == 0 ? albedo : 0.0](
+        BDRF{[coefficient = mode == 0 ? coefficient : 0.0](
                  MatrixView output, const ConstVectorView&, const ConstVectorView&) { output = coefficient; }});
   }
   return result;
@@ -195,8 +149,8 @@ std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
                                         const Numeric     first_weight,
                                         std::vector<BDRF> second,
                                         const Numeric     second_weight) {
-  check_weight(first_weight);
-  check_weight(second_weight);
+  disort_common::check_surface_weight(first_weight);
+  disort_common::check_surface_weight(second_weight);
 
   struct Components {
     std::vector<BDRF> first;
@@ -235,7 +189,7 @@ std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fract
                                                     const bool    shadowing,
                                                     const Index   number_of_modes,
                                                     const Index   azimuth_quadrature_points) {
-  check_fraction(cox_munk_fraction);
+  disort_common::check_surface_fraction(cox_munk_fraction);
   return combine_fourier_modes(
       fourier_modes(CoxMunk{wind_speed, refractive_index, shadowing}, number_of_modes, azimuth_quadrature_points),
       cox_munk_fraction,

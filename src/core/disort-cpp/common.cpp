@@ -7,8 +7,86 @@
 #include <algorithm>
 #include <limits>
 #include <ranges>
+#include <stdexcept>
 
 namespace disort_common {
+namespace {
+Numeric checked_surface_mu(const Numeric mu) {
+  const Numeric value = std::abs(mu);
+  if (not(value > 0.0 and value <= 1.0)) throw std::domain_error("Surface direction cosine must satisfy 0 < |mu| <= 1");
+  return value;
+}
+
+Numeric shadow_eta(const Numeric mu, const Numeric slope_variance) {
+  const Numeric sine = std::sqrt(std::max(0.0, 1.0 - mu * mu));
+  if (sine == 0.0) return 0.0;
+  const Numeric cotangent = mu / sine;
+  const Numeric root      = std::sqrt(slope_variance);
+  return 0.5 * (root / (std::sqrt(Constant::pi) * cotangent) * std::exp(-cotangent * cotangent / slope_variance) -
+                std::erfc(cotangent / root));
+}
+}  // namespace
+
+Numeric lambertian_brdf(const Numeric albedo) {
+  if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
+    throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
+  return albedo * Constant::inv_pi;
+}
+
+void check_surface_weight(const Numeric weight) {
+  if (not std::isfinite(weight) or weight < 0.0)
+    throw std::domain_error("Surface-mixture weights must be finite and nonnegative");
+}
+
+void check_surface_fraction(const Numeric fraction) {
+  if (not std::isfinite(fraction) or fraction < 0.0 or fraction > 1.0)
+    throw std::domain_error("Surface-mixture fraction must be finite and in [0, 1]");
+}
+
+fresnel_amplitudes dielectric_fresnel_amplitudes(const Numeric incident_mu, const Numeric refractive_index) {
+  const Numeric mu = checked_surface_mu(incident_mu);
+  if (not std::isfinite(refractive_index) or refractive_index <= 0.0)
+    throw std::domain_error("The Fresnel refractive index must be finite and positive");
+  const Numeric transmitted_sine = std::sqrt(std::max(0.0, 1.0 - mu * mu)) / refractive_index;
+  const Numeric discriminant     = 1.0 - transmitted_sine * transmitted_sine;
+  const Complex transmitted_mu =
+      discriminant >= 0.0 ? Complex{std::sqrt(discriminant), 0.0} : std::sqrt(Complex{discriminant, 0.0});
+  return {
+      .vertical   = (refractive_index * mu - transmitted_mu) / (refractive_index * mu + transmitted_mu),
+      .horizontal = (mu - refractive_index * transmitted_mu) / (mu + refractive_index * transmitted_mu),
+  };
+}
+
+cox_munk_optics cox_munk_reflection(const Numeric outgoing_mu,
+                                    const Numeric incoming_mu,
+                                    const Numeric relative_azimuth,
+                                    const Numeric wind_speed,
+                                    const Numeric refractive_index,
+                                    const bool    shadowing) {
+  const Numeric mu_r = checked_surface_mu(outgoing_mu);
+  const Numeric mu_i = checked_surface_mu(incoming_mu);
+  if (not std::isfinite(wind_speed) or wind_speed < 0.0)
+    throw std::domain_error("Cox-Munk wind speed must be finite and nonnegative");
+  if (not std::isfinite(refractive_index) or refractive_index <= 0.0)
+    throw std::domain_error("The Cox-Munk refractive index must be finite and positive");
+
+  const Numeric sin_i       = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
+  const Numeric sin_r       = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));
+  const Numeric cos_theta   = std::clamp(-mu_i * mu_r + sin_i * sin_r * std::cos(relative_azimuth), -1.0, 1.0);
+  const Numeric denominator = 2.0 * (1.0 - cos_theta);
+  if (denominator == 0.0) return {};
+  const Numeric normal_mu_sq = (mu_i + mu_r) * (mu_i + mu_r) / denominator;
+  if (normal_mu_sq <= 0.0) return {};
+
+  const Numeric facet_mu       = std::sqrt(std::max(0.0, 0.5 * (1.0 - cos_theta)));
+  const auto    amplitudes     = dielectric_fresnel_amplitudes(facet_mu, refractive_index);
+  const Numeric slope_variance = 0.003 + 0.00512 * wind_speed;
+  const Numeric probability =
+      std::exp(-(1.0 - normal_mu_sq) / (slope_variance * normal_mu_sq)) / (Constant::pi * slope_variance);
+  Numeric factor = probability / (4.0 * mu_i * mu_r * normal_mu_sq * normal_mu_sq);
+  if (shadowing) factor /= 1.0 + shadow_eta(mu_i, slope_variance) + shadow_eta(mu_r, slope_variance);
+  return {.factor = factor, .amplitudes = amplitudes};
+}
 
 Numeric phi1_neg(const Numeric x) {
   if (x == 0.0) return 1.0;

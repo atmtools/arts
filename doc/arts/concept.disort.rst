@@ -773,6 +773,33 @@ cosine mode zero is nonzero.  In the raw VDISORT normalization its value is
 :math:`2A/\pi`; the factors in the boundary quadrature above recover the
 hemispherical Lambertian albedo :math:`A`.
 
+The physical Cox--Munk microfacet calculation is shared.  It computes one
+slope-probability/geometric factor and the two complex Fresnel amplitude
+coefficients.  Scalar DISORT multiplies the factor by
+
+.. math::
+
+   \frac{|r_v|^2+|r_h|^2}{2},
+
+which is exactly the :math:`M_{00}` element used by VDISORT.  VDISORT alone
+constructs and rotates the remaining Mueller elements.  Thus the scalar path
+does not pay for a :math:`4\times4` Mueller matrix or its reference-frame
+rotations, while both paths retain identical optics, shadowing, and treatment
+of total internal reflection.
+
+The two exact Lambertian *factories* remain deliberately separate thin
+adapters.  The common physical value is :math:`A/\pi`, but the solver callback
+normalizations differ: scalar DISORT stores :math:`R_0=A`, whereas VDISORT
+stores :math:`R^{c,0}_{00}=2A/\pi` before applying its boundary factor
+:math:`\pi`.  Sharing one returned callback would therefore either give one
+solver the wrong normalization or add a conversion on every evaluation.  The
+current conversion is performed once while constructing the modes and has no
+runtime cost.  Likewise, scalar Fourier projection evaluates one real cosine
+series using reflection symmetry; polarized projection must retain full-circle
+Mueller-valued cosine and sine series.  Reusing the polarized projector for
+scalar DISORT would do substantially more setup work without changing its
+answer.
+
 Surface operators can be combined *after* Fourier projection.  If models
 :math:`a` and :math:`b` have mode operators
 :math:`\boldsymbol R^{am}_a` and :math:`\boldsymbol R^{am}_b`, their weighted

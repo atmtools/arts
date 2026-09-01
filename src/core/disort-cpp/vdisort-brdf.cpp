@@ -1,6 +1,7 @@
 #include "vdisort-brdf.h"
 
 #include <arts_constants.h>
+#include <common.h>
 #include <legendre.h>
 #include <rtepack_surface.h>
 
@@ -13,21 +14,6 @@
 
 namespace vdisort::brdf {
 namespace {
-Numeric checked_mu(const Numeric mu) {
-  const Numeric value = std::abs(mu);
-  if (not(value > 0.0 and value <= 1.0)) throw std::domain_error("BPrDF direction cosine must satisfy 0 < |mu| <= 1");
-  return value;
-}
-
-Numeric shadow_eta(const Numeric mu, const Numeric slope_variance) {
-  const Numeric sine = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  if (sine == 0.0) return 0.0;
-  const Numeric cotangent = mu / sine;
-  const Numeric root      = std::sqrt(slope_variance);
-  return 0.5 * (root / (std::sqrt(Constant::pi) * cotangent) * std::exp(-cotangent * cotangent / slope_variance) -
-                std::erfc(cotangent / root));
-}
-
 Vector3 direction(const Numeric mu, const Numeric azimuth) {
   const Numeric sine = std::sqrt(std::max(0.0, 1.0 - mu * mu));
   return {sine * std::cos(azimuth), sine * std::sin(azimuth), mu};
@@ -63,72 +49,41 @@ void fill_combined(rtepack::muelmat&       cosine,
     }
 }
 
-void check_albedo(const Numeric albedo) {
-  if (not std::isfinite(albedo) or albedo < 0.0 or albedo > 1.0)
-    throw std::domain_error("Lambertian albedo must be finite and in [0, 1]");
-}
-
-void check_weight(const Numeric weight) {
-  if (not std::isfinite(weight) or weight < 0.0)
-    throw std::domain_error("BPrDF mixture weights must be finite and nonnegative");
-}
-
-void check_fraction(const Numeric fraction) {
-  if (not std::isfinite(fraction) or fraction < 0.0 or fraction > 1.0)
-    throw std::domain_error("BPrDF mixture fraction must be finite and in [0, 1]");
-}
 }  // namespace
 
 rtepack::muelmat CoxMunk::operator()(const Numeric outgoing_mu,
                                      const Numeric incoming_mu,
                                      const Numeric relative_azimuth) const {
-  const Numeric mu_r = checked_mu(outgoing_mu);
-  const Numeric mu_i = checked_mu(incoming_mu);
-  if (wind_speed < 0.0 or refractive_index <= 0.0) throw std::domain_error("Invalid polarized Cox-Munk parameters");
+  const auto reflection = disort_common::cox_munk_reflection(
+      outgoing_mu, incoming_mu, relative_azimuth, wind_speed, refractive_index, shadowing);
+  if (reflection.factor == 0.0) return rtepack::muelmat{0.0};
 
+  const Numeric mu_r     = std::abs(outgoing_mu);
+  const Numeric mu_i     = std::abs(incoming_mu);
   const Vector3 incident = direction(-mu_i, 0.0);
   const Vector3 outgoing = direction(mu_r, relative_azimuth);
   Vector3       normal   = outgoing - incident;
   const Numeric norm     = hypot(normal);
   if (norm == 0.0) return rtepack::muelmat{0.0};
   normal /= norm;
-  if (normal[2] <= 0.0) return rtepack::muelmat{0.0};
-
-  const Numeric facet_mu = -dot(incident, normal);
-  if (facet_mu <= 0.0) return rtepack::muelmat{0.0};
-  const Numeric transmitted_sine = std::sqrt(std::max(0.0, 1.0 - facet_mu * facet_mu)) / refractive_index;
-  if (transmitted_sine > 1.0) return rtepack::muelmat{0.0};
-  const Numeric transmitted_mu = std::sqrt(std::max(0.0, 1.0 - transmitted_sine * transmitted_sine));
-  const Numeric rv = (refractive_index * facet_mu - transmitted_mu) / (refractive_index * facet_mu + transmitted_mu);
-  const Numeric rh = (facet_mu - refractive_index * transmitted_mu) / (facet_mu + refractive_index * transmitted_mu);
-
-  const Numeric slope_variance = 0.003 + 0.00512 * wind_speed;
-  const Numeric normal_mu_sq   = normal[2] * normal[2];
-  const Numeric probability =
-      std::exp(-(1.0 - normal_mu_sq) / (slope_variance * normal_mu_sq)) / (Constant::pi * slope_variance);
-  Numeric factor = probability / (4.0 * mu_i * mu_r * normal_mu_sq * normal_mu_sq);
-  if (shadowing) factor /= 1.0 + shadow_eta(mu_i, slope_variance) + shadow_eta(mu_r, slope_variance);
-  return factor * rtepack::fresnel_reflectance_nonspecular(rv, rh, incident, outgoing, normal);
+  return reflection.factor *
+         rtepack::fresnel_reflectance_nonspecular(
+             reflection.amplitudes.vertical, reflection.amplitudes.horizontal, incident, outgoing, normal);
 }
 
 rtepack::muelmat Fresnel::operator()(const Numeric incident_mu) const {
-  const Numeric mu = checked_mu(incident_mu);
-  if (refractive_index <= 0.0) throw std::domain_error("The Fresnel refractive index must be positive");
-  const Numeric transmitted_sine = std::sqrt(std::max(0.0, 1.0 - mu * mu)) / refractive_index;
-  const Complex transmitted_mu   = std::sqrt(Complex{1.0 - transmitted_sine * transmitted_sine, 0.0});
-  const Complex rv               = (refractive_index * mu - transmitted_mu) / (refractive_index * mu + transmitted_mu);
-  const Complex rh               = (mu - refractive_index * transmitted_mu) / (mu + refractive_index * transmitted_mu);
-  return rtepack::fresnel_reflectance(rv, rh);
+  const auto amplitudes = disort_common::dielectric_fresnel_amplitudes(incident_mu, refractive_index);
+  return rtepack::fresnel_reflectance(amplitudes.vertical, amplitudes.horizontal);
 }
 
 std::vector<BDRF> lambertian_fourier_modes(const Numeric albedo, const Index number_of_modes) {
-  check_albedo(albedo);
+  const Numeric coefficient = 2.0 * disort_common::lambertian_brdf(albedo);
   if (number_of_modes < 0) throw std::invalid_argument("The number of Lambertian Fourier modes cannot be negative");
 
   std::vector<BDRF> result;
   result.reserve(static_cast<std::size_t>(number_of_modes));
   for (Index mode = 0; mode < number_of_modes; ++mode) {
-    const auto evaluate = [coefficient = mode == 0 ? 2.0 * albedo * Constant::inv_pi : 0.0](
+    const auto evaluate = [coefficient = mode == 0 ? coefficient : 0.0](
                               rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
       output = rtepack::muelmat{0.0};
       if (coefficient != 0.0)
@@ -289,8 +244,8 @@ std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
                                         const Numeric     first_weight,
                                         std::vector<BDRF> second,
                                         const Numeric     second_weight) {
-  check_weight(first_weight);
-  check_weight(second_weight);
+  disort_common::check_surface_weight(first_weight);
+  disort_common::check_surface_weight(second_weight);
 
   struct Components {
     std::vector<BDRF> first;
@@ -352,7 +307,7 @@ std::vector<BDRF> fresnel_lambertian_fourier_modes(const Numeric fresnel_fractio
                                                    const Numeric lambertian_albedo,
                                                    const Numeric refractive_index,
                                                    const Index   number_of_modes) {
-  check_fraction(fresnel_fraction);
+  disort_common::check_surface_fraction(fresnel_fraction);
   return combine_fourier_modes(fresnel_fourier_modes(refractive_index, number_of_modes),
                                fresnel_fraction,
                                lambertian_fourier_modes(lambertian_albedo, number_of_modes),
@@ -366,7 +321,7 @@ std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fract
                                                     const bool    shadowing,
                                                     const Index   number_of_modes,
                                                     const Index   azimuth_quadrature_points) {
-  check_fraction(cox_munk_fraction);
+  disort_common::check_surface_fraction(cox_munk_fraction);
   return combine_fourier_modes(
       cox_munk_fourier_modes(wind_speed, refractive_index, shadowing, number_of_modes, azimuth_quadrature_points),
       cox_munk_fraction,

@@ -43,6 +43,44 @@ struct centered_pair_basis {
   Numeric kappa_sinh{};
 };
 
+/** Fresnel amplitude coefficients in the local vertical/horizontal basis. */
+struct fresnel_amplitudes {
+  Complex vertical{};
+  Complex horizontal{};
+};
+
+/** Shared scalar part of a Cox-Munk microfacet reflection.
+ *
+ * `factor` contains the slope probability, projected-area denominator, and
+ * optional shadowing.  Multiplying it by a Fresnel Mueller matrix gives the
+ * polarized BPrDF; multiplying it by the mean squared Fresnel amplitudes gives
+ * the scalar BRDF.
+ */
+struct cox_munk_optics {
+  Numeric            factor{};
+  fresnel_amplitudes amplitudes{};
+};
+
+/** Return the physical Lambertian BRDF A/pi after validating its albedo. */
+[[nodiscard]] Numeric lambertian_brdf(Numeric albedo);
+
+/** Validate a nonnegative finite surface-mixture weight. */
+void check_surface_weight(Numeric weight);
+
+/** Validate a finite surface-mixture fraction in [0, 1]. */
+void check_surface_fraction(Numeric fraction);
+
+/** Compute dielectric Fresnel amplitudes, including total internal reflection. */
+[[nodiscard]] fresnel_amplitudes dielectric_fresnel_amplitudes(Numeric incident_mu, Numeric refractive_index);
+
+/** Compute the shared optical and microfacet factor of Cox-Munk reflection. */
+[[nodiscard]] cox_munk_optics cox_munk_reflection(Numeric outgoing_mu,
+                                                  Numeric incoming_mu,
+                                                  Numeric relative_azimuth,
+                                                  Numeric wind_speed,
+                                                  Numeric refractive_index,
+                                                  bool    shadowing);
+
 /** Evaluate sinh(x)/x with a cancellation-free series near zero. */
 [[nodiscard]] inline Numeric sinhc(const Numeric x) {
   if (std::abs(x) >= 1.0e-4) return std::sinh(x) / x;
