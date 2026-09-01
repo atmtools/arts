@@ -91,6 +91,10 @@ def test_combined_surface_models():
     assert len(scalar) == 2
     assert np.isfinite(scalar[0](mu, mu)).all()
 
+    absorbing = np.asarray(arts.vdisort.fresnel_reflection(0.5, 1.5 + 0.1j))
+    assert np.isfinite(absorbing).all()
+    assert abs(absorbing[2, 3]) > 1.0e-12
+
 
 def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
     """Rayleigh first Mueller column in each outgoing local-meridian frame."""

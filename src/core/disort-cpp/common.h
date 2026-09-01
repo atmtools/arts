@@ -71,14 +71,14 @@ void check_surface_weight(Numeric weight);
 void check_surface_fraction(Numeric fraction);
 
 /** Compute dielectric Fresnel amplitudes, including total internal reflection. */
-[[nodiscard]] fresnel_amplitudes dielectric_fresnel_amplitudes(Numeric incident_mu, Numeric refractive_index);
+[[nodiscard]] fresnel_amplitudes dielectric_fresnel_amplitudes(Numeric incident_mu, Complex refractive_index);
 
 /** Compute the shared optical and microfacet factor of Cox-Munk reflection. */
 [[nodiscard]] cox_munk_optics cox_munk_reflection(Numeric outgoing_mu,
                                                   Numeric incoming_mu,
                                                   Numeric relative_azimuth,
                                                   Numeric wind_speed,
-                                                  Numeric refractive_index,
+                                                  Complex refractive_index,
                                                   bool    shadowing);
 
 /** Evaluate sinh(x)/x with a cancellation-free series near zero. */

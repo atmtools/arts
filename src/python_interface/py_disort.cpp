@@ -208,7 +208,7 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
          const Numeric incoming_mu,
          const Numeric relative_azimuth,
          const Numeric wind_speed,
-         const Numeric refractive_index,
+         const Complex refractive_index,
          const bool    shadowing) {
         return vdisort::brdf::CoxMunk{wind_speed, refractive_index, shadowing}(
             outgoing_mu, incoming_mu, relative_azimuth);
@@ -217,7 +217,7 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
       "incoming_mu"_a,
       "relative_azimuth"_a,
       "wind_speed"_a       = 5.0,
-      "refractive_index"_a = 1.34,
+      "refractive_index"_a = Complex{1.34, 0.0},
       "shadowing"_a        = true,
       "Evaluate the raw polarized Cox-Munk BPrDF in the ARTS Stokes basis");
   vdisort_nm.def("cox_munk_fourier_modes",
@@ -230,11 +230,11 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
                  "Construct VDISORT-ready combined Fourier modes for a polarized Cox-Munk ocean");
   vdisort_nm.def(
       "fresnel_reflection",
-      [](const Numeric incident_mu, const Numeric refractive_index) {
+      [](const Numeric incident_mu, const Complex refractive_index) {
         return vdisort::brdf::Fresnel{refractive_index}(incident_mu);
       },
       "incident_mu"_a,
-      "refractive_index"_a = 1.5,
+      "refractive_index"_a = Complex{1.5, 0.0},
       "Evaluate the polarized Fresnel reflection matrix of a flat dielectric interface");
   vdisort_nm.def("fresnel_fourier_modes",
                  &vdisort::brdf::fresnel_fourier_modes,

@@ -14,7 +14,7 @@ using RawFunction = std::function<rtepack::muelmat(Numeric outgoing_mu, Numeric 
  */
 struct CoxMunk {
   Numeric wind_speed{5.0};
-  Numeric refractive_index{1.34};
+  Complex refractive_index{1.34, 0.0};
   bool    shadowing{true};
 
   [[nodiscard]] rtepack::muelmat operator()(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth) const;
@@ -27,7 +27,7 @@ struct CoxMunk {
  * operator directly rather than passing through fourier_modes().
  */
 struct Fresnel {
-  Numeric refractive_index{1.5};
+  Complex refractive_index{1.5, 0.0};
 
   [[nodiscard]] rtepack::muelmat operator()(Numeric incident_mu) const;
 };
@@ -47,7 +47,7 @@ struct Fresnel {
 
 /** Construct VDISORT-ready combined Fourier modes for a Cox-Munk ocean. */
 [[nodiscard]] std::vector<BDRF> cox_munk_fourier_modes(Numeric wind_speed,
-                                                       Numeric refractive_index,
+                                                       Complex refractive_index,
                                                        bool    shadowing,
                                                        Index   number_of_modes,
                                                        Index   azimuth_quadrature_points = 100);
@@ -58,7 +58,7 @@ struct Fresnel {
  * Consequently this representation is intended for the native quadrature
  * solution, not direct-beam reflection at arbitrary user directions.
  */
-[[nodiscard]] std::vector<BDRF> fresnel_fourier_modes(Numeric refractive_index, Index number_of_modes);
+[[nodiscard]] std::vector<BDRF> fresnel_fourier_modes(Complex refractive_index, Index number_of_modes);
 
 /** Form a weighted sum of two already-projected polarized surface models.
  *
@@ -80,14 +80,14 @@ struct Fresnel {
  */
 [[nodiscard]] std::vector<BDRF> fresnel_lambertian_fourier_modes(Numeric fresnel_fraction,
                                                                  Numeric lambertian_albedo,
-                                                                 Numeric refractive_index,
+                                                                 Complex refractive_index,
                                                                  Index   number_of_modes);
 
 /** Construct a rough Fresnel Cox-Munk/depolarizing Lambertian mixture. */
 [[nodiscard]] std::vector<BDRF> cox_munk_lambertian_fourier_modes(Numeric cox_munk_fraction,
                                                                   Numeric lambertian_albedo,
                                                                   Numeric wind_speed,
-                                                                  Numeric refractive_index,
+                                                                  Complex refractive_index,
                                                                   bool    shadowing,
                                                                   Index   number_of_modes,
                                                                   Index   azimuth_quadrature_points = 100);

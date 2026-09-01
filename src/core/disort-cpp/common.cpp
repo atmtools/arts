@@ -43,14 +43,15 @@ void check_surface_fraction(const Numeric fraction) {
     throw std::domain_error("Surface-mixture fraction must be finite and in [0, 1]");
 }
 
-fresnel_amplitudes dielectric_fresnel_amplitudes(const Numeric incident_mu, const Numeric refractive_index) {
+fresnel_amplitudes dielectric_fresnel_amplitudes(const Numeric incident_mu, const Complex refractive_index) {
   const Numeric mu = checked_surface_mu(incident_mu);
-  if (not std::isfinite(refractive_index) or refractive_index <= 0.0)
-    throw std::domain_error("The Fresnel refractive index must be finite and positive");
-  const Numeric transmitted_sine = std::sqrt(std::max(0.0, 1.0 - mu * mu)) / refractive_index;
-  const Numeric discriminant     = 1.0 - transmitted_sine * transmitted_sine;
-  const Complex transmitted_mu =
-      discriminant >= 0.0 ? Complex{std::sqrt(discriminant), 0.0} : std::sqrt(Complex{discriminant, 0.0});
+  if (not std::isfinite(refractive_index.real()) or not std::isfinite(refractive_index.imag()) or
+      refractive_index.real() <= 0.0)
+    throw std::domain_error("The Fresnel refractive index must be finite with positive real part");
+  const Complex transmitted_sine = std::sqrt(std::max(0.0, 1.0 - mu * mu)) / refractive_index;
+  Complex       transmitted_mu   = std::sqrt(Complex{1.0, 0.0} - transmitted_sine * transmitted_sine);
+  if (transmitted_mu.real() < 0.0 or (transmitted_mu.real() == 0.0 and transmitted_mu.imag() < 0.0))
+    transmitted_mu = -transmitted_mu;
   return {
       .vertical   = (refractive_index * mu - transmitted_mu) / (refractive_index * mu + transmitted_mu),
       .horizontal = (mu - refractive_index * transmitted_mu) / (mu + refractive_index * transmitted_mu),
@@ -61,14 +62,12 @@ cox_munk_optics cox_munk_reflection(const Numeric outgoing_mu,
                                     const Numeric incoming_mu,
                                     const Numeric relative_azimuth,
                                     const Numeric wind_speed,
-                                    const Numeric refractive_index,
+                                    const Complex refractive_index,
                                     const bool    shadowing) {
   const Numeric mu_r = checked_surface_mu(outgoing_mu);
   const Numeric mu_i = checked_surface_mu(incoming_mu);
   if (not std::isfinite(wind_speed) or wind_speed < 0.0)
     throw std::domain_error("Cox-Munk wind speed must be finite and nonnegative");
-  if (not std::isfinite(refractive_index) or refractive_index <= 0.0)
-    throw std::domain_error("The Cox-Munk refractive index must be finite and positive");
 
   const Numeric sin_i       = std::sqrt(std::max(0.0, 1.0 - mu_i * mu_i));
   const Numeric sin_r       = std::sqrt(std::max(0.0, 1.0 - mu_r * mu_r));

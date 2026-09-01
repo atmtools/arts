@@ -852,7 +852,7 @@ void test_combined_surface_models() {
 }
 
 void test_scalar_and_polarized_cox_munk_overlap() {
-  for (const Numeric refractive_index : {1.34, 0.75})
+  for (const Complex refractive_index : {Complex{1.34, 0.0}, Complex{0.75, 0.0}, Complex{1.34, 0.08}})
     for (const bool shadowing : {false, true})
       for (const Numeric outgoing_mu : {0.15, 0.5, 0.9})
         for (const Numeric incoming_mu : {0.2, 0.65})
@@ -865,6 +865,30 @@ void test_scalar_and_polarized_cox_munk_overlap() {
                          scalar(outgoing_mu, incoming_mu, azimuth),
                          "scalar/polarized Cox-Munk M00 overlap");
           }
+
+  const auto absorbing_fresnel = vdisort::brdf::Fresnel{Complex{1.5, 0.1}}(0.5);
+  ARTS_USER_ERROR_IF(std::abs(absorbing_fresnel[2, 3]) <= 1.0e-12,
+                     "A complex refractive index produced no Fresnel U/V phase coupling");
+}
+
+void test_eigenvalue_direction_check() {
+  constexpr Index nquad = 2;
+  Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
+  for (Index alpha = 0; alpha < 2; ++alpha)
+    for (Index stokes = 0; stokes < 4; ++stokes) phase[alpha, 0, 0, 1, 1, stokes, stokes] = 10.0;
+  Tensor4 up(2, 1, 1, 4, 0.0), down(2, 1, 1, 4, 0.0);
+
+  try {
+    static_cast<void>(
+        make_vdisort(nquad, AscendingGrid{1.0}, Vector{0.5}, std::move(phase), std::move(up), std::move(down)));
+  } catch (const std::exception& error) {
+    ARTS_USER_ERROR_IF(
+        std::string_view{error.what()}.find("cannot be split between the boundaries") == std::string_view::npos,
+        "Unexpected eigenvalue-direction error: {}",
+        error.what());
+    return;
+  }
+  ARTS_USER_ERROR("VDISORT accepted an eigenspectrum without a valid propagation-direction split");
 }
 }  // namespace
 
@@ -886,6 +910,7 @@ int main() try {
   test_spectral_phase_matrix_split();
   test_combined_surface_models();
   test_scalar_and_polarized_cox_munk_overlap();
+  test_eigenvalue_direction_check();
   std::cout << "vdisort tests passed\n";
   return 0;
 } catch (const std::exception& error) {

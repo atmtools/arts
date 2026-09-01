@@ -19,7 +19,7 @@ struct Hapke {
 
 struct CoxMunk {
   Numeric wind_speed{12.0};
-  Numeric refractive_index{1.34};
+  Complex refractive_index{1.34, 0.0};
   bool    shadowing{false};
 
   Numeric operator()(Numeric outgoing_mu, Numeric incoming_mu, Numeric relative_azimuth) const;
@@ -81,7 +81,7 @@ std::vector<BDRF> fourier_modes(RawFunction raw, Index number_of_modes, Index az
 [[nodiscard]] std::vector<BDRF> cox_munk_lambertian_fourier_modes(Numeric cox_munk_fraction,
                                                                   Numeric lambertian_albedo,
                                                                   Numeric wind_speed,
-                                                                  Numeric refractive_index,
+                                                                  Complex refractive_index,
                                                                   bool    shadowing,
                                                                   Index   number_of_modes,
                                                                   Index   azimuth_quadrature_points = 100);

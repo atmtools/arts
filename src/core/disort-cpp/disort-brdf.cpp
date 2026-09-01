@@ -185,7 +185,7 @@ std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
 std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fraction,
                                                     const Numeric lambertian_albedo,
                                                     const Numeric wind_speed,
-                                                    const Numeric refractive_index,
+                                                    const Complex refractive_index,
                                                     const bool    shadowing,
                                                     const Index   number_of_modes,
                                                     const Index   azimuth_quadrature_points) {

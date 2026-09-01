@@ -773,9 +773,22 @@ cosine mode zero is nonzero.  In the raw VDISORT normalization its value is
 :math:`2A/\pi`; the factors in the boundary quadrature above recover the
 hemispherical Lambertian albedo :math:`A`.
 
+The remaining scalar empirical models do not define a unique polarized
+surface.  They can be embedded consistently as fully depolarizing operators by
+placing the scalar BRDF in :math:`M_{00}` and setting every other Mueller
+element to zero.  That embedding preserves scalar DISORT exactly, but it is not
+a physical polarized Hapke, RPV, or Ross--Li model.  A genuinely polarized
+catalogue requires selecting a published Mueller extension and its reference-
+plane conventions for each model; it cannot be inferred from the scalar BRDF
+alone.
+
 The physical Cox--Munk microfacet calculation is shared.  It computes one
 slope-probability/geometric factor and the two complex Fresnel amplitude
-coefficients.  Scalar DISORT multiplies the factor by
+coefficients.  The refractive index may itself be complex.  Its imaginary
+part describes absorption in the reflecting material and changes the surface
+Mueller matrix; it is not atmospheric extinction and therefore does not alter
+``tau_arr``.  Absorption by a volume above the boundary must be represented in
+that volume's optical depth separately.  Scalar DISORT multiplies the factor by
 
 .. math::
 
@@ -1021,11 +1034,22 @@ the retained transport expansion.  If any layer fails the consistency checks
 for a useful Gaussian tail, all layers fall back to classical delta-M.
 
 VDISORT's transport object receives already transformed Mueller phase
-operators and optical depths; it does not invent a general Mueller-valued
-delta-M-plus transformation.  The validated delta-M-plus path for VDISORT is
-the scalar :math:`M_{00}` reduction.  General polarized delta-M corrections
-require an explicitly defined removed Mueller peak in a common laboratory
-reference frame.
+operators and optical depths; it does not infer a forward-peak removal from an
+arbitrary Mueller expansion.  This division is deliberate.  If the scattering
+setup supplies the removed fraction, the original phase operator, the
+transport phase operator, and the normalized removed Mueller peak, applying
+the transformation and constructing the correction cache is mechanical.  The
+caller that owns the particle model is also the component best placed to know
+whether those quantities form a physically meaningful split.
+
+Inferring that split automatically is a different and substantially harder
+operation.  A scalar forward-peak width and fraction cannot in general be
+fitted independently to every Mueller element: the result must preserve energy
+normalization, realizability, reciprocity, and the Stokes reference-plane
+transformations.  The validated delta-M-plus path for VDISORT is consequently
+the scalar :math:`M_{00}` reduction.  A general polarized delta-M-plus model
+requires an explicitly chosen and validated removed Mueller peak in a common
+laboratory reference frame; the core does not guess one from the input data.
 
 IMS and TMS intensity corrections
 =================================
@@ -1158,24 +1182,33 @@ or comparing the cores:
   path.  VDISORT stabilizes the one physically required energy-conservation
   pair.  A contrived Mueller operator with additional independently conserved
   polarization quantities can contain more zero pairs and is not covered by
-  this single-pair representation.
+  this single-pair representation.  Generalizing this is intentionally deferred
+  until a physically occurring scattering model requiring it is identified.
 * **Complex VDISORT modes.**  A real physical solution can use complex
   eigenpairs.  The reconstructed imaginary part is required to cancel to a
   relative tolerance of about :math:`2\,10^{-8}` before the real part is
   returned.  Failure indicates an ill-conditioned or incorrectly assembled
   system, not a physical complex radiance.
-* **VDISORT spectral split.**  Anchoring assumes that sorting by real part
-  places exactly half the modes on each side of the spectrum.  Degenerate or
-  nearly imaginary modes can make this classification ill-conditioned because
-  the implementation splits by sorted position, not by an explicit sign test.
+* **VDISORT spectral split.**  Anchoring requires half the non-neutral modes to
+  propagate toward each boundary.  After sorting, the implementation checks
+  this sign split.  A relative neutral band of :math:`10^{-10}` times the
+  eigenspectrum scale permits mathematically zero or nearly imaginary modes to
+  occupy either half; a non-neutral sign imbalance or a mode on the wrong side
+  is rejected before boundary assembly.
 * **Beam--eigenmode resonance.**  The direct-beam particular solution contains
   :math:`(K_e+1/\mu_0)^{-1}`.  If a propagation constant is close to
-  :math:`-1/\mu_0`, the direct-beam solve is poorly conditioned.  The cores do
-  not currently issue a proximity warning.
-* **Transparent layers.**  A layer with exactly zero optical thickness and no
-  interaction can produce a degenerate eigensystem.  Reference surface-only
-  tests use a negligible but nonzero optical thickness and albedo instead of
-  claiming exact transparent-layer support.
+  :math:`-1/\mu_0`, the direct-beam solve is poorly conditioned.  This is not a
+  small-:math:`\mu_0` failure by itself and should not be handled by clipping
+  grazing solar angles.  At exact resonance the limiting particular solution
+  contains a factor proportional to :math:`\tau\exp(-\tau/\mu_0)` rather than
+  two separately singular exponential terms.  The cores do not yet select
+  this limiting form or issue a proximity warning.
+* **Transparent layers.**  Exact zero-thickness layers are not accepted.
+  ``tau_arr`` is a strictly increasing cumulative optical-depth grid beginning
+  above zero, so each represented layer has positive thickness.  A transparent
+  layer should be removed before constructing the solver.  Reference
+  surface-only tests use a negligible but nonzero optical thickness and albedo;
+  this approximates, but does not claim, exact transparent-layer support.
 * **No absorption cutoff.**  An absorption-optical-depth shortcut is not
   implemented.  The complete physical solution is evaluated instead.
 * **No special-boundary shortcut.**  ``IBCND=1`` albedo/transmission is not a

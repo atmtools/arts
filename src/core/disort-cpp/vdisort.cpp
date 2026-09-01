@@ -137,6 +137,67 @@ void fill_combined(rtepack::muelmat&       out_cos,
   out_sin[3, 3] = ordinary_cos[3, 3];
 }
 
+/** Verify that decaying and growing eigenmodes can be assigned to opposite boundaries.
+ *
+ * Eigenvalues whose real part is negligible relative to the spectral scale
+ * are neutral and may occupy either half.  Every non-neutral mode must have
+ * the sign implied by its sorted position.
+ */
+void check_eigenvalue_direction_split(const ComplexVector&      eigenvalues,
+                                      const std::vector<Index>& order,
+                                      const Index               half_state,
+                                      const Index               alpha,
+                                      const Index               mode,
+                                      const Index               layer) {
+  Numeric scale = 1.0;
+  for (const Complex value : eigenvalues) {
+    ARTS_USER_ERROR_IF(not std::isfinite(value.real()) or not std::isfinite(value.imag()),
+                       "VDISORT eigensystem ({}, {}, {}) contains the non-finite eigenvalue {}",
+                       alpha,
+                       mode,
+                       layer,
+                       value);
+    scale = std::max(scale, std::abs(value));
+  }
+  constexpr Numeric relative_tolerance = 1.0e-10;
+  const Numeric     tolerance          = relative_tolerance * scale;
+
+  Index negative = 0, neutral = 0, positive = 0;
+  for (const Complex value : eigenvalues) {
+    if (value.real() < -tolerance)
+      ++negative;
+    else if (value.real() > tolerance)
+      ++positive;
+    else
+      ++neutral;
+  }
+  ARTS_USER_ERROR_IF(negative > half_state or positive > half_state,
+                     "VDISORT eigensystem ({}, {}, {}) cannot be split between the boundaries: "
+                     "{} negative, {} neutral, and {} positive modes for half-state size {} "
+                     "(neutral tolerance {})",
+                     alpha,
+                     mode,
+                     layer,
+                     negative,
+                     neutral,
+                     positive,
+                     half_state,
+                     tolerance);
+
+  for (Index sorted = 0; sorted < 2 * half_state; ++sorted) {
+    const Numeric real = eigenvalues[order[static_cast<std::size_t>(sorted)]].real();
+    ARTS_USER_ERROR_IF((sorted < half_state and real > tolerance) or (sorted >= half_state and real < -tolerance),
+                       "VDISORT eigenvalue {} at sorted position {} has the wrong propagation direction "
+                       "for eigensystem ({}, {}, {}); neutral tolerance is {}",
+                       eigenvalues[order[static_cast<std::size_t>(sorted)]],
+                       sorted,
+                       alpha,
+                       mode,
+                       layer,
+                       tolerance);
+  }
+}
+
 }  // namespace
 
 namespace vdisort {
@@ -741,6 +802,7 @@ void main_data::diagonalize() {
           if (eigenvalues[a].real() != eigenvalues[b].real()) return eigenvalues[a].real() < eigenvalues[b].real();
           return eigenvalues[a].imag() < eigenvalues[b].imag();
         });
+        check_eigenvalue_direction_split(eigenvalues, order, NHalfState, alpha, m, l);
 
         for (Index e = 0; e < NState; ++e) {
           const Index old                            = order[static_cast<std::size_t>(e)];

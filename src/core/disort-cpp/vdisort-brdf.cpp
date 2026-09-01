@@ -189,14 +189,14 @@ std::vector<BDRF> fourier_modes(RawFunction raw, const Index number_of_modes, co
 }
 
 std::vector<BDRF> cox_munk_fourier_modes(const Numeric wind_speed,
-                                         const Numeric refractive_index,
+                                         const Complex refractive_index,
                                          const bool    shadowing,
                                          const Index   number_of_modes,
                                          const Index   azimuth_quadrature_points) {
   return fourier_modes(CoxMunk{wind_speed, refractive_index, shadowing}, number_of_modes, azimuth_quadrature_points);
 }
 
-std::vector<BDRF> fresnel_fourier_modes(const Numeric refractive_index, const Index number_of_modes) {
+std::vector<BDRF> fresnel_fourier_modes(const Complex refractive_index, const Index number_of_modes) {
   if (number_of_modes < 0) throw std::invalid_argument("The number of Fresnel Fourier modes cannot be negative");
   const Fresnel fresnel{refractive_index};
   // Validate eagerly, including when zero modes are requested.
@@ -305,7 +305,7 @@ std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
 
 std::vector<BDRF> fresnel_lambertian_fourier_modes(const Numeric fresnel_fraction,
                                                    const Numeric lambertian_albedo,
-                                                   const Numeric refractive_index,
+                                                   const Complex refractive_index,
                                                    const Index   number_of_modes) {
   disort_common::check_surface_fraction(fresnel_fraction);
   return combine_fourier_modes(fresnel_fourier_modes(refractive_index, number_of_modes),
@@ -317,7 +317,7 @@ std::vector<BDRF> fresnel_lambertian_fourier_modes(const Numeric fresnel_fractio
 std::vector<BDRF> cox_munk_lambertian_fourier_modes(const Numeric cox_munk_fraction,
                                                     const Numeric lambertian_albedo,
                                                     const Numeric wind_speed,
-                                                    const Numeric refractive_index,
+                                                    const Complex refractive_index,
                                                     const bool    shadowing,
                                                     const Index   number_of_modes,
                                                     const Index   azimuth_quadrature_points) {
