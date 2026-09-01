@@ -155,7 +155,12 @@ jobs:
         if: matrix.check == 'yes'
         shell: bash -l {0}
         run: |
-          cmake --build build --target pyarts-package
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cmake --build build --target pyarts_cpp
+            (cd build/python && python -m build --no-isolation)
+          else
+            cmake --build build --target pyarts-package
+          fi
 
       - name: Build SRC
         if: matrix.check == 'yes'
