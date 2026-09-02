@@ -51,6 +51,24 @@ Muelmat numerical_magnus_linsrc_deriv(
   return (trp.magnus_linsrc(k0p, k1p, rp) - trm.magnus_linsrc(k0m, k1m, rm)) / (2.0 * eps);
 }
 
+Muelmat numerical_linprop_linsrc_deriv(
+    const Propmat& k0, const Propmat& k1, const Propmat& dk, const Numeric r, const Numeric dr, const bool k0_deriv) {
+  constexpr Numeric   eps = 1e-6;
+  const Propmat       dk0 = k0_deriv ? dk : Propmat{};
+  const Propmat       dk1 = k0_deriv ? Propmat{} : dk;
+  const Propmat       k0p = k0 + eps * dk0;
+  const Propmat       k1p = k1 + eps * dk1;
+  const Propmat       k0m = k0 - eps * dk0;
+  const Propmat       k1m = k1 - eps * dk1;
+  const Numeric       rp  = r + eps * dr;
+  const Numeric       rm  = r - eps * dr;
+  const rtepack::tran trp{k0p, k1p, rp};
+  const rtepack::tran trm{k0m, k1m, rm};
+  const Muelmat       tp = trp();
+  const Muelmat       tm = trm();
+  return (trp.linsrc_linprop(tp, k0p, k1p, rp) - trm.linsrc_linprop(tm, k0m, k1m, rm)) / (2.0 * eps);
+}
+
 bool test_exponential() {
   constexpr Numeric r = 0.7;
   const Propmat     k0{0.8, 0.03, -0.02, 0.01, 0.04, -0.015, 0.025};
@@ -281,6 +299,27 @@ bool test_analytical_derivatives() {
   const Muelmat nl1 = numerical_magnus_linsrc_deriv(k0, k1, dk1, r, dr1, false);
   if (not close(dl0, nl0, 2e-8) or not close(dl1, nl1, 2e-8)) {
     std::cerr << "Analytical Magnus linear-source derivatives disagree with centered differences\n";
+    return false;
+  }
+
+  const Propmat       linprop_k0{0.4};
+  const Propmat       linprop_k1{1.1};
+  const Propmat       linprop_dk0{0.07};
+  const Propmat       linprop_dk1{-0.03};
+  const rtepack::tran linprop_tr{linprop_k0, linprop_k1, r};
+  const Muelmat       linprop_t = linprop_tr();
+  const Muelmat       linprop_l = linprop_tr.linsrc_linprop(linprop_t, linprop_k0, linprop_k1, r);
+  const Muelmat linprop_dt0 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk0, r, dr0);
+  const Muelmat linprop_dt1 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk1, r, dr1);
+  if (not close(linprop_tr.linsrc_linprop_deriv(
+                    linprop_l, linprop_t, linprop_k0, linprop_k1, linprop_dk0, linprop_dt0, r, dr0, true),
+                numerical_linprop_linsrc_deriv(linprop_k0, linprop_k1, linprop_dk0, r, dr0, true),
+                2e-8) or
+      not close(linprop_tr.linsrc_linprop_deriv(
+                    linprop_l, linprop_t, linprop_k0, linprop_k1, linprop_dk1, linprop_dt1, r, dr1, false),
+                numerical_linprop_linsrc_deriv(linprop_k0, linprop_k1, linprop_dk1, r, dr1, false),
+                2e-8)) {
+    std::cerr << "Analytical linear-propagation source derivatives disagree with centered differences\n";
     return false;
   }
 

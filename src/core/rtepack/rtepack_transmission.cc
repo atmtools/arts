@@ -632,18 +632,15 @@ muelmat tran::linsrc_linprop_deriv(const muelmat &lambda,
     const Numeric t00  = t[0, 0];
     const Numeric dt00 = dt[0, 0];
 
-    Numeric d_alpha = 0.0, d_u0 = 0.0, d_u1 = 0.0;
-    if (k1_deriv) {
-      d_alpha = -0.5 * dk / (denom * alpha);
-      d_u0    = (dk * 2.0 * alpha - k1a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
-      d_u1    = -k2a * d_alpha / (2.0 * alpha * alpha);
-    } else {
-      d_alpha = 0.5 * dk / (denom * alpha);
-      d_u0    = -k1a * d_alpha / (2.0 * alpha * alpha);
-      d_u1    = (dk * 2.0 * alpha - k2a * 2.0 * d_alpha) / (4.0 * alpha * alpha);
-    }
+    const Numeric d_delta_k = k1_deriv ? -dk : dk;
+    const Numeric d_alpha2  = d_delta_k / denom - alpha * alpha * dr / r;
+    const Numeric d_alpha   = 0.5 * d_alpha2 / alpha;
+    const Numeric d_k1      = k1_deriv ? dk : 0.0;
+    const Numeric d_k2      = k1_deriv ? 0.0 : dk;
+    const Numeric d_u0      = d_k1 / (2.0 * alpha) - u0 * d_alpha / alpha;
+    const Numeric d_u1      = d_k2 / (2.0 * alpha) - u1 * d_alpha / alpha;
 
-    const Numeric d_num = dD1 * d_u1 - dt00 * D0 - t00 * dD0 * d_u0 - t00 * D0 * d_u0;
+    const Numeric d_num = dD1 * d_u1 - dt00 * D0 - t00 * dD0 * d_u0;
 
     const Numeric denom_val   = r * alpha;
     const Numeric d_denom_val = dr * alpha + r * d_alpha;
@@ -1376,7 +1373,7 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
                                                             dK[i - 1][j, iv],
                                                             dT0[iv, i - 1, j],
                                                             r[i - 1],
-                                                            dr1[i - 1, j],
+                                                            dr0[i - 1, j],
                                                             true);
         dL1[iv, i, j]     = tran_state.linsrc_linprop_deriv(
             L[iv, i], T[iv, i], K[i - 1][iv], K[i][iv], dK[i][j, iv], dT1[iv, i, j], r[i - 1], dr1[i - 1, j], false);
