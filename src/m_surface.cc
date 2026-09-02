@@ -235,9 +235,9 @@ void spectral_radSurfaceScatteringFlatDiffuse(
       "Surface field not properly set up - bad reference ellipsoid: {:B,}",
       surf_field.ellipsoid)
 
-  Vector za_out           = {ray_point.los[0]};
-  Vector aa_out           = {ray_point.los[1]};
-  SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+  const Vector za_out           = {ray_point.los[0]};
+  const Vector aa_out           = {ray_point.los[1]};
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
 
   // get the emissivity matrix and BRDF matrix, which are members of surface_props
   const surface_scattering::SurfaceScatteringModelProperties surface_props =
@@ -262,6 +262,8 @@ void spectral_radSurfaceScatteringFlatDiffuse(
                                      surf_field,
                                      subsurf_field,
                                      spectral_rad_closed_surface_agenda);
+
+  std::cerr << "spectral_rad_surface: " << spectral_rad_surface.size() << "\n";
 
   // get the incoming radiation
   StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
