@@ -2356,7 +2356,7 @@ The surface masks lives under the *SurfacePropertyTag* keys, which must be the s
                          "az_grid",
                          "zen_grid_weights",
                          "az_grid_weights",
-                         "spectral_rad_observer_agenda",
+                         "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
       .pass_workspace = true,
   };
