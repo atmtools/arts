@@ -130,7 +130,8 @@ void initialize_streams(VectorView mu, VectorView inv_mu, VectorView weights);
 void check_layer_input_sizes(Index n_layers, const AscendingGrid& tau, const ConstVectorView& omega);
 
 /** Validate optical depths, single-scattering albedos, and beam angles. */
-void check_layer_input_values(const AscendingGrid& tau, const ConstVectorView& omega, Numeric mu0, Numeric phi0);
+void check_layer_input_values(
+    const AscendingGrid& tau, const ConstVectorView& omega, const ConstVectorView& mu, Numeric mu0, Numeric phi0);
 
 /** Return the layer containing an optical depth, assigning interfaces to the layer below. */
 [[nodiscard]] Index layer_index(const AscendingGrid& tau, Numeric value);

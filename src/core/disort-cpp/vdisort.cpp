@@ -863,14 +863,14 @@ void main_data::check_input_size() const {
 }
 
 void main_data::check_input_value() const {
-  dc::check_layer_input_values(tau_arr, omega_arr, mu0, phi0);
+  dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, beam_stokes.I() == 999.0 ? 1.0 : mu0, phi0);
   ARTS_USER_ERROR_IF(NFourier <= 0, "VDISORT requires at least one Fourier mode");
   ARTS_USER_ERROR_IF(beam_stokes[0] < 0.0, "The beam I component must be non-negative, got {}", beam_stokes[0]);
   const Numeric polarized_norm = std::hypot(beam_stokes[1], beam_stokes[2], beam_stokes[3]);
   ARTS_USER_ERROR_IF(polarized_norm > beam_stokes[0] * (1.0 + 1e-12),
                      "The beam Stokes vector is non-physical: sqrt(Q^2+U^2+V^2)={} > I={}",
                      polarized_norm,
-                     beam_stokes[0]);
+                     beam_stokes.I());
   ARTS_USER_ERROR_IF(has_beam_source and mu0 == 0.0, "A direct beam requires mu0 > 0");
   ARTS_USER_ERROR_IF(NBDRF > NFourier, "There are {} BRDF modes but only {} Fourier modes", NBDRF, NFourier);
 }
