@@ -211,6 +211,9 @@ template <typename T, Size... dims> struct [[nodiscard]] cdata_t {
       for (auto& a : x.data) is >> a;
     return is;
   }
+
+  //! array interface:
+  constexpr void fill(const T& value) { data.fill(value); }
 };
 
 template <any_cdata out, exact_md<value_type<out>, rank<out>()> in> constexpr out to(const in& x) {
