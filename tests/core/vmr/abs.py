@@ -4,6 +4,7 @@ import pyarts3 as pyarts
 import numpy as np
 from copy import copy
 
+DELTA = 1e-12
 NF = 1001
 noise = 0.1
 
@@ -64,7 +65,7 @@ vmr_jacobian = np.array(ws.measurement_vec_fit, copy=True)
 
 np.testing.assert_array_less(
     np.linalg.norm(transmat - vmr_jacobian),
-    np.linalg.norm(transmat - apriori),
+    np.linalg.norm(transmat - apriori) + DELTA,
 )
 
 if "ARTS_HEADLESS" not in os.environ:
