@@ -17,7 +17,8 @@
 #include "rtepack_spectral_matrix.h"
 
 namespace rtepack {
-static constexpr Numeric too_small = 1e-4;
+static constexpr Numeric too_small            = 1e-4;
+static constexpr Numeric phi1_clustered_limit = 1e-3;
 
 namespace {
 constexpr propmat commutator(const propmat &lhs, const propmat &rhs) {
@@ -89,6 +90,42 @@ muelmat exp_frechet_degenerate(const propmat &g, const propmat &dg) {
   }
 
   return deriv;
+}
+
+// Scaling-and-squaring Taylor evaluation of phi_1(G).  Unlike the
+// Cayley-Hamilton divided differences, this remains well conditioned when the
+// polarized eigenvalues coalesce.
+muelmat phi1_degenerate(const propmat &g) {
+  muelmat A = to_muelmat(g);
+
+  Numeric row_norm{};
+  for (Size i = 0; i < 4; ++i) {
+    Numeric sum{};
+    for (Size j = 0; j < 4; ++j) sum += std::abs(A[i, j]);
+    row_norm = std::max(row_norm, sum);
+  }
+
+  const int     squarings  = row_norm > 0.5 ? std::max(0, static_cast<int>(std::ceil(std::log2(row_norm / 0.5)))) : 0;
+  const Numeric scale      = std::ldexp(1.0, squarings);
+  A                       /= scale;
+
+  muelmat value = muelmat::id();
+  muelmat term  = muelmat::id();
+  for (Size n = 1; n <= 32; ++n) {
+    term   = (term * A) / static_cast<Numeric>(n + 1);
+    value += term;
+
+    if (max_abs(term) <= std::numeric_limits<Numeric>::epsilon() * (1.0 + max_abs(value))) break;
+  }
+
+  // phi_1(2A) = (I + exp(A)) phi_1(A) / 2.
+  muelmat exp_value = muelmat::id() + A * value;
+  for (int i = 0; i < squarings; ++i) {
+    value     = 0.5 * ((muelmat::id() + exp_value) * value);
+    exp_value = exp_value * exp_value;
+  }
+
+  return value;
 }
 
 // Scaling-and-squaring Taylor evaluation of D phi_1(G)[dG].
@@ -354,6 +391,11 @@ muelmat tran::linsrc() const noexcept {
 
   if (not polarized) return {func_F(a)};
 
+  // The divided differences below subtract functions evaluated at clustered
+  // eigenvalues and then divide by x^2+y^2 (= S).  Use a matrix-function
+  // evaluation before that cancellation becomes significant.
+  if (x_zero or y_zero or S <= phi1_clustered_limit) { return phi1_degenerate(propmat{a, b, c, d, u, v, w}); }
+
   Numeric l0, l1, l2, l3;
 
   if (both_zero) {
@@ -452,7 +494,9 @@ muelmat tran::linsrc_deriv(const propmat &dg) const {
 
   if (not polarized) return func_Fp(a) * to_muelmat(dg);
 
-  if (x_zero or y_zero or S <= 1e-9) { return phi1_frechet_degenerate(propmat{a, b, c, d, u, v, w}, dg); }
+  if (x_zero or y_zero or S <= phi1_clustered_limit) {
+    return phi1_frechet_degenerate(propmat{a, b, c, d, u, v, w}, dg);
+  }
 
   const Numeric db2    = 2.0 * db * b;
   const Numeric dc2    = 2.0 * dc * c;

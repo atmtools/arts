@@ -162,6 +162,27 @@ bool test_exponential() {
     return false;
   }
 
+  // Clustered polarized eigenvalues make the closed divided differences in
+  // phi_1 prone to cancellation.  Compare the stable fallback to an
+  // independent power series.
+  const Propmat clustered{0.3, 1.1e-4, -0.9e-4, 0.7e-4, -1.0e-4, 0.8e-4, -0.6e-4};
+  const Matrix  clustered_g = to_matrix(-clustered);
+  Matrix        phi1_reference(4, 4, 0.0);
+  Matrix        phi1_term(4, 4, 0.0);
+  Matrix        phi1_product(4, 4);
+  for (Index i = 0; i < 4; ++i) phi1_reference[i, i] = phi1_term[i, i] = 1.0;
+  for (Index n = 1; n <= 30; ++n) {
+    mult(phi1_product, phi1_term, clustered_g);
+    phi1_term       = phi1_product;
+    phi1_term      /= static_cast<Numeric>(n + 1);
+    phi1_reference += phi1_term;
+  }
+  const Matrix phi1_actual = Matrix{rtepack::tran{clustered, clustered, 1.0}.linsrc()};
+  if (max_abs_diff(phi1_actual, phi1_reference) >= tol) {
+    std::cerr << "Linear-source operator is unstable near clustered eigenvalues\n";
+    return false;
+  }
+
   constexpr Numeric eigenvalue = 0.25;
   const Propmat     dichroism_generator{0.0, eigenvalue};
   const Numeric     ch = std::cosh(eigenvalue);
@@ -307,10 +328,10 @@ bool test_analytical_derivatives() {
   const Propmat       linprop_dk0{0.07};
   const Propmat       linprop_dk1{-0.03};
   const rtepack::tran linprop_tr{linprop_k0, linprop_k1, r};
-  const Muelmat       linprop_t = linprop_tr();
-  const Muelmat       linprop_l = linprop_tr.linsrc_linprop(linprop_t, linprop_k0, linprop_k1, r);
-  const Muelmat linprop_dt0 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk0, r, dr0);
-  const Muelmat linprop_dt1 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk1, r, dr1);
+  const Muelmat       linprop_t   = linprop_tr();
+  const Muelmat       linprop_l   = linprop_tr.linsrc_linprop(linprop_t, linprop_k0, linprop_k1, r);
+  const Muelmat       linprop_dt0 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk0, r, dr0);
+  const Muelmat       linprop_dt1 = linprop_tr.deriv(linprop_t, linprop_k0, linprop_k1, linprop_dk1, r, dr1);
   if (not close(linprop_tr.linsrc_linprop_deriv(
                     linprop_l, linprop_t, linprop_k0, linprop_k1, linprop_dk0, linprop_dt0, r, dr0, true),
                 numerical_linprop_linsrc_deriv(linprop_k0, linprop_k1, linprop_dk0, r, dr0, true),
