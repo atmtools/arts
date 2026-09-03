@@ -1216,7 +1216,7 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) {
   };
   Vector cumulative_tau = subdivided ? Vector(disort_test::reference::problem_12_subdivided_tau)
                                      : Vector{disort_test::reference::problem_12_output_tau.back()};
-  std::ranges::transform(cumulative_tau, cumulative_tau.begin(), [optical_depth_scale](const Numeric tau) {
+  stdr::transform(cumulative_tau, cumulative_tau.begin(), [optical_depth_scale](const Numeric tau) {
     return optical_depth_scale * tau;
   });
 
@@ -1476,7 +1476,7 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
 
 void update_scalar_brdf(problem_9_model& model, const disort::brdf::RawFunction& raw, const Index nmodes) {
   const auto modes = scalar_brdf_modes(raw, nmodes);
-  std::ranges::copy(modes, model.solver.brdf_modes().begin());
+  stdr::copy(modes, model.solver.brdf_modes().begin());
   model.solver.solve_for_coefs();
   model.solver.rad_field();
 }

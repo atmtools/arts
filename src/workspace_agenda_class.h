@@ -31,9 +31,9 @@ class Agenda {
 
   void add(const Method& method);
 
-  void     append_methods(const Agenda& method);
-  void     prepend_methods(const Agenda& method);
-  void     insert_methods(const Agenda& method, const std::string_view before);
+  void                   append_methods(const Agenda& method);
+  void                   prepend_methods(const Agenda& method);
+  void                   insert_methods(const Agenda& method, const std::string_view before);
   [[nodiscard]] InAndOut get_required_inputs() const;
 
   //! Must be called before named agendas, will deal with input and output variables for copy_workspace

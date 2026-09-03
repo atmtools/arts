@@ -6,6 +6,8 @@
 #include "xml_io_base.h"
 #include "xml_io_stream.h"
 
+namespace stdv = std::views;
+
 template <typename Key, typename T> struct xml_io_stream_name<std::unordered_map<Key, T>> {
   static constexpr std::string_view name = "Map"sv;
 };
@@ -30,19 +32,19 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
                n.size()};
     tag.write_to_stream(os);
 
-    std::vector<std::pair<Size, Key>> keys{
-        std::from_range, n | std::views::keys | std::views::transform([&](auto& key) -> std::pair<Size, Key> {
-                           return {n.hash_function()(key), key};
-                         })};
+    std::vector<std::pair<Size, Key>> keys{std::from_range,
+                                           n | stdv::keys | stdv::transform([&](auto& key) -> std::pair<Size, Key> {
+                                             return {n.hash_function()(key), key};
+                                           })};
 
     // Sort keys for consistent output - either by hash or by value
     if constexpr (std::totally_ordered<Key>) {
-      std::ranges::sort(keys, {}, [](auto& a) { return a.second; });
+      stdr::sort(keys, {}, [](auto& a) { return a.second; });
     } else {
-      std::ranges::sort(keys, {}, [](auto& a) { return a.first; });
+      stdr::sort(keys, {}, [](auto& a) { return a.first; });
     }
 
-    for (const auto& key : keys | std::views::values) {
+    for (const auto& key : keys | stdv::values) {
       xml_io_stream<Key>::write(os, key, pbofs);
       xml_io_stream<T>::write(os, n.at(key), pbofs);
     }

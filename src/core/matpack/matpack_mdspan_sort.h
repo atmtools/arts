@@ -8,10 +8,10 @@
 #include <ranges>
 
 namespace matpack {
-template <std::random_access_iterator Iter, class Compare = std::ranges::less, class Proj = std::identity>
+template <std::random_access_iterator Iter, class Compare = stdr::less, class Proj = std::identity>
 constexpr void sort(Iter first, Iter last, Compare comp = {}, Proj proj = {}) {
   if constexpr (std::sortable<Iter, Compare>) {
-    std::ranges::sort(first, last, comp, proj);
+    stdr::sort(first, last, comp, proj);
   } else {
     using std::iter_swap;
 
@@ -52,7 +52,7 @@ constexpr void sort(Iter first, Iter last, Compare comp = {}, Proj proj = {}) {
   }
 }
 
-template <std::ranges::random_access_range R, typename Compare = std::ranges::less, typename Proj = std::identity>
+template <stdr::random_access_range R, typename Compare = stdr::less, typename Proj = std::identity>
 constexpr void sort(R&& r, Compare comp = {}, Proj proj = {}) {
   sort(r.begin(), r.end(), comp, proj);
 }

@@ -107,9 +107,7 @@ BadOrRecoverable missing_outputs(const std::vector<std::string>& must_out,
 }
 }  // namespace
 
-InAndOut Agenda::get_required_inputs() const {
-  return agendas_ins_and_outs(methods);
-}
+InAndOut Agenda::get_required_inputs() const { return agendas_ins_and_outs(methods); }
 
 void Agenda::finalize(bool fix) try {
   const static auto& wsa = workspace_agendas();

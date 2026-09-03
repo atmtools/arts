@@ -117,8 +117,7 @@ bool has_partfun(const SpeciesIsotope& ir) noexcept {{
   switch (ir.spec) {{
     case SpeciesEnum::Bath: break;)");
   for (const auto& info : species_set) {
-    std::println(
-        os, R"(    case SpeciesEnum::{0}: return std::ranges::binary_search(has{0}, ir.isotname);)", info.longname);
+    std::println(os, R"(    case SpeciesEnum::{0}: return stdr::binary_search(has{0}, ir.isotname);)", info.longname);
   }
   std::println(os,
                R"(    case SpeciesEnum::unused: break;

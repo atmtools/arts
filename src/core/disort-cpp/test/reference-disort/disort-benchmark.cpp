@@ -120,7 +120,7 @@ std::vector<double> measure(const Index repetitions, Function&& function, Numeri
 }
 
 void print_result(const std::string_view name, std::vector<double> elapsed) {
-  std::ranges::sort(elapsed);
+  stdr::sort(elapsed);
   const double median = elapsed[elapsed.size() / 2];
   const double mean   = std::reduce(elapsed.begin(), elapsed.end()) / static_cast<double>(elapsed.size());
   std::cout << std::format(
@@ -143,8 +143,8 @@ int main(const int argc, char** argv) try {
   print_result("cDISORT (Fortran-derived)", c);
   std::vector<double> cpp_sorted = cpp;
   std::vector<double> c_sorted   = c;
-  std::ranges::sort(cpp_sorted);
-  std::ranges::sort(c_sorted);
+  stdr::sort(cpp_sorted);
+  stdr::sort(c_sorted);
   const double ratio = cpp_sorted[cpp_sorted.size() / 2] / c_sorted[c_sorted.size() / 2];
   std::cout << std::format("CPP-DISORT / cDISORT median ratio: {:.3f} (checksum {:.9g})\n", ratio, checksum);
   return 0;

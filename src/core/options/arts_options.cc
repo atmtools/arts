@@ -16,7 +16,7 @@ using namespace std::literals;
 using Value = std::vector<std::string>;
 
 namespace stdr = std::ranges;
-namespace stdv = std::ranges::views;
+namespace stdv = std::views;
 
 namespace {
 void fix_static(std::vector<EnumeratedOption>& opts) {

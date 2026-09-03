@@ -238,7 +238,7 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
                      "IMS quadrature sizes must be positive, got {} x {}",
                      intermediate_mu,
                      intermediate_phi);
-  ARTS_USER_ERROR_IF(std::ranges::any_of(user_mu_, [](const Numeric mu) { return mu == 0.0 or std::abs(mu) > 1.0; }),
+  ARTS_USER_ERROR_IF(stdr::any_of(user_mu_, [](const Numeric mu) { return mu == 0.0 or std::abs(mu) > 1.0; }),
                      "Delta-M user cosines must be nonzero and in [-1, 1], got {:B,}",
                      user_mu_);
 
@@ -335,9 +335,8 @@ Numeric delta_m_correction_cache::scaled_tau(const Numeric physical_tau) const {
                      "Physical correction depth must be in [0, {}], got {}",
                      physical_tau_.back(),
                      physical_tau);
-  const Index layer =
-      std::min<Index>(std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, physical_tau)),
-                      physical_tau_.size() - 1);
+  const Index layer = std::min<Index>(
+      std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, physical_tau)), physical_tau_.size() - 1);
   const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
   const Numeric scaled_layer_top   = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
   return scaled_layer_top + scale_[layer] * (physical_tau - physical_layer_top);
@@ -351,8 +350,8 @@ void delta_m_correction_cache::TMS(rtepack::stokvec_vector& tms, const Numeric t
                      "Correction azimuth index {} is outside [0, {})",
                      phi_index,
                      phi_.size());
-  const Index layer = std::min<Index>(
-      std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, tau)), physical_tau_.size() - 1);
+  const Index   layer = std::min<Index>(std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, tau)),
+                                        physical_tau_.size() - 1);
   const Numeric scaled_layer_top = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
 
   tms.resize(user_mu_.size());
@@ -395,8 +394,8 @@ void delta_m_correction_cache::IMS(rtepack::stokvec_vector& ims,
                      "Correction azimuth index {} is outside [0, {})",
                      phi_index,
                      phi_.size());
-  const Index layer = std::min<Index>(
-      std::distance(physical_tau_.begin(), std::ranges::lower_bound(physical_tau_, tau)), physical_tau_.size() - 1);
+  const Index   layer = std::min<Index>(std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, tau)),
+                                        physical_tau_.size() - 1);
   const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
   const Numeric layer_bottom       = physical_tau_[layer];
   const Numeric weight             = (tau - physical_layer_top) / (layer_bottom - physical_layer_top);
@@ -889,7 +888,7 @@ void main_data::diagonalize() {
   Vector                       rhs(NState);
   std::vector<Index>           order(static_cast<std::size_t>(NState));
   complex_diagonalize_workdata eigen_work(NState);
-  std::ranges::fill(conservative_pair_index, std::array<Index, 2>{-1, -1});
+  stdr::fill(conservative_pair_index, std::array<Index, 2>{-1, -1});
   conservative_pair_kappa = 0.0;
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
@@ -914,7 +913,7 @@ void main_data::diagonalize() {
         ::diagonalize(eigenvectors, eigenvalues, A, eigen_work);
 
         std::iota(order.begin(), order.end(), Index{0});
-        std::ranges::sort(order, [&](const Index a, const Index b) {
+        stdr::sort(order, [&](const Index a, const Index b) {
           if (eigenvalues[a].real() != eigenvalues[b].real()) return eigenvalues[a].real() < eigenvalues[b].real();
           return eigenvalues[a].imag() < eigenvalues[b].imag();
         });
@@ -1535,8 +1534,7 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                      tau_arr.back(),
                      tau);
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(user_mu,
-                          [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
+      stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
   const std::array<Index, 5> expected_phase_shape{2, NFourier, NLayers, nuser, NQuad};
@@ -1742,7 +1740,7 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
                      phi.size(),
                      user_mu.size());
   ARTS_USER_ERROR_IF(
-      std::ranges::any_of(
+      stdr::any_of(
           phi, [](const Numeric value) { return !std::isfinite(value) or value < 0.0 or value >= Constant::two_pi; }),
       "User azimuths must be finite and in [0, 2*pi), got {:B,}",
       phi);

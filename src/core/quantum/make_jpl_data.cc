@@ -14,8 +14,8 @@ std::vector<JplSpeciesInfo> read(const std::filesystem::path& path) {
     }
   }
 
-  std::ranges::sort(out, {}, &JplSpeciesInfo::id);
-  auto it = std::ranges::adjacent_find(out, {}, &JplSpeciesInfo::id);
+  stdr::sort(out, {}, &JplSpeciesInfo::id);
+  auto it = stdr::adjacent_find(out, {}, &JplSpeciesInfo::id);
   if (it != out.end()) { throw std::runtime_error(std::format("Duplicate ID found in JPL data: {}", it->id)); }
 
   return out;

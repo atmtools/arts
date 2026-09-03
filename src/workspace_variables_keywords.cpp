@@ -8,7 +8,7 @@
 #include "workspace_variable_shortnames.h"
 
 namespace stdr = std::ranges;
-namespace stdv = stdr::views;
+namespace stdv = std::views;
 
 bool workspace_variables_keywords_match(const std::string_view some_wsv, const std::string_view this_name) {
   static const std::vector<std::string> keywords = {std::from_range, workspace_variables_shortnames() | stdv::keys};

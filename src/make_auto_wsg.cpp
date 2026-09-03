@@ -15,7 +15,7 @@
 using namespace std::literals;
 
 namespace stdr = std::ranges;
-namespace stdv = stdr::views;
+namespace stdv = std::views;
 
 namespace {
 const auto& data = internal_workspace_groups();

@@ -49,8 +49,8 @@ int main() {
     out[2, 2] = Complex{1.0, -3.0};
     return out;
   }();
-  const ComplexVector complex_b{Complex{1.0, 2.0}, Complex{-3.0, 0.5}, Complex{2.0, -1.0}};
-  ComplexVector       complex_x{complex_b};
+  const ComplexVector          complex_b{Complex{1.0, 2.0}, Complex{-3.0, 0.5}, Complex{2.0, -1.0}};
+  ComplexVector                complex_x{complex_b};
   matpack::complex_band_matrix complex_bd(complex_a);
   ARTS_USER_ERROR_IF(complex_bd.solve(complex_x) != 0, "Complex band matrix solver failed");
 

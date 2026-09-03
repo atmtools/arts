@@ -18,7 +18,7 @@ struct delta_m_plus_case {
 
 inline Tensor3 problem_17_radiance(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Tensor3{std::move(data).reshape(2, 90, 3)};
 }
 

@@ -194,12 +194,9 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
 
   py::class_<vdisort::delta_m_transport_data> delta_m_transport(vdisort_nm, "DeltaMTransportData");
   delta_m_transport
-      .def_rw("tau",
-              &vdisort::delta_m_transport_data::tau,
-              "Delta-M optical-depth grid\n\n.. :class:`AscendingGrid`")
-      .def_rw("omega",
-              &vdisort::delta_m_transport_data::omega,
-              "Delta-M single-scattering albedo\n\n.. :class:`Vector`")
+      .def_rw("tau", &vdisort::delta_m_transport_data::tau, "Delta-M optical-depth grid\n\n.. :class:`AscendingGrid`")
+      .def_rw(
+          "omega", &vdisort::delta_m_transport_data::omega, "Delta-M single-scattering albedo\n\n.. :class:`Vector`")
       .def_rw("phase_matrix",
               &vdisort::delta_m_transport_data::phase_matrix,
               "Delta-M diffuse phase matrices\n\n.. :class:`MuelmatTensor5`")

@@ -519,8 +519,7 @@ void main_data::solve_for_coefs() {
       }
     }
 
-    const bool has_stable_pair =
-        m == 0 and std::ranges::any_of(conservative_pair_index, [](const Index i) { return i >= 0; });
+    const bool has_stable_pair = m == 0 and stdr::any_of(conservative_pair_index, [](const Index i) { return i >= 0; });
     if (not has_stable_pair) {
       // Ordinary-mode storage is an anchored-exponential representation.
       auto RHS_middle = RHS[Range{N, n - NQuad}].view_as(NLayers - 1, NQuad);
@@ -674,7 +673,7 @@ Numeric poch(Index x, Index n) { return Legendre::tgamma_ratio(static_cast<Numer
 void main_data::diagonalize() {
   ARTS_TIME_REPORT
 
-  std::ranges::fill(conservative_pair_index, Index{-1});
+  stdr::fill(conservative_pair_index, Index{-1});
   conservative_pair_kappa = 0.0;
   B_collect               = 0.0;
 
@@ -1091,7 +1090,7 @@ void main_data::source_function() {
   SRCB           = 0.0;
   if (not has_source_poly) return;
 
-  const bool all_ordinary = std::ranges::none_of(conservative_pair_index, [](const Index pair) { return pair >= 0; });
+  const bool all_ordinary = stdr::none_of(conservative_pair_index, [](const Index pair) { return pair >= 0; });
   if (all_ordinary) {
     ordinary_source_terms(SRC0,
                           SRC1,
@@ -2190,10 +2189,10 @@ disort::main_data DisortSettings::init() const {
   check();
   return disort::main_data(alt_grid.size() - 1,
                            quadrature_dimension,
-                           legendre_coefficients.ncols(),
+                           legendre_polynomial_dimension,
                            fourier_mode_dimension,
                            source_polynomial.ncols(),
-                           legendre_polynomial_dimension,
+                           legendre_coefficients.ncols(),
                            bidirectional_reflectance_distribution_functions.ncols());
 }
 

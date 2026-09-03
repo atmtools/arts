@@ -44,6 +44,39 @@ def test_standard_agenda_option():
     )
 
 
+def test_delta_m_plus_solver_initialization():
+    """Exercise unequal transport and full Legendre dimensions end to end."""
+    upper = arts.PropagationPathPoint()
+    upper.pos = [1000.0, 0.0, 0.0]
+    lower = arts.PropagationPathPoint()
+    lower.pos = [0.0, 0.0, 0.0]
+
+    ws = Workspace()
+    ws.disort_settingsInit(
+        freq_grid=[1.0],
+        ray_path=[upper, lower],
+        disort_quadrature_dimension=2,
+        disort_legendre_polynomial_dimension=2,
+        disort_fourier_mode_dimension=1,
+    )
+    ws.disort_settingsNoSun()
+    ws.disort_settings.optical_thicknesses = [[0.2]]
+    ws.disort_settings.single_scattering_albedo = [[0.5]]
+    ws.disort_settings.legendre_coefficients = [[[1.0, 0.9, 0.8, 0.72]]]
+    ws.disort_settingsDeltaMPlus()
+
+    assert np.shape(ws.disort_settings.delta_m_peak_moments) == (1, 1, 2)
+    assert np.shape(ws.disort_settings.legendre_coefficients) == (1, 1, 4)
+
+    ws.disort_spectral_flux_fieldCalc()
+    flux = ws.disort_spectral_flux_field
+    assert np.all(np.isfinite(np.asarray(flux.up)))
+    assert np.all(np.isfinite(np.asarray(flux.down_diffuse)))
+    assert np.all(np.isfinite(np.asarray(flux.down_direct)))
+    assert np.all(np.isfinite(np.asarray(flux.dfdt)))
+
+
 if __name__ == "__main__":
     test_spectral_delta_m_plus()
     test_standard_agenda_option()
+    test_delta_m_plus_solver_initialization()

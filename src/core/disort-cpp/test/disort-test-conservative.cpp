@@ -96,7 +96,7 @@ void check_analytic_sweep() {
     }
 
     Vector output_depths(depths.size());
-    std::ranges::copy(depths, output_depths.begin());
+    stdr::copy(depths, output_depths.begin());
     Tensor3 field(depths.size(), 1, 2);
     dis.ungridded_u(field, AscendingGrid{std::move(output_depths)}, Vector{0.37});
     for (Index i = 0; i < static_cast<Index>(depths.size()); ++i) {

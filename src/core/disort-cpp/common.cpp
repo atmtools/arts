@@ -242,7 +242,7 @@ void check_layer_input_values(const AscendingGrid&   tau,
                               const Numeric          phi0) {
   ARTS_USER_ERROR_IF(
       tau.empty() or tau.front() <= 0.0, "tau_arr must be nonempty and strictly positive, got {:B,}", tau);
-  ARTS_USER_ERROR_IF(std::ranges::any_of(omega, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
+  ARTS_USER_ERROR_IF(stdr::any_of(omega, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
                      "omega_arr must be in [0, 1], got {:B,}",
                      omega);
   ARTS_USER_ERROR_IF(mu0 < 0.0 or mu0 > 1.0, "mu0 must be in [0, 1], got {}", mu0);
@@ -252,7 +252,7 @@ void check_layer_input_values(const AscendingGrid&   tau,
 Index layer_index(const AscendingGrid& tau, const Numeric value) {
   ARTS_USER_ERROR_IF(tau.empty(), "Cannot locate an optical depth in an empty layer grid");
   ARTS_USER_ERROR_IF(value < 0.0 or value > tau.back(), "tau ({}) must be in [0, {}]", value, tau.back());
-  const Index layer = std::distance(tau.begin(), std::ranges::lower_bound(tau, value));
+  const Index layer = std::distance(tau.begin(), stdr::lower_bound(tau, value));
   return std::min(layer, static_cast<Index>(tau.size()) - 1);
 }
 

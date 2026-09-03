@@ -15,13 +15,13 @@ namespace disort_test::reference {
 
 inline Matrix matrix_2x6(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Matrix{std::move(data).reshape(2, 6)};
 }
 
 inline Tensor3 tensor_3x6(const Index nphi, std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Tensor3{std::move(data).reshape(nphi, 3, 6)};
 }
 
@@ -303,7 +303,7 @@ struct scalar_case {
 
 inline Matrix radiance(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Matrix{std::move(data).reshape(3, 6)};
 }
 
@@ -680,7 +680,7 @@ struct layered_isotropic_case {
 
 inline Matrix radiance_3x4(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Matrix{std::move(data).reshape(3, 4)};
 }
 
@@ -776,7 +776,7 @@ struct general_multilayer_case {
 
 inline Tensor3 radiance_azimuth_tau_mu(const Index nazimuth, std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Tensor3{std::move(data).reshape(nazimuth, 5, 4)};
 }
 
@@ -943,7 +943,7 @@ struct transparent_brdf_case {
 
 inline Matrix radiance_3x4_phi_mu(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Matrix{std::move(data).reshape(3, 4)};
 }
 
@@ -1044,7 +1044,7 @@ struct layered_brdf_case {
 
 inline Tensor3 radiance_3x3x4(std::initializer_list<Numeric> values) {
   Vector data(values.size());
-  std::ranges::copy(values, data.begin());
+  stdr::copy(values, data.begin());
   return Tensor3{std::move(data).reshape(3, 3, 4)};
 }
 

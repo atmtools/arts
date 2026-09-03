@@ -1711,7 +1711,7 @@ Method is purely for convenience and composition.
   };
 
   wsm_data["legendre_degreeFromDisortSettingsDeltaMPlus"] = {
-      .desc = R"--(Sets *legendre_degree* for DISORT delta-M-plus input.
+      .desc   = R"--(Sets *legendre_degree* for DISORT delta-M-plus input.
 
 This requests two phase moments beyond the reduced DISORT Legendre dimension,
 which are required to derive the Gaussian forward-peak width.
@@ -5382,7 +5382,7 @@ Sets both upper and lower bounds.
   };
 
   wsm_data["disort_settingsDeltaMPlus"] = {
-      .desc = R"(Computes spectral delta-M-plus scaling from the phase moments.
+      .desc   = R"(Computes spectral delta-M-plus scaling from the phase moments.
 
 For every frequency and layer, this derives the removed forward-scattering
 fraction and normalized Gaussian-peak moments.  The stored phase coefficients
@@ -5432,16 +5432,16 @@ must include moments through degree
   };
 
   wsm_data["disort_settingsSurfaceHapke"] = {
-      .desc = R"(Sets a Hapke surface BRDF and computes its DISORT cosine Fourier modes.
+      .desc     = R"(Sets a Hapke surface BRDF and computes its DISORT cosine Fourier modes.
 
 The raw physical BRDF is converted to the Fourier convention used by
 *DisortSettings*.  All parameters are frequency independent.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings"},
-      .gin       = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
-      .gin_type  = {"Numeric", "Numeric", "Numeric", "Index"},
+      .author   = {"Richard Larsson"},
+      .out      = {"disort_settings"},
+      .in       = {"disort_settings"},
+      .gin      = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
+      .gin_type = {"Numeric", "Numeric", "Numeric", "Index"},
       .gin_value = {Numeric{1.0}, Numeric{0.06}, Numeric{0.6}, Index{100}},
       .gin_desc  = {"Opposition-effect amplitude",
                     "Opposition-effect angular width parameter",
@@ -5450,15 +5450,15 @@ The raw physical BRDF is converted to the Fourier convention used by
   };
 
   wsm_data["disort_settingsSurfaceHapkeSpectral"] = {
-      .desc = R"(Sets a spectrally varying Hapke surface BRDF.
+      .desc     = R"(Sets a spectrally varying Hapke surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
 )",
-      .author    = {"Richard Larsson"},
-      .out       = {"disort_settings"},
-      .in        = {"disort_settings"},
-      .gin       = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
-      .gin_type  = {"Vector", "Vector", "Vector", "Index"},
+      .author   = {"Richard Larsson"},
+      .out      = {"disort_settings"},
+      .in       = {"disort_settings"},
+      .gin      = {"opposition_amplitude", "opposition_width", "single_scattering_albedo", "azimuth_quadrature_points"},
+      .gin_type = {"Vector", "Vector", "Vector", "Index"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{100}},
       .gin_desc  = {"Spectral opposition-effect amplitude",
                     "Spectral opposition-effect angular width parameter",
@@ -5467,7 +5467,7 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
   };
 
   wsm_data["disort_settingsSurfaceCoxMunk"] = {
-      .desc = R"(Sets a Cox-Munk ocean surface BRDF and computes its DISORT cosine Fourier modes.
+      .desc      = R"(Sets a Cox-Munk ocean surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
 )",
@@ -5484,7 +5484,7 @@ All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
   };
 
   wsm_data["disort_settingsSurfaceCoxMunkSpectral"] = {
-      .desc = R"(Sets a Cox-Munk ocean BRDF with a spectrally varying refractive index.
+      .desc      = R"(Sets a Cox-Munk ocean BRDF with a spectrally varying refractive index.
 
 The refractive-index vector must have one value per frequency.  Wind speed and
 shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
@@ -5502,7 +5502,7 @@ shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
   };
 
   wsm_data["disort_settingsSurfaceRPV"] = {
-      .desc = R"(Sets an RPV surface BRDF and computes its DISORT cosine Fourier modes.
+      .desc      = R"(Sets an RPV surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.
 )",
@@ -5520,7 +5520,7 @@ All parameters are frequency independent.
   };
 
   wsm_data["disort_settingsSurfaceRPVSpectral"] = {
-      .desc = R"(Sets a spectrally varying RPV surface BRDF.
+      .desc      = R"(Sets a spectrally varying RPV surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
 )",
@@ -5538,7 +5538,7 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
   };
 
   wsm_data["disort_settingsSurfaceRossLi"] = {
-      .desc = R"(Sets a Ross-Li surface BRDF and computes its DISORT cosine Fourier modes.
+      .desc      = R"(Sets a Ross-Li surface BRDF and computes its DISORT cosine Fourier modes.
 
 All kernel weights and the hot-spot angle are frequency independent.
 )",
@@ -5556,7 +5556,7 @@ All kernel weights and the hot-spot angle are frequency independent.
   };
 
   wsm_data["disort_settingsSurfaceRossLiSpectral"] = {
-      .desc = R"(Sets a Ross-Li surface BRDF with spectrally varying kernel weights.
+      .desc      = R"(Sets a Ross-Li surface BRDF with spectrally varying kernel weights.
 
 Each kernel-weight vector must have one value per frequency.  The hot-spot
 angle is frequency independent.

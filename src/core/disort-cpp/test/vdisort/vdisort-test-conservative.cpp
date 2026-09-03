@@ -235,7 +235,7 @@ void check_exact_conservative_user_angles() {
   }
 
   Vector output_depths(depths.size());
-  std::ranges::copy(depths, output_depths.begin());
+  stdr::copy(depths, output_depths.begin());
   const AscendingGrid      output_tau{std::move(output_depths)};
   const Vector             phi{0.0, 0.8};
   rtepack::stokvec_tensor3 bulk(output_tau.size(), phi.size(), user_mu.size());
