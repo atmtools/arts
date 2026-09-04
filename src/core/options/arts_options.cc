@@ -886,6 +886,34 @@ significant improvements in accuracy - in fact sometimes it is less accurate.
     I_1 = J_1 + T (I_0 - J_0) + \Lambda_0 \left(J_0 - J_1\right)
 
 where :math:`D(x)` is the Dawson function.
+
+.. rubric:: Magnus Operator
+
+Ordered expansion of the matrix exponential of the linear evolution operator.
+Has theoretically better accuracy than the ``constant`` when the layer varies strongly.
+This is experimental code and might not work in all cases, especially as :math:`r` grows
+large, considering the quadratic term.
+Here :math:`K_0` is at the start of the propagation step and :math:`K_1` is at its end.
+
+.. math::
+
+    O = r\frac{K_0 + K_1}{2} - \frac{r^2}{12} \left[K_1, K_0\right]
+
+    T = e^{- O}
+
+    J = \frac{J_0 + J_1}{2}
+
+    I_1 = J + T (I_0 - J)
+
+For a linearly varying source, the augmented Magnus system gives
+
+.. math::
+
+    L = \phi_1(-O)\left[1 - \frac{r}{12}(K_1-K_0)\right]
+
+    \phi_1(X) = X^{-1}\left(e^X-1\right)
+
+    I_1 = J_1 + T(I_0-J_0) + L(J_0-J_1)
 )",
       .values_and_desc =
           {Value{"constant", "linear", "lin", R"(Linear transmittance step over constant layer)"},
@@ -896,7 +924,16 @@ where :math:`D(x)` is the Dawson function.
            Value{"linprop",
                  "linsrcprop",
                  "linear-in-propagation",
-                 R"(Linear transmittance step over non-constant absorption layer with linear source function)"}},
+                 R"(Linear transmittance step over non-constant absorption layer with linear source function)"},
+           Value{
+               "magop",
+               "MagnusOperator",
+               "magnus",
+               R"(Magnus operator transmittance step over a linearly varying propagation matrix with layer-average source)"},
+           Value{"magop_linsrc",
+                 "MagnusLinearSource",
+                 "magnus-linear-source",
+                 R"(Magnus operator transmittance step over a linearly varying propagation matrix and source)"}},
   });
 
   opts.emplace_back(EnumeratedOption{

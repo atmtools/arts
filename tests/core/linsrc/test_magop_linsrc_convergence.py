@@ -62,7 +62,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "linprop"
+    ws.rte_option = "magop_linsrc"
     ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
@@ -148,7 +148,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "linprop"
+    ws.rte_option = "magop_linsrc"
     ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()
@@ -236,7 +236,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     lin.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "linprop"
+    ws.rte_option = "magop_linsrc"
     ws.spectral_tramat_pathFromPath()
     ws.freq_grid_pathFromPath()
     ws.spectral_rad_srcvec_pathFromPropmat()

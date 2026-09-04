@@ -122,6 +122,45 @@ In practice, it is often more convenient to just use
 the step-by-step equations for forward calculations, but the matrix above
 gives insight on optimizations for the Jacobian of the "measured" :math:`I_N`.
 
+Propagation-matrix exponential
+******************************
+
+For polarized radiative transfer, :math:`K` and :math:`T` are matrices and
+the transmittance is evaluated as a matrix exponential.  Both the ordinary
+and Magnus layer options use the same specialized Cayley--Hamilton evaluator;
+they differ only in the matrix supplied to that evaluator.
+
+After separating the scalar diagonal part, the characteristic polynomial of
+the polarized part :math:`P` has the form
+
+.. math::
+
+  0 = \lambda^4 + B\lambda^2 + C.
+
+With :math:`S=\sqrt{B^2-4C}`, define
+
+.. math::
+
+  x^2 = \frac{S-B}{2},\qquad
+  y^2 = \frac{S+B}{2}.
+
+The four eigenvalues of :math:`P` are then
+:math:`+x`, :math:`-x`, :math:`+iy`, and :math:`-iy`.  In particular,
+the expressions above already give :math:`x^2` and :math:`y^2`; the square
+roots used to obtain :math:`x` and :math:`y` are taken only once afterward.
+The exponential can consequently be reduced to
+
+.. math::
+
+  \exp(P) = c_0 1 + c_1P + c_2P^2 + c_3P^3,
+
+where the coefficients contain combinations of :math:`\cosh(x)`,
+:math:`\sinh(x)`, :math:`\cos(y)`, and :math:`\sin(y)`.  ARTS evaluates the
+zero and repeated-eigenvalue limits separately to avoid divisions by small
+numbers.  The derivatives of the exponential coefficients and their
+degenerate limits are evaluated analytically and are used by all
+``rte_option`` choices described below.
+
 Partial derivatives
 *******************
 
@@ -257,22 +296,47 @@ and where the function :math:`f` is defined as
 the map from :math:`\vec{x}_i\rightarrow\mathbf{x}`.
 Often in ARTS, :math:`f` is just an inverse interpolation operator.
 
-Potential improvements
-**********************
+Layer interpolation options
+***************************
 
 Note that here, the indexing is not the same as above as
-it is experimental notation.  This section exists mostly
-as a reminder that we are using constant source and constant
-propagation matrix above.  If these are allowed to change
-within a layer, the equations below offers some approach to
-achieving it.
+it is layer-oriented notation.  ARTS provides several approximations for
+how the source and propagation matrix vary between the two endpoints of a
+layer.  They are selected through :attr:`~pyarts3.workspace.Workspace.rte_option`.
 
-.. note::
+.. list-table:: Radiative-transfer layer options
+   :header-rows: 1
+   :widths: 18 30 52
 
-  These are untested and not how ARTS compute things,
-  they are left as a future exercise so that we can
-  implement them later.  Just the concept, for instance,
-  of a Dawson function of a matrix is questionable.
+   * - Option
+     - Within-layer model
+     - Step
+   * - ``constant``
+     - Endpoint-average propagation matrix and source
+     - Ordinary matrix exponential with a layer-average source.
+   * - ``lintau``
+     - Constant propagation matrix and linear source
+     - Uses the linear-source operator :math:`\Lambda` described below.
+   * - ``linprop``
+     - Linear propagation and linear source
+     - Uses the exact scalar linear-propagation source integral.  Polarized
+       transfer uses endpoint-average transmission with a commutator-free
+       augmented-source correction.
+   * - ``magop``
+     - Linear propagation matrix and layer-average source
+     - Uses the second-order Magnus exponent and the ordinary source step.
+   * - ``magop_linsrc``
+     - Linear propagation matrix and linear source
+     - Adds Magnus-ordered transmission to the augmented linear-source
+       operator by retaining the first propagation-matrix commutator.
+
+All five options propagate analytical derivatives of their transmittance
+and, where applicable, source operators.  ``magop`` and ``magop_linsrc``
+are most useful when the polarized propagation matrices at the layer
+endpoints do not commute.  For scalar transfer, ``linprop`` evaluates the
+linear-propagation source integral exactly.  For polarized transfer,
+``linprop`` retains the ordinary endpoint-average transmission, whereas
+``magop_linsrc`` also includes the Magnus ordering correction.
 
 Linear source function
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -468,74 +532,159 @@ The derivative contribution is then given by
 Linear propagation matrix and source function
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This partly relaxes the assumption of constant propagation matrix within
-the layer but is otherwise similar to linear in source.
-The indexing is the same for the
-transmittance and incoming background radiation as above - in layers.
-However, the source
-function and propagation matrix indexing below is now shifted
-to represent levels - the same indexing
-as we use for the spectral radiance term.
-
-Linear in source means that we assume
-:math:`J = J_0 + (J_1 - J_0) \frac{r}{r_x}`,
-where :math:`r` is the distance through the layer and :math:`r_x` is the total
-thickness of the layer.
-With a linearly changing propagation matrix
-:math:`K = K_0 + (K_1 - K_0) \frac{r}{r_x}`, we define
-:math:`T_0 = \exp\left(- \overline{K_{0, 1}} r_x\right)`, and again get
+The ``linprop`` option assumes that both propagation and source vary linearly
+through a layer.  Let endpoint 0 be the incoming/background end, endpoint 1
+the outgoing/observer end, and let :math:`0\leq s\leq r` measure distance
+between them:
 
 .. math::
-  I_1 = J_1 + T_0 \left(I_0 - J_0\right) + \Lambda_0 \left(J_0 - J_1\right),
 
-where
+  K(s) &= K_0 + \frac{s}{r}(K_1-K_0),\\
+  J(s) &= J_0 + \frac{s}{r}(J_1-J_0).
 
-.. math::
-  \Lambda_i = \frac{1}{r_i} T_i \int_0^{r_i} \exp\left(K_i s + \frac{K_{i+1} - K_i}{2 r_i} s^2\right) ds.
-
-The solution to this may be approximated with the
-Matrix Dawson function :math:`\mathcal{D}`:
+The layer step has the same affine form as for ``lintau``,
 
 .. math::
-  \mathbf{\Lambda}_i =
-  \left\{
-  \begin{array}{ll}
-  \frac{1}{r_i} \mathbf{\alpha}^{-1} \left( \mathcal{D}(\mathbf{u}_1) - T_i \mathcal{D}(\mathbf{u}_0) \right) & \text{if } K_{i+1} \gg K_i \\
-  \\
-  \frac{1}{r_i} K_i^{-1} (1 - T_i) & \text{otherwise}
-  \end{array},
-  \right.
 
-where :math:`\mathbf{\alpha} = \sqrt{(K_{i+1} - K_i)/(2 r_i)}`
-(principal square root),
-:math:`\mathbf{u}_0 = \frac{1}{2} \mathbf{\alpha}^{-1} K_i`,
-and :math:`\mathbf{u}_1 = \frac{1}{2} \mathbf{\alpha}^{-1} K_{i+1}`.
-The expression should be valid for imaginary input, as well as real,
-however we find this very unstable numerically.  Thus, we only use this
-approach when the propagation matrix increases significantly
-along the path, i.e., :math:`K_{i+1} \gg K_i`.
+  I_1 = J_1 + T_{\rm av}(I_0-J_0) + \Lambda(J_0-J_1).
 
-The rest of the steps that follow are the same as for the
-linear source function
-case above, just replacing :math:`\Lambda_i` with this new definition.
+For scalar propagation the endpoint-average transmission
 
-.. admonition:: Caveats
-  :class: warning
+.. math::
 
-  The approach here uses a matrix Dawson function, which is not
-  what is currently implemented in ARTS.  Instead, an element-wise
-  Dawson function is used, which is only correct if the propagation
-  matrix is diagonal in the same basis at both ends of the layer, or
-  potentially if the non-commutative part is very small.
+  T_{\rm av}=\exp\left[-\frac{r}{2}(K_0+K_1)\right]
 
-  The switch from using linear propagation matrix to constant propagation
-  matrix when the propagation matrix decreases along the path is also
-  a crude approximation that should be improved in the future.  Currently,
-  the argument to the square root must be greater that :math:`10^{-6}` for
-  the algorithms to not revert to the constant propagation matrix case.
+is exact, and ARTS evaluates the exact source operator
 
-  Also be aware that the square root of a matrix is not unique, leading to
-  further potential numerical issues.
+.. math::
+
+  \Lambda_{\rm scalar}
+  = \frac{1}{r}T_{\rm av}\int_0^r
+    \exp\left(K_0s+\frac{K_1-K_0}{2r}s^2\right)\,ds.
+
+Equivalently, define the dimensionless average optical depth and endpoint
+difference
+
+.. math::
+
+  \tau=\frac{r}{2}(K_0+K_1),\qquad
+  \delta=\frac{r}{2}(K_1-K_0).
+
+Then the same operator is
+
+.. math::
+
+  \Lambda_{\rm scalar}
+  = \int_0^1 \exp\left[-\tau q-\delta q(1-q)\right]\,dq.
+
+This form is evaluated without numerical quadrature: ARTS uses a convergent
+endpoint-difference expansion near :math:`\delta=0`, stable Dawson or scaled
+complementary-error-function forms for well-separated endpoints, and an
+endpoint asymptotic expansion for sufficiently thick layers.  Both partial
+derivatives of the integral are evaluated analytically.  At
+:math:`K_0=K_1`, it reduces continuously to the ``lintau`` operator
+:math:`\phi_1(-rK_0)`.
+
+The scalar completion-of-the-square identity does not extend element by
+element to a polarized propagation matrix.  For polarized ``linprop``, ARTS
+instead defines
+
+.. math::
+
+  G_{\rm av} &= -\frac{r}{2}(K_0+K_1),\\
+  T_{\rm av} &= \exp(G_{\rm av}),\\
+  Q &= \mathbf{I}-\frac{r}{12}(K_1-K_0),\\
+  c &= \Lambda_{\rm scalar}
+       -\phi_1(g_{\rm av})
+        \left[1-\frac{r}{12}(\kappa_1-\kappa_0)\right],\\
+  \Lambda_{\rm pol} &= \phi_1(G_{\rm av})Q+c\mathbf{I},
+
+where :math:`\phi_1(X)=X^{-1}(\exp(X)-\mathbf{I})` is evaluated through its
+regular power-series limit at singular arguments, :math:`\kappa_i` is the
+scalar (diagonal) component of :math:`K_i`, and
+:math:`g_{\rm av}=-r(\kappa_0+\kappa_1)/2`.  The scalar correction :math:`c`
+makes this construction reduce exactly and continuously to the scalar
+linear-propagation integral above as polarization tends to zero.  The
+remaining term is a commutator-free augmented-source approximation: the
+source-gradient correction :math:`Q` is retained, but the transmission is
+still the ordinary endpoint-average exponential.  The polarized derivatives
+of both :math:`T_{\rm av}` and :math:`\Lambda_{\rm pol}` are analytical.
+
+Magnus propagation matrix
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The Magnus options treat the propagation matrix as linear across a layer,
+
+.. math::
+
+  K(s) = K_0 + \frac{s}{r}(K_1-K_0),\qquad 0\leq s\leq r,
+
+and retain the first commutator correction in the ordered exponential.  With
+:math:`[A,B]=AB-BA`, the effective optical-depth matrix is
+
+.. math::
+
+  \Omega = \frac{r}{2}(K_0+K_1)
+           - \frac{r^2}{12}[K_1,K_0],
+  \qquad T=\exp(-\Omega).
+
+When :math:`K_0=K_1`, or when the endpoint matrices commute, the commutator
+vanishes and this reduces to the ordinary exponential of the endpoint
+average.  The commutator term is the distinction between ``magop`` and the
+``constant`` transmittance approximation.
+
+The ``magop`` option uses the endpoint-average source
+
+.. math::
+
+  \overline{J}=\frac{J_0+J_1}{2},\qquad
+  I_1=\overline{J}+T(I_0-\overline{J}).
+
+This option improves the ordered propagation matrix but does not model the
+source gradient explicitly.
+
+Magnus propagation matrix and linear source
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ``magop_linsrc`` option augments the Magnus system with a source that is
+linear between :math:`J_0` and :math:`J_1`.  Define the matrix function
+
+.. math::
+
+  \phi_1(X)=X^{-1}\left(\exp(X)-\mathbf{I}\right),
+
+where its power-series limit is used when :math:`X` is singular.  The
+linear-source operator used by ARTS is
+
+.. math::
+
+  L = \phi_1(-\Omega)
+      \left[\mathbf{I}-\frac{r}{12}(K_1-K_0)\right],
+
+and the layer step is
+
+.. math::
+
+  I_1 = J_1 + T(I_0-J_0) + L(J_0-J_1).
+
+For a constant propagation matrix this reduces to the ``lintau`` source
+operator.  The polarized ``linprop`` and ``magop_linsrc`` options use the
+same augmented-source factor
+:math:`\mathbf{I}-r(K_1-K_0)/12`, with the scalar completion :math:`c` above
+added for ``linprop``.  The ``linprop`` option evaluates :math:`\phi_1` at
+the average generator :math:`G_{\rm av}` and uses
+:math:`\exp(G_{\rm av})` for transmission.  ``magop_linsrc`` instead
+evaluates it at :math:`-\Omega` and uses :math:`\exp(-\Omega)`, thereby
+including the first ordering commutator in both operators.  For varying
+scalar propagation, ``linprop`` uses the exact integral above, whereas
+``magop_linsrc`` remains the truncated augmented-Magnus approximation.
+The derivatives of both :math:`T` and :math:`L` with respect to either
+endpoint and the layer length are evaluated analytically.
+
+Both Magnus options truncate the Magnus series after the first commutator
+term.  They therefore still require sufficiently short layers when the
+propagation matrix changes rapidly; reducing the ray-path step size is the
+appropriate convergence check in that regime.
 
 Deriving the expressions
 ************************
@@ -545,9 +694,12 @@ for completeness to show how the expressions above are derived.
 It may also be useful if you want to implement
 other variations of the radiative transfer equation solution.
 
-The matrix case is the same, provided you can treat :math:`K` and :math:`J` as
-*mostly* commuting.  This only affect the last case.  The path
-variables are in :math:`s \in [0,r]` for the distance through
+The integrating-factor derivations below apply directly to scalar transfer.
+They also apply to the constant-matrix cases because all functions of the
+single matrix :math:`K` commute.  For a varying matrix :math:`K(s)`, the
+derivation applies only when the matrices commute along the path; the
+polarized approximations used by ARTS are described above.  The path
+variable is :math:`s \in [0,r]` for the distance through
 a layer of understood
 physics, with :math:`I(0)=I_0` and :math:`I(r)=I_1`.
 
@@ -715,7 +867,8 @@ for :math:`K(s)` and :math:`J(s)`.
    .. math::
 
       I_1 &= J_1 + T_0 (I_0 - J_0) + \Lambda_0 (J_0 - J_1),\\
-      \Lambda_0 &= \frac{1}{r} K_0^{-1} \left( 1-T_0 \right) \\ &=-\log T_0 \left( 1-T_0 \right).
+      \Lambda_0 &= \frac{1}{r} K_0^{-1} \left( 1-T_0 \right)
+      \\ &=-\left(\log T_0\right)^{-1} \left( 1-T_0 \right).
 
    Again, no assumptions were made about scalar vs. matrix.
    The only *scary* step of matrix notation non-commutativity is that you have to
@@ -939,129 +1092,49 @@ for :math:`K(s)` and :math:`J(s)`.
      multiplying :math:`(J_i - J_{i+1})` that comes from solving the
      ODE with both :math:`K` and :math:`J` linear in :math:`s`.
 
-   3.3. Dawson function connection. The starting point is
+   3.3. Stable scalar evaluation and polarized approximation.
+
+      For scalar :math:`K_0` and :math:`K_1`, introduce
 
       .. math::
 
-        \Lambda_0 = \frac{1}{r} T_0 \int_0^{r}
-        \exp\Bigl(K_0 s + \tfrac{K_1-K_0}{2r} s^2\Bigr)\,ds,
+        \tau &= \frac{r}{2}(K_0+K_1),\\
+        \delta &= \frac{r}{2}(K_1-K_0),\\
+        q &= 1-\frac{s}{r}.
 
-      which is valid both for scalar and matrix-valued :math:`K_0, K_1`. In the
-      remainder of this subsection we first treat the **scalar** case (or,
-      equivalently, the case where :math:`K_0` and :math:`K_1` commute and can be
-      simultaneously diagonalized), because only then can we complete the square and
-      express the integral in terms of the (scalar) Dawson function.
-
-      Using :math:`\alpha = (K_1-K_0)/r` as above, the integral
+      Combining :math:`T_0=\exp(-\tau)` with the integral above gives
 
       .. math::
 
-        \int_0^{r} \exp\Bigl(K_0 s + \tfrac12 \,\alpha s^2\Bigr)\,ds
+        \Lambda_0(\tau,\delta)
+        = \int_0^1
+          \exp\left[-\tau q-\delta q(1-q)\right]\,dq.
 
-      is a Gaussian-type integral with a linear term in the exponent.
-      Completing the square gives
-
-      .. math::
-
-        K_0 s + \tfrac12 \,\alpha s^2
-        &= \tfrac12 \,\alpha\Bigl(s^2 + 2\frac{K_0}{\alpha} s\Bigr) \\
-        &= \tfrac12 \,\alpha\Bigl\{\bigl(s + \tfrac{K_0}{\alpha}\bigr)^2
-        - \bigl(\tfrac{K_0}{\alpha}\bigr)^2\Bigr\}.
-
-      Thus
+      This representation remains regular when the propagation gradient
+      vanishes.  It also gives the two partial derivatives directly:
 
       .. math::
 
-        \int_0^{r} \exp\Bigl(K_0 s + \tfrac12 \,\alpha s^2\Bigr)ds
-        = e^{-\frac{K_0^2}{2\alpha}}
-        \int_0^{r}
-        \exp\Bigl(\tfrac12 \,\alpha\bigl(s + \tfrac{K_0}{\alpha}\bigr)^2\Bigr)ds.
+        \frac{\partial\Lambda_0}{\partial\tau}
+        &= -\int_0^1 q
+          \exp\left[-\tau q-\delta q(1-q)\right]\,dq,\\
+        \frac{\partial\Lambda_0}{\partial\delta}
+        &= -\int_0^1 q(1-q)
+          \exp\left[-\tau q-\delta q(1-q)\right]\,dq.
 
-      With the substitution
+      ARTS evaluates these three quantities together.  An expansion in
+      :math:`\delta` uses stable exponential moments near equal endpoints.
+      Away from that regime, the increasing-gradient branch uses a scalar
+      Dawson representation and the decreasing-gradient branch uses the
+      scaled complementary error function.  A Watson endpoint expansion
+      avoids cancellation for sufficiently thick layers.  The derivatives
+      with respect to :math:`K_0`, :math:`K_1`, and :math:`r` then follow
+      analytically by the chain rule.
 
-      .. math::
-
-        t = \sqrt{\tfrac{\alpha}{2}}\Bigl(s + \tfrac{K_0}{\alpha}\Bigr)
-        \quad\Rightarrow\quad
-        ds = \sqrt{\tfrac{2}{\alpha}}\,dt,
-
-      the integral becomes
-
-      .. math::
-
-        \sqrt{\tfrac{2}{\alpha}}\, e^{-\frac{K_0^2}{2\alpha}}
-        \int_{t_0}^{t_1} e^{t^2}\,dt,
-
-      which can be expressed in terms of the Dawson function
-
-      .. math::
-
-        D(z) = e^{-z^2}\int_0^z e^{u^2}\,du.
-
-      Carrying this through in the scalar case gives the representation
-
-      .. math::
-
-        \Lambda_0
-        = \frac{1}{r}\,\sigma^{-1}\bigl(D(u_1) - T_0\,D(u_0)\bigr),
-
-      where
-
-      .. math::
-
-        \sigma &= \sqrt{\frac{K_1-K_0}{2r}}, \\
-        u_0 &= \tfrac12 \sigma^{-1} K_0, \\
-        u_1 &= \tfrac12 \sigma^{-1} K_1.
-
-      **Extension to matrices.** For *matrix*-valued :math:`K_0,K_1`, the
-      exact expression for :math:`\Lambda_0` is still
-
-      .. math::
-
-        \Lambda_0
-        = \frac{1}{r}\,T_0 \int_0^{r}
-        \exp\Bigl(K_0 s + \tfrac{K_1-K_0}{2r} s^2\Bigr)\,ds,
-
-      but the “complete the square” steps above only go through without
-      change if all matrices involved commute (for example, when
-      :math:`K_0` and :math:`K_1` are simultaneously diagonalizable).
-      Under this *commuting* assumption we may treat the matrices as if
-      they were scalars and define matrix analogues
-
-      .. math::
-
-        \boldsymbol{\sigma} = \sqrt{\frac{K_{i+1} - K_i}{2 r_i}}
-        \quad\text{(principal matrix square root)},\\
-        \mathbf{u}_0 = \tfrac12 \boldsymbol{\sigma}^{-1} K_i, \qquad
-        \mathbf{u}_1 = \tfrac12 \boldsymbol{\sigma}^{-1} K_{i+1},
-
-      and a matrix Dawson function :math:`\mathcal{D}` by functional
-      calculus applied to these commuting matrices. This leads to the
-      formal matrix expression
-
-      .. math::
-
-        \mathbf{\Lambda}_i =
-        \frac{1}{r_i}\,\boldsymbol{\sigma}^{-1}
-        \Bigl(\mathcal{D}(\mathbf{u}_1) - T_i\,\mathcal{D}(\mathbf{u}_0)\Bigr),
-
-      where all factors on the right-hand side commute because they are
-      analytic functions of :math:`K_i` and :math:`K_{i+1}`.
-
-      In practice, ARTS does *not* evaluate a full matrix Dawson
-      function. Instead, it applies the scalar Dawson function element-wise
-      in a fixed basis, which is only strictly valid if the propagation
-      matrix is diagonal (or nearly diagonal) in that basis at both ends of
-      the layer. This is why the documentation refers to the Dawson-based
-      expression as an approximation in the general polarized case.
-
-   .. admonition:: Implementation note
-      :class: tip
-
-      This method requires computing the matrix square root of
-      :math:`(K_{i+1}-K_i)/(2 r_i)`.  It also requires using a matrix
-      Dawson function.  Neither of these operations are numerically
-      stable.  It is therefore not recommended to use this method
-      unless you have a good reason to do so.  It is mainly included
-      here for completeness, and as an indicator for future improvements
-      of the radiative transfer solver in ARTS.
+      ARTS does not apply this scalar construction component by component to
+      a polarized matrix.  Instead, polarized ``linprop`` uses
+      :math:`\Lambda_{\rm pol}=\phi_1(G_{\rm av})Q+c\mathbf{I}` with
+      ordinary endpoint-average transmission, as defined above.  The
+      ``magop_linsrc`` option uses the same augmented-source factor
+      :math:`Q` but replaces :math:`G_{\rm av}` by the ordered generator
+      :math:`-\Omega` in both the source operator and transmission.

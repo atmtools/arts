@@ -6,10 +6,9 @@ from copy import copy
 
 DELTA = 1e-12
 NF = 1001
-noise = 1
+noise = 0.1
 
 ws = pyarts.workspace.Workspace()
-ws.water_equivalent_pressure_operatorMK05()
 
 # %% Sampled frequency range
 
@@ -36,7 +35,7 @@ ws.atm_fieldRead(
 
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
-ws.rte_option = "linprop"
+ws.rte_option = "magop_linsrc"
 
 pos = [0e3, 0, 0]
 los = [20.0, 0.0]
@@ -48,10 +47,8 @@ fieldg = copy(ws.atm_field["H2O"])
 fieldg.data /= RAT
 
 ws.RetrievalInit()
-ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-2)
+ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-14)
 ws.RetrievalFinalizeDiagonal()
-
-ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
 
 ws.measurement_vecFromSensor()
 transmat = np.array(ws.measurement_vec, copy=True)

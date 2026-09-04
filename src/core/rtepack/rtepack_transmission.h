@@ -5,6 +5,7 @@
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_spectral_matrix.h"
+#include "rtepack_stokes_vector.h"
 
 namespace rtepack {
 struct TransmittanceMatrix {
@@ -16,6 +17,12 @@ struct TransmittanceMatrix {
 
   muelmat_tensor4 dT{};
   muelmat_tensor4 dL{};
+
+  // Compact accurate diagonal remainders used by the RTE step for optically
+  // thin layers; off-diagonal values are already represented accurately in
+  // T and L.
+  stokvec_matrix T_diag_m1{};
+  stokvec_matrix L_diag_m1{};
 
   void init(const std::span<const propmat_vector> &K,
             const std::span<const propmat_matrix> &dK,
@@ -50,6 +57,16 @@ struct TransmittanceMatrix {
                const ConstVectorView                 &r,
                const ConstTensor3View                &dr);
 
+  void magop(const std::span<const propmat_vector> &K,
+             const std::span<const propmat_matrix> &dK,
+             const ConstVectorView                 &r,
+             const ConstTensor3View                &dr);
+
+  void magop_linsrc(const std::span<const propmat_vector> &K,
+                    const std::span<const propmat_matrix> &dK,
+                    const ConstVectorView                 &r,
+                    const ConstTensor3View                &dr);
+
   void constant(const std::span<const propmat>        &K,
                 const std::span<const propmat_vector> &dK,
                 const ConstVectorView                 &r,
@@ -64,25 +81,42 @@ struct TransmittanceMatrix {
                const std::span<const propmat_vector> &dK,
                const ConstVectorView                 &r,
                const ConstTensor3View                &dr);
+
+  void magop(const std::span<const propmat>        &K,
+             const std::span<const propmat_vector> &dK,
+             const ConstVectorView                 &r,
+             const ConstTensor3View                &dr);
+
+  void magop_linsrc(const std::span<const propmat>        &K,
+                    const std::span<const propmat_vector> &dK,
+                    const ConstVectorView                 &r,
+                    const ConstTensor3View                &dr);
 };
 
+enum class MagnusOperator : bool { magnus };
+
 struct tran {
-  Numeric a, exp_a;
+  Numeric a, exp_a, expm1_a;
   Numeric b, c, d, u, v, w;
   Numeric b2, c2, d2, u2, v2, w2;
   Numeric B, C, S;
   Numeric x2, y2, x, y, cy, sy, cx, sx;
   Numeric ix, iy, inv_x2y2;
-  Numeric C0, C1, C2, C3;
-  bool    polarized, x_zero, y_zero, both_zero, either_zero;
+  Numeric C0, C0_m1, C1, C2, C3;
+  bool    polarized{}, stable_coefficients{}, spectrally_clustered{}, x_zero{}, y_zero{}, both_zero{}, either_zero{};
 
-  constexpr tran() = default;
+  tran() = delete;
 
   tran(const propmat &k1, const propmat &k2, const Numeric r);
+  tran(const propmat &k1, const propmat &k2, const Numeric r, MagnusOperator);
 
   [[nodiscard]] muelmat operator()() const noexcept;
+  [[nodiscard]] muelmat operator()(Vector4 &diag_m1) const noexcept;
   [[nodiscard]] muelmat expm1() const noexcept;
+  [[nodiscard]] Vector4 expm1_diagonal() const noexcept;
   [[nodiscard]] muelmat linsrc() const noexcept;
+  [[nodiscard]] muelmat linsrc(Vector4 &diag_m1) const noexcept;
+  [[nodiscard]] Vector4 linsrcm1_diagonal(const muelmat &lambda) const noexcept;
   [[nodiscard]] muelmat linsrc_linprop(const muelmat &t,
                                        const propmat &k1,
                                        const propmat &k2,
@@ -94,7 +128,21 @@ struct tran {
                               const propmat &dk,
                               const Numeric  r,
                               const Numeric  dr) const;
+  [[nodiscard]] muelmat deriv(const muelmat &t, const propmat &dg) const;
+  [[nodiscard]] muelmat magnus_deriv(
+      const propmat &k1, const propmat &k2, const propmat &dk, const Numeric r, const Numeric dr, bool k1_deriv) const;
+  [[nodiscard]] muelmat magnus_deriv(const muelmat &t,
+                                     const propmat &k1,
+                                     const propmat &k2,
+                                     const propmat &dk,
+                                     const Numeric  r,
+                                     const Numeric  dr,
+                                     bool           k1_deriv) const;
   [[nodiscard]] muelmat linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const;
+  [[nodiscard]] muelmat linsrc_deriv(const propmat &dg) const;
+  [[nodiscard]] muelmat magnus_linsrc(const propmat &k1, const propmat &k2, const Numeric r) const;
+  [[nodiscard]] muelmat magnus_linsrc_deriv(
+      const propmat &k1, const propmat &k2, const propmat &dk, const Numeric r, const Numeric dr, bool k1_deriv) const;
   [[nodiscard]] muelmat linsrc_linprop_deriv(const muelmat &lambda,
                                              const muelmat &t,
                                              const propmat &k1,
@@ -104,6 +152,10 @@ struct tran {
                                              const Numeric  r,
                                              const Numeric  dr,
                                              bool           k1_deriv) const;
+
+ private:
+  [[nodiscard]] muelmat linsrc_impl(Vector4 *diag_m1) const noexcept;
+  void                  init_polarized();
 };
 
 muelmat exp(propmat k, Numeric r = 1.0);
@@ -135,6 +187,7 @@ template <> struct std::formatter<TransmittanceMatrix> {
 
   template <class FmtContext> FmtContext::iterator format(const TransmittanceMatrix &v, FmtContext &ctx) const {
     const std::string_view sep = tags.sep();
-    return tags.format(ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL);
+    return tags.format(
+        ctx, v.option, sep, v.T, sep, v.L, sep, v.P, sep, v.dT, sep, v.dL, sep, v.T_diag_m1, sep, v.L_diag_m1);
   }
 };

@@ -191,6 +191,11 @@ void py_rtepack(py::module_ &m) try {
           [](py::object &x) { return x.attr("__array__")(); },
           [](Propmat &x, Propmat &y) { x = y; },
           "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
+      .def(
+          "exp",
+          [](const Propmat &k, Numeric r) { return exp(k, -r); },
+          "r"_a = -1.0,
+          "Returns the matrix exponential of the propagation matrix scaled by r.)")
       .def("inv", [](const Propmat &k) { return inv(k); }, "Returns the inverse of the propagation matrix.");
 
   common_ndarray(pm);
@@ -403,6 +408,10 @@ void py_rtepack(py::module_ &m) try {
       "T",
       &TransmittanceMatrix::T,
       "The transmittance Mueller matrix; shape [nf, np] if defined\n\n.. :class:`~pyarts3.arts.MuelmatMatrix");
+  tramat.def_rw("T_diag_m1",
+                &TransmittanceMatrix::T_diag_m1,
+                "The accurately cached diagonal of T-I; shape [nf, np] if defined\n\n.. "
+                ":class:`~pyarts3.arts.StokvecMatrix");
   tramat.def_rw(
       "dT",
       &TransmittanceMatrix::dT,
@@ -415,6 +424,10 @@ void py_rtepack(py::module_ &m) try {
       "L",
       &TransmittanceMatrix::L,
       "The linear evolution Mueller matrix; shape [nf, np] if defined\n\n.. :class:`~pyarts3.arts.MuelmatMatrix");
+  tramat.def_rw("L_diag_m1",
+                &TransmittanceMatrix::L_diag_m1,
+                "The accurately cached diagonal of L-I; shape [nf, np] if defined\n\n.. "
+                ":class:`~pyarts3.arts.StokvecMatrix");
   tramat.def_rw(
       "dL",
       &TransmittanceMatrix::dL,
@@ -437,9 +450,13 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(tr);
   tr.doc() = "Class for computing the transmission Mueller matrix and its derivative";
   tr.def(py::init<Propmat, Propmat, Numeric>(), "k1"_a, "k2"_a, "r"_a)
-      .def("__call__", &rtepack::tran::operator(), "Returns the Mueller matrix")
+      .def("__call__",
+           static_cast<Muelmat (rtepack::tran::*)() const noexcept>(&rtepack::tran::operator()),
+           "Returns the Mueller matrix")
       .def("deriv",
-           &rtepack::tran::deriv,
+           static_cast<Muelmat (rtepack::tran::*)(
+               const Muelmat &, const Propmat &, const Propmat &, const Propmat &, Numeric, Numeric) const>(
+               &rtepack::tran::deriv),
            "t"_a,
            "k1"_a,
            "k2"_a,
@@ -447,9 +464,12 @@ void py_rtepack(py::module_ &m) try {
            "r"_a,
            "dr"_a,
            "Returns the derivative of the Mueller matrix")
-      .def("linsrc", &rtepack::tran::linsrc, "Returns the linear-in-tau evolve operator")
+      .def("linsrc",
+           static_cast<Muelmat (rtepack::tran::*)() const noexcept>(&rtepack::tran::linsrc),
+           "Returns the linear-in-tau evolve operator")
       .def("linsrc_deriv",
-           &rtepack::tran::linsrc_deriv,
+           static_cast<Muelmat (rtepack::tran::*)(const Propmat &, Numeric, Numeric) const>(
+               &rtepack::tran::linsrc_deriv),
            "dk"_a,
            "r"_a,
            "dr"_a,

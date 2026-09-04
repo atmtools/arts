@@ -55,7 +55,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "constant"
+    ws.rte_option = "magop"
     ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
@@ -141,7 +141,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "constant"
+    ws.rte_option = "magop"
     ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
@@ -229,7 +229,7 @@ while N >= 2:
     ws.spectral_radApplyForwardUnit()
     linsrc.append(ws.spectral_rad[0][0] * 1.0)
 
-    ws.rte_option = "constant"
+    ws.rte_option = "magop"
     ws.spectral_tramat_pathFromPath()
     ws.spectral_radStepByStepEmission()
     ws.spectral_rad_transform_operatorSet(option="Tb")
