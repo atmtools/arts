@@ -375,3 +375,15 @@ perf report -g graph,0.5,callees
 This will show a reverse call tree with the percentage of time spent in each
 function. The function tree can be expanded to expose the calling functions.
 
+
+
+Errata (still unpublished)
+==========================
+
+This section is a living document for ARTS papers where we have made mistakes in published literature.
+It is incomplete and might even be out of date.  Please check here for future updates if new errors are found.
+
+The atmospheric radiative transfer simulator ARTS, version 2.6—Deep python integration
+--------------------------------------------------------------------------------------
+
+Equation 7 has two errors and the algorithm it describes has a different limit in code.  It should read $x^2 = \frac{s-b}{2}$ and  $y^2 = \frac{s+b}{2}$.  In the same algorithm, in the text after equation 13, the limit should read $10^{-4}$ instead of $0.001$ to follow the code.  These mistakes are not present in code and only affects re-implementers, not users, of ARTS.
