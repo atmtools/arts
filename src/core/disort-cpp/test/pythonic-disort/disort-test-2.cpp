@@ -1,5 +1,6 @@
-#include <disort-test.h>
+#include "../test-helpers.h"
 
+namespace {
 void test_2a() {
   const AscendingGrid tau_arr{0.2};
   const Vector        omega_arr{0.5};
@@ -573,6 +574,7 @@ void test_2d() {
 
   compare("test_2d", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 }
+}  // namespace
 
 int main() try {
   test_2a();

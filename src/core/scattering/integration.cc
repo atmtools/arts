@@ -152,8 +152,8 @@ void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
 #else
   Index                 n = degree_ - 1;
   fftw_plan             ifft;
-  double*               weights = reinterpret_cast<double*>(fftw_malloc(2 * (n / 2 + 1) * sizeof(double)));
-  std::complex<double>* coeffs  = reinterpret_cast<std::complex<double>*>(weights);
+  double               *weights = reinterpret_cast<double *>(fftw_malloc(2 * (n / 2 + 1) * sizeof(double)));
+  std::complex<double> *coeffs  = reinterpret_cast<std::complex<double> *>(weights);
   Numeric               n_f     = static_cast<Numeric>(n);
 
   ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n), reinterpret_cast<double (*)[2]>(coeffs), weights, FFTW_ESTIMATE);
@@ -178,8 +178,8 @@ void FejerQuadrature::calculate_nodes_and_weights() {
 #else
   const Index           n = degree_;
   fftw_plan             ifft;
-  double*               weights = reinterpret_cast<double*>(fftw_malloc(2 * (n + 1) * sizeof(double)));
-  std::complex<double>* coeffs  = reinterpret_cast<std::complex<double>*>(weights);
+  double               *weights = reinterpret_cast<double *>(fftw_malloc(2 * (n + 1) * sizeof(double)));
+  std::complex<double> *coeffs  = reinterpret_cast<std::complex<double> *>(weights);
 
   ifft = fftw_plan_dft_c2r_1d(static_cast<int>(n), reinterpret_cast<double (*)[2]>(coeffs), weights, FFTW_ESTIMATE);
   // Calculate DFT input.

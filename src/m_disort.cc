@@ -68,7 +68,8 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field, cons
 
       dis.gridded_flux(disort_spectral_flux_field.up[iv],
                        disort_spectral_flux_field.down_diffuse[iv],
-                       disort_spectral_flux_field.down_direct[iv]);
+                       disort_spectral_flux_field.down_direct[iv],
+                       disort_spectral_flux_field.dfdt[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -178,10 +179,12 @@ void disort_spectral_flux_fieldCoupledCalc(DisortFlux&           disort_spectral
 
       dis_atm.gridded_flux(disort_atm_spectral_flux_field.up[iv],
                            disort_atm_spectral_flux_field.down_diffuse[iv],
-                           disort_atm_spectral_flux_field.down_direct[iv]);
+                           disort_atm_spectral_flux_field.down_direct[iv],
+                           disort_atm_spectral_flux_field.dfdt[iv]);
       dis_subsurf.gridded_flux(disort_subsurf_spectral_flux_field.up[iv],
                                disort_subsurf_spectral_flux_field.down_diffuse[iv],
-                               disort_subsurf_spectral_flux_field.down_direct[iv]);
+                               disort_subsurf_spectral_flux_field.down_direct[iv],
+                               disort_subsurf_spectral_flux_field.dfdt[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

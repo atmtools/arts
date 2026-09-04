@@ -18,8 +18,54 @@
 #include "hpy_vector.h"
 
 namespace Python {
+template <typename T, Index M, size_t... N, typename Array>
+void rtepack_array_from_ndarray(matpack::data_t<T, M> *y, const Array &x) {
+  constexpr std::array<Size, sizeof...(N)> component_shape{N...};
+  constexpr Size                           rank = M + sizeof...(N);
+  const Size                               sz   = T{}.size();
+
+  std::array<Index, rank> input_shape{};
+  for (Size i = 0; i < rank; ++i) input_shape[i] = static_cast<Index>(x.shape(i));
+
+  bool valid_component_shape = true;
+  for (Size i = 0; i < component_shape.size(); ++i) {
+    valid_component_shape &= static_cast<Size>(x.shape(M + i)) == component_shape[i];
+  }
+  if (x.size() != 0 and not valid_component_shape) {
+    throw std::invalid_argument(
+        std::format("Trailing dimensions of input must match the underlying rtepack type. "
+                    "The shape is {:B,} and the required trailing shape is {:B,}",
+                    input_shape,
+                    component_shape));
+  }
+
+  std::array<Index, M> shape{};
+  std::copy_n(input_shape.begin(), M, shape.begin());
+  new (y) matpack::data_t<T, M>(shape);
+
+  for (Size i = 0; i < y->size(); ++i) {
+    std::array<typename T::value_type, (N * ...)> value{};
+    std::copy_n(x.data() + i * sz, sz, value.begin());
+    y->elem_begin()[i] = T{value};
+  }
+}
+
 template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpack::data_t<T, M>> &c) {
   using U = T::value_type;
+  static_assert(sizeof...(N) > 0);
+  static_assert((N * ...) == T{}.size());
+
+  constexpr Size rank = M + sizeof...(N);
+  using nd            = py::ndarray<py::numpy, U, py::ndim<rank>, py::c_contig>;
+  using const_nd      = py::ndarray<py::numpy, const U, py::ndim<rank>, py::c_contig>;
+
+  c.def("__init__", [](matpack::data_t<T, M> *y, const nd &x) { rtepack_array_from_ndarray<T, M, N...>(y, x); }, "x"_a);
+  c.def(
+      "__init__",
+      [](matpack::data_t<T, M> *y, const const_nd &x) { rtepack_array_from_ndarray<T, M, N...>(y, x); },
+      "x"_a);
+  py::implicitly_convertible<nd, matpack::data_t<T, M>>();
+  py::implicitly_convertible<const_nd, matpack::data_t<T, M>>();
 
   c.def(
       "__init__",
@@ -31,16 +77,20 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
   py::implicitly_convertible<matpack::data_t<U, M>, matpack::data_t<T, M>>();
   c.def(
       "__init__",
-      [](matpack::data_t<T, M> *y, const matpack::data_t<U, M + 1> &x) {
-        const Size sz = T{}.size();
+      [](matpack::data_t<T, M> *y, const matpack::data_t<U, M + sizeof...(N)> &x) {
+        constexpr std::array<Size, sizeof...(N)> component_shape{N...};
+        const Size                               sz = T{}.size();
 
-        if (x.size() != 0 and static_cast<Size>(x.shape().back()) != sz) {
+        bool valid_component_shape = true;
+        for (Size i = 0; i < component_shape.size(); ++i) {
+          valid_component_shape &= static_cast<Size>(x.extent(M + i)) == component_shape[i];
+        }
+        if (x.size() != 0 and not valid_component_shape) {
           throw std::invalid_argument(
-              std::format("Last dimension of input must be equal to the size of the "
-                          "underlying rtepack type.  "
-                          "The shape is {:B,} and the size of the underlying rtepack type is {}",
+              std::format("Trailing dimensions of input must match the underlying rtepack type. "
+                          "The shape is {:B,} and the required trailing shape is {:B,}",
                           x.shape(),
-                          sz));
+                          component_shape));
         }
 
         std::array<Index, M> shape{};
@@ -55,9 +105,8 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
         }
       },
       "x"_a);
-  py::implicitly_convertible<matpack::data_t<U, M + 1>, matpack::data_t<T, M>>();
+  py::implicitly_convertible<matpack::data_t<U, M + sizeof...(N)>, matpack::data_t<T, M>>();
 
-  using nd = py::ndarray<py::numpy, Numeric, py::ndim<M + sizeof...(N)>, py::c_contig>;
   c.def(
       "__array__",
       [](matpack::data_t<T, M> &v, py::object dtype, py::object copy) -> std::variant<nd, py::object> {
@@ -265,6 +314,16 @@ void py_rtepack(py::module_ &m) try {
   py::class_<MuelmatTensor3> mt3(m, "MuelmatTensor3");
   rtepack_array<Muelmat, 3, 4, 4>(mt3);
   generic_interface(mt3);
+
+  py::class_<MuelmatTensor4> mt4(m, "MuelmatTensor4");
+  mt4.doc() = "A 4-tensor of :class:`~pyarts3.arts.Muelmat`";
+  rtepack_array<Muelmat, 4, 4, 4>(mt4);
+  generic_interface(mt4);
+
+  py::class_<MuelmatTensor5> mt5(m, "MuelmatTensor5");
+  mt5.doc() = "A 5-tensor of :class:`~pyarts3.arts.Muelmat`";
+  rtepack_array<Muelmat, 5, 4, 4>(mt5);
+  generic_interface(mt5);
 
   py::class_<Specmat> cmm(m, "Specmat");
   cmm.def(py::init_implicit<Complex>())

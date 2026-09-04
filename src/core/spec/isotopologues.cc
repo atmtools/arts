@@ -75,7 +75,7 @@ namespace {
 consteval IsotopologueRatios from_builtin() {
   IsotopologueRatios isotopologue_ratios{};
 
-  stdr::copy(Isotopologues | std::views::transform(&Isotope::builtin_ratio), isotopologue_ratios.data.begin());
+  stdr::copy(Isotopologues | stdv::transform(&Isotope::builtin_ratio), isotopologue_ratios.data.begin());
 
   return isotopologue_ratios;
 }

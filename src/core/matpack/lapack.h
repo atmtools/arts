@@ -187,7 +187,6 @@ extern "C" void dgeev_(char   *jobvl,
                        int    *ldvr,
                        double *work,
                        int    *lwork,
-                       double *rwork,
                        int    *info);
 
 extern "C" void zgeev_(char                 *jobvl,

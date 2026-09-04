@@ -63,6 +63,25 @@ test1 = [owns_data(x) for x in [a, d, e]]
 test2 = [not_owns_data(x) for x in [b, c]]
 test3 = [writable(x) for x in [a, b, c, d, e]]
 
+# Empty NumPy arrays must retain their dynamic dimensions when converted to
+# rtepack arrays, while their trailing dimensions form one fixed-size block.
+rtepack_empty_arrays = [
+    (pyarts.arts.StokvecMatrix, (0, 2, 4), float),
+    (pyarts.arts.StokvecTensor3, (0, 2, 3, 4), float),
+    (pyarts.arts.PropmatMatrix, (0, 2, 7), float),
+    (pyarts.arts.MuelmatMatrix, (0, 2, 4, 4), float),
+    (pyarts.arts.MuelmatTensor3, (0, 2, 3, 4, 4), float),
+    (pyarts.arts.MuelmatTensor4, (0, 2, 3, 4, 4, 4), float),
+    (pyarts.arts.MuelmatTensor5, (0, 2, 3, 4, 5, 4, 4), float),
+    (pyarts.arts.SpecmatTensor3, (0, 2, 3, 4, 4), complex),
+]
+
+for rtepack_type, shape, dtype in rtepack_empty_arrays:
+    converted = rtepack_type(np.empty(shape, dtype=dtype))
+    result = np.asarray(converted)
+    assert result.shape == shape
+    assert result.dtype == np.dtype(dtype)
+
 v = pyarts.arts.DescendingGrid([3, 2, 1])
 
 a = np.array(v)

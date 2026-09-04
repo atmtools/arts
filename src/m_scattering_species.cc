@@ -8,6 +8,10 @@ void legendre_degreeFromDisortSettings(Index& legendre_degree, const DisortSetti
   ARTS_USER_ERROR_IF(legendre_degree < 0, "The legendre_degree must be non-negative, is {}", legendre_degree)
 }
 
+void legendre_degreeFromDisortSettingsDeltaMPlus(Index& legendre_degree, const DisortSettings& disort_settings) {
+  legendre_degree = disort_settings.legendre_polynomial_dimension + 1;
+}
+
 void scat_speciesInit(ArrayOfScatteringSpecies& scattering_species) { scattering_species = ArrayOfScatteringSpecies{}; }
 
 void spectral_propmat_scatSpectralInit(PropmatVector&       spectral_propmat_scat,

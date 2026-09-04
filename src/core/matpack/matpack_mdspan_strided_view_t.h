@@ -366,8 +366,7 @@ template <typename T, Size N> struct std::formatter<matpack::strided_view_t<T, N
   }
 };
 
-template <class T, Size N> inline constexpr bool std::ranges::enable_borrowed_range<matpack::strided_view_t<T, N>> =
-    true;
+template <class T, Size N> inline constexpr bool stdr::enable_borrowed_range<matpack::strided_view_t<T, N>> = true;
 
 using StridedVectorView  = matpack::strided_view_t<Numeric, 1>;
 using StridedMatrixView  = matpack::strided_view_t<Numeric, 2>;

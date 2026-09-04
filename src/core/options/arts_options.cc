@@ -16,7 +16,7 @@ using namespace std::literals;
 using Value = std::vector<std::string>;
 
 namespace stdr = std::ranges;
-namespace stdv = std::ranges::views;
+namespace stdv = std::views;
 
 namespace {
 void fix_static(std::vector<EnumeratedOption>& opts) {
@@ -97,7 +97,9 @@ std::vector<EnumeratedOption> internal_options_create() {
           R"(For atmospheric scattering settings with *disort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No atmospheric scattering"},
-                          Value{"ScatteringSpecies", "Use *ArrayOfScatteringSpecies* for scattering"}},
+                          Value{"ScatteringSpecies", "Use *ArrayOfScatteringSpecies* for scattering"},
+                          Value{"ScatteringSpeciesDeltaMPlus",
+                                "Use *ArrayOfScatteringSpecies* with spectral delta-M-plus scaling"}},
   });
 
   opts.emplace_back(EnumeratedOption{

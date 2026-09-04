@@ -1,7 +1,8 @@
-#include <disort-test.h>
-
 #include <cstdlib>
 
+#include "../test-helpers.h"
+
+namespace {
 void test_1a() {
   const AscendingGrid tau_arr{0.03125};
   const Vector        omega_arr{0.2};
@@ -148,7 +149,7 @@ void test_1a() {
 
 void test_1b() {
   const AscendingGrid tau_arr{0.03125};
-  // Reduced from 1 because we have not implemented that special case
+  // This reference dataset was generated at this explicitly near-conservative value.
   const Vector omega_arr{1 - 1e-6};
   const Index  NQuad = 16;
   Matrix       Leg_coeffs_all(1, 17, 0);
@@ -808,6 +809,7 @@ void test_1f() {
 
   compare("test_1f", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
 }
+}  // namespace
 
 int main() try {
   test_1a();

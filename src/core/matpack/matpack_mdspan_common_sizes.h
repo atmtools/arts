@@ -10,7 +10,7 @@
 #include <type_traits>
 
 namespace stdr = std::ranges;
-namespace stdv = std::ranges::views;
+namespace stdv = std::views;
 
 namespace matpack {
 //! The type is an integer

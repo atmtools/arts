@@ -38,5 +38,29 @@ int main() {
                        dense_y)
   }
 
+  const ComplexMatrix complex_a = [] {
+    ComplexMatrix out(3, 3, 0.0);
+    out[0, 0] = Complex{3.0, 1.0};
+    out[0, 1] = Complex{-1.0, 0.5};
+    out[1, 0] = Complex{2.0, -1.0};
+    out[1, 1] = Complex{4.0, 0.0};
+    out[1, 2] = Complex{0.5, 2.0};
+    out[2, 1] = Complex{-2.0, 0.25};
+    out[2, 2] = Complex{1.0, -3.0};
+    return out;
+  }();
+  const ComplexVector          complex_b{Complex{1.0, 2.0}, Complex{-3.0, 0.5}, Complex{2.0, -1.0}};
+  ComplexVector                complex_x{complex_b};
+  matpack::complex_band_matrix complex_bd(complex_a);
+  ARTS_USER_ERROR_IF(complex_bd.solve(complex_x) != 0, "Complex band matrix solver failed");
+
+  for (Index i = 0; i < complex_a.nrows(); ++i) {
+    Complex residual = -complex_b[i];
+    for (Index j = 0; j < complex_a.ncols(); ++j) residual += complex_a[i, j] * complex_x[j];
+    ARTS_USER_ERROR_IF(std::abs(residual) > 1000 * std::numeric_limits<Numeric>::epsilon(),
+                       "Complex band matrix solver residual is {}",
+                       residual);
+  }
+
   return 0;
 }

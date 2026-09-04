@@ -184,7 +184,7 @@ template <typename A, typename B> Numeric max_rel_error(const A& a, const B& b) 
   return max;
 }
 
-#if defined(__GNUC__) 
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
 #elif defined(__clang__)

@@ -13,7 +13,7 @@
 namespace Jpl {
 namespace {
 const JplSpeciesInfo& info_from_lookup(Index mol) {
-  auto it = std::ranges::lower_bound(jpl_data, mol, {}, &JplSpeciesInfo::id);
+  auto it = stdr::lower_bound(jpl_data, mol, {}, &JplSpeciesInfo::id);
 
   if (it == jpl_data.end() or it->id != mol) {
     throw std::runtime_error(std::format("No species found in JPL data with ID {}", mol));
