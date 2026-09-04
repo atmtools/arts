@@ -55,7 +55,7 @@ struct scalar_vdisort_model {
 Numeric scalar_phase_mode(const ConstVectorView& moments,
                           const Index            m,
                           const Numeric          outgoing_mu,
-                          const Numeric          incident_mu) {
+                          const Numeric          incident_mu) try {
   Numeric result = 0.0;
   for (Index degree = m; degree < static_cast<Index>(moments.size()); ++degree) {
     const Numeric factorial_ratio =
@@ -64,7 +64,7 @@ Numeric scalar_phase_mode(const ConstVectorView& moments,
               Legendre::assoc_legendre(degree, m, outgoing_mu) * Legendre::assoc_legendre(degree, m, incident_mu);
   }
   return result;
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_phase_mode:\n{}", e.what())); }
 
 scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
                                        const Numeric          physical_omega,
@@ -76,7 +76,7 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
                                        const Numeric          beam_intensity,
                                        const Numeric          delta_m_fraction     = 0.0,
                                        const Numeric          phi0                 = 0.0,
-                                       const Vector*          removed_peak_moments = nullptr) {
+                                       const Vector*          removed_peak_moments = nullptr) try {
   const Numeric optical_depth_scale = 1.0 - physical_omega * delta_m_fraction;
   const Numeric transport_omega     = physical_omega * (1.0 - delta_m_fraction) / optical_depth_scale;
   Vector        transport_moments(std::min(nquad, static_cast<Index>(moments.size())));
@@ -161,7 +161,7 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
           .beam_intensity      = has_beam ? beam_intensity : 0.0,
           .delta_m_fraction    = delta_m_fraction,
           .optical_depth_scale = optical_depth_scale};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_scalar_model:\n{}", e.what())); }
 
 Numeric phi1_negative(const Numeric x) { return x == 0.0 ? 1.0 : -std::expm1(-x) / x; }
 
@@ -204,7 +204,7 @@ Numeric scattering_angle_cosine(const Numeric mu,
 Vector scalar_delta_m_correction(const scalar_vdisort_model& model,
                                  const Numeric               physical_tau,
                                  const Numeric               phi,
-                                 const ConstVectorView&      user_mu) {
+                                 const ConstVectorView&      user_mu) try {
   Vector correction(user_mu.size(), 0.0);
   if (model.beam_intensity == 0.0 or model.delta_m_fraction == 0.0) return correction;
 
@@ -257,9 +257,11 @@ Vector scalar_delta_m_correction(const scalar_vdisort_model& model,
     }
   }
   return correction;
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in scalar_delta_m_correction:\n{}", e.what()));
 }
 
-void run_problem_1_case(const disort_test::reference::single_layer_case& test) {
+void run_problem_1_case(const disort_test::reference::single_layer_case& test) try {
   const auto& user_mu = disort_test::reference::problem_1_user_mu;
   Vector      moments(17, 0.0);
   moments[0]         = 1.0;
@@ -291,13 +293,13 @@ void run_problem_1_case(const disort_test::reference::single_layer_case& test) {
         std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_1:\n{}", e.what())); }
 
-void test_problem_1() {
+void test_problem_1() try {
   for (const auto& test : disort_test::reference::problem_1) run_problem_1_case(test);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_1:\n{}", e.what())); }
 
-void run_problem_2_case(const disort_test::reference::single_layer_case& test) {
+void run_problem_2_case(const disort_test::reference::single_layer_case& test) try {
   const auto& user_mu = disort_test::reference::problem_2_user_mu;
   Vector      moments(17, 0.0);
   moments[0]         = 1.0;
@@ -330,13 +332,13 @@ void run_problem_2_case(const disort_test::reference::single_layer_case& test) {
         std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_2:\n{}", e.what())); }
 
-void test_problem_2() {
+void test_problem_2() try {
   for (const auto& test : disort_test::reference::problem_2) run_problem_2_case(test);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_2:\n{}", e.what())); }
 
-void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
+void run_problem_3_case(const disort_test::reference::single_layer_case& test) try {
   constexpr Index nquad   = disort_test::reference::problem_3_streams;
   const auto&     user_mu = disort_test::reference::problem_3_user_mu;
   Vector          moments(disort_test::reference::problem_3_moments);
@@ -414,13 +416,13 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) {
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_3:\n{}", e.what())); }
 
-void test_problem_3() {
+void test_problem_3() try {
   for (const auto& test : disort_test::reference::problem_3) run_problem_3_case(test);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_3:\n{}", e.what())); }
 
-void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
+void run_problem_4_case(const disort_test::reference::haze_l_case& test) try {
   constexpr Index nquad          = disort_test::reference::problem_4_streams;
   const auto&     user_mu        = disort_test::reference::problem_4_user_mu;
   const Matrix    moments_matrix = disort_test::reference::haze_l_moments();
@@ -469,13 +471,13 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) {
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_4:\n{}", e.what())); }
 
-void test_problem_4() {
+void test_problem_4() try {
   for (const auto& test : disort_test::reference::problem_4) run_problem_4_case(test);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_4:\n{}", e.what())); }
 
-void run_problem_5_case(const disort_test::reference::scalar_case& test) {
+void run_problem_5_case(const disort_test::reference::scalar_case& test) try {
   constexpr Index nquad          = disort_test::reference::problem_5_streams;
   const auto&     user_mu        = disort_test::reference::problem_5_user_mu;
   const Matrix    moments_matrix = disort_test::reference::cloud_c1_moments();
@@ -514,16 +516,16 @@ void run_problem_5_case(const disort_test::reference::scalar_case& test) {
         std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
     expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_5:\n{}", e.what())); }
 
-void test_problem_5() {
+void test_problem_5() try {
   run_problem_5_case(disort_test::reference::problem_5a);
   run_problem_5_case(disort_test::reference::problem_5b);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_5:\n{}", e.what())); }
 
 Numeric band_blackbody_radiance(const Numeric temperature,
                                 const Numeric wavenumber_low,
-                                const Numeric wavenumber_high) {
+                                const Numeric wavenumber_high) try {
   if (temperature == 0.0 or wavenumber_low == wavenumber_high) return 0.0;
   constexpr Index intervals = 4096;
   const Numeric   scale     = Constant::h * Constant::c * 100.0 / (Constant::k * temperature);
@@ -539,13 +541,15 @@ Numeric band_blackbody_radiance(const Numeric temperature,
   integral *= dx / 3.0;
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi * integral /
          (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in band_blackbody_radiance:\n{}", e.what()));
 }
 
-std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& raw, const Index number_of_modes) {
+std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& raw, const Index number_of_modes) try {
   return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, 100);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_brdf_modes:\n{}", e.what())); }
 
-Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) {
+Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) try {
   constexpr Index nmu      = 64;
   constexpr Index nazimuth = 256;
   Vector          mu(nmu), weight(nmu);
@@ -562,9 +566,9 @@ Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numer
     reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
   }
   return 1.0 - reflectance;
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in directional_emissivity:\n{}", e.what())); }
 
-vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) {
+vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) try {
   constexpr Index nquad   = 16;
   constexpr Index nstokes = vdisort::stokes_dimension;
   const Index     n       = nquad / 2;
@@ -635,9 +639,9 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
                                    test.beam_mu,
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_6_model:\n{}", e.what())); }
 
-void test_problem_6() {
+void test_problem_6() try {
   for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_6.size()); ++case_index) {
     const auto&        test      = disort_test::reference::problem_6[case_index];
     const auto&        reference = disort_test::reference::problem_6_flux[case_index];
@@ -663,9 +667,9 @@ void test_problem_6() {
           std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_6:\n{}", e.what())); }
 
-vdisort::main_data make_problem_7_model(const disort_test::reference::scattering_thermal_case& test) {
+vdisort::main_data make_problem_7_model(const disort_test::reference::scattering_thermal_case& test) try {
   constexpr Index nstokes = vdisort::stokes_dimension;
   constexpr Index nmodes  = 1;  // Problem 7 has active azimuth-integrated flux references only.
   const Index     nquad   = test.streams;
@@ -737,7 +741,7 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0,
                                    std::move(beam_phase));
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_7_model:\n{}", e.what())); }
 
 void expect_small_reference(const std::string_view name,
                             const Numeric          actual,
@@ -752,7 +756,7 @@ void expect_small_reference(const std::string_view name,
                      actual - expected);
 }
 
-void test_problem_7() {
+void test_problem_7() try {
   for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_7.size()); ++case_index) {
     const auto&        test       = disort_test::reference::problem_7[case_index];
     const auto&        reference  = disort_test::reference::problem_7_flux[case_index];
@@ -785,14 +789,14 @@ void test_problem_7() {
       }
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_7:\n{}", e.what())); }
 
 struct problem_8_model {
   vdisort::main_data         solver;
   vdisort::phase_matrix_data user_phase;
 };
 
-problem_8_model make_problem_8_model(const disort_test::reference::layered_isotropic_case& test) {
+problem_8_model make_problem_8_model(const disort_test::reference::layered_isotropic_case& test) try {
   constexpr Index nquad   = disort_test::reference::problem_8_streams;
   constexpr Index nmodes  = 1;
   constexpr Index nlayers = 2;
@@ -825,9 +829,9 @@ problem_8_model make_problem_8_model(const disort_test::reference::layered_isotr
                                           Vector(4, 0.0),
                                           0.0);
   return {.solver = std::move(solver), .user_phase = std::move(user_phase)};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_8_model:\n{}", e.what())); }
 
-void test_problem_8() {
+void test_problem_8() try {
   for (const auto& test : disort_test::reference::problem_8) {
     auto                 model = make_problem_8_model(test);
     vdisort::user_u_data user;
@@ -857,7 +861,7 @@ void test_problem_8() {
       expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, test.up[level]);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_8:\n{}", e.what())); }
 
 struct problem_9_model {
   vdisort::main_data              solver;
@@ -865,7 +869,7 @@ struct problem_9_model {
   vdisort::beam_phase_matrix_data user_beam_phase;
 };
 
-Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test, const Index nquad) {
+Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test, const Index nquad) try {
   const Index nlayers = static_cast<Index>(test.cumulative_tau.size());
   Matrix      moments(nlayers, nquad, 0.0);
   if (test.phase == disort_test::reference::phase_type::isotropic) {
@@ -881,11 +885,11 @@ Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& 
             std::pow(disort_test::reference::problem_9c_asymmetry[layer], static_cast<Numeric>(degree));
   }
   return moments;
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in problem_9_moments:\n{}", e.what())); }
 
 problem_9_model make_problem_9_model(const disort_test::reference::general_multilayer_case& test,
                                      const Index                                            nquad,
-                                     const ConstVectorView&                                 user_mu) {
+                                     const ConstVectorView&                                 user_mu) try {
   constexpr Index nstokes = vdisort::stokes_dimension;
   const Index     n       = nquad / 2;
   const Index     nlayers = static_cast<Index>(test.cumulative_tau.size());
@@ -977,9 +981,9 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
                                           std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_9_model:\n{}", e.what())); }
 
-void test_problem_9() {
+void test_problem_9() try {
   for (const auto& test : disort_test::reference::problem_9) {
     auto model = make_problem_9_model(
         test, disort_test::reference::problem_9_streams, disort_test::reference::problem_9_user_mu);
@@ -1020,9 +1024,9 @@ void test_problem_9() {
       expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, test.up[level], tolerance);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_9:\n{}", e.what())); }
 
-void test_problem_10() {
+void test_problem_10() try {
   const auto& test  = disort_test::reference::problem_9[2];
   auto        model = make_problem_9_model(
       test, disort_test::reference::problem_10_streams, disort_test::reference::problem_10_user_mu);
@@ -1061,9 +1065,9 @@ void test_problem_10() {
     expect_reference("Problem 10 upward flux", flux_after.up, flux_before.up, 1e-12);
     expect_reference("Problem 10 DFDT", flux_after.dfdt, flux_before.dfdt, 1e-12);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_10:\n{}", e.what())); }
 
-problem_9_model make_problem_11_model(const bool subdivided) {
+problem_9_model make_problem_11_model(const bool subdivided) try {
   constexpr Index nquad   = disort_test::reference::problem_11_streams;
   constexpr Index nmodes  = 1;
   constexpr Index nstokes = vdisort::stokes_dimension;
@@ -1109,9 +1113,9 @@ problem_9_model make_problem_11_model(const bool subdivided) {
       std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_11_model:\n{}", e.what())); }
 
-void test_problem_11() {
+void test_problem_11() try {
   auto one_layer  = make_problem_11_model(false);
   auto subdivided = make_problem_11_model(true);
 
@@ -1155,9 +1159,9 @@ void test_problem_11() {
                          subdivided_flux_data.u0[stream]);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_11:\n{}", e.what())); }
 
-scalar_vdisort_model make_problem_12_model(const bool subdivided) {
+scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
   constexpr Index   nquad               = disort_test::reference::problem_12_streams;
   constexpr Index   nstokes             = vdisort::stokes_dimension;
   constexpr Numeric physical_omega      = disort_test::reference::problem_12_omega;
@@ -1246,9 +1250,9 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) {
           .beam_intensity      = disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu,
           .delta_m_fraction    = delta_m_fraction,
           .optical_depth_scale = optical_depth_scale};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_12_model:\n{}", e.what())); }
 
-void test_problem_12() {
+void test_problem_12() try {
   auto        one_layer  = make_problem_12_model(false);
   auto        subdivided = make_problem_12_model(true);
   const auto& user_mu    = disort_test::reference::problem_12_user_mu;
@@ -1298,9 +1302,9 @@ void test_problem_12() {
                          subdivided_flux_data.u0[stream]);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_12:\n{}", e.what())); }
 
-vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_transmission_reference& test) {
+vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_transmission_reference& test) try {
   constexpr Index   nquad   = disort_test::reference::problem_13_streams;
   constexpr Index   nmodes  = nquad;
   constexpr Index   nstokes = vdisort::stokes_dimension;
@@ -1362,9 +1366,9 @@ vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_tr
                                    Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
                                    0.0,
                                    std::move(beam_phase));
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_13_model:\n{}", e.what())); }
 
-void test_problem_13_boundary_limits() {
+void test_problem_13_boundary_limits() try {
   using namespace disort_test::reference;
   constexpr Numeric               depth   = 0.25;
   constexpr Index                 nquad   = problem_13_streams;
@@ -1401,9 +1405,11 @@ void test_problem_13_boundary_limits() {
   expect_reference("Problem 13 absorbing Lambertian top reflection", top.up, expected_up, 2e-12);
   expect_reference("Problem 13 absorbing direct transmission", bottom.down_direct, bottom_beam, 2e-12);
   expect_reference("Problem 13 absorbing diffuse transmission", bottom.down_diffuse, 0.0, 2e-12);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test_problem_13_boundary_limits:\n{}", e.what()));
 }
 
-void test_problem_13() {
+void test_problem_13() try {
   using namespace disort_test::reference;
   test_problem_13_boundary_limits();
   for (const auto& test : problem_13) {
@@ -1421,7 +1427,7 @@ void test_problem_13() {
                      (bottom.down_direct + bottom.down_diffuse) / incident_flux,
                      test.transmission);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_13:\n{}", e.what())); }
 
 disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {
   using enum disort_test::reference::brdf_type;
@@ -1434,7 +1440,7 @@ disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type
   std::unreachable();
 }
 
-problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
+problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) try {
   constexpr Index   nquad   = disort_test::reference::problem_14_streams;
   constexpr Index   nmodes  = nquad;
   constexpr Index   nlayers = 1;
@@ -1472,16 +1478,16 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) {
                                           std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_14_model:\n{}", e.what())); }
 
-void update_scalar_brdf(problem_9_model& model, const disort::brdf::RawFunction& raw, const Index nmodes) {
+void update_scalar_brdf(problem_9_model& model, const disort::brdf::RawFunction& raw, const Index nmodes) try {
   const auto modes = scalar_brdf_modes(raw, nmodes);
   stdr::copy(modes, model.solver.brdf_modes().begin());
   model.solver.solve_for_coefs();
   model.solver.rad_field();
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in update_scalar_brdf:\n{}", e.what())); }
 
-void test_problem_14() {
+void test_problem_14() try {
   using namespace disort_test::reference;
   auto model = make_problem_14_model(problem_14_raw(problem_14.front().type));
   for (Index case_index = 0; case_index < static_cast<Index>(problem_14.size()); ++case_index) {
@@ -1515,16 +1521,16 @@ void test_problem_14() {
     expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
     expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_14:\n{}", e.what())); }
 
-disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) {
+disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) try {
   if (type == disort_test::reference::brdf_type::cox_munk) return disort::brdf::CoxMunk{.shadowing = true};
   return problem_14_raw(type);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in problem_15_raw:\n{}", e.what())); }
 
 problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
                                       const Matrix&                    transport_moments,
-                                      const AscendingGrid&             scaled_tau) {
+                                      const AscendingGrid&             scaled_tau) try {
   using namespace disort_test::reference;
   constexpr Index nquad   = problem_15_streams;
   constexpr Index nmodes  = nquad;
@@ -1580,9 +1586,9 @@ problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
                                           std::move(beam_phase));
   return {
       .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_15_model:\n{}", e.what())); }
 
-void test_problem_15() {
+void test_problem_15() try {
   using namespace disort_test::reference;
   constexpr Index moment_count = 600;
   Matrix          original(2, moment_count, 0.0);
@@ -1679,9 +1685,9 @@ void test_problem_15() {
       expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_15:\n{}", e.what())); }
 
-void test_problem_17() {
+void test_problem_17() try {
   using namespace disort_test::reference;
 
   const std::array<const Vector*, 2> phase_moments{
@@ -1731,9 +1737,9 @@ void test_problem_17() {
       }
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_17:\n{}", e.what())); }
 
-void test_polarized_delta_m_correction() {
+void test_polarized_delta_m_correction() try {
   rtepack::muelmat removed{0.0};
   removed[0, 0]             = 1.0;
   removed[1, 0]             = 0.2;
@@ -1808,6 +1814,8 @@ void test_polarized_delta_m_correction() {
   ARTS_USER_ERROR_IF(std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0,
                      "Polarized delta-M IMS failed to generate all polarized Stokes components: {}",
                      actual[0]);
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test_polarized_delta_m_correction:\n{}", e.what()));
 }
 }  // namespace
 

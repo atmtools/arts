@@ -863,7 +863,7 @@ void main_data::check_input_size() const {
 }
 
 void main_data::check_input_value() const {
-  dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, beam_stokes.I() == 999.0 ? 1.0 : mu0, phi0);
+  dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, mu0, phi0, has_beam_source);
   ARTS_USER_ERROR_IF(NFourier <= 0, "VDISORT requires at least one Fourier mode");
   ARTS_USER_ERROR_IF(beam_stokes[0] < 0.0, "The beam I component must be non-negative, got {}", beam_stokes[0]);
   const Numeric polarized_norm = std::hypot(beam_stokes[1], beam_stokes[2], beam_stokes[3]);

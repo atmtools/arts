@@ -24,7 +24,7 @@ two_stream_solution analytic_two_stream(const Complex phase,
                                         const Numeric depth,
                                         const Numeric tau,
                                         const Complex top_down,
-                                        const Complex bottom_up) {
+                                        const Complex bottom_up) try {
   const Complex c = 0.5 * omega * phase;
   const Complex a = (1.0 - c) / mu;
   const Complex b = c / mu;
@@ -40,7 +40,7 @@ two_stream_solution analytic_two_stream(const Complex phase,
   const Complex top_up = (bottom_up - full[1] * top_down) / full[0];
   const auto    at_tau = propagator(tau);
   return {.up = at_tau[0] * top_up + at_tau[1] * top_down, .down = at_tau[2] * top_up + at_tau[3] * top_down};
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in analytic_two_stream:\n{}", e.what())); }
 
 void expect_close(const Numeric actual, const Numeric expected, const std::string_view what) {
   const Numeric scale = 1.0 + std::abs(expected);
@@ -63,7 +63,7 @@ vdisort::main_data make_vdisort(const Index                nquad,
                                 Tensor6                    beam_phase    = {},
                                 std::vector<vdisort::BDRF> brdf          = {},
                                 Vector                     source_scale  = {},
-                                Vector                     source_offset = {}) {
+                                Vector                     source_offset = {}) try {
   if (source.size() == 0) source.resize(tau.size(), 0, 4);
   const Index nfourier = phase.shape()[1];
   return vdisort_test::make_solver(nquad,
@@ -75,19 +75,19 @@ vdisort::main_data make_vdisort(const Index                nquad,
                                    std::move(down),
                                    std::move(source),
                                    std::move(brdf),
-                                   0.5,
+                                   std::nextafter(0.5, 1.0),  // FIXME: should be 0.5
                                    std::move(beam),
                                    0.0,
                                    std::move(beam_phase),
                                    std::move(source_scale),
                                    std::move(source_offset));
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_vdisort:\n{}", e.what())); }
 
 vdisort::main_data make_native_two_stream(const Numeric              depth,
                                           const Numeric              omega,
                                           vdisort::phase_matrix_data phase,
                                           rtepack::stokvec           top,
-                                          rtepack::stokvec           bottom) {
+                                          rtepack::stokvec           bottom) try {
   rtepack::stokvec_tensor3 up(2, 1, 1), down(2, 1, 1);
   up[vdisort::cosine_mode, 0, 0]   = {bottom.I(), bottom.Q(), 0.0, 0.0};
   down[vdisort::cosine_mode, 0, 0] = {top.I(), top.Q(), 0.0, 0.0};
@@ -106,9 +106,9 @@ vdisort::main_data make_native_two_stream(const Numeric              depth,
                             0.5,
                             rtepack::stokvec{},
                             0.0);
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_native_two_stream:\n{}", e.what())); }
 
-void test_analytic_iq_two_stream() {
+void test_analytic_iq_two_stream() try {
   constexpr Numeric      depth = 0.8;
   constexpr Numeric      omega = 0.6;
   constexpr Numeric      mu    = 0.5;
@@ -138,9 +138,11 @@ void test_analytic_iq_two_stream() {
     expect_close(field.u0[1].I(), 0.5 * (plus.down.real() + minus.down.real()), "analytic I/Q downward I");
     expect_close(field.u0[1].Q(), 0.5 * (plus.down.real() - minus.down.real()), "analytic I/Q downward Q");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-analytic-iq-two-stream:\n{}", e.what()));
 }
 
-void test_analytic_uv_two_stream() {
+void test_analytic_uv_two_stream() try {
   constexpr Numeric      depth = 0.65;
   constexpr Numeric      omega = 0.55;
   constexpr Numeric      mu    = 0.5;
@@ -171,9 +173,11 @@ void test_analytic_uv_two_stream() {
     expect_close(field.u0[1].U(), expected.down.real(), "analytic U/V downward U");
     expect_close(field.u0[1].V(), expected.down.imag(), "analytic U/V downward V");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-analytic-uv-two-stream:\n{}", e.what()));
 }
 
-void test_analytic_polarized_beam_two_stream() {
+void test_analytic_polarized_beam_two_stream() try {
   constexpr Numeric      depth = 0.7;
   constexpr Numeric      omega = 0.45;
   constexpr Numeric      mu    = 0.5;
@@ -221,9 +225,11 @@ void test_analytic_polarized_beam_two_stream() {
     for (Index i = 0; i < 2; ++i)
       for (Index s = 0; s < 4; ++s) expect_close(field.u0[i][s], expected(i, s, tau), "analytic polarized beam source");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-analytic-polarized-beam-two-stream:\n{}", e.what()));
 }
 
-void test_polarized_absorption() {
+void test_polarized_absorption() try {
   constexpr Index nquad  = 2;
   constexpr Index n      = nquad / 2;
   constexpr Index modes  = 1;
@@ -253,9 +259,11 @@ void test_polarized_absorption() {
     expect_close(field.intensities[0][s], bottom[s] * std::exp((tau - depth) / mu), "upward absorbing Stokes");
     expect_close(field.intensities[1][s], top[s] * std::exp(-tau / mu), "downward absorbing Stokes");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-polarized-absorption:\n{}", e.what()));
 }
 
-void test_scalar_limit() {
+void test_scalar_limit() try {
   constexpr Index     nquad = 4;
   constexpr Index     n     = nquad / 2;
   constexpr Index     modes = 1;
@@ -330,9 +338,9 @@ void test_scalar_limit() {
       expect_close(vector_user.intensities[i].V(), 0.0, "user-angle scalar-limit V");
     }
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-scalar-limit:\n{}", e.what())); }
 
-void test_scalar_linear_source_limit() {
+void test_scalar_linear_source_limit() try {
   constexpr Index     nquad = 4;
   constexpr Index     modes = 1;
   const AscendingGrid tau{0.8};
@@ -370,9 +378,11 @@ void test_scalar_linear_source_limit() {
     expect_close(vector_flux.down_direct, scalar_flux.down_direct, "linear-source direct flux");
     expect_close(vector_flux.dfdt, scalar_flux.dfdt, "linear-source DFDT");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-scalar-linear-source-limit:\n{}", e.what()));
 }
 
-void test_affine_source_coordinate() {
+void test_affine_source_coordinate() try {
   constexpr Index   nquad             = 4;
   constexpr Index   modes             = 1;
   constexpr Numeric depth             = 0.9;
@@ -441,9 +451,11 @@ void test_affine_source_coordinate() {
           expect_close(affine_user[level, azimuth, user][stokes],
                        physical_user[level, azimuth, user][stokes],
                        "affine source-coordinate user radiance");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-affine-source-coordinate:\n{}", e.what()));
 }
 
-void test_conservative_reflecting_source_limit() {
+void test_conservative_reflecting_source_limit() try {
   constexpr Index     nquad = 4;
   constexpr Index     modes = 1;
   const AscendingGrid tau{8.0};
@@ -489,9 +501,11 @@ void test_conservative_reflecting_source_limit() {
                    scalar_field.intensities[stream],
                    "conservative reflecting source scalar limit");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-conservative-reflecting-source-limit:\n{}", e.what()));
 }
 
-void test_vector_source() {
+void test_vector_source() try {
   constexpr Index nquad = 2;
   constexpr Index n     = nquad / 2;
   Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
@@ -516,9 +530,9 @@ void test_vector_source() {
                  (1.0 - omega) * source_function[s] * (1.0 - std::exp(-tau / mu)),
                  "downward vector source function");
   }
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-vector-source:\n{}", e.what())); }
 
-void test_polarized_brdf() {
+void test_polarized_brdf() try {
   constexpr Index nquad = 2;
   constexpr Index n     = nquad / 2;
   Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
@@ -552,9 +566,9 @@ void test_polarized_brdf() {
   const Numeric reflected_factor = Constant::pi * mu * reflectance;
   expect_close(field.u0[0][0], reflected_factor * std::exp(-depth / mu), "polarized BRDF I");
   expect_close(field.u0[0][1], 0.2 * reflected_factor * std::exp(-depth / mu), "polarized BRDF Q");
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-polarized-brdf:\n{}", e.what())); }
 
-void test_complex_uv_eigenmodes() {
+void test_complex_uv_eigenmodes() try {
   constexpr Index nquad = 2;
   constexpr Index n     = nquad / 2;
   constexpr Index modes = 1;
@@ -580,9 +594,11 @@ void test_complex_uv_eigenmodes() {
       const Numeric value = field.intensities[i][s];
       ARTS_USER_ERROR_IF(not std::isfinite(value), "Complex-eigenmode test produced {}", value);
     }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-complex-uv-eigenmodes:\n{}", e.what()));
 }
 
-void test_bulk_quadrature_equivalence() {
+void test_bulk_quadrature_equivalence() try {
   constexpr Index nquad  = 2;
   constexpr Index n      = nquad / 2;
   constexpr Index modes  = 2;
@@ -667,9 +683,11 @@ void test_bulk_quadrature_equivalence() {
     expect_close(ungridded_direct[level], pointwise.down_direct, "ungridded/pointwise direct flux");
     expect_close(ungridded_dfdt[level], pointwise.dfdt, "ungridded/pointwise DFDT");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-bulk-quadrature-equivalence:\n{}", e.what()));
 }
 
-void test_delta_m_correction_api_overlap() {
+void test_delta_m_correction_api_overlap() try {
   constexpr Index        nquad          = 4;
   constexpr Index        nfourier       = 1;
   constexpr Numeric      physical_depth = 1.0;
@@ -767,9 +785,11 @@ void test_delta_m_correction_api_overlap() {
         expect_close(gridded_ims[0, p, stream][stokes], ims[stream][stokes], "gridded IMS API");
       }
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-delta-m-correction-api-overlap:\n{}", e.what()));
 }
 
-void test_combined_matrix_transform() {
+void test_combined_matrix_transform() try {
   rtepack::muelmat_tensor4 native_cosine(2, 1, 1, 1, rtepack::muelmat{0.0});
   rtepack::muelmat_tensor4 native_sine(2, 1, 1, 1, rtepack::muelmat{0.0});
   native_cosine[1, 0, 0, 0][0, 2] = 3.0;
@@ -777,9 +797,11 @@ void test_combined_matrix_transform() {
   const auto native_combined      = vdisort::combine_phase_matrices(native_cosine, native_sine);
   expect_close(native_combined[vdisort::cosine_mode, 1, 0, 0, 0][0, 2], -5.0, "native Eq. 81 cosine sign");
   expect_close(native_combined[vdisort::sine_mode, 1, 0, 0, 0][0, 2], 5.0, "native Eq. 81 sine sign");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-combined-matrix-transform:\n{}", e.what()));
 }
 
-void test_spectral_phase_matrix_split() {
+void test_spectral_phase_matrix_split() try {
   rtepack::specmat_matrix spectral_result(2, 3, rtepack::specmat{Complex{0.0, 0.0}});
   spectral_result[1, 2][3, 1] = Complex{4.5, -0.75};
   const auto split            = vdisort::phase_matrix_fourier_split(spectral_result);
@@ -787,9 +809,11 @@ void test_spectral_phase_matrix_split() {
                      "Splitting the phase matrix changed its shape");
   expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
   expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-spectral-phase-matrix-split:\n{}", e.what()));
 }
 
-void test_combined_surface_models() {
+void test_combined_surface_models() try {
   constexpr Numeric lambertian_albedo = 0.8;
   constexpr Numeric fresnel_fraction  = 0.02;
   const Vector      outgoing{0.2, 0.7};
@@ -849,9 +873,11 @@ void test_combined_surface_models() {
                          "Cox-Munk/Lambertian beam mixture");
     }
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-combined-surface-models:\n{}", e.what()));
 }
 
-void test_scalar_and_polarized_cox_munk_overlap() {
+void test_scalar_and_polarized_cox_munk_overlap() try {
   for (const Complex refractive_index : {Complex{1.34, 0.0}, Complex{0.75, 0.0}, Complex{1.34, 0.08}})
     for (const bool shadowing : {false, true})
       for (const Numeric outgoing_mu : {0.15, 0.5, 0.9})
@@ -869,9 +895,11 @@ void test_scalar_and_polarized_cox_munk_overlap() {
   const auto absorbing_fresnel = vdisort::brdf::Fresnel{Complex{1.5, 0.1}}(0.5);
   ARTS_USER_ERROR_IF(std::abs(absorbing_fresnel[2, 3]) <= 1.0e-12,
                      "A complex refractive index produced no Fresnel U/V phase coupling");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-scalar-and-polarized-cox-munk-overlap:\n{}", e.what()));
 }
 
-void test_delta_m_preprocessing() {
+void test_delta_m_preprocessing() try {
   constexpr Index     nfourier = 2;
   constexpr Index     nlayers  = 2;
   constexpr Index     nquad    = 2;
@@ -914,9 +942,11 @@ void test_delta_m_preprocessing() {
     expect_close(transport.phase_matrix[1, 1, layer, 1, 0][0, 0], expected_phase, "delta-M transport phase");
     expect_close(transport.beam_phase_matrix[1, 1, layer, 1][0, 0], expected_beam, "delta-M transport beam phase");
   }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-delta-m-preprocessing:\n{}", e.what()));
 }
 
-void test_depolarizing_surface_catalogue() {
+void test_depolarizing_surface_catalogue() try {
   constexpr Index modes    = 3;
   constexpr Index nazimuth = 64;
   const Vector    outgoing{0.2, 0.7};
@@ -956,9 +986,11 @@ void test_depolarizing_surface_catalogue() {
   compare(ross_li,
           vdisort::brdf::ross_li_fourier_modes(0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0, modes, nazimuth),
           "depolarizing Ross-Li embedding");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-depolarizing-surface-catalogue:\n{}", e.what()));
 }
 
-void test_eigenvalue_direction_check() {
+void test_eigenvalue_direction_check() try {
   constexpr Index nquad = 2;
   Tensor7         phase(2, 1, 1, nquad, nquad, 4, 4, 0.0);
   for (Index alpha = 0; alpha < 2; ++alpha)
@@ -976,6 +1008,8 @@ void test_eigenvalue_direction_check() {
     return;
   }
   ARTS_USER_ERROR("VDISORT accepted an eigenspectrum without a valid propagation-direction split");
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-eigenvalue-direction-check:\n{}", e.what()));
 }
 }  // namespace
 

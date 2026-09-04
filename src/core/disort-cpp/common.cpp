@@ -240,14 +240,16 @@ void check_layer_input_values(const AscendingGrid&   tau,
                               const ConstVectorView& omega,
                               const ConstVectorView& mu,
                               const Numeric          mu0,
-                              const Numeric          phi0) {
+                              const Numeric          phi0,
+                              const bool             has_beam_source) {
   ARTS_USER_ERROR_IF(
       tau.empty() or tau.front() <= 0.0, "tau_arr must be nonempty and strictly positive, got {:B,}", tau);
   ARTS_USER_ERROR_IF(stdr::any_of(omega, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
                      "omega_arr must be in [0, 1], got {:B,}",
                      omega);
-  ARTS_USER_ERROR_IF((mu0 <= 0.0 or mu0 > 1.0) and mu0 != 999.0, "mu0 must be in (0, 1], got {}", mu0);
-  ARTS_USER_ERROR_IF(stdr::any_of(mu, Cmp::eq(mu0)), "mu0 must not be in mu.  mu0: {}, mu: {:B,}", mu0, mu);
+  ARTS_USER_ERROR_IF(has_beam_source and (mu0 <= 0.0 or mu0 > 1.0), "mu0 must be in (0, 1], got {}", mu0);
+  ARTS_USER_ERROR_IF(
+      has_beam_source and stdr::any_of(mu, Cmp::eq(mu0)), "mu0 must not be in mu.  mu0: {}, mu: {:B,}", mu0, mu);
   ARTS_USER_ERROR_IF(phi0 < 0.0 or phi0 >= Constant::two_pi, "phi0 must be in [0, 2*pi), got {}", phi0);
 }
 

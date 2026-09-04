@@ -1021,7 +1021,7 @@ void main_data::check_input_size() const {
 void main_data::check_input_value() const {
   ARTS_TIME_REPORT
 
-  dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, I0 == 999.0 ? 1.0 : mu0, phi0);
+  dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, mu0, phi0, has_beam_source);
 
   ARTS_USER_ERROR_IF(stdr::any_of(Leg_coeffs_all,
                                   [](auto&& x) {

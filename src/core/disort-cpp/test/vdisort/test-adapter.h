@@ -84,7 +84,7 @@ inline vdisort::main_data make_solver(Index                      nquad,
                                       Numeric                    phi0,
                                       Tensor6                    beam_phase    = {},
                                       Vector                     source_scale  = {},
-                                      Vector                     source_offset = {}) {
+                                      Vector                     source_offset = {}) try {
   return vdisort::main_data(nquad,
                             nfourier,
                             std::move(tau),
@@ -100,5 +100,5 @@ inline vdisort::main_data make_solver(Index                      nquad,
                             as_beam_phase_data(beam_phase),
                             std::move(source_scale),
                             std::move(source_offset));
-}
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_solver:\n{}", e.what())); }
 }  // namespace vdisort_test
