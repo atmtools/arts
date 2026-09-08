@@ -12,6 +12,17 @@ bool minimizer_converged(Minimizer &M, RealType criterion)
     return std::isfinite(criterion) && criterion < M.get_tolerance();
 }
 
+// Only the built-in state-step criteria can skip the new simulated
+// measurement. Custom criteria, including derived overrides, stay conservative.
+template<typename Criterion>
+constexpr bool criterion_needs_measurement = true;
+
+template<typename VectorType>
+constexpr bool criterion_needs_measurement<Rodgers530<VectorType>> = false;
+
+template<typename VectorType>
+constexpr bool criterion_needs_measurement<Rodgers531<VectorType>> = false;
+
 // ----------------- //
 //   MAP Base Class  //
 // ----------------- //
@@ -69,8 +80,10 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
     -> RealType
 {
     try {
-        VectorType y = evaluate(x);
-        VectorType dy = y - *y_ptr;
+        // evaluate() returns owned storage: reuse it for the residual instead
+        // of copying the full measurement vector a second time per LM trial.
+        VectorType dy = evaluate(x);
+        dy.subtract(*y_ptr);
         VectorType dx = xa - x;
         return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
     } catch (...) {
@@ -277,15 +290,18 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         dx = M.step(x, g, H, (*this));
         x += dx;
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (minimizer_converged(M, conv))
-        {
-            converged = true;
-        } else if (!M.stop_iteration()) {
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
             K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.
@@ -391,14 +407,18 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
         dx = M.step(xa, g, H, (*this));
         x = xa - dx;
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (minimizer_converged(M, conv)) {
-            converged = true;
-        } else if (!M.stop_iteration()) {
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
             K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.
@@ -520,14 +540,18 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         dx = M.step(xa, g, H, (*this));
         x = xa - tmp * dx;
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (minimizer_converged(M, conv)) {
-            converged = true;
-        } else if (!M.stop_iteration()) {
-            K = Jacobian(x , yi);
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
+            K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.

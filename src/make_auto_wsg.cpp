@@ -209,6 +209,7 @@ void agenda_operators() {
 
 #include <workspace_agenda_creator.h>
 #include <time_report.h>
+#include <utility>
 
 )");
 
@@ -218,7 +219,9 @@ void agenda_operators() {
       const auto remove_output =
           stdv::filter([&o = ag.output](const std::string& v) { return not stdr::contains(o, v); });
       const auto output_string = stdv::transform([&o = ag.output](const std::string& v) {
-        return std::format("{0} = std::get<{1}>(_tup);\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
+        // The operator returns an owning tuple. Transfer its outputs without
+        // copying payloads that are immediately destroyed with the tuple.
+        return std::format("{0} = std::get<{1}>(std::move(_tup));\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
       });
 
       const std::string op = ag.named_operator.empty() ? std::string(name + "Operator") : ag.named_operator;

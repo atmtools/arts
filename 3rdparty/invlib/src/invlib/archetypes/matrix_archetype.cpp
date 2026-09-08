@@ -241,17 +241,17 @@ auto MatrixArchetype<Real>::QR() const
 
     MatrixArchetype<Real> QR; QR.resize(n,n);
 
-    for (int i = 0; i < n; i++)
-        for (int j = 0; j < m; j++)
+    for (unsigned int i = 0; i < n; i++)
+        for (unsigned int j = 0; j < m; j++)
             QR(i,j) = 0.0;
 
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         // Q Matrix.
-        for (int j = 0; j < i; j++)
+        for (unsigned int j = 0; j < i; j++)
         {
             Real q_sum = 0.0;
-            for (int k = 0; k < j; k++)
+            for (unsigned int k = 0; k < j; k++)
             {
                 q_sum += QR(i, k) * QR(k, j);
             }
@@ -259,10 +259,10 @@ auto MatrixArchetype<Real>::QR() const
         }
 
         // Q Matrix.
-        for (int j = 0; j < i; j++)
+        for (unsigned int j = 0; j < i; j++)
         {
             Real q_sum = 0.0;
-            for (int k = 0; k < j; k++)
+            for (unsigned int k = 0; k < j; k++)
             {
                 q_sum += QR(j, k) * QR(k, i);
             }
@@ -271,7 +271,7 @@ auto MatrixArchetype<Real>::QR() const
         }
 
         Real diag_sum = 0.0;
-        for (int k = 0; k < i; k++)
+        for (unsigned int k = 0; k < i; k++)
             diag_sum += QR(i, k) * QR(k, i);
         QR(i,i) = (*this)(i,i) - diag_sum;
     }
@@ -287,20 +287,21 @@ auto MatrixArchetype<Real>::backsubstitution(const VectorType &b) const
     VectorType c; c.resize(n);
     VectorType d; d.resize(n);
 
-    for (int i = 0; i < n; i++)
+    for (unsigned int i = 0; i < n; i++)
     {
         RealType sum = 0.0;
-        for (int j = 0; j < i; j++)
+        for (unsigned int j = 0; j < i; j++)
         {
             sum += (*this)(i, j) * c(j);
         }
         c(i) = (b(i) - sum) / (*this)(i,i);
     }
 
-    for (int i = n - 1; i >= 0; i--)
+    for (unsigned int i = n; i > 0;)
     {
+        --i;
         RealType sum = 0.0;
-        for (int j = i + 1; j < n; j++)
+        for (unsigned int j = i + 1; j < n; j++)
         {
             sum += (*this)(i, j) * d(j);
         }
@@ -412,7 +413,7 @@ auto MatrixArchetype<Real>::transpose_multiply(const VectorType &v) const
 template <typename Real>
 auto MatrixArchetype<Real>::transpose_multiply_block(const VectorType &v,
                                                      int block_start,
-                                                     int block_length) const
+                                                     [[maybe_unused]] int block_length) const
     -> VectorType
 {
     assert(block_length > 0);

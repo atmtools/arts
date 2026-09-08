@@ -33,7 +33,7 @@ Measurement-space convergence uses the state-space Hessian metric
 and states differ.  Diagnostics come from the formulation that actually
 ran.  LM history is collected independently of terminal output, and aliases
 have the same initial-cost behavior.  Final nonlinear Jacobians are refreshed
-at the returned state before calculating the gain.  Outputs that would
+at the returned state when needed for the requested gain.  Outputs that would
 otherwise retain an earlier run's gain or errors are cleared, and the
 ``clear_matrices`` policy also applies to a skipped retrieval.
 
@@ -55,6 +55,54 @@ unequal state and measurement dimensions, a non-prior starting state, and
 equivalent scaled and unscaled systems.  Nonlinear cases need to test
 accepted-state Jacobians and meaningful damping changes, rather than only
 checking that a residual decreased.
+
+Forward-model reuse and agenda ownership
+----------------------------------------
+
+``AgendaWrapper`` tracks the exact state of its most recent successful
+simulation separately from the state of its stored Jacobian.  It borrows
+the workspace fit and Jacobian storage; only the state tags need additional
+storage proportional to the state size.  Matching an earlier state
+approximately is not sufficient for reuse.  Initial evaluations, accepted
+LM trial values, and final Jacobians must not be repeated when the required
+result is already current.  A value-only trial preserves the last Jacobian,
+but changes the physical model fields.  Returning to that Jacobian's state
+therefore still requires a value-only evaluation to restore the fields.
+Invalidate cache entries before executing an agenda and publish new state
+tags only after successful execution and dimension checks.
+
+The ``criterion_needs_measurement`` trait identifies the built-in
+``Rodgers530`` and ``Rodgers531`` types.  Their state-step tests allow a continuing Gauss--Newton iteration to obtain
+its fit and Jacobian together, without a preceding value-only evaluation.
+Unknown convergence criteria, including overrides derived from these
+classes, default to requiring the new measurement.  Retain that conservative
+behavior when extending the trait.  At the final
+iteration, obtain the fit for costs and diagnostics, then refresh a nonlinear
+Jacobian only if it is needed for retained matrix outputs.
+``clear_matrices=1`` skips that final derivative refresh as well as gain
+construction.  Preserve evaluation-count regressions alongside numerical
+oracles, including rejected trials, zero steps, iteration limits, failed
+evaluations, and both matrix-output policies.
+
+The generated agenda executor borrows explicit inputs and outputs through
+non-owning ``Wsv`` wrappers.  Ordinary workspace sharing copies handles,
+not field or matrix payloads.  ``Agenda::finalize`` identifies internally
+modified inputs that need isolation; ``copy_workspace`` copies those
+values, and ``Agenda.document()`` lists them.  Nested agendas have their
+own copy lists.  Literal values stored in agenda methods are also copied
+when executed.  Do not retain an executed local workspace blindly:
+``copy_only_workspace`` can copy its already modified scratch values,
+changing initialization between trials.  Any future scratch reuse must
+preserve fresh-call initialization and failure behavior.
+
+Python tuple-style operators have additional argument and return conversion
+costs.  Their generated C++ adapters move the owning return tuple's elements
+into outputs; never move from Python-owned objects or borrowed inputs.
+``CallbackOperator`` instead supplies a restricted workspace sharing its
+declared variables, allowing outputs to be updated in place.  Keep the
+native allocation-transfer regression in ``test_agenda_operator.cc`` and
+the Python retained-object regression in
+``tests/core/agenda/operator_return_values.py`` when changing these bridges.
 
 Bounded inner iterations
 ------------------------

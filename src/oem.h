@@ -12,6 +12,7 @@
 #ifndef _ARTS_OEM_H_
 #define _ARTS_OEM_H_
 
+#include <algorithm>
 #include <type_traits>
 
 #include "invlib/algebra.h"
@@ -444,6 +445,7 @@ class AgendaWrapper {
                 unsigned int           state_space_dimension,
                 ::Matrix              &arts_jacobian,
                 ::Vector              &arts_y,
+                const ::Vector        &initial_state,
                 AtmField              *atm_field,
                 AbsorptionBands       *abs_bands,
                 ArrayOfSensorObsel    *measurement_sensor,
@@ -462,15 +464,18 @@ class AgendaWrapper {
         subsurf(subsurf_field),
         iteration_counter_(0),
         jacobian_(arts_jacobian),
-        reuse_jacobian_((arts_jacobian.nrows() != 0) && (arts_jacobian.ncols() != 0) && (arts_y.size() != 0)),
         ws_(ws),
-        yi_(arts_y) {}
+        yi_(arts_y),
+        measurement_state_(initial_state),
+        jacobian_state_(initial_state),
+        measurement_valid_(arts_y.size() == m),
+        jacobian_valid_(measurement_valid_ && arts_jacobian.nrows() == m && arts_jacobian.ncols() == n) {}
 
   /** Return most recently simulated measurement vector.
    *
    * @return The simulated observation vector.
    */
-  ArtsVector get_measurement_vec() { return yi_; }
+  const ::Vector &get_measurement_vec() const { return yi_; }
 
   AgendaWrapper(const AgendaWrapper &)            = delete;
   AgendaWrapper(AgendaWrapper &&)                 = delete;
@@ -489,68 +494,72 @@ class AgendaWrapper {
    * \param[in] x The current state vector x.
    */
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
-    if (!reuse_jacobian_) {
-      inversion_iterate_agendaExecute(*ws_,
-                                      *atm,
-                                      *absdata,
-                                      *sensor,
-                                      *surf,
-                                      *subsurf,
-                                      yi_,
-                                      jacobian_,
-                                      *jacs,
-                                      xi,
-                                      1,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
-      ARTS_USER_ERROR_IF(yi_.size() != m || jacobian_.rows() != m || jacobian_.cols() != n,
-                         "inversion_iterate_agenda must return {} measurements and an {} by {} Jacobian.",
-                         m,
-                         m,
-                         n)
-      yi                  = yi_;
-      iteration_counter_ += 1;
-    } else {
-      reuse_jacobian_ = false;
-      yi              = yi_;
-    }
+    ensure_jacobian(xi);
+    // Assign directly to the ARTS storage, avoiding an intermediate invlib vector.
+    static_cast<::Vector &>(yi) = yi_;
     return jacobian_;
   }
 
-  /** Evaluate the ARTS forward model.
-   *
-   * Call the ARTS forward model defined by inversion_iterate_agenda
-   * and return resulting observation vector.
-   * 
-   * @param[in] xi The current state vector of the OEM iteration.
-   * @return The observation vector y contained in the yf WSV after
-   *   executing the inversion_iterate_agenda.
+  /** Ensure that the Jacobian and physical model describe xi.
+   * A value-only trial preserves the previous Jacobian, but may change the
+   * atmosphere or other inouts. Restore those before returning a cached matrix.
+   */
+  void ensure_jacobian(const Vector &xi) {
+    if (!jacobian_valid_ || !same_state(jacobian_state_, xi)) {
+      execute(xi, true);
+    } else if (!measurement_valid_ || !same_state(measurement_state_, xi)) {
+      execute(xi, false);
+    }
+  }
+
+  /** Evaluate the forward model, reusing only the most recent successful state.
+   * Results from before a failed or rejected trial cannot restore physical
+   * inouts; those require another agenda execution at the accepted state.
    */
   Vector evaluate(const Vector &xi) {
-    if (!reuse_jacobian_) {
-      Matrix dummy;
-      inversion_iterate_agendaExecute(*ws_,
-                                      *atm,
-                                      *absdata,
-                                      *sensor,
-                                      *surf,
-                                      *subsurf,
-                                      yi_,
-                                      dummy,
-                                      *jacs,
-                                      xi,
-                                      0,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
-    } else {
-      reuse_jacobian_ = false;
-    }
-    ARTS_USER_ERROR_IF(yi_.size() != m, "inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size())
+    if (!measurement_valid_ || !same_state(measurement_state_, xi)) execute(xi, false);
     return yi_;
   }
 
  private:
-  /** Pointer to the inversion_iterate_agenda of the workspace. */
+  static bool same_state(const ::Vector &cached, const Vector &state) {
+    return cached.size() == state.size() && std::equal(cached.elem_begin(), cached.elem_end(), state.elem_begin());
+  }
+
+  void execute(const Vector &xi, bool with_jacobian) {
+    // The agenda can partially modify its outputs before throwing. Invalidate
+    // first, and publish a new state tag only after all output checks succeed.
+    measurement_valid_ = false;
+    if (with_jacobian) jacobian_valid_ = false;
+    ::Matrix dummy;
+    auto    &jacobian = with_jacobian ? static_cast<::Matrix &>(jacobian_) : dummy;
+    inversion_iterate_agendaExecute(*ws_,
+                                    *atm,
+                                    *absdata,
+                                    *sensor,
+                                    *surf,
+                                    *subsurf,
+                                    yi_,
+                                    jacobian,
+                                    *jacs,
+                                    xi,
+                                    with_jacobian ? 1 : 0,
+                                    iteration_counter_,
+                                    *inversion_iterate_agenda_);
+    ARTS_USER_ERROR_IF(yi_.size() != m, "inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size())
+    if (with_jacobian) {
+      ARTS_USER_ERROR_IF(jacobian.nrows() != m || jacobian.ncols() != n,
+                         "inversion_iterate_agenda must return an {} by {} Jacobian.",
+                         m,
+                         n)
+      jacobian_state_ = static_cast<const ::Vector &>(xi);
+      jacobian_valid_ = true;
+      ++iteration_counter_;
+    }
+    measurement_state_ = static_cast<const ::Vector &>(xi);
+    measurement_valid_ = true;
+  }
+
   const Agenda          *inversion_iterate_agenda_;
   const JacobianTargets *jacs;
   AtmField              *atm;
@@ -559,68 +568,14 @@ class AgendaWrapper {
   SurfaceField          *surf;
   SubsurfaceField       *subsurf;
   unsigned int           iteration_counter_;
-  /** Reference to the jacobian WSV.*/
-  MatrixReference jacobian_;
-  /** Flag whether to reuse Jacobian from previous calculation. */
-  bool reuse_jacobian_;
-  /** Pointer to current ARTS workspace */
+  MatrixReference        jacobian_;
   const Workspace *const ws_;
-  /** Cached simulation result. */
-  Vector yi_;
+  // Borrow the workspace output rather than copying it into and out of the adapter.
+  ::Vector &yi_;
+  // O(n) state tags; the potentially much larger Jacobian stays in its original storage.
+  ::Vector measurement_state_, jacobian_state_;
+  bool     measurement_valid_, jacobian_valid_;
 };
 }  // namespace oem
-
-/** Clip Tensor4
- *
- * @param[in] The tensor to which to apply the clipping.
- * @param[in] The book index to which to apply the clipping.
- * @param[in] limit_low Lower limit below which to clip values.
- * @param[in] limit_high Upper limit below which to clip values.
- */
-void Tensor4Clip(Tensor4 &x, const Index &iq, const Numeric &limit_low, const Numeric &limit_high) {
-  // Sizes
-  const Index nq = x.nbooks();
-
-  ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
-  ARTS_USER_ERROR_IF(iq >= nq,
-                     "Argument *iq* is too high.\n"
-                     "You have selected index: {}"
-                     "\n"
-                     "but the number of quantities is only: {}"
-                     "\n"
-                     "(Note that zero-based indexing is used)\n",
-                     iq,
-                     nq)
-
-  Index ifirst = 0, ilast = nq - 1;
-  if (iq > -1) {
-    ifirst = iq;
-    ilast  = iq;
-  }
-
-  if (!std::isinf(limit_low)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] < limit_low) x[i, p, r, c] = limit_low;
-          }
-        }
-      }
-    }
-  }
-
-  if (!std::isinf(limit_high)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] > limit_high) x[i, p, r, c] = limit_high;
-          }
-        }
-      }
-    }
-  }
-}
 
 #endif  // _ARTS_OEM_H_

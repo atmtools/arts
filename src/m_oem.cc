@@ -320,6 +320,7 @@ void OEM(const Workspace&        ws,
                              static_cast<unsigned int>(n),
                              measurement_jac,
                              measurement_vec_fit,
+                             model_state_vec,
                              &atm_field,
                              &abs_bands,
                              &measurement_sensor,
@@ -387,12 +388,9 @@ void OEM(const Workspace&        ws,
         oem::Std solver(T, apply_norm);
         solve(solver);
       }
-      // invlib can stop with the Jacobian from the preceding state. Refresh it
-      // so the returned gain/Jacobian describe the actual retrieved state.
-      if (!selected.linear() && !clear_matrices) {
-        oem::Vector fitted;
-        aw.Jacobian(x_oem, fitted);
-      }
+      // Ensure that the returned gain/Jacobian describe the retrieved state.
+      // An already current Jacobian needs neither an agenda call nor a fit copy.
+      if (!selected.linear() && !clear_matrices) aw.ensure_jacobian(x_oem);
     } catch (const std::exception& e) {
       oem_diagnostics[0]            = 9;
       static_cast<::Vector&>(x_oem) = NAN;
@@ -402,8 +400,7 @@ void OEM(const Workspace&        ws,
       }
     }
 
-    model_state_vec     = x_oem;
-    measurement_vec_fit = aw.get_measurement_vec();
+    model_state_vec = x_oem;
 
     // Shall empty jacobian and dxdy be returned?
     if (clear_matrices) {
@@ -471,4 +468,57 @@ void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel
 
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel, measurement_gain_mat, measurement_jac);
+}
+
+/** Clip Tensor4
+ *
+ * @param[in] The tensor to which to apply the clipping.
+ * @param[in] The book index to which to apply the clipping.
+ * @param[in] limit_low Lower limit below which to clip values.
+ * @param[in] limit_high Upper limit below which to clip values.
+ */
+void Tensor4Clip(Tensor4& x, const Index& iq, const Numeric& limit_low, const Numeric& limit_high) {
+  // Sizes
+  const Index nq = x.nbooks();
+
+  ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
+  ARTS_USER_ERROR_IF(iq >= nq,
+                     "Argument *iq* is too high.\n"
+                     "You have selected index: {}"
+                     "\n"
+                     "but the number of quantities is only: {}"
+                     "\n"
+                     "(Note that zero-based indexing is used)\n",
+                     iq,
+                     nq)
+
+  Index ifirst = 0, ilast = nq - 1;
+  if (iq > -1) {
+    ifirst = iq;
+    ilast  = iq;
+  }
+
+  if (!std::isinf(limit_low)) {
+    for (Index i = ifirst; i <= ilast; i++) {
+      for (Index p = 0; p < x.npages(); p++) {
+        for (Index r = 0; r < x.nrows(); r++) {
+          for (Index c = 0; c < x.ncols(); c++) {
+            if (x[i, p, r, c] < limit_low) x[i, p, r, c] = limit_low;
+          }
+        }
+      }
+    }
+  }
+
+  if (!std::isinf(limit_high)) {
+    for (Index i = ifirst; i <= ilast; i++) {
+      for (Index p = 0; p < x.npages(); p++) {
+        for (Index r = 0; r < x.nrows(); r++) {
+          for (Index c = 0; c < x.ncols(); c++) {
+            if (x[i, p, r, c] > limit_high) x[i, p, r, c] = limit_high;
+          }
+        }
+      }
+    }
+  }
 }

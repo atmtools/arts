@@ -9,12 +9,15 @@
 #include <limits>
 #include <stdexcept>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "invlib/algebra.h"
 #include "invlib/algebra/solvers.h"
 #include "invlib/archetypes/matrix_archetype.h"
 #include "invlib/optimization/levenberg_marquardt.h"
 #include "invlib/optimization/minimize.h"
+#include "oem.h"
 
 namespace {
 
@@ -78,7 +81,14 @@ struct Retrieval {
   Index   clear_matrices   = 0;
   Index   display_progress = 0;
   Index   calls            = 0;
+  Index   jacobian_calls   = 0;
   Vector  first_state;
+  struct Evaluation {
+    Vector state;
+    bool   do_jac;
+  };
+  std::vector<Evaluation> evaluations;
+  bool                    track_physical_state = false;
 
   std::function<void(const Vector&, Vector&, Matrix&, bool)> forward;
 
@@ -93,15 +103,19 @@ struct Retrieval {
     set_target_size(2);
 
     CallbackOperator callback;
-    callback.inputs     = {"model_state_vec", "do_jac"};
-    callback.outputs    = {"measurement_vec_fit", "measurement_jac"};
+    callback.inputs     = {"model_state_vec", "do_jac", "surf_field"};
+    callback.outputs    = {"measurement_vec_fit", "measurement_jac", "surf_field"};
     callback.callback.f = [this](Workspace& local) {
       const auto& state = local.get<Vector>("model_state_vec");
       if (calls++ == 0) first_state = state;
-      forward(state,
-              local.get<Vector>("measurement_vec_fit"),
-              local.get<Matrix>("measurement_jac"),
-              local.get<Index>("do_jac") != 0);
+      const bool do_jac  = local.get<Index>("do_jac") != 0;
+      jacobian_calls    += do_jac;
+      evaluations.push_back({state, do_jac});
+      // The agenda's physical inouts must track the returned state, including
+      // when a rejected or failed LM trial has modified them. Use an otherwise
+      // unused surface value as a marker without any atmospheric data files.
+      if (track_physical_state) local.get<SurfaceField>("surf_field").ellipsoid[0] = state[0];
+      forward(state, local.get<Vector>("measurement_vec_fit"), local.get<Matrix>("measurement_jac"), do_jac);
     };
     agenda.add(Method("analytical_forward_model", Wsv{callback}));
     agenda.finalize(true);
@@ -420,8 +434,8 @@ void test_lm_outcomes() {
     close(over_damped.x[1], over_damped.xa[1], 0, "Huge damping state[1]");
     close(over_damped.diagnostics[2], over_damped.diagnostics[1], 0, "Huge damping unchanged cost");
     close(over_damped.history[1], 1e20, 0, "Huge damping history retains actual damping");
-    // Initial Jacobian, initial cost, one trial, restoration of the accepted
-    // state's fit, and the public interface's final Jacobian refresh.
+    // Damping exhaustion must stay bounded, including any trial and
+    // restoration of the accepted physical state.
     require(over_damped.calls <= 5,
             std::format("Huge damping needlessly retried an exhausted step ({} agenda calls)", over_damped.calls));
 
@@ -464,6 +478,202 @@ void test_lm_outcomes() {
       require(stationary.calls <= 4, "Stationary point required repeated damping trials");
     }
   }
+}
+
+void check_no_repeated_evaluations(const Retrieval& r) {
+  for (Size i = 1; i < r.evaluations.size(); ++i) {
+    const auto& previous = r.evaluations[i - 1];
+    const auto& current  = r.evaluations[i];
+    // A value-only evaluation followed by a derivative at the same state is
+    // necessary for accepted nonlinear LM trials. The reverse adds no data.
+    require(not(stdr::equal(previous.state, current.state) and (previous.do_jac or not current.do_jac)),
+            "Consecutive agenda evaluations repeat an available result");
+  }
+}
+
+void check_evaluation_count(const Retrieval& r, Index total, Index jacobians, std::string_view context) {
+  require(r.calls == total and r.jacobian_calls == jacobians,
+          std::format("{}: got {} agenda calls ({} with Jacobian), expected {} ({})",
+                      context,
+                      r.calls,
+                      r.jacobian_calls,
+                      total,
+                      jacobians));
+  check_no_repeated_evaluations(r);
+}
+
+void test_evaluation_reuse() {
+  for (const auto method : methods) {
+    for (const Index clear : {0, 1}) {
+      for (const bool cached : {false, true}) {
+        Retrieval r;
+        r.max_iter             = 1;
+        r.clear_matrices       = clear;
+        r.track_physical_state = true;
+        if (cached) {
+          // The precomputed pair belongs to the supplied state, which is not
+          // the prior. Reusing it must neither consume nor change that state.
+          r.x = Vector{1.5, -0.75};
+          r.forward(r.x, r.yf, r.jac, true);
+          r.surf.ellipsoid[0] = r.x[0];
+        }
+        r.run(method);
+        require(r.errors.empty(), "Single-step reuse fixture returned errors");
+        close(r.diagnostics[4], 1, 0, "Single-step reuse iteration count");
+        const bool final_jacobian = not clear and not method.starts_with("li");
+        check_evaluation_count(r,
+                               2 + final_jacobian - cached,
+                               1 + final_jacobian - cached,
+                               std::format("{} (clear={}, cached={})", method, clear, cached));
+        close(r.surf.ellipsoid[0], r.x[0], 0, "Physical inout at returned state");
+        Vector expected_fit;
+        Matrix expected_jacobian;
+        r.forward(r.x, expected_fit, expected_jacobian, true);
+        for (Size i = 0; i < r.yf.size(); ++i) close(r.yf[i], expected_fit[i], 0, "Single-step reused fit");
+        if (clear) require(r.jac.empty() and r.gain.empty(), "Unused final Jacobian was retained");
+      }
+    }
+
+    Retrieval stationary;
+    stationary.forward(stationary.xa, stationary.y, stationary.jac, true);
+    stationary.jac.resize(0, 0);
+    stationary.run(method);
+    close(stationary.diagnostics[0], 0, 0, "Cached exact-start convergence");
+    check_evaluation_count(stationary, 1, 1, std::format("{} exact starting solution", method));
+
+    if (not method.starts_with("li")) {
+      Retrieval nonlinear;
+      quadratic_model(nonlinear);
+      nonlinear.track_physical_state = true;
+      nonlinear.run(method);
+      require(nonlinear.errors.empty(), "Nonlinear reuse fixture returned errors");
+      close(nonlinear.diagnostics[0], 0, 0, "Nonlinear reuse convergence");
+      close(nonlinear.yf[0], nonlinear.x[0] * nonlinear.x[0], 1e-12, "Nonlinear reused fit");
+      close(nonlinear.jac[0, 0], 2 * nonlinear.x[0], 1e-12, "Nonlinear final Jacobian");
+      close(nonlinear.surf.ellipsoid[0], nonlinear.x[0], 0, "Nonlinear final physical inout");
+      check_no_repeated_evaluations(nonlinear);
+    }
+  }
+
+  for (const auto method : {"gn", "gn_cg", "gn_cg_m"}) {
+    for (const Index clear : {0, 1}) {
+      Retrieval continuing;
+      quadratic_model(continuing);
+      continuing.max_iter       = 2;
+      continuing.stop_dx        = 1e-20;
+      continuing.clear_matrices = clear;
+      continuing.run(method);
+      require(continuing.errors.empty(), "Continuing GN reuse fixture returned errors");
+      close(continuing.diagnostics[0], 1, 0, "Continuing GN iteration limit");
+      close(continuing.diagnostics[4], 2, 0, "Continuing GN iteration count");
+      // First step: g=-24 and H=16.25 give x=1+96/65. Its value and
+      // Jacobian can be obtained together because Rodgers' stopping criterion
+      // uses the state displacement and previous normal equations only.
+      check_evaluation_count(
+          continuing, 3 + not clear, 2 + not clear, std::format("{} continuing iteration (clear={})", method, clear));
+      require(continuing.evaluations[1].do_jac,
+              "Continuing GN iteration first requested an unnecessary value-only call");
+      close(continuing.evaluations[1].state[0], 161.0 / 65, 1e-12, "Continuing GN Jacobian state");
+      require(not continuing.evaluations[2].do_jac, "Terminal GN iteration failed to request its fitted measurement");
+      close(continuing.yf[0], continuing.x[0] * continuing.x[0], 1e-12, "Terminal GN fitted measurement");
+    }
+  }
+
+  for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
+    for (const Index clear : {0, 1}) {
+      Retrieval rejected;
+      quadratic_model(rejected);
+      rejected.x                    = Vector{0.1};
+      rejected.settings             = Vector{0, 3, 2, 1, 0.1, 0};
+      rejected.clear_matrices       = clear;
+      rejected.track_physical_state = true;
+      rejected.run(method);
+      require(rejected.errors.empty(), "Rejected trials became an agenda failure");
+      close(rejected.diagnostics[0], 2, 0, "Rejected trial reuse status");
+      close(rejected.x[0], 0.1, 0, "Rejected trial retains accepted state");
+      close(rejected.yf[0], 0.01, 1e-16, "Rejected trial restores accepted fit");
+      close(rejected.surf.ellipsoid[0], 0.1, 0, "Rejected trial restores physical inout");
+      // An old Jacobian remains valid at the accepted state, but restoring
+      // only its saved fit would leave the physical inouts at a rejected trial.
+      require(rejected.evaluations.back().state[0] == 0.1 and not rejected.evaluations.back().do_jac,
+              "Rejection restoration must evaluate the accepted physical state without repeating its Jacobian");
+      require(rejected.jacobian_calls == 1, "Damping exhaustion recomputed the accepted state's Jacobian");
+      check_no_repeated_evaluations(rejected);
+      if (not clear) close(rejected.jac[0, 0], 0.2, 0, "Rejected trial retains accepted Jacobian");
+    }
+  }
+}
+
+void test_failed_evaluation_invalidates_cache() {
+  Retrieval r;
+  quadratic_model(r);
+  r.x                    = Vector{0.1};
+  r.track_physical_state = true;
+  r.forward(r.x, r.yf, r.jac, true);
+  r.surf.ellipsoid[0] = r.x[0];
+  oem::AgendaWrapper wrapper(
+      &r.ws, 1, 1, r.jac, r.yf, r.x, &r.atm, &r.bands, &r.sensor, &r.surf, &r.subsurf, &r.targets, &r.agenda);
+  const oem::Vector accepted(r.x);
+  const oem::Vector trial(Vector{2});
+  oem::Vector       fit;
+  static_cast<void>(wrapper.Jacobian(accepted, fit));
+  static_cast<void>(wrapper.evaluate(accepted));
+  require(r.calls == 0, "An initial cached pair must serve both derivative and value requests");
+
+  const auto working_forward = r.forward;
+  r.forward                  = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool do_jac) {
+    working_forward(state, simulated, derivative, do_jac);
+    if (state[0] == 2) {
+      simulated[0] = -999;
+      throw std::runtime_error("deliberate partially written trial");
+    }
+  };
+  bool failed = false;
+  try {
+    static_cast<void>(wrapper.evaluate(trial));
+  } catch (const std::exception& error) {
+    failed = std::string_view(error.what()).contains("deliberate partially written trial");
+  }
+  require(failed, "Partial-write cache regression did not execute the failing trial");
+  static_cast<void>(wrapper.Jacobian(accepted, fit));
+  check_evaluation_count(r, 2, 0, "Restoration after a partially written trial");
+  close(fit[0], 0.01, 1e-16, "Restored fit after a partial agenda failure");
+  close(r.yf[0], 0.01, 1e-16, "Public fit after a partial agenda failure");
+  close(r.surf.ellipsoid[0], 0.1, 0, "Restored physical inout after a partial agenda failure");
+  close(r.jac[0, 0], 0.2, 0, "Cached Jacobian survives a failed value-only trial");
+
+  // Successful value-only trials also leave physical state to restore. An
+  // extra Jacobian request at the already restored state should be free.
+  r.forward = working_forward;
+  static_cast<void>(wrapper.evaluate(trial));
+  static_cast<void>(wrapper.Jacobian(accepted, fit));
+  static_cast<void>(wrapper.Jacobian(accepted, fit));
+  check_evaluation_count(r, 4, 0, "Restoration after a successful rejected trial");
+  close(r.surf.ellipsoid[0], 0.1, 0, "Restored physical inout after a successful rejected trial");
+  close(fit[0], 0.01, 1e-16, "Restored fit after a successful rejected trial");
+
+  // A failed derivative request can overwrite the saved matrix itself, so
+  // restoration must recompute both outputs in that case.
+  r.forward = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool do_jac) {
+    working_forward(state, simulated, derivative, do_jac);
+    if (state[0] == 2) {
+      simulated[0] = -999;
+      if (do_jac) derivative[0, 0] = -999;
+      throw std::runtime_error("deliberate partially written Jacobian");
+    }
+  };
+  failed = false;
+  try {
+    static_cast<void>(wrapper.Jacobian(trial, fit));
+  } catch (const std::exception& error) {
+    failed = std::string_view(error.what()).contains("deliberate partially written Jacobian");
+  }
+  require(failed, "Partial-write cache regression did not execute the failing Jacobian");
+  static_cast<void>(wrapper.Jacobian(accepted, fit));
+  check_evaluation_count(r, 6, 2, "Restoration after a partially written Jacobian");
+  close(r.jac[0, 0], 0.2, 0, "Restored Jacobian after a partial agenda failure");
+  close(fit[0], 0.01, 1e-16, "Restored fit after a partial Jacobian failure");
+  close(r.surf.ellipsoid[0], 0.1, 0, "Restored physical inout after a partial Jacobian failure");
 }
 
 void test_named_settings() {
@@ -579,6 +789,77 @@ SolverMatrix solver_matrix(unsigned int rows, unsigned int cols, std::initialize
     for (unsigned int j = 0; j < cols; ++j) result(i, j) = *value++;
   }
   return result;
+}
+
+template <typename VectorType> struct MeasurementDependentCriterion {
+  static inline Index calls = 0;
+
+  // Existing custom criteria must receive F(x) for the new state before their
+  // stopping decision is made, without having to declare their dependencies.
+  template <typename JacobianType, typename SaType, typename SeType> auto operator()(const VectorType& state,
+                                                                                     const VectorType& fit,
+                                                                                     const VectorType&,
+                                                                                     const VectorType&,
+                                                                                     const JacobianType&,
+                                                                                     const SaType&,
+                                                                                     const SeType&) ->
+      typename VectorType::RealType {
+    ++calls;
+    close(fit(0), state(0) * state(0), 0, "Custom criterion received the current state's fitted measurement");
+    return 1;  // Exercise both continuing iterations and the terminal step.
+  }
+};
+
+template <typename VectorType> struct DerivedMeasurementCriterion : invlib::Rodgers531<VectorType> {
+  // A subclass can replace the stopping calculation and start using the fit.
+  // It must not inherit an optimization that was valid only for its base.
+  template <typename... Args> auto operator()(Args&&... args) -> typename VectorType::RealType {
+    return MeasurementDependentCriterion<VectorType>{}(std::forward<Args>(args)...);
+  }
+};
+
+template <invlib::Formulation formulation, template <typename> class Criterion = MeasurementDependentCriterion>
+void check_measurement_dependent_criterion() {
+  struct QuadraticModel {
+    const unsigned int m = 1, n = 1;
+    Index              value_calls = 0, jacobian_calls = 0;
+    SolverVector       evaluate(const SolverVector& state) {
+      ++value_calls;
+      return solver_vector({state(0) * state(0)});
+    }
+    SolverMatrix Jacobian(const SolverVector& state, SolverVector& fit) {
+      ++jacobian_calls;
+      fit = solver_vector({state(0) * state(0)});
+      return solver_matrix(1, 1, {2 * state(0)});
+    }
+  } model;
+  const SolverVector prior       = solver_vector({1});
+  const SolverVector measurement = solver_vector({4});
+  const SolverMatrix sa          = solver_matrix(1, 1, {4});
+  const SolverMatrix se          = solver_matrix(1, 1, {0.25});
+  SolverVector       state       = prior;
+  invlib::MAP<QuadraticModel, SolverMatrix, SolverMatrix, SolverMatrix, SolverVector, formulation, Criterion> retrieval(
+      model, prior, sa, se);
+  retrieval.iterations = 0;
+  invlib::ConjugateGradient<>                    solver(1e-12, 0, 100);
+  invlib::GaussNewton<Numeric, decltype(solver)> optimizer(1e-10, 3, solver);
+  MeasurementDependentCriterion<SolverVector>::calls = 0;
+  const auto status                                  = retrieval.compute(state, measurement, optimizer);
+  require(status == 1 and retrieval.iterations == 3, "Custom criterion fallback did not reach its iteration limit");
+  require(MeasurementDependentCriterion<SolverVector>::calls == 4, "Custom criterion skipped a stopping decision");
+  require(model.value_calls == 3 and model.jacobian_calls == 3,
+          "Custom criterion fallback must evaluate each step and omit the unused terminal Jacobian");
+  const Numeric expected_cost = 0.25 * std::pow(state(0) - 1, 2) + 4 * std::pow(4 - state(0) * state(0), 2);
+  close(retrieval.cost, expected_cost, 1e-12, "Custom criterion terminal cost uses the current fit");
+}
+
+void test_measurement_dependent_criterion() {
+  check_measurement_dependent_criterion<invlib::Formulation::STANDARD>();
+  check_measurement_dependent_criterion<invlib::Formulation::NFORM>();
+  check_measurement_dependent_criterion<invlib::Formulation::MFORM>();
+  check_measurement_dependent_criterion<invlib::Formulation::STANDARD, DerivedMeasurementCriterion>();
+  check_measurement_dependent_criterion<invlib::Formulation::NFORM, DerivedMeasurementCriterion>();
+  check_measurement_dependent_criterion<invlib::Formulation::MFORM, DerivedMeasurementCriterion>();
 }
 
 struct IdentityPreconditioner {
@@ -906,7 +1187,7 @@ void test_generic_minimize_outcomes() {
 }  // namespace
 
 int main(int argc, char** argv) try {
-  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes");
+  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes|reuse");
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();
@@ -921,6 +1202,10 @@ int main(int argc, char** argv) try {
     test_lm_outcomes();
     test_lm_stop_reasons();
     test_generic_minimize_outcomes();
+  } else if (selected == "reuse") {
+    test_evaluation_reuse();
+    test_failed_evaluation_invalidates_cache();
+    test_measurement_dependent_criterion();
   } else {
     require(stdr::find(methods, selected) != methods.end(), "Unknown test method");
     test_affine(selected);

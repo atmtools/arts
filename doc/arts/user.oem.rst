@@ -78,6 +78,39 @@ requires additional dense matrices.  ``clear_matrices=1`` skips the gain
 calculation and returns empty Jacobian and gain matrices when those outputs
 are not needed.
 
+Reducing forward-model work
+---------------------------
+
+OEM reuses simulations and Jacobians for exactly matching states within a
+retrieval.  Continuing Gauss--Newton iterations obtain the simulation and
+Jacobian together; LM trials need only the simulation until derivatives
+are needed at an accepted state.  A custom agenda should honor ``do_jac=0``
+by skipping derivative calculations.  ``clear_matrices=1`` also avoids a
+final derivative evaluation needed solely for retained matrix outputs.
+
+The forward model should be repeatable for the same state and configuration.
+Use ``inversion_iterate_agenda_counter`` for progress reporting, not to
+change the measurement model.  If supplying an initial
+``measurement_vec_fit`` and ``measurement_jac``, both must correspond to
+the supplied starting state and current forward-model configuration.
+Clear these outputs after changing that configuration to force reevaluation.
+
+To inspect which workspace variables an agenda copies, use:
+
+.. code-block:: python
+
+   print(ws.inversion_iterate_agenda.document())
+   # Inspect this helper too when it is used by the inversion agenda.
+   print(ws.measurement_inversion_agenda.document())
+
+The listing distinguishes shared variables from copied inputs that the
+agenda modifies internally.  Python tuple-style operators can additionally
+copy large fields when converting their arguments and returned values.
+For a custom Python forward model, a ``CallbackOperator`` updating its
+declared workspace outputs in place can avoid returning unchanged model
+fields through that tuple interface.  Measure performance with a
+representative retrieval before redesigning an agenda around copy costs.
+
 Choosing covariance matrices
 ============================
 
