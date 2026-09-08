@@ -1,5 +1,6 @@
 add_library(jacobian STATIC
     covariance_matrix.cc
+    covariance_validation.cc
     jac_log.cc
     jac_logrel.cc
     jac_polyfit.cc

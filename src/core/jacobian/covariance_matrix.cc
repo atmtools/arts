@@ -11,8 +11,11 @@
 #include <lin_alg.h>
 #include <xml.h>
 
+#include <cmath>
+#include <limits>
 #include <ostream>
 #include <queue>
+#include <set>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -443,6 +446,14 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
 }
 
 void CovarianceMatrix::compute_inverse() const {
+  // Inverse-only matrices are also used internally as precision operators.
+  if (correlations_.empty()) return;
+  // Independent components may have supplied inverses while others still need
+  // computing. A represented component must already have a complete inverse.
+  // The optional confirmation API has a user-configurable allocation guard.
+  // Existing inversion callers already request a dense component inverse and
+  // must not inherit an unconfigurable size limit from that separate API.
+  validate(-1, 1e-10, std::numeric_limits<Index>::max());
   std::vector<std::vector<const Block *>> correlation_blocks{};
   generate_blocks(correlation_blocks);
   for (std::vector<const Block *> &cb : correlation_blocks) { invert_correlation_block(inverses_, cb); }
@@ -463,8 +474,33 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
 
   std::sort(blocks.begin(), blocks.end(), comp);
 
-  auto block_has_inverse = [this](const Block *a) { return has_inverse(a->get_indices()); };
-  if (std::all_of(blocks.begin(), blocks.end(), block_has_inverse)) return;
+  // validate has checked any supplied/cached inverse for this complete
+  // component. Its sparsity pattern need not equal that of the covariance.
+  if (std::any_of(blocks.begin(), blocks.end(), [this](const Block *a) {
+        const auto [i, j] = a->get_indices();
+        return i == j and has_inverse({i, i});
+      }))
+    return;
+
+  // The usual independent measurement covariance should remain sparse.
+  if (blocks.size() == 1 and blocks.front()->is_sparse()) {
+    const Block &block    = *blocks.front();
+    const auto  &sparse   = block.get_sparse().matrix;
+    bool         diagonal = true;
+    for (Index row = 0; row < sparse.outerSize(); ++row)
+      for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(sparse, row); it; ++it)
+        if (it.row() != it.col() and it.value() != 0) diagonal = false;
+    if (diagonal) {
+      Vector values = block.diagonal();
+      for (auto &value : values) {
+        value = 1 / value;
+        if (not std::isfinite(value)) throw std::runtime_error("Covariance inverse diagonal exceeds numerical range.");
+      }
+      inverses.emplace_back(
+          block.get_row_range(), block.get_column_range(), block.get_indices(), Sparse::diagonal(values));
+      return;
+    }
+  }
 
   // Otherwise go on to precompute the inverse of a block consisting
   // of correlations between multiple retrieval quantities.
@@ -513,12 +549,15 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
     } else {
       A_view = static_cast<const Matrix>(blocks[i]->get_sparse());
     }
-  }
-
-  for (Index i = 0; i < n; ++i) {
-    for (Index j = i + 1; j < n; ++j) { A[j, i] = A[i, j]; }
+    // Only off-diagonal blocks have an implicit transpose. A diagonal block
+    // stores both triangles, already checked for symmetry before this step.
+    if (ci != cj) A[column_range, row_range] = transpose(A_view);
   }
   inv(A, A);
+
+  if (std::any_of(A.elem_begin(), A.elem_end(), [](Numeric value) { return not std::isfinite(value); }))
+    throw std::runtime_error(
+        "Covariance inverse contains non-finite values; the component cannot be inverted in the available numerical range.");
 
   // // Invert matrix using LAPACK.
   // char uplo = 'L';
@@ -550,7 +589,33 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
   }
 }
 
-void CovarianceMatrix::add_correlation(Block c) { correlations_.push_back(std::move(c)); }
+void CovarianceMatrix::set_blocks(std::vector<Block> blocks) {
+  correlations_ = std::move(blocks);
+  inverses_.clear();
+}
+
+void CovarianceMatrix::add_correlation(Block c) {
+  // A new edge can join previously independent covariance components. Their
+  // old inverses no longer apply, but inverses of untouched components do.
+  const auto [i, j] = c.get_indices();
+  std::set<Index> touched{i, j};
+  Size            previous;
+  do {
+    previous = touched.size();
+    for (const auto &block : correlations_) {
+      const auto [row, col] = block.get_indices();
+      if (touched.contains(row) or touched.contains(col)) {
+        touched.insert(row);
+        touched.insert(col);
+      }
+    }
+  } while (previous != touched.size());
+  std::erase_if(inverses_, [&](const Block &block) {
+    const auto [row, col] = block.get_indices();
+    return touched.contains(row) or touched.contains(col);
+  });
+  correlations_.push_back(std::move(c));
+}
 
 void CovarianceMatrix::add_correlation_inverse(Block c) { inverses_.push_back(std::move(c)); }
 

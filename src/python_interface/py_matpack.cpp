@@ -91,6 +91,8 @@ void py_matpack(py::module_& m) try {
 
   py::class_<Range>(m, "Range")
       .def(py::init<Index, Index>(), "offset"_a, "extent"_a, "Valued initialization")
+      .def_ro("offset", &Range::offset, "The first element index.")
+      .def_ro("extent", &Range::nelem, "The number of elements.")
 
       .doc() = "A range, used to select parts of a matpack type";
 

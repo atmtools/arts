@@ -33,6 +33,9 @@ def __getattr__(attr):
     elif attr == "math":
         import pyarts3.math as math
         return math
+    elif attr == "retrieval":
+        import pyarts3.retrieval as retrieval
+        return retrieval
     elif attr == "utils":
         import pyarts3.utils as utils
         return utils
@@ -53,6 +56,7 @@ def __dir__():
         "math",
         "plots",
         "recipe",
+        "retrieval",
         "version",
         "workspace",
         "xml",

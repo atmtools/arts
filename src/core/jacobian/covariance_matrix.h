@@ -239,8 +239,23 @@ class CovarianceMatrix {
      * @return Reference to the std::vector holding the block
      * objects of this covariance matrix.
      */
-  std::vector<Block>       &get_blocks() { return correlations_; };
+  std::vector<Block> &get_blocks() {
+    inverses_.clear();
+    return correlations_;
+  };
   const std::vector<Block> &get_blocks() const { return correlations_; };
+
+  /** Replace covariance blocks, invalidating all stored inverses. */
+  void set_blocks(std::vector<Block> blocks);
+
+  /** Check storage, finite values, symmetry, positive definiteness, and any
+   * stored inverse. This does not change the covariance or compute its inverse.
+   * The optional expected size is checked against full diagonal coverage.
+   * Symmetry and inverse consistency use dimensionless relative tolerances.
+   */
+  void validate(Index   expected_size      = -1,
+                Numeric relative_tolerance = 1e-10,
+                Index   max_dense_elements = 10000000) const;
 
   /** Blocks of the inverse covariance matrix.
      *

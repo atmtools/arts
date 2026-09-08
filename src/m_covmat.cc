@@ -2,6 +2,8 @@
 #include <isotopologues.h>
 #include <workspace.h>
 
+#include <cmath>
+
 ////////////////////////////////////////////////////////////////////////////////
 // Measurement vector error covariance matrix
 ////////////////////////////////////////////////////////////////////////////////
@@ -12,6 +14,8 @@ template <Jacobian::target_type T> void add_diagonal_covmat(CovarianceMatrix&  c
                                                             const BlockMatrix& matrix,
                                                             const BlockMatrix& inverse) {
   const Range colrow(target.x_start, target.x_size);
+
+  ARTS_USER_ERROR_IF(not matrix.not_null(), "The covariance matrix is null for target {}.", target.type);
 
   ARTS_USER_ERROR_IF(matrix.ncols() != colrow.nelem or matrix.nrows() != colrow.nelem,
                      R"(The matrix must be square.  It must also have the same size as the target.
@@ -24,10 +28,6 @@ Target: {}
                      colrow.nelem,
                      target.type);
 
-  if (not target.overlap) {
-    covmat.add_correlation({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, matrix});
-  }
-
   if (inverse.not_null()) {
     ARTS_USER_ERROR_IF(inverse.ncols() != colrow.nelem or inverse.nrows() != colrow.nelem,
                        R"(The inverse matrix must be square.  It must also have the same size as the target.
@@ -39,10 +39,12 @@ Target: {}
                        colrow.nelem,
                        colrow.nelem,
                        target.type);
+  }
 
-    if (not target.overlap) {
-      covmat.add_correlation({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, matrix});
-    }
+  if (not target.overlap) {
+    covmat.add_correlation({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, matrix});
+    if (inverse.not_null())
+      covmat.add_correlation_inverse({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, inverse});
   }
 }
 }  // namespace
@@ -199,6 +201,11 @@ void measurement_vec_error_covmatConstant(CovarianceMatrix&         measurement_
                                           const ArrayOfSensorObsel& measurement_sensor,
                                           const Numeric&            x) {
   ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(
+      not std::isfinite(x) or x <= 0 or not std::isfinite(1.0 / x),
+      "Measurement-error variance x must be finite and strictly positive with a finite reciprocal, got {}.",
+      x);
 
   measurement_vec_error_covmat = CovarianceMatrix{};
 

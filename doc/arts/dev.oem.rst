@@ -145,23 +145,46 @@ The following items require separate implementation and regression work.
 Covariance validation and construction
 --------------------------------------
 
-The current covariance inverse implementation uses generic matrix inversion;
-it does not establish that a covariance is a valid statistical model.
-A validation API should report dimensions, block coverage, finite entries,
-positive variances, symmetry, and positive definiteness.  Check connected
-blocks and use matrix structure so that validation does not require
-unconditionally materializing a full dense covariance.
+``CovarianceMatrix.validate(expected_size=-1, relative_tolerance=1e-10,
+max_dense_elements=10_000_000)`` checks an existing physical covariance
+without modifying it.  Validation covers block dimensions and ranges,
+coverage, unique upper-triangular block identifiers, non-null matrices,
+finite values, positive variances, symmetry, and positive definiteness.
+Symmetry and supplied-inverse comparisons use variance-scaled coordinates
+so mixed units do not let a large-variance quantity hide an invalid
+small-variance block.  Positive definiteness is checked over connected
+components of the complete covariance, including cross-block correlations.
 
-Two storage issues need dedicated tests.  In ``src/m_covmat.cc``, the optional
-inverse branch of ``add_diagonal_covmat`` inserts the covariance again
-instead of adding the supplied inverse.  Separately, an inverse-only
-``CovarianceMatrix`` is not interchangeable with one containing covariance
-blocks: measurement-space methods also multiply by the covariance, and
-missing forward blocks can silently yield zero contributions.  Specify
-supported storage forms, reject incomplete representations, and make cache
-invalidation reliable when covariance blocks change.  Test supplied inverse
-consistency against complete correlated covariances, not independent inverses
-of their component blocks.
+Each represented inverse component must be complete and consistent with
+its connected covariance component.  Whole independent components may
+remain uncached during validation.  In normalized coordinates, the matrix-product
+residual is compared with ``relative_tolerance`` times the component size;
+the diagonal fast path uses ``relative_tolerance`` directly.
+``compute_inverse`` uses the same checks and inverts uncached independent
+components.  This catches invalid
+physical covariances on the existing OEM inversion path without imposing
+the standalone analysis's memory limit on existing retrievals.  It preserves
+the inverse-only representation used internally for LM damping; that
+representation is not accepted as a physical covariance by ``validate``
+or the standalone information report.
+
+Replacing blocks or accessing mutable blocks invalidates cached inverses.
+Adding a covariance block invalidates the affected connected components
+while retaining independent cached components.  Shared matrix aliases
+can still outlive those access points; validation before inversion must
+continue to detect a stale supplied inverse.  Do not silently overwrite
+asymmetric covariance entries during inversion.  The covariance-addition
+helper in ``src/m_covmat.cc`` now inserts the optional supplied inverse
+as an inverse and validates its inputs before mutation.
+
+Sparse diagonal validation and inversion retain diagonal storage.
+Explicit validation of non-diagonal connected components requires dense
+work; check
+``max_dense_elements`` before allocating each component matrix.  This
+guard bounds individual dense arrays, not total peak memory.  Keep
+regressions for diagonal and correlated blocks, mixed scales, incomplete
+coverage, inverse-only inputs, stale caches, and supplied inverse
+consistency.  Validation must not silently repair a statistical model.
 
 Useful construction helpers would accept standard deviations and an optional
 correlation matrix or named correlation kernel, then construct covariance
@@ -171,6 +194,58 @@ block by retrieval target and include its units, variance range, and
 factorization or conditioning diagnostics.  Covariance repair, such as
 adding a diagonal term or changing correlations, must be an explicit user
 choice because it changes the inference.
+
+Standalone information analysis
+--------------------------------
+
+``python/src/pyarts3/retrieval.py`` provides ``information`` and
+``information_from_workspace`` independently of the OEM optimizer.
+The workspace adapter reads the current Jacobian and the two physical
+covariances.  Neither entry point executes a forward agenda, runs OEM,
+updates a workspace, or selects new covariance values.  This separation
+lets a user compare proposed measurement and uncertainty models with a
+fixed Jacobian before a retrieval, and examine local sensitivities after
+one.  The mathematical definitions belong in :ref:`sec-oem-information`;
+usage and interpretation belong in :ref:`sec-user-oem-information`.
+
+The report uses covariance factors to obtain a dimensionless Jacobian,
+then an exact singular value decomposition.  ``singular_values`` and
+``mode_variance_reduction`` include all state directions, padding the
+unobserved modes with zero singular values when measurements are fewer
+than states.  ``state_modes`` contains physical state directions scaled
+to unit prior uncertainty; ``measurement_modes`` refers to whitened
+measurement coordinates.  Retain the distinction between mode and
+marginal variance reduction.  Mode signs and bases inside a degenerate
+subspace are not stable identifiers for comparisons between runs.
+
+Use factor solves rather than forming covariance inverses for this
+analysis.  Diagonal measurement covariances must not allocate a full
+measurement-square matrix.  Guard dense work with ``max_dense_elements``;
+even a diagonal prior still needs a state-square basis when all modes
+are returned.  The analysis guards an estimate of ``3*m*n + 4*n*n``
+elements as well as the cumulative dense factor sizes; LAPACK can need
+additional work arrays.  Future truncated or operator-based analyses must state
+which parts of the spectrum and uncertainty they approximate, and must
+not label retained-mode information as the complete information content.
+
+``information`` requires both an explicit measurement and
+``prior_prediction`` for ``innovation_chi_square``.
+``information_from_workspace`` reads the workspace measurement only when
+given ``prior_prediction``; it does not accept a measurement override.
+Do not infer the prior prediction from a workspace's fitted measurement:
+its generating state is not known to this API.  The
+chi-squared reference distribution assumes a linear model, a prediction
+at the prior mean, and the stated independent Gaussian error sources.
+The spectrum itself is independent of the measured residual.
+
+Regression oracles should include diagonal analytic systems, correlated
+covariances, unequal dimensions, exact null directions, consistent
+coordinate changes, and posterior covariance reconstructed from the
+returned modes.  Cross-check the innovation statistic against an
+independently formed innovation covariance.  Keep workspace immutability
+and dense-memory guards covered.  Plot uncertainty ratios when combining
+state elements with different units; retain absolute standard deviations
+and labels in the numerical report.
 
 Helping users choose settings
 -----------------------------

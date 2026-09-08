@@ -1,6 +1,7 @@
 #include <nanobind/eigen/dense.h>
 #include <nanobind/eigen/sparse.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
@@ -385,6 +386,13 @@ arr : :class:`scipy.sparse.csr_matrix`
   generic_interface(block);
   block.def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(), "By value, dense")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(), "By value, sparse")
+      .def_prop_ro(
+          "row_range", [](const Block& x) { return x.get_row_range(); }, "The element row range of this block.")
+      .def_prop_ro(
+          "column_range",
+          [](const Block& x) { return x.get_column_range(); },
+          "The element column range of this block.")
+      .def_prop_ro("indices", &Block::get_indices, "The row and column block indices.")
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {
@@ -464,9 +472,32 @@ arr : :class:`scipy.sparse.csr_matrix`
   generic_interface(covm);
   covm.def_prop_rw(
       "blocks",
-      [](CovarianceMatrix& x) { return x.get_blocks(); },
-      [](CovarianceMatrix& x, std::vector<Block> y) { x.get_blocks() = std::move(y); },
-      "The blocks\n\n.. :class:`list[~pyarts3.arts.Block]`");
+      [](const CovarianceMatrix& x) { return x.get_blocks(); },
+      &CovarianceMatrix::set_blocks,
+      "The blocks. Replacing these invalidates stored inverses.\n\n.. :class:`list[~pyarts3.arts.Block]`");
+  covm.def("validate",
+           &CovarianceMatrix::validate,
+           "expected_size"_a      = -1,
+           "relative_tolerance"_a = 1e-10,
+           "max_dense_elements"_a = 10000000,
+           R"(Check covariance storage and mathematical validity without changing it.
+
+Checks full diagonal coverage, block ranges and shapes, finite entries,
+positive variances, symmetry, and positive definiteness after variance scaling.
+Independent components may have no stored inverse. If an inverse is stored
+for a component, it must cover that whole component, including correlations,
+and agree with its covariance. Validation does not fill missing inverse caches.
+The symmetry tolerance is relative to the geometric mean of the variances;
+the maximum normalized inverse identity residual is bounded by the tolerance
+times the component size. No absolute variance threshold is imposed.
+
+Independent diagonal sparse blocks are checked without dense allocation.
+Other connected components require dense Cholesky factorization. Each dense
+component matrix is limited to ``max_dense_elements`` entries; several such
+matrices can be needed when an inverse is stored.
+
+Raises an error identifying the invalid block or coordinate. An inverse-only
+operator does not provide the physical covariance required by this check.)");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
 }

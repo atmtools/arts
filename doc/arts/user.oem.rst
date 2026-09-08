@@ -132,9 +132,33 @@ The inverse covariance is the **precision** matrix.  Do not pass a precision
 matrix as a covariance.  For correlated variables, its diagonal generally
 differs from the reciprocals of the covariance diagonal.  ARTS can store
 covariance blocks and inverse blocks separately; a provided inverse must represent
-the same complete covariance, including its correlations.  Supplying the
-covariance and allowing ARTS to compute its inverse avoids having two
-potentially inconsistent descriptions.
+the same covariance, including its correlations.  Inverse blocks must cover
+an entire group of coordinates connected by correlations when supplied
+for that group.  Independent groups may leave their inverses uncomputed.
+Supplying the covariance and allowing ARTS to compute its inverse avoids
+having two potentially inconsistent descriptions.
+
+Check a constructed covariance explicitly before using it:
+
+.. code-block:: python
+
+   ws.model_state_covmat.validate(
+       expected_size=len(ws.model_state_vec_apriori)
+   )
+   ws.measurement_vec_error_covmat.validate(
+       expected_size=len(ws.measurement_vec)
+   )
+
+Validation checks the represented covariance, including its block layout,
+finite entries, symmetry, positive definiteness, and consistency with a
+supplied inverse.  It raises an error when a check fails.  The default
+``relative_tolerance=1e-10`` controls numerical comparisons; it does not
+repair the matrix.  Successful validation establishes that the covariance
+is numerically admissible.  The uncertainty values, correlations, units,
+and ordering still need to match the intended physical problem.
+The optional ``max_dense_elements=10_000_000`` bounds each dense connected
+component needed for validation.  Independent diagonal errors are checked
+without allocating a full dense covariance.
 
 Coordinate changes and numerical scaling
 ----------------------------------------
@@ -159,6 +183,155 @@ so a zero prior mean is not a reason to use a zero scale.  Check that the
 retrieved state agrees with the unscaled solution within numerical accuracy.
 State normalization is unsupported for ``li_cg_m`` and ``gn_cg_m``;
 these methods solve in measurement space.
+
+.. _sec-user-oem-information:
+
+Checking what the measurements can constrain
+============================================
+
+Use :func:`~pyarts3.retrieval.information` to examine a Jacobian together with
+the assumed prior and measurement covariances.  It can run before a
+retrieval, using a Jacobian already evaluated at a representative state.
+It validates its inputs and produces a report without executing ``OEM``
+or a forward-model agenda:
+
+.. code-block:: python
+
+   import numpy as np
+   from pyarts3.retrieval import information
+
+   # A dimensionless example: two quantities, two measurements.
+   jacobian = np.diag([2.0, 0.1])
+   prior_covariance = np.eye(2)
+   measurement_covariance = np.eye(2)
+   report = information(
+       jacobian,
+       prior_covariance,
+       measurement_covariance,
+       state_labels=["first quantity", "second quantity"],
+   )
+   print(report.describe())
+   figure, axes = report.plot()
+
+Covariance inputs can be square arrays, ARTS ``CovarianceMatrix`` objects,
+or one-dimensional arrays of diagonal **variances**.  For example,
+``measurement_covariance = np.ones(2)`` represents the same independent
+unit errors as ``np.eye(2)`` above.  The diagonal representation avoids
+allocating a full measurement covariance when there are many independent
+channels.
+
+Here the first quantity loses 80 percent of its prior variance, while
+the second loses approximately 1 percent.  Converging the optimizer more
+tightly cannot create sensitivity to the second quantity.  The example
+has about 0.81 degrees of freedom for signal despite having two state
+elements and two measurements.
+
+For an existing workspace, use its current Jacobian and covariance values:
+
+.. code-block:: python
+
+   from pyarts3.retrieval import information_from_workspace
+
+   report = information_from_workspace(ws)
+   print(report)
+
+This reads ``measurement_jac``, ``model_state_covmat``, and
+``measurement_vec_error_covmat``.  It does not refresh the Jacobian or
+change the workspace.  The Jacobian's columns must match the prior's
+state coordinates and ordering, and its rows must match the measurement
+covariance.  After a nonlinear retrieval, the report describes information
+near the retrieved state; at the prior it describes the initial local
+problem.  The two reports can differ because the sensitivities change.
+Each report is a snapshot; create a new one after changing its inputs.
+
+Read the report's quantities as follows:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Quantity
+     - Interpretation
+   * - ``singular_values``
+     - Sensitivity of independent state patterns relative to prior and
+       measurement uncertainty.  Values above one indicate stronger
+       measurement constraints than prior constraints in that pattern.
+   * - ``mode_variance_reduction``
+     - Fraction of prior variance removed for each pattern, from zero
+       to one.  Zero includes state directions the measurements cannot see.
+   * - ``degrees_of_freedom``
+     - Sum of those reductions: the effective number of state quantities
+       constrained by the measurement.  It need not be an integer.
+   * - ``information_bits``
+     - Reduction of Gaussian uncertainty volume expressed as entropy
+       in bits.  It is a different summary from degrees of freedom.
+   * - ``prior_standard_deviation``, ``posterior_standard_deviation``
+     - Uncertainties of individual state elements in their retrieval units.
+       These assume the stated covariances and local Jacobian.
+   * - ``variance_reduction``
+     - Fraction of prior variance removed for each individual state element.
+       Correlations make these different from the independent-mode values.
+   * - ``prior_correlation_condition``, ``measurement_correlation_condition``
+     - Condition numbers after removing coordinate units and variance scales.
+       Large values identify nearly dependent error patterns; they do not
+       measure the information content or replace covariance validation.
+
+``state_modes[:, i]`` gives a state pattern in physical retrieval
+coordinates, scaled to unit prior uncertainty.  A weak pattern may mix
+several parameters, so inspecting Jacobian columns individually can miss
+it.  ``measurement_modes`` describes patterns in whitened measurement
+coordinates; with correlated errors these mix the original channels.
+Signs of modes are arbitrary, and equally informative modes do not have
+a unique orientation.  The spectrum and its connection to reduced
+retrieval spaces are discussed by :cite:t:`nesser:21`; the expressions
+used here are in :ref:`sec-oem-information`.
+
+The plot shows variance reduction by mode and the ratio of posterior to
+prior standard deviation by state element.  Ratios allow state elements
+with different units to share an axis.  Use the numerical arrays and
+``state_labels`` to make plots suitable for a particular profile or target.
+
+For an optional check of the prior prediction, give the workspace helper
+a prediction explicitly evaluated at the prior mean.  It then reads the
+measurement from ``ws.measurement_vec``:
+
+.. code-block:: python
+
+   report = information_from_workspace(
+       ws,
+       prior_prediction=prediction_at_prior,
+   )
+   print(report.innovation_chi_square)
+
+``prediction_at_prior`` must contain ``F(xa)`` in measurement units, and
+the Jacobian must be appropriate around that prior state for this check.
+The helper cannot establish which state produced a stored simulation;
+it never substitutes ``measurement_vec_fit`` automatically.  For the
+linear Gaussian model with the stated uncertainties, this statistic has
+mean equal to the number of measurements.  It is not a target value for
+each individual realization or the fitted OEM measurement cost.  A large
+value is a reason to inspect units, model biases, outliers, and uncertainty
+assumptions together.
+The array-based ``information`` function requires both ``measurement``
+and ``prior_prediction`` explicitly when requesting this check.
+
+These checks leave covariance choices explicit.  Compare scientifically
+plausible uncertainty models or candidate measurement sets while keeping
+track of what changed.  Increasing assumed prior uncertainty can increase
+reported information without adding measurements.  A weak mode suggests
+examining measurement coverage, state parameterization, or independent
+prior knowledge; changing a covariance only to make the report look
+better changes the question being answered.
+
+The analysis uses dense linear algebra and includes all state modes,
+including unobserved directions.  ``max_dense_elements`` defaults to
+10,000,000 and bounds an estimate of dense analysis storage and the dense
+covariance factors.  The estimate includes ``3*m*n + 4*n*n`` elements
+for ``m`` measurements and ``n`` states.  Additional library work arrays
+mean this is not an absolute bound on peak memory.  In particular,
+retaining all state modes requires storage proportional to the square
+of the state size.  Reduce the analysis size or raise the limit
+deliberately when the guard rejects a large problem.
 
 Setting LM damping
 ==================

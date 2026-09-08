@@ -233,6 +233,86 @@ state gives a local approximation.  Their uncertainty interpretation
 requires that the prior covariance represents the assumed prior uncertainty.
 The observation contribution alone is not the full posterior covariance.
 
+.. _sec-oem-information:
+
+Information carried by the measurements
+=======================================
+
+Factor the prior and measurement covariances as
+:math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
+:math:`\mathbf{S}_\epsilon=\mathbf{L}_\epsilon\mathbf{L}_\epsilon^{\top}`.
+The dimensionless sensitivity matrix and its singular value decomposition are
+
+.. math::
+
+   \widetilde{\mathbf{J}}=
+     \mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+     =\mathbf{U}\mathbf{\Sigma}\mathbf{V}^{\top}.
+
+Each singular value :math:`s_i` measures the response of a unit-prior
+state mode relative to the measurement error.  Missing singular values
+when :math:`m<n` are zero.  In coordinates
+:math:`\vec{z}=\mathbf{L}_a^{-1}(\vec{x}-\vec{x}_a)`, the columns of
+:math:`\mathbf{V}` describe independent prior modes.  Their posterior
+variances are :math:`1/(1+s_i^2)`, giving the mode variance reductions
+
+.. math::
+
+   a_i=\frac{s_i^2}{1+s_i^2}.
+
+These are the eigenvalues of the averaging kernel expressed in prior
+coordinates.  Their use as an information spectrum is described by
+:cite:t:`nesser:21`.  A mode with :math:`s_i=1` loses half its prior
+variance; an unobserved mode with :math:`s_i=0` retains its prior variance.
+
+The physical state modes are the columns of
+:math:`\mathbf{P}=\mathbf{L}_a\mathbf{V}`.  They satisfy
+:math:`\mathbf{P}^{\top}\mathbf{S}_a^{-1}\mathbf{P}=\mathbf{I}`.
+The posterior covariance can be reconstructed as
+
+.. math::
+
+   \widehat{\mathbf{S}}=
+     \mathbf{P}\operatorname{diag}\left(\frac{1}{1+s_i^2}\right)
+     \mathbf{P}^{\top}.
+
+The marginal variance reduction for state element :math:`j` is
+:math:`1-\widehat{S}_{jj}/S_{a,jj}`.  This refers to an individual
+coordinate and is generally different from the variance reduction of
+a mode combining several state elements.  A mode's sign is arbitrary;
+equal singular values also allow rotations within their shared subspace.
+
+Two scalar summaries are the degrees of freedom for signal and the
+Gaussian entropy reduction in bits:
+
+.. math::
+
+   d_s=\operatorname{tr}(\mathbf{A})=\sum_{i=1}^{n}a_i,
+   \qquad
+   H=\frac{1}{2}\log_2\frac{\det\mathbf{S}_a}{\det\widehat{\mathbf{S}}}
+    =\frac{1}{2}\sum_{i=1}^{n}\log_2(1+s_i^2).
+
+These quantities depend on the Jacobian and assumed covariances, not on
+the realized measurement residual.  For a nonlinear forward model they
+describe only the local linear approximation at the Jacobian's state.
+
+For a measurement and a forward prediction at the prior mean, define
+the innovation and its covariance by
+
+.. math::
+
+   \vec{r}=\vec{y}-F(\vec{x}_a),
+   \qquad
+   \mathbf{S}_r=\mathbf{S}_\epsilon+
+                   \mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}.
+
+Under the linear Gaussian model with independent prior and observation
+errors, :math:`\vec{r}^{\top}\mathbf{S}_r^{-1}\vec{r}` follows a
+chi-squared distribution with :math:`m` degrees of freedom and mean
+:math:`m`.  This is a check of a prior prediction and the assumed
+uncertainties.  Replacing the prior prediction with a fitted measurement
+does not give this distribution.
+
 Transforming the Jacobian matrix
 ================================
 

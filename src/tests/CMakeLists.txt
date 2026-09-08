@@ -32,6 +32,15 @@ if(OEM_SUPPORT)
   endforeach()
 endif()
 
+# Covariance storage and numerical checks also apply without OEM support.
+add_executable(test_covariance_validation test_covariance_validation.cc)
+target_link_libraries(test_covariance_validation PRIVATE artsworkspace)
+add_dependencies(check-deps test_covariance_validation)
+foreach(case structural numerical precision workspace)
+  add_test(NAME "cpp.fast.covariance.${case}" COMMAND test_covariance_validation "${case}")
+  set_tests_properties("cpp.fast.covariance.${case}" PROPERTIES TIMEOUT 30)
+endforeach()
+
 # ########## next testcase ###############
 set(MATLABDIR OFF CACHE PATH
   "Path to the Matlab install folder on the system.")
