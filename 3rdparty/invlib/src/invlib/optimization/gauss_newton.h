@@ -8,6 +8,7 @@
 #ifndef OPTIMIZATION_GAUSS_NEWTON_H
 #define OPTIMIZATION_GAUSS_NEWTON_H
 
+#include <exception>
 #include <stdio.h>
 #include "invlib/algebra/solvers.h"
 

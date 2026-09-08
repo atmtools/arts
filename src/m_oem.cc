@@ -147,7 +147,7 @@ void check_oem_inputs(const Vector&           x,
   ARTS_USER_ERROR_IF(!normalization.empty() && normalization.size() != n,
                      "model_state_covmat_normalization must be empty or have {} elements.",
                      n)
-  ARTS_USER_ERROR_IF(std::ranges::any_of(normalization, [](Numeric v) { return !std::isfinite(v) || v <= 0; }),
+  ARTS_USER_ERROR_IF(stdr::any_of(normalization, [](Numeric v) { return !std::isfinite(v) || v <= 0; }),
                      "model_state_covmat_normalization values must be finite and > 0.")
   ARTS_USER_ERROR_IF(
       method.measurement_space && !normalization.empty(),

@@ -56,17 +56,48 @@ equivalent scaled and unscaled systems.  Nonlinear cases need to test
 accepted-state Jacobians and meaningful damping changes, rather than only
 checking that a residual decreased.
 
+Bounded inner iterations
+------------------------
+
+An outer ``max_iter`` does not bound the work of an inner linear solve or
+LM trial search.  Both now enforce independent limits and raise an error
+when they cannot complete within those limits.  OEM maps errors caught
+during inversion to status 9 and records the explanation in ``errors``.
+Exhausting the existing LM damping range retains its status 2 behavior.
+Gauss--Newton must propagate linear-solver exceptions with their nested
+cause.  Returning an empty step after catching an error hides the failure
+and can cause invalid vector operations in the measurement-space formulation.
+
+The native ``ConjugateGradient`` constructor and both preconditioned
+variants accept ``max_iterations`` after the verbosity argument, with a
+default of 1000.  The solve loop counts iterations locally, so a custom
+convergence predicate cannot disable the bound.  Checks for non-finite
+arithmetic and non-positive curvature reject invalid or broken solves
+instead of treating them as converged.  These checks do not replace
+covariance validation.  OEM retains its relative residual tolerance of
+``1e-10`` and uses the native iteration limit.
+
+The native LM optimizer provides ``get_maximum_trials()`` and
+``set_maximum_trials()``; the positive trial limit defaults to 100 per
+outer iteration.  A local counter bounds rejected-step retries, and a
+damping update must make progress before another trial is attempted.
+This catches multiplication that rounds back to the current damping.
+Neither limit is currently an OEM workspace argument or part of the six
+named LM damping settings.  Preserve the termination regressions when
+changing convergence predicates, trial acceptance, or damping updates.
+
 Remaining numerical work
 ------------------------
 
 The following items require separate implementation and regression work.
 
-1. **Make CG termination explicit.**  Expose relative tolerance and maximum
-   linear iterations, and report linear iterations and residuals.  Handle
-   non-finite arithmetic, zero curvature, and loss of positive definiteness
-   explicitly.  Extend the exact-initial-state regression to nearly zero
-   right-hand sides and ill-conditioned positive-definite systems.
-   An outer ``max_iter`` does not bound the work of an inner linear solve.
+1. **Expose inner-solver controls and diagnostics.**  Provide public
+   settings for relative CG tolerance, maximum linear iterations, and
+   maximum LM trials, and report linear iterations and residuals.  Keep
+   these separate from outer ``max_iter`` and the six damping controls.
+   Extend numerical coverage to nearly zero right-hand sides and
+   ill-conditioned positive-definite systems; bounded termination alone
+   does not establish the accuracy of a difficult solve.
 
 2. **Audit LM's predicted cost reduction.**  ``MAP::cost_function`` returns
    the full quadratic objective, while the gradient and Hessian assembled

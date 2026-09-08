@@ -15,7 +15,7 @@ LevenbergMarquardt<RealType, DampingMatrix, Solver>
     : current_cost(0.0), tolerance(1e-5), lambda(4.0), lambda_maximum(100.0),
       lambda_increase(2.0), lambda_decrease(3.0), lambda_threshold(1.0),
       lambda_constraint(std::numeric_limits<RealType>::min()),
-      maximum_iterations(100), step_count(0), stop(false), D(D_), s(solver)
+      maximum_iterations(100), maximum_trials(100), step_count(0), stop(false), D(D_), s(solver)
 {
     // Nothing to do here.
 }
@@ -47,6 +47,34 @@ void LevenbergMarquardt<RealType, DampingMatrix, Solver>
 ::set_maximum_iterations(unsigned int maximum_iterations_)
 {
     maximum_iterations = maximum_iterations_;
+}
+
+template
+<
+typename RealType,
+typename DampingMatrix,
+typename Solver
+>
+auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::get_maximum_trials() const
+    -> unsigned int
+{
+    return maximum_trials;
+}
+
+template
+<
+typename RealType,
+typename DampingMatrix,
+typename Solver
+>
+void LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::set_maximum_trials(unsigned int maximum_trials_)
+{
+    if (maximum_trials_ == 0) {
+        throw std::invalid_argument("Levenberg-Marquardt maximum trials must be positive.");
+    }
+    maximum_trials = maximum_trials_;
 }
 
 template
@@ -260,9 +288,20 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
     RealType new_cost = 0.0;
     RealType c = -1.0;
     bool first_step = true;
+    unsigned int trials = 0;
 
     while (c < 0.5)
     {
+        // step_count counts completed outer steps and cannot bound this loop.
+        // A rejected trial must never be returned as a converged solution merely
+        // because the retry budget was exhausted.
+        if (trials == maximum_trials) {
+            throw std::runtime_error(
+                "Levenberg-Marquardt trial limit reached after "
+                + std::to_string(trials) + " trials in one step.");
+        }
+        ++trials;
+
         // Compute step.
         auto C = B + lambda * D;
         try {
@@ -294,6 +333,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
             current_cost = new_cost;
         }
         if (c < 0.5) {
+            const RealType previous_lambda = lambda;
             if (lambda < lambda_threshold)
                 lambda = lambda_threshold;
             else
@@ -311,6 +351,13 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
                     break;
                 }
             }
+            // Even a factor greater than one can leave subnormal damping
+            // unchanged after rounding. Retrying the same trial cannot help.
+            if (!std::isfinite(lambda) || lambda <= previous_lambda) {
+                throw std::runtime_error(
+                    "Levenberg-Marquardt damping did not increase to a finite value "
+                    "after a rejected trial; check the damping threshold and increase factor.");
+            }
         }
 
         first_step = false;
@@ -319,7 +366,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
     step_count++;
 
     if ((lambda > lambda_maximum) and (c < 0.0)) {
-        dx *= 0.0;
+        dx.scale(0.0);
     }
 
     return dx;

@@ -9,8 +9,11 @@
 #define OPTIMIZATION_LEVENBERG_MARQUARDT_H
 
 #include "invlib/algebra/solvers.h"
+#include <cmath>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 namespace invlib
 {
@@ -76,6 +79,12 @@ public:
     unsigned int get_maximum_iterations() const;
     void set_maximum_iterations(unsigned int);
 
+    /*! Maximum trial solves per call to step(), independent of the outer
+     * iteration budget. Defaults to 100; exhausting the limit throws.
+     */
+    unsigned int get_maximum_trials() const;
+    void set_maximum_trials(unsigned int);
+
     RealType get_tolerance() const;
     void set_tolerance(RealType);
 
@@ -117,6 +126,9 @@ public:
      * the value of lambda_maximum. If lambda falls below lambda_threshold, lambda
      * is set to zero and the Levenberg-Marquardt step effectively becomes a
      * Gauss-Newton step.
+     * A separate trial budget bounds work within each step. Exhausting that
+     * budget, or failing to increase damping after a rejected trial, throws
+     * an exception instead of returning an unconverged trial as a solution.
      */
     template
     <
@@ -135,7 +147,7 @@ private:
 
     RealType current_cost, tolerance, lambda, lambda_maximum, lambda_increase,
     lambda_decrease, lambda_threshold, lambda_constraint;
-    unsigned int maximum_iterations, step_count;
+    unsigned int maximum_iterations, maximum_trials, step_count;
     bool stop;
 
     // Positive definite matrix defining the trust region sphere r < ||Mx||.
@@ -150,4 +162,3 @@ private:
 }      // namespace invlib
 
 #endif // OPTIMIZATION_LEVENBERG_MARQUARDT_H
-

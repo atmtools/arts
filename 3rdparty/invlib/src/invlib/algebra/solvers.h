@@ -2,7 +2,10 @@
 #define ALGEBRA_SOLVERS
 
 #include "invlib/algebra.h"
+#include <cmath>
 #include <iostream>
+#include <stdexcept>
+#include <string>
 #include "invlib/log.h"
 
 namespace invlib
@@ -180,14 +183,16 @@ class ConjugateGradient
 
 public:
 
-    /*! Create CG solver object with given convergence tolerance and
-     * given coordinate transform, to be applied to the system.
+    /*! Create CG solver object with given convergence tolerance and step limit.
      *
-     * \param tol The convergence tolerance
-     * \param trans The coordinate transformation. Defaults to the identity
-     * transformation.
+     * \param tol The finite, positive convergence tolerance.
+     * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
+     * \param max_iterations The positive maximum number of iterations per solve.
+     * Exhausting this limit or encountering invalid arithmetic throws
+     * std::runtime_error; neither is reported as successful convergence.
      */
-    inline ConjugateGradient(double tol, int verbosity = 0);
+    inline ConjugateGradient(double tol, int verbosity = 0,
+                            int max_iterations = 1000);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -213,6 +218,7 @@ private:
 
     int        verbosity;
     double     tolerance;
+    int        max_iterations;
     CGSettings settings;
 
 };
@@ -256,8 +262,11 @@ public:
      * \param tol The convergence criterion with respect the relative residual
      * \f$\frac{|\mathbf{r}_k|}{|\mathbf{b}|}\f$.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
+     * \param max_iterations The positive iteration limit per solve. Exhaustion
+     * or invalid arithmetic throws std::runtime_error.
      */
-    PreconditionedConjugateGradient(const F &f, double tol, int verbosity = 0);
+    PreconditionedConjugateGradient(const F &f, double tol, int verbosity = 0,
+                                   int max_iterations = 1000);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -286,6 +295,7 @@ private:
     const F & f;
     int    verbosity;
     double tolerance;
+    int    max_iterations;
 };
 
 template<typename F>
@@ -304,8 +314,11 @@ public:
      * \param tol The tolerance on the relative residual up to which the
      * iteration is continued.
      * \param verbosity If verbosity > 0, log output is printed to standard out.
+     * \param max_iterations The positive iteration limit per solve. Exhaustion
+     * or invalid arithmetic throws std::runtime_error.
      */
-    PreconditionedConjugateGradient(double tol, int verbosity = 0);
+    PreconditionedConjugateGradient(double tol, int verbosity = 0,
+                                   int max_iterations = 1000);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -333,6 +346,7 @@ private:
 
     int    verbosity;
     double tolerance;
+    int    max_iterations;
 
 };
 
@@ -341,4 +355,3 @@ private:
 }      // namespace invlib
 
 #endif // ALGEBRA_SOLVERS
-

@@ -10,6 +10,11 @@
 #include <stdexcept>
 #include <string_view>
 
+#include "invlib/algebra.h"
+#include "invlib/algebra/solvers.h"
+#include "invlib/archetypes/matrix_archetype.h"
+#include "invlib/optimization/levenberg_marquardt.h"
+
 namespace {
 
 constexpr std::array<std::string_view, 10> methods{
@@ -267,11 +272,11 @@ void test_runtime_failure(std::string_view method) {
   close(r.diagnostics[2], 2863.0 / 1424, 1e-12, "Normalized failure cost");
   close(r.diagnostics[3], 2863.0 / 1424, 1e-12, "Normalized failure measurement cost");
   close(r.diagnostics[4], 0, 0, "Failure iteration count");
-  require(std::ranges::all_of(r.x, [](Numeric value) { return std::isnan(value); }), "Failed state must be NaN");
+  require(stdr::all_of(r.x, [](Numeric value) { return std::isnan(value); }), "Failed state must be NaN");
   require(r.gain.empty(), "Failed retrieval returned stale gain");
-  require(std::ranges::none_of(r.errors, [](const String& value) { return value == "stale error"; }),
+  require(stdr::none_of(r.errors, [](const String& value) { return value == "stale error"; }),
           "Failed retrieval retained previous errors");
-  require(std::ranges::any_of(r.errors,
+  require(stdr::any_of(r.errors,
                               [](const String& value) {
                                 return std::string_view(value).contains("deliberate regression forward-model failure");
                               }),
@@ -484,10 +489,197 @@ void test_skipped_and_reused_outputs() {
   }
 }
 
+template <typename Operation> void rejects_with(Operation operation, std::string_view message) {
+  try {
+    operation();
+  } catch (const std::exception& error) {
+    require(std::string_view(error.what()).contains(message),
+            std::format("Expected error containing '{}', got '{}'", message, error.what()));
+    return;
+  }
+  throw std::runtime_error(std::format("Expected failure containing '{}'", message));
+}
+
+using SolverVector = invlib::Vector<invlib::VectorArchetype<Numeric>>;
+using SolverMatrix = invlib::Matrix<invlib::MatrixArchetype<Numeric>>;
+
+SolverVector solver_vector(std::initializer_list<Numeric> values) {
+  SolverVector result;
+  result.resize(static_cast<unsigned int>(values.size()));
+  unsigned int i = 0;
+  for (Numeric value : values) result(i++) = value;
+  return result;
+}
+
+SolverMatrix solver_matrix(unsigned int rows, unsigned int cols, std::initializer_list<Numeric> values) {
+  SolverMatrix result;
+  result.resize(rows, cols);
+  auto value = values.begin();
+  for (unsigned int i = 0; i < rows; ++i) {
+    for (unsigned int j = 0; j < cols; ++j) result(i, j) = *value++;
+  }
+  return result;
+}
+
+struct IdentityPreconditioner {
+  IdentityPreconditioner() = default;
+  template <typename MatrixType> explicit IdentityPreconditioner(const MatrixType&) {}
+  SolverVector operator()(const SolverVector& value) const { return value; }
+};
+
+template <typename Factory> void check_cg_termination(Factory make_solver) {
+  const SolverMatrix diagonal = solver_matrix(2, 2, {1, 0, 0, 2});
+  const SolverMatrix identity = solver_matrix(2, 2, {1, 0, 0, 1});
+  const SolverVector rhs      = solver_vector({1, 1});
+  const SolverVector zero     = solver_vector({0, 0});
+
+  // Two distinct eigenvalues require two CG steps for this RHS. Hitting
+  // the budget must report failure, not return the first inaccurate iterate.
+  for (const Numeric bad :
+       {0., -1., std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::infinity()}) {
+    rejects_with([&] { static_cast<void>(make_solver(bad, 1)); }, "tolerance");
+  }
+  for (int bad : {0, -1}) {
+    rejects_with([&] { static_cast<void>(make_solver(1e-12, bad)); }, "max_iterations");
+  }
+  auto limited = make_solver(1e-12, 1);
+  rejects_with([&] { static_cast<void>(limited.solve(diagonal, rhs)); }, "iteration limit");
+  auto two_steps = make_solver(1e-12, 2);
+  for (Index run = 0; run < 2; ++run) {
+    const auto solution = two_steps.solve(diagonal, rhs);
+    close(solution(0), 1, 1e-14, "CG solution at iteration budget[0]");
+    close(solution(1), 0.5, 1e-14, "CG solution at iteration budget[1]");
+  }
+  // Budgets reset after failures and successes, and a zero RHS is already
+  // solved. Test the native solver directly, bypassing OEM's zero shortcut.
+  for (Index run = 0; run < 2; ++run) {
+    const auto solution = limited.solve(identity, rhs);
+    close(solution(0), 1, 0, "Repeated CG solution[0]");
+    close(solution(1), 1, 0, "Repeated CG solution[1]");
+    const auto zero_solution = limited.solve(identity, zero);
+    close(zero_solution(0), 0, 0, "Native CG zero RHS[0]");
+    close(zero_solution(1), 0, 0, "Native CG zero RHS[1]");
+  }
+
+  for (const Numeric bad : {std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::infinity()}) {
+    const SolverVector nonfinite_rhs = solver_vector({bad, 1});
+    rejects_with([&] { static_cast<void>(limited.solve(identity, nonfinite_rhs)); }, "finite");
+    const SolverMatrix nonfinite_matrix = solver_matrix(2, 2, {bad, 0, 0, 1});
+    rejects_with([&] { static_cast<void>(limited.solve(nonfinite_matrix, rhs)); }, "finite");
+  }
+  for (const Numeric curvature : {0., -1.}) {
+    const SolverMatrix breakdown = solver_matrix(2, 2, {curvature, 0, 0, curvature});
+    rejects_with([&] { static_cast<void>(limited.solve(breakdown, rhs)); }, "curvature");
+  }
+}
+
+struct NeverConvergedCGSettings {
+  explicit NeverConvergedCGSettings(double) {}
+  SolverVector start_vector(const SolverVector& rhs) const { return 0.0 * rhs; }
+  bool         converged(const SolverVector&, const SolverVector&) const { return false; }
+};
+
+void test_cg_termination() {
+  check_cg_termination([](Numeric tolerance, int budget) { return invlib::ConjugateGradient<>(tolerance, 0, budget); });
+  const IdentityPreconditioner identity;
+  check_cg_termination([&](Numeric tolerance, int budget) {
+    return invlib::PreconditionedConjugateGradient<IdentityPreconditioner, true>(identity, tolerance, 0, budget);
+  });
+  check_cg_termination([](Numeric tolerance, int budget) {
+    return invlib::PreconditionedConjugateGradient<IdentityPreconditioner, false>(tolerance, 0, budget);
+  });
+
+  // The safety budget belongs to the solve loop, even when a custom settings
+  // functor replaces the default convergence predicate.
+  invlib::ConjugateGradient<NeverConvergedCGSettings> custom(1e-12, 0, 1);
+  const SolverMatrix                                  diagonal = solver_matrix(2, 2, {1, 0, 0, 2});
+  const SolverVector                                  rhs      = solver_vector({1, 1});
+  rejects_with([&] { static_cast<void>(custom.solve(diagonal, rhs)); }, "iteration limit");
+
+  // A fixed-step policy must also stop when the exact solution is reached,
+  // before the next conjugate-direction update attempts a 0/0 division.
+  invlib::ConjugateGradient<invlib::CGStepLimit<3>> fixed_steps(1e-12);
+  const SolverMatrix                                identity_matrix = solver_matrix(2, 2, {1, 0, 0, 1});
+  const auto                                        exact           = fixed_steps.solve(identity_matrix, rhs);
+  close(exact(0), 1, 0, "Fixed-step CG exact solution[0]");
+  close(exact(1), 1, 0, "Fixed-step CG exact solution[1]");
+
+  for (const auto method : {"li_cg", "li_cg_m", "gn_cg", "gn_cg_m", "lm_cg", "ml_cg"}) {
+    for (const Numeric bad : {std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::infinity()}) {
+      Retrieval r;
+      r.y[0]     = bad;
+      r.max_iter = 1;
+      r.run(method);
+      close(r.diagnostics[0], 9, 0, std::format("{} with measurement {} must fail", method, bad));
+      require(not r.errors.empty(), "Nonfinite CG input lost the failure reason");
+      require(r.gain.empty(), "Failed CG retrieval returned gain");
+    }
+  }
+}
+
+void test_lm_trial_limit() {
+  const SolverMatrix curvature = solver_matrix(1, 1, {1});
+  const SolverVector initial   = solver_vector({1});
+  using Optimizer              = invlib::LevenbergMarquardt<Numeric, SolverMatrix>;
+  struct RejectTrials {
+    Index   calls = 0;
+    Numeric cost_function(const SolverVector&, bool = false) { return calls++ == 0 ? 0 : 1; }
+  } rejected;
+
+  Optimizer limited(curvature);
+  rejects_with([&] { limited.set_maximum_trials(0); }, "trial");
+  limited.set_maximum_trials(3);
+  require(limited.get_maximum_trials() == 3, "Configured LM trial budget was lost");
+  limited.set_lambda(1);
+  limited.set_lambda_increase(1.01);
+  rejects_with([&] { static_cast<void>(limited.step(initial, initial, curvature, rejected)); },
+               "Levenberg-Marquardt trial limit");
+  require(rejected.calls == 4, "LM exceeded its three-trial budget or stopped before spending it");
+
+  struct QuadraticCost {
+    Numeric cost_function(const SolverVector& x, bool = false) { return 0.5 * x(0) * x(0); }
+  } quadratic;
+  Optimizer one_trial(curvature);
+  one_trial.set_maximum_trials(1);
+  one_trial.set_lambda(1);
+  one_trial.set_lambda_threshold(0.01);
+  SolverVector state = initial;
+  // Both outer steps succeed on their last allowed trial. Sharing the trial
+  // counter between steps would wrongly reject the second call.
+  for (Index step = 0; step < 2; ++step) {
+    const Numeric expected  = state(0) * one_trial.get_lambda() / (1 + one_trial.get_lambda());
+    const auto    dx        = one_trial.step(state, state, curvature, quadratic);
+    state                  += dx;
+    close(state(0), expected, 1e-14, "LM per-step trial budget");
+  }
+
+  for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
+    for (const bool stalled : {false, true}) {
+      Retrieval r;
+      quadratic_model(r);
+      r.x        = Vector{0.1};
+      r.max_iter = 1;
+      r.settings = OEMLMSettings{.initial_damping   = 0,
+                                 .increase_factor   = stalled ? std::nextafter(1., 2.) : 1.0001,
+                                 .damping_threshold = stalled ? std::nextafter(0., 1.) : 0.1}
+                       .as_vector();
+      r.run(method);
+      close(r.diagnostics[0], 9, 0, "LM retry failure must not report convergence");
+      const std::string_view reason = stalled ? "damping did not increase" : "Levenberg-Marquardt trial limit";
+      require(
+          stdr::any_of(r.errors, [&](const String& error) { return std::string_view(error).contains(reason); }),
+          "LM retry failure lost its reason");
+      require(r.gain.empty(), "Failed LM retrieval returned gain");
+      // Initial Jacobian and initial LM cost precede the trial evaluations.
+      require(r.calls <= 102, "OEM exceeded the default LM trial budget");
+    }
+  }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) try {
-  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation");
+  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination");
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();
@@ -495,8 +687,11 @@ int main(int argc, char** argv) try {
     test_skipped_and_reused_outputs();
   } else if (selected == "validation") {
     test_validation();
+  } else if (selected == "termination") {
+    test_cg_termination();
+    test_lm_trial_limit();
   } else {
-    require(std::ranges::find(methods, selected) != methods.end(), "Unknown test method");
+    require(stdr::find(methods, selected) != methods.end(), "Unknown test method");
     test_affine(selected);
     test_exact_start(selected);
     test_disabled_start_cost(selected);

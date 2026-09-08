@@ -66,8 +66,13 @@ convergence.
 The state-space system has size ``n`` by ``n``; the measurement-space
 system has size ``m`` by ``m``.  Size is only a first guide to performance:
 covariance structure, conditioning, and forward-model cost also matter.
-CG has a fixed internal relative residual tolerance of ``1e-10``;
-``stop_dx`` controls the outer retrieval iteration, not this linear solve.
+CG has a fixed internal relative residual tolerance of ``1e-10`` and a
+limit of 1000 iterations per linear solve.  ``stop_dx`` and ``max_iter``
+control the outer retrieval iteration; they do not change these CG settings.
+An unconverged solve at the internal limit, non-finite arithmetic, or
+non-positive curvature stops the retrieval with status 9 and an explanation
+in ``errors``.  Check the input values, covariance validity, and numerical
+scaling when this happens.
 OEM still stores the measurement Jacobian, and computing the gain matrix
 requires additional dense matrices.  ``clear_matrices=1`` skips the gain
 calculation and returns empty Jacobian and gain matrices when those outputs
@@ -164,6 +169,13 @@ precision matrix.  A zero value gives the Gauss--Newton step.  LM adjusts
 damping by comparing actual and predicted cost changes, and may try several
 forward-model evaluations within one outer iteration.  The damped system is
 defined in :ref:`sec-oem-damping`.
+
+Each outer iteration allows at most 100 LM trial steps.  This internal
+limit is separate from ``max_iter`` and ``maximum_damping``.  Reaching the
+trial limit, or failing to increase damping after a rejection because of
+floating-point rounding, stops the retrieval with status 9 and an
+explanation in ``errors``.  Increasing ``max_iter`` does not change the
+trial limit.
 
 Use :class:`~pyarts3.arts.OEMLMSettings` to give the damping controls names.
 For an already configured retrieval:

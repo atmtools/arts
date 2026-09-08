@@ -100,9 +100,7 @@ auto GaussNewton<RealType, Solver> ::step(const VectorType &,
     }
     catch (...)
     {
-        std::runtime_error(
-            "Linear System Solution Error in Gauss-Newton Method."
-            );
-        return VectorType();
+        std::throw_with_nested(std::runtime_error(
+            "Linear System Solution Error in Gauss-Newton Method."));
     }
 }
