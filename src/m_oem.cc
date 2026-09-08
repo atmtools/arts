@@ -22,6 +22,7 @@
 #include <config.h>
 #include <debug.h>
 #include <jacobian.h>
+#include <oem_settings.h>
 #include <workspace.h>
 
 #include <algorithm>
@@ -40,7 +41,7 @@
 #endif
 
 namespace {
-enum class OEMAlgorithm { Linear, GaussNewton, LevenbergMarquardt };
+enum class OEMAlgorithm : char { Linear, GaussNewton, LevenbergMarquardt };
 
 struct OEMMethod {
   OEMAlgorithm algorithm;
@@ -52,14 +53,14 @@ struct OEMMethod {
 };
 
 OEMMethod parse_oem_method(const String& method) {
-  if (method == "li") return {OEMAlgorithm::Linear};
-  if (method == "li_cg") return {OEMAlgorithm::Linear, true};
-  if (method == "li_cg_m") return {OEMAlgorithm::Linear, true, true};
-  if (method == "gn") return {OEMAlgorithm::GaussNewton};
-  if (method == "gn_cg") return {OEMAlgorithm::GaussNewton, true};
-  if (method == "gn_cg_m") return {OEMAlgorithm::GaussNewton, true, true};
-  if (method == "lm" || method == "ml") return {OEMAlgorithm::LevenbergMarquardt};
-  if (method == "lm_cg" || method == "ml_cg") return {OEMAlgorithm::LevenbergMarquardt, true};
+  if (method == "li") return {.algorithm=OEMAlgorithm::Linear};
+  if (method == "li_cg") return {.algorithm=OEMAlgorithm::Linear, .conjugate_gradient=true};
+  if (method == "li_cg_m") return {.algorithm=OEMAlgorithm::Linear, .conjugate_gradient=true, .measurement_space=true};
+  if (method == "gn") return {.algorithm=OEMAlgorithm::GaussNewton};
+  if (method == "gn_cg") return {.algorithm=OEMAlgorithm::GaussNewton, .conjugate_gradient=true};
+  if (method == "gn_cg_m") return {.algorithm=OEMAlgorithm::GaussNewton, .conjugate_gradient=true, .measurement_space=true};
+  if (method == "lm" || method == "ml") return {.algorithm=OEMAlgorithm::LevenbergMarquardt};
+  if (method == "lm_cg" || method == "ml_cg") return {.algorithm=OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient=true};
   ARTS_USER_ERROR_IF(method == "li_m" || method == "gn_m",
                      "OEM method '{}' is not supported. Use 'li_cg_m' or 'gn_cg_m' for measurement-space solves.",
                      method)
@@ -68,39 +69,18 @@ OEMMethod parse_oem_method(const String& method) {
       method)
 }
 
-// Keep positional workspace arguments at the boundary; both LM solvers use
-// the same named settings and validation internally.
-struct LMSettings {
-  Numeric initial, decrease, increase, maximum, threshold, convergence_limit;
-
-  explicit LMSettings(const Vector& values) {
-    ARTS_USER_ERROR_IF(
-        values.size() != 6, "For LM methods, lm_ga_settings must contain 6 values; got {}.", values.size())
-    ARTS_USER_ERROR_IF(std::ranges::any_of(values, [](Numeric v) { return !std::isfinite(v) || v < 0; }),
-                       "lm_ga_settings must contain finite, nonnegative values: {}",
-                       values)
-    initial           = values[0];
-    decrease          = values[1];
-    increase          = values[2];
-    maximum           = values[3];
-    threshold         = values[4];
-    convergence_limit = values[5];
-    ARTS_USER_ERROR_IF(decrease <= 1 || increase <= 1, "lm_ga_settings decrease [1] and increase [2] must both be > 1.")
-    ARTS_USER_ERROR_IF(threshold <= 0 || threshold > maximum || initial > maximum,
-                       "lm_ga_settings requires 0 < threshold [4] <= maximum [3] and initial [0] <= maximum [3].")
-  }
-
-  template <typename Optimizer> void apply(Optimizer& optimizer, Numeric tolerance, unsigned int iterations) const {
-    optimizer.set_tolerance(tolerance);
-    optimizer.set_maximum_iterations(iterations);
-    optimizer.set_lambda(initial);
-    optimizer.set_lambda_decrease(decrease);
-    optimizer.set_lambda_increase(increase);
-    optimizer.set_lambda_maximum(maximum);
-    optimizer.set_lambda_threshold(threshold);
-    optimizer.set_lambda_constraint(convergence_limit);
-  }
-};
+// Both solvers consume the same validated, named damping settings.
+template <typename Optimizer>
+void configure_lm(Optimizer& optimizer, const OEMLMSettings& settings, Numeric tolerance, unsigned int iterations) {
+  optimizer.set_tolerance(tolerance);
+  optimizer.set_maximum_iterations(iterations);
+  optimizer.set_lambda(settings.initial_damping);
+  optimizer.set_lambda_decrease(settings.decrease_factor);
+  optimizer.set_lambda_increase(settings.increase_factor);
+  optimizer.set_lambda_maximum(settings.maximum_damping);
+  optimizer.set_lambda_threshold(settings.damping_threshold);
+  optimizer.set_lambda_constraint(settings.convergence_damping_limit);
+}
 
 // Validation must not run the user's forward model or invert a covariance.
 void check_oem_inputs(const Vector&           x,
@@ -239,8 +219,8 @@ void OEM(const Workspace&        ws,
                    max_start_cost,
                    clear_matrices,
                    display_progress);
-  const std::optional<LMSettings> lm_settings =
-      selected.damped() ? std::optional<LMSettings>{lm_ga_settings} : std::nullopt;
+  const std::optional<OEMLMSettings> lm_settings =
+      selected.damped() ? std::optional{OEMLMSettings::from_vector(lm_ga_settings)} : std::nullopt;
 
   const Index n = model_state_covmat.nrows();
   const Index m = measurement_vec.size();
@@ -380,7 +360,7 @@ void OEM(const Workspace&        ws,
                   std::make_shared<Sparse>(Sparse::diagonal(model_state_covmat.inverse_diagonal()))));
         oem::CovarianceMatrix precision = inv(oem::CovarianceMatrix(damping));
         invlib::LevenbergMarquardt<Numeric, oem::CovarianceMatrix, Solver> optimizer(precision, solver);
-        lm_settings->apply(optimizer, stop_dx, iterations);
+        configure_lm(optimizer, *lm_settings, stop_dx, iterations);
         oem::OEM_STANDARD<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
         run(retrieval, optimizer);
         if (optimizer.get_lambda() > optimizer.get_lambda_maximum()) oem_diagnostics[0] = 2;

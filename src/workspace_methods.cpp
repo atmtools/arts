@@ -5265,18 +5265,44 @@ Description of the special input arguments:
 
     - ``lm_ga_settings``:
 
+      Python users can pass :class:`~pyarts3.arts.OEMLMSettings` directly
+      to configure damping by name, for example::
+
+          damping = pyarts3.arts.OEMLMSettings(initial_damping=20.0)
+          ws.OEM(method="lm", lm_ga_settings=damping)
+
+      ``OEMLMSettings()`` provides the explicit starting configuration
+      ``[10, 2, 2, 100, 1, 0]``. Its keyword-only fields, in vector order,
+      are ``initial_damping``, ``decrease_factor``, ``increase_factor``,
+      ``maximum_damping``, ``damping_threshold``, and
+      ``convergence_damping_limit``. Use ``describe()`` to inspect their
+      meaning. Construction and field edits validate all six settings;
+      an invalid edit leaves the object unchanged. ``validate()`` also
+      checks the current configuration explicitly. For related changes,
+      construct a replacement with the desired keyword arguments together,
+      or keep each intermediate configuration valid when editing fields.
+      These defaults should be assessed on representative retrievals;
+      they do not choose covariance assumptions or guarantee convergence.
+
+      The existing vector remains accepted. ``as_vector()`` exports a
+      validated vector, and ``OEMLMSettings.from_vector(values)`` imports
+      one. Conversion when passing the named object to ``OEM`` validates
+      its current values. Use a vector for workspace and XML storage.
+
       Six finite values controlling LM damping, with zero-based indices:
 
             0. Nonnegative initial gamma, no greater than the maximum.
             1. Divisor when gamma is reduced; must be greater than one.
             2. Multiplier when gamma is increased; must be greater than one.
             3. Positive maximum gamma; failure to find an acceptable step at this value stops inversion.
-            4. Positive lower threshold, no greater than the maximum. Decreases below it set gamma to zero; an increase from zero restarts here.
+            4. Positive threshold, no greater than the maximum. Proposed decreases below it set gamma to zero; rejection below it restarts here. This is not a minimum damping.
             5. Nonnegative gamma limit for enabling the ordinary ``stop_dx`` criterion. It applies to the current updated gamma; zero enables this criterion when damping reaches zero.
       
-      The default empty vector is invalid for all LM names. Direct and CG
-      variants use the same entries and damp with the diagonal of the prior
-      precision matrix. Entry 1 is a divisor, not a fractional multiplier.
+      The ``OEM`` argument still defaults to an empty vector, which is
+      invalid for all LM names. Pass ``OEMLMSettings()`` explicitly to
+      select the named defaults. Direct and CG variants use the same
+      entries and damp with the diagonal of the prior precision matrix.
+      Entry 1 is a divisor, not a fractional multiplier.
 
     - ``clear_matrices``:
 

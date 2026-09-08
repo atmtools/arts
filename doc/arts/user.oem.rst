@@ -165,18 +165,46 @@ damping by comparing actual and predicted cost changes, and may try several
 forward-model evaluations within one outer iteration.  The damped system is
 defined in :ref:`sec-oem-damping`.
 
-``lm_ga_settings`` is required for all LM names; its default is an empty
-vector, not a preset.  Direct and CG variants use the same six entries:
+Use :class:`~pyarts3.arts.OEMLMSettings` to give the damping controls names.
+For an already configured retrieval:
+
+.. code-block:: python
+
+   from pyarts3.arts import OEMLMSettings
+
+   damping = OEMLMSettings(
+       initial_damping=10.0,
+       decrease_factor=2.0,
+       increase_factor=2.0,
+       maximum_damping=100.0,
+       damping_threshold=1.0,
+       convergence_damping_limit=0.0,
+   )
+   print(damping.describe())
+   ws.OEM(method="lm", max_iter=20, lm_ga_settings=damping)
+
+These are the defaults of ``OEMLMSettings()``.  They provide a visible
+starting configuration to assess on representative retrievals.  Check
+the forward model, Jacobian, and covariance assumptions before using
+damping changes to address convergence problems.
+
+The constructor accepts keyword arguments only, so each override states
+what it changes.  ``print(damping)`` displays all six names and values;
+``damping.describe()`` explains the configured behavior in words.
+The same object works with ``lm``, ``ml``, ``lm_cg``, and ``ml_cg``.
+
+The table also gives the index for scripts using the existing six-element
+``lm_ga_settings`` vector:
 
 .. list-table::
    :header-rows: 1
-   :widths: 8 24 68
+   :widths: 8 30 62
 
    * - Index
-     - Suggested local name
+     - Setting name
      - Meaning
    * - 0
-     - ``gamma_start``
+     - ``initial_damping``
      - Initial damping, at least zero and no greater than the maximum.
    * - 1
      - ``decrease_factor``
@@ -185,52 +213,123 @@ vector, not a preset.  Direct and CG variants use the same six entries:
      - ``increase_factor``
      - Multiplier when damping is increased; must be greater than one.
    * - 3
-     - ``gamma_max``
+     - ``maximum_damping``
      - Positive maximum damping.  Failure to find an acceptable step at
        this value stops the retrieval.
    * - 4
-     - ``gamma_threshold``
-     - Positive restart value when a zero-damping step fails.  When a
-       proposed decrease would fall below this value, damping becomes zero.
+     - ``damping_threshold``
+     - Positive restart value when a step with damping below this value
+       fails.  When a proposed decrease would fall below this value,
+       damping becomes zero.
        Must not exceed the maximum.
    * - 5
-     - ``gamma_convergence``
+     - ``convergence_damping_limit``
      - Nonnegative upper damping limit for enabling the ordinary
        ``stop_dx`` criterion.  This refers to the current damping after its
        update, not the lowest value used in an earlier accepted iteration.
 
-All entries must be finite.  Reduction is a **division** by entry 1:
-setting it to 0.5 would increase damping and is invalid.  Not every accepted
-step reduces damping; the adjustment also depends on the quality of the
-local model and whether trial steps were rejected.
+All entries must be finite.  ``initial_damping`` and
+``convergence_damping_limit`` may be zero; the maximum and threshold must
+be positive.  Both factors must be greater than one.  The initial damping
+and threshold must each be no greater than the maximum.
 
-For an already configured retrieval, an explicit starting point is:
+Construction and each field edit validate all six settings immediately.
+An invalid edit raises an error naming the affected setting and leaves
+the object unchanged.  You can also call ``validate()`` explicitly;
+conversion for ``OEM`` and ``as_vector()`` check the values again:
 
 .. code-block:: python
 
-   gamma_start = 10.0
-   decrease_factor = 2.0
-   increase_factor = 2.0
-   gamma_max = 100.0
-   gamma_threshold = 1.0
-   gamma_convergence = 0.0
-   ws.OEM(
-       method="lm",
-       max_iter=20,
-       lm_ga_settings=[
-           gamma_start, decrease_factor, increase_factor,
-           gamma_max, gamma_threshold, gamma_convergence,
-       ],
-   )
+   damping.initial_damping = 20.0
+   damping.validate()
 
-These values are an example to assess on representative cases, not universal
-defaults.  A zero convergence limit enables the ordinary stopping test once
-damping reaches zero.  A larger limit permits termination while damping
-still constrains the steps; a small damped step can then hide a remaining
-distance to the minimum.  Raise the initial damping if early trial states
-are consistently too aggressive.  If damping repeatedly reaches its maximum,
-check the forward model, Jacobian, state parameterization, and covariance
-scales before increasing that maximum.
+For related changes, construct a replacement with the desired keyword
+arguments together.  When editing fields individually, keep each
+intermediate configuration valid.  For example, raise ``maximum_damping``
+before setting ``initial_damping`` above the old maximum:
+
+.. code-block:: python
+
+   damping.maximum_damping = 1000.0
+   damping.initial_damping = 200.0
+
+How the controls interact
+-------------------------
+
+``decrease_factor`` is a **divisor**: a value of 2 halves the damping when
+a reduction is made.  Increasing this factor removes damping faster.
+``increase_factor`` is a multiplier: a value of 2 doubles the damping
+after rejection, up to the maximum.  Increasing this factor tries more
+strongly damped steps sooner.  A factor of 0.5 is invalid for either setting.
+
+``damping_threshold`` has two roles.  A proposed reduction below it sets
+damping to zero, allowing a Gauss--Newton step.  If a step with damping
+below the threshold fails, the next trial restarts at the threshold.
+It is not a minimum damping: an initial value below it is allowed.
+For example, with a threshold of 1 and a decrease factor of 2, successive
+reductions from 10 give 5, 2.5, 1.25, and then 0.  Not every accepted step
+causes a reduction.  The local model must predict the cost change well
+enough, and a step accepted after a rejection keeps the damping used for
+its final trial.
+
+``convergence_damping_limit`` gates the ordinary ``stop_dx`` test.  It
+does not set the accuracy of that test.  The default of zero enables the
+test once damping reaches zero.  A positive limit permits termination
+while damping still constrains the steps; a small damped step can then
+hide a remaining distance to the minimum.  The gate uses the updated
+damping, so a step calculated with damping 10 and then reduced to 5 can
+pass a limit of 5.  The iteration history records this updated value.
+
+Use the behavior of representative retrievals to guide changes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Observation
+     - What to examine or change
+   * - Early trial states are too aggressive.
+     - Check the Jacobian and state parameterization, then try increasing
+       ``initial_damping``.  Damping cannot enforce physical bounds.
+   * - Convergence is reported while damping remains large.
+     - Check ``convergence_damping_limit``.  A value of zero requires
+       damping to be removed before the ordinary stopping test is enabled.
+   * - Useful progress continues at the iteration limit.
+     - Increase ``max_iter`` and compare the final state and costs.
+       This increases the outer iteration budget; each LM iteration can
+       contain several trial evaluations.
+   * - Damping repeatedly reaches its maximum.
+     - Inspect the forward model, Jacobian, state parameterization, and
+       covariance scales.  If the state is already near the solution,
+       ``stop_dx`` may demand changes below numerical accuracy.
+       Raising the maximum alone does not resolve these causes.
+
+Damping controls how the solver approaches a minimum.  The covariance
+matrices define the statistical problem being solved.  Choose them from
+the prior and measurement error models; changing them to cure a convergence
+problem also changes the inferred state and uncertainty.
+
+Keeping existing settings
+-------------------------
+
+The six-element vector remains accepted.  Convert a known working
+configuration to named settings, or obtain a vector explicitly:
+
+.. code-block:: python
+
+   damping = OEMLMSettings.from_vector([10, 2, 2, 100, 1, 0])
+   legacy_settings = damping.as_vector()
+   ws.OEM(method="lm_cg", lm_ga_settings=legacy_settings)
+
+Passing an ``OEMLMSettings`` object directly performs the same validated
+conversion.  Keep the object in an ordinary Python variable.  To store
+its values in a workspace or XML file, use ``as_vector()``; the named
+object is not a workspace variable type.
+
+The default of the ``OEM`` argument ``lm_ga_settings`` is still an empty
+vector.  All LM method names require an explicit configuration: pass
+``OEMLMSettings()`` to select the named object's defaults, or supply the
+existing six-element vector.
 
 Checking the result
 ===================

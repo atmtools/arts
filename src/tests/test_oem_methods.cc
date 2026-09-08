@@ -1,4 +1,5 @@
 #include <callback.h>
+#include <oem_settings.h>
 #include <workspace.h>
 
 #include <array>
@@ -354,7 +355,13 @@ void test_lm_settings() {
     Retrieval r;
     r.max_iter = 1;
     r.stop_dx  = 1e3;
-    r.settings = Vector{12, 3, 2, 1e6, 0.01, 10};
+    r.settings = OEMLMSettings{.initial_damping           = 12,
+                               .decrease_factor           = 3,
+                               .increase_factor           = 2,
+                               .maximum_damping           = 1e6,
+                               .damping_threshold         = 0.01,
+                               .convergence_damping_limit = 10}
+                     .as_vector();
     r.run(method);
     require(r.errors.empty(), "Damped step returned errors");
     // One step with damping 12*diag(Sa^-1). The non-diagonal prior
@@ -392,6 +399,31 @@ void test_lm_settings() {
     close(gamma_limit.x[0], 0.1, 1e-12, "Rejected LM step must not change state");
     close(gamma_limit.yf[0], 0.01, 1e-12, "Fit after gamma exhaustion");
   }
+}
+
+void test_named_settings() {
+  const Vector legacy{12, 3, 2, 1e6, 0.01, 10};
+  auto         named = OEMLMSettings::from_vector(legacy);
+  close(named.initial_damping, 12, 0, "Named initial damping");
+  close(named.decrease_factor, 3, 0, "Named decrease divisor");
+  close(named.increase_factor, 2, 0, "Named increase multiplier");
+  close(named.maximum_damping, 1e6, 0, "Named maximum damping");
+  close(named.damping_threshold, 0.01, 0, "Named damping threshold");
+  close(named.convergence_damping_limit, 10, 0, "Named convergence damping limit");
+  const auto roundtrip = named.as_vector();
+  for (Index i = 0; i < 6; ++i) close(roundtrip[i], legacy[i], 0, "Named settings round trip");
+
+  const auto   defaults = OEMLMSettings{}.as_vector();
+  const Vector expected_defaults{10, 2, 2, 100, 1, 0};
+  for (Index i = 0; i < 6; ++i) close(defaults[i], expected_defaults[i], 0, "Visible named defaults");
+
+  // Validation also occurs after edits, at the conversion boundary.
+  named.decrease_factor = 0.5;
+  bool rejected         = false;
+  try {
+    static_cast<void>(named.as_vector());
+  } catch (const std::exception& error) { rejected = std::string_view(error.what()).contains("decrease_factor"); }
+  require(rejected, "Invalid edited settings must identify the named control");
 }
 
 template <typename Configure> void rejects_before_agenda(std::string_view method, Configure configure) {
@@ -459,6 +491,7 @@ int main(int argc, char** argv) try {
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();
+    test_named_settings();
     test_skipped_and_reused_outputs();
   } else if (selected == "validation") {
     test_validation();

@@ -144,15 +144,54 @@ choice because it changes the inference.
 Helping users choose settings
 -----------------------------
 
-The practical guide provides immediate help without changing defaults.
-Further API work should remove positional ambiguity while keeping existing
-scripts usable:
+Named LM settings are implemented by
+:class:`~pyarts3.arts.OEMLMSettings`.  Its keyword-only constructor and
+mutable fields expose ``initial_damping``, ``decrease_factor``,
+``increase_factor``, ``maximum_damping``, ``damping_threshold``, and
+``convergence_damping_limit`` in the existing vector order.  The native
+settings representation provides shared validation for the Python object
+and the legacy vector used by ``OEM``.  Both direct and CG optimizers must
+continue to use that same mapping.
+The type lives in ``src/core/jacobian/oem_settings.h`` and
+``src/core/jacobian/oem_settings.cc`` without an invlib dependency;
+``src/python_interface/py_retrieval.cpp`` binds the Python interface.
 
-* Introduce named LM settings such as ``gamma_start``, ``decrease_factor``,
-  ``increase_factor``, ``gamma_max``, ``gamma_threshold``, and
-  ``gamma_convergence``.  One validated conversion should serve both a
-  named object and the legacy six-element vector.  A named preset needs
-  documented assumptions and representative retrieval benchmarks.
+The Python constructor validates all six settings, and each field setter
+validates a temporary copy before replacing the stored object.  An invalid
+edit must preserve the previous values and report the affected setting.
+This also avoids losing useful validation errors through nanobind's
+implicit-conversion error handling.  Related field changes must either
+keep each intermediate configuration valid or use a replacement object
+constructed with the desired keyword arguments together.
+
+``validate()`` checks a configured object, ``as_vector()`` validates and
+exports its six values, and ``from_vector()`` validates and imports an
+existing vector.  Conversion and consumption at the workspace call boundary
+retain validation as well.  ``describe()`` explains the active values;
+the representation displays every field.  Keep these descriptions, field
+validation, and the positional mapping consistent when extending the API.
+The Python object is not a workspace group; workspace and XML storage
+continue to use the vector representation.
+
+The object's defaults are an explicit starting configuration.  The empty
+default of the ``OEM`` argument is unchanged, so existing calls do not
+silently select new damping values.  Do not describe the threshold as a
+hard minimum: it controls both restart after rejection and switching a
+proposed decrease to zero.  The convergence damping limit gates the
+existing state-step criterion using the updated damping.  Preserve the
+accepted/rejected-step regressions when changing either behavior.
+A preset claiming particular convergence or performance properties needs
+documented assumptions and representative retrieval benchmarks.
+
+``src/tests/test_oem_methods.cc`` tests the native settings and solver
+behavior.  ``tests/core/jac/oem_lm_settings.py`` covers the Python interface
+and its conversion through the actual workspace call.  Keep both named
+and legacy paths covered for all four LM spellings, including correlated
+priors and nonlinear rejected trials; comparing complete results and
+damping histories catches changes that an endpoint-only test would miss.
+
+Further API work should keep existing scripts usable:
+
 * Represent iteration family, linear solver, and formulation separately
   internally.  A single method descriptor table can drive parsing,
   supported-name documentation, and test enumeration.  Existing string
