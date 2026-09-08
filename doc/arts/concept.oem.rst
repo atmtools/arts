@@ -149,8 +149,8 @@ same objective and solution in the original coordinates.
 Levenberg--Marquardt damping
 ============================
 
-Define the half-gradient of the unnormalized objective and its
-Gauss--Newton approximation to the half-Hessian by
+Let :math:`J=m\chi^2` denote the unnormalized objective.  Define its
+half-gradient and the Gauss--Newton approximation to its half-Hessian by
 
 .. math::
 
@@ -175,6 +175,30 @@ coordinates.  At :math:`\gamma=0`, the step equals the Gauss--Newton step.
 The damping penalty modifies the local step, not the objective being
 minimized.
 
+For a candidate step, the predicted decrease in the full, unnormalized
+objective is
+
+.. math::
+
+   \Delta J_{\rm predicted}
+     =-2\vec{g}^{\top}\Delta\vec{x}
+       -\Delta\vec{x}^{\top}\mathbf{H}\Delta\vec{x}.
+
+The corresponding actual decrease and their ratio are
+
+.. math::
+
+   \Delta J_{\rm actual}=J(\vec{x})-J(\vec{x}+\Delta\vec{x}),
+   \qquad
+   \rho=\frac{\Delta J_{\rm actual}}{\Delta J_{\rm predicted}}.
+
+For an affine forward model, the local quadratic is exact, giving
+:math:`\rho=1` whenever the predicted reduction is nonzero.  The factor
+of two is required because :math:`\vec{g}` and :math:`\mathbf{H}` refer
+to half the objective.  A ratio of two would mix the full cost with its
+half-cost prediction.  A zero predicted reduction makes the ratio
+undefined; near zero, rounding of the computed costs can dominate it.
+
 .. _sec-oem-convergence:
 
 State-step convergence measures
@@ -198,6 +222,24 @@ Both quantities are dimensionless.  The measures agree for an exact
 undamped Gauss--Newton step, but need not agree for damped or approximate
 steps.  They are distinct from relative changes in the cost function and
 from an unweighted distance between state vectors.
+
+The undamped step and its decrement are
+
+.. math::
+
+   \Delta\vec{x}_{\rm GN}=-\mathbf{H}^{-1}\vec{g},
+   \qquad
+   \delta=-\vec{g}^{\top}\Delta\vec{x}_{\rm GN}
+          =\vec{g}^{\top}\mathbf{H}^{-1}\vec{g}.
+
+For positive-definite :math:`\mathbf{H}`, :math:`\delta\geq0`, and
+:math:`\delta=0` exactly when :math:`\vec{g}=0`.  Its normalized value
+:math:`\delta/n` equals both state-step measures for an exact undamped
+solve.  The full objective's predicted decrease for this step is
+:math:`\delta`.  A small undamped decrement thus provides a stationarity
+measure when cost differences approach numerical resolution.  By
+contrast, arbitrarily strong damping can make a damped step arbitrarily
+small while the gradient remains nonzero.
 
 .. _sec-oem-uncertainty:
 

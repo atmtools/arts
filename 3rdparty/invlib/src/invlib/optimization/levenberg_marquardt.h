@@ -9,6 +9,7 @@
 #define OPTIMIZATION_LEVENBERG_MARQUARDT_H
 
 #include "invlib/algebra/solvers.h"
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <limits>
@@ -17,6 +18,12 @@
 
 namespace invlib
 {
+
+/** Why LM stopped, independent of the floating-point damping value. */
+enum class LMStopReason {
+    None, Stationary, DampingLimit, TrialLimit, DampingStalled,
+    LinearSolverFailure, NumericalFailure
+};
 
 /**
  * \brief Levenberg-Marquardt method.
@@ -79,8 +86,9 @@ public:
     unsigned int get_maximum_iterations() const;
     void set_maximum_iterations(unsigned int);
 
-    /*! Maximum trial solves per call to step(), independent of the outer
-     * iteration budget. Defaults to 100; exhausting the limit throws.
+    /*! Maximum linear solves per call to step(), including any undamped
+     * stationarity check, independent of the outer iteration budget.
+     * Defaults to 100; exhausting the limit throws.
      */
     unsigned int get_maximum_trials() const;
     void set_maximum_trials(unsigned int);
@@ -126,9 +134,12 @@ public:
      * the value of lambda_maximum. If lambda falls below lambda_threshold, lambda
      * is set to zero and the Levenberg-Marquardt step effectively becomes a
      * Gauss-Newton step.
-     * A separate trial budget bounds work within each step. Exhausting that
+     * A separate solve budget bounds work within each step. Exhausting that
      * budget, or failing to increase damping after a rejected trial, throws
      * an exception instead of returning an unconverged trial as a solution.
+     * A rejected trial at maximum damping returns zero and sets DampingLimit.
+     * Roundoff-level reductions require an independent undamped stationarity
+     * check before setting Stationary; a tiny damped step alone is insufficient.
      */
     template
     <
@@ -141,14 +152,16 @@ public:
                     const MatrixType &B,
                     CostFunction     &J);
 
-    bool stop_iteration() const {return stop;}
+    LMStopReason get_stop_reason() const {return stop_reason;}
+    bool converged() const {return stop_reason == LMStopReason::Stationary;}
+    bool stop_iteration() const {return stop_reason != LMStopReason::None;}
 
 private:
 
     RealType current_cost, tolerance, lambda, lambda_maximum, lambda_increase,
     lambda_decrease, lambda_threshold, lambda_constraint;
     unsigned int maximum_iterations, maximum_trials, step_count;
-    bool stop;
+    LMStopReason stop_reason;
 
     // Positive definite matrix defining the trust region sphere r < ||Mx||.
     const DampingMatrix &D;

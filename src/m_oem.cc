@@ -363,7 +363,7 @@ void OEM(const Workspace&        ws,
         configure_lm(optimizer, *lm_settings, stop_dx, iterations);
         oem::OEM_STANDARD<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
         run(retrieval, optimizer);
-        if (optimizer.get_lambda() > optimizer.get_lambda_maximum()) oem_diagnostics[0] = 2;
+        if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit) oem_diagnostics[0] = 2;
       } else {
         invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
         // Only CG supports the lazy matrix expression in the m formulation.

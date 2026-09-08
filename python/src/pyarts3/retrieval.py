@@ -495,6 +495,12 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
         raise TypeError(
             "information_from_workspace takes measurements from ws.measurement_vec"
         )
+
+    assert ws.has("measurement_jac"), "Jacobian not present in workspace"
+    assert ws.has("model_state_covmat"), "Prior covariance not present in workspace"
+    assert ws.has("measurement_vec_error_covmat"), "Measurement error covariance not present in workspace"
+    assert ws.has("measurement_vec") or prior_prediction is not None, "Measurement vector not present in workspace"
+
     return information(
         ws.measurement_jac,
         ws.model_state_covmat,

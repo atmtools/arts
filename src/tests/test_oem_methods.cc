@@ -14,6 +14,7 @@
 #include "invlib/algebra/solvers.h"
 #include "invlib/archetypes/matrix_archetype.h"
 #include "invlib/optimization/levenberg_marquardt.h"
+#include "invlib/optimization/minimize.h"
 
 namespace {
 
@@ -71,8 +72,7 @@ struct Retrieval {
   Vector             normalization;
   Vector             settings{10, 3, 2, 1e8, 0.1, 0};
   Index              max_iter = 40;
-  // The affine LM solution meets this criterion before cost-reduction ratios
-  // become dominated by roundoff. Accuracy is checked independently below.
+  // Accuracy is also checked against independent state and cost oracles.
   Numeric stop_dx          = 1e-9;
   Numeric max_start_cost   = std::numeric_limits<Numeric>::infinity();
   Index   clear_matrices   = 0;
@@ -277,9 +277,9 @@ void test_runtime_failure(std::string_view method) {
   require(stdr::none_of(r.errors, [](const String& value) { return value == "stale error"; }),
           "Failed retrieval retained previous errors");
   require(stdr::any_of(r.errors,
-                              [](const String& value) {
-                                return std::string_view(value).contains("deliberate regression forward-model failure");
-                              }),
+                       [](const String& value) {
+                         return std::string_view(value).contains("deliberate regression forward-model failure");
+                       }),
           "Forward-model exception was not reported");
 
   r.forward = working_forward;
@@ -403,6 +403,66 @@ void test_lm_settings() {
     close(gamma_limit.diagnostics[0], 2, 0, "Configured gamma maximum");
     close(gamma_limit.x[0], 0.1, 1e-12, "Rejected LM step must not change state");
     close(gamma_limit.yf[0], 0.01, 1e-12, "Fit after gamma exhaustion");
+  }
+}
+
+void test_lm_outcomes() {
+  for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
+    Retrieval over_damped;
+    over_damped.settings = OEMLMSettings{.initial_damping = 1e20, .maximum_damping = 1e20}.as_vector();
+    over_damped.run(method);
+    // Adding one to this maximum rounds back to the maximum. A numeric
+    // sentinel used to turn this rejected, unchanged step into convergence.
+    require(over_damped.errors.empty(), "Damping exhaustion is not an agenda exception");
+    close(over_damped.diagnostics[0], 2, 0, "Huge damping must report exhaustion");
+    close(over_damped.diagnostics[4], 1, 0, "Huge damping iteration count");
+    close(over_damped.x[0], over_damped.xa[0], 0, "Huge damping state[0]");
+    close(over_damped.x[1], over_damped.xa[1], 0, "Huge damping state[1]");
+    close(over_damped.diagnostics[2], over_damped.diagnostics[1], 0, "Huge damping unchanged cost");
+    close(over_damped.history[1], 1e20, 0, "Huge damping history retains actual damping");
+    // Initial Jacobian, initial cost, one trial, restoration of the accepted
+    // state's fit, and the public interface's final Jacobian refresh.
+    require(over_damped.calls <= 5,
+            std::format("Huge damping needlessly retried an exhausted step ({} agenda calls)", over_damped.calls));
+
+    for (const Numeric tolerance : {1e-12, 1e-16, 1e-20}) {
+      Retrieval tight;
+      tight.stop_dx = tolerance;
+      tight.run(method);
+      check_affine_solution(tight, method);
+      // Once the predicted reduction is beneath the cost's floating-point
+      // resolution, comparing two rounded cost values must not exhaust damping.
+      require(tight.calls < 30, "Stationary affine retrieval exhausted damping trials");
+    }
+
+    for (const Numeric damping : {10., 1e20}) {
+      Retrieval stationary;
+      stationary.xa = Vector{0};
+      stationary.x  = Vector{1};
+      stationary.y  = Vector{2};
+      stationary.sa = covariance(matrix(1, 1, {1}));
+      stationary.se = covariance(matrix(1, 1, {1}));
+      stationary.set_target_size(1);
+      stationary.settings = OEMLMSettings{.initial_damping = damping, .maximum_damping = damping}.as_vector();
+      stationary.stop_dx  = 1e-20;
+      stationary.forward  = [](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+        fit = state;
+        if (do_jac)
+          jacobian = matrix(1, 1, {1});
+        else
+          jacobian.resize(0, 0);
+      };
+      stationary.run(method);
+      // J=x^2+(2-x)^2 has an exactly representable stationary point at x=1,
+      // although neither the measurement residual nor the prior departure is zero.
+      require(stationary.errors.empty(), "Stationary nonzero-cost retrieval returned errors");
+      close(stationary.diagnostics[0], 0, 0, "Stationary nonzero-cost convergence status");
+      close(stationary.x[0], 1, 0, "Stationary nonzero-cost state");
+      close(stationary.yf[0], 1, 0, "Stationary nonzero-cost fit");
+      close(stationary.diagnostics[2], 2, 0, "Stationary nonzero cost");
+      close(stationary.gain[0, 0], 0.5, 0, "Stationary nonzero-cost gain");
+      require(stationary.calls <= 4, "Stationary point required repeated damping trials");
+    }
   }
 }
 
@@ -635,6 +695,9 @@ void test_lm_trial_limit() {
   rejects_with([&] { static_cast<void>(limited.step(initial, initial, curvature, rejected)); },
                "Levenberg-Marquardt trial limit");
   require(rejected.calls == 4, "LM exceeded its three-trial budget or stopped before spending it");
+  require(limited.get_stop_reason() == invlib::LMStopReason::TrialLimit,
+          "LM trial exhaustion lost its explicit stop reason");
+  require(limited.stop_iteration() and not limited.converged(), "LM trial exhaustion reported convergence");
 
   struct QuadraticCost {
     Numeric cost_function(const SolverVector& x, bool = false) { return 0.5 * x(0) * x(0); }
@@ -666,9 +729,8 @@ void test_lm_trial_limit() {
       r.run(method);
       close(r.diagnostics[0], 9, 0, "LM retry failure must not report convergence");
       const std::string_view reason = stalled ? "damping did not increase" : "Levenberg-Marquardt trial limit";
-      require(
-          stdr::any_of(r.errors, [&](const String& error) { return std::string_view(error).contains(reason); }),
-          "LM retry failure lost its reason");
+      require(stdr::any_of(r.errors, [&](const String& error) { return std::string_view(error).contains(reason); }),
+              "LM retry failure lost its reason");
       require(r.gain.empty(), "Failed LM retrieval returned gain");
       // Initial Jacobian and initial LM cost precede the trial evaluations.
       require(r.calls <= 102, "OEM exceeded the default LM trial budget");
@@ -676,10 +738,175 @@ void test_lm_trial_limit() {
   }
 }
 
+void test_lm_stop_reasons() {
+  const SolverMatrix curvature = solver_matrix(1, 1, {1});
+  const SolverVector initial   = solver_vector({1});
+  using Optimizer              = invlib::LevenbergMarquardt<Numeric, SolverMatrix>;
+  struct QuadraticCost {
+    Numeric cost_function(const SolverVector& x, bool = false) { return 0.5 * x(0) * x(0); }
+  } quadratic;
+
+  Optimizer ordinary(curvature);
+  ordinary.set_lambda(1);
+  const auto accepted = ordinary.step(initial, initial, curvature, quadratic);
+  close(accepted(0), -0.5, 0, "Ordinary LM step");
+  require(ordinary.get_stop_reason() == invlib::LMStopReason::None,
+          "An accepted LM step prematurely acquired a stop reason");
+  require(not ordinary.stop_iteration() and not ordinary.converged(), "An accepted LM step prematurely stopped");
+
+  Optimizer exhausted(curvature);
+  exhausted.set_lambda(1e20);
+  exhausted.set_lambda_maximum(1e20);
+  const auto rejected = exhausted.step(initial, initial, curvature, quadratic);
+  close(rejected(0), 0, 0, "Exhausted LM returns no rejected displacement");
+  close(exhausted.get_lambda(), 1e20, 0, "Exhausted LM retains actual damping");
+  require(exhausted.get_stop_reason() == invlib::LMStopReason::DampingLimit,
+          "LM maximum damping lost its explicit stop reason");
+  require(exhausted.stop_iteration() and not exhausted.converged(), "LM maximum damping reported convergence");
+
+  struct LargeBaselineCost {
+    Numeric cost_function(const SolverVector& x, bool = false) { return 1e20 + 0.5 * x(0) * x(0); }
+  } large_baseline;
+  Optimizer unresolved(curvature);
+  unresolved.set_lambda(1);
+  unresolved.set_lambda_maximum(1);
+  const auto unresolved_step = unresolved.step(initial, initial, curvature, large_baseline);
+  // Both damped and undamped cost changes round to zero. A large constant
+  // objective offset must not disguise the remaining undamped state error.
+  close(unresolved_step(0), 0, 0, "Unresolved nonstationary step must not be applied");
+  require(unresolved.get_stop_reason() == invlib::LMStopReason::DampingLimit,
+          "A large constant cost baseline incorrectly certified stationarity");
+  require(not unresolved.converged(), "Unresolved nonstationary objective reported convergence");
+
+  struct InaccurateModelCost {
+    Numeric cost_function(const SolverVector& x, bool = false) { return 0.125 * x(0) * x(0); }
+  } inaccurate_model;
+  Optimizer weak_reduction(curvature);
+  weak_reduction.set_lambda(1);
+  weak_reduction.set_lambda_maximum(1);
+  const auto weak_step = weak_reduction.step(initial, initial, curvature, inaccurate_model);
+  // Actual reduction is positive but only one quarter of the supplied model's
+  // prediction. The rejected step used to leak out because its ratio was >0.
+  close(weak_step(0), 0, 0, "Positive but inadequate reduction must not be applied");
+  require(weak_reduction.get_stop_reason() == invlib::LMStopReason::DampingLimit,
+          "Positive but inadequate reduction lost its failure reason");
+  require(not weak_reduction.converged(), "Positive but inadequate reduction reported convergence");
+
+  struct NonfiniteTrials {
+    Index   calls = 0;
+    Numeric cost_function(const SolverVector&, bool = false) {
+      return calls++ == 0 ? 1 : std::numeric_limits<Numeric>::quiet_NaN();
+    }
+  } nonfinite_trials;
+  Optimizer nonfinite(curvature);
+  nonfinite.set_lambda(1);
+  nonfinite.set_lambda_maximum(1);
+  const auto nonfinite_step = nonfinite.step(initial, initial, curvature, nonfinite_trials);
+  close(nonfinite_step(0), 0, 0, "A NaN-cost trial must not be applied");
+  require(nonfinite.get_stop_reason() == invlib::LMStopReason::DampingLimit,
+          "A NaN-cost trial escaped without a failure reason");
+  require(nonfinite.stop_iteration() and not nonfinite.converged(), "A NaN-cost trial reported convergence");
+  require(nonfinite_trials.calls == 2, "A NaN-cost trial exceeded the maximum damping budget");
+
+  struct OffsetQuadraticCost {
+    Numeric cost_function(const SolverVector& x, bool = false) { return 1 + 0.5 * x(0) * x(0); }
+  } offset_quadratic;
+  for (const Numeric state : {0., 1e-9}) {
+    Optimizer stationary(curvature);
+    stationary.set_lambda(0);
+    const auto x  = solver_vector({state});
+    const auto dx = stationary.step(x, x, curvature, offset_quadratic);
+    require(stationary.get_stop_reason() == invlib::LMStopReason::Stationary,
+            "Stationary LM point lost its explicit stop reason");
+    require(stationary.stop_iteration() and stationary.converged(), "Stationary LM point did not converge");
+    close(x(0) + dx(0), 0, 1e-8, "LM stationary state");
+  }
+
+  struct RejectTrials {
+    Index   calls = 0;
+    Numeric cost_function(const SolverVector&, bool = false) { return calls++ == 0 ? 0 : 1; }
+  } reject_all;
+  Optimizer stalled(curvature);
+  stalled.set_lambda(std::nextafter(0., 1.));
+  stalled.set_lambda_threshold(std::nextafter(0., 1.));
+  stalled.set_lambda_increase(std::nextafter(1., 2.));
+  rejects_with([&] { static_cast<void>(stalled.step(initial, initial, curvature, reject_all)); },
+               "damping did not increase");
+  require(stalled.get_stop_reason() == invlib::LMStopReason::DampingStalled,
+          "LM unchanged damping lost its explicit stop reason");
+  require(stalled.stop_iteration() and not stalled.converged(), "LM unchanged damping reported convergence");
+}
+
+void test_generic_minimize_outcomes() {
+  const SolverMatrix curvature = solver_matrix(1, 1, {1});
+  const SolverVector initial   = solver_vector({1});
+  using Optimizer              = invlib::LevenbergMarquardt<Numeric, SolverMatrix>;
+  struct QuadraticCost {
+    Numeric      baseline        = 0;
+    Index        criterion_calls = 0;
+    Numeric      cost_function(const SolverVector& x, bool = false) { return baseline + 0.5 * x(0) * x(0); }
+    SolverVector gradient(const SolverVector& x) { return x; }
+    SolverMatrix Hessian(const SolverVector&) { return solver_matrix(1, 1, {1}); }
+    Numeric      criterion(const SolverVector&, const SolverVector& dx) {
+      ++criterion_calls;
+      return dx.norm();
+    }
+  } quadratic;
+  SolverVector result;
+  Optimizer    ordinary(curvature);
+  ordinary.set_lambda(1);
+  require(invlib::minimize(quadratic, ordinary, initial, result, 10, 1e-12) == 0,
+          "Generic LM minimization failed to converge");
+  close(result(0), 0, 0, "Generic LM solution");
+  require(ordinary.get_stop_reason() == invlib::LMStopReason::Stationary,
+          "Generic minimization failed to respect stationary termination");
+
+  Optimizer exhausted(curvature);
+  exhausted.set_lambda(1e20);
+  exhausted.set_lambda_maximum(1e20);
+  quadratic.criterion_calls = 0;
+  require(invlib::minimize(quadratic, exhausted, initial, result, 10, 1e-12) == 1,
+          "Generic minimization reported damping exhaustion as convergence");
+  close(result(0), 1, 0, "Generic failed LM state");
+  require(quadratic.criterion_calls == 0, "Generic minimization tested a rejected zero step for convergence");
+
+  for (const unsigned int iterations : {0u, 1u}) {
+    Optimizer limited(curvature);
+    limited.set_lambda(1);
+    require(invlib::minimize(quadratic, limited, initial, result, iterations, 1e-12) == 1,
+            "Generic minimization concealed iteration exhaustion");
+    close(result(0), iterations == 0 ? 1 : 0.5, 0, "Generic iteration-limited state");
+  }
+
+  const SolverVector near_solution = solver_vector({1e-9});
+  quadratic.baseline               = 1;
+  for (const Numeric tolerance : {1e-8, 1e-12}) {
+    Optimizer stationary(curvature);
+    stationary.set_lambda(0);
+    const auto status = invlib::minimize(quadratic, stationary, near_solution, result, 10, tolerance);
+    require(stationary.converged(), "Generic stationary fixture did not reach an LM stop reason");
+    require(status == (tolerance > 1e-9 ? 0 : 1),
+            "Generic minimization ignored its own tolerance after optimizer termination");
+    close(result(0), 0, 0, "Generic minimization applies a verified stationary step");
+  }
+
+  // Existing custom minimizers need not implement the optional stop hooks.
+  struct CustomMinimizer {
+    SolverVector step(const SolverVector&, const SolverVector& gradient, const SolverMatrix&, QuadraticCost&) {
+      return -0.5 * gradient;
+    }
+  } custom;
+  require(invlib::minimize(quadratic, custom, initial, result, 1, 1.) == 0,
+          "Generic minimization broke a custom minimizer without stop hooks");
+  close(result(0), 0.5, 0, "Custom minimizer state");
+  require(invlib::minimize(quadratic, custom, initial, result, 1, 1e-12) == 1,
+          "Generic custom minimization concealed iteration exhaustion");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) try {
-  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination");
+  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes");
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();
@@ -690,6 +917,10 @@ int main(int argc, char** argv) try {
   } else if (selected == "termination") {
     test_cg_termination();
     test_lm_trial_limit();
+  } else if (selected == "outcomes") {
+    test_lm_outcomes();
+    test_lm_stop_reasons();
+    test_generic_minimize_outcomes();
   } else {
     require(stdr::find(methods, selected) != methods.end(), "Unknown test method");
     test_affine(selected);

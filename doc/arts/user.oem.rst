@@ -343,7 +343,8 @@ damping by comparing actual and predicted cost changes, and may try several
 forward-model evaluations within one outer iteration.  The damped system is
 defined in :ref:`sec-oem-damping`.
 
-Each outer iteration allows at most 100 LM trial steps.  This internal
+Each outer iteration allows at most 100 LM linear solves, including an
+additional undamped solve when needed to check stationarity.  This internal
 limit is separate from ``max_iter`` and ``maximum_damping``.  Reaching the
 trial limit, or failing to increase damping after a rejection because of
 floating-point rounding, stops the retrieval with status 9 and an
@@ -464,6 +465,9 @@ while damping still constrains the steps; a small damped step can then
 hide a remaining distance to the minimum.  The gate uses the updated
 damping, so a step calculated with damping 10 and then reduced to 5 can
 pass a limit of 5.  The iteration history records this updated value.
+LM can also recognize numerical stationarity using an undamped step,
+independently of this gate.  A step made tiny only by strong damping does
+not establish stationarity.
 
 Use the behavior of representative retrievals to guide changes:
 
@@ -527,10 +531,11 @@ Checking the result
    * - Index
      - Meaning
    * - 0
-     - Status: 0 means the convergence criterion was met, 1 means the
-       iteration budget was exhausted, 2 means the LM damping limit was
-       reached, 9 means an error was caught during inversion, and 99 means
-       the starting cost exceeded ``max_start_cost``.
+     - Status: 0 means the convergence criterion was met or LM established
+       numerical stationarity, 1 means the iteration budget was exhausted,
+       2 means the LM damping limit was reached without an acceptable step,
+       9 means an error was caught during inversion, and 99 means the
+       starting cost exceeded ``max_start_cost``.
    * - 1
      - Starting total cost, divided by the number of measurements.
    * - 2
@@ -554,10 +559,19 @@ change in cost or an unweighted state difference.  Lower it for a stricter
 convergence requirement and increase ``max_iter`` if useful progress continues
 at the iteration limit.
 
-An excessively small ``stop_dx`` can demand changes below the numerical
-accuracy of the forward model or linear solve.  LM may then exhaust its
-damping limit even when the state is already close to the solution.  Inspect
-costs, residuals, and damping history before increasing the maximum gamma.
+Near a solution, differences between computed costs can be too small to
+resolve reliably.  LM then checks an undamped step against ``stop_dx``
+and the cost's floating-point resolution.  If both checks establish
+stationarity, it returns status 0 without exhausting the damping range.
+An exactly zero gradient also establishes stationarity, including when
+the minimum cost is nonzero.  Very large damping alone cannot pass these
+checks: for example, ``initial_damping=maximum_damping=1e20`` can return
+status 2 with an unchanged state when no acceptable step is found.
+
+An excessively small ``stop_dx`` can still demand accuracy beyond the
+forward model or linear solve.  These stationarity checks do not measure
+forward-model noise or establish a global minimum.  Inspect costs,
+residuals, and damping history before increasing the maximum gamma.
 
 ``lm_ga_history`` records the starting damping and the updated damping
 after each outer iteration, including when ``display_progress=0``.

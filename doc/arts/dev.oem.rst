@@ -82,9 +82,72 @@ The native LM optimizer provides ``get_maximum_trials()`` and
 outer iteration.  A local counter bounds rejected-step retries, and a
 damping update must make progress before another trial is attempted.
 This catches multiplication that rounds back to the current damping.
+The trial budget counts linear solves, including any additional undamped
+solve used to check stationarity.
 Neither limit is currently an OEM workspace argument or part of the six
 named LM damping settings.  Preserve the termination regressions when
 changing convergence predicates, trial acceptance, or damping updates.
+
+LM acceptance and stop outcomes
+-------------------------------
+
+``LMStopReason`` records termination independently of the damping value.
+``None`` means the optimizer can continue; ``Stationary`` is successful
+termination.  ``DampingLimit`` returns a zero step and maps to workspace
+status 2.  ``TrialLimit``, ``DampingStalled``, ``LinearSolverFailure``, and
+``NumericalFailure`` accompany exceptions, which OEM maps to status 9
+when caught during inversion.  Ordinary convergence after an accepted
+step still uses the configured convergence criterion and damping gate.
+Both that criterion and ``Stationary`` map to status 0; outer iteration
+exhaustion retains status 1.
+
+All MAP formulations consult the optimizer's explicit outcome before
+testing the returned step for convergence.  A zero step returned after
+damping exhaustion must not count as convergence.  Rejected trials must
+never update the accepted state, and damping history must contain physical
+damping values, not a numerical sentinel such as ``maximum + 1``.  At a
+large finite maximum, that addition can round back to the maximum itself.
+The ordinary convergence gate returns a zero tolerance while damping
+exceeds its limit, so the strict comparison also rejects a rounded-zero
+state change.
+
+The generic helper in ``optimization/minimize.h`` also honors optional
+``stop_iteration()`` and ``converged()`` hooks.  A reported optimizer
+failure returns before testing the criterion or updating the state.  A
+stationary optimizer's verified step is applied, but success still requires
+``J.criterion`` to meet the helper's own tolerance.  Iteration exhaustion
+returns one.  Retain native regressions for these outcomes and for custom
+minimizers without either hook.
+
+``MAPBase::model_cost_scale()`` returns two: MAP reports the full quadratic
+cost, while its normal equations use the half-gradient and half-Hessian.
+The LM prediction includes this scale; an exact affine model therefore
+has an actual-to-predicted reduction ratio of one.  Generic objectives
+without this optional method retain scale one and must provide mutually
+consistent cost, gradient, and Hessian definitions.  Keep regressions for
+both conventions when changing the reduction formula or acceptance
+thresholds.
+
+LM compares reductions against ``32 * epsilon * max(abs(old_cost),
+abs(new_cost))`` before dividing them.  If actual or predicted reduction
+is unresolved at that scale, it checks the undamped normal equations once
+within the current step.  Numerical stationarity requires a finite,
+nonnegative undamped decrement below ``n * stop_dx``, a finite,
+nonnegative predicted reduction within the current cost's roundoff
+scale, and a candidate cost indistinguishable from the current cost at
+that scale.  This step can converge independently of the damping gate:
+its size is checked without damping.  An exactly zero gradient is also
+stationary.  These checks must not substitute the damped step for the
+undamped decrement; very strong damping can hide a large remaining error.
+Resolved acceptance requires finite, positive actual and predicted
+reductions and a ratio of at least 0.5.
+
+Keep workspace regressions for all four LM spellings at damping
+``1e20``, tight affine tolerances, and an exactly stationary state with
+nonzero cost.  Native tests also cover explicit stop reasons, objective
+scaling, rejected steps, and bounded or stalled damping updates.  Check
+the state, fitted measurement, costs, gain, and damping history as well
+as the final status.
 
 Remaining numerical work
 ------------------------
@@ -99,34 +162,13 @@ The following items require separate implementation and regression work.
    ill-conditioned positive-definite systems; bounded termination alone
    does not establish the accuracy of a difficult solve.
 
-2. **Audit LM's predicted cost reduction.**  ``MAP::cost_function`` returns
-   the full quadratic objective, while the gradient and Hessian assembled
-   for a step correspond to half that objective.  The reduction ratio in
-   ``levenberg_marquardt.cpp`` uses these step quantities without matching
-   the factor of two.  An exact linear model therefore gives a ratio of two
-   instead of one.  Characterize accepted and rejected trials before
-   correcting this: changing the ratio affects damping trajectories and
-   the established acceptance thresholds, even though the minimizer's
-   objective is unchanged.
+2. **Extend public stop diagnostics.**  The workspace retains its numeric
+   status mapping; native LM stop reasons are not a separate workspace
+   output.  A future result could expose the precise stop reason and
+   distinguish successful completion of a one-step linear solve from
+   exhaustion of an iterative convergence budget.
 
-   Also handle near-zero predicted reduction and roundoff stagnation.  In
-   an affine regression with ``stop_dx=1e-12``, LM can reach the reference
-   solution while the preceding step's convergence measure is still above
-   tolerance.  The next nearly zero step then gives an unreliable reduction
-   ratio and can exhaust the damping limit despite an optimal state.  The
-   baseline uses ``stop_dx=1e-9`` with independent tight state and cost
-   checks.  A stricter-tolerance regression needs a defined numerical
-   termination policy before changing the acceptance logic.
-
-3. **Use explicit stop reasons.**  LM currently signals its damping limit
-   by setting gamma to ``gamma_max + 1``.  At sufficiently large finite
-   values, this rounds back to ``gamma_max``.  Replace numerical sentinels
-   with a stop reason carried by the optimizer.  Keep the legacy numeric
-   status as a compatibility mapping.  Likewise, distinguish successful
-   completion of a one-step linear solve from exhaustion of an iterative
-   convergence budget.
-
-4. **Replace dense normalization and explicit gain inversion.**  Store
+3. **Replace dense normalization and explicit gain inversion.**  Store
    state scales as a vector and apply diagonal products without allocating
    an :math:`n\times n` dense scaling matrix.  Compute the gain by solving
    the posterior precision system for its right-hand sides.  Measure peak
@@ -134,7 +176,7 @@ The following items require separate implementation and regression work.
    Consider factorization reuse and a preconditioner appropriate to each
    formulation only after correctness is established.
 
-5. **Make agenda state and failure behavior explicit.**  Validation,
+4. **Make agenda state and failure behavior explicit.**  Validation,
    covariance inversion, and the initial agenda evaluation can still throw
    directly; status 9 covers errors caught during inversion.  Trial forward
    model evaluations mutate atmosphere, sensor, and surface workspace data.

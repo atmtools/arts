@@ -343,8 +343,44 @@ def test_agenda_capture():
     np.testing.assert_array_equal(captured[0], DISTINCT)
 
 
+def test_damping_outcomes():
+    for method in METHODS:
+        # These named values used to produce false convergence because the
+        # failure sentinel maximum_damping + 1 rounds back to maximum_damping.
+        result = retrieve(
+            method,
+            arts.OEMLMSettings(initial_damping=1e20, maximum_damping=1e20),
+        )
+        assert result["oem_diagnostics"][0] == 2, result["oem_diagnostics"]
+        np.testing.assert_array_equal(result["model_state_vec"], [0.5, -0.25])
+        np.testing.assert_array_equal(result["lm_ga_history"][:2], [1e20, 1e20])
+        assert result["oem_diagnostics"][2] == result["oem_diagnostics"][1]
+
+        # An accurate affine solution must not turn into damping exhaustion
+        # when reduction ratios become dominated by cost-evaluation roundoff.
+        for tolerance in (1e-12, 1e-16, 1e-20):
+            result = retrieve(method, named([10, 3, 2, 1e8, 0.1, 0]), stop_dx=tolerance)
+            assert result["oem_diagnostics"][0] == 0, result["oem_diagnostics"]
+            np.testing.assert_allclose(
+                result["model_state_vec"],
+                [3112 / 18575, 21727 / 37150],
+                rtol=0,
+                atol=2e-7,
+            )
+
+        # The nonlinear fixture really rejects every permitted step. The fix
+        # must still report exhaustion and preserve the last accepted state.
+        result = retrieve(method, named([0, 3, 2, 1, 0.1, 0]), nonlinear=True)
+        assert result["oem_diagnostics"][0] == 2, result["oem_diagnostics"]
+        np.testing.assert_array_equal(result["model_state_vec"], [0.1])
+        np.testing.assert_allclose(
+            result["measurement_vec_fit"], [0.01], rtol=0, atol=1e-16
+        )
+
+
 if __name__ == "__main__":
     test_value_object()
     test_validation()
     test_retrieval_equivalence()
     test_agenda_capture()
+    test_damping_outcomes()

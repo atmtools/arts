@@ -43,7 +43,13 @@ namespace invlib
  * \param tol The value of the convergence criterion of the cost function
  * required for convergence.
  *
- * \return Error code indicating success or failure of the minimization process.
+ * Optional M.stop_iteration() and M.converged() hooks distinguish optimizer
+ * termination from a completed step. An optimizer failure leaves the last
+ * accepted state unchanged. A stationary step must still satisfy J.criterion
+ * at this function's tolerance before it can report convergence.
+ *
+ * \return Zero on convergence, one on optimizer termination without convergence
+ * or exhaustion of the iteration budget. Optimizer exceptions propagate.
  */
 template
 <
@@ -72,14 +78,28 @@ int minimize( CostFunction &J,
         auto H =  J.Hessian(xi);
         dx = M.step(xi, g, H, J );
 
+        bool stopped = false;
+        if constexpr (requires { M.stop_iteration(); }) {
+            stopped = M.stop_iteration();
+        }
+        if (stopped) {
+            bool optimizer_converged = false;
+            if constexpr (requires { M.converged(); }) {
+                optimizer_converged = M.converged();
+            }
+            // A rejected zero step must not satisfy the convergence criterion.
+            if (!optimizer_converged) return 1;
+        }
+
         // Check for convergence.
         if (J.criterion(xi, dx) < tol)
             converged = true;
 
         xi += dx;
         iter++;
+        if (stopped) break;
     }
-    return 0;
+    return converged ? 0 : 1;
 }
 
 }

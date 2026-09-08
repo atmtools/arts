@@ -1,3 +1,17 @@
+// A minimizer's explicit stop outcome takes precedence over a small returned
+// step. Rejected trials commonly return zero and must not imply convergence.
+template<typename Minimizer, typename RealType>
+bool minimizer_converged(Minimizer &M, RealType criterion)
+{
+    if (M.stop_iteration()) {
+        if constexpr (requires { M.converged(); }) {
+            return M.converged();
+        }
+        return false;
+    }
+    return std::isfinite(criterion) && criterion < M.get_tolerance();
+}
+
 // ----------------- //
 //   MAP Base Class  //
 // ----------------- //
@@ -267,10 +281,10 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance())
+        if (minimizer_converged(M, conv))
         {
             converged = true;
-        } else {
+        } else if (!M.stop_iteration()) {
             K = Jacobian(x, yi);
         }
 
@@ -381,9 +395,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
         yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance()) {
+        if (minimizer_converged(M, conv)) {
             converged = true;
-        } else {
+        } else if (!M.stop_iteration()) {
             K = Jacobian(x, yi);
         }
 
@@ -510,9 +524,9 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance()) {
+        if (minimizer_converged(M, conv)) {
             converged = true;
-        } else {
+        } else if (!M.stop_iteration()) {
             K = Jacobian(x , yi);
         }
 
