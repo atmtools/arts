@@ -3,6 +3,9 @@
 Optimal estimation
 ###################
 
+For configuration and interpretation of retrieval outputs, see
+:ref:`sec-user-oem`.
+
 The core expression of optimal estimation in ARTS
 follows from :cite:t:`rodgers:00`.
 He formulates the core expression of a measurement as
@@ -49,25 +52,24 @@ where
 Linearization
 =============
 
-The optimal estimation methods in ARTS only work if it is possible to
-linearize :math:`F\left(\vec{x}\right)` around :math:`\vec{x}`.
-This is equivalent to stating that
+The iterative methods use a local linear approximation to the forward model
+around the current state :math:`\vec{x}_i`:
 
 .. math::
 
-  \vec{y} = \vec{y}_f + \mathbf{J} \left(\vec{x} - \vec{x}_a\right)
+  F(\vec{x}) \approx F(\vec{x}_i) + \mathbf{J}_i (\vec{x} - \vec{x}_i).
 
-where we can take the partial derivative to find that
+Here
 
 .. math::
 
-  \mathbf{J} = \frac{\partial \vec{y}}{\partial \vec{x}}
+  \mathbf{J}_i = \left.\frac{\partial F}{\partial \vec{x}}\right|_{\vec{x}_i}
 
 is the Jacobian matrix
 (i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jac`
 in the ARTS workspace).
 
-One approach to minimize :math:`\vec{x}` is to
+One approach to minimize the cost function is to
 use a Gauss-Newton approach to update the state
 of the atmosphere.  This might look like
 
@@ -81,9 +83,155 @@ of the atmosphere.  This might look like
 
   \vec{y}_f = F\left(\vec{x}_i\right)
 
-for :math:`i` starting at :math:`a` or :math:`0` and increasing the
-count until the cost functions above are not decreasing anymore, or
-too slowly to warrant more iterations.
+The Jacobian and simulated measurement in this expression are evaluated at
+the current state.  Iteration stops according to the convergence criterion
+and iteration limit.  The state-step measures are defined below;
+settings are described in :ref:`sec-user-oem`.  A decrease in cost alone does not
+establish convergence.
+
+.. _sec-oem-covariance:
+
+Covariances and coordinates
+===========================
+
+A covariance matrix has variances on its diagonal.  Its off-diagonal entries
+can be expressed in terms of standard deviations and a correlation matrix:
+
+.. math::
+
+   S_{ij}=\sigma_i R_{ij}\sigma_j.
+
+Thus each covariance entry has the product of the units of its two coordinates.
+The covariance is symmetric and positive semidefinite; the inverses in the
+optimal-estimation expressions require positive definiteness.  A positive
+diagonal alone does not imply positive definiteness.  The inverse covariance
+is the precision matrix.  In general, correlations imply
+
+.. math::
+
+   (\mathbf{S}^{-1})_{ii} \ne \frac{1}{S_{ii}}.
+
+For a coordinate transformation :math:`\vec{x}=f(\vec{t})`, the local
+covariance transformation is
+
+.. math::
+
+   \mathbf{S}_x \approx \mathbf{B}\mathbf{S}_t\mathbf{B}^{\top},
+   \qquad \mathbf{B}=\frac{\partial f}{\partial\vec{t}}.
+
+This is exact for an affine transformation.  A nonlinear transformation
+also changes the shape of the distribution; a Gaussian prior in native
+coordinates need not remain Gaussian in transformed coordinates.
+
+For correlated measurement errors, the quadratic measurement cost can be
+written using a whitened residual.  With a Cholesky factorization
+:math:`\mathbf{S}_\epsilon=\mathbf{L}\mathbf{L}^{\top}`,
+
+.. math::
+
+   \vec{r}_w=\mathbf{L}^{-1}\bigl(\vec{y}-F(\vec{x})\bigr),
+   \qquad \chi_y^2=\frac{\vec{r}_w^{\top}\vec{r}_w}{m}.
+
+Numerical state scaling is distinct from a change of statistical coordinates.
+For a diagonal matrix of positive scales :math:`\mathbf{T}`, solving
+:math:`\mathbf{H}\Delta\vec{x}=-\vec{g}` is equivalent in exact arithmetic to
+
+.. math::
+
+   (\mathbf{T}\mathbf{H}\mathbf{T})\vec{z}=-\mathbf{T}\vec{g},
+   \qquad \Delta\vec{x}=\mathbf{T}\vec{z}.
+
+This changes the conditioning of the linear system while retaining the
+same objective and solution in the original coordinates.
+
+.. _sec-oem-damping:
+
+Levenberg--Marquardt damping
+============================
+
+Define the half-gradient of the unnormalized objective and its
+Gauss--Newton approximation to the half-Hessian by
+
+.. math::
+
+   \vec{g}=\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1}
+     \bigl(F(\vec{x})-\vec{y}\bigr)
+     +\mathbf{S}_a^{-1}(\vec{x}-\vec{x}_a),
+   \qquad
+   \mathbf{H}=\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1}\mathbf{J}
+     +\mathbf{S}_a^{-1}.
+
+The damped step used by ARTS is
+
+.. math::
+
+   (\mathbf{H}+\gamma\mathbf{D})\Delta\vec{x}=-\vec{g},
+   \qquad
+   \mathbf{D}=\operatorname{diag}
+               \bigl(\operatorname{diag}(\mathbf{S}_a^{-1})\bigr).
+
+Larger :math:`\gamma` penalizes larger steps in the precision-scaled
+coordinates.  At :math:`\gamma=0`, the step equals the Gauss--Newton step.
+The damping penalty modifies the local step, not the objective being
+minimized.
+
+.. _sec-oem-convergence:
+
+State-step convergence measures
+================================
+
+For :math:`n` retrieved state elements, the state-space formulation uses
+the Rodgers 5.31 measure
+
+.. math::
+
+   d_{531}=\frac{|\Delta\vec{x}^{\top}\vec{g}|}{n},
+
+where the half-gradient :math:`\vec{g}` is evaluated before the step.
+The measurement-space formulation uses the Rodgers 5.30 measure
+
+.. math::
+
+   d_{530}=\frac{\Delta\vec{x}^{\top}\mathbf{H}\Delta\vec{x}}{n}.
+
+Both quantities are dimensionless.  The measures agree for an exact
+undamped Gauss--Newton step, but need not agree for damped or approximate
+steps.  They are distinct from relative changes in the cost function and
+from an unweighted distance between state vectors.
+
+.. _sec-oem-uncertainty:
+
+Gain, averaging kernel, and retrieval uncertainty
+=================================================
+
+In the linear Gaussian model, the posterior covariance, gain, and
+averaging kernel are
+
+.. math::
+
+   \widehat{\mathbf{S}}=
+     \bigl(\mathbf{S}_a^{-1}+\mathbf{J}^{\top}
+     \mathbf{S}_\epsilon^{-1}\mathbf{J}\bigr)^{-1},
+   \qquad
+   \mathbf{G}=\widehat{\mathbf{S}}\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1},
+   \qquad
+   \mathbf{A}=\mathbf{G}\mathbf{J}.
+
+The observation and smoothing contributions in state coordinates are
+
+.. math::
+
+   \mathbf{S}_{\rm obs}=\mathbf{G}\mathbf{S}_\epsilon\mathbf{G}^{\top},
+   \qquad
+   \mathbf{S}_{\rm smooth}=(\mathbf{I}-\mathbf{A})\mathbf{S}_a
+                           (\mathbf{I}-\mathbf{A})^{\top}.
+
+With the stated covariances and model assumptions,
+:math:`\widehat{\mathbf{S}}=\mathbf{S}_{\rm obs}+\mathbf{S}_{\rm smooth}`.
+For a nonlinear retrieval, evaluating these expressions at the retrieved
+state gives a local approximation.  Their uncertainty interpretation
+requires that the prior covariance represents the assumed prior uncertainty.
+The observation contribution alone is not the full posterior covariance.
 
 Transforming the Jacobian matrix
 ================================
@@ -152,15 +300,9 @@ for any transformation or mapping to work.  It must also be possible
 to take the partial derivative of :math:`\vec{t}` with regards
 to :math:`\vec{x}`.
 
-If we put this in the form of the linearized forward simulation,
-
-.. math::
-
-  \vec{y}_f = \mathbf{J} \vec{x} = \mathbf{J} f\left(\vec{t}\right).
-
-Here :math:`\mathbf{J}` is still the partial derivative with regards to
-:math:`\vec{x}`.  However, all partial derivatives will have been
-computed in terms of :math:`\vec{t}`, since this is the native unit.
+The Jacobian :math:`\mathbf{J}` is the derivative with respect to
+the retrieved coordinates :math:`\vec{x}`.  The forward model first
+computes derivatives in its native coordinates :math:`\vec{t}`.
 If we introduce
 
 .. math::

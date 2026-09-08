@@ -5154,9 +5154,10 @@ path parameters.
   };
 
   wsm_data["OEM"] = {
-      .desc           = R"(Inversion by the so called optimal estimation method (OEM).
+      .desc           = R"(Retrieve a model state by optimal estimation (OEM).
 
-Work in progress ...
+See :ref:`sec-user-oem` for a practical guide to selecting methods, damping,
+covariances, and interpreting the retrieval diagnostics.
 
 The cost function to minimise, including a normalisation with length
 of *measurement_vec*, is:
@@ -5201,21 +5202,19 @@ where:
     - *model_state_covmat*
     - The a priori covariance matrix of the model state vector.
 
-The current implementation provides 3 methods for the minimization of
-the cost functional: Linear, Gauss-Newton and Levenberg-Marquardt.
-The Gauss-Newton minimizer attempts to find a minimum solution by 
-fitting a quadratic function to the cost functional. The linear minimizer
-is a special case of the Gauss-Newton method, since for a linear forward
-model the exact solution of the minimization problem is obtained after
-the first step. The Levenberg-Marquardt method adaptively constrains the
-search region for the next iteration step by means of the so-called gamma-factor.
-This makes the method more suitable for strongly non-linear problems.
-If the gamma-factor is 0, Levenberg-Marquardt and Gauss-Newton method
-are identical. Each minimization method (li,gn,lm) has an indirect
-variant (li_cg,gn_cg,lm_cg), which uses the conjugate gradient solver
-for the linear system that has to be solved in each minimization step.
-This of advantage for very large problems, that would otherwise require
-the computation of expensive matrix products.
+All methods minimize the same objective, including the prior term.
+Linear methods take one Gauss-Newton step and assume a linear forward model.
+Gauss-Newton iterates local linearizations. Levenberg-Marquardt (LM) adds
+adaptive damping to control the step size; zero damping gives a Gauss-Newton
+step. Direct methods solve a system in state space. The ``_cg`` variants use
+conjugate gradient (CG), and ``_cg_m`` variants solve in measurement space.
+
+The two input covariance matrices contain variances on their diagonals,
+in the coordinates and ordering of their corresponding vectors. They must
+be finite, symmetric, and positive definite. They are not precision
+(inverse covariance) matrices. Changing covariance weights changes the
+retrieval's statistical assumptions, whereas numerical normalization only
+rescales the linear solve.
 
 Description of the special input arguments:
 
@@ -5223,58 +5222,84 @@ Description of the special input arguments:
 
         - ``"li"``: A linear problem is assumed and a single iteration is performed.
         - ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
+        - ``"li_cg_m"``: Linear, using CG in measurement space; consider when there are fewer measurements than states.
         - ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
         - ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
+        - ``"gn_cg_m"``: Gauss-Newton, using CG in measurement space.
         - ``"lm"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme.
         - ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
 
+      ``"ml"`` and ``"ml_cg"`` are aliases for ``"lm"`` and ``"lm_cg"``.
+      They retain the prior term. ``"li_m"`` and ``"gn_m"`` are unsupported.
+
     - ``max_start_cost``:
 
-      No inversion is done if the cost matching the a priori state is above
-      this value. If set to a negative value, all values are accepted.
-      This argument also controls if the start cost is calculated. If
-      set to <= 0, the start cost in ``oem_diagnostics`` is set to NaN
-      when using "li" and "gn".
+      Skip inversion when the total cost at the starting state exceeds this
+      value. The default is infinity. A value <= 0 disables the limit and
+      can leave the starting cost as NaN for non-LM methods when progress
+      output is off.
     
-    - ``x_norm``:
+    - ``model_state_covmat_normalization``:
 
-      A normalisation vector for *model_state_vec*. A normalisation of *model_state_vec* can be needed
-      due to limited numerical precision. If this vector is set to be empty
-      no normalisation is done (default case). Otherwise, this must be a
-      vector with same length as *model_state_vec*, just having values above zero.
-      Elementwise division between *model_state_vec* and ``x_norm`` (x./x_norm) shall give
-      a vector where all values are in the order of unity. Maybe the best
-      way to set ``x_norm`` is x_norm = sqrt( diag( Sx ) ).
+      Optional numerical scales for state increments. Empty disables
+      normalization (the default); otherwise provide one finite positive
+      value per state element. Prior standard deviations, the square roots
+      of the diagonal of *model_state_covmat*, are a useful starting point.
+      This leaves the mathematical objective and vector coordinates unchanged.
+      Unsupported for measurement-space methods ``"li_cg_m"`` and ``"gn_cg_m"``.
 
     - ``max_iter``:
 
-      Maximum number of iterations to perform. No effect for "li".
+      Positive maximum number of outer iterations; default 10. All ``li``
+      variants always take one step. LM can evaluate several trial states
+      within an outer iteration.
 
-    - ``stop_dx``:\n"
+    - ``stop_dx``:
 
-      Iteration stop criterion. The criterion used is the same as given in Rodgers\' "Inverse Methods for Atmospheric Sounding"
+      Positive finite convergence threshold; default 0.01. State-space
+      methods test the absolute state-step/half-gradient inner product divided
+      by the number of states (Rodgers 5.31); measurement-space methods
+      use the Hessian-weighted squared state-step norm divided by that number
+      (Rodgers 5.30). This does not set the inner CG tolerance, which is
+      fixed at 1e-10.
 
     - ``lm_ga_settings``:
 
-      Settings controlling the gamma factor, part of the "LM" method.
-      This is a vector of length 6, having the elements (0-based index):
+      Six finite values controlling LM damping, with zero-based indices:
 
-            0. Start value.
-            1. Fractional decrease after successful iteration.
-            2. Fractional increase after unsuccessful iteration.
-            3. Maximum allowed value. If the value is passed, the inversion is halted.
-            4. Lower threshold. If the threshold is passed, gamma is set to zero. If gamma must be increased from zero, gamma is set to this value.
-            5. Gamma limit. This is an additional stop criterion. Convergence is not considered until there has been one successful iteration having a gamma <= this value.
+            0. Nonnegative initial gamma, no greater than the maximum.
+            1. Divisor when gamma is reduced; must be greater than one.
+            2. Multiplier when gamma is increased; must be greater than one.
+            3. Positive maximum gamma; failure to find an acceptable step at this value stops inversion.
+            4. Positive lower threshold, no greater than the maximum. Decreases below it set gamma to zero; an increase from zero restarts here.
+            5. Nonnegative gamma limit for enabling the ordinary ``stop_dx`` criterion. It applies to the current updated gamma; zero enables this criterion when damping reaches zero.
       
-      The default setting triggers an error if "lm" is selected.
+      The default empty vector is invalid for all LM names. Direct and CG
+      variants use the same entries and damp with the diagonal of the prior
+      precision matrix. Entry 1 is a divisor, not a fractional multiplier.
 
-    - ``clear matrices``:
+    - ``clear_matrices``:
 
-      With this flag set to 1, *measurement_jac* and *measurement_gain_mat* are returned as empty matrices.
+      Set to 1 to skip computing *measurement_gain_mat* and return it and
+      *measurement_jac* empty. The default is 0. The Jacobian is still
+      needed internally during retrieval.
 
     - ``display_progress``:
 
-      Controls if there is any screen output. The overall report level is ignored by this WSM.
+      Set to 1 for iteration output, or 0 (default) for silent operation.
+      Diagnostics and LM history are recorded independently of this flag.
+
+``oem_diagnostics`` contains status, starting total cost, final total cost,
+final measurement cost, and number of outer iterations, in that order.
+Costs are normalized by the number of measurements; unavailable entries
+are NaN. Status values are 0 (converged), 1 (iteration limit), 2 (LM damping
+limit), 9 (caught inversion error; inspect ``errors``), and 99 (starting
+cost limit). The one-step linear methods can return status 1 for an exact
+linear solution because no second convergence step is performed.
+
+``lm_ga_history`` contains the starting gamma followed by its updated values
+after outer iterations, with unused trailing entries set to NaN. It is empty
+for non-LM methods and does not include every rejected trial step.
 )",
       .author         = {"Patrick Eriksson"},
       .out            = {"model_state_vec",
@@ -5288,8 +5313,8 @@ Description of the special input arguments:
                          "measurement_gain_mat"},
       .gout           = {"oem_diagnostics", "lm_ga_history", "errors"},
       .gout_type      = {"Vector", "Vector", "ArrayOfString"},
-      .gout_desc      = {"Basic diagnostics of an OEM type inversion",
-                         "The series of gamma values for a Marquardt-levenberg inversion",
+      .gout_desc      = {"Status, start cost, final total cost, final measurement cost, and iteration count",
+                         "Initial and updated LM damping values; independent of display_progress",
                          "Errors encountered during OEM execution"},
       .in             = {"model_state_vec",
                          "measurement_vec_fit",
@@ -5324,10 +5349,10 @@ Description of the special input arguments:
                          Index{0}},
       .gin_desc       = {"Iteration method. For this and all options below, see further above",
                          "Maximum allowed value of cost function at start",
-                         "Normalization of Sx",
+                         "Optional positive scales for the state-space linear solve",
                          "Maximum number of iterations",
                          "Stop criterion for iterative inversions",
-                         "Settings associated with the ga factor of the LM method",
+                         "Six LM damping settings; required for all LM method names",
                          "An option to save memory",
                          "Flag to control if inversion diagnostics shall be printed on the screen"},
       .pass_workspace = true,
@@ -5411,7 +5436,7 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
 
   wsm_data["model_state_covmatInit"] = {
       .desc =
-          R"(Initialises the model state covariance matrix to the identity matrix.
+          R"(Initialises an empty model state covariance matrix.
 )",
       .author = {"Richard Larsson"},
       .out    = {"model_state_covmat"},

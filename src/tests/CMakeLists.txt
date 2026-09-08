@@ -21,6 +21,17 @@ add_executable(test_integration
 
 target_link_libraries(test_integration PUBLIC artstime matpack)
 
+# Deterministic workspace-interface OEM regressions, independent of Matlab.
+if(OEM_SUPPORT)
+  add_executable(test_oem_methods test_oem_methods.cc)
+  target_link_libraries(test_oem_methods PRIVATE artsworkspace)
+  add_dependencies(check-deps test_oem_methods)
+  foreach(method li li_cg li_cg_m gn gn_cg gn_cg_m lm ml lm_cg ml_cg settings validation)
+    add_test(NAME "cpp.fast.oem.${method}" COMMAND test_oem_methods "${method}")
+    set_tests_properties("cpp.fast.oem.${method}" PROPERTIES TIMEOUT 30)
+  endforeach()
+endif()
+
 # ########## next testcase ###############
 set(MATLABDIR OFF CACHE PATH
   "Path to the Matlab install folder on the system.")

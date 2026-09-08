@@ -13,6 +13,7 @@ Build configuration and implementation details are in :doc:`devs`.
    user.surf_field
    user.subsurf_field
    user.sensors
+   user.oem
 
    user.tmatrix
    user.heating
