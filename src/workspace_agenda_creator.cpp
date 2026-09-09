@@ -182,18 +182,16 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
   switch (to<measurement_inversion_agendaPredefined>(option)) {
     case LowMemory:
       agenda.add("measurement_vec_errorFromModelState");
-      agenda.add("jac_targetsConditionalClear");
       agenda.add("measurement_vecFromSensor", SetWsv("kernel", "Low Memory"s));
       agenda.add("measurement_jacTransformations");
-      agenda.add("measurement_vecConditionalAddError");
+      agenda.add("measurement_vecAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
       break;
     case HighPerformance:
       agenda.add("measurement_vec_errorFromModelState");
-      agenda.add("jac_targetsConditionalClear");
       agenda.add("measurement_vecFromSensor", SetWsv("kernel", "High Performance"s));
       agenda.add("measurement_jacTransformations");
-      agenda.add("measurement_vecConditionalAddError");
+      agenda.add("measurement_vecAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
       break;
   }

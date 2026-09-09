@@ -84,14 +84,23 @@ Reducing forward-model work
 OEM reuses simulations and Jacobians for exactly matching states within a
 retrieval.  Continuing Gauss--Newton iterations obtain the simulation and
 Jacobian together; LM trials need only the simulation until derivatives
-are needed at an accepted state.  A custom agenda should honor ``do_jac=0``
-by skipping derivative calculations.  ``clear_matrices=1`` also avoids a
-final derivative evaluation needed solely for retained matrix outputs.
+are needed at an accepted state.  Derivative calculations use ``jac_targets``
+and do nothing when it is empty.  State updates use the separate, complete
+``model_state_targets``.  ``clear_matrices=1`` also avoids a final derivative
+evaluation needed solely for retained matrix outputs.
+
+OEM passes both target sets by reference to ``inversion_iterate_agenda``.
+Custom agendas should use ``UpdateModelStates`` for state mapping and pass
+``jac_targets`` to radiative transfer.  Measurement-error values use
+``model_state_targets`` even when no derivatives are requested.
+For standalone state updates outside OEM, supply the mapping explicitly:
+``ws.UpdateModelStates(model_state_targets=ws.jac_targets)``.
+Direct calls to the inversion agenda must supply ``model_state_targets`` and
+use either the full ``jac_targets`` or an empty ``JacobianTargets``.
 
 The forward model should be repeatable for the same state and configuration.
-Use ``inversion_iterate_agenda_counter`` for progress reporting, not to
-change the measurement model.  If supplying an initial
-``measurement_vec_fit`` and ``measurement_jac``, both must correspond to
+If supplying an initial ``measurement_vec_fit`` and ``measurement_jac``,
+both must correspond to
 the supplied starting state and current forward-model configuration.
 Clear these outputs after changing that configuration to force reevaluation.
 

@@ -7,12 +7,6 @@ void jac_targetsOff(JacobianTargets& jac_targets) {
   jac_targets.clear();
 }
 
-void jac_targetsConditionalClear(JacobianTargets& jac_targets, const Index& do_jac) {
-  ARTS_TIME_REPORT
-
-  if (do_jac == 0) jac_targetsOff(jac_targets);
-}
-
 void jac_targetsInit(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 

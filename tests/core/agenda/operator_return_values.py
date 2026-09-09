@@ -16,7 +16,14 @@ for name, group in (
     setattr(ws, name, group())
 ws.surf_field.ellipsoid = [2, 1]
 ws.model_state_vec = [0.5, -0.25]
-ws.inversion_iterate_agenda_counter = 0
+ws.atm_field[arts.AtmKey.t] = arts.GriddedField3(
+    data=np.ones((2, 1, 1)),
+    grid_names=["Altitude", "Latitude", "Longitude"],
+    grids=[[0, 1], [0], [0]],
+)
+ws.jac_targetsAddTemperature()
+ws.jac_targetsFinalize()
+ws.model_state_targets = ws.jac_targets
 
 fit_values = np.array([1.0, 2.0, 3.0])
 jac_values = np.array([[1.0, 2.0], [2.0, -1.0], [1.0, 1.0]])
@@ -25,22 +32,23 @@ retained_jac = arts.Matrix(jac_values)
 retained_inputs = []
 
 
-def forward(atm, bands, sensor, surf, subsurf, targets, state, do_jac, counter):
+def forward(atm, bands, sensor, surf, subsurf, state_targets, targets, state):
     np.testing.assert_array_equal(state, [0.5, -0.25])
     np.testing.assert_array_equal(surf.ellipsoid, [2, 1])
     retained_inputs.append((state, surf))
-    jac = retained_jac if int(do_jac) else arts.Matrix()
+    jac = retained_jac if targets.x_size() else arts.Matrix()
     # The same Python objects can be returned repeatedly and kept by the caller.
     return atm, bands, sensor, surf, subsurf, retained_fit, jac
 
 
 operator = arts.inversion_iterate_agendaOperator(forward)
-for do_jac in (1, 1, 0):
+for with_jacobian in (1, 1, 0):
     ws.inversion_iterate_agendaExecuteOperator(
-        do_jac=do_jac, inversion_iterate_agenda_operator=operator
+        jac_targets=ws.model_state_targets if with_jacobian else arts.JacobianTargets(),
+        inversion_iterate_agenda_operator=operator,
     )
     np.testing.assert_array_equal(ws.measurement_vec_fit, fit_values)
-    if do_jac:
+    if with_jacobian:
         np.testing.assert_array_equal(ws.measurement_jac, jac_values)
         ws.measurement_jac[0, 0] = 99
     else:

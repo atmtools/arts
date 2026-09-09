@@ -842,21 +842,14 @@ psat : Numeric
       .dims = {"NTARGET"},
   };
 
-  wsv_data["do_jac"] = {
-      .desc =
-          R"(A boolean calculations related to the *measurement_jac* should be ignored.
+  wsv_data["model_state_targets"] = {
+      .desc = R"(Complete mapping from *model_state_vec* to physical model fields and measurement errors.
 
-This variable is limited to very few methods related to the inversion process for *OEM*.
-Note that deep code of ARTS will ignore this variable, so it is not a global switch.
-Instead, it is used as a switch to clear the *jac_targets* variable, which is used
-to determine the size of the *measurement_jac*.  It is important to be careful
-with this, as it will mess with the size of the *measurement_jac* and could
-thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
+During *OEM*, this always contains the full retrieval targets.  The separate
+*jac_targets* may be empty to disable derivatives without disabling state updates.
 )",
-      .type          = "Index",
-      .default_value = "1",
+      .type = "JacobianTargets",
   };
-
   wsv_data["jac_targets"] = {
       .desc          = R"--(A list of targets for the Jacobian Matrix calculations.
 
@@ -871,13 +864,6 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .type          = "JacobianTargets",
       .default_value = " ",
       .dims          = {"NTARGET", "NSTATE"},
-  };
-
-  wsv_data["inversion_iterate_agenda_counter"] = {
-      .desc          = R"(A counter for the inversion iterate agenda.
-)",
-      .type          = "Index",
-      .default_value = "0",
   };
 
   wsv_data["measurement_averaging_kernel"] = {

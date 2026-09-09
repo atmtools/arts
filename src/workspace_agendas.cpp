@@ -226,12 +226,11 @@ Otherwise same as *spectral_rad_surface_agenda*.
   };
 
   wsa_data["inversion_iterate_agenda"] = {
-      .desc         = R"--(Work in progress ...
+      .desc               = R"--(Evaluate a retrieval state.  See *OEM*.
 
-See *OEM*.
-
-.. note::
-    The output *measurement_jac* size may depend on the *do_jac* input.
+*model_state_targets* always contains the complete state mapping used by
+*UpdateModelStates* and measurement-error values.  *jac_targets* contains
+the derivative targets, or is empty for a value-only evaluation.
 )--",
       .output       = {"atm_field",
                        "abs_bands",
@@ -247,39 +246,29 @@ See *OEM*.
                        "subsurf_field",
                        "jac_targets",
                        "model_state_vec",
-                       "do_jac",
-                       "inversion_iterate_agenda_counter"},
+                       "model_state_targets"},
       .enum_options = {"Full"},
       .enum_default = "Full",
 
       // Wraps *measurement_inversion_agenda*, so it inherits the empty
-      // *measurement_jac* that a pass with *do_jac* false produces
+      // *measurement_jac* that a pass with empty *jac_targets* produces
       .output_constraints = false,
   };
 
   wsa_data["measurement_inversion_agenda"] = {
-      .desc =
-          R"--(This is a helper *Agenda* intended for use within *inversion_iterate_agenda*.
+      .desc         = R"--(Simulate the fitted measurement for the current physical model.
 
-It outputs the *measurement_vec_fit* and *measurement_jac* for the
-current iteration of the inversion. The *measurement_vec_fit* is the
-fitted measurement vector, i.e., the measurement vector that is expected to be
-observed given the current *atm_field*, *abs_bands*, *measurement_sensor*,
-and *surf_field*.  It does not take these as explicit input but via the Workspace
-mechanism.  Within the *inversion_iterate_agenda*, these will be the local variables.
-
-What is special about this Agenda is that it enforces that the *measurement_jac*
-is empty on output if *do_jac* evaluates false.  Do not use this Agenda if you
-do not mind having a non-empty *measurement_jac* on output even if *do_jac*
-evaluates false.  Also do not use this Agenda if you wish to squeeze out performance,
-it does a lot of unnecessary checks and operations that are not always needed.
+Apply *UpdateModelStates* before this helper, as the predefined
+*inversion_iterate_agenda* does.  *model_state_targets* supplies the full
+mapping for measurement-error values.  *jac_targets* controls all derivatives;
+when it is empty, *measurement_jac* is empty.  Both target sets are read-only.
 )--",
       .output       = {"measurement_vec_fit", "measurement_jac"},
-      .input        = {"jac_targets", "do_jac"},
+      .input        = {"model_state_targets", "jac_targets"},
       .enum_options = {"LowMemory", "HighPerformance"},
       .enum_default = "LowMemory",
 
-      // Returning an empty *measurement_jac* when *do_jac* is false is the point
+      // Returning an empty *measurement_jac* when *jac_targets* is empty is the point
       // of this agenda, so its outputs have no shape to verify
       .output_constraints = false,
   };

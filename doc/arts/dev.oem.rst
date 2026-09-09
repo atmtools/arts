@@ -104,6 +104,22 @@ native allocation-transfer regression in ``test_agenda_operator.cc`` and
 the Python retained-object regression in
 ``tests/core/agenda/operator_return_values.py`` when changing these bridges.
 
+State mapping and derivative selection
+--------------------------------------
+
+``AgendaWrapper`` always passes the complete target set as
+``model_state_targets``.  It selects a const reference to either that same
+set or a local empty set for ``jac_targets`` before entering the agenda.
+Both objects outlive the synchronous agenda execution.  Do not copy the
+populated targets or clear an agenda input to implement value-only calls.
+
+Methods mapping trial states into physical fields use ``model_state_targets``.
+Radiative transfer and Jacobian transformations use ``jac_targets``.
+Measurement-error values and derivatives likewise use the full mapping and
+derivative targets respectively.  This distinction preserves trial-state
+updates and error values when derivatives are disabled.  The predefined
+agendas must not list either target set among their copied inputs.
+
 Bounded inner iterations
 ------------------------
 

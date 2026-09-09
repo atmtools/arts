@@ -6,6 +6,7 @@
 void measurement_vec_errorFromModelState(Vector&                   measurement_vec_error,
                                          Matrix&                   measurement_jac_error,
                                          const ArrayOfSensorObsel& measurement_sensor,
+                                         const JacobianTargets&    model_state_targets,
                                          const JacobianTargets&    jac_targets,
                                          const Vector&             model_state_vec) try {
   ARTS_TIME_REPORT
@@ -16,18 +17,17 @@ void measurement_vec_errorFromModelState(Vector&                   measurement_v
   measurement_jac_error.resize(measurement_sensor.size(), jac_targets.x_size());
   measurement_jac_error = 0.0;
 
-  for (auto& elem : jac_targets.error) {
-    elem.update_model(measurement_vec_error, model_state_vec);
+  for (const auto& elem : model_state_targets.error) { elem.update_model(measurement_vec_error, model_state_vec); }
+  for (const auto& elem : jac_targets.error) {
     elem.update_jac(measurement_jac_error, model_state_vec, measurement_vec_error);
   }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_vecConditionalAddError(Vector&       measurement_vec,
-                                        Matrix&       measurement_jac,
-                                        const Vector& measurement_vec_error,
-                                        const Matrix& measurement_jac_error,
-                                        const Index&  do_jac) try {
+void measurement_vecAddError(Vector&       measurement_vec,
+                             Matrix&       measurement_jac,
+                             const Vector& measurement_vec_error,
+                             const Matrix& measurement_jac_error) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(measurement_vec.shape() != measurement_vec_error.shape(),
@@ -41,7 +41,7 @@ measurement_vec_error.shape() : {:B,}
 
   measurement_vec += measurement_vec_error;
 
-  if (do_jac != 0) {
+  if (not measurement_jac.empty()) {
     ARTS_USER_ERROR_IF(measurement_jac.shape() != measurement_jac_error.shape(),
                        R"(Mismatched shapes:
 

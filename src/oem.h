@@ -462,7 +462,6 @@ class AgendaWrapper {
         sensor(measurement_sensor),
         surf(surf_field),
         subsurf(subsurf_field),
-        iteration_counter_(0),
         jacobian_(arts_jacobian),
         ws_(ws),
         yi_(arts_y),
@@ -531,8 +530,10 @@ class AgendaWrapper {
     // first, and publish a new state tag only after all output checks succeed.
     measurement_valid_ = false;
     if (with_jacobian) jacobian_valid_ = false;
-    ::Matrix dummy;
-    auto    &jacobian = with_jacobian ? static_cast<::Matrix &>(jacobian_) : dummy;
+    ::Matrix               dummy;
+    auto                  &jacobian = with_jacobian ? static_cast<::Matrix &>(jacobian_) : dummy;
+    const JacobianTargets  no_targets{};
+    const JacobianTargets &derivative_targets = with_jacobian ? *jacs : no_targets;
     inversion_iterate_agendaExecute(*ws_,
                                     *atm,
                                     *absdata,
@@ -542,9 +543,8 @@ class AgendaWrapper {
                                     yi_,
                                     jacobian,
                                     *jacs,
+                                    derivative_targets,
                                     xi,
-                                    with_jacobian ? 1 : 0,
-                                    iteration_counter_,
                                     *inversion_iterate_agenda_);
     ARTS_USER_ERROR_IF(yi_.size() != m, "inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size())
     if (with_jacobian) {
@@ -554,7 +554,6 @@ class AgendaWrapper {
                          n)
       jacobian_state_ = static_cast<const ::Vector &>(xi);
       jacobian_valid_ = true;
-      ++iteration_counter_;
     }
     measurement_state_ = static_cast<const ::Vector &>(xi);
     measurement_valid_ = true;
@@ -567,7 +566,6 @@ class AgendaWrapper {
   ArrayOfSensorObsel    *sensor;
   SurfaceField          *surf;
   SubsurfaceField       *subsurf;
-  unsigned int           iteration_counter_;
   MatrixReference        jacobian_;
   const Workspace *const ws_;
   // Borrow the workspace output rather than copying it into and out of the adapter.

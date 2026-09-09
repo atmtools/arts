@@ -85,7 +85,7 @@ struct Retrieval {
   Vector  first_state;
   struct Evaluation {
     Vector state;
-    bool   do_jac;
+    bool   with_jacobian;
   };
   std::vector<Evaluation> evaluations;
   bool                    track_physical_state = false;
@@ -93,9 +93,9 @@ struct Retrieval {
   std::function<void(const Vector&, Vector&, Matrix&, bool)> forward;
 
   Retrieval() {
-    forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+    forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
       fit = Vector{state[0] + 2 * state[1] + 0.25, 2 * state[0] - state[1] - 0.5, state[0] + state[1] + 1};
-      if (do_jac)
+      if (with_jacobian)
         jacobian = matrix(3, 2, {1, 2, 2, -1, 1, 1});
       else
         jacobian.resize(0, 0);
@@ -103,19 +103,26 @@ struct Retrieval {
     set_target_size(2);
 
     CallbackOperator callback;
-    callback.inputs     = {"model_state_vec", "do_jac", "surf_field"};
+    callback.inputs     = {"model_state_vec", "model_state_targets", "jac_targets", "surf_field"};
     callback.outputs    = {"measurement_vec_fit", "measurement_jac", "surf_field"};
     callback.callback.f = [this](Workspace& local) {
       const auto& state = local.get<Vector>("model_state_vec");
+      require(&local.get<JacobianTargets>("model_state_targets") == &targets,
+              "OEM must borrow the full state mapping on every agenda call");
+      const auto& derivative_targets = local.get<JacobianTargets>("jac_targets");
+      if (derivative_targets.x_size() != 0) {
+        require(&derivative_targets == &targets, "OEM must borrow the full derivative targets");
+      }
+
       if (calls++ == 0) first_state = state;
-      const bool do_jac  = local.get<Index>("do_jac") != 0;
-      jacobian_calls    += do_jac;
-      evaluations.push_back({state, do_jac});
+      const bool with_jacobian  = local.get<JacobianTargets>("jac_targets").x_size() != 0;
+      jacobian_calls           += with_jacobian;
+      evaluations.push_back({state, with_jacobian});
       // The agenda's physical inouts must track the returned state, including
       // when a rejected or failed LM trial has modified them. Use an otherwise
       // unused surface value as a marker without any atmospheric data files.
       if (track_physical_state) local.get<SurfaceField>("surf_field").ellipsoid[0] = state[0];
-      forward(state, local.get<Vector>("measurement_vec_fit"), local.get<Matrix>("measurement_jac"), do_jac);
+      forward(state, local.get<Vector>("measurement_vec_fit"), local.get<Matrix>("measurement_jac"), with_jacobian);
     };
     agenda.add(Method("analytical_forward_model", Wsv{callback}));
     agenda.finalize(true);
@@ -274,9 +281,9 @@ void test_disabled_start_cost(std::string_view method) {
 void test_runtime_failure(std::string_view method) {
   Retrieval  r;
   const auto working_forward = r.forward;
-  r.forward                  = [&](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+  r.forward                  = [&](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
     if (r.calls > 1) throw std::runtime_error("deliberate regression forward-model failure");
-    working_forward(state, fit, jacobian, do_jac);
+    working_forward(state, fit, jacobian, with_jacobian);
   };
   r.settings[3] = 20;
   r.gain        = matrix(1, 1, {999});
@@ -308,9 +315,9 @@ void quadratic_model(Retrieval& r) {
   r.sa = covariance(matrix(1, 1, {4}));
   r.se = covariance(matrix(1, 1, {0.25}));
   r.set_target_size(1);
-  r.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+  r.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
     fit = Vector{state[0] * state[0]};
-    if (do_jac)
+    if (with_jacobian)
       jacobian = matrix(1, 1, {2 * state[0]});
     else
       jacobian.resize(0, 0);
@@ -351,9 +358,9 @@ void test_underdetermined(std::string_view method) {
   r.y       = Vector{2};
   r.sa      = covariance(matrix(2, 2, {4, 0, 0, 9}));
   r.se      = covariance(matrix(1, 1, {1}));
-  r.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+  r.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
     fit = Vector{state[0] + 2 * state[1]};
-    if (do_jac)
+    if (with_jacobian)
       jacobian = matrix(1, 2, {1, 2});
     else
       jacobian.resize(0, 0);
@@ -459,9 +466,9 @@ void test_lm_outcomes() {
       stationary.set_target_size(1);
       stationary.settings = OEMLMSettings{.initial_damping = damping, .maximum_damping = damping}.as_vector();
       stationary.stop_dx  = 1e-20;
-      stationary.forward  = [](const Vector& state, Vector& fit, Matrix& jacobian, bool do_jac) {
+      stationary.forward  = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
         fit = state;
-        if (do_jac)
+        if (with_jacobian)
           jacobian = matrix(1, 1, {1});
         else
           jacobian.resize(0, 0);
@@ -486,7 +493,7 @@ void check_no_repeated_evaluations(const Retrieval& r) {
     const auto& current  = r.evaluations[i];
     // A value-only evaluation followed by a derivative at the same state is
     // necessary for accepted nonlinear LM trials. The reverse adds no data.
-    require(not(stdr::equal(previous.state, current.state) and (previous.do_jac or not current.do_jac)),
+    require(not(stdr::equal(previous.state, current.state) and (previous.with_jacobian or not current.with_jacobian)),
             "Consecutive agenda evaluations repeat an available result");
   }
 }
@@ -571,10 +578,11 @@ void test_evaluation_reuse() {
       // uses the state displacement and previous normal equations only.
       check_evaluation_count(
           continuing, 3 + not clear, 2 + not clear, std::format("{} continuing iteration (clear={})", method, clear));
-      require(continuing.evaluations[1].do_jac,
+      require(continuing.evaluations[1].with_jacobian,
               "Continuing GN iteration first requested an unnecessary value-only call");
       close(continuing.evaluations[1].state[0], 161.0 / 65, 1e-12, "Continuing GN Jacobian state");
-      require(not continuing.evaluations[2].do_jac, "Terminal GN iteration failed to request its fitted measurement");
+      require(not continuing.evaluations[2].with_jacobian,
+              "Terminal GN iteration failed to request its fitted measurement");
       close(continuing.yf[0], continuing.x[0] * continuing.x[0], 1e-12, "Terminal GN fitted measurement");
     }
   }
@@ -595,7 +603,7 @@ void test_evaluation_reuse() {
       close(rejected.surf.ellipsoid[0], 0.1, 0, "Rejected trial restores physical inout");
       // An old Jacobian remains valid at the accepted state, but restoring
       // only its saved fit would leave the physical inouts at a rejected trial.
-      require(rejected.evaluations.back().state[0] == 0.1 and not rejected.evaluations.back().do_jac,
+      require(rejected.evaluations.back().state[0] == 0.1 and not rejected.evaluations.back().with_jacobian,
               "Rejection restoration must evaluate the accepted physical state without repeating its Jacobian");
       require(rejected.jacobian_calls == 1, "Damping exhaustion recomputed the accepted state's Jacobian");
       check_no_repeated_evaluations(rejected);
@@ -621,8 +629,8 @@ void test_failed_evaluation_invalidates_cache() {
   require(r.calls == 0, "An initial cached pair must serve both derivative and value requests");
 
   const auto working_forward = r.forward;
-  r.forward                  = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool do_jac) {
-    working_forward(state, simulated, derivative, do_jac);
+  r.forward                  = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool with_jacobian) {
+    working_forward(state, simulated, derivative, with_jacobian);
     if (state[0] == 2) {
       simulated[0] = -999;
       throw std::runtime_error("deliberate partially written trial");
@@ -654,11 +662,11 @@ void test_failed_evaluation_invalidates_cache() {
 
   // A failed derivative request can overwrite the saved matrix itself, so
   // restoration must recompute both outputs in that case.
-  r.forward = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool do_jac) {
-    working_forward(state, simulated, derivative, do_jac);
+  r.forward = [&](const Vector& state, Vector& simulated, Matrix& derivative, bool with_jacobian) {
+    working_forward(state, simulated, derivative, with_jacobian);
     if (state[0] == 2) {
       simulated[0] = -999;
-      if (do_jac) derivative[0, 0] = -999;
+      if (with_jacobian) derivative[0, 0] = -999;
       throw std::runtime_error("deliberate partially written Jacobian");
     }
   };

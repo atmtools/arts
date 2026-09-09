@@ -45,42 +45,44 @@ void model_state_vecPerturbations(Vector& model_state_vec, const JacobianTargets
 
 ////// Update the fields from the model state vector
 
-void atm_fieldFromModelState(AtmField& atm_field, const Vector& model_state_vec, const JacobianTargets& jac_targets) {
+void atm_fieldFromModelState(AtmField&              atm_field,
+                             const Vector&          model_state_vec,
+                             const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.atm) { target.update_model(atm_field, model_state_vec); }
+  for (auto& target : model_state_targets.atm) { target.update_model(atm_field, model_state_vec); }
 }
 
 void surf_fieldFromModelState(SurfaceField&          surf_field,
                               const Vector&          model_state_vec,
-                              const JacobianTargets& jac_targets) {
+                              const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.surf) { target.update_model(surf_field, model_state_vec); }
+  for (auto& target : model_state_targets.surf) { target.update_model(surf_field, model_state_vec); }
 }
 
 void subsurf_fieldFromModelState(SubsurfaceField&       subsurf_field,
                                  const Vector&          model_state_vec,
-                                 const JacobianTargets& jac_targets) {
+                                 const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.subsurf) { target.update_model(subsurf_field, model_state_vec); }
+  for (auto& target : model_state_targets.subsurf) { target.update_model(subsurf_field, model_state_vec); }
 }
 
 void abs_bandsFromModelState(AbsorptionBands&       abs_bands,
                              const Vector&          model_state_vec,
-                             const JacobianTargets& jac_targets) {
+                             const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.line) { target.update_model(abs_bands, model_state_vec); }
+  for (auto& target : model_state_targets.line) { target.update_model(abs_bands, model_state_vec); }
 }
 
 void measurement_sensorFromModelState(ArrayOfSensorObsel&    measurement_sensor,
                                       const Vector&          model_state_vec,
-                                      const JacobianTargets& jac_targets) {
+                                      const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.sensor) { target.update_model(measurement_sensor, model_state_vec); }
+  for (auto& target : model_state_targets.sensor) { target.update_model(measurement_sensor, model_state_vec); }
 }
 
 ////// Update the model state vector from the fields

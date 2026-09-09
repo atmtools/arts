@@ -207,7 +207,7 @@ def workspace(nonlinear=False):
         else:
             fit = jacobian @ state + [0.25, -0.5, 1]
             derivative = jacobian
-        if not int(local.get("do_jac")):
+        if not local.get("jac_targets").x_size():
             derivative = np.empty((0, 0))
         # Preserve the existing output objects shared with the outer workspace.
         local.get("measurement_vec_fit").value = arts.Vector(fit)
@@ -215,7 +215,7 @@ def workspace(nonlinear=False):
 
     callback = arts.CallbackOperator(
         forward,
-        ["model_state_vec", "do_jac"],
+        ["model_state_vec", "jac_targets"],
         ["measurement_vec_fit", "measurement_jac"],
     )
     agenda = arts.Agenda("inversion_iterate_agenda")

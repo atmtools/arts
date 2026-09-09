@@ -250,9 +250,8 @@ void OEM(const Workspace&        ws,
                                     measurement_vec_fit,
                                     measurement_jac,
                                     jac_targets,
+                                    jac_targets,
                                     model_state_vec,
-                                    1,
-                                    0,
                                     inversion_iterate_agenda);
   }
   ARTS_USER_ERROR_IF(measurement_jac.nrows() != m || measurement_jac.ncols() != n,
