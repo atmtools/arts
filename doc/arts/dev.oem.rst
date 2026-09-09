@@ -430,3 +430,21 @@ forward-model calls.  Automatic changes to prior or measurement covariance
 require scientific assumptions that cannot be inferred from solver progress
 alone.  Keep those assumptions visible in both the setup and uncertainty
 reports.
+
+
+Matching-grid covariance helper
+===============================
+
+``model_state_covmatCorrelate`` resolves finalized atmospheric target keys
+and checks actual coordinate grids, not only vector lengths.  It assumes
+pointwise retrieval coordinates; custom mappings that mix grid points are
+outside its contract.  It constructs an upper-triangular sparse cross block
+from existing marginal standard deviations.  It validates a candidate
+containing all existing pairs before assignment, preserving the original
+on failure and discarding inverse caches on success.  Extensions must keep
+these guarantees and must not silently rescale transformed covariances.
+
+The workspace generator joins all overloaded argument type names into one
+dispatch key.  Multi-argument overload declarations enumerate corresponding
+type combinations explicitly; they are not a Cartesian-product expansion.
+The correlation regression exercises mixed atmospheric-key/species calls.

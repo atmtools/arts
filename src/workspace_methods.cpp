@@ -5461,6 +5461,30 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
       .out    = {"model_state_covmat"},
   };
 
+  wsm_data["model_state_covmatCorrelate"] = {
+      .desc = R"--(Correlate matching grid points of two atmospheric retrieval targets.
+
+Requires finalized targets, identical physical grids and diagonal marginal
+covariances, with one state coordinate per grid point.  The cross covariance
+is correlation times the product of the existing standard deviations.
+Marginal variances are unchanged.  The coefficient refers to retrieval
+coordinates: for logarithmic water it correlates temperature with log-water.
+
+The coefficient must be finite and strictly between -1 and 1.  An existing
+cross block for this pair is replaced; zero removes it.  The complete candidate
+covariance is validated before assignment.  Failure leaves the input unchanged;
+success discards cached inverses.  Other existing correlations are preserved.
+)--",
+      .author = {"Richard Larsson"},
+      .out = {"model_state_covmat"},
+      .in = {"model_state_covmat", "jac_targets", "atm_field"},
+      .gin = {"target1", "target2", "correlation"},
+      .gin_type = {"AtmKey,AtmKey,SpeciesEnum,SpeciesEnum", "AtmKey,SpeciesEnum,AtmKey,SpeciesEnum", "Numeric"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc = {"First atmospheric target", "Second atmospheric target",
+                   "Correlation coefficient in retrieval coordinates"},
+  };
+
   wsm_data["model_state_covmatAddSpeciesVMR"] = {
       .desc =
           R"(Set a species model state covariance matrix element.

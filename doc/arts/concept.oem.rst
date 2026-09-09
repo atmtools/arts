@@ -605,3 +605,33 @@ in the native units of the model state vector.
   and are used to map the Cartesian coordinates to spherical coordinates.
   They are fixed during the retrieval process
   and are not updated between iterations.
+
+
+Matching-grid cross correlation
+===============================
+
+Let the marginal prior covariances of temperature and log-water be
+:math:`S_T=\operatorname{diag}(\sigma_{T,i}^2)` and
+:math:`S_q=\operatorname{diag}(\sigma_{q,i}^2)`, where
+:math:`q_i=\ln(\mathrm{VMR}_i)`.  Correlating only matching grid points
+with coefficient :math:`\rho` gives
+
+.. math::
+
+   C_{ij} = \delta_{ij}\rho\sigma_{T,i}\sigma_{q,i},
+   \qquad
+   S_a = \begin{pmatrix} S_T & C \\ C^T & S_q \end{pmatrix}.
+
+For positive marginal variances this two-target covariance is positive
+definite exactly when :math:`|\rho|<1`.  The conditional prior mean is
+
+.. math::
+
+   E[q_i-q_{a,i}\mid T_i-T_{a,i}]
+   = \rho\frac{\sigma_{q,i}}{\sigma_{T,i}}(T_i-T_{a,i}),
+
+and its conditional variance is
+:math:`\sigma_{q,i}^2(1-\rho^2)`.  Correlation therefore expresses a
+statistical preference with residual uncertainty, while preserving the
+unconditional marginal variances.  With more than two correlated targets,
+all pair coefficients must jointly define a positive-definite covariance.

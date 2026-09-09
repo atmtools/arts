@@ -389,23 +389,29 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
 
     os << R"--(}] (Workspace& ws [[maybe_unused]],const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {
       const auto& func = map.at()--";
+    if (ol.size() > 1) {
+      os << "std::format(\"";
+      for (std::size_t i = 0; i < ol.size(); ++i) os << (i ? ", {}" : "{}");
+      os << "\", ";
+    }
 
     bool final_first = true;
     for (std::size_t garg = 0; garg < wsmr.gout_type.size(); garg++) {
       if (stdr::any_of(wsmr.gout_type[garg], Cmp::eq<','>())) {
-        if (not final_first) os << ", \", \", ";
+        if (not final_first) os << ", ";
         os << "ws.share(out[" << garg + wsmr.out.size() << "]).type_name()";
         final_first = false;
       }
     }
     for (std::size_t garg = 0; garg < wsmr.gin_type.size(); garg++) {
       if (stdr::any_of(wsmr.gin_type[garg], Cmp::eq<','>())) {
-        if (not final_first) os << ", \", \", ";
+        if (not final_first) os << ", ";
         os << "ws.share(in[" << garg + wsmr.in.size() << "]).type_name()";
         final_first = false;
       }
     }
 
+    if (ol.size() > 1) os << ")";
     os << R"--();
       func(ws, out, in);
     }

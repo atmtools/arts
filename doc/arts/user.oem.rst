@@ -228,6 +228,56 @@ these methods solve in measurement space.
 
 .. _sec-user-oem-information:
 
+Correlating temperature and log-water on the same grid
+=====================================================
+
+For two atmospheric retrieval targets with diagonal marginal covariances
+and identical altitude, latitude and longitude grids, use:
+
+.. code-block:: python
+
+   ws.RetrievalInit()
+   ws.RetrievalAddTemperature(
+       matrix=np.diag(np.full(nlevels, 3.0**2)), d=1e-3)
+   ws.RetrievalAddSpeciesVMR(
+       species="H2O", matrix=np.diag(np.full(nlevels, 0.2**2)), d=1e-7)
+   ws.RetrievalFinalizeDiagonal()
+   ws.jac_targetsToggleLogarithmicAtmTarget(key="H2O")
+   ws.model_state_covmatCorrelate(
+       target1="temperature", target2="H2O", correlation=0.6)
+
+Here the prior standard deviations are 3 K and 0.2 in natural-log water
+VMR.  Positive correlation expresses a preference for warmer-than-prior
+states to have more water than the prior at the same grid point.  It does
+not impose a temperature-to-water conversion or alter either marginal
+variance.  The supplied water variance must already describe log-water;
+toggling the logarithmic target does not convert a VMR covariance.
+
+For absorption models using numerical derivatives, choose ``d`` in physical
+kelvin or VMR units, even for a logarithmic retrieval target.  The example
+uses 0.001 K and 1e-7 VMR for its PWR98 model.  Check derivative stability
+when adapting these perturbations to a different atmosphere.
+
+The coefficient must be strictly between -1 and 1; perfect correlation
+would make the covariance singular.  Calling the method again replaces
+the pair's correlation; zero removes it.  Other pairs remain unchanged.
+The complete covariance must remain positive definite, so adding another
+pair can fail even when each coefficient individually lies in this range.
+Failure leaves the covariance unchanged.  Dense and sparse diagonal
+marginals are supported; targets must have one state coordinate per grid
+point.  General spatial cross-covariances require explicit blocks.
+The helper uses the covariance validator's default dense-component size
+limit; a sparse cross block does not make validation or inversion fully sparse.
+
+``tests/core/jac/oem_cross_correlation.py`` demonstrates recovery from a
+warmer, wetter starting atmosphere using temperature and log-water.
+Measurements are simulated from the prior atmosphere, and the prior is
+kept fixed when the starting atmosphere is changed.  Thus both parts of
+the OEM objective have their minimum at the prior.  This checks the
+correlated retrieval plumbing; it does not establish that a particular
+correlation is scientifically appropriate for real observations.
+
+
 Checking what the measurements can constrain
 ============================================
 
