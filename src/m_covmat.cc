@@ -322,17 +322,14 @@ void correlate_atmosphere(CovarianceMatrix&      covariance,
 }
 }  // namespace
 
-#define CORRELATE_ATMOSPHERE(A, B)                                                        \
-  void model_state_covmatCorrelate(CovarianceMatrix&      covariance,                     \
-                                   const JacobianTargets& targets,                        \
-                                   const AtmField&        atmosphere,                     \
-                                   const A&               target1,                        \
-                                   const B&               target2,                        \
-                                   const Numeric&         correlation) {                  \
-    correlate_atmosphere(covariance, targets, atmosphere, target1, target2, correlation); \
-  }
-CORRELATE_ATMOSPHERE(AtmKey, AtmKey)
-CORRELATE_ATMOSPHERE(AtmKey, SpeciesEnum)
-CORRELATE_ATMOSPHERE(SpeciesEnum, AtmKey)
-CORRELATE_ATMOSPHERE(SpeciesEnum, SpeciesEnum)
-#undef CORRELATE_ATMOSPHERE
+using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
+
+void model_state_covmatCorrelate(CovarianceMatrix&      covariance,
+                                 const JacobianTargets& targets,
+                                 const AtmField&        atmosphere,
+                                 const GenericAtmKey    target1,
+                                 const GenericAtmKey    target2,
+                                 const Numeric&         correlation) {
+  const auto key = [](const auto& target) { return std::visit([](const auto& p) -> AtmKeyVal { return *p; }, target); };
+  correlate_atmosphere(covariance, targets, atmosphere, key(target1), key(target2), correlation);
+}

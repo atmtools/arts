@@ -24,52 +24,41 @@ void jac_targetsFinalize(JacobianTargets&          jac_targets,
   jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
 }
 
-void jac_targetsAddSubsurface(JacobianTargets& jac_targets, const SubsurfaceKey& key, const Numeric& d) {
-  ARTS_TIME_REPORT
+void jac_targetsAddSubsurface(JacobianTargets&                                                jac_targets,
+                              const Generic<const SubsurfaceKey, const SubsurfacePropertyTag> key,
+                              const Numeric&                                                  d) {
+  std::visit(
+      [&](const auto& selected) {
+        ARTS_TIME_REPORT
 
-  jac_targets.emplace_back(SubsurfaceKeyVal{key}, d);
+        jac_targets.emplace_back(SubsurfaceKeyVal{*selected}, d);
+      },
+      key);
 }
 
-void jac_targetsAddSubsurface(JacobianTargets& jac_targets, const SubsurfacePropertyTag& key, const Numeric& d) {
-  ARTS_TIME_REPORT
+void jac_targetsAddSurface(JacobianTargets&                                          jac_targets,
+                           const Generic<const SurfaceKey, const SurfacePropertyTag> key,
+                           const Numeric&                                            d) {
+  std::visit(
+      [&](const auto& selected) {
+        ARTS_TIME_REPORT
 
-  jac_targets.emplace_back(SubsurfaceKeyVal{key}, d);
+        jac_targets.emplace_back(SurfaceKeyVal{*selected}, d);
+      },
+      key);
 }
 
-void jac_targetsAddSurface(JacobianTargets& jac_targets, const SurfaceKey& key, const Numeric& d) {
-  ARTS_TIME_REPORT
+void jac_targetsAddAtmosphere(
+    JacobianTargets&                                                                                   jac_targets,
+    const Generic<const AtmKey, const SpeciesEnum, const SpeciesIsotope, const QuantumLevelIdentifier> key,
+    const Numeric&                                                                                     d) {
+  std::visit(
+      [&](const auto& selected) {
+        ARTS_TIME_REPORT
 
-  jac_targets.emplace_back(SurfaceKeyVal{key}, d);
-}
-
-void jac_targetsAddSurface(JacobianTargets& jac_targets, const SurfacePropertyTag& key, const Numeric& d) {
-  ARTS_TIME_REPORT
-
-  jac_targets.emplace_back(SurfaceKeyVal{key}, d);
-}
-
-void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const AtmKey& key, const Numeric& d) {
-  ARTS_TIME_REPORT
-
-  jac_targets.emplace_back(AtmKeyVal{key}, d);
-}
-
-void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const SpeciesEnum& key, const Numeric& d) {
-  ARTS_TIME_REPORT
-
-  jac_targets.emplace_back(AtmKeyVal{key}, d);
-}
-
-void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const SpeciesIsotope& key, const Numeric& d) {
-  ARTS_TIME_REPORT
-
-  jac_targets.emplace_back(AtmKeyVal{key}, d);
-}
-
-void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const QuantumLevelIdentifier& key, const Numeric& d) {
-  ARTS_TIME_REPORT
-
-  jac_targets.emplace_back(AtmKeyVal{key}, d);
+        jac_targets.emplace_back(AtmKeyVal{*selected}, d);
+      },
+      key);
 }
 
 void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const ScatteringSpeciesProperty& key, const Numeric& d) {

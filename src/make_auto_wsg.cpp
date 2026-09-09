@@ -64,11 +64,22 @@ void header(std::ostream& os) {
 
 #include <memory>
 #include <iosfwd>
+#include <workspace_variant.h>
 
 )--";
 
   for (const auto& [file, groups] : files()) { std::println(os, "#include <{0}>", file); }
 
+  for (const auto& kind : {"Input", "Output"}) {
+    os << "using Any" << kind << " = Generic<";
+    bool first = true;
+    for (const auto& group : groups()) {
+      if (not first) os << ", ";
+      first = false;
+      os << (std::string_view(kind) == "Input" ? "const " : "") << group;
+    }
+    os << ">;\n";
+  }
   os << "\ntemplate <typename T>\nconcept WorkspaceGroup = false";
   for (auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
   os << "\n;\n\n"

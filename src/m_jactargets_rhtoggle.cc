@@ -29,42 +29,18 @@ void jac_targetsToggleRelativeHumidityAtmTargetImpl(JacobianTargets&            
 
 // Atm
 
-void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&            jac_targets,
-                                                const AtmField&             f,
-                                                const NumericUnaryOperator& psat,
-                                                const AtmKey&               key,
-                                                const Index&                nonnegative) {
-  jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, key, psat, nonnegative);
-}
-
-void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&            jac_targets,
-                                                const AtmField&             f,
-                                                const NumericUnaryOperator& psat,
-                                                const SpeciesEnum&          key,
-                                                const Index&                nonnegative) {
-  jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, key, psat, nonnegative);
-}
-
-void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&            jac_targets,
-                                                const AtmField&             f,
-                                                const NumericUnaryOperator& psat,
-                                                const SpeciesIsotope&       key,
-                                                const Index&                nonnegative) {
-  jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, key, psat, nonnegative);
-}
-
-void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&              jac_targets,
-                                                const AtmField&               f,
-                                                const NumericUnaryOperator&   psat,
-                                                const QuantumLevelIdentifier& key,
-                                                const Index&                  nonnegative) {
-  jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, key, psat, nonnegative);
-}
-
-void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&                 jac_targets,
-                                                const AtmField&                  f,
-                                                const NumericUnaryOperator&      psat,
-                                                const ScatteringSpeciesProperty& key,
-                                                const Index&                     nonnegative) {
-  jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, key, psat, nonnegative);
+void jac_targetsToggleRelativeHumidityAtmTarget(JacobianTargets&                               jac_targets,
+                                                const AtmField&                                f,
+                                                const NumericUnaryOperator&                    psat,
+                                                const Generic<const AtmKey,
+                                                              const SpeciesEnum,
+                                                              const SpeciesIsotope,
+                                                              const QuantumLevelIdentifier,
+                                                              const ScatteringSpeciesProperty> key,
+                                                const Index&                                   nonnegative) {
+  std::visit(
+      [&](const auto& selected) {
+        jac_targetsToggleRelativeHumidityAtmTargetImpl(jac_targets, f, *selected, psat, nonnegative);
+      },
+      key);
 }

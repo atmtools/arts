@@ -64,42 +64,23 @@ void jac_targetsToggleLogarithmicSubsurfaceTargetImpl(JacobianTargets&        ja
 
 // Atm
 
-void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const AtmKey& key) {
-  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const SpeciesEnum& key) {
-  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const SpeciesIsotope& key) {
-  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets&              jac_targets,
-                                           const AtmField&               f,
-                                           const QuantumLevelIdentifier& key) {
-  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets&                 jac_targets,
-                                           const AtmField&                  f,
-                                           const ScatteringSpeciesProperty& key) {
-  jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, key);
+void jac_targetsToggleLogarithmicAtmTarget(JacobianTargets&                               jac_targets,
+                                           const AtmField&                                f,
+                                           const Generic<const AtmKey,
+                                                         const SpeciesEnum,
+                                                         const SpeciesIsotope,
+                                                         const QuantumLevelIdentifier,
+                                                         const ScatteringSpeciesProperty> key) {
+  std::visit([&](const auto& selected) { jac_targetsToggleLogarithmicAtmTargetImpl(jac_targets, f, *selected); }, key);
 }
 
 // Surface
 
-void jac_targetsToggleLogarithmicSurfaceTarget(JacobianTargets&    jac_targets,
-                                               const SurfaceField& f,
-                                               const SurfaceKey&   key) {
-  jac_targetsToggleLogarithmicSurfaceTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogarithmicSurfaceTarget(JacobianTargets&          jac_targets,
-                                               const SurfaceField&       f,
-                                               const SurfacePropertyTag& key) {
-  jac_targetsToggleLogarithmicSurfaceTargetImpl(jac_targets, f, key);
+void jac_targetsToggleLogarithmicSurfaceTarget(JacobianTargets&                                          jac_targets,
+                                               const SurfaceField&                                       f,
+                                               const Generic<const SurfaceKey, const SurfacePropertyTag> key) {
+  std::visit([&](const auto& selected) { jac_targetsToggleLogarithmicSurfaceTargetImpl(jac_targets, f, *selected); },
+             key);
 }
 
 // Subsurface

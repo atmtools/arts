@@ -41,6 +41,12 @@ foreach(case structural numerical precision workspace)
   set_tests_properties("cpp.fast.covariance.${case}" PROPERTIES TIMEOUT 30)
 endforeach()
 
+add_executable(test_workspace_variant test_workspace_variant.cc)
+target_link_libraries(test_workspace_variant PRIVATE artsworkspace)
+add_dependencies(check-deps test_workspace_variant)
+add_test(NAME "cpp.fast.workspace.variant" COMMAND test_workspace_variant)
+set_tests_properties("cpp.fast.workspace.variant" PROPERTIES TIMEOUT 30)
+
 # Generated operator adapters must transfer their owning return values.
 add_executable(test_agenda_operator test_agenda_operator.cc)
 target_link_libraries(test_agenda_operator PRIVATE artsworkspace)

@@ -64,40 +64,22 @@ void jac_targetsToggleLogRelSubsurfaceTargetImpl(JacobianTargets&        jac_tar
 
 // Atm
 
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const AtmKey& key) {
-  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const SpeciesEnum& key) {
-  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets& jac_targets, const AtmField& f, const SpeciesIsotope& key) {
-  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets&              jac_targets,
-                                      const AtmField&               f,
-                                      const QuantumLevelIdentifier& key) {
-  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets&                 jac_targets,
-                                      const AtmField&                  f,
-                                      const ScatteringSpeciesProperty& key) {
-  jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, key);
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets&                               jac_targets,
+                                      const AtmField&                                f,
+                                      const Generic<const AtmKey,
+                                                    const SpeciesEnum,
+                                                    const SpeciesIsotope,
+                                                    const QuantumLevelIdentifier,
+                                                    const ScatteringSpeciesProperty> key) {
+  std::visit([&](const auto& selected) { jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, *selected); }, key);
 }
 
 // Surface
 
-void jac_targetsToggleLogRelSurfaceTarget(JacobianTargets& jac_targets, const SurfaceField& f, const SurfaceKey& key) {
-  jac_targetsToggleLogRelSurfaceTargetImpl(jac_targets, f, key);
-}
-
-void jac_targetsToggleLogRelSurfaceTarget(JacobianTargets&          jac_targets,
-                                          const SurfaceField&       f,
-                                          const SurfacePropertyTag& key) {
-  jac_targetsToggleLogRelSurfaceTargetImpl(jac_targets, f, key);
+void jac_targetsToggleLogRelSurfaceTarget(JacobianTargets&                                          jac_targets,
+                                          const SurfaceField&                                       f,
+                                          const Generic<const SurfaceKey, const SurfacePropertyTag> key) {
+  std::visit([&](const auto& selected) { jac_targetsToggleLogRelSurfaceTargetImpl(jac_targets, f, *selected); }, key);
 }
 
 // Subsurface

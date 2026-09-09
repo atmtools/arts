@@ -90,7 +90,57 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
     }
   }
 
-  std::print(os, "\n  return false;\n}}\n}}\n");
+  std::print(os, "\n  return false;\n}}\n");
+  os << R"(
+Wsv from_allowed(const py::object* x, std::initializer_list<std::string_view> allowed, bool output) {
+  py::gil_scoped_acquire gil;
+  if (not x or x->is_none()) throw std::runtime_error("A generic argument requires a value with a concrete type.");
+  const auto accepts = [&](std::string_view type) {
+    return allowed.size() == 0 or std::find(allowed.begin(), allowed.end(), type) != allowed.end();
+  };
+  if (py::isinstance<Wsv>(*x)) {
+    auto value = py::cast<Wsv>(*x);
+    if (not accepts(value.type_name())) throw std::runtime_error("Unsupported generic argument type: " + std::string(value.type_name()));
+    return value;
+  }
+)";
+  // Preserve identity, including the shared scalar held by ValueHolder.
+  for (const auto& [group, wsg] : wsgs) {
+    if (wsg.value_type)
+      std::println(
+          os,
+          "  if (accepts(\"{0}\") and py::isinstance<ValueHolder<{0}>>(*x)) return Wsv(std::shared_ptr<{0}>(py::cast<ValueHolder<{0}>&>(*x, false).val));",
+          group);
+    else
+      std::println(
+          os,
+          "  if (accepts(\"{0}\") and py::isinstance<{0}>(*x)) return Wsv(py::cast<std::shared_ptr<{0}>>(*x, false));",
+          group);
+  }
+  os << R"(
+  if (output) throw std::runtime_error("A generic output requires an explicitly typed mutable ARTS object.");
+  if (allowed.size() == 0) return from(x);
+  // Try only declared alternatives, in declaration order. Conversion is compiled
+  // once per workspace group, not once per combination of method arguments.
+  for (const auto type : allowed) {
+)";
+  for (const auto& [group, wsg] : wsgs) {
+    os << "    if (type == \"" << group << "\") {\n";
+    if (wsg.value_type) {
+      std::println(os,
+                   "      ValueHolder<{0}> value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value.val));",
+                   group);
+    } else {
+      std::println(os, "      {0} value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value));", group);
+    }
+    os << "    }\n";
+  }
+  os << R"(
+  }
+  throw std::runtime_error("Cannot convert generic argument to any declared type.");
+}
+} // namespace Python
+)";
 } catch (const std::exception& e) {
   std::println(stderr, "Error in implement_convert_const_py_object: {}", e.what());
   throw;
@@ -258,6 +308,7 @@ bool convert_ref(Wsv& wsv, const py::object * const x);
 bool convert_cast(Wsv& wsv, const py::object * const x);
 Wsv from(py::object* const x);
 Wsv from(const py::object* const x);
+Wsv from_allowed(const py::object*, std::initializer_list<std::string_view>, bool output);
 
 std::string type(const py::object * const x);
 

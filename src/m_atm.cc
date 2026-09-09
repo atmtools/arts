@@ -560,13 +560,13 @@ void atm_fieldAbsoluteWindField(AtmField &atm_field) try {
 }
 ARTS_METHOD_ERROR_CATCH
 
-void atm_fieldHydrostaticPressure(AtmField                     &atm_field,
-                                  const NumericTernaryOperator &gravity_operator,
-                                  const AscendingGrid          &alts,
-                                  const GeodeticField2         &p0,
-                                  const Numeric                &fixed_specific_gas_constant,
-                                  const Numeric                &fixed_atm_temperature,
-                                  const String                 &hydrostatic_option) {
+static void atm_fieldHydrostaticPressureImpl(AtmField                     &atm_field,
+                                             const NumericTernaryOperator &gravity_operator,
+                                             const AscendingGrid          &alts,
+                                             const GeodeticField2         &p0,
+                                             const Numeric                &fixed_specific_gas_constant,
+                                             const Numeric                &fixed_atm_temperature,
+                                             const String                 &hydrostatic_option) {
   ARTS_TIME_REPORT
 
   using enum HydrostaticPressureOption;
@@ -624,13 +624,13 @@ void atm_fieldHydrostaticPressure(AtmField                     &atm_field,
       Atm::HydrostaticPressure(scale_factor, p0, alts, to<HydrostaticPressureOption>(hydrostatic_option))};
 }
 
-void atm_fieldHydrostaticPressure(AtmField                     &atm_field,
-                                  const NumericTernaryOperator &gravity_operator,
-                                  const AscendingGrid          &alts,
-                                  const Numeric                &p0,
-                                  const Numeric                &fixed_specific_gas_constant,
-                                  const Numeric                &fixed_atm_temperature,
-                                  const String                 &hydrostatic_option) {
+static void atm_fieldHydrostaticPressureImpl(AtmField                     &atm_field,
+                                             const NumericTernaryOperator &gravity_operator,
+                                             const AscendingGrid          &alts,
+                                             const Numeric                &p0,
+                                             const Numeric                &fixed_specific_gas_constant,
+                                             const Numeric                &fixed_atm_temperature,
+                                             const String                 &hydrostatic_option) {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -702,4 +702,24 @@ void atm_fieldWindIncludePlanetRotation(AtmField           &atm_field,
   } else {
     ARTS_USER_ERROR("Unsupported data type for wind_u field when including planet rotation");
   }
+}
+
+void atm_fieldHydrostaticPressure(AtmField                                          &atm_field,
+                                  const NumericTernaryOperator                      &gravity_operator,
+                                  const AscendingGrid                               &alts,
+                                  const Generic<const GeodeticField2, const Numeric> p0,
+                                  const Numeric                                     &fixed_specific_gas_constant,
+                                  const Numeric                                     &fixed_atm_temperature,
+                                  const String                                      &hydrostatic_option) {
+  std::visit(
+      [&](const auto &selected) {
+        atm_fieldHydrostaticPressureImpl(atm_field,
+                                         gravity_operator,
+                                         alts,
+                                         *selected,
+                                         fixed_specific_gas_constant,
+                                         fixed_atm_temperature,
+                                         hydrostatic_option);
+      },
+      p0);
 }

@@ -347,43 +347,40 @@ Your sorting is not correct, and instead reads:
 }
 }  // namespace
 
-#define AddRawSensor(T, ...)                                                                                  \
-  void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                            measurement_sensor,      \
-                                      ArrayOfSensorMetaInfo&                         measurement_sensor_meta, \
-                                      const AscendingGrid&                           freq_grid,               \
-                                      const Vector3&                                 pos,                     \
-                                      const Vector2&                                 los,                     \
-                                      const matpack::gridded_data_t<T, __VA_ARGS__>& raw_sensor,              \
-                                      const Index&                                   normalize) try {         \
-    ARTS_TIME_REPORT                                                                                          \
-                                                                                                              \
-    measurement_sensorAddRawSensorTmpl(                                                                       \
-        measurement_sensor, freq_grid, pos, los, raw_sensor, static_cast<bool>(normalize));                   \
-                                                                                                              \
-    SortedGriddedField1 gf;                                                                                   \
-    gf.data_name     = "raw";                                                                                 \
-    gf.gridname<0>() = "frequency";                                                                           \
-    gf.grid<0>()     = freq_grid;                                                                             \
-    gf.data.resize(freq_grid.size());                                                                         \
-    gf.data = 0.0;                                                                                            \
-    measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});                                         \
-  }                                                                                                           \
-  ARTS_METHOD_ERROR_CATCH
-
-AddRawSensor(Numeric, AscendingGrid);
-AddRawSensor(Numeric, AscendingGrid, AscendingGrid);
-AddRawSensor(Numeric, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-AddRawSensor(Stokvec, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid);
-
-#undef AddRawSensor
+void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                      measurement_sensor,
+                                    ArrayOfSensorMetaInfo&                   measurement_sensor_meta,
+                                    const AscendingGrid&                     freq_grid,
+                                    const Vector3&                           pos,
+                                    const Vector2&                           los,
+                                    const Generic<const StokvecSortedGriddedField1,
+                                                  const StokvecSortedGriddedField2,
+                                                  const StokvecSortedGriddedField3,
+                                                  const StokvecSortedGriddedField4,
+                                                  const StokvecSortedGriddedField5,
+                                                  const StokvecSortedGriddedField6,
+                                                  const SortedGriddedField1,
+                                                  const SortedGriddedField2,
+                                                  const SortedGriddedField3,
+                                                  const SortedGriddedField4,
+                                                  const SortedGriddedField5,
+                                                  const SortedGriddedField6> raw_sensor,
+                                    const Index&                             normalize) try {
+  ARTS_TIME_REPORT
+  std::visit(
+      [&](const auto& selected) {
+        measurement_sensorAddRawSensorTmpl(
+            measurement_sensor, freq_grid, pos, los, *selected, static_cast<bool>(normalize));
+      },
+      raw_sensor);
+  SortedGriddedField1 gf;
+  gf.data_name     = "raw";
+  gf.gridname<0>() = "frequency";
+  gf.grid<0>()     = freq_grid;
+  gf.data.resize(freq_grid.size());
+  gf.data = 0.0;
+  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+}
+ARTS_METHOD_ERROR_CATCH
 
 void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
                                  ArrayOfSensorMetaInfo& measurement_sensor_meta,

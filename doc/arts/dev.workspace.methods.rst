@@ -437,3 +437,129 @@ it will not be passed to the user.
 
 The call order and documentation is available here
 see :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
+
+Generic argument variants
+-------------------------
+
+A comma-separated generic type declaration lists independent alternatives
+for that argument.  The generator produces one C++ signature using
+``const Generic<const T, const U, ...>`` for inputs and
+``Generic<T, U, ...>`` for outputs, passed by value.  ``Generic<Ts...>``
+derives from ``std::variant<std::shared_ptr<Ts>...>``.  The outer ``const``
+protects the input variant; the const-qualified alternatives protect its
+pointees.  The ``UniformGenericConstness`` concept requires all alternatives to be
+const or all to be non-const. Mixed alternatives are rejected.
+``Any`` expands to ``AnyInput`` or ``AnyOutput``, covering all workspace
+groups.  Workspace adapters retain the original shared pointers; they do
+not copy the underlying values.  Inputs are const and outputs retain the
+identity of the workspace object.  Assigning a different pointer to an
+output variant does not replace the workspace variable: mutate its pointee.
+
+For example, two ``AtmKey,SpeciesEnum`` inputs give two two-alternative
+variants in one implementation, accepting all four combinations.  Visit
+each input independently when converting to a common representation.
+Use a multi-variant visit only when the algorithm actually depends on the
+combination.  Cross-argument restrictions must be checked explicitly in
+the implementation; type lists are no longer zipped overload tables.
+
+The Python signature uses untyped objects for generic arguments.  One
+shared runtime conversion implementation preserves explicitly typed
+objects, then tries permitted implicit input conversions in declaration
+order.  Generic outputs require an explicitly typed mutable ARTS object;
+converting a Python scalar would otherwise mutate a discarded temporary.
+No nanobind variant caster is instantiated per generic method signature.
+The C++ adapter constructs the correctly sized variant from the resulting
+workspace value.  Converted inputs retain ownership through the call.
+
+For direct C++ calls, constructors accepting references borrow those
+objects for the call's duration.  Such borrowed alternatives must not
+escape the call.  Construct from workspace values or owning shared pointers
+when retaining an argument beyond that lifetime.
+
+Value variants also construct a ``Generic``, with deduction of their alternatives::
+
+    Atm::KeyVal key = AtmKey::t;
+    Generic mutable_key(key);
+    Generic input_key(std::as_const(key));
+
+Lvalue variants borrow their active value without copying it.  The source
+must remain alive and keep the same active alternative while the borrowed
+Generic is used.  Rvalue variants instead allocate shared ownership of the
+moved active value; const rvalues copy it into owned const storage.
+Const source variants produce const alternatives.
+
+Combine alternative sets with ``Extend``::
+
+    using First = Generic<AtmKey, SpeciesEnum>;
+    using Second = Generic<SpeciesEnum, SpeciesIsotope>;
+    using Combined = First::Extend<Second>;
+    // Combined is Generic<AtmKey, SpeciesEnum, SpeciesIsotope>.
+    AtmKey temperature = AtmKey::t;
+    First first(temperature);
+    Combined combined(first);
+
+``Extend`` accepts multiple Generic types, preserves declaration order, and
+removes exact duplicate types. All combined alternatives must have the
+same constness; use ``Const`` before combining mutable and const types.
+Combination extends the set of permitted types; the result still holds
+one active value.  Converting an existing Generic copies or moves its
+shared pointer, preserving ownership and object identity.  Conversions
+can add pointee constness but cannot remove it.  All source alternatives
+must be supported by the destination, including inactive alternatives.
+
+Use ``Generic<T, U>::Const`` to obtain ``Generic<const T, const U>`` and
+``value.as_const()`` to construct that type without copying its pointee.
+An lvalue shares ownership; ``std::move(value).as_const()`` transfers its
+active shared pointer.  Already const alternatives stay const.  This makes the pointees
+read-only through the returned Generic; mutable aliases remain usable.
+Merely declaring the outer Generic ``const`` does not make its pointees const.
+
+``test_workspace_variant.cc`` checks type sizes, constness, ownership and
+identity.  ``tests/core/agenda/supergeneric.py`` checks Python conversion
+and mutable ``Any`` outputs, including execution through an agenda.
+
+Troubleshooting Generic signature and linker errors
+--------------------------------------------------
+
+An ``undefined reference`` or ``undefined symbol`` for a workspace method
+containing ``Generic<...>`` can mean that its implementation does not match
+the generated declaration. C++ treats the mismatching definition as another
+overload, so it may compile successfully while leaving the generated method
+undefined.
+
+Alternative order is part of the C++ type: ``Generic<Numeric, Vector>`` and
+``Generic<Vector, Numeric>`` are different types, even though they accept
+the same alternatives. ``Extend`` also preserves order. An alias derived
+from a value variant follows that variant's declaration order.
+
+When this happens:
+
+* Find the method declaration in ``build/src/auto_wsm.h`` (adjust the build
+  directory if necessary) and compare it with the definition in ``src/m_*.cc``.
+* Compare the exact alternative lists and their order with ``gin_type`` and
+  ``gout_type`` in the method metadata. Check for missing or extra types,
+  pointee constness, and value versus reference parameters as well.
+  Top-level ``const`` on a by-value parameter does not change its signature;
+  ``const`` on a Generic alternative does.
+* Correct the metadata or the implementation, then rebuild to regenerate the
+  declaration. Do not edit ``auto_wsm.h`` directly. If the signatures already
+  match, check that the source file is included in the build and that the
+  definition has the expected namespace and external linkage.
+
+For an earlier compiler diagnostic, enable ``-Wmissing-prototypes`` with
+Clang/AppleClang, or ``-Wmissing-declarations`` with GCC. These flags warn
+when an externally visible function definition has no matching prior
+declaration. Implementation files must include ``workspace.h`` (or the
+generated declaration header) for this check to work. With Clang, a Generic
+order mismatch then produces a warning at the definition such as::
+
+    warning: no previous prototype for function 'MyMethod' [-Wmissing-prototypes]
+
+Use ``-Werror=missing-prototypes`` with Clang or
+``-Werror=missing-declarations`` with GCC to make this a compilation error.
+The flags can be added to a single compiler invocation when investigating
+an error, or to a developer build's C++ flags. They also diagnose unrelated
+externally visible helpers without declarations; give those helpers a
+proper declaration or internal linkage as appropriate. Do not follow the
+compiler's suggestion to make a workspace method ``static``: the generated
+adapter must be able to link to it.

@@ -310,8 +310,9 @@ void test_11c_heterogeneous_delta_scaling() try {
 
 //! FIXME: This test is wrong because TMS works but the checks are for full DISORT where we have not confirmed it
 void test_11d_removable_correction_singularities() try {
-  const auto    probe   = identical_atmosphere(AscendingGrid{1.0});
-  const Numeric mu_quad = std::midpoint(probe.mu()[2], probe.mu()[3]);  // <-- THIS SHOULD BE A QUADRATURE ANGLE, NOT A MIDPOINT
+  const auto    probe = identical_atmosphere(AscendingGrid{1.0});
+  const Numeric mu_quad =
+      std::midpoint(probe.mu()[2], probe.mu()[3]);  // <-- THIS SHOULD BE A QUADRATURE ANGLE, NOT A MIDPOINT
 
   // TMS has a removable singularity when the downward evaluation angle is
   // the beam angle.

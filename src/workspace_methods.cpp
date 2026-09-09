@@ -15,28 +15,15 @@
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"
 
+consteval const char* AtmKeyValStr() {
+  return "AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty";
+}
+
 namespace stdr = std::ranges;
 
 #if defined(__clang__)
 #pragma clang optimize off
 #endif
-
-bool WorkspaceMethodInternalRecord::has_any() const {
-  const auto cmp = Cmp::eq("Any");
-  return stdr::any_of(gout_type, cmp) + stdr::any_of(gin_type, cmp);
-}
-
-bool WorkspaceMethodInternalRecord::has_overloads() const {
-  for (auto& str : gout_type) {
-    if (stdr::any_of(str, Cmp::eq<','>())) return true;
-  }
-
-  for (auto& str : gin_type) {
-    if (stdr::any_of(str, Cmp::eq<','>())) return true;
-  }
-
-  return false;
-}
 
 std::string WorkspaceMethodInternalRecord::docstring() const try {
   std::string doc = std::format("/** {}\n", desc);
@@ -65,48 +52,34 @@ std::string WorkspaceMethodInternalRecord::docstring() const try {
   throw std::runtime_error("Error in meta-function docstring():\n\n" + std::string(e.what()));
 }
 
-std::vector<std::vector<std::string>> WorkspaceMethodInternalRecord::generic_overloads() const {
-  const auto cmp = Cmp::eq<','>();
-
-  std::vector<std::vector<std::string>> genvar;
-
-  for (auto& str : gout_type) {
-    if (std::any_of(str.begin(), str.end(), cmp))
-      genvar.push_back(split(str, ","));
-    else
-      genvar.push_back(std::vector<std::string>{str});
+std::string WorkspaceMethodInternalRecord::generic_type(const std::string& type, bool output) {
+  const std::string kind = output ? "Output" : "Input";
+  if (type == "Any") return "Any" + kind;
+  if (type.find(',') == type.npos) return type;
+  std::vector<std::string> unique;
+  for (auto name : split(type, ",")) {
+    trim(name);
+    if (stdr::find(unique, name) == unique.end()) unique.push_back(name);
   }
-
-  for (auto& str : gin_type) {
-    if (std::any_of(str.begin(), str.end(), cmp))
-      genvar.push_back(split(str, ","));
-    else
-      genvar.push_back(std::vector<std::string>{str});
+  std::string result = "Generic<";
+  for (const auto& name : unique) {
+    if (result.back() != '<') result += ", ";
+    result += (output ? "" : "const ") + name;
   }
-
-  for (auto& v : genvar) {
-    for (auto& s : v) { trim(s); }
-  }
-
-  return genvar;
+  return result + ">";
 }
 
-std::string WorkspaceMethodInternalRecord::header(const std::string& name, int overload) const try {
+std::string WorkspaceMethodInternalRecord::header(const std::string& name) const try {
   const auto& wsv = internal_workspace_variables();
   const auto& wsa = internal_workspace_agendas();
 
   const std::string spaces(name.size() + return_type.size() + 2, ' ');
-
-  const auto overloads = generic_overloads();
-  int        GVAR      = 0;
 
   std::string doc{};
 
   if (name.size() > 7 and wsa.contains(name.substr(0, name.size() - 7)) and name.substr(name.size() - 7) == "Execute") {
     return doc;
   }
-
-  if (has_any()) { doc += "template <WorkspaceGroup T>\n"; }
 
   doc += std::format("{} {}(", return_type, name);
 
@@ -132,13 +105,9 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name, int o
     throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
   }
 
-  for (const auto& i : gout) {
-    doc += std::format(
-        "{}{}& {}",
-        comma(first, spaces),
-        any_is_typename(overloads[GVAR][std::min<int>(overload, static_cast<int>(overloads[GVAR].size() - 1))]),
-        i);
-    GVAR++;
+  for (std::size_t i = 0; i < gout.size(); ++i) {
+    const auto type  = generic_type(gout_type[i], true);
+    doc             += std::format("{}{}{} {}", comma(first, spaces), type, type == gout_type[i] ? "&" : "", gout[i]);
   }
 
   for (auto& str : in) {
@@ -153,40 +122,22 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name, int o
     throw std::runtime_error("WorkspaceMethodInternalRecord::header " + name);
   }
 
-  for (const auto& i : gin) {
-    doc += std::format(
-        "{}const {}& {}",
-        comma(first, spaces),
-        any_is_typename(overloads[GVAR][std::min<int>(overload, static_cast<int>(overloads[GVAR].size() - 1))]),
-        i);
-    GVAR++;
+  for (std::size_t i = 0; i < gin.size(); ++i) {
+    if (stdr::find(gout, gin[i]) != gout.end()) continue;
+    const auto type = generic_type(gin_type[i]);
+    doc += std::format("{}{}{} {}", comma(first, spaces), "const " + type, type == gin_type[i] ? "&" : "", gin[i]);
   }
 
   doc += ")";
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(R"(Error in meta-function header("{}", {}):
+  throw std::runtime_error(std::format(R"(Error in meta-function header("{}"):
 
 {}
 )",
                                        name,
-                                       overload,
                                        std::string_view(e.what())));
-}
-
-int WorkspaceMethodInternalRecord::count_overloads() const try {
-  const auto overloads = generic_overloads();
-  int        g         = 1;
-  for (auto& x : overloads) {
-    int ng = static_cast<int>(x.size());
-    if (ng == 1) continue;
-    if (g != ng and g != 1) throw std::runtime_error("Inconsistent number of overloads");
-    g = ng;
-  }
-  return g;
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function count_overloads():\n\n" + std::string(e.what()));
 }
 
 std::string WorkspaceMethodInternalRecord::call(const std::string& name) const try {
@@ -210,7 +161,10 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const t
     doc += std::format("{}{}", comma(first, spaces), str);
   }
 
-  for (const auto& i : gin) { doc += std::format("{}{}", comma(first, spaces), i); }
+  for (const auto& i : gin) {
+    if (stdr::find(gout, i) != gout.end()) continue;
+    doc += std::format("{}{}", comma(first, spaces), i);
+  }
 
   doc += ");";
 
@@ -2984,7 +2938,6 @@ Overwrites all other functional toggles.
       .gin_desc  = {"Key to toggle"},
   };
 
-
   wsm_data["jac_targetsInit"] = {
       .desc   = R"--(Initialize or reset the *jac_targets*.
 )--",
@@ -5462,7 +5415,7 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
   };
 
   wsm_data["model_state_covmatCorrelate"] = {
-      .desc = R"--(Correlate matching grid points of two atmospheric retrieval targets.
+      .desc      = R"--(Correlate matching grid points of two atmospheric retrieval targets.
 
 Requires finalized targets, identical physical grids and diagonal marginal
 covariances, with one state coordinate per grid point.  The cross covariance
@@ -5475,14 +5428,15 @@ cross block for this pair is replaced; zero removes it.  The complete candidate
 covariance is validated before assignment.  Failure leaves the input unchanged;
 success discards cached inverses.  Other existing correlations are preserved.
 )--",
-      .author = {"Richard Larsson"},
-      .out = {"model_state_covmat"},
-      .in = {"model_state_covmat", "jac_targets", "atm_field"},
-      .gin = {"target1", "target2", "correlation"},
-      .gin_type = {"AtmKey,AtmKey,SpeciesEnum,SpeciesEnum", "AtmKey,SpeciesEnum,AtmKey,SpeciesEnum", "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"model_state_covmat"},
+      .in        = {"model_state_covmat", "jac_targets", "atm_field"},
+      .gin       = {"target1", "target2", "correlation"},
+      .gin_type  = {AtmKeyValStr(), AtmKeyValStr(), "Numeric"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc = {"First atmospheric target", "Second atmospheric target",
-                   "Correlation coefficient in retrieval coordinates"},
+      .gin_desc  = {"First atmospheric target",
+                    "Second atmospheric target",
+                    "Correlation coefficient in retrieval coordinates"},
   };
 
   wsm_data["model_state_covmatAddSpeciesVMR"] = {

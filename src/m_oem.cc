@@ -53,14 +53,17 @@ struct OEMMethod {
 };
 
 OEMMethod parse_oem_method(const String& method) {
-  if (method == "li") return {.algorithm=OEMAlgorithm::Linear};
-  if (method == "li_cg") return {.algorithm=OEMAlgorithm::Linear, .conjugate_gradient=true};
-  if (method == "li_cg_m") return {.algorithm=OEMAlgorithm::Linear, .conjugate_gradient=true, .measurement_space=true};
-  if (method == "gn") return {.algorithm=OEMAlgorithm::GaussNewton};
-  if (method == "gn_cg") return {.algorithm=OEMAlgorithm::GaussNewton, .conjugate_gradient=true};
-  if (method == "gn_cg_m") return {.algorithm=OEMAlgorithm::GaussNewton, .conjugate_gradient=true, .measurement_space=true};
-  if (method == "lm" || method == "ml") return {.algorithm=OEMAlgorithm::LevenbergMarquardt};
-  if (method == "lm_cg" || method == "ml_cg") return {.algorithm=OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient=true};
+  if (method == "li") return {.algorithm = OEMAlgorithm::Linear};
+  if (method == "li_cg") return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true};
+  if (method == "li_cg_m")
+    return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true, .measurement_space = true};
+  if (method == "gn") return {.algorithm = OEMAlgorithm::GaussNewton};
+  if (method == "gn_cg") return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
+  if (method == "gn_cg_m")
+    return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true, .measurement_space = true};
+  if (method == "lm" || method == "ml") return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
+  if (method == "lm_cg" || method == "ml_cg")
+    return {.algorithm = OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient = true};
   ARTS_USER_ERROR_IF(method == "li_m" || method == "gn_m",
                      "OEM method '{}' is not supported. Use 'li_cg_m' or 'gn_cg_m' for measurement-space solves.",
                      method)

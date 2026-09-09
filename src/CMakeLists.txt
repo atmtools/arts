@@ -170,6 +170,8 @@ add_library(artsworkspace STATIC
   m_cdisort.cc
   m_cia.cc
   m_covmat.cc
+  m_ignore.cc
+  m_xml.cc
   m_disort.cc
   m_disort_settings.cc
   m_frequency_grid.cc

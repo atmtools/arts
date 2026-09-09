@@ -409,10 +409,6 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
 
     const auto& wm = ptr->second;
 
-    if (wm.has_any() or wm.has_overloads()) {
-      throw std::runtime_error(std::format(R"(Method "{}"  has overloads and does not work with meta-functions)", m));
-    }
-
     wsm.author.insert(wsm.author.end(), wm.author.begin(), wm.author.end());
     wsm.gout.insert(wsm.gout.end(), wm.gout.begin(), wm.gout.end());
     wsm.gout_type.insert(wsm.gout_type.end(), wm.gout_type.begin(), wm.gout_type.end());
@@ -535,7 +531,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   std::stringstream code;
 
-  code << wsm.header(name, 0) << " try {\n  ARTS_TIME_REPORT\n\n";
+  code << wsm.header(name) << " try {\n  ARTS_TIME_REPORT\n\n";
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();

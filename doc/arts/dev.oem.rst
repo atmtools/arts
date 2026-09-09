@@ -444,7 +444,7 @@ containing all existing pairs before assignment, preserving the original
 on failure and discarding inverse caches on success.  Extensions must keep
 these guarantees and must not silently rescale transformed covariances.
 
-The workspace generator joins all overloaded argument type names into one
-dispatch key.  Multi-argument overload declarations enumerate corresponding
-type combinations explicitly; they are not a Cartesian-product expansion.
-The correlation regression exercises mixed atmospheric-key/species calls.
+The correlation method accepts two independent shared-pointer input variants
+in one implementation.  Each argument is converted separately to the common
+atmospheric key type.  The regression exercises all atmospheric-key/species
+combinations and the generated workspace dispatch through an agenda.
