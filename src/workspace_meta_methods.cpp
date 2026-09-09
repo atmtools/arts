@@ -287,11 +287,12 @@ This method simply is a convenience wrapper for that use case.
 
 Common use case (requires having set the ENV variables, as described in the documentation):
 
-```python
-ws.atm_fieldRead(
-    toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
-)
-```
+.. code-block:: python3
+  :linenos:
+
+  ws.atm_fieldRead(
+      toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
+  )
 )",
       .author           = {"Richard Larsson"},
       .methods          = {"atm_fieldInit", "atm_fieldAppendBaseData", "atm_fieldAppendAuto"},

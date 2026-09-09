@@ -86,14 +86,12 @@ void py_matpack(py::module_& m) try {
 
   py::class_<StridedRange>(m, "StridedRange")
       .def(py::init<Index, Index, Index>(), "offset"_a, "extent"_a, "stride"_a = 1, "Valued initialization")
-
       .doc() = "A strided range, used to select parts of a matpack type";
 
   py::class_<Range>(m, "Range")
       .def(py::init<Index, Index>(), "offset"_a, "extent"_a, "Valued initialization")
-      .def_ro("offset", &Range::offset, "The first element index.")
-      .def_ro("extent", &Range::nelem, "The number of elements.")
-
+      .def_ro("offset", &Range::offset, "The first element index.\n\n.. :class:`int`")
+      .def_ro("extent", &Range::nelem, "The number of elements.\n\n.. :class:`int`")
       .doc() = "A range, used to select parts of a matpack type";
 
   py::class_<IndexVector> iv1(m, "IndexVector");

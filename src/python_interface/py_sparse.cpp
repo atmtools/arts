@@ -387,12 +387,14 @@ arr : :class:`scipy.sparse.csr_matrix`
   block.def(py::init<Range, Range, IndexPair, std::shared_ptr<Matrix>>(), "By value, dense")
       .def(py::init<Range, Range, IndexPair, std::shared_ptr<Sparse>>(), "By value, sparse")
       .def_prop_ro(
-          "row_range", [](const Block& x) { return x.get_row_range(); }, "The element row range of this block.")
+          "row_range",
+          [](const Block& x) { return x.get_row_range(); },
+          "The element row range of this block.\n\n.. :class:`~pyarts3.arts.Range`")
       .def_prop_ro(
           "column_range",
           [](const Block& x) { return x.get_column_range(); },
-          "The element column range of this block.")
-      .def_prop_ro("indices", &Block::get_indices, "The row and column block indices.")
+          "The element column range of this block.\n\n.. :class:`~pyarts3.arts.Range`")
+      .def_prop_ro("indices", &Block::get_indices, "The row and column block indices.\n\n.. :class:`tuple[int, int]`")
       .def_prop_rw(
           "matrix",
           [](Block& x) -> std::variant<Matrix*, Sparse*> {
