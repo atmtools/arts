@@ -518,6 +518,42 @@ Merely declaring the outer Generic ``const`` does not make its pointees const.
 identity.  ``tests/core/agenda/supergeneric.py`` checks Python conversion
 and mutable ``Any`` outputs, including execution through an agenda.
 
+Keeping key alternatives consistent
+-----------------------------------
+
+Use a named helper such as ``AtmKeyValStr()`` in
+``src/workspace_methods.cpp`` instead of repeating atmospheric key lists
+in method metadata::
+
+    .gin_type = {AtmKeyValStr(), AtmKeyValStr(), "Numeric"},
+
+Pair this with an implementation type derived from the value variant::
+
+    using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
+
+The helper gives all metadata users one place to fix the spelling and order
+of the atmospheric alternatives. Its returned list must exactly match
+``AtmKeyVal``. It currently contains a handwritten string: it centralizes
+metadata maintenance but does not automatically track changes to the C++
+variant. When adding or reordering a key, update the variant and this helper
+together. See the troubleshooting section below if a mismatch reaches the
+linker.
+
+Future methods accepting both atmospheric and surface keys can compose their
+C++ alternatives with ``Extend``::
+
+    using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
+    using GenericSurfaceKey = decltype(Generic(SurfaceKeyVal{}))::Const;
+    using GenericStateKey = GenericAtmKey::Extend<GenericSurfaceKey>;
+
+A corresponding metadata helper must produce the same ordered union:
+atmospheric alternatives first, then previously absent surface alternatives.
+Do not blindly concatenate strings when the sets overlap: ``Extend`` removes
+duplicate types. Both correlation arguments can then use the same combined
+key set, allowing either atmospheric/surface ordering. Accepting those types
+only establishes the interface; cross-domain covariance mapping and its
+validation still need implementation.
+
 Troubleshooting Generic signature and linker errors
 --------------------------------------------------
 
