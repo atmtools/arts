@@ -320,7 +320,7 @@ def information(
     relative_tolerance=1e-10,
     max_dense_elements=10_000_000,
 ):
-    """Validate covariance inputs and calculate local retrieval information.
+    r"""Validate covariance inputs and calculate local retrieval information.
 
     Parameters
     ----------
@@ -338,8 +338,8 @@ def information(
         Optional labels, one per state coordinate in Jacobian-column order.
     measurement, prior_prediction : ``array_like``
         Optional arrays with shape ``(m,)``. Supply both to compare
-        measurements with an explicit F(x_a). The
-        Jacobian must then be appropriate around x_a. A spectrum fitted at
+        measurements with an explicit :math:`F(\vec{x}_a)`. The
+        Jacobian must then be appropriate around :math:`\vec{x}_a`. A spectrum fitted at
         another state is not a prior prediction.
     relative_tolerance : float
         Relative, scaled tolerance for covariance symmetry/inverse checks.
@@ -358,10 +358,18 @@ def information(
 
     Notes
     -----
-    With S_a = L_a L_a.T and S_e = L_e L_e.T, the singular values of
-    B = solve(L_e, K @ L_a) are the mode signal-to-noise ratios. The posterior
-    mode variance fractions are 1/(1+s**2). Values apply to the assumed linear
-    Gaussian model; high information does not establish correct uncertainties.
+    With covariance factors
+    :math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
+    :math:`\mathbf{S}_\epsilon=\mathbf{L}_\epsilon\mathbf{L}_\epsilon^{\top}`,
+    the singular values of the whitened Jacobian
+
+    .. math::
+
+        \widetilde{\mathbf{J}} = \mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+
+    are the mode signal-to-noise ratios. The posterior mode variance fractions
+    are :math:`1/(1+s_i^2)`. Values apply to the assumed linear Gaussian model;
+    high information does not establish correct uncertainties.
     No explicit covariance or posterior-precision inverse is formed.
     """
     max_dense_elements = operator.index(max_dense_elements)

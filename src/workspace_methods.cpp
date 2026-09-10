@@ -5103,7 +5103,8 @@ path parameters.
       .desc           = R"(Retrieve a model state by optimal estimation (OEM).
 
 See :ref:`sec-user-oem` for a practical guide to selecting methods, damping,
-covariances, and interpreting the retrieval diagnostics.
+covariances, and interpreting the retrieval diagnostics. The equations and
+notation are defined in :ref:`Sec OEM`.
 
 The cost function to minimise, including a normalisation with length
 of *measurement_vec*, is:
@@ -5141,6 +5142,9 @@ where:
   * - :math:`\vec{y}_f`
     - *measurement_vec_fit*
     - The fitted measurement vector.  The simulated measurement vector for the model state vector.
+  * - :math:`\mathbf{J}`
+    - *measurement_jac*
+    - The derivative of the simulated measurement with respect to the retrieved state.
   * - :math:`\mathbf{S}_\epsilon`
     - *measurement_vec_error_covmat*
     - The error covariance matrix of the measurement vector.
@@ -5152,15 +5156,20 @@ All methods minimize the same objective, including the prior term.
 Linear methods take one Gauss-Newton step and assume a linear forward model.
 Gauss-Newton iterates local linearizations. Levenberg-Marquardt (LM) adds
 adaptive damping to control the step size; zero damping gives a Gauss-Newton
-step. Direct methods solve a system in state space. The ``_cg`` variants use
-conjugate gradient (CG), and ``_cg_m`` variants solve in measurement space.
+step. Methods without an ``_m`` suffix solve in state space. The ``_m``
+methods solve in measurement space, either directly (``li_m``, ``gn_m``)
+or with CG (``li_cg_m``, ``gn_cg_m``). The ``_cg`` methods use conjugate
+gradient; LM and LM-CG use state space.
 
 The two input covariance matrices contain variances on their diagonals,
 in the coordinates and ordering of their corresponding vectors. They must
 be finite, symmetric, and positive definite. They are not precision
 (inverse covariance) matrices. Changing covariance weights changes the
 retrieval's statistical assumptions, whereas numerical normalization only
-rescales the linear solve.
+rescales the linear solve. OEM prepares the covariances before iteration and
+reuses unchanged preparation on subsequent calls. This changes neither the
+objective nor the selected method. See :ref:`sec-user-oem` for covariance
+storage and preparation behavior.
 
 Description of the special input arguments:
 
@@ -5199,8 +5208,9 @@ Description of the special input arguments:
     - ``measurement_vec_normalization``:
 
       Empty disables measurement-space scaling (the default). Otherwise supply
-      one finite positive standard-deviation scale per measurement, used as D_ii
-      in D^-1 (K S_a K^T + S_e) D^-1. Only li_m, gn_m, li_cg_m and gn_cg_m support this
+      one finite positive standard-deviation scale per measurement, used as :math:`D_{ii}`
+      in :math:`\mathbf{D}^{-1}(\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}
+      +\mathbf{S}_\epsilon)\mathbf{D}^{-1}`. Only li_m, gn_m, li_cg_m and gn_cg_m support this
       setting. Use measurement_vec_error_covmatNormalization to compute noise
       standard deviations; calling that method alone does not enable scaling.
 
@@ -5215,8 +5225,12 @@ Description of the special input arguments:
       Positive finite convergence threshold; default 0.01. State-space
       methods test the absolute state-step/half-gradient inner product divided
       by the number of states (Rodgers 5.31); measurement-space methods
-      use the Hessian-weighted squared state-step norm divided by that number
-      (Rodgers 5.30). This does not set the inner CG tolerance, which is
+      use the state-space half-Hessian-weighted squared state-step norm divided
+      by that number (Rodgers 5.30). These are the measures in
+      :ref:`sec-oem-convergence`. LM can also establish numerical stationarity
+      using an undamped step when cost reductions approach floating-point
+      resolution; this is independent of the damping gate on the ordinary
+      state-step criterion. This does not set the inner CG tolerance, which is
       fixed at 1e-10.
 
     - ``lm_ga_settings``:
@@ -5257,7 +5271,8 @@ Description of the special input arguments:
       The ``OEM`` argument still defaults to an empty vector, which is
       invalid for all LM names. Pass ``OEMLMSettings()`` explicitly to
       select the named defaults. Direct and CG variants use the same
-      entries and damp with the diagonal of the prior precision matrix.
+      entries and damp with the diagonal of the prior precision matrix, as
+      defined in :ref:`sec-oem-damping`.
       Entry 1 is a divisor, not a fractional multiplier.
 
     - ``clear_matrices``:
@@ -5274,7 +5289,8 @@ Description of the special input arguments:
 ``oem_diagnostics`` contains status, starting total cost, final total cost,
 final measurement cost, and number of outer iterations, in that order.
 Costs are normalized by the number of measurements; unavailable entries
-are NaN. Status values are 0 (converged), 1 (iteration limit), 2 (LM damping
+are NaN. Status values are 0 (convergence criterion met or LM numerical
+stationarity established), 1 (iteration limit), 2 (LM damping
 limit), 9 (caught inversion error; inspect ``errors``), and 99 (starting
 cost limit). The one-step linear methods can return status 1 for an exact
 linear solution because no second convergence step is performed.
@@ -5353,10 +5369,11 @@ for non-LM methods and does not include every rejected trial step.
   };
 
   wsm_data["measurement_vec_error_covmatNormalization"] = {
-      .desc      = R"(Returns measurement noise standard deviations D_ii = sqrt(S_e[i,i]).
+      .desc      = R"(Returns measurement noise standard deviations :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`.
 
 Pass these scales to OEM as measurement_vec_normalization for measurement-space methods. The scaled
-system is D^-1 (K S_a K^T + S_e) D^-1. This does not change the statistical
+system matrix is :math:`\mathbf{D}^{-1}(\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}
++\mathbf{S}_\epsilon)\mathbf{D}^{-1}`. This does not change the statistical
 objective and is not full whitening for correlated measurement errors.
 )",
       .author    = {"Richard Larsson"},
@@ -5377,6 +5394,10 @@ relevant contributions from the measurement and the forward model.
 Prerequisite for the calculation of
 ``measurement_vec_error_covmat_observation_system`` is a successful *OEM*
 computation where also the gain matrix has been computed.
+
+The result is :math:`\mathbf{S}_{\rm obs}=\mathbf{G}\mathbf{S}_\epsilon\mathbf{G}^{\top}`.
+This is the observation contribution, not the full posterior covariance;
+see :ref:`sec-oem-uncertainty` for the assumptions and decomposition.
 )",
       .author    = {"Simon Pfreundschuh"},
       .gout      = {"measurement_vec_error_covmat_observation_system"},
@@ -5392,6 +5413,10 @@ computation where also the gain matrix has been computed.
 The calculation of ``model_state_covmat_smoothing_error``
 also requires the averaging kernel matrix *measurement_averaging_kernel*
 to be computed after a successful OEM calculation.
+
+The result is
+:math:`\mathbf{S}_{\rm smooth}=(\mathbf{I}-\mathbf{A})\mathbf{S}_a(\mathbf{I}-\mathbf{A})^{\top}`;
+see :ref:`sec-oem-uncertainty` for its relation to posterior covariance.
 )",
       .author    = {"Simon Pfreundschuh"},
       .gout      = {"model_state_covmat_smoothing_error"},
@@ -5408,6 +5433,9 @@ This is done by describing the sensitivity of the
 *OEM* retrieval with respect to the true state of the system. A prerequisite
 for the calculation of the averaging kernel matrix is a successful *OEM*
 calculation in which the *measurement_jac* and the gain matrix *measurement_gain_mat* have been calculated.
+
+The result is :math:`\mathbf{A}=\mathbf{G}\mathbf{J}`, using the gain and
+Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
 )",
       .author = {"Simon Pfreundschuh"},
       .out    = {"measurement_averaging_kernel"},
@@ -6096,7 +6124,12 @@ relative tolerance or a maximum number of iterations is reached.
   wsm_data["RetrievalFinalizeDiagonal"] = {
       .desc   = R"(Finalize the retrieval setup.
 
-See *jac_targetsFinalize* for more information.
+Calls *jac_targetsFinalize* to determine target sizes and state-vector offsets,
+then adds the per-target covariance blocks collected by the RetrievalAdd methods.
+"Diagonal" refers to their positions on the block diagonal; the matrices inside
+those blocks may be correlated. Add cross-target correlations afterwards with
+*model_state_covmatCorrelate*. This method does not select an OEM method or
+prepare covariance factors; preparation happens when *OEM* is called.
 )",
       .author = {"Richard Larsson"},
       .out    = {"model_state_covmat", "jac_targets"},

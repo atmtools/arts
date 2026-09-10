@@ -1,12 +1,13 @@
 .. _sec-user-oem:
 
 Configuring an optimal-estimation retrieval
-###########################################
+###################################################
 
 This guide covers method selection, settings, covariance setup, and retrieval
 diagnostics.  The mathematical formulation is in :ref:`Sec OEM`.
 
 Choosing a method
+=========================
 
 :meth:`~pyarts3.workspace.Workspace.OEM` always minimizes the same objective,
 including the a priori term.  Choosing a method changes how this objective
@@ -84,7 +85,7 @@ calculation and returns empty Jacobian and gain matrices when those outputs
 are not needed.
 
 Reducing forward-model work
----------------------------
+-----------------------------------
 
 OEM reuses simulations and Jacobians for exactly matching states within a
 retrieval.  Continuing Gauss--Newton iterations obtain the simulation and
@@ -126,6 +127,7 @@ fields through that tuple interface.  Measure performance with a
 representative retrieval before redesigning an agenda around copy costs.
 
 Choosing covariance matrices
+====================================
 
 Set the state coordinates, measurement units, and ordering first.  Then
 construct :attr:`~pyarts3.workspace.Workspace.model_state_covmat`
@@ -207,7 +209,7 @@ component needed for validation.  Independent diagonal errors are checked
 without allocating a full dense covariance.
 
 Coordinate changes and numerical scaling
-----------------------------------------
+------------------------------------------------
 
 The prior must use the coordinates actually retrieved.  Relative retrievals
 use dimensionless relative variances, and logarithmic retrievals use variances
@@ -229,8 +231,8 @@ so a zero prior mean is not a reason to use a zero scale.  Check that the
 retrieved state agrees with the unscaled solution within numerical accuracy.
 The state-sized normalization setting is unsupported for ``li_m``, ``gn_m``,
 ``li_cg_m`` and ``gn_cg_m``. These methods accept ``measurement_vec_normalization``: empty disables
-scaling (the default); otherwise supply one finite positive D_ii per
-measurement. Noise standard deviations, D_ii = sqrt(S_e[i,i]), are a useful
+scaling (the default); otherwise supply one finite positive :math:`D_{ii}` per
+measurement. Noise standard deviations, :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`, are a useful
 choice. The measurement-space system is scaled by their inverses. This
 uses only vector scaling and preserves the statistical objective. For CG, the
 relative residual tolerance applies to the scaled system. For correlated
@@ -242,7 +244,7 @@ Inspect the noise standard deviations with::
     ws.measurement_vec_error_covmatNormalization(normalization=ws.measurement_noise_scales)
     ws.OEM(method="gn_cg_m", measurement_vec_normalization=ws.measurement_noise_scales)
 
-The output Vector contains D_ii in measurement units. Its workspace name is
+The output Vector contains :math:`D_{ii}` in measurement units. Its workspace name is
 chosen by the caller. Computing this vector alone does not enable scaling;
 pass it explicitly to OEM as shown above. Nonempty measurement scaling is
 rejected for state-space methods.
@@ -250,6 +252,7 @@ rejected for state-space methods.
 .. _sec-user-oem-information:
 
 Correlating temperature and log-water on the same grid
+==============================================================
 
 For two atmospheric retrieval targets with diagonal marginal covariances
 and identical altitude, latitude and longitude grids, use:
@@ -299,6 +302,7 @@ correlation is scientifically appropriate for real observations.
 
 
 Checking what the measurements can constrain
+====================================================
 
 Use :func:`~pyarts3.retrieval.information` to examine a Jacobian together with
 the assumed prior and measurement covariances.  It can run before a
@@ -445,6 +449,7 @@ of the state size.  Reduce the analysis size or raise the limit
 deliberately when the guard rejects a large problem.
 
 Setting LM damping
+==========================
 
 LM adds damping to limit the size of a Gauss--Newton step.  Larger gamma
 penalizes larger steps, with the penalty scaled by the diagonal of the prior
@@ -550,7 +555,7 @@ before setting ``initial_damping`` above the old maximum:
    damping.initial_damping = 200.0
 
 How the controls interact
--------------------------
+---------------------------------
 
 ``decrease_factor`` is a **divisor**: a value of 2 halves the damping when
 a reduction is made.  Increasing this factor removes damping faster.
@@ -609,7 +614,7 @@ the prior and measurement error models; changing them to cure a convergence
 problem also changes the inferred state and uncertainty.
 
 Keeping existing settings
--------------------------
+---------------------------------
 
 The six-element vector remains accepted.  Convert a known working
 configuration to named settings, or obtain a vector explicitly:
@@ -631,6 +636,7 @@ vector.  All LM method names require an explicit configuration: pass
 existing six-element vector.
 
 Checking the result
+===========================
 
 ``oem_diagnostics`` has five entries with zero-based indices:
 
@@ -712,6 +718,7 @@ discusses how to report the role of prior information and smoothing in an
 uncertainty budget.
 
 Retrieval transformations
+=========================
 
 ARTS provides built-in retrieval transformations described in
 :doc:`concept.oem`.  Custom
@@ -735,30 +742,35 @@ functional transformations.
 See :doc:`concept.oem` for the forward/inverse transformation definitions and
 the Jacobian chain rule used by these operators.
 Direct measurement-space solvers
---------------------------------
+----------------------------------------
 
-``li_m`` and ``gn_m`` assemble and factor an m by m matrix, where m is the
+``li_m`` and ``gn_m`` assemble and factor an :math:`m\times m` matrix, where :math:`m` is the
 number of measurements. They use the same measurement-space update as the
 CG variants, with one step for ``li_m`` and iteration for ``gn_m``. Optional
 ``measurement_vec_normalization`` scales the direct system as well.
-Assembly computes B = S_a K^T once, forms M = K B + S_e with matrix-matrix
-operations, and reuses B for the state update. This avoids a state-sized
-normal matrix but uses additional n by m temporary storage. The CG variants
+With measurement Jacobian :math:`\mathbf{J}`, assembly computes
+:math:`\mathbf{B}=\mathbf{S}_a\mathbf{J}^{\top}` once, forms
+:math:`\mathbf{M}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon` with matrix-matrix
+operations, and reuses :math:`\mathbf{B}` for the state update. This avoids a state-sized
+normal matrix but uses additional :math:`n\times m` temporary storage. The CG variants
 retain lazy assembly and are the lower-memory alternative.
-Small m relative to the state dimension is therefore a useful starting point
+Small :math:`m` relative to the state dimension is therefore a useful starting point
 for method choice, not a guarantee of improved runtime. Requested gain-matrix
 output still uses the existing state-space postprocessing, so the complete
 retrieval can retain state-sized costs.
 
 Covariance storage and a small LM example
-----------------------------------------
+-------------------------------------------------
 
 Covariance preparation is automatic when calling ``OEM``; it does not require
 an additional workspace call or a factorization setting. Continue choosing
 ``method="lm"`` or ``method="lm_cg"`` explicitly. Matrix and Sparse are input
 storage choices, not solver choices: a diagonal Matrix can use diagonal
-solves, while a correlated Sparse component currently uses dense Cholesky.
-Supplied inverse blocks retain the inverse-application path. In particular,
+solves, while a correlated Sparse component without inverse blocks can use dense Cholesky.
+If any inverse blocks are supplied, the current preparation selects the
+inverse-application path for the whole covariance and fills missing component
+inverses. It does not yet mix supplied inverses and Cholesky factors within
+one covariance. In particular,
 ``measurement_vec_error_covmatConstant`` supplies both a sparse diagonal
 covariance and its inverse. LM currently requests explicit prior precision;
 the measurement covariance is where diagonal/factorized solves are most
@@ -786,7 +798,7 @@ state, fitted states and fitted measurements. Four overlapping marker shapes
 show the equivalent covariance representations for each correlation pattern.
 
 Identifying the state coordinates in an information report
----------------------------------------------------------
+------------------------------------------------------------------
 
 ``pyarts3.retrieval.information_from_workspace(ws)`` uses ``jac_targets`` to
 label the state coordinates, for example ``atm.H2O[0]``. It uses each target's

@@ -1,7 +1,7 @@
 .. _sec-development-oem:
 
 Developing the OEM interface
-============================
+====================================
 
 The user guide is in :ref:`sec-user-oem` and the mathematical formulation is
 in :ref:`Sec OEM`.  This page separates the initial
@@ -10,7 +10,7 @@ The statistical objective and existing method names should remain stable
 unless a change is explicitly documented and tested.
 
 Responsibilities and regression baseline
-----------------------------------------
+------------------------------------------------
 
 ``src/m_oem.cc`` validates inputs and connects workspace inputs and outputs
 to the inverse problem.  ``src/oem.h`` contains the agenda adapter, solver
@@ -57,7 +57,7 @@ accepted-state Jacobians and meaningful damping changes, rather than only
 checking that a residual decreased.
 
 Forward-model reuse and agenda ownership
-----------------------------------------
+------------------------------------------------
 
 ``AgendaWrapper`` tracks the exact state of its most recent successful
 simulation separately from the state of its stored Jacobian.  It borrows
@@ -105,7 +105,7 @@ the Python retained-object regression in
 ``tests/core/agenda/operator_return_values.py`` when changing these bridges.
 
 State mapping and derivative selection
---------------------------------------
+----------------------------------------------
 
 ``AgendaWrapper`` always passes the complete target set as
 ``model_state_targets``.  It selects a const reference to either that same
@@ -121,7 +121,7 @@ updates and error values when derivatives are disabled.  The predefined
 agendas must not list either target set among their copied inputs.
 
 Bounded inner iterations
-------------------------
+--------------------------------
 
 An outer ``max_iter`` does not bound the work of an inner linear solve or
 LM trial search.  Both now enforce independent limits and raise an error
@@ -153,7 +153,7 @@ named LM damping settings.  Preserve the termination regressions when
 changing convergence predicates, trial acceptance, or damping updates.
 
 LM acceptance and stop outcomes
--------------------------------
+---------------------------------------
 
 ``LMStopReason`` records termination independently of the damping value.
 ``None`` means the optimizer can continue; ``Stationary`` is successful
@@ -214,7 +214,7 @@ the state, fitted measurement, costs, gain, and damping history as well
 as the final status.
 
 Remaining numerical work
-------------------------
+--------------------------------
 
 The following items require separate implementation and regression work.
 
@@ -249,7 +249,7 @@ The following items require separate implementation and regression work.
    state from a failed trial without treating NaNs as the only status record.
 
 Covariance validation and construction
---------------------------------------
+----------------------------------------------
 
 ``CovarianceMatrix.validate(expected_size=-1, relative_tolerance=1e-10,
 max_dense_elements=10_000_000)`` checks an existing physical covariance
@@ -302,7 +302,7 @@ adding a diagonal term or changing correlations, must be an explicit user
 choice because it changes the inference.
 
 Standalone information analysis
---------------------------------
+---------------------------------------
 
 ``python/src/pyarts3/retrieval.py`` provides ``information`` and
 ``information_from_workspace`` independently of the OEM optimizer.
@@ -354,7 +354,7 @@ state elements with different units; retain absolute standard deviations
 and labels in the numerical report.
 
 Helping users choose settings
------------------------------
+-------------------------------------
 
 Named LM settings are implemented by
 :class:`~pyarts3.arts.OEMLMSettings`.  Its keyword-only constructor and
@@ -433,7 +433,7 @@ reports.
 
 
 Matching-grid covariance helper
-===============================
+=======================================
 
 ``model_state_covmatCorrelate`` resolves finalized atmospheric target keys
 and checks actual coordinate grids, not only vector lengths.  It assumes
@@ -450,14 +450,25 @@ atmospheric key type.  The regression exercises all atmospheric-key/species
 combinations and the generated workspace dispatch through an agenda.
 
 Measurement-space noise scaling
-------------------------------
+---------------------------------------
 
 When ``measurement_vec_normalization`` is nonempty, the measurement-space
-direct and CG paths solve D^-1 M D^-1 v = D^-1 r,
-where M = K S_a K^T + S_e and D_ii are the supplied scales, then return u = D^-1 v.
-Empty scales disable the transformation. The helper computes the suggested
-noise scales sqrt(S_e[i,i]); OEM does not select them automatically.
-``NoiseScaledSystem`` applies this operation without materializing M or D.
+direct and CG paths solve
+
+.. math::
+
+   (\mathbf{D}^{-1}\mathbf{M}\mathbf{D}^{-1})\vec{v}
+   = \mathbf{D}^{-1}\vec{r},
+   \qquad
+   \mathbf{M}=\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}+\mathbf{S}_\epsilon,
+   \qquad
+   \vec{u}=\mathbf{D}^{-1}\vec{v}.
+
+Here :math:`\mathbf{J}` is the measurement Jacobian and :math:`D_{ii}` are
+the supplied scales. Empty scales disable the transformation. The helper
+computes the suggested noise scales :math:`\sqrt{S_{\epsilon,ii}}`;
+OEM does not select them automatically. ``NoiseScaledSystem`` applies this
+operation without materializing :math:`\mathbf{M}` or :math:`\mathbf{D}`.
 The existing state-sized normalization remains exclusive to state-space
 solvers. The relative CG tolerance is measured in the scaled system.
 ``measurement_vec_error_covmatNormalization`` exposes the same standard
@@ -466,13 +477,22 @@ Regression tests compare with the affine analytic solution and check state
 and cost invariance under independent measurement-unit changes.
 
 Direct measurement-space assembly
---------------------------------
+-----------------------------------------
 
 ``DirectMeasurementSolver`` opts into ``dense_measurement_system``. GaussNewton
 forwards this compile-time policy to MFORM; other optimizers/solvers default
-to lazy evaluation. MFORM materializes K^T and B = S_a K^T once, forms
-H = K B + S_e, and reuses B for the state update. The direct solver copies H
-for optional scaling and factorization. This uses additional n by m temporary
+to lazy evaluation. MFORM materializes :math:`\mathbf{J}^{\top}` and computes
+
+.. math::
+
+   \mathbf{B}=\mathbf{S}_a\mathbf{J}^{\top},
+   \qquad
+   \mathbf{H}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon.
+
+It reuses :math:`\mathbf{B}` for the state update. Here :math:`\mathbf{H}` is
+the measurement-space system, not the state-space half-Hessian.
+The direct solver copies :math:`\mathbf{H}` for optional scaling and
+factorization. This uses additional :math:`n\times m` temporary
 storage but avoids repeated covariance applications. CG remains lazy.
 The ARTS reference-matrix transpose returns an owning ArtsMatrix when
 materialized, as required by invlib's expression conversion. Gain postprocessing remains state-space and must be included
@@ -480,21 +500,23 @@ in performance comparisons. New methods share the affine, nonlinear,
 underdetermined, normalization and failure regression fixtures.
 
 Fused covariance addition and GEMM
----------------------------------
+------------------------------------------
 
 The ARTS reference-matrix adapter provides ``multiply_add(B, Se)`` for the
 dense MFORM path. It initializes the result to zero, adds the covariance
 blocks directly (including off-diagonal blocks), and calls ``mult`` with
-alpha=1 and beta=1. Thus H = K B + Se needs one GEMM and no separate dense
+:math:`\alpha=1` and :math:`\beta=1`. Thus
+:math:`\mathbf{H}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon` needs one GEMM and no separate dense
 covariance temporary or post-GEMM addition pass. Other invlib backends keep
 the multiplication-plus-addition fallback. This change does not remove the
 explicit Jacobian transpose or the direct solver's scaling copy.
 
 Diagonal covariance regressions
--------------------------------
+---------------------------------------
 
 Every method-specific OEM CTest also runs ``test_diagonal_covariances``.
-It uses S_a = diag(4,2) and S_e = diag(1,2,1/2) with the affine fixture,
+It uses :math:`\mathbf{S}_a=\operatorname{diag}(4,2)` and
+:math:`\mathbf{S}_\epsilon=\operatorname{diag}(1,2,1/2)` with the affine fixture,
 testing all four combinations of dense/sparse prior and noise storage,
 with normalization enabled and disabled. The reference state, gain, total
 cost and measurement cost are rational values derived independently from
@@ -502,15 +524,15 @@ the two-state normal equations. Linear methods must take exactly one step.
 These checks run as ordinary CTest regressions.
 
 Exact diagonal covariance operations
------------------------------------
+--------------------------------------------
 
 Covariance matrix multiplication now detects exact diagonal structure across
 independent blocks and scales the destination directly. ``mult_inv`` and
 vector ``solve`` divide by covariance diagonal entries without requiring an
-inverse cache. Sparse diagonals are inspected in O(nnz); dense blocks require
+inverse cache. Sparse diagonals are inspected in :math:`\mathcal{O}(\mathrm{nnz})`; dense blocks require
 an exact off-diagonal scan. Structure is not cached because callers can hold
 mutable/shared block storage. Detection uses no threshold and never discards
-small correlations. These paths use O(n) scratch space rather than a full
+small correlations. These paths use :math:`\mathcal{O}(n)` scratch space rather than a full
 matrix-result temporary.
 
 Component solves now use an internal variant of diagonal values and dense
@@ -544,6 +566,9 @@ require external synchronization; use a prepared snapshot for concurrent reads.
 ``prepared(true)`` requests explicit precision for consumers that need it.
 OEM requests this for state-space methods and gain output. Measurement error
 covariance stays diagonal or factorized unless inverse blocks were supplied.
+Any supplied inverse currently selects inverse application for the entire
+covariance, with missing component inverses materialized; mixed inverse/factor
+preparation within one covariance is not implemented.
 Calling an explicit precision consumer on ``prepared(false)`` without inverse
 blocks throws; request the required representation before entering the loop.
 CG versus direct method selection remains the user's choice.

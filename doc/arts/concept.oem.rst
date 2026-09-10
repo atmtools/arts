@@ -1,7 +1,7 @@
 .. _Sec OEM:
 
 Optimal estimation
-###################
+##########################
 
 For configuration and interpretation of retrieval outputs, see
 :ref:`sec-user-oem`.
@@ -50,7 +50,7 @@ where
 :math:`\mathbf{S}_a` is the covariance of the model state a priori.
 
 Linearization
-=============
+=====================
 
 The iterative methods use a local linear approximation to the forward model
 around the current state :math:`\vec{x}_i`:
@@ -92,7 +92,7 @@ establish convergence.
 .. _sec-oem-covariance:
 
 Covariances and coordinates
-===========================
+===================================
 
 A covariance matrix has variances on its diagonal.  Its off-diagonal entries
 can be expressed in terms of standard deviations and a correlation matrix:
@@ -144,10 +144,34 @@ For a diagonal matrix of positive scales :math:`\mathbf{T}`, solving
 This changes the conditioning of the linear system while retaining the
 same objective and solution in the original coordinates.
 
+For the measurement-space system, define
+
+.. math::
+
+   \mathbf{M}=\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}+\mathbf{S}_\epsilon,
+   \qquad
+   \vec{r}=\vec{y}-F(\vec{x}_i)+\mathbf{J}(\vec{x}_i-\vec{x}_a).
+
+Then solve :math:`\mathbf{M}\vec{u}=\vec{r}` and update
+:math:`\vec{x}_{i+1}=\vec{x}_a+\mathbf{S}_a\mathbf{J}^{\top}\vec{u}`.
+For a diagonal matrix of positive measurement scales :math:`\mathbf{D}`,
+the equivalent scaled solve is
+
+.. math::
+
+   (\mathbf{D}^{-1}\mathbf{M}\mathbf{D}^{-1})\vec{v}
+     =\mathbf{D}^{-1}\vec{r},
+   \qquad \vec{u}=\mathbf{D}^{-1}\vec{v}.
+
+Choosing :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}` scales by measurement noise
+standard deviations. This is not full whitening when measurement errors
+are correlated. This measurement scaling matrix is distinct from the
+prior-precision damping matrix introduced below.
+
 .. _sec-oem-damping:
 
 Levenberg--Marquardt damping
-============================
+====================================
 
 Let :math:`J=m\chi^2` denote the unnormalized objective.  Define its
 half-gradient and the Gauss--Newton approximation to its half-Hessian by
@@ -202,7 +226,7 @@ undefined; near zero, rounding of the computed costs can dominate it.
 .. _sec-oem-convergence:
 
 State-step convergence measures
-================================
+=======================================
 
 For :math:`n` retrieved state elements, the state-space formulation uses
 the Rodgers 5.31 measure
@@ -244,7 +268,7 @@ small while the gradient remains nonzero.
 .. _sec-oem-uncertainty:
 
 Gain, averaging kernel, and retrieval uncertainty
-=================================================
+=========================================================
 
 In the linear Gaussian model, the posterior covariance, gain, and
 averaging kernel are
@@ -278,7 +302,7 @@ The observation contribution alone is not the full posterior covariance.
 .. _sec-oem-information:
 
 Information carried by the measurements
-=======================================
+===============================================
 
 Factor the prior and measurement covariances as
 :math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
@@ -356,7 +380,7 @@ uncertainties.  Replacing the prior prediction with a fitted measurement
 does not give this distribution.
 
 Transforming the Jacobian matrix
-================================
+========================================
 
 It is sometimes desired to transform the Jacobian matrix away from the
 native units that are available in the model.  Instead of retrieving
@@ -403,7 +427,7 @@ Mapping the model state vector to non-native units may require
 knowing more than just a single model state parameter.
 
 Core mapping/transformation expression
---------------------------------------
+----------------------------------------------
 
 If we define the native units of :math:`\vec{x}` as :math:`\vec{t}`
 so that
@@ -447,7 +471,7 @@ the partial derivative of :math:`f^{-1}` with regards to
 See :doc:`user.oem` for assigning these operators to a Jacobian target.
 
 Relative retrievals
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By relative retrievals, we mean that the value itself is not
@@ -477,7 +501,7 @@ simply the a priori value of :math:`\vec{t}`.
   The first iteration of a retrieval setup is going to be :math:`\vec{x} = \vec{1}`.
 
 Logarithmic retrievals
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By logarithmic retrievals, we mean that the value itself is not
@@ -500,7 +524,7 @@ In this scenario:
 where the exponential and logarithmic operations are element-wise.
 
 Logarithmic relative retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By logarithmic relative retrievals, we mean that the value itself is not
@@ -527,7 +551,7 @@ where the operations are still element-wise on the product that is created.
   The first iteration of a retrieval setup is going to have :math:`\vec{x} = \vec{0}`.
 
 Relative humidity retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By relative humidity retrievals, we mean that the value itself is not
@@ -566,7 +590,7 @@ saturation pressure.
   some species.
 
 Absolute field retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector mapping.
 By absolute field retrievals, we mean that the value itself is not
@@ -608,11 +632,11 @@ in the native units of the model state vector.
 
 
 Matching-grid cross correlation
-===============================
+=======================================
 
 Let the marginal prior covariances of temperature and log-water be
-:math:`S_T=\operatorname{diag}(\sigma_{T,i}^2)` and
-:math:`S_q=\operatorname{diag}(\sigma_{q,i}^2)`, where
+:math:`\mathbf{S}_T=\operatorname{diag}(\sigma_{T,i}^2)` and
+:math:`\mathbf{S}_q=\operatorname{diag}(\sigma_{q,i}^2)`, where
 :math:`q_i=\ln(\mathrm{VMR}_i)`.  Correlating only matching grid points
 with coefficient :math:`\rho` gives
 
@@ -620,7 +644,7 @@ with coefficient :math:`\rho` gives
 
    C_{ij} = \delta_{ij}\rho\sigma_{T,i}\sigma_{q,i},
    \qquad
-   S_a = \begin{pmatrix} S_T & C \\ C^T & S_q \end{pmatrix}.
+   \mathbf{S}_a = \begin{pmatrix} \mathbf{S}_T & \mathbf{C} \\ \mathbf{C}^{\top} & \mathbf{S}_q \end{pmatrix}.
 
 For positive marginal variances this two-target covariance is positive
 definite exactly when :math:`|\rho|<1`.  The conditional prior mean is
