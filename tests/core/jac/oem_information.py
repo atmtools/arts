@@ -272,6 +272,11 @@ def test_read_only_workspace():
     ws.measurement_jac = K
     ws.model_state_covmat = covariance(SA)
     ws.measurement_vec_error_covmat = covariance(SE)
+    ws.measurement_noise_scales = arts.Vector()
+    ws.measurement_vec_error_covmatNormalization(
+        normalization=ws.measurement_noise_scales
+    )
+    np.testing.assert_allclose(ws.measurement_noise_scales, np.sqrt(np.diag(SE)))
     ws.measurement_vec = [2.0, -1.0, 1.5]
     # Deliberately does not represent F(xa). The wrapper must not assume it does.
     ws.measurement_vec_fit = [99.0, 99.0, 99.0]

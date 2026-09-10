@@ -177,6 +177,18 @@ void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   yf = y;
 }
 
+void measurement_vec_error_covmatNormalization(Vector& normalization,
+                                                 const CovarianceMatrix& covariance) {
+  covariance.validate(covariance.nrows());
+  Vector scales = covariance.diagonal();
+  for (auto& value : scales) {
+    ARTS_USER_ERROR_IF(not std::isfinite(value) or value <= 0,
+                       "Measurement noise variances must be finite and strictly positive.")
+    value = std::sqrt(value);
+  }
+  normalization = std::move(scales);
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void OEM(const Workspace&        ws,
          Vector&                 model_state_vec,
@@ -200,6 +212,7 @@ void OEM(const Workspace&        ws,
          const String&           method,
          const Numeric&          max_start_cost,
          const Vector&           model_state_covmat_normalization,
+         const Vector&           measurement_vec_normalization,
          const Index&            max_iter,
          const Numeric&          stop_dx,
          const Vector&           lm_ga_settings,
@@ -208,6 +221,15 @@ void OEM(const Workspace&        ws,
   ARTS_TIME_REPORT
 
   const OEMMethod selected = parse_oem_method(method);
+  ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and not selected.measurement_space,
+                     "measurement_vec_normalization is only supported for measurement-space methods.")
+  ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and
+                    measurement_vec_normalization.size() != measurement_vec.size(),
+                    "measurement_vec_normalization must be empty or have {} elements.", measurement_vec.size())
+  for (const auto scale : measurement_vec_normalization)
+    ARTS_USER_ERROR_IF(not std::isfinite(scale) or scale <= 0,
+                      "measurement_vec_normalization values must be finite and > 0.")
+
   check_oem_inputs(model_state_vec,
                    measurement_vec_fit,
                    measurement_jac,
@@ -385,6 +407,7 @@ void OEM(const Workspace&        ws,
     try {
       if (selected.conjugate_gradient) {
         oem::CG solver(T, apply_norm, 1e-10, 0);
+        solver.measurement_scales = measurement_vec_normalization;
         solve(solver);
       } else {
         oem::Std solver(T, apply_norm);

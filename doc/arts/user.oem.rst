@@ -223,8 +223,25 @@ are a useful initial choice for mixed units
 such as temperature and absolute VMR.  This scales state *increments*,
 so a zero prior mean is not a reason to use a zero scale.  Check that the
 retrieved state agrees with the unscaled solution within numerical accuracy.
-State normalization is unsupported for ``li_cg_m`` and ``gn_cg_m``;
-these methods solve in measurement space.
+The state-sized normalization setting is unsupported for ``li_cg_m`` and
+``gn_cg_m``. These methods accept ``measurement_vec_normalization``: empty disables
+scaling (the default); otherwise supply one finite positive D_ii per
+measurement. Noise standard deviations, D_ii = sqrt(S_e[i,i]), are a useful
+choice. The measurement-space system is scaled by their inverses. This
+uses only vector scaling and preserves the statistical objective. CG's
+relative residual tolerance applies to the scaled system. For correlated
+errors this is diagonal scaling, not full whitening.
+
+Inspect the noise standard deviations with::
+
+    ws.measurement_noise_scales = pyarts.arts.Vector()
+    ws.measurement_vec_error_covmatNormalization(normalization=ws.measurement_noise_scales)
+    ws.OEM(method="gn_cg_m", measurement_vec_normalization=ws.measurement_noise_scales)
+
+The output Vector contains D_ii in measurement units. Its workspace name is
+chosen by the caller. Computing this vector alone does not enable scaling;
+pass it explicitly to OEM as shown above. Nonempty measurement scaling is
+rejected for state-space methods.
 
 .. _sec-user-oem-information:
 

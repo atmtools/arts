@@ -85,6 +85,20 @@ template <typename ForwardModel> using OEM_MFORM = invlib::
 // Solvers
 ////////////////////////////////////////////////////////////////////////////////
 
+// Matrix-free symmetric scaling by inverse measurement standard deviations.
+template <typename MatrixType> struct NoiseScaledSystem {
+  const MatrixType& matrix;
+  const ::Vector& scales;
+
+  template <typename V> typename V::ResultType operator*(const V& value) const {
+    typename V::ResultType input = value;
+    for (Index i = 0; i < input.rows(); ++i) input(i) /= scales[i];
+    typename V::ResultType output = matrix * input;
+    for (Index i = 0; i < output.rows(); ++i) output(i) /= scales[i];
+    return output;
+  }
+};
+
 /** Normalizing solver.
  * 
  * Solver class that wraps around a given solver and transforms the linear
@@ -119,6 +133,15 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
     for (Index i = 0; i < v.rows(); ++i) zero_rhs = zero_rhs && v(i) == 0;
     if (zero_rhs) return v;
 
+    if constexpr (std::is_same_v<SolverType, invlib::ConjugateGradient<>>) {
+      if (not measurement_scales.empty()) {
+        typename VectorType::ResultType rhs = v;
+        for (Index i = 0; i < rhs.rows(); ++i) rhs(i) /= measurement_scales[i];
+        auto result = SolverType::solve(NoiseScaledSystem<MatrixType>{A, measurement_scales}, rhs);
+        for (Index i = 0; i < result.rows(); ++i) result(i) /= measurement_scales[i];
+        return result;
+      }
+    }
     typename VectorType::ResultType w;
     if (apply_) {
       typename VectorType::ResultType vv = trans_ * v;
@@ -129,6 +152,8 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
     }
     return w;
   }
+
+  ::Vector measurement_scales;
 
  private:
   /** Whether or not to apply the transformation.*/

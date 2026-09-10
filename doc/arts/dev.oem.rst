@@ -448,3 +448,19 @@ The correlation method accepts two independent shared-pointer input variants
 in one implementation.  Each argument is converted separately to the common
 atmospheric key type.  The regression exercises all atmospheric-key/species
 combinations and the generated workspace dispatch through an agenda.
+
+Measurement-space noise scaling
+------------------------------
+
+When ``measurement_vec_normalization`` is nonempty, the measurement-space
+CG paths solve D^-1 M D^-1 v = D^-1 r,
+where M = K S_a K^T + S_e and D_ii are the supplied scales, then return u = D^-1 v.
+Empty scales disable the transformation. The helper computes the suggested
+noise scales sqrt(S_e[i,i]); OEM does not select them automatically.
+``NoiseScaledSystem`` applies this operation without materializing M or D.
+The existing state-sized normalization remains exclusive to state-space
+solvers. The relative CG tolerance is measured in the scaled system.
+``measurement_vec_error_covmatNormalization`` exposes the same standard
+deviations as a generic Vector output. Correlated noise is not fully whitened.
+Regression tests compare with the affine analytic solution and check state
+and cost invariance under independent measurement-unit changes.

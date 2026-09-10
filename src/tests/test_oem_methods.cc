@@ -73,6 +73,7 @@ struct Retrieval {
   CovarianceMatrix   se = covariance(matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5}));
   Agenda             agenda{"inversion_iterate_agenda"};
   Vector             normalization;
+  Vector             measurement_normalization;
   Vector             settings{10, 3, 2, 1e8, 0.1, 0};
   Index              max_iter = 40;
   // Accuracy is also checked against independent state and cost oracles.
@@ -156,6 +157,7 @@ struct Retrieval {
         String{method},
         max_start_cost,
         normalization,
+        measurement_normalization,
         max_iter,
         stop_dx,
         settings,
@@ -217,6 +219,44 @@ void check_affine_solution(const Retrieval& r, std::string_view method) {
     }
   }
   check_history(r, method);
+}
+
+void test_measurement_noise_scaling(std::string_view method) {
+  Retrieval baseline;
+  Vector scales;
+  measurement_vec_error_covmatNormalization(scales, baseline.se);
+  close(scales[0], 1, 1e-14, "Noise scale 0");
+  close(scales[1], std::sqrt(2.), 1e-14, "Noise scale 1");
+  close(scales[2], std::sqrt(0.5), 1e-14, "Noise scale 2");
+  if (not method.ends_with("_m")) return;
+  baseline.run(method);
+  Retrieval normalized;
+  normalized.measurement_normalization = scales;
+  normalized.run(method);
+  for (Index i = 0; i < 2; ++i)
+    close(normalized.x[i], baseline.x[i], 1e-9, "Optional measurement scaling preserves state");
+  Retrieval scaled;
+  const Vector units{1e-3, 1e3, 2};
+  Matrix noise = matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5});
+  for (Index i = 0; i < 3; ++i) {
+    scaled.y[i] *= units[i];
+    for (Index j = 0; j < 3; ++j) noise[i, j] *= units[i] * units[j];
+  }
+  scaled.se = covariance(noise);
+  measurement_vec_error_covmatNormalization(scaled.measurement_normalization, scaled.se);
+  auto forward = scaled.forward;
+  scaled.forward = [forward, units](const Vector& x, Vector& y, Matrix& k, bool jac) {
+    forward(x, y, k, jac);
+    for (Index i = 0; i < 3; ++i) {
+      y[i] *= units[i];
+      if (jac) for (Index j = 0; j < 2; ++j) k[i, j] *= units[i];
+    }
+  };
+  scaled.run(method);
+  require(scaled.errors.empty(), "Noise-scaled retrieval failed");
+  for (Index i = 0; i < 2; ++i)
+    close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
+  close(scaled.diagnostics[2], baseline.diagnostics[2], 1e-9, "Measurement unit invariant cost");
 }
 
 void test_affine(std::string_view method) {
@@ -724,6 +764,10 @@ void test_validation() {
   for (const auto method : {"li_m", "gn_m", "not-a-method"}) {
     rejects_before_agenda(method, [](Retrieval&) {});
   }
+  rejects_before_agenda("gn", [](Retrieval& r) { r.measurement_normalization = Vector{1, 1, 1}; });
+  rejects_before_agenda("li_cg_m", [](Retrieval& r) { r.measurement_normalization = Vector{1}; });
+  for (const Numeric bad : {0., -1., std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
+    rejects_before_agenda("gn_cg_m", [bad](Retrieval& r) { r.measurement_normalization = Vector{1, bad, 1}; });
   for (const auto method : {"li_cg_m", "gn_cg_m"}) {
     rejects_before_agenda(method, [](Retrieval& r) { r.normalization = Vector{1, 1}; });
   }
@@ -1217,6 +1261,7 @@ int main(int argc, char** argv) try {
   } else {
     require(stdr::find(methods, selected) != methods.end(), "Unknown test method");
     test_affine(selected);
+    test_measurement_noise_scaling(selected);
     test_exact_start(selected);
     test_disabled_start_cost(selected);
     test_runtime_failure(selected);
