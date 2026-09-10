@@ -21,8 +21,8 @@
 
 namespace {
 
-constexpr std::array<std::string_view, 10> methods{
-    "li", "li_cg", "li_cg_m", "gn", "gn_cg", "gn_cg_m", "lm", "ml", "lm_cg", "ml_cg"};
+constexpr std::array<std::string_view, 12> methods{
+    "li", "li_m", "li_cg", "li_cg_m", "gn_m", "gn", "gn_cg", "gn_cg_m", "lm", "ml", "lm_cg", "ml_cg"};
 
 void require(bool condition, std::string_view message) {
   if (not condition) throw std::runtime_error(std::string(message));
@@ -761,14 +761,14 @@ template <typename Configure> void rejects_before_agenda(std::string_view method
 }
 
 void test_validation() {
-  for (const auto method : {"li_m", "gn_m", "not-a-method"}) {
+  for (const auto method : {"not-a-method"}) {
     rejects_before_agenda(method, [](Retrieval&) {});
   }
   rejects_before_agenda("gn", [](Retrieval& r) { r.measurement_normalization = Vector{1, 1, 1}; });
   rejects_before_agenda("li_cg_m", [](Retrieval& r) { r.measurement_normalization = Vector{1}; });
   for (const Numeric bad : {0., -1., std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
     rejects_before_agenda("gn_cg_m", [bad](Retrieval& r) { r.measurement_normalization = Vector{1, bad, 1}; });
-  for (const auto method : {"li_cg_m", "gn_cg_m"}) {
+  for (const auto method : {"li_m", "gn_m", "li_cg_m", "gn_cg_m"}) {
     rejects_before_agenda(method, [](Retrieval& r) { r.normalization = Vector{1, 1}; });
   }
   for (const Numeric bad :

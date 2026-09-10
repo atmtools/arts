@@ -7,7 +7,6 @@ This guide covers method selection, settings, covariance setup, and retrieval
 diagnostics.  The mathematical formulation is in :ref:`Sec OEM`.
 
 Choosing a method
-=================
 
 :meth:`~pyarts3.workspace.Workspace.OEM` always minimizes the same objective,
 including the a priori term.  Choosing a method changes how this objective
@@ -29,6 +28,9 @@ number of measurements.
    * - ``li``
      - One Gauss--Newton step; direct solve in state space
      - The forward model is linear over the relevant state range.
+   * - ``li_m``
+     - One step; direct solve in measurement space
+     - Substantially fewer measurements than states; avoids CG tolerance tuning.
    * - ``li_cg``
      - One step; conjugate gradient (CG) in state space
      - A large linear problem where a direct solve is expensive.
@@ -38,6 +40,9 @@ number of measurements.
    * - ``gn``
      - Gauss--Newton; direct solve in state space
      - A mildly nonlinear problem with a plausible starting state.
+   * - ``gn_m``
+     - Gauss--Newton; direct solve in measurement space
+     - Substantially fewer measurements than states; avoids CG tolerance tuning.
    * - ``gn_cg``
      - Gauss--Newton; CG in state space
      - The same nonlinear problem when the linear solve is the bottleneck.
@@ -54,7 +59,7 @@ number of measurements.
 
 ``ml`` is an alias for ``lm``, and ``ml_cg`` is an alias for ``lm_cg``.
 In particular, ``ml`` does not select maximum-likelihood estimation or
-remove the prior.  ``li_m`` and ``gn_m`` are unsupported.
+remove the prior.
 
 Start development of a retrieval with a direct method on a small, representative
 case.  Use ``li`` only after checking linearity; a single step applied to a
@@ -121,7 +126,6 @@ fields through that tuple interface.  Measure performance with a
 representative retrieval before redesigning an agenda around copy costs.
 
 Choosing covariance matrices
-============================
 
 Set the state coordinates, measurement units, and ordering first.  Then
 construct :attr:`~pyarts3.workspace.Workspace.model_state_covmat`
@@ -223,12 +227,12 @@ are a useful initial choice for mixed units
 such as temperature and absolute VMR.  This scales state *increments*,
 so a zero prior mean is not a reason to use a zero scale.  Check that the
 retrieved state agrees with the unscaled solution within numerical accuracy.
-The state-sized normalization setting is unsupported for ``li_cg_m`` and
-``gn_cg_m``. These methods accept ``measurement_vec_normalization``: empty disables
+The state-sized normalization setting is unsupported for ``li_m``, ``gn_m``,
+``li_cg_m`` and ``gn_cg_m``. These methods accept ``measurement_vec_normalization``: empty disables
 scaling (the default); otherwise supply one finite positive D_ii per
 measurement. Noise standard deviations, D_ii = sqrt(S_e[i,i]), are a useful
 choice. The measurement-space system is scaled by their inverses. This
-uses only vector scaling and preserves the statistical objective. CG's
+uses only vector scaling and preserves the statistical objective. For CG, the
 relative residual tolerance applies to the scaled system. For correlated
 errors this is diagonal scaling, not full whitening.
 
@@ -246,7 +250,6 @@ rejected for state-space methods.
 .. _sec-user-oem-information:
 
 Correlating temperature and log-water on the same grid
-=====================================================
 
 For two atmospheric retrieval targets with diagonal marginal covariances
 and identical altitude, latitude and longitude grids, use:
@@ -296,7 +299,6 @@ correlation is scientifically appropriate for real observations.
 
 
 Checking what the measurements can constrain
-============================================
 
 Use :func:`~pyarts3.retrieval.information` to examine a Jacobian together with
 the assumed prior and measurement covariances.  It can run before a
@@ -443,7 +445,6 @@ of the state size.  Reduce the analysis size or raise the limit
 deliberately when the guard rejects a large problem.
 
 Setting LM damping
-==================
 
 LM adds damping to limit the size of a Gauss--Newton step.  Larger gamma
 penalizes larger steps, with the penalty scaled by the diagonal of the prior
@@ -630,7 +631,6 @@ vector.  All LM method names require an explicit configuration: pass
 existing six-element vector.
 
 Checking the result
-===================
 
 ``oem_diagnostics`` has five entries with zero-based indices:
 
@@ -712,7 +712,6 @@ discusses how to report the role of prior information and smoothing in an
 uncertainty budget.
 
 Retrieval transformations
-=========================
 
 ARTS provides built-in retrieval transformations described in
 :doc:`concept.oem`.  Custom
@@ -735,3 +734,16 @@ functional transformations.
 
 See :doc:`concept.oem` for the forward/inverse transformation definitions and
 the Jacobian chain rule used by these operators.
+Direct measurement-space solvers
+--------------------------------
+
+``li_m`` and ``gn_m`` assemble and factor an m by m matrix, where m is the
+number of measurements. They use the same measurement-space update as the
+CG variants, with one step for ``li_m`` and iteration for ``gn_m``. Optional
+``measurement_vec_normalization`` scales the direct system as well.
+Assembly currently applies the lazy system to each measurement basis vector;
+this avoids a state-sized normal matrix, but repeats covariance applications.
+Small m relative to the state dimension is therefore a useful starting point
+for method choice, not a guarantee of improved runtime. Requested gain-matrix
+output still uses the existing state-space postprocessing, so the complete
+retrieval can retain state-sized costs.

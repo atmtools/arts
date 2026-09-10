@@ -5168,6 +5168,8 @@ Description of the special input arguments:
 
         - ``"li"``: A linear problem is assumed and a single iteration is performed.
         - ``"li_cg"``: A linear problem is assumed and solved using the CG solver.
+        - ``"li_m"``: Linear, direct solve in measurement space.
+        - ``"gn_m"``: Gauss-Newton, direct solve in measurement space.
         - ``"li_cg_m"``: Linear, using CG in measurement space; consider when there are fewer measurements than states.
         - ``"gn"``: Non-linear, with Gauss-Newton iteration scheme.
         - ``"gn_cg"``: Non-linear, with Gauss-Newton and conjugate gradient solver.
@@ -5176,7 +5178,7 @@ Description of the special input arguments:
         - ``"lm_cg"``: Non-linear, with Levenberg-Marquardt (LM) iteration scheme and conjugate gradient solver.
 
       ``"ml"`` and ``"ml_cg"`` are aliases for ``"lm"`` and ``"lm_cg"``.
-      They retain the prior term. ``"li_m"`` and ``"gn_m"`` are unsupported.
+      They retain the prior term.
 
     - ``max_start_cost``:
 
@@ -5192,13 +5194,13 @@ Description of the special input arguments:
       value per state element. Prior standard deviations, the square roots
       of the diagonal of *model_state_covmat*, are a useful starting point.
       This leaves the mathematical objective and vector coordinates unchanged.
-      Unsupported for measurement-space methods ``"li_cg_m"`` and ``"gn_cg_m"``.
+      Unsupported for measurement-space methods li_m, gn_m, li_cg_m and gn_cg_m.
 
     - ``measurement_vec_normalization``:
 
       Empty disables measurement-space scaling (the default). Otherwise supply
       one finite positive standard-deviation scale per measurement, used as D_ii
-      in D^-1 (K S_a K^T + S_e) D^-1. Only li_cg_m and gn_cg_m support this
+      in D^-1 (K S_a K^T + S_e) D^-1. Only li_m, gn_m, li_cg_m and gn_cg_m support this
       setting. Use measurement_vec_error_covmatNormalization to compute noise
       standard deviations; calling that method alone does not enable scaling.
 
@@ -5332,7 +5334,7 @@ for non-LM methods and does not include every rejected trial step.
       .gin_desc       = {"Iteration method. For this and all options below, see further above",
                          "Maximum allowed value of cost function at start",
                          "Optional positive scales for the state-space linear solve",
-                         "Optional positive measurement scales for li_cg_m and gn_cg_m; empty disables scaling",
+                         "Optional positive measurement scales for measurement-space methods; empty disables scaling",
                          "Maximum number of iterations",
                          "Stop criterion for iterative inversions",
                          "Six LM damping settings; required for all LM method names",
@@ -5353,7 +5355,7 @@ for non-LM methods and does not include every rejected trial step.
   wsm_data["measurement_vec_error_covmatNormalization"] = {
       .desc = R"(Returns measurement noise standard deviations D_ii = sqrt(S_e[i,i]).
 
-Pass these scales to OEM as measurement_vec_normalization for li_cg_m or gn_cg_m. The scaled
+Pass these scales to OEM as measurement_vec_normalization for measurement-space methods. The scaled
 system is D^-1 (K S_a K^T + S_e) D^-1. This does not change the statistical
 objective and is not full whitening for correlated measurement errors.
 )",

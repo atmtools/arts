@@ -24,8 +24,8 @@ also involves ``src/m_covmat.cc``.
 The first cleanup centralizes method selection and LM configuration while
 retaining the public defaults.  Direct and CG LM methods now use all six
 settings, the supplied ``stop_dx``, and the same diagonal of prior precision
-for damping.  Unsupported ``li_m`` and ``gn_m`` are rejected before the
-forward model runs.  State normalization is rejected for measurement-space
+for damping. Direct measurement-space ``li_m`` and ``gn_m`` reuse MFORM
+with ``DirectMeasurementSolver``. State normalization is rejected for measurement-space
 methods instead of applying state scales to a measurement-space system.
 
 Measurement-space convergence uses the state-space Hessian metric
@@ -453,7 +453,7 @@ Measurement-space noise scaling
 ------------------------------
 
 When ``measurement_vec_normalization`` is nonempty, the measurement-space
-CG paths solve D^-1 M D^-1 v = D^-1 r,
+direct and CG paths solve D^-1 M D^-1 v = D^-1 r,
 where M = K S_a K^T + S_e and D_ii are the supplied scales, then return u = D^-1 v.
 Empty scales disable the transformation. The helper computes the suggested
 noise scales sqrt(S_e[i,i]); OEM does not select them automatically.
@@ -464,3 +464,15 @@ solvers. The relative CG tolerance is measured in the scaled system.
 deviations as a generic Vector output. Correlated noise is not fully whitened.
 Regression tests compare with the affine analytic solution and check state
 and cost invariance under independent measurement-unit changes.
+
+Direct measurement-space assembly
+--------------------------------
+
+``DirectMeasurementSolver`` materializes the lazy MFORM system column by
+column using measurement basis vectors, then calls the ARTS direct solver.
+It supports the same optional D scaling as measurement-space CG. This needs
+m system applications and m by m dense storage, without an n by n normal
+matrix. A future matrix-matrix assembly path could reuse S_a K^T and reduce
+repeated work. Gain postprocessing remains state-space and must be included
+in performance comparisons. New methods share the affine, nonlinear,
+underdetermined, normalization and failure regression fixtures.

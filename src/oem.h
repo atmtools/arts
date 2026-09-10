@@ -162,6 +162,36 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
   const TransformationMatrixType &trans_;
 };
 
+// Materialize only the measurement-sized system, using its lazy action on
+// basis vectors. No state-sized normal matrix is formed.
+struct DirectMeasurementSolver {
+  ::Vector measurement_scales;
+
+  template <typename M, typename V> typename V::ResultType solve(const M& system, const V& rhs) {
+    Matrix dense;
+    const Index size = rhs.rows();
+    dense.resize(size, size);
+    typename V::ResultType basis = rhs;
+    for (Index j = 0; j < size; ++j) {
+      for (Index i = 0; i < size; ++i) basis(i) = i == j ? 1 : 0;
+      typename V::ResultType column = system * basis;
+      for (Index i = 0; i < size; ++i) dense(i, j) = column(i);
+    }
+    typename V::ResultType scaled_rhs = rhs;
+    if (not measurement_scales.empty()) {
+      for (Index i = 0; i < size; ++i) {
+        scaled_rhs(i) /= measurement_scales[i];
+        for (Index j = 0; j < size; ++j)
+          dense(i, j) = (dense(i, j) / measurement_scales[i]) / measurement_scales[j];
+      }
+    }
+    typename V::ResultType result = invlib::Standard{}.solve(dense, scaled_rhs);
+    if (not measurement_scales.empty())
+      for (Index i = 0; i < size; ++i) result(i) /= measurement_scales[i];
+    return result;
+  }
+};
+
 /** The invlib standard solver
  *
  * This solver uses the built-in ARTS QR solver to solve a

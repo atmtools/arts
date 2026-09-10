@@ -64,11 +64,10 @@ OEMMethod parse_oem_method(const String& method) {
   if (method == "lm" || method == "ml") return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
   if (method == "lm_cg" || method == "ml_cg")
     return {.algorithm = OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient = true};
-  ARTS_USER_ERROR_IF(method == "li_m" || method == "gn_m",
-                     "OEM method '{}' is not supported. Use 'li_cg_m' or 'gn_cg_m' for measurement-space solves.",
-                     method)
+  if (method == "li_m") return {.algorithm = OEMAlgorithm::Linear, .measurement_space = true};
+  if (method == "gn_m") return {.algorithm = OEMAlgorithm::GaussNewton, .measurement_space = true};
   ARTS_USER_ERROR(
-      "Unknown OEM method '{}'. Supported methods: li, li_cg, li_cg_m, gn, gn_cg, gn_cg_m, lm, lm_cg; aliases: ml, ml_cg.",
+      "Unknown OEM method '{}'. Supported methods: li, li_m, li_cg, li_cg_m, gn, gn_m, gn_cg, gn_cg_m, lm, lm_cg; aliases: ml, ml_cg.",
       method)
 }
 
@@ -391,8 +390,8 @@ void OEM(const Workspace&        ws,
         if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit) oem_diagnostics[0] = 2;
       } else {
         invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
-        // Only CG supports the lazy matrix expression in the m formulation.
-        if constexpr (std::is_same_v<Solver, oem::CG>) {
+        // Both measurement solvers accept the lazy system.
+        if constexpr (std::is_same_v<Solver, oem::CG> or std::is_same_v<Solver, oem::DirectMeasurementSolver>) {
           if (selected.measurement_space) {
             oem::OEM_MFORM<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
             run(retrieval, optimizer);
@@ -408,6 +407,9 @@ void OEM(const Workspace&        ws,
       if (selected.conjugate_gradient) {
         oem::CG solver(T, apply_norm, 1e-10, 0);
         solver.measurement_scales = measurement_vec_normalization;
+        solve(solver);
+      } else if (selected.measurement_space) {
+        oem::DirectMeasurementSolver solver{measurement_vec_normalization};
         solve(solver);
       } else {
         oem::Std solver(T, apply_norm);
