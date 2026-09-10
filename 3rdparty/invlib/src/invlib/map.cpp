@@ -543,8 +543,14 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
         if constexpr (dense_system) {
             // Materialize the covariance/Jacobian product once and reuse it
             // for both assembly and mapping the solution into state space.
-            MatrixType KT = transp(K);
-            MatrixType tmp = Sa * KT;
+            MatrixType tmp = [&]() -> MatrixType {
+                if constexpr (requires { Sa.multiply(K.transpose_view()); }) {
+                    return Sa.multiply(K.transpose_view());
+                } else {
+                    MatrixType KT = transp(K);
+                    return Sa * KT;
+                }
+            }();
             MatrixType H = [&]() -> MatrixType {
                 if constexpr (requires { K.multiply_add(tmp, Se); }) {
                     return K.multiply_add(tmp, Se);

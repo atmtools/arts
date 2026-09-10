@@ -499,8 +499,12 @@ the measurement-space system, not the state-space half-Hessian.
 The direct solver copies :math:`\mathbf{H}` for optional scaling and
 factorization. This uses additional :math:`n\times m` temporary
 storage but avoids repeated covariance applications. CG remains lazy.
-The ARTS reference-matrix transpose returns an owning ArtsMatrix when
-materialized, as required by invlib's expression conversion. Gain postprocessing remains state-space and must be included
+The ARTS adapters expose ``transpose_view()`` as a non-owning const strided
+view. Dense MFORM passes this view directly to covariance multiplication,
+avoiding an additional :math:`n\times m` Jacobian copy. The source Jacobian
+must remain alive and its storage stable until multiplication finishes.
+Owning ``transpose()`` remains available for invlib expression materialization;
+other backends retain that fallback. Gain postprocessing remains state-space and must be included
 in performance comparisons. New methods share the affine, nonlinear,
 underdetermined, normalization and failure regression fixtures.
 
@@ -513,8 +517,8 @@ blocks directly (including off-diagonal blocks), and calls ``mult`` with
 :math:`\alpha=1` and :math:`\beta=1`. Thus
 :math:`\mathbf{H}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon` needs one GEMM and no separate dense
 covariance temporary or post-GEMM addition pass. Other invlib backends keep
-the multiplication-plus-addition fallback. This change does not remove the
-explicit Jacobian transpose or the direct solver's scaling copy.
+the multiplication-plus-addition fallback. The transpose-view path removes the explicit Jacobian transpose copy.
+The direct solver's scaling copy remains.
 
 Diagonal covariance regressions
 ---------------------------------------

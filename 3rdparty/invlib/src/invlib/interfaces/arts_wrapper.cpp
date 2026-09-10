@@ -151,6 +151,10 @@ inline auto ArtsMatrix::transpose() const -> ArtsMatrix {
   return B;
 }
 
+inline auto ArtsMatrix::transpose_view() const & -> StridedConstMatrixView {
+  return matpack::transpose(ConstMatrixView{*this});
+}
+
 //---------------------------//
 //   Arts Matrix Reference   //
 //---------------------------//
@@ -238,6 +242,12 @@ inline auto ArtsMatrixReference<ArtsType>::transpose() const -> ArtsMatrix {
   return ArtsMatrix{Matrix{matpack::transpose(A.get())}};
 }
 
+template <typename ArtsType>
+inline auto ArtsMatrixReference<ArtsType>::transpose_view() const -> StridedConstMatrixView
+  requires requires(const ArtsType& value) { StridedConstMatrixView{value}; } {
+  return matpack::transpose(StridedConstMatrixView{A.get()});
+}
+
 //---------------------------//
 //   Arts Covariance Matrix  //
 //---------------------------//
@@ -263,6 +273,11 @@ inline auto ArtsCovarianceMatrixWrapper::multiply(const ArtsVector &v) const
 }
 
 inline auto ArtsCovarianceMatrixWrapper::multiply(const ArtsMatrix &B) const
+    -> ArtsMatrix {
+  return multiply(StridedConstMatrixView{B});
+}
+
+inline auto ArtsCovarianceMatrixWrapper::multiply(StridedConstMatrixView B) const
     -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(covmat_.nrows(), B.ncols());

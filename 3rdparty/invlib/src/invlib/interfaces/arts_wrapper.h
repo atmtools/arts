@@ -134,6 +134,9 @@ class ArtsMatrix : public Matrix {
   void scale(Numeric c);
 
   ArtsMatrix transpose() const;
+  // Non-owning: the source storage must outlive the view and remain stable.
+  StridedConstMatrixView transpose_view() const &;
+  StridedConstMatrixView transpose_view() const && = delete;
 };
 
 // ------------------------//
@@ -196,6 +199,8 @@ class ArtsMatrixReference {
   ArtsMatrix multiply_add(const ArtsMatrix &B, const ArtsCovarianceMatrixWrapper &C) const;
 
   ArtsMatrix transpose() const;
+  StridedConstMatrixView transpose_view() const
+    requires requires(const ArtsType& value) { StridedConstMatrixView{value}; };
 
  private:
   std::reference_wrapper<ArtsType> A;
@@ -257,6 +262,7 @@ class ArtsCovarianceMatrixWrapper {
   ArtsVector multiply(const ArtsVector &v) const;
   ArtsVector transpose_multiply(const ArtsVector &v) const;
   ArtsMatrix multiply(const ArtsMatrix &B) const;
+  ArtsMatrix multiply(StridedConstMatrixView B) const;
   ArtsMatrix transpose_multiply(const ArtsMatrix &v) const;
 
  private:

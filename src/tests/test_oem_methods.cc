@@ -1013,6 +1013,37 @@ struct NeverConvergedCGSettings {
   bool         converged(const SolverVector&, const SolverVector&) const { return false; }
 };
 
+void test_transpose_view() {
+  ArtsMatrix matrix{Matrix(3, 2)};
+  for (Index i = 0; i < 3; ++i)
+    for (Index j = 0; j < 2; ++j) matrix(i, j) = static_cast<Numeric>(1 + 2 * i + j);
+  const auto view = matrix.transpose_view();
+  require(view.nrows() == 2 and view.ncols() == 3, "Transpose view shape");
+  matrix(1, 0) = 9;
+  close(view[0, 1], 9, 0, "Transpose view aliases source");
+  ArtsMatrixReference<const Matrix> reference{static_cast<const Matrix&>(matrix)};
+  close(reference.transpose_view()[0, 1], 9, 0, "Reference transpose view");
+  for (bool diagonal : {false, true}) {
+    CovarianceMatrix covariance;
+    if (diagonal) {
+      covariance.add_correlation(Block(Range(0, 2), Range(0, 2), {0, 0},
+          std::make_shared<Sparse>(Sparse::diagonal(Vector{2, 3}))));
+    } else {
+      covariance.add_correlation(Block(Range(0, 2), Range(0, 2), {0, 0},
+          std::make_shared<Matrix>(::matrix(2, 2, {2, 0.5, 0.5, 3}))));
+    }
+    const auto prepared = covariance.prepared();
+    for (bool inverse : {false, true}) {
+      ArtsCovarianceMatrixWrapper wrapped{*prepared, inverse};
+      const auto expected = wrapped.multiply(matrix.transpose());
+      const auto actual = wrapped.multiply(view);
+      for (Index i = 0; i < 2; ++i)
+        for (Index j = 0; j < 3; ++j)
+          close(actual(i, j), expected(i, j), 1e-13, "Covariance transpose view product");
+    }
+  }
+}
+
 void test_cg_termination() {
   check_cg_termination([](Numeric tolerance, int budget) { return invlib::ConjugateGradient<>(tolerance, 0, budget); });
   const IdentityPreconditioner identity;
@@ -1289,6 +1320,7 @@ int main(int argc, char** argv) try {
   } else if (selected == "validation") {
     test_validation();
   } else if (selected == "termination") {
+    test_transpose_view();
     test_cg_termination();
     test_lm_trial_limit();
   } else if (selected == "outcomes") {
