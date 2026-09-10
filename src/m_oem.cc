@@ -414,6 +414,13 @@ void OEM(const Workspace&        ws,
       if (selected.conjugate_gradient) {
         oem::CG solver(T, apply_norm, 1e-10, 0);
         solver.measurement_scales = measurement_vec_normalization;
+        bool warned = false;
+        solver.set_iteration_limit_warning([&] {
+          if (not warned) {
+            errors.emplace_back("Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
+            warned = true;
+          }
+        });
         solve(solver);
       } else if (selected.measurement_space) {
         oem::DirectMeasurementSolver solver{measurement_vec_normalization};

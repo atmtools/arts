@@ -5294,6 +5294,10 @@ stationarity established), 1 (iteration limit), 2 (LM damping
 limit), 9 (caught inversion error; inspect ``errors``), and 99 (starting
 cost limit). The one-step linear methods can return status 1 for an exact
 linear solution because no second convergence step is performed.
+If an inner CG solve reaches its iteration limit, OEM continues with its
+last iterate and records a warning in ``errors`` (once per OEM call).
+This does not change the outer optimizer status; status 0 does not guarantee
+that every inner CG solve reached its tolerance.
 
 ``lm_ga_history`` contains the starting gamma followed by its updated values
 after outer iterations, with unused trailing entries set to NaN. It is empty

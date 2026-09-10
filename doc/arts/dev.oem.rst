@@ -124,8 +124,11 @@ Bounded inner iterations
 --------------------------------
 
 An outer ``max_iter`` does not bound the work of an inner linear solve or
-LM trial search.  Both now enforce independent limits and raise an error
-when they cannot complete within those limits.  OEM maps errors caught
+LM trial search.  Both enforce independent limits.  CG returns its current
+iterate on exhaustion and invokes an optional warning callback.  OEM installs
+this callback and records one warning per OEM call in ``errors``; the outer
+optimizer continues and retains its own diagnostic status.  LM trial
+exhaustion still raises an error.  OEM maps errors caught
 during inversion to status 9 and records the explanation in ``errors``.
 Exhausting the existing LM damping range retains its status 2 behavior.
 Gauss--Newton must propagate linear-solver exceptions with their nested
@@ -137,8 +140,7 @@ variants accept ``max_iterations`` after the verbosity argument, with a
 default of 1000.  The solve loop counts iterations locally, so a custom
 convergence predicate cannot disable the bound.  Debug assertions check finite arithmetic and positive curvature; these
 checks, including norms computed only for assertions, compile out with
-``NDEBUG``.  Iteration exhaustion remains a runtime error because valid
-inputs can fail to converge within the budget.  OEM retains its relative residual tolerance of
+``NDEBUG``.  The iteration bound remains active in release builds.  OEM retains its relative residual tolerance of
 ``1e-10`` and uses the native iteration limit.  These fixed settings satisfy
 the solver preconditions.  CG constructors assert a finite positive tolerance
 and a positive iteration limit in debug builds; they do not repeat input

@@ -153,6 +153,11 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
     return w;
   }
 
+  void set_iteration_limit_warning(std::function<void()> warning)
+    requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
+    SolverType::iteration_limit_warning = std::move(warning);
+  }
+
   ::Vector measurement_scales;
 
  private:

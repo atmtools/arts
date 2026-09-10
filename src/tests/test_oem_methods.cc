@@ -975,16 +975,21 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   const SolverVector zero     = solver_vector({0, 0});
 
   // Two distinct eigenvalues require two CG steps for this RHS. Hitting
-  // the budget must report failure, not return the first inaccurate iterate.
+  // the budget returns the current iterate and reports a warning.
   auto limited = make_solver(1e-12, 1);
-  rejects_with([&] { static_cast<void>(limited.solve(diagonal, rhs)); }, "iteration limit");
+  int warnings = 0;
+  limited.iteration_limit_warning = [&] { ++warnings; };
+  const auto partial = limited.solve(diagonal, rhs);
+  require(warnings == 1, "CG budget exhaustion did not warn");
+  close(partial(0), 2. / 3., 1e-14, "CG partial iterate[0]");
+  close(partial(1), 2. / 3., 1e-14, "CG partial iterate[1]");
   auto two_steps = make_solver(1e-12, 2);
   for (Index run = 0; run < 2; ++run) {
     const auto solution = two_steps.solve(diagonal, rhs);
     close(solution(0), 1, 1e-14, "CG solution at iteration budget[0]");
     close(solution(1), 0.5, 1e-14, "CG solution at iteration budget[1]");
   }
-  // Budgets reset after failures and successes, and a zero RHS is already
+  // Budgets reset after exhaustion and success, and a zero RHS is already
   // solved. Test the native solver directly, bypassing OEM's zero shortcut.
   for (Index run = 0; run < 2; ++run) {
     const auto solution = limited.solve(identity, rhs);
@@ -994,6 +999,10 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
     close(zero_solution(0), 0, 0, "Native CG zero RHS[0]");
     close(zero_solution(1), 0, 0, "Native CG zero RHS[1]");
   }
+  require(warnings == 1, "Converged CG solve emitted a budget warning");
+  auto copied = limited;
+  static_cast<void>(copied.solve(diagonal, rhs));
+  require(warnings == 2, "Copied CG solver lost its warning callback");
 
 
 }
@@ -1019,7 +1028,10 @@ void test_cg_termination() {
   invlib::ConjugateGradient<NeverConvergedCGSettings> custom(1e-12, 0, 1);
   const SolverMatrix                                  diagonal = solver_matrix(2, 2, {1, 0, 0, 2});
   const SolverVector                                  rhs      = solver_vector({1, 1});
-  rejects_with([&] { static_cast<void>(custom.solve(diagonal, rhs)); }, "iteration limit");
+  bool warned = false;
+  custom.iteration_limit_warning = [&] { warned = true; };
+  static_cast<void>(custom.solve(diagonal, rhs));
+  require(warned, "Custom CG policy bypassed the iteration limit");
 
   // A fixed-step policy must also stop when the exact solution is reached,
   // before the next conjugate-direction update attempts a 0/0 division.

@@ -3,6 +3,7 @@
 
 #include "invlib/algebra.h"
 #include <cassert>
+#include <functional>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -184,13 +185,16 @@ class ConjugateGradient
 
 public:
 
+    // Called on budget exhaustion before returning the current iterate.
+    std::function<void()> iteration_limit_warning;
+
     /*! Create CG solver object with given convergence tolerance and step limit.
      *
      * \param tol The finite, positive convergence tolerance.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
      * \param max_iterations The positive maximum number of iterations per solve.
-     * Exhausting this limit throws
-     * std::runtime_error; neither is reported as successful convergence.
+     * Exhausting this limit returns the current iterate and invokes
+     * iteration_limit_warning if set.
      */
     inline ConjugateGradient(double tol, int verbosity = 0,
                             int max_iterations = 1000);
@@ -255,6 +259,9 @@ class PreconditionedConjugateGradient<F, true>
 
 public:
 
+    // Called on budget exhaustion before returning the current iterate.
+    std::function<void()> iteration_limit_warning;
+
     /*! Create a preconditioned CG solver object with given transformation,
      *  convergence tolerance and verbosity.
      *
@@ -264,7 +271,7 @@ public:
      * \f$\frac{|\mathbf{r}_k|}{|\mathbf{b}|}\f$.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
      * \param max_iterations The positive iteration limit per solve. Exhaustion
-     * throws std::runtime_error.
+     * returns the current iterate and invokes iteration_limit_warning if set.
      */
     PreconditionedConjugateGradient(const F &f, double tol, int verbosity = 0,
                                    int max_iterations = 1000);
@@ -305,6 +312,9 @@ class PreconditionedConjugateGradient<F, false>
 
 public:
 
+    // Called on budget exhaustion before returning the current iterate.
+    std::function<void()> iteration_limit_warning;
+
     /*! Create a non-cached preconditioned CG solver.
      *
      * For each call to the solve(...) member function, this solver
@@ -316,7 +326,7 @@ public:
      * iteration is continued.
      * \param verbosity If verbosity > 0, log output is printed to standard out.
      * \param max_iterations The positive iteration limit per solve. Exhaustion
-     * throws std::runtime_error.
+     * returns the current iterate and invokes iteration_limit_warning if set.
      */
     PreconditionedConjugateGradient(double tol, int verbosity = 0,
                                    int max_iterations = 1000);
