@@ -135,11 +135,14 @@ and can cause invalid vector operations in the measurement-space formulation.
 The native ``ConjugateGradient`` constructor and both preconditioned
 variants accept ``max_iterations`` after the verbosity argument, with a
 default of 1000.  The solve loop counts iterations locally, so a custom
-convergence predicate cannot disable the bound.  Checks for non-finite
-arithmetic and non-positive curvature reject invalid or broken solves
-instead of treating them as converged.  These checks do not replace
-covariance validation.  OEM retains its relative residual tolerance of
-``1e-10`` and uses the native iteration limit.
+convergence predicate cannot disable the bound.  Debug assertions check finite arithmetic and positive curvature; these
+checks, including norms computed only for assertions, compile out with
+``NDEBUG``.  Iteration exhaustion remains a runtime error because valid
+inputs can fail to converge within the budget.  OEM retains its relative residual tolerance of
+``1e-10`` and uses the native iteration limit.  These fixed settings satisfy
+the solver preconditions.  CG constructors assert a finite positive tolerance
+and a positive iteration limit in debug builds; they do not repeat input
+validation in release builds.  User-input validation belongs at the OEM boundary.
 
 The native LM optimizer provides ``get_maximum_trials()`` and
 ``set_maximum_trials()``; the positive trial limit defaults to 100 per

@@ -976,13 +976,6 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
 
   // Two distinct eigenvalues require two CG steps for this RHS. Hitting
   // the budget must report failure, not return the first inaccurate iterate.
-  for (const Numeric bad :
-       {0., -1., std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::infinity()}) {
-    rejects_with([&] { static_cast<void>(make_solver(bad, 1)); }, "tolerance");
-  }
-  for (int bad : {0, -1}) {
-    rejects_with([&] { static_cast<void>(make_solver(1e-12, bad)); }, "max_iterations");
-  }
   auto limited = make_solver(1e-12, 1);
   rejects_with([&] { static_cast<void>(limited.solve(diagonal, rhs)); }, "iteration limit");
   auto two_steps = make_solver(1e-12, 2);
@@ -1002,16 +995,7 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
     close(zero_solution(1), 0, 0, "Native CG zero RHS[1]");
   }
 
-  for (const Numeric bad : {std::numeric_limits<Numeric>::quiet_NaN(), std::numeric_limits<Numeric>::infinity()}) {
-    const SolverVector nonfinite_rhs = solver_vector({bad, 1});
-    rejects_with([&] { static_cast<void>(limited.solve(identity, nonfinite_rhs)); }, "finite");
-    const SolverMatrix nonfinite_matrix = solver_matrix(2, 2, {bad, 0, 0, 1});
-    rejects_with([&] { static_cast<void>(limited.solve(nonfinite_matrix, rhs)); }, "finite");
-  }
-  for (const Numeric curvature : {0., -1.}) {
-    const SolverMatrix breakdown = solver_matrix(2, 2, {curvature, 0, 0, curvature});
-    rejects_with([&] { static_cast<void>(limited.solve(breakdown, rhs)); }, "curvature");
-  }
+
 }
 
 struct NeverConvergedCGSettings {

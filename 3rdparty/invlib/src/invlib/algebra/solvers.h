@@ -2,6 +2,7 @@
 #define ALGEBRA_SOLVERS
 
 #include "invlib/algebra.h"
+#include <cassert>
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
@@ -188,7 +189,7 @@ public:
      * \param tol The finite, positive convergence tolerance.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
      * \param max_iterations The positive maximum number of iterations per solve.
-     * Exhausting this limit or encountering invalid arithmetic throws
+     * Exhausting this limit throws
      * std::runtime_error; neither is reported as successful convergence.
      */
     inline ConjugateGradient(double tol, int verbosity = 0,
@@ -263,7 +264,7 @@ public:
      * \f$\frac{|\mathbf{r}_k|}{|\mathbf{b}|}\f$.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
      * \param max_iterations The positive iteration limit per solve. Exhaustion
-     * or invalid arithmetic throws std::runtime_error.
+     * throws std::runtime_error.
      */
     PreconditionedConjugateGradient(const F &f, double tol, int verbosity = 0,
                                    int max_iterations = 1000);
@@ -315,7 +316,7 @@ public:
      * iteration is continued.
      * \param verbosity If verbosity > 0, log output is printed to standard out.
      * \param max_iterations The positive iteration limit per solve. Exhaustion
-     * or invalid arithmetic throws std::runtime_error.
+     * throws std::runtime_error.
      */
     PreconditionedConjugateGradient(double tol, int verbosity = 0,
                                    int max_iterations = 1000);

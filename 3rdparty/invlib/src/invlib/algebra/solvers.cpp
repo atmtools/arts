@@ -1,42 +1,6 @@
 namespace solver_detail
 {
 
-inline void validate_cg_settings(double tolerance, int max_iterations)
-{
-    if (!std::isfinite(tolerance) || tolerance <= 0.0)
-    {
-        throw std::invalid_argument(
-            "Conjugate gradient tolerance must be finite and positive.");
-    }
-    if (max_iterations <= 0)
-    {
-        throw std::invalid_argument(
-            "Conjugate gradient max_iterations must be positive.");
-    }
-}
-
-template<typename RealType>
-inline void require_finite(RealType value, const char *quantity)
-{
-    if (!std::isfinite(value))
-    {
-        throw std::runtime_error(std::string("Conjugate gradient requires a finite ")
-                                 + quantity + ". Check the linear system and scaling.");
-    }
-}
-
-template<typename RealType>
-inline void require_positive(RealType value, const char *quantity)
-{
-    require_finite(value, quantity);
-    if (value <= 0.0)
-    {
-        throw std::runtime_error(std::string("Conjugate gradient encountered nonpositive ")
-                                 + quantity
-                                 + ". Check positive definiteness and scaling.");
-    }
-}
-
 inline void check_iteration_limit(int iteration, int max_iterations)
 {
     if (iteration >= max_iterations)
@@ -150,7 +114,8 @@ inline ConjugateGradient<CGSettings>::ConjugateGradient(double tol, int verbosit
                                                        int max_iterations_)
     : verbosity(verbosity_), tolerance(tol), max_iterations(max_iterations_), settings(tol)
 {
-    solver_detail::validate_cg_settings(tolerance, max_iterations);
+    assert(std::isfinite(tolerance) && tolerance > 0.0);
+    assert(max_iterations > 0);
 }
 
 template
@@ -175,13 +140,13 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
     VectorType r, p, ap, xnew, rnew, pnew;
 
     vnorm = v.norm();
-    solver_detail::require_finite(vnorm, "right-hand side norm");
+    assert(std::isfinite(vnorm) && "right-hand side norm");
     auto x = settings.start_vector(v);
-    solver_detail::require_finite(x.norm(), "initial solution norm");
+    assert(std::isfinite(x.norm()) && "initial solution norm");
     r = A * x - v;
     p = -1.0 * r;
     rnorm = r.norm();
-    solver_detail::require_finite(rnorm, "residual norm");
+    assert(std::isfinite(rnorm) && "residual norm");
 
     log.init(tolerance, rnorm, vnorm);
     int i = 0;
@@ -192,21 +157,21 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
     {
         solver_detail::check_iteration_limit(i, max_iterations);
         const RealType rr = invlib::dot(r, r);
-        solver_detail::require_positive(rr, "squared residual norm");
+        assert(std::isfinite(rr) && rr > 0.0 && "squared residual norm");
         ap = A * p;
         const RealType curvature = invlib::dot(p, ap);
-        solver_detail::require_positive(curvature, "curvature (p^T A p)");
+        assert(std::isfinite(curvature) && curvature > 0.0 && "curvature (p^T A p)");
         alpha = rr / curvature;
-        solver_detail::require_positive(alpha, "step length");
+        assert(std::isfinite(alpha) && alpha > 0.0 && "step length");
         xnew  = x + alpha *     p;
         rnew  = r + alpha * ap;
-        solver_detail::require_finite(xnew.norm(), "solution norm");
+        assert(std::isfinite(xnew.norm()) && "solution norm");
         rnorm = rnew.norm();
-        solver_detail::require_finite(rnorm, "residual norm");
+        assert(std::isfinite(rnorm) && "residual norm");
         beta  = invlib::dot(rnew, rnew) / rr;
-        solver_detail::require_finite(beta, "direction coefficient");
+        assert(std::isfinite(beta) && "direction coefficient");
         pnew  = beta * p - rnew;
-        solver_detail::require_finite(pnew.norm(), "search direction norm");
+        assert(std::isfinite(pnew.norm()) && "search direction norm");
 
         x = xnew;
         r = rnew;
@@ -249,11 +214,11 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
     VectorType x, y, r, p, ap, xnew, ynew, rnew, pnew;
 
     vnorm = v.norm();
-    require_finite(vnorm, "right-hand side norm");
+    assert(std::isfinite(vnorm) && "right-hand side norm");
     x = 0.0 * v;
     r = A * x - v;
     rnorm = r.norm();
-    require_finite(rnorm, "residual norm");
+    assert(std::isfinite(rnorm) && "residual norm");
     r0    = rnorm;
 
     log.init(tolerance, rnorm, vnorm);
@@ -264,24 +229,24 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
         return x;
     }
     y = f(r);
-    require_finite(y.norm(), "preconditioned residual norm");
+    assert(std::isfinite(y.norm()) && "preconditioned residual norm");
     p = -1.0 * y;
 
     while (rnorm != 0.0 && rnorm / r0 > tolerance)
     {
         check_iteration_limit(i, max_iterations);
         const RealType ry = invlib::dot(r, y);
-        require_positive(ry, "preconditioned residual product (r^T M r)");
+        assert(std::isfinite(ry) && ry > 0.0 && "preconditioned residual product (r^T M r)");
         ap = A * p;
         const RealType curvature = invlib::dot(p, ap);
-        require_positive(curvature, "curvature (p^T A p)");
+        assert(std::isfinite(curvature) && curvature > 0.0 && "curvature (p^T A p)");
         alpha = ry / curvature;
-        require_positive(alpha, "step length");
+        assert(std::isfinite(alpha) && alpha > 0.0 && "step length");
         xnew  = x + alpha *     p;
         rnew  = r + alpha * ap;
-        require_finite(xnew.norm(), "solution norm");
+        assert(std::isfinite(xnew.norm()) && "solution norm");
         rnorm = rnew.norm();
-        require_finite(rnorm, "residual norm");
+        assert(std::isfinite(rnorm) && "residual norm");
         x = xnew;
         i++;
         if (i % 10 == 0) {
@@ -292,13 +257,13 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
             break;
         }
         ynew  = f(rnew);
-        require_finite(ynew.norm(), "preconditioned residual norm");
+        assert(std::isfinite(ynew.norm()) && "preconditioned residual norm");
         const RealType rynew = invlib::dot(rnew, ynew);
-        require_positive(rynew, "preconditioned residual product (r^T M r)");
+        assert(std::isfinite(rynew) && rynew > 0.0 && "preconditioned residual product (r^T M r)");
         beta  = rynew / ry;
-        require_finite(beta, "direction coefficient");
+        assert(std::isfinite(beta) && "direction coefficient");
         pnew  = beta * p - ynew;
-        require_finite(pnew.norm(), "search direction norm");
+        assert(std::isfinite(pnew.norm()) && "search direction norm");
 
         r = rnew;
         p = pnew;
@@ -319,7 +284,8 @@ inline PreconditionedConjugateGradient<F, true>::PreconditionedConjugateGradient
     int max_iterations_)
     : f(f_), verbosity(verbosity_), tolerance(tolerance_), max_iterations(max_iterations_)
 {
-    solver_detail::validate_cg_settings(tolerance, max_iterations);
+    assert(std::isfinite(tolerance) && tolerance > 0.0);
+    assert(max_iterations > 0);
 }
 
 template <typename F>
@@ -344,7 +310,8 @@ inline PreconditionedConjugateGradient<F, false>::PreconditionedConjugateGradien
     int max_iterations_)
     : verbosity(verbosity_), tolerance(tolerance_), max_iterations(max_iterations_)
 {
-    solver_detail::validate_cg_settings(tolerance, max_iterations);
+    assert(std::isfinite(tolerance) && tolerance > 0.0);
+    assert(max_iterations > 0);
 }
 
 template <typename F>
