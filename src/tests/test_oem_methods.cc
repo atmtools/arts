@@ -4,7 +4,6 @@
 
 #include <array>
 #include <cmath>
-#include <chrono>
 #include <iostream>
 #include <cstdlib>
 #include <functional>
@@ -306,72 +305,6 @@ void test_measurement_noise_scaling(std::string_view method) {
   for (Index i = 0; i < 2; ++i)
     close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
   close(scaled.diagnostics[2], baseline.diagnostics[2], 1e-9, "Measurement unit invariant cost");
-}
-
-// Opt-in benchmark: fixture creation is outside timing, OEM itself is timed.
-// Warm-up primes covariance caches just as repeated retrievals would.
-void benchmark_oem(int repetitions) {
-  require(repetitions >= 3, "Benchmark needs at least three repetitions");
-  std::cout << "states,measurements,covariance,gain,requested_scaling,scaled,method,repetitions,median_ms,min_ms,max_ms,max_state_error\n";
-  for (const auto [n, m] : {std::pair<Index, Index>{512, 32}, {512, 128}, {128, 128}, {32, 256}}) {
-    Matrix k(m, n);
-    for (Index i = 0; i < m; ++i)
-      for (Index j = 0; j < n; ++j)
-        k[i, j] = (std::sin((Numeric(i) + 1.) * (Numeric(j) + 1.) * 0.13) + (i == j ? 2. : 0.)) / std::sqrt(Numeric(n));
-    for (const bool correlated : {false, true}) {
-      for (const bool gain : {false, true}) {
-        for (const bool scaled : {false, true}) {
-          Vector reference;
-          for (const auto method : {"li", "li_m", "li_cg_m", "gn_m", "gn_cg_m"}) {
-            Retrieval r;
-            r.xa = Vector(n, 0.);
-            r.y = Vector(m);
-            for (Index i = 0; i < m; ++i) r.y[i] = std::cos(Numeric(i) * 0.17);
-            Matrix prior(n, n, 0.), noise(m, m, 0.);
-            for (Index i = 0; i < n; ++i) {
-              prior[i, i] = 1 + Numeric(i % 7) / 7;
-              if (correlated) for (Index j = 0; j < n; ++j)
-                prior[i, j] += 0.2 * std::exp(-std::abs(Numeric(i - j)) / 10.);
-            }
-            for (Index i = 0; i < m; ++i) noise[i, i] = 0.1 + Numeric(i % 11) / 11;
-            r.sa = covariance(std::move(prior));
-            r.se = covariance(std::move(noise));
-            r.set_target_size(n);
-            r.clear_matrices = gain ? 0 : 1;
-            if (scaled and std::string_view(method).ends_with("_m"))
-              measurement_vec_error_covmatNormalization(r.measurement_normalization, r.se);
-            r.forward = [&k](const Vector& x, Vector& y, Matrix& jac, bool with_jac) {
-              y.resize(k.nrows());
-              mult(y, k, x);
-              if (with_jac) jac = k;
-              else jac.resize(0, 0);
-            };
-            std::vector<double> times;
-            Numeric max_error = 0;
-            for (int trial = -1; trial < repetitions; ++trial) {
-              r.x = Vector{};
-              r.yf = Vector{};
-              r.jac = Matrix{};
-              r.evaluations.clear();
-              const auto start = std::chrono::steady_clock::now();
-              r.run(method);
-              const auto stop = std::chrono::steady_clock::now();
-              require(r.errors.empty() and r.diagnostics[0] <= 1, "Benchmark retrieval failed");
-              if (reference.empty()) reference = r.x;
-              for (Index i = 0; i < n; ++i) max_error = std::max(max_error, std::abs(r.x[i] - reference[i]));
-              require(max_error < 1e-6, "Benchmark methods disagree");
-              if (trial >= 0) times.push_back(std::chrono::duration<double, std::milli>(stop - start).count());
-            }
-            std::ranges::sort(times);
-            std::cout << n << ',' << m << ',' << (correlated ? "correlated_dense" : "diagonal_dense")
-                      << ',' << gain << ',' << scaled << ',' << (scaled and std::string_view(method).ends_with("_m"))
-                      << ',' << method << ',' << repetitions << ',' << times[times.size()/2]
-                      << ',' << times.front() << ',' << times.back() << ',' << max_error << '\n' << std::flush;
-          }
-        }
-      }
-    }
-  }
 }
 
 void test_affine(std::string_view method) {
@@ -1354,11 +1287,7 @@ void test_generic_minimize_outcomes() {
 }  // namespace
 
 int main(int argc, char** argv) try {
-  if (argc >= 2 and std::string_view(argv[1]) == "benchmark") {
-    benchmark_oem(argc == 3 ? std::stoi(argv[2]) : 5);
-    return EXIT_SUCCESS;
-  }
-  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes|reuse|benchmark [REPETITIONS]");
+  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes|reuse");
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();

@@ -784,3 +784,21 @@ No private caches or direct block-list edits are involved.
 Without ``ARTS_HEADLESS``, the script plots the prior, manipulated starting
 state, fitted states and fitted measurements. Four overlapping marker shapes
 show the equivalent covariance representations for each correlation pattern.
+
+Identifying the state coordinates in an information report
+---------------------------------------------------------
+
+``pyarts3.retrieval.information_from_workspace(ws)`` uses ``jac_targets`` to
+label the state coordinates, for example ``atm.H2O[0]``. It uses each target's
+``x_start`` and ``x_size``, not the order of target categories. The printed
+report also lists field slices such as ``x[0:3]: atm.H2O (3 entries)``.
+``report.state_blocks`` contains immutable ``(name, start, size)`` tuples;
+``report.state_labels`` contains one label per Jacobian column. Small-state
+uncertainty plots use these labels automatically.
+
+The index in a field label is its flattened target index, not an altitude.
+Keys alone do not specify units or logarithmic/relative state transformations.
+Supply ``state_labels=[...]`` when more specific per-coordinate labels are
+needed. Missing metadata retains generic ``x[i]`` labels; target ranges outside
+the Jacobian columns are rejected rather than attaching misleading names.
+The function does not finalize targets, run an agenda or modify the workspace.

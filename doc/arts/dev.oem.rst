@@ -479,49 +479,6 @@ materialized, as required by invlib's expression conversion. Gain postprocessing
 in performance comparisons. New methods share the affine, nonlinear,
 underdetermined, normalization and failure regression fixtures.
 
-Benchmarking measurement-space assembly
---------------------------------------
-
-Before changing assembly, run the opt-in benchmark in the existing native
-regression executable (it is deliberately not a timing-sensitive CTest)::
-
-    cmake --build build --target test_oem_methods -j6
-    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
-      build/src/tests/test_oem_methods benchmark 5 > before.csv
-
-Repeat the identical command after the change, writing ``after.csv``. Run on
-an otherwise idle machine with the same compiler, Release configuration,
-BLAS library and thread settings. Compare median_ms for matching states,
-measurements, covariance, gain, requested_scaling and method; before/after
-is the speedup. Repeat runs to distinguish small changes from timing noise.
-The CSV also includes min/max times and maximum state disagreement.
-
-The deterministic affine cases use (n,m) = (512,32), (512,128), (128,128),
-and (32,256), with diagonal or correlated priors stored as dense blocks.
-Measurement errors have unequal diagonal variances. Both gain-output modes
-and optional measurement scaling are exercised. ``li`` is an unscaled
-state-space reference, repeated in both requested-scaling groups;
-``scaled`` records whether scaling actually applies. Compare ``li_m`` with
-``li_cg_m`` and ``gn_m`` with ``gn_cg_m`` within each case.
-
-Each method has one untimed warm-up followed by five timed calls by default.
-Pass a larger repetition count as the final argument for more stable results
-(minimum three; the reported median is the upper middle sample for even
-counts). Fixture construction, covariance construction and state reset are
-outside timing. Complete OEM calls are timed, including agenda execution,
-validation, assembly, solves and requested gain postprocessing. Covariance
-inverse caches are warm. Every call checks successful diagnostics and state
-agreement within 1e-6 against the group's first solution. This measures warm
-retrieval performance; it does not measure cold covariance inversion,
-real radiative-transfer cost, sparse covariance storage, or peak memory.
-Methods run in a fixed order, so use repeated runs to detect thermal or
-background-load effects. No performance thresholds are enforced.
-
-Dense assembly is the default for direct measurement-space methods. Selecting
-a measurement-space CG method retains the lazy path. Compare both runtime
-and temporary storage when changing this policy; small timing differences
-require repeated measurements.
-
 Fused covariance addition and GEMM
 ---------------------------------
 
@@ -542,7 +499,7 @@ testing all four combinations of dense/sparse prior and noise storage,
 with normalization enabled and disabled. The reference state, gain, total
 cost and measurement cost are rational values derived independently from
 the two-state normal equations. Linear methods must take exactly one step.
-These checks are routine regressions, independent of the opt-in benchmark.
+These checks run as ordinary CTest regressions.
 
 Exact diagonal covariance operations
 -----------------------------------
@@ -600,26 +557,3 @@ Regression tests cover mixed Matrix/Sparse inputs, joining/splitting components,
 retained-reference mutation after factorization, copies, multiple RHS and
 left/right solves. Existing supplied-inverse and all-method OEM regressions
 remain applicable.
-
-Structured covariance solve benchmark
-------------------------------------
-
-Run ``test_covariance_validation benchmark`` with single-threaded BLAS and
-OpenMP (the same environment as the OEM benchmark above). This opt-in
-microbenchmark compares both paths in one executable, alternating execution
-order for seven samples. The explicit-inverse reference reproduces the old
-inverse-block multiplication loop, including its full-result temporary.
-Cold timings include preparation and one solve; warm timings measure repeated
-applications, including snapshot checks in the structured path. Construction,
-RHS generation and correctness checks are outside timing. All results must be
-finite and agree with a known input state to absolute error below 1e-8.
-
-Cases include a 100,000-element sparse diagonal, a 512-element dense-stored
-diagonal, a 256-element dense correlated component, and an 8192-element sparse
-diagonal plus two coupled 32-element blocks. Each runs with one and 16 RHS
-columns. The mixed case exercises joining components, not a single dense
-matrix.
-
-These are covariance-operation timings, not complete OEM retrieval timings.
-Use both benchmarks when changing preparation or factor application: avoiding
-inverses can trade preparation time and storage against repeated solve costs.

@@ -318,6 +318,44 @@ def test_read_only_workspace():
     assert covariance_snapshot(ws.measurement_vec_error_covmat) == before_error_storage
 
 
+def test_workspace_state_labels():
+    ws = pyarts.Workspace()
+    ws.atm_field = arts.AtmField()
+    ws.surf_field = arts.SurfaceField()
+    ws.surf_field.ellipsoid = [1, 1]
+    ws.abs_bands = arts.AbsorptionBands()
+    ws.measurement_sensor = arts.ArrayOfSensorObsel()
+    ws.subsurf_field = arts.SubsurfaceField()
+    for key, count, value in (("t", 2, 280.), ("H2O", 3, .01)):
+        ws.atm_field[key] = arts.GriddedField3(
+            data=np.full((count, 1, 1), value),
+            grid_names=["Altitude", "Latitude", "Longitude"],
+            grids=[np.arange(count, dtype=float), [0], [0]],
+        )
+    ws.RetrievalInit()
+    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.eye(3))
+    ws.RetrievalAddTemperature(matrix=np.eye(2))
+    ws.RetrievalFinalizeDiagonal()
+    ws.measurement_jac = np.arange(15, dtype=float).reshape(3, 5) / 10
+    ws.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.measurement_vec = [0, 0, 0]
+    report = information_from_workspace(ws)
+    for target in ws.jac_targets.atm:
+        name = f"atm.{target.type}"
+        start, count = target.x_start, target.x_size
+        assert (name, start, count) in report.state_blocks
+        assert report.state_labels[start:start+count] == tuple(
+            f"{name}[{i}]" for i in range(count))
+        assert f"x[{start}:{start+count}]: {name}" in report.describe()
+    custom = information_from_workspace(ws, state_labels=list("abcde"))
+    assert custom.state_labels == tuple("abcde")
+    assert custom.state_blocks == report.state_blocks
+    np.testing.assert_array_equal(custom.state_modes, report.state_modes)
+    # Stale ranges must not silently attach a field name to the wrong column.
+    ws.measurement_jac = np.ones((3, 2))
+    rejects(lambda: information_from_workspace(ws))
+
+
 def test_validation():
     # NumPy permits complex-to-real casting with a warning. This interface
     # must reject it instead of analyzing silently changed physical inputs.
@@ -389,6 +427,7 @@ for test in (
     test_native_block_layout,
     test_diagonal_and_memory_limit,
     test_read_only_workspace,
+    test_workspace_state_labels,
     test_validation,
 ):
     test()

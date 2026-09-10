@@ -5353,18 +5353,17 @@ for non-LM methods and does not include every rejected trial step.
   };
 
   wsm_data["measurement_vec_error_covmatNormalization"] = {
-      .desc = R"(Returns measurement noise standard deviations D_ii = sqrt(S_e[i,i]).
+      .desc      = R"(Returns measurement noise standard deviations D_ii = sqrt(S_e[i,i]).
 
 Pass these scales to OEM as measurement_vec_normalization for measurement-space methods. The scaled
 system is D^-1 (K S_a K^T + S_e) D^-1. This does not change the statistical
 objective and is not full whitening for correlated measurement errors.
 )",
-      .author = {"Richard Larsson"},
-      .in = {"measurement_vec_error_covmat"},
-      .gout = {"normalization"},
+      .author    = {"Richard Larsson"},
+      .gout      = {"normalization"},
       .gout_type = {"Vector"},
       .gout_desc = {"Measurement noise standard deviations, in measurement units"},
-  };
+      .in        = {"measurement_vec_error_covmat"}};
 
   wsm_data["measurement_vec_error_covmat_observation_systemCalc"] = {
       .desc =

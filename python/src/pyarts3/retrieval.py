@@ -5,7 +5,7 @@ https://doi.org/10.5194/amt-14-5521-2021. These functions neither execute an
 agenda nor change a workspace, its covariance matrices, or its settings.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import operator
 
 import numpy as np
@@ -47,6 +47,10 @@ class InformationReport:
     independent prior-normalized modes. Correlated priors can improve a
     parameter indirectly through information about other parameters.
 
+    ``state_labels`` identify individual state coordinates. Workspace reports
+    also include ``state_blocks`` tuples of (field name, x_start, x_size).
+    These indices describe flattened retrieval coordinates, not physical grids.
+
     Innovation statistics are present only when both measurements and an
     explicit prior prediction were supplied. Their interpretation assumes
     independent Gaussian prior and observation errors and a valid linear
@@ -67,6 +71,8 @@ class InformationReport:
     measurement_correlation_condition: float
     innovation_chi_square: float | None
     innovation_expected_mean: int | None
+    # (field label, x_start, x_size), in state-vector order.
+    state_blocks: tuple[tuple[str, int, int], ...] = ()
 
     def describe(self, max_states=10):
         """Explain the report, showing at most ``max_states`` state entries."""
@@ -91,8 +97,12 @@ class InformationReport:
                 f"expected mean {self.innovation_expected_mean} "
                 "under the linear Gaussian model"
             )
+        if self.state_blocks:
+            lines.extend(["", "State-vector fields (Python slices):"])
+            for label, start, size in self.state_blocks:
+                lines.append(f"  x[{start}:{start + size}]: {label} ({size} entries)")
         if max_states:
-            lines.extend(["", "State: prior SD -> posterior SD; variance removed"])
+            lines.extend(["", "Linear analysis", "State: prior SD -> posterior SD; variance removed"])
             for label, prior, posterior, reduction in zip(
                 self.state_labels[:max_states],
                 self.prior_standard_deviation[:max_states],
@@ -106,16 +116,7 @@ class InformationReport:
                 lines.append(
                     f"  ... {n - max_states} further states are available in the arrays"
                 )
-        lines.extend(
-            [
-                "",
-                "This is a local linear analysis of the supplied Jacobian "
-                "and assumed uncertainties.",
-                "It does not establish that the Jacobian, prior, "
-                "or measurement-error model is correct.",
-                "No covariance or retrieval setting has been changed.",
-            ]
-        )
+
         return "\n".join(lines)
 
     def __str__(self):
@@ -483,12 +484,42 @@ def information(
     )
 
 
+def _workspace_state_metadata(ws, size):
+    """Use target offsets, not category order, to identify Jacobian columns."""
+    labels = [[] for _ in range(size)]
+    blocks = []
+    if ws.has("jac_targets"):
+        for category in ("atm", "surf", "subsurf", "line", "sensor", "error"):
+            for target in getattr(ws.jac_targets, category):
+                start, count = int(target.x_start), int(target.x_size)
+                if start < 0 or count <= 0 or start + count > size:
+                    raise ValueError(
+                        f"Jacobian target {category}.{target.type} has invalid state "
+                        f"range [{start}:{start + count}] for {size} columns; "
+                        "finalize targets and recompute the Jacobian"
+                    )
+                name = f"{category}.{target.type}"
+                blocks.append((name, start, count))
+                for offset in range(count):
+                    labels[start + offset].append(f"{name}[{offset}]")
+    # Overlapping targets can intentionally share a state coordinate.
+    return (tuple(" / ".join(names) if names else f"x[{i}]"
+                  for i, names in enumerate(labels)),
+            tuple(sorted(blocks, key=lambda block: (block[1], block[0]))))
+
+
 def information_from_workspace(ws, *, prior_prediction=None, **options):
     """Analyze the Jacobian and covariances already present in a workspace.
 
     No agenda is executed. Supply ``prior_prediction`` explicitly to enable
     innovation checking using ``ws.measurement_vec``. The caller must ensure
     that the Jacobian describes the intended state and coordinates.
+    Field labels and ``state_blocks`` (name, start, size) are inferred from
+    ``jac_targets``. Offsets refer to the supplied Jacobian's columns; field
+    indices are flattened target indices, not altitude or physical units.
+    Keys alone do not identify logarithmic or other coordinate transforms.
+    Missing target metadata leaves generic ``x[i]`` labels. Explicit
+    ``state_labels`` override the automatic per-coordinate labels.
     Remaining options are forwarded to :func:`information`.
     """
     if "measurement" in options:
@@ -501,7 +532,10 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
     assert ws.has("measurement_vec_error_covmat"), "Measurement error covariance not present in workspace"
     assert ws.has("measurement_vec") or prior_prediction is not None, "Measurement vector not present in workspace"
 
-    return information(
+    labels, blocks = _workspace_state_metadata(ws, np.asarray(ws.measurement_jac).shape[1])
+    if options.get("state_labels") is None:
+        options["state_labels"] = labels
+    report = information(
         ws.measurement_jac,
         ws.model_state_covmat,
         ws.measurement_vec_error_covmat,
@@ -509,3 +543,4 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
         prior_prediction=prior_prediction,
         **options,
     )
+    return replace(report, state_blocks=blocks)

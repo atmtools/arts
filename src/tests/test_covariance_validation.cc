@@ -3,7 +3,6 @@
 #include <cmath>
 #include <thread>
 #include <atomic>
-#include <chrono>
 #include <algorithm>
 #include <iostream>
 #include <cstdlib>
@@ -381,84 +380,11 @@ void workspace_helpers() {
 }
 
 // Same-executable comparison with the pre-refactor mult_inv implementation.
-void benchmark_solves() {
-  using Clock = std::chrono::steady_clock;
-  const auto make = [](std::string_view name) {
-    CovarianceMatrix a;
-    if (name == "sparse_diagonal_100k") {
-      Vector d(100000);
-      for(Index i=0;i<100000;++i) d[i]=1+Numeric(i%17);
-      a.add_correlation({Range(0,100000),Range(0,100000),{0,0},Sparse::diagonal(d)});
-    } else if (name == "mixed") {
-      a.add_correlation({Range(0,8192),Range(0,8192),{0,0},Sparse::diagonal(Vector(8192,2.))});
-      Matrix d(32,32,0.), cross(32,32,0.);
-      for(Index i=0;i<32;++i) {d[i,i]=2.;cross[i,i]=0.25;}
-      a.add_correlation({Range(8192,32),Range(8192,32),{1,1},d});
-      a.add_correlation({Range(8224,32),Range(8224,32),{2,2},d});
-      a.add_correlation({Range(8192,32),Range(8224,32),{1,2},cross});
-    } else {
-      const Index n = name == "dense_diagonal" ? 512 : 256;
-      Matrix d(n,n,0.);
-      for(Index i=0;i<n;++i) for(Index j=0;j<n;++j)
-        d[i,j]=(i==j ? 2. : 0.) + (name=="dense_correlated" ? 0.2*std::exp(-std::abs(Numeric(i-j))/12.) : 0.);
-      a=covariance(std::move(d));
-    }
-    return a;
-  };
-  const auto legacy = [](Matrix& out, const CovarianceMatrix& a, const Matrix& rhs) {
-    out=0.;
-    Matrix temporary(out);
-    for(const auto& block : inverse_blocks(a)) {
-      temporary=0.;
-      mult(temporary,block,rhs);
-      out+=temporary;
-    }
-  };
-  std::cout << "case,rhs,phase,path,median_ms,min_ms,max_ms,max_error\n";
-  for(const auto name : {"sparse_diagonal_100k","dense_diagonal","dense_correlated","mixed"}) {
-    for(const Index nrhs : {1,16}) {
-      auto source=make(name);
-      const Index n=source.nrows();
-      Matrix truth(n,nrhs), rhs(n,nrhs), out(n,nrhs);
-      for(Index i=0;i<n;++i) for(Index j=0;j<nrhs;++j) truth[i,j]=1+Numeric((i+j)%7)/7.;
-      mult(rhs,source,truth);
-      for(const bool cold : {true,false}) {
-        auto structured=make(name), inverse=make(name);
-        if(not cold) {inverse.compute_inverse(); mult_inv(out,structured,rhs);}
-        std::vector<double> elapsed[2];
-        Numeric errors[2]{};
-        for(int repeat=0;repeat<7;++repeat) {
-          for(int turn=0;turn<2;++turn) {
-            const int path=(repeat+turn)%2;
-            if(cold) {if(path==0) inverse=make(name); else structured=make(name);}
-            const auto begin=Clock::now();
-            if(path==0) {if(cold) inverse.compute_inverse(); legacy(out,inverse,rhs);}
-            else mult_inv(out,structured,rhs);
-            elapsed[path].push_back(std::chrono::duration<double,std::milli>(Clock::now()-begin).count());
-            for(Index i=0;i<n;++i) for(Index j=0;j<nrhs;++j) {
-              require(std::isfinite(out[i,j]), "Nonfinite covariance benchmark result");
-              errors[path]=std::max(errors[path],std::abs(out[i,j]-truth[i,j]));
-            }
-            require(std::isfinite(errors[path]) and errors[path]<1e-8,"Covariance benchmark result mismatch");
-          }
-        }
-        for(int path=0;path<2;++path) {
-          std::ranges::sort(elapsed[path]);
-          std::cout << name << ',' << nrhs << ',' << (cold ? "cold" : "warm") << ','
-                    << (path==0 ? "explicit_inverse" : "structured") << ',' << elapsed[path][3]
-                    << ',' << elapsed[path].front() << ',' << elapsed[path].back() << ',' << errors[path] << '\n' << std::flush;
-        }
-      }
-    }
-  }
-}
-
 }  // namespace
 
 int main(int argc, char** argv) try {
   require(argc == 2, "Specify structural, numerical, precision, or workspace");
   const std::string_view test = argv[1];
-  if (test == "benchmark") { benchmark_solves(); return EXIT_SUCCESS; }
   if (test == "structural")
     structural();
   else if (test == "numerical")
