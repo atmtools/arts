@@ -104,7 +104,7 @@ def run():
                     ws.model_state_vec = prior + SCALE * START
                     ws.measurement_vec_fit = []
                     ws.measurement_jac = arts.Matrix()
-                    ws.OEM(method="lm", lm_ga_settings=arts.OEMLMSettings(),
+                    ws.OEM(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
                            max_iter=50, stop_dx=1e-12)
                     assert not len(ws.errors), str(ws.errors)
                     assert ws.oem_diagnostics[0] == 0, ws.oem_diagnostics

@@ -21,7 +21,7 @@ METHODS = ("lm", "ml", "lm_cg", "ml_cg")
 
 
 def named(values):
-    return arts.OEMLMSettings(**dict(zip(FIELDS, values)))
+    return arts.LevenbergMarquardtSettings(**dict(zip(FIELDS, values)))
 
 
 def rejects(operation, *names):
@@ -35,29 +35,29 @@ def rejects(operation, *names):
 
 
 def test_value_object():
-    defaults = arts.OEMLMSettings()
+    defaults = arts.LevenbergMarquardtSettings()
     defaults.validate()
     np.testing.assert_array_equal(defaults.as_vector(), DEFAULTS)
     for field, value in zip(FIELDS, DEFAULTS):
         assert getattr(defaults, field) == value
         assert f"{field}=" in repr(defaults)
-    assert "OEMLMSettings" in repr(defaults)
+    assert "LevenbergMarquardtSettings" in repr(defaults)
     description = defaults.describe()
     assert repr(defaults) in description
     assert "stop_dx" in description
     assert "covariance" in description.lower()
     assert len(description) > len(repr(defaults))
-    rejects(lambda: arts.OEMLMSettings(10))  # Constructor is keyword-only.
+    rejects(lambda: arts.LevenbergMarquardtSettings(10))  # Constructor is keyword-only.
 
     settings = named(DISTINCT)
     vector = settings.as_vector()
     assert isinstance(vector, arts.Vector)
     np.testing.assert_array_equal(vector, DISTINCT)
     np.testing.assert_array_equal(arts.Vector(settings), DISTINCT)
-    imported = arts.OEMLMSettings.from_vector(vector)
+    imported = arts.LevenbergMarquardtSettings.from_vector(vector)
     np.testing.assert_array_equal(imported.as_vector(), DISTINCT)
     np.testing.assert_array_equal(
-        arts.OEMLMSettings.from_vector(DISTINCT).as_vector(), DISTINCT
+        arts.LevenbergMarquardtSettings.from_vector(DISTINCT).as_vector(), DISTINCT
     )
 
     # Conversion and serialization produce independent values.
@@ -81,8 +81,8 @@ def test_value_object():
 def test_validation():
     for field in FIELDS:
         for invalid in (-1, np.nan, np.inf, -np.inf):
-            rejects(lambda: arts.OEMLMSettings(**{field: invalid}), field)
-            changed = arts.OEMLMSettings()
+            rejects(lambda: arts.LevenbergMarquardtSettings(**{field: invalid}), field)
+            changed = arts.LevenbergMarquardtSettings()
             rejects(lambda: setattr(changed, field, invalid), field)
             # A failed edit leaves a usable configuration and its diagnostics
             # identify the field before implicit conversion can obscure them.
@@ -98,30 +98,30 @@ def test_validation():
         ("maximum_damping", 0),
         ("damping_threshold", 0),
     ):
-        rejects(lambda: arts.OEMLMSettings(**{field: invalid}), field)
-        changed = arts.OEMLMSettings()
+        rejects(lambda: arts.LevenbergMarquardtSettings(**{field: invalid}), field)
+        changed = arts.LevenbergMarquardtSettings()
         rejects(lambda: setattr(changed, field, invalid), field)
         np.testing.assert_array_equal(changed.as_vector(), DEFAULTS)
 
     for field in ("initial_damping", "damping_threshold"):
         rejects(
-            lambda: arts.OEMLMSettings(**{field: 101}),
+            lambda: arts.LevenbergMarquardtSettings(**{field: 101}),
             field,
             "maximum_damping",
         )
-        changed = arts.OEMLMSettings()
+        changed = arts.LevenbergMarquardtSettings()
         rejects(lambda: setattr(changed, field, 101), field, "maximum_damping")
         np.testing.assert_array_equal(changed.as_vector(), DEFAULTS)
 
     for count in (0, 5, 7):
         rejects(
-            lambda: arts.OEMLMSettings.from_vector(arts.Vector([1] * count)),
+            lambda: arts.LevenbergMarquardtSettings.from_vector(arts.Vector([1] * count)),
             "6",
         )
     for i, field in enumerate(FIELDS):
         values = DISTINCT.copy()
         values[i] = np.nan
-        rejects(lambda: arts.OEMLMSettings.from_vector(arts.Vector(values)), field)
+        rejects(lambda: arts.LevenbergMarquardtSettings.from_vector(arts.Vector(values)), field)
 
     # These are useful supported boundaries, not additional ordering constraints.
     for overrides in (
@@ -131,18 +131,18 @@ def test_validation():
         {"initial_damping": 0, "damping_threshold": 0.1, "maximum_damping": 0.1},
         {"convergence_damping_limit": 101},  # May exceed maximum damping.
     ):
-        settings = arts.OEMLMSettings(**overrides)
+        settings = arts.LevenbergMarquardtSettings(**overrides)
         settings.validate()
         np.testing.assert_array_equal(
-            arts.OEMLMSettings.from_vector(settings.as_vector()).as_vector(),
+            arts.LevenbergMarquardtSettings.from_vector(settings.as_vector()).as_vector(),
             settings.as_vector(),
         )
 
     # Coupled settings can be replaced together or edited in a valid order.
-    changed = arts.OEMLMSettings()
+    changed = arts.LevenbergMarquardtSettings()
     changed.maximum_damping = 200
     changed.initial_damping = 200
-    replacement = arts.OEMLMSettings(initial_damping=200, maximum_damping=200)
+    replacement = arts.LevenbergMarquardtSettings(initial_damping=200, maximum_damping=200)
     np.testing.assert_array_equal(changed.as_vector(), replacement.as_vector())
 
 
@@ -349,7 +349,7 @@ def test_damping_outcomes():
         # failure sentinel maximum_damping + 1 rounds back to maximum_damping.
         result = retrieve(
             method,
-            arts.OEMLMSettings(initial_damping=1e20, maximum_damping=1e20),
+            arts.LevenbergMarquardtSettings(initial_damping=1e20, maximum_damping=1e20),
         )
         assert result["oem_diagnostics"][0] == 2, result["oem_diagnostics"]
         np.testing.assert_array_equal(result["model_state_vec"], [0.5, -0.25])

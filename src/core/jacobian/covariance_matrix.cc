@@ -9,19 +9,19 @@
 #include "covariance_matrix.h"
 
 #include <lin_alg.h>
-#include <Eigen/Cholesky>
-#include <variant>
-#include <mutex>
 #include <xml.h>
 
+#include <Eigen/Cholesky>
 #include <cmath>
 #include <limits>
-#include <ostream>
+#include <mutex>
 #include <optional>
+#include <ostream>
 #include <queue>
 #include <set>
 #include <tuple>
 #include <utility>
+#include <variant>
 #include <vector>
 
 namespace {
@@ -517,8 +517,8 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
 }
 
 void CovarianceMatrix::compute_inverse() const {
-  if(finalized_) {
-    if(inverses_.empty()) throw std::runtime_error("Prepared covariance did not request explicit precision.");
+  if (finalized_) {
+    if (inverses_.empty()) throw std::runtime_error("Prepared covariance did not request explicit precision.");
     return;
   }
   // Inverse-only matrices are also used internally as precision operators.
@@ -724,40 +724,43 @@ Vector CovarianceMatrix::inverse_diagonal() const {
 namespace {
 // Discover exact diagonal structure without materializing a dense covariance.
 // No persistent cache: block storage can be shared with external callers.
-std::optional<Vector> diagonal_values(const std::vector<Block>& blocks, Index n) {
+std::optional<Vector> diagonal_values(const std::vector<Block> &blocks, Index n) {
   if (blocks.empty()) return std::nullopt;
   Vector values(n, 0.);
-  for (const Block& block : blocks) {
+  for (const Block &block : blocks) {
     const auto [i, j] = block.get_indices();
     if (i != j) return std::nullopt;
     if (block.is_dense()) {
-      const auto& a = block.get_dense();
+      const auto &a = block.get_dense();
       for (Index r = 0; r < a.nrows(); ++r)
         for (Index c = 0; c < a.ncols(); ++c)
-          if (r != c and a[r,c] != 0) return std::nullopt;
+          if (r != c and a[r, c] != 0) return std::nullopt;
     } else {
-      const auto& a = block.get_sparse();
+      const auto &a = block.get_sparse();
       for (const auto [row, col, value] : a | by_elem)
         if (row != col and value != 0) return std::nullopt;
     }
     const Vector d = block.diagonal();
-    for (Index r = 0; r < static_cast<Index>(d.size()); ++r)
-      values[block.get_row_range().offset + r] = d[r];
+    for (Index r = 0; r < static_cast<Index>(d.size()); ++r) values[block.get_row_range().offset + r] = d[r];
   }
   return values;
 }
-}
+}  // namespace
 
 // Structural types are internal: public inputs remain Matrix and Sparse.
 struct CovarianceSolveCache {
-  struct Diagonal { Vector values; };
-  struct Cholesky { Eigen::LLT<Eigen::MatrixXd> factor; };
+  struct Diagonal {
+    Vector values;
+  };
+  struct Cholesky {
+    Eigen::LLT<Eigen::MatrixXd> factor;
+  };
   struct Component {
-    std::vector<Index> rows;
+    std::vector<Index>               rows;
     std::variant<Diagonal, Cholesky> solver;
   };
-  std::vector<Index> layout;
-  std::vector<Numeric> values;
+  std::vector<Index>     layout;
+  std::vector<Numeric>   values;
   std::vector<Component> components;
 };
 
@@ -789,89 +792,95 @@ std::shared_ptr<const CovarianceMatrix> CovarianceMatrix::prepared(bool need_pre
 bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatrixView rhs) const {
   // Preserve explicitly supplied (including precision-only) representations.
   if (correlations_.empty() or not inverses_.empty()) return false;
-  if(not finalized_) {
-  std::vector<Index> layout;
-  std::vector<Numeric> values;
-  for (const auto& b : correlations_) {
-    const auto [i,j] = b.get_indices();
-    layout.insert(layout.end(), {i,j,b.get_row_range().offset,b.nrows(),
-                                  b.get_column_range().offset,b.ncols(),b.is_dense()});
-    if (b.is_dense()) {
-      values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
-    } else {
-      const auto& a = b.get_sparse();
-      layout.push_back(a.nnz());
-      for (const auto [row, col, value] : a | by_elem) {
-        layout.insert(layout.end(), {row,col});
-        values.push_back(value);
-      }
-    }
-  }
-  // Exact snapshots detect mutations through retained references/shared storage.
-  if (not solve_cache_ or solve_cache_->layout != layout or solve_cache_->values != values) {
-    validate(-1, 1e-10, std::numeric_limits<Index>::max());
-    auto cache = std::make_shared<CovarianceSolveCache>();
-    cache->layout = std::move(layout);
-    cache->values = std::move(values);
-    std::vector<std::vector<const Block*>> groups;
-    generate_blocks(groups);
-    for (const auto& group : groups) {
-      CovarianceSolveCache::Component component;
-      std::map<Index,Index> starts;
-      for (const auto* b : group) {
-        const auto [i,j] = b->get_indices();
-        if (i != j) continue;
-        starts[i] = component.rows.size();
-        for (Index k=0; k<b->nrows(); ++k) component.rows.push_back(b->get_row_range().offset+k);
-      }
-      if (group.size()==1) {
-        // Reuse the exact structure classifier; never infer independence from small values.
-        if (auto d = diagonal_values(std::vector<Block>{*group.front()}, nrows())) {
-          Vector local(component.rows.size());
-          for (Index i=0; i<static_cast<Index>(local.size()); ++i) local[i]=(*d)[component.rows[i]];
-          component.solver = CovarianceSolveCache::Diagonal{std::move(local)};
-          cache->components.push_back(std::move(component));
-          continue;
-        }
-      }
-      const Index n = component.rows.size();
-      Eigen::MatrixXd dense = Eigen::MatrixXd::Zero(n,n);
-      for (const auto* b : group) {
-        const auto [i,j] = b->get_indices();
-        const Index r0=starts.at(i), c0=starts.at(j);
-        auto put = [&](Index r, Index c, Numeric v) {
-          dense(r0+r,c0+c)=v;
-          if(i!=j) dense(c0+c,r0+r)=v;
-        };
-        if (b->is_dense()) {
-          for(Index r=0;r<b->nrows();++r) for(Index c=0;c<b->ncols();++c) put(r,c,b->get_dense()[r,c]);
-        } else {
-          const auto& a=b->get_sparse();
-          for (const auto [row, col, value] : a | by_elem)
-            put(row,col,value);
-        }
-      }
-      CovarianceSolveCache::Cholesky factor{Eigen::LLT<Eigen::MatrixXd>(dense)};
-      if(factor.factor.info()!=Eigen::Success) throw std::runtime_error("Covariance component Cholesky factorization failed.");
-      component.solver=std::move(factor);
-      cache->components.push_back(std::move(component));
-    }
-    solve_cache_=std::move(cache);
-  }
-  }
-  for(const auto& component : solve_cache_->components) {
-    std::visit([&](const auto& solver) {
-      using T=std::remove_cvref_t<decltype(solver)>;
-      if constexpr(std::same_as<T,CovarianceSolveCache::Diagonal>) {
-        for(Index i=0;i<static_cast<Index>(component.rows.size());++i)
-          for(Index j=0;j<rhs.ncols();++j) out[component.rows[i],j]=rhs[component.rows[i],j]/solver.values[i];
+  if (not finalized_) {
+    std::vector<Index>   layout;
+    std::vector<Numeric> values;
+    for (const auto &b : correlations_) {
+      const auto [i, j] = b.get_indices();
+      layout.insert(layout.end(),
+                    {i, j, b.get_row_range().offset, b.nrows(), b.get_column_range().offset, b.ncols(), b.is_dense()});
+      if (b.is_dense()) {
+        values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
       } else {
-        Eigen::MatrixXd local(component.rows.size(),rhs.ncols());
-        for(Index i=0;i<local.rows();++i) for(Index j=0;j<local.cols();++j) local(i,j)=rhs[component.rows[i],j];
-        Eigen::MatrixXd solved=solver.factor.solve(local);
-        for(Index i=0;i<local.rows();++i) for(Index j=0;j<local.cols();++j) out[component.rows[i],j]=solved(i,j);
+        const auto &a = b.get_sparse();
+        layout.push_back(a.nnz());
+        for (const auto [row, col, value] : a | by_elem) {
+          layout.insert(layout.end(), {row, col});
+          values.push_back(value);
+        }
       }
-    },component.solver);
+    }
+    // Exact snapshots detect mutations through retained references/shared storage.
+    if (not solve_cache_ or solve_cache_->layout != layout or solve_cache_->values != values) {
+      validate(-1, 1e-10, std::numeric_limits<Index>::max());
+      auto cache    = std::make_shared<CovarianceSolveCache>();
+      cache->layout = std::move(layout);
+      cache->values = std::move(values);
+      std::vector<std::vector<const Block *>> groups;
+      generate_blocks(groups);
+      for (const auto &group : groups) {
+        CovarianceSolveCache::Component component;
+        std::map<Index, Index>          starts;
+        for (const auto *b : group) {
+          const auto [i, j] = b->get_indices();
+          if (i != j) continue;
+          starts[i] = component.rows.size();
+          for (Index k = 0; k < b->nrows(); ++k) component.rows.push_back(b->get_row_range().offset + k);
+        }
+        if (group.size() == 1) {
+          // Reuse the exact structure classifier; never infer independence from small values.
+          if (auto d = diagonal_values(std::vector<Block>{*group.front()}, nrows())) {
+            Vector local(component.rows.size());
+            for (Index i = 0; i < static_cast<Index>(local.size()); ++i) local[i] = (*d)[component.rows[i]];
+            component.solver = CovarianceSolveCache::Diagonal{std::move(local)};
+            cache->components.push_back(std::move(component));
+            continue;
+          }
+        }
+        const Index     n     = component.rows.size();
+        Eigen::MatrixXd dense = Eigen::MatrixXd::Zero(n, n);
+        for (const auto *b : group) {
+          const auto [i, j] = b->get_indices();
+          const Index r0 = starts.at(i), c0 = starts.at(j);
+          auto        put = [&](Index r, Index c, Numeric v) {
+            dense(r0 + r, c0 + c) = v;
+            if (i != j) dense(c0 + c, r0 + r) = v;
+          };
+          if (b->is_dense()) {
+            for (Index r = 0; r < b->nrows(); ++r)
+              for (Index c = 0; c < b->ncols(); ++c) put(r, c, b->get_dense()[r, c]);
+          } else {
+            const auto &a = b->get_sparse();
+            for (const auto [row, col, value] : a | by_elem) put(row, col, value);
+          }
+        }
+        CovarianceSolveCache::Cholesky factor{Eigen::LLT<Eigen::MatrixXd>(dense)};
+        if (factor.factor.info() != Eigen::Success)
+          throw std::runtime_error("Covariance component Cholesky factorization failed.");
+        component.solver = std::move(factor);
+        cache->components.push_back(std::move(component));
+      }
+      solve_cache_ = std::move(cache);
+    }
+  }
+  for (const auto &component : solve_cache_->components) {
+    std::visit(
+        [&](const auto &solver) {
+          using T = std::remove_cvref_t<decltype(solver)>;
+          if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
+            for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i)
+              for (Index j = 0; j < rhs.ncols(); ++j)
+                out[component.rows[i], j] = rhs[component.rows[i], j] / solver.values[i];
+          } else {
+            Eigen::MatrixXd local(component.rows.size(), rhs.ncols());
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) local(i, j) = rhs[component.rows[i], j];
+            Eigen::MatrixXd solved = solver.factor.solve(local);
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) out[component.rows[i], j] = solved(i, j);
+          }
+        },
+        component.solver);
   }
   return true;
 }
@@ -879,7 +888,7 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
 void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   if (auto d = diagonal_values(B.correlations_, B.nrows())) {
     for (Index i = 0; i < C.nrows(); ++i)
-      for (Index j = 0; j < C.ncols(); ++j) C[i,j] = A[i,j] * (*d)[j];
+      for (Index j = 0; j < C.ncols(); ++j) C[i, j] = A[i, j] * (*d)[j];
     return;
   }
   C = 0.0;
@@ -894,7 +903,7 @@ void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix 
 void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
   if (auto d = diagonal_values(A.correlations_, A.nrows())) {
     for (Index i = 0; i < C.nrows(); ++i)
-      for (Index j = 0; j < C.ncols(); ++j) C[i,j] = (*d)[i] * B[i,j];
+      for (Index j = 0; j < C.ncols(); ++j) C[i, j] = (*d)[i] * B[i, j];
     return;
   }
   C = 0.0;
@@ -942,10 +951,10 @@ void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrix
 
 void solve(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
   // Views preserve arbitrary vector strides.
-  Matrix input(v.size(),1), output(v.size(),1);
-  for(Index i=0;i<static_cast<Index>(v.size());++i) input[i,0]=v[i];
-  if(A.solve_components(output,input)) {
-    for(Index i=0;i<static_cast<Index>(w.size());++i) w[i]=output[i,0];
+  Matrix input(v.size(), 1), output(v.size(), 1);
+  for (Index i = 0; i < static_cast<Index>(v.size()); ++i) input[i, 0] = v[i];
+  if (A.solve_components(output, input)) {
+    for (Index i = 0; i < static_cast<Index>(w.size()); ++i) w[i] = output[i, 0];
     return;
   }
   A.compute_inverse();

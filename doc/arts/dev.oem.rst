@@ -362,7 +362,7 @@ Helping users choose settings
 -------------------------------------
 
 Named LM settings are implemented by
-:class:`~pyarts3.arts.OEMLMSettings`.  Its keyword-only constructor and
+:class:`~pyarts3.arts.LevenbergMarquardtSettings`.  Its keyword-only constructor and
 mutable fields expose ``initial_damping``, ``decrease_factor``,
 ``increase_factor``, ``maximum_damping``, ``damping_threshold``, and
 ``convergence_damping_limit`` in the existing vector order.  The native

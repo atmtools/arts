@@ -87,10 +87,10 @@ template <typename ForwardModel> using OEM_MFORM = invlib::
 
 // Matrix-free symmetric scaling by inverse measurement standard deviations.
 template <typename MatrixType> struct NoiseScaledSystem {
-  const MatrixType& matrix;
-  const ::Vector& scales;
+  const MatrixType &matrix;
+  const ::Vector   &scales;
 
-  template <typename V> typename V::ResultType operator*(const V& value) const {
+  template <typename V> typename V::ResultType operator*(const V &value) const {
     typename V::ResultType input = value;
     for (Index i = 0; i < input.rows(); ++i) input(i) /= scales[i];
     typename V::ResultType output = matrix * input;
@@ -154,7 +154,7 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
   }
 
   void set_iteration_limit_warning(std::function<void()> warning)
-    requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
+      requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
     SolverType::iteration_limit_warning = std::move(warning);
   }
 
@@ -171,17 +171,16 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
 // system. CG does not opt into this policy and remains matrix-free.
 struct DirectMeasurementSolver {
   static constexpr bool dense_measurement_system = true;
-  ::Vector measurement_scales;
+  ::Vector              measurement_scales;
 
-  template <typename M, typename V> typename V::ResultType solve(const M& system, const V& rhs) {
-    Matrix dense = system;
-    const Index size = rhs.rows();
+  template <typename M, typename V> typename V::ResultType solve(const M &system, const V &rhs) {
+    Matrix                 dense      = system;
+    const Index            size       = rhs.rows();
     typename V::ResultType scaled_rhs = rhs;
     if (not measurement_scales.empty()) {
       for (Index i = 0; i < size; ++i) {
         scaled_rhs(i) /= measurement_scales[i];
-        for (Index j = 0; j < size; ++j)
-          dense(i, j) = (dense(i, j) / measurement_scales[i]) / measurement_scales[j];
+        for (Index j = 0; j < size; ++j) dense(i, j) = (dense(i, j) / measurement_scales[i]) / measurement_scales[j];
       }
     }
     typename V::ResultType result = invlib::Standard{}.solve(dense, scaled_rhs);

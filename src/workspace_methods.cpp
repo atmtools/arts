@@ -5235,13 +5235,13 @@ Description of the special input arguments:
 
     - ``lm_ga_settings``:
 
-      Python users can pass :class:`~pyarts3.arts.OEMLMSettings` directly
+      Python users can pass :class:`~pyarts3.arts.LevenbergMarquardtSettings` directly
       to configure damping by name, for example::
 
-          damping = pyarts3.arts.OEMLMSettings(initial_damping=20.0)
+          damping = pyarts3.arts.LevenbergMarquardtSettings(initial_damping=20.0)
           ws.OEM(method="lm", lm_ga_settings=damping)
 
-      ``OEMLMSettings()`` provides the explicit starting configuration
+      ``LevenbergMarquardtSettings()`` provides the explicit starting configuration
       ``[10, 2, 2, 100, 1, 0]``. Its keyword-only fields, in vector order,
       are ``initial_damping``, ``decrease_factor``, ``increase_factor``,
       ``maximum_damping``, ``damping_threshold``, and
@@ -5255,7 +5255,7 @@ Description of the special input arguments:
       they do not choose covariance assumptions or guarantee convergence.
 
       The existing vector remains accepted. ``as_vector()`` exports a
-      validated vector, and ``OEMLMSettings.from_vector(values)`` imports
+      validated vector, and ``LevenbergMarquardtSettings.from_vector(values)`` imports
       one. Conversion when passing the named object to ``OEM`` validates
       its current values. Use a vector for workspace and XML storage.
 
@@ -5269,7 +5269,7 @@ Description of the special input arguments:
             5. Nonnegative gamma limit for enabling the ordinary ``stop_dx`` criterion. It applies to the current updated gamma; zero enables this criterion when damping reaches zero.
       
       The ``OEM`` argument still defaults to an empty vector, which is
-      invalid for all LM names. Pass ``OEMLMSettings()`` explicitly to
+      invalid for all LM names. Pass ``LevenbergMarquardtSettings()`` explicitly to
       select the named defaults. Direct and CG variants use the same
       entries and damp with the diagonal of the prior precision matrix, as
       defined in :ref:`sec-oem-damping`.

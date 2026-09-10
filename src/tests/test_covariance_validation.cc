@@ -1,15 +1,15 @@
 #include <workspace.h>
 
-#include <cmath>
-#include <thread>
-#include <atomic>
 #include <algorithm>
-#include <iostream>
+#include <atomic>
+#include <cmath>
 #include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string_view>
+#include <thread>
 
 namespace {
 
@@ -147,27 +147,26 @@ void numerical() {
   // Direct diagonal solves do not need a reciprocal cache. In particular,
   // this finite quotient must work even though 1/variance overflows.
   CovarianceMatrix tiny_diagonal;
-  tiny_diagonal.add_correlation({Range(0, 2), Range(0, 2), {0, 0},
-                                Sparse::diagonal(Vector{1e-310, 2.})});
+  tiny_diagonal.add_correlation({Range(0, 2), Range(0, 2), {0, 0}, Sparse::diagonal(Vector{1e-310, 2.})});
   Vector rhs{1e-310, 6.}, solution(2);
   solve(solution, tiny_diagonal, rhs);
   close(solution[0], 1., "Diagonal division overflowed via reciprocal");
   close(solution[1], 3., "Diagonal vector solve");
   Matrix rhs_matrix(2, 3, 0.), result(2, 3);
   for (Index j = 0; j < 3; ++j) {
-    rhs_matrix[0,j] = 1e-310;
-    rhs_matrix[1,j] = 6.;
+    rhs_matrix[0, j] = 1e-310;
+    rhs_matrix[1, j] = 6.;
   }
   mult_inv(result, tiny_diagonal, rhs_matrix);
   for (Index j = 0; j < 3; ++j) {
-    close(result[0,j], 1., "Left diagonal solve");
-    close(result[1,j], 3., "Left diagonal solve");
+    close(result[0, j], 1., "Left diagonal solve");
+    close(result[1, j], 3., "Left diagonal solve");
   }
   Matrix right(3, 2);
   mult_inv(right, transpose(rhs_matrix), tiny_diagonal);
   for (Index j = 0; j < 3; ++j) {
-    close(right[j,0], 1., "Right diagonal solve");
-    close(right[j,1], 3., "Right diagonal solve");
+    close(right[j, 0], 1., "Right diagonal solve");
+    close(right[j, 1], 3., "Right diagonal solve");
   }
   require(inverse_blocks(tiny_diagonal).empty(), "Diagonal solve constructed inverse blocks");
 
@@ -187,53 +186,57 @@ void numerical() {
 
 void structured_solves() {
   CovarianceMatrix a;
-  a.add_correlation(block(0,0,2));
-  a.add_correlation({Range(1,1),Range(1,1),{1,1},Sparse::diagonal(Vector{4})});
-  a.add_correlation(block(2,2,2));
-  a.add_correlation(block(3,3,5));
-  Vector rhs{2,4,2,5}, out(4);
-  solve(out,a,rhs);
-  for(Index i=0;i<4;++i) close(out[i],1,"Initial independent diagonal solve");
-  a.add_correlation({Range(1,1),Range(2,1),{1,2},matrix(1,1,{1})});
-  rhs=Vector{2,5,3,5};
-  solve(out,a,rhs);
-  for(Index i=0;i<4;++i) close(out[i],1,"Joined component solve");
-  require(inverse_blocks(a).empty(),"Structured solve formed inverse");
+  a.add_correlation(block(0, 0, 2));
+  a.add_correlation({Range(1, 1), Range(1, 1), {1, 1}, Sparse::diagonal(Vector{4})});
+  a.add_correlation(block(2, 2, 2));
+  a.add_correlation(block(3, 3, 5));
+  Vector rhs{2, 4, 2, 5}, out(4);
+  solve(out, a, rhs);
+  for (Index i = 0; i < 4; ++i) close(out[i], 1, "Initial independent diagonal solve");
+  a.add_correlation({Range(1, 1), Range(2, 1), {1, 2}, matrix(1, 1, {1})});
+  rhs = Vector{2, 5, 3, 5};
+  solve(out, a, rhs);
+  for (Index i = 0; i < 4; ++i) close(out[i], 1, "Joined component solve");
+  require(inverse_blocks(a).empty(), "Structured solve formed inverse");
   // Keep a mutable reference across factor creation, then mutate through it.
-  auto& blocks=a.get_blocks();
-  solve(out,a,rhs);
-  blocks.back().get_dense()[0,0]=0.5;
-  rhs=Vector{2,4.5,2.5,5};
-  solve(out,a,rhs);
-  for(Index i=0;i<4;++i) close(out[i],1,"Retained reference invalidation");
-  auto copy=a;
+  auto& blocks = a.get_blocks();
+  solve(out, a, rhs);
+  blocks.back().get_dense()[0, 0] = 0.5;
+  rhs                             = Vector{2, 4.5, 2.5, 5};
+  solve(out, a, rhs);
+  for (Index i = 0; i < 4; ++i) close(out[i], 1, "Retained reference invalidation");
+  auto copy = a;
   blocks.pop_back();
-  rhs=Vector{2,4,2,5};
-  solve(out,a,rhs);
-  for(Index i=0;i<4;++i) close(out[i],1,"Split component solve");
-  rhs=Vector{2,4.5,2.5,5};
-  solve(out,copy,rhs);
-  for(Index i=0;i<4;++i) close(out[i],1,"Copied factor cache");
-  Matrix r(4,2), x(4,2), right(2,4);
-  for(Index i=0;i<4;++i) {r[i,0]=rhs[i];r[i,1]=2*rhs[i];}
-  mult_inv(x,copy,r);
-  mult_inv(right,transpose(r),copy);
-  for(Index i=0;i<4;++i) for(Index j=0;j<2;++j) {
-    close(x[i,j],Numeric(j+1),"Component matrix solve");
-    close(right[j,i],Numeric(j+1),"Component right solve");
+  rhs = Vector{2, 4, 2, 5};
+  solve(out, a, rhs);
+  for (Index i = 0; i < 4; ++i) close(out[i], 1, "Split component solve");
+  rhs = Vector{2, 4.5, 2.5, 5};
+  solve(out, copy, rhs);
+  for (Index i = 0; i < 4; ++i) close(out[i], 1, "Copied factor cache");
+  Matrix r(4, 2), x(4, 2), right(2, 4);
+  for (Index i = 0; i < 4; ++i) {
+    r[i, 0] = rhs[i];
+    r[i, 1] = 2 * rhs[i];
   }
-  auto shared=std::make_shared<Matrix>(matrix(2,2,{2,0,0,3}));
+  mult_inv(x, copy, r);
+  mult_inv(right, transpose(r), copy);
+  for (Index i = 0; i < 4; ++i)
+    for (Index j = 0; j < 2; ++j) {
+      close(x[i, j], Numeric(j + 1), "Component matrix solve");
+      close(right[j, i], Numeric(j + 1), "Component right solve");
+    }
+  auto             shared = std::make_shared<Matrix>(matrix(2, 2, {2, 0, 0, 3}));
   CovarianceMatrix external;
-  external.add_correlation({Range(0,2),Range(0,2),{0,0},shared});
-  Vector b{2,3}, y(2);
-  solve(y,external,b);
-  (*shared)[0,1]=(*shared)[1,0]=1;
-  b=Vector{3,4};
-  solve(y,external,b);
-  close(y[0],1,"Shared matrix changed structure");
-  close(y[1],1,"Shared matrix changed structure");
-  (*shared)[0,0]=-1;
-  rejects([&]{solve(y,external,b);},"Invalid mutation after cached solve");
+  external.add_correlation({Range(0, 2), Range(0, 2), {0, 0}, shared});
+  Vector b{2, 3}, y(2);
+  solve(y, external, b);
+  (*shared)[0, 1] = (*shared)[1, 0] = 1;
+  b                                 = Vector{3, 4};
+  solve(y, external, b);
+  close(y[0], 1, "Shared matrix changed structure");
+  close(y[1], 1, "Shared matrix changed structure");
+  (*shared)[0, 0] = -1;
+  rejects([&] { solve(y, external, b); }, "Invalid mutation after cached solve");
 }
 
 void prepared_solves() {

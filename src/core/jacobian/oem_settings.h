@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <xml_io_stream_aggregate.h>
 
 #include <string>
 
@@ -11,7 +12,7 @@
  * Call validate() after editing fields, or as_vector() to validate and convert
  * to the workspace interface. This type does not depend on the OEM solver.
  */
-struct OEMLMSettings {
+struct LevenbergMarquardtSettings {
   /** Damping for the first trial; zero starts with a Gauss--Newton step. */
   Numeric initial_damping = 10;
   /** Divisor for a damping reduction, greater than one. */
@@ -32,11 +33,29 @@ struct OEMLMSettings {
   [[nodiscard]] Vector as_vector() const;
 
   /** Parse and validate the legacy six-element lm_ga_settings vector. */
-  [[nodiscard]] static OEMLMSettings from_vector(const Vector& values);
+  [[nodiscard]] static LevenbergMarquardtSettings from_vector(const Vector& values);
 
   /** Show every field, including defaults, without requiring valid settings. */
   [[nodiscard]] std::string repr() const;
 
   /** Validate and explain the configured controls and their interactions. */
   [[nodiscard]] std::string describe() const;
+};
+
+template <> struct std::formatter<LevenbergMarquardtSettings> {
+  format_tags                      tags;
+  [[nodiscard]] constexpr auto&    inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto&    inner_fmt() const { return *this; }
+  constexpr auto                   parse(std::format_parse_context& ctx) { return parse_format_tags(tags, ctx); }
+  template <class FmtContext> auto format(const LevenbergMarquardtSettings& value, FmtContext& ctx) const {
+    return tags.format(ctx, value.repr());
+  }
+};
+
+template <> struct xml_io_stream_name<LevenbergMarquardtSettings> {
+  static constexpr std::string_view name = "LevenbergMarquardtSettings";
+};
+
+template <> struct xml_io_stream_aggregate<LevenbergMarquardtSettings> {
+  static constexpr bool value = true;
 };

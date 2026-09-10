@@ -169,7 +169,7 @@ assert np.linalg.norm(np.array(ws.measurement_vec) - observations) > 0.1
 ws.measurement_vec = observations
 ws.measurement_vec_fit = []
 ws.measurement_jac = arts.Matrix()
-ws.OEM(method="lm", lm_ga_settings=arts.OEMLMSettings(), max_iter=100, stop_dx=1e-12)
+ws.OEM(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(), max_iter=100, stop_dx=1e-12)
 assert ws.oem_diagnostics[0] == 0, ws.oem_diagnostics
 np.testing.assert_allclose(
     (np.array(ws.model_state_vec) - prior) / np.array([3.0] * 3 + [0.2] * 3),

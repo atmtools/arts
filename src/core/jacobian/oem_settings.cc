@@ -8,7 +8,7 @@
 #include <string_view>
 #include <utility>
 
-void OEMLMSettings::validate() const {
+void LevenbergMarquardtSettings::validate() const {
   const std::array<std::pair<std::string_view, Numeric>, 6> fields{{
       {"initial_damping", initial_damping},
       {"decrease_factor", decrease_factor},
@@ -18,51 +18,55 @@ void OEMLMSettings::validate() const {
       {"convergence_damping_limit", convergence_damping_limit},
   }};
   for (const auto& [name, value] : fields) {
-    ARTS_USER_ERROR_IF(
-        !std::isfinite(value) || value < 0, "OEMLMSettings.{} must be finite and nonnegative; got {}.", name, value)
+    ARTS_USER_ERROR_IF(!std::isfinite(value) || value < 0,
+                       "LevenbergMarquardtSettings.{} must be finite and nonnegative; got {}.",
+                       name,
+                       value)
   }
-  ARTS_USER_ERROR_IF(
-      decrease_factor <= 1, "OEMLMSettings.decrease_factor divides damping and must be > 1; got {}.", decrease_factor)
+  ARTS_USER_ERROR_IF(decrease_factor <= 1,
+                     "LevenbergMarquardtSettings.decrease_factor divides damping and must be > 1; got {}.",
+                     decrease_factor)
   ARTS_USER_ERROR_IF(increase_factor <= 1,
-                     "OEMLMSettings.increase_factor multiplies damping and must be > 1; got {}.",
+                     "LevenbergMarquardtSettings.increase_factor multiplies damping and must be > 1; got {}.",
                      increase_factor)
-  ARTS_USER_ERROR_IF(damping_threshold <= 0,
-                     "OEMLMSettings.damping_threshold must be > 0 so rejected undamped steps can restart; got {}.",
-                     damping_threshold)
+  ARTS_USER_ERROR_IF(
+      damping_threshold <= 0,
+      "LevenbergMarquardtSettings.damping_threshold must be > 0 so rejected undamped steps can restart; got {}.",
+      damping_threshold)
   ARTS_USER_ERROR_IF(damping_threshold > maximum_damping,
-                     "OEMLMSettings.damping_threshold ({}) must not exceed maximum_damping ({}).",
+                     "LevenbergMarquardtSettings.damping_threshold ({}) must not exceed maximum_damping ({}).",
                      damping_threshold,
                      maximum_damping)
   ARTS_USER_ERROR_IF(initial_damping > maximum_damping,
-                     "OEMLMSettings.initial_damping ({}) must not exceed maximum_damping ({}).",
+                     "LevenbergMarquardtSettings.initial_damping ({}) must not exceed maximum_damping ({}).",
                      initial_damping,
                      maximum_damping)
 }
 
-Vector OEMLMSettings::as_vector() const {
+Vector LevenbergMarquardtSettings::as_vector() const {
   validate();
   return {
       initial_damping, decrease_factor, increase_factor, maximum_damping, damping_threshold, convergence_damping_limit};
 }
 
-OEMLMSettings OEMLMSettings::from_vector(const Vector& values) {
+LevenbergMarquardtSettings LevenbergMarquardtSettings::from_vector(const Vector& values) {
   ARTS_USER_ERROR_IF(values.size() != 6,
                      "lm_ga_settings must contain 6 values in this order: initial_damping, decrease_factor, "
                      "increase_factor, maximum_damping, damping_threshold, convergence_damping_limit; got {}.",
                      values.size())
-  OEMLMSettings settings{.initial_damping           = values[0],
-                         .decrease_factor           = values[1],
-                         .increase_factor           = values[2],
-                         .maximum_damping           = values[3],
-                         .damping_threshold         = values[4],
-                         .convergence_damping_limit = values[5]};
+  LevenbergMarquardtSettings settings{.initial_damping           = values[0],
+                                      .decrease_factor           = values[1],
+                                      .increase_factor           = values[2],
+                                      .maximum_damping           = values[3],
+                                      .damping_threshold         = values[4],
+                                      .convergence_damping_limit = values[5]};
   settings.validate();
   return settings;
 }
 
-std::string OEMLMSettings::repr() const {
+std::string LevenbergMarquardtSettings::repr() const {
   return std::format(
-      "OEMLMSettings(initial_damping={}, decrease_factor={}, increase_factor={}, "
+      "LevenbergMarquardtSettings(initial_damping={}, decrease_factor={}, increase_factor={}, "
       "maximum_damping={}, damping_threshold={}, convergence_damping_limit={})",
       initial_damping,
       decrease_factor,
@@ -72,7 +76,7 @@ std::string OEMLMSettings::repr() const {
       convergence_damping_limit);
 }
 
-std::string OEMLMSettings::describe() const {
+std::string LevenbergMarquardtSettings::describe() const {
   validate();
   return std::format(
       "{}\n\n"

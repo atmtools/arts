@@ -466,14 +466,14 @@ floating-point rounding, stops the retrieval with status 9 and an
 explanation in ``errors``.  Increasing ``max_iter`` does not change the
 trial limit.
 
-Use :class:`~pyarts3.arts.OEMLMSettings` to give the damping controls names.
+Use :class:`~pyarts3.arts.LevenbergMarquardtSettings` to give the damping controls names.
 For an already configured retrieval:
 
 .. code-block:: python
 
-   from pyarts3.arts import OEMLMSettings
+   from pyarts3.arts import LevenbergMarquardtSettings
 
-   damping = OEMLMSettings(
+   damping = LevenbergMarquardtSettings(
        initial_damping=10.0,
        decrease_factor=2.0,
        increase_factor=2.0,
@@ -484,7 +484,7 @@ For an already configured retrieval:
    print(damping.describe())
    ws.OEM(method="lm", max_iter=20, lm_ga_settings=damping)
 
-These are the defaults of ``OEMLMSettings()``.  They provide a visible
+These are the defaults of ``LevenbergMarquardtSettings()``.  They provide a visible
 starting configuration to assess on representative retrievals.  Check
 the forward model, Jacobian, and covariance assumptions before using
 damping changes to address convergence problems.
@@ -621,18 +621,18 @@ configuration to named settings, or obtain a vector explicitly:
 
 .. code-block:: python
 
-   damping = OEMLMSettings.from_vector([10, 2, 2, 100, 1, 0])
+   damping = LevenbergMarquardtSettings.from_vector([10, 2, 2, 100, 1, 0])
    legacy_settings = damping.as_vector()
    ws.OEM(method="lm_cg", lm_ga_settings=legacy_settings)
 
-Passing an ``OEMLMSettings`` object directly performs the same validated
+Passing an ``LevenbergMarquardtSettings`` object directly performs the same validated
 conversion.  Keep the object in an ordinary Python variable.  To store
 its values in a workspace or XML file, use ``as_vector()``; the named
 object is not a workspace variable type.
 
 The default of the ``OEM`` argument ``lm_ga_settings`` is still an empty
 vector.  All LM method names require an explicit configuration: pass
-``OEMLMSettings()`` to select the named object's defaults, or supply the
+``LevenbergMarquardtSettings()`` to select the named object's defaults, or supply the
 existing six-element vector.
 
 Checking the result

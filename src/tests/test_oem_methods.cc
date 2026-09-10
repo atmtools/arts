@@ -4,9 +4,9 @@
 
 #include <array>
 #include <cmath>
-#include <iostream>
 #include <cstdlib>
 #include <functional>
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string_view>
@@ -233,12 +233,11 @@ void test_diagonal_covariances(std::string_view method) {
       return covariance(std::move(dense));
     }
     CovarianceMatrix result;
-    const Index n = values.size();
-    result.add_correlation(Block(Range(0, n), Range(0, n), {0, 0},
-                                 std::make_shared<Sparse>(Sparse::diagonal(values))));
+    const Index      n = values.size();
+    result.add_correlation(Block(Range(0, n), Range(0, n), {0, 0}, std::make_shared<Sparse>(Sparse::diagonal(values))));
     return result;
   };
-  const Matrix expected_gain = matrix(2, 3, {4./111, 34./111, 32./111, 10./37, -15./74, 6./37});
+  const Matrix expected_gain = matrix(2, 3, {4. / 111, 34. / 111, 32. / 111, 10. / 37, -15. / 74, 6. / 37});
   for (const bool sparse_prior : {false, true}) {
     for (const bool sparse_noise : {false, true}) {
       for (const bool scaled : {false, true}) {
@@ -248,21 +247,21 @@ void test_diagonal_covariances(std::string_view method) {
         if (scaled) {
           if (method.ends_with("_m"))
             measurement_vec_error_covmatNormalization(r.measurement_normalization, r.se);
-          else r.normalization = Vector{2, std::sqrt(2.)};
+          else
+            r.normalization = Vector{2, std::sqrt(2.)};
         }
         r.run(method);
-        const String context = std::format("diagonal {} prior_sparse={} noise_sparse={} scaled={}",
-                                           method, sparse_prior, sparse_noise, scaled);
+        const String context = std::format(
+            "diagonal {} prior_sparse={} noise_sparse={} scaled={}", method, sparse_prior, sparse_noise, scaled);
         require(r.errors.empty(), context);
         require(r.diagnostics[0] == 0 or (method.starts_with("li") and r.diagnostics[0] == 1), context);
-        close(r.x[0], 11./111, 1e-7, context + " state 0");
-        close(r.x[1], 183./296, 1e-7, context + " state 1");
-        close(r.diagnostics[2], 4877./21312, 1e-9, context + " total cost");
-        close(r.diagnostics[3], 424885./4731264, 1e-7, context + " measurement cost");
+        close(r.x[0], 11. / 111, 1e-7, context + " state 0");
+        close(r.x[1], 183. / 296, 1e-7, context + " state 1");
+        close(r.diagnostics[2], 4877. / 21312, 1e-9, context + " total cost");
+        close(r.diagnostics[3], 424885. / 4731264, 1e-7, context + " measurement cost");
         require(r.gain.nrows() == 2 and r.gain.ncols() == 3, context);
         for (Index i = 0; i < 2; ++i)
-          for (Index j = 0; j < 3; ++j)
-            close(r.gain[i,j], expected_gain[i,j], 1e-10, context + " gain");
+          for (Index j = 0; j < 3; ++j) close(r.gain[i, j], expected_gain[i, j], 1e-10, context + " gain");
         if (method.starts_with("li")) close(r.diagnostics[4], 1, 0, context + " iterations");
       }
     }
@@ -271,7 +270,7 @@ void test_diagonal_covariances(std::string_view method) {
 
 void test_measurement_noise_scaling(std::string_view method) {
   Retrieval baseline;
-  Vector scales;
+  Vector    scales;
   measurement_vec_error_covmatNormalization(scales, baseline.se);
   close(scales[0], 1, 1e-14, "Noise scale 0");
   close(scales[1], std::sqrt(2.), 1e-14, "Noise scale 1");
@@ -283,27 +282,27 @@ void test_measurement_noise_scaling(std::string_view method) {
   normalized.run(method);
   for (Index i = 0; i < 2; ++i)
     close(normalized.x[i], baseline.x[i], 1e-9, "Optional measurement scaling preserves state");
-  Retrieval scaled;
+  Retrieval    scaled;
   const Vector units{1e-3, 1e3, 2};
-  Matrix noise = matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5});
+  Matrix       noise = matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5});
   for (Index i = 0; i < 3; ++i) {
     scaled.y[i] *= units[i];
     for (Index j = 0; j < 3; ++j) noise[i, j] *= units[i] * units[j];
   }
   scaled.se = covariance(noise);
   measurement_vec_error_covmatNormalization(scaled.measurement_normalization, scaled.se);
-  auto forward = scaled.forward;
+  auto forward   = scaled.forward;
   scaled.forward = [forward, units](const Vector& x, Vector& y, Matrix& k, bool jac) {
     forward(x, y, k, jac);
     for (Index i = 0; i < 3; ++i) {
       y[i] *= units[i];
-      if (jac) for (Index j = 0; j < 2; ++j) k[i, j] *= units[i];
+      if (jac)
+        for (Index j = 0; j < 2; ++j) k[i, j] *= units[i];
     }
   };
   scaled.run(method);
   require(scaled.errors.empty(), "Noise-scaled retrieval failed");
-  for (Index i = 0; i < 2; ++i)
-    close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
+  for (Index i = 0; i < 2; ++i) close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
   close(scaled.diagnostics[2], baseline.diagnostics[2], 1e-9, "Measurement unit invariant cost");
 }
 
@@ -469,12 +468,12 @@ void test_lm_settings() {
     Retrieval r;
     r.max_iter = 1;
     r.stop_dx  = 1e3;
-    r.settings = OEMLMSettings{.initial_damping           = 12,
-                               .decrease_factor           = 3,
-                               .increase_factor           = 2,
-                               .maximum_damping           = 1e6,
-                               .damping_threshold         = 0.01,
-                               .convergence_damping_limit = 10}
+    r.settings = LevenbergMarquardtSettings{.initial_damping           = 12,
+                                            .decrease_factor           = 3,
+                                            .increase_factor           = 2,
+                                            .maximum_damping           = 1e6,
+                                            .damping_threshold         = 0.01,
+                                            .convergence_damping_limit = 10}
                      .as_vector();
     r.run(method);
     require(r.errors.empty(), "Damped step returned errors");
@@ -518,7 +517,7 @@ void test_lm_settings() {
 void test_lm_outcomes() {
   for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
     Retrieval over_damped;
-    over_damped.settings = OEMLMSettings{.initial_damping = 1e20, .maximum_damping = 1e20}.as_vector();
+    over_damped.settings = LevenbergMarquardtSettings{.initial_damping = 1e20, .maximum_damping = 1e20}.as_vector();
     over_damped.run(method);
     // Adding one to this maximum rounds back to the maximum. A numeric
     // sentinel used to turn this rejected, unchanged step into convergence.
@@ -552,9 +551,10 @@ void test_lm_outcomes() {
       stationary.sa = covariance(matrix(1, 1, {1}));
       stationary.se = covariance(matrix(1, 1, {1}));
       stationary.set_target_size(1);
-      stationary.settings = OEMLMSettings{.initial_damping = damping, .maximum_damping = damping}.as_vector();
-      stationary.stop_dx  = 1e-20;
-      stationary.forward  = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
+      stationary.settings =
+          LevenbergMarquardtSettings{.initial_damping = damping, .maximum_damping = damping}.as_vector();
+      stationary.stop_dx = 1e-20;
+      stationary.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
         fit = state;
         if (with_jacobian)
           jacobian = matrix(1, 1, {1});
@@ -773,8 +773,22 @@ void test_failed_evaluation_invalidates_cache() {
 }
 
 void test_named_settings() {
+  const LevenbergMarquardtSettings printable{.initial_damping           = 8,
+                                             .decrease_factor           = 3,
+                                             .increase_factor           = 4,
+                                             .maximum_damping           = 120,
+                                             .damping_threshold         = 2,
+                                             .convergence_damping_limit = 1};
+  require(std::format("{}", printable) == printable.repr(), "Named LM formatter");
+  std::stringstream xml;
+  xml_io_stream<LevenbergMarquardtSettings>::write(xml, printable);
+  require(xml.str().find("<LevenbergMarquardtSettings") != std::string::npos, "LM XML type name");
+  LevenbergMarquardtSettings restored;
+  xml_io_stream<LevenbergMarquardtSettings>::read(xml, restored);
+  require(restored.repr() == printable.repr(), "LM XML round trip");
+
   const Vector legacy{12, 3, 2, 1e6, 0.01, 10};
-  auto         named = OEMLMSettings::from_vector(legacy);
+  auto         named = LevenbergMarquardtSettings::from_vector(legacy);
   close(named.initial_damping, 12, 0, "Named initial damping");
   close(named.decrease_factor, 3, 0, "Named decrease divisor");
   close(named.increase_factor, 2, 0, "Named increase multiplier");
@@ -784,7 +798,7 @@ void test_named_settings() {
   const auto roundtrip = named.as_vector();
   for (Index i = 0; i < 6; ++i) close(roundtrip[i], legacy[i], 0, "Named settings round trip");
 
-  const auto   defaults = OEMLMSettings{}.as_vector();
+  const auto   defaults = LevenbergMarquardtSettings{}.as_vector();
   const Vector expected_defaults{10, 2, 2, 100, 1, 0};
   for (Index i = 0; i < 6; ++i) close(defaults[i], expected_defaults[i], 0, "Visible named defaults");
 
@@ -814,7 +828,8 @@ void test_validation() {
   }
   rejects_before_agenda("gn", [](Retrieval& r) { r.measurement_normalization = Vector{1, 1, 1}; });
   rejects_before_agenda("li_cg_m", [](Retrieval& r) { r.measurement_normalization = Vector{1}; });
-  for (const Numeric bad : {0., -1., std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
+  for (const Numeric bad :
+       {0., -1., std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
     rejects_before_agenda("gn_cg_m", [bad](Retrieval& r) { r.measurement_normalization = Vector{1, bad, 1}; });
   for (const auto method : {"li_m", "gn_m", "li_cg_m", "gn_cg_m"}) {
     rejects_before_agenda(method, [](Retrieval& r) { r.normalization = Vector{1, 1}; });
@@ -976,10 +991,10 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
 
   // Two distinct eigenvalues require two CG steps for this RHS. Hitting
   // the budget returns the current iterate and reports a warning.
-  auto limited = make_solver(1e-12, 1);
-  int warnings = 0;
+  auto limited                    = make_solver(1e-12, 1);
+  int  warnings                   = 0;
   limited.iteration_limit_warning = [&] { ++warnings; };
-  const auto partial = limited.solve(diagonal, rhs);
+  const auto partial              = limited.solve(diagonal, rhs);
   require(warnings == 1, "CG budget exhaustion did not warn");
   close(partial(0), 2. / 3., 1e-14, "CG partial iterate[0]");
   close(partial(1), 2. / 3., 1e-14, "CG partial iterate[1]");
@@ -1003,8 +1018,6 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   auto copied = limited;
   static_cast<void>(copied.solve(diagonal, rhs));
   require(warnings == 2, "Copied CG solver lost its warning callback");
-
-
 }
 
 struct NeverConvergedCGSettings {
@@ -1023,8 +1036,7 @@ void test_sparse_element_range() {
     if (compressed) sparse.matrix.makeCompressed();
     Index count = 0;
     for (auto [row, col, value] : sparse | by_elem) {
-      require((count == 0 and row == 1 and col == 2) or
-              (count == 1 and row == 3 and col == 0), "Sparse entry order");
+      require((count == 0 and row == 1 and col == 2) or (count == 1 and row == 3 and col == 0), "Sparse entry order");
       value = static_cast<Numeric>(++count);
     }
     require(count == 2, "Sparse range missed stored entries");
@@ -1054,20 +1066,19 @@ void test_transpose_view() {
   for (bool diagonal : {false, true}) {
     CovarianceMatrix covariance;
     if (diagonal) {
-      covariance.add_correlation(Block(Range(0, 2), Range(0, 2), {0, 0},
-          std::make_shared<Sparse>(Sparse::diagonal(Vector{2, 3}))));
+      covariance.add_correlation(
+          Block(Range(0, 2), Range(0, 2), {0, 0}, std::make_shared<Sparse>(Sparse::diagonal(Vector{2, 3}))));
     } else {
-      covariance.add_correlation(Block(Range(0, 2), Range(0, 2), {0, 0},
-          std::make_shared<Matrix>(::matrix(2, 2, {2, 0.5, 0.5, 3}))));
+      covariance.add_correlation(
+          Block(Range(0, 2), Range(0, 2), {0, 0}, std::make_shared<Matrix>(::matrix(2, 2, {2, 0.5, 0.5, 3}))));
     }
     const auto prepared = covariance.prepared();
     for (bool inverse : {false, true}) {
       ArtsCovarianceMatrixWrapper wrapped{*prepared, inverse};
-      const auto expected = wrapped.multiply(matrix.transpose());
-      const auto actual = wrapped.multiply(view);
+      const auto                  expected = wrapped.multiply(matrix.transpose());
+      const auto                  actual   = wrapped.multiply(view);
       for (Index i = 0; i < 2; ++i)
-        for (Index j = 0; j < 3; ++j)
-          close(actual(i, j), expected(i, j), 1e-13, "Covariance transpose view product");
+        for (Index j = 0; j < 3; ++j) close(actual(i, j), expected(i, j), 1e-13, "Covariance transpose view product");
     }
   }
 }
@@ -1087,8 +1098,8 @@ void test_cg_termination() {
   invlib::ConjugateGradient<NeverConvergedCGSettings> custom(1e-12, 0, 1);
   const SolverMatrix                                  diagonal = solver_matrix(2, 2, {1, 0, 0, 2});
   const SolverVector                                  rhs      = solver_vector({1, 1});
-  bool warned = false;
-  custom.iteration_limit_warning = [&] { warned = true; };
+  bool                                                warned   = false;
+  custom.iteration_limit_warning                               = [&] { warned = true; };
   static_cast<void>(custom.solve(diagonal, rhs));
   require(warned, "Custom CG policy bypassed the iteration limit");
 
@@ -1155,9 +1166,9 @@ void test_lm_trial_limit() {
       quadratic_model(r);
       r.x        = Vector{0.1};
       r.max_iter = 1;
-      r.settings = OEMLMSettings{.initial_damping   = 0,
-                                 .increase_factor   = stalled ? std::nextafter(1., 2.) : 1.0001,
-                                 .damping_threshold = stalled ? std::nextafter(0., 1.) : 0.1}
+      r.settings = LevenbergMarquardtSettings{.initial_damping   = 0,
+                                              .increase_factor   = stalled ? std::nextafter(1., 2.) : 1.0001,
+                                              .damping_threshold = stalled ? std::nextafter(0., 1.) : 0.1}
                        .as_vector();
       r.run(method);
       close(r.diagnostics[0], 9, 0, "LM retry failure must not report convergence");

@@ -72,8 +72,10 @@ OEMMethod parse_oem_method(const String& method) {
 }
 
 // Both solvers consume the same validated, named damping settings.
-template <typename Optimizer>
-void configure_lm(Optimizer& optimizer, const OEMLMSettings& settings, Numeric tolerance, unsigned int iterations) {
+template <typename Optimizer> void configure_lm(Optimizer&                        optimizer,
+                                                const LevenbergMarquardtSettings& settings,
+                                                Numeric                           tolerance,
+                                                unsigned int                      iterations) {
   optimizer.set_tolerance(tolerance);
   optimizer.set_maximum_iterations(iterations);
   optimizer.set_lambda(settings.initial_damping);
@@ -178,8 +180,7 @@ void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   yf = y;
 }
 
-void measurement_vec_error_covmatNormalization(Vector& normalization,
-                                                 const CovarianceMatrix& covariance) {
+void measurement_vec_error_covmatNormalization(Vector& normalization, const CovarianceMatrix& covariance) {
   covariance.validate(covariance.nrows());
   Vector scales = covariance.diagonal();
   for (auto& value : scales) {
@@ -223,20 +224,20 @@ void OEM(const Workspace&        ws,
 
   const OEMMethod selected = parse_oem_method(method);
   // Freeze covariance values and finish cache preparation before iteration.
-  const auto state_snapshot = model_state_covmat_input.prepared(
-      not selected.measurement_space or clear_matrices == 0);
-  const auto measurement_snapshot = measurement_vec_error_covmat_input.prepared();
-  const auto& model_state_covmat = *state_snapshot;
+  const auto  state_snapshot = model_state_covmat_input.prepared(not selected.measurement_space or clear_matrices == 0);
+  const auto  measurement_snapshot         = measurement_vec_error_covmat_input.prepared();
+  const auto& model_state_covmat           = *state_snapshot;
   const auto& measurement_vec_error_covmat = *measurement_snapshot;
 
   ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and not selected.measurement_space,
                      "measurement_vec_normalization is only supported for measurement-space methods.")
-  ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and
-                    measurement_vec_normalization.size() != measurement_vec.size(),
-                    "measurement_vec_normalization must be empty or have {} elements.", measurement_vec.size())
+  ARTS_USER_ERROR_IF(
+      not measurement_vec_normalization.empty() and measurement_vec_normalization.size() != measurement_vec.size(),
+      "measurement_vec_normalization must be empty or have {} elements.",
+      measurement_vec.size())
   for (const auto scale : measurement_vec_normalization)
     ARTS_USER_ERROR_IF(not std::isfinite(scale) or scale <= 0,
-                      "measurement_vec_normalization values must be finite and > 0.")
+                       "measurement_vec_normalization values must be finite and > 0.")
 
   check_oem_inputs(model_state_vec,
                    measurement_vec_fit,
@@ -252,8 +253,8 @@ void OEM(const Workspace&        ws,
                    max_start_cost,
                    clear_matrices,
                    display_progress);
-  const std::optional<OEMLMSettings> lm_settings =
-      selected.damped() ? std::optional{OEMLMSettings::from_vector(lm_ga_settings)} : std::nullopt;
+  const std::optional<LevenbergMarquardtSettings> lm_settings =
+      selected.damped() ? std::optional{LevenbergMarquardtSettings::from_vector(lm_ga_settings)} : std::nullopt;
 
   const Index n = model_state_covmat.nrows();
   const Index m = measurement_vec.size();
@@ -416,10 +417,11 @@ void OEM(const Workspace&        ws,
       if (selected.conjugate_gradient) {
         oem::CG solver(T, apply_norm, 1e-10, 0);
         solver.measurement_scales = measurement_vec_normalization;
-        bool warned = false;
+        bool warned               = false;
         solver.set_iteration_limit_warning([&] {
           if (not warned) {
-            errors.emplace_back("Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
+            errors.emplace_back(
+                "Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
             warned = true;
           }
         });
@@ -511,57 +513,4 @@ void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel
 
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel, measurement_gain_mat, measurement_jac);
-}
-
-/** Clip Tensor4
- *
- * @param[in] The tensor to which to apply the clipping.
- * @param[in] The book index to which to apply the clipping.
- * @param[in] limit_low Lower limit below which to clip values.
- * @param[in] limit_high Upper limit below which to clip values.
- */
-void Tensor4Clip(Tensor4& x, const Index& iq, const Numeric& limit_low, const Numeric& limit_high) {
-  // Sizes
-  const Index nq = x.nbooks();
-
-  ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
-  ARTS_USER_ERROR_IF(iq >= nq,
-                     "Argument *iq* is too high.\n"
-                     "You have selected index: {}"
-                     "\n"
-                     "but the number of quantities is only: {}"
-                     "\n"
-                     "(Note that zero-based indexing is used)\n",
-                     iq,
-                     nq)
-
-  Index ifirst = 0, ilast = nq - 1;
-  if (iq > -1) {
-    ifirst = iq;
-    ilast  = iq;
-  }
-
-  if (!std::isinf(limit_low)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] < limit_low) x[i, p, r, c] = limit_low;
-          }
-        }
-      }
-    }
-  }
-
-  if (!std::isinf(limit_high)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] > limit_high) x[i, p, r, c] = limit_high;
-          }
-        }
-      }
-    }
-  }
 }

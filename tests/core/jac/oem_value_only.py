@@ -116,7 +116,7 @@ def check_kernel(option):
     ws.model_state_targets = arts.JacobianTargets()
     seen.clear()
     ws.OEM(
-        method="lm", stop_dx=1e-12, max_iter=100, lm_ga_settings=arts.OEMLMSettings()
+        method="lm", stop_dx=1e-12, max_iter=100, lm_ga_settings=arts.LevenbergMarquardtSettings()
     )
     assert ws.oem_diagnostics[0] == 0, ws.oem_diagnostics
     temperature = max(np.roots([3, 0, -67, -6]))

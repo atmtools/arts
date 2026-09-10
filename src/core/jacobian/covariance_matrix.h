@@ -373,10 +373,10 @@ class CovarianceMatrix {
  private:
   // Immutable cache shared safely by copies; rebuilt after source changes.
   mutable std::shared_ptr<const CovarianceSolveCache> solve_cache_;
-  std::shared_ptr<CovariancePreparation> preparation_;
-  bool finalized_ = false;
-  bool solve_components(StridedMatrixView, StridedConstMatrixView) const;
-  void generate_blocks(std::vector<std::vector<const Block *>> &) const;
+  std::shared_ptr<CovariancePreparation>              preparation_;
+  bool                                                finalized_ = false;
+  bool                                                solve_components(StridedMatrixView, StridedConstMatrixView) const;
+  void                                                generate_blocks(std::vector<std::vector<const Block *>> &) const;
   void invert_correlation_block(std::vector<Block> &inverses, std::vector<const Block *> &blocks) const;
   bool has_inverse(IndexPair indices) const;
 
