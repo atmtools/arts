@@ -1046,10 +1046,7 @@ void test_cg_termination() {
       Retrieval r;
       r.y[0]     = bad;
       r.max_iter = 1;
-      r.run(method);
-      close(r.diagnostics[0], 9, 0, std::format("{} with measurement {} must fail", method, bad));
-      require(not r.errors.empty(), "Nonfinite CG input lost the failure reason");
-      require(r.gain.empty(), "Failed CG retrieval returned gain");
+      rejects_with([&] { r.run(method); }, "measurement_vec values must be finite");
     }
   }
 }

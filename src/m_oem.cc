@@ -101,6 +101,8 @@ void check_oem_inputs(const Vector&           x,
                       Index                   display_progress) {
   const Size n = xa.size();
   const Size m = y.size();
+  ARTS_USER_ERROR_IF(stdr::any_of(y, [](Numeric value) { return !std::isfinite(value); }),
+                     "measurement_vec values must be finite.")
 
   ARTS_USER_ERROR_IF(
       (x.size() != n) && (x.size() != 0),
