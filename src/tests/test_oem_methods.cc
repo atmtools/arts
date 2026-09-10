@@ -1013,6 +1013,34 @@ struct NeverConvergedCGSettings {
   bool         converged(const SolverVector&, const SolverVector&) const { return false; }
 };
 
+void test_sparse_element_range() {
+  static_assert(std::ranges::input_range<decltype(std::declval<Sparse&>() | by_elem)>);
+  static_assert(std::ranges::input_range<decltype(std::declval<const Sparse&>() | by_elem)>);
+  Sparse sparse(5, 4);
+  sparse.rw(1, 2) = 3;
+  sparse.rw(3, 0) = 0;  // Explicit zeros must survive traversal.
+  for (bool compressed : {false, true}) {
+    if (compressed) sparse.matrix.makeCompressed();
+    Index count = 0;
+    for (auto [row, col, value] : sparse | by_elem) {
+      require((count == 0 and row == 1 and col == 2) or
+              (count == 1 and row == 3 and col == 0), "Sparse entry order");
+      value = static_cast<Numeric>(++count);
+    }
+    require(count == 2, "Sparse range missed stored entries");
+    close(sparse.ro(1, 2), 1, 0, "Sparse mutable range");
+    close(sparse.ro(3, 0), 2, 0, "Sparse stored zero mutation");
+    for (auto [row, col, value] : std::as_const(sparse) | by_elem) {
+      static_assert(std::is_const_v<std::remove_reference_t<decltype(value)>>);
+      close(value, sparse.ro(row, col), 0, "Sparse const range");
+    }
+  }
+  Sparse empty;
+  require(std::ranges::distance(empty | by_elem) == 0, "Empty sparse range");
+  Sparse zeros(4, 5);
+  require(std::ranges::distance(zeros | by_elem) == 0, "Empty sparse rows");
+}
+
 void test_transpose_view() {
   ArtsMatrix matrix{Matrix(3, 2)};
   for (Index i = 0; i < 3; ++i)
@@ -1320,6 +1348,7 @@ int main(int argc, char** argv) try {
   } else if (selected == "validation") {
     test_validation();
   } else if (selected == "termination") {
+    test_sparse_element_range();
     test_transpose_view();
     test_cg_termination();
     test_lm_trial_limit();

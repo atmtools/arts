@@ -45,13 +45,12 @@ CovarianceSignature covariance_signature(const CovarianceMatrix &covariance) {
       if (b.is_dense())
         values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
       else {
-        const auto &a = b.get_sparse().matrix;
-        layout.push_back(a.nonZeros());
-        for (Index r = 0; r < a.outerSize(); ++r)
-          for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(a, r); it; ++it) {
-            layout.insert(layout.end(), {it.row(), it.col()});
-            values.push_back(it.value());
-          }
+        const auto &a = b.get_sparse();
+        layout.push_back(a.nnz());
+        for (const auto [row, col, value] : a | by_elem) {
+          layout.insert(layout.end(), {row, col});
+          values.push_back(value);
+        }
       }
     }
   }
@@ -565,11 +564,10 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
   // The usual independent measurement covariance should remain sparse.
   if (blocks.size() == 1 and blocks.front()->is_sparse()) {
     const Block &block    = *blocks.front();
-    const auto  &sparse   = block.get_sparse().matrix;
+    const auto  &sparse   = block.get_sparse();
     bool         diagonal = true;
-    for (Index row = 0; row < sparse.outerSize(); ++row)
-      for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(sparse, row); it; ++it)
-        if (it.row() != it.col() and it.value() != 0) diagonal = false;
+    for (const auto [row, col, value] : sparse | by_elem)
+      if (row != col and value != 0) diagonal = false;
     if (diagonal) {
       Vector values = block.diagonal();
       for (auto &value : values) {
@@ -738,10 +736,9 @@ std::optional<Vector> diagonal_values(const std::vector<Block>& blocks, Index n)
         for (Index c = 0; c < a.ncols(); ++c)
           if (r != c and a[r,c] != 0) return std::nullopt;
     } else {
-      const auto& a = block.get_sparse().matrix;
-      for (Index r = 0; r < a.outerSize(); ++r)
-        for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(a,r); it; ++it)
-          if (it.row() != it.col() and it.value() != 0) return std::nullopt;
+      const auto& a = block.get_sparse();
+      for (const auto [row, col, value] : a | by_elem)
+        if (row != col and value != 0) return std::nullopt;
     }
     const Vector d = block.diagonal();
     for (Index r = 0; r < static_cast<Index>(d.size()); ++r)
@@ -802,13 +799,12 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
     if (b.is_dense()) {
       values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
     } else {
-      const auto& a = b.get_sparse().matrix;
-      layout.push_back(a.nonZeros());
-      for (Index r=0; r<a.outerSize(); ++r)
-        for (Eigen::SparseMatrix<Numeric,Eigen::RowMajor>::InnerIterator it(a,r); it; ++it) {
-          layout.insert(layout.end(), {it.row(),it.col()});
-          values.push_back(it.value());
-        }
+      const auto& a = b.get_sparse();
+      layout.push_back(a.nnz());
+      for (const auto [row, col, value] : a | by_elem) {
+        layout.insert(layout.end(), {row,col});
+        values.push_back(value);
+      }
     }
   }
   // Exact snapshots detect mutations through retained references/shared storage.
@@ -850,10 +846,9 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
         if (b->is_dense()) {
           for(Index r=0;r<b->nrows();++r) for(Index c=0;c<b->ncols();++c) put(r,c,b->get_dense()[r,c]);
         } else {
-          const auto& a=b->get_sparse().matrix;
-          for(Index r=0;r<a.outerSize();++r)
-            for(Eigen::SparseMatrix<Numeric,Eigen::RowMajor>::InnerIterator it(a,r);it;++it)
-              put(it.row(),it.col(),it.value());
+          const auto& a=b->get_sparse();
+          for (const auto [row, col, value] : a | by_elem)
+            put(row,col,value);
         }
       }
       CovarianceSolveCache::Cholesky factor{Eigen::LLT<Eigen::MatrixXd>(dense)};

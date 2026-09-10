@@ -22,6 +22,9 @@
 #define matpackII_h
 
 #include <iosfwd>
+#include <optional>
+#include <ranges>
+#include <tuple>
 #include <utility>
 
 #ifndef _MSC_VER
@@ -202,6 +205,62 @@ template <> struct std::formatter<Sparse> {
     return ctx.out();
   }
 };
+
+// Stored entries only, including explicit zeros. Structural changes invalidate
+// iterators; changing an existing value through the range is allowed.
+namespace matpack {
+template <bool Const> class sparse_element_range : public std::ranges::view_interface<sparse_element_range<Const>> {
+  using source_type = std::conditional_t<Const, const Sparse, Sparse>;
+  source_type* source;
+
+ public:
+  explicit sparse_element_range(source_type& value) : source(&value) {}
+  class iterator {
+    using inner_type = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
+    source_type*                      matrix{};
+    Index                             row{};
+    mutable std::optional<inner_type> inner;
+    void                              next_row() {
+      while (row < matrix->nrows()) {
+        inner.emplace(matrix->matrix, row);
+        if (*inner) return;
+        ++row;
+      }
+      inner.reset();
+    }
+
+   public:
+    using difference_type  = std::ptrdiff_t;
+    using value_type       = std::tuple<Index, Index, Numeric>;
+    using iterator_concept = std::input_iterator_tag;
+    iterator()             = default;
+    explicit iterator(source_type& value) : matrix(&value) { next_row(); }
+    auto operator*() const {
+      if constexpr (std::is_const_v<source_type>)
+        return std::tuple<Index, Index, const Numeric&>{inner->row(), inner->col(), inner->value()};
+      else
+        return std::tuple<Index, Index, Numeric&>{inner->row(), inner->col(), inner->valueRef()};
+    }
+    iterator& operator++() {
+      ++*inner;
+      if (not *inner) {
+        ++row;
+        next_row();
+      }
+      return *this;
+    }
+    void operator++(int) { ++*this; }
+    bool operator==(std::default_sentinel_t) const { return not inner.has_value(); }
+  };
+  iterator                begin() const { return iterator{*source}; }
+  std::default_sentinel_t end() const { return {}; }
+};
+}  // namespace matpack
+
+inline auto operator|(Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<false>{value}; }
+inline auto operator|(const Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<true>{value}; }
+void        operator|(Sparse&&, matpack::elemwise_r)       = delete;
+void        operator|(const Sparse&&, matpack::elemwise_r) = delete;
 
 template <> struct xml_io_stream<Sparse> {
   static constexpr std::string_view type_name = "Sparse"sv;
