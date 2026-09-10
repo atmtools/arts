@@ -69,7 +69,6 @@ std::string generic_selection(const std::string& name,
                               const std::string& declaration,
                               bool               output,
                               const std::string& default_value = "") {
-  const auto  type = WorkspaceMethodInternalRecord::generic_type(declaration, output);
   std::string allowed;
   if (declaration != "Any") {
     for (auto item : split(declaration, ",")) {
@@ -81,8 +80,7 @@ std::string generic_selection(const std::string& name,
   auto conversion = std::format("from_allowed(_{0}, {{{1}}}, {2})", name, allowed, output ? "true" : "false");
   if (not default_value.empty())
     conversion = std::format("(_{0} and not _{0}->is_none()) ? {1} : {2}", name, conversion, default_value);
-  return std::format(
-      "        auto {0}_owner = {1};\n        auto {0} = {2}::from({0}_owner);\n", name, conversion, type);
+  return std::format("        auto {0} = {1};\n", name, conversion);
 }
 
 bool uses_variadic(const std::string& v) {
@@ -348,17 +346,14 @@ std::string method_argument_documentation(const WorkspaceMethodInternalRecord& w
   return "";
 }
 
-std::string method(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+std::string method_adapter(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   return std::format(
-      R"-x-(  ws.def("{0}",[]({1}) -> {7} {{
+      R"-x-({5} py_wsm_{0}({1}) {{
     try {{
 {2}{3}
     }} catch (std::exception& e) {{
 {4}      }}
-    }},
-    {5}
-{6},
-    py::call_guard<py::gil_scoped_release>());
+    }}
 
 )-x-",
       name,
@@ -366,9 +361,20 @@ std::string method(const std::string& name, const WorkspaceMethodInternalRecord&
       method_argument_selection(name, wsm) + method_input_checks(wsm),
       method_resolution(name, wsm),
       method_error(name, wsm),
-      method_argument_documentation(wsm),
-      method_docs(name),
       wsm.return_type);
+}
+
+std::string method(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  return std::format(
+      R"-x-(  ws.def("{0}", &py_wsm_{0},
+    {1}
+{2},
+    py::call_guard<py::gil_scoped_release>());
+
+)-x-",
+      name,
+      method_argument_documentation(wsm),
+      method_docs(name));
 }
 
 void methods(int nfiles) {
@@ -385,8 +391,23 @@ void methods(int nfiles) {
 #include <nanobind/stl/shared_ptr.h>
 
 namespace Python {
-void py_auto_wsm_)--" << i << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n"
-                            << using_pygroup();
+namespace {
+// Keep variant conversion and dispatch in ordinary functions. Putting these
+// bodies in nanobind lambdas causes excessive MSVC compiler memory use.
+)--" << using_pygroup();
+  }
+
+  int iadapter = 0;
+  for (auto& [name, wsv] : wsms) {
+    try {
+      select_ofstream(ofs, iadapter++) << method_adapter(name, wsv);
+    }
+    ERRORAPPEND;
+  }
+
+  for (int i = 0; i < nfiles; i++) {
+    select_ofstream(ofs, i) << "}  // namespace\n\nvoid py_auto_wsm_" << i
+                            << "(py::class_<Workspace>& ws [[maybe_unused]]) {\n";
   }
 
   int ifile = 0;

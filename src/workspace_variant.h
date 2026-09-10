@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <variant>
 
+class Wsv;
+
 template <typename... Ts>
 concept UniformGenericConstness = (std::is_const_v<Ts> and ...) or ((not std::is_const_v<Ts>) and ...);
 
@@ -33,6 +35,9 @@ template <typename... Ts> requires UniformGenericConstness<Ts...>
 struct Generic : std::variant<std::shared_ptr<Ts>...> {
   using Base = std::variant<std::shared_ptr<Ts>...>;
   using Base::Base;
+  // Share the contained workspace value, rejecting unsupported types at runtime.
+  template <typename W> requires std::same_as<std::remove_cvref_t<W>, Wsv>
+  Generic(W&& value) : Generic(from(value)) {}
   // Ordered union of alternative types; exact duplicates are removed.
   template <typename... Others> using Extend = typename workspace_variant_detail::Extend<Generic, Others...>::type;
 

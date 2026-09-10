@@ -208,7 +208,7 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
     for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
       const auto type = WorkspaceMethodInternalRecord::generic_type(wsmr.gout_type[i], true);
       if (type != wsmr.gout_type[i])
-        os << "      auto " << wsmr.gout[i] << " = " << type << "::from(_ws.share(_out[" << out_count++ << "]));\n";
+        os << "      auto& " << wsmr.gout[i] << " = " << "_ws.share(_out[" << out_count++ << "]);\n";
       else
         os << "      auto& " << wsmr.gout[i] << " = _ws.get_or<" << type << ">(_out[" << out_count++ << "]);\n";
     }
@@ -227,7 +227,7 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
       if (stdr::find(wsmr.gout, wsmr.gin[i]) != wsmr.gout.end()) continue;
       const auto type = WorkspaceMethodInternalRecord::generic_type(wsmr.gin_type[i]);
       if (type != wsmr.gin_type[i])
-        os << "      const auto " << wsmr.gin[i] << " = " << type << "::from(_ws.share(_in[" << index << "]));\n";
+        os << "      const auto& " << wsmr.gin[i] << " = " << "_ws.share(_in[" << index << "]);\n";
       else
         os << "      const auto& " << wsmr.gin[i] << " = _ws.get<" << type << ">(_in[" << index << "]);\n";
     }

@@ -44,17 +44,17 @@ void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
 void py_retrieval(py::module_& m) try {
   py::class_<OptimalEstimationDiagnostics> diagnostics(m, "OptimalEstimationDiagnostics");
   generic_interface(diagnostics);
-  diagnostics.def_rw("status", &OptimalEstimationDiagnostics::status, "Named OEM outcome; NotRun before inversion.")
-      .def_rw("initial_cost", &OptimalEstimationDiagnostics::initial_cost, "Starting total cost per measurement.")
-      .def_rw("final_cost", &OptimalEstimationDiagnostics::final_cost, "Final total cost per measurement.")
+  diagnostics.def_rw("status", &OptimalEstimationDiagnostics::status, "Named OEM outcome; NotRun before inversion.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`")
+      .def_rw("initial_cost", &OptimalEstimationDiagnostics::initial_cost, "Starting total cost per measurement.\n\n.. :class:`float`")
+      .def_rw("final_cost", &OptimalEstimationDiagnostics::final_cost, "Final total cost per measurement.\n\n.. :class:`float`")
       .def_rw("measurement_cost",
               &OptimalEstimationDiagnostics::measurement_cost,
-              "Final measurement cost per measurement.")
+              "Final measurement cost per measurement.\n\n.. :class:`float`")
       .def_rw("iterations",
               &OptimalEstimationDiagnostics::iterations,
-              "Number of completed outer iterations, zero when not run.")
-      .def_rw("lm_ga_history", &OptimalEstimationDiagnostics::lm_ga_history, "Initial and updated LM damping values.")
-      .def_rw("errors", &OptimalEstimationDiagnostics::errors, "Errors and warnings recorded by OEM.");
+              "Number of completed outer iterations, zero when not run.\n\n.. :class:`int`")
+      .def_rw("lm_ga_history", &OptimalEstimationDiagnostics::lm_ga_history, "Initial and updated LM damping values.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("errors", &OptimalEstimationDiagnostics::errors, "Errors and warnings recorded by OEM.\n\n.. :class:`list[str]`");
 
   const LevenbergMarquardtSettings       defaults;
   py::class_<LevenbergMarquardtSettings> lm(m, "LevenbergMarquardtSettings");

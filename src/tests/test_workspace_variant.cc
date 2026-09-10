@@ -11,6 +11,8 @@ static_assert(std::variant_size_v<Input::Base> == 2);
 static_assert(std::same_as<std::variant_alternative_t<0, Input::Base>, std::shared_ptr<const Numeric>>);
 static_assert(std::same_as<std::variant_alternative_t<0, Output::Base>, std::shared_ptr<Numeric>>);
 static_assert(std::variant_size_v<AnyInput::Base> > 100);
+static_assert(std::is_convertible_v<const Wsv&, Input>);
+static_assert(std::is_convertible_v<const Wsv&, Output>);
 template <typename... Ts>
 concept ValidGeneric = requires { typename Generic<Ts...>; };
 static_assert(ValidGeneric<Numeric, Vector>);
@@ -93,18 +95,18 @@ int main() try {
   borrowed              = 3;
   if (*std::get<0>(read_only) != 3) throw std::runtime_error("Borrowed input copied its value");
   auto       vector       = std::make_shared<Vector>(Vector{1, 2});
-  const auto const_vector = Input::from(Wsv{std::shared_ptr<Vector>(vector)});
+  const Input const_vector = Wsv{std::shared_ptr<Vector>(vector)};
   if (std::get<1>(const_vector).get() != vector.get()) throw std::runtime_error("Const alternative lost identity");
   auto                 pointer = std::make_shared<Numeric>(4);
   std::optional<Input> input;
   {
     Wsv owner{std::shared_ptr<Numeric>(pointer)};
-    input = Input::from(owner);
+    input.emplace(owner);
     if (std::get<0>(*input).get() != pointer.get()) throw std::runtime_error("Input copied its value");
-    auto output          = Output::from(owner);
+    Output output        = owner;
     *std::get<0>(output) = 7;
     if (*pointer != 7) throw std::runtime_error("Output lost workspace identity");
-    auto any = AnyInput::from(owner);
+    AnyInput any = owner;
     if (std::get<std::shared_ptr<const Numeric>>(any).get() != pointer.get())
       throw std::runtime_error("Any input copied its value");
   }
@@ -114,7 +116,8 @@ int main() try {
   input.reset();
   if (not lifetime.expired()) throw std::runtime_error("Input leaked ownership");
   try {
-    (void)Input::from(Wsv{String{"wrong type"}});
+    const Input invalid = Wsv{String{"wrong type"}};
+    (void)invalid;
     throw std::logic_error("Unsupported alternative accepted");
   } catch (const std::runtime_error&) {}
   return EXIT_SUCCESS;
