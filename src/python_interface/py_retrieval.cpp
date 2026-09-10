@@ -1,3 +1,4 @@
+#include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/tuple.h>
@@ -10,6 +11,17 @@
 
 namespace Python {
 namespace {
+LevenbergMarquardtSettings lm_settings_from_array(const std::array<Numeric, 6>& values) {
+  LevenbergMarquardtSettings settings{.initial_damping           = values[0],
+                                      .decrease_factor           = values[1],
+                                      .increase_factor           = values[2],
+                                      .maximum_damping           = values[3],
+                                      .damping_threshold         = values[4],
+                                      .convergence_damping_limit = values[5]};
+  settings.validate();
+  return settings;
+}
+
 void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
                          const char*                             name,
                          Numeric LevenbergMarquardtSettings::* member,
@@ -30,8 +42,32 @@ void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
 }  // namespace
 
 void py_retrieval(py::module_& m) try {
+  py::class_<OptimalEstimationDiagnostics> diagnostics(m, "OptimalEstimationDiagnostics");
+  generic_interface(diagnostics);
+  diagnostics.def_rw("status", &OptimalEstimationDiagnostics::status, "Named OEM outcome; NotRun before inversion.")
+      .def_rw("initial_cost", &OptimalEstimationDiagnostics::initial_cost, "Starting total cost per measurement.")
+      .def_rw("final_cost", &OptimalEstimationDiagnostics::final_cost, "Final total cost per measurement.")
+      .def_rw("measurement_cost",
+              &OptimalEstimationDiagnostics::measurement_cost,
+              "Final measurement cost per measurement.")
+      .def_rw("iterations",
+              &OptimalEstimationDiagnostics::iterations,
+              "Number of completed outer iterations, zero when not run.")
+      .def_rw("lm_ga_history", &OptimalEstimationDiagnostics::lm_ga_history, "Initial and updated LM damping values.")
+      .def_rw("errors", &OptimalEstimationDiagnostics::errors, "Errors and warnings recorded by OEM.");
+
   const LevenbergMarquardtSettings       defaults;
   py::class_<LevenbergMarquardtSettings> lm(m, "LevenbergMarquardtSettings");
+  lm.def(py::init<const LevenbergMarquardtSettings&>());
+  lm.def(
+      "__init__",
+      [](LevenbergMarquardtSettings* settings, const std::array<Numeric, 6>& values) {
+        new (settings) LevenbergMarquardtSettings(lm_settings_from_array(values));
+      },
+      "values"_a);
+  py::implicitly_convertible<std::array<Numeric, 6>, LevenbergMarquardtSettings>();
+
+  xml_interface(lm);
   lm.doc() = R"(Named Levenberg--Marquardt damping controls for OEM.
 
 Pass this object as ``ws.OEM(method="lm", lm_ga_settings=settings)``.
@@ -46,9 +82,12 @@ Invalid edits raise an error naming the setting and preserve the previous
 configuration. When increasing ``initial_damping`` beyond the current
 maximum, raise ``maximum_damping`` first. To change several controls at
 once, construct a replacement object with their named arguments.
-:meth:`validate` and conversion to :class:`Vector` check the settings again.
-The object converts to the legacy six-element vector at the OEM boundary.
-Use :meth:`as_vector` when storing the settings in a workspace variable.
+:meth:`validate` checks the settings again. OEM accepts this type directly
+and validates it before a Levenberg-Marquardt retrieval.
+Python also accepts a six-value sequence directly or through the constructor.
+Its order is initial_damping, decrease_factor, increase_factor,
+maximum_damping, damping_threshold, convergence_damping_limit.
+This input shorthand does not add a vector conversion to the C++ type.
 See :ref:`sec-user-oem` for tuning guidance.
 )";
   lm.def(
@@ -138,13 +177,6 @@ which can hide a remaining distance to the minimum.
   lm.def("validate",
          &LevenbergMarquardtSettings::validate,
          "Check the current named values and their coupled constraints.")
-      .def("as_vector",
-           &LevenbergMarquardtSettings::as_vector,
-           "Validate and return a copy in the legacy six-element lm_ga_settings order.")
-      .def_static("from_vector",
-                  &LevenbergMarquardtSettings::from_vector,
-                  "values"_a,
-                  "Validate and import a legacy six-element lm_ga_settings vector.")
       .def("describe",
            &LevenbergMarquardtSettings::describe,
            "Explain the current values, their effects, and tuning tradeoffs.")
@@ -166,23 +198,10 @@ which can hide a remaining distance to the minimum.
            [](LevenbergMarquardtSettings*                                             settings,
               const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>& state) {
              const auto& [initial, decrease, increase, maximum, threshold, convergence] = state;
-             auto value = LevenbergMarquardtSettings::from_vector(
-                 Vector{initial, decrease, increase, maximum, threshold, convergence});
+             LevenbergMarquardtSettings value{initial, decrease, increase, maximum, threshold, convergence};
+             value.validate();
              new (settings) LevenbergMarquardtSettings(value);
            });
-
-  // The agenda parser explicitly constructs Vector from captured arguments;
-  // direct workspace calls also need the registered implicit conversion.
-  auto vector = py::borrow<py::class_<Vector>>(m.attr("Vector"));
-  vector.def(
-      "__init__",
-      [](Vector* value, const LevenbergMarquardtSettings& settings) {
-        auto converted = settings.as_vector();
-        new (value) Vector(std::move(converted));
-      },
-      "settings"_a,
-      "Validate and convert named OEM damping controls to the legacy vector.");
-  py::implicitly_convertible<LevenbergMarquardtSettings, Vector>();
 
   auto jtdcmm = py::bind_map<JacobianTargetsDiagonalCovarianceMatrixMap, py::rv_policy::reference_internal>(
       m, "JacobianTargetsDiagonalCovarianceMatrixMap");

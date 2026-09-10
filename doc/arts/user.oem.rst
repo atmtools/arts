@@ -76,8 +76,8 @@ CG has a fixed internal relative residual tolerance of ``1e-10`` and a
 limit of 1000 iterations per linear solve.  ``stop_dx`` and ``max_iter``
 control the outer retrieval iteration; they do not change these CG settings.
 An unconverged solve at the internal limit, non-finite arithmetic, or
-non-positive curvature stops the retrieval with status 9 and an explanation
-in ``errors``.  Check the input values, covariance validity, and numerical
+non-positive curvature stops the retrieval with status ``Error`` and an explanation
+in ``oem_diagnostics.errors``.  Check the input values, covariance validity, and numerical
 scaling when this happens.
 OEM still stores the measurement Jacobian, and computing the gain matrix
 requires additional dense matrices.  ``clear_matrices=1`` skips the gain
@@ -462,8 +462,8 @@ Each outer iteration allows at most 100 LM linear solves, including an
 additional undamped solve when needed to check stationarity.  This internal
 limit is separate from ``max_iter`` and ``maximum_damping``.  Reaching the
 trial limit, or failing to increase damping after a rejection because of
-floating-point rounding, stops the retrieval with status 9 and an
-explanation in ``errors``.  Increasing ``max_iter`` does not change the
+floating-point rounding, stops the retrieval with status ``Error`` and an
+explanation in ``oem_diagnostics.errors``.  Increasing ``max_iter`` does not change the
 trial limit.
 
 Use :class:`~pyarts3.arts.LevenbergMarquardtSettings` to give the damping controls names.
@@ -494,37 +494,29 @@ what it changes.  ``print(damping)`` displays all six names and values;
 ``damping.describe()`` explains the configured behavior in words.
 The same object works with ``lm``, ``ml``, ``lm_cg``, and ``ml_cg``.
 
-The table also gives the index for scripts using the existing six-element
-``lm_ga_settings`` vector:
+The named controls are:
 
 .. list-table::
    :header-rows: 1
    :widths: 8 30 62
 
-   * - Index
-     - Setting name
+   * - Setting name
      - Meaning
-   * - 0
-     - ``initial_damping``
+   * - ``initial_damping``
      - Initial damping, at least zero and no greater than the maximum.
-   * - 1
-     - ``decrease_factor``
+   * - ``decrease_factor``
      - Divisor when damping is reduced; must be greater than one.
-   * - 2
-     - ``increase_factor``
+   * - ``increase_factor``
      - Multiplier when damping is increased; must be greater than one.
-   * - 3
-     - ``maximum_damping``
+   * - ``maximum_damping``
      - Positive maximum damping.  Failure to find an acceptable step at
        this value stops the retrieval.
-   * - 4
-     - ``damping_threshold``
+   * - ``damping_threshold``
      - Positive restart value when a step with damping below this value
        fails.  When a proposed decrease would fall below this value,
        damping becomes zero.
        Must not exceed the maximum.
-   * - 5
-     - ``convergence_damping_limit``
+   * - ``convergence_damping_limit``
      - Nonnegative upper damping limit for enabling the ordinary
        ``stop_dx`` criterion.  This refers to the current damping after its
        update, not the lowest value used in an earlier accepted iteration.
@@ -537,7 +529,7 @@ and threshold must each be no greater than the maximum.
 Construction and each field edit validate all six settings immediately.
 An invalid edit raises an error naming the affected setting and leaves
 the object unchanged.  You can also call ``validate()`` explicitly;
-conversion for ``OEM`` and ``as_vector()`` check the values again:
+``OEM`` checks the values again:
 
 .. code-block:: python
 
@@ -613,59 +605,59 @@ matrices define the statistical problem being solved.  Choose them from
 the prior and measurement error models; changing them to cure a convergence
 problem also changes the inferred state and uncertainty.
 
-Keeping existing settings
+Storing settings
 ---------------------------------
 
-The six-element vector remains accepted.  Convert a known working
-configuration to named settings, or obtain a vector explicitly:
+``LevenbergMarquardtSettings`` is a workspace group with named printing and
+XML storage. Pass it directly as ``lm_ga_settings``. OEM uses the default
+``LevenbergMarquardtSettings()`` when the argument is omitted. The
+six-element input shorthand remains supported in Python:
 
 .. code-block:: python
 
-   damping = LevenbergMarquardtSettings.from_vector([10, 2, 2, 100, 1, 0])
-   legacy_settings = damping.as_vector()
-   ws.OEM(method="lm_cg", lm_ga_settings=legacy_settings)
+   damping = LevenbergMarquardtSettings([10, 2, 2, 100, 1, 0])
+   ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 0])
 
-Passing an ``LevenbergMarquardtSettings`` object directly performs the same validated
-conversion.  Keep the object in an ordinary Python variable.  To store
-its values in a workspace or XML file, use ``as_vector()``; the named
-object is not a workspace variable type.
-
-The default of the ``OEM`` argument ``lm_ga_settings`` is still an empty
-vector.  All LM method names require an explicit configuration: pass
-``LevenbergMarquardtSettings()`` to select the named object's defaults, or supply the
-existing six-element vector.
+The order is ``initial_damping``, ``decrease_factor``, ``increase_factor``,
+``maximum_damping``, ``damping_threshold``, ``convergence_damping_limit``.
+Exactly six values are required and validated. This is a Python-only input
+conversion; neither settings nor diagnostics provide ``as_vector()``.
 
 Checking the result
 ===========================
 
-``oem_diagnostics`` has five entries with zero-based indices:
+``oem_diagnostics`` is an ``OptimalEstimationDiagnostics`` object. Access
+fields by name, for example ``ws.oem_diagnostics.status``.
+It contains the following fields:
 
 .. list-table::
    :header-rows: 1
 
-   * - Index
+   * - Field
      - Meaning
-   * - 0
-     - Status: 0 means the convergence criterion was met or LM established
-       numerical stationarity, 1 means the iteration budget was exhausted,
-       2 means the LM damping limit was reached without an acceptable step,
-       9 means an error was caught during inversion, and 99 means the
-       starting cost exceeded ``max_start_cost``.
-   * - 1
+   * - ``status``
+     - ``OptimalEstimationStatus``: ``NotRun``, ``Converged``,
+       ``IterationLimit``, ``DampingLimit``, ``Error``, or ``StartCostLimit``.
+       ``Converged`` also includes LM numerical stationarity.
+   * - ``initial_cost``
      - Starting total cost, divided by the number of measurements.
-   * - 2
+   * - ``final_cost``
      - Final total cost, divided by the number of measurements.
-   * - 3
+   * - ``measurement_cost``
      - Final measurement contribution to the cost, divided by the number of measurements.
-   * - 4
-     - Number of outer iterations.
+   * - ``iterations``
+     - Integer number of completed outer iterations, initially zero.
+   * - ``lm_ga_history``
+     - Starting and updated LM damping values.
+   * - ``errors``
+     - Errors and warnings recorded by OEM.
 
-Unavailable values are NaN.  ``max_start_cost`` is a limit on the total
+Unavailable costs are NaN.  ``max_start_cost`` is a limit on the total
 cost at the starting state; its default is infinity.  A value at or below
 zero disables this limit and can skip computation of the starting cost
 for non-LM methods when progress output is off.  It is not an upper bound
 on the final residual.  The ``li`` variants perform exactly one step and
-can return status 1 even for an exact linear solution, because they do not
+can return status ``IterationLimit`` even for an exact linear solution, because they do not
 take a second step to establish iterative convergence.
 
 ``stop_dx`` defaults to 0.01 and controls the weighted state-step convergence
@@ -677,22 +669,22 @@ at the iteration limit.
 Near a solution, differences between computed costs can be too small to
 resolve reliably.  LM then checks an undamped step against ``stop_dx``
 and the cost's floating-point resolution.  If both checks establish
-stationarity, it returns status 0 without exhausting the damping range.
+stationarity, it returns status ``Converged`` without exhausting the damping range.
 An exactly zero gradient also establishes stationarity, including when
 the minimum cost is nonzero.  Very large damping alone cannot pass these
 checks: for example, ``initial_damping=maximum_damping=1e20`` can return
-status 2 with an unchanged state when no acceptable step is found.
+status ``DampingLimit`` with an unchanged state when no acceptable step is found.
 
 An excessively small ``stop_dx`` can still demand accuracy beyond the
 forward model or linear solve.  These stationarity checks do not measure
 forward-model noise or establish a global minimum.  Inspect costs,
 residuals, and damping history before increasing the maximum gamma.
 
-``lm_ga_history`` records the starting damping and the updated damping
+``oem_diagnostics.lm_ga_history`` records the starting damping and the updated damping
 after each outer iteration, including when ``display_progress=0``.
 Unused trailing entries are NaN.  It does not record every rejected trial
-step.  Non-LM methods return an empty history.  Inspect ``errors`` when
-status 9 is returned; invalid inputs can also raise an exception before
+step.  Non-LM methods return an empty history.  Inspect ``oem_diagnostics.errors`` when
+status ``Error`` is returned; invalid inputs can also raise an exception before
 iteration starts.
 
 Convergence establishes a numerical stopping condition.  Also inspect the

@@ -43,27 +43,6 @@ void LevenbergMarquardtSettings::validate() const {
                      maximum_damping)
 }
 
-Vector LevenbergMarquardtSettings::as_vector() const {
-  validate();
-  return {
-      initial_damping, decrease_factor, increase_factor, maximum_damping, damping_threshold, convergence_damping_limit};
-}
-
-LevenbergMarquardtSettings LevenbergMarquardtSettings::from_vector(const Vector& values) {
-  ARTS_USER_ERROR_IF(values.size() != 6,
-                     "lm_ga_settings must contain 6 values in this order: initial_damping, decrease_factor, "
-                     "increase_factor, maximum_damping, damping_threshold, convergence_damping_limit; got {}.",
-                     values.size())
-  LevenbergMarquardtSettings settings{.initial_damping           = values[0],
-                                      .decrease_factor           = values[1],
-                                      .increase_factor           = values[2],
-                                      .maximum_damping           = values[3],
-                                      .damping_threshold         = values[4],
-                                      .convergence_damping_limit = values[5]};
-  settings.validate();
-  return settings;
-}
-
 std::string LevenbergMarquardtSettings::repr() const {
   return std::format(
       "LevenbergMarquardtSettings(initial_damping={}, decrease_factor={}, increase_factor={}, "

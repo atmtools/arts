@@ -126,11 +126,11 @@ Bounded inner iterations
 An outer ``max_iter`` does not bound the work of an inner linear solve or
 LM trial search.  Both enforce independent limits.  CG returns its current
 iterate on exhaustion and invokes an optional warning callback.  OEM installs
-this callback and records one warning per OEM call in ``errors``; the outer
+this callback and records one warning per OEM call in ``oem_diagnostics.errors``; the outer
 optimizer continues and retains its own diagnostic status.  LM trial
 exhaustion still raises an error.  OEM maps errors caught
-during inversion to status 9 and records the explanation in ``errors``.
-Exhausting the existing LM damping range retains its status 2 behavior.
+during inversion to status ``Error`` and records the explanation in ``oem_diagnostics.errors``.
+Exhausting the existing LM damping range retains its status ``DampingLimit`` behavior.
 Gauss--Newton must propagate linear-solver exceptions with their nested
 cause.  Returning an empty step after catching an error hides the failure
 and can cause invalid vector operations in the measurement-space formulation.
@@ -163,12 +163,12 @@ LM acceptance and stop outcomes
 ``LMStopReason`` records termination independently of the damping value.
 ``None`` means the optimizer can continue; ``Stationary`` is successful
 termination.  ``DampingLimit`` returns a zero step and maps to workspace
-status 2.  ``TrialLimit``, ``DampingStalled``, ``LinearSolverFailure``, and
-``NumericalFailure`` accompany exceptions, which OEM maps to status 9
+status ``DampingLimit``.  ``TrialLimit``, ``DampingStalled``, ``LinearSolverFailure``, and
+``NumericalFailure`` accompany exceptions, which OEM maps to status ``Error``
 when caught during inversion.  Ordinary convergence after an accepted
 step still uses the configured convergence criterion and damping gate.
-Both that criterion and ``Stationary`` map to status 0; outer iteration
-exhaustion retains status 1.
+Both that criterion and ``Stationary`` map to status ``Converged``; outer iteration
+exhaustion retains status ``IterationLimit``.
 
 All MAP formulations consult the optimizer's explicit outcome before
 testing the returned step for convergence.  A zero step returned after
@@ -247,7 +247,7 @@ The following items require separate implementation and regression work.
 
 4. **Make agenda state and failure behavior explicit.**  Validation,
    covariance inversion, and the initial agenda evaluation can still throw
-   directly; status 9 covers errors caught during inversion.  Trial forward
+   directly; status ``Error`` covers errors caught during inversion.  Trial forward
    model evaluations mutate atmosphere, sensor, and surface workspace data.
    Define which state and diagnostics remain valid after an exception or a
    rejected trial.  A future result should distinguish the last accepted
@@ -365,10 +365,10 @@ Named LM settings are implemented by
 :class:`~pyarts3.arts.LevenbergMarquardtSettings`.  Its keyword-only constructor and
 mutable fields expose ``initial_damping``, ``decrease_factor``,
 ``increase_factor``, ``maximum_damping``, ``damping_threshold``, and
-``convergence_damping_limit`` in the existing vector order.  The native
+``convergence_damping_limit``.  The native
 settings representation provides shared validation for the Python object
-and the legacy vector used by ``OEM``.  Both direct and CG optimizers must
-continue to use that same mapping.
+and the optimizers used by ``OEM``. Both direct and CG optimizers must
+continue to use the same named controls.
 The type lives in ``src/core/jacobian/oem_settings.h`` and
 ``src/core/jacobian/oem_settings.cc`` without an invlib dependency;
 ``src/python_interface/py_retrieval.cpp`` binds the Python interface.
@@ -381,18 +381,13 @@ implicit-conversion error handling.  Related field changes must either
 keep each intermediate configuration valid or use a replacement object
 constructed with the desired keyword arguments together.
 
-``validate()`` checks a configured object, ``as_vector()`` validates and
-exports its six values, and ``from_vector()`` validates and imports an
-existing vector.  Conversion and consumption at the workspace call boundary
-retain validation as well.  ``describe()`` explains the active values;
-the representation displays every field.  Keep these descriptions, field
-validation, and the positional mapping consistent when extending the API.
-The Python object is not a workspace group; workspace and XML storage
-continue to use the vector representation.
-
-The object's defaults are an explicit starting configuration.  The empty
-default of the ``OEM`` argument is unchanged, so existing calls do not
-silently select new damping values.  Do not describe the threshold as a
+``validate()`` checks a configured object at the OEM boundary. ``describe()``
+explains its fields. The settings are a workspace group with XML storage;
+OEM uses the named defaults when omitted. The C++ API remains named.
+The Python binding accepts ``std::array<Numeric, 6>`` through its implicit
+constructor, which validates the six-field input.
+There is no ``as_vector()`` output conversion.
+Do not describe the threshold as a
 hard minimum: it controls both restart after rejection and switching a
 proposed decrease to zero.  The convergence damping limit gates the
 existing state-step criterion using the updated damping.  Preserve the
@@ -402,8 +397,7 @@ documented assumptions and representative retrieval benchmarks.
 
 ``src/tests/test_oem_methods.cc`` tests the native settings and solver
 behavior.  ``tests/core/jac/oem_lm_settings.py`` covers the Python interface
-and its conversion through the actual workspace call.  Keep both named
-and legacy paths covered for all four LM spellings, including correlated
+through the actual workspace call. Keep named settings covered for all four LM spellings, including correlated
 priors and nonlinear rejected trials; comparing complete results and
 damping histories catches changes that an endpoint-only test would miss.
 
@@ -422,9 +416,9 @@ Further API work should keep existing scripts usable:
   in prior-scaled coordinates, and report discrepancies by measurement
   and retrieval target.  Start with a deterministic small-model example
   before applying it to expensive radiative-transfer agendas.
-* Return structured diagnostics with accepted iteration costs, state-step
+* Extend ``OptimalEstimationDiagnostics`` with accepted iteration costs, state-step
   measures, damping, trial rejections, linear residuals, and forward-model
-  call counts.  Preserve the five-element diagnostic vector as an adapter.
+  call counts. There is no legacy positional adapter.
   A user can then distinguish poor model linearity, a difficult linear
   solve, an exhausted iteration budget, and a mismatch in assumed errors.
 
@@ -591,3 +585,15 @@ Regression tests cover mixed Matrix/Sparse inputs, joining/splitting components,
 retained-reference mutation after factorization, copies, multiple RHS and
 left/right solves. Existing supplied-inverse and all-method OEM regressions
 remain applicable.
+
+Diagnostics interface
+---------------------
+
+``OptimalEstimationDiagnostics`` owns the LM history and error/warning list.
+Reset the complete object for each OEM call. ``iterations`` is an ``Index``
+starting at zero; only unavailable costs use NaN. Translate invlib's return
+code at the OEM boundary to ``OptimalEstimationStatus``, defined in
+``src/core/options/arts_options.cc``. Its formatting, XML, and Python support
+come from the standard options machinery. Both diagnostics
+and LM settings use their aggregate XML representation; status is serialized
+by name, independently of enum ordinals.

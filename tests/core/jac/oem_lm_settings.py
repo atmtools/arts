@@ -1,4 +1,4 @@
-"""Named OEM damping controls preserve the legacy numerical interface."""
+"""Named OEM settings and diagnostics preserve numerical results."""
 
 import copy
 import pickle
@@ -7,6 +7,27 @@ import numpy as np
 import pyarts3 as pyarts
 
 arts = pyarts.arts
+
+# Named diagnostics expose enum status, integer iterations, and owned history/messages.
+assert arts.OptimalEstimationStatus(
+    "Converged") == arts.OptimalEstimationStatus.Converged
+assert set(arts.OptimalEstimationStatus.get_options_as_strings()) == {
+    "NotRun", "Converged", "IterationLimit", "DampingLimit", "Error", "StartCostLimit"
+}
+diagnostics = arts.OptimalEstimationDiagnostics()
+assert diagnostics.status == arts.OptimalEstimationStatus.NotRun
+diagnostics.status = arts.OptimalEstimationStatus.Converged
+diagnostics.initial_cost = 2
+diagnostics.final_cost = 1
+diagnostics.measurement_cost = 0.5
+diagnostics.iterations = 3
+assert diagnostics.iterations == 3
+assert isinstance(diagnostics.iterations, int)
+assert len(diagnostics.lm_ga_history) == 0
+assert len(diagnostics.errors) == 0
+assert "measurement_cost" in str(diagnostics)
+assert copy.copy(diagnostics).final_cost == 1
+
 FIELDS = (
     "initial_damping",
     "decrease_factor",
@@ -37,7 +58,8 @@ def rejects(operation, *names):
 def test_value_object():
     defaults = arts.LevenbergMarquardtSettings()
     defaults.validate()
-    np.testing.assert_array_equal(defaults.as_vector(), DEFAULTS)
+    np.testing.assert_array_equal([getattr(defaults, field)
+                                  for field in FIELDS], DEFAULTS)
     for field, value in zip(FIELDS, DEFAULTS):
         assert getattr(defaults, field) == value
         assert f"{field}=" in repr(defaults)
@@ -49,30 +71,26 @@ def test_value_object():
     assert len(description) > len(repr(defaults))
     rejects(lambda: arts.LevenbergMarquardtSettings(10))  # Constructor is keyword-only.
 
-    settings = named(DISTINCT)
-    vector = settings.as_vector()
-    assert isinstance(vector, arts.Vector)
-    np.testing.assert_array_equal(vector, DISTINCT)
-    np.testing.assert_array_equal(arts.Vector(settings), DISTINCT)
-    imported = arts.LevenbergMarquardtSettings.from_vector(vector)
-    np.testing.assert_array_equal(imported.as_vector(), DISTINCT)
-    np.testing.assert_array_equal(
-        arts.LevenbergMarquardtSettings.from_vector(DISTINCT).as_vector(), DISTINCT
-    )
+    for values in (DISTINCT, tuple(DISTINCT), arts.Vector(DISTINCT), np.array(DISTINCT)):
+        imported = arts.LevenbergMarquardtSettings(values)
+        for field, expected in zip(FIELDS, DISTINCT):
+            assert getattr(imported, field) == expected
+    for count in (0, 5, 7):
+        rejects(lambda: arts.LevenbergMarquardtSettings([1] * count))
+    rejects(lambda: arts.LevenbergMarquardtSettings(
+        [10, 1, 2, 100, 1, 0]), "decrease_factor")
 
-    # Conversion and serialization produce independent values.
-    vector[0] = 13
-    assert settings.initial_damping == 12
-    assert imported.initial_damping == 12
+    settings = named(DISTINCT)
     duplicates = [
         copy.copy(settings),
         copy.deepcopy(settings),
         pickle.loads(pickle.dumps(settings)),
     ]
     settings.initial_damping = 0
-    assert settings.as_vector()[0] == 0
+    assert settings.initial_damping == 0
     for duplicate in duplicates:
-        np.testing.assert_array_equal(duplicate.as_vector(), DISTINCT)
+        np.testing.assert_array_equal([getattr(duplicate, field)
+                                      for field in FIELDS], DISTINCT)
         assert duplicate is not settings
         for field in FIELDS:
             assert f"{field}=" in repr(duplicate)
@@ -87,8 +105,8 @@ def test_validation():
             # A failed edit leaves a usable configuration and its diagnostics
             # identify the field before implicit conversion can obscure them.
             changed.validate()
-            np.testing.assert_array_equal(changed.as_vector(), DEFAULTS)
-            np.testing.assert_array_equal(arts.Vector(changed), DEFAULTS)
+            np.testing.assert_array_equal(
+                [getattr(changed, field) for field in FIELDS], DEFAULTS)
 
     for field, invalid in (
         ("decrease_factor", 0),
@@ -101,7 +119,8 @@ def test_validation():
         rejects(lambda: arts.LevenbergMarquardtSettings(**{field: invalid}), field)
         changed = arts.LevenbergMarquardtSettings()
         rejects(lambda: setattr(changed, field, invalid), field)
-        np.testing.assert_array_equal(changed.as_vector(), DEFAULTS)
+        np.testing.assert_array_equal([getattr(changed, field)
+                                      for field in FIELDS], DEFAULTS)
 
     for field in ("initial_damping", "damping_threshold"):
         rejects(
@@ -111,17 +130,8 @@ def test_validation():
         )
         changed = arts.LevenbergMarquardtSettings()
         rejects(lambda: setattr(changed, field, 101), field, "maximum_damping")
-        np.testing.assert_array_equal(changed.as_vector(), DEFAULTS)
-
-    for count in (0, 5, 7):
-        rejects(
-            lambda: arts.LevenbergMarquardtSettings.from_vector(arts.Vector([1] * count)),
-            "6",
-        )
-    for i, field in enumerate(FIELDS):
-        values = DISTINCT.copy()
-        values[i] = np.nan
-        rejects(lambda: arts.LevenbergMarquardtSettings.from_vector(arts.Vector(values)), field)
+        np.testing.assert_array_equal([getattr(changed, field)
+                                      for field in FIELDS], DEFAULTS)
 
     # These are useful supported boundaries, not additional ordering constraints.
     for overrides in (
@@ -133,17 +143,15 @@ def test_validation():
     ):
         settings = arts.LevenbergMarquardtSettings(**overrides)
         settings.validate()
-        np.testing.assert_array_equal(
-            arts.LevenbergMarquardtSettings.from_vector(settings.as_vector()).as_vector(),
-            settings.as_vector(),
-        )
 
     # Coupled settings can be replaced together or edited in a valid order.
     changed = arts.LevenbergMarquardtSettings()
     changed.maximum_damping = 200
     changed.initial_damping = 200
-    replacement = arts.LevenbergMarquardtSettings(initial_damping=200, maximum_damping=200)
-    np.testing.assert_array_equal(changed.as_vector(), replacement.as_vector())
+    replacement = arts.LevenbergMarquardtSettings(
+        initial_damping=200, maximum_damping=200)
+    np.testing.assert_array_equal([getattr(changed, field) for field in FIELDS], [
+                                  getattr(replacement, field) for field in FIELDS])
 
 
 def covariance(values):
@@ -229,27 +237,36 @@ def retrieve(method, settings, nonlinear=False, max_iter=40, stop_dx=1e-9):
     ws = workspace(nonlinear)
     ws.OEM(
         method=method,
-        lm_ga_settings=settings,
+        **({"lm_ga_settings": settings} if settings is not None else {}),
         max_iter=max_iter,
         stop_dx=stop_dx,
         display_progress=0,
     )
-    assert len(ws.errors) == 0, str(ws.errors)
+    assert len(ws.oem_diagnostics.errors) == 0, str(ws.oem_diagnostics.errors)
     return {
-        key: np.array(ws.get(key), copy=True)
+        key: copy.deepcopy(ws.oem_diagnostics) if key == "oem_diagnostics" else np.array(
+            ws.get(key), copy=True)
         for key in (
             "model_state_vec",
             "measurement_vec_fit",
             "measurement_jac",
             "measurement_gain_mat",
             "oem_diagnostics",
-            "lm_ga_history",
         )
     }
 
 
 def equivalent(left, right):
     for output in left:
+        if output == "oem_diagnostics":
+            a, b = left[output], right[output]
+            assert a.status == b.status
+            assert a.iterations == b.iterations
+            assert list(a.errors) == list(b.errors)
+            for field in ("initial_cost", "final_cost", "measurement_cost", "lm_ga_history"):
+                np.testing.assert_allclose(getattr(a, field), getattr(
+                    b, field), rtol=0, atol=1e-12, equal_nan=True)
+            continue
         np.testing.assert_allclose(
             left[output],
             right[output],
@@ -262,11 +279,16 @@ def equivalent(left, right):
 
 def test_retrieval_equivalence():
     for method in METHODS:
+        equivalent(retrieve(method, None), retrieve(
+            method, arts.LevenbergMarquardtSettings()))
         # Correlated prior distinguishes diag(Sa^-1) from inverse(diag(Sa)).
         values = [10, 3, 2, 1e8, 0.1, 0]
         result = retrieve(method, named(values))
+        equivalent(result, retrieve(method, copy.deepcopy(named(values))))
+        equivalent(result, retrieve(method, values))
+        equivalent(result, retrieve(method, tuple(values)))
         equivalent(result, retrieve(method, arts.Vector(values)))
-        equivalent(result, retrieve(method, values))  # Legacy lists remain valid.
+
         np.testing.assert_allclose(
             result["model_state_vec"],
             [3112 / 18575, 21727 / 37150],
@@ -283,14 +305,15 @@ def test_retrieval_equivalence():
             atol=1e-11,
         )
         np.testing.assert_allclose(
-            result["oem_diagnostics"][2], 245309 / 891600, rtol=0, atol=1e-10
+            result["oem_diagnostics"].final_cost, 245309 / 891600, rtol=0, atol=1e-10
         )
-        assert result["oem_diagnostics"][0] == 0
+        assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.Converged
 
         # All six distinct named controls reach both the direct and CG solver.
         result = retrieve(method, named(DISTINCT), max_iter=1, stop_dx=1e3)
         equivalent(
-            result, retrieve(method, arts.Vector(DISTINCT), max_iter=1, stop_dx=1e3)
+            result, retrieve(method, copy.deepcopy(
+                named(DISTINCT)), max_iter=1, stop_dx=1e3)
         )
         np.testing.assert_allclose(
             result["model_state_vec"],
@@ -298,15 +321,16 @@ def test_retrieval_equivalence():
             rtol=0,
             atol=1e-11,
         )
-        np.testing.assert_array_equal(result["lm_ga_history"], [12, 4])
-        assert result["oem_diagnostics"][0] == 0
+        np.testing.assert_array_equal(result["oem_diagnostics"].lm_ga_history, [12, 4])
+        assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.Converged
 
         # Seven rejected quadratic-model trials restart/increase damping before
         # gamma=6.4 accepts x=1.8. This independently tests nonlinear behavior.
         values = [0, 3, 2, 100, 0.1, 0]
         result = retrieve(method, named(values), nonlinear=True, max_iter=1)
         equivalent(
-            result, retrieve(method, arts.Vector(values), nonlinear=True, max_iter=1)
+            result, retrieve(method, copy.deepcopy(
+                named(values)), nonlinear=True, max_iter=1)
         )
         np.testing.assert_allclose(result["model_state_vec"], [1.8], rtol=0, atol=1e-12)
         np.testing.assert_allclose(
@@ -316,14 +340,14 @@ def test_retrieval_equivalence():
             result["measurement_jac"], [[3.6]], rtol=0, atol=1e-12
         )
         np.testing.assert_allclose(
-            result["lm_ga_history"], [0, 6.4], rtol=0, atol=1e-12
+            result["oem_diagnostics"].lm_ga_history, [0, 6.4], rtol=0, atol=1e-12
         )
-        assert result["oem_diagnostics"][0] == 1
+        assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.IterationLimit
 
 
 def test_agenda_capture():
     # arts_agenda resolves captures in the defining module's globals, then
-    # constructs a Vector for the existing workspace argument type.
+    # constructs the named settings workspace type.
     global captured_settings
     captured_settings = named(DISTINCT)
 
@@ -337,10 +361,23 @@ def test_agenda_capture():
         if method.name == "@lm_ga_settings"
     ]
     assert len(captured) == 1
-    assert isinstance(captured[0], arts.Vector)
-    np.testing.assert_array_equal(captured[0], DISTINCT)
+    assert isinstance(captured[0], arts.LevenbergMarquardtSettings)
+    np.testing.assert_array_equal([getattr(captured[0], field)
+                                  for field in FIELDS], DISTINCT)
     captured_settings.initial_damping = 0
-    np.testing.assert_array_equal(captured[0], DISTINCT)
+    np.testing.assert_array_equal([getattr(captured[0], field)
+                                  for field in FIELDS], DISTINCT)
+
+    captured_settings = DISTINCT.copy()
+
+    @pyarts.arts_agenda
+    def shorthand_retrieval(ws):
+        ws.OEM(method="lm", lm_ga_settings=captured_settings)
+    shorthand = next(
+        method.val for method in shorthand_retrieval.methods if method.name == "@lm_ga_settings")
+    assert isinstance(shorthand, arts.LevenbergMarquardtSettings)
+    for field, expected in zip(FIELDS, DISTINCT):
+        assert getattr(shorthand, field) == expected
 
 
 def test_damping_outcomes():
@@ -351,16 +388,17 @@ def test_damping_outcomes():
             method,
             arts.LevenbergMarquardtSettings(initial_damping=1e20, maximum_damping=1e20),
         )
-        assert result["oem_diagnostics"][0] == 2, result["oem_diagnostics"]
+        assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.DampingLimit, result["oem_diagnostics"]
         np.testing.assert_array_equal(result["model_state_vec"], [0.5, -0.25])
-        np.testing.assert_array_equal(result["lm_ga_history"][:2], [1e20, 1e20])
-        assert result["oem_diagnostics"][2] == result["oem_diagnostics"][1]
+        np.testing.assert_array_equal(
+            result["oem_diagnostics"].lm_ga_history[:2], [1e20, 1e20])
+        assert result["oem_diagnostics"].final_cost == result["oem_diagnostics"].initial_cost
 
         # An accurate affine solution must not turn into damping exhaustion
         # when reduction ratios become dominated by cost-evaluation roundoff.
         for tolerance in (1e-12, 1e-16, 1e-20):
             result = retrieve(method, named([10, 3, 2, 1e8, 0.1, 0]), stop_dx=tolerance)
-            assert result["oem_diagnostics"][0] == 0, result["oem_diagnostics"]
+            assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.Converged, result["oem_diagnostics"]
             np.testing.assert_allclose(
                 result["model_state_vec"],
                 [3112 / 18575, 21727 / 37150],
@@ -371,7 +409,7 @@ def test_damping_outcomes():
         # The nonlinear fixture really rejects every permitted step. The fix
         # must still report exhaustion and preserve the last accepted state.
         result = retrieve(method, named([0, 3, 2, 1, 0.1, 0]), nonlinear=True)
-        assert result["oem_diagnostics"][0] == 2, result["oem_diagnostics"]
+        assert result["oem_diagnostics"].status == arts.OptimalEstimationStatus.DampingLimit, result["oem_diagnostics"]
         np.testing.assert_array_equal(result["model_state_vec"], [0.1])
         np.testing.assert_allclose(
             result["measurement_vec_fit"], [0.01], rtol=0, atol=1e-16

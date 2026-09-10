@@ -41,6 +41,21 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "OptimalEstimationStatus",
+      .desc = "Outcome of an optimal-estimation retrieval, reported by OptimalEstimationDiagnostics.\n",
+      .values_and_desc =
+          {
+              Value{"NotRun", "No retrieval has run."},
+              Value{"Converged", "The convergence criterion was met or LM established numerical stationarity."},
+              Value{"IterationLimit",
+                    "The outer iteration budget was reached. Linear methods may report this after their single step."},
+              Value{"DampingLimit", "LM reached its damping limit without finding an acceptable step."},
+              Value{"Error", "An error was caught during inversion; inspect the diagnostic messages."},
+              Value{"StartCostLimit", "The starting cost exceeded max_start_cost and inversion was skipped."},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "AntennaType",
       .desc =
           R"(A switch controlling how monte carlo antenna patterns are handled.

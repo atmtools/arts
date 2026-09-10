@@ -75,7 +75,8 @@ def measurement_covariance(ws, correlations, sparse, supplied_inverse):
         block = .25 * np.array([[1., rho], [rho, 1.]])
         se[2*i:2*i+2, 2*i:2*i+2] = block
         storage = arts.Sparse if sparse else arts.Matrix
-        options = {"inverse": storage(np.linalg.solve(block, np.eye(2)))} if supplied_inverse else {}
+        options = {"inverse": storage(np.linalg.solve(
+            block, np.eye(2)))} if supplied_inverse else {}
         ws.model_state_covmatAddSpeciesVMR(
             model_state_covmat=ws.measurement_vec_error_covmat,
             species=species, matrix=storage(block), **options,
@@ -106,8 +107,9 @@ def run():
                     ws.measurement_jac = arts.Matrix()
                     ws.OEM(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
                            max_iter=50, stop_dx=1e-12)
-                    assert not len(ws.errors), str(ws.errors)
-                    assert ws.oem_diagnostics[0] == 0, ws.oem_diagnostics
+                    assert not len(ws.oem_diagnostics.errors), str(
+                        ws.oem_diagnostics.errors)
+                    assert ws.oem_diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
                     fitted = (np.array(ws.model_state_vec) - prior) / SCALE
                     fit_y = np.array(ws.measurement_vec_fit, copy=True)
                     np.testing.assert_allclose(fitted, expected, rtol=0, atol=2e-7)
@@ -149,7 +151,8 @@ def plot(results):
     for ax in axes:
         ax.grid(True)
         ax.legend(fontsize="small")
-    fig.suptitle("Workspace LM: covariance representations agree (four overlapping markers per pattern)")
+    fig.suptitle(
+        "Workspace LM: covariance representations agree (four overlapping markers per pattern)")
     fig.tight_layout()
     return fig
 

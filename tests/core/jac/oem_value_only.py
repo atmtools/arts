@@ -118,7 +118,7 @@ def check_kernel(option):
     ws.OEM(
         method="lm", stop_dx=1e-12, max_iter=100, lm_ga_settings=arts.LevenbergMarquardtSettings()
     )
-    assert ws.oem_diagnostics[0] == 0, ws.oem_diagnostics
+    assert ws.oem_diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
     temperature = max(np.roots([3, 0, -67, -6]))
     expected = [temperature, 2 - 0.75 * (temperature**2 - 23), 5 / 6]
     np.testing.assert_allclose(ws.model_state_vec, expected, rtol=0, atol=1e-6)

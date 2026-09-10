@@ -192,34 +192,32 @@ void measurement_vec_error_covmatNormalization(Vector& normalization, const Cova
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void OEM(const Workspace&        ws,
-         Vector&                 model_state_vec,
-         Vector&                 measurement_vec_fit,
-         Matrix&                 measurement_jac,
-         AtmField&               atm_field,
-         AbsorptionBands&        abs_bands,
-         ArrayOfSensorObsel&     measurement_sensor,
-         SurfaceField&           surf_field,
-         SubsurfaceField&        subsurf_field,
-         Matrix&                 measurement_gain_mat,
-         Vector&                 oem_diagnostics,
-         Vector&                 lm_ga_history,
-         ArrayOfString&          errors,
-         const JacobianTargets&  jac_targets,
-         const Vector&           model_state_vec_apriori,
-         const CovarianceMatrix& model_state_covmat_input,
-         const Vector&           measurement_vec,
-         const CovarianceMatrix& measurement_vec_error_covmat_input,
-         const Agenda&           inversion_iterate_agenda,
-         const String&           method,
-         const Numeric&          max_start_cost,
-         const Vector&           model_state_covmat_normalization,
-         const Vector&           measurement_vec_normalization,
-         const Index&            max_iter,
-         const Numeric&          stop_dx,
-         const Vector&           lm_ga_settings,
-         const Index&            clear_matrices,
-         const Index&            display_progress) {
+void OEM(const Workspace&                  ws,
+         Vector&                           model_state_vec,
+         Vector&                           measurement_vec_fit,
+         Matrix&                           measurement_jac,
+         AtmField&                         atm_field,
+         AbsorptionBands&                  abs_bands,
+         ArrayOfSensorObsel&               measurement_sensor,
+         SurfaceField&                     surf_field,
+         SubsurfaceField&                  subsurf_field,
+         Matrix&                           measurement_gain_mat,
+         OptimalEstimationDiagnostics&     oem_diagnostics,
+         const JacobianTargets&            jac_targets,
+         const Vector&                     model_state_vec_apriori,
+         const CovarianceMatrix&           model_state_covmat_input,
+         const Vector&                     measurement_vec,
+         const CovarianceMatrix&           measurement_vec_error_covmat_input,
+         const Agenda&                     inversion_iterate_agenda,
+         const String&                     method,
+         const Numeric&                    max_start_cost,
+         const Vector&                     model_state_covmat_normalization,
+         const Vector&                     measurement_vec_normalization,
+         const Index&                      max_iter,
+         const Numeric&                    stop_dx,
+         const LevenbergMarquardtSettings& lm_ga_settings,
+         const Index&                      clear_matrices,
+         const Index&                      display_progress) {
   ARTS_TIME_REPORT
 
   const OEMMethod selected = parse_oem_method(method);
@@ -253,18 +251,17 @@ void OEM(const Workspace&        ws,
                    max_start_cost,
                    clear_matrices,
                    display_progress);
-  const std::optional<LevenbergMarquardtSettings> lm_settings =
-      selected.damped() ? std::optional{LevenbergMarquardtSettings::from_vector(lm_ga_settings)} : std::nullopt;
+  if (selected.damped()) lm_ga_settings.validate();
 
   const Index n = model_state_covmat.nrows();
   const Index m = measurement_vec.size();
   // Covariance snapshots are prepared before iteration. Explicit precision
   // consumers still request inverse storage when needed.
 
-  errors.clear();
   measurement_gain_mat.resize(0, 0);
-  oem_diagnostics.resize(5);
-  oem_diagnostics = NAN;
+  oem_diagnostics     = {};
+  auto& lm_ga_history = oem_diagnostics.lm_ga_history;
+  auto& errors        = oem_diagnostics.errors;
   lm_ga_history.resize(selected.damped() ? max_iter + 1 : 0);
   lm_ga_history = NAN;
 
@@ -320,12 +317,12 @@ void OEM(const Workspace&        ws,
     cost_start  = dot(dx, sdx) + dot(dy, sdy);
     cost_start /= static_cast<Numeric>(m);
   }
-  oem_diagnostics[1] = cost_start;
+  oem_diagnostics.initial_cost = cost_start;
 
   // Handle cases with too large start cost
   if (max_start_cost > 0 && cost_start > max_start_cost) {
     // No inversion; retain the starting state and its simulated measurement.
-    oem_diagnostics[0] = 99;
+    oem_diagnostics.status = OptimalEstimationStatus::StartCostLimit;
     if (clear_matrices) measurement_jac.resize(0, 0);
     //
     if (display_progress) {
@@ -368,14 +365,16 @@ void OEM(const Workspace&        ws,
     // the forward model throws. Costs always use the same measurement scaling.
     auto run = [&]<typename Retrieval, typename Optimizer>(Retrieval& retrieval, Optimizer& optimizer) {
       auto diagnostics = [&] {
-        oem_diagnostics[2] = retrieval.cost / static_cast<Numeric>(m);
-        oem_diagnostics[3] = retrieval.cost_y / static_cast<Numeric>(m);
-        oem_diagnostics[4] = static_cast<Numeric>(retrieval.iterations);
+        oem_diagnostics.final_cost       = retrieval.cost / static_cast<Numeric>(m);
+        oem_diagnostics.measurement_cost = retrieval.cost_y / static_cast<Numeric>(m);
+        oem_diagnostics.iterations       = static_cast<Index>(retrieval.iterations);
       };
       retrieval.iterations = 0;
       try {
-        oem_diagnostics[0] = retrieval.template compute<Optimizer&, oem::ArtsLog>(
+        const auto status = retrieval.template compute<Optimizer&, oem::ArtsLog>(
             x_oem, y_oem, optimizer, verbosity, lm_ga_history, selected.linear());
+        oem_diagnostics.status =
+            status == 0 ? OptimalEstimationStatus::Converged : OptimalEstimationStatus::IterationLimit;
       } catch (...) {
         diagnostics();
         throw;
@@ -394,10 +393,11 @@ void OEM(const Workspace&        ws,
                   std::make_shared<Sparse>(Sparse::diagonal(model_state_covmat.inverse_diagonal()))));
         oem::CovarianceMatrix precision = inv(oem::CovarianceMatrix(damping));
         invlib::LevenbergMarquardt<Numeric, oem::CovarianceMatrix, Solver> optimizer(precision, solver);
-        configure_lm(optimizer, *lm_settings, stop_dx, iterations);
+        configure_lm(optimizer, lm_ga_settings, stop_dx, iterations);
         oem::OEM_STANDARD<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
         run(retrieval, optimizer);
-        if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit) oem_diagnostics[0] = 2;
+        if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit)
+          oem_diagnostics.status = OptimalEstimationStatus::DampingLimit;
       } else {
         invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
         // Both measurement solvers accept the lazy system.
@@ -437,7 +437,7 @@ void OEM(const Workspace&        ws,
       // An already current Jacobian needs neither an agenda call nor a fit copy.
       if (!selected.linear() && !clear_matrices) aw.ensure_jacobian(x_oem);
     } catch (const std::exception& e) {
-      oem_diagnostics[0]            = 9;
+      oem_diagnostics.status        = OptimalEstimationStatus::Error;
       static_cast<::Vector&>(x_oem) = NAN;
       for (const auto& message : oem::handle_nested_exception(e)) {
         std::stringstream stream{message};
@@ -451,7 +451,9 @@ void OEM(const Workspace&        ws,
     if (clear_matrices) {
       measurement_jac.resize(0, 0);
       measurement_gain_mat.resize(0, 0);
-    } else if (oem_diagnostics[0] <= 2) {
+    } else if ((oem_diagnostics.status == OptimalEstimationStatus::Converged or
+                oem_diagnostics.status == OptimalEstimationStatus::IterationLimit or
+                oem_diagnostics.status == OptimalEstimationStatus::DampingLimit)) {
       measurement_gain_mat.resize(n, m);
       Matrix tmp1(n, m), tmp2(n, n), tmp3(n, n);
       mult_inv(tmp1, transpose(measurement_jac), measurement_vec_error_covmat);

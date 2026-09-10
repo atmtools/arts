@@ -35,6 +35,10 @@ void close(Numeric actual, Numeric expected, Numeric tolerance, std::string_view
   }
 }
 
+void close(OptimalEstimationStatus actual, OptimalEstimationStatus expected, Numeric, std::string_view name) {
+  require(actual == expected, name);
+}
+
 Matrix matrix(Index rows, Index cols, std::initializer_list<Numeric> values) {
   Matrix result(rows, cols);
   auto   value = values.begin();
@@ -57,26 +61,25 @@ bool is_lm(std::string_view method) { return method.starts_with("lm") or method.
 // covariance inversion, optimizer dispatch, diagnostics, and gain calculation.
 // No atmospheric data files or Python/Matlab installation are required.
 struct Retrieval {
-  Workspace          ws{WorkspaceInitialization::Empty};
-  Vector             x, yf;
-  Matrix             jac, gain;
-  AtmField           atm;
-  AbsorptionBands    bands;
-  ArrayOfSensorObsel sensor;
-  SurfaceField       surf;
-  SubsurfaceField    subsurf;
-  Vector             diagnostics, history;
-  ArrayOfString      errors;
-  JacobianTargets    targets;
-  Vector             xa{0.5, -0.25};
-  Vector             y{2.0, -1.0, 1.5};
-  CovarianceMatrix   sa = covariance(matrix(2, 2, {4, 1, 1, 2}));
-  CovarianceMatrix   se = covariance(matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5}));
-  Agenda             agenda{"inversion_iterate_agenda"};
-  Vector             normalization;
-  Vector             measurement_normalization;
-  Vector             settings{10, 3, 2, 1e8, 0.1, 0};
-  Index              max_iter = 40;
+  Workspace                    ws{WorkspaceInitialization::Empty};
+  Vector                       x, yf;
+  Matrix                       jac, gain;
+  AtmField                     atm;
+  AbsorptionBands              bands;
+  ArrayOfSensorObsel           sensor;
+  SurfaceField                 surf;
+  SubsurfaceField              subsurf;
+  OptimalEstimationDiagnostics diagnostics;
+  JacobianTargets              targets;
+  Vector                       xa{0.5, -0.25};
+  Vector                       y{2.0, -1.0, 1.5};
+  CovarianceMatrix             sa = covariance(matrix(2, 2, {4, 1, 1, 2}));
+  CovarianceMatrix             se = covariance(matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5}));
+  Agenda                       agenda{"inversion_iterate_agenda"};
+  Vector                       normalization;
+  Vector                       measurement_normalization;
+  LevenbergMarquardtSettings   settings{10, 3, 2, 1e8, 0.1, 0};
+  Index                        max_iter = 40;
   // Accuracy is also checked against independent state and cost oracles.
   Numeric stop_dx          = 1e-9;
   Numeric max_start_cost   = std::numeric_limits<Numeric>::infinity();
@@ -147,8 +150,6 @@ struct Retrieval {
         subsurf,
         gain,
         diagnostics,
-        history,
-        errors,
         targets,
         xa,
         sa,
@@ -169,23 +170,23 @@ struct Retrieval {
 
 void check_history(const Retrieval& r, std::string_view method) {
   if (not is_lm(method)) {
-    require(r.history.empty(), "Non-LM method returned gamma history");
+    require(r.diagnostics.lm_ga_history.empty(), "Non-LM method returned gamma history");
     return;
   }
-  require(r.history.size() == static_cast<Size>(r.max_iter + 1), "Gamma history has wrong size");
-  close(r.history[0], r.settings[0], 0, "Initial gamma");
-  const auto iterations = static_cast<Index>(r.diagnostics[4]);
+  require(r.diagnostics.lm_ga_history.size() == static_cast<Size>(r.max_iter + 1), "Gamma history has wrong size");
+  close(r.diagnostics.lm_ga_history[0], r.settings.initial_damping, 0, "Initial gamma");
+  const auto iterations = static_cast<Index>(r.diagnostics.iterations);
   for (Index i = 0; i <= iterations; ++i) {
-    require(std::isfinite(r.history[i]) and r.history[i] >= 0, "Missing silent-mode gamma history");
+    require(std::isfinite(r.diagnostics.lm_ga_history[i]) and r.diagnostics.lm_ga_history[i] >= 0,
+            "Missing silent-mode gamma history");
   }
   for (Index i = iterations + 1; i <= r.max_iter; ++i) {
-    require(std::isnan(r.history[i]), "Unused gamma history must remain NaN");
+    require(std::isnan(r.diagnostics.lm_ga_history[i]), "Unused gamma history must remain NaN");
   }
 }
 
 void check_affine_solution(const Retrieval& r, std::string_view method) {
-  require(r.errors.empty(), "Successful retrieval returned errors");
-  require(r.diagnostics.size() == 5, "Diagnostics must contain five values");
+  require(r.diagnostics.errors.empty(), "Successful retrieval returned errors");
   require(r.x.size() == 2 and r.yf.size() == 3, "Wrong retrieval output dimensions");
 
   // Exact rational oracle for K = [[1,2],[2,-1],[1,1]], offset =
@@ -198,14 +199,16 @@ void check_affine_solution(const Retrieval& r, std::string_view method) {
   close(r.yf[0], 117931.0 / 74300, 4e-7, "Fitted measurement[0]");
   close(r.yf[1], -13927.0 / 18575, 4e-7, "Fitted measurement[1]");
   close(r.yf[2], 65101.0 / 37150, 4e-7, "Fitted measurement[2]");
-  close(r.diagnostics[2], 245309.0 / 891600, 1e-10, "Normalized MAP cost");
-  close(r.diagnostics[3], 581955097.0 / 5520490000, 2e-7, "Normalized measurement cost");
+  close(r.diagnostics.final_cost, 245309.0 / 891600, 1e-10, "Normalized MAP cost");
+  close(r.diagnostics.measurement_cost, 581955097.0 / 5520490000, 2e-7, "Normalized measurement cost");
   if (method.starts_with("li")) {
-    require(r.diagnostics[0] == 0 or r.diagnostics[0] == 1, "Linear retrieval failed");
-    close(r.diagnostics[4], 1, 0, "Linear iteration count");
+    require(r.diagnostics.status == OptimalEstimationStatus::Converged or
+                r.diagnostics.status == OptimalEstimationStatus::IterationLimit,
+            "Linear retrieval failed");
+    require(r.diagnostics.iterations == 1, "Linear iteration count");
   } else {
-    close(r.diagnostics[0], 0, 0, "Convergence status");
-    require(r.diagnostics[4] > 0 and r.diagnostics[4] <= static_cast<Numeric>(r.max_iter), "Invalid iteration count");
+    close(r.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Convergence status");
+    require(r.diagnostics.iterations > 0 and r.diagnostics.iterations <= r.max_iter, "Invalid iteration count");
   }
 
   if (r.clear_matrices) {
@@ -253,16 +256,18 @@ void test_diagonal_covariances(std::string_view method) {
         r.run(method);
         const String context = std::format(
             "diagonal {} prior_sparse={} noise_sparse={} scaled={}", method, sparse_prior, sparse_noise, scaled);
-        require(r.errors.empty(), context);
-        require(r.diagnostics[0] == 0 or (method.starts_with("li") and r.diagnostics[0] == 1), context);
+        require(r.diagnostics.errors.empty(), context);
+        require(r.diagnostics.status == OptimalEstimationStatus::Converged or
+                    (method.starts_with("li") and r.diagnostics.status == OptimalEstimationStatus::IterationLimit),
+                context);
         close(r.x[0], 11. / 111, 1e-7, context + " state 0");
         close(r.x[1], 183. / 296, 1e-7, context + " state 1");
-        close(r.diagnostics[2], 4877. / 21312, 1e-9, context + " total cost");
-        close(r.diagnostics[3], 424885. / 4731264, 1e-7, context + " measurement cost");
+        close(r.diagnostics.final_cost, 4877. / 21312, 1e-9, context + " total cost");
+        close(r.diagnostics.measurement_cost, 424885. / 4731264, 1e-7, context + " measurement cost");
         require(r.gain.nrows() == 2 and r.gain.ncols() == 3, context);
         for (Index i = 0; i < 2; ++i)
           for (Index j = 0; j < 3; ++j) close(r.gain[i, j], expected_gain[i, j], 1e-10, context + " gain");
-        if (method.starts_with("li")) close(r.diagnostics[4], 1, 0, context + " iterations");
+        if (method.starts_with("li")) require(r.diagnostics.iterations == 1, context + " iterations");
       }
     }
   }
@@ -301,9 +306,9 @@ void test_measurement_noise_scaling(std::string_view method) {
     }
   };
   scaled.run(method);
-  require(scaled.errors.empty(), "Noise-scaled retrieval failed");
+  require(scaled.diagnostics.errors.empty(), "Noise-scaled retrieval failed");
   for (Index i = 0; i < 2; ++i) close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
-  close(scaled.diagnostics[2], baseline.diagnostics[2], 1e-9, "Measurement unit invariant cost");
+  close(scaled.diagnostics.final_cost, baseline.diagnostics.final_cost, 1e-9, "Measurement unit invariant cost");
 }
 
 void test_affine(std::string_view method) {
@@ -320,7 +325,7 @@ void test_affine(std::string_view method) {
       r.run(method);
       check_affine_solution(r, method);
       if (not cached) {
-        close(r.diagnostics[1], 2863.0 / 1424, 1e-12, "Normalized initial cost");
+        close(r.diagnostics.initial_cost, 2863.0 / 1424, 1e-12, "Normalized initial cost");
         close(r.first_state[0], r.xa[0], 0, "Initial agenda state[0]");
         close(r.first_state[1], r.xa[1], 0, "Initial agenda state[1]");
       }
@@ -347,11 +352,11 @@ void test_exact_start(std::string_view method) {
   r.forward(r.xa, r.y, r.jac, true);
   r.jac.resize(0, 0);
   r.run(method);
-  require(r.errors.empty(), "Exact initial solution returned errors");
+  require(r.diagnostics.errors.empty(), "Exact initial solution returned errors");
   close(r.x[0], r.xa[0], 0, "Exact initial state[0]");
   close(r.x[1], r.xa[1], 0, "Exact initial state[1]");
-  close(r.diagnostics[0], 0, 0, "Exact initial solution status");
-  close(r.diagnostics[2], 0, 0, "Exact initial solution cost");
+  close(r.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Exact initial solution status");
+  close(r.diagnostics.final_cost, 0, 0, "Exact initial solution cost");
 }
 
 void test_disabled_start_cost(std::string_view method) {
@@ -360,9 +365,9 @@ void test_disabled_start_cost(std::string_view method) {
   r.run(method);
   check_affine_solution(r, method);
   if (is_lm(method))
-    close(r.diagnostics[1], 2863.0 / 1424, 1e-12, "LM initial cost with disabled limit");
+    close(r.diagnostics.initial_cost, 2863.0 / 1424, 1e-12, "LM initial cost with disabled limit");
   else
-    require(std::isnan(r.diagnostics[1]), "Unrequested initial cost should be NaN");
+    require(std::isnan(r.diagnostics.initial_cost), "Unrequested initial cost should be NaN");
 }
 
 void test_runtime_failure(std::string_view method) {
@@ -372,19 +377,19 @@ void test_runtime_failure(std::string_view method) {
     if (r.calls > 1) throw std::runtime_error("deliberate regression forward-model failure");
     working_forward(state, fit, jacobian, with_jacobian);
   };
-  r.settings[3] = 20;
-  r.gain        = matrix(1, 1, {999});
-  r.errors      = {"stale error"};
+  r.settings.maximum_damping = 20;
+  r.gain                     = matrix(1, 1, {999});
+  r.diagnostics.errors       = {"stale error"};
   r.run(method);
-  close(r.diagnostics[0], 9, 0, "Forward-model failure status");
-  close(r.diagnostics[2], 2863.0 / 1424, 1e-12, "Normalized failure cost");
-  close(r.diagnostics[3], 2863.0 / 1424, 1e-12, "Normalized failure measurement cost");
-  close(r.diagnostics[4], 0, 0, "Failure iteration count");
+  close(r.diagnostics.status, OptimalEstimationStatus::Error, 0, "Forward-model failure status");
+  close(r.diagnostics.final_cost, 2863.0 / 1424, 1e-12, "Normalized failure cost");
+  close(r.diagnostics.measurement_cost, 2863.0 / 1424, 1e-12, "Normalized failure measurement cost");
+  require(r.diagnostics.iterations == 0, "Failure iteration count");
   require(stdr::all_of(r.x, [](Numeric value) { return std::isnan(value); }), "Failed state must be NaN");
   require(r.gain.empty(), "Failed retrieval returned stale gain");
-  require(stdr::none_of(r.errors, [](const String& value) { return value == "stale error"; }),
+  require(stdr::none_of(r.diagnostics.errors, [](const String& value) { return value == "stale error"; }),
           "Failed retrieval retained previous errors");
-  require(stdr::any_of(r.errors,
+  require(stdr::any_of(r.diagnostics.errors,
                        [](const String& value) {
                          return std::string_view(value).contains("deliberate regression forward-model failure");
                        }),
@@ -416,8 +421,8 @@ void test_nonlinear(std::string_view method) {
   Retrieval r;
   quadratic_model(r);
   r.run(method);
-  require(r.errors.empty(), "Nonlinear retrieval returned errors");
-  close(r.diagnostics[0], 0, 0, "Nonlinear convergence status");
+  require(r.diagnostics.errors.empty(), "Nonlinear retrieval returned errors");
+  close(r.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Nonlinear convergence status");
 
   // Positive MAP solution for F(x)=x^2 solves 32*x^3 - 127*x - 1=0.
   // Bisection on [1,2] supplies an independent, deterministic scalar oracle.
@@ -435,8 +440,8 @@ void test_nonlinear(std::string_view method) {
   close(r.jac[0, 0], 2 * r.x[0], 1e-12, "Jacobian at returned state");
   close(r.gain[0, 0], 8 * r.x[0] / (0.25 + 16 * r.x[0] * r.x[0]), 1e-12, "Nonlinear gain");
   const Numeric cost_y = 4 * std::pow(4 - r.yf[0], 2);
-  close(r.diagnostics[2], 0.25 * std::pow(r.x[0] - 1, 2) + cost_y, 1e-12, "Nonlinear MAP cost");
-  close(r.diagnostics[3], cost_y, 1e-12, "Nonlinear measurement cost");
+  close(r.diagnostics.final_cost, 0.25 * std::pow(r.x[0] - 1, 2) + cost_y, 1e-12, "Nonlinear MAP cost");
+  close(r.diagnostics.measurement_cost, cost_y, 1e-12, "Nonlinear measurement cost");
   check_history(r, method);
 }
 
@@ -453,14 +458,14 @@ void test_underdetermined(std::string_view method) {
       jacobian.resize(0, 0);
   };
   r.run(method);
-  require(r.errors.empty(), "Underdetermined retrieval returned errors");
+  require(r.diagnostics.errors.empty(), "Underdetermined retrieval returned errors");
   close(r.x[0], 57.0 / 82, 2e-7, "Underdetermined state[0]");
   close(r.x[1], 103.0 / 164, 2e-7, "Underdetermined state[1]");
   close(r.yf[0], 80.0 / 41, 4e-7, "Underdetermined fit");
   close(r.gain[0, 0], 4.0 / 41, 1e-12, "Underdetermined gain[0]");
   close(r.gain[1, 0], 18.0 / 41, 1e-12, "Underdetermined gain[1]");
-  close(r.diagnostics[2], 4.0 / 41, 1e-10, "Underdetermined cost");
-  close(r.diagnostics[3], 4.0 / 1681, 2e-7, "Underdetermined measurement cost");
+  close(r.diagnostics.final_cost, 4.0 / 41, 1e-10, "Underdetermined cost");
+  close(r.diagnostics.measurement_cost, 4.0 / 1681, 2e-7, "Underdetermined measurement cost");
 }
 
 void test_lm_settings() {
@@ -473,42 +478,41 @@ void test_lm_settings() {
                                             .increase_factor           = 2,
                                             .maximum_damping           = 1e6,
                                             .damping_threshold         = 0.01,
-                                            .convergence_damping_limit = 10}
-                     .as_vector();
+                                            .convergence_damping_limit = 10};
     r.run(method);
-    require(r.errors.empty(), "Damped step returned errors");
+    require(r.diagnostics.errors.empty(), "Damped step returned errors");
     // One step with damping 12*diag(Sa^-1). The non-diagonal prior
     // distinguishes diag(Sa^-1) from inverse(diag(Sa)).
     close(r.x[0], 31732.0 / 69551, 1e-11, "Damped state[0]");
     close(r.x[1], 24127.0 / 139102, 1e-11, "Damped state[1]");
-    close(r.history[0], 12, 0, "Configured initial gamma");
-    close(r.history[1], 4, 0, "Configured gamma decrease");
+    close(r.diagnostics.lm_ga_history[0], 12, 0, "Configured initial gamma");
+    close(r.diagnostics.lm_ga_history[1], 4, 0, "Configured gamma decrease");
     // The supplied tolerance and convergence gamma limit allow convergence
     // now. Ignoring either setting requires further iterations.
-    close(r.diagnostics[0], 0, 0, "Configured convergence settings");
-    close(r.diagnostics[4], 1, 0, "Damped step iteration count");
+    close(r.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Configured convergence settings");
+    require(r.diagnostics.iterations == 1, "Damped step iteration count");
 
     Retrieval rejected_trials;
     quadratic_model(rejected_trials);
     rejected_trials.x        = Vector{0.1};
     rejected_trials.max_iter = 1;
-    rejected_trials.settings = Vector{0, 3, 2, 100, 0.1, 0};
+    rejected_trials.settings = LevenbergMarquardtSettings{0, 3, 2, 100, 0.1, 0};
     rejected_trials.run(method);
-    require(rejected_trials.errors.empty(), "LM failed to recover from rejected trials");
+    require(rejected_trials.diagnostics.errors.empty(), "LM failed to recover from rejected trials");
     // Starting at x=0.1 gives g=-3.417, H=0.41, D=0.25. The cost
     // rejects gamma=0,0.1,0.2,0.4,0.8,1.6,3.2. At gamma=6.4 the
     // accepted step is 3.417/(0.41+6.4*0.25)=1.7.
     close(rejected_trials.x[0], 1.8, 1e-12, "State after rejected LM trials");
-    close(rejected_trials.history[1], 6.4, 1e-12, "Configured gamma threshold and increase");
-    close(rejected_trials.diagnostics[0], 1, 0, "LM iteration limit");
+    close(rejected_trials.diagnostics.lm_ga_history[1], 6.4, 1e-12, "Configured gamma threshold and increase");
+    close(rejected_trials.diagnostics.status, OptimalEstimationStatus::IterationLimit, 0, "LM iteration limit");
 
     Retrieval gamma_limit;
     quadratic_model(gamma_limit);
     gamma_limit.x        = Vector{0.1};
-    gamma_limit.settings = Vector{0, 3, 2, 1, 0.1, 0};
+    gamma_limit.settings = LevenbergMarquardtSettings{0, 3, 2, 1, 0.1, 0};
     gamma_limit.run(method);
-    require(gamma_limit.errors.empty(), "Gamma exhaustion is not an agenda exception");
-    close(gamma_limit.diagnostics[0], 2, 0, "Configured gamma maximum");
+    require(gamma_limit.diagnostics.errors.empty(), "Gamma exhaustion is not an agenda exception");
+    close(gamma_limit.diagnostics.status, OptimalEstimationStatus::DampingLimit, 0, "Configured gamma maximum");
     close(gamma_limit.x[0], 0.1, 1e-12, "Rejected LM step must not change state");
     close(gamma_limit.yf[0], 0.01, 1e-12, "Fit after gamma exhaustion");
   }
@@ -517,17 +521,20 @@ void test_lm_settings() {
 void test_lm_outcomes() {
   for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
     Retrieval over_damped;
-    over_damped.settings = LevenbergMarquardtSettings{.initial_damping = 1e20, .maximum_damping = 1e20}.as_vector();
+    over_damped.settings = LevenbergMarquardtSettings{.initial_damping = 1e20, .maximum_damping = 1e20};
     over_damped.run(method);
     // Adding one to this maximum rounds back to the maximum. A numeric
     // sentinel used to turn this rejected, unchanged step into convergence.
-    require(over_damped.errors.empty(), "Damping exhaustion is not an agenda exception");
-    close(over_damped.diagnostics[0], 2, 0, "Huge damping must report exhaustion");
-    close(over_damped.diagnostics[4], 1, 0, "Huge damping iteration count");
+    require(over_damped.diagnostics.errors.empty(), "Damping exhaustion is not an agenda exception");
+    close(over_damped.diagnostics.status,
+          OptimalEstimationStatus::DampingLimit,
+          0,
+          "Huge damping must report exhaustion");
+    require(over_damped.diagnostics.iterations == 1, "Huge damping iteration count");
     close(over_damped.x[0], over_damped.xa[0], 0, "Huge damping state[0]");
     close(over_damped.x[1], over_damped.xa[1], 0, "Huge damping state[1]");
-    close(over_damped.diagnostics[2], over_damped.diagnostics[1], 0, "Huge damping unchanged cost");
-    close(over_damped.history[1], 1e20, 0, "Huge damping history retains actual damping");
+    close(over_damped.diagnostics.final_cost, over_damped.diagnostics.initial_cost, 0, "Huge damping unchanged cost");
+    close(over_damped.diagnostics.lm_ga_history[1], 1e20, 0, "Huge damping history retains actual damping");
     // Damping exhaustion must stay bounded, including any trial and
     // restoration of the accepted physical state.
     require(over_damped.calls <= 5,
@@ -551,10 +558,9 @@ void test_lm_outcomes() {
       stationary.sa = covariance(matrix(1, 1, {1}));
       stationary.se = covariance(matrix(1, 1, {1}));
       stationary.set_target_size(1);
-      stationary.settings =
-          LevenbergMarquardtSettings{.initial_damping = damping, .maximum_damping = damping}.as_vector();
-      stationary.stop_dx = 1e-20;
-      stationary.forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
+      stationary.settings = LevenbergMarquardtSettings{.initial_damping = damping, .maximum_damping = damping};
+      stationary.stop_dx  = 1e-20;
+      stationary.forward  = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
         fit = state;
         if (with_jacobian)
           jacobian = matrix(1, 1, {1});
@@ -564,11 +570,14 @@ void test_lm_outcomes() {
       stationary.run(method);
       // J=x^2+(2-x)^2 has an exactly representable stationary point at x=1,
       // although neither the measurement residual nor the prior departure is zero.
-      require(stationary.errors.empty(), "Stationary nonzero-cost retrieval returned errors");
-      close(stationary.diagnostics[0], 0, 0, "Stationary nonzero-cost convergence status");
+      require(stationary.diagnostics.errors.empty(), "Stationary nonzero-cost retrieval returned errors");
+      close(stationary.diagnostics.status,
+            OptimalEstimationStatus::Converged,
+            0,
+            "Stationary nonzero-cost convergence status");
       close(stationary.x[0], 1, 0, "Stationary nonzero-cost state");
       close(stationary.yf[0], 1, 0, "Stationary nonzero-cost fit");
-      close(stationary.diagnostics[2], 2, 0, "Stationary nonzero cost");
+      close(stationary.diagnostics.final_cost, 2, 0, "Stationary nonzero cost");
       close(stationary.gain[0, 0], 0.5, 0, "Stationary nonzero-cost gain");
       require(stationary.calls <= 4, "Stationary point required repeated damping trials");
     }
@@ -613,8 +622,8 @@ void test_evaluation_reuse() {
           r.surf.ellipsoid[0] = r.x[0];
         }
         r.run(method);
-        require(r.errors.empty(), "Single-step reuse fixture returned errors");
-        close(r.diagnostics[4], 1, 0, "Single-step reuse iteration count");
+        require(r.diagnostics.errors.empty(), "Single-step reuse fixture returned errors");
+        require(r.diagnostics.iterations == 1, "Single-step reuse iteration count");
         const bool final_jacobian = not clear and not method.starts_with("li");
         check_evaluation_count(r,
                                2 + final_jacobian - cached,
@@ -633,7 +642,7 @@ void test_evaluation_reuse() {
     stationary.forward(stationary.xa, stationary.y, stationary.jac, true);
     stationary.jac.resize(0, 0);
     stationary.run(method);
-    close(stationary.diagnostics[0], 0, 0, "Cached exact-start convergence");
+    close(stationary.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Cached exact-start convergence");
     check_evaluation_count(stationary, 1, 1, std::format("{} exact starting solution", method));
 
     if (not method.starts_with("li")) {
@@ -641,8 +650,8 @@ void test_evaluation_reuse() {
       quadratic_model(nonlinear);
       nonlinear.track_physical_state = true;
       nonlinear.run(method);
-      require(nonlinear.errors.empty(), "Nonlinear reuse fixture returned errors");
-      close(nonlinear.diagnostics[0], 0, 0, "Nonlinear reuse convergence");
+      require(nonlinear.diagnostics.errors.empty(), "Nonlinear reuse fixture returned errors");
+      close(nonlinear.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Nonlinear reuse convergence");
       close(nonlinear.yf[0], nonlinear.x[0] * nonlinear.x[0], 1e-12, "Nonlinear reused fit");
       close(nonlinear.jac[0, 0], 2 * nonlinear.x[0], 1e-12, "Nonlinear final Jacobian");
       close(nonlinear.surf.ellipsoid[0], nonlinear.x[0], 0, "Nonlinear final physical inout");
@@ -658,9 +667,9 @@ void test_evaluation_reuse() {
       continuing.stop_dx        = 1e-20;
       continuing.clear_matrices = clear;
       continuing.run(method);
-      require(continuing.errors.empty(), "Continuing GN reuse fixture returned errors");
-      close(continuing.diagnostics[0], 1, 0, "Continuing GN iteration limit");
-      close(continuing.diagnostics[4], 2, 0, "Continuing GN iteration count");
+      require(continuing.diagnostics.errors.empty(), "Continuing GN reuse fixture returned errors");
+      close(continuing.diagnostics.status, OptimalEstimationStatus::IterationLimit, 0, "Continuing GN iteration limit");
+      require(continuing.diagnostics.iterations == 2, "Continuing GN iteration count");
       // First step: g=-24 and H=16.25 give x=1+96/65. Its value and
       // Jacobian can be obtained together because Rodgers' stopping criterion
       // uses the state displacement and previous normal equations only.
@@ -680,12 +689,12 @@ void test_evaluation_reuse() {
       Retrieval rejected;
       quadratic_model(rejected);
       rejected.x                    = Vector{0.1};
-      rejected.settings             = Vector{0, 3, 2, 1, 0.1, 0};
+      rejected.settings             = LevenbergMarquardtSettings{0, 3, 2, 1, 0.1, 0};
       rejected.clear_matrices       = clear;
       rejected.track_physical_state = true;
       rejected.run(method);
-      require(rejected.errors.empty(), "Rejected trials became an agenda failure");
-      close(rejected.diagnostics[0], 2, 0, "Rejected trial reuse status");
+      require(rejected.diagnostics.errors.empty(), "Rejected trials became an agenda failure");
+      close(rejected.diagnostics.status, OptimalEstimationStatus::DampingLimit, 0, "Rejected trial reuse status");
       close(rejected.x[0], 0.1, 0, "Rejected trial retains accepted state");
       close(rejected.yf[0], 0.01, 1e-16, "Rejected trial restores accepted fit");
       close(rejected.surf.ellipsoid[0], 0.1, 0, "Rejected trial restores physical inout");
@@ -773,6 +782,16 @@ void test_failed_evaluation_invalidates_cache() {
 }
 
 void test_named_settings() {
+  OptimalEstimationDiagnostics diagnostic{
+      OptimalEstimationStatus::Converged, 1.5, 0.25, 0.125, 3, Vector{10, 5}, {"test warning"}};
+  require(std::format("{}", diagnostic).find("final_cost=0.25") != std::string::npos,
+          "Diagnostics must print field names");
+  std::stringstream diagnostic_xml;
+  xml_io_stream<OptimalEstimationDiagnostics>::write(diagnostic_xml, diagnostic);
+  OptimalEstimationDiagnostics diagnostic_copy;
+  xml_io_stream<OptimalEstimationDiagnostics>::read(diagnostic_xml, diagnostic_copy);
+  require(std::format("{}", diagnostic_copy) == std::format("{}", diagnostic), "Diagnostics XML round trip");
+
   const LevenbergMarquardtSettings printable{.initial_damping           = 8,
                                              .decrease_factor           = 3,
                                              .increase_factor           = 4,
@@ -787,26 +806,13 @@ void test_named_settings() {
   xml_io_stream<LevenbergMarquardtSettings>::read(xml, restored);
   require(restored.repr() == printable.repr(), "LM XML round trip");
 
-  const Vector legacy{12, 3, 2, 1e6, 0.01, 10};
-  auto         named = LevenbergMarquardtSettings::from_vector(legacy);
-  close(named.initial_damping, 12, 0, "Named initial damping");
-  close(named.decrease_factor, 3, 0, "Named decrease divisor");
-  close(named.increase_factor, 2, 0, "Named increase multiplier");
-  close(named.maximum_damping, 1e6, 0, "Named maximum damping");
-  close(named.damping_threshold, 0.01, 0, "Named damping threshold");
-  close(named.convergence_damping_limit, 10, 0, "Named convergence damping limit");
-  const auto roundtrip = named.as_vector();
-  for (Index i = 0; i < 6; ++i) close(roundtrip[i], legacy[i], 0, "Named settings round trip");
-
-  const auto   defaults = LevenbergMarquardtSettings{}.as_vector();
-  const Vector expected_defaults{10, 2, 2, 100, 1, 0};
-  for (Index i = 0; i < 6; ++i) close(defaults[i], expected_defaults[i], 0, "Visible named defaults");
-
-  // Validation also occurs after edits, at the conversion boundary.
+  LevenbergMarquardtSettings named{12, 3, 2, 1e6, 0.01, 10};
+  named.validate();
+  // OEM validates settings after edits.
   named.decrease_factor = 0.5;
   bool rejected         = false;
   try {
-    static_cast<void>(named.as_vector());
+    named.validate();
   } catch (const std::exception& error) { rejected = std::string_view(error.what()).contains("decrease_factor"); }
   require(rejected, "Invalid edited settings must identify the named control");
 }
@@ -840,33 +846,40 @@ void test_validation() {
     rejects_before_agenda("gn", [bad](Retrieval& r) { r.normalization = Vector{1, bad}; });
   }
   for (const auto method : {"lm", "ml", "lm_cg", "ml_cg"}) {
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings.resize(5); });
-    for (Index i = 0; i < 6; ++i) {
-      rejects_before_agenda(method, [i](Retrieval& r) { r.settings[i] = -1; });
-      rejects_before_agenda(method, [i](Retrieval& r) { r.settings[i] = std::numeric_limits<Numeric>::quiet_NaN(); });
+    for (const auto member : {&LevenbergMarquardtSettings::initial_damping,
+                              &LevenbergMarquardtSettings::decrease_factor,
+                              &LevenbergMarquardtSettings::increase_factor,
+                              &LevenbergMarquardtSettings::maximum_damping,
+                              &LevenbergMarquardtSettings::damping_threshold,
+                              &LevenbergMarquardtSettings::convergence_damping_limit}) {
+      rejects_before_agenda(method, [member](Retrieval& r) { r.settings.*member = -1; });
+      rejects_before_agenda(method,
+                            [member](Retrieval& r) { r.settings.*member = std::numeric_limits<Numeric>::quiet_NaN(); });
     }
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings[1] = 1; });
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings[2] = 1; });
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings[4] = 0; });
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings[0] = r.settings[3] + 1; });
-    rejects_before_agenda(method, [](Retrieval& r) { r.settings[4] = r.settings[3] + 1; });
+    rejects_before_agenda(method, [](Retrieval& r) { r.settings.decrease_factor = 1; });
+    rejects_before_agenda(method, [](Retrieval& r) { r.settings.increase_factor = 1; });
+    rejects_before_agenda(method, [](Retrieval& r) { r.settings.damping_threshold = 0; });
+    rejects_before_agenda(method, [](Retrieval& r) { r.settings.initial_damping = r.settings.maximum_damping + 1; });
+    rejects_before_agenda(method, [](Retrieval& r) { r.settings.damping_threshold = r.settings.maximum_damping + 1; });
   }
 }
 
 void test_skipped_and_reused_outputs() {
   for (Index clear : {0, 1}) {
     Retrieval r;
-    r.gain           = matrix(1, 1, {999});
-    r.errors         = {"stale error"};
-    r.max_start_cost = 0.1;
-    r.clear_matrices = clear;
+    r.gain               = matrix(1, 1, {999});
+    r.diagnostics.errors = {"stale error"};
+    r.max_start_cost     = 0.1;
+    r.clear_matrices     = clear;
     r.run("lm");
-    close(r.diagnostics[0], 99, 0, "Start-cost rejection");
-    close(r.diagnostics[1], 2863.0 / 1424, 1e-12, "Rejected initial cost");
+    close(r.diagnostics.status, OptimalEstimationStatus::StartCostLimit, 0, "Start-cost rejection");
+    close(r.diagnostics.initial_cost, 2863.0 / 1424, 1e-12, "Rejected initial cost");
     require(r.gain.empty(), "Skipped retrieval returned stale gain");
-    require(r.errors.empty(), "Skipped retrieval returned stale errors");
+    require(r.diagnostics.errors.empty(), "Skipped retrieval returned stale errors");
     if (clear) require(r.jac.empty(), "Skipped retrieval ignored clear_matrices");
-    for (Index i = 2; i < 5; ++i) require(std::isnan(r.diagnostics[i]), "Skipped diagnostics must remain NaN");
+    require(std::isnan(r.diagnostics.final_cost) and std::isnan(r.diagnostics.measurement_cost) and
+                r.diagnostics.iterations == 0,
+            "Skipped diagnostics");
 
     r.max_start_cost = -1;
     r.run("lm");
@@ -1168,12 +1181,12 @@ void test_lm_trial_limit() {
       r.max_iter = 1;
       r.settings = LevenbergMarquardtSettings{.initial_damping   = 0,
                                               .increase_factor   = stalled ? std::nextafter(1., 2.) : 1.0001,
-                                              .damping_threshold = stalled ? std::nextafter(0., 1.) : 0.1}
-                       .as_vector();
+                                              .damping_threshold = stalled ? std::nextafter(0., 1.) : 0.1};
       r.run(method);
-      close(r.diagnostics[0], 9, 0, "LM retry failure must not report convergence");
+      close(r.diagnostics.status, OptimalEstimationStatus::Error, 0, "LM retry failure must not report convergence");
       const std::string_view reason = stalled ? "damping did not increase" : "Levenberg-Marquardt trial limit";
-      require(stdr::any_of(r.errors, [&](const String& error) { return std::string_view(error).contains(reason); }),
+      require(stdr::any_of(r.diagnostics.errors,
+                           [&](const String& error) { return std::string_view(error).contains(reason); }),
               "LM retry failure lost its reason");
       require(r.gain.empty(), "Failed LM retrieval returned gain");
       // Initial Jacobian and initial LM cost precede the trial evaluations.

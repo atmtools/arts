@@ -5100,7 +5100,7 @@ path parameters.
   };
 
   wsm_data["OEM"] = {
-      .desc           = R"(Retrieve a model state by optimal estimation (OEM).
+      .desc      = R"(Retrieve a model state by optimal estimation (OEM).
 
 See :ref:`sec-user-oem` for a practical guide to selecting methods, damping,
 covariances, and interpreting the retrieval diagnostics. The equations and
@@ -5241,39 +5241,15 @@ Description of the special input arguments:
           damping = pyarts3.arts.LevenbergMarquardtSettings(initial_damping=20.0)
           ws.OEM(method="lm", lm_ga_settings=damping)
 
-      ``LevenbergMarquardtSettings()`` provides the explicit starting configuration
-      ``[10, 2, 2, 100, 1, 0]``. Its keyword-only fields, in vector order,
-      are ``initial_damping``, ``decrease_factor``, ``increase_factor``,
-      ``maximum_damping``, ``damping_threshold``, and
-      ``convergence_damping_limit``. Use ``describe()`` to inspect their
-      meaning. Construction and field edits validate all six settings;
-      an invalid edit leaves the object unchanged. ``validate()`` also
-      checks the current configuration explicitly. For related changes,
-      construct a replacement with the desired keyword arguments together,
-      or keep each intermediate configuration valid when editing fields.
-      These defaults should be assessed on representative retrievals;
-      they do not choose covariance assumptions or guarantee convergence.
-
-      The existing vector remains accepted. ``as_vector()`` exports a
-      validated vector, and ``LevenbergMarquardtSettings.from_vector(values)`` imports
-      one. Conversion when passing the named object to ``OEM`` validates
-      its current values. Use a vector for workspace and XML storage.
-
-      Six finite values controlling LM damping, with zero-based indices:
-
-            0. Nonnegative initial gamma, no greater than the maximum.
-            1. Divisor when gamma is reduced; must be greater than one.
-            2. Multiplier when gamma is increased; must be greater than one.
-            3. Positive maximum gamma; failure to find an acceptable step at this value stops inversion.
-            4. Positive threshold, no greater than the maximum. Proposed decreases below it set gamma to zero; rejection below it restarts here. This is not a minimum damping.
-            5. Nonnegative gamma limit for enabling the ordinary ``stop_dx`` criterion. It applies to the current updated gamma; zero enables this criterion when damping reaches zero.
-      
-      The ``OEM`` argument still defaults to an empty vector, which is
-      invalid for all LM names. Pass ``LevenbergMarquardtSettings()`` explicitly to
-      select the named defaults. Direct and CG variants use the same
-      entries and damp with the diagonal of the prior precision matrix, as
-      defined in :ref:`sec-oem-damping`.
-      Entry 1 is a divisor, not a fractional multiplier.
+      The default is ``LevenbergMarquardtSettings()``. Its named fields are
+      ``initial_damping=10``, ``decrease_factor=2``, ``increase_factor=2``,
+      ``maximum_damping=100``, ``damping_threshold=1``, and
+      ``convergence_damping_limit=0``. Use ``describe()`` for their meanings
+      and :ref:`sec-user-oem` for tuning guidance. Python construction and
+      field edits validate the settings; OEM validates them before LM runs.
+      The object supports workspace and XML storage directly. Vector settings
+      are no longer accepted. Direct and CG variants use the same controls
+      and prior-precision damping defined in :ref:`sec-oem-damping`.
 
     - ``clear_matrices``:
 
@@ -5286,69 +5262,69 @@ Description of the special input arguments:
       Set to 1 for iteration output, or 0 (default) for silent operation.
       Diagnostics and LM history are recorded independently of this flag.
 
-``oem_diagnostics`` contains status, starting total cost, final total cost,
-final measurement cost, and number of outer iterations, in that order.
-Costs are normalized by the number of measurements; unavailable entries
-are NaN. Status values are 0 (convergence criterion met or LM numerical
-stationarity established), 1 (iteration limit), 2 (LM damping
-limit), 9 (caught inversion error; inspect ``errors``), and 99 (starting
-cost limit). The one-step linear methods can return status 1 for an exact
-linear solution because no second convergence step is performed.
-If an inner CG solve reaches its iteration limit, OEM continues with its
-last iterate and records a warning in ``errors`` (once per OEM call).
-This does not change the outer optimizer status; status 0 does not guarantee
-that every inner CG solve reached its tolerance.
+``oem_diagnostics`` is an *OptimalEstimationDiagnostics* with ``status``,
+``initial_cost``, ``final_cost``, ``measurement_cost``, ``iterations``,
+``lm_ga_history``, and ``errors``. Costs are per measurement and NaN when
+unavailable. ``iterations`` is an Index, initially zero.
 
-``lm_ga_history`` contains the starting gamma followed by its updated values
-after outer iterations, with unused trailing entries set to NaN. It is empty
-for non-LM methods and does not include every rejected trial step.
+The ``OptimalEstimationStatus`` enum distinguishes ``NotRun``, ``Converged``,
+``IterationLimit``, ``DampingLimit``, ``Error``, and ``StartCostLimit``.
+``Converged`` includes LM numerical stationarity. Linear methods may return
+``IterationLimit`` after their single step even at the exact solution.
+
+``oem_diagnostics.lm_ga_history`` records starting and updated LM damping,
+with unused trailing entries set to NaN; it is empty for non-LM methods.
+``oem_diagnostics.errors`` contains caught errors and warnings. Inner CG
+exhaustion records a warning and continues with the last iterate without
+changing the outer status. Thus ``Converged`` does not guarantee that every
+inner CG solve reached its tolerance.
+
 )",
-      .author         = {"Patrick Eriksson"},
-      .out            = {"model_state_vec",
-                         "measurement_vec_fit",
-                         "measurement_jac",
-                         "atm_field",
-                         "abs_bands",
-                         "measurement_sensor",
-                         "surf_field",
-                         "subsurf_field",
-                         "measurement_gain_mat"},
-      .gout           = {"oem_diagnostics", "lm_ga_history", "errors"},
-      .gout_type      = {"Vector", "Vector", "ArrayOfString"},
-      .gout_desc      = {"Status, start cost, final total cost, final measurement cost, and iteration count",
-                         "Initial and updated LM damping values; independent of display_progress",
-                         "Errors encountered during OEM execution"},
-      .in             = {"model_state_vec",
-                         "measurement_vec_fit",
-                         "measurement_jac",
-                         "atm_field",
-                         "abs_bands",
-                         "measurement_sensor",
-                         "surf_field",
-                         "subsurf_field",
-                         "jac_targets",
-                         "model_state_vec_apriori",
-                         "model_state_covmat",
-                         "measurement_vec",
-                         "measurement_vec_error_covmat",
-                         "inversion_iterate_agenda"},
-      .gin            = {"method",
-                         "max_start_cost",
-                         "model_state_covmat_normalization",
-                         "measurement_vec_normalization",
-                         "max_iter",
-                         "stop_dx",
-                         "lm_ga_settings",
-                         "clear_matrices",
-                         "display_progress"},
-      .gin_type       = {"String", "Numeric", "Vector", "Vector", "Index", "Numeric", "Vector", "Index", "Index"},
+      .author    = {"Patrick Eriksson"},
+      .out       = {"model_state_vec",
+                    "measurement_vec_fit",
+                    "measurement_jac",
+                    "atm_field",
+                    "abs_bands",
+                    "measurement_sensor",
+                    "surf_field",
+                    "subsurf_field",
+                    "measurement_gain_mat"},
+      .gout      = {"oem_diagnostics"},
+      .gout_type = {"OptimalEstimationDiagnostics"},
+      .gout_desc = {"Status, costs, iteration count, LM history, and errors/warnings"},
+      .in        = {"model_state_vec",
+                    "measurement_vec_fit",
+                    "measurement_jac",
+                    "atm_field",
+                    "abs_bands",
+                    "measurement_sensor",
+                    "surf_field",
+                    "subsurf_field",
+                    "jac_targets",
+                    "model_state_vec_apriori",
+                    "model_state_covmat",
+                    "measurement_vec",
+                    "measurement_vec_error_covmat",
+                    "inversion_iterate_agenda"},
+      .gin       = {"method",
+                    "max_start_cost",
+                    "model_state_covmat_normalization",
+                    "measurement_vec_normalization",
+                    "max_iter",
+                    "stop_dx",
+                    "lm_ga_settings",
+                    "clear_matrices",
+                    "display_progress"},
+      .gin_type =
+          {"String", "Numeric", "Vector", "Vector", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index"},
       .gin_value      = {std::nullopt,
                          Numeric{std::numeric_limits<Numeric>::infinity()},
                          Vector{},
                          Vector{},
                          Index{10},
                          Numeric{0.01},
-                         Vector{},
+                         LevenbergMarquardtSettings{},
                          Index{0},
                          Index{0}},
       .gin_desc       = {"Iteration method. For this and all options below, see further above",
@@ -5357,7 +5333,7 @@ for non-LM methods and does not include every rejected trial step.
                          "Optional positive measurement scales for measurement-space methods; empty disables scaling",
                          "Maximum number of iterations",
                          "Stop criterion for iterative inversions",
-                         "Six LM damping settings; required for all LM method names",
+                         "Named LM damping controls",
                          "An option to save memory",
                          "Flag to control if inversion diagnostics shall be printed on the screen"},
       .pass_workspace = true,
