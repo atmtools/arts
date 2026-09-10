@@ -468,11 +468,158 @@ and cost invariance under independent measurement-unit changes.
 Direct measurement-space assembly
 --------------------------------
 
-``DirectMeasurementSolver`` materializes the lazy MFORM system column by
-column using measurement basis vectors, then calls the ARTS direct solver.
-It supports the same optional D scaling as measurement-space CG. This needs
-m system applications and m by m dense storage, without an n by n normal
-matrix. A future matrix-matrix assembly path could reuse S_a K^T and reduce
-repeated work. Gain postprocessing remains state-space and must be included
+``DirectMeasurementSolver`` opts into ``dense_measurement_system``. GaussNewton
+forwards this compile-time policy to MFORM; other optimizers/solvers default
+to lazy evaluation. MFORM materializes K^T and B = S_a K^T once, forms
+H = K B + S_e, and reuses B for the state update. The direct solver copies H
+for optional scaling and factorization. This uses additional n by m temporary
+storage but avoids repeated covariance applications. CG remains lazy.
+The ARTS reference-matrix transpose returns an owning ArtsMatrix when
+materialized, as required by invlib's expression conversion. Gain postprocessing remains state-space and must be included
 in performance comparisons. New methods share the affine, nonlinear,
 underdetermined, normalization and failure regression fixtures.
+
+Benchmarking measurement-space assembly
+--------------------------------------
+
+Before changing assembly, run the opt-in benchmark in the existing native
+regression executable (it is deliberately not a timing-sensitive CTest)::
+
+    cmake --build build --target test_oem_methods -j6
+    OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 VECLIB_MAXIMUM_THREADS=1 \
+      build/src/tests/test_oem_methods benchmark 5 > before.csv
+
+Repeat the identical command after the change, writing ``after.csv``. Run on
+an otherwise idle machine with the same compiler, Release configuration,
+BLAS library and thread settings. Compare median_ms for matching states,
+measurements, covariance, gain, requested_scaling and method; before/after
+is the speedup. Repeat runs to distinguish small changes from timing noise.
+The CSV also includes min/max times and maximum state disagreement.
+
+The deterministic affine cases use (n,m) = (512,32), (512,128), (128,128),
+and (32,256), with diagonal or correlated priors stored as dense blocks.
+Measurement errors have unequal diagonal variances. Both gain-output modes
+and optional measurement scaling are exercised. ``li`` is an unscaled
+state-space reference, repeated in both requested-scaling groups;
+``scaled`` records whether scaling actually applies. Compare ``li_m`` with
+``li_cg_m`` and ``gn_m`` with ``gn_cg_m`` within each case.
+
+Each method has one untimed warm-up followed by five timed calls by default.
+Pass a larger repetition count as the final argument for more stable results
+(minimum three; the reported median is the upper middle sample for even
+counts). Fixture construction, covariance construction and state reset are
+outside timing. Complete OEM calls are timed, including agenda execution,
+validation, assembly, solves and requested gain postprocessing. Covariance
+inverse caches are warm. Every call checks successful diagnostics and state
+agreement within 1e-6 against the group's first solution. This measures warm
+retrieval performance; it does not measure cold covariance inversion,
+real radiative-transfer cost, sparse covariance storage, or peak memory.
+Methods run in a fixed order, so use repeated runs to detect thermal or
+background-load effects. No performance thresholds are enforced.
+
+Dense assembly is the default for direct measurement-space methods. Selecting
+a measurement-space CG method retains the lazy path. Compare both runtime
+and temporary storage when changing this policy; small timing differences
+require repeated measurements.
+
+Fused covariance addition and GEMM
+---------------------------------
+
+The ARTS reference-matrix adapter provides ``multiply_add(B, Se)`` for the
+dense MFORM path. It initializes the result to zero, adds the covariance
+blocks directly (including off-diagonal blocks), and calls ``mult`` with
+alpha=1 and beta=1. Thus H = K B + Se needs one GEMM and no separate dense
+covariance temporary or post-GEMM addition pass. Other invlib backends keep
+the multiplication-plus-addition fallback. This change does not remove the
+explicit Jacobian transpose or the direct solver's scaling copy.
+
+Diagonal covariance regressions
+-------------------------------
+
+Every method-specific OEM CTest also runs ``test_diagonal_covariances``.
+It uses S_a = diag(4,2) and S_e = diag(1,2,1/2) with the affine fixture,
+testing all four combinations of dense/sparse prior and noise storage,
+with normalization enabled and disabled. The reference state, gain, total
+cost and measurement cost are rational values derived independently from
+the two-state normal equations. Linear methods must take exactly one step.
+These checks are routine regressions, independent of the opt-in benchmark.
+
+Exact diagonal covariance operations
+-----------------------------------
+
+Covariance matrix multiplication now detects exact diagonal structure across
+independent blocks and scales the destination directly. ``mult_inv`` and
+vector ``solve`` divide by covariance diagonal entries without requiring an
+inverse cache. Sparse diagonals are inspected in O(nnz); dense blocks require
+an exact off-diagonal scan. Structure is not cached because callers can hold
+mutable/shared block storage. Detection uses no threshold and never discards
+small correlations. These paths use O(n) scratch space rather than a full
+matrix-result temporary.
+
+Component solves now use an internal variant of diagonal values and dense
+Cholesky factors, grouped by exact block connectivity. Ordinary covariance
+``mult_inv`` and ``solve`` calls prepare/reuse this representation without
+forming inverse blocks. Matrix and Sparse remain the public input types.
+Adding an off-diagonal block merges components; replacing/removing blocks
+can split them. Coupled sparse components currently use dense Cholesky,
+matching the former dense inverse component storage; sparse Cholesky and
+banded factorization are not implemented.
+
+OEM calls ``CovarianceMatrix::prepared`` once for each covariance before
+iteration. Preparation checks exact values and block layout, validates changed
+inputs, and publishes a detached, read-only snapshot. Its block storage belongs
+to the snapshot, so subsequent edits through aliases of the source do not change
+a running retrieval. Unchanged inputs reuse the prepared snapshot. Mutable
+covariance copies have independent preparation holders. A completed
+``compute_inverse`` records the exact validated storage; preparation reuses
+that validation only if all covariance and inverse values, shapes and block
+metadata still match. This avoids duplicate validation in cold calls with
+explicit inverse preparation.
+
+Preparation publication is protected by a mutex. Published snapshots support
+concurrent solves; callers must synchronize source mutation with preparation
+and must not mutate storage obtained from a prepared snapshot. Iterations do
+not compare snapshots, validate covariances, or build inverse caches. Standalone
+operations on mutable covariances retain their defensive checks. Concurrent
+lazy operations (including ``compute_inverse``) on those mutable objects still
+require external synchronization; use a prepared snapshot for concurrent reads.
+
+``prepared(true)`` requests explicit precision for consumers that need it.
+OEM requests this for state-space methods and gain output. Measurement error
+covariance stays diagonal or factorized unless inverse blocks were supplied.
+Calling an explicit precision consumer on ``prepared(false)`` without inverse
+blocks throws; request the required representation before entering the loop.
+CG versus direct method selection remains the user's choice.
+
+Preparation adds detached storage and a linear comparison once per OEM call.
+It is not a zero-copy interface. This cost avoids repeated validation and
+alias checks inside iterative solvers while preserving detection of source
+changes between retrievals.
+
+Regression tests cover mixed Matrix/Sparse inputs, joining/splitting components,
+retained-reference mutation after factorization, copies, multiple RHS and
+left/right solves. Existing supplied-inverse and all-method OEM regressions
+remain applicable.
+
+Structured covariance solve benchmark
+------------------------------------
+
+Run ``test_covariance_validation benchmark`` with single-threaded BLAS and
+OpenMP (the same environment as the OEM benchmark above). This opt-in
+microbenchmark compares both paths in one executable, alternating execution
+order for seven samples. The explicit-inverse reference reproduces the old
+inverse-block multiplication loop, including its full-result temporary.
+Cold timings include preparation and one solve; warm timings measure repeated
+applications, including snapshot checks in the structured path. Construction,
+RHS generation and correctness checks are outside timing. All results must be
+finite and agree with a known input state to absolute error below 1e-8.
+
+Cases include a 100,000-element sparse diagonal, a 512-element dense-stored
+diagonal, a 256-element dense correlated component, and an 8192-element sparse
+diagonal plus two coupled 32-element blocks. Each runs with one and 16 RHS
+columns. The mixed case exercises joining components, not a single dense
+matrix.
+
+These are covariance-operation timings, not complete OEM retrieval timings.
+Use both benchmarks when changing preparation or factor application: avoiding
+inverses can trade preparation time and storage against repeated solve costs.

@@ -741,9 +741,46 @@ Direct measurement-space solvers
 number of measurements. They use the same measurement-space update as the
 CG variants, with one step for ``li_m`` and iteration for ``gn_m``. Optional
 ``measurement_vec_normalization`` scales the direct system as well.
-Assembly currently applies the lazy system to each measurement basis vector;
-this avoids a state-sized normal matrix, but repeats covariance applications.
+Assembly computes B = S_a K^T once, forms M = K B + S_e with matrix-matrix
+operations, and reuses B for the state update. This avoids a state-sized
+normal matrix but uses additional n by m temporary storage. The CG variants
+retain lazy assembly and are the lower-memory alternative.
 Small m relative to the state dimension is therefore a useful starting point
 for method choice, not a guarantee of improved runtime. Requested gain-matrix
 output still uses the existing state-space postprocessing, so the complete
 retrieval can retain state-sized costs.
+
+Covariance storage and a small LM example
+----------------------------------------
+
+Covariance preparation is automatic when calling ``OEM``; it does not require
+an additional workspace call or a factorization setting. Continue choosing
+``method="lm"`` or ``method="lm_cg"`` explicitly. Matrix and Sparse are input
+storage choices, not solver choices: a diagonal Matrix can use diagonal
+solves, while a correlated Sparse component currently uses dense Cholesky.
+Supplied inverse blocks retain the inverse-application path. In particular,
+``measurement_vec_error_covmatConstant`` supplies both a sparse diagonal
+covariance and its inverse. LM currently requests explicit prior precision;
+the measurement covariance is where diagonal/factorized solves are most
+useful in this example.
+
+Run ``tests/core/jac/oem_covariance_paths.py`` with the built pyarts3 package to
+see an LM retrieval with four state coordinates and four synthetic measurement
+channels. It compares diagonal, mixed diagonal/correlated, and correlated
+measurement covariances. Each is supplied as Matrix and Sparse, both with and
+without explicit inverses. Equivalent representations give the same fitted
+state, measurements and gain matrix; different correlations can change the
+answer. An independent analytic solution checks every result. Each retrieval
+is repeated from the same starting state to check prepared covariance reuse.
+
+The example builds the prior with ``RetrievalAddSpeciesVMR`` and
+``RetrievalFinalizeDiagonal``. For measurement covariance it redirects the
+``model_state_covmatInit`` and ``model_state_covmatAddSpeciesVMR`` output to
+``measurement_vec_error_covmat``. This reuse is valid here because the two
+measurement groups deliberately match the target block sizes and offsets;
+it is not a general mapping from retrieval targets to measurement channels.
+No private caches or direct block-list edits are involved.
+
+Without ``ARTS_HEADLESS``, the script plots the prior, manipulated starting
+state, fitted states and fitted measurements. Four overlapping marker shapes
+show the equivalent covariance representations for each correlation pattern.

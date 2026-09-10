@@ -162,21 +162,15 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
   const TransformationMatrixType &trans_;
 };
 
-// Materialize only the measurement-sized system, using its lazy action on
-// basis vectors. No state-sized normal matrix is formed.
+// Request matrix-matrix assembly in MFORM, then factor the measurement-sized
+// system. CG does not opt into this policy and remains matrix-free.
 struct DirectMeasurementSolver {
+  static constexpr bool dense_measurement_system = true;
   ::Vector measurement_scales;
 
   template <typename M, typename V> typename V::ResultType solve(const M& system, const V& rhs) {
-    Matrix dense;
+    Matrix dense = system;
     const Index size = rhs.rows();
-    dense.resize(size, size);
-    typename V::ResultType basis = rhs;
-    for (Index j = 0; j < size; ++j) {
-      for (Index i = 0; i < size; ++i) basis(i) = i == j ? 1 : 0;
-      typename V::ResultType column = system * basis;
-      for (Index i = 0; i < size; ++i) dense(i, j) = column(i);
-    }
     typename V::ResultType scaled_rhs = rhs;
     if (not measurement_scales.empty()) {
       for (Index i = 0; i < size; ++i) {

@@ -24,6 +24,8 @@
 #include <utility>
 
 class CovarianceMatrix;
+struct CovarianceSolveCache;
+struct CovariancePreparation;
 
 //------------------------------------------------------------------------------
 // Type Aliases
@@ -196,6 +198,10 @@ class CovarianceMatrix {
   CovarianceMatrix &operator=(CovarianceMatrix &&) noexcept;
   ~CovarianceMatrix();
 
+  // Detached read-only snapshot. Source edits are allowed between preparations,
+  // but must not race with preparation. Published snapshots support concurrent reads.
+  std::shared_ptr<const CovarianceMatrix> prepared(bool need_precision = false) const;
+
   explicit operator Matrix() const;
   Matrix   get_inverse() const;
 
@@ -305,9 +311,9 @@ class CovarianceMatrix {
   bool is_consistent(const Block &block) const;
 
   /**
-     * Compute the inverse of this correlation matrix. This function must be executed
-     * after all block have been added to the covariance matrix and before any of the
-     * mult_inv or add_inv methods is used.
+     * Explicitly materialize inverse blocks. Ordinary mult_inv and solve calls
+     * instead prepare diagonal/component factors lazily. Explicit precision
+     * consumers (get_inverse, add_inv, inverse_diagonal) request inverses as needed.
      */
   void compute_inverse() const;
 
@@ -365,6 +371,11 @@ class CovarianceMatrix {
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:
+  // Immutable cache shared safely by copies; rebuilt after source changes.
+  mutable std::shared_ptr<const CovarianceSolveCache> solve_cache_;
+  std::shared_ptr<CovariancePreparation> preparation_;
+  bool finalized_ = false;
+  bool solve_components(StridedMatrixView, StridedConstMatrixView) const;
   void generate_blocks(std::vector<std::vector<const Block *>> &) const;
   void invert_correlation_block(std::vector<Block> &inverses, std::vector<const Block *> &blocks) const;
   bool has_inverse(IndexPair indices) const;

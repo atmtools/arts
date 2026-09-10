@@ -218,8 +218,24 @@ inline auto ArtsMatrixReference<ArtsType>::transpose_multiply(
 }
 
 template <typename ArtsType>
-inline auto ArtsMatrixReference<ArtsType>::transpose() const -> ConstMatrixView {
-  return ::transpose(A.get());
+inline auto ArtsMatrixReference<ArtsType>::multiply_add(
+    const ArtsMatrix &B, const ArtsCovarianceMatrixWrapper &C) const -> ArtsMatrix {
+  ArtsMatrix result;
+  result.resize(A.get().nrows(), B.ncols());
+  static_cast<Matrix&>(result) = 0;
+  if (C.is_inverse()) {
+    ::add_inv(result, C);
+  } else {
+    StridedMatrixView{result} += C.get_covmat();
+  }
+  ::mult(StridedMatrixView{result}, StridedConstMatrixView{A.get()},
+         StridedConstMatrixView{B}, 1.0, 1.0);
+  return result;
+}
+
+template <typename ArtsType>
+inline auto ArtsMatrixReference<ArtsType>::transpose() const -> ArtsMatrix {
+  return ArtsMatrix{Matrix{matpack::transpose(A.get())}};
 }
 
 //---------------------------//

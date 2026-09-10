@@ -4,6 +4,8 @@
 
 #include <array>
 #include <cmath>
+#include <chrono>
+#include <iostream>
 #include <cstdlib>
 #include <functional>
 #include <limits>
@@ -221,6 +223,53 @@ void check_affine_solution(const Retrieval& r, std::string_view method) {
   check_history(r, method);
 }
 
+// Independent rational oracle for diagonal Sa=diag(4,2), Se=diag(1,2,1/2).
+// H = [[21/4,3],[3,7]], det(H)=111/4. Inverting this 2x2
+// system by hand gives the state and gain below; no ARTS solve is the oracle.
+void test_diagonal_covariances(std::string_view method) {
+  const auto diagonal_covariance = [](const Vector& values, bool sparse) {
+    if (not sparse) {
+      Matrix dense(values.size(), values.size(), 0.);
+      for (Index i = 0; i < static_cast<Index>(values.size()); ++i) dense[i, i] = values[i];
+      return covariance(std::move(dense));
+    }
+    CovarianceMatrix result;
+    const Index n = values.size();
+    result.add_correlation(Block(Range(0, n), Range(0, n), {0, 0},
+                                 std::make_shared<Sparse>(Sparse::diagonal(values))));
+    return result;
+  };
+  const Matrix expected_gain = matrix(2, 3, {4./111, 34./111, 32./111, 10./37, -15./74, 6./37});
+  for (const bool sparse_prior : {false, true}) {
+    for (const bool sparse_noise : {false, true}) {
+      for (const bool scaled : {false, true}) {
+        Retrieval r;
+        r.sa = diagonal_covariance(Vector{4, 2}, sparse_prior);
+        r.se = diagonal_covariance(Vector{1, 2, 0.5}, sparse_noise);
+        if (scaled) {
+          if (method.ends_with("_m"))
+            measurement_vec_error_covmatNormalization(r.measurement_normalization, r.se);
+          else r.normalization = Vector{2, std::sqrt(2.)};
+        }
+        r.run(method);
+        const String context = std::format("diagonal {} prior_sparse={} noise_sparse={} scaled={}",
+                                           method, sparse_prior, sparse_noise, scaled);
+        require(r.errors.empty(), context);
+        require(r.diagnostics[0] == 0 or (method.starts_with("li") and r.diagnostics[0] == 1), context);
+        close(r.x[0], 11./111, 1e-7, context + " state 0");
+        close(r.x[1], 183./296, 1e-7, context + " state 1");
+        close(r.diagnostics[2], 4877./21312, 1e-9, context + " total cost");
+        close(r.diagnostics[3], 424885./4731264, 1e-7, context + " measurement cost");
+        require(r.gain.nrows() == 2 and r.gain.ncols() == 3, context);
+        for (Index i = 0; i < 2; ++i)
+          for (Index j = 0; j < 3; ++j)
+            close(r.gain[i,j], expected_gain[i,j], 1e-10, context + " gain");
+        if (method.starts_with("li")) close(r.diagnostics[4], 1, 0, context + " iterations");
+      }
+    }
+  }
+}
+
 void test_measurement_noise_scaling(std::string_view method) {
   Retrieval baseline;
   Vector scales;
@@ -257,6 +306,72 @@ void test_measurement_noise_scaling(std::string_view method) {
   for (Index i = 0; i < 2; ++i)
     close(scaled.x[i], baseline.x[i], 1e-9, "Measurement unit invariant retrieval");
   close(scaled.diagnostics[2], baseline.diagnostics[2], 1e-9, "Measurement unit invariant cost");
+}
+
+// Opt-in benchmark: fixture creation is outside timing, OEM itself is timed.
+// Warm-up primes covariance caches just as repeated retrievals would.
+void benchmark_oem(int repetitions) {
+  require(repetitions >= 3, "Benchmark needs at least three repetitions");
+  std::cout << "states,measurements,covariance,gain,requested_scaling,scaled,method,repetitions,median_ms,min_ms,max_ms,max_state_error\n";
+  for (const auto [n, m] : {std::pair<Index, Index>{512, 32}, {512, 128}, {128, 128}, {32, 256}}) {
+    Matrix k(m, n);
+    for (Index i = 0; i < m; ++i)
+      for (Index j = 0; j < n; ++j)
+        k[i, j] = (std::sin((Numeric(i) + 1.) * (Numeric(j) + 1.) * 0.13) + (i == j ? 2. : 0.)) / std::sqrt(Numeric(n));
+    for (const bool correlated : {false, true}) {
+      for (const bool gain : {false, true}) {
+        for (const bool scaled : {false, true}) {
+          Vector reference;
+          for (const auto method : {"li", "li_m", "li_cg_m", "gn_m", "gn_cg_m"}) {
+            Retrieval r;
+            r.xa = Vector(n, 0.);
+            r.y = Vector(m);
+            for (Index i = 0; i < m; ++i) r.y[i] = std::cos(Numeric(i) * 0.17);
+            Matrix prior(n, n, 0.), noise(m, m, 0.);
+            for (Index i = 0; i < n; ++i) {
+              prior[i, i] = 1 + Numeric(i % 7) / 7;
+              if (correlated) for (Index j = 0; j < n; ++j)
+                prior[i, j] += 0.2 * std::exp(-std::abs(Numeric(i - j)) / 10.);
+            }
+            for (Index i = 0; i < m; ++i) noise[i, i] = 0.1 + Numeric(i % 11) / 11;
+            r.sa = covariance(std::move(prior));
+            r.se = covariance(std::move(noise));
+            r.set_target_size(n);
+            r.clear_matrices = gain ? 0 : 1;
+            if (scaled and std::string_view(method).ends_with("_m"))
+              measurement_vec_error_covmatNormalization(r.measurement_normalization, r.se);
+            r.forward = [&k](const Vector& x, Vector& y, Matrix& jac, bool with_jac) {
+              y.resize(k.nrows());
+              mult(y, k, x);
+              if (with_jac) jac = k;
+              else jac.resize(0, 0);
+            };
+            std::vector<double> times;
+            Numeric max_error = 0;
+            for (int trial = -1; trial < repetitions; ++trial) {
+              r.x = Vector{};
+              r.yf = Vector{};
+              r.jac = Matrix{};
+              r.evaluations.clear();
+              const auto start = std::chrono::steady_clock::now();
+              r.run(method);
+              const auto stop = std::chrono::steady_clock::now();
+              require(r.errors.empty() and r.diagnostics[0] <= 1, "Benchmark retrieval failed");
+              if (reference.empty()) reference = r.x;
+              for (Index i = 0; i < n; ++i) max_error = std::max(max_error, std::abs(r.x[i] - reference[i]));
+              require(max_error < 1e-6, "Benchmark methods disagree");
+              if (trial >= 0) times.push_back(std::chrono::duration<double, std::milli>(stop - start).count());
+            }
+            std::ranges::sort(times);
+            std::cout << n << ',' << m << ',' << (correlated ? "correlated_dense" : "diagonal_dense")
+                      << ',' << gain << ',' << scaled << ',' << (scaled and std::string_view(method).ends_with("_m"))
+                      << ',' << method << ',' << repetitions << ',' << times[times.size()/2]
+                      << ',' << times.front() << ',' << times.back() << ',' << max_error << '\n' << std::flush;
+          }
+        }
+      }
+    }
+  }
 }
 
 void test_affine(std::string_view method) {
@@ -1239,7 +1354,11 @@ void test_generic_minimize_outcomes() {
 }  // namespace
 
 int main(int argc, char** argv) try {
-  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes|reuse");
+  if (argc >= 2 and std::string_view(argv[1]) == "benchmark") {
+    benchmark_oem(argc == 3 ? std::stoi(argv[2]) : 5);
+    return EXIT_SUCCESS;
+  }
+  require(argc == 2, "Usage: test_oem_methods METHOD|settings|validation|termination|outcomes|reuse|benchmark [REPETITIONS]");
   const std::string_view selected{argv[1]};
   if (selected == "settings") {
     test_lm_settings();
@@ -1261,6 +1380,7 @@ int main(int argc, char** argv) try {
   } else {
     require(stdr::find(methods, selected) != methods.end(), "Unknown test method");
     test_affine(selected);
+    test_diagonal_covariances(selected);
     test_measurement_noise_scaling(selected);
     test_exact_start(selected);
     test_disabled_start_cost(selected);

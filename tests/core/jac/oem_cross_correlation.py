@@ -192,9 +192,10 @@ def snapshot():
         return path.read_text()
 
 
-# Updating a covariance after OEM must discard any cached inverse.
+# OEM owns its prepared inverses; the editable source keeps no inverse blocks.
+# Failed updates preserve it, and successful updates leave a valid covariance.
 before = snapshot()
-assert len(ET.fromstring(before).find("CovarianceMatrix")[1]) > 0
+assert len(ET.fromstring(before).find("CovarianceMatrix")[1]) == 0
 fails_unchanged(ws, 1.0)
 assert snapshot() == before
 correlate(ws, 0.3)
@@ -227,4 +228,4 @@ if "ARTS_HEADLESS" not in os.environ:
     fig.tight_layout()
     plt.show()
 
-pyarts.retrieval.information_from_workspace(ws)
+print(pyarts.retrieval.information_from_workspace(ws))

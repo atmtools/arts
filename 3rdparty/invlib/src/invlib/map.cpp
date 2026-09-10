@@ -534,11 +534,34 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
            && !converged)
     {
         // Compute step.
-        auto tmp = Sa * transp(K);
-        auto H   = Se + K * tmp;
-        VectorType g  = y - yi + K * (x - xa);
-        dx = M.step(xa, g, H, (*this));
-        x = xa - tmp * dx;
+        constexpr bool dense_system = [] {
+            if constexpr (requires { std::remove_cvref_t<Minimizer>::dense_measurement_system; })
+                return std::remove_cvref_t<Minimizer>::dense_measurement_system;
+            else return false;
+        }();
+        VectorType g = y - yi + K * (x - xa);
+        if constexpr (dense_system) {
+            // Materialize the covariance/Jacobian product once and reuse it
+            // for both assembly and mapping the solution into state space.
+            MatrixType KT = transp(K);
+            MatrixType tmp = Sa * KT;
+            MatrixType H = [&]() -> MatrixType {
+                if constexpr (requires { K.multiply_add(tmp, Se); }) {
+                    return K.multiply_add(tmp, Se);
+                } else {
+                    MatrixType result = K * tmp;
+                    result += Se;
+                    return result;
+                }
+            }();
+            dx = M.step(xa, g, H, (*this));
+            x = xa - tmp * dx;
+        } else {
+            auto tmp = Sa * transp(K);
+            auto H = Se + K * tmp;
+            dx = M.step(xa, g, H, (*this));
+            x = xa - tmp * dx;
+        }
 
         // State-step criteria need no new forward value. A continuing
         // iteration obtains both value and derivative from one Jacobian call.

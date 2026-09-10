@@ -192,7 +192,10 @@ class ArtsMatrixReference {
   ArtsMatrix multiply(const ArtsMatrix &B) const;
   ArtsMatrix transpose_multiply(const ArtsMatrix &v) const;
 
-  ConstMatrixView transpose() const;
+  // Return A*B + C using a single GEMM with beta=1.
+  ArtsMatrix multiply_add(const ArtsMatrix &B, const ArtsCovarianceMatrixWrapper &C) const;
+
+  ArtsMatrix transpose() const;
 
  private:
   std::reference_wrapper<ArtsType> A;

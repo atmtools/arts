@@ -204,9 +204,9 @@ void OEM(const Workspace&        ws,
          ArrayOfString&          errors,
          const JacobianTargets&  jac_targets,
          const Vector&           model_state_vec_apriori,
-         const CovarianceMatrix& model_state_covmat,
+         const CovarianceMatrix& model_state_covmat_input,
          const Vector&           measurement_vec,
-         const CovarianceMatrix& measurement_vec_error_covmat,
+         const CovarianceMatrix& measurement_vec_error_covmat_input,
          const Agenda&           inversion_iterate_agenda,
          const String&           method,
          const Numeric&          max_start_cost,
@@ -220,6 +220,13 @@ void OEM(const Workspace&        ws,
   ARTS_TIME_REPORT
 
   const OEMMethod selected = parse_oem_method(method);
+  // Freeze covariance values and finish cache preparation before iteration.
+  const auto state_snapshot = model_state_covmat_input.prepared(
+      not selected.measurement_space or clear_matrices == 0);
+  const auto measurement_snapshot = measurement_vec_error_covmat_input.prepared();
+  const auto& model_state_covmat = *state_snapshot;
+  const auto& measurement_vec_error_covmat = *measurement_snapshot;
+
   ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and not selected.measurement_space,
                      "measurement_vec_normalization is only supported for measurement-space methods.")
   ARTS_USER_ERROR_IF(not measurement_vec_normalization.empty() and
@@ -248,8 +255,8 @@ void OEM(const Workspace&        ws,
 
   const Index n = model_state_covmat.nrows();
   const Index m = measurement_vec.size();
-  model_state_covmat.compute_inverse();
-  measurement_vec_error_covmat.compute_inverse();
+  // Covariance snapshots are prepared before iteration. Explicit precision
+  // consumers still request inverse storage when needed.
 
   errors.clear();
   measurement_gain_mat.resize(0, 0);

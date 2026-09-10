@@ -1,6 +1,11 @@
 #include <workspace.h>
 
 #include <cmath>
+#include <thread>
+#include <atomic>
+#include <chrono>
+#include <algorithm>
+#include <iostream>
 #include <cstdlib>
 #include <functional>
 #include <limits>
@@ -80,6 +85,7 @@ void structural() {
     CovarianceMatrix candidate;
     candidate.set_blocks(malformed);
     rejects([&] { candidate.validate(); }, "malformed block storage");
+    rejects([&] { candidate.prepared(); }, "malformed prepared block storage");
   }
 
   auto duplicate = correlated_blocks();
@@ -103,6 +109,7 @@ void numerical() {
     auto candidate = covariance(invalid);
     rejects([&] { candidate.validate(); }, "invalid covariance values");
     rejects([&] { candidate.compute_inverse(); }, "invalid covariance inversion");
+    rejects([&] { candidate.prepared(); }, "invalid prepared covariance");
   }
 
   // A positive variance can be tiny in physical units without losing information.
@@ -138,6 +145,33 @@ void numerical() {
   indefinite.get_blocks().back().get_dense()[0, 0] = 3;
   rejects([&] { indefinite.validate(); }, "globally indefinite connected blocks");
 
+  // Direct diagonal solves do not need a reciprocal cache. In particular,
+  // this finite quotient must work even though 1/variance overflows.
+  CovarianceMatrix tiny_diagonal;
+  tiny_diagonal.add_correlation({Range(0, 2), Range(0, 2), {0, 0},
+                                Sparse::diagonal(Vector{1e-310, 2.})});
+  Vector rhs{1e-310, 6.}, solution(2);
+  solve(solution, tiny_diagonal, rhs);
+  close(solution[0], 1., "Diagonal division overflowed via reciprocal");
+  close(solution[1], 3., "Diagonal vector solve");
+  Matrix rhs_matrix(2, 3, 0.), result(2, 3);
+  for (Index j = 0; j < 3; ++j) {
+    rhs_matrix[0,j] = 1e-310;
+    rhs_matrix[1,j] = 6.;
+  }
+  mult_inv(result, tiny_diagonal, rhs_matrix);
+  for (Index j = 0; j < 3; ++j) {
+    close(result[0,j], 1., "Left diagonal solve");
+    close(result[1,j], 3., "Left diagonal solve");
+  }
+  Matrix right(3, 2);
+  mult_inv(right, transpose(rhs_matrix), tiny_diagonal);
+  for (Index j = 0; j < 3; ++j) {
+    close(right[j,0], 1., "Right diagonal solve");
+    close(right[j,1], 3., "Right diagonal solve");
+  }
+  require(inverse_blocks(tiny_diagonal).empty(), "Diagonal solve constructed inverse blocks");
+
   // This path must preserve sparse diagonal scaling, rather than allocate a
   // dense 10000 by 10000 matrix or run a cubic factorization.
   constexpr Index  n = 10000;
@@ -152,7 +186,107 @@ void numerical() {
   close(inverse_blocks(diagonal)[0].get_sparse().ro(0, 0), 1e30, "Sparse diagonal precision");
 }
 
+void structured_solves() {
+  CovarianceMatrix a;
+  a.add_correlation(block(0,0,2));
+  a.add_correlation({Range(1,1),Range(1,1),{1,1},Sparse::diagonal(Vector{4})});
+  a.add_correlation(block(2,2,2));
+  a.add_correlation(block(3,3,5));
+  Vector rhs{2,4,2,5}, out(4);
+  solve(out,a,rhs);
+  for(Index i=0;i<4;++i) close(out[i],1,"Initial independent diagonal solve");
+  a.add_correlation({Range(1,1),Range(2,1),{1,2},matrix(1,1,{1})});
+  rhs=Vector{2,5,3,5};
+  solve(out,a,rhs);
+  for(Index i=0;i<4;++i) close(out[i],1,"Joined component solve");
+  require(inverse_blocks(a).empty(),"Structured solve formed inverse");
+  // Keep a mutable reference across factor creation, then mutate through it.
+  auto& blocks=a.get_blocks();
+  solve(out,a,rhs);
+  blocks.back().get_dense()[0,0]=0.5;
+  rhs=Vector{2,4.5,2.5,5};
+  solve(out,a,rhs);
+  for(Index i=0;i<4;++i) close(out[i],1,"Retained reference invalidation");
+  auto copy=a;
+  blocks.pop_back();
+  rhs=Vector{2,4,2,5};
+  solve(out,a,rhs);
+  for(Index i=0;i<4;++i) close(out[i],1,"Split component solve");
+  rhs=Vector{2,4.5,2.5,5};
+  solve(out,copy,rhs);
+  for(Index i=0;i<4;++i) close(out[i],1,"Copied factor cache");
+  Matrix r(4,2), x(4,2), right(2,4);
+  for(Index i=0;i<4;++i) {r[i,0]=rhs[i];r[i,1]=2*rhs[i];}
+  mult_inv(x,copy,r);
+  mult_inv(right,transpose(r),copy);
+  for(Index i=0;i<4;++i) for(Index j=0;j<2;++j) {
+    close(x[i,j],Numeric(j+1),"Component matrix solve");
+    close(right[j,i],Numeric(j+1),"Component right solve");
+  }
+  auto shared=std::make_shared<Matrix>(matrix(2,2,{2,0,0,3}));
+  CovarianceMatrix external;
+  external.add_correlation({Range(0,2),Range(0,2),{0,0},shared});
+  Vector b{2,3}, y(2);
+  solve(y,external,b);
+  (*shared)[0,1]=(*shared)[1,0]=1;
+  b=Vector{3,4};
+  solve(y,external,b);
+  close(y[0],1,"Shared matrix changed structure");
+  close(y[1],1,"Shared matrix changed structure");
+  (*shared)[0,0]=-1;
+  rejects([&]{solve(y,external,b);},"Invalid mutation after cached solve");
+}
+
+void prepared_solves() {
+  auto supplied = covariance(matrix(2, 2, {2, 0, 0, 4}));
+  supplied.compute_inverse();
+  supplied.prepared(true);
+  supplied.get_inverse_blocks()[0].get_dense()[0, 0] = 3;
+  rejects([&] { supplied.prepared(true); }, "Changed inverse reused validation proof");
+  auto             storage = std::make_shared<Matrix>(matrix(2, 2, {2, 0, 0, 4}));
+  CovarianceMatrix source;
+  source.add_correlation({Range(0, 2), Range(0, 2), {0, 0}, storage});
+  std::atomic<bool>         consistent{true};
+  std::vector<std::jthread> readers;
+  for (int i = 0; i < 8; ++i)
+    readers.emplace_back([&] {
+      const auto snapshot = source.prepared();
+      Vector     rhs{2, 4}, out(2);
+      for (int j = 0; j < 20; ++j) {
+        solve(out, *snapshot, rhs);
+        if (out[0] != 1 or out[1] != 1) consistent = false;
+      }
+    });
+  readers.clear();
+  require(consistent, "Concurrent preparation/solve mismatch");
+  const auto first = source.prepared();
+  require(first == source.prepared(), "Unchanged preparation was not reused");
+  Vector rhs{2, 4}, out(2);
+  solve(out, *first, rhs);
+  close(out[0], 1, "Prepared diagonal solve");
+  (*storage)[0, 0] = 4;
+  solve(out, *first, rhs);
+  close(out[0], 1, "Source alias changed immutable snapshot");
+  const auto second = source.prepared();
+  require(second != first, "Source mutation reused stale preparation");
+  solve(out, *second, rhs);
+  close(out[0], 0.5, "Updated preparation");
+  auto copy                              = *second;
+  copy.get_blocks()[0].get_dense()[0, 0] = 8;
+  solve(out, *second, rhs);
+  close(out[0], 0.5, "Mutable copy changed immutable snapshot");
+  const auto precision = source.prepared(true);
+  solve(out, *precision, rhs);
+  close(out[0], 0.5, "Prepared explicit precision");
+  require(precision == source.prepared(true), "Precision preparation not reused");
+  storage->resize(1, 4);
+  *storage = matrix(1, 4, {4, 0, 0, 4});
+  rejects([&] { source.prepared(true); }, "Changed storage shape reused preparation");
+}
+
 void precision() {
+  prepared_solves();
+  structured_solves();
   auto valid = correlated_blocks();
   valid.add_correlation_inverse(block(0, 0, 2.0 / 7));
   valid.add_correlation_inverse(block(1, 1, 4.0 / 7));
@@ -246,11 +380,85 @@ void workspace_helpers() {
             "invalid constant measurement variance");
 }
 
+// Same-executable comparison with the pre-refactor mult_inv implementation.
+void benchmark_solves() {
+  using Clock = std::chrono::steady_clock;
+  const auto make = [](std::string_view name) {
+    CovarianceMatrix a;
+    if (name == "sparse_diagonal_100k") {
+      Vector d(100000);
+      for(Index i=0;i<100000;++i) d[i]=1+Numeric(i%17);
+      a.add_correlation({Range(0,100000),Range(0,100000),{0,0},Sparse::diagonal(d)});
+    } else if (name == "mixed") {
+      a.add_correlation({Range(0,8192),Range(0,8192),{0,0},Sparse::diagonal(Vector(8192,2.))});
+      Matrix d(32,32,0.), cross(32,32,0.);
+      for(Index i=0;i<32;++i) {d[i,i]=2.;cross[i,i]=0.25;}
+      a.add_correlation({Range(8192,32),Range(8192,32),{1,1},d});
+      a.add_correlation({Range(8224,32),Range(8224,32),{2,2},d});
+      a.add_correlation({Range(8192,32),Range(8224,32),{1,2},cross});
+    } else {
+      const Index n = name == "dense_diagonal" ? 512 : 256;
+      Matrix d(n,n,0.);
+      for(Index i=0;i<n;++i) for(Index j=0;j<n;++j)
+        d[i,j]=(i==j ? 2. : 0.) + (name=="dense_correlated" ? 0.2*std::exp(-std::abs(Numeric(i-j))/12.) : 0.);
+      a=covariance(std::move(d));
+    }
+    return a;
+  };
+  const auto legacy = [](Matrix& out, const CovarianceMatrix& a, const Matrix& rhs) {
+    out=0.;
+    Matrix temporary(out);
+    for(const auto& block : inverse_blocks(a)) {
+      temporary=0.;
+      mult(temporary,block,rhs);
+      out+=temporary;
+    }
+  };
+  std::cout << "case,rhs,phase,path,median_ms,min_ms,max_ms,max_error\n";
+  for(const auto name : {"sparse_diagonal_100k","dense_diagonal","dense_correlated","mixed"}) {
+    for(const Index nrhs : {1,16}) {
+      auto source=make(name);
+      const Index n=source.nrows();
+      Matrix truth(n,nrhs), rhs(n,nrhs), out(n,nrhs);
+      for(Index i=0;i<n;++i) for(Index j=0;j<nrhs;++j) truth[i,j]=1+Numeric((i+j)%7)/7.;
+      mult(rhs,source,truth);
+      for(const bool cold : {true,false}) {
+        auto structured=make(name), inverse=make(name);
+        if(not cold) {inverse.compute_inverse(); mult_inv(out,structured,rhs);}
+        std::vector<double> elapsed[2];
+        Numeric errors[2]{};
+        for(int repeat=0;repeat<7;++repeat) {
+          for(int turn=0;turn<2;++turn) {
+            const int path=(repeat+turn)%2;
+            if(cold) {if(path==0) inverse=make(name); else structured=make(name);}
+            const auto begin=Clock::now();
+            if(path==0) {if(cold) inverse.compute_inverse(); legacy(out,inverse,rhs);}
+            else mult_inv(out,structured,rhs);
+            elapsed[path].push_back(std::chrono::duration<double,std::milli>(Clock::now()-begin).count());
+            for(Index i=0;i<n;++i) for(Index j=0;j<nrhs;++j) {
+              require(std::isfinite(out[i,j]), "Nonfinite covariance benchmark result");
+              errors[path]=std::max(errors[path],std::abs(out[i,j]-truth[i,j]));
+            }
+            require(std::isfinite(errors[path]) and errors[path]<1e-8,"Covariance benchmark result mismatch");
+          }
+        }
+        for(int path=0;path<2;++path) {
+          std::ranges::sort(elapsed[path]);
+          std::cout << name << ',' << nrhs << ',' << (cold ? "cold" : "warm") << ','
+                    << (path==0 ? "explicit_inverse" : "structured") << ',' << elapsed[path][3]
+                    << ',' << elapsed[path].front() << ',' << elapsed[path].back() << ',' << errors[path] << '\n' << std::flush;
+        }
+      }
+    }
+  }
+}
+
 }  // namespace
 
 int main(int argc, char** argv) try {
   require(argc == 2, "Specify structural, numerical, precision, or workspace");
   const std::string_view test = argv[1];
+  if (test == "benchmark") { benchmark_solves(); return EXIT_SUCCESS; }
   if (test == "structural")
     structural();
   else if (test == "numerical")

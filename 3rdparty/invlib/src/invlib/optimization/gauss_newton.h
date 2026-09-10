@@ -122,6 +122,13 @@ public:
                     const MatrixType &B,
                     const CostFunction &);
 
+    // Opt-in assembly policy supplied by the linear solver.
+    static constexpr bool dense_measurement_system = [] {
+        if constexpr (requires { Solver::dense_measurement_system; })
+            return Solver::dense_measurement_system;
+        else return false;
+    }();
+
     bool stop_iteration() {return false;}
 
 private:
