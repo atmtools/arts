@@ -418,6 +418,64 @@ def test_workspace_basis_reselection():
 test_workspace_basis_reselection()
 
 
+def test_grouped_measurement_basis():
+    from scipy import sparse
+
+    # Nonadjacent equal/proportional rows, opposite signs, and a zero group.
+    # Rows 0 and 1 agree in column 0 but measure different state directions.
+    jac = np.array([[1., 2.], [1., 3.], [0., 0.],
+                    [2., 4.], [-2., -6.], [0., 0.]])
+    variance = np.array([1., 4., 2., 9., 3., 5.])
+    for correlated in (False, True):
+        noise = np.diag(variance)
+        if correlated:
+            noise[0, 1] = noise[1, 0] = .2
+            noise[2, 4] = noise[4, 2] = .3
+        for storage in (arts.Matrix, lambda a: arts.Sparse(sparse.csr_matrix(a))):
+            ws = pyarts.Workspace()
+            ws.measurement_jac = jac
+            ws.model_state_basis_mat = [[2., 0.], [0., 3.]]
+            ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
+            ws.measurement_vec_error_covmat.blocks = [arts.Block(
+                arts.Range(0, 6), arts.Range(0, 6), (0, 0), storage(noise))]
+            before = covariance_snapshot(ws.measurement_vec_error_covmat)
+            ws.measurement_basis_matCalc()
+            assert ws.measurement_basis_mat.shape == (3, 6)
+            assert ws.measurement_basis_mat.is_sparse == (not correlated)
+            c = np.array(ws.measurement_basis_mat)
+            jr, sr = c @ jac, c @ noise @ c.T
+            np.testing.assert_allclose(jr.T @ np.linalg.solve(sr, jr),
+                                       jac.T @ np.linalg.solve(noise, jac), atol=1e-12)
+            np.testing.assert_array_equal(
+                ws.model_state_basis_mat, [[2., 0.], [0., 3.]])
+            np.testing.assert_array_equal(ws.measurement_jac, jac)
+            assert covariance_snapshot(ws.measurement_vec_error_covmat) == before
+            if not correlated:
+                csr = ws.measurement_basis_mat.matrix.tocsr()
+                assert csr.nnz == len(jac)
+                np.testing.assert_array_equal(c != 0, [[1, 0, 0, 1, 0, 0],
+                                                       [0, 1, 0, 0, 1, 0],
+                                                       [0, 0, 1, 0, 0, 1]])
+                np.testing.assert_allclose(sr, np.eye(3), atol=1e-12)
+                # Noise precision and the sign/amplitude both affect the weights.
+                np.testing.assert_allclose(c[0, 3] / c[0, 0], 2 / 9)
+                rejects(lambda: np.array(ws.measurement_basis_mat, copy=False))
+
+    # Every row direction is distinct: preserve all channels with sparse identity.
+    ws.measurement_jac = [[1., 1.], [1., 2.], [1., 3.]]
+    ws.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.measurement_basis_matCalc()
+    assert ws.measurement_basis_mat.is_sparse
+    np.testing.assert_array_equal(np.array(ws.measurement_basis_mat), np.eye(3))
+    # Failure leaves the previous projection usable.
+    ws.measurement_jac = [[np.nan, 0.]]
+    rejects(lambda: ws.measurement_basis_matCalc())
+    np.testing.assert_array_equal(np.array(ws.measurement_basis_mat), np.eye(3))
+
+
+test_grouped_measurement_basis()
+
+
 def test_correlated_reference():
     report = information(K, SA, SE, state_labels=["temperature", "water"])
     np.testing.assert_allclose(

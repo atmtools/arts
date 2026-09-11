@@ -466,6 +466,74 @@ for arguments in (dict(model_state_basis_mat=np.eye(2)), dict(measurement_basis_
         raise AssertionError("Missing reduction matrix accepted")
 
 
+def test_grouped_measurements():
+    from scipy import sparse
+
+    jac = np.array([[1., 2.], [2., -1.], [-2., -4.]])
+    offset = np.array([.25, -.5, 1.])
+    for noise in (np.diag([1., 2., .5]), se):
+        for method in methods:
+            pair = [workspace(evaluator=lambda x: (jac @ x + offset, jac))
+                    for _ in range(2)]
+            for item in pair:
+                item.measurement_vec_error_covmat = covariance(noise)
+            full, reduced = pair
+            full.OEM(method=method, max_iter=80, stop_dx=1e-10)
+            reduced.measurement_jac = jac
+            reduced.model_state_basis_mat = np.eye(2)
+            reduced.measurement_basis_matCalc()
+            reduced.ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
+            assert reduced.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, reduced.oem_diagnostics
+            np.testing.assert_allclose(
+                reduced.model_state_vec, full.model_state_vec, atol=2e-5)
+            np.testing.assert_allclose(
+                reduced.measurement_gain_mat, full.measurement_gain_mat, atol=1e-10)
+            np.testing.assert_allclose(
+                reduced.measurement_vec_fit, full.measurement_vec_fit, atol=4e-5)
+
+    # Explicit sparse C with off-diagonal noise blocks exercises sparse covariance
+    # projection, including the implicit transpose of cross-correlation blocks.
+    for storage in (arts.Matrix, lambda a: arts.Sparse(sparse.csr_matrix(a))):
+        ws = workspace()
+        ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
+        ws.measurement_vec_error_covmat.blocks = [
+            arts.Block(arts.Range(0, 1), arts.Range(0, 1), (0, 0), storage(se[:1, :1])),
+            arts.Block(arts.Range(1, 2), arts.Range(1, 2), (1, 1), storage(se[1:, 1:])),
+            arts.Block(arts.Range(0, 1), arts.Range(1, 2), (0, 1), storage(se[:1, 1:])),
+        ]
+        c = np.array([[.5, 0., .5], [0., 1., 0.]])
+        ws.ReducedOEM(model_state_basis_mat=np.eye(2),
+                      measurement_basis_mat=arts.Sparse(sparse.csr_matrix(c)), method="li")
+        state, gain = affine_reference(np.eye(2), c)
+        np.testing.assert_allclose(ws.model_state_vec, state, atol=1e-10)
+        np.testing.assert_allclose(ws.measurement_gain_mat, gain, atol=1e-10)
+
+    # Many independent groups: storing either C or its projected diagonal noise
+    # densely would require large quadratic arrays. The useful Jacobian stays thin.
+    count = 10000
+    jac = np.repeat(np.column_stack(
+        (np.ones(count // 2), np.arange(count // 2))), 2, axis=0)
+    jac[:, 1] /= count
+    ws = workspace(evaluator=lambda x: (jac @ x, jac))
+    ws.measurement_vec = jac @ [1., -.5]
+    ws.measurement_jac = jac
+    ws.model_state_basis_mat = np.eye(2)
+    ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
+    ws.measurement_vec_error_covmat.blocks = [arts.Block(
+        arts.Range(0, count), arts.Range(0, count), (0, 0),
+        arts.Sparse(sparse.eye(count, format="csr")))]
+    ws.measurement_basis_matCalc()
+    assert ws.measurement_basis_mat.shape == (count // 2, count)
+    assert ws.measurement_basis_mat.matrix.tocsr().nnz == count
+    ws.ReducedOEM(method="li")
+    expected = np.linalg.solve(np.linalg.inv(sa) + jac.T @ jac,
+                               np.linalg.solve(sa, xa) + jac.T @ np.asarray(ws.measurement_vec))
+    np.testing.assert_allclose(ws.model_state_vec, expected, atol=1e-10)
+
+
+test_grouped_measurements()
+
+
 def print_timings(method="lm", repeats=20):
     """Time complete workspace calls on the same small affine problem."""
     prepared = workspace()
@@ -478,7 +546,7 @@ def print_timings(method="lm", repeats=20):
     for rank in (None, 2, 1):
         ws = workspace()
         ws.model_state_basis_mat = arts.Matrix(prepared.model_state_basis_mat)
-        ws.measurement_basis_mat = arts.Matrix(prepared.measurement_basis_mat)
+        ws.measurement_basis_mat = np.array(prepared.measurement_basis_mat)
         ws.oem_basis_singular_values = prepared.oem_basis_singular_values
         if rank is not None:
             ws.ReducedOEMBasisReduce(rank=rank)

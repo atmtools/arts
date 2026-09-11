@@ -620,6 +620,29 @@ increase rank. Both slices are materialized before either input is replaced.
 No current Jacobian or covariance is needed during selection.
 ``ReducedOEM`` reads these same matrices as ordinary workspace inputs.
 
+The measurement basis uses ``BlockMatrix`` so explicit projections can remain
+``Sparse`` through forward-vector, Jacobian and gain multiplication.
+``measurement_basis_matCalc`` constructs this input alone. It groups exactly
+matching full row directions after normalization by a signed pivot, retaining
+per-channel amplitudes separately. No tolerance-based grouping is implicit.
+Diagonal noise permits one stored projection entry per channel. For correlated
+noise, a single prepared covariance solve constructs
+:math:`\mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1}`; treating these
+correlations as independent would change the retrieval.
+
+The projection is rectangular and has no ordinary inverse. Projected noise
+is constructed and prepared before iteration, then reuses ``CovarianceMatrix``
+solve caches. Sparse projections with diagonal or entirely sparse covariance
+blocks use sparse products, including transposed off-diagonal blocks, without
+a dense measurement-square temporary. General dense covariance blocks use the
+dense preparation path; sparse projection application inside iteration still
+uses sparse multiplication. Do not attach an inverse cache to ``BlockMatrix``
+or silently materialize sparse projections in the agenda adapter.
+
+Grouping outputs do not have the SVD ordering required by
+``ReducedOEMBasisReduce``. Tests exercise proportional rows, correlations,
+storage dispatch, all OEM methods, and a large collection of independent groups.
+
 ``CovarianceSquareRoot`` validates and detaches covariance components, then
 uses the existing diagonal/Cholesky component machinery to apply
 :math:`\mathbf{L}`, :math:`\mathbf{L}^{\top}`,

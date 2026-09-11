@@ -639,11 +639,11 @@ class ReducedAgendaWrapper {
  public:
   const unsigned int m, n;
 
-  ReducedAgendaWrapper(AgendaWrapper  &forward,
-                       const ::Vector &prior,
-                       const ::Matrix &state_reduction,
-                       const ::Matrix &measurement_reduction,
-                       const ::Matrix &full_jacobian)
+  ReducedAgendaWrapper(AgendaWrapper       &forward,
+                       const ::Vector      &prior,
+                       const ::Matrix      &state_reduction,
+                       const ::BlockMatrix &measurement_reduction,
+                       const ::Matrix      &full_jacobian)
       : m(static_cast<unsigned int>(measurement_reduction.nrows())),
         n(static_cast<unsigned int>(state_reduction.ncols())),
         forward_(forward),
@@ -664,7 +664,7 @@ class ReducedAgendaWrapper {
   MatrixReference Jacobian(const Vector &z, Vector &y) {
     ensure_jacobian(z);
     static_cast<::Vector &>(y).resize(m);
-    mult(static_cast<::Vector &>(y), C_, forward_.get_measurement_vec());
+    C_.multiply_left(static_cast<::Vector &>(y), forward_.get_measurement_vec());
     return MatrixReference(jacobian_);
   }
 
@@ -673,7 +673,7 @@ class ReducedAgendaWrapper {
     if (jacobian_state_.size() != z.size() ||
         !std::equal(jacobian_state_.begin(), jacobian_state_.end(), z.elem_begin())) {
       mult(state_jacobian_, full_jacobian_, B_);
-      mult(jacobian_, C_, state_jacobian_);
+      C_.multiply_left(jacobian_, state_jacobian_);
       jacobian_state_ = static_cast<const ::Vector &>(z);
     }
   }
@@ -682,19 +682,21 @@ class ReducedAgendaWrapper {
     forward_.ensure_measurement(expand(z));
     Vector y;
     static_cast<::Vector &>(y).resize(m);
-    mult(static_cast<::Vector &>(y), C_, forward_.get_measurement_vec());
+    C_.multiply_left(static_cast<::Vector &>(y), forward_.get_measurement_vec());
     return y;
   }
 
   const ::Matrix &get_jacobian() const { return jacobian_; }
 
  private:
-  AgendaWrapper  &forward_;
-  const ::Vector &prior_;
-  const ::Matrix &B_, &C_, &full_jacobian_;
-  Vector          full_state_;
-  ::Matrix        state_jacobian_, jacobian_;
-  ::Vector        jacobian_state_;
+  AgendaWrapper       &forward_;
+  const ::Vector      &prior_;
+  const ::Matrix      &B_;
+  const ::BlockMatrix &C_;
+  const ::Matrix      &full_jacobian_;
+  Vector               full_state_;
+  ::Matrix             state_jacobian_, jacobian_;
+  ::Vector             jacobian_state_;
 };
 }  // namespace oem
 

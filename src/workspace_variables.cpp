@@ -891,8 +891,12 @@ noise-normalized rows ordered by decreasing information, including null
 directions. Its inverse times its inverse transpose reconstructs
 *measurement_vec_error_covmat*. *ReducedOEMBasisReduce* removes trailing
 rows in place.
+
+*measurement_basis_matCalc* instead groups proportional Jacobian rows and
+sets this matrix alone. Storage is *BlockMatrix*: either *Matrix* or *Sparse*.
+Sparse projections are applied without expansion to a dense matrix.
 )",
-      .type = "Matrix",
+      .type = "BlockMatrix",
   };
 
   wsv_data["model_state_basis_mat"] = {

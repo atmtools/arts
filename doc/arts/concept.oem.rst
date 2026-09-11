@@ -799,6 +799,7 @@ the one informative measurement combination has weights
 
 The overall sign is arbitrary. This retains the local measurement Fisher
 information :math:`\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}\vec{j}`.
+
 For independent channel noise with variances :math:`\sigma_i^2`, the
 weights are proportional to :math:`j_i/\sigma_i^2`. A flat part of a
 spectrum carries little wind information when wind primarily shifts a line:
@@ -815,6 +816,39 @@ weighted line contrast is distinct from retaining just that center channel.
 Saturation and pressure broadening can also leave informative slopes outside
 the narrow central feature. Far-wing weights become small according to the
 Jacobian and noise, not according to a prescribed frequency window.
+
+Another measurement compression preserves explicit groups of proportional
+Jacobian rows. Write :math:`\mathbf J=\mathbf T\mathbf R`, where row
+:math:`i` of :math:`\mathbf T` has one nonzero amplitude :math:`a_i` in
+the column corresponding to its group. The rows of :math:`\mathbf R`
+are the distinct sensitivity directions. A sufficient measurement projection
+for this linear Gaussian model is
+
+.. math::
+
+   \mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1},\qquad
+   \mathbf H=\mathbf T^\top\mathbf S_\epsilon^{-1}\mathbf T,\qquad
+   \mathbf C\mathbf J=\mathbf H\mathbf R,\qquad
+   \mathbf C\mathbf S_\epsilon\mathbf C^\top=\mathbf H.
+
+The grouped directions have disjoint channel support, so :math:`\mathbf T`
+has independent columns and :math:`\mathbf H` is positive definite. Both
+the likelihood precision and its state-dependent linear term are preserved.
+With diagonal measurement noise, each row of :math:`\mathbf C` can instead
+be normalized to unit noise variance:
+
+.. math::
+
+   C_{g i}=\frac{a_i/\sigma_i^2}
+                    {\sqrt{\sum_{k\in g}a_k^2/\sigma_k^2}},\quad i\in g,
+   \qquad C_{g i}=0,\quad i\notin g.
+
+Here :math:`\mathbf C` has one nonzero per channel. Correlated noise can
+require entries outside a channel's group. Grouping proportional rows may
+retain more measurements than an SVD: it does not combine general linear
+dependencies between different row directions. A zero-sensitivity group may
+also be retained without adding state information. For nonlinear forward
+models, these statements apply at the chosen linearization.
 
 For retained singular modes, the truncated local posterior must preserve
 discarded prior uncertainty:

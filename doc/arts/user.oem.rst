@@ -862,9 +862,9 @@ Diagonal measurement covariances remain inexpensive to factor. Correlated
 components are factored separately. Saving complete bases requires dense
 state-square and measurement-square matrices, as well as the whitened
 Jacobian and SVD working storage. There is no configured allocation cutoff.
-Selection copies only the retained columns and rows, reducing subsequent
-OEM work; it does not release the saved full bases. This memory cost allows
-increasing the rank later without repeating the decomposition.
+Selection replaces the basis matrices with their retained columns and rows,
+reducing subsequent OEM storage and work. Retain separate copies yourself if
+you need to restore removed modes without repeating the decomposition.
 
 The Python information report also generates both bases and describes the
 local information retained and discarded::
@@ -948,3 +948,34 @@ singular-mode reductions in a linear problem this agrees with the sum of the
 workspace smoothing-error and observation-error covariance contributions.
 For arbitrary reductions that error sum can also include coupling from
 discarded modes; see :ref:`sec-reduced-oem`.
+
+Measurement-only grouping
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+``measurement_basis_matCalc`` creates only ``measurement_basis_mat``, using
+the current Jacobian and measurement error covariance. It automatically groups
+channels whose complete Jacobian rows are proportional, including opposite
+signs. Matching one parameter's derivative is insufficient when other
+parameters are retrieved. Matching is exact after row normalization; similar
+but distinct sensitivities remain separate.
+
+For diagonal measurement noise the result uses sparse storage, combining
+channels according to their sensitivities and noise variances. Repeated
+observations still contribute their extra precision. With correlated noise,
+the covariance solve may produce a dense projection. Use an identity
+``model_state_basis_mat`` with ``ReducedOEM`` to keep the full state.
+
+``measurement_basis_mat`` holds a ``BlockMatrix``, accepting dense ``Matrix``
+or ``Sparse`` input. Its ``is_sparse`` property reports the storage type and
+``shape`` inspects dimensions without converting the data. For a sparse result,
+``matrix.tocsr()`` exposes SciPy sparse data; conversion to a NumPy array
+explicitly allocates dense storage.
+
+These groups preserve the supplied linear model's retrieval information.
+They can retain more measurements than the SVD method because general linear
+dependencies between different sensitivity directions are not combined.
+An all-zero group is retained as one measurement. No state modes, singular
+spectrum or loss outputs are generated; ``ReducedOEMBasisReduce`` applies to
+the SVD outputs, not to these groups. Recalculate after changing the noise
+covariance or the Jacobian used for grouping. A fixed grouping remains a
+local approximation for nonlinear retrievals.

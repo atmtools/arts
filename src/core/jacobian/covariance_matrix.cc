@@ -142,8 +142,7 @@ BlockMatrix &BlockMatrix::operator=(const Sparse &sparse) {
 }
 
 bool BlockMatrix::not_null() const {
-  if (is_dense()) return std::get<std::shared_ptr<Matrix>>(data) != nullptr;
-  return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix != nullptr; }, data);
 }
 
 bool BlockMatrix::is_dense() const { return std::holds_alternative<std::shared_ptr<Matrix>>(data); }
@@ -171,26 +170,61 @@ const Sparse &BlockMatrix::sparse() const {
 }
 
 Vector BlockMatrix::diagonal() const {
-  if (is_dense()) return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
-  return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) -> Vector {
+        if constexpr (std::same_as<T, Sparse>)
+          return matrix->diagonal();
+        else
+          return Vector{matpack::diagonal(*matrix)};
+      },
+      data);
 }
 
 Index BlockMatrix::ncols() const {
-  if (is_dense()) return dense().ncols();
-  return sparse().ncols();
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix ? matrix->ncols() : 0; }, data);
 }
 
 Index BlockMatrix::nrows() const {
-  if (is_dense()) return dense().nrows();
-  return sparse().nrows();
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix ? matrix->nrows() : 0; }, data);
+}
+
+void BlockMatrix::multiply_left(StridedMatrixView out, StridedConstMatrixView rhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, *matrix, rhs); }, data);
+}
+
+void BlockMatrix::multiply_left(StridedVectorView out, StridedConstVectorView rhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, *matrix, rhs); }, data);
+}
+
+void BlockMatrix::multiply_right(StridedMatrixView out, StridedConstMatrixView lhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, lhs, *matrix); }, data);
+}
+
+bool BlockMatrix::is_finite() const {
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) {
+        if (not matrix) return false;
+        if constexpr (std::same_as<T, Sparse>) {
+          for (const auto [row, col, value] : *matrix | by_elem)
+            if (not std::isfinite(value)) return false;
+        } else {
+          for (const auto value : *matrix | by_elem)
+            if (not std::isfinite(value)) return false;
+        }
+        return true;
+      },
+      data);
 }
 
 void Block::set_matrix(std::shared_ptr<Sparse> sparse) { matrix_ = std::move(sparse); }
 void Block::set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
 
 std::array<Index, 2> BlockMatrix::shape() const {
-  if (is_dense()) { return dense().shape(); }
-  return {sparse().nrows(), sparse().ncols()};
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) -> std::array<Index, 2> {
+        return {matrix->nrows(), matrix->ncols()};
+      },
+      data);
 }
 
 //------------------------------------------------------------------------------
@@ -748,6 +782,8 @@ std::optional<Vector> diagonal_values(const std::vector<Block> &blocks, Index n)
 }  // namespace
 
 // Structural types are internal: public inputs remain Matrix and Sparse.
+std::optional<Vector> CovarianceMatrix::diagonal_if_diagonal() const { return diagonal_values(correlations_, nrows()); }
+
 struct CovarianceSolveCache {
   struct Diagonal {
     Vector values;
@@ -865,8 +901,7 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
   }
   for (const auto &component : solve_cache_->components) {
     std::visit(
-        [&](const auto &solver) {
-          using T = std::remove_cvref_t<decltype(solver)>;
+        [&]<typename T>(const T &solver) {
           if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
             for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i)
               for (Index j = 0; j < rhs.ncols(); ++j)
@@ -910,8 +945,7 @@ void CovarianceSquareRoot::apply(StridedMatrixView      out,
   assert(out.shape() == rhs.shape());
   for (const auto &component : factors_->components) {
     std::visit(
-        [&](const auto &solver) {
-          using T = std::remove_cvref_t<decltype(solver)>;
+        [&]<typename T>(const T &solver) {
           if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
             for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i) {
               const Numeric scale = std::sqrt(solver.values[i]);

@@ -5458,6 +5458,48 @@ See :ref:`sec-reduced-oem` for the mathematics and limits of lossless reduction.
     wsm_data["ReducedOEM"] = std::move(reduced);
   }
 
+  wsm_data["measurement_basis_matCalc"] = {
+      .desc   = R"(Construct a measurement-only projection by grouping proportional Jacobian rows.
+
+Compares every state derivative in each row of *measurement_jac*. Rows are
+divided by their signed largest-magnitude entry and grouped when all resulting
+entries match exactly. Opposite signs and different amplitudes can belong to
+the same group. No approximate similarity threshold is used. All-zero rows
+form one group. With no matching rows, the result is a sparse identity.
+
+For diagonal *measurement_vec_error_covmat*, with variances
+:math:`\sigma_i^2` and row amplitudes :math:`a_i`, each group produces one
+noise-normalized measurement:
+
+.. math::
+
+    C_{g i}=\frac{a_i/\sigma_i^2}
+                    {\sqrt{\sum_{k\in g}a_k^2/\sigma_k^2}},\quad i\in g.
+
+Other entries are zero. The *Sparse* result stores one entry per channel.
+The state basis and covariances are unchanged. For measurement-only retrieval,
+use an identity *model_state_basis_mat* with *ReducedOEM*.
+
+For correlated noise, define :math:`T_{ig}=a_i` for channels in group g and
+zero otherwise. The result is :math:`\mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1}`,
+computed by a covariance solve, not by constructing an inverse. This result
+can be dense and its projected noise covariance need not be identity.
+Keeping correlations is necessary even when Jacobian rows match exactly.
+
+These combinations preserve the state-dependent likelihood of the supplied
+linear Gaussian model. For nonlinear models, this is a local statement at
+the supplied Jacobian. Floating-point row normalization can fail to recognize
+mathematically proportional rows. General linear dependencies between distinct
+row directions are left to *ReducedOEMBasisCalc* and *ReducedOEMBasisReduce*.
+This method does not set their singular spectrum or loss outputs; its groups
+are not singular modes and must not be passed to *ReducedOEMBasisReduce*.
+No agenda runs and no Jacobian is recomputed.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"measurement_basis_mat"},
+      .in     = {"measurement_jac", "measurement_vec_error_covmat"},
+  };
+
   wsm_data["ReducedOEMBasisCalc"] = {
       .desc   = R"(Compute full, matched state and measurement bases and their information spectrum.
 

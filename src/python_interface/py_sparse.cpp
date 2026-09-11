@@ -422,6 +422,16 @@ arr : :class:`scipy.sparse.csr_matrix`
   bm.def(py::init_implicit<Sparse>());
   bm.def(
       "__init__",
+      [](BlockMatrix* v, const py::list& rows) { new (v) BlockMatrix(py::cast<Matrix>(py::type<Matrix>()(rows))); },
+      "rows"_a);
+  bm.def(
+      "__init__",
+      [](BlockMatrix* v, const py::tuple& rows) { new (v) BlockMatrix(py::cast<Matrix>(py::type<Matrix>()(rows))); },
+      "rows"_a);
+  py::implicitly_convertible<py::list, BlockMatrix>();
+  py::implicitly_convertible<py::tuple, BlockMatrix>();
+  bm.def(
+      "__init__",
       [](BlockMatrix* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
         new (s) BlockMatrix{};
         *s = py::cast<Sparse>(py::type<Sparse>()(es));
@@ -446,28 +456,41 @@ arr : :class:`scipy.sparse.csr_matrix`
   py::implicitly_convertible<py::ndarray<py::numpy, const Numeric, py::ndim<2>, py::c_contig>, BlockMatrix>();
   bm.def_prop_rw(
       "matrix",
-      [](BlockMatrix& bm) -> std::variant<Matrix, Sparse> {
-        if (bm.not_null()) {
-          if (bm.is_dense()) return bm.dense();
-          return bm.sparse();
-        }
-
-        return Matrix{};
+      [](const BlockMatrix& bm) -> py::object {
+        if (not bm.not_null()) return py::cast(Matrix{});
+        return std::visit([](const auto& matrix) { return py::cast(matrix); }, bm.data);
       },
       [](BlockMatrix& bm, const std::variant<Matrix, Sparse>& mat) { std::visit([&bm](auto& m) { bm = m; }, mat); },
       "The matrix of the block\n\n.. :class:`~pyarts3.arts.Matrix`\n\n.. :class:`~pyarts3.arts.Sparse`");
   bm.def(
       "__array__",
-      [](py::object& v, py::object dtype, py::object copy) { return v.attr("matrix").attr("__array__")(dtype, copy); },
+      [](py::object& v, py::object dtype, py::object copy) {
+        const auto& block = py::cast<const BlockMatrix&>(v);
+        if (block.not_null() and block.is_sparse()) {
+          if (not copy.is_none() and not py::cast<bool>(copy))
+            throw py::value_error("Converting Sparse to numpy requires a copy; use .matrix.tocsr() for sparse data.");
+          return py::cast(Matrix(block.sparse())).attr("__array__")(dtype, py::none());
+        }
+        return v.attr("matrix").attr("__array__")(dtype, copy);
+      },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
       "Returns a :class:`~numpy.ndarray` of the object.");
   bm.def_prop_rw(
       "value",
-      [](py::object& x) { return x.attr("__array__")("copy"_a = false); },
+      [](py::object& x) {
+        const auto& block = py::cast<const BlockMatrix&>(x);
+        if (block.not_null() and block.is_sparse()) return x.attr("matrix").attr("tocsr")();
+        return x.attr("__array__")("copy"_a = false);
+      },
       [](BlockMatrix& a, const std::variant<Matrix, Sparse>& b) { std::visit([&a](auto& c) { a = c; }, b); },
       "A python friendly version of the object.\n\n.. :class:`~numpy.ndarray`\n\n.. :class:`scipy.sparse.csr_matrix`");
   common_ndarray(bm);
+  bm.def_prop_ro(
+      "shape",
+      [](const BlockMatrix& matrix) { return py::make_tuple(matrix.nrows(), matrix.ncols()); },
+      "Matrix shape without expanding sparse storage.\n\n.. :class:`tuple`");
+  bm.def_prop_ro("is_sparse", &BlockMatrix::is_sparse, "Whether storage is Sparse.\n\n.. :class:`bool`");
   generic_interface(bm);
 
   py::class_<CovarianceMatrix> covm(m, "CovarianceMatrix");

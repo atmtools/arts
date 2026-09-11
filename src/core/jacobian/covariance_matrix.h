@@ -21,6 +21,7 @@
 
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include <utility>
 
 class CovarianceMatrix;
@@ -77,6 +78,12 @@ class BlockMatrix {
   [[nodiscard]] Index ncols() const;
 
   [[nodiscard]] Index nrows() const;
+
+  void multiply_left(StridedMatrixView out, StridedConstMatrixView rhs) const;
+  void multiply_left(StridedVectorView out, StridedConstVectorView rhs) const;
+  void multiply_right(StridedMatrixView out, StridedConstMatrixView lhs) const;
+
+  [[nodiscard]] bool is_finite() const;
 
   friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m);
 
@@ -345,6 +352,9 @@ class CovarianceMatrix {
      * @return A vector containing the diagonal elements.
      */
   Vector diagonal() const;
+
+  // Exact structure inspection for preparation, without materializing a matrix.
+  std::optional<Vector> diagonal_if_diagonal() const;
 
   /** Diagonal of the inverse of the covariance matrix as vector
      *
