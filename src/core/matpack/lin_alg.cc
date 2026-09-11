@@ -22,6 +22,7 @@
 #include <Eigen/Eigenvalues>
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <string_view>
 #include <vector>
 
@@ -54,6 +55,60 @@ void check_lu_solve_info(const int info, const std::string_view routine) {
 }
 
 }  // namespace
+
+void svd(Matrix& U, Vector& s, Matrix& V, ConstMatrixView A, bool full_matrices) {
+  ARTS_USER_ERROR_IF(A.nrows() <= 0 or A.ncols() <= 0 or A.nrows() > std::numeric_limits<int>::max() or
+                         A.ncols() > std::numeric_limits<int>::max(),
+                     "SVD requires nonempty dimensions within the LAPACK integer range.")
+  int       m = static_cast<int>(A.nrows()), n = static_cast<int>(A.ncols());
+  const int p = std::min(m, n);
+  // ARTS uses row-major storage; LAPACK sees these transposed buffers as columns.
+  const int left_columns = full_matrices ? m : p;
+  Matrix    a(n, m), ut(left_columns, m);
+  a                 = transpose(A);
+  int right_columns = full_matrices ? n : p;
+  V.resize(n, right_columns);  // The column-major VT output is row-major V.
+  s.resize(p);
+  char    jobu = full_matrices ? 'A' : 'S', jobvt = jobu;
+  int     info = 0, lwork = -1;
+  Numeric query = 0;
+  lapack::dgesvd_(&jobu,
+                  &jobvt,
+                  &m,
+                  &n,
+                  a.data_handle(),
+                  &m,
+                  s.data_handle(),
+                  ut.data_handle(),
+                  &m,
+                  V.data_handle(),
+                  &right_columns,
+                  &query,
+                  &lwork,
+                  &info);
+  ARTS_USER_ERROR_IF(info != 0 or not std::isfinite(query) or query < 1 or query > std::numeric_limits<int>::max(),
+                     "LAPACK DGESVD workspace query failed (INFO={}).",
+                     info)
+  lwork = static_cast<int>(query);
+  std::vector<Numeric> work(lwork);
+  lapack::dgesvd_(&jobu,
+                  &jobvt,
+                  &m,
+                  &n,
+                  a.data_handle(),
+                  &m,
+                  s.data_handle(),
+                  ut.data_handle(),
+                  &m,
+                  V.data_handle(),
+                  &right_columns,
+                  work.data(),
+                  &lwork,
+                  &info);
+  ARTS_USER_ERROR_IF(info != 0, "LAPACK DGESVD failed (INFO={}).", info)
+  U.resize(m, left_columns);
+  U = transpose(ut);
+}
 
 //! LU decomposition.
 /*!

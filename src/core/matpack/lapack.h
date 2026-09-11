@@ -16,6 +16,22 @@
 
 namespace lapack {
 
+//! Singular-value decomposition, including workspace query (lwork = -1).
+extern "C" void dgesvd_(char   *jobu,
+                        char   *jobvt,
+                        int    *m,
+                        int    *n,
+                        double *a,
+                        int    *lda,
+                        double *s,
+                        double *u,
+                        int    *ldu,
+                        double *vt,
+                        int    *ldvt,
+                        double *work,
+                        int    *lwork,
+                        int    *info);
+
 //! LU decomposition.
 /*!
   Performs an LU decomposition of a genereal m-by-n matrix using

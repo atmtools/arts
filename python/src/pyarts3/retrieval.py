@@ -13,7 +13,8 @@ from scipy import linalg, sparse
 
 from . import arts
 
-__all__ = ["InformationReport", "ReductionReport", "information", "information_from_workspace"]
+__all__ = ["InformationReport", "ReductionReport",
+           "information", "information_from_workspace"]
 
 
 def _real_array(value, name):
@@ -47,8 +48,8 @@ class ReductionReport:
     The underlying state modes are shared with that read-only report.
     """
 
-    model_state_red_mat: np.ndarray = field(repr=False)
-    measurement_red_mat: np.ndarray = field(repr=False)
+    model_state_basis_mat: np.ndarray = field(repr=False)
+    measurement_basis_mat: np.ndarray = field(repr=False)
     retained_degrees_of_freedom: float
     discarded_degrees_of_freedom: float
     retained_information_bits: float
@@ -59,7 +60,7 @@ class ReductionReport:
     @property
     def rank(self):
         """Number of retained columns, and hence reduced state variables."""
-        return self.model_state_red_mat.shape[1]
+        return self.model_state_basis_mat.shape[1]
 
     def posterior_covariance(self):
         """Return the local full-state covariance, retaining discarded priors.
@@ -74,7 +75,7 @@ class ReductionReport:
 
     def __str__(self):
         return (
-            f"Retaining {self.rank} of {self.model_state_red_mat.shape[0]} state modes; "
+            f"Retaining {self.rank} of {self.model_state_basis_mat.shape[0]} state modes; "
             f"discarding {self.discarded_degrees_of_freedom:.6g} DOFS and "
             f"{self.discarded_information_bits:.6g} bits (local linear analysis)"
         )
@@ -165,14 +166,15 @@ class InformationReport:
                     continue
                 limit = float(limit)
                 if not np.isfinite(limit) or limit < 0:
-                    raise ValueError("Information-loss limits must be finite and nonnegative")
+                    raise ValueError(
+                        "Information-loss limits must be finite and nonnegative")
                 eligible &= tail <= limit
             rank = int(np.flatnonzero(eligible)[0])
         factors = np.ones(n)
         factors[:rank] = np.hypot(1.0, self.singular_values[:rank])
         return ReductionReport(
-            model_state_red_mat=_readonly(self.state_modes[:, :rank]),
-            measurement_red_mat=_readonly(self._noise.solve_left(
+            model_state_basis_mat=_readonly(self.state_modes[:, :rank]),
+            measurement_basis_mat=_readonly(self._noise.solve_left(
                 self.measurement_modes[:, :rank], transpose=True
             ).T),
             retained_degrees_of_freedom=float(np.sum(dofs[:rank])),
@@ -211,7 +213,8 @@ class InformationReport:
             for label, start, size in self.state_blocks:
                 lines.append(f"  x[{start}:{start + size}]: {label} ({size} entries)")
         if max_states:
-            lines.extend(["", "Linear analysis", "State: prior SD -> posterior SD; variance removed"])
+            lines.extend(
+                ["", "Linear analysis", "State: prior SD -> posterior SD; variance removed"])
             for label, prior, posterior, reduction in zip(
                 self.state_labels[:max_states],
                 self.prior_standard_deviation[:max_states],
@@ -642,10 +645,13 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
 
     assert ws.has("measurement_jac"), "Jacobian not present in workspace"
     assert ws.has("model_state_covmat"), "Prior covariance not present in workspace"
-    assert ws.has("measurement_vec_error_covmat"), "Measurement error covariance not present in workspace"
-    assert ws.has("measurement_vec") or prior_prediction is not None, "Measurement vector not present in workspace"
+    assert ws.has(
+        "measurement_vec_error_covmat"), "Measurement error covariance not present in workspace"
+    assert ws.has(
+        "measurement_vec") or prior_prediction is not None, "Measurement vector not present in workspace"
 
-    labels, blocks = _workspace_state_metadata(ws, np.asarray(ws.measurement_jac).shape[1])
+    labels, blocks = _workspace_state_metadata(
+        ws, np.asarray(ws.measurement_jac).shape[1])
     if options.get("state_labels") is None:
         options["state_labels"] = labels
     report = information(

@@ -5453,17 +5453,103 @@ covariance are local linear quantities. Reduction can discard information;
 discarded state modes retain prior uncertainty, not zero uncertainty.
 See :ref:`sec-reduced-oem` for the mathematics and limits of lossless reduction.
 )";
-    reduced.gin.emplace_back("model_state_basis_mat");
-    reduced.gin_type.emplace_back("Matrix");
-    reduced.gin_value.emplace_back(std::nullopt);
-    reduced.gin_desc.emplace_back("Full-state by reduced-state expansion matrix");
-
-    reduced.gin.emplace_back("measurement_basis_mat");
-    reduced.gin_type.emplace_back("Matrix");
-    reduced.gin_value.emplace_back(std::nullopt);
-    reduced.gin_desc.emplace_back("Reduced-measurement by full-measurement projection matrix");
+    reduced.in.emplace_back("model_state_basis_mat");
+    reduced.in.emplace_back("measurement_basis_mat");
     wsm_data["ReducedOEM"] = std::move(reduced);
   }
+
+  wsm_data["ReducedOEMBasisCalc"] = {
+      .desc   = R"(Compute full, matched state and measurement bases and their information spectrum.
+
+Uses *measurement_jac*, *model_state_covmat*, and
+*measurement_vec_error_covmat* at their current linearization point. With
+:math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
+:math:`\mathbf{S}_\epsilon=\mathbf{L}_\epsilon\mathbf{L}_\epsilon^{\top}`, compute
+
+.. math::
+
+    \mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+       =\mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^{\top},\qquad
+    \mathbf{B}_{\rm full}=\mathbf{L}_a\mathbf{V},\qquad
+    \mathbf{C}_{\rm full}=\mathbf{U}^{\top}\mathbf{L}_\epsilon^{-1}.
+
+Both bases are square and invertible, including all null-space directions.
+This step discards no information: the full prior is
+:math:`\mathbf{B}_{\rm full}\mathbf{B}_{\rm full}^{\top}`, and the full
+measurement noise is
+:math:`\mathbf{C}_{\rm full}^{-1}\mathbf{C}_{\rm full}^{-\top}`.
+*oem_basis_singular_values* stores the descending singular values of the
+whitened Jacobian. The bases and spectrum must be kept together; mode signs
+and rotations within repeated singular values are not unique.
+
+Use *ReducedOEMBasisReduce* afterwards to truncate these basis inputs of
+*ReducedOEM* in place. Save copies before selection if you need to restore
+removed modes without repeating the decomposition. Skip selection for a
+change of coordinates without any reduction.
+
+This preparation does not run an agenda or change its inputs. Covariance
+components use diagonal scaling or Cholesky, without forming covariance
+inverses. The full SVD and bases require dense storage, including a
+state-square and a measurement-square basis. There is no configured memory
+cutoff. Recompute all three outputs when the chosen linearization or
+covariance assumptions change. See :ref:`sec-reduced-oem`.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_basis_mat", "measurement_basis_mat", "oem_basis_singular_values"},
+      .in     = {"measurement_jac", "model_state_covmat", "measurement_vec_error_covmat"},
+  };
+
+  wsm_data["ReducedOEMBasisReduce"] = {
+      .desc      = R"(Select leading modes from the full bases prepared by *ReducedOEMBasisCalc*.
+
+Truncates *model_state_basis_mat* to its first rank columns and
+*measurement_basis_mat* to its first :math:`q=\min(r,m)` rows in place.
+Both reduced covariances are identity. No SVD or covariance factorization
+is repeated. The full *oem_basis_singular_values* spectrum stays unchanged
+so the reported losses include all modes discarded since construction.
+
+By default rank=-1 removes modes with zero computed information. Set
+max_lost_dofs and/or max_lost_information_bits to allow weak modes to be
+discarded as well. These bound the totals over all discarded modes:
+
+.. math::
+
+    \Delta d_s=\sum_{i>r}\frac{s_i^2}{1+s_i^2},\qquad
+    \Delta H=\frac12\sum_{i>r}\log_2(1+s_i^2).
+
+The smallest rank meeting all supplied limits is selected. An unset limit
+is -1; with no limits, the information-bit limit is zero. At least one
+state mode is retained, even when all modes are uninformative. Roundoff
+can give a mathematically null mode a small nonzero value; a positive loss
+budget permits discarding it. Alternatively, set a positive rank to retain
+exactly that many state modes, without loss limits.
+
+*oem_basis_lost_dofs* and *oem_basis_lost_information_bits* report the actual
+discarded totals, including when rank is explicit. They describe the supplied
+linearization and do not bound nonlinear retrieval errors. Retaining all
+informative modes preserves the linear Gaussian posterior. Omitted state
+directions retain prior uncertainty. See :ref:`sec-reduced-oem`.
+
+The inputs must come from the same *ReducedOEMBasisCalc* call, optionally
+already truncated by this method. Dimension and spectrum checks cannot
+detect mixing decompositions. Selection can only remove modes: restore
+saved copies or rerun *ReducedOEMBasisCalc* to increase rank or meet a
+stricter loss limit requiring removed modes.
+
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"model_state_basis_mat",
+                    "measurement_basis_mat",
+                    "oem_basis_lost_dofs",
+                    "oem_basis_lost_information_bits"},
+      .in        = {"model_state_basis_mat", "measurement_basis_mat", "oem_basis_singular_values"},
+      .gin       = {"rank", "max_lost_dofs", "max_lost_information_bits"},
+      .gin_type  = {"Index", "Numeric", "Numeric"},
+      .gin_value = {Index{-1}, Numeric{-1}, Numeric{-1}},
+      .gin_desc  = {"Retained state modes, or -1 to remove uninformative modes automatically",
+                    "Maximum total discarded DOFS, or -1 to leave this limit unset",
+                    "Maximum total discarded information in bits, or -1 to leave this limit unset"},
+  };
 
   wsm_data["measurement_vec_error_covmatNormalization"] = {
       .desc      = R"(Returns measurement noise standard deviations :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`.

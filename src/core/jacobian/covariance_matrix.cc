@@ -885,6 +885,64 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
   return true;
 }
 
+CovarianceSquareRoot::CovarianceSquareRoot(const CovarianceMatrix &covariance) {
+  covariance.validate(covariance.nrows(), 1e-10, std::numeric_limits<Index>::max());
+  // Work on detached covariance blocks: supplied inverses do not define L.
+  CovarianceMatrix local;
+  local.correlations_ = detached_blocks(covariance.get_blocks());
+  Matrix empty(0, 0);
+  local.solve_components(empty, empty);
+  factors_ = std::move(local.solve_cache_);
+}
+
+void CovarianceSquareRoot::multiply_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose) const {
+  apply(out, rhs, false, transpose);
+}
+
+void CovarianceSquareRoot::solve_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose) const {
+  apply(out, rhs, true, transpose);
+}
+
+void CovarianceSquareRoot::apply(StridedMatrixView      out,
+                                 StridedConstMatrixView rhs,
+                                 bool                   inverse,
+                                 bool                   transpose) const {
+  assert(out.shape() == rhs.shape());
+  for (const auto &component : factors_->components) {
+    std::visit(
+        [&](const auto &solver) {
+          using T = std::remove_cvref_t<decltype(solver)>;
+          if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
+            for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i) {
+              const Numeric scale = std::sqrt(solver.values[i]);
+              for (Index j = 0; j < rhs.ncols(); ++j)
+                out[component.rows[i], j] =
+                    inverse ? rhs[component.rows[i], j] / scale : rhs[component.rows[i], j] * scale;
+            }
+          } else {
+            Eigen::MatrixXd local(component.rows.size(), rhs.ncols());
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) local(i, j) = rhs[component.rows[i], j];
+            Eigen::MatrixXd result;
+            if (inverse) {
+              if (transpose)
+                result = solver.factor.matrixU().solve(local);
+              else
+                result = solver.factor.matrixL().solve(local);
+            } else {
+              if (transpose)
+                result = solver.factor.matrixU() * local;
+              else
+                result = solver.factor.matrixL() * local;
+            }
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) out[component.rows[i], j] = result(i, j);
+          }
+        },
+        component.solver);
+  }
+}
+
 void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
   if (auto d = diagonal_values(B.correlations_, B.nrows())) {
     for (Index i = 0; i < C.nrows(); ++i)

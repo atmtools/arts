@@ -878,6 +878,74 @@ Usage: Used and set by inversion methods.
       .dims = {"NSTATE", "NSTATE"},
   };
 
+  wsv_data["measurement_basis_mat"] = {
+      .desc = R"(Measurement projection :math:`\mathbf{C}` for *ReducedOEM*.
+
+Rows are reduced measurements and columns are full measurements.
+*ReducedOEMBasisReduce* selects noise-normalized combinations of channels
+from the covariance-weighted Jacobian. An identity matrix leaves measurements
+unchanged. The matrix must have independent rows.
+
+*ReducedOEMBasisCalc* initially creates a square, invertible matrix with
+noise-normalized rows ordered by decreasing information, including null
+directions. Its inverse times its inverse transpose reconstructs
+*measurement_vec_error_covmat*. *ReducedOEMBasisReduce* removes trailing
+rows in place.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["model_state_basis_mat"] = {
+      .desc = R"(State expansion :math:`\mathbf{B}` for *ReducedOEM*.
+
+Rows are full states and columns are reduced state coefficients, with
+:math:`\vec{x}=\vec{x}_a+\mathbf{B}\vec{z}`. *ReducedOEMBasisReduce* selects
+prior-normalized leading information modes. An identity matrix leaves the
+state dimension unchanged. The matrix must have independent columns.
+
+*ReducedOEMBasisCalc* initially creates a square, invertible matrix with
+columns ordered by decreasing information, including null directions.
+Its product with its transpose reconstructs *model_state_covmat*.
+*ReducedOEMBasisReduce* removes trailing columns in place.
+)",
+      .type = "Matrix",
+  };
+
+  wsv_data["oem_basis_singular_values"] = {
+      .desc = R"(Singular values of the covariance-whitened Jacobian from *ReducedOEMBasisCalc*.
+
+Contains min(measurement count, state size) finite, nonnegative values in
+descending order, including zeros. Additional directions in the larger full
+basis have zero singular value. Keep this spectrum with the matching
+*model_state_basis_mat* and *measurement_basis_mat*.
+
+Each singular value :math:`s_i` contributes
+:math:`s_i^2/(1+s_i^2)` DOFS and
+:math:`\tfrac12\log_2(1+s_i^2)` bits of local Gaussian information.
+*ReducedOEMBasisReduce* uses these contributions to select a rank and
+report the information discarded.
+)",
+      .type = "Vector",
+  };
+
+  wsv_data["oem_basis_lost_dofs"] = {
+      .desc = R"(Total local DOFS discarded by the last *ReducedOEMBasisReduce* call.
+
+Computed from the discarded tail of *oem_basis_singular_values*. This is an
+absolute information loss, not a percentage or a nonlinear retrieval error.
+)",
+      .type = "Numeric",
+  };
+
+  wsv_data["oem_basis_lost_information_bits"] = {
+      .desc = R"(Total local Gaussian information in bits discarded by *ReducedOEMBasisReduce*.
+
+Computed from the discarded tail of *oem_basis_singular_values*. This is an
+absolute information loss, not a percentage or a nonlinear retrieval error.
+)",
+      .type = "Numeric",
+  };
+
   wsv_data["measurement_gain_mat"] = {
       .desc = R"(Contribution function (or gain) matrix.
 

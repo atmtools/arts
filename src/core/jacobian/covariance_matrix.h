@@ -371,6 +371,7 @@ class CovarianceMatrix {
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:
+  friend class CovarianceSquareRoot;
   // Immutable cache shared safely by copies; rebuilt after source changes.
   mutable std::shared_ptr<const CovarianceSolveCache> solve_cache_;
   std::shared_ptr<CovariancePreparation>              preparation_;
@@ -391,6 +392,21 @@ void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
 void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
 void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
+
+/** Detached component factors S = L L^T for preparatory coordinate transforms.
+ * Diagonal components stay diagonal; connected components use Cholesky.
+ * The source, including supplied inverse blocks, is validated but not modified.
+ */
+class CovarianceSquareRoot {
+ public:
+  explicit CovarianceSquareRoot(const CovarianceMatrix &covariance);
+  void multiply_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose = false) const;
+  void solve_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose = false) const;
+
+ private:
+  std::shared_ptr<const CovarianceSolveCache> factors_;
+  void apply(StridedMatrixView out, StridedConstMatrixView rhs, bool inverse, bool transpose) const;
+};
 
 StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
 void              add_inv(StridedMatrixView, const CovarianceMatrix &);

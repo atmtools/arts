@@ -143,6 +143,281 @@ def assert_modes(report, jacobian, prior, error, posterior):
     )
 
 
+def test_workspace_bases():
+    def check(jacobian, prior, noise, rank, *, prior_input=None, noise_input=None):
+        ws = pyarts.Workspace()
+        ws.measurement_jac = jacobian
+        ws.model_state_covmat = covariance(
+            prior) if prior_input is None else prior_input
+        ws.measurement_vec_error_covmat = covariance(
+            noise) if noise_input is None else noise_input
+        before_prior = covariance_snapshot(ws.model_state_covmat)
+        before_noise = covariance_snapshot(ws.measurement_vec_error_covmat)
+        ws.ReducedOEMBasisCalc()
+        m, n = jacobian.shape
+        full_b = np.array(ws.model_state_basis_mat)
+        full_c = np.array(ws.measurement_basis_mat)
+        singular = np.array(ws.oem_basis_singular_values)
+        assert full_b.shape == (n, n)
+        assert full_c.shape == (m, m)
+        assert singular.shape == (min(m, n),)
+        np.testing.assert_allclose(full_b @ full_b.T, prior, atol=1e-12)
+        inverse_c = np.linalg.solve(full_c, np.eye(m))
+        np.testing.assert_allclose(inverse_c @ inverse_c.T, noise, atol=1e-12)
+        np.testing.assert_allclose(full_c @ noise @ full_c.T, np.eye(m), atol=1e-12)
+        sigma = np.zeros((m, n))
+        np.fill_diagonal(sigma, singular)
+        np.testing.assert_allclose(full_c @ jacobian @ full_b, sigma, atol=1e-12)
+        ws.ReducedOEMBasisReduce(rank=rank)
+        b, c = np.array(ws.model_state_basis_mat), np.array(ws.measurement_basis_mat)
+        q = min(rank, m)
+        assert b.shape == (n, rank)
+        assert c.shape == (q, m)
+        np.testing.assert_allclose(
+            b.T @ np.linalg.solve(prior, b), np.eye(rank), atol=1e-12)
+        np.testing.assert_allclose(c @ noise @ c.T, np.eye(q), atol=1e-12)
+        report = information(jacobian, prior, noise)
+        np.testing.assert_allclose(
+            singular, report.singular_values[:min(m, n)], atol=1e-12)
+        expected = report.reduction(rank=rank)
+        np.testing.assert_allclose(ws.oem_basis_lost_dofs,
+                                   expected.discarded_degrees_of_freedom, atol=1e-12)
+        np.testing.assert_allclose(
+            ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+        np.testing.assert_allclose(np.linalg.svd(c @ jacobian @ b, compute_uv=False),
+                                   report.singular_values[:q], atol=1e-12)
+        if rank == n:
+            np.testing.assert_allclose(b @ b.T, prior, atol=1e-12)
+            jr = c @ jacobian @ b
+            gain = b @ np.linalg.solve(np.eye(rank) + jr.T @ jr, jr.T) @ c
+            reference = np.linalg.solve(np.linalg.inv(prior) + jacobian.T @ np.linalg.solve(noise, jacobian),
+                                        np.linalg.solve(noise, jacobian).T)
+            np.testing.assert_allclose(gain, reference, atol=1e-12)
+        elif np.count_nonzero(report.singular_values) == n:
+            # Singular-vector signs are arbitrary, so compare subspaces.
+            np.testing.assert_allclose(
+                b @ b.T, expected.model_state_basis_mat @ expected.model_state_basis_mat.T, atol=1e-12)
+        assert covariance_snapshot(ws.model_state_covmat) == before_prior
+        assert covariance_snapshot(ws.measurement_vec_error_covmat) == before_noise
+        np.testing.assert_array_equal(ws.measurement_jac, jacobian)
+        np.testing.assert_array_equal(ws.model_state_basis_mat, full_b[:, :rank])
+        np.testing.assert_array_equal(ws.measurement_basis_mat, full_c[:q, :])
+        np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
+        return ws
+
+    for rank in (1, 2):
+        check(K, SA, SE, rank)
+    for storage in (arts.Matrix, arts.Sparse):
+        # A connected prior with block IDs in reversed coordinate order.
+        prior = arts.CovarianceMatrix()
+        prior.blocks = [
+            arts.Block(arts.Range(1, 1), arts.Range(1, 1), (0, 0), storage([[2.]])),
+            arts.Block(arts.Range(0, 1), arts.Range(0, 1), (2, 2), storage([[4.]])),
+            arts.Block(arts.Range(1, 1), arts.Range(0, 1), (0, 2), storage([[1.]])),
+        ]
+        noise = arts.CovarianceMatrix()
+        noise.blocks = [arts.Block(arts.Range(
+            0, 3), arts.Range(0, 3), (0, 0), storage(SE))]
+        check(K, SA, SE, 1, prior_input=prior, noise_input=noise)
+    check(np.array([[1., 0, 0]]), np.diag([4., 9., 16.]), np.array([[4.]]), 3)
+    check(np.zeros((3, 2)), SA, SE, 1)
+    check(np.eye(2), np.eye(2), np.eye(2), 2)  # repeated singular values
+    check(np.array([[2.]]), np.array([[4.]]), np.array([[9.]]), 1)
+
+    mixed = arts.CovarianceMatrix()
+    mixed.blocks = [
+        arts.Block(arts.Range(0, 1), arts.Range(0, 1), (0, 0), arts.Sparse([[1.]])),
+        arts.Block(arts.Range(1, 2), arts.Range(1, 2),
+                   (1, 1), arts.Matrix([[2., .3], [.3, .5]])),
+    ]
+    check(K, SA, np.array([[1., 0, 0], [0, 2., .3], [0, .3, .5]]), 2, noise_input=mixed)
+    cached = pyarts.Workspace()
+    cached.measurement_sensor = [arts.SensorObsel() for _ in range(3)]
+    cached.measurement_vec_error_covmatConstant(value=.25)
+    check(K, SA, .25 * np.eye(3), 2, noise_input=cached.measurement_vec_error_covmat)
+
+    # Diagonal noise uses a diagonal factor; the saved full basis is square.
+    count = 100
+    ws = pyarts.Workspace()
+    ws.measurement_jac = np.tile(np.eye(2), (count // 2, 1))
+    ws.model_state_covmat = covariance(SA)
+    ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
+    from scipy import sparse
+    ws.measurement_vec_error_covmat.blocks = [arts.Block(
+        arts.Range(0, count), arts.Range(0, count), (0, 0),
+        arts.Sparse(sparse.eye(count, format="csr")))]
+    ws.ReducedOEMBasisCalc()
+    assert np.asarray(ws.measurement_basis_mat).shape == (count, count)
+    ws.ReducedOEMBasisReduce(rank=1)
+    c = np.asarray(ws.measurement_basis_mat)
+    np.testing.assert_allclose(c @ c.T, [[1.]], atol=1e-12)
+
+    # Failure leaves the previously generated bases intact.
+    ws = check(K, SA, SE, 1)
+    b, c = np.array(ws.model_state_basis_mat), np.array(ws.measurement_basis_mat)
+    lost = (float(ws.oem_basis_lost_dofs), float(ws.oem_basis_lost_information_bits))
+    for kwargs in ({"rank": 0}, {"rank": 3}, {"rank": -2},
+                   {"rank": 1, "max_lost_dofs": 0},
+                   {"rank": 1, "max_lost_information_bits": 0},
+                   {"max_lost_dofs": -.1}, {"max_lost_dofs": np.nan},
+                   {"max_lost_information_bits": -2}, {"max_lost_information_bits": np.inf}):
+        rejects(lambda: ws.ReducedOEMBasisReduce(**kwargs))
+        np.testing.assert_array_equal(ws.model_state_basis_mat, b)
+        np.testing.assert_array_equal(ws.measurement_basis_mat, c)
+        assert (float(ws.oem_basis_lost_dofs), float(
+            ws.oem_basis_lost_information_bits)) == lost
+    singular = np.array(ws.oem_basis_singular_values)
+    for jacobian, prior, noise in ((K, np.eye(3), SE), (K, SA, np.eye(2)),
+                                   (K, [[1., 2.], [2., 1.]], SE),
+                                   (np.full((3, 2), np.nan), SA, SE)):
+        ws.measurement_jac = jacobian
+        ws.model_state_covmat = covariance(prior)
+        ws.measurement_vec_error_covmat = covariance(noise)
+        rejects(lambda: ws.ReducedOEMBasisCalc())
+        np.testing.assert_array_equal(ws.model_state_basis_mat, b)
+        np.testing.assert_array_equal(ws.measurement_basis_mat, c)
+        np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
+
+
+test_workspace_bases()
+
+
+def test_workspace_mode_selection():
+    def select(jacobian, **options):
+        m, n = jacobian.shape
+        ws = pyarts.Workspace()
+        ws.measurement_jac = jacobian
+        ws.model_state_covmat = covariance(np.eye(n))
+        ws.measurement_vec_error_covmat = covariance(np.eye(m))
+        ws.ReducedOEMBasisCalc()
+        ws.ReducedOEMBasisReduce(**options)
+        b, c = np.asarray(ws.model_state_basis_mat), np.asarray(
+            ws.measurement_basis_mat)
+        rank = b.shape[1]
+        np.testing.assert_allclose(b.T @ b, np.eye(rank), atol=1e-12)
+        np.testing.assert_allclose(c @ c.T, np.eye(min(rank, m)), atol=1e-12)
+        # Match the established report's loss-budget selection.
+        limits = {key: value for key, value in options.items()
+                  if key != "rank" and value != -1}
+        if not limits:
+            limits = {"max_lost_information_bits": 0}
+        expected = information(jacobian, np.eye(n), np.eye(m)).reduction(**limits)
+        assert rank == expected.rank, (options, rank, expected.rank)
+        np.testing.assert_allclose(ws.oem_basis_lost_dofs,
+                                   expected.discarded_degrees_of_freedom, atol=1e-12)
+        np.testing.assert_allclose(
+            ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+        return rank
+
+    spectrum = np.diag([3., 1., .1, 0.])
+    assert select(spectrum) == 3
+    assert select(spectrum, max_lost_dofs=.01) == 2
+    assert select(spectrum, max_lost_information_bits=.01) == 2
+    assert select(spectrum, max_lost_dofs=.6, max_lost_information_bits=.001) == 3
+    assert select(spectrum, max_lost_dofs=0, max_lost_information_bits=0) == 3
+    assert select(spectrum, rank=-1, max_lost_dofs=-
+                  1, max_lost_information_bits=-1) == 3
+    assert select(np.zeros((2, 3))) == 1  # ReducedOEM still requires one coefficient.
+    assert select(np.array([[1., 0., 0.]])) == 1
+
+    # Budgets apply to the SUM of discarded contributions, not each mode.
+    broad = np.eye(100) / np.sqrt(99)
+    assert select(broad, max_lost_dofs=.100001) == 90
+
+    # Never judge importance only relative to the strongest singular value.
+    strong = np.diag([1e100, 1e-6, 0.])
+    assert select(strong) == 2
+    assert select(strong, max_lost_information_bits=1e-11) == 1
+
+    # These redundant directions contain no individual zero entries. A small
+    # budget also removes roundoff residuals in mathematically null modes.
+    assert select(np.ones((3, 4)), max_lost_information_bits=1e-12) == 1
+
+    # Recalculation restores the state null space removed by selection.
+    from scipy import sparse
+    ws = pyarts.Workspace()
+    n = 200
+    ws.measurement_jac = np.r_[1., np.zeros(n - 1)].reshape(1, n)
+    ws.model_state_covmat = arts.CovarianceMatrix()
+    ws.model_state_covmat.blocks = [arts.Block(
+        arts.Range(0, n), arts.Range(0, n), (0, 0),
+        arts.Sparse(sparse.eye(n, format="csr")))]
+    ws.measurement_vec_error_covmat = covariance([[1.]])
+    ws.ReducedOEMBasisCalc()
+    assert np.asarray(ws.model_state_basis_mat).shape == (n, n)
+    ws.ReducedOEMBasisReduce()
+    b = np.asarray(ws.model_state_basis_mat)
+    c = np.asarray(ws.measurement_basis_mat)
+    assert b.shape == (n, 1) and c.shape == (1, 1)
+    np.testing.assert_allclose(
+        b @ c, np.r_[1., np.zeros(n - 1)].reshape(n, 1), atol=1e-12)
+    rejects(lambda: ws.ReducedOEMBasisReduce(rank=n))
+    ws.ReducedOEMBasisCalc()
+    ws.ReducedOEMBasisReduce(rank=n)
+    full_b = np.asarray(ws.model_state_basis_mat)
+    np.testing.assert_allclose(full_b @ full_b.T, np.eye(n), atol=1e-12)
+
+
+test_workspace_mode_selection()
+
+
+def test_workspace_basis_reselection():
+    for jacobian, prior, noise in ((K, SA, SE), (K.T, SE, SA)):
+        ws = pyarts.Workspace()
+        ws.measurement_jac = jacobian
+        ws.model_state_covmat = covariance(prior)
+        ws.measurement_vec_error_covmat = covariance(noise)
+        ws.ReducedOEMBasisCalc()
+        b = np.array(ws.model_state_basis_mat)
+        c = np.array(ws.measurement_basis_mat)
+        singular = np.array(ws.oem_basis_singular_values)
+        m, n = jacobian.shape
+        report = information(jacobian, prior, noise)
+
+        # Selection uses only the saved decomposition, even if the current
+        # Jacobian/covariances no longer form a valid setup for another SVD.
+        ws.measurement_jac = [[np.nan]]
+        ws.model_state_covmat = covariance([[1.]])
+        ws.measurement_vec_error_covmat = covariance([[1.]])
+        for rank in (n, 1, 1):
+            ws.ReducedOEMBasisReduce(rank=rank)
+            np.testing.assert_array_equal(ws.model_state_basis_mat, b[:, :rank])
+            np.testing.assert_array_equal(ws.measurement_basis_mat, c[:min(rank, m), :])
+            expected = report.reduction(rank=rank)
+            np.testing.assert_allclose(
+                ws.oem_basis_lost_dofs, expected.discarded_degrees_of_freedom, atol=1e-12)
+            np.testing.assert_allclose(
+                ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
+        rejects(lambda: ws.ReducedOEMBasisReduce(rank=n))
+        rejects(lambda: ws.ReducedOEMBasisReduce(max_lost_information_bits=0))
+        np.testing.assert_array_equal(ws.model_state_basis_mat, b[:, :1])
+        np.testing.assert_array_equal(ws.measurement_basis_mat, c[:1, :])
+        # Explicit restoration permits selecting more modes again.
+        ws.model_state_basis_mat = b
+        ws.measurement_basis_mat = c
+        ws.ReducedOEMBasisReduce(rank=n)
+
+        # Malformed saved inputs are rejected before replacing active outputs.
+        ws.ReducedOEMBasisReduce(rank=1)
+        old_b = np.array(ws.model_state_basis_mat)
+        old_c = np.array(ws.measurement_basis_mat)
+        for bad_spectrum in ([], [1.], [1., 2.], [-1., -2.], [np.inf, 0.], [np.nan, 0.]):
+            ws.oem_basis_singular_values = bad_spectrum
+            rejects(lambda: ws.ReducedOEMBasisReduce())
+            np.testing.assert_array_equal(ws.model_state_basis_mat, old_b)
+            np.testing.assert_array_equal(ws.measurement_basis_mat, old_c)
+        ws.oem_basis_singular_values = singular
+        for name, saved in (("model_state_basis_mat", old_b), ("measurement_basis_mat", old_c)):
+            setattr(ws, name, np.zeros((0, 0)))
+            rejects(lambda: ws.ReducedOEMBasisReduce())
+            assert np.asarray(getattr(ws, name)).shape == (0, 0)
+            setattr(ws, name, saved)
+
+
+test_workspace_basis_reselection()
+
+
 def test_correlated_reference():
     report = information(K, SA, SE, state_labels=["temperature", "water"])
     np.testing.assert_allclose(

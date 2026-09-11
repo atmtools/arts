@@ -720,7 +720,37 @@ dimension.
 
 For the whitened singular-value decomposition
 :math:`\mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
-=\mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^{\top}`, choose
+=\mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^{\top}`, first consider the full
+orthogonal matrices :math:`\mathbf{U}\in\mathbb{R}^{m\times m}` and
+:math:`\mathbf{V}\in\mathbb{R}^{n\times n}`. The complete bases
+
+.. math::
+
+   \mathbf{B}_{\rm full}=\mathbf{L}_a\mathbf{V},\qquad
+   \mathbf{C}_{\rm full}=\mathbf{U}^{\top}\mathbf{L}_\epsilon^{-1}
+
+are invertible coordinate transformations. No information is lost,
+including in the null spaces:
+
+.. math::
+
+   \mathbf{S}_a=\mathbf{B}_{\rm full}\mathbf{B}_{\rm full}^{\top},
+   \qquad
+   \mathbf{S}_\epsilon=
+       \mathbf{C}_{\rm full}^{-1}\mathbf{C}_{\rm full}^{-\top},
+   \qquad
+   \mathbf{C}_{\rm full}\mathbf{J}\mathbf{B}_{\rm full}
+       =\boldsymbol{\Sigma}.
+
+Here :math:`\boldsymbol{\Sigma}\in\mathbb{R}^{m\times n}` has
+:math:`\min(m,n)` singular values, ordered from largest to smallest, on
+its diagonal and zeros elsewhere. Additional directions of the larger
+basis carry zero local information. The bases and singular values together
+preserve the full local Gaussian problem.
+
+Reduction is a separate choice: take the first :math:`r` columns of
+:math:`\mathbf{B}_{\rm full}` and first :math:`q=\min(r,m)` rows of
+:math:`\mathbf{C}_{\rm full}`:
 
 .. math::
 
@@ -736,6 +766,15 @@ degrees of freedom and information are
    \Delta d_s=\sum_{i>r}\frac{s_i^2}{1+s_i^2},\qquad
    \Delta H=\frac12\sum_{i>r}\log_2(1+s_i^2).
 
+An information-budget reduction chooses the smallest retained rank satisfying
+the prescribed upper bounds on :math:`\Delta d_s` and/or :math:`\Delta H`.
+The bounds apply to the sums, so many individually weak modes can collectively
+require retention. Zero-information modes have :math:`s_i=0`; their location
+is determined by the singular directions of the whitened Jacobian, not by
+individual zero entries in the physical matrices. A zero budget removes
+only zero contributions in the computed spectrum. Finite-precision residuals
+in mathematically null modes can require a positive budget.
+
 Retaining every nonzero singular mode preserves the posterior of the linear
 Gaussian problem. Dropping nonzero modes is approximate. Measurement
 compression preserves the likelihood's state dependence on the retained
@@ -744,6 +783,38 @@ subspace if it retains the column space of
 noise residuals contribute a constant to the full objective. In general,
 selecting physical channels does not satisfy this condition, particularly
 when their errors are correlated.
+
+For a single retrieved parameter with Jacobian column :math:`\vec{j}`,
+the one informative measurement combination has weights
+
+.. math::
+
+   \mathbf{C}=
+   \frac{\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}}
+        {\sqrt{\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}\vec{j}}},
+   \qquad
+   y_r=\mathbf{C}\vec{y},\qquad
+   F_r=\mathbf{C}\vec{F},\qquad
+   \mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}=1.
+
+The overall sign is arbitrary. This retains the local measurement Fisher
+information :math:`\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}\vec{j}`.
+For independent channel noise with variances :math:`\sigma_i^2`, the
+weights are proportional to :math:`j_i/\sigma_i^2`. A flat part of a
+spectrum carries little wind information when wind primarily shifts a line:
+if :math:`F(\nu,v)\approx F_0(\nu-\delta\nu(v))`, then
+
+.. math::
+
+   \frac{\partial F}{\partial v}\approx
+       -\frac{d\delta\nu}{dv}\frac{\partial F_0}{\partial\nu}.
+
+Opposite line slopes therefore enter with opposite signs. The exact
+center of a symmetric line has zero first-order shift sensitivity; a
+weighted line contrast is distinct from retaining just that center channel.
+Saturation and pressure broadening can also leave informative slopes outside
+the narrow central feature. Far-wing weights become small according to the
+Jacobian and noise, not according to a prescribed frequency window.
 
 For retained singular modes, the truncated local posterior must preserve
 discarded prior uncertainty:

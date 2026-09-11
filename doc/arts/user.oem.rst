@@ -292,15 +292,6 @@ point.  General spatial cross-covariances require explicit blocks.
 The helper uses the covariance validator's default dense-component size
 limit; a sparse cross block does not make validation or inversion fully sparse.
 
-``tests/core/jac/oem_cross_correlation.py`` demonstrates recovery from a
-warmer, wetter starting atmosphere using temperature and log-water.
-Measurements are simulated from the prior atmosphere, and the prior is
-kept fixed when the starting atmosphere is changed.  Thus both parts of
-the OEM objective have their minimum at the prior.  This checks the
-correlated retrieval plumbing; it does not establish that a particular
-correlation is scientifically appropriate for real observations.
-
-
 Checking what the measurements can constrain
 ====================================================
 
@@ -565,9 +556,9 @@ causes a reduction.  The local model must predict the cost change well
 enough, and a step accepted after a rejection keeps the damping used for
 its final trial.
 
-``convergence_damping_limit`` gates the ordinary ``stop_dx`` test.  It
-does not set the accuracy of that test.  The default of zero enables the
-test once damping reaches zero.  A positive limit permits termination
+``convergence_damping_limit`` gates the ordinary ``stop_dx`` check.  It
+does not set the accuracy of that check.  The default of zero enables the
+check once damping reaches zero.  A positive limit permits termination
 while damping still constrains the steps; a small damped step can then
 hide a remaining distance to the minimum.  The gate uses the updated
 damping, so a step calculated with damping 10 and then reduced to 5 can
@@ -589,7 +580,7 @@ Use the behavior of representative retrievals to guide changes:
        ``initial_damping``.  Damping cannot enforce physical bounds.
    * - Convergence is reported while damping remains large.
      - Check ``convergence_damping_limit``.  A value of zero requires
-       damping to be removed before the ordinary stopping test is enabled.
+       damping to be removed before the ordinary stopping check is enabled.
    * - Useful progress continues at the iteration limit.
      - Increase ``max_iter`` and compare the final state and costs.
        This increases the outer iteration budget; each LM iteration can
@@ -751,7 +742,7 @@ for method choice, not a guarantee of improved runtime. Requested gain-matrix
 output still uses the existing state-space postprocessing, so the complete
 retrieval can retain state-sized costs.
 
-Covariance storage and a small LM example
+Covariance storage
 -------------------------------------------------
 
 Covariance preparation is automatic when calling ``OEM``; it does not require
@@ -766,24 +757,7 @@ one covariance. In particular,
 ``measurement_vec_error_covmatConstant`` supplies both a sparse diagonal
 covariance and its inverse. LM currently requests explicit prior precision;
 the measurement covariance is where diagonal/factorized solves are most
-useful in this example.
-
-Run ``tests/core/jac/oem_covariance_paths.py`` with the built pyarts3 package to
-see an LM retrieval with four state coordinates and four synthetic measurement
-channels. It compares diagonal, mixed diagonal/correlated, and correlated
-measurement covariances. Each is supplied as Matrix and Sparse, both with and
-without explicit inverses. Equivalent representations give the same fitted
-state, measurements and gain matrix; different correlations can change the
-answer. An independent analytic solution checks every result. Each retrieval
-is repeated from the same starting state to check prepared covariance reuse.
-
-The example builds the prior with ``RetrievalAddSpeciesVMR`` and
-``RetrievalFinalizeDiagonal``. For measurement covariance it redirects the
-``model_state_covmatInit`` and ``model_state_covmatAddSpeciesVMR`` output to
-``measurement_vec_error_covmat``. This reuse is valid here because the two
-measurement groups deliberately match the target block sizes and offsets;
-it is not a general mapping from retrieval targets to measurement channels.
-No private caches or direct block-list edits are involved.
+useful.
 
 Without ``ARTS_HEADLESS``, the script plots the prior, manipulated starting
 state, fitted states and fitted measurements. Four overlapping marker shapes
@@ -812,21 +786,96 @@ ReducedOEM
 
 ``ReducedOEM`` runs the forward model at full size and reduces the state and
 measurement coordinates used by the solver. Both matrices must be supplied:
-``model_state_red_mat`` has full-state rows and reduced-state columns;
-``measurement_red_mat`` has reduced-measurement rows and full-measurement
+``model_state_basis_mat`` has full-state rows and reduced-state columns;
+``measurement_basis_mat`` has reduced-measurement rows and full-measurement
 columns. Their columns and rows, respectively, must be linearly independent.
 Their normalization is arbitrary: ReducedOEM transforms both covariances.
+They can be stored as workspace variables or passed explicitly.
 
-Given a current full Jacobian and the covariances, choose leading information
-modes explicitly::
+Given a current full Jacobian and the covariances, prepare the full bases,
+then choose which modes to retain::
+
+    # Uses measurement_jac, model_state_covmat and measurement_vec_error_covmat
+    ws.ReducedOEMBasisCalc()
+    print(ws.oem_basis_singular_values)
+    ws.ReducedOEMBasisReduce(max_lost_information_bits=0.01)
+    print(ws.oem_basis_lost_dofs, ws.oem_basis_lost_information_bits)
+    ws.model_state_vec = []  # Start at the prior
+    ws.ReducedOEM(method="lm")
+
+``ReducedOEMBasisCalc`` sets ``model_state_basis_mat``,
+``measurement_basis_mat`` and ``oem_basis_singular_values``. It requires
+only the Jacobian and covariances; it does not run a forward agenda or need
+a measurement vector. Both full bases are square and include all null-space
+directions. This step only changes coordinates and loses no information.
+The state basis reconstructs the full prior covariance when multiplied by
+its transpose. For the measurement covariance, it is the inverse basis
+times its inverse transpose that reconstructs the original covariance.
+
+``ReducedOEMBasisReduce`` retains leading columns and rows in place in
+``model_state_basis_mat`` and ``measurement_basis_mat``. The example discards
+at most 0.01 bits of total local Gaussian information, choosing the smallest
+retained rank that meets the budget. Both transformed covariances are identity
+matrices. The two loss outputs report actual discarded DOFS and bits, also
+when choosing an explicit rank.
+
+Selection overwrites both basis matrices, while preserving the full spectrum
+for reporting total information loss. Further calls can remove more modes.
+To restore removed modes, restore saved copies of both matrices or rerun
+``ReducedOEMBasisCalc``. Keep the spectrum and both bases from the same
+decomposition together.
+
+Calling ``ws.ReducedOEMBasisReduce()`` removes only modes with zero computed
+information. Tiny nonzero values caused by roundoff require a positive
+budget. Individual zero entries in a covariance or Jacobian do not identify
+redundant directions: correlations can mix coordinates, and even a matrix
+without zero entries can have a null space.
+
+Use ``max_lost_dofs`` to limit the total discarded DOFS instead, or supply
+both limits to require both. These are absolute totals over all discarded
+modes, not per-mode thresholds or percentages. A value of -1 leaves a
+limit unset. With both unset, the information-bit budget is zero.
+
+An explicit ``rank=r`` retains exactly ``r`` leading state modes, from 1
+through the full state size. It cannot be combined with loss limits. The
+default ``rank=-1`` enables automatic selection. At least one coefficient
+is retained even when all modes are uninformative, because ``ReducedOEM``
+requires a nonempty state. The measurement basis retains the smaller of
+the selected rank and the measurement count. Inspect
+``ws.model_state_basis_mat.shape[1]`` for the selected rank.
+
+For no reduction of either dimension, call ``ReducedOEM`` directly after
+``ReducedOEMBasisCalc``, without calling ``ReducedOEMBasisReduce``.
+
+Selecting the full state rank through ``ReducedOEMBasisReduce`` can still
+remove measurement null-space rows when there are more measurements than
+states. The matrices before selection also retain those rows.
+
+The Jacobian must use the same state coordinates and measurement units as
+the covariances. Bases are computed at that Jacobian's linearization point
+and stay fixed during the retrieval. Recompute them after changing the
+covariances or choosing a different linearization point. Basis signs are
+arbitrary; compare the represented subspaces or retrieval results rather
+than individual signs.
+
+Diagonal measurement covariances remain inexpensive to factor. Correlated
+components are factored separately. Saving complete bases requires dense
+state-square and measurement-square matrices, as well as the whitened
+Jacobian and SVD working storage. There is no configured allocation cutoff.
+Selection copies only the retained columns and rows, reducing subsequent
+OEM work; it does not release the saved full bases. This memory cost allows
+increasing the rank later without repeating the decomposition.
+
+The Python information report also generates both bases and describes the
+local information retained and discarded::
 
     report = pyarts3.retrieval.information_from_workspace(ws)
     reduction = report.reduction(rank=r)
     ws.model_state_vec = []  # Start at the prior
     ws.ReducedOEM(
         method="lm",
-        model_state_red_mat=reduction.model_state_red_mat,
-        measurement_red_mat=reduction.measurement_red_mat,
+        model_state_basis_mat=reduction.model_state_basis_mat,
+        measurement_basis_mat=reduction.measurement_basis_mat,
     )
 
 Alternatively select the smallest rank meeting an information-loss budget at
@@ -834,6 +883,12 @@ the report's linearization point::
 
     reduction = report.reduction(max_lost_dofs=0.05, max_lost_information_bits=0.01)
     print(reduction)  # Rank and discarded DOFS/bits
+
+Assign ``reduction.model_state_basis_mat`` and
+``reduction.measurement_basis_mat`` to the corresponding workspace variables,
+or pass them explicitly to ``ReducedOEM`` as above. With arrays already
+available outside a workspace, use
+``pyarts3.retrieval.information(J, Sa, Se).reduction(rank=r)``.
 
 These budgets are absolute DOFS and bits, not percentages. With two budgets,
 both must be satisfied. At least one state column and one measurement row
@@ -849,8 +904,8 @@ To reduce only the state, supply an identity measurement matrix instead::
 
     ws.ReducedOEM(
         method="lm",
-        model_state_red_mat=reduction.model_state_red_mat,
-        measurement_red_mat=np.eye(len(ws.measurement_vec)),
+        model_state_basis_mat=reduction.model_state_basis_mat,
+        measurement_basis_mat=np.eye(len(ws.measurement_vec)),
     )
 
 Conversely, an identity state matrix leaves the state dimension unchanged.
@@ -858,6 +913,14 @@ Rows of an identity measurement matrix can select physical channels, but
 channel selection can lose information that weighted combinations retain.
 The measurement covariance is transformed with the same matrix, including
 correlations between channels.
+
+Measurement reduction forms signed weighted combinations of channels;
+it does not crop the frequency grid. ``ReducedOEM`` still
+computes the full forward spectrum and Jacobian on every required agenda
+call, then projects them. Its measurement reduction saves solver work;
+skipping far-wing radiative-transfer calculations would require a separate
+change to the sensor or frequency grid. Full measurement outputs remain
+available after the retrieval.
 
 All OEM method choices remain available. An explicit starting state must lie
 in the affine subspace through the prior. Optional normalization vectors

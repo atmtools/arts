@@ -601,6 +601,59 @@ by name, independently of enum ordinals.
 ReducedOEM adapter
 ------------------
 
+``ReducedOEMBasisCalc`` prepares ``model_state_basis_mat``,
+``measurement_basis_mat`` and ``oem_basis_singular_values`` from
+the full Jacobian and covariances. Both bases are square; neither null
+space is discarded. The spectrum contains :math:`\min(m,n)` values,
+including zeros. Additional directions of the larger square basis have
+zero information. Keep these three outputs matched, including their mode
+ordering. Mixing equally sized decompositions cannot be detected by
+dimension checks.
+
+``ReducedOEMBasisReduce`` reads the basis matrices and full spectrum and
+truncates the matrices in place. It also sets ``oem_basis_lost_dofs`` and
+``oem_basis_lost_information_bits`` relative to the original decomposition.
+The spectrum remains intact. Selection may be repeated to remove more modes,
+but cannot restore removed modes; requests requiring unavailable directions
+fail before modifying either matrix. Restore saved copies or recalculate to
+increase rank. Both slices are materialized before either input is replaced.
+No current Jacobian or covariance is needed during selection.
+``ReducedOEM`` reads these same matrices as ordinary workspace inputs.
+
+``CovarianceSquareRoot`` validates and detaches covariance components, then
+uses the existing diagonal/Cholesky component machinery to apply
+:math:`\mathbf{L}`, :math:`\mathbf{L}^{\top}`,
+:math:`\mathbf{L}^{-1}`, or :math:`\mathbf{L}^{-\top}`. Source inverse caches
+are checked and preserved. No factor is published into the input covariance;
+square-root operations use the component factors directly.
+
+Matpack's ``svd`` calls LAPACK DGESVD. Basis construction requests full left
+and right singular vectors to preserve both null spaces. The full bases
+require :math:`n^2+m^2` dense elements in addition to SVD working storage
+and intermediates. Selecting fewer modes afterwards does not reduce this
+preparation cost. Whitening is
+applied directly to the Jacobian; avoid replacing this with eigenanalysis
+of normal equations, which squares its condition number. Generate the
+measurement basis with a transposed factor solve on the left vectors, not
+division by singular values: zero-information modes must also work.
+Both full bases and the spectrum are published only after successful
+preparation. Selection also prepares its outputs before publishing them.
+Tests reconstruct both original covariances, check rectangular and null
+cases, and reselect ranks without a new decomposition. They compare
+covariance metrics, subspaces and gains because singular-vector signs
+and rotations within repeated values are not unique.
+
+Rank selection and its reported losses sum DOFS and bit contributions from
+the weakest singular value upwards. Automatic selection stops before either
+supplied loss budget would be exceeded.
+Use scaled formulas for strong singular values to avoid squaring overflow;
+never subtract a weak tail from the total information. No relative cutoff
+against the largest singular value is applied, since a very strong mode
+does not make another mode less informative. Without limits the bit budget
+is zero. Retain one mode in the all-zero case to satisfy the current
+``ReducedOEM`` dimension contract. Basis generation has no configured
+allocation cutoff; covariance validation still checks mathematical validity.
+
 ``ReducedOEM`` validates both reduction matrices and prepares reduced
 covariances once at the workspace-method boundary. It projects the starting
 state using the prior metric and rejects an explicit start outside the

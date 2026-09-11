@@ -27,6 +27,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <limits>
 #include <optional>
 #include <sstream>
@@ -505,6 +506,129 @@ void OEM(const Workspace&                  ws,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
+void ReducedOEMBasisCalc(Matrix&                 model_state_basis_mat,
+                         Matrix&                 measurement_basis_mat,
+                         Vector&                 oem_basis_singular_values,
+                         const Matrix&           measurement_jac,
+                         const CovarianceMatrix& model_state_covmat,
+                         const CovarianceMatrix& measurement_vec_error_covmat) {
+  ARTS_TIME_REPORT
+  const Index m = measurement_jac.nrows(), n = measurement_jac.ncols();
+  ARTS_USER_ERROR_IF(m <= 0 or n <= 0, "ReducedOEMBasisCalc requires a nonempty measurement_jac.")
+  ARTS_USER_ERROR_IF(model_state_covmat.nrows() != n or measurement_vec_error_covmat.nrows() != m,
+                     "Covariance sizes must match the {} measurement_jac columns and {} rows.",
+                     n,
+                     m)
+  ARTS_USER_ERROR_IF(stdr::any_of(measurement_jac | by_elem, [](auto v) { return not std::isfinite(v); }),
+                     "measurement_jac must be finite.")
+
+  const CovarianceSquareRoot prior(model_state_covmat);
+  const CovarianceSquareRoot noise(measurement_vec_error_covmat);
+  Matrix                     scaled(m, n), whitened(m, n);
+  prior.multiply_left(transpose(scaled), transpose(measurement_jac), true);
+  noise.solve_left(whitened, scaled);
+  ARTS_USER_ERROR_IF(stdr::any_of(whitened | by_elem, [](auto v) { return not std::isfinite(v); }),
+                     "Whitened Jacobian is not finite; check covariance and Jacobian scales.")
+
+  Matrix u, v;
+  Vector singular_values;
+  // Preserve both null spaces; choosing which modes to discard is a separate step.
+  svd(u, singular_values, v, whitened);
+  ARTS_USER_ERROR_IF(stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x); }),
+                     "Information spectrum exceeds numerical range.")
+
+  Matrix B(n, n), C(m, m);
+  prior.multiply_left(B, v);
+  noise.solve_left(transpose(C), u, true);
+  ARTS_USER_ERROR_IF(stdr::any_of(B | by_elem, [](auto x) { return not std::isfinite(x); }) or
+                         stdr::any_of(C | by_elem, [](auto x) { return not std::isfinite(x); }),
+                     "Basis matrices exceed numerical range.")
+
+  // Publish the matched bases and spectrum only after all transformations succeed.
+  model_state_basis_mat     = std::move(B);
+  measurement_basis_mat     = std::move(C);
+  oem_basis_singular_values = std::move(singular_values);
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ReducedOEMBasisReduce(Matrix&        model_state_basis_mat,
+                           Matrix&        measurement_basis_mat,
+                           Numeric&       oem_basis_lost_dofs,
+                           Numeric&       oem_basis_lost_information_bits,
+                           const Vector&  oem_basis_singular_values,
+                           const Index&   rank,
+                           const Numeric& max_lost_dofs,
+                           const Numeric& max_lost_information_bits) {
+  ARTS_TIME_REPORT
+  const auto& B               = model_state_basis_mat;
+  const auto& C               = measurement_basis_mat;
+  const auto& singular_values = oem_basis_singular_values;
+  const Index n = B.nrows(), m = C.ncols(), p = std::min(m, n);
+  ARTS_USER_ERROR_IF(
+      n <= 0 or m <= 0 or B.ncols() <= 0 or B.ncols() > n or C.nrows() <= 0 or C.nrows() > m,
+      "Basis matrices must be nonempty with at most the original number of modes; use ReducedOEMBasisCalc first.")
+  ARTS_USER_ERROR_IF(singular_values.size() != static_cast<std::size_t>(p) or
+                         stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x) or x < 0; }) or
+                         not std::is_sorted(singular_values.begin(), singular_values.end(), std::greater<>{}),
+                     "oem_basis_singular_values must contain {} finite, nonnegative values in descending order "
+                     "from the same ReducedOEMBasisCalc call as the full bases.",
+                     p)
+  ARTS_USER_ERROR_IF(rank != -1 and (rank < 1 or rank > n),
+                     "rank must be -1 for automatic selection or between 1 and {} full state variables.",
+                     n)
+
+  const auto valid_loss = [](Numeric value) { return value == -1 or (std::isfinite(value) and value >= 0); };
+  ARTS_USER_ERROR_IF(not valid_loss(max_lost_dofs) or not valid_loss(max_lost_information_bits),
+                     "Information-loss limits must be finite and nonnegative, or -1 to leave a limit unset.")
+  ARTS_USER_ERROR_IF(rank != -1 and (max_lost_dofs != -1 or max_lost_information_bits != -1),
+                     "Supply either an explicit rank or information-loss limits, not both.")
+
+  const auto contribution = [](Numeric s) {
+    const Numeric fraction = s / std::hypot(1, s);
+    const Numeric bits =
+        (s <= 1 ? .5 * std::log1p(s * s) : std::log(s) + .5 * std::log1p((1 / s) * (1 / s))) / std::log(2.);
+    return std::pair{fraction * fraction, bits};
+  };
+  Index   retained  = rank;
+  Numeric lost_dofs = 0, lost_bits = 0;
+  if (retained == -1) {
+    const Numeric dofs_limit = max_lost_dofs == -1 ? std::numeric_limits<Numeric>::infinity() : max_lost_dofs;
+    const Numeric bits_limit = max_lost_information_bits == -1
+                                   ? (max_lost_dofs == -1 ? 0 : std::numeric_limits<Numeric>::infinity())
+                                   : max_lost_information_bits;
+    retained                 = p;
+    // Sum from the weakest end: subtracting from a large total loses weak tails.
+    // Keep one coefficient even when no mode is informative, as required by ReducedOEM.
+    while (retained > 1) {
+      const auto [dofs, bits] = contribution(singular_values[retained - 1]);
+      const Numeric next_dofs = lost_dofs + dofs;
+      const Numeric next_bits = lost_bits + bits;
+      if (next_dofs > dofs_limit or next_bits > bits_limit) break;
+      lost_dofs = next_dofs;
+      lost_bits = next_bits;
+      --retained;
+    }
+  } else {
+    for (Index i = p; i > retained; --i) {
+      const auto [dofs, bits]  = contribution(singular_values[i - 1]);
+      lost_dofs               += dofs;
+      lost_bits               += bits;
+    }
+  }
+
+  const Index q = std::min(retained, m);
+  ARTS_USER_ERROR_IF(
+      retained > B.ncols() or q > C.nrows(),
+      "Requested modes have already been removed. Restore saved bases or rerun ReducedOEMBasisCalc before increasing rank or tightening loss limits.")
+  Matrix reduced_B{B[joker, Range(0, retained)]};
+  Matrix reduced_C{C[Range(0, q), joker]};
+  // Materialize both slices before replacing either input; retain the full spectrum for total losses.
+  model_state_basis_mat           = std::move(reduced_B);
+  measurement_basis_mat           = std::move(reduced_C);
+  oem_basis_lost_dofs             = lost_dofs;
+  oem_basis_lost_information_bits = lost_bits;
+}
+
 void ReducedOEM(const Workspace&                  ws,
                 Vector&                           model_state_vec,
                 Vector&                           measurement_vec_fit,
@@ -522,6 +646,8 @@ void ReducedOEM(const Workspace&                  ws,
                 const Vector&                     measurement_vec,
                 const CovarianceMatrix&           measurement_vec_error_covmat_input,
                 const Agenda&                     inversion_iterate_agenda,
+                const Matrix&                     model_state_basis_mat,
+                const Matrix&                     measurement_basis_mat,
                 const String&                     method,
                 const Numeric&                    max_start_cost,
                 const Vector&                     model_state_covmat_normalization,
@@ -530,9 +656,7 @@ void ReducedOEM(const Workspace&                  ws,
                 const Numeric&                    stop_dx,
                 const LevenbergMarquardtSettings& lm_ga_settings,
                 const Index&                      clear_matrices,
-                const Index&                      display_progress,
-                const Matrix&                     model_state_basis_mat,
-                const Matrix&                     measurement_basis_mat) {
+                const Index&                      display_progress) {
   ARTS_TIME_REPORT
   const auto  selected = parse_oem_method(method);
   const auto& B        = model_state_basis_mat;
