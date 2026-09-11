@@ -188,10 +188,10 @@ def run():
     medians = {name: float(np.median(timings[name])) for name in names}
     for name in names:
         print(f"  {name}: median {1e3*medians[name]:.3f} ms, "
-              f"range {1e3*min(timings[name]):.3f}–{1e3*max(timings[name]):.3f} ms, "
-              f"iterations {min(iterations[name])}–{max(iterations[name])}")
+              f"range {1e3*min(timings[name]):.3f}-{1e3*max(timings[name]):.3f} ms, "
+              f"iterations {min(iterations[name])}-{max(iterations[name])}")
     delta = medians["ReducedOEM"] - medians["OEM"]
-    print(f"  ReducedOEM − OEM: {1e3*delta:+.3f} ms ({100*delta/medians['OEM']:+.2f}%; positive is slower)")
+    print(f"  ReducedOEM - OEM: {1e3*delta:+.3f} ms ({100*delta/medians['OEM']:+.2f}%; positive is slower)")
     print(f"  Basis preparation from existing Jacobian (one call each): "
           f"Calc {1e3*basis_calc_seconds:.3f} ms, Reduce {1e3*basis_reduce_seconds:.3f} ms")
     print(f"  Basis preparation + median ReducedOEM: "

@@ -596,10 +596,10 @@ def print_timings(method="lm", repeats=20):
         delta = median - baseline
         difference = np.max(abs(state - full_results[method][0]))
         print(f"  {label}: median {1e3*median:.3f} ms, "
-              f"range {1e3*min(times):.3f}–{1e3*max(times):.3f} ms; "
+              f"range {1e3*min(times):.3f}-{1e3*max(times):.3f} ms; "
               f"vs OEM {1e3*delta:+.3f} ms ({100*delta/baseline:+.1f}%)")
         print(
-            f"    state={np.array2string(state, precision=7)}, max |state − OEM|={difference:.3g}")
+            f"    state={np.array2string(state, precision=7)}, max |state - OEM|={difference:.3g}")
     print("Positive timing differences mean slower. Rank 1 discards information and changes the fitted state.")
     # Timings are reported, not used as pass/fail thresholds.
 
