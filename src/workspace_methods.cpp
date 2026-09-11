@@ -5420,6 +5420,51 @@ inner CG solve reached its tolerance.
       .size_constraints = false,
   };
 
+  {
+    auto reduced = wsm_data.at("OEM");
+    reduced.desc = R"(Run OEM in reduced state and measurement coordinates.
+
+Supply both model_state_basis_mat :math:`\mathbf{B}` (full states by reduced
+states) and measurement_basis_mat :math:`\mathbf{C}` (reduced measurements by
+full measurements). Columns of :math:`\mathbf{B}` and rows of :math:`\mathbf{C}`
+must respectively be linearly independent. Use an identity matrix to leave
+either space unchanged. The physical agenda and its real targets operate on
+the full state :math:`\vec{x}=\vec{x}_a+\mathbf{B}\vec{z}`. Only the solver uses
+:math:`\mathbf{J}_r=\mathbf{C}\mathbf{J}\mathbf{B}`, prior covariance
+:math:`(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1}`, and measurement
+covariance :math:`\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}`.
+The starting state must lie in this affine subspace, or be empty to start at
+the prior. Full-size input fit/Jacobian caches must describe that start.
+
+All OEM methods are available. LM damping is
+:math:`\mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}`.
+stop_dx uses the reduced state dimension. Normalization vectors, when supplied,
+must have reduced dimensions; the same method restrictions as OEM apply.
+Full forward simulations and Jacobians are still computed. Returned state,
+fit and Jacobian remain full-size; the gain is :math:`\mathbf{B}\mathbf{G}_r\mathbf{C}`.
+Initial/final diagnostic costs and max_start_cost use the full residual and
+original measurement count, including discarded measurements. Iteration
+progress and convergence use the reduced objective. Errors during iteration
+or final-state restoration appear in ``oem_diagnostics`` with status ``Error``.
+
+``pyarts3.retrieval.information_from_workspace(...).reduction(...)`` supplies
+both matrices from leading singular modes. Its loss estimates and posterior
+covariance are local linear quantities. Reduction can discard information;
+discarded state modes retain prior uncertainty, not zero uncertainty.
+See :ref:`sec-reduced-oem` for the mathematics and limits of lossless reduction.
+)";
+    reduced.gin.emplace_back("model_state_basis_mat");
+    reduced.gin_type.emplace_back("Matrix");
+    reduced.gin_value.emplace_back(std::nullopt);
+    reduced.gin_desc.emplace_back("Full-state by reduced-state expansion matrix");
+
+    reduced.gin.emplace_back("measurement_basis_mat");
+    reduced.gin_type.emplace_back("Matrix");
+    reduced.gin_value.emplace_back(std::nullopt);
+    reduced.gin_desc.emplace_back("Reduced-measurement by full-measurement projection matrix");
+    wsm_data["ReducedOEM"] = std::move(reduced);
+  }
+
   wsm_data["measurement_vec_error_covmatNormalization"] = {
       .desc      = R"(Returns measurement noise standard deviations :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`.
 

@@ -166,6 +166,116 @@ void check_oem_inputs(const Vector&           x,
   ARTS_USER_ERROR_IF(clear_matrices < 0 || clear_matrices > 1, "clear_matrices must be 0 or 1.")
   ARTS_USER_ERROR_IF(display_progress < 0 || display_progress > 1, "display_progress must be 0 or 1.")
 }
+
+// Shared iteration dispatch for full and reduced forward-model adapters.
+template <typename Forward> void oem_compute(Forward&                          aw,
+                                             oem::Vector&                      x_oem,
+                                             OptimalEstimationDiagnostics&     oem_diagnostics,
+                                             const Vector&                     model_state_vec_apriori,
+                                             const Vector&                     measurement_vec,
+                                             const CovarianceMatrix&           model_state_covmat,
+                                             const CovarianceMatrix&           measurement_vec_error_covmat,
+                                             const OEMMethod&                  selected,
+                                             const Vector&                     model_state_covmat_normalization,
+                                             const Vector&                     measurement_vec_normalization,
+                                             Index                             max_iter,
+                                             Numeric                           stop_dx,
+                                             const LevenbergMarquardtSettings& lm_ga_settings,
+                                             Index                             display_progress,
+                                             const Matrix*                     projected_damping = nullptr) {
+  const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
+  auto&       lm_ga_history = oem_diagnostics.lm_ga_history;
+  auto&       errors        = oem_diagnostics.errors;
+  bool        apply_norm    = false;
+  oem::Matrix T{};
+  if (model_state_covmat_normalization.size() == static_cast<Size>(n)) {
+    T.resize(n, n);
+    static_cast<::Matrix&>(T) = 0.0;
+    diagonal(T)               = model_state_covmat_normalization;
+    apply_norm                = true;
+  }
+
+  oem::CovarianceMatrix Se(measurement_vec_error_covmat), Sa(model_state_covmat);
+  oem::Vector           xa_oem(model_state_vec_apriori), y_oem(measurement_vec);
+  const auto            iterations = static_cast<unsigned int>(selected.linear() ? 1 : max_iter);
+  const auto            verbosity  = static_cast<unsigned int>(display_progress);
+
+  // Read diagnostics from the formulation that actually ran, including when
+  // the forward model throws. Costs always use the same measurement scaling.
+  auto run = [&]<typename Retrieval, typename Optimizer>(Retrieval& retrieval, Optimizer& optimizer) {
+    auto diagnostics = [&] {
+      oem_diagnostics.final_cost       = retrieval.cost / static_cast<Numeric>(m);
+      oem_diagnostics.measurement_cost = retrieval.cost_y / static_cast<Numeric>(m);
+      oem_diagnostics.iterations       = static_cast<Index>(retrieval.iterations);
+    };
+    retrieval.iterations = 0;
+    try {
+      const auto status = retrieval.template compute<Optimizer&, oem::ArtsLog>(
+          x_oem, y_oem, optimizer, verbosity, lm_ga_history, selected.linear());
+      oem_diagnostics.status =
+          status == 0 ? OptimalEstimationStatus::Converged : OptimalEstimationStatus::IterationLimit;
+    } catch (...) {
+      diagnostics();
+      throw;
+    }
+    diagnostics();
+  };
+
+  auto solve = [&]<typename Solver>(Solver& solver) {
+    if (selected.damped()) {
+      // D = diag(Sa^-1), not diag(Sa)^-1 when the prior is correlated.
+      CovarianceMatrix damping;
+      if (projected_damping) {
+        damping.add_correlation_inverse(
+            Block(Range(0, n), Range(0, n), {0, 0}, std::make_shared<Matrix>(*projected_damping)));
+      } else {
+        damping.add_correlation_inverse(
+            Block(Range(0, n),
+                  Range(0, n),
+                  std::make_pair(0, 0),
+                  std::make_shared<Sparse>(Sparse::diagonal(model_state_covmat.inverse_diagonal()))));
+      }
+      oem::CovarianceMatrix precision = inv(oem::CovarianceMatrix(damping));
+      invlib::LevenbergMarquardt<Numeric, oem::CovarianceMatrix, Solver> optimizer(precision, solver);
+      configure_lm(optimizer, lm_ga_settings, stop_dx, iterations);
+      oem::OEM_STANDARD<Forward> retrieval(aw, xa_oem, Sa, Se);
+      run(retrieval, optimizer);
+      if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit)
+        oem_diagnostics.status = OptimalEstimationStatus::DampingLimit;
+    } else {
+      invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
+      // Both measurement solvers accept the lazy system.
+      if constexpr (std::is_same_v<Solver, oem::CG> or std::is_same_v<Solver, oem::DirectMeasurementSolver>) {
+        if (selected.measurement_space) {
+          oem::OEM_MFORM<Forward> retrieval(aw, xa_oem, Sa, Se);
+          run(retrieval, optimizer);
+          return;
+        }
+      }
+      oem::OEM_STANDARD<Forward> retrieval(aw, xa_oem, Sa, Se);
+      run(retrieval, optimizer);
+    }
+  };
+
+  if (selected.conjugate_gradient) {
+    oem::CG solver(T, apply_norm, 1e-10, 0);
+    solver.measurement_scales = measurement_vec_normalization;
+    bool warned               = false;
+    solver.set_iteration_limit_warning([&] {
+      if (not warned) {
+        errors.emplace_back("Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
+        warned = true;
+      }
+    });
+    solve(solver);
+  } else if (selected.measurement_space) {
+    oem::DirectMeasurementSolver solver{measurement_vec_normalization};
+    solve(solver);
+  } else {
+    oem::Std solver(T, apply_norm);
+    solve(solver);
+  }
+}
 }  // namespace
 
 void model_state_vec_aprioriFromState(Vector& xa, const Vector& x) {
@@ -191,7 +301,6 @@ void measurement_vec_error_covmatNormalization(Vector& normalization, const Cova
   normalization = std::move(scales);
 }
 
-/* Workspace method: Doxygen documentation will be auto-generated */
 void OEM(const Workspace&                  ws,
          Vector&                           model_state_vec,
          Vector&                           measurement_vec_fit,
@@ -334,105 +443,35 @@ void OEM(const Workspace&                  ws,
   }
   // Otherwise do inversion
   else {
-    bool        apply_norm = false;
-    oem::Matrix T{};
-    if (model_state_covmat_normalization.size() == static_cast<Size>(n)) {
-      T.resize(n, n);
-      static_cast<::Matrix&>(T) = 0.0;
-      diagonal(T)               = model_state_covmat_normalization;
-      apply_norm                = true;
-    }
-
-    oem::CovarianceMatrix Se(measurement_vec_error_covmat), Sa(model_state_covmat);
-    oem::Vector           xa_oem(model_state_vec_apriori), y_oem(measurement_vec), x_oem(model_state_vec);
-    oem::AgendaWrapper    aw(&ws,
-                             static_cast<unsigned int>(m),
-                             static_cast<unsigned int>(n),
-                             measurement_jac,
-                             measurement_vec_fit,
-                             model_state_vec,
-                             &atm_field,
-                             &abs_bands,
-                             &measurement_sensor,
-                             &surf_field,
-                             &subsurf_field,
-                             &jac_targets,
-                             &inversion_iterate_agenda);
-    const auto            iterations = static_cast<unsigned int>(selected.linear() ? 1 : max_iter);
-    const auto            verbosity  = static_cast<unsigned int>(display_progress);
-
-    // Read diagnostics from the formulation that actually ran, including when
-    // the forward model throws. Costs always use the same measurement scaling.
-    auto run = [&]<typename Retrieval, typename Optimizer>(Retrieval& retrieval, Optimizer& optimizer) {
-      auto diagnostics = [&] {
-        oem_diagnostics.final_cost       = retrieval.cost / static_cast<Numeric>(m);
-        oem_diagnostics.measurement_cost = retrieval.cost_y / static_cast<Numeric>(m);
-        oem_diagnostics.iterations       = static_cast<Index>(retrieval.iterations);
-      };
-      retrieval.iterations = 0;
-      try {
-        const auto status = retrieval.template compute<Optimizer&, oem::ArtsLog>(
-            x_oem, y_oem, optimizer, verbosity, lm_ga_history, selected.linear());
-        oem_diagnostics.status =
-            status == 0 ? OptimalEstimationStatus::Converged : OptimalEstimationStatus::IterationLimit;
-      } catch (...) {
-        diagnostics();
-        throw;
-      }
-      diagnostics();
-    };
-
-    auto solve = [&]<typename Solver>(Solver& solver) {
-      if (selected.damped()) {
-        // D = diag(Sa^-1), not diag(Sa)^-1 when the prior is correlated.
-        CovarianceMatrix damping;
-        damping.add_correlation_inverse(
-            Block(Range(0, n),
-                  Range(0, n),
-                  std::make_pair(0, 0),
-                  std::make_shared<Sparse>(Sparse::diagonal(model_state_covmat.inverse_diagonal()))));
-        oem::CovarianceMatrix precision = inv(oem::CovarianceMatrix(damping));
-        invlib::LevenbergMarquardt<Numeric, oem::CovarianceMatrix, Solver> optimizer(precision, solver);
-        configure_lm(optimizer, lm_ga_settings, stop_dx, iterations);
-        oem::OEM_STANDARD<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
-        run(retrieval, optimizer);
-        if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit)
-          oem_diagnostics.status = OptimalEstimationStatus::DampingLimit;
-      } else {
-        invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
-        // Both measurement solvers accept the lazy system.
-        if constexpr (std::is_same_v<Solver, oem::CG> or std::is_same_v<Solver, oem::DirectMeasurementSolver>) {
-          if (selected.measurement_space) {
-            oem::OEM_MFORM<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
-            run(retrieval, optimizer);
-            return;
-          }
-        }
-        oem::OEM_STANDARD<oem::AgendaWrapper> retrieval(aw, xa_oem, Sa, Se);
-        run(retrieval, optimizer);
-      }
-    };
-
+    oem::Vector        x_oem(model_state_vec);
+    oem::AgendaWrapper aw(&ws,
+                          static_cast<unsigned int>(m),
+                          static_cast<unsigned int>(n),
+                          measurement_jac,
+                          measurement_vec_fit,
+                          model_state_vec,
+                          &atm_field,
+                          &abs_bands,
+                          &measurement_sensor,
+                          &surf_field,
+                          &subsurf_field,
+                          &jac_targets,
+                          &inversion_iterate_agenda);
     try {
-      if (selected.conjugate_gradient) {
-        oem::CG solver(T, apply_norm, 1e-10, 0);
-        solver.measurement_scales = measurement_vec_normalization;
-        bool warned               = false;
-        solver.set_iteration_limit_warning([&] {
-          if (not warned) {
-            errors.emplace_back(
-                "Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
-            warned = true;
-          }
-        });
-        solve(solver);
-      } else if (selected.measurement_space) {
-        oem::DirectMeasurementSolver solver{measurement_vec_normalization};
-        solve(solver);
-      } else {
-        oem::Std solver(T, apply_norm);
-        solve(solver);
-      }
+      oem_compute(aw,
+                  x_oem,
+                  oem_diagnostics,
+                  model_state_vec_apriori,
+                  measurement_vec,
+                  model_state_covmat,
+                  measurement_vec_error_covmat,
+                  selected,
+                  model_state_covmat_normalization,
+                  measurement_vec_normalization,
+                  max_iter,
+                  stop_dx,
+                  lm_ga_settings,
+                  display_progress);
       // Ensure that the returned gain/Jacobian describe the retrieved state.
       // An already current Jacobian needs neither an agenda call nor a fit copy.
       if (!selected.linear() && !clear_matrices) aw.ensure_jacobian(x_oem);
@@ -463,6 +502,238 @@ void OEM(const Workspace&                  ws,
       mult(measurement_gain_mat, tmp3, tmp1);
     }
   }
+}
+
+/* Workspace method: Doxygen documentation will be auto-generated */
+void ReducedOEM(const Workspace&                  ws,
+                Vector&                           model_state_vec,
+                Vector&                           measurement_vec_fit,
+                Matrix&                           measurement_jac,
+                AtmField&                         atm_field,
+                AbsorptionBands&                  abs_bands,
+                ArrayOfSensorObsel&               measurement_sensor,
+                SurfaceField&                     surf_field,
+                SubsurfaceField&                  subsurf_field,
+                Matrix&                           measurement_gain_mat,
+                OptimalEstimationDiagnostics&     oem_diagnostics,
+                const JacobianTargets&            jac_targets,
+                const Vector&                     model_state_vec_apriori,
+                const CovarianceMatrix&           model_state_covmat_input,
+                const Vector&                     measurement_vec,
+                const CovarianceMatrix&           measurement_vec_error_covmat_input,
+                const Agenda&                     inversion_iterate_agenda,
+                const String&                     method,
+                const Numeric&                    max_start_cost,
+                const Vector&                     model_state_covmat_normalization,
+                const Vector&                     measurement_vec_normalization,
+                const Index&                      max_iter,
+                const Numeric&                    stop_dx,
+                const LevenbergMarquardtSettings& lm_ga_settings,
+                const Index&                      clear_matrices,
+                const Index&                      display_progress,
+                const Matrix&                     model_state_basis_mat,
+                const Matrix&                     measurement_basis_mat) {
+  ARTS_TIME_REPORT
+  const auto  selected = parse_oem_method(method);
+  const auto& B        = model_state_basis_mat;
+  const auto& C        = measurement_basis_mat;
+  const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
+  const Index r = B.ncols(), q = C.nrows();
+  ARTS_USER_ERROR_IF(
+      B.nrows() != n or r <= 0 or r > n, "model_state_basis_mat must have {} rows and between 1 and {} columns.", n, n)
+  ARTS_USER_ERROR_IF(
+      C.ncols() != m or q <= 0 or q > m, "measurement_basis_mat must have {} columns and between 1 and {} rows.", m, m)
+  ARTS_USER_ERROR_IF(stdr::any_of(B | by_elem, [](auto v) { return not std::isfinite(v); }) or
+                         stdr::any_of(C | by_elem, [](auto v) { return not std::isfinite(v); }),
+                     "ReducedOEM reduction matrices must be finite.")
+  ARTS_USER_ERROR_IF(stdr::any_of(model_state_vec_apriori, [](auto v) { return not std::isfinite(v); }),
+                     "ReducedOEM prior state must be finite.")
+
+  const auto prior = model_state_covmat_input.prepared(selected.damped());
+  const auto noise = measurement_vec_error_covmat_input.prepared();
+  check_oem_inputs(model_state_vec,
+                   measurement_vec_fit,
+                   measurement_jac,
+                   model_state_vec_apriori,
+                   *prior,
+                   measurement_vec,
+                   *noise,
+                   selected,
+                   {},
+                   max_iter,
+                   stop_dx,
+                   max_start_cost,
+                   clear_matrices,
+                   display_progress);
+  if (selected.damped()) lm_ga_settings.validate();
+
+  std::shared_ptr<const CovarianceMatrix> reduced_prior, reduced_noise;
+  Vector                                  za(r, 0), start(r, 0), reduced_y(q);
+  Matrix                                  damping;
+  {
+    // Factor and validate once; release preparation scratch before iteration.
+    const auto dense_covariance = [](Matrix values) {
+      const Index      size = values.nrows();
+      CovarianceMatrix result;
+      result.add_correlation(
+          Block(Range(0, size), Range(0, size), {0, 0}, std::make_shared<Matrix>(std::move(values))));
+      return result;
+    };
+    Matrix weighted(n, r), precision(r, r);
+    mult_inv(weighted, *prior, B);
+    mult(precision, transpose(B), weighted);
+    const auto reduced_precision = dense_covariance(std::move(precision)).prepared();
+    Matrix     identity(r, r), covariance(r, r);
+    id_mat(identity);
+    mult_inv(covariance, *reduced_precision, identity);
+    reduced_prior =
+        dense_covariance(std::move(covariance)).prepared(not selected.measurement_space or clear_matrices == 0);
+
+    Matrix noise_projection(m, q), reduced_noise_values(q, q);
+    mult(noise_projection, *noise, transpose(C));
+    mult(reduced_noise_values, C, noise_projection);
+    reduced_noise = dense_covariance(std::move(reduced_noise_values)).prepared();
+
+    mult(reduced_y, C, measurement_vec);
+    if (not model_state_vec.empty()) {
+      Vector delta  = model_state_vec;
+      delta        -= model_state_vec_apriori;
+      Vector rhs(r), represented(n);
+      mult(rhs, transpose(weighted), delta);
+      mult(start, *reduced_prior, rhs);
+      mult(represented, B, start);
+      for (Index i = 0; i < n; ++i)
+        ARTS_USER_ERROR_IF(not std::isfinite(delta[i]) or not std::isfinite(represented[i]) or
+                               std::abs(represented[i] - delta[i]) > 1e-8 * (1 + std::abs(delta[i])),
+                           "ReducedOEM starting state must lie in the supplied affine subspace.")
+    }
+    check_oem_inputs(start,
+                     {},
+                     {},
+                     za,
+                     *reduced_prior,
+                     reduced_y,
+                     *reduced_noise,
+                     selected,
+                     model_state_covmat_normalization,
+                     max_iter,
+                     stop_dx,
+                     max_start_cost,
+                     clear_matrices,
+                     display_progress);
+    ARTS_USER_ERROR_IF(
+        not measurement_vec_normalization.empty() and
+            (not selected.measurement_space or measurement_vec_normalization.size() != static_cast<Size>(q)),
+        "ReducedOEM measurement_vec_normalization requires a measurement-space method and {} elements.",
+        q)
+    ARTS_USER_ERROR_IF(
+        stdr::any_of(measurement_vec_normalization, [](auto v) { return not std::isfinite(v) or v <= 0; }),
+        "measurement_vec_normalization values must be finite and > 0.")
+
+    if (selected.damped()) {
+      const Vector diagonal_precision = prior->inverse_diagonal();
+      for (Index i = 0; i < n; ++i)
+        for (Index k = 0; k < r; ++k) weighted[i, k] = diagonal_precision[i] * B[i, k];
+      damping.resize(r, r);
+      mult(damping, transpose(B), weighted);
+    }
+  }
+
+  measurement_gain_mat.resize(0, 0);
+  oem_diagnostics = {};
+  oem_diagnostics.lm_ga_history.resize(selected.damped() ? max_iter + 1 : 0);
+  oem_diagnostics.lm_ga_history = NAN;
+  if (model_state_vec.empty()) {
+    model_state_vec = model_state_vec_apriori;
+    measurement_vec_fit.resize(0);
+    measurement_jac.resize(0, 0);
+  }
+  oem::AgendaWrapper        full(&ws,
+                                 m,
+                                 n,
+                                 measurement_jac,
+                                 measurement_vec_fit,
+                                 model_state_vec,
+                                 &atm_field,
+                                 &abs_bands,
+                                 &measurement_sensor,
+                                 &surf_field,
+                                 &subsurf_field,
+                                 &jac_targets,
+                                 &inversion_iterate_agenda);
+  oem::ReducedAgendaWrapper reduced(full, model_state_vec_apriori, B, C, measurement_jac);
+  oem::Vector               z(start);
+  model_state_vec = reduced.expand(z);
+  reduced.ensure_jacobian(z);
+
+  // Keep diagnostics in the original measurement space, including discarded residuals.
+  const auto full_cost = [&] {
+    Vector dx = model_state_vec, dy = measurement_vec;
+    dx -= model_state_vec_apriori;
+    dy -= measurement_vec_fit;
+    Vector sx(n), sy(m);
+    mult_inv(sx.view_as(n, 1), *prior, dx.view_as(n, 1));
+    mult_inv(sy.view_as(m, 1), *noise, dy.view_as(m, 1));
+    const Numeric measurement_cost = dot(dy, sy) / static_cast<Numeric>(m);
+    return std::pair{dot(dx, sx) / static_cast<Numeric>(m) + measurement_cost, measurement_cost};
+  };
+  oem_diagnostics.initial_cost = full_cost().first;
+  if (max_start_cost > 0 and oem_diagnostics.initial_cost > max_start_cost) {
+    oem_diagnostics.status = OptimalEstimationStatus::StartCostLimit;
+    if (clear_matrices) measurement_jac.resize(0, 0);
+    return;
+  }
+
+  try {
+    oem_compute(reduced,
+                z,
+                oem_diagnostics,
+                za,
+                reduced_y,
+                *reduced_prior,
+                *reduced_noise,
+                selected,
+                model_state_covmat_normalization,
+                measurement_vec_normalization,
+                max_iter,
+                stop_dx,
+                lm_ga_settings,
+                display_progress,
+                selected.damped() ? &damping : nullptr);
+    model_state_vec = reduced.expand(z);
+    // LI and rejected LM trials also need the physical outputs at the returned state.
+    if (clear_matrices) {
+      full.ensure_measurement(reduced.expand(z));
+    } else {
+      reduced.ensure_jacobian(z);
+      const auto& jac = reduced.get_jacobian();
+      Matrix      rhs(r, q), hessian(r, r), posterior(r, r), gain(r, q);
+      mult_inv(rhs, transpose(jac), *reduced_noise);
+      mult(hessian, rhs, jac);
+      add_inv(hessian, *reduced_prior);
+      inv(posterior, hessian);
+      mult(gain, posterior, rhs);
+      Matrix expanded_gain(n, q);
+      mult(expanded_gain, B, gain);
+      measurement_gain_mat.resize(n, m);
+      mult(measurement_gain_mat, expanded_gain, C);
+    }
+    const auto [cost, measurement_cost] = full_cost();
+    oem_diagnostics.final_cost          = cost;
+    oem_diagnostics.measurement_cost    = measurement_cost;
+  } catch (const std::exception& error) {
+    oem_diagnostics.status           = OptimalEstimationStatus::Error;
+    oem_diagnostics.final_cost       = NAN;
+    oem_diagnostics.measurement_cost = NAN;
+    model_state_vec                  = NAN;
+    measurement_jac.resize(0, 0);
+    measurement_gain_mat.resize(0, 0);
+    for (const auto& message : oem::handle_nested_exception(error)) {
+      std::stringstream stream{message};
+      for (std::string line; std::getline(stream, line);) oem_diagnostics.errors.push_back(line);
+    }
+  }
+  if (clear_matrices) measurement_jac.resize(0, 0);
 }
 
 void measurement_vec_error_covmat_observation_systemCalc(Matrix&       measurement_vec_error_covmat_observation_system,

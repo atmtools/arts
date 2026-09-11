@@ -569,8 +569,12 @@ class AgendaWrapper {
    * inouts; those require another agenda execution at the accepted state.
    */
   Vector evaluate(const Vector &xi) {
-    if (!measurement_valid_ || !same_state(measurement_state_, xi)) execute(xi, false);
+    ensure_measurement(xi);
     return yi_;
+  }
+
+  void ensure_measurement(const Vector &xi) {
+    if (!measurement_valid_ || !same_state(measurement_state_, xi)) execute(xi, false);
   }
 
  private:
@@ -626,6 +630,71 @@ class AgendaWrapper {
   // O(n) state tags; the potentially much larger Jacobian stays in its original storage.
   ::Vector measurement_state_, jacobian_state_;
   bool     measurement_valid_, jacobian_valid_;
+};
+
+/** Reduce only solver coordinates; the physical agenda always sees full targets.
+ * B expands states, C projects measurements. Both are validated at the boundary.
+ */
+class ReducedAgendaWrapper {
+ public:
+  const unsigned int m, n;
+
+  ReducedAgendaWrapper(AgendaWrapper  &forward,
+                       const ::Vector &prior,
+                       const ::Matrix &state_reduction,
+                       const ::Matrix &measurement_reduction,
+                       const ::Matrix &full_jacobian)
+      : m(static_cast<unsigned int>(measurement_reduction.nrows())),
+        n(static_cast<unsigned int>(state_reduction.ncols())),
+        forward_(forward),
+        prior_(prior),
+        B_(state_reduction),
+        C_(measurement_reduction),
+        full_jacobian_(full_jacobian),
+        full_state_(prior),
+        state_jacobian_(measurement_reduction.ncols(), n),
+        jacobian_(m, n) {}
+
+  const Vector &expand(const Vector &z) {
+    mult(static_cast<::Vector &>(full_state_), B_, static_cast<const ::Vector &>(z));
+    static_cast<::Vector &>(full_state_) += prior_;
+    return full_state_;
+  }
+
+  MatrixReference Jacobian(const Vector &z, Vector &y) {
+    ensure_jacobian(z);
+    static_cast<::Vector &>(y).resize(m);
+    mult(static_cast<::Vector &>(y), C_, forward_.get_measurement_vec());
+    return MatrixReference(jacobian_);
+  }
+
+  void ensure_jacobian(const Vector &z) {
+    forward_.ensure_jacobian(expand(z));
+    if (jacobian_state_.size() != z.size() ||
+        !std::equal(jacobian_state_.begin(), jacobian_state_.end(), z.elem_begin())) {
+      mult(state_jacobian_, full_jacobian_, B_);
+      mult(jacobian_, C_, state_jacobian_);
+      jacobian_state_ = static_cast<const ::Vector &>(z);
+    }
+  }
+
+  Vector evaluate(const Vector &z) {
+    forward_.ensure_measurement(expand(z));
+    Vector y;
+    static_cast<::Vector &>(y).resize(m);
+    mult(static_cast<::Vector &>(y), C_, forward_.get_measurement_vec());
+    return y;
+  }
+
+  const ::Matrix &get_jacobian() const { return jacobian_; }
+
+ private:
+  AgendaWrapper  &forward_;
+  const ::Vector &prior_;
+  const ::Matrix &B_, &C_, &full_jacobian_;
+  Vector          full_state_;
+  ::Matrix        state_jacobian_, jacobian_;
+  ::Vector        jacobian_state_;
 };
 }  // namespace oem
 

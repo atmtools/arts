@@ -806,3 +806,82 @@ Supply ``state_labels=[...]`` when more specific per-coordinate labels are
 needed. Missing metadata retains generic ``x[i]`` labels; target ranges outside
 the Jacobian columns are rejected rather than attaching misleading names.
 The function does not finalize targets, run an agenda or modify the workspace.
+
+ReducedOEM
+-----------
+
+``ReducedOEM`` runs the forward model at full size and reduces the state and
+measurement coordinates used by the solver. Both matrices must be supplied:
+``model_state_red_mat`` has full-state rows and reduced-state columns;
+``measurement_red_mat`` has reduced-measurement rows and full-measurement
+columns. Their columns and rows, respectively, must be linearly independent.
+Their normalization is arbitrary: ReducedOEM transforms both covariances.
+
+Given a current full Jacobian and the covariances, choose leading information
+modes explicitly::
+
+    report = pyarts3.retrieval.information_from_workspace(ws)
+    reduction = report.reduction(rank=r)
+    ws.model_state_vec = []  # Start at the prior
+    ws.ReducedOEM(
+        method="lm",
+        model_state_red_mat=reduction.model_state_red_mat,
+        measurement_red_mat=reduction.measurement_red_mat,
+    )
+
+Alternatively select the smallest rank meeting an information-loss budget at
+the report's linearization point::
+
+    reduction = report.reduction(max_lost_dofs=0.05, max_lost_information_bits=0.01)
+    print(reduction)  # Rank and discarded DOFS/bits
+
+These budgets are absolute DOFS and bits, not percentages. With two budgets,
+both must be satisfied. At least one state column and one measurement row
+are retained even when all modes are uninformative. Zero loss allows
+discarding only zero-information modes in the computed spectrum.
+
+DOFS is a sum of fractional mode contributions, not a count of modes. For
+example, 100 modes each contributing 0.01 DOFS have total DOFS 1, but retaining
+90 percent requires 90 modes. Avoid choosing rank by rounding total DOFS.
+
+The helper's measurement reduction combines and noise-whitens channels.
+To reduce only the state, supply an identity measurement matrix instead::
+
+    ws.ReducedOEM(
+        method="lm",
+        model_state_red_mat=reduction.model_state_red_mat,
+        measurement_red_mat=np.eye(len(ws.measurement_vec)),
+    )
+
+Conversely, an identity state matrix leaves the state dimension unchanged.
+Rows of an identity measurement matrix can select physical channels, but
+channel selection can lose information that weighted combinations retain.
+The measurement covariance is transformed with the same matrix, including
+correlations between channels.
+
+All OEM method choices remain available. An explicit starting state must lie
+in the affine subspace through the prior. Optional normalization vectors
+refer to the reduced dimensions; the usual OEM method restrictions apply.
+The reduction matrices remain fixed during the call. A reduction chosen at
+one state can become unsuitable for a strongly nonlinear problem.
+
+State, fit, Jacobian and gain outputs retain their full dimensions.
+The physical agenda uses the real, full model-state targets. Full Jacobians
+are computed before projection, so this saves solver work but does not reduce
+Jacobian construction or storage. Input fit/Jacobian caches, if supplied,
+must describe the starting state, as for OEM.
+
+Diagnostic initial/final costs and ``max_start_cost`` use the original
+measurements, covariances and measurement count, including discarded
+residuals. Convergence and iteration progress use the reduced objective.
+Consequently, a converged reduced retrieval can still have a large full
+measurement cost.
+
+``reduction.posterior_covariance()`` reconstructs the full-state covariance
+of the truncated local linear model, preserving discarded prior uncertainty.
+It allocates a full square matrix and uses the report's original Jacobian,
+not a subsequently retrieved nonlinear state. For the helper's matched
+singular-mode reductions in a linear problem this agrees with the sum of the
+workspace smoothing-error and observation-error covariance contributions.
+For arbitrary reductions that error sum can also include coupling from
+discarded modes; see :ref:`sec-reduced-oem`.

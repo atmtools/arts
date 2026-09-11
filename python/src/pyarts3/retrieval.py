@@ -5,7 +5,7 @@ https://doi.org/10.5194/amt-14-5521-2021. These functions neither execute an
 agenda nor change a workspace, its covariance matrices, or its settings.
 """
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 import operator
 
 import numpy as np
@@ -13,7 +13,7 @@ from scipy import linalg, sparse
 
 from . import arts
 
-__all__ = ["InformationReport", "information", "information_from_workspace"]
+__all__ = ["InformationReport", "ReductionReport", "information", "information_from_workspace"]
 
 
 def _real_array(value, name):
@@ -26,6 +26,58 @@ def _readonly(value):
     value = np.array(value, dtype=float, copy=True)
     value.flags.writeable = False
     return value
+
+
+def _mode_information_bits(singular_values):
+    # Avoid overflow for strong modes and cancellation for weak modes.
+    weak = singular_values <= 1
+    result = np.empty_like(singular_values)
+    result[weak] = 0.5 * np.log1p(singular_values[weak] ** 2)
+    strong = singular_values[~weak]
+    result[~weak] = np.log(strong) + 0.5 * np.log1p((1 / strong) ** 2)
+    return result / np.log(2.0)
+
+
+@dataclass(frozen=True)
+class ReductionReport:
+    """Fixed state/measurement reductions and their local linear information loss.
+
+    Pass both reduction matrices to ``Workspace.ReducedOEM``. Losses describe the Jacobian
+    used for the information report, not a bound on nonlinear retrieval error.
+    The underlying state modes are shared with that read-only report.
+    """
+
+    model_state_red_mat: np.ndarray = field(repr=False)
+    measurement_red_mat: np.ndarray = field(repr=False)
+    retained_degrees_of_freedom: float
+    discarded_degrees_of_freedom: float
+    retained_information_bits: float
+    discarded_information_bits: float
+    _state_modes: np.ndarray = field(repr=False)
+    _posterior_factors: np.ndarray = field(repr=False)
+
+    @property
+    def rank(self):
+        """Number of retained columns, and hence reduced state variables."""
+        return self.model_state_red_mat.shape[1]
+
+    def posterior_covariance(self):
+        """Return the local full-state covariance, retaining discarded priors.
+
+        This allocates an n by n matrix. It is exact for a linear Gaussian
+        model when all nonzero modes are retained. Otherwise it is the
+        posterior of the truncated linear model. It is not recomputed at the
+        state returned by a subsequent ReducedOEM call.
+        """
+        scaled = self._state_modes / self._posterior_factors
+        return _readonly(scaled @ scaled.T)
+
+    def __str__(self):
+        return (
+            f"Retaining {self.rank} of {self.model_state_red_mat.shape[0]} state modes; "
+            f"discarding {self.discarded_degrees_of_freedom:.6g} DOFS and "
+            f"{self.discarded_information_bits:.6g} bits (local linear analysis)"
+        )
 
 
 @dataclass(frozen=True)
@@ -71,8 +123,65 @@ class InformationReport:
     measurement_correlation_condition: float
     innovation_chi_square: float | None
     innovation_expected_mean: int | None
+    _noise: "_CovarianceFactor" = field(repr=False)
     # (field label, x_start, x_size), in state-vector order.
     state_blocks: tuple[tuple[str, int, int], ...] = ()
+
+    def reduction(self, rank=None, *, max_lost_dofs=None, max_lost_information_bits=None):
+        """Select leading modes for ReducedOEM by rank or absolute loss limits.
+
+        Supply either an explicit integer rank in 1..n, or one or both finite,
+        nonnegative loss limits. Limits select the smallest rank satisfying
+        all supplied limits, retaining at least one column even for zero
+        information. Limits are absolute DOFS/bits, not fractions. Nothing is
+        rounded from the total DOFS; a broad weak spectrum can require many
+        more modes than that total suggests. Zero limits discard only modes
+        with zero information in the computed spectrum.
+
+        The returned matrices are B = L_a V_r and C = U_q.T L_e^-1, where
+        q = min(rank, m). The reduced prior and noise covariances are identity.
+        C contains weighted combinations, not a selection of physical channels.
+        """
+        limits = (max_lost_dofs, max_lost_information_bits)
+        supplied = [limit is not None for limit in limits]
+        if (rank is None and not any(supplied)) or (rank is not None and any(supplied)):
+            raise ValueError("Supply either rank or information-loss limits")
+        n = len(self.singular_values)
+        bits = _mode_information_bits(self.singular_values)
+        dofs = self.mode_variance_reduction
+        # Reverse sums preserve small discarded tails beside large leading modes.
+        tails = [np.r_[np.cumsum(values[::-1])[::-1], 0.0] for values in (dofs, bits)]
+        if rank is not None:
+            if isinstance(rank, (bool, np.bool_)):
+                raise TypeError("rank must be an integer, not a boolean")
+            rank = operator.index(rank)
+            if not 1 <= rank <= n:
+                raise ValueError(f"rank must be between 1 and {n}")
+        else:
+            eligible = np.ones(n + 1, dtype=bool)
+            eligible[0] = False
+            for limit, tail in zip(limits, tails):
+                if limit is None:
+                    continue
+                limit = float(limit)
+                if not np.isfinite(limit) or limit < 0:
+                    raise ValueError("Information-loss limits must be finite and nonnegative")
+                eligible &= tail <= limit
+            rank = int(np.flatnonzero(eligible)[0])
+        factors = np.ones(n)
+        factors[:rank] = np.hypot(1.0, self.singular_values[:rank])
+        return ReductionReport(
+            model_state_red_mat=_readonly(self.state_modes[:, :rank]),
+            measurement_red_mat=_readonly(self._noise.solve_left(
+                self.measurement_modes[:, :rank], transpose=True
+            ).T),
+            retained_degrees_of_freedom=float(np.sum(dofs[:rank])),
+            discarded_degrees_of_freedom=float(tails[0][rank]),
+            retained_information_bits=float(np.sum(bits[:rank])),
+            discarded_information_bits=float(tails[1][rank]),
+            _state_modes=self.state_modes,
+            _posterior_factors=_readonly(factors),
+        )
 
     def describe(self, max_states=10):
         """Explain the report, showing at most ``max_states`` state entries."""
@@ -187,7 +296,7 @@ class _CovarianceFactor:
                 result[:, indices] = values[:, indices] @ factor
         return result
 
-    def solve_left(self, values):
+    def solve_left(self, values, *, transpose=False):
         result = np.empty_like(values)
         for indices, factor in self.components:
             if factor.ndim == 1:
@@ -195,7 +304,8 @@ class _CovarianceFactor:
                 result[indices] = values[indices] / divisor
             else:
                 result[indices] = linalg.solve_triangular(
-                    factor, values[indices], lower=True, check_finite=False
+                    factor, values[indices], lower=True, check_finite=False,
+                    trans="T" if transpose else "N",
                 )
         return result
 
@@ -442,13 +552,7 @@ def information(
     singular_values[: len(observed_s)] = observed_s
     factors = np.hypot(1.0, singular_values)
     mode_reduction = (singular_values / factors) ** 2
-    # log(hypot(1, s)) rounds to zero for weak modes. Use log1p there,
-    # and the reciprocal identity for strong modes to avoid squaring overflow.
-    weak = singular_values <= 1
-    log_factors = np.empty(n)
-    log_factors[weak] = 0.5 * np.log1p(singular_values[weak] ** 2)
-    strong_s = singular_values[~weak]
-    log_factors[~weak] = np.log(strong_s) + 0.5 * np.log1p((1 / strong_s) ** 2)
+    mode_bits = _mode_information_bits(singular_values)
     state_modes = prior.multiply_left(vt.T)
     posterior_sd = np.hypot.reduce(state_modes / factors, axis=1)
     marginal_reduction = np.clip(
@@ -478,7 +582,7 @@ def information(
         singular_values=_readonly(singular_values),
         mode_variance_reduction=_readonly(mode_reduction),
         degrees_of_freedom=float(np.sum(mode_reduction)),
-        information_bits=float(np.sum(log_factors) / np.log(2.0)),
+        information_bits=float(np.sum(mode_bits)),
         prior_standard_deviation=_readonly(prior.standard_deviation),
         posterior_standard_deviation=_readonly(posterior_sd),
         variance_reduction=_readonly(marginal_reduction),
@@ -489,6 +593,7 @@ def information(
         measurement_correlation_condition=noise.condition,
         innovation_chi_square=innovation,
         innovation_expected_mean=m if innovation is not None else None,
+        _noise=noise,
     )
 
 

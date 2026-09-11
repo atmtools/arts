@@ -27,6 +27,63 @@ def rejects(operation):
         raise AssertionError("Invalid information report input was accepted")
 
 
+def check_reductions():
+    report = information(K, SA, SE)
+    complete = report.reduction(rank=2)
+    np.testing.assert_allclose(complete.posterior_covariance(), POSTERIOR, rtol=1e-12)
+    assert complete.discarded_degrees_of_freedom == 0
+    assert complete.discarded_information_bits == 0
+    assert not complete.model_state_basis_mat.flags.writeable
+    assert not complete.measurement_basis_mat.flags.writeable
+    for rank in (1, 2):
+        reduction = report.reduction(rank=rank)
+        b, c = reduction.model_state_basis_mat, reduction.measurement_basis_mat
+        np.testing.assert_allclose(
+            b.T @ np.linalg.solve(SA, b), np.eye(rank), atol=1e-12)
+        np.testing.assert_allclose(c @ SE @ c.T, np.eye(rank), atol=1e-12)
+        np.testing.assert_allclose(
+            c @ K @ b, np.diag(report.singular_values[:rank]), atol=1e-12)
+    reduced = report.reduction(rank=1)
+    # Independent posterior for the truncated forward matrix, with the full prior.
+    b = reduced.model_state_basis_mat
+    projected_j = K @ b @ b.T @ np.linalg.inv(SA)
+    reference = np.linalg.inv(np.linalg.inv(SA) + projected_j.T @
+                              np.linalg.solve(SE, projected_j))
+    np.testing.assert_allclose(reduced.posterior_covariance(), reference, rtol=1e-12)
+    discarded = report.state_modes[:, 1:]
+    prior_coordinates = np.linalg.solve(SA, discarded)
+    np.testing.assert_allclose(
+        prior_coordinates.T @ reduced.posterior_covariance() @ prior_coordinates, [[1.]], atol=1e-12
+    )
+    assert "Retaining 1 of 2" in str(reduced)
+
+    # Equal weak modes: DOFS=1, but preserving 90% of it requires 90 modes.
+    broad = information(np.eye(100) / np.sqrt(99), np.eye(100), np.eye(100))
+    np.testing.assert_allclose(broad.degrees_of_freedom, 1)
+    assert broad.reduction(max_lost_dofs=0.100001).rank == 90
+    spectrum = information(np.diag([3., 1., .1, 0.]), np.eye(4), np.eye(4))
+    assert spectrum.reduction(max_lost_dofs=.01).rank == 2
+    assert spectrum.reduction(max_lost_information_bits=.01).rank == 2
+    assert spectrum.reduction(
+        max_lost_dofs=.6, max_lost_information_bits=.001).rank == 3
+    assert spectrum.reduction(max_lost_dofs=0, max_lost_information_bits=0).rank == 3
+    null = information(np.zeros((2, 3)), np.eye(
+        3), np.eye(2)).reduction(max_lost_dofs=0)
+    assert null.rank == 1
+    complete_null = information(np.zeros((2, 3)), np.eye(3),
+                                np.eye(2)).reduction(rank=3)
+    assert complete_null.model_state_basis_mat.shape == (3, 3)
+    assert complete_null.measurement_basis_mat.shape == (2, 2)
+    np.testing.assert_array_equal(null.posterior_covariance(), np.eye(3))
+    for kwargs in ({}, {"rank": 0}, {"rank": 3}, {"rank": 1.5}, {"rank": True},
+                   {"rank": 1, "max_lost_dofs": 0}, {"max_lost_dofs": -1},
+                   {"max_lost_information_bits": np.nan}, {"max_lost_dofs": np.inf}):
+        rejects(lambda: report.reduction(**kwargs))
+
+
+check_reductions()
+
+
 def covariance(values):
     values = np.asarray(values, dtype=float)
     size = values.shape[0]
@@ -56,6 +113,13 @@ def assert_modes(report, jacobian, prior, error, posterior):
     assert modes.shape == (n, n)
     assert singular.shape == (n,)
     assert report.measurement_modes.shape == (m, min(m, n))
+    reduction = report.reduction(rank=n)
+    b, c = reduction.model_state_basis_mat, reduction.measurement_basis_mat
+    q = min(m, n)
+    expected = np.zeros((q, n))
+    np.fill_diagonal(expected, singular[:q])
+    np.testing.assert_allclose(c @ jacobian @ b, expected, atol=1e-10)
+    np.testing.assert_allclose(c @ error @ c.T, np.eye(q), atol=1e-12)
     np.testing.assert_allclose(modes @ modes.T, prior, atol=1e-13, rtol=1e-12)
     whitened = np.linalg.solve(np.linalg.cholesky(prior), modes)
     np.testing.assert_allclose(whitened.T @ whitened, np.eye(n), atol=1e-12)
@@ -242,6 +306,10 @@ def test_diagonal_and_memory_limit():
         rtol=1e-12,
     )
     assert report.measurement_modes.shape == (count, 2)
+    reduction = report.reduction(rank=1)
+    assert reduction.measurement_basis_mat.shape == (1, count)
+    np.testing.assert_allclose(reduction.measurement_basis_mat @
+                               reduction.measurement_basis_mat.T, [[1.]], atol=1e-12)
     rejects(lambda: information(K, SA, SE, max_dense_elements=1))
 
     # Mode information and posterior uncertainty remain representable even

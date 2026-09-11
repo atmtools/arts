@@ -659,3 +659,104 @@ and its conditional variance is
 statistical preference with residual uncertainty, while preserving the
 unconditional marginal variances.  With more than two correlated targets,
 all pair coefficients must jointly define a positive-definite covariance.
+
+.. _sec-reduced-oem:
+
+Reduced optimal estimation
+==========================
+
+``ReducedOEM`` uses a fixed state expansion and measurement projection:
+
+.. math::
+
+   \vec{x}=\vec{x}_a+\mathbf{B}\vec{z},\qquad
+   \vec{y}_r=\mathbf{C}\vec{y},\qquad
+   \mathbf{J}_r=\mathbf{C}\mathbf{J}\mathbf{B}.
+
+For :math:`n` full states and :math:`m` full measurements,
+:math:`\mathbf{B}\in\mathbb{R}^{n\times r}` has independent columns and
+:math:`\mathbf{C}\in\mathbb{R}^{q\times m}` has independent rows. Substitution
+in the prior penalty and propagation of measurement errors give
+
+.. math::
+
+   \mathbf{S}_{a,r}=(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1},
+   \qquad
+   \mathbf{S}_{\epsilon,r}=\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}.
+
+The reduced objective is
+
+.. math::
+
+   \Phi_r(\vec{z}) =
+       \vec{z}^{\top}\mathbf{S}_{a,r}^{-1}\vec{z}
+       + \left[\mathbf{C}(\vec{y}-\vec{F}(\vec{x}_a+\mathbf{B}\vec{z}))\right]^{\top}
+         \mathbf{S}_{\epsilon,r}^{-1}
+         \left[\mathbf{C}(\vec{y}-\vec{F}(\vec{x}_a+\mathbf{B}\vec{z}))\right].
+
+This restricts the state to an affine subspace; it does not marginalize
+discarded state variability into the measurement error. The reduced gain
+and its mapping back to the original coordinates are
+
+.. math::
+
+   \mathbf{G}_r =
+       (\mathbf{S}_{a,r}^{-1}
+        +\mathbf{J}_r^{\top}\mathbf{S}_{\epsilon,r}^{-1}\mathbf{J}_r)^{-1}
+        \mathbf{J}_r^{\top}\mathbf{S}_{\epsilon,r}^{-1},
+   \qquad \mathbf{G}=\mathbf{B}\mathbf{G}_r\mathbf{C}.
+
+LM uses the projected damping matrix
+
+.. math::
+
+   \mathbf{D}_r =
+       \mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}.
+
+Thus invertible, square reductions preserve the objective and the exact LM
+linear step under coordinate transformation. Numerical tolerances can still
+affect the iteration path; the convergence measure uses the reduced state
+dimension.
+
+For the whitened singular-value decomposition
+:math:`\mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+=\mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^{\top}`, choose
+
+.. math::
+
+   \mathbf{B}=\mathbf{L}_a\mathbf{V}_r,\qquad
+   \mathbf{C}=\mathbf{U}_q^{\top}\mathbf{L}_\epsilon^{-1},
+   \qquad q=\min(r,m).
+
+Both reduced covariances are then identity matrices. The discarded local
+degrees of freedom and information are
+
+.. math::
+
+   \Delta d_s=\sum_{i>r}\frac{s_i^2}{1+s_i^2},\qquad
+   \Delta H=\frac12\sum_{i>r}\log_2(1+s_i^2).
+
+Retaining every nonzero singular mode preserves the posterior of the linear
+Gaussian problem. Dropping nonzero modes is approximate. Measurement
+compression preserves the likelihood's state dependence on the retained
+subspace if it retains the column space of
+:math:`\mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{B}`. Discarded orthogonal
+noise residuals contribute a constant to the full objective. In general,
+selecting physical channels does not satisfy this condition, particularly
+when their errors are correlated.
+
+For retained singular modes, the truncated local posterior must preserve
+discarded prior uncertainty:
+
+.. math::
+
+   \widehat{\mathbf{S}}_r=\mathbf{S}_a+
+      \mathbf{B}\left[(\mathbf{I}+\mathbf{J}_r^{\top}
+      \mathbf{S}_{\epsilon,r}^{-1}\mathbf{J}_r)^{-1}-\mathbf{I}\right]
+      \mathbf{B}^{\top}.
+
+Using only the projected reduced covariance assigns zero uncertainty to
+discarded modes. This expression describes the truncated local model;
+a null mode of one nonlinear Jacobian need not remain null elsewhere.
+Neither the loss estimates nor this covariance bound the error of a
+particular nonlinear retrieval.

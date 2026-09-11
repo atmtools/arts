@@ -597,3 +597,60 @@ code at the OEM boundary to ``OptimalEstimationStatus``, defined in
 come from the standard options machinery. Both diagnostics
 and LM settings use their aggregate XML representation; status is serialized
 by name, independently of enum ordinals.
+
+ReducedOEM adapter
+------------------
+
+``ReducedOEM`` validates both reduction matrices and prepares reduced
+covariances once at the workspace-method boundary. It projects the starting
+state using the prior metric and rejects an explicit start outside the
+affine subspace. No target metadata is fabricated or resized.
+
+``oem::ReducedAgendaWrapper`` wraps the ordinary ``AgendaWrapper``.
+Every physical agenda execution receives a full state and the real original
+targets. Value-only trials use the existing empty derivative targets.
+The reduced adapter expands the state, projects the measurement vector,
+and computes :math:`\mathbf{J}_r=\mathbf{C}\mathbf{J}\mathbf{B}`.
+It borrows both reduction matrices and reuses its full-state buffer,
+:math:`m\times r` Jacobian intermediate, and :math:`q\times r`
+reduced Jacobian. The full Jacobian stays in the workspace output.
+A state tag avoids repeating projection of an unchanged Jacobian.
+
+The common ``oem_compute`` dispatch serves full and reduced OEM for every LI,
+GN and LM method. There is no nested callback agenda or second workspace
+method invocation. Reduced LM receives
+:math:`\mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}`
+as its damping matrix. This must not be replaced by identity or by the
+diagonal of the reduced prior precision for an arbitrary basis.
+
+The reduced prior is :math:`(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1}`;
+the noise is :math:`\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}`.
+These are dense reduced matrices even if the original covariances are sparse.
+Preparation applies the full covariance's structured solve/multiply paths.
+Only reduced state matrices are inverted to construct the reduced covariance
+and gain; the full prior is never densified for the reduction.
+The ordinary LM inverse-diagonal preparation is still needed for damping.
+
+Final outputs are restored to the accepted full state, including after LI
+or a rejected trial. Existing state tags avoid redundant full agenda calls.
+Final-state restoration failures clear matrices and set the existing error
+diagnostics. The gain is :math:`\mathbf{B}\mathbf{G}_r\mathbf{C}`.
+Diagnostic costs are recomputed in full coordinates; solver progress uses
+the compressed objective. Keep this distinction when extending diagnostics.
+
+``InformationReport.reduction`` selects a rank from reverse cumulative
+information sums, avoiding cancellation when weak tails accompany strong
+leading modes. It produces :math:`\mathbf{B}=\mathbf{L}_a\mathbf{V}_r` and
+:math:`\mathbf{C}=\mathbf{U}_q^{\top}\mathbf{L}_\epsilon^{-1}`,
+with :math:`q=\min(r,m)`. The report retains the block noise factors to apply
+the latter solve when requested; it does not store a full whitening matrix.
+Full posterior covariance is allocated only on request by scaling the state
+mode columns before multiplying. Discarded columns retain unit prior variance.
+
+``tests/core/jac/reduced_oem.py`` runs through CTest. It compares all methods
+against independent affine solutions with both reductions, exercises channel
+selection, correlated errors, arbitrary basis scaling, reduced normalization,
+and nonlinear GN/LM. It also checks full output restoration, diagnostics,
+rank validation, and local lossless compression. A future directional
+Jacobian implementation would require a different agenda contract; this
+adapter does not avoid computing the full Jacobian.
