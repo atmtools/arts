@@ -906,13 +906,15 @@ void calcBaselineFit(Vector& y_baseline,
   const Index row4 = rowind.offset;
   Index col4 = jacobian_indices[rq_index][0];
 
+  const Index stride = is_sine_fit ? 2 : 1;
+
   if (n3 > 1) {
-    col4 += mblock_index * n2 * n1;
+    col4 += mblock_index * n2 * n1 * stride;
   }
 
   for (Index l = 0; l < nlos; l++) {
     const Index row3 = row4 + l * nf * npol;
-    const Index col3 = col4 + l * n1 * (is_sine_fit ? 2 : 1);
+    const Index col3 = col4 + l * n1 * stride;
 
     for (Index f = 0; f < nf; f++) {
       const Index row2 = row3 + f * npol;
@@ -920,7 +922,7 @@ void calcBaselineFit(Vector& y_baseline,
       for (Index p = 0; p < npol; p++) {
         Index col1 = col3;
         if (n1 > 1) {
-          col1 += p;
+          col1 += p * stride;
         }
         if (is_sine_fit) {
           y_baseline[row2 + p] += x[col1] * s[f] + x[col1 + 1] * c[f];
