@@ -441,25 +441,39 @@ see :meth:`~pyarts3.workspace.Workspace.atm_fieldRead`
 Keeping key alternatives consistent
 -----------------------------------
 
-Use a named helper such as ``AtmKeyValStr()`` in
-``src/workspace_methods.cpp`` instead of repeating atmospheric key lists
-in method metadata::
+Keep the sorted type list and Python conversion priority together in a helper
+such as ``AtmKeyValStruct`` in ``src/workspace_methods.cpp``::
 
-    .gin_type = {AtmKeyValStr(), AtmKeyValStr(), "Numeric"},
+    struct AtmKeyValStruct {
+      const char* str = "AtmKey,QuantumLevelIdentifier,ScatteringSpeciesProperty,SpeciesEnum,SpeciesIsotope";
+      ArrayOfIndex ord{0, 3, 4, 1, 2};
+    };
 
-Pair this with an explicitly ordered implementation type::
+Use both members in the method metadata::
+
+    .gin_type = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
+    .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
+
+The C++ implementation lists the same alternatives in workspace-group order::
 
     using GenericAtmKey = Generic<const AtmKey, const QuantumLevelIdentifier,
                                   const ScatteringSpeciesProperty,
                                   const SpeciesEnum, const SpeciesIsotope>;
 
-The helper gives all metadata users one place to fix the spelling and order
-of the atmospheric alternatives. Its returned list must exactly match
-``AtmKeyVal``. It currently contains a handwritten string: it centralizes
-metadata maintenance but does not automatically track changes to the C++
-variant. When adding or reordering a key, update the variant and this helper
-together. See the troubleshooting section below if a mismatch reaches the
-linker.
+``str`` contains the same alternative set as ``AtmKeyVal``, but in sorted
+workspace-group order. ``ord`` indexes that sorted list to recover the original
+``AtmKeyVal`` conversion priority. The value variant itself retains its order.
+This helper centralizes both declarations; neither is derived automatically
+from the variant. When adding a key, update the sorted string, permutation,
+and affected C++ Generic signatures together. When changing only conversion
+priority, update the permutation without reordering the Generic alternatives.
+Validation checks registration, sortedness, and the permutation, but cannot
+verify that the intended priority matches the value variant.
+
+Use the full helper only for methods that support all its alternatives.
+In particular, ``jac_targetsAddAtmosphere`` and its retrieval wrapper now
+also accept ``ScatteringSpeciesProperty``. A method supporting a subset needs
+its own matching list and permutation.
 
 Future methods accepting both atmospheric and surface keys should declare a
 combined Generic alias with each alternative listed once, sorted by
@@ -468,6 +482,27 @@ produce the same set of alternatives. Both correlation arguments can then
 use this combined key set, allowing either atmospheric/surface ordering.
 Accepting those types only establishes the interface; cross-domain
 covariance mapping and its validation still need implementation.
+
+Python generic conversion priority
+----------------------------------
+
+Use ``python_generic_sorting`` (``ArrayOfArrayOfIndex``) to override implicit
+Python conversion priority for a particular method. An empty outer array
+uses the default order. Otherwise provide one entry per ``gin``; empty inner
+entries retain the default. Nonempty entries are permutations of zero-based
+positions in the sorted ``gin_type`` alternatives::
+
+    .gin_type = {AtmKeyValStruct{}.str, "Index"},
+    .python_generic_sorting = {AtmKeyValStruct{}.ord, {}},
+
+This tries atmospheric keys in ``AtmKeyVal`` order, so ``"H2O"`` reaches
+``SpeciesEnum`` before broader key conversions. C++ Generic order is unchanged;
+explicitly typed Python objects retain their type. Metadata validation rejects
+incomplete permutations, duplicate or out-of-range positions, and overrides
+for ``Any``, nongeneric inputs, or inputs also used as generic outputs.
+The generator emits this priority in the static index array, with no runtime
+sorting. When extending or reordering a method's inputs, keep this array
+aligned with ``gin``.
 
 Troubleshooting Generic signature and linker errors
 --------------------------------------------------
@@ -482,6 +517,15 @@ Generic alternatives must be unique workspace groups in increasing
 ``WorkspaceGroupInfo<T>::index`` order, with uniform pointee constness.
 These requirements are checked at compile time. For example,
 ``Generic<Vector, Numeric>`` is rejected; use ``Generic<Numeric, Vector>``.
+
+Metadata validation reports the method and ``gin_type``/``gout_type`` slot
+for invalid groups or unordered alternatives. Fix the declaration or shared
+key-list helper directly. New types need registration in
+``src/workspace_groups.cpp``: arrays need their own ``ArrayOf...`` entry
+(see ``add_arrays_of``), and arts-options enums need ``add_select_options``
+registration. A type registered only in ``workspace_group_friends.cpp`` is
+not a workspace group and cannot be a Generic alternative. Regenerate the
+workspace code after registration.
 
 When this happens:
 

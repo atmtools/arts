@@ -65,22 +65,31 @@ std::string method_arguments(const WorkspaceMethodInternalRecord& wsm) {
   return os.str();
 }
 
-std::string generic_selection(const std::string& name,
-                              const std::string& declaration,
-                              bool               output,
-                              const std::string& default_value = "") {
+std::string generic_selection(const std::string&  name,
+                              const std::string&  declaration,
+                              bool                output,
+                              const std::string&  default_value = "",
+                              const ArrayOfIndex& sorting       = {}) {
   std::string allowed;
   if (declaration != "Any") {
-    for (auto item : split(declaration, ",")) {
+    const auto alternatives = split(declaration, ",");
+    for (std::size_t i = 0; i < alternatives.size(); ++i) {
+      auto item = alternatives[sorting.empty() ? i : sorting[i]];
       trim(item);
       if (not allowed.empty()) allowed += ", ";
-      allowed += "\"" + item + "\"";
+      allowed += "WorkspaceGroupInfo<" + item + ">::index";
     }
   }
-  auto conversion = std::format("from_allowed(_{0}, {{{1}}}, {2})", name, allowed, output ? "true" : "false");
+  const auto storage = allowed.empty()
+                           ? std::string{}
+                           : std::format("        static constexpr std::array _{0}_allowed{{{1}}};\n", name, allowed);
+  auto       conversion = std::format("from_allowed(_{0}, {1}, {2})",
+                                      name,
+                                      allowed.empty() ? "{}" : "_" + name + "_allowed",
+                                      output ? "true" : "false");
   if (not default_value.empty())
     conversion = std::format("(_{0} and not _{0}->is_none()) ? {1} : {2}", name, conversion, default_value);
-  return std::format("        auto {0} = {1};\n", name, conversion);
+  return storage + std::format("        auto {0} = {1};\n", name, conversion);
 }
 
 bool uses_variadic(const std::string& v) {
@@ -111,7 +120,11 @@ std::string method_gin_selection(const std::string& name, const WorkspaceMethodI
     if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
       const auto fallback =
           has_default ? std::format("workspace_methods().at(\"{}\").defs.at(\"_{}\")", name, wsm.gin[i]) : "";
-      os << generic_selection(wsm.gin[i], wsm.gin_type[i], false, fallback);
+      os << generic_selection(wsm.gin[i],
+                              wsm.gin_type[i],
+                              false,
+                              fallback,
+                              wsm.python_generic_sorting.empty() ? ArrayOfIndex{} : wsm.python_generic_sorting[i]);
     } else {
       if (has_default) {
         std::println(os,
@@ -387,6 +400,7 @@ void methods(int nfiles) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>
 
 #include <workspace.h>
+#include <array>
 
 #include <nanobind/stl/shared_ptr.h>
 

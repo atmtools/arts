@@ -92,15 +92,15 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
 
   std::print(os, "\n  return false;\n}}\n");
   os << R"(
-Wsv from_allowed(const py::object* x, std::initializer_list<std::string_view> allowed, bool output) {
+Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool output) {
   py::gil_scoped_acquire gil;
   if (not x or x->is_none()) throw std::runtime_error("A generic argument requires a value with a concrete type.");
-  const auto accepts = [&](std::string_view type) {
+  const auto accepts = [&](std::size_t type) {
     return allowed.size() == 0 or std::find(allowed.begin(), allowed.end(), type) != allowed.end();
   };
   if (py::isinstance<Wsv>(*x)) {
     auto value = py::cast<Wsv>(*x);
-    if (not accepts(value.type_name())) throw std::runtime_error("Unsupported generic argument type: " + std::string(value.type_name()));
+    if (not accepts(value.value_index())) throw std::runtime_error("Unsupported generic argument type: " + std::string(value.type_name()));
     return value;
   }
 )";
@@ -109,12 +109,12 @@ Wsv from_allowed(const py::object* x, std::initializer_list<std::string_view> al
     if (wsg.value_type)
       std::println(
           os,
-          "  if (accepts(\"{0}\") and py::isinstance<ValueHolder<{0}>>(*x)) return Wsv(std::shared_ptr<{0}>(py::cast<ValueHolder<{0}>&>(*x, false).val));",
+          "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<ValueHolder<{0}>>(*x)) return Wsv(std::shared_ptr<{0}>(py::cast<ValueHolder<{0}>&>(*x, false).val));",
           group);
     else
       std::println(
           os,
-          "  if (accepts(\"{0}\") and py::isinstance<{0}>(*x)) return Wsv(py::cast<std::shared_ptr<{0}>>(*x, false));",
+          "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<{0}>(*x)) return Wsv(py::cast<std::shared_ptr<{0}>>(*x, false));",
           group);
   }
   os << R"(
@@ -123,9 +123,10 @@ Wsv from_allowed(const py::object* x, std::initializer_list<std::string_view> al
   // Try only declared alternatives, in declaration order. Conversion is compiled
   // once per workspace group, not once per combination of method arguments.
   for (const auto type : allowed) {
+    switch (type) {
 )";
   for (const auto& [group, wsg] : wsgs) {
-    os << "    if (type == \"" << group << "\") {\n";
+    os << "    case WorkspaceGroupInfo<" << group << ">::index: {\n";
     if (wsg.value_type) {
       std::println(os,
                    "      ValueHolder<{0}> value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value.val));",
@@ -133,9 +134,10 @@ Wsv from_allowed(const py::object* x, std::initializer_list<std::string_view> al
     } else {
       std::println(os, "      {0} value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value));", group);
     }
-    os << "    }\n";
+    os << "      break;\n    }\n";
   }
   os << R"(
+    }
   }
   throw std::runtime_error("Cannot convert generic argument to any declared type.");
 }
@@ -288,6 +290,8 @@ void groups(const std::string& fname) try {
   std::println(hos, R"--(#pragma once
 
 #include <auto_wsg.h>
+#include <span>
+#include <cstddef>
 #include <python_interface_value_type.h>
 
 #include <nanobind/nanobind.h>
@@ -308,7 +312,7 @@ bool convert_ref(Wsv& wsv, const py::object * const x);
 bool convert_cast(Wsv& wsv, const py::object * const x);
 Wsv from(py::object* const x);
 Wsv from(const py::object* const x);
-Wsv from_allowed(const py::object*, std::initializer_list<std::string_view>, bool output);
+Wsv from_allowed(const py::object*, std::span<const std::size_t>, bool output);
 
 std::string type(const py::object * const x);
 

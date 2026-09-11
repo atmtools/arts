@@ -15,9 +15,12 @@
 #include "workspace_meta_methods.h"
 #include "workspace_variables.h"
 
-consteval const char* AtmKeyValStr() {
-  return "AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty";
-}
+namespace {
+struct AtmKeyValStruct {
+  const char*  str = "AtmKey,QuantumLevelIdentifier,ScatteringSpeciesProperty,SpeciesEnum,SpeciesIsotope";
+  ArrayOfIndex ord{0, 3, 4, 1, 2};
+};
+}  // namespace
 
 namespace stdr = std::ranges;
 
@@ -56,14 +59,9 @@ std::string WorkspaceMethodInternalRecord::generic_type(const std::string& type,
   const std::string kind = output ? "Output" : "Input";
   if (type == "Any") return "Any" + kind;
   if (type.find(',') == type.npos) return type;
-  std::vector<std::string> unique;
+  std::string result = "Generic<";
   for (auto name : split(type, ",")) {
     trim(name);
-    if (stdr::find(unique, name) == unique.end()) unique.push_back(name);
-  }
-  stdr::sort(unique);  // WorkspaceGroupInfo indices follow this group-name order.
-  std::string result = "Generic<";
-  for (const auto& name : unique) {
     if (result.back() != '<') result += ", ";
     result += (output ? "" : "const ") + name;
   }
@@ -250,8 +248,70 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 }
 
 void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
-  for (auto& wsmr : wsm_data | stdv::values) {
+  for (auto& [method, wsmr] : wsm_data) {
     if (wsmr.desc.back() != '\n') wsmr.desc += '\n';
+    if (not wsmr.python_generic_sorting.empty()) {
+      if (wsmr.python_generic_sorting.size() != wsmr.gin.size())
+        throw std::runtime_error(
+            std::format("{}: python_generic_sorting must be empty or have one entry per gin.", method));
+      for (std::size_t i = 0; i < wsmr.gin.size(); ++i) {
+        const auto& order = wsmr.python_generic_sorting[i];
+        if (order.empty()) continue;
+        const auto& type = wsmr.gin_type.at(i);
+        const auto  n    = split(type, ",").size();
+        if (type == "Any" or n < 2 or order.size() != n or stdr::find(wsmr.gout, wsmr.gin[i]) != wsmr.gout.end())
+          throw std::runtime_error(std::format(
+              "{} gin '{}': python_generic_sorting requires a permutation of all alternatives of an input-only Generic (not Any).",
+              method,
+              wsmr.gin[i]));
+        std::vector<bool> seen(n, false);
+        for (const Index position : order) {
+          if (position < 0 or static_cast<std::size_t>(position) >= n or seen[position])
+            throw std::runtime_error(std::format(
+                "{} gin '{}': python_generic_sorting must contain each zero-based position 0..{} exactly once.",
+                method,
+                wsmr.gin[i],
+                n - 1));
+          seen[position] = true;
+        }
+      }
+    }
+    for (const auto& [kind, types] : {std::pair{"gin_type", &wsmr.gin_type}, std::pair{"gout_type", &wsmr.gout_type}}) {
+      for (std::size_t i = 0; i < types->size(); ++i) {
+        const auto& type = (*types)[i];
+        std::string previous;
+        for (auto alternative : split(type, ",")) {
+          trim(alternative);
+          if (not valid_wsg(alternative)) {
+            throw std::runtime_error(
+                std::format("{} {}[{}]: '{}' is not a workspace group. Check the spelling and register new "
+                            "workspace groups in src/workspace_groups.cpp. Arrays need their own ArrayOf... "
+                            "workspace-group registration (see add_arrays_of); an element group is not enough. "
+                            "Enums need add_select_options registration; declaring them in arts-options is not enough. "
+                            "Types in workspace_group_friends.cpp are not "
+                            "automatically workspace groups: register the type as a workspace group if it must "
+                            "be stored in Wsv or used in Generic. Regenerate auto_wsg.h after registration.",
+                            method,
+                            kind,
+                            i,
+                            alternative));
+          }
+          // WorkspaceGroupInfo indices follow alphabetical group-name order.
+          if (not previous.empty() and previous >= alternative) {
+            throw std::runtime_error(
+                std::format("{} {}[{}]: '{}' appears after '{}'. List Generic alternatives once each in "
+                            "strict alphabetical order (WorkspaceGroupInfo index order). Fix the declaration "
+                            "or its shared key-list helper; metadata is not sorted automatically.",
+                            method,
+                            kind,
+                            i,
+                            alternative,
+                            previous));
+          }
+          previous = alternative;
+        }
+      }
+    }
   }
 }
 
@@ -2764,58 +2824,61 @@ See :doc:`concept.absorption.lookup` for details.
   };
 
   wsm_data["jac_targetsToggleRelativeHumidityAtmTarget"] = {
-      .desc      = R"--(Toggles relative humidity or absolute retrievals.
+      .desc                   = R"--(Toggles relative humidity or absolute retrievals.
 
 If the target is in relative humidity mode, it becomes absolute.
 If the target is not in relative humidity mode, it becomes relative humidity.
 
 Overwrites all other functional toggles.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jac_targets"},
-      .in        = {"jac_targets", "atm_field", "water_equivalent_pressure_operator"},
-      .gin       = {"key", "nonnegative"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty", "Index"},
-      .gin_value = {std::nullopt, Index{1}},
-      .gin_desc  = {"Key to toggle", "Whether or not to zero-out negative values"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"jac_targets"},
+      .in                     = {"jac_targets", "atm_field", "water_equivalent_pressure_operator"},
+      .gin                    = {"key", "nonnegative"},
+      .gin_type               = {AtmKeyValStruct{}.str, "Index"},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord, {}},
+      .gin_value              = {std::nullopt, Index{1}},
+      .gin_desc               = {"Key to toggle", "Whether or not to zero-out negative values"},
   };
 
   wsm_data["jac_targetsToggleRelativeAtmTarget"] = {
-      .desc      = R"--(Toggles relative or absolute retrievals.
+      .desc                   = R"--(Toggles relative or absolute retrievals.
 
 If the target is in relative mode, it becomes absolute.
 If the target is not in relative mode, it becomes relative.
 
 Overwrites all other functional toggles.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jac_targets"},
-      .in        = {"jac_targets", "atm_field"},
-      .gin       = {"key"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Key to toggle"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"jac_targets"},
+      .in                     = {"jac_targets", "atm_field"},
+      .gin                    = {"key"},
+      .gin_type               = {AtmKeyValStruct{}.str},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord},
+      .gin_value              = {std::nullopt},
+      .gin_desc               = {"Key to toggle"},
   };
 
   wsm_data["jac_targetsToggleLogarithmicAtmTarget"] = {
-      .desc      = R"--(Toggles logarithmic or absolute retrievals.
+      .desc                   = R"--(Toggles logarithmic or absolute retrievals.
 
 If the target is in logarithmic mode, it becomes absolute.
 If the target is not in logarithmic mode, it becomes logarithmic.
 
 Overwrites all other functional toggles.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jac_targets"},
-      .in        = {"jac_targets", "atm_field"},
-      .gin       = {"key"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Key to toggle"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"jac_targets"},
+      .in                     = {"jac_targets", "atm_field"},
+      .gin                    = {"key"},
+      .gin_type               = {AtmKeyValStruct{}.str},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord},
+      .gin_value              = {std::nullopt},
+      .gin_desc               = {"Key to toggle"},
   };
 
   wsm_data["jac_targetsToggleLogRelAtmTarget"] = {
-      .desc      = R"--(Toggles logarithmic/relative or absolute retrievals.
+      .desc                   = R"--(Toggles logarithmic/relative or absolute retrievals.
 
 This means to take the logarithm of the relative value.
 
@@ -2824,13 +2887,14 @@ If the target is not in logarithmic/relative mode, it becomes logarithmic/relati
 
 Overwrites all other functional toggles.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jac_targets"},
-      .in        = {"jac_targets", "atm_field"},
-      .gin       = {"key"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Key to toggle"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"jac_targets"},
+      .in                     = {"jac_targets", "atm_field"},
+      .gin                    = {"key"},
+      .gin_type               = {AtmKeyValStruct{}.str},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord},
+      .gin_value              = {std::nullopt},
+      .gin_desc               = {"Key to toggle"},
   };
 
   wsm_data["jac_targetsToggleRelativeSurfaceTarget"] = {
@@ -2985,6 +3049,12 @@ represented by the *jac_targets*.  The covariance matrix inverse
     v.gin_value.insert(v.gin_value.end(), BlockMatrix{});
     v.gin_desc.insert(v.gin_desc.end(), "The covariance diagonal block matrix");
     v.gin_desc.insert(v.gin_desc.end(), "The inverse covariance diagonal block matrix");
+
+    if (not v.python_generic_sorting.empty()) {
+      v.python_generic_sorting.emplace_back();
+      v.python_generic_sorting.emplace_back();
+    }
+
     return v;
   };
 
@@ -3176,16 +3246,17 @@ See *SpeciesEnum* for valid ``species``
   wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jac_targetsAddSpeciesVMR");
 
   wsm_data["jac_targetsAddAtmosphere"] = {
-      .desc      = R"--(Sets an atmospheric target.
+      .desc                   = R"--(Sets an atmospheric target.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"jac_targets"},
-      .in        = {"jac_targets"},
-      .gin       = {"target", "d"},
-      .gin_type  = {"AtmKey,SpeciesEnum,SpeciesIsotope,QuantumLevelIdentifier,ScatteringSpeciesProperty", "Numeric"},
-      .gin_value = {std::nullopt, Numeric{0.1}},
-      .gin_desc  = {"The target of interest",
-                    "The perturbation used in methods that cannot compute derivatives analytically"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"jac_targets"},
+      .in                     = {"jac_targets"},
+      .gin                    = {"target", "d"},
+      .gin_type               = {AtmKeyValStruct{}.str, "Numeric"},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord, {}},
+      .gin_value              = {std::nullopt, Numeric{0.1}},
+      .gin_desc               = {"The target of interest",
+                                 "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["RetrievalAddAtmosphere"] = jac2ret("jac_targetsAddAtmosphere");
 
@@ -4692,10 +4763,10 @@ The quoted strings must be used as the grid names of the gridded field.
       .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize"},
       .gin_type  = {"Vector3",
                     "Vector2",
-                    "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
-                    "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6,"
                     "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
-                    "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6",
+                    "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6,"
+                    "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
+                    "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6",
                     "Index"},
       .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
       .gin_desc  = {"A position [alt, lat, lon]",
@@ -5450,7 +5521,7 @@ Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
   };
 
   wsm_data["model_state_covmatCorrelate"] = {
-      .desc      = R"--(Correlate matching grid points of two atmospheric retrieval targets.
+      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets.
 
 Requires finalized targets, identical physical grids and diagonal marginal
 covariances, with one state coordinate per grid point.  The cross covariance
@@ -5463,15 +5534,16 @@ cross block for this pair is replaced; zero removes it.  The complete candidate
 covariance is validated before assignment.  Failure leaves the input unchanged;
 success discards cached inverses.  Other existing correlations are preserved.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"model_state_covmat"},
-      .in        = {"model_state_covmat", "jac_targets", "atm_field"},
-      .gin       = {"target1", "target2", "correlation"},
-      .gin_type  = {AtmKeyValStr(), AtmKeyValStr(), "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc  = {"First atmospheric target",
-                    "Second atmospheric target",
-                    "Correlation coefficient in retrieval coordinates"},
+      .author                 = {"Richard Larsson"},
+      .out                    = {"model_state_covmat"},
+      .in                     = {"model_state_covmat", "jac_targets", "atm_field"},
+      .gin                    = {"target1", "target2", "correlation"},
+      .gin_type               = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
+      .gin_value              = {std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc               = {"First atmospheric target",
+                                 "Second atmospheric target",
+                                 "Correlation coefficient in retrieval coordinates"},
   };
 
   wsm_data["model_state_covmatAddSpeciesVMR"] = {

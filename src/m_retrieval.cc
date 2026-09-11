@@ -40,13 +40,16 @@ void RetrievalAddSurface(JacobianTargets&                                       
   covmat_diagonal_blocks[JacobianTargetType{jac_targets.surf.back().type}] = {.first = matrix, .second = inverse};
 }
 
-void RetrievalAddAtmosphere(
-    JacobianTargets&                            jac_targets,
-    JacobianTargetsDiagonalCovarianceMatrixMap& covmat_diagonal_blocks,
-    const Generic<const AtmKey, const QuantumLevelIdentifier, const ScatteringSpeciesProperty, const SpeciesEnum, const SpeciesIsotope> key,
-    const Numeric&                                                                                     d,
-    const BlockMatrix&                                                                                 matrix,
-    const BlockMatrix&                                                                                 inverse) {
+void RetrievalAddAtmosphere(JacobianTargets&                            jac_targets,
+                            JacobianTargetsDiagonalCovarianceMatrixMap& covmat_diagonal_blocks,
+                            const Generic<const AtmKey,
+                                          const QuantumLevelIdentifier,
+                                          const ScatteringSpeciesProperty,
+                                          const SpeciesEnum,
+                                          const SpeciesIsotope>         key,
+                            const Numeric&                              d,
+                            const BlockMatrix&                          matrix,
+                            const BlockMatrix&                          inverse) {
   ARTS_TIME_REPORT
 
   jac_targetsAddAtmosphere(jac_targets, key, d);

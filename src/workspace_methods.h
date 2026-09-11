@@ -19,6 +19,7 @@ struct WorkspaceMethodInternalRecord {
   std::vector<std::string>        in{};
   std::vector<std::string>        gin{};
   std::vector<std::string>        gin_type{};
+  ArrayOfArrayOfIndex             python_generic_sorting{};
   std::vector<std::optional<Wsv>> gin_value{};
   std::vector<std::string>        gin_desc{};
   bool                            pass_workspace{false};
@@ -82,6 +83,8 @@ template <> struct std::formatter<WorkspaceMethodInternalRecord> {
                        wsm.gin,
                        "\n  .gin_type="sv,
                        wsm.gin_type,
+                       "\n  .python_generic_sorting="sv,
+                       wsm.python_generic_sorting,
                        "\n  .gin_value="sv,
                        wsm.gin_value,
                        "\n  .gin_desc="sv,

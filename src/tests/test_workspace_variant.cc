@@ -54,6 +54,7 @@ int main() try {
   {
     Output mutable_value(std::make_shared<Numeric>(12));
     const_lifetime = std::get<0>(mutable_value);
+    const_view.emplace(mutable_value);
     if (std::get<0>(*const_view).get() != std::get<0>(mutable_value).get())
       throw std::runtime_error("Const conversion copied its pointee");
     *std::get<0>(mutable_value) = 13;
@@ -62,7 +63,6 @@ int main() try {
     throw std::runtime_error("Const conversion lost ownership");
   const_view.reset();
   if (not const_lifetime.expired()) throw std::runtime_error("Const conversion leaked ownership");
-  Generic<Numeric, Vector> mutable_source(std::make_shared<Numeric>(14));
 
   Output                owned(std::make_shared<Vector>(Vector{8, 9}));
   std::weak_ptr<Vector> retained = std::get<std::shared_ptr<Vector>>(owned);

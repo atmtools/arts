@@ -1,6 +1,8 @@
 #include <jac_polyfit.h>
 #include <workspace.h>
 
+#include "properties.h"
+
 void jac_targetsOff(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
@@ -27,38 +29,29 @@ void jac_targetsFinalize(JacobianTargets&          jac_targets,
 void jac_targetsAddSubsurface(JacobianTargets&                                                jac_targets,
                               const Generic<const SubsurfaceKey, const SubsurfacePropertyTag> key,
                               const Numeric&                                                  d) {
-  std::visit(
-      [&](const auto& selected) {
-        ARTS_TIME_REPORT
+  ARTS_TIME_REPORT
 
-        jac_targets.emplace_back(SubsurfaceKeyVal{*selected}, d);
-      },
-      key);
+  std::visit([&](const auto& selected) { jac_targets.emplace_back(SubsurfaceKeyVal{*selected}, d); }, key);
 }
 
 void jac_targetsAddSurface(JacobianTargets&                                          jac_targets,
                            const Generic<const SurfaceKey, const SurfacePropertyTag> key,
                            const Numeric&                                            d) {
-  std::visit(
-      [&](const auto& selected) {
-        ARTS_TIME_REPORT
+  ARTS_TIME_REPORT
 
-        jac_targets.emplace_back(SurfaceKeyVal{*selected}, d);
-      },
-      key);
+  std::visit([&](const auto& selected) { jac_targets.emplace_back(SurfaceKeyVal{*selected}, d); }, key);
 }
 
-void jac_targetsAddAtmosphere(
-    JacobianTargets&                                                                                   jac_targets,
-    const Generic<const AtmKey, const QuantumLevelIdentifier, const SpeciesEnum, const SpeciesIsotope> key,
-    const Numeric&                                                                                     d) {
-  std::visit(
-      [&](const auto& selected) {
-        ARTS_TIME_REPORT
+void jac_targetsAddAtmosphere(JacobianTargets&                    jac_targets,
+                              const Generic<const AtmKey,
+                                            const QuantumLevelIdentifier,
+                                            const ScatteringSpeciesProperty,
+                                            const SpeciesEnum,
+                                            const SpeciesIsotope> key,
+                              const Numeric&                      d) {
+  ARTS_TIME_REPORT
 
-        jac_targets.emplace_back(AtmKeyVal{*selected}, d);
-      },
-      key);
+  std::visit([&](const auto& selected) { jac_targets.emplace_back(AtmKeyVal{*selected}, d); }, key);
 }
 
 void jac_targetsAddAtmosphere(JacobianTargets& jac_targets, const ScatteringSpeciesProperty& key, const Numeric& d) {
