@@ -50,7 +50,7 @@ void jac_targetsAddSurface(JacobianTargets&                                     
 
 void jac_targetsAddAtmosphere(
     JacobianTargets&                                                                                   jac_targets,
-    const Generic<const AtmKey, const SpeciesEnum, const SpeciesIsotope, const QuantumLevelIdentifier> key,
+    const Generic<const AtmKey, const QuantumLevelIdentifier, const SpeciesEnum, const SpeciesIsotope> key,
     const Numeric&                                                                                     d) {
   std::visit(
       [&](const auto& selected) {

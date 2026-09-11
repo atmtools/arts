@@ -43,7 +43,7 @@ void RetrievalAddSurface(JacobianTargets&                                       
 void RetrievalAddAtmosphere(
     JacobianTargets&                            jac_targets,
     JacobianTargetsDiagonalCovarianceMatrixMap& covmat_diagonal_blocks,
-    const Generic<const AtmKey, const ScatteringSpeciesProperty, const SpeciesEnum, const SpeciesIsotope, const QuantumLevelIdentifier> key,
+    const Generic<const AtmKey, const QuantumLevelIdentifier, const ScatteringSpeciesProperty, const SpeciesEnum, const SpeciesIsotope> key,
     const Numeric&                                                                                     d,
     const BlockMatrix&                                                                                 matrix,
     const BlockMatrix&                                                                                 inverse) {

@@ -322,7 +322,11 @@ void correlate_atmosphere(CovarianceMatrix&      covariance,
 }
 }  // namespace
 
-using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
+using GenericAtmKey = Generic<const AtmKey,
+                              const QuantumLevelIdentifier,
+                              const ScatteringSpeciesProperty,
+                              const SpeciesEnum,
+                              const SpeciesIsotope>;
 
 void model_state_covmatCorrelate(CovarianceMatrix&      covariance,
                                  const JacobianTargets& targets,

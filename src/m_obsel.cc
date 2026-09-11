@@ -347,24 +347,24 @@ Your sorting is not correct, and instead reads:
 }
 }  // namespace
 
-void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                      measurement_sensor,
-                                    ArrayOfSensorMetaInfo&                   measurement_sensor_meta,
-                                    const AscendingGrid&                     freq_grid,
-                                    const Vector3&                           pos,
-                                    const Vector2&                           los,
-                                    const Generic<const StokvecSortedGriddedField1,
-                                                  const StokvecSortedGriddedField2,
-                                                  const StokvecSortedGriddedField3,
-                                                  const StokvecSortedGriddedField4,
-                                                  const StokvecSortedGriddedField5,
-                                                  const StokvecSortedGriddedField6,
-                                                  const SortedGriddedField1,
+void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                             measurement_sensor,
+                                    ArrayOfSensorMetaInfo&                          measurement_sensor_meta,
+                                    const AscendingGrid&                            freq_grid,
+                                    const Vector3&                                  pos,
+                                    const Vector2&                                  los,
+                                    const Generic<const SortedGriddedField1,
                                                   const SortedGriddedField2,
                                                   const SortedGriddedField3,
                                                   const SortedGriddedField4,
                                                   const SortedGriddedField5,
-                                                  const SortedGriddedField6> raw_sensor,
-                                    const Index&                             normalize) try {
+                                                  const SortedGriddedField6,
+                                                  const StokvecSortedGriddedField1,
+                                                  const StokvecSortedGriddedField2,
+                                                  const StokvecSortedGriddedField3,
+                                                  const StokvecSortedGriddedField4,
+                                                  const StokvecSortedGriddedField5,
+                                                  const StokvecSortedGriddedField6> raw_sensor,
+                                    const Index&                                    normalize) try {
   ARTS_TIME_REPORT
   std::visit(
       [&](const auto& selected) {

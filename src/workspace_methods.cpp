@@ -61,6 +61,7 @@ std::string WorkspaceMethodInternalRecord::generic_type(const std::string& type,
     trim(name);
     if (stdr::find(unique, name) == unique.end()) unique.push_back(name);
   }
+  stdr::sort(unique);  // WorkspaceGroupInfo indices follow this group-name order.
   std::string result = "Generic<";
   for (const auto& name : unique) {
     if (result.back() != '<') result += ", ";

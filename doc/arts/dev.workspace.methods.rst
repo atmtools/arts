@@ -438,86 +438,6 @@ it will not be passed to the user.
 The call order and documentation is available here
 see :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
 
-Generic argument variants
--------------------------
-
-A comma-separated generic type declaration lists independent alternatives
-for that argument.  The generator produces one C++ signature using
-``const Generic<const T, const U, ...>`` for inputs and
-``Generic<T, U, ...>`` for outputs, passed by value.  ``Generic<Ts...>``
-derives from ``std::variant<std::shared_ptr<Ts>...>``.  The outer ``const``
-protects the input variant; the const-qualified alternatives protect its
-pointees.  The ``UniformGenericConstness`` concept requires all alternatives to be
-const or all to be non-const. Mixed alternatives are rejected.
-``Any`` expands to ``AnyInput`` or ``AnyOutput``, covering all workspace
-groups.  Workspace adapters retain the original shared pointers; they do
-not copy the underlying values.  Inputs are const and outputs retain the
-identity of the workspace object.  Assigning a different pointer to an
-output variant does not replace the workspace variable: mutate its pointee.
-
-For example, two ``AtmKey,SpeciesEnum`` inputs give two two-alternative
-variants in one implementation, accepting all four combinations.  Visit
-each input independently when converting to a common representation.
-Use a multi-variant visit only when the algorithm actually depends on the
-combination.  Cross-argument restrictions must be checked explicitly in
-the implementation; type lists are no longer zipped overload tables.
-
-The Python signature uses untyped objects for generic arguments.  One
-shared runtime conversion implementation preserves explicitly typed
-objects, then tries permitted implicit input conversions in declaration
-order.  Generic outputs require an explicitly typed mutable ARTS object;
-converting a Python scalar would otherwise mutate a discarded temporary.
-No nanobind variant caster is instantiated per generic method signature.
-The C++ adapter constructs the correctly sized variant from the resulting
-workspace value.  Converted inputs retain ownership through the call.
-
-For direct C++ calls, constructors accepting references borrow those
-objects for the call's duration.  Such borrowed alternatives must not
-escape the call.  Construct from workspace values or owning shared pointers
-when retaining an argument beyond that lifetime.
-
-Value variants also construct a ``Generic``, with deduction of their alternatives::
-
-    Atm::KeyVal key = AtmKey::t;
-    Generic mutable_key(key);
-    Generic input_key(std::as_const(key));
-
-Lvalue variants borrow their active value without copying it.  The source
-must remain alive and keep the same active alternative while the borrowed
-Generic is used.  Rvalue variants instead allocate shared ownership of the
-moved active value; const rvalues copy it into owned const storage.
-Const source variants produce const alternatives.
-
-Combine alternative sets with ``Extend``::
-
-    using First = Generic<AtmKey, SpeciesEnum>;
-    using Second = Generic<SpeciesEnum, SpeciesIsotope>;
-    using Combined = First::Extend<Second>;
-    // Combined is Generic<AtmKey, SpeciesEnum, SpeciesIsotope>.
-    AtmKey temperature = AtmKey::t;
-    First first(temperature);
-    Combined combined(first);
-
-``Extend`` accepts multiple Generic types, preserves declaration order, and
-removes exact duplicate types. All combined alternatives must have the
-same constness; use ``Const`` before combining mutable and const types.
-Combination extends the set of permitted types; the result still holds
-one active value.  Converting an existing Generic copies or moves its
-shared pointer, preserving ownership and object identity.  Conversions
-can add pointee constness but cannot remove it.  All source alternatives
-must be supported by the destination, including inactive alternatives.
-
-Use ``Generic<T, U>::Const`` to obtain ``Generic<const T, const U>`` and
-``value.as_const()`` to construct that type without copying its pointee.
-An lvalue shares ownership; ``std::move(value).as_const()`` transfers its
-active shared pointer.  Already const alternatives stay const.  This makes the pointees
-read-only through the returned Generic; mutable aliases remain usable.
-Merely declaring the outer Generic ``const`` does not make its pointees const.
-
-``test_workspace_variant.cc`` checks type sizes, constness, ownership and
-identity.  ``tests/core/agenda/supergeneric.py`` checks Python conversion
-and mutable ``Any`` outputs, including execution through an agenda.
-
 Keeping key alternatives consistent
 -----------------------------------
 
@@ -527,9 +447,11 @@ in method metadata::
 
     .gin_type = {AtmKeyValStr(), AtmKeyValStr(), "Numeric"},
 
-Pair this with an implementation type derived from the value variant::
+Pair this with an explicitly ordered implementation type::
 
-    using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
+    using GenericAtmKey = Generic<const AtmKey, const QuantumLevelIdentifier,
+                                  const ScatteringSpeciesProperty,
+                                  const SpeciesEnum, const SpeciesIsotope>;
 
 The helper gives all metadata users one place to fix the spelling and order
 of the atmospheric alternatives. Its returned list must exactly match
@@ -539,20 +461,13 @@ variant. When adding or reordering a key, update the variant and this helper
 together. See the troubleshooting section below if a mismatch reaches the
 linker.
 
-Future methods accepting both atmospheric and surface keys can compose their
-C++ alternatives with ``Extend``::
-
-    using GenericAtmKey = decltype(Generic(AtmKeyVal{}))::Const;
-    using GenericSurfaceKey = decltype(Generic(SurfaceKeyVal{}))::Const;
-    using GenericStateKey = GenericAtmKey::Extend<GenericSurfaceKey>;
-
-A corresponding metadata helper must produce the same ordered union:
-atmospheric alternatives first, then previously absent surface alternatives.
-Do not blindly concatenate strings when the sets overlap: ``Extend`` removes
-duplicate types. Both correlation arguments can then use the same combined
-key set, allowing either atmospheric/surface ordering. Accepting those types
-only establishes the interface; cross-domain covariance mapping and its
-validation still need implementation.
+Future methods accepting both atmospheric and surface keys should declare a
+combined Generic alias with each alternative listed once, sorted by
+``WorkspaceGroupInfo<T>::index``. A corresponding metadata helper must
+produce the same set of alternatives. Both correlation arguments can then
+use this combined key set, allowing either atmospheric/surface ordering.
+Accepting those types only establishes the interface; cross-domain
+covariance mapping and its validation still need implementation.
 
 Troubleshooting Generic signature and linker errors
 --------------------------------------------------
@@ -563,10 +478,10 @@ the generated declaration. C++ treats the mismatching definition as another
 overload, so it may compile successfully while leaving the generated method
 undefined.
 
-Alternative order is part of the C++ type: ``Generic<Numeric, Vector>`` and
-``Generic<Vector, Numeric>`` are different types, even though they accept
-the same alternatives. ``Extend`` also preserves order. An alias derived
-from a value variant follows that variant's declaration order.
+Generic alternatives must be unique workspace groups in increasing
+``WorkspaceGroupInfo<T>::index`` order, with uniform pointee constness.
+These requirements are checked at compile time. For example,
+``Generic<Vector, Numeric>`` is rejected; use ``Generic<Numeric, Vector>``.
 
 When this happens:
 

@@ -64,13 +64,13 @@ void jac_targetsToggleLogRelSubsurfaceTargetImpl(JacobianTargets&        jac_tar
 
 // Atm
 
-void jac_targetsToggleLogRelAtmTarget(JacobianTargets&                               jac_targets,
-                                      const AtmField&                                f,
+void jac_targetsToggleLogRelAtmTarget(JacobianTargets&                    jac_targets,
+                                      const AtmField&                     f,
                                       const Generic<const AtmKey,
-                                                    const SpeciesEnum,
-                                                    const SpeciesIsotope,
                                                     const QuantumLevelIdentifier,
-                                                    const ScatteringSpeciesProperty> key) {
+                                                    const ScatteringSpeciesProperty,
+                                                    const SpeciesEnum,
+                                                    const SpeciesIsotope> key) {
   std::visit([&](const auto& selected) { jac_targetsToggleLogRelAtmTargetImpl(jac_targets, f, *selected); }, key);
 }
 

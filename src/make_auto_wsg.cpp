@@ -64,26 +64,17 @@ void header(std::ostream& os) {
 
 #include <memory>
 #include <iosfwd>
-#include <workspace_variant.h>
+#include <type_traits>
 
 )--";
 
   for (const auto& [file, groups] : files()) { std::println(os, "#include <{0}>", file); }
 
-  for (const auto& kind : {"Input", "Output"}) {
-    os << "using Any" << kind << " = Generic<";
-    bool first = true;
-    for (const auto& group : groups()) {
-      if (not first) os << ", ";
-      first = false;
-      os << (std::string_view(kind) == "Input" ? "const " : "") << group;
-    }
-    os << ">;\n";
-  }
   os << "\ntemplate <typename T>\nconcept WorkspaceGroup = false";
-  for (auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
-  os << "\n;\n\n"
-        "template <typename T>\nconcept QualifiedWorkspaceGroup "
+  for (const auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
+  os << "\n;\n\n";
+
+  os << "\ntemplate <typename T>\nconcept QualifiedWorkspaceGroup "
         "= WorkspaceGroup<std::remove_cvref_t<T>>;\n\n";
 
   os << R"(
@@ -127,6 +118,12 @@ template <> struct WorkspaceGroupInfo<{0}> {{
       index++;
     } catch (...) { throw std::runtime_error(std::format("Error generating WorkspaceGroupInfo for group: {}", group)); }
   }
+
+  os << "\n#include <workspace_variant.h>\n";
+  os << "\nusing AnyOutput = Generic<";
+  std::string_view space{""};
+  for (const auto& group : groups()) { os << std::exchange(space, ", "sv) << group; }
+  os << ">;\nusing AnyInput = AnyOutput::Const;\n";
 
   os << "\n[[nodiscard]] bool valid_wsg(std::string_view);\n";
 }
