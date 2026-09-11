@@ -641,9 +641,10 @@ class ReducedAgendaWrapper {
 
   ReducedAgendaWrapper(AgendaWrapper       &forward,
                        const ::Vector      &prior,
-                       const ::Matrix      &state_reduction,
+                       const ::BlockMatrix &state_reduction,
                        const ::BlockMatrix &measurement_reduction,
-                       const ::Matrix      &full_jacobian)
+                       const ::Matrix      &full_jacobian,
+                       bool                 state_identity)
       : m(static_cast<unsigned int>(measurement_reduction.nrows())),
         n(static_cast<unsigned int>(state_reduction.ncols())),
         forward_(forward),
@@ -651,12 +652,16 @@ class ReducedAgendaWrapper {
         B_(state_reduction),
         C_(measurement_reduction),
         full_jacobian_(full_jacobian),
+        state_identity_(state_identity),
         full_state_(prior),
-        state_jacobian_(measurement_reduction.ncols(), n),
+        state_jacobian_(state_identity ? 0 : measurement_reduction.ncols(), state_identity ? 0 : n),
         jacobian_(m, n) {}
 
   const Vector &expand(const Vector &z) {
-    mult(static_cast<::Vector &>(full_state_), B_, static_cast<const ::Vector &>(z));
+    if (state_identity_)
+      static_cast<::Vector &>(full_state_) = static_cast<const ::Vector &>(z);
+    else
+      B_.multiply_left(static_cast<::Vector &>(full_state_), static_cast<const ::Vector &>(z));
     static_cast<::Vector &>(full_state_) += prior_;
     return full_state_;
   }
@@ -672,8 +677,12 @@ class ReducedAgendaWrapper {
     forward_.ensure_jacobian(expand(z));
     if (jacobian_state_.size() != z.size() ||
         !std::equal(jacobian_state_.begin(), jacobian_state_.end(), z.elem_begin())) {
-      mult(state_jacobian_, full_jacobian_, B_);
-      C_.multiply_left(jacobian_, state_jacobian_);
+      if (state_identity_)
+        C_.multiply_left(jacobian_, full_jacobian_);
+      else {
+        B_.multiply_right(state_jacobian_, full_jacobian_);
+        C_.multiply_left(jacobian_, state_jacobian_);
+      }
       jacobian_state_ = static_cast<const ::Vector &>(z);
     }
   }
@@ -691,9 +700,10 @@ class ReducedAgendaWrapper {
  private:
   AgendaWrapper       &forward_;
   const ::Vector      &prior_;
-  const ::Matrix      &B_;
+  const ::BlockMatrix &B_;
   const ::BlockMatrix &C_;
   const ::Matrix      &full_jacobian_;
+  const bool           state_identity_;
   Vector               full_state_;
   ::Matrix             state_jacobian_, jacobian_;
   ::Vector             jacobian_state_;

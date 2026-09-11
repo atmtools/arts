@@ -911,8 +911,12 @@ state dimension unchanged. The matrix must have independent columns.
 columns ordered by decreasing information, including null directions.
 Its product with its transpose reconstructs *model_state_covmat*.
 *ReducedOEMBasisReduce* removes trailing columns in place.
+
+Storage is *BlockMatrix*: either *Matrix* or *Sparse*. Sparse state expansion,
+selection and interpolation bases are applied directly. An exact identity
+basis reuses the original prior covariance and its prepared solves.
 )",
-      .type = "Matrix",
+      .type = "BlockMatrix",
   };
 
   wsv_data["oem_basis_singular_values"] = {

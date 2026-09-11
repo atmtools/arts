@@ -620,7 +620,7 @@ increase rank. Both slices are materialized before either input is replaced.
 No current Jacobian or covariance is needed during selection.
 ``ReducedOEM`` reads these same matrices as ordinary workspace inputs.
 
-The measurement basis uses ``BlockMatrix`` so explicit projections can remain
+Both bases use ``BlockMatrix`` so explicit projections can remain
 ``Sparse`` through forward-vector, Jacobian and gain multiplication.
 ``measurement_basis_matCalc`` constructs this input alone. It groups exactly
 matching full row directions after normalization by a signed pivot, retaining
@@ -701,7 +701,7 @@ diagonal of the reduced prior precision for an arbitrary basis.
 
 The reduced prior is :math:`(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1}`;
 the noise is :math:`\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}`.
-These are dense reduced matrices even if the original covariances are sparse.
+Reduced covariance matrices can be dense even if the original covariances are sparse.
 Preparation applies the full covariance's structured solve/multiply paths.
 Only reduced state matrices are inverted to construct the reduced covariance
 and gain; the full prior is never densified for the reduction.
@@ -730,3 +730,16 @@ and nonlinear GN/LM. It also checks full output restoration, diagnostics,
 rank validation, and local lossless compression. A future directional
 Jacobian implementation would require a different agenda contract; this
 adapter does not avoid computing the full Jacobian.
+
+State-basis storage
+-------------------
+
+An exact identity state basis bypasses the prior transformation, projected
+LM damping and intermediate state-Jacobian product. It shares the prepared
+original prior. Other sparse bases use sparse multiplication for expansion,
+Jacobian projection and gain expansion. With diagonal prior precision, row
+scaling and :math:`\mathbf B^\top\mathbf S_a^{-1}\mathbf B` remain sparse;
+a diagonal reduced precision is inverted by reciprocating its diagonal.
+General correlated priors may require dense preparation. Projected LM damping
+preserves sparse storage when the supplied state basis is sparse. All such
+preparation occurs before iteration. Basis truncation preserves storage type.

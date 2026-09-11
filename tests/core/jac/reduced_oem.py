@@ -2,6 +2,7 @@
 
 Print results and timings, with plots unless ARTS_HEADLESS is set by CTest.
 """
+import scipy.sparse
 import os
 from time import perf_counter
 
@@ -545,7 +546,7 @@ def print_timings(method="lm", repeats=20):
     cases = [("OEM (2 states, 3 measurements)", workspace(), "OEM", full_results[method])]
     for rank in (None, 2, 1):
         ws = workspace()
-        ws.model_state_basis_mat = arts.Matrix(prepared.model_state_basis_mat)
+        ws.model_state_basis_mat = np.array(prepared.model_state_basis_mat)
         ws.measurement_basis_mat = np.array(prepared.measurement_basis_mat)
         ws.oem_basis_singular_values = prepared.oem_basis_singular_values
         if rank is not None:
@@ -667,6 +668,43 @@ def plot(full_results, basis_results, method="lm"):
     fig.suptitle("ReducedOEM affine regression: complete bases and rank truncation")
     fig.tight_layout()
     return fig
+
+
+# Compare full retrievals and individual damped steps, with nonzero starts.
+for state_basis in (np.eye(2), np.diag([2., .5]),
+                    np.array([[1., .3], [.2, 1.]]), np.array([[1.], [.4]])):
+    for diagonal_prior in (False, True):
+        for method in methods:
+            for iterations in ((1, 80) if method in ("lm", "lm_cg") else (80,)):
+                outputs = []
+                for sparse in (False, True):
+                    ws = workspace()
+                    if diagonal_prior:
+                        ws.model_state_covmat = arts.CovarianceMatrix()
+                        ws.model_state_covmat.blocks = [arts.Block(
+                            arts.Range(0, 2), arts.Range(0, 2), (0, 0),
+                            arts.Sparse(scipy.sparse.diags([4., 2.]).tocsr()))]
+                    ws.model_state_vec = np.asarray(
+                        ws.model_state_vec_apriori) + state_basis @ np.full(state_basis.shape[1], .1)
+                    basis = arts.Sparse(scipy.sparse.csr_matrix(
+                        state_basis)) if sparse else state_basis
+                    ws.ReducedOEM(model_state_basis_mat=basis, measurement_basis_mat=np.eye(3),
+                                  method=method, max_iter=iterations, stop_dx=1e-10, clear_matrices=0)
+                    assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
+                    outputs.append((np.array(ws.model_state_vec),
+                                   np.array(ws.measurement_gain_mat)))
+                for dense, sparse in zip(*outputs):
+                    np.testing.assert_allclose(
+                        dense, sparse, rtol=1e-8, atol=1e-9, err_msg=method)
+
+# Truncating SVD-ordered sparse bases preserves their storage and values.
+ws = workspace()
+ws.model_state_basis_mat = arts.Sparse(scipy.sparse.eye(2).tocsr())
+ws.measurement_basis_mat = arts.Sparse(scipy.sparse.eye(3).tocsr())
+ws.oem_basis_singular_values = [2., 1.]
+ws.ReducedOEMBasisReduce(rank=1)
+assert ws.model_state_basis_mat.is_sparse
+np.testing.assert_array_equal(np.array(ws.model_state_basis_mat), [[1.], [0.]])
 
 
 if __name__ == "__main__":

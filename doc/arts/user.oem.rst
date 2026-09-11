@@ -965,8 +965,9 @@ observations still contribute their extra precision. With correlated noise,
 the covariance solve may produce a dense projection. Use an identity
 ``model_state_basis_mat`` with ``ReducedOEM`` to keep the full state.
 
-``measurement_basis_mat`` holds a ``BlockMatrix``, accepting dense ``Matrix``
-or ``Sparse`` input. Its ``is_sparse`` property reports the storage type and
+Both ``model_state_basis_mat`` and ``measurement_basis_mat`` hold a
+``BlockMatrix``, accepting dense ``Matrix`` or ``Sparse`` input. The
+``is_sparse`` property reports the storage type and
 ``shape`` inspects dimensions without converting the data. For a sparse result,
 ``matrix.tocsr()`` exposes SciPy sparse data; conversion to a NumPy array
 explicitly allocates dense storage.
@@ -979,3 +980,9 @@ spectrum or loss outputs are generated; ``ReducedOEMBasisReduce`` applies to
 the SVD outputs, not to these groups. Recalculate after changing the noise
 covariance or the Jacobian used for grouping. A fixed grouping remains a
 local approximation for nonlinear retrievals.
+
+Sparse state bases are useful for selecting state components or interpolating
+from a smaller state grid. An exact identity state basis reuses the original
+prior covariance. Sparse bases with diagonal priors also avoid dense state
+projection products; a general correlated prior can still require dense
+preparation and a dense reduced covariance.

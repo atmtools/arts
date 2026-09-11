@@ -216,6 +216,30 @@ bool BlockMatrix::is_finite() const {
       data);
 }
 
+bool BlockMatrix::is_identity() const {
+  if (not not_null() or nrows() == 0 or nrows() != ncols()) return false;
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) {
+        if constexpr (std::same_as<T, Sparse>) {
+          Index diagonal_count = 0;
+          for (const auto [row, col, value] : *matrix | by_elem) {
+            if (row == col) {
+              if (value != 1) return false;
+              ++diagonal_count;
+            } else if (value != 0)
+              return false;
+          }
+          return diagonal_count == matrix->nrows();
+        } else {
+          for (Index row = 0; row < matrix->nrows(); ++row)
+            for (Index col = 0; col < matrix->ncols(); ++col)
+              if ((*matrix)[row, col] != (row == col ? 1 : 0)) return false;
+          return true;
+        }
+      },
+      data);
+}
+
 void Block::set_matrix(std::shared_ptr<Sparse> sparse) { matrix_ = std::move(sparse); }
 void Block::set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
 

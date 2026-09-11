@@ -84,6 +84,7 @@ class BlockMatrix {
   void multiply_right(StridedMatrixView out, StridedConstMatrixView lhs) const;
 
   [[nodiscard]] bool is_finite() const;
+  [[nodiscard]] bool is_identity() const;
 
   friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m);
 

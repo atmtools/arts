@@ -184,7 +184,7 @@ template <typename Forward> void oem_compute(Forward&                          a
                                              Numeric                           stop_dx,
                                              const LevenbergMarquardtSettings& lm_ga_settings,
                                              Index                             display_progress,
-                                             const Matrix*                     projected_damping = nullptr) {
+                                             const BlockMatrix*                projected_damping = nullptr) {
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   auto&       lm_ga_history = oem_diagnostics.lm_ga_history;
   auto&       errors        = oem_diagnostics.errors;
@@ -228,8 +228,7 @@ template <typename Forward> void oem_compute(Forward&                          a
       // D = diag(Sa^-1), not diag(Sa)^-1 when the prior is correlated.
       CovarianceMatrix damping;
       if (projected_damping) {
-        damping.add_correlation_inverse(
-            Block(Range(0, n), Range(0, n), {0, 0}, std::make_shared<Matrix>(*projected_damping)));
+        damping.add_correlation_inverse(Block(Range(0, n), Range(0, n), {0, 0}, *projected_damping));
       } else {
         damping.add_correlation_inverse(
             Block(Range(0, n),
@@ -507,6 +506,42 @@ void OEM(const Workspace&                  ws,
 }
 
 namespace {
+// Apply diagonal precision without changing basis storage.
+BlockMatrix scale_basis_rows(const BlockMatrix& basis, const Vector& scale) {
+  return std::visit(
+      [&]<typename T>(const std::shared_ptr<T>& matrix) -> BlockMatrix {
+        auto out = std::make_shared<T>(*matrix);
+        if constexpr (std::same_as<T, Sparse>) {
+          for (auto [row, col, value] : *out | by_elem) value *= scale[row];
+        } else {
+          for (Index row = 0; row < out->nrows(); ++row)
+            for (Index col = 0; col < out->ncols(); ++col) (*out)[row, col] *= scale[row];
+        }
+        return out;
+      },
+      basis.data);
+}
+
+BlockMatrix basis_precision(const BlockMatrix& basis, const BlockMatrix& weighted) {
+  const Index r = basis.ncols();
+  if (weighted.is_sparse()) {
+    assert(basis.is_sparse());
+    auto out    = std::make_shared<Sparse>(r, r);
+    out->matrix = basis.sparse().matrix.transpose() * weighted.sparse().matrix;
+    return out;
+  }
+  auto out = std::make_shared<Matrix>(r, r);
+  basis.multiply_right(transpose(*out), transpose(weighted.dense()));
+  return out;
+}
+
+CovarianceMatrix basis_covariance(BlockMatrix values) {
+  const Index      size = values.nrows();
+  CovarianceMatrix out;
+  out.add_correlation(Block(Range(0, size), Range(0, size), {0, 0}, std::move(values)));
+  return out;
+}
+
 // This is preparation, never an operation in an OEM iteration. Keep sparse
 // projections and sparse/diagonal noise sparse all the way to the factor cache.
 CovarianceMatrix measurement_covariance_projection(const BlockMatrix& C, const CovarianceMatrix& noise) {
@@ -628,7 +663,7 @@ void measurement_basis_matCalc(BlockMatrix&            measurement_basis_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReducedOEMBasisCalc(Matrix&                 model_state_basis_mat,
+void ReducedOEMBasisCalc(BlockMatrix&            model_state_basis_mat,
                          BlockMatrix&            measurement_basis_mat,
                          Vector&                 oem_basis_singular_values,
                          const Matrix&           measurement_jac,
@@ -667,13 +702,13 @@ void ReducedOEMBasisCalc(Matrix&                 model_state_basis_mat,
                      "Basis matrices exceed numerical range.")
 
   // Publish the matched bases and spectrum only after all transformations succeed.
-  model_state_basis_mat     = std::move(B);
+  model_state_basis_mat     = std::make_shared<Matrix>(std::move(B));
   measurement_basis_mat     = std::make_shared<Matrix>(std::move(C));
   oem_basis_singular_values = std::move(singular_values);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReducedOEMBasisReduce(Matrix&        model_state_basis_mat,
+void ReducedOEMBasisReduce(BlockMatrix&   model_state_basis_mat,
                            BlockMatrix&   measurement_basis_mat,
                            Numeric&       oem_basis_lost_dofs,
                            Numeric&       oem_basis_lost_information_bits,
@@ -742,15 +777,21 @@ void ReducedOEMBasisReduce(Matrix&        model_state_basis_mat,
   ARTS_USER_ERROR_IF(
       retained > B.ncols() or q > C.nrows(),
       "Requested modes have already been removed. Restore saved bases or rerun ReducedOEMBasisCalc before increasing rank or tightening loss limits.")
-  Matrix      reduced_B{B[joker, Range(0, retained)]};
-  BlockMatrix reduced_C;
-  if (C.is_dense())
-    reduced_C = std::make_shared<Matrix>(C.dense()[Range(0, q), joker]);
-  else {
-    auto sparse    = std::make_shared<Sparse>(q, m);
-    sparse->matrix = C.sparse().matrix.topRows(q);
-    reduced_C      = std::move(sparse);
-  }
+  const auto leading = [](const BlockMatrix& basis, Index rows, Index cols) {
+    return std::visit(
+        [&]<typename T>(const std::shared_ptr<T>& matrix) -> BlockMatrix {
+          if constexpr (std::same_as<T, Matrix>)
+            return std::make_shared<Matrix>((*matrix)[Range(0, rows), Range(0, cols)]);
+          else {
+            auto out    = std::make_shared<Sparse>(rows, cols);
+            out->matrix = matrix->matrix.topLeftCorner(rows, cols);
+            return out;
+          }
+        },
+        basis.data);
+  };
+  BlockMatrix reduced_B = leading(B, n, retained);
+  BlockMatrix reduced_C = leading(C, q, m);
   // Materialize both slices before replacing either input; retain the full spectrum for total losses.
   model_state_basis_mat           = std::move(reduced_B);
   measurement_basis_mat           = std::move(reduced_C);
@@ -775,7 +816,7 @@ void ReducedOEM(const Workspace&                  ws,
                 const Vector&                     measurement_vec,
                 const CovarianceMatrix&           measurement_vec_error_covmat_input,
                 const Agenda&                     inversion_iterate_agenda,
-                const Matrix&                     model_state_basis_mat,
+                const BlockMatrix&                model_state_basis_mat,
                 const BlockMatrix&                measurement_basis_mat,
                 const String&                     method,
                 const Numeric&                    max_start_cost,
@@ -796,12 +837,13 @@ void ReducedOEM(const Workspace&                  ws,
       B.nrows() != n or r <= 0 or r > n, "model_state_basis_mat must have {} rows and between 1 and {} columns.", n, n)
   ARTS_USER_ERROR_IF(
       C.ncols() != m or q <= 0 or q > m, "measurement_basis_mat must have {} columns and between 1 and {} rows.", m, m)
-  ARTS_USER_ERROR_IF(stdr::any_of(B | by_elem, [](auto v) { return not std::isfinite(v); }) or not C.is_finite(),
-                     "ReducedOEM reduction matrices must be finite.")
+  ARTS_USER_ERROR_IF(not B.is_finite() or not C.is_finite(), "ReducedOEM reduction matrices must be finite.")
   ARTS_USER_ERROR_IF(stdr::any_of(model_state_vec_apriori, [](auto v) { return not std::isfinite(v); }),
                      "ReducedOEM prior state must be finite.")
 
-  const auto prior = model_state_covmat_input.prepared(selected.damped());
+  const bool state_identity = B.is_identity();
+  const auto prior          = model_state_covmat_input.prepared(
+      state_identity ? (not selected.measurement_space or clear_matrices == 0) : selected.damped());
   const auto noise = measurement_vec_error_covmat_input.prepared();
   check_oem_inputs(model_state_vec,
                    measurement_vec_fit,
@@ -821,25 +863,45 @@ void ReducedOEM(const Workspace&                  ws,
 
   std::shared_ptr<const CovarianceMatrix> reduced_prior, reduced_noise;
   Vector                                  za(r, 0), start(r, 0), reduced_y(q);
-  Matrix                                  damping;
+  BlockMatrix                             damping;
   {
     // Factor and validate once; release preparation scratch before iteration.
-    const auto dense_covariance = [](Matrix values) {
-      const Index      size = values.nrows();
-      CovarianceMatrix result;
-      result.add_correlation(
-          Block(Range(0, size), Range(0, size), {0, 0}, std::make_shared<Matrix>(std::move(values))));
-      return result;
-    };
-    Matrix weighted(n, r), precision(r, r);
-    mult_inv(weighted, *prior, B);
-    mult(precision, transpose(B), weighted);
-    const auto reduced_precision = dense_covariance(std::move(precision)).prepared();
-    Matrix     identity(r, r), covariance(r, r);
-    id_mat(identity);
-    mult_inv(covariance, *reduced_precision, identity);
-    reduced_prior =
-        dense_covariance(std::move(covariance)).prepared(not selected.measurement_space or clear_matrices == 0);
+    BlockMatrix weighted;
+    if (state_identity) {
+      reduced_prior = prior;
+    } else {
+      const auto diagonal = B.is_sparse() ? prior->diagonal_if_diagonal() : std::nullopt;
+      if (diagonal) {
+        Vector inverse = *diagonal;
+        for (auto& value : inverse) value = 1 / value;
+        weighted = scale_basis_rows(B, inverse);
+      } else {
+        auto values = std::make_shared<Matrix>(n, r);
+        std::visit(
+            [&]<typename T>(const std::shared_ptr<T>& matrix) {
+              if constexpr (std::same_as<T, Matrix>)
+                mult_inv(*values, *prior, *matrix);
+              else
+                mult_inv(*values, *prior, Matrix(*matrix));
+            },
+            B.data);
+        weighted = std::move(values);
+      }
+      const auto  reduced_precision = basis_covariance(basis_precision(B, weighted)).prepared();
+      BlockMatrix covariance;
+      if (auto diagonal = reduced_precision->diagonal_if_diagonal()) {
+        for (auto& value : *diagonal) value = 1 / value;
+        covariance = std::make_shared<Sparse>(Sparse::diagonal(*diagonal));
+      } else {
+        Matrix identity(r, r);
+        id_mat(identity);
+        auto values = std::make_shared<Matrix>(r, r);
+        mult_inv(*values, *reduced_precision, identity);
+        covariance = std::move(values);
+      }
+      reduced_prior =
+          basis_covariance(std::move(covariance)).prepared(not selected.measurement_space or clear_matrices == 0);
+    }
 
     reduced_noise = measurement_covariance_projection(C, *noise).prepared();
 
@@ -848,9 +910,14 @@ void ReducedOEM(const Workspace&                  ws,
       Vector delta  = model_state_vec;
       delta        -= model_state_vec_apriori;
       Vector rhs(r), represented(n);
-      mult(rhs, transpose(weighted), delta);
-      mult(start, *reduced_prior, rhs);
-      mult(represented, B, start);
+      if (state_identity) {
+        start       = delta;
+        represented = delta;
+      } else {
+        weighted.multiply_right(rhs.view_as(1, r), delta.view_as(1, n));
+        mult(start, *reduced_prior, rhs);
+        B.multiply_left(represented, start);
+      }
       for (Index i = 0; i < n; ++i)
         ARTS_USER_ERROR_IF(not std::isfinite(delta[i]) or not std::isfinite(represented[i]) or
                                std::abs(represented[i] - delta[i]) > 1e-8 * (1 + std::abs(delta[i])),
@@ -879,13 +946,8 @@ void ReducedOEM(const Workspace&                  ws,
         stdr::any_of(measurement_vec_normalization, [](auto v) { return not std::isfinite(v) or v <= 0; }),
         "measurement_vec_normalization values must be finite and > 0.")
 
-    if (selected.damped()) {
-      const Vector diagonal_precision = prior->inverse_diagonal();
-      for (Index i = 0; i < n; ++i)
-        for (Index k = 0; k < r; ++k) weighted[i, k] = diagonal_precision[i] * B[i, k];
-      damping.resize(r, r);
-      mult(damping, transpose(B), weighted);
-    }
+    if (selected.damped() and not state_identity)
+      damping = basis_precision(B, scale_basis_rows(B, prior->inverse_diagonal()));
   }
 
   measurement_gain_mat.resize(0, 0);
@@ -910,7 +972,7 @@ void ReducedOEM(const Workspace&                  ws,
                                  &subsurf_field,
                                  &jac_targets,
                                  &inversion_iterate_agenda);
-  oem::ReducedAgendaWrapper reduced(full, model_state_vec_apriori, B, C, measurement_jac);
+  oem::ReducedAgendaWrapper reduced(full, model_state_vec_apriori, B, C, measurement_jac, state_identity);
   oem::Vector               z(start);
   model_state_vec = reduced.expand(z);
   reduced.ensure_jacobian(z);
@@ -948,7 +1010,7 @@ void ReducedOEM(const Workspace&                  ws,
                 stop_dx,
                 lm_ga_settings,
                 display_progress,
-                selected.damped() ? &damping : nullptr);
+                damping.not_null() ? &damping : nullptr);
     model_state_vec = reduced.expand(z);
     // LI and rejected LM trials also need the physical outputs at the returned state.
     if (clear_matrices) {
@@ -962,10 +1024,14 @@ void ReducedOEM(const Workspace&                  ws,
       add_inv(hessian, *reduced_prior);
       inv(posterior, hessian);
       mult(gain, posterior, rhs);
-      Matrix expanded_gain(n, q);
-      mult(expanded_gain, B, gain);
       measurement_gain_mat.resize(n, m);
-      C.multiply_right(measurement_gain_mat, expanded_gain);
+      if (state_identity)
+        C.multiply_right(measurement_gain_mat, gain);
+      else {
+        Matrix expanded_gain(n, q);
+        B.multiply_left(expanded_gain, gain);
+        C.multiply_right(measurement_gain_mat, expanded_gain);
+      }
     }
     const auto [cost, measurement_cost] = full_cost();
     oem_diagnostics.final_cost          = cost;
