@@ -138,7 +138,8 @@ void py_retrieval(py::module_& m) try {
   member("smoothing_error_covmat",
          &OptimalEstimationData::smoothing_error_covmat,
          "Covariance matrix of the smoothing error.\n\n.. :class:`~pyarts3.arts.Matrix`");
-  member("diagnostics", &OptimalEstimationData::diagnostics, "Diagnostics information.");
+  member("diagnostics", &OptimalEstimationData::diagnostics,
+         "Diagnostics information.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`");
   member("basis_singular_values",
          &OptimalEstimationData::basis_singular_values,
          "Singular values of the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
