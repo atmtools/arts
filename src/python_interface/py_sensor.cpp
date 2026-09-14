@@ -43,8 +43,8 @@ void py_sensor(py::module_& m) try {
 
             if (not dtype.is_none()) { return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy); }
 
-            return w.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                  : py::rv_policy::copy);
+            if (copy.is_none() or not py::bool_(copy)) { return w.cast(py::rv_policy::automatic_reference); }
+            return w.cast(py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -95,8 +95,8 @@ void py_sensor(py::module_& m) try {
 
             if (not dtype.is_none()) { return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy); }
 
-            return w.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                  : py::rv_policy::copy);
+            if (copy.is_none() or not py::bool_(copy)) { return w.cast(py::rv_policy::automatic_reference); }
+            return w.cast(py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),

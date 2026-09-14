@@ -40,12 +40,22 @@ def workspace():
             grid_names=["Altitude", "Latitude", "Longitude"],
             grids=[[0, 1000], [0], [0]],
         )
-    ws.RetrievalInit()
-    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.eye(2) * SCALE[0] ** 2)
-    ws.RetrievalAddSpeciesVMR(species="O2", matrix=np.eye(2) * SCALE[2] ** 2)
-    ws.RetrievalFinalizeDiagonal()
-    ws.model_state_vec_aprioriFromData()
-    prior = np.array(ws.model_state_vec_apriori, copy=True)
+    ws.oemInit()
+    ws.oemAddSpeciesVMR(species="H2O", matrix=np.eye(2) * SCALE[0] ** 2)
+    ws.oemAddSpeciesVMR(species="O2", matrix=np.eye(2) * SCALE[2] ** 2)
+    ws.jac_targetsFinalize()
+    ws.measurement_vec = OBSERVED
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
+
+    ws.measurement_jac = arts.Matrix()
+    ws.model_state_vecFromData()
+    ws.measurement_sensor = arts.ArrayOfSensorObsel([arts.SensorObsel()] * len(OBSERVED))
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=1.)
+    ws.oemFinalizeDiagonal()
+    prior = np.array(ws.oem.model_state_vec_apriori, copy=True)
 
     def forward(local):
         x = np.asarray(local.get("model_state_vec"))
@@ -61,25 +71,22 @@ def workspace():
     )))
     agenda.finalize(True)
     ws.inversion_iterate_agenda = agenda
-    ws.measurement_vec = OBSERVED
     return ws, prior
 
 
 def measurement_covariance(ws, correlations, sparse, supplied_inverse):
-    # This toy problem has two measurement groups matching the two retrieval
-    # blocks in size and offset. Redirect the existing workspace block builder
-    # to Se. No private cache manipulation or direct .blocks edits are needed.
-    ws.model_state_covmatInit(model_state_covmat=ws.measurement_vec_error_covmat)
+    # Build two measurement covariance blocks through the owning workspace
+    # helpers, varying storage and supplied inverses without editing caches.
+    ws.oemMeasurementCovmatInit()
     se = np.zeros((4, 4))
-    for i, (species, rho) in enumerate(zip(("H2O", "O2"), correlations)):
+    for i, rho in enumerate(correlations):
         block = .25 * np.array([[1., rho], [rho, 1.]])
         se[2*i:2*i+2, 2*i:2*i+2] = block
         storage = arts.Sparse if sparse else arts.Matrix
         options = {"inverse": storage(np.linalg.solve(
             block, np.eye(2)))} if supplied_inverse else {}
-        ws.model_state_covmatAddSpeciesVMR(
-            model_state_covmat=ws.measurement_vec_error_covmat,
-            species=species, matrix=storage(block), **options,
+        ws.oemMeasurementCovmatAdd(
+            matrix=storage(block), **options,
         )
     return se
 
@@ -102,20 +109,22 @@ def run():
                 # First call prepares Se; the second reuses it. Both start from
                 # the same deliberately perturbed state, not the previous fit.
                 for repeat in range(2):
-                    ws.model_state_vec = prior + SCALE * START
-                    ws.measurement_vec_fit = []
-                    ws.measurement_jac = arts.Matrix()
-                    ws.OEM(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
+                    ws.oem.uncheck()
+                    ws.oem.model_state_vec = prior + SCALE * START
+                    ws.oem.measurement_vec_fit = []
+                    ws.oem.measurement_jac = arts.Matrix()
+                    ws.oemCheck()
+                    ws.oemCalc(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
                            max_iter=50, stop_dx=1e-12)
-                    assert not len(ws.oem_diagnostics.errors), str(
-                        ws.oem_diagnostics.errors)
-                    assert ws.oem_diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
-                    fitted = (np.array(ws.model_state_vec) - prior) / SCALE
-                    fit_y = np.array(ws.measurement_vec_fit, copy=True)
+                    assert not len(ws.oem.diagnostics.errors), str(
+                        ws.oem.diagnostics.errors)
+                    assert ws.oem.diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
+                    fitted = (np.array(ws.oem.model_state_vec) - prior) / SCALE
+                    fit_y = np.array(ws.oem.measurement_vec_fit, copy=True)
                     np.testing.assert_allclose(fitted, expected, rtol=0, atol=2e-7)
                     np.testing.assert_allclose(fit_y, K @ expected, rtol=0, atol=2e-7)
                     np.testing.assert_allclose(
-                        np.array(ws.measurement_gain_mat) / SCALE[:, None],
+                        np.array(ws.oem.measurement_gain_mat) / SCALE[:, None],
                         expected_gain, rtol=0, atol=1e-10,
                     )
                     if reference is None:

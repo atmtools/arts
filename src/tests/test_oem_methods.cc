@@ -61,25 +61,28 @@ bool is_lm(std::string_view method) { return method.starts_with("lm") or method.
 // covariance inversion, optimizer dispatch, diagnostics, and gain calculation.
 // No atmospheric data files or Python/Matlab installation are required.
 struct Retrieval {
-  Workspace                    ws{WorkspaceInitialization::Empty};
-  Vector                       x, yf;
-  Matrix                       jac, gain;
-  AtmField                     atm;
-  AbsorptionBands              bands;
-  ArrayOfSensorObsel           sensor;
-  SurfaceField                 surf;
-  SubsurfaceField              subsurf;
-  OptimalEstimationDiagnostics diagnostics;
-  JacobianTargets              targets;
-  Vector                       xa{0.5, -0.25};
-  Vector                       y{2.0, -1.0, 1.5};
-  CovarianceMatrix             sa = covariance(matrix(2, 2, {4, 1, 1, 2}));
-  CovarianceMatrix             se = covariance(matrix(3, 3, {1, 0.2, 0, 0.2, 2, 0.3, 0, 0.3, 0.5}));
-  Agenda                       agenda{"inversion_iterate_agenda"};
-  Vector                       normalization;
-  Vector                       measurement_normalization;
-  LevenbergMarquardtSettings   settings{10, 3, 2, 1e8, 0.1, 0};
-  Index                        max_iter = 40;
+  Workspace                     ws{WorkspaceInitialization::Empty};
+  OptimalEstimationData         data;
+  Vector&                       x    = data.model_state_vec;
+  Vector&                       yf   = data.measurement_vec_fit;
+  Matrix&                       jac  = data.measurement_jac;
+  Matrix&                       gain = data.measurement_gain_mat;
+  AtmField                      atm;
+  AbsorptionBands               bands;
+  ArrayOfSensorObsel            sensor;
+  SurfaceField                  surf;
+  SubsurfaceField               subsurf;
+  OptimalEstimationDiagnostics& diagnostics = data.diagnostics;
+  JacobianTargets               targets;
+  Vector&                       xa = data.model_state_vec_apriori;
+  Vector&                       y  = data.measurement_vec;
+  CovarianceMatrix&             sa = data.model_state_covmat;
+  CovarianceMatrix&             se = data.measurement_vec_error_covmat;
+  Agenda                        agenda{"inversion_iterate_agenda"};
+  Vector&                       normalization             = data.model_state_covmat_normalization;
+  Vector&                       measurement_normalization = data.measurement_vec_normalization;
+  LevenbergMarquardtSettings    settings{10, 3, 2, 1e8, 0.1, 0};
+  Index                         max_iter = 40;
   // Accuracy is also checked against independent state and cost oracles.
   Numeric stop_dx          = 1e-9;
   Numeric max_start_cost   = std::numeric_limits<Numeric>::infinity();
@@ -98,6 +101,10 @@ struct Retrieval {
   std::function<void(const Vector&, Vector&, Matrix&, bool)> forward;
 
   Retrieval() {
+    xa      = Vector{0.5, -0.25};
+    y       = Vector{2., -1., 1.5};
+    sa      = covariance(matrix(2, 2, {4, 1, 1, 2}));
+    se      = covariance(matrix(3, 3, {1, .2, 0, .2, 2, .3, 0, .3, .5}));
     forward = [](const Vector& state, Vector& fit, Matrix& jacobian, bool with_jacobian) {
       fit = Vector{state[0] + 2 * state[1] + 0.25, 2 * state[0] - state[1] - 0.5, state[0] + state[1] + 1};
       if (with_jacobian)
@@ -139,32 +146,23 @@ struct Retrieval {
   }
 
   void run(std::string_view method) {
-    OEM(ws,
-        x,
-        yf,
-        jac,
-        atm,
-        bands,
-        sensor,
-        surf,
-        subsurf,
-        gain,
-        diagnostics,
-        targets,
-        xa,
-        sa,
-        y,
-        se,
-        agenda,
-        String{method},
-        max_start_cost,
-        normalization,
-        measurement_normalization,
-        max_iter,
-        stop_dx,
-        settings,
-        clear_matrices,
-        display_progress);
+    oemCheck(data, targets);
+    oemCalc(ws,
+            data,
+            atm,
+            bands,
+            sensor,
+            surf,
+            subsurf,
+            targets,
+            agenda,
+            String{method},
+            max_start_cost,
+            max_iter,
+            stop_dx,
+            settings,
+            clear_matrices,
+            display_progress);
   }
 };
 
@@ -249,7 +247,7 @@ void test_diagonal_covariances(std::string_view method) {
         r.se = diagonal_covariance(Vector{1, 2, 0.5}, sparse_noise);
         if (scaled) {
           if (method.ends_with("_m"))
-            measurement_vec_error_covmatNormalization(r.measurement_normalization, r.se);
+            oemMeasurementCovmatNormalization(r.data);
           else
             r.normalization = Vector{2, std::sqrt(2.)};
         }
@@ -276,7 +274,8 @@ void test_diagonal_covariances(std::string_view method) {
 void test_measurement_noise_scaling(std::string_view method) {
   Retrieval baseline;
   Vector    scales;
-  measurement_vec_error_covmatNormalization(scales, baseline.se);
+  oemMeasurementCovmatNormalization(baseline.data);
+  scales = baseline.measurement_normalization;
   close(scales[0], 1, 1e-14, "Noise scale 0");
   close(scales[1], std::sqrt(2.), 1e-14, "Noise scale 1");
   close(scales[2], std::sqrt(0.5), 1e-14, "Noise scale 2");
@@ -295,7 +294,7 @@ void test_measurement_noise_scaling(std::string_view method) {
     for (Index j = 0; j < 3; ++j) noise[i, j] *= units[i] * units[j];
   }
   scaled.se = covariance(noise);
-  measurement_vec_error_covmatNormalization(scaled.measurement_normalization, scaled.se);
+  oemMeasurementCovmatNormalization(scaled.data);
   auto forward   = scaled.forward;
   scaled.forward = [forward, units](const Vector& x, Vector& y, Matrix& k, bool jac) {
     forward(x, y, k, jac);
@@ -1129,7 +1128,7 @@ void test_cg_termination() {
       Retrieval r;
       r.y[0]     = bad;
       r.max_iter = 1;
-      rejects_with([&] { r.run(method); }, "measurement_vec values must be finite");
+      rejects_with([&] { r.run(method); }, "measurement_vec[0]");
     }
   }
 }

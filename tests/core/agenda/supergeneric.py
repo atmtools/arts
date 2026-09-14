@@ -78,7 +78,7 @@ rejects(lambda: ws.jac_targetsAddAtmosphere(target=None))
 assert len(ws.jac_targets.atm) == 2
 
 # Retrieval wrappers forward the same variant to the Jacobian method.
-ws.RetrievalInit()
-ws.RetrievalAddAtmosphere(target="temperature", matrix=np.eye(1))
-ws.RetrievalAddAtmosphere(target="H2O", matrix=np.eye(1))
+ws.oemInit()
+ws.oemAddAtmosphere(target="temperature", matrix=np.eye(1))
+ws.oemAddAtmosphere(target="H2O", matrix=np.eye(1))
 assert len(ws.jac_targets.atm) == 2

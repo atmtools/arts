@@ -35,10 +35,10 @@ ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 
-ws.RetrievalInit()
-ws.RetrievalAddSubsurface(target="t", matrix=np.diag(5 * np.ones((len(z)))))
+ws.jac_targetsInit()
+ws.jac_targetsAddSubsurface(target="t")
 ws.measurement_sensor = []
-ws.RetrievalFinalizeDiagonal()
+ws.jac_targetsFinalize()
 
 ws.ray_point.pos = [0, 0, 0]
 ws.ray_point.los = [0, 0]

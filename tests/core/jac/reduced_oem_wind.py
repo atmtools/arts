@@ -59,10 +59,9 @@ def run():
     ws.ray_pathGeometric(pos=pos, los=los(60e3), add_limb=1)
     np.testing.assert_allclose(min(p.pos[0] for p in ws.ray_path), 60e3, atol=1e-3, rtol=0)
     ws.measurement_sensorSimple(pos=pos, los=los(60e3))
-    ws.RetrievalInit()
-    ws.RetrievalAddWindField(component="u", matrix=[[PRIOR_STD**2]])
-    ws.RetrievalFinalizeDiagonal()
-    ws.model_state_vec_aprioriFromData()
+    ws.oemInit()
+    ws.oemAddWindField(component="u", matrix=[[PRIOR_STD**2]])
+    ws.jac_targetsFinalize()
     ws.measurement_vecFromSensor()
     prior_spectrum = np.array(ws.measurement_vec)
     jacobian = np.array(ws.measurement_jac)
@@ -91,21 +90,26 @@ def run():
     ws.measurement_sensorSimple(pos=pos, los=los(60e3))
     ws.measurement_vec = observations
     ws.measurement_jac = jacobian
-    ws.measurement_vec_error_covmatConstant(value=NOISE_STD**2)
 
     # Only the measurement dimension shrinks: the full state already has size 1.
     # B rescales that single wind parameter; C compresses 2001 channels to one.
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=NOISE_STD**2)
+    ws.oem.measurement_jac = ws.measurement_jac
+    ws.oemFinalizeDiagonal()
     started = perf_counter()
-    ws.ReducedOEMBasisCalc()
+    ws.oemBasisCalc()
     basis_calc_seconds = perf_counter() - started
     started = perf_counter()
-    ws.ReducedOEMBasisReduce()
+    ws.oemBasisReduce()
     basis_reduce_seconds = perf_counter() - started
-    B = np.array(ws.model_state_basis_mat)
-    C = np.array(ws.measurement_basis_mat)
+    B = np.array(ws.oem.model_state_basis_mat)
+    C = np.array(ws.oem.measurement_basis_mat)
     assert B.shape == (1, 1) and C.shape == (1, len(OFFSET))
-    assert float(ws.oem_basis_lost_dofs) == 0
-    assert float(ws.oem_basis_lost_information_bits) == 0
+    assert float(ws.oem.basis_lost_dofs) == 0
+    assert float(ws.oem.basis_lost_information_bits) == 0
     np.testing.assert_allclose(B @ B.T, [[PRIOR_STD**2]], rtol=1e-12)
     np.testing.assert_allclose(NOISE_STD**2 * (C @ C.T), [[1.]], rtol=1e-12)
 
@@ -138,24 +142,26 @@ def run():
         # Every call starts from the same prior, with no cached fit/Jacobian.
         # Resetting inputs and checking/copying outputs are outside the timer.
         ws.atm_field["wind_u"] = PRIOR_WIND
-        ws.model_state_vec = []
-        ws.measurement_vec_fit = []
-        ws.measurement_jac = arts.Matrix()
-        method = getattr(ws, name)
+        ws.oem.uncheck()
+        ws.oem.model_state_vec = []
+        ws.oem.measurement_vec_fit = []
+        ws.oem.measurement_jac = arts.Matrix()
+        method = getattr(ws, {"OEM": "oemCalc", "ReducedOEM": "oemCalcReduced"}.get(name, name))
+        ws.oemCheck()
         started = perf_counter()
         method(
             method="lm", max_iter=30, stop_dx=0.01,
             lm_ga_settings=lm_settings,
         )
         elapsed = perf_counter() - started
-        assert ws.oem_diagnostics.status == arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
-        assert not len(ws.oem_diagnostics.errors), ws.oem_diagnostics
-        wind = float(ws.model_state_vec[0])
-        fitted = np.array(ws.measurement_vec_fit)
+        assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
+        assert not len(ws.oem.diagnostics.errors), ws.oem.diagnostics
+        wind = float(ws.oem.model_state_vec[0])
+        fitted = np.array(ws.oem.measurement_vec_fit)
         assert fitted.shape == observations.shape  # Output remains the full spectrum.
-        assert np.asarray(ws.measurement_jac).shape == jacobian.shape
+        assert np.asarray(ws.oem.measurement_jac).shape == jacobian.shape
         np.testing.assert_allclose(wind, TRUE_WIND, atol=0.01, rtol=0)
-        return (wind, fitted), elapsed, int(ws.oem_diagnostics.iterations)
+        return (wind, fitted), elapsed, int(ws.oem.diagnostics.iterations)
 
     names = ("OEM", "ReducedOEM")
     fits = {}

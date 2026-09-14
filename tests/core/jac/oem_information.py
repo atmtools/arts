@@ -146,18 +146,19 @@ def assert_modes(report, jacobian, prior, error, posterior):
 def test_workspace_bases():
     def check(jacobian, prior, noise, rank, *, prior_input=None, noise_input=None):
         ws = pyarts.Workspace()
-        ws.measurement_jac = jacobian
-        ws.model_state_covmat = covariance(
+        ws.oem = arts.OptimalEstimationData()
+        ws.oem.measurement_jac = jacobian
+        ws.oem.model_state_covmat = covariance(
             prior) if prior_input is None else prior_input
-        ws.measurement_vec_error_covmat = covariance(
+        ws.oem.measurement_vec_error_covmat = covariance(
             noise) if noise_input is None else noise_input
-        before_prior = covariance_snapshot(ws.model_state_covmat)
-        before_noise = covariance_snapshot(ws.measurement_vec_error_covmat)
-        ws.ReducedOEMBasisCalc()
+        before_prior = covariance_snapshot(ws.oem.model_state_covmat)
+        before_noise = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
+        ws.oemBasisCalc()
         m, n = jacobian.shape
-        full_b = np.array(ws.model_state_basis_mat)
-        full_c = np.array(ws.measurement_basis_mat)
-        singular = np.array(ws.oem_basis_singular_values)
+        full_b = np.array(ws.oem.model_state_basis_mat)
+        full_c = np.array(ws.oem.measurement_basis_mat)
+        singular = np.array(ws.oem.basis_singular_values)
         assert full_b.shape == (n, n)
         assert full_c.shape == (m, m)
         assert singular.shape == (min(m, n),)
@@ -168,8 +169,8 @@ def test_workspace_bases():
         sigma = np.zeros((m, n))
         np.fill_diagonal(sigma, singular)
         np.testing.assert_allclose(full_c @ jacobian @ full_b, sigma, atol=1e-12)
-        ws.ReducedOEMBasisReduce(rank=rank)
-        b, c = np.array(ws.model_state_basis_mat), np.array(ws.measurement_basis_mat)
+        ws.oemBasisReduce(rank=rank)
+        b, c = np.array(ws.oem.model_state_basis_mat), np.array(ws.oem.measurement_basis_mat)
         q = min(rank, m)
         assert b.shape == (n, rank)
         assert c.shape == (q, m)
@@ -180,10 +181,10 @@ def test_workspace_bases():
         np.testing.assert_allclose(
             singular, report.singular_values[:min(m, n)], atol=1e-12)
         expected = report.reduction(rank=rank)
-        np.testing.assert_allclose(ws.oem_basis_lost_dofs,
+        np.testing.assert_allclose(ws.oem.basis_lost_dofs,
                                    expected.discarded_degrees_of_freedom, atol=1e-12)
         np.testing.assert_allclose(
-            ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
         np.testing.assert_allclose(np.linalg.svd(c @ jacobian @ b, compute_uv=False),
                                    report.singular_values[:q], atol=1e-12)
         if rank == n:
@@ -197,12 +198,12 @@ def test_workspace_bases():
             # Singular-vector signs are arbitrary, so compare subspaces.
             np.testing.assert_allclose(
                 b @ b.T, expected.model_state_basis_mat @ expected.model_state_basis_mat.T, atol=1e-12)
-        assert covariance_snapshot(ws.model_state_covmat) == before_prior
-        assert covariance_snapshot(ws.measurement_vec_error_covmat) == before_noise
-        np.testing.assert_array_equal(ws.measurement_jac, jacobian)
-        np.testing.assert_array_equal(ws.model_state_basis_mat, full_b[:, :rank])
-        np.testing.assert_array_equal(ws.measurement_basis_mat, full_c[:q, :])
-        np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
+        assert covariance_snapshot(ws.oem.model_state_covmat) == before_prior
+        assert covariance_snapshot(ws.oem.measurement_vec_error_covmat) == before_noise
+        np.testing.assert_array_equal(ws.oem.measurement_jac, jacobian)
+        np.testing.assert_array_equal(ws.oem.model_state_basis_mat, full_b[:, :rank])
+        np.testing.assert_array_equal(ws.oem.measurement_basis_mat, full_c[:q, :])
+        np.testing.assert_array_equal(ws.oem.basis_singular_values, singular)
         return ws
 
     for rank in (1, 2):
@@ -232,51 +233,53 @@ def test_workspace_bases():
     ]
     check(K, SA, np.array([[1., 0, 0], [0, 2., .3], [0, .3, .5]]), 2, noise_input=mixed)
     cached = pyarts.Workspace()
-    cached.measurement_sensor = [arts.SensorObsel() for _ in range(3)]
-    cached.measurement_vec_error_covmatConstant(value=.25)
-    check(K, SA, .25 * np.eye(3), 2, noise_input=cached.measurement_vec_error_covmat)
+    cached.oem = arts.OptimalEstimationData()
+    cached.oem.measurement_vec = np.zeros(3)
+    cached.oemMeasurementCovmatConstant(value=.25)
+    check(K, SA, .25 * np.eye(3), 2, noise_input=cached.oem.measurement_vec_error_covmat)
 
     # Diagonal noise uses a diagonal factor; the saved full basis is square.
     count = 100
     ws = pyarts.Workspace()
-    ws.measurement_jac = np.tile(np.eye(2), (count // 2, 1))
-    ws.model_state_covmat = covariance(SA)
-    ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
+    ws.oem = arts.OptimalEstimationData()
+    ws.oem.measurement_jac = np.tile(np.eye(2), (count // 2, 1))
+    ws.oem.model_state_covmat = covariance(SA)
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
     from scipy import sparse
-    ws.measurement_vec_error_covmat.blocks = [arts.Block(
+    ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
         arts.Range(0, count), arts.Range(0, count), (0, 0),
         arts.Sparse(sparse.eye(count, format="csr")))]
-    ws.ReducedOEMBasisCalc()
-    assert np.asarray(ws.measurement_basis_mat).shape == (count, count)
-    ws.ReducedOEMBasisReduce(rank=1)
-    c = np.asarray(ws.measurement_basis_mat)
+    ws.oemBasisCalc()
+    assert np.asarray(ws.oem.measurement_basis_mat).shape == (count, count)
+    ws.oemBasisReduce(rank=1)
+    c = np.asarray(ws.oem.measurement_basis_mat)
     np.testing.assert_allclose(c @ c.T, [[1.]], atol=1e-12)
 
     # Failure leaves the previously generated bases intact.
     ws = check(K, SA, SE, 1)
-    b, c = np.array(ws.model_state_basis_mat), np.array(ws.measurement_basis_mat)
-    lost = (float(ws.oem_basis_lost_dofs), float(ws.oem_basis_lost_information_bits))
+    b, c = np.array(ws.oem.model_state_basis_mat), np.array(ws.oem.measurement_basis_mat)
+    lost = (float(ws.oem.basis_lost_dofs), float(ws.oem.basis_lost_information_bits))
     for kwargs in ({"rank": 0}, {"rank": 3}, {"rank": -2},
                    {"rank": 1, "max_lost_dofs": 0},
                    {"rank": 1, "max_lost_information_bits": 0},
                    {"max_lost_dofs": -.1}, {"max_lost_dofs": np.nan},
                    {"max_lost_information_bits": -2}, {"max_lost_information_bits": np.inf}):
-        rejects(lambda: ws.ReducedOEMBasisReduce(**kwargs))
-        np.testing.assert_array_equal(ws.model_state_basis_mat, b)
-        np.testing.assert_array_equal(ws.measurement_basis_mat, c)
-        assert (float(ws.oem_basis_lost_dofs), float(
-            ws.oem_basis_lost_information_bits)) == lost
-    singular = np.array(ws.oem_basis_singular_values)
+        rejects(lambda: ws.oemBasisReduce(**kwargs))
+        np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b)
+        np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c)
+        assert (float(ws.oem.basis_lost_dofs), float(
+            ws.oem.basis_lost_information_bits)) == lost
+    singular = np.array(ws.oem.basis_singular_values)
     for jacobian, prior, noise in ((K, np.eye(3), SE), (K, SA, np.eye(2)),
                                    (K, [[1., 2.], [2., 1.]], SE),
                                    (np.full((3, 2), np.nan), SA, SE)):
-        ws.measurement_jac = jacobian
-        ws.model_state_covmat = covariance(prior)
-        ws.measurement_vec_error_covmat = covariance(noise)
-        rejects(lambda: ws.ReducedOEMBasisCalc())
-        np.testing.assert_array_equal(ws.model_state_basis_mat, b)
-        np.testing.assert_array_equal(ws.measurement_basis_mat, c)
-        np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
+        ws.oem.measurement_jac = jacobian
+        ws.oem.model_state_covmat = covariance(prior)
+        ws.oem.measurement_vec_error_covmat = covariance(noise)
+        rejects(lambda: ws.oemBasisCalc())
+        np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b)
+        np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c)
+        np.testing.assert_array_equal(ws.oem.basis_singular_values, singular)
 
 
 test_workspace_bases()
@@ -286,13 +289,14 @@ def test_workspace_mode_selection():
     def select(jacobian, **options):
         m, n = jacobian.shape
         ws = pyarts.Workspace()
-        ws.measurement_jac = jacobian
-        ws.model_state_covmat = covariance(np.eye(n))
-        ws.measurement_vec_error_covmat = covariance(np.eye(m))
-        ws.ReducedOEMBasisCalc()
-        ws.ReducedOEMBasisReduce(**options)
-        b, c = np.asarray(ws.model_state_basis_mat), np.asarray(
-            ws.measurement_basis_mat)
+        ws.oem = arts.OptimalEstimationData()
+        ws.oem.measurement_jac = jacobian
+        ws.oem.model_state_covmat = covariance(np.eye(n))
+        ws.oem.measurement_vec_error_covmat = covariance(np.eye(m))
+        ws.oemBasisCalc()
+        ws.oemBasisReduce(**options)
+        b, c = np.asarray(ws.oem.model_state_basis_mat), np.asarray(
+            ws.oem.measurement_basis_mat)
         rank = b.shape[1]
         np.testing.assert_allclose(b.T @ b, np.eye(rank), atol=1e-12)
         np.testing.assert_allclose(c @ c.T, np.eye(min(rank, m)), atol=1e-12)
@@ -303,10 +307,10 @@ def test_workspace_mode_selection():
             limits = {"max_lost_information_bits": 0}
         expected = information(jacobian, np.eye(n), np.eye(m)).reduction(**limits)
         assert rank == expected.rank, (options, rank, expected.rank)
-        np.testing.assert_allclose(ws.oem_basis_lost_dofs,
+        np.testing.assert_allclose(ws.oem.basis_lost_dofs,
                                    expected.discarded_degrees_of_freedom, atol=1e-12)
         np.testing.assert_allclose(
-            ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
         return rank
 
     spectrum = np.diag([3., 1., .1, 0.])
@@ -336,25 +340,26 @@ def test_workspace_mode_selection():
     # Recalculation restores the state null space removed by selection.
     from scipy import sparse
     ws = pyarts.Workspace()
+    ws.oem = arts.OptimalEstimationData()
     n = 200
-    ws.measurement_jac = np.r_[1., np.zeros(n - 1)].reshape(1, n)
-    ws.model_state_covmat = arts.CovarianceMatrix()
-    ws.model_state_covmat.blocks = [arts.Block(
+    ws.oem.measurement_jac = np.r_[1., np.zeros(n - 1)].reshape(1, n)
+    ws.oem.model_state_covmat = arts.CovarianceMatrix()
+    ws.oem.model_state_covmat.blocks = [arts.Block(
         arts.Range(0, n), arts.Range(0, n), (0, 0),
         arts.Sparse(sparse.eye(n, format="csr")))]
-    ws.measurement_vec_error_covmat = covariance([[1.]])
-    ws.ReducedOEMBasisCalc()
-    assert np.asarray(ws.model_state_basis_mat).shape == (n, n)
-    ws.ReducedOEMBasisReduce()
-    b = np.asarray(ws.model_state_basis_mat)
-    c = np.asarray(ws.measurement_basis_mat)
+    ws.oem.measurement_vec_error_covmat = covariance([[1.]])
+    ws.oemBasisCalc()
+    assert np.asarray(ws.oem.model_state_basis_mat).shape == (n, n)
+    ws.oemBasisReduce()
+    b = np.asarray(ws.oem.model_state_basis_mat)
+    c = np.asarray(ws.oem.measurement_basis_mat)
     assert b.shape == (n, 1) and c.shape == (1, 1)
     np.testing.assert_allclose(
         b @ c, np.r_[1., np.zeros(n - 1)].reshape(n, 1), atol=1e-12)
-    rejects(lambda: ws.ReducedOEMBasisReduce(rank=n))
-    ws.ReducedOEMBasisCalc()
-    ws.ReducedOEMBasisReduce(rank=n)
-    full_b = np.asarray(ws.model_state_basis_mat)
+    rejects(lambda: ws.oemBasisReduce(rank=n))
+    ws.oemBasisCalc()
+    ws.oemBasisReduce(rank=n)
+    full_b = np.asarray(ws.oem.model_state_basis_mat)
     np.testing.assert_allclose(full_b @ full_b.T, np.eye(n), atol=1e-12)
 
 
@@ -364,55 +369,56 @@ test_workspace_mode_selection()
 def test_workspace_basis_reselection():
     for jacobian, prior, noise in ((K, SA, SE), (K.T, SE, SA)):
         ws = pyarts.Workspace()
-        ws.measurement_jac = jacobian
-        ws.model_state_covmat = covariance(prior)
-        ws.measurement_vec_error_covmat = covariance(noise)
-        ws.ReducedOEMBasisCalc()
-        b = np.array(ws.model_state_basis_mat)
-        c = np.array(ws.measurement_basis_mat)
-        singular = np.array(ws.oem_basis_singular_values)
+        ws.oem = arts.OptimalEstimationData()
+        ws.oem.measurement_jac = jacobian
+        ws.oem.model_state_covmat = covariance(prior)
+        ws.oem.measurement_vec_error_covmat = covariance(noise)
+        ws.oemBasisCalc()
+        b = np.array(ws.oem.model_state_basis_mat)
+        c = np.array(ws.oem.measurement_basis_mat)
+        singular = np.array(ws.oem.basis_singular_values)
         m, n = jacobian.shape
         report = information(jacobian, prior, noise)
 
         # Selection uses only the saved decomposition, even if the current
         # Jacobian/covariances no longer form a valid setup for another SVD.
-        ws.measurement_jac = [[np.nan]]
-        ws.model_state_covmat = covariance([[1.]])
-        ws.measurement_vec_error_covmat = covariance([[1.]])
+        ws.oem.measurement_jac = [[np.nan]]
+        ws.oem.model_state_covmat = covariance([[1.]])
+        ws.oem.measurement_vec_error_covmat = covariance([[1.]])
         for rank in (n, 1, 1):
-            ws.ReducedOEMBasisReduce(rank=rank)
-            np.testing.assert_array_equal(ws.model_state_basis_mat, b[:, :rank])
-            np.testing.assert_array_equal(ws.measurement_basis_mat, c[:min(rank, m), :])
+            ws.oemBasisReduce(rank=rank)
+            np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b[:, :rank])
+            np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c[:min(rank, m), :])
             expected = report.reduction(rank=rank)
             np.testing.assert_allclose(
-                ws.oem_basis_lost_dofs, expected.discarded_degrees_of_freedom, atol=1e-12)
+                ws.oem.basis_lost_dofs, expected.discarded_degrees_of_freedom, atol=1e-12)
             np.testing.assert_allclose(
-                ws.oem_basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
-            np.testing.assert_array_equal(ws.oem_basis_singular_values, singular)
-        rejects(lambda: ws.ReducedOEMBasisReduce(rank=n))
-        rejects(lambda: ws.ReducedOEMBasisReduce(max_lost_information_bits=0))
-        np.testing.assert_array_equal(ws.model_state_basis_mat, b[:, :1])
-        np.testing.assert_array_equal(ws.measurement_basis_mat, c[:1, :])
+                ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            np.testing.assert_array_equal(ws.oem.basis_singular_values, singular)
+        rejects(lambda: ws.oemBasisReduce(rank=n))
+        rejects(lambda: ws.oemBasisReduce(max_lost_information_bits=0))
+        np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b[:, :1])
+        np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c[:1, :])
         # Explicit restoration permits selecting more modes again.
-        ws.model_state_basis_mat = b
-        ws.measurement_basis_mat = c
-        ws.ReducedOEMBasisReduce(rank=n)
+        ws.oem.model_state_basis_mat = b
+        ws.oem.measurement_basis_mat = c
+        ws.oemBasisReduce(rank=n)
 
         # Malformed saved inputs are rejected before replacing active outputs.
-        ws.ReducedOEMBasisReduce(rank=1)
-        old_b = np.array(ws.model_state_basis_mat)
-        old_c = np.array(ws.measurement_basis_mat)
+        ws.oemBasisReduce(rank=1)
+        old_b = np.array(ws.oem.model_state_basis_mat)
+        old_c = np.array(ws.oem.measurement_basis_mat)
         for bad_spectrum in ([], [1.], [1., 2.], [-1., -2.], [np.inf, 0.], [np.nan, 0.]):
-            ws.oem_basis_singular_values = bad_spectrum
-            rejects(lambda: ws.ReducedOEMBasisReduce())
-            np.testing.assert_array_equal(ws.model_state_basis_mat, old_b)
-            np.testing.assert_array_equal(ws.measurement_basis_mat, old_c)
-        ws.oem_basis_singular_values = singular
+            ws.oem.basis_singular_values = bad_spectrum
+            rejects(lambda: ws.oemBasisReduce())
+            np.testing.assert_array_equal(ws.oem.model_state_basis_mat, old_b)
+            np.testing.assert_array_equal(ws.oem.measurement_basis_mat, old_c)
+        ws.oem.basis_singular_values = singular
         for name, saved in (("model_state_basis_mat", old_b), ("measurement_basis_mat", old_c)):
-            setattr(ws, name, np.zeros((0, 0)))
-            rejects(lambda: ws.ReducedOEMBasisReduce())
-            assert np.asarray(getattr(ws, name)).shape == (0, 0)
-            setattr(ws, name, saved)
+            setattr(ws.oem, name, np.zeros((0, 0)))
+            rejects(lambda: ws.oemBasisReduce())
+            assert np.asarray(getattr(ws.oem, name)).shape == (0, 0)
+            setattr(ws.oem, name, saved)
 
 
 test_workspace_basis_reselection()
@@ -433,25 +439,26 @@ def test_grouped_measurement_basis():
             noise[2, 4] = noise[4, 2] = .3
         for storage in (arts.Matrix, lambda a: arts.Sparse(sparse.csr_matrix(a))):
             ws = pyarts.Workspace()
-            ws.measurement_jac = jac
-            ws.model_state_basis_mat = [[2., 0.], [0., 3.]]
-            ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
-            ws.measurement_vec_error_covmat.blocks = [arts.Block(
+            ws.oem = arts.OptimalEstimationData()
+            ws.oem.measurement_jac = jac
+            ws.oem.model_state_basis_mat = [[2., 0.], [0., 3.]]
+            ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
+            ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
                 arts.Range(0, 6), arts.Range(0, 6), (0, 0), storage(noise))]
-            before = covariance_snapshot(ws.measurement_vec_error_covmat)
-            ws.measurement_basis_matCalc()
-            assert ws.measurement_basis_mat.shape == (3, 6)
-            assert ws.measurement_basis_mat.is_sparse == (not correlated)
-            c = np.array(ws.measurement_basis_mat)
+            before = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
+            ws.oemMeasurementBasisCalc()
+            assert ws.oem.measurement_basis_mat.shape == (3, 6)
+            assert ws.oem.measurement_basis_mat.is_sparse == (not correlated)
+            c = np.array(ws.oem.measurement_basis_mat)
             jr, sr = c @ jac, c @ noise @ c.T
             np.testing.assert_allclose(jr.T @ np.linalg.solve(sr, jr),
                                        jac.T @ np.linalg.solve(noise, jac), atol=1e-12)
             np.testing.assert_array_equal(
-                ws.model_state_basis_mat, [[2., 0.], [0., 3.]])
-            np.testing.assert_array_equal(ws.measurement_jac, jac)
-            assert covariance_snapshot(ws.measurement_vec_error_covmat) == before
+                ws.oem.model_state_basis_mat, [[2., 0.], [0., 3.]])
+            np.testing.assert_array_equal(ws.oem.measurement_jac, jac)
+            assert covariance_snapshot(ws.oem.measurement_vec_error_covmat) == before
             if not correlated:
-                csr = ws.measurement_basis_mat.matrix.tocsr()
+                csr = ws.oem.measurement_basis_mat.matrix.tocsr()
                 assert csr.nnz == len(jac)
                 np.testing.assert_array_equal(c != 0, [[1, 0, 0, 1, 0, 0],
                                                        [0, 1, 0, 0, 1, 0],
@@ -459,18 +466,18 @@ def test_grouped_measurement_basis():
                 np.testing.assert_allclose(sr, np.eye(3), atol=1e-12)
                 # Noise precision and the sign/amplitude both affect the weights.
                 np.testing.assert_allclose(c[0, 3] / c[0, 0], 2 / 9)
-                rejects(lambda: np.array(ws.measurement_basis_mat, copy=False))
+                rejects(lambda: np.array(ws.oem.measurement_basis_mat, copy=False))
 
     # Every row direction is distinct: preserve all channels with sparse identity.
-    ws.measurement_jac = [[1., 1.], [1., 2.], [1., 3.]]
-    ws.measurement_vec_error_covmat = covariance(np.eye(3))
-    ws.measurement_basis_matCalc()
-    assert ws.measurement_basis_mat.is_sparse
-    np.testing.assert_array_equal(np.array(ws.measurement_basis_mat), np.eye(3))
+    ws.oem.measurement_jac = [[1., 1.], [1., 2.], [1., 3.]]
+    ws.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.oemMeasurementBasisCalc()
+    assert ws.oem.measurement_basis_mat.is_sparse
+    np.testing.assert_array_equal(np.array(ws.oem.measurement_basis_mat), np.eye(3))
     # Failure leaves the previous projection usable.
-    ws.measurement_jac = [[np.nan, 0.]]
-    rejects(lambda: ws.measurement_basis_matCalc())
-    np.testing.assert_array_equal(np.array(ws.measurement_basis_mat), np.eye(3))
+    ws.oem.measurement_jac = [[np.nan, 0.]]
+    rejects(lambda: ws.oemMeasurementBasisCalc())
+    np.testing.assert_array_equal(np.array(ws.oem.measurement_basis_mat), np.eye(3))
 
 
 test_grouped_measurement_basis()
@@ -670,37 +677,37 @@ def test_diagonal_and_memory_limit():
 
 def test_read_only_workspace():
     ws = pyarts.Workspace()
-    ws.measurement_jac = K
-    ws.model_state_covmat = covariance(SA)
-    ws.measurement_vec_error_covmat = covariance(SE)
+    ws.oem = arts.OptimalEstimationData()
+    ws.oem.measurement_jac = K
+    ws.oem.model_state_covmat = covariance(SA)
+    ws.oem.measurement_vec_error_covmat = covariance(SE)
     ws.measurement_noise_scales = arts.Vector()
-    ws.measurement_vec_error_covmatNormalization(
-        normalization=ws.measurement_noise_scales
-    )
+    ws.oemMeasurementCovmatNormalization()
+    ws.measurement_noise_scales = ws.oem.measurement_vec_normalization
     np.testing.assert_allclose(ws.measurement_noise_scales, np.sqrt(np.diag(SE)))
-    ws.measurement_vec = [2.0, -1.0, 1.5]
+    ws.oem.measurement_vec = [2.0, -1.0, 1.5]
     # Deliberately does not represent F(xa). The wrapper must not assume it does.
-    ws.measurement_vec_fit = [99.0, 99.0, 99.0]
-    before_jacobian = np.array(ws.measurement_jac, copy=True)
-    before_prior = copy.deepcopy(ws.model_state_covmat)
-    before_error = copy.deepcopy(ws.measurement_vec_error_covmat)
-    before_prior_storage = covariance_snapshot(ws.model_state_covmat)
-    before_error_storage = covariance_snapshot(ws.measurement_vec_error_covmat)
+    ws.oem.measurement_vec_fit = [99.0, 99.0, 99.0]
+    before_jacobian = np.array(ws.oem.measurement_jac, copy=True)
+    before_prior = copy.deepcopy(ws.oem.model_state_covmat)
+    before_error = copy.deepcopy(ws.oem.measurement_vec_error_covmat)
+    before_prior_storage = covariance_snapshot(ws.oem.model_state_covmat)
+    before_error_storage = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
     report = information_from_workspace(ws)
     direct = information(K, SA, SE)
     np.testing.assert_allclose(report.singular_values, direct.singular_values)
     assert report.innovation_chi_square is None
-    np.testing.assert_array_equal(ws.measurement_jac, before_jacobian)
+    np.testing.assert_array_equal(ws.oem.measurement_jac, before_jacobian)
     for before, current in (
-        (before_prior, ws.model_state_covmat),
-        (before_error, ws.measurement_vec_error_covmat),
+        (before_prior, ws.oem.model_state_covmat),
+        (before_error, ws.oem.measurement_vec_error_covmat),
     ):
         assert len(before.blocks) == len(current.blocks)
         for old, new in zip(before.blocks, current.blocks):
             np.testing.assert_array_equal(old.matrix, new.matrix)
-    np.testing.assert_array_equal(ws.measurement_vec_fit, [99, 99, 99])
-    assert covariance_snapshot(ws.model_state_covmat) == before_prior_storage
-    assert covariance_snapshot(ws.measurement_vec_error_covmat) == before_error_storage
+    np.testing.assert_array_equal(ws.oem.measurement_vec_fit, [99, 99, 99])
+    assert covariance_snapshot(ws.oem.model_state_covmat) == before_prior_storage
+    assert covariance_snapshot(ws.oem.measurement_vec_error_covmat) == before_error_storage
     report_with_residual = information_from_workspace(
         ws,
         prior_prediction=[0.25, 0.75, 1.25],
@@ -709,18 +716,18 @@ def test_read_only_workspace():
 
     # The standard measurement helper supplies both sparse variance and inverse.
     # Read-only analysis must preserve that existing inverse as well.
-    ws.measurement_sensor = [arts.SensorObsel() for _ in range(3)]
-    ws.measurement_vec_error_covmatConstant(value=0.25)
-    before_error_storage = covariance_snapshot(ws.measurement_vec_error_covmat)
+    ws.oemMeasurementCovmatConstant(value=0.25)
+    before_error_storage = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
     cached = information_from_workspace(ws)
     np.testing.assert_allclose(
         cached.singular_values, information(K, SA, 0.25 * np.eye(3)).singular_values
     )
-    assert covariance_snapshot(ws.measurement_vec_error_covmat) == before_error_storage
+    assert covariance_snapshot(ws.oem.measurement_vec_error_covmat) == before_error_storage
 
 
 def test_workspace_state_labels():
     ws = pyarts.Workspace()
+    ws.oem = arts.OptimalEstimationData()
     ws.atm_field = arts.AtmField()
     ws.surf_field = arts.SurfaceField()
     ws.surf_field.ellipsoid = [1, 1]
@@ -733,13 +740,18 @@ def test_workspace_state_labels():
             grid_names=["Altitude", "Latitude", "Longitude"],
             grids=[np.arange(count, dtype=float), [0], [0]],
         )
-    ws.RetrievalInit()
-    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.eye(3))
-    ws.RetrievalAddTemperature(matrix=np.eye(2))
-    ws.RetrievalFinalizeDiagonal()
+    ws.oemInit()
+    ws.oemAddSpeciesVMR(species="H2O", matrix=np.eye(3))
+    ws.oemAddTemperature(matrix=np.eye(2))
+    ws.jac_targetsFinalize()
     ws.measurement_jac = np.arange(15, dtype=float).reshape(3, 5) / 10
-    ws.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.oem.measurement_vec_error_covmat = covariance(np.eye(3))
     ws.measurement_vec = [0, 0, 0]
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oem.measurement_jac = ws.measurement_jac
+    ws.oemFinalizeDiagonal()
     report = information_from_workspace(ws)
     for target in ws.jac_targets.atm:
         name = f"atm.{target.type}"
@@ -753,7 +765,8 @@ def test_workspace_state_labels():
     assert custom.state_blocks == report.state_blocks
     np.testing.assert_array_equal(custom.state_modes, report.state_modes)
     # Stale ranges must not silently attach a field name to the wrong column.
-    ws.measurement_jac = np.ones((3, 2))
+    ws.oem.uncheck()
+    ws.oem.measurement_jac = np.ones((3, 2))
     rejects(lambda: information_from_workspace(ws))
 
 

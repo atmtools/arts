@@ -226,7 +226,7 @@ Otherwise same as *spectral_rad_surface_agenda*.
   };
 
   wsa_data["inversion_iterate_agenda"] = {
-      .desc               = R"--(Evaluate a retrieval state.  See *OEM*.
+      .desc               = R"--(Evaluate a retrieval state.  See *oemCalc*.
 
 *model_state_targets* always contains the complete state mapping used by
 *UpdateModelStates* and measurement-error values.  *jac_targets* contains

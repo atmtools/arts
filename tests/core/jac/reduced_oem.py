@@ -24,6 +24,7 @@ def covariance(values):
 
 def workspace(nonlinear=False, *, calls=None, fail_at=None, evaluator=None):
     ws = pyarts.Workspace()
+    ws.oem = arts.OptimalEstimationData()
     for variable, group in (
         ("model_state_vec", arts.Vector),
         ("measurement_vec_fit", arts.Vector),
@@ -51,16 +52,16 @@ def workspace(nonlinear=False, *, calls=None, fail_at=None, evaluator=None):
     ws.jac_targetsFinalize()
 
     if nonlinear:
-        ws.model_state_vec = [0.1]
-        ws.model_state_vec_apriori = [1]
-        ws.measurement_vec = [4]
-        ws.model_state_covmat = covariance([[4]])
-        ws.measurement_vec_error_covmat = covariance([[0.25]])
+        ws.oem.model_state_vec = [0.1]
+        ws.oem.model_state_vec_apriori = [1]
+        ws.oem.measurement_vec = [4]
+        ws.oem.model_state_covmat = covariance([[4]])
+        ws.oem.measurement_vec_error_covmat = covariance([[0.25]])
     else:
-        ws.model_state_vec_apriori = [0.5, -0.25]
-        ws.measurement_vec = [2, -1, 1.5]
-        ws.model_state_covmat = covariance([[4, 1], [1, 2]])
-        ws.measurement_vec_error_covmat = covariance(
+        ws.oem.model_state_vec_apriori = [0.5, -0.25]
+        ws.oem.measurement_vec = [2, -1, 1.5]
+        ws.oem.model_state_covmat = covariance([[4, 1], [1, 2]])
+        ws.oem.measurement_vec_error_covmat = covariance(
             [[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]]
         )
     jacobian = np.array([[1, 2], [2, -1], [1, 1]], dtype=float)
@@ -106,32 +107,42 @@ basis_results = {None: {}, 1: {}, 2: {}}
 for method in methods:
     full, reduced = workspace(), workspace()
     options = dict(method=method, max_iter=80, stop_dx=1e-10)
-    full.OEM(**options)
-    reduced.ReducedOEM(measurement_basis_mat=np.eye(
-        3), model_state_basis_mat=basis, **options)
-    assert reduced.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, reduced.oem_diagnostics
-    np.testing.assert_allclose(reduced.model_state_vec, full.model_state_vec, atol=2e-5)
-    np.testing.assert_allclose(reduced.measurement_gain_mat,
-                               full.measurement_gain_mat, atol=1e-8)
-    full_results[method] = (np.array(full.model_state_vec),
-                            np.array(full.measurement_vec_fit))
+    full.oemCheck()
+    full.oemCalc(**options)
+    reduced.oem.measurement_basis_mat = np.eye(3)
+    reduced.oem.model_state_basis_mat = basis
+    reduced.oemCheck()
+    reduced.oemCalcReduced(**options)
+    assert reduced.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, reduced.oem.diagnostics
+    np.testing.assert_allclose(reduced.oem.model_state_vec,
+                               full.oem.model_state_vec, atol=2e-5)
+    np.testing.assert_allclose(reduced.oem.measurement_gain_mat,
+                               full.oem.measurement_gain_mat, atol=1e-8)
+    full_results[method] = (np.array(full.oem.model_state_vec),
+                            np.array(full.oem.measurement_vec_fit))
 
 # Independent scalar posterior for a restricted affine state.
 ws = workspace()
 b = basis[:, :1]
 j = np.array([[1., 2.], [2., -1.], [1., 1.]])
 se = np.array([[1., .2, 0], [.2, 2., .3], [0, .3, .5]])
-xa = np.asarray(ws.model_state_vec_apriori).copy()
-y = np.asarray(ws.measurement_vec).copy()
+xa = np.asarray(ws.oem.model_state_vec_apriori).copy()
+y = np.asarray(ws.oem.measurement_vec).copy()
 a = j @ b
 z = np.linalg.solve(np.eye(1) + a.T @ np.linalg.solve(se, a), a.T @
                     np.linalg.solve(se, y - j @ xa - [.25, -.5, 1]))
-ws.ReducedOEM(measurement_basis_mat=np.eye(3), model_state_basis_mat=b, method="li")
-np.testing.assert_allclose(ws.model_state_vec, xa + b @ z, atol=1e-10)
+ws.oem.measurement_basis_mat = np.eye(3)
+ws.oem.model_state_basis_mat = b
+ws.oemCheck()
+ws.oemCalcReduced(method='li')
+np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=1e-10)
 for invalid in (np.zeros((2, 1)), np.full((2, 1), np.nan), np.ones((2, 2)), np.ones((3, 1))):
     try:
-        workspace().ReducedOEM(measurement_basis_mat=np.eye(
-            3), model_state_basis_mat=invalid, method="li")
+        bad = workspace()
+        bad.oem.measurement_basis_mat = np.eye(3)
+        bad.oem.model_state_basis_mat = invalid
+        bad.oemCheck()
+        bad.oemCalcReduced(method="li")
     except RuntimeError:
         pass
     else:
@@ -139,11 +150,15 @@ for invalid in (np.zeros((2, 1)), np.full((2, 1), np.nan), np.ones((2, 2)), np.o
 
 # Nonlinear LM with value-only trial evaluations.
 ws = workspace(True)
-ws.ReducedOEM(measurement_basis_mat=[[1.]], model_state_basis_mat=[
-              [2.]], method="lm", max_iter=80, stop_dx=1e-10)
+ws.oem.measurement_basis_mat = [[1.0]]
+ws.oem.model_state_basis_mat = [[2.0]]
+ws.oemCheck()
+ws.oemCalcReduced(method='lm', max_iter=80, stop_dx=1e-10)
 reference = workspace(True)
-reference.OEM(method="lm", max_iter=80, stop_dx=1e-10)
-np.testing.assert_allclose(ws.model_state_vec, reference.model_state_vec, atol=2e-5)
+reference.oemCheck()
+reference.oemCalc(method="lm", max_iter=80, stop_dx=1e-10)
+np.testing.assert_allclose(ws.oem.model_state_vec,
+                           reference.oem.model_state_vec, atol=2e-5)
 
 # A single damped step verifies the projected LM damping, not just its limit.
 for method in ("lm", "lm_cg"):
@@ -151,28 +166,36 @@ for method in ("lm", "lm_cg"):
         j @ state, j)), workspace(evaluator=lambda state: (j @ state, j))
     B = np.array([[1.7, -.2], [.3, .8]])
     C = np.array([[1., .2, 0], [0, 2., .3], [.1, 0, 1.]])
-    full.OEM(method=method, max_iter=1)
-    reduced.ReducedOEM(model_state_basis_mat=B, measurement_basis_mat=C,
-                       method=method, max_iter=1)
-    np.testing.assert_allclose(reduced.model_state_vec,
-                               full.model_state_vec, atol=1e-10)
-    assert np.linalg.norm(np.asarray(full.model_state_vec) - xa) > 1e-3
-    assert reduced.oem_diagnostics.iterations == full.oem_diagnostics.iterations == 1
+    full.oemCheck()
+    full.oemCalc(method=method, max_iter=1)
+    reduced.oem.model_state_basis_mat = B
+    reduced.oem.measurement_basis_mat = C
+    reduced.oemCheck()
+    reduced.oemCalcReduced(method=method, max_iter=1)
+    np.testing.assert_allclose(reduced.oem.model_state_vec,
+                               full.oem.model_state_vec, atol=1e-10)
+    assert np.linalg.norm(np.asarray(full.oem.model_state_vec) - xa) > 1e-3
+    assert reduced.oem.diagnostics.iterations == full.oem.diagnostics.iterations == 1
 
 ws = workspace()
-ws.model_state_vec = xa + np.array([0., 1.])
+ws.oem.model_state_vec = xa + np.array([0., 1.])
 try:
-    ws.ReducedOEM(measurement_basis_mat=np.eye(3), model_state_basis_mat=b, method="li")
+    ws.oem.measurement_basis_mat = np.eye(3)
+    ws.oem.model_state_basis_mat = b
+    ws.oemCheck()
+    ws.oemCalcReduced(method='li')
 except RuntimeError as error:
     assert "affine subspace" in str(error)
 else:
     raise AssertionError("Out-of-subspace starting state accepted")
 ws = workspace()
-ws.ReducedOEM(measurement_basis_mat=np.eye(
-    3), model_state_basis_mat=b, method="gn", clear_matrices=1)
-assert np.asarray(ws.measurement_jac).size == 0
-assert np.asarray(ws.measurement_gain_mat).size == 0
-np.testing.assert_allclose(ws.model_state_vec, xa + b @ z, atol=1e-8)
+ws.oem.measurement_basis_mat = np.eye(3)
+ws.oem.model_state_basis_mat = b
+ws.oemCheck()
+ws.oemCalcReduced(method='gn', clear_matrices=1)
+assert np.asarray(ws.oem.measurement_jac).size == 0
+assert np.asarray(ws.oem.measurement_gain_mat).size == 0
+np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=1e-8)
 
 # An actual null-space retrieval, using a basis chosen by the loss threshold.
 null_j = np.array([[2., 0.], [0., 0.], [0., 0.]])
@@ -183,16 +206,19 @@ for method in ("li", "gn", "lm", "lm_cg"):
     pair = [workspace(evaluator=lambda state: (null_j @ state, null_j))
             for _ in range(2)]
     for item in pair:
-        item.model_state_covmat = covariance(np.eye(2))
-        item.measurement_vec_error_covmat = covariance(np.eye(3))
-    pair[0].OEM(method=method, max_iter=80, stop_dx=1e-10)
-    pair[1].ReducedOEM(measurement_basis_mat=np.eye(
-        3), model_state_basis_mat=null_basis, method=method, max_iter=80, stop_dx=1e-10)
-    np.testing.assert_allclose(pair[1].model_state_vec,
-                               pair[0].model_state_vec, atol=2e-5)
+        item.oem.model_state_covmat = covariance(np.eye(2))
+        item.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+    pair[0].oemCheck()
+    pair[0].oemCalc(method=method, max_iter=80, stop_dx=1e-10)
+    pair[1].oem.measurement_basis_mat = np.eye(3)
+    pair[1].oem.model_state_basis_mat = null_basis
+    pair[1].oemCheck()
+    pair[1].oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(pair[1].oem.model_state_vec,
+                               pair[0].oem.model_state_vec, atol=2e-5)
     np.testing.assert_allclose(
-        pair[1].measurement_gain_mat, pair[0].measurement_gain_mat, atol=1e-10)
-    assert np.asarray(pair[1].model_state_vec)[1] == xa[1]
+        pair[1].oem.measurement_gain_mat, pair[0].oem.measurement_gain_mat, atol=1e-10)
+    assert np.asarray(pair[1].oem.model_state_vec)[1] == xa[1]
 
 # Nonlinear truncation to one coefficient. The independent oracle solves the
 # resulting quartic cost's cubic derivative and chooses its global minimum.
@@ -221,22 +247,25 @@ optimum = min(real_roots, key=lambda value: np.polynomial.polynomial.polyval(val
 for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     calls = []
     ws = workspace(evaluator=curved, calls=calls)
-    ws.ReducedOEM(measurement_basis_mat=np.eye(
-        3), model_state_basis_mat=curved_basis, method=method, max_iter=80, stop_dx=1e-12)
-    assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
-    state = np.asarray(ws.model_state_vec)
+    ws.oem.measurement_basis_mat = np.eye(3)
+    ws.oem.model_state_basis_mat = curved_basis
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-12)
+    assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
+    state = np.asarray(ws.oem.model_state_vec)
     np.testing.assert_allclose(state, xa + direction * optimum, atol=2e-5)
-    np.testing.assert_allclose(ws.measurement_vec_fit, curved(state)[0], atol=1e-10)
-    np.testing.assert_allclose(ws.measurement_jac, curved(state)[1], atol=1e-10)
+    np.testing.assert_allclose(ws.oem.measurement_vec_fit, curved(state)[0], atol=1e-10)
+    np.testing.assert_allclose(ws.oem.measurement_jac, curved(state)[1], atol=1e-10)
     # The last successful Jacobian already represents the returned state.
     assert not (len(calls) > 1 and calls[-1][1] and calls[-2][1]
                 and np.array_equal(calls[-1][0], calls[-2][0]))
 
 # Use the actual information modes through the public workspace report.
 probe = workspace()
-probe.model_state_vec = probe.model_state_vec_apriori
+probe.model_state_vec = probe.oem.model_state_vec_apriori
 probe.model_state_targets = probe.jac_targets
 probe.inversion_iterate_agendaExecute()
+probe.oem.measurement_jac = probe.measurement_jac
 report = information_from_workspace(probe)
 reduction = report.reduction(rank=1)
 b = reduction.model_state_basis_mat
@@ -247,20 +276,22 @@ z = np.linalg.solve(reduced_precision, a.T @
 gain = b @ np.linalg.solve(reduced_precision, a.T @ np.linalg.inv(se))
 for method in methods:
     ws = workspace()
-    ws.ReducedOEM(measurement_basis_mat=reduction.measurement_basis_mat,
-                  model_state_basis_mat=b, method=method, max_iter=80, stop_dx=1e-10)
-    assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
-    np.testing.assert_allclose(ws.model_state_vec, xa + b @ z, atol=2e-5)
-    np.testing.assert_allclose(ws.measurement_gain_mat, gain, atol=1e-10)
-    np.testing.assert_allclose(ws.measurement_jac, j, atol=1e-12)
-    np.testing.assert_allclose(ws.measurement_vec_fit, j @
-                               np.asarray(ws.model_state_vec) + [.25, -.5, 1])
+    ws.oem.measurement_basis_mat = reduction.measurement_basis_mat
+    ws.oem.model_state_basis_mat = b
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
+    np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=2e-5)
+    np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
+    np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
+    np.testing.assert_allclose(ws.oem.measurement_vec_fit, j @
+                               np.asarray(ws.oem.model_state_vec) + [.25, -.5, 1])
     # Existing workspace error-covariance methods preserve omitted uncertainty.
-    ws.measurement_averaging_kernelCalc()
-    ws.model_state_covmat_smoothing_errorCalc()
-    ws.measurement_vec_error_covmat_observation_systemCalc()
-    uncertainty = (np.asarray(ws.model_state_covmat_smoothing_error)
-                   + np.asarray(ws.measurement_vec_error_covmat_observation_system))
+    ws.oemAveragingKernelCalc()
+    ws.oemSmoothingErrorCalc()
+    ws.oemObservationErrorCalc()
+    uncertainty = (np.asarray(ws.oem.smoothing_error_covmat)
+                   + np.asarray(ws.oem.observation_error_covmat))
     np.testing.assert_allclose(
         uncertainty, reduction.posterior_covariance(), atol=1e-10)
 
@@ -269,21 +300,23 @@ for method in methods:
 for rank in (None, 1, 2):
     for method in methods:
         ws = workspace()
-        ws.measurement_jac = j
-        ws.ReducedOEMBasisCalc()
+        ws.oem.measurement_jac = j
+        ws.oemBasisCalc()
         if rank is not None:
-            ws.ReducedOEMBasisReduce(rank=rank)
-        B = np.array(ws.model_state_basis_mat)
-        C = np.array(ws.measurement_basis_mat)
+            ws.oemBasisReduce(rank=rank)
+        B = np.array(ws.oem.model_state_basis_mat)
+        C = np.array(ws.oem.measurement_basis_mat)
         jr = C @ j @ B
         expected_gain = B @ np.linalg.solve(np.eye(B.shape[1]) + jr.T @ jr, jr.T) @ C
         expected_state = xa + expected_gain @ (y - j @ xa - [.25, -.5, 1])
-        ws.ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
-        np.testing.assert_allclose(ws.model_state_vec,
+        ws.oemCheck()
+        ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+        np.testing.assert_allclose(ws.oem.model_state_vec,
                                    expected_state, atol=2e-5)
-        np.testing.assert_allclose(ws.measurement_gain_mat, expected_gain, atol=1e-10)
+        np.testing.assert_allclose(ws.oem.measurement_gain_mat,
+                                   expected_gain, atol=1e-10)
         basis_results[rank][method] = (
-            np.array(ws.model_state_vec), np.array(ws.measurement_vec_fit),
+            np.array(ws.oem.model_state_vec), np.array(ws.oem.measurement_vec_fit),
             expected_state, j @ expected_state + [.25, -.5, 1],
         )
 
@@ -292,39 +325,44 @@ for method in methods:
     pair = [workspace(evaluator=lambda state: (null_j @ state, null_j))
             for _ in range(2)]
     for item in pair:
-        item.model_state_covmat = covariance(np.eye(2))
-        item.measurement_vec_error_covmat = covariance(np.eye(3))
-    pair[0].OEM(method=method, max_iter=80, stop_dx=1e-10)
-    pair[1].measurement_jac = null_j
-    pair[1].ReducedOEMBasisCalc()
-    pair[1].ReducedOEMBasisReduce()  # Remove the zero-information mode automatically.
-    assert np.asarray(pair[1].model_state_basis_mat).shape == (2, 1)
-    pair[1].ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
-    np.testing.assert_allclose(pair[1].model_state_vec,
-                               pair[0].model_state_vec, atol=2e-5)
+        item.oem.model_state_covmat = covariance(np.eye(2))
+        item.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+    pair[0].oemCheck()
+    pair[0].oemCalc(method=method, max_iter=80, stop_dx=1e-10)
+    pair[1].oem.measurement_jac = null_j
+    pair[1].oemBasisCalc()
+    pair[1].oemBasisReduce()  # Remove the zero-information mode automatically.
+    assert np.asarray(pair[1].oem.model_state_basis_mat).shape == (2, 1)
+    pair[1].oemCheck()
+    pair[1].oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(pair[1].oem.model_state_vec,
+                               pair[0].oem.model_state_vec, atol=2e-5)
     np.testing.assert_allclose(
-        pair[1].measurement_gain_mat, pair[0].measurement_gain_mat, atol=1e-10)
+        pair[1].oem.measurement_gain_mat, pair[0].oem.measurement_gain_mat, atol=1e-10)
 
 # Discard a weak nonzero mode using its total information budget, then retrieve.
 loss_limit = report.reduction(rank=1).discarded_information_bits + 1e-8
 for method in methods:
     ws = workspace()
-    ws.measurement_jac = j
-    ws.ReducedOEMBasisCalc()
-    ws.ReducedOEMBasisReduce(max_lost_information_bits=loss_limit)
-    assert np.asarray(ws.model_state_basis_mat).shape == (2, 1)
-    ws.ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
-    np.testing.assert_allclose(ws.model_state_vec, xa + b @ z, atol=2e-5)
-    np.testing.assert_allclose(ws.measurement_gain_mat, gain, atol=1e-10)
+    ws.oem.measurement_jac = j
+    ws.oemBasisCalc()
+    ws.oemBasisReduce(max_lost_information_bits=loss_limit)
+    assert np.asarray(ws.oem.model_state_basis_mat).shape == (2, 1)
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=2e-5)
+    np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
 
 for method in ("li", "lm"):
     ws = workspace(evaluator=lambda state: (np.zeros(3), np.zeros((3, 2))))
-    ws.measurement_jac = np.zeros((3, 2))
-    ws.ReducedOEMBasisCalc()
-    ws.ReducedOEMBasisReduce()
-    ws.ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
-    np.testing.assert_allclose(ws.model_state_vec, xa, atol=1e-12)
-    np.testing.assert_allclose(ws.measurement_gain_mat, np.zeros((2, 3)), atol=1e-12)
+    ws.oem.measurement_jac = np.zeros((3, 2))
+    ws.oemBasisCalc()
+    ws.oemBasisReduce()
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(ws.oem.model_state_vec, xa, atol=1e-12)
+    np.testing.assert_allclose(ws.oem.measurement_gain_mat,
+                               np.zeros((2, 3)), atol=1e-12)
 
 # Dropping an exactly unobservable mode preserves the solution and uncertainty.
 null_report = information([[2., 0.]], np.eye(2), np.eye(1))
@@ -335,20 +373,25 @@ np.testing.assert_allclose(null_reduction.posterior_covariance(), np.diag([.2, 1
 # A start-cost exit at the prior should use its already evaluated full Jacobian.
 calls = []
 ws = workspace(calls=calls)
-ws.ReducedOEM(measurement_basis_mat=np.eye(3), model_state_basis_mat=b,
-              method="lm", max_start_cost=1e-100)
-assert ws.oem_diagnostics.status == arts.OptimalEstimationStatus.StartCostLimit
+ws.oem.measurement_basis_mat = np.eye(3)
+ws.oem.model_state_basis_mat = b
+ws.oemCheck()
+ws.oemCalcReduced(method='lm', max_start_cost=1e-100)
+assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.StartCostLimit
 assert len(calls) == 1
-np.testing.assert_allclose(ws.model_state_vec, xa)
-np.testing.assert_allclose(ws.measurement_jac, j)
+np.testing.assert_allclose(ws.oem.model_state_vec, xa)
+np.testing.assert_allclose(ws.oem.measurement_jac, j)
 
 # LI's full-state restoration can fail after the solver itself succeeds.
 ws = workspace(fail_at=lambda state: not np.array_equal(state, xa))
-ws.ReducedOEM(measurement_basis_mat=np.eye(3), model_state_basis_mat=b, method="li")
-assert ws.oem_diagnostics.status == arts.OptimalEstimationStatus.Error
-assert "deliberate reduced agenda failure" in str(ws.oem_diagnostics.errors)
-assert np.all(np.isnan(ws.model_state_vec))
-assert np.asarray(ws.measurement_gain_mat).size == 0
+ws.oem.measurement_basis_mat = np.eye(3)
+ws.oem.model_state_basis_mat = b
+ws.oemCheck()
+ws.oemCalcReduced(method='li')
+assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.Error
+assert "deliberate reduced agenda failure" in str(ws.oem.diagnostics.errors)
+assert np.all(np.isnan(ws.oem.model_state_vec))
+assert np.asarray(ws.oem.measurement_gain_mat).size == 0
 
 
 def affine_reference(B, C):
@@ -375,21 +418,24 @@ for B, C in (
     for method in methods:
         calls = []
         ws = workspace(calls=calls)
-        ws.ReducedOEM(model_state_basis_mat=B, measurement_basis_mat=C,
-                      method=method, max_iter=80, stop_dx=1e-10)
-        assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
-        np.testing.assert_allclose(ws.model_state_vec, expected_state, atol=2e-5)
-        np.testing.assert_allclose(ws.measurement_gain_mat, expected_gain, atol=1e-10)
+        ws.oem.model_state_basis_mat = B
+        ws.oem.measurement_basis_mat = C
+        ws.oemCheck()
+        ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+        assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
+        np.testing.assert_allclose(ws.oem.model_state_vec, expected_state, atol=2e-5)
+        np.testing.assert_allclose(ws.oem.measurement_gain_mat,
+                                   expected_gain, atol=1e-10)
         # The physical agenda must always receive the original two-element state.
         assert all(state.shape == (2,) for state, _ in calls)
-        np.testing.assert_allclose(ws.measurement_jac, j, atol=1e-12)
-        state = np.asarray(ws.model_state_vec)
+        np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
+        state = np.asarray(ws.oem.model_state_vec)
         residual = y - j @ state - [.25, -.5, 1]
         measurement_cost = residual @ np.linalg.solve(se, residual) / len(y)
         delta = state - xa
         np.testing.assert_allclose(
-            ws.oem_diagnostics.measurement_cost, measurement_cost, atol=1e-10)
-        np.testing.assert_allclose(ws.oem_diagnostics.final_cost,
+            ws.oem.diagnostics.measurement_cost, measurement_cost, atol=1e-10)
+        np.testing.assert_allclose(ws.oem.diagnostics.final_cost,
                                    measurement_cost + delta @ np.linalg.solve(sa, delta) / len(y), atol=1e-10)
 
 # Reduced-size normalization vectors are optional, independently of B and C.
@@ -401,22 +447,30 @@ for method, normalization in (
 ):
     B, C = np.array([[.7], [-.3]]), np.array([[1., 0, .5], [0, 2., 1.]])
     ws = workspace()
-    ws.ReducedOEM(model_state_basis_mat=B, measurement_basis_mat=C,
-                  method=method, max_iter=80, stop_dx=1e-10, **normalization)
-    np.testing.assert_allclose(ws.model_state_vec, affine_reference(B, C)[0], atol=2e-5)
+    ws.oem.model_state_basis_mat = B
+    ws.oem.measurement_basis_mat = C
+    for key, value in normalization.items():
+        setattr(ws.oem, key, value)
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(ws.oem.model_state_vec,
+                               affine_reference(B, C)[0], atol=2e-5)
 
 # Full-state information survives measurement compression for this affine model.
 complete = report.reduction(rank=2)
 assert complete.measurement_basis_mat.shape == (2, 3)
 for method in methods:
     full, reduced = workspace(), workspace()
-    full.OEM(method=method, max_iter=80, stop_dx=1e-10)
-    reduced.ReducedOEM(model_state_basis_mat=complete.model_state_basis_mat,
-                       measurement_basis_mat=complete.measurement_basis_mat,
-                       method=method, max_iter=80, stop_dx=1e-10)
-    np.testing.assert_allclose(reduced.model_state_vec, full.model_state_vec, atol=2e-5)
-    np.testing.assert_allclose(reduced.measurement_gain_mat,
-                               full.measurement_gain_mat, atol=1e-10)
+    full.oemCheck()
+    full.oemCalc(method=method, max_iter=80, stop_dx=1e-10)
+    reduced.oem.model_state_basis_mat = complete.model_state_basis_mat
+    reduced.oem.measurement_basis_mat = complete.measurement_basis_mat
+    reduced.oemCheck()
+    reduced.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+    np.testing.assert_allclose(reduced.oem.model_state_vec,
+                               full.oem.model_state_vec, atol=2e-5)
+    np.testing.assert_allclose(reduced.oem.measurement_gain_mat,
+                               full.oem.measurement_gain_mat, atol=1e-10)
 
 # A compressed nonlinear problem has its own objective: compare against its
 # quartic scalar cost, including a non-unit prior precision and correlated noise.
@@ -436,12 +490,15 @@ optimum = min(real_roots, key=lambda value: np.polynomial.polynomial.polyval(val
 for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     calls = []
     ws = workspace(evaluator=curved, calls=calls)
-    ws.ReducedOEM(model_state_basis_mat=B, measurement_basis_mat=C,
-                  method=method, max_iter=80, stop_dx=1e-12)
-    np.testing.assert_allclose(ws.model_state_vec, xa + direction * optimum, atol=2e-5)
-    state = np.asarray(ws.model_state_vec)
-    np.testing.assert_allclose(ws.measurement_vec_fit, curved(state)[0], atol=1e-10)
-    np.testing.assert_allclose(ws.measurement_jac, curved(state)[1], atol=1e-10)
+    ws.oem.model_state_basis_mat = B
+    ws.oem.measurement_basis_mat = C
+    ws.oemCheck()
+    ws.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-12)
+    np.testing.assert_allclose(ws.oem.model_state_vec, xa +
+                               direction * optimum, atol=2e-5)
+    state = np.asarray(ws.oem.model_state_vec)
+    np.testing.assert_allclose(ws.oem.measurement_vec_fit, curved(state)[0], atol=1e-10)
+    np.testing.assert_allclose(ws.oem.measurement_jac, curved(state)[1], atol=1e-10)
     if method.startswith("lm"):
         assert any(not derivatives for _, derivatives in calls)
 
@@ -450,8 +507,11 @@ for C in (np.zeros((1, 3)), np.ones((2, 3)), np.eye(2),
           np.full((1, 3), np.nan), np.empty((0, 3))):
     calls = []
     try:
-        workspace(calls=calls).ReducedOEM(
-            model_state_basis_mat=np.eye(2), measurement_basis_mat=C, method="li")
+        bad = workspace(calls=calls)
+        bad.oem.model_state_basis_mat = np.eye(2)
+        bad.oem.measurement_basis_mat = C
+        bad.oemCheck()
+        bad.oemCalcReduced(method="li")
     except RuntimeError:
         assert not calls
     else:
@@ -460,7 +520,11 @@ for C in (np.zeros((1, 3)), np.ones((2, 3)), np.eye(2),
 # Both matrices are required, even when one side uses identity.
 for arguments in (dict(model_state_basis_mat=np.eye(2)), dict(measurement_basis_mat=np.eye(3))):
     try:
-        workspace().ReducedOEM(method="li", **arguments)
+        bad = workspace()
+        for key, value in arguments.items():
+            setattr(bad.oem, key, value)
+        bad.oemCheck()
+        bad.oemCalcReduced(method="li")
     except (RuntimeError, TypeError):
         pass
     else:
@@ -477,37 +541,41 @@ def test_grouped_measurements():
             pair = [workspace(evaluator=lambda x: (jac @ x + offset, jac))
                     for _ in range(2)]
             for item in pair:
-                item.measurement_vec_error_covmat = covariance(noise)
+                item.oem.measurement_vec_error_covmat = covariance(noise)
             full, reduced = pair
-            full.OEM(method=method, max_iter=80, stop_dx=1e-10)
-            reduced.measurement_jac = jac
-            reduced.model_state_basis_mat = np.eye(2)
-            reduced.measurement_basis_matCalc()
-            reduced.ReducedOEM(method=method, max_iter=80, stop_dx=1e-10)
-            assert reduced.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, reduced.oem_diagnostics
+            full.oemCheck()
+            full.oemCalc(method=method, max_iter=80, stop_dx=1e-10)
+            reduced.oem.measurement_jac = jac
+            reduced.oem.model_state_basis_mat = np.eye(2)
+            reduced.oemMeasurementBasisCalc()
+            reduced.oemCheck()
+            reduced.oemCalcReduced(method=method, max_iter=80, stop_dx=1e-10)
+            assert reduced.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, reduced.oem.diagnostics
             np.testing.assert_allclose(
-                reduced.model_state_vec, full.model_state_vec, atol=2e-5)
+                reduced.oem.model_state_vec, full.oem.model_state_vec, atol=2e-5)
             np.testing.assert_allclose(
-                reduced.measurement_gain_mat, full.measurement_gain_mat, atol=1e-10)
+                reduced.oem.measurement_gain_mat, full.oem.measurement_gain_mat, atol=1e-10)
             np.testing.assert_allclose(
-                reduced.measurement_vec_fit, full.measurement_vec_fit, atol=4e-5)
+                reduced.oem.measurement_vec_fit, full.oem.measurement_vec_fit, atol=4e-5)
 
     # Explicit sparse C with off-diagonal noise blocks exercises sparse covariance
     # projection, including the implicit transpose of cross-correlation blocks.
     for storage in (arts.Matrix, lambda a: arts.Sparse(sparse.csr_matrix(a))):
         ws = workspace()
-        ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
-        ws.measurement_vec_error_covmat.blocks = [
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
+        ws.oem.measurement_vec_error_covmat.blocks = [
             arts.Block(arts.Range(0, 1), arts.Range(0, 1), (0, 0), storage(se[:1, :1])),
             arts.Block(arts.Range(1, 2), arts.Range(1, 2), (1, 1), storage(se[1:, 1:])),
             arts.Block(arts.Range(0, 1), arts.Range(1, 2), (0, 1), storage(se[:1, 1:])),
         ]
         c = np.array([[.5, 0., .5], [0., 1., 0.]])
-        ws.ReducedOEM(model_state_basis_mat=np.eye(2),
-                      measurement_basis_mat=arts.Sparse(sparse.csr_matrix(c)), method="li")
+        ws.oem.model_state_basis_mat = np.eye(2)
+        ws.oem.measurement_basis_mat = arts.Sparse(sparse.csr_matrix(c))
+        ws.oemCheck()
+        ws.oemCalcReduced(method='li')
         state, gain = affine_reference(np.eye(2), c)
-        np.testing.assert_allclose(ws.model_state_vec, state, atol=1e-10)
-        np.testing.assert_allclose(ws.measurement_gain_mat, gain, atol=1e-10)
+        np.testing.assert_allclose(ws.oem.model_state_vec, state, atol=1e-10)
+        np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
 
     # Many independent groups: storing either C or its projected diagonal noise
     # densely would require large quadratic arrays. The useful Jacobian stays thin.
@@ -516,20 +584,21 @@ def test_grouped_measurements():
         (np.ones(count // 2), np.arange(count // 2))), 2, axis=0)
     jac[:, 1] /= count
     ws = workspace(evaluator=lambda x: (jac @ x, jac))
-    ws.measurement_vec = jac @ [1., -.5]
-    ws.measurement_jac = jac
-    ws.model_state_basis_mat = np.eye(2)
-    ws.measurement_vec_error_covmat = arts.CovarianceMatrix()
-    ws.measurement_vec_error_covmat.blocks = [arts.Block(
+    ws.oem.measurement_vec = jac @ [1., -.5]
+    ws.oem.measurement_jac = jac
+    ws.oem.model_state_basis_mat = np.eye(2)
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
+    ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
         arts.Range(0, count), arts.Range(0, count), (0, 0),
         arts.Sparse(sparse.eye(count, format="csr")))]
-    ws.measurement_basis_matCalc()
-    assert ws.measurement_basis_mat.shape == (count // 2, count)
-    assert ws.measurement_basis_mat.matrix.tocsr().nnz == count
-    ws.ReducedOEM(method="li")
+    ws.oemMeasurementBasisCalc()
+    assert ws.oem.measurement_basis_mat.shape == (count // 2, count)
+    assert ws.oem.measurement_basis_mat.matrix.tocsr().nnz == count
+    ws.oemCheck()
+    ws.oemCalcReduced(method="li")
     expected = np.linalg.solve(np.linalg.inv(sa) + jac.T @ jac,
-                               np.linalg.solve(sa, xa) + jac.T @ np.asarray(ws.measurement_vec))
-    np.testing.assert_allclose(ws.model_state_vec, expected, atol=1e-10)
+                               np.linalg.solve(sa, xa) + jac.T @ np.asarray(ws.oem.measurement_vec))
+    np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-10)
 
 
 test_grouped_measurements()
@@ -538,21 +607,21 @@ test_grouped_measurements()
 def print_timings(method="lm", repeats=20):
     """Time complete workspace calls on the same small affine problem."""
     prepared = workspace()
-    prepared.measurement_jac = j
+    prepared.oem.measurement_jac = j
     started = perf_counter()
-    prepared.ReducedOEMBasisCalc()
+    prepared.oemBasisCalc()
     basis_seconds = perf_counter() - started
 
     cases = [("OEM (2 states, 3 measurements)", workspace(), "OEM", full_results[method])]
     for rank in (None, 2, 1):
         ws = workspace()
-        ws.model_state_basis_mat = np.array(prepared.model_state_basis_mat)
-        ws.measurement_basis_mat = np.array(prepared.measurement_basis_mat)
-        ws.oem_basis_singular_values = prepared.oem_basis_singular_values
+        ws.oem.model_state_basis_mat = np.array(prepared.oem.model_state_basis_mat)
+        ws.oem.measurement_basis_mat = np.array(prepared.oem.measurement_basis_mat)
+        ws.oem.basis_singular_values = prepared.oem.basis_singular_values
         if rank is not None:
-            ws.ReducedOEMBasisReduce(rank=rank)
-        states = np.asarray(ws.model_state_basis_mat).shape[1]
-        measurements = np.asarray(ws.measurement_basis_mat).shape[0]
+            ws.oemBasisReduce(rank=rank)
+        states = np.asarray(ws.oem.model_state_basis_mat).shape[1]
+        measurements = np.asarray(ws.oem.measurement_basis_mat).shape[0]
         label = (f"ReducedOEM ({states} state{'s' if states != 1 else ''}, "
                  f"{measurements} measurement{'s' if measurements != 1 else ''})")
         cases.append((label, ws, "ReducedOEM", basis_results[rank][method][:2]))
@@ -562,16 +631,19 @@ def print_timings(method="lm", repeats=20):
     def retrieve(case):
         _, ws, name, expected = case
         # Reset outside the timer; each call must recompute its fit and Jacobian.
-        ws.model_state_vec = []
-        ws.measurement_vec_fit = []
-        ws.measurement_jac = arts.Matrix()
-        solve = getattr(ws, name)
+        ws.oem.uncheck()
+        ws.oem.model_state_vec = []
+        ws.oem.measurement_vec_fit = []
+        ws.oem.measurement_jac = arts.Matrix()
+        solve = getattr(
+            ws, {"OEM": "oemCalc", "ReducedOEM": "oemCalcReduced"}.get(name, name))
+        ws.oemCheck()
         started = perf_counter()
         solve(**options)
         elapsed = perf_counter() - started
-        assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
-        np.testing.assert_allclose(ws.model_state_vec, expected[0], atol=2e-5)
-        np.testing.assert_allclose(ws.measurement_vec_fit, expected[1], atol=2e-5)
+        assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
+        np.testing.assert_allclose(ws.oem.model_state_vec, expected[0], atol=2e-5)
+        np.testing.assert_allclose(ws.oem.measurement_vec_fit, expected[1], atol=2e-5)
         return elapsed
 
     for case in cases:
@@ -680,31 +752,34 @@ for state_basis in (np.eye(2), np.diag([2., .5]),
                 for sparse in (False, True):
                     ws = workspace()
                     if diagonal_prior:
-                        ws.model_state_covmat = arts.CovarianceMatrix()
-                        ws.model_state_covmat.blocks = [arts.Block(
+                        ws.oem.model_state_covmat = arts.CovarianceMatrix()
+                        ws.oem.model_state_covmat.blocks = [arts.Block(
                             arts.Range(0, 2), arts.Range(0, 2), (0, 0),
                             arts.Sparse(scipy.sparse.diags([4., 2.]).tocsr()))]
-                    ws.model_state_vec = np.asarray(
-                        ws.model_state_vec_apriori) + state_basis @ np.full(state_basis.shape[1], .1)
+                    ws.oem.model_state_vec = np.asarray(
+                        ws.oem.model_state_vec_apriori) + state_basis @ np.full(state_basis.shape[1], .1)
                     basis = arts.Sparse(scipy.sparse.csr_matrix(
                         state_basis)) if sparse else state_basis
-                    ws.ReducedOEM(model_state_basis_mat=basis, measurement_basis_mat=np.eye(3),
-                                  method=method, max_iter=iterations, stop_dx=1e-10, clear_matrices=0)
-                    assert ws.oem_diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem_diagnostics
-                    outputs.append((np.array(ws.model_state_vec),
-                                   np.array(ws.measurement_gain_mat)))
+                    ws.oem.model_state_basis_mat = basis
+                    ws.oem.measurement_basis_mat = np.eye(3)
+                    ws.oemCheck()
+                    ws.oemCalcReduced(method=method, max_iter=iterations,
+                                      stop_dx=1e-10, clear_matrices=0)
+                    assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
+                    outputs.append((np.array(ws.oem.model_state_vec),
+                                   np.array(ws.oem.measurement_gain_mat)))
                 for dense, sparse in zip(*outputs):
                     np.testing.assert_allclose(
                         dense, sparse, rtol=1e-8, atol=1e-9, err_msg=method)
 
 # Truncating SVD-ordered sparse bases preserves their storage and values.
 ws = workspace()
-ws.model_state_basis_mat = arts.Sparse(scipy.sparse.eye(2).tocsr())
-ws.measurement_basis_mat = arts.Sparse(scipy.sparse.eye(3).tocsr())
-ws.oem_basis_singular_values = [2., 1.]
-ws.ReducedOEMBasisReduce(rank=1)
-assert ws.model_state_basis_mat.is_sparse
-np.testing.assert_array_equal(np.array(ws.model_state_basis_mat), [[1.], [0.]])
+ws.oem.model_state_basis_mat = arts.Sparse(scipy.sparse.eye(2).tocsr())
+ws.oem.measurement_basis_mat = arts.Sparse(scipy.sparse.eye(3).tocsr())
+ws.oem.basis_singular_values = [2., 1.]
+ws.oemBasisReduce(rank=1)
+assert ws.oem.model_state_basis_mat.is_sparse
+np.testing.assert_array_equal(np.array(ws.oem.model_state_basis_mat), [[1.], [0.]])
 
 
 if __name__ == "__main__":

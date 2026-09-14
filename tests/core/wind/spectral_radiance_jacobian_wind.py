@@ -61,9 +61,9 @@ los = [140.0, 30.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
 for fc in [uf, vf, wf]:
-    ws.RetrievalInit()
-    ws.RetrievalAddWindField(component=str(fc), matrix=np.diag(np.ones((1)) * 100))
-    ws.RetrievalFinalizeDiagonal()
+    ws.oemInit()
+    ws.oemAddWindField(component=str(fc), matrix=np.diag(np.ones((1)) * 100))
+    ws.jac_targetsFinalize()
     fail = True
 
     for i in range(LIMIT):
@@ -72,25 +72,28 @@ for fc in [uf, vf, wf]:
         ws.atm_field["wind_w"] = wind[fc]
         ws.measurement_vecFromSensor()
 
-        ws.measurement_vec_fit = []
-        ws.model_state_vec = []
-        ws.measurement_jac = [[]]
+        ws.oem.uncheck()
+        ws.oem.model_state_vec = []
 
         ws.atm_field["wind_" + str(fc)] = wind[fc] + 100
-        ws.model_state_vec_aprioriFromData()
 
-        ws.measurement_vec_error_covmatConstant(value=noise**2)
         ws.measurement_vec += np.random.normal(0, noise, NF)
 
-        ws.OEM(method="gn")
+        ws.model_state_vecFromData()
+        ws.oemSetApriori()
+        ws.oemSetMeasurement()
+        ws.oemMeasurementCovmatConstant(value=noise**2)
+        ws.oemFinalizeDiagonal()
 
-        absdiff = round(abs(wind[fc] - ws.model_state_vec[0]))
+        ws.oemCalc(method="gn")
+
+        absdiff = round(abs(wind[fc] - ws.oem.model_state_vec[0]))
 
         print(
             f"""{fc}-component:
-  Apriori:  {ws.model_state_vec_apriori[0]} m/s
+  Apriori:  {ws.oem.model_state_vec_apriori[0]} m/s
   Truth:    {round(wind[fc])} m/s
-  Retrieved {round(ws.model_state_vec[0])} m/s
+  Retrieved {round(ws.oem.model_state_vec[0])} m/s
   AbsDiff   {absdiff} m/s"""
         )
         if absdiff >= ATOL:

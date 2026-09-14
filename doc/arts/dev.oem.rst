@@ -126,10 +126,10 @@ Bounded inner iterations
 An outer ``max_iter`` does not bound the work of an inner linear solve or
 LM trial search.  Both enforce independent limits.  CG returns its current
 iterate on exhaustion and invokes an optional warning callback.  OEM installs
-this callback and records one warning per OEM call in ``oem_diagnostics.errors``; the outer
+this callback and records one warning per OEM call in ``oem.diagnostics.errors``; the outer
 optimizer continues and retains its own diagnostic status.  LM trial
 exhaustion still raises an error.  OEM maps errors caught
-during inversion to status ``Error`` and records the explanation in ``oem_diagnostics.errors``.
+during inversion to status ``Error`` and records the explanation in ``oem.diagnostics.errors``.
 Exhausting the existing LM damping range retains its status ``DampingLimit`` behavior.
 Gauss--Newton must propagate linear-solver exceptions with their nested
 cause.  Returning an empty step after catching an error hides the failure
@@ -367,7 +367,7 @@ mutable fields expose ``initial_damping``, ``decrease_factor``,
 ``increase_factor``, ``maximum_damping``, ``damping_threshold``, and
 ``convergence_damping_limit``.  The native
 settings representation provides shared validation for the Python object
-and the optimizers used by ``OEM``. Both direct and CG optimizers must
+and the optimizers used by ``oemCalc``. Both direct and CG optimizers must
 continue to use the same named controls.
 The type lives in ``src/core/jacobian/oem_settings.h`` and
 ``src/core/jacobian/oem_settings.cc`` without an invlib dependency;
@@ -434,7 +434,7 @@ reports.
 Matching-grid covariance helper
 =======================================
 
-``model_state_covmatCorrelate`` resolves finalized atmospheric target keys
+``oemStateCovmatCorrelateConstant`` resolves finalized atmospheric target keys
 and checks actual coordinate grids, not only vector lengths.  It assumes
 pointwise retrieval coordinates; custom mappings that mix grid points are
 outside its contract.  It constructs an upper-triangular sparse cross block
@@ -470,7 +470,7 @@ OEM does not select them automatically. ``NoiseScaledSystem`` applies this
 operation without materializing :math:`\mathbf{M}` or :math:`\mathbf{D}`.
 The existing state-sized normalization remains exclusive to state-space
 solvers. The relative CG tolerance is measured in the scaled system.
-``measurement_vec_error_covmatNormalization`` exposes the same standard
+``oemMeasurementCovmatNormalization`` exposes the same standard
 deviations as a generic Vector output. Correlated noise is not fully whitened.
 Regression tests compare with the affine analytic solution and check state
 and cost invariance under independent measurement-unit changes.
@@ -601,7 +601,7 @@ by name, independently of enum ordinals.
 ReducedOEM adapter
 ------------------
 
-``ReducedOEMBasisCalc`` prepares ``model_state_basis_mat``,
+``oemBasisCalc`` prepares ``model_state_basis_mat``,
 ``measurement_basis_mat`` and ``oem_basis_singular_values`` from
 the full Jacobian and covariances. Both bases are square; neither null
 space is discarded. The spectrum contains :math:`\min(m,n)` values,
@@ -610,7 +610,7 @@ zero information. Keep these three outputs matched, including their mode
 ordering. Mixing equally sized decompositions cannot be detected by
 dimension checks.
 
-``ReducedOEMBasisReduce`` reads the basis matrices and full spectrum and
+``oemBasisReduce`` reads the basis matrices and full spectrum and
 truncates the matrices in place. It also sets ``oem_basis_lost_dofs`` and
 ``oem_basis_lost_information_bits`` relative to the original decomposition.
 The spectrum remains intact. Selection may be repeated to remove more modes,
@@ -618,11 +618,11 @@ but cannot restore removed modes; requests requiring unavailable directions
 fail before modifying either matrix. Restore saved copies or recalculate to
 increase rank. Both slices are materialized before either input is replaced.
 No current Jacobian or covariance is needed during selection.
-``ReducedOEM`` reads these same matrices as ordinary workspace inputs.
+``oemCalcReduced`` reads these same matrices as ordinary workspace inputs.
 
 Both bases use ``BlockMatrix`` so explicit projections can remain
 ``Sparse`` through forward-vector, Jacobian and gain multiplication.
-``measurement_basis_matCalc`` constructs this input alone. It groups exactly
+``oemMeasurementBasisCalc`` constructs this input alone. It groups exactly
 matching full row directions after normalization by a signed pivot, retaining
 per-channel amplitudes separately. No tolerance-based grouping is implicit.
 Diagonal noise permits one stored projection entry per channel. For correlated
@@ -640,7 +640,7 @@ uses sparse multiplication. Do not attach an inverse cache to ``BlockMatrix``
 or silently materialize sparse projections in the agenda adapter.
 
 Grouping outputs do not have the SVD ordering required by
-``ReducedOEMBasisReduce``. Tests exercise proportional rows, correlations,
+``oemBasisReduce``. Tests exercise proportional rows, correlations,
 storage dispatch, all OEM methods, and a large collection of independent groups.
 
 ``CovarianceSquareRoot`` validates and detaches covariance components, then
@@ -674,10 +674,10 @@ never subtract a weak tail from the total information. No relative cutoff
 against the largest singular value is applied, since a very strong mode
 does not make another mode less informative. Without limits the bit budget
 is zero. Retain one mode in the all-zero case to satisfy the current
-``ReducedOEM`` dimension contract. Basis generation has no configured
+``oemCalcReduced`` dimension contract. Basis generation has no configured
 allocation cutoff; covariance validation still checks mathematical validity.
 
-``ReducedOEM`` validates both reduction matrices and prepares reduced
+``oemCalcReduced`` validates both reduction matrices and prepares reduced
 covariances once at the workspace-method boundary. It projects the starting
 state using the prior metric and rejects an explicit start outside the
 affine subspace. No target metadata is fabricated or resized.
@@ -743,3 +743,80 @@ a diagonal reduced precision is inverted by reciprocating its diagonal.
 General correlated priors may require dense preparation. Projected LM damping
 preserves sparse storage when the supplied state basis is sparse. All such
 preparation occurs before iteration. Basis truncation preserves storage type.
+
+Owning workspace data
+--------------------
+
+``OptimalEstimationData`` is the workspace group of ``oem``. Numerical OEM
+inputs and outputs belong to this object; physical fields, sensor definitions
+and finalized Jacobian targets remain separate workspace data. ``oemCalc``
+and ``oemCalcReduced`` bind references to its members and use the same solver
+code. ``AgendaWrapper`` passes the owned fit/Jacobian buffers directly to the
+ordinary inversion agenda interface. It does not copy the object or move its
+members back to primitive workspace variables during iteration.
+
+``oemInit`` resets the OEM object and workspace Jacobian targets. All
+``oemAdd`` methods take both objects; pending covariance blocks belong to
+``oem.covmat_diagonal_blocks``, not a separate workspace variable.
+``oemFinalizeDiagonal`` resolves target offsets and replaces the owned state
+covariance with the assembled blocks, then calls ``check(&jac_targets)``.
+The prior, observations and measurement covariance must already be present.
+Failure leaves the object unchecked; success marks it checked. Call
+``jac_targetsFinalize`` separately when mapping is needed before numerical
+setup is complete. Repeating finalization does not append duplicate blocks. Clearing auxiliary data releases the pending map without
+changing the assembled covariance; add targets again before rebuilding it.
+
+``oemInitFromData`` checks dimensions before consuming the four numerical
+inputs: prior, observations and their covariances. It constructs a fresh,
+unchecked object separately before replacement, allowing inputs to refer to
+members of the object being replaced. Fit and Jacobian are not input data.
+``oemSetApriori`` and ``oemSetMeasurement`` consume only their respective vectors,
+retaining all other members. Only size changes invalidate ``checked``. They do
+not reset the previous fitted state; starting a new calculation from the prior
+requires an empty current state. All consuming methods use ``std::exchange``
+to leave sources empty. The caller can obtain the prior with
+``model_state_vecFromData``; the setters have no physical-model inputs.
+Prepared covariance caches move with the covariance objects.
+``oemRestoreApriori`` takes const OEM data and updates only physical fields
+through the workspace target mappings. It leaves all previous results intact.
+
+Per-call reduced matrices and solver scratch retain automatic lifetimes and
+are released on return. Reusable covariance factors and snapshots belong to
+``CovarianceMatrix``. ``clear_auxiliary`` releases those caches together with
+all recomputable outputs, but retains the selected bases and current state.
+It does not reset diagnostics. Direct edits to a state or physical model
+require clearing its cached fit/Jacobian before a new calculation; dimensions
+alone cannot establish the linearization point of externally supplied data.
+
+Both basis constructors and selection operate on ``oem``. Spectrum and loss
+members are auxiliary; the retained matrices are required inputs to
+``oemCalcReduced``. Clearing the spectrum deliberately prevents subsequent
+mode selection until a new decomposition is computed.
+
+Python attribute guards
+=======================
+
+``OptimalEstimationData::check`` marks the object checked only after collecting
+and reporting numerical-input validation failures. Optional finalized targets
+are checked for state-size agreement. The workspace method ``oemCheck`` calls
+this same implementation with the workspace targets, declaring ``oem`` as
+an input/output and ``jac_targets`` as a const input. Python exposes the flag read-only and
+uses guarded property setters. Reads still return references; in-place edits
+through those references are explicitly permitted and are not tracked.
+``uncheck`` changes only the flag. Target-adding methods and covariance-layout
+changes invalidate it; shape-preserving correlation edits retain it.
+
+Python ``clear`` requires unchecked data. ``clear_auxiliary`` remains callable
+on checked data and preserves the flag: required inputs are unchanged. Workspace
+methods remain trusted mutation paths. Both calculation entry points call
+``ensure_checked(jac_targets)`` before covariance preparation or output changes.
+It calls ``check`` only when the flag is false; successful validation is reused.
+Explicit ``oemCheck`` and ``oemFinalizeDiagonal`` still validate unconditionally. Preflight accepts either full-space or supplied
+basis dimensions for normalization vectors; the chosen calculation enforces
+its own normalization dimensions. Method-specific checks remain at the OEM boundary. XML stores the same
+numerical fields as before but never persists the checked flag. Loading into
+an unchecked object leaves it unchecked, and loading into a checked object
+requires ``uncheck`` first.
+When adding a persistent numerical member, update ``oem_xml_members`` in
+``oem_settings.cc`` and its Python guarded property. Validation state is
+intentionally excluded from this serialization tuple.

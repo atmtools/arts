@@ -62,11 +62,11 @@ los = [160.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
 for fc in [uf, vf, wf]:
-    ws.RetrievalInit()
-    ws.RetrievalAddMagneticField(
+    ws.oemInit()
+    ws.oemAddMagneticField(
         component=str(fc), matrix=np.diag(np.ones((1)) * 1e-10)
     )
-    ws.RetrievalFinalizeDiagonal()
+    ws.jac_targetsFinalize()
 
     fail = True
 
@@ -74,22 +74,25 @@ for fc in [uf, vf, wf]:
         ws.atm_field["mag_" + str(fc)] = mag[fc]
         ws.measurement_vecFromSensor()
 
-        ws.measurement_vec_fit = []
-        ws.model_state_vec = []
-        ws.measurement_jac = [[]]
+        ws.oem.uncheck()
+        ws.oem.model_state_vec = []
 
         ws.atm_field["mag_" + str(fc)] = mag[fc] + 1e-6
-        ws.model_state_vec_aprioriFromData()
 
-        ws.measurement_vec_error_covmatConstant(value=noise**2)
         ws.measurement_vec += np.random.normal(0, noise, NF)
 
-        ws.OEM(method="gn")
+        ws.model_state_vecFromData()
+        ws.oemSetApriori()
+        ws.oemSetMeasurement()
+        ws.oemMeasurementCovmatConstant(value=noise**2)
+        ws.oemFinalizeDiagonal()
 
-        absdiff = round(abs(mag[fc] - ws.model_state_vec[0]) * 1e9)
+        ws.oemCalc(method="gn")
+
+        absdiff = round(abs(mag[fc] - ws.oem.model_state_vec[0]) * 1e9)
 
         print(
-            f"{fc}-component: Input {round(mag[fc]*1e9)} nT, Output {round(ws.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
+            f"{fc}-component: Input {round(mag[fc]*1e9)} nT, Output {round(ws.oem.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
         )
         if absdiff >= ATOL:
             print(f"AbsDiff not less than {ATOL} nT, rerunning with new random noise")

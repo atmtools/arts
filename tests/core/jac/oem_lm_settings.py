@@ -166,6 +166,7 @@ def covariance(values):
 
 def workspace(nonlinear=False):
     ws = pyarts.Workspace()
+    ws.oem = arts.OptimalEstimationData()
     for variable, group in (
         ("model_state_vec", arts.Vector),
         ("measurement_vec_fit", arts.Vector),
@@ -193,16 +194,16 @@ def workspace(nonlinear=False):
     ws.jac_targetsFinalize()
 
     if nonlinear:
-        ws.model_state_vec = [0.1]
-        ws.model_state_vec_apriori = [1]
-        ws.measurement_vec = [4]
-        ws.model_state_covmat = covariance([[4]])
-        ws.measurement_vec_error_covmat = covariance([[0.25]])
+        ws.oem.model_state_vec = [0.1]
+        ws.oem.model_state_vec_apriori = [1]
+        ws.oem.measurement_vec = [4]
+        ws.oem.model_state_covmat = covariance([[4]])
+        ws.oem.measurement_vec_error_covmat = covariance([[0.25]])
     else:
-        ws.model_state_vec_apriori = [0.5, -0.25]
-        ws.measurement_vec = [2, -1, 1.5]
-        ws.model_state_covmat = covariance([[4, 1], [1, 2]])
-        ws.measurement_vec_error_covmat = covariance(
+        ws.oem.model_state_vec_apriori = [0.5, -0.25]
+        ws.oem.measurement_vec = [2, -1, 1.5]
+        ws.oem.model_state_covmat = covariance([[4, 1], [1, 2]])
+        ws.oem.measurement_vec_error_covmat = covariance(
             [[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]]
         )
     jacobian = np.array([[1, 2], [2, -1], [1, 1]], dtype=float)
@@ -235,17 +236,18 @@ def workspace(nonlinear=False):
 
 def retrieve(method, settings, nonlinear=False, max_iter=40, stop_dx=1e-9):
     ws = workspace(nonlinear)
-    ws.OEM(
+    ws.oemCheck()
+    ws.oemCalc(
         method=method,
         **({"lm_ga_settings": settings} if settings is not None else {}),
         max_iter=max_iter,
         stop_dx=stop_dx,
         display_progress=0,
     )
-    assert len(ws.oem_diagnostics.errors) == 0, str(ws.oem_diagnostics.errors)
+    assert len(ws.oem.diagnostics.errors) == 0, str(ws.oem.diagnostics.errors)
     return {
-        key: copy.deepcopy(ws.oem_diagnostics) if key == "oem_diagnostics" else np.array(
-            ws.get(key), copy=True)
+        key: copy.deepcopy(ws.oem.diagnostics) if key == "oem_diagnostics" else np.array(
+            getattr(ws.oem, key), copy=True)
         for key in (
             "model_state_vec",
             "measurement_vec_fit",
@@ -353,7 +355,7 @@ def test_agenda_capture():
 
     @pyarts.arts_agenda
     def captured_retrieval(ws):
-        ws.OEM(method="lm", lm_ga_settings=captured_settings)
+        ws.oemCalc(method="lm", lm_ga_settings=captured_settings)
 
     captured = [
         method.val
@@ -372,7 +374,7 @@ def test_agenda_capture():
 
     @pyarts.arts_agenda
     def shorthand_retrieval(ws):
-        ws.OEM(method="lm", lm_ga_settings=captured_settings)
+        ws.oemCalc(method="lm", lm_ga_settings=captured_settings)
     shorthand = next(
         method.val for method in shorthand_retrieval.methods if method.name == "@lm_ga_settings")
     assert isinstance(shorthand, arts.LevenbergMarquardtSettings)

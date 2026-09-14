@@ -72,22 +72,22 @@ mod = ws.measurement_vec * 1.0
 
 # %% Set up the retrieval
 
-ws.RetrievalInit()
-ws.RetrievalAddErrorPolyFit(
+ws.oemInit()
+ws.oemAddErrorPolyFit(
     sensor_elem=0, t=f, matrix=np.diag(np.ones((1)) * 25), polyorder=0
 )
-ws.RetrievalAddErrorPolyFit(
+ws.oemAddErrorPolyFit(
     sensor_elem=1, t=f - min(f), matrix=np.diag([25, 1e-12, 1e-16]), polyorder=2
 )
-ws.RetrievalFinalizeDiagonal()
+ws.jac_targetsFinalize()
 
 # %% Perform OEM retrieval of frequency grid
 
 fail = True
 for i in range(LIMIT):
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
     ws.measurement_sensorSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol1
@@ -100,19 +100,20 @@ for i in range(LIMIT):
     ws.measurement_vec[:NF] += 5 + f * 0
     ws.measurement_vec[NF:] += 15 + (f - min(f)) * 1e-6 + (f - min(f))**2 * 1e-12
 
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
-    ws.model_state_vec_aprioriFromData()
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.oemCalc(method="gn")
 
-    ws.OEM(method="gn")
-
-    print(f"got:      {ws.model_state_vec:B,}")
+    print(f"got:      {ws.oem.model_state_vec:B,}")
     print(f"expected: [5, 15, 1e-6, 1e-12]")
-    m = abs(ws.model_state_vec / [5, 15, 1e-6, 1e-12] - 1).max()
+    m = abs(ws.oem.model_state_vec / [5, 15, 1e-6, 1e-12] - 1).max()
     print(f"{round(100*m, 2)}% max difference")
     if m <= RTOL:
         print(f"Within {100*RTOL}%.  Success!")
@@ -120,7 +121,7 @@ for i in range(LIMIT):
         break
     print(f"RelDiffs not less than {100*RTOL}%, rerunning with new random noise")
 
-    print(ws.model_state_vec)
+    print(ws.oem.model_state_vec)
 
 assert not fail, "Failed to retrieve sensor polynomial offsets grid"
 

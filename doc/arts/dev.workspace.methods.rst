@@ -125,12 +125,12 @@ before doing so.  Adding a method to this list may also require changing the
 actual signature (which is why the method is generated, so that a change in
 the required actual signature is immediately made apparent).
 
-The methods that begin with ``RetrievalAdd...`` are partly generated.
+The methods that begin with ``oemAdd...`` are partly generated.
 These methods all require a corresponding ``jac_targetsAdd...`` method
 that fills in the ``jac_targets`` workspace variable.  To keep that
-part of the signature consistent, the additional ``RetrievalAdd...`` information
+part of the signature consistent, the additional ``oemAdd...`` information
 is simply appended to the ``in``, ``out``, and ``gin``-lists of the
-corresponding ``jac_targetsAdd...`` method using the local ``jac2ret`` lambda.
+corresponding ``jac_targetsAdd...`` method using the local ``jac2oem`` lambda.
 
 Generated files
 ===============
@@ -352,7 +352,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
   User choices of *spectral_rad_unit* does not adversely affect this method
   unless the *measurement_vec* or *measurement_jac* are further modified
-  before consumption by, e.g., *OEM*
+  before consumption by, e.g., *oemCalc*
   )--",
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vec", "measurement_jac"},

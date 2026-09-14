@@ -44,17 +44,120 @@ void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
 void py_retrieval(py::module_& m) try {
   py::class_<OptimalEstimationDiagnostics> diagnostics(m, "OptimalEstimationDiagnostics");
   generic_interface(diagnostics);
-  diagnostics.def_rw("status", &OptimalEstimationDiagnostics::status, "Named OEM outcome; NotRun before inversion.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`")
-      .def_rw("initial_cost", &OptimalEstimationDiagnostics::initial_cost, "Starting total cost per measurement.\n\n.. :class:`float`")
-      .def_rw("final_cost", &OptimalEstimationDiagnostics::final_cost, "Final total cost per measurement.\n\n.. :class:`float`")
+  diagnostics
+      .def_rw("status",
+              &OptimalEstimationDiagnostics::status,
+              "Named OEM outcome; NotRun before inversion.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`")
+      .def_rw("initial_cost",
+              &OptimalEstimationDiagnostics::initial_cost,
+              "Starting total cost per measurement.\n\n.. :class:`float`")
+      .def_rw("final_cost",
+              &OptimalEstimationDiagnostics::final_cost,
+              "Final total cost per measurement.\n\n.. :class:`float`")
       .def_rw("measurement_cost",
               &OptimalEstimationDiagnostics::measurement_cost,
               "Final measurement cost per measurement.\n\n.. :class:`float`")
       .def_rw("iterations",
               &OptimalEstimationDiagnostics::iterations,
               "Number of completed outer iterations, zero when not run.\n\n.. :class:`int`")
-      .def_rw("lm_ga_history", &OptimalEstimationDiagnostics::lm_ga_history, "Initial and updated LM damping values.\n\n.. :class:`~pyarts3.arts.Vector`")
-      .def_rw("errors", &OptimalEstimationDiagnostics::errors, "Errors and warnings recorded by OEM.\n\n.. :class:`list[str]`");
+      .def_rw("lm_ga_history",
+              &OptimalEstimationDiagnostics::lm_ga_history,
+              "Initial and updated LM damping values.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("errors",
+              &OptimalEstimationDiagnostics::errors,
+              "Errors and warnings recorded by OEM.\n\n.. :class:`list[str]`");
+
+  py::class_<OptimalEstimationData> data(m, "OptimalEstimationData");
+  generic_interface(data);
+  data.def_prop_ro("checked",
+                   &OptimalEstimationData::checked,
+                   "Whether the last explicit check succeeded. Attribute replacement requires uncheck().");
+  data.def("check",
+           &OptimalEstimationData::check,
+           "jac_targets"_a.none() = py::none(),
+           "Validate numerical inputs and optional finalized targets; report all problems or mark checked. "
+           "In-place edits remain possible and require calling check() again when necessary.");
+  data.def("uncheck", &OptimalEstimationData::uncheck, "Allow manual attribute replacement without changing values.");
+  const auto member = [&]<typename T>(const char* name, T OptimalEstimationData::* field, const char* doc) {
+    data.def_prop_rw(
+        name,
+        [field](OptimalEstimationData& value) -> T& { return value.*field; },
+        [field, name](OptimalEstimationData& value, const T& replacement) {
+          value.require_unchecked(std::format("replace member '{}'", name));
+          value.*field = replacement;
+        },
+        py::for_getter(py::rv_policy::reference_internal),
+        doc);
+  };
+  member(
+      "covmat_diagonal_blocks",
+      &OptimalEstimationData::covmat_diagonal_blocks,
+      "Pending per-target covariance blocks used during target-based setup.\n\n.. :class:`~pyarts3.arts.JacobianTargetsDiagonalCovarianceMatrixMap`");
+  member("measurement_vec",
+         &OptimalEstimationData::measurement_vec,
+         "Measurement vector.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("model_state_vec_apriori",
+         &OptimalEstimationData::model_state_vec_apriori,
+         "A priori model state vector.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("model_state_covmat",
+         &OptimalEstimationData::model_state_covmat,
+         "Covariance matrix of the model state.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("measurement_vec_error_covmat",
+         &OptimalEstimationData::measurement_vec_error_covmat,
+         "Covariance matrix of the measurement vector error.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("model_state_vec",
+         &OptimalEstimationData::model_state_vec,
+         "Current model state vector.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("measurement_vec_fit",
+         &OptimalEstimationData::measurement_vec_fit,
+         "Fitted measurement vector.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("measurement_jac",
+         &OptimalEstimationData::measurement_jac,
+         "Jacobian of the measurement operator.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("model_state_basis_mat",
+         &OptimalEstimationData::model_state_basis_mat,
+         "Basis matrix of the model state.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("measurement_basis_mat",
+         &OptimalEstimationData::measurement_basis_mat,
+         "Basis matrix of the measurement.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("model_state_covmat_normalization",
+         &OptimalEstimationData::model_state_covmat_normalization,
+         "Normalization vector for the model state covariance matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("measurement_vec_normalization",
+         &OptimalEstimationData::measurement_vec_normalization,
+         "Normalization vector for the measurement vector.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("measurement_gain_mat",
+         &OptimalEstimationData::measurement_gain_mat,
+         "Gain matrix of the measurement.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("measurement_averaging_kernel",
+         &OptimalEstimationData::measurement_averaging_kernel,
+         "Averaging kernel of the measurement.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("observation_error_covmat",
+         &OptimalEstimationData::observation_error_covmat,
+         "Covariance matrix of the observation error.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("smoothing_error_covmat",
+         &OptimalEstimationData::smoothing_error_covmat,
+         "Covariance matrix of the smoothing error.\n\n.. :class:`~pyarts3.arts.Matrix`");
+  member("diagnostics", &OptimalEstimationData::diagnostics, "Diagnostics information.");
+  member("basis_singular_values",
+         &OptimalEstimationData::basis_singular_values,
+         "Singular values of the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("basis_lost_dofs",
+         &OptimalEstimationData::basis_lost_dofs,
+         "Degrees of freedom lost in the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+  member("basis_lost_information_bits",
+         &OptimalEstimationData::basis_lost_information_bits,
+         "Information bits lost in the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+  data.def("clear_auxiliary",
+           &OptimalEstimationData::clear_auxiliary,
+           "Release recomputable products and caches, preserving inputs, current state, bases and diagnostics.");
+  data.def(
+      "clear",
+      [](OptimalEstimationData& value) {
+        value.require_unchecked("clear data");
+        value.clear();
+      },
+      "Reset all inputs and results.");
 
   const LevenbergMarquardtSettings       defaults;
   py::class_<LevenbergMarquardtSettings> lm(m, "LevenbergMarquardtSettings");
@@ -70,7 +173,7 @@ void py_retrieval(py::module_& m) try {
   xml_interface(lm);
   lm.doc() = R"(Named Levenberg--Marquardt damping controls for OEM.
 
-Pass this object as ``ws.OEM(method="lm", lm_ga_settings=settings)``.
+Pass this object as ``ws.oemCalc(method="lm", lm_ga_settings=settings)``.
 The same settings apply to ``lm_cg`` and the ``ml``/``ml_cg`` aliases.
 Defaults provide an explicit starting configuration, with ordinary
 convergence enabled only once damping reaches zero. They do not guarantee

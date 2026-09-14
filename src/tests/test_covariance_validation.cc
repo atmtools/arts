@@ -357,29 +357,27 @@ void precision() {
 }
 
 void workspace_helpers() {
-  JacobianTargets targets;
-  targets.atm       = {Jacobian::AtmTarget{.type = SpeciesEnum::Water, .target_pos = 0, .x_start = 0, .x_size = 2}};
-  targets.finalized = true;
-  CovarianceMatrix prior;
-  model_state_covmatAddSpeciesVMR(prior,
-                                  targets,
-                                  SpeciesEnum::Water,
-                                  BlockMatrix{matrix(2, 2, {4, 1, 1, 2})},
-                                  BlockMatrix{matrix(2, 2, {2.0 / 7, -1.0 / 7, -1.0 / 7, 4.0 / 7})});
-  prior.validate(2);
-  require(prior.nblocks() == 1 and inverse_blocks(prior).size() == 1,
-          "Target helper duplicated covariance instead of storing inverse");
-  close(prior.get_inverse()[0, 1], -1.0 / 7, "Target helper stored wrong supplied inverse");
-
-  ArrayOfSensorObsel sensors(2);
-  CovarianceMatrix   error;
-  measurement_vec_error_covmatConstant(error, sensors, 0.25);
+  OptimalEstimationData data;
+  rejects([&] { oemMeasurementCovmatConstant(data, 0.25); }, "empty measurement vector");
+  data.measurement_vec = Vector(2, 0.);
+  auto&              error = data.measurement_vec_error_covmat;
+  oemMeasurementCovmatConstant(data, 0.25);
   error.validate(2);
   close(error.get_inverse()[1, 1], 4, "Constant measurement error precision");
   for (Numeric variance :
        {0.0, -1.0, std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
-    rejects([&] { measurement_vec_error_covmatConstant(error, sensors, variance); },
-            "invalid constant measurement variance");
+    rejects([&] { oemMeasurementCovmatConstant(data, variance); }, "invalid constant measurement variance");
+
+  data.model_state_vec_apriori = Vector(2, 0.);
+  data.model_state_covmat = covariance(matrix(2, 2, {1, 0, 0, 1}));
+  data.check();
+  const JacobianTargets unfinalized_targets;
+  // A checked object skips validation; explicit checking still revalidates.
+  data.ensure_checked(unfinalized_targets);
+  require(data.checked(), "Cached validation preserves checked status");
+  rejects([&] { data.check(&unfinalized_targets); }, "explicit target revalidation");
+  require(not data.checked(), "Failed validation invalidates checked status");
+  rejects([&] { data.ensure_checked(unfinalized_targets); }, "unchecked target validation");
 }
 
 // Same-executable comparison with the pre-refactor mult_inv implementation.

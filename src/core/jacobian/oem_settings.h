@@ -1,7 +1,9 @@
 #pragma once
 
+#include <covariance_matrix.h>
 #include <enums.h>
 #include <matpack.h>
+#include <retrieval_target.h>
 #include <xml_io_stream_aggregate.h>
 
 #include <string>
@@ -96,4 +98,77 @@ template <> struct xml_io_stream_name<OptimalEstimationDiagnostics> {
 };
 template <> struct xml_io_stream_aggregate<OptimalEstimationDiagnostics> {
   static constexpr bool value = true;
+};
+
+/** Owning numerical problem and results for oemCalc/oemCalcReduced.
+ * Physical forward-model data and target metadata remain in the workspace.
+ * Per-call solver scratch has automatic lifetime; covariance caches belong
+ * to the covariance objects and can be released by clear_auxiliary().
+ */
+struct OptimalEstimationData {
+  Vector           measurement_vec;
+  Vector           model_state_vec_apriori;
+  CovarianceMatrix model_state_covmat;
+  CovarianceMatrix measurement_vec_error_covmat;
+
+  Vector      model_state_vec;
+  Vector      measurement_vec_fit;
+  Matrix      measurement_jac;
+  BlockMatrix model_state_basis_mat{Matrix{}};
+  BlockMatrix measurement_basis_mat{Matrix{}};
+  Vector      model_state_covmat_normalization;
+  Vector      measurement_vec_normalization;
+
+  Matrix                       measurement_gain_mat;
+  Matrix                       measurement_averaging_kernel;
+  Matrix                       observation_error_covmat;
+  Matrix                       smoothing_error_covmat;
+  OptimalEstimationDiagnostics diagnostics;
+  Vector                       basis_singular_values;
+  Numeric                      basis_lost_dofs             = std::numeric_limits<Numeric>::quiet_NaN();
+  Numeric                      basis_lost_information_bits = std::numeric_limits<Numeric>::quiet_NaN();
+
+  /** Pending per-target covariance blocks used during target-based setup. */
+  JacobianTargetsDiagonalCovarianceMatrixMap covmat_diagonal_blocks;
+
+  [[nodiscard]] bool checked() const noexcept { return checked_; }
+  void               uncheck() noexcept { checked_ = false; }
+  void               check(const JacobianTargets* targets = nullptr);
+  /** Validate once, reusing the checked status until invalidated. */
+  void ensure_checked(const JacobianTargets& targets) {
+    if (not checked_) check(&targets);
+  }
+  void               require_unchecked(std::string_view operation) const;
+
+  /** Release recomputable products while preserving the problem, state,
+   * selected bases, normalization and diagnostics. */
+  void clear_auxiliary();
+  /** Reset the entire retrieval, including inputs and diagnostics. */
+  void clear();
+
+ private:
+  bool checked_ = false;
+};
+
+template <> struct std::formatter<OptimalEstimationData> {
+  format_tags                   tags;
+  constexpr auto                parse(std::format_parse_context& ctx) { return parse_format_tags(tags, ctx); }
+  template <class Context> auto format(const OptimalEstimationData& v, Context& ctx) const {
+    return tags.format(ctx,
+                       "OptimalEstimationData(measurements="sv,
+                       v.measurement_vec.size(),
+                       ", states="sv,
+                       v.model_state_vec_apriori.size(),
+                       ", diagnostics="sv,
+                       v.diagnostics,
+                       ")"sv);
+  }
+};
+template <> struct xml_io_stream_name<OptimalEstimationData> {
+  static constexpr std::string_view name = "OptimalEstimationData";
+};
+template <> struct xml_io_stream<OptimalEstimationData> {
+  static constexpr std::string_view type_name = "OptimalEstimationData";
+  static void write(std::ostream&, const OptimalEstimationData&, bofstream* = nullptr, std::string_view = "");
+  static void read(std::istream&, OptimalEstimationData&, bifstream* = nullptr);
 };

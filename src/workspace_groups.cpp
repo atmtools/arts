@@ -215,10 +215,9 @@ This holds either a shared *Matrix* or a shared *Sparse* matrix.
       .desc = "Named Levenberg-Marquardt damping settings for OEM.\n",
   };
 
-  wsg_data["OptimalEstimationDiagnostics"] = {
+  wsg_data["OptimalEstimationData"] = {
       .file = "oem_settings.h",
-      .desc =
-          "Named OEM status, normalized costs, iteration count, damping history, and messages. Unavailable costs are NaN.\n",
+      .desc = "Owning OEM problem, basis information and retrieval results. Used by oemCalc and oemCalcReduced.\n",
   };
 
   wsg_data["CovarianceMatrix"] = {
@@ -668,18 +667,6 @@ This type flags the type of calculations that should be performed
 when computing the Jacobian matrix or partial derivatives.
 )--",
       .dim_size = {"{}.target_count()", "{}.x_size()"},
-  };
-
-  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
-      .file = "retrieval_target.h",
-      .desc =
-          R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
-
-The intended use of this type is to store required *BlockMatrix* objects so that
-the user-interface for setting up retrieval targets can be simplified.
-)--",
-      .map_type = true,
-      .dim_size = {"{}.size()"},
   };
 
   wsg_data["PropagationPathPoint"] = {

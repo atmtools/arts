@@ -690,6 +690,23 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
+  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
+      .file = "retrieval_target.h",
+      .desc =
+          R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
+
+The intended use of this type is to store required *BlockMatrix* objects so that
+the user-interface for setting up retrieval targets can be simplified.
+)--",
+      .map_type = true,
+  };
+
+  wsg_data["OptimalEstimationDiagnostics"] = {
+      .file = "oem_settings.h",
+      .desc =
+          "Named OEM status, normalized costs, iteration count, damping history, and messages. Unavailable costs are NaN.\n",
+  };
+
   add_arrays_of(wsg_data,
                 {
                     "Index",

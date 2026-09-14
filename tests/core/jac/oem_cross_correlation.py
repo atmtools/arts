@@ -19,7 +19,7 @@ def field(values, altitude=(0, 4000, 12000)):
     )
 
 
-def setup(sparse=False, third=False):
+def setup(sparse=False, third=False, *, covariance_only=True):
     ws = pyarts.workspace.Workspace()
     ws.atm_fieldInit(toa=12000.0)
     ws.surf_fieldPlanet(option="Earth")
@@ -31,21 +31,31 @@ def setup(sparse=False, third=False):
     ws.abs_bands = arts.AbsorptionBands()
     ws.measurement_sensor = arts.ArrayOfSensorObsel()
 
-    ws.RetrievalInit()
+    ws.oemInit()
 
     def matrix(variance):
         value = np.diag(np.full(3, variance))
-        return arts.Sparse(value) if sparse else value
+        return arts.Sparse(value) if sparse else arts.Matrix(value)
 
     # PWR98 uses numerical derivatives. Perturbations are in physical
     # kelvin/VMR units even when the retrieval coordinate is logarithmic.
-    ws.RetrievalAddTemperature(matrix=matrix(9.0), d=1e-3)
-    ws.RetrievalAddSpeciesVMR(species="H2O", matrix=matrix(0.04), d=1e-7)
+    ws.oemAddTemperature(matrix=matrix(9.0), d=1e-3)
+    ws.oemAddSpeciesVMR(species="H2O", matrix=matrix(0.04), d=1e-7)
     if third:
-        ws.RetrievalAddSpeciesVMR(species="O2", matrix=matrix(0.01))
-        ws.RetrievalAddPressure(matrix=matrix(10000.0))
-    ws.RetrievalFinalizeDiagonal()
+        ws.oemAddSpeciesVMR(species="O2", matrix=matrix(0.01))
+        ws.oemAddPressure(matrix=matrix(10000.0))
+    ws.jac_targetsFinalize()
     ws.jac_targetsToggleLogarithmicAtmTarget(key="H2O")
+    if covariance_only:
+        # These checks concern covariance editing, not a complete retrieval.
+        # Construct their marginals directly without inventing observations.
+        variances = [9.0, 0.04, 0.01, 10000.0] if third else [9.0, 0.04]
+        ws.oem.model_state_covmat.blocks = [
+            arts.Block(arts.Range(target.x_start, target.x_size),
+                       arts.Range(target.x_start, target.x_size),
+                       (target.target_pos, target.target_pos), matrix(variance))
+            for target, variance in zip(ws.jac_targets.atm, variances)
+        ]
     return ws
 
 
@@ -56,12 +66,12 @@ def blocks(ws):
             if isinstance(b.matrix, arts.Sparse)
             else b.matrix
         ).copy()
-        for b in ws.model_state_covmat.blocks
+        for b in ws.oem.model_state_covmat.blocks
     }
 
 
 def correlate(ws, rho, first="temperature", second="H2O"):
-    ws.model_state_covmatCorrelate(target1=first, target2=second, correlation=rho)
+    ws.oemStateCovmatCorrelateConstant(target1=first, target2=second, correlation=rho)
 
 
 def fails_unchanged(ws, rho, first="temperature", second="H2O"):
@@ -119,7 +129,7 @@ for name, value in (
     agenda.add(arts.Method(name, value))
 agenda.add(
     arts.Method(
-        "model_state_covmatCorrelate",
+        "oemStateCovmatCorrelateConstant",
         [],
         {
             "target1": "cross_first",
@@ -135,16 +145,15 @@ np.testing.assert_allclose(blocks(ws)[(0, 1)], np.eye(3) * 0.3)
 # Off-diagonal marginal entries are outside the helper's contract.
 for sparse in (False, True):
     ws = setup(sparse)
-    entries = ws.model_state_covmat.blocks
+    entries = ws.oem.model_state_covmat.blocks
     dense = np.eye(3) * 9.0
     dense[0, 1] = dense[1, 0] = 0.1
     entries[0].matrix = arts.Sparse(dense) if sparse else arts.Matrix(dense)
-    ws.model_state_covmat.blocks = entries
+    ws.oem.model_state_covmat.blocks = entries
     fails_unchanged(ws, 0.2)
 
 # A full radiative-transfer retrieval in T and ln(H2O) coordinates.
-ws = setup()
-correlate(ws, 0.6)
+ws = setup(covariance_only=False)
 ws.freq_grid = np.linspace(20e9, 200e9, 61)
 ws.abs_speciesSet(species=["H2O-PWR98", "O2-PWR98"])
 ws.ReadCatalogData()
@@ -152,11 +161,15 @@ ws.spectral_propmat_agendaAuto()
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
 ws.measurement_sensorSimple(pos=[0.0, 0.0, 0.0], los=[0.0, 0.0])
-ws.model_state_vec_aprioriFromData()
-prior = np.array(ws.model_state_vec_apriori)
 ws.measurement_vecFromSensor()
-observations = np.array(ws.measurement_vec)
-ws.measurement_vec_error_covmatConstant(value=0.01)
+ws.model_state_vecFromData()
+ws.oemSetApriori()
+ws.oemSetMeasurement()
+ws.oemMeasurementCovmatConstant(value=0.01)
+ws.oemFinalizeDiagonal()
+correlate(ws, 0.6)
+prior = np.array(ws.oem.model_state_vec_apriori)
+observations = np.array(ws.oem.measurement_vec)
 
 # Change the starting atmosphere, keeping both prior and observations fixed.
 ws.atm_field["t"] = field([294.0, 270.0, 231.0])
@@ -166,18 +179,20 @@ manipulated = np.array(ws.model_state_vec, copy=True)
 assert np.linalg.norm(manipulated - prior) > 1
 ws.measurement_vecFromSensor()
 assert np.linalg.norm(np.array(ws.measurement_vec) - observations) > 0.1
-ws.measurement_vec = observations
-ws.measurement_vec_fit = []
-ws.measurement_jac = arts.Matrix()
-ws.OEM(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
+ws.oem.uncheck()
+ws.oem.model_state_vec = manipulated
+ws.oem.measurement_vec_fit = []
+ws.oem.measurement_jac = arts.Matrix()
+ws.oemCheck()
+ws.oemCalc(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
        max_iter=100, stop_dx=1e-12)
-assert ws.oem_diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
+assert ws.oem.diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
 np.testing.assert_allclose(
-    (np.array(ws.model_state_vec) - prior) / np.array([3.0] * 3 + [0.2] * 3),
+    (np.array(ws.oem.model_state_vec) - prior) / np.array([3.0] * 3 + [0.2] * 3),
     0.0,
     atol=1e-5,
 )
-np.testing.assert_allclose(ws.measurement_vec_fit, observations, atol=1e-5)
+np.testing.assert_allclose(ws.oem.measurement_vec_fit, observations, atol=1e-5)
 np.testing.assert_allclose(
     ws.atm_field["t"].data.data.value.reshape(-1), [290.0, 265.0, 225.0], atol=1e-5
 )
@@ -189,7 +204,7 @@ np.testing.assert_allclose(
 def snapshot():
     with TemporaryDirectory() as directory:
         path = Path(directory) / "covariance.xml"
-        ws.model_state_covmat.savexml(str(path))
+        ws.oem.model_state_covmat.savexml(str(path))
         return path.read_text()
 
 
@@ -200,15 +215,15 @@ assert len(ET.fromstring(before).find("CovarianceMatrix")[1]) == 0
 fails_unchanged(ws, 1.0)
 assert snapshot() == before
 correlate(ws, 0.3)
-ws.model_state_covmat.validate()
+ws.oem.model_state_covmat.validate()
 assert len(ET.fromstring(snapshot()).find("CovarianceMatrix")[1]) == 0
-print("Correlated T/log-water retrieval recovered the prior:", ws.oem_diagnostics)
+print("Correlated T/log-water retrieval recovered the prior:", ws.oem.diagnostics)
 
 
 if "ARTS_HEADLESS" not in os.environ:
     import matplotlib.pyplot as plt
 
-    fitted = np.array(ws.model_state_vec)
+    fitted = np.array(ws.oem.model_state_vec)
     altitude = np.asarray(ws.atm_field["t"].data.grids[0]) / 1000
     nlevels = len(altitude)
     fig, axes = plt.subplots(1, 2, sharey=True, figsize=(9, 5))

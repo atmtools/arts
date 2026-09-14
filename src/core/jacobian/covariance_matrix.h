@@ -325,6 +325,9 @@ class CovarianceMatrix {
      */
   void compute_inverse() const;
 
+  /** Release prepared factors/snapshots and inverse blocks; retain covariance values. */
+  void clear_cache();
+
   /** Add block to covariance matrix.
      *
      * This function add a given block to the covariance matrix.

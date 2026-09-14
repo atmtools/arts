@@ -60,11 +60,11 @@ pos = [110e3, 0, 0]
 los = [160.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 
-ws.RetrievalInit()
-ws.RetrievalAddSurface(
+ws.oemInit()
+ws.oemAddSurface(
     target = pyarts.arts.SurfaceKey.t, matrix=np.diag(np.ones((1)) * 1000)
 )
-ws.RetrievalFinalizeDiagonal()
+ws.jac_targetsFinalize()
 
 fail = True
 
@@ -72,22 +72,25 @@ for i in range(LIMIT):
     ws.surf_field["t"] = ts
     ws.measurement_vecFromSensor()
 
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
     ws.surf_field["t"] = ts + 30
-    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vec_error_covmatConstant(value=noise**2)
     ws.measurement_vec += np.random.normal(0, noise, NF)
 
-    ws.OEM(method="gn")
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-    absdiff = round(abs(ts - ws.model_state_vec[0]), 2)
+    ws.oemCalc(method="gn")
+
+    absdiff = round(abs(ts - ws.oem.model_state_vec[0]), 2)
 
     print(
-        f"t-component: Input {ts} K, Output {round(ws.model_state_vec[0], 2)} K, AbsDiff {absdiff} K"
+        f"t-component: Input {ts} K, Output {round(ws.oem.model_state_vec[0], 2)} K, AbsDiff {absdiff} K"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} K, rerunning with new random noise")

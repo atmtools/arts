@@ -15,10 +15,10 @@ He formulates the core expression of a measurement as
   \vec{y} = F\left(\vec{x}\right) + \epsilon,
 
 where :math:`\vec{y}` is a measurement vector
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_vec`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.measurement_vec`
 in the ARTS workspace),
 :math:`\vec{x}` is the state of the model
-(i.e., :attr:`~pyarts3.workspace.Workspace.model_state_vec`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.model_state_vec`
 in the ARTS workspace),
 :math:`F` is the model (i.e., ARTS itself), and
 :math:`\epsilon` is some measurement error that cannot
@@ -66,7 +66,7 @@ Here
   \mathbf{J}_i = \left.\frac{\partial F}{\partial \vec{x}}\right|_{\vec{x}_i}
 
 is the Jacobian matrix
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jac`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.measurement_jac`
 in the ARTS workspace).
 
 One approach to minimize the cost function is to
@@ -665,7 +665,7 @@ all pair coefficients must jointly define a positive-definite covariance.
 Reduced optimal estimation
 ==========================
 
-``ReducedOEM`` uses a fixed state expansion and measurement projection:
+``oemCalcReduced`` uses a fixed state expansion and measurement projection:
 
 .. math::
 

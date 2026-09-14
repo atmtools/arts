@@ -8,6 +8,7 @@ arts = pyarts.arts
 
 def check_kernel(option):
     ws = pyarts.Workspace()
+    ws.oem = arts.OptimalEstimationData()
     ws.freq_grid = [1e9, 2e9, 3e9]
     ws.surf_fieldEarth()
     ws.surf_field["t"] = 280.0
@@ -105,23 +106,25 @@ def check_kernel(option):
                 arts.Range(0, 3), arts.Range(0, 3), (0, 0), arts.Matrix(np.eye(3))
             )
         ]
-        setattr(ws, name, covariance)
-    ws.model_state_vec_apriori = [3, 2, 0.5]
-    ws.model_state_vec = []
-    ws.measurement_vec_fit = []
-    ws.measurement_jac = arts.Matrix()
-    ws.measurement_vec = [24, 25, 26]
+        setattr(ws.oem, name, covariance)
+    ws.oem.model_state_vec_apriori = [3, 2, 0.5]
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
+    ws.oem.measurement_vec_fit = []
+    ws.oem.measurement_jac = arts.Matrix()
+    ws.oem.measurement_vec = [24, 25, 26]
     # OEM must supply its full mapping explicitly, even if the outer workspace
     # mapping is stale or empty.
     ws.model_state_targets = arts.JacobianTargets()
     seen.clear()
-    ws.OEM(
+    ws.oemCheck()
+    ws.oemCalc(
         method="lm", stop_dx=1e-12, max_iter=100, lm_ga_settings=arts.LevenbergMarquardtSettings()
     )
-    assert ws.oem_diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem_diagnostics
+    assert ws.oem.diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
     temperature = max(np.roots([3, 0, -67, -6]))
     expected = [temperature, 2 - 0.75 * (temperature**2 - 23), 5 / 6]
-    np.testing.assert_allclose(ws.model_state_vec, expected, rtol=0, atol=1e-6)
+    np.testing.assert_allclose(ws.oem.model_state_vec, expected, rtol=0, atol=1e-6)
     assert any(nx == 0 and temp != 3 for nx, temp in seen)
     assert any(nx == 3 for nx, _ in seen)
     assert str(ws.jac_targets) == original

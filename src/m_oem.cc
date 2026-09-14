@@ -291,7 +291,7 @@ void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   yf = y;
 }
 
-void measurement_vec_error_covmatNormalization(Vector& normalization, const CovarianceMatrix& covariance) {
+static void measurement_covariance_normalization(Vector& normalization, const CovarianceMatrix& covariance) {
   covariance.validate(covariance.nrows());
   Vector scales = covariance.diagonal();
   for (auto& value : scales) {
@@ -302,33 +302,36 @@ void measurement_vec_error_covmatNormalization(Vector& normalization, const Cova
   normalization = std::move(scales);
 }
 
-void OEM(const Workspace&                  ws,
-         Vector&                           model_state_vec,
-         Vector&                           measurement_vec_fit,
-         Matrix&                           measurement_jac,
-         AtmField&                         atm_field,
-         AbsorptionBands&                  abs_bands,
-         ArrayOfSensorObsel&               measurement_sensor,
-         SurfaceField&                     surf_field,
-         SubsurfaceField&                  subsurf_field,
-         Matrix&                           measurement_gain_mat,
-         OptimalEstimationDiagnostics&     oem_diagnostics,
-         const JacobianTargets&            jac_targets,
-         const Vector&                     model_state_vec_apriori,
-         const CovarianceMatrix&           model_state_covmat_input,
-         const Vector&                     measurement_vec,
-         const CovarianceMatrix&           measurement_vec_error_covmat_input,
-         const Agenda&                     inversion_iterate_agenda,
-         const String&                     method,
-         const Numeric&                    max_start_cost,
-         const Vector&                     model_state_covmat_normalization,
-         const Vector&                     measurement_vec_normalization,
-         const Index&                      max_iter,
-         const Numeric&                    stop_dx,
-         const LevenbergMarquardtSettings& lm_ga_settings,
-         const Index&                      clear_matrices,
-         const Index&                      display_progress) {
+void oemCalc(const Workspace&                  ws,
+             OptimalEstimationData&            data,
+             AtmField&                         atm_field,
+             AbsorptionBands&                  abs_bands,
+             ArrayOfSensorObsel&               measurement_sensor,
+             SurfaceField&                     surf_field,
+             SubsurfaceField&                  subsurf_field,
+             const JacobianTargets&            jac_targets,
+             const Agenda&                     inversion_iterate_agenda,
+             const String&                     method,
+             const Numeric&                    max_start_cost,
+             const Index&                      max_iter,
+             const Numeric&                    stop_dx,
+             const LevenbergMarquardtSettings& lm_ga_settings,
+             const Index&                      clear_matrices,
+             const Index&                      display_progress) {
   ARTS_TIME_REPORT
+
+  data.ensure_checked(jac_targets);
+  auto&       model_state_vec                    = data.model_state_vec;
+  auto&       measurement_vec_fit                = data.measurement_vec_fit;
+  auto&       measurement_jac                    = data.measurement_jac;
+  auto&       measurement_gain_mat               = data.measurement_gain_mat;
+  auto&       oem_diagnostics                    = data.diagnostics;
+  const auto& model_state_vec_apriori            = data.model_state_vec_apriori;
+  const auto& model_state_covmat_input           = data.model_state_covmat;
+  const auto& measurement_vec                    = data.measurement_vec;
+  const auto& measurement_vec_error_covmat_input = data.measurement_vec_error_covmat;
+  const auto& model_state_covmat_normalization   = data.model_state_covmat_normalization;
+  const auto& measurement_vec_normalization      = data.measurement_vec_normalization;
 
   const OEMMethod selected = parse_oem_method(method);
   // Freeze covariance values and finish cache preparation before iteration.
@@ -368,6 +371,9 @@ void OEM(const Workspace&                  ws,
   // Covariance snapshots are prepared before iteration. Explicit precision
   // consumers still request inverse storage when needed.
 
+  data.measurement_averaging_kernel = Matrix{};
+  data.observation_error_covmat     = Matrix{};
+  data.smoothing_error_covmat       = Matrix{};
   measurement_gain_mat.resize(0, 0);
   oem_diagnostics     = {};
   auto& lm_ga_history = oem_diagnostics.lm_ga_history;
@@ -592,9 +598,10 @@ CovarianceMatrix measurement_covariance_projection(const BlockMatrix& C, const C
 }
 }  // namespace
 
-void measurement_basis_matCalc(BlockMatrix&            measurement_basis_mat,
-                               const Matrix&           measurement_jac,
-                               const CovarianceMatrix& measurement_vec_error_covmat) {
+void oemMeasurementBasisCalc(OptimalEstimationData& data) {
+  auto&       measurement_basis_mat        = data.measurement_basis_mat;
+  const auto& measurement_jac              = data.measurement_jac;
+  const auto& measurement_vec_error_covmat = data.measurement_vec_error_covmat;
   ARTS_TIME_REPORT
   const auto& J = measurement_jac;
   const Index m = J.nrows(), n = J.ncols();
@@ -663,12 +670,13 @@ void measurement_basis_matCalc(BlockMatrix&            measurement_basis_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReducedOEMBasisCalc(BlockMatrix&            model_state_basis_mat,
-                         BlockMatrix&            measurement_basis_mat,
-                         Vector&                 oem_basis_singular_values,
-                         const Matrix&           measurement_jac,
-                         const CovarianceMatrix& model_state_covmat,
-                         const CovarianceMatrix& measurement_vec_error_covmat) {
+void oemBasisCalc(OptimalEstimationData& data) {
+  auto&       model_state_basis_mat        = data.model_state_basis_mat;
+  auto&       measurement_basis_mat        = data.measurement_basis_mat;
+  auto&       oem_basis_singular_values    = data.basis_singular_values;
+  const auto& measurement_jac              = data.measurement_jac;
+  const auto& model_state_covmat           = data.model_state_covmat;
+  const auto& measurement_vec_error_covmat = data.measurement_vec_error_covmat;
   ARTS_TIME_REPORT
   const Index m = measurement_jac.nrows(), n = measurement_jac.ncols();
   ARTS_USER_ERROR_IF(m <= 0 or n <= 0, "ReducedOEMBasisCalc requires a nonempty measurement_jac.")
@@ -708,14 +716,15 @@ void ReducedOEMBasisCalc(BlockMatrix&            model_state_basis_mat,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void ReducedOEMBasisReduce(BlockMatrix&   model_state_basis_mat,
-                           BlockMatrix&   measurement_basis_mat,
-                           Numeric&       oem_basis_lost_dofs,
-                           Numeric&       oem_basis_lost_information_bits,
-                           const Vector&  oem_basis_singular_values,
-                           const Index&   rank,
-                           const Numeric& max_lost_dofs,
-                           const Numeric& max_lost_information_bits) {
+void oemBasisReduce(OptimalEstimationData& data,
+                    const Index&           rank,
+                    const Numeric&         max_lost_dofs,
+                    const Numeric&         max_lost_information_bits) {
+  auto&       model_state_basis_mat           = data.model_state_basis_mat;
+  auto&       measurement_basis_mat           = data.measurement_basis_mat;
+  auto&       oem_basis_lost_dofs             = data.basis_lost_dofs;
+  auto&       oem_basis_lost_information_bits = data.basis_lost_information_bits;
+  const auto& oem_basis_singular_values       = data.basis_singular_values;
   ARTS_TIME_REPORT
   const auto& B               = model_state_basis_mat;
   const auto& C               = measurement_basis_mat;
@@ -799,38 +808,42 @@ void ReducedOEMBasisReduce(BlockMatrix&   model_state_basis_mat,
   oem_basis_lost_information_bits = lost_bits;
 }
 
-void ReducedOEM(const Workspace&                  ws,
-                Vector&                           model_state_vec,
-                Vector&                           measurement_vec_fit,
-                Matrix&                           measurement_jac,
-                AtmField&                         atm_field,
-                AbsorptionBands&                  abs_bands,
-                ArrayOfSensorObsel&               measurement_sensor,
-                SurfaceField&                     surf_field,
-                SubsurfaceField&                  subsurf_field,
-                Matrix&                           measurement_gain_mat,
-                OptimalEstimationDiagnostics&     oem_diagnostics,
-                const JacobianTargets&            jac_targets,
-                const Vector&                     model_state_vec_apriori,
-                const CovarianceMatrix&           model_state_covmat_input,
-                const Vector&                     measurement_vec,
-                const CovarianceMatrix&           measurement_vec_error_covmat_input,
-                const Agenda&                     inversion_iterate_agenda,
-                const BlockMatrix&                model_state_basis_mat,
-                const BlockMatrix&                measurement_basis_mat,
-                const String&                     method,
-                const Numeric&                    max_start_cost,
-                const Vector&                     model_state_covmat_normalization,
-                const Vector&                     measurement_vec_normalization,
-                const Index&                      max_iter,
-                const Numeric&                    stop_dx,
-                const LevenbergMarquardtSettings& lm_ga_settings,
-                const Index&                      clear_matrices,
-                const Index&                      display_progress) {
+void oemCalcReduced(const Workspace&                  ws,
+                    OptimalEstimationData&            data,
+                    AtmField&                         atm_field,
+                    AbsorptionBands&                  abs_bands,
+                    ArrayOfSensorObsel&               measurement_sensor,
+                    SurfaceField&                     surf_field,
+                    SubsurfaceField&                  subsurf_field,
+                    const JacobianTargets&            jac_targets,
+                    const Agenda&                     inversion_iterate_agenda,
+                    const String&                     method,
+                    const Numeric&                    max_start_cost,
+                    const Index&                      max_iter,
+                    const Numeric&                    stop_dx,
+                    const LevenbergMarquardtSettings& lm_ga_settings,
+                    const Index&                      clear_matrices,
+                    const Index&                      display_progress) {
   ARTS_TIME_REPORT
-  const auto  selected = parse_oem_method(method);
-  const auto& B        = model_state_basis_mat;
-  const auto& C        = measurement_basis_mat;
+
+  data.ensure_checked(jac_targets);
+
+  auto&       model_state_vec                    = data.model_state_vec;
+  auto&       measurement_vec_fit                = data.measurement_vec_fit;
+  auto&       measurement_jac                    = data.measurement_jac;
+  auto&       measurement_gain_mat               = data.measurement_gain_mat;
+  auto&       oem_diagnostics                    = data.diagnostics;
+  const auto& model_state_vec_apriori            = data.model_state_vec_apriori;
+  const auto& model_state_covmat_input           = data.model_state_covmat;
+  const auto& measurement_vec                    = data.measurement_vec;
+  const auto& measurement_vec_error_covmat_input = data.measurement_vec_error_covmat;
+  const auto& model_state_basis_mat              = data.model_state_basis_mat;
+  const auto& measurement_basis_mat              = data.measurement_basis_mat;
+  const auto& model_state_covmat_normalization   = data.model_state_covmat_normalization;
+  const auto& measurement_vec_normalization      = data.measurement_vec_normalization;
+  const auto  selected                           = parse_oem_method(method);
+  const auto& B                                  = model_state_basis_mat;
+  const auto& C                                  = measurement_basis_mat;
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   const Index r = B.ncols(), q = C.nrows();
   ARTS_USER_ERROR_IF(
@@ -950,6 +963,9 @@ void ReducedOEM(const Workspace&                  ws,
       damping = basis_precision(B, scale_basis_rows(B, prior->inverse_diagonal()));
   }
 
+  data.measurement_averaging_kernel = Matrix{};
+  data.observation_error_covmat     = Matrix{};
+  data.smoothing_error_covmat       = Matrix{};
   measurement_gain_mat.resize(0, 0);
   oem_diagnostics = {};
   oem_diagnostics.lm_ga_history.resize(selected.damped() ? max_iter + 1 : 0);
@@ -1051,9 +1067,10 @@ void ReducedOEM(const Workspace&                  ws,
   if (clear_matrices) measurement_jac.resize(0, 0);
 }
 
-void measurement_vec_error_covmat_observation_systemCalc(Matrix&       measurement_vec_error_covmat_observation_system,
-                                                         const Matrix& measurement_gain_mat,
-                                                         const CovarianceMatrix& measurement_vec_error_covmat) {
+void oemObservationErrorCalc(OptimalEstimationData& data) {
+  auto&       measurement_vec_error_covmat_observation_system = data.observation_error_covmat;
+  const auto& measurement_gain_mat                            = data.measurement_gain_mat;
+  const auto& measurement_vec_error_covmat                    = data.measurement_vec_error_covmat;
   ARTS_TIME_REPORT
 
   Index  n(measurement_gain_mat.nrows()), m(measurement_gain_mat.ncols());
@@ -1068,9 +1085,10 @@ void measurement_vec_error_covmat_observation_systemCalc(Matrix&       measureme
   mult(measurement_vec_error_covmat_observation_system, measurement_gain_mat, tmp1);
 }
 
-void model_state_covmat_smoothing_errorCalc(Matrix&                 model_state_covmat_smoothing_error,
-                                            const Matrix&           measurement_averaging_kernel,
-                                            const CovarianceMatrix& model_state_covmat) {
+void oemSmoothingErrorCalc(OptimalEstimationData& data) {
+  auto&       model_state_covmat_smoothing_error = data.smoothing_error_covmat;
+  const auto& measurement_averaging_kernel       = data.measurement_averaging_kernel;
+  const auto& model_state_covmat                 = data.model_state_covmat;
   ARTS_TIME_REPORT
 
   Index  n(measurement_averaging_kernel.ncols());
@@ -1090,9 +1108,10 @@ void model_state_covmat_smoothing_errorCalc(Matrix&                 model_state_
   mult(model_state_covmat_smoothing_error, tmp1, tmp2);
 }
 
-void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel,
-                                      const Matrix& measurement_gain_mat,
-                                      const Matrix& measurement_jac) {
+void oemAveragingKernelCalc(OptimalEstimationData& data) {
+  auto&       measurement_averaging_kernel = data.measurement_averaging_kernel;
+  const auto& measurement_gain_mat         = data.measurement_gain_mat;
+  const auto& measurement_jac              = data.measurement_jac;
   ARTS_TIME_REPORT
 
   Index n(measurement_jac.ncols());
@@ -1102,3 +1121,60 @@ void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel, measurement_gain_mat, measurement_jac);
 }
+
+void oemInitFromData(OptimalEstimationData& data,
+                     Vector&                model_state_vec,
+                     Vector&                measurement_vec,
+                     CovarianceMatrix&      model_state_covmat,
+                     CovarianceMatrix&      measurement_vec_error_covmat) {
+  const Index n = model_state_vec.size();
+  const Index m = measurement_vec.size();
+  ARTS_USER_ERROR_IF(n == 0 or m == 0, "oemInitFromData requires a nonempty prior and measurement vector.")
+  ARTS_USER_ERROR_IF(model_state_covmat.nrows() != n,
+                     "State covariance size must match the {} prior elements consumed by oemInitFromData.",
+                     n)
+  ARTS_USER_ERROR_IF(measurement_vec_error_covmat.nrows() != m,
+                     "Measurement covariance size must match the {} measurements consumed by oemInitFromData.",
+                     m)
+
+  // Check dimensions before consuming anything. Build separately so inputs may
+  // also refer to members of the object being replaced.
+  OptimalEstimationData next;
+  next.model_state_vec_apriori      = std::exchange(model_state_vec, Vector{});
+  next.measurement_vec              = std::exchange(measurement_vec, Vector{});
+  next.model_state_covmat           = std::exchange(model_state_covmat, CovarianceMatrix{});
+  next.measurement_vec_error_covmat = std::exchange(measurement_vec_error_covmat, CovarianceMatrix{});
+  data                              = std::move(next);
+}
+
+void oemCheck(OptimalEstimationData& data, const JacobianTargets& jac_targets) { data.check(&jac_targets); }
+
+void oemSetMeasurement(OptimalEstimationData& data, Vector& measurement_vec) {
+  if (data.measurement_vec.size() != measurement_vec.size()) data.uncheck();
+  data.measurement_vec = std::exchange(measurement_vec, Vector{});
+}
+
+void oemSetApriori(OptimalEstimationData& data, Vector& model_state_vec) {
+  if (data.model_state_vec_apriori.size() != model_state_vec.size()) data.uncheck();
+  data.model_state_vec_apriori = std::exchange(model_state_vec, Vector{});
+}
+
+void oemRestoreApriori(AbsorptionBands&             abs_bands,
+                       SurfaceField&                surf_field,
+                       SubsurfaceField&             subsurf_field,
+                       AtmField&                    atm_field,
+                       ArrayOfSensorObsel&          measurement_sensor,
+                       const OptimalEstimationData& data,
+                       const JacobianTargets&       jac_targets) {
+  ARTS_USER_ERROR_IF(not jac_targets.finalized or data.model_state_vec_apriori.empty() or
+                         data.model_state_vec_apriori.size() != jac_targets.x_size(),
+                     "Restoring the prior requires initialized OEM data and matching finalized targets.")
+  UpdateModelStates(
+      abs_bands, surf_field, subsurf_field, atm_field, measurement_sensor, jac_targets, data.model_state_vec_apriori);
+}
+
+void oemMeasurementCovmatNormalization(OptimalEstimationData& data) {
+  measurement_covariance_normalization(data.measurement_vec_normalization, data.measurement_vec_error_covmat);
+}
+
+void oemClearAuxiliary(OptimalEstimationData& data) { data.clear_auxiliary(); }

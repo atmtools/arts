@@ -51,7 +51,9 @@ Target: {}
 }
 }  // namespace
 
-void model_state_covmatInit(CovarianceMatrix& model_state_covmat) {
+void oemStateCovmatInit(OptimalEstimationData& data) {
+  data.uncheck();
+  auto& model_state_covmat = data.model_state_covmat;
   ARTS_TIME_REPORT
 
   model_state_covmat = CovarianceMatrix{};
@@ -185,63 +187,64 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
 }
 }  // namespace
 
-void model_state_covmatAddSpeciesVMR(CovarianceMatrix&      model_state_covmat,
-                                     const JacobianTargets& jac_targets,
-                                     const SpeciesEnum&     species,
-                                     const BlockMatrix&     matrix,
-                                     const BlockMatrix&     inverse) {
-  ARTS_TIME_REPORT
-
-  model_state_covmatAdd(model_state_covmat, jac_targets, AtmKeyVal{species}, matrix, inverse);
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 // Measurement vector error covariance matrix
 ////////////////////////////////////////////////////////////////////////////////
 
-void measurement_vec_error_covmatConstant(CovarianceMatrix&         measurement_vec_error_covmat,
-                                          const ArrayOfSensorObsel& measurement_sensor,
-                                          const Numeric&            x) {
-  ARTS_TIME_REPORT
-
+namespace {
+void measurement_covmat_constant(CovarianceMatrix& covariance, Size n, Numeric variance) {
   ARTS_USER_ERROR_IF(
-      not std::isfinite(x) or x <= 0 or not std::isfinite(1.0 / x),
-      "Measurement-error variance x must be finite and strictly positive with a finite reciprocal, got {}.",
-      x);
+      not std::isfinite(variance) or variance <= 0 or not std::isfinite(1.0 / variance),
+      "Measurement-error variance must be finite and strictly positive with a finite reciprocal, got {}.",
+      variance)
+  ARTS_USER_ERROR_IF(n == 0, "A nonempty measurement vector is required.")
+  covariance = CovarianceMatrix{};
+  covariance.add_correlation(
+      {Range(0, n), Range(0, n), IndexPair{0, 0}, std::make_shared<Sparse>(Sparse::diagonal(Vector(n, variance)))});
+  covariance.add_correlation_inverse({Range(0, n),
+                                      Range(0, n),
+                                      IndexPair{0, 0},
+                                      std::make_shared<Sparse>(Sparse::diagonal(Vector(n, 1.0 / variance)))});
+}
+}  // namespace
 
-  measurement_vec_error_covmat = CovarianceMatrix{};
+void measurement_vec_error_covmatConstant(CovarianceMatrix& covariance,
+                                          const Vector&     measurement_vec,
+                                          const Numeric&    value) {
+  measurement_covmat_constant(covariance, measurement_vec.size(), value);
+}
 
-  const Size N = measurement_sensor.size();
-
-  measurement_vec_error_covmat.add_correlation(
-      {Range(0, N), Range(0, N), IndexPair{0, 0}, std::make_shared<Sparse>(Sparse::diagonal(Vector(N, x)))});
-  measurement_vec_error_covmat.add_correlation_inverse(
-      {Range(0, N), Range(0, N), IndexPair{0, 0}, std::make_shared<Sparse>(Sparse::diagonal(Vector(N, 1.0 / x)))});
+void oemMeasurementCovmatConstant(OptimalEstimationData& data, const Numeric& value) {
+  measurement_covmat_constant(data.measurement_vec_error_covmat, data.measurement_vec.size(), value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Retrieval code.  This wraps Jacobian and Covmat code.
 ////////////////////////////////////////////////////////////////////////////////
 
-void RetrievalFinalizeDiagonal(CovarianceMatrix&                                 model_state_covmat,
-                               JacobianTargets&                                  jac_targets,
-                               const JacobianTargetsDiagonalCovarianceMatrixMap& covmat_diagonal_blocks,
-                               const AtmField&                                   atm_field,
-                               const SurfaceField&                               surf_field,
-                               const SubsurfaceField&                            subsurf_field,
-                               const AbsorptionBands&                            abs_bands,
-                               const ArrayOfSensorObsel&                         measurement_sensor) {
+void oemFinalizeDiagonal(OptimalEstimationData&    oem,
+                         JacobianTargets&          jac_targets,
+                         const AtmField&           atm_field,
+                         const SurfaceField&       surf_field,
+                         const SubsurfaceField&    subsurf_field,
+                         const AbsorptionBands&    abs_bands,
+                         const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
+  oem.uncheck();
+  CovarianceMatrix model_state_covmat;
+  ARTS_USER_ERROR_IF(oem.covmat_diagonal_blocks.empty(), "No pending covariance blocks; add targets before finalizing.")
 
   jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
 
-  for (auto& key_data : covmat_diagonal_blocks) {
+  for (auto& key_data : oem.covmat_diagonal_blocks) {
     std::visit(
         [&](auto& k) {
           model_state_covmatAdd(model_state_covmat, jac_targets, k, key_data.second.first, key_data.second.second);
         },
         key_data.first.target);
   }
+  oem.model_state_covmat = std::move(model_state_covmat);
+  oem.check(&jac_targets);
 }
 
 namespace {
@@ -336,4 +339,43 @@ void model_state_covmatCorrelate(CovarianceMatrix&      covariance,
                                  const Numeric&         correlation) {
   const auto key = [](const auto& target) { return std::visit([](const auto& p) -> AtmKeyVal { return *p; }, target); };
   correlate_atmosphere(covariance, targets, atmosphere, key(target1), key(target2), correlation);
+}
+
+void oemStateCovmatCorrelateConstant(OptimalEstimationData& data,
+                                     const JacobianTargets& targets,
+                                     const AtmField&        atmosphere,
+                                     const GenericAtmKey    target1,
+                                     const GenericAtmKey    target2,
+                                     const Numeric&         correlation) {
+  auto& covariance = data.model_state_covmat;
+  ARTS_USER_ERROR_IF(not data.model_state_vec_apriori.empty() and
+                         covariance.nrows() != static_cast<Index>(data.model_state_vec_apriori.size()),
+                     "State covariance size does not match the OEM prior.")
+  const auto key = [](const auto& target) { return std::visit([](const auto& p) -> AtmKeyVal { return *p; }, target); };
+  correlate_atmosphere(covariance, targets, atmosphere, key(target1), key(target2), correlation);
+}
+
+void oemMeasurementCovmatInit(OptimalEstimationData& data) {
+  data.uncheck();
+  data.measurement_vec_error_covmat = CovarianceMatrix{};
+}
+
+void oemMeasurementCovmatAdd(OptimalEstimationData& data, const BlockMatrix& matrix, const BlockMatrix& inverse) {
+  auto&       covariance = data.measurement_vec_error_covmat;
+  const Index start      = covariance.nrows();
+  const Index size       = matrix.nrows();
+  ARTS_USER_ERROR_IF(not matrix.not_null() or size == 0 or matrix.ncols() != size,
+                     "Measurement covariance block must be nonempty and square.")
+  ARTS_USER_ERROR_IF(
+      not data.measurement_vec.empty() and start + size > static_cast<Index>(data.measurement_vec.size()),
+      "Adding {} covariance rows exceeds the {} initialized measurements.",
+      size,
+      data.measurement_vec.size())
+  ARTS_USER_ERROR_IF(inverse.not_null() and (inverse.nrows() != size or inverse.ncols() != size),
+                     "Inverse block dimensions must match the covariance block.")
+  const Index block = covariance.ndiagblocks();
+  const Range range(start, size);
+  data.uncheck();
+  covariance.add_correlation(Block(range, range, {block, block}, matrix));
+  if (inverse.not_null()) covariance.add_correlation_inverse(Block(range, range, {block, block}, inverse));
 }

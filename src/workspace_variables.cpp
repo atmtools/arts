@@ -835,17 +835,10 @@ psat : Numeric
 
   //! Inversion
 
-  wsv_data["covmat_diagonal_blocks"] = {
-      .desc = R"(A helper map for setting the covariance matrix.
-)",
-      .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
-      .dims = {"NTARGET"},
-  };
-
   wsv_data["model_state_targets"] = {
       .desc = R"(Complete mapping from *model_state_vec* to physical model fields and measurement errors.
 
-During *OEM*, this always contains the full retrieval targets.  The separate
+During *oemCalc*, this always contains the full retrieval targets.  The separate
 *jac_targets* may be empty to disable derivatives without disabling state updates.
 )",
       .type = "JacobianTargets",
@@ -866,103 +859,16 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .dims          = {"NTARGET", "NSTATE"},
   };
 
-  wsv_data["measurement_averaging_kernel"] = {
-      .desc =
-          R"(Averaging kernel matrix.
+  wsv_data["oem"] = {
+      .desc = R"(Numerical problem and results for *oemCalc* and *oemCalcReduced*.
 
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
-
-Usage: Used and set by inversion methods.
+Use *oemInit* to move the primitive state, measurement, fit and Jacobian
+into this object. Covariance helpers and oemFinalizeDiagonal fill its
+covariance members. Basis helpers retain their spectrum and losses here.
+The physical fields and Jacobian targets remain in the workspace.
 )",
-      .type = "Matrix",
-      .dims = {"NSTATE", "NSTATE"},
-  };
+      .type = "OptimalEstimationData",
 
-  wsv_data["measurement_basis_mat"] = {
-      .desc = R"(Measurement projection :math:`\mathbf{C}` for *ReducedOEM*.
-
-Rows are reduced measurements and columns are full measurements.
-*ReducedOEMBasisReduce* selects noise-normalized combinations of channels
-from the covariance-weighted Jacobian. An identity matrix leaves measurements
-unchanged. The matrix must have independent rows.
-
-*ReducedOEMBasisCalc* initially creates a square, invertible matrix with
-noise-normalized rows ordered by decreasing information, including null
-directions. Its inverse times its inverse transpose reconstructs
-*measurement_vec_error_covmat*. *ReducedOEMBasisReduce* removes trailing
-rows in place.
-
-*measurement_basis_matCalc* instead groups proportional Jacobian rows and
-sets this matrix alone. Storage is *BlockMatrix*: either *Matrix* or *Sparse*.
-Sparse projections are applied without expansion to a dense matrix.
-)",
-      .type = "BlockMatrix",
-  };
-
-  wsv_data["model_state_basis_mat"] = {
-      .desc = R"(State expansion :math:`\mathbf{B}` for *ReducedOEM*.
-
-Rows are full states and columns are reduced state coefficients, with
-:math:`\vec{x}=\vec{x}_a+\mathbf{B}\vec{z}`. *ReducedOEMBasisReduce* selects
-prior-normalized leading information modes. An identity matrix leaves the
-state dimension unchanged. The matrix must have independent columns.
-
-*ReducedOEMBasisCalc* initially creates a square, invertible matrix with
-columns ordered by decreasing information, including null directions.
-Its product with its transpose reconstructs *model_state_covmat*.
-*ReducedOEMBasisReduce* removes trailing columns in place.
-
-Storage is *BlockMatrix*: either *Matrix* or *Sparse*. Sparse state expansion,
-selection and interpolation bases are applied directly. An exact identity
-basis reuses the original prior covariance and its prepared solves.
-)",
-      .type = "BlockMatrix",
-  };
-
-  wsv_data["oem_basis_singular_values"] = {
-      .desc = R"(Singular values of the covariance-whitened Jacobian from *ReducedOEMBasisCalc*.
-
-Contains min(measurement count, state size) finite, nonnegative values in
-descending order, including zeros. Additional directions in the larger full
-basis have zero singular value. Keep this spectrum with the matching
-*model_state_basis_mat* and *measurement_basis_mat*.
-
-Each singular value :math:`s_i` contributes
-:math:`s_i^2/(1+s_i^2)` DOFS and
-:math:`\tfrac12\log_2(1+s_i^2)` bits of local Gaussian information.
-*ReducedOEMBasisReduce* uses these contributions to select a rank and
-report the information discarded.
-)",
-      .type = "Vector",
-  };
-
-  wsv_data["oem_basis_lost_dofs"] = {
-      .desc = R"(Total local DOFS discarded by the last *ReducedOEMBasisReduce* call.
-
-Computed from the discarded tail of *oem_basis_singular_values*. This is an
-absolute information loss, not a percentage or a nonlinear retrieval error.
-)",
-      .type = "Numeric",
-  };
-
-  wsv_data["oem_basis_lost_information_bits"] = {
-      .desc = R"(Total local Gaussian information in bits discarded by *ReducedOEMBasisReduce*.
-
-Computed from the discarded tail of *oem_basis_singular_values*. This is an
-absolute information loss, not a percentage or a nonlinear retrieval error.
-)",
-      .type = "Numeric",
-  };
-
-  wsv_data["measurement_gain_mat"] = {
-      .desc = R"(Contribution function (or gain) matrix.
-
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
-
-Usage: Used and set by inversion methods.
-)",
-      .type = "Matrix",
-      .dims = {"NSTATE", "NMEAS"},
   };
 
   wsv_data["measurement_jac"] = {
@@ -997,7 +903,7 @@ This is the core variable describing the measured data, or the model of measured
 
 This must often be the same size as *measurement_sensor*.
 
-The notation in ARTS, for the purpose of *OEM*, is that
+The notation in ARTS, for the purpose of *oemCalc*, is that
 
 .. math::
     \vec{y} = \mathbf{F}\left(\vec{x}\right) + \vec{y}_\epsilon\left(\vec{x}\right) + \epsilon
@@ -1044,7 +950,7 @@ In that notation, this is :math:`\vec{y}_\epsilon`.
 This must often be the same size as *measurement_sensor*.
 
 See *measurement_vec* for more details.
-In that notation, and in the notation of *OEM*,
+In that notation, and in the notation of *oemCalc*,
 :math:`\vec{y}_f \approx \vec{y} - \epsilon`.
 Or at least this should be the case depending on how good of a fit of :math:`\vec{x}`
 has been produced and if the measurement can be understood properly.
@@ -1073,7 +979,7 @@ has been produced and if the measurement can be understood properly.
       .desc          = R"(A state vector of the model.
 
 This represents the :emphasis:`chosen` state of the model.
-In the notation of *measurement_vec* and *OEM*,
+In the notation of *measurement_vec* and *oemCalc*,
 :math:`\vec{x}` is the *model_state_vec*.
 
 To choose the state of the model, you must setup *jac_targets* to
@@ -1090,7 +996,7 @@ include the state parameters you want to be able to change.
 See *model_state_vec* for more details.
 This is the state vector that is assumed to be the a priori state of the model.
 In normal circumstances, this is the state vector that is used to
-start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
+start the inversion process.  In *oemCalc*, this is :math:`\vec{x}_a`.
 )",
       .type = "Vector",
       .dims = {"NSTATE"},

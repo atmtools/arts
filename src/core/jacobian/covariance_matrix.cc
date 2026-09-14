@@ -85,12 +85,13 @@ BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
 BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
 BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
 BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
-Block::Block()                                               = default;
-Block::Block(const Block &)                                  = default;
-Block::Block(Block &&) noexcept                              = default;
-Block &Block::operator=(const Block &)                       = default;
-Block &Block::operator=(Block &&) noexcept                   = default;
-Block::~Block()                                              = default;
+
+Block::Block()                             = default;
+Block::Block(const Block &)                = default;
+Block::Block(Block &&) noexcept            = default;
+Block &Block::operator=(const Block &)     = default;
+Block &Block::operator=(Block &&) noexcept = default;
+Block::~Block()                            = default;
 CovarianceMatrix::CovarianceMatrix() : preparation_(std::make_shared<CovariancePreparation>()) {}
 CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &other)
     : solve_cache_(other.solve_cache_),
@@ -107,6 +108,14 @@ CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &other) {
 }
 CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept = default;
 CovarianceMatrix::~CovarianceMatrix()                                       = default;
+
+void CovarianceMatrix::clear_cache() {
+  auto fresh = std::make_shared<CovariancePreparation>();
+  solve_cache_.reset();
+  preparation_ = std::move(fresh);
+  finalized_   = false;
+  inverses_    = std::vector<Block>{};
+}
 
 Block::Block(Range row_range, Range column_range, IndexPair indices, BlockMatrix matrix)
     : row_range_(row_range), column_range_(column_range), indices_(std::move(indices)), matrix_(std::move(matrix)) {
@@ -1141,7 +1150,7 @@ void xml_io_stream<BlockMatrix>::write(std::ostream      &os,
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
-  if (x.not_null()) xml_write_to_stream(os, x.data, pbofs);
+  xml_write_to_stream(os, x.data, pbofs);
 
   tag.write_to_end_stream(os);
 }

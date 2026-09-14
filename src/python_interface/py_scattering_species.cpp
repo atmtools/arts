@@ -249,7 +249,7 @@ void py_scattering_species(py::module_& m) try {
         return ScatteringTroSpectralVector::to_general(phase_matrix, fs).to_gridded();
       },
       "spectral_pm"_a,
-      "f"_a = std::shared_ptr<Vector>{nullptr},
+      "f"_a.none() = py::none(),
       "Convert spectral to gridded");
   str_interface(stsv);
   stsv.doc() = "Scattering TRO spectral vector";

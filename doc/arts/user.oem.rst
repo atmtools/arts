@@ -6,10 +6,87 @@ Configuring an optimal-estimation retrieval
 This guide covers method selection, settings, covariance setup, and retrieval
 diagnostics.  The mathematical formulation is in :ref:`Sec OEM`.
 
+Retrieval data and ownership
+===========================
+
+``ws.oem`` holds the observations, prior state, covariances, current state,
+Jacobian, fitted measurements, basis information and retrieval results.
+``oemCalc`` and ``oemCalcReduced`` update this object. Their method, iteration
+and damping controls remain named call arguments. Normalization vectors are
+members of ``ws.oem``; empty vectors disable normalization.
+
+For target-based setup, ``oemInit`` starts an empty OEM object and resets
+``jac_targets``. The ``oemAdd`` methods add targets and store their pending
+covariance blocks in ``oem.covmat_diagonal_blocks``. Call
+``jac_targetsFinalize`` when target offsets are needed for forward calculations
+or ``model_state_vecFromData``. After setting the prior, observations and
+measurement-error covariance, ``oemFinalizeDiagonal`` assembles
+``oem.model_state_covmat`` and checks the complete setup. Success sets
+``oem.checked``; missing or invalid inputs cause a detailed error and leave it
+unchecked.
+Use ``oemStateCovmatCorrelateConstant`` and ``oemMeasurementCovmatConstant`` to
+construct or edit the owned covariances.
+
+Prepare the prior with ``model_state_vecFromData``, then use ``oemSetApriori``
+to consume ``model_state_vec``. ``oemSetMeasurement`` consumes the observations
+from ``measurement_vec``. These methods only replace their respective inputs;
+they retain covariances, bases and previous modeling results. A size change
+makes the object unchecked; replacing values at the same size preserves
+``checked``. If dimensions change, update the associated data and check again.
+
+For a complete numerical input problem, ``oemInitFromData`` consumes
+``model_state_vec`` as the prior, ``measurement_vec`` as the observations,
+``model_state_covmat`` and ``measurement_vec_error_covmat``. It checks dimensions
+before consumption and replaces the whole OEM object, leaving it unchecked.
+It requires no physical fields and does not change the target mapping.
+Consumed workspace variables are left empty.
+
+Neither setup route imports ``measurement_vec_fit`` or ``measurement_jac``:
+these are modeling results. OEM calculates them as needed. For information
+analysis before retrieval, supply the Jacobian separately in
+``oem.measurement_jac``.
+
+``oemRestoreApriori`` restores only the retrieved physical quantities.
+The OEM object, including the previous fitted state and diagnostics, is const
+and remains unchanged. This supports preparing the next measurement from the
+same physical prior while retaining the previous result.
+
+Both covariance members can also be assigned explicitly.
+
+``ws.oem.clear_auxiliary()`` (or ``oemClearAuxiliary``) releases fitted
+measurements, Jacobian, gain, averaging kernel, error-covariance results,
+basis spectrum, loss summaries, pending covariance blocks and prepared covariance caches. It preserves
+the observations, prior, current state, covariances, selected bases,
+normalization, diagnostics and ``checked``. It is also allowed on checked data.
+Either calculation can run again afterwards;
+the discarded products will be recomputed as needed. Basis selection needs
+a spectrum, so rerun ``oemBasisCalc`` before selecting modes again.
+``ws.oem.clear()`` instead resets the entire object, including its inputs.
+
+Checking manually edited data
+=============================
+
+``oem.checked`` is read-only in Python. Call ``oem.check()`` to validate
+numerical inputs and covariances. It reports all detected problems together,
+leaving the object unchecked on failure. ``ws.oemCheck()`` also checks agreement
+with the finalized target mapping and can be used inside an agenda.
+
+After a successful check, replacing a Python attribute raises an error asking
+for ``oem.uncheck()``. Unchecking preserves the data and permits replacement;
+call ``check()`` again after editing. Reading members and changing values in
+existing arrays or covariance objects remain allowed, including through NumPy
+views. Such edits are not tracked automatically: recheck when needed.
+``oemInit`` and XML loading produce unchecked data. Both ``oemCalc`` and
+``oemCalcReduced`` validate unchecked data before preparing covariances or
+changing outputs. Successful validation marks the object checked; failures
+produce a detailed report. Repeated calculations reuse that status until an
+operation invalidates it. Call ``ws.oemCheck()`` to force revalidation, including
+after in-place edits.
+
 Choosing a method
 =========================
 
-:meth:`~pyarts3.workspace.Workspace.OEM` always minimizes the same objective,
+:meth:`~pyarts3.workspace.Workspace.oemCalc` always minimizes the same objective,
 including the a priori term.  Choosing a method changes how this objective
 is minimized.  It does not change the statistical meaning of the two
 covariance matrices.
@@ -148,7 +225,10 @@ units of ``measurement_vec``, the constant-noise helper takes the variance:
 
 .. code-block:: python
 
-   ws.measurement_vec_error_covmatConstant(value=sigma**2)
+   ws.oemMeasurementCovmatConstant(value=sigma**2)
+
+Supply observations with ``oemSetMeasurement`` first; the helper takes its
+size from ``oem.measurement_vec``.
 
 This helper assigns the same variance to every measurement and zero
 cross-covariance.  Use a full or block covariance when channels have different
@@ -190,11 +270,11 @@ Check a constructed covariance explicitly before using it:
 
 .. code-block:: python
 
-   ws.model_state_covmat.validate(
-       expected_size=len(ws.model_state_vec_apriori)
+   ws.oem.model_state_covmat.validate(
+       expected_size=len(ws.oem.model_state_vec_apriori)
    )
-   ws.measurement_vec_error_covmat.validate(
-       expected_size=len(ws.measurement_vec)
+   ws.oem.measurement_vec_error_covmat.validate(
+       expected_size=len(ws.oem.measurement_vec)
    )
 
 Validation checks the represented covariance, including its block layout,
@@ -240,9 +320,9 @@ errors this is diagonal scaling, not full whitening.
 
 Inspect the noise standard deviations with::
 
-    ws.measurement_noise_scales = pyarts.arts.Vector()
-    ws.measurement_vec_error_covmatNormalization(normalization=ws.measurement_noise_scales)
-    ws.OEM(method="gn_cg_m", measurement_vec_normalization=ws.measurement_noise_scales)
+    ws.oemMeasurementCovmatNormalization()
+    ws.oemCheck()
+    ws.oemCalc(method="gn_cg_m")
 
 The output Vector contains :math:`D_{ii}` in measurement units. Its workspace name is
 chosen by the caller. Computing this vector alone does not enable scaling;
@@ -259,17 +339,23 @@ and identical altitude, latitude and longitude grids, use:
 
 .. code-block:: python
 
-   ws.RetrievalInit()
-   ws.RetrievalAddTemperature(
+   ws.oemInit()
+   ws.oemAddTemperature(
        matrix=np.diag(np.full(nlevels, 3.0**2)), d=1e-3)
-   ws.RetrievalAddSpeciesVMR(
+   ws.oemAddSpeciesVMR(
        species="H2O", matrix=np.diag(np.full(nlevels, 0.2**2)), d=1e-7)
-   ws.RetrievalFinalizeDiagonal()
+   ws.jac_targetsFinalize()
    ws.jac_targetsToggleLogarithmicAtmTarget(key="H2O")
-   ws.model_state_covmatCorrelate(
+   ws.model_state_vecFromData()
+   ws.oemSetApriori()
+   ws.oemSetMeasurement()
+   ws.oemMeasurementCovmatConstant(value=measurement_variance)
+   ws.oemFinalizeDiagonal()
+   ws.oemStateCovmatCorrelateConstant(
        target1="temperature", target2="H2O", correlation=0.6)
 
-Here the prior standard deviations are 3 K and 0.2 in natural-log water
+Here ``measurement_vec`` must already contain the observations, and
+``measurement_variance`` is their common error variance. The prior standard deviations are 3 K and 0.2 in natural-log water
 VMR.  Positive correlation expresses a preference for warmer-than-prior
 states to have more water than the prior at the same grid point.  It does
 not impose a temperature-to-water conversion or alter either marginal
@@ -298,7 +384,7 @@ Checking what the measurements can constrain
 Use :func:`~pyarts3.retrieval.information` to examine a Jacobian together with
 the assumed prior and measurement covariances.  It can run before a
 retrieval, using a Jacobian already evaluated at a representative state.
-It validates its inputs and produces a report without executing ``OEM``
+It validates its inputs and produces a report without executing ``oemCalc``
 or a forward-model agenda:
 
 .. code-block:: python
@@ -399,7 +485,7 @@ with different units to share an axis.  Use the numerical arrays and
 
 For an optional check of the prior prediction, give the workspace helper
 a prediction explicitly evaluated at the prior mean.  It then reads the
-measurement from ``ws.measurement_vec``:
+measurement from ``ws.oem.measurement_vec``:
 
 .. code-block:: python
 
@@ -473,7 +559,8 @@ For an already configured retrieval:
        convergence_damping_limit=0.0,
    )
    print(damping.describe())
-   ws.OEM(method="lm", max_iter=20, lm_ga_settings=damping)
+   ws.oemCheck()
+   ws.oemCalc(method="lm", max_iter=20, lm_ga_settings=damping)
 
 These are the defaults of ``LevenbergMarquardtSettings()``.  They provide a visible
 starting configuration to assess on representative retrievals.  Check
@@ -520,7 +607,7 @@ and threshold must each be no greater than the maximum.
 Construction and each field edit validate all six settings immediately.
 An invalid edit raises an error naming the affected setting and leaves
 the object unchanged.  You can also call ``validate()`` explicitly;
-``OEM`` checks the values again:
+``oemCalc`` checks the values again:
 
 .. code-block:: python
 
@@ -607,7 +694,8 @@ six-element input shorthand remains supported in Python:
 .. code-block:: python
 
    damping = LevenbergMarquardtSettings([10, 2, 2, 100, 1, 0])
-   ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 0])
+   ws.oemCheck()
+   ws.oemCalc(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 0])
 
 The order is ``initial_damping``, ``decrease_factor``, ``increase_factor``,
 ``maximum_damping``, ``damping_threshold``, ``convergence_damping_limit``.
@@ -618,7 +706,7 @@ Checking the result
 ===========================
 
 ``oem_diagnostics`` is an ``OptimalEstimationDiagnostics`` object. Access
-fields by name, for example ``ws.oem_diagnostics.status``.
+fields by name, for example ``ws.oem.diagnostics.status``.
 It contains the following fields:
 
 .. list-table::
@@ -689,10 +777,10 @@ correlations in place.
 
 With ``clear_matrices=0``, the gain and averaging kernel help distinguish
 measurement information from prior constraints.  First call
-:meth:`~pyarts3.workspace.Workspace.measurement_averaging_kernelCalc`.
+:meth:`~pyarts3.workspace.Workspace.oemAveragingKernelCalc`.
 The contributions to retrieval uncertainty can then be calculated with
-:meth:`~pyarts3.workspace.Workspace.measurement_vec_error_covmat_observation_systemCalc`
-and :meth:`~pyarts3.workspace.Workspace.model_state_covmat_smoothing_errorCalc`.
+:meth:`~pyarts3.workspace.Workspace.oemObservationErrorCalc`
+and :meth:`~pyarts3.workspace.Workspace.oemSmoothingErrorCalc`.
 Their mathematical definitions and relation to posterior covariance are in
 :ref:`sec-oem-uncertainty`.  The observation contribution alone is not the
 full posterior covariance.  The `overview of uncertainty reporting in
@@ -724,6 +812,7 @@ functional transformations.
 
 See :doc:`concept.oem` for the forward/inverse transformation definitions and
 the Jacobian chain rule used by these operators.
+
 Direct measurement-space solvers
 ----------------------------------------
 
@@ -745,7 +834,7 @@ retrieval can retain state-sized costs.
 Covariance storage
 -------------------------------------------------
 
-Covariance preparation is automatic when calling ``OEM``; it does not require
+Covariance preparation is automatic when calling ``oemCalc``; it does not require
 an additional workspace call or a factorization setting. Continue choosing
 ``method="lm"`` or ``method="lm_cg"`` explicitly. Matrix and Sparse are input
 storage choices, not solver choices: a diagonal Matrix can use diagonal
@@ -754,7 +843,7 @@ If any inverse blocks are supplied, the current preparation selects the
 inverse-application path for the whole covariance and fills missing component
 inverses. It does not yet mix supplied inverses and Cholesky factors within
 one covariance. In particular,
-``measurement_vec_error_covmatConstant`` supplies both a sparse diagonal
+``oemMeasurementCovmatConstant`` supplies both a sparse diagonal
 covariance and its inverse. LM currently requests explicit prior precision;
 the measurement covariance is where diagonal/factorized solves are most
 useful.
@@ -784,7 +873,7 @@ The function does not finalize targets, run an agenda or modify the workspace.
 ReducedOEM
 -----------
 
-``ReducedOEM`` runs the forward model at full size and reduces the state and
+``oemCalcReduced`` runs the forward model at full size and reduces the state and
 measurement coordinates used by the solver. Both matrices must be supplied:
 ``model_state_basis_mat`` has full-state rows and reduced-state columns;
 ``measurement_basis_mat`` has reduced-measurement rows and full-measurement
@@ -796,14 +885,15 @@ Given a current full Jacobian and the covariances, prepare the full bases,
 then choose which modes to retain::
 
     # Uses measurement_jac, model_state_covmat and measurement_vec_error_covmat
-    ws.ReducedOEMBasisCalc()
-    print(ws.oem_basis_singular_values)
-    ws.ReducedOEMBasisReduce(max_lost_information_bits=0.01)
-    print(ws.oem_basis_lost_dofs, ws.oem_basis_lost_information_bits)
-    ws.model_state_vec = []  # Start at the prior
-    ws.ReducedOEM(method="lm")
+    ws.oemBasisCalc()
+    print(ws.oem.basis_singular_values)
+    ws.oemBasisReduce(max_lost_information_bits=0.01)
+    print(ws.oem.basis_lost_dofs, ws.oem.basis_lost_information_bits)
+    ws.oem.model_state_vec = []  # Start at the prior
+    ws.oemCheck()
+    ws.oemCalcReduced(method="lm")
 
-``ReducedOEMBasisCalc`` sets ``model_state_basis_mat``,
+``oemBasisCalc`` sets ``model_state_basis_mat``,
 ``measurement_basis_mat`` and ``oem_basis_singular_values``. It requires
 only the Jacobian and covariances; it does not run a forward agenda or need
 a measurement vector. Both full bases are square and include all null-space
@@ -812,7 +902,7 @@ The state basis reconstructs the full prior covariance when multiplied by
 its transpose. For the measurement covariance, it is the inverse basis
 times its inverse transpose that reconstructs the original covariance.
 
-``ReducedOEMBasisReduce`` retains leading columns and rows in place in
+``oemBasisReduce`` retains leading columns and rows in place in
 ``model_state_basis_mat`` and ``measurement_basis_mat``. The example discards
 at most 0.01 bits of total local Gaussian information, choosing the smallest
 retained rank that meets the budget. Both transformed covariances are identity
@@ -822,10 +912,10 @@ when choosing an explicit rank.
 Selection overwrites both basis matrices, while preserving the full spectrum
 for reporting total information loss. Further calls can remove more modes.
 To restore removed modes, restore saved copies of both matrices or rerun
-``ReducedOEMBasisCalc``. Keep the spectrum and both bases from the same
+``oemBasisCalc``. Keep the spectrum and both bases from the same
 decomposition together.
 
-Calling ``ws.ReducedOEMBasisReduce()`` removes only modes with zero computed
+Calling ``ws.oemBasisReduce()`` removes only modes with zero computed
 information. Tiny nonzero values caused by roundoff require a positive
 budget. Individual zero entries in a covariance or Jacobian do not identify
 redundant directions: correlations can mix coordinates, and even a matrix
@@ -839,15 +929,15 @@ limit unset. With both unset, the information-bit budget is zero.
 An explicit ``rank=r`` retains exactly ``r`` leading state modes, from 1
 through the full state size. It cannot be combined with loss limits. The
 default ``rank=-1`` enables automatic selection. At least one coefficient
-is retained even when all modes are uninformative, because ``ReducedOEM``
+is retained even when all modes are uninformative, because ``oemCalcReduced``
 requires a nonempty state. The measurement basis retains the smaller of
 the selected rank and the measurement count. Inspect
-``ws.model_state_basis_mat.shape[1]`` for the selected rank.
+``ws.oem.model_state_basis_mat.shape[1]`` for the selected rank.
 
-For no reduction of either dimension, call ``ReducedOEM`` directly after
-``ReducedOEMBasisCalc``, without calling ``ReducedOEMBasisReduce``.
+For no reduction of either dimension, call ``oemCalcReduced`` directly after
+``oemBasisCalc``, without calling ``oemBasisReduce``.
 
-Selecting the full state rank through ``ReducedOEMBasisReduce`` can still
+Selecting the full state rank through ``oemBasisReduce`` can still
 remove measurement null-space rows when there are more measurements than
 states. The matrices before selection also retain those rows.
 
@@ -871,12 +961,11 @@ local information retained and discarded::
 
     report = pyarts3.retrieval.information_from_workspace(ws)
     reduction = report.reduction(rank=r)
-    ws.model_state_vec = []  # Start at the prior
-    ws.ReducedOEM(
-        method="lm",
-        model_state_basis_mat=reduction.model_state_basis_mat,
-        measurement_basis_mat=reduction.measurement_basis_mat,
-    )
+    ws.oem.model_state_vec = []  # Start at the prior
+    ws.oem.model_state_basis_mat = reduction.model_state_basis_mat
+    ws.oem.measurement_basis_mat = reduction.measurement_basis_mat
+    ws.oemCheck()
+    ws.oemCalcReduced(method="lm")
 
 Alternatively select the smallest rank meeting an information-loss budget at
 the report's linearization point::
@@ -885,8 +974,7 @@ the report's linearization point::
     print(reduction)  # Rank and discarded DOFS/bits
 
 Assign ``reduction.model_state_basis_mat`` and
-``reduction.measurement_basis_mat`` to the corresponding workspace variables,
-or pass them explicitly to ``ReducedOEM`` as above. With arrays already
+``reduction.measurement_basis_mat`` to the corresponding members of ``ws.oem``. With arrays already
 available outside a workspace, use
 ``pyarts3.retrieval.information(J, Sa, Se).reduction(rank=r)``.
 
@@ -902,11 +990,10 @@ example, 100 modes each contributing 0.01 DOFS have total DOFS 1, but retaining
 The helper's measurement reduction combines and noise-whitens channels.
 To reduce only the state, supply an identity measurement matrix instead::
 
-    ws.ReducedOEM(
-        method="lm",
-        model_state_basis_mat=reduction.model_state_basis_mat,
-        measurement_basis_mat=np.eye(len(ws.measurement_vec)),
-    )
+    ws.oem.model_state_basis_mat = reduction.model_state_basis_mat
+    ws.oem.measurement_basis_mat = np.eye(len(ws.oem.measurement_vec))
+    ws.oemCheck()
+    ws.oemCalcReduced(method="lm")
 
 Conversely, an identity state matrix leaves the state dimension unchanged.
 Rows of an identity measurement matrix can select physical channels, but
@@ -915,7 +1002,7 @@ The measurement covariance is transformed with the same matrix, including
 correlations between channels.
 
 Measurement reduction forms signed weighted combinations of channels;
-it does not crop the frequency grid. ``ReducedOEM`` still
+it does not crop the frequency grid. ``oemCalcReduced`` still
 computes the full forward spectrum and Jacobian on every required agenda
 call, then projects them. Its measurement reduction saves solver work;
 skipping far-wing radiative-transfer calculations would require a separate
@@ -952,7 +1039,7 @@ discarded modes; see :ref:`sec-reduced-oem`.
 Measurement-only grouping
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-``measurement_basis_matCalc`` creates only ``measurement_basis_mat``, using
+``oemMeasurementBasisCalc`` creates only ``measurement_basis_mat``, using
 the current Jacobian and measurement error covariance. It automatically groups
 channels whose complete Jacobian rows are proportional, including opposite
 signs. Matching one parameter's derivative is insufficient when other
@@ -963,7 +1050,7 @@ For diagonal measurement noise the result uses sparse storage, combining
 channels according to their sensitivities and noise variances. Repeated
 observations still contribute their extra precision. With correlated noise,
 the covariance solve may produce a dense projection. Use an identity
-``model_state_basis_mat`` with ``ReducedOEM`` to keep the full state.
+``model_state_basis_mat`` with ``oemCalcReduced`` to keep the full state.
 
 Both ``model_state_basis_mat`` and ``measurement_basis_mat`` hold a
 ``BlockMatrix``, accepting dense ``Matrix`` or ``Sparse`` input. The
@@ -976,7 +1063,7 @@ These groups preserve the supplied linear model's retrieval information.
 They can retain more measurements than the SVD method because general linear
 dependencies between different sensitivity directions are not combined.
 An all-zero group is retained as one measurement. No state modes, singular
-spectrum or loss outputs are generated; ``ReducedOEMBasisReduce`` applies to
+spectrum or loss outputs are generated; ``oemBasisReduce`` applies to
 the SVD outputs, not to these groups. Recalculate after changing the noise
 covariance or the Jacobian used for grouping. A fixed grouping remains a
 local approximation for nonlinear retrievals.

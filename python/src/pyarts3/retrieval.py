@@ -43,7 +43,7 @@ def _mode_information_bits(singular_values):
 class ReductionReport:
     """Fixed state/measurement reductions and their local linear information loss.
 
-    Pass both reduction matrices to ``Workspace.ReducedOEM``. Losses describe the Jacobian
+    Assign both reduction matrices to ``ws.oem`` before calling ``ws.oemCalcReduced()``. Losses describe the Jacobian
     used for the information report, not a bound on nonlinear retrieval error.
     The underlying state modes are shared with that read-only report.
     """
@@ -628,7 +628,7 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
     """Analyze the Jacobian and covariances already present in a workspace.
 
     No agenda is executed. Supply ``prior_prediction`` explicitly to enable
-    innovation checking using ``ws.measurement_vec``. The caller must ensure
+    innovation checking using ``ws.oem.measurement_vec``. The caller must ensure
     that the Jacobian describes the intended state and coordinates.
     Field labels and ``state_blocks`` (name, start, size) are inferred from
     ``jac_targets``. Offsets refer to the supplied Jacobian's columns; field
@@ -640,25 +640,21 @@ def information_from_workspace(ws, *, prior_prediction=None, **options):
     """
     if "measurement" in options:
         raise TypeError(
-            "information_from_workspace takes measurements from ws.measurement_vec"
+            "information_from_workspace takes measurements from ws.oem.measurement_vec"
         )
 
-    assert ws.has("measurement_jac"), "Jacobian not present in workspace"
-    assert ws.has("model_state_covmat"), "Prior covariance not present in workspace"
-    assert ws.has(
-        "measurement_vec_error_covmat"), "Measurement error covariance not present in workspace"
-    assert ws.has(
-        "measurement_vec") or prior_prediction is not None, "Measurement vector not present in workspace"
+    assert ws.has("oem"), "OEM data not present in workspace"
+    data = ws.oem
 
     labels, blocks = _workspace_state_metadata(
-        ws, np.asarray(ws.measurement_jac).shape[1])
+        ws, np.asarray(data.measurement_jac).shape[1])
     if options.get("state_labels") is None:
         options["state_labels"] = labels
     report = information(
-        ws.measurement_jac,
-        ws.model_state_covmat,
-        ws.measurement_vec_error_covmat,
-        measurement=ws.measurement_vec if prior_prediction is not None else None,
+        data.measurement_jac,
+        data.model_state_covmat,
+        data.measurement_vec_error_covmat,
+        measurement=data.measurement_vec if prior_prediction is not None else None,
         prior_prediction=prior_prediction,
         **options,
     )

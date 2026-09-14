@@ -23,9 +23,9 @@ template <typename T, typename U = T, class... E> void xml_interface(py::class_<
       [](const T& x, const char* const file, const char* const type, bool clobber) {
         return xml_write_to_file(file, static_cast<const U&>(x), to<FileType>(type), clobber ? 0 : 1);
       },
-      "file"_a.none(false),
-      "type"_a.none(false) = "ascii",
-      "clobber"_a          = true,
+      "file"_a,
+      "type"_a    = "ascii",
+      "clobber"_a = true,
       R"(Saves variable to file.
 
 Parameters
@@ -51,7 +51,7 @@ file : str
   c.def(
       "readxml",
       [](T& x, const char* const file) { return xml_read_from_file(file, static_cast<U&>(x)); },
-      "file"_a.none(false),
+      "file"_a,
       R"(Read variable from file.
 
 Parameters
@@ -74,7 +74,7 @@ file : str
     c.def(
         "extendxml",
         [](T& x, const char* const file) { return xml_extend_from_file(file, static_cast<U&>(x)); },
-        "file"_a.none(false),
+        "file"_a,
         R"(Extend variable from file.
 
 The content of the file is added to the existing variable.
@@ -100,7 +100,7 @@ file : str
     c.def(
         "appendxml",
         [](T& x, const char* const file) { return xml_append_from_file(file, static_cast<U&>(x)); },
-        "file"_a.none(false),
+        "file"_a,
         R"(Append variable from file.
 
 The content of the file is added to the existing variable.
@@ -129,7 +129,7 @@ file : str
         xml_read_from_file(file, x);
         return x;
       },
-      "file"_a.none(false),
+      "file"_a,
       R"(Create variable from file.
 
 Parameters

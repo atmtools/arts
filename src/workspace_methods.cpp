@@ -2526,7 +2526,7 @@ land-cell lookup; the default requires the requested cell to exist.
 The *spectral_propmat_agenda* will set the wind derivatives to 
 those of the frequency derivative if this method is not used.  This
 will cause the wind field to be treated as a frequency derivative,
-meaning no *OEM* or other functionality that requires the Jacobian
+meaning no *oemCalc* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
@@ -3021,7 +3021,7 @@ Overwrites all other functional toggles.
       .desc   = R"--(Finalize *jac_targets*.
 
 The finalization computes the size of the required *model_state_vec*.
-It is thus necessary if any *OEM* or other functionality that requires the
+It is thus necessary if any *oemCalc* or other functionality that requires the
 building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
@@ -3029,18 +3029,18 @@ building of an actual Jacobian matrix.
       .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
   };
 
-  const auto jac2ret = [&wsm_data](const std::string& name) {
+  const auto jac2oem = [&wsm_data](const std::string& name) {
     auto v  = wsm_data.at(name);
     v.desc += std::format(R"(
 This method wraps *{}* together with adding the covariance matrices,
-to the *covmat_diagonal_blocks*, which are required to perform *OEM*.
+to ``oem.covmat_diagonal_blocks`` for assembly by *oemFinalizeDiagonal*.
 
 The input covariance matrices must fit the size of the later computed model state
-represented by the *jac_targets*.  The covariance matrix inverse 
+represented by *jac_targets*. The inverse block is optional.
 )",
                           name);
-    v.out.insert(v.out.begin() + 1, "covmat_diagonal_blocks");
-    v.in.insert(v.in.begin() + 1, "covmat_diagonal_blocks");
+    v.out.insert(v.out.begin() + 1, "oem");
+    v.in.insert(v.in.begin() + 1, "oem");
     v.gin.insert(v.gin.end(), "matrix");
     v.gin.insert(v.gin.end(), "inverse");
     v.gin_type.insert(v.gin_type.end(), "BlockMatrix");
@@ -3096,7 +3096,7 @@ those with regards to a, b, etc..
                     "The sensor element whose frequency grid to use",
                     "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
-  wsm_data["RetrievalAddErrorPolyFit"] = jac2ret("jac_targetsAddErrorPolyFit");
+  wsm_data["oemAddErrorPolyFit"] = jac2oem("jac_targetsAddErrorPolyFit");
 
   wsm_data["jac_targetsAddSensorFrequencyPolyOffset"] = {
       .desc =
@@ -3128,7 +3128,7 @@ those with regards to a, b, etc..
                     "The sensor element whose frequency grid to use",
                     "The order of the polynomial fit"},
   };
-  wsm_data["RetrievalAddSensorFrequencyPolyOffset"] = jac2ret("jac_targetsAddSensorFrequencyPolyOffset");
+  wsm_data["oemAddSensorFrequencyPolyOffset"] = jac2oem("jac_targetsAddSensorFrequencyPolyOffset");
 
   wsm_data["jac_targetsAddTemperature"] = {
       .desc      = R"--(Set temperature derivative.
@@ -3141,7 +3141,7 @@ those with regards to a, b, etc..
       .gin_value = {Numeric{0.1}},
       .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddTemperature"] = jac2ret("jac_targetsAddTemperature");
+  wsm_data["oemAddTemperature"] = jac2oem("jac_targetsAddTemperature");
 
   wsm_data["jac_targetsAddPressure"] = {
       .desc      = R"--(Set pressure derivative.
@@ -3154,7 +3154,7 @@ those with regards to a, b, etc..
       .gin_value = {Numeric{0.1}},
       .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddPressure"] = jac2ret("jac_targetsAddPressure");
+  wsm_data["oemAddPressure"] = jac2oem("jac_targetsAddPressure");
 
   wsm_data["jac_targetsAddMagneticField"] = {
       .desc      = R"--(Set magnetic field derivative.
@@ -3170,7 +3170,7 @@ See *FieldComponent* for valid ``component``.
       .gin_desc  = {"The component to use [u, v, w]",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddMagneticField"] = jac2ret("jac_targetsAddMagneticField");
+  wsm_data["oemAddMagneticField"] = jac2oem("jac_targetsAddMagneticField");
 
   wsm_data["jac_targetsAddOverlappingMagneticField"] = {
       .desc   = R"--(Set magnetic field derivative for overlapping fields.
@@ -3189,7 +3189,7 @@ derivative, and then you call this method to add the second and third component.
       .out    = {"jac_targets"},
       .in     = {"jac_targets"},
   };
-  wsm_data["RetrievalAddOverlappingMagneticField"] = jac2ret("jac_targetsAddOverlappingMagneticField");
+  wsm_data["oemAddOverlappingMagneticField"] = jac2oem("jac_targetsAddOverlappingMagneticField");
 
   wsm_data["jac_targetsAddWindField"] = {
       .desc      = R"--(Set wind field derivative.
@@ -3208,7 +3208,7 @@ See *FieldComponent* for valid ``component``
       .gin_desc  = {"The component to use [u, v, w]",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddWindField"] = jac2ret("jac_targetsAddWindField");
+  wsm_data["oemAddWindField"] = jac2oem("jac_targetsAddWindField");
 
   wsm_data["jac_targetsAddOverlappingWindField"] = {
       .desc   = R"--(Set wind field derivative for overlapping fields.
@@ -3227,7 +3227,7 @@ derivative, and then you call this method to add the second and third component.
       .out    = {"jac_targets"},
       .in     = {"jac_targets"},
   };
-  wsm_data["RetrievalAddOverlappingWindField"] = jac2ret("jac_targetsAddOverlappingWindField");
+  wsm_data["oemAddOverlappingWindField"] = jac2oem("jac_targetsAddOverlappingWindField");
 
   wsm_data["jac_targetsAddSpeciesVMR"] = {
       .desc      = R"--(Set volume mixing ratio derivative.
@@ -3243,7 +3243,7 @@ See *SpeciesEnum* for valid ``species``
       .gin_desc  = {"The species of interest",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSpeciesVMR"] = jac2ret("jac_targetsAddSpeciesVMR");
+  wsm_data["oemAddSpeciesVMR"] = jac2oem("jac_targetsAddSpeciesVMR");
 
   wsm_data["jac_targetsAddAtmosphere"] = {
       .desc                   = R"--(Sets an atmospheric target.
@@ -3258,7 +3258,7 @@ See *SpeciesEnum* for valid ``species``
       .gin_desc               = {"The target of interest",
                                  "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddAtmosphere"] = jac2ret("jac_targetsAddAtmosphere");
+  wsm_data["oemAddAtmosphere"] = jac2oem("jac_targetsAddAtmosphere");
 
   wsm_data["jac_targetsAddSurface"] = {
       .desc      = R"--(Sets a surface target
@@ -3272,7 +3272,7 @@ See *SpeciesEnum* for valid ``species``
       .gin_desc  = {"The target of interest",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSurface"] = jac2ret("jac_targetsAddSurface");
+  wsm_data["oemAddSurface"] = jac2oem("jac_targetsAddSurface");
 
   wsm_data["jac_targetsAddSubsurface"] = {
       .desc      = R"--(Sets a subsurface target
@@ -3286,7 +3286,7 @@ See *SpeciesEnum* for valid ``species``
       .gin_desc  = {"The target of interest",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSubsurface"] = jac2ret("jac_targetsAddSubsurface");
+  wsm_data["oemAddSubsurface"] = jac2oem("jac_targetsAddSubsurface");
 
   wsm_data["jac_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -3302,7 +3302,7 @@ See *SpeciesIsotope* for valid ``species``
       .gin_desc  = {"The species isotopologue of interest",
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
-  wsm_data["RetrievalAddSpeciesIsotopologueRatio"] = jac2ret("jac_targetsAddSpeciesIsotopologueRatio");
+  wsm_data["oemAddSpeciesIsotopologueRatio"] = jac2oem("jac_targetsAddSpeciesIsotopologueRatio");
 
   wsm_data["jac_targetsAddLineParameter"] = {
       .desc      = R"--(Add a spectroscopic line parameter to *jac_targets*.
@@ -5171,15 +5171,100 @@ path parameters.
       .in     = {"spectral_tramat_path", "spectral_rad_bkg"},
   };
 
-  wsm_data["OEM"] = {
-      .desc      = R"(Retrieve a model state by optimal estimation (OEM).
+  wsm_data["oemInitFromData"] = {
+      .desc   = R"(Initialize *oem* from a complete numerical input problem.
+
+Consumes *model_state_vec* as the prior, *measurement_vec* as the observations,
+*model_state_covmat* and *measurement_vec_error_covmat*, leaving them empty.
+Both covariances must cover their respective vectors; dimensions are checked
+before any input is consumed. Replaces the entire OEM object and leaves it
+unchecked. Use oem.check() for numerical validation.
+
+No physical fields or target mappings are changed. Fitted measurements and
+Jacobians are modeling results and are not imported. The initial current state
+is empty, so the calculation starts from the prior. Use *oemInit* and the oemAdd
+methods instead to construct a problem through target-based builders.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"oem", "model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
+      .in     = {"model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
+  };
+  wsm_data["oemCheck"] = {
+      .desc   = R"(Validate *oem* against the finalized *jac_targets*.
+
+Checks numerical inputs, covariance dimensions and validity, optional stored
+modeling results, bases and normalization vectors, and agreement with the
+state size of the target mapping. Sets oem.checked to true on success.
+
+On failure, leaves oem unchecked and throws a report of all detected problems.
+Does not consume inputs or run the forward model. Checks again even if oem is
+already checked, so it can also validate in-place edits. Call after setup or
+structural edits, before *oemCalc* or *oemCalcReduced*. Repeated calculations can
+reuse checked data without calling this method again.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"oem"},
+      .in     = {"oem", "jac_targets"},
+  };
+  wsm_data["oemSetMeasurement"] = {
+      .desc   = R"(Replace the observations in *oem* by consuming *measurement_vec*.
+
+Leaves the source vector empty. A changed size makes oem unchecked; an unchanged
+size preserves its checked status. Covariances, prior, bases and modeling results
+are retained. When changing dimensions, update the associated data before
+calling oem.check() again.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"oem", "measurement_vec"},
+      .in     = {"oem", "measurement_vec"},
+  };
+  wsm_data["oemSetApriori"] = {
+      .desc   = R"(Replace the prior in *oem* by consuming *model_state_vec*.
+
+Use *model_state_vecFromData* first to obtain a prior from the physical model,
+or supply the numerical vector directly. Leaves the source vector empty.
+A changed size makes oem unchecked; an unchanged size preserves its checked
+status. Observations, covariances, bases, current state and modeling results
+are retained. When changing dimensions, update the associated data before
+calling oem.check() again.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"oem", "model_state_vec"},
+      .in     = {"oem", "model_state_vec"},
+  };
+  wsm_data["oemRestoreApriori"] = {
+      .desc   = R"(Restore retrieved physical quantities from oem.model_state_vec_apriori.
+
+Applies the finalized Jacobian target mappings, including state-coordinate
+transformations. The OEM data is const: the previous fitted state, Jacobian,
+results, diagnostics and covariance preparation remain unchanged. No forward
+calculation is performed. Use this before preparing the next measurement's
+retrieval from the same physical prior.
+)",
+      .author = {"Richard Larsson"},
+      .out    = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor"},
+      .in     = {"oem", "abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor", "jac_targets"},
+  };
+  wsm_data["oemClearAuxiliary"] = {
+      .desc = "Release recomputable products and caches in oem; retain inputs, current state, bases and diagnostics.\n",
+      .author = {"Richard Larsson"},
+      .out    = {"oem"},
+      .in     = {"oem"},
+  };
+
+  wsm_data["oemCalc"] = {
+      .desc   = R"(Retrieve a model state by optimal estimation (oemCalc).
+
+Unchecked OEM data is validated before covariance preparation or output changes.
+Successful validation is reused on subsequent calls. Call *oemCheck* to force
+revalidation after in-place edits.
 
 See :ref:`sec-user-oem` for a practical guide to selecting methods, damping,
 covariances, and interpreting the retrieval diagnostics. The equations and
-notation are defined in :ref:`Sec OEM`.
+notation are defined in :ref:`Sec oemCalc`.
 
 The cost function to minimise, including a normalisation with length
-of *measurement_vec*, is:
+of ``oem.measurement_vec``, is:
 
 .. math::
     \chi^2 = \chi^2_y + \chi^2_x
@@ -5203,25 +5288,25 @@ where:
     - ARTS parameter
     - Meaning
   * - :math:`\vec{x}`
-    - *model_state_vec*
+    - ``oem.model_state_vec``
     - The model state vector.  All model states that are :emphasis:`allowed` to vary.
   * - :math:`\vec{x}_a`
-    - *model_state_vec_apriori*
+    - ``oem.model_state_vec_apriori``
     - The a priori model state vector.
   * - :math:`\vec{y}`
-    - *measurement_vec*
-    - The measurement vector. This is the measurement that the OEM is trying to fit.
+    - ``oem.measurement_vec``
+    - The measurement vector. This is the measurement that the oemCalc is trying to fit.
   * - :math:`\vec{y}_f`
-    - *measurement_vec_fit*
+    - ``oem.measurement_vec_fit``
     - The fitted measurement vector.  The simulated measurement vector for the model state vector.
   * - :math:`\mathbf{J}`
-    - *measurement_jac*
+    - ``oem.measurement_jac``
     - The derivative of the simulated measurement with respect to the retrieved state.
   * - :math:`\mathbf{S}_\epsilon`
-    - *measurement_vec_error_covmat*
+    - ``oem.measurement_vec_error_covmat``
     - The error covariance matrix of the measurement vector.
   * - :math:`\mathbf{S}_a`
-    - *model_state_covmat*
+    - ``oem.model_state_covmat``
     - The a priori covariance matrix of the model state vector.
 
 All methods minimize the same objective, including the prior term.
@@ -5238,7 +5323,7 @@ in the coordinates and ordering of their corresponding vectors. They must
 be finite, symmetric, and positive definite. They are not precision
 (inverse covariance) matrices. Changing covariance weights changes the
 retrieval's statistical assumptions, whereas numerical normalization only
-rescales the linear solve. OEM prepares the covariances before iteration and
+rescales the linear solve. oemCalc prepares the covariances before iteration and
 reuses unchanged preparation on subsequent calls. This changes neither the
 objective nor the selected method. See :ref:`sec-user-oem` for covariance
 storage and preparation behavior.
@@ -5268,22 +5353,22 @@ Description of the special input arguments:
       can leave the starting cost as NaN for non-LM methods when progress
       output is off.
     
-    - ``model_state_covmat_normalization``:
+    - ``oem.model_state_covmat_normalization``:
 
       Optional numerical scales for state increments. Empty disables
       normalization (the default); otherwise provide one finite positive
       value per state element. Prior standard deviations, the square roots
-      of the diagonal of *model_state_covmat*, are a useful starting point.
+      of the diagonal of ``oem.model_state_covmat``, are a useful starting point.
       This leaves the mathematical objective and vector coordinates unchanged.
       Unsupported for measurement-space methods li_m, gn_m, li_cg_m and gn_cg_m.
 
-    - ``measurement_vec_normalization``:
+    - ``oem.measurement_vec_normalization``:
 
       Empty disables measurement-space scaling (the default). Otherwise supply
       one finite positive standard-deviation scale per measurement, used as :math:`D_{ii}`
       in :math:`\mathbf{D}^{-1}(\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}
       +\mathbf{S}_\epsilon)\mathbf{D}^{-1}`. Only li_m, gn_m, li_cg_m and gn_cg_m support this
-      setting. Use measurement_vec_error_covmatNormalization to compute noise
+      setting. Use oemMeasurementCovmatNormalization to compute noise
       standard deviations; calling that method alone does not enable scaling.
 
     - ``max_iter``:
@@ -5311,22 +5396,23 @@ Description of the special input arguments:
       to configure damping by name, for example::
 
           damping = pyarts3.arts.LevenbergMarquardtSettings(initial_damping=20.0)
-          ws.OEM(method="lm", lm_ga_settings=damping)
+          ws.oemCheck()
+          ws.oemCalc(method="lm", lm_ga_settings=damping)
 
       The default is ``LevenbergMarquardtSettings()``. Its named fields are
       ``initial_damping=10``, ``decrease_factor=2``, ``increase_factor=2``,
       ``maximum_damping=100``, ``damping_threshold=1``, and
       ``convergence_damping_limit=0``. Use ``describe()`` for their meanings
       and :ref:`sec-user-oem` for tuning guidance. Python construction and
-      field edits validate the settings; OEM validates them before LM runs.
+      field edits validate the settings; oemCalc validates them before LM runs.
       The object supports workspace and XML storage directly. Vector settings
       are no longer accepted. Direct and CG variants use the same controls
       and prior-precision damping defined in :ref:`sec-oem-damping`.
 
     - ``clear_matrices``:
 
-      Set to 1 to skip computing *measurement_gain_mat* and return it and
-      *measurement_jac* empty. The default is 0. The Jacobian is still
+      Set to 1 to skip computing ``oem.measurement_gain_mat`` and return it and
+      ``oem.measurement_jac`` empty. The default is 0. The Jacobian is still
       needed internally during retrieval.
 
     - ``display_progress``:
@@ -5344,56 +5430,29 @@ The ``OptimalEstimationStatus`` enum distinguishes ``NotRun``, ``Converged``,
 ``Converged`` includes LM numerical stationarity. Linear methods may return
 ``IterationLimit`` after their single step even at the exact solution.
 
-``oem_diagnostics.lm_ga_history`` records starting and updated LM damping,
+``oem.diagnostics.lm_ga_history`` records starting and updated LM damping,
 with unused trailing entries set to NaN; it is empty for non-LM methods.
-``oem_diagnostics.errors`` contains caught errors and warnings. Inner CG
+``oem.diagnostics.errors`` contains caught errors and warnings. Inner CG
 exhaustion records a warning and continues with the last iterate without
 changing the outer status. Thus ``Converged`` does not guarantee that every
 inner CG solve reached its tolerance.
 
 )",
-      .author    = {"Patrick Eriksson"},
-      .out       = {"model_state_vec",
-                    "measurement_vec_fit",
-                    "measurement_jac",
-                    "atm_field",
-                    "abs_bands",
-                    "measurement_sensor",
-                    "surf_field",
-                    "subsurf_field",
-                    "measurement_gain_mat"},
-      .gout      = {"oem_diagnostics"},
-      .gout_type = {"OptimalEstimationDiagnostics"},
-      .gout_desc = {"Status, costs, iteration count, LM history, and errors/warnings"},
-      .in        = {"model_state_vec",
-                    "measurement_vec_fit",
-                    "measurement_jac",
-                    "atm_field",
-                    "abs_bands",
-                    "measurement_sensor",
-                    "surf_field",
-                    "subsurf_field",
-                    "jac_targets",
-                    "model_state_vec_apriori",
-                    "model_state_covmat",
-                    "measurement_vec",
-                    "measurement_vec_error_covmat",
-                    "inversion_iterate_agenda"},
-      .gin       = {"method",
-                    "max_start_cost",
-                    "model_state_covmat_normalization",
-                    "measurement_vec_normalization",
-                    "max_iter",
-                    "stop_dx",
-                    "lm_ga_settings",
-                    "clear_matrices",
-                    "display_progress"},
-      .gin_type =
-          {"String", "Numeric", "Vector", "Vector", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index"},
+      .author = {"Patrick Eriksson"},
+      .out    = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
+      .in     = {"oem",
+                 "atm_field",
+                 "abs_bands",
+                 "measurement_sensor",
+                 "surf_field",
+                 "subsurf_field",
+                 "jac_targets",
+                 "inversion_iterate_agenda"},
+      .gin =
+          {"method", "max_start_cost", "max_iter", "stop_dx", "lm_ga_settings", "clear_matrices", "display_progress"},
+      .gin_type       = {"String", "Numeric", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index"},
       .gin_value      = {std::nullopt,
                          Numeric{std::numeric_limits<Numeric>::infinity()},
-                         Vector{},
-                         Vector{},
                          Index{10},
                          Numeric{0.01},
                          LevenbergMarquardtSettings{},
@@ -5401,8 +5460,6 @@ inner CG solve reached its tolerance.
                          Index{0}},
       .gin_desc       = {"Iteration method. For this and all options below, see further above",
                          "Maximum allowed value of cost function at start",
-                         "Optional positive scales for the state-space linear solve",
-                         "Optional positive measurement scales for measurement-space methods; empty disables scaling",
                          "Maximum number of iterations",
                          "Stop criterion for iterative inversions",
                          "Named LM damping controls",
@@ -5421,8 +5478,12 @@ inner CG solve reached its tolerance.
   };
 
   {
-    auto reduced = wsm_data.at("OEM");
-    reduced.desc = R"(Run OEM in reduced state and measurement coordinates.
+    auto reduced               = wsm_data.at("oemCalc");
+    reduced.desc               = R"(Run oemCalc in reduced state and measurement coordinates.
+
+Unchecked OEM data is validated before covariance preparation or output changes.
+Successful validation is reused on subsequent calls. Call *oemCheck* to force
+revalidation after in-place edits.
 
 Supply both model_state_basis_mat :math:`\mathbf{B}` (full states by reduced
 states) and measurement_basis_mat :math:`\mathbf{C}` (reduced measurements by
@@ -5436,10 +5497,10 @@ covariance :math:`\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}`.
 The starting state must lie in this affine subspace, or be empty to start at
 the prior. Full-size input fit/Jacobian caches must describe that start.
 
-All OEM methods are available. LM damping is
+All oemCalc methods are available. LM damping is
 :math:`\mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}`.
 stop_dx uses the reduced state dimension. Normalization vectors, when supplied,
-must have reduced dimensions; the same method restrictions as OEM apply.
+must have reduced dimensions; the same method restrictions as oemCalc apply.
 Full forward simulations and Jacobians are still computed. Returned state,
 fit and Jacobian remain full-size; the gain is :math:`\mathbf{B}\mathbf{G}_r\mathbf{C}`.
 Initial/final diagnostic costs and max_start_cost use the full residual and
@@ -5453,21 +5514,19 @@ covariance are local linear quantities. Reduction can discard information;
 discarded state modes retain prior uncertainty, not zero uncertainty.
 See :ref:`sec-reduced-oem` for the mathematics and limits of lossless reduction.
 )";
-    reduced.in.emplace_back("model_state_basis_mat");
-    reduced.in.emplace_back("measurement_basis_mat");
-    wsm_data["ReducedOEM"] = std::move(reduced);
+    wsm_data["oemCalcReduced"] = std::move(reduced);
   }
 
-  wsm_data["measurement_basis_matCalc"] = {
+  wsm_data["oemMeasurementBasisCalc"] = {
       .desc   = R"(Construct a measurement-only projection by grouping proportional Jacobian rows.
 
-Compares every state derivative in each row of *measurement_jac*. Rows are
+Compares every state derivative in each row of ``oem.measurement_jac``. Rows are
 divided by their signed largest-magnitude entry and grouped when all resulting
 entries match exactly. Opposite signs and different amplitudes can belong to
 the same group. No approximate similarity threshold is used. All-zero rows
 form one group. With no matching rows, the result is a sparse identity.
 
-For diagonal *measurement_vec_error_covmat*, with variances
+For diagonal ``oem.measurement_vec_error_covmat``, with variances
 :math:`\sigma_i^2` and row amplitudes :math:`a_i`, each group produces one
 noise-normalized measurement:
 
@@ -5478,7 +5537,7 @@ noise-normalized measurement:
 
 Other entries are zero. The *Sparse* result stores one entry per channel.
 The state basis and covariances are unchanged. For measurement-only retrieval,
-use an identity *model_state_basis_mat* with *ReducedOEM*.
+use an identity ``oem.model_state_basis_mat`` with *oemCalcReduced*.
 
 For correlated noise, define :math:`T_{ig}=a_i` for channels in group g and
 zero otherwise. The result is :math:`\mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1}`,
@@ -5490,21 +5549,21 @@ These combinations preserve the state-dependent likelihood of the supplied
 linear Gaussian model. For nonlinear models, this is a local statement at
 the supplied Jacobian. Floating-point row normalization can fail to recognize
 mathematically proportional rows. General linear dependencies between distinct
-row directions are left to *ReducedOEMBasisCalc* and *ReducedOEMBasisReduce*.
+row directions are left to *oemBasisCalc* and *oemBasisReduce*.
 This method does not set their singular spectrum or loss outputs; its groups
-are not singular modes and must not be passed to *ReducedOEMBasisReduce*.
+are not singular modes and must not be passed to *oemBasisReduce*.
 No agenda runs and no Jacobian is recomputed.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_basis_mat"},
-      .in     = {"measurement_jac", "measurement_vec_error_covmat"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
-  wsm_data["ReducedOEMBasisCalc"] = {
+  wsm_data["oemBasisCalc"] = {
       .desc   = R"(Compute full, matched state and measurement bases and their information spectrum.
 
-Uses *measurement_jac*, *model_state_covmat*, and
-*measurement_vec_error_covmat* at their current linearization point. With
+Uses ``oem.measurement_jac``, ``oem.model_state_covmat``, and
+``oem.measurement_vec_error_covmat`` at their current linearization point. With
 :math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
 :math:`\mathbf{S}_\epsilon=\mathbf{L}_\epsilon\mathbf{L}_\epsilon^{\top}`, compute
 
@@ -5520,12 +5579,12 @@ This step discards no information: the full prior is
 :math:`\mathbf{B}_{\rm full}\mathbf{B}_{\rm full}^{\top}`, and the full
 measurement noise is
 :math:`\mathbf{C}_{\rm full}^{-1}\mathbf{C}_{\rm full}^{-\top}`.
-*oem_basis_singular_values* stores the descending singular values of the
+``oem.basis_singular_values`` stores the descending singular values of the
 whitened Jacobian. The bases and spectrum must be kept together; mode signs
 and rotations within repeated singular values are not unique.
 
-Use *ReducedOEMBasisReduce* afterwards to truncate these basis inputs of
-*ReducedOEM* in place. Save copies before selection if you need to restore
+Use *oemBasisReduce* afterwards to truncate these basis inputs of
+*oemCalcReduced* in place. Save copies before selection if you need to restore
 removed modes without repeating the decomposition. Skip selection for a
 change of coordinates without any reduction.
 
@@ -5537,17 +5596,17 @@ cutoff. Recompute all three outputs when the chosen linearization or
 covariance assumptions change. See :ref:`sec-reduced-oem`.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_basis_mat", "measurement_basis_mat", "oem_basis_singular_values"},
-      .in     = {"measurement_jac", "model_state_covmat", "measurement_vec_error_covmat"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
-  wsm_data["ReducedOEMBasisReduce"] = {
-      .desc      = R"(Select leading modes from the full bases prepared by *ReducedOEMBasisCalc*.
+  wsm_data["oemBasisReduce"] = {
+      .desc      = R"(Select leading modes from the full bases prepared by *oemBasisCalc*.
 
-Truncates *model_state_basis_mat* to its first rank columns and
-*measurement_basis_mat* to its first :math:`q=\min(r,m)` rows in place.
+Truncates ``oem.model_state_basis_mat`` to its first rank columns and
+``oem.measurement_basis_mat`` to its first :math:`q=\min(r,m)` rows in place.
 Both reduced covariances are identity. No SVD or covariance factorization
-is repeated. The full *oem_basis_singular_values* spectrum stays unchanged
+is repeated. The full ``oem.basis_singular_values`` spectrum stays unchanged
 so the reported losses include all modes discarded since construction.
 
 By default rank=-1 removes modes with zero computed information. Set
@@ -5566,25 +5625,22 @@ can give a mathematically null mode a small nonzero value; a positive loss
 budget permits discarding it. Alternatively, set a positive rank to retain
 exactly that many state modes, without loss limits.
 
-*oem_basis_lost_dofs* and *oem_basis_lost_information_bits* report the actual
+``oem.basis_lost_dofs`` and ``oem.basis_lost_information_bits`` report the actual
 discarded totals, including when rank is explicit. They describe the supplied
 linearization and do not bound nonlinear retrieval errors. Retaining all
 informative modes preserves the linear Gaussian posterior. Omitted state
 directions retain prior uncertainty. See :ref:`sec-reduced-oem`.
 
-The inputs must come from the same *ReducedOEMBasisCalc* call, optionally
+The inputs must come from the same *oemBasisCalc* call, optionally
 already truncated by this method. Dimension and spectrum checks cannot
 detect mixing decompositions. Selection can only remove modes: restore
-saved copies or rerun *ReducedOEMBasisCalc* to increase rank or meet a
+saved copies or rerun *oemBasisCalc* to increase rank or meet a
 stricter loss limit requiring removed modes.
 
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"model_state_basis_mat",
-                    "measurement_basis_mat",
-                    "oem_basis_lost_dofs",
-                    "oem_basis_lost_information_bits"},
-      .in        = {"model_state_basis_mat", "measurement_basis_mat", "oem_basis_singular_values"},
+      .out       = {"oem"},
+      .in        = {"oem"},
       .gin       = {"rank", "max_lost_dofs", "max_lost_information_bits"},
       .gin_type  = {"Index", "Numeric", "Numeric"},
       .gin_value = {Index{-1}, Numeric{-1}, Numeric{-1}},
@@ -5593,78 +5649,73 @@ stricter loss limit requiring removed modes.
                     "Maximum total discarded information in bits, or -1 to leave this limit unset"},
   };
 
-  wsm_data["measurement_vec_error_covmatNormalization"] = {
-      .desc      = R"(Returns measurement noise standard deviations :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`.
+  wsm_data["oemMeasurementCovmatNormalization"] = {
+      .desc   = R"(Returns measurement noise standard deviations :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}`.
 
-Pass these scales to OEM as measurement_vec_normalization for measurement-space methods. The scaled
+Stores these scales in oem.measurement_vec_normalization for measurement-space methods. The scaled
 system matrix is :math:`\mathbf{D}^{-1}(\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}
 +\mathbf{S}_\epsilon)\mathbf{D}^{-1}`. This does not change the statistical
 objective and is not full whitening for correlated measurement errors.
 )",
-      .author    = {"Richard Larsson"},
-      .gout      = {"normalization"},
-      .gout_type = {"Vector"},
-      .gout_desc = {"Measurement noise standard deviations, in measurement units"},
-      .in        = {"measurement_vec_error_covmat"}};
+      .author = {"Richard Larsson"},
+      .out    = {"oem"},
+      .in     = {"oem"},
+  };
 
-  wsm_data["measurement_vec_error_covmat_observation_systemCalc"] = {
+  wsm_data["oemObservationErrorCalc"] = {
       .desc =
           R"(Calculates the covariance matrix describing the error due to uncertainties in the observation system.
 
 The uncertainties of the observation system are
-described by *measurement_vec_error_covmat*,
+described by ``oem.measurement_vec_error_covmat``,
 which must be set by the user to include the
 relevant contributions from the measurement and the forward model.
 
 Prerequisite for the calculation of
-``measurement_vec_error_covmat_observation_system`` is a successful *OEM*
+``measurement_vec_error_covmat_observation_system`` is a successful *oemCalc*
 computation where also the gain matrix has been computed.
 
 The result is :math:`\mathbf{S}_{\rm obs}=\mathbf{G}\mathbf{S}_\epsilon\mathbf{G}^{\top}`.
 This is the observation contribution, not the full posterior covariance;
 see :ref:`sec-oem-uncertainty` for the assumptions and decomposition.
 )",
-      .author    = {"Simon Pfreundschuh"},
-      .gout      = {"measurement_vec_error_covmat_observation_system"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {"Covariance matrix describing the retrieval error due to uncertainties of the observation system."},
-      .in        = {"measurement_gain_mat", "measurement_vec_error_covmat"},
+      .author = {"Simon Pfreundschuh"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
-  wsm_data["model_state_covmat_smoothing_errorCalc"] = {
+  wsm_data["oemSmoothingErrorCalc"] = {
       .desc =
           R"(Calculates the covariance matrix describing the error due to smoothing.
           
 The calculation of ``model_state_covmat_smoothing_error``
-also requires the averaging kernel matrix *measurement_averaging_kernel*
-to be computed after a successful OEM calculation.
+also requires the averaging kernel matrix ``oem.measurement_averaging_kernel``
+to be computed after a successful oemCalc calculation.
 
 The result is
 :math:`\mathbf{S}_{\rm smooth}=(\mathbf{I}-\mathbf{A})\mathbf{S}_a(\mathbf{I}-\mathbf{A})^{\top}`;
 see :ref:`sec-oem-uncertainty` for its relation to posterior covariance.
 )",
-      .author    = {"Simon Pfreundschuh"},
-      .gout      = {"model_state_covmat_smoothing_error"},
-      .gout_type = {"Matrix"},
-      .gout_desc = {"Covariance matrix describing the retrieval error due to smoothing."},
-      .in        = {"measurement_averaging_kernel", "model_state_covmat"},
+      .author = {"Simon Pfreundschuh"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
-  wsm_data["measurement_averaging_kernelCalc"] = {
+  wsm_data["oemAveragingKernelCalc"] = {
       .desc =
           R"(Calculate the averaging kernel matrix.
 
 This is done by describing the sensitivity of the
-*OEM* retrieval with respect to the true state of the system. A prerequisite
-for the calculation of the averaging kernel matrix is a successful *OEM*
-calculation in which the *measurement_jac* and the gain matrix *measurement_gain_mat* have been calculated.
+*oemCalc* retrieval with respect to the true state of the system. A prerequisite
+for the calculation of the averaging kernel matrix is a successful *oemCalc*
+calculation in which the ``oem.measurement_jac`` and the gain matrix ``oem.measurement_gain_mat`` have been calculated.
 
 The result is :math:`\mathbf{A}=\mathbf{G}\mathbf{J}`, using the gain and
 Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
 )",
       .author = {"Simon Pfreundschuh"},
-      .out    = {"measurement_averaging_kernel"},
-      .in     = {"measurement_gain_mat", "measurement_jac"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
   wsm_data["model_state_vec_aprioriFromState"] = {
@@ -5685,20 +5736,23 @@ Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
       .in     = {"measurement_vec"},
   };
 
-  wsm_data["model_state_covmatInit"] = {
+  wsm_data["oemStateCovmatInit"] = {
       .desc =
           R"(Initialises an empty model state covariance matrix.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_covmat"},
+      .out    = {"oem"},
+      .in     = {"oem"},
   };
 
   wsm_data["model_state_covmatCorrelate"] = {
-      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets.
+      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets with a constant coefficient.
 
 Requires finalized targets, identical physical grids and diagonal marginal
 covariances, with one state coordinate per grid point.  The cross covariance
 is correlation times the product of the existing standard deviations.
+The coefficient is the same at every grid point; the covariance can vary
+with the marginal variances. Different grid points are not cross-correlated.
 Marginal variances are unchanged.  The coefficient refers to retrieval
 coordinates: for logarithmic water it correlates temperature with log-water.
 
@@ -5716,22 +5770,35 @@ success discards cached inverses.  Other existing correlations are preserved.
       .gin_value              = {std::nullopt, std::nullopt, std::nullopt},
       .gin_desc               = {"First atmospheric target",
                                  "Second atmospheric target",
-                                 "Correlation coefficient in retrieval coordinates"},
+                                 "Constant correlation coefficient in retrieval coordinates"},
   };
 
-  wsm_data["model_state_covmatAddSpeciesVMR"] = {
-      .desc =
-          R"(Set a species model state covariance matrix element.
-)",
-      .author    = {"Richard Larsson"},
-      .out       = {"model_state_covmat"},
-      .in        = {"model_state_covmat", "jac_targets"},
-      .gin       = {"species", "matrix", "inverse"},
-      .gin_type  = {"SpeciesEnum", "BlockMatrix", "BlockMatrix"},
-      .gin_value = {std::nullopt, std::nullopt, BlockMatrix{}},
-      .gin_desc  = {"The species to set the covariance matrix for",
-                    "The covariance diagoinal block matrix",
-                    "The inverse covariance diagoinal block matrix"},
+  wsm_data["oemStateCovmatCorrelateConstant"] = {
+      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets with a constant coefficient.
+
+Requires finalized targets, identical physical grids and diagonal marginal
+covariances, with one state coordinate per grid point.  The cross covariance
+is correlation times the product of the existing standard deviations.
+The coefficient is the same at every grid point; the covariance can vary
+with the marginal variances. Different grid points are not cross-correlated.
+Marginal variances are unchanged.  The coefficient refers to retrieval
+coordinates: for logarithmic water it correlates temperature with log-water.
+
+The coefficient must be finite and strictly between -1 and 1.  An existing
+cross block for this pair is replaced; zero removes it.  The complete candidate
+covariance is validated before assignment.  Failure leaves the input unchanged;
+success discards cached inverses.  Other existing correlations are preserved.
+)--",
+      .author                 = {"Richard Larsson"},
+      .out                    = {"oem"},
+      .in                     = {"oem", "jac_targets", "atm_field"},
+      .gin                    = {"target1", "target2", "correlation"},
+      .gin_type               = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
+      .gin_value              = {std::nullopt, std::nullopt, std::nullopt},
+      .gin_desc               = {"First atmospheric target",
+                                 "Second atmospheric target",
+                                 "Constant correlation coefficient in retrieval coordinates"},
   };
 
   wsm_data["measurement_vec_errorFromModelState"] = {
@@ -5756,13 +5823,53 @@ success discards cached inverses.  Other existing correlations are preserved.
       .size_constraints = false,
   };
 
+  wsm_data["oemMeasurementCovmatInit"] = {
+      .desc   = "Clear the measurement covariance in oem, preserving all other data.\n",
+      .author = {"Richard Larsson"},
+      .out    = {"oem"},
+      .in     = {"oem"},
+  };
+  wsm_data["oemMeasurementCovmatAdd"] = {
+      .desc      = R"(Append a diagonal block to the measurement covariance in oem.
+
+The block can be dense or sparse and may contain correlated measurements.
+An optional inverse block is retained. If measurements have been initialized,
+the accumulated covariance size must not exceed their count. Complete coverage
+and covariance validity are checked before calculation. Use oemMeasurementCovmatInit
+to replace an earlier block layout.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"oem"},
+      .in        = {"oem"},
+      .gin       = {"matrix", "inverse"},
+      .gin_type  = {"BlockMatrix", "BlockMatrix"},
+      .gin_value = {std::nullopt, BlockMatrix{}},
+      .gin_desc  = {"Covariance block for the next contiguous measurements", "Optional inverse of this block"},
+  };
+
   wsm_data["measurement_vec_error_covmatConstant"] = {
       .desc =
           R"(Sets a constant measurement vector error covariance matrix.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_vec_error_covmat"},
-      .in        = {"measurement_sensor"},
+      .in        = {"measurement_vec"},
+      .gin       = {"value"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {std::nullopt},
+      .gin_desc  = {"The value of the covariance matrix diagonal"},
+  };
+
+  wsm_data["oemMeasurementCovmatConstant"] = {
+      .desc =
+          R"(Sets a constant measurement vector error covariance matrix.
+
+The size is taken from oem.measurement_vec, which must be nonempty.
+Supply observations with *oemSetMeasurement* before calling this method.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"oem"},
+      .in        = {"oem"},
       .gin       = {"value"},
       .gin_type  = {"Numeric"},
       .gin_value = {std::nullopt},
@@ -6340,32 +6447,36 @@ relative tolerance or a maximum number of iterations is reached.
       .in     = {"disort_spectral_rad_field", "ray_point"},
   };
 
-  wsm_data["RetrievalInit"] = {
-      .desc   = R"(Initialize the retrieval setup.
+  wsm_data["oemInit"] = {
+      .desc   = R"(Start an empty OEM setup and reset *jac_targets*.
+
+Initializes *oem*, including its owned pending covariance blocks. Call before
+adding retrieval targets with oemAdd methods. Use *oemInitFromData* instead when
+supplying an already constructed numerical problem without resetting targets.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"jac_targets", "model_state_covmat", "covmat_diagonal_blocks"},
+      .out    = {"jac_targets", "oem"},
   };
 
-  wsm_data["RetrievalFinalizeDiagonal"] = {
+  wsm_data["oemFinalizeDiagonal"] = {
       .desc   = R"(Finalize the retrieval setup.
 
 Calls *jac_targetsFinalize* to determine target sizes and state-vector offsets,
-then adds the per-target covariance blocks collected by the RetrievalAdd methods.
+then adds the per-target covariance blocks collected in oem.covmat_diagonal_blocks by the oemAdd methods.
 "Diagonal" refers to their positions on the block diagonal; the matrices inside
 those blocks may be correlated. Add cross-target correlations afterwards with
-*model_state_covmatCorrelate*. This method does not select an OEM method or
-prepare covariance factors; preparation happens when *OEM* is called.
+*oemStateCovmatCorrelateConstant*. Finally calls *oemCheck*: observations, prior and
+measurement-error covariance must already be set in oem. Success marks oem
+checked; validation failure leaves it unchecked and reports the missing or
+invalid data. This method does not select an oemCalc method.
+
+If target offsets are needed to calculate the prior or a forward model before
+this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
+*oemFinalizeDiagonal* completes and checks the numerical retrieval setup.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"model_state_covmat", "jac_targets"},
-      .in     = {"jac_targets",
-                 "covmat_diagonal_blocks",
-                 "atm_field",
-                 "surf_field",
-                 "subsurf_field",
-                 "abs_bands",
-                 "measurement_sensor"},
+      .out    = {"oem", "jac_targets"},
+      .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
   };
 
   wsm_data["abs_bandsSetNonLTE"] = {
