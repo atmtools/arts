@@ -26,11 +26,16 @@ HNC-143
 HNC-152
 HNC-242
 NH3-4112
-O-6
 OClO-656
 OClO-676
 
 2) TIPS 2021 [Robert R. Gamache, Bastien Vispoel, Michaël Rey, Andrei Nikitin, Vladimir Tyuterev, Oleg Egorov, Iouli E. Gordon, Vincent Boudon, Total internal partition sums for the HITRAN2020 database, Journal of Quantitative Spectroscopy and Radiative Transfer, Volume 271, 2021, 107713, ISSN 0022-4073, https://doi.org/10.1016/j.jqsrt.2021.107713]
+
+3) Current HITRAN (backported from ARTS 3):
+
+O-6
+
+The old ARTS-internal polynomial partition function for O-6 was only valid at low temperature: it crossed zero at 613.8 K and became strongly negative above it, flipping the sign of atomic-O LTE line strengths at thermospheric temperatures.  It has been replaced by a tabulated partition function from current HITRAN, which is strictly positive over 1-3500 K and agrees with the three fine-structure ground-term levels of atomic oxygen (3P term, J = 2, 1, 0 with g = 5, 3, 1 and E = 0, 158.265, 226.977 cm-1).
 
 
 -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
