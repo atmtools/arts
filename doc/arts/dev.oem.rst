@@ -136,15 +136,20 @@ cause.  Returning an empty step after catching an error hides the failure
 and can cause invalid vector operations in the measurement-space formulation.
 
 The native ``ConjugateGradient`` constructor and both preconditioned
-variants accept ``max_iterations`` after the verbosity argument, with a
-default of 1000.  The solve loop counts iterations locally, so a custom
-convergence predicate cannot disable the bound.  Debug assertions check finite arithmetic and positive curvature; these
-checks, including norms computed only for assertions, compile out with
-``NDEBUG``.  The iteration bound remains active in release builds.  OEM retains its relative residual tolerance of
-``1e-10`` and uses the native iteration limit.  These fixed settings satisfy
-the solver preconditions.  CG constructors assert a finite positive tolerance
-and a positive iteration limit in debug builds; they do not repeat input
-validation in release builds.  User-input validation belongs at the OEM boundary.
+variants accept ``max_iterations`` after verbosity. Zero selects
+:math:`\max(1000,2d)` for a system of dimension :math:`d`; a positive value
+sets an explicit bound. Custom convergence predicates cannot disable it.
+``cg_tolerance`` and ``cg_max_iter`` are validated at the OEM boundary.
+Static native solver preconditions remain assertions. Nonpositive curvature
+or a nonpositive preconditioned residual inner product is a runtime numerical
+breakdown, reported through the OEM error diagnostics.
+
+CG records its stop reason on every solve, including a zero right-hand side.
+GN refuses a truncated step, preserving the last state and reporting
+``LinearSolverLimit``. LM rejects it and retries with increased damping;
+if the final attempt is still truncated, it reports the same status.
+Do not let the measurement-space mapping apply its prior offset when a step
+was rejected. Regressions cover all formulations and final-state Jacobian reuse.
 
 The native LM optimizer provides ``get_maximum_trials()`` and
 ``set_maximum_trials()``; the positive trial limit defaults to 100 per
@@ -153,7 +158,7 @@ damping update must make progress before another trial is attempted.
 This catches multiplication that rounds back to the current damping.
 The trial budget counts linear solves, including any additional undamped
 solve used to check stationarity.
-Neither limit is currently an OEM workspace argument or part of the six
+The LM trial limit is not currently an OEM workspace argument or part of the six
 named LM damping settings.  Preserve the termination regressions when
 changing convergence predicates, trial acceptance, or damping updates.
 
@@ -209,7 +214,9 @@ its size is checked without damping.  An exactly zero gradient is also
 stationary.  These checks must not substitute the damped step for the
 undamped decrement; very strong damping can hide a large remaining error.
 Resolved acceptance requires finite, positive actual and predicted
-reductions and a ratio of at least 0.5.
+reductions and a true reduction ratio of at least 0.5; damping is decreased
+when the ratio exceeds 0.75. These thresholds use consistently scaled costs,
+not the inflated ratio in the older implementation.
 
 Keep workspace regressions for all four LM spellings at damping
 ``1e20``, tight affine tolerances, and an exactly stationary state with
@@ -224,8 +231,8 @@ Remaining numerical work
 The following items require separate implementation and regression work.
 
 1. **Expose inner-solver controls and diagnostics.**  Provide public
-   settings for relative CG tolerance, maximum linear iterations, and
-   maximum LM trials, and report linear iterations and residuals.  Keep
+   settings for maximum LM trials, and report linear iterations and residuals.
+   Relative CG tolerance and the linear iteration budget are already exposed.  Keep
    these separate from outer ``max_iter`` and the six damping controls.
    Extend numerical coverage to nearly zero right-hand sides and
    ill-conditioned positive-definite systems; bounded termination alone
@@ -563,8 +570,13 @@ concurrent solves; callers must synchronize source mutation with preparation
 and must not mutate storage obtained from a prepared snapshot. Iterations do
 not compare snapshots, validate covariances, or build inverse caches. Standalone
 operations on mutable covariances retain their defensive checks. Concurrent
-lazy operations (including ``compute_inverse``) on those mutable objects still
-require external synchronization; use a prepared snapshot for concurrent reads.
+solves, inverse construction, explicit validation and preparation synchronize
+cache publication, retaining factors while arithmetic runs outside the lock.
+External block edits still require synchronization. Prefer prepared snapshots
+for repeated concurrent solves to avoid cache checks and locking.
+Moved-from matrices remain valid empty objects and can be reused. New or
+changed supplied inverses still receive the full deterministic consistency
+check; only identical previously validated contents skip that cubic work.
 
 ``prepared(true)`` requests explicit precision for consumers that need it.
 OEM requests this for state-space methods and gain output. Measurement error
@@ -603,8 +615,9 @@ ReducedOEM adapter
 
 ``oemBasisCalc`` prepares ``model_state_basis_mat``,
 ``measurement_basis_mat`` and ``oem_basis_singular_values`` from
-the full Jacobian and covariances. Both bases are square; neither null
-space is discarded. The spectrum contains :math:`\min(m,n)` values,
+the full Jacobian and covariances. By default both bases are square; neither null
+space is discarded. ``full_matrices=0`` instead retains :math:`\min(m,n)` modes
+on each side, omitting only the extra null-space vectors of the larger side. The spectrum contains :math:`\min(m,n)` values,
 including zeros. Additional directions of the larger square basis have
 zero information. Keep these three outputs matched, including their mode
 ordering. Mixing equally sized decompositions cannot be detected by
@@ -654,13 +667,17 @@ Matpack's ``svd`` calls LAPACK DGESVD. Basis construction requests full left
 and right singular vectors to preserve both null spaces. The full bases
 require :math:`n^2+m^2` dense elements in addition to SVD working storage
 and intermediates. Selecting fewer modes afterwards does not reduce this
-preparation cost. Whitening is
+preparation cost. The economical option must be selected before the SVD to
+avoid those allocations. It does not reproduce the full prior when :math:`m<n`.
+Whitening is
 applied directly to the Jacobian; avoid replacing this with eigenanalysis
 of normal equations, which squares its condition number. Generate the
 measurement basis with a transposed factor solve on the left vectors, not
 division by singular values: zero-information modes must also work.
-Both full bases and the spectrum are published only after successful
-preparation. Selection also prepares its outputs before publishing them.
+Both bases and the spectrum are published only after successful preparation.
+Selection also prepares its outputs before publishing them. These methods
+invalidate ``checked`` because changing basis dimensions can invalidate a
+previously accepted normalization vector.
 Tests reconstruct both original covariances, check rectangular and null
 cases, and reselect ranks without a new decomposition. They compare
 covariance metrics, subspaces and gains because singular-vector signs

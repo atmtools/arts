@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <barrier>
 #include <cmath>
 #include <cstdlib>
 #include <functional>
@@ -93,6 +94,32 @@ void structural() {
   for (Numeric tolerance :
        {0.0, -1.0, std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()})
     rejects([&] { valid.validate(-1, tolerance); }, "invalid relative tolerance");
+}
+
+void moved_covariance() {
+  auto source = correlated_blocks();
+  const auto snapshot = source.prepared();
+  CovarianceMatrix moved(std::move(source));
+  require(source.nblocks() == 0, "Move construction did not leave an empty source");
+  rejects([&] { source.prepared(); }, "moved-from empty covariance preparation");
+  require(moved.prepared() == snapshot, "Move discarded prepared covariance");
+  Vector rhs{5, 3}, out(2);
+  solve(out, moved, rhs);
+  close(out[0], 1, "Move lost covariance factors");
+  close(out[1], 1, "Move lost covariance factors");
+
+  // Reusing the emptied source must not change the destination's values/cache.
+  source.add_correlation(block(0, 0, 8));
+  source.prepared(true);
+  solve(out, moved, rhs);
+  close(out[0], 1, "Reusing moved-from covariance changed destination");
+  CovarianceMatrix assigned;
+  assigned = std::move(moved);
+  rejects([&] { moved.prepared(true); }, "move-assigned empty covariance preparation");
+  rejects([&] { moved.validate(0); }, "move-assigned empty covariance validation");
+  solve(out, assigned, rhs);
+  close(out[0], 1, "Move assignment lost covariance factors");
+  close(out[1], 1, "Move assignment lost covariance factors");
 }
 
 void numerical() {
@@ -237,6 +264,48 @@ void structured_solves() {
   close(y[1], 1, "Shared matrix changed structure");
   (*shared)[0, 0] = -1;
   rejects([&] { solve(y, external, b); }, "Invalid mutation after cached solve");
+
+  auto shaped_storage = std::make_shared<Matrix>(matrix(2, 2, {2, 0, 0, 3}));
+  CovarianceMatrix shaped;
+  shaped.add_correlation({Range(0, 2), Range(0, 2), {0, 0}, shaped_storage});
+  solve(y, shaped, b);
+  *shaped_storage = matrix(1, 4, {2, 0, 0, 3});
+  rejects([&] { solve(y, shaped, b); }, "Changed storage shape reused solve factors");
+}
+
+void concurrent_source_solves() {
+  for (bool explicit_inverse : {false, true}) {
+    const auto source = correlated_blocks();
+    std::atomic<bool> consistent{true};
+    std::barrier start(8);
+    std::vector<std::jthread> readers;
+    for (int i = 0; i < 8; ++i)
+      readers.emplace_back([&] {
+        start.arrive_and_wait();
+        try {
+          Vector rhs{5, 3}, out(2);
+          const Matrix columns = matrix(2, 2, {5, 10, 3, 6});
+          Matrix left(2, 2), right(2, 2);
+          for (int j = 0; j < 30; ++j) {
+            if (explicit_inverse) source.compute_inverse();
+            solve(out, source, rhs);
+            mult_inv(left, source, columns);
+            mult_inv(right, transpose(columns), source);
+            for (Index k = 0; k < 2; ++k) {
+              close(out[k], 1, "Concurrent source vector solve");
+              for (Index c = 0; c < 2; ++c) {
+                close(left[k, c], static_cast<Numeric>(c + 1), "Concurrent source left solve");
+                close(right[c, k], static_cast<Numeric>(c + 1), "Concurrent source right solve");
+              }
+            }
+          }
+        } catch (...) {
+          consistent = false;
+        }
+      });
+    readers.clear();
+    require(consistent, "Concurrent source cache preparation/solve mismatch");
+  }
 }
 
 void prepared_solves() {
@@ -287,6 +356,8 @@ void prepared_solves() {
 }
 
 void precision() {
+  moved_covariance();
+  concurrent_source_solves();
   prepared_solves();
   structured_solves();
   auto valid = correlated_blocks();

@@ -3,6 +3,12 @@ add_library(test_utils STATIC
 )
 target_link_libraries(test_utils matpack)
 
+# Error reporting must retain distinct call sites across translation units.
+add_executable(test_source_location test_source_location.cc test_source_location_other.cc)
+target_link_libraries(test_source_location PRIVATE util)
+add_dependencies(check-deps test_source_location)
+add_test(NAME "cpp.fast.source_location" COMMAND test_source_location)
+
 # ########## testcases ###############
 add_executable(test_binaryio test_binaryio.cc)
 

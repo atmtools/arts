@@ -99,7 +99,7 @@ inline ConjugateGradient<CGSettings>::ConjugateGradient(double tol, int verbosit
     : verbosity(verbosity_), tolerance(tol), max_iterations(max_iterations_), settings(tol)
 {
     assert(std::isfinite(tolerance) && tolerance > 0.0);
-    assert(max_iterations > 0);
+    assert(max_iterations >= 0);
 }
 
 template
@@ -118,6 +118,10 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
 {
     using RealType = typename VectorType::RealType;
 
+    stop_reason = CGStopReason::Converged;
+    const std::size_t iteration_budget = max_iterations == 0
+        ? std::max(std::size_t{1000}, 2 * static_cast<std::size_t>(v.rows()))
+        : static_cast<std::size_t>(max_iterations);
     Log<LogType::SOL_CG> log(verbosity);
 
     RealType alpha, beta, rnorm, vnorm;
@@ -133,13 +137,14 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
     assert(std::isfinite(rnorm) && "residual norm");
 
     log.init(tolerance, rnorm, vnorm);
-    int i = 0;
+    std::size_t i = 0;
     // The safety limit belongs to the solver, independently of the custom
     // convergence policy. An exact solution also stops fixed-step policies
     // before a subsequent iteration could divide zero by zero.
     while (rnorm != 0.0 && !settings.converged(r, v))
     {
-        if (i >= max_iterations) {
+        if (i >= iteration_budget) {
+            stop_reason = CGStopReason::IterationLimit;
             if (iteration_limit_warning) iteration_limit_warning();
             break;
         }
@@ -147,7 +152,12 @@ inline auto ConjugateGradient<CGSettings>::solve(const MatrixType &A,
         assert(std::isfinite(rr) && rr > 0.0 && "squared residual norm");
         ap = A * p;
         const RealType curvature = invlib::dot(p, ap);
-        assert(std::isfinite(curvature) && curvature > 0.0 && "curvature (p^T A p)");
+        if (!std::isfinite(curvature) || curvature <= 0.0) {
+            throw std::runtime_error(
+                "Conjugate gradient numerical breakdown at iteration "
+                + std::to_string(i) + ": p^T A p must be finite and positive, got "
+                + std::to_string(curvature) + ".");
+        }
         alpha = rr / curvature;
         assert(std::isfinite(alpha) && alpha > 0.0 && "step length");
         xnew  = x + alpha *     p;
@@ -191,11 +201,16 @@ template
 inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
                                    const VectorType &v, double tolerance,
                                    int verbosity, int max_iterations,
-                                   const std::function<void()>& iteration_limit_warning)
+                                   const std::function<void()>& iteration_limit_warning,
+                                   CGStopReason& stop_reason)
     -> VectorType
 {
     using RealType = typename VectorType::RealType;
 
+    stop_reason = CGStopReason::Converged;
+    const std::size_t iteration_budget = max_iterations == 0
+        ? std::max(std::size_t{1000}, 2 * static_cast<std::size_t>(v.rows()))
+        : static_cast<std::size_t>(max_iterations);
     Log<LogType::SOL_CG> log(verbosity);
 
     RealType alpha, beta, rnorm, r0, vnorm;
@@ -210,7 +225,7 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
     r0    = rnorm;
 
     log.init(tolerance, rnorm, vnorm);
-    int i = 0;
+    std::size_t i = 0;
     if (rnorm == 0.0 || rnorm / r0 <= tolerance)
     {
         log.finalize(i);
@@ -222,15 +237,26 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
 
     while (rnorm != 0.0 && rnorm / r0 > tolerance)
     {
-        if (i >= max_iterations) {
+        if (i >= iteration_budget) {
+            stop_reason = CGStopReason::IterationLimit;
             if (iteration_limit_warning) iteration_limit_warning();
             break;
         }
         const RealType ry = invlib::dot(r, y);
-        assert(std::isfinite(ry) && ry > 0.0 && "preconditioned residual product (r^T M r)");
+        if (!std::isfinite(ry) || ry <= 0.0) {
+            throw std::runtime_error(
+                "Preconditioned conjugate gradient numerical breakdown at iteration "
+                + std::to_string(i) + ": r^T M r must be finite and positive, got "
+                + std::to_string(ry) + ".");
+        }
         ap = A * p;
         const RealType curvature = invlib::dot(p, ap);
-        assert(std::isfinite(curvature) && curvature > 0.0 && "curvature (p^T A p)");
+        if (!std::isfinite(curvature) || curvature <= 0.0) {
+            throw std::runtime_error(
+                "Conjugate gradient numerical breakdown at iteration "
+                + std::to_string(i) + ": p^T A p must be finite and positive, got "
+                + std::to_string(curvature) + ".");
+        }
         alpha = ry / curvature;
         assert(std::isfinite(alpha) && alpha > 0.0 && "step length");
         xnew  = x + alpha *     p;
@@ -250,7 +276,12 @@ inline auto solve_preconditioned_cg(const F &f, const MatrixType &A,
         ynew  = f(rnew);
         assert(std::isfinite(ynew.norm()) && "preconditioned residual norm");
         const RealType rynew = invlib::dot(rnew, ynew);
-        assert(std::isfinite(rynew) && rynew > 0.0 && "preconditioned residual product (r^T M r)");
+        if (!std::isfinite(rynew) || rynew <= 0.0) {
+            throw std::runtime_error(
+                "Preconditioned conjugate gradient numerical breakdown at iteration "
+                + std::to_string(i) + ": r^T M r must be finite and positive, got "
+                + std::to_string(rynew) + ".");
+        }
         beta  = rynew / ry;
         assert(std::isfinite(beta) && "direction coefficient");
         pnew  = beta * p - ynew;
@@ -276,7 +307,7 @@ inline PreconditionedConjugateGradient<F, true>::PreconditionedConjugateGradient
     : f(f_), verbosity(verbosity_), tolerance(tolerance_), max_iterations(max_iterations_)
 {
     assert(std::isfinite(tolerance) && tolerance > 0.0);
-    assert(max_iterations > 0);
+    assert(max_iterations >= 0);
 }
 
 template <typename F>
@@ -291,7 +322,7 @@ inline auto PreconditionedConjugateGradient<F, true>::solve(const MatrixType &A,
     -> VectorType
 {
     return solver_detail::solve_preconditioned_cg<F, VectorType, MatrixType, Log>(
-        f, A, v, tolerance, verbosity, max_iterations, iteration_limit_warning);
+        f, A, v, tolerance, verbosity, max_iterations, iteration_limit_warning, stop_reason);
 }
 
 template<typename F>
@@ -302,7 +333,7 @@ inline PreconditionedConjugateGradient<F, false>::PreconditionedConjugateGradien
     : verbosity(verbosity_), tolerance(tolerance_), max_iterations(max_iterations_)
 {
     assert(std::isfinite(tolerance) && tolerance > 0.0);
-    assert(max_iterations > 0);
+    assert(max_iterations >= 0);
 }
 
 template <typename F>
@@ -318,5 +349,5 @@ inline auto PreconditionedConjugateGradient<F, false>::solve(const MatrixType &A
 {
     F f(A);
     return solver_detail::solve_preconditioned_cg<F, VectorType, MatrixType, Log>(
-        f, A, v, tolerance, verbosity, max_iterations, iteration_limit_warning);
+        f, A, v, tolerance, verbosity, max_iterations, iteration_limit_warning, stop_reason);
 }

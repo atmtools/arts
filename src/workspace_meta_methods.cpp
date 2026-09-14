@@ -358,14 +358,6 @@ Common use case (requires having set the ENV variables, as described in the docu
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vec_aprioriFromData",
-      .desc    = "Get *model_state_vec_apriori* from available data",
-      .author  = {"Richard Larsson"},
-      .methods = {"model_state_vecFromData", "model_state_vec_aprioriFromState"},
-      .out     = {"model_state_vec_apriori"},
-  });
-
-  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "abs_lookup_dataCalc",
       .desc    = R"(Get *abs_lookup_data* from available data.
 

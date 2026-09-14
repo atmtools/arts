@@ -483,6 +483,19 @@ def test_grouped_measurement_basis():
 test_grouped_measurement_basis()
 
 
+def test_report_identity():
+    # Frozen reports contain NumPy arrays; tuple-based dataclass equality/hash
+    # must not try to compare or hash the array contents implicitly.
+    first = information(K, SA, SE)
+    second = information(K, SA, SE)
+    for left, right in ((first, second), (first.reduction(rank=1), second.reduction(rank=1))):
+        assert left == left
+        assert left != right
+        assert len({left, right}) == 2
+        assert {left: "first", right: "second"}[left] == "first"
+    np.testing.assert_array_equal(first.singular_values, second.singular_values)
+
+
 def test_correlated_reference():
     report = information(K, SA, SE, state_labels=["temperature", "water"])
     np.testing.assert_allclose(
@@ -834,6 +847,7 @@ def test_validation():
 
 
 for test in (
+    test_report_identity,
     test_correlated_reference,
     test_scalar_and_null_modes,
     test_units_and_permutations,

@@ -505,6 +505,7 @@ arr : :class:`scipy.sparse.csr_matrix`
            "expected_size"_a      = -1,
            "relative_tolerance"_a = 1e-10,
            "max_dense_elements"_a = 10000000,
+           py::call_guard<py::gil_scoped_release>(),
            R"(Check covariance storage and mathematical validity without changing it.
 
 Checks full diagonal coverage, block ranges and shapes, finite entries,

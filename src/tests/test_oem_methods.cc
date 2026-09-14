@@ -88,6 +88,8 @@ struct Retrieval {
   Numeric max_start_cost   = std::numeric_limits<Numeric>::infinity();
   Index   clear_matrices   = 0;
   Index   display_progress = 0;
+  Numeric cg_tolerance     = 1e-10;
+  Index   cg_max_iter      = 0;
   Index   calls            = 0;
   Index   jacobian_calls   = 0;
   Vector  first_state;
@@ -162,7 +164,9 @@ struct Retrieval {
             stop_dx,
             settings,
             clear_matrices,
-            display_progress);
+            display_progress,
+            cg_tolerance,
+            cg_max_iter);
   }
 };
 
@@ -1008,6 +1012,8 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   limited.iteration_limit_warning = [&] { ++warnings; };
   const auto partial              = limited.solve(diagonal, rhs);
   require(warnings == 1, "CG budget exhaustion did not warn");
+  require(limited.get_stop_reason() == invlib::CGStopReason::IterationLimit,
+          "CG budget exhaustion did not retain its stop reason");
   close(partial(0), 2. / 3., 1e-14, "CG partial iterate[0]");
   close(partial(1), 2. / 3., 1e-14, "CG partial iterate[1]");
   auto two_steps = make_solver(1e-12, 2);
@@ -1020,6 +1026,8 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   // solved. Test the native solver directly, bypassing OEM's zero shortcut.
   for (Index run = 0; run < 2; ++run) {
     const auto solution = limited.solve(identity, rhs);
+    require(limited.get_stop_reason() == invlib::CGStopReason::Converged,
+            "CG retained a previous solve's iteration-limit status");
     close(solution(0), 1, 0, "Repeated CG solution[0]");
     close(solution(1), 1, 0, "Repeated CG solution[1]");
     const auto zero_solution = limited.solve(identity, zero);
@@ -1030,6 +1038,39 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   auto copied = limited;
   static_cast<void>(copied.solve(diagonal, rhs));
   require(warnings == 2, "Copied CG solver lost its warning callback");
+
+  for (const Numeric value : {-1., 0.}) {
+    const auto invalid = solver_matrix(2, 2, {value, 0, 0, value});
+    rejects_with([&] { static_cast<void>(limited.solve(invalid, rhs)); }, "p^T A p");
+  }
+
+  // A tridiagonal SPD system excited at one end needs n CG iterations in
+  // exact arithmetic. Exercise a real solve beyond the old fixed 1000 cap
+  // without allocating a dense n-by-n matrix.
+  struct Tridiagonal {
+    mutable unsigned int calls = 0;
+    SolverVector operator*(const SolverVector& x) const {
+      ++calls;
+      SolverVector result = x;
+      for (unsigned int i = 0; i < x.rows(); ++i) {
+        result(i) = 2 * x(i);
+        if (i > 0) result(i) -= x(i - 1);
+        if (i + 1 < x.rows()) result(i) -= x(i + 1);
+      }
+      return result;
+    }
+  } tridiagonal;
+  constexpr unsigned int n = 2001;
+  SolverVector endpoint;
+  endpoint.resize(n);
+  for (unsigned int i = 0; i < n; ++i) endpoint(i) = i == 0 ? 1. : 0.;
+  auto automatic = make_solver(1e-10, 0);
+  const auto solution = automatic.solve(tridiagonal, endpoint);
+  require(automatic.get_stop_reason() == invlib::CGStopReason::Converged,
+          "Automatic CG budget truncated a system requiring more than 1000 steps");
+  require(tridiagonal.calls > 1000, "Large CG fixture converged before exercising its automatic budget");
+  for (unsigned int i = 0; i < n; ++i)
+    close(solution(i), static_cast<Numeric>(n - i) / (n + 1), 1e-10, "Large tridiagonal CG solution");
 }
 
 struct NeverConvergedCGSettings {
@@ -1105,6 +1146,18 @@ void test_cg_termination() {
     return invlib::PreconditionedConjugateGradient<IdentityPreconditioner, false>(tolerance, 0, budget);
   });
 
+  struct NegativePreconditioner {
+    explicit NegativePreconditioner(const SolverMatrix&) {}
+    SolverVector operator()(const SolverVector& value) const { return -1.0 * value; }
+  };
+  const auto positive = solver_matrix(2, 2, {1, 0, 0, 2});
+  const auto nonzero = solver_vector({1, 1});
+  const NegativePreconditioner negative(positive);
+  invlib::PreconditionedConjugateGradient<NegativePreconditioner, true> cached_negative(negative, 1e-12);
+  invlib::PreconditionedConjugateGradient<NegativePreconditioner, false> uncached_negative(1e-12);
+  rejects_with([&] { static_cast<void>(cached_negative.solve(positive, nonzero)); }, "r^T M r");
+  rejects_with([&] { static_cast<void>(uncached_negative.solve(positive, nonzero)); }, "r^T M r");
+
   // The safety budget belongs to the solve loop, even when a custom settings
   // functor replaces the default convergence predicate.
   invlib::ConjugateGradient<NeverConvergedCGSettings> custom(1e-12, 0, 1);
@@ -1131,6 +1184,82 @@ void test_cg_termination() {
       rejects_with([&] { r.run(method); }, "measurement_vec[0]");
     }
   }
+}
+
+void test_oem_cg_limit() {
+  for (const auto method : {"li_cg", "li_cg_m", "gn_cg", "gn_cg_m", "lm_cg", "ml_cg"}) {
+    Retrieval retrieval;
+    retrieval.x = Vector{1., -0.5};  // Deliberately different from the prior.
+    retrieval.cg_max_iter = 1;
+    retrieval.cg_tolerance = 1e-15;
+    retrieval.settings.maximum_damping = retrieval.settings.initial_damping;
+    retrieval.run(method);
+    close(retrieval.diagnostics.status, OptimalEstimationStatus::LinearSolverLimit, 0,
+          "OEM must distinguish a capped linear solve from convergence");
+    require(retrieval.diagnostics.iterations == 1, "OEM retried a failed GN solve as an outer iteration");
+    close(retrieval.x[0], 1., 0, "CG cap retains accepted state[0]");
+    close(retrieval.x[1], -0.5, 0, "CG cap retains accepted state[1]");
+    close(retrieval.yf[0], 0.25, 1e-15, "CG cap retains fitted measurement");
+    require(retrieval.diagnostics.errors.size() == 1 and
+                std::string_view(retrieval.diagnostics.errors.front()).contains("CG iteration limit"),
+            "OEM lost its linear-solver limit explanation");
+  }
+  for (const Numeric bad : {0., -1., std::numeric_limits<Numeric>::infinity(),
+                            std::numeric_limits<Numeric>::quiet_NaN()}) {
+    rejects_before_agenda("gn_cg", [bad](Retrieval& r) { r.cg_tolerance = bad; });
+  }
+  rejects_before_agenda("gn_cg", [](Retrieval& r) { r.cg_max_iter = -1; });
+}
+
+template <invlib::Formulation formulation> void check_capped_gn_state() {
+  struct LinearModel {
+    const unsigned int m = 2, n = 2;
+    SolverVector evaluate(const SolverVector& state) { return solver_vector({state(0), 2 * state(1)}); }
+    SolverMatrix Jacobian(const SolverVector& state, SolverVector& fit) {
+      fit = evaluate(state);
+      return solver_matrix(2, 2, {1, 0, 0, 2});
+    }
+  } model;
+  const auto prior = solver_vector({0, 0});
+  const auto observed = solver_vector({1, 2});
+  const auto covariance = solver_matrix(2, 2, {1, 0, 0, 1});
+  auto state = solver_vector({2, -1});
+  invlib::ConjugateGradient<> solver(1e-12, 0, 1);
+  invlib::GaussNewton<Numeric, decltype(solver)> optimizer(1e-6, 10, solver);
+  invlib::MAP<LinearModel, SolverMatrix, SolverMatrix, SolverMatrix, SolverVector, formulation> retrieval(
+      model, prior, covariance, covariance);
+  require(retrieval.template compute<decltype(optimizer)&>(state, observed, optimizer) == 1,
+          "MAP reported convergence after a truncated linear solve");
+  require(optimizer.stop_iteration() and not optimizer.step_accepted(), "GN failed to reject a capped solve");
+  close(state(0), 2, 0, "Rejected GN state[0]");
+  close(state(1), -1, 0, "Rejected GN state[1]");
+  close(retrieval.cost, 22, 1e-13, "Rejected GN retained the accepted state's cost");
+}
+
+void test_lm_cg_retry() {
+  const SolverMatrix curvature = solver_matrix(2, 2, {1, 0, 0, 100});
+  const SolverMatrix damping = solver_matrix(2, 2, {1, 0, 0, 1});
+  const SolverVector initial = solver_vector({1, 0.01});
+  const SolverVector gradient = solver_vector({1, 1});
+  struct QuadraticCost {
+    Index calls = 0;
+    Numeric cost_function(const SolverVector& x, bool = false) {
+      ++calls;
+      return 0.5 * (x(0) * x(0) + 100 * x(1) * x(1));
+    }
+  } cost;
+  invlib::ConjugateGradient<> solver(0.1, 0, 1);
+  Index warnings = 0;
+  solver.iteration_limit_warning = [&] { ++warnings; };
+  invlib::LevenbergMarquardt<Numeric, SolverMatrix, decltype(solver)> optimizer(damping, solver);
+  optimizer.set_lambda(0);
+  optimizer.set_lambda_maximum(1e6);
+  const auto step = optimizer.step(initial, gradient, curvature, cost);
+  require(warnings > 0, "LM retry fixture did not exhaust a CG solve");
+  require(cost.calls == 2, "LM evaluated a trial from a truncated linear solve");
+  require(optimizer.get_stop_reason() == invlib::LMStopReason::None,
+          "LM failed to recover after damping made the linear solve converge");
+  require(step(0) < 0 and step(1) < 0, "Recovered LM solve did not produce a descent step");
 }
 
 void test_lm_trial_limit() {
@@ -1293,6 +1422,58 @@ void test_lm_stop_reasons() {
   require(stalled.stop_iteration() and not stalled.converged(), "LM unchanged damping reported convergence");
 }
 
+void test_lm_reduction_ratio() {
+  const auto curvature = solver_matrix(1, 1, {1});
+  const auto initial = solver_vector({1});
+  // Model discrepancy is deliberate: the true objective reduction is a known
+  // fraction of the quadratic model's prediction. Both full-cost MAP and a
+  // conventional half-cost objective must make the same acceptance decision.
+  for (const Numeric scale : {1., 2.}) {
+    for (const Numeric ratio : {0.4, 0.5, 0.75, 0.8}) {
+      struct ModelCost {
+        Numeric scale, ratio;
+        Numeric model_cost_scale() const { return scale; }
+        Numeric cost_function(const SolverVector& x, bool = false) const {
+          return 0.5 * scale * ratio * x(0) * x(0);
+        }
+      } cost{scale, ratio};
+      invlib::LevenbergMarquardt<Numeric, SolverMatrix> optimizer(curvature);
+      optimizer.set_lambda(1);
+      optimizer.set_lambda_maximum(1);
+      optimizer.set_lambda_decrease(2);
+      optimizer.set_lambda_threshold(0.1);
+      const auto step = optimizer.step(initial, initial, curvature, cost);
+      if (ratio < 0.5) {
+        close(step(0), 0, 0, "LM rejects less than half of the predicted reduction");
+        require(optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit,
+                "LM accepted a trial using an inflated full/half-cost ratio");
+      } else {
+        close(step(0), -0.5, 0, "LM accepts at least half of the predicted reduction");
+        close(optimizer.get_lambda(), ratio > 0.75 ? 0.5 : 1, 0, "LM damping decrease ratio threshold");
+        require(optimizer.get_stop_reason() == invlib::LMStopReason::None, "LM rejected adequate reduction");
+      }
+    }
+  }
+}
+
+void test_terminal_jacobian() {
+  for (const auto method : {"gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "ml", "lm_cg", "ml_cg"}) {
+    Retrieval retrieval;
+    quadratic_model(retrieval);
+    retrieval.max_iter = 1;
+    retrieval.stop_dx = 1e-20;
+    retrieval.run(method);
+    close(retrieval.diagnostics.status, OptimalEstimationStatus::IterationLimit, 0,
+          "Terminal Jacobian fixture must reach its iteration limit");
+    require(retrieval.x[0] != retrieval.xa[0], "Terminal Jacobian fixture did not change the state");
+    const Numeric state = retrieval.x[0];
+    close(retrieval.yf[0], state * state, 1e-12, "Iteration-limited fit");
+    close(retrieval.jac[0, 0], 2 * state, 1e-12, "Iteration-limited Jacobian");
+    close(retrieval.gain[0, 0], 8 * state / (0.25 + 16 * state * state), 1e-12,
+          "Iteration-limited gain describes returned state");
+  }
+}
+
 void test_generic_minimize_outcomes() {
   const SolverMatrix curvature = solver_matrix(1, 1, {1});
   const SolverVector initial   = solver_vector({1});
@@ -1374,10 +1555,17 @@ int main(int argc, char** argv) try {
     test_sparse_element_range();
     test_transpose_view();
     test_cg_termination();
+    test_oem_cg_limit();
+    check_capped_gn_state<invlib::Formulation::STANDARD>();
+    check_capped_gn_state<invlib::Formulation::NFORM>();
+    check_capped_gn_state<invlib::Formulation::MFORM>();
+    test_lm_cg_retry();
     test_lm_trial_limit();
   } else if (selected == "outcomes") {
     test_lm_outcomes();
     test_lm_stop_reasons();
+    test_lm_reduction_ratio();
+    test_terminal_jacobian();
     test_generic_minimize_outcomes();
   } else if (selected == "reuse") {
     test_evaluation_reuse();

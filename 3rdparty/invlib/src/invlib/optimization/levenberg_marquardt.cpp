@@ -327,6 +327,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
     }
 
     unsigned int trials = 0;
+    bool linear_solve_converged = true;
     const auto solve = [&](const auto &matrix) -> VectorType {
         if (trials == maximum_trials) {
             stop_reason = LMStopReason::TrialLimit;
@@ -338,6 +339,9 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         VectorType result;
         try {
             result = -1.0 * s.solve(matrix, g);
+            if constexpr (requires { s.get_stop_reason(); }) {
+                linear_solve_converged = s.get_stop_reason() == CGStopReason::Converged;
+            }
         } catch (...) {
             stop_reason = LMStopReason::LinearSolverFailure;
             std::throw_with_nested(std::runtime_error(
@@ -358,9 +362,40 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
     };
     bool first_step = true;
     bool stationarity_checked = false;
+    const auto increase_damping = [&] {
+        // Keep lambda physical: maximum+1 is not representable at large maxima.
+        if (lambda >= lambda_maximum) {
+            stop_reason = linear_solve_converged ? LMStopReason::DampingLimit
+                                                : LMStopReason::LinearSolverLimit;
+            ++step_count;
+            return false;
+        }
+        const RealType previous_lambda = lambda;
+        if (lambda < lambda_threshold) {
+            lambda = lambda_threshold;
+        } else if (lambda >= lambda_maximum / lambda_increase) {
+            lambda = lambda_maximum;
+        } else {
+            lambda *= lambda_increase;
+        }
+        if (!std::isfinite(lambda) || lambda <= previous_lambda) {
+            stop_reason = LMStopReason::DampingStalled;
+            throw std::runtime_error(
+                "Levenberg-Marquardt damping did not increase to a finite value "
+                "after a rejected trial; check the damping threshold and increase factor.");
+        }
+        first_step = false;
+        return true;
+    };
 
     while (true) {
         VectorType dx = solve(B + lambda * D);
+        if (!linear_solve_converged) {
+            // A smaller residual is not a solved normal equation. Retry with
+            // stronger damping without evaluating or applying the partial step.
+            if (!increase_damping()) return zero;
+            continue;
+        }
         VectorType xnew = x + dx;
         const RealType new_cost = finite(xnew)
             ? J.cost_function(xnew, lambda < lambda_maximum)
@@ -380,7 +415,7 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
             VectorType gn = lambda == 0.0 ? dx : solve(B);
             const RealType decrement = -invlib::dot(g, gn);
             const RealType gn_prediction = predicted_reduction(gn);
-            if (std::isfinite(decrement) && decrement >= 0.0
+            if (linear_solve_converged && std::isfinite(decrement) && decrement >= 0.0
                 && decrement / static_cast<RealType>(x.rows()) < tolerance
                 && std::isfinite(gn_prediction) && gn_prediction >= 0.0
                 && gn_prediction <= roundoff(current_cost, current_cost)) {
@@ -417,26 +452,6 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
         }
 
         // A failed trial is never applied, regardless of the reduction sign.
-        // Keep lambda physical: maximum+1 is not representable at large maxima.
-        if (lambda >= lambda_maximum) {
-            stop_reason = LMStopReason::DampingLimit;
-            ++step_count;
-            return zero;
-        }
-        const RealType previous_lambda = lambda;
-        if (lambda < lambda_threshold) {
-            lambda = lambda_threshold;
-        } else if (lambda >= lambda_maximum / lambda_increase) {
-            lambda = lambda_maximum;
-        } else {
-            lambda *= lambda_increase;
-        }
-        if (!std::isfinite(lambda) || lambda <= previous_lambda) {
-            stop_reason = LMStopReason::DampingStalled;
-            throw std::runtime_error(
-                "Levenberg-Marquardt damping did not increase to a finite value "
-                "after a rejected trial; check the damping threshold and increase factor.");
-        }
-        first_step = false;
+        if (!increase_damping()) return zero;
     }
 }

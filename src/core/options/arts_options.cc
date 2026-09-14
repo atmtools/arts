@@ -49,6 +49,7 @@ std::vector<EnumeratedOption> internal_options_create() {
               Value{"Converged", "The convergence criterion was met or LM established numerical stationarity."},
               Value{"IterationLimit",
                     "The outer iteration budget was reached. Linear methods may report this after their single step."},
+              Value{"LinearSolverLimit", "CG exhausted its iteration budget; the unconverged step was rejected."},
               Value{"DampingLimit", "LM reached its damping limit without finding an acceptable step."},
               Value{"Error", "An error was caught during inversion; inspect the diagnostic messages."},
               Value{"StartCostLimit", "The starting cost exceeded max_start_cost and inversion was skipped."},

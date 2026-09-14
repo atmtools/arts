@@ -12,6 +12,15 @@ bool minimizer_converged(Minimizer &M, RealType criterion)
     return std::isfinite(criterion) && criterion < M.get_tolerance();
 }
 
+// A linear-solver cap is a rejected GN step, including in formulations that
+// map the result relative to the prior rather than adding a displacement.
+template<typename Minimizer>
+bool minimizer_step_accepted(const Minimizer& M)
+{
+    if constexpr (requires { M.step_accepted(); }) return M.step_accepted();
+    return true;
+}
+
 // Only the built-in state-step criteria can skip the new simulated
 // measurement. Custom criteria, including derived overrides, stay conservative.
 template<typename Criterion>
@@ -288,6 +297,10 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         auto H  = tmp * K + inv(Sa);
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
         dx = M.step(x, g, H, (*this));
+        if (!minimizer_step_accepted(M)) {
+            ++iterations;
+            break;
+        }
         x += dx;
 
         // State-step criteria need no new forward value. A continuing
@@ -344,7 +357,7 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, Co
        const VectorType   &xa_,
        const SaType &Sa_,
        const SeType &Se_ )
-    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0)
+    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0), iterations(0)
 {
     // Nothing to do here.
 }
@@ -405,6 +418,10 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
         VectorType g = tmp * (y - yi + (K * (x - xa)));
         auto H  = tmp * K + inv(Sa);
         dx = M.step(xa, g, H, (*this));
+        if (!minimizer_step_accepted(M)) {
+            ++iterations;
+            break;
+        }
         x = xa - dx;
 
         // State-step criteria need no new forward value. A continuing
@@ -461,7 +478,7 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, Co
        const VectorType   &xa_,
        const SaType &Sa_,
        const SeType &Se_ )
-    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0)
+    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0), iterations(0)
 {
     // Nothing to do here.
 }
@@ -561,11 +578,19 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
                 }
             }();
             dx = M.step(xa, g, H, (*this));
+            if (!minimizer_step_accepted(M)) {
+                ++iterations;
+                break;
+            }
             x = xa - tmp * dx;
         } else {
             auto tmp = Sa * transp(K);
             auto H = Se + K * tmp;
             dx = M.step(xa, g, H, (*this));
+            if (!minimizer_step_accepted(M)) {
+                ++iterations;
+                break;
+            }
             x = xa - tmp * dx;
         }
 

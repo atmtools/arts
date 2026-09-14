@@ -34,6 +34,12 @@ they retain covariances, bases and previous modeling results. A size change
 makes the object unchecked; replacing values at the same size preserves
 ``checked``. If dimensions change, update the associated data and check again.
 
+Forward calculations and state-mapping methods still use the primitive workspace
+vectors and Jacobian. Retrieval results are read from ``ws.oem.model_state_vec``,
+``ws.oem.measurement_vec_fit`` and ``ws.oem.measurement_jac``. A calculation does
+not overwrite the independent ``ws.model_state_vec``, ``ws.measurement_vec_fit``
+or ``ws.measurement_jac`` variables.
+
 For a complete numerical input problem, ``oemInitFromData`` consumes
 ``model_state_vec`` as the prior, ``measurement_vec`` as the observations,
 ``model_state_covmat`` and ``measurement_vec_error_covmat``. It checks dimensions
@@ -149,13 +155,16 @@ convergence.
 The state-space system has size ``n`` by ``n``; the measurement-space
 system has size ``m`` by ``m``.  Size is only a first guide to performance:
 covariance structure, conditioning, and forward-model cost also matter.
-CG has a fixed internal relative residual tolerance of ``1e-10`` and a
-limit of 1000 iterations per linear solve.  ``stop_dx`` and ``max_iter``
-control the outer retrieval iteration; they do not change these CG settings.
-An unconverged solve at the internal limit, non-finite arithmetic, or
-non-positive curvature stops the retrieval with status ``Error`` and an explanation
-in ``oem_diagnostics.errors``.  Check the input values, covariance validity, and numerical
-scaling when this happens.
+CG uses ``cg_tolerance=1e-10`` by default. ``cg_max_iter=0`` selects a
+budget of :math:`\max(1000,2d)` iterations per linear solve, where :math:`d`
+is the dimension of the selected state- or measurement-space system. Set a
+positive ``cg_max_iter`` for an explicit budget. ``stop_dx`` and ``max_iter``
+control the outer retrieval iteration independently.
+An unconverged CG step is rejected. GN and LI stop with
+``LinearSolverLimit``; LM retries with more damping and uses that status if
+the final solve also exhausts its budget. Numerical breakdown such as
+non-positive curvature gives ``Error`` with an explanation in
+``oem.diagnostics.errors``. Check covariance validity and scaling in that case.
 OEM still stores the measurement Jacobian, and computing the gain matrix
 requires additional dense matrices.  ``clear_matrices=1`` skips the gain
 calculation and returns empty Jacobian and gain matrices when those outputs
@@ -896,11 +905,19 @@ then choose which modes to retain::
 ``oemBasisCalc`` sets ``model_state_basis_mat``,
 ``measurement_basis_mat`` and ``oem_basis_singular_values``. It requires
 only the Jacobian and covariances; it does not run a forward agenda or need
-a measurement vector. Both full bases are square and include all null-space
+a measurement vector. With ``full_matrices=1`` (the default), both full bases are square and include all null-space
 directions. This step only changes coordinates and loses no information.
 The state basis reconstructs the full prior covariance when multiplied by
 its transpose. For the measurement covariance, it is the inverse basis
 times its inverse transpose that reconstructs the original covariance.
+
+Use ``oemBasisCalc(full_matrices=0)`` to keep only :math:`\min(m,n)` modes
+in each basis. This avoids a dense measurement-square basis when there are
+many more measurements than states. It omits extra null-space directions of
+the supplied Jacobian. If there are more states than measurements, the state
+basis no longer reconstructs the entire prior covariance: omitted directions
+retain prior uncertainty. Nonlinear sensitivity can change, so assess this
+reduction at representative states.
 
 ``oemBasisReduce`` retains leading columns and rows in place in
 ``model_state_basis_mat`` and ``measurement_basis_mat``. The example discards

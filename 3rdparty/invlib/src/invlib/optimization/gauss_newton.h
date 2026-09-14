@@ -129,13 +129,16 @@ public:
         else return false;
     }();
 
-    bool stop_iteration() {return false;}
+    CGStopReason get_stop_reason() const { return stop_reason; }
+    bool step_accepted() const { return stop_reason == CGStopReason::Converged; }
+    bool stop_iteration() const { return !step_accepted(); }
 
 private:
 
     RealType tolerance;
     unsigned int maximum_iterations;
     Solver solver;
+    CGStopReason stop_reason = CGStopReason::Converged;
 
 };
 

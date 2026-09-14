@@ -2109,8 +2109,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat>        &K,
     diagonal_remainder     l_diag_m1;
     std::optional<muelmat> base_phi;
     std::optional<muelmat> base_q_m1;
-    Numeric                base_phi_scalar;
-    Numeric                base_phi_prime;
+    Numeric                base_phi_scalar{};
+    Numeric                base_phi_prime{};
     if (not tr.polarized) {
       L_[i] = muelmat{state.value};
       l_diag_m1.fill(state.value_m1);
@@ -2351,8 +2351,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
       diagonal_remainder     l_diag_m1;
       std::optional<muelmat> base_phi;
       std::optional<muelmat> base_q_m1;
-      Numeric                base_phi_scalar;
-      Numeric                base_phi_prime;
+      Numeric                base_phi_scalar{};
+      Numeric                base_phi_prime{};
       if (not tran_state.polarized) {
         L[iv, i] = muelmat{state.value};
         l_diag_m1.fill(state.value_m1);

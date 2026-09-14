@@ -295,6 +295,50 @@ for method in methods:
     np.testing.assert_allclose(
         uncertainty, reduction.posterior_covariance(), atol=1e-10)
 
+# Economical bases preserve all informative linear modes without allocating
+# the square basis on the larger side. Compare against the full-space MAP gain.
+for rows, cols in ((7, 2), (2, 7)):
+    problem = pyarts.Workspace()
+    problem.oem = arts.OptimalEstimationData()
+    J = np.arange(rows * cols, dtype=float).reshape(rows, cols) / 11
+    J[:min(rows, cols), :min(rows, cols)] += np.eye(min(rows, cols))
+    Sa = np.diag(np.arange(1, cols + 1, dtype=float))
+    Se = np.diag(np.arange(1, rows + 1, dtype=float))
+    problem.oem.measurement_jac = J
+    problem.oem.model_state_covmat = covariance(Sa)
+    problem.oem.measurement_vec_error_covmat = covariance(Se)
+    problem.oem.measurement_vec = np.zeros(rows)
+    problem.oem.model_state_vec_apriori = np.zeros(cols)
+    problem.oem.check()
+    problem.oemBasisCalc(full_matrices=0)
+    assert not problem.oem.checked
+    B = np.asarray(problem.oem.model_state_basis_mat)
+    C = np.asarray(problem.oem.measurement_basis_mat)
+    p = min(rows, cols)
+    assert B.shape == (cols, p) and C.shape == (p, rows)
+    np.testing.assert_allclose(B.T @ np.linalg.solve(Sa, B), np.eye(p), atol=1e-12)
+    np.testing.assert_allclose(C @ Se @ C.T, np.eye(p), atol=1e-12)
+    reduced_j = C @ J @ B
+    reduced_gain = B @ np.linalg.solve(np.eye(p) + reduced_j.T @ reduced_j, reduced_j.T) @ C
+    full_gain = np.linalg.solve(np.linalg.inv(Sa) + J.T @ np.linalg.solve(Se, J),
+                                J.T @ np.linalg.inv(Se))
+    np.testing.assert_allclose(reduced_gain, full_gain, atol=1e-12)
+    problem.oem.check()
+    problem.oemBasisReduce(rank=p)
+    assert not problem.oem.checked
+
+# A wide sensor with one state must need linear, not quadratic, basis storage.
+large = pyarts.Workspace()
+large.oem = arts.OptimalEstimationData()
+large.oem.measurement_vec = np.zeros(20000)
+large.oem.measurement_jac = np.ones((20000, 1))
+large.oem.model_state_covmat = covariance([[1.]])
+large.oemMeasurementCovmatConstant(value=1.)
+large.oemBasisCalc(full_matrices=0)
+assert large.oem.measurement_basis_mat.shape == (1, 20000)
+assert large.oem.model_state_basis_mat.shape == (1, 1)
+np.testing.assert_allclose(large.oem.basis_singular_values, [np.sqrt(20000.)])
+
 # Generate both inputs entirely through workspace methods and consume them as
 # workspace variables. No Python basis construction or explicit inputs to OEM.
 for rank in (None, 1, 2):

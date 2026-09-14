@@ -47,7 +47,7 @@ void py_retrieval(py::module_& m) try {
   diagnostics
       .def_rw("status",
               &OptimalEstimationDiagnostics::status,
-              "Named OEM outcome; NotRun before inversion.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`")
+              "Named OEM outcome; NotRun before inversion.\n\n.. :class:`~pyarts3.arts.OptimalEstimationStatus`")
       .def_rw("initial_cost",
               &OptimalEstimationDiagnostics::initial_cost,
               "Starting total cost per measurement.\n\n.. :class:`float`")
@@ -71,10 +71,11 @@ void py_retrieval(py::module_& m) try {
   generic_interface(data);
   data.def_prop_ro("checked",
                    &OptimalEstimationData::checked,
-                   "Whether the last explicit check succeeded. Attribute replacement requires uncheck().\n\n.. :class:`bool`");
+                   "Whether input validation succeeded. Attribute replacement requires uncheck().\n\n.. :class:`bool`");
   data.def("check",
            &OptimalEstimationData::check,
            "jac_targets"_a.none() = py::none(),
+           py::call_guard<py::gil_scoped_release>(),
            "Validate numerical inputs and optional finalized targets; report all problems or mark checked. "
            "In-place edits remain possible and require calling check() again when necessary.");
   data.def("uncheck", &OptimalEstimationData::uncheck, "Allow manual attribute replacement without changing values.");
@@ -101,10 +102,10 @@ void py_retrieval(py::module_& m) try {
          "A priori model state vector.\n\n.. :class:`~pyarts3.arts.Vector`");
   member("model_state_covmat",
          &OptimalEstimationData::model_state_covmat,
-         "Covariance matrix of the model state.\n\n.. :class:`~pyarts3.arts.Matrix`");
+         "Covariance matrix of the model state.\n\n.. :class:`~pyarts3.arts.CovarianceMatrix`");
   member("measurement_vec_error_covmat",
          &OptimalEstimationData::measurement_vec_error_covmat,
-         "Covariance matrix of the measurement vector error.\n\n.. :class:`~pyarts3.arts.Matrix`");
+         "Covariance matrix of the measurement vector error.\n\n.. :class:`~pyarts3.arts.CovarianceMatrix`");
   member("model_state_vec",
          &OptimalEstimationData::model_state_vec,
          "Current model state vector.\n\n.. :class:`~pyarts3.arts.Vector`");
@@ -116,10 +117,10 @@ void py_retrieval(py::module_& m) try {
          "Jacobian of the measurement operator.\n\n.. :class:`~pyarts3.arts.Matrix`");
   member("model_state_basis_mat",
          &OptimalEstimationData::model_state_basis_mat,
-         "Basis matrix of the model state.\n\n.. :class:`~pyarts3.arts.Matrix`");
+         "Basis matrix of the model state.\n\n.. :class:`~pyarts3.arts.BlockMatrix`");
   member("measurement_basis_mat",
          &OptimalEstimationData::measurement_basis_mat,
-         "Basis matrix of the measurement.\n\n.. :class:`~pyarts3.arts.Matrix`");
+         "Basis matrix of the measurement.\n\n.. :class:`~pyarts3.arts.BlockMatrix`");
   member("model_state_covmat_normalization",
          &OptimalEstimationData::model_state_covmat_normalization,
          "Normalization vector for the model state covariance matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
@@ -138,17 +139,18 @@ void py_retrieval(py::module_& m) try {
   member("smoothing_error_covmat",
          &OptimalEstimationData::smoothing_error_covmat,
          "Covariance matrix of the smoothing error.\n\n.. :class:`~pyarts3.arts.Matrix`");
-  member("diagnostics", &OptimalEstimationData::diagnostics,
+  member("diagnostics",
+         &OptimalEstimationData::diagnostics,
          "Diagnostics information.\n\n.. :class:`~pyarts3.arts.OptimalEstimationDiagnostics`");
   member("basis_singular_values",
          &OptimalEstimationData::basis_singular_values,
          "Singular values of the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
   member("basis_lost_dofs",
          &OptimalEstimationData::basis_lost_dofs,
-         "Degrees of freedom lost in the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+         "Degrees of freedom lost in the basis matrix.\n\n.. :class:`float`");
   member("basis_lost_information_bits",
          &OptimalEstimationData::basis_lost_information_bits,
-         "Information bits lost in the basis matrix.\n\n.. :class:`~pyarts3.arts.Vector`");
+         "Information bits lost in the basis matrix.\n\n.. :class:`float`");
   data.def("clear_auxiliary",
            &OptimalEstimationData::clear_auxiliary,
            "Release recomputable products and caches, preserving inputs, current state, bases and diagnostics.");

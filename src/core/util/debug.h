@@ -11,13 +11,24 @@
 
 #include <format_tags.h>
 
+#include <cstdint>
 #include <source_location>
 
 struct src_location {
-  std::source_location loc;
-  src_location(std::source_location = std::source_location::current());
-  std::string get();
-  std::string getfunc();
+  // Snapshot at compile time. Keeping the implementation pointer from
+  // std::source_location can expose mis-coalesced local records on GCC/Darwin
+  // when a translation unit also emits weak template-static data.
+  consteval src_location(std::source_location loc = std::source_location::current())
+      : file_name_(loc.file_name()), function_name_(loc.function_name()), line_(loc.line()), column_(loc.column()) {}
+
+  std::string get() const;
+  std::string getfunc() const;
+
+ private:
+  const char* file_name_;
+  const char* function_name_;
+  std::uint_least32_t line_;
+  std::uint_least32_t column_;
 };
 
 namespace arts {

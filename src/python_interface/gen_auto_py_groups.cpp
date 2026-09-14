@@ -94,13 +94,30 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
   os << R"(
 Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool output) {
   py::gil_scoped_acquire gil;
-  if (not x or x->is_none()) throw std::runtime_error("A generic argument requires a value with a concrete type.");
+  // Construct the accepted-type list only when conversion fails.
+  const auto rejected = [&](std::string reason) {
+    reason += " Accepted workspace types: ";
+    if (allowed.empty()) reason += "any workspace group";
+    for (std::size_t i = 0; i < allowed.size(); ++i) {
+      if (i) reason += ", ";
+      switch (allowed[i]) {
+)";
+  for (const auto& [group, wsg] : wsgs) {
+    std::println(
+        os, "        case WorkspaceGroupInfo<{0}>::index: reason += WorkspaceGroupInfo<{0}>::name; break;", group);
+  }
+  os << R"(
+      }
+    }
+    return std::runtime_error(reason);
+  };
+  if (not x or x->is_none()) throw rejected("A generic argument requires a value with a concrete type.");
   const auto accepts = [&](std::size_t type) {
     return allowed.size() == 0 or std::find(allowed.begin(), allowed.end(), type) != allowed.end();
   };
   if (py::isinstance<Wsv>(*x)) {
     auto value = py::cast<Wsv>(*x);
-    if (not accepts(value.value_index())) throw std::runtime_error("Unsupported generic argument type: " + std::string(value.type_name()));
+    if (not accepts(value.value_index())) throw rejected("Unsupported generic argument type: " + std::string(value.type_name()) + ".");
     return value;
   }
 )";
@@ -118,7 +135,7 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
           group);
   }
   os << R"(
-  if (output) throw std::runtime_error("A generic output requires an explicitly typed mutable ARTS object.");
+  if (output) throw rejected("A generic output requires an explicitly typed mutable ARTS object.");
   if (allowed.size() == 0) return from(x);
   // Try only declared alternatives, in declaration order. Conversion is compiled
   // once per workspace group, not once per combination of method arguments.
@@ -139,7 +156,7 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
   os << R"(
     }
   }
-  throw std::runtime_error("Cannot convert generic argument to any declared type.");
+  throw rejected("Cannot convert generic argument to any declared type.");
 }
 } // namespace Python
 )";
@@ -226,9 +243,7 @@ namespace Python {{
 std::string type(const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) return "NoneType";
-  if (not py::type_check(*x)) return "UnknownType";
-
-  return py::cast<std::string>(py::str(py::type_name(*x)));
+  return py::cast<std::string>(py::type_name(x->type()));
 }}
 }}  // namespace Python
 )--");

@@ -882,6 +882,9 @@ This variable represents the matrix
 
 where :math:`\vec{y}` is the *measurement_vec* and :math:`\vec{x}` is the *model_state_vec*.
 Please refer to those variables for more information.
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.measurement_jac``;
+they do not replace this independent workspace variable.
 )",
       .type = "Matrix",
       .dims = {"NMEAS", "NSTATE"},
@@ -962,6 +965,9 @@ has been produced and if the measurement can be understood properly.
     known measurement error from both the data and the fit,
     showing the physical signal from the target rather than
     known sensor noise.
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.measurement_vec_fit``;
+they do not replace this independent workspace variable.
 )",
       .type          = "Vector",
       .default_value = " ",
@@ -984,6 +990,9 @@ In the notation of *measurement_vec* and *oemCalc*,
 
 To choose the state of the model, you must setup *jac_targets* to
 include the state parameters you want to be able to change.
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.model_state_vec``;
+they do not replace this independent workspace variable.
 )",
       .type          = "Vector",
       .default_value = " ",

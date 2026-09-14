@@ -12,7 +12,8 @@ arts = pyarts.arts
 assert arts.OptimalEstimationStatus(
     "Converged") == arts.OptimalEstimationStatus.Converged
 assert set(arts.OptimalEstimationStatus.get_options_as_strings()) == {
-    "NotRun", "Converged", "IterationLimit", "DampingLimit", "Error", "StartCostLimit"
+    "NotRun", "Converged", "IterationLimit", "LinearSolverLimit",
+    "DampingLimit", "Error", "StartCostLimit"
 }
 diagnostics = arts.OptimalEstimationDiagnostics()
 assert diagnostics.status == arts.OptimalEstimationStatus.NotRun

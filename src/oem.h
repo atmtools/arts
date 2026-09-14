@@ -127,11 +127,12 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
    */
   template <typename MatrixType, typename VectorType> auto solve(const MatrixType &A, const VectorType &v) ->
       typename VectorType::ResultType {
-    // invlib's relative CG residual is undefined for an exactly zero RHS.
-    // The solution is zero for the positive-definite OEM systems.
-    bool zero_rhs = true;
-    for (Index i = 0; i < v.rows(); ++i) zero_rhs = zero_rhs && v(i) == 0;
-    if (zero_rhs) return v;
+    // CG handles zero RHS itself and must reset its stop reason on every solve.
+    if constexpr (not std::is_same_v<SolverType, invlib::ConjugateGradient<>>) {
+      bool zero_rhs = true;
+      for (Index i = 0; i < v.rows(); ++i) zero_rhs = zero_rhs && v(i) == 0;
+      if (zero_rhs) return v;
+    }
 
     if constexpr (std::is_same_v<SolverType, invlib::ConjugateGradient<>>) {
       if (not measurement_scales.empty()) {
@@ -151,6 +152,10 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
       w = SolverType::solve(A, v);
     }
     return w;
+  }
+
+  auto get_stop_reason() const requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
+    return SolverType::get_stop_reason();
   }
 
   void set_iteration_limit_warning(std::function<void()> warning)

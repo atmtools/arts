@@ -386,11 +386,13 @@ class CovarianceMatrix {
 
  private:
   friend class CovarianceSquareRoot;
-  // Immutable cache shared safely by copies; rebuilt after source changes.
+  // Immutable factors; acquisition/publication on mutable sources is guarded
+  // by preparation_'s mutex. Prepared snapshots need no locking for solves.
   mutable std::shared_ptr<const CovarianceSolveCache> solve_cache_;
   std::shared_ptr<CovariancePreparation>              preparation_;
   bool                                                finalized_ = false;
   bool                                                solve_components(StridedMatrixView, StridedConstMatrixView) const;
+  void validate_unlocked(Index expected_size, Numeric relative_tolerance, Index max_dense_elements) const;
   void                                                generate_blocks(std::vector<std::vector<const Block *>> &) const;
   void invert_correlation_block(std::vector<Block> &inverses, std::vector<const Block *> &blocks) const;
   bool has_inverse(IndexPair indices) const;

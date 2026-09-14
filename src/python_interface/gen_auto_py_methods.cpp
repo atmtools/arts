@@ -377,17 +377,53 @@ std::string method_adapter(const std::string& name, const WorkspaceMethodInterna
       wsm.return_type);
 }
 
+// Keep runtime conversion on py::object while restoring useful help()/stub
+// annotations from metadata. No variant caster is instantiated for this text.
+std::string method_generic_signature(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
+  const auto generic = [](const std::string& type) { return type == "Any" or type.contains(','); };
+  if (not stdr::any_of(wsm.gin_type, generic) and not stdr::any_of(wsm.gout_type, generic)) return "";
+
+  std::string signature = "def " + name + "(self";
+  const auto  argument  = [&](const std::string& arg, const std::string& declaration) {
+    signature += ", " + arg + ": ";
+    if (declaration == "Any") {
+      signature += "typing.Any";
+    } else {
+      bool first = true;
+      for (auto type : split(declaration, ",")) {
+        trim(type);
+        if (not first) signature += " | ";
+        first      = false;
+        signature += "pyarts3.arts." + type;
+      }
+    }
+    signature += " | None = None";
+  };
+  const auto& variables = workspace_variables();
+  for (const auto& out : wsm.out) argument(out, variables.at(out).type);
+  for (std::size_t i = 0; i < wsm.gout.size(); ++i) argument(wsm.gout[i], wsm.gout_type[i]);
+  for (const auto& in : wsm.in) {
+    if (stdr::find(wsm.out, in) == wsm.out.end()) argument(in, variables.at(in).type);
+  }
+  for (std::size_t i = 0; i < wsm.gin.size(); ++i) {
+    if (stdr::find(wsm.gout, wsm.gin[i]) == wsm.gout.end()) argument(wsm.gin[i], wsm.gin_type[i]);
+  }
+  signature += ") -> " + (wsm.return_type == "void" ? std::string{"None"} : "pyarts3.arts." + wsm.return_type);
+  return std::format("    py::sig(\"{}\"),\n", signature);
+}
+
 std::string method(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   return std::format(
       R"-x-(  ws.def("{0}", &py_wsm_{0},
     {1}
 {2},
-    py::call_guard<py::gil_scoped_release>());
+{3}    py::call_guard<py::gil_scoped_release>());
 
 )-x-",
       name,
       method_argument_documentation(wsm),
-      method_docs(name));
+      method_docs(name),
+      method_generic_signature(name, wsm));
 }
 
 void methods(int nfiles) {

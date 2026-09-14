@@ -94,11 +94,20 @@ Block &Block::operator=(Block &&) noexcept = default;
 Block::~Block()                            = default;
 CovarianceMatrix::CovarianceMatrix() : preparation_(std::make_shared<CovariancePreparation>()) {}
 CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &other)
-    : solve_cache_(other.solve_cache_),
-      preparation_(std::make_shared<CovariancePreparation>()),
-      correlations_(other.finalized_ ? detached_blocks(other.correlations_) : other.correlations_),
-      inverses_(other.finalized_ ? detached_blocks(other.inverses_) : other.inverses_) {}
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept = default;
+    : preparation_(std::make_shared<CovariancePreparation>()) {
+  std::lock_guard lock(other.preparation_->mutex);
+  solve_cache_  = other.solve_cache_;
+  correlations_ = other.finalized_ ? detached_blocks(other.correlations_) : other.correlations_;
+  inverses_     = other.finalized_ ? detached_blocks(other.inverses_) : other.inverses_;
+}
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&other) noexcept
+    : solve_cache_(std::move(other.solve_cache_)),
+      // Retain a valid preparation object in the empty source without allocating
+      // in a noexcept move. Exact signatures distinguish its subsequent edits.
+      preparation_(other.preparation_),
+      finalized_(std::exchange(other.finalized_, false)),
+      correlations_(std::exchange(other.correlations_, {})),
+      inverses_(std::exchange(other.inverses_, {})) {}
 CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &other) {
   if (this != &other) {
     CovarianceMatrix copy(other);
@@ -106,7 +115,16 @@ CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &other) {
   }
   return *this;
 }
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept = default;
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&other) noexcept {
+  if (this != &other) {
+    solve_cache_  = std::move(other.solve_cache_);
+    preparation_ = other.preparation_;
+    finalized_   = std::exchange(other.finalized_, false);
+    correlations_ = std::exchange(other.correlations_, {});
+    inverses_     = std::exchange(other.inverses_, {});
+  }
+  return *this;
+}
 CovarianceMatrix::~CovarianceMatrix()                                       = default;
 
 void CovarianceMatrix::clear_cache() {
@@ -115,6 +133,11 @@ void CovarianceMatrix::clear_cache() {
   preparation_ = std::move(fresh);
   finalized_   = false;
   inverses_    = std::vector<Block>{};
+}
+
+void CovarianceMatrix::validate(Index expected_size, Numeric relative_tolerance, Index max_dense_elements) const {
+  std::lock_guard lock(preparation_->mutex);
+  validate_unlocked(expected_size, relative_tolerance, max_dense_elements);
 }
 
 Block::Block(Range row_range, Range column_range, IndexPair indices, BlockMatrix matrix)
@@ -590,18 +613,23 @@ void CovarianceMatrix::compute_inverse() const {
   }
   // Inverse-only matrices are also used internally as precision operators.
   if (correlations_.empty()) return;
+  std::lock_guard lock(preparation_->mutex);
+  // Reuse the complete, previously validated inverse. An exact signature also
+  // catches edits through retained block references and shared matrix storage.
+  if (preparation_->validated_inverse and
+      *preparation_->validated_inverse == covariance_signature(*this))
+    return;
   // Independent components may have supplied inverses while others still need
   // computing. A represented component must already have a complete inverse.
   // The optional confirmation API has a user-configurable allocation guard.
   // Existing inversion callers already request a dense component inverse and
   // must not inherit an unconfigurable size limit from that separate API.
-  validate(-1, 1e-10, std::numeric_limits<Index>::max());
+  validate_unlocked(-1, 1e-10, std::numeric_limits<Index>::max());
   std::vector<std::vector<const Block *>> correlation_blocks{};
   generate_blocks(correlation_blocks);
   for (std::vector<const Block *> &cb : correlation_blocks) { invert_correlation_block(inverses_, cb); }
   // Remember completed validation, including the resulting inverse values.
   // Preparation still checks exact storage, so aliases cannot bypass validation.
-  std::lock_guard lock(preparation_->mutex);
   preparation_->validated_inverse = covariance_signature(*this);
 }
 
@@ -859,29 +887,18 @@ std::shared_ptr<const CovarianceMatrix> CovarianceMatrix::prepared(bool need_pre
 }
 
 bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatrixView rhs) const {
+  // Only source cache construction/publication needs synchronization. A
+  // published snapshot has immutable factors, while independent solves retain
+  // their own cache handle and release the lock before doing any arithmetic.
+  std::unique_lock lock(preparation_->mutex, std::defer_lock);
+  if (not finalized_) lock.lock();
   // Preserve explicitly supplied (including precision-only) representations.
   if (correlations_.empty() or not inverses_.empty()) return false;
   if (not finalized_) {
-    std::vector<Index>   layout;
-    std::vector<Numeric> values;
-    for (const auto &b : correlations_) {
-      const auto [i, j] = b.get_indices();
-      layout.insert(layout.end(),
-                    {i, j, b.get_row_range().offset, b.nrows(), b.get_column_range().offset, b.ncols(), b.is_dense()});
-      if (b.is_dense()) {
-        values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
-      } else {
-        const auto &a = b.get_sparse();
-        layout.push_back(a.nnz());
-        for (const auto [row, col, value] : a | by_elem) {
-          layout.insert(layout.end(), {row, col});
-          values.push_back(value);
-        }
-      }
-    }
+    auto [layout, values] = covariance_signature(*this);
     // Exact snapshots detect mutations through retained references/shared storage.
     if (not solve_cache_ or solve_cache_->layout != layout or solve_cache_->values != values) {
-      validate(-1, 1e-10, std::numeric_limits<Index>::max());
+      validate_unlocked(-1, 1e-10, std::numeric_limits<Index>::max());
       auto cache    = std::make_shared<CovarianceSolveCache>();
       cache->layout = std::move(layout);
       cache->values = std::move(values);
@@ -932,7 +949,13 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
       solve_cache_ = std::move(cache);
     }
   }
-  for (const auto &component : solve_cache_->components) {
+  const auto *cache = solve_cache_.get();
+  std::shared_ptr<const CovarianceSolveCache> retained_cache;
+  if (lock.owns_lock()) {
+    retained_cache = solve_cache_;
+    lock.unlock();
+  }
+  for (const auto &component : cache->components) {
     std::visit(
         [&]<typename T>(const T &solver) {
           if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {

@@ -2,7 +2,9 @@
 #define ALGEBRA_SOLVERS
 
 #include "invlib/algebra.h"
+#include <algorithm>
 #include <cassert>
+#include <cstddef>
 #include <functional>
 #include <cmath>
 #include <iostream>
@@ -159,6 +161,10 @@ private:
 
 
 
+/** Outcome of the latest CG solve. A capped iterate is available to callers,
+ * but is not a converged linear solution. */
+enum class CGStopReason : bool { Converged, IterationLimit };
+
 // -------------------------  //
 //  Conjugate Gradient Solver //
 // -------------------------  //
@@ -188,16 +194,18 @@ public:
     // Called on budget exhaustion before returning the current iterate.
     std::function<void()> iteration_limit_warning;
 
+    CGStopReason get_stop_reason() const { return stop_reason; }
+
     /*! Create CG solver object with given convergence tolerance and step limit.
      *
      * \param tol The finite, positive convergence tolerance.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
-     * \param max_iterations The positive maximum number of iterations per solve.
+     * \param max_iterations Maximum iterations per solve; zero chooses max(1000, 2*n).
      * Exhausting this limit returns the current iterate and invokes
      * iteration_limit_warning if set.
      */
     inline ConjugateGradient(double tol, int verbosity = 0,
-                            int max_iterations = 1000);
+                            int max_iterations = 0);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -225,6 +233,7 @@ private:
     double     tolerance;
     int        max_iterations;
     CGSettings settings;
+    CGStopReason stop_reason = CGStopReason::Converged;
 
 };
 
@@ -262,6 +271,8 @@ public:
     // Called on budget exhaustion before returning the current iterate.
     std::function<void()> iteration_limit_warning;
 
+    CGStopReason get_stop_reason() const { return stop_reason; }
+
     /*! Create a preconditioned CG solver object with given transformation,
      *  convergence tolerance and verbosity.
      *
@@ -270,11 +281,11 @@ public:
      * \param tol The convergence criterion with respect the relative residual
      * \f$\frac{|\mathbf{r}_k|}{|\mathbf{b}|}\f$.
      * \param verbosity If verbosity > 0, iteration progress is printed to standard out.
-     * \param max_iterations The positive iteration limit per solve. Exhaustion
+     * \param max_iterations Iteration limit; zero chooses max(1000, 2*n). Exhaustion
      * returns the current iterate and invokes iteration_limit_warning if set.
      */
     PreconditionedConjugateGradient(const F &f, double tol, int verbosity = 0,
-                                   int max_iterations = 1000);
+                                   int max_iterations = 0);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -304,6 +315,7 @@ private:
     int    verbosity;
     double tolerance;
     int    max_iterations;
+    CGStopReason stop_reason = CGStopReason::Converged;
 };
 
 template<typename F>
@@ -315,6 +327,8 @@ public:
     // Called on budget exhaustion before returning the current iterate.
     std::function<void()> iteration_limit_warning;
 
+    CGStopReason get_stop_reason() const { return stop_reason; }
+
     /*! Create a non-cached preconditioned CG solver.
      *
      * For each call to the solve(...) member function, this solver
@@ -325,11 +339,11 @@ public:
      * \param tol The tolerance on the relative residual up to which the
      * iteration is continued.
      * \param verbosity If verbosity > 0, log output is printed to standard out.
-     * \param max_iterations The positive iteration limit per solve. Exhaustion
+     * \param max_iterations Iteration limit; zero chooses max(1000, 2*n). Exhaustion
      * returns the current iterate and invokes iteration_limit_warning if set.
      */
     PreconditionedConjugateGradient(double tol, int verbosity = 0,
-                                   int max_iterations = 1000);
+                                   int max_iterations = 0);
 
     /*! Solve linear system using the conjugate gradient method.
      *
@@ -358,6 +372,7 @@ private:
     int    verbosity;
     double tolerance;
     int    max_iterations;
+    CGStopReason stop_reason = CGStopReason::Converged;
 
 };
 

@@ -184,6 +184,8 @@ template <typename Forward> void oem_compute(Forward&                          a
                                              Numeric                           stop_dx,
                                              const LevenbergMarquardtSettings& lm_ga_settings,
                                              Index                             display_progress,
+                                             Numeric                           cg_tolerance,
+                                             Index                             cg_max_iter,
                                              const BlockMatrix*                projected_damping = nullptr) {
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   auto&       lm_ga_history = oem_diagnostics.lm_ga_history;
@@ -216,6 +218,10 @@ template <typename Forward> void oem_compute(Forward&                          a
           x_oem, y_oem, optimizer, verbosity, lm_ga_history, selected.linear());
       oem_diagnostics.status =
           status == 0 ? OptimalEstimationStatus::Converged : OptimalEstimationStatus::IterationLimit;
+      if constexpr (std::same_as<decltype(optimizer.get_stop_reason()), invlib::CGStopReason>) {
+        if (optimizer.get_stop_reason() == invlib::CGStopReason::IterationLimit)
+          oem_diagnostics.status = OptimalEstimationStatus::LinearSolverLimit;
+      }
     } catch (...) {
       diagnostics();
       throw;
@@ -243,6 +249,8 @@ template <typename Forward> void oem_compute(Forward&                          a
       run(retrieval, optimizer);
       if (optimizer.get_stop_reason() == invlib::LMStopReason::DampingLimit)
         oem_diagnostics.status = OptimalEstimationStatus::DampingLimit;
+      else if (optimizer.get_stop_reason() == invlib::LMStopReason::LinearSolverLimit)
+        oem_diagnostics.status = OptimalEstimationStatus::LinearSolverLimit;
     } else {
       invlib::GaussNewton<Numeric, Solver> optimizer(stop_dx, iterations, solver);
       // Both measurement solvers accept the lazy system.
@@ -259,12 +267,12 @@ template <typename Forward> void oem_compute(Forward&                          a
   };
 
   if (selected.conjugate_gradient) {
-    oem::CG solver(T, apply_norm, 1e-10, 0);
+    oem::CG solver(T, apply_norm, cg_tolerance, 0, static_cast<int>(cg_max_iter));
     solver.measurement_scales = measurement_vec_normalization;
     bool warned               = false;
     solver.set_iteration_limit_warning([&] {
       if (not warned) {
-        errors.emplace_back("Warning: CG iteration limit reached; OEM continued with the last linear-solver iterate.");
+        errors.emplace_back("Warning: CG iteration limit reached; the unconverged step was rejected.");
         warned = true;
       }
     });
@@ -278,12 +286,6 @@ template <typename Forward> void oem_compute(Forward&                          a
   }
 }
 }  // namespace
-
-void model_state_vec_aprioriFromState(Vector& xa, const Vector& x) {
-  ARTS_TIME_REPORT
-
-  xa = x;
-}
 
 void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   ARTS_TIME_REPORT
@@ -317,9 +319,16 @@ void oemCalc(const Workspace&                  ws,
              const Numeric&                    stop_dx,
              const LevenbergMarquardtSettings& lm_ga_settings,
              const Index&                      clear_matrices,
-             const Index&                      display_progress) {
+             const Index&                      display_progress,
+             const Numeric&                    cg_tolerance,
+             const Index&                      cg_max_iter) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
+                     "cg_tolerance must be finite and strictly positive.")
+  ARTS_USER_ERROR_IF(
+      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
+      "cg_max_iter must be zero (automatic) or a positive iteration count within the native integer range.")
   data.ensure_checked(jac_targets);
   auto&       model_state_vec                    = data.model_state_vec;
   auto&       measurement_vec_fit                = data.measurement_vec_fit;
@@ -478,7 +487,9 @@ void oemCalc(const Workspace&                  ws,
                   max_iter,
                   stop_dx,
                   lm_ga_settings,
-                  display_progress);
+                  display_progress,
+                  cg_tolerance,
+                  cg_max_iter);
       // Ensure that the returned gain/Jacobian describe the retrieved state.
       // An already current Jacobian needs neither an agenda call nor a fit copy.
       if (!selected.linear() && !clear_matrices) aw.ensure_jacobian(x_oem);
@@ -634,6 +645,7 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
   if (q == m) {
     auto identity = std::make_shared<Sparse>(m, m);
     id_mat(*identity);
+    data.uncheck();
     measurement_basis_mat = std::move(identity);
     return;
   }
@@ -656,6 +668,7 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
     }
     auto sparse = std::make_shared<Sparse>(q, m);
     sparse->matrix.setFromTriplets(entries.begin(), entries.end());
+    data.uncheck();
     measurement_basis_mat = std::move(sparse);
   } else {
     // J = T R. C = T^T Se^-1 retains all state-dependent likelihood terms,
@@ -665,12 +678,15 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
     mult_inv(weighted, *noise, T);
     ARTS_USER_ERROR_IF(stdr::any_of(weighted | by_elem, [](Numeric v) { return not std::isfinite(v); }),
                        "Measurement basis exceeds numerical range.")
-    measurement_basis_mat = std::make_shared<Matrix>(transpose(weighted));
+    auto basis = std::make_shared<Matrix>(transpose(weighted));
+    data.uncheck();
+    measurement_basis_mat = std::move(basis);
   }
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void oemBasisCalc(OptimalEstimationData& data) {
+void oemBasisCalc(OptimalEstimationData& data, const Index& full_matrices) {
+  ARTS_USER_ERROR_IF(full_matrices != 0 and full_matrices != 1, "full_matrices must be 0 or 1.")
   auto&       model_state_basis_mat        = data.model_state_basis_mat;
   auto&       measurement_basis_mat        = data.measurement_basis_mat;
   auto&       oem_basis_singular_values    = data.basis_singular_values;
@@ -679,7 +695,7 @@ void oemBasisCalc(OptimalEstimationData& data) {
   const auto& measurement_vec_error_covmat = data.measurement_vec_error_covmat;
   ARTS_TIME_REPORT
   const Index m = measurement_jac.nrows(), n = measurement_jac.ncols();
-  ARTS_USER_ERROR_IF(m <= 0 or n <= 0, "ReducedOEMBasisCalc requires a nonempty measurement_jac.")
+  ARTS_USER_ERROR_IF(m <= 0 or n <= 0, "oemBasisCalc requires a nonempty measurement_jac.")
   ARTS_USER_ERROR_IF(model_state_covmat.nrows() != n or measurement_vec_error_covmat.nrows() != m,
                      "Covariance sizes must match the {} measurement_jac columns and {} rows.",
                      n,
@@ -697,12 +713,13 @@ void oemBasisCalc(OptimalEstimationData& data) {
 
   Matrix u, v;
   Vector singular_values;
-  // Preserve both null spaces; choosing which modes to discard is a separate step.
-  svd(u, singular_values, v, whitened);
+  // Full bases preserve both null spaces; economical bases omit the extra
+  // null-space vectors on the larger side of a rectangular Jacobian.
+  svd(u, singular_values, v, whitened, full_matrices != 0);
   ARTS_USER_ERROR_IF(stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x); }),
                      "Information spectrum exceeds numerical range.")
 
-  Matrix B(n, n), C(m, m);
+  Matrix B(n, v.ncols()), C(u.ncols(), m);
   prior.multiply_left(B, v);
   noise.solve_left(transpose(C), u, true);
   ARTS_USER_ERROR_IF(stdr::any_of(B | by_elem, [](auto x) { return not std::isfinite(x); }) or
@@ -710,9 +727,12 @@ void oemBasisCalc(OptimalEstimationData& data) {
                      "Basis matrices exceed numerical range.")
 
   // Publish the matched bases and spectrum only after all transformations succeed.
-  model_state_basis_mat     = std::make_shared<Matrix>(std::move(B));
-  measurement_basis_mat     = std::make_shared<Matrix>(std::move(C));
-  oem_basis_singular_values = std::move(singular_values);
+  data.uncheck();
+  model_state_basis_mat            = std::make_shared<Matrix>(std::move(B));
+  measurement_basis_mat            = std::make_shared<Matrix>(std::move(C));
+  oem_basis_singular_values        = std::move(singular_values);
+  data.basis_lost_dofs             = 0;
+  data.basis_lost_information_bits = 0;
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -732,12 +752,12 @@ void oemBasisReduce(OptimalEstimationData& data,
   const Index n = B.nrows(), m = C.ncols(), p = std::min(m, n);
   ARTS_USER_ERROR_IF(
       n <= 0 or m <= 0 or B.ncols() <= 0 or B.ncols() > n or C.nrows() <= 0 or C.nrows() > m,
-      "Basis matrices must be nonempty with at most the original number of modes; use ReducedOEMBasisCalc first.")
+      "Basis matrices must be nonempty with at most the original number of modes; use oemBasisCalc first.")
   ARTS_USER_ERROR_IF(singular_values.size() != static_cast<std::size_t>(p) or
                          stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x) or x < 0; }) or
                          not std::is_sorted(singular_values.begin(), singular_values.end(), std::greater<>{}),
                      "oem_basis_singular_values must contain {} finite, nonnegative values in descending order "
-                     "from the same ReducedOEMBasisCalc call as the full bases.",
+                     "from the same oemBasisCalc call as the full bases.",
                      p)
   ARTS_USER_ERROR_IF(rank != -1 and (rank < 1 or rank > n),
                      "rank must be -1 for automatic selection or between 1 and {} full state variables.",
@@ -785,7 +805,7 @@ void oemBasisReduce(OptimalEstimationData& data,
   const Index q = std::min(retained, m);
   ARTS_USER_ERROR_IF(
       retained > B.ncols() or q > C.nrows(),
-      "Requested modes have already been removed. Restore saved bases or rerun ReducedOEMBasisCalc before increasing rank or tightening loss limits.")
+      "Requested modes have already been removed. Restore saved bases or rerun oemBasisCalc before increasing rank or tightening loss limits.")
   const auto leading = [](const BlockMatrix& basis, Index rows, Index cols) {
     return std::visit(
         [&]<typename T>(const std::shared_ptr<T>& matrix) -> BlockMatrix {
@@ -802,6 +822,7 @@ void oemBasisReduce(OptimalEstimationData& data,
   BlockMatrix reduced_B = leading(B, n, retained);
   BlockMatrix reduced_C = leading(C, q, m);
   // Materialize both slices before replacing either input; retain the full spectrum for total losses.
+  data.uncheck();
   model_state_basis_mat           = std::move(reduced_B);
   measurement_basis_mat           = std::move(reduced_C);
   oem_basis_lost_dofs             = lost_dofs;
@@ -823,9 +844,16 @@ void oemCalcReduced(const Workspace&                  ws,
                     const Numeric&                    stop_dx,
                     const LevenbergMarquardtSettings& lm_ga_settings,
                     const Index&                      clear_matrices,
-                    const Index&                      display_progress) {
+                    const Index&                      display_progress,
+                    const Numeric&                    cg_tolerance,
+                    const Index&                      cg_max_iter) {
   ARTS_TIME_REPORT
 
+  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
+                     "cg_tolerance must be finite and strictly positive.")
+  ARTS_USER_ERROR_IF(
+      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
+      "cg_max_iter must be zero (automatic) or a positive iteration count within the native integer range.")
   data.ensure_checked(jac_targets);
 
   auto&       model_state_vec                    = data.model_state_vec;
@@ -1026,6 +1054,8 @@ void oemCalcReduced(const Workspace&                  ws,
                 stop_dx,
                 lm_ga_settings,
                 display_progress,
+                cg_tolerance,
+                cg_max_iter,
                 damping.not_null() ? &damping : nullptr);
     model_state_vec = reduced.expand(z);
     // LI and rejected LM trials also need the physical outputs at the returned state.
@@ -1175,6 +1205,7 @@ void oemRestoreApriori(AbsorptionBands&             abs_bands,
 
 void oemMeasurementCovmatNormalization(OptimalEstimationData& data) {
   measurement_covariance_normalization(data.measurement_vec_normalization, data.measurement_vec_error_covmat);
+  data.uncheck();
 }
 
 void oemClearAuxiliary(OptimalEstimationData& data) { data.clear_auxiliary(); }

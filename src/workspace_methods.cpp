@@ -5388,7 +5388,7 @@ Description of the special input arguments:
       using an undamped step when cost reductions approach floating-point
       resolution; this is independent of the damping gate on the ordinary
       state-step criterion. This does not set the inner CG tolerance, which is
-      fixed at 1e-10.
+      controlled by cg_tolerance (default 1e-10).
 
     - ``lm_ga_settings``:
 
@@ -5426,16 +5426,19 @@ Description of the special input arguments:
 unavailable. ``iterations`` is an Index, initially zero.
 
 The ``OptimalEstimationStatus`` enum distinguishes ``NotRun``, ``Converged``,
-``IterationLimit``, ``DampingLimit``, ``Error``, and ``StartCostLimit``.
+``IterationLimit``, ``LinearSolverLimit``, ``DampingLimit``, ``Error``, and ``StartCostLimit``.
 ``Converged`` includes LM numerical stationarity. Linear methods may return
 ``IterationLimit`` after their single step even at the exact solution.
 
 ``oem.diagnostics.lm_ga_history`` records starting and updated LM damping,
 with unused trailing entries set to NaN; it is empty for non-LM methods.
 ``oem.diagnostics.errors`` contains caught errors and warnings. Inner CG
-exhaustion records a warning and continues with the last iterate without
-changing the outer status. Thus ``Converged`` does not guarantee that every
-inner CG solve reached its tolerance.
+exhaustion rejects the step and records a warning. GN/LI stop with
+``LinearSolverLimit``; LM retries with increased damping and reports that
+status if its final attempt also exhausts CG. ``cg_max_iter=0`` uses a budget
+of max(1000, 2 * system dimension) per solve; a positive value sets an explicit
+budget. The dimension is that of the selected state- or measurement-space
+system (reduced dimensions for oemCalcReduced).
 
 )",
       .author = {"Patrick Eriksson"},
@@ -5448,15 +5451,25 @@ inner CG solve reached its tolerance.
                  "subsurf_field",
                  "jac_targets",
                  "inversion_iterate_agenda"},
-      .gin =
-          {"method", "max_start_cost", "max_iter", "stop_dx", "lm_ga_settings", "clear_matrices", "display_progress"},
-      .gin_type       = {"String", "Numeric", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index"},
+      .gin    = {"method",
+                 "max_start_cost",
+                 "max_iter",
+                 "stop_dx",
+                 "lm_ga_settings",
+                 "clear_matrices",
+                 "display_progress",
+                 "cg_tolerance",
+                 "cg_max_iter"},
+      .gin_type =
+          {"String", "Numeric", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index", "Numeric", "Index"},
       .gin_value      = {std::nullopt,
                          Numeric{std::numeric_limits<Numeric>::infinity()},
                          Index{10},
                          Numeric{0.01},
                          LevenbergMarquardtSettings{},
                          Index{0},
+                         Index{0},
+                         Numeric{1e-10},
                          Index{0}},
       .gin_desc       = {"Iteration method. For this and all options below, see further above",
                          "Maximum allowed value of cost function at start",
@@ -5464,7 +5477,9 @@ inner CG solve reached its tolerance.
                          "Stop criterion for iterative inversions",
                          "Named LM damping controls",
                          "An option to save memory",
-                         "Flag to control if inversion diagnostics shall be printed on the screen"},
+                         "Flag to control if inversion diagnostics shall be printed on the screen",
+                         "Positive relative CG residual tolerance",
+                         "Maximum CG iterations per linear solve; zero uses max(1000, 2 * system dimension)"},
       .pass_workspace = true,
 
       /* *OEM* reads the sizes of *model_state_vec*, *measurement_vec_fit* and
@@ -5560,7 +5575,7 @@ No agenda runs and no Jacobian is recomputed.
   };
 
   wsm_data["oemBasisCalc"] = {
-      .desc   = R"(Compute full, matched state and measurement bases and their information spectrum.
+      .desc      = R"(Compute matched state and measurement bases and their information spectrum.
 
 Uses ``oem.measurement_jac``, ``oem.model_state_covmat``, and
 ``oem.measurement_vec_error_covmat`` at their current linearization point. With
@@ -5574,7 +5589,8 @@ Uses ``oem.measurement_jac``, ``oem.model_state_covmat``, and
     \mathbf{B}_{\rm full}=\mathbf{L}_a\mathbf{V},\qquad
     \mathbf{C}_{\rm full}=\mathbf{U}^{\top}\mathbf{L}_\epsilon^{-1}.
 
-Both bases are square and invertible, including all null-space directions.
+With full_matrices=1 (the default), both bases are square and invertible,
+including all null-space directions.
 This step discards no information: the full prior is
 :math:`\mathbf{B}_{\rm full}\mathbf{B}_{\rm full}^{\top}`, and the full
 measurement noise is
@@ -5588,6 +5604,14 @@ Use *oemBasisReduce* afterwards to truncate these basis inputs of
 removed modes without repeating the decomposition. Skip selection for a
 change of coordinates without any reduction.
 
+Set full_matrices=0 for economical bases: both retain min(m,n) singular modes,
+so their shapes are n by min(m,n) and min(m,n) by m. This avoids square dense
+bases in the larger dimension. It omits only the additional null-space vectors
+of the supplied linearization. For m < n, the state basis no longer reconstructs
+the full prior covariance; omitted state directions retain prior uncertainty.
+Nonlinear models can acquire sensitivity to omitted directions away from this
+linearization. oemBasisReduce can further truncate these bases.
+
 This preparation does not run an agenda or change its inputs. Covariance
 components use diagonal scaling or Cholesky, without forming covariance
 inverses. The full SVD and bases require dense storage, including a
@@ -5595,9 +5619,13 @@ state-square and a measurement-square basis. There is no configured memory
 cutoff. Recompute all three outputs when the chosen linearization or
 covariance assumptions change. See :ref:`sec-reduced-oem`.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem"},
-      .in     = {"oem"},
+      .author    = {"Richard Larsson"},
+      .out       = {"oem"},
+      .in        = {"oem"},
+      .gin       = {"full_matrices"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{1}},
+      .gin_desc  = {"Keep both complete null spaces (1), or use economical min(m,n)-mode bases (0)"},
   };
 
   wsm_data["oemBasisReduce"] = {
@@ -5718,15 +5746,6 @@ Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
       .in     = {"oem"},
   };
 
-  wsm_data["model_state_vec_aprioriFromState"] = {
-      .desc =
-          R"(Sets the a priori state of the model state vector to the current state.
-)",
-      .author = {"Richard Larsson"},
-      .out    = {"model_state_vec_apriori"},
-      .in     = {"model_state_vec"},
-  };
-
   wsm_data["measurement_vec_fitFromMeasurement"] = {
       .desc =
           R"(Sets the fitted measurement vector to the current measurement vector.
@@ -5745,36 +5764,8 @@ Jacobian in the retrieved coordinates; see :ref:`sec-oem-uncertainty`.
       .in     = {"oem"},
   };
 
-  wsm_data["model_state_covmatCorrelate"] = {
-      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets with a constant coefficient.
-
-Requires finalized targets, identical physical grids and diagonal marginal
-covariances, with one state coordinate per grid point.  The cross covariance
-is correlation times the product of the existing standard deviations.
-The coefficient is the same at every grid point; the covariance can vary
-with the marginal variances. Different grid points are not cross-correlated.
-Marginal variances are unchanged.  The coefficient refers to retrieval
-coordinates: for logarithmic water it correlates temperature with log-water.
-
-The coefficient must be finite and strictly between -1 and 1.  An existing
-cross block for this pair is replaced; zero removes it.  The complete candidate
-covariance is validated before assignment.  Failure leaves the input unchanged;
-success discards cached inverses.  Other existing correlations are preserved.
-)--",
-      .author                 = {"Richard Larsson"},
-      .out                    = {"model_state_covmat"},
-      .in                     = {"model_state_covmat", "jac_targets", "atm_field"},
-      .gin                    = {"target1", "target2", "correlation"},
-      .gin_type               = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
-      .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
-      .gin_value              = {std::nullopt, std::nullopt, std::nullopt},
-      .gin_desc               = {"First atmospheric target",
-                                 "Second atmospheric target",
-                                 "Constant correlation coefficient in retrieval coordinates"},
-  };
-
   wsm_data["oemStateCovmatCorrelateConstant"] = {
-      .desc                   = R"--(Correlate matching grid points of two atmospheric retrieval targets with a constant coefficient.
+      .desc     = R"--(Correlate matching grid points of two atmospheric retrieval targets with a constant coefficient.
 
 Requires finalized targets, identical physical grids and diagonal marginal
 covariances, with one state coordinate per grid point.  The cross covariance
@@ -5789,11 +5780,11 @@ cross block for this pair is replaced; zero removes it.  The complete candidate
 covariance is validated before assignment.  Failure leaves the input unchanged;
 success discards cached inverses.  Other existing correlations are preserved.
 )--",
-      .author                 = {"Richard Larsson"},
-      .out                    = {"oem"},
-      .in                     = {"oem", "jac_targets", "atm_field"},
-      .gin                    = {"target1", "target2", "correlation"},
-      .gin_type               = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
+      .author   = {"Richard Larsson"},
+      .out      = {"oem"},
+      .in       = {"oem", "jac_targets", "atm_field"},
+      .gin      = {"target1", "target2", "correlation"},
+      .gin_type = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
       .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
       .gin_value              = {std::nullopt, std::nullopt, std::nullopt},
       .gin_desc               = {"First atmospheric target",
@@ -5850,6 +5841,10 @@ to replace an earlier block layout.
   wsm_data["measurement_vec_error_covmatConstant"] = {
       .desc =
           R"(Sets a constant measurement vector error covariance matrix.
+
+The size comes from the nonempty workspace *measurement_vec*. Use this
+primitive helper before *oemInitFromData*, which consumes both variables.
+For data already owned by *oem*, use *oemMeasurementCovmatConstant* instead.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_vec_error_covmat"},

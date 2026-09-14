@@ -39,13 +39,15 @@ def _mode_information_bits(singular_values):
     return result / np.log(2.0)
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class ReductionReport:
     """Fixed state/measurement reductions and their local linear information loss.
 
     Assign both reduction matrices to ``ws.oem`` before calling ``ws.oemCalcReduced()``. Losses describe the Jacobian
     used for the information report, not a bound on nonlinear retrieval error.
     The underlying state modes are shared with that read-only report.
+    Reports compare and hash by object identity; compare their arrays explicitly
+    when checking numerical agreement.
     """
 
     model_state_basis_mat: np.ndarray = field(repr=False)
@@ -81,11 +83,13 @@ class ReductionReport:
         )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, eq=False)
 class InformationReport:
     """Snapshot of information implied by a Jacobian and assumed covariances.
 
-    All arrays are independent, read-only snapshots. ``singular_values`` has
+    Reports compare and hash by object identity; compare their arrays explicitly
+    when checking numerical agreement. All arrays are independent, read-only
+    snapshots. ``singular_values`` has
     one entry per state mode, including unobserved null modes. Columns of
     ``state_modes`` are perturbations in the supplied state coordinates:
     ``state_modes @ state_modes.T`` equals the prior covariance. Mode signs

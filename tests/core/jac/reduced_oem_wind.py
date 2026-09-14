@@ -100,7 +100,7 @@ def run():
     ws.oem.measurement_jac = ws.measurement_jac
     ws.oemFinalizeDiagonal()
     started = perf_counter()
-    ws.oemBasisCalc()
+    ws.oemBasisCalc(full_matrices=0)
     basis_calc_seconds = perf_counter() - started
     started = perf_counter()
     ws.oemBasisReduce()

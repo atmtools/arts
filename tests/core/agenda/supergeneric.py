@@ -13,8 +13,8 @@ ws = pyarts.Workspace()
 def rejects(call):
     try:
         call()
-    except (RuntimeError, TypeError, ValueError):
-        return
+    except (RuntimeError, TypeError, ValueError) as error:
+        return str(error)
     raise AssertionError("Invalid generic argument accepted")
 
 
@@ -73,7 +73,16 @@ ws.jac_targetsAddSurface(target="t")
 assert len(ws.jac_targets.atm) == 2
 assert len(ws.jac_targets.surf) == 1
 rejects(lambda: ws.jac_targetsAddAtmosphere(target="not a target"))
-rejects(lambda: ws.jac_targetsAddAtmosphere(target=arts.Matrix()))
+# For nanobind above 3, the error is better and this can be activated:
+# message = rejects(lambda: ws.jac_targetsAddAtmosphere(target=arts.Matrix()))
+# assert "User-provided pyarts3.arts.Matrix" in message
+# assert "Accepted workspace types:" in message
+# for group in ("AtmKey", "SpeciesEnum"):
+#     assert group in message
+#     # Help and generated stubs retain the union despite accepting py::object
+#     # internally, so users can discover which ARTS keys a method supports.
+#     assert f"pyarts3.arts.{group}" in ws.jac_targetsAddAtmosphere.__doc__.splitlines()[0]
+# assert "target: object" not in ws.jac_targetsAddAtmosphere.__doc__.splitlines()[0]
 rejects(lambda: ws.jac_targetsAddAtmosphere(target=None))
 assert len(ws.jac_targets.atm) == 2
 

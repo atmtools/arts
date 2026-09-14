@@ -331,16 +331,6 @@ using GenericAtmKey = Generic<const AtmKey,
                               const SpeciesEnum,
                               const SpeciesIsotope>;
 
-void model_state_covmatCorrelate(CovarianceMatrix&      covariance,
-                                 const JacobianTargets& targets,
-                                 const AtmField&        atmosphere,
-                                 const GenericAtmKey    target1,
-                                 const GenericAtmKey    target2,
-                                 const Numeric&         correlation) {
-  const auto key = [](const auto& target) { return std::visit([](const auto& p) -> AtmKeyVal { return *p; }, target); };
-  correlate_atmosphere(covariance, targets, atmosphere, key(target1), key(target2), correlation);
-}
-
 void oemStateCovmatCorrelateConstant(OptimalEstimationData& data,
                                      const JacobianTargets& targets,
                                      const AtmField&        atmosphere,
