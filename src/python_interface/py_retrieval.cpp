@@ -71,7 +71,7 @@ void py_retrieval(py::module_& m) try {
   generic_interface(data);
   data.def_prop_ro("checked",
                    &OptimalEstimationData::checked,
-                   "Whether the last explicit check succeeded. Attribute replacement requires uncheck().");
+                   "Whether the last explicit check succeeded. Attribute replacement requires uncheck().\n\n.. :class:`bool`");
   data.def("check",
            &OptimalEstimationData::check,
            "jac_targets"_a.none() = py::none(),
