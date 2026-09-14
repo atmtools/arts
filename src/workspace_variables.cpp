@@ -163,6 +163,8 @@ species they should read from the available input files.
       .desc = R"(The degree of a Legendre polynomial.
 )",
       .type = "Index",
+      .dims = {"NL"},
+      .dim_size = {"{} + 1"},
   };
 
   wsv_data["select_species"] = {
@@ -281,6 +283,7 @@ Dimension: [ ppath.np ]
 Usage: Output of radiative transfer methods.
 )--",
       .type = "ArrayOfAtmPoint",
+      .dims = {"NP"},
   };
 
   wsv_data["atm_point"] = {
@@ -334,12 +337,14 @@ For more information, see :doc:`user.atm_field`.
     nature of all grids.
 )--",
       .type = "AscendingGrid",
+      .dims = {"NF"},
   };
 
   wsv_data["freq_grid_path"] = {
       .desc = R"--(All *freq_grid* along the propagation path.
 )--",
       .type = "ArrayOfAscendingGrid",
+      .dims = {"NP", "NF"},
   };
 
   wsv_data["freq_wind_shift_jac"] = {
@@ -364,6 +369,7 @@ The order is
           R"--(A list of *freq_wind_shift_jac* for a ray path.
 )--",
       .type = "ArrayOfVector3",
+      .dims = {"NP"},
   };
 
   //! Spectral
@@ -373,6 +379,7 @@ The order is
           R"--(The absorption vector of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "StokvecVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_absvec_scat_path"] = {
@@ -406,6 +413,7 @@ come from more sources, such as scattering and/or transmitting equipment.
 The unit is in *spectral_rad* per meter.
 )--",
       .type = "StokvecVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_jac"] = {
@@ -415,12 +423,14 @@ The unit is in *spectral_rad* per meter.
 The units are *spectral_rad_jac* per meter.
 )--",
       .type = "StokvecMatrix",
+      .dims = {"NT", "NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_jac_path"] = {
       .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
+      .dims = {"NP", "NT", "NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_jac_profile"] = {
@@ -437,6 +447,7 @@ The units are *spectral_rad_jac* per meter.
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
+      .dims = {"NP", "NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_profile"] = {
@@ -454,6 +465,7 @@ The units are *spectral_rad_jac* per meter.
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
 )--",
       .type = "SpecmatMatrix",
+      .dims = {"NF", "NL"},
   };
 
   wsv_data["spectral_phamat_spectral_path"] = {
@@ -479,6 +491,7 @@ The unit is [1 / m].
 Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_propmat_jac"] = {
@@ -488,12 +501,14 @@ Dimension: *freq_grid*.
 The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
 )--",
       .type = "PropmatMatrix",
+      .dims = {"NT", "NF"},
   };
 
   wsv_data["spectral_propmat_jac_path"] = {
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix",
+      .dims = {"NP", "NT", "NF"},
   };
 
   wsv_data["spectral_propmat_jac_profile"] = {
@@ -510,6 +525,7 @@ The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector",
+      .dims = {"NP", "NF"},
   };
 
   wsv_data["spectral_propmat_profile"] = {
@@ -534,6 +550,7 @@ The unit is [1 / m].
 Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_propmat_scat_path"] = {
@@ -541,6 +558,7 @@ Dimension: *freq_grid*.
           R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
+      .dims = {"NP", "NF"},
   };
 
   wsv_data["spectral_rad"] = {
@@ -559,6 +577,7 @@ will lead to undefined behavior with possibly bad values being computed.
 The size of this variable should be the size of the local *freq_grid*.
 )--",
       .type = "StokvecVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_rad_bkg"] = {
@@ -595,6 +614,7 @@ The size of this variable should be the local *jac_targets* as rows times the
 size of the local *spectral_rad* as columns.
 )--",
       .type = "StokvecMatrix",
+      .dims = {"NX", "NF"},
   };
 
   wsv_data["spectral_rad_jac_path"] = {
@@ -638,6 +658,7 @@ into a different unit, e.g., from [W / m :math:`^2` sr Hz] to Kelvin.
 Shape: *freq_grid*
 )--",
       .type = "MuelmatVector",
+      .dims = {"NF"},
   };
 
   wsv_data["spectral_surf_refl_jac"] = {
@@ -646,6 +667,7 @@ Shape: *freq_grid*
 Shape: *jac_targets* - target count x *freq_grid*
 )--",
       .type = "MuelmatMatrix",
+      .dims = {"NT", "NF"},
   };
 
   wsv_data["spectral_tramat_path"] = {
@@ -830,6 +852,7 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
 )--",
       .type          = "JacobianTargets",
       .default_value = " ",
+      .dims = {"NT", "NX"},
   };
 
   wsv_data["inversion_iterate_agenda_counter"] = {
@@ -1013,6 +1036,7 @@ Most likely only makes sense in combination with *obs_los*.
       .desc = R"--(A list path points making up a propagation path.
 )--",
       .type = "ArrayOfPropagationPathPoint",
+      .dims = {"NP"},
   };
 
   wsv_data["ray_path_field"] = {

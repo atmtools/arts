@@ -17,9 +17,13 @@ void add_arrays_of(std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_da
                    const std::vector<std::string>&                        types,
                    std::vector<std::string>                               extra_headers) {
   for (const auto& type : types) {
+    // Only the length of the list is read here.  The elements may name further
+    // dimensions, but those belong to each element and need not agree between
+    // them, so they are documented rather than verified.
     auto& v = wsg_data["ArrayOf" + type] = {
-        .file = "vector",
-        .desc = "A list of *" + type + "*\n",
+        .file     = "vector",
+        .desc     = "A list of *" + type + "*\n",
+        .dim_size = {"{}.size()"},
     };
     if (not extra_headers.empty()) {
       v.file = extra_headers.back();
@@ -261,6 +265,7 @@ Both the data and the grid may be named.  The grids are not sorted.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
 )",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["MCAntenna"] = {
@@ -406,6 +411,7 @@ They will generally throw an error if you lack the data.
 
 The python mapping allows treating this as a same rank :class:`~numpy.ndarray` in python.
 )",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["Stokvec"] = {
@@ -439,6 +445,7 @@ The python mapping allows treating this 4-long :class:`~numpy.ndarray` in python
 
 The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 7 as columns.
 )",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["MuelmatVector"] = {
@@ -447,6 +454,7 @@ The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarra
 
 The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
 )",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["MuelmatMatrix"] = {
@@ -455,6 +463,7 @@ The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarra
 
 The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
 )",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["StokvecVector"] = {
@@ -463,6 +472,7 @@ The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarra
 
 The python mapping allows treating this as a 2-dimensional :class:`~numpy.ndarray` with size 4 as columns.
 )",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["StokvecTensor3"] = {
@@ -480,6 +490,7 @@ like a 4-dimensional array with the last dimension of size 4.
 
 The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 7 as columns.
 )",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["SpecmatMatrix"] = {
@@ -488,6 +499,7 @@ The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarra
 
 The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
 )",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["StokvecMatrix"] = {
@@ -496,6 +508,7 @@ The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarra
 
 The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 4 for columns.
 )",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["StokvecSortedGriddedField1"] = {
@@ -591,6 +604,7 @@ to produce a single *Numeric*.
 This type flags the type of calculations that should be performed
 when computing the Jacobian matrix or partial derivatives.
 )--",
+      .dim_size = {"{}.target_count()", "{}.x_size()"},
   };
 
   wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
@@ -647,6 +661,7 @@ The python mapping allows treating this as a :class:`~numpy.ndarray`.
 But because it has to be sorted in ascending order,
 modifying the values are not allowed.
 )",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["SpectralRadianceOperator"] = {

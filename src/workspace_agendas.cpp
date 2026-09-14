@@ -24,27 +24,6 @@ calculations that are happening deep in your ARTS method calls.
       .output       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
       .input        = {"freq_grid", "freq_wind_shift_jac", "jac_targets", "select_species", "ray_point", "atm_point"},
       .enum_options = {"Empty"},
-      .output_constraints =
-          {
-              {"spectral_propmat.size() == freq_grid.size()",
-               "On output, *spectral_propmat* has the size of *freq_grid*.",
-               "spectral_propmat.size()",
-               "freq_grid.size()"},
-              {"spectral_nlte_srcvec.size() == freq_grid.size()",
-               "On output, *spectral_nlte_srcvec* has the size of *freq_grid*.",
-               "spectral_nlte_srcvec.size()",
-               "freq_grid.size()"},
-              {"same_shape({jac_targets.target_count(), freq_grid.size()}, spectral_propmat_jac)",
-               "On output, *spectral_propmat_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
-               "spectral_propmat_jac.shape()",
-               "freq_grid.size()",
-               "jac_targets.target_count()"},
-              {"same_shape({jac_targets.target_count(), freq_grid.size()}, spectral_nlte_srcvec_jac)",
-               "On output, *spectral_nlte_srcvec_jac* has the shape of the target-count of *jac_targets* times the size of *freq_grid*.",
-               "spectral_nlte_srcvec_jac.shape()",
-               "freq_grid.size()",
-               "jac_targets.target_count()"},
-          },
   };
 
   wsa_data["spectral_propmat_and_atm_path_agenda"] = {
@@ -65,19 +44,6 @@ based on spectral parameters.
       .input        = {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
       .enum_options = {"Default", "AdaptiveHalfPath", "Profile2Path"},
       .enum_default = "Default",
-      .output_constraints =
-          {
-              {"spectral_propmat_path.size() == spectral_nlte_srcvec_path.size() and spectral_propmat_path.size() == spectral_propmat_jac_path.size()  and spectral_propmat_path.size() == spectral_nlte_srcvec_jac_path.size() and spectral_propmat_path.size() == freq_grid_path.size() and spectral_propmat_path.size() == freq_wind_shift_jac_path.size() and spectral_propmat_path.size() == atm_path.size() and spectral_propmat_path.size() == ray_path.size()",
-               "On output, all path arrays have the same size.",
-               "spectral_propmat_path.size()",
-               "spectral_nlte_srcvec_path.size()",
-               "spectral_propmat_jac_path.size()",
-               "spectral_nlte_srcvec_jac_path.size()",
-               "freq_grid_path.size()",
-               "freq_wind_shift_jac_path.size()",
-               "atm_path.size()",
-               "ray_path.size()"},
-          },
   };
 
   wsa_data["single_propmat_agenda"] = {
@@ -111,22 +77,6 @@ or planetary atmospheres and for visible/near-infrared water or steam.
       .input        = {"freq_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_default = "FromSpeciesTRO",
-      .output_constraints =
-          {
-              {"spectral_propmat_scat.size() == freq_grid.size()",
-               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
-               "spectral_propmat_scat.size()",
-               "freq_grid.size()"},
-              {"spectral_absvec_scat.size() == freq_grid.size()",
-               "On output, *spectral_absvec_scat* has the size of *freq_grid*.",
-               "spectral_absvec_scat.size()",
-               "freq_grid.size()"},
-              {"same_shape({freq_grid.size(), legendre_degree + 1}, spectral_phamat_spectral)",
-               "On output, *spectral_phamat_spectral* has the shape of <*legendre_degree* + 1> times the size of *freq_grid*.",
-               "spectral_phamat_spectral.shape()",
-               "freq_grid.size()",
-               "legendre_degree"},
-          },
   };
 
   wsa_data["spectral_propmat_scat_agenda"] = {
@@ -137,13 +87,6 @@ or planetary atmospheres and for visible/near-infrared water or steam.
       .input        = {"freq_grid", "atm_point"},
       .enum_options = {"AirSimple"},
       .enum_default = "AirSimple",
-      .output_constraints =
-          {
-              {"spectral_propmat_scat.size() == freq_grid.size()",
-               "On output, *spectral_propmat_scat* has the size of *freq_grid*.",
-               "spectral_propmat_scat.size()",
-               "freq_grid.size()"},
-          },
   };
 
   wsa_data["ray_path_observer_agenda"] = {
@@ -203,18 +146,6 @@ is warranted.
       .input        = {"freq_grid", "jac_targets", "obs_pos", "obs_los", "atm_field", "surf_field", "subsurf_field"},
       .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "EmissionNoSensor", "MonteCarlo"},
       .enum_default = "Emission",
-      .output_constraints =
-          {
-              {"spectral_rad.size() == freq_grid.size()",
-               "On output, *spectral_rad* has the size of *freq_grid*.",
-               "spectral_rad.size()",
-               "freq_grid.size()"},
-              {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-               "spectral_rad_jac.shape()",
-               "freq_grid.size()",
-               "jac_targets.x_size()"},
-          },
   };
 
   wsa_data["single_rad_space_agenda"] = {
@@ -241,17 +172,7 @@ The input path point should be as if it is looking at space.
       .input              = {"freq_grid", "jac_targets", "ray_point"},
       .enum_options       = {"UniformCosmicBackground", "SunOrCosmicBackground", "Transmission"},
       .enum_default       = "UniformCosmicBackground",
-      .output_constraints = {
-          {"spectral_rad.size() == freq_grid.size()",
-           "On output, *spectral_rad* has the size of *freq_grid*.",
-           "spectral_rad.size()",
-           "freq_grid.size()"},
-          {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-           "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-           "spectral_rad_jac.shape()",
-           "freq_grid.size()",
-           "jac_targets.x_size()"},
-      }};
+  };
 
   wsa_data["spectral_rad_surface_agenda"] = {
       .desc         = R"--(Computes spectral radiance as seen of the surface.
@@ -269,18 +190,6 @@ as well.
       .input        = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
       .enum_default = "Blackbody",
-      .output_constraints =
-          {
-              {"spectral_rad.size() == freq_grid.size()",
-               "On output, *spectral_rad* has the size of *freq_grid*.",
-               "spectral_rad.size()",
-               "freq_grid.size()"},
-              {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-               "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-               "spectral_rad_jac.shape()",
-               "freq_grid.size()",
-               "jac_targets.x_size()"},
-          },
       .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
 
   wsa_data["spectral_rad_closed_surface_agenda"] = {
@@ -302,7 +211,6 @@ that is being emitted.  That's the type of use case this agenda is made for and 
       .input              = wsa_data.at("spectral_rad_surface_agenda").input,
       .enum_options       = {"Blackbody"},
       .enum_default       = "Blackbody",
-      .output_constraints = wsa_data.at("spectral_rad_surface_agenda").output_constraints,
       .named_operator     = wsa_data.at("spectral_rad_surface_agenda").named_operator};
 
   wsa_data["single_rad_surface_agenda"] = {
@@ -343,19 +251,7 @@ See *OEM*.
                              "inversion_iterate_agenda_counter"},
       .enum_options       = {"Full"},
       .enum_default       = "Full",
-      .output_constraints = {
-          {"(do_jac == 0 and measurement_jac.size() == 0) or (measurement_vec_fit.size() == static_cast<Size>(measurement_jac.nrows()))",
-           "On output, the measurement vector and Jacobian must match expected size.",
-           "measurement_vec_fit.size()",
-           "measurement_jac.nrows()",
-           "do_jac == 0"},
-          {"(do_jac == 0 and measurement_jac.size() == 0) or (model_state_vec.size() == static_cast<Size>(measurement_jac.ncols()) and jac_targets.x_size() == model_state_vec.size())",
-           "On output, the model state vector and Jacobian must match expected size.",
-           "model_state_vec.size()",
-           "measurement_jac.ncols()",
-           "jac_targets.x_size()",
-           "do_jac == 0"},
-      }};
+  };
 
   wsa_data["measurement_inversion_agenda"] = {
       .desc =
@@ -378,13 +274,6 @@ it does a lot of unnecessary checks and operations that are not always needed.
       .input        = {"jac_targets", "do_jac"},
       .enum_options = {"LowMemory", "HighPerformance"},
       .enum_default = "LowMemory",
-      .output_constraints =
-          {
-              {"do_jac != static_cast<Index>(measurement_jac.size() == 0)",
-               "When *do_jac* evaluates as true, the *measurement_jac* must be non-empty.",
-               "do_jac != 0",
-               "measurement_jac.shape()"},
-          },
   };
 
   wsa_data["spectral_surf_refl_agenda"] = {
@@ -393,15 +282,7 @@ it does a lot of unnecessary checks and operations that are not always needed.
       .output             = {"spectral_surf_refl", "spectral_surf_refl_jac"},
       .input              = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
       .enum_options       = {"FlatScalar", "FlatRealFresnel", "Tessem", "Telsem"},
-      .output_constraints = {{"spectral_surf_refl.size() == freq_grid.size()",
-                              "*spectral_surf_refl* match *freq_grid* size",
-                              "spectral_surf_refl.size()",
-                              "freq_grid.size()"},
-                             {"same_shape({jac_targets.target_count(), freq_grid.size()}, spectral_surf_refl_jac)",
-                              "*spectral_surf_refl_jac* match *jac_targets* target count and *freq_grid* size",
-                              "jac_targets.target_count()",
-                              "freq_grid.size()",
-                              "spectral_surf_refl_jac.shape()"}}};
+  };
 
   wsa_data["disort_settings_agenda"] = {.desc           = R"--(An agenda for setting up Disort.
 
@@ -427,7 +308,6 @@ scenarios.  The output of this Agenda is just that setting.
 )--",
       .output             = wsa_data.at("disort_settings_agenda").output,
       .input              = wsa_data.at("disort_settings_agenda").input,
-      .output_constraints = wsa_data.at("disort_settings_agenda").output_constraints,
       .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["subsurf_disort_settings_agenda"] = {
@@ -439,7 +319,6 @@ scenarios.  The output of this Agenda is just that setting.
 )--",
       .output             = wsa_data.at("disort_settings_agenda").output,
       .input              = wsa_data.at("disort_settings_agenda").input,
-      .output_constraints = wsa_data.at("disort_settings_agenda").output_constraints,
       .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["disort_settings_downwelling_wrapper_agenda"] = {
@@ -488,14 +367,11 @@ Also see the :class:`~pyarts3.arts_agenda` property for how to fully define an a
 )",
                                name,
                                record.named_operator.empty() ? name + "Operator" : record.named_operator);
-    if (not record.output_constraints.empty()) {
-      record.desc += std::format(R"(
-.. rubric:: Constraint{0}
 
-)",
-                                 record.output_constraints.size() > 1 ? "s"sv : ""sv);
-      for (auto& c : record.output_constraints) { record.desc += std::format("#. {}\n", c.constraint); }
-    }
+    // The output size constraints are documented where the agenda is documented.
+    // They cannot be added here because reading them needs the workspace variables,
+    // which are created after the agendas and from them.
+
     record.desc += "\n";
   }
 

@@ -11,6 +11,7 @@ add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 # ####
 add_library(workspace_core STATIC
   workspace_agendas.cpp
+  workspace_dimensions.cpp
   workspace_groups.cpp
   workspace_group_friends.cpp
   workspace_variables.cpp

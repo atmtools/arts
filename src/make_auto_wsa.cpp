@@ -9,6 +9,7 @@
 #include <utility>
 
 #include "workspace_agendas.h"
+#include "workspace_dimensions.h"
 #include "workspace_variables.h"
 
 namespace {
@@ -57,7 +58,13 @@ std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
 
     for (const auto& in : record.input) { helper_auto_ag(os, ag.i, name, in); }
 
-    ag.output_constraints = record.output_constraints;
+    ag.output_constraints = agenda_output_size_checks(record);
+
+    if (not ag.output_constraints.empty()) {
+      ag.desc += std::format("\n.. rubric:: Constraint{}\n\n", ag.output_constraints.size() > 1 ? "s" : "");
+      for (auto& c : ag.output_constraints) { ag.desc += std::format("#. {}\n", c.constraint); }
+      ag.desc += "\n";
+    }
   }
 
   return map;

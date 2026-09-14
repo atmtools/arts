@@ -15,6 +15,20 @@ struct WorkspaceGroupRecord {
 
   //! Set to true if the type is a map of some type
   bool map_type{false};
+
+  /*! How to read the size of each dimension of this group, outermost first.
+   *
+   * Each entry is a C++ expression where "{}" is replaced by the name of a
+   * variable of this group, e.g. "{}.size()".  For tensor-like groups these
+   * are the actual axes.  For descriptor types the entries are the implied
+   * sizes the type carries, e.g. *JacobianTargets* provides both its target
+   * count and its model state vector size.
+   *
+   * Leave empty for groups that carry no queryable sizes.  Sizes are only
+   * checked for variables whose record names the dimensions, see
+   * WorkspaceVariableInternalRecord::dims.
+   */
+  std::vector<std::string> dim_size{};
 };
 
 const std::unordered_map<std::string, WorkspaceGroupRecord>& internal_workspace_groups();
@@ -45,6 +59,8 @@ template <> struct std::formatter<WorkspaceGroupRecord> {
                        wsg.value_type ? "true"sv : "false"sv,
                        "\n  .map_type="sv,
                        wsg.map_type ? "true"sv : "false"sv,
+                       "\n  .dim_size="sv,
+                       wsg.dim_size,
                        "\n}"sv);
   }
 };
