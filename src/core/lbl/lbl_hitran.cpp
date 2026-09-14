@@ -113,7 +113,17 @@ bool read_hitran_par_record(hitran_record&                           record,
 
   if (not qn_up.empty() and not qn_lo.empty()) { record.qid.state = Quantum::from_hitran(qn_up, qn_lo); }
 
-  ARTS_USER_ERROR_IF(not data.end_of_string(), "Part of the line was not parsed: '{}'", data.remaining_string())
+  ARTS_USER_ERROR_IF(not data.end_of_string(),
+                     R"(Part of the line was not parsed: '{}'
+
+Note that your file formatter may be incorrect.  It reads and expects data in the order of: {:qB,}
+
+Please check the formatter and the line in question.
+
+Thank you!
+)",
+                     data.remaining_string(),
+                     format_order);
 
   return true;
 } catch (std::exception& e) {

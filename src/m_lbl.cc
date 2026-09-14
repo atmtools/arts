@@ -297,12 +297,14 @@ void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
 
   const auto data = lbl::read_hitran_par(open_input_file(filename), format_order, frequency_range);
 
-  abs_bands = {};
+  AbsorptionBands abs_bands_tmp = {};
   for (auto& line : data) {
-    auto [mapped_band, _] = abs_bands.try_emplace(global_state(global_types, line.qid), default_band);
+    auto [mapped_band, _] = abs_bands_tmp.try_emplace(global_state(global_types, line.qid), default_band);
 
     mapped_band->second.lines.emplace_back(line.from(selection, local_state(local_types, line.qid), do_zeeman));
   }
+
+  abs_bands = std::move(abs_bands_tmp);
 }
 ARTS_METHOD_ERROR_CATCH
 
