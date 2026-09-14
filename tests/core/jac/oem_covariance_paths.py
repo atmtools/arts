@@ -114,8 +114,8 @@ def run():
                     ws.oem.measurement_vec_fit = []
                     ws.oem.measurement_jac = arts.Matrix()
                     ws.oemCheck()
-                    ws.oemCalc(method="lm", lm_ga_settings=arts.LevenbergMarquardtSettings(),
-                           max_iter=50, stop_dx=1e-12)
+                    ws.oemCalc(settings=arts.OptimalEstimationSettings(method="lm", lm=arts.LevenbergMarquardtSettings(),
+                           max_iter=50, stop_dx=1e-12))
                     assert not len(ws.oem.diagnostics.errors), str(
                         ws.oem.diagnostics.errors)
                     assert ws.oem.diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics

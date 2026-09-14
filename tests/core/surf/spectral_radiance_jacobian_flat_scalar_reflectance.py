@@ -82,7 +82,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     absdiff = round(abs(ts - ws.oem.model_state_vec[0]), 2)
 
@@ -133,7 +133,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     absdiff = round(100*abs(rs - ws.oem.model_state_vec[0]), 2)
 
@@ -190,7 +190,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     absdiff_rs = round(100*abs(rs - ws.oem.model_state_vec[0]), 2)
     absdiff_ts = round(abs(ts - ws.oem.model_state_vec[1]), 2)

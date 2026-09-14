@@ -54,20 +54,20 @@ struct OEMMethod {
   bool damped() const { return algorithm == OEMAlgorithm::LevenbergMarquardt; }
 };
 
-OEMMethod parse_oem_method(const String& method) {
-  if (method == "li") return {.algorithm = OEMAlgorithm::Linear};
-  if (method == "li_cg") return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true};
-  if (method == "li_cg_m")
+OEMMethod parse_oem_method(OptimalEstimationMethod method) {
+  if (method == OptimalEstimationMethod::li) return {.algorithm = OEMAlgorithm::Linear};
+  if (method == OptimalEstimationMethod::li_cg) return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true};
+  if (method == OptimalEstimationMethod::li_cg_m)
     return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true, .measurement_space = true};
-  if (method == "gn") return {.algorithm = OEMAlgorithm::GaussNewton};
-  if (method == "gn_cg") return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
-  if (method == "gn_cg_m")
+  if (method == OptimalEstimationMethod::gn) return {.algorithm = OEMAlgorithm::GaussNewton};
+  if (method == OptimalEstimationMethod::gn_cg) return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
+  if (method == OptimalEstimationMethod::gn_cg_m)
     return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true, .measurement_space = true};
-  if (method == "lm" || method == "ml") return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
-  if (method == "lm_cg" || method == "ml_cg")
+  if (method == OptimalEstimationMethod::lm || method == OptimalEstimationMethod::ml) return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
+  if (method == OptimalEstimationMethod::lm_cg || method == OptimalEstimationMethod::ml_cg)
     return {.algorithm = OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient = true};
-  if (method == "li_m") return {.algorithm = OEMAlgorithm::Linear, .measurement_space = true};
-  if (method == "gn_m") return {.algorithm = OEMAlgorithm::GaussNewton, .measurement_space = true};
+  if (method == OptimalEstimationMethod::li_m) return {.algorithm = OEMAlgorithm::Linear, .measurement_space = true};
+  if (method == OptimalEstimationMethod::gn_m) return {.algorithm = OEMAlgorithm::GaussNewton, .measurement_space = true};
   ARTS_USER_ERROR(
       "Unknown OEM method '{}'. Supported methods: li, li_m, li_cg, li_cg_m, gn, gn_m, gn_cg, gn_cg_m, lm, lm_cg; aliases: ml, ml_cg.",
       method)
@@ -86,6 +86,7 @@ template <typename Optimizer> void configure_lm(Optimizer&                      
   optimizer.set_lambda_maximum(settings.maximum_damping);
   optimizer.set_lambda_threshold(settings.damping_threshold);
   optimizer.set_lambda_constraint(settings.convergence_damping_limit);
+  optimizer.set_maximum_trials(static_cast<unsigned int>(settings.maximum_trials));
 }
 
 // Validation must not run the user's forward model or invert a covariance.
@@ -97,12 +98,7 @@ void check_oem_inputs(const Vector&           x,
                       const Vector&           y,
                       const CovarianceMatrix& covmat_se,
                       const OEMMethod&        method,
-                      const Vector&           normalization,
-                      Index                   max_iter,
-                      Numeric                 stop_dx,
-                      Numeric                 max_start_cost,
-                      Index                   clear_matrices,
-                      Index                   display_progress) {
+                      const Vector&           normalization) {
   const Size n = xa.size();
   const Size m = y.size();
   ARTS_USER_ERROR_IF(stdr::any_of(y, [](Numeric value) { return !std::isfinite(value); }),
@@ -160,13 +156,7 @@ void check_oem_inputs(const Vector&           x,
   ARTS_USER_ERROR_IF(
       method.measurement_space && !normalization.empty(),
       "model_state_covmat_normalization is not supported for measurement-space methods; use li_cg or gn_cg with normalization.")
-  ARTS_USER_ERROR_IF(max_iter <= 0 || max_iter >= std::numeric_limits<unsigned int>::max(),
-                     "max_iter must be positive and less than {}.",
-                     std::numeric_limits<unsigned int>::max())
-  ARTS_USER_ERROR_IF(!std::isfinite(stop_dx) || stop_dx <= 0, "stop_dx must be finite and > 0.")
-  ARTS_USER_ERROR_IF(std::isnan(max_start_cost), "max_start_cost must not be NaN.")
-  ARTS_USER_ERROR_IF(clear_matrices < 0 || clear_matrices > 1, "clear_matrices must be 0 or 1.")
-  ARTS_USER_ERROR_IF(display_progress < 0 || display_progress > 1, "display_progress must be 0 or 1.")
+
 }
 
 // Shared iteration dispatch for full and reduced forward-model adapters.
@@ -180,13 +170,10 @@ template <typename Forward> void oem_compute(Forward&                          a
                                              const OEMMethod&                  selected,
                                              const Vector&                     model_state_covmat_normalization,
                                              const Vector&                     measurement_vec_normalization,
-                                             Index                             max_iter,
-                                             Numeric                           stop_dx,
-                                             const LevenbergMarquardtSettings& lm_ga_settings,
-                                             Index                             display_progress,
-                                             Numeric                           cg_tolerance,
-                                             Index                             cg_max_iter,
+                                             const OptimalEstimationSettings& settings,
                                              const BlockMatrix*                projected_damping = nullptr) {
+  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
+               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   auto&       lm_ga_history = oem_diagnostics.lm_ga_history;
   auto&       errors        = oem_diagnostics.errors;
@@ -313,22 +300,11 @@ void oemCalc(const Workspace&                  ws,
              SubsurfaceField&                  subsurf_field,
              const JacobianTargets&            jac_targets,
              const Agenda&                     inversion_iterate_agenda,
-             const String&                     method,
-             const Numeric&                    max_start_cost,
-             const Index&                      max_iter,
-             const Numeric&                    stop_dx,
-             const LevenbergMarquardtSettings& lm_ga_settings,
-             const Index&                      clear_matrices,
-             const Index&                      display_progress,
-             const Numeric&                    cg_tolerance,
-             const Index&                      cg_max_iter) {
+             const OptimalEstimationSettings& settings) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
-                     "cg_tolerance must be finite and strictly positive.")
-  ARTS_USER_ERROR_IF(
-      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
-      "cg_max_iter must be zero (automatic) or a positive iteration count within the native integer range.")
+  settings.validate();
+  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
+               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
   data.ensure_checked(jac_targets);
   auto&       model_state_vec                    = data.model_state_vec;
   auto&       measurement_vec_fit                = data.measurement_vec_fit;
@@ -367,13 +343,7 @@ void oemCalc(const Workspace&                  ws,
                    measurement_vec,
                    measurement_vec_error_covmat,
                    selected,
-                   model_state_covmat_normalization,
-                   max_iter,
-                   stop_dx,
-                   max_start_cost,
-                   clear_matrices,
-                   display_progress);
-  if (selected.damped()) lm_ga_settings.validate();
+                   model_state_covmat_normalization);
 
   const Index n = model_state_covmat.nrows();
   const Index m = measurement_vec.size();
@@ -484,12 +454,7 @@ void oemCalc(const Workspace&                  ws,
                   selected,
                   model_state_covmat_normalization,
                   measurement_vec_normalization,
-                  max_iter,
-                  stop_dx,
-                  lm_ga_settings,
-                  display_progress,
-                  cg_tolerance,
-                  cg_max_iter);
+                  settings);
       // Ensure that the returned gain/Jacobian describe the retrieved state.
       // An already current Jacobian needs neither an agenda call nor a fit copy.
       if (!selected.linear() && !clear_matrices) aw.ensure_jacobian(x_oem);
@@ -838,22 +803,11 @@ void oemCalcReduced(const Workspace&                  ws,
                     SubsurfaceField&                  subsurf_field,
                     const JacobianTargets&            jac_targets,
                     const Agenda&                     inversion_iterate_agenda,
-                    const String&                     method,
-                    const Numeric&                    max_start_cost,
-                    const Index&                      max_iter,
-                    const Numeric&                    stop_dx,
-                    const LevenbergMarquardtSettings& lm_ga_settings,
-                    const Index&                      clear_matrices,
-                    const Index&                      display_progress,
-                    const Numeric&                    cg_tolerance,
-                    const Index&                      cg_max_iter) {
+             const OptimalEstimationSettings& settings) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
-                     "cg_tolerance must be finite and strictly positive.")
-  ARTS_USER_ERROR_IF(
-      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
-      "cg_max_iter must be zero (automatic) or a positive iteration count within the native integer range.")
+  settings.validate();
+  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
+               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
   data.ensure_checked(jac_targets);
 
   auto&       model_state_vec                    = data.model_state_vec;
@@ -894,13 +848,7 @@ void oemCalcReduced(const Workspace&                  ws,
                    measurement_vec,
                    *noise,
                    selected,
-                   {},
-                   max_iter,
-                   stop_dx,
-                   max_start_cost,
-                   clear_matrices,
-                   display_progress);
-  if (selected.damped()) lm_ga_settings.validate();
+                   {});
 
   std::shared_ptr<const CovarianceMatrix> reduced_prior, reduced_noise;
   Vector                                  za(r, 0), start(r, 0), reduced_y(q);
@@ -972,12 +920,7 @@ void oemCalcReduced(const Workspace&                  ws,
                      reduced_y,
                      *reduced_noise,
                      selected,
-                     model_state_covmat_normalization,
-                     max_iter,
-                     stop_dx,
-                     max_start_cost,
-                     clear_matrices,
-                     display_progress);
+                     model_state_covmat_normalization);
     ARTS_USER_ERROR_IF(
         not measurement_vec_normalization.empty() and
             (not selected.measurement_space or measurement_vec_normalization.size() != static_cast<Size>(q)),
@@ -1050,12 +993,7 @@ void oemCalcReduced(const Workspace&                  ws,
                 selected,
                 model_state_covmat_normalization,
                 measurement_vec_normalization,
-                max_iter,
-                stop_dx,
-                lm_ga_settings,
-                display_progress,
-                cg_tolerance,
-                cg_max_iter,
+                settings,
                 damping.not_null() ? &damping : nullptr);
     model_state_vec = reduced.expand(z);
     // LI and rejected LM trials also need the physical outputs at the returned state.

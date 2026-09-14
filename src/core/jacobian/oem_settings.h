@@ -27,6 +27,9 @@ struct LevenbergMarquardtSettings {
   /** Upper updated damping at which the ordinary stop_dx test is enabled. */
   Numeric convergence_damping_limit = 0;
 
+  /** Maximum linear-solve trials per outer iteration, including stationarity checks. */
+  Index maximum_trials = 100;
+
   /** Reject invalid individual values and inconsistent combinations. */
   void validate() const;
 
@@ -52,6 +55,40 @@ template <> struct xml_io_stream_name<LevenbergMarquardtSettings> {
 };
 
 template <> struct xml_io_stream_aggregate<LevenbergMarquardtSettings> {
+  static constexpr bool value = true;
+};
+
+/** Calculation controls shared by full and reduced optimal estimation.
+ * Validate once at the calculation boundary, after editing the configuration.
+ */
+struct OptimalEstimationSettings {
+  OptimalEstimationMethod    method           = OptimalEstimationMethod::gn;
+  Index                      max_iter         = 10;
+  Numeric                    stop_dx          = 0.01;
+  Numeric                    max_start_cost   = std::numeric_limits<Numeric>::infinity();
+  Numeric                    cg_tolerance     = 1e-10;
+  Index                      cg_max_iter      = 0;
+  LevenbergMarquardtSettings lm               = {};
+  Index                      display_progress = 0;
+  bool                       clear_matrices   = false;
+
+  void                      validate() const;
+  [[nodiscard]] std::string repr() const;
+};
+
+template <> struct std::formatter<OptimalEstimationSettings> {
+  format_tags                   tags;
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+  constexpr auto                parse(std::format_parse_context& ctx) { return parse_format_tags(tags, ctx); }
+  template <class Context> auto format(const OptimalEstimationSettings& v, Context& ctx) const {
+    return tags.format(ctx, v.repr());
+  }
+};
+template <> struct xml_io_stream_name<OptimalEstimationSettings> {
+  static constexpr std::string_view name = "OptimalEstimationSettings";
+};
+template <> struct xml_io_stream_aggregate<OptimalEstimationSettings> {
   static constexpr bool value = true;
 };
 
@@ -138,7 +175,7 @@ struct OptimalEstimationData {
   void ensure_checked(const JacobianTargets& targets) {
     if (not checked_) check(&targets);
   }
-  void               require_unchecked(std::string_view operation) const;
+  void require_unchecked(std::string_view operation) const;
 
   /** Release recomputable products while preserving the problem, state,
    * selected bases, normalization and diagnostics. */

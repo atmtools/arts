@@ -88,7 +88,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     if np.allclose(ws.oem.model_state_vec / 0.2 - 1, 0, atol=ATOL):
         break

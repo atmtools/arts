@@ -71,7 +71,7 @@ ws.oemSetMeasurement()
 ws.oemMeasurementCovmatConstant(value=noise**2)
 ws.oemFinalizeDiagonal()
 
-ws.oemCalc(method="gn")
+ws.oemCalc(settings="gn")
 
 plt.figure(figsize=(8, 8))
 

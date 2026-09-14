@@ -41,6 +41,25 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "OptimalEstimationMethod",
+      .desc = "Algorithm and linear solver used by optimal estimation.\n",
+      .values_and_desc = {
+          Value{"li", "Linear state-space solve."},
+          Value{"li_m", "Linear measurement-space solve."},
+          Value{"li_cg", "Linear state-space CG solve."},
+          Value{"li_cg_m", "Linear measurement-space CG solve."},
+          Value{"gn", "Gauss-Newton state-space solve."},
+          Value{"gn_m", "Gauss-Newton measurement-space solve."},
+          Value{"gn_cg", "Gauss-Newton state-space CG solve."},
+          Value{"gn_cg_m", "Gauss-Newton measurement-space CG solve."},
+          Value{"lm", "Levenberg-Marquardt solve."},
+          Value{"lm_cg", "Levenberg-Marquardt CG solve."},
+          Value{"ml", "Alias for lm."},
+          Value{"ml_cg", "Alias for lm_cg."},
+      },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "OptimalEstimationStatus",
       .desc = "Outcome of an optimal-estimation retrieval, reported by OptimalEstimationDiagnostics.\n",
       .values_and_desc =

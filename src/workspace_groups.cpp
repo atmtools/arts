@@ -210,9 +210,9 @@ This holds either a shared *Matrix* or a shared *Sparse* matrix.
       .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
-  wsg_data["LevenbergMarquardtSettings"] = {
+  wsg_data["OptimalEstimationSettings"] = {
       .file = "oem_settings.h",
-      .desc = "Named Levenberg-Marquardt damping settings for OEM.\n",
+      .desc = "Algorithm, convergence, solver and output controls for optimal estimation.\n",
   };
 
   wsg_data["OptimalEstimationData"] = {

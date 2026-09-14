@@ -238,13 +238,12 @@ def workspace(nonlinear=False):
 def retrieve(method, settings, nonlinear=False, max_iter=40, stop_dx=1e-9):
     ws = workspace(nonlinear)
     ws.oemCheck()
-    ws.oemCalc(
+    ws.oemCalc(settings=arts.OptimalEstimationSettings(
         method=method,
-        **({"lm_ga_settings": settings} if settings is not None else {}),
+        **({"lm": settings} if settings is not None else {}),
         max_iter=max_iter,
         stop_dx=stop_dx,
-        display_progress=0,
-    )
+        display_progress=0))
     assert len(ws.oem.diagnostics.errors) == 0, str(ws.oem.diagnostics.errors)
     return {
         key: copy.deepcopy(ws.oem.diagnostics) if key == "oem_diagnostics" else np.array(
@@ -352,35 +351,35 @@ def test_agenda_capture():
     # arts_agenda resolves captures in the defining module's globals, then
     # constructs the named settings workspace type.
     global captured_settings
-    captured_settings = named(DISTINCT)
+    captured_settings = arts.OptimalEstimationSettings(method="lm", lm=named(DISTINCT))
 
     @pyarts.arts_agenda
     def captured_retrieval(ws):
-        ws.oemCalc(method="lm", lm_ga_settings=captured_settings)
+        ws.oemCalc(settings=captured_settings)
 
     captured = [
         method.val
         for method in captured_retrieval.methods
-        if method.name == "@lm_ga_settings"
+        if method.name == "@settings"
     ]
     assert len(captured) == 1
-    assert isinstance(captured[0], arts.LevenbergMarquardtSettings)
-    np.testing.assert_array_equal([getattr(captured[0], field)
+    assert isinstance(captured[0], arts.OptimalEstimationSettings)
+    np.testing.assert_array_equal([getattr(captured[0].lm, field)
                                   for field in FIELDS], DISTINCT)
-    captured_settings.initial_damping = 0
-    np.testing.assert_array_equal([getattr(captured[0], field)
+    captured_settings.lm.initial_damping = 0
+    np.testing.assert_array_equal([getattr(captured[0].lm, field)
                                   for field in FIELDS], DISTINCT)
 
-    captured_settings = DISTINCT.copy()
+    captured_settings = arts.OptimalEstimationSettings(method="lm", lm=DISTINCT.copy())
 
     @pyarts.arts_agenda
     def shorthand_retrieval(ws):
-        ws.oemCalc(method="lm", lm_ga_settings=captured_settings)
+        ws.oemCalc(settings=captured_settings)
     shorthand = next(
-        method.val for method in shorthand_retrieval.methods if method.name == "@lm_ga_settings")
-    assert isinstance(shorthand, arts.LevenbergMarquardtSettings)
+        method.val for method in shorthand_retrieval.methods if method.name == "@settings")
+    assert isinstance(shorthand, arts.OptimalEstimationSettings)
     for field, expected in zip(FIELDS, DISTINCT):
-        assert getattr(shorthand, field) == expected
+        assert getattr(shorthand.lm, field) == expected
 
 
 def test_damping_outcomes():
@@ -419,7 +418,64 @@ def test_damping_outcomes():
         )
 
 
+def test_calculation_settings():
+    import tempfile
+    from pathlib import Path
+
+    assert arts.OptimalEstimationSettings("lm").method == arts.OptimalEstimationMethod.lm
+    simple = workspace()
+    simple.oemCalc(settings="gn")
+    assert simple.oem.diagnostics.status == arts.OptimalEstimationStatus.Converged
+    default = workspace()
+    default.oemCalc()
+    np.testing.assert_allclose(default.oem.model_state_vec, simple.oem.model_state_vec)
+    settings = arts.OptimalEstimationSettings(
+        method="lm_cg", max_iter=27, stop_dx=1e-7, max_start_cost=12,
+        cg_tolerance=1e-9, cg_max_iter=31,
+        lm=arts.LevenbergMarquardtSettings(maximum_trials=7),
+        display_progress=1, clear_matrices=True)
+    settings.validate()
+    assert settings.method == arts.OptimalEstimationMethod.lm_cg
+    assert arts.OptimalEstimationSettings().method == arts.OptimalEstimationMethod.gn
+    assert settings.lm.maximum_trials == 7
+    assert "cg_max_iter=31" in str(settings)
+    with tempfile.TemporaryDirectory() as directory:
+        filename = str(Path(directory) / "settings.xml")
+        settings.savexml(filename)
+        clones = [copy.copy(settings), copy.deepcopy(settings),
+                  pickle.loads(pickle.dumps(settings)),
+                  arts.OptimalEstimationSettings.fromxml(filename)]
+        arts.OptimalEstimationSettings().savexml(filename)
+        defaults = arts.OptimalEstimationSettings.fromxml(filename)
+        defaults.validate()
+        assert np.isposinf(defaults.max_start_cost)
+    for clone in clones:
+        assert str(clone) == str(settings)
+        clone.lm.initial_damping = 0
+        assert settings.lm.initial_damping == 10
+    for field, value in [("max_iter", 0), ("stop_dx", float("nan")),
+                         ("cg_tolerance", 0), ("cg_max_iter", -1),
+                         ("display_progress", 2)]:
+        candidate = arts.OptimalEstimationSettings()
+        setattr(candidate, field, value)
+        rejects(candidate.validate, field)
+        # Check validation at the calculation boundary as well.
+        for method in ("oemCalc", "oemCalcReduced"):
+            ws = workspace()
+            rejects(lambda: getattr(ws, method)(settings=candidate), field)
+    rejects(lambda: arts.LevenbergMarquardtSettings(maximum_trials=0), "maximum_trials")
+    rejects(lambda: arts.OptimalEstimationSettings(method="unknown"))
+    # Verify the nested trial budget reaches the native LM optimizer.
+    ws = workspace(nonlinear=True)
+    ws.oemCalc(settings=arts.OptimalEstimationSettings(
+        method="lm", lm=arts.LevenbergMarquardtSettings(
+            initial_damping=0, maximum_trials=1)))
+    assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.Error
+    assert "trial limit reached after 1 solves" in str(ws.oem.diagnostics.errors)
+
+
 if __name__ == "__main__":
+    test_calculation_settings()
     test_value_object()
     test_validation()
     test_retrieval_equivalence()

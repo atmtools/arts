@@ -11,9 +11,20 @@ Retrieval data and ownership
 
 ``ws.oem`` holds the observations, prior state, covariances, current state,
 Jacobian, fitted measurements, basis information and retrieval results.
-``oemCalc`` and ``oemCalcReduced`` update this object. Their method, iteration
-and damping controls remain named call arguments. Normalization vectors are
+``oemCalc`` and ``oemCalcReduced`` update this object. Their controls are supplied together as ``settings=OptimalEstimationSettings(...)``.
+The settings object can be reused for either calculation. A method string is
+also accepted: ``ws.oemCalc(settings="gn")`` uses the default controls for
+Gauss--Newton, and ``OptimalEstimationSettings("lm")`` creates editable LM
+settings. Normalization vectors are
 members of ``ws.oem``; empty vectors disable normalization.
+
+Use :class:`~pyarts3.arts.OptimalEstimationSettings` for the method,
+``max_iter``, ``stop_dx``, ``max_start_cost``, ``cg_tolerance``, ``cg_max_iter``,
+``display_progress`` and ``clear_matrices``. Its ``lm`` member contains the
+Levenberg--Marquardt damping settings and ``maximum_trials``. The default
+method is ``gn``; the other numeric defaults are unchanged. Settings can be
+printed, copied, pickled or stored in XML. Call ``validate()`` to check edits;
+both calculation methods also validate before running the forward model.
 
 For target-based setup, ``oemInit`` starts an empty OEM object and resets
 ``jac_targets``. The ``oemAdd`` methods add targets and store their pending
@@ -331,7 +342,7 @@ Inspect the noise standard deviations with::
 
     ws.oemMeasurementCovmatNormalization()
     ws.oemCheck()
-    ws.oemCalc(method="gn_cg_m")
+    ws.oemCalc(settings="gn_cg_m")
 
 The output Vector contains :math:`D_{ii}` in measurement units. Its workspace name is
 chosen by the caller. Computing this vector alone does not enable scaling;
@@ -557,7 +568,7 @@ For an already configured retrieval:
 
 .. code-block:: python
 
-   from pyarts3.arts import LevenbergMarquardtSettings
+   from pyarts3.arts import LevenbergMarquardtSettings, OptimalEstimationSettings
 
    damping = LevenbergMarquardtSettings(
        initial_damping=10.0,
@@ -569,7 +580,7 @@ For an already configured retrieval:
    )
    print(damping.describe())
    ws.oemCheck()
-   ws.oemCalc(method="lm", max_iter=20, lm_ga_settings=damping)
+   ws.oemCalc(settings=OptimalEstimationSettings(method="lm", max_iter=20, lm=damping))
 
 These are the defaults of ``LevenbergMarquardtSettings()``.  They provide a visible
 starting configuration to assess on representative retrievals.  Check
@@ -577,7 +588,7 @@ the forward model, Jacobian, and covariance assumptions before using
 damping changes to address convergence problems.
 
 The constructor accepts keyword arguments only, so each override states
-what it changes.  ``print(damping)`` displays all six names and values;
+what it changes.  ``print(damping)`` displays all seven names and values;
 ``damping.describe()`` explains the configured behavior in words.
 The same object works with ``lm``, ``ml``, ``lm_cg``, and ``ml_cg``.
 
@@ -608,12 +619,16 @@ The named controls are:
        ``stop_dx`` criterion.  This refers to the current damping after its
        update, not the lowest value used in an earlier accepted iteration.
 
+   * - ``maximum_trials``
+     - Positive integer limit on linear-solve trials per outer iteration,
+       including stationarity checks. The default is 100.
+
 All entries must be finite.  ``initial_damping`` and
 ``convergence_damping_limit`` may be zero; the maximum and threshold must
 be positive.  Both factors must be greater than one.  The initial damping
 and threshold must each be no greater than the maximum.
 
-Construction and each field edit validate all six settings immediately.
+Construction and each field edit validate all seven settings immediately.
 An invalid edit raises an error naming the affected setting and leaves
 the object unchanged.  You can also call ``validate()`` explicitly;
 ``oemCalc`` checks the values again:
@@ -695,20 +710,21 @@ problem also changes the inferred state and uncertainty.
 Storing settings
 ---------------------------------
 
-``LevenbergMarquardtSettings`` is a workspace group with named printing and
-XML storage. Pass it directly as ``lm_ga_settings``. OEM uses the default
-``LevenbergMarquardtSettings()`` when the argument is omitted. The
+``LevenbergMarquardtSettings`` is a named type with printing and
+XML storage. Assign it to ``OptimalEstimationSettings.lm``. The default
+configuration contains ``LevenbergMarquardtSettings()``. The
 six-element input shorthand remains supported in Python:
 
 .. code-block:: python
 
    damping = LevenbergMarquardtSettings([10, 2, 2, 100, 1, 0])
    ws.oemCheck()
-   ws.oemCalc(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 0])
+   ws.oemCalc(settings=OptimalEstimationSettings(method="lm", lm=[10, 2, 2, 100, 1, 0]))
 
 The order is ``initial_damping``, ``decrease_factor``, ``increase_factor``,
 ``maximum_damping``, ``damping_threshold``, ``convergence_damping_limit``.
-Exactly six values are required and validated. This is a Python-only input
+Exactly six values are required and validated; ``maximum_trials`` retains its
+default of 100 and can be changed by name. This is a Python-only input
 conversion; neither settings nor diagnostics provide ``as_vector()``.
 
 Checking the result
@@ -900,7 +916,7 @@ then choose which modes to retain::
     print(ws.oem.basis_lost_dofs, ws.oem.basis_lost_information_bits)
     ws.oem.model_state_vec = []  # Start at the prior
     ws.oemCheck()
-    ws.oemCalcReduced(method="lm")
+    ws.oemCalcReduced(settings="lm")
 
 ``oemBasisCalc`` sets ``model_state_basis_mat``,
 ``measurement_basis_mat`` and ``oem_basis_singular_values``. It requires
@@ -982,7 +998,7 @@ local information retained and discarded::
     ws.oem.model_state_basis_mat = reduction.model_state_basis_mat
     ws.oem.measurement_basis_mat = reduction.measurement_basis_mat
     ws.oemCheck()
-    ws.oemCalcReduced(method="lm")
+    ws.oemCalcReduced(settings="lm")
 
 Alternatively select the smallest rank meeting an information-loss budget at
 the report's linearization point::
@@ -1010,7 +1026,7 @@ To reduce only the state, supply an identity measurement matrix instead::
     ws.oem.model_state_basis_mat = reduction.model_state_basis_mat
     ws.oem.measurement_basis_mat = np.eye(len(ws.oem.measurement_vec))
     ws.oemCheck()
-    ws.oemCalcReduced(method="lm")
+    ws.oemCalcReduced(settings="lm")
 
 Conversely, an identity state matrix leaves the state dimension unchanged.
 Rows of an identity measurement matrix can select physical channels, but

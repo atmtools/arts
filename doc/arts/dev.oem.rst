@@ -158,8 +158,7 @@ damping update must make progress before another trial is attempted.
 This catches multiplication that rounds back to the current damping.
 The trial budget counts linear solves, including any additional undamped
 solve used to check stationarity.
-The LM trial limit is not currently an OEM workspace argument or part of the six
-named LM damping settings.  Preserve the termination regressions when
+The LM trial limit is exposed as ``settings.lm.maximum_trials`` (default 100).  Preserve the termination regressions when
 changing convergence predicates, trial acceptance, or damping updates.
 
 LM acceptance and stop outcomes
@@ -230,8 +229,7 @@ Remaining numerical work
 
 The following items require separate implementation and regression work.
 
-1. **Expose inner-solver controls and diagnostics.**  Provide public
-   settings for maximum LM trials, and report linear iterations and residuals.
+1. **Expose inner-solver controls and diagnostics.**  Report linear iterations and residuals.
    Relative CG tolerance and the linear iteration budget are already exposed.  Keep
    these separate from outer ``max_iter`` and the six damping controls.
    Extend numerical coverage to nearly zero right-hand sides and
@@ -380,7 +378,17 @@ The type lives in ``src/core/jacobian/oem_settings.h`` and
 ``src/core/jacobian/oem_settings.cc`` without an invlib dependency;
 ``src/python_interface/py_retrieval.cpp`` binds the Python interface.
 
-The Python constructor validates all six settings, and each field setter
+``OptimalEstimationSettings`` owns the method enum, outer iteration controls,
+CG limits, nested LM controls and output flags. Both workspace calculations
+validate it once before covariance preparation, then pass it by const reference
+to the shared iteration dispatcher. Keep normalization and bases in
+``OptimalEstimationData`` because their dimensions belong to the problem.
+The settings type uses aggregate XML serialization; extend the Python
+constructor, properties, pickle state and round-trip regressions together when
+adding fields. The six-value LM shorthand initializes damping only; the
+separate ``maximum_trials`` field keeps its default.
+
+The Python LM constructor validates all seven LM settings, and each field setter
 validates a temporary copy before replacing the stored object.  An invalid
 edit must preserve the previous values and report the affected setting.
 This also avoids losing useful validation errors through nanobind's
@@ -389,8 +397,9 @@ keep each intermediate configuration valid or use a replacement object
 constructed with the desired keyword arguments together.
 
 ``validate()`` checks a configured object at the OEM boundary. ``describe()``
-explains its fields. The settings are a workspace group with XML storage;
-OEM uses the named defaults when omitted. The C++ API remains named.
+explains its fields. Both settings types have XML storage;
+OEM uses the named defaults when omitted. The outer settings are a workspace
+group; the nested LM type is registered as a group friend. The C++ API remains named.
 The Python binding accepts ``std::array<Numeric, 6>`` through its implicit
 constructor, which validates the six-field input.
 There is no ``as_vector()`` output conversion.

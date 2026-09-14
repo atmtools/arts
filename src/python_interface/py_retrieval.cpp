@@ -22,14 +22,14 @@ LevenbergMarquardtSettings lm_settings_from_array(const std::array<Numeric, 6>& 
   return settings;
 }
 
-void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
-                         const char*                             name,
-                         Numeric LevenbergMarquardtSettings::* member,
-                         const char*                           description) {
+template <typename T> void lm_setting_property(py::class_<LevenbergMarquardtSettings>& binding,
+                                               const char*                             name,
+                                               T LevenbergMarquardtSettings::* member,
+                                               const char*                     description) {
   binding.def_prop_rw(
       name,
       [member](const LevenbergMarquardtSettings& settings) { return settings.*member; },
-      [member](LevenbergMarquardtSettings& settings, Numeric value) {
+      [member](LevenbergMarquardtSettings& settings, T value) {
         // Validate before assignment so a failed edit preserves a usable object
         // and reports the named error before nanobind's implicit conversion.
         auto candidate    = settings;
@@ -176,14 +176,14 @@ void py_retrieval(py::module_& m) try {
   xml_interface(lm);
   lm.doc() = R"(Named Levenberg--Marquardt damping controls for OEM.
 
-Pass this object as ``ws.oemCalc(method="lm", lm_ga_settings=settings)``.
+Pass this object as ``ws.oemCalc(settings=OptimalEstimationSettings(method="lm", lm=settings))``.
 The same settings apply to ``lm_cg`` and the ``ml``/``ml_cg`` aliases.
 Defaults provide an explicit starting configuration, with ordinary
 convergence enabled only once damping reaches zero. They do not guarantee
 convergence for every forward model. Use :meth:`describe` to inspect their
 meaning and the current values.
 
-Construction and every field assignment validate all six controls.
+Construction and every field assignment validate all controls.
 Invalid edits raise an error naming the setting and preserve the previous
 configuration. When increasing ``initial_damping`` beyond the current
 maximum, raise ``maximum_damping`` first. To change several controls at
@@ -204,7 +204,8 @@ See :ref:`sec-user-oem` for tuning guidance.
          Numeric                     increase_factor,
          Numeric                     maximum_damping,
          Numeric                     damping_threshold,
-         Numeric                     convergence_damping_limit) {
+         Numeric                     convergence_damping_limit,
+         Index                       maximum_trials) {
         LevenbergMarquardtSettings value{
             .initial_damping           = initial_damping,
             .decrease_factor           = decrease_factor,
@@ -212,6 +213,7 @@ See :ref:`sec-user-oem` for tuning guidance.
             .maximum_damping           = maximum_damping,
             .damping_threshold         = damping_threshold,
             .convergence_damping_limit = convergence_damping_limit,
+            .maximum_trials            = maximum_trials,
         };
         value.validate();
         new (settings) LevenbergMarquardtSettings(value);
@@ -223,6 +225,7 @@ See :ref:`sec-user-oem` for tuning guidance.
       "maximum_damping"_a           = defaults.maximum_damping,
       "damping_threshold"_a         = defaults.damping_threshold,
       "convergence_damping_limit"_a = defaults.convergence_damping_limit,
+      "maximum_trials"_a            = defaults.maximum_trials,
       "Construct validated damping controls using named arguments.");
   lm_setting_property(lm,
                       "initial_damping",
@@ -280,6 +283,11 @@ which can hide a remaining distance to the minimum.
 
 .. :class:`float`
 )");
+  lm_setting_property(
+      lm,
+      "maximum_trials",
+      &LevenbergMarquardtSettings::maximum_trials,
+      "Maximum linear-solve trials per outer iteration, including stationarity checks.\n\n.. :class:`int`");
   lm.def("validate",
          &LevenbergMarquardtSettings::validate,
          "Check the current named values and their coupled constraints.")
@@ -298,15 +306,121 @@ which can hide a remaining distance to the minimum.
                                    value.increase_factor,
                                    value.maximum_damping,
                                    value.damping_threshold,
-                                   value.convergence_damping_limit);
+                                   value.convergence_damping_limit,
+                                   value.maximum_trials);
            })
       .def("__setstate__",
-           [](LevenbergMarquardtSettings*                                             settings,
-              const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>& state) {
-             const auto& [initial, decrease, increase, maximum, threshold, convergence] = state;
-             LevenbergMarquardtSettings value{initial, decrease, increase, maximum, threshold, convergence};
+           [](LevenbergMarquardtSettings*                                                    settings,
+              const std::tuple<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Index>& state) {
+             const auto& [initial, decrease, increase, maximum, threshold, convergence, trials] = state;
+             LevenbergMarquardtSettings value{.initial_damping           = initial,
+                                              .decrease_factor           = decrease,
+                                              .increase_factor           = increase,
+                                              .maximum_damping           = maximum,
+                                              .damping_threshold         = threshold,
+                                              .convergence_damping_limit = convergence,
+                                              .maximum_trials            = trials};
              value.validate();
              new (settings) LevenbergMarquardtSettings(value);
+           });
+
+  const OptimalEstimationSettings       calculation_defaults;
+  py::class_<OptimalEstimationSettings> settings(m, "OptimalEstimationSettings");
+  generic_interface(settings);
+  settings.def(
+      "__init__",
+      [](OptimalEstimationSettings* self, const std::string& method) {
+        OptimalEstimationSettings value{.method = to<OptimalEstimationMethod>(method)};
+        value.validate();
+        new (self) OptimalEstimationSettings(std::move(value));
+      },
+      "method"_a);
+  py::implicitly_convertible<std::string, OptimalEstimationSettings>();
+
+  settings.def(
+      "__init__",
+      [](OptimalEstimationSettings* self,
+         OptimalEstimationMethod    method,
+         Index                      max_iter,
+         Numeric                    stop_dx,
+         Numeric                    max_start_cost,
+         Numeric                    cg_tolerance,
+         Index                      cg_max_iter,
+         LevenbergMarquardtSettings lm,
+         Index                      display_progress,
+         bool                       clear_matrices) {
+        OptimalEstimationSettings value{.method           = method,
+                                        .max_iter         = max_iter,
+                                        .stop_dx          = stop_dx,
+                                        .max_start_cost   = max_start_cost,
+                                        .cg_tolerance     = cg_tolerance,
+                                        .cg_max_iter      = cg_max_iter,
+                                        .lm               = lm,
+                                        .display_progress = display_progress,
+                                        .clear_matrices   = clear_matrices};
+        value.validate();
+        new (self) OptimalEstimationSettings(std::move(value));
+      },
+      py::kw_only(),
+      "method"_a           = calculation_defaults.method,
+      "max_iter"_a         = calculation_defaults.max_iter,
+      "stop_dx"_a          = calculation_defaults.stop_dx,
+      "max_start_cost"_a   = calculation_defaults.max_start_cost,
+      "cg_tolerance"_a     = calculation_defaults.cg_tolerance,
+      "cg_max_iter"_a      = calculation_defaults.cg_max_iter,
+      "lm"_a               = calculation_defaults.lm,
+      "display_progress"_a = calculation_defaults.display_progress,
+      "clear_matrices"_a   = calculation_defaults.clear_matrices);
+  settings.def("validate",
+               &OptimalEstimationSettings::validate,
+               "Check all controls; oemCalc and oemCalcReduced also validate before calculation.");
+  settings.def_rw("method",
+                  &OptimalEstimationSettings::method,
+                  "Algorithm and linear solver.\n\n.. :class:`OptimalEstimationMethod`");
+  settings.def_rw("max_iter", &OptimalEstimationSettings::max_iter, "Maximum outer iterations.\n\n.. :class:`int`");
+  settings.def_rw(
+      "stop_dx", &OptimalEstimationSettings::stop_dx, "Positive convergence tolerance.\n\n.. :class:`float`");
+  settings.def_rw("max_start_cost",
+                  &OptimalEstimationSettings::max_start_cost,
+                  "Maximum initial cost; infinity disables the cutoff.\n\n.. :class:`float`");
+  settings.def_rw("cg_tolerance",
+                  &OptimalEstimationSettings::cg_tolerance,
+                  "Positive relative CG residual tolerance.\n\n.. :class:`float`");
+  settings.def_rw("cg_max_iter",
+                  &OptimalEstimationSettings::cg_max_iter,
+                  "CG iteration limit; zero selects max(1000, 2 * dimension).\n\n.. :class:`int`");
+  settings.def_rw(
+      "lm", &OptimalEstimationSettings::lm, "LM damping and trial controls.\n\n.. :class:`LevenbergMarquardtSettings`");
+  settings.def_rw(
+      "display_progress", &OptimalEstimationSettings::display_progress, "Print progress when 1.\n\n.. :class:`int`");
+  settings.def_rw("clear_matrices",
+                  &OptimalEstimationSettings::clear_matrices,
+                  "Release Jacobian and gain when true.\n\n.. :class:`bool`");
+  settings
+      .def("__getstate__",
+           [](const OptimalEstimationSettings& value) {
+             return py::make_tuple(std::string{toString(value.method)},
+                                   value.max_iter,
+                                   value.stop_dx,
+                                   value.max_start_cost,
+                                   value.cg_tolerance,
+                                   value.cg_max_iter,
+                                   value.lm,
+                                   value.display_progress,
+                                   value.clear_matrices);
+           })
+      .def("__setstate__",
+           [](OptimalEstimationSettings* self,
+              const std::
+                  tuple<std::string, Index, Numeric, Numeric, Numeric, Index, LevenbergMarquardtSettings, Index, bool>&
+                      state) {
+             auto value = std::apply(
+                 [](const std::string& method, auto... values) {
+                   return OptimalEstimationSettings{to<OptimalEstimationMethod>(method), values...};
+                 },
+                 state);
+             value.validate();
+             new (self) OptimalEstimationSettings(std::move(value));
            });
 
   auto jtdcmm = py::bind_map<JacobianTargetsDiagonalCovarianceMatrixMap, py::rv_policy::reference_internal>(

@@ -701,6 +701,11 @@ the user-interface for setting up retrieval targets can be simplified.
       .map_type = true,
   };
 
+  wsg_data["LevenbergMarquardtSettings"] = {
+      .file = "oem_settings.h",
+      .desc = "Named Levenberg-Marquardt damping settings for OEM.\n",
+  };
+
   wsg_data["OptimalEstimationDiagnostics"] = {
       .file = "oem_settings.h",
       .desc =

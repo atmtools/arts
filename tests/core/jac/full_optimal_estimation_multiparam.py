@@ -136,7 +136,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     if condition(ws.oem.model_state_vec, model_statec_vector_targets):
         works = True

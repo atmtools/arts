@@ -123,7 +123,7 @@ agenda.add(arts.Method("linear_observation", callback))
 agenda.finalize(True)
 ws.inversion_iterate_agenda = agenda
 expected = prior + np.linalg.solve(.5 * np.eye(2) + J.T @ J, J.T @ (y - J @ prior))
-# Validation must run before method parsing, covariance preparation,
+# Data validation must run before covariance preparation,
 # forward evaluations or clearing diagnostics/results, for both entry points.
 ws.oem.uncheck()
 assert not ws.oem.checked
@@ -131,7 +131,7 @@ ws.oem.diagnostics.iterations = 123
 ws.oem.measurement_vec[0] = np.nan
 for calculate in (ws.oemCalc, ws.oemCalcReduced):
     try:
-        calculate(method="deliberately-invalid-method")
+        calculate(settings="gn")
     except RuntimeError as error:
         assert "measurement_vec[0]" in str(error)
         assert not ws.oem.checked
@@ -169,7 +169,7 @@ np.testing.assert_array_equal(ws.oem.model_state_vec_apriori, prior)
 ws.oemFinalizeDiagonal()
 assert ws.oem.checked
 ws.oem.uncheck()
-ws.oemCalc(method="gn", stop_dx=1e-10)
+ws.oemCalc(settings=arts.OptimalEstimationSettings(method="gn", stop_dx=1e-10))
 assert ws.oem.checked
 np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-10)
 ws.oemAveragingKernelCalc()
@@ -194,7 +194,7 @@ np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b)
 np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c)
 np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-10)
 ws.oem.uncheck()
-ws.oemCalcReduced(method="lm", stop_dx=1e-10)
+ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method="lm", stop_dx=1e-10))
 assert ws.oem.checked
 np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-9)
 
@@ -225,7 +225,7 @@ ws.model_state_vecFromData()
 np.testing.assert_array_equal(ws.model_state_vec, prior)
 np.testing.assert_array_equal(ws.oem.measurement_vec, y)
 assert ws.oem.diagnostics.status == previous_status
-ws.oemCalc(method="gn", stop_dx=1e-10)
+ws.oemCalc(settings=arts.OptimalEstimationSettings(method="gn", stop_dx=1e-10))
 np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-10)
 
 # New workspaces must never share a mutable OEM default object.

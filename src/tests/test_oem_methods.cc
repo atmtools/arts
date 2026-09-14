@@ -158,15 +158,16 @@ struct Retrieval {
             subsurf,
             targets,
             agenda,
-            String{method},
-            max_start_cost,
-            max_iter,
-            stop_dx,
-            settings,
-            clear_matrices,
-            display_progress,
-            cg_tolerance,
-            cg_max_iter);
+            OptimalEstimationSettings{
+                .method = to<OptimalEstimationMethod>(method),
+                .max_iter = max_iter,
+                .stop_dx = stop_dx,
+                .max_start_cost = max_start_cost,
+                .cg_tolerance = cg_tolerance,
+                .cg_max_iter = cg_max_iter,
+                .lm = settings,
+                .display_progress = display_progress,
+                .clear_matrices = clear_matrices != 0});
   }
 };
 

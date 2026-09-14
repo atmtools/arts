@@ -109,7 +109,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     print(f"got:      {ws.oem.model_state_vec:B,}")
     print(f"expected: [5, 15, 1e-6, 1e-12]")

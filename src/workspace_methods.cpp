@@ -5255,6 +5255,12 @@ retrieval from the same physical prior.
   wsm_data["oemCalc"] = {
       .desc   = R"(Retrieve a model state by optimal estimation (oemCalc).
 
+The settings argument contains all calculation controls described below.
+It defaults to OptimalEstimationSettings (Gauss-Newton, 10 iterations).
+Both full and reduced calculations validate settings before preparing data.
+Damping controls are in settings.lm; its maximum_trials limits linear solves
+per LM outer iteration, including stationarity checks.
+
 Unchecked OEM data is validated before covariance preparation or output changes.
 Successful validation is reused on subsequent calls. Call *oemCheck* to force
 revalidation after in-place edits.
@@ -5390,23 +5396,24 @@ Description of the special input arguments:
       state-step criterion. This does not set the inner CG tolerance, which is
       controlled by cg_tolerance (default 1e-10).
 
-    - ``lm_ga_settings``:
+    - ``settings.lm``:
 
       Python users can pass :class:`~pyarts3.arts.LevenbergMarquardtSettings` directly
       to configure damping by name, for example::
 
           damping = pyarts3.arts.LevenbergMarquardtSettings(initial_damping=20.0)
           ws.oemCheck()
-          ws.oemCalc(method="lm", lm_ga_settings=damping)
+          ws.oemCalc(settings=pyarts3.arts.OptimalEstimationSettings(method="lm", lm=damping))
 
       The default is ``LevenbergMarquardtSettings()``. Its named fields are
       ``initial_damping=10``, ``decrease_factor=2``, ``increase_factor=2``,
       ``maximum_damping=100``, ``damping_threshold=1``, and
-      ``convergence_damping_limit=0``. Use ``describe()`` for their meanings
+      ``convergence_damping_limit=0``, with ``maximum_trials=100`` linear solves
+      per outer iteration. Use ``describe()`` for their meanings
       and :ref:`sec-user-oem` for tuning guidance. Python construction and
       field edits validate the settings; oemCalc validates them before LM runs.
-      The object supports workspace and XML storage directly. Vector settings
-      are no longer accepted. Direct and CG variants use the same controls
+      The object supports workspace and XML storage directly. A six-value Python
+      sequence initializes the damping controls, leaving maximum_trials at its default. Direct and CG variants use the same controls
       and prior-precision damping defined in :ref:`sec-oem-damping`.
 
     - ``clear_matrices``:
@@ -5451,35 +5458,10 @@ system (reduced dimensions for oemCalcReduced).
                  "subsurf_field",
                  "jac_targets",
                  "inversion_iterate_agenda"},
-      .gin    = {"method",
-                 "max_start_cost",
-                 "max_iter",
-                 "stop_dx",
-                 "lm_ga_settings",
-                 "clear_matrices",
-                 "display_progress",
-                 "cg_tolerance",
-                 "cg_max_iter"},
-      .gin_type =
-          {"String", "Numeric", "Index", "Numeric", "LevenbergMarquardtSettings", "Index", "Index", "Numeric", "Index"},
-      .gin_value      = {std::nullopt,
-                         Numeric{std::numeric_limits<Numeric>::infinity()},
-                         Index{10},
-                         Numeric{0.01},
-                         LevenbergMarquardtSettings{},
-                         Index{0},
-                         Index{0},
-                         Numeric{1e-10},
-                         Index{0}},
-      .gin_desc       = {"Iteration method. For this and all options below, see further above",
-                         "Maximum allowed value of cost function at start",
-                         "Maximum number of iterations",
-                         "Stop criterion for iterative inversions",
-                         "Named LM damping controls",
-                         "An option to save memory",
-                         "Flag to control if inversion diagnostics shall be printed on the screen",
-                         "Positive relative CG residual tolerance",
-                         "Maximum CG iterations per linear solve; zero uses max(1000, 2 * system dimension)"},
+      .gin = {"settings"},
+      .gin_type = {"OptimalEstimationSettings"},
+      .gin_value = {OptimalEstimationSettings{}},
+      .gin_desc = {"Algorithm, limits, tolerances, LM damping and output controls"},
       .pass_workspace = true,
 
       /* *OEM* reads the sizes of *model_state_vec*, *measurement_vec_fit* and

@@ -9,6 +9,8 @@
 #include <utility>
 
 void LevenbergMarquardtSettings::validate() const {
+  ARTS_USER_ERROR_IF(maximum_trials <= 0 or maximum_trials > std::numeric_limits<unsigned int>::max(),
+                     "LevenbergMarquardtSettings.maximum_trials must be positive and fit the solver index range.")
   const std::array<std::pair<std::string_view, Numeric>, 6> fields{{
       {"initial_damping", initial_damping},
       {"decrease_factor", decrease_factor},
@@ -46,13 +48,14 @@ void LevenbergMarquardtSettings::validate() const {
 std::string LevenbergMarquardtSettings::repr() const {
   return std::format(
       "LevenbergMarquardtSettings(initial_damping={}, decrease_factor={}, increase_factor={}, "
-      "maximum_damping={}, damping_threshold={}, convergence_damping_limit={})",
+      "maximum_damping={}, damping_threshold={}, convergence_damping_limit={}, maximum_trials={})",
       initial_damping,
       decrease_factor,
       increase_factor,
       maximum_damping,
       damping_threshold,
-      convergence_damping_limit);
+      convergence_damping_limit,
+      maximum_trials);
 }
 
 std::string LevenbergMarquardtSettings::describe() const {
@@ -65,6 +68,7 @@ std::string LevenbergMarquardtSettings::describe() const {
       "Another rejected trial at that maximum stops the retrieval.\n"
       "Accepted trials do not always reduce damping, particularly after a rejection.\n"
       "The ordinary stop_dx test is enabled when updated damping is <= {}. This limit is not a state-step tolerance.\n"
+      "Each outer iteration permits at most {} linear-solve trials, including stationarity checks.\n"
       "{}\n"
       "These controls determine trial steps. The prior and measurement covariances determine statistical weights.\n",
       repr(),
@@ -76,9 +80,42 @@ std::string LevenbergMarquardtSettings::describe() const {
       increase_factor,
       maximum_damping,
       convergence_damping_limit,
+      maximum_trials,
       convergence_damping_limit == 0
           ? "A zero convergence_damping_limit waits for damping to reach zero before enabling the ordinary stopping test."
           : "A positive convergence_damping_limit allows stopping while damping still constrains the step; inspect the costs and residuals.");
+}
+
+void OptimalEstimationSettings::validate() const {
+  ARTS_USER_ERROR_IF(not good_enum(method), "OptimalEstimationSettings.method is invalid.")
+  ARTS_USER_ERROR_IF(max_iter <= 0 or max_iter >= std::numeric_limits<unsigned int>::max(),
+                     "OptimalEstimationSettings.max_iter must be positive and below the solver index limit.")
+  ARTS_USER_ERROR_IF(not std::isfinite(stop_dx) or stop_dx <= 0,
+                     "OptimalEstimationSettings.stop_dx must be finite and positive.")
+  ARTS_USER_ERROR_IF(std::isnan(max_start_cost), "OptimalEstimationSettings.max_start_cost must not be NaN.")
+  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
+                     "OptimalEstimationSettings.cg_tolerance must be finite and positive.")
+  ARTS_USER_ERROR_IF(
+      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
+      "OptimalEstimationSettings.cg_max_iter must be zero (automatic) or positive and fit the solver index range.")
+  ARTS_USER_ERROR_IF(display_progress < 0 or display_progress > 1,
+                     "OptimalEstimationSettings.display_progress must be 0 or 1.")
+  lm.validate();
+}
+
+std::string OptimalEstimationSettings::repr() const {
+  return std::format(
+      "OptimalEstimationSettings(method={}, max_iter={}, stop_dx={}, max_start_cost={}, "
+      "cg_tolerance={}, cg_max_iter={}, lm={}, display_progress={}, clear_matrices={})",
+      toString(method),
+      max_iter,
+      stop_dx,
+      max_start_cost,
+      cg_tolerance,
+      cg_max_iter,
+      lm,
+      display_progress,
+      clear_matrices);
 }
 
 void OptimalEstimationData::clear() { *this = OptimalEstimationData{}; }

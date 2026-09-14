@@ -136,7 +136,9 @@ def run():
 
     # This small Doppler shift needs little damping. Starting at 1 also
     # permits the convergence check once the small-step criterion is met.
-    lm_settings = arts.LevenbergMarquardtSettings(initial_damping=1.0)
+    settings = arts.OptimalEstimationSettings(
+        method="lm", max_iter=30, stop_dx=0.01,
+        lm=arts.LevenbergMarquardtSettings(initial_damping=1.0))
 
     def retrieve(name):
         # Every call starts from the same prior, with no cached fit/Jacobian.
@@ -149,10 +151,7 @@ def run():
         method = getattr(ws, {"OEM": "oemCalc", "ReducedOEM": "oemCalcReduced"}.get(name, name))
         ws.oemCheck()
         started = perf_counter()
-        method(
-            method="lm", max_iter=30, stop_dx=0.01,
-            lm_ga_settings=lm_settings,
-        )
+        method(settings=settings)
         elapsed = perf_counter() - started
         assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
         assert not len(ws.oem.diagnostics.errors), ws.oem.diagnostics

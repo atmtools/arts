@@ -113,7 +113,7 @@ for i in range(LIMIT):
     ws.oemMeasurementCovmatConstant(value=noise**2)
     ws.oemFinalizeDiagonal()
 
-    ws.oemCalc(method="gn")
+    ws.oemCalc(settings="gn")
 
     absdiff = round(abs(orig - ws.oem.model_state_vec[0]) * 1e9)
 

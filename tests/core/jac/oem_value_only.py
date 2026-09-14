@@ -118,9 +118,8 @@ def check_kernel(option):
     ws.model_state_targets = arts.JacobianTargets()
     seen.clear()
     ws.oemCheck()
-    ws.oemCalc(
-        method="lm", stop_dx=1e-12, max_iter=100, lm_ga_settings=arts.LevenbergMarquardtSettings()
-    )
+    ws.oemCalc(settings=arts.OptimalEstimationSettings(
+        method="lm", stop_dx=1e-12, max_iter=100, lm=arts.LevenbergMarquardtSettings()))
     assert ws.oem.diagnostics.status == pyarts.arts.OptimalEstimationStatus.Converged, ws.oem.diagnostics
     temperature = max(np.roots([3, 0, -67, -6]))
     expected = [temperature, 2 - 0.75 * (temperature**2 - 23), 5 / 6]

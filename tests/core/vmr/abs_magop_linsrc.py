@@ -65,7 +65,7 @@ ws.oemSetMeasurement()
 ws.oemMeasurementCovmatConstant(value=noise**2)
 ws.oemFinalizeDiagonal()
 
-ws.oemCalc(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 99])
+ws.oemCalc(settings=pyarts.arts.OptimalEstimationSettings(method="lm", lm=[10, 2, 2, 100, 1, 99]))
 vmr_jacobian = np.array(ws.oem.measurement_vec_fit, copy=True)
 
 np.testing.assert_array_less(
