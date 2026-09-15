@@ -803,6 +803,9 @@ over frequency to obtain heating in K/s.  The Python recipe
       .invariant      = "{}.ok()",
       .invariant_desc = "agrees with its own frequency grid, level grid and dimensions.",
 
+      // Assembled by the disort_settings* setters, which see it part-built
+      .invariant_needs_complete = true,
+
       /* Reported whole rather than field by field: the shapes are only
        * meaningful next to the grids and dimensions they are derived from. */
       .invariant_printables = {"{}"},

@@ -1427,7 +1427,7 @@ See *spectral_propmat_jac* for more information.
       .desc = R"--(Single value version of *spectral_rad_jac*.
 )--",
       .type = "StokvecVector",
-      .dims = {"NTARGET"},
+      .dims = {"NSTATE"},
   };
 
   agendas(wsv_data);

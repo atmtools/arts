@@ -562,10 +562,6 @@ std::vector<SizeCheck> method_input_invariants(const WorkspaceMethodInternalReco
   std::vector<SizeCheck> out;
 
   for (const auto& name : wsmr.in) {
-    // A method that also writes the variable is building it, so it is allowed to
-    // see it part-built.  Only what a method purely reads has to be usable.
-    if (std::ranges::find(wsmr.out, name) != wsmr.out.end()) continue;
-
     const auto wsv = wsvs.find(name);
     if (wsv == wsvs.end()) continue;
 
@@ -573,6 +569,12 @@ std::vector<SizeCheck> method_input_invariants(const WorkspaceMethodInternalReco
     if (wsg == wsgs.end() or wsg->second.invariant.empty()) continue;
 
     const auto& rec = wsg->second;
+
+    // A method that also writes the variable is building it.  Only a group that
+    // is inconsistent until it is complete gets to be seen part-built; the rest
+    // hold at every step, so they are asked here as well.
+    const bool building = std::ranges::find(wsmr.out, name) != wsmr.out.end();
+    if (building and rec.invariant_needs_complete) continue;
 
     SizeCheck check;
     check.test       = subst_all(rec.invariant, access(name));
