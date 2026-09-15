@@ -171,7 +171,13 @@ struct OptimalEstimationData {
   [[nodiscard]] bool checked() const noexcept { return checked_; }
   void               uncheck() noexcept { checked_ = false; }
   void               check(const JacobianTargets* targets = nullptr);
-  /** Validate once, reusing the checked status until invalidated. */
+  /** Validate once, reusing the checked status until invalidated.
+   *
+   * A checked object deliberately skips revalidation, including the comparison
+   * against jac_targets. Since jac_targets is a separate workspace variable,
+   * editing it cannot clear this object's checked status; a resulting mismatch
+   * is reported by oemCalc when the agenda returns a Jacobian of the wrong shape.
+   */
   void ensure_checked(const JacobianTargets& targets) {
     if (not checked_) check(&targets);
   }

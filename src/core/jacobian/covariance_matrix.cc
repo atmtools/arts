@@ -30,31 +30,82 @@ struct CovarianceSignature {
   std::vector<Numeric> values;
   bool                 operator==(const CovarianceSignature &) const = default;
 };
-CovarianceSignature covariance_signature(const CovarianceMatrix &covariance) {
-  CovarianceSignature result;
-  auto &[layout, values] = result;
+// One canonical traversal, shared by signature construction and comparison, so
+// the two can never disagree about what identifies a covariance. A sink
+// returning false stops the walk.
+template <typename LayoutSink, typename ValueSink>
+bool walk_covariance(const CovarianceMatrix &covariance, LayoutSink layout, ValueSink value) {
+  const auto emit = [&](std::initializer_list<Index> items) {
+    for (Index item : items)
+      if (not layout(item)) return false;
+    return true;
+  };
   for (const auto *blocks : {&covariance.get_blocks(), &covariance.get_inverse_blocks()}) {
-    layout.push_back(blocks->size());
+    if (not emit({static_cast<Index>(blocks->size())})) return false;
     for (const auto &b : *blocks) {
       if (not b.not_null()) throw std::runtime_error("Cannot prepare a null covariance block.");
-      layout.push_back(b.is_dense() ? b.get_dense().nrows() : b.get_sparse().nrows());
-      layout.push_back(b.is_dense() ? b.get_dense().ncols() : b.get_sparse().ncols());
-      auto [i, j] = b.get_indices();
-      layout.insert(layout.end(),
-                    {i, j, b.get_row_range().offset, b.nrows(), b.get_column_range().offset, b.ncols(), b.is_dense()});
-      if (b.is_dense())
-        values.insert(values.end(), b.get_dense().elem_begin(), b.get_dense().elem_end());
-      else {
+      const auto [i, j] = b.get_indices();
+      if (not emit({b.is_dense() ? b.get_dense().nrows() : b.get_sparse().nrows(),
+                    b.is_dense() ? b.get_dense().ncols() : b.get_sparse().ncols(),
+                    i,
+                    j,
+                    b.get_row_range().offset,
+                    b.nrows(),
+                    b.get_column_range().offset,
+                    b.ncols(),
+                    static_cast<Index>(b.is_dense())}))
+        return false;
+      if (b.is_dense()) {
+        const auto &a = b.get_dense();
+        for (auto it = a.elem_begin(); it != a.elem_end(); ++it)
+          if (not value(*it)) return false;
+      } else {
         const auto &a = b.get_sparse();
-        layout.push_back(a.nnz());
-        for (const auto [row, col, value] : a | by_elem) {
-          layout.insert(layout.end(), {row, col});
-          values.push_back(value);
+        if (not emit({static_cast<Index>(a.nnz())})) return false;
+        for (const auto [row, col, entry] : a | by_elem) {
+          if (not emit({row, col})) return false;
+          if (not value(entry)) return false;
         }
       }
     }
   }
+  return true;
+}
+
+CovarianceSignature covariance_signature(const CovarianceMatrix &covariance) {
+  CovarianceSignature result;
+  auto &[layout, values] = result;
+  walk_covariance(
+      covariance,
+      [&layout](Index item) {
+        layout.push_back(item);
+        return true;
+      },
+      [&values](Numeric entry) {
+        values.push_back(entry);
+        return true;
+      });
   return result;
+}
+
+// Compare against a stored signature without materializing a second one. The
+// steady-state answer is "unchanged", and that case now costs no allocation and
+// no copy; a change stops the walk at the first differing element. Detection is
+// unchanged: every element is still read, so edits made through retained
+// references or shared block storage are still caught.
+bool signature_matches(const CovarianceMatrix     &covariance,
+                       const std::vector<Index>   &layout,
+                       const std::vector<Numeric> &values) {
+  std::size_t layout_at = 0, value_at = 0;
+  const bool  complete = walk_covariance(
+      covariance,
+      [&](Index item) { return layout_at < layout.size() and layout[layout_at++] == item; },
+      [&](Numeric entry) { return value_at < values.size() and values[value_at++] == entry; });
+  return complete and layout_at == layout.size() and value_at == values.size();
+}
+
+bool signature_matches(const CovarianceMatrix &covariance, const CovarianceSignature &expected) {
+  return signature_matches(covariance, expected.layout, expected.values);
 }
 }  // namespace
 struct CovariancePreparation {
@@ -118,14 +169,14 @@ CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &other) {
 CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&other) noexcept {
   if (this != &other) {
     solve_cache_  = std::move(other.solve_cache_);
-    preparation_ = other.preparation_;
-    finalized_   = std::exchange(other.finalized_, false);
+    preparation_  = other.preparation_;
+    finalized_    = std::exchange(other.finalized_, false);
     correlations_ = std::exchange(other.correlations_, {});
     inverses_     = std::exchange(other.inverses_, {});
   }
   return *this;
 }
-CovarianceMatrix::~CovarianceMatrix()                                       = default;
+CovarianceMatrix::~CovarianceMatrix() = default;
 
 void CovarianceMatrix::clear_cache() {
   auto fresh = std::make_shared<CovariancePreparation>();
@@ -616,9 +667,7 @@ void CovarianceMatrix::compute_inverse() const {
   std::lock_guard lock(preparation_->mutex);
   // Reuse the complete, previously validated inverse. An exact signature also
   // catches edits through retained block references and shared matrix storage.
-  if (preparation_->validated_inverse and
-      *preparation_->validated_inverse == covariance_signature(*this))
-    return;
+  if (preparation_->validated_inverse and signature_matches(*this, *preparation_->validated_inverse)) return;
   // Independent components may have supplied inverses while others still need
   // computing. A represented component must already have a complete inverse.
   // The optional confirmation API has a user-configurable allocation guard.
@@ -835,8 +884,14 @@ std::optional<Vector> diagonal_values(const std::vector<Block> &blocks, Index n)
       for (const auto [row, col, value] : a | by_elem)
         if (row != col and value != 0) return std::nullopt;
     }
-    const Vector d = block.diagonal();
-    for (Index r = 0; r < static_cast<Index>(d.size()); ++r) values[block.get_row_range().offset + r] = d[r];
+    const Vector d      = block.diagonal();
+    const Index  offset = block.get_row_range().offset;
+    // A well-formed covariance has its diagonal blocks tiling [0, n), so n
+    // covers every row. Block storage is settable without validation, so a
+    // gapped layout can make n too small; such a layout is not a diagonal of
+    // length n, and answering "not diagonal" leaves it to the generic path.
+    if (offset < 0 or offset + static_cast<Index>(d.size()) > n) return std::nullopt;
+    for (Index r = 0; r < static_cast<Index>(d.size()); ++r) values[offset + r] = d[r];
   }
   return values;
 }
@@ -863,17 +918,19 @@ struct CovarianceSolveCache {
 
 std::shared_ptr<const CovarianceMatrix> CovarianceMatrix::prepared(bool need_precision) const {
   std::lock_guard lock(preparation_->mutex);
-  auto            signature = covariance_signature(*this);
-  auto &[layout, values]    = signature;
-  auto &cache               = *preparation_;
-  if (cache.snapshot and cache.precision == need_precision and cache.layout == layout and cache.values == values)
+  auto           &cache = *preparation_;
+  // Answer the common "nothing changed" case before building a signature.
+  if (cache.snapshot and cache.precision == need_precision and signature_matches(*this, cache.layout, cache.values))
     return cache.snapshot;
+  auto signature         = covariance_signature(*this);
+  auto &[layout, values] = signature;
   if (correlations_.empty() and inverses_.empty()) throw std::runtime_error("Cannot prepare an empty covariance.");
   auto snapshot           = std::make_shared<CovarianceMatrix>();
   snapshot->correlations_ = detached_blocks(correlations_);
   snapshot->inverses_     = detached_blocks(inverses_);
   if (need_precision or not inverses_.empty()) {
-    if (not cache.validated_inverse or *cache.validated_inverse != signature) snapshot->compute_inverse();
+    if (not cache.validated_inverse or not signature_matches(*this, *cache.validated_inverse))
+      snapshot->compute_inverse();
   } else {
     Matrix empty(0, 0);
     snapshot->solve_components(empty, empty);
@@ -895,9 +952,9 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
   // Preserve explicitly supplied (including precision-only) representations.
   if (correlations_.empty() or not inverses_.empty()) return false;
   if (not finalized_) {
-    auto [layout, values] = covariance_signature(*this);
     // Exact snapshots detect mutations through retained references/shared storage.
-    if (not solve_cache_ or solve_cache_->layout != layout or solve_cache_->values != values) {
+    if (not solve_cache_ or not signature_matches(*this, solve_cache_->layout, solve_cache_->values)) {
+      auto [layout, values] = covariance_signature(*this);
       validate_unlocked(-1, 1e-10, std::numeric_limits<Index>::max());
       auto cache    = std::make_shared<CovarianceSolveCache>();
       cache->layout = std::move(layout);
@@ -949,7 +1006,7 @@ bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatri
       solve_cache_ = std::move(cache);
     }
   }
-  const auto *cache = solve_cache_.get();
+  const auto                                 *cache = solve_cache_.get();
   std::shared_ptr<const CovarianceSolveCache> retained_cache;
   if (lock.owns_lock()) {
     retained_cache = solve_cache_;

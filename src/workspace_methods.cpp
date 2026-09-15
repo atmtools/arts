@@ -5253,7 +5253,7 @@ retrieval from the same physical prior.
   };
 
   wsm_data["oemCalc"] = {
-      .desc   = R"(Retrieve a model state by optimal estimation (oemCalc).
+      .desc           = R"(Retrieve a model state by optimal estimation (oemCalc).
 
 The settings argument contains all calculation controls described below.
 It defaults to OptimalEstimationSettings (Gauss-Newton, 10 iterations).
@@ -5267,7 +5267,7 @@ revalidation after in-place edits.
 
 See :ref:`sec-user-oem` for a practical guide to selecting methods, damping,
 covariances, and interpreting the retrieval diagnostics. The equations and
-notation are defined in :ref:`Sec oemCalc`.
+notation are defined in :ref:`Sec OEM`.
 
 The cost function to minimise, including a normalisation with length
 of ``oem.measurement_vec``, is:
@@ -5448,20 +5448,20 @@ budget. The dimension is that of the selected state- or measurement-space
 system (reduced dimensions for oemCalcReduced).
 
 )",
-      .author = {"Patrick Eriksson"},
-      .out    = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
-      .in     = {"oem",
-                 "atm_field",
-                 "abs_bands",
-                 "measurement_sensor",
-                 "surf_field",
-                 "subsurf_field",
-                 "jac_targets",
-                 "inversion_iterate_agenda"},
-      .gin = {"settings"},
-      .gin_type = {"OptimalEstimationSettings"},
-      .gin_value = {OptimalEstimationSettings{}},
-      .gin_desc = {"Algorithm, limits, tolerances, LM damping and output controls"},
+      .author         = {"Patrick Eriksson"},
+      .out            = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
+      .in             = {"oem",
+                         "atm_field",
+                         "abs_bands",
+                         "measurement_sensor",
+                         "surf_field",
+                         "subsurf_field",
+                         "jac_targets",
+                         "inversion_iterate_agenda"},
+      .gin            = {"settings"},
+      .gin_type       = {"OptimalEstimationSettings"},
+      .gin_value      = {OptimalEstimationSettings{}},
+      .gin_desc       = {"Algorithm, limits, tolerances, LM damping and output controls"},
       .pass_workspace = true,
 
       /* *OEM* reads the sizes of *model_state_vec*, *measurement_vec_fit* and

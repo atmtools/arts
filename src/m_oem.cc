@@ -60,14 +60,17 @@ OEMMethod parse_oem_method(OptimalEstimationMethod method) {
   if (method == OptimalEstimationMethod::li_cg_m)
     return {.algorithm = OEMAlgorithm::Linear, .conjugate_gradient = true, .measurement_space = true};
   if (method == OptimalEstimationMethod::gn) return {.algorithm = OEMAlgorithm::GaussNewton};
-  if (method == OptimalEstimationMethod::gn_cg) return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
+  if (method == OptimalEstimationMethod::gn_cg)
+    return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
   if (method == OptimalEstimationMethod::gn_cg_m)
     return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true, .measurement_space = true};
-  if (method == OptimalEstimationMethod::lm || method == OptimalEstimationMethod::ml) return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
+  if (method == OptimalEstimationMethod::lm || method == OptimalEstimationMethod::ml)
+    return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
   if (method == OptimalEstimationMethod::lm_cg || method == OptimalEstimationMethod::ml_cg)
     return {.algorithm = OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient = true};
   if (method == OptimalEstimationMethod::li_m) return {.algorithm = OEMAlgorithm::Linear, .measurement_space = true};
-  if (method == OptimalEstimationMethod::gn_m) return {.algorithm = OEMAlgorithm::GaussNewton, .measurement_space = true};
+  if (method == OptimalEstimationMethod::gn_m)
+    return {.algorithm = OEMAlgorithm::GaussNewton, .measurement_space = true};
   ARTS_USER_ERROR(
       "Unknown OEM method '{}'. Supported methods: li, li_m, li_cg, li_cg_m, gn, gn_m, gn_cg, gn_cg_m, lm, lm_cg; aliases: ml, ml_cg.",
       method)
@@ -156,24 +159,30 @@ void check_oem_inputs(const Vector&           x,
   ARTS_USER_ERROR_IF(
       method.measurement_space && !normalization.empty(),
       "model_state_covmat_normalization is not supported for measurement-space methods; use li_cg or gn_cg with normalization.")
-
 }
 
 // Shared iteration dispatch for full and reduced forward-model adapters.
-template <typename Forward> void oem_compute(Forward&                          aw,
-                                             oem::Vector&                      x_oem,
-                                             OptimalEstimationDiagnostics&     oem_diagnostics,
-                                             const Vector&                     model_state_vec_apriori,
-                                             const Vector&                     measurement_vec,
-                                             const CovarianceMatrix&           model_state_covmat,
-                                             const CovarianceMatrix&           measurement_vec_error_covmat,
-                                             const OEMMethod&                  selected,
-                                             const Vector&                     model_state_covmat_normalization,
-                                             const Vector&                     measurement_vec_normalization,
+template <typename Forward> void oem_compute(Forward&                         aw,
+                                             oem::Vector&                     x_oem,
+                                             OptimalEstimationDiagnostics&    oem_diagnostics,
+                                             const Vector&                    model_state_vec_apriori,
+                                             const Vector&                    measurement_vec,
+                                             const CovarianceMatrix&          model_state_covmat,
+                                             const CovarianceMatrix&          measurement_vec_error_covmat,
+                                             const OEMMethod&                 selected,
+                                             const Vector&                    model_state_covmat_normalization,
+                                             const Vector&                    measurement_vec_normalization,
                                              const OptimalEstimationSettings& settings,
-                                             const BlockMatrix*                projected_damping = nullptr) {
-  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
-               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
+                                             const BlockMatrix*               projected_damping = nullptr) {
+  const auto& [method,
+               max_iter,
+               stop_dx,
+               max_start_cost,
+               cg_tolerance,
+               cg_max_iter,
+               lm_ga_settings,
+               display_progress,
+               clear_matrices] = settings;
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   auto&       lm_ga_history = oem_diagnostics.lm_ga_history;
   auto&       errors        = oem_diagnostics.errors;
@@ -195,8 +204,16 @@ template <typename Forward> void oem_compute(Forward&                          a
   // the forward model throws. Costs always use the same measurement scaling.
   auto run = [&]<typename Retrieval, typename Optimizer>(Retrieval& retrieval, Optimizer& optimizer) {
     auto diagnostics = [&] {
-      oem_diagnostics.final_cost       = retrieval.cost / static_cast<Numeric>(m);
-      oem_diagnostics.measurement_cost = retrieval.cost_y / static_cast<Numeric>(m);
+      // invlib seeds cost/cost_y with -1 and only overwrites them once the first
+      // Jacobian succeeds. A chi-square is a quadratic form in a positive definite
+      // metric, so it can never be negative: passing the seed through would report
+      // -1/m, which for large m is a small negative number that reads as a perfect
+      // fit. NaN is the documented "unavailable" value and cannot be mistaken for one.
+      const auto per_measurement = [m](Numeric cost) {
+        return cost < 0 ? std::numeric_limits<Numeric>::quiet_NaN() : cost / static_cast<Numeric>(m);
+      };
+      oem_diagnostics.final_cost       = per_measurement(retrieval.cost);
+      oem_diagnostics.measurement_cost = per_measurement(retrieval.cost_y);
       oem_diagnostics.iterations       = static_cast<Index>(retrieval.iterations);
     };
     retrieval.iterations = 0;
@@ -285,26 +302,34 @@ static void measurement_covariance_normalization(Vector& normalization, const Co
   Vector scales = covariance.diagonal();
   for (auto& value : scales) {
     ARTS_USER_ERROR_IF(not std::isfinite(value) or value <= 0,
-                       "Measurement noise variances must be finite and strictly positive.")
+                       "Measurement noise variances must be finite and strictly positive.\n"
+                       "A zero variance means a channel with no assumed noise, which cannot be normalized.")
     value = std::sqrt(value);
   }
   normalization = std::move(scales);
 }
 
-void oemCalc(const Workspace&                  ws,
-             OptimalEstimationData&            data,
-             AtmField&                         atm_field,
-             AbsorptionBands&                  abs_bands,
-             ArrayOfSensorObsel&               measurement_sensor,
-             SurfaceField&                     surf_field,
-             SubsurfaceField&                  subsurf_field,
-             const JacobianTargets&            jac_targets,
-             const Agenda&                     inversion_iterate_agenda,
+void oemCalc(const Workspace&                 ws,
+             OptimalEstimationData&           data,
+             AtmField&                        atm_field,
+             AbsorptionBands&                 abs_bands,
+             ArrayOfSensorObsel&              measurement_sensor,
+             SurfaceField&                    surf_field,
+             SubsurfaceField&                 subsurf_field,
+             const JacobianTargets&           jac_targets,
+             const Agenda&                    inversion_iterate_agenda,
              const OptimalEstimationSettings& settings) {
   ARTS_TIME_REPORT
   settings.validate();
-  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
-               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
+  const auto& [method,
+               max_iter,
+               stop_dx,
+               max_start_cost,
+               cg_tolerance,
+               cg_max_iter,
+               lm_ga_settings,
+               display_progress,
+               clear_matrices] = settings;
   data.ensure_checked(jac_targets);
   auto&       model_state_vec                    = data.model_state_vec;
   auto&       measurement_vec_fit                = data.measurement_vec_fit;
@@ -651,7 +676,8 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void oemBasisCalc(OptimalEstimationData& data, const Index& full_matrices) {
-  ARTS_USER_ERROR_IF(full_matrices != 0 and full_matrices != 1, "full_matrices must be 0 or 1.")
+  ARTS_USER_ERROR_IF(
+      full_matrices != 0 and full_matrices != 1, "full_matrices is {}; it must be 0 or 1.", full_matrices)
   auto&       model_state_basis_mat        = data.model_state_basis_mat;
   auto&       measurement_basis_mat        = data.measurement_basis_mat;
   auto&       oem_basis_singular_values    = data.basis_singular_values;
@@ -718,19 +744,40 @@ void oemBasisReduce(OptimalEstimationData& data,
   ARTS_USER_ERROR_IF(
       n <= 0 or m <= 0 or B.ncols() <= 0 or B.ncols() > n or C.nrows() <= 0 or C.nrows() > m,
       "Basis matrices must be nonempty with at most the original number of modes; use oemBasisCalc first.")
-  ARTS_USER_ERROR_IF(singular_values.size() != static_cast<std::size_t>(p) or
-                         stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x) or x < 0; }) or
-                         not std::is_sorted(singular_values.begin(), singular_values.end(), std::greater<>{}),
-                     "oem_basis_singular_values must contain {} finite, nonnegative values in descending order "
-                     "from the same oemBasisCalc call as the full bases.",
-                     p)
-  ARTS_USER_ERROR_IF(rank != -1 and (rank < 1 or rank > n),
-                     "rank must be -1 for automatic selection or between 1 and {} full state variables.",
+  ARTS_USER_ERROR_IF(singular_values.size() != static_cast<std::size_t>(p),
+                     "oem_basis_singular_values holds {} values but the bases describe {} modes "
+                     "(min of {} measurements and {} state variables).\n"
+                     "The spectrum and the bases must come from the same oemBasisCalc call.",
+                     singular_values.size(),
+                     p,
+                     m,
                      n)
+  ARTS_USER_ERROR_IF(stdr::any_of(singular_values, [](auto x) { return not std::isfinite(x) or x < 0; }) or
+                         not std::is_sorted(singular_values.begin(), singular_values.end(), std::greater<>{}),
+                     "oem_basis_singular_values must be finite, nonnegative and in descending order.\n"
+                     "The spectrum and the bases must come from the same oemBasisCalc call.")
+  // At most p = min(m, n) modes exist, so a rank in (p, n] is unsatisfiable even
+  // on a freshly computed basis. Bounding by n instead sent such a request to the
+  // "already removed" error below, which blames the user for a state they never
+  // reached. B.ncols() is the stricter bound once a reduction has been applied.
+  ARTS_USER_ERROR_IF(rank != -1 and (rank < 1 or rank > B.ncols()),
+                     "rank is {}, but must be -1 for automatic selection or between 1 and {}.\n"
+                     "The basis holds {} of the {} modes that oemBasisCalc can produce for {} "
+                     "measurements and {} state variables.{}",
+                     rank,
+                     B.ncols(),
+                     B.ncols(),
+                     p,
+                     m,
+                     n,
+                     B.ncols() < p ? "\nRerun oemBasisCalc to restore the discarded modes." : "")
 
   const auto valid_loss = [](Numeric value) { return value == -1 or (std::isfinite(value) and value >= 0); };
   ARTS_USER_ERROR_IF(not valid_loss(max_lost_dofs) or not valid_loss(max_lost_information_bits),
-                     "Information-loss limits must be finite and nonnegative, or -1 to leave a limit unset.")
+                     "Information-loss limits must be finite and nonnegative, or -1 to leave a limit unset.\n"
+                     "Got max_lost_dofs={} and max_lost_information_bits={}.",
+                     max_lost_dofs,
+                     max_lost_information_bits)
   ARTS_USER_ERROR_IF(rank != -1 and (max_lost_dofs != -1 or max_lost_information_bits != -1),
                      "Supply either an explicit rank or information-loss limits, not both.")
 
@@ -768,9 +815,17 @@ void oemBasisReduce(OptimalEstimationData& data,
   }
 
   const Index q = std::min(retained, m);
-  ARTS_USER_ERROR_IF(
-      retained > B.ncols() or q > C.nrows(),
-      "Requested modes have already been removed. Restore saved bases or rerun oemBasisCalc before increasing rank or tightening loss limits.")
+  // Reachable from automatic selection, which starts at the full p modes: an
+  // earlier oemBasisReduce may have discarded modes this call now wants back.
+  ARTS_USER_ERROR_IF(retained > B.ncols() or q > C.nrows(),
+                     "Selected {} state modes and {} measurement modes, but the bases only hold {} and {}.\n"
+                     "An earlier oemBasisReduce discarded them, and the spectrum still describes all {} modes.\n"
+                     "Rerun oemBasisCalc to rebuild the full bases before loosening the loss limits.",
+                     retained,
+                     q,
+                     B.ncols(),
+                     C.nrows(),
+                     p)
   const auto leading = [](const BlockMatrix& basis, Index rows, Index cols) {
     return std::visit(
         [&]<typename T>(const std::shared_ptr<T>& matrix) -> BlockMatrix {
@@ -794,20 +849,27 @@ void oemBasisReduce(OptimalEstimationData& data,
   oem_basis_lost_information_bits = lost_bits;
 }
 
-void oemCalcReduced(const Workspace&                  ws,
-                    OptimalEstimationData&            data,
-                    AtmField&                         atm_field,
-                    AbsorptionBands&                  abs_bands,
-                    ArrayOfSensorObsel&               measurement_sensor,
-                    SurfaceField&                     surf_field,
-                    SubsurfaceField&                  subsurf_field,
-                    const JacobianTargets&            jac_targets,
-                    const Agenda&                     inversion_iterate_agenda,
-             const OptimalEstimationSettings& settings) {
+void oemCalcReduced(const Workspace&                 ws,
+                    OptimalEstimationData&           data,
+                    AtmField&                        atm_field,
+                    AbsorptionBands&                 abs_bands,
+                    ArrayOfSensorObsel&              measurement_sensor,
+                    SurfaceField&                    surf_field,
+                    SubsurfaceField&                 subsurf_field,
+                    const JacobianTargets&           jac_targets,
+                    const Agenda&                    inversion_iterate_agenda,
+                    const OptimalEstimationSettings& settings) {
   ARTS_TIME_REPORT
   settings.validate();
-  const auto& [method, max_iter, stop_dx, max_start_cost, cg_tolerance,
-               cg_max_iter, lm_ga_settings, display_progress, clear_matrices] = settings;
+  const auto& [method,
+               max_iter,
+               stop_dx,
+               max_start_cost,
+               cg_tolerance,
+               cg_max_iter,
+               lm_ga_settings,
+               display_progress,
+               clear_matrices] = settings;
   data.ensure_checked(jac_targets);
 
   auto&       model_state_vec                    = data.model_state_vec;
@@ -832,7 +894,8 @@ void oemCalcReduced(const Workspace&                  ws,
       B.nrows() != n or r <= 0 or r > n, "model_state_basis_mat must have {} rows and between 1 and {} columns.", n, n)
   ARTS_USER_ERROR_IF(
       C.ncols() != m or q <= 0 or q > m, "measurement_basis_mat must have {} columns and between 1 and {} rows.", m, m)
-  ARTS_USER_ERROR_IF(not B.is_finite() or not C.is_finite(), "ReducedOEM reduction matrices must be finite.")
+  ARTS_USER_ERROR_IF(not B.is_finite(), "model_state_basis_mat contains a non-finite value; rerun oemBasisCalc.")
+  ARTS_USER_ERROR_IF(not C.is_finite(), "measurement_basis_mat contains a non-finite value; rerun oemBasisCalc.")
   ARTS_USER_ERROR_IF(stdr::any_of(model_state_vec_apriori, [](auto v) { return not std::isfinite(v); }),
                      "ReducedOEM prior state must be finite.")
 
@@ -910,17 +973,12 @@ void oemCalcReduced(const Workspace&                  ws,
       for (Index i = 0; i < n; ++i)
         ARTS_USER_ERROR_IF(not std::isfinite(delta[i]) or not std::isfinite(represented[i]) or
                                std::abs(represented[i] - delta[i]) > 1e-8 * (1 + std::abs(delta[i])),
-                           "ReducedOEM starting state must lie in the supplied affine subspace.")
+                           "ReducedOEM starting state must lie in the subspace spanned by "
+                           "model_state_basis_mat.\n"
+                           "Either start from the prior (clear model_state_vec) or widen the basis.")
     }
-    check_oem_inputs(start,
-                     {},
-                     {},
-                     za,
-                     *reduced_prior,
-                     reduced_y,
-                     *reduced_noise,
-                     selected,
-                     model_state_covmat_normalization);
+    check_oem_inputs(
+        start, {}, {}, za, *reduced_prior, reduced_y, *reduced_noise, selected, model_state_covmat_normalization);
     ARTS_USER_ERROR_IF(
         not measurement_vec_normalization.empty() and
             (not selected.measurement_space or measurement_vec_normalization.size() != static_cast<Size>(q)),
@@ -1117,13 +1175,24 @@ void oemInitFromData(OptimalEstimationData& data,
 
 void oemCheck(OptimalEstimationData& data, const JacobianTargets& jac_targets) { data.check(&jac_targets); }
 
+namespace {
+// oemCheck validates size *and* finiteness, so a replacement may only inherit
+// the checked flag if it satisfies both. Rechecking unconditionally would redo
+// the Cholesky factorizations of both covariances, which this replacement
+// cannot invalidate; scanning the new vector keeps that cost at O(size).
+bool preserves_check(const Vector& old_value, const Vector& new_value) {
+  return old_value.size() == new_value.size() and
+         stdr::all_of(new_value, [](Numeric value) { return std::isfinite(value); });
+}
+}  // namespace
+
 void oemSetMeasurement(OptimalEstimationData& data, Vector& measurement_vec) {
-  if (data.measurement_vec.size() != measurement_vec.size()) data.uncheck();
+  if (not preserves_check(data.measurement_vec, measurement_vec)) data.uncheck();
   data.measurement_vec = std::exchange(measurement_vec, Vector{});
 }
 
 void oemSetApriori(OptimalEstimationData& data, Vector& model_state_vec) {
-  if (data.model_state_vec_apriori.size() != model_state_vec.size()) data.uncheck();
+  if (not preserves_check(data.model_state_vec_apriori, model_state_vec)) data.uncheck();
   data.model_state_vec_apriori = std::exchange(model_state_vec, Vector{});
 }
 
