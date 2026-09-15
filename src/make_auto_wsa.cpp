@@ -394,6 +394,8 @@ constexpr {0}Predefined to<{0}Predefined>(const std::string_view x) {{
 }  // namespace
 
 int main() try {
+  check_workspace_dimensions();
+
   std::ofstream head("auto_wsa.h");
   std::ofstream impl("auto_wsa.cpp");
   std::ofstream optshh("auto_wsa_options.h");

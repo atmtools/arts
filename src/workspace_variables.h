@@ -21,6 +21,19 @@ struct WorkspaceVariableInternalRecord {
    */
   std::vector<std::string> dims{};
 
+  /*! Names the dimensions inside each element of an array variable.
+   *
+   * An array grows along the dimension named in dims, e.g. a path gains points
+   * to keep the optical depth per step small, while every element it holds is
+   * shaped the same.  Those element dimensions are named here, in the order the
+   * element's group reads them.
+   *
+   * Checking these means visiting every element, so they are verified together
+   * in a single pass.  Such a check can only report that the elements disagree,
+   * not which element or which dimension was wrong.
+   */
+  std::vector<std::string> inner_dims{};
+
   /*! Overrides the group's dim_size expressions for this variable.
    *
    * Only for variables whose size is not read the way its group reads it,

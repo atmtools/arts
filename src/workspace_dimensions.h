@@ -69,6 +69,13 @@ std::vector<SizeCheck> method_input_size_checks(const WorkspaceMethodInternalRec
 std::vector<SizeCheck> method_output_size_checks(const WorkspaceMethodInternalRecord& wsmr,
                                                  const DimAccess&                     access = dim_access_by_name);
 
+/*! Throws unless every workspace variable names its dimensions sensibly.
+ *
+ * Checked for all of them rather than only for those that some method or agenda
+ * happens to verify, so that naming a dimension wrongly is always caught.
+ */
+void check_workspace_dimensions();
+
 /*! Writes the C++ that performs a check and reports what failed.
  *
  * This is how every generator turns a check into code, so that a size failure

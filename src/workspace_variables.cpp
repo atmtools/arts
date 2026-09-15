@@ -344,7 +344,8 @@ For more information, see :doc:`user.atm_field`.
       .desc = R"--(All *freq_grid* along the propagation path.
 )--",
       .type = "ArrayOfAscendingGrid",
-      .dims = {"NP", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NF"},
   };
 
   wsv_data["freq_wind_shift_jac"] = {
@@ -430,7 +431,8 @@ The units are *spectral_rad_jac* per meter.
       .desc = R"--(Additional non-LTE derivative along the propagation path
 )--",
       .type = "ArrayOfStokvecMatrix",
-      .dims = {"NP", "NT", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NT", "NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_jac_profile"] = {
@@ -447,7 +449,8 @@ The units are *spectral_rad_jac* per meter.
       .desc = R"--(Additional non-LTE along the propagation path
 )--",
       .type = "ArrayOfStokvecVector",
-      .dims = {"NP", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NF"},
   };
 
   wsv_data["spectral_nlte_srcvec_profile"] = {
@@ -506,7 +509,8 @@ The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit
       .desc = R"--(Propagation derivative matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatMatrix",
-      .dims = {"NP", "NT", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NT", "NF"},
   };
 
   wsv_data["spectral_propmat_jac_profile"] = {
@@ -523,7 +527,8 @@ The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit
       .desc = R"--(Propagation matrices along the propagation path
 )--",
       .type = "ArrayOfPropmatVector",
-      .dims = {"NP", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NF"},
   };
 
   wsv_data["spectral_propmat_profile"] = {
@@ -554,7 +559,8 @@ The unit is [1 / m].
           R"--(Propagation matrices along the propagation path for scattering
 )--",
       .type = "ArrayOfPropmatVector",
-      .dims = {"NP", "NF"},
+      .dims = {"NP"},
+      .inner_dims = {"NF"},
   };
 
   wsv_data["spectral_rad"] = {

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <format>
+#include <optional>
+#include <stdexcept>
 #include <ranges>
 
 #include "workspace_groups.h"
@@ -48,6 +50,29 @@ std::size_t readable_dims(const WorkspaceVariableInternalRecord& wsv) {
   std::size_t n = 0;
   while (n < wsv.dims.size() and not dim_size_template(wsv, n).empty()) n++;
   return n;
+}
+
+/*! The group of the elements of an array group, or empty if it is not one.
+ *
+ * An ArrayOf group only knows how to read its own length.  What is inside it is
+ * shaped the way its element group is shaped.
+ */
+std::string element_group(const std::string& type) {
+  constexpr std::string_view prefix = "ArrayOf";
+  if (not type.starts_with(prefix)) return {};
+
+  const auto elem = type.substr(prefix.size());
+
+  // A nested array holds elements that have a length rather than a shape, and
+  // the lengths are free to differ between them, as the paths of a path field
+  // do.  There is nothing to compare them against.
+  if (elem.starts_with(prefix)) return {};
+
+  const auto& wsgs = internal_workspace_groups();
+  const auto  ptr  = wsgs.find(elem);
+  if (ptr == wsgs.end() or ptr->second.dim_size.empty() or ptr->second.map_type) return {};
+
+  return elem;
 }
 
 struct Ref {
@@ -97,6 +122,86 @@ template <typename T> void keep_first(std::vector<T>& v) {
   }
   v = std::move(out);
 }
+
+/*! Checks that every element of an array is shaped the way its dimensions say.
+ *
+ * An array names the dimensions of its elements after its own length, but
+ * reading them means visiting every element.  So all of the element dimensions
+ * are checked together in a single pass, and the check can only say that the
+ * elements do not agree, not which element or which dimension was wrong.
+ *
+ * Returns nothing unless every dimension inside the element is known, since a
+ * partial shape cannot be compared against.
+ */
+std::optional<SizeCheck> inner_shape_check(const std::string&                          name,
+                                           const WorkspaceVariableInternalRecord&      wsv,
+                                           const std::unordered_map<std::string, Ref>& refs,
+                                           const DimAccess&                            access) {
+  if (wsv.inner_dims.empty()) return std::nullopt;
+
+  const auto elem = element_group(wsv.type);
+  if (elem.empty()) {
+    throw std::runtime_error(std::format(
+        R"(Workspace variable "{}" names inner dimensions but its group "{}" holds no elements that are shaped.
+
+Inner dimensions say that every element of an array has the same shape, so they
+need an ArrayOf whose element group declares dim_size.  They are not available for:
+
+  - a nested array, e.g. ArrayOfArrayOf..., whose elements have a length each
+    and are free to differ, as the paths of a path field do
+  - a map, whose values would have to be reached through its keys
+  - a group whose elements carry no sizes at all
+)",
+        name,
+        wsv.type));
+  }
+
+  const auto& esize = internal_workspace_groups().at(elem).dim_size;
+  if (wsv.inner_dims.size() != esize.size()) {
+    throw std::runtime_error(std::format(
+        R"(Workspace variable "{}" names {} inner dimension(s) but its elements of group "{}" have {}.
+
+The whole shape of an element is compared at once, so every one of its dimensions must be named.
+)",
+        name,
+        wsv.inner_dims.size(),
+        elem,
+        esize.size()));
+  }
+
+  std::vector<std::string> shape;
+  std::vector<std::string> syms;
+  std::vector<std::string> ref_vars;
+
+  for (const auto& sym : wsv.inner_dims) {
+    const auto ptr = refs.find(sym);
+
+    // Nothing in scope says what this size is, and a partial shape cannot be compared
+    if (sym.empty() or ptr == refs.end()) return std::nullopt;
+
+    shape.push_back(ptr->second.expr);
+    syms.push_back(sym);
+    ref_vars.push_back(ptr->second.var);
+  }
+
+  keep_first(ref_vars);
+
+  SizeCheck check;
+  check.test = std::format("all_same_shape({{{}}}, {})", join(shape, ", ", ", "), access(name));
+  check.constraint =
+      std::format("every element of *{}* has the shape ({}), matching {}.",
+                  name,
+                  join(syms, ", ", ", "),
+                  join(ref_vars | std::views::transform([](const std::string& v) { return std::format("*{}*", v); }) |
+                           std::ranges::to<std::vector<std::string>>(),
+                       ", ",
+                       " and "));
+
+  for (std::size_t i = 0; i < shape.size(); i++) { check.printables.emplace_back(syms[i], shape[i]); }
+
+  return check;
+}
+
 }  // namespace
 
 const std::unordered_map<std::string, WorkspaceDimensionRecord>& internal_workspace_dimensions() {
@@ -105,6 +210,72 @@ const std::unordered_map<std::string, WorkspaceDimensionRecord>& internal_worksp
 }
 
 std::string dim_access_by_name(const std::string& name) { return name; }
+
+void check_workspace_dimensions() {
+  const auto& wsds = internal_workspace_dimensions();
+  const auto& wsgs = internal_workspace_groups();
+
+  for (const auto& [name, wsv] : internal_workspace_variables()) {
+    for (const auto& sym : wsv.dims) {
+      if (not wsds.contains(sym)) {
+        throw std::runtime_error(
+            std::format(R"(Workspace variable "{}" names the unknown dimension "{}".)", name, sym));
+      }
+    }
+
+    const auto readable = readable_dims(wsv);
+    if (readable != wsv.dims.size()) {
+      throw std::runtime_error(std::format(
+          R"(Workspace variable "{}" names {} dimension(s) but its group "{}" can read {}.
+
+A dimension inside the elements of an array belongs in inner_dims, not in dims.
+)",
+          name,
+          wsv.dims.size(),
+          wsv.type,
+          readable));
+    }
+
+    if (wsv.inner_dims.empty()) continue;
+
+    for (const auto& sym : wsv.inner_dims) {
+      if (not wsds.contains(sym)) {
+        throw std::runtime_error(
+            std::format(R"(Workspace variable "{}" names the unknown inner dimension "{}".)", name, sym));
+      }
+    }
+
+    const auto elem = element_group(wsv.type);
+    if (elem.empty()) {
+      throw std::runtime_error(std::format(
+          R"(Workspace variable "{}" names inner dimensions but its group "{}" holds no elements that are shaped.
+
+Inner dimensions say that every element of an array has the same shape, so they
+need an ArrayOf whose element group declares dim_size.  They are not available for:
+
+  - a nested array, e.g. ArrayOfArrayOf..., whose elements have a length each
+    and are free to differ, as the paths of a path field do
+  - a map, whose values would have to be reached through its keys
+  - a group whose elements carry no sizes at all
+)",
+          name,
+          wsv.type));
+    }
+
+    const auto rank = wsgs.at(elem).dim_size.size();
+    if (wsv.inner_dims.size() != rank) {
+      throw std::runtime_error(std::format(
+          R"(Workspace variable "{}" names {} inner dimension(s) but its elements of group "{}" have {}.
+
+The whole shape of an element is compared at once, so every one of its dimensions must be named.
+)",
+          name,
+          wsv.inner_dims.size(),
+          elem,
+          rank));
+    }
+  }
+}
 
 std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& references,
                                    const std::vector<std::string>&              targets,
@@ -192,6 +363,14 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
     out.push_back(std::move(check));
   }
 
+  for (const auto& name : targets) {
+    const auto* wsv = find_wsv(name);
+    if (wsv == nullptr) continue;
+
+    const auto inner = inner_shape_check(name, *wsv, refs, access);
+    if (inner) out.push_back(*inner);
+  }
+
   return out;
 }
 
@@ -272,12 +451,15 @@ std::string size_check_docs(const std::vector<SizeCheck>& checks) {
 
 std::string variable_dimension_docs(const std::string& name) {
   const auto* wsv = find_wsv(name);
-  if (wsv == nullptr or wsv->dims.empty()) return {};
+  if (wsv == nullptr or (wsv->dims.empty() and wsv->inner_dims.empty())) return {};
 
-  std::string out = std::format("Shape: ({})", join(wsv->dims, ", ", ", "));
+  auto all = wsv->dims;
+  all.insert(all.end(), wsv->inner_dims.begin(), wsv->inner_dims.end());
+
+  std::string out = std::format("Shape: ({})", join(all, ", ", ", "));
 
   const auto& wsds = internal_workspace_dimensions();
-  for (const auto& sym : wsv->dims) {
+  for (const auto& sym : all) {
     const auto ptr = wsds.find(sym);
     if (ptr == wsds.end()) continue;
     out += std::format(", {} is the {}", sym, ptr->second.desc);
