@@ -149,17 +149,6 @@ void spectral_propmatAddPredefined(PropmatVector&             spectral_propmat,
                                    const AtmPoint&            atm_point) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(spectral_propmat.size() not_eq f_grid.size(),
-                     "Mismatch dimensions on internal matrices of xsec and frequency");
-
-  // Derivatives and their error handling
-  if (spectral_propmat_jac.nrows()) {
-    ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.nrows()) not_eq jac_targets.target_count(),
-                       "Mismatch dimensions on xsec derivatives and Jacobian grids");
-    ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
-                       "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
-  }
-
   for (auto& [isot, data] : abs_predef_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species) continue;
     Absorption::PredefinedModel::compute(

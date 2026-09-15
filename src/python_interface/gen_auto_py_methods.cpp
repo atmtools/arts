@@ -191,7 +191,9 @@ std::string method_argument_selection(const std::string& name, const WorkspaceMe
  */
 std::string method_input_checks(const WorkspaceMethodInternalRecord& wsm) {
   std::string out;
-  for (const auto& check : method_input_size_checks(wsm)) out += size_check_code(check, "        ");
+  auto        pre = method_input_invariants(wsm);
+  std::ranges::move(method_input_size_checks(wsm), std::back_inserter(pre));
+  out += size_check_code(pre, "        ");
   return out;
 }
 
@@ -398,7 +400,7 @@ std::string method_resolution_variadic(const std::string& name, const WorkspaceM
 
 std::string method_output_checks(const WorkspaceMethodInternalRecord& wsm) {
   std::string out;
-  for (const auto& check : method_output_size_checks(wsm)) out += size_check_code(check, "        ");
+  out += size_check_code(method_output_size_checks(wsm), "        ");
   return out;
 }
 
@@ -407,7 +409,7 @@ std::string method_resolution_simple(const std::string& name, const WorkspaceMet
 
   // Anything the method created has to be verified before returning it, so the
   // call cannot be the return statement when there is something to verify
-  const auto checks   = wsm.return_type == "void" ? method_output_checks(wsm) : std::string{};
+  const auto checks    = wsm.return_type == "void" ? method_output_checks(wsm) : std::string{};
   const auto returning = checks.empty();
 
   os << (returning ? "        return " : "        ") << name << "(";

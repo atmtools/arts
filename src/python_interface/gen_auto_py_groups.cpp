@@ -7,6 +7,7 @@
 #include <string>
 
 #include "pydocs.h"
+#include "workspace_dimensions.h"
 #include "workspace_groups.h"
 
 namespace {
@@ -333,8 +334,12 @@ struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
 )");
 
   for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
-    const auto info = unwrap_stars(
-        std::format("{}\n{}{}", wsg.desc, Python::group_generics_inout(group), Python::group_workspace_types(group)));
+    const auto info = unwrap_stars(std::format("{}\n{}{}{}",
+                                               wsg.desc,
+                                               group_dimension_docs(group),
+                                               group_invariant_docs(group),
+                                               Python::group_generics_inout(group),
+                                               Python::group_workspace_types(group)));
 
     std::println(osh,
 

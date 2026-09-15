@@ -442,7 +442,9 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
          << "]);\n";
     }
 
-    for (auto& check : method_input_size_checks(wsmr)) { os << size_check_code(check, "      "); }
+    auto pre = method_input_invariants(wsmr);
+    std::ranges::move(method_input_size_checks(wsmr), std::back_inserter(pre));
+    os << size_check_code(pre, "      ");
 
     bool first = true;
     os << "      " << name << "(";
@@ -466,7 +468,7 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
 
     os << "\n      );\n";
 
-    for (auto& check : method_output_size_checks(wsmr)) { os << size_check_code(check, "      "); }
+    os << size_check_code(method_output_size_checks(wsmr), "      ");
 
     os << "    } catch (std::exception& e) {\n"
           "      throw std::runtime_error(std::format(R\"-x-(Error in agenda call to specific method\n\n"

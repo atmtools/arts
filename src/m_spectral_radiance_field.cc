@@ -91,10 +91,6 @@ void zen_gridProfilePseudo2D(ZenGrid&             zen_grid,
                              const Index&         consider_limb) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   ARTS_USER_ERROR_IF(dzen <= 0.0 or dzen >= 180.0, "Delta zenith angle must be (0, 180). Given dzen: {}", dzen);
 
   LatGrid::assert_ranged(lat);
@@ -151,19 +147,6 @@ void spectral_rad_fieldProfilePseudo2D(const Workspace&       ws,
   ARTS_TIME_REPORT
 
   constexpr Numeric minimal_r = 0.001;
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
-  ARTS_USER_ERROR_IF(not arr::same_size(alt_grid, atm_profile),
-                     R"(Altitude grid and atmospheric point grid must have the same size
-
-Altitude grid size:          {}
-Atmospheric point grid size: {}
-)",
-                     alt_grid.size(),
-                     atm_profile.size())
 
   ARTS_USER_ERROR_IF(zen_grid.empty(), "Need some zenith angles")
 

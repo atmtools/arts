@@ -17,7 +17,6 @@ void ray_path_zeeman_magnetic_fieldFromPath(ArrayOfVector3                    &r
   ARTS_TIME_REPORT
 
   const Size np = atm_path.size();
-  ARTS_USER_ERROR_IF(np != ray_path.size(), "ray_path and atm_path must have the same size")
 
   ray_path_zeeman_magnetic_field.resize(np);
 

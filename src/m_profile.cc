@@ -21,28 +21,6 @@ void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
                   const ArrayOfStokvecMatrix&        spectral_nlte_srcvec_jac_profile) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not arr::same_size(alt_grid,
-                                        atm_profile,
-                                        spectral_propmat_profile,
-                                        spectral_propmat_jac_profile,
-                                        spectral_nlte_srcvec_profile,
-                                        spectral_nlte_srcvec_jac_profile),
-                     R"(Profile input must have the same size:
-
-alt_grid size                         {}
-atm_profile size                      {}
-spectral_propmat_profile size         {}
-spectral_propmat_jac_profile size     {}
-spectral_nlte_srcvec_profile size     {}
-spectral_nlte_srcvec_jac_profile size {}
-)",
-                     alt_grid.size(),
-                     atm_profile.size(),
-                     spectral_propmat_profile.size(),
-                     spectral_propmat_jac_profile.size(),
-                     spectral_nlte_srcvec_profile.size(),
-                     spectral_nlte_srcvec_jac_profile.size())
-
   const std::vector<Size> ips{
       std::from_range, ray_path | stdv::transform([&](const PropagationPathPoint& ray_point) -> Size {
                          const Size ip =

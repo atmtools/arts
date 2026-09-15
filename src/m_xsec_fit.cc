@@ -65,15 +65,6 @@ void spectral_propmatAddXsecFit(  // WS Output:
     const Numeric&         force_t) {
   ARTS_TIME_REPORT
 
-  // Forward simulations and their error handling
-  ARTS_USER_ERROR_IF(spectral_propmat.size() not_eq f_grid.size(),
-                     "Mismatch dimensions on internal matrices of xsec and frequency");
-
-  // Derivatives and their error handling
-  ARTS_USER_ERROR_IF(static_cast<Size>(spectral_propmat_jac.nrows()) not_eq jac_targets.target_count() or
-                         static_cast<Size>(spectral_propmat_jac.ncols()) not_eq f_grid.size(),
-                     "Mismatch dimensions on internal matrices of xsec derivatives and frequency");
-
   // Jacobian overhead START
   // Jacobian vectors START
   Vector dxsec_temp_dT;

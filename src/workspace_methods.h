@@ -23,6 +23,20 @@ struct WorkspaceMethodInternalRecord {
   std::vector<std::string>        gin_desc{};
   bool                            pass_workspace{false};
 
+  /*! Set to false to generate no size verification for this method.
+   *
+   * The generated checks read a variable's size as an invariant: what it is on
+   * the way in is what its dimensions say.  A method that instead reads the
+   * size as a message from its caller, e.g. *OEM*, where an empty
+   * *model_state_vec* asks it to start from *model_state_vec_apriori*, has no
+   * such invariant and cannot be verified this way.
+   *
+   * Turn it off for the whole method rather than for one variable, since a
+   * method that negotiates sizes with its caller tends to do so for the group
+   * of variables that travel together.
+   */
+  bool size_constraints{true};
+
   [[nodiscard]] int                                   count_overloads() const;
   [[nodiscard]] std::vector<std::vector<std::string>> generic_overloads() const;
   [[nodiscard]] bool                                  has_any() const;
@@ -77,6 +91,8 @@ template <> struct std::formatter<WorkspaceMethodInternalRecord> {
                        wsm.gin_desc,
                        "\n  .pass_workspace="sv,
                        wsm.pass_workspace ? "true"sv : "false"sv,
+                       "\n  .size_constraints="sv,
+                       wsm.size_constraints ? "true"sv : "false"sv,
                        "\n}"sv);
   }
 };

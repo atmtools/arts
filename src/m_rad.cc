@@ -176,26 +176,6 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
   */
   if (jac_targets.sensor.empty()) return;
 
-  ARTS_USER_ERROR_IF(spectral_rad.size() != freq_grid.size(),
-                     R"(spectral_rad must have same size as element frequency grid
-
-spectral_rad.size() = {},
-freq_grid.size()    = {}
-)",
-                     spectral_rad.size(),
-                     freq_grid.size())
-
-  ARTS_USER_ERROR_IF(not same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac),
-                     R"(spectral_rad_jac must be x-grid times frequency grid
-
-spectral_rad_jac.shape() = {:B,},
-jac_targets.x_size()     = {},
-freq_grid.size()         = {}
-)",
-                     spectral_rad_jac.shape(),
-                     jac_targets.x_size(),
-                     freq_grid.size())
-
   const JacobianTargets       jac_targets_empty{};
   StokvecMatrix               spectral_rad_jac_empty{};
   ArrayOfPropagationPathPoint ray_path{};

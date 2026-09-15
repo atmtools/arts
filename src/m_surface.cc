@@ -24,10 +24,6 @@ void spectral_surf_reflFlatRealFresnel(MuelmatVector&              spectral_surf
                                        const JacobianTargets&      jac_targets) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag refraction_target{"scalar refractive index"};
 
@@ -86,10 +82,6 @@ void spectral_surf_reflFlatScalar(MuelmatVector&              spectral_surf_refl
                                   const JacobianTargets&      jac_targets) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag reflectance_target{"flat scalar reflectance"};
 
@@ -136,10 +128,6 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
                                     const Agenda&               spectral_rad_closed_surface_agenda,
                                     const Agenda&               spectral_surf_refl_agenda) try {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   const Size         NF         = freq_grid.size();
   const Size         NX         = jac_targets.x_size();

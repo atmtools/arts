@@ -813,6 +813,8 @@ struct DisortSettings {
   /** Populate an existing scalar solver using cdisort-compatible truncation conventions. */
   disort::main_data& set_cdisort(disort::main_data&, Index iv) const;
 #endif
+  /** Return whether every member agrees with the grids and dimensions. */
+  [[nodiscard]] bool ok() const;
   /** Validate settings dimensions, grids, and physical input ranges. */
   void check() const;
 };

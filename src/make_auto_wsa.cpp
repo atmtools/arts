@@ -214,7 +214,7 @@ void workspace_setup_and_exec(std::ostream& os, const std::string& name, const a
   std::println(os, "\n  // Run all the methods\n  {}.execute(_lws);", name);
 
   os << '\n';
-  for (auto& check : ag.output_constraints) { os << size_check_code(check, "  "); }
+  os << size_check_code(ag.output_constraints, "  ");
 
   std::println(os, R"(
   // Remove the unsafe content (false sharing pointers))");

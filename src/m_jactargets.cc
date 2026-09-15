@@ -27,10 +27,6 @@ void jac_targetsFinalize(JacobianTargets&          jac_targets,
                          const ArrayOfSensorObsel& measurement_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
 }
 

@@ -59,10 +59,6 @@ void disort_settingsSetSun(DisortSettings&             disort_settings,
                            const PropagationPathPoint& ray_point) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   const Numeric h = surf_field.single_value(SurfaceKey::h, sun.latitude, sun.longitude);
 
   const Vector3 sun_pos{sun.distance - h, sun.latitude, sun.longitude};
@@ -167,26 +163,6 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(DisortSettings&          
                      nv,
                      N - 1,
                      disort_settings.optical_thicknesses.shape());
-
-  ARTS_USER_ERROR_IF(not arr::same_size(atm_path, spectral_propmat_path, spectral_nlte_srcvec_path),
-                     R"(Not same size:
-
-atm_path.size():                  {}
-spectral_propmat_path.size():     {}
-spectral_nlte_srcvec_path.size(): {}
-)",
-                     atm_path.size(),
-                     spectral_propmat_path.size(),
-                     spectral_nlte_srcvec_path.size());
-
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_path, spectral_nlte_srcvec_path),
-                     R"(Not same size:
-
-spectral_propmat_path.size():     {}
-spectral_nlte_srcvec_path.size(): {}
-)",
-                     spectral_propmat_path.size(),
-                     spectral_nlte_srcvec_path.size());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
@@ -450,8 +426,10 @@ void disort_settingsOpticalThicknessFromPath(DisortSettings&                    
   const Index N  = disort_settings.layer_count();
   const Index nv = disort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != spectral_propmat_path.size() or ray_path.size() != static_cast<Size>(N + 1),
-                     "Wrong path size.")
+  ARTS_USER_ERROR_IF(ray_path.size() != static_cast<Size>(N + 1),
+                     "*ray_path* must have one more point than *disort_settings* has layers: {} vs {}",
+                     ray_path.size(),
+                     N)
 
   if (N == 0) return;
 

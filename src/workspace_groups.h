@@ -4,6 +4,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 struct WorkspaceGroupRecord {
@@ -29,6 +30,26 @@ struct WorkspaceGroupRecord {
    * WorkspaceVariableInternalRecord::dims.
    */
   std::vector<std::string> dim_size{};
+
+  /*! A C++ predicate that holds for every usable value of this group.
+   *
+   * "{}" is replaced by the name of a variable of this group, so
+   * "not {}.bad_ellipsoid()" becomes "not surf_field.bad_ellipsoid()".  It is
+   * verified wherever a variable of this group is given to a method, which is
+   * where a user can supply one that is not usable.
+   *
+   * It runs on every such call, including inside the loops of an agenda, so it
+   * must be cheap: reading a few sizes or comparing two shapes, never walking
+   * the data.  Leave it empty for a group that is usable in any state it can be
+   * constructed in, which is most of them.
+   */
+  std::string invariant{};
+
+  //! What the invariant means, for the error message and the documentation
+  std::string invariant_desc{};
+
+  //! What to report when the invariant fails, as label and the expression to read
+  std::vector<std::pair<std::string, std::string>> invariant_printables{};
 };
 
 const std::unordered_map<std::string, WorkspaceGroupRecord>& internal_workspace_groups();
@@ -61,6 +82,10 @@ template <> struct std::formatter<WorkspaceGroupRecord> {
                        wsg.map_type ? "true"sv : "false"sv,
                        "\n  .dim_size="sv,
                        wsg.dim_size,
+                       "\n  .invariant="sv,
+                       wsg.invariant,
+                       "\n  .invariant_desc="sv,
+                       wsg.invariant_desc,
                        "\n}"sv);
   }
 };

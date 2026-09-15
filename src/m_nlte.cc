@@ -62,8 +62,6 @@ void atm_profileFitNonLTE(const Workspace&                         ws,
 
   using namespace lbl::nlte;
 
-  ARTS_USER_ERROR_IF(not arr::same_size(alt_grid, atm_profile),
-                     "Altitude grid and atmospheric point grid must have the same size")
   ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
                      "Convergence limit and iteration limit must be positive")
   ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")

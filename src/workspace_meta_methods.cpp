@@ -422,6 +422,10 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
     wsm.gin_desc.insert(wsm.gin_desc.end(), wm.gin_desc.begin(), wm.gin_desc.end());
     wsm.pass_workspace = wsm.pass_workspace or wm.pass_workspace;
 
+    // A wrapper is no more verifiable than what it wraps, so one step that
+    // negotiates its sizes with the caller takes the whole chain out
+    wsm.size_constraints = wsm.size_constraints and wm.size_constraints;
+
     stdr::copy_if(wm.in, std::back_inserter(wsm.in), [&](const std::string& i) {
       const auto cmp = Cmp::eq(i);
       return stdr::none_of(wsm.in, cmp) and stdr::none_of(first_out, cmp) and stdr::none_of(first_inout, cmp) and

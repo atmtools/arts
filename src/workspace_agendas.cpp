@@ -161,21 +161,21 @@ Otherwise same as *spectral_rad_space_agenda*.
   };
 
   wsa_data["spectral_rad_space_agenda"] = {
-      .desc               = R"--(Gets spectral radiance as seen of space.
+      .desc         = R"--(Gets spectral radiance as seen of space.
 
 This agenda calculates the spectral radiance as seen of space.
 One common use-case is to provide a background spectral radiance.
 
 The input path point should be as if it is looking at space.
 )--",
-      .output             = {"spectral_rad", "spectral_rad_jac"},
-      .input              = {"freq_grid", "jac_targets", "ray_point"},
-      .enum_options       = {"UniformCosmicBackground", "SunOrCosmicBackground", "Transmission"},
-      .enum_default       = "UniformCosmicBackground",
+      .output       = {"spectral_rad", "spectral_rad_jac"},
+      .input        = {"freq_grid", "jac_targets", "ray_point"},
+      .enum_options = {"UniformCosmicBackground", "SunOrCosmicBackground", "Transmission"},
+      .enum_default = "UniformCosmicBackground",
   };
 
   wsa_data["spectral_rad_surface_agenda"] = {
-      .desc         = R"--(Computes spectral radiance as seen of the surface.
+      .desc           = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -186,14 +186,14 @@ Subsurface calculations are also supported through this agenda,
 but might require setting *spectral_rad_closed_surface_agenda*
 as well.
 )--",
-      .output       = {"spectral_rad", "spectral_rad_jac"},
-      .input        = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
-      .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
-      .enum_default = "Blackbody",
+      .output         = {"spectral_rad", "spectral_rad_jac"},
+      .input          = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
+      .enum_options   = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .enum_default   = "Blackbody",
       .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
 
   wsa_data["spectral_rad_closed_surface_agenda"] = {
-      .desc               = R"--(A closed surface agenda.
+      .desc           = R"--(A closed surface agenda.
 
 It behave exactly like *spectral_rad_surface_agenda*.  It exists
 to allow chaining surface agendas.  The idea is that the main
@@ -207,11 +207,11 @@ and calls the *spectral_rad_observer_agenda* to compute the downwelling radiatio
 It can in turn call *spectral_rad_closed_surface_agenda* to get the upwelling radiation from the surface
 that is being emitted.  That's the type of use case this agenda is made for and why it exists!
 )--",
-      .output             = wsa_data.at("spectral_rad_surface_agenda").output,
-      .input              = wsa_data.at("spectral_rad_surface_agenda").input,
-      .enum_options       = {"Blackbody"},
-      .enum_default       = "Blackbody",
-      .named_operator     = wsa_data.at("spectral_rad_surface_agenda").named_operator};
+      .output         = wsa_data.at("spectral_rad_surface_agenda").output,
+      .input          = wsa_data.at("spectral_rad_surface_agenda").input,
+      .enum_options   = {"Blackbody"},
+      .enum_default   = "Blackbody",
+      .named_operator = wsa_data.at("spectral_rad_surface_agenda").named_operator};
 
   wsa_data["single_rad_surface_agenda"] = {
       .desc =
@@ -226,31 +226,35 @@ Otherwise same as *spectral_rad_surface_agenda*.
   };
 
   wsa_data["inversion_iterate_agenda"] = {
-      .desc               = R"--(Work in progress ...
+      .desc         = R"--(Work in progress ...
 
 See *OEM*.
 
 .. note::
     The output *measurement_jac* size may depend on the *do_jac* input.
 )--",
-      .output             = {"atm_field",
-                             "abs_bands",
-                             "measurement_sensor",
-                             "surf_field",
-                             "subsurf_field",
-                             "measurement_vec_fit",
-                             "measurement_jac"},
-      .input              = {"atm_field",
-                             "abs_bands",
-                             "measurement_sensor",
-                             "surf_field",
-                             "subsurf_field",
-                             "jac_targets",
-                             "model_state_vec",
-                             "do_jac",
-                             "inversion_iterate_agenda_counter"},
-      .enum_options       = {"Full"},
-      .enum_default       = "Full",
+      .output       = {"atm_field",
+                       "abs_bands",
+                       "measurement_sensor",
+                       "surf_field",
+                       "subsurf_field",
+                       "measurement_vec_fit",
+                       "measurement_jac"},
+      .input        = {"atm_field",
+                       "abs_bands",
+                       "measurement_sensor",
+                       "surf_field",
+                       "subsurf_field",
+                       "jac_targets",
+                       "model_state_vec",
+                       "do_jac",
+                       "inversion_iterate_agenda_counter"},
+      .enum_options = {"Full"},
+      .enum_default = "Full",
+
+      // Wraps *measurement_inversion_agenda*, so it inherits the empty
+      // *measurement_jac* that a pass with *do_jac* false produces
+      .output_constraints = false,
   };
 
   wsa_data["measurement_inversion_agenda"] = {
@@ -274,14 +278,18 @@ it does a lot of unnecessary checks and operations that are not always needed.
       .input        = {"jac_targets", "do_jac"},
       .enum_options = {"LowMemory", "HighPerformance"},
       .enum_default = "LowMemory",
+
+      // Returning an empty *measurement_jac* when *do_jac* is false is the point
+      // of this agenda, so its outputs have no shape to verify
+      .output_constraints = false,
   };
 
   wsa_data["spectral_surf_refl_agenda"] = {
-      .desc               = R"--(An agenda to compute the surface reflectance.
+      .desc         = R"--(An agenda to compute the surface reflectance.
 )--",
-      .output             = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .input              = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
-      .enum_options       = {"FlatScalar", "FlatRealFresnel", "Tessem", "Telsem"},
+      .output       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .input        = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
+      .enum_options = {"FlatScalar", "FlatRealFresnel", "Tessem", "Telsem"},
   };
 
   wsa_data["disort_settings_agenda"] = {.desc           = R"--(An agenda for setting up Disort.
@@ -306,9 +314,9 @@ scenarios.  The output of this Agenda is just that setting.
 .. seealso::
     *subsurf_disort_settings_agenda* for a similar agenda for subsurface calculations..
 )--",
-      .output             = wsa_data.at("disort_settings_agenda").output,
-      .input              = wsa_data.at("disort_settings_agenda").input,
-      .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
+      .output         = wsa_data.at("disort_settings_agenda").output,
+      .input          = wsa_data.at("disort_settings_agenda").input,
+      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["subsurf_disort_settings_agenda"] = {
       .desc =
@@ -317,9 +325,9 @@ scenarios.  The output of this Agenda is just that setting.
 .. seealso::
     *atm_disort_settings_agenda* for a similar agenda for atmospheric calculations.
 )--",
-      .output             = wsa_data.at("disort_settings_agenda").output,
-      .input              = wsa_data.at("disort_settings_agenda").input,
-      .named_operator     = wsa_data.at("disort_settings_agenda").named_operator};
+      .output         = wsa_data.at("disort_settings_agenda").output,
+      .input          = wsa_data.at("disort_settings_agenda").input,
+      .named_operator = wsa_data.at("disort_settings_agenda").named_operator};
 
   wsa_data["disort_settings_downwelling_wrapper_agenda"] = {
       .desc         = R"--(An wrapper agenda for calling *disort_settings_agenda*.
