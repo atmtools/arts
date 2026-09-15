@@ -233,7 +233,10 @@ The grid is a combination of 2 *Vector*
 
 Both the data and the grid may be named.  The grids are not sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]"},
+      .dim_size             = {"{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["QuantumIdentifierVectorMap"] = {
@@ -354,7 +357,7 @@ A surface field effectively holds two things:
 )--",
       .invariant            = "not {}.bad_ellipsoid()",
       .invariant_desc       = "has a reference ellipsoid with positive axes.",
-      .invariant_printables = {{"{}.ellipsoid", "{}.ellipsoid"}},
+      .invariant_printables = {"{}.ellipsoid"},
   };
 
   wsg_data["TessemNN"] = {
@@ -523,70 +526,99 @@ The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarra
   };
 
   wsg_data["StokvecSortedGriddedField1"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(A 1-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 1-dimensional grid of *Stokvec*.
 
 The grids are 1 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]"},
+      .dim_size             = {"{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["StokvecSortedGriddedField2"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(A 2-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 2-dimensional grid of *Stokvec*.
 
 The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]"},
+      .dim_size             = {"{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["StokvecSortedGriddedField3"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(A 3-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 3-dimensional grid of *Stokvec*.
 
 The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
+      .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["StokvecSortedGriddedField4"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(A 4-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 4-dimensional grid of *Stokvec*.
 
 The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]"},
+      .dim_size             = {"{}.data.nbooks()", "{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["StokvecSortedGriddedField5"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(A 5-dimensional grid of *Stokvec*.
+      .file      = "rtepack.h",
+      .desc      = R"--(A 5-dimensional grid of *Stokvec*.
 
 The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]", "{}.shape()[4]"},
+      .dim_size  = {"{}.data.nshelves()", "{}.data.nbooks()", "{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["StokvecSortedGriddedField6"] = {
-      .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size =
-          {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]", "{}.shape()[4]", "{}.shape()[5]"},
+      .dim_size             = {"{}.data.nvitrines()",
+                               "{}.data.nshelves()",
+                               "{}.data.nbooks()",
+                               "{}.data.npages()",
+                               "{}.data.nrows()",
+                               "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["GriddedSpectralField6"] = {
-      .file = "rtepack.h",
-      .desc = R"--(A 6-dimensional grid of *Stokvec*.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(A 6-dimensional grid of *Stokvec*.
 
 The grids are altitude x latitude x longitude x zenith x azimuth x frequency of types
 *AscendingGrid* x *LatGrid* x *LonGrid* x *ZenGrid* x *AziGrid* x *AscendingGrid* x.
 The grids are fully sorted.
 )--",
-      .dim_size =
-          {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]", "{}.shape()[4]", "{}.shape()[5]"},
+      .dim_size             = {"{}.data.nvitrines()",
+                               "{}.data.nshelves()",
+                               "{}.data.nbooks()",
+                               "{}.data.npages()",
+                               "{}.data.nrows()",
+                               "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["NumericUnaryOperator"] = {
@@ -773,7 +805,7 @@ over frequency to obtain heating in K/s.  The Python recipe
 
       /* Reported whole rather than field by field: the shapes are only
        * meaningful next to the grids and dimensions they are derived from. */
-      .invariant_printables = {{"{}", "{}"}},
+      .invariant_printables = {"{}"},
   };
 
   wsg_data["AbsorptionLookupTables"] = {
@@ -783,77 +815,105 @@ over frequency to obtain heating in K/s.  The Python recipe
   };
 
   wsg_data["ZenGriddedField1"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 1-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *ZenGrid*.  This grid is sorted.
 )--",
-      .dim_size = {"{}.shape()[0]"},
+      .dim_size             = {"{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField1"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 1-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 1-dimensional grid of *Numeric*.
 
 The grids are 1 *AscendingGrid*.  This grid is sorted.
 )--",
-      .dim_size = {"{}.shape()[0]"},
+      .dim_size             = {"{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField2"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 2-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 2-dimensional grid of *Numeric*.
 
 The grids are 2 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]"},
+      .dim_size             = {"{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["GeodeticField2"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 2-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 2-dimensional grid of *Numeric*.
 
 The grids are *lat_grid* x *lon_grid*.
 The types are *LatGrid* x *LonGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]"},
+      .dim_size             = {"{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField3"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 3-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 3-dimensional grid of *Numeric*.
 
 The grids are 3 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
+      .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField4"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 4-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 4-dimensional grid of *Numeric*.
 
 The grids are 4 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]"},
+      .dim_size             = {"{}.data.nbooks()", "{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField5"] = {
-      .file     = "matpack.h",
-      .desc     = R"--(A 5-dimensional grid of *Numeric*.
+      .file      = "matpack.h",
+      .desc      = R"--(A 5-dimensional grid of *Numeric*.
 
 The grids are 5 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]", "{}.shape()[4]"},
+      .dim_size  = {"{}.data.nshelves()", "{}.data.nbooks()", "{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["SortedGriddedField6"] = {
-      .file = "matpack.h",
-      .desc = R"--(A 6-dimensional grid of *Numeric*.
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 6-dimensional grid of *Numeric*.
 
 The grids are 6 *AscendingGrid*.  The grids are fully sorted.
 )--",
-      .dim_size =
-          {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]", "{}.shape()[3]", "{}.shape()[4]", "{}.shape()[5]"},
+      .dim_size             = {"{}.data.nvitrines()",
+                               "{}.data.nshelves()",
+                               "{}.data.nbooks()",
+                               "{}.data.npages()",
+                               "{}.data.nrows()",
+                               "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
   wsg_data["ZenGrid"] = {
@@ -961,6 +1021,12 @@ of this term multiplied by a negative distance.
       .desc     = R"--(Source vector and derivatives.
 )--",
       .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
+
+      /* The shape is read off the derivative, so without this the sizes above
+       * describe only half of the object. */
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has a value and a derivative of the same shape.",
+      .invariant_printables = {"{}.J.shape()", "{}.dJ.shape()"},
   };
 
   wsg_data["TransmittanceMatrix"] = {
@@ -969,6 +1035,11 @@ of this term multiplied by a negative distance.
 )--",
       .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
 
+      /* As *SourceVector*, but which members have to agree depends on the
+       * transmittance option, so the whole object is reported on failure. */
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has members that agree with each other for its transmittance option.",
+      .invariant_printables = {"{}"},
   };
 
   wsg_data["XsecRecords"] = {

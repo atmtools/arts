@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
+#include "workspace_group_friends.h"
 #include "workspace_groups.h"
 #include "workspace_variables.h"
 
@@ -300,6 +301,25 @@ const std::unordered_map<std::string, WorkspaceDimensionRecord>& internal_worksp
 
 std::string dim_access_by_name(const std::string& name) { return name; }
 
+namespace {
+/*! Finds a group among the workspace groups or among the friends.
+ *
+ * The friends are documented next to the groups and may be promoted to groups
+ * one day, so what is written about a group is written about them too.  Only the
+ * documentation looks here: a workspace variable can only be of a real group, so
+ * nothing that generates a check needs the friends.
+ */
+const WorkspaceGroupRecord* find_group(const std::string& group) {
+  const auto& wsgs = internal_workspace_groups();
+  if (const auto ptr = wsgs.find(group); ptr != wsgs.end()) return &ptr->second;
+
+  const auto& friends = workspace_group_friends();
+  if (const auto ptr = friends.find(group); ptr != friends.end()) return &ptr->second;
+
+  return nullptr;
+}
+}  // namespace
+
 void check_workspace_dimensions() {
   const auto& wsds = internal_workspace_dimensions();
   const auto& wsgs = internal_workspace_groups();
@@ -556,8 +576,8 @@ std::vector<SizeCheck> method_input_invariants(const WorkspaceMethodInternalReco
     SizeCheck check;
     check.test       = subst_all(rec.invariant, access(name));
     check.constraint = std::format("On input, *{}* {}", name, rec.invariant_desc);
-    for (const auto& [label, expr] : rec.invariant_printables) {
-      check.printables.emplace_back(subst_all(label, name), subst_all(expr, access(name)));
+    for (const auto& expr : rec.invariant_printables) {
+      check.printables.emplace_back(subst_all(expr, name), subst_all(expr, access(name)));
     }
 
     out.push_back(std::move(check));
@@ -653,20 +673,18 @@ std::string variable_dimension_docs(const std::string& name) {
 }
 
 std::string group_invariant_docs(const std::string& group) {
-  const auto& wsgs = internal_workspace_groups();
-  const auto  ptr  = wsgs.find(group);
-  if (ptr == wsgs.end() or ptr->second.invariant.empty()) return {};
+  const auto* rec = find_group(group);
+  if (rec == nullptr or rec->invariant.empty()) return {};
 
   return std::format("\n.. rubric:: Invariant\n\nA variable ``x`` of this group {}\n",
-                     subst_all(ptr->second.invariant_desc, "x"));
+                     subst_all(rec->invariant_desc, "x"));
 }
 
 std::string group_dimension_docs(const std::string& group) {
-  const auto& wsgs = internal_workspace_groups();
-  const auto  ptr  = wsgs.find(group);
-  if (ptr == wsgs.end() or ptr->second.dim_size.empty()) return {};
+  const auto* rec = find_group(group);
+  if (rec == nullptr or rec->dim_size.empty()) return {};
 
-  const auto& sizes = ptr->second.dim_size;
+  const auto& sizes = rec->dim_size;
 
   // Written against a variable called "x", since the expressions are templates
   // that a variable's own name is substituted into

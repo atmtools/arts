@@ -37,12 +37,6 @@ void spectral_rad_jacFromBackground(StokvecMatrix             &spectral_rad_jac,
 
   const auto &&background_transmittance = spectral_tramat.P[joker, np - 1];
 
-  ARTS_USER_ERROR_IF(
-      background_transmittance.ncols() != spectral_rad_bkg_jac.ncols(),
-      "Bad size of spectral_rad_bkg_jac, its inner dimension should match the frequency size of spectral_tramat. Sizes: {} != {}",
-      spectral_rad_bkg_jac.ncols(),
-      background_transmittance.ncols());
-
   //! Set the background radiance derivative as that which is seen after "this" swath
   for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
     const auto b = spectral_rad_bkg_jac[i];
@@ -60,33 +54,8 @@ void spectral_rad_jacAddPathPropagation(StokvecMatrix                     &spect
                                         const ArrayOfPropagationPathPoint &ray_path) try {
   ARTS_TIME_REPORT
 
-  const Size nf = spectral_rad_jac_path.npages();
   const Size np = spectral_rad_jac_path.nrows();
   const Size nt = jac_targets.target_count();
-  const Size nx = jac_targets.x_size();
-
-  jac_targets.throwing_check(nx);
-
-  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac) or ray_path.size() != np or
-                         not same_shape({nf, np, nt}, spectral_rad_jac_path),
-                     R"(Mismatched input sizes:
-
-nf : {}
-np : {}
-nt : {}
-nx : {}
-
-spectral_rad_jac.shape()      : {:B,} [nx, nf]
-spectral_rad_jac_path.shape() : {:B,} [nf, np, nt]
-ray_path.size()               : [{}] [np]
-)",
-                     nf,
-                     np,
-                     nt,
-                     nx,
-                     spectral_rad_jac.shape(),
-                     spectral_rad_jac_path.shape(),
-                     ray_path.size())
 
   if (nt == 0) return;
 

@@ -48,8 +48,13 @@ struct WorkspaceGroupRecord {
   //! What the invariant means, for the error message and the documentation
   std::string invariant_desc{};
 
-  //! What to report when the invariant fails, as label and the expression to read
-  std::vector<std::pair<std::string, std::string>> invariant_printables{};
+  /*! What to report when the invariant fails, as expressions to read.
+   *
+   * Each is a C++ expression where "{}" is replaced by the name of a variable of
+   * this group, e.g. "{}.ellipsoid".  The expression is also what labels the
+   * value in the message, so it says where the number came from.
+   */
+  std::vector<std::string> invariant_printables{};
 };
 
 const std::unordered_map<std::string, WorkspaceGroupRecord>& internal_workspace_groups();
