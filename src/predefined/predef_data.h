@@ -15,7 +15,8 @@
 
 namespace Absorption::PredefinedModel {
   ENUMCLASS(DataKey, char, 
-  water_mt_ckd_4d0
+  water_mt_ckd_4d0,
+  water_mt_ckd_4d30
   )
 namespace MT_CKD400 {
 struct WaterData {
@@ -38,8 +39,28 @@ struct WaterData {
 };
 }  // namespace MT_CKD400
 
+namespace MT_CKD430 {
+struct WaterData {
+  static constexpr DataKey key = DataKey::water_mt_ckd_4d30;
+  double ref_press;
+  double ref_temp;
+  std::vector<double> self_absco_ref;
+  std::vector<double> for_absco_ref;
+  std::vector<double> wavenumbers;
+  std::vector<double> self_texp;
+
+  void resize(const std::vector<std::size_t>&);
+  [[nodiscard]] std::vector<std::size_t> sizes() const {
+    return {self_absco_ref.size()};
+  };
+
+  friend std::ostream& operator<<(std::ostream&, const WaterData&);
+  friend std::istream& operator>>(std::istream&, WaterData&);
+};
+}  // namespace MT_CKD430
+
 struct Model {
-  using DataHolder = std::variant<std::monostate, MT_CKD400::WaterData>;
+  using DataHolder = std::variant<std::monostate, MT_CKD400::WaterData, MT_CKD430::WaterData>;
   using DataMap = std::map<DataKey, DataHolder>;
 
   DataMap data;

@@ -55,6 +55,12 @@ bool compute_selection(PropagationMatrix& pm [[maybe_unused]],
     case find_species_index(Species::Species::Water, "SelfContCKDMT400"):
       if constexpr (not check_exist) MT_CKD400::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD400::WaterData>());
       return true;
+    case find_species_index(Species::Species::Water, "ForeignContCKDMT430"):
+      if constexpr (not check_exist) MT_CKD430::compute_foreign_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD430::WaterData>());
+      return true;
+    case find_species_index(Species::Species::Water, "SelfContCKDMT430"):
+      if constexpr (not check_exist) MT_CKD430::compute_self_h2o(pm, f, p, t, vmr.H2O, predefined_model_data.get<MT_CKD430::WaterData>());
+      return true;
     case find_species_index(Species::Species::Oxygen, "MPM2020"):
       if constexpr (not check_exist) MPM2020::compute(pm, f, p, t, vmr.O2);
       return true;

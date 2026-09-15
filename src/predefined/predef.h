@@ -212,4 +212,20 @@ void compute_self_h2o(PropagationMatrix& propmat_clearsky,
                       const WaterData& data);
 }  // namespace MT_CKD400
 
+namespace MT_CKD430 {
+void compute_foreign_h2o(PropagationMatrix& propmat_clearsky,
+                         const Vector& f_grid,
+                         const Numeric& P,
+                         const Numeric& T,
+                         const Numeric& vmrh2o,
+                         const WaterData& data);
+
+void compute_self_h2o(PropagationMatrix& propmat_clearsky,
+                      const Vector& f_grid,
+                      const Numeric& P,
+                      const Numeric& T,
+                      const Numeric& vmrh2o,
+                      const WaterData& data);
+}  // namespace MT_CKD430
+
 }  // namespace Absorption::PredefinedModel
