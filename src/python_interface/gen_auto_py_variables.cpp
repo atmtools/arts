@@ -1,4 +1,5 @@
 #include <workspace.h>
+#include <workspace_dimensions.h>
 
 #include <iostream>
 
@@ -47,6 +48,8 @@ std::string variable(const std::string& name, const WorkspaceVariableRecord& wsv
              wsgs.at(wsv.type).value_type ? ".val"sv : ""sv);
 
   os << ", R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
+
+  if (const auto shape = variable_dimension_docs(name); not shape.empty()) { os << unwrap_stars(shape) << "\n"; }
 
   if (wsv.type == "Agenda") os << get_agenda_io(name);
 

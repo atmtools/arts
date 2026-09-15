@@ -487,8 +487,6 @@ where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distan
 over which it is considered constant.
 
 The unit is [1 / m].
-
-Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
       .dims = {"NF"},
@@ -546,8 +544,6 @@ This needs to be used when scattering into the line of sight is considered. And 
 also be added to the *spectral_propmat*, which you should see for more information.
 
 The unit is [1 / m].
-
-Dimension: *freq_grid*.
 )--",
       .type = "PropmatVector",
       .dims = {"NF"},
