@@ -130,8 +130,6 @@ void spectral_radApplyUnit(StokvecVector                           &spectral_rad
                            const SpectralRadianceTransformOperator &spectral_rad_transform_operator) try {
   ARTS_TIME_REPORT
 
-  if (spectral_rad_jac.empty()) spectral_rad_jac.resize(0, freq_grid.size());
-
   spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_point);
 }
 ARTS_METHOD_ERROR_CATCH
@@ -144,7 +142,7 @@ void spectral_radApplyForwardUnit(StokvecVector                           &spect
 
   StokvecMatrix spectral_rad_jac(0, freq_grid.size());
 
-  spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_point);
+  spectral_radApplyUnit(spectral_rad, spectral_rad_jac, freq_grid, ray_point, spectral_rad_transform_operator);
 }
 ARTS_METHOD_ERROR_CATCH
 

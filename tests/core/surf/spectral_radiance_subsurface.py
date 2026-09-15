@@ -48,8 +48,7 @@ for za in zas:
                                                  disort_legendre_polynomial_dimension=1,
                                                  disort_quadrature_dimension=NQUAD,
                                                  depth_profile=z)
-    ws.spectral_rad_jac
-    ws.spectral_radApplyUnit()
+    ws.spectral_radApplyForwardUnit()
 
     data.append(ws.spectral_rad[0, 0])
 

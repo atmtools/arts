@@ -61,7 +61,7 @@ void collect_refs(std::unordered_map<std::string, Ref>& refs,
                   const DimAccess&                      access) {
   for (const auto& name : names) {
     const auto* wsv = find_wsv(name);
-    if (wsv == nullptr or wsv->dims_allow_empty) continue;
+    if (wsv == nullptr) continue;
 
     const auto n = readable_dims(*wsv);
     for (std::size_t i = 0; i < n; i++) {
@@ -173,27 +173,19 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
 
     // Whole-shape checks read better than one check per dimension, but only work
     // when every dimension of the variable takes part
-    const std::string_view maybe_empty = wsv->dims_allow_empty ? "is empty or " : "";
-
     if (all_covered and tests.size() > 1) {
       check.test       = std::format("same_shape({{{}}}, {})", join(ref_exprs, ", ", ", "), access(name));
-      check.constraint =
-          std::format("*{}* {}has the shape ({}), matching {}.", name, maybe_empty, join(syms, ", ", ", "), refs_text);
+      check.constraint = std::format("*{}* has the shape ({}), matching {}.", name, join(syms, ", ", ", "), refs_text);
       printables.emplace_back(std::format("{}.shape()", name), std::format("{}.shape()", access(name)));
     } else {
       check.test = join(tests, " and ", " and ");
       check.constraint =
-          std::format("*{}* {}matches {} in {}.",
+          std::format("*{}* matches {} in {}.",
                       name,
-                      maybe_empty,
                       refs_text,
                       join(syms | std::views::transform(dim_with_desc) | std::ranges::to<std::vector<std::string>>(),
                            ", ",
                            " and "));
-    }
-
-    if (wsv->dims_allow_empty) {
-      check.test = std::format("static_cast<Size>({}.size()) == 0 or ({})", access(name), check.test);
     }
 
     check.printables = std::move(printables);
