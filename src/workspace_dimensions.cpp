@@ -83,7 +83,7 @@ std::string element_group(const std::string& type) {
   constexpr std::string_view prefix = "ArrayOf";
   if (not type.starts_with(prefix)) return {};
 
-  const auto elem = type.substr(prefix.size());
+  auto elem = type.substr(prefix.size());
 
   // A nested array holds elements that have a length rather than a shape, and
   // the lengths are free to differ between them, as the paths of a path field
@@ -102,8 +102,8 @@ struct Ref {
   std::string expr;
 
   //! Set when expr names a local that has to be declared before it is read
-  std::string decl_name;
-  std::string decl_expr;
+  std::string decl_name{};
+  std::string decl_expr{};
 };
 
 //! The name of the local that holds a dimension read out of the elements of an array
@@ -493,6 +493,7 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
       };
 
       std::vector<std::string> actual;
+      actual.reserve(n);
       for (std::size_t i = 0; i < n; i++) actual.push_back(subst(dim_size_template(*wsv, i), access(name)));
 
       printables.clear();
