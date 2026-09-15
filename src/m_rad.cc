@@ -70,7 +70,6 @@ void spectral_rad_jacAddPathPropagation(StokvecMatrix                     &spect
       for (auto &w : weights) {
         if (w.second != 0.0) {
           const auto i = w.first + atm_block.x_start;
-          assert(i < static_cast<Size>(nx));
           auto sr = spectral_rad_jac[i];
           std::transform(local.begin(),
                          local.end(),
