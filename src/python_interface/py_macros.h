@@ -438,7 +438,8 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
       .def_property_readonly(                                                   \
           "shape",                                                              \
           [](py::object& g) {                                                   \
-            return g.attr("data").attr("value").attr("shape");                  \
+            py::object v = g.attr("data").attr("value").attr("shape");          \
+            return v;                                                           \
           },                                                                    \
           ":class:`list` Shape of the gridded field")                           \
       .def(                                                                     \
@@ -531,7 +532,7 @@ desired python name.  "ArrayOfBaseType" is the class exposed to python
 
 #define PythonInterfaceSelfAttribute(ATTR) \
   def_property_readonly(                   \
-      #ATTR, [](py::object& x) { return x.attr("value").attr(#ATTR); }, "As for :class:`numpy.ndarray`")
+      #ATTR, [](py::object& x) { py::object v = x.attr("value").attr(#ATTR); return v; }, "As for :class:`numpy.ndarray`")
 
 #define PythonInterfaceSelfOperator(ATTR)                          \
   def(                                                             \
