@@ -55,6 +55,55 @@ def groups():
     return txt
 
 
+def _wsv_list(names, existing):
+    """Bullet the given workspace variables, or say that there are none."""
+    names = [n for n in sort_ignore_case(names) if n in existing]
+    if not names:
+        return "*None.*\n"
+
+    txt = f""".. hlist::
+    :columns: {_hlist_num_cols(names)}
+
+"""
+    for name in names:
+        txt += f"    * :attr:`~pyarts3.workspace.Workspace.{name}`\n"
+    return txt
+
+
+def dimensions():
+    """One section per dimension, listing the variables that share it.
+
+    The label written for each dimension is what variable_dimension_docs() in
+    src/workspace_dimensions.cpp links its effective shapes to, so the two have
+    to be changed together.
+    """
+    existing = pyarts.workspace.Workspace().__dir__()
+    wsvs = pyarts.arts.globals.workspace_variables()
+
+    txt = ""
+    for dim in sort_ignore_case(pyarts.arts.globals.workspace_dimensions().keys()):
+        desc = pyarts.arts.globals.workspace_dimensions()[dim].desc
+
+        outer = [n for n, v in wsvs.items() if dim in v.dims]
+        inner = [n for n, v in wsvs.items() if dim in v.inner_dims]
+
+        txt += f"""
+.. _wsd-{dim}:
+
+{dim}
+{'-' * len(dim)}
+
+The {desc}.
+
+.. rubric:: Variables of this size
+
+{_wsv_list(outer, existing)}
+.. rubric:: Variables whose elements are of this size
+
+{_wsv_list(inner, existing)}"""
+    return txt
+
+
 def methods():
     existing = pyarts.workspace.Workspace().__dir__()
 
@@ -77,3 +126,5 @@ elif sys.argv[1] == "Groups":
     print(groups())
 elif sys.argv[1] == "Methods":
     print(methods())
+elif sys.argv[1] == "Dimensions":
+    print(dimensions())

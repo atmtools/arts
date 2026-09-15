@@ -13,10 +13,6 @@ void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const Index&                 as_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   ARTS_USER_ERROR_IF(any_nan(pos) or any_nan(los),
                      R"(There are NAN in the pos or los vector:
 pos:      {:B,}
@@ -35,10 +31,6 @@ void ray_pathRemoveNearby(ArrayOfPropagationPathPoint& ray_path,
                           const Index&                 first) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   path::erase_closeby(ray_path, surf_field, min_dist, first);
 }
 
@@ -48,10 +40,6 @@ void ray_pathSetGeometricExtremes(ArrayOfPropagationPathPoint& ray_path,
                                   const Numeric&               surf_search_accuracy,
                                   const Index&                 surf_safe_search) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   path::set_geometric_extremes(
       ray_path, atm_field, surf_field, surf_search_accuracy, static_cast<bool>(surf_safe_search));
@@ -82,10 +70,6 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
                                        const AtmKey&                atm_key) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   const auto& data = atm_field[atm_key];
   ARTS_USER_ERROR_IF(
       not std::holds_alternative<GeodeticField3>(data.data), "The data for key {} is not a GeodeticField3", atm_key);
@@ -102,10 +86,6 @@ void ray_pathAddGeometricAltitudeGridCrossings(ArrayOfPropagationPathPoint& ray_
                                                const SurfaceField&          surf_field) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   path::fill_geometric_altitude_crossings(ray_path, surf_field, alt_grid);
 
   ARTS_USER_ERROR_IF(
@@ -118,10 +98,6 @@ void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,
                                    const Numeric&               max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   path::fill_geometric_by_half_steps(ray_path, surf_field, max_step);
 }
 
@@ -129,10 +105,6 @@ void ray_pathFillGeometricStepwise(ArrayOfPropagationPathPoint& ray_path,
                                    const SurfaceField&          surf_field,
                                    const Numeric&               max_step) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   path::fill_geometric_stepwise(ray_path, surf_field, max_step);
 }
@@ -145,10 +117,6 @@ void ray_pathFixUpdownAzimuth(ArrayOfPropagationPathPoint& ray_path) {
 
 void ray_pathAddLimbPoint(ArrayOfPropagationPathPoint& ray_path, const SurfaceField& surf_field) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   path::fill_geometric_limb(ray_path, surf_field);
 }
@@ -218,10 +186,6 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
                        const Index&                 surf_safe_search) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   ray_pathInit(ray_path, atm_field, surf_field, pos, los, as_sensor);
   ray_pathSetGeometricExtremes(ray_path, atm_field, surf_field, surf_search_accuracy, surf_safe_search);
   ray_pathFillGeometricStepwise(ray_path, surf_field, max_step);
@@ -272,10 +236,6 @@ void ray_pathGeometricUplooking(ArrayOfPropagationPathPoint& ray_path,
                                 const Numeric&               max_step) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   ray_pathGeometric(ray_path,
                     atm_field,
                     surf_field,
@@ -297,10 +257,6 @@ void ray_pathGeometricDownlooking(ArrayOfPropagationPathPoint& ray_path,
                                   const Numeric&               longitude,
                                   const Numeric&               max_step) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   ray_pathGeometric(ray_path,
                     atm_field,
@@ -325,9 +281,6 @@ void ray_pointPastGeometric(PropagationPathPoint&              ray_point,
                             const Index&                       search_safe) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid);
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
 
   ray_point = past_geometric(ray_path.back(), atm_field, surf_field, max_stepsize, safe_search_accuracy, search_safe);
@@ -345,9 +298,6 @@ void ray_pointPastRefractive(PropagationPathPoint&              ray_point,
 
   using Conversion::cosd, Conversion::acosd;
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid);
   ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
 
   PropagationPathPoint future = ray_path.back();

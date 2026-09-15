@@ -23,6 +23,7 @@ void header(std::ostream& os) {
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "auto_wsg.h"
 
@@ -33,6 +34,12 @@ struct WorkspaceVariableRecord {
   std::string desc;
   std::string type;
   std::optional<Wsv> default_value{};
+
+  //! The dimensions this variable names, outermost first
+  std::vector<std::string> dims{};
+
+  //! The dimensions inside each element, for an array of equally shaped elements
+  std::vector<std::string> inner_dims{};
 };
 
 const std::unordered_map<std::string, WorkspaceVariableRecord>& workspace_variables();
@@ -57,6 +64,10 @@ template <> struct std::formatter<WorkspaceVariableRecord> {
                        wsv.type,
                        "\n  .default_value="sv,
                        wsv.default_value ? "true"sv : "false"sv,
+                       "\n  .dims="sv,
+                       wsv.dims,
+                       "\n  .inner_dims="sv,
+                       wsv.inner_dims,
                        "\n}"sv);
   }
 };
@@ -90,6 +101,12 @@ std::unordered_map<std::string, WorkspaceVariableRecord> workspace_variables_cre
 )--",
              wsv.size() + 2 * wsa.size());
 
+  const auto quoted_list = [](const std::vector<std::string>& v) {
+    std::string out;
+    for (const auto& x : v) out += std::format(R"({}"{}")", out.empty() ? "" : ", ", x);
+    return out;
+  };
+
   for (auto&& [name, record] : wsv) {
     std::print(
         os,
@@ -97,14 +114,18 @@ std::unordered_map<std::string, WorkspaceVariableRecord> workspace_variables_cre
   vars.emplace("{0}", WorkspaceVariableRecord{{
     .desc          = R"-WSV-({1})-WSV-",
     .type          = "{2}",
-    .default_value = {3}
+    .default_value = {3},
+    .dims          = {{{4}}},
+    .inner_dims    = {{{5}}}
   }});
 
 )",
         name,
         record.desc,
         record.type,
-        record.default_value.empty() ? "std::nullopt" : std::format("{}{{ {} }}", record.type, record.default_value));
+        record.default_value.empty() ? "std::nullopt" : std::format("{}{{ {} }}", record.type, record.default_value),
+        quoted_list(record.dims),
+        quoted_list(record.inner_dims));
   }
 
   os << R"--(

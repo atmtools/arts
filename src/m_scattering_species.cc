@@ -88,20 +88,7 @@ void spectral_propmat_pathAddScattering(ArrayOfPropmatVector&       spectral_pro
                                         const ArrayOfPropmatVector& spectral_propmat_scat_path) try {
   const Size N = spectral_propmat_path.size();
 
-  ARTS_USER_ERROR_IF(N != spectral_propmat_scat_path.size(),
-                     R"(The size of spectral_propmat_path and spectral_propmat_scat_path must be the same.
-  spectral_propmat_path.size():      {}
-  spectral_propmat_scat_path.size(): {}
-)",
-                     spectral_propmat_path.size(),
-                     spectral_propmat_scat_path.size());
-
   if (N == 0) return;
-
-  ARTS_USER_ERROR_IF(
-      not all_same_shape(spectral_propmat_path.front().shape(), spectral_propmat_path, spectral_propmat_scat_path),
-      "The inner shapes of spectral_propmat_path and spectral_propmat_scat_path must be the same (first elem shape: {:B,}).",
-      spectral_propmat_path.front().shape())
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < spectral_propmat_path.size(); i++) { spectral_propmat_path[i] += spectral_propmat_scat_path[i]; }
@@ -115,23 +102,6 @@ void spectral_rad_srcvec_pathCorrectScattering(SourceVector&               spect
                                                const ArrayOfAscendingGrid& freq_grid_path,
                                                const ArrayOfAtmPoint&      atm_path) try {
   const Size np = spectral_propmat_path.size();
-  ARTS_USER_ERROR_IF(
-      not arr::same_size(
-          spectral_propmat_path, spectral_propmat_scat_path, spectral_absvec_scat_path, freq_grid_path, atm_path),
-      "All scattering source-correction inputs must have the same path size")
-  ARTS_USER_ERROR_IF(static_cast<Size>(spectral_rad_srcvec_path.J.ncols()) != np,
-                     "The source vector and propagation paths have different path sizes")
-
-  for (Size ip = 0; ip < np; ++ip) {
-    const Size nf = spectral_propmat_path[ip].size();
-    ARTS_USER_ERROR_IF(not arr::same_size(spectral_propmat_path[ip],
-                                          spectral_propmat_scat_path[ip],
-                                          spectral_absvec_scat_path[ip],
-                                          freq_grid_path[ip]),
-                       "All scattering source-correction inputs must have the same frequency size")
-    ARTS_USER_ERROR_IF(static_cast<Size>(spectral_rad_srcvec_path.J.nrows()) != nf,
-                       "The source vector and propagation paths have different frequency sizes")
-  }
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ++ip) {
@@ -156,14 +126,6 @@ void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&            ws
                                                   const Index&                legendre_degree,
                                                   const Agenda& spectral_propmat_scat_spectral_agenda) try {
   const Size N = freq_grid_path.size();
-
-  ARTS_USER_ERROR_IF(not arr::same_size(freq_grid_path, atm_path),
-                     R"(The size of freq_grid_path and atm_path must be the same.
-  freq_grid_path.size(): {}
-  atm_path.size():       {}
-)",
-                     freq_grid_path.size(),
-                     atm_path.size());
 
   spectral_propmat_scat_path.resize(N);
   spectral_absvec_scat_path.resize(N);

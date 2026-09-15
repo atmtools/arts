@@ -95,10 +95,27 @@ void source_correction() {
   spectral_rad_srcvec_pathCorrectScattering(source, total, scattering, absorption, frequencies, atmosphere);
   for (Numeric x : source.J[0, 0]) close(x, 0.0, "Vacuum source correction must remain finite and zero");
   close(source.J[0, 1].I() / planck(94e9, 250.0), -0.25, "Absorbing source correction");
+
+  /* Shapes are rejected where a user supplies them, so the call has to go through
+   * the workspace to meet the check.  Calling the method directly, as above, is
+   * how ARTS itself calls it, and that path is deliberately not checked. */
   source.J.resize(0, 2);
+  Workspace ws{WorkspaceInitialization::Empty};
+  ws.set("spectral_rad_srcvec_path", source);
+  ws.set("spectral_propmat_path", total);
+  ws.set("spectral_propmat_scat_path", scattering);
+  ws.set("spectral_absvec_scat_path", absorption);
+  ws.set("freq_grid_path", frequencies);
+  ws.set("atm_path", atmosphere);
+
+  /* Spelled out rather than braced, because a braced empty argument list picks the
+   * overload that sets a workspace variable of that name instead of calling it. */
+  const std::vector<std::string>                     no_args{};
+  const std::unordered_map<std::string, std::string> no_kwargs{};
+
   bool rejected = false;
   try {
-    spectral_rad_srcvec_pathCorrectScattering(source, total, scattering, absorption, frequencies, atmosphere);
+    Method{"spectral_rad_srcvec_pathCorrectScattering", no_args, no_kwargs}(ws);
   } catch (const std::exception&) { rejected = true; }
   check(rejected, "Source correction must reject mismatched frequency dimensions");
 }

@@ -21,13 +21,23 @@ struct StringVectorAgendaHelper {
 };
 
 struct WorkspaceAgendaInternalRecord {
-  std::string                           desc{};
-  std::vector<std::string>              output{};
-  std::vector<std::string>              input{};
-  std::vector<std::string>              enum_options{};
-  std::string                           enum_default{};
-  std::vector<StringVectorAgendaHelper> output_constraints{};
-  std::string                           named_operator{};
+  std::string              desc{};
+  std::vector<std::string> output{};
+  std::vector<std::string> input{};
+  std::vector<std::string> enum_options{};
+  std::string              enum_default{};
+
+  /*! Whether the sizes of the outputs are verified after the agenda has run.
+   *
+   * The checks are generated from the dimensions that the variables of this
+   * agenda name, see agenda_output_size_checks().  Every output that shares a
+   * dimension with another variable of the agenda is checked against it, so
+   * the checks grow as the variables gain dimensions.
+   *
+   * Turn off for agendas that are allowed to resize their outputs freely.
+   */
+  bool        output_constraints{true};
+  std::string named_operator{};
 };
 
 const std::unordered_map<std::string, WorkspaceAgendaInternalRecord>& internal_workspace_agendas();
@@ -80,7 +90,7 @@ template <> struct std::formatter<WorkspaceAgendaInternalRecord> {
                        "\n  .enum_default="sv,
                        wair.enum_default,
                        "\n  .output_constraints="sv,
-                       wair.output_constraints,
+                       wair.output_constraints ? "true"sv : "false"sv,
                        "\n  .named_operator="sv,
                        wair.named_operator,
                        "\n}"sv);

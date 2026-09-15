@@ -15,19 +15,6 @@ void spectral_propmat_pathFromPath(const Workspace                   &ws,
                                    const ArrayOfAtmPoint             &atm_path) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not arr::same_size(ray_path, atm_path, freq_grid_path, freq_wind_shift_jac_path),
-                     R"(Not same size:
-
-ray_path                 size: {} element(s)
-atm_path                 size: {} element(s)
-freq_grid_path           size: {} element(s)
-freq_wind_shift_jac_path size: {} element(s)
-)",
-                     ray_path.size(),
-                     atm_path.size(),
-                     freq_grid_path.size(),
-                     freq_wind_shift_jac_path.size())
-
   const Size np = ray_path.size();
   spectral_propmat_path.resize(np);
   spectral_nlte_srcvec_path.resize(np);

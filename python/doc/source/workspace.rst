@@ -26,6 +26,11 @@ Unlike python in general, methods have pure output variables as is more common
 in ``C++``.  Note that this means that methods generally modify the state of the
 workspace when called.
 
+Workspace dimensions are the sizes that variables share, such as the number of
+frequency points.  A variable that has a shape names its dimensions, and the
+methods and agendas that use it verify that the variables it is used with agree
+about them.  See :ref:`Workspace Dimensions`.
+
 Agendas are collections of methods that are executed to perform some task inside
 other methods.  Think of them as callback methods that are executed within the
 context of other methods.  Agendas always have access to all named variables at
@@ -42,6 +47,7 @@ for more information.
     workspace.methods
     workspace.agendas
     workspace.groups
+    workspace.dimensions
 
 .. rubric:: Workspace Variables
 .. include:: workspace.variables.auto.rst

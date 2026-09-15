@@ -38,6 +38,14 @@ struct TransmittanceMatrix {
 
   void check(Size np, Size nq, Size nf, const std::string_view caller) const;
 
+  /** Return whether the members this option uses describe the same shape.
+   *
+   * Which members are live depends on the option: the ones without a linear
+   * source never touch L, L_diag_m1 or dL, so those keep whatever a previous
+   * use left in them and are deliberately not looked at here.
+   */
+  [[nodiscard]] bool ok() const;
+
   //! Should return nf, np, nq [unchecked]
   [[nodiscard]] std::array<Size, 3> shape() const noexcept;
 

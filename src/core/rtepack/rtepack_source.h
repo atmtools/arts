@@ -39,6 +39,14 @@ struct SourceVector {
   //! Always call to ensure the object is valid
   void check(Size np, Size nq, Size nf, const std::string_view caller) const;
 
+  /** Return whether the value and its derivative describe the same shape.
+   *
+   * shape() reads the derivative alone, so this is what makes the shape it
+   * reports describe the whole object.  Unlike check(), it needs nothing from
+   * the caller, so it can be asked of any source vector.
+   */
+  [[nodiscard]] bool ok() const;
+
   //! Should return nf, np, nq [unchecked]
   [[nodiscard]] std::array<Size, 3> shape() const noexcept;
 };

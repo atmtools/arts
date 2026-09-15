@@ -244,26 +244,29 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     std::vector<std::string> input_op = ag.input;
     input_op.push_back(agname + "_operator");
 
+    // These run the agenda, so they can only promise what the agenda promises
     wsm_data[agname + "Execute"] = {
-        .desc           = "Executes *" + agname + "*, see it for more details\n",
-        .author         = {"``Automatically Generated``"},
-        .return_type    = "Workspace",
-        .return_desc    = "The internal workspace, cleaned from all input/output.",
-        .out            = ag.output,
-        .in             = input,
-        .pass_workspace = true,
+        .desc             = "Executes *" + agname + "*, see it for more details\n",
+        .author           = {"``Automatically Generated``"},
+        .return_type      = "Workspace",
+        .return_desc      = "The internal workspace, cleaned from all input/output.",
+        .out              = ag.output,
+        .in               = input,
+        .pass_workspace   = true,
+        .size_constraints = ag.output_constraints,
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
         .desc =
             std::format("Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n", agname, op),
-        .author    = {"``Automatically Generated``"},
-        .out       = ag.output,
-        .in        = ag.input,
-        .gin       = {agname + "_operator"},
-        .gin_type  = {op},
-        .gin_value = {std::nullopt},
-        .gin_desc  = {"Operator for *" + agname + "*"},
+        .author           = {"``Automatically Generated``"},
+        .out              = ag.output,
+        .in               = ag.input,
+        .gin              = {agname + "_operator"},
+        .gin_type         = {op},
+        .gin_value        = {std::nullopt},
+        .gin_desc         = {"Operator for *" + agname + "*"},
+        .size_constraints = ag.output_constraints,
     };
 
     wsm_data[agname + "SetOperator"] = {
@@ -2450,29 +2453,29 @@ The reflectance matrix is
   };
 
   wsm_data["tessem_nnReadAscii"] = {
-      .desc = R"--(Read an original TESSEM2 neural-network parameter file.)--",
-      .author = {"The ARTS developers"},
-      .gout = {"tessem_nn"},
+      .desc      = R"--(Read an original TESSEM2 neural-network parameter file.)--",
+      .author    = {"The ARTS developers"},
+      .gout      = {"tessem_nn"},
       .gout_type = {"TessemNN"},
       .gout_desc = {"The loaded TESSEM neural network."},
-      .gin = {"filename"},
-      .gin_type = {"String"},
+      .gin       = {"filename"},
+      .gin_type  = {"String"},
       .gin_value = {std::nullopt},
-      .gin_desc = {"Path to a TESSEM2 ASCII neural-network file."},
+      .gin_desc  = {"Path to a TESSEM2 ASCII neural-network file."},
   };
 
   wsm_data["telsem_atlasReadAscii"] = {
-      .desc = R"--(Read one original TELSEM2 monthly atlas file.)--",
-      .author = {"The ARTS developers"},
-      .out = {"telsem_atlas"},
-      .gin = {"filename", "month"},
-      .gin_type = {"String", "Index"},
+      .desc      = R"--(Read one original TELSEM2 monthly atlas file.)--",
+      .author    = {"The ARTS developers"},
+      .out       = {"telsem_atlas"},
+      .gin       = {"filename", "month"},
+      .gin_type  = {"String", "Index"},
       .gin_value = {std::nullopt, Index{0}},
-      .gin_desc = {"Path to a TELSEM2 ASCII atlas file.", "Month represented by the atlas (0 if unspecified)."},
+      .gin_desc  = {"Path to a TELSEM2 ASCII atlas file.", "Month represented by the atlas (0 if unspecified)."},
   };
 
   wsm_data["spectral_surf_reflTessem"] = {
-      .desc = R"--(Compute polarized specular ocean reflectance with TESSEM2.
+      .desc   = R"--(Compute polarized specular ocean reflectance with TESSEM2.
 
 The method reads surface temperature from the canonical ``t`` entry and the
 properties ``"wind speed"`` [m/s] and ``"salinity"`` [kg/kg] from
@@ -2481,25 +2484,25 @@ three inputs are supported.  Kirchhoff-consistent emission is supplied by the
 closed-surface agenda used by *spectral_radSurfaceReflectance*.
 )--",
       .author = {"The ARTS developers"},
-      .out = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in = {"freq_grid", "surf_field", "ray_point", "jac_targets", "tessem_neth", "tessem_netv"},
+      .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .in     = {"freq_grid", "surf_field", "ray_point", "jac_targets", "tessem_neth", "tessem_netv"},
   };
 
   wsm_data["spectral_surf_reflTelsem"] = {
-      .desc = R"--(Compute polarized specular land reflectance with TELSEM2.
+      .desc      = R"--(Compute polarized specular land reflectance with TELSEM2.
 
 The atlas selects the surface emissivity from the ray point's latitude and
 longitude and interpolates it in frequency and incidence angle.  Set
 ``max_distance`` to a positive angular distance in degrees to permit nearest
 land-cell lookup; the default requires the requested cell to exist.
 )--",
-      .author = {"The ARTS developers"},
-      .out = {"spectral_surf_refl", "spectral_surf_refl_jac"},
-      .in = {"freq_grid", "surf_field", "ray_point", "jac_targets", "telsem_atlas"},
-      .gin = {"max_distance"},
-      .gin_type = {"Numeric"},
+      .author    = {"The ARTS developers"},
+      .out       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
+      .in        = {"freq_grid", "surf_field", "ray_point", "jac_targets", "telsem_atlas"},
+      .gin       = {"max_distance"},
+      .gin_type  = {"Numeric"},
       .gin_value = {Numeric{-1}},
-      .gin_desc = {"Maximum nearest-atlas-cell distance [degrees], or a negative value to disable nearest lookup."},
+      .gin_desc  = {"Maximum nearest-atlas-cell distance [degrees], or a negative value to disable nearest lookup."},
   };
 
   wsm_data["spectral_propmat_jacWindFix"] = {
@@ -4548,6 +4551,11 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
       .in     = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_jacSurfaceTransformation"] = {
@@ -4555,6 +4563,11 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
       .in     = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_jacSubsurfaceTransformation"] = {
@@ -4562,6 +4575,11 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
       .in     = {"measurement_jac", "model_state_vec", "subsurf_field", "jac_targets"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_jacBandTransformation"] = {
@@ -4569,6 +4587,11 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
       .in     = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_jacSensorTransformation"] = {
@@ -4576,6 +4599,11 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .author = {"Richard Larsson"},
       .out    = {"measurement_jac"},
       .in     = {"measurement_jac", "model_state_vec", "measurement_sensor", "jac_targets"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_sensorFromModelState"] = {
@@ -5303,6 +5331,15 @@ Description of the special input arguments:
                          "An option to save memory",
                          "Flag to control if inversion diagnostics shall be printed on the screen"},
       .pass_workspace = true,
+
+      /* *OEM* reads the sizes of *model_state_vec*, *measurement_vec_fit* and
+       * *measurement_jac* as a message rather than as a shape: empty means the
+       * caller has no starting guess and no precomputed forward model, so use
+       * *model_state_vec_apriori* and simulate.  It also returns
+       * *measurement_jac* and *measurement_gain_mat* empty when "clear
+       * matrices" is set or the inversion did not converge.  None of that is a
+       * shape this can verify. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_vec_error_covmat_observation_systemCalc"] = {
@@ -5402,6 +5439,11 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
       .author = {"Richard Larsson"},
       .out    = {"measurement_vec_error", "measurement_jac_error"},
       .in     = {"measurement_sensor", "jac_targets", "model_state_vec"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_vecConditionalAddError"] = {
@@ -5411,6 +5453,11 @@ calculation in which the *measurement_jac* and the gain matrix *measurement_gain
       .author = {"Richard Larsson"},
       .out    = {"measurement_vec", "measurement_jac"},
       .in     = {"measurement_vec", "measurement_jac", "measurement_vec_error", "measurement_jac_error", "do_jac"},
+      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
+       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
+       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
+       * not a claim that the model state is empty. */
+      .size_constraints = false,
   };
 
   wsm_data["measurement_vec_error_covmatConstant"] = {

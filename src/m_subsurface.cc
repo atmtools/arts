@@ -48,10 +48,6 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
                                                       const DescendingGrid& depth_profile) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field_.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field_.ellipsoid)
-
   DisortSettings              disort_settings              = {};
   ArrayOfPropagationPathPoint ray_path                     = {};
   DisortRadiance              disort_spectral_rad_field    = {};
@@ -90,14 +86,6 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
   model_state_vecFromAtmosphere(model_state_vec, atm_field, jac_targets);
   model_state_vecFromSurface(model_state_vec, surf_field, jac_targets);
   model_state_vecFromSubsurface(model_state_vec, subsurf_field, jac_targets);
-
-  ARTS_USER_ERROR_IF(
-      model_state_vec.size() != jac_targets.x_size() or model_state_vec.size() != model_state_vec_perturbation.size(),
-      "Model state vector, model state vector perturbations, "
-      "and Jacobian targets size do not match: {} vs {} vs {}",
-      model_state_vec.size(),
-      model_state_vec_perturbation.size(),
-      jac_targets.x_size());
 
   String error{};
 

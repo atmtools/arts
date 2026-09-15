@@ -80,10 +80,6 @@ void spectral_radSunsOrCosmicBackground(StokvecVector&              spectral_rad
                                         const SurfaceField&         surf_field) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   spectral_rad.resize(freq_grid.size());
 
   for (auto& sun : suns) {

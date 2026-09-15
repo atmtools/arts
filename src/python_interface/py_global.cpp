@@ -11,6 +11,7 @@
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
+#include <workspace_dimensions.h>
 #include <workspace_variable_shortnames.h>
 
 #include "hpy_arts.h"
@@ -88,6 +89,10 @@ Return
               "Default value\n\n.. :class:`~pyarts3.arts.Wsv`\n\n.. :class:`None`")
       .def_ro("type", &WorkspaceVariableRecord::type, "Type\n\n.. :class:`str`")
       .def_ro("desc", &WorkspaceVariableRecord::desc, "Description\n\n.. :class:`str`")
+      .def_ro("dims", &WorkspaceVariableRecord::dims, "Named dimensions, outermost first\n\n.. :class:`list[str]`")
+      .def_ro("inner_dims",
+              &WorkspaceVariableRecord::inner_dims,
+              "Named dimensions inside each element of an array\n\n.. :class:`list[str]`")
       .doc() = "Workspace variable records";
   generic_interface(wsvs);
   static_assert(arts_formattable_or_value_type<WorkspaceVariableRecord>);
@@ -100,6 +105,25 @@ Return
 ------
 :class:`dict`
     Map of variables)");
+
+  py::class_<WorkspaceDimensionRecord> wsds(global, "WorkspaceDimensionRecord");
+  wsds.def_ro("desc", &WorkspaceDimensionRecord::desc, "Description\n\n.. :class:`str`").doc() =
+      "Workspace dimension records";
+  generic_interface(wsds);
+  static_assert(arts_formattable_or_value_type<WorkspaceDimensionRecord>);
+
+  global.def("workspace_dimensions",
+             &internal_workspace_dimensions,
+             R"(Get a copy of all workspace dimensions
+
+The dimensions are the sizes that workspace variables share.  Which of them a
+variable has is in :attr:`~pyarts3.arts.globals.WorkspaceVariableRecord.dims`
+and :attr:`~pyarts3.arts.globals.WorkspaceVariableRecord.inner_dims`.
+
+Return
+------
+:class:`dict`
+    Map of dimensions)");
 
   py::class_<WsvShortForm> wsv_short(global, "WsvShortForm");
   wsv_short.def_ro("desc", &WsvShortForm::desc, "Description of the shortname\n\n.. :class:`str`")

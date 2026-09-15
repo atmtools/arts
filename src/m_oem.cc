@@ -349,8 +349,6 @@ void measurement_vec_error_covmat_observation_systemCalc(Matrix&       measureme
   ARTS_USER_ERROR_IF(
       (m == 0) || (n == 0),
       "The gain matrix *measurement_gain_mat* is required to compute the observation error covariance matrix.");
-  ARTS_USER_ERROR_IF((measurement_vec_error_covmat.nrows() != m) || (measurement_vec_error_covmat.ncols() != m),
-                     "The covariance matrix measurement_vec_error_covmat has invalid dimensions.");
 
   measurement_vec_error_covmat_observation_system.resize(n, n);
   mult(tmp1, measurement_vec_error_covmat, transpose(measurement_gain_mat));
@@ -368,8 +366,6 @@ void model_state_covmat_smoothing_errorCalc(Matrix&                 model_state_
   ARTS_USER_ERROR_IF(
       n == 0,
       "The averaging kernel matrix *measurement_gain_mat* is required to compute the smoothing error covariance matrix.");
-  ARTS_USER_ERROR_IF((model_state_covmat.nrows() != n) || (model_state_covmat.ncols() != n),
-                     "The covariance matrix *model_state_covmat* invalid dimensions.");
 
   model_state_covmat_smoothing_error.resize(n, n);
 
@@ -386,18 +382,9 @@ void measurement_averaging_kernelCalc(Matrix&       measurement_averaging_kernel
                                       const Matrix& measurement_jac) {
   ARTS_TIME_REPORT
 
-  Index m(measurement_jac.nrows()), n(measurement_jac.ncols());
+  Index n(measurement_jac.ncols());
 
   ARTS_USER_ERROR_IF(measurement_jac.empty(), "The Jacobian matrix is empty.");
-
-  ARTS_USER_ERROR_IF((measurement_gain_mat.shape() != std::array{n, m}),
-                     R"(Matrices have inconsistent sizes.
-
-measurement_gain_mat: {:B,},
-measurement_jac:      {:B,}
-)",
-                     measurement_gain_mat.shape(),
-                     measurement_jac.shape());
 
   measurement_averaging_kernel.resize(n, n);
   mult(measurement_averaging_kernel, measurement_gain_mat, measurement_jac);

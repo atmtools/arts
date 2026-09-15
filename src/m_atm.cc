@@ -662,7 +662,6 @@ void atm_fieldFromProfile(AtmField                         &atm_field,
                           const ArrayOfAtmPoint            &atm_profile,
                           const AscendingGrid              &alt_grid,
                           const InterpolationExtrapolation &altitude_extrapolation) {
-  ARTS_USER_ERROR_IF(not arr::same_size(atm_profile, alt_grid), "Mismatch in size between atm_profile and alt_grid");
   ARTS_USER_ERROR_IF(alt_grid.empty(), "Empty altitude grid")
 
   atm_field = Atm::atm_from_profile(atm_profile, alt_grid, altitude_extrapolation, alt_grid.back());

@@ -38,17 +38,8 @@ void spectral_propmatAddCIA(  // WS Output:
     const Index&   ignore_errors) {
   ARTS_TIME_REPORT
 
-  // Size of problem
-  const Index nf = f_grid.size();
-  const Index nq = jac_targets.target_count();
-
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(static_cast<Index>(spectral_propmat.size()) not_eq nf, "*f_grid* must match *spectral_propmat*")
-  ARTS_USER_ERROR_IF(spectral_propmat_jac.nrows() not_eq nq,
-                     "*spectral_propmat_jac* must match derived form of *jac_targets*")
-  ARTS_USER_ERROR_IF(spectral_propmat_jac.ncols() not_eq nf,
-                     "*spectral_propmat_jac* must have frequency dim same as *f_grid*")
-  ARTS_USER_ERROR_IF(any_negative(f_grid.vec()), "Negative frequency (at least one value).")
+  ARTS_USER_ERROR_IF(f_grid.front() < 0, "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
   ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
 
@@ -155,8 +146,8 @@ void abs_cia_dataReadFromCIA(  // WS Output:
   ARTS_TIME_REPORT
 
   ArrayOfString subfolders;
-  subfolders.push_back("Main-Folder/");
-  subfolders.push_back("Alternate-Folder/");
+  subfolders.emplace_back("Main-Folder/");
+  subfolders.emplace_back("Alternate-Folder/");
 
   abs_cia_data.clear();
 

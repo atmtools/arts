@@ -598,22 +598,6 @@ void spectral_propmatAddVoigtLTE(PropmatVector&              spectral_propmat,
   dispersion     = 0;
   dispersion_jac = 0;
 
-  ARTS_USER_ERROR_IF(spectral_propmat.shape() != dispersion.shape() or spectral_propmat.shape() != freq_grid.shape() or
-                         spectral_propmat_jac.shape() != dispersion_jac.shape(),
-                     R"(Inconsistent shapes:
-
-spectral_propmat:     {:B,}
-dispersion:           {:B,}
-freq_grid:            {:B,}
-spectral_propmat_jac: {:B,}
-dispersion_jac:       {:B,}
-)",
-                     spectral_propmat.shape(),
-                     dispersion.shape(),
-                     freq_grid.shape(),
-                     spectral_propmat_jac.shape(),
-                     dispersion_jac.shape());
-
   const Size nf = freq_grid.size();
   const Size nt = spectral_propmat_jac.nrows();
   if (nf == 0) return;
@@ -699,19 +683,9 @@ void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
 
   const Size nt = jac_targets.target_count();
 
-  //! FIXME: these should be part of workspace once things work
   single_dispersion = 0;
   single_dispersion_jac.resize(nt);
   single_dispersion_jac = 0;
-
-  ARTS_USER_ERROR_IF(single_propmat_jac.shape() != single_dispersion_jac.shape(),
-                     R"(Inconsistent shapes:
-
-single_propmat_jac:    {:B,}
-single_dispersion_jac: {:B,}
-)",
-                     single_propmat_jac.shape(),
-                     single_dispersion_jac.shape());
 
   Complex       pm_(0.0);
   ComplexVector dpm_(nt, 0.0);
@@ -782,22 +756,6 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
   //! FIXME: these should be part of workspace once things work?
   spectral_dispersion.resize(n);
   spectral_dispersion_jac.resize(m, n);
-
-  ARTS_USER_ERROR_IF(not same_shape(f_grid, spectral_propmat, spectral_dispersion) or
-                         not same_shape({m, n}, spectral_propmat_jac, spectral_dispersion_jac),
-                     R"(Inconsistent shapes:
-
-spectral_propmat:        {:B,}
-spectral_dispersion:     {:B,}
-f_grid:                  {:B,}
-spectral_propmat_jac:    {:B,}
-spectral_dispersion_jac: {:B,}
-)",
-                     spectral_propmat.shape(),
-                     spectral_dispersion.shape(),
-                     f_grid.shape(),
-                     spectral_propmat_jac.shape(),
-                     spectral_dispersion_jac.shape());
 
   const auto [df, it, ip] = [m, &jac_targets]() {
     std::vector<bool> v(m, false);

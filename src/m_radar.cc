@@ -125,8 +125,6 @@ OpticalProfile optical_profile(const Workspace&                   ws,
                                    outgoing_point,
                                    atm_path[ip],
                                    spectral_propmat_agenda);
-    ARTS_USER_ERROR_IF(gas_return.size() != nf or gas_outgoing.size() != nf,
-                       "spectral_propmat_agenda returned inconsistent frequency dimensions")
 
     // Propagation-path LOS is the propagation direction toward the receiver;
     // its mirror is the transmitted propagation direction.  ARO phase
@@ -717,10 +715,6 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
   ARTS_TIME_REPORT
   const Size ny = measurement_sensor.size();
   const Size nx = jac_targets.x_size();
-  ARTS_USER_ERROR_IF(measurement_vec.size() != ny,
-                     "measurement_vec must have one value per radar observation: expected {}, got {}",
-                     ny,
-                     measurement_vec.size())
   ARTS_USER_ERROR_IF(radar_range_limits.nrows() != static_cast<Index>(ny) or radar_range_limits.ncols() != 2,
                      "radar_range_limits must have shape [{}, 2], got {:B,}",
                      ny,

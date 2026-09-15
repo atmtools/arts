@@ -122,7 +122,8 @@ void SourceVector::init(const std::span<const propmat>        &K,
   auto &&J_ = J[0];
 
   if (np == 0) {
-    dJ.resize(nf, np, dJ.nrows());
+    // dJ is (nf, np, nq), so the derivative count to keep is its ncols
+    dJ.resize(nf, np, dJ.ncols());
     return;
   }
 
@@ -166,6 +167,12 @@ void SourceVector::check(Size np, Size nq, Size nf, const std::string_view calle
                      nf,
                      np,
                      nq);
+}
+
+bool SourceVector::ok() const {
+  // shape() reads the derivative, so the value has to agree with it for the
+  // reported shape to describe this object rather than half of it
+  return J.nrows() == dJ.npages() and J.ncols() == dJ.nrows();
 }
 
 std::array<Size, 3> SourceVector::shape() const noexcept {

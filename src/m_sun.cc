@@ -52,12 +52,10 @@ void sunFromGrid(Sun& sun,
 
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun (",
+                     "The distance to the center of the sun ({} m) \n"
+                     " is smaller than the radius of the sun ({} m)",
                      distance,
-                     " m) \n"
-                     " is smaller than the radius of the sun (",
-                     radius,
-                     " m )")
+                     radius)
 
   // init sun
   sun.spectrum    = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);  // set spectrum
@@ -110,10 +108,6 @@ void sun_pathFromObserverAgenda(const Workspace&             ws,
                                 const Index&                 just_hit) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   find_sun_path(
       ws, sun_path, sun, ray_path_observer_agenda, surf_field, observer_pos, angle_cut, refinements, just_hit);
 }
@@ -128,10 +122,6 @@ void ray_path_suns_pathFromPathObserver(const Workspace&                        
                                         const Index&                               refinements,
                                         const Index&                               just_hit) {
   ARTS_TIME_REPORT
-
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
 
   ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
 
@@ -193,7 +183,6 @@ void spectral_propmat_scatAirSimple(PropmatVector&       spectral_propmat_scat,
                                     const AscendingGrid& freq_grid,
                                     const AtmPoint&      atm_point) {
   const Size nf = freq_grid.size();
-  ARTS_USER_ERROR_IF(spectral_propmat_scat.size() != nf, "Mismatch in size of spectral_propmat_scat and freq_grid")
 
   static constexpr std::array coefficients{3.9729066, 4.6547659e-2, 4.5055995e-4, 2.3229848e-5};
 
@@ -218,7 +207,6 @@ void spectral_propmat_scat_pathFromPath(const Workspace&            ws,
   ARTS_TIME_REPORT
 
   const Size np = freq_grid_path.size();
-  ARTS_USER_ERROR_IF(np != atm_path.size(), "Bad atm_path: incorrect number of path points")
 
   spectral_propmat_scat_path.resize(np);
   if (arts_omp_in_parallel()) {
@@ -249,20 +237,10 @@ void spectral_rad_srcvec_pathAddScattering(SourceVector&               spectral_
   ARTS_TIME_REPORT
 
   const Size np = spectral_propmat_path.size();
-  ARTS_USER_ERROR_IF(np != static_cast<Size>(spectral_rad_srcvec_path.J.ncols()),
-                     "Bad spectral_propmat_scat_path: incorrect number of path points")
-
-  ARTS_USER_ERROR_IF(np != spectral_rad_scat_path.size(),
-                     "Bad spectral_propmat_scat_path: incorrect number of path points")
 
   if (np == 0) return;
 
   const Size nf = spectral_propmat_path.front().size();
-  ARTS_USER_ERROR_IF(nf != static_cast<Size>(spectral_rad_srcvec_path.J.nrows()),
-                     "Mismatch frequency size of spectral_propmat_path and spectral_rad_srcvec_path")
-
-  ARTS_USER_ERROR_IF(stdr::any_of(spectral_rad_scat_path, Cmp::ne(nf), [](auto& v) { return v.size(); }),
-                     "Mismatch frequency size of spectral_propmat_path and spectral_rad_scat_path")
 
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
@@ -295,15 +273,9 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(const Workspace& ws,
                                                   const Index&               hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
-
   ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
 
   const Size np = ray_path.size();
-  ARTS_USER_ERROR_IF(np != spectral_propmat_scat_path.size(),
-                     "Bad spectral_propmat_scat_path: incorrect number of path points")
   ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(), "Bad ray_path_suns_path: incorrect number of path points")
 
   const Size nsuns = suns.size();
@@ -311,8 +283,6 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(const Workspace& ws,
                      "Bad ray_path_suns_path: incorrect number of suns")
 
   const Size nf = freq_grid.size();
-  ARTS_USER_ERROR_IF(stdr::any_of(spectral_rad_scat_path, Cmp::ne(nf), [](auto& v) { return v.size(); }),
-                     "Bad spectral_rad_srcvec_path: incorrect number of frequencies")
 
   StokvecVector       spectral_rad{};
   StokvecMatrix       spectral_rad_jac{};
@@ -357,13 +327,6 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(const Workspace& ws,
                                                    surf_field,
                                                    hse_derivative);
 
-        ARTS_USER_ERROR_IF(spectral_rad.size() != nf,
-                           "Bad size spectral_rad (",
-                           spectral_rad.size(),
-                           ").  It should have the same size as freq_grid (",
-                           nf,
-                           ")")
-
         // irradiance ratio
         const Numeric radiance_2_irradiance =
             pi * suns[isun].sin_alpha_squared(sun_path.back().pos, surf_field.ellipsoid);
@@ -401,9 +364,6 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
                                           const Index&               hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
   ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
   ARTS_USER_ERROR_IF(scattering_species.species.empty(), "No scattering species")
 

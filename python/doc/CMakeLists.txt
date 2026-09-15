@@ -9,7 +9,7 @@ if(SPHINX_FOUND)
   endif()
 
   add_custom_target(pyarts_docs
-    ${CMAKE_COMMAND} -E env PYTHONPATH="${ARTS_BINARY_DIR}/python/src" ARTS_HEADLESS=1 ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR} ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR} ARTS_DATA_PATH="." -- ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    ${CMAKE_COMMAND} -E env ${ASAN_PRELOAD_ENV} PYTHONPATH="${ARTS_BINARY_DIR}/python/src" ARTS_HEADLESS=1 ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR} ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR} ARTS_DATA_PATH="." -- ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating documentation with Sphinx")
 
@@ -69,6 +69,7 @@ if(SPHINX_FOUND)
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Variables > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.variables.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Groups > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.groups.auto.rst
     COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Methods > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.methods.auto.rst
+    COMMAND ${ARTS_PYTHON_INTERPRETER} gen_overview_list.py Dimensions > ${CMAKE_CURRENT_BINARY_DIR}/source/workspace.dimensions.auto.rst
     COMMENT "Generating overview RST files"
   )
   add_dependencies(gen_arts_overview_rst pyarts pyarts_docs_gen_copy_python pyarts_docs_copy_python)

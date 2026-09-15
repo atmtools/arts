@@ -97,7 +97,10 @@ language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+# The generated *.auto.rst are fragments that other pages include, so they are
+# not documents of their own.  Reading them as both would define every label
+# they carry twice.
+exclude_patterns = ['_build', '*.auto.rst', '**/*.auto.rst']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

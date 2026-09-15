@@ -27,11 +27,6 @@ void spectral_radStepByStepEmission(StokvecVector&             spectral_rad,
   spectral_rad_srcvec.check(np, nq, nf, "spectral_radStepByStepEmission");
   spectral_tramat.check(np, nq, nf, "spectral_radStepByStepEmission");
 
-  ARTS_USER_ERROR_IF(spectral_rad_bkg.size() != nf,
-                     "Bad background radiance size: spectral_rad_bkg: {}, expected: {}",
-                     spectral_rad_bkg.size(),
-                     nf);
-
   spectral_rad.resize(nf);
   spectral_rad_jac_path.resize(nf, np, nq);
 
@@ -53,11 +48,6 @@ void spectral_radCumulativeTransmission(StokvecVector&             spectral_rad,
   spectral_rad.resize(nf);
   spectral_rad_jac_path.resize(nf, np, nq);
 
-  ARTS_USER_ERROR_IF(spectral_rad_bkg.size() != nf,
-                     "Bad background radiance size: spectral_rad_bkg: {}, expected: {}",
-                     spectral_rad_bkg.size(),
-                     nf);
-
   spectral_tramat_path.check(np, nq, nf, "spectral_radCumulativeTransmission");
 
   rte_transmission(spectral_rad, spectral_rad_jac_path, spectral_tramat_path, spectral_rad_bkg);
@@ -78,22 +68,6 @@ void single_tramat_pathFromPath(MuelmatVector&                     single_tramat
 
   const Size N  = ray_path.size();
   const Size nq = jac_targets.target_count();
-
-  ARTS_USER_ERROR_IF(single_propmat_path.size() != N or single_propmat_jac_path.nrows() != static_cast<Index>(N) or
-                         single_propmat_jac_path.ncols() != static_cast<Index>(nq) or atm_path.size() != N,
-                     R"(Not same sizes:
-
-ray_path:                (N)     = [{}]
-jac_targets:             (nq)    = [{}]
-atm_path:                (N)     = [{}]
-single_propmat_path:     (N)     = {:B,}
-single_propmat_jac_path: (N, nq) = {:B,}
-)",
-                     N,
-                     nq,
-                     atm_path.size(),
-                     single_propmat_path.shape(),
-                     single_propmat_jac_path.shape());
 
   single_tramat_path.resize(N);
   single_tramat_jac_path.resize(N, 2, nq);
@@ -168,28 +142,6 @@ void single_rad_srcvec_jacFromPropmat(StokvecVector&         single_rad_srcvec_j
   const Index np = atm_path.size();
   const Index nq = jac_targets.target_count();
 
-  ARTS_USER_ERROR_IF(np != single_freq_path.ncols() or np != single_propmat_path.ncols() or
-                         np != single_nlte_srcvec_path.ncols() or np != single_propmat_jac_path.nrows() or
-                         nq != single_propmat_jac_path.ncols() or np != single_nlte_srcvec_jac_path.nrows() or
-                         nq != single_nlte_srcvec_jac_path.ncols(),
-                     R"(Not same sizes:
-
-jac_targets                  (nq)     = [{}]
-single_freq_path             (np)     = {:B,}
-atm_path                     (np)     = [{}]
-single_propmat_path:         (np)     = {:B,}
-single_nlte_srcvec_path:     (np)     = {:B,}
-single_propmat_jac_path:     (np, nq) = {:B,}
-single_nlte_srcvec_jac_path: (np, nq) = {:B,}
-)",
-                     nq,
-                     single_freq_path.shape(),
-                     np,
-                     single_propmat_path.shape(),
-                     single_nlte_srcvec_path.shape(),
-                     single_propmat_jac_path.shape(),
-                     single_nlte_srcvec_jac_path.shape())
-
   single_rad_srcvec_jac.resize(np);
   single_rad_srcvec_jac_path.resize(np, nq);
   single_rad_srcvec_jac      = 0.0;
@@ -238,25 +190,6 @@ void single_radStepByStepEmission(Stokvec&              single_rad,
   const Size N  = single_tramat_path.size();
   const Size nq = single_rad_srcvec_jac_path.ncols();
 
-  ARTS_USER_ERROR_IF(
-      single_tramat_path.size() != N or single_tramat_cumulative_path.size() != N or
-          single_rad_srcvec_jac.size() != N or single_rad_srcvec_jac_path.nrows() != static_cast<Index>(N) or
-          single_rad_srcvec_jac_path.ncols() != static_cast<Index>(nq) or
-          single_tramat_jac_path.npages() != static_cast<Index>(N) or single_tramat_jac_path.nrows() != 2,
-      R"(Not same sizes:
-
-single_rad_srcvec_jac         (N)        = {:B,}
-single_tramat_path            (N)        = {:B,}
-single_rad_srcvec_jac_path    (N, nq)    = {:B,}
-single_tramat_jac_path        (N, 2, nq) = {:B,}
-single_tramat_cumulative_path (N)        = {:B,}
-)",
-      single_rad_srcvec_jac.shape(),
-      single_tramat_path.shape(),
-      single_rad_srcvec_jac_path.shape(),
-      single_tramat_jac_path.shape(),
-      single_tramat_cumulative_path.shape());
-
   single_rad_jac_path.resize(N, nq);
   single_rad_jac_path = 0.0;
 
@@ -298,23 +231,7 @@ void single_rad_jacAddPathPropagation(StokvecVector&                     single_
                                       const ArrayOfPropagationPathPoint& ray_path) try {
   ARTS_TIME_REPORT
 
-  const Size  np = ray_path.size();
-  const Index nt = jac_targets.target_count();
-  const Index nx = jac_targets.x_size();
-
-  ARTS_USER_ERROR_IF(single_rad_jac.ncols() != nx or single_rad_jac_path.nrows() != static_cast<Index>(np) or
-                         single_rad_jac_path.ncols() != nt,
-                     R"(Not same sizes:
-
-ray_path:            (np)     = [{}]
-jac_targets:         (nq)     = [{}]
-single_rad_jac:      (nx)     = {:B,}
-single_rad_jac_path: (np, nq) = {:B,}
-)",
-                     np,
-                     jac_targets.target_count(),
-                     single_rad_jac.shape(),
-                     single_rad_jac_path.shape());
+  const Size np = ray_path.size();
 
   for (auto& atm_block : jac_targets.atm) {
     const auto& data = atm_field[atm_block.type];
@@ -419,59 +336,6 @@ void spectral_radSinglePathEmissionFrequencyLoop(StokvecVector&                 
   const Size nx = jac_targets.x_size();
 
   if (N == 0) return;
-
-  ARTS_USER_ERROR_IF(not same_shape({nx, nf}, spectral_rad_jac),
-                     R"(spectral_rad_jac has wrong shape:
-Expected: ({}, {})
-Actual:   ({}, {})
-)",
-                     nx,
-                     nf,
-                     spectral_rad_jac.nrows(),
-                     spectral_rad_jac.ncols());
-
-  ARTS_USER_ERROR_IF(not arr::same_size(ray_path,
-                                        freq_grid_path,
-                                        atm_path,
-                                        spectral_propmat_path,
-                                        spectral_nlte_srcvec_path,
-                                        spectral_propmat_jac_path,
-                                        spectral_nlte_srcvec_jac_path),
-                     R"(Not same sizes:
-
-ray_path.size()                      = {},
-freq_grid_path.size()                = {},
-atm_path.size()                      = {},
-spectral_propmat_path.size()         = {},
-spectral_nlte_srcvec_path.size()     = {},
-spectral_propmat_jac_path.size()     = {},
-spectral_nlte_srcvec_jac_path.size() = {}
-)",
-                     ray_path.size(),
-                     freq_grid_path.size(),
-                     atm_path.size(),
-                     spectral_propmat_path.size(),
-                     spectral_nlte_srcvec_path.size(),
-                     spectral_propmat_jac_path.size(),
-                     spectral_nlte_srcvec_jac_path.size());
-
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(freq_grid_path, spectral_propmat_path, spectral_nlte_srcvec_path),
-                     R"(Not same sizes elemwise:
-freq_grid_path.size()             = {}
-spectral_propmat_path.shape()     = {:B,}
-spectral_nlte_srcvec_path.shape() = {:B,}
-)",
-                     freq_grid_path.size(),
-                     spectral_propmat_path[0].shape(),
-                     spectral_nlte_srcvec_path[0].shape());
-
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(spectral_propmat_jac_path, spectral_nlte_srcvec_jac_path),
-                     R"(Not same sizes elemwise:
-spectral_propmat_jac_path.shape()     = {:B,}
-spectral_nlte_srcvec_jac_path.shape() = {:B,}
-)",
-                     spectral_propmat_jac_path[0].shape(),
-                     spectral_nlte_srcvec_jac_path[0].shape());
 
   Vector         single_freq_path(N);
   StokvecVector  single_rad_jac(nx);

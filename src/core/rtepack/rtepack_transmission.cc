@@ -2768,6 +2768,30 @@ Expected shape: (2, {2}, {3}, {4}
   }
 }
 
+bool TransmittanceMatrix::ok() const {
+  const Index nf = T.nrows();
+  const Index np = T.ncols();
+  const Index nq = dT.ncols();
+
+  // The compact diagonals are optional, so an empty one says nothing is wrong
+  const auto diag_ok = [nf, np](const stokvec_matrix &d) { return d.size() == 0 or d.shape() == std::array{nf, np}; };
+
+  if (dT.shape() != std::array{Index{2}, nf, np, nq}) return false;
+  if (P.shape() != std::array{nf, np}) return false;
+  if (not diag_ok(T_diag_m1)) return false;
+
+  switch (option) {
+    case TransmittanceOption::magop:
+    case TransmittanceOption::constant: return true;
+    case TransmittanceOption::linsrc:
+    case TransmittanceOption::linprop:
+    case TransmittanceOption::magop_linsrc:
+      return L.shape() == std::array{nf, np} and dL.shape() == std::array{Index{2}, nf, np, nq} and diag_ok(L_diag_m1);
+  }
+
+  return false;
+}
+
 [[nodiscard]] std::array<Size, 3> TransmittanceMatrix::shape() const noexcept {
   return {static_cast<Size>(dT.npages()), static_cast<Size>(dT.nrows()), static_cast<Size>(dT.ncols())};
 }

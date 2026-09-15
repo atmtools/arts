@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "workspace_dimensions.h"
 #include "workspace_group_friends.h"
 #include "workspace_groups.h"
 #include "workspace_meta_methods.h"
@@ -410,28 +411,21 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
     }
 )--";
   } else {
-    os << "[](Workspace& ws [[maybe_unused]], const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
+    os << "[](Workspace& _ws [[maybe_unused]], const std::vector<std::string>& _out [[maybe_unused]], const std::vector<std::string>& _in [[maybe_unused]]) {\n";
     os << "    try {\n";
 
-    bool first = true;
-    os << "      " << name << "(";
-    if (wsmr.pass_workspace) {
-      os << "ws";
-      first = false;
-    }
-
-    const String spaces(name.size() + 7, ' ');
-
+    // Look every variable up once.  The workspace is keyed by runtime strings, so
+    // the checks share the lookups of the call rather than repeating them.
     int out_count = 0;
     for (auto& str : wsmr.out) {
-      os << comma(first, spaces) << "ws.get";
-      if (std::count(wsmr.in.begin(), wsmr.in.end(), str) == 0) os << "_or";
-      os << "<" << wsv.at(str).type << ">(out[" << out_count++ << "]) /* out */";
+      const bool inout = std::count(wsmr.in.begin(), wsmr.in.end(), str) != 0;
+      os << "      auto& " << str << " = _ws.get" << (inout ? "" : "_or") << "<" << wsv.at(str).type << ">(_out["
+         << out_count++ << "]);\n";
     }
 
     for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-      os << comma(first, spaces) << "ws.get_or<" << any_is_typename(wsmr.gout_type[i]) << ">(out[" << out_count++
-         << "]) /* gout */";
+      os << "      auto& " << wsmr.gout[i] << " = _ws.get_or<" << any_is_typename(wsmr.gout_type[i]) << ">(_out["
+         << out_count++ << "]);\n";
     }
 
     int in_count = 0;
@@ -440,15 +434,43 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
         in_count++;
         continue;
       }
-      os << comma(first, spaces) << "ws.get<" << wsv.at(str).type << ">(in[" << in_count++ << "]) /* in */";
+      os << "      const auto& " << str << " = _ws.get<" << wsv.at(str).type << ">(_in[" << in_count++ << "]);\n";
     }
 
     for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
-      os << comma(first, spaces) << "ws.get<" << wsmr.gin_type[i] << ">(in[" << in_count++ << "]) /* gin */";
+      os << "      const auto& " << wsmr.gin[i] << " = _ws.get<" << wsmr.gin_type[i] << ">(_in[" << in_count++
+         << "]);\n";
     }
 
-    os << "\n      );\n"
-          "    } catch (std::exception& e) {\n"
+    auto pre = method_input_invariants(wsmr);
+    std::ranges::move(method_input_size_checks(wsmr), std::back_inserter(pre));
+    os << size_check_code(pre, "      ");
+
+    bool first = true;
+    os << "      " << name << "(";
+    if (wsmr.pass_workspace) {
+      os << "_ws";
+      first = false;
+    }
+
+    const String spaces(name.size() + 7, ' ');
+
+    for (auto& str : wsmr.out) { os << comma(first, spaces) << str; }
+
+    for (const auto& g : wsmr.gout) { os << comma(first, spaces) << g; }
+
+    for (auto& str : wsmr.in) {
+      if (std::any_of(wsmr.out.begin(), wsmr.out.end(), [&str](auto& var) { return str == var; })) continue;
+      os << comma(first, spaces) << str;
+    }
+
+    for (const auto& g : wsmr.gin) { os << comma(first, spaces) << g; }
+
+    os << "\n      );\n";
+
+    os << size_check_code(method_output_size_checks(wsmr), "      ");
+
+    os << "    } catch (std::exception& e) {\n"
           "      throw std::runtime_error(std::format(R\"-x-(Error in agenda call to specific method\n\n"
        << error_signature(name, wsmr)
        << "\n\n{})-x-\", e.what()));\n"

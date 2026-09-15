@@ -194,9 +194,6 @@ ARTS_METHOD_ERROR_CATCH
 void flux_profileIntegrate(Vector& flux_profile, const Matrix& spectral_flux_profile, const AscendingGrid& freq_grid) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(freq_grid.size()) != spectral_flux_profile.extent(1),
-                     "Frequency grid and spectral flux profile size mismatch")
-
   const Size K = spectral_flux_profile.extent(0);
 
   flux_profile.resize(K);
@@ -221,11 +218,6 @@ void nlte_line_flux_profileIntegrate(QuantumIdentifierVectorMap& nlte_line_flux_
   ARTS_TIME_REPORT
 
   const Size K = spectral_flux_profile.extent(0);
-  const Size M = spectral_flux_profile.extent(1);
-
-  ARTS_USER_ERROR_IF(freq_grid.size() != M, "Frequency grid and spectral flux profile size mismatch")
-
-  ARTS_USER_ERROR_IF(atm_path.size() != K, "Atmospheric point and spectral flux profile size mismatch");
 
   nlte_line_flux_profile.clear();
   for (const auto& [key, band] : abs_bands) {

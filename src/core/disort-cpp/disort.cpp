@@ -1887,8 +1887,7 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   Numeric mean_intensity = diffuse.mean_intensity;
   // The direct/diffuse flux correction preserves the scaled total beam.
   // Its actinic contribution must therefore use the same scaled coordinate.
-  if (has_beam_source)
-    mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, scaled_tau) / (4.0 * Constant::pi);
+  if (has_beam_source) mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, scaled_tau) / (4.0 * Constant::pi);
 
   const Numeric source =
       dc::horner_polynomial(Nscoeffs, tau, [&](const Index coefficient) { return source_poly_coeffs[l, coefficient]; });
@@ -1921,8 +1920,8 @@ void main_data::gridded_flux(VectorView flux_up,
 
     Numeric mean_intensity = I0_orig * diffuse.mean_intensity;
     if (has_beam_source)
-      mean_intensity += I0_orig * dc::direct_beam_radiance(I0, mu0, scaled_tau_arr_with_0[l + 1]) /
-                        (4.0 * Constant::pi);
+      mean_intensity +=
+          I0_orig * dc::direct_beam_radiance(I0, mu0, scaled_tau_arr_with_0[l + 1]) / (4.0 * Constant::pi);
     const Numeric source = dc::horner_polynomial(
         Nscoeffs, tau_arr[l], [&](const Index coefficient) { return source_poly_coeffs[l, coefficient]; });
     flux_dfdt[l] = (1.0 - omega_arr[l]) * 4.0 * Constant::pi * (mean_intensity - source);
@@ -2160,34 +2159,37 @@ void DisortSettings::resize(Index          quadrature_dimension_,
   downward_boundary_condition.resize(nfreq, fourier_mode_dimension, quadrature_dimension / 2);
 }
 
-void DisortSettings::check() const {
+bool DisortSettings::ok() const {
   const Index nfreq = freq_grid.size();
   const Index nlay  = alt_grid.size() - 1;
 
-  ARTS_USER_ERROR_IF(
+  return not(
       solar_source.shape() != std::array{nfreq} or solar_zenith_angle.shape() != std::array{nfreq} or
-          solar_azimuth_angle.shape() != std::array{nfreq} or
-          (bidirectional_reflectance_distribution_functions.shape() !=
-           std::array{nfreq, bidirectional_reflectance_distribution_functions.ncols()}) or
-          (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
-          (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
-          (fractional_scattering.shape() != std::array{nfreq, nlay}) or
-          (delta_m_peak_moments.shape() != std::array{nfreq, nlay, legendre_polynomial_dimension}) or
-          (source_polynomial.shape() != std::array{nfreq, nlay, source_polynomial.ncols()}) or
-          (legendre_coefficients.shape() != std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
-          (upward_boundary_condition.shape() != std::array{nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
-          (downward_boundary_condition.shape() !=
-           std::array{nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
-          legendre_polynomial_dimension > legendre_coefficients.ncols(),
-      R"-x-(Input is of incorrect size.
+      solar_azimuth_angle.shape() != std::array{nfreq} or
+      (bidirectional_reflectance_distribution_functions.shape() !=
+       std::array{nfreq, bidirectional_reflectance_distribution_functions.ncols()}) or
+      (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
+      (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
+      (fractional_scattering.shape() != std::array{nfreq, nlay}) or
+      (delta_m_peak_moments.shape() != std::array{nfreq, nlay, legendre_polynomial_dimension}) or
+      (source_polynomial.shape() != std::array{nfreq, nlay, source_polynomial.ncols()}) or
+      (legendre_coefficients.shape() != std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
+      (upward_boundary_condition.shape() != std::array{nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
+      (downward_boundary_condition.shape() != std::array{nfreq, fourier_mode_dimension, quadrature_dimension / 2}) or
+      legendre_polynomial_dimension > legendre_coefficients.ncols());
+}
+
+void DisortSettings::check() const {
+  ARTS_USER_ERROR_IF(not ok(),
+                     R"-x-(Input is of incorrect size.
 
 {:Bs,}
 
 Also note that the reduced Legendre polynomial dimension is {}.  It must be at most {}.
 )-x-",
-      *this,
-      legendre_polynomial_dimension,
-      legendre_coefficients.ncols());
+                     *this,
+                     legendre_polynomial_dimension,
+                     legendre_coefficients.ncols());
 }
 
 disort::main_data DisortSettings::init() const {
