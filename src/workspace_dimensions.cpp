@@ -24,8 +24,8 @@ std::unordered_map<std::string, WorkspaceDimensionRecord> internal_workspace_dim
   wsd_data["NALT"]        = {.desc = "number of altitude points"};
   wsd_data["NLAT"]        = {.desc = "number of latitude points"};
   wsd_data["NLON"]        = {.desc = "number of longitude points"};
-  wsd_data["NZEN"]        = {.desc = "number of zenith angles"};
-  wsd_data["NAZI"]        = {.desc = "number of azimuth angles"};
+  wsd_data["NZENITH"]     = {.desc = "number of zenith angles"};
+  wsd_data["NAZIMUTH"]    = {.desc = "number of azimuth angles"};
   wsd_data["NAUX"]        = {.desc = "number of auxiliary points"};
   wsd_data["NDEPTH"]      = {.desc = "number of subsurface depth points"};
   wsd_data["NMEAS"]       = {.desc = "number of measurements"};
@@ -669,7 +669,7 @@ std::string variable_dimension_docs(const std::string& name) {
   all.insert(all.end(), wsv->inner_dims.begin(), wsv->inner_dims.end());
 
   return std::format(
-      "\n.. rubric:: Effective shape\n\n[{}]\n",
+      "\n.. rubric:: Effective local shape\n\n[{}]\n",
       join(all | std::views::transform(dimension_link) | std::ranges::to<std::vector<std::string>>(), ", ", ", "));
 }
 

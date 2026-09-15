@@ -613,7 +613,7 @@ will lead to undefined behavior with possibly bad values being computed.
 *spectral_rad* but for a field.
 )",
       .type = "GriddedSpectralField6",
-      .dims = {"NALT", "NLAT", "NLON", "NZEN", "NAZI", "NFREQ"},
+      .dims = {"NALT", "NLAT", "NLON", "NZENITH", "NAZIMUTH", "NFREQ"},
   };
 
   wsv_data["spectral_rad_jac"] = {
@@ -1115,7 +1115,7 @@ Units: degrees
     nature of all grids.
 )--",
       .type = "ZenGrid",
-      .dims = {"NZEN"},
+      .dims = {"NZENITH"},
   };
 
   //! Non-LTE
