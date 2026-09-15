@@ -1419,16 +1419,10 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
   const Numeric scaled_output =
       scaled_tau_arr_with_0[output_layer + 1] - (tau_arr[output_layer] - tau) * scale_tau[output_layer];
 
-  const auto scattering_source = [&](const Index m, const Index layer, const Numeric mu, const auto& ordinate_values) {
+  Vector     scattering_weights(NQuad);
+  const auto scattering_source = [&](const auto& ordinate_values) {
     Numeric result = 0.0;
-    for (Index degree = m; degree < NLeg; ++degree) {
-      Numeric moment = 0.0;
-      for (Index j = 0; j < NQuad; ++j) {
-        moment += W[j % N] * Legendre::assoc_legendre(degree, m, mu_arr[j]) * ordinate_values[j];
-      }
-      result += 0.5 * scaled_omega_arr[layer] * weighted_scaled_Leg_coeffs[layer, degree] *
-                poch(degree + m + 1, -2 * m) * Legendre::assoc_legendre(degree, m, mu) * moment;
-    }
+    for (Index j = 0; j < NQuad; ++j) result += scattering_weights[j] * ordinate_values[j];
     return result;
   };
 
@@ -1491,10 +1485,21 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
         const Numeric upper        = downward ? std::min(layer_bottom, scaled_output) : layer_bottom;
         if (upper <= lower) continue;
 
+        // The phase projection depends on the layer, Fourier mode, and user
+        // angle, but not on the eigenmode or particular-source ordinate values.
+        // Form it once so each source evaluation only needs a weighted sum.
+        scattering_weights = 0.0;
+        for (Index degree = m; degree < NLeg; ++degree) {
+          const Numeric factor = 0.5 * scaled_omega_arr[layer] * weighted_scaled_Leg_coeffs[layer, degree] *
+                                 poch(degree + m + 1, -2 * m) * Legendre::assoc_legendre(degree, m, mu);
+          for (Index j = 0; j < NQuad; ++j)
+            scattering_weights[j] += factor * W[j % N] * Legendre::assoc_legendre(degree, m, mu_arr[j]);
+        }
+
         const Index pair = m == 0 ? conservative_pair_index[static_cast<std::size_t>(layer)] : Index{-1};
         for (Index q = 0; q < NQuad; ++q) {
           if (pair >= 0 and (q == pair or q == pair + N)) continue;
-          const Numeric source     = scattering_source(m, layer, mu, GC_collect[m, layer, joker, q]);
+          const Numeric source     = scattering_source(GC_collect[m, layer, joker, q]);
           const Numeric reference  = q < N ? layer_top : layer_bottom;
           mode                    += source * dc::user_angle_exponential_integral(
                                                   K_collect[m, layer, q], reference, lower, upper, scaled_output, abs_mu, downward);
@@ -1503,8 +1508,8 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
         if (pair >= 0) {
           const Numeric center = 0.5 * (layer_top + layer_bottom);
           const Numeric kappa  = conservative_pair_kappa[layer];
-          const Numeric l0     = scattering_source(m, layer, mu, G_collect[m, layer, joker, pair]);
-          const Numeric l1     = scattering_source(m, layer, mu, G_collect[m, layer, joker, pair + N]);
+          const Numeric l0     = scattering_source(G_collect[m, layer, joker, pair]);
+          const Numeric l1     = scattering_source(G_collect[m, layer, joker, pair + N]);
           const Numeric c0     = C_collect[m, layer, pair];
           const Numeric c1     = C_collect[m, layer, pair + N];
           const Numeric ac     = l0 * c0 + l1 * c1;
@@ -1516,7 +1521,7 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
         }
 
         if (has_beam_source) {
-          Numeric source = scattering_source(m, layer, mu, B_collect[m, layer]);
+          Numeric source = scattering_source(B_collect[m, layer]);
           for (Index degree = m; degree < NLeg; ++degree) {
             source += scaled_omega_arr[layer] * I0 * (2 - (m == 0)) / (4 * Constant::pi) *
                       weighted_scaled_Leg_coeffs[layer, degree] * poch(degree + m + 1, -2 * m) *
@@ -1538,7 +1543,7 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
             for (Index coefficient = Nscoeffs - 1; coefficient >= 0; --coefficient) {
               polynomial = std::fma(polynomial, scaled_point, scaled_source_poly_coeffs[layer, coefficient]);
             }
-            const Numeric source    = scattering_source(0, layer, mu, data.particular) + polynomial;
+            const Numeric source    = scattering_source(data.particular) + polynomial;
             const Numeric distance  = downward ? scaled_output - scaled_point : scaled_point - scaled_output;
             integral               += source_quadrature.second[k] * source * std::exp(-distance / abs_mu) / abs_mu;
           }

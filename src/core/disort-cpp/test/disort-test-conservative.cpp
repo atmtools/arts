@@ -74,10 +74,11 @@ void check_analytic_sweep() {
   constexpr std::array epsilon{0.0, 1.0e-14, 1.0e-12, 1.0e-10, 1.0e-8, 2.0e-8};
   constexpr std::array depths{0.0, 0.3, 1.2, total_depth};
   for (const Numeric eps : epsilon) {
-    const auto        dis = make_model(AscendingGrid{total_depth}, 1.0 - eps);
-    disort::u0_data   u0;
-    disort::u_data    u;
-    disort::flux_data flux;
+    const auto          dis = make_model(AscendingGrid{total_depth}, 1.0 - eps);
+    disort::u0_data     u0;
+    disort::u_data      u;
+    disort::user_u_data user;
+    disort::flux_data   flux;
     for (const Numeric tau : depths) {
       const auto expected = analytic_two_stream(tau, eps);
       dis.u0(u0, tau);
@@ -87,6 +88,10 @@ void check_analytic_sweep() {
       dis.u(u, tau, 0.37);
       expect_close("u upward", u.intensities[0], expected[0]);
       expect_close("u downward", u.intensities[1], expected[1]);
+
+      dis.u_user(user, tau, 0.37, dis.mu());
+      expect_close("user upward", user.intensities[0], expected[0]);
+      expect_close("user downward", user.intensities[1], expected[1]);
 
       const auto    values      = dis.flux(flux, tau);
       const Numeric flux_factor = Constant::pi;
