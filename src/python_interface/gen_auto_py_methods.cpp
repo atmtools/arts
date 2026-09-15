@@ -174,6 +174,14 @@ std::string method_argument_selection(const std::string& name, const WorkspaceMe
   return os.str();
 }
 
+std::string method_input_checks(const WorkspaceMethodInternalRecord& wsm) {
+  std::string out;
+  auto        pre = method_input_invariants(wsm);
+  std::ranges::move(method_input_size_checks(wsm), std::back_inserter(pre));
+  out += size_check_code(pre, "        ");
+  return out;
+}
+
 std::string method_output_checks(const WorkspaceMethodInternalRecord& wsm) {
   std::string out;
   out += size_check_code(method_output_size_checks(wsm), "        ");

@@ -244,9 +244,9 @@ the derivative targets, or is empty for a value-only evaluation.
                        "measurement_sensor",
                        "surf_field",
                        "subsurf_field",
+                       "model_state_targets",
                        "jac_targets",
-                       "model_state_vec",
-                       "model_state_targets"},
+                       "model_state_vec"},
       .enum_options = {"Full"},
       .enum_default = "Full",
 
