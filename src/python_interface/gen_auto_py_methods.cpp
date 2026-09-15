@@ -1,4 +1,5 @@
 #include <workspace.h>
+#include <workspace_dimensions.h>
 
 #include <algorithm>
 #include <iostream>
@@ -177,6 +178,21 @@ std::string method_argument_selection(const std::string& name, const WorkspaceMe
   os << method_gin_selection(name, wsm);
 
   return os.str();
+}
+
+/*! Verifies what the user handed the method before it runs.
+ *
+ * The selected arguments are in scope under the names of the workspace
+ * variables, so the checks are written against those names directly.
+ *
+ * Only the inputs are checked here.  An output of the wrong size is a fault of
+ * the method rather than of its caller, and the generated method body and the
+ * agendas already check for that.
+ */
+std::string method_input_checks(const WorkspaceMethodInternalRecord& wsm) {
+  std::string out;
+  for (const auto& check : method_input_size_checks(wsm)) out += size_check_code(check, "        ");
+  return out;
 }
 
 std::string method_resolution_any(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
@@ -380,10 +396,21 @@ std::string method_resolution_variadic(const std::string& name, const WorkspaceM
   return os.str();
 }
 
+std::string method_output_checks(const WorkspaceMethodInternalRecord& wsm) {
+  std::string out;
+  for (const auto& check : method_output_size_checks(wsm)) out += size_check_code(check, "        ");
+  return out;
+}
+
 std::string method_resolution_simple(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
 
-  os << "        return " << name << "(";
+  // Anything the method created has to be verified before returning it, so the
+  // call cannot be the return statement when there is something to verify
+  const auto checks   = wsm.return_type == "void" ? method_output_checks(wsm) : std::string{};
+  const auto returning = checks.empty();
+
+  os << (returning ? "        return " : "        ") << name << "(";
 
   bool any = false;
   if (wsm.pass_workspace) {
@@ -416,7 +443,11 @@ std::string method_resolution_simple(const std::string& name, const WorkspaceMet
     os << t;
   }
 
-  return os.str() + ");\n";
+  os << ");\n";
+
+  if (not returning) os << checks << "        return;\n";
+
+  return os.str();
 }
 
 std::size_t count_any(const WorkspaceMethodInternalRecord& wsm) {
@@ -580,7 +611,7 @@ std::string method(const std::string& name, const WorkspaceMethodInternalRecord&
 )-x-",
       name,
       method_arguments(wsm),
-      method_argument_selection(name, wsm),
+      method_argument_selection(name, wsm) + method_input_checks(wsm),
       method_resolution(name, wsm),
       method_error(name, wsm),
       method_argument_documentation(wsm),

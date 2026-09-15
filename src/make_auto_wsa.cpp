@@ -21,7 +21,7 @@ struct auto_ag {
   std::string                                      desc;
   std::vector<std::pair<std::string, std::string>> o;
   std::vector<std::pair<std::string, std::string>> i;
-  std::vector<StringVectorAgendaHelper>            output_constraints;
+  std::vector<SizeCheck>                           output_constraints;
 };
 
 void helper_auto_ag(std::ostream&                                     os,
@@ -60,11 +60,7 @@ std::map<std::string, auto_ag> auto_ags(std::ostream& os) {
 
     ag.output_constraints = agenda_output_size_checks(record);
 
-    if (not ag.output_constraints.empty()) {
-      ag.desc += std::format("\n.. rubric:: Constraint{}\n\n", ag.output_constraints.size() > 1 ? "s" : "");
-      for (auto& c : ag.output_constraints) { ag.desc += std::format("#. {}\n", c.constraint); }
-      ag.desc += "\n";
-    }
+    ag.desc += size_check_docs(ag.output_constraints);
   }
 
   return map;
@@ -183,23 +179,6 @@ Please manually call finalize() on the agenda
                name);
 }
 
-std::string double_curly(std::string s) {
-  Size n = 0;
-
-  for (Size i = 0; i < s.size() - 1; i++) { n += (s[i] == '{' and s[i + 1] == '{'); }
-
-  for (Size i = 0; i < n; i++) {
-    s.push_back('{');
-    s.push_back('}');
-  }
-
-  for (Size i = 1; i < s.size(); i++) {
-    if (s[i - 1] == '{' and s[i] == '}') { stdr::rotate(s.begin() + i, s.end() - 2, s.end()); }
-  }
-
-  return s;
-}
-
 void workspace_setup_and_exec(std::ostream& os, const std::string& name, const auto_ag& ag) {
   std::println(os, R"(
   // Create a local workspace upon need or get the data from the pointer
@@ -234,29 +213,8 @@ void workspace_setup_and_exec(std::ostream& os, const std::string& name, const a
 
   std::println(os, "\n  // Run all the methods\n  {}.execute(_lws);", name);
 
-  for (auto& constraint : ag.output_constraints) {
-    std::println(os,
-                 R"--(
-  if(not ({}))
-    throw std::runtime_error(std::format(R"ERR({})--",
-                 constraint.test,
-                 double_curly(constraint.constraint));
-
-    const Size N = max(constraint.printables, [](const std::string& x) -> Size { return x.size(); });
-    for (auto& p : constraint.printables) {
-      std::println(os,
-                   R"--(
-{}:{} {{}})--",
-                   double_curly(p),
-                   std::string(N - p.size(), ' '));
-    }
-    if (not constraint.printables.empty()) {
-      std::print(os,
-                 R"--(
-)ERR", {:,}));)--",
-                 constraint.printables);
-    }
-  }
+  os << '\n';
+  for (auto& check : ag.output_constraints) { os << size_check_code(check, "  "); }
 
   std::println(os, R"(
   // Remove the unsafe content (false sharing pointers))");

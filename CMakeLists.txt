@@ -155,12 +155,6 @@ list(APPEND CMAKE_PREFIX_PATH "${NB_DIR}")
 
 find_package(nanobind CONFIG REQUIRED)
 
-set(ARTS_PYTHON_INTERPRETER
-    ${CMAKE_COMMAND} -E env
-    "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/src"
-    --
-    ${Python_EXECUTABLE})
-
 if (NOT CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE "RelWithDebInfo")
 endif (NOT CMAKE_BUILD_TYPE)
@@ -394,19 +388,26 @@ if (ENABLE_ASAN)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
   if (APPLE)
     execute_process(
-      COMMAND clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib
+      COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan_osx_dynamic.dylib
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
     set(ASAN_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB};")
   elseif (UNIX)
     execute_process(
-      COMMAND clang -print-file-name=libclang_rt.asan-x86_64.so
+      COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan-x86_64.so
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
     set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
   endif()
   set(ENABLE_PYARTS_STUBS off)
 endif()
+
+set(ARTS_PYTHON_INTERPRETER
+    ${CMAKE_COMMAND} -E env
+    ${ASAN_PRELOAD_ENV}
+    "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/src"
+    --
+    ${Python_EXECUTABLE})
 
 ########### OpenMP ##########
 if (OpenMP_FOUND)
@@ -552,9 +553,9 @@ if (ENABLE_ASAN)
   message(STATUS "!!! Address sanitizer is enabled")
   message(STATUS "!!! When you manually execute ARTS python scripts, you need to prepend the following to the command line:")
   if (APPLE)
-    message(STATUS "!!! DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) python ...")
+    message(STATUS "!!! DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB} python ...")
   elseif (UNIX)
-    message(STATUS "!!! LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...")
+    message(STATUS "!!! LD_PRELOAD=${ASAN_PRELOAD_LIB} python ...")
   else()
     message(FATAL_ERROR "Address sanitizer is not supported on this platform")
   endif()

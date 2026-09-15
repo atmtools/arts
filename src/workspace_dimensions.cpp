@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <format>
+#include <ranges>
 
 #include "workspace_groups.h"
 #include "workspace_variables.h"
@@ -25,31 +26,28 @@ std::string subst(const std::string& expr, const std::string& name) {
   return expr.substr(0, pos) + name + expr.substr(pos + 2);
 }
 
-//! How many dimensions of this variable can actually be read
-std::size_t readable_dims(const WorkspaceVariableInternalRecord& wsv) {
-  const auto& wsgs = internal_workspace_groups();
-
-  const auto ptr = wsgs.find(wsv.type);
-  if (ptr == wsgs.end()) return 0;
-
-  return std::min(wsv.dims.size(), std::max(ptr->second.dim_size.size(), wsv.dim_size.size()));
+const WorkspaceVariableInternalRecord* find_wsv(const std::string& name) {
+  const auto& wsvs = internal_workspace_variables();
+  const auto  ptr  = wsvs.find(name);
+  return ptr == wsvs.end() ? nullptr : &ptr->second;
 }
 
-//! The expression that reads dimension i of the named variable
-std::string dim_expr(const std::string& name, const WorkspaceVariableInternalRecord& wsv, std::size_t i) {
-  if (i < wsv.dim_size.size() and not wsv.dim_size[i].empty()) return subst(wsv.dim_size[i], name);
+//! The expression template that reads dimension i of a variable, or empty if it cannot be read
+std::string dim_size_template(const WorkspaceVariableInternalRecord& wsv, std::size_t i) {
+  if (i < wsv.dim_size.size() and not wsv.dim_size[i].empty()) return wsv.dim_size[i];
 
   const auto& wsgs = internal_workspace_groups();
   const auto  ptr  = wsgs.find(wsv.type);
   if (ptr == wsgs.end() or i >= ptr->second.dim_size.size()) return {};
 
-  return subst(ptr->second.dim_size[i], name);
+  return ptr->second.dim_size[i];
 }
 
-const WorkspaceVariableInternalRecord* find_wsv(const std::string& name) {
-  const auto& wsvs = internal_workspace_variables();
-  const auto  ptr  = wsvs.find(name);
-  return ptr == wsvs.end() ? nullptr : &ptr->second;
+//! How many dimensions of this variable can actually be read
+std::size_t readable_dims(const WorkspaceVariableInternalRecord& wsv) {
+  std::size_t n = 0;
+  while (n < wsv.dims.size() and not dim_size_template(wsv, n).empty()) n++;
+  return n;
 }
 
 struct Ref {
@@ -58,20 +56,19 @@ struct Ref {
 };
 
 //! Records the first variable of the list that can be read for each of its dimensions
-void collect_refs(std::unordered_map<std::string, Ref>& refs, const std::vector<std::string>& names) {
+void collect_refs(std::unordered_map<std::string, Ref>& refs,
+                  const std::vector<std::string>&       names,
+                  const DimAccess&                      access) {
   for (const auto& name : names) {
     const auto* wsv = find_wsv(name);
-    if (wsv == nullptr) continue;
+    if (wsv == nullptr or wsv->dims_allow_empty) continue;
 
     const auto n = readable_dims(*wsv);
     for (std::size_t i = 0; i < n; i++) {
       const auto& sym = wsv->dims[i];
       if (sym.empty() or refs.contains(sym)) continue;
 
-      auto expr = dim_expr(name, *wsv, i);
-      if (expr.empty()) continue;
-
-      refs[sym] = {.var = name, .expr = std::move(expr)};
+      refs[sym] = {.var = name, .expr = subst(dim_size_template(*wsv, i), access(name))};
     }
   }
 }
@@ -82,6 +79,24 @@ std::string dim_with_desc(const std::string& sym) {
   if (ptr == wsds.end()) return sym;
   return std::format("{} ({})", sym, ptr->second.desc);
 }
+
+std::string join(const std::vector<std::string>& v, std::string_view sep, std::string_view last_sep) {
+  std::string out;
+  for (std::size_t i = 0; i < v.size(); i++) {
+    if (i != 0) out += (i + 1 == v.size()) ? last_sep : sep;
+    out += v[i];
+  }
+  return out;
+}
+
+//! Removes the repeats while keeping the order
+template <typename T> void keep_first(std::vector<T>& v) {
+  std::vector<T> out;
+  for (auto& x : v) {
+    if (std::ranges::find(out, x) == out.end()) out.push_back(std::move(x));
+  }
+  v = std::move(out);
+}
 }  // namespace
 
 const std::unordered_map<std::string, WorkspaceDimensionRecord>& internal_workspace_dimensions() {
@@ -89,34 +104,28 @@ const std::unordered_map<std::string, WorkspaceDimensionRecord>& internal_worksp
   return out;
 }
 
-std::vector<StringVectorAgendaHelper> agenda_output_size_checks(const WorkspaceAgendaInternalRecord& ag) {
-  if (not ag.output_constraints) return {};
+std::string dim_access_by_name(const std::string& name) { return name; }
 
-  // Prefer checking against what the agenda was given over what it produced
-  std::vector<std::string> pure_input;
-  for (const auto& name : ag.input) {
-    if (std::ranges::find(ag.output, name) == ag.output.end()) pure_input.push_back(name);
-  }
-
+std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& references,
+                                   const std::vector<std::string>&              targets,
+                                   const DimAccess&                             access) {
   std::unordered_map<std::string, Ref> refs;
-  collect_refs(refs, pure_input);
-  collect_refs(refs, ag.input);
-  collect_refs(refs, ag.output);
+  for (const auto& pass : references) collect_refs(refs, pass, access);
 
-  std::vector<StringVectorAgendaHelper> out;
+  std::vector<SizeCheck> out;
 
-  for (const auto& name : ag.output) {
+  for (const auto& name : targets) {
     const auto* wsv = find_wsv(name);
     if (wsv == nullptr) continue;
 
     const auto n = readable_dims(*wsv);
 
-    std::vector<std::string> tests;
-    std::vector<std::string> syms;
-    std::vector<std::string> ref_exprs;
-    std::vector<std::string> ref_vars;
-    std::vector<std::string> printables;
-    bool                     all_covered = n > 0;
+    std::vector<std::string>                         tests;
+    std::vector<std::string>                         syms;
+    std::vector<std::string>                         ref_exprs;
+    std::vector<std::string>                         ref_vars;
+    std::vector<std::pair<std::string, std::string>> printables;
+    bool                                             all_covered = n > 0;
 
     for (std::size_t i = 0; i < n; i++) {
       const auto& sym = wsv->dims[i];
@@ -128,90 +137,152 @@ std::vector<StringVectorAgendaHelper> agenda_output_size_checks(const WorkspaceA
         continue;
       }
 
-      const auto expr = dim_expr(name, *wsv, i);
-      if (expr.empty()) {
-        all_covered = false;
-        continue;
-      }
+      const auto tmpl  = dim_size_template(*wsv, i);
+      const auto expr  = subst(tmpl, access(name));
+      const auto label = subst(tmpl, name);
 
       tests.push_back(std::format("static_cast<Size>({}) == static_cast<Size>({})", expr, ptr->second.expr));
       syms.push_back(sym);
       ref_exprs.push_back(ptr->second.expr);
-      if (std::ranges::find(ref_vars, ptr->second.var) == ref_vars.end()) ref_vars.push_back(ptr->second.var);
-      printables.push_back(expr);
-      printables.push_back(ptr->second.expr);
+      ref_vars.push_back(ptr->second.var);
+      printables.emplace_back(label, expr);
+
+      const auto* ref_wsv = find_wsv(ptr->second.var);
+      if (ref_wsv != nullptr) {
+        for (std::size_t j = 0; j < readable_dims(*ref_wsv); j++) {
+          if (ref_wsv->dims[j] == sym) {
+            printables.emplace_back(subst(dim_size_template(*ref_wsv, j), ptr->second.var), ptr->second.expr);
+            break;
+          }
+        }
+      }
     }
 
     if (tests.empty()) continue;
 
-    std::string refs_text;
-    for (std::size_t i = 0; i < ref_vars.size(); i++) {
-      if (i != 0) refs_text += (i + 1 == ref_vars.size()) ? " and " : ", ";
-      refs_text += std::format("*{}*", ref_vars[i]);
-    }
+    keep_first(ref_vars);
+    keep_first(printables);
 
-    std::string test;
-    std::string constraint;
+    const auto refs_text = join(ref_vars | std::views::transform([](const std::string& v) {
+                                  return std::format("*{}*", v);
+                                }) | std::ranges::to<std::vector<std::string>>(),
+                                ", ",
+                                " and ");
+
+    SizeCheck check;
 
     // Whole-shape checks read better than one check per dimension, but only work
     // when every dimension of the variable takes part
+    const std::string_view maybe_empty = wsv->dims_allow_empty ? "is empty or " : "";
+
     if (all_covered and tests.size() > 1) {
-      std::string shape;
-      for (std::size_t i = 0; i < ref_exprs.size(); i++) {
-        if (i != 0) shape += ", ";
-        shape += ref_exprs[i];
-      }
-      test = std::format("same_shape({{{}}}, {})", shape, name);
-
-      std::string sym_text;
-      for (std::size_t i = 0; i < syms.size(); i++) {
-        if (i != 0) sym_text += ", ";
-        sym_text += syms[i];
-      }
-      constraint = std::format("On output, *{}* has the shape ({}), matching {}.", name, sym_text, refs_text);
-
-      printables.push_back(std::format("{}.shape()", name));
+      check.test       = std::format("same_shape({{{}}}, {})", join(ref_exprs, ", ", ", "), access(name));
+      check.constraint =
+          std::format("*{}* {}has the shape ({}), matching {}.", name, maybe_empty, join(syms, ", ", ", "), refs_text);
+      printables.emplace_back(std::format("{}.shape()", name), std::format("{}.shape()", access(name)));
     } else {
-      for (std::size_t i = 0; i < tests.size(); i++) {
-        if (i != 0) test += " and ";
-        test += tests[i];
-      }
-
-      std::string sym_text;
-      for (std::size_t i = 0; i < syms.size(); i++) {
-        if (i != 0) sym_text += (i + 1 == syms.size()) ? " and " : ", ";
-        sym_text += dim_with_desc(syms[i]);
-      }
-      constraint = std::format("On output, *{}* matches {} in {}.", name, refs_text, sym_text);
+      check.test = join(tests, " and ", " and ");
+      check.constraint =
+          std::format("*{}* {}matches {} in {}.",
+                      name,
+                      maybe_empty,
+                      refs_text,
+                      join(syms | std::views::transform(dim_with_desc) | std::ranges::to<std::vector<std::string>>(),
+                           ", ",
+                           " and "));
     }
 
-    std::vector<std::string> unique_printables;
-    for (auto& p : printables) {
-      if (std::ranges::find(unique_printables, p) == unique_printables.end()) unique_printables.push_back(p);
+    if (wsv->dims_allow_empty) {
+      check.test = std::format("static_cast<Size>({}.size()) == 0 or ({})", access(name), check.test);
     }
-    printables = std::move(unique_printables);
 
-    StringVectorAgendaHelper helper;
-    helper.test       = std::move(test);
-    helper.constraint = std::move(constraint);
-    helper.printables = std::move(printables);
-    out.push_back(std::move(helper));
+    check.printables = std::move(printables);
+    out.push_back(std::move(check));
   }
 
   return out;
+}
+
+std::vector<SizeCheck> agenda_output_size_checks(const WorkspaceAgendaInternalRecord& ag) {
+  if (not ag.output_constraints) return {};
+
+  // Prefer checking against what the agenda was given over what it produced
+  std::vector<std::string> pure_input;
+  for (const auto& name : ag.input) {
+    if (std::ranges::find(ag.output, name) == ag.output.end()) pure_input.push_back(name);
+  }
+
+  auto out = size_checks({pure_input, ag.input, ag.output}, ag.output);
+  for (auto& c : out) c.constraint = "On output, " + c.constraint;
+  return out;
+}
+
+std::vector<SizeCheck> method_input_size_checks(const WorkspaceMethodInternalRecord& wsmr, const DimAccess& access) {
+  // What the method only reads says what the sizes are.  What it also writes is
+  // a buffer it accumulates into, so that is what gets checked against them.
+  std::vector<std::string> pure_input;
+  for (const auto& name : wsmr.in) {
+    if (std::ranges::find(wsmr.out, name) == wsmr.out.end()) pure_input.push_back(name);
+  }
+
+  auto out = size_checks({pure_input, wsmr.in}, wsmr.in, access);
+  for (auto& c : out) c.constraint = "On input, " + c.constraint;
+  return out;
+}
+
+std::vector<SizeCheck> method_output_size_checks(const WorkspaceMethodInternalRecord& wsmr, const DimAccess& access) {
+  // The outputs that were also inputs have been checked before the method ran
+  std::vector<std::string> created;
+  for (const auto& name : wsmr.out) {
+    if (std::ranges::find(wsmr.in, name) == wsmr.in.end()) created.push_back(name);
+  }
+
+  auto out = size_checks({wsmr.in, wsmr.out}, created, access);
+  for (auto& c : out) c.constraint = "On output, " + c.constraint;
+  return out;
+}
+
+std::string size_check_code(const SizeCheck& check, std::string_view indent) {
+  // The message is a format string, so anything that looks like a field must be escaped
+  std::string msg;
+  for (const auto c : check.constraint) {
+    if (c == '{' or c == '}') msg.push_back(c);
+    msg.push_back(c);
+  }
+
+  std::size_t width = 0;
+  for (const auto& [label, expr] : check.printables) width = std::max(width, label.size());
+
+  std::string out = std::format("{}if (not ({}))\n{}  throw std::runtime_error(std::format(R\"ERR({}\n",
+                                indent,
+                                check.test,
+                                indent,
+                                msg);
+
+  for (const auto& [label, expr] : check.printables) {
+    out += std::format("\n{}:{} {{}}\n", label, std::string(width - label.size(), ' '));
+  }
+
+  out += ")ERR\"";
+  for (const auto& [label, expr] : check.printables) out += std::format(", {}", expr);
+  out += "));\n";
+
+  return out;
+}
+
+std::string size_check_docs(const std::vector<SizeCheck>& checks) {
+  if (checks.empty()) return {};
+
+  std::string out = std::format("\n.. rubric:: Constraint{}\n\n", checks.size() > 1 ? "s" : "");
+  for (const auto& c : checks) out += std::format("#. {}\n", c.constraint);
+  return out + "\n";
 }
 
 std::string variable_dimension_docs(const std::string& name) {
   const auto* wsv = find_wsv(name);
   if (wsv == nullptr or wsv->dims.empty()) return {};
 
-  std::string shape;
-  for (std::size_t i = 0; i < wsv->dims.size(); i++) {
-    if (i != 0) shape += ", ";
-    shape += wsv->dims[i];
-  }
-
-  std::string out = std::format("Shape: ({})", shape);
+  std::string out = std::format("Shape: ({})", join(wsv->dims, ", ", ", "));
 
   const auto& wsds = internal_workspace_dimensions();
   for (const auto& sym : wsv->dims) {

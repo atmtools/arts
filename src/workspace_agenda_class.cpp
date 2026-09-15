@@ -251,14 +251,15 @@ Workspace contains:
       e.what()));
 }
 
-void Agenda::execute(Workspace& ws) const try {
-  for (auto& method : methods) method(ws);
-} catch (std::exception& e) {
-  throw std::runtime_error(std::format(R"(Cannot execute "{}"
-
-{})",
-                                       name,
-                                       e.what()));
+void Agenda::execute(Workspace& ws) const {
+  for (auto& method : methods) {
+    try {
+      method(ws);
+    } catch (std::exception& e) {
+      throw std::runtime_error(std::format(R"(Error executing method "{}":
+{})", method.get_name(), e.what()));
+    }
+  }
 }
 
 std::vector<Agenda> Agenda::par_tasks(Workspace& ws) const try {

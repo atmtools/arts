@@ -11,7 +11,6 @@ add_custom_target(UtilityHeadersArts SOURCES ${HEADERFILES})
 # ####
 add_library(workspace_core STATIC
   workspace_agendas.cpp
-  workspace_dimensions.cpp
   workspace_groups.cpp
   workspace_group_friends.cpp
   workspace_variables.cpp
@@ -66,6 +65,7 @@ endforeach()
 # ####
 add_library(workspace_internals STATIC
   workspace_methods.cpp
+  workspace_dimensions.cpp
   workspace_agenda_class_default_constructor.cpp
   workspace_meta_methods.cpp
   workspace_variables_keywords.cpp

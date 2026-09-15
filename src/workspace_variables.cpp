@@ -611,6 +611,7 @@ size of the local *spectral_rad* as columns.
 )--",
       .type = "StokvecMatrix",
       .dims = {"NX", "NF"},
+      .dims_allow_empty = true,
   };
 
   wsv_data["spectral_rad_jac_path"] = {

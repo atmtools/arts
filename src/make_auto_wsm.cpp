@@ -10,6 +10,7 @@
 #include <stdexcept>
 #include <string>
 
+#include "workspace_dimensions.h"
 #include "workspace_group_friends.h"
 #include "workspace_groups.h"
 #include "workspace_meta_methods.h"
@@ -322,6 +323,28 @@ std::string error_signature(const std::string& name, const WorkspaceMethodIntern
   return out + ')';
 }
 
+/*! Reaches the workspace variables the way the generated method body does.
+ *
+ * The body has no names in scope, it indexes the workspace by the position of
+ * the variable in the record.
+ */
+DimAccess workspace_access(const WorkspaceMethodInternalRecord& wsmr) {
+  return [&wsmr](const std::string& name) -> std::string {
+    const auto& wsv  = internal_workspace_variables();
+    const auto  type = wsv.at(name).type;
+
+    if (const auto o = stdr::find(wsmr.out, name); o != wsmr.out.end()) {
+      return std::format("ws.get<{}>(out[{}])", type, std::distance(wsmr.out.begin(), o));
+    }
+
+    if (const auto i = stdr::find(wsmr.in, name); i != wsmr.in.end()) {
+      return std::format("ws.get<{}>(in[{}])", type, std::distance(wsmr.in.begin(), i));
+    }
+
+    return name;
+  };
+}
+
 void call_function(std::ostream& os, const std::string& name, const WorkspaceMethodInternalRecord& wsmr) try {
   const auto& wsv = internal_workspace_variables();
 
@@ -413,6 +436,10 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
     os << "[](Workspace& ws [[maybe_unused]], const std::vector<std::string>& out [[maybe_unused]], const std::vector<std::string>& in [[maybe_unused]]) {\n";
     os << "    try {\n";
 
+    for (auto& check : method_input_size_checks(wsmr, workspace_access(wsmr))) {
+      os << size_check_code(check, "      ");
+    }
+
     bool first = true;
     os << "      " << name << "(";
     if (wsmr.pass_workspace) {
@@ -447,8 +474,13 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
       os << comma(first, spaces) << "ws.get<" << wsmr.gin_type[i] << ">(in[" << in_count++ << "]) /* gin */";
     }
 
-    os << "\n      );\n"
-          "    } catch (std::exception& e) {\n"
+    os << "\n      );\n";
+
+    for (auto& check : method_output_size_checks(wsmr, workspace_access(wsmr))) {
+      os << size_check_code(check, "      ");
+    }
+
+    os << "    } catch (std::exception& e) {\n"
           "      throw std::runtime_error(std::format(R\"-x-(Error in agenda call to specific method\n\n"
        << error_signature(name, wsmr)
        << "\n\n{})-x-\", e.what()));\n"

@@ -28,6 +28,17 @@ struct WorkspaceVariableInternalRecord {
    * Entries that are left empty use the group's expression.
    */
   std::vector<std::string> dim_size{};
+
+  /*! Whether being empty means that this variable was not computed.
+   *
+   * A Jacobian is left empty when no derivatives were asked for, rather than
+   * being sized with a zero dimension, so such a variable satisfies its
+   * dimensions either by matching them or by being empty.
+   *
+   * These variables never say what a size is, they are only checked against
+   * the variables that do.
+   */
+  bool dims_allow_empty{false};
 };
 
 const std::unordered_map<std::string, WorkspaceVariableInternalRecord>& internal_workspace_variables();
