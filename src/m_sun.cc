@@ -52,12 +52,10 @@ void sunFromGrid(Sun& sun,
 
   // some sanity checks
   ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun (",
+                     "The distance to the center of the sun ({} m) \n"
+                     " is smaller than the radius of the sun ({} m)",
                      distance,
-                     " m) \n"
-                     " is smaller than the radius of the sun (",
-                     radius,
-                     " m )")
+                     radius)
 
   // init sun
   sun.spectrum    = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);  // set spectrum

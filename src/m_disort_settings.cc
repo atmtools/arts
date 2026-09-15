@@ -911,7 +911,7 @@ void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             d
   spectral_propmat_path.size():  {}
 )",
       N,
-      spectral_propmat_scat_path.size());
+      spectral_propmat_path.size());
 
   ARTS_USER_ERROR_IF(
       (N + 1) != spectral_propmat_scat_path.size(),
