@@ -973,8 +973,8 @@ void oemCalcReduced(const Workspace&                 ws,
       for (Index i = 0; i < n; ++i)
         ARTS_USER_ERROR_IF(not std::isfinite(delta[i]) or not std::isfinite(represented[i]) or
                                std::abs(represented[i] - delta[i]) > 1e-8 * (1 + std::abs(delta[i])),
-                           "ReducedOEM starting state must lie in the subspace spanned by "
-                           "model_state_basis_mat.\n"
+                           "ReducedOEM starting state must lie in the affine subspace "
+                           "model_state_vec_apriori + span(model_state_basis_mat).\n"
                            "Either start from the prior (clear model_state_vec) or widen the basis.")
     }
     check_oem_inputs(
