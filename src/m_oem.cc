@@ -64,9 +64,8 @@ OEMMethod parse_oem_method(OptimalEstimationMethod method) {
     return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true};
   if (method == OptimalEstimationMethod::gn_cg_m)
     return {.algorithm = OEMAlgorithm::GaussNewton, .conjugate_gradient = true, .measurement_space = true};
-  if (method == OptimalEstimationMethod::lm || method == OptimalEstimationMethod::ml)
-    return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
-  if (method == OptimalEstimationMethod::lm_cg || method == OptimalEstimationMethod::ml_cg)
+  if (method == OptimalEstimationMethod::lm) return {.algorithm = OEMAlgorithm::LevenbergMarquardt};
+  if (method == OptimalEstimationMethod::lm_cg)
     return {.algorithm = OEMAlgorithm::LevenbergMarquardt, .conjugate_gradient = true};
   if (method == OptimalEstimationMethod::li_m) return {.algorithm = OEMAlgorithm::Linear, .measurement_space = true};
   if (method == OptimalEstimationMethod::gn_m)
