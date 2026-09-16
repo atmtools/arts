@@ -25,6 +25,68 @@ void atm_pointInit(AtmPoint &atm_point, const String &default_isotopologue) {
   atm_point = AtmPoint{to<IsoRatioOption>(default_isotopologue)};
 }
 
+// No ARTS_TIME_REPORT here: atm_profileExtract calls this once per altitude,
+// and one profiler entry per point would dominate a profiled run.
+void atm_pointExtract(AtmPoint       &atm_point,
+                      const AtmField &atm_field,
+                      const Numeric  &altitude,
+                      const Numeric  &latitude,
+                      const Numeric  &longitude) {
+  atm_point = atm_field.at(altitude, latitude, longitude);
+}
+
+namespace {
+void atm_fieldSetDataImpl(AtmField                         &atm_field,
+                          const AscendingGrid              &alt_grid,
+                          const LatGrid                    &lat_grid,
+                          const LonGrid                    &lon_grid,
+                          const AtmKeyVal                  &key,
+                          const SortedGriddedField3        &data,
+                          const InterpolationExtrapolation &extrapolation) {
+  ARTS_TIME_REPORT
+
+  auto &field = atm_field[key];
+
+  // The latitude and longitude grids of the data are ranged on the way in, the
+  // altitude grid needs no range
+  field = GeodeticField3{.data_name  = std::format("{}", key),
+                         .data       = data.data,
+                         .grid_names = {"alt", "lat", "lon"},
+                         .grids      = {data.grid<0>(), LatGrid{data.grid<1>()}, LonGrid{data.grid<2>()}}};
+
+  field.alt_upp = extrapolation;
+  field.alt_low = extrapolation;
+  field.lat_upp = extrapolation;
+  field.lat_low = extrapolation;
+  field.lon_upp = extrapolation;
+  field.lon_low = extrapolation;
+
+  // Sampling the data onto the grids of the workspace reads it through the
+  // extrapolation settings above, so they must be in place first
+  field.adjust_interpolation_extrapolation();
+  field.regrid(alt_grid, lat_grid, lon_grid);
+  field.adjust_interpolation_extrapolation();
+}
+}  // namespace
+
+void atm_fieldSetData(AtmField                           &atm_field,
+                      const AscendingGrid                &alt_grid,
+                      const LatGrid                      &lat_grid,
+                      const LonGrid                      &lon_grid,
+                      const Generic<const AtmKey,
+                                    const QuantumLevelIdentifier,
+                                    const ScatteringSpeciesProperty,
+                                    const SpeciesEnum,
+                                    const SpeciesIsotope> key,
+                      const SortedGriddedField3          &data,
+                      const InterpolationExtrapolation   &extrapolation) {
+  std::visit(
+      [&](const auto &selected) {
+        atm_fieldSetDataImpl(atm_field, alt_grid, lat_grid, lon_grid, *selected, data, extrapolation);
+      },
+      key);
+}
+
 namespace {
 template <Size I = 0, typename... T, Size N = sizeof...(T)>
 std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_, const String &filename) requires(N != 0) {

@@ -989,18 +989,6 @@ they do not replace this independent workspace variable.
       .dims          = {"NSTATE"},
   };
 
-  wsv_data["model_state_vec_apriori"] = {
-      .desc = R"(An apriori state vector of the model.
-
-See *model_state_vec* for more details.
-This is the state vector that is assumed to be the a priori state of the model.
-In normal circumstances, this is the state vector that is used to
-start the inversion process.  In *oemCalc*, this is :math:`\vec{x}_a`.
-)",
-      .type = "Vector",
-      .dims = {"NSTATE"},
-  };
-
   //! Ray tracing
 
   wsv_data["max_stepsize"] = {
@@ -1318,13 +1306,6 @@ Units: degrees
       .dims = {"NTARGET"},
   };
 
-  wsv_data["single_freq_path"] = {
-      .desc = R"(The *freq* along the path.
-)",
-      .type = "Vector",
-      .dims = {"NPATH"},
-  };
-
   wsv_data["single_nlte_srcvec"] = {
       .desc = R"--(A non-LTE source vector at a single *freq* point.
 
@@ -1343,28 +1324,6 @@ See *spectral_propmat_jac* for more information.
       .dims = {"NTARGET"},
   };
 
-  wsv_data["single_nlte_srcvec_jac_path"] = {
-      .desc =
-          R"(The propagation matrix Jacobian along the path for nonlte source.
-)",
-      .type = "StokvecMatrix",
-      .dims = {"NPATH", "NTARGET"},
-  };
-
-  wsv_data["single_nlte_srcvec_path"] = {
-      .desc = R"(The propagation matrix along the path for nonlte source vector.
-)",
-      .type = "StokvecVector",
-      .dims = {"NPATH"},
-  };
-
-  wsv_data["single_propmat_jac_path"] = {
-      .desc = R"(The propagation matrix Jacobian along the path.
-)",
-      .type = "PropmatMatrix",
-      .dims = {"NPATH", "NTARGET"},
-  };
-
   wsv_data["single_propmat"] = {
       .desc = R"--(A propagation matrix at a single *freq* point.
 
@@ -1381,13 +1340,6 @@ See *spectral_propmat_jac* for more information.
 )--",
       .type = "PropmatVector",
       .dims = {"NTARGET"},
-  };
-
-  wsv_data["single_propmat_path"] = {
-      .desc = R"(The propagation matrix along the path.
-)",
-      .type = "PropmatVector",
-      .dims = {"NPATH"},
   };
 
   wsv_data["single_rad"] = {

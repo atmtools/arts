@@ -949,6 +949,48 @@ See *IsoRatioOption* for valid ``default_isotopologue``.
       .gin_desc  = {"Default option for the isotopologue ratios"},
   };
 
+  wsm_data["atm_pointExtract"] = {
+      .desc =
+          R"--(Extract an atmospheric point from the atmospheric field.
+
+This is the single-point version of *atm_profileExtract*, which extracts
+a full *atm_profile* along *alt_grid*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atm_point"},
+      .in     = {"atm_field", "alt", "lat", "lon"},
+  };
+
+  wsm_data["atm_fieldSetData"] = {
+      .desc =
+          R"--(Set the data of a single atmospheric key onto the grids of the workspace.
+
+The data of ``key`` ends up on *alt_grid* x *lat_grid* x *lon_grid*, sampled
+from ``data`` on the grids that ``data`` carries.
+
+The methods that append to *atm_field* read their data from files or from
+built-in models.  This one instead takes it from the workspace, which is what
+makes it possible to build an *atm_field* out of data that was computed or
+assembled during a run, and to put every key of a field on the same grids.
+
+``extrapolation`` applies to all six ends of the three grids.  It is also what
+allows ``data`` to be sampled outside the grids it carries, so a grid that is
+narrower than the workspace grids needs an extrapolation method that reaches.
+A grid holding a single point is always extrapolated as ``Nearest``, there
+being nothing to extrapolate from in that dimension.
+)--",
+      .author                 = {"Richard Larsson"},
+      .out                    = {"atm_field"},
+      .in                     = {"atm_field", "alt_grid", "lat_grid", "lon_grid"},
+      .gin                    = {"key", "data", "extrapolation"},
+      .gin_type               = {AtmKeyValStruct{}.str, "SortedGriddedField3", "InterpolationExtrapolation"},
+      .python_generic_sorting = {AtmKeyValStruct{}.ord, {}, {}},
+      .gin_value              = {std::nullopt, std::nullopt, InterpolationExtrapolation::Linear},
+      .gin_desc               = {"Key of the data to set",
+                                 "Data on its own altitude, latitude and longitude grids",
+                                 "Extrapolation method for all three grids"},
+  };
+
   wsm_data["ray_path_zeeman_magnetic_fieldFromPath"] = {
       .desc      = R"--(Sets a path of Zeeman effect magnetic field properties.
 

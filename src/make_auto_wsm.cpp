@@ -9,6 +9,7 @@
 #include <ranges>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 #include "workspace_dimensions.h"
 #include "workspace_group_friends.h"
@@ -396,8 +397,46 @@ const std::unordered_map<std::string, WorkspaceMethodRecord>& workspace_methods(
 )--";
 } catch (std::exception& e) { throw std::runtime_error("Error in implementation():\n\n" + std::string(e.what())); }
 
+/*! Errors for workspace variables that no method uses.
+ *
+ * A variable that is neither input nor output of any method cannot be reached
+ * from the workspace at all: no method writes it and no method reads it, so it
+ * only survives as a name.  Such variables accumulate when methods are
+ * restructured and their variables are left behind, and this check is what
+ * stops them from being left behind silently.
+ *
+ * A variable that is output-only is accepted, because it can be a final result
+ * that is read from outside the workspace rather than by another method.
+ *
+ * Agendas count as methods here, because each agenda generates an
+ * <agenda>Execute method with the agenda's input and output lists, plus the
+ * agenda itself as an input.
+ */
+void scan_wsv_for_unused_variables(ArrayOfString& errors) {
+  std::unordered_set<std::string_view> used{};
+  for (const auto& [name, wsmr] : internal_workspace_methods()) {
+    for (const auto& var : wsmr.in) used.insert(var);
+    for (const auto& var : wsmr.out) used.insert(var);
+  }
+
+  for (const auto& name : internal_workspace_variables() | std::views::keys) {
+    if (used.contains(name)) continue;
+
+    errors.push_back(std::format(
+        R"(Workspace variable "{}" is neither input nor output of any workspace method.
+
+No method can write it and no method can read it, so it is unreachable from the
+workspace.  Either give it to the methods that should use it, or remove it from
+workspace_variables.cpp.)",
+        name));
+  }
+}
+
 void various_checks_or_throw() {
   ArrayOfString errors{};
+
+  scan_wsv_for_unused_variables(errors);
+
   for (auto& [name, wsmr] : internal_workspace_methods()) {
     bool is_void = wsmr.return_type == "void";
     if (not is_void) {
