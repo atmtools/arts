@@ -158,16 +158,15 @@ struct Retrieval {
             subsurf,
             targets,
             agenda,
-            OptimalEstimationSettings{
-                .method = to<OptimalEstimationMethod>(method),
-                .max_iter = max_iter,
-                .stop_dx = stop_dx,
-                .max_start_cost = max_start_cost,
-                .cg_tolerance = cg_tolerance,
-                .cg_max_iter = cg_max_iter,
-                .lm = settings,
-                .display_progress = display_progress,
-                .clear_matrices = clear_matrices != 0});
+            OptimalEstimationSettings{.method           = to<OptimalEstimationMethod>(method),
+                                      .max_iter         = max_iter,
+                                      .stop_dx          = stop_dx,
+                                      .max_start_cost   = max_start_cost,
+                                      .cg_tolerance     = cg_tolerance,
+                                      .cg_max_iter      = cg_max_iter,
+                                      .lm               = settings,
+                                      .display_progress = display_progress,
+                                      .clear_matrices   = clear_matrices != 0});
   }
 };
 
@@ -1050,7 +1049,7 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
   // without allocating a dense n-by-n matrix.
   struct Tridiagonal {
     mutable unsigned int calls = 0;
-    SolverVector operator*(const SolverVector& x) const {
+    SolverVector         operator*(const SolverVector& x) const {
       ++calls;
       SolverVector result = x;
       for (unsigned int i = 0; i < x.rows(); ++i) {
@@ -1062,11 +1061,11 @@ template <typename Factory> void check_cg_termination(Factory make_solver) {
     }
   } tridiagonal;
   constexpr unsigned int n = 2001;
-  SolverVector endpoint;
+  SolverVector           endpoint;
   endpoint.resize(n);
   for (unsigned int i = 0; i < n; ++i) endpoint(i) = i == 0 ? 1. : 0.;
-  auto automatic = make_solver(1e-10, 0);
-  const auto solution = automatic.solve(tridiagonal, endpoint);
+  auto       automatic = make_solver(1e-10, 0);
+  const auto solution  = automatic.solve(tridiagonal, endpoint);
   require(automatic.get_stop_reason() == invlib::CGStopReason::Converged,
           "Automatic CG budget truncated a system requiring more than 1000 steps");
   require(tridiagonal.calls > 1000, "Large CG fixture converged before exercising its automatic budget");
@@ -1151,10 +1150,10 @@ void test_cg_termination() {
     explicit NegativePreconditioner(const SolverMatrix&) {}
     SolverVector operator()(const SolverVector& value) const { return -1.0 * value; }
   };
-  const auto positive = solver_matrix(2, 2, {1, 0, 0, 2});
-  const auto nonzero = solver_vector({1, 1});
-  const NegativePreconditioner negative(positive);
-  invlib::PreconditionedConjugateGradient<NegativePreconditioner, true> cached_negative(negative, 1e-12);
+  const auto                                                             positive = solver_matrix(2, 2, {1, 0, 0, 2});
+  const auto                                                             nonzero  = solver_vector({1, 1});
+  const NegativePreconditioner                                           negative(positive);
+  invlib::PreconditionedConjugateGradient<NegativePreconditioner, true>  cached_negative(negative, 1e-12);
   invlib::PreconditionedConjugateGradient<NegativePreconditioner, false> uncached_negative(1e-12);
   rejects_with([&] { static_cast<void>(cached_negative.solve(positive, nonzero)); }, "r^T M r");
   rejects_with([&] { static_cast<void>(uncached_negative.solve(positive, nonzero)); }, "r^T M r");
@@ -1190,12 +1189,14 @@ void test_cg_termination() {
 void test_oem_cg_limit() {
   for (const auto method : {"li_cg", "li_cg_m", "gn_cg", "gn_cg_m", "lm_cg", "ml_cg"}) {
     Retrieval retrieval;
-    retrieval.x = Vector{1., -0.5};  // Deliberately different from the prior.
-    retrieval.cg_max_iter = 1;
-    retrieval.cg_tolerance = 1e-15;
+    retrieval.x                        = Vector{1., -0.5};  // Deliberately different from the prior.
+    retrieval.cg_max_iter              = 1;
+    retrieval.cg_tolerance             = 1e-15;
     retrieval.settings.maximum_damping = retrieval.settings.initial_damping;
     retrieval.run(method);
-    close(retrieval.diagnostics.status, OptimalEstimationStatus::LinearSolverLimit, 0,
+    close(retrieval.diagnostics.status,
+          OptimalEstimationStatus::LinearSolverLimit,
+          0,
           "OEM must distinguish a capped linear solve from convergence");
     require(retrieval.diagnostics.iterations == 1, "OEM retried a failed GN solve as an outer iteration");
     close(retrieval.x[0], 1., 0, "CG cap retains accepted state[0]");
@@ -1205,8 +1206,8 @@ void test_oem_cg_limit() {
                 std::string_view(retrieval.diagnostics.errors.front()).contains("CG iteration limit"),
             "OEM lost its linear-solver limit explanation");
   }
-  for (const Numeric bad : {0., -1., std::numeric_limits<Numeric>::infinity(),
-                            std::numeric_limits<Numeric>::quiet_NaN()}) {
+  for (const Numeric bad :
+       {0., -1., std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::quiet_NaN()}) {
     rejects_before_agenda("gn_cg", [bad](Retrieval& r) { r.cg_tolerance = bad; });
   }
   rejects_before_agenda("gn_cg", [](Retrieval& r) { r.cg_max_iter = -1; });
@@ -1215,17 +1216,17 @@ void test_oem_cg_limit() {
 template <invlib::Formulation formulation> void check_capped_gn_state() {
   struct LinearModel {
     const unsigned int m = 2, n = 2;
-    SolverVector evaluate(const SolverVector& state) { return solver_vector({state(0), 2 * state(1)}); }
-    SolverMatrix Jacobian(const SolverVector& state, SolverVector& fit) {
+    SolverVector       evaluate(const SolverVector& state) { return solver_vector({state(0), 2 * state(1)}); }
+    SolverMatrix       Jacobian(const SolverVector& state, SolverVector& fit) {
       fit = evaluate(state);
       return solver_matrix(2, 2, {1, 0, 0, 2});
     }
   } model;
-  const auto prior = solver_vector({0, 0});
-  const auto observed = solver_vector({1, 2});
-  const auto covariance = solver_matrix(2, 2, {1, 0, 0, 1});
-  auto state = solver_vector({2, -1});
-  invlib::ConjugateGradient<> solver(1e-12, 0, 1);
+  const auto                                     prior      = solver_vector({0, 0});
+  const auto                                     observed   = solver_vector({1, 2});
+  const auto                                     covariance = solver_matrix(2, 2, {1, 0, 0, 1});
+  auto                                           state      = solver_vector({2, -1});
+  invlib::ConjugateGradient<>                    solver(1e-12, 0, 1);
   invlib::GaussNewton<Numeric, decltype(solver)> optimizer(1e-6, 10, solver);
   invlib::MAP<LinearModel, SolverMatrix, SolverMatrix, SolverMatrix, SolverVector, formulation> retrieval(
       model, prior, covariance, covariance);
@@ -1239,19 +1240,19 @@ template <invlib::Formulation formulation> void check_capped_gn_state() {
 
 void test_lm_cg_retry() {
   const SolverMatrix curvature = solver_matrix(2, 2, {1, 0, 0, 100});
-  const SolverMatrix damping = solver_matrix(2, 2, {1, 0, 0, 1});
-  const SolverVector initial = solver_vector({1, 0.01});
-  const SolverVector gradient = solver_vector({1, 1});
+  const SolverMatrix damping   = solver_matrix(2, 2, {1, 0, 0, 1});
+  const SolverVector initial   = solver_vector({1, 0.01});
+  const SolverVector gradient  = solver_vector({1, 1});
   struct QuadraticCost {
-    Index calls = 0;
+    Index   calls = 0;
     Numeric cost_function(const SolverVector& x, bool = false) {
       ++calls;
       return 0.5 * (x(0) * x(0) + 100 * x(1) * x(1));
     }
   } cost;
   invlib::ConjugateGradient<> solver(0.1, 0, 1);
-  Index warnings = 0;
-  solver.iteration_limit_warning = [&] { ++warnings; };
+  Index                       warnings = 0;
+  solver.iteration_limit_warning       = [&] { ++warnings; };
   invlib::LevenbergMarquardt<Numeric, SolverMatrix, decltype(solver)> optimizer(damping, solver);
   optimizer.set_lambda(0);
   optimizer.set_lambda_maximum(1e6);
@@ -1425,7 +1426,7 @@ void test_lm_stop_reasons() {
 
 void test_lm_reduction_ratio() {
   const auto curvature = solver_matrix(1, 1, {1});
-  const auto initial = solver_vector({1});
+  const auto initial   = solver_vector({1});
   // Model discrepancy is deliberate: the true objective reduction is a known
   // fraction of the quadratic model's prediction. Both full-cost MAP and a
   // conventional half-cost objective must make the same acceptance decision.
@@ -1434,9 +1435,7 @@ void test_lm_reduction_ratio() {
       struct ModelCost {
         Numeric scale, ratio;
         Numeric model_cost_scale() const { return scale; }
-        Numeric cost_function(const SolverVector& x, bool = false) const {
-          return 0.5 * scale * ratio * x(0) * x(0);
-        }
+        Numeric cost_function(const SolverVector& x, bool = false) const { return 0.5 * scale * ratio * x(0) * x(0); }
       } cost{scale, ratio};
       invlib::LevenbergMarquardt<Numeric, SolverMatrix> optimizer(curvature);
       optimizer.set_lambda(1);
@@ -1462,15 +1461,19 @@ void test_terminal_jacobian() {
     Retrieval retrieval;
     quadratic_model(retrieval);
     retrieval.max_iter = 1;
-    retrieval.stop_dx = 1e-20;
+    retrieval.stop_dx  = 1e-20;
     retrieval.run(method);
-    close(retrieval.diagnostics.status, OptimalEstimationStatus::IterationLimit, 0,
+    close(retrieval.diagnostics.status,
+          OptimalEstimationStatus::IterationLimit,
+          0,
           "Terminal Jacobian fixture must reach its iteration limit");
     require(retrieval.x[0] != retrieval.xa[0], "Terminal Jacobian fixture did not change the state");
     const Numeric state = retrieval.x[0];
     close(retrieval.yf[0], state * state, 1e-12, "Iteration-limited fit");
     close(retrieval.jac[0, 0], 2 * state, 1e-12, "Iteration-limited Jacobian");
-    close(retrieval.gain[0, 0], 8 * state / (0.25 + 16 * state * state), 1e-12,
+    close(retrieval.gain[0, 0],
+          8 * state / (0.25 + 16 * state * state),
+          1e-12,
           "Iteration-limited gain describes returned state");
   }
 }

@@ -890,9 +890,9 @@ void oemCalcReduced(const Workspace&                 ws,
   const auto& model_state_covmat_normalization   = data.model_state_covmat_normalization;
   const auto& measurement_vec_normalization      = data.measurement_vec_normalization;
 
-  const auto  selected                           = parse_oem_method(method);
-  const auto& B                                  = model_state_basis_mat;
-  const auto& C                                  = measurement_basis_mat;
+  const auto  selected = parse_oem_method(method);
+  const auto& B        = model_state_basis_mat;
+  const auto& C        = measurement_basis_mat;
   const Index n = model_state_vec_apriori.size(), m = measurement_vec.size();
   const Index r = B.ncols(), q = C.nrows();
   ARTS_USER_ERROR_IF(

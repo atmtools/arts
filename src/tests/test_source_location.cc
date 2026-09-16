@@ -13,8 +13,7 @@ src_location first_source_location() {
 int main() try {
   auto first = first_source_location();
   auto other = other_source_location();
-  if (not first.get().contains("test_source_location.cc") or
-      not first.getfunc().contains("first_source_location"))
+  if (not first.get().contains("test_source_location.cc") or not first.getfunc().contains("first_source_location"))
     throw std::runtime_error("First translation unit lost its source location");
   if (not other.get().contains("test_source_location_other.cc") or
       not other.getfunc().contains("other_source_location"))

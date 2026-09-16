@@ -257,7 +257,9 @@ void Agenda::execute(Workspace& ws) const {
       method(ws);
     } catch (std::exception& e) {
       throw std::runtime_error(std::format(R"(Error executing method "{}":
-{})", method.get_name(), e.what()));
+{})",
+                                           method.get_name(),
+                                           e.what()));
     }
   }
 }

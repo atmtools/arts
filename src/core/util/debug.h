@@ -25,8 +25,8 @@ struct src_location {
   std::string getfunc() const;
 
  private:
-  const char* file_name_;
-  const char* function_name_;
+  const char*         file_name_;
+  const char*         function_name_;
   std::uint_least32_t line_;
   std::uint_least32_t column_;
 };

@@ -275,7 +275,9 @@ void check_component(const Component& component,
 }
 }  // namespace
 
-void CovarianceMatrix::validate_unlocked(Index expected_size, Numeric relative_tolerance, Index max_dense_elements) const {
+void CovarianceMatrix::validate_unlocked(Index   expected_size,
+                                         Numeric relative_tolerance,
+                                         Index   max_dense_elements) const {
   if (expected_size < -1) throw std::runtime_error("expected_size must be -1 or nonnegative.");
   if (max_dense_elements <= 0) throw std::runtime_error("max_dense_elements must be positive.");
   if (not std::isfinite(relative_tolerance) or relative_tolerance <= 0 or relative_tolerance >= 1)

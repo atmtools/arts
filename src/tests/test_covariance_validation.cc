@@ -97,8 +97,8 @@ void structural() {
 }
 
 void moved_covariance() {
-  auto source = correlated_blocks();
-  const auto snapshot = source.prepared();
+  auto             source   = correlated_blocks();
+  const auto       snapshot = source.prepared();
   CovarianceMatrix moved(std::move(source));
   require(source.nblocks() == 0, "Move construction did not leave an empty source");
   rejects([&] { source.prepared(); }, "moved-from empty covariance preparation");
@@ -265,7 +265,7 @@ void structured_solves() {
   (*shared)[0, 0] = -1;
   rejects([&] { solve(y, external, b); }, "Invalid mutation after cached solve");
 
-  auto shaped_storage = std::make_shared<Matrix>(matrix(2, 2, {2, 0, 0, 3}));
+  auto             shaped_storage = std::make_shared<Matrix>(matrix(2, 2, {2, 0, 0, 3}));
   CovarianceMatrix shaped;
   shaped.add_correlation({Range(0, 2), Range(0, 2), {0, 0}, shaped_storage});
   solve(y, shaped, b);
@@ -275,17 +275,17 @@ void structured_solves() {
 
 void concurrent_source_solves() {
   for (bool explicit_inverse : {false, true}) {
-    const auto source = correlated_blocks();
-    std::atomic<bool> consistent{true};
-    std::barrier start(8);
+    const auto                source = correlated_blocks();
+    std::atomic<bool>         consistent{true};
+    std::barrier              start(8);
     std::vector<std::jthread> readers;
     for (int i = 0; i < 8; ++i)
       readers.emplace_back([&] {
         start.arrive_and_wait();
         try {
-          Vector rhs{5, 3}, out(2);
+          Vector       rhs{5, 3}, out(2);
           const Matrix columns = matrix(2, 2, {5, 10, 3, 6});
-          Matrix left(2, 2), right(2, 2);
+          Matrix       left(2, 2), right(2, 2);
           for (int j = 0; j < 30; ++j) {
             if (explicit_inverse) source.compute_inverse();
             solve(out, source, rhs);
@@ -299,9 +299,7 @@ void concurrent_source_solves() {
               }
             }
           }
-        } catch (...) {
-          consistent = false;
-        }
+        } catch (...) { consistent = false; }
       });
     readers.clear();
     require(consistent, "Concurrent source cache preparation/solve mismatch");
@@ -431,7 +429,7 @@ void workspace_helpers() {
   OptimalEstimationData data;
   rejects([&] { oemMeasurementCovmatConstant(data, 0.25); }, "empty measurement vector");
   data.measurement_vec = Vector(2, 0.);
-  auto&              error = data.measurement_vec_error_covmat;
+  auto& error          = data.measurement_vec_error_covmat;
   oemMeasurementCovmatConstant(data, 0.25);
   error.validate(2);
   close(error.get_inverse()[1, 1], 4, "Constant measurement error precision");
@@ -440,7 +438,7 @@ void workspace_helpers() {
     rejects([&] { oemMeasurementCovmatConstant(data, variance); }, "invalid constant measurement variance");
 
   data.model_state_vec_apriori = Vector(2, 0.);
-  data.model_state_covmat = covariance(matrix(2, 2, {1, 0, 0, 1}));
+  data.model_state_covmat      = covariance(matrix(2, 2, {1, 0, 0, 1}));
   data.check();
   const JacobianTargets unfinalized_targets;
   // A checked object skips validation; explicit checking still revalidates.
