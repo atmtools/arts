@@ -169,8 +169,8 @@ void py_matpack(py::module_& m) try {
       .def(py::init_implicit<const std::string_view>())
       .def("__float__", [](const Rational& x) { return Numeric(x); })
       .def("__int__", [](const Rational& x) { return Index(x); })
-      .def_rw("n", &Rational::numer, "Numerator\n\n.. :class:`Index`")
-      .def_rw("d", &Rational::denom, "Denominator\n\n.. :class:`Index`");
+      .def_rw("n", &Rational::numer, "Numerator\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw("d", &Rational::denom, "Denominator\n\n.. :class:`~pyarts3.arts.Index`");
   generic_interface(rat);
   py::implicitly_convertible<Index, Rational>();
 

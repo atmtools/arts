@@ -38,14 +38,15 @@ def interp(y, *args):
 
     Parameters
     ----------
-    y : numpy.ndarray-like (e.g., Vector, Matrix, ..., or pure numpy.ndarray)
+    y : array-like
         A set of data.
-    *args : Lagrange or LagrangeCyclic
+    *args : pyarts3.arts.interp.Lagrange or pyarts3.arts.interp.LagrangeCyclic
         A single ARTS Lagrange interpolants.  See pyarts3.arts.interp
 
     Returns
     -------
-    The interpolated value
+    value : numpy.ndarray
+        The interpolated value.
 
     """
 
@@ -83,14 +84,15 @@ def reinterp(y, *args):
 
     Parameters
     ----------
-    y : numpy.ndarray-like (e.g., Vector, Matrix, ..., or pure numpy.ndarray)
+    y : array-like
         A set of data.
-    *args : ArrayOfLagrange or ArrayOfLagrangeCyclic
+    *args : pyarts3.arts.interp.ArrayOfLagrange or pyarts3.arts.interp.ArrayOfLagrangeCyclic
         A list of ARTS Lagrange interpolants.  See pyarts3.arts.interp
 
     Returns
     -------
-    The interpolated value
+    value : numpy.ndarray
+        The interpolated value.
 
     """
 

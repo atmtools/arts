@@ -232,7 +232,7 @@ Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``i
 it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surf_field`,
-:attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
+:attr:`~pyarts3.workspace.Workspace.lat`, and :attr:`~pyarts3.workspace.Workspace.lon`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
 
@@ -312,7 +312,7 @@ The arguments
 :attr:`~pyarts3.workspace.Workspace.freq_grid`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
-:attr:`~pyarts3.workspace.Workspace.absorption_bands`,
+:attr:`~pyarts3.workspace.Workspace.abs_bands`,
 :attr:`~pyarts3.workspace.Workspace.abs_ecs_data`,
 :attr:`~pyarts3.workspace.Workspace.atm_point`, and
 :attr:`~pyarts3.workspace.Workspace.ray_point` are just defined in ``in`` and are passed to the method
@@ -397,7 +397,7 @@ The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surf_field`,
-:attr:`~pyarts3.workspace.Workspace.spectral_rad_unit`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_transform_operator`, and
 :attr:`~pyarts3.workspace.Workspace.spectral_rad_observer_agenda`
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.

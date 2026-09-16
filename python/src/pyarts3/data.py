@@ -362,13 +362,13 @@ def xarray_open_dataset(filename_or_obj, *args, **kwargs):
     will be caught and just raised if no path works.
 
     Args:
-        filename_or_obj (_type_): _description_
+        filename_or_obj (str or object): Dataset path or file-like object accepted by xarray.
 
     Raises:
-        FileNotFoundError: _description_
+        FileNotFoundError: No matching file was found in the search paths.
 
     Returns:
-        _type_: _description_
+        xarray.Dataset: The opened dataset.
     """
 
     try:

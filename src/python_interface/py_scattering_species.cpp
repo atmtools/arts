@@ -259,7 +259,7 @@ void py_scattering_species(py::module_& m) try {
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
   sgstro.def_rw(
-      "f", &ScatteringGeneralSpectralTRO::f, "Frequency grid\n\n.. :class:`ScatteringGeneralSpectralTROFunc`");
+      "f", &ScatteringGeneralSpectralTRO::f, "Frequency grid\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
   sgstro.doc() = "Scattering general spectral TRO";
   str_interface(stsv);
 
@@ -273,7 +273,7 @@ void py_scattering_species(py::module_& m) try {
       .def_rw("species_name", &ScatteringSpeciesProperty::species_name, "Species name\n\n.. :class:`str`")
       .def_rw("pproperty",
               &ScatteringSpeciesProperty::pproperty,
-              "Particulate property\n\n.. :class:`ParticulateProperty`");
+              "Particulate property\n\n.. :class:`~pyarts3.arts.ParticulateProperty`");
   ssp.def("__init__", [](ScatteringSpeciesProperty* self, std::string_view name) {
     new (self) ScatteringSpeciesProperty{ScatteringSpeciesProperty::from_string(name)};
   });
@@ -303,7 +303,7 @@ void py_scattering_species(py::module_& m) try {
       .def(py::init<Numeric>(), "cross_section"_a)
       .def_rw("cross_section",
               &scattering::ConstantGasScattering::cross_section,
-              "Molecular scattering cross-section [m^2]\n\n.. :class:`Numeric`")
+              "Molecular scattering cross-section [m^2]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .doc() = "Constant molecular scattering cross-section model";
 
   py::class_<scattering::IsotropicGasScattering>(m, "IsotropicGasScattering").def(py::init<>()).doc() =
@@ -313,7 +313,7 @@ void py_scattering_species(py::module_& m) try {
       .def(py::init<Numeric>(), "depolarization_factor"_a = 0.0)
       .def_rw("depolarization_factor",
               &scattering::RayleighGasScattering::depolarization_factor,
-              "Rayleigh depolarization factor\n\n.. :class:`Numeric`")
+              "Rayleigh depolarization factor\n\n.. :class:`~pyarts3.arts.Numeric`")
       .doc() = "Polarized Rayleigh gas-scattering phase matrix";
 
   py::class_<GasScatterer>(m, "GasScatterer")
@@ -323,12 +323,12 @@ void py_scattering_species(py::module_& m) try {
            "phase_matrix"_a)
       .def_rw("coefficient",
               &GasScatterer::coefficient,
-              "Gas-scattering coefficient model\n\n.. :class:`AirSimpleGasScattering` or "
-              ":class:`ConstantGasScattering`")
+              "Gas-scattering coefficient model\n\n.. :class:`~pyarts3.arts.AirSimpleGasScattering` or "
+              ":class:`~pyarts3.arts.ConstantGasScattering`")
       .def_rw("phase_matrix",
               &GasScatterer::phase_matrix,
-              "Gas-scattering phase-matrix model\n\n.. :class:`IsotropicGasScattering` or "
-              ":class:`RayleighGasScattering`")
+              "Gas-scattering phase-matrix model\n\n.. :class:`~pyarts3.arts.IsotropicGasScattering` or "
+              ":class:`~pyarts3.arts.RayleighGasScattering`")
       .def_static(
           "air_simple_rayleigh",
           [](Numeric depolarization_factor) {
@@ -395,7 +395,7 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m, "IrregularZenithAngleGrid");
   irr_grid.def(py::init<Vector>())
-      .def_rw("value", &scattering::IrregularZenithAngleGrid::angles, "Zenith angle grid\n\n.. :class:`Vector`")
+      .def_rw("value", &scattering::IrregularZenithAngleGrid::angles, "Zenith angle grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Irregular zenith angle grid";
   common_ndarray(irr_grid);
 
@@ -403,7 +403,7 @@ void py_scattering_species(py::module_& m) try {
   gauss_grid.def(py::init<Index>())
       .def_rw("value",
               &scattering::GaussLegendreGrid::angles,
-              "Zenith angle grid for Legendre calculations\n\n.. :class:`Vector`")
+              "Zenith angle grid for Legendre calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Gaussian Legendre grid";
   common_ndarray(gauss_grid);
 
@@ -411,20 +411,20 @@ void py_scattering_species(py::module_& m) try {
   double_gauss_grid.def(py::init<Index>())
       .def_rw("value",
               &scattering::DoubleGaussGrid::angles,
-              "Zenith angle grid for Double Gauss calculations\n\n.. :class:`Vector`")
+              "Zenith angle grid for Double Gauss calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Double Gaussian grid";
   common_ndarray(double_gauss_grid);
 
   py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
   lobatto_grid.def(py::init<Index>())
       .def_rw(
-          "value", &scattering::LobattoGrid::angles, "Zenith angle grid for Lobatto calculations\n\n.. :class:`Vector`")
+          "value", &scattering::LobattoGrid::angles, "Zenith angle grid for Lobatto calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Lobatto grid";
   common_ndarray(lobatto_grid);
 
   py::class_<scattering::FejerGrid> fejer_grid(m, "FejerGrid");
   fejer_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::FejerGrid::angles, "Zenith angle grid for Fejer calculations\n\n.. :class:`Vector`")
+      .def_rw("value", &scattering::FejerGrid::angles, "Zenith angle grid for Fejer calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Fejer grid";
   common_ndarray(fejer_grid);
 

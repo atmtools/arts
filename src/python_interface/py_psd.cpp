@@ -19,7 +19,7 @@ namespace Python {
 
 void py_psd(py::module_& m) try {
   py::class_<scattering::PSDData>(m, "PSDData")
-      .def_ro("values", &scattering::PSDData::values, "PSD values\n\n.. :class:`Vector`")
+      .def_ro("values", &scattering::PSDData::values, "PSD values\n\n.. :class:`~pyarts3.arts.Vector`")
       .def(
           "derivative",
           [](const scattering::PSDData& data, const ScatteringSpeciesProperty& property) -> const Vector& {

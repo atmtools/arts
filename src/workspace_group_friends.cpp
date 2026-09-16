@@ -376,12 +376,12 @@ where :math:`a` is the numerator and :math:`b` is the denominator.
       .desc =
           R"--(One of the following:
 
-#. :class:`~pyarts3.arts.predef.PredefinedModelDataName`
-#. :class:`~pyarts3.arts.predef.PredefinedModelDataWaterDataMTCKD4`
+#. :class:`~pyarts3.arts.predef.ModelName`
+#. :class:`~pyarts3.arts.predef.MTCKD400WaterData`
 
 This is used when using predefined models to allow for different types of data
 input.  Several types of predefined models have this data built into the code
-and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
+and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.ModelName`.
 )--",
   };
 

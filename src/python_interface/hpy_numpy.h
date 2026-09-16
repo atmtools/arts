@@ -40,7 +40,7 @@ void common_ndarray(auto& c) {
 
   c.def("__ilshift__", &npilshift, "value"_a, "See :attr:`numpy.ndarray.__ilshift__`");
 
-  c.def("__imatmul__", &npimatmul, "value"_a, "See :attr:`numpy.ndarray.__imatmul__`");
+  c.def("__imatmul__", &npimatmul, "value"_a, "See :obj:`numpy.matmul`");
 
   c.def("__imod__", &npimod, "value"_a, "See :attr:`numpy.ndarray.__imod__`");
 
@@ -60,7 +60,7 @@ void common_ndarray(auto& c) {
 
   c.def("__isub__", &npisub, py::rv_policy::reference_internal, "value"_a, "See :attr:`numpy.ndarray.__isub__`");
 
-  c.def("__iter__", &npiter, "See :attr:`numpy.ndarray.__iter__`");
+  c.def("__iter__", &npiter, "See :func:`iter`");
 
   c.def("__itruediv__", &npitruediv, "value"_a, "See :attr:`numpy.ndarray.__itruediv__`");
 
@@ -90,33 +90,33 @@ void common_ndarray(auto& c) {
 
   c.def("__pow__", &nppow, "value"_a, "mod"_a = py::none(), "See :attr:`numpy.ndarray.__pow__`");
 
-  c.def("__radd__", &npradd, "value"_a, "See :attr:`numpy.ndarray.__radd__`");
+  c.def("__radd__", &npradd, "value"_a, "See :obj:`numpy.add`");
 
-  c.def("__rand__", &nprand, "value"_a, "See :attr:`numpy.ndarray.__rand__`");
+  c.def("__rand__", &nprand, "value"_a, "See :obj:`numpy.bitwise_and`");
 
-  c.def("__rdivmod__", &nprdivmod, "value"_a, "See :attr:`numpy.ndarray.__rdivmod__`");
+  c.def("__rdivmod__", &nprdivmod, "value"_a, "See :obj:`numpy.divmod`");
 
-  c.def("__rfloordiv__", &nprfloordiv, "value"_a, "See :attr:`numpy.ndarray.__rfloordiv__`");
+  c.def("__rfloordiv__", &nprfloordiv, "value"_a, "See :obj:`numpy.floor_divide`");
 
   c.def("__rlshift__", &nprlshift, "value"_a, "See :attr:`numpy.ndarray.__rlshift__`");
 
-  c.def("__rmatmul__", &nprmatmul, "value"_a, "See :attr:`numpy.ndarray.__rmatmul__`");
+  c.def("__rmatmul__", &nprmatmul, "value"_a, "See :obj:`numpy.matmul`");
 
-  c.def("__rmod__", &nprmod, "value"_a, "See :attr:`numpy.ndarray.__rmod__`");
+  c.def("__rmod__", &nprmod, "value"_a, "See :obj:`numpy.remainder`");
 
-  c.def("__rmul__", &nprmul, "value"_a, "See :attr:`numpy.ndarray.__rmul__`");
+  c.def("__rmul__", &nprmul, "value"_a, "See :obj:`numpy.multiply`");
 
-  c.def("__ror__", &npror, "value"_a, "See :attr:`numpy.ndarray.__ror__`");
+  c.def("__ror__", &npror, "value"_a, "See :obj:`numpy.bitwise_or`");
 
-  c.def("__rpow__", &nprpow, "value"_a, "mod"_a = py::none(), "See :attr:`numpy.ndarray.__rpow__`");
+  c.def("__rpow__", &nprpow, "value"_a, "mod"_a = py::none(), "See :obj:`numpy.power`");
 
   c.def("__rrshift__", &nprrshift, "value"_a, "See :attr:`numpy.ndarray.__rrshift__`");
 
   c.def("__rshift__", &nprshift, "value"_a, "See :attr:`numpy.ndarray.__rshift__`");
 
-  c.def("__rsub__", &nprsub, "value"_a, "See :attr:`numpy.ndarray.__rsub__`");
+  c.def("__rsub__", &nprsub, "value"_a, "See :obj:`numpy.subtract`");
 
-  c.def("__rtruediv__", &nprtruediv, "value"_a, "See :attr:`numpy.ndarray.__rtruediv__`");
+  c.def("__rtruediv__", &nprtruediv, "value"_a, "See :obj:`numpy.true_divide`");
 
   c.def("__rxor__", &nprxor, "value"_a, "See :attr:`numpy.ndarray.__rxor__`");
 

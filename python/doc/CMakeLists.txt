@@ -4,9 +4,8 @@ if(SPHINX_FOUND)
   set(SPHINX_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/source)
   set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/build)
 
-  if(NOT SPHINX_JOBS)
-    set(SPHINX_JOBS 1)
-  endif()
+  set(SPHINX_JOBS "auto" CACHE STRING "Sphinx worker count (positive integer or auto)")
+  message(STATUS "Sphinx workers: ${SPHINX_JOBS} (override with -DSPHINX_JOBS=<positive integer|auto>)")
 
   add_custom_target(pyarts_docs
     ${CMAKE_COMMAND} -E env ${ASAN_PRELOAD_ENV} PYTHONPATH="${ARTS_BINARY_DIR}/python/src" ARTS_HEADLESS=1 ARTS_CAT_DATA_DIR=${ARTS_CAT_DATA_DIR} ARTS_XML_DATA_DIR=${ARTS_XML_DATA_DIR} ARTS_DATA_PATH="." -- ${SPHINX_EXECUTABLE} -j${SPHINX_JOBS} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}

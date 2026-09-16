@@ -36,10 +36,10 @@ template <lagrange_interp::lagrange_type T> py::class_<T>& interp_class_(py::cla
         "polyorder"_a = Size{1},
         "Construct a Lagrange interpolation object")
       .def_prop_ro(
-          "order", [](const T& l) { return l.size() - 1; }, "The order of interpolation\n\n.. :class:`Index`")
+          "order", [](const T& l) { return l.size() - 1; }, "The order of interpolation\n\n.. :class:`~pyarts3.arts.Index`")
       .def_rw("indx", &T::indx, "The interpolation positions\n\n.. :class:`list[Index]`")
       .def_rw("data", &T::data, "The interpolation weights\n\n.. :class:`list[Numeric]`")
-      .def("__len__", &T::size, "The interpolation size\n\n.. :class:`Index`");
+      .def("__len__", &T::size, "The interpolation size\n\n.. :class:`~pyarts3.arts.Index`");
   generic_interface(cl);
 
   return cl;
@@ -72,7 +72,7 @@ void py_interp(py::module_& m) {
 
   auto vid_ = py::bind_vector<std::vector<id>, py::rv_policy::reference_internal>(interp, "ArrayOfLagrange");
   auto vlc_ = py::bind_vector<std::vector<lc>, py::rv_policy::reference_internal>(interp, "ArrayOfLagrangeCyclic");
-  interp_vec_class(vid_).doc() = "List of :class:`~pyarts3.arts.Lagrange`";
-  interp_vec_class(vlc_).doc() = "List of :class:`~pyarts3.arts.LagrangeCyclic`";
+  interp_vec_class(vid_).doc() = "List of :class:`~pyarts3.arts.interp.Lagrange`";
+  interp_vec_class(vlc_).doc() = "List of :class:`~pyarts3.arts.interp.LagrangeCyclic`";
 }
 }  // namespace Python

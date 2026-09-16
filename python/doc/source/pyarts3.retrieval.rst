@@ -9,3 +9,5 @@ The mathematical definitions are in :ref:`sec-oem-information`.
    :imported-members:
    :undoc-members:
    :special-members: __init__, __call__
+
+.. autoclass:: pyarts3.retrieval._CovarianceFactor

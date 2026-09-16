@@ -12,8 +12,10 @@ import sys
 import platform as _platform
 import pyarts3
 
+_headless = os.environ.get("ARTS_HEADLESS") == "1"
+
 # macOS-specific: ensure platform.mac_ver() reports a version for Qt/Matplotlib compatibility
-if sys.platform == "darwin":
+if sys.platform == "darwin" and not _headless:
     os.environ.setdefault("SYSTEM_VERSION_COMPAT", "1")
     os.environ.setdefault("MPLBACKEND", "Qt5Agg")
     os.environ.setdefault("QT_API", "PyQt5")
@@ -25,7 +27,7 @@ if sys.platform == "darwin":
         pass
 
 import matplotlib
-matplotlib.use("Qt5Agg", force=True)
+matplotlib.use("Agg" if _headless else "Qt5Agg", force=True)
  
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure

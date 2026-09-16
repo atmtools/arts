@@ -376,7 +376,7 @@ which can hide a remaining distance to the minimum.
                "Check all controls; oemCalc and oemCalcReduced also validate before calculation.");
   settings.def_rw("method",
                   &OptimalEstimationSettings::method,
-                  "Algorithm and linear solver.\n\n.. :class:`OptimalEstimationMethod`");
+                  "Algorithm and linear solver.\n\n.. :class:`~pyarts3.arts.OptimalEstimationMethod`");
   settings.def_rw("max_iter", &OptimalEstimationSettings::max_iter, "Maximum outer iterations.\n\n.. :class:`int`");
   settings.def_rw(
       "stop_dx", &OptimalEstimationSettings::stop_dx, "Positive convergence tolerance.\n\n.. :class:`float`");
@@ -390,7 +390,7 @@ which can hide a remaining distance to the minimum.
                   &OptimalEstimationSettings::cg_max_iter,
                   "CG iteration limit; zero selects max(1000, 2 * dimension).\n\n.. :class:`int`");
   settings.def_rw(
-      "lm", &OptimalEstimationSettings::lm, "LM damping and trial controls.\n\n.. :class:`LevenbergMarquardtSettings`");
+      "lm", &OptimalEstimationSettings::lm, "LM damping and trial controls.\n\n.. :class:`~pyarts3.arts.LevenbergMarquardtSettings`");
   settings.def_rw(
       "display_progress", &OptimalEstimationSettings::display_progress, "Print progress when 1.\n\n.. :class:`int`");
   settings.def_rw("clear_matrices",
@@ -429,8 +429,8 @@ which can hide a remaining distance to the minimum.
 
   py::class_<PairOfBlockMatrix> pobm(m, "PairOfBlockMatrix");
   generic_interface(pobm);
-  pobm.def_rw("first", &PairOfBlockMatrix::first, "Matrix\n\n.. :class:`BlockMatrix`");
-  pobm.def_rw("second", &PairOfBlockMatrix::second, "Inverse of Matrix\n\n.. :class:`BlockMatrix`");
+  pobm.def_rw("first", &PairOfBlockMatrix::first, "Matrix\n\n.. :class:`~pyarts3.arts.BlockMatrix`");
+  pobm.def_rw("second", &PairOfBlockMatrix::second, "Inverse of Matrix\n\n.. :class:`~pyarts3.arts.BlockMatrix`");
 
   py::class_<JacobianTargetType> jtt(m, "JacobianTargetType");
   jtt.def_rw("value", &JacobianTargetType::target, "Target\n\n.. :class:`object`");

@@ -1,9 +1,25 @@
 import re
+from contextlib import contextmanager
+from io import StringIO
+from pathlib import Path
+from types import FunctionType
 import pyarts3
 import pyarts3.arts as cxx
 import sys
 
 global_errors = []
+
+
+@contextmanager
+def rst_output(path):
+    """Preserve timestamps so Sphinx can reuse unchanged generated pages."""
+    buffer = StringIO()
+    yield buffer
+    content = buffer.getvalue()
+    path = Path(path)
+    if not path.exists() or path.read_text(encoding="utf-8") != content:
+        path.write_text(content, encoding="utf-8")
+
 
 module_t = type(cxx)
 attr_t = property
@@ -62,6 +78,13 @@ def typesof(v):
         else:
             classes += " | " + c.split("`")[1]
 
+    if classes is not None:
+        classes = re.sub(
+            r'(?<![\w.~])([A-Za-z_]\w*)(?![\w.])',
+            lambda m: f"~pyarts3.arts.{m[0]}"
+            if isinstance(getattr(cxx, m[0], None), type) else m[0],
+            classes,
+        )
     return classes
 
 
@@ -69,7 +92,7 @@ def retypeof(v):
     x = v.split(" | ")
 
     def fixcur(s):
-        return f":class:`{s}`" if s != "None" else ":attr:`None`"
+        return f":class:`{s}`" if s != "None" else ":obj:`None`"
 
     out = ""
     cur = ""
@@ -174,6 +197,11 @@ def is_operator(name):
     return name in operators
 
 
+def workspace_page(name):
+    # ReadXML and readxml are distinct APIs on case-insensitive filesystems too.
+    return "readxml_method" if name == "readxml" else name
+
+
 def loop_over_class(cls, mod, pure_overview=False):
     try:
         attributes = {}
@@ -184,13 +212,15 @@ def loop_over_class(cls, mod, pure_overview=False):
 
         for name in dir(cls):
             var = getattr(cls, name)
-            if is_internal(name):
+            if is_internal(name) or (
+                isinstance(var, type) and name in {"ItemIterator", "KeyIterator", "ValueIterator"}
+            ):
                 pass
             elif is_operator(name):
                 operators[name] = func(name, cls)
             elif isinstance(var, attr_t):
                 attributes[name] = func(name, cls)
-            elif isinstance(var, func_t):
+            elif isinstance(var, (func_t, FunctionType)):
                 functions[name] = func(name, cls)
             elif isinstance(var, method_t):
                 methods[name] = func(name, cls)
@@ -234,7 +264,10 @@ def loop_over_class(cls, mod, pure_overview=False):
             for n in values:
                 str += f"    * - Static Data\n"
                 str += f"      - ``{mod}.{cls.__name__}.{n}``\n"
-                str += f"      - {repr(values[n])} (:class:`~{type(values[n]).__name__}`)\n"
+                if isinstance(values[n], type):
+                    str += f"      - :class:`~{mod}.{cls.__name__}.{n}`\n"
+                else:
+                    str += f"      - {repr(values[n])} (:class:`~{type(values[n]).__name__}`)\n"
 
             for n in operators:
                 str += f"    * - Operator\n"
@@ -283,16 +316,20 @@ def loop_over_class(cls, mod, pure_overview=False):
             str += "  :hidden:\n\n"
 
             for n in methods:
-                str += f"  {mod}.{cls.__name__}.{n}\n"
+                str += f"  {mod}.{cls.__name__}.{workspace_page(n)}\n"
 
             for n in functions:
-                str += f"  {mod}.{cls.__name__}.{n}\n"
+                str += f"  {mod}.{cls.__name__}.{workspace_page(n)}\n"
 
             for n in attributes:
-                str += f"  {mod}.{cls.__name__}.{n}\n"
+                str += f"  {mod}.{cls.__name__}.{workspace_page(n)}\n"
 
             for n in operators:
-                str += f"  {mod}.{cls.__name__}.{n}\n"
+                str += f"  {mod}.{cls.__name__}.{workspace_page(n)}\n"
+
+        for n, value in values.items():
+            if isinstance(value, type):
+                str += f"\n.. autoclass:: {mod}.{cls.__name__}.{n}\n   :members:\n\n"
 
         return str, short
     except Exception as e:
@@ -318,11 +355,16 @@ def loop_over_module(mod):
                 special.append(fullname)
             elif isinstance(var, module_t):
                 modules[fullname] = loop_over_module(var)
+            elif isinstance(var, enum_t):
+                classes[fullname] = (
+                    f"{name}\n{'#' * len(name)}\n\n.. autoclass:: {fullname}\n   :members:\n",
+                    (var.__doc__ or "Enumeration.").split("\n")[0],
+                )
             elif isinstance(var, class_t):
                 classes[fullname] = loop_over_class(var, mod.__name__)
             elif isinstance(var, attr_t):
                 attributes[fullname] = func(name, mod)
-            elif isinstance(var, func_t):
+            elif isinstance(var, (func_t, FunctionType)):
                 functions[fullname] = func(name, mod)
             elif isinstance(var, method_t):
                 methods[fullname] = func(name, mod)
@@ -348,7 +390,7 @@ data = loop_over_module(cxx)
 
 def create_func_rst(name, path, mod):
     try:
-        with open(f"{path}/{name}.rst", "w") as f:
+        with rst_output(f"{path}/{name}.rst") as f:
             f.write(f"{name}\n{'='*len(name)}\n\n")
             f.write(f".. currentmodule:: {mod}\n\n")
             f.write(f".. automethod:: {name}\n\n")
@@ -359,7 +401,7 @@ def create_func_rst(name, path, mod):
 
 def create_class_rst(data, path, mod):
     try:
-        with open(f"{path}/{mod}.rst", "w") as f:
+        with rst_output(f"{path}/{mod}.rst") as f:
             f.write(data)
     except Exception as e:
         raise Exception(
@@ -368,7 +410,7 @@ def create_class_rst(data, path, mod):
 
 def create_rst(data, path, mod):
     try:
-        with open(f"{path}/{mod}.rst", "w") as f:
+        with rst_output(f"{path}/{mod}.rst") as f:
             f.write(f"{mod}\n{'='*len(mod)}\n\n")
 
             f.write(".. toctree::\n")
@@ -454,27 +496,31 @@ def create_workspace_rst(path):
         create_class_rst(data[0], path, f"pyarts3.workspace.Workspace")
 
         for name in dir(ws):
+            if is_internal(name):
+                # Remove obsolete pages from earlier generator versions.
+                Path(f"{path}/pyarts3.workspace.Workspace.{name}.rst").unlink(missing_ok=True)
+                continue
             attr = getattr(ws, name)
 
             if isinstance(attr, attr_t):
-                with open(
-                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
+                with rst_output(
+                    f"{path}/pyarts3.workspace.Workspace.{workspace_page(name)}.rst"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(f".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(f".. attribute:: Workspace.{name}\n")
                     f.write(f"   :type: {typesof(attr)}\n\n")
                     f.write(f"{indent(doc(attr), 3)}\n")
-            elif isinstance(attr, method_t):
-                with open(
-                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
+            elif isinstance(attr, (method_t, FunctionType)):
+                with rst_output(
+                    f"{path}/pyarts3.workspace.Workspace.{workspace_page(name)}.rst"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(".. automethod:: Workspace." + name + "\n\n")
             elif is_operator(name):
-                with open(
-                    f"{path}/pyarts3.workspace.Workspace.{name}.rst", "w"
+                with rst_output(
+                    f"{path}/pyarts3.workspace.Workspace.{workspace_page(name)}.rst"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(".. currentmodule:: pyarts3.workspace\n\n")

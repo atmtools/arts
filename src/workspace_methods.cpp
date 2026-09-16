@@ -795,7 +795,7 @@ absorption line in the *abs_bands* variable.
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {std::nullopt, Index{401}},
       .gin_desc =
-          {R"--(Frequency grid around the line-center.  The range will cover :math:`f_i` \pm \left(1-\delta f\right)\forall i` of each absorption line :math:`i`, where this variable is :math:`\delta f`.)--",
+          {R"--(Frequency grid around the line-center.  The range will cover :math:`f_i \pm \left(1-\delta f\right)\forall i` of each absorption line :math:`i`, where this variable is :math:`\delta f`.)--",
            R"--(Number of frequency points per line.  The step between frequency grid points will be :math:`2\frac{\delta f}{N - 1}`, where this is :math:`N`.)--"},
   };
 

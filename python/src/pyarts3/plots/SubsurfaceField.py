@@ -67,9 +67,9 @@ def plot(data: pyarts.arts.SubsurfaceField,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
     alts, lats, lons = np.broadcast_arrays(alts, lats, lons)

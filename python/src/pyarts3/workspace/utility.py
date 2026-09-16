@@ -20,7 +20,7 @@ def unindent(source):
             in the characters that are stripped off the code lines.
 
     Returns:
-        new_source: The unindented source code.
+        str: The unindented source code.
     """
 
     if not type(source) == str:

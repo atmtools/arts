@@ -250,7 +250,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data_t<T, Grids...>>& c)
         "grid_names"_a = std::array<String, dim>{},
         "grids"_a);
 
-  c.def_rw("dataname", &mtype::data_name, "Name of the data\n\n.. :class:`String`");
+  c.def_rw("dataname", &mtype::data_name, "Name of the data\n\n.. :class:`~pyarts3.arts.String`");
 
   c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 

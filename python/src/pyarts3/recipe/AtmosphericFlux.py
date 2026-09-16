@@ -124,11 +124,11 @@ class AtmosphericFlux:
         """Return the atmospheric field as a dictionary of python types.
 
         Args:
-            core (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            specs (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            nlte (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            ssprops (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            isots (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            core (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to True.
+            specs (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to True.
+            nlte (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
+            ssprops (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
+            isots (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
 
         Returns:
             dict: Atmospheric field dictionary
@@ -151,7 +151,7 @@ class AtmosphericFlux:
             surf_temperature (float, optional): A surface temperature. Defaults to None.
 
         Returns:
-            Flux, Flux, numpy.ndarray: The solar and thermal fluxes and the center altitudes of the layers.
+            tuple[pyarts3.recipe.AtmosphericFlux.Flux, pyarts3.recipe.AtmosphericFlux.Flux, numpy.ndarray]: The solar and thermal fluxes and the center altitudes of the layers.
         """
 
         if surf_temperature is not None:

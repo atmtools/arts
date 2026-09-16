@@ -143,7 +143,7 @@ void py_basic(py::module_& m) try {
 
   py::class_<Any> any(m, "Any");
   generic_interface(any);
-  any.def("__init__", [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
+  any.def("__init__", [](Any* a, const py::args&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
 }

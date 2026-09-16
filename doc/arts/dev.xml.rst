@@ -259,8 +259,8 @@ No care for binary-compatibility or parseability are taken.
 
 Example types:
 
-- :class:`~pyarts3.arts.AtmKeyVal`
-- :class:`~pyarts3.arts.SurfKeyVal`
+- ``AtmKeyVal``
+- ``SurfaceKeyVal``
 
 ``matpack::data_t<T, N>``
 ^^^^^^^^^^^^^^^^^^^^^^^^^

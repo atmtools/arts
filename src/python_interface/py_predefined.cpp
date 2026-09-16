@@ -21,25 +21,25 @@ void internalCKDMT430(py::module_& m) {
   mm.def(py::init<Absorption::PredefinedModel::MT_CKD430::WaterData>())
       .def_rw("ref_temp",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::ref_temp,
-              "Reference temperature\n\n.. :class:`Numeric`")
+              "Reference temperature\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("ref_press",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::ref_press,
-              "Reference pressure\n\n.. :class:`Numeric`")
+              "Reference pressure\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("self_absco_ref",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::self_absco_ref,
-              "Self absorption\n\n.. :class:`Vector`")
+              "Self absorption\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("for_absco_ref",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::for_absco_ref,
-              "Foreign absorption\n\n.. :class:`Vector`")
+              "Foreign absorption\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("for_closure_absco_ref",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::for_closure_absco_ref,
-              "Foreign absorption closure\n\n.. :class:`Vector`")
+              "Foreign absorption closure\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("wavenumbers",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::wavenumbers,
-              "Wavenumbers\n\n.. :class:`Vector`")
+              "Wavenumbers\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("self_texp",
               &Absorption::PredefinedModel::MT_CKD430::WaterData::self_texp,
-              "Self temperature exponent\n\n.. :class:`Vector`")
+              "Self temperature exponent\n\n.. :class:`~pyarts3.arts.Vector`")
 
       .doc() = "Water data representation for the MT CKD 4.3 model";
 
@@ -116,25 +116,25 @@ void internalCKDMT400(py::module_& m) {
   mm.def(py::init<Absorption::PredefinedModel::MT_CKD400::WaterData>())
       .def_rw("ref_temp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_temp,
-              "Reference temperature\n\n.. :class:`Numeric`")
+              "Reference temperature\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("ref_press",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_press,
-              "Reference pressure\n\n.. :class:`Numeric`")
+              "Reference pressure\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("ref_h2o_vmr",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::ref_h2o_vmr,
-              "Reference water VMR\n\n.. :class:`Numeric`")
+              "Reference water VMR\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("self_absco_ref",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::self_absco_ref,
-              "Self absorption\n\n.. :class:`Vector`")
+              "Self absorption\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("for_absco_ref",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::for_absco_ref,
-              "Foreign absorption\n\n.. :class:`Vector`")
+              "Foreign absorption\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("wavenumbers",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::wavenumbers,
-              "Wavenumbers\n\n.. :class:`Vector`")
+              "Wavenumbers\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("self_texp",
               &Absorption::PredefinedModel::MT_CKD400::WaterData::self_texp,
-              "Self temperature exponent\n\n.. :class:`Vector`")
+              "Self temperature exponent\n\n.. :class:`~pyarts3.arts.Vector`")
 
       .doc() = "Water data representation for the MT CKD 4.0 model";
 

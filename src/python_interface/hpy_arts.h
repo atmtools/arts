@@ -33,7 +33,7 @@ Parameters
 file : str
     The path to which the file is written. Note that several of the options might modify the name or write more files.
 type : str, optional
-    Type of file to save.  See :class:`FileType` for options.  Defaults is "ascii".
+    Type of file to save.  See :class:`~pyarts3.arts.FileType` for options.  Defaults is "ascii".
 clobber : bool, optional
     Overwrite existing files or add new file with modified name?  Defaults is True.
 
