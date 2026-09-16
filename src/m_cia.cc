@@ -38,6 +38,8 @@ void spectral_propmatAddCIA(  // WS Output:
     const Index&   ignore_errors) {
   ARTS_TIME_REPORT
 
+  if (f_grid.empty()) return;
+
   // Possible things that can go wrong in this code (excluding line parameters)
   ARTS_USER_ERROR_IF(f_grid.front() < 0, "Negative frequency (at least one value).")
   ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")

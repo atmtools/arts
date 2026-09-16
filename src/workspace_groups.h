@@ -48,6 +48,16 @@ struct WorkspaceGroupRecord {
   //! What the invariant means, for the error message and the documentation
   std::string invariant_desc{};
 
+  /*! Set to true when the invariant only holds once the object is complete.
+   *
+   * Some groups are assembled one field at a time, e.g. *DisortSettings*, whose
+   * setters take it as both an input and an output.  Such an object is not yet
+   * consistent while it is being built, so it is only asked for its invariant
+   * where a method reads it without writing it.  Most groups are consistent at
+   * every step and are asked wherever they are given to a method.
+   */
+  bool invariant_needs_complete{false};
+
   /*! What to report when the invariant fails, as expressions to read.
    *
    * Each is a C++ expression where "{}" is replaced by the name of a variable of
