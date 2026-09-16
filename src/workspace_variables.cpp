@@ -842,6 +842,7 @@ During *oemCalc*, this always contains the full retrieval targets.  The separate
 *jac_targets* may be empty to disable derivatives without disabling state updates.
 )",
       .type = "JacobianTargets",
+      .dims = {"NTARGET", "NSTATE"},
   };
   wsv_data["jac_targets"] = {
       .desc          = R"--(A list of targets for the Jacobian Matrix calculations.
@@ -866,9 +867,14 @@ Use *oemInit* to move the primitive state, measurement, fit and Jacobian
 into this object. Covariance helpers and oemFinalizeDiagonal fill its
 covariance members. Basis helpers retain their spectrum and losses here.
 The physical fields and Jacobian targets remain in the workspace.
+
+The state basis B has shape (NSTATE, NSTATE_REDUCED), and the measurement
+basis C has shape (NMEAS_REDUCED, NMEAS). The full sizes are read from the
+prior and observation vectors, even when the current state or fit is empty.
+Reduced sizes are zero until the corresponding bases are set.
 )",
       .type = "OptimalEstimationData",
-
+      .dims = {"NSTATE", "NMEAS", "NSTATE_REDUCED", "NMEAS_REDUCED"},
   };
 
   wsv_data["measurement_jac"] = {
@@ -1207,30 +1213,36 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .desc = R"(The spectral flux field from Disort.
 )",
       .type = "DisortFlux",
+      .dims = {"NFREQ", "NLAYER"},
   };
 
   wsv_data["disort_spectral_rad_field"] = {
       .desc = R"(The spectral radiance field from Disort.
 )",
       .type = "DisortRadiance",
+      .dims = {"NFREQ", "NLAYER", "NAZIMUTH", "NZENITH"},
   };
 
   wsv_data["disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations.
 )",
       .type = "DisortSettings",
+      .dims = {"NFREQ", "NLAYER", "NQUADRATURE", "NDISORT_LEGENDRE", "NFOURIER"},
   };
 
   wsv_data["atm_disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations for atmospheric conditions.
 )",
       .type = "DisortSettings",
+      // Coupled components share frequency and angular dimensions, but not layer counts.
+      .dims = {"NFREQ", "", "NQUADRATURE", "", "NFOURIER"},
   };
 
   wsv_data["subsurf_disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations for subsurface conditions.
 )",
       .type = "DisortSettings",
+      .dims = {"NFREQ", "", "NQUADRATURE", "", "NFOURIER"},
   };
 
   //! Geodetic coordinates (altitude, latitude and longitude)

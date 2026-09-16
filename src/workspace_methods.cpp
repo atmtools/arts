@@ -3041,6 +3041,8 @@ represented by *jac_targets*. The inverse block is optional.
                           name);
     v.out.insert(v.out.begin() + 1, "oem");
     v.in.insert(v.in.begin() + 1, "oem");
+    // Targets and OEM data acquire their matching state sizes during finalization.
+    v.size_constraints = false;
     v.gin.insert(v.gin.end(), "matrix");
     v.gin.insert(v.gin.end(), "inverse");
     v.gin_type.insert(v.gin_type.end(), "BlockMatrix");
@@ -5188,6 +5190,8 @@ methods instead to construct a problem through target-based builders.
       .author = {"Richard Larsson"},
       .out    = {"oem", "model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
       .in     = {"model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
+      // Consumes the inputs; their empty output sizes no longer match oem.
+      .size_constraints = false,
   };
   wsm_data["oemCheck"] = {
       .desc   = R"(Validate *oem* against the finalized *jac_targets*.
@@ -5205,6 +5209,8 @@ reuse checked data without calling this method again.
       .author = {"Richard Larsson"},
       .out    = {"oem"},
       .in     = {"oem", "jac_targets"},
+      // check() must invalidate the cached status even when validation fails.
+      .size_constraints = false,
   };
   wsm_data["oemSetMeasurement"] = {
       .desc   = R"(Replace the observations in *oem* by consuming *measurement_vec*.
@@ -5217,6 +5223,8 @@ calling oem.check() again.
       .author = {"Richard Larsson"},
       .out    = {"oem", "measurement_vec"},
       .in     = {"oem", "measurement_vec"},
+      // Replaces the measurement dimension and consumes the source vector.
+      .size_constraints = false,
   };
   wsm_data["oemSetApriori"] = {
       .desc   = R"(Replace the prior in *oem* by consuming *model_state_vec*.
@@ -5231,6 +5239,8 @@ calling oem.check() again.
       .author = {"Richard Larsson"},
       .out    = {"oem", "model_state_vec"},
       .in     = {"oem", "model_state_vec"},
+      // Replaces the state dimension and consumes the source vector.
+      .size_constraints = false,
   };
   wsm_data["oemRestoreApriori"] = {
       .desc   = R"(Restore retrieved physical quantities from oem.model_state_vec_apriori.
@@ -5772,6 +5782,8 @@ success discards cached inverses.  Other existing correlations are preserved.
       .gin_desc               = {"First atmospheric target",
                                  "Second atmospheric target",
                                  "Constant correlation coefficient in retrieval coordinates"},
+      // Covariance-only setup does not require a prior vector yet.
+      .size_constraints = false,
   };
 
   wsm_data["measurement_vec_errorFromModelState"] = {
@@ -6454,6 +6466,8 @@ this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
       .author = {"Richard Larsson"},
       .out    = {"oem", "jac_targets"},
       .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
+      // Finalizes target sizes before checking their agreement with oem.
+      .size_constraints = false,
   };
 
   wsm_data["abs_bandsSetNonLTE"] = {

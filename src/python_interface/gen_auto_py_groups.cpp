@@ -243,7 +243,7 @@ namespace Python {{
 std::string type(const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) return "NoneType";
-  return py::cast<std::string>(py::type_name(x->type()));
+  return py::type_name(x->type()).c_str();
 }}
 }}  // namespace Python
 )--");

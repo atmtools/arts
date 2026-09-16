@@ -78,8 +78,14 @@ def fails_unchanged(ws, rho, first="temperature", second="H2O"):
     before = blocks(ws)
     try:
         correlate(ws, rho, first, second)
-    except RuntimeError:
-        pass
+    except RuntimeError as error:
+        # Formatting generic string arguments must preserve the actual failure.
+        message = str(error)
+        assert "oemStateCovmatCorrelateConstant" in message, message
+        assert "target1" in message and "target2" in message, message
+        assert "std::bad_cast" not in message, message
+        if not np.isfinite(rho) or abs(rho) >= 1:
+            assert "correlation must be finite" in message, message
     else:
         raise AssertionError("Invalid correlation accepted")
     after = blocks(ws)

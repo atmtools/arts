@@ -13,7 +13,9 @@ struct WorkspaceVariableInternalRecord {
    *
    * Each entry is a symbol from internal_workspace_dimensions().  The entries
    * line up with the dim_size of this variable's group, so a variable of a
-   * group with N dimension expressions may name up to N dimensions.
+   * group with N dimension expressions must supply N entries when dims is set.
+   * An empty string explicitly leaves an axis unnamed; an empty dims list
+   * opts out of dimension metadata for the whole variable.
    *
    * Variables that share a symbol must agree on that size.  This is what
    * agenda output size verification is generated from, and what the generated

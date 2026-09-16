@@ -297,6 +297,7 @@ void measurement_vec_fitFromMeasurement(Vector& yf, const Vector& y) {
   yf = y;
 }
 
+namespace {
 static void measurement_covariance_normalization(Vector& normalization, const CovarianceMatrix& covariance) {
   covariance.validate(covariance.nrows());
   Vector scales = covariance.diagonal();
@@ -308,6 +309,7 @@ static void measurement_covariance_normalization(Vector& normalization, const Co
   }
   normalization = std::move(scales);
 }
+}  // namespace
 
 void oemCalc(const Workspace&                 ws,
              OptimalEstimationData&           data,
@@ -330,6 +332,7 @@ void oemCalc(const Workspace&                 ws,
                lm_ga_settings,
                display_progress,
                clear_matrices] = settings;
+
   data.ensure_checked(jac_targets);
   auto&       model_state_vec                    = data.model_state_vec;
   auto&       measurement_vec_fit                = data.measurement_vec_fit;
@@ -870,6 +873,7 @@ void oemCalcReduced(const Workspace&                 ws,
                lm_ga_settings,
                display_progress,
                clear_matrices] = settings;
+
   data.ensure_checked(jac_targets);
 
   auto&       model_state_vec                    = data.model_state_vec;
@@ -885,6 +889,7 @@ void oemCalcReduced(const Workspace&                 ws,
   const auto& measurement_basis_mat              = data.measurement_basis_mat;
   const auto& model_state_covmat_normalization   = data.model_state_covmat_normalization;
   const auto& measurement_vec_normalization      = data.measurement_vec_normalization;
+
   const auto  selected                           = parse_oem_method(method);
   const auto& B                                  = model_state_basis_mat;
   const auto& C                                  = measurement_basis_mat;
