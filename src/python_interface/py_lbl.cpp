@@ -43,9 +43,11 @@ void py_lbl(py::module_& m) try {
   line_key.def_rw("band", &lbl::line_key::band, "The band\n\n.. :class:`~pyarts3.arts.QuantumIdentifier`");
   line_key.def_rw("line", &lbl::line_key::line, "The line\n\n.. :class:`int`");
   line_key.def_rw("spec", &lbl::line_key::spec, "The species\n\n.. :class:`int`");
-  line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable\n\n.. :class:`~pyarts3.arts.LineShapeModelVariable`");
   line_key.def_rw(
-      "ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient\n\n.. :class:`~pyarts3.arts.LineShapeModelCoefficient`");
+      "ls_var", &lbl::line_key::ls_var, "The line shape variable\n\n.. :class:`~pyarts3.arts.LineShapeModelVariable`");
+  line_key.def_rw("ls_coeff",
+                  &lbl::line_key::ls_coeff,
+                  "The line shape coefficient\n\n.. :class:`~pyarts3.arts.LineShapeModelCoefficient`");
   line_key.def_rw("var", &lbl::line_key::var, "The variable\n\n.. :class:`~pyarts3.arts.LineByLineVariable`");
   line_key.doc() = "A key for a line";
 
@@ -568,7 +570,9 @@ Numeric
          [](py::object& x, const py::object& i, const py::object& v) { x.attr("lines").attr("__setitem__")(i, v); });
   ab.def("__len__", [](const AbsorptionBand& x) { return x.lines.size(); }, "Return the number of lines in the band");
   ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band\n\n.. :class:`~pyarts3.arts.ArrayOfAbsorptionLine`")
-      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type\n\n.. :class:`~pyarts3.arts.LineByLineLineshape`")
+      .def_rw("lineshape",
+              &AbsorptionBand::lineshape,
+              "The lineshape type\n\n.. :class:`~pyarts3.arts.LineByLineLineshape`")
       .def_prop_rw(
           "cutoff",
           [](const AbsorptionBand& band) { return band.cutoff.type; },
@@ -902,7 +906,8 @@ spectral_propmat : PropmatVector
 )--");
 
   py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
-  partfun.def_rw("data", &PartitionFunctionsData::data, "The partition function data\n\n.. :class:`~pyarts3.arts.Matrix`");
+  partfun.def_rw(
+      "data", &PartitionFunctionsData::data, "The partition function data\n\n.. :class:`~pyarts3.arts.Matrix`");
   partfun.def_rw("type",
                  &PartitionFunctionsData::type,
                  "The type of partition function data\n\n.. :class:`~pyarts3.arts.PartitionFunctionsType`");

@@ -8,7 +8,8 @@ namespace Python {
 void py_lookup(py::module_& m) try {
   py::class_<AbsorptionLookupTable> alt(m, "AbsorptionLookupTable");
   generic_interface(alt);
-  alt.def_rw("f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  alt.def_rw(
+      "f_grid", &AbsorptionLookupTable::f_grid, "The frequency grid in Hz\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
   alt.def_rw("log_p_grid",
              &AbsorptionLookupTable::log_p_grid,
              "The pressure grid in log Pa [same dimension as atm]\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
@@ -26,7 +27,8 @@ void py_lookup(py::module_& m) try {
   alt.def_rw("t_atmref",
              &AbsorptionLookupTable::t_atmref,
              "Local grids so that pressure interpolation may work\n\n.. :class:`~pyarts3.arts.Vector`");
-  alt.def_rw("xsec", &AbsorptionLookupTable::xsec, "The absorption cross section table\n\n.. :class:`~pyarts3.arts.Tensor4`");
+  alt.def_rw(
+      "xsec", &AbsorptionLookupTable::xsec, "The absorption cross section table\n\n.. :class:`~pyarts3.arts.Tensor4`");
 
   auto alts = py::bind_map<AbsorptionLookupTables, py::rv_policy::reference_internal>(m, "AbsorptionLookupTables");
   generic_interface(alts);

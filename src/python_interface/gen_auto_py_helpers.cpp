@@ -477,11 +477,11 @@ String variable_used_by(const String& name) {
 
   const auto to_wsain = stdv::filter([&usedocs](const String& x) { return stdr::none_of(usedocs.ag_out, Cmp::eq(x)); });
 
-  const auto to_attr =
-      stdv::transform([](const String& x) -> String { return std::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x); });
+  const auto to_attr = stdv::transform(
+      [](const String& x) -> String { return std::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x); });
 
-  const auto to_func =
-      stdv::transform([](const String& x) -> String { return std::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x); });
+  const auto to_func = stdv::transform(
+      [](const String& x) -> String { return std::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x); });
 
   const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;
   const auto wsminout = usedocs.wsm_out | to_wsminout | to_vstring;

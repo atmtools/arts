@@ -12,12 +12,17 @@ void py_path(py::module_& m) try {
   py::class_<PropagationPathPoint> pppp(m, "PropagationPathPoint");
   generic_interface(pppp);
 
-  pppp.def_rw("pos_type", &PropagationPathPoint::pos_type, "Path position type\n\n.. :class:`~pyarts3.arts.PathPositionType`")
-      .def_rw("los_type", &PropagationPathPoint::los_type, "Path line-of-sight type\n\n.. :class:`~pyarts3.arts.PathPositionType`")
+  pppp.def_rw("pos_type",
+              &PropagationPathPoint::pos_type,
+              "Path position type\n\n.. :class:`~pyarts3.arts.PathPositionType`")
+      .def_rw("los_type",
+              &PropagationPathPoint::los_type,
+              "Path line-of-sight type\n\n.. :class:`~pyarts3.arts.PathPositionType`")
       .def_rw("pos", &PropagationPathPoint::pos, "Path position\n\n.. :class:`~pyarts3.arts.Vector3`")
       .def_rw("los", &PropagationPathPoint::los, "Path line-of-sight\n\n.. :class:`~pyarts3.arts.Vector2`")
       .def_rw("nreal", &PropagationPathPoint::nreal, "Path real refractive index\n\n.. :class:`~pyarts3.arts.Numeric`")
-      .def_rw("ngroup", &PropagationPathPoint::ngroup, "Path group refractive index\n\n.. :class:`~pyarts3.arts.Numeric`");
+      .def_rw(
+          "ngroup", &PropagationPathPoint::ngroup, "Path group refractive index\n\n.. :class:`~pyarts3.arts.Numeric`");
 
   auto a1 =
       py::bind_vector<ArrayOfPropagationPathPoint, py::rv_policy::reference_internal>(m, "ArrayOfPropagationPathPoint");

@@ -20,8 +20,10 @@ void py_surf(py::module_ &m) try {
   auto tessem = py::class_<TessemNN>(m, "TessemNN");
   tessem.def(py::init<>())
       .def_rw("nb_inputs", &TessemNN::nb_inputs, "Number of neural-network inputs\n\n.. :class:`~pyarts3.arts.Index`")
-      .def_rw("nb_outputs", &TessemNN::nb_outputs, "Number of neural-network outputs\n\n.. :class:`~pyarts3.arts.Index`")
-      .def_rw("nb_cache", &TessemNN::nb_cache, "Number of hidden neural-network nodes\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw(
+          "nb_outputs", &TessemNN::nb_outputs, "Number of neural-network outputs\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw(
+          "nb_cache", &TessemNN::nb_cache, "Number of hidden neural-network nodes\n\n.. :class:`~pyarts3.arts.Index`")
       .def_rw("b1", &TessemNN::b1, "Hidden-layer biases\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("b2", &TessemNN::b2, "Output-layer biases\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("w1", &TessemNN::w1, "Hidden-layer weights\n\n.. :class:`~pyarts3.arts.Matrix`")
@@ -94,13 +96,22 @@ void py_surf(py::module_ &m) try {
           [](Surf::Data *a, const GriddedField2 &v) { new (a) Surf::Data(GeodeticField2(v)); },
           "v"_a,
           "Initialize with a sorted field")
-      .def_rw("data",
-              &Surf::Data::data,
-              "The data\n\n.. :class:`~pyarts3.arts.GeodeticField2`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericBinaryOperator`")
-      .def_rw("lat_upp", &Surf::Data::lat_upp, "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw("lat_low", &Surf::Data::lat_low, "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw("lon_upp", &Surf::Data::lon_upp, "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
-      .def_rw("lon_low", &Surf::Data::lon_low, "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw(
+          "data",
+          &Surf::Data::data,
+          "The data\n\n.. :class:`~pyarts3.arts.GeodeticField2`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericBinaryOperator`")
+      .def_rw("lat_upp",
+              &Surf::Data::lat_upp,
+              "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Surf::Data::lat_low,
+              "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Surf::Data::lon_upp,
+              "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Surf::Data::lon_low,
+              "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "set_extrapolation",
           [](Surf::Data &self, InterpolationExtrapolation x) {
@@ -248,7 +259,8 @@ void py_surf(py::module_ &m) try {
               "Properties of the surface field\n\n.. :class:`dict[SurfacePropertyTag, SurfaceData]`");
 
   py::class_<SubsurfacePropertyTag> sptag(m, "SubsurfacePropertyTag");
-  sptag.def_rw("name", &SubsurfacePropertyTag::name, "Name of the subsurface property\n\n.. :class:`~pyarts3.arts.String`");
+  sptag.def_rw(
+      "name", &SubsurfacePropertyTag::name, "Name of the subsurface property\n\n.. :class:`~pyarts3.arts.String`");
   sptag.def(py::init_implicit<String>());
   generic_interface(sptag);
 

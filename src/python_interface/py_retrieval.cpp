@@ -389,8 +389,9 @@ which can hide a remaining distance to the minimum.
   settings.def_rw("cg_max_iter",
                   &OptimalEstimationSettings::cg_max_iter,
                   "CG iteration limit; zero selects max(1000, 2 * dimension).\n\n.. :class:`int`");
-  settings.def_rw(
-      "lm", &OptimalEstimationSettings::lm, "LM damping and trial controls.\n\n.. :class:`~pyarts3.arts.LevenbergMarquardtSettings`");
+  settings.def_rw("lm",
+                  &OptimalEstimationSettings::lm,
+                  "LM damping and trial controls.\n\n.. :class:`~pyarts3.arts.LevenbergMarquardtSettings`");
   settings.def_rw(
       "display_progress", &OptimalEstimationSettings::display_progress, "Print progress when 1.\n\n.. :class:`int`");
   settings.def_rw("clear_matrices",

@@ -211,8 +211,9 @@ Numeric, Vector, or Matrix
           "weight_matrix",
           [](const SensorObsel& self) { return self.weight_matrix(); },
           "Weights matrix\n\n.. :class:`~pyarts3.arts.SparseStokvecMatrix`")
-      .def_prop_ro(
-          "poslos", &SensorObsel::poslos_grid, "Position and line of sight grid\n\n.. :class:`~pyarts3.arts.SensorPosLosVector`")
+      .def_prop_ro("poslos",
+                   &SensorObsel::poslos_grid,
+                   "Position and line of sight grid\n\n.. :class:`~pyarts3.arts.SensorPosLosVector`")
       .def("normalize",
            &SensorObsel::normalize,
            "pol"_a = Stokvec{1., 0., 0., 0.},
@@ -419,8 +420,9 @@ See :meth:`SensorObsel.normalize` for details.
   sgairy.def_rw("aperture_diameter",
                 &sensor::GaussianAiryAntenna::aperture_diameter,
                 "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`~pyarts3.arts.Numeric`");
-  sgairy.def_rw(
-      "weight", &sensor::GaussianAiryAntenna::weight, "Stokes weights of the antenna response.\n\n.. :class:`~pyarts3.arts.Stokvec`");
+  sgairy.def_rw("weight",
+                &sensor::GaussianAiryAntenna::weight,
+                "Stokes weights of the antenna response.\n\n.. :class:`~pyarts3.arts.Stokvec`");
   sgairy.def_rw("zen_grid",
                 &sensor::GaussianAiryAntenna::zen_grid,
                 "Local zenith grid of the antenna response.\n\n.. :class:`~pyarts3.arts.ZenGrid`");

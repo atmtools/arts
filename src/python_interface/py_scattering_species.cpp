@@ -258,8 +258,9 @@ void py_scattering_species(py::module_& m) try {
   sgstro.def(py::init<>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
-  sgstro.def_rw(
-      "f", &ScatteringGeneralSpectralTRO::f, "Frequency grid\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
+  sgstro.def_rw("f",
+                &ScatteringGeneralSpectralTRO::f,
+                "Frequency grid\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
   sgstro.doc() = "Scattering general spectral TRO";
   str_interface(stsv);
 
@@ -395,7 +396,9 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m, "IrregularZenithAngleGrid");
   irr_grid.def(py::init<Vector>())
-      .def_rw("value", &scattering::IrregularZenithAngleGrid::angles, "Zenith angle grid\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("value",
+              &scattering::IrregularZenithAngleGrid::angles,
+              "Zenith angle grid\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Irregular zenith angle grid";
   common_ndarray(irr_grid);
 
@@ -417,14 +420,17 @@ void py_scattering_species(py::module_& m) try {
 
   py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
   lobatto_grid.def(py::init<Index>())
-      .def_rw(
-          "value", &scattering::LobattoGrid::angles, "Zenith angle grid for Lobatto calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("value",
+              &scattering::LobattoGrid::angles,
+              "Zenith angle grid for Lobatto calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Lobatto grid";
   common_ndarray(lobatto_grid);
 
   py::class_<scattering::FejerGrid> fejer_grid(m, "FejerGrid");
   fejer_grid.def(py::init<Index>())
-      .def_rw("value", &scattering::FejerGrid::angles, "Zenith angle grid for Fejer calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("value",
+              &scattering::FejerGrid::angles,
+              "Zenith angle grid for Fejer calculations\n\n.. :class:`~pyarts3.arts.Vector`")
       .doc() = "Fejer grid";
   common_ndarray(fejer_grid);
 

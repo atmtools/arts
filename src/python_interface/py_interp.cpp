@@ -36,7 +36,9 @@ template <lagrange_interp::lagrange_type T> py::class_<T>& interp_class_(py::cla
         "polyorder"_a = Size{1},
         "Construct a Lagrange interpolation object")
       .def_prop_ro(
-          "order", [](const T& l) { return l.size() - 1; }, "The order of interpolation\n\n.. :class:`~pyarts3.arts.Index`")
+          "order",
+          [](const T& l) { return l.size() - 1; },
+          "The order of interpolation\n\n.. :class:`~pyarts3.arts.Index`")
       .def_rw("indx", &T::indx, "The interpolation positions\n\n.. :class:`list[Index]`")
       .def_rw("data", &T::data, "The interpolation weights\n\n.. :class:`list[Numeric]`")
       .def("__len__", &T::size, "The interpolation size\n\n.. :class:`~pyarts3.arts.Index`");
