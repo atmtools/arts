@@ -705,23 +705,6 @@ The object should have these sizes internally:
       .default_value = "TransmittanceOption::linsrc",
   };
 
-  wsv_data["spectral_linevo_jac_path"] = {
-      .desc =
-          R"--(The partial derivatives of the linear evolution operator along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatTensor3",
-      .dims = {"NPATH"},
-      // ???
-  };
-
-  wsv_data["spectral_linevo_path"] = {
-      .desc = R"--(The linear evolution operator along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatVector",
-      .dims = {"NPATH"},
-      // ???
-  };
-
   //! Surface
 
   wsv_data["surf_field"] = {

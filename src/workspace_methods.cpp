@@ -197,7 +197,6 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     std::vector<std::string> input_op = ag.input;
     input_op.push_back(agname + "_operator");
 
-    // These run the agenda, so they can only promise what the agenda promises
     wsm_data[agname + "Execute"] = {
         .desc             = "Executes *" + agname + "*, see it for more details\n",
         .author           = {"``Automatically Generated``"},
@@ -296,7 +295,7 @@ void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_dat
                             i,
                             alternative));
           }
-          // WorkspaceGroupInfo indices follow alphabetical group-name order.
+
           if (not previous.empty() and previous >= alternative) {
             throw std::runtime_error(
                 std::format("{} {}[{}]: '{}' appears after '{}'. List Generic alternatives once each in "
@@ -1164,9 +1163,8 @@ Note that the input
       .desc =
           R"--(Sets the *spectral_propmat_and_atm_path_agenda* to adaptive mode with the provided parameters.
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_and_atm_path_agenda"},
-      // Reuse parameters of the pathFromPath method
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat_and_atm_path_agenda"},
       .gin       = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin,
       .gin_type  = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_type,
       .gin_value = wsm_data.at("spectral_propmat_pathAddAdaptiveHalfPath").gin_value,
@@ -3041,7 +3039,6 @@ represented by *jac_targets*. The inverse block is optional.
                           name);
     v.out.insert(v.out.begin() + 1, "oem");
     v.in.insert(v.in.begin() + 1, "oem");
-    // Targets and OEM data acquire their matching state sizes during finalization.
     v.size_constraints = false;
     v.gin.insert(v.gin.end(), "matrix");
     v.gin.insert(v.gin.end(), "inverse");
@@ -4567,62 +4564,42 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
   };
 
   wsm_data["measurement_jacAtmosphereTransformation"] = {
-      .desc   = "Applies transformations to the atmospheric state Jacobian\n",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_jac"},
-      .in     = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
-      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
-       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
-       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
-       * not a claim that the model state is empty. */
+      .desc             = "Applies transformations to the atmospheric state Jacobian\n",
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_jac"},
+      .in               = {"measurement_jac", "model_state_vec", "atm_field", "jac_targets"},
       .size_constraints = false,
   };
 
   wsm_data["measurement_jacSurfaceTransformation"] = {
-      .desc   = "Applies transformations to the surface state Jacobian\n",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_jac"},
-      .in     = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
-      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
-       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
-       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
-       * not a claim that the model state is empty. */
+      .desc             = "Applies transformations to the surface state Jacobian\n",
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_jac"},
+      .in               = {"measurement_jac", "model_state_vec", "surf_field", "jac_targets"},
       .size_constraints = false,
   };
 
   wsm_data["measurement_jacSubsurfaceTransformation"] = {
-      .desc   = "Applies transformations to the subsurface state Jacobian\n",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_jac"},
-      .in     = {"measurement_jac", "model_state_vec", "subsurf_field", "jac_targets"},
-      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
-       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
-       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
-       * not a claim that the model state is empty. */
+      .desc             = "Applies transformations to the subsurface state Jacobian\n",
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_jac"},
+      .in               = {"measurement_jac", "model_state_vec", "subsurf_field", "jac_targets"},
       .size_constraints = false,
   };
 
   wsm_data["measurement_jacBandTransformation"] = {
-      .desc   = "Applies transformations to the line-by-line state Jacobian\n",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_jac"},
-      .in     = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
-      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
-       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
-       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
-       * not a claim that the model state is empty. */
+      .desc             = "Applies transformations to the line-by-line state Jacobian\n",
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_jac"},
+      .in               = {"measurement_jac", "model_state_vec", "abs_bands", "jac_targets"},
       .size_constraints = false,
   };
 
   wsm_data["measurement_jacSensorTransformation"] = {
-      .desc   = "Applies transformations to the measurement sensor state Jacobian\n",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_jac"},
-      .in     = {"measurement_jac", "model_state_vec", "measurement_sensor", "jac_targets"},
-      /* Runs inside *inversion_iterate_agenda*, where *jac_targetsConditionalClear*
-       * has emptied *jac_targets* whenever *do_jac* is false.  An empty
-       * *jac_targets* is that agenda's way of saying "no Jacobian this pass",
-       * not a claim that the model state is empty. */
+      .desc             = "Applies transformations to the measurement sensor state Jacobian\n",
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_jac"},
+      .in               = {"measurement_jac", "model_state_vec", "measurement_sensor", "jac_targets"},
       .size_constraints = false,
   };
 
@@ -5190,11 +5167,10 @@ methods instead to construct a problem through target-based builders.
       .author = {"Richard Larsson"},
       .out    = {"oem", "model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
       .in     = {"model_state_vec", "measurement_vec", "model_state_covmat", "measurement_vec_error_covmat"},
-      // Consumes the inputs; their empty output sizes no longer match oem.
       .size_constraints = false,
   };
   wsm_data["oemCheck"] = {
-      .desc   = R"(Validate *oem* against the finalized *jac_targets*.
+      .desc             = R"(Validate *oem* against the finalized *jac_targets*.
 
 Checks numerical inputs, covariance dimensions and validity, optional stored
 modeling results, bases and normalization vectors, and agreement with the
@@ -5206,28 +5182,26 @@ already checked, so it can also validate in-place edits. Call after setup or
 structural edits, before *oemCalc* or *oemCalcReduced*. Repeated calculations can
 reuse checked data without calling this method again.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem"},
-      .in     = {"oem", "jac_targets"},
-      // check() must invalidate the cached status even when validation fails.
+      .author           = {"Richard Larsson"},
+      .out              = {"oem"},
+      .in               = {"oem", "jac_targets"},
       .size_constraints = false,
   };
   wsm_data["oemSetMeasurement"] = {
-      .desc   = R"(Replace the observations in *oem* by consuming *measurement_vec*.
+      .desc             = R"(Replace the observations in *oem* by consuming *measurement_vec*.
 
 Leaves the source vector empty. A changed size makes oem unchecked; an unchanged
 size preserves its checked status. Covariances, prior, bases and modeling results
 are retained. When changing dimensions, update the associated data before
 calling oem.check() again.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem", "measurement_vec"},
-      .in     = {"oem", "measurement_vec"},
-      // Replaces the measurement dimension and consumes the source vector.
+      .author           = {"Richard Larsson"},
+      .out              = {"oem", "measurement_vec"},
+      .in               = {"oem", "measurement_vec"},
       .size_constraints = false,
   };
   wsm_data["oemSetApriori"] = {
-      .desc   = R"(Replace the prior in *oem* by consuming *model_state_vec*.
+      .desc             = R"(Replace the prior in *oem* by consuming *model_state_vec*.
 
 Use *model_state_vecFromData* first to obtain a prior from the physical model,
 or supply the numerical vector directly. Leaves the source vector empty.
@@ -5236,10 +5210,9 @@ status. Observations, covariances, bases, current state and modeling results
 are retained. When changing dimensions, update the associated data before
 calling oem.check() again.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem", "model_state_vec"},
-      .in     = {"oem", "model_state_vec"},
-      // Replaces the state dimension and consumes the source vector.
+      .author           = {"Richard Larsson"},
+      .out              = {"oem", "model_state_vec"},
+      .in               = {"oem", "model_state_vec"},
       .size_constraints = false,
   };
   wsm_data["oemRestoreApriori"] = {
@@ -5263,7 +5236,7 @@ retrieval from the same physical prior.
   };
 
   wsm_data["oemCalc"] = {
-      .desc           = R"(Retrieve a model state by optimal estimation (oemCalc).
+      .desc             = R"(Retrieve a model state by optimal estimation (oemCalc).
 
 The settings argument contains all calculation controls described below.
 It defaults to OptimalEstimationSettings (Gauss-Newton, 10 iterations).
@@ -5458,29 +5431,21 @@ budget. The dimension is that of the selected state- or measurement-space
 system (reduced dimensions for oemCalcReduced).
 
 )",
-      .author         = {"Patrick Eriksson"},
-      .out            = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
-      .in             = {"oem",
-                         "atm_field",
-                         "abs_bands",
-                         "measurement_sensor",
-                         "surf_field",
-                         "subsurf_field",
-                         "jac_targets",
-                         "inversion_iterate_agenda"},
-      .gin            = {"settings"},
-      .gin_type       = {"OptimalEstimationSettings"},
-      .gin_value      = {OptimalEstimationSettings{}},
-      .gin_desc       = {"Algorithm, limits, tolerances, LM damping and output controls"},
-      .pass_workspace = true,
-
-      /* *OEM* reads the sizes of *model_state_vec*, *measurement_vec_fit* and
-       * *measurement_jac* as a message rather than as a shape: empty means the
-       * caller has no starting guess and no precomputed forward model, so use
-       * *model_state_vec_apriori* and simulate.  It also returns
-       * *measurement_jac* and *measurement_gain_mat* empty when "clear
-       * matrices" is set or the inversion did not converge.  None of that is a
-       * shape this can verify. */
+      .author           = {"Patrick Eriksson"},
+      .out              = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
+      .in               = {"oem",
+                           "atm_field",
+                           "abs_bands",
+                           "measurement_sensor",
+                           "surf_field",
+                           "subsurf_field",
+                           "jac_targets",
+                           "inversion_iterate_agenda"},
+      .gin              = {"settings"},
+      .gin_type         = {"OptimalEstimationSettings"},
+      .gin_value        = {OptimalEstimationSettings{}},
+      .gin_desc         = {"Algorithm, limits, tolerances, LM damping and output controls"},
+      .pass_workspace   = true,
       .size_constraints = false,
   };
 
@@ -5782,18 +5747,16 @@ success discards cached inverses.  Other existing correlations are preserved.
       .gin_desc               = {"First atmospheric target",
                                  "Second atmospheric target",
                                  "Constant correlation coefficient in retrieval coordinates"},
-      // Covariance-only setup does not require a prior vector yet.
-      .size_constraints = false,
+      .size_constraints       = false,
   };
 
   wsm_data["measurement_vec_errorFromModelState"] = {
       .desc =
           R"(Set the error and its Jacobian from the state of the model.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_vec_error", "measurement_jac_error"},
-      .in     = {"measurement_sensor", "model_state_targets", "jac_targets", "model_state_vec"},
-      // Value-only evaluations may have an empty Jacobian.
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_vec_error", "measurement_jac_error"},
+      .in               = {"measurement_sensor", "model_state_targets", "jac_targets", "model_state_vec"},
       .size_constraints = false,
   };
 
@@ -5801,10 +5764,9 @@ success discards cached inverses.  Other existing correlations are preserved.
       .desc =
           R"(Add the measurement error to the measurement.  Conditionally, also to the Jacobian.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_vec", "measurement_jac"},
-      .in     = {"measurement_vec", "measurement_jac", "measurement_vec_error", "measurement_jac_error"},
-      // Value-only evaluations may have an empty Jacobian.
+      .author           = {"Richard Larsson"},
+      .out              = {"measurement_vec", "measurement_jac"},
+      .in               = {"measurement_vec", "measurement_jac", "measurement_vec_error", "measurement_jac_error"},
       .size_constraints = false,
   };
 
@@ -6466,7 +6428,6 @@ this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
       .author = {"Richard Larsson"},
       .out    = {"oem", "jac_targets"},
       .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
-      // Finalizes target sizes before checking their agreement with oem.
       .size_constraints = false,
   };
 

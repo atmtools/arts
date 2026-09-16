@@ -17,9 +17,6 @@ void add_arrays_of(std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_da
                    const std::vector<std::string>&                        types,
                    std::vector<std::string>                               extra_headers) {
   for (const auto& type : types) {
-    // Only the length of the list is read here.  The elements may name further
-    // dimensions, but those belong to each element and need not agree between
-    // them, so they are documented rather than verified.
     auto& v = wsg_data["ArrayOf" + type] = {
         .file     = "vector",
         .desc     = "A list of *" + type + "*\n",
@@ -795,8 +792,8 @@ corresponds to ``alt_grid[1:]``; the top boundary is omitted.
   };
 
   wsg_data["DisortSettings"] = {
-      .file                 = "disort.h",
-      .desc                 = R"(The settings required to run Disort.
+      .file                     = "disort.h",
+      .desc                     = R"(The settings required to run Disort.
 
 #. *Index* Quadrature dimension
 #. *Index* Legendre order
@@ -815,20 +812,15 @@ corresponds to ``alt_grid[1:]``; the top boundary is omitted.
 #. *Tensor3* Positive boundary condition
 #. *Tensor3* Negative boundary condition
 )",
-      .dim_size             = {"{}.freq_grid.size()",
-                               "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
-                               "{}.quadrature_dimension",
-                               "{}.legendre_polynomial_dimension",
-                               "{}.fourier_mode_dimension"},
-      .invariant            = "{}.ok()",
-      .invariant_desc       = "agrees with its own frequency grid, level grid and dimensions.",
-
-      // Assembled by the disort_settings* setters, which see it part-built
+      .dim_size                 = {"{}.freq_grid.size()",
+                                   "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                                   "{}.quadrature_dimension",
+                                   "{}.legendre_polynomial_dimension",
+                                   "{}.fourier_mode_dimension"},
+      .invariant                = "{}.ok()",
+      .invariant_desc           = "agrees with its own frequency grid, level grid and dimensions.",
       .invariant_needs_complete = true,
-
-      /* Reported whole rather than field by field: the shapes are only
-       * meaningful next to the grids and dimensions they are derived from. */
-      .invariant_printables = {"{}"},
+      .invariant_printables     = {"{}"},
   };
 
   wsg_data["AbsorptionLookupTables"] = {
@@ -1100,11 +1092,9 @@ of this term multiplied by a negative distance.
                     "String",
                     "SubsurfacePoint",
                     "PropmatVector",
-                    "MuelmatVector",
                     "StokvecVector",
                     "PropmatMatrix",
                     "SpecmatMatrix",
-                    "MuelmatTensor3",
                     "StokvecMatrix",
                     "ArrayOfPropmatVector",
                     "ArrayOfStokvecVector",
