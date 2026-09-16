@@ -603,7 +603,7 @@ See :meth:`SensorObsel.normalize` for details.
 
 Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
 geometry first and channel second, and the returned value is
-          ``(measurement_sensor, measurement_sensor_meta)``.)")
+``(measurement_sensor, measurement_sensor_meta)``.)")
       .def(
           "__call__",
           [](const sensor::Builder&      self,

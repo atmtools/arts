@@ -505,7 +505,7 @@ sorting. When extending or reordering a method's inputs, keep this array
 aligned with ``gin``.
 
 Troubleshooting Generic signature and linker errors
---------------------------------------------------
+---------------------------------------------------
 
 An ``undefined reference`` or ``undefined symbol`` for a workspace method
 containing ``Generic<...>`` can mean that its implementation does not match

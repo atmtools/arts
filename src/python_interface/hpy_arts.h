@@ -122,6 +122,20 @@ file : str
 )");
   }
 
+  const auto return_doc = [] {
+    if constexpr (WorkspaceGroup<U>) {
+      return std::format(R"(
+Returns
+-------
+artstype : pyarts3.arts.{}
+    The variable created from the file.
+)",
+                         WorkspaceGroupInfo<U>::name);
+    } else {
+      return std::string{};
+    }
+  }();
+
   c.def_static(
       "fromxml",
       [](const char* const file) -> T {
@@ -130,7 +144,7 @@ file : str
         return x;
       },
       "file"_a,
-      R"(Create variable from file.
+      (std::string{R"(Create variable from file.
 
 Parameters
 ----------
@@ -141,12 +155,8 @@ Raises
 ------
   RuntimeError
       For any failure to read.
-
-Return
-------
-artstype : T
-    The variable created from the file.
-)");
+)"} + return_doc)
+          .c_str());
 }
 
 static constexpr std::array binops{

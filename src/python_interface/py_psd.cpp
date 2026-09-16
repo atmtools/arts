@@ -98,7 +98,7 @@ void py_psd(py::module_& m) try {
       .def("evaluate_with_derivatives",
            &scattering::MGDMass::evaluate_with_derivatives,
            "Evaluate the PSD and its derivatives at the given point.")
-      .doc() = "Modified-gamma PSD constrained by mass density; exactly one of n0 and lambda_ must be NaN.";
+      .doc() = "Modified-gamma PSD constrained by mass density; exactly one of ``n0`` and ``lambda_`` must be NaN.";
 
   py::class_<scattering::MGDTwoMoment>(m, "MGDTwoMoment")
       .def(py::init<ScatteringSpeciesProperty,

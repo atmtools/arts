@@ -255,6 +255,13 @@ String method_docs(const String& name) try {
   out += unwrap_stars(method.desc);
   fix();
 
+  if (not method.size_constraints) {
+    out +=
+        "\n.. warning::\n\n"
+        "    Automatic size constraints are not checked for this method.\n"
+        "    Group-invariant checks on read-only inputs still apply.\n";
+  }
+
   out += std::format("\nAuthor{}: {:,}", method.author.size() > 1 ? "s"sv : ""sv, method.author);
   fix();
 
@@ -363,9 +370,7 @@ The listed method calls describe the order of the agenda calls for each ``option
     for (auto& [opt, doc] : ptr->second) {
       out += std::format(R"(
 
-------------------------------------------------------------
-
-``{}(option="{}")``
+.. rubric:: ``{}(option="{}")``
 
 {}
 

@@ -971,6 +971,7 @@ has been produced and if the measurement can be understood properly.
     known measurement error from both the data and the fit,
     showing the physical signal from the target rather than
     known sensor noise.
+
 This workspace variable belongs to forward calculations and state mapping.
 *oemCalc* and *oemCalcReduced* return their result in ``oem.measurement_vec_fit``;
 they do not replace this independent workspace variable.

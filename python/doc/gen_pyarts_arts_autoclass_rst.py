@@ -42,6 +42,9 @@ def short_doc(v, var=None, name=None):
                     f"ERROR [ARTS DOC] No short doc found: {var if var is not None else ""}{'.' if var is not None and attr is not None else ""}{attr if attr is not None else ''}"
                 )
 
+        # A signature fallback is code, not prose (e.g. its keyword-only *).
+        if "->" in s:
+            return f"``{s}``"
         return s
     except Exception as e:
         raise Exception(f"Error in short_doc for v={v}, var={var}, name={name}:\n{e}")

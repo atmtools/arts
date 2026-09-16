@@ -85,7 +85,7 @@ See :doc:`user.tmatrix` for the interface and :doc:`concept.tmatrix` for
 physical definitions and normalization.
 
 Native particle-habit integration
---------------------------------
+---------------------------------
 
 ``ParticleHabit::tmatrix`` in ``particle_habit_tmatrix.cc`` generates native
 TRO gridded single-scattering data, without legacy-data adapters or files.
@@ -116,7 +116,7 @@ interpolation and repeated number-density scaling through
 original particle data intact.
 
 MC azimuthally random particle reproduction
-------------------------------------------
+-------------------------------------------
 
 ``tests/core/scat/mc_general_arts2.tmatrix.py`` generates its oblate ice particle
 in memory, replacing the large scattering XML fixture.  This test requires

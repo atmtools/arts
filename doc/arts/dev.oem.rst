@@ -771,7 +771,7 @@ preserves sparse storage when the supplied state basis is sparse. All such
 preparation occurs before iteration. Basis truncation preserves storage type.
 
 Owning workspace data
---------------------
+---------------------
 
 ``OptimalEstimationData`` is the workspace group of ``oem``. Numerical OEM
 inputs and outputs belong to this object; physical fields, sensor definitions

@@ -7,7 +7,7 @@ This guide covers method selection, settings, covariance setup, and retrieval
 diagnostics.  The mathematical formulation is in :ref:`Sec OEM`.
 
 Retrieval data and ownership
-===========================
+============================
 
 ``ws.oem`` holds the observations, prior state, covariances, current state,
 Jacobian, fitted measurements, basis information and retrieval results.
@@ -596,7 +596,7 @@ The named controls are:
 
 .. list-table::
    :header-rows: 1
-   :widths: 8 30 62
+   :widths: 30 70
 
    * - Setting name
      - Meaning

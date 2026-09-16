@@ -96,11 +96,6 @@ std::unordered_map<std::string, WsvShortForm> workspace_variables_shortnames_imp
       .title = "Storage form",
   };
 
-  shortnames["mat"] = {
-      .desc  = "As a matrix.",
-      .title = "Storage form",
-  };
-
   return shortnames;
 }
 }  // namespace
