@@ -88,6 +88,19 @@ def typesof(v):
     return classes
 
 
+def class_ref(t):
+    """Reference target for a value's type.
+
+    A generated page sets its currentmodule to the module it documents, which
+    for a submodule page is where Sphinx then looks up a bare class name.  The
+    classes are documented under pyarts3.arts, so they need their module
+    spelled out.  Builtins keep their bare name, which is what the Python
+    inventory holds them under.
+    """
+    mod = getattr(t, "__module__", "") or ""
+    return f"{mod}.{t.__name__}" if mod.startswith("pyarts3") else t.__name__
+
+
 def retypeof(v):
     x = v.split(" | ")
 
@@ -267,7 +280,7 @@ def loop_over_class(cls, mod, pure_overview=False):
                 if isinstance(values[n], type):
                     str += f"      - :class:`~{mod}.{cls.__name__}.{n}`\n"
                 else:
-                    str += f"      - {repr(values[n])} (:class:`~{type(values[n]).__name__}`)\n"
+                    str += f"      - {repr(values[n])} (:class:`~{class_ref(type(values[n]))}`)\n"
 
             for n in operators:
                 str += f"    * - Operator\n"
@@ -480,7 +493,7 @@ def create_rst(data, path, mod):
                 for n in data["values"]:
                     f.write(f"    * - ``{n}``\n")
                     f.write(
-                        f"      - :class:`~{type(data['values'][n]).__name__}`\n"
+                        f"      - :class:`~{class_ref(type(data['values'][n]))}`\n"
                     )
                     f.write(f"      - {repr(data["values"][n])}\n")
     except Exception as e:
