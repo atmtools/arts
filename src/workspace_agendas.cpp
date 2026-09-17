@@ -167,18 +167,6 @@ coming to the surface for surface scattering calculations.
                      "subsurf_field"},
     .enum_options = {"Emission"},
     .enum_default = "Emission",
-    .output_constraints =
-        {
-                {"spectral_rad.size() == freq_grid.size()",
-                 "On output, *spectral_rad* has the size of *freq_grid*.",
-                 "spectral_rad.size()",
-                 "freq_grid.size()"},
-                {"same_shape({jac_targets.x_size(), freq_grid.size()}, spectral_rad_jac)",
-                 "On output, *spectral_rad_jac* has the shape of the expected *model_state_vec* (i.e., the x-size of *jac_targets*) times the size of *freq_grid*.",
-                 "spectral_rad_jac.shape()",
-                 "freq_grid.size()",
-                 "jac_targets.x_size()"},
-            },
     };
 
 

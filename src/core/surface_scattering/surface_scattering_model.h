@@ -88,14 +88,14 @@ struct std::formatter<MapOfSurfaceScatteringModel> {
   FmtContext::iterator format(const MapOfSurfaceScatteringModel& v,
                               FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
-    tags.add_if_bracket(ctx, '{');
+    tags.add_if_bracket(ctx, "{");
     bool first = true;
     for (const auto& [name, model] : v.models) {
       if (!first) tags.format(ctx, sep);
       first = false;
       tags.format(ctx, name);
     }
-    tags.add_if_bracket(ctx, '}');
+    tags.add_if_bracket(ctx, "}");
     return ctx.out();
   }
 };
