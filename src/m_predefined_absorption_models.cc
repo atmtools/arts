@@ -57,6 +57,43 @@ void predefined_model_dataAddWaterMTCKD400(
   predefined_model_data.set(std::move(x));
 }
 
+void predefined_model_dataAddWaterMTCKD430(
+    PredefinedModelData& predefined_model_data,
+    const Numeric& ref_temp,
+    const Numeric& ref_press,
+    const Vector& self_absco_ref,
+    const Vector& for_absco_ref,
+    const Vector& wavenumbers,
+    const Vector& self_texp,
+    const Verbosity&) {
+  const auto sz = self_absco_ref.size();
+
+  ARTS_USER_ERROR_IF(
+      sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or
+          sz not_eq self_texp.size(),
+      "Mismatching size, all vector inputs must be the same length")
+  ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
+  ARTS_USER_ERROR_IF(not is_regularly_increasing_within_epsilon(wavenumbers),
+                     "The wavenumbers must be increasing in a regular manner")
+
+  Absorption::PredefinedModel::MT_CKD430::WaterData x;
+  x.ref_temp = ref_temp;
+  x.ref_press = ref_press;
+  x.self_absco_ref.resize(sz);
+  x.for_absco_ref.resize(sz);
+  x.wavenumbers.resize(sz);
+  x.self_texp.resize(sz);
+
+  std::copy(
+      self_absco_ref.begin(), self_absco_ref.end(), x.self_absco_ref.begin());
+  std::copy(
+      for_absco_ref.begin(), for_absco_ref.end(), x.for_absco_ref.begin());
+  std::copy(wavenumbers.begin(), wavenumbers.end(), x.wavenumbers.begin());
+  std::copy(self_texp.begin(), self_texp.end(), x.self_texp.begin());
+
+  predefined_model_data.set(std::move(x));
+}
+
 /* Workspace method: Doxygen documentation will be auto-generated */
 void propmat_clearskyAddPredefined(
     PropagationMatrix& propmat_clearsky,

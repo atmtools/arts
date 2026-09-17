@@ -16,6 +16,8 @@ Model::DataHolder construct_empty(PredefinedModelDataKey key) {
   switch (key) {
   case PredefinedModelDataKey::water_mt_ckd_4d0:
     return MT_CKD400::WaterData{};
+  case PredefinedModelDataKey::water_mt_ckd_4d30:
+    return MT_CKD430::WaterData{};
   case PredefinedModelDataKey::FINAL: { /* do nothing */
   }
   }
@@ -75,7 +77,46 @@ void WaterData::resize(const std::vector<std::size_t> &inds) {
   wavenumbers.resize(inds.front());
   self_texp.resize(inds.front());
 }
-} // namespace MT_CKD400
+}  // namespace MT_CKD400
+
+namespace MT_CKD430 {
+std::ostream &operator<<(std::ostream &os, const WaterData &data) {
+  os << data.ref_temp << ' ' << data.ref_press << '\n';
+  for (auto &x : data.for_absco_ref)
+    os << x << ' ';
+  os << '\n';
+  for (auto &x : data.self_absco_ref)
+    os << x << ' ';
+  os << '\n';
+  for (auto &x : data.wavenumbers)
+    os << x << ' ';
+  os << '\n';
+  for (auto &x : data.self_texp)
+    os << x << ' ';
+  return os;
+}
+
+std::istream &operator>>(std::istream &is, WaterData &data) {
+  is >> double_imanip() >> data.ref_temp >> data.ref_press;
+  for (auto &x : data.for_absco_ref)
+    is >> double_imanip() >> x;
+  for (auto &x : data.self_absco_ref)
+    is >> double_imanip() >> x;
+  for (auto &x : data.wavenumbers)
+    is >> double_imanip() >> x;
+  for (auto &x : data.self_texp)
+    is >> double_imanip() >> x;
+  return is;
+}
+
+void WaterData::resize(const std::vector<std::size_t> &inds) {
+  ARTS_USER_ERROR_IF(inds.size() not_eq 1, "Expects only one size")
+  self_absco_ref.resize(inds.front());
+  for_absco_ref.resize(inds.front());
+  wavenumbers.resize(inds.front());
+  self_texp.resize(inds.front());
+}
+}  // namespace MT_CKD430
 
 void Model::set_all(const PredefinedModelData &d) {
   for (auto &x : d.data) {

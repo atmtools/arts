@@ -19,6 +19,14 @@ void compute_self_h2o(PropagationMatrix &, const Vector &, const Numeric &,
                       const Numeric &, const Numeric &, const WaterData &) NOPE;
 } // namespace MT_CKD400
 
+namespace MT_CKD430 {
+void compute_foreign_h2o(PropagationMatrix &, const Vector &, const Numeric &,
+                         const Numeric &, const Numeric &,
+                         const WaterData &) NOPE;
+void compute_self_h2o(PropagationMatrix &, const Vector &, const Numeric &,
+                      const Numeric &, const Numeric &, const WaterData &) NOPE;
+} // namespace MT_CKD430
+
 namespace MT_CKD100 {
 void oxygen_cia(PropagationMatrix &, const Vector &, const Numeric,
                 const Numeric, const Numeric) NOPE;
