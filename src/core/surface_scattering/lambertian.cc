@@ -60,9 +60,9 @@ Numeric frequency_extrap_limit(InterpolationExtrapolation extrap) {
 SurfaceScatteringModelProperties lambertian_properties(
     const auto& r_data,
     Index nf, Index nzi, Index nai, Index nzs, Index nas) {
-  MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, 0.0);
+  MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
   // Tensor3 emissivity(nf, nzs, 4, 0.0);
-  MuelmatTensor3 emissivity(nf, nzs, nas, 0.0);
+  MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
   Muelmat isotropic_brdf;
   Muelmat isotropic_emissivity;
