@@ -230,18 +230,27 @@ void spectral_radSurfaceScatteringFlatDiffuse(
     const Agenda& spectral_rad_closed_surface_agenda) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      surf_field.bad_ellipsoid(),
-      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-      surf_field.ellipsoid)
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
 
-  const Vector za_out           = {ray_point.los[0]};
-  const Vector aa_out           = {ray_point.los[1]};
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  const Vector       za_out     = {ray_point.los[0]};
+  const Vector       aa_out     = {ray_point.los[1]};
   const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
 
   // get the emissivity matrix and BRDF matrix, which are members of surface_props
   const surface_scattering::SurfaceScatteringModelProperties surface_props =
-      surface_models.get_surface_scattering_model_properties(surf_point,
+      surface_models.get_surface_scattering_model_properties(
+          surf_point,
                                                              ray_point.pos[1],
                                                              ray_point.pos[2],
                                                              freq_grid,
@@ -262,8 +271,6 @@ void spectral_radSurfaceScatteringFlatDiffuse(
                                      surf_field,
                                      subsurf_field,
                                      spectral_rad_closed_surface_agenda);
-
-  std::cerr << "spectral_rad_surface: " << spectral_rad_surface.size() << "\n";
 
   // get the incoming radiation
   StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
@@ -340,7 +347,7 @@ void spectral_radSurfaceScatteringFlatDiffuse(
   spectral_rad += spectral_rad_scattered;
   spectral_rad += spectral_rad_surface;
   spectral_rad_jac += spectral_rad_scattered_jac;
-  spectral_rad_jac += spectral_rad_jac_surface;
+  spectral_rad_jac += spectral_rad_jac_subsurface;
 
 }
 ARTS_METHOD_ERROR_CATCH
