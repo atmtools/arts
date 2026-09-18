@@ -103,7 +103,6 @@ field3_lin = arts.SortedGriddedField3(
 sc_lin = arts.LambertianSurfaceScattererField(field3_lin)
 
 # At lat=0, expected r = 0.5 everywhere
-import math
 expected_brdf = 0.5
 expected_emiss = 0.5
 
@@ -116,7 +115,7 @@ emiss_mid = np.array(props_mid.emissivity_vector)
 for fi in range(len(f_grid)):
     assert abs(float(brdf_mid[fi, 0, 0, 0, 0, 0, 0]) - expected_brdf) < 1e-12, (
         f"BRDF at lat=0 f[{fi}]: {float(brdf_mid[fi,0,0,0,0,0,0]):.6e} != {expected_brdf:.6e}")
-    assert abs(float(emiss_mid[fi, 0, 0]) - expected_emiss) < 1e-12, (
+    assert abs(float(emiss_mid[fi, 0, 0, 0, 0]) - expected_emiss) < 1e-12, (
         f"Emissivity at lat=0 f[{fi}]: {float(emiss_mid[fi,0,0]):.6e} != {expected_emiss:.6e}")
 
 # Also check at lat=-90 (should give r_south) and lat=+90 (r_north)
