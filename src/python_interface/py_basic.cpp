@@ -36,8 +36,8 @@ void py_basic(py::module_& m) try {
 
            if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                 : py::rv_policy::copy);
+           if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+           return x.cast(py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -62,8 +62,8 @@ void py_basic(py::module_& m) try {
 
            if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                 : py::rv_policy::copy);
+           if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+           return x.cast(py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),
@@ -91,8 +91,8 @@ void py_basic(py::module_& m) try {
 
            if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                 : py::rv_policy::copy);
+           if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+           return x.cast(py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none())
@@ -117,8 +117,8 @@ void py_basic(py::module_& m) try {
 
            if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-           return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                 : py::rv_policy::copy);
+           if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+           return x.cast(py::rv_policy::copy);
          },
          "dtype"_a.none() = py::none(),
          "copy"_a.none()  = py::none(),
@@ -143,7 +143,7 @@ void py_basic(py::module_& m) try {
 
   py::class_<Any> any(m, "Any");
   generic_interface(any);
-  any.def("__init__", [](Any* a, const py::arg&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
+  any.def("__init__", [](Any* a, const py::args&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
 }

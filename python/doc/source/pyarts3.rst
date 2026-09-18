@@ -12,6 +12,7 @@ API Reference
    pyarts3.math
    pyarts3.plots
    pyarts3.recipe
+   pyarts3.retrieval
    pyarts3.utils
    pyarts3.spectroscopy
    pyarts3.workspace
@@ -29,6 +30,7 @@ API Reference
    pyarts3.math
    pyarts3.plots
    pyarts3.recipe
+   pyarts3.retrieval
    pyarts3.utils
    pyarts3.spectroscopy
    pyarts3.workspace
@@ -51,4 +53,3 @@ API Reference
     - Decorator for creating ARTS agendas.
   * - :class:`~pyarts3.workspace.callback_operator`
     - Callback operator decorator.
-

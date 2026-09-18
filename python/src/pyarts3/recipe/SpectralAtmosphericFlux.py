@@ -106,11 +106,11 @@ class SpectralAtmosphericFlux:
         """Return the atmospheric field as a dictionary of python types.
 
         Args:
-            core (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            specs (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to True.
-            nlte (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            ssprops (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
-            isots (bool, optional): See :meth:`ArrayOfAtmPoint.to_dict`. Defaults to False.
+            core (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to True.
+            specs (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to True.
+            nlte (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
+            ssprops (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
+            isots (bool, optional): See :meth:`~pyarts3.arts.ArrayOfAtmPoint.to_dict`. Defaults to False.
 
         Returns:
             dict: Atmospheric field dictionary
@@ -135,7 +135,7 @@ class SpectralAtmosphericFlux:
             surf_temperature (float, optional): The surface temperature. Defaults to None.
 
         Returns:
-            Flux, numpy.ndarray: Flux profile and average layer altitudes
+            tuple[pyarts3.recipe.SpectralAtmosphericFlux.Flux, numpy.ndarray]: Flux profile and average layer altitudes
         """
 
         if surf_temperature is not None:

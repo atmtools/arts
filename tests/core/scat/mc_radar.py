@@ -114,7 +114,8 @@ np.testing.assert_allclose(mc_pencil, deterministic, rtol=2e-3, atol=1e-15)
 # sampler is added, rather than silently returning a single-scattering result.
 try:
     ws.MCRadar(**(kwargs | {"mc_max_scatorder": 2}))
-except RuntimeError:
-    pass
+except RuntimeError as error:
+    assert "mc_max_scatorder=1; got 2" in str(error)
+    assert "m_montecarlo_radar.cc" in str(error)
 else:
     raise AssertionError("MCRadar accepted an unsupported scattering order")

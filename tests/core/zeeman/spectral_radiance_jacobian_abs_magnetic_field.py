@@ -72,7 +72,6 @@ los = [160.0, 0.0]
 ws.measurement_sensorSimple(pos=pos, los=los)
 ws.measurement_vecFromSensor()
 
-ws.measurement_vec_error_covmatConstant(value=noise**2)
 y = 1.0*ws.measurement_vec
 
 orig = np.sqrt(mag_u.data[0, 0, 0]**2 + mag_v.data[0, 0, 0]**2 + mag_w.data[0, 0, 0]**2)
@@ -95,27 +94,31 @@ print(
     f"Original Magnetic Field: {orig * 1e9:.2f} nT, Modified Magnetic Field: {modified * 1e9:.2f} nT"
 )
 
-ws.RetrievalInit()
-ws.RetrievalAddMagneticField(component="u", matrix=np.diag(np.ones((1)) * 1e-10))
-ws.RetrievalAddOverlappingMagneticField(matrix=np.diag(np.ones((1)) * 1e-10))
-ws.RetrievalFinalizeDiagonal()
+ws.oemInit()
+ws.oemAddMagneticField(component="u", matrix=np.diag(np.ones((1)) * 1e-10))
+ws.oemAddOverlappingMagneticField(matrix=np.diag(np.ones((1)) * 1e-10))
+ws.jac_targetsFinalize()
 
 fail = True
 
 for i in range(LIMIT):
     ws.measurement_vec = y + np.random.normal(0, noise, NF)
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
 
-    ws.model_state_vec_aprioriFromData()
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
-    ws.OEM(method="gn")
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-    absdiff = round(abs(orig - ws.model_state_vec[0]) * 1e9)
+    ws.oemCalc(settings="gn")
+
+    absdiff = round(abs(orig - ws.oem.model_state_vec[0]) * 1e9)
 
     print(
-        f"Input {round(orig*1e9)} nT, Output {round(ws.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
+        f"Input {round(orig*1e9)} nT, Output {round(ws.oem.model_state_vec[0]*1e9)} nT, AbsDiff {absdiff} nT"
     )
     if absdiff >= ATOL:
         print(f"AbsDiff not less than {ATOL} nT, rerunning with new random noise")

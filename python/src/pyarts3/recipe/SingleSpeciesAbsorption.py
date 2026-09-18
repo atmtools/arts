@@ -45,7 +45,7 @@ class SingleSpeciesAbsorption:
 
         Returns
         -------
-        numpy.ndarray : spectral_propmat
+        spectral_propmat : numpy.ndarray
             The propagation matrix at the frequency and point of interest
             Note that the first dimention is the size of the frequency
             grid and that the second dimension contains 7 variables, the

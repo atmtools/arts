@@ -90,7 +90,76 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
     }
   }
 
-  std::print(os, "\n  return false;\n}}\n}}\n");
+  std::print(os, "\n  return false;\n}}\n");
+  os << R"(
+Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool output) {
+  py::gil_scoped_acquire gil;
+  // Construct the accepted-type list only when conversion fails.
+  const auto rejected = [&](std::string reason) {
+    reason += " Accepted workspace types: ";
+    if (allowed.empty()) reason += "any workspace group";
+    for (std::size_t i = 0; i < allowed.size(); ++i) {
+      if (i) reason += ", ";
+      switch (allowed[i]) {
+)";
+  for (const auto& [group, wsg] : wsgs) {
+    std::println(
+        os, "        case WorkspaceGroupInfo<{0}>::index: reason += WorkspaceGroupInfo<{0}>::name; break;", group);
+  }
+  os << R"(
+      }
+    }
+    return std::runtime_error(reason);
+  };
+  if (not x or x->is_none()) throw rejected("A generic argument requires a value with a concrete type.");
+  const auto accepts = [&](std::size_t type) {
+    return allowed.size() == 0 or std::find(allowed.begin(), allowed.end(), type) != allowed.end();
+  };
+  if (py::isinstance<Wsv>(*x)) {
+    auto value = py::cast<Wsv>(*x);
+    if (not accepts(value.value_index())) throw rejected("Unsupported generic argument type: " + std::string(value.type_name()) + ".");
+    return value;
+  }
+)";
+  // Preserve identity, including the shared scalar held by ValueHolder.
+  for (const auto& [group, wsg] : wsgs) {
+    if (wsg.value_type)
+      std::println(
+          os,
+          "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<ValueHolder<{0}>>(*x)) return Wsv(std::shared_ptr<{0}>(py::cast<ValueHolder<{0}>&>(*x, false).val));",
+          group);
+    else
+      std::println(
+          os,
+          "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<{0}>(*x)) return Wsv(py::cast<std::shared_ptr<{0}>>(*x, false));",
+          group);
+  }
+  os << R"(
+  if (output) throw rejected("A generic output requires an explicitly typed mutable ARTS object.");
+  if (allowed.size() == 0) return from(x);
+  // Try only declared alternatives, in declaration order. Conversion is compiled
+  // once per workspace group, not once per combination of method arguments.
+  for (const auto type : allowed) {
+    switch (type) {
+)";
+  for (const auto& [group, wsg] : wsgs) {
+    os << "    case WorkspaceGroupInfo<" << group << ">::index: {\n";
+    if (wsg.value_type) {
+      std::println(os,
+                   "      ValueHolder<{0}> value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value.val));",
+                   group);
+    } else {
+      std::println(os, "      {0} value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value));", group);
+    }
+    os << "      break;\n    }\n";
+  }
+  os << R"(
+    }
+  }
+  throw rejected("Cannot convert generic argument to any declared type.");
+}
+} // namespace Python
+)";
 } catch (const std::exception& e) {
   std::println(stderr, "Error in implement_convert_const_py_object: {}", e.what());
   throw;
@@ -174,9 +243,7 @@ namespace Python {{
 std::string type(const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
   if (not x or x -> is_none()) return "NoneType";
-  if (not py::type_check(*x)) return "UnknownType";
-
-  return py::cast<std::string>(py::str(py::type_name(*x)));
+  return py::type_name(x->type()).c_str();
 }}
 }}  // namespace Python
 )--");
@@ -238,6 +305,8 @@ void groups(const std::string& fname) try {
   std::println(hos, R"--(#pragma once
 
 #include <auto_wsg.h>
+#include <span>
+#include <cstddef>
 #include <python_interface_value_type.h>
 
 #include <nanobind/nanobind.h>
@@ -258,6 +327,7 @@ bool convert_ref(Wsv& wsv, const py::object * const x);
 bool convert_cast(Wsv& wsv, const py::object * const x);
 Wsv from(py::object* const x);
 Wsv from(const py::object* const x);
+Wsv from_allowed(const py::object*, std::span<const std::size_t>, bool output);
 
 std::string type(const py::object * const x);
 
@@ -394,7 +464,7 @@ void py_auto_agenda_operators(py::module_& m) {{
       vars.push_back(std::format(R"("{}"_a)", v));
       params += std::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
-     {2} See also :attr:`~pyarts3.Workspace.{0}`.
+     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,
@@ -405,7 +475,7 @@ void py_auto_agenda_operators(py::module_& m) {{
     for (auto&& v : ag.output) {
       retval += std::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
-     {2} See also :attr:`~pyarts3.Workspace.{0}`.
+     {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
           v,
           wsv.at(v).type,

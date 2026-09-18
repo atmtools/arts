@@ -19,17 +19,19 @@ namespace Python {
 void py_surf(py::module_ &m) try {
   auto tessem = py::class_<TessemNN>(m, "TessemNN");
   tessem.def(py::init<>())
-      .def_rw("nb_inputs", &TessemNN::nb_inputs, "Number of neural-network inputs\n\n.. :class:`Index`")
-      .def_rw("nb_outputs", &TessemNN::nb_outputs, "Number of neural-network outputs\n\n.. :class:`Index`")
-      .def_rw("nb_cache", &TessemNN::nb_cache, "Number of hidden neural-network nodes\n\n.. :class:`Index`")
-      .def_rw("b1", &TessemNN::b1, "Hidden-layer biases\n\n.. :class:`Vector`")
-      .def_rw("b2", &TessemNN::b2, "Output-layer biases\n\n.. :class:`Vector`")
-      .def_rw("w1", &TessemNN::w1, "Hidden-layer weights\n\n.. :class:`Matrix`")
-      .def_rw("w2", &TessemNN::w2, "Output-layer weights\n\n.. :class:`Matrix`")
-      .def_rw("x_min", &TessemNN::x_min, "Minimum values used to scale the inputs\n\n.. :class:`Vector`")
-      .def_rw("x_max", &TessemNN::x_max, "Maximum values used to scale the inputs\n\n.. :class:`Vector`")
-      .def_rw("y_min", &TessemNN::y_min, "Minimum values used to scale the outputs\n\n.. :class:`Vector`")
-      .def_rw("y_max", &TessemNN::y_max, "Maximum values used to scale the outputs\n\n.. :class:`Vector`")
+      .def_rw("nb_inputs", &TessemNN::nb_inputs, "Number of neural-network inputs\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw(
+          "nb_outputs", &TessemNN::nb_outputs, "Number of neural-network outputs\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw(
+          "nb_cache", &TessemNN::nb_cache, "Number of hidden neural-network nodes\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_rw("b1", &TessemNN::b1, "Hidden-layer biases\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("b2", &TessemNN::b2, "Output-layer biases\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("w1", &TessemNN::w1, "Hidden-layer weights\n\n.. :class:`~pyarts3.arts.Matrix`")
+      .def_rw("w2", &TessemNN::w2, "Output-layer weights\n\n.. :class:`~pyarts3.arts.Matrix`")
+      .def_rw("x_min", &TessemNN::x_min, "Minimum values used to scale the inputs\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("x_max", &TessemNN::x_max, "Maximum values used to scale the inputs\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("y_min", &TessemNN::y_min, "Minimum values used to scale the outputs\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("y_max", &TessemNN::y_max, "Maximum values used to scale the outputs\n\n.. :class:`~pyarts3.arts.Vector`")
       .def(
           "__call__",
           [](const TessemNN &self, const Vector &input) { return tessem_emissivity(self, input); },
@@ -48,11 +50,11 @@ void py_surf(py::module_ &m) try {
 
   auto telsem = py::class_<TelsemAtlas>(m, "TelsemAtlas");
   telsem.def(py::init<>())
-      .def_ro("ndat", &TelsemAtlas::ndat, "Number of populated atlas cells\n\n.. :class:`Index`")
-      .def_ro_static("nchan", &TelsemAtlas::nchan, "Number of atlas channels\n\n.. :class:`Index`")
-      .def_ro("name", &TelsemAtlas::name, "Atlas name\n\n.. :class:`String`")
-      .def_ro("month", &TelsemAtlas::month, "Atlas month\n\n.. :class:`Index`")
-      .def_ro("dlat", &TelsemAtlas::dlat, "Atlas latitude resolution [degrees]\n\n.. :class:`Numeric`")
+      .def_ro("ndat", &TelsemAtlas::ndat, "Number of populated atlas cells\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_ro_static("nchan", &TelsemAtlas::nchan, "Number of atlas channels\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_ro("name", &TelsemAtlas::name, "Atlas name\n\n.. :class:`~pyarts3.arts.String`")
+      .def_ro("month", &TelsemAtlas::month, "Atlas month\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_ro("dlat", &TelsemAtlas::dlat, "Atlas latitude resolution [degrees]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def("contains", &TelsemAtlas::contains, "cell_number"_a, "Check whether an atlas cell contains data")
       .def("cell_number", &TelsemAtlas::calc_cellnum, "lat"_a, "lon"_a, "Return the atlas cell number at a position")
       .def("coordinates", &TelsemAtlas::get_coordinates, "cell_number"_a, "Return the coordinates of an atlas cell")
@@ -94,13 +96,22 @@ void py_surf(py::module_ &m) try {
           [](Surf::Data *a, const GriddedField2 &v) { new (a) Surf::Data(GeodeticField2(v)); },
           "v"_a,
           "Initialize with a sorted field")
-      .def_rw("data",
-              &Surf::Data::data,
-              "The data\n\n.. :class:`GeodeticField2`\n\n.. :class:`Numeric`\n\n.. :class:`NumericBinaryOperator`")
-      .def_rw("lat_upp", &Surf::Data::lat_upp, "Upper latitude limit\n\n.. :class:`InterpolationExtrapolation`")
-      .def_rw("lat_low", &Surf::Data::lat_low, "Lower latitude limit\n\n.. :class:`InterpolationExtrapolation`")
-      .def_rw("lon_upp", &Surf::Data::lon_upp, "Upper longitude limit\n\n.. :class:`InterpolationExtrapolation`")
-      .def_rw("lon_low", &Surf::Data::lon_low, "Lower longitude limit\n\n.. :class:`InterpolationExtrapolation`")
+      .def_rw(
+          "data",
+          &Surf::Data::data,
+          "The data\n\n.. :class:`~pyarts3.arts.GeodeticField2`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericBinaryOperator`")
+      .def_rw("lat_upp",
+              &Surf::Data::lat_upp,
+              "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Surf::Data::lat_low,
+              "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Surf::Data::lon_upp,
+              "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Surf::Data::lon_low,
+              "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "set_extrapolation",
           [](Surf::Data &self, InterpolationExtrapolation x) {
@@ -144,7 +155,7 @@ void py_surf(py::module_ &m) try {
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a position")
-      .def_prop_ro("data_type", &Surf::Data::data_type, "The data type\n\n.. :class:`String`");
+      .def_prop_ro("data_type", &Surf::Data::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
   surfdata.doc() = "Surface data";
   py::implicitly_convertible<Surf::FunctionalData::func_t, Surf::Data>();
   py::implicitly_convertible<GriddedField2, Surf::Data>();
@@ -157,7 +168,7 @@ void py_surf(py::module_ &m) try {
 
   py::class_<SurfacePropertyTag> spt(m, "SurfacePropertyTag");
   generic_interface(spt);
-  spt.def_rw("name", &SurfacePropertyTag::name, "Name of property\n\n.. :class:`String`");
+  spt.def_rw("name", &SurfacePropertyTag::name, "Name of property\n\n.. :class:`~pyarts3.arts.String`");
   spt.def(py::init_implicit<String>());
 
   auto pnt = py::class_<SurfacePoint>(m, "SurfacePoint");
@@ -178,15 +189,15 @@ void py_surf(py::module_ &m) try {
          "planet"_a)
       .def_rw("ellipsoid",
               &SurfaceField::ellipsoid,
-              "Ellipsoid parameters (semi-major axis, semi-minor axis)\n\n.. :class:`Vector2`");
+              "Ellipsoid parameters (semi-major axis, semi-minor axis)\n\n.. :class:`~pyarts3.arts.Vector2`");
   fld.def("keys", &SurfaceField::keys, "Available keys");
   fld.def("single_value", &SurfaceField::single_value, "key"_a, "lat"_a, "lon"_a, "Get a single value at a position");
   generic_interface(fld);
   py::implicitly_convertible<String, SurfaceField>();
 
-  pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]\n\n.. :class:`Numeric`")
-      .def_rw("elevation", &SurfacePoint::elevation, "Surface elevation [m]\n\n.. :class:`Numeric`")
-      .def_rw("normal", &SurfacePoint::normal, "Surface normal vector\n\n.. :class:`Vector2`")
+  pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("elevation", &SurfacePoint::elevation, "Surface elevation [m]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("normal", &SurfacePoint::normal, "Surface normal vector\n\n.. :class:`~pyarts3.arts.Vector2`")
       .def(
           "__getitem__",
           [](SurfacePoint &surf, const SurfaceKeyVal &x) {
@@ -248,7 +259,8 @@ void py_surf(py::module_ &m) try {
               "Properties of the surface field\n\n.. :class:`dict[SurfacePropertyTag, SurfaceData]`");
 
   py::class_<SubsurfacePropertyTag> sptag(m, "SubsurfacePropertyTag");
-  sptag.def_rw("name", &SubsurfacePropertyTag::name, "Name of the subsurface property\n\n.. :class:`String`");
+  sptag.def_rw(
+      "name", &SubsurfacePropertyTag::name, "Name of the subsurface property\n\n.. :class:`~pyarts3.arts.String`");
   sptag.def(py::init_implicit<String>());
   generic_interface(sptag);
 
@@ -268,7 +280,7 @@ void py_surf(py::module_ &m) try {
              "Properties of the subsurface field\n\n.. :class:`dict[SubsurfacePropertyTag, SubsurfaceData]`");
   ssf.def_rw("bottom_depth",
              &SubsurfaceField::bottom_depth,
-             "The depth of the bottom of the subsurface [m]\n\n.. :class:`Numeric`");
+             "The depth of the bottom of the subsurface [m]\n\n.. :class:`~pyarts3.arts.Numeric`");
   ssf.def(
       "__call__",
       [](const SubsurfaceField &d, Numeric alt, Numeric lat, Numeric lon) { return d.at(alt, lat, lon); },
@@ -318,8 +330,8 @@ void py_surf(py::module_ &m) try {
   generic_interface(ssf);
 
   py::class_<SubsurfacePoint> ssp(m, "SubsurfacePoint");
-  ssp.def_rw("temperature", &SubsurfacePoint::temperature, "Temperature [K]\n\n.. :class:`Numeric`");
-  ssp.def_rw("density", &SubsurfacePoint::density, "Density [kg/m^3]\n\n.. :class:`Numeric`");
+  ssp.def_rw("temperature", &SubsurfacePoint::temperature, "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`");
+  ssp.def_rw("density", &SubsurfacePoint::density, "Density [kg/m^3]\n\n.. :class:`~pyarts3.arts.Numeric`");
   ssp.def_rw("props",
              &SubsurfacePoint::props,
              "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");

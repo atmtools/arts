@@ -705,23 +705,6 @@ The object should have these sizes internally:
       .default_value = "TransmittanceOption::linsrc",
   };
 
-  wsv_data["spectral_linevo_jac_path"] = {
-      .desc =
-          R"--(The partial derivatives of the linear evolution operator along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatTensor3",
-      .dims = {"NPATH"},
-      // ???
-  };
-
-  wsv_data["spectral_linevo_path"] = {
-      .desc = R"--(The linear evolution operator along the propagation path.
-)--",
-      .type = "ArrayOfMuelmatVector",
-      .dims = {"NPATH"},
-      // ???
-  };
-
   //! Surface
 
   wsv_data["surf_field"] = {
@@ -835,28 +818,15 @@ psat : Numeric
 
   //! Inversion
 
-  wsv_data["covmat_diagonal_blocks"] = {
-      .desc = R"(A helper map for setting the covariance matrix.
+  wsv_data["model_state_targets"] = {
+      .desc = R"(Complete mapping from *model_state_vec* to physical model fields and measurement errors.
+
+During *oemCalc*, this always contains the full retrieval targets.  The separate
+*jac_targets* may be empty to disable derivatives without disabling state updates.
 )",
-      .type = "JacobianTargetsDiagonalCovarianceMatrixMap",
-      .dims = {"NTARGET"},
+      .type = "JacobianTargets",
+      .dims = {"NTARGET", "NSTATE"},
   };
-
-  wsv_data["do_jac"] = {
-      .desc =
-          R"(A boolean calculations related to the *measurement_jac* should be ignored.
-
-This variable is limited to very few methods related to the inversion process for *OEM*.
-Note that deep code of ARTS will ignore this variable, so it is not a global switch.
-Instead, it is used as a switch to clear the *jac_targets* variable, which is used
-to determine the size of the *measurement_jac*.  It is important to be careful
-with this, as it will mess with the size of the *measurement_jac* and could
-thus lead to runtime errors being thrown in places where unexpected sizes are encountered.
-)",
-      .type          = "Index",
-      .default_value = "1",
-  };
-
   wsv_data["jac_targets"] = {
       .desc          = R"--(A list of targets for the Jacobian Matrix calculations.
 
@@ -873,34 +843,21 @@ the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
       .dims          = {"NTARGET", "NSTATE"},
   };
 
-  wsv_data["inversion_iterate_agenda_counter"] = {
-      .desc          = R"(A counter for the inversion iterate agenda.
+  wsv_data["oem"] = {
+      .desc = R"(Numerical problem and results for *oemCalc* and *oemCalcReduced*.
+
+Use *oemInit* to move the primitive state, measurement, fit and Jacobian
+into this object. Covariance helpers and oemFinalizeDiagonal fill its
+covariance members. Basis helpers retain their spectrum and losses here.
+The physical fields and Jacobian targets remain in the workspace.
+
+The state basis B has shape (NSTATE, NSTATE_REDUCED), and the measurement
+basis C has shape (NMEAS_REDUCED, NMEAS). The full sizes are read from the
+prior and observation vectors, even when the current state or fit is empty.
+Reduced sizes are zero until the corresponding bases are set.
 )",
-      .type          = "Index",
-      .default_value = "0",
-  };
-
-  wsv_data["measurement_averaging_kernel"] = {
-      .desc =
-          R"(Averaging kernel matrix.
-
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
-
-Usage: Used and set by inversion methods.
-)",
-      .type = "Matrix",
-      .dims = {"NSTATE", "NSTATE"},
-  };
-
-  wsv_data["measurement_gain_mat"] = {
-      .desc = R"(Contribution function (or gain) matrix.
-
-This matrix is the partial derivative of the retrieved state vector with respect to the *measurement_vec*.
-
-Usage: Used and set by inversion methods.
-)",
-      .type = "Matrix",
-      .dims = {"NSTATE", "NMEAS"},
+      .type = "OptimalEstimationData",
+      .dims = {"NSTATE", "NMEAS", "NSTATE_REDUCED", "NMEAS_REDUCED"},
   };
 
   wsv_data["measurement_jac"] = {
@@ -914,6 +871,9 @@ This variable represents the matrix
 
 where :math:`\vec{y}` is the *measurement_vec* and :math:`\vec{x}` is the *model_state_vec*.
 Please refer to those variables for more information.
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.measurement_jac``;
+they do not replace this independent workspace variable.
 )",
       .type = "Matrix",
       .dims = {"NMEAS", "NSTATE"},
@@ -935,7 +895,7 @@ This is the core variable describing the measured data, or the model of measured
 
 This must often be the same size as *measurement_sensor*.
 
-The notation in ARTS, for the purpose of *OEM*, is that
+The notation in ARTS, for the purpose of *oemCalc*, is that
 
 .. math::
     \vec{y} = \mathbf{F}\left(\vec{x}\right) + \vec{y}_\epsilon\left(\vec{x}\right) + \epsilon
@@ -982,7 +942,7 @@ In that notation, this is :math:`\vec{y}_\epsilon`.
 This must often be the same size as *measurement_sensor*.
 
 See *measurement_vec* for more details.
-In that notation, and in the notation of *OEM*,
+In that notation, and in the notation of *oemCalc*,
 :math:`\vec{y}_f \approx \vec{y} - \epsilon`.
 Or at least this should be the case depending on how good of a fit of :math:`\vec{x}`
 has been produced and if the measurement can be understood properly.
@@ -994,6 +954,10 @@ has been produced and if the measurement can be understood properly.
     known measurement error from both the data and the fit,
     showing the physical signal from the target rather than
     known sensor noise.
+
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.measurement_vec_fit``;
+they do not replace this independent workspace variable.
 )",
       .type          = "Vector",
       .default_value = " ",
@@ -1011,27 +975,18 @@ has been produced and if the measurement can be understood properly.
       .desc          = R"(A state vector of the model.
 
 This represents the :emphasis:`chosen` state of the model.
-In the notation of *measurement_vec* and *OEM*,
+In the notation of *measurement_vec* and *oemCalc*,
 :math:`\vec{x}` is the *model_state_vec*.
 
 To choose the state of the model, you must setup *jac_targets* to
 include the state parameters you want to be able to change.
+This workspace variable belongs to forward calculations and state mapping.
+*oemCalc* and *oemCalcReduced* return their result in ``oem.model_state_vec``;
+they do not replace this independent workspace variable.
 )",
       .type          = "Vector",
       .default_value = " ",
       .dims          = {"NSTATE"},
-  };
-
-  wsv_data["model_state_vec_apriori"] = {
-      .desc = R"(An apriori state vector of the model.
-
-See *model_state_vec* for more details.
-This is the state vector that is assumed to be the a priori state of the model.
-In normal circumstances, this is the state vector that is used to
-start the inversion process.  In *OEM*, this is :math:`\vec{x}_a`.
-)",
-      .type = "Vector",
-      .dims = {"NSTATE"},
   };
 
   //! Ray tracing
@@ -1230,30 +1185,36 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
       .desc = R"(The spectral flux field from Disort.
 )",
       .type = "DisortFlux",
+      .dims = {"NFREQ", "NLAYER"},
   };
 
   wsv_data["disort_spectral_rad_field"] = {
       .desc = R"(The spectral radiance field from Disort.
 )",
       .type = "DisortRadiance",
+      .dims = {"NFREQ", "NLAYER", "NAZIMUTH", "NZENITH"},
   };
 
   wsv_data["disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations.
 )",
       .type = "DisortSettings",
+      .dims = {"NFREQ", "NLAYER", "NQUADRATURE", "NDISORT_LEGENDRE", "NFOURIER"},
   };
 
   wsv_data["atm_disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations for atmospheric conditions.
 )",
       .type = "DisortSettings",
+      // Coupled components share frequency and angular dimensions, but not layer counts.
+      .dims = {"NFREQ", "", "NQUADRATURE", "", "NFOURIER"},
   };
 
   wsv_data["subsurf_disort_settings"] = {
       .desc = R"(Contains the full settings of spectral Disort calculations for subsurface conditions.
 )",
       .type = "DisortSettings",
+      .dims = {"NFREQ", "", "NQUADRATURE", "", "NFOURIER"},
   };
 
   //! Geodetic coordinates (altitude, latitude and longitude)
@@ -1345,13 +1306,6 @@ Units: degrees
       .dims = {"NTARGET"},
   };
 
-  wsv_data["single_freq_path"] = {
-      .desc = R"(The *freq* along the path.
-)",
-      .type = "Vector",
-      .dims = {"NPATH"},
-  };
-
   wsv_data["single_nlte_srcvec"] = {
       .desc = R"--(A non-LTE source vector at a single *freq* point.
 
@@ -1370,28 +1324,6 @@ See *spectral_propmat_jac* for more information.
       .dims = {"NTARGET"},
   };
 
-  wsv_data["single_nlte_srcvec_jac_path"] = {
-      .desc =
-          R"(The propagation matrix Jacobian along the path for nonlte source.
-)",
-      .type = "StokvecMatrix",
-      .dims = {"NPATH", "NTARGET"},
-  };
-
-  wsv_data["single_nlte_srcvec_path"] = {
-      .desc = R"(The propagation matrix along the path for nonlte source vector.
-)",
-      .type = "StokvecVector",
-      .dims = {"NPATH"},
-  };
-
-  wsv_data["single_propmat_jac_path"] = {
-      .desc = R"(The propagation matrix Jacobian along the path.
-)",
-      .type = "PropmatMatrix",
-      .dims = {"NPATH", "NTARGET"},
-  };
-
   wsv_data["single_propmat"] = {
       .desc = R"--(A propagation matrix at a single *freq* point.
 
@@ -1408,13 +1340,6 @@ See *spectral_propmat_jac* for more information.
 )--",
       .type = "PropmatVector",
       .dims = {"NTARGET"},
-  };
-
-  wsv_data["single_propmat_path"] = {
-      .desc = R"(The propagation matrix along the path.
-)",
-      .type = "PropmatVector",
-      .dims = {"NPATH"},
   };
 
   wsv_data["single_rad"] = {

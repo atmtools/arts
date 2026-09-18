@@ -21,7 +21,10 @@ template <typename type> struct ValueHolder {
     *val = *other.val;
     return *this;
   }
-  ValueHolder& operator=(std::shared_ptr<type> x) { val = std::move(x); }
+  ValueHolder& operator=(std::shared_ptr<type> x) {
+    val = std::move(x);
+    return *this;
+  }
 
   ValueHolder(type t) : val(new type{t}) {}
   ValueHolder& operator=(type a) noexcept {

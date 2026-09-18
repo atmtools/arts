@@ -14,3 +14,12 @@ See :doc:`user.heating` for units, sampling locations and examples.
 
 .. automodule:: pyarts3.recipe.heating_rates
    :members:
+
+Flux results
+------------
+
+.. autoclass:: pyarts3.recipe.AtmosphericFlux.Flux
+   :members:
+
+.. autoclass:: pyarts3.recipe.SpectralAtmosphericFlux.Flux
+   :members:

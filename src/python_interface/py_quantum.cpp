@@ -32,8 +32,8 @@ void py_quantum(py::module_& m) try {
   generic_interface(qval);
 
   py::class_<Quantum::UpperLower> qul(m, "QuantumUpperLower");
-  qul.def_rw("upper", &Quantum::UpperLower::upper, "Upper state\n\n.. :class:`QuantumValue`");
-  qul.def_rw("lower", &Quantum::UpperLower::lower, "Lower state\n\n.. :class:`QuantumValue`");
+  qul.def_rw("upper", &Quantum::UpperLower::upper, "Upper state\n\n.. :class:`~pyarts3.arts.QuantumValue`");
+  qul.def_rw("lower", &Quantum::UpperLower::lower, "Lower state\n\n.. :class:`~pyarts3.arts.QuantumValue`");
   qul.doc() = "Upper and lower quantum number values";
   generic_interface(qul);
 
@@ -51,14 +51,14 @@ void py_quantum(py::module_& m) try {
 
   py::class_<QuantumIdentifier> qid(m, "QuantumIdentifier");
   qid.def(py::init_implicit<const std::string_view>());
-  qid.def_rw("isot", &QuantumIdentifier::isot, "Isotopologue\n\n.. :class:`SpeciesIsotope`");
-  qid.def_rw("state", &QuantumIdentifier::state, "State\n\n.. :class:`QuantumState`");
+  qid.def_rw("isot", &QuantumIdentifier::isot, "Isotopologue\n\n.. :class:`~pyarts3.arts.SpeciesIsotope`");
+  qid.def_rw("state", &QuantumIdentifier::state, "State\n\n.. :class:`~pyarts3.arts.QuantumState`");
   generic_interface(qid);
 
   py::class_<QuantumLevelIdentifier> qlid(m, "QuantumLevelIdentifier");
   qlid.def(py::init_implicit<const std::string_view>());
-  qlid.def_rw("isot", &QuantumLevelIdentifier::isot, "Isotopologue\n\n.. :class:`SpeciesIsotope`");
-  qlid.def_rw("state", &QuantumLevelIdentifier::state, "State\n\n.. :class:`QuantumLevel`");
+  qlid.def_rw("isot", &QuantumLevelIdentifier::isot, "Isotopologue\n\n.. :class:`~pyarts3.arts.SpeciesIsotope`");
+  qlid.def_rw("state", &QuantumLevelIdentifier::state, "State\n\n.. :class:`~pyarts3.arts.QuantumLevel`");
   generic_interface(qlid);
 
   qid.def(py::self == py::self)

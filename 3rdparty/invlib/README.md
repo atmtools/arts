@@ -1,3 +1,14 @@
+# ARTS-maintained invlib copy
+
+This directory is maintained in the ARTS repository. It includes local changes
+to the solver and optimizer algorithms as well as the ARTS adapters; it is not
+an unmodified upstream release or a Git submodule. Changes must be validated
+with ARTS OEM and covariance regression tests. See `doc/arts/dev.oem.rst` for
+algorithm contracts and integration details. The original license and
+attribution are retained in `LICENSE.txt` and the source files.
+
+The original project description follows.
+
 # invlib
 
 invlib is a C++ template library that provides a generic implementation of maximum

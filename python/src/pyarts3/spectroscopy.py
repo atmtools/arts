@@ -46,12 +46,12 @@ def doppler_broadening(t, f0, m):
     Parameters:
         t (float or ndarray): Temperature [Kelvin]
 
-        f0 (float or like temperature): Central frequency [Hertz/invcm]
+        f0 (float or numpy.ndarray): Central frequency [Hertz/invcm]
 
-        m (float or like temperature): Mass [kilogram]
+        m (float or numpy.ndarray): Mass [kilogram]
 
     Returns
-        hwhm (like temperature): Half-width half-maximum [Hertz/invcm]
+        hwhm (float or numpy.ndarray): Half-width half-maximum [Hertz/invcm]
     """
 
     return np.sqrt(2 * constants.k * t * np.log(2) /

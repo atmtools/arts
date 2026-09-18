@@ -144,7 +144,7 @@ assert np.allclose(x1 / x2, 1.1)
 
 # %% Check update
 
-ws.UpdateModelStates(model_state_vec=x1)
+ws.UpdateModelStates(model_state_vec=x1, model_state_targets=ws.jac_targets)
 
 ws.model_state_vecFromData()
 x2 = ops(ws, noop)

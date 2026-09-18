@@ -79,8 +79,8 @@ template <typename T, Size ndim> void matpack_interface(py::class_<matpack::data
 
         if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                              : py::rv_policy::copy);
+        if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+        return x.cast(py::rv_policy::copy);
       },
       "dtype"_a = py::none(),
       "copy"_a  = py::none(),
@@ -127,8 +127,8 @@ template <typename T, Size... ndim> void matpack_constant_interface(py::class_<m
 
         if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                              : py::rv_policy::copy);
+        if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+        return x.cast(py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -173,8 +173,8 @@ template <class Compare> void matpack_grid_interface(py::class_<matpack::grid_t<
 
         if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                              : py::rv_policy::copy);
+        if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+        return x.cast(py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -222,8 +222,8 @@ void matpack_grid_interface(py::class_<matpack::ranged_grid_t<l, u, il, iu>>& c)
 
         if (not dtype.is_none()) { return np.attr("asarray")(x, "dtype"_a = dtype, "copy"_a = copy); }
 
-        return x.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                              : py::rv_policy::copy);
+        if (copy.is_none() or not py::bool_(copy)) { return x.cast(py::rv_policy::automatic_reference); }
+        return x.cast(py::rv_policy::copy);
       },
       "dtype"_a.none() = py::none(),
       "copy"_a.none()  = py::none(),
@@ -250,7 +250,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data_t<T, Grids...>>& c)
         "grid_names"_a = std::array<String, dim>{},
         "grids"_a);
 
-  c.def_rw("dataname", &mtype::data_name, "Name of the data\n\n.. :class:`String`");
+  c.def_rw("dataname", &mtype::data_name, "Name of the data\n\n.. :class:`~pyarts3.arts.String`");
 
   c.def_rw("data", &mtype::data, "The data itself\n\n.. :class:`object`");
 

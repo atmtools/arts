@@ -2,35 +2,36 @@
 //  Arts Vector  //
 // ------------- //
 
+// Included by arts_wrapper.h: definitions must be safe in multiple translation units.
 #include <matpack.h>
 
-auto ArtsVector::rows() const -> Index { return this->size(); }
+inline auto ArtsVector::rows() const -> Index { return this->size(); }
 
-auto ArtsVector::operator()(Index i) const -> Numeric {
+inline auto ArtsVector::operator()(Index i) const -> Numeric {
   return this->elem_at(i);
 }
 
-auto ArtsVector::operator()(Index i) -> Numeric & { return this->elem_at(i); }
+inline auto ArtsVector::operator()(Index i) -> Numeric & { return this->elem_at(i); }
 
-auto ArtsVector::data_pointer() -> Numeric * { return this->data_handle(); }
+inline auto ArtsVector::data_pointer() -> Numeric * { return this->data_handle(); }
 
-auto ArtsVector::data_pointer() const -> const Numeric * {
+inline auto ArtsVector::data_pointer() const -> const Numeric * {
   return this->data_handle();
 }
 
-auto ArtsVector::accumulate(const ArtsVector &w) -> void {
+inline auto ArtsVector::accumulate(const ArtsVector &w) -> void {
   this->operator+=(w);
 }
 
-auto ArtsVector::subtract(const ArtsVector &w) -> void { this->operator-=(w); }
+inline auto ArtsVector::subtract(const ArtsVector &w) -> void { this->operator-=(w); }
 
-auto ArtsVector::scale(Numeric c) -> void { this->operator*=(c); }
+inline auto ArtsVector::scale(Numeric c) -> void { this->operator*=(c); }
 
-auto ArtsVector::norm() const -> Numeric {
+inline auto ArtsVector::norm() const -> Numeric {
   return std::sqrt(dot(*this, *this));
 }
 
-Numeric dot(const ArtsVector &v, const ArtsVector &w) {
+inline Numeric dot(const ArtsVector &v, const ArtsVector &w) {
   Numeric x{};
   for (Size i = 0; i < v.size(); i++) {
     x += v[i] * w[i];
@@ -42,33 +43,33 @@ Numeric dot(const ArtsVector &v, const ArtsVector &w) {
 //   Arts Matrix   //
 //-----------------//
 
-ArtsMatrix::ArtsMatrix(const Matrix &A) : Matrix(A) {
+inline ArtsMatrix::ArtsMatrix(const Matrix &A) : Matrix(A) {
   // Nothing to do here.
 }
 
 template <typename ArtsType>
-ArtsMatrix::ArtsMatrix(const ArtsMatrixReference<ArtsType> &A)
+inline ArtsMatrix::ArtsMatrix(const ArtsMatrixReference<ArtsType> &A)
     : Matrix(static_cast<const ArtsType &>(A)) {
   // Nothing to do here.
 }
 
-auto ArtsMatrix::rows() const -> Index { return this->nrows(); }
+inline auto ArtsMatrix::rows() const -> Index { return this->nrows(); }
 
-auto ArtsMatrix::cols() const -> Index { return this->ncols(); }
+inline auto ArtsMatrix::cols() const -> Index { return this->ncols(); }
 
-auto ArtsMatrix::operator()(Index i, Index j) -> RealType & {
+inline auto ArtsMatrix::operator()(Index i, Index j) -> RealType & {
   return this->operator[](i, j);
 }
 
-auto ArtsMatrix::operator()(Index i, Index j) const -> RealType {
+inline auto ArtsMatrix::operator()(Index i, Index j) const -> RealType {
   return this->operator[](i, j);
 }
 
-auto ArtsMatrix::data_pointer() -> Numeric * { return this->data_handle(); }
+inline auto ArtsMatrix::data_pointer() -> Numeric * { return this->data_handle(); }
 
-void ArtsMatrix::accumulate(const MatrixType &B) { this->operator+=(B); }
+inline void ArtsMatrix::accumulate(const MatrixType &B) { this->operator+=(B); }
 
-void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper &B) {
+inline void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper &B) {
   if (B.is_inverse()) {
     ::add_inv(*this, B);
   } else {
@@ -76,7 +77,7 @@ void ArtsMatrix::accumulate(const ArtsCovarianceMatrixWrapper &B) {
   }
 }
 
-auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper &B) -> ArtsMatrix {
+inline auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper &B) -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(this->nrows(), B.cols());
   if (B.is_inverse()) {
@@ -87,37 +88,37 @@ auto ArtsMatrix::multiply(const ArtsCovarianceMatrixWrapper &B) -> ArtsMatrix {
   return C;
 }
 
-void ArtsMatrix::subtract(const ArtsMatrix &B) { this->operator-=(B); }
+inline void ArtsMatrix::subtract(const ArtsMatrix &B) { this->operator-=(B); }
 
-auto ArtsMatrix::multiply(const ArtsMatrix &B) const -> ArtsMatrix {
+inline auto ArtsMatrix::multiply(const ArtsMatrix &B) const -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(this->nrows(), B.ncols());
   mult(MatrixView{C}, MatrixView{*this}, MatrixView{B});
   return C;
 }
 
-auto ArtsMatrix::multiply(const ArtsVector &v) const -> ArtsVector {
+inline auto ArtsMatrix::multiply(const ArtsVector &v) const -> ArtsVector {
   ArtsVector w;
   w.resize(this->nrows());
   mult(VectorView{w}, MatrixView{*this}, VectorView{v});
   return w;
 }
 
-auto ArtsMatrix::transpose_multiply(const ArtsMatrix &B) const -> ArtsMatrix {
+inline auto ArtsMatrix::transpose_multiply(const ArtsMatrix &B) const -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(this->ncols(), B.ncols());
   ::mult(MatrixView{C}, matpack::transpose(MatrixView{*this}), MatrixView{B});
   return C;
 }
 
-auto ArtsMatrix::transpose_multiply(const ArtsVector &v) const -> ArtsVector {
+inline auto ArtsMatrix::transpose_multiply(const ArtsVector &v) const -> ArtsVector {
   ArtsVector w;
   w.resize(this->ncols());
   ::mult(VectorView{w}, matpack::transpose(MatrixView{*this}), VectorView{v});
   return w;
 }
 
-auto ArtsMatrix::transpose_multiply_block(const ArtsVector &v,
+inline auto ArtsMatrix::transpose_multiply_block(const ArtsVector &v,
                                           unsigned int start,
                                           unsigned int extent) const
     -> ArtsVector {
@@ -128,26 +129,30 @@ auto ArtsMatrix::transpose_multiply_block(const ArtsVector &v,
   return w;
 }
 
-auto ArtsMatrix::solve(const VectorType &v) const -> ArtsVector {
+inline auto ArtsMatrix::solve(const VectorType &v) const -> ArtsVector {
   VectorType w;
   w.resize(this->nrows());
   ::solve(w, *this, v);
   return w;
 }
 
-auto ArtsMatrix::invert() const -> ArtsMatrix {
+inline auto ArtsMatrix::invert() const -> ArtsMatrix {
   ArtsMatrix B;
   B.resize(this->nrows(), this->ncols());
   ::inv(B, *this);
   return B;
 }
 
-void ArtsMatrix::scale(Numeric c) { this->operator*=(c); }
+inline void ArtsMatrix::scale(Numeric c) { this->operator*=(c); }
 
-auto ArtsMatrix::transpose() const -> ArtsMatrix {
+inline auto ArtsMatrix::transpose() const -> ArtsMatrix {
   ArtsMatrix B;
   B.Matrix::operator=(matpack::transpose(ConstMatrixView{*this}));
   return B;
+}
+
+inline auto ArtsMatrix::transpose_view() const & -> StridedConstMatrixView {
+  return matpack::transpose(ConstMatrixView{*this});
 }
 
 //---------------------------//
@@ -155,24 +160,24 @@ auto ArtsMatrix::transpose() const -> ArtsMatrix {
 //---------------------------//
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::rows() const -> Index {
+inline auto ArtsMatrixReference<ArtsType>::rows() const -> Index {
   return A.get().nrows();
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::cols() const -> Index {
+inline auto ArtsMatrixReference<ArtsType>::cols() const -> Index {
   return A.get().ncols();
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::operator()(unsigned int i,
+inline auto ArtsMatrixReference<ArtsType>::operator()(unsigned int i,
                                                unsigned int j) const
     -> RealType {
   return A.ro(i, j);
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::multiply(const ArtsMatrix &B) const
+inline auto ArtsMatrixReference<ArtsType>::multiply(const ArtsMatrix &B) const
     -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(A.get().nrows(), B.ncols());
@@ -181,7 +186,7 @@ auto ArtsMatrixReference<ArtsType>::multiply(const ArtsMatrix &B) const
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::multiply(const ArtsVector &v) const
+inline auto ArtsMatrixReference<ArtsType>::multiply(const ArtsVector &v) const
     -> ArtsVector {
   ArtsVector w;
   w.resize(A.get().nrows());
@@ -190,7 +195,7 @@ auto ArtsMatrixReference<ArtsType>::multiply(const ArtsVector &v) const
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::transpose_multiply(
+inline auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     const ArtsVector &v) const -> ArtsVector {
   ArtsVector w;
   w.resize(A.get().ncols());
@@ -199,7 +204,7 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
 }
 
 template <>
-auto ArtsMatrixReference<const Sparse>::transpose_multiply(
+inline auto ArtsMatrixReference<const Sparse>::transpose_multiply(
     const ArtsVector &v) const -> ArtsVector {
   ArtsVector w;
   w.resize(A.get().ncols());
@@ -208,7 +213,7 @@ auto ArtsMatrixReference<const Sparse>::transpose_multiply(
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::transpose_multiply(
+inline auto ArtsMatrixReference<ArtsType>::transpose_multiply(
     const ArtsMatrix &B) const -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(A.get().ncols(), B.ncols());
@@ -217,23 +222,45 @@ auto ArtsMatrixReference<ArtsType>::transpose_multiply(
 }
 
 template <typename ArtsType>
-auto ArtsMatrixReference<ArtsType>::transpose() const -> ConstMatrixView {
-  return ::transpose(A.get());
+inline auto ArtsMatrixReference<ArtsType>::multiply_add(
+    const ArtsMatrix &B, const ArtsCovarianceMatrixWrapper &C) const -> ArtsMatrix {
+  ArtsMatrix result;
+  result.resize(A.get().nrows(), B.ncols());
+  static_cast<Matrix&>(result) = 0;
+  if (C.is_inverse()) {
+    ::add_inv(result, C);
+  } else {
+    StridedMatrixView{result} += C.get_covmat();
+  }
+  ::mult(StridedMatrixView{result}, StridedConstMatrixView{A.get()},
+         StridedConstMatrixView{B}, 1.0, 1.0);
+  return result;
+}
+
+template <typename ArtsType>
+inline auto ArtsMatrixReference<ArtsType>::transpose() const -> ArtsMatrix {
+  return ArtsMatrix{Matrix{matpack::transpose(A.get())}};
+}
+
+template <typename ArtsType>
+inline auto ArtsMatrixReference<ArtsType>::transpose_view() const -> StridedConstMatrixView
+  requires requires(const ArtsType& value) { StridedConstMatrixView{value}; } {
+  return matpack::transpose(StridedConstMatrixView{A.get()});
 }
 
 //---------------------------//
 //   Arts Covariance Matrix  //
 //---------------------------//
 
-auto ArtsCovarianceMatrixWrapper::rows() const -> Index {
+inline auto ArtsCovarianceMatrixWrapper::rows() const -> Index {
   return covmat_.nrows();
 }
 
-auto ArtsCovarianceMatrixWrapper::cols() const -> Index {
+inline auto ArtsCovarianceMatrixWrapper::cols() const -> Index {
   return covmat_.ncols();
 }
 
-auto ArtsCovarianceMatrixWrapper::multiply(const ArtsVector &v) const
+inline auto ArtsCovarianceMatrixWrapper::multiply(const ArtsVector &v) const
     -> ArtsVector {
   ArtsVector w;
   w.resize(covmat_.nrows());
@@ -245,7 +272,12 @@ auto ArtsCovarianceMatrixWrapper::multiply(const ArtsVector &v) const
   return w;
 }
 
-auto ArtsCovarianceMatrixWrapper::multiply(const ArtsMatrix &B) const
+inline auto ArtsCovarianceMatrixWrapper::multiply(const ArtsMatrix &B) const
+    -> ArtsMatrix {
+  return multiply(StridedConstMatrixView{B});
+}
+
+inline auto ArtsCovarianceMatrixWrapper::multiply(StridedConstMatrixView B) const
     -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(covmat_.nrows(), B.ncols());
@@ -257,7 +289,7 @@ auto ArtsCovarianceMatrixWrapper::multiply(const ArtsMatrix &B) const
   return C;
 }
 
-auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsVector &v) const
+inline auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsVector &v) const
     -> ArtsVector {
   ArtsVector w;
   w.resize(covmat_.ncols());
@@ -269,7 +301,7 @@ auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsVector &v) const
   return w;
 }
 
-auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsMatrix &B) const
+inline auto ArtsCovarianceMatrixWrapper::transpose_multiply(const ArtsMatrix &B) const
     -> ArtsMatrix {
   ArtsMatrix C;
   C.resize(covmat_.ncols(), B.ncols());

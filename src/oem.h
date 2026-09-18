@@ -12,6 +12,7 @@
 #ifndef _ARTS_OEM_H_
 #define _ARTS_OEM_H_
 
+#include <algorithm>
 #include <type_traits>
 
 #include "invlib/algebra.h"
@@ -73,14 +74,30 @@ template <typename ForwardModel> using OEM_NFORM =
  * optimization defined according to Chapter 4 in Rodgers (2000).
  *
  * In this formulation, each iteration requires the solution
- * of a system of linear equations of size m-times-m.
+ * of a system of linear equations of size m-times-m. Use the state-step
+ * criterion (Rodgers 5.30): the m-form residual is not a state-space gradient
+ * and cannot be used with Rodgers 5.31, especially when m != n.
  */
-template <typename ForwardModel> using OEM_MFORM =
-    invlib::MAP<ForwardModel, Matrix, CovarianceMatrix, CovarianceMatrix, Vector, Formulation::MFORM>;
+template <typename ForwardModel> using OEM_MFORM = invlib::
+    MAP<ForwardModel, Matrix, CovarianceMatrix, CovarianceMatrix, Vector, Formulation::MFORM, invlib::Rodgers530>;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Solvers
 ////////////////////////////////////////////////////////////////////////////////
+
+// Matrix-free symmetric scaling by inverse measurement standard deviations.
+template <typename MatrixType> struct NoiseScaledSystem {
+  const MatrixType &matrix;
+  const ::Vector   &scales;
+
+  template <typename V> typename V::ResultType operator*(const V &value) const {
+    typename V::ResultType input = value;
+    for (Index i = 0; i < input.rows(); ++i) input(i) /= scales[i];
+    typename V::ResultType output = matrix * input;
+    for (Index i = 0; i < output.rows(); ++i) output(i) /= scales[i];
+    return output;
+  }
+};
 
 /** Normalizing solver.
  * 
@@ -110,23 +127,72 @@ template <typename TransformationMatrixType, typename SolverType = invlib::Stand
    */
   template <typename MatrixType, typename VectorType> auto solve(const MatrixType &A, const VectorType &v) ->
       typename VectorType::ResultType {
+    // CG handles zero RHS itself and must reset its stop reason on every solve.
+    if constexpr (not std::is_same_v<SolverType, invlib::ConjugateGradient<>>) {
+      bool zero_rhs = true;
+      for (Index i = 0; i < v.rows(); ++i) zero_rhs = zero_rhs && v(i) == 0;
+      if (zero_rhs) return v;
+    }
+
+    if constexpr (std::is_same_v<SolverType, invlib::ConjugateGradient<>>) {
+      if (not measurement_scales.empty()) {
+        typename VectorType::ResultType rhs = v;
+        for (Index i = 0; i < rhs.rows(); ++i) rhs(i) /= measurement_scales[i];
+        auto result = SolverType::solve(NoiseScaledSystem<MatrixType>{A, measurement_scales}, rhs);
+        for (Index i = 0; i < result.rows(); ++i) result(i) /= measurement_scales[i];
+        return result;
+      }
+    }
     typename VectorType::ResultType w;
     if (apply_) {
       typename VectorType::ResultType vv = trans_ * v;
       auto                          &&ww = SolverType::solve(trans_ * A * trans_, vv);
       w                                  = trans_ * ww;
     } else {
-      w            = SolverType::solve(A, v);
-      VectorType u = v - A * w;
+      w = SolverType::solve(A, v);
     }
     return w;
   }
+
+  auto get_stop_reason() const requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
+    return SolverType::get_stop_reason();
+  }
+
+  void set_iteration_limit_warning(std::function<void()> warning)
+      requires std::is_same_v<SolverType, invlib::ConjugateGradient<>> {
+    SolverType::iteration_limit_warning = std::move(warning);
+  }
+
+  ::Vector measurement_scales;
 
  private:
   /** Whether or not to apply the transformation.*/
   const bool apply_ = false;
   /** The transformation matrix.*/
   const TransformationMatrixType &trans_;
+};
+
+// Request matrix-matrix assembly in MFORM, then factor the measurement-sized
+// system. CG does not opt into this policy and remains matrix-free.
+struct DirectMeasurementSolver {
+  static constexpr bool dense_measurement_system = true;
+  ::Vector              measurement_scales;
+
+  template <typename M, typename V> typename V::ResultType solve(const M &system, const V &rhs) {
+    Matrix                 dense      = system;
+    const Index            size       = rhs.rows();
+    typename V::ResultType scaled_rhs = rhs;
+    if (not measurement_scales.empty()) {
+      for (Index i = 0; i < size; ++i) {
+        scaled_rhs(i) /= measurement_scales[i];
+        for (Index j = 0; j < size; ++j) dense(i, j) = (dense(i, j) / measurement_scales[i]) / measurement_scales[j];
+      }
+    }
+    typename V::ResultType result = invlib::Standard{}.solve(dense, scaled_rhs);
+    if (not measurement_scales.empty())
+      for (Index i = 0; i < size; ++i) result(i) /= measurement_scales[i];
+    return result;
+  }
 };
 
 /** The invlib standard solver
@@ -183,7 +249,7 @@ struct OptimizerLog<invlib::LevenbergMarquardt<RealType, DampingMatrix, Solver>>
 
   /** Returns the string to append to the log of a single step. */
   static std::string log(const invlib::LevenbergMarquardt<RealType, DampingMatrix, Solver> &g,
-                         Vector                                                            &gamma_history_,
+                         ::Vector                                                          &gamma_history_,
                          size_t                                                             i) {
     std::string lambda = std::to_string(g.get_lambda());
     std::string out(15 - std::min<size_t>(lambda.size(), 15), ' ');
@@ -201,7 +267,7 @@ template <typename RealType, typename Solver> struct OptimizerLog<invlib::GaussN
   /** Name to append to header line. */
   static std::string header() { return ""; }
 
-  static std::string log(const invlib::GaussNewton<RealType, Solver> &, Vector &, size_t) { return ""; }
+  static std::string log(const invlib::GaussNewton<RealType, Solver> &, ::Vector &, size_t) { return ""; }
 };
 
 /** OEM log output
@@ -277,10 +343,12 @@ template <invlib::LogType type> class ArtsLog {
    * line.
    */
   template <typename... Params> void step(const Params &...params) {
+    std::tuple<const Params &...> tuple(params...);
+    using OptimizationType = std::remove_cvref_t<decltype(std::get<5>(tuple))>;
+    // History is an output of OEM, independent of console verbosity.
+    const auto optimizer_log =
+        OptimizerLog<OptimizationType>::log(std::get<5>(tuple), gamma_history_, std::get<0>(tuple));
     if (verbosity_ >= 1) {
-      std::tuple<const Params &...> tuple(params...);
-      using OptimizationType = typename std::decay<typename std::tuple_element<5, decltype(tuple)>::type>::type;
-
       auto step_number = std::get<0>(tuple);
       std::cout << std::setw(5) << step_number;
       if (step_number == 0) { start_cost_ = std::get<1>(tuple); }
@@ -293,7 +361,7 @@ template <invlib::LogType type> class ArtsLog {
       } else {
         std::cout << std::setw(15) << std::get<4>(tuple);
       }
-      std::cout << OptimizerLog<OptimizationType>::log(std::get<5>(tuple), gamma_history_, std::get<0>(tuple));
+      std::cout << optimizer_log;
       std::cout << '\n';
     }
   }
@@ -350,7 +418,7 @@ template <invlib::LogType type> class ArtsLog {
   /** Verbosity level of logger */
   int verbosity_;
   /** Reference to ARTS vector holding the LM gamma history*/
-  Vector gamma_history_;
+  ::Vector &gamma_history_;
   /** Scaling factor for the cost.*/
   Numeric scaling_factor_ = 0.0;
   /** Start cost (not computed by invlib)*/
@@ -435,6 +503,7 @@ class AgendaWrapper {
                 unsigned int           state_space_dimension,
                 ::Matrix              &arts_jacobian,
                 ::Vector              &arts_y,
+                const ::Vector        &initial_state,
                 AtmField              *atm_field,
                 AbsorptionBands       *abs_bands,
                 ArrayOfSensorObsel    *measurement_sensor,
@@ -451,17 +520,19 @@ class AgendaWrapper {
         sensor(measurement_sensor),
         surf(surf_field),
         subsurf(subsurf_field),
-        iteration_counter_(0),
         jacobian_(arts_jacobian),
-        reuse_jacobian_((arts_jacobian.nrows() != 0) && (arts_jacobian.ncols() != 0) && (arts_y.size() != 0)),
         ws_(ws),
-        yi_(arts_y) {}
+        yi_(arts_y),
+        measurement_state_(initial_state),
+        jacobian_state_(initial_state),
+        measurement_valid_(arts_y.size() == m),
+        jacobian_valid_(measurement_valid_ && arts_jacobian.nrows() == m && arts_jacobian.ncols() == n) {}
 
   /** Return most recently simulated measurement vector.
    *
    * @return The simulated observation vector.
    */
-  ArtsVector get_measurement_vec() { return yi_; }
+  const ::Vector &get_measurement_vec() const { return yi_; }
 
   AgendaWrapper(const AgendaWrapper &)            = delete;
   AgendaWrapper(AgendaWrapper &&)                 = delete;
@@ -480,62 +551,76 @@ class AgendaWrapper {
    * \param[in] x The current state vector x.
    */
   MatrixReference Jacobian(const Vector &xi, Vector &yi) {
-    if (!reuse_jacobian_) {
-      inversion_iterate_agendaExecute(*ws_,
-                                      *atm,
-                                      *absdata,
-                                      *sensor,
-                                      *surf,
-                                      *subsurf,
-                                      yi_,
-                                      jacobian_,
-                                      *jacs,
-                                      xi,
-                                      1,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
-      yi                  = yi_;
-      iteration_counter_ += 1;
-    } else {
-      reuse_jacobian_ = false;
-      yi              = yi_;
-    }
+    ensure_jacobian(xi);
+    // Assign directly to the ARTS storage, avoiding an intermediate invlib vector.
+    static_cast<::Vector &>(yi) = yi_;
     return jacobian_;
   }
 
-  /** Evaluate the ARTS forward model.
-   *
-   * Call the ARTS forward model defined by inversion_iterate_agenda
-   * and return resulting observation vector.
-   * 
-   * @param[in] xi The current state vector of the OEM iteration.
-   * @return The observation vector y contained in the yf WSV after
-   *   executing the inversion_iterate_agenda.
+  /** Ensure that the Jacobian and physical model describe xi.
+   * A value-only trial preserves the previous Jacobian, but may change the
+   * atmosphere or other inouts. Restore those before returning a cached matrix.
+   */
+  void ensure_jacobian(const Vector &xi) {
+    if (!jacobian_valid_ || !same_state(jacobian_state_, xi)) {
+      execute(xi, true);
+    } else if (!measurement_valid_ || !same_state(measurement_state_, xi)) {
+      execute(xi, false);
+    }
+  }
+
+  /** Evaluate the forward model, reusing only the most recent successful state.
+   * Results from before a failed or rejected trial cannot restore physical
+   * inouts; those require another agenda execution at the accepted state.
    */
   Vector evaluate(const Vector &xi) {
-    if (!reuse_jacobian_) {
-      Matrix dummy;
-      inversion_iterate_agendaExecute(*ws_,
-                                      *atm,
-                                      *absdata,
-                                      *sensor,
-                                      *surf,
-                                      *subsurf,
-                                      yi_,
-                                      dummy,
-                                      *jacs,
-                                      xi,
-                                      0,
-                                      iteration_counter_,
-                                      *inversion_iterate_agenda_);
-    } else {
-      reuse_jacobian_ = false;
-    }
+    ensure_measurement(xi);
     return yi_;
   }
 
+  void ensure_measurement(const Vector &xi) {
+    if (!measurement_valid_ || !same_state(measurement_state_, xi)) execute(xi, false);
+  }
+
  private:
-  /** Pointer to the inversion_iterate_agenda of the workspace. */
+  static bool same_state(const ::Vector &cached, const Vector &state) {
+    return cached.size() == state.size() && std::equal(cached.elem_begin(), cached.elem_end(), state.elem_begin());
+  }
+
+  void execute(const Vector &xi, bool with_jacobian) {
+    // The agenda can partially modify its outputs before throwing. Invalidate
+    // first, and publish a new state tag only after all output checks succeed.
+    measurement_valid_ = false;
+    if (with_jacobian) jacobian_valid_ = false;
+    ::Matrix               dummy;
+    auto                  &jacobian = with_jacobian ? static_cast<::Matrix &>(jacobian_) : dummy;
+    const JacobianTargets  no_targets{};
+    const JacobianTargets &derivative_targets = with_jacobian ? *jacs : no_targets;
+    inversion_iterate_agendaExecute(*ws_,
+                                    *atm,
+                                    *absdata,
+                                    *sensor,
+                                    *surf,
+                                    *subsurf,
+                                    yi_,
+                                    jacobian,
+                                    *jacs,
+                                    derivative_targets,
+                                    xi,
+                                    *inversion_iterate_agenda_);
+    ARTS_USER_ERROR_IF(yi_.size() != m, "inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size())
+    if (with_jacobian) {
+      ARTS_USER_ERROR_IF(jacobian.nrows() != m || jacobian.ncols() != n,
+                         "inversion_iterate_agenda must return an {} by {} Jacobian.",
+                         m,
+                         n)
+      jacobian_state_ = static_cast<const ::Vector &>(xi);
+      jacobian_valid_ = true;
+    }
+    measurement_state_ = static_cast<const ::Vector &>(xi);
+    measurement_valid_ = true;
+  }
+
   const Agenda          *inversion_iterate_agenda_;
   const JacobianTargets *jacs;
   AtmField              *atm;
@@ -543,238 +628,91 @@ class AgendaWrapper {
   ArrayOfSensorObsel    *sensor;
   SurfaceField          *surf;
   SubsurfaceField       *subsurf;
-  unsigned int           iteration_counter_;
-  /** Reference to the jacobian WSV.*/
-  MatrixReference jacobian_;
-  /** Flag whether to reuse Jacobian from previous calculation. */
-  bool reuse_jacobian_;
-  /** Pointer to current ARTS workspace */
+  MatrixReference        jacobian_;
   const Workspace *const ws_;
-  /** Cached simulation result. */
-  Vector yi_;
+  // Borrow the workspace output rather than copying it into and out of the adapter.
+  ::Vector &yi_;
+  // O(n) state tags; the potentially much larger Jacobian stays in its original storage.
+  ::Vector measurement_state_, jacobian_state_;
+  bool     measurement_valid_, jacobian_valid_;
+};
+
+/** Reduce only solver coordinates; the physical agenda always sees full targets.
+ * B expands states, C projects measurements. Both are validated at the boundary.
+ */
+class ReducedAgendaWrapper {
+ public:
+  const unsigned int m, n;
+
+  ReducedAgendaWrapper(AgendaWrapper       &forward,
+                       const ::Vector      &prior,
+                       const ::BlockMatrix &state_reduction,
+                       const ::BlockMatrix &measurement_reduction,
+                       const ::Matrix      &full_jacobian,
+                       bool                 state_identity)
+      : m(static_cast<unsigned int>(measurement_reduction.nrows())),
+        n(static_cast<unsigned int>(state_reduction.ncols())),
+        forward_(forward),
+        prior_(prior),
+        B_(state_reduction),
+        C_(measurement_reduction),
+        full_jacobian_(full_jacobian),
+        state_identity_(state_identity),
+        full_state_(prior),
+        state_jacobian_(state_identity ? 0 : measurement_reduction.ncols(), state_identity ? 0 : n),
+        jacobian_(m, n) {}
+
+  const Vector &expand(const Vector &z) {
+    if (state_identity_)
+      static_cast<::Vector &>(full_state_) = static_cast<const ::Vector &>(z);
+    else
+      B_.multiply_left(static_cast<::Vector &>(full_state_), static_cast<const ::Vector &>(z));
+    static_cast<::Vector &>(full_state_) += prior_;
+    return full_state_;
+  }
+
+  MatrixReference Jacobian(const Vector &z, Vector &y) {
+    ensure_jacobian(z);
+    static_cast<::Vector &>(y).resize(m);
+    C_.multiply_left(static_cast<::Vector &>(y), forward_.get_measurement_vec());
+    return MatrixReference(jacobian_);
+  }
+
+  void ensure_jacobian(const Vector &z) {
+    forward_.ensure_jacobian(expand(z));
+    if (jacobian_state_.size() != z.size() ||
+        !std::equal(jacobian_state_.begin(), jacobian_state_.end(), z.elem_begin())) {
+      if (state_identity_)
+        C_.multiply_left(jacobian_, full_jacobian_);
+      else {
+        B_.multiply_right(state_jacobian_, full_jacobian_);
+        C_.multiply_left(jacobian_, state_jacobian_);
+      }
+      jacobian_state_ = static_cast<const ::Vector &>(z);
+    }
+  }
+
+  Vector evaluate(const Vector &z) {
+    forward_.ensure_measurement(expand(z));
+    Vector y;
+    static_cast<::Vector &>(y).resize(m);
+    C_.multiply_left(static_cast<::Vector &>(y), forward_.get_measurement_vec());
+    return y;
+  }
+
+  const ::Matrix &get_jacobian() const { return jacobian_; }
+
+ private:
+  AgendaWrapper       &forward_;
+  const ::Vector      &prior_;
+  const ::BlockMatrix &B_;
+  const ::BlockMatrix &C_;
+  const ::Matrix      &full_jacobian_;
+  const bool           state_identity_;
+  Vector               full_state_;
+  ::Matrix             state_jacobian_, jacobian_;
+  ::Vector             jacobian_state_;
 };
 }  // namespace oem
-
-/** Clip Tensor4
- *
- * @param[in] The tensor to which to apply the clipping.
- * @param[in] The book index to which to apply the clipping.
- * @param[in] limit_low Lower limit below which to clip values.
- * @param[in] limit_high Upper limit below which to clip values.
- */
-void Tensor4Clip(Tensor4 &x, const Index &iq, const Numeric &limit_low, const Numeric &limit_high) {
-  // Sizes
-  const Index nq = x.nbooks();
-
-  ARTS_USER_ERROR_IF(iq < -1, "Argument *iq* must be >= -1.");
-  ARTS_USER_ERROR_IF(iq >= nq,
-                     "Argument *iq* is too high.\n"
-                     "You have selected index: {}"
-                     "\n"
-                     "but the number of quantities is only: {}"
-                     "\n"
-                     "(Note that zero-based indexing is used)\n",
-                     iq,
-                     nq)
-
-  Index ifirst = 0, ilast = nq - 1;
-  if (iq > -1) {
-    ifirst = iq;
-    ilast  = iq;
-  }
-
-  if (!std::isinf(limit_low)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] < limit_low) x[i, p, r, c] = limit_low;
-          }
-        }
-      }
-    }
-  }
-
-  if (!std::isinf(limit_high)) {
-    for (Index i = ifirst; i <= ilast; i++) {
-      for (Index p = 0; p < x.npages(); p++) {
-        for (Index r = 0; r < x.nrows(); r++) {
-          for (Index c = 0; c < x.ncols(); c++) {
-            if (x[i, p, r, c] > limit_high) x[i, p, r, c] = limit_high;
-          }
-        }
-      }
-    }
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-// OEM error checking
-////////////////////////////////////////////////////////////////////////////////
-
-/** Error checking for OEM method.
- *
- * @param[in, out] x Checked to have size consistent with xa or zero.
- * Set to xa if empty.
- * @param[in, out] yf Checked to have size consistent with y or zero.
- * Computed by execution inversion_iterate_agenda if necessary.
- * @param[in, out] jacobian Checked to be consistent with xa and covmat_se
- * or empty. Computed by executin inversion_iterate_agenda if necessary.
- * @param[in] inversion_iterate_agenda The inversion_iterate_agenda to execute
- * to compute yf.
- * @param[in] xa The a priori vector
- * @param[in] covmat_sx The state-space covariance matrix. Checked to be 
- * square and consistent with xa.
- * @param[in] y The observation vector to fit.
- * @param[in] covmat_se The observation error covariance matrix. Checked to
- * by square and consistent with y.
- * @param[in] jac_targets: The Jacobian quantities array checked to
- * be consistent with jacobian_indices
- * @param[in] method The method string. Checked to be a valid OEM method
- * string.
- * @param[in] x_norm Vector to use to normalize linear systems occurring
- * in the OEM minimization. Checked to be same size as x or empty.
- * @param[in] max_iter Maximum number of OEM iteration. Checked to be positive.
- * @param[in] stop_dx The convergence criterion for the OEM iteration. Checked
- * to be positive.
- * @param[in] lm_ga_settings Vector containint setting for the Levenberg-Marquardt
- * method. Checked to contain 6 elements that are all greater or equal zero.
- * @param clear_matrices Flag whether or not to clear matrices after OEM run.
- * Checked to be 1 or 0.
- * @param display_progress Whether or not to display iteration progress. Checked
- * to be 1 or 0.
- */
-void OEM_checks(const Workspace        &ws,
-                Vector                 &x,
-                Vector                 &yf,
-                Matrix                 &jacobian,
-                AtmField               &atm_field,
-                AbsorptionBands        &abs_bands,
-                ArrayOfSensorObsel     &measurement_sensor,
-                SurfaceField           &surf_field,
-                SubsurfaceField        &subsurf_field,
-                const JacobianTargets  &jac_targets,
-                const Agenda           &inversion_iterate_agenda,
-                const Vector           &xa,
-                const CovarianceMatrix &covmat_sx,
-                const Vector           &y,
-                const CovarianceMatrix &covmat_se,
-                const String           &method,
-                const Vector           &x_norm,
-                const Index            &max_iter,
-                const Numeric          &stop_dx,
-                const Vector           &lm_ga_settings,
-                const Index            &clear_matrices,
-                const Index            &display_progress) {
-  const Size n = xa.size();
-  const Size m = y.size();
-
-  ARTS_USER_ERROR_IF((x.size() != n) && (x.size() != 0),
-                     "The length of *x* must be either the same as *xa* or 0. x.size(): {}, xa.size(): {}",
-                     x.size(),
-                     xa.size());
-  ARTS_USER_ERROR_IF(covmat_sx.ncols() != covmat_sx.nrows(),
-                     "*covmat_sx* must be a square matrix. covmat_sx shape: {}x{}",
-                     covmat_sx.nrows(),
-                     covmat_sx.ncols());
-  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_sx.ncols()) != n,
-                     "Inconsistency in size between *x* and *covmat_sx*. x.size(): {}, covmat_sx size: {}x{}",
-                     x.size(),
-                     covmat_sx.nrows(),
-                     covmat_sx.ncols());
-  ARTS_USER_ERROR_IF((yf.size() != m) && (yf.size() != 0),
-                     "The length of *yf* must be either the same as *y* or 0. yf.size(): {}, y.size(): {}",
-                     yf.size(),
-                     y.size());
-  ARTS_USER_ERROR_IF(covmat_se.ncols() != covmat_se.nrows(),
-                     "*covmat_se* must be a square matrix. covmat_se shape: {}x{}",
-                     covmat_se.nrows(),
-                     covmat_se.ncols());
-  ARTS_USER_ERROR_IF(static_cast<Size>(covmat_se.ncols()) != m,
-                     "Inconsistency in size between *y* and *covmat_se*. y.size(): {}, covmat_se size: {}x{}",
-                     y.size(),
-                     covmat_se.nrows(),
-                     covmat_se.ncols());
-  ARTS_USER_ERROR_IF(
-      (static_cast<Size>(jacobian.nrows()) != m) && (!jacobian.empty()),
-      "The number of rows of the jacobian must be either the number of elements in *y* or 0. jacobian.nrows(): {}, y.size(): {}",
-      jacobian.nrows(),
-      y.size());
-  ARTS_USER_ERROR_IF(
-      (static_cast<Size>(jacobian.ncols()) != n) && (!jacobian.empty()),
-      "The number of cols of the jacobian must be either the number of elements in *xa* or 0. jacobian.ncols(): {}, xa.size(): {}",
-      jacobian.ncols(),
-      xa.size());
-
-  // Check GINs
-  ARTS_USER_ERROR_IF(!(method == "li" || method == "gn" || method == "li_m" || method == "gn_m" || method == "ml" ||
-                       method == "lm" || method == "li_cg" || method == "gn_cg" || method == "li_cg_m" ||
-                       method == "gn_cg_m" || method == "lm_cg" || method == "ml_cg"),
-                     "Valid options for *method* are \"nl\", \"gn\" and "
-                     "\"ml\" or \"lm\".");
-
-  ARTS_USER_ERROR_IF(!(x_norm.size() == 0 || x_norm.size() == n),
-                     "The vector *x_norm* must have length 0 or match "
-                     "*covmat_sx*. x_norm.size(): {}, xa.size(): {}",
-                     x_norm.size(),
-                     xa.size());
-
-  ARTS_USER_ERROR_IF(x_norm.size() > 0 && min(x_norm) <= 0, "All values in *x_norm* must be > 0. x_norm: {}", x_norm);
-
-  ARTS_USER_ERROR_IF(max_iter <= 0, "The argument *max_iter* must be > 0. max_iter: {}", max_iter);
-
-  ARTS_USER_ERROR_IF(stop_dx <= 0, "The argument *stop_dx* must be > 0. stop_dx: {}", stop_dx);
-
-  if ((method == "ml") || (method == "lm") || (method == "lm_cg") || (method == "ml_cg")) {
-    ARTS_USER_ERROR_IF(lm_ga_settings.size() != 6,
-                       "When using \"ml\", *lm_ga_setings* must be a "
-                       "vector of length 6. lm_ga_setings.size(): {}",
-                       lm_ga_settings.size());
-    ARTS_USER_ERROR_IF(min(lm_ga_settings) < 0,
-                       "The vector *lm_ga_setings* can not contain any "
-                       "negative value. lm_ga_setings: {}",
-                       lm_ga_settings);
-  }
-
-  ARTS_USER_ERROR_IF(clear_matrices < 0 || clear_matrices > 1,
-                     "Valid options for *clear_matrices* are 0 and 1. clear_matrices: {}",
-                     clear_matrices);
-  ARTS_USER_ERROR_IF(display_progress < 0 || display_progress > 1,
-                     "Valid options for *display_progress* are 0 and 1. display_progress: {}",
-                     display_progress);
-
-  // If necessary compute yf and jacobian.
-  if (x.size() == 0) {
-    x = xa;
-    inversion_iterate_agendaExecute(ws,
-                                    atm_field,
-                                    abs_bands,
-                                    measurement_sensor,
-                                    surf_field,
-                                    subsurf_field,
-                                    yf,
-                                    jacobian,
-                                    jac_targets,
-                                    xa,
-                                    1,
-                                    0,
-                                    inversion_iterate_agenda);
-  }
-  if ((yf.size() == 0) || (jacobian.empty())) {
-    inversion_iterate_agendaExecute(ws,
-                                    atm_field,
-                                    abs_bands,
-                                    measurement_sensor,
-                                    surf_field,
-                                    subsurf_field,
-                                    yf,
-                                    jacobian,
-                                    jac_targets,
-                                    x,
-                                    1,
-                                    0,
-                                    inversion_iterate_agenda);
-  }
-}
 
 #endif  // _ARTS_OEM_H_

@@ -19,6 +19,7 @@ struct WorkspaceMethodInternalRecord {
   std::vector<std::string>        in{};
   std::vector<std::string>        gin{};
   std::vector<std::string>        gin_type{};
+  ArrayOfArrayOfIndex             python_generic_sorting{};
   std::vector<std::optional<Wsv>> gin_value{};
   std::vector<std::string>        gin_desc{};
   bool                            pass_workspace{false};
@@ -37,13 +38,10 @@ struct WorkspaceMethodInternalRecord {
    */
   bool size_constraints{true};
 
-  [[nodiscard]] int                                   count_overloads() const;
-  [[nodiscard]] std::vector<std::vector<std::string>> generic_overloads() const;
-  [[nodiscard]] bool                                  has_any() const;
-  [[nodiscard]] bool                                  has_overloads() const;
-  [[nodiscard]] std::string                           docstring() const;
-  [[nodiscard]] std::string                           header(const std::string& name, int = 0) const;
-  [[nodiscard]] std::string                           call(const std::string& name) const;
+  [[nodiscard]] static std::string generic_type(const std::string&, bool output = false);
+  [[nodiscard]] std::string        docstring() const;
+  [[nodiscard]] std::string        header(const std::string& name) const;
+  [[nodiscard]] std::string        call(const std::string& name) const;
 };
 
 const std::unordered_map<std::string, WorkspaceMethodInternalRecord>& internal_workspace_methods();
@@ -85,6 +83,8 @@ template <> struct std::formatter<WorkspaceMethodInternalRecord> {
                        wsm.gin,
                        "\n  .gin_type="sv,
                        wsm.gin_type,
+                       "\n  .python_generic_sorting="sv,
+                       wsm.python_generic_sorting,
                        "\n  .gin_value="sv,
                        wsm.gin_value,
                        "\n  .gin_desc="sv,

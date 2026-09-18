@@ -8,6 +8,7 @@
 #ifndef OPTIMIZATION_GAUSS_NEWTON_H
 #define OPTIMIZATION_GAUSS_NEWTON_H
 
+#include <exception>
 #include <stdio.h>
 #include "invlib/algebra/solvers.h"
 
@@ -121,13 +122,23 @@ public:
                     const MatrixType &B,
                     const CostFunction &);
 
-    bool stop_iteration() {return false;}
+    // Opt-in assembly policy supplied by the linear solver.
+    static constexpr bool dense_measurement_system = [] {
+        if constexpr (requires { Solver::dense_measurement_system; })
+            return Solver::dense_measurement_system;
+        else return false;
+    }();
+
+    CGStopReason get_stop_reason() const { return stop_reason; }
+    bool step_accepted() const { return stop_reason == CGStopReason::Converged; }
+    bool stop_iteration() const { return !step_accepted(); }
 
 private:
 
     RealType tolerance;
     unsigned int maximum_iterations;
     Solver solver;
+    CGStopReason stop_reason = CGStopReason::Converged;
 
 };
 

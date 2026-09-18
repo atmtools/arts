@@ -1,0 +1,848 @@
+.. _sec-development-oem:
+
+Developing the OEM interface
+====================================
+
+The user guide is in :ref:`sec-user-oem` and the mathematical formulation is
+in :ref:`Sec OEM`.  This page separates the initial
+interface cleanup from further work on numerical algorithms and public APIs.
+The statistical objective and existing method names should remain stable
+unless a change is explicitly documented and tested.
+
+Responsibilities and regression baseline
+------------------------------------------------
+
+``src/m_oem.cc`` validates inputs and connects workspace inputs and outputs
+to the inverse problem.  ``src/oem.h`` contains the agenda adapter, solver
+wrappers, and logging.  ``3rdparty/invlib/src/invlib/map.cpp`` drives
+the optimization and computes costs and convergence measures.  The LM
+step and linear solvers live below that layer.  Covariance storage and
+inverse operations are implemented in
+``src/core/jacobian/covariance_matrix.cc``; retrieval covariance setup
+also involves ``src/m_covmat.cc``.
+
+The first cleanup centralizes method selection and LM configuration while
+retaining the public defaults.  Direct and CG LM methods now use all six
+settings, the supplied ``stop_dx``, and the same diagonal of prior precision
+for damping. Direct measurement-space ``li_m`` and ``gn_m`` reuse MFORM
+with ``DirectMeasurementSolver``. State normalization is rejected for measurement-space
+methods instead of applying state scales to a measurement-space system.
+
+Measurement-space convergence uses the state-space Hessian metric
+(Rodgers 5.30), so it remains well-defined when the numbers of measurements
+and states differ.  Diagnostics come from the formulation that actually
+ran.  LM history is collected independently of terminal output, and aliases
+have the same initial-cost behavior.  Final nonlinear Jacobians are refreshed
+at the returned state when needed for the requested gain.  Outputs that would
+otherwise retain an earlier run's gain or errors are cleared, and the
+``clear_matrices`` policy also applies to a skipped retrieval.
+
+``src/tests/test_oem_methods.cc`` exercises the workspace interface using
+small deterministic forward models.  CTest registers the individual cases
+as ``cpp.fast.oem.<method>``, plus settings and validation cases.  Each
+supported spelling, including ``ml`` and ``ml_cg``, is part of the contract.
+These tests run without the optional MATLAB integration required by the
+legacy invlib-level tests in ``src/tests/test_oem.cc``.  They complement
+the atmospheric retrieval examples under ``tests/core/vmr``.  Exact initial
+solutions and underdetermined problems are covered; a zero right-hand side
+now returns a zero CG solution directly.
+
+The numerical reference for an affine model should come from an independently
+formed linear posterior solution.  Check the state, fitted measurement,
+cost decomposition, gain, and output dimensions; agreement between two
+methods alone can preserve a shared bug.  Include correlated covariances,
+unequal state and measurement dimensions, a non-prior starting state, and
+equivalent scaled and unscaled systems.  Nonlinear cases need to test
+accepted-state Jacobians and meaningful damping changes, rather than only
+checking that a residual decreased.
+
+Forward-model reuse and agenda ownership
+------------------------------------------------
+
+``AgendaWrapper`` tracks the exact state of its most recent successful
+simulation separately from the state of its stored Jacobian.  It borrows
+the workspace fit and Jacobian storage; only the state tags need additional
+storage proportional to the state size.  Matching an earlier state
+approximately is not sufficient for reuse.  Initial evaluations, accepted
+LM trial values, and final Jacobians must not be repeated when the required
+result is already current.  A value-only trial preserves the last Jacobian,
+but changes the physical model fields.  Returning to that Jacobian's state
+therefore still requires a value-only evaluation to restore the fields.
+Invalidate cache entries before executing an agenda and publish new state
+tags only after successful execution and dimension checks.
+
+The ``criterion_needs_measurement`` trait identifies the built-in
+``Rodgers530`` and ``Rodgers531`` types.  Their state-step tests allow a continuing Gauss--Newton iteration to obtain
+its fit and Jacobian together, without a preceding value-only evaluation.
+Unknown convergence criteria, including overrides derived from these
+classes, default to requiring the new measurement.  Retain that conservative
+behavior when extending the trait.  At the final
+iteration, obtain the fit for costs and diagnostics, then refresh a nonlinear
+Jacobian only if it is needed for retained matrix outputs.
+``clear_matrices=1`` skips that final derivative refresh as well as gain
+construction.  Preserve evaluation-count regressions alongside numerical
+oracles, including rejected trials, zero steps, iteration limits, failed
+evaluations, and both matrix-output policies.
+
+The generated agenda executor borrows explicit inputs and outputs through
+non-owning ``Wsv`` wrappers.  Ordinary workspace sharing copies handles,
+not field or matrix payloads.  ``Agenda::finalize`` identifies internally
+modified inputs that need isolation; ``copy_workspace`` copies those
+values, and ``Agenda.document()`` lists them.  Nested agendas have their
+own copy lists.  Literal values stored in agenda methods are also copied
+when executed.  Do not retain an executed local workspace blindly:
+``copy_only_workspace`` can copy its already modified scratch values,
+changing initialization between trials.  Any future scratch reuse must
+preserve fresh-call initialization and failure behavior.
+
+Python tuple-style operators have additional argument and return conversion
+costs.  Their generated C++ adapters move the owning return tuple's elements
+into outputs; never move from Python-owned objects or borrowed inputs.
+``CallbackOperator`` instead supplies a restricted workspace sharing its
+declared variables, allowing outputs to be updated in place.  Keep the
+native allocation-transfer regression in ``test_agenda_operator.cc`` and
+the Python retained-object regression in
+``tests/core/agenda/operator_return_values.py`` when changing these bridges.
+
+State mapping and derivative selection
+----------------------------------------------
+
+``AgendaWrapper`` always passes the complete target set as
+``model_state_targets``.  It selects a const reference to either that same
+set or a local empty set for ``jac_targets`` before entering the agenda.
+Both objects outlive the synchronous agenda execution.  Do not copy the
+populated targets or clear an agenda input to implement value-only calls.
+
+Methods mapping trial states into physical fields use ``model_state_targets``.
+Radiative transfer and Jacobian transformations use ``jac_targets``.
+Measurement-error values and derivatives likewise use the full mapping and
+derivative targets respectively.  This distinction preserves trial-state
+updates and error values when derivatives are disabled.  The predefined
+agendas must not list either target set among their copied inputs.
+
+Bounded inner iterations
+--------------------------------
+
+An outer ``max_iter`` does not bound the work of an inner linear solve or
+LM trial search.  Both enforce independent limits.  CG returns its current
+iterate on exhaustion and invokes an optional warning callback.  OEM installs
+this callback and records one warning per OEM call in ``oem.diagnostics.errors``; the outer
+optimizer continues and retains its own diagnostic status.  LM trial
+exhaustion still raises an error.  OEM maps errors caught
+during inversion to status ``Error`` and records the explanation in ``oem.diagnostics.errors``.
+Exhausting the existing LM damping range retains its status ``DampingLimit`` behavior.
+Gauss--Newton must propagate linear-solver exceptions with their nested
+cause.  Returning an empty step after catching an error hides the failure
+and can cause invalid vector operations in the measurement-space formulation.
+
+The native ``ConjugateGradient`` constructor and both preconditioned
+variants accept ``max_iterations`` after verbosity. Zero selects
+:math:`\max(1000,2d)` for a system of dimension :math:`d`; a positive value
+sets an explicit bound. Custom convergence predicates cannot disable it.
+``cg_tolerance`` and ``cg_max_iter`` are validated at the OEM boundary.
+Static native solver preconditions remain assertions. Nonpositive curvature
+or a nonpositive preconditioned residual inner product is a runtime numerical
+breakdown, reported through the OEM error diagnostics.
+
+CG records its stop reason on every solve, including a zero right-hand side.
+GN refuses a truncated step, preserving the last state and reporting
+``LinearSolverLimit``. LM rejects it and retries with increased damping;
+if the final attempt is still truncated, it reports the same status.
+Do not let the measurement-space mapping apply its prior offset when a step
+was rejected. Regressions cover all formulations and final-state Jacobian reuse.
+
+The native LM optimizer provides ``get_maximum_trials()`` and
+``set_maximum_trials()``; the positive trial limit defaults to 100 per
+outer iteration.  A local counter bounds rejected-step retries, and a
+damping update must make progress before another trial is attempted.
+This catches multiplication that rounds back to the current damping.
+The trial budget counts linear solves, including any additional undamped
+solve used to check stationarity.
+The LM trial limit is exposed as ``settings.lm.maximum_trials`` (default 100).  Preserve the termination regressions when
+changing convergence predicates, trial acceptance, or damping updates.
+
+LM acceptance and stop outcomes
+---------------------------------------
+
+``LMStopReason`` records termination independently of the damping value.
+``None`` means the optimizer can continue; ``Stationary`` is successful
+termination.  ``DampingLimit`` returns a zero step and maps to workspace
+status ``DampingLimit``.  ``TrialLimit``, ``DampingStalled``, ``LinearSolverFailure``, and
+``NumericalFailure`` accompany exceptions, which OEM maps to status ``Error``
+when caught during inversion.  Ordinary convergence after an accepted
+step still uses the configured convergence criterion and damping gate.
+Both that criterion and ``Stationary`` map to status ``Converged``; outer iteration
+exhaustion retains status ``IterationLimit``.
+
+All MAP formulations consult the optimizer's explicit outcome before
+testing the returned step for convergence.  A zero step returned after
+damping exhaustion must not count as convergence.  Rejected trials must
+never update the accepted state, and damping history must contain physical
+damping values, not a numerical sentinel such as ``maximum + 1``.  At a
+large finite maximum, that addition can round back to the maximum itself.
+The ordinary convergence gate returns a zero tolerance while damping
+exceeds its limit, so the strict comparison also rejects a rounded-zero
+state change.
+
+The generic helper in ``optimization/minimize.h`` also honors optional
+``stop_iteration()`` and ``converged()`` hooks.  A reported optimizer
+failure returns before testing the criterion or updating the state.  A
+stationary optimizer's verified step is applied, but success still requires
+``J.criterion`` to meet the helper's own tolerance.  Iteration exhaustion
+returns one.  Retain native regressions for these outcomes and for custom
+minimizers without either hook.
+
+``MAPBase::model_cost_scale()`` returns two: MAP reports the full quadratic
+cost, while its normal equations use the half-gradient and half-Hessian.
+The LM prediction includes this scale; an exact affine model therefore
+has an actual-to-predicted reduction ratio of one.  Generic objectives
+without this optional method retain scale one and must provide mutually
+consistent cost, gradient, and Hessian definitions.  Keep regressions for
+both conventions when changing the reduction formula or acceptance
+thresholds.
+
+LM compares reductions against ``32 * epsilon * max(abs(old_cost),
+abs(new_cost))`` before dividing them.  If actual or predicted reduction
+is unresolved at that scale, it checks the undamped normal equations once
+within the current step.  Numerical stationarity requires a finite,
+nonnegative undamped decrement below ``n * stop_dx``, a finite,
+nonnegative predicted reduction within the current cost's roundoff
+scale, and a candidate cost indistinguishable from the current cost at
+that scale.  This step can converge independently of the damping gate:
+its size is checked without damping.  An exactly zero gradient is also
+stationary.  These checks must not substitute the damped step for the
+undamped decrement; very strong damping can hide a large remaining error.
+Resolved acceptance requires finite, positive actual and predicted
+reductions and a true reduction ratio of at least 0.5; damping is decreased
+when the ratio exceeds 0.75. These thresholds use consistently scaled costs,
+not the inflated ratio in the older implementation.
+
+Keep workspace regressions for all four LM spellings at damping
+``1e20``, tight affine tolerances, and an exactly stationary state with
+nonzero cost.  Native tests also cover explicit stop reasons, objective
+scaling, rejected steps, and bounded or stalled damping updates.  Check
+the state, fitted measurement, costs, gain, and damping history as well
+as the final status.
+
+Remaining numerical work
+--------------------------------
+
+The following items require separate implementation and regression work.
+
+1. **Expose inner-solver controls and diagnostics.**  Report linear iterations and residuals.
+   Relative CG tolerance and the linear iteration budget are already exposed.  Keep
+   these separate from outer ``max_iter`` and the six damping controls.
+   Extend numerical coverage to nearly zero right-hand sides and
+   ill-conditioned positive-definite systems; bounded termination alone
+   does not establish the accuracy of a difficult solve.
+
+2. **Extend public stop diagnostics.**  The workspace retains its numeric
+   status mapping; native LM stop reasons are not a separate workspace
+   output.  A future result could expose the precise stop reason and
+   distinguish successful completion of a one-step linear solve from
+   exhaustion of an iterative convergence budget.
+
+3. **Replace dense normalization and explicit gain inversion.**  Store
+   state scales as a vector and apply diagonal products without allocating
+   an :math:`n\times n` dense scaling matrix.  Compute the gain by solving
+   the posterior precision system for its right-hand sides.  Measure peak
+   memory as well as runtime, and retain the option to skip gain production.
+   Consider factorization reuse and a preconditioner appropriate to each
+   formulation only after correctness is established.
+
+4. **Make agenda state and failure behavior explicit.**  Validation,
+   covariance inversion, and the initial agenda evaluation can still throw
+   directly; status ``Error`` covers errors caught during inversion.  Trial forward
+   model evaluations mutate atmosphere, sensor, and surface workspace data.
+   Define which state and diagnostics remain valid after an exception or a
+   rejected trial.  A future result should distinguish the last accepted
+   state from a failed trial without treating NaNs as the only status record.
+
+Covariance validation and construction
+----------------------------------------------
+
+``CovarianceMatrix.validate(expected_size=-1, relative_tolerance=1e-10,
+max_dense_elements=10_000_000)`` checks an existing physical covariance
+without modifying it.  Validation covers block dimensions and ranges,
+coverage, unique upper-triangular block identifiers, non-null matrices,
+finite values, positive variances, symmetry, and positive definiteness.
+Symmetry and supplied-inverse comparisons use variance-scaled coordinates
+so mixed units do not let a large-variance quantity hide an invalid
+small-variance block.  Positive definiteness is checked over connected
+components of the complete covariance, including cross-block correlations.
+
+Each represented inverse component must be complete and consistent with
+its connected covariance component.  Whole independent components may
+remain uncached during validation.  In normalized coordinates, the matrix-product
+residual is compared with ``relative_tolerance`` times the component size;
+the diagonal fast path uses ``relative_tolerance`` directly.
+``compute_inverse`` uses the same checks and inverts uncached independent
+components.  This catches invalid
+physical covariances on the existing OEM inversion path without imposing
+the standalone analysis's memory limit on existing retrievals.  It preserves
+the inverse-only representation used internally for LM damping; that
+representation is not accepted as a physical covariance by ``validate``
+or the standalone information report.
+
+Replacing blocks or accessing mutable blocks invalidates cached inverses.
+Adding a covariance block invalidates the affected connected components
+while retaining independent cached components.  Shared matrix aliases
+can still outlive those access points; validation before inversion must
+continue to detect a stale supplied inverse.  Do not silently overwrite
+asymmetric covariance entries during inversion.  The covariance-addition
+helper in ``src/m_covmat.cc`` now inserts the optional supplied inverse
+as an inverse and validates its inputs before mutation.
+
+Sparse diagonal validation and inversion retain diagonal storage.
+Explicit validation of non-diagonal connected components requires dense
+work; check
+``max_dense_elements`` before allocating each component matrix.  This
+guard bounds individual dense arrays, not total peak memory.  Keep
+regressions for diagonal and correlated blocks, mixed scales, incomplete
+coverage, inverse-only inputs, stale caches, and supplied inverse
+consistency.  Validation must not silently repair a statistical model.
+
+Useful construction helpers would accept standard deviations and an optional
+correlation matrix or named correlation kernel, then construct covariance
+blocks.  Parameter names should state whether they accept a standard
+deviation, variance, covariance, or precision.  A report could identify each
+block by retrieval target and include its units, variance range, and
+factorization or conditioning diagnostics.  Covariance repair, such as
+adding a diagonal term or changing correlations, must be an explicit user
+choice because it changes the inference.
+
+Standalone information analysis
+---------------------------------------
+
+``python/src/pyarts3/retrieval.py`` provides ``information`` and
+``information_from_workspace`` independently of the OEM optimizer.
+The workspace adapter reads the current Jacobian and the two physical
+covariances.  Neither entry point executes a forward agenda, runs OEM,
+updates a workspace, or selects new covariance values.  This separation
+lets a user compare proposed measurement and uncertainty models with a
+fixed Jacobian before a retrieval, and examine local sensitivities after
+one.  The mathematical definitions belong in :ref:`sec-oem-information`;
+usage and interpretation belong in :ref:`sec-user-oem-information`.
+
+The report uses covariance factors to obtain a dimensionless Jacobian,
+then an exact singular value decomposition.  ``singular_values`` and
+``mode_variance_reduction`` include all state directions, padding the
+unobserved modes with zero singular values when measurements are fewer
+than states.  ``state_modes`` contains physical state directions scaled
+to unit prior uncertainty; ``measurement_modes`` refers to whitened
+measurement coordinates.  Retain the distinction between mode and
+marginal variance reduction.  Mode signs and bases inside a degenerate
+subspace are not stable identifiers for comparisons between runs.
+
+Use factor solves rather than forming covariance inverses for this
+analysis.  Diagonal measurement covariances must not allocate a full
+measurement-square matrix.  Guard dense work with ``max_dense_elements``;
+even a diagonal prior still needs a state-square basis when all modes
+are returned.  The analysis guards an estimate of ``3*m*n + 4*n*n``
+elements as well as the cumulative dense factor sizes; LAPACK can need
+additional work arrays.  Future truncated or operator-based analyses must state
+which parts of the spectrum and uncertainty they approximate, and must
+not label retained-mode information as the complete information content.
+
+``information`` requires both an explicit measurement and
+``prior_prediction`` for ``innovation_chi_square``.
+``information_from_workspace`` reads the workspace measurement only when
+given ``prior_prediction``; it does not accept a measurement override.
+Do not infer the prior prediction from a workspace's fitted measurement:
+its generating state is not known to this API.  The
+chi-squared reference distribution assumes a linear model, a prediction
+at the prior mean, and the stated independent Gaussian error sources.
+The spectrum itself is independent of the measured residual.
+
+Regression oracles should include diagonal analytic systems, correlated
+covariances, unequal dimensions, exact null directions, consistent
+coordinate changes, and posterior covariance reconstructed from the
+returned modes.  Cross-check the innovation statistic against an
+independently formed innovation covariance.  Keep workspace immutability
+and dense-memory guards covered.  Plot uncertainty ratios when combining
+state elements with different units; retain absolute standard deviations
+and labels in the numerical report.
+
+Helping users choose settings
+-------------------------------------
+
+Named LM settings are implemented by
+:class:`~pyarts3.arts.LevenbergMarquardtSettings`.  Its keyword-only constructor and
+mutable fields expose ``initial_damping``, ``decrease_factor``,
+``increase_factor``, ``maximum_damping``, ``damping_threshold``, and
+``convergence_damping_limit``.  The native
+settings representation provides shared validation for the Python object
+and the optimizers used by ``oemCalc``. Both direct and CG optimizers must
+continue to use the same named controls.
+The type lives in ``src/core/jacobian/oem_settings.h`` and
+``src/core/jacobian/oem_settings.cc`` without an invlib dependency;
+``src/python_interface/py_retrieval.cpp`` binds the Python interface.
+
+``OptimalEstimationSettings`` owns the method enum, outer iteration controls,
+CG limits, nested LM controls and output flags. Both workspace calculations
+validate it once before covariance preparation, then pass it by const reference
+to the shared iteration dispatcher. Keep normalization and bases in
+``OptimalEstimationData`` because their dimensions belong to the problem.
+The settings type uses aggregate XML serialization; extend the Python
+constructor, properties, pickle state and round-trip regressions together when
+adding fields. The six-value LM shorthand initializes damping only; the
+separate ``maximum_trials`` field keeps its default.
+
+The Python LM constructor validates all seven LM settings, and each field setter
+validates a temporary copy before replacing the stored object.  An invalid
+edit must preserve the previous values and report the affected setting.
+This also avoids losing useful validation errors through nanobind's
+implicit-conversion error handling.  Related field changes must either
+keep each intermediate configuration valid or use a replacement object
+constructed with the desired keyword arguments together.
+
+``validate()`` checks a configured object at the OEM boundary. ``describe()``
+explains its fields. Both settings types have XML storage;
+OEM uses the named defaults when omitted. The outer settings are a workspace
+group; the nested LM type is registered as a group friend. The C++ API remains named.
+The Python binding accepts ``std::array<Numeric, 6>`` through its implicit
+constructor, which validates the six-field input.
+There is no ``as_vector()`` output conversion.
+Do not describe the threshold as a
+hard minimum: it controls both restart after rejection and switching a
+proposed decrease to zero.  The convergence damping limit gates the
+existing state-step criterion using the updated damping.  Preserve the
+accepted/rejected-step regressions when changing either behavior.
+A preset claiming particular convergence or performance properties needs
+documented assumptions and representative retrieval benchmarks.
+
+``src/tests/test_oem_methods.cc`` tests the native settings and solver
+behavior.  ``tests/core/jac/oem_lm_settings.py`` covers the Python interface
+through the actual workspace call. Keep named settings covered for all four LM spellings, including correlated
+priors and nonlinear rejected trials; comparing complete results and
+damping histories catches changes that an endpoint-only test would miss.
+
+Further API work should keep existing scripts usable:
+
+* Represent iteration family, linear solver, and formulation separately
+  internally.  A single method descriptor table can drive parsing,
+  supported-name documentation, and test enumeration.  Existing string
+  spellings and aliases can remain as the public compatibility layer.
+* Provide a setup report with state and measurement sizes, estimated
+  matrix storage, chosen coordinates and scales, covariance diagnostics,
+  and solver settings.  Recommend a method with a reason while leaving
+  the explicit choice available.  Dimensions can suggest a formulation;
+  they cannot establish linearity or predict nonlinear convergence.
+* Add an optional local Jacobian check using representative perturbations
+  in prior-scaled coordinates, and report discrepancies by measurement
+  and retrieval target.  Start with a deterministic small-model example
+  before applying it to expensive radiative-transfer agendas.
+* Extend ``OptimalEstimationDiagnostics`` with accepted iteration costs, state-step
+  measures, damping, trial rejections, linear residuals, and forward-model
+  call counts. There is no legacy positional adapter.
+  A user can then distinguish poor model linearity, a difficult linear
+  solve, an exhausted iteration budget, and a mismatch in assumed errors.
+
+Method recommendations should be assessed on linear, weakly nonlinear,
+strongly nonlinear, correlated, poorly scaled, and large sparse cases.
+Compare final objective and state as well as runtime, peak memory, and
+forward-model calls.  Automatic changes to prior or measurement covariance
+require scientific assumptions that cannot be inferred from solver progress
+alone.  Keep those assumptions visible in both the setup and uncertainty
+reports.
+
+
+Matching-grid covariance helper
+=======================================
+
+``oemStateCovmatCorrelateConstant`` resolves finalized atmospheric target keys
+and checks actual coordinate grids, not only vector lengths.  It assumes
+pointwise retrieval coordinates; custom mappings that mix grid points are
+outside its contract.  It constructs an upper-triangular sparse cross block
+from existing marginal standard deviations.  It validates a candidate
+containing all existing pairs before assignment, preserving the original
+on failure and discarding inverse caches on success.  Extensions must keep
+these guarantees and must not silently rescale transformed covariances.
+
+The correlation method accepts two independent shared-pointer input variants
+in one implementation.  Each argument is converted separately to the common
+atmospheric key type.  The regression exercises all atmospheric-key/species
+combinations and the generated workspace dispatch through an agenda.
+
+Measurement-space noise scaling
+---------------------------------------
+
+When ``measurement_vec_normalization`` is nonempty, the measurement-space
+direct and CG paths solve
+
+.. math::
+
+   (\mathbf{D}^{-1}\mathbf{M}\mathbf{D}^{-1})\vec{v}
+   = \mathbf{D}^{-1}\vec{r},
+   \qquad
+   \mathbf{M}=\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}+\mathbf{S}_\epsilon,
+   \qquad
+   \vec{u}=\mathbf{D}^{-1}\vec{v}.
+
+Here :math:`\mathbf{J}` is the measurement Jacobian and :math:`D_{ii}` are
+the supplied scales. Empty scales disable the transformation. The helper
+computes the suggested noise scales :math:`\sqrt{S_{\epsilon,ii}}`;
+OEM does not select them automatically. ``NoiseScaledSystem`` applies this
+operation without materializing :math:`\mathbf{M}` or :math:`\mathbf{D}`.
+The existing state-sized normalization remains exclusive to state-space
+solvers. The relative CG tolerance is measured in the scaled system.
+``oemMeasurementCovmatNormalization`` exposes the same standard
+deviations as a generic Vector output. Correlated noise is not fully whitened.
+Regression tests compare with the affine analytic solution and check state
+and cost invariance under independent measurement-unit changes.
+
+Direct measurement-space assembly
+-----------------------------------------
+
+``DirectMeasurementSolver`` opts into ``dense_measurement_system``. GaussNewton
+forwards this compile-time policy to MFORM; other optimizers/solvers default
+to lazy evaluation. MFORM materializes :math:`\mathbf{J}^{\top}` and computes
+
+.. math::
+
+   \mathbf{B}=\mathbf{S}_a\mathbf{J}^{\top},
+   \qquad
+   \mathbf{H}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon.
+
+It reuses :math:`\mathbf{B}` for the state update. Here :math:`\mathbf{H}` is
+the measurement-space system, not the state-space half-Hessian.
+The direct solver copies :math:`\mathbf{H}` for optional scaling and
+factorization. This uses additional :math:`n\times m` temporary
+storage but avoids repeated covariance applications. CG remains lazy.
+The ARTS adapters expose ``transpose_view()`` as a non-owning const strided
+view. Dense MFORM passes this view directly to covariance multiplication,
+avoiding an additional :math:`n\times m` Jacobian copy. The source Jacobian
+must remain alive and its storage stable until multiplication finishes.
+Owning ``transpose()`` remains available for invlib expression materialization;
+other backends retain that fallback. Gain postprocessing remains state-space and must be included
+in performance comparisons. New methods share the affine, nonlinear,
+underdetermined, normalization and failure regression fixtures.
+
+Fused covariance addition and GEMM
+------------------------------------------
+
+The ARTS reference-matrix adapter provides ``multiply_add(B, Se)`` for the
+dense MFORM path. It initializes the result to zero, adds the covariance
+blocks directly (including off-diagonal blocks), and calls ``mult`` with
+:math:`\alpha=1` and :math:`\beta=1`. Thus
+:math:`\mathbf{H}=\mathbf{J}\mathbf{B}+\mathbf{S}_\epsilon` needs one GEMM and no separate dense
+covariance temporary or post-GEMM addition pass. Other invlib backends keep
+the multiplication-plus-addition fallback. The transpose-view path removes the explicit Jacobian transpose copy.
+The direct solver's scaling copy remains.
+
+Diagonal covariance regressions
+---------------------------------------
+
+Every method-specific OEM CTest also runs ``test_diagonal_covariances``.
+It uses :math:`\mathbf{S}_a=\operatorname{diag}(4,2)` and
+:math:`\mathbf{S}_\epsilon=\operatorname{diag}(1,2,1/2)` with the affine fixture,
+testing all four combinations of dense/sparse prior and noise storage,
+with normalization enabled and disabled. The reference state, gain, total
+cost and measurement cost are rational values derived independently from
+the two-state normal equations. Linear methods must take exactly one step.
+These checks run as ordinary CTest regressions.
+
+Exact diagonal covariance operations
+--------------------------------------------
+
+Covariance matrix multiplication now detects exact diagonal structure across
+independent blocks and scales the destination directly. ``mult_inv`` and
+vector ``solve`` divide by covariance diagonal entries without requiring an
+inverse cache. Sparse diagonals are inspected in :math:`\mathcal{O}(\mathrm{nnz})`; dense blocks require
+an exact off-diagonal scan. Structure is not cached because callers can hold
+mutable/shared block storage. Detection uses no threshold and never discards
+small correlations. These paths use :math:`\mathcal{O}(n)` scratch space rather than a full
+matrix-result temporary.
+
+Component solves now use an internal variant of diagonal values and dense
+Cholesky factors, grouped by exact block connectivity. Ordinary covariance
+``mult_inv`` and ``solve`` calls prepare/reuse this representation without
+forming inverse blocks. Matrix and Sparse remain the public input types.
+Adding an off-diagonal block merges components; replacing/removing blocks
+can split them. Coupled sparse components currently use dense Cholesky,
+matching the former dense inverse component storage; sparse Cholesky and
+banded factorization are not implemented.
+
+OEM calls ``CovarianceMatrix::prepared`` once for each covariance before
+iteration. Preparation checks exact values and block layout, validates changed
+inputs, and publishes a detached, read-only snapshot. Its block storage belongs
+to the snapshot, so subsequent edits through aliases of the source do not change
+a running retrieval. Unchanged inputs reuse the prepared snapshot. Mutable
+covariance copies have independent preparation holders. A completed
+``compute_inverse`` records the exact validated storage; preparation reuses
+that validation only if all covariance and inverse values, shapes and block
+metadata still match. This avoids duplicate validation in cold calls with
+explicit inverse preparation.
+
+Preparation publication is protected by a mutex. Published snapshots support
+concurrent solves; callers must synchronize source mutation with preparation
+and must not mutate storage obtained from a prepared snapshot. Iterations do
+not compare snapshots, validate covariances, or build inverse caches. Standalone
+operations on mutable covariances retain their defensive checks. Concurrent
+solves, inverse construction, explicit validation and preparation synchronize
+cache publication, retaining factors while arithmetic runs outside the lock.
+External block edits still require synchronization. Prefer prepared snapshots
+for repeated concurrent solves to avoid cache checks and locking.
+Moved-from matrices remain valid empty objects and can be reused. New or
+changed supplied inverses still receive the full deterministic consistency
+check; only identical previously validated contents skip that cubic work.
+
+``prepared(true)`` requests explicit precision for consumers that need it.
+OEM requests this for state-space methods and gain output. Measurement error
+covariance stays diagonal or factorized unless inverse blocks were supplied.
+Any supplied inverse currently selects inverse application for the entire
+covariance, with missing component inverses materialized; mixed inverse/factor
+preparation within one covariance is not implemented.
+Calling an explicit precision consumer on ``prepared(false)`` without inverse
+blocks throws; request the required representation before entering the loop.
+CG versus direct method selection remains the user's choice.
+
+Preparation adds detached storage and a linear comparison once per OEM call.
+It is not a zero-copy interface. This cost avoids repeated validation and
+alias checks inside iterative solvers while preserving detection of source
+changes between retrievals.
+
+Regression tests cover mixed Matrix/Sparse inputs, joining/splitting components,
+retained-reference mutation after factorization, copies, multiple RHS and
+left/right solves. Existing supplied-inverse and all-method OEM regressions
+remain applicable.
+
+Diagnostics interface
+---------------------
+
+``OptimalEstimationDiagnostics`` owns the LM history and error/warning list.
+Reset the complete object for each OEM call. ``iterations`` is an ``Index``
+starting at zero; only unavailable costs use NaN. Translate invlib's return
+code at the OEM boundary to ``OptimalEstimationStatus``, defined in
+``src/core/options/arts_options.cc``. Its formatting, XML, and Python support
+come from the standard options machinery. Both diagnostics
+and LM settings use their aggregate XML representation; status is serialized
+by name, independently of enum ordinals.
+
+ReducedOEM adapter
+------------------
+
+``oemBasisCalc`` prepares ``model_state_basis_mat``,
+``measurement_basis_mat`` and ``oem_basis_singular_values`` from
+the full Jacobian and covariances. By default both bases are square; neither null
+space is discarded. ``full_matrices=0`` instead retains :math:`\min(m,n)` modes
+on each side, omitting only the extra null-space vectors of the larger side. The spectrum contains :math:`\min(m,n)` values,
+including zeros. Additional directions of the larger square basis have
+zero information. Keep these three outputs matched, including their mode
+ordering. Mixing equally sized decompositions cannot be detected by
+dimension checks.
+
+``oemBasisReduce`` reads the basis matrices and full spectrum and
+truncates the matrices in place. It also sets ``oem_basis_lost_dofs`` and
+``oem_basis_lost_information_bits`` relative to the original decomposition.
+The spectrum remains intact. Selection may be repeated to remove more modes,
+but cannot restore removed modes; requests requiring unavailable directions
+fail before modifying either matrix. Restore saved copies or recalculate to
+increase rank. Both slices are materialized before either input is replaced.
+No current Jacobian or covariance is needed during selection.
+``oemCalcReduced`` reads these same matrices as ordinary workspace inputs.
+
+Both bases use ``BlockMatrix`` so explicit projections can remain
+``Sparse`` through forward-vector, Jacobian and gain multiplication.
+``oemMeasurementBasisCalc`` constructs this input alone. It groups exactly
+matching full row directions after normalization by a signed pivot, retaining
+per-channel amplitudes separately. No tolerance-based grouping is implicit.
+Diagonal noise permits one stored projection entry per channel. For correlated
+noise, a single prepared covariance solve constructs
+:math:`\mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1}`; treating these
+correlations as independent would change the retrieval.
+
+The projection is rectangular and has no ordinary inverse. Projected noise
+is constructed and prepared before iteration, then reuses ``CovarianceMatrix``
+solve caches. Sparse projections with diagonal or entirely sparse covariance
+blocks use sparse products, including transposed off-diagonal blocks, without
+a dense measurement-square temporary. General dense covariance blocks use the
+dense preparation path; sparse projection application inside iteration still
+uses sparse multiplication. Do not attach an inverse cache to ``BlockMatrix``
+or silently materialize sparse projections in the agenda adapter.
+
+Grouping outputs do not have the SVD ordering required by
+``oemBasisReduce``. Tests exercise proportional rows, correlations,
+storage dispatch, all OEM methods, and a large collection of independent groups.
+
+``CovarianceSquareRoot`` validates and detaches covariance components, then
+uses the existing diagonal/Cholesky component machinery to apply
+:math:`\mathbf{L}`, :math:`\mathbf{L}^{\top}`,
+:math:`\mathbf{L}^{-1}`, or :math:`\mathbf{L}^{-\top}`. Source inverse caches
+are checked and preserved. No factor is published into the input covariance;
+square-root operations use the component factors directly.
+
+Matpack's ``svd`` calls LAPACK DGESVD. Basis construction requests full left
+and right singular vectors to preserve both null spaces. The full bases
+require :math:`n^2+m^2` dense elements in addition to SVD working storage
+and intermediates. Selecting fewer modes afterwards does not reduce this
+preparation cost. The economical option must be selected before the SVD to
+avoid those allocations. It does not reproduce the full prior when :math:`m<n`.
+Whitening is
+applied directly to the Jacobian; avoid replacing this with eigenanalysis
+of normal equations, which squares its condition number. Generate the
+measurement basis with a transposed factor solve on the left vectors, not
+division by singular values: zero-information modes must also work.
+Both bases and the spectrum are published only after successful preparation.
+Selection also prepares its outputs before publishing them. These methods
+invalidate ``checked`` because changing basis dimensions can invalidate a
+previously accepted normalization vector.
+Tests reconstruct both original covariances, check rectangular and null
+cases, and reselect ranks without a new decomposition. They compare
+covariance metrics, subspaces and gains because singular-vector signs
+and rotations within repeated values are not unique.
+
+Rank selection and its reported losses sum DOFS and bit contributions from
+the weakest singular value upwards. Automatic selection stops before either
+supplied loss budget would be exceeded.
+Use scaled formulas for strong singular values to avoid squaring overflow;
+never subtract a weak tail from the total information. No relative cutoff
+against the largest singular value is applied, since a very strong mode
+does not make another mode less informative. Without limits the bit budget
+is zero. Retain one mode in the all-zero case to satisfy the current
+``oemCalcReduced`` dimension contract. Basis generation has no configured
+allocation cutoff; covariance validation still checks mathematical validity.
+
+``oemCalcReduced`` validates both reduction matrices and prepares reduced
+covariances once at the workspace-method boundary. It projects the starting
+state using the prior metric and rejects an explicit start outside the
+affine subspace. No target metadata is fabricated or resized.
+
+``oem::ReducedAgendaWrapper`` wraps the ordinary ``AgendaWrapper``.
+Every physical agenda execution receives a full state and the real original
+targets. Value-only trials use the existing empty derivative targets.
+The reduced adapter expands the state, projects the measurement vector,
+and computes :math:`\mathbf{J}_r=\mathbf{C}\mathbf{J}\mathbf{B}`.
+It borrows both reduction matrices and reuses its full-state buffer,
+:math:`m\times r` Jacobian intermediate, and :math:`q\times r`
+reduced Jacobian. The full Jacobian stays in the workspace output.
+A state tag avoids repeating projection of an unchanged Jacobian.
+
+The common ``oem_compute`` dispatch serves full and reduced OEM for every LI,
+GN and LM method. There is no nested callback agenda or second workspace
+method invocation. Reduced LM receives
+:math:`\mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}`
+as its damping matrix. This must not be replaced by identity or by the
+diagonal of the reduced prior precision for an arbitrary basis.
+
+The reduced prior is :math:`(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1}`;
+the noise is :math:`\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}`.
+Reduced covariance matrices can be dense even if the original covariances are sparse.
+Preparation applies the full covariance's structured solve/multiply paths.
+Only reduced state matrices are inverted to construct the reduced covariance
+and gain; the full prior is never densified for the reduction.
+The ordinary LM inverse-diagonal preparation is still needed for damping.
+
+Final outputs are restored to the accepted full state, including after LI
+or a rejected trial. Existing state tags avoid redundant full agenda calls.
+Final-state restoration failures clear matrices and set the existing error
+diagnostics. The gain is :math:`\mathbf{B}\mathbf{G}_r\mathbf{C}`.
+Diagnostic costs are recomputed in full coordinates; solver progress uses
+the compressed objective. Keep this distinction when extending diagnostics.
+
+``InformationReport.reduction`` selects a rank from reverse cumulative
+information sums, avoiding cancellation when weak tails accompany strong
+leading modes. It produces :math:`\mathbf{B}=\mathbf{L}_a\mathbf{V}_r` and
+:math:`\mathbf{C}=\mathbf{U}_q^{\top}\mathbf{L}_\epsilon^{-1}`,
+with :math:`q=\min(r,m)`. The report retains the block noise factors to apply
+the latter solve when requested; it does not store a full whitening matrix.
+Full posterior covariance is allocated only on request by scaling the state
+mode columns before multiplying. Discarded columns retain unit prior variance.
+
+``tests/core/jac/reduced_oem.py`` runs through CTest. It compares all methods
+against independent affine solutions with both reductions, exercises channel
+selection, correlated errors, arbitrary basis scaling, reduced normalization,
+and nonlinear GN/LM. It also checks full output restoration, diagnostics,
+rank validation, and local lossless compression. A future directional
+Jacobian implementation would require a different agenda contract; this
+adapter does not avoid computing the full Jacobian.
+
+State-basis storage
+-------------------
+
+An exact identity state basis bypasses the prior transformation, projected
+LM damping and intermediate state-Jacobian product. It shares the prepared
+original prior. Other sparse bases use sparse multiplication for expansion,
+Jacobian projection and gain expansion. With diagonal prior precision, row
+scaling and :math:`\mathbf B^\top\mathbf S_a^{-1}\mathbf B` remain sparse;
+a diagonal reduced precision is inverted by reciprocating its diagonal.
+General correlated priors may require dense preparation. Projected LM damping
+preserves sparse storage when the supplied state basis is sparse. All such
+preparation occurs before iteration. Basis truncation preserves storage type.
+
+Owning workspace data
+---------------------
+
+``OptimalEstimationData`` is the workspace group of ``oem``. Numerical OEM
+inputs and outputs belong to this object; physical fields, sensor definitions
+and finalized Jacobian targets remain separate workspace data. ``oemCalc``
+and ``oemCalcReduced`` bind references to its members and use the same solver
+code. ``AgendaWrapper`` passes the owned fit/Jacobian buffers directly to the
+ordinary inversion agenda interface. It does not copy the object or move its
+members back to primitive workspace variables during iteration.
+
+``oemInit`` resets the OEM object and workspace Jacobian targets. All
+``oemAdd`` methods take both objects; pending covariance blocks belong to
+``oem.covmat_diagonal_blocks``, not a separate workspace variable.
+``oemFinalizeDiagonal`` resolves target offsets and replaces the owned state
+covariance with the assembled blocks, then calls ``check(&jac_targets)``.
+The prior, observations and measurement covariance must already be present.
+Failure leaves the object unchecked; success marks it checked. Call
+``jac_targetsFinalize`` separately when mapping is needed before numerical
+setup is complete. Repeating finalization does not append duplicate blocks. Clearing auxiliary data releases the pending map without
+changing the assembled covariance; add targets again before rebuilding it.
+
+``oemInitFromData`` checks dimensions before consuming the four numerical
+inputs: prior, observations and their covariances. It constructs a fresh,
+unchecked object separately before replacement, allowing inputs to refer to
+members of the object being replaced. Fit and Jacobian are not input data.
+``oemSetApriori`` and ``oemSetMeasurement`` consume only their respective vectors,
+retaining all other members. Only size changes invalidate ``checked``. They do
+not reset the previous fitted state; starting a new calculation from the prior
+requires an empty current state. All consuming methods use ``std::exchange``
+to leave sources empty. The caller can obtain the prior with
+``model_state_vecFromData``; the setters have no physical-model inputs.
+Prepared covariance caches move with the covariance objects.
+``oemRestoreApriori`` takes const OEM data and updates only physical fields
+through the workspace target mappings. It leaves all previous results intact.
+
+Per-call reduced matrices and solver scratch retain automatic lifetimes and
+are released on return. Reusable covariance factors and snapshots belong to
+``CovarianceMatrix``. ``clear_auxiliary`` releases those caches together with
+all recomputable outputs, but retains the selected bases and current state.
+It does not reset diagnostics. Direct edits to a state or physical model
+require clearing its cached fit/Jacobian before a new calculation; dimensions
+alone cannot establish the linearization point of externally supplied data.
+
+Both basis constructors and selection operate on ``oem``. Spectrum and loss
+members are auxiliary; the retained matrices are required inputs to
+``oemCalcReduced``. Clearing the spectrum deliberately prevents subsequent
+mode selection until a new decomposition is computed.
+
+Python attribute guards
+=======================
+
+``OptimalEstimationData::check`` marks the object checked only after collecting
+and reporting numerical-input validation failures. Optional finalized targets
+are checked for state-size agreement. The workspace method ``oemCheck`` calls
+this same implementation with the workspace targets, declaring ``oem`` as
+an input/output and ``jac_targets`` as a const input. Python exposes the flag read-only and
+uses guarded property setters. Reads still return references; in-place edits
+through those references are explicitly permitted and are not tracked.
+``uncheck`` changes only the flag. Target-adding methods and covariance-layout
+changes invalidate it; shape-preserving correlation edits retain it.
+
+Python ``clear`` requires unchecked data. ``clear_auxiliary`` remains callable
+on checked data and preserves the flag: required inputs are unchanged. Workspace
+methods remain trusted mutation paths. Both calculation entry points call
+``ensure_checked(jac_targets)`` before covariance preparation or output changes.
+It calls ``check`` only when the flag is false; successful validation is reused.
+Explicit ``oemCheck`` and ``oemFinalizeDiagonal`` still validate unconditionally. Preflight accepts either full-space or supplied
+basis dimensions for normalization vectors; the chosen calculation enforces
+its own normalization dimensions. Method-specific checks remain at the OEM boundary. XML stores the same
+numerical fields as before but never persists the checked flag. Loading into
+an unchecked object leaves it unchecked, and loading into a checked object
+requires ``uncheck`` first.
+When adding a persistent numerical member, update ``oem_xml_members`` in
+``oem_settings.cc`` and its Python guarded property. Validation state is
+intentionally excluded from this serialization tuple.

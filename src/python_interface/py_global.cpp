@@ -62,8 +62,11 @@ void py_global(py::module_& m) try {
   global.doc() = "Global settings and data";
 
   py::class_<Parameters> param(global, "parameters");
-  param.def_rw_static("includepath", &parameters.includepath, "Automatic include paths\n\n.. :class:`ArrayOfString`")
-      .def_rw_static("datapath", &parameters.datapath, "Automatic data paths\n\n.. :class:`ArrayOfString`")
+  param
+      .def_rw_static(
+          "includepath", &parameters.includepath, "Automatic include paths\n\n.. :class:`~pyarts3.arts.ArrayOfString`")
+      .def_rw_static(
+          "datapath", &parameters.datapath, "Automatic data paths\n\n.. :class:`~pyarts3.arts.ArrayOfString`")
       .doc() = "Access to static settings data";
   generic_interface(param);
 
@@ -198,7 +201,7 @@ Return
   global.def(
       "all_isotopologues",
       [] { return Species::Isotopologues; },
-      "List of all valid :class:`~pyarts3.arts.SpeciesIsotopeRecord`");
+      "List of all valid :class:`~pyarts3.arts.SpeciesIsotopologueInfo`");
 
 #ifdef _OPENMP
   global.def("omp_get_max_threads",
@@ -280,7 +283,8 @@ Parameters
 
 Return
 ------
-See above, :class:`dict`
+report : dict
+    The timing report described above.
 )");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));

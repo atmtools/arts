@@ -41,6 +41,155 @@ std::vector<EnumeratedOption> internal_options_create() {
   std::vector<EnumeratedOption> opts;
 
   opts.emplace_back(EnumeratedOption{
+      .name = "OptimalEstimationMethod",
+      .desc =
+          R"--(Algorithm and linear solver used by optimal estimation.
+
+Every option minimizes the same cost function, so the choice is about how the
+minimum is approached and not about what is being minimized:
+
+.. math::
+  \chi^2 = \chi^2_y + \chi^2_x,
+
+.. math::
+  \chi^2_y = \frac{1}{m}\left(\vec{y}-\vec{y}_f\right)^\top
+             \mathbf{S}_\epsilon^{-1}\left(\vec{y}-\vec{y}_f\right),
+  \qquad
+  \chi^2_x = \frac{1}{m}\left(\vec{x}-\vec{x}_a\right)^\top
+             \mathbf{S}_a^{-1}\left(\vec{x}-\vec{x}_a\right).
+
+The a priori term belongs to the cost for every option, and no option changes
+the statistical meaning of the two covariance matrices.  What an option selects
+is how the state is stepped and which linear system produces that step.  Both
+are built from the half-gradient and the Gauss--Newton approximation of the
+half-Hessian of :math:`m\chi^2`:
+
+.. math::
+  \vec{g} = \mathbf{J}^\top\mathbf{S}_\epsilon^{-1}
+            \left(F\left(\vec{x}\right)-\vec{y}\right)
+            + \mathbf{S}_a^{-1}\left(\vec{x}-\vec{x}_a\right),
+  \qquad
+  \mathbf{H} = \mathbf{J}^\top\mathbf{S}_\epsilon^{-1}\mathbf{J}
+               + \mathbf{S}_a^{-1}.
+
+There are two ways to step.  ``li`` and ``gn`` take the undamped
+Gauss--Newton step
+
+.. math::
+  \mathbf{H}\Delta\vec{x} = -\vec{g},
+
+which ``li`` takes exactly once and ``gn`` repeats.  ``lm`` instead takes the
+damped step of :ref:`sec-oem-damping`
+
+.. math::
+  \left(\mathbf{H}+\gamma\mathbf{D}\right)\Delta\vec{x} = -\vec{g},
+  \qquad
+  \mathbf{D} = \operatorname{diag}
+               \left(\operatorname{diag}\left(\mathbf{S}_a^{-1}\right)\right),
+
+where :math:`\gamma` is raised on a rejected trial and lowered on an accepted
+one.  At :math:`\gamma=0` this is the Gauss--Newton step again.
+
+There are also two spaces to solve in.  The plain options solve the
+:math:`n \times n` state-space system written above.  The ``_m`` options solve
+the :math:`m \times m` measurement-space system instead:
+
+.. math::
+  \mathbf{M} = \mathbf{J}\mathbf{S}_a\mathbf{J}^\top + \mathbf{S}_\epsilon,
+  \qquad
+  \vec{r} = \vec{y} - F\left(\vec{x}_i\right)
+            + \mathbf{J}\left(\vec{x}_i-\vec{x}_a\right),
+
+.. math::
+  \mathbf{M}\vec{u} = \vec{r},
+  \qquad
+  \vec{x}_{i+1} = \vec{x}_a + \mathbf{S}_a\mathbf{J}^\top\vec{u}.
+
+The two systems have the same solution in exact arithmetic, so the choice is
+one of size and conditioning: the state-space system is the smaller one when
+there are more measurements than state elements, and the measurement-space
+system when there are fewer.  Finally, the ``_cg`` options replace the direct
+solve of the selected system with a conjugate-gradient solve, which never
+forms the inverse and is worth its tolerance only when the direct solve is the
+bottleneck.
+
+where:
+
+- :math:`\vec{y}` is the measurement vector,
+- :math:`\vec{y}_f = F\left(\vec{x}\right)` is the simulated measurement,
+- :math:`\vec{x}` is the model state and :math:`\vec{x}_a` its a priori,
+- :math:`F` is the forward model, run through *inversion_iterate_agenda*,
+- :math:`\mathbf{J}` is the Jacobian of :math:`F` at the current state,
+- :math:`\mathbf{S}_\epsilon` is the measurement error covariance,
+- :math:`\mathbf{S}_a` is the a priori covariance of the model state,
+- :math:`m` is the number of measurements, and
+- :math:`n` is the number of retrieved state elements.
+
+Four limits end a retrieval, and which of them can be reached depends on the
+option.  An iteration budget stops the outer loop of the iterated options and
+reports ``IterationLimit``; the linear options report it after their single
+step.  A convergence limit compares the state-step measures of
+:ref:`sec-oem-convergence` against ``stop_dx``, which is the only way to
+report ``Converged``.  A conjugate-gradient budget applies to the ``_cg``
+options only: an unconverged step is rejected, and ``li`` and ``gn`` then stop
+with ``LinearSolverLimit`` while ``lm`` first retries with more damping.  A
+damping limit applies to ``lm`` alone, which reports ``DampingLimit`` when it
+runs out of damping without an acceptable step.  A starting cost above
+``max_start_cost`` skips the inversion for every option and reports
+``StartCostLimit``.
+
+.. note::
+  ``lm`` has no measurement-space form, as the damping is applied to
+  :math:`\mathbf{H}` in state space.
+
+  ``ml`` and ``ml_cg`` are historical spellings of ``lm`` and ``lm_cg``.  They
+  select neither maximum-likelihood estimation nor a retrieval without the a
+  priori term.
+)--",
+      .values_and_desc =
+          {
+              Value{"li", "Linear", "A single undamped step, solving the state-space system directly."},
+              Value{"li_m",
+                    "LinearMeasurementSpace",
+                    "A single undamped step, solving the measurement-space system directly."},
+              Value{"li_cg",
+                    "LinearConjugateGradient",
+                    "A single undamped step, solving the state-space system by conjugate gradient."},
+              Value{"li_cg_m",
+                    "LinearConjugateGradientMeasurementSpace",
+                    "A single undamped step, solving the measurement-space system by conjugate gradient."},
+              Value{"gn", "GaussNewton", "Iterated undamped steps, solving the state-space system directly."},
+              Value{"gn_m",
+                    "GaussNewtonMeasurementSpace",
+                    "Iterated undamped steps, solving the measurement-space system directly."},
+              Value{"gn_cg",
+                    "GaussNewtonConjugateGradient",
+                    "Iterated undamped steps, solving the state-space system by conjugate gradient."},
+              Value{"gn_cg_m",
+                    "GaussNewtonConjugateGradientMeasurementSpace",
+                    "Iterated undamped steps, solving the measurement-space system by conjugate gradient."},
+              Value{"lm", "ml", "Iterated damped steps, solving the state-space system directly."},
+              Value{"lm_cg", "ml_cg", "Iterated damped steps, solving the state-space system by conjugate gradient."},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "OptimalEstimationStatus",
+      .desc = "Outcome of an optimal-estimation retrieval, reported by OptimalEstimationDiagnostics.\n",
+      .values_and_desc =
+          {
+              Value{"NotRun", "No retrieval has run."},
+              Value{"Converged", "The convergence criterion was met or LM established numerical stationarity."},
+              Value{"IterationLimit",
+                    "The outer iteration budget was reached. Linear methods may report this after their single step."},
+              Value{"LinearSolverLimit", "CG exhausted its iteration budget; the unconverged step was rejected."},
+              Value{"DampingLimit", "LM reached its damping limit without finding an acceptable step."},
+              Value{"Error", "An error was caught during inversion; inspect the diagnostic messages."},
+              Value{"StartCostLimit", "The starting cost exceeded max_start_cost and inversion was skipped."},
+          },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "AntennaType",
       .desc =
           R"(A switch controlling how monte carlo antenna patterns are handled.

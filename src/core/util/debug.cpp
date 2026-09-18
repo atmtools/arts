@@ -5,21 +5,19 @@
 #include <string>
 #include <string_view>
 
-src_location::src_location(std::source_location loc_) : loc(loc_) {}
-
-std::string src_location::get() {
+std::string src_location::get() const {
   return std::format(
       "Filename:      {}\n"
       "Function Name: {}\n"
       "Line Number:   {}\n"
       "Column Number: {}\n",
-      std::string_view(loc.file_name()),
-      std::string_view(loc.function_name()),
-      loc.line(),
-      loc.column());
+      std::string_view(file_name_),
+      std::string_view(function_name_),
+      line_,
+      column_);
 }
 
-std::string src_location::getfunc() { return loc.function_name(); }
+std::string src_location::getfunc() const { return function_name_; }
 
 namespace arts {
 std::runtime_error catch_errors(std::logic_error& e, const std::string_view context) {

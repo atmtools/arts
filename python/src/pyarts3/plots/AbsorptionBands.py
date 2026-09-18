@@ -96,9 +96,9 @@ def plot(data: AbsorptionBands,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
     if isinstance(freqs, int):

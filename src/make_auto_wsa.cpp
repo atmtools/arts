@@ -246,7 +246,7 @@ std::unordered_map<std::string, WorkspaceAgendaRecord> get_workspace_agendas() {
 )--",
                wsa.size());
 
-  auto quoted = std::views::transform([](const std::string& s) { return '"' + s + '"'; });
+  auto quoted = stdv::transform([](const std::string& s) { return '"' + s + '"'; });
 
   for (const auto& [name, ag] : agmap) {
     std::println(os,

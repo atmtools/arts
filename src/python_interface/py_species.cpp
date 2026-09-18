@@ -129,7 +129,7 @@ void py_species(py::module_& m) try {
       .def_ro("gi",
               &SpeciesIsotope::gi,
               "The degeneracy of states of the molecule. It is -1 if not defined.\n\n.. :class:`float`")
-      .def_prop_ro("name", &SpeciesIsotope::FullName, "The full name\n\n.. :class:`String`")
+      .def_prop_ro("name", &SpeciesIsotope::FullName, "The full name\n\n.. :class:`~pyarts3.arts.String`")
       .def_prop_ro(
           "predef", &SpeciesIsotope::is_predefined, "Check if this represents a predefined model\n\n.. :class:`bool`");
   siso.def(py::self == py::self);
@@ -148,7 +148,7 @@ void py_species(py::module_& m) try {
   py::class_<SpeciesTag> stag(m, "SpeciesTag");
   generic_interface(stag);
   stag.def_rw("spec_ind", &SpeciesTag::spec_ind, "Species index\n\n.. :class:`int`")
-      .def_prop_ro("spec", &SpeciesTag::Spec, "Species\n\n.. :class:`SpeciesEnum`")
+      .def_prop_ro("spec", &SpeciesTag::Spec, "Species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def_rw("type", &SpeciesTag::type, "Type of tag\n\n.. :class:`~pyarts3.arts.SpeciesTagType`")
       .def_rw("cia_2nd_species", &SpeciesTag::cia_2nd_species, "CIA species\n\n.. :class:`~pyarts3.arts.SpeciesEnum`")
       .def(

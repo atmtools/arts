@@ -21,6 +21,12 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
 // Solve linear system
 void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
+/** A = U Sigma V^T, via LAPACK. s contains the min(m,n) singular values.
+ * U and V are square when full_matrices is true; otherwise both have min(m,n)
+ * columns. Input is preserved.
+ */
+void svd(Matrix& U, Vector& s, Matrix& V, ConstMatrixView A, bool full_matrices = true);
+
 struct solve_workdata {
   std::size_t      N{};
   std::vector<int> ipiv{};

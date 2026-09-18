@@ -27,7 +27,7 @@ def time_report(*, mode="plot", clear=True, scale=1.0, fig=None, mintime=None):
     scale : float, optional
         The scale of the time axis, defaults to 1.0.  Special values are 1e3 for
         milliseconds and 1e6 for microseconds.
-    fig : matplotlib figure, optional
+    fig : matplotlib.figure.Figure, optional
         The figure to draw on in a plotting mode.  By default creates a new figure.
     mintime : float, optional
         The minimum time in seconds for a method to be included in the report.
@@ -116,12 +116,12 @@ def time_report_plot(res, dt, unit, fig):
         The time report with the minimum time for each method.
     unit : str
         The unit of the time axis, e.g., 's', 'ms', 'µs', etc.
-    fig : matplotlib figure, optional
+    fig : matplotlib.figure.Figure, optional
         The figure to draw on.
 
     Returns
     -------
-    fig : matplotlib figure
+    fig : matplotlib.figure.Figure
     ax : matplotlib axis on figure
     """
 

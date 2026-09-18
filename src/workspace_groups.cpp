@@ -17,9 +17,6 @@ void add_arrays_of(std::unordered_map<std::string, WorkspaceGroupRecord>& wsg_da
                    const std::vector<std::string>&                        types,
                    std::vector<std::string>                               extra_headers) {
   for (const auto& type : types) {
-    // Only the length of the list is read here.  The elements may name further
-    // dimensions, but those belong to each element and need not agree between
-    // them, so they are documented rather than verified.
     auto& v = wsg_data["ArrayOf" + type] = {
         .file     = "vector",
         .desc     = "A list of *" + type + "*\n",
@@ -210,6 +207,23 @@ This holds either a shared *Matrix* or a shared *Sparse* matrix.
       .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
+  wsg_data["OptimalEstimationSettings"] = {
+      .file                 = "oem_settings.h",
+      .desc                 = "Algorithm, convergence, solver and output controls for optimal estimation.\n",
+      .invariant            = "{}.validate()",
+      .invariant_desc       = "settings are valid",
+      .invariant_printables = {"{}"},
+  };
+
+  wsg_data["OptimalEstimationData"] = {
+      .file     = "oem_settings.h",
+      .desc     = "Owning OEM problem, basis information and retrieval results. Used by oemCalc and oemCalcReduced.\n",
+      .dim_size = {"{}.model_state_vec_apriori.size()",
+                   "{}.measurement_vec.size()",
+                   "{}.model_state_basis_mat.ncols()",
+                   "{}.measurement_basis_mat.nrows()"},
+  };
+
   wsg_data["CovarianceMatrix"] = {
       .file = "covariance_matrix.h",
       .desc =
@@ -247,11 +261,13 @@ Both the data and the grid may be named.  The grids are not sorted.
       .map_type = true,
   };
 
-  wsg_data["QuantumIdentifierGriddedField1Map"] = {.file = "lbl.h",
-                                                   .desc =
-                                                       R"--(A map from *QuantumIdentifier* to *GriddedField1*.
+  wsg_data["QuantumIdentifierGriddedField1Map"] = {
+      .file = "lbl.h",
+      .desc =
+          R"--(A map from *QuantumIdentifier* to *GriddedField1*.
 )--",
-                                                   .map_type = true};
+      .map_type = true,
+  };
 
   wsg_data["Index"] = {
       .file       = "matpack.h",
@@ -659,18 +675,6 @@ when computing the Jacobian matrix or partial derivatives.
       .dim_size = {"{}.target_count()", "{}.x_size()"},
   };
 
-  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
-      .file = "retrieval_target.h",
-      .desc =
-          R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
-
-The intended use of this type is to store required *BlockMatrix* objects so that
-the user-interface for setting up retrieval targets can be simplified.
-)--",
-      .map_type = true,
-      .dim_size = {"{}.size()"},
-  };
-
   wsg_data["PropagationPathPoint"] = {
       .file = "path_point.h",
       .desc = R"--(A simple path-point of a propagation path
@@ -747,8 +751,8 @@ and returns any associated data.
   };
 
   wsg_data["DisortFlux"] = {
-      .file = "disort.h",
-      .desc = R"(The flux result variable for Disort.
+      .file     = "disort.h",
+      .desc     = R"(The flux result variable for Disort.
 
 #. *AscendingGrid* frequency grid
 #. *DescendingGrid* level altitude grid
@@ -765,23 +769,31 @@ by density [kg/m^3] and mass specific heat capacity [J/(kg K)], and integrate
 over frequency to obtain heating in K/s.  The Python recipe
 ``pyarts3.recipe.heating_rates.from_disort`` performs this conversion.
 )",
+      .dim_size = {"{}.freq_grid.size()", "(std::max<Size>({}.alt_grid.size(), 1) - 1)"},
   };
 
   wsg_data["DisortRadiance"] = {
-      .file = "disort.h",
-      .desc = R"(The radiance result variable for Disort.
+      .file     = "disort.h",
+      .desc     = R"(The radiance result variable for Disort.
 
 #. *AscendingGrid* frequency grid
 #. *DescendingGrid* level altitude grid
 #. *AziGrid* azimuth grid
 #. *ZenGrid* zenith grid
 #. *Tensor4* radiance data
+
+The data have shape (frequency, layer, azimuth, zenith). The layer axis
+corresponds to ``alt_grid[1:]``; the top boundary is omitted.
 )",
+      .dim_size = {"{}.freq_grid.size()",
+                   "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                   "{}.azi_grid.size()",
+                   "{}.zen_grid.size()"},
   };
 
   wsg_data["DisortSettings"] = {
-      .file           = "disort.h",
-      .desc           = R"(The settings required to run Disort.
+      .file                     = "disort.h",
+      .desc                     = R"(The settings required to run Disort.
 
 #. *Index* Quadrature dimension
 #. *Index* Legendre order
@@ -800,15 +812,15 @@ over frequency to obtain heating in K/s.  The Python recipe
 #. *Tensor3* Positive boundary condition
 #. *Tensor3* Negative boundary condition
 )",
-      .invariant      = "{}.ok()",
-      .invariant_desc = "agrees with its own frequency grid, level grid and dimensions.",
-
-      // Assembled by the disort_settings* setters, which see it part-built
+      .dim_size                 = {"{}.freq_grid.size()",
+                                   "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                                   "{}.quadrature_dimension",
+                                   "{}.legendre_polynomial_dimension",
+                                   "{}.fourier_mode_dimension"},
+      .invariant                = "{}.ok()",
+      .invariant_desc           = "agrees with its own frequency grid, level grid and dimensions.",
       .invariant_needs_complete = true,
-
-      /* Reported whole rather than field by field: the shapes are only
-       * meaningful next to the grids and dimensions they are derived from. */
-      .invariant_printables = {"{}"},
+      .invariant_printables     = {"{}"},
   };
 
   wsg_data["AbsorptionLookupTables"] = {
@@ -1020,26 +1032,20 @@ of this term multiplied by a negative distance.
   };
 
   wsg_data["SourceVector"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(Source vector and derivatives.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(Source vector and derivatives.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
-
-      /* The shape is read off the derivative, so without this the sizes above
-       * describe only half of the object. */
+      .dim_size             = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
       .invariant            = "{}.ok()",
       .invariant_desc       = "has a value and a derivative of the same shape.",
       .invariant_printables = {"{}.J.shape()", "{}.dJ.shape()"},
   };
 
   wsg_data["TransmittanceMatrix"] = {
-      .file     = "rtepack.h",
-      .desc     = R"--(Transmittance matrix and derivatives.
+      .file                 = "rtepack.h",
+      .desc                 = R"--(Transmittance matrix and derivatives.
 )--",
-      .dim_size = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
-
-      /* As *SourceVector*, but which members have to agree depends on the
-       * transmittance option, so the whole object is reported on failure. */
+      .dim_size             = {"{}.shape()[0]", "{}.shape()[1]", "{}.shape()[2]"},
       .invariant            = "{}.ok()",
       .invariant_desc       = "has members that agree with each other for its transmittance option.",
       .invariant_printables = {"{}"},
@@ -1086,11 +1092,9 @@ of this term multiplied by a negative distance.
                     "String",
                     "SubsurfacePoint",
                     "PropmatVector",
-                    "MuelmatVector",
                     "StokvecVector",
                     "PropmatMatrix",
                     "SpecmatMatrix",
-                    "MuelmatTensor3",
                     "StokvecMatrix",
                     "ArrayOfPropmatVector",
                     "ArrayOfStokvecVector",

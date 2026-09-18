@@ -52,7 +52,7 @@ void py_fwd(py::module_& m) try {
           "Geometric planar spectral radiance")
       .def_prop_ro("altitude",
                    &SpectralRadianceOperator::altitude,
-                   "The altitude of the top of the atmosphere [m]\n\n.. :class:`AscendingGrid`");
+                   "The altitude of the top of the atmosphere [m]\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize fwd\n{}", e.what()));
 }

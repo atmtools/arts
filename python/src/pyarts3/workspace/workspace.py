@@ -81,6 +81,7 @@ class Workspace(cxx.CxxWorkspace):
 
     @staticmethod
     def fromxml(file):
+        """Create a workspace from an XML file."""
         x = Workspace(False)
         x.readxml(file)
         return x
@@ -508,7 +509,7 @@ def arts_agenda(func=None, *, ws=None, fix=False):
 
     Parameters
     ----------
-    func : function
+    func : typing.Callable
         The function to be turned into an Agenda
     ws : ~pyarts3.workspace.Workspace, optional
         The workspace to put this onto after finalization, defaults to None

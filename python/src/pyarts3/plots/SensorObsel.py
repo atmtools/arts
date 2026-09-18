@@ -311,7 +311,7 @@ def plot(data: pyarts.arts.SensorObsel,
     """Plot a sensor observational element.
 
     By default, this follows the same line-plot convention as
-    :mod:`pyarts3.plots.ArrayOfSensorObsel`: the selected quantity is reduced
+    :func:`~pyarts3.plots.ArrayOfSensorObsel.plot`: the selected quantity is reduced
     over the non-plotted axis and drawn against either frequency or one sensor
     geometry component.
 
@@ -382,9 +382,9 @@ def plot(data: pyarts.arts.SensorObsel,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input. Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input. Otherwise the created Axes.
     """
 

@@ -56,7 +56,7 @@ physical definitions, and :doc:`dev.tmatrix` for build and implementation detail
       .def_ro(
           "phase",
           &tmatrix::RandomResult::phase,
-          "MuelmatVector at equally spaced angles from 0 to 180 degrees in the scattering-plane basis. Dimensionless: F11 integrates to 4*pi over solid angle. Multiply by scattering/(4*pi) for differential cross sections.\n\n.. :class:`~pyarts3.arts.MeulmatVector`")
+          "MuelmatVector at equally spaced angles from 0 to 180 degrees in the scattering-plane basis. Dimensionless: F11 integrates to 4*pi over solid angle. Multiply by scattering/(4*pi) for differential cross sections.\n\n.. :class:`~pyarts3.arts.MuelmatVector`")
       .doc() = "Random form results of T-matrix evaluation for one distribution";
   tm.def(
       "fixed",

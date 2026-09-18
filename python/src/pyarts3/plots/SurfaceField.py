@@ -53,9 +53,9 @@ def plot(data: pyarts.arts.SurfaceField,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
     keys = list(data.keys()) if keys is None else keys

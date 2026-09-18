@@ -1,3 +1,37 @@
+// A minimizer's explicit stop outcome takes precedence over a small returned
+// step. Rejected trials commonly return zero and must not imply convergence.
+template<typename Minimizer, typename RealType>
+bool minimizer_converged(Minimizer &M, RealType criterion)
+{
+    if (M.stop_iteration()) {
+        if constexpr (requires { M.converged(); }) {
+            return M.converged();
+        }
+        return false;
+    }
+    return std::isfinite(criterion) && criterion < M.get_tolerance();
+}
+
+// A linear-solver cap is a rejected GN step, including in formulations that
+// map the result relative to the prior rather than adding a displacement.
+template<typename Minimizer>
+bool minimizer_step_accepted(const Minimizer& M)
+{
+    if constexpr (requires { M.step_accepted(); }) return M.step_accepted();
+    return true;
+}
+
+// Only the built-in state-step criteria can skip the new simulated
+// measurement. Custom criteria, including derived overrides, stay conservative.
+template<typename Criterion>
+constexpr bool criterion_needs_measurement = true;
+
+template<typename VectorType>
+constexpr bool criterion_needs_measurement<Rodgers530<VectorType>> = false;
+
+template<typename VectorType>
+constexpr bool criterion_needs_measurement<Rodgers531<VectorType>> = false;
+
 // ----------------- //
 //   MAP Base Class  //
 // ----------------- //
@@ -55,8 +89,10 @@ auto MAPBase<ForwardModel, MatrixType, SaType, SeType, VectorType>
     -> RealType
 {
     try {
-        VectorType y = evaluate(x);
-        VectorType dy = y - *y_ptr;
+        // evaluate() returns owned storage: reuse it for the residual instead
+        // of copying the full measurement vector a second time per LM trial.
+        VectorType dy = evaluate(x);
+        dy.subtract(*y_ptr);
         VectorType dx = xa - x;
         return dot(dy, inv(Se) * dy) + dot(dx, inv(Sa) * dx);
     } catch (...) {
@@ -261,17 +297,24 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::STAN
         auto H  = tmp * K + inv(Sa);
         VectorType g  = tmp * (yi - y) + inv(Sa) * (x - xa);
         dx = M.step(x, g, H, (*this));
+        if (!minimizer_step_accepted(M)) {
+            ++iterations;
+            break;
+        }
         x += dx;
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance())
-        {
-            converged = true;
-        } else {
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
             K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.
@@ -314,7 +357,7 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFORM, Co
        const VectorType   &xa_,
        const SaType &Sa_,
        const SeType &Se_ )
-    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0)
+    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0), iterations(0)
 {
     // Nothing to do here.
 }
@@ -375,16 +418,24 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::NFOR
         VectorType g = tmp * (y - yi + (K * (x - xa)));
         auto H  = tmp * K + inv(Sa);
         dx = M.step(xa, g, H, (*this));
+        if (!minimizer_step_accepted(M)) {
+            ++iterations;
+            break;
+        }
         x = xa - dx;
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance()) {
-            converged = true;
-        } else {
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
             K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.
@@ -427,7 +478,7 @@ MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFORM, Co
        const VectorType   &xa_,
        const SaType &Sa_,
        const SeType &Se_ )
-    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0)
+    : Base(F_, xa_, Sa_, Se_), cost(-1.0), cost_x(-1.0), cost_y(-1.0), iterations(0)
 {
     // Nothing to do here.
 }
@@ -500,20 +551,61 @@ auto MAP<ForwardModel, MatrixType, SaType, SeType, VectorType, Formulation::MFOR
            && !converged)
     {
         // Compute step.
-        auto tmp = Sa * transp(K);
-        auto H   = Se + K * tmp;
-        VectorType g  = y - yi + K * (x - xa);
-        dx = M.step(xa, g, H, (*this));
-        x = xa - tmp * dx;
+        constexpr bool dense_system = [] {
+            if constexpr (requires { std::remove_cvref_t<Minimizer>::dense_measurement_system; })
+                return std::remove_cvref_t<Minimizer>::dense_measurement_system;
+            else return false;
+        }();
+        VectorType g = y - yi + K * (x - xa);
+        if constexpr (dense_system) {
+            // Materialize the covariance/Jacobian product once and reuse it
+            // for both assembly and mapping the solution into state space.
+            MatrixType tmp = [&]() -> MatrixType {
+                if constexpr (requires { Sa.multiply(K.transpose_view()); }) {
+                    return Sa.multiply(K.transpose_view());
+                } else {
+                    MatrixType KT = transp(K);
+                    return Sa * KT;
+                }
+            }();
+            MatrixType H = [&]() -> MatrixType {
+                if constexpr (requires { K.multiply_add(tmp, Se); }) {
+                    return K.multiply_add(tmp, Se);
+                } else {
+                    MatrixType result = K * tmp;
+                    result += Se;
+                    return result;
+                }
+            }();
+            dx = M.step(xa, g, H, (*this));
+            if (!minimizer_step_accepted(M)) {
+                ++iterations;
+                break;
+            }
+            x = xa - tmp * dx;
+        } else {
+            auto tmp = Sa * transp(K);
+            auto H = Se + K * tmp;
+            dx = M.step(xa, g, H, (*this));
+            if (!minimizer_step_accepted(M)) {
+                ++iterations;
+                break;
+            }
+            x = xa - tmp * dx;
+        }
 
-        // Check for convergence.
-        yi = evaluate(x);
+        // State-step criteria need no new forward value. A continuing
+        // iteration obtains both value and derivative from one Jacobian call.
+        constexpr bool needs_measurement = criterion_needs_measurement<decltype(criterion)>;
+        if constexpr (needs_measurement) yi = evaluate(x);
         conv = criterion(x, yi, y, g, K, Sa, Se);
 
-        if (conv < M.get_tolerance()) {
-            converged = true;
-        } else {
-            K = Jacobian(x , yi);
+        converged = minimizer_converged(M, conv);
+        if (!converged && !M.stop_iteration()
+            && iterations + 1 < M.get_maximum_iterations()) {
+            K = Jacobian(x, yi);
+        } else if constexpr (!needs_measurement) {
+            yi = evaluate(x);
         }
 
         // Log output.

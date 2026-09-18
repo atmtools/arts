@@ -17,6 +17,19 @@
 namespace invlib
 {
 
+namespace vector_detail
+{
+template <typename T, typename Result>
+class HasResultConversion
+{
+    template <typename U>
+    static auto test(int) -> decltype(std::declval<const U&>().operator Result(), std::true_type{});
+    template <typename> static std::false_type test(...);
+public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+};
+}
+
 /**
  * \brief Wrapper class for symbolic computations involving vectors.
  *
@@ -144,7 +157,10 @@ public:
      */
     //Vector(Base&& v);
     template <typename T,
-    typename = disable_if<is_same<decay<T>, Vector>>>
+    typename = typename std::enable_if<!is_same<decay<T>, Vector>::value &&
+                          !vector_detail::HasResultConversion<decay<T>, Vector>::value>::type>
+    // Algebra expressions already provide conversion to their result vector.
+    // Leave that conversion unambiguous instead of competing with it here.
     Vector(T &&t) : Base(std::forward<T>(t)) {}
 
     // --------------------- //

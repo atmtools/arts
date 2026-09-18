@@ -42,8 +42,8 @@ def spectral_rad_surface_agenda(ws):
     ws.spectral_radSubsurfaceDisortEmissionWithJacobian(depth_profile=z)
 
 
-ws.RetrievalInit()
-ws.RetrievalAddSubsurface(target="t", matrix=np.diag(1e-1 * np.ones_like(z)))
+ws.oemInit()
+ws.oemAddSubsurface(target="t", matrix=np.diag(1e-1 * np.ones_like(z)))
 
 pos = [0, 0, 0]
 los = [120.0, 0.0]
@@ -54,45 +54,48 @@ ws.disort_quadrature_dimension = 10
 
 ws.measurement_sensorSimple(pos=pos, los=los, pol="RC")
 
-ws.RetrievalFinalizeDiagonal()
+ws.jac_targetsFinalize()
 
 ws.measurement_vecFromSensor()
 
 noise = .01
-ws.measurement_vec_error_covmatConstant(value=noise**2)
 epp = np.random.normal(0, noise, len(ws.freq_grid))
 ws.measurement_vec += epp
 ws.subsurf_field["t"].data += 20
-ws.model_state_vec_aprioriFromData()
-ws.measurement_vec_fit = []
-ws.model_state_vec = []
-ws.measurement_jac = [[]]
 
-ws.OEM(method="gn")
+ws.oem.model_state_vec = []
+
+ws.model_state_vecFromData()
+ws.oemSetApriori()
+ws.oemSetMeasurement()
+ws.oemMeasurementCovmatConstant(value=noise**2)
+ws.oemFinalizeDiagonal()
+
+ws.oemCalc(settings="gn")
 
 plt.figure(figsize=(8, 8))
 
 z = tf.grids[0]
 plt.subplot(3, 1, 1)
-plt.plot(ws.model_state_vec, z, label="fitted")
-plt.plot(ws.model_state_vec_apriori, z, label="apriori")
-plt.plot(ws.model_state_vec_apriori-20, z, label="true")
+plt.plot(ws.oem.model_state_vec, z, label="fitted")
+plt.plot(ws.oem.model_state_vec_apriori, z, label="apriori")
+plt.plot(ws.oem.model_state_vec_apriori-20, z, label="true")
 plt.legend()
 
-ws.measurement_averaging_kernelCalc()
+ws.oemAveragingKernelCalc()
 
 plt.subplot(3, 2, 3)
-plt.plot(ws.measurement_averaging_kernel, z)
-plt.plot(ws.measurement_averaging_kernel @ np.ones_like(z), z, "k")
+plt.plot(ws.oem.measurement_averaging_kernel, z)
+plt.plot(ws.oem.measurement_averaging_kernel @ np.ones_like(z), z, "k")
 
 plt.subplot(3, 2, 4)
-plt.plot(ws.measurement_averaging_kernel.T, z)
-plt.plot(ws.measurement_averaging_kernel.T @ np.ones_like(z), z, "k")
+plt.plot(ws.oem.measurement_averaging_kernel.T, z)
+plt.plot(ws.oem.measurement_averaging_kernel.T @ np.ones_like(z), z, "k")
 
 plt.subplot(3, 1, 3)
-plt.plot(ws.freq_grid, ws.measurement_vec, label="meas")
-plt.plot(ws.freq_grid, ws.measurement_vec_fit, label="fitted")
-plt.plot(ws.freq_grid, ws.measurement_vec - epp, "k:", label="true")
+plt.plot(ws.freq_grid, ws.oem.measurement_vec, label="meas")
+plt.plot(ws.freq_grid, ws.oem.measurement_vec_fit, label="fitted")
+plt.plot(ws.freq_grid, ws.oem.measurement_vec - epp, "k:", label="true")
 plt.legend()
 
 plt.tight_layout()

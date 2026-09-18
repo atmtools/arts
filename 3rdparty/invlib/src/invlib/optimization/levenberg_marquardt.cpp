@@ -15,7 +15,8 @@ LevenbergMarquardt<RealType, DampingMatrix, Solver>
     : current_cost(0.0), tolerance(1e-5), lambda(4.0), lambda_maximum(100.0),
       lambda_increase(2.0), lambda_decrease(3.0), lambda_threshold(1.0),
       lambda_constraint(std::numeric_limits<RealType>::min()),
-      maximum_iterations(100), step_count(0), stop(false), D(D_), s(solver)
+      maximum_iterations(100), maximum_trials(100), step_count(0),
+      stop_reason(LMStopReason::None), D(D_), s(solver)
 {
     // Nothing to do here.
 }
@@ -56,11 +57,41 @@ typename DampingMatrix,
 typename Solver
 >
 auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::get_maximum_trials() const
+    -> unsigned int
+{
+    return maximum_trials;
+}
+
+template
+<
+typename RealType,
+typename DampingMatrix,
+typename Solver
+>
+void LevenbergMarquardt<RealType, DampingMatrix, Solver>
+::set_maximum_trials(unsigned int maximum_trials_)
+{
+    if (maximum_trials_ == 0) {
+        throw std::invalid_argument("Levenberg-Marquardt maximum trials must be positive.");
+    }
+    maximum_trials = maximum_trials_;
+}
+
+template
+<
+typename RealType,
+typename DampingMatrix,
+typename Solver
+>
+auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
 ::get_tolerance() const
     -> RealType
 {
     if (lambda > lambda_constraint) {
-        return std::numeric_limits<RealType>::min();
+        // The caller uses a strict comparison. Even a rounded zero state
+        // change must not pass while the damping constraint is unsatisfied.
+        return 0.0;
     } else {
         return tolerance;
     }
@@ -251,76 +282,176 @@ auto LevenbergMarquardt<RealType, DampingMatrix, Solver>
        CostFunction     &J)
     -> VectorType
 {
+    if (stop_iteration()) {
+        throw std::logic_error("Levenberg-Marquardt step requested after termination.");
+    }
     if (step_count == 0) {
         current_cost = J.cost_function(x);
     }
+    if (!std::isfinite(current_cost)) {
+        stop_reason = LMStopReason::NumericalFailure;
+        throw std::runtime_error("Levenberg-Marquardt current cost is not finite.");
+    }
 
-    VectorType dx(x);
+    // Generic objectives supply matching cost, gradient and Hessian. MAP
+    // supplies half-cost normal equations but reports full squared costs.
+    const RealType cost_scale = [&] {
+        if constexpr (requires { J.model_cost_scale(); }) {
+            return J.model_cost_scale();
+        } else {
+            return RealType{1};
+        }
+    }();
+    const auto finite = [](const VectorType &v) {
+        for (decltype(v.rows()) i = 0; i < v.rows(); ++i) {
+            if (!std::isfinite(v(i))) return false;
+        }
+        return true;
+    };
+    if (!finite(x) || !finite(g)) {
+        stop_reason = LMStopReason::NumericalFailure;
+        throw std::runtime_error("Levenberg-Marquardt state or gradient is not finite.");
+    }
 
-    RealType new_cost = 0.0;
-    RealType c = -1.0;
-    bool first_step = true;
+    VectorType zero(x);
+    zero.scale(0.0);
+    bool zero_gradient = true;
+    for (decltype(g.rows()) i = 0; i < g.rows(); ++i) {
+        zero_gradient = zero_gradient && g(i) == 0.0;
+    }
+    if (zero_gradient) {
+        lambda = 0.0;
+        stop_reason = LMStopReason::Stationary;
+        ++step_count;
+        return zero;
+    }
 
-    while (c < 0.5)
-    {
-        // Compute step.
-        auto C = B + lambda * D;
+    unsigned int trials = 0;
+    bool linear_solve_converged = true;
+    const auto solve = [&](const auto &matrix) -> VectorType {
+        if (trials == maximum_trials) {
+            stop_reason = LMStopReason::TrialLimit;
+            throw std::runtime_error(
+                "Levenberg-Marquardt trial limit reached after "
+                + std::to_string(trials) + " solves in one step.");
+        }
+        ++trials;
+        VectorType result;
         try {
-            dx = -1.0 * s.solve(C, g);
-        } catch(...) {
-            std::throw_with_nested(
-                std::runtime_error(
-                    "Linear System Solution Error in Levenberg-Marquardt Method."
-                    )
-                );
+            result = -1.0 * s.solve(matrix, g);
+            if constexpr (requires { s.get_stop_reason(); }) {
+                linear_solve_converged = s.get_stop_reason() == CGStopReason::Converged;
+            }
+        } catch (...) {
+            stop_reason = LMStopReason::LinearSolverFailure;
+            std::throw_with_nested(std::runtime_error(
+                "Linear System Solution Error in Levenberg-Marquardt Method."));
+        }
+        if (!finite(result)) {
+            stop_reason = LMStopReason::NumericalFailure;
+            throw std::runtime_error("Levenberg-Marquardt linear solution is not finite.");
+        }
+        return result;
+    };
+    const auto predicted_reduction = [&](const VectorType &step) {
+        return cost_scale * (-invlib::dot(g, step) - 0.5 * invlib::dot(step, B * step));
+    };
+    const auto roundoff = [](RealType old_cost, RealType new_cost) {
+        return (32.0 * std::numeric_limits<RealType>::epsilon())
+               * std::max(std::abs(old_cost), std::abs(new_cost));
+    };
+    bool first_step = true;
+    bool stationarity_checked = false;
+    const auto increase_damping = [&] {
+        // Keep lambda physical: maximum+1 is not representable at large maxima.
+        if (lambda >= lambda_maximum) {
+            stop_reason = linear_solve_converged ? LMStopReason::DampingLimit
+                                                : LMStopReason::LinearSolverLimit;
+            ++step_count;
+            return false;
+        }
+        const RealType previous_lambda = lambda;
+        if (lambda < lambda_threshold) {
+            lambda = lambda_threshold;
+        } else if (lambda >= lambda_maximum / lambda_increase) {
+            lambda = lambda_maximum;
+        } else {
+            lambda *= lambda_increase;
+        }
+        if (!std::isfinite(lambda) || lambda <= previous_lambda) {
+            stop_reason = LMStopReason::DampingStalled;
+            throw std::runtime_error(
+                "Levenberg-Marquardt damping did not increase to a finite value "
+                "after a rejected trial; check the damping threshold and increase factor.");
+        }
+        first_step = false;
+        return true;
+    };
+
+    while (true) {
+        VectorType dx = solve(B + lambda * D);
+        if (!linear_solve_converged) {
+            // A smaller residual is not a solved normal equation. Retry with
+            // stronger damping without evaluating or applying the partial step.
+            if (!increase_damping()) return zero;
+            continue;
         }
         VectorType xnew = x + dx;
+        const RealType new_cost = finite(xnew)
+            ? J.cost_function(xnew, lambda < lambda_maximum)
+            : std::numeric_limits<RealType>::infinity();
+        const RealType predicted = predicted_reduction(dx);
+        const RealType actual = current_cost - new_cost;
+        const RealType noise = roundoff(current_cost, new_cost);
 
-        // Compute model accuracy.
-        bool robust = lambda < lambda_maximum;
-        new_cost = J.cost_function(xnew, robust);
-
-        RealType dxBdx = dot(dx, B * dx);
-        c = (new_cost - current_cost) / (invlib::dot(g,dx) + 0.5 * dxBdx);
-
-        if (c > 0.75) {
-            if (first_step) {
-                if (lambda >= (lambda_threshold * lambda_decrease)) {
-                    lambda /= lambda_decrease;
-                } else {
+        // Do this BEFORE forming a ratio: a rounded zero (or a tiny random
+        // decrease) divided by a vanishing prediction cannot prove progress.
+        const bool ambiguous = std::isfinite(new_cost) && std::isfinite(predicted)
+            && (std::abs(predicted) <= noise || std::abs(actual) <= noise);
+        if (ambiguous && !stationarity_checked) {
+            stationarity_checked = true;
+            // A strongly damped step can be tiny far from the solution. Only
+            // the undamped normal equations measure remaining state error.
+            VectorType gn = lambda == 0.0 ? dx : solve(B);
+            const RealType decrement = -invlib::dot(g, gn);
+            const RealType gn_prediction = predicted_reduction(gn);
+            if (linear_solve_converged && std::isfinite(decrement) && decrement >= 0.0
+                && decrement / static_cast<RealType>(x.rows()) < tolerance
+                && std::isfinite(gn_prediction) && gn_prediction >= 0.0
+                && gn_prediction <= roundoff(current_cost, current_cost)) {
+                VectorType candidate = x + gn;
+                const RealType candidate_cost = lambda == 0.0 ? new_cost
+                    : (finite(candidate) ? J.cost_function(candidate, true)
+                                         : std::numeric_limits<RealType>::infinity());
+                if (std::isfinite(candidate_cost)
+                    && std::abs(candidate_cost - current_cost)
+                           <= roundoff(current_cost, candidate_cost)) {
+                    current_cost = candidate_cost;
                     lambda = 0.0;
-                }
-            }
-            current_cost = new_cost;
-        }
-        if (c < 0.5) {
-            if (lambda < lambda_threshold)
-                lambda = lambda_threshold;
-            else
-            {
-                if (lambda < lambda_maximum)
-                {
-                    lambda *= lambda_increase;
-                    if (lambda > lambda_maximum)
-                        lambda = lambda_maximum;
-                }
-                else
-                {
-                    lambda = lambda_maximum + 1.0;
-                    stop = true;
-                    break;
+                    stop_reason = LMStopReason::Stationary;
+                    ++step_count;
+                    return gn;
                 }
             }
         }
 
-        first_step = false;
-    }
-    current_cost = new_cost;
-    step_count++;
+        // Require resolved, finite descent. In particular, NaN must never
+        // escape the retry loop as an implicitly accepted trial.
+        if (!ambiguous && std::isfinite(new_cost) && std::isfinite(predicted)
+            && std::isfinite(actual) && predicted > 0.0 && actual > 0.0) {
+            const RealType ratio = actual / predicted;
+            if (std::isfinite(ratio) && ratio >= 0.5) {
+                if (ratio > 0.75 && first_step) {
+                    const RealType decreased = lambda / lambda_decrease;
+                    lambda = decreased >= lambda_threshold ? decreased : 0.0;
+                }
+                current_cost = new_cost;
+                ++step_count;
+                return dx;
+            }
+        }
 
-    if ((lambda > lambda_maximum) and (c < 0.0)) {
-        dx *= 0.0;
+        // A failed trial is never applied, regardless of the reduction sign.
+        if (!increase_damping()) return zero;
     }
-
-    return dx;
 }

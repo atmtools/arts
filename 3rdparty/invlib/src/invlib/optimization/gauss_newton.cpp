@@ -96,13 +96,17 @@ auto GaussNewton<RealType, Solver> ::step(const VectorType &,
     try
     {
         VectorType dx = -1.0 * solver.solve(B, g);
+        if constexpr (requires { solver.get_stop_reason(); }) {
+            stop_reason = solver.get_stop_reason();
+        }
+        // Callers must check step_accepted() before applying a capped solve.
+        // A zero displacement also protects state-space users of step() alone.
+        if (!step_accepted()) dx.scale(0.0);
         return dx;
     }
     catch (...)
     {
-        std::runtime_error(
-            "Linear System Solution Error in Gauss-Newton Method."
-            );
-        return VectorType();
+        std::throw_with_nested(std::runtime_error(
+            "Linear System Solution Error in Gauss-Newton Method."));
     }
 }

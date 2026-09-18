@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <cmath>
 #include <exception>
 #include <limits>
 
@@ -96,6 +97,10 @@ public:
 
     /*! The basic scalar type. */
     using RealType   = typename MatrixType::RealType;
+
+    // MAP reports full squared-residual costs; its normal equations use
+    // the gradient and Hessian of half that cost.
+    static constexpr RealType model_cost_scale() {return 2.0;}
 
 private:
 

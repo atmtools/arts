@@ -43,8 +43,8 @@ void py_sensor(py::module_& m) try {
 
             if (not dtype.is_none()) { return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy); }
 
-            return w.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                  : py::rv_policy::copy);
+            if (copy.is_none() or not py::bool_(copy)) { return w.cast(py::rv_policy::automatic_reference); }
+            return w.cast(py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -55,8 +55,8 @@ void py_sensor(py::module_& m) try {
           [](SensorPosLos& a, const SensorPosLos& b) { a = b; },
           "A :class:`~numpy.ndarray` of the object.\n\n.. :class:`~numpy.ndarray`")
       .def(py::init<Vector3, Vector2>(), "From pos and los")
-      .def_rw("pos", &SensorPosLos::pos, "Position\n\n.. :class:`Vector3`")
-      .def_rw("los", &SensorPosLos::los, "Line of sight\n\n.. :class:`Vector2`");
+      .def_rw("pos", &SensorPosLos::pos, "Position\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw("los", &SensorPosLos::los, "Line of sight\n\n.. :class:`~pyarts3.arts.Vector2`");
 
   py::class_<SensorPosLosVector> vsplos(m, "SensorPosLosVector");
   generic_interface(vsplos);
@@ -95,8 +95,8 @@ void py_sensor(py::module_& m) try {
 
             if (not dtype.is_none()) { return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy); }
 
-            return w.cast((copy.is_none() or not py::bool_(copy)) ? py::rv_policy::automatic_reference
-                                                                  : py::rv_policy::copy);
+            if (copy.is_none() or not py::bool_(copy)) { return w.cast(py::rv_policy::automatic_reference); }
+            return w.cast(py::rv_policy::copy);
           },
           "dtype"_a.none() = py::none(),
           "copy"_a.none()  = py::none(),
@@ -206,13 +206,14 @@ Numeric, Vector, or Matrix
   py::class_<SensorObsel> so(m, "SensorObsel");
   generic_interface(so);
   so.def(py::init<const AscendingGrid&, const SensorPosLosVector&, StokvecMatrix>())
-      .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid\n\n.. :class:`AscendingGrid`")
+      .def_prop_ro("f_grid", &SensorObsel::f_grid, "Frequency grid\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
       .def_prop_ro(
           "weight_matrix",
           [](const SensorObsel& self) { return self.weight_matrix(); },
-          "Weights matrix\n\n.. :class:`SparseStokvecMatrix`")
-      .def_prop_ro(
-          "poslos", &SensorObsel::poslos_grid, "Position and line of sight grid\n\n.. :class:`SensorPosLosVector`")
+          "Weights matrix\n\n.. :class:`~pyarts3.arts.SparseStokvecMatrix`")
+      .def_prop_ro("poslos",
+                   &SensorObsel::poslos_grid,
+                   "Position and line of sight grid\n\n.. :class:`~pyarts3.arts.SensorPosLosVector`")
       .def("normalize",
            &SensorObsel::normalize,
            "pol"_a = Stokvec{1., 0., 0., 0.},
@@ -418,15 +419,16 @@ See :meth:`SensorObsel.normalize` for details.
              " current builder path does not carry a separate reference frequency.");
   sgairy.def_rw("aperture_diameter",
                 &sensor::GaussianAiryAntenna::aperture_diameter,
-                "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`Numeric`");
-  sgairy.def_rw(
-      "weight", &sensor::GaussianAiryAntenna::weight, "Stokes weights of the antenna response.\n\n.. :class:`Stokvec`");
+                "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`~pyarts3.arts.Numeric`");
+  sgairy.def_rw("weight",
+                &sensor::GaussianAiryAntenna::weight,
+                "Stokes weights of the antenna response.\n\n.. :class:`~pyarts3.arts.Stokvec`");
   sgairy.def_rw("zen_grid",
                 &sensor::GaussianAiryAntenna::zen_grid,
-                "Local zenith grid of the antenna response.\n\n.. :class:`ZenGrid`");
+                "Local zenith grid of the antenna response.\n\n.. :class:`~pyarts3.arts.ZenGrid`");
   sgairy.def_rw("azi_grid",
                 &sensor::GaussianAiryAntenna::azi_grid,
-                "Local azimuth grid of the antenna response.\n\n.. :class:`AziGrid`");
+                "Local azimuth grid of the antenna response.\n\n.. :class:`~pyarts3.arts.AziGrid`");
   sgairy.def(
       "std",
       [](const sensor::GaussianAiryAntenna& self, py::object& f_) {
@@ -449,12 +451,12 @@ See :meth:`SensorObsel.normalize` for details.
       .def_prop_ro("freq_grid",
                    &sensor::Channel::freq_grid,
                    py::rv_policy::reference_internal,
-                   "Relative frequency grid.\n\n.. :class:`AscendingGrid`")
+                   "Relative frequency grid.\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
       .def_prop_ro("weights",
                    &sensor::Channel::weights,
                    py::rv_policy::reference_internal,
                    "Channel weights on the relative frequency grid."
-                   "\n\n.. :class:`Vector`");
+                   "\n\n.. :class:`~pyarts3.arts.Vector`");
 
   auto sbox  = py::class_<sensor::BoxChannel, sensor::Channel>(sen, "BoxChannel");
   sbox.doc() = "A channel with uniform weights across a finite relative-frequency interval.";
@@ -603,7 +605,7 @@ See :meth:`SensorObsel.normalize` for details.
 
 Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
 geometry first and channel second, and the returned value is
-          ``(measurement_sensor, measurement_sensor_meta)``.)")
+``(measurement_sensor, measurement_sensor_meta)``.)")
       .def(
           "__call__",
           [](const sensor::Builder&      self,

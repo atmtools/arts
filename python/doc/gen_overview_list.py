@@ -98,7 +98,7 @@ The {desc}.
 .. rubric:: Variables of this size
 
 {_wsv_list(outer, existing)}
-.. rubric:: Variables whose elements are of this size
+.. rubric:: Containers whose elements are of this size
 
 {_wsv_list(inner, existing)}"""
     return txt

@@ -26,14 +26,8 @@ in the calculations.
   that defines a horizontal coordinate upon an ellipsoid.
   It is always in ascending order, and its range is [-90, 90].
 
-  Use these methods to check the latitude grid for correctness:
-
-  - :func:`~pyarts3.workspace.Workspace.atm_fieldCheck`
-  - :func:`~pyarts3.workspace.Workspace.surf_fieldCheck`
-  - :func:`~pyarts3.workspace.Workspace.subsurf_fieldCheck`
-
-  The only way to fix this if the grid is not valid is
-  to regrid the data manually.
+  :class:`~pyarts3.arts.LatGrid` validates the latitude grid when constructed
+  or assigned. Invalid data must be regridded before it can be used.
 
 - Longitude grid.
 
@@ -41,18 +35,9 @@ in the calculations.
   that defines a horizontal coordinate upon an ellipsoid.
   It is always in ascending order, and its range is [-180, 180).
 
-  Use these methods to check the longitudes grid for correctness:
-
-  - :func:`~pyarts3.workspace.Workspace.atm_fieldCheck`
-  - :func:`~pyarts3.workspace.Workspace.surf_fieldCheck`
-  - :func:`~pyarts3.workspace.Workspace.subsurf_fieldCheck`
-
-  If these fail because of the longitude grid,
-  there are methods to fix the cyclicity of the grid:
-
-  - :func:`~pyarts3.workspace.Workspace.atm_fieldFixCyclicity`
-  - :func:`~pyarts3.workspace.Workspace.surf_fieldFixCyclicity`
-  - :func:`~pyarts3.workspace.Workspace.subsurf_fieldFixCyclicity`
+  :class:`~pyarts3.arts.LonGrid` validates the longitude grid when constructed
+  or assigned. Convert longitude conventions and regrid the data as needed
+  before constructing the grid.
 
 - Frequency grid.
 

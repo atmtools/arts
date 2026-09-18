@@ -108,7 +108,7 @@ assert np.allclose(fit, observed, rtol=3e-4, atol=1e-13)
 # standard model-state method reproduces the returned field and radar fit.
 saved = retrieved.copy()
 ws.atm_field[extinction] = field(initial)
-ws.atm_fieldFromModelState()
+ws.atm_fieldFromModelState(model_state_targets=ws.jac_targets)
 assert np.allclose(np.asarray(ws.atm_field[extinction].data.data).ravel(), saved)
 ws.measurement_vecFromRadarSingleScattering(**forward)
 assert np.allclose(np.asarray(ws.measurement_vec), fit, rtol=2e-12, atol=1e-15)

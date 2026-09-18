@@ -1,25 +1,12 @@
-/*!
-  \file   m_xml.h
-  \author Stefan Buehler <sbuehler@ltu.se>
-  \date   2002-06-18
-
-  \brief  Workspace methods and template functions for supergeneric XML IO.
-
-*/
-
-#ifndef m_xml_h
-#define m_xml_h
-
+#include <workspace.h>
+#include <xml.h>
 #ifdef ENABLE_MPI
 #include "mpi.h"
 #endif
 
-#include <workspace.h>
-#include <xml.h>
-
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T> void ReadXML(  // WS Generic Output:
-    T& v,
+void ReadXML(  // WS Generic Output:
+    AnyOutput v,
     // WS Generic Input:
     const String& f) {
   ARTS_TIME_REPORT
@@ -29,12 +16,12 @@ template <WorkspaceGroup T> void ReadXML(  // WS Generic Output:
   // Create default filename if empty
   filename_xml(filename);
 
-  xml_read_from_file(filename, v);
+  std::visit([&](const auto& ptr) { xml_read_from_file(filename, *ptr); }, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T> void ReadXMLIndexed(  // WS Generic Output:
-    T& v,
+void ReadXMLIndexed(  // WS Generic Output:
+    AnyOutput v,
     // WS Input:
     const Index& file_index,
     // WS Generic Input:
@@ -47,16 +34,16 @@ template <WorkspaceGroup T> void ReadXMLIndexed(  // WS Generic Output:
   // Create default filename if empty
   filename_xml_with_index(filename, file_index, digits);
 
-  xml_read_from_file(filename, v);
+  std::visit([&](const auto& ptr) { xml_read_from_file(filename, *ptr); }, v);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T> void WriteXML(  //WS Input:
+void WriteXML(  //WS Input:
     const String& file_format,
     // WS Generic Input:
-    const T&      v,
-    const String& f,
-    const Index&  no_clobber)
+    const AnyInput v,
+    const String&  f,
+    const Index&   no_clobber)
 
 {
   ARTS_TIME_REPORT
@@ -83,7 +70,7 @@ template <WorkspaceGroup T> void WriteXML(  //WS Input:
 #pragma omp critical(WriteXML_critical_region)
   {
     try {
-      xml_write_to_file(filename, v, ftype, no_clobber);
+      std::visit([&](const auto& ptr) { xml_write_to_file(filename, *ptr, ftype, no_clobber); }, v);
     } catch (const std::exception& e) { errmsg = e.what(); }
   }
 
@@ -91,13 +78,13 @@ template <WorkspaceGroup T> void WriteXML(  //WS Input:
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-template <WorkspaceGroup T> void WriteXMLIndexed(  //WS Input:
+void WriteXMLIndexed(  //WS Input:
     const String& file_format,
     const Index&  file_index,
     // WS Generic Input:
-    const T&      v,
-    const String& f,
-    const Index&  digits) {
+    const AnyInput v,
+    const String&  f,
+    const Index&   digits) {
   ARTS_TIME_REPORT
 
   String filename = f;
@@ -107,5 +94,3 @@ template <WorkspaceGroup T> void WriteXMLIndexed(  //WS Input:
 
   WriteXML(file_format, v, filename, 0);
 }
-
-#endif  // m_xml_h

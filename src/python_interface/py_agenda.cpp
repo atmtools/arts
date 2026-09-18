@@ -223,7 +223,7 @@ list of str
       .def("document", &Agenda::sphinx_list, "prep"_a = std::string_view{"- "}, "Returns a list of methods and state")
       .def("add",
            &Agenda::add,
-           "method"_a.none(false),
+           "method"_a,
            R"--(
 Adds a method to the Agenda
 

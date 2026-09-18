@@ -95,7 +95,7 @@ struct Rodgers530
 
         VectorType dx = xi - x_im1_ptr;
         VectorType Hdx = (transp(K) * inv(Se) * K + inv(Sa)) * dx;
-        auto conv = dot(dx, Hdx) / xi.rows();
+        auto conv = invlib::dot(dx, Hdx) / xi.rows();
 
         x_im1_ptr = xi;
 

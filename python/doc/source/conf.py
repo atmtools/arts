@@ -16,10 +16,15 @@
 import sys
 import os
 
+# Plot directives run in forked workers; never initialize a GUI there.
+os.environ["ARTS_HEADLESS"] = "1"
+os.environ["MPLBACKEND"] = "Agg"
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'src')))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '_ext'))
 
 # -- General configuration ------------------------------------------------
 
@@ -30,6 +35,8 @@ sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'src')))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'workspace_signatures',
+    'docstring_types',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
@@ -101,6 +108,12 @@ language = 'en'
 # not documents of their own.  Reading them as both would define every label
 # they carry twice.
 exclude_patterns = ['_build', '*.auto.rst', '**/*.auto.rst']
+
+# Warn when a cross-reference target is missing instead of rendering plain text.
+nitpicky = True
+
+# Keep fully qualified link targets while displaying short type names.
+python_use_unqualified_type_names = True
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.

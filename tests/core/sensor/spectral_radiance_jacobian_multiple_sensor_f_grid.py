@@ -85,22 +85,22 @@ def inversion_iterate_agenda(ws):
 
 # %% Set up the retrieval
 
-ws.RetrievalInit()
-ws.RetrievalAddSensorFrequencyPolyOffset(
+ws.oemInit()
+ws.oemAddSensorFrequencyPolyOffset(
     sensor_elem=0, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
-ws.RetrievalAddSensorFrequencyPolyOffset(
+ws.oemAddSensorFrequencyPolyOffset(
     sensor_elem=1, d=1e3, matrix=np.diag(np.ones((1)) * 1e10), polyorder=0
 )
-ws.RetrievalFinalizeDiagonal()
+ws.jac_targetsFinalize()
 
 # %% Perform OEM retrieval of frequency grid
 
 fail = True
 for i in range(LIMIT):
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
     ws.measurement_sensorSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol1
@@ -118,19 +118,20 @@ for i in range(LIMIT):
         freq_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
     )
 
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
-    ws.model_state_vec_aprioriFromData()
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-    ws.measurement_vec_error_covmatConstant(value=noise**2)
+    ws.oemCalc(settings="gn")
 
-    ws.OEM(method="gn")
-
-    print(f"got:      {ws.model_state_vec:B,}")
+    print(f"got:      {ws.oem.model_state_vec:B,}")
     print(f"expected: [{-DF1}, {-2*DF1}]")
-    if np.allclose(ws.model_state_vec, [-DF1, -2 * DF1], atol=ATOL):
+    if np.allclose(ws.oem.model_state_vec, [-DF1, -2 * DF1], atol=ATOL):
         print(f"Within {ATOL} Hz.  Success!")
         fail = False
         break

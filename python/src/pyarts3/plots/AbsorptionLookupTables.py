@@ -161,8 +161,10 @@ def plot(
         Lookup-table map, keyed by species.
     mode : {"cross_section", "opacity"}, optional
         Quantity to plot.
-    fig, ax : optional
-        Existing Matplotlib figure and axes.
+    fig : matplotlib.figure.Figure, optional
+        Existing Matplotlib figure.
+    ax : matplotlib.axes.Axes or numpy.ndarray, optional
+        Existing Matplotlib axes.
     species : SpeciesEnum, str, or sequence, optional
         Species to include.  The default includes all tables.
     pressures : sequence of float, optional
@@ -188,8 +190,10 @@ def plot(
 
     Returns
     -------
-    fig, ax
-        The Matplotlib figure and axes.
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure.
+    ax : matplotlib.axes.Axes or numpy.ndarray
+        The Matplotlib axes.
     """
     if not data:
         raise ValueError("Cannot plot empty absorption lookup tables")

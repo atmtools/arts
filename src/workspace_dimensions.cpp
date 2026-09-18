@@ -15,20 +15,25 @@ namespace {
 std::unordered_map<std::string, WorkspaceDimensionRecord> internal_workspace_dimensions_creator() {
   std::unordered_map<std::string, WorkspaceDimensionRecord> wsd_data;
 
-  wsd_data["NFREQ"]       = {.desc = "number of frequency points"};
-  wsd_data["NPATH"]       = {.desc = "number of path points"};
-  wsd_data["NTARGET"]     = {.desc = "number of Jacobian targets"};
-  wsd_data["NSTATE"]      = {.desc = "size of the model state vector"};
-  wsd_data["NLEGENDRE"]   = {.desc = "number of Legendre coefficients"};
-  wsd_data["NQUADRATURE"] = {.desc = "number of quadrature points"};
-  wsd_data["NALT"]        = {.desc = "number of altitude points"};
-  wsd_data["NLAT"]        = {.desc = "number of latitude points"};
-  wsd_data["NLON"]        = {.desc = "number of longitude points"};
-  wsd_data["NZENITH"]     = {.desc = "number of zenith angles"};
-  wsd_data["NAZIMUTH"]    = {.desc = "number of azimuth angles"};
-  wsd_data["NAUX"]        = {.desc = "number of auxiliary points"};
-  wsd_data["NDEPTH"]      = {.desc = "number of subsurface depth points"};
-  wsd_data["NMEAS"]       = {.desc = "number of measurements"};
+  wsd_data["NFREQ"]            = {.desc = "number of frequency points"};
+  wsd_data["NPATH"]            = {.desc = "number of path points"};
+  wsd_data["NTARGET"]          = {.desc = "number of Jacobian targets"};
+  wsd_data["NSTATE"]           = {.desc = "size of the model state vector"};
+  wsd_data["NSTATE_REDUCED"]   = {.desc = "number of reduced state coefficients (columns of the state basis B)"};
+  wsd_data["NMEAS_REDUCED"]    = {.desc = "number of reduced measurements (rows of the measurement basis C)"};
+  wsd_data["NLEGENDRE"]        = {.desc = "number of Legendre coefficients"};
+  wsd_data["NQUADRATURE"]      = {.desc = "number of quadrature points"};
+  wsd_data["NDISORT_LEGENDRE"] = {.desc = "configured number of Legendre polynomials retained by DISORT"};
+  wsd_data["NFOURIER"]         = {.desc = "number of Fourier modes"};
+  wsd_data["NALT"]             = {.desc = "number of altitude points"};
+  wsd_data["NLAYER"]           = {.desc = "number of layers between altitude levels"};
+  wsd_data["NLAT"]             = {.desc = "number of latitude points"};
+  wsd_data["NLON"]             = {.desc = "number of longitude points"};
+  wsd_data["NZENITH"]          = {.desc = "number of zenith angles"};
+  wsd_data["NAZIMUTH"]         = {.desc = "number of azimuth angles"};
+  wsd_data["NAUX"]             = {.desc = "number of auxiliary points"};
+  wsd_data["NDEPTH"]           = {.desc = "number of subsurface depth points"};
+  wsd_data["NMEAS"]            = {.desc = "number of measurements"};
   return wsd_data;
 }
 
@@ -325,7 +330,22 @@ void check_workspace_dimensions() {
   const auto& wsgs = internal_workspace_groups();
 
   for (const auto& [name, wsv] : internal_workspace_variables()) {
+    const auto outer_rank = std::max(wsgs.at(wsv.type).dim_size.size(), wsv.dim_size.size());
+    if (not wsv.dims.empty() and wsv.dims.size() != outer_rank) {
+      throw std::runtime_error(std::format(
+          R"(Workspace variable "{}" names {} dimension(s) but its group "{}" provides {} size expression(s).
+
+Provide one dimension entry per size expression, in the same order.
+Use an empty string for an intentionally unnamed dimension, or omit dims entirely.
+)",
+          name,
+          wsv.dims.size(),
+          wsv.type,
+          outer_rank));
+    }
+
     for (const auto& sym : wsv.dims) {
+      if (sym.empty()) continue;
       if (not wsds.contains(sym)) {
         throw std::runtime_error(
             std::format(R"(Workspace variable "{}" names the unknown dimension "{}".)", name, sym));
@@ -658,6 +678,7 @@ std::string variable_dimension_docs(const std::string& name) {
    * puts on each dimension is spelled the same way there, so the two have to be
    * changed together. */
   const auto dimension_link = [](const std::string& sym) {
+    if (sym.empty()) return std::string{"unnamed"};
     if (not internal_workspace_dimensions().contains(sym)) return sym;
     return std::format(":ref:`{} <wsd-{}>`", sym, sym);
   };
@@ -679,8 +700,13 @@ std::string group_invariant_docs(const std::string& group) {
   const auto* rec = find_group(group);
   if (rec == nullptr or rec->invariant.empty()) return {};
 
-  return std::format("\n.. rubric:: Invariant\n\nA variable ``x`` of this group {}\n",
-                     subst_all(rec->invariant_desc, "x"));
+  const auto  text = std::format("A variable ``x`` of this group {}", subst_all(rec->invariant_desc, "x"));
+  std::string out  = "\n.. tip::\n\n    ";
+  for (const char c : text) {
+    out += c;
+    if (c == '\n') out += "    ";
+  }
+  return out + '\n';
 }
 
 std::string group_dimension_docs(const std::string& group) {

@@ -174,7 +174,7 @@ abs : Vector
             py::module_ xarray = py::module_::import_("xarray");
             return xarray.attr("Dataset").attr("from_dict")(xr.attr("to_dict")());
           },
-          R"--(Convert XsecRecord to :func:`xarray.DataArray`.)--")
+          R"--(Convert XsecRecord to :class:`xarray.DataArray`.)--")
       .def(
           "to_netcdf",
           [](py::object& xr, py::object& f) { return xr.attr("to_xarray")().attr("to_netcdf")(f); },
@@ -232,7 +232,7 @@ abs : Vector
             auto out = py::type<XsecRecord>().attr("from_dict")(vd);
             return out;
           },
-          R"--(Create XsecRecord from :func:`xarray.DataArray`.)--")
+          R"--(Create XsecRecord from :class:`xarray.DataArray`.)--")
       .def_static(
           "from_netcdf",
           [](py::object& v) {

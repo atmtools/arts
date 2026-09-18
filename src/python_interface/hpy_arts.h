@@ -23,9 +23,9 @@ template <typename T, typename U = T, class... E> void xml_interface(py::class_<
       [](const T& x, const char* const file, const char* const type, bool clobber) {
         return xml_write_to_file(file, static_cast<const U&>(x), to<FileType>(type), clobber ? 0 : 1);
       },
-      "file"_a.none(false),
-      "type"_a.none(false) = "ascii",
-      "clobber"_a          = true,
+      "file"_a,
+      "type"_a    = "ascii",
+      "clobber"_a = true,
       R"(Saves variable to file.
 
 Parameters
@@ -33,7 +33,7 @@ Parameters
 file : str
     The path to which the file is written. Note that several of the options might modify the name or write more files.
 type : str, optional
-    Type of file to save.  See :class:`FileType` for options.  Defaults is "ascii".
+    Type of file to save.  See :class:`~pyarts3.arts.FileType` for options.  Defaults is "ascii".
 clobber : bool, optional
     Overwrite existing files or add new file with modified name?  Defaults is True.
 
@@ -51,7 +51,7 @@ file : str
   c.def(
       "readxml",
       [](T& x, const char* const file) { return xml_read_from_file(file, static_cast<U&>(x)); },
-      "file"_a.none(false),
+      "file"_a,
       R"(Read variable from file.
 
 Parameters
@@ -74,7 +74,7 @@ file : str
     c.def(
         "extendxml",
         [](T& x, const char* const file) { return xml_extend_from_file(file, static_cast<U&>(x)); },
-        "file"_a.none(false),
+        "file"_a,
         R"(Extend variable from file.
 
 The content of the file is added to the existing variable.
@@ -100,7 +100,7 @@ file : str
     c.def(
         "appendxml",
         [](T& x, const char* const file) { return xml_append_from_file(file, static_cast<U&>(x)); },
-        "file"_a.none(false),
+        "file"_a,
         R"(Append variable from file.
 
 The content of the file is added to the existing variable.
@@ -122,6 +122,20 @@ file : str
 )");
   }
 
+  const auto return_doc = [] {
+    if constexpr (WorkspaceGroup<U>) {
+      return std::format(R"(
+Returns
+-------
+artstype : pyarts3.arts.{}
+    The variable created from the file.
+)",
+                         WorkspaceGroupInfo<U>::name);
+    } else {
+      return std::string{};
+    }
+  }();
+
   c.def_static(
       "fromxml",
       [](const char* const file) -> T {
@@ -129,8 +143,8 @@ file : str
         xml_read_from_file(file, x);
         return x;
       },
-      "file"_a.none(false),
-      R"(Create variable from file.
+      "file"_a,
+      (std::string{R"(Create variable from file.
 
 Parameters
 ----------
@@ -141,12 +155,8 @@ Raises
 ------
   RuntimeError
       For any failure to read.
-
-Return
-------
-artstype : T
-    The variable created from the file.
-)");
+)"} + return_doc)
+          .c_str());
 }
 
 static constexpr std::array binops{

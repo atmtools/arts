@@ -89,9 +89,7 @@ Before that, a concise overview of what each option does is available by the typ
 
             doc += std::format(
                 R"(
-------------------------------------------------------------
-
-``{}({}="{}", {}="{}", {}="{}", {}="{}", {}="{}", {}=lambertian_reflection, min_optical_depth=min_optical_depth)``
+.. rubric:: ``{}({}="{}", {}="{}", {}="{}", {}="{}", {}="{}", {}=lambertian_reflection, min_optical_depth=min_optical_depth)``
 
 {}
 )",

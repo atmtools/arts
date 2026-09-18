@@ -21,6 +21,20 @@ template <typename T, typename... Ts> void vector_interface(py::class_<Array<T>,
   using Vec = Array<T>;
 
   if constexpr (arts_xml_ioable<T>) {
+    const auto return_doc = [] {
+      if constexpr (WorkspaceGroup<Vec>) {
+        return std::format(R"(
+Returns
+-------
+artstype : pyarts3.arts.{}
+    The variable created from the file.
+)",
+                           WorkspaceGroupInfo<Vec>::name);
+      } else {
+        return std::string{};
+      }
+    }();
+
     c.def_static(
         "fromxmls",
         [](const std::vector<std::string> &files) {
@@ -29,7 +43,7 @@ template <typename T, typename... Ts> void vector_interface(py::class_<Array<T>,
           return out;
         },
         "files"_a,
-        R"(Create variable from file.
+        (std::string{R"(Create variable from file.
 
 Like :func:`fromxml` but for split/multiple files.
 
@@ -42,12 +56,8 @@ Raises
 ------
   RuntimeError
       For any failure to read.
-
-Return
-------
-artstype : T
-    The variable created from the file.
-)");
+)"} + return_doc)
+            .c_str());
   }
 }
 

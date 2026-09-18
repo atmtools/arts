@@ -194,21 +194,24 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
 
   py::class_<vdisort::delta_m_transport_data> delta_m_transport(vdisort_nm, "DeltaMTransportData");
   delta_m_transport
-      .def_rw("tau", &vdisort::delta_m_transport_data::tau, "Delta-M optical-depth grid\n\n.. :class:`AscendingGrid`")
-      .def_rw(
-          "omega", &vdisort::delta_m_transport_data::omega, "Delta-M single-scattering albedo\n\n.. :class:`Vector`")
+      .def_rw("tau",
+              &vdisort::delta_m_transport_data::tau,
+              "Delta-M optical-depth grid\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
+      .def_rw("omega",
+              &vdisort::delta_m_transport_data::omega,
+              "Delta-M single-scattering albedo\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("phase_matrix",
               &vdisort::delta_m_transport_data::phase_matrix,
-              "Delta-M diffuse phase matrices\n\n.. :class:`MuelmatTensor5`")
+              "Delta-M diffuse phase matrices\n\n.. :class:`~pyarts3.arts.MuelmatTensor5`")
       .def_rw("beam_phase_matrix",
               &vdisort::delta_m_transport_data::beam_phase_matrix,
-              "Delta-M beam phase matrices\n\n.. :class:`MuelmatTensor4`")
+              "Delta-M beam phase matrices\n\n.. :class:`~pyarts3.arts.MuelmatTensor4`")
       .def_rw("source_coordinate_scale",
               &vdisort::delta_m_transport_data::source_coordinate_scale,
-              "Scale of the affine physical-source coordinate map\n\n.. :class:`Vector`")
+              "Scale of the affine physical-source coordinate map\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("source_coordinate_offset",
               &vdisort::delta_m_transport_data::source_coordinate_offset,
-              "Offset of the affine physical-source coordinate map\n\n.. :class:`Vector`");
+              "Offset of the affine physical-source coordinate map\n\n.. :class:`~pyarts3.arts.Vector`");
   delta_m_transport.doc() = "Solver-ready result of an explicitly specified polarized delta-M transform";
 
   vdisort_nm.def("combine_phase_matrices",
@@ -330,11 +333,12 @@ the Mueller reflection matrix for one outgoing/incident stream pair.
   py::class_<disort::coupling_result> coupling_result(disort_nm, "CouplingResult");
   generic_interface(coupling_result);
   coupling_result
-      .def_rw(
-          "iterations", &disort::coupling_result::iterations, "Number of fixed-point iterations\n\n.. :class:`Index`")
+      .def_rw("iterations",
+              &disort::coupling_result::iterations,
+              "Number of fixed-point iterations\n\n.. :class:`~pyarts3.arts.Index`")
       .def_rw("max_relative_change",
               &disort::coupling_result::max_relative_change,
-              "Maximum relative interface update in the last iteration\n\n.. :class:`Numeric`")
+              "Maximum relative interface update in the last iteration\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("converged",
               &disort::coupling_result::converged,
               "Whether the interface exchange converged\n\n.. :class:`bool`");
@@ -522,7 +526,7 @@ The relevant references are:
   py::class_<vdisort::main_data> vx(m, "cppvdisort");
   vx.doc() = unwrap_stars(R"(A low-level polarized VDISORT object.
 
-The calling style mirrors :class:`cppdisort`, but scalar phase coefficients,
+The calling style mirrors :class:`~pyarts3.arts.cppdisort`, but scalar phase coefficients,
 boundary values, sources, and beam intensity are replaced by their polarized
 counterparts.  Stokes components are ordered ``[I, Q, U, V]``.
 
@@ -660,51 +664,70 @@ at the requested outgoing directions.  Their numerical shapes are
 
   py::class_<DisortSettings> disort_settings(m, "DisortSettings");
   generic_interface(disort_settings);
-  disort_settings.def_rw("quadrature_dimension", &DisortSettings::quadrature_dimension, ".. :class:`Index`");
   disort_settings.def_rw(
-      "legendre_polynomial_dimension", &DisortSettings::legendre_polynomial_dimension, ".. :class:`Index`");
-  disort_settings.def_rw("fourier_mode_dimension", &DisortSettings::fourier_mode_dimension, ".. :class:`Index`");
-  disort_settings.def_rw("freq_grid", &DisortSettings::freq_grid, ".. :class:`AscendingGrid`");
-  disort_settings.def_rw("alt_grid", &DisortSettings::alt_grid, ".. :class:`DescendingGrid`");
-  disort_settings.def_rw("solar_azimuth_angle", &DisortSettings::solar_azimuth_angle, ".. :class:`Vector`");
-  disort_settings.def_rw("solar_zenith_angle", &DisortSettings::solar_zenith_angle, ".. :class:`Vector`");
-  disort_settings.def_rw("solar_source", &DisortSettings::solar_source, ".. :class:`Vector`");
+      "quadrature_dimension", &DisortSettings::quadrature_dimension, ".. :class:`~pyarts3.arts.Index`");
+  disort_settings.def_rw("legendre_polynomial_dimension",
+                         &DisortSettings::legendre_polynomial_dimension,
+                         ".. :class:`~pyarts3.arts.Index`");
+  disort_settings.def_rw(
+      "fourier_mode_dimension", &DisortSettings::fourier_mode_dimension, ".. :class:`~pyarts3.arts.Index`");
+  disort_settings.def_rw("freq_grid", &DisortSettings::freq_grid, ".. :class:`~pyarts3.arts.AscendingGrid`");
+  disort_settings.def_rw("alt_grid", &DisortSettings::alt_grid, ".. :class:`~pyarts3.arts.DescendingGrid`");
+  disort_settings.def_rw(
+      "solar_azimuth_angle", &DisortSettings::solar_azimuth_angle, ".. :class:`~pyarts3.arts.Vector`");
+  disort_settings.def_rw("solar_zenith_angle", &DisortSettings::solar_zenith_angle, ".. :class:`~pyarts3.arts.Vector`");
+  disort_settings.def_rw("solar_source", &DisortSettings::solar_source, ".. :class:`~pyarts3.arts.Vector`");
   disort_settings.def_rw("bidirectional_reflectance_distribution_functions",
                          &DisortSettings::bidirectional_reflectance_distribution_functions,
-                         ".. :class:`MatrixOfDisortBDRF`");
-  disort_settings.def_rw("optical_thicknesses", &DisortSettings::optical_thicknesses, ".. :class:`Matrix`");
-  disort_settings.def_rw("single_scattering_albedo", &DisortSettings::single_scattering_albedo, ".. :class:`Matrix`");
-  disort_settings.def_rw("fractional_scattering", &DisortSettings::fractional_scattering, ".. :class:`Matrix`");
-  disort_settings.def_rw("delta_m_peak_moments", &DisortSettings::delta_m_peak_moments, ".. :class:`Tensor3`");
-  disort_settings.def_rw("source_polynomial", &DisortSettings::source_polynomial, ".. :class:`Tensor3`");
-  disort_settings.def_rw("legendre_coefficients", &DisortSettings::legendre_coefficients, ".. :class:`Tensor3`");
+                         ".. :class:`~pyarts3.arts.MatrixOfDisortBDRF`");
   disort_settings.def_rw(
-      "upward_boundary_condition", &DisortSettings::upward_boundary_condition, ".. :class:`Tensor3`");
+      "optical_thicknesses", &DisortSettings::optical_thicknesses, ".. :class:`~pyarts3.arts.Matrix`");
   disort_settings.def_rw(
-      "downward_boundary_condition", &DisortSettings::downward_boundary_condition, ".. :class:`Tensor3`");
+      "single_scattering_albedo", &DisortSettings::single_scattering_albedo, ".. :class:`~pyarts3.arts.Matrix`");
+  disort_settings.def_rw(
+      "fractional_scattering", &DisortSettings::fractional_scattering, ".. :class:`~pyarts3.arts.Matrix`");
+  disort_settings.def_rw(
+      "delta_m_peak_moments", &DisortSettings::delta_m_peak_moments, ".. :class:`~pyarts3.arts.Tensor3`");
+  disort_settings.def_rw("source_polynomial", &DisortSettings::source_polynomial, ".. :class:`~pyarts3.arts.Tensor3`");
+  disort_settings.def_rw(
+      "legendre_coefficients", &DisortSettings::legendre_coefficients, ".. :class:`~pyarts3.arts.Tensor3`");
+  disort_settings.def_rw(
+      "upward_boundary_condition", &DisortSettings::upward_boundary_condition, ".. :class:`~pyarts3.arts.Tensor3`");
+  disort_settings.def_rw(
+      "downward_boundary_condition", &DisortSettings::downward_boundary_condition, ".. :class:`~pyarts3.arts.Tensor3`");
 
   py::class_<DisortFlux> df(m, "DisortFlux");
   generic_interface(df);
-  df.def_rw("freq_grid", &DisortFlux::freq_grid, "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
   df.def_rw(
-      "alt_grid", &DisortFlux::alt_grid, "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
-  df.def_rw("up", &DisortFlux::up, "Upwelling flux (layer values)\n\n.. :class:`Matrix`");
-  df.def_rw("down_diffuse", &DisortFlux::down_diffuse, "Downward diffuse flux (layer values)\n\n.. :class:`Matrix`");
-  df.def_rw("down_direct", &DisortFlux::down_direct, "Downward direct flux (layer values)\n\n.. :class:`Matrix`");
-  df.def_rw("dfdt", &DisortFlux::dfdt,
-            "Derivative of net upward flux with respect to downward optical depth [W/(m^2 Hz)], "
-            "at each layer's lower boundary (alt_grid[1:]), using that layer's optical properties. "
-            "Not a temperature tendency. See pyarts3.recipe.heating_rates.from_disort.\n\n.. :class:`Matrix`");
+      "freq_grid", &DisortFlux::freq_grid, "Frequency grid of the fluxes\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  df.def_rw("alt_grid",
+            &DisortFlux::alt_grid,
+            "Altitude grid of the fluxes (level values)\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
+  df.def_rw("up", &DisortFlux::up, "Upwelling flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
+  df.def_rw("down_diffuse",
+            &DisortFlux::down_diffuse,
+            "Downward diffuse flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
+  df.def_rw("down_direct",
+            &DisortFlux::down_direct,
+            "Downward direct flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
+  df.def_rw(
+      "dfdt",
+      &DisortFlux::dfdt,
+      "Derivative of net upward flux with respect to downward optical depth [W/(m^2 Hz)], "
+      "at each layer's lower boundary (alt_grid[1:]), using that layer's optical properties. "
+      "Not a temperature tendency. See pyarts3.recipe.heating_rates.from_disort.\n\n.. :class:`~pyarts3.arts.Matrix`");
 
   py::class_<DisortRadiance> dr(m, "DisortRadiance");
   generic_interface(dr);
-  dr.def_rw("freq_grid", &DisortRadiance::freq_grid, "Frequency grid of the fluxes\n\n.. :class:`AscendingGrid`");
+  dr.def_rw("freq_grid",
+            &DisortRadiance::freq_grid,
+            "Frequency grid of the fluxes\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
   dr.def_rw("alt_grid",
             &DisortRadiance::alt_grid,
-            "Altitude grid of the fluxes (level values)\n\n.. :class:`DescendingGrid`");
-  dr.def_rw("zen_grid", &DisortRadiance::zen_grid, "Zenith grid\n\n.. :class:`ZenGrid`");
-  dr.def_rw("azi_grid", &DisortRadiance::azi_grid, "Azimuth grid\n\n.. :class:`AziGrid`");
-  dr.def_rw("data", &DisortRadiance::data, "Radiance field (layer values)\n\n.. :class:`Tensor4`");
+            "Altitude grid of the fluxes (level values)\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
+  dr.def_rw("zen_grid", &DisortRadiance::zen_grid, "Zenith grid\n\n.. :class:`~pyarts3.arts.ZenGrid`");
+  dr.def_rw("azi_grid", &DisortRadiance::azi_grid, "Azimuth grid\n\n.. :class:`~pyarts3.arts.AziGrid`");
+  dr.def_rw("data", &DisortRadiance::data, "Radiance field (layer values)\n\n.. :class:`~pyarts3.arts.Tensor4`");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));
 }

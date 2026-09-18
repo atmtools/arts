@@ -43,7 +43,7 @@ def plot(data: pyarts.arts.MuelmatVector,
         The matplotlib axes to draw on. Defaults to None for new axes.
     freqs : ~pyarts3.arts.AscendingGrid, optional
         A grid of frequencies to plot. Defaults to None for no frequency grid.
-    component : pyarts.arts.Muelmat | None, optional
+    component : pyarts3.arts.Muelmat | None, optional
         If None, plot all 16 elements M[i,j] of the Mueller matrix across the vector.
         If provided, plot the dot product of each Mueller matrix with the given component.
     **kwargs : keyword arguments
@@ -51,9 +51,9 @@ def plot(data: pyarts.arts.MuelmatVector,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
     freqs = np.arange(len(data)) if freqs is None else freqs

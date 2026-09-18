@@ -21,9 +21,12 @@
 
 #include <iosfwd>
 #include <memory>
+#include <optional>
 #include <utility>
 
 class CovarianceMatrix;
+struct CovarianceSolveCache;
+struct CovariancePreparation;
 
 //------------------------------------------------------------------------------
 // Type Aliases
@@ -75,6 +78,13 @@ class BlockMatrix {
   [[nodiscard]] Index ncols() const;
 
   [[nodiscard]] Index nrows() const;
+
+  void multiply_left(StridedMatrixView out, StridedConstMatrixView rhs) const;
+  void multiply_left(StridedVectorView out, StridedConstVectorView rhs) const;
+  void multiply_right(StridedMatrixView out, StridedConstMatrixView lhs) const;
+
+  [[nodiscard]] bool is_finite() const;
+  [[nodiscard]] bool is_identity() const;
 
   friend std::ostream &operator<<(std::ostream &os, const BlockMatrix &m);
 
@@ -196,6 +206,10 @@ class CovarianceMatrix {
   CovarianceMatrix &operator=(CovarianceMatrix &&) noexcept;
   ~CovarianceMatrix();
 
+  // Detached read-only snapshot. Source edits are allowed between preparations,
+  // but must not race with preparation. Published snapshots support concurrent reads.
+  std::shared_ptr<const CovarianceMatrix> prepared(bool need_precision = false) const;
+
   explicit operator Matrix() const;
   Matrix   get_inverse() const;
 
@@ -239,8 +253,23 @@ class CovarianceMatrix {
      * @return Reference to the std::vector holding the block
      * objects of this covariance matrix.
      */
-  std::vector<Block>       &get_blocks() { return correlations_; };
+  std::vector<Block> &get_blocks() {
+    inverses_.clear();
+    return correlations_;
+  };
   const std::vector<Block> &get_blocks() const { return correlations_; };
+
+  /** Replace covariance blocks, invalidating all stored inverses. */
+  void set_blocks(std::vector<Block> blocks);
+
+  /** Check storage, finite values, symmetry, positive definiteness, and any
+   * stored inverse. This does not change the covariance or compute its inverse.
+   * The optional expected size is checked against full diagonal coverage.
+   * Symmetry and inverse consistency use dimensionless relative tolerances.
+   */
+  void validate(Index   expected_size      = -1,
+                Numeric relative_tolerance = 1e-10,
+                Index   max_dense_elements = 10000000) const;
 
   /** Blocks of the inverse covariance matrix.
      *
@@ -290,11 +319,14 @@ class CovarianceMatrix {
   bool is_consistent(const Block &block) const;
 
   /**
-     * Compute the inverse of this correlation matrix. This function must be executed
-     * after all block have been added to the covariance matrix and before any of the
-     * mult_inv or add_inv methods is used.
+     * Explicitly materialize inverse blocks. Ordinary mult_inv and solve calls
+     * instead prepare diagonal/component factors lazily. Explicit precision
+     * consumers (get_inverse, add_inv, inverse_diagonal) request inverses as needed.
      */
   void compute_inverse() const;
+
+  /** Release prepared factors/snapshots and inverse blocks; retain covariance values. */
+  void clear_cache();
 
   /** Add block to covariance matrix.
      *
@@ -325,6 +357,9 @@ class CovarianceMatrix {
      */
   Vector diagonal() const;
 
+  // Exact structure inspection for preparation, without materializing a matrix.
+  std::optional<Vector> diagonal_if_diagonal() const;
+
   /** Diagonal of the inverse of the covariance matrix as vector
      *
      * Extracts the diagonal elements from the inverse of the covariance matrix.
@@ -350,6 +385,14 @@ class CovarianceMatrix {
   friend std::ostream &operator<<(std::ostream &os, const CovarianceMatrix &v);
 
  private:
+  friend class CovarianceSquareRoot;
+  // Immutable factors; acquisition/publication on mutable sources is guarded
+  // by preparation_'s mutex. Prepared snapshots need no locking for solves.
+  mutable std::shared_ptr<const CovarianceSolveCache> solve_cache_;
+  std::shared_ptr<CovariancePreparation>              preparation_;
+  bool                                                finalized_ = false;
+  bool                                                solve_components(StridedMatrixView, StridedConstMatrixView) const;
+  void validate_unlocked(Index expected_size, Numeric relative_tolerance, Index max_dense_elements) const;
   void generate_blocks(std::vector<std::vector<const Block *>> &) const;
   void invert_correlation_block(std::vector<Block> &inverses, std::vector<const Block *> &blocks) const;
   bool has_inverse(IndexPair indices) const;
@@ -365,6 +408,21 @@ void mult(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
 void mult_inv(StridedMatrixView, StridedConstMatrixView, const CovarianceMatrix &);
 void mult_inv(StridedMatrixView, const CovarianceMatrix &, StridedConstMatrixView);
 void solve(StridedVectorView, const CovarianceMatrix &, StridedConstVectorView);
+
+/** Detached component factors S = L L^T for preparatory coordinate transforms.
+ * Diagonal components stay diagonal; connected components use Cholesky.
+ * The source, including supplied inverse blocks, is validated but not modified.
+ */
+class CovarianceSquareRoot {
+ public:
+  explicit CovarianceSquareRoot(const CovarianceMatrix &covariance);
+  void multiply_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose = false) const;
+  void solve_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose = false) const;
+
+ private:
+  std::shared_ptr<const CovarianceSolveCache> factors_;
+  void apply(StridedMatrixView out, StridedConstMatrixView rhs, bool inverse, bool transpose) const;
+};
 
 StridedMatrixView operator+=(StridedMatrixView, const CovarianceMatrix &);
 void              add_inv(StridedMatrixView, const CovarianceMatrix &);

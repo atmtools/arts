@@ -47,9 +47,9 @@ def plot(data: pyarts.arts.LatGrid,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
     fig, ax = default_fig_ax(fig, ax, ax_kwargs={"subplot_kw": {'polar': polar}}, fig_kwargs={

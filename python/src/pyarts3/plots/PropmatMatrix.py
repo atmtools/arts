@@ -46,9 +46,9 @@ def plot(data: pyarts.arts.PropmatMatrix,
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
         The matplotlib axes to draw on. Defaults to None for new axes.
-    xgrid : ~pyarts3.arts.Vector | None = None,
+    xgrid : ~pyarts3.arts.Vector, optional
         X-axis values. If None, uses column indices. Defaults to None.
-    ygrid : ~pyarts3.arts.Vector | None = None,
+    ygrid : ~pyarts3.arts.Vector, optional
         Y-axis values. If None, uses row indices. Defaults to None.
     component : ~pyarts3.arts.Propmat, optional
         Choice of polarization for the heatmap.
@@ -57,9 +57,9 @@ def plot(data: pyarts.arts.PropmatMatrix,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
     """
 

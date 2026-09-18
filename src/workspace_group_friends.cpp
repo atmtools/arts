@@ -376,12 +376,12 @@ where :math:`a` is the numerator and :math:`b` is the denominator.
       .desc =
           R"--(One of the following:
 
-#. :class:`~pyarts3.arts.predef.PredefinedModelDataName`
-#. :class:`~pyarts3.arts.predef.PredefinedModelDataWaterDataMTCKD4`
+#. :class:`~pyarts3.arts.predef.ModelName`
+#. :class:`~pyarts3.arts.predef.MTCKD400WaterData`
 
 This is used when using predefined models to allow for different types of data
 input.  Several types of predefined models have this data built into the code
-and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.PredefinedModelDataName`.
+and will use it directly but must live in the *abs_predef_data* as a :class:`~pyarts3.arts.predef.ModelName`.
 )--",
   };
 
@@ -690,6 +690,28 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
   };
 
+  wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {
+      .file = "retrieval_target.h",
+      .desc =
+          R"--(A map target types to matrix and inverse matrix pairs of *BlockMatrix*
+
+The intended use of this type is to store required *BlockMatrix* objects so that
+the user-interface for setting up retrieval targets can be simplified.
+)--",
+      .map_type = true,
+  };
+
+  wsg_data["LevenbergMarquardtSettings"] = {
+      .file = "oem_settings.h",
+      .desc = "Named Levenberg-Marquardt damping settings for OEM.\n",
+  };
+
+  wsg_data["OptimalEstimationDiagnostics"] = {
+      .file = "oem_settings.h",
+      .desc =
+          "Named OEM status, normalized costs, iteration count, damping history, and messages. Unavailable costs are NaN.\n",
+  };
+
   add_arrays_of(wsg_data,
                 {
                     "Index",
@@ -714,7 +736,9 @@ The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted
                     "SpeciesIsotope",
                     "Sparse",
                     "NamedGriddedField2",
+                    "MuelmatVector",
                     "MuelmatMatrix",
+                    "MuelmatTensor3",
                     "GriddedField3",
                     "GriddedField4",
                     "GriddedField2",

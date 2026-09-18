@@ -64,15 +64,17 @@ void header(std::ostream& os) {
 
 #include <memory>
 #include <iosfwd>
+#include <type_traits>
 
 )--";
 
   for (const auto& [file, groups] : files()) { std::println(os, "#include <{0}>", file); }
 
   os << "\ntemplate <typename T>\nconcept WorkspaceGroup = false";
-  for (auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
-  os << "\n;\n\n"
-        "template <typename T>\nconcept QualifiedWorkspaceGroup "
+  for (const auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
+  os << "\n;\n\n";
+
+  os << "\ntemplate <typename T>\nconcept QualifiedWorkspaceGroup "
         "= WorkspaceGroup<std::remove_cvref_t<T>>;\n\n";
 
   os << R"(
@@ -116,6 +118,12 @@ template <> struct WorkspaceGroupInfo<{0}> {{
       index++;
     } catch (...) { throw std::runtime_error(std::format("Error generating WorkspaceGroupInfo for group: {}", group)); }
   }
+
+  os << "\n#include <workspace_variant.h>\n";
+  os << "\nusing AnyOutput = Generic<";
+  std::string_view space{""};
+  for (const auto& group : groups()) { os << std::exchange(space, ", "sv) << group; }
+  os << ">;\nusing AnyInput = AnyOutput::Const;\n";
 
   os << "\n[[nodiscard]] bool valid_wsg(std::string_view);\n";
 }
@@ -209,6 +217,7 @@ void agenda_operators() {
 
 #include <workspace_agenda_creator.h>
 #include <time_report.h>
+#include <utility>
 
 )");
 
@@ -218,7 +227,9 @@ void agenda_operators() {
       const auto remove_output =
           stdv::filter([&o = ag.output](const std::string& v) { return not stdr::contains(o, v); });
       const auto output_string = stdv::transform([&o = ag.output](const std::string& v) {
-        return std::format("{0} = std::get<{1}>(_tup);\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
+        // The operator returns an owning tuple. Transfer its outputs without
+        // copying payloads that are immediately destroyed with the tuple.
+        return std::format("{0} = std::get<{1}>(std::move(_tup));\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
       });
 
       const std::string op = ag.named_operator.empty() ? std::string(name + "Operator") : ag.named_operator;

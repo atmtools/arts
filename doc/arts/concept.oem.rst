@@ -1,7 +1,10 @@
 .. _Sec OEM:
 
 Optimal estimation
-###################
+##########################
+
+For configuration and interpretation of retrieval outputs, see
+:ref:`sec-user-oem`.
 
 The core expression of optimal estimation in ARTS
 follows from :cite:t:`rodgers:00`.
@@ -12,10 +15,10 @@ He formulates the core expression of a measurement as
   \vec{y} = F\left(\vec{x}\right) + \epsilon,
 
 where :math:`\vec{y}` is a measurement vector
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_vec`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.measurement_vec`
 in the ARTS workspace),
 :math:`\vec{x}` is the state of the model
-(i.e., :attr:`~pyarts3.workspace.Workspace.model_state_vec`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.model_state_vec`
 in the ARTS workspace),
 :math:`F` is the model (i.e., ARTS itself), and
 :math:`\epsilon` is some measurement error that cannot
@@ -47,27 +50,26 @@ where
 :math:`\mathbf{S}_a` is the covariance of the model state a priori.
 
 Linearization
-=============
+=====================
 
-The optimal estimation methods in ARTS only work if it is possible to
-linearize :math:`F\left(\vec{x}\right)` around :math:`\vec{x}`.
-This is equivalent to stating that
-
-.. math::
-
-  \vec{y} = \vec{y}_f + \mathbf{J} \left(\vec{x} - \vec{x}_a\right)
-
-where we can take the partial derivative to find that
+The iterative methods use a local linear approximation to the forward model
+around the current state :math:`\vec{x}_i`:
 
 .. math::
 
-  \mathbf{J} = \frac{\partial \vec{y}}{\partial \vec{x}}
+  F(\vec{x}) \approx F(\vec{x}_i) + \mathbf{J}_i (\vec{x} - \vec{x}_i).
+
+Here
+
+.. math::
+
+  \mathbf{J}_i = \left.\frac{\partial F}{\partial \vec{x}}\right|_{\vec{x}_i}
 
 is the Jacobian matrix
-(i.e., :attr:`~pyarts3.workspace.Workspace.measurement_jac`
+(i.e., :attr:`~pyarts3.arts.OptimalEstimationData.measurement_jac`
 in the ARTS workspace).
 
-One approach to minimize :math:`\vec{x}` is to
+One approach to minimize the cost function is to
 use a Gauss-Newton approach to update the state
 of the atmosphere.  This might look like
 
@@ -81,12 +83,304 @@ of the atmosphere.  This might look like
 
   \vec{y}_f = F\left(\vec{x}_i\right)
 
-for :math:`i` starting at :math:`a` or :math:`0` and increasing the
-count until the cost functions above are not decreasing anymore, or
-too slowly to warrant more iterations.
+The Jacobian and simulated measurement in this expression are evaluated at
+the current state.  Iteration stops according to the convergence criterion
+and iteration limit.  The state-step measures are defined below;
+settings are described in :ref:`sec-user-oem`.  A decrease in cost alone does not
+establish convergence.
+
+.. _sec-oem-covariance:
+
+Covariances and coordinates
+===================================
+
+A covariance matrix has variances on its diagonal.  Its off-diagonal entries
+can be expressed in terms of standard deviations and a correlation matrix:
+
+.. math::
+
+   S_{ij}=\sigma_i R_{ij}\sigma_j.
+
+Thus each covariance entry has the product of the units of its two coordinates.
+The covariance is symmetric and positive semidefinite; the inverses in the
+optimal-estimation expressions require positive definiteness.  A positive
+diagonal alone does not imply positive definiteness.  The inverse covariance
+is the precision matrix.  In general, correlations imply
+
+.. math::
+
+   (\mathbf{S}^{-1})_{ii} \ne \frac{1}{S_{ii}}.
+
+For a coordinate transformation :math:`\vec{x}=f(\vec{t})`, the local
+covariance transformation is
+
+.. math::
+
+   \mathbf{S}_x \approx \mathbf{B}\mathbf{S}_t\mathbf{B}^{\top},
+   \qquad \mathbf{B}=\frac{\partial f}{\partial\vec{t}}.
+
+This is exact for an affine transformation.  A nonlinear transformation
+also changes the shape of the distribution; a Gaussian prior in native
+coordinates need not remain Gaussian in transformed coordinates.
+
+For correlated measurement errors, the quadratic measurement cost can be
+written using a whitened residual.  With a Cholesky factorization
+:math:`\mathbf{S}_\epsilon=\mathbf{L}\mathbf{L}^{\top}`,
+
+.. math::
+
+   \vec{r}_w=\mathbf{L}^{-1}\bigl(\vec{y}-F(\vec{x})\bigr),
+   \qquad \chi_y^2=\frac{\vec{r}_w^{\top}\vec{r}_w}{m}.
+
+Numerical state scaling is distinct from a change of statistical coordinates.
+For a diagonal matrix of positive scales :math:`\mathbf{T}`, solving
+:math:`\mathbf{H}\Delta\vec{x}=-\vec{g}` is equivalent in exact arithmetic to
+
+.. math::
+
+   (\mathbf{T}\mathbf{H}\mathbf{T})\vec{z}=-\mathbf{T}\vec{g},
+   \qquad \Delta\vec{x}=\mathbf{T}\vec{z}.
+
+This changes the conditioning of the linear system while retaining the
+same objective and solution in the original coordinates.
+
+For the measurement-space system, define
+
+.. math::
+
+   \mathbf{M}=\mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}+\mathbf{S}_\epsilon,
+   \qquad
+   \vec{r}=\vec{y}-F(\vec{x}_i)+\mathbf{J}(\vec{x}_i-\vec{x}_a).
+
+Then solve :math:`\mathbf{M}\vec{u}=\vec{r}` and update
+:math:`\vec{x}_{i+1}=\vec{x}_a+\mathbf{S}_a\mathbf{J}^{\top}\vec{u}`.
+For a diagonal matrix of positive measurement scales :math:`\mathbf{D}`,
+the equivalent scaled solve is
+
+.. math::
+
+   (\mathbf{D}^{-1}\mathbf{M}\mathbf{D}^{-1})\vec{v}
+     =\mathbf{D}^{-1}\vec{r},
+   \qquad \vec{u}=\mathbf{D}^{-1}\vec{v}.
+
+Choosing :math:`D_{ii}=\sqrt{S_{\epsilon,ii}}` scales by measurement noise
+standard deviations. This is not full whitening when measurement errors
+are correlated. This measurement scaling matrix is distinct from the
+prior-precision damping matrix introduced below.
+
+.. _sec-oem-damping:
+
+Levenberg--Marquardt damping
+====================================
+
+Let :math:`J=m\chi^2` denote the unnormalized objective.  Define its
+half-gradient and the Gauss--Newton approximation to its half-Hessian by
+
+.. math::
+
+   \vec{g}=\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1}
+     \bigl(F(\vec{x})-\vec{y}\bigr)
+     +\mathbf{S}_a^{-1}(\vec{x}-\vec{x}_a),
+   \qquad
+   \mathbf{H}=\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1}\mathbf{J}
+     +\mathbf{S}_a^{-1}.
+
+The damped step used by ARTS is
+
+.. math::
+
+   (\mathbf{H}+\gamma\mathbf{D})\Delta\vec{x}=-\vec{g},
+   \qquad
+   \mathbf{D}=\operatorname{diag}
+               \bigl(\operatorname{diag}(\mathbf{S}_a^{-1})\bigr).
+
+Larger :math:`\gamma` penalizes larger steps in the precision-scaled
+coordinates.  At :math:`\gamma=0`, the step equals the Gauss--Newton step.
+The damping penalty modifies the local step, not the objective being
+minimized.
+
+For a candidate step, the predicted decrease in the full, unnormalized
+objective is
+
+.. math::
+
+   \Delta J_{\rm predicted}
+     =-2\vec{g}^{\top}\Delta\vec{x}
+       -\Delta\vec{x}^{\top}\mathbf{H}\Delta\vec{x}.
+
+The corresponding actual decrease and their ratio are
+
+.. math::
+
+   \Delta J_{\rm actual}=J(\vec{x})-J(\vec{x}+\Delta\vec{x}),
+   \qquad
+   \rho=\frac{\Delta J_{\rm actual}}{\Delta J_{\rm predicted}}.
+
+For an affine forward model, the local quadratic is exact, giving
+:math:`\rho=1` whenever the predicted reduction is nonzero.  The factor
+of two is required because :math:`\vec{g}` and :math:`\mathbf{H}` refer
+to half the objective.  A ratio of two would mix the full cost with its
+half-cost prediction.  A zero predicted reduction makes the ratio
+undefined; near zero, rounding of the computed costs can dominate it.
+
+.. _sec-oem-convergence:
+
+State-step convergence measures
+=======================================
+
+For :math:`n` retrieved state elements, the state-space formulation uses
+the Rodgers 5.31 measure
+
+.. math::
+
+   d_{531}=\frac{|\Delta\vec{x}^{\top}\vec{g}|}{n},
+
+where the half-gradient :math:`\vec{g}` is evaluated before the step.
+The measurement-space formulation uses the Rodgers 5.30 measure
+
+.. math::
+
+   d_{530}=\frac{\Delta\vec{x}^{\top}\mathbf{H}\Delta\vec{x}}{n}.
+
+Both quantities are dimensionless.  The measures agree for an exact
+undamped Gauss--Newton step, but need not agree for damped or approximate
+steps.  They are distinct from relative changes in the cost function and
+from an unweighted distance between state vectors.
+
+The undamped step and its decrement are
+
+.. math::
+
+   \Delta\vec{x}_{\rm GN}=-\mathbf{H}^{-1}\vec{g},
+   \qquad
+   \delta=-\vec{g}^{\top}\Delta\vec{x}_{\rm GN}
+          =\vec{g}^{\top}\mathbf{H}^{-1}\vec{g}.
+
+For positive-definite :math:`\mathbf{H}`, :math:`\delta\geq0`, and
+:math:`\delta=0` exactly when :math:`\vec{g}=0`.  Its normalized value
+:math:`\delta/n` equals both state-step measures for an exact undamped
+solve.  The full objective's predicted decrease for this step is
+:math:`\delta`.  A small undamped decrement thus provides a stationarity
+measure when cost differences approach numerical resolution.  By
+contrast, arbitrarily strong damping can make a damped step arbitrarily
+small while the gradient remains nonzero.
+
+.. _sec-oem-uncertainty:
+
+Gain, averaging kernel, and retrieval uncertainty
+=========================================================
+
+In the linear Gaussian model, the posterior covariance, gain, and
+averaging kernel are
+
+.. math::
+
+   \widehat{\mathbf{S}}=
+     \bigl(\mathbf{S}_a^{-1}+\mathbf{J}^{\top}
+     \mathbf{S}_\epsilon^{-1}\mathbf{J}\bigr)^{-1},
+   \qquad
+   \mathbf{G}=\widehat{\mathbf{S}}\mathbf{J}^{\top}\mathbf{S}_\epsilon^{-1},
+   \qquad
+   \mathbf{A}=\mathbf{G}\mathbf{J}.
+
+The observation and smoothing contributions in state coordinates are
+
+.. math::
+
+   \mathbf{S}_{\rm obs}=\mathbf{G}\mathbf{S}_\epsilon\mathbf{G}^{\top},
+   \qquad
+   \mathbf{S}_{\rm smooth}=(\mathbf{I}-\mathbf{A})\mathbf{S}_a
+                           (\mathbf{I}-\mathbf{A})^{\top}.
+
+With the stated covariances and model assumptions,
+:math:`\widehat{\mathbf{S}}=\mathbf{S}_{\rm obs}+\mathbf{S}_{\rm smooth}`.
+For a nonlinear retrieval, evaluating these expressions at the retrieved
+state gives a local approximation.  Their uncertainty interpretation
+requires that the prior covariance represents the assumed prior uncertainty.
+The observation contribution alone is not the full posterior covariance.
+
+.. _sec-oem-information:
+
+Information carried by the measurements
+===============================================
+
+Factor the prior and measurement covariances as
+:math:`\mathbf{S}_a=\mathbf{L}_a\mathbf{L}_a^{\top}` and
+:math:`\mathbf{S}_\epsilon=\mathbf{L}_\epsilon\mathbf{L}_\epsilon^{\top}`.
+The dimensionless sensitivity matrix and its singular value decomposition are
+
+.. math::
+
+   \widetilde{\mathbf{J}}=
+     \mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+     =\mathbf{U}\mathbf{\Sigma}\mathbf{V}^{\top}.
+
+Each singular value :math:`s_i` measures the response of a unit-prior
+state mode relative to the measurement error.  Missing singular values
+when :math:`m<n` are zero.  In coordinates
+:math:`\vec{z}=\mathbf{L}_a^{-1}(\vec{x}-\vec{x}_a)`, the columns of
+:math:`\mathbf{V}` describe independent prior modes.  Their posterior
+variances are :math:`1/(1+s_i^2)`, giving the mode variance reductions
+
+.. math::
+
+   a_i=\frac{s_i^2}{1+s_i^2}.
+
+These are the eigenvalues of the averaging kernel expressed in prior
+coordinates.  Their use as an information spectrum is described by
+:cite:t:`nesser:21`.  A mode with :math:`s_i=1` loses half its prior
+variance; an unobserved mode with :math:`s_i=0` retains its prior variance.
+
+The physical state modes are the columns of
+:math:`\mathbf{P}=\mathbf{L}_a\mathbf{V}`.  They satisfy
+:math:`\mathbf{P}^{\top}\mathbf{S}_a^{-1}\mathbf{P}=\mathbf{I}`.
+The posterior covariance can be reconstructed as
+
+.. math::
+
+   \widehat{\mathbf{S}}=
+     \mathbf{P}\operatorname{diag}\left(\frac{1}{1+s_i^2}\right)
+     \mathbf{P}^{\top}.
+
+The marginal variance reduction for state element :math:`j` is
+:math:`1-\widehat{S}_{jj}/S_{a,jj}`.  This refers to an individual
+coordinate and is generally different from the variance reduction of
+a mode combining several state elements.  A mode's sign is arbitrary;
+equal singular values also allow rotations within their shared subspace.
+
+Two scalar summaries are the degrees of freedom for signal and the
+Gaussian entropy reduction in bits:
+
+.. math::
+
+   d_s=\operatorname{tr}(\mathbf{A})=\sum_{i=1}^{n}a_i,
+   \qquad
+   H=\frac{1}{2}\log_2\frac{\det\mathbf{S}_a}{\det\widehat{\mathbf{S}}}
+    =\frac{1}{2}\sum_{i=1}^{n}\log_2(1+s_i^2).
+
+These quantities depend on the Jacobian and assumed covariances, not on
+the realized measurement residual.  For a nonlinear forward model they
+describe only the local linear approximation at the Jacobian's state.
+
+For a measurement and a forward prediction at the prior mean, define
+the innovation and its covariance by
+
+.. math::
+
+   \vec{r}=\vec{y}-F(\vec{x}_a),
+   \qquad
+   \mathbf{S}_r=\mathbf{S}_\epsilon+
+                   \mathbf{J}\mathbf{S}_a\mathbf{J}^{\top}.
+
+Under the linear Gaussian model with independent prior and observation
+errors, :math:`\vec{r}^{\top}\mathbf{S}_r^{-1}\vec{r}` follows a
+chi-squared distribution with :math:`m` degrees of freedom and mean
+:math:`m`.  This is a check of a prior prediction and the assumed
+uncertainties.  Replacing the prior prediction with a fitted measurement
+does not give this distribution.
 
 Transforming the Jacobian matrix
-================================
+========================================
 
 It is sometimes desired to transform the Jacobian matrix away from the
 native units that are available in the model.  Instead of retrieving
@@ -133,7 +427,7 @@ Mapping the model state vector to non-native units may require
 knowing more than just a single model state parameter.
 
 Core mapping/transformation expression
---------------------------------------
+----------------------------------------------
 
 If we define the native units of :math:`\vec{x}` as :math:`\vec{t}`
 so that
@@ -152,15 +446,9 @@ for any transformation or mapping to work.  It must also be possible
 to take the partial derivative of :math:`\vec{t}` with regards
 to :math:`\vec{x}`.
 
-If we put this in the form of the linearized forward simulation,
-
-.. math::
-
-  \vec{y}_f = \mathbf{J} \vec{x} = \mathbf{J} f\left(\vec{t}\right).
-
-Here :math:`\mathbf{J}` is still the partial derivative with regards to
-:math:`\vec{x}`.  However, all partial derivatives will have been
-computed in terms of :math:`\vec{t}`, since this is the native unit.
+The Jacobian :math:`\mathbf{J}` is the derivative with respect to
+the retrieved coordinates :math:`\vec{x}`.  The forward model first
+computes derivatives in its native coordinates :math:`\vec{t}`.
 If we introduce
 
 .. math::
@@ -183,7 +471,7 @@ the partial derivative of :math:`f^{-1}` with regards to
 See :doc:`user.oem` for assigning these operators to a Jacobian target.
 
 Relative retrievals
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By relative retrievals, we mean that the value itself is not
@@ -213,7 +501,7 @@ simply the a priori value of :math:`\vec{t}`.
   The first iteration of a retrieval setup is going to be :math:`\vec{x} = \vec{1}`.
 
 Logarithmic retrievals
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By logarithmic retrievals, we mean that the value itself is not
@@ -236,7 +524,7 @@ In this scenario:
 where the exponential and logarithmic operations are element-wise.
 
 Logarithmic relative retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By logarithmic relative retrievals, we mean that the value itself is not
@@ -263,7 +551,7 @@ where the operations are still element-wise on the product that is created.
   The first iteration of a retrieval setup is going to have :math:`\vec{x} = \vec{0}`.
 
 Relative humidity retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector transformation.
 By relative humidity retrievals, we mean that the value itself is not
@@ -302,7 +590,7 @@ saturation pressure.
   some species.
 
 Absolute field retrievals
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This is a model state vector mapping.
 By absolute field retrievals, we mean that the value itself is not
@@ -341,3 +629,239 @@ in the native units of the model state vector.
   and are used to map the Cartesian coordinates to spherical coordinates.
   They are fixed during the retrieval process
   and are not updated between iterations.
+
+
+Matching-grid cross correlation
+=======================================
+
+Let the marginal prior covariances of temperature and log-water be
+:math:`\mathbf{S}_T=\operatorname{diag}(\sigma_{T,i}^2)` and
+:math:`\mathbf{S}_q=\operatorname{diag}(\sigma_{q,i}^2)`, where
+:math:`q_i=\ln(\mathrm{VMR}_i)`.  Correlating only matching grid points
+with coefficient :math:`\rho` gives
+
+.. math::
+
+   C_{ij} = \delta_{ij}\rho\sigma_{T,i}\sigma_{q,i},
+   \qquad
+   \mathbf{S}_a = \begin{pmatrix} \mathbf{S}_T & \mathbf{C} \\ \mathbf{C}^{\top} & \mathbf{S}_q \end{pmatrix}.
+
+For positive marginal variances this two-target covariance is positive
+definite exactly when :math:`|\rho|<1`.  The conditional prior mean is
+
+.. math::
+
+   E[q_i-q_{a,i}\mid T_i-T_{a,i}]
+   = \rho\frac{\sigma_{q,i}}{\sigma_{T,i}}(T_i-T_{a,i}),
+
+and its conditional variance is
+:math:`\sigma_{q,i}^2(1-\rho^2)`.  Correlation therefore expresses a
+statistical preference with residual uncertainty, while preserving the
+unconditional marginal variances.  With more than two correlated targets,
+all pair coefficients must jointly define a positive-definite covariance.
+
+.. _sec-reduced-oem:
+
+Reduced optimal estimation
+==========================
+
+``oemCalcReduced`` uses a fixed state expansion and measurement projection:
+
+.. math::
+
+   \vec{x}=\vec{x}_a+\mathbf{B}\vec{z},\qquad
+   \vec{y}_r=\mathbf{C}\vec{y},\qquad
+   \mathbf{J}_r=\mathbf{C}\mathbf{J}\mathbf{B}.
+
+For :math:`n` full states and :math:`m` full measurements,
+:math:`\mathbf{B}\in\mathbb{R}^{n\times r}` has independent columns and
+:math:`\mathbf{C}\in\mathbb{R}^{q\times m}` has independent rows. Substitution
+in the prior penalty and propagation of measurement errors give
+
+.. math::
+
+   \mathbf{S}_{a,r}=(\mathbf{B}^{\top}\mathbf{S}_a^{-1}\mathbf{B})^{-1},
+   \qquad
+   \mathbf{S}_{\epsilon,r}=\mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}.
+
+The reduced objective is
+
+.. math::
+
+   \Phi_r(\vec{z}) =
+       \vec{z}^{\top}\mathbf{S}_{a,r}^{-1}\vec{z}
+       + \left[\mathbf{C}(\vec{y}-\vec{F}(\vec{x}_a+\mathbf{B}\vec{z}))\right]^{\top}
+         \mathbf{S}_{\epsilon,r}^{-1}
+         \left[\mathbf{C}(\vec{y}-\vec{F}(\vec{x}_a+\mathbf{B}\vec{z}))\right].
+
+This restricts the state to an affine subspace; it does not marginalize
+discarded state variability into the measurement error. The reduced gain
+and its mapping back to the original coordinates are
+
+.. math::
+
+   \mathbf{G}_r =
+       (\mathbf{S}_{a,r}^{-1}
+        +\mathbf{J}_r^{\top}\mathbf{S}_{\epsilon,r}^{-1}\mathbf{J}_r)^{-1}
+        \mathbf{J}_r^{\top}\mathbf{S}_{\epsilon,r}^{-1},
+   \qquad \mathbf{G}=\mathbf{B}\mathbf{G}_r\mathbf{C}.
+
+LM uses the projected damping matrix
+
+.. math::
+
+   \mathbf{D}_r =
+       \mathbf{B}^{\top}\operatorname{diag}(\mathbf{S}_a^{-1})\mathbf{B}.
+
+Thus invertible, square reductions preserve the objective and the exact LM
+linear step under coordinate transformation. Numerical tolerances can still
+affect the iteration path; the convergence measure uses the reduced state
+dimension.
+
+For the whitened singular-value decomposition
+:math:`\mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{L}_a
+=\mathbf{U}\boldsymbol{\Sigma}\mathbf{V}^{\top}`, first consider the full
+orthogonal matrices :math:`\mathbf{U}\in\mathbb{R}^{m\times m}` and
+:math:`\mathbf{V}\in\mathbb{R}^{n\times n}`. The complete bases
+
+.. math::
+
+   \mathbf{B}_{\rm full}=\mathbf{L}_a\mathbf{V},\qquad
+   \mathbf{C}_{\rm full}=\mathbf{U}^{\top}\mathbf{L}_\epsilon^{-1}
+
+are invertible coordinate transformations. No information is lost,
+including in the null spaces:
+
+.. math::
+
+   \mathbf{S}_a=\mathbf{B}_{\rm full}\mathbf{B}_{\rm full}^{\top},
+   \qquad
+   \mathbf{S}_\epsilon=
+       \mathbf{C}_{\rm full}^{-1}\mathbf{C}_{\rm full}^{-\top},
+   \qquad
+   \mathbf{C}_{\rm full}\mathbf{J}\mathbf{B}_{\rm full}
+       =\boldsymbol{\Sigma}.
+
+Here :math:`\boldsymbol{\Sigma}\in\mathbb{R}^{m\times n}` has
+:math:`\min(m,n)` singular values, ordered from largest to smallest, on
+its diagonal and zeros elsewhere. Additional directions of the larger
+basis carry zero local information. The bases and singular values together
+preserve the full local Gaussian problem.
+
+Reduction is a separate choice: take the first :math:`r` columns of
+:math:`\mathbf{B}_{\rm full}` and first :math:`q=\min(r,m)` rows of
+:math:`\mathbf{C}_{\rm full}`:
+
+.. math::
+
+   \mathbf{B}=\mathbf{L}_a\mathbf{V}_r,\qquad
+   \mathbf{C}=\mathbf{U}_q^{\top}\mathbf{L}_\epsilon^{-1},
+   \qquad q=\min(r,m).
+
+Both reduced covariances are then identity matrices. The discarded local
+degrees of freedom and information are
+
+.. math::
+
+   \Delta d_s=\sum_{i>r}\frac{s_i^2}{1+s_i^2},\qquad
+   \Delta H=\frac12\sum_{i>r}\log_2(1+s_i^2).
+
+An information-budget reduction chooses the smallest retained rank satisfying
+the prescribed upper bounds on :math:`\Delta d_s` and/or :math:`\Delta H`.
+The bounds apply to the sums, so many individually weak modes can collectively
+require retention. Zero-information modes have :math:`s_i=0`; their location
+is determined by the singular directions of the whitened Jacobian, not by
+individual zero entries in the physical matrices. A zero budget removes
+only zero contributions in the computed spectrum. Finite-precision residuals
+in mathematically null modes can require a positive budget.
+
+Retaining every nonzero singular mode preserves the posterior of the linear
+Gaussian problem. Dropping nonzero modes is approximate. Measurement
+compression preserves the likelihood's state dependence on the retained
+subspace if it retains the column space of
+:math:`\mathbf{L}_\epsilon^{-1}\mathbf{J}\mathbf{B}`. Discarded orthogonal
+noise residuals contribute a constant to the full objective. In general,
+selecting physical channels does not satisfy this condition, particularly
+when their errors are correlated.
+
+For a single retrieved parameter with Jacobian column :math:`\vec{j}`,
+the one informative measurement combination has weights
+
+.. math::
+
+   \mathbf{C}=
+   \frac{\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}}
+        {\sqrt{\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}\vec{j}}},
+   \qquad
+   y_r=\mathbf{C}\vec{y},\qquad
+   F_r=\mathbf{C}\vec{F},\qquad
+   \mathbf{C}\mathbf{S}_\epsilon\mathbf{C}^{\top}=1.
+
+The overall sign is arbitrary. This retains the local measurement Fisher
+information :math:`\vec{j}^{\top}\mathbf{S}_\epsilon^{-1}\vec{j}`.
+
+For independent channel noise with variances :math:`\sigma_i^2`, the
+weights are proportional to :math:`j_i/\sigma_i^2`. A flat part of a
+spectrum carries little wind information when wind primarily shifts a line:
+if :math:`F(\nu,v)\approx F_0(\nu-\delta\nu(v))`, then
+
+.. math::
+
+   \frac{\partial F}{\partial v}\approx
+       -\frac{d\delta\nu}{dv}\frac{\partial F_0}{\partial\nu}.
+
+Opposite line slopes therefore enter with opposite signs. The exact
+center of a symmetric line has zero first-order shift sensitivity; a
+weighted line contrast is distinct from retaining just that center channel.
+Saturation and pressure broadening can also leave informative slopes outside
+the narrow central feature. Far-wing weights become small according to the
+Jacobian and noise, not according to a prescribed frequency window.
+
+Another measurement compression preserves explicit groups of proportional
+Jacobian rows. Write :math:`\mathbf J=\mathbf T\mathbf R`, where row
+:math:`i` of :math:`\mathbf T` has one nonzero amplitude :math:`a_i` in
+the column corresponding to its group. The rows of :math:`\mathbf R`
+are the distinct sensitivity directions. A sufficient measurement projection
+for this linear Gaussian model is
+
+.. math::
+
+   \mathbf C=\mathbf T^\top\mathbf S_\epsilon^{-1},\qquad
+   \mathbf H=\mathbf T^\top\mathbf S_\epsilon^{-1}\mathbf T,\qquad
+   \mathbf C\mathbf J=\mathbf H\mathbf R,\qquad
+   \mathbf C\mathbf S_\epsilon\mathbf C^\top=\mathbf H.
+
+The grouped directions have disjoint channel support, so :math:`\mathbf T`
+has independent columns and :math:`\mathbf H` is positive definite. Both
+the likelihood precision and its state-dependent linear term are preserved.
+With diagonal measurement noise, each row of :math:`\mathbf C` can instead
+be normalized to unit noise variance:
+
+.. math::
+
+   C_{g i}=\frac{a_i/\sigma_i^2}
+                    {\sqrt{\sum_{k\in g}a_k^2/\sigma_k^2}},\quad i\in g,
+   \qquad C_{g i}=0,\quad i\notin g.
+
+Here :math:`\mathbf C` has one nonzero per channel. Correlated noise can
+require entries outside a channel's group. Grouping proportional rows may
+retain more measurements than an SVD: it does not combine general linear
+dependencies between different row directions. A zero-sensitivity group may
+also be retained without adding state information. For nonlinear forward
+models, these statements apply at the chosen linearization.
+
+For retained singular modes, the truncated local posterior must preserve
+discarded prior uncertainty:
+
+.. math::
+
+   \widehat{\mathbf{S}}_r=\mathbf{S}_a+
+      \mathbf{B}\left[(\mathbf{I}+\mathbf{J}_r^{\top}
+      \mathbf{S}_{\epsilon,r}^{-1}\mathbf{J}_r)^{-1}-\mathbf{I}\right]
+      \mathbf{B}^{\top}.
+
+Using only the projected reduced covariance assigns zero uncertainty to
+discarded modes. This expression describes the truncated local model;
+a null mode of one nonlinear Jacobian need not remain null elsewhere.
+Neither the loss estimates nor this covariance bound the error of a
+particular nonlinear retrieval.

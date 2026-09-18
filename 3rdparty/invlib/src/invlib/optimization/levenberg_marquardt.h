@@ -9,11 +9,21 @@
 #define OPTIMIZATION_LEVENBERG_MARQUARDT_H
 
 #include "invlib/algebra/solvers.h"
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <limits>
+#include <stdexcept>
+#include <string>
 
 namespace invlib
 {
+
+/** Why LM stopped, independent of the floating-point damping value. */
+enum class LMStopReason {
+    None, Stationary, DampingLimit, TrialLimit, DampingStalled,
+    LinearSolverFailure, LinearSolverLimit, NumericalFailure
+};
 
 /**
  * \brief Levenberg-Marquardt method.
@@ -76,6 +86,13 @@ public:
     unsigned int get_maximum_iterations() const;
     void set_maximum_iterations(unsigned int);
 
+    /*! Maximum linear solves per call to step(), including any undamped
+     * stationarity check, independent of the outer iteration budget.
+     * Defaults to 100; exhausting the limit throws.
+     */
+    unsigned int get_maximum_trials() const;
+    void set_maximum_trials(unsigned int);
+
     RealType get_tolerance() const;
     void set_tolerance(RealType);
 
@@ -108,15 +125,23 @@ public:
      *    d\vec{x} &= -(\mathbf{H} + \lambda \mathbf{D})^{-1} \vec{g}
      * \f]
      *
-     * If the step reduces the cost function at
-     * \f$\vec{x}_{i+1} = \vec{x}_i + d\vec{x}\f$, the step is accepted and the
-     * current lambda values reduced by a factor of lambda_decrease. If the value
-     * of the cost function is not decreased the values for lambda is increased
-     * by a factor of lambda_increase and \f$d\vec{x}\f$ is recomputed. This is
+     * Accept a step when the actual objective reduction is at least half the
+     * quadratic model's prediction. Reduce lambda by lambda_decrease only when
+     * the ratio exceeds 0.75 and the first trial was accepted. Both reductions
+     * use the same cost convention (full squared cost for MAP).
+     * Otherwise lambda increases by lambda_increase and the step is recomputed. This is
      * repeated until a suitable \f$d\vec{x}\f$ is found or lambda reaches the
      * the value of lambda_maximum. If lambda falls below lambda_threshold, lambda
      * is set to zero and the Levenberg-Marquardt step effectively becomes a
      * Gauss-Newton step.
+     * A separate solve budget bounds work within each step. Exhausting that
+     * budget, or failing to increase damping after a rejected trial, throws
+     * an exception instead of returning an unconverged trial as a solution.
+     * A rejected trial at maximum damping returns zero and sets DampingLimit.
+     * Truncated CG solves are retried with stronger damping without applying
+     * their iterates; exhaustion sets LinearSolverLimit.
+     * Roundoff-level reductions require an independent undamped stationarity
+     * check before setting Stationary; a tiny damped step alone is insufficient.
      */
     template
     <
@@ -129,14 +154,16 @@ public:
                     const MatrixType &B,
                     CostFunction     &J);
 
-    bool stop_iteration() const {return stop;}
+    LMStopReason get_stop_reason() const {return stop_reason;}
+    bool converged() const {return stop_reason == LMStopReason::Stationary;}
+    bool stop_iteration() const {return stop_reason != LMStopReason::None;}
 
 private:
 
     RealType current_cost, tolerance, lambda, lambda_maximum, lambda_increase,
     lambda_decrease, lambda_threshold, lambda_constraint;
-    unsigned int maximum_iterations, step_count;
-    bool stop;
+    unsigned int maximum_iterations, maximum_trials, step_count;
+    LMStopReason stop_reason;
 
     // Positive definite matrix defining the trust region sphere r < ||Mx||.
     const DampingMatrix &D;
@@ -150,4 +177,3 @@ private:
 }      // namespace invlib
 
 #endif // OPTIMIZATION_LEVENBERG_MARQUARDT_H
-

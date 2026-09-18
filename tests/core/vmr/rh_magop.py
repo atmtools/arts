@@ -47,9 +47,9 @@ fieldg = copy(ws.atm_field["H2O"])
 
 fieldg.data /= RAT
 
-ws.RetrievalInit()
-ws.RetrievalAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-2)
-ws.RetrievalFinalizeDiagonal()
+ws.oemInit()
+ws.oemAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-2)
+ws.jac_targetsFinalize()
 
 ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
 
@@ -57,14 +57,19 @@ ws.measurement_vecFromSensor()
 transmat = np.array(ws.measurement_vec, copy=True)
 
 ws.atm_field["H2O"] = fieldg
-ws.model_state_vec_aprioriFromData()
 ws.measurement_vecFromSensor()
 apriori = np.array(ws.measurement_vec, copy=True)
 
-ws.measurement_vec_error_covmatConstant(value=noise**2)
 ws.measurement_vec = transmat
-ws.OEM(method="lm", lm_ga_settings=[10, 2, 2, 100, 1, 99])
-vmr_jacobian = np.array(ws.measurement_vec_fit, copy=True)
+
+ws.model_state_vecFromData()
+ws.oemSetApriori()
+ws.oemSetMeasurement()
+ws.oemMeasurementCovmatConstant(value=noise**2)
+ws.oemFinalizeDiagonal()
+
+ws.oemCalc(settings=pyarts.arts.OptimalEstimationSettings(method="lm", lm=[10, 2, 2, 100, 1, 99]))
+vmr_jacobian = np.array(ws.oem.measurement_vec_fit, copy=True)
 
 np.testing.assert_array_less(
     np.linalg.norm(transmat - vmr_jacobian),

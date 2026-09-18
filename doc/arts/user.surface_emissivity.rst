@@ -5,7 +5,7 @@ Empirical microwave surface emissivity
 
 ARTS provides the TESSEM2 and TELSEM2 empirical microwave emissivity models
 through the ``Tessem`` and ``Telsem`` options of
-:meth:`~pyarts3.Workspace.spectral_surf_refl_agendaSet`.  Load their model data
+:meth:`~pyarts3.workspace.Workspace.spectral_surf_refl_agendaSet`.  Load their model data
 with :class:`~pyarts3.arts.TessemNN` or
 :class:`~pyarts3.arts.TelsemAtlas`, or with the corresponding workspace ASCII
 reader methods.

@@ -79,10 +79,10 @@ ws.measurement_sensorSimple(pos=pos, los=los)
 
 # %% Jacobian
 
-ws.RetrievalInit()
-ws.RetrievalAddSpeciesVMR(species="O2", matrix=np.diag(np.ones((3)) * 5))
-ws.RetrievalAddTemperature(matrix=np.diag(np.ones((5)) * 10))
-ws.RetrievalFinalizeDiagonal()
+ws.oemInit()
+ws.oemAddSpeciesVMR(species="O2", matrix=np.diag(np.ones((3)) * 5))
+ws.oemAddTemperature(matrix=np.diag(np.ones((5)) * 10))
+ws.jac_targetsFinalize()
 
 model_statec_vector_targets = [vmrs, temps]
 
@@ -120,31 +120,33 @@ for i in range(LIMIT):
     ws.atm_field[pyarts.arts.AtmKey.t].data = temp_grid
     ws.measurement_vecFromSensor()
 
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
     
     # Set the relevant atmospheric state to "weird", aka much different
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
     ws.atm_field[pyarts.arts.AtmKey.t].data += 20
-    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vec_error_covmatConstant(value=noise**2)
     ws.measurement_vec += np.random.normal(0, noise, NFREQ)
 
-    # Must be reset to be sure it does nothing weird inside OEM
-    ws.measurement_jac = [[]]
-    
-    ws.OEM(method="gn")
 
-    if condition(ws.model_state_vec, model_statec_vector_targets):
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
+
+    ws.oemCalc(settings="gn")
+
+    if condition(ws.oem.model_state_vec, model_statec_vector_targets):
         works = True
         break
     print("WARNING: needed repeat run, poor condition")
 
 if PLOT:
     f = (ws.freq_grid - line_f0) / 1e6
-    plt.plot(f, ws.measurement_vec)
-    plt.plot(f, ws.measurement_vec_fit)
+    plt.plot(f, ws.oem.measurement_vec)
+    plt.plot(f, ws.oem.measurement_vec_fit)
     plt.show()
 
 assert works, "No more reruns allowed, failing"

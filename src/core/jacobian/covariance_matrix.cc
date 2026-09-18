@@ -11,29 +11,185 @@
 #include <lin_alg.h>
 #include <xml.h>
 
+#include <Eigen/Cholesky>
+#include <cmath>
+#include <limits>
+#include <mutex>
+#include <optional>
 #include <ostream>
 #include <queue>
+#include <set>
 #include <tuple>
 #include <utility>
+#include <variant>
 #include <vector>
 
-BlockMatrix::BlockMatrix()                                                  = default;
-BlockMatrix::BlockMatrix(const BlockMatrix &)                               = default;
-BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept                           = default;
-BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)                    = default;
-BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept                = default;
-Block::Block()                                                              = default;
-Block::Block(const Block &)                                                 = default;
-Block::Block(Block &&) noexcept                                             = default;
-Block &Block::operator=(const Block &)                                      = default;
-Block &Block::operator=(Block &&) noexcept                                  = default;
-Block::~Block()                                                             = default;
-CovarianceMatrix::CovarianceMatrix()                                        = default;
-CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &)                = default;
-CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&) noexcept            = default;
-CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &)     = default;
-CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&) noexcept = default;
-CovarianceMatrix::~CovarianceMatrix()                                       = default;
+namespace {
+struct CovarianceSignature {
+  std::vector<Index>   layout;
+  std::vector<Numeric> values;
+  bool                 operator==(const CovarianceSignature &) const = default;
+};
+// One canonical traversal, shared by signature construction and comparison, so
+// the two can never disagree about what identifies a covariance. A sink
+// returning false stops the walk.
+template <typename LayoutSink, typename ValueSink>
+bool walk_covariance(const CovarianceMatrix &covariance, LayoutSink layout, ValueSink value) {
+  const auto emit = [&](std::initializer_list<Index> items) {
+    for (Index item : items)
+      if (not layout(item)) return false;
+    return true;
+  };
+  for (const auto *blocks : {&covariance.get_blocks(), &covariance.get_inverse_blocks()}) {
+    if (not emit({static_cast<Index>(blocks->size())})) return false;
+    for (const auto &b : *blocks) {
+      if (not b.not_null()) throw std::runtime_error("Cannot prepare a null covariance block.");
+      const auto [i, j] = b.get_indices();
+      if (not emit({b.is_dense() ? b.get_dense().nrows() : b.get_sparse().nrows(),
+                    b.is_dense() ? b.get_dense().ncols() : b.get_sparse().ncols(),
+                    i,
+                    j,
+                    b.get_row_range().offset,
+                    b.nrows(),
+                    b.get_column_range().offset,
+                    b.ncols(),
+                    static_cast<Index>(b.is_dense())}))
+        return false;
+      if (b.is_dense()) {
+        const auto &a = b.get_dense();
+        for (auto it = a.elem_begin(); it != a.elem_end(); ++it)
+          if (not value(*it)) return false;
+      } else {
+        const auto &a = b.get_sparse();
+        if (not emit({static_cast<Index>(a.nnz())})) return false;
+        for (const auto [row, col, entry] : a | by_elem) {
+          if (not emit({row, col})) return false;
+          if (not value(entry)) return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+CovarianceSignature covariance_signature(const CovarianceMatrix &covariance) {
+  CovarianceSignature result;
+  auto &[layout, values] = result;
+  walk_covariance(
+      covariance,
+      [&layout](Index item) {
+        layout.push_back(item);
+        return true;
+      },
+      [&values](Numeric entry) {
+        values.push_back(entry);
+        return true;
+      });
+  return result;
+}
+
+// Compare against a stored signature without materializing a second one. The
+// steady-state answer is "unchanged", and that case now costs no allocation and
+// no copy; a change stops the walk at the first differing element. Detection is
+// unchanged: every element is still read, so edits made through retained
+// references or shared block storage are still caught.
+bool signature_matches(const CovarianceMatrix     &covariance,
+                       const std::vector<Index>   &layout,
+                       const std::vector<Numeric> &values) {
+  std::size_t layout_at = 0, value_at = 0;
+  const bool  complete = walk_covariance(
+      covariance,
+      [&](Index item) { return layout_at < layout.size() and layout[layout_at++] == item; },
+      [&](Numeric entry) { return value_at < values.size() and values[value_at++] == entry; });
+  return complete and layout_at == layout.size() and value_at == values.size();
+}
+
+bool signature_matches(const CovarianceMatrix &covariance, const CovarianceSignature &expected) {
+  return signature_matches(covariance, expected.layout, expected.values);
+}
+}  // namespace
+struct CovariancePreparation {
+  std::mutex                              mutex;
+  std::vector<Index>                      layout;
+  std::vector<Numeric>                    values;
+  std::optional<CovarianceSignature>      validated_inverse;
+  bool                                    precision = false;
+  std::shared_ptr<const CovarianceMatrix> snapshot;
+};
+
+namespace {
+std::vector<Block> detached_blocks(const std::vector<Block> &source) {
+  std::vector<Block> out;
+  out.reserve(source.size());
+  for (const auto &b : source) {
+    if (b.is_dense())
+      out.emplace_back(b.get_row_range(), b.get_column_range(), b.get_indices(), b.get_dense());
+    else
+      out.emplace_back(b.get_row_range(), b.get_column_range(), b.get_indices(), b.get_sparse());
+  }
+  return out;
+}
+}  // namespace
+
+BlockMatrix::BlockMatrix()                                   = default;
+BlockMatrix::BlockMatrix(const BlockMatrix &)                = default;
+BlockMatrix::BlockMatrix(BlockMatrix &&) noexcept            = default;
+BlockMatrix &BlockMatrix::operator=(const BlockMatrix &)     = default;
+BlockMatrix &BlockMatrix::operator=(BlockMatrix &&) noexcept = default;
+
+Block::Block()                             = default;
+Block::Block(const Block &)                = default;
+Block::Block(Block &&) noexcept            = default;
+Block &Block::operator=(const Block &)     = default;
+Block &Block::operator=(Block &&) noexcept = default;
+Block::~Block()                            = default;
+CovarianceMatrix::CovarianceMatrix() : preparation_(std::make_shared<CovariancePreparation>()) {}
+CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &other)
+    : preparation_(std::make_shared<CovariancePreparation>()) {
+  std::lock_guard lock(other.preparation_->mutex);
+  solve_cache_  = other.solve_cache_;
+  correlations_ = other.finalized_ ? detached_blocks(other.correlations_) : other.correlations_;
+  inverses_     = other.finalized_ ? detached_blocks(other.inverses_) : other.inverses_;
+}
+CovarianceMatrix::CovarianceMatrix(CovarianceMatrix &&other) noexcept
+    : solve_cache_(std::move(other.solve_cache_)),
+      // Retain a valid preparation object in the empty source without allocating
+      // in a noexcept move. Exact signatures distinguish its subsequent edits.
+      preparation_(other.preparation_),
+      finalized_(std::exchange(other.finalized_, false)),
+      correlations_(std::exchange(other.correlations_, {})),
+      inverses_(std::exchange(other.inverses_, {})) {}
+CovarianceMatrix &CovarianceMatrix::operator=(const CovarianceMatrix &other) {
+  if (this != &other) {
+    CovarianceMatrix copy(other);
+    *this = std::move(copy);
+  }
+  return *this;
+}
+CovarianceMatrix &CovarianceMatrix::operator=(CovarianceMatrix &&other) noexcept {
+  if (this != &other) {
+    solve_cache_  = std::move(other.solve_cache_);
+    preparation_  = other.preparation_;
+    finalized_    = std::exchange(other.finalized_, false);
+    correlations_ = std::exchange(other.correlations_, {});
+    inverses_     = std::exchange(other.inverses_, {});
+  }
+  return *this;
+}
+CovarianceMatrix::~CovarianceMatrix() = default;
+
+void CovarianceMatrix::clear_cache() {
+  auto fresh = std::make_shared<CovariancePreparation>();
+  solve_cache_.reset();
+  preparation_ = std::move(fresh);
+  finalized_   = false;
+  inverses_    = std::vector<Block>{};
+}
+
+void CovarianceMatrix::validate(Index expected_size, Numeric relative_tolerance, Index max_dense_elements) const {
+  std::lock_guard lock(preparation_->mutex);
+  validate_unlocked(expected_size, relative_tolerance, max_dense_elements);
+}
 
 Block::Block(Range row_range, Range column_range, IndexPair indices, BlockMatrix matrix)
     : row_range_(row_range), column_range_(column_range), indices_(std::move(indices)), matrix_(std::move(matrix)) {
@@ -69,8 +225,7 @@ BlockMatrix &BlockMatrix::operator=(const Sparse &sparse) {
 }
 
 bool BlockMatrix::not_null() const {
-  if (is_dense()) return std::get<std::shared_ptr<Matrix>>(data) != nullptr;
-  return std::get<std::shared_ptr<Sparse>>(data) != nullptr;
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix != nullptr; }, data);
 }
 
 bool BlockMatrix::is_dense() const { return std::holds_alternative<std::shared_ptr<Matrix>>(data); }
@@ -98,26 +253,85 @@ const Sparse &BlockMatrix::sparse() const {
 }
 
 Vector BlockMatrix::diagonal() const {
-  if (is_dense()) return Vector{matpack::diagonal(*std::get<std::shared_ptr<Matrix>>(data))};
-  return std::get<std::shared_ptr<Sparse>>(data)->diagonal();
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) -> Vector {
+        if constexpr (std::same_as<T, Sparse>)
+          return matrix->diagonal();
+        else
+          return Vector{matpack::diagonal(*matrix)};
+      },
+      data);
 }
 
 Index BlockMatrix::ncols() const {
-  if (is_dense()) return dense().ncols();
-  return sparse().ncols();
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix ? matrix->ncols() : 0; }, data);
 }
 
 Index BlockMatrix::nrows() const {
-  if (is_dense()) return dense().nrows();
-  return sparse().nrows();
+  return std::visit([]<typename T>(const std::shared_ptr<T> &matrix) { return matrix ? matrix->nrows() : 0; }, data);
+}
+
+void BlockMatrix::multiply_left(StridedMatrixView out, StridedConstMatrixView rhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, *matrix, rhs); }, data);
+}
+
+void BlockMatrix::multiply_left(StridedVectorView out, StridedConstVectorView rhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, *matrix, rhs); }, data);
+}
+
+void BlockMatrix::multiply_right(StridedMatrixView out, StridedConstMatrixView lhs) const {
+  std::visit([&]<typename T>(const std::shared_ptr<T> &matrix) { mult(out, lhs, *matrix); }, data);
+}
+
+bool BlockMatrix::is_finite() const {
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) {
+        if (not matrix) return false;
+        if constexpr (std::same_as<T, Sparse>) {
+          for (const auto [row, col, value] : *matrix | by_elem)
+            if (not std::isfinite(value)) return false;
+        } else {
+          for (const auto value : *matrix | by_elem)
+            if (not std::isfinite(value)) return false;
+        }
+        return true;
+      },
+      data);
+}
+
+bool BlockMatrix::is_identity() const {
+  if (not not_null() or nrows() == 0 or nrows() != ncols()) return false;
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) {
+        if constexpr (std::same_as<T, Sparse>) {
+          Index diagonal_count = 0;
+          for (const auto [row, col, value] : *matrix | by_elem) {
+            if (row == col) {
+              if (value != 1) return false;
+              ++diagonal_count;
+            } else if (value != 0)
+              return false;
+          }
+          return diagonal_count == matrix->nrows();
+        } else {
+          for (Index row = 0; row < matrix->nrows(); ++row)
+            for (Index col = 0; col < matrix->ncols(); ++col)
+              if ((*matrix)[row, col] != (row == col ? 1 : 0)) return false;
+          return true;
+        }
+      },
+      data);
 }
 
 void Block::set_matrix(std::shared_ptr<Sparse> sparse) { matrix_ = std::move(sparse); }
 void Block::set_matrix(std::shared_ptr<Matrix> dense) { matrix_ = std::move(dense); }
 
 std::array<Index, 2> BlockMatrix::shape() const {
-  if (is_dense()) { return dense().shape(); }
-  return {sparse().nrows(), sparse().ncols()};
+  return std::visit(
+      []<typename T>(const std::shared_ptr<T> &matrix) -> std::array<Index, 2> {
+        return {matrix->nrows(), matrix->ncols()};
+      },
+      data);
 }
 
 //------------------------------------------------------------------------------
@@ -258,6 +472,7 @@ CovarianceMatrix::operator Matrix() const {
 }
 
 Matrix CovarianceMatrix::get_inverse() const {
+  compute_inverse();
   Index  n = nrows();
   Matrix A(n, n);
   A = 0.0;
@@ -443,9 +658,28 @@ void CovarianceMatrix::generate_blocks(std::vector<std::vector<const Block *>> &
 }
 
 void CovarianceMatrix::compute_inverse() const {
+  if (finalized_) {
+    if (inverses_.empty()) throw std::runtime_error("Prepared covariance did not request explicit precision.");
+    return;
+  }
+  // Inverse-only matrices are also used internally as precision operators.
+  if (correlations_.empty()) return;
+  std::lock_guard lock(preparation_->mutex);
+  // Reuse the complete, previously validated inverse. An exact signature also
+  // catches edits through retained block references and shared matrix storage.
+  if (preparation_->validated_inverse and signature_matches(*this, *preparation_->validated_inverse)) return;
+  // Independent components may have supplied inverses while others still need
+  // computing. A represented component must already have a complete inverse.
+  // The optional confirmation API has a user-configurable allocation guard.
+  // Existing inversion callers already request a dense component inverse and
+  // must not inherit an unconfigurable size limit from that separate API.
+  validate_unlocked(-1, 1e-10, std::numeric_limits<Index>::max());
   std::vector<std::vector<const Block *>> correlation_blocks{};
   generate_blocks(correlation_blocks);
   for (std::vector<const Block *> &cb : correlation_blocks) { invert_correlation_block(inverses_, cb); }
+  // Remember completed validation, including the resulting inverse values.
+  // Preparation still checks exact storage, so aliases cannot bypass validation.
+  preparation_->validated_inverse = covariance_signature(*this);
 }
 
 void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inverses,
@@ -463,8 +697,32 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
 
   std::sort(blocks.begin(), blocks.end(), comp);
 
-  auto block_has_inverse = [this](const Block *a) { return has_inverse(a->get_indices()); };
-  if (std::all_of(blocks.begin(), blocks.end(), block_has_inverse)) return;
+  // validate has checked any supplied/cached inverse for this complete
+  // component. Its sparsity pattern need not equal that of the covariance.
+  if (std::any_of(blocks.begin(), blocks.end(), [this](const Block *a) {
+        const auto [i, j] = a->get_indices();
+        return i == j and has_inverse({i, i});
+      }))
+    return;
+
+  // The usual independent measurement covariance should remain sparse.
+  if (blocks.size() == 1 and blocks.front()->is_sparse()) {
+    const Block &block    = *blocks.front();
+    const auto  &sparse   = block.get_sparse();
+    bool         diagonal = true;
+    for (const auto [row, col, value] : sparse | by_elem)
+      if (row != col and value != 0) diagonal = false;
+    if (diagonal) {
+      Vector values = block.diagonal();
+      for (auto &value : values) {
+        value = 1 / value;
+        if (not std::isfinite(value)) throw std::runtime_error("Covariance inverse diagonal exceeds numerical range.");
+      }
+      inverses.emplace_back(
+          block.get_row_range(), block.get_column_range(), block.get_indices(), Sparse::diagonal(values));
+      return;
+    }
+  }
 
   // Otherwise go on to precompute the inverse of a block consisting
   // of correlations between multiple retrieval quantities.
@@ -513,12 +771,15 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
     } else {
       A_view = static_cast<const Matrix>(blocks[i]->get_sparse());
     }
-  }
-
-  for (Index i = 0; i < n; ++i) {
-    for (Index j = i + 1; j < n; ++j) { A[j, i] = A[i, j]; }
+    // Only off-diagonal blocks have an implicit transpose. A diagonal block
+    // stores both triangles, already checked for symmetry before this step.
+    if (ci != cj) A[column_range, row_range] = transpose(A_view);
   }
   inv(A, A);
+
+  if (std::any_of(A.elem_begin(), A.elem_end(), [](Numeric value) { return not std::isfinite(value); }))
+    throw std::runtime_error(
+        "Covariance inverse contains non-finite values; the component cannot be inverted in the available numerical range.");
 
   // // Invert matrix using LAPACK.
   // char uplo = 'L';
@@ -550,7 +811,33 @@ void CovarianceMatrix::invert_correlation_block(std::vector<Block>         &inve
   }
 }
 
-void CovarianceMatrix::add_correlation(Block c) { correlations_.push_back(std::move(c)); }
+void CovarianceMatrix::set_blocks(std::vector<Block> blocks) {
+  correlations_ = std::move(blocks);
+  inverses_.clear();
+}
+
+void CovarianceMatrix::add_correlation(Block c) {
+  // A new edge can join previously independent covariance components. Their
+  // old inverses no longer apply, but inverses of untouched components do.
+  const auto [i, j] = c.get_indices();
+  std::set<Index> touched{i, j};
+  Size            previous;
+  do {
+    previous = touched.size();
+    for (const auto &block : correlations_) {
+      const auto [row, col] = block.get_indices();
+      if (touched.contains(row) or touched.contains(col)) {
+        touched.insert(row);
+        touched.insert(col);
+      }
+    }
+  } while (previous != touched.size());
+  std::erase_if(inverses_, [&](const Block &block) {
+    const auto [row, col] = block.get_indices();
+    return touched.contains(row) or touched.contains(col);
+  });
+  correlations_.push_back(std::move(c));
+}
 
 void CovarianceMatrix::add_correlation_inverse(Block c) { inverses_.push_back(std::move(c)); }
 
@@ -578,7 +865,237 @@ Vector CovarianceMatrix::inverse_diagonal() const {
   return diag;
 }
 
+namespace {
+// Discover exact diagonal structure without materializing a dense covariance.
+// No persistent cache: block storage can be shared with external callers.
+std::optional<Vector> diagonal_values(const std::vector<Block> &blocks, Index n) {
+  if (blocks.empty()) return std::nullopt;
+  Vector values(n, 0.);
+  for (const Block &block : blocks) {
+    const auto [i, j] = block.get_indices();
+    if (i != j) return std::nullopt;
+    if (block.is_dense()) {
+      const auto &a = block.get_dense();
+      for (Index r = 0; r < a.nrows(); ++r)
+        for (Index c = 0; c < a.ncols(); ++c)
+          if (r != c and a[r, c] != 0) return std::nullopt;
+    } else {
+      const auto &a = block.get_sparse();
+      for (const auto [row, col, value] : a | by_elem)
+        if (row != col and value != 0) return std::nullopt;
+    }
+    const Vector d      = block.diagonal();
+    const Index  offset = block.get_row_range().offset;
+    // A well-formed covariance has its diagonal blocks tiling [0, n), so n
+    // covers every row. Block storage is settable without validation, so a
+    // gapped layout can make n too small; such a layout is not a diagonal of
+    // length n, and answering "not diagonal" leaves it to the generic path.
+    if (offset < 0 or offset + static_cast<Index>(d.size()) > n) return std::nullopt;
+    for (Index r = 0; r < static_cast<Index>(d.size()); ++r) values[offset + r] = d[r];
+  }
+  return values;
+}
+}  // namespace
+
+// Structural types are internal: public inputs remain Matrix and Sparse.
+std::optional<Vector> CovarianceMatrix::diagonal_if_diagonal() const { return diagonal_values(correlations_, nrows()); }
+
+struct CovarianceSolveCache {
+  struct Diagonal {
+    Vector values;
+  };
+  struct Cholesky {
+    Eigen::LLT<Eigen::MatrixXd> factor;
+  };
+  struct Component {
+    std::vector<Index>               rows;
+    std::variant<Diagonal, Cholesky> solver;
+  };
+  std::vector<Index>     layout;
+  std::vector<Numeric>   values;
+  std::vector<Component> components;
+};
+
+std::shared_ptr<const CovarianceMatrix> CovarianceMatrix::prepared(bool need_precision) const {
+  std::lock_guard lock(preparation_->mutex);
+  auto           &cache = *preparation_;
+  // Answer the common "nothing changed" case before building a signature.
+  if (cache.snapshot and cache.precision == need_precision and signature_matches(*this, cache.layout, cache.values))
+    return cache.snapshot;
+  auto signature         = covariance_signature(*this);
+  auto &[layout, values] = signature;
+  if (correlations_.empty() and inverses_.empty()) throw std::runtime_error("Cannot prepare an empty covariance.");
+  auto snapshot           = std::make_shared<CovarianceMatrix>();
+  snapshot->correlations_ = detached_blocks(correlations_);
+  snapshot->inverses_     = detached_blocks(inverses_);
+  if (need_precision or not inverses_.empty()) {
+    if (not cache.validated_inverse or not signature_matches(*this, *cache.validated_inverse))
+      snapshot->compute_inverse();
+  } else {
+    Matrix empty(0, 0);
+    snapshot->solve_components(empty, empty);
+  }
+  snapshot->finalized_ = true;
+  cache.layout         = std::move(layout);
+  cache.values         = std::move(values);
+  cache.precision      = need_precision;
+  cache.snapshot       = std::move(snapshot);
+  return cache.snapshot;
+}
+
+bool CovarianceMatrix::solve_components(StridedMatrixView out, StridedConstMatrixView rhs) const {
+  // Only source cache construction/publication needs synchronization. A
+  // published snapshot has immutable factors, while independent solves retain
+  // their own cache handle and release the lock before doing any arithmetic.
+  std::unique_lock lock(preparation_->mutex, std::defer_lock);
+  if (not finalized_) lock.lock();
+  // Preserve explicitly supplied (including precision-only) representations.
+  if (correlations_.empty() or not inverses_.empty()) return false;
+  if (not finalized_) {
+    // Exact snapshots detect mutations through retained references/shared storage.
+    if (not solve_cache_ or not signature_matches(*this, solve_cache_->layout, solve_cache_->values)) {
+      auto [layout, values] = covariance_signature(*this);
+      validate_unlocked(-1, 1e-10, std::numeric_limits<Index>::max());
+      auto cache    = std::make_shared<CovarianceSolveCache>();
+      cache->layout = std::move(layout);
+      cache->values = std::move(values);
+      std::vector<std::vector<const Block *>> groups;
+      generate_blocks(groups);
+      for (const auto &group : groups) {
+        CovarianceSolveCache::Component component;
+        std::map<Index, Index>          starts;
+        for (const auto *b : group) {
+          const auto [i, j] = b->get_indices();
+          if (i != j) continue;
+          starts[i] = component.rows.size();
+          for (Index k = 0; k < b->nrows(); ++k) component.rows.push_back(b->get_row_range().offset + k);
+        }
+        if (group.size() == 1) {
+          // Reuse the exact structure classifier; never infer independence from small values.
+          if (auto d = diagonal_values(std::vector<Block>{*group.front()}, nrows())) {
+            Vector local(component.rows.size());
+            for (Index i = 0; i < static_cast<Index>(local.size()); ++i) local[i] = (*d)[component.rows[i]];
+            component.solver = CovarianceSolveCache::Diagonal{std::move(local)};
+            cache->components.push_back(std::move(component));
+            continue;
+          }
+        }
+        const Index     n     = component.rows.size();
+        Eigen::MatrixXd dense = Eigen::MatrixXd::Zero(n, n);
+        for (const auto *b : group) {
+          const auto [i, j] = b->get_indices();
+          const Index r0 = starts.at(i), c0 = starts.at(j);
+          auto        put = [&](Index r, Index c, Numeric v) {
+            dense(r0 + r, c0 + c) = v;
+            if (i != j) dense(c0 + c, r0 + r) = v;
+          };
+          if (b->is_dense()) {
+            for (Index r = 0; r < b->nrows(); ++r)
+              for (Index c = 0; c < b->ncols(); ++c) put(r, c, b->get_dense()[r, c]);
+          } else {
+            const auto &a = b->get_sparse();
+            for (const auto [row, col, value] : a | by_elem) put(row, col, value);
+          }
+        }
+        CovarianceSolveCache::Cholesky factor{Eigen::LLT<Eigen::MatrixXd>(dense)};
+        if (factor.factor.info() != Eigen::Success)
+          throw std::runtime_error("Covariance component Cholesky factorization failed.");
+        component.solver = std::move(factor);
+        cache->components.push_back(std::move(component));
+      }
+      solve_cache_ = std::move(cache);
+    }
+  }
+  const auto                                 *cache = solve_cache_.get();
+  std::shared_ptr<const CovarianceSolveCache> retained_cache;
+  if (lock.owns_lock()) {
+    retained_cache = solve_cache_;
+    lock.unlock();
+  }
+  for (const auto &component : cache->components) {
+    std::visit(
+        [&]<typename T>(const T &solver) {
+          if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
+            for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i)
+              for (Index j = 0; j < rhs.ncols(); ++j)
+                out[component.rows[i], j] = rhs[component.rows[i], j] / solver.values[i];
+          } else {
+            Eigen::MatrixXd local(component.rows.size(), rhs.ncols());
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) local(i, j) = rhs[component.rows[i], j];
+            Eigen::MatrixXd solved = solver.factor.solve(local);
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) out[component.rows[i], j] = solved(i, j);
+          }
+        },
+        component.solver);
+  }
+  return true;
+}
+
+CovarianceSquareRoot::CovarianceSquareRoot(const CovarianceMatrix &covariance) {
+  covariance.validate(covariance.nrows(), 1e-10, std::numeric_limits<Index>::max());
+  // Work on detached covariance blocks: supplied inverses do not define L.
+  CovarianceMatrix local;
+  local.correlations_ = detached_blocks(covariance.get_blocks());
+  Matrix empty(0, 0);
+  local.solve_components(empty, empty);
+  factors_ = std::move(local.solve_cache_);
+}
+
+void CovarianceSquareRoot::multiply_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose) const {
+  apply(out, rhs, false, transpose);
+}
+
+void CovarianceSquareRoot::solve_left(StridedMatrixView out, StridedConstMatrixView rhs, bool transpose) const {
+  apply(out, rhs, true, transpose);
+}
+
+void CovarianceSquareRoot::apply(StridedMatrixView      out,
+                                 StridedConstMatrixView rhs,
+                                 bool                   inverse,
+                                 bool                   transpose) const {
+  assert(out.shape() == rhs.shape());
+  for (const auto &component : factors_->components) {
+    std::visit(
+        [&]<typename T>(const T &solver) {
+          if constexpr (std::same_as<T, CovarianceSolveCache::Diagonal>) {
+            for (Index i = 0; i < static_cast<Index>(component.rows.size()); ++i) {
+              const Numeric scale = std::sqrt(solver.values[i]);
+              for (Index j = 0; j < rhs.ncols(); ++j)
+                out[component.rows[i], j] =
+                    inverse ? rhs[component.rows[i], j] / scale : rhs[component.rows[i], j] * scale;
+            }
+          } else {
+            Eigen::MatrixXd local(component.rows.size(), rhs.ncols());
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) local(i, j) = rhs[component.rows[i], j];
+            Eigen::MatrixXd result;
+            if (inverse) {
+              if (transpose)
+                result = solver.factor.matrixU().solve(local);
+              else
+                result = solver.factor.matrixL().solve(local);
+            } else {
+              if (transpose)
+                result = solver.factor.matrixU() * local;
+              else
+                result = solver.factor.matrixL() * local;
+            }
+            for (Index i = 0; i < local.rows(); ++i)
+              for (Index j = 0; j < local.cols(); ++j) out[component.rows[i], j] = result(i, j);
+          }
+        },
+        component.solver);
+  }
+}
+
 void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
+  if (auto d = diagonal_values(B.correlations_, B.nrows())) {
+    for (Index i = 0; i < C.nrows(); ++i)
+      for (Index j = 0; j < C.ncols(); ++j) C[i, j] = A[i, j] * (*d)[j];
+    return;
+  }
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.correlations_) {
@@ -589,6 +1106,11 @@ void mult(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix 
 }
 
 void mult(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
+  if (auto d = diagonal_values(A.correlations_, A.nrows())) {
+    for (Index i = 0; i < C.nrows(); ++i)
+      for (Index j = 0; j < C.ncols(); ++j) C[i, j] = (*d)[i] * B[i, j];
+    return;
+  }
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.correlations_) {
@@ -609,6 +1131,8 @@ void mult(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView
 }
 
 void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMatrix &B) {
+  if (B.solve_components(transpose(C), transpose(A))) return;
+  B.compute_inverse();
   C = 0.0;
   Matrix T(C);
   for (const Block &c : B.inverses_) {
@@ -619,6 +1143,8 @@ void mult_inv(StridedMatrixView C, StridedConstMatrixView A, const CovarianceMat
 }
 
 void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrixView B) {
+  if (A.solve_components(C, B)) return;
+  A.compute_inverse();
   C = 0.0;
   Matrix T(C);
   for (const Block &c : A.inverses_) {
@@ -629,6 +1155,14 @@ void mult_inv(StridedMatrixView C, const CovarianceMatrix &A, StridedConstMatrix
 }
 
 void solve(StridedVectorView w, const CovarianceMatrix &A, StridedConstVectorView v) {
+  // Views preserve arbitrary vector strides.
+  Matrix input(v.size(), 1), output(v.size(), 1);
+  for (Index i = 0; i < static_cast<Index>(v.size()); ++i) input[i, 0] = v[i];
+  if (A.solve_components(output, input)) {
+    for (Index i = 0; i < static_cast<Index>(w.size()); ++i) w[i] = output[i, 0];
+    return;
+  }
+  A.compute_inverse();
   w = 0.0;
   Vector t(w);
   for (const Block &c : A.inverses_) {
@@ -644,6 +1178,7 @@ StridedMatrixView operator+=(StridedMatrixView A, const CovarianceMatrix &B) {
 }
 
 void add_inv(StridedMatrixView A, const CovarianceMatrix &B) {
+  B.compute_inverse();
   for (const Block &c : B.inverses_) { A += c; }
 }
 
@@ -695,7 +1230,7 @@ void xml_io_stream<BlockMatrix>::write(std::ostream      &os,
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
-  if (x.not_null()) xml_write_to_stream(os, x.data, pbofs);
+  xml_write_to_stream(os, x.data, pbofs);
 
   tag.write_to_end_stream(os);
 }

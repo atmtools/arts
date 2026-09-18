@@ -287,11 +287,12 @@ This method simply is a convenience wrapper for that use case.
 
 Common use case (requires having set the ENV variables, as described in the documentation):
 
-```python
-ws.atm_fieldRead(
-    toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
-)
-```
+.. code-block:: python3
+  :linenos:
+
+  ws.atm_fieldRead(
+      toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
+  )
 )",
       .author           = {"Richard Larsson"},
       .methods          = {"atm_fieldInit", "atm_fieldAppendBaseData", "atm_fieldAppendAuto"},
@@ -357,14 +358,6 @@ ws.atm_fieldRead(
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "model_state_vec_aprioriFromData",
-      .desc    = "Get *model_state_vec_apriori* from available data",
-      .author  = {"Richard Larsson"},
-      .methods = {"model_state_vecFromData", "model_state_vec_aprioriFromState"},
-      .out     = {"model_state_vec_apriori"},
-  });
-
-  wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "abs_lookup_dataCalc",
       .desc    = R"(Get *abs_lookup_data* from available data.
 
@@ -407,10 +400,6 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
     if (ptr == wsms.end()) { throw std::runtime_error(std::format(R"(Method "{}" not found)", m)); }
 
     const auto& wm = ptr->second;
-
-    if (wm.has_any() or wm.has_overloads()) {
-      throw std::runtime_error(std::format(R"(Method "{}"  has overloads and does not work with meta-functions)", m));
-    }
 
     wsm.author.insert(wsm.author.end(), wm.author.begin(), wm.author.end());
     wsm.gout.insert(wsm.gout.end(), wm.gout.begin(), wm.gout.end());
@@ -534,7 +523,7 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   std::stringstream code;
 
-  code << wsm.header(name, 0) << " try {\n  ARTS_TIME_REPORT\n\n";
+  code << wsm.header(name) << " try {\n  ARTS_TIME_REPORT\n\n";
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();

@@ -3,6 +3,12 @@ add_library(test_utils STATIC
 )
 target_link_libraries(test_utils matpack)
 
+# Error reporting must retain distinct call sites across translation units.
+add_executable(test_source_location test_source_location.cc test_source_location_other.cc)
+target_link_libraries(test_source_location PRIVATE util)
+add_dependencies(check-deps test_source_location)
+add_test(NAME "cpp.fast.source_location" COMMAND test_source_location)
+
 # ########## testcases ###############
 add_executable(test_binaryio test_binaryio.cc)
 
@@ -20,6 +26,39 @@ add_executable(test_integration
   test_integration.cc)
 
 target_link_libraries(test_integration PUBLIC artstime matpack)
+
+# Deterministic workspace-interface OEM regressions, independent of Matlab.
+if(OEM_SUPPORT)
+  add_executable(test_oem_methods test_oem_methods.cc)
+  target_link_libraries(test_oem_methods PRIVATE artsworkspace)
+  add_dependencies(check-deps test_oem_methods)
+  foreach(method li li_m li_cg li_cg_m gn gn_m gn_cg gn_cg_m lm ml lm_cg ml_cg settings validation termination outcomes reuse)
+    add_test(NAME "cpp.fast.oem.${method}" COMMAND test_oem_methods "${method}")
+    set_tests_properties("cpp.fast.oem.${method}" PROPERTIES TIMEOUT 30)
+  endforeach()
+endif()
+
+# Covariance storage and numerical checks also apply without OEM support.
+add_executable(test_covariance_validation test_covariance_validation.cc)
+target_link_libraries(test_covariance_validation PRIVATE artsworkspace)
+add_dependencies(check-deps test_covariance_validation)
+foreach(case structural numerical precision workspace)
+  add_test(NAME "cpp.fast.covariance.${case}" COMMAND test_covariance_validation "${case}")
+  set_tests_properties("cpp.fast.covariance.${case}" PROPERTIES TIMEOUT 30)
+endforeach()
+
+add_executable(test_workspace_variant test_workspace_variant.cc)
+target_link_libraries(test_workspace_variant PRIVATE artsworkspace)
+add_dependencies(check-deps test_workspace_variant)
+add_test(NAME "cpp.fast.workspace.variant" COMMAND test_workspace_variant)
+set_tests_properties("cpp.fast.workspace.variant" PROPERTIES TIMEOUT 30)
+
+# Generated operator adapters must transfer their owning return values.
+add_executable(test_agenda_operator test_agenda_operator.cc)
+target_link_libraries(test_agenda_operator PRIVATE artsworkspace)
+add_dependencies(check-deps test_agenda_operator)
+add_test(NAME "cpp.fast.agenda.operator" COMMAND test_agenda_operator)
+set_tests_properties("cpp.fast.agenda.operator" PROPERTIES TIMEOUT 30)
 
 # ########## next testcase ###############
 set(MATLABDIR OFF CACHE PATH

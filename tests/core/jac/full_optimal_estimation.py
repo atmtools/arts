@@ -65,9 +65,9 @@ ws.measurement_sensorSimple(pos=pos, los=los)
 
 # %% Jacobian
 
-ws.RetrievalInit()
-ws.RetrievalAddSpeciesVMR(species="O2", matrix=np.diag(np.ones((3)) * 5))
-ws.RetrievalFinalizeDiagonal()
+ws.oemInit()
+ws.oemAddSpeciesVMR(species="O2", matrix=np.diag(np.ones((3)) * 5))
+ws.jac_targetsFinalize()
 
 # %% Core calculations
 
@@ -75,28 +75,31 @@ for i in range(LIMIT):
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data = grid
     ws.measurement_vecFromSensor()
 
-    ws.measurement_vec_fit = []
-    ws.model_state_vec = []
-    ws.measurement_jac = [[]]
+    ws.oem.uncheck()
+    ws.oem.model_state_vec = []
 
     ws.atm_field[pyarts.arts.SpeciesEnum.O2].data += 0.1
-    ws.model_state_vec_aprioriFromData()
 
-    ws.measurement_vec_error_covmatConstant(value=noise**2)
     ws.measurement_vec += np.random.normal(0, noise, NFREQ)
 
-    ws.OEM(method="gn")
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-    if np.allclose(ws.model_state_vec / 0.2 - 1, 0, atol=ATOL):
+    ws.oemCalc(settings="gn")
+
+    if np.allclose(ws.oem.model_state_vec / 0.2 - 1, 0, atol=ATOL):
         break
-    print("WARNING: needed repeat run:", ws.model_state_vec)
+    print("WARNING: needed repeat run:", ws.oem.model_state_vec)
 
 if PLOT:
     f = (ws.freq_grid - line_f0) / 1e6
-    plt.plot(f, ws.measurement_vec)
-    plt.plot(f, ws.measurement_vec_fit)
+    plt.plot(f, ws.oem.measurement_vec)
+    plt.plot(f, ws.oem.measurement_vec_fit)
     plt.show()
 
 assert np.allclose(
-    ws.model_state_vec / 0.2 - 1, 0, atol=ATOL
-), f"This should all be {ws.model_state_vec / 0.2} within {round(ATOL*100, 1)}% of 1"
+    ws.oem.model_state_vec / 0.2 - 1, 0, atol=ATOL
+), f"This should all be {ws.oem.model_state_vec / 0.2} within {round(ATOL*100, 1)}% of 1"

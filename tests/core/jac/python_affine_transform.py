@@ -58,7 +58,8 @@ assert np.allclose(ws.model_state_vec, expected_model_state), (
 # Transformed model state -> native data.
 new_model_state = np.array([3.0, -2.0])
 ws.model_state_vec = new_model_state
-ws.atm_fieldFromModelState()
+# The full state mapping is explicit; Jacobian targets independently select derivatives.
+ws.atm_fieldFromModelState(model_state_targets=ws.jac_targets)
 expected_native_state = A_inv @ new_model_state + b
 assert np.allclose(np.asarray(ws.atm_field[pyarts.arts.AtmKey.t].data).flat, expected_native_state)
 

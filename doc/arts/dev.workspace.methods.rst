@@ -125,12 +125,12 @@ before doing so.  Adding a method to this list may also require changing the
 actual signature (which is why the method is generated, so that a change in
 the required actual signature is immediately made apparent).
 
-The methods that begin with ``RetrievalAdd...`` are partly generated.
+The methods that begin with ``oemAdd...`` are partly generated.
 These methods all require a corresponding ``jac_targetsAdd...`` method
 that fills in the ``jac_targets`` workspace variable.  To keep that
-part of the signature consistent, the additional ``RetrievalAdd...`` information
+part of the signature consistent, the additional ``oemAdd...`` information
 is simply appended to the ``in``, ``out``, and ``gin``-lists of the
-corresponding ``jac_targetsAdd...`` method using the local ``jac2ret`` lambda.
+corresponding ``jac_targetsAdd...`` method using the local ``jac2oem`` lambda.
 
 Generated files
 ===============
@@ -232,7 +232,7 @@ Since :attr:`~pyarts3.workspace.Workspace.ray_path` is in ``out`` but not in ``i
 it is expected that the method overwrite any existing value of :attr:`~pyarts3.workspace.Workspace.ray_path`.
 
 The arguments :attr:`~pyarts3.workspace.Workspace.atm_field`, :attr:`~pyarts3.workspace.Workspace.surf_field`,
-:attr:`~pyarts3.workspace.Workspace.latitude`, and :attr:`~pyarts3.workspace.Workspace.longitude`
+:attr:`~pyarts3.workspace.Workspace.lat`, and :attr:`~pyarts3.workspace.Workspace.lon`
 are defined in ``in`` and are passed to the method as immutable references to the respective
 workspace variables.
 
@@ -312,7 +312,7 @@ The arguments
 :attr:`~pyarts3.workspace.Workspace.freq_grid`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.select_species`,
-:attr:`~pyarts3.workspace.Workspace.absorption_bands`,
+:attr:`~pyarts3.workspace.Workspace.abs_bands`,
 :attr:`~pyarts3.workspace.Workspace.abs_ecs_data`,
 :attr:`~pyarts3.workspace.Workspace.atm_point`, and
 :attr:`~pyarts3.workspace.Workspace.ray_point` are just defined in ``in`` and are passed to the method
@@ -352,7 +352,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
 
   User choices of *spectral_rad_unit* does not adversely affect this method
   unless the *measurement_vec* or *measurement_jac* are further modified
-  before consumption by, e.g., *OEM*
+  before consumption by, e.g., *oemCalc*
   )--",
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vec", "measurement_jac"},
@@ -397,7 +397,7 @@ The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surf_field`,
-:attr:`~pyarts3.workspace.Workspace.spectral_rad_unit`, and
+:attr:`~pyarts3.workspace.Workspace.spectral_rad_transform_operator`, and
 :attr:`~pyarts3.workspace.Workspace.spectral_rad_observer_agenda`
 are defined in ``in`` and are passed to the method
 as immutable references to the respective workspace variables.
@@ -437,3 +437,124 @@ it will not be passed to the user.
 
 The call order and documentation is available here
 see :meth:`~pyarts3.workspace.Workspace.atm_fieldRead` 
+
+Keeping key alternatives consistent
+-----------------------------------
+
+Keep the sorted type list and Python conversion priority together in a helper
+such as ``AtmKeyValStruct`` in ``src/workspace_methods.cpp``::
+
+    struct AtmKeyValStruct {
+      const char* str = "AtmKey,QuantumLevelIdentifier,ScatteringSpeciesProperty,SpeciesEnum,SpeciesIsotope";
+      ArrayOfIndex ord{0, 3, 4, 1, 2};
+    };
+
+Use both members in the method metadata::
+
+    .gin_type = {AtmKeyValStruct{}.str, AtmKeyValStruct{}.str, "Numeric"},
+    .python_generic_sorting = {AtmKeyValStruct{}.ord, AtmKeyValStruct{}.ord, {}},
+
+The C++ implementation lists the same alternatives in workspace-group order::
+
+    using GenericAtmKey = Generic<const AtmKey, const QuantumLevelIdentifier,
+                                  const ScatteringSpeciesProperty,
+                                  const SpeciesEnum, const SpeciesIsotope>;
+
+``str`` contains the same alternative set as ``AtmKeyVal``, but in sorted
+workspace-group order. ``ord`` indexes that sorted list to recover the original
+``AtmKeyVal`` conversion priority. The value variant itself retains its order.
+This helper centralizes both declarations; neither is derived automatically
+from the variant. When adding a key, update the sorted string, permutation,
+and affected C++ Generic signatures together. When changing only conversion
+priority, update the permutation without reordering the Generic alternatives.
+Validation checks registration, sortedness, and the permutation, but cannot
+verify that the intended priority matches the value variant.
+
+Use the full helper only for methods that support all its alternatives.
+In particular, ``jac_targetsAddAtmosphere`` and its retrieval wrapper now
+also accept ``ScatteringSpeciesProperty``. A method supporting a subset needs
+its own matching list and permutation.
+
+Future methods accepting both atmospheric and surface keys should declare a
+combined Generic alias with each alternative listed once, sorted by
+``WorkspaceGroupInfo<T>::index``. A corresponding metadata helper must
+produce the same set of alternatives. Both correlation arguments can then
+use this combined key set, allowing either atmospheric/surface ordering.
+Accepting those types only establishes the interface; cross-domain
+covariance mapping and its validation still need implementation.
+
+Python generic conversion priority
+----------------------------------
+
+Use ``python_generic_sorting`` (``ArrayOfArrayOfIndex``) to override implicit
+Python conversion priority for a particular method. An empty outer array
+uses the default order. Otherwise provide one entry per ``gin``; empty inner
+entries retain the default. Nonempty entries are permutations of zero-based
+positions in the sorted ``gin_type`` alternatives::
+
+    .gin_type = {AtmKeyValStruct{}.str, "Index"},
+    .python_generic_sorting = {AtmKeyValStruct{}.ord, {}},
+
+This tries atmospheric keys in ``AtmKeyVal`` order, so ``"H2O"`` reaches
+``SpeciesEnum`` before broader key conversions. C++ Generic order is unchanged;
+explicitly typed Python objects retain their type. Metadata validation rejects
+incomplete permutations, duplicate or out-of-range positions, and overrides
+for ``Any``, nongeneric inputs, or inputs also used as generic outputs.
+The generator emits this priority in the static index array, with no runtime
+sorting. When extending or reordering a method's inputs, keep this array
+aligned with ``gin``.
+
+Troubleshooting Generic signature and linker errors
+---------------------------------------------------
+
+An ``undefined reference`` or ``undefined symbol`` for a workspace method
+containing ``Generic<...>`` can mean that its implementation does not match
+the generated declaration. C++ treats the mismatching definition as another
+overload, so it may compile successfully while leaving the generated method
+undefined.
+
+Generic alternatives must be unique workspace groups in increasing
+``WorkspaceGroupInfo<T>::index`` order, with uniform pointee constness.
+These requirements are checked at compile time. For example,
+``Generic<Vector, Numeric>`` is rejected; use ``Generic<Numeric, Vector>``.
+
+Metadata validation reports the method and ``gin_type``/``gout_type`` slot
+for invalid groups or unordered alternatives. Fix the declaration or shared
+key-list helper directly. New types need registration in
+``src/workspace_groups.cpp``: arrays need their own ``ArrayOf...`` entry
+(see ``add_arrays_of``), and arts-options enums need ``add_select_options``
+registration. A type registered only in ``workspace_group_friends.cpp`` is
+not a workspace group and cannot be a Generic alternative. Regenerate the
+workspace code after registration.
+
+When this happens:
+
+* Find the method declaration in ``build/src/auto_wsm.h`` (adjust the build
+  directory if necessary) and compare it with the definition in ``src/m_*.cc``.
+* Compare the exact alternative lists and their order with ``gin_type`` and
+  ``gout_type`` in the method metadata. Check for missing or extra types,
+  pointee constness, and value versus reference parameters as well.
+  Top-level ``const`` on a by-value parameter does not change its signature;
+  ``const`` on a Generic alternative does.
+* Correct the metadata or the implementation, then rebuild to regenerate the
+  declaration. Do not edit ``auto_wsm.h`` directly. If the signatures already
+  match, check that the source file is included in the build and that the
+  definition has the expected namespace and external linkage.
+
+For an earlier compiler diagnostic, enable ``-Wmissing-prototypes`` with
+Clang/AppleClang, or ``-Wmissing-declarations`` with GCC. These flags warn
+when an externally visible function definition has no matching prior
+declaration. Implementation files must include ``workspace.h`` (or the
+generated declaration header) for this check to work. With Clang, a Generic
+order mismatch then produces a warning at the definition such as::
+
+    warning: no previous prototype for function 'MyMethod' [-Wmissing-prototypes]
+
+Use ``-Werror=missing-prototypes`` with Clang or
+``-Werror=missing-declarations`` with GCC to make this a compilation error.
+The flags can be added to a single compiler invocation when investigating
+an error, or to a developer build's C++ flags. They also diagnose unrelated
+externally visible helpers without declarations; give those helpers a
+proper declaration or internal linkage as appropriate. Do not follow the
+compiler's suggestion to make a workspace method ``static``: the generated
+adapter must be able to link to it.

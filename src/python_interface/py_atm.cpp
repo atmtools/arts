@@ -283,8 +283,8 @@ The number density is computed as:
 .. math::
   n_d = \frac{xp}{kT}
 
-where :math:`x` is the VMR of the species if ``spec`` is a :class:`SpeciesEnum` (in code: ``self[spec]``) or the VMR of the
-species isotopolgue if ``spec`` is a :class:`SpeciesIsotope` (in code: ``self[spec] * self[spec.spec]``).  :math:`p` and :math:`T` are the
+where :math:`x` is the VMR of the species if ``spec`` is a :class:`~pyarts3.arts.SpeciesEnum` (in code: ``self[spec]``) or the VMR of the
+species isotopolgue if ``spec`` is a :class:`~pyarts3.arts.SpeciesIsotope` (in code: ``self[spec] * self[spec.spec]``).  :math:`p` and :math:`T` are the
 pressure [Pa] and temperature [K] of the atmospheric point, respectively.  :math:`k` is the
 Boltzmann constant.
 
@@ -1062,7 +1062,7 @@ Parameters
 
 Return
 ------
-  atm_profile : AtmProfile
+  atm_profile : pyarts3.arts.ArrayOfAtmPoint
     The atmospheric profile created from the dictionary.
 )");
 

@@ -40,13 +40,15 @@ void py_lbl(py::module_& m) try {
 
   py::class_<lbl::line_key> line_key(lbl, "line_key");
   generic_interface(line_key);
-  line_key.def_rw("band", &lbl::line_key::band, "The band\n\n.. :class:`QuantumIdentifier`");
+  line_key.def_rw("band", &lbl::line_key::band, "The band\n\n.. :class:`~pyarts3.arts.QuantumIdentifier`");
   line_key.def_rw("line", &lbl::line_key::line, "The line\n\n.. :class:`int`");
   line_key.def_rw("spec", &lbl::line_key::spec, "The species\n\n.. :class:`int`");
-  line_key.def_rw("ls_var", &lbl::line_key::ls_var, "The line shape variable\n\n.. :class:`LineShapeModelVariable`");
   line_key.def_rw(
-      "ls_coeff", &lbl::line_key::ls_coeff, "The line shape coefficient\n\n.. :class:`LineShapeModelCoefficient`");
-  line_key.def_rw("var", &lbl::line_key::var, "The variable\n\n.. :class:`LineByLineVariable`");
+      "ls_var", &lbl::line_key::ls_var, "The line shape variable\n\n.. :class:`~pyarts3.arts.LineShapeModelVariable`");
+  line_key.def_rw("ls_coeff",
+                  &lbl::line_key::ls_coeff,
+                  "The line shape coefficient\n\n.. :class:`~pyarts3.arts.LineShapeModelCoefficient`");
+  line_key.def_rw("var", &lbl::line_key::var, "The variable\n\n.. :class:`~pyarts3.arts.LineByLineVariable`");
   line_key.doc() = "A key for a line";
 
   py::class_<lbl::temperature::data> tm(m, "TemperatureModel");
@@ -56,7 +58,7 @@ void py_lbl(py::module_& m) try {
           "type",
           &lbl::temperature::data::Type,
           [](lbl::temperature::data& self, LineShapeModelType x) { self = lbl::temperature::data{x, self.X()}; },
-          "The type of the model\n\n.. :class:`~pyarts3.arts.TemperatureModelType`")
+          "The type of the model\n\n.. :class:`~pyarts3.arts.LineShapeModelType`")
       .def_prop_rw(
           "data",
           [](lbl::temperature::data& self) { return self.X(); },
@@ -301,7 +303,7 @@ Numeric or array-like
 
   py::class_<lbl::line_shape::model> lsm(m, "LineShapeModel");
   generic_interface(lsm);
-  lsm.def_rw("T0", &lbl::line_shape::model::T0, "The reference temperature [K]\n\n.. :class:`Numeric`")
+  lsm.def_rw("T0", &lbl::line_shape::model::T0, "The reference temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("single_models",
               &lbl::line_shape::model::single_models,
               "The single models\n\n.. :class:`dict[SpeciesEnum, LineShapeSpeciesModel]`")
@@ -469,12 +471,12 @@ x : LineShapeModelVariable
           "gl",
           [](lbl::zeeman::model& z) { return z.gl(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gl(g); },
-          "The lower level statistical weight\n\n.. :class:`Numeric`")
+          "The lower level statistical weight\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_prop_rw(
           "gu",
           [](lbl::zeeman::model& z) { return z.gu(); },
           [](lbl::zeeman::model& z, Numeric g) { z.gu(g); },
-          "The upper level statistical weight\n\n.. :class:`Numeric`")
+          "The upper level statistical weight\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def(
           "strengths",
           [](const lbl::zeeman::model& mod, const QuantumState& qn) {
@@ -505,11 +507,11 @@ dict[str, list[float]]
 
   py::class_<lbl::line> al(m, "AbsorptionLine");
   generic_interface(al);
-  al.def_rw("a", &lbl::line::a, "The Einstein coefficient [1 / s]\n\n.. :class:`Numeric`")
-      .def_rw("f0", &lbl::line::f0, "The line center frequency [Hz]\n\n.. :class:`Numeric`")
-      .def_rw("e0", &lbl::line::e0, "The lower level energy [J]\n\n.. :class:`Numeric`")
-      .def_rw("gu", &lbl::line::gu, "The upper level statistical weight [-]\n\n.. :class:`Numeric`")
-      .def_rw("gl", &lbl::line::gl, "The lower level statistical weight [-]\n\n.. :class:`Numeric`")
+  al.def_rw("a", &lbl::line::a, "The Einstein coefficient [1 / s]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("f0", &lbl::line::f0, "The line center frequency [Hz]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("e0", &lbl::line::e0, "The lower level energy [J]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("gu", &lbl::line::gu, "The upper level statistical weight [-]\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("gl", &lbl::line::gl, "The lower level statistical weight [-]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("z", &lbl::line::z, "The Zeeman model\n\n.. :class:`~pyarts3.arts.ZeemanLineModel`")
       .def_rw("ls", &lbl::line::ls, "The line shape model\n\n.. :class:`~pyarts3.arts.LineShapeModel`")
       .def_rw("qn", &lbl::line::qn, "The local quantum numbers of this line\n\n.. :class:`~pyarts3.arts.QuantumState`")
@@ -554,7 +556,7 @@ Numeric
       .doc() = "A single absorption line";
 
   auto ll  = py::bind_vector<std::vector<lbl::line>, py::rv_policy::reference_internal>(m, "ArrayOfAbsorptionLine");
-  ll.doc() = "A list of :class:`AbsorptionLine`";
+  ll.doc() = "A list of :class:`~pyarts3.arts.AbsorptionLine`";
   vector_interface(ll);
   generic_interface(ll);
 
@@ -567,18 +569,20 @@ Numeric
   ab.def("__setitem__",
          [](py::object& x, const py::object& i, const py::object& v) { x.attr("lines").attr("__setitem__")(i, v); });
   ab.def("__len__", [](const AbsorptionBand& x) { return x.lines.size(); }, "Return the number of lines in the band");
-  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band\n\n.. :class:`ArrayOfAbsorptionLine`")
-      .def_rw("lineshape", &AbsorptionBand::lineshape, "The lineshape type\n\n.. :class:`LineByLineLineshape`")
+  ab.def_rw("lines", &AbsorptionBand::lines, "The lines in the band\n\n.. :class:`~pyarts3.arts.ArrayOfAbsorptionLine`")
+      .def_rw("lineshape",
+              &AbsorptionBand::lineshape,
+              "The lineshape type\n\n.. :class:`~pyarts3.arts.LineByLineLineshape`")
       .def_prop_rw(
           "cutoff",
           [](const AbsorptionBand& band) { return band.cutoff.type; },
           [](AbsorptionBand& band, LineByLineCutoffType x) { band.cutoff.type = x; },
-          "The cutoff type\n\n.. :class:`LineByLineCutoffType`")
+          "The cutoff type\n\n.. :class:`~pyarts3.arts.LineByLineCutoffType`")
       .def_prop_rw(
           "cutoff_value",
           [](const AbsorptionBand& band) { return band.cutoff.value; },
           [](AbsorptionBand& band, Numeric x) { band.cutoff.value = x; },
-          "The cutoff value [Hz]\n\n.. :class:`Numeric`")
+          "The cutoff value [Hz]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def(
           "keep_frequencies",
           [](AbsorptionBand& band, Vector2 freqs) {
@@ -688,7 +692,8 @@ other : AbsorptionBands
 
 Returns
 -------
-int : The number of removed variables
+count : int
+    The number of removed variables.
 )");
 
   aoab.def(
@@ -901,10 +906,11 @@ spectral_propmat : PropmatVector
 )--");
 
   py::class_<PartitionFunctionsData> partfun(m, "PartitionFunctionsData");
-  partfun.def_rw("data", &PartitionFunctionsData::data, "The partition function data\n\n.. :class:`Matrix`");
+  partfun.def_rw(
+      "data", &PartitionFunctionsData::data, "The partition function data\n\n.. :class:`~pyarts3.arts.Matrix`");
   partfun.def_rw("type",
                  &PartitionFunctionsData::type,
-                 "The type of partition function data\n\n.. :class:`PartitionFunctionType`");
+                 "The type of partition function data\n\n.. :class:`~pyarts3.arts.PartitionFunctionsType`");
   generic_interface(partfun);
   partfun.doc() = "Data for partition functions, used in the line-by-line model";
 } catch (std::exception& e) {

@@ -84,7 +84,7 @@ def plot(data: object,
 
     Parameters
     ----------
-    data : ARTS builtin group
+    data : object
         Any ARTS data type that has a corresponding plot module.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
@@ -95,9 +95,9 @@ def plot(data: object,
 
     Returns
     -------
-    fig :
+    fig : matplotlib.figure.Figure
         As input if input.  Otherwise the created Figure.
-    ax :
+    ax : matplotlib.axes.Axes
         As input if input.  Otherwise the created Axes.
 
     Raises
