@@ -1,3 +1,4 @@
+#include <auto_wsm.h>
 #include <enumsLineShapeModelVariable.h>
 #include <enumsSpeciesEnum.h>
 #include <hpy_arts.h>

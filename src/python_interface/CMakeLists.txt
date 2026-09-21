@@ -1,6 +1,6 @@
 # #######################################################################################
 if(NOT NUM_PYARTS_WSM)
-    set(NUM_PYARTS_WSM 10)
+    set(NUM_PYARTS_WSM 20)
 endif()
 
 message(STATUS "Using ${NUM_PYARTS_WSM} python interface automatic workspace method files (-DNUM_PYARTS_WSM=N to change)")
@@ -144,9 +144,25 @@ endif()
 # NOTE: Sort these by how long they take to compile, to help multicore compilation
 nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_ABI
     hpy_numpy_impl.cpp
+
+    # py_griddedfield.cpp, py_matpack.cpp and py_rtepack.cpp were previously
+    # single monolithic files (and the three slowest, most memory-hungry TUs
+    # in the whole build, since nanobind's binding machinery is instantiated
+    # independently per bound type). Each is now a small hub plus a few
+    # sibling files grouping independent types, so the work compiles in
+    # parallel with a much lower peak-memory ceiling per TU.
     py_griddedfield.cpp
+    py_griddedfield_named.cpp
+    py_griddedfield_stokvec.cpp
+    py_griddedfield_extra.cpp
     py_matpack.cpp
+    py_matpack_fixed.cpp
+    py_matpack_complex.cpp
     py_rtepack.cpp
+    py_rtepack_stokvec.cpp
+    py_rtepack_propmat.cpp
+    py_rtepack_muelmat.cpp
+    py_rtepack_specmat.cpp
 
     ${PYARTS_AUTO_FILES}
 

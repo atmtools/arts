@@ -20,6 +20,7 @@ void implement_convert_const_py_object() try {
 #include <nanobind/nanobind.h>
 
 #include "py_auto_options.h"
+#include "workspace_method_class.h"
 
 namespace Python {{
 bool convert_ref(Wsv& wsv, const py::object * const x) {{
@@ -394,7 +395,7 @@ void groupdocs(const std::string& fname) try {
 
   std::print(osh, R"(#pragma once
 
-#include <workspace.h>
+#include <auto_wsg.h>
 
 template <typename T>
 struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};

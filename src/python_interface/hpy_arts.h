@@ -1,5 +1,6 @@
 #pragma once
 
+#include <auto_wsg.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/operators.h>
 #include <nanobind/stl/complex.h>

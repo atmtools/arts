@@ -8,91 +8,16 @@
 #include "python_interface.h"
 
 namespace Python {
-template <typename Type, typename T> void common_math_interface(py::class_<T>& cls_) {
-  cls_.def(py::self + Type())
-      .def(py::self - Type())
-      .def(py::self * Type())
-      .def(py::self / Type())
-      .def(py::self += Type(), py::rv_policy::none)
-      .def(py::self -= Type(), py::rv_policy::none)
-      .def(py::self *= Type(), py::rv_policy::none)
-      .def(py::self /= Type(), py::rv_policy::none)
-      .def(py::self == Type())
-      .def(py::self != Type())
-      .def(py::self <= Type())
-      .def(py::self < Type())
-      .def(py::self >= Type())
-      .def(py::self > Type())
-      .def(Type() + py::self)
-      .def(Type() - py::self)
-      .def(Type() * py::self)
-      .def(Type() / py::self)
-      .def(Type() == py::self)
-      .def(Type() != py::self)
-      .def(Type() <= py::self)
-      .def(Type() < py::self)
-      .def(Type() >= py::self)
-      .def(Type() > py::self);
-}
-
-template <typename T> void common_self_math_interface(py::class_<T>& cls_) {
-  cls_.def(+py::self)
-      .def(-py::self)
-      .def(py::self + py::self)
-      .def(py::self - py::self)
-      .def(py::self * py::self)
-      .def(py::self / py::self)
-      .def(py::self += py::self, py::rv_policy::none)
-      .def(py::self -= py::self, py::rv_policy::none)
-      .def(py::self *= py::self, py::rv_policy::none)
-      .def(py::self /= py::self, py::rv_policy::none)
-      .def(py::self == py::self)
-      .def(py::self != py::self)
-      .def(py::self <= py::self)
-      .def(py::self < py::self)
-      .def(py::self >= py::self)
-      .def(py::self > py::self);
-}
+// Defined in py_matpack_fixed.cpp and py_matpack_complex.cpp respectively.
+// py_matpack.cpp used to bind all matpack types in one function; splitting
+// the independent groups into their own TUs cuts the compile time and peak
+// RAM of the single biggest offender without changing what gets bound (see
+// the same rationale in py_griddedfield.cpp).
+void py_matpack_fixed(py::module_& m);
+void py_matpack_complex(py::module_& m);
 
 void py_matpack(py::module_& m) try {
-  py::class_<Vector2>         cv2(m, "Vector2");
-  py::class_<Vector3>         cv3(m, "Vector3");
-  py::class_<Vector4>         cv4(m, "Vector4");
-  py::class_<Vector7>         cv7(m, "Vector7");
-  py::class_<Matrix33>        cm33(m, "Matrix33");
-  py::class_<Matrix44>        cm44(m, "Matrix44");
-  py::class_<ComplexMatrix44> ccm44(m, "ComplexMatrix44");
-  cv2.doc()   = "Fixed size vector of shape [2]";
-  cv3.doc()   = "Fixed size vector of shape [3]";
-  cv4.doc()   = "Fixed size vector of shape [4]";
-  cv7.doc()   = "Fixed size vector of shape [7]";
-  cm33.doc()  = "Fixed size matrix of shape [3, 3]";
-  cm44.doc()  = "Fixed size matrix of shape [4, 4]";
-  ccm44.doc() = "Fixed size matrix of shape [4, 4]";
-  matpack_constant_interface(cv2);
-  matpack_constant_interface(cv3);
-  matpack_constant_interface(cv4);
-  matpack_constant_interface(cv7);
-  matpack_constant_interface(cm33);
-  matpack_constant_interface(cm44);
-  matpack_constant_interface(ccm44);
-  generic_interface(cv2);
-  generic_interface(cv3);
-  generic_interface(cv4);
-  generic_interface(cv7);
-  generic_interface(cm33);
-  generic_interface(cm44);
-  generic_interface(ccm44);
-
-  py::class_<StridedRange>(m, "StridedRange")
-      .def(py::init<Index, Index, Index>(), "offset"_a, "extent"_a, "stride"_a = 1, "Valued initialization")
-      .doc() = "A strided range, used to select parts of a matpack type";
-
-  py::class_<Range>(m, "Range")
-      .def(py::init<Index, Index>(), "offset"_a, "extent"_a, "Valued initialization")
-      .def_ro("offset", &Range::offset, "The first element index.\n\n.. :class:`int`")
-      .def_ro("extent", &Range::nelem, "The number of elements.\n\n.. :class:`int`")
-      .doc() = "A range, used to select parts of a matpack type";
+  py_matpack_fixed(m);
 
   py::class_<IndexVector> iv1(m, "IndexVector");
   iv1.doc() = "A vector of indices";
@@ -162,38 +87,7 @@ void py_matpack(py::module_& m) try {
   generic_interface(a13);
   vector_interface(a13);
 
-  py::class_<Rational> rat(m, "Rational");
-  common_math_interface<Index>(rat);
-  common_self_math_interface(rat);
-  rat.def(py::init<Index, Index>(), "n"_a = 0, "d"_a = 1)
-      .def(py::init_implicit<const std::string_view>())
-      .def("__float__", [](const Rational& x) { return Numeric(x); })
-      .def("__int__", [](const Rational& x) { return Index(x); })
-      .def_rw("n", &Rational::numer, "Numerator\n\n.. :class:`~pyarts3.arts.Index`")
-      .def_rw("d", &Rational::denom, "Denominator\n\n.. :class:`~pyarts3.arts.Index`");
-  generic_interface(rat);
-  py::implicitly_convertible<Index, Rational>();
-
-  py::class_<ComplexVector>  comv1(m, "ComplexVector");
-  py::class_<ComplexMatrix>  comv2(m, "ComplexMatrix");
-  py::class_<ComplexTensor3> comv3(m, "ComplexTensor3");
-  py::class_<ComplexTensor4> comv4(m, "ComplexTensor4");
-  py::class_<ComplexTensor5> comv5(m, "ComplexTensor5");
-  comv1.doc() = "A complex vector";
-  comv2.doc() = "A complex matrix";
-  comv3.doc() = "A complex tensor3";
-  comv4.doc() = "A complex tensor4";
-  comv5.doc() = "A complex tensor5";
-  matpack_interface(comv1);
-  matpack_interface(comv2);
-  matpack_interface(comv3);
-  matpack_interface(comv4);
-  matpack_interface(comv5);
-  generic_interface(comv1);
-  generic_interface(comv2);
-  generic_interface(comv3);
-  generic_interface(comv4);
-  generic_interface(comv5);
+  py_matpack_complex(m);
 
   py::class_<AscendingGrid> g1(m, "AscendingGrid");
   matpack_grid_interface(g1);

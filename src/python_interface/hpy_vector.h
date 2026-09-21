@@ -1,12 +1,12 @@
 #pragma once
 
+#include <auto_wsg.h>
 #include <lagrange_interp.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/tuple.h>
 #include <nanobind/stl/vector.h>
-#include <workspace.h>
 
 #include <iterator>
 

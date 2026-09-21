@@ -10,7 +10,6 @@ using Output = Generic<Numeric, Vector>;
 static_assert(std::variant_size_v<Input::Base> == 2);
 static_assert(std::same_as<std::variant_alternative_t<0, Input::Base>, std::shared_ptr<const Numeric>>);
 static_assert(std::same_as<std::variant_alternative_t<0, Output::Base>, std::shared_ptr<Numeric>>);
-static_assert(std::variant_size_v<AnyInput::Base> > 100);
 static_assert(std::is_convertible_v<const Wsv&, Input>);
 static_assert(std::is_convertible_v<const Wsv&, Output>);
 template <typename... Ts>
@@ -22,7 +21,6 @@ static_assert(not DeducibleGeneric<std::variant<int>>);
 static_assert(not ValidGeneric<int>);
 static_assert(WorkspaceGroup<Numeric>);
 static_assert(not WorkspaceGroup<const Numeric>);
-static_assert(std::same_as<AnyOutput::Const, AnyInput>);
 static_assert(ValidGeneric<Numeric, Vector>);
 static_assert(ValidGeneric<const Numeric, const Vector>);
 static_assert(std::constructible_from<Input, Numeric&>);
@@ -85,9 +83,6 @@ int main() try {
     Output output        = owner;
     *std::get<0>(output) = 7;
     if (*pointer != 7) throw std::runtime_error("Output lost workspace identity");
-    AnyInput any = owner;
-    if (std::get<std::shared_ptr<const Numeric>>(any).get() != pointer.get())
-      throw std::runtime_error("Any input copied its value");
   }
   std::weak_ptr<Numeric> lifetime = pointer;
   pointer.reset();

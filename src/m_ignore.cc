@@ -12,7 +12,7 @@
 #include <workspace.h>
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Ignore(const AnyInput) { ARTS_TIME_REPORT }
+void Ignore(const Wsv) { ARTS_TIME_REPORT }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void Touch(AnyOutput) { ARTS_TIME_REPORT }
+void Touch(Wsv) { ARTS_TIME_REPORT }
