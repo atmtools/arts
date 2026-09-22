@@ -1,3 +1,4 @@
+#include <auto_wsm.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/variant.h>

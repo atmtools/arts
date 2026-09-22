@@ -6,7 +6,7 @@
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXML(  // WS Generic Output:
-    AnyOutput v,
+    Wsv v,
     // WS Generic Input:
     const String& f) {
   ARTS_TIME_REPORT
@@ -16,12 +16,12 @@ void ReadXML(  // WS Generic Output:
   // Create default filename if empty
   filename_xml(filename);
 
-  std::visit([&](const auto& ptr) { xml_read_from_file(filename, *ptr); }, v);
+  v.read_from_file(filename);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void ReadXMLIndexed(  // WS Generic Output:
-    AnyOutput v,
+    Wsv v,
     // WS Input:
     const Index& file_index,
     // WS Generic Input:
@@ -34,14 +34,14 @@ void ReadXMLIndexed(  // WS Generic Output:
   // Create default filename if empty
   filename_xml_with_index(filename, file_index, digits);
 
-  std::visit([&](const auto& ptr) { xml_read_from_file(filename, *ptr); }, v);
+  v.read_from_file(filename);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void WriteXML(  //WS Input:
     const String& file_format,
     // WS Generic Input:
-    const AnyInput v,
+    const Wsv v,
     const String&  f,
     const Index&   no_clobber)
 
@@ -70,7 +70,9 @@ void WriteXML(  //WS Input:
 #pragma omp critical(WriteXML_critical_region)
   {
     try {
-      std::visit([&](const auto& ptr) { xml_write_to_file(filename, *ptr, ftype, no_clobber); }, v);
+      // Wsv::write_to_file takes the inverse flag: clobbering is what
+      // no_clobber turns off.
+      v.write_to_file(filename, ftype, no_clobber == 0);
     } catch (const std::exception& e) { errmsg = e.what(); }
   }
 
@@ -82,7 +84,7 @@ void WriteXMLIndexed(  //WS Input:
     const String& file_format,
     const Index&  file_index,
     // WS Generic Input:
-    const AnyInput v,
+    const Wsv v,
     const String&  f,
     const Index&   digits) {
   ARTS_TIME_REPORT

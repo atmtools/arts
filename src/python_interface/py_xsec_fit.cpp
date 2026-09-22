@@ -1,4 +1,5 @@
 #include <artstime.h>
+#include <auto_wsm.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>

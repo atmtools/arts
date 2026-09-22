@@ -1,6 +1,7 @@
 #pragma once
 
-#include <workspace.h>
+#include <auto_wsg.h>
+#include <workspace_class.h>
 
 uint32_t hlist_num_cols(const std::vector<String>& v, const std::vector<String>& v2 = {});
 

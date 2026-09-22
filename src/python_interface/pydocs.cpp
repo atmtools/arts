@@ -6,6 +6,7 @@
 #include "auto_wsv.h"
 #include "compare.h"
 #include "debug.h"
+#include "workspace_methods.h"
 
 namespace Python {
 String group_generics_inout(const String& group) try {

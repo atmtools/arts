@@ -1,4 +1,5 @@
 
+#include <auto_wsm.h>
 #include <debug.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>

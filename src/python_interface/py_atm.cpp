@@ -1,5 +1,6 @@
 #include <atm.h>
 #include <atm_path.h>
+#include <auto_wsm.h>
 #include <debug.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_vector.h>

@@ -91,7 +91,7 @@ target_link_libraries(make_auto_wsv PRIVATE workspace_internals)
 
 # ####
 if(NOT NUM_ARTS_WSM)
-  set(NUM_ARTS_WSM 10)
+  set(NUM_ARTS_WSM 20)
 endif()
 
 message(STATUS "Using ${NUM_ARTS_WSM} automatic workspace method files (--DNUM_ARTS_WSM=N to change)")

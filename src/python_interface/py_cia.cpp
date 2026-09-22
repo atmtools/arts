@@ -1,3 +1,4 @@
+#include <auto_wsm.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/bind_map.h>
 #include <python_interface.h>

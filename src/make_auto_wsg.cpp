@@ -120,10 +120,6 @@ template <> struct WorkspaceGroupInfo<{0}> {{
   }
 
   os << "\n#include <workspace_variant.h>\n";
-  os << "\nusing AnyOutput = Generic<";
-  std::string_view space{""};
-  for (const auto& group : groups()) { os << std::exchange(space, ", "sv) << group; }
-  os << ">;\nusing AnyInput = AnyOutput::Const;\n";
 
   os << "\n[[nodiscard]] bool valid_wsg(std::string_view);\n";
 }

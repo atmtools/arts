@@ -10,8 +10,13 @@
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/unordered_map.h>
 #include <nanobind/stl/vector.h>
+#include <auto_wsv.h>
 #include <parameters.h>
+#include <workspace_agendas.h>
 #include <workspace_dimensions.h>
+#include <workspace_method_class.h>
+#include <workspace_methods.h>
+#include <workspace_groups.h>
 #include <workspace_variable_shortnames.h>
 
 #include "hpy_arts.h"

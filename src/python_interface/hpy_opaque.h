@@ -1,7 +1,8 @@
 #pragma once
 
+#include <auto_wsg.h>
 #include <nanobind/nanobind.h>
-#include <workspace.h>
+#include <workspace_class.h>
 
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::grid_identity>>);
 NB_MAKE_OPAQUE(Array<lagrange_interp::lag_t<-1, lagrange_interp::loncross>>);

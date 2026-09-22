@@ -56,8 +56,13 @@ std::string WorkspaceMethodInternalRecord::docstring() const try {
 }
 
 std::string WorkspaceMethodInternalRecord::generic_type(const std::string& type, bool output) {
-  const std::string kind = output ? "Output" : "Input";
-  if (type == "Any") return "Any" + kind;
+  // A method that accepts every workspace group takes the type-erased workspace
+  // value itself.  A variant over all groups would instead have to be built in
+  // every translation unit that calls such a method, and instantiating it costs
+  // more compile time there than the rest of the workspace put together.  The
+  // methods that take one only dispatch on the group at runtime anyway, which is
+  // what Wsv already does through its group index.
+  if (type == "Any") return "Wsv";
   if (type.find(',') == type.npos) return type;
   std::string result = "Generic<";
   for (auto name : split(type, ",")) {

@@ -4,7 +4,17 @@
 #include <nanobind/nanobind.h>
 #include <py_auto_options.h>
 #include <py_auto_wsg.h>
-#include <workspace.h>
+
+// NOTE: this header is included by nearly every file in python_interface/,
+// so it deliberately does NOT pull in the full <workspace.h> (which drags in
+// the ~9700-line generated auto_wsm.h method declarations and the ~1000-line
+// auto_wsa.h agenda declarations neither of which anything below needs).
+// Only the Workspace class itself and the WorkspaceGroup type universe
+// (already available via py_auto_wsg.h -> auto_wsg.h) are required here.
+// Files that actually bind workspace methods/agendas (py_workspace.cpp,
+// py_agenda.cpp, py_module.cpp, and the generated xpy_auto_wsm_*.cpp/
+// xpy_auto_wsa.cpp shards) include <workspace.h> themselves.
+#include <workspace_class.h>
 
 #include <memory>
 #include <variant>
