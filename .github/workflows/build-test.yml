@@ -12,7 +12,7 @@ jobs:
       matrix:
         include:
           - name: linux-docs
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: default-gcc-conda
             check: "no"
             doc: "yes"
@@ -21,7 +21,7 @@ jobs:
             jcheck: 2
 
           - name: linux-default-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: default-gcc-conda
             check: "yes"
             doc: "no"
@@ -30,7 +30,7 @@ jobs:
             jcheck: 2
 
           - name: linux-debug-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: debug-gcc-conda
             check: "yes"
             doc: "no"
@@ -39,7 +39,7 @@ jobs:
             jcheck: 2
 
           - name: linux-nofortran-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: nofortran-gcc-conda
             check: "yes"
             doc: "no"
@@ -48,7 +48,7 @@ jobs:
             jcheck: 2
 
           - name: linux-lgpl-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: lgpl-gcc-conda
             check: "yes"
             doc: "no"
