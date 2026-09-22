@@ -11,8 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Keep docs on 24.04: TeX Live 2025 on 26.04 ships minted.sty 3.7.0,
+          # whose latexminted 0.6.0 helper is incompatible with Python 3.14.
           - name: linux-docs
-            os: ubuntu-26.04
+            os: ubuntu-24.04
             preset: default-gcc-conda
             check: "no"
             doc: "yes"
