@@ -61,7 +61,9 @@
 %--- Some fixes
 
 %- To avoid hyperref error:
-\newcommand{\theHalgorithm}{\theHchapter.\arabic{algorithm}}
+%- Since LaTeX2e 2024-11-01 the kernel already provides \theHalgorithm
+%- (together with the counter), so don't redefine it unconditionally.
+\providecommand{\theHalgorithm}{\theHchapter.\arabic{algorithm}}
 
 %- Width of the caption in longtable:
 \setlength{\LTcapwidth}{0.9\textwidth} 

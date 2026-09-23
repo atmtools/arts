@@ -11,6 +11,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Keep docs on 24.04: TeX Live 2025 on 26.04 ships minted.sty 3.7.0,
+          # whose latexminted 0.6.0 helper is incompatible with Python 3.14.
           - name: linux-docs
             os: ubuntu-24.04
             preset: default-gcc-conda
@@ -21,7 +23,7 @@ jobs:
             jcheck: 2
 
           - name: linux-default-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: default-gcc-conda
             check: "yes"
             doc: "no"
@@ -30,7 +32,7 @@ jobs:
             jcheck: 2
 
           - name: linux-debug-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: debug-gcc-conda
             check: "yes"
             doc: "no"
@@ -39,7 +41,7 @@ jobs:
             jcheck: 2
 
           - name: linux-nofortran-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: nofortran-gcc-conda
             check: "yes"
             doc: "no"
@@ -48,7 +50,7 @@ jobs:
             jcheck: 2
 
           - name: linux-lgpl-gcc
-            os: ubuntu-24.04
+            os: ubuntu-26.04
             preset: lgpl-gcc-conda
             check: "yes"
             doc: "no"
@@ -145,14 +147,14 @@ jobs:
         run: |
           make -C build/src -j${{ matrix.jbuild }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-doxygen
           path: |
             doxygen.tar.gz
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: matrix.doc == 'yes'
         with:
           name: docs-sphinx
