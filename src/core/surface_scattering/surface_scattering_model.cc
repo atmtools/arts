@@ -127,7 +127,6 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
   // Now we need the weighting according to weighting_option
   Vector weights;
 
-  std::cout << "weighting option: " << (weighting_option == Weighting::Maximum ? "Maximum" : "Average") << "\n";
   if (weighting_option == Weighting::Maximum) {
     weights = maximum_weighting(surf_point);
   } else if (weighting_option == Weighting::Average) {
@@ -152,9 +151,6 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     i++;
   }
   return bsp;
-
-  std::cerr << " after sum:\n";
-
 }
 
 surface_scattering::SurfaceScatteringModelProperties&

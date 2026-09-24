@@ -274,7 +274,7 @@ void spectral_radSurfaceScatteringFlatDiffuse(
 
   // get the incoming radiation
   StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
-  StokvecTensor4 spectral_rad_incoming_jac(zen_grid.size(), az_grid.size(), freq_grid.size(), jac_targets.x_size());
+  StokvecTensor4 spectral_rad_incoming_jac(zen_grid.size(), az_grid.size(), jac_targets.x_size(), freq_grid.size());
   for (Size j = 0; j < zen_grid.size(); j++) {
     for (Size k = 0; k < az_grid.size(); k++) {
       const Vector2 los_incoming = {zen_grid[j], az_grid[k]};
@@ -321,7 +321,7 @@ void spectral_radSurfaceScatteringFlatDiffuse(
       for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
         for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
           const Muelmat R  = surface_props.brdf_matrix[i_f, i_za, i_aa, 0, 0];
-          spectral_rad_scattered_jac[i_jac, i_f] += R * spectral_rad_incoming_jac[i_za, i_aa, i_f, i_jac] *
+          spectral_rad_scattered_jac[i_jac, i_f] += R * spectral_rad_incoming_jac[i_za, i_aa, i_jac, i_f] *
                            zen_grid_weights[i_za] * az_grid_weights[i_aa];
         }
       }
