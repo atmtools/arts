@@ -2361,6 +2361,38 @@ The surface masks lives under the *SurfacePropertyTag* keys, which must be the s
       .pass_workspace = true,
   };
 
+  wsm_data["spectral_radSurfaceScatteringSpecular"] = {
+      .desc =
+          R"--(Set surface spectral radiance to use sub-surface emission and specular surface scattering.
+
+The input path point must be close to the surface.
+
+The direction of the incoming radiation is the mirror reflection of the
+outgoing (ray) direction about the local surface normal, so only a single
+incoming direction is traced. The specular BRDF and emissivity are evaluated
+at these exact directions; no angular quadrature is required.
+
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks live under the *SurfacePropertyTag* keys, which must be the
+same as in *surface_models*.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .pass_workspace = true,
+  };
+
   wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
       .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
 

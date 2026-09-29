@@ -64,6 +64,11 @@ SurfaceScatteringModelProperties lambertian_properties(
   // Tensor3 emissivity(nf, nzs, 4, 0.0);
   MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
+  // Lambertian scattering has no specular component; keep the tensors sized
+  // (but zero) so consumers can index them uniformly
+  MuelmatTensor5 brdf_specular(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
+  MuelmatTensor3 emissivity_specular(nf, nzs, nas, rtepack::muelmat{0.0});
+
   Muelmat isotropic_brdf;
   Muelmat isotropic_emissivity;
 
@@ -86,6 +91,8 @@ SurfaceScatteringModelProperties lambertian_properties(
   return SurfaceScatteringModelProperties{
       .brdf_matrix_diffuse       = std::move(brdf),
       .emissivity_vector_diffuse = std::move(emissivity),
+      .brdf_matrix_specular      = std::move(brdf_specular),
+      .emissivity_vector_specular = std::move(emissivity_specular),
   };
 }
 
