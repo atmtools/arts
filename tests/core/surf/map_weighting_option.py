@@ -112,8 +112,8 @@ def bulk(opt):
     mosm.weighting_option = getattr(Weighting, opt)
     props = mosm.get_surface_scattering_model_properties(
         surf_point, 0.0, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-    return (brdf_element(props.brdf_matrix),
-            emissivity_element(props.emissivity_vector))
+    return (brdf_element(props.brdf_matrix_diffuse),
+            emissivity_element(props.emissivity_vector_diffuse))
 
 
 for opt in ("Maximum", "Average"):
