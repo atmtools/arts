@@ -68,10 +68,10 @@ props1 = sc1.get_surface_scattering_model_properties(
 props_f = sc_field.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 
-brdf1  = np.array(props1.brdf_matrix)
-brdf_f = np.array(props_f.brdf_matrix)
-emiss1  = np.array(props1.emissivity_vector)
-emiss_f = np.array(props_f.emissivity_vector)
+brdf1  = np.array(props1.brdf_matrix_diffuse)
+brdf_f = np.array(props_f.brdf_matrix_diffuse)
+emiss1  = np.array(props1.emissivity_vector_diffuse)
+emiss_f = np.array(props_f.emissivity_vector_diffuse)
 
 assert np.allclose(brdf1, brdf_f, atol=1e-12), (
     f"BRDF mismatch between uniform and homogeneous field:\n"
@@ -108,8 +108,8 @@ expected_emiss = 0.5
 
 props_mid = sc_lin.get_surface_scattering_model_properties(
     surf_pt, 0.0, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-brdf_mid  = np.array(props_mid.brdf_matrix)
-emiss_mid = np.array(props_mid.emissivity_vector)
+brdf_mid  = np.array(props_mid.brdf_matrix_diffuse)
+emiss_mid = np.array(props_mid.emissivity_vector_diffuse)
 
 # Check BRDF [f, zi, ai, zs, as, 0, 0] = r
 for fi in range(len(f_grid)):
@@ -122,7 +122,7 @@ for fi in range(len(f_grid)):
 for lat_val, r_expected in [(-90.0, r_south), (90.0, r_north)]:
     props_e = sc_lin.get_surface_scattering_model_properties(
         surf_pt, lat_val, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-    brdf_e  = np.array(props_e.brdf_matrix)
+    brdf_e  = np.array(props_e.brdf_matrix_diffuse)
     for fi in range(len(f_grid)):
         val = float(brdf_e[fi, 0, 0, 0, 0, 0, 0])
         exp = r_expected
@@ -146,8 +146,8 @@ try:
     props_reload = sc_reload.get_surface_scattering_model_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 
-    brdf_orig   = np.array(props_orig.brdf_matrix)
-    brdf_reload = np.array(props_reload.brdf_matrix)
+    brdf_orig   = np.array(props_orig.brdf_matrix_diffuse)
+    brdf_reload = np.array(props_reload.brdf_matrix_diffuse)
     assert np.allclose(brdf_orig, brdf_reload, atol=1e-12), (
         f"XML round-trip: BRDF mismatch, max diff = "
         f"{np.max(np.abs(brdf_orig - brdf_reload)):.2e}")
@@ -165,7 +165,7 @@ assert "albedo_field" in mosm, "Model not in map"
 
 bulk = mosm.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
-brdf_bulk = np.array(bulk.brdf_matrix)
+brdf_bulk = np.array(bulk.brdf_matrix_diffuse)
 assert not np.all(brdf_bulk == 0.0), "Bulk BRDF should be non-zero"
 print("Test 5 passed: MapOfSurfaceScatteringModel accepts new type")
 

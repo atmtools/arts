@@ -84,8 +84,8 @@ SurfaceScatteringModelProperties lambertian_properties(
   }
 
   return SurfaceScatteringModelProperties{
-      .brdf_matrix       = std::move(brdf),
-      .emissivity_vector = std::move(emissivity),
+      .brdf_matrix_diffuse       = std::move(brdf),
+      .emissivity_vector_diffuse = std::move(emissivity),
   };
 }
 
@@ -211,8 +211,10 @@ std::ostream& operator<<(std::ostream& os,
 
 SurfaceScatteringModelProperties& SurfaceScatteringModelProperties::operator+=(
     const SurfaceScatteringModelProperties& other) {
-  brdf_matrix += other.brdf_matrix;
-  emissivity_vector += other.emissivity_vector;
+  brdf_matrix_diffuse += other.brdf_matrix_diffuse;
+  emissivity_vector_diffuse += other.emissivity_vector_diffuse;
+  brdf_matrix_specular += other.brdf_matrix_specular;
+  emissivity_vector_specular += other.emissivity_vector_specular;
   return *this;
 }
 

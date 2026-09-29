@@ -19,12 +19,18 @@ void py_surface_scattering(py::module_& m) try {
   py::class_<surface_scattering::SurfaceScatteringModelProperties>(
       m, "SurfaceScatteringModelProperties")
       .def(py::init<>())
-      .def_rw("brdf_matrix",
-              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix,
-              "Optional BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
-      .def_rw("emissivity_vector",
-              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector,
-              "Emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
+      .def_rw("brdf_matrix_diffuse",
+              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_diffuse,
+              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
+      .def_rw("emissivity_vector_diffuse",
+              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
+              "Diffuse emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
+      .def_rw("brdf_matrix_specular",
+              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
+              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
+      .def_rw("emissivity_vector_specular",
+              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
+              "Specular emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
       .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).";
 
   //

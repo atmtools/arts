@@ -19,10 +19,14 @@ using EmissivityVector = MuelmatTensor3;
  * Multiple models can be accumulated via operator+=.
  */
 struct SurfaceScatteringModelProperties {
-  /// Optional BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
-  BRDFMatrix brdf_matrix;
-  /// Emissivity vector: dims [n_f, n_za_scat, 4]
-  EmissivityVector emissivity_vector;
+  /// Diffuse BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
+  BRDFMatrix brdf_matrix_diffuse;
+  /// Diffuse emissivity vector: dims [n_f, n_za_scat, 4]
+  EmissivityVector emissivity_vector_diffuse;
+  /// Specular BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
+  BRDFMatrix brdf_matrix_specular;
+  /// Specular emissivity vector: dims [n_f, n_za_scat, 4]
+  EmissivityVector emissivity_vector_specular;
 
   SurfaceScatteringModelProperties& operator+=(
       const SurfaceScatteringModelProperties& other);

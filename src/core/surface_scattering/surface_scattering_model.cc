@@ -94,7 +94,7 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     const Index nas = aa_scat_grid.size();
     const Index nzi = za_inc_grid.size();
     const Index nai = aa_inc_grid.size();
-    return {.brdf_matrix=MuelmatTensor5(nf, nzi, nai, nzs, nas,rtepack::muelmat{0.0}), .emissivity_vector=MuelmatTensor3(nf, nzs, nas, rtepack::muelmat{0.0})};
+    return {.brdf_matrix_diffuse=MuelmatTensor5(nf, nzi, nai, nzs, nas,rtepack::muelmat{0.0}), .emissivity_vector_diffuse=MuelmatTensor3(nf, nzs, nas, rtepack::muelmat{0.0})};
   }
 
   const auto visitor = [&](const auto& model)
@@ -155,8 +155,10 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
 
 surface_scattering::SurfaceScatteringModelProperties&
 surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar) {  
-  brdf_matrix *= scalar;
-  emissivity_vector *= scalar;
+  brdf_matrix_diffuse *= scalar;
+  emissivity_vector_diffuse *= scalar;
+  brdf_matrix_specular *= scalar;
+  emissivity_vector_specular *= scalar;
   return *this;
 }
 
