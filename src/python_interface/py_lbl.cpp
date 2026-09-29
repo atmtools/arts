@@ -942,7 +942,8 @@ The four-term IOS angular kernel includes detailed balance and ECS energy
 corrections. Setting all Omega factors to one gives IOS with detailed balance.
 e0 [J] and Omega_line describe original lower states in line order; use one
 consistent energy model for these energies and all adiabatic gaps. T is in K.
-W uses row-rate storage W[from,to]; its units match Q and widths (Hz for spectra).
+W[i,j] is the coupling into line i from line j; its units match Q and widths
+(Hz for spectra).
 The caller supplies collision data and diagonal widths; no calibration or
 truncated-band sum-rule adjustment is applied. Initialize Wigner tables first.)");
 
@@ -991,8 +992,11 @@ truncated-band sum-rule adjustment is applied. Initialize Wigner tables first.)"
       "gd_fac"_a,
       R"(Evaluate the existing ECS equivalent-line Voigt profile from prepared inputs.
 
-frequency and f0 are in Hz. W is a real relaxation matrix in Hz, in row-rate
-storage W[from,to]; pressure shifts may be included in f0. population and signed
+frequency and f0 are in Hz. W is a real relaxation matrix in Hz, with W[i,j]
+the coupling into line i from line j -- the same orientation the solver uses,
+so it is applied as given. The optical sum rule is the row closure
+sum_j dipole[j] * W[i,j] == 0. Pressure shifts may be included in f0.
+population and signed
 dipole must use the same state convention as W. gd_fac is the Gaussian 1/e
 half-width divided by frequency. This function reuses the core equivalent-line
 solver and Faddeeva profile and returns its raw complex shape.

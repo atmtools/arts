@@ -48,7 +48,10 @@ void ComputeData::update_zeeman(const Vector2& los, const Vector3& mag, const Ze
 }
 
 void ComputeData::core_calc_eqv() {
-  // The kernels use a row-rate convention; the spectral operator is Ws^T.
+  // Ws is stored as the spectral operator itself: the same orientation the
+  // resolvent and the eigendecomposition use, so nothing is transposed here.
+  // The carrier frequency is subtracted from Ws and dW in place; both are
+  // rebuilt by every adapt() call and are not read again after this one.
   const Size n = pop.size(), m = vmrs.size(), nt = dW.npages();
   ARTS_USER_ERROR_IF(dip.size() != n or Ws.npages() != static_cast<Index>(m) or Ws.nrows() != static_cast<Index>(n) or
                          Ws.ncols() != static_cast<Index>(n),
@@ -59,10 +62,11 @@ void ComputeData::core_calc_eqv() {
                      "Inconsistent ECS Jacobian dimensions")
   eqv_strs.resize(m, n);
   eqv_vals.resize(m, n);
-  Vs.resize(m, n, n);
+  V.resize(n, n);
   deqv_strs.resize(nt, n);
   deqv_vals.resize(nt, n);
   eigenvector_rcond.resize(m);
+  dVs.resize(nt, n, n);
   eqv_strs          = 0;
   deqv_strs         = 0;
   deqv_vals         = 0;
@@ -71,14 +75,12 @@ void ComputeData::core_calc_eqv() {
 
   ComplexVector  rhs(n), coefficients(n);
   ComplexMatrix  derivative_rhs(n, nt), derivative_coefficients(n, nt);
-  ComplexTensor3 dV(nt, n, n), dA(nt, n, n);
   Vector         dcenter(nt);
   for (Size j = 0; j < n; ++j) rhs[j] = pop[j] * dip[j];
   complex_diagonalize_workdata workspace(n);
 
   for (Size k = 0; k < m; ++k) {
-    auto          V = Vs[k];
-    ComplexMatrix W{transpose(Ws[k])};
+    auto          W       = Ws[k];
     auto          eqv_str = eqv_strs[k];
     auto          eqv_val = eqv_vals[k];
     const Numeric center  = W[0, 0].real();
@@ -94,20 +96,19 @@ void ComputeData::core_calc_eqv() {
     bool changes_operator = false;
     if (nt) {
       for (Size t = 0; t < nt; ++t) {
-        dA[t]      = transpose(dW[t]);
-        dcenter[t] = dA[t, 0, 0].real();
-        for (Size j = 0; j < n; ++j) dA[t, j, j] -= dcenter[t];
+        dcenter[t] = dW[t, 0, 0].real();
+        for (Size j = 0; j < n; ++j) dW[t, j, j] -= dcenter[t];
         for (Size i = 0; i < n; ++i)
-          for (Size j = 0; j < n; ++j) changes_operator |= dA[t, i, j] != Complex{};
+          for (Size j = 0; j < n; ++j) changes_operator |= dW[t, i, j] != Complex{};
       }
     }
     if (changes_operator) {
-      diagonalize(V, eqv_val, dV, deqv_vals, W, dA, workspace);
+      diagonalize(V, eqv_val, dVs, deqv_vals, W, dW, workspace);
     } else {
       // Fixed operators (e.g. frequency or population-only targets) do not
       // require derivatives of an eigenbasis, even if modes are degenerate.
       diagonalize(V, eqv_val, W, workspace);
-      dV = 0;
+      dVs = 0;
     }
     eigenvector_rcond[k]            = solve(coefficients, V, rhs, 1e-12);
     const Numeric damping_tolerance = 64 * std::numeric_limits<Numeric>::epsilon() * matrix_norm;
@@ -127,7 +128,7 @@ void ComputeData::core_calc_eqv() {
     for (Size t = 0; t < nt; ++t) {
       for (Size i = 0; i < n; ++i) {
         derivative_rhs[i, t] = dpop[t, i] * dip[i] + pop[i] * ddip[t, i];
-        for (Size j = 0; j < n; ++j) derivative_rhs[i, t] -= dV[t, i, j] * coefficients[j];
+        for (Size j = 0; j < n; ++j) derivative_rhs[i, t] -= dVs[t, i, j] * coefficients[j];
       }
     }
     if (nt) solve(derivative_coefficients, V, derivative_rhs, 1e-12);
@@ -137,7 +138,7 @@ void ComputeData::core_calc_eqv() {
         Complex projection = 0, derivative_projection = 0;
         for (Size j = 0; j < n; ++j) {
           projection            += dip[j] * V[j, i];
-          derivative_projection += ddip[t, j] * V[j, i] + dip[j] * dV[t, j, i];
+          derivative_projection += ddip[t, j] * V[j, i] + dip[j] * dVs[t, j, i];
         }
         deqv_strs[t, i] = derivative_projection * coefficients[i] + projection * derivative_coefficients[i, t];
       }
@@ -327,10 +328,10 @@ Numeric reduced_dipole(const QuantumIdentifier& qid, const band_data& bnd, const
 
 Numeric closure_residual(ConstMatrixView W, ConstVectorView d) {
   Numeric result = 0;
-  for (Index i = 0; i < W.ncols(); ++i) {
+  for (Index i = 0; i < W.nrows(); ++i) {
     Numeric residual = 0, scale = 0;
-    for (Index j = 0; j < W.nrows(); ++j) {
-      const Numeric term  = d[j] * W[j, i];
+    for (Index j = 0; j < W.ncols(); ++j) {
+      const Numeric term  = d[j] * W[i, j];
       residual           += term;
       scale              += std::abs(term);
     }
@@ -394,7 +395,7 @@ void apply_sum_rule(
   ARTS_USER_ERROR_IF(not std::isfinite(T) or T <= 0, "ECS sum-rule correction requires positive finite temperature")
 
   // The sequential correction retains the historical truncated-band closure.
-  // In particular it cannot enforce the final column's sum rule. Overflow or
+  // In particular it cannot enforce the final row's sum rule. Overflow or
   // invalid rates leave a non-finite matrix behind rather than a silently
   // zeroed one; that is reported once for the propagation matrix instead of
   // being scanned for element by element here.
@@ -407,11 +408,11 @@ void apply_sum_rule(
 
     for (Size j = 0; j < n; ++j) {
       if (j > i) {
-        sumlw += dipr[j] * W[j, i];
-        for (Index q = 0; q < nq; ++q) dsumlw[q] += dipr[j] * dW[q, j, i];
+        sumlw += dipr[j] * W[i, j];
+        for (Index q = 0; q < nq; ++q) dsumlw[q] += dipr[j] * dW[q, i, j];
       } else {
-        sumup += dipr[j] * W[j, i];
-        for (Index q = 0; q < nq; ++q) dsumup[q] += dipr[j] * dW[q, j, i];
+        sumup += dipr[j] * W[i, j];
+        for (Index q = 0; q < nq; ++q) dsumup[q] += dipr[j] * dW[q, i, j];
       }
     }
 
@@ -421,22 +422,22 @@ void apply_sum_rule(
 
     for (Size j = i + 1; j < n; ++j) {
       if (sumlw == 0) {
-        W[j, i] = 0.0;
         W[i, j] = 0.0;
+        W[j, i] = 0.0;
         for (Index q = 0; q < nq; ++q) {
-          dW[q, j, i] = 0.0;
           dW[q, i, j] = 0.0;
+          dW[q, j, i] = 0.0;
         }
       } else {
-        for (Index q = 0; q < nq; ++q) { dW[q, j, i] = dW[q, j, i] * (-sumup / sumlw) + W[j, i] * dscale[q]; }
-        W[j, i] *= -sumup / sumlw;
-        W[i, j]  = W[j, i] * std::exp((e0[i] - e0[j]) / (Constant::k * T));
+        for (Index q = 0; q < nq; ++q) { dW[q, i, j] = dW[q, i, j] * (-sumup / sumlw) + W[i, j] * dscale[q]; }
+        W[i, j] *= -sumup / sumlw;
+        W[j, i]  = W[i, j] * std::exp((e0[i] - e0[j]) / (Constant::k * T));
         if (nq != 0) {
           const Numeric exponent = (e0[i] - e0[j]) / (Constant::k * T);
           const Numeric balance  = std::exp(exponent);
           for (Index q = 0; q < nq; ++q) {
             const Numeric dexponent = dT.empty() ? 0.0 : -exponent * dT[q] / T;
-            dW[q, i, j]             = (dW[q, j, i] + W[j, i] * dexponent) * balance;
+            dW[q, j, i]             = (dW[q, i, j] + W[i, j] * dexponent) * balance;
           }
         }
       }
@@ -558,7 +559,6 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
   eqv_strs.resize(m, n);
   eqv_vals.resize(m, n);
   Ws.resize(m, n, n);
-  Vs.resize(m, n, n);
   sum_rule_residual.resize(broadener_count);
   Ws                = 0;
   eqv_strs          = 0;

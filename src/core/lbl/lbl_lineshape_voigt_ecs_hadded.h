@@ -8,7 +8,7 @@
 // Paper I: Hadded et al., J. Chem. Phys. 116, 7544 (2002), doi:10.1063/1.1463442.
 namespace lbl::voigt::ecs::hadded {
 //! Inversion symmetry of a rovibrational level (paper I, Eq. 5).
-enum class inversion { symmetric, antisymmetric };
+enum class inversion : bool { symmetric, antisymmetric };
 
 //! Prepared physical level; the caller selects levels allowed by nuclear-spin symmetry.
 struct rotational_state {
@@ -64,7 +64,8 @@ void adiabatic_factors(VectorView      Omega,
 //! Paper-I IOS angular kernel (Eqs. 10-12), with detailed balance (Eq. 16) and
 //! ECS energy corrections (Eqs. 17-18), for one parallel band in supplied order.
 //! Setting all Omega factors to 1 gives IOS with detailed balance enforced.
-//! W[from,to] = <to|W_paper|from>, matching ComputeData's stored matrix convention.
+//! W[i,j] is the coupling into line i from line j, matching ComputeData's stored
+//! matrix convention; this is the transpose of the paper's index order.
 //! e0 and Omega_line belong to each line's ORIGINAL LOWER state. The same energy
 //! model must supply e0 and all adiabatic gaps; no sorting or catalogue access occurs.
 //! Downward elements come from the angular kernel; reverse elements use detailed

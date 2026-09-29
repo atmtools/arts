@@ -108,8 +108,10 @@ for partner, fraction, cross_sections, half_width in [
     ))
 
 # This population convention must satisfy detailed balance even across the
-# two inversion subbranches. Ortho and para lines remain uncoupled.
-flux = population[:, None] * W_per_amagat
+# two inversion subbranches. W[i, j] is the coupling into line i from line j,
+# so it is the population of the source state j that symmetrises the flux.
+# Ortho and para lines remain uncoupled.
+flux = W_per_amagat * population[None, :]
 np.testing.assert_allclose(flux, flux.T, rtol=3e-13, atol=1e-15 * np.max(abs(flux)))
 orthopara = np.array([q.K % 3 == 0 for q in quantum])
 assert np.all(W_per_amagat[orthopara[:, None] != orthopara[None, :]] == 0)

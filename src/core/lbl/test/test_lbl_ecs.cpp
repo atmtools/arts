@@ -111,13 +111,16 @@ void eigen_resolvent() {
   data.core_calc_eqv();
   const ComplexMatrix strengths{data.eqv_strs};
   const ComplexMatrix positions{data.eqv_vals};
+  // core_calc_eqv subtracts the carrier from Ws in place, exactly as it does
+  // in production, where adapt() rebuilds Ws before every call. Restore the
+  // input here so that repeating the calculation repeats the same problem.
+  data.Ws[0] = original;
   data.core_calc_eqv();
   Complex total = 0;
   for (Index i = 0; i < 2; ++i) {
     near(data.eqv_strs[0, i], strengths[0, i], 1e-14, "Equivalent strengths changed on repeated calculation");
     near(data.eqv_vals[0, i], positions[0, i], 1e-14, "Equivalent positions changed on repeated calculation");
     total += data.eqv_strs[0, i];
-    for (Index j = 0; j < 2; ++j) require(data.Ws[0][i, j] == original[i, j], "ECS input matrix mutated");
   }
   near(total, 2.0 + 0.5 * 0.8 * 0.8, 2e-14, "Equivalent strengths violate residue-sum invariant");
   require(data.eigenvector_rcond[0] > 0.1, "Unexpectedly ill-conditioned test eigenvectors");
@@ -126,7 +129,7 @@ void eigen_resolvent() {
     ComplexVector rhs(2), solution(2);
     for (Index i = 0; i < 2; ++i) {
       rhs[i] = data.pop[i] * data.dip[i];
-      for (Index j = 0; j < 2; ++j) A[i, j] = (i == j ? Complex(frequency) : Complex(0)) - original[j, i];
+      for (Index j = 0; j < 2; ++j) A[i, j] = (i == j ? Complex(frequency) : Complex(0)) - original[i, j];
     }
     solve(solution, A, rhs);
     Complex direct = 0, equivalent = 0;
@@ -136,13 +139,16 @@ void eigen_resolvent() {
     }
     near(equivalent, direct, 5e-8, "Equivalent-line resolvent differs from direct solve");
   }
+  // Each case seeds the whole matrix, since a failed call also leaves Ws centred.
   data.Ws[0][0, 0] = Complex(1e9, 2);
   data.Ws[0][1, 1] = Complex(1e9, 2);
   data.Ws[0][0, 1] = Complex(0, 1);
   data.Ws[0][1, 0] = 0;
   throws([&] { data.core_calc_eqv(); }, "condition");
-  data.Ws[0][0, 1] = 0;
   data.Ws[0][0, 0] = Complex(1e9, -1);
+  data.Ws[0][1, 1] = Complex(1e9, 2);
+  data.Ws[0][0, 1] = 0;
+  data.Ws[0][1, 0] = 0;
   throws([&] { data.core_calc_eqv(); }, "negative damping");
 }
 
@@ -413,11 +419,11 @@ void sum_rule_energy_preparation() {
         }
         require(band.lines[i].e0 == catalogue_e0[i], "Preparing sum-rule energies changed catalogue energies");
         for (Index j = i + 1; j < 3; ++j) {
-          const Numeric reverse  = data.Ws[0][j, i].imag();
+          const Numeric reverse  = data.Ws[0][i, j].imag();
           has_coupling          |= reverse != 0;
           const Numeric balance =
               std::exp((data.energies.e0[i] - data.energies.e0[j]) / (Constant::k * atm.temperature));
-          near(data.Ws[0][i, j].imag(), reverse * balance, 2e-14, "Sum-rule detailed balance uses wrong energies");
+          near(data.Ws[0][j, i].imag(), reverse * balance, 2e-14, "Sum-rule detailed balance uses wrong energies");
         }
       }
       require(has_coupling, "Sum-rule energy fixture needs coupled lines");
@@ -486,18 +492,18 @@ void sum_rule_energy_preparation() {
     auto         changed_energies  = data.energies;
     changed_energies.e0[0]        += offset;
     const Matrix changed           = matrix(changed_energies);
-    require(original[1, 0] != 0 and original[2, 0] != 0 and changed[2, 0] != 0,
-            "Prepared-energy regression needs two couplings in its first column");
-    // Column normalization preserves this raw ratio, exposing the energy input
+    require(original[0, 1] != 0 and original[0, 2] != 0 and changed[0, 2] != 0,
+            "Prepared-energy regression needs two couplings in its first row");
+    // Row normalization preserves this raw ratio, exposing the energy input
     // even for Hartmann's swapped angular states.
-    near(changed[1, 0] / changed[2, 0],
-         original[1, 0] / original[2, 0] * std::exp(offset / (Constant::k * atm.temperature)),
+    near(changed[0, 1] / changed[0, 2],
+         original[0, 1] / original[0, 2] * std::exp(offset / (Constant::k * atm.temperature)),
          5e-14,
          "Raw relaxation matrix must use the prepared energies");
     for (Index i = 0; i < 3; ++i) {
       for (Index j = i + 1; j < 3; ++j)
-        near(changed[i, j],
-             changed[j, i] *
+        near(changed[j, i],
+             changed[i, j] *
                  std::exp((changed_energies.e0[i] - changed_energies.e0[j]) / (Constant::k * atm.temperature)),
              2e-14,
              "Sum-rule correction must use the same prepared energies as the raw kernel");

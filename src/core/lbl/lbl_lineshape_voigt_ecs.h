@@ -63,6 +63,18 @@ void apply_sum_rule(
     MatrixView W, ConstVectorView dipr, ConstVectorView e0, Numeric T, Tensor3View dW = {}, ConstVectorView dT = {});
 
 struct ComputeData {
+  // --- Inputs -------------------------------------------------------------
+  // Fixed by the constructor and update_zeeman from f_grid, atm and los.
+
+  //! Size of frequency: density and stimulated-emission scaling.
+  Vector scl{};
+
+  //! The orientation of the polarization.
+  Propmat npm{};
+
+  // Everything below is prepared by adapt() for one band at one atmospheric
+  // point and consumed by core_calc_eqv() and core_calc().
+
   Numeric gd_fac{};  //! Gaussian 1/e half-width divided by line frequency
 
   //! Size of line shapes
@@ -75,43 +87,60 @@ struct ComputeData {
   energy_data                  energies{};
   std::vector<rotational_line> rotational_lines{};
 
-  //! Size of line shapes x size of line shapes
-  Matrix Wimag{};
-
   //! [1, or broadening species]
   Vector vmrs;
 
-  //! [1, or broadening species] x size of line shapes
-  ComplexMatrix eqv_strs{};
-  ComplexMatrix eqv_vals{};
-
-  //! [1, or broadening species] x size of line shapes x size of line shapes
+  //! [1, or broadening species] x size of line shapes x size of line shapes.
+  //! core_calc_eqv subtracts the carrier from Ws and dW in place, so adapt()
+  //! rebuilds both before every calculation.
   ComplexTensor3 Ws{};
-  ComplexTensor3 Vs{};
 
   //! Jacobian target x line x line, for the combined collision matrix.
   ComplexTensor3 dW{};
-  //! Jacobian target x line: optical inputs and equivalent-line derivatives.
-  Matrix        dpop{}, ddip{};
-  ComplexMatrix deqv_strs{}, deqv_vals{};
+
+  //! Jacobian target x line: optical inputs.
+  Matrix dpop{}, ddip{};
+
   //! Doppler-factor and frequency derivatives in Jacobian target order.
   Vector dgd_fac{}, df{};
-  //! Jacobian target x frequency.
+
+  // --- Scratch ------------------------------------------------------------
+  // Working buffers with no meaning outside the call that fills them.  They
+  // are members only so that repeated calls do not reallocate.
+
+  //! Size of line shapes x size of line shapes: one broadener's kernel output.
+  Matrix Wimag{};
+
+  //! Eigenvector basis of the broadener being diagonalised, line x line.  Each
+  //! broadener consumes its own basis before the next one is computed, so only
+  //! one is ever live.
+  ComplexMatrix V{};
+
+  //! Eigenvector derivatives of V.  Every Jacobian target is live at once, so
+  //! this one keeps its target axis.
+  ComplexTensor3 dVs{};
+
+  // --- Results ------------------------------------------------------------
+
+  //! Equivalent lines, [1, or broadening species] x size of line shapes.
+  ComplexMatrix eqv_strs{};
+  ComplexMatrix eqv_vals{};
+
+  //! Jacobian target x line: equivalent-line derivatives.
+  ComplexMatrix deqv_strs{}, deqv_vals{};
+
+  //! Size of frequency, and Jacobian target x frequency.
+  ComplexVector shape{};
   ComplexMatrix dshape{};
+
+  // --- Diagnostics --------------------------------------------------------
 
   //! Reciprocal condition number of each equivalent-line eigenvector matrix.
   Vector eigenvector_rcond{};
 
-  //! Per-broadener max |sum_j dipr[j] W[j,i]| / sum_j |dipr[j] W[j,i]|.
+  //! Per-broadener max |sum_j dipr[j] W[i,j]| / sum_j |dipr[j] W[i,j]|.
   //! A finite truncated band need not satisfy the optical sum rule exactly.
   Vector sum_rule_residual{};
-
-  //! Size of frequency
-  Vector        scl{};
-  ComplexVector shape{};
-
-  //! The orientation of the polarization
-  Propmat npm{};
 
   //! Prepare the density/stimulated-emission scaling and polarization orientation.
   ComputeData(const ConstVectorView&   f_grid,

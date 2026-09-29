@@ -476,16 +476,15 @@ ECS Line Shape
 
 For a band of :math:`n` interacting absorption lines, the ECS complex absorption shape
 for a single broadening species (see :ref:`lbl-ecs-multispecies` for the full
-expression) is written in terms of the complex matrix :math:`\mathbf{K}` as
+expression) is written in terms of the complex relaxation matrix
+:math:`\mathbf{W}` of :ref:`lbl-ecs-relaxmat` as
 
 .. math::
 
-  \chi(\nu) \propto \mathrm{Im}\left[\mathbf{d}^T \left(\nu \mathbf{I} - \mathbf{K}\right)^{-1} \mathbf{p}\, \mathbf{d}\right],
+  \chi(\nu) \propto \mathrm{Im}\left[\mathbf{d}^T \left(\nu \mathbf{I} - \mathbf{W}\right)^{-1} \mathbf{p}\, \mathbf{d}\right].
 
-where :math:`\mathbf{K}=\mathbf{W}^T` converts the source-index-first convention
-of :ref:`lbl-ecs-relaxmat` to operator notation. The CO\ :sub:`2` and O\ :sub:`2`
-models use the diagonal weights :math:`p_j=g_{u,j}\exp(-E_l^{(j)}/kT)/Q(T)`
-and signed amplitudes
+The CO\ :sub:`2` and O\ :sub:`2` models use the diagonal weights
+:math:`p_j=g_{u,j}\exp(-E_l^{(j)}/kT)/Q(T)` and signed amplitudes
 
 .. math::
 
@@ -499,7 +498,7 @@ interpreted as the total lower-state populations. A change of normalisation
 requires a consistent transformation of the amplitudes, weights, and angular
 kernels.
 
-The matrix is diagonalised as :math:`\mathbf{K} = \mathbf{V} \tilde{\boldsymbol{\nu}} \mathbf{V}^{-1}`,
+The matrix is diagonalised as :math:`\mathbf{W} = \mathbf{V} \tilde{\boldsymbol{\nu}} \mathbf{V}^{-1}`,
 where :math:`\tilde{\boldsymbol{\nu}}` is the diagonal matrix of complex
 *equivalent line* positions.  Each equivalent line :math:`k` has a complex
 frequency :math:`\tilde{\nu}_k` (real part: position, imaginary part: pressure
@@ -601,9 +600,10 @@ The *imaginary* part of the diagonal elements carries the pressure broadening:
 where :math:`G_{P,0,i}` is the pressure-broadening half-width half-maximum.
 
 The off-diagonal elements are purely imaginary.  Write
-:math:`R_{ij}=\mathrm{Im}\,W_{ij}` for the real collisional coupling coefficients
-in the source-index-first convention. Their construction from the ECS basis rates
-is described below.
+:math:`R_{ij}=\mathrm{Im}\,W_{ij}` for the real collisional coupling
+coefficients, where :math:`j` is the state the collision transfers population
+from and :math:`i` the state it transfers to. Their construction from the ECS
+basis rates is described below.
 
 .. _lbl-ecs-rates:
 
@@ -661,11 +661,11 @@ After the IOS computation a sum-rule rescaling is applied
 (see :ref:`lbl-ecs-sumrule`).
 
 For these two models, the reverse coupling is assigned using the following
-Boltzmann relation in the source-index-first convention:
+Boltzmann relation:
 
 .. math::
 
-  R_{ji} = R_{ij} \exp\!\left(\frac{E_j - E_i}{kT}\right),
+  R_{ij} = R_{ji} \exp\!\left(\frac{E_j - E_i}{kT}\right),
 
 where :math:`E_i` is the energy of the lower rotational state of line :math:`i`
 (using the same :math:`E_l` convention as in :ref:`lbl-lte`).
@@ -911,16 +911,16 @@ The rescaling seeks to impose
 
 .. math::
 
-  \sum_j d_{r,j}\, R_{ji} = 0.
+  \sum_j d_{r,j}\, R_{ij} = 0.
 
-Lines are ordered by decreasing :math:`\nu_{0,i}p_i d_i^2`.  For each column
+Lines are ordered by decreasing :math:`\nu_{0,i}p_i d_i^2`.  For each row
 :math:`i`, define the contribution from entries still available to rescale and
 the contribution from the diagonal and entries already fixed:
 
 .. math::
 
-  s_\downarrow = \sum_{j > i} d_{r,j}\, R_{ji}, \qquad
-  s_\uparrow   = \sum_{j \leq i} d_{r,j}\, R_{ji}.
+  s_\downarrow = \sum_{j > i} d_{r,j}\, R_{ij}, \qquad
+  s_\uparrow   = \sum_{j \leq i} d_{r,j}\, R_{ij}.
 
 When :math:`s_\downarrow\ne 0`, the remaining entries are rescaled by
 :math:`-s_\uparrow/s_\downarrow`, and their reverse couplings are updated using
@@ -934,8 +934,8 @@ its angular labels are interchanged; Makarov uses the resolved
 energy model. These collision energies remain distinct from the spectroscopic
 energies determining the optical populations.
 
-This sequential prescription cannot generally enforce every column: the final
-column has no remaining entries to adjust, and zero or nearly cancelling sums
+This sequential prescription cannot generally enforce every row: the final
+row has no remaining entries to adjust, and zero or nearly cancelling sums
 can prevent a stable correction.  Truncating a band or a connected symmetry
 block can also leave a nonzero residual. Sum-rule closure and nonnegative
 absorption must be checked for the band and conditions of interest. The
@@ -1028,16 +1028,16 @@ itself via perturbation theory — both approaches are described below.
 Perturbation Theory from the Relaxation Matrix
 -----------------------------------------------
 
-For weak coupling, the spectral operator :math:`\mathbf{K}=\mathbf{W}^T`
-can be expanded about its diagonal part.  Write
-:math:`\mathbf{K}=\mathbf{D}+\mathbf{U}`, with :math:`\mathbf{U}` containing
+For weak coupling, :math:`\mathbf{W}` can be expanded about its diagonal
+part.  Write
+:math:`\mathbf{W}=\mathbf{D}+\mathbf{U}`, with :math:`\mathbf{U}` containing
 only off-diagonal entries, and define
 :math:`\mathbf{G}_0=(\nu\mathbf{I}-\mathbf{D})^{-1}`.  Where the Neumann
 series converges,
 
 .. math::
 
-  (\nu\mathbf{I}-\mathbf{K})^{-1} =
+  (\nu\mathbf{I}-\mathbf{W})^{-1} =
     \mathbf{G}_0+\mathbf{G}_0\mathbf{U}\mathbf{G}_0
     +\mathbf{G}_0\mathbf{U}\mathbf{G}_0\mathbf{U}\mathbf{G}_0+\cdots.
 
@@ -1050,7 +1050,7 @@ Consequently they cannot in general be represented by a squared single
 coupling weighted only by the isolated line strengths.
 
 For example, if
-:math:`\mathbf{K}=\mathrm{diag}(\nu_{0,i})+P\mathbf{B}` and the unperturbed
+:math:`\mathbf{W}=\mathrm{diag}(\nu_{0,i})+P\mathbf{B}` and the unperturbed
 frequencies are distinct, the equivalent frequency has the expansion
 
 .. math::
@@ -1083,7 +1083,7 @@ meaning) computed by ECS for broadening species :math:`s` at pressure :math:`P_0
 and a grid of temperatures :math:`T_1, \ldots, T_M`, the Rosenkranz coefficients are
 obtained by the following procedure.
 Here, :math:`i` will denote the index of the physical LBL lines (the rows/columns of
-:math:`\mathbf{K}`) and :math:`k` the index of the equivalent lines.
+:math:`\mathbf{W}`) and :math:`k` the index of the equivalent lines.
 
 **Step 1 — Sort and match.**
 The :math:`n` equivalent lines are sorted by :math:`\mathrm{Re}[\tilde{\nu}_{k,s}]`

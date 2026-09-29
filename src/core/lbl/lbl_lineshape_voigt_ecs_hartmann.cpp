@@ -101,15 +101,15 @@ void coupling_kernel(MatrixView                       W,
       sum *= scl;
 
       // Add to W and rescale to upwards element by the populations.
-      W[j, i] = sum;
-      W[i, j] = sum * std::exp((e0[j] - e0[i]) / kelvin2joule(T));
+      W[i, j] = sum;
+      W[j, i] = sum * std::exp((e0[j] - e0[i]) / kelvin2joule(T));
       if (nq != 0) {
         const Numeric exponent = (e0[j] - e0[i]) / kelvin2joule(T);
         const Numeric balance  = std::exp(exponent);
         for (Index q = 0; q < nq; ++q) {
           const Numeric dexponent = dT.empty() ? 0.0 : -exponent * dT[q] / T;
-          dW[q, j, i]             = dsum[q];
-          dW[q, i, j]             = (dsum[q] + sum * dexponent) * balance;
+          dW[q, i, j]             = dsum[q];
+          dW[q, j, i]             = (dsum[q] + sum * dexponent) * balance;
         }
       }
     }

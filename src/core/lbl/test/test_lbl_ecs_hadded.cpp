@@ -96,7 +96,7 @@ void exact_angular_fixtures() {
     const std::array lines{line(1, 1, 1), line(1, 1, 1, antisymmetric)};
     nh3::basis_data  basis{{{1, 0, 0}}, Vector{2.6}, Vector{1}};
     const auto       W = matrix(lines, basis, e0, omega);
-    near(W[0, 1], -2.6 / 4, "Same-J inversion coupling, no extra (2L+1)");
+    near(W[1, 0], -2.6 / 4, "Same-J inversion coupling, no extra (2L+1)");
     const std::array same_symmetry{line(1, 1, 1), line(2, 2, 1)};
     const auto       forbidden = matrix(same_symmetry, basis, e0, omega);
     near(forbidden[0, 1], 0, "Odd-L same-inversion Q-branch selection rule", 0, 0);
@@ -112,7 +112,7 @@ void exact_angular_fixtures() {
     for (Size c = 0; c < channels.size(); ++c) {
       const nh3::basis_data basis{{channels[c]}, Vector{1}, Vector{1}};
       const auto            W = matrix(lines, basis, e0, omega);
-      near(W[0, 1], expected[c], "Independent four-term angular coefficient");
+      near(W[1, 0], expected[c], "Independent four-term angular coefficient");
     }
   };
   check_channels(
@@ -143,8 +143,8 @@ void exact_angular_fixtures() {
   const nh3::basis_data basis{{{6, 0, 0}, {6, 6, 0}, {6, 0, 6}, {6, 6, 6}}, Vector{1, 2, 3, 4}, Vector{1, 1, 1, 1}};
   const Numeric expected = std::sqrt(49.0 / 15704832) + 2 * std::sqrt(343.0 / 118976) + 3 * std::sqrt(7.0 / 118976) +
                            4 * std::sqrt(147.0 / 2704);
-  const auto W       = matrix(tied, basis, Vector{0, 0}, omega);
-  const auto swapped = matrix(reversed, basis, Vector{0, 0}, omega);
+  const auto    W        = matrix(tied, basis, Vector{0, 0}, omega);
+  const auto    swapped  = matrix(reversed, basis, Vector{0, 0}, omega);
   near(W[0, 1], expected, "Exact-energy tie angular coefficient");
   near(W[0, 1], W[1, 0], "Equal-population detailed balance");
   near(W[0, 1], swapped[1, 0], "Exact-energy tie permutation invariance");
@@ -186,7 +186,8 @@ void balance_and_batched_derivatives() {
     const Numeric rho_i = Numeric(2 * (2 * lines[i].lower.J + 1)) * std::exp(-e0[i] / (Constant::k * T));
     for (Index j = i + 1; j < n; ++j) {
       const Numeric rho_j = Numeric(2 * (2 * lines[j].lower.J + 1)) * std::exp(-e0[j] / (Constant::k * T));
-      near(rho_i * W[i, j], rho_j * W[j, i], "Detailed balance with lower-state degeneracy");
+      // W[i, j] couples into i from j, so the source population symmetrises.
+      near(rho_j * W[i, j], rho_i * W[j, i], "Detailed balance with lower-state degeneracy");
     }
   }
   require(std::abs(dW[2, 1, 2]) > 1e-5, "A zero-Q channel must have a nonzero coupling derivative");

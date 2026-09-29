@@ -19,11 +19,17 @@ For Makarov, ``rotational_energy(N)`` supplies the reference rotor and
 same molecular constants and ground-state reference. Collision energies do not
 replace catalogue energies in optical populations or line frequencies.
 
-``ComputeData`` stores source-first matrix elements. Its spectral operator is
-the transpose of that matrix. ``core_calc_eqv`` solves the eigenvector system
-for the amplitude coefficients instead of explicitly forming an inverse. It
-checks solver status, eigenvector conditioning, and damping eigenvalues before
-using the equivalent lines. The sum-rule residual remains a separate diagnostic;
+``ComputeData`` stores the relaxation matrix as the spectral operator itself,
+in the orientation the resolvent and the eigendecomposition use, so nothing is
+transposed between the kernels and ``core_calc_eqv``. The element ``W[i, j]``
+is the coupling into line ``i`` from line ``j``, and the optical sum rule is a
+row closure, ``sum_j dipr[j] * W[i, j] == 0``. Papers differ in which index
+they print first, so coupling coefficients taken from the literature may need
+transposing before they match this storage; a new kernel should be checked
+against the row closure above rather than against a printed equation.
+``core_calc_eqv`` solves the eigenvector system for the amplitude coefficients
+instead of explicitly forming an inverse. It checks solver status, eigenvector
+conditioning, and damping eigenvalues before using the equivalent lines. The sum-rule residual remains a separate diagnostic;
 a completed rescaling does not establish closure or positive absorption.
 
 ``calculate`` combines the partner matrices before diagonalisation.

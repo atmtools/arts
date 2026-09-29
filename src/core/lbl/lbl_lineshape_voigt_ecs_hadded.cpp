@@ -161,16 +161,16 @@ void coupling_kernel(MatrixView                       W,
         const Numeric down     = sum / Omega_line[from];
         const Numeric exponent = (e0[to] - e0[from]) / (Constant::k * T);
         const Numeric balance  = Numeric(2 * i.J + 1) / Numeric(2 * ip.J + 1) * std::exp(exponent);
-        W[from, to]            = down;
-        W[to, from]            = down * balance;
+        W[to, from]            = down;
+        W[from, to]            = down * balance;
         for (Index q = 0; q < nq; ++q) {
           const Numeric ddown = (dsum[q] - down * tangent(derivatives.dOmega_line, q, from)) / Omega_line[from];
           const Numeric dT    = derivatives.dT.empty() ? 0.0 : derivatives.dT[q];
           const Numeric dexponent =
               (tangent(derivatives.de0, q, to) - tangent(derivatives.de0, q, from)) / (Constant::k * T) -
               exponent * dT / T;
-          dW[q, from, to] = ddown;
-          dW[q, to, from] = (ddown + down * dexponent) * balance;
+          dW[q, to, from] = ddown;
+          dW[q, from, to] = (ddown + down * dexponent) * balance;
         }
       }
     }
