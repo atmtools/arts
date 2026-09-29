@@ -824,8 +824,9 @@ fmax : ~pyarts3.arts.Numeric
           "__init__",
           [](hadded::rotational_line* self, Index Ju, Index Jl, Index K, bool lower_antisymmetric) {
             using enum hadded::inversion;
-            new (self) hadded::rotational_line{.upper = {Ju, K, lower_antisymmetric ? symmetric : antisymmetric},
-                                               .lower = {Jl, K, lower_antisymmetric ? antisymmetric : symmetric}};
+            new (self) hadded::rotational_line{
+                .upper = {.J = Ju, .K = K, .symmetry = lower_antisymmetric ? symmetric : antisymmetric},
+                .lower = {.J = Jl, .K = K, .symmetry = lower_antisymmetric ? antisymmetric : symmetric}};
           },
           "Ju"_a,
           "Jl"_a,
@@ -833,31 +834,39 @@ fmax : ~pyarts3.arts.Numeric
           "lower_antisymmetric"_a = false,
           "A parallel-band line with equal upper/lower K and opposite inversion symmetries.")
       .def_prop_ro(
-          "Ju", [](const hadded::rotational_line& line) { return line.upper.J; }, "Upper-state angular momentum.")
+          "Ju",
+          [](const hadded::rotational_line& line) { return line.upper.J; },
+          "Upper-state angular momentum.\n\n.. :class:`~pyarts3.arts.Index`")
       .def_prop_ro(
-          "Jl", [](const hadded::rotational_line& line) { return line.lower.J; }, "Lower-state angular momentum.")
+          "Jl",
+          [](const hadded::rotational_line& line) { return line.lower.J; },
+          "Lower-state angular momentum.\n\n.. :class:`~pyarts3.arts.Index`")
       .def_prop_ro(
           "K",
           [](const hadded::rotational_line& line) { return line.lower.K; },
-          "Body-fixed projection shared by both states.")
+          "Body-fixed projection shared by both states.\n\n.. :class:`~pyarts3.arts.Index`")
       .def_prop_ro(
           "lower_antisymmetric",
           [](const hadded::rotational_line& line) { return line.lower.symmetry == hadded::inversion::antisymmetric; },
-          "Whether the lower state has antisymmetric inversion symmetry.");
+          "Whether the lower state has antisymmetric inversion symmetry.\n\n.. :class:`bool`");
   py::class_<hadded::collision_channel>(
       lbl, "hadded_collision_channel", "Signed angular channel of the NH3 collision basis.")
       .def(
           "__init__",
           [](hadded::collision_channel* self, Index L, Index Mi, Index Mf) {
-            new (self) hadded::collision_channel{L, Mi, Mf};
+            new (self) hadded::collision_channel{.L = L, .Mi = Mi, .Mf = Mf};
           },
           "L"_a,
           "Mi"_a,
           "Mf"_a,
           "A collision channel with signed body-fixed projections Mi and Mf (multiples of three).")
-      .def_ro("L", &hadded::collision_channel::L, "Collision angular rank.")
-      .def_ro("Mi", &hadded::collision_channel::Mi, "Signed lower-state projection transfer.")
-      .def_ro("Mf", &hadded::collision_channel::Mf, "Signed upper-state projection transfer.");
+      .def_ro("L", &hadded::collision_channel::L, "Collision angular rank.\n\n .. :class:`~pyarts3.arts.Index`")
+      .def_ro("Mi",
+              &hadded::collision_channel::Mi,
+              "Signed lower-state projection transfer.\n\n .. :class:`~pyarts3.arts.Index`")
+      .def_ro("Mf",
+              &hadded::collision_channel::Mf,
+              "Signed upper-state projection transfer.\n\n .. :class:`~pyarts3.arts.Index`");
   py::class_<hadded::basis_data>(lbl, "hadded_basis_data", "Prepared NH3 collision rates and adiabatic factors.")
       .def(
           "__init__",
@@ -873,9 +882,15 @@ Q has the desired relaxation-matrix units (Hz for spectra); convert cross sectio
 in m^2 with number_density * mean_relative_speed / (2*pi). Omega is the paper's
 factor >= 1. Supply every signed channel explicitly; omitted channels are zero.
 No collision calibration or temperature dependence is supplied by this class.)")
-      .def_rw("channels", &hadded::basis_data::channels, "Signed collision channels in basis order.")
-      .def_rw("Q", &hadded::basis_data::Q, "Dynamical rates in channel order; Hz for spectra.")
-      .def_rw("Omega", &hadded::basis_data::Omega, "Paper-I adiabatic factors in channel order, each at least one.");
+      .def_rw("channels",
+              &hadded::basis_data::channels,
+              "Signed collision channels in basis order.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("Q",
+              &hadded::basis_data::Q,
+              "Dynamical rates in channel order; Hz for spectra.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("Omega",
+              &hadded::basis_data::Omega,
+              "Paper-I adiabatic factors in channel order, each at least one.\n\n.. :class:`~pyarts3.arts.Vector`");
   lbl.def("hadded_rotational_energy",
           &hadded::rotational_energy,
           "J"_a,
