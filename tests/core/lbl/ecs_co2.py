@@ -14,6 +14,8 @@ def calc(ws, lineshape=None):
     time_start = time.time()
     if lineshape is not None:
         ws.abs_bands[bandkey].lineshape = lineshape
+    # Catalogue-level ECS validation; a no-op for the non-ECS line shapes.
+    ws.abs_bandsCheckEcs()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
     print(f"Time to calculate spectral propmat: {round(1000*(time.time() - time_start), 3)} ms for lineshape {lineshape}")

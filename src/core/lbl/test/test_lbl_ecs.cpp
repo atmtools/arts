@@ -163,10 +163,10 @@ void makarov_and_presorting() {
   require(data.shape[0].real() > 0, "Supported Makarov single line has no absorption");
   atm.specs.clear();
   id.state[QuantumNumberType::S].upper = Rational{0};
-  throws([&] { data.adapt_single(id, band, {}, atm); }, "S=1");
+  throws([&] { lbl::voigt::ecs::validate_band(id, band); }, "S=1");
   id.state[QuantumNumberType::S].upper        = Rational{1};
   band.front().qn[QuantumNumberType::N].lower = Rational{3};
-  throws([&] { data.adapt_single(id, band, {}, atm); }, "N");
+  throws([&] { lbl::voigt::ecs::validate_band(id, band); }, "N");
 
   band = co2_band();
   for (Index i = 1; i < 3; ++i) {
@@ -231,12 +231,11 @@ void validation_and_mixtures() {
   band.lines.push_back(next);
   data.adapt_single(id, band, rates, atm);
   band.lines.back().ls.single_models.erase(SpeciesEnum::Oxygen);
-  throws([&] { data.adapt_single(id, band, rates, atm); }, "same broadening species");
-  throws([&] { data.adapt_multi(id, band, rates, atm); }, "same broadening species");
+  throws([&] { lbl::voigt::ecs::validate_band(id, band); }, "same broadening species");
 
   band = co2_band();
   band.lines.push_back(band.front());
-  throws([&] { data.adapt_single(id, band, rates, atm); }, "same rotational pair");
+  throws([&] { lbl::voigt::ecs::validate_band(id, band); }, "same rotational pair");
   band = co2_band();
   atm.specs.clear();
   auto unsupported_id = id;
@@ -505,11 +504,26 @@ void sum_rule_energy_preparation() {
     }
   }
 }
+
+void undefined_basis_rate() {
+  // Q(0) is undefined. Instead of testing for it on every evaluation, check the
+  // invariant that replaces it: prepare_basis never asks for it.
+  AtmPoint atm;
+  atm.temperature            = 296;
+  atm.pressure               = 1e5;
+  atm[SpeciesEnum::Nitrogen] = 1;
+  lbl::voigt::ecs::energy_data energies;
+  lbl::voigt::ecs::prepare_rotational_ladder(energies, 4, lbl::voigt::ecs::hartmann::rotational_energy);
+  const auto basis = lbl::voigt::ecs::prepare_basis(
+      4, energies, collision_data().at(SpeciesEnum::Nitrogen), 296, "CO2-626"_isot, SpeciesEnum::Nitrogen, atm);
+  require(basis.Q[0] == 0, "prepare_basis must leave the undefined Q(0) at zero");
+  for (Index L = 1; L < 4; ++L) require(basis.Q[L] > 0, "prepare_basis skipped a defined basis rate");
+}
 }  // namespace
 
 int main() try {
-  const auto rates = collision_data();
-  throws([&] { (void)rates.at(SpeciesEnum::Nitrogen).Q(Rational{0}, 296, 296, 0); }, "Q(0)");
+  undefined_basis_rate();
+  lbl::voigt::ecs::validate_band(co2_id(), co2_band());
   WignerInformation wigner(100, 0, true, true);
   isolated_line();
   eigen_resolvent();

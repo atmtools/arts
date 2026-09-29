@@ -3444,6 +3444,29 @@ exponent of 0.75.
       .gin_desc  = {"Filename"},
   };
 
+  wsm_data["abs_bandsCheckEcs"] = {
+      .desc =
+          R"--(Checks that every ECS band in *abs_bands* can be used.
+
+Validated is everything about a band that depends only on the catalogue: the
+pairing of the line shape with the isotopologue its kernel supports, that all
+lines share the same broadening species and reference temperature, that the
+per-line catalogue entries are usable, and that the rotational quantum numbers
+satisfy the domain of the kernel.  The presence of *abs_ecs_data* for each
+band's isotopologue is checked as well.
+
+None of this depends on the atmospheric state, so the line-by-line calculation
+does not repeat it for every atmospheric point.  Call this method once after
+the bands and their line shapes are set.  Bands that do not use an ECS line
+shape are ignored.
+
+The collision data of an individual broadening species is checked where it is
+used, since a species that is absent from the atmosphere needs none.
+)--",
+      .author = {"Richard Larsson"},
+      .in     = {"abs_bands", "abs_ecs_data"},
+  };
+
   wsm_data["abs_bandsLineMixingAdaptation"] = {
       .desc =
           R"--(Adapts select band to use ordered Line mixing coefficients.

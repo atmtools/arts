@@ -63,17 +63,6 @@ int complex_lapack_size(const Index n) {
 
 bool finite_complex(const Complex value) { return std::isfinite(value.real()) and std::isfinite(value.imag()); }
 
-void check_complex_matrix(StridedConstComplexMatrixView A, const std::string_view name) {
-  for (Index i = 0; i < A.nrows(); ++i)
-    for (Index j = 0; j < A.ncols(); ++j)
-      ARTS_USER_ERROR_IF(not finite_complex(A[i, j]), "{} contains a nonfinite value at ({}, {}).", name, i, j);
-}
-
-void check_complex_vector(StridedConstComplexVectorView v, const std::string_view name) {
-  for (Size i = 0; i < v.size(); ++i)
-    ARTS_USER_ERROR_IF(not finite_complex(v[i]), "{} contains a nonfinite value at {}.", name, i);
-}
-
 void check_eigen_info(const int info) {
   ARTS_USER_ERROR_IF(info < 0, "ZGEEV received an illegal value for argument {}.", -info);
   ARTS_USER_ERROR_IF(info > 0, "ZGEEV failed to converge (INFO={}); no right eigenvectors were computed.", info);
@@ -264,8 +253,6 @@ Numeric solve(StridedComplexMatrixView      X,
                      "Complex solve has too many right-hand sides for LAPACK.");
   ARTS_USER_ERROR_IF(not std::isfinite(min_rcond) or min_rcond < 0 or min_rcond > 1,
                      "Complex solve requires a finite minimum reciprocal condition number in [0, 1].");
-  check_complex_matrix(A, "Complex solve matrix");
-  check_complex_matrix(B, "Complex solve right-hand side");
   if (n == 0) return 1;
 
   // Transpose into contiguous storage so LAPACK sees the original matrix.
@@ -284,7 +271,6 @@ Numeric solve(StridedComplexMatrixView      X,
   int info = 0;
   lapack::zgetrf_(&n_int, &n_int, lu.data_handle(), &n_int, ipiv.data(), &info);
   check_lu_info(info, "ZGETRF");
-  check_complex_matrix(lu, "Complex LU factors");
 
   char          norm  = '1';
   Numeric       rcond = 0;
@@ -303,7 +289,6 @@ Numeric solve(StridedComplexMatrixView      X,
   if (nrhs > 0)
     lapack::zgetrs_(&trans, &n_int, &nrhs, lu.data_handle(), &n_int, ipiv.data(), rhs.data_handle(), &n_int, &info);
   check_lu_solve_info(info, "ZGETRS");
-  check_complex_matrix(rhs, "Complex solve result");
   X = transpose(rhs);
   return rcond;
 }
@@ -497,7 +482,6 @@ void diagonalize(StridedComplexMatrixView      P,
       workdata.N != n or workdata.matrix.shape() != A.shape() or workdata.eigenvectors.shape() != A.shape() or
           workdata.eigenvalues.size() != static_cast<Size>(n) or workdata.rwork.size() < static_cast<Size>(2 * n),
       "Complex diagonalization workspace has incompatible dimensions.");
-  check_complex_matrix(A, "Complex diagonalization input");
   if (n == 0) return;
 
   // All LAPACK buffers are contiguous. Copy outputs only after successful
@@ -551,8 +535,6 @@ void diagonalize(StridedComplexMatrixView      P,
                  workdata.rwork.data_handle(),
                  &info);
   check_eigen_info(info);
-  check_complex_vector(workdata.eigenvalues, "ZGEEV eigenvalues");
-  check_complex_matrix(workdata.eigenvectors, "ZGEEV eigenvectors");
   P = transpose(workdata.eigenvectors);
   W = workdata.eigenvalues;
 }
@@ -613,7 +595,6 @@ void diagonalize(StridedComplexMatrixView       P,
   }
   ARTS_USER_ERROR_IF(n > 0 and nq > std::numeric_limits<int>::max() / n,
                      "Batched eigendecomposition has too many derivative right-hand sides.");
-  for (Index q = 0; q < nq; ++q) check_complex_matrix(dA[q], "Complex eigendecomposition direction");
   ComplexMatrix  vectors(n, n), value_derivatives(nq, n);
   ComplexTensor3 derivatives(nq, n, n, 0);
   ComplexVector  values(n);
@@ -664,9 +645,7 @@ void diagonalize(StridedComplexMatrixView       P,
       }
       for (Index row = 0; row < n; ++row) derivatives[q, row, i] -= vectors[row, i] * projection / squared_norm;
     }
-    check_complex_matrix(derivatives[q], "Complex eigenvector derivatives");
   }
-  check_complex_matrix(value_derivatives, "Complex eigenvalue derivatives");
   P  = vectors;
   W  = values;
   dP = derivatives;

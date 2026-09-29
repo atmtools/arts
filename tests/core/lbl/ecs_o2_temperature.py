@@ -22,6 +22,7 @@ ws.WignerInit()
 ws.abs_ecs_dataInit()
 ws.abs_ecs_dataAddMakarov2020()
 ws.abs_ecs_dataAddMeanAir(vmrs=[1], species=["N2"])
+ws.abs_bandsCheckEcs()
 
 ws.atm_pointInit()
 ws.atm_point.pressure = 1e5

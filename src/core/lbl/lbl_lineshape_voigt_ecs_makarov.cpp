@@ -110,7 +110,7 @@ void coupling_kernel(MatrixView                       W,
         for (Index q = 0; q < nq; ++q) {
           const Index idx  = L.toIndex();
           dsum[q]         += a * b * c * d * e * Numeric(2 * L + 1) *
-                     (tangent(dQ, q, idx) / Om[idx] - Q[idx] / Om[idx] * (tangent(dOmega, q, idx) / Om[idx]));
+                             (tangent(dQ, q, idx) / Om[idx] - Q[idx] / Om[idx] * (tangent(dOmega, q, idx) / Om[idx]));
         }
       }
       for (Index q = 0; q < nq; ++q) {
@@ -203,7 +203,6 @@ void prepare_energies(energy_data& energies, const QuantumIdentifier& qid, std::
   energies.e0.resize(lines.size());
   for (Size i = 0; i < lines.size(); ++i) {
     const auto& ln = lines[i];
-    validate_rotational_line(ln);
     maxJ           = std::max({maxJ, ln.Ju, ln.Jl});
     maxN           = std::max({maxN, ln.Nu, ln.Nl});
     energies.e0[i] = level_energy(ln.Nl, ln.Jl);
@@ -253,7 +252,6 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
 
   Rational maxJ{0}, maxN{0};
   for (const auto& ln : lines) {
-    validate_rotational_line(ln);
     maxJ = std::max({maxJ, ln.Ju, ln.Jl});
     maxN = std::max({maxN, ln.Nu, ln.Nl});
   }

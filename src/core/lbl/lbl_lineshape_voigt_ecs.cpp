@@ -123,8 +123,6 @@ void ComputeData::core_calc_eqv() {
       Complex projection  = 0;
       for (Size j = 0; j < n; ++j) projection += dip[j] * V[j, i];
       eqv_str[i] = projection * coefficients[i];
-      ARTS_USER_ERROR_IF(not std::isfinite(eqv_str[i].real()) or not std::isfinite(eqv_str[i].imag()),
-                         "Non-finite ECS equivalent-line strength")
     }
     for (Size t = 0; t < nt; ++t) {
       for (Size i = 0; i < n; ++i) {
@@ -142,8 +140,6 @@ void ComputeData::core_calc_eqv() {
           derivative_projection += ddip[t, j] * V[j, i] + dip[j] * dV[t, j, i];
         }
         deqv_strs[t, i] = derivative_projection * coefficients[i] + projection * derivative_coefficients[i, t];
-        ARTS_USER_ERROR_IF(not std::isfinite(deqv_strs[t, i].real()) or not std::isfinite(deqv_strs[t, i].imag()),
-                           "Non-finite ECS equivalent-line strength derivative")
       }
     }
   }
@@ -334,13 +330,10 @@ Numeric closure_residual(ConstMatrixView W, ConstVectorView d) {
   for (Index i = 0; i < W.ncols(); ++i) {
     Numeric residual = 0, scale = 0;
     for (Index j = 0; j < W.nrows(); ++j) {
-      const Numeric term = d[j] * W[j, i];
-      ARTS_USER_ERROR_IF(not std::isfinite(term), "Non-finite ECS optical sum-rule term")
-      residual += term;
-      scale    += std::abs(term);
+      const Numeric term  = d[j] * W[j, i];
+      residual           += term;
+      scale              += std::abs(term);
     }
-    ARTS_USER_ERROR_IF(not std::isfinite(residual) or not std::isfinite(scale),
-                       "Non-finite ECS optical sum-rule residual")
     if (scale > 0) result = std::max(result, std::abs(residual) / scale);
   }
   return result;
@@ -399,31 +392,12 @@ void apply_sum_rule(
                          (not dT.empty() and dT.size() != static_cast<Size>(nq)),
                      "Inconsistent ECS sum-rule derivative dimensions")
   ARTS_USER_ERROR_IF(not std::isfinite(T) or T <= 0, "ECS sum-rule correction requires positive finite temperature")
-  for (const Numeric seed : dT) {
-    ARTS_USER_ERROR_IF(not std::isfinite(seed), "Non-finite ECS sum-rule temperature derivative")
-  }
 
   // The sequential correction retains the historical truncated-band closure.
-  // In particular it cannot enforce the final column's sum rule. Do not hide
-  // overflow or invalid rates by treating a non-finite denominator as zero.
-  for (Size i = 0; i < n; ++i) {
-    ARTS_USER_ERROR_IF(not std::isfinite(dipr[i]), "Non-finite ECS reduced dipole for matrix line {}", i)
-    ARTS_USER_ERROR_IF(not std::isfinite(e0[i]), "Non-finite ECS sum-rule energy for matrix line {}", i)
-    for (Size j = 0; j < n; ++j) {
-      ARTS_USER_ERROR_IF(not std::isfinite(W[j, i]),
-                         "Non-finite ECS relaxation matrix element ({}, {}) before sum-rule correction",
-                         j,
-                         i)
-      for (Index q = 0; q < nq; ++q) {
-        ARTS_USER_ERROR_IF(not std::isfinite(dW[q, j, i]),
-                           "Non-finite ECS relaxation matrix derivative ({}, {}, {}) before sum-rule correction",
-                           q,
-                           j,
-                           i)
-      }
-    }
-  }
-
+  // In particular it cannot enforce the final column's sum rule. Overflow or
+  // invalid rates leave a non-finite matrix behind rather than a silently
+  // zeroed one; that is reported once for the propagation matrix instead of
+  // being scanned for element by element here.
   Vector dsumlw(nq), dsumup(nq), dscale(nq);
   for (Size i = 0; i < n; ++i) {
     Numeric sumlw = 0.0;
@@ -441,22 +415,8 @@ void apply_sum_rule(
       }
     }
 
-    ARTS_USER_ERROR_IF(
-        not std::isfinite(sumlw) or not std::isfinite(sumup), "Non-finite ECS sum-rule sums for matrix line {}", i)
-    ARTS_USER_ERROR_IF(sumlw != 0 and not std::isfinite(-sumup / sumlw),
-                       "ECS sum-rule correction overflows for matrix line {}; the supplied band and widths "
-                       "do not define a stable correction.",
-                       i)
     for (Index q = 0; q < nq; ++q) {
-      ARTS_USER_ERROR_IF(not std::isfinite(dsumlw[q]) or not std::isfinite(dsumup[q]),
-                         "Non-finite ECS sum-rule derivative sums for target {}, matrix line {}",
-                         q,
-                         i)
       dscale[q] = sumlw == 0 ? 0.0 : -(dsumup[q] + (-sumup / sumlw) * dsumlw[q]) / sumlw;
-      ARTS_USER_ERROR_IF(not std::isfinite(dscale[q]),
-                         "ECS sum-rule derivative correction overflows for target {}, matrix line {}",
-                         q,
-                         i)
     }
 
     for (Size j = i + 1; j < n; ++j) {
@@ -482,23 +442,38 @@ void apply_sum_rule(
       }
     }
   }
-
-  for (Size i = 0; i < n; ++i) {
-    for (Size j = 0; j < n; ++j) {
-      ARTS_USER_ERROR_IF(not std::isfinite(W[j, i]),
-                         "Non-finite ECS relaxation matrix element ({}, {}) after sum-rule correction",
-                         j,
-                         i)
-      for (Index q = 0; q < nq; ++q) {
-        ARTS_USER_ERROR_IF(not std::isfinite(dW[q, j, i]),
-                           "Non-finite ECS relaxation matrix derivative ({}, {}, {}) after sum-rule correction",
-                           q,
-                           j,
-                           i)
-      }
-    }
-  }
 }
+
+void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd) try {
+  ARTS_USER_ERROR_IF(bnd.size() == 0, "Cannot use an empty ECS band")
+  const auto& models = bnd.front().ls.single_models;
+  ARTS_USER_ERROR_IF(models.empty(), "No broadening species in the ECS band")
+
+  for (const auto& ln : bnd) {
+    ARTS_USER_ERROR_IF(
+        ln.ls.single_models.size() != models.size() or
+            not stdr::all_of(models | stdv::keys, [&](auto spec) { return ln.ls.single_models.contains(spec); }),
+        "All lines in an ECS band must have the same broadening species")
+    ARTS_USER_ERROR_IF(not std::isfinite(ln.ls.T0) or ln.ls.T0 <= 0 or ln.ls.T0 != bnd.front().ls.T0,
+                       "All lines in an ECS band must have the same positive reference temperature")
+    ARTS_USER_ERROR_IF(not std::isfinite(ln.f0) or ln.f0 <= 0 or not std::isfinite(ln.a) or ln.a < 0 or
+                           not std::isfinite(ln.gu) or ln.gu <= 0 or not std::isfinite(ln.e0),
+                       "Invalid ECS line frequency, Einstein A, statistical weight, or lower-state energy")
+  }
+
+  using enum LineByLineLineshape;
+  switch (bnd.lineshape) {
+    case VP_ECS_MAKAROV:  makarov::validate_band(bnd_qid, bnd); break;
+    case VP_ECS_HARTMANN: hartmann::validate_band(bnd_qid, bnd); break;
+    default:              ARTS_USER_ERROR("Unknown ECS line shape {}", bnd.lineshape)
+  }
+
+  // The reduced dipoles are deliberately not evaluated here.  They need the
+  // Wigner tables, which would make a pure catalogue check depend on
+  // *WignerInit*, and a dipole that comes out non-finite is reported for the
+  // propagation matrix anyway.
+}
+ARTS_METHOD_ERROR_CATCH
 
 void ComputeData::adapt_multi(const QuantumIdentifier&        bnd_qid,
                               const band_data&                bnd,
@@ -548,19 +523,9 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
   ARTS_USER_ERROR_IF(bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV and bnd_qid.isot != "O2-66"_isot,
                      "Makarov ECS currently supports only the O2-66 microwave band, got {}",
                      bnd_qid.isot)
-  if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV) makarov::validate_band(bnd_qid, bnd);
-
-  for (const auto& ln : bnd) {
-    ARTS_USER_ERROR_IF(
-        ln.ls.single_models.size() != broadener_count or
-            not stdr::all_of(models | stdv::keys, [&](auto spec) { return ln.ls.single_models.contains(spec); }),
-        "All lines in an ECS band must have the same broadening species")
-    ARTS_USER_ERROR_IF(not std::isfinite(ln.ls.T0) or ln.ls.T0 <= 0 or ln.ls.T0 != bnd.front().ls.T0,
-                       "All lines in an ECS band must have the same positive reference temperature")
-    ARTS_USER_ERROR_IF(not std::isfinite(ln.f0) or ln.f0 <= 0 or not std::isfinite(ln.a) or ln.a < 0 or
-                           not std::isfinite(ln.gu) or ln.gu <= 0 or not std::isfinite(ln.e0),
-                       "Invalid ECS line frequency, Einstein A, statistical weight, or lower-state energy")
-  }
+  // Everything about the band itself is catalogue data that cannot change
+  // between atmospheric points.  *validate_band* covers it, and is run by
+  // *abs_bandsCheckEcs* rather than here.
   if (presorted) {
     ARTS_USER_ERROR_IF(sort.size() != n, "ECS presorting requires a previous adaptation of the same band size")
     auto indices = sort;
@@ -608,11 +573,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
     const auto& ln = bnd.lines[i];
     pop[i]         = ln.gu * std::exp(-ln.e0 / (Constant::k * atm.temperature)) / QT;
     dipr[i]        = reduced_dipole(bnd_qid, bnd, ln);
-    ARTS_USER_ERROR_IF(not std::isfinite(dipr[i]), "Non-finite ECS reduced dipole")
     dip[i] = std::copysign(0.5 * Constant::c * std::sqrt(ln.a / (Math::pow3(ln.f0) * Constant::two_pi)), dipr[i]);
-    ARTS_USER_ERROR_IF(
-        not std::isfinite(pop[i]) or not std::isfinite(dip[i]) or not std::isfinite(ln.f0 * pop[i] * dip[i] * dip[i]),
-        "Non-finite ECS population, dipole, or sorting strength")
   }
 
   if (not presorted) {
@@ -726,9 +687,10 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
       const auto&   model = ln.ls.single_models.at(spec);
       const Numeric width = model.G0(ln.ls.T0, atm.temperature, atm.pressure);
       const Numeric shift = model.D0(ln.ls.T0, atm.temperature, atm.pressure);
-      ARTS_USER_ERROR_IF(not std::isfinite(width) or width < 0 or not std::isfinite(shift),
-                         "Invalid ECS pressure width or shift for species {}",
-                         spec)
+      // A negative width is not detectable downstream: it stays finite and
+      // turns the profile into gain.  Non-finite values are left to the
+      // propagation-matrix check.
+      ARTS_USER_ERROR_IF(width < 0, "Negative ECS pressure width for species {}", spec)
       Wimag[k, k]               = width;
       real_val(Ws[page, k, k]) += weight * shift;
       for (Size t = 0; t < nt; ++t) real_val(dW[t, k, k]) += dfractions[t, i] * shift;

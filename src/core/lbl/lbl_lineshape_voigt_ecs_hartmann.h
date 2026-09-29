@@ -20,6 +20,10 @@ Numeric reduced_dipole(
 Numeric rotational_energy(Rational J);
 Numeric level_energy(Rational J);
 
+//! Validate the CO2-626 linear-rotor model domain of a whole band.
+//! This depends only on the catalogue and is not repeated per atmospheric point.
+void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd);
+
 //! Prepare lower-state and reference-rotor energies before any angular-kernel swap.
 void prepare_energies(energy_data& energies, const QuantumIdentifier& qid, std::span<const rotational_line> lines);
 

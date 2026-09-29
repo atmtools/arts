@@ -27,6 +27,8 @@ ws.abs_bands[bandkey].lines = t
 def calc(ws, lineshape=None):
     if lineshape is not None:
         ws.abs_bands[bandkey].lineshape = lineshape
+    # Catalogue-level ECS validation; a no-op for the non-ECS line shapes.
+    ws.abs_bandsCheckEcs()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
     ws.spectral_propmatAddPredefined()

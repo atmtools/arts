@@ -44,6 +44,19 @@ basis_data prepare_basis(int                             count,
                          SpeciesEnum                     broadener,
                          const AtmPoint&                 atm);
 
+/** Validate everything about an ECS band that depends only on the catalogue.
+ *
+ * The line shape must be one of the ECS profiles.  Checked here are the
+ * band-to-kernel pairing, the shared broadening species and reference
+ * temperature, the per-line catalogue entries, and the rotational quantum
+ * numbers the kernel requires.
+ *
+ * None of this depends on the atmospheric state, so *ComputeData::adapt* does
+ * not repeat it for every atmospheric point.  Run it once after a band or its
+ * line shape is set; *abs_bandsCheckEcs* does so for a whole catalogue.
+ */
+void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd);
+
 //! Sequential truncated-band correction, including every target page of dW.
 //! Energies and reduced dipoles are fixed quantum-state data in matrix order.
 void apply_sum_rule(

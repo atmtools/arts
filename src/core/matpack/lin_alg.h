@@ -23,8 +23,12 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
 /** Solve A*x=b and return an estimate of the reciprocal 1-norm condition
  * number. Inputs are preserved, except that x may alias b. Strided views are
- * supported. Throws for singular/nonfinite inputs or rcond < min_rcond, and
- * leaves x unchanged on failure. An empty system returns 1.
+ * supported. Throws for a singular A or rcond < min_rcond, and leaves x
+ * unchanged on failure. An empty system returns 1.
+ *
+ * A nonfinite A is rejected through its 1-norm. A nonfinite b is not searched
+ * for and propagates into x: callers detect it on their own result rather than
+ * paying for a scan of every right-hand side here.
  */
 Numeric solve(StridedComplexVectorView      x,
               StridedConstComplexMatrixView A,
@@ -33,8 +37,11 @@ Numeric solve(StridedComplexVectorView      x,
 
 /** Solve A*X=B for all right-hand-side columns with one LU factorization and
  * return the reciprocal 1-norm condition estimate. Supports strided views and
- * X aliasing B. Throws for singular/nonfinite inputs or rcond < min_rcond and
- * leaves X unchanged on failure. An empty matrix A returns 1.
+ * X aliasing B. Throws for a singular A or rcond < min_rcond and leaves X
+ * unchanged on failure. An empty matrix A returns 1.
+ *
+ * A nonfinite A is rejected through its 1-norm. A nonfinite B is not searched
+ * for and propagates into X.
  */
 Numeric solve(StridedComplexMatrixView      X,
               StridedConstComplexMatrixView A,
@@ -149,8 +156,10 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
 
 /** Complex eigendecomposition A*P=P*diag(W), with right eigenvectors in the
  * columns of P. Supports strided views and preserves A unless it aliases an
- * output. Throws on invalid dimensions, nonfinite values, or LAPACK failure;
- * outputs are unchanged on failure. Empty matrices are accepted.
+ * output. Throws on invalid dimensions or LAPACK failure; outputs are
+ * unchanged on failure. Empty matrices are accepted. A nonfinite A is not
+ * searched for: LAPACK reports what it detects, and anything else propagates
+ * into P and W.
  */
 void diagonalize(StridedComplexMatrixView P, StridedComplexVectorView W, StridedConstComplexMatrixView A);
 void diagonalize(StridedComplexMatrixView      P,
@@ -165,7 +174,8 @@ void diagonalize(StridedComplexMatrixView      P,
  * Thus dP need not differentiate LAPACK's phase convention; phase-invariant
  * quantities and dW are independent of that convention. Supports strided views,
  * preserves inputs unless they alias outputs, and leaves outputs unchanged on
- * failure. The four outputs must not overlap each other.
+ * failure. The four outputs must not overlap each other. A nonfinite A is
+ * rejected through the gap scale; a nonfinite dA propagates into dP and dW.
  */
 void diagonalize(StridedComplexMatrixView      P,
                  StridedComplexVectorView      W,

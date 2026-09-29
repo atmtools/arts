@@ -139,19 +139,43 @@ Numeric level_energy(const Rational J) {
   return rotational_energy(J);
 }
 
+void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd) {
+  validate_isotopologue(bnd_qid.isot);
+  const auto& l2 = bnd_qid.state.at(QuantumNumberType::l2);
+
+  for (const auto& ln : bnd) {
+    const auto& J = ln.qn.at(QuantumNumberType::J);
+    validate_rotational_state(J.upper, l2.upper);
+    validate_rotational_state(J.lower, l2.lower);
+  }
+
+  // This linear-rotor kernel has no elastic L=0 basis rate.  Distinct
+  // transitions with the same rotational pair require additional state labels
+  // and collision dynamics; evaluating the power law at L=0 is singular.
+  for (Size i = 0; i < bnd.size(); ++i) {
+    const auto& Ji = bnd.lines[i].qn.at(QuantumNumberType::J);
+    for (Size j = i + 1; j < bnd.size(); ++j) {
+      const auto& Jj = bnd.lines[j].qn.at(QuantumNumberType::J);
+      ARTS_USER_ERROR_IF(Ji.upper == Jj.upper and Ji.lower == Jj.lower,
+                         "Hartmann ECS does not support distinct lines with the same rotational pair "
+                         "(J upper={}, J lower={}); an elastic L=0 collision model is required.",
+                         Ji.upper,
+                         Ji.lower)
+    }
+  }
+}
+
 void prepare_energies(energy_data& energies, const QuantumIdentifier& qid, std::span<const rotational_line> lines) {
   validate_isotopologue(qid.isot);
-  const auto& l2 = qid.state.at(QuantumNumberType::l2);
-  Rational    maxJ{0};
+  Rational maxJ{0};
   energies.e0.resize(lines.size());
   for (Size i = 0; i < lines.size(); ++i) {
     const auto& ln = lines[i];
-    validate_rotational_state(ln.Ju, l2.upper);
-    validate_rotational_state(ln.Jl, l2.lower);
-    maxJ = std::max({maxJ, ln.Ju, ln.Jl});
+    maxJ           = std::max({maxJ, ln.Ju, ln.Jl});
     // Keep the original lower state even when the angular kernel swaps J roles.
     energies.e0[i] = level_energy(ln.Jl);
   }
+  const auto&      l2 = qid.state.at(QuantumNumberType::l2);
   const std::array rats{maxJ, Rational{l2.upper}, Rational{l2.lower}};
   const int        maxL = wigner_init_size(rats);
   prepare_rotational_ladder(energies, maxL, rotational_energy);
@@ -181,32 +205,13 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
       e0.size() != n or dipr.size() != n or W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n),
       "Inconsistent Hartmann ECS kernel dimensions")
 
-  // This linear-rotor kernel has no elastic L=0 basis rate.  Distinct
-  // transitions with the same rotational pair require additional state labels
-  // and collision dynamics; evaluating the power law at L=0 is singular.
-  for (Size i = 0; i < n; ++i) {
-    const auto& Ji = lines[i];
-    for (Size j = i + 1; j < n; ++j) {
-      const auto& Jj = lines[j];
-      ARTS_USER_ERROR_IF(Ji.Ju == Jj.Ju and Ji.Jl == Jj.Jl,
-                         "Hartmann ECS does not support distinct lines with the same rotational pair "
-                         "(J upper={}, J lower={}); an elastic L=0 collision model is required.",
-                         Ji.Ju,
-                         Ji.Jl)
-    }
-  }
-
   // These are constant for a band
   auto&    l2 = bnd_qid.state.at(QuantumNumberType::l2);
   Rational li = l2.upper;
   Rational lf = l2.lower;
 
   Rational maxJ{0};
-  for (const auto& ln : lines) {
-    validate_rotational_state(ln.Ju, li);
-    validate_rotational_state(ln.Jl, lf);
-    maxJ = std::max({maxJ, ln.Ju, ln.Jl});
-  }
+  for (const auto& ln : lines) maxJ = std::max({maxJ, ln.Ju, ln.Jl});
 
   using std::swap;
   const bool swap_order = li > lf;

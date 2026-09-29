@@ -53,18 +53,16 @@ Numeric epsilon(const rotational_state& state) {
 
 Numeric tangent(ConstMatrixView values, Index q, Index i) { return values.empty() ? 0.0 : values[q, i]; }
 
+// Only the shapes are checked here.  A nonfinite tangent propagates into dW
+// and is reported once for the result rather than scanned for per element.
 void validate_derivatives(ConstMatrixView values, Index targets, Index inputs) {
   ARTS_USER_ERROR_IF(not values.empty() and (values.nrows() != targets or values.ncols() != inputs),
                      "Inconsistent NH3 ECS derivative dimensions")
-  for (Index q = 0; q < values.nrows(); ++q)
-    for (Index i = 0; i < values.ncols(); ++i)
-      ARTS_USER_ERROR_IF(not std::isfinite(values[q, i]), "Non-finite NH3 ECS input derivative")
 }
 
 void validate_derivatives(ConstVectorView values, Index targets) {
   ARTS_USER_ERROR_IF(not values.empty() and values.size() != static_cast<Size>(targets),
                      "Inconsistent NH3 ECS derivative dimensions")
-  for (Numeric value : values) ARTS_USER_ERROR_IF(not std::isfinite(value), "Non-finite NH3 ECS input derivative")
 }
 
 void validate_output(MatrixView W, Tensor3View dW, Index n){
@@ -214,17 +212,16 @@ void adiabatic_factors(VectorView      Omega,
   validate_derivatives(dgap, nq, n);
   validate_derivatives(dduration, nq);
   for (Index i = 0; i < n; ++i) {
-    ARTS_USER_ERROR_IF(not std::isfinite(gap[i]) or gap[i] < 0,
-                       "NH3 adiabatic energy gaps must be finite and nonnegative")
+    // A negative gap silently reverses the correction, so it is checked; an
+    // overflow to a nonfinite factor shows up in the result instead.
+    ARTS_USER_ERROR_IF(gap[i] < 0, "NH3 adiabatic energy gaps must be nonnegative")
     const Numeric x = duration * (gap[i] / Constant::h_bar);
     const Numeric a = 1 + x * x / 24;
     Omega[i]        = a * a;
-    ARTS_USER_ERROR_IF(not std::isfinite(Omega[i]), "NH3 adiabatic factor overflowed")
     for (Index q = 0; q < nq; ++q) {
       const Numeric dt = dduration.empty() ? 0.0 : dduration[q];
       const Numeric dx = (duration * tangent(dgap, q, i) + gap[i] * dt) / Constant::h_bar;
       dOmega[q, i]     = a * x * dx / 6;
-      ARTS_USER_ERROR_IF(not std::isfinite(dOmega[q, i]), "NH3 adiabatic derivative overflowed")
     }
   }
 }
@@ -254,8 +251,7 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
   for (Index i = 0; i < n; ++i) {
     validate_line(lines[i]);
     maxJ = std::max({maxJ, lines[i].upper.J, lines[i].lower.J});
-    ARTS_USER_ERROR_IF(not std::isfinite(e0[i]) or not std::isfinite(Omega_line[i]) or Omega_line[i] < 1,
-                       "NH3 ECS requires finite lower-state energies and finite Omega >= 1")
+    ARTS_USER_ERROR_IF(Omega_line[i] < 1, "NH3 ECS requires Omega >= 1")
     for (Index j = 0; j < i; ++j)
       ARTS_USER_ERROR_IF(state_key(lines[i]) == state_key(lines[j]),
                          "Duplicate rotational/inversion transition in NH3 parallel band")
@@ -273,15 +269,12 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
                        Mi,
                        Mf)
     ARTS_USER_ERROR_IF(not channels.emplace(std::array{L, Mi, Mf}, c).second, "Duplicate NH3 ECS channel")
-    ARTS_USER_ERROR_IF(not std::isfinite(basis.Q[c]) or not std::isfinite(basis.Omega[c]) or basis.Omega[c] < 1,
-                       "NH3 ECS requires finite Q and finite basis Omega >= 1")
+    ARTS_USER_ERROR_IF(basis.Omega[c] < 1, "NH3 ECS requires basis Omega >= 1")
     max_rank       = std::max(max_rank, L);
     corrected_Q[c] = basis.Q[c] * basis.Omega[c];
-    ARTS_USER_ERROR_IF(not std::isfinite(corrected_Q[c]), "NH3 corrected dynamical factor overflowed")
     for (Index q = 0; q < nq; ++q) {
       dcorrected_Q[q, c] =
           tangent(derivatives.dQ, q, c) * basis.Omega[c] + basis.Q[c] * tangent(derivatives.dOmega_basis, q, c);
-      ARTS_USER_ERROR_IF(not std::isfinite(dcorrected_Q[q, c]), "NH3 dynamical-factor derivative overflowed")
     }
   }
   for (Index i = 0; i < n; ++i) {
@@ -307,32 +300,21 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
                   static_cast<int>(2 * max_arg + 1),
                   dW,
                   derivatives);
-  for (Index i = 0; i < n; ++i) {
-    for (Index j = 0; j < n; ++j) {
-      if (i == j) continue;
-      ARTS_USER_ERROR_IF(not std::isfinite(W[i, j]), "Non-finite NH3 ECS coupling")
-      for (Index q = 0; q < nq; ++q)
-        ARTS_USER_ERROR_IF(not std::isfinite(dW[q, i, j]), "Non-finite NH3 ECS coupling derivative")
-    }
-  }
 }
 
 void sum_rule_diagonal(MatrixView W, ConstVectorView dipr, Tensor3View dW) {
   const Index n = static_cast<Index>(dipr.size());
   validate_output(W, dW, n);
-  for (Numeric dipole : dipr)
-    ARTS_USER_ERROR_IF(not std::isfinite(dipole) or dipole == 0, "NH3 sum rule requires finite nonzero dipoles")
+  for (Numeric dipole : dipr) ARTS_USER_ERROR_IF(dipole == 0, "NH3 sum rule requires nonzero dipoles")
   for (Index i = 0; i < n; ++i) {
     Numeric width = 0;
     for (Index j = 0; j < n; ++j)
       if (j != i) width -= dipr[j] * W[i, j] / dipr[i];
-    ARTS_USER_ERROR_IF(not std::isfinite(width), "Non-finite NH3 sum-rule width")
     W[i, i] = width;
     for (Index q = 0; q < dW.npages(); ++q) {
       Numeric derivative = 0;
       for (Index j = 0; j < n; ++j)
         if (j != i) derivative -= dipr[j] * dW[q, i, j] / dipr[i];
-      ARTS_USER_ERROR_IF(not std::isfinite(derivative), "Non-finite NH3 sum-rule width derivative")
       dW[q, i, i] = derivative;
     }
   }
