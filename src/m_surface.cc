@@ -352,3 +352,123 @@ void spectral_radSurfaceScatteringFlatDiffuse(
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radSurfaceScatteringSpecular(
+    const Workspace& ws,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
+    const AscendingGrid& freq_grid,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const MapOfSurfaceScatteringModel& surface_models,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const Agenda& spectral_rad_incoming_agenda,
+    const Agenda& spectral_rad_closed_surface_agenda) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Incoming direction is the mirror reflection of the outgoing direction
+  // about the local surface normal (see spectral_radSurfaceReflectance)
+  const Vector2 los_in = specular_losNormal(surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
+
+  // get the emissivity vector and BRDF matrix at the exact (single)
+  // incident and outgoing directions
+  const Vector za_in  {los_in[0]};
+  const Vector aa_in  {los_in[1]};
+  const Vector za_out {ray_point.los[0]};
+  const Vector aa_out {ray_point.los[1]};
+
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(
+          surf_point,
+          ray_point.pos[1],
+          ray_point.pos[2],
+          freq_grid,
+          za_in,
+          aa_in,
+          za_out,
+          aa_out);
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  // get the incoming radiation from the single specular direction
+  StokvecVector spectral_rad_incoming;
+  StokvecMatrix spectral_rad_incoming_jac;
+  spectral_rad_incoming_agendaExecute(ws,
+                                      spectral_rad_incoming,
+                                      spectral_rad_incoming_jac,
+                                      freq_grid,
+                                      jac_targets,
+                                      ray_point.pos,
+                                      los_in,
+                                      atm_field,
+                                      surf_field,
+                                      subsurf_field,
+                                      spectral_rad_incoming_agenda);
+
+  // Calculate reflected radiation (no angular integration: single direction)
+  StokvecVector spectral_rad_reflected(nf);
+  spectral_rad_reflected = 0.0;
+  StokvecMatrix spectral_rad_reflected_jac(nq, nf);
+  spectral_rad_reflected_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i_f = 0; i_f < nf; i_f++) {
+    spectral_rad_reflected[i_f] +=
+        surface_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+  }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+  for (Size i_jac = 0; i_jac < nq; i_jac++) {
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_reflected_jac[i_jac, i_f] =
+          surface_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+    }
+  }
+
+  // Calculate upward emission with the specular emissivity
+  // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i_f = 0; i_f < nf; i_f++) {
+    spectral_rad_surface[i_f] = surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_surface[i_f];
+  }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+  for (Size i_jac = 0; i_jac < nq; i_jac++) {
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_jac[i_jac, i_f] =
+          surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+    }
+  }
+
+  spectral_rad += spectral_rad_reflected;
+  spectral_rad += spectral_rad_surface;
+  spectral_rad_jac += spectral_rad_reflected_jac;
+}
+ARTS_METHOD_ERROR_CATCH
+
