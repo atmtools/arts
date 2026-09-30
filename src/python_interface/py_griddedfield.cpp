@@ -8,8 +8,8 @@
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"
-#include "python_interface.h"
 #include "py_griddedfield_helpers.h"
+#include "python_interface.h"
 
 static_assert(std::is_nothrow_move_constructible_v<GriddedField3>,
               "Did someone change the gridded field implementation?");

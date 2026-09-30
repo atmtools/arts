@@ -6,8 +6,8 @@
 #include "hpy_arts.h"
 #include "hpy_matpack.h"
 #include "hpy_vector.h"
-#include "python_interface.h"
 #include "py_griddedfield_helpers.h"
+#include "python_interface.h"
 
 namespace Python {
 void py_griddedfield_named(py::module_& m) {

@@ -5,8 +5,6 @@
 
 namespace lbl::linemixing {
 Numeric species_data::Q(const Rational J, const Numeric T, const Numeric T0, const Numeric energy) const {
-  // Preconditions (J > 0, positive finite temperatures) belong to the caller:
-  // prepare_basis starts its ladder at L=1 and validates the result once.
   return std::exp(-beta(T0, T) * energy / (Constant::k * T)) * scaling(T0, T) / powr(J * (J + 1), lambda(T0, T));
 }
 

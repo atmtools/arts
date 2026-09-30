@@ -73,9 +73,9 @@ void ComputeData::core_calc_eqv() {
   eigenvector_rcond = 1;
   if (n == 0) return;
 
-  ComplexVector  rhs(n), coefficients(n);
-  ComplexMatrix  derivative_rhs(n, nt), derivative_coefficients(n, nt);
-  Vector         dcenter(nt);
+  ComplexVector rhs(n), coefficients(n);
+  ComplexMatrix derivative_rhs(n, nt), derivative_coefficients(n, nt);
+  Vector        dcenter(nt);
   for (Size j = 0; j < n; ++j) rhs[j] = pop[j] * dip[j];
   complex_diagonalize_workdata workspace(n);
 

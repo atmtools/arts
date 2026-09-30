@@ -163,10 +163,10 @@ Fixture carbon_dioxide() {
     auto&      rate     = out.rates[partner];
     // Rodrigues1997 scaling/lambda, with synthetic temperature dependence of
     // beta and collision distance to cover every ECS coefficient derivative.
-    rate.scaling              = {LineShapeModelType::T1,
-                                 {Conversion::kaycm_per_atm2hz_per_pa(nitrogen ? 0.0180 : 0.0168), nitrogen ? 0.85 : 0.5}};
-    rate.lambda               = {LineShapeModelType::T1, {nitrogen ? 0.81 : 0.82, nitrogen ? 0.0152 : -0.091}};
-    rate.beta                 = {LineShapeModelType::T1, {nitrogen ? 0.008 : 0.007, 0.17}};
+    rate.scaling = {LineShapeModelType::T1,
+                    {Conversion::kaycm_per_atm2hz_per_pa(nitrogen ? 0.0180 : 0.0168), nitrogen ? 0.85 : 0.5}};
+    rate.lambda  = {LineShapeModelType::T1, {nitrogen ? 0.81 : 0.82, nitrogen ? 0.0152 : -0.091}};
+    rate.beta    = {LineShapeModelType::T1, {nitrogen ? 0.008 : 0.007, 0.17}};
     rate.collisional_distance = {LineShapeModelType::T1, {nitrogen ? 2.2e-10 : 2.4e-10, -0.12}};
   }
   return out;
@@ -273,8 +273,8 @@ Request requested_derivatives(const Fixture& fixture, const AtmPoint& atm) {
         // finite differences without materially changing the spectral shape.
         if (variable == LineShapeModelVariable::D0) {
           const Numeric shift_step = atm.pressure < 1e3 ? 20 : 1;
-          step                     = coefficient == LineShapeModelCoefficient::X0 ? shift_step
-                                                                                  : shift_step / (1 + std::abs(atm.temperature - 296));
+          step = coefficient == LineShapeModelCoefficient::X0 ? shift_step
+                                                              : shift_step / (1 + std::abs(atm.temperature - 296));
         }
         request.parameters.push_back({std::format("{} {} {}", species, variable, coefficient),
                                       step,

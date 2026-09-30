@@ -15,7 +15,6 @@ struct species_data {
   temperature::data lambda{LineShapeModelType::T0, {0}};
   temperature::data collisional_distance{LineShapeModelType::T0, {0}};
 
-  //! Inelastic basis rate for positive angular transfer J; Q(0) is undefined.
   [[nodiscard]] Numeric Q(const Rational J, const Numeric T, const Numeric T0, const Numeric energy) const;
 
   [[nodiscard]] Numeric Omega(const Numeric T,

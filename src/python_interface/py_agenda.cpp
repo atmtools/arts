@@ -11,9 +11,9 @@
 #include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <parameters.h>
+#include <py_auto_wsg_wsv_implicit.h>
 #include <workspace.h>
 #include <workspace_groups.h>
-#include <py_auto_wsg_wsv_implicit.h>
 
 #include <algorithm>
 #include <exception>
