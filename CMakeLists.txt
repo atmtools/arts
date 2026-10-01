@@ -133,6 +133,8 @@ enable_testing ()
 
 list (APPEND CMAKE_MODULE_PATH "${ARTS_SOURCE_DIR}/cmake/modules")
 
+include (ArtsGenerateFiles)
+
 ########### Find Boost ###########
 find_package (Boost COMPONENTS REQUIRED headers)
 

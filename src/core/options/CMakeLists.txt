@@ -5,10 +5,8 @@ target_link_libraries(arts_options PUBLIC strings species_enum_info_gen)
 add_executable(make_enums make_enums.cc)
 target_link_libraries(make_enums PUBLIC arts_options util strings)
 
-add_custom_command(OUTPUT enums.h enums.cpp
-  COMMAND make_enums
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-  DEPENDS make_enums
+arts_generate(make_enums
+  OUTPUT enums.h enums.cpp
   COMMENT "Generating automatic enumeration options"
 )
 

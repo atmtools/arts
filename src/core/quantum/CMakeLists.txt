@@ -16,18 +16,18 @@ add_executable(make_molparam_map make_molparam_map.cc hitran_species_info.cc)
 target_link_libraries(make_molparam_map PUBLIC species)
 target_include_directories(make_molparam_map PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_custom_command(
+arts_generate(make_molparam_map
+  ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_hitran_species_map.h
-  COMMAND make_molparam_map ${ARTS_CAT_DATA_DIR}
-  DEPENDS make_molparam_map
+  COMMENT "Generating automatic HITRAN species map"
 )
 
 add_executable(make_jpl_data make_jpl_data.cc jpl_species_info.cc)
 target_link_libraries(make_jpl_data PUBLIC species)
 target_include_directories(make_jpl_data PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_custom_command(
+arts_generate(make_jpl_data
+  ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_jpl_species_map.h
-  COMMAND make_jpl_data ${ARTS_CAT_DATA_DIR}
-  DEPENDS make_jpl_data
+  COMMENT "Generating automatic JPL species map"
 )

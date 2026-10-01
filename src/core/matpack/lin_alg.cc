@@ -54,6 +54,20 @@ void check_lu_solve_info(const int info, const std::string_view routine) {
   ARTS_USER_ERROR_IF(info > 0, "{} returned an unexpected positive INFO value {}.", routine, info);
 }
 
+int complex_lapack_size(const Index n) {
+  ARTS_USER_ERROR_IF(n < 0 or n > std::numeric_limits<int>::max() / 2,
+                     "Complex LAPACK dimension {} is outside the supported integer range.",
+                     n);
+  return static_cast<int>(n);
+}
+
+bool finite_complex(const Complex value) { return std::isfinite(value.real()) and std::isfinite(value.imag()); }
+
+void check_eigen_info(const int info) {
+  ARTS_USER_ERROR_IF(info < 0, "ZGEEV received an illegal value for argument {}.", -info);
+  ARTS_USER_ERROR_IF(info > 0, "ZGEEV failed to converge (INFO={}); no right eigenvectors were computed.", info);
+}
+
 }  // namespace
 
 void svd(Matrix& U, Vector& s, Matrix& V, ConstMatrixView A, bool full_matrices) {
@@ -210,6 +224,73 @@ void solve(VectorView x, ConstMatrixView A, ConstVectorView b) {
 
   // Solve the system using backsubstitution.
   lubacksub(x, LU, b, indx);
+}
+
+Numeric solve(StridedComplexVectorView      x,
+              StridedConstComplexMatrixView A,
+              StridedConstComplexVectorView b,
+              const Numeric                 min_rcond) {
+  const Index n = A.ncols();
+  complex_lapack_size(n);
+  ARTS_USER_ERROR_IF(A.nrows() != n or x.size() != static_cast<Size>(n) or b.size() != static_cast<Size>(n),
+                     "Complex solve requires a square matrix and matching input/output vector dimensions.");
+  ComplexMatrix rhs(n, 1), solution(n, 1);
+  for (Index i = 0; i < n; ++i) rhs[i, 0] = b[i];
+  const Numeric rcond = solve(solution, A, rhs, min_rcond);
+  for (Index i = 0; i < n; ++i) x[i] = solution[i, 0];
+  return rcond;
+}
+
+Numeric solve(StridedComplexMatrixView      X,
+              StridedConstComplexMatrixView A,
+              StridedConstComplexMatrixView B,
+              const Numeric                 min_rcond) {
+  const Index n     = A.ncols();
+  int         n_int = complex_lapack_size(n);
+  ARTS_USER_ERROR_IF(A.nrows() != n or B.nrows() != n or X.shape() != B.shape(),
+                     "Complex solve requires a square matrix and matching input/output matrix dimensions.");
+  ARTS_USER_ERROR_IF(B.ncols() > std::numeric_limits<int>::max(),
+                     "Complex solve has too many right-hand sides for LAPACK.");
+  ARTS_USER_ERROR_IF(not std::isfinite(min_rcond) or min_rcond < 0 or min_rcond > 1,
+                     "Complex solve requires a finite minimum reciprocal condition number in [0, 1].");
+  if (n == 0) return 1;
+
+  // Transpose into contiguous storage so LAPACK sees the original matrix.
+  ComplexMatrix lu(n, n);
+  lu = transpose(A);
+  ComplexMatrix    rhs{transpose(B)};
+  std::vector<int> ipiv(n);
+  Numeric          anorm = 0;
+  for (Index j = 0; j < n; ++j) {
+    Numeric column_sum = 0;
+    for (Index i = 0; i < n; ++i) column_sum += std::abs(A[i, j]);
+    anorm = std::max(anorm, column_sum);
+  }
+  ARTS_USER_ERROR_IF(not std::isfinite(anorm), "Complex solve matrix norm overflowed.");
+
+  int info = 0;
+  lapack::zgetrf_(&n_int, &n_int, lu.data_handle(), &n_int, ipiv.data(), &info);
+  check_lu_info(info, "ZGETRF");
+
+  char          norm  = '1';
+  Numeric       rcond = 0;
+  ComplexVector work(2 * n);
+  Vector        rwork(2 * n);
+  lapack::zgecon_(
+      &norm, &n_int, lu.data_handle(), &n_int, &anorm, &rcond, work.data_handle(), rwork.data_handle(), &info);
+  check_lu_solve_info(info, "ZGECON");
+  ARTS_USER_ERROR_IF(not std::isfinite(rcond) or rcond <= 0 or rcond < min_rcond,
+                     "Complex solve matrix is singular or ill-conditioned (rcond={}, minimum={}).",
+                     rcond,
+                     min_rcond);
+
+  char trans = 'N';
+  int  nrhs  = static_cast<int>(B.ncols());
+  if (nrhs > 0)
+    lapack::zgetrs_(&trans, &n_int, &nrhs, lu.data_handle(), &n_int, ipiv.data(), rhs.data_handle(), &n_int, &info);
+  check_lu_solve_info(info, "ZGETRS");
+  X = transpose(rhs);
+  return rcond;
 }
 
 void inv_inplace(MatrixView A, inv_workdata& wo) {
@@ -373,67 +454,202 @@ void diagonalize(MatrixView P, VectorView WR, VectorView WI, ConstMatrixView A, 
   WR = WR2;
 }
 
-//! Matrix Diagonalization
-/*!
- * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
- * 
- * The function makes many copies and is thereby not fast.
- * There are no tests on the condition of the returned matrix,
- * so nan and inf can occur.
- * 
- * \param[out] P The right eigenvectors.
- * \param[out] W The eigenvalues.
- * \param[in]  A The matrix to diagonalize.
- */
-void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A) {
+complex_diagonalize_workdata::complex_diagonalize_workdata(const Index n) {
+  complex_lapack_size(n);
+  N = n;
+  matrix.resize(n, n);
+  eigenvectors.resize(n, n);
+  eigenvalues.resize(n);
+  rwork.resize(2 * n);
+}
+
+void diagonalize(StridedComplexMatrixView P, StridedComplexVectorView W, StridedConstComplexMatrixView A) {
+  ARTS_USER_ERROR_IF(A.nrows() != A.ncols() or P.shape() != A.shape() or W.size() != static_cast<Size>(A.ncols()),
+                     "Complex diagonalization requires a square matrix and matching output dimensions.");
   complex_diagonalize_workdata workdata(A.ncols());
   diagonalize(P, W, A, workdata);
 }
 
-void diagonalize(ComplexMatrixView             P,
-                 ComplexVectorView             W,
-                 const ConstComplexMatrixView  A,
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedConstComplexMatrixView A,
                  complex_diagonalize_workdata& workdata) {
-  Index n = A.ncols();
+  const Index n     = A.ncols();
+  int         n_int = complex_lapack_size(n);
+  ARTS_USER_ERROR_IF(A.nrows() != n or P.shape() != A.shape() or W.size() != static_cast<Size>(n),
+                     "Complex diagonalization requires a square matrix and matching output dimensions.");
+  ARTS_USER_ERROR_IF(
+      workdata.N != n or workdata.matrix.shape() != A.shape() or workdata.eigenvectors.shape() != A.shape() or
+          workdata.eigenvalues.size() != static_cast<Size>(n) or workdata.rwork.size() < static_cast<Size>(2 * n),
+      "Complex diagonalization workspace has incompatible dimensions.");
+  if (n == 0) return;
 
-  // A must be a square matrix.
-  assert(n == A.nrows());
-  assert(n == static_cast<Index>(W.size()));
-  assert(n == P.nrows());
-  assert(n == P.ncols());
-  assert(n == workdata.N);
-
+  // All LAPACK buffers are contiguous. Copy outputs only after successful
+  // completion, so strided views and input/output aliasing are supported.
   workdata.matrix = transpose(A);
-
-  // Integers
-  int LDA = int(A.ncols()), LDA_L = int(A.ncols()), LDA_R = int(A.ncols()), n_int = int(n), info;
-
-  // We want to calculate RP not LP
-  char l_eig = 'N', r_eig = 'V';
-
-  // Work matrix
-  int     lwork = static_cast<int>(workdata.work.size());
+  int     info = 0, lda_l = 1;
+  char    l_eig = 'N', r_eig = 'V';
   Complex left_eigenvector_dummy{};
-  LDA_L = 1;
 
-  // Main calculations.  Note that errors in the output is ignored
+  if (workdata.work.empty()) {
+    int     lwork = -1;
+    Complex query{};
+    lapack::zgeev_(&l_eig,
+                   &r_eig,
+                   &n_int,
+                   workdata.matrix.data_handle(),
+                   &n_int,
+                   workdata.eigenvalues.data_handle(),
+                   &left_eigenvector_dummy,
+                   &lda_l,
+                   workdata.eigenvectors.data_handle(),
+                   &n_int,
+                   &query,
+                   &lwork,
+                   workdata.rwork.data_handle(),
+                   &info);
+    check_eigen_info(info);
+    ARTS_USER_ERROR_IF(
+        not finite_complex(query) or query.real() < 2 * n_int or query.real() > std::numeric_limits<int>::max(),
+        "ZGEEV returned an invalid workspace size {}.",
+        query);
+    workdata.work.resize(static_cast<Index>(query.real()));
+  }
+
+  ARTS_USER_ERROR_IF(workdata.work.size() < static_cast<Size>(2 * n) or
+                         workdata.work.size() > static_cast<Size>(std::numeric_limits<int>::max()),
+                     "Complex diagonalization workspace size is outside the LAPACK range.");
+  int lwork = static_cast<int>(workdata.work.size());
   lapack::zgeev_(&l_eig,
                  &r_eig,
                  &n_int,
                  workdata.matrix.data_handle(),
-                 &LDA,
-                 W.data_handle(),
+                 &n_int,
+                 workdata.eigenvalues.data_handle(),
                  &left_eigenvector_dummy,
-                 &LDA_L,
-                 P.data_handle(),
-                 &LDA_R,
+                 &lda_l,
+                 workdata.eigenvectors.data_handle(),
+                 &n_int,
                  workdata.work.data_handle(),
                  &lwork,
                  workdata.rwork.data_handle(),
                  &info);
+  check_eigen_info(info);
+  P = transpose(workdata.eigenvectors);
+  W = workdata.eigenvalues;
+}
 
-  for (Index i = 0; i < n; i++)
-    for (Index j = 0; j < i; j++) std::swap(P[j, i], P[i, j]);
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedComplexMatrixView      dP,
+                 StridedComplexVectorView      dW,
+                 StridedConstComplexMatrixView A,
+                 StridedConstComplexMatrixView dA) {
+  complex_diagonalize_workdata workdata(A.ncols());
+  diagonalize(P, W, dP, dW, A, dA, workdata);
+}
+
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedComplexMatrixView      dP,
+                 StridedComplexVectorView      dW,
+                 StridedConstComplexMatrixView A,
+                 StridedConstComplexMatrixView dA,
+                 complex_diagonalize_workdata& workdata) {
+  const Index n = A.ncols();
+  ARTS_USER_ERROR_IF(A.nrows() != n or P.shape() != A.shape() or dP.shape() != A.shape() or dA.shape() != A.shape() or
+                         W.size() != static_cast<Size>(n) or dW.size() != static_cast<Size>(n),
+                     "Complex eigendecomposition derivative requires matching square matrix and vector dimensions.");
+  ComplexTensor3 directions(1, n, n), derivatives(1, n, n);
+  ComplexMatrix  value_derivatives(1, n);
+  directions[0] = dA;
+  diagonalize(P, W, derivatives, value_derivatives, A, directions, workdata);
+  dP = derivatives[0];
+  dW = value_derivatives[0];
+}
+
+void diagonalize(StridedComplexMatrixView       P,
+                 StridedComplexVectorView       W,
+                 StridedComplexTensor3View      dP,
+                 StridedComplexMatrixView       dW,
+                 StridedConstComplexMatrixView  A,
+                 StridedConstComplexTensor3View dA) {
+  complex_diagonalize_workdata workdata(A.ncols());
+  diagonalize(P, W, dP, dW, A, dA, workdata);
+}
+
+void diagonalize(StridedComplexMatrixView       P,
+                 StridedComplexVectorView       W,
+                 StridedComplexTensor3View      dP,
+                 StridedComplexMatrixView       dW,
+                 StridedConstComplexMatrixView  A,
+                 StridedConstComplexTensor3View dA,
+                 complex_diagonalize_workdata&  workdata) {
+  const Index n = A.ncols(), nq = dA.npages();
+  ARTS_USER_ERROR_IF(A.nrows() != n or P.shape() != A.shape() or dP.shape() != dA.shape() or dA.nrows() != n or
+                         dA.ncols() != n or W.size() != static_cast<Size>(n) or dW.nrows() != nq or dW.ncols() != n,
+                     "Batched complex eigendecomposition derivatives require matching matrix and Jacobian dimensions.");
+  if (nq == 0) {
+    diagonalize(P, W, A, workdata);
+    return;
+  }
+  ARTS_USER_ERROR_IF(n > 0 and nq > std::numeric_limits<int>::max() / n,
+                     "Batched eigendecomposition has too many derivative right-hand sides.");
+  ComplexMatrix  vectors(n, n), value_derivatives(nq, n);
+  ComplexTensor3 derivatives(nq, n, n, 0);
+  ComplexVector  values(n);
+  diagonalize(vectors, values, A, workdata);
+  if (n == 0) return;
+  // Subtract a scalar carrier when measuring the gap scale. The derivative
+  // should not become ill-conditioned merely by adding a large multiple of I.
+  Numeric scale = 0;
+  for (Index i = 0; i < n; ++i) {
+    Numeric row_sum = 0;
+    for (Index j = 0; j < n; ++j) { row_sum += std::abs(A[i, j] - (i == j ? A[0, 0] : Complex{})); }
+    scale = std::max(scale, row_sum);
+  }
+  ARTS_USER_ERROR_IF(not std::isfinite(scale), "Complex eigendecomposition derivative norm overflowed.");
+  const Numeric gap_tolerance = 64 * std::numeric_limits<Numeric>::epsilon() * scale;
+  for (Index i = 0; i < n; ++i)
+    for (Index j = 0; j < i; ++j)
+      ARTS_USER_ERROR_IF(std::abs(values[i] - values[j]) <= gap_tolerance,
+                         "Complex eigendecomposition derivative requires separated eigenvalues; modes {} and {} "
+                         "have gap {} (tolerance {}).",
+                         i,
+                         j,
+                         std::abs(values[i] - values[j]),
+                         gap_tolerance);
+
+  // Solve P*B=dA*P with one factorization and all nq*n right-hand sides, without
+  // forming P^-1. The local buffer stores the transpose of all RHS columns.
+  ComplexMatrix transformed(nq * n, n, 0);
+  for (Index q = 0; q < nq; ++q)
+    for (Index col = 0; col < n; ++col)
+      for (Index row = 0; row < n; ++row)
+        for (Index k = 0; k < n; ++k) transformed[q * n + col, row] += dA[q, row, k] * vectors[k, col];
+  solve(transpose(transformed), vectors, transpose(transformed), 1e-12);
+
+  for (Index q = 0; q < nq; ++q) {
+    for (Index i = 0; i < n; ++i) {
+      value_derivatives[q, i] = transformed[q * n + i, i];
+      for (Index j = 0; j < n; ++j) {
+        if (i == j) continue;
+        const Complex coefficient = transformed[q * n + i, j] / (values[i] - values[j]);
+        for (Index row = 0; row < n; ++row) derivatives[q, row, i] += vectors[row, j] * coefficient;
+      }
+      Complex projection   = 0;
+      Numeric squared_norm = 0;
+      for (Index row = 0; row < n; ++row) {
+        projection   += std::conj(vectors[row, i]) * derivatives[q, row, i];
+        squared_norm += std::norm(vectors[row, i]);
+      }
+      for (Index row = 0; row < n; ++row) derivatives[q, row, i] -= vectors[row, i] * projection / squared_norm;
+    }
+  }
+  P  = vectors;
+  W  = values;
+  dP = derivatives;
+  dW = value_derivatives;
 }
 
 //! General exponential of a Matrix

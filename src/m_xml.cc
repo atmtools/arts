@@ -41,9 +41,9 @@ void ReadXMLIndexed(  // WS Generic Output:
 void WriteXML(  //WS Input:
     const String& file_format,
     // WS Generic Input:
-    const Wsv v,
-    const String&  f,
-    const Index&   no_clobber)
+    const Wsv     v,
+    const String& f,
+    const Index&  no_clobber)
 
 {
   ARTS_TIME_REPORT
@@ -84,9 +84,9 @@ void WriteXMLIndexed(  //WS Input:
     const String& file_format,
     const Index&  file_index,
     // WS Generic Input:
-    const Wsv v,
-    const String&  f,
-    const Index&   digits) {
+    const Wsv     v,
+    const String& f,
+    const Index&  digits) {
   ARTS_TIME_REPORT
 
   String filename = f;

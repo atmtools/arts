@@ -12,33 +12,32 @@ file(GLOB_RECURSE partfun_xml_files
 set(partfun_cpp_files "")
 foreach(xml_file IN LISTS partfun_xml_files)
     get_filename_component(name_we ${xml_file} NAME_WE)
-    list(APPEND partfun_cpp_files ${CMAKE_CURRENT_BINARY_DIR}/${name_we}.cpp)
+    list(APPEND partfun_cpp_files ${name_we}.cpp)
 endforeach()
 
 list(LENGTH partfun_xml_files partfun_xml_files_count)
 message(STATUS "Found ${partfun_xml_files_count} partition function XML files")
-
-set(partfun_xml_files_list ${CMAKE_CURRENT_BINARY_DIR}/partfun_xml_files.txt)
-file(WRITE ${partfun_xml_files_list} "")
-foreach(xml_file IN LISTS partfun_xml_files)
-    file(APPEND ${partfun_xml_files_list} "${xml_file}\n")
-endforeach()
 
 if (partfun_xml_files_count EQUAL 0)
   message(FATAL_ERROR "No partition function XML files found in ${ARTS_CAT_DATA_DIR}/partition-functions/
 You need to pass -DARTS_CAT_DATA_PATH=<path> to cmake to point to the directory containing your copy of arts-cat-data.")
 endif()
 
+# file(GENERATE) leaves the list alone when a reconfiguration finds the very
+# same XML files, so that the generator is not re-run for nothing
+set(partfun_xml_files_list ${CMAKE_CURRENT_BINARY_DIR}/partfun_xml_files.txt)
+string(JOIN "\n" partfun_xml_files_content ${partfun_xml_files})
+file(GENERATE OUTPUT ${partfun_xml_files_list} CONTENT "${partfun_xml_files_content}\n")
+
 # Generate auto_partfun.h for the ARTS interface
-add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/auto_partfun.h ${partfun_cpp_files}
-        COMMAND partfun_generator ${partfun_xml_files_list}
-        DEPENDS partfun_generator ${partfun_xml_files} ${partfun_xml_files_list}
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+arts_generate(partfun_generator
+        ARGS ${partfun_xml_files_list}
+        OUTPUT auto_partfun.h ${partfun_cpp_files}
+        DEPENDS ${partfun_xml_files} ${partfun_xml_files_list}
         COMMENT "Generating automatic partition function interface"
 )
 
-add_library(auto_partfun STATIC ${partfun_cpp_files} ${CMAKE_CURRENT_BINARY_DIR}/auto_partfun.h)
+add_library(auto_partfun STATIC ${partfun_cpp_files} auto_partfun.h)
 target_link_libraries(auto_partfun PUBLIC matpack binio xml_partfun)
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(auto_partfun PUBLIC ${ARTS_SOURCE_DIR}/src)

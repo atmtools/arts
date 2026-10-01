@@ -8,6 +8,8 @@
 #include <lbl.h>
 #include <lbl_data.h>
 #include <lbl_lineshape_model.h>
+#include <lbl_lineshape_voigt_ecs.h>
+#include <lbl_lineshape_voigt_ecs_hadded.h>
 #include <nanobind/stl/bind_map.h>
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/map.h>
@@ -22,6 +24,7 @@
 #include <python_interface.h>
 #include <quantum.h>
 
+#include <cmath>
 #include <limits>
 #include <stdexcept>
 #include <unordered_map>
@@ -813,6 +816,197 @@ fmax : ~pyarts3.arts.Numeric
 
   auto led = py::bind_map<LinemixingEcsData, py::rv_policy::reference_internal>(m, "LinemixingEcsData");
   generic_interface(led);
+
+  namespace hadded = lbl::voigt::ecs::hadded;
+  py::class_<hadded::rotational_line>(
+      lbl, "hadded_rotational_line", "Prepared NH3 parallel-band rotational transition.")
+      .def(
+          "__init__",
+          [](hadded::rotational_line* self, Index Ju, Index Jl, Index K, bool lower_antisymmetric) {
+            using enum hadded::inversion;
+            new (self) hadded::rotational_line{
+                .upper = {.J = Ju, .K = K, .symmetry = lower_antisymmetric ? symmetric : antisymmetric},
+                .lower = {.J = Jl, .K = K, .symmetry = lower_antisymmetric ? antisymmetric : symmetric}};
+          },
+          "Ju"_a,
+          "Jl"_a,
+          "K"_a,
+          "lower_antisymmetric"_a = false,
+          "A parallel-band line with equal upper/lower K and opposite inversion symmetries.")
+      .def_prop_ro(
+          "Ju",
+          [](const hadded::rotational_line& line) { return line.upper.J; },
+          "Upper-state angular momentum.\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_prop_ro(
+          "Jl",
+          [](const hadded::rotational_line& line) { return line.lower.J; },
+          "Lower-state angular momentum.\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_prop_ro(
+          "K",
+          [](const hadded::rotational_line& line) { return line.lower.K; },
+          "Body-fixed projection shared by both states.\n\n.. :class:`~pyarts3.arts.Index`")
+      .def_prop_ro(
+          "lower_antisymmetric",
+          [](const hadded::rotational_line& line) { return line.lower.symmetry == hadded::inversion::antisymmetric; },
+          "Whether the lower state has antisymmetric inversion symmetry.\n\n.. :class:`bool`");
+  py::class_<hadded::collision_channel>(
+      lbl, "hadded_collision_channel", "Signed angular channel of the NH3 collision basis.")
+      .def(
+          "__init__",
+          [](hadded::collision_channel* self, Index L, Index Mi, Index Mf) {
+            new (self) hadded::collision_channel{.L = L, .Mi = Mi, .Mf = Mf};
+          },
+          "L"_a,
+          "Mi"_a,
+          "Mf"_a,
+          "A collision channel with signed body-fixed projections Mi and Mf (multiples of three).")
+      .def_ro("L", &hadded::collision_channel::L, "Collision angular rank.\n\n .. :class:`~pyarts3.arts.Index`")
+      .def_ro("Mi",
+              &hadded::collision_channel::Mi,
+              "Signed lower-state projection transfer.\n\n .. :class:`~pyarts3.arts.Index`")
+      .def_ro("Mf",
+              &hadded::collision_channel::Mf,
+              "Signed upper-state projection transfer.\n\n .. :class:`~pyarts3.arts.Index`");
+  py::class_<hadded::basis_data>(lbl, "hadded_basis_data", "Prepared NH3 collision rates and adiabatic factors.")
+      .def(
+          "__init__",
+          [](hadded::basis_data* self, std::vector<hadded::collision_channel> channels, Vector Q, Vector Omega) {
+            new (self) hadded::basis_data{std::move(channels), std::move(Q), std::move(Omega)};
+          },
+          "channels"_a,
+          "Q"_a,
+          "Omega"_a,
+          R"(Prepared dynamical factors in channel order.
+
+Q has the desired relaxation-matrix units (Hz for spectra); convert cross sections
+in m^2 with number_density * mean_relative_speed / (2*pi). Omega is the paper's
+factor >= 1. Supply every signed channel explicitly; omitted channels are zero.
+No collision calibration or temperature dependence is supplied by this class.)")
+      .def_rw("channels",
+              &hadded::basis_data::channels,
+              "Signed collision channels in basis order.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("Q",
+              &hadded::basis_data::Q,
+              "Dynamical rates in channel order; Hz for spectra.\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("Omega",
+              &hadded::basis_data::Omega,
+              "Paper-I adiabatic factors in channel order, each at least one.\n\n.. :class:`~pyarts3.arts.Vector`");
+  lbl.def("hadded_rotational_energy",
+          &hadded::rotational_energy,
+          "J"_a,
+          "K"_a,
+          "B"_a,
+          "C"_a,
+          "Rigid symmetric-top energy [J]; rotational constants B and C are in J.");
+  lbl.def("hadded_reduced_dipole",
+          &hadded::reduced_dipole,
+          "line"_a,
+          "Signed reduced dipole for populations containing the LOWER-state rotational degeneracy.");
+  lbl.def(
+      "hadded_adiabatic_factors",
+      [](const Vector& gap, Numeric duration) {
+        Vector Omega(gap.size());
+        hadded::adiabatic_factors(Omega, gap, duration);
+        return Omega;
+      },
+      "gap"_a,
+      "duration"_a,
+      "Paper-I Eq. 19 from prepared energy gaps [J] and collision duration [s]; returns Omega >= 1.");
+  lbl.def(
+      "hadded_relaxation_matrix_offdiagonal",
+      [](const std::vector<hadded::rotational_line>& lines,
+         const hadded::basis_data&                   basis,
+         const Vector&                               e0,
+         const Vector&                               Omega_line,
+         Numeric                                     T,
+         const Vector&                               widths) {
+        const Size n = lines.size();
+        ARTS_USER_ERROR_IF(widths.size() != n, "NH3 widths must have one entry per line")
+        Matrix W(n, n, 0.0);
+        for (Size i = 0; i < n; ++i) {
+          ARTS_USER_ERROR_IF(not std::isfinite(widths[i]) or widths[i] < 0, "NH3 widths must be finite and nonnegative")
+          W[i, i] = widths[i];
+        }
+        hadded::relaxation_matrix_offdiagonal(W, lines, basis, e0, Omega_line, T);
+        return W;
+      },
+      "lines"_a,
+      "basis"_a,
+      "e0"_a,
+      "Omega_line"_a,
+      "T"_a,
+      "widths"_a,
+      R"(Return the prepared NH3 relaxation matrix, preserving supplied diagonal widths.
+
+The four-term IOS angular kernel includes detailed balance and ECS energy
+corrections. Setting all Omega factors to one gives IOS with detailed balance.
+e0 [J] and Omega_line describe original lower states in line order; use one
+consistent energy model for these energies and all adiabatic gaps. T is in K.
+W[i,j] is the coupling into line i from line j; its units match Q and widths
+(Hz for spectra).
+The caller supplies collision data and diagonal widths; no calibration or
+truncated-band sum-rule adjustment is applied. Initialize Wigner tables first.)");
+
+  lbl.def(
+      "relaxation_matrix_profile",
+      [](const Vector& frequency,
+         const Vector& f0,
+         const Matrix& W,
+         const Vector& population,
+         const Vector& dipole,
+         Numeric       gd_fac) {
+        const Size n = f0.size();
+        ARTS_USER_ERROR_IF(W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n) or
+                               population.size() != n or dipole.size() != n,
+                           "Inconsistent prepared relaxation-matrix profile dimensions")
+        ARTS_USER_ERROR_IF(not std::isfinite(gd_fac) or gd_fac <= 0, "Doppler width factor must be positive and finite")
+        for (Numeric f : frequency)
+          ARTS_USER_ERROR_IF(not std::isfinite(f) or f <= 0, "Frequencies must be positive and finite")
+        AtmPoint atm;
+        atm.temperature = 296;
+        atm.pressure    = 0;
+        lbl::voigt::ecs::ComputeData data({}, atm);
+        data.pop    = population;
+        data.dip    = dipole;
+        data.vmrs   = Vector{1.0};
+        data.gd_fac = gd_fac;
+        data.Ws.resize(1, n, n);
+        for (Size i = 0; i < n; ++i) {
+          ARTS_USER_ERROR_IF(not std::isfinite(f0[i]) or f0[i] <= 0 or not std::isfinite(population[i]) or
+                                 population[i] < 0 or not std::isfinite(dipole[i]),
+                             "Invalid prepared frequency, population, or dipole")
+          ARTS_USER_ERROR_IF((W[i, i] < 0), "Diagonal relaxation widths must be nonnegative")
+          for (Size j = 0; j < n; ++j) {
+            ARTS_USER_ERROR_IF(not std::isfinite(W[i, j]), "Non-finite relaxation matrix")
+            data.Ws[0, i, j] = Complex(i == j ? f0[i] : 0.0, W[i, j]);
+          }
+        }
+        data.core_calc(frequency);
+        return std::move(data.shape);
+      },
+      "frequency"_a,
+      "f0"_a,
+      "W"_a,
+      "population"_a,
+      "dipole"_a,
+      "gd_fac"_a,
+      R"(Evaluate the existing ECS equivalent-line Voigt profile from prepared inputs.
+
+frequency and f0 are in Hz. W is a real relaxation matrix in Hz, with W[i,j]
+the coupling into line i from line j -- the same orientation the solver uses,
+so it is applied as given. The optical sum rule is the row closure
+sum_j dipole[j] * W[i,j] == 0. Pressure shifts may be included in f0.
+population and signed
+dipole must use the same state convention as W. gd_fac is the Gaussian 1/e
+half-width divided by frequency. This function reuses the core equivalent-line
+solver and Faddeeva profile and returns its raw complex shape.
+
+For physical populations and dipoles, absorption [1/m] is real(shape)/sqrt(pi)
+times n_abs * frequency * (1-exp(-h*frequency/(k*T))), where n_abs includes the
+absorber abundance and isotope ratio. In the Hadded lower-state convention,
+use population = gl*exp(-e0/(k*T))/Qpart and signed dipole magnitude
+c*sqrt(A*gu/(8*pi*f0^3*gl)); these preserve catalogue isolated-line strengths.
+No density, stimulated-emission, or abundance factor is applied here.)");
 
   lbl.def(
       "equivalent_lines",

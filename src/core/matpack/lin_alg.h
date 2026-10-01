@@ -21,6 +21,33 @@ void lubacksub(VectorView x, ConstMatrixView LU, ConstVectorView b, const ArrayO
 // Solve linear system
 void solve(VectorView x, ConstMatrixView A, ConstVectorView b);
 
+/** Solve A*x=b and return an estimate of the reciprocal 1-norm condition
+ * number. Inputs are preserved, except that x may alias b. Strided views are
+ * supported. Throws for a singular A or rcond < min_rcond, and leaves x
+ * unchanged on failure. An empty system returns 1.
+ *
+ * A nonfinite A is rejected through its 1-norm. A nonfinite b is not searched
+ * for and propagates into x: callers detect it on their own result rather than
+ * paying for a scan of every right-hand side here.
+ */
+Numeric solve(StridedComplexVectorView      x,
+              StridedConstComplexMatrixView A,
+              StridedConstComplexVectorView b,
+              Numeric                       min_rcond = 0);
+
+/** Solve A*X=B for all right-hand-side columns with one LU factorization and
+ * return the reciprocal 1-norm condition estimate. Supports strided views and
+ * X aliasing B. Throws for a singular A or rcond < min_rcond and leaves X
+ * unchanged on failure. An empty matrix A returns 1.
+ *
+ * A nonfinite A is rejected through its 1-norm. A nonfinite B is not searched
+ * for and propagates into X.
+ */
+Numeric solve(StridedComplexMatrixView      X,
+              StridedConstComplexMatrixView A,
+              StridedConstComplexMatrixView B,
+              Numeric                       min_rcond = 0);
+
 /** A = U Sigma V^T, via LAPACK. s contains the min(m,n) singular values.
  * U and V are square when full_matrices is true; otherwise both have min(m,n)
  * columns. Input is preserved.
@@ -106,11 +133,13 @@ struct diagonalize_workdata {
 struct complex_diagonalize_workdata {
   Index         N{};
   ComplexMatrix matrix;
+  ComplexMatrix eigenvectors;
+  ComplexVector eigenvalues;
   ComplexVector work;
   Vector        rwork;
 
   complex_diagonalize_workdata() = default;
-  explicit complex_diagonalize_workdata(Index n) : N(n), matrix(n, n), work(2 * n + n * n), rwork(2 * n) {}
+  explicit complex_diagonalize_workdata(Index n);
 };
 
 // Matrix diagonalization with lapack
@@ -125,12 +154,62 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
 void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A, diagonalize_workdata& wo);
 
-// Matrix diagonalization with lapack
-void diagonalize(ComplexMatrixView P, ComplexVectorView W, const ConstComplexMatrixView A);
-void diagonalize(ComplexMatrixView             P,
-                 ComplexVectorView             W,
-                 ConstComplexMatrixView        A,
+/** Complex eigendecomposition A*P=P*diag(W), with right eigenvectors in the
+ * columns of P. Supports strided views and preserves A unless it aliases an
+ * output. Throws on invalid dimensions or LAPACK failure; outputs are
+ * unchanged on failure. Empty matrices are accepted. A nonfinite A is not
+ * searched for: LAPACK reports what it detects, and anything else propagates
+ * into P and W.
+ */
+void diagonalize(StridedComplexMatrixView P, StridedComplexVectorView W, StridedConstComplexMatrixView A);
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedConstComplexMatrixView A,
                  complex_diagonalize_workdata& workdata);
+
+/** Complex eigendecomposition and its directional derivative for dA.
+ * Requires distinct eigenvalues and a well-conditioned eigenvector basis;
+ * throws when the eigenvalue gaps are numerically unresolved or rcond(P)<1e-12.
+ * The derivative uses the unit-norm, parallel-transport gauge P_i^H*dP_i=0.
+ * Thus dP need not differentiate LAPACK's phase convention; phase-invariant
+ * quantities and dW are independent of that convention. Supports strided views,
+ * preserves inputs unless they alias outputs, and leaves outputs unchanged on
+ * failure. The four outputs must not overlap each other. A nonfinite A is
+ * rejected through the gap scale; a nonfinite dA propagates into dP and dW.
+ */
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedComplexMatrixView      dP,
+                 StridedComplexVectorView      dW,
+                 StridedConstComplexMatrixView A,
+                 StridedConstComplexMatrixView dA);
+void diagonalize(StridedComplexMatrixView      P,
+                 StridedComplexVectorView      W,
+                 StridedComplexMatrixView      dP,
+                 StridedComplexVectorView      dW,
+                 StridedConstComplexMatrixView A,
+                 StridedConstComplexMatrixView dA,
+                 complex_diagonalize_workdata& workdata);
+
+/** Batched version: dA[q,:,:] and dP[q,:,:] are matrix directions and
+ * eigenvector derivatives, while dW[q,:] contains eigenvalue derivatives.
+ * Computes the eigendecomposition and eigenvector LU factorization once for
+ * all directions. With zero directions, this is ordinary diagonalization.
+ * The scalar overload above delegates to a one-direction batch.
+ */
+void diagonalize(StridedComplexMatrixView       P,
+                 StridedComplexVectorView       W,
+                 StridedComplexTensor3View      dP,
+                 StridedComplexMatrixView       dW,
+                 StridedConstComplexMatrixView  A,
+                 StridedConstComplexTensor3View dA);
+void diagonalize(StridedComplexMatrixView       P,
+                 StridedComplexVectorView       W,
+                 StridedComplexTensor3View      dP,
+                 StridedComplexMatrixView       dW,
+                 StridedConstComplexMatrixView  A,
+                 StridedConstComplexTensor3View dA,
+                 complex_diagonalize_workdata&  workdata);
 
 // Exponential of a Matrix
 void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q = 10);

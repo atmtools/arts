@@ -4,6 +4,7 @@ cia/O2-CIA-O2.xml.bin
 cia/O2-CIA-N2.xml.bin
 lines/O2-66.xml
 lines/N2-44.xml
+lines/NH3-4111.xml
 lines/CO2-626.xml
 lines/H2O-161.xml
 predef/H2O-SelfContCKDMT400.xml

@@ -26,10 +26,13 @@ for path in pyarts.arts.globals.parameters.datapath:
 
 if test:
     print("arts-xml-data found in datapath - commenceing test run")
-    x = recurse(path)
-    v = pyarts.arts.WsvMap(x)
-    if resave:
-        v.write_split()
+    # Preserve coverage and type detection while keeping only one decoded file.
+    for file in recurse(path):
+        print(f"Reading {file}", flush=True)
+        v = pyarts.arts.WsvMap([file])
+        if resave:
+            v.write_split()
+        del v
     print("All XML files read successfully!")
 else:
     print("arts-xml-data not found in datapath - no test run")

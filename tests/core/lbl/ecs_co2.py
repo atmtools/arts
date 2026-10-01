@@ -1,3 +1,9 @@
+"""Exercise atmospheric CO2 ECS with an approximate catalogue Bath model.
+
+MeanAir averages ECS parameter coefficients to populate AIR/Bath; the catalogue
+AIR and self-broadening coefficients remain unchanged.
+"""
+
 import pyarts3 as pyarts
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,6 +14,8 @@ def calc(ws, lineshape=None):
     time_start = time.time()
     if lineshape is not None:
         ws.abs_bands[bandkey].lineshape = lineshape
+    # Catalogue-level ECS validation; a no-op for the non-ECS line shapes.
+    ws.abs_bandsCheckEcs()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
     print(f"Time to calculate spectral propmat: {round(1000*(time.time() - time_start), 3)} ms for lineshape {lineshape}")
@@ -40,6 +48,7 @@ ws.WignerInit()
 ws.abs_ecs_dataInit()
 ws.abs_ecs_dataAddTran2011()
 ws.abs_ecs_dataAddRodrigues1997()
+# Approximate Bath parameters for the existing catalogue AIR broadener.
 ws.abs_ecs_dataAddMeanAir(vmrs=[0.21, 0.79], species=["O2", "N2"])
 
 f2c = pyarts.arts.convert.freq2kaycm
@@ -85,4 +94,5 @@ plt.semilogy(
     label="1st Order Rosenkranz",
 )
 
+plt.title("Atmospheric CO2: approximate Bath ECS parameters")
 plt.legend()

@@ -23,18 +23,18 @@ add_executable(make_species_enum make_species_enum.cc)
 target_link_libraries(make_species_enum PUBLIC species_enum_info)
 target_include_directories(make_species_enum PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-add_custom_command(
+arts_generate(make_species_enum
+  ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_species_enum_info.cc auto_species_enum_info.h auto_isotopologues.cc auto_partition_functions.h
-  COMMAND make_species_enum ${ARTS_CAT_DATA_DIR}
-  DEPENDS make_species_enum
+  COMMENT "Generating automatic species enumeration"
 )
 
 add_library(species_enum_info_gen STATIC auto_species_enum_info.cc)
 target_link_libraries(species_enum_info_gen PUBLIC species_enum_info)
 target_include_directories(species_enum_info_gen PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 
-add_custom_command(
+arts_generate(make_species
+  ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_isotopologues.h
-  COMMAND make_species ${ARTS_CAT_DATA_DIR}
-  DEPENDS make_species
+  COMMENT "Generating automatic isotopologues"
 )

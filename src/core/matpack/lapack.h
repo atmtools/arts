@@ -74,6 +74,27 @@ extern "C" void zgetrf_(int *m, int *n, std::complex<double> *A, int *lda, int *
 */
 extern "C" void dgetrs_(char *trans, int *n, int *nrhs, double *A, int *lda, int *ipiv, double *b, int *ldb, int *info);
 
+extern "C" void zgetrs_(char                 *trans,
+                        int                  *n,
+                        int                  *nrhs,
+                        std::complex<double> *A,
+                        int                  *lda,
+                        int                  *ipiv,
+                        std::complex<double> *b,
+                        int                  *ldb,
+                        int                  *info);
+
+//! Estimate the reciprocal condition number from a ZGETRF factorization.
+extern "C" void zgecon_(char                 *norm,
+                        int                  *n,
+                        std::complex<double> *A,
+                        int                  *lda,
+                        double               *anorm,
+                        double               *rcond,
+                        std::complex<double> *work,
+                        double               *rwork,
+                        int                  *info);
+
 //
 //! Matrix inversion.
 /*!

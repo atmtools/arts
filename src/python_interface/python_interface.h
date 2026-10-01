@@ -12,8 +12,8 @@
 // Only the Workspace class itself and the WorkspaceGroup type universe
 // (already available via py_auto_wsg.h -> auto_wsg.h) are required here.
 // Files that actually bind workspace methods/agendas (py_workspace.cpp,
-// py_agenda.cpp, py_module.cpp, and the generated xpy_auto_wsm_*.cpp/
-// xpy_auto_wsa.cpp shards) include <workspace.h> themselves.
+// py_agenda.cpp, py_module.cpp, and the generated py_auto_wsm_*.cpp/
+// py_auto_wsa.cpp shards) include <workspace.h> themselves.
 #include <workspace_class.h>
 
 #include <memory>

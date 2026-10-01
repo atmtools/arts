@@ -36,11 +36,9 @@ set(PYARTS_AUTO_INTERFACE
 )
 
 # Generate the actual files with this command
-add_custom_command(
-    OUTPUT  ${PYARTS_AUTO_INTERFACE}
-    COMMAND gen_auto_py ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
-    DEPENDS gen_auto_py
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+arts_generate(gen_auto_py
+    ARGS ${NUM_PYARTS_WSV} ${NUM_PYARTS_WSM}
+    OUTPUT ${PYARTS_AUTO_INTERFACE}
     COMMENT "Generating automatic python interface"
 )
 
@@ -52,11 +50,9 @@ add_executable(gen_auto_py_methods gen_auto_py_methods.cpp)
 target_link_libraries(gen_auto_py_methods PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_methods PUBLIC ${ARTS_SOURCE_DIR}/src)
 
-add_custom_command(
-    OUTPUT ${PYARTS_WORKSPACE_METHODS} 
-    COMMAND gen_auto_py_methods ${NUM_PYARTS_WSM}
-    DEPENDS gen_auto_py_methods
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+arts_generate(gen_auto_py_methods
+    ARGS ${NUM_PYARTS_WSM}
+    OUTPUT ${PYARTS_WORKSPACE_METHODS}
     COMMENT "Generating python workspace methods"
 )
 
@@ -68,11 +64,8 @@ set(PYARTS_WORKSPACE_OPTIONS
     py_auto_options.cpp
 )
 
-add_custom_command(
-    OUTPUT  ${PYARTS_WORKSPACE_OPTIONS}
-    COMMAND gen_auto_py_options
-    DEPENDS gen_auto_py_options
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+arts_generate(gen_auto_py_options
+    OUTPUT ${PYARTS_WORKSPACE_OPTIONS}
     COMMENT "Generating python options"
 )
 
@@ -94,11 +87,8 @@ set(PYARTS_WORKSPACE_GROUPS
     py_auto_agenda_operators.cpp
 )
 
-add_custom_command(
+arts_generate(gen_auto_py_groups
     OUTPUT ${PYARTS_WORKSPACE_GROUPS}
-    COMMAND gen_auto_py_groups
-    DEPENDS gen_auto_py_groups
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMENT "Generating python workspace groups"
 )
 
@@ -106,34 +96,21 @@ add_executable(gen_auto_py_variables gen_auto_py_variables.cpp)
 target_link_libraries(gen_auto_py_variables PUBLIC artsworkspace gen_helpers)
 target_include_directories(gen_auto_py_variables PUBLIC ${ARTS_SOURCE_DIR}/src)
 
-add_custom_command(
-    OUTPUT  ${PYARTS_WORKSPACE_VARS}
-    COMMAND gen_auto_py_variables ${NUM_PYARTS_WSV}
-    DEPENDS gen_auto_py_variables
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+arts_generate(gen_auto_py_variables
+    ARGS ${NUM_PYARTS_WSV}
+    OUTPUT ${PYARTS_WORKSPACE_VARS}
     COMMENT "Generating python workspace variables"
 )
 
 # #######################################################################################
 
-# copy auto generated files if they are different
-
-set(PYARTS_AUTO_FILES "")
-foreach(file ${PYARTS_AUTO_INTERFACE}
-             ${PYARTS_WORKSPACE_METHODS}
-             ${PYARTS_WORKSPACE_VARS}
-             ${PYARTS_WORKSPACE_GROUPS}
-             ${PYARTS_WORKSPACE_OPTIONS})
-add_custom_command(
-    COMMENT "Copying python-interface file (if required): ${file}"
-    OUTPUT x${file}
-    DEPENDS ${file}
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${file}
-        x${file}
-    )
-  list(APPEND PYARTS_AUTO_FILES x${file})
-endforeach()
+set(PYARTS_AUTO_FILES
+    ${PYARTS_AUTO_INTERFACE}
+    ${PYARTS_WORKSPACE_METHODS}
+    ${PYARTS_WORKSPACE_VARS}
+    ${PYARTS_WORKSPACE_GROUPS}
+    ${PYARTS_WORKSPACE_OPTIONS}
+)
 
 # #######################################################################################
 

@@ -15,6 +15,7 @@ Build configuration and implementation details are in :doc:`devs`.
    user.sensors
    user.oem
 
+   user.lbl
    user.tmatrix
    user.heating
    user.physical_grids

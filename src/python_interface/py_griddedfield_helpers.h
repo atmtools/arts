@@ -4,8 +4,7 @@
 
 namespace Python {
 namespace {
-template <typename FromType, typename ToType>
-void implicit_convert_gf(py::class_<ToType>& cls) {
+template <typename FromType, typename ToType> void implicit_convert_gf(py::class_<ToType>& cls) {
   cls.def("__init__", [](ToType* x, const FromType& v) {
     ToType t1(v);
     new (x) ToType(std::move(t1));

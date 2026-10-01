@@ -698,14 +698,8 @@ parameters that are mapped to the species identifier.
           {Value{"VP_LTE", "Voigt in local thermodynamic equilibrium"},
            Value{"VP_LTE_MIRROR", "Voigt in local thermodynamic equilibrium with negative frequency lines"},
            Value{"VP_LINE_NLTE", "Voigt in non-local thermodynamic equilibrium with level-by-level data"},
-           Value{"VP_ECS_MAKAROV", "Voigt using Makarov's method of error-corrected sudden for line mixing of O2"},
-           Value{"VP_ECS_HARTMANN", "Voigt using Hartmann's method of error-corrected sudden for line mixing of CO2"},
-           Value{
-               "VP_ECS_STOTOP",
-               "[WIP] [UNTESTED] Voigt using error-corrected sudden for line mixing of symmetric top molecules (NH3, PH3)"},
-           Value{
-               "VP_ECS_SPHTOP",
-               "[WIP] [UNTESTED] Voigt using error-corrected sudden for line mixing of spherical top molecules (CH4)"}},
+           Value{"VP_ECS_MAKAROV", "Voigt using Makarov's method of energy-corrected sudden for line mixing of O2"},
+           Value{"VP_ECS_HARTMANN", "Voigt using Hartmann's method of energy-corrected sudden for line mixing of CO2"}},
   });
 
   opts.emplace_back(EnumeratedOption{

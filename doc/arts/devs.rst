@@ -29,6 +29,7 @@ and how to use existing features.
    dev.arts2missing
    dev.arts2notintended
 
+   dev.lbl
    dev.tmatrix
    dev.heating
    dev.disort

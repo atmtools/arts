@@ -28,33 +28,6 @@ namespace stdr = std::ranges;
 #pragma clang optimize off
 #endif
 
-std::string WorkspaceMethodInternalRecord::docstring() const try {
-  std::string doc = std::format("/** {}\n", desc);
-  if (pass_workspace) doc += "  @param[in] ws Workspace reference\n";
-
-  for (auto& str : out) {
-    if (std::any_of(in.begin(), in.end(), [&str](auto& var) { return str == var; }))
-      doc += std::format("  @param[inout] {} As WSV\n", str);
-    else
-      doc += std::format("  @param[out] {} As WSV\n", str);
-  }
-
-  for (std::size_t i = 0; i < gout.size(); i++) { doc += std::format("  @param[out] {} {}\n", gout[i], gout_desc[i]); }
-
-  for (auto& str : in) {
-    if (std::any_of(out.begin(), out.end(), [&str](auto& var) { return str == var; })) continue;
-    doc += std::format("  @param[in] {} As WSV\n", str);
-  }
-
-  for (std::size_t i = 0; i < gin.size(); i++) { doc += std::format("  @param[in] {} {}\n", gin[i], gin_desc[i]); }
-
-  doc += " */";
-
-  return doc;
-} catch (std::exception& e) {
-  throw std::runtime_error("Error in meta-function docstring():\n\n" + std::string(e.what()));
-}
-
 std::string WorkspaceMethodInternalRecord::generic_type(const std::string& type, bool output) {
   // A method that accepts every workspace group takes the type-erased workspace
   // value itself.  A variant over all groups would instead have to be built in
@@ -1030,6 +1003,10 @@ This is based on the work of :cite:t:`Makarov2020`.
           R"--(Sets ECS broadening parameters for CO2 collision partner for CO2 isotopologues CO2-626, CO2-628, and CO2-636.
 
 This is based on the work of :cite:t:`Tran2011`.
+
+The Hartmann ECS kernel currently has rotational energies only for CO2-626.
+The stored CO2-628 and CO2-636 parameters do not by themselves enable those
+isotopologues in that kernel.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_ecs_data"},
@@ -1041,36 +1018,10 @@ This is based on the work of :cite:t:`Tran2011`.
           R"--(Sets ECS broadening parameters for N2 and O2 collision partners for CO2 isotopologues CO2-626, CO2-628, and CO2-636.
 
 This is based on the work of :cite:t:`Rodrigues1997`.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"abs_ecs_data"},
-      .in     = {"abs_ecs_data"},
-  };
 
-  wsm_data["abs_ecs_dataAddNH3"] = {
-      .desc   = R"--(Sets preliminary NH3-4111 band data for ECS.
-
-[WIP] [UNTESTED]
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"abs_ecs_data"},
-      .in     = {"abs_ecs_data"},
-  };
-
-  wsm_data["abs_ecs_dataAddPH3"] = {
-      .desc   = R"--(Sets preliminary PH3-1111 band data for ECS.
-
-[WIP] [UNTESTED]
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"abs_ecs_data"},
-      .in     = {"abs_ecs_data"},
-  };
-
-  wsm_data["abs_ecs_dataAddCH4"] = {
-      .desc   = R"--(Sets preliminary CH4-211 band data for ECS.
-
-[WIP] [UNTESTED]
+The Hartmann ECS kernel currently has rotational energies only for CO2-626.
+The stored CO2-628 and CO2-636 parameters do not by themselves enable those
+isotopologues in that kernel.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"abs_ecs_data"},
@@ -1086,7 +1037,26 @@ This is based on the work of :cite:t:`Rodrigues1997`.
 
   wsm_data["abs_ecs_dataAddMeanAir"] = {
       .desc =
-          R"--(Combines ECS data from specified species using VMR weights to create air (bath gas) broadening parameters.
+          R"--(Creates approximate bath-gas ECS parameters by averaging collision-partner temperature-model coefficients.
+
+Use this method with catalogues that provide air (Bath) diagonal widths but
+do not provide separate widths for each collision partner.  The resulting Bath
+entry supplies the ECS parameters for those existing air widths; it does not
+infer individual collision-partner widths.
+
+The coefficient average is an approximate bath model.  Since the ECS basis
+rates and adiabatic factors depend nonlinearly on these coefficients, it is
+generally different from combining separately constructed partner relaxation
+matrices.  Explicit partners can be used when their diagonal widths and ECS
+data are available.
+
+Weights must be finite and nonnegative and sum to one within 1e-4; accepted
+weights are normalised to unit sum.  Zero-weight species are skipped even when
+their ECS data are absent.  Every positive-weight species must have ECS data
+for each isotopologue in *abs_ecs_data*.  Bath cannot be an input species.
+Each parameter must have the same temperature-model type and coefficient count
+for all contributing species, with finite coefficients.  Invalid inputs leave
+the existing ECS data unchanged.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_ecs_data"},
@@ -1094,7 +1064,7 @@ This is based on the work of :cite:t:`Rodrigues1997`.
       .gin       = {"vmrs", "species"},
       .gin_type  = {"Vector", "ArrayOfSpeciesEnum"},
       .gin_value = {std::nullopt, std::nullopt},
-      .gin_desc  = {R"--(VMRs of air species)--", R"--(Air species)--"},
+      .gin_desc  = {"Finite nonnegative bath-composition weights summing to one", "Explicit collision partner species"},
   };
 
   wsm_data["freq_gridWindShift"] = {
@@ -3474,6 +3444,29 @@ exponent of 0.75.
       .gin_desc  = {"Filename"},
   };
 
+  wsm_data["abs_bandsCheckEcs"] = {
+      .desc =
+          R"--(Checks that every ECS band in *abs_bands* can be used.
+
+Validated is everything about a band that depends only on the catalogue: the
+pairing of the line shape with the isotopologue its kernel supports, that all
+lines share the same broadening species and reference temperature, that the
+per-line catalogue entries are usable, and that the rotational quantum numbers
+satisfy the domain of the kernel.  The presence of *abs_ecs_data* for each
+band's isotopologue is checked as well.
+
+None of this depends on the atmospheric state, so the line-by-line calculation
+does not repeat it for every atmospheric point.  Call this method once after
+the bands and their line shapes are set.  Bands that do not use an ECS line
+shape are ignored.
+
+The collision data of an individual broadening species is checked where it is
+used, since a species that is absent from the atmosphere needs none.
+)--",
+      .author = {"Richard Larsson"},
+      .in     = {"abs_bands", "abs_ecs_data"},
+  };
+
   wsm_data["abs_bandsLineMixingAdaptation"] = {
       .desc =
           R"--(Adapts select band to use ordered Line mixing coefficients.
@@ -3481,6 +3474,10 @@ exponent of 0.75.
 This is an experimental feature and might not work.
 
 The computations of line mixing are done on the grid of temperatures provided.
+
+The fit uses each broadening species separately.  Second-order coefficients
+therefore omit products between different partners' relaxation matrices and
+need not reproduce the full ECS calculation for a mixture.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},

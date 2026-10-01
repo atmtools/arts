@@ -101,9 +101,12 @@ ArrayOfString scan_for_errors() {
   return errors;
 }
 
+// No documentation is written next to the signature.  auto_wsm.h declares every
+// workspace method and is included all over ARTS, so a doxygen block per method
+// is text that every translation unit has to read and no compiler ever uses.
+// The descriptions are still in workspace_methods.cpp and reach the user
+// through the python interface.
 void signature(std::ostream& os, const std::string& name, const WorkspaceMethodInternalRecord& wsmr) try {
-  os << wsmr.docstring() << '\n';
-
   os << wsmr.header(name) << ";\n";
 } catch (std::exception& e) { throw std::runtime_error("Error in signature():\n\n" + std::string(e.what())); }
 

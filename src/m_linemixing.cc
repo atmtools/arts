@@ -1,55 +1,65 @@
-#include <workspace.h>
+#include <arts_conversions.h>
+#include <debug.h>
+#include <lbl_lineshape_linemixing.h>
+#include <time_report.h>
+
+#include <algorithm>
+#include <cmath>
 
 void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data, const Vector& vmrs, const ArrayOfSpeciesEnum& specs) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(static_cast<Size>(vmrs.size()) != specs.size(), "Mismatch dimension of vmrs and specs")
-  ARTS_USER_ERROR_IF(std::abs(sum(vmrs) - 1.) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs)
+  ARTS_USER_ERROR_IF(vmrs.size() != specs.size() or vmrs.empty(), "Expected equally sized, nonempty vmrs and species");
+  for (Size i = 0; i < vmrs.size(); ++i) {
+    ARTS_USER_ERROR_IF(not std::isfinite(vmrs[i]) or vmrs[i] < 0, "Invalid VMR for species {}: {}", specs[i], vmrs[i]);
+    ARTS_USER_ERROR_IF(specs[i] == SpeciesEnum::Bath, "The bath species cannot be an input to mean-air averaging");
+  }
+  const Numeric total = sum(vmrs);
+  ARTS_USER_ERROR_IF(not std::isfinite(total) or std::abs(total - 1) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs);
 
-  auto set = [](const lbl::temperature::data& data1,
-                const lbl::temperature::data& data2,
-                const Numeric                 vmr,
-                bool                          first) -> lbl::temperature::data {
-    auto v  = data1.X();
-    v      *= vmr;
-
-    if (first) { return {data1.Type(), v}; }
-
-    v += data2.X();
-    ARTS_USER_ERROR_IF(data1.Type() != data2.Type(),
-                       "Type error in species temperature type for {} and {}",
-                       data1.Type(),
-                       data2.Type())
-    return {data1.Type(), v};
+  // Keep the legacy coefficient-averaging approximation for catalogues with
+  // bath widths. Exact partner mixing requires separate diagonal widths too.
+  const auto add = [](const lbl::temperature::data& source,
+                      const lbl::temperature::data& accumulated,
+                      Numeric                       weight,
+                      bool                          first) -> lbl::temperature::data {
+    auto coefficients = source.X();
+    ARTS_USER_ERROR_IF(
+        coefficients.empty() or not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }),
+        "Mean-air averaging requires finite, nonempty temperature-model coefficients");
+    if (not first) {
+      ARTS_USER_ERROR_IF(source.Type() != accumulated.Type() or coefficients.size() != accumulated.X().size(),
+                         "Incompatible temperature models in mean-air averaging: {} and {}",
+                         source,
+                         accumulated);
+    }
+    coefficients *= weight;
+    if (not first) coefficients += accumulated.X();
+    ARTS_USER_ERROR_IF(not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }),
+                       "Non-finite mean-air temperature-model coefficients");
+    return {source.Type(), coefficients};
   };
 
-  for (auto& [isot, data] : abs_ecs_data) {
-    auto& airdata = data[SpeciesEnum::Bath];
-
-    bool first = true;
-    for (Size i = 0; i < vmrs.size(); i++) {
-      const auto spec = specs[i];
-      const auto vmr  = vmrs[i];
-
-      try {
-        auto& specdata               = data.at(spec);
-        airdata.scaling              = set(specdata.scaling, airdata.scaling, vmr, first);
-        airdata.beta                 = set(specdata.beta, airdata.beta, vmr, first);
-        airdata.lambda               = set(specdata.lambda, airdata.lambda, vmr, first);
-        airdata.collisional_distance = set(specdata.collisional_distance, airdata.collisional_distance, vmr, first);
-        first                        = false;
-      } catch (std::out_of_range&) {
-        ARTS_USER_ERROR("Missing species {} in abs_ecs_data of isotopologue {}", spec, isot)
-      } catch (std::exception& e) {
-        ARTS_USER_ERROR(
-            "Error for species {}"
-            " in abs_ecs_data of isotopologue {}:\n{}",
-            spec,
-            isot,
-            e.what())
-      }
+  // A failure for any isotopologue must not leave partial bath data behind.
+  auto updated = abs_ecs_data;
+  for (auto& [isot, data] : updated) {
+    LinemixingSingleEcsData air;
+    bool                    first = true;
+    for (Size i = 0; i < vmrs.size(); ++i) {
+      if (vmrs[i] == 0) continue;
+      const auto source = data.find(specs[i]);
+      ARTS_USER_ERROR_IF(source == data.end(), "Missing species {} in abs_ecs_data of isotopologue {}", specs[i], isot);
+      const auto&   partner    = source->second;
+      const Numeric weight     = vmrs[i] / total;
+      air.scaling              = add(partner.scaling, air.scaling, weight, first);
+      air.beta                 = add(partner.beta, air.beta, weight, first);
+      air.lambda               = add(partner.lambda, air.lambda, weight, first);
+      air.collisional_distance = add(partner.collisional_distance, air.collisional_distance, weight, first);
+      first                    = false;
     }
+    data[SpeciesEnum::Bath] = std::move(air);
   }
+  abs_ecs_data.swap(updated);
 }
 
 void abs_ecs_dataInit(LinemixingEcsData& abs_ecs_data) {
@@ -65,7 +75,8 @@ void abs_ecs_dataAddMakarov2020(LinemixingEcsData& abs_ecs_data) {
 
   auto& ecs = abs_ecs_data["O2-66"_isot];
 
-  // All species have the same effect, so just copy the values but change the mass (allow new mass for Air)
+  // The fitted ECS parameters are shared; each partner still has its own mass
+  // and pressure-broadening coefficients in the relaxation matrix.
   auto& oxy                = ecs[SpeciesEnum::Oxygen];
   oxy.scaling              = data(T0, {1.0});
   oxy.collisional_distance = data(T0, {Conversion::angstrom2meter(0.61)});
@@ -114,92 +125,4 @@ void abs_ecs_dataAddTran2011(LinemixingEcsData& abs_ecs_data) {
     ecs[SpeciesEnum::CarbonDioxide].beta                 = data(T0, {0.052});
     ecs[SpeciesEnum::CarbonDioxide].collisional_distance = data(T0, {Conversion::angstrom2meter(5.5)});
   }
-}
-
-void abs_ecs_dataAddNH3(LinemixingEcsData& abs_ecs_data) {
-  ARTS_TIME_REPORT
-
-  using enum LineShapeModelType;
-  using data = lbl::temperature::data;
-
-  auto& ecs = abs_ecs_data["NH3-4111"_isot];
-
-  // H2 broadening parameters
-  auto& h2                = ecs[SpeciesEnum::Hydrogen];
-  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
-  h2.lambda               = data(T0, {0.65});
-  h2.beta                 = data(T0, {0.006});
-  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
-
-  // He broadening parameters
-  auto& he                = ecs[SpeciesEnum::Helium];
-  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.018), 0.55});
-  he.lambda               = data(T0, {0.58});
-  he.beta                 = data(T0, {0.003});
-  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.8)});
-
-  auto& nh3                = ecs[SpeciesEnum::Ammonia];
-  nh3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.040), 0.73});
-  nh3.lambda               = data(T0, {0.65});
-  nh3.beta                 = data(T0, {0.006});
-  nh3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.3)});
-}
-
-void abs_ecs_dataAddPH3(LinemixingEcsData& abs_ecs_data) {
-  ARTS_TIME_REPORT
-
-  using enum LineShapeModelType;
-  using data = lbl::temperature::data;
-
-  auto& ecs = abs_ecs_data["PH3-1111"_isot];
-
-  // H2 broadening parameters (approximate, based on similarity to NH3)
-  auto& h2                = ecs[SpeciesEnum::Hydrogen];
-  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
-  h2.lambda               = data(T0, {0.60});
-  h2.beta                 = data(T0, {0.005});
-  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
-
-  // He broadening parameters (approximate)
-  auto& he                = ecs[SpeciesEnum::Helium];
-  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.015), 0.50});
-  he.lambda               = data(T0, {0.55});
-  he.beta                 = data(T0, {0.003});
-  he.collisional_distance = data(T0, {Conversion::angstrom2meter(2.0)});
-
-  // PH3 self-broadening parameters (approximate, based on H2 values)
-  auto& ph3                = ecs[SpeciesEnum::Phosphine];
-  ph3.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.035), 0.70});
-  ph3.lambda               = data(T0, {0.60});
-  ph3.beta                 = data(T0, {0.005});
-  ph3.collisional_distance = data(T0, {Conversion::angstrom2meter(2.5)});
-}
-
-void abs_ecs_dataAddCH4(LinemixingEcsData& abs_ecs_data) {
-  ARTS_TIME_REPORT
-
-  using enum LineShapeModelType;
-  using data = lbl::temperature::data;
-
-  auto& ecs = abs_ecs_data["CH4-211"_isot];
-
-  // H2 broadening parameters
-  auto& h2                = ecs[SpeciesEnum::Hydrogen];
-  h2.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
-  h2.lambda               = data(T0, {0.70});
-  h2.beta                 = data(T0, {0.008});
-  h2.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
-
-  // He broadening parameters
-  auto& he                = ecs[SpeciesEnum::Helium];
-  he.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.025), 0.56});
-  he.lambda               = data(T0, {0.60});
-  he.beta                 = data(T0, {0.004});
-  he.collisional_distance = data(T0, {Conversion::angstrom2meter(1.9)});
-
-  auto& ch4                = ecs[SpeciesEnum::Methane];
-  ch4.scaling              = data(T1, {Conversion::kaycm_per_atm2hz_per_pa(0.060), 0.75});
-  ch4.lambda               = data(T0, {0.70});
-  ch4.beta                 = data(T0, {0.008});
-  ch4.collisional_distance = data(T0, {Conversion::angstrom2meter(2.4)});
 }

@@ -8,6 +8,7 @@
 #include <lbl.h>
 #include <lbl_data.h>
 #include <lbl_lineshape_linemixing.h>
+#include <lbl_lineshape_voigt_ecs.h>
 #include <minimize.h>
 #include <partfun.h>
 #include <path_point.h>
@@ -21,9 +22,11 @@
 #include <xml_io_old.h>
 
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <filesystem>
 #include <iterator>
+#include <numeric>
 #include <ranges>
 #include <unordered_map>
 
@@ -213,6 +216,81 @@ void abs_bandsSetZeeman(AbsorptionBands&      abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
+namespace {
+//! Name the first non-finite entry of a finished line-by-line calculation.
+[[noreturn]] void report_nonfinite_lines(const PropmatVector& pm,
+                                         const StokvecVector& sv,
+                                         const PropmatMatrix& dpm,
+                                         const StokvecMatrix& dsv,
+                                         const AscendingGrid& f_grid) {
+  for (Size i = 0; i < pm.size(); ++i)
+    for (Size j = 0; j < 7; ++j)
+      ARTS_USER_ERROR_IF(not std::isfinite(pm[i].data[j]),
+                         "Non-finite line-by-line propagation matrix at {} Hz, component {}: {}",
+                         f_grid[i],
+                         j,
+                         pm[i].data[j])
+
+  for (Size i = 0; i < sv.size(); ++i)
+    for (Size j = 0; j < 4; ++j)
+      ARTS_USER_ERROR_IF(not std::isfinite(sv[i].data[j]),
+                         "Non-finite line-by-line source vector at {} Hz, component {}: {}",
+                         f_grid[i],
+                         j,
+                         sv[i].data[j])
+
+  for (Size t = 0; t < static_cast<Size>(dpm.nrows()); ++t)
+    for (Size i = 0; i < static_cast<Size>(dpm.ncols()); ++i)
+      for (Size j = 0; j < 7; ++j)
+        ARTS_USER_ERROR_IF(not std::isfinite(dpm[t, i].data[j]),
+                           "Non-finite line-by-line propagation matrix derivative for "
+                           "Jacobian target {} at {} Hz, component {}: {}",
+                           t,
+                           f_grid[i],
+                           j,
+                           dpm[t, i].data[j])
+
+  for (Size t = 0; t < static_cast<Size>(dsv.nrows()); ++t)
+    for (Size i = 0; i < static_cast<Size>(dsv.ncols()); ++i)
+      for (Size j = 0; j < 4; ++j)
+        ARTS_USER_ERROR_IF(not std::isfinite(dsv[t, i].data[j]),
+                           "Non-finite line-by-line source vector derivative for "
+                           "Jacobian target {} at {} Hz, component {}: {}",
+                           t,
+                           f_grid[i],
+                           j,
+                           dsv[t, i].data[j])
+
+  ARTS_USER_ERROR("Non-finite line-by-line result that no single entry accounts for")
+}
+
+/** Detect a non-finite line-by-line result once, for the whole calculation.
+ *
+ * Any non-finite value produced below - in a relaxation matrix, an
+ * eigendecomposition, a partition function or a line shape - reaches these
+ * outputs, so one reduction here replaces scanning intermediates element by
+ * element in the inner code.  Summing costs a single pass and a single branch;
+ * only an actual failure pays for locating the entry behind it.
+ */
+void check_finite_lines(const PropmatVector& pm,
+                        const StokvecVector& sv,
+                        const PropmatMatrix& dpm,
+                        const StokvecMatrix& dsv,
+                        const AscendingGrid& f_grid) {
+  Numeric sum = 0.0;
+  for (const auto& x : pm) sum += std::accumulate(x.data.begin(), x.data.end(), 0.0);
+  for (const auto& x : sv) sum += std::accumulate(x.data.begin(), x.data.end(), 0.0);
+  for (Size t = 0; t < static_cast<Size>(dpm.nrows()); ++t)
+    for (Size i = 0; i < static_cast<Size>(dpm.ncols()); ++i)
+      sum += std::accumulate(dpm[t, i].data.begin(), dpm[t, i].data.end(), 0.0);
+  for (Size t = 0; t < static_cast<Size>(dsv.nrows()); ++t)
+    for (Size i = 0; i < static_cast<Size>(dsv.ncols()); ++i)
+      sum += std::accumulate(dsv[t, i].data.begin(), dsv[t, i].data.end(), 0.0);
+
+  if (not std::isfinite(sum)) report_nonfinite_lines(pm, sv, dpm, dsv, f_grid);
+}
+}  // namespace
+
 void spectral_propmatAddLines(PropmatVector&              pm,
                               StokvecVector&              sv,
                               PropmatMatrix&              dpm,
@@ -269,6 +347,8 @@ void spectral_propmatAddLines(PropmatVector&              pm,
 
     if (not error.empty()) throw std::runtime_error(error);
   }
+
+  check_finite_lines(pm, sv, dpm, dsv, f_grid);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -337,6 +417,28 @@ template <class Key, class T> T& get_value(const Key& k, std::unordered_map<Key,
 }
 }  // namespace
 
+void abs_bandsCheckEcs(const AbsorptionBands& abs_bands, const LinemixingEcsData& abs_ecs_data) try {
+  ARTS_TIME_REPORT
+
+  for (const auto& [band_key, band] : abs_bands) {
+    switch (band.lineshape) {
+      case LineByLineLineshape::VP_ECS_MAKAROV:
+      case LineByLineLineshape::VP_ECS_HARTMANN: break;
+      default:                                   continue;
+    }
+
+    try {
+      lbl::voigt::ecs::validate_band(band_key, band);
+      ARTS_USER_ERROR_IF(not abs_ecs_data.contains(band_key.isot),
+                         "No ECS data for isotopologue {}; see e.g. *abs_ecs_dataAddMakarov2020*",
+                         band_key.isot)
+    } catch (std::exception& e) {
+      throw std::runtime_error(std::format("Invalid ECS band {}:\n{}", band_key, e.what()));
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
 void abs_bandsLineMixingAdaptation(AbsorptionBands&         abs_bands,
                                    const LinemixingEcsData& abs_ecs_data,
                                    const AtmPoint&          atm_point,
@@ -357,12 +459,7 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands&         abs_bands,
 
   if (band.lines.empty()) return;
 
-  for (auto& line : band.lines | stdv::drop(1)) {
-    ARTS_USER_ERROR_IF(
-        stdr::any_of(line.ls.single_models | stdv::keys,
-                     [&other = band.lines.front().ls.single_models](SpeciesEnum x) { return not other.contains(x); }),
-        "Inconsistent line shape models, all lines must have the same broadening species")
-  }
+  lbl::voigt::ecs::validate_band(band_key, band);
 
   const Size K = band.lines.front().ls.single_models.size();
   const Size M = temperatures.size();

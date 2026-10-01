@@ -24,6 +24,7 @@ if test:
         cia = pyarts.arts.CIARecord.fromxml(file)
         if resave:
             cia.savexml(file, type='binary')
+        del cia
     print("All CIA files read successfully.")
     print()
 
@@ -38,6 +39,7 @@ if test:
         xsec = pyarts.arts.XsecRecord.fromxml(file)
         if resave:
             xsec.savexml(file, type='binary')
+        del xsec
     print("All xsec files read successfully.")
     print()
 
@@ -49,14 +51,22 @@ if test:
             x = pyarts.arts.PredefinedModelData.fromxml(filepath)
             if resave:
                 x.savexml(filepath)
+            del x
     print("All predef files read successfully.")
     print()
 
     lines = os.path.join(path, "lines")
-    ws = pyarts.Workspace()
-    ws.abs_bandsReadSplit(dir=lines)
-    if resave:
-        ws.abs_bandsSaveSplit(dir=lines)
+    # Validate every isotope file without retaining the full line catalogue.
+    # The complete catalogue can expand to many gigabytes in memory.
+    for file in sorted(os.listdir(lines)):
+        filepath = os.path.join(lines, file)
+        if not file.endswith(".xml") or not os.path.isfile(filepath):
+            continue
+        print(f"Reading {filepath}", flush=True)
+        bands = pyarts.arts.AbsorptionBands.fromxml(filepath)
+        if resave:
+            bands.savexml(filepath)
+        del bands
     print("All line files read successfully.")
     print()
 

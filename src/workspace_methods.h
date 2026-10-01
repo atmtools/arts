@@ -39,7 +39,6 @@ struct WorkspaceMethodInternalRecord {
   bool size_constraints{true};
 
   [[nodiscard]] static std::string generic_type(const std::string&, bool output = false);
-  [[nodiscard]] std::string        docstring() const;
   [[nodiscard]] std::string        header(const std::string& name) const;
   [[nodiscard]] std::string        call(const std::string& name) const;
 };

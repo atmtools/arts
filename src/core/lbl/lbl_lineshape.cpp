@@ -49,9 +49,7 @@ std::unique_ptr<voigt::ecs::ComputeData> init_voigt_abs_ecs_data(const ConstVect
                                                                  const Vector2          los) {
   if (stdr::any_of(bnds | stdv::values, [](auto& bnd) {
         return bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV or
-               bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN or
-               bnd.lineshape == LineByLineLineshape::VP_ECS_STOTOP or
-               bnd.lineshape == LineByLineLineshape::VP_ECS_SPHTOP;
+               bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN;
       }))
     return std::make_unique<voigt::ecs::ComputeData>(f_grid, atm, los, ZeemanPolarization::no);
   return nullptr;
@@ -131,9 +129,7 @@ void calculate(PropmatVectorView        pm,
       case LineByLineLineshape::VP_LTE_MIRROR:   calc_voigt_lte_mirrored(bnd_key, bnd, pol); break;
       case LineByLineLineshape::VP_LINE_NLTE:    calc_voigt_line_nlte(bnd_key, bnd, pol); break;
       case LineByLineLineshape::VP_ECS_MAKAROV:  [[fallthrough]];
-      case LineByLineLineshape::VP_ECS_HARTMANN: [[fallthrough]];
-      case LineByLineLineshape::VP_ECS_STOTOP:   [[fallthrough]];
-      case LineByLineLineshape::VP_ECS_SPHTOP:   calc_voigt_ecs_linemixing(bnd_key, bnd, pol); break;
+      case LineByLineLineshape::VP_ECS_HARTMANN: calc_voigt_ecs_linemixing(bnd_key, bnd, pol); break;
     }
   };
 

@@ -14,7 +14,6 @@ Numeric species_data::Omega(const Numeric T,
                             const Numeric other_mass,
                             const Numeric energy_x,
                             const Numeric energy_xm2) const {
-  using Constant::h;
   using Constant::h_bar;
   using Constant::k;
   using Constant::m_u;
