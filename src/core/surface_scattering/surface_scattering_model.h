@@ -14,13 +14,21 @@
 #include <string>
 #include <variant>
 
+#include "flat_scalar.h"
+#include "fresnel.h"
 #include "lambertian.h"
 #include "surface_scattering_properties.h"
 
 namespace surface_scattering {
 
 /// Variant type holding any concrete surface scattering model
-using SurfaceScatteringModel = std::variant<LambertianSurfaceScatterer, LambertianSurfaceScattererField>;
+using SurfaceScatteringModel =
+    std::variant<LambertianSurfaceScatterer,
+                 LambertianSurfaceScattererField,
+                 FresnelSurfaceScatterer,
+                 FresnelSurfaceScattererField,
+                 FlatScalarSurfaceScatterer,
+                 FlatScalarSurfaceScattererField>;
 
 }  // namespace surface_scattering
 
@@ -30,6 +38,10 @@ using SurfaceScatteringModel = surface_scattering::SurfaceScatteringModel;
 /// the pattern for HenyeyGreensteinScatterer in scattering_species.h)
 using LambertianSurfaceScatterer = surface_scattering::LambertianSurfaceScatterer;
 using LambertianSurfaceScattererField = surface_scattering::LambertianSurfaceScattererField;
+using FresnelSurfaceScatterer = surface_scattering::FresnelSurfaceScatterer;
+using FresnelSurfaceScattererField = surface_scattering::FresnelSurfaceScattererField;
+using FlatScalarSurfaceScatterer = surface_scattering::FlatScalarSurfaceScatterer;
+using FlatScalarSurfaceScattererField = surface_scattering::FlatScalarSurfaceScattererField;
 
 /** Named map of surface scattering models.
  *
