@@ -24,6 +24,7 @@ and how to use existing features.
    dev.edit
    dev.gui
    dev.doc
+   dev.licenses
    dev.xml
    dev.species
    dev.arts2missing

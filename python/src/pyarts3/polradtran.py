@@ -11,8 +11,9 @@ solver that can represent it, the same way:
   all Fourier azimuth modes) unless a beam falls on a non-Lambertian
   surface.
 
-RT3 and RT4 are optional (``ENABLE_RT3`` and ``ENABLE_RT4``); a solver whose
-backend is not built is skipped.  All solvers get the same double-Gauss
+ARTS builds RT3 and RT4 when a Fortran compiler is found (``-DENABLE_RT3=OFF``
+and ``-DENABLE_RT4=OFF`` turn them off); a solver whose backend is not built
+is skipped.  All solvers get the same double-Gauss
 streams and the same phase matrix.  RT3 is given the Legendre series of the
 scattering matrix directly.  VDISORT and RT4 are given its stream-pair
 Fourier modes, from the lab-frame Mueller matrix built from vector geometry

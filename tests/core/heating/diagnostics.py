@@ -1,4 +1,12 @@
-"""Physics and array-contract checks independent of the ARTS2 adapters."""
+"""Physics and array-contract checks independent of the ARTS2 adapters.
+
+This file independently checks the supported formulas with a quadratic
+flux on nonuniform pressure levels (both orderings and both boundaries),
+isotropic hemispheres, frequency integration, analytic beam heating and
+thermal cooling in both solvers, workspace DFDT sampling locations, spectral
+extinction weighting, and invalid inputs. This separates preserved historical
+behavior from the public scientific interface.
+"""
 
 import numpy as np
 from pyarts3 import arts, Workspace

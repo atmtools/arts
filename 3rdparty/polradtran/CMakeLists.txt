@@ -1,18 +1,22 @@
 # Evans' polradtran: RT4 (ENABLE_RT4) and RT3 (ENABLE_RT3), see README.
 # polradtran is MIT licensed (LICENSE), so both are also fine in LGPL builds.
-if(ENABLE_RT4)
-  message(STATUS "RT4 is enabled")
+# Built by default when a Fortran compiler is found (top-level CMakeLists.txt).
+if(ARTS_FORTRAN_FOUND)
+  set(polradtran_off_reason "turned off")
 else()
-  message(STATUS "RT4 is disabled")
+  set(polradtran_off_reason "no Fortran compiler found; set FC or CMAKE_Fortran_COMPILER")
 endif()
-if(ENABLE_RT3)
-  message(STATUS "RT3 is enabled")
-else()
-  message(STATUS "RT3 is disabled")
-endif()
+foreach(solver RT4 RT3)
+  if(ENABLE_${solver})
+    message(STATUS "${solver} is enabled (Fortran compiler ${CMAKE_Fortran_COMPILER})")
+  else()
+    message(STATUS "${solver} is disabled (${polradtran_off_reason})")
+  endif()
+endforeach()
 if(NOT ENABLE_RT4 AND NOT ENABLE_RT3)
   return()
 endif()
+arts_add_bundled_license(polradtran SPDX MIT FILES LICENSE)
 
 # CMake initialises CMAKE_Fortran_FLAGS from the FFLAGS environment variable
 # the first time Fortran is enabled in a build tree; conda environments export

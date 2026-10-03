@@ -310,10 +310,11 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 
 `pyarts3.polradtran` (`python/src/pyarts3/polradtran.py`) defines a problem
 once and runs it through every solver that can represent it, the same way;
-`pyarts3.polradtran.plot()` shows the radiances and their differences, and
-`examples/3-allsky-radiative-transfer/2-vdisort-polradtran/` uses both.
+and `pyarts3.polradtran.plot()` shows the radiances and their differences.
 `tests/core/disort/vdisort-polradtran.rt3.rt4.py` runs the module's preset
-problems (`pyarts3.polradtran.cases.all()`):
+problems (`pyarts3.polradtran.cases.all()`) and a problem it defines with
+`pyarts3.polradtran.legendre_series`, and plots each comparison when run
+without `ARTS_HEADLESS`.  Each problem runs through:
 
 - VDISORT, always;
 - RT4 for thermal problems with nstokes <= 2;
@@ -331,6 +332,7 @@ The cases are:
 | thermal Mie layer over Lambertian | VDISORT, RT4, RT3 |
 | solar Rayleigh layer, 4 Fourier modes, nstokes 4 | VDISORT, RT3 |
 | solar plus thermal Rayleigh / Mie / gas multilayer, 12 modes, nstokes 4 | VDISORT, RT3 |
+| solar polarizing Henyey-Greenstein cloud under a Rayleigh layer, 8 modes | VDISORT, RT3 |
 
 Every pair must agree to 10 max_delta_tau / mu0 of max I (1e-6 to 2e-6).
 The measured values are 2e-8 to 6e-8 for VDISORT against RT3 or RT4, and
@@ -338,9 +340,12 @@ The measured values are 2e-8 to 6e-8 for VDISORT against RT3 or RT4, and
 `pyarts3.arts.vdisort`, `rt4` and `rt3` bindings.  The C++ comparisons above
 carry the convergence, Richardson and non-blindness evidence.
 
-CI (`.github/workflows/build-test.yml`) configures every job with a Fortran
-compiler (all Linux jobs, including LGPL, and macOS) with
-`-DENABLE_RT4=ON -DENABLE_RT3=ON` through the `polradtran` matrix key.
+RT3 and RT4 are built by default when a Fortran compiler is found.  CI
+(`.github/workflows/build-test.yml`) still sets `-DENABLE_RT4=ON
+-DENABLE_RT3=ON` explicitly, through the `polradtran` matrix key, for every
+job with a Fortran compiler (all Linux jobs, including LGPL, and macOS).  A
+job that loses its compiler then fails to configure instead of silently
+skipping these tests.
 `check` then runs `cpp.fast.rt3-test`, `cpp.fast.rt4-test`,
 `cpp.fast.vdisort-rt3-test`, `cpp.fast.vdisort-rt4-test`, the closed-form
 Python tests of both bindings, and this three-solver test.  Windows has no

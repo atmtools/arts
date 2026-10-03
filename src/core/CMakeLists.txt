@@ -20,6 +20,7 @@ add_subdirectory(igrf)
 add_subdirectory(jacobian)
 
 add_subdirectory(lbl)
+add_subdirectory(licenses)
 add_subdirectory(legendre)
 add_subdirectory(lookup)
 
@@ -60,6 +61,7 @@ add_subdirectory(xml)
 add_library(artscore INTERFACE)
 
 target_link_libraries(artscore INTERFACE
+  arts_licenses
   absorption
   arts_enum_options
   artstime

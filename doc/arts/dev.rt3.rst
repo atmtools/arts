@@ -50,8 +50,8 @@ Provenance
 Build
 -----
 
-Enable RT3 with ``-DENABLE_RT3=ON``.  It can be enabled with or without
-``ENABLE_RT4``.  As for RT4 (see :doc:`dev.rt4` for details):
+RT3 is built when CMake finds a Fortran compiler, independently of RT4, and
+``-DENABLE_RT3=OFF`` turns it off.  As for RT4 (see :doc:`dev.rt4` for details):
 
 * the Fortran language is enabled only after LAPACK has been found, so the
   BLAS/LAPACK choice does not depend on ``ENABLE_RT3``;

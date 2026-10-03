@@ -53,9 +53,11 @@ Provenance
 Build
 -----
 
-Enable RT4 with ``-DENABLE_RT4=ON``.  This turns on the Fortran language, so
-a Fortran compiler is required, but only when RT4 is enabled.  Pass
-``-DCMAKE_Fortran_COMPILER=...`` if the compiler is not found.
+RT4 is built when CMake finds a Fortran compiler, and ``-DENABLE_RT4=OFF``
+turns it off.  Configuring reports ``RT4 is enabled`` with the compiler, or
+why it is disabled.  Set ``FC`` or pass ``-DCMAKE_Fortran_COMPILER=...`` if
+the compiler is not found.  Its MIT licence is registered as bundled code,
+see :doc:`dev.licenses`.
 
 * **Compiler flags.** With GNU, the legacy ``.f`` sources are compiled with
   ``-std=legacy -fdefault-real-8 -fdefault-double-8``; with Intel, with

@@ -2,6 +2,7 @@
 #include <arts_omp.h>
 #include <arts_options.h>
 #include <auto_wsv.h>
+#include <bundled_licenses.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/chrono.h>
@@ -65,6 +66,56 @@ namespace Python {
 void py_global(py::module_& m) try {
   auto global  = m.def_submodule("globals");
   global.doc() = "Global settings and data";
+
+  py::class_<arts::bundled_component>(global, "BundledComponent")
+      .def_prop_ro(
+          "name",
+          [](const arts::bundled_component& c) { return std::string{c.name}; },
+          "Name of the component\n\n.. :class:`str`")
+      .def_prop_ro(
+          "spdx",
+          [](const arts::bundled_component& c) { return std::string{c.spdx}; },
+          "SPDX licence expression of the component, or a LicenseRef-...\n\n.. :class:`str`")
+      .def_prop_ro(
+          "files",
+          [](const arts::bundled_component& c) {
+            std::unordered_map<std::string, std::string> files;
+            for (auto& f : c.files) files.emplace(f.name, f.text);
+            return files;
+          },
+          "The licence and notice files of the component by file name, as compiled in\n\n.. :class:`dict[str, str]`")
+      .def("__repr__",
+           [](const arts::bundled_component& c) { return std::format("BundledComponent({}: {})", c.name, c.spdx); })
+      .doc() = "Code from another project that this build of ARTS compiles in";
+
+  global.def(
+      "bundled_components",
+      [] {
+        const auto c = arts::bundled_components();
+        return std::vector<arts::bundled_component>(c.begin(), c.end());
+      },
+      R"(The code from other projects compiled into this build of ARTS, with the
+licence and notice files of each component.
+
+The texts are compiled into ARTS, so every binary carries them.
+
+Returns
+-------
+components : list[BundledComponent]
+    The bundled components.
+)");
+
+  global.def(
+      "license_expression",
+      [] { return std::string{arts::license_expression()}; },
+      R"(The SPDX licence expression of this build of ARTS: the licence of ARTS AND
+the licences of the bundled components.
+
+Returns
+-------
+expression : str
+    The licence expression.
+)");
 
   py::class_<Parameters> param(global, "parameters");
   param

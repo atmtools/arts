@@ -1,0 +1,39 @@
+The notices of WIGXJPF and FASTWIGXJ, copied verbatim from
+wigxjpf/inc/wigxjpf.h and fastwigxj/inc/fastwigxj.h.  The licence texts are
+wigxjpf/COPYING.LESSER and wigxjpf/COPYING (likewise in fastwigxj/).
+
+Copyright 2015 Haakan T. Johansson
+
+This file is part of WIGXJPF.
+
+WIGXJPF is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+WIGXJPF is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with WIGXJPF.  If not, see
+<http://www.gnu.org/licenses/>.
+
+Copyright 2015 Haakan T. Johansson
+
+This file is part of FASTWIGXJ.
+
+FASTWIGXJ is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+FASTWIGXJ is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with FASTWIGXJ.  If not, see
+<http://www.gnu.org/licenses/>.
