@@ -195,10 +195,6 @@ if(ENABLE_MPI)
   target_link_libraries(artsworkspace PUBLIC ${MPI_CXX_LIBRARIES})
 endif(ENABLE_MPI)
 
-if(ENABLE_RT4)
-  target_link_libraries(artsworkspace PUBLIC rt4)
-endif(ENABLE_RT4)
-
 if(ENABLE_FASTEM)
   target_link_libraries(artsworkspace PUBLIC fastem)
 endif(ENABLE_FASTEM)

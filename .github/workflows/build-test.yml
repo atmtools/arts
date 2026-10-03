@@ -15,6 +15,7 @@ jobs:
             os: ubuntu-26.04
             preset: doc-gcc-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "no"
             doc: "yes"
@@ -26,6 +27,7 @@ jobs:
             os: ubuntu-26.04
             preset: default-gcc-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -37,6 +39,7 @@ jobs:
             os: ubuntu-26.04-arm
             preset: default-gcc-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -48,6 +51,7 @@ jobs:
             os: ubuntu-26.04
             preset: reldeb-gcc-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -59,6 +63,7 @@ jobs:
             os: ubuntu-26.04
             preset: lgpl-gcc-conda
             tmatrix: "OFF"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -70,6 +75,7 @@ jobs:
             os: macos-26
             preset: default-clang-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -81,6 +87,7 @@ jobs:
             os: macos-26
             preset: reldeb-clang-conda
             tmatrix: "ON"
+            polradtran: "ON"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -92,6 +99,7 @@ jobs:
             os: windows-2025-vs2026
             preset: default-msvc-conda
             tmatrix: "OFF"
+            polradtran: "OFF"
             pyarts: "yes"
             check: "yes"
             doc: "no"
@@ -131,7 +139,7 @@ jobs:
       - name: Configure
         shell: bash -l {0}
         run: |
-          cmake --preset=${{ matrix.preset }} -DENABLE_TMATRIX=${{ matrix.tmatrix }}
+          cmake --preset=${{ matrix.preset }} -DENABLE_TMATRIX=${{ matrix.tmatrix }} -DENABLE_RT4=${{ matrix.polradtran }} -DENABLE_RT3=${{ matrix.polradtran }}
 
       - name: Build ARTS Workspace
         shell: bash -l {0}

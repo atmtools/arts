@@ -573,10 +573,25 @@ beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor
                      sine.shape());
   const auto [nfourier, nlayers, nout] = cosine.shape();
   beam_phase_matrix_data out(2, nfourier, nlayers, nout, rtepack::muelmat{0.0});
-  for (Index m = 0; m < nfourier; ++m)
-    for (Index l = 0; l < nlayers; ++l)
-      for (Index i = 0; i < nout; ++i)
-        fill_combined(out[cosine_mode, m, l, i], out[sine_mode, m, l, i], cosine[m, l, i], sine[m, l, i], m);
+
+  // Unlike the diffuse operator of Eq. (81), the beam is a delta in azimuth
+  // at phi0 with only cosine terms, for every Stokes component of the beam.
+  // Its scattered source sum_m [C^m cos m(phi0 - phi) + S^m sin m(phi0 - phi)] b
+  // feeds the cosine system (I^c, Q^c, U^s, V^s) with rows I, Q of C^m and
+  // rows U, V of S^m, and the sine system (I^s, Q^s, U^c, V^c) with rows I, Q
+  // of S^m and rows U, V of C^m, in all four columns.
+  for (Index m = 0; m < nfourier; ++m) {
+    for (Index l = 0; l < nlayers; ++l) {
+      for (Index i = 0; i < nout; ++i) {
+        for (Index r = 0; r < stokes_dimension; ++r) {
+          for (Index c = 0; c < stokes_dimension; ++c) {
+            out[cosine_mode, m, l, i][r, c] = r < 2 ? cosine[m, l, i][r, c] : sine[m, l, i][r, c];
+            out[sine_mode, m, l, i][r, c]   = r < 2 ? sine[m, l, i][r, c] : cosine[m, l, i][r, c];
+          }
+        }
+      }
+    }
+  }
   return out;
 }
 

@@ -31,6 +31,8 @@ and how to use existing features.
 
    dev.lbl
    dev.tmatrix
+   dev.rt4
+   dev.rt3
    dev.heating
    dev.disort
    dev.surface_emissivity

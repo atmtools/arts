@@ -1,0 +1,53 @@
+This folder contains code and data from Evans' PolRadTran RTM.
+
+It has been extracted from the original PolRadTran tar and restructured.
+If original code is modified, keep a copy of the original (as *.orig).
+
+The original distribution is https://nit.coloradolinux.com/polrad.html
+(PolRadTran.tar, sha256 7b0eff794319330321e27a6f312588a289ed080bb266500dcecf485f6a7cff9d).
+It is distributed under the MIT licence in LICENSE, which must be kept with the
+code.
+
+Contents:
+
+- radmat.f: Evans' matrix routines, used by both RT4 and RT3 and built once
+  as the library polradtran_radmat.  It differs from the tar only by the
+  rt4_ prefix on its BLAS helpers (rt4_daxpy, rt4_dscal, rt4_idamax,
+  rt4_dswap), made in ARTS 2.  It keeps no state between calls; it is
+  compiled with -frecursive (GNU) or -auto (Intel) so that MINVERT's local
+  arrays are on the stack, because RT4 and RT3 serialise their calls with
+  separate mutexes and may call it concurrently.
+- rt4/: RT4 (horizontally oriented particles, thermal source, I and Q),
+  as modified for ARTS 2.6.  The rt4/*.orig files and rt4/rt4.f are
+  byte-identical to the tar.  Only the code needed to run RT4 is kept (no
+  RT3-to-RT4 scattering data conversion, test data or run scripts).
+- rt3/: RT3 (randomly oriented particles, solar and thermal sources, all
+  Fourier azimuth modes, I, Q, U and V), new in ARTS 3.  rt3/*.orig,
+  rt3/rt3.f, rt3/runmietest and rt3/runtesta are byte-identical to the tar;
+  the two scripts hold Evans' expected benchmark outputs, which the ARTS
+  tests compare with.  See rt3/README.
+
+ARTS3 changes to RT4 (each marked with a "c ARTS3:" comment in the source):
+
+- rt4/radutil4.f PLANCK_FUNCTION: the 5-digit radiation constants 1.1911D8
+  and 1.4388D4 (a ~3e-5 relative bias, ~8 mK at 250 K) are replaced by 2hc^2
+  [W m-2 sr-1 um^4] and hc/k [um K] evaluated from the exact SI (CODATA 2018)
+  h, c and k.
+- rt4/radtran4.f RADTRANO: NUUMMU is declared INTEGER (it was implicitly
+  typed), and UP_RAD/DOWN_RAD are declared with their written extent
+  NSTOKES*NUMMU*(NUM_LAYERS+1).
+- rt4/rt4_c_interface.f90 (new): ISO_C_BINDING entry points with explicit C
+  types for RADTRANO, PLANCK_FUNCTION and the three quadratures, so the build
+  needs neither -fdefault-integer-8 nor the hidden CHARACTER length ABI.
+- rt4/CMakeLists.txt: rewritten for ARTS3 (ENABLE_RT4).  rt4.f and the
+  *.orig files are not built.  radmat.f moved from rt4/ to this folder
+  (unchanged) when RT3 was added.
+
+Nothing else is changed in RT4; in particular SYMMETRIC stays .TRUE., so RT4
+only handles media that are mirror symmetric between the two hemispheres.
+The C++ wrapper is src/core/rt4.
+
+The ARTS3 changes to RT3 are listed in rt3/README; its C++ wrapper is
+src/core/rt3.  CMakeLists.txt here enables the two with ENABLE_RT4 and
+ENABLE_RT3; the legacy *.f files of both are compiled with
+-std=legacy -fdefault-real-8 -fdefault-double-8 (GNU) or -r8 (Intel).

@@ -197,7 +197,14 @@ struct BDRF {
 [[nodiscard]] phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
                                                        const rtepack::muelmat_tensor4& sine);
 
-/** Beam-angle counterpart of combine_phase_matrices. */
+/** Beam-angle counterpart of combine_phase_matrices.
+ *
+ * Inputs are the ordinary cosine/sine coefficients C^m(mu_i, -mu0) and
+ * S^m(mu_i, -mu0) with shape [NFourier, NLayers, NQuad] of Mueller blocks.
+ * The beam has only cosine azimuth terms, so this is not Eq. (81): the
+ * cosine system takes rows I, Q of C^m and rows U, V of S^m, and the sine
+ * system rows I, Q of S^m and rows U, V of C^m.
+ */
 [[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                                  const rtepack::muelmat_tensor3& sine);
 

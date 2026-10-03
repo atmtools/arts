@@ -46,6 +46,8 @@ add_subdirectory(sun)
 add_subdirectory(surface)
 add_subdirectory(subsurface)
 
+add_subdirectory(rt3)
+add_subdirectory(rt4)
 add_subdirectory(tmatrix)
 
 add_subdirectory(util)
@@ -85,6 +87,8 @@ target_link_libraries(artscore INTERFACE
   subsurface
   sun
   surface
+  arts_rt3
+  arts_rt4
   arts_tmatrix
   util
   xml_io

@@ -1,0 +1,487 @@
+RT4 reference solver
+====================
+
+RT4 is Evans' polarized doubling-adding solver from the polradtran package.
+ARTS 3 keeps it only as an external reference for validating other solvers,
+in particular the polarized discrete-ordinate solver VDISORT.  It solves the
+thermal-only radiative transfer equation in a plane-parallel, azimuthally
+symmetric medium, for the Stokes components [I] or [I, Q].  It has a core C++
+interface (``src/core/rt4``) and a low-level Python interface
+(``pyarts3.arts.rt4``).  It has no workspace methods, variables or agendas.
+
+Provenance
+----------
+
+* **Original code.** K. F. Evans, polradtran (RT3/RT4), 1996, distributed
+  from https://nit.coloradolinux.com/polrad.html under the MIT licence
+  (``3rdparty/polradtran/LICENSE``).  RT4 is briefly described in Evans and
+  Stephens (1995), J. Atmos. Sci. 52, 2058-2072.  See
+  ``3rdparty/polradtran/rt4/README``.  The ``.orig`` files are
+  byte-identical to the current ``PolRadTran.tar`` (sha256
+  ``7b0eff79...a6f7cff9d``).
+* **ARTS 2.6 changes** by J. Mendrok and others (the ``.orig`` files keep the
+  originals):
+
+  * optical properties are passed in memory instead of read from files;
+  * new surface types ``'S'`` (specular with a fixed reflection matrix) and
+    ``'A'`` (an externally supplied reflection operator and emission);
+  * output at all levels;
+  * a choice of optics set per layer;
+  * larger array limits;
+  * a hard stop for ``NSTOKES > 2``;
+  * extra zero-weight angles at the end of the stream list.
+* **ARTS 3 changes**, each marked ``c ARTS3:`` in the source and listed in
+  ``3rdparty/polradtran/README``:
+
+  * Planck constants computed from the exact SI h, c and k.  The original
+    5-digit constants give a bias of about 3e-5, roughly 8 mK at 250 K.
+  * ``NUUMMU`` declared ``INTEGER``; it was implicitly typed before.
+  * ``UP_RAD``/``DOWN_RAD`` declared with the extent that is actually
+    written.
+  * A new ``rt4_c_interface.f90`` with ``ISO_C_BINDING`` entry points, so
+    the build needs neither ``-fdefault-integer-8`` nor the hidden
+    ``CHARACTER`` length ABI.
+  * A rewritten ``CMakeLists.txt``.
+  * ``radmat.f`` moved, unchanged, from ``rt4/`` to
+    ``3rdparty/polradtran/``, where it is built once as
+    ``polradtran_radmat`` for both RT4 and RT3 (:doc:`dev.rt3`).
+
+  ``rt4.f``, the original main program, and the ``.orig`` files are kept
+  for provenance only and are not built.  ``SYMMETRIC`` is still hard-coded
+  to ``.TRUE.``.
+
+Build
+-----
+
+Enable RT4 with ``-DENABLE_RT4=ON``.  This turns on the Fortran language, so
+a Fortran compiler is required, but only when RT4 is enabled.  Pass
+``-DCMAKE_Fortran_COMPILER=...`` if the compiler is not found.
+
+* **Compiler flags.** With GNU, the legacy ``.f`` sources are compiled with
+  ``-std=legacy -fdefault-real-8 -fdefault-double-8``; with Intel, with
+  ``-r8``.  Default INTEGER is not promoted.
+* **Conda.** CMake initialises ``CMAKE_Fortran_FLAGS`` from ``FFLAGS`` the
+  first time Fortran is enabled in a build tree, and conda environments
+  export ``FFLAGS``.  For a reproducible build, configure with
+  ``-DCMAKE_Fortran_FLAGS=""``.  The flags in use are printed at configure
+  time.
+* **macOS.** On macOS with GNU Fortran, the library is built shared, for the
+  same Darwin unwind reason as T-matrix (:doc:`dev.tmatrix`).
+* **BLAS/LAPACK.** Fortran is enabled only after LAPACK has been found, so
+  the BLAS/LAPACK choice does not depend on ``ENABLE_RT4``.  Enabled earlier,
+  it makes CMake's FindBLAS link MKL's GNU layers (``mkl_gf_lp64``,
+  ``mkl_gnu_thread``), whose multi-threaded ``zgbsv`` (MKL 2026.1) segfaults
+  for the band widths VDISORT uses from NQuad = 12.
+* **LGPL.** RT4 is allowed in LGPL builds: polradtran is MIT licensed
+  (``3rdparty/polradtran/LICENSE``), and the ARTS modifications fall under
+  the ARTS licence.
+
+The C++ wrapper ``arts_rt4`` is always built.  When RT4 is disabled,
+``rt4::available()`` returns false and ``rt4::get_quadrature()`` and
+``rt4::solve()`` throw.  The Python module exists in both cases and raises
+``RuntimeError`` the same way.
+
+Python test files whose names contain ``.rt4.`` are collected only with
+``ENABLE_RT4=ON``.  There are two tests:
+
+* ``cpp.fast.rt4-test`` (``src/core/rt4/test/rt4-test.cpp``);
+* ``tests/core/rt4/closed-form.rt4.py``.
+
+Every reference in both is a closed form derived in the test, never an RT4
+output.  The C++ test covers:
+
+* quadrature exactness;
+* Planck against an isothermal blackbody;
+* gas-only layers;
+* doubling convergence;
+* a layout test with lower-triangular, stream-dependent K, Stokes-asymmetric
+  absorption and a forward-only phase matrix;
+* Fresnel, specular, Lambertian and discrete surfaces;
+* isothermal Kirchhoff with Rayleigh and a non-reciprocal Rayleigh variant;
+* 17 error paths.
+
+The Python test repeats the quadrature, Fresnel, layout, Kirchhoff and
+error-path checks through the bindings.
+
+The comparison of VDISORT against RT4, ``cpp.fast.vdisort-rt4-test``, is also
+built only with ``ENABLE_RT4=ON``.  See `Mapping to VDISORT inputs`_.
+
+Interface
+---------
+
+C++ (``#include <rt4.h>``, namespace ``rt4``):
+
+.. code-block:: cpp
+
+  bool available();
+  enum class quadrature_type { double_gauss, gauss, lobatto };   // RT4 'D', 'G', 'L'
+  struct quadrature { Vector mu; Vector weights; };
+  quadrature get_quadrature(Index nmu, quadrature_type type);
+  inline constexpr Index down = 0, up = 1;
+  struct layer_optics { Tensor4 extinction; Tensor3 absorption; Tensor6 phase; };
+  struct lambertian_surface { Numeric albedo; };
+  struct fresnel_surface { Complex refractive_index; };
+  struct specular_surface { Matrix reflectivity; };
+  struct discrete_surface { Tensor4 reflection; Matrix emission; };
+  using surface = std::variant<lambertian_surface, fresnel_surface, specular_surface, discrete_surface>;
+  struct problem {
+    Index nstokes{2}; Index nmu{8}; quadrature_type quad{quadrature_type::double_gauss};
+    Vector extra_mu; Numeric max_delta_tau{1e-6}; Numeric frequency;
+    Vector height; Vector temperature; Vector gas_extinction;
+    std::vector<layer_optics> optics; ArrayOfIndex layer_optics_index;
+    Numeric sky_temperature; Numeric surface_temperature; surface ground;
+  };
+  struct result { Vector mu; Vector weights; Tensor3 up; Tensor3 down; };
+  result solve(const problem& p);
+
+Python (``pyarts3.arts.rt4``) mirrors this:
+
+* ``available()``;
+* ``QuadratureType`` (``double_gauss``, ``gauss``, ``lobatto``);
+* ``get_quadrature(nmu, type)``, which returns a ``Quadrature`` with ``mu``
+  and ``weights``;
+* ``down``/``up``;
+* ``LayerOptics(extinction, absorption, phase)`` and ``ArrayOfLayerOptics``;
+* the surfaces ``LambertianSurface(albedo)``,
+  ``FresnelSurface(refractive_index)``, ``SpecularSurface(reflectivity)`` and
+  ``DiscreteSurface(reflection, emission)``;
+* ``Problem(...)``, which takes every field as a keyword argument with the
+  C++ default;
+* ``Result``, with read-only ``mu``, ``weights``, ``up`` and ``down``;
+* ``solve(problem)``.
+
+Every array attribute accepts numpy arrays and lists.  ``Problem.ground``
+returns a copy, so assign a new surface to change it.  ``solve`` releases the
+GIL.
+
+.. code-block:: python
+
+  import numpy as np
+  from pyarts3 import arts
+
+  rt4 = arts.rt4
+  p = rt4.Problem(nstokes=2, nmu=8, extra_mu=[1.0], frequency=89e9,
+                  height=np.array([3000.0, 2000.0, 1000.0, 0.0]),       # m, top-down
+                  temperature=np.array([220.0, 240.0, 265.0, 285.0]),   # K at interfaces
+                  gas_extinction=np.array([1e-4, 3e-4, 5e-4]),          # 1/m per layer
+                  layer_optics_index=[-1, 0, -1],
+                  sky_temperature=2.725, surface_temperature=290.0,
+                  ground=rt4.FresnelSurface(3.0 + 0.2j))
+
+  n = p.nmu + len(p.extra_mu)
+  q = rt4.get_quadrature(p.nmu, p.quad)
+  w = np.append(q.weights, 0.0)
+  sigma, kabs = 6e-4, 4e-4                       # isotropic scattering, per metre
+  phase = np.zeros((2, 2, n, n, 2, 2))
+  phase[..., 0, 0] = sigma / (4 * np.pi)
+  ext = np.zeros((2, n, 2, 2))
+  ext[..., 0, 0] = ext[..., 1, 1] = sigma + kabs
+  absorption = np.zeros((2, n, 2))               # energy conservation on the streams
+  absorption[..., 0] = sigma + kabs - 2 * np.pi * np.einsum("i,ohij->hj", w, phase[..., 0, 0])
+  p.optics = [rt4.LayerOptics(ext, absorption, phase)]
+
+  r = rt4.solve(p)
+  top_up = np.asarray(r.up)[0]                   # [nmu_total, 2], W m-2 Hz-1 sr-1
+
+Conventions
+-----------
+
+**Stokes basis.**
+
+* [I, Q], with the meridional plane as reference: "vertical" polarization
+  lies in the plane of the ray and the z axis.
+* I = I_v + I_h and Q = I_v - I_h.
+* The same basis is used in both hemispheres, so Q does not change sign
+  between up and down.  A warm dielectric surface emits Q > 0 at oblique
+  angles.
+* U and V are not computed.
+
+**Hemispheres.**
+
+* Index ``down`` (0) is radiation propagating downward, toward increasing
+  optical depth.  This is RT4's "+".
+* ``up`` (1) is propagating upward, RT4's "-".
+* ``result.up[l, i]`` is what a sensor at level ``l`` sees looking down at
+  nadir angle ``acos(mu_i)``.
+
+**Streams.**
+
+* Streams are given per hemisphere as ``mu = |cos(zenith)|`` in (0, 1].
+  Both hemispheres use the same ``mu`` values.
+* The first ``nmu`` are RT4's quadrature nodes, in ascending order.  None
+  of the rules includes ``mu = 0``.
+* The zero-weight ``extra_mu`` angles follow, in the order given; each must
+  be in (0, 1].  ``nmu_total = nmu + len(extra_mu)``.
+* Weights are for the integral over mu in [0, 1] and sum to 1.  The 2 pi
+  azimuth factor is not included.
+* The three rules:
+
+  * ``double_gauss`` ('D'): an nmu-point Gauss-Legendre rule mapped to
+    [0, 1];
+  * ``gauss`` ('G'): the positive half of a 2 nmu-point Gauss-Legendre rule
+    on [-1, 1];
+  * ``lobatto`` ('L'): the positive half of a 2 nmu-point Lobatto rule; it
+    includes mu = 1.
+* The extra angles receive scattering and reflection but contribute nothing
+  to the angular integrals.  They are output directions only, except in
+  ``DiscreteSurface``, whose columns are applied without weights (see
+  Surfaces).
+
+**Layers and levels.**
+
+* Both are ordered top-down.  Level 0 is the top of the atmosphere and level
+  ``nlay`` is just above the surface.
+* ``height`` holds ``nlay + 1`` interfaces.  Only ``|height[l] - height[l+1]|``
+  is used.  Any length unit works if extinctions are given in its
+  reciprocal.
+* ``temperature`` holds ``nlay + 1`` interface temperatures, which must be
+  > 0.
+* ``gas_extinction`` holds ``nlay`` values, which must be >= 0.
+* ``layer_optics_index`` holds ``nlay`` values: an index into ``optics``, or
+  a negative value for a gas-only layer.
+
+**Optics shapes** (``layer_optics``), all per unit length:
+
+* ``extinction[h, mu, row, col]``: the extinction matrix K for propagation in
+  hemisphere h at mu.
+* ``absorption[h, mu, s]``: the absorption vector a, which RT4 multiplies by
+  the Planck function.
+* ``phase[h_out, h_in, mu_out, mu_in, s_out, s_in]``.
+
+The gas extinction is added by RT4 to every Stokes diagonal of K and to the
+I component of a.  It is scalar and unpolarized.
+
+**Phase-matrix quadrants and normalisation.**
+
+* The four ``(h_out, h_in)`` blocks are RT4's quadrants:
+
+  * ``(down, down)`` is q=1 (+ <- +);
+  * ``(down, up)`` is q=2 (+ <- -);
+  * ``(up, down)`` is q=3 (- <- +);
+  * ``(up, up)`` is q=4 (- <- -).
+
+  The Fortran buffer index is q = 2 h_out + h_in + 1.
+* ``phase`` is the azimuthal mean ``(1 / 2 pi) int Z dDelta-phi`` of the
+  phase matrix in the meridional basis, per unit length and per steradian.
+  It includes the number density, is not normalised to 4 pi, and contains no
+  quadrature weights.
+* The scattering source into ``(h, mu_i)`` is
+  ``2 pi sum_j sum_h' w_j Z(h <- h')(i, j) I(h', mu_j)``.
+* Energy conservation on the streams reads
+  ``K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i [Z(up <- h) + Z(down <- h)](1, i; 1, j)``.
+  Neither RT4 nor the wrapper checks or enforces it; ARTS 2.6 rescaled the
+  phase matrices to satisfy it.
+* For an isothermal Kirchhoff test (I = B, Q = 0 on the streams), use
+  ``a_s(h, mu_j) = K_sI - 2 pi sum_{i, h'} w_i Z_sI(h <- h')(j, i)``.
+
+**Planck source.**
+
+* Within a layer the Planck function B, not the temperature, is linear in
+  optical depth: B is linear in height, and the layer is homogeneous.
+* Gas-only layers are solved analytically, with ``exp(-tau / mu)`` and the
+  exact linear-in-tau source integral.
+* Scattering layers are doubled from a first-order initial sublayer, so the
+  source is piecewise constant per sublayer.  The error is first order in
+  that sublayer's slant thickness, which is at most
+  ``max_delta_tau / mu_min``.
+* RT4 chooses the number of doublings from ``extinction[down, 0, 0, 0]``
+  plus the gas extinction only.
+
+**Units.**
+
+* ``frequency`` is in Hz.  RT4 is given the wavelength ``1e6 c / f`` in
+  micrometres; the wavelength is used only in its Planck function.
+* RT4's radiances are per micrometre.  The wrapper multiplies them by
+  ``lambda[um] / f`` to give W m-2 Hz-1 sr-1, the unit of ``result.up``,
+  ``result.down`` and ``DiscreteSurface.emission``.
+* The sky is an isotropic, unpolarized blackbody at ``sky_temperature``.
+  RT4's Planck function is 0 for a temperature <= 0.
+* ``result.weights`` comes from a second quadrature call, because RADTRANO
+  does not return its weights.
+
+**Surfaces.**
+
+* ``LambertianSurface`` (RT4 'L'): reflection ``2 A mu_j w_j`` into every
+  stream, I to I only (depolarizing); emission ``[(1 - A) B_s, 0]``.
+* ``FresnelSurface`` (RT4 'F'): the medium above has index 1, and the
+  reflection is specular and stream by stream.
+  ``R = [[R1, R2], [R2, R1]]``, with ``R1 = (|r_v|^2 + |r_h|^2) / 2`` and
+  ``R2 = (|r_v|^2 - |r_h|^2) / 2``.  Emission is ``[(1 - R1) B_s, -R2 B_s]``.
+  The sign of ``Im n`` does not matter for [I, Q].
+* ``SpecularSurface`` (RT4 'S'): a fixed ``R(out, in)`` of shape
+  ``[nstokes, nstokes]``, applied specularly to every stream.  Emission is
+  ``[(1 - R(I, I)) B_s, -R(Q, I) B_s]``.
+* ``DiscreteSurface`` (RT4 'A'): ``I_up(i) = sum_j reflection[i, j] I_down(j)
+  + emission[i]``.
+
+  * ``reflection`` is ``[nmu_total out, nmu_total in, s_out, s_in]`` and
+    must include all quadrature factors; a Lambertian surface is
+    ``2 A mu_j w_j``.
+  * The columns of extra angles are applied without weights.  Set them to
+    zero to keep the extra angles as pure outputs.
+  * ``emission`` is ``[nmu_total, nstokes]`` in W m-2 Hz-1 sr-1.
+  * ``surface_temperature`` is not used.
+
+**Fortran buffers** (column-major, first index fastest; for maintainers):
+
+* ``EXTINCT_MATRIX(row, col, mu, hem, set)`` and
+  ``EMIS_VECTOR(s, mu, hem, set)``;
+* ``SCATTER_MATRIX(s_out, mu_out, s_in, mu_in, q, set)``;
+* ``SCATLAYERS`` is the 1-based set index, or 0 for gas-only;
+* ``SURF_REFLECT(s_out, mu_out, s_in, mu_in)``;
+* the specular R is passed row-major as is, because RT4 reads it
+  transposed;
+* ``UP_RAD``/``DOWN_RAD(s, mu, level)`` is exactly the row-major
+  ``[level, mu, s]`` of the result.
+
+Limitations
+-----------
+
+* **Scope.** Only [I] or [I, Q]: ``nstokes`` must be 1 or 2.  RT4 is
+  thermal-only (no beam source), plane-parallel, and limited to azimuthally
+  symmetric media; it returns only the m = 0 azimuthal mode.  With
+  ``nstokes = 1``, the Q coupling of a polarizing surface or medium is
+  dropped.
+* **Mirror symmetry.** ``SYMMETRIC`` is hard-coded ``.TRUE.``.  The doubling
+  discards the "-" reflection and transmission after the first step, so the
+  medium must be mirror symmetric between the hemispheres:
+
+  * ``extinction[down] == extinction[up]``;
+  * ``absorption[down] == absorption[up]``;
+  * ``phase[down, down] == phase[up, up]``;
+  * ``phase[down, up] == phase[up, down]``.
+
+  ``solve()`` rejects optics that break this by more than 1e-10 relative to
+  the largest magnitude of each quantity.  Because RT4 requires
+  ``phase[down, up] == phase[up, down]``, a test can never detect an
+  exchange of those two quadrants.
+* **Not reentrant.** RT4 uses COMMON blocks and about 40 MB of static local
+  arrays.  Every Fortran call is serialised by one global mutex (separate
+  from RT3's; the two share only the reentrant ``radmat.f`` routines);
+  concurrent calls are safe but do not run in parallel.
+* **Lambertian with G or L quadrature.** The Lambertian surface conserves
+  energy on the streams only with ``double_gauss``, where
+  ``2 sum mu w = 1``.  With ``gauss`` or ``lobatto`` it is off by about
+  3e-3 A for 8 streams, so use ``double_gauss``.
+* **Array limits.** ``nstokes * nmu_total <= 64``, ``nlay <= 400`` and
+  ``(nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096``.  These limits, the
+  other preconditions above and the shapes are all checked in C++ before the
+  Fortran call, because a Fortran ``STOP`` would end the host process,
+  Python included.
+* **Zero pivot.** The zero-pivot ``STOP`` in ``MINVERT`` (``radmat.f``)
+  cannot be checked beforehand.  It needs an exactly singular ``1 - R R``,
+  which is not expected for physical inputs.
+* **Beam, m > 0 modes, U and V.** RT4 has none of them; RT3
+  (:doc:`dev.rt3`) is the reference for those paths.
+
+Mapping to VDISORT inputs
+-------------------------
+
+Feed both solvers the same layer optics, so that a comparison tests the
+solvers and not two preprocessing chains.  VDISORT has no workspace layer
+either.  Use the low-level ``pyarts3.arts.cppvdisort`` (or
+``vdisort::main_data``) with ``NFourier = 1``.  VDISORT can represent only a
+subset of RT4's inputs:
+
+* K = k 1, the same for all streams;
+* a = [a1, 0], the same for all streams;
+* randomly oriented or Rayleigh-like scatterers whose m = 0 [I, Q] block
+  does not couple to [U, V].
+
+It cannot represent a direction-dependent or dichroic K(mu), such as an
+off-diagonal K12, or a direction-dependent a(mu).  Such cases must be
+rejected, not approximated.
+
+For layer l with particle extinction ``k_e``, absorption ``a1``, scattering
+``k_s = k_e - a1`` (assuming the optics conserve energy) and gas ``k_g``:
+
+* **Quadrature.**
+
+  * Use RT4 ``double_gauss`` with ``nmu = NQuad / 2``.  The nodes and
+    weights are then the same as VDISORT's double-Gauss streams, to
+    round-off, and both are ascending.
+  * VDISORT streams ``0 .. N-1`` are upward (mu > 0) and ``N .. 2N-1`` are
+    downward (mu = -mu[i]).  So VDISORT stream ``i`` is RT4 ``(up, i)``, and
+    stream ``N + i`` is RT4 ``(down, i)``.
+  * RT4's ``extra_mu`` correspond to VDISORT's user angles
+    (``ungridded_u_user``): ``+mu`` for ``up`` and ``-mu`` for ``down``.
+    ``user_phase[alpha, 0, l, u, j]`` is the same ``4 pi Z / k_s`` as below,
+    taken from the RT4 ``phase`` row of the extra angle.  The RT4 phase rows
+    of the extra angles must hold the physical phase matrix; their columns
+    carry no weight.
+* **Optical depth.** ``tau_arr`` holds the cumulative optical depth at the
+  layer bottoms, ``sum (k_e + k_g) dz``.  RT4 level ``l`` corresponds to
+  VDISORT ``tau = tau_l``, with ``tau_0 = 0``.
+* **Output.** ``result.up[l, i]`` is stream ``i`` and ``result.down[l, i]``
+  is stream ``N + i`` of VDISORT's ``u`` at ``tau_l``.
+* **Single-scattering albedo.** ``omega = k_s / (k_e + k_g)``, and 0 for
+  gas-only layers.
+* **Phase matrix.**
+
+  * ``phase_matrix[alpha=0, m=0, l, o, i][0:2, 0:2] = 4 pi Z / k_s``, with
+    ``Z`` the RT4 ``phase`` quadrant that matches the hemispheres of VDISORT
+    streams ``o`` (out) and ``i`` (in).
+  * Do not include omega, weights or a ``2 - delta_m0`` factor.  VDISORT's
+    ``(omega / 2) sum_j W_j P`` then equals RT4's ``2 pi sum_j w_j Z`` per
+    unit length.
+  * The [U, V] block, alpha = 1, does not affect [I, Q] at m = 0; it can be
+    zero or the true [U, V] block.
+* **Source.**
+
+  * VDISORT emits ``(1 - omega) B`` per unit optical depth, which equals
+    RT4's ``(a1 + k_g) B`` per unit length.
+  * ``s_poly_coeffs[l] = [c0, c1]`` (Stokes ``[c, 0, 0, 0]``) in the global
+    optical depth: ``c1 = (B_bottom - B_top) / dtau_l`` and
+    ``c0 = B_top - c1 tau_top``.  This is the same linear-in-tau Planck
+    function.
+* **Top boundary.** ``b_neg[0, 0, i] = [B(T_sky), 0, 0, 0]``.
+* **Lambertian surface.**
+
+  * ``vdisort.lambertian_fourier_modes(A, 1)``, whose discrete operator
+    ``(2 A / pi) pi W mu`` equals RT4's ``2 A mu w``;
+  * ``b_pos[0, 0, i] = [(1 - A) B_s, 0, 0, 0]``.
+* **Fresnel surface.**
+
+  * ``vdisort.fresnel_fourier_modes(n, 1)``, which reproduces RT4's
+    specular R at the nodes;
+  * ``b_pos[0, 0, i] = [(1 - R1) B_s, -R2 B_s, 0, 0]``, using the same
+    ``R1``/``R2`` as above, so Q > 0.
+  * VDISORT drops Fresnel reflection at off-node user angles.  For an
+    off-node user angle, ``fresnel_fourier_modes`` reflects nothing, and the
+    emission is interpolated from the nodes.  So compare upward radiances at
+    the quadrature streams only.  The comparison test measures this: with
+    n = 3+0.2i and 8 streams per hemisphere, the missing ``R I_down`` is
+    22% (mu = 0.35) and 13% (mu = 1) of max I.  The emission interpolation
+    error is 7e-4 and 1.4e-3 of B_s.
+* **Other surfaces.**
+
+  * A ``DiscreteSurface`` with ``reflection[i, j] = pi w_j mu_j rho(mu_i,
+    mu_j)`` corresponds to a custom ``vdisort::BDRF``.  Its cosine callback
+    returns the BRDF ``rho`` (the [I, Q] block of R^0) at the cosines it is
+    given, because VDISORT adds the ``pi W_j mu_j`` itself at m = 0.  The
+    sine callback can be zero.
+  * Use the same emission for both.  RT4 takes it in W m-2 Hz-1 sr-1, and
+    VDISORT takes it as ``b_pos``.
+* **nstokes = 1.** Put only ``4 pi Z_II / k_s`` in the M00 element and
+  compare I.  With no I-Q coupling in the medium, a polarizing surface does
+  not feed Q back into I.
+* **Units.** Both solvers are linear in B.  Pass B_nu in W m-2 Hz-1 sr-1 to
+  VDISORT to compare directly with the RT4 result.
+* **Stokes basis.** Both use [I, Q] with Q = I_v - I_h and the meridional
+  reference plane.
+
+RT4 has the opposite limits: no U and V, no m > 0 modes, no beam source, and
+mirror symmetry between the hemispheres is required.
+
+``cpp.fast.vdisort-rt4-test``
+(``src/core/disort-cpp/test/vdisort/vdisort-rt4-comparison.cpp``) implements
+this mapping.  It compares I and Q at every level, stream and direction for
+the cases listed in that directory's ``COVERAGE.md``.  Measured results:
+
+* Gas-only atmospheres agree to 5e-15 relative to max I.
+* Otherwise, RT4's first-order doubling error dominates.  At
+  ``max_delta_tau = 1e-7`` the difference is 0.1 to 0.7 times the
+  initial-layer thickness, at most 4e-8.  It halves exactly when
+  ``max_delta_tau`` halves, and does not grow with the number of streams.
+* Against RT4 Richardson-extrapolated to ``max_delta_tau = 0``, the
+  difference is at most 3.4e-10.

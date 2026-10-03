@@ -56,6 +56,8 @@ void py_auto_agenda_operators(py::module_& m);
 void py_rng(py::module_& m);
 void py_montecarlo(py::module_& m);
 void py_tmatrix(py::module_& m);
+void py_rt3(py::module_& m);
+void py_rt4(py::module_& m);
 
 /** Construct a new nanobind module object to hold all the Arts types and functions
  * 
@@ -127,6 +129,8 @@ NB_MODULE(arts, m) try {
   py_rng(m);
   py_montecarlo(m);
   py_tmatrix(m);
+  py_rt3(m);
+  py_rt4(m);
 
   // Must be last, it contains automatic conversion operations
   py_workspace(ws);

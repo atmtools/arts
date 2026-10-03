@@ -1,0 +1,72 @@
+Evans' RT3: polarized doubling-adding radiative transfer for a plane-parallel
+medium of randomly oriented particles with a plane of symmetry, with solar
+(direct beam) and thermal sources, all Fourier azimuth modes and NSTOKES 1 to
+4.  K. F. Evans and G. L. Stephens, 1991: "A New Polarized Atmospheric
+Radiative Transfer Model", J. Quant. Spectrosc. Radiat. Transfer 46, 413-423.
+
+Source: PolRadTran.tar from https://nit.coloradolinux.com/polrad.html
+(sha256 7b0eff794319330321e27a6f312588a289ed080bb266500dcecf485f6a7cff9d),
+MIT licence (../LICENSE).  ARTS 2 never shipped RT3; ARTS 3 uses it only as
+an external reference for other solvers (src/core/rt3), with no workspace
+layer.
+
+Files:
+
+  radtran3.f, radscat3.f, radintg3.f, radutil3.f
+                  the RADTRAN subroutine and its routines, modified as below
+                  (built)
+  *.orig          the four files above as in the tar
+  rt3.f           Evans' main program (file input and output), unchanged
+                  and not built; its OUTPUT_FILE shows how the Fourier
+                  series is summed
+  runmietest      Evans' Mie benchmark script (the case of the 1991 paper),
+                  with the scattering file and the expected output
+                  mietest.out.check; unchanged, not run
+  runtesta        Evans' general test script (Rayleigh + Mie layers, solar
+                  and thermal), with testa.out.check; unchanged, not run
+  rt3_c_interface.f90
+                  ISO_C_BINDING entry points (new)
+  CMakeLists.txt  builds the library rt3 (ENABLE_RT3)
+
+The matrix routines are the shared ../radmat.f.  The two benchmark tables are
+compared with the ARTS build in src/core/rt3/test/rt3-test.cpp and
+tests/core/rt3/closed-form.rt3.py.
+
+ARTS3 changes, each marked with a "c ARTS3:" comment in the source:
+
+- In-memory scattering properties (radtran3.f, radscat3.f).  RADTRAN takes
+  NSL scattering sets (SCAT_EXTINCT, SCAT_SCATTER, SCAT_NLEGEN and
+  SCAT_COEF(6,LDCOEF,NSL), the six columns of a scattering file for
+  L = 0 .. SCAT_NLEGEN) and the 1-based set of each layer, SCATLAYERS (0 for
+  no scattering), instead of the file names SCAT_FILES.  Each set is
+  processed once, in set order (RT3 processed every new file in layer
+  order).  READ_SCAT_FILE is replaced by GET_SCAT_SET, which copies a set and
+  applies READ_SCAT_FILE's delta-M scaling unchanged.  With delta-M the
+  scaling reads the coefficients up to L = 2*NUMMU even when the series is
+  shorter; READ_SCAT_FILE read entries there that the file never set (left
+  from an earlier file, or uninitialised), GET_SCAT_SET sets them to zero.
+  The check NLEGEN < MAXLEG now precedes the copy (RT3 checked
+  after reading, one coefficient too late).  New STOPs: NSL > MAXLAY, and
+  the direct-beam buffer for NSL sets.  The truncation message names the
+  set number instead of the file.  NOUTLEVELS/OUTLEVELS are unchanged.
+- Symbol clashes with RT4 (radintg3.f, radscat3.f, radutil3.f,
+  radtran3.f).  The routines that RT4 also defines carry an RT3_ prefix:
+  CHECK_NORM, COMBINE_LAYERS, DOUBLE_GAUSS_QUADRATURE, DOUBLING_INTEGRATION,
+  FRESNEL_RADIANCE, FRESNEL_SURFACE, GAUSS_LEGENDRE_QUADRATURE, INITIALIZE,
+  INITIAL_SOURCE, INTERNAL_RADIANCE, LAMBERT_RADIANCE, LAMBERT_SURFACE,
+  LOBATTO_QUADRATURE, NONSCATTER_LAYER, PLANCK_FUNCTION, THERMAL_RADIANCE,
+  and the COMMON blocks /SCRATCH1/ and /SCRATCH2/ are /RT3_SCRATCH1/ and
+  /RT3_SCRATCH2/ (with the same names, RT3 and RT4 would share the scratch
+  memory).  Two calls are wrapped onto a continuation line to stay within
+  column 72; no original code line extends beyond column 72.  librt3 and
+  librt4 export no common symbol.
+- radutil3.f RT3_PLANCK_FUNCTION: the 5-digit radiation constants 1.1911D8
+  and 1.4388D4 are replaced by the exact-SI values used in ../rt4.  At 3 um
+  and 300-200 K this raises B by 2.1e-4 to 3.4e-4 relative.
+- rt3_c_interface.f90 (new): rt3_radtran and the three quadratures with
+  explicit C types (int64_t scalars and index arrays, one-character flags by
+  value, the complex ground index as two doubles).
+
+Nothing else is changed.  The remaining STOPs (array limits, the Legendre
+normalisation check, the FFT size) are checked by the C++ wrapper before
+the call; see src/core/rt3/rt3.h and doc/arts/dev.rt3.rst.

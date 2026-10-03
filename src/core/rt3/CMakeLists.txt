@@ -1,0 +1,8 @@
+add_library(arts_rt3 STATIC rt3.cc)
+target_link_libraries(arts_rt3 PUBLIC matpack)
+target_include_directories(arts_rt3 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+if(ENABLE_RT3)
+  target_link_libraries(arts_rt3 PRIVATE rt3)
+  target_compile_definitions(arts_rt3 PRIVATE ARTS_HAS_RT3=1)
+  add_subdirectory(test)
+endif()

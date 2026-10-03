@@ -11,6 +11,7 @@ API Reference
    pyarts3.hitran
    pyarts3.math
    pyarts3.plots
+   pyarts3.polradtran
    pyarts3.recipe
    pyarts3.retrieval
    pyarts3.utils
@@ -29,6 +30,7 @@ API Reference
    pyarts3.hitran
    pyarts3.math
    pyarts3.plots
+   pyarts3.polradtran
    pyarts3.recipe
    pyarts3.retrieval
    pyarts3.utils
