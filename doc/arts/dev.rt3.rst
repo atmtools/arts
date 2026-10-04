@@ -522,15 +522,14 @@ Limitations
   cannot be checked beforehand; it needs an exactly singular 1 - R R.
 * **Surfaces.** Only Lambertian with a beam; no BRDF.
 * **Azimuth sampling.** RT3 samples the azimuth for its Fourier modes as
-  densely as its Legendre degree requires, which is exact for a scattering
-  matrix that is regular at forward and backward scattering (F22 = F33 at
-  0 deg and F22 = -F33 at 180 deg).  For a matrix that is not, such as
-  ARTS's ``HenyeyGreensteinScatterer`` (F22 = F33 = F11 at every angle), the
-  laboratory-frame matrix is not a trigonometric polynomial in the azimuth
-  and RT3's modes carry an aliasing error: over a Fresnel surface, which
-  polarizes, 4e-4 of max I.  VDISORT and RT4 converge with their
-  ``azimuth_count`` instead: 4e-4 at 16, 1e-5 at 64, and 1e-8 at 256 for
-  VDISORT, against 1024 azimuths.
+  densely as its Legendre degree requires.  That is exact when the
+  scattering matrix is regular at forward and backward scattering, as a
+  physical matrix is: F12 and F34 vanish there, F22 + F33 has a double zero
+  at 180 deg and F22 - F33 one at 0 deg.  For a matrix that is not, the
+  laboratory-frame matrix is not a trigonometric polynomial in the azimuth,
+  and RT3's modes carry an aliasing error that does not fall with
+  ``max_delta_tau``, while VDISORT and RT4 converge with their
+  ``azimuth_count``.
 
 RT3 complements RT4: it has the beam, the m > 0 modes and U, V, but only
 randomly oriented particles (a scattering-plane phase matrix with six

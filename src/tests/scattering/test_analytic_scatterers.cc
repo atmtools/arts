@@ -1,8 +1,10 @@
 /** Bulk scattering properties of the analytic species against closed forms.
  *
- * The Henyey-Greenstein phase function and Chandrasekhar's Rayleigh
- * scattering matrix are written out here, independently of the species
- * code.  The lab-frame (ARO) phase matrix is checked through quantities that
+ * The Henyey-Greenstein scattering matrix (F11 = F22 = p, F33 = F44 =
+ * p (3 cos(Theta) - cos^3(Theta)) / 2) and Chandrasekhar's Rayleigh scattering matrix are written
+ * out here, independently of the species code; the spherical-harmonics
+ * coefficients are checked by summing them with Legendre polynomials from
+ * their recurrence.  The lab-frame (ARO) phase matrix is checked through quantities that
  * do not depend on the rotation into the lab frame: with Theta the angle
  * between the incident and scattered directions, Z11 = F11(Theta),
  * Z44 = F44(Theta), Z12^2 + Z13^2 = F12^2 and Z21^2 + Z31^2 = F12^2.  The
@@ -14,6 +16,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <utility>
 
 #include "gas_scattering.h"
 #include "henyey_greenstein.h"
@@ -29,6 +32,9 @@ bool close(Numeric a, Numeric b, Numeric relative) {
 Numeric henyey_greenstein(Numeric g, Numeric cos_theta) {
   return (1.0 - g * g) / (4.0 * Constant::pi * std::pow(1.0 + g * g - 2.0 * g * cos_theta, 1.5));
 }
+
+/** F33 / F11 = F44 / F11 of the Henyey-Greenstein scattering matrix */
+Numeric hg_ratio(Numeric c) { return (3.0 * c - c * c * c) / 2.0; }
 
 /** Rayleigh [F11, F12, F44] (Chandrasekhar, 1950), F11 normalised to 4 pi over the sphere */
 std::array<Numeric, 3> rayleigh(Numeric cos_theta) {
@@ -73,10 +79,12 @@ bool test_henyey_greenstein_frequencies() {
 
     Numeric integral = 0.0;
     for (Index i = 0; i < n; i++) {
-      const Numeric p = scattering * henyey_greenstein(g, x[n - 1 - i]);
-      for (Index is : {0, 2, 3, 5}) {
-        if (not close(pm[0, iv, i, is], p, 1e-12)) {
-          std::cout << "f = " << f_grid[iv] << " Hz, F" << is << ": " << pm[0, iv, i, is] << " != " << p << '\n';
+      const Numeric c = x[n - 1 - i];
+      const Numeric p = scattering * henyey_greenstein(g, c);
+      for (auto [is, ref] :
+           {std::pair{0, p}, std::pair{2, p}, std::pair{3, p * hg_ratio(c)}, std::pair{5, p * hg_ratio(c)}}) {
+        if (not close(pm[0, iv, i, is], ref, 1e-12)) {
+          std::cout << "f = " << f_grid[iv] << " Hz, F" << is << ": " << pm[0, iv, i, is] << " != " << ref << '\n';
           return false;
         }
       }
@@ -128,7 +136,9 @@ bool test_henyey_greenstein_lab_frame() {
   // Strongly forward peaked, where tabulating Theta is least accurate
   const Numeric                   g = 0.9;
   const HenyeyGreensteinScatterer hg{hg_ext, hg_ssa, g};
-  const auto f = [g](Numeric c) { return std::array{henyey_greenstein(g, c), 0.0, henyey_greenstein(g, c)}; };
+  const auto                      f = [g](Numeric c) {
+    return std::array{henyey_greenstein(g, c), 0.0, hg_ratio(c) * henyey_greenstein(g, c)};
+  };
 
   const auto bulk = hg.get_bulk_scattering_properties_aro_gridded(point, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
   if (not check_lab_frame(bulk, 2e-3 * 0.7, f, "HG")) return false;
@@ -144,6 +154,80 @@ bool test_henyey_greenstein_lab_frame() {
   const auto d_ssa = hg.get_bulk_scattering_properties_aro_gridded_derivative(
       point, Vector{1e9}, za_inc, delta_aa, za_scat_grid(), AtmKeyVal{hg_ssa});
   return check_lab_frame(d_ssa, 2e-3, f, "dHG/dssa");
+}
+
+/** The spherical-harmonics coefficients sum to the closed form: F11 = F22 = p and F33 = F44 = p f */
+bool test_henyey_greenstein_spectral() {
+  const Numeric                   g = 0.5, scattering = 3e-4;
+  const Index                     degree = 80;  // g^degree is far below round-off
+  const HenyeyGreensteinScatterer hg{
+      ExtSSACallback{[&](Numeric, const AtmPoint&) { return std::pair{2.0 * scattering, 0.5}; }}, g};
+  const auto  spectral = hg.get_bulk_scattering_properties_tro_spectral(AtmPoint{}, Vector{1e9}, degree);
+  const auto& pm       = *spectral.phase_matrix;
+  for (Numeric c : {-1.0, -0.73, -0.2, 0.0, 0.31, 0.88, 1.0}) {
+    std::array<Numeric, 4> sum{};
+    Numeric                p_prev = 0.0, p_k = 1.0;  // P_{k-1}(c), P_k(c)
+    for (Index k = 0; k <= degree; k++) {
+      const Numeric y = std::sqrt((2.0 * static_cast<Numeric>(k) + 1.0) / (4.0 * Constant::pi)) * p_k;
+      for (Index i = 0; i < 4; i++) sum[i] += pm[0, k][i, i].real() * y;
+      const Numeric p_next = ((2.0 * static_cast<Numeric>(k) + 1.0) * c * p_k - static_cast<Numeric>(k) * p_prev) /
+                             static_cast<Numeric>(k + 1);
+      p_prev               = p_k;
+      p_k                  = p_next;
+    }
+    const Numeric p = scattering * henyey_greenstein(g, c), pf = p * hg_ratio(c);
+    // F33 and F44 vanish at 90 deg, so they are compared relative to p
+    if (not(close(sum[0], p, 1e-12) and close(sum[1], p, 1e-12) and std::abs(sum[2] - pf) <= 1e-12 * p and
+            std::abs(sum[3] - pf) <= 1e-12 * p)) {
+      std::cout << "cos(Theta) = " << c << ": " << sum[0] << ", " << sum[1] << ", " << sum[2] << ", " << sum[3]
+                << " != " << p << ", " << p << ", " << pf << ", " << pf << '\n';
+      return false;
+    }
+  }
+  return true;
+}
+
+/** The laboratory-frame matrix is continuous at backscattering
+ *
+ * Approaching the backscattering direction from different azimuths must
+ * give the same limit, the matrix at exact backscattering, so the deviation
+ * must shrink in proportion to the distance.  This holds only for a matrix
+ * with F33 = -F22 at 180 deg; F33 = F22 everywhere gives an O(1) deviation at
+ * any distance.  The distances stay outside the 0.08 deg within which ARTS's
+ * rotation coefficients snap to exact backscattering.
+ */
+bool test_henyey_greenstein_backscatter() {
+  const Numeric                   g = 0.5;
+  const HenyeyGreensteinScatterer hg{ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair{1.0, 1.0}; }}, g};
+  const Numeric                   za_in = 40.0, za_back = 180.0 - za_in;
+
+  const auto lab = [&](Numeric delta_aa, Numeric za) {
+    const auto bulk = hg.get_bulk_scattering_properties_aro_gridded(
+        AtmPoint{},
+        Vector{1e9},
+        Vector{za_in},
+        Vector{delta_aa},
+        std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{za})));
+    Vector z(16);
+    for (Index e = 0; e < 16; e++) z[e] = (*bulk.phase_matrix)[0, 0, 0, 0, 0, e];
+    return z;
+  };
+
+  const Vector  back  = lab(180.0, za_back);
+  const Numeric scale = henyey_greenstein(g, -1.0);
+  for (Numeric eps : {0.8, 0.2}) {
+    Numeric worst = 0.0;
+    for (Numeric psi : {30.0, 120.0, 210.0, 300.0}) {
+      const Vector z =
+          lab(180.0 + eps * Conversion::sind(psi) / Conversion::sind(za_back), za_back + eps * Conversion::cosd(psi));
+      for (Index e = 0; e < 16; e++) worst = std::max(worst, std::abs(z[e] - back[e]) / scale);
+    }
+    std::cout << "Henyey-Greenstein, " << eps
+              << " deg from backscattering: max |Z - Z(180 deg)| / p(180 deg) = " << worst << '\n';
+    if (worst > 0.05 * eps) return false;
+  }
+  return close(back[0], scale, 1e-12) and close(back[5], scale, 1e-12) and close(back[10], -scale, 1e-12) and
+         close(back[15], -scale, 1e-12);
 }
 
 bool test_rayleigh_lab_frame() {
@@ -168,6 +252,14 @@ int main() {
   }
   if (not test_henyey_greenstein_lab_frame()) {
     std::cerr << "Henyey-Greenstein lab-frame data failed\n";
+    return 1;
+  }
+  if (not test_henyey_greenstein_spectral()) {
+    std::cerr << "Henyey-Greenstein spectral data failed\n";
+    return 1;
+  }
+  if (not test_henyey_greenstein_backscatter()) {
+    std::cerr << "Henyey-Greenstein lab-frame data at backscattering failed\n";
     return 1;
   }
   if (not test_rayleigh_lab_frame()) {

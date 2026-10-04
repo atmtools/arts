@@ -319,18 +319,20 @@ the thermal problems with nstokes <= 2.  The cases are:
 | Case | Solvers |
 |---|---|
 | thermal, Rayleigh + Mie drops, Fresnel 3+0.2i, nstokes 2 | VDISORT, RT4, RT3 |
+| thermal, Henyey-Greenstein, Fresnel 3+0.2i, nstokes 2 | VDISORT, RT4, RT3 |
 | thermal, Rayleigh + Mie drops, Lambertian 0.3, nstokes 2 | VDISORT, RT4, RT3 |
 | thermal, isotropic + Henyey-Greenstein (unpolarized), Lambertian 0.3, nstokes 1 | VDISORT, RT4, RT3 |
-| solar mu0 = 0.6 + thermal, Rayleigh + Mie drops, Lambertian 0.3, 8 modes, nstokes 4, 6 azimuths | VDISORT, RT3 |
+| solar mu0 = 0.6 + thermal, Rayleigh + Henyey-Greenstein + Mie drops, Lambertian 0.3, 8 modes, nstokes 4, 6 azimuths | VDISORT, RT3 |
 
 Every pair must agree to 10 max_delta_tau / mu0 of max I (1e-6, and 1.7e-6
 with the beam).  The measured values are 2e-7 to 4e-7 for VDISORT against
-RT3 or RT4, and 2e-10 to 1.4e-8 for RT4 against RT3.  The nstokes 1 case is
+RT3 or RT4, and 1e-11 to 1.4e-8 for RT4 against RT3.  The nstokes 1 case is
 unpolarized, so VDISORT's I is the reference for the scalar I of RT3 and
-RT4.  ARTS's Henyey-Greenstein scattering matrix is not regular at
-backscattering, so it enters only that case (see `doc/arts/dev.rt3.rst`,
-azimuth sampling).  The C++ comparisons above carry the convergence,
-Richardson and non-blindness evidence.
+RT4.  The Henyey-Greenstein case over the polarizing Fresnel surface needs a
+scattering matrix that is regular at forward and backward scattering (see
+`doc/arts/dev.rt3.rst`, azimuth sampling), as ARTS's is.  The C++
+comparisons above carry the convergence, Richardson and non-blindness
+evidence.
 
 RT3 and RT4 are built by default when a Fortran compiler is found.  CI
 (`.github/workflows/build-test.yml`) still sets `-DENABLE_RT4=ON

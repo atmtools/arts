@@ -392,7 +392,9 @@ void py_scattering_species(py::module_& m) try {
           "f_grid"_a,
           "za_grid"_a,
           "Get bulk scattering properties")
-      .doc() = "Henyey-Greenstein scatterer";
+      .doc() =
+      "Henyey-Greenstein scatterer: F11 = F22 = p, F33 = F44 = p (3 cos(Theta) - cos^3(Theta)) / 2 and "
+      "F12 = F34 = 0, with p the Henyey-Greenstein phase function";
 
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m, "IrregularZenithAngleGrid");
   irr_grid.def(py::init<Vector>())

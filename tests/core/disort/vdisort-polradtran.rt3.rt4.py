@@ -18,13 +18,7 @@ agree to 10 times that.  RT4 runs the thermal problems with nstokes <= 2.
 The nstokes = 1 problem is unpolarized (isotropic and Henyey-Greenstein
 scattering, unpolarized sources, a Lambertian surface), so its I does not
 depend on the truncation and VDISORT's four-component I is the reference
-for RT3's and RT4's scalar I.  The Henyey-Greenstein species enters only
-there: its scattering matrix has F22 = F33 = F11 at every angle, which is not
-regular at backscattering (where a physical matrix has F22 = -F33).  Once Q
-is present, its laboratory-frame matrix is then not a trigonometric
-polynomial in the azimuth, and each solver's azimuthal mean depends on its
-azimuth sampling: over a Fresnel surface, 1e-5 of max I for VDISORT and RT4
-with 64 azimuths and 4e-4 for RT3.
+for RT3's and RT4's scalar I.
 
 Run it without ARTS_HEADLESS to plot each comparison: the solutions'
 plots (pyarts3.plots.cppvdisort, RT4Result and RT3Result) on shared axes.
@@ -61,7 +55,7 @@ def isotropic():
 
 def henyey_greenstein():
     # RT3 keeps Legendre degrees up to 2 nmu - 3 = 13 (rt3.max_legendre_degree); with g = 0.2 the
-    # terms (2 l + 1) g^l it drops are below 1e-9, so all solvers see the same phase function
+    # terms it drops of p and p cos(Theta) are below 1e-8 of p, so all solvers see the same matrix
     return A.HenyeyGreensteinScatterer(hg_ext, hg_ssa, 0.2)
 
 
@@ -201,6 +195,16 @@ CASES = [
         (1e-3,),
     ),
     (
+        "thermal, Henyey-Greenstein, Fresnel 3+0.2i, nstokes 2",
+        [henyey_greenstein],
+        ("fresnel", 3.0 + 0.2j),
+        2,
+        None,
+        (0.0,),
+        ["VDISORT", "RT3", "RT4"],
+        (1e-3,),
+    ),
+    (
         "thermal, Rayleigh + Mie drops, Lambertian 0.3, nstokes 2",
         [rayleigh, mie_drops],
         ("lambertian", 0.3),
@@ -221,8 +225,9 @@ CASES = [
         (),
     ),
     (
-        "solar (mu0 0.6) + thermal, Rayleigh + Mie drops, Lambertian 0.3, nstokes 4, 8 Fourier modes",
-        [rayleigh, mie_drops],
+        "solar (mu0 0.6) + thermal, Rayleigh + Henyey-Greenstein + Mie drops, Lambertian 0.3, nstokes 4, "
+        "8 Fourier modes",
+        [rayleigh, henyey_greenstein, mie_drops],
         ("lambertian", 0.3),
         4,
         (1e-15, 0.6),

@@ -22,6 +22,18 @@ struct ExtinctionSSALookup {
   std::pair<Numeric, Numeric> operator()(Numeric, const AtmPoint& atm_point);
 };
 
+/** A Henyey-Greenstein scatterer with asymmetry parameter g
+ *
+ * The scattering matrix is F11 = F22 = p, F33 = F44 = p f and F12 = F34 = 0,
+ * with p the Henyey-Greenstein phase function and
+ * f = (3 cos(Theta) - cos^3(Theta)) / 2.  It produces no polarization, and it
+ * is regular at forward and backward scattering, as a physical scattering
+ * matrix is: F22 + F33 = p (1 + cos(Theta))^2 (2 - cos(Theta)) / 2 and
+ * F22 - F33 = p (1 - cos(Theta))^2 (2 + cos(Theta)) / 2, so F33 = F22 at
+ * 0 deg, F33 = -F22 and F44 = F11 - 2 F22 at 180 deg, and its expansion in
+ * generalized spherical functions converges as fast as the Legendre series
+ * of p.
+ */
 struct HenyeyGreensteinScatterer {
   ExtSSACallback ext_ssa_callback{};
 

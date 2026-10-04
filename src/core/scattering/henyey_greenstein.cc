@@ -34,6 +34,28 @@ Numeric phase_function(Numeric g, Numeric theta) {
   return (1.0 - g2) / (4.0 * Constant::pi * std::pow(1.0 + g2 - 2.0 * g * std::cos(theta), 1.5));
 }
 
+/** F33 / F11 = F44 / F11, odd in cos(Theta), 1 forward and -1 backward
+ *
+ * 1 + f = (1 + c)^2 (2 - c) / 2 and 1 - f = (1 - c)^2 (2 + c) / 2 have the
+ * double zeros that make the matrix regular at forward and backward scattering.
+ */
+Numeric polarization_ratio(Numeric cos_theta) { return 0.5 * cos_theta * (3.0 - cos_theta * cos_theta); }
+
+/** The coefficients on Y_k0 of cos(Theta) times the function with coefficients a on Y_k0, one degree fewer
+ *
+ * cos(Theta) Y_k0 = A(k) Y_{k+1,0} + A(k - 1) Y_{k-1,0} with A(k) = (k + 1) / sqrt((2 k + 1) (2 k + 3)).
+ */
+Vector times_cos(const Vector& a) {
+  const auto A = [](Index k) {
+    const auto x = static_cast<Numeric>(k);
+    return (x + 1.0) / std::sqrt((2.0 * x + 1.0) * (2.0 * x + 3.0));
+  };
+  const Index n = static_cast<Index>(a.size()) - 1;
+  Vector      b(n);
+  for (Index k = 0; k < n; k++) b[k] = (k == 0 ? 0.0 : a[k - 1] * A(k - 1)) + a[k + 1] * A(k);
+  return b;
+}
+
 /** Extinction, absorption and scattering coefficient per frequency, or their derivatives */
 struct Coefficients {
   std::shared_ptr<const Vector>                                       t_grid;
@@ -89,11 +111,12 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(Coeff
   const auto                                                     angles = grid_vector(*za_grid);
   for (Size iv = 0; iv < c.f_grid->size(); ++iv) {
     for (Size ia = 0; ia < angles.size(); ++ia) {
-      const Numeric p     = c.scattering[iv] * phase_function(g, Conversion::deg2rad(angles[ia]));
+      const Numeric theta = Conversion::deg2rad(angles[ia]);
+      const Numeric p     = c.scattering[iv] * phase_function(g, theta);
       phase[0, iv, ia, 0] = p;
       phase[0, iv, ia, 2] = p;
-      phase[0, iv, ia, 3] = p;
-      phase[0, iv, ia, 5] = p;
+      phase[0, iv, ia, 3] = p * polarization_ratio(std::cos(theta));
+      phase[0, iv, ia, 5] = p * polarization_ratio(std::cos(theta));
     }
   }
   return {std::move(phase), std::move(c.extinction), std::move(c.absorption)};
@@ -109,14 +132,15 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
   auto       za_inc            = std::make_shared<const Vector>(za_inc_grid);
   const auto henyey_greenstein = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
     const Numeric p = phase_function(g, theta);
+    const Numeric f = polarization_ratio(std::cos(theta));
     for (Size iv = 0; iv < c.f_grid->size(); ++iv) {
       const Numeric z             = c.scattering[iv] * p;
       scattering_matrix[0, iv, 0] = z;
       scattering_matrix[0, iv, 1] = 0.0;
       scattering_matrix[0, iv, 2] = z;
-      scattering_matrix[0, iv, 3] = z;
+      scattering_matrix[0, iv, 3] = z * f;
       scattering_matrix[0, iv, 4] = 0.0;
-      scattering_matrix[0, iv, 5] = z;
+      scattering_matrix[0, iv, 5] = z * f;
     }
   };
   auto phase = tro_lab_frame<Numeric>(c.t_grid,
@@ -154,16 +178,24 @@ ScatteringTroSpectralVector HenyeyGreensteinScatterer::get_bulk_scattering_prope
   PropmatVector emd(f_grid.size());
   StokvecVector av(f_grid.size());
 
+  // The coefficients of p and of p f on Y_k0 = sqrt((2 k + 1) / 4 pi) P_k(cos(Theta)), from
+  // p = sum_k sqrt((2 k + 1) / 4 pi) g^k Y_k0 to degree l + 3, which the cos^3 term of f needs
   constexpr Numeric inv_sphere = 0.5 * Constant::inv_sqrt_pi;  // sqrt(1/4pi)
-  Vector            f(l + 1, inv_sphere);
-  for (Index ind = 1; ind <= l; ind++) { f[ind] *= std::sqrt(2 * ind + 1) * std::pow(g, ind); }
+  Vector            f(l + 4);
+  for (Index k = 0; k <= l + 3; k++) f[k] = inv_sphere * std::sqrt(static_cast<Numeric>(2 * k + 1)) * std::pow(g, k);
+  const Vector c1 = times_cos(f), c3 = times_cos(times_cos(c1));
+  Vector       f_pol(l + 1);
+  for (Index k = 0; k <= l; k++) f_pol[k] = 0.5 * (3.0 * c1[k] - c3[k]);
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     const auto [extinction, ssa] = ext_ssa_callback(f_grid[f_ind], atm_point);
     const auto scattering_xsec   = extinction * ssa;
 
     for (Index ind = 0; ind <= l; ++ind) {
-      for (Index i = 0; i < 4; i++) pm[f_ind, ind][i, i] = f[ind] * scattering_xsec;
+      pm[f_ind, ind][0, 0] = f[ind] * scattering_xsec;
+      pm[f_ind, ind][1, 1] = f[ind] * scattering_xsec;
+      pm[f_ind, ind][2, 2] = f_pol[ind] * scattering_xsec;
+      pm[f_ind, ind][3, 3] = f_pol[ind] * scattering_xsec;
     }
 
     emd[f_ind].A() = extinction;
