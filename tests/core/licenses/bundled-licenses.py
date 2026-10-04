@@ -43,12 +43,12 @@ for c in components.values():
 if "polradtran" in components:
     assert "K. Franklin Evans" in components["polradtran"].files["LICENSE"]
 
-# In a build tree, the Python package's licence files are the compiled-in ones
+# In a build tree, the Python package's licence files are the compiled-in ones, byte for byte
+# (read_text would decode with the locale's encoding and translate CRLF line endings, as a
+# Windows checkout has them, while the compiled-in text keeps the file's bytes)
 packaged = Path(pyarts.__file__).resolve().parents[2] / "licenses"
 if packaged.is_dir():
     assert {p.name for p in packaged.iterdir() if p.is_dir()} == set(components)
     for c in components.values():
         for file, text in c.files.items():
-            assert (packaged / c.name / file).read_text(
-                errors="replace"
-            ) == text, f"{c.name}/{file} differs"
+            assert (packaged / c.name / file).read_bytes() == text.encode("utf-8"), f"{c.name}/{file} differs"

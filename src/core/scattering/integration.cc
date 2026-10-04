@@ -11,7 +11,7 @@ Index grid_size(const ZenithAngleGrid &grid) {
 }
 
 StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
-  return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd.angles); }, grid);
+  return std::visit([](const auto &grd) { return StridedConstVectorView{grd.angles.vec()}; }, grid);
 }
 
 void GaussLegendreQuadrature::calculate_nodes_and_weights() { Legendre::GaussLegendre(nodes_, weights_); }
