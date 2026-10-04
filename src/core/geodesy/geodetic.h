@@ -288,6 +288,18 @@ Vector3 los2enu(Vector2 los);
 */
 Vector2 reverse_los(Vector2 los);
 
+/** The azimuth of a line-of-sight, cycled to the range of AziGrid, [0, 360) deg
+
+    0 is north and 90 east, so the line-of-sight points east for azimuths in
+    (0, 180) and west for azimuths in (180, 360), whichever range the azimuth
+    is given in.
+
+    @param[in]  los  Line-of-sight, [zenith, azimuth] in degrees, with the
+                     azimuth in [-360, 720)
+    @return     The azimuth in [0, 360)
+*/
+Numeric cycled_azimuth(Vector2 los);
+
 /** Geodetic position and line-of-sightat a given distance
 
     @param[in]   ecef          ECEF position (x,y,z)

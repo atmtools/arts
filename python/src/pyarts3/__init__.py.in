@@ -42,9 +42,6 @@ def __getattr__(attr):
     elif attr == "gui":
         import pyarts3.gui as gui
         return gui
-    elif attr == "polradtran":
-        import pyarts3.polradtran as polradtran
-        return polradtran
     
     raise AttributeError("module {!r} has no attribute "
                           "{!r}".format(__name__, attr))
@@ -58,7 +55,6 @@ def __dir__():
         "hitran",
         "math",
         "plots",
-        "polradtran",
         "recipe",
         "retrieval",
         "version",

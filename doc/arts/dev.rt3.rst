@@ -155,7 +155,8 @@ repeats the quadrature, single-scattering (1.7e-6 at tau = 1e-6), gas-only
 Fresnel (4.4e-15) and error-path checks through the bindings.
 
 The comparison of VDISORT against RT3, ``cpp.fast.vdisort-rt3-test``, is also
-built only with ``ENABLE_RT3=ON``.  See `Mapping to VDISORT inputs`_.
+built only with ``ENABLE_RT3=ON``.  See `Mapping to VDISORT inputs`_.  The
+tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 
 Interface
 ---------
@@ -185,15 +186,35 @@ C++ (``#include <rt3.h>``, namespace ``rt3``):
   result solve(const problem& p);
   Tensor4 azimuth_radiance(const Tensor4& coefficients, const Vector& phi);  // phi in radians
 
+  // #include <rt3_arts.h>: inputs from ARTS data
+  scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
+                                   const AtmPoint& atm_point, Numeric frequency, Index degree,
+                                   Index scattering_angle_count, Numeric normalisation_tolerance);
+  struct path_settings {
+    Index nstokes{4}; Index nmu{8}; quadrature_type quad{quadrature_type::gauss}; Vector extra_mu;
+    Index aziorder{0}; Numeric max_delta_tau{1e-6}; bool delta_m{false}; Index legendre_degree{-1};
+    Index scattering_angle_count{512}; Numeric normalisation_tolerance{1e-3};
+  };
+  problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
+                            const ArrayOfAtmPoint& atm_path,
+                            const ArrayOfPropmatVector& spectral_propmat_path,
+                            const AscendingGrid& freq_grid, Index freq_index,
+                            const ArrayOfScatteringSpecies& scattering_species,
+                            const path_settings& settings, const surface& ground,
+                            Numeric surface_temperature, Numeric sky_temperature);
+
 Python (``pyarts3.arts.rt3``) mirrors this: ``available()``,
 ``QuadratureType``, ``get_quadrature(nmu, type)``,
 ``max_legendre_degree(nmu, type)``, ``ScatteringSet(extinction, scattering,
 legendre)`` and ``ArrayOfScatteringSet``, ``LambertianSurface(albedo)``,
 ``FresnelSurface(refractive_index)``, ``Problem(...)`` (every field as a
-keyword argument with the C++ default), ``Result`` (read-only ``mu``,
-``weights``, ``up``, ``down``, ``up_flux``, ``down_flux``), ``solve(problem)``
-and ``azimuth_radiance(coefficients, phi)``.  ``Problem.ground`` returns a
-copy.  ``solve`` releases the GIL.
+keyword argument with the C++ default), ``RT3Result`` (read-only ``mu``,
+``weights``, ``up``, ``down``, ``up_flux``, ``down_flux``), ``solve(problem)``,
+``azimuth_radiance(coefficients, phi)``, ``scattering_optics(scattering_species,
+atm_point, frequency, degree, scattering_angle_count=512,
+normalisation_tolerance=1e-3)``, ``PathSettings(...)`` and
+``problem_from_path(...)`` (the arguments of the C++ function).
+``Problem.ground`` returns a copy.  ``solve`` releases the GIL.
 
 .. code-block:: python
 
@@ -241,9 +262,14 @@ Conventions
 * I = I_v + I_h, Q = I_v - I_h and U = 2 Re(E_v E_h*).  The same basis is
   used in both hemispheres.  A warm dielectric surface emits Q > 0 at
   oblique angles.
-* The sign of V follows Evans and Stephens (1991).  No test here pins it
-  against an external derivation: single scattering of unpolarized light
-  produces no V, and Evans' tables are RT3's own output.
+* RT3 transports V through F34 (and the Fresnel R4), so V has the sign
+  convention of the scattering data.  Evans' runmietest series is in the
+  convention of Evans and Stephens (1991), in which RT3 reproduced the V of
+  Garcia and Siewert (1989).  For the same physical spheres, ARTS's Mie code
+  gives F34 of the opposite sign (see `Inputs from ARTS data`_), so RT3 run
+  on ARTS data gives -1 times V in the convention of that paper.  Which of
+  the two conventions makes V positive for left-hand circular polarization
+  is not tested.
 
 **Streams and hemispheres.**
 
@@ -356,6 +382,101 @@ exactly the row-major ``[level, m, mu, s]`` of the result, and
 ``UP_FLUX``/``DOWN_FLUX(s, level)`` the row-major ``[level, s]``.  For the
 'E' type the first ``nmu`` entries of ``MU_VALUES`` are passed as 0.
 
+Inputs from ARTS data
+---------------------
+
+``src/core/rt3/rt3_arts.h`` builds RT3 inputs from ARTS scattering species,
+atmospheric points and propagation paths.  RT3 takes the scattering matrix of
+totally randomly oriented particles as Legendre series, so only species with
+TRO data (``ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded``)
+can be used.
+
+**scattering_optics** returns the ``scattering_set`` of the species at one
+atmospheric point:
+
+* The TRO scattering matrix is evaluated at the nodes of an n-point
+  Gauss-Legendre rule in cos(Theta), ``n = scattering_angle_count``, and
+  projected, ``c_l = (2 l + 1) / 2 int F(x) P_l(x) dx`` for
+  ``l = 0 .. degree``, by that rule.  The projection is exact when every
+  element of F is a polynomial of degree ``<= 2 n - 1 - degree`` (Rayleigh:
+  ``n >= 3`` for degree 2); otherwise it has the error of the rule, and the
+  series is the truncation of F at ``degree``.  Particle habits interpolate F
+  linearly from their own (ascending) scattering-angle grid to the nodes.
+* ARTS's elements ``[F11, F12, F22, F33, F34, F44]`` are reordered to RT3's
+  columns (F11, F12, F33, F34, F22, F44) without any sign change, and the
+  series is normalised by ``c_0(F11)`` so that ``legendre[0, 0] = 1``.
+* ``extinction`` is K11 and ``scattering`` is K11 - a1, per metre.  The
+  phase-function integral ``4 pi c_0(F11)`` must equal K11 - a1 to
+  ``normalisation_tolerance`` times K11, otherwise it is an error: RT3
+  normalises the series and takes the albedo from the scattering
+  coefficient, so a mismatch would change the scattered energy silently.
+* Without particles the set has zero extinction and scattering and the
+  isotropic, depolarizing series ``[1, 0, 0, 0, 0, 0]``.
+
+**Sign conventions.** The mapping without sign changes is the one under
+which RT3 transports ARTS's Stokes vector.  ARTS's laboratory-frame phase
+matrix (``to_lab_frame`` in ``scattering/phase_matrix.h``, for the
+propagation directions (za, aa)) equals the vector-geometry phase matrix of
+the same F in RT3's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*))
+with ``mu = cos(za)`` and ``phi = -aa``, element by element, F34 included
+(``cpp.fast.vdisort-arts-test``, 6.7e-15 relative over 300 generic
+directions; the other azimuth sense misses by 2 and a negated F34 by 0.35
+of ``max |Z|``).  ARTS's azimuth runs clockwise seen from above, RT3's
+counterclockwise.  RT3 itself uses exactly that vector-geometry matrix
+(``cpp.fast.vdisort-rt3-test``).  Against an external reference,
+``cpp.fast.rt3-arts-test`` reproduces Evans' runmietest series, the Mie
+case of Evans and Stephens (1991) and of Garcia and Siewert (1989): spheres
+of refractive index 1.44 at 0.951 um with a gamma distribution of effective
+radius 0.2 um and effective variance 0.07, integrated with ARTS's Mie code.
+F11, F12 and F33 (and F22 = F11, F44 = F33) agree with Evans' table to
+4.8e-9, below half a unit in its 8th decimal, and F34 agrees with the
+opposite sign at every degree (4.4e-9; the same sign misses by 0.094).  So
+F12, the meridional U and the relative sign of F34 are pinned: RT3 run on
+ARTS data gives V of the opposite sign to that convention.  Which convention
+makes V positive for left-hand circular polarization is not tested.
+
+**problem_from_path** follows the conventions of ``rt4::problem_from_path``
+(see :doc:`dev.rt4`) and of the DISORT workspace methods: one entry per
+level, top first, strictly decreasing altitudes (the heights [m]),
+temperatures from ``atm_path``, gas extinction from the mean of A of the
+unpolarized gas propagation matrix at the two levels, frequency
+``freq_grid[freq_index]``.  The scattering set of a layer has the mean
+extinction and scattering of its two levels' ``scattering_optics`` and the
+scattering-weighted mean of their normalised series, which is the normalised
+series of the mean phase matrix; a layer with zero mean extinction is
+gas-only.  ``legendre_degree < 0`` selects ``max_legendre_degree(nmu,
+quad)``, raised to ``2 nmu_total`` with ``delta_m`` so that RT3 can read the
+delta-M fraction.  The problem has thermal emission and no beam; set
+``direct_flux``, ``direct_mu`` and ``thermal`` on it for other sources.
+
+Tests:
+
+* ``cpp.fast.rt3-arts-test`` (``src/core/rt3/test/rt3-arts-test.cpp``):
+  ARTS's Rayleigh ``GasScatterer`` against RT3's ``rayleigh.sca`` series
+  ``[[1, -1/2, 0, 0, 1, 0], [0, 0, 3/2, 0, 0, 3/2], [1/2, 1/2, 0, 0, 1/2,
+  0]]`` (1.3e-15); runmietest as above; the path builder against its inputs
+  and the scattering-weighted layer mean of Rayleigh and Henyey-Greenstein
+  scattering whose mix changes with height (1.1e-16); error paths.
+* ``cpp.fast.vdisort-arts-comparison``: RT4, RT3 and VDISORT on one ARTS
+  atmosphere (see :doc:`dev.rt4`).  RT3 and VDISORT get the same inputs by
+  different routes (Legendre series against vector geometry at the exact
+  scattering angles) and agree to their doubling error at
+  ``max_delta_tau = 1e-7``: 5.4e-7 (Lambertian) and 5.2e-7 (Fresnel) of
+  max I for thermal emission, and 5.8e-7 for a solar beam at mu0 = 0.6 with
+  8 Fourier modes and all four Stokes components (tolerance
+  ``10 max_delta_tau / mu0``); the difference falls by 11.7 when
+  ``max_delta_tau`` falls by 10.
+* ``tests/core/disort/arts-native-inputs.rt3.rt4.py`` repeats the closed
+  forms through ``pyarts3``.
+* ``tests/core/disort/vdisort-polradtran.rt3.rt4.py`` runs VDISORT, RT4 and
+  RT3 through their path builders from ``pyarts3`` on ARTS atmospheres
+  (Rayleigh, Mie and Henyey-Greenstein species, Lambertian and Fresnel
+  surfaces, nstokes 1, 2 and 4, a solar beam).  Run without
+  ``ARTS_HEADLESS``, it draws the solutions' plots
+  (:func:`pyarts3.plots.cppvdisort.plot`,
+  :func:`pyarts3.plots.RT4Result.plot` and
+  :func:`pyarts3.plots.RT3Result.plot`) on shared axes.
+
 Limitations
 -----------
 
@@ -400,6 +521,16 @@ Limitations
 * **Zero pivot.** The zero-pivot ``STOP`` in ``MINVERT`` (``radmat.f``)
   cannot be checked beforehand; it needs an exactly singular 1 - R R.
 * **Surfaces.** Only Lambertian with a beam; no BRDF.
+* **Azimuth sampling.** RT3 samples the azimuth for its Fourier modes as
+  densely as its Legendre degree requires, which is exact for a scattering
+  matrix that is regular at forward and backward scattering (F22 = F33 at
+  0 deg and F22 = -F33 at 180 deg).  For a matrix that is not, such as
+  ARTS's ``HenyeyGreensteinScatterer`` (F22 = F33 = F11 at every angle), the
+  laboratory-frame matrix is not a trigonometric polynomial in the azimuth
+  and RT3's modes carry an aliasing error: over a Fresnel surface, which
+  polarizes, 4e-4 of max I.  VDISORT and RT4 converge with their
+  ``azimuth_count`` instead: 4e-4 at 16, 1e-5 at 64, and 1e-8 at 256 for
+  VDISORT, against 1024 azimuths.
 
 RT3 complements RT4: it has the beam, the m > 0 modes and U, V, but only
 randomly oriented particles (a scattering-plane phase matrix with six
@@ -502,8 +633,8 @@ the gas extinction ``k_g``:
 * **Other surfaces.** RT3 allows only a Lambertian surface with a beam, so
   VDISORT's Fresnel and BRDF beam paths are not compared.
 * **V.** VDISORT reproduces RT3's V, which is generated through F34.  That
-  shows that both use F34 consistently.  It does not pin the absolute sign
-  of V.
+  shows that both use F34 consistently.  The relative sign of ARTS's F34 is
+  in `Inputs from ARTS data`_.
 * **Units.** Both are linear in the sources.  The wrapper's results are per
   Hz, so pass ``planck(f, T)`` and the per-Hz ``direct_flux`` to VDISORT
   unchanged.

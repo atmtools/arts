@@ -3,11 +3,13 @@
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <pydocs.h>
 #include <python_interface.h>
 #include <vdisort-brdf.h>
 #include <vdisort.h>
+#include <vdisort_arts.h>
 
 #include <concepts>
 #include <optional>
@@ -591,6 +593,23 @@ supplied as ``[B, 0, 0, 0]``.
       "beam_phase_matrix"_a.none()        = py::none(),
       "source_coordinate_scale"_a.none()  = py::none(),
       "source_coordinate_offset"_a.none() = py::none());
+  vx.def_prop_ro(
+        "tau",
+        [](const vdisort::main_data& dis) { return dis.tau(); },
+        "Optical depth at the bottom of each layer\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
+      .def_prop_ro(
+          "omega",
+          [](const vdisort::main_data& dis) { return dis.omega(); },
+          "Single-scattering albedo of each layer\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_prop_ro(
+          "mu",
+          [](const vdisort::main_data& dis) { return dis.mu(); },
+          "Stream cosines: NQuad / 2 ascending upward streams, then the downward ones (-mu)\n\n"
+          ".. :class:`~pyarts3.arts.Vector`")
+      .def_prop_ro(
+          "weights",
+          [](const vdisort::main_data& dis) { return dis.weights(); },
+          "Quadrature weights of the upward streams\n\n.. :class:`~pyarts3.arts.Vector`");
   vx.def(
         "u",
         [](vdisort::main_data& dis, const AscendingGrid& tau, const Vector& phi) {
@@ -728,6 +747,154 @@ at the requested outgoing directions.  Their numerical shapes are
   dr.def_rw("zen_grid", &DisortRadiance::zen_grid, "Zenith grid\n\n.. :class:`~pyarts3.arts.ZenGrid`");
   dr.def_rw("azi_grid", &DisortRadiance::azi_grid, "Azimuth grid\n\n.. :class:`~pyarts3.arts.AziGrid`");
   dr.def_rw("data", &DisortRadiance::data, "Radiance field (layer values)\n\n.. :class:`~pyarts3.arts.Tensor4`");
+
+  // VDISORT PYTHON INTERFACE BEGIN: inputs from ARTS-native data (vdisort_arts.h)
+  py::class_<vdisort::fourier_optics> fo(vdisort_nm, "FourierOptics");
+  fo.def_ro("extinction", &vdisort::fourier_optics::extinction, "K11 of the particles per metre\n\n.. :class:`float`")
+      .def_ro("scattering",
+              &vdisort::fourier_optics::scattering,
+              "K11 - a1, the extinction minus the absorption, per metre\n\n.. :class:`float`")
+      .def_ro("cosine",
+              &vdisort::fourier_optics::cosine,
+              "[nfourier, mu_out, mu_in] ordinary cosine coefficients C^m of the normalised phase matrix\n\n.. "
+              ":class:`~pyarts3.arts.MuelmatTensor3`")
+      .def_ro("sine",
+              &vdisort::fourier_optics::sine,
+              "[nfourier, mu_out, mu_in] ordinary sine coefficients S^m of the normalised phase matrix\n\n.. "
+              ":class:`~pyarts3.arts.MuelmatTensor3`");
+  fo.doc() = "Normalised phase-matrix Fourier coefficients of scattering species, with their extinction";
+
+  vdisort_nm.def("scattering_optics",
+                 &vdisort::scattering_optics,
+                 "scattering_species"_a,
+                 "atm_point"_a,
+                 "frequency"_a,
+                 "mu_out"_a,
+                 "mu_in"_a,
+                 "nfourier"_a,
+                 "azimuth_count"_a           = 64,
+                 "scattering_angle_count"_a  = 512,
+                 "normalisation_tolerance"_a = 1e-3,
+                 R"(The phase-matrix Fourier coefficients of ARTS scattering species at one atmospheric point.
+
+``mu_out`` and ``mu_in`` are signed direction cosines (> 0 upward), e.g.
+VDISORT's streams and, for the beam column, ``[-mu0]``.  Returns the
+ordinary coefficients ``C^m, S^m = (1 / 2 pi) int P(mu_o, 0; mu_i, phi)
+{cos, sin}(m phi) dphi`` (no 2 - delta_m0) of the laboratory-frame phase
+matrix ``P = 4 pi Z / sigma``, normalised to 1 over 4 pi, built by vector
+geometry in VDISORT's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*))
+from the species' TRO scattering matrix at the exact scattering angles, by
+the ``azimuth_count``-point midpoint rule in phi.  ``sigma`` comes from a
+``scattering_angle_count``-point Gauss-Legendre rule and must match
+K11 - a1 to ``normalisation_tolerance`` times K11.  ARTS's own
+laboratory-frame phase matrix for the propagation directions (za, aa) is
+this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
+:func:`combine_phase_matrices` and :func:`combine_beam_phase_matrices`.
+)");
+
+  py::class_<vdisort::lambertian_surface>(vdisort_nm, "LambertianSurface")
+      .def(
+          "__init__",
+          [](vdisort::lambertian_surface* s, Numeric albedo) { new (s) vdisort::lambertian_surface{.albedo = albedo}; },
+          "albedo"_a = 0.0)
+      .def_rw("albedo", &vdisort::lambertian_surface::albedo, "Albedo A\n\n.. :class:`float`")
+      .doc() = "Depolarizing Lambertian surface for main_data_from_path: emission [(1 - A) B, 0, 0, 0]";
+
+  py::class_<vdisort::fresnel_surface>(vdisort_nm, "FresnelSurface")
+      .def(
+          "__init__",
+          [](vdisort::fresnel_surface* s, Complex n) { new (s) vdisort::fresnel_surface{.refractive_index = n}; },
+          "refractive_index"_a)
+      .def_rw("refractive_index",
+              &vdisort::fresnel_surface::refractive_index,
+              "Complex refractive index (medium above has index 1)\n\n.. :class:`complex`")
+      .doc() =
+      "Flat Fresnel surface for main_data_from_path: emission B ([1, 0, 0, 0] - R[:, 0]); reflection only "
+      "between quadrature streams";
+
+  const vdisort::path_settings vps{};
+  py::class_<vdisort::path_settings>(vdisort_nm, "PathSettings")
+      .def(
+          "__init__",
+          [](vdisort::path_settings* s,
+             Index                   nquad,
+             Index                   nfourier,
+             Index                   azimuth_count,
+             Index                   scattering_angle_count,
+             Numeric                 normalisation_tolerance,
+             bool                    thermal,
+             Numeric                 beam_flux,
+             Numeric                 beam_mu,
+             Numeric                 beam_azimuth) {
+            new (s) vdisort::path_settings{.nquad                   = nquad,
+                                           .nfourier                = nfourier,
+                                           .azimuth_count           = azimuth_count,
+                                           .scattering_angle_count  = scattering_angle_count,
+                                           .normalisation_tolerance = normalisation_tolerance,
+                                           .thermal                 = thermal,
+                                           .beam_flux               = beam_flux,
+                                           .beam_mu                 = beam_mu,
+                                           .beam_azimuth            = beam_azimuth};
+          },
+          "nquad"_a                   = vps.nquad,
+          "nfourier"_a                = vps.nfourier,
+          "azimuth_count"_a           = vps.azimuth_count,
+          "scattering_angle_count"_a  = vps.scattering_angle_count,
+          "normalisation_tolerance"_a = vps.normalisation_tolerance,
+          "thermal"_a                 = vps.thermal,
+          "beam_flux"_a               = vps.beam_flux,
+          "beam_mu"_a                 = vps.beam_mu,
+          "beam_azimuth"_a            = vps.beam_azimuth)
+      .def_rw("nquad", &vdisort::path_settings::nquad, "Number of streams, even\n\n.. :class:`int`")
+      .def_rw("nfourier", &vdisort::path_settings::nfourier, "Number of Fourier modes\n\n.. :class:`int`")
+      .def_rw("azimuth_count",
+              &vdisort::path_settings::azimuth_count,
+              "Azimuth samples of the Fourier coefficients\n\n.. :class:`int`")
+      .def_rw("scattering_angle_count",
+              &vdisort::path_settings::scattering_angle_count,
+              "Gauss-Legendre nodes of the phase-function normalisation\n\n.. :class:`int`")
+      .def_rw("normalisation_tolerance",
+              &vdisort::path_settings::normalisation_tolerance,
+              "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "
+              "extinction\n\n.. :class:`float`")
+      .def_rw("thermal",
+              &vdisort::path_settings::thermal,
+              "Thermal emission of the layers and the surface\n\n.. :class:`bool`")
+      .def_rw("beam_flux",
+              &vdisort::path_settings::beam_flux,
+              "Beam flux on the horizontal at the top [W m-2 Hz-1], 0 for none\n\n.. :class:`float`")
+      .def_rw("beam_mu", &vdisort::path_settings::beam_mu, "Cosine of the beam zenith angle\n\n.. :class:`float`")
+      .def_rw("beam_azimuth",
+              &vdisort::path_settings::beam_azimuth,
+              "VDISORT's beam azimuth phi0 [rad]\n\n.. :class:`float`")
+      .doc() = "Solver settings of main_data_from_path";
+
+  vdisort_nm.def("main_data_from_path",
+                 &vdisort::main_data_from_path,
+                 "ray_path"_a,
+                 "atm_path"_a,
+                 "spectral_propmat_path"_a,
+                 "freq_grid"_a,
+                 "freq_index"_a,
+                 "scattering_species"_a,
+                 "settings"_a,
+                 "ground"_a,
+                 "surface_temperature"_a,
+                 "sky_temperature"_a,
+                 R"(A solved VDISORT problem (:class:`~pyarts3.arts.cppvdisort`) from an ARTS propagation path.
+
+The path conventions are those of :func:`pyarts3.arts.rt4.problem_from_path`
+(one entry per level, top first, unpolarized gas propagation matrix).  A
+layer has the mean extinction and scattering of its two levels'
+:func:`scattering_optics` on VDISORT's streams and their scattering-weighted
+mean Fourier coefficients; ``tau`` is the cumulative (gas + particle)
+optical depth and ``omega`` the scattering over the total extinction.  With
+``settings.thermal`` the Planck function at the level temperatures is linear
+in optical depth within each layer and the surface emits; the sky is a
+blackbody at ``sky_temperature``.  A beam has the Stokes irradiance
+``[beam_flux / beam_mu, 0, 0, 0]`` normal to it.
+)");
+  // VDISORT PYTHON INTERFACE END
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));
 }

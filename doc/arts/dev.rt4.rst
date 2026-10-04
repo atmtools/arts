@@ -84,7 +84,7 @@ The C++ wrapper ``arts_rt4`` is always built.  When RT4 is disabled,
 ``RuntimeError`` the same way.
 
 Python test files whose names contain ``.rt4.`` are collected only with
-``ENABLE_RT4=ON``.  There are two tests:
+``ENABLE_RT4=ON``.  There are two tests of the solver wrapper:
 
 * ``cpp.fast.rt4-test`` (``src/core/rt4/test/rt4-test.cpp``);
 * ``tests/core/rt4/closed-form.rt4.py``.
@@ -106,7 +106,8 @@ The Python test repeats the quadrature, Fresnel, layout, Kirchhoff and
 error-path checks through the bindings.
 
 The comparison of VDISORT against RT4, ``cpp.fast.vdisort-rt4-test``, is also
-built only with ``ENABLE_RT4=ON``.  See `Mapping to VDISORT inputs`_.
+built only with ``ENABLE_RT4=ON``.  See `Mapping to VDISORT inputs`_.  The
+tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 
 Interface
 ---------
@@ -136,6 +137,22 @@ C++ (``#include <rt4.h>``, namespace ``rt4``):
   struct result { Vector mu; Vector weights; Tensor3 up; Tensor3 down; };
   result solve(const problem& p);
 
+  // #include <rt4_arts.h>: inputs from ARTS data
+  layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
+                                 const AtmPoint& atm_point, Numeric frequency,
+                                 const Vector& mu, Index nstokes, Index azimuth_count);
+  struct path_settings {
+    Index nstokes{2}; Index nmu{8}; quadrature_type quad{quadrature_type::double_gauss};
+    Vector extra_mu; Numeric max_delta_tau{1e-6}; Index azimuth_count{64};
+  };
+  problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
+                            const ArrayOfAtmPoint& atm_path,
+                            const ArrayOfPropmatVector& spectral_propmat_path,
+                            const AscendingGrid& freq_grid, Index freq_index,
+                            const ArrayOfScatteringSpecies& scattering_species,
+                            const path_settings& settings, const surface& ground,
+                            Numeric surface_temperature, Numeric sky_temperature);
+
 Python (``pyarts3.arts.rt4``) mirrors this:
 
 * ``available()``;
@@ -149,8 +166,14 @@ Python (``pyarts3.arts.rt4``) mirrors this:
   ``DiscreteSurface(reflection, emission)``;
 * ``Problem(...)``, which takes every field as a keyword argument with the
   C++ default;
-* ``Result``, with read-only ``mu``, ``weights``, ``up`` and ``down``;
-* ``solve(problem)``.
+* ``RT4Result``, with read-only ``mu``, ``weights``, ``up`` and ``down``;
+* ``solve(problem)``;
+* ``scattering_optics(scattering_species, atm_point, frequency, mu,
+  nstokes=2, azimuth_count=64)``, ``PathSettings(...)`` (every field as a
+  keyword argument with the C++ default) and ``problem_from_path(ray_path,
+  atm_path, spectral_propmat_path, freq_grid, freq_index,
+  scattering_species, settings, ground, surface_temperature,
+  sky_temperature)``.
 
 Every array attribute accepts numpy arrays and lists.  ``Problem.ground``
 returns a copy, so assign a new surface to change it.  ``solve`` releases the
@@ -335,6 +358,109 @@ I component of a.  It is scalar and unpolarized.
   transposed;
 * ``UP_RAD``/``DOWN_RAD(s, mu, level)`` is exactly the row-major
   ``[level, mu, s]`` of the result.
+
+Inputs from ARTS data
+---------------------
+
+``src/core/rt4/rt4_arts.h`` builds RT4 inputs from ARTS scattering species,
+atmospheric points and propagation paths.  It adds no physics: the optics
+are ARTS's bulk scattering properties in the laboratory frame
+(``ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded``),
+so azimuthally randomly oriented (ARO) species work as well as totally
+randomly oriented (TRO) ones.  RT4 is the only one of RT4, RT3 and VDISORT
+that can take ARO particles.
+
+**scattering_optics** returns the ``layer_optics`` of the species at one
+atmospheric point on the streams ``mu`` (the quadrature nodes followed by the
+extra angles), per metre and steradian:
+
+* RT4's stream ``(down, mu)`` propagates toward the surface, which is ARTS's
+  propagation zenith angle ``180 - acos(mu)`` deg; ``(up, mu)`` is
+  ``acos(mu)``.  ARTS's scattering data take propagation directions, on
+  zenith-angle grids that are strictly ascending (``ZenGrid``), so the
+  values of ``mu`` must be distinct.
+* ``extinction[h, i]`` is the ARO extinction matrix ``[[K11, K12], [K12,
+  K11]]`` for propagation in ``(h, mu_i)``, ``absorption[h, i]`` is
+  ``[a1, a2]`` (TRO species give K11 and a1 only).
+* ``phase[ho, hi, o, i]`` is the [I, Q] block of the azimuthal mean of
+  ARTS's laboratory-frame phase matrix, by the periodic midpoint rule at
+  ``(k + 1/2) 360 / N`` deg, ``N = azimuth_count`` (even).  The samples above
+  180 deg mirror those below, whose [I, Q] blocks are equal for the mirror
+  symmetric media of ARTS's TRO and ARO formats, so ARTS is only asked for
+  the azimuths in (0, 180) deg.  The midpoints avoid the principal plane,
+  near which ARTS's rotation coefficients snap angles within about 1e-3 rad.
+* ARTS's laboratory-frame phase matrix and RT4 use the same Q = I_v - I_h,
+  and the [I, Q] block of the mean does not depend on the azimuth sense.
+
+Accuracy:
+
+* For a scattering matrix that is a regular Legendre series of degree L,
+  the laboratory-frame matrix is a trigonometric polynomial of degree L in
+  the azimuth difference, and the mean is exact for ``N > L`` (Rayleigh:
+  ``N >= 4``); otherwise it converges as fast as the Fourier series of Z.
+* The data are as accurate as ARTS's laboratory-frame phase matrix.
+  ``GasScatterer`` and ``HenyeyGreensteinScatterer`` evaluate their
+  closed-form scattering matrix at the exact scattering angle of every
+  direction pair.  Particle habits interpolate linearly on their own
+  scattering-angle grid, a ``ZenGrid`` (strictly ascending in [0, 180]
+  deg).
+* When both rays of a pair are vertical (``mu = 1`` in both) the meridional
+  planes, and Q, are undefined.  ARTS then applies no rotation and the mean
+  is F, where a reference plane turning with the azimuth label would average
+  Q to 0.  Only extra angles can be vertical, and their columns carry no
+  weight, so the solution does not depend on these entries.
+
+**problem_from_path** follows the conventions of the DISORT workspace
+methods (``disort_settingsOpticalThicknessFromPath``,
+``disort_settingsLayerThermalEmissionLinearInTau``):
+
+* ``ray_path``, ``atm_path`` and ``spectral_propmat_path`` have one entry per
+  level, top first; the ``ray_path`` altitudes must decrease strictly and are
+  the heights [m].  Only the altitudes of ``ray_path`` are used.
+* The level temperatures are ``atm_path``'s.
+* ``spectral_propmat_path`` is the gas propagation matrix only, per metre,
+  with ``freq_grid.size()`` entries per level.  A layer's gas extinction is
+  the mean of A at its two levels.  Polarized gas propagation matrices are
+  rejected.
+* The frequency is ``freq_grid[freq_index]``.
+* Each layer gets the mean of its two levels' ``scattering_optics`` on RT4's
+  quadrature for ``settings``, or is gas-only when that mean is all zero.
+* ``settings``, ``ground``, ``surface_temperature`` and ``sky_temperature``
+  go into the problem unchanged.  The builder needs ``ENABLE_RT4`` for the
+  quadrature.
+
+Tests (references external to the code under test):
+
+* ``cpp.fast.rt4-arts-test`` (``src/core/rt4/test/rt4-arts-test.cpp``):
+  ARTS's Rayleigh ``GasScatterer`` through ``scattering_optics`` against
+  ``sigma / (4 pi)`` times the m = 0 closed form
+  (``P_II = 3/8 (3 - a - b + 3 a b)``, ``P_IQ = 3/8 (1 - 3 a)(1 - b)``,
+  ``P_QI = 3/8 (1 - a)(1 - 3 b)``, ``P_QQ = 9/8 (1 - a)(1 - b)``,
+  ``a = mu_out^2``, ``b = mu_in^2``) in all four quadrants, with the extra
+  angles 0.35 and 1, for ``N = 4`` and 64: 5e-15 of sigma / (4 pi)
+  (tolerance 1e-13); the path builder against its inputs and the level
+  optics; error paths.
+* ``cpp.fast.vdisort-arts-comparison``
+  (``src/core/disort-cpp/test/vdisort/vdisort-arts-comparison.cpp``,
+  ``ENABLE_RT3`` and ``ENABLE_RT4``): RT4, RT3 and VDISORT through their path
+  builders on an ARTS atmosphere (``AtmField`` with a temperature profile, a
+  Rayleigh ``GasScatterer``, a cloud of 1.5 mm water spheres from ARTS's Mie
+  code and gas absorption) at 89 GHz, thermal emission, Lambertian and
+  Fresnel surfaces, at ``max_delta_tau = 1e-7``.  RT3 and RT4 run Evans'
+  identical doubling, so RT4 - RT3 isolates the input routes
+  (laboratory-frame azimuthal mean against RT3's Legendre series): 5.3e-10
+  of max I.  RT4's layer phase matrices equal VDISORT's to 1.2e-15
+  (relative), and RT4 - VDISORT is 5.4e-7 of max I, RT4's doubling error.
+* ``tests/core/disort/arts-native-inputs.rt3.rt4.py`` repeats the closed
+  forms through ``pyarts3``.
+* ``tests/core/disort/vdisort-polradtran.rt3.rt4.py`` runs VDISORT, RT4 and
+  RT3 through their path builders from ``pyarts3`` on ARTS atmospheres
+  (Rayleigh, Mie and Henyey-Greenstein species, Lambertian and Fresnel
+  surfaces, nstokes 1, 2 and 4, a solar beam).  Run without
+  ``ARTS_HEADLESS``, it draws the solutions' plots
+  (:func:`pyarts3.plots.cppvdisort.plot`,
+  :func:`pyarts3.plots.RT4Result.plot` and
+  :func:`pyarts3.plots.RT3Result.plot`) on shared axes.
 
 Limitations
 -----------

@@ -1,5 +1,5 @@
-add_library(arts_rt4 STATIC rt4.cc)
-target_link_libraries(arts_rt4 PUBLIC matpack)
+add_library(arts_rt4 STATIC rt4.cc rt4_arts.cc)
+target_link_libraries(arts_rt4 PUBLIC matpack atm path rtepack scattering)
 target_include_directories(arts_rt4 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 if(ENABLE_RT4)
   target_link_libraries(arts_rt4 PRIVATE rt4)

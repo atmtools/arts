@@ -229,12 +229,11 @@ template <typename Quadrature> class QuadratureProvider {
 
 class IrregularZenithAngleGrid {
  public:
-  Vector angles;
+  ZenGrid angles;
 
   IrregularZenithAngleGrid() = default;
-  /** Create new zenith-angle grid.
-  * @param zenith_angles Vector containing the zenith-angle grid points in radians.
-  * @param weights The integration weight corresponding to each grid point.
+  /** Create new zenith-angle grid with trapezoidal integration weights.
+  * @param zenith_angles The zenith-angle grid points [deg], strictly ascending in [0, 180].
   */
   IrregularZenithAngleGrid(const Vector& zenith_angles);
 
@@ -257,7 +256,7 @@ class IrregularZenithAngleGrid {
 
 template <typename Quadrature> class QuadratureZenithAngleGrid {
  public:
-  Vector angles{};
+  ZenGrid angles{};
 
   /** Create new quadrature zenith-angle grid with given number of points.
   *
@@ -274,10 +273,12 @@ template <typename Quadrature> class QuadratureZenithAngleGrid {
   QuadratureZenithAngleGrid& operator=(const QuadratureZenithAngleGrid&) = default;
   QuadratureZenithAngleGrid& operator=(QuadratureZenithAngleGrid&&)      = default;
 
-  QuadratureZenithAngleGrid(Index n_points) : angles(n_points), quadrature_(n_points) {
-    auto nodes = quadrature_.get_nodes();
+  QuadratureZenithAngleGrid(Index n_points) : quadrature_(n_points) {
+    const auto& nodes = quadrature_.get_nodes();
+    Vector      za(nodes.size());
     std::transform(
-        nodes.begin(), nodes.end(), angles.begin(), [](Numeric x) { return Conversion::rad2deg(acos(-1.0 * x)); });
+        nodes.begin(), nodes.end(), za.begin(), [](Numeric x) { return Conversion::rad2deg(acos(-1.0 * x)); });
+    angles = std::move(za);
   }
 
   QuadratureZenithAngleGrid(Index n_points, Index /*unused*/) : QuadratureZenithAngleGrid(n_points) {}
@@ -313,8 +314,7 @@ using ZenithAngleGrid =
 
 Index grid_size(const ZenithAngleGrid& grid);
 
-StridedVectorView grid_vector(ZenithAngleGrid& grid);
-
+/// The zenith angles [deg] of the grid, strictly ascending in [0, 180]
 StridedConstVectorView grid_vector(const ZenithAngleGrid& grid);
 
 template <typename VectorType> auto integrate_zenith_angle(VectorType&& vec, const ZenithAngleGrid& grid) {

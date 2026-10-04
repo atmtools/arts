@@ -78,8 +78,12 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
     theta = za_scat + za_inc;
     if (theta > pi_v<Scalar>) { theta = 2.0 * pi_v<Scalar> - theta; }
   }
+  // Forward and backward scattering: the scattering plane is undefined and
+  // Z = F.  For a physical F (F12 = F34 = 0, and F22 = F33 forward and
+  // F22 = -F33 backward) this is the limit of the general expressions below
+  // from every direction of approach.
   if (small(theta)) {
-    return {theta, 1.0, -1.0, 0.0, 0.0};
+    return {theta, 1.0, 1.0, 0.0, 0.0};
   } else if (equal(theta, pi_v<Scalar>)) {
     return {theta, 1.0, 1.0, 0.0, 0.0};
   }
@@ -478,6 +482,37 @@ template <std::floating_point Scalar, Format format> using ForwardscatterMatrixD
 
 template <std::floating_point Scalar, Format format, Representation representation> class PhaseMatrixData;
 
+/** Phase matrix in the laboratory frame of a totally randomly oriented scatterer.
+ *
+ * Rotates the scattering matrix into the laboratory frame for every incidence
+ * zenith angle, azimuth difference and scattering zenith angle (Mishchenko et
+ * al., 2002, Eq. 4.16).  This is the conversion between the two frames for
+ * every representation of such a scatterer; the representation only supplies
+ * its scattering matrix at the scattering angle of each direction pair:
+ *
+ * scattering_matrix(theta, F) sets F[i_t, i_f, joker] to the six independent
+ * elements [F11, F12, F22, F33, F34, F44] at scattering angle theta [rad] for
+ * every temperature of t_grid and frequency of f_grid.
+ *
+ * The result is as accurate as scattering_matrix: exact for a closed form,
+ * interpolated for gridded data.
+ *
+ * @param t_grid The temperature grid
+ * @param f_grid The frequency grid
+ * @param za_inc_grid The incidence zenith angles [deg]
+ * @param delta_aa_grid The azimuth differences [deg]
+ * @param za_scat_grid The scattering zenith angles [deg]
+ * @param scattering_matrix The scattering matrix as above
+ */
+template <std::floating_point Scalar, typename ScatteringMatrix>
+PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
+    std::shared_ptr<const Vector>          t_grid,
+    std::shared_ptr<const Vector>          f_grid,
+    std::shared_ptr<const Vector>          za_inc_grid,
+    std::shared_ptr<const Vector>          delta_aa_grid,
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
+    ScatteringMatrix                     &&scattering_matrix);
+
 template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::TRO, Representation::Gridded>
     : public matpack::data_t<Scalar, 4> {
  private:
@@ -618,59 +653,49 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::TRO,
 
   PhaseMatrixDataSpectral to_spectral() const { return to_spectral(sht::provider.get_instance(1, n_za_scat_)); }
 
+  /** The phase matrix in the laboratory frame.
+   *
+   * The scattering matrix is interpolated linearly in scattering angle, and
+   * held constant outside the range of the scattering-angle grid.
+   */
   PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector>          za_inc_grid,
                                        std::shared_ptr<const Vector>          delta_aa_grid,
                                        std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const {
-    PhaseMatrixDataLabFrame result(t_grid_, f_grid_, za_inc_grid, delta_aa_grid, za_scat_grid_new);
+    const auto source_angles = grid_vector(*za_scat_grid_);
+    const auto interpolate   = [&](Scalar theta, matpack::data_t<Scalar, 3> &scattering_matrix) {
+      const Scalar scat_angle = Conversion::rad2deg(theta);
+      Index        angle0;
+      Index        angle1;
+      Scalar       weight0;
+      Scalar       weight1;
+      if (n_za_scat_ == 1 or scat_angle <= source_angles.front()) {
+        angle0 = angle1 = 0;
+        weight0         = 1.0;
+        weight1         = 0.0;
+      } else if (scat_angle >= source_angles.back()) {
+        angle0 = angle1 = n_za_scat_ - 1;
+        weight0         = 1.0;
+        weight1         = 0.0;
+      } else {
+        const auto upper = std::ranges::upper_bound(source_angles, scat_angle);
+        angle1           = static_cast<Index>(upper - source_angles.begin());
+        angle0           = angle1 - 1;
+        weight1          = (scat_angle - source_angles[angle0]) / (source_angles[angle1] - source_angles[angle0]);
+        weight0          = 1.0 - weight1;
+      }
 
-    for (Size i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
-      for (Size i_delta_aa = 0; i_delta_aa < delta_aa_grid->size(); ++i_delta_aa) {
-        for (Index i_za_scat = 0; i_za_scat < grid_size(*za_scat_grid_new); ++i_za_scat) {
-          std::array<Scalar, 5> coeffs = detail::rotation_coefficients(
-              0.0, (*za_inc_grid)[i_za_inc], (*delta_aa_grid)[i_delta_aa], grid_vector(*za_scat_grid_new)[i_za_scat]);
-
-          // On the fly interpolation of stokes components and expansion.
-          Scalar     scat_angle    = Conversion::rad2deg(std::get<0>(coeffs));
-          const auto source_angles = grid_vector(*za_scat_grid_);
-          Index      angle0;
-          Index      angle1;
-          Scalar     weight0;
-          Scalar     weight1;
-          if (n_za_scat_ == 1 or scat_angle <= source_angles.front()) {
-            angle0 = angle1 = 0;
-            weight0         = 1.0;
-            weight1         = 0.0;
-          } else if (scat_angle >= source_angles.back()) {
-            angle0 = angle1 = n_za_scat_ - 1;
-            weight0         = 1.0;
-            weight1         = 0.0;
-          } else {
-            const auto upper = std::ranges::upper_bound(source_angles, scat_angle);
-            angle1           = static_cast<Index>(upper - source_angles.begin());
-            angle0           = angle1 - 1;
-            weight1          = (scat_angle - source_angles[angle0]) / (source_angles[angle1] - source_angles[angle0]);
-            weight0          = 1.0 - weight1;
-          }
-
-          Tensor3 scat_mat_interpd(n_temps_, n_freqs_, 4);
-          Vector  pm_comps(n_stokes_coeffs);
-          for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-            for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-              for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-                pm_comps[i_s] = 0.0;
-                if (weight0 > 0.0) pm_comps[i_s] += weight0 * this->operator[](i_t, i_f, angle0, i_s);
-                if (weight1 > 0.0) pm_comps[i_s] += weight1 * this->operator[](i_t, i_f, angle1, i_s);
-              }
-              detail::expand_and_transform<Scalar>(result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker],
-                                                   pm_comps,
-                                                   coeffs,
-                                                   (*delta_aa_grid)[i_delta_aa] > 180.0);
-            }
+      for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+        for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            Scalar value = 0.0;
+            if (weight0 > 0.0) value += weight0 * this->operator[](i_t, i_f, angle0, i_s);
+            if (weight1 > 0.0) value += weight1 * this->operator[](i_t, i_f, angle1, i_s);
+            scattering_matrix[i_t, i_f, i_s] = value;
           }
         }
       }
-    }
-    return result;
+    };
+    return tro_lab_frame<Scalar>(t_grid_, f_grid_, za_inc_grid, delta_aa_grid, za_scat_grid_new, interpolate);
   }
 
   BackscatterMatrixData<Scalar, Format::TRO> extract_backscatter_matrix() {
@@ -1511,6 +1536,40 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
   /// The zenith angle grid.
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid_;
 };
+
+template <std::floating_point Scalar, typename ScatteringMatrix>
+PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
+    std::shared_ptr<const Vector>          t_grid,
+    std::shared_ptr<const Vector>          f_grid,
+    std::shared_ptr<const Vector>          za_inc_grid,
+    std::shared_ptr<const Vector>          delta_aa_grid,
+    std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
+    ScatteringMatrix                     &&scattering_matrix) {
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> result(
+      t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
+
+  const auto                 za_scat = grid_vector(*za_scat_grid);
+  matpack::data_t<Scalar, 3> tro(t_grid->size(), f_grid->size(), detail::get_n_mat_elems(Format::TRO));
+  for (Size i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
+    for (Size i_delta_aa = 0; i_delta_aa < delta_aa_grid->size(); ++i_delta_aa) {
+      const Scalar delta_aa = (*delta_aa_grid)[i_delta_aa];
+      for (Size i_za_scat = 0; i_za_scat < za_scat.size(); ++i_za_scat) {
+        const std::array<Scalar, 5> coeffs =
+            detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[i_za_inc], delta_aa, za_scat[i_za_scat]);
+        scattering_matrix(std::get<0>(coeffs), tro);
+        for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
+          for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
+            detail::expand_and_transform<Scalar>(result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker],
+                                                 tro[i_t, i_f, joker],
+                                                 coeffs,
+                                                 delta_aa > 180.0);
+          }
+        }
+      }
+    }
+  }
+  return result;
+}
 
 template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
     : public matpack::data_t<std::complex<Scalar>, 5> {

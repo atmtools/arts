@@ -2,6 +2,7 @@
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
 #include <rt3.h>
+#include <rt3_arts.h>
 
 #include "hpy_arts.h"
 
@@ -25,7 +26,7 @@ h = k x z / |k x z|, v = h x k, Q = I_v - I_h and U = 2 Re(E_v E_h*), the
 same basis in both hemispheres.  Streams are mu = |cos(zenith)|, ascending
 quadrature nodes followed by the zero-weight ``extra_mu``.  Layers and levels
 are top-down.  Radiances are in W m-2 Hz-1 sr-1, fluxes in W m-2 Hz-1.
-Result.up and Result.down are Fourier coefficients: the radiance is
+RT3Result.up and RT3Result.down are Fourier coefficients: the radiance is
 sum_m c_m cos(m phi) for I, Q and sum_m c_m sin(m phi) for U, V
 (azimuth_radiance() sums them).  Lengths and extinctions must use reciprocal
 units.
@@ -245,7 +246,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
           "| :class:`~pyarts3.arts.rt3.FresnelSurface`")
       .doc() = "An RT3 problem; see :doc:`dev.rt3` for the conventions";
 
-  py::class_<rt3::result>(rt, "Result")
+  py::class_<rt3::result>(rt, "RT3Result")
       .def_ro("mu", &rt3::result::mu, "[nmu_total] streams\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_ro("weights",
               &rt3::result::weights,
@@ -285,9 +286,116 @@ lock (separate from RT4's).)",
          "phi"_a,
          R"(The radiance at azimuths phi [rad] from Fourier coefficients.
 
-coefficients is [nlevel, nmode, nmu, nstokes], e.g. Result.up or Result.down.
+coefficients is [nlevel, nmode, nmu, nstokes], e.g. RT3Result.up or RT3Result.down.
 Returns [nlevel, len(phi), nmu, nstokes] with sum_m c_m cos(m phi) for I, Q
 and sum_m c_m sin(m phi) for U, V, as rt3.f's OUTPUT_FILE does.)");
+
+  rt.def("scattering_optics",
+         &rt3::scattering_optics,
+         "scattering_species"_a,
+         "atm_point"_a,
+         "frequency"_a,
+         "degree"_a,
+         "scattering_angle_count"_a  = 512,
+         "normalisation_tolerance"_a = 1e-3,
+         R"(The RT3 scattering set of ARTS scattering species at one atmospheric point.
+
+The species' totally randomly oriented (TRO) scattering matrix is projected
+on the Legendre polynomials up to ``degree`` by a
+``scattering_angle_count``-point Gauss-Legendre rule in cos(Theta), exact for
+polynomial matrices of degree <= 2 n - 1 - degree.  ARTS's elements
+[F11, F12, F22, F33, F34, F44] are reordered to RT3's columns
+(F11, F12, F33, F34, F22, F44) without sign changes, and the series is
+normalised so that ``legendre[0, 0] == 1``.  ``extinction`` is K11 and
+``scattering`` is K11 - a1; the phase-function integral must match the latter
+to ``normalisation_tolerance`` times the extinction.
+
+For the same physical sphere, ARTS's Mie F34 is -1 times that of Evans and
+Stephens (1991), so V computed from ARTS data is -1 times V in their
+convention.  See :doc:`dev.rt3`.
+)");
+
+  const rt3::path_settings ds{};
+  py::class_<rt3::path_settings>(rt, "PathSettings")
+      .def(
+          "__init__",
+          [](rt3::path_settings*  s,
+             Index                nstokes,
+             Index                nmu,
+             rt3::quadrature_type quad,
+             const Vector&        extra_mu,
+             Index                aziorder,
+             Numeric              max_delta_tau,
+             bool                 delta_m,
+             Index                legendre_degree,
+             Index                scattering_angle_count,
+             Numeric              normalisation_tolerance) {
+            new (s) rt3::path_settings{.nstokes                 = nstokes,
+                                       .nmu                     = nmu,
+                                       .quad                    = quad,
+                                       .extra_mu                = extra_mu,
+                                       .aziorder                = aziorder,
+                                       .max_delta_tau           = max_delta_tau,
+                                       .delta_m                 = delta_m,
+                                       .legendre_degree         = legendre_degree,
+                                       .scattering_angle_count  = scattering_angle_count,
+                                       .normalisation_tolerance = normalisation_tolerance};
+          },
+          "nstokes"_a                 = ds.nstokes,
+          "nmu"_a                     = ds.nmu,
+          "quad"_a                    = ds.quad,
+          "extra_mu"_a                = ds.extra_mu,
+          "aziorder"_a                = ds.aziorder,
+          "max_delta_tau"_a           = ds.max_delta_tau,
+          "delta_m"_a                 = ds.delta_m,
+          "legendre_degree"_a         = ds.legendre_degree,
+          "scattering_angle_count"_a  = ds.scattering_angle_count,
+          "normalisation_tolerance"_a = ds.normalisation_tolerance)
+      .def_rw("nstokes", &rt3::path_settings::nstokes, "1 to 4\n\n.. :class:`int`")
+      .def_rw("nmu", &rt3::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
+      .def_rw("quad", &rt3::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt3.QuadratureType`")
+      .def_rw("extra_mu",
+              &rt3::path_settings::extra_mu,
+              "Zero-weight output angles (gauss only)\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("aziorder", &rt3::path_settings::aziorder, "Highest Fourier azimuth mode\n\n.. :class:`int`")
+      .def_rw("max_delta_tau",
+              &rt3::path_settings::max_delta_tau,
+              "Maximum vertical optical thickness of the initial doubling sublayer\n\n.. :class:`float`")
+      .def_rw("delta_m", &rt3::path_settings::delta_m, "RT3's delta-M scaling\n\n.. :class:`bool`")
+      .def_rw("legendre_degree",
+              &rt3::path_settings::legendre_degree,
+              "Degree of the Legendre series; negative selects RT3's maximum (at least 2 nmu_total with "
+              "delta_m)\n\n.. :class:`int`")
+      .def_rw("scattering_angle_count",
+              &rt3::path_settings::scattering_angle_count,
+              "Gauss-Legendre nodes of the Legendre projection\n\n.. :class:`int`")
+      .def_rw("normalisation_tolerance",
+              &rt3::path_settings::normalisation_tolerance,
+              "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "
+              "extinction\n\n.. :class:`float`")
+      .doc() = "Solver settings of problem_from_path";
+
+  rt.def("problem_from_path",
+         &rt3::problem_from_path,
+         "ray_path"_a,
+         "atm_path"_a,
+         "spectral_propmat_path"_a,
+         "freq_grid"_a,
+         "freq_index"_a,
+         "scattering_species"_a,
+         "settings"_a,
+         "ground"_a,
+         "surface_temperature"_a,
+         "sky_temperature"_a,
+         R"(An RT3 problem from an ARTS propagation path, with the DISORT path conventions.
+
+The path conventions are those of :func:`pyarts3.arts.rt4.problem_from_path`.
+A layer's scattering set has the mean extinction and scattering of its two
+levels' :func:`scattering_optics` and their scattering-weighted mean series;
+a layer with zero mean extinction is gas-only.  The problem has thermal
+emission and no beam: set ``direct_flux``, ``direct_mu`` and ``thermal`` on
+the result for other sources.  See :doc:`dev.rt3`.
+)");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize rt3\n{}", e.what()));
 }

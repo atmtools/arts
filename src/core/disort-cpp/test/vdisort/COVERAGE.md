@@ -308,37 +308,29 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 
 ## The three solvers on shared problems, and CI
 
-`pyarts3.polradtran` (`python/src/pyarts3/polradtran.py`) defines a problem
-once and runs it through every solver that can represent it, the same way;
-and `pyarts3.polradtran.plot()` shows the radiances and their differences.
-`tests/core/disort/vdisort-polradtran.rt3.rt4.py` runs the module's preset
-problems (`pyarts3.polradtran.cases.all()`) and a problem it defines with
-`pyarts3.polradtran.legendre_series`, and plots each comparison when run
-without `ARTS_HEADLESS`.  Each problem runs through:
-
-- VDISORT, always;
-- RT4 for thermal problems with nstokes <= 2;
-- RT3 unless a beam falls on a non-Lambertian surface.
-
-All three get the same double-Gauss streams and phase matrix, sampled at
-RT3's own azimuths, so also an irregular scattering matrix gives identical
-discrete problems.  With
-nstokes < 4 every solver gets the problem truncated to nstokes components.
-The cases are:
+`tests/core/disort/vdisort-polradtran.rt3.rt4.py` runs VDISORT, RT4 and RT3
+from `pyarts3` on ARTS atmospheres through the same path builders as
+`cpp.fast.vdisort-arts-comparison` (`vdisort.main_data_from_path`,
+`rt4.problem_from_path`, `rt3.problem_from_path`).  Run without
+`ARTS_HEADLESS`, it draws the solutions' plots (`pyarts3.plots.cppvdisort`,
+`RT4Result` and `RT3Result`) on shared axes.  All solvers get the same double-Gauss streams.  RT4 runs
+the thermal problems with nstokes <= 2.  The cases are:
 
 | Case | Solvers |
 |---|---|
-| thermal Rayleigh multilayer over Fresnel, nstokes 2 and 1 | VDISORT, RT4, RT3 |
-| thermal Mie layer over Lambertian | VDISORT, RT4, RT3 |
-| solar Rayleigh layer, 4 Fourier modes, nstokes 4 | VDISORT, RT3 |
-| solar plus thermal Rayleigh / Mie / gas multilayer, 12 modes, nstokes 4 | VDISORT, RT3 |
-| solar polarizing Henyey-Greenstein cloud under a Rayleigh layer, 8 modes | VDISORT, RT3 |
+| thermal, Rayleigh + Mie drops, Fresnel 3+0.2i, nstokes 2 | VDISORT, RT4, RT3 |
+| thermal, Rayleigh + Mie drops, Lambertian 0.3, nstokes 2 | VDISORT, RT4, RT3 |
+| thermal, isotropic + Henyey-Greenstein (unpolarized), Lambertian 0.3, nstokes 1 | VDISORT, RT4, RT3 |
+| solar mu0 = 0.6 + thermal, Rayleigh + Mie drops, Lambertian 0.3, 8 modes, nstokes 4, 6 azimuths | VDISORT, RT3 |
 
-Every pair must agree to 10 max_delta_tau / mu0 of max I (1e-6 to 2e-6).
-The measured values are 2e-8 to 6e-8 for VDISORT against RT3 or RT4, and
-1e-15 to 6e-11 for RT4 against RT3.  The test also exercises the
-`pyarts3.arts.vdisort`, `rt4` and `rt3` bindings.  The C++ comparisons above
-carry the convergence, Richardson and non-blindness evidence.
+Every pair must agree to 10 max_delta_tau / mu0 of max I (1e-6, and 1.7e-6
+with the beam).  The measured values are 2e-7 to 4e-7 for VDISORT against
+RT3 or RT4, and 2e-10 to 1.4e-8 for RT4 against RT3.  The nstokes 1 case is
+unpolarized, so VDISORT's I is the reference for the scalar I of RT3 and
+RT4.  ARTS's Henyey-Greenstein scattering matrix is not regular at
+backscattering, so it enters only that case (see `doc/arts/dev.rt3.rst`,
+azimuth sampling).  The C++ comparisons above carry the convergence,
+Richardson and non-blindness evidence.
 
 RT3 and RT4 are built by default when a Fortran compiler is found.  CI
 (`.github/workflows/build-test.yml`) still sets `-DENABLE_RT4=ON
@@ -350,3 +342,24 @@ skipping these tests.
 `cpp.fast.vdisort-rt3-test`, `cpp.fast.vdisort-rt4-test`, the closed-form
 Python tests of both bindings, and this three-solver test.  Windows has no
 Fortran compiler in its environment and runs none of them.
+
+## The three solvers on ARTS data
+
+`cpp.fast.vdisort-arts-test` (always built) and
+`cpp.fast.vdisort-arts-comparison` (`ENABLE_RT3` and `ENABLE_RT4`) test the
+ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
+(see `doc/arts/dev.disort.rst`, `dev.rt3.rst`, `dev.rt4.rst`).
+
+| test | reference | measured |
+|---|---|---|
+| V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms | 1.6e-15 |
+| V2: ARTS's laboratory-frame Z of a polarizing Mie particle, 300 directions | vector geometry, mu = cos(za), phi = -aa, same F | 6.7e-15 (other azimuth sense: 2; F34 negated: 0.35) |
+| V2: exact and snapped near-forward pairs | Z = F on the diagonal (forward-scattered Q) | 1.2e-8 |
+| V3: `vdisort::scattering_optics` of that particle | Fourier modes of ARTS's laboratory-frame Z | 1.9e-15 |
+| thermal, 89 GHz, Rayleigh + Mie cloud + gas, Lambertian / Fresnel | RT3 vs VDISORT | 5.4e-7 / 5.2e-7 of max I (tolerance 1e-6) |
+| same | RT4's layer phase matrices vs VDISORT's (different input routes) | 1.2e-15 relative (tolerance 1e-12) |
+| same | RT4 vs RT3 (identical doubling) | 5.3e-10 / 5.0e-10 (tolerance 1e-8) |
+| same | RT4 vs VDISORT | 5.4e-7 / 5.2e-7 (tolerance 1e-6) |
+| solar mu0 = 0.6 + thermal, 8 modes, nstokes 4 | RT3 vs VDISORT | 5.8e-7 (tolerance 1.7e-6) |
+
+The RT3 - VDISORT difference falls by 11.7 per decade of `max_delta_tau`.

@@ -32,8 +32,9 @@
  *     h = k x z / |k x z| is horizontal, v = h x k lies in the plane of k
  *     and z, I = I_v + I_h, Q = I_v - I_h and U = 2 Re(E_v E_h*).  The same
  *     basis is used in both hemispheres.  The sign of U is pinned by the
- *     single-scattering test against this vector construction; V follows
- *     Evans and Stephens (1991) and is not pinned by a test.
+ *     single-scattering test against this vector construction.  RT3
+ *     transports V through F34 (and the Fresnel R4), so V has the sign
+ *     convention of the scattering data; see rt3_arts.h for ARTS's.
  *   - Streams are given per hemisphere by mu = |cos(zenith)| in (0, 1],
  *     ascending, the same mu values in both hemispheres.  The first nmu are
  *     RT3's quadrature nodes, followed by the zero-weight extra_mu angles

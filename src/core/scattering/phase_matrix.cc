@@ -100,8 +100,8 @@ RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
     res.za_scat_grid_weights =
         ArrayOfGridPos(std::visit([](const auto &grd) { return grd.angles.size(); }, *new_grids.za_scat_grid));
     positions(res.za_scat_grid_weights,
-              std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); }, *za_scat_grid),
-              std::visit([](const auto &grd) { return static_cast<Vector>(grd.angles); }, *new_grids.za_scat_grid));
+              std::visit([](const auto &grd) { return grd.angles.vec(); }, *za_scat_grid),
+              std::visit([](const auto &grd) { return grd.angles.vec(); }, *new_grids.za_scat_grid));
   }
   return res;
 }

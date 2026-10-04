@@ -2,6 +2,7 @@
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
 #include <rt4.h>
+#include <rt4_arts.h>
 
 #include "hpy_arts.h"
 
@@ -234,7 +235,7 @@ is not used for this surface.)";
           ":class:`~pyarts3.arts.rt4.DiscreteSurface`")
       .doc() = "An RT4 problem; see :doc:`dev.rt4` for the conventions";
 
-  py::class_<rt4::result>(rt, "Result")
+  py::class_<rt4::result>(rt, "RT4Result")
       .def_ro("mu", &rt4::result::mu, "[nmu_total] streams\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_ro("weights",
               &rt4::result::weights,
@@ -258,6 +259,109 @@ Validates the shapes, every precondition on which the Fortran code would stop
 the process, and the mirror symmetry RT4 requires, then calls RADTRANO.
 Calls are serialised by one global lock.)",
          py::call_guard<py::gil_scoped_release>());
+
+  rt.def("scattering_optics",
+         &rt4::scattering_optics,
+         "scattering_species"_a,
+         "atm_point"_a,
+         "frequency"_a,
+         "mu"_a,
+         "nstokes"_a       = 2,
+         "azimuth_count"_a = 64,
+         R"(The particle optics of ARTS scattering species at one atmospheric point on RT4's streams.
+
+Uses ARTS's laboratory-frame (ARO gridded) bulk scattering properties, so
+azimuthally randomly oriented species work as well as totally randomly
+oriented ones.  RT4's stream ``(down, mu)`` is ARTS's propagation zenith
+angle ``180 - acos(mu)`` deg, ``(up, mu)`` is ``acos(mu)``.
+
+Parameters
+----------
+scattering_species : ~pyarts3.arts.ArrayOfScatteringSpecies
+atm_point : ~pyarts3.arts.AtmPoint
+frequency : float
+    [Hz].
+mu : ~pyarts3.arts.Vector
+    The stream cosines of one hemisphere, each in (0, 1]: the quadrature
+    nodes followed by the extra angles.
+nstokes : int
+    1 or 2.
+azimuth_count : int
+    Even number N of azimuth differences of the midpoint rule for the
+    azimuthal mean, at (k + 1/2) 360 / N deg; exact for N > L when the
+    scattering matrix is a regular Legendre series of degree L.
+
+Returns
+-------
+LayerOptics
+    Extinction ([[K11, K12], [K12, K11]]), absorption ([a1, a2]) and the
+    azimuthal mean of the [I, Q] block of the phase matrix, per metre and
+    steradian.  ARTS's GasScatterer and HenyeyGreensteinScatterer
+    interpolate their laboratory-frame data on a 1 deg grid of scattering
+    angles (an error of up to 5.7e-5 sigma / (4 pi) for Rayleigh).
+)");
+
+  const rt4::path_settings ds{};
+  py::class_<rt4::path_settings>(rt, "PathSettings")
+      .def(
+          "__init__",
+          [](rt4::path_settings*  s,
+             Index                nstokes,
+             Index                nmu,
+             rt4::quadrature_type quad,
+             const Vector&        extra_mu,
+             Numeric              max_delta_tau,
+             Index                azimuth_count) {
+            new (s) rt4::path_settings{.nstokes       = nstokes,
+                                       .nmu           = nmu,
+                                       .quad          = quad,
+                                       .extra_mu      = extra_mu,
+                                       .max_delta_tau = max_delta_tau,
+                                       .azimuth_count = azimuth_count};
+          },
+          "nstokes"_a       = ds.nstokes,
+          "nmu"_a           = ds.nmu,
+          "quad"_a          = ds.quad,
+          "extra_mu"_a      = ds.extra_mu,
+          "max_delta_tau"_a = ds.max_delta_tau,
+          "azimuth_count"_a = ds.azimuth_count)
+      .def_rw("nstokes", &rt4::path_settings::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
+      .def_rw("nmu", &rt4::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
+      .def_rw("quad", &rt4::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
+      .def_rw("extra_mu",
+              &rt4::path_settings::extra_mu,
+              "Zero-weight output angles, each in (0, 1]\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_rw("max_delta_tau",
+              &rt4::path_settings::max_delta_tau,
+              "Maximum vertical optical thickness of the initial doubling sublayer\n\n.. :class:`float`")
+      .def_rw("azimuth_count",
+              &rt4::path_settings::azimuth_count,
+              "Azimuth differences of the azimuthal mean, even\n\n.. :class:`int`")
+      .doc() = "Solver settings of problem_from_path";
+
+  rt.def("problem_from_path",
+         &rt4::problem_from_path,
+         "ray_path"_a,
+         "atm_path"_a,
+         "spectral_propmat_path"_a,
+         "freq_grid"_a,
+         "freq_index"_a,
+         "scattering_species"_a,
+         "settings"_a,
+         "ground"_a,
+         "surface_temperature"_a,
+         "sky_temperature"_a,
+         R"(An RT4 problem from an ARTS propagation path, with the DISORT path conventions.
+
+``ray_path``, ``atm_path`` and ``spectral_propmat_path`` have one entry per
+level, top first, with strictly decreasing altitudes (the heights, in m).
+The level temperatures are ``atm_path``'s.  ``spectral_propmat_path`` is the
+unpolarized gas propagation matrix (no particles) per metre; a layer's gas
+extinction is the mean of A at its two levels.  The frequency is
+``freq_grid[freq_index]``.  Each layer gets the mean of its two levels'
+:func:`scattering_optics`, or is gas-only when that is all zero.  The
+streams are RT4's quadrature for ``settings``.  See :doc:`dev.rt4`.
+)");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize rt4\n{}", e.what()));
 }

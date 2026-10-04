@@ -1,0 +1,368 @@
+#include "vdisort_arts.h"
+
+#include <arts_constants.h>
+#include <arts_conversions.h>
+#include <debug.h>
+#include <legendre.h>
+#include <physics_funcs.h>
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <memory>
+#include <numeric>
+#include <string_view>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+#include "common.h"
+#include "vdisort-brdf.h"
+
+namespace vdisort {
+namespace {
+using vec3 = std::array<Numeric, 3>;
+
+Numeric dot(const vec3& a, const vec3& b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+
+vec3 cross(const vec3& a, const vec3& b) {
+  return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
+}
+
+//! The propagation direction of a ray at direction cosine mu (> 0 upward) and azimuth phi
+vec3 direction(Numeric mu, Numeric phi) {
+  const Numeric s = std::sqrt(std::max(0.0, 1.0 - mu * mu));
+  return {s * std::cos(phi), s * std::sin(phi), mu};
+}
+
+/* The Stokes rotation from the meridional basis (e_v, e_h) of the ray
+   (mu, phi) to the scattering-plane basis (e_par = N x k, e_perp = N), with
+   e_v = (mu cos phi, mu sin phi, -sin), e_h = (-sin phi, cos phi, 0) and
+   e_v x e_h = k.  The basis (-e_v, -e_h) = (v, h) of the documentation gives
+   the same Stokes vector.  With e_par = cos(a) e_v + sin(a) e_h:
+     Q' = cos(2a) Q + sin(2a) U,  U' = -sin(2a) Q + cos(2a) U. */
+rtepack::muelmat to_scattering_plane(const vec3& N, Numeric mu, Numeric phi) {
+  const Numeric s   = std::sqrt(std::max(0.0, 1.0 - mu * mu));
+  const vec3    k   = direction(mu, phi);
+  const vec3    ev  = {mu * std::cos(phi), mu * std::sin(phi), -s};
+  const vec3    eh  = {-std::sin(phi), std::cos(phi), 0.0};
+  const vec3    par = cross(N, k);
+  const Numeric c = dot(par, ev), d = dot(par, eh);
+  const Numeric c2 = c * c - d * d, s2 = 2.0 * c * d;
+  return {1, 0, 0, 0, 0, c2, s2, 0, 0, -s2, c2, 0, 0, 0, 0, 1};
+}
+
+//! The normal of the scattering plane of in -> out; for parallel rays the plane through k_in and e_h(in)
+vec3 scattering_plane_normal(const vec3& k_in, const vec3& k_out, Numeric phi_in) {
+  vec3          N    = cross(k_in, k_out);
+  const Numeric norm = std::sqrt(dot(N, N));
+  if (norm < 1e-12) return {-std::sin(phi_in), std::cos(phi_in), 0.0};
+  for (auto& x : N) x /= norm;
+  return N;
+}
+
+/* Z(out <- in) = L_out^T F L_in for ARTS's compact scattering matrix
+   f = [F11, F12, F22, F33, F34, F44].  Exactly forward or backward the
+   scattering plane is undefined and the plane through k_in and e_h(in) is
+   used: for |mu| < 1 both rotations are then by 0 or pi and Z = F. */
+rtepack::muelmat lab_frame(const std::array<Numeric, 6>& f, Numeric mu_in, Numeric phi_in, Numeric mu_out) {
+  const vec3             k_in  = direction(mu_in, phi_in);
+  const vec3             k_out = direction(mu_out, 0.0);
+  const vec3             N     = scattering_plane_normal(k_in, k_out, phi_in);
+  const rtepack::muelmat F{f[0], f[1], 0, 0, f[1], f[2], 0, 0, 0, 0, f[3], f[4], 0, 0, -f[4], f[5]};
+  const rtepack::muelmat L_out = to_scattering_plane(N, mu_out, 0.0);
+  rtepack::muelmat       L_out_T{0.0};
+  for (Index i = 0; i < 4; i++)
+    for (Index j = 0; j < 4; j++) L_out_T[i, j] = L_out[j, i];
+  return L_out_T * F * to_scattering_plane(N, mu_in, phi_in);
+}
+
+//! The scattering angle [deg] of in -> out, as used for the TRO data
+Numeric scattering_angle(Numeric mu_in, Numeric phi_in, Numeric mu_out) {
+  return Conversion::rad2deg(std::acos(std::clamp(dot(direction(mu_in, phi_in), direction(mu_out, 0.0)), -1.0, 1.0)));
+}
+
+void check_cosines(const Vector& mu, std::string_view name) {
+  ARTS_USER_ERROR_IF(stdr::any_of(mu, [](Numeric x) { return not(std::abs(x) <= 1.0 and x != 0.0); }),
+                     "The direction cosines {} must be in [-1, 0) or (0, 1]",
+                     name);
+}
+}  // namespace
+
+fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
+                                 const AtmPoint&                 atm_point,
+                                 Numeric                         frequency,
+                                 const Vector&                   mu_out,
+                                 const Vector&                   mu_in,
+                                 Index                           nfourier,
+                                 Index                           azimuth_count,
+                                 Index                           scattering_angle_count,
+                                 Numeric                         normalisation_tolerance) {
+  const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
+  check_cosines(mu_out, "mu_out");
+  check_cosines(mu_in, "mu_in");
+  ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
+  ARTS_USER_ERROR_IF(azimuth_count < 1, "azimuth_count must be >= 1, got {}", azimuth_count);
+  ARTS_USER_ERROR_IF(scattering_angle_count < 1, "scattering_angle_count must be >= 1, got {}", scattering_angle_count);
+  ARTS_USER_ERROR_IF(
+      not(normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
+  ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
+
+  fourier_optics out{.extinction = 0.0,
+                     .scattering = 0.0,
+                     .cosine     = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0}),
+                     .sine       = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
+  if (scattering_species.species.empty()) return out;
+
+  const Vector f_grid{frequency};
+
+  // Extinction, absorption and the phase-function integral
+  Vector x(scattering_angle_count), weights(scattering_angle_count), gl_angles(scattering_angle_count);
+  Legendre::GaussLegendre(x, weights);
+  stdr::reverse(x);  // ascending scattering angles, as ARTS's angular grids must be
+  stdr::reverse(weights);
+  for (Index i = 0; i < scattering_angle_count; i++) gl_angles[i] = Conversion::rad2deg(std::acos(x[i]));
+  const auto bulk = scattering_species.get_bulk_scattering_properties_tro_gridded(
+      atm_point,
+      f_grid,
+      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(gl_angles)));
+  ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
+                     "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
+                     "have none");
+  ARTS_USER_ERROR_IF(bulk.extinction_matrix.extent(0) != 1 or bulk.absorption_vector.extent(0) != 1 or
+                         bulk.phase_matrix->extent(0) != 1,
+                     "The bulk scattering properties must be at a single temperature; they have {}, {} and {} "
+                     "temperatures for the extinction, absorption and phase matrix",
+                     bulk.extinction_matrix.extent(0),
+                     bulk.absorption_vector.extent(0),
+                     bulk.phase_matrix->extent(0));
+  out.extinction = bulk.extinction_matrix[0, 0, 0];
+  out.scattering = out.extinction - bulk.absorption_vector[0, 0, 0];
+
+  Numeric sigma = 0.0;
+  for (Index i = 0; i < scattering_angle_count; i++) sigma += weights[i] * (*bulk.phase_matrix)[0, 0, i, 0];
+  sigma *= 2.0 * Constant::pi;
+
+  ARTS_USER_ERROR_IF(not(std::abs(sigma - out.scattering) <= normalisation_tolerance * out.extinction),
+                     "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
+                     "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
+                     "extinction, {} * {} per m (VDISORT normalises the phase matrix and takes the albedo from the "
+                     "latter)",
+                     sigma,
+                     out.scattering,
+                     normalisation_tolerance,
+                     out.extinction);
+  if (sigma == 0.0 or no == 0 or ni == 0) return out;
+
+  // The scattering matrix at the exact scattering angle of every sample
+  const auto phi = [n = static_cast<Numeric>(azimuth_count)](Index k) {
+    return 2.0 * Constant::pi * (static_cast<Numeric>(k) + 0.5) / n;
+  };
+  const Index         nk = azimuth_count;
+  std::vector<double> theta(static_cast<std::size_t>(no * ni * nk));
+  for (Index o = 0; o < no; o++)
+    for (Index i = 0; i < ni; i++)
+      for (Index k = 0; k < nk; k++) theta[(o * ni + i) * nk + k] = scattering_angle(mu_in[i], phi(k), mu_out[o]);
+  std::vector<double> unique_theta = theta;
+  stdr::sort(unique_theta);
+  unique_theta.erase(std::unique(unique_theta.begin(), unique_theta.end()), unique_theta.end());
+
+  Vector unique_angles(static_cast<Index>(unique_theta.size()));
+  stdr::copy(unique_theta, unique_angles.begin());
+  const auto angles =
+      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(unique_angles));
+  const auto tro = scattering_species.get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, angles);
+  ARTS_USER_ERROR_IF(not tro.phase_matrix.has_value(),
+                     "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
+                     "have none");
+
+  const Numeric scale = 4.0 * Constant::pi / sigma / static_cast<Numeric>(nk);
+  for (Index o = 0; o < no; o++) {
+    for (Index i = 0; i < ni; i++) {
+      for (Index k = 0; k < nk; k++) {
+        const Numeric          t = theta[(o * ni + i) * nk + k];
+        const Index            a = static_cast<Index>(stdr::lower_bound(unique_theta, t) - unique_theta.begin());
+        std::array<Numeric, 6> f{};
+        for (Index e = 0; e < 6; e++) f[e] = (*tro.phase_matrix)[0, 0, a, e];
+        const rtepack::muelmat Z = scale * lab_frame(f, mu_in[i], phi(k), mu_out[o]);
+        for (Index m = 0; m < nfourier; m++) {
+          const Numeric arg    = static_cast<Numeric>(m) * phi(k);
+          out.cosine[m, o, i] += std::cos(arg) * Z;
+          out.sine[m, o, i]   += std::sin(arg) * Z;
+        }
+      }
+    }
+  }
+  return out;
+}
+
+main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
+                              const ArrayOfAtmPoint&             atm_path,
+                              const ArrayOfPropmatVector&        spectral_propmat_path,
+                              const AscendingGrid&               freq_grid,
+                              Index                              freq_index,
+                              const ArrayOfScatteringSpecies&    scattering_species,
+                              const path_settings&               settings,
+                              const surface&                     ground,
+                              Numeric                            surface_temperature,
+                              Numeric                            sky_temperature) {
+  const Index nlev = static_cast<Index>(ray_path.size());
+  const Index nf   = static_cast<Index>(freq_grid.size());
+
+  ARTS_USER_ERROR_IF(nlev < 2, "ray_path needs at least 2 points (1 layer), got {}", nlev);
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(atm_path.size()) != nlev or static_cast<Index>(spectral_propmat_path.size()) != nlev,
+      "ray_path, atm_path and spectral_propmat_path must have one entry per level; they have {}, {} "
+      "and {}",
+      nlev,
+      atm_path.size(),
+      spectral_propmat_path.size());
+  ARTS_USER_ERROR_IF(freq_index < 0 or freq_index >= nf,
+                     "freq_index must be in [0, {}) for a freq_grid of {} frequencies, got {}",
+                     nf,
+                     nf,
+                     freq_index);
+  ARTS_USER_ERROR_IF(
+      stdr::any_of(spectral_propmat_path, [nf](const PropmatVector& v) { return static_cast<Index>(v.size()) != nf; }),
+      "Every spectral_propmat_path level must have freq_grid.size() = {} propagation matrices",
+      nf);
+  for (Index l = 0; l < nlev - 1; l++)
+    ARTS_USER_ERROR_IF(not(ray_path[l].altitude() > ray_path[l + 1].altitude()),
+                       "The ray_path altitudes must decrease strictly from the first point (top of the atmosphere) "
+                       "to the last (surface)");
+  ARTS_USER_ERROR_IF(stdr::any_of(spectral_propmat_path,
+                                  [freq_index](const PropmatVector& v) { return v[freq_index].is_polarized(); }),
+                     "VDISORT's gas extinction is scalar: the gas propagation matrices in spectral_propmat_path must "
+                     "not be polarized (only A may be non-zero) at frequency index {}",
+                     freq_index);
+  ARTS_USER_ERROR_IF(
+      settings.nquad < 2 or settings.nquad % 2 != 0, "nquad must be a positive even number, got {}", settings.nquad);
+  ARTS_USER_ERROR_IF(settings.nfourier < 1, "nfourier must be >= 1, got {}", settings.nfourier);
+  ARTS_USER_ERROR_IF(
+      not(settings.beam_flux >= 0.0), "beam_flux must be >= 0 (0 for no beam), got {}", settings.beam_flux);
+
+  const bool    beam      = settings.beam_flux > 0.0;
+  const Index   nlay      = nlev - 1;
+  const Index   NQ        = settings.nquad;
+  const Index   N         = NQ / 2;
+  const Index   NF        = settings.nfourier;
+  const Numeric frequency = freq_grid[freq_index];
+
+  ARTS_USER_ERROR_IF(beam and not(settings.beam_mu > 0.0 and settings.beam_mu <= 1.0),
+                     "beam_mu must be in (0, 1] with a beam, got {}",
+                     settings.beam_mu);
+
+  // VDISORT's own streams: upward (mu > 0) first, then mu = -mu[i]
+  Vector mu(NQ), inv_mu(NQ), W(N);
+  disort_common::initialize_streams(mu, inv_mu, W);
+
+  // The incident directions: the streams, then the beam
+  Vector mu_in(NQ + (beam ? 1 : 0));
+  for (Index i = 0; i < NQ; i++) mu_in[i] = mu[i];
+  if (beam) mu_in[NQ] = -settings.beam_mu;
+
+  std::vector<fourier_optics> level;
+  level.reserve(nlev);
+  for (const auto& atm : atm_path)
+    level.push_back(scattering_optics(scattering_species,
+                                      atm,
+                                      frequency,
+                                      mu,
+                                      mu_in,
+                                      NF,
+                                      settings.azimuth_count,
+                                      settings.scattering_angle_count,
+                                      settings.normalisation_tolerance));
+
+  Vector                   tau(nlay), omega(nlay);
+  rtepack::muelmat_tensor4 C(NF, nlay, NQ, NQ, rtepack::muelmat{0.0}), S = C;
+  rtepack::muelmat_tensor3 Cb(NF, nlay, NQ, rtepack::muelmat{0.0}), Sb   = Cb;
+  Numeric                  t = 0.0;
+  for (Index l = 0; l < nlay; l++) {
+    const auto&   a = level[l];
+    const auto&   b = level[l + 1];
+    const Numeric gas =
+        std::midpoint(spectral_propmat_path[l][freq_index].A(), spectral_propmat_path[l + 1][freq_index].A());
+    const Numeric k  = gas + std::midpoint(a.extinction, b.extinction);
+    const Numeric dz = ray_path[l].altitude() - ray_path[l + 1].altitude();
+    ARTS_USER_ERROR_IF(not(k * dz > 0.0),
+                       "VDISORT needs a positive optical thickness in every layer: the gas plus particle extinction "
+                       "must be positive along the whole path");
+    t        += k * dz;
+    tau[l]    = t;
+    omega[l]  = std::midpoint(a.scattering, b.scattering) / k;
+
+    const Numeric s = a.scattering + b.scattering;
+    if (s == 0.0) continue;
+    const Numeric wa = a.scattering / s, wb = b.scattering / s;
+    for (Index m = 0; m < NF; m++) {
+      for (Index o = 0; o < NQ; o++) {
+        for (Index i = 0; i < NQ; i++) {
+          C[m, l, o, i] = wa * a.cosine[m, o, i] + wb * b.cosine[m, o, i];
+          S[m, l, o, i] = wa * a.sine[m, o, i] + wb * b.sine[m, o, i];
+        }
+        if (beam) {
+          Cb[m, l, o] = wa * a.cosine[m, o, NQ] + wb * b.cosine[m, o, NQ];
+          Sb[m, l, o] = wa * a.sine[m, o, NQ] + wb * b.sine[m, o, NQ];
+        }
+      }
+    }
+  }
+
+  // B(tau) = c0 + c1 tau in the global optical depth, linear within each layer
+  rtepack::stokvec_matrix source(nlay, 2);
+  source = rtepack::stokvec{};
+  if (settings.thermal) {
+    Numeric tau_top = 0.0;
+    for (Index l = 0; l < nlay; l++) {
+      const Numeric B0 = planck(frequency, atm_path[l].temperature);
+      const Numeric B1 = planck(frequency, atm_path[l + 1].temperature);
+      const Numeric c1 = (B1 - B0) / (tau[l] - tau_top);
+      source[l, 0]     = {B0 - c1 * tau_top, 0.0, 0.0, 0.0};
+      source[l, 1]     = {c1, 0.0, 0.0, 0.0};
+      tau_top          = tau[l];
+    }
+  }
+
+  rtepack::stokvec_tensor3 bottom(2, NF, N), top(2, NF, N);
+  bottom               = rtepack::stokvec{};
+  top                  = rtepack::stokvec{};
+  const Numeric B_sky  = planck(frequency, sky_temperature);
+  const Numeric B_surf = settings.thermal ? planck(frequency, surface_temperature) : 0.0;
+  for (Index i = 0; i < N; i++) top[cosine_mode, 0, i] = {B_sky, 0.0, 0.0, 0.0};
+
+  std::vector<BDRF> brdf = std::visit(
+      [&](const auto& g) {
+        using T = std::remove_cvref_t<decltype(g)>;
+        if constexpr (std::is_same_v<T, lambertian_surface>) {
+          for (Index i = 0; i < N; i++) bottom[cosine_mode, 0, i] = {(1.0 - g.albedo) * B_surf, 0.0, 0.0, 0.0};
+          return brdf::lambertian_fourier_modes(g.albedo, NF);
+        } else {
+          static_assert(std::is_same_v<T, fresnel_surface>);
+          const brdf::Fresnel fresnel{.refractive_index = g.refractive_index};
+          for (Index i = 0; i < N; i++) {
+            const auto R              = fresnel(mu[i]);
+            bottom[cosine_mode, 0, i] = {
+                (1.0 - R[0, 0]) * B_surf, -R[1, 0] * B_surf, -R[2, 0] * B_surf, -R[3, 0] * B_surf};
+          }
+          return brdf::fresnel_fourier_modes(g.refractive_index, NF);
+        }
+      },
+      ground);
+
+  const rtepack::stokvec beam_stokes{beam ? settings.beam_flux / settings.beam_mu : 0.0, 0.0, 0.0, 0.0};
+  return main_data(NQ,
+                   NF,
+                   AscendingGrid{std::move(tau)},
+                   std::move(omega),
+                   combine_phase_matrices(C, S),
+                   std::move(bottom),
+                   std::move(top),
+                   std::move(source),
+                   std::move(brdf),
+                   settings.beam_mu,
+                   beam_stokes,
+                   settings.beam_azimuth,
+                   combine_beam_phase_matrices(Cb, Sb));
+}
+}  // namespace vdisort

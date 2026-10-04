@@ -1,4 +1,5 @@
 #include <integration.h>
+#include <legendre.h>
 
 #ifndef ARTS_NO_SHTNS
 #include <fftw3.h>
@@ -9,69 +10,19 @@ Index grid_size(const ZenithAngleGrid &grid) {
   return std::visit([](const auto &grd) { return grd.angles.size(); }, grid);
 }
 
-StridedVectorView grid_vector(ZenithAngleGrid &grid) {
-  return std::visit([](auto &grd) { return static_cast<StridedVectorView>(grd.angles); }, grid);
-}
-
 StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
   return std::visit([](const auto &grd) { return static_cast<StridedConstVectorView>(grd.angles); }, grid);
 }
 
-void GaussLegendreQuadrature::calculate_nodes_and_weights() {
-  const Index n            = degree_;
-  const Index n_half_nodes = (n + 1) / 2;
-  const Index n_max_iter   = 10;
-  Numeric     x, x_old, p_l, p_l_1, p_l_2, dp_dx, n_f;
-  n_f = static_cast<Numeric>(n);
-
-  for (int i = 1; i <= n_half_nodes; ++i) {
-    p_l   = pi_v<Numeric>;
-    p_l_1 = 2.0 * n_f;
-    //
-    // Initial guess.
-    //
-    x = -(1.0 - (n_f - 1.0) / (p_l_1 * p_l_1 * p_l_1)) * cos((p_l * (4.0 * i - 1.0)) / (4.0 * n_f + 2.0));
-
-    //
-    // Evaluate Legendre Polynomial and its derivative at node.
-    //
-    for (Index j = 0; j < n_max_iter; ++j) {
-      p_l   = x;
-      p_l_1 = 1.0;
-      for (int l = 2; l <= n; ++l) {
-        // Legendre recurrence relation
-        p_l_2 = p_l_1;
-        p_l_1 = p_l;
-        p_l   = ((2.0 * l - 1.0) * x * p_l_1 - (l - 1.0) * p_l_2) / l;
-      }
-      dp_dx = ((1.0 - x) * (1.0 + x)) / (n_f * (p_l_1 - x * p_l));
-      x_old = x;
-
-      //
-      // Perform Newton step.
-      //
-      x       -= p_l * dp_dx;
-      auto dx  = x - x_old;
-      if (detail::small(std::abs(dx * (x + x_old)), 1e-10)) { break; }
-    }
-    nodes_[i - 1]   = x;
-    weights_[i - 1] = 2.0 * dp_dx * dp_dx / ((1.0 - x) * (1.0 + x));
-    nodes_[n - i]   = -x;
-    weights_[n - i] = weights_[i - 1];
-  }
-}
+void GaussLegendreQuadrature::calculate_nodes_and_weights() { Legendre::GaussLegendre(nodes_, weights_); }
 
 DoubleGaussQuadrature::DoubleGaussQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) {
-  assert(degree % 2 == 0);
-  auto gq      = GaussLegendreQuadrature(degree / 2);
-  auto nodes   = gq.get_nodes();
-  auto weights = gq.get_weights();
-
-  for (Index i = 0; i < degree / 2; ++i) {
-    nodes_[i]                = -0.5 + nodes[i] / 2.0;
-    nodes_[degree / 2 + i]   = 0.5 + nodes[i] / 2.0;
-    weights_[i]              = 0.5 * weights[i];
-    weights_[degree / 2 + i] = 0.5 * weights[i];
+  ARTS_USER_ERROR_IF(degree % 2 != 0, "A double Gauss quadrature needs an even degree, got {}", degree);
+  const Index half = degree / 2;
+  Legendre::PositiveDoubleGaussLegendre(nodes_[Range(half, half)], weights_[Range(half, half)]);
+  for (Index i = 0; i < half; ++i) {
+    nodes_[i]   = -nodes_[degree - 1 - i];
+    weights_[i] = weights_[degree - 1 - i];
   }
 }
 
@@ -127,8 +78,21 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
   weights_[n - 1] = weights_[0];
 }
 
+namespace {
+ZenGrid zenith_angles_grid(const Vector &zenith_angles) {
+  ARTS_USER_ERROR_IF(not ZenGrid::is_sorted(zenith_angles),
+                     "The zenith angles of an IrregularZenithAngleGrid must be strictly ascending")
+  ARTS_USER_ERROR_IF(not zenith_angles.empty() and
+                         (not ZenGrid::is_valid(zenith_angles.front()) or not ZenGrid::is_valid(zenith_angles.back())),
+                     "The zenith angles of an IrregularZenithAngleGrid must be in [0, 180] deg; they span [{}, {}] deg",
+                     zenith_angles.front(),
+                     zenith_angles.back())
+  return ZenGrid(zenith_angles);
+}
+}  // namespace
+
 IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector &zenith_angles)
-    : angles(zenith_angles),
+    : angles(zenith_angles_grid(zenith_angles)),
       weights_(zenith_angles.size()),
       cos_theta_(zenith_angles),
       type_(QuadratureType::Trapezoidal) {

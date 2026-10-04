@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <iostream>
 #include <numbers>
@@ -285,10 +286,11 @@ bool test_phase_matrix_regrid_tro() {
   // along temperature, frequency and scattering zenith angle.
   //
 
-  (*t_grid_new)[0]                  = 230.0;
-  (*f_grid_new)[0]                  = 5.5e9;
-  grid_vector(*za_scat_grid_new)[0] = 0.5 * (grid_vector(*za_scat_grid)[0] + (grid_vector(*za_scat_grid))[1]);
-  grids                             = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  (*t_grid_new)[0] = 230.0;
+  (*f_grid_new)[0] = 5.5e9;
+  *za_scat_grid_new =
+      IrregularZenithAngleGrid(Vector{0.5 * (grid_vector(*za_scat_grid)[0] + (grid_vector(*za_scat_grid))[1])});
+  grids                       = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights                     = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
 
@@ -336,10 +338,10 @@ bool test_phase_matrix_regrid_tro() {
 
   fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(phase_matrix_gridded));
 
-  (*t_grid_new)[0]                  = 1.2345;
-  (*f_grid_new)[0]                  = 1.2345;
-  grid_vector(*za_scat_grid_new)[0] = 1.2345;
-  grids                             = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  (*t_grid_new)[0]            = 1.2345;
+  (*f_grid_new)[0]            = 1.2345;
+  *za_scat_grid_new           = IrregularZenithAngleGrid(Vector{1.2345});
+  grids                       = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights                     = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid_inc, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
@@ -408,13 +410,13 @@ bool test_backscatter_matrix_regrid_tro() {
 
   fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 3>&>(backscatter_matrix));
 
-  (*t_grid_new)[0]                  = 1.2345;
-  (*f_grid_new)[0]                  = 1.2345;
-  grid_vector(*za_scat_grid_new)[0] = 1.2345;
-  grids                             = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
-  weights                           = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
-  backscatter_matrix_interp         = backscatter_matrix.regrid(grids, weights);
-  err                               = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
+  (*t_grid_new)[0]          = 1.2345;
+  (*f_grid_new)[0]          = 1.2345;
+  *za_scat_grid_new         = IrregularZenithAngleGrid(Vector{1.2345});
+  grids                     = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
+  weights                   = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
+  backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
+  err                       = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
@@ -548,11 +550,11 @@ bool test_phase_matrix_regrid_aro() {
 
   fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
 
-  (*t_grid_new)[0]                  = 1.2345;
-  (*f_grid_new)[0]                  = 1.2345;
-  (*za_inc_grid_new)[0]             = 1.2345;
-  (*aa_scat_grid_new)[0]            = 1.2345;
-  grid_vector(*za_scat_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
+  (*za_inc_grid_new)[0]  = 1.2345;
+  (*aa_scat_grid_new)[0] = 1.2345;
+  *za_scat_grid_new      = IrregularZenithAngleGrid(Vector{1.2345});
 
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_inc_grid_new, aa_scat_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid_inc, aa_scat_grid_inc, za_scat_grid_inc, grids);
@@ -656,11 +658,11 @@ bool test_backscatter_matrix_regrid_aro() {
 
   fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(backscatter_matrix));
 
-  (*t_grid_new)[0]                  = 1.2345;
-  (*f_grid_new)[0]                  = 1.2345;
-  (*za_inc_grid_new)[0]             = 1.2345;
-  (*aa_scat_grid_new)[0]            = 1.2345;
-  grid_vector(*za_scat_grid_new)[0] = 1.2345;
+  (*t_grid_new)[0]       = 1.2345;
+  (*f_grid_new)[0]       = 1.2345;
+  (*za_inc_grid_new)[0]  = 1.2345;
+  (*aa_scat_grid_new)[0] = 1.2345;
+  *za_scat_grid_new      = IrregularZenithAngleGrid(Vector{1.2345});
 
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_inc_grid_new, aa_scat_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid_inc, aa_scat_grid_inc, za_scat_grid_inc, grids);
@@ -685,7 +687,89 @@ bool test_backscatter_matrix_regrid_aro() {
   return true;
 }
 
+/** Forward and backward scattering in the laboratory frame.
+ *
+ * Exactly forward (Theta = 0) or backward (Theta = pi) the scattering plane
+ * is undefined and rotation_coefficients() has dedicated branches.  The
+ * reference is the general branch itself: approaching the exact direction
+ * from several directions (along the azimuth from both sides, along the
+ * zenith in the principal plane, and obliquely), with a physical scattering
+ * matrix (F12 = F34 = 0, F22 = F33 forward, F22 = -F33 backward; constant in
+ * Theta, so that only the rotations matter), Z must converge to F, and the
+ * exact direction must give that limit.  In particular forward-scattered Q
+ * stays Q: Z22 = F22.  The general branch is evaluated at Theta = 0.05 and
+ * 0.005 rad, above the 1.4e-3 rad at which the angles snap to the exact
+ * branches, and its distance from F must shrink at least like Theta (the
+ * meridional planes of the two rays turn by O(Theta)).
+ */
+bool test_forward_backward_limit() {
+  const auto expand = [](const Vector& f) {
+    Matrix F(4, 4, 0.0);
+    F[0, 0] = f[0];
+    F[0, 1] = F[1, 0] = f[1];
+    F[1, 1]           = f[2];
+    F[2, 2]           = f[3];
+    F[2, 3]           = f[4];
+    F[3, 2]           = -f[4];
+    F[3, 3]           = f[5];
+    return F;
+  };
+  const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
+    Vector     z(16);
+    const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    detail::expand_and_transform<Numeric>(z, f, rc, delta_aa > 180.0);
+    Matrix Z(4, 4);
+    for (Index i = 0; i < 4; i++)
+      for (Index j = 0; j < 4; j++) Z[i, j] = z[4 * i + j];
+    return Z;
+  };
+  const auto distance = [](const Matrix& a, const Matrix& b) {
+    Numeric d = 0.0;
+    for (Index i = 0; i < 4; i++)
+      for (Index j = 0; j < 4; j++) d = std::max(d, std::abs(a[i, j] - b[i, j]));
+    return d;
+  };
+
+  const Vector forward{1.0, 0.0, 0.8, 0.8, 0.0, 0.6}, backward{1.0, 0.0, 0.8, -0.8, 0.0, -0.6};
+  for (Numeric za : {30.0, 60.0, 90.0, 135.0}) {
+    // Exact directions
+    if (distance(lab(forward, za, 0.0, za), expand(forward)) > 1e-12) return false;
+    if (distance(lab(backward, za, 180.0, 180.0 - za), expand(backward)) > 1e-12) return false;
+
+    // Approaches, as (delta_aa, za_scat) for a scattering angle of about t rad
+    for (Numeric t : {0.05}) {
+      const Numeric                               s   = std::sin(Conversion::deg2rad(za));
+      const Numeric                               deg = Conversion::rad2deg(t);
+      const std::array<std::array<Numeric, 2>, 4> to_forward{
+          {{deg / s, za}, {360.0 - deg / s, za}, {0.0, za + deg}, {0.6 * deg / s, za - 0.8 * deg}}};
+      const std::array<std::array<Numeric, 2>, 4> to_backward{{{180.0 + deg / s, 180.0 - za},
+                                                               {180.0 - deg / s, 180.0 - za},
+                                                               {180.0, 180.0 - za + deg},
+                                                               {180.0 + 0.6 * deg / s, 180.0 - za - 0.8 * deg}}};
+      for (const auto& [f, approach] : {std::pair{&forward, &to_forward}, std::pair{&backward, &to_backward}}) {
+        for (const auto& [daa, zs] : *approach) {
+          const auto    shrink = [&](Numeric x, Numeric centre) { return centre + 0.1 * (x - centre); };
+          const Numeric centre = f == &forward ? (daa > 180.0 ? 360.0 : 0.0) : 180.0;
+          const Numeric far    = distance(lab(*f, za, daa, zs), expand(*f));
+          const Numeric near =
+              distance(lab(*f, za, shrink(daa, centre), shrink(zs, f == &forward ? za : 180.0 - za)), expand(*f));
+          if (far > 0.5 or near > 0.15 * far + 1e-12) return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
 int main() {
+  std::cout << "Testing forward and backward scattering in the laboratory frame: ";
+  if (test_forward_backward_limit()) {
+    std::cout << "PASSED." << '\n';
+  } else {
+    std::cout << "FAILED." << '\n';
+    return 1;
+  }
+
 #ifndef ARTS_NO_SHTNS
   bool passed = false;
   std::cout << "Testing phase matrix (TRO): ";

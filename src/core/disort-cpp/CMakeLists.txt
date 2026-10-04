@@ -15,8 +15,9 @@ target_link_libraries(disort-cpp PUBLIC matpack legendre time_report operators d
 target_include_directories(disort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # VDISORT CHANGE BEGIN: polarized four-Stokes sibling of disort::main_data.
-add_library(vdisort-cpp STATIC vdisort.cpp vdisort-brdf.cpp)
-target_link_libraries(vdisort-cpp PUBLIC matpack legendre time_report operators rtepack disort-cpp-common)
+add_library(vdisort-cpp STATIC vdisort.cpp vdisort-brdf.cpp vdisort_arts.cc)
+target_link_libraries(vdisort-cpp PUBLIC matpack legendre time_report operators rtepack disort-cpp-common
+                                         atm path scattering physics)
 target_include_directories(vdisort-cpp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # VDISORT CHANGE END
 
