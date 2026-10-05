@@ -49,7 +49,7 @@ def plot(data: pyarts.arts.rt4.RT4Result,
     stokes : list of int, optional
         The Stokes components to show. Defaults to all of the solution.
     **kwargs : keyword arguments
-        Passed to :func:`matplotlib.axes.Axes.plot`.
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------

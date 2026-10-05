@@ -34,9 +34,7 @@ void validate_line(const rotational_line& line) {
   const auto& l = line.lower;
   validate_state(u.J, u.K);
   validate_state(l.J, l.K);
-  const auto valid_inversion = [](inversion x) { return x == inversion::symmetric or x == inversion::antisymmetric; };
-  ARTS_USER_ERROR_IF(not valid_inversion(u.symmetry) or not valid_inversion(l.symmetry) or u.symmetry == l.symmetry or
-                         u.K != l.K or std::abs(u.J - l.J) > 1 or (u.J == l.J and u.K == 0),
+  ARTS_USER_ERROR_IF(u.symmetry == l.symmetry or u.K != l.K or std::abs(u.J - l.J) > 1 or (u.J == l.J and u.K == 0),
                      "NH3 ECS requires an allowed rank-1 parallel transition with equal K, "
                      "opposite inversion symmetry, and no K=0 Q line")
 }

@@ -18,10 +18,10 @@ solvers.  It has no workspace layer.  Use available() to check whether the
 optional Fortran backend is built (ENABLE_RT4=ON); otherwise get_quadrature()
 and solve() raise.
 
-Conventions: Stokes basis [I, Q] with Q = I_v - I_h in the meridional plane,
+Conventions: Stokes basis [I, Q] with :math:`Q = I_v - I_h` in the meridional plane,
 the same basis in both hemispheres.  Hemisphere index ``down`` (0) is
 radiation propagating downward, ``up`` (1) propagating upward.  Streams are
-mu = |cos(zenith)|, ascending quadrature nodes followed by the zero-weight
+:math:`\mu = |cos(zenith)|`, ascending quadrature nodes followed by the zero-weight
 ``extra_mu``.  Layers and levels are top-down.  Radiances are in
 W m-2 Hz-1 sr-1.  Lengths and extinctions must use reciprocal units.
 
@@ -109,8 +109,8 @@ Energy conservation, K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i
               &rt4::fresnel_surface::refractive_index,
               "Complex refractive index of the surface (medium above has index 1)\n\n.. :class:`complex`")
       .doc() =
-      "RT4 'F': specular Fresnel reflection R = [[R1, R2], [R2, R1]], R1 = (|r_v|^2 + |r_h|^2) / 2, "
-      "R2 = (|r_v|^2 - |r_h|^2) / 2; emission [(1 - R1) B, -R2 B].";
+      "RT4 'F': specular Fresnel reflection :math:`R = [[R1, R2], [R2, R1]], R1 = (|r_v|^2 + |r_h|^2) / 2`, "
+      ":math:`R2 = (|r_v|^2 - |r_h|^2) / 2`; emission :math:`[(1 - R1) B, -R2 B]`.";
 
   py::class_<rt4::specular_surface>(rt, "SpecularSurface")
       .def(
@@ -122,7 +122,7 @@ Energy conservation, K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i
       .def_rw("reflectivity",
               &rt4::specular_surface::reflectivity,
               "[nstokes, nstokes] R(out, in)\n\n.. :class:`~pyarts3.arts.Matrix`")
-      .doc() = "RT4 'S': reflectivity applied specularly to every stream; emission [(1 - R(I, I)) B, -R(Q, I) B].";
+      .doc() = "RT4 'S': reflectivity applied specularly to every stream; emission :math:`[(1 - R(I, I)) B, -R(Q, I) B]`.";
 
   py::class_<rt4::discrete_surface>(rt, "DiscreteSurface")
       .def(
@@ -205,7 +205,7 @@ is not used for this surface.)";
       .def_rw("frequency", &rt4::problem::frequency, "Frequency [Hz]\n\n.. :class:`float`")
       .def_rw("height",
               &rt4::problem::height,
-              "[nlay + 1] layer interfaces, top-down; only |differences| are used, in the reciprocal of the "
+              "[nlay + 1] layer interfaces, top-down; only ``|differences|`` are used, in the reciprocal of the "
               "extinction unit\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("temperature",
               &rt4::problem::temperature,

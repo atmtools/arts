@@ -53,7 +53,7 @@ def plot(data: pyarts.arts.cppvdisort,
     stokes : list of int, optional
         The Stokes components to show. Defaults to all four.
     **kwargs : keyword arguments
-        Passed to :func:`matplotlib.axes.Axes.plot`.
+        Additional keyword arguments to pass to the plotting functions.
 
     Returns
     -------

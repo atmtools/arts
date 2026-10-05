@@ -22,8 +22,8 @@ get_quadrature() and solve() raise.
 Conventions: a right-handed frame with z up; the direct beam propagates
 downward toward azimuth 0, and phi is the azimuth of the propagation direction
 of a ray (VDISORT's phi for phi0 = 0).  Stokes basis [I, Q, U, V] with
-h = k x z / |k x z|, v = h x k, Q = I_v - I_h and U = 2 Re(E_v E_h*), the
-same basis in both hemispheres.  Streams are mu = |cos(zenith)|, ascending
+:math:`h = k x z / |k x z|`, :math:`v = h x k`, :math:`Q = I_v - I_h` and :math:`U = 2 Re(E_v E_h*)`, the
+same basis in both hemispheres.  Streams are :math:`\mu = |cos(zenith)|`, ascending
 quadrature nodes followed by the zero-weight ``extra_mu``.  Layers and levels
 are top-down.  Radiances are in W m-2 Hz-1 sr-1, fluxes in W m-2 Hz-1.
 RT3Result.up and RT3Result.down are Fourier coefficients: the radiance is
@@ -123,8 +123,8 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
               &rt3::fresnel_surface::refractive_index,
               "Complex refractive index of the surface (medium above has index 1)\n\n.. :class:`complex`")
       .doc() =
-      "RT3 'F': specular Fresnel reflection with R1 = (|r_v|^2 + |r_h|^2) / 2, R2 = (|r_v|^2 - |r_h|^2) / 2, "
-      "R3 = Re(r_v r_h*), R4 = Im(r_v r_h*); emission [(1 - R1) B, -R2 B, 0, 0], also when thermal is false.  "
+      "RT3 'F': specular Fresnel reflection with :math:`R1 = (|r_v|^2 + |r_h|^2) / 2, R2 = (|r_v|^2 - |r_h|^2) / 2, "
+      "R3 = Re(r_v r_h*), R4 = Im(r_v r_h*)`; emission :math:`[(1 - R1) B, -R2 B, 0, 0]`, also when thermal is false.  "
       "Not allowed with a direct beam.";
 
   const rt3::problem d{};
@@ -218,7 +218,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
       .def_rw("frequency", &rt3::problem::frequency, "Frequency [Hz]\n\n.. :class:`float`")
       .def_rw("height",
               &rt3::problem::height,
-              "[nlay + 1] layer interfaces, top-down; only |differences| are used, in the reciprocal of the "
+              "[nlay + 1] layer interfaces, top-down; only ``|differences|`` are used, in the reciprocal of the "
               "extinction unit\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("temperature",
               &rt3::problem::temperature,

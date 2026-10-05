@@ -37,8 +37,6 @@
 #include <string>
 
 namespace {
-constexpr Numeric pi = Constant::pi;
-
 void require(bool ok, const std::string& what) {
   if (not ok) throw std::runtime_error(what);
 }
