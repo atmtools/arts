@@ -1,4 +1,4 @@
-"""Tests for spectral_radSurfaceScatteringFlatDirect workspace method.
+"""Tests for spectral_radSurfaceScatteringDirect workspace method.
 
 Verifies:
 1. Basic execution (smoke test): method runs and produces finite output
@@ -114,14 +114,14 @@ def run_direct(freq_grid, reflectivity, direct_beam_los=(30.0, 45.0)):
     ws.direct_beam_los = arts.Vector2(list(direct_beam_los))
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
-    ws.spectral_radSurfaceScatteringFlatDirect()
+    ws.spectral_radSurfaceScatteringDirect()
     return rad_array(ws, len(freq_grid))
 
 
 # ============================================================================
 # Test 1: Smoke test / basic execution
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_basic():
+def test_spectral_rad_surface_scattering_direct_basic():
     """Test basic execution with uniform reflectivity."""
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
@@ -129,7 +129,7 @@ def test_spectral_rad_surface_scattering_flat_direct_basic():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    ws.spectral_radSurfaceScatteringFlatDirect()
+    ws.spectral_radSurfaceScatteringDirect()
 
     assert len(ws.spectral_rad) == len(freq_grid), \
         f"spectral_rad size mismatch: {len(ws.spectral_rad)} != {len(freq_grid)}"
@@ -144,7 +144,7 @@ def test_spectral_rad_surface_scattering_flat_direct_basic():
 # ============================================================================
 # Test 2: Absorbing surface (reflectivity = 0) -> pure blackbody emission
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_absorbing():
+def test_spectral_rad_surface_scattering_direct_absorbing():
     """With r = 0 the output must equal the surface blackbody emission."""
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
@@ -152,7 +152,7 @@ def test_spectral_rad_surface_scattering_flat_direct_absorbing():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
 
-    ws.spectral_radSurfaceScatteringFlatDirect()
+    ws.spectral_radSurfaceScatteringDirect()
     rad = rad_array(ws, len(freq_grid))
 
     assert np.all(np.isfinite(rad)), "Absorbing surface: non-finite values"
@@ -169,7 +169,7 @@ def test_spectral_rad_surface_scattering_flat_direct_absorbing():
 # ============================================================================
 # Test 3: Closed-form normalization with a known (CMB) incoming beam
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_beam_value():
+def test_spectral_rad_surface_scattering_direct_beam_value():
     """scattered == r * I_cmb, emission == (1 - r) * B(T_surf).
 
     The incoming agenda supplies the uniform cosmic microwave background, a
@@ -202,7 +202,7 @@ def test_spectral_rad_surface_scattering_flat_direct_beam_value():
 # ============================================================================
 # Test 4: Sub-horizon beam is hard-zeroed (emission only)
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_subhorizon():
+def test_spectral_rad_surface_scattering_direct_subhorizon():
     """A beam below the surface-normal horizon contributes nothing."""
     freq_grid = [10e9, 100e9, 183e9]
     r = 0.5
@@ -227,7 +227,7 @@ def test_spectral_rad_surface_scattering_flat_direct_subhorizon():
 # ============================================================================
 # Test 5: Jacobian shape check
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_jacobian():
+def test_spectral_rad_surface_scattering_direct_jacobian():
     """Test Jacobian computation with non-empty jac_targets."""
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
@@ -242,7 +242,7 @@ def test_spectral_rad_surface_scattering_flat_direct_jacobian():
 
     ws.spectral_rad_jac = arts.StokvecMatrix()
 
-    ws.spectral_radSurfaceScatteringFlatDirect()
+    ws.spectral_radSurfaceScatteringDirect()
 
     jac_array = np.array(ws.spectral_rad_jac)
     assert jac_array.shape[0] == x_size, \
@@ -258,7 +258,7 @@ def test_spectral_rad_surface_scattering_flat_direct_jacobian():
 # ============================================================================
 # Test 6: Agreement with FlatDiffuse on a single unit-weight quadrature point
 # ============================================================================
-def test_spectral_rad_surface_scattering_flat_direct_agrees_with_diffuse():
+def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
     """The direct method must reproduce FlatDiffuse with a single-direction
     quadrature grid and unit weights (shared delta-weighted convention)."""
     freq_grid = [10e9, 100e9, 183e9]
@@ -270,7 +270,7 @@ def test_spectral_rad_surface_scattering_flat_direct_agrees_with_diffuse():
 
     # Direct method
     ws.direct_beam_los = arts.Vector2([za, aa])
-    ws.spectral_radSurfaceScatteringFlatDirect()
+    ws.spectral_radSurfaceScatteringDirect()
     rad_direct = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                            for i in range(len(freq_grid))])
 
@@ -297,10 +297,10 @@ def test_spectral_rad_surface_scattering_flat_direct_agrees_with_diffuse():
 # Main
 # ============================================================================
 if __name__ == "__main__":
-    test_spectral_rad_surface_scattering_flat_direct_basic()
-    test_spectral_rad_surface_scattering_flat_direct_absorbing()
-    test_spectral_rad_surface_scattering_flat_direct_beam_value()
-    test_spectral_rad_surface_scattering_flat_direct_subhorizon()
-    test_spectral_rad_surface_scattering_flat_direct_jacobian()
-    test_spectral_rad_surface_scattering_flat_direct_agrees_with_diffuse()
+    test_spectral_rad_surface_scattering_direct_basic()
+    test_spectral_rad_surface_scattering_direct_absorbing()
+    test_spectral_rad_surface_scattering_direct_beam_value()
+    test_spectral_rad_surface_scattering_direct_subhorizon()
+    test_spectral_rad_surface_scattering_direct_jacobian()
+    test_spectral_rad_surface_scattering_direct_agrees_with_diffuse()
     print("\nAll tests passed!")
