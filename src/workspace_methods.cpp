@@ -2372,7 +2372,7 @@ the actual surface normal at the point: directions below that horizon
 contribute nothing to the scattered term, and directions above it that a flat
 horizon would hide are included.  This generalizes
 *spectral_radSurfaceScatteringFlatDiffuse* to tilted surfaces, in the same way
-that *spectral_radSurfaceScatteringFlatDirect* gates its beam by the surface
+that *spectral_radSurfaceScatteringDirect* gates its beam by the surface
 normal.  Extend *zen_grid* beyond 90 degrees to capture directions made
 visible by the surface tilt.
 
@@ -2433,7 +2433,7 @@ same as in *surface_models*.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radSurfaceScatteringFlatDirect"] = {
+  wsm_data["spectral_radSurfaceScatteringDirect"] = {
       .desc =
           R"--(Set surface spectral radiance to sub-surface emission plus direct
 (collimated) incoming beam radiation scattered by a diffuse surface.

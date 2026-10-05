@@ -1024,7 +1024,7 @@ Most likely only makes sense in combination with *obs_pos*.
 at the surface point, given as [zenith, azimuth] in local ENU (za = 0: zenith, 90: horizon,
 180: nadir).
 
-Use with *spectral_radSurfaceScatteringFlatDirect*.
+Use with *spectral_radSurfaceScatteringDirect*.
 )--",
       .type = "Vector2",
   };
