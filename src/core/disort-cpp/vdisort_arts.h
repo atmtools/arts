@@ -30,12 +30,12 @@
  *
  * Relation to ARTS.  ARTS's scattering data take the propagation directions
  * (za, aa), with aa clockwise seen from above.  ARTS's laboratory-frame
- * phase matrix equals the vector-geometry phase matrix built here from the
- * same scattering matrix F with mu = cos(za) and phi = -aa, element by
- * element, with the same I, Q, U and V (tested in
- * cpp.fast.vdisort-arts-test).  So F is used as ARTS stores it,
- * [F11, F12, F22, F33, F34, F44] in the scattering-plane basis with
- * Q = I_par - I_perp, and VDISORT transports ARTS's Stokes vector.
+ * phase matrix (ArrayOfScatteringSpecies::
+ * get_bulk_scattering_properties_aro_gridded) is the phase matrix of the
+ * basis above with mu = cos(za) and phi = -aa, element by element, with the
+ * same I, Q, U and V (tested against vector geometry in
+ * cpp.fast.vdisort-arts-test).  So VDISORT uses ARTS's laboratory-frame
+ * phase matrix as it is and transports ARTS's Stokes vector.
  *
  * Units: extinction and scattering per metre, heights in metres, radiances
  * in W m-2 Hz-1 sr-1 (ARTS's planck()).
@@ -63,13 +63,14 @@ struct fourier_optics {
  *   C^m(o, i) = (1 / 2 pi) int P(mu_o, 0; mu_i, phi) cos(m phi) dphi,
  *   S^m(o, i) = (1 / 2 pi) int P(mu_o, 0; mu_i, phi) sin(m phi) dphi,
  * m = 0 .. nfourier - 1, of the laboratory-frame phase matrix
- * P = 4 pi Z / sigma in the basis above, Z = L_out^T F(Theta) L_in from
- * vector geometry, normalised to 1 over 4 pi:
+ * P = 4 pi Z / sigma in the basis above, normalised to 1 over 4 pi:
  *   sigma = 2 pi int F11 dcos(Theta)
- * by an n-point Gauss-Legendre rule, n = scattering_angle_count.  F is the
- * species' TRO scattering matrix at the exact scattering angle of every pair
- * of directions.  The integral over phi is the periodic midpoint rule at
- * phi_k = (k + 1/2) 2 pi / N, N = azimuth_count.  For a regular Legendre
+ * by an n-point Gauss-Legendre rule, n = scattering_angle_count, over the
+ * species' TRO scattering matrix F.  Z is ARTS's laboratory-frame phase
+ * matrix (get_bulk_scattering_properties_aro_gridded) from the incident
+ * za = acos(mu_i) to the scattered za = acos(mu_o) at
+ * delta_aa = aa_scat - aa_inc = phi.  The integral over phi is the periodic
+ * midpoint rule at phi_k = (k + 1/2) 2 pi / N, N = azimuth_count.  For a regular Legendre
  * series of degree L, Z is a trigonometric polynomial of degree L in phi and
  * the rule is exact for N > L + nfourier - 1; otherwise it converges as fast
  * as the Fourier series of Z in phi.  These coefficients go to

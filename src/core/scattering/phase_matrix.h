@@ -78,30 +78,39 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
     theta = za_scat + za_inc;
     if (theta > pi_v<Scalar>) { theta = 2.0 * pi_v<Scalar> - theta; }
   }
-  // Forward and backward scattering: the scattering plane is undefined and
-  // Z = F.  For a physical F (F12 = F34 = 0, and F22 = F33 forward and
-  // F22 = -F33 backward) this is the limit of the general expressions below
-  // from every direction of approach.
-  if (small(theta)) {
-    return {theta, 1.0, 1.0, 0.0, 0.0};
-  } else if (equal(theta, pi_v<Scalar>)) {
-    return {theta, 1.0, 1.0, 0.0, 0.0};
+  const bool inc_pole  = small(za_inc) or equal(za_inc, pi_v<Scalar>);
+  const bool scat_pole = small(za_scat) or equal(za_scat, pi_v<Scalar>);
+
+  // Forward and backward scattering off the poles: the scattering plane is
+  // undefined and Z = F.  For a physical F (F12 = F34 = 0, and F22 = F33
+  // forward and F22 = -F33 backward) this is the limit of the general
+  // expressions below from every direction of approach.  Between the poles
+  // the two meridional bases still differ by the azimuths; that case is
+  // handled below.
+  if (not(inc_pole and scat_pole)) {
+    if (small(theta)) { return {theta, 1.0, 1.0, 0.0, 0.0}; }
+
+    if (equal(theta, pi_v<Scalar>)) { return {theta, 1.0, 1.0, 0.0, 0.0}; }
   }
 
-  Scalar sigma_1, sigma_2;
+  // At a pole the meridional basis is that of the ray's azimuth, i.e. the
+  // limit along its meridian.  The angles there are the limits of the
+  // general expressions, which take acos in [0, pi] and leave the side,
+  // aa_scat - aa_inc > pi, to expand_and_transform.  Between the poles the
+  // incident basis is taken in the scattering plane (sigma_1 = 0); for a
+  // physical F the result does not depend on that choice.
+  const Scalar delta_aa = aa_scat - aa_inc;
+  Scalar       sigma_1, sigma_2;
 
-  if (small(za_inc)) {
-    sigma_1 = aa_scat - aa_inc;
+  if (scat_pole) {
+    sigma_1 = (inc_pole or small(za_scat)) ? 0.0 : pi_v<Scalar>;
+    sigma_2 = save_acos(small(za_scat) ? -cos(delta_aa) : cos(delta_aa));
+  } else if (small(za_inc)) {
+    sigma_1 = save_acos(-cos(delta_aa));
     sigma_2 = 0.0;
   } else if (equal(za_inc, pi_v<Scalar>)) {
-    sigma_1 = aa_scat - aa_inc;
+    sigma_1 = save_acos(cos(delta_aa));
     sigma_2 = pi_v<Scalar>;
-  } else if (small(za_scat)) {
-    sigma_1 = 0.0;
-    sigma_2 = pi_v<Scalar> + aa_scat - aa_inc;
-  } else if (equal(za_scat, pi_v<Scalar>)) {
-    sigma_1 = pi_v<Scalar>;
-    sigma_2 = aa_scat - aa_inc;
   } else {
     sigma_1 = save_acos((cos(za_scat) - cos(za_inc) * cos_theta) / (sin(za_inc) * sin(theta)));
     sigma_2 = save_acos((cos(za_inc) - cos(za_scat) * cos_theta) / (sin(za_scat) * sin(theta)));

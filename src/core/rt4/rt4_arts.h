@@ -69,12 +69,10 @@ namespace rt4 {
  * the exact scattering angle of every direction pair; particle habits
  * interpolate linearly on their own scattering-angle grid.
  *
- * Vertical rays.  When both rays of a pair are vertical (mu = 1 in both),
- * their meridional planes, and so Q, are undefined.  ARTS then applies no
- * reference-plane rotation and the mean is F at 0 or 180 deg, where a
- * reference plane that turns with the azimuth label would average Q to 0.
- * Only extra angles can be vertical, and RT4 gives their columns no weight,
- * so the solution does not depend on these entries.
+ * Vertical rays.  A vertical ray (mu = 1, e.g. the last Lobatto node or an
+ * extra angle) has the meridional plane of its azimuth label in ARTS's
+ * laboratory frame, the limit along its meridian, so vertical rays need no
+ * special treatment.
  *
  * An empty species array gives all-zero optics.  Species without a phase
  * matrix, or that do not provide laboratory-frame (ARO gridded) data, are an

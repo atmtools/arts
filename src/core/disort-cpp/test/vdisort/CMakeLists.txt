@@ -29,7 +29,7 @@ endif ()
 # VDISORT against Evans' RT3 doubling-adding solver (src/core/rt3), an external reference
 if (ENABLE_RT3)
   add_executable(vdisort-rt3-test vdisort-rt3-comparison.cpp)
-  target_link_libraries(vdisort-rt3-test vdisort-cpp disort-cpp arts_rt3 physics artstime)
+  target_link_libraries(vdisort-rt3-test vdisort-cpp disort-cpp arts_rt3 physics legendre artstime)
   add_test(NAME "cpp.fast.vdisort-rt3-test" COMMAND vdisort-rt3-test)
   add_dependencies(check-deps vdisort-rt3-test)
 endif ()

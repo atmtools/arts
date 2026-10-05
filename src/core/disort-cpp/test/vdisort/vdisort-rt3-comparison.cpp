@@ -63,6 +63,7 @@
 
    The tolerances are derived above direct_tolerance() below. */
 #include <arts_constants.h>
+#include <legendre.h>
 #include <physics_funcs.h>
 #include <rt3.h>
 #include <vdisort-brdf.h>
@@ -168,17 +169,10 @@ Index stripped_degree(const Matrix& coef) {
 //! F(cos Theta) of a series, each element a plain Legendre series (RT3's SUM_LEGENDRE)
 tro_matrix legendre_matrix(const Matrix& coef) {
   return [coef](Numeric x) {
-    std::array<Numeric, 6> sum{};
-    Numeric                p_prev = 0.0, p = 1.0;
-    for (Index l = 0; l < coef.nrows(); l++) {
-      if (l > 0) {
-        const Numeric next =
-            (static_cast<Numeric>(2 * l - 1) * x * p - static_cast<Numeric>(l - 1) * p_prev) / static_cast<Numeric>(l);
-        p_prev = p;
-        p      = next;
-      }
-      for (Index k = 0; k < 6; k++) sum[k] += coef[l, k] * p;
-    }
+    Vector p(coef.nrows()), sum(6, 0.0);
+    Legendre::legendre_polynomials(p, x);
+    for (Index l = 0; l < coef.nrows(); l++)
+      for (Index k = 0; k < 6; k++) sum[k] += coef[l, k] * p[l];
     return tro_elements{.F11 = sum[0], .F12 = sum[1], .F22 = sum[4], .F33 = sum[2], .F34 = sum[3], .F44 = sum[5]};
   };
 }
@@ -521,9 +515,9 @@ enum class azimuth_map {
 
 //! max |VDISORT - RT3| / max |I_RT3| per Stokes component, and for the fluxes / max |F_RT3|
 struct deviation {
-  std::array<Numeric, 4> stokes{};
-  Numeric                flux{};
-  Numeric                beyond{};  // VDISORT's Stokes components from nstokes on, which must be 0
+  Vector4 stokes{};
+  Numeric flux{};
+  Numeric beyond{};  // VDISORT's Stokes components from nstokes on, which must be 0
 
   Numeric max() const { return std::max({stokes[0], stokes[1], stokes[2], stokes[3], flux}); }
 };
@@ -592,9 +586,9 @@ deviation compare(const setup&              c,
 }
 
 //! max |Q|, |U|, |V| / max |I| of RT3 at the test azimuths, to show that each is exercised
-std::array<Numeric, 3> polarization(const rt3::result& r) {
-  const Vector           psi = test_azimuths();
-  std::array<Numeric, 4> top{};
+Vector3 polarization(const rt3::result& r) {
+  const Vector psi = test_azimuths();
+  Vector4      top{};
   for (const auto* t : {&r.up, &r.down}) {
     const auto x = rt3::azimuth_radiance(*t, psi);
     for (Index l = 0; l < x.extent(0); l++)
@@ -796,14 +790,15 @@ rtepack::muelmat rayleigh_m0(Numeric mo, Numeric mi) {
    E_v = e_v . e, E_h = e_h . e, so
      I = sum (E_v^2 + E_h^2), Q = sum (E_v^2 - E_h^2), U = sum 2 E_v E_h, V = 0,
    scaled by 3/4 so that I = 3/4 (1 + cos^2 Theta). */
-std::array<Numeric, 4> rayleigh_column(Numeric mu_out, Numeric phi_out, Numeric mu_in, Numeric phi_in) {
+rtepack::stokvec rayleigh_column(Numeric mu_out, Numeric phi_out, Numeric mu_in, Numeric phi_in) {
   const auto basis = [](Numeric mu, Numeric phi) {
     const Numeric s = std::sqrt(1 - mu * mu);
-    return std::pair<Vector3, Vector3>{{mu * std::cos(phi), mu * std::sin(phi), -s}, {-std::sin(phi), std::cos(phi), 0.0}};
+    return std::pair<Vector3, Vector3>{{mu * std::cos(phi), mu * std::sin(phi), -s},
+                                       {-std::sin(phi), std::cos(phi), 0.0}};
   };
   const auto [vi, hi] = basis(mu_in, phi_in);
   const auto [vo, ho] = basis(mu_out, phi_out);
-  std::array<Numeric, 4> z{};
+  rtepack::stokvec z{};
   for (const auto& e : {vi, hi}) {
     const Numeric ev = dot(vo, e), eh = dot(ho, e);
     z[0] += 0.75 * (ev * ev + eh * eh);
@@ -817,8 +812,8 @@ std::array<Numeric, 4> rayleigh_column(Numeric mu_out, Numeric phi_out, Numeric 
    combined beam operator B [2, NF, 1, NQuad] as VDISORT's u() sums the
    field: I, Q from the cosine system with cos m(phi0 - phi) and the sine
    system with sin m(phi0 - phi); U, V the other way around. */
-std::array<Numeric, 4> synthesised(const vdisort::beam_phase_matrix_data& B, Index i, Numeric phi, Numeric phi0) {
-  std::array<Numeric, 4> z{};
+rtepack::stokvec synthesised(const vdisort::beam_phase_matrix_data& B, Index i, Numeric phi, Numeric phi0) {
+  rtepack::stokvec z{};
   for (Index m = 0; m < B.extent(1); m++) {
     const Numeric e = m == 0 ? 1.0 : 2.0;
     const Numeric c = std::cos(static_cast<Numeric>(m) * (phi0 - phi));

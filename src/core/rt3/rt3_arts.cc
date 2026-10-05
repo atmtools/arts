@@ -68,16 +68,11 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   // c_l = (2 l + 1) / 2 sum_i w_i F(x_i) P_l(x_i), in ARTS's element order
   Matrix c(degree + 1, 6, 0.0);
+  Vector p(degree + 1);
   for (Index i = 0; i < n; i++) {
-    Numeric p_prev = 0.0, p = 1.0;
+    Legendre::legendre_polynomials(p, x[i]);
     for (Index l = 0; l <= degree; l++) {
-      if (l > 0) {
-        const Numeric next = (static_cast<Numeric>(2 * l - 1) * x[i] * p - static_cast<Numeric>(l - 1) * p_prev) /
-                             static_cast<Numeric>(l);
-        p_prev             = p;
-        p                  = next;
-      }
-      const Numeric f = 0.5 * static_cast<Numeric>(2 * l + 1) * weights[i] * p;
+      const Numeric f = 0.5 * static_cast<Numeric>(2 * l + 1) * weights[i] * p[l];
       for (Index k = 0; k < 6; k++) c[l, k] += f * pha[0, 0, i, k];
     }
   }

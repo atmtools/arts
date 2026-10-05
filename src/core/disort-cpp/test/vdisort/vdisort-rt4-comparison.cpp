@@ -273,8 +273,8 @@ struct setup {
 };
 
 //! The Kirchhoff emission ([1, 0] - sum_j R(i, j)[:, 0]) B_s of a discrete surface into stream i, [I, Q]
-std::array<Numeric, 2> discrete_emission(const discrete_reflection& d, const streams& s, Index i, Numeric Bs) {
-  std::array<Numeric, 2> e{Bs, 0.0};
+Vector2 discrete_emission(const discrete_reflection& d, const streams& s, Index i, Numeric Bs) {
+  Vector2 e{Bs, 0.0};
   for (Index j = 0; j < s.nmu; j++) {
     const auto R  = pi * s.w[j] * s.mu[j] * d.rho(s.mu[i], s.mu[j]);
     e[0]         -= R[0, 0] * Bs;
@@ -447,7 +447,7 @@ vdisort::main_data vdisort_solver(const setup& c,
   std::vector<vdisort::BDRF> brdf;
   for (Index i = 0; i < N; i++) {
     top[vdisort::cosine_mode, 0, i] = {planck(frequency, c.sky), 0.0, 0.0, 0.0};
-    std::array<Numeric, 2> e{};
+    Vector2 e{};
     if (const auto* d = std::get_if<discrete_reflection>(&c.g)) {
       e = discrete_emission(*d, c.s, i, Bs);
     } else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g)) {

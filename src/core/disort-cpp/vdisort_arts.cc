@@ -20,52 +20,20 @@
 
 namespace vdisort {
 namespace {
-//! The propagation direction of a ray at direction cosine mu (> 0 upward) and azimuth phi
-Vector3 direction(Numeric mu, Numeric phi) {
-  const Numeric s = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  return {s * std::cos(phi), s * std::sin(phi), mu};
-}
+/* The propagation zenith angles [deg] of the direction cosines mu (> 0
+   upward), za = acos(mu), as a grid that is distinct and ascending, as
+   ARTS's angular grids must be, and the grid index of each cosine. */
+std::pair<Vector, ArrayOfIndex> zenith_angle_grid(const Vector& mu) {
+  std::vector<Numeric> grid(mu.size());
+  stdr::transform(mu, grid.begin(), [](Numeric x) { return Conversion::rad2deg(std::acos(x)); });
+  stdr::sort(grid);
+  grid.erase(std::unique(grid.begin(), grid.end()), grid.end());
+  const Vector za(std::move(grid));
 
-/* The Stokes rotation from the meridional basis (e_v, e_h) of the ray
-   (mu, phi) to the scattering-plane basis (e_par = N x k, e_perp = N), with
-   e_v = (mu cos phi, mu sin phi, -sin), e_h = (-sin phi, cos phi, 0) and
-   e_v x e_h = k.  The basis (-e_v, -e_h) = (v, h) of the documentation gives
-   the same Stokes vector.  With e_par = cos(a) e_v + sin(a) e_h:
-     Q' = cos(2a) Q + sin(2a) U,  U' = -sin(2a) Q + cos(2a) U. */
-rtepack::muelmat to_scattering_plane(const Vector3& N, Numeric mu, Numeric phi) {
-  const Numeric s   = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  const Vector3 k   = direction(mu, phi);
-  const Vector3 ev  = {mu * std::cos(phi), mu * std::sin(phi), -s};
-  const Vector3 eh  = {-std::sin(phi), std::cos(phi), 0.0};
-  const Vector3 par = cross(N, k);
-  const Numeric c = dot(par, ev), d = dot(par, eh);
-  return rtepack::stokes_rotation(c * c - d * d, 2.0 * c * d);
-}
-
-//! The normal of the scattering plane of in -> out; for parallel rays the plane through k_in and e_h(in)
-Vector3 scattering_plane_normal(const Vector3& k_in, const Vector3& k_out, Numeric phi_in) {
-  const Vector3 N    = cross(k_in, k_out);
-  const Numeric norm = std::sqrt(dot(N, N));
-  if (norm < 1e-12) return {-std::sin(phi_in), std::cos(phi_in), 0.0};
-  return N / norm;
-}
-
-/* Z(out <- in) = L_out^T F L_in for ARTS's compact scattering matrix
-   f = [F11, F12, F22, F33, F34, F44].  Exactly forward or backward the
-   scattering plane is undefined and the plane through k_in and e_h(in) is
-   used: for |mu| < 1 both rotations are then by 0 or pi and Z = F. */
-rtepack::muelmat lab_frame(ConstVectorView f, Numeric mu_in, Numeric phi_in, Numeric mu_out) {
-  const Vector3          k_in  = direction(mu_in, phi_in);
-  const Vector3          k_out = direction(mu_out, 0.0);
-  const Vector3          N     = scattering_plane_normal(k_in, k_out, phi_in);
-  const rtepack::muelmat F{f[0], f[1], 0, 0, f[1], f[2], 0, 0, 0, 0, f[3], f[4], 0, 0, -f[4], f[5]};
-  rtepack::muelmat       L_out = to_scattering_plane(N, mu_out, 0.0);
-  return matpack::inplace_transpose(L_out) * F * to_scattering_plane(N, mu_in, phi_in);
-}
-
-//! The scattering angle [deg] of in -> out, as used for the TRO data
-Numeric scattering_angle(Numeric mu_in, Numeric phi_in, Numeric mu_out) {
-  return Conversion::rad2deg(std::acos(std::clamp(dot(direction(mu_in, phi_in), direction(mu_out, 0.0)), -1.0, 1.0)));
+  ArrayOfIndex index(mu.size());
+  for (Size i = 0; i < mu.size(); i++)
+    index[i] = static_cast<Index>(stdr::lower_bound(za, Conversion::rad2deg(std::acos(mu[i]))) - za.begin());
+  return {za, index};
 }
 
 void check_cosines(const Vector& mu, std::string_view name) {
@@ -140,36 +108,35 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                      out.extinction);
   if (sigma == 0.0 or no == 0 or ni == 0) return out;
 
-  // The scattering matrix at the exact scattering angle of every sample
+  /* ARTS's laboratory-frame phase matrix, [t, f, za_inc, delta_aa, za_scat,
+     4 * row + col], from the incident za of mu_in to the scattered za of
+     mu_out at delta_aa = phi_k: VDISORT's radiance at azimuth phi is ARTS's
+     at aa = -phi, so incidence at phi_k and scattering at 0 is
+     aa_scat - aa_inc = phi_k (cpp.fast.vdisort-arts-test, V2). */
   const auto phi = [n = static_cast<Numeric>(azimuth_count)](Index k) {
     return 2.0 * Constant::pi * (static_cast<Numeric>(k) + 0.5) / n;
   };
   const Index nk = azimuth_count;
-  Tensor3     theta(no, ni, nk);
-  for (Index o = 0; o < no; o++)
-    for (Index i = 0; i < ni; i++)
-      for (Index k = 0; k < nk; k++) theta[o, i, k] = scattering_angle(mu_in[i], phi(k), mu_out[o]);
-
-  // The distinct scattering angles, ascending as ARTS's angular grids must be
-  std::vector<Numeric> sorted(theta.elem_begin(), theta.elem_end());
-  stdr::sort(sorted);
-  sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
-  const Vector unique_angles(std::move(sorted));
-
-  const auto angles =
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(unique_angles));
-  const auto tro = scattering_species.get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, angles);
-  ARTS_USER_ERROR_IF(not tro.phase_matrix.has_value(),
+  Vector      delta_aa(nk);
+  for (Index k = 0; k < nk; k++) delta_aa[k] = Conversion::rad2deg(phi(k));
+  const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
+  const auto [za_scat, sca] = zenith_angle_grid(mu_out);
+  const auto lab            = scattering_species.get_bulk_scattering_properties_aro_gridded(
+      atm_point,
+      f_grid,
+      za_inc,
+      delta_aa,
+      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
+  ARTS_USER_ERROR_IF(not lab.phase_matrix.has_value(),
                      "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
                      "have none");
-  const auto& pha = *tro.phase_matrix;
+  const auto& pha = *lab.phase_matrix;
 
   const Numeric scale = 4.0 * Constant::pi / sigma / static_cast<Numeric>(nk);
   for (Index o = 0; o < no; o++) {
     for (Index i = 0; i < ni; i++) {
       for (Index k = 0; k < nk; k++) {
-        const Index a = static_cast<Index>(stdr::lower_bound(unique_angles, theta[o, i, k]) - unique_angles.begin());
-        const rtepack::muelmat Z = scale * lab_frame(pha[0, 0, a], mu_in[i], phi(k), mu_out[o]);
+        const rtepack::muelmat Z = scale * rtepack::muelmat{pha[0, 0, inc[i], k, sca[o]]};
         for (Index m = 0; m < nfourier; m++) {
           const Numeric arg    = static_cast<Numeric>(m) * phi(k);
           out.cosine[m, o, i] += std::cos(arg) * Z;

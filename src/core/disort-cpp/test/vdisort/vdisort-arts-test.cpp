@@ -6,8 +6,8 @@
    - V1: closed forms of the Fourier coefficients of Rayleigh scattering for
      m = 0, 1, 2, derived below from the dipole (Jones-matrix) picture in the
      meridional basis, independently of any rotation formula.  ARTS's
-     GasScatterer gives the scattering matrix; vdisort::scattering_optics
-     rotates it by vector geometry and takes the Fourier coefficients.
+     GasScatterer gives the laboratory-frame phase matrix;
+     vdisort::scattering_optics takes its Fourier coefficients.
    - V2: ARTS's own laboratory-frame phase matrix (to_lab_frame in
      scattering/phase_matrix.h, Mishchenko-style spherical trigonometry)
      against the vector-geometry construction of lab-frame.h (this
@@ -18,9 +18,10 @@
      The other azimuth sense and a negated F34 must both fail.  Exact and
      snapped near-forward pairs must give Z = F (phase_matrix.h used Z22 =
      -F22 there).
-   - V3: vdisort::scattering_optics for the same particle against the
-     Fourier coefficients of ARTS's laboratory-frame phase matrix (V2's
-     mapping, phi = -aa), diffuse and beam column.
+   - V3: vdisort::scattering_optics for the same particle, which takes
+     ARTS's laboratory-frame phase matrix, against the Fourier coefficients
+     of the vector-geometry phase matrix of lab-frame.h (V2's mapping),
+     diffuse and beam column.
    - V4: main_data_from_path against the path data it is given. */
 #include <arts_constants.h>
 #include <arts_conversions.h>
@@ -34,11 +35,9 @@
 #include <format>
 #include <functional>
 #include <iostream>
-#include <numeric>
 #include <random>
 #include <stdexcept>
 #include <string>
-#include <vector>
 
 #include "lab-frame.h"
 
@@ -327,13 +326,13 @@ void test_lab_frame(const mie_case& c) {
   }
 }
 
-//! V3: vdisort::scattering_optics against the Fourier coefficients of ARTS's laboratory-frame phase matrix
-void test_fourier_against_arts(const mie_case& c) {
+//! V3: vdisort::scattering_optics against the Fourier coefficients of the vector-geometry phase matrix
+void test_fourier_against_vector_geometry(const mie_case& c) {
   Vector mu(8), inv(8), w(4);
   disort_common::initialize_streams(mu, inv, w);
   Vector mu_in(9);
-  std::ranges::copy(mu, mu_in.begin());
-  mu_in[8] = -0.6;
+  mu_in[Range(0, 8)] = mu;
+  mu_in[8]           = -0.6;
 
   constexpr Index NF = 4, N = 16;
   const auto      f = vdisort::scattering_optics(c.species, c.atm, mie_frequency, mu, mu_in, NF, N, mie_nodes, 1e-9);
@@ -351,53 +350,34 @@ void test_fourier_against_arts(const mie_case& c) {
   Numeric sigma = 0.0;
   for (Index i = 0; i < mie_nodes; i++) sigma += 2 * pi * wx[i] * (*tro.phase_matrix)[0, 0, i, 0];
 
-  // One laboratory-frame call: incident za of mu_in, aa_out - aa_in = phi_k (phi = -aa), outgoing za of mu,
-  // ascending as ARTS's scattering zenith-angle grids must be: stream o is za_out[out[o]]
-  const Index        no = static_cast<Index>(mu.size());
-  std::vector<Index> order(no), out(no);
-  std::iota(order.begin(), order.end(), 0);
-  stdr::sort(order, [&](Index a, Index b) { return mu[a] > mu[b]; });
-  Vector za_in(mu_in.size()), za_out(no), daa(N);
-  for (Index i = 0; i < static_cast<Index>(mu_in.size()); i++) za_in[i] = Conversion::rad2deg(std::acos(mu_in[i]));
-  for (Index j = 0; j < no; j++) {
-    za_out[j]     = Conversion::rad2deg(std::acos(mu[order[j]]));
-    out[order[j]] = j;
-  }
-  for (Index k = 0; k < N; k++) daa[k] = (static_cast<Numeric>(k) + 0.5) * 360.0 / N;
-  const auto bulk = c.species.get_bulk_scattering_properties_aro_gridded(
-      c.atm,
-      Vector{mie_frequency},
-      za_in,
-      daa,
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_out)));
-
-  Numeric d = 0.0, scale = 0.0;
-  for (Index m = 0; m < NF; m++) {
-    for (Index o = 0; o < static_cast<Index>(mu.size()); o++) {
-      for (Index i = 0; i < static_cast<Index>(mu_in.size()); i++) {
-        rtepack::muelmat C{0.0}, S{0.0};
-        for (Index k = 0; k < N; k++) {
-          const Numeric phi = Conversion::deg2rad(daa[k]);
-          for (Index a = 0; a < 4; a++) {
-            for (Index b = 0; b < 4; b++) {
-              const Numeric z  = 4 * pi / sigma / N * (*bulk.phase_matrix)[0, 0, i, k, out[o], 4 * a + b];
-              C[a, b]         += std::cos(static_cast<Numeric>(m) * phi) * z;
-              S[a, b]         += std::sin(static_cast<Numeric>(m) * phi) * z;
-            }
-          }
+  // Incidence at phi_k and scattering at 0, the convention of scattering_optics
+  const auto F = tro_of(c);
+  Numeric    d = 0.0, scale = 0.0;
+  for (Index o = 0; o < static_cast<Index>(mu.size()); o++) {
+    for (Index i = 0; i < static_cast<Index>(mu_in.size()); i++) {
+      rtepack::muelmat_vector C(NF, rtepack::muelmat{0.0}), S(NF, rtepack::muelmat{0.0});
+      for (Index k = 0; k < N; k++) {
+        const Numeric          phi = 2 * pi * (static_cast<Numeric>(k) + 0.5) / N;
+        const rtepack::muelmat Z   = 4 * pi / sigma / N * vdisort_test::lab_frame(F, mu_in[i], phi, mu[o], 0.0);
+        for (Index m = 0; m < NF; m++) {
+          C[m] += std::cos(static_cast<Numeric>(m) * phi) * Z;
+          S[m] += std::sin(static_cast<Numeric>(m) * phi) * Z;
         }
-        scale = std::max(scale, max_abs(C));
-        d     = std::max({d, max_diff(C, f.cosine[m, o, i]), max_diff(S, f.sine[m, o, i])});
+      }
+      for (Index m = 0; m < NF; m++) {
+        scale = std::max(scale, max_abs(C[m]));
+        d     = std::max({d, max_diff(C[m], f.cosine[m, o, i]), max_diff(S[m], f.sine[m, o, i])});
       }
     }
   }
   std::cout << std::format(
-      "V3 vdisort::scattering_optics vs the Fourier coefficients of ARTS's laboratory frame (phi = -aa), Mie, "
-      "m = 0..3, 8 streams and the beam -0.6: max |dC|, |dS| / max |C| {:.1e} (tolerance 1e-10)\n",
+      "V3 vdisort::scattering_optics (ARTS's laboratory frame) vs the Fourier coefficients of the vector-geometry "
+      "phase matrix, Mie, m = 0..3, 8 streams and the beam -0.6: max |dC|, |dS| / max |C| {:.1e} (tolerance "
+      "1e-10)\n",
       d / scale);
   require(d <= 1e-10 * scale,
-          std::format("V3: VDISORT's Fourier coefficients must be those of ARTS's laboratory-frame phase matrix to "
-                      "1e-10, got {:.2e}",
+          std::format("V3: VDISORT's Fourier coefficients must be those of the vector-geometry phase matrix to 1e-10, "
+                      "got {:.2e}",
                       d / scale));
 }
 
@@ -479,7 +459,7 @@ int main() try {
   test_rayleigh();
   const auto c = mie();
   test_lab_frame(c);
-  test_fourier_against_arts(c);
+  test_fourier_against_vector_geometry(c);
   test_path();
   std::cout << "vdisort-arts test passed\n";
   return 0;

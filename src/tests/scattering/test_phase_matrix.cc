@@ -762,7 +762,71 @@ bool test_forward_backward_limit() {
   return true;
 }
 
+/** Rays at the poles (za = 0 or 180 deg) in the laboratory frame.
+ *
+ * At a pole the meridional basis of a ray is that of its azimuth, the
+ * limit along its meridian, and rotation_coefficients() has dedicated
+ * branches.  The reference is the limit along the meridian: moving one
+ * pole ray at a time off its pole (za = 0 + e or 180 - e at the same
+ * azimuth), Z must converge to the pole value, at least like e, for every
+ * delta_aa (both sides of 180 deg).  One pole ray takes any F (F12, F34 !=
+ * 0); two pole rays scatter exactly forward or backward and take a
+ * physical F, for which the two meridional bases differ by delta_aa.  e is
+ * 1 and 0.1 deg, above the 1e-6 rad at which a ray snaps to its pole and
+ * the 1.4e-3 rad scattering angle at which a pair snaps to exactly forward
+ * or backward.
+ */
+bool test_pole_limit() {
+  const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
+    Vector     z(16);
+    const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    detail::expand_and_transform<Numeric>(z, f, rc, delta_aa > 180.0);
+    return z;
+  };
+  const auto distance = [](const Vector& a, const Vector& b) {
+    Numeric d = 0.0;
+    for (Index i = 0; i < 16; i++) d = std::max(d, std::abs(a[i] - b[i]));
+    return d;
+  };
+  //! A pole za moved by e along its meridian
+  const auto off     = [](Numeric za, Numeric e) { return za == 0.0 ? e : 180.0 - e; };
+  const auto is_pole = [](Numeric za) { return za == 0.0 or za == 180.0; };
+
+  const Vector generic{1.0, -0.3, 0.7, 0.5, 0.2, 0.4};
+  const Vector forward{1.0, 0.0, 0.8, 0.8, 0.0, 0.6}, backward{1.0, 0.0, 0.8, -0.8, 0.0, -0.6};
+  const std::array<std::tuple<Numeric, Numeric, const Vector*>, 8> cases{{{0.0, 50.0, &generic},
+                                                                          {180.0, 50.0, &generic},
+                                                                          {50.0, 0.0, &generic},
+                                                                          {50.0, 180.0, &generic},
+                                                                          {0.0, 0.0, &forward},
+                                                                          {180.0, 180.0, &forward},
+                                                                          {0.0, 180.0, &backward},
+                                                                          {180.0, 0.0, &backward}}};
+  for (const auto& [za_inc, za_scat, f] : cases) {
+    for (Numeric daa : {10.0, 60.0, 120.0, 170.0, 190.0, 250.0, 300.0, 350.0}) {
+      const Vector pole = lab(*f, za_inc, daa, za_scat);
+      for (bool move_inc : {true, false}) {
+        if (not is_pole(move_inc ? za_inc : za_scat)) continue;
+        const auto moved = [&](Numeric e) {
+          return move_inc ? lab(*f, off(za_inc, e), daa, za_scat) : lab(*f, za_inc, daa, off(za_scat, e));
+        };
+        const Numeric far = distance(moved(1.0), pole), near = distance(moved(0.1), pole);
+        if (far > 0.1 or near > 0.15 * far + 1e-12) return false;
+      }
+    }
+  }
+  return true;
+}
+
 int main() {
+  std::cout << "Testing rays at the poles in the laboratory frame: ";
+  if (test_pole_limit()) {
+    std::cout << "PASSED." << '\n';
+  } else {
+    std::cout << "FAILED." << '\n';
+    return 1;
+  }
+
   std::cout << "Testing forward and backward scattering in the laboratory frame: ";
   if (test_forward_backward_limit()) {
     std::cout << "PASSED." << '\n';

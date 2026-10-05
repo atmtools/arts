@@ -633,8 +633,8 @@ void test_gas_only() {
         const auto r   = rt3::solve(p);
         const auto nmu = size(r.mu);
 
-        const auto B  = [&](Numeric t) { return planck(frequency, t); };
-        const auto dz = [&](Index l) { return std::abs(height[l] - height[l + 1]); };
+        const auto              B  = [&](Numeric t) { return planck(frequency, t); };
+        const auto              dz = [&](Index l) { return std::abs(height[l] - height[l + 1]); };
         rtepack::stokvec_matrix dn(nlay + 1, nmu), up(nlay + 1, nmu);
         for (Index i = 0; i < nmu; i++) {
           dn[0, i] = {B(sky), 0, 0, 0};
@@ -714,10 +714,10 @@ std::pair<Vector3, Vector3> meridional(const Vector3& k) {
  *    V = 0,
  *  scaled by 3/4 so that I = 3/4 (1 + cos^2 Theta) is the phase function
  *  normalised to 1 over 4 pi. */
-std::array<Numeric, 4> rayleigh_column(const Vector3& k_out, const Vector3& k_in) {
+rtepack::stokvec rayleigh_column(const Vector3& k_out, const Vector3& k_in) {
   const auto [vi, hi] = meridional(k_in);
   const auto [vo, ho] = meridional(k_out);
-  std::array<Numeric, 4> z{};
+  rtepack::stokvec z{};
   for (const auto& e : {vi, hi}) {
     const Numeric ev = dot(vo, e), eh = dot(ho, e);
     z[0] += 0.75 * (ev * ev + eh * eh);

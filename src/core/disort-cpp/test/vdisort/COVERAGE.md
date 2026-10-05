@@ -354,10 +354,10 @@ ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 
 | test | reference | measured |
 |---|---|---|
-| V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms | 1.6e-15 |
+| V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms | 6.1e-15 |
 | V2: ARTS's laboratory-frame Z of a polarizing Mie particle, 300 directions | vector geometry, mu = cos(za), phi = -aa, same F | 6.7e-15 (other azimuth sense: 2; F34 negated: 0.35) |
 | V2: exact and snapped near-forward pairs | Z = F on the diagonal (forward-scattered Q) | 1.2e-8 |
-| V3: `vdisort::scattering_optics` of that particle | Fourier modes of ARTS's laboratory-frame Z | 1.9e-15 |
+| V3: `vdisort::scattering_optics` (ARTS's laboratory-frame Z) of that particle | Fourier modes of the vector-geometry Z of `lab-frame.h` | 1.3e-15 |
 | thermal, 89 GHz, Rayleigh + Mie cloud + gas, Lambertian / Fresnel | RT3 vs VDISORT | 5.4e-7 / 5.2e-7 of max I (tolerance 1e-6) |
 | same | RT4's layer phase matrices vs VDISORT's (different input routes) | 1.2e-15 relative (tolerance 1e-12) |
 | same | RT4 vs RT3 (identical doubling) | 5.3e-10 / 5.0e-10 (tolerance 1e-8) |

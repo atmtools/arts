@@ -122,7 +122,8 @@ Energy conservation, K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i
       .def_rw("reflectivity",
               &rt4::specular_surface::reflectivity,
               "[nstokes, nstokes] R(out, in)\n\n.. :class:`~pyarts3.arts.Matrix`")
-      .doc() = "RT4 'S': reflectivity applied specularly to every stream; emission :math:`[(1 - R(I, I)) B, -R(Q, I) B]`.";
+      .doc() =
+      "RT4 'S': reflectivity applied specularly to every stream; emission :math:`[(1 - R(I, I)) B, -R(Q, I) B]`.";
 
   py::class_<rt4::discrete_surface>(rt, "DiscreteSurface")
       .def(

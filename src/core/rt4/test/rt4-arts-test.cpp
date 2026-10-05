@@ -94,7 +94,7 @@ void test_rayleigh() {
                 o.absorption.shape() == (std::array<Index, 3>{2, n, 2}),
             "A1: layer_optics shapes");
 
-    Numeric dz = 0.0, dk = 0.0, vertical = 0.0;
+    Numeric dz = 0.0, dk = 0.0;
     for (Index ho = 0; ho < 2; ho++) {
       for (Index hi = 0; hi < 2; hi++) {
         for (Index io = 0; io < n; io++) {
@@ -103,12 +103,7 @@ void test_rayleigh() {
               for (Index si = 0; si < 2; si++) {
                 const Numeric ref =
                     sigma / (4 * pi) * rayleigh_m0(so, si, signed_mu(ho, mu[io]), signed_mu(hi, mu[ii]));
-                const Numeric d = std::abs(o.phase[ho, hi, io, ii, so, si] - ref);
-                // Both rays vertical: the meridional plane, and so Q, is undefined
-                if (mu[io] == 1.0 and mu[ii] == 1.0)
-                  vertical = std::max(vertical, d);
-                else
-                  dz = std::max(dz, d);
+                dz = std::max(dz, std::abs(o.phase[ho, hi, io, ii, so, si] - ref));
               }
             }
           }
@@ -128,12 +123,11 @@ void test_rayleigh() {
     }
     std::cout << std::format(
         "A1 Rayleigh GasScatterer, azimuth_count {:2}: max |phase - closed form| / (sigma / 4 pi) {:.2e} (tolerance "
-        "{:.2e}); K, a {:.1e}; both rays vertical (not compared) {:.2e}\n",
+        "{:.2e}); K, a {:.1e}, mu = 1 included\n",
         nphi,
         dz / (sigma / (4 * pi)),
         tol / (sigma / (4 * pi)),
-        dk / sigma,
-        vertical / (sigma / (4 * pi)));
+        dk / sigma);
     require(dz <= tol,
             std::format("A1: the RT4 phase quadrants of ARTS's Rayleigh GasScatterer must equal sigma / (4 pi) times "
                         "the m = 0 closed form to {:.2e} (azimuth_count {}), got {:.2e}",

@@ -224,8 +224,8 @@ result solve(const problem& p) {
 
   // The series as RT3 uses it: trailing zero rows dropped, delta-M scaled
   // exactly as GET_SCAT_SET (READ_SCAT_FILE) does, then truncated to NLEGLIM.
-  const Index        nleglim = max_legendre_degree(nquad, p.quad);
-  const Index        mdm     = 2 * nmu;  // delta-M order M = 2 NUMMU, NUMMU including the extra angles
+  const Index  nleglim = max_legendre_degree(nquad, p.quad);
+  const Index  mdm     = 2 * nmu;  // delta-M order M = 2 NUMMU, NUMMU including the extra angles
   ArrayOfIndex degree(nsl);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s = p.scattering_sets[iset];
@@ -326,10 +326,10 @@ result solve(const problem& p) {
   ArrayOfIndex scat_nlegen(nset, 0);
   Tensor3      scat_coef(nset, ldcoef, 6, 0.0);
   for (Index iset = 0; iset < nsl; iset++) {
-    const auto& s      = p.scattering_sets[iset];
-    scat_extinct[iset] = s.extinction;
-    scat_scatter[iset] = s.scattering;
-    scat_nlegen[iset]  = degree[iset];
+    const auto& s                               = p.scattering_sets[iset];
+    scat_extinct[iset]                          = s.extinction;
+    scat_scatter[iset]                          = s.scattering;
+    scat_nlegen[iset]                           = degree[iset];
     scat_coef[iset, Range(0, degree[iset] + 1)] = s.legendre[Range(0, degree[iset] + 1)];
   }
 
@@ -418,11 +418,11 @@ result solve(const problem& p) {
   r.down      *= per_um_to_per_hz;
   r.up_flux   *= per_um_to_per_hz;
   r.down_flux *= per_um_to_per_hz;
-  r.mu = mu;
+  r.mu         = mu;
 
   // RADTRAN does not return its weights; they are a function of the
   // quadrature alone, the extra angles having weight 0.
-  const auto q = get_quadrature(nquad, p.quad);
+  const auto q               = get_quadrature(nquad, p.quad);
   r.weights[Range(0, nquad)] = q.weights;
   return r;
 #else

@@ -404,11 +404,11 @@ Accuracy:
   direction pair.  Particle habits interpolate linearly on their own
   scattering-angle grid, a ``ZenGrid`` (strictly ascending in [0, 180]
   deg).
-* When both rays of a pair are vertical (``mu = 1`` in both) the meridional
-  planes, and Q, are undefined.  ARTS then applies no rotation and the mean
-  is F, where a reference plane turning with the azimuth label would average
-  Q to 0.  Only extra angles can be vertical, and their columns carry no
-  weight, so the solution does not depend on these entries.
+* A vertical ray (``mu = 1``, e.g. the last Lobatto node or an extra
+  angle) has the meridional plane of its azimuth label in ARTS's laboratory
+  frame, the limit along its meridian, so vertical rays need no special
+  treatment: for a pair of them the reference plane turns with the azimuth
+  and the mean of Q is 0, as for any other pair.
 
 **problem_from_path** follows the conventions of the DISORT workspace
 methods (``disort_settingsOpticalThicknessFromPath``,

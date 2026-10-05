@@ -167,16 +167,15 @@ column), the ordinary Fourier coefficients without :math:`2-\delta_{m0}`,
 ``m = 0 .. nfourier - 1``, of the laboratory-frame phase matrix
 ``P = 4 pi Z / sigma``:
 
-* ``Z = L_out^T F(Theta) L_in`` is built by vector geometry in VDISORT's
-  meridional basis (``h = k x z / |k x z|``, ``v = h x k``,
-  Q = I_v - I_h, U = 2 Re(E_v E_h*); z up, ``k = (sin cos phi, sin sin phi,
-  mu)``), from the species' TRO scattering matrix at the exact scattering
-  angle of every sample, with ARTS's F as stored.  For exactly parallel rays
-  the plane through ``k_in`` and ``e_h(in)`` is used.
-* ARTS's own laboratory-frame phase matrix for the propagation directions
-  (za, aa), aa clockwise from above, is this one with ``mu = cos(za)`` and
-  ``phi = -aa``, with the same Stokes vector (see :doc:`dev.rt3` for the
-  test and the F34 sign).
+* Z is ARTS's laboratory-frame phase matrix
+  (``get_bulk_scattering_properties_aro_gridded``) from the incident
+  ``za = acos(mu_i)`` to the scattered ``za = acos(mu_o)`` at
+  ``delta_aa = aa_scat - aa_inc = phi``.  ARTS's propagation directions
+  (za, aa), aa clockwise from above, are VDISORT's with ``mu = cos(za)`` and
+  ``phi = -aa``, and its Stokes vector is VDISORT's meridional one
+  (``h = k x z / |k x z|``, ``v = h x k``, Q = I_v - I_h,
+  U = 2 Re(E_v E_h*); z up, ``k = (sin cos phi, sin sin phi, mu)``); see
+  :doc:`dev.rt3` for the test and the F34 sign.
 * The phi integral is the periodic midpoint rule at
   ``(k + 1/2) 2 pi / azimuth_count``.  For a regular Legendre series of
   degree L, Z is a trigonometric polynomial of degree L in phi, and the rule
@@ -213,10 +212,11 @@ Tests: ``cpp.fast.vdisort-arts-test``
 (``src/core/disort-cpp/test/vdisort/vdisort-arts-test.cpp``) compares
 ``scattering_optics`` for ARTS's Rayleigh ``GasScatterer`` with closed forms
 of C^m and S^m for m = 0 .. 3 derived from the dipole Jones matrix in the
-meridional basis (diffuse and beam column, including mu = +-1; 1.6e-15),
+meridional basis (diffuse and beam column, including mu = +-1; 6.1e-15),
 ARTS's laboratory-frame phase matrix with the vector geometry for a
-polarizing Mie particle (6.7e-15), the coefficients with those of ARTS's
-laboratory-frame matrix (1.9e-15), and the path builder with its inputs.
+polarizing Mie particle (6.7e-15), the coefficients with those of the
+vector-geometry phase matrix (1.3e-15), and the path builder with its
+inputs.
 ``cpp.fast.vdisort-arts-comparison`` runs VDISORT, RT3 and RT4 on one ARTS
 atmosphere (see :doc:`dev.rt3` and :doc:`dev.rt4`).
 

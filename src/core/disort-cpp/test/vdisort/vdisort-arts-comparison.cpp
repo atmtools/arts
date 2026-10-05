@@ -110,13 +110,13 @@ struct radiance {
 };
 
 //! max |a - b| over levels, azimuths, streams and both directions, per Stokes, relative to max |I_b|
-std::array<Numeric, 4> deviation(const radiance& a, const radiance& b) {
+Vector4 deviation(const radiance& a, const radiance& b) {
   Numeric scale = 0.0;
   for (const auto* t : {&b.up, &b.down})
     for (Index x = 0; x < t->extent(0); x++)
       for (Index k = 0; k < t->extent(1); k++)
         for (Index i = 0; i < t->extent(2); i++) scale = std::max(scale, std::abs((*t)[x, k, i, 0]));
-  std::array<Numeric, 4> d{};
+  Vector4 d{};
   for (Index l = 0; l < a.up.extent(0); l++)
     for (Index k = 0; k < a.up.extent(1); k++)
       for (Index i = 0; i < a.up.extent(2); i++)
@@ -167,7 +167,7 @@ radiance rt4_radiance(const rt4::result& res) {
   return r;
 }
 
-Numeric report(std::string_view what, const std::array<Numeric, 4>& d, Index ns, Numeric tol, Numeric scale) {
+Numeric report(std::string_view what, const Vector4& d, Index ns, Numeric tol, Numeric scale) {
   Numeric worst = 0.0;
   for (Index s = 0; s < ns; s++) worst = std::max(worst, d[s]);
   std::cout << std::format("{:<48} I {:9.3e}  Q {:9.3e}", what, d[0], d[1]);
@@ -215,9 +215,9 @@ Numeric rt4_input_difference(const atmosphere& a, const rt4::problem& p) {
 }
 
 struct thermal_result {
-  std::array<Numeric, 4> rt3_vdisort, rt4_vdisort, rt4_rt3;
-  Numeric                input;  // the relative difference of the RT4 layer phase matrices from VDISORT's
-  Numeric                q;      // max |Q_up| / max |I_up|
+  Vector4 rt3_vdisort, rt4_vdisort, rt4_rt3;
+  Numeric input;  // the relative difference of the RT4 layer phase matrices from VDISORT's
+  Numeric q;      // max |Q_up| / max |I_up|
 };
 
 thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel) {
@@ -384,7 +384,7 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
                            max_delta_tau);
   report("    RT3 vs VDISORT, 6 azimuths", d, 4, 10 * max_delta_tau / mu0, max_delta_tau / mu0);
 
-  std::array<Numeric, 4> top{};
+  Vector4 top{};
   for (Index x = 0; x < static_cast<Index>(rv.up.size()) / 4; x++)
     for (Index s = 0; s < 4; s++) top[s] = std::max(top[s], std::abs(rv.up.data_handle()[4 * x + s]));
   std::cout << std::format("    max |Q|, |U|, |V| / max |I| (upward) = {:.2e}, {:.2e}, {:.2e}\n",

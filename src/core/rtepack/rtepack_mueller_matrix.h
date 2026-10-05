@@ -218,6 +218,25 @@ constexpr muelmat stokes_rotation(Numeric cos2psi, Numeric sin2psi) {
   return {1, 0, 0, 0, 0, cos2psi, sin2psi, 0, 0, -sin2psi, cos2psi, 0, 0, 0, 0, 1};
 }
 
+constexpr muelmat linear_polarization(Numeric cos2psi, Numeric sin2psi) {
+  return {0.5,
+          0.5 * cos2psi,
+          0.5 * sin2psi,
+          0.0,
+          0.5 * cos2psi,
+          0.5 * cos2psi * cos2psi,
+          0.5 * cos2psi * sin2psi,
+          0.0,
+          0.5 * sin2psi,
+          0.5 * sin2psi * cos2psi,
+          0.5 * sin2psi * sin2psi,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0};
+}
+
 using muelmat_vector            = matpack::data_t<muelmat, 1>;
 using muelmat_vector_view       = matpack::view_t<muelmat, 1>;
 using muelmat_vector_const_view = matpack::view_t<const muelmat, 1>;

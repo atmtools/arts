@@ -301,8 +301,8 @@ result solve(const problem& p) {
                              ns,
                              g.reflection.shape(),
                              g.emission.shape());
-          ground_type  = 'A';
-          gnd_radiance = g.emission;
+          ground_type   = 'A';
+          gnd_radiance  = g.emission;
           gnd_radiance /= per_um_to_per_hz;
           for (Index io = 0; io < nmu; io++)
             for (Index ii = 0; ii < nmu; ii++)
@@ -355,11 +355,11 @@ result solve(const problem& p) {
 
   r.up   *= per_um_to_per_hz;
   r.down *= per_um_to_per_hz;
-  r.mu = mu;
+  r.mu    = mu;
 
   // RADTRANO does not return its weights; they are a function of the
   // quadrature alone, the extra angles having weight 0.
-  const auto q = get_quadrature(nquad, p.quad);
+  const auto q               = get_quadrature(nquad, p.quad);
   r.weights[Range(0, nquad)] = q.weights;
   return r;
 #else
