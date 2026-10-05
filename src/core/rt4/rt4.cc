@@ -216,43 +216,39 @@ result solve(const problem& p) {
     check_mirror_symmetry(o, iset, nmu, ns);
   }
 
-  // RADTRANO arguments, Fortran column-major (first index fastest).
-  std::vector<double> height(p.height.begin(), p.height.end());
-  std::vector<double> temperature(p.temperature.begin(), p.temperature.end());
-  std::vector<double> gas_extinction(p.gas_extinction.begin(), p.gas_extinction.end());
+  // RADTRANO arguments.  A row-major [a, b, c] array is the Fortran
+  // column-major (c, b, a) array.  The legacy code declares no intent, so
+  // the inputs are passed as copies.
+  Vector height         = p.height;
+  Vector temperature    = p.temperature;
+  Vector gas_extinction = p.gas_extinction;
 
   // SCATLAYERS(layer): 1-based optics set, 0 for gas-only
-  std::vector<double> scatlayers(nlay);
+  Vector scatlayers(nlay);
   for (Index l = 0; l < nlay; l++)
-    scatlayers[l] = p.layer_optics_index[l] < 0 ? 0.0 : static_cast<double>(p.layer_optics_index[l] + 1);
+    scatlayers[l] = p.layer_optics_index[l] < 0 ? 0.0 : static_cast<Numeric>(p.layer_optics_index[l] + 1);
 
-  // EXTINCT_MATRIX(row, col, mu, hem, set), EMIS_VECTOR(s, mu, hem, set),
-  // SCATTER_MATRIX(out s, out mu, in s, in mu, q, set) with
-  // q = 2 * out_hem + in_hem (0-based; RT4 q = 1 +<-+, 2 +<--, 3 -<-+, 4 -<--)
-  const Index         nset = std::max<Index>(nsl, 1);
-  std::vector<double> extinct(ns * ns * nmu * 2 * nset, 0.0);
-  std::vector<double> emis(ns * nmu * 2 * nset, 0.0);
-  std::vector<double> scatter(n * n * 4 * nset, 0.0);
+  // EXTINCT_MATRIX(row, col, mu, hem, set) is [set, hem, mu, col, row],
+  // EMIS_VECTOR(s, mu, hem, set) is [set, hem, mu, s] and
+  // SCATTER_MATRIX(out s, out mu, in s, in mu, q, set) is
+  // [set, q, in mu, in s, out mu, out s] with q = 2 * out_hem + in_hem
+  // (0-based; RT4 q = 1 +<-+, 2 +<--, 3 -<-+, 4 -<--)
+  const Index nset = std::max<Index>(nsl, 1);
+  Tensor5     extinct(nset, 2, nmu, ns, ns, 0.0);
+  Tensor4     emis(nset, 2, nmu, ns, 0.0);
+  Tensor6     scatter(nset, 4, nmu, ns, nmu, ns, 0.0);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& o = p.optics[iset];
-    for (Index h = 0; h < 2; h++) {
-      for (Index i = 0; i < nmu; i++) {
-        for (Index s = 0; s < ns; s++) {
-          emis[s + ns * (i + nmu * (h + 2 * iset))] = o.absorption[h, i, s];
-          for (Index t = 0; t < ns; t++)
-            extinct[s + ns * (t + ns * (i + nmu * (h + 2 * iset)))] = o.extinction[h, i, s, t];
-        }
-      }
-    }
+    emis[iset]    = o.absorption;
+    for (Index h = 0; h < 2; h++)
+      for (Index i = 0; i < nmu; i++) extinct[iset, h, i] = transpose(o.extinction[h, i]);
     for (Index ho = 0; ho < 2; ho++) {
       for (Index hi = 0; hi < 2; hi++) {
         const Index q = 2 * ho + hi;
         for (Index io = 0; io < nmu; io++)
           for (Index ii = 0; ii < nmu; ii++)
             for (Index so = 0; so < ns; so++)
-              for (Index si = 0; si < ns; si++)
-                scatter[so + ns * (io + nmu * (si + ns * (ii + nmu * (q + 4 * iset))))] =
-                    o.phase[ho, hi, io, ii, so, si];
+              for (Index si = 0; si < ns; si++) scatter[iset, q, ii, si, io, so] = o.phase[ho, hi, io, ii, so, si];
       }
     }
   }
@@ -263,13 +259,14 @@ result solve(const problem& p) {
 
   // Surface.  GROUND_REFLEC(in, out) is read transposed by SPECULAR_SURFACE,
   // so the row-major R(out, in) is passed as is.  SURF_REFLECT(out s, out mu,
-  // in s, in mu); GND_RADIANCE(s, mu) is input for 'A' and output otherwise.
-  char                ground_type = 'L';
-  Numeric             albedo      = 0.0;
-  Complex             index{1.0, 0.0};
-  std::vector<double> ground_reflec(ns * ns, 0.0);
-  std::vector<double> surf_reflect(n * n, 0.0);
-  std::vector<double> gnd_radiance(n, 0.0);
+  // in s, in mu) is [in mu, in s, out mu, out s]; GND_RADIANCE(s, mu) is
+  // [mu, s], input for 'A' and output otherwise.
+  char    ground_type = 'L';
+  Numeric albedo      = 0.0;
+  Complex index{1.0, 0.0};
+  Matrix  ground_reflec(ns, ns, 0.0);
+  Tensor4 surf_reflect(nmu, ns, nmu, ns, 0.0);
+  Matrix  gnd_radiance(nmu, ns, 0.0);
   std::visit(
       [&](const auto& g) {
         using T = std::remove_cvref_t<decltype(g)>;
@@ -286,9 +283,8 @@ result solve(const problem& p) {
                              ns,
                              ns,
                              g.reflectivity.shape());
-          ground_type = 'S';
-          for (Index so = 0; so < ns; so++)
-            for (Index si = 0; si < ns; si++) ground_reflec[si + ns * so] = g.reflectivity[so, si];
+          ground_type   = 'S';
+          ground_reflec = g.reflectivity;
         } else {
           static_assert(std::is_same_v<T, discrete_surface>);
           ARTS_USER_ERROR_IF(g.reflection.shape() != (std::array<Index, 4>{nmu, nmu, ns, ns}) or
@@ -305,22 +301,20 @@ result solve(const problem& p) {
                              ns,
                              g.reflection.shape(),
                              g.emission.shape());
-          ground_type = 'A';
-          for (Index io = 0; io < nmu; io++) {
-            for (Index so = 0; so < ns; so++) {
-              gnd_radiance[so + ns * io] = g.emission[io, so] / per_um_to_per_hz;
-              for (Index ii = 0; ii < nmu; ii++)
-                for (Index si = 0; si < ns; si++)
-                  surf_reflect[so + ns * (io + nmu * (si + ns * ii))] = g.reflection[io, ii, so, si];
-            }
-          }
+          ground_type  = 'A';
+          gnd_radiance = g.emission;
+          gnd_radiance /= per_um_to_per_hz;
+          for (Index io = 0; io < nmu; io++)
+            for (Index ii = 0; ii < nmu; ii++)
+              for (Index so = 0; so < ns; so++)
+                for (Index si = 0; si < ns; si++) surf_reflect[ii, si, io, so] = g.reflection[io, ii, so, si];
         }
       },
       p.ground);
 
   // MU_VALUES: RT4 writes the nquad nodes, the caller supplies the extra angles
-  std::vector<double> mu(nmu, 0.0);
-  std::ranges::copy(p.extra_mu, mu.begin() + nquad);
+  Vector mu(nmu, 0.0);
+  mu[Range(nquad, nextra)] = p.extra_mu;
 
   // UP_RAD/DOWN_RAD(s, mu, level) is the row-major [level, mu, s] layout
   result r{.mu      = Vector(nmu, 0.0),
@@ -340,33 +334,33 @@ result solve(const problem& p) {
                  albedo,
                  index.real(),
                  index.imag(),
-                 ground_reflec.data(),
-                 surf_reflect.data(),
-                 gnd_radiance.data(),
+                 ground_reflec.data_handle(),
+                 surf_reflect.data_handle(),
+                 gnd_radiance.data_handle(),
                  p.sky_temperature,
                  wavelength_um,
                  nlay,
-                 height.data(),
-                 temperature.data(),
-                 gas_extinction.data(),
+                 height.data_handle(),
+                 temperature.data_handle(),
+                 gas_extinction.data_handle(),
                  nsl,
-                 scatlayers.data(),
-                 extinct.data(),
-                 emis.data(),
-                 scatter.data(),
-                 mu.data(),
+                 scatlayers.data_handle(),
+                 extinct.data_handle(),
+                 emis.data_handle(),
+                 scatter.data_handle(),
+                 mu.data_handle(),
                  r.up.data_handle(),
                  r.down.data_handle());
   }
 
   r.up   *= per_um_to_per_hz;
   r.down *= per_um_to_per_hz;
-  std::ranges::copy(mu, r.mu.begin());
+  r.mu = mu;
 
   // RADTRANO does not return its weights; they are a function of the
   // quadrature alone, the extra angles having weight 0.
   const auto q = get_quadrature(nquad, p.quad);
-  for (Index i = 0; i < nquad; i++) r.weights[i] = q.weights[i];
+  r.weights[Range(0, nquad)] = q.weights;
   return r;
 #else
   (void)p;

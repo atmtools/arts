@@ -8,6 +8,7 @@
 #include <arts_constants.h>
 #include <physics_funcs.h>
 #include <rt3.h>
+#include <rtepack.h>
 
 #include <algorithm>
 #include <array>
@@ -571,9 +572,9 @@ void test_testa() {
  *  with the Planck function linear in optical depth from b_start to b_end:
  *    I = I0 e^-x + b_end (1 - e^-x) - (b_end - b_start) (1 - (1 + x) e^-x) / x,
  *  and polarization only attenuated. */
-std::array<Numeric, 4> gas_path(std::array<Numeric, 4> v0, Numeric x, Numeric b_start, Numeric b_end) {
-  const Numeric          ex = std::exp(-x);
-  std::array<Numeric, 4> v{};
+rtepack::stokvec gas_path(const rtepack::stokvec& v0, Numeric x, Numeric b_start, Numeric b_end) {
+  const Numeric    ex = std::exp(-x);
+  rtepack::stokvec v{};
   v[0] = v0[0] * ex + b_end * (-std::expm1(-x)) - (b_end - b_start) * (1.0 - (1.0 + x) * ex) / x;
   for (Index s = 1; s < 4; s++) v[s] = v0[s] * ex;
   return v;
@@ -634,25 +635,24 @@ void test_gas_only() {
 
         const auto B  = [&](Numeric t) { return planck(frequency, t); };
         const auto dz = [&](Index l) { return std::abs(height[l] - height[l + 1]); };
-        std::vector<std::vector<std::array<Numeric, 4>>> dn(nlay + 1, std::vector<std::array<Numeric, 4>>(nmu)),
-            up = dn;
+        rtepack::stokvec_matrix dn(nlay + 1, nmu), up(nlay + 1, nmu);
         for (Index i = 0; i < nmu; i++) {
-          dn[0][i] = {B(sky), 0, 0, 0};
+          dn[0, i] = {B(sky), 0, 0, 0};
           for (Index l = 0; l < nlay; l++)
-            dn[l + 1][i] = gas_path(dn[l][i], gas[l] * dz(l) / r.mu[i], B(temperature[l]), B(temperature[l + 1]));
+            dn[l + 1, i] = gas_path(dn[l, i], gas[l] * dz(l) / r.mu[i], B(temperature[l]), B(temperature[l + 1]));
         }
         Numeric flux_down = 0.0;
-        for (Index j = 0; j < nmu; j++) flux_down += r.weights[j] * r.mu[j] * dn[nlay][j][0];
+        for (Index j = 0; j < nmu; j++) flux_down += r.weights[j] * r.mu[j] * dn[nlay, j][0];
         for (Index i = 0; i < nmu; i++) {
           if (lambert) {
-            up[nlay][i] = {(1 - A) * B(tsurf) + 2 * A * flux_down, 0, 0, 0};
+            up[nlay, i] = {(1 - A) * B(tsurf) + 2 * A * flux_down, 0, 0, 0};
           } else {
             const auto    fc = fresnel(n, r.mu[i]);
             const Numeric r1 = 0.5 * (fc.rv2 + fc.rh2), r2 = 0.5 * (fc.rv2 - fc.rh2);
-            up[nlay][i] = {(1 - r1) * B(tsurf) + r1 * dn[nlay][i][0], r2 * (dn[nlay][i][0] - B(tsurf)), 0, 0};
+            up[nlay, i] = {(1 - r1) * B(tsurf) + r1 * dn[nlay, i][0], r2 * (dn[nlay, i][0] - B(tsurf)), 0, 0};
           }
           for (Index l = nlay - 1; l >= 0; l--)
-            up[l][i] = gas_path(up[l + 1][i], gas[l] * dz(l) / r.mu[i], B(temperature[l + 1]), B(temperature[l]));
+            up[l, i] = gas_path(up[l + 1, i], gas[l] * dz(l) / r.mu[i], B(temperature[l + 1]), B(temperature[l]));
         }
 
         Numeric dev = 0.0, dev_flux = 0.0;
@@ -662,13 +662,13 @@ void test_gas_only() {
           for (Index i = 0; i < nmu; i++) {
             for (Index s = 0; s < ns; s++) {
               dev = std::max({dev,
-                              std::abs(r.up[l, 0, i, s] - up[l][i][s]) / up[l][i][0],
-                              std::abs(r.down[l, 0, i, s] - dn[l][i][s]) / dn[l][i][0]});
+                              std::abs(r.up[l, 0, i, s] - up[l, i][s]) / up[l, i][0],
+                              std::abs(r.down[l, 0, i, s] - dn[l, i][s]) / dn[l, i][0]});
               for (Index m = 1; m <= p.aziorder; m++) zero = zero and r.up[l, m, i, s] == 0 and r.down[l, m, i, s] == 0;
               if (s >= 2) zero = zero and r.up[l, 0, i, s] == 0 and r.down[l, 0, i, s] == 0;
             }
-            fu += 2 * pi * r.weights[i] * r.mu[i] * up[l][i][0];
-            fd += 2 * pi * r.weights[i] * r.mu[i] * dn[l][i][0];
+            fu += 2 * pi * r.weights[i] * r.mu[i] * up[l, i][0];
+            fd += 2 * pi * r.weights[i] * r.mu[i] * dn[l, i][0];
           }
           dev_flux = std::max({dev_flux, std::abs(r.up_flux[l, 0] - fu) / fu, std::abs(r.down_flux[l, 0] - fd) / fd});
         }
@@ -692,25 +692,16 @@ void test_gas_only() {
   }
 }
 
-using vec3 = std::array<Numeric, 3>;
-
-vec3 cross(const vec3& a, const vec3& b) {
-  return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
-}
-
-Numeric dot(const vec3& a, const vec3& b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-
 //! Propagation direction in a right-handed frame with z up; mu_z > 0 upward
-vec3 direction(Numeric mu_z, Numeric phi) {
+Vector3 direction(Numeric mu_z, Numeric phi) {
   const Numeric s = std::sqrt(1.0 - mu_z * mu_z);
   return {s * std::cos(phi), s * std::sin(phi), mu_z};
 }
 
 //! Meridional basis of k: h = k x z / |k x z|, v = h x k
-std::pair<vec3, vec3> meridional(const vec3& k) {
-  vec3          h = cross(k, vec3{0.0, 0.0, 1.0});
-  const Numeric n = std::sqrt(dot(h, h));
-  for (auto& x : h) x /= n;
+std::pair<Vector3, Vector3> meridional(const Vector3& k) {
+  Vector3 h  = cross(k, Vector3{0.0, 0.0, 1.0});
+  h         /= std::sqrt(dot(h, h));
   return {cross(h, k), h};
 }
 
@@ -723,7 +714,7 @@ std::pair<vec3, vec3> meridional(const vec3& k) {
  *    V = 0,
  *  scaled by 3/4 so that I = 3/4 (1 + cos^2 Theta) is the phase function
  *  normalised to 1 over 4 pi. */
-std::array<Numeric, 4> rayleigh_column(const vec3& k_out, const vec3& k_in) {
+std::array<Numeric, 4> rayleigh_column(const Vector3& k_out, const Vector3& k_in) {
   const auto [vi, hi] = meridional(k_in);
   const auto [vo, ho] = meridional(k_out);
   std::array<Numeric, 4> z{};
@@ -780,8 +771,8 @@ void test_single_scattering() {
       const auto up            = rt3::azimuth_radiance(r.up, phi);
       const auto dn            = rt3::azimuth_radiance(r.down, phi);
 
-      const vec3 k0    = direction(-mu0, 0.0);
-      Numeric    scale = 0.0, dev = 0.0, u_scale = 0.0;
+      const Vector3 k0    = direction(-mu0, 0.0);
+      Numeric       scale = 0.0, dev = 0.0, u_scale = 0.0;
       for (int pass = 0; pass < 2; pass++) {
         for (Index k = 0; k < size(phi); k++) {
           for (Index i = 0; i < size(r.mu); i++) {

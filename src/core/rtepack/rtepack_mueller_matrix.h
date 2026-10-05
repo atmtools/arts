@@ -212,6 +212,12 @@ constexpr muelmat adj(const muelmat &A) {
 
 constexpr muelmat inv(const muelmat &A) { return adj(A) / det(A); }
 
+/** The rotation of the Stokes reference plane by psi:
+ *  Q' = cos(2 psi) Q + sin(2 psi) U,  U' = -sin(2 psi) Q + cos(2 psi) U. */
+constexpr muelmat stokes_rotation(Numeric cos2psi, Numeric sin2psi) {
+  return {1, 0, 0, 0, 0, cos2psi, sin2psi, 0, 0, -sin2psi, cos2psi, 0, 0, 0, 0, 1};
+}
+
 using muelmat_vector            = matpack::data_t<muelmat, 1>;
 using muelmat_vector_view       = matpack::view_t<muelmat, 1>;
 using muelmat_vector_const_view = matpack::view_t<const muelmat, 1>;

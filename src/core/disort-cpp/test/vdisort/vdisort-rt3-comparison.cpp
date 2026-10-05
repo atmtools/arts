@@ -85,11 +85,9 @@ namespace {
 constexpr Numeric pi  = Constant::pi;
 constexpr Numeric eps = std::numeric_limits<Numeric>::epsilon();
 
-using vdisort_test::dot;
 using vdisort_test::lab_frame;
 using vdisort_test::tro_elements;
 using vdisort_test::tro_matrix;
-using vdisort_test::vec3;
 
 Index isize(const auto& v) { return static_cast<Index>(v.size()); }
 
@@ -801,7 +799,7 @@ rtepack::muelmat rayleigh_m0(Numeric mo, Numeric mi) {
 std::array<Numeric, 4> rayleigh_column(Numeric mu_out, Numeric phi_out, Numeric mu_in, Numeric phi_in) {
   const auto basis = [](Numeric mu, Numeric phi) {
     const Numeric s = std::sqrt(1 - mu * mu);
-    return std::pair<vec3, vec3>{{mu * std::cos(phi), mu * std::sin(phi), -s}, {-std::sin(phi), std::cos(phi), 0.0}};
+    return std::pair<Vector3, Vector3>{{mu * std::cos(phi), mu * std::sin(phi), -s}, {-std::sin(phi), std::cos(phi), 0.0}};
   };
   const auto [vi, hi] = basis(mu_in, phi_in);
   const auto [vo, ho] = basis(mu_out, phi_out);

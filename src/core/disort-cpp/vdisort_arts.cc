@@ -7,7 +7,6 @@
 #include <physics_funcs.h>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <memory>
 #include <numeric>
@@ -21,16 +20,8 @@
 
 namespace vdisort {
 namespace {
-using vec3 = std::array<Numeric, 3>;
-
-Numeric dot(const vec3& a, const vec3& b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-
-vec3 cross(const vec3& a, const vec3& b) {
-  return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
-}
-
 //! The propagation direction of a ray at direction cosine mu (> 0 upward) and azimuth phi
-vec3 direction(Numeric mu, Numeric phi) {
+Vector3 direction(Numeric mu, Numeric phi) {
   const Numeric s = std::sqrt(std::max(0.0, 1.0 - mu * mu));
   return {s * std::cos(phi), s * std::sin(phi), mu};
 }
@@ -41,40 +32,35 @@ vec3 direction(Numeric mu, Numeric phi) {
    e_v x e_h = k.  The basis (-e_v, -e_h) = (v, h) of the documentation gives
    the same Stokes vector.  With e_par = cos(a) e_v + sin(a) e_h:
      Q' = cos(2a) Q + sin(2a) U,  U' = -sin(2a) Q + cos(2a) U. */
-rtepack::muelmat to_scattering_plane(const vec3& N, Numeric mu, Numeric phi) {
+rtepack::muelmat to_scattering_plane(const Vector3& N, Numeric mu, Numeric phi) {
   const Numeric s   = std::sqrt(std::max(0.0, 1.0 - mu * mu));
-  const vec3    k   = direction(mu, phi);
-  const vec3    ev  = {mu * std::cos(phi), mu * std::sin(phi), -s};
-  const vec3    eh  = {-std::sin(phi), std::cos(phi), 0.0};
-  const vec3    par = cross(N, k);
+  const Vector3 k   = direction(mu, phi);
+  const Vector3 ev  = {mu * std::cos(phi), mu * std::sin(phi), -s};
+  const Vector3 eh  = {-std::sin(phi), std::cos(phi), 0.0};
+  const Vector3 par = cross(N, k);
   const Numeric c = dot(par, ev), d = dot(par, eh);
-  const Numeric c2 = c * c - d * d, s2 = 2.0 * c * d;
-  return {1, 0, 0, 0, 0, c2, s2, 0, 0, -s2, c2, 0, 0, 0, 0, 1};
+  return rtepack::stokes_rotation(c * c - d * d, 2.0 * c * d);
 }
 
 //! The normal of the scattering plane of in -> out; for parallel rays the plane through k_in and e_h(in)
-vec3 scattering_plane_normal(const vec3& k_in, const vec3& k_out, Numeric phi_in) {
-  vec3          N    = cross(k_in, k_out);
+Vector3 scattering_plane_normal(const Vector3& k_in, const Vector3& k_out, Numeric phi_in) {
+  const Vector3 N    = cross(k_in, k_out);
   const Numeric norm = std::sqrt(dot(N, N));
   if (norm < 1e-12) return {-std::sin(phi_in), std::cos(phi_in), 0.0};
-  for (auto& x : N) x /= norm;
-  return N;
+  return N / norm;
 }
 
 /* Z(out <- in) = L_out^T F L_in for ARTS's compact scattering matrix
    f = [F11, F12, F22, F33, F34, F44].  Exactly forward or backward the
    scattering plane is undefined and the plane through k_in and e_h(in) is
    used: for |mu| < 1 both rotations are then by 0 or pi and Z = F. */
-rtepack::muelmat lab_frame(const std::array<Numeric, 6>& f, Numeric mu_in, Numeric phi_in, Numeric mu_out) {
-  const vec3             k_in  = direction(mu_in, phi_in);
-  const vec3             k_out = direction(mu_out, 0.0);
-  const vec3             N     = scattering_plane_normal(k_in, k_out, phi_in);
+rtepack::muelmat lab_frame(ConstVectorView f, Numeric mu_in, Numeric phi_in, Numeric mu_out) {
+  const Vector3          k_in  = direction(mu_in, phi_in);
+  const Vector3          k_out = direction(mu_out, 0.0);
+  const Vector3          N     = scattering_plane_normal(k_in, k_out, phi_in);
   const rtepack::muelmat F{f[0], f[1], 0, 0, f[1], f[2], 0, 0, 0, 0, f[3], f[4], 0, 0, -f[4], f[5]};
-  const rtepack::muelmat L_out = to_scattering_plane(N, mu_out, 0.0);
-  rtepack::muelmat       L_out_T{0.0};
-  for (Index i = 0; i < 4; i++)
-    for (Index j = 0; j < 4; j++) L_out_T[i, j] = L_out[j, i];
-  return L_out_T * F * to_scattering_plane(N, mu_in, phi_in);
+  rtepack::muelmat       L_out = to_scattering_plane(N, mu_out, 0.0);
+  return matpack::inplace_transpose(L_out) * F * to_scattering_plane(N, mu_in, phi_in);
 }
 
 //! The scattering angle [deg] of in -> out, as used for the TRO data
@@ -158,33 +144,32 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const auto phi = [n = static_cast<Numeric>(azimuth_count)](Index k) {
     return 2.0 * Constant::pi * (static_cast<Numeric>(k) + 0.5) / n;
   };
-  const Index         nk = azimuth_count;
-  std::vector<double> theta(static_cast<std::size_t>(no * ni * nk));
+  const Index nk = azimuth_count;
+  Tensor3     theta(no, ni, nk);
   for (Index o = 0; o < no; o++)
     for (Index i = 0; i < ni; i++)
-      for (Index k = 0; k < nk; k++) theta[(o * ni + i) * nk + k] = scattering_angle(mu_in[i], phi(k), mu_out[o]);
-  std::vector<double> unique_theta = theta;
-  stdr::sort(unique_theta);
-  unique_theta.erase(std::unique(unique_theta.begin(), unique_theta.end()), unique_theta.end());
+      for (Index k = 0; k < nk; k++) theta[o, i, k] = scattering_angle(mu_in[i], phi(k), mu_out[o]);
 
-  Vector unique_angles(static_cast<Index>(unique_theta.size()));
-  stdr::copy(unique_theta, unique_angles.begin());
+  // The distinct scattering angles, ascending as ARTS's angular grids must be
+  std::vector<Numeric> sorted(theta.elem_begin(), theta.elem_end());
+  stdr::sort(sorted);
+  sorted.erase(std::unique(sorted.begin(), sorted.end()), sorted.end());
+  const Vector unique_angles(std::move(sorted));
+
   const auto angles =
       std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(unique_angles));
   const auto tro = scattering_species.get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, angles);
   ARTS_USER_ERROR_IF(not tro.phase_matrix.has_value(),
                      "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
                      "have none");
+  const auto& pha = *tro.phase_matrix;
 
   const Numeric scale = 4.0 * Constant::pi / sigma / static_cast<Numeric>(nk);
   for (Index o = 0; o < no; o++) {
     for (Index i = 0; i < ni; i++) {
       for (Index k = 0; k < nk; k++) {
-        const Numeric          t = theta[(o * ni + i) * nk + k];
-        const Index            a = static_cast<Index>(stdr::lower_bound(unique_theta, t) - unique_theta.begin());
-        std::array<Numeric, 6> f{};
-        for (Index e = 0; e < 6; e++) f[e] = (*tro.phase_matrix)[0, 0, a, e];
-        const rtepack::muelmat Z = scale * lab_frame(f, mu_in[i], phi(k), mu_out[o]);
+        const Index a = static_cast<Index>(stdr::lower_bound(unique_angles, theta[o, i, k]) - unique_angles.begin());
+        const rtepack::muelmat Z = scale * lab_frame(pha[0, 0, a], mu_in[i], phi(k), mu_out[o]);
         for (Index m = 0; m < nfourier; m++) {
           const Numeric arg    = static_cast<Numeric>(m) * phi(k);
           out.cosine[m, o, i] += std::cos(arg) * Z;

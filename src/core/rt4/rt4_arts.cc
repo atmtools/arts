@@ -54,7 +54,7 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   }
   stdr::sort(sorted);
   Vector             za(2 * n);
-  std::vector<Index> stream(2 * n);
+  ArrayOfIndex       stream(2 * n);
   for (Index j = 0; j < 2 * n; j++) {
     za[j]                    = sorted[j].first;
     stream[sorted[j].second] = j;

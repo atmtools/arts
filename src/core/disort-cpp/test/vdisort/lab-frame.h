@@ -18,7 +18,6 @@
 #include <rtepack_mueller_matrix.h>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <functional>
 
@@ -31,15 +30,7 @@ struct tro_elements {
 //! F as a function of cos(Theta)
 using tro_matrix = std::function<tro_elements(Numeric)>;
 
-using vec3 = std::array<Numeric, 3>;
-
-inline Numeric dot(const vec3& a, const vec3& b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
-
-inline vec3 cross(const vec3& a, const vec3& b) {
-  return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]};
-}
-
-inline vec3 direction(Numeric cos_theta, Numeric phi) {
+inline Vector3 direction(Numeric cos_theta, Numeric phi) {
   const Numeric st = std::sqrt(std::max(0.0, 1 - cos_theta * cos_theta));
   return {st * std::cos(phi), st * std::sin(phi), cos_theta};
 }
@@ -49,22 +40,15 @@ inline vec3 direction(Numeric cos_theta, Numeric phi) {
    n = direction(cos_theta, phi).  Both bases are right-handed with n.  With
    e_par = cos(a) e_v + sin(a) e_h:
      Q' = cos(2a) Q + sin(2a) U,  U' = -sin(2a) Q + cos(2a) U. */
-inline rtepack::muelmat to_scattering_plane(const vec3& N, Numeric cos_theta, Numeric phi) {
+inline rtepack::muelmat to_scattering_plane(const Vector3& N, Numeric cos_theta, Numeric phi) {
   const Numeric st  = std::sqrt(std::max(0.0, 1 - cos_theta * cos_theta));
-  const vec3    n   = direction(cos_theta, phi);
-  const vec3    ev  = {cos_theta * std::cos(phi), cos_theta * std::sin(phi), -st};
-  const vec3    eh  = {-std::sin(phi), std::cos(phi), 0.0};
-  const vec3    par = cross(N, n);
+  const Vector3 n   = direction(cos_theta, phi);
+  const Vector3 ev  = {cos_theta * std::cos(phi), cos_theta * std::sin(phi), -st};
+  const Vector3 eh  = {-std::sin(phi), std::cos(phi), 0.0};
+  const Vector3 par = cross(N, n);
   const Numeric c = dot(par, ev), s = dot(par, eh);
   const Numeric c2 = c * c - s * s, s2 = 2 * s * c;
   return {1, 0, 0, 0, 0, c2, s2, 0, 0, -s2, c2, 0, 0, 0, 0, 1};
-}
-
-inline rtepack::muelmat transposed(const rtepack::muelmat& m) {
-  rtepack::muelmat t{0.0};
-  for (Index i = 0; i < 4; i++)
-    for (Index j = 0; j < 4; j++) t[i, j] = m[j, i];
-  return t;
 }
 
 /* The lab-frame phase matrix Z(out <- in) = L_out^T F(Theta) L_in for
@@ -78,16 +62,17 @@ inline rtepack::muelmat transposed(const rtepack::muelmat& m) {
    bases.  For a regular F (F12 = F34 = 0 and |F22| = |F33| there) Z does
    not depend on the choice of plane. */
 inline rtepack::muelmat lab_frame(const tro_matrix& F, Numeric ci, Numeric phii, Numeric co, Numeric phio) {
-  const vec3    ni   = direction(ci, phii);
-  const vec3    no   = direction(co, phio);
-  vec3          N    = cross(ni, no);
+  const Vector3 ni   = direction(ci, phii);
+  const Vector3 no   = direction(co, phio);
+  Vector3       N    = cross(ni, no);
   const Numeric norm = std::sqrt(dot(N, N));
   if (norm < 1e-12)
     N = {-std::sin(phii), std::cos(phii), 0.0};
   else
-    for (auto& x : N) x /= norm;
+    N /= norm;
   const auto             f = F(std::clamp(dot(ni, no), -1.0, 1.0));
   const rtepack::muelmat Fm{f.F11, f.F12, 0, 0, f.F12, f.F22, 0, 0, 0, 0, f.F33, f.F34, 0, 0, -f.F34, f.F44};
-  return transposed(to_scattering_plane(N, co, phio)) * Fm * to_scattering_plane(N, ci, phii);
+  rtepack::muelmat       L_out = to_scattering_plane(N, co, phio);
+  return matpack::inplace_transpose(L_out) * Fm * to_scattering_plane(N, ci, phii);
 }
 }  // namespace vdisort_test

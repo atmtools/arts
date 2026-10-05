@@ -34,17 +34,6 @@ muelmat fresnel_reflectance(Complex Rv, Complex Rh) {
 }
 
 namespace {
-muelmat stokes_rotation(Numeric cos2psi, Numeric sin2psi) {
-  muelmat L{};
-  L[0, 0] = 1.0;
-  L[1, 1] = cos2psi;
-  L[1, 2] = sin2psi;
-  L[2, 1] = -sin2psi;
-  L[2, 2] = cos2psi;
-  L[3, 3] = 1.0;
-  return L;
-}
-
 muelmat stokes_rotation_refl(Numeric cos2psi, Numeric sin2psi) {
   muelmat L{};
   L[0, 0] = 1.0;

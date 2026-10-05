@@ -166,7 +166,6 @@ rtepack::muelmat constructed(Numeric mo, Numeric mi) {
 }
 
 using vdisort_test::lab_frame;
-using vdisort_test::transposed;
 using vdisort_test::tro_elements;
 using vdisort_test::tro_matrix;
 
@@ -371,8 +370,9 @@ rtepack::muelmat vdisort_block(const stream_phase& Z, Index N, Index io, Index i
     std::swap(mo, mi);
   }
   if (m == mistake::quadrant_exchange) ho = 1 - ho;
-  const auto& z = Z[ho, hi, mo, mi];
-  return m == mistake::stokes_transpose or m == mistake::full_transpose ? transposed(z) : z;
+  rtepack::muelmat z = Z[ho, hi, mo, mi];
+  if (m == mistake::stokes_transpose or m == mistake::full_transpose) matpack::inplace_transpose(z);
+  return z;
 }
 
 //! The cosine-mode ([I, Q]) and sine-mode ([U, V]) m = 0 blocks of 4 pi Z / sigma

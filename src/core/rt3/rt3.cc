@@ -226,7 +226,7 @@ result solve(const problem& p) {
   // exactly as GET_SCAT_SET (READ_SCAT_FILE) does, then truncated to NLEGLIM.
   const Index        nleglim = max_legendre_degree(nquad, p.quad);
   const Index        mdm     = 2 * nmu;  // delta-M order M = 2 NUMMU, NUMMU including the extra angles
-  std::vector<Index> degree(nsl);
+  ArrayOfIndex degree(nsl);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s = p.scattering_sets[iset];
     ARTS_USER_ERROR_IF(s.legendre.ncols() != 6 or s.legendre.nrows() < 1,
@@ -302,34 +302,35 @@ result solve(const problem& p) {
                        summed);
   }
 
-  // RADTRAN arguments, Fortran column-major (first index fastest).
-  std::vector<double> height(p.height.begin(), p.height.end());
-  std::vector<double> temperature(p.temperature.begin(), p.temperature.end());
-  std::vector<double> gas_extinction(p.gas_extinction.begin(), p.gas_extinction.end());
+  // RADTRAN arguments.  A row-major [a, b, c] array is the Fortran
+  // column-major (c, b, a) array.  The legacy code declares no intent, so
+  // the inputs are passed as copies.
+  Vector height         = p.height;
+  Vector temperature    = p.temperature;
+  Vector gas_extinction = p.gas_extinction;
 
   // SCATLAYERS(layer): 1-based set, 0 for gas-only
-  std::vector<std::int64_t> scatlayers(nlay);
+  ArrayOfIndex scatlayers(nlay);
   for (Index l = 0; l < nlay; l++)
     scatlayers[l] = p.layer_scattering_index[l] < 0 ? 0 : p.layer_scattering_index[l] + 1;
 
   // OUTLEVELS: every level, 1-based
-  std::vector<std::int64_t> outlevels(nlay + 1);
+  ArrayOfIndex outlevels(nlay + 1);
   for (Index l = 0; l <= nlay; l++) outlevels[l] = l + 1;
 
-  // SCAT_COEF(6, LDCOEF, set): the row-major [nleg + 1, 6] legendre of each
-  // set is exactly the Fortran (6, nleg + 1) block
-  const Index               ldcoef = nsl > 0 ? *stdr::max_element(degree) + 1 : 1;
-  const Index               nset   = std::max<Index>(nsl, 1);
-  std::vector<double>       scat_extinct(nset, 0.0), scat_scatter(nset, 0.0);
-  std::vector<std::int64_t> scat_nlegen(nset, 0);
-  std::vector<double>       scat_coef(6 * ldcoef * nset, 0.0);
+  // SCAT_COEF(6, LDCOEF, set) is [set, LDCOEF, 6]: the [nleg + 1, 6] legendre
+  // of each set is its leading block
+  const Index  ldcoef = nsl > 0 ? *stdr::max_element(degree) + 1 : 1;
+  const Index  nset   = std::max<Index>(nsl, 1);
+  Vector       scat_extinct(nset, 0.0), scat_scatter(nset, 0.0);
+  ArrayOfIndex scat_nlegen(nset, 0);
+  Tensor3      scat_coef(nset, ldcoef, 6, 0.0);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s      = p.scattering_sets[iset];
     scat_extinct[iset] = s.extinction;
     scat_scatter[iset] = s.scattering;
     scat_nlegen[iset]  = degree[iset];
-    for (Index l = 0; l <= degree[iset]; l++)
-      for (Index k = 0; k < 6; k++) scat_coef[k + 6 * (l + ldcoef * iset)] = s.legendre[l, k];
+    scat_coef[iset, Range(0, degree[iset] + 1)] = s.legendre[Range(0, degree[iset] + 1)];
   }
 
   const Numeric wavelength_um = 1e6 * Constant::c / p.frequency;
@@ -362,8 +363,8 @@ result solve(const problem& p) {
 
   // MU_VALUES: RT3 writes the nquad nodes; for 'E' the first nquad entries
   // must be 0 and the extra angles follow
-  std::vector<double> mu(nmu, 0.0);
-  std::ranges::copy(p.extra_mu, mu.begin() + nquad);
+  Vector mu(nmu, 0.0);
+  mu[Range(nquad, nextra)] = p.extra_mu;
 
   // UP_RAD/DOWN_RAD(s, mu, m + 1, level) is the row-major [level, m, mu, s]
   // layout, UP_FLUX/DOWN_FLUX(s, level) the row-major [level, s]
@@ -394,19 +395,19 @@ result solve(const problem& p) {
                 p.sky_temperature,
                 wavelength_um,
                 nlay,
-                height.data(),
-                temperature.data(),
-                gas_extinction.data(),
+                height.data_handle(),
+                temperature.data_handle(),
+                gas_extinction.data_handle(),
                 nsl,
-                scat_extinct.data(),
-                scat_scatter.data(),
+                scat_extinct.data_handle(),
+                scat_scatter.data_handle(),
                 scat_nlegen.data(),
                 ldcoef,
-                scat_coef.data(),
+                scat_coef.data_handle(),
                 scatlayers.data(),
                 nlay + 1,
                 outlevels.data(),
-                mu.data(),
+                mu.data_handle(),
                 r.up_flux.data_handle(),
                 r.down_flux.data_handle(),
                 r.up.data_handle(),
@@ -417,12 +418,12 @@ result solve(const problem& p) {
   r.down      *= per_um_to_per_hz;
   r.up_flux   *= per_um_to_per_hz;
   r.down_flux *= per_um_to_per_hz;
-  std::ranges::copy(mu, r.mu.begin());
+  r.mu = mu;
 
   // RADTRAN does not return its weights; they are a function of the
   // quadrature alone, the extra angles having weight 0.
   const auto q = get_quadrature(nquad, p.quad);
-  for (Index i = 0; i < nquad; i++) r.weights[i] = q.weights[i];
+  r.weights[Range(0, nquad)] = q.weights;
   return r;
 #else
   (void)p;
