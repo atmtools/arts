@@ -131,7 +131,7 @@ where
 
 .. math::
 
-  z = \frac{\nu - \nu_0 - \Delta\nu_{lm} - \Delta_nu_Z - \Delta\nu_{P,0} + iG_{P,0}}{G_D},
+  z = \frac{\nu - \nu_0 - \Delta\nu_{lm} - \Delta\nu_{Z} - \Delta\nu_{P,0} + iG_{P,0}}{G_D},
 
 where
 
