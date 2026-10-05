@@ -1016,16 +1016,6 @@ Most likely only makes sense in combination with *obs_pos*.
       .type = "Vector2",
   };
 
-  wsv_data["direct_beam_los"] = {
-      .desc = R"--(Line of sight of a collimated incoming beam (direct radiation, e.g. the sun)
-at the surface point, given as [zenith, azimuth] in local ENU (za = 0: zenith, 90: horizon,
-180: nadir).
-
-Use with *spectral_radSurfaceScatteringDirect*.
-)--",
-      .type = "Vector2",
-  };
-
   wsv_data["obs_pos"] = {
       .desc = R"--(The position of an observer of spectral radiance.
 
