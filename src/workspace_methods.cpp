@@ -2358,8 +2358,48 @@ The surface masks lives under the *SurfacePropertyTag* keys, which must be the s
                          "az_grid_weights",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
+       .pass_workspace = true,
+   };
+
+  wsm_data["spectral_radSurfaceScatteringDiffuse"] = {
+      .desc =
+          R"--(Set surface spectral radiance to use sub-surface emission and surface scattering.
+
+The input path point must be close to the surface.
+
+The incoming quadrature directions are checked against the horizon defined by
+the actual surface normal at the point: directions below that horizon
+contribute nothing to the scattered term, and directions above it that a flat
+horizon would hide are included.  This generalizes
+*spectral_radSurfaceScatteringFlatDiffuse* to tilted surfaces, in the same way
+that *spectral_radSurfaceScatteringFlatDirect* gates its beam by the surface
+normal.  Extend *zen_grid* beyond 90 degrees to capture directions made
+visible by the surface tilt.
+
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks lives under the *SurfacePropertyTag* keys, which must be the same as in
+*surface_models*.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "zen_grid",
+                         "az_grid",
+                         "zen_grid_weights",
+                         "az_grid_weights",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
       .pass_workspace = true,
-  };
+   };
 
   wsm_data["spectral_radSurfaceScatteringSpecular"] = {
       .desc =
