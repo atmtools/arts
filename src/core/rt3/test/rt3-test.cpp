@@ -1,6 +1,6 @@
 // Tests of the RT3 wrapper against references from outside RT3:
 //   - Evans' benchmark outputs of the original RT3 program, kept verbatim in
-//     3rdparty/polradtran/rt3/runmietest (the Mie case of Evans and
+//     3rdparty/polradtran/runmietest (the Mie case of Evans and
 //     Stephens, 1991) and runtesta, and copied into the tables below;
 //   - closed forms of the transfer equation for gas-only layers;
 //   - single scattering by an optically thin Rayleigh layer, built from the
@@ -39,7 +39,7 @@ struct table_row {
   std::array<Numeric, 4> iquv;
 };
 
-// 3rdparty/polradtran/rt3/runmietest, mietest.out.check
+// 3rdparty/polradtran/runmietest, mietest.out.check
 // (W m-2 sr-1 um-1 and W m-2 um-1)
 constexpr table_row mietest_check[] = {
     {1.000, .0, -2.00000, {.365133E+00, .489285E-01, .000000E+00, .000000E+00}},
@@ -144,7 +144,7 @@ constexpr table_row mietest_check[] = {
     {.000, 180.0, .98940, {.577439E-01, -.226181E-01, -.412231E-08, -.802475E-13}},
 };
 
-// 3rdparty/polradtran/rt3/runtesta, testa.out.check
+// 3rdparty/polradtran/runtesta, testa.out.check
 constexpr table_row testa_check[] = {
     {15.000, .0, -2.00000, {.173477E+01, .103900E+00, .000000E+00, .000000E+00}},
     {15.000, .0, 2.00000, {.500000E+01, .000000E+00, .000000E+00, .000000E+00}},

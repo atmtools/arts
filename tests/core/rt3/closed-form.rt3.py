@@ -1,7 +1,7 @@
 """RT3 through pyarts3.arts.rt3 against references from outside RT3.
 
 * Evans' Mie benchmark: the scattering file and the expected output are read
-  from his original script 3rdparty/polradtran/rt3/runmietest (the output of
+  from his original script 3rdparty/polradtran/runmietest (the output of
   the original RT3 program, per micrometre).
 * Single scattering by an optically thin Rayleigh layer, with the Stokes
   vector of the scattered field built from vector geometry in numpy.
@@ -22,7 +22,7 @@ H = 6.62607015e-34
 C = 299792458.0
 K = 1.380649e-23
 
-RUNMIETEST = Path(__file__).resolve().parents[3] / "3rdparty/polradtran/rt3/runmietest"
+RUNMIETEST = Path(__file__).resolve().parents[3] / "3rdparty/polradtran/runmietest"
 
 
 def heredoc(text, name):

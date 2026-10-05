@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #ifdef ARTS_HAS_RT3
-// ISO_C_BINDING entry points of 3rdparty/polradtran/rt3/rt3_c_interface.f90.
+// ISO_C_BINDING entry points of 3rdparty/polradtran/rt3_c_interface.f90.
 // The arrays are Fortran column-major; see the layouts in solve().
 extern "C" {
 void rt3_radtran(std::int64_t        nstokes,

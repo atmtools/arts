@@ -296,8 +296,11 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 - Fresnel, Cox-Munk and the other BRDFs with a beam.  RT3 allows only a
   Lambertian surface with a beam.  Thermal Fresnel at m = 0 is covered by
   RT4.
-- Off-node user angles (`ungridded_u_user`): RT3's extra angles need its
-  gauss quadrature, which VDISORT does not have.
+- Off-node user angles (`ungridded_u_user`) against RT3 at the same
+  angles: RT3's extra angles need its gauss quadrature, which VDISORT does
+  not have.  Part E below evaluates VDISORT at Evans' Gauss angles and shows
+  that it is converged there, but the RT3 reference at those angles carries
+  the error of Gauss quadrature.
 - The absolute sign of V.  V agrees, but it is generated through F34, so
   this tests that the two solvers use F34 consistently, not V's sign.
   Neither RT3 nor this test pins V against an external derivation.
@@ -305,6 +308,84 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
   unpolarized.  Only column I of the beam matrices acts.
 - Phase matrices that are not of the six-element form of randomly oriented
   particles with a plane of symmetry.
+
+### Evans' benchmark settings (E)
+
+All four of Evans' scripts in `3rdparty/polradtran` run with his original
+programs (rt3.f, rt4.f, scatcnv.f from the tar's sources) as
+`cpp.fast.polradtran-runmietest`, `-runtesta`, `-runtestr` and `-runtestc`
+(`src/tests/polradtran`), and reproduce his tables: the RT3 ones to one
+unit in the last printed digit, the RT4 ones (brightness temperatures with
+two decimals) exactly.  `cpp.fast.polradtran-rt4-arts` gives ARTS's RT4
+library the optics rt4.f reads (cl340d14.dda, and scatcnv's conversion of
+runtestr's Mie series) and reproduces both RT4 tables to 0.5 of the last
+printed digit (0.005 K).
+
+Evans' two RT3 scripts, `runmietest` (the Mie case of Evans and Stephens
+1991: tau 1, omega 0.99, mu0 0.2, A 0.1, nmu 8, aziorder 8) and `runtesta`
+(Rayleigh over Mie with gas, solar and thermal at 3 um, A 0.25, nmu 4,
+aziorder 4), are run three ways, all from the scripts themselves
+(`src/tests/polradtran/evans-scripts.h` reads their here-documents):
+
+- `cpp.fast.polradtran-runmietest` and `-runtesta` run Evans' original
+  program (`rt3.f` with the unmodified sources) on the scripts as they are.
+  It reproduces both tables to one unit in the last printed digit; the
+  values that are zero by symmetry are REAL*4 round-off below 1e-8 of max I
+  in the tables and in the rerun.
+- Part E of `cpp.fast.vdisort-rt3-test` gives RT3 (the ARTS wrapper) the
+  same settings and VDISORT the same physical problem.  VDISORT has
+  double-Gauss streams only, so it is evaluated at Evans' Gauss angles with
+  its formal solution (`ungridded_u_user`).
+
+Measured, relative to max I (radiances) and max F (I fluxes):
+
+| | runmietest I / Q / U / V / F | runtesta I / Q / U / V / F |
+|---|---|---|
+| RT3 at Evans' settings vs his table | 6.3e-7 / 5.5e-7 / 6.5e-8 / 5.0e-10 / 7.5e-7 | 5.5e-7 / 5.0e-7 / 3.8e-7 / 5.5e-10 / 6.1e-7 |
+| VDISORT 16 vs 32 streams per hemisphere, at Evans' angles | 1.4e-7 / 5.7e-8 / 6.9e-9 / 1.8e-10 / 2.2e-8 | 5.6e-8 / 2.8e-8 / 8.6e-9 / 1.3e-10 / 8.2e-9 |
+| VDISORT at Evans' angles vs his table | 8.9e-3 / 2.4e-3 / 5.0e-4 / 7.0e-6 / 1.5e-3 | 1.3e-2 / 5.8e-3 / 3.4e-3 / 4.2e-6 / 3.9e-3 |
+| RT3 double-Gauss nmu 16 vs VDISORT on the same streams | 1.9e-7 / 1.7e-8 / 5.5e-9 / 3.2e-11 / 8.9e-8 | 8.7e-8 / 4.1e-8 / 4.1e-8 / 5.0e-11 / 3.0e-8 |
+
+So VDISORT is not Evans' tables: they differ by up to 0.9 and 1.3 % of max
+I, at grazing upwelling angles at the top (mu = 0.095 and 0.183).  That is
+the error of the Gauss quadrature of the tables, which handles the
+discontinuity of the radiance at the horizon poorly; double-Gauss, which
+VDISORT and DISORT use, does not have it.  RT3 itself shows this: with
+Gauss quadrature its distance from VDISORT (at RT3's nodes) falls steadily
+with nmu, about like 1 / nmu,
+
+| RT3 Gauss nmu | 4 | 6 | 8 | 12 | 16 |
+|---|---|---|---|---|---|
+| runmietest, max I difference | 2.4e-2 | 1.3e-2 | 8.9e-3 | 5.1e-3 | 3.5e-3 |
+| runtesta, max I difference | 1.3e-2 | 7.8e-3 | 5.4e-3 | 3.3e-3 | 2.3e-3 |
+
+and at Evans' nmu it is the table's distance, since RT3 there is the table.
+RT3 with double-Gauss quadrature agrees with VDISORT to its doubling error.
+The test asserts the first, second and fourth rows of the first table, and
+that the Gauss sequence decreases.
+
+Evans' RT4 script `runtestr` (a rain layer of spherical drops at 85 GHz
+over water, Fresnel n = 3.17 - 1.75i, 8 Gauss streams, V and H brightness
+temperatures) is a randomly oriented problem, so RT3 (aziorder 0) and
+VDISORT solve it from the Mie Legendre series that scatcnv converts for
+RT4:
+
+| runtestr | |
+|---|---|
+| RT3 at Evans' settings vs his RT4 table | 0.005 K (asserted, 0.01 K) |
+| VDISORT 16 vs 32 streams at Evans' angles, downwelling | 1.7e-8 of max I |
+| VDISORT at Evans' angles vs his table, downwelling | 0.081 K |
+| RT3 Gauss nmu 4, 8, 16 vs VDISORT at RT3's nodes, downwelling | 0.38, 0.078, 0.018 K |
+| RT3 double-Gauss nmu 8 and 16 vs VDISORT on the same streams, up and down | 3.7e-8, 5.3e-8 of max I (asserted, 2e-6) |
+| VDISORT at Evans' angles vs his table, upwelling | 220 K, not asserted |
+
+The downwelling difference from the table is again its Gauss quadrature.
+The upwelling one is VDISORT's: at an angle that is not one of its streams
+the user-angle formal solution starts from the surface emission alone,
+because `fresnel_fourier_modes` reflects only between streams (see the RT4
+comparison above).  Over water the missing specular reflection R I_down is
+up to 220 K in H at grazing angles.  On its own streams, with the
+reflection, VDISORT agrees with RT3.
 
 ## The three solvers on shared problems, and CI
 
@@ -341,6 +422,7 @@ job with a Fortran compiler (all Linux jobs, including LGPL, and macOS).  A
 job that loses its compiler then fails to configure instead of silently
 skipping these tests.
 `check` then runs `cpp.fast.rt3-test`, `cpp.fast.rt4-test`,
+`cpp.fast.polradtran-runmietest`, `cpp.fast.polradtran-runtesta`,
 `cpp.fast.vdisort-rt3-test`, `cpp.fast.vdisort-rt4-test`, the closed-form
 Python tests of both bindings, and this three-solver test.  Windows has no
 Fortran compiler in its environment and runs none of them.

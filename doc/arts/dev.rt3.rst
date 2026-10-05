@@ -19,12 +19,15 @@ Provenance
   https://nit.coloradolinux.com/polrad.html under the MIT licence
   (``3rdparty/polradtran/LICENSE``).  RT3 is described in Evans and Stephens
   (1991), J. Quant. Spectrosc. Radiat. Transfer 46, 413-423.  ARTS 2 never
-  shipped RT3.  The ``.orig`` files, ``rt3.f``, ``runmietest`` and
-  ``runtesta`` in ``3rdparty/polradtran/rt3`` are byte-identical to the
-  current ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``).  The two
-  scripts hold Evans' expected outputs, which the tests compare with.
+  shipped RT3.
+  All of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``) is in the one
+  folder ``3rdparty/polradtran``, as in the tar: where ARTS modifies a file,
+  the modified file has the tar's name and the tar's file is kept beside it
+  as ``.orig``; every other file (``README``, ``rt3.f``, ``rt4.f``,
+  ``scatcnv.f``, the four test scripts and ``cl340d14.dda``) is unchanged.
+  ``README.ARTS`` there lists all changes.
 * **ARTS 3 changes**, each marked ``c ARTS3:`` in the source and listed in
-  ``3rdparty/polradtran/rt3/README``:
+  ``3rdparty/polradtran/README.ARTS``:
 
   * The scattering properties are passed in memory as scattering sets
     (extinction, scattering coefficient, Legendre series) with a set index
@@ -44,8 +47,16 @@ Provenance
     limit, growing to -2e-4 and -3e-4 at 3 um and 300 and 200 K.
   * A new ``rt3_c_interface.f90`` with ``ISO_C_BINDING`` entry points.
 
-  ``rt3.f``, the original main program, is kept for provenance only and is
-  not built.  Its ``OUTPUT_FILE`` shows how RT3 sums its Fourier series.
+  ``rt3.f``, the original main program, is built with the ``.orig`` files
+  as the program ``rt3-evans``.  ``cpp.fast.polradtran-runmietest`` and
+  ``cpp.fast.polradtran-runtesta`` run Evans' two RT3 scripts with it as
+  they are (``src/tests/polradtran/polradtran-scripts.cpp`` executes their
+  here-documents, so csh is not needed) and compare the output with his
+  tables numerically: every value to one unit in its last printed digit
+  (measured: 1 and 0), and the values that are zero by symmetry, REAL*4
+  round-off of ``OUTPUT_FILE``, below 1e-7 of max I (measured: 5e-9).
+  ``OUTPUT_FILE`` also shows how RT3 sums its Fourier series.  The RT4
+  scripts are run likewise, see :doc:`dev.rt4`.
 
 Build
 -----
@@ -155,7 +166,9 @@ repeats the quadrature, single-scattering (1.7e-6 at tau = 1e-6), gas-only
 Fresnel (4.4e-15) and error-path checks through the bindings.
 
 The comparison of VDISORT against RT3, ``cpp.fast.vdisort-rt3-test``, is also
-built only with ``ENABLE_RT3=ON``.  See `Mapping to VDISORT inputs`_.  The
+built only with ``ENABLE_RT3=ON``.  See `Mapping to VDISORT inputs`_.  Its
+part E solves the problems of Evans' two scripts, read from the scripts, with
+VDISORT; see ``src/core/disort-cpp/test/vdisort/COVERAGE.md``.  The
 tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 
 Interface

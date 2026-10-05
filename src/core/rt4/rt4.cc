@@ -10,7 +10,7 @@
 #include <type_traits>
 
 #ifdef ARTS_HAS_RT4
-// ISO_C_BINDING entry points of 3rdparty/polradtran/rt4/rt4_c_interface.f90.
+// ISO_C_BINDING entry points of 3rdparty/polradtran/rt4_c_interface.f90.
 // The arrays are Fortran column-major; see the layouts in solve().
 extern "C" {
 void rt4_radtrano(std::int64_t nstokes,

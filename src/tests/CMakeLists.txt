@@ -272,6 +272,7 @@ add_dependencies(check-deps test_vformat)
 
 # ####
 add_subdirectory(scattering)
+add_subdirectory(polradtran)
 
 add_executable(test_ai_port_regressions test_ai_port_regressions.cc)
 target_link_libraries(test_ai_port_regressions artsworkspace)

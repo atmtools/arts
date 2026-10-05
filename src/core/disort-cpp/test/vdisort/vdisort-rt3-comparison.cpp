@@ -72,14 +72,20 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <format>
+#include <functional>
 #include <iostream>
 #include <limits>
+#include <map>
+#include <memory>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "evans-scripts.h"
 #include "lab-frame.h"
 
 namespace {
@@ -126,7 +132,7 @@ Matrix legendre(std::initializer_list<std::array<Numeric, 6>> rows) {
   return m;
 }
 
-//! mietest.sca of Evans' runmietest and runtesta (3rdparty/polradtran/rt3)
+//! mietest.sca of Evans' runmietest and runtesta (3rdparty/polradtran)
 Matrix mie_legendre() {
   return legendre({
       {1.00000000, -.32071711, .71206342, -.01882245, 1.00000000, .71206342},
@@ -201,6 +207,7 @@ struct setup {
   Numeric                          sky{0.0};
   Numeric                          surface{0.0};
   Numeric                          albedo{0.0};
+  std::optional<Complex>           fresnel{};  // a Fresnel surface of this index instead of the Lambertian albedo
   Numeric                          phi0{0.0};  // VDISORT's beam azimuth
 
   Index   nlay() const { return isize(height) - 1; }
@@ -259,7 +266,10 @@ rt3::problem rt3_problem(const setup& c) {
   p.layer_scattering_index = c.set_index;
   p.sky_temperature        = c.sky;
   p.surface_temperature    = c.surface;
-  p.ground                 = rt3::lambertian_surface{.albedo = c.albedo};
+  if (c.fresnel)
+    p.ground = rt3::fresnel_surface{.refractive_index = *c.fresnel};
+  else
+    p.ground = rt3::lambertian_surface{.albedo = c.albedo};
   return p;
 }
 
@@ -454,10 +464,17 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   bottom              = rtepack::stokvec{};
   top                 = rtepack::stokvec{};
   const Numeric Bsky  = c.sky > 0 ? planck(c.frequency, c.sky) : 0.0;
-  const Numeric Bsurf = c.thermal ? (1 - c.albedo) * planck(c.frequency, c.surface) : 0.0;
+  const Numeric Bs    = c.surface > 0 ? planck(c.frequency, c.surface) : 0.0;
+  const Numeric Bsurf = c.thermal ? (1 - c.albedo) * Bs : 0.0;
   for (Index i = 0; i < N; i++) {
-    top[vdisort::cosine_mode, 0, i]    = {Bsky, 0.0, 0.0, 0.0};
-    bottom[vdisort::cosine_mode, 0, i] = {Bsurf, 0.0, 0.0, 0.0};
+    top[vdisort::cosine_mode, 0, i] = {Bsky, 0.0, 0.0, 0.0};
+    if (c.fresnel) {
+      // Kirchhoff emission B ([1, 0, 0, 0] - R(mu)[:, 0]), always on, as RT3's Fresnel surface
+      const auto R                       = vdisort::brdf::Fresnel{.refractive_index = *c.fresnel}(mu[i]);
+      bottom[vdisort::cosine_mode, 0, i] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
+    } else {
+      bottom[vdisort::cosine_mode, 0, i] = {Bsurf, 0.0, 0.0, 0.0};
+    }
   }
 
   // B(tau) = c0 + c1 tau in the global optical depth, linear within each layer
@@ -481,7 +498,8 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
                            std::move(bottom),
                            std::move(top),
                            std::move(source),
-                           vdisort::brdf::lambertian_fourier_modes(c.albedo, NF),
+                           c.fresnel ? vdisort::brdf::fresnel_fourier_modes(*c.fresnel, NF)
+                                     : vdisort::brdf::lambertian_fourier_modes(c.albedo, NF),
                            c.mu0,
                            beam_stokes,
                            c.phi0,
@@ -1232,6 +1250,477 @@ void test_delta_m() {
   require(dev < 1e-14, std::format("R9: RT3's delta-M algebra must recover the Mie series, got {:.1e}", dev));
   check("R9 R3 with a forward peak f = 1/4, RT3 delta-M", c);
 }
+//////////////////////////////////////////////////////////////////////////////
+// Evans' benchmark settings (E)
+//////////////////////////////////////////////////////////////////////////////
+
+//! Exact-SI radiation constants in RT3's units, 2 h c^2 [W m-2 sr-1 um^4] and h c / k [um K]
+constexpr Numeric planck_c1 = 2.0 * Constant::h * Constant::c * Constant::c * 1e24;
+constexpr Numeric planck_c2 = Constant::h * Constant::c / Constant::k * 1e6;
+
+/* A problem of Evans' scripts (3rdparty/polradtran/runmietest and
+   runtesta), read from the script itself: its answers to rt3.f, its layer
+   and scattering files and its expected output (the table).  The table is
+   per micrometre and was made with Evans' 5-digit Planck constants;
+   per_um converts it to W m-2 Hz-1 sr-1, and the temperatures are those at
+   which the exact Planck function equals Evans' (see evans-scripts.h). */
+struct evans_case {
+  std::string             name;
+  evans::rt3_settings         settings;
+  std::vector<evans::row> table;
+  setup                   c;       // c.nmu is VDISORT's, to be set
+  Numeric                 per_um;  // W m-2 Hz-1 sr-1 per W m-2 um-1 sr-1
+  Vector                  mu;      // Evans' streams, the table's |MU|
+  bool                    brightness{false};  // the table holds V, H brightness temperatures (rt4.f, UNITS T)
+};
+
+evans_case read_evans(const std::string& script) {
+  const auto sc = evans::read_script(std::filesystem::path(POLRADTRAN_DIR) / script);
+  evans_case e;
+  e.name  = script;
+  e.table = evans::read_output(sc.files.at(sc.check));
+  std::map<std::string, std::string> legendre_of;  // an RT4 scattering file made by scatcnv -> its Legendre input
+  if (sc.solver().program == "rt3") {
+    e.settings = evans::read_rt3_settings(sc);
+  } else {
+    // An RT4 script as the equivalent RT3 problem: thermal, m = 0, randomly oriented particles
+    const auto r4 = evans::read_rt4_settings(sc);
+    require(r4.units == 'T' and r4.polarization == "VH" and r4.nstokes == 2,
+            std::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", script));
+    e.brightness = true;
+    e.settings   = {.nstokes            = r4.nstokes,
+                    .nmu                = r4.nmu,
+                    .quad               = r4.quad,
+                    .aziorder           = 0,
+                    .layer_file         = r4.layer_file,
+                    .delta_m            = false,
+                    .src_code           = 2,
+                    .ground_temperature = r4.ground_temperature,
+                    .ground_type        = r4.ground_type,
+                    .albedo             = r4.albedo,
+                    .ground_index       = r4.ground_index,
+                    .sky_temperature    = r4.sky_temperature,
+                    .wavelength         = r4.wavelength,
+                    .output             = r4.output};
+    for (const auto& r : sc.runs)
+      if (r.program == "scatcnv") {
+        evans::answers a(r);
+        const auto     in = a.first(), out = a.first();
+        legendre_of[out]  = in;
+      }
+  }
+  const auto& st = e.settings;
+  require(st.quad == 'G' and st.ground_type != 'S' and not st.delta_m,
+          std::format("{}: only Gauss quadrature, a Lambertian or Fresnel ground and no delta-M are handled here", script));
+
+  const auto levels = evans::read_layers(sc.files.at(st.layer_file));
+  const auto T      = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
+  setup&     c      = e.c;
+  c.nstokes         = st.nstokes;
+  c.aziorder        = st.aziorder;
+  c.frequency       = Constant::c / (st.wavelength * 1e-6);
+  e.per_um          = st.wavelength / c.frequency;
+  const Index nlay  = isize(levels) - 1;
+  c.height          = Vector(nlay + 1);
+  c.temperature     = Vector(nlay + 1);
+  c.gas             = Vector(nlay);
+  c.set_index       = ArrayOfIndex(nlay, -1);
+  std::map<std::string, Index> set_of;
+  for (Index l = 0; l <= nlay; l++) {
+    c.height[l]      = levels[l].height;
+    c.temperature[l] = T(levels[l].temperature);
+    if (l == nlay) break;
+    c.gas[l]          = levels[l].gas;
+    const auto& file = levels[l].scattering_file;
+    if (file.empty()) continue;
+    if (not set_of.contains(file)) {
+      require(sc.files.contains(legendre_of.contains(file) ? legendre_of[file] : file),
+              std::format("{}: the scattering file {} is not a Legendre series (RT3 format)", script, file));
+      const auto f = evans::read_scattering(sc.files.at(legendre_of.contains(file) ? legendre_of[file] : file));
+      Matrix     L(isize(f.legendre), 6);
+      for (Index i = 0; i < L.nrows(); i++)
+        for (Index k = 0; k < 6; k++) L[i, k] = f.legendre[i][k];
+      set_of[file] = isize(c.sets);
+      c.sets.push_back({.extinction = f.extinction, .scattering = f.scattering, .legendre = std::move(L)});
+    }
+    c.set_index[l] = set_of[file];
+  }
+  c.direct_flux = st.direct_flux * e.per_um;
+  c.mu0         = st.direct_mu;
+  c.thermal     = st.src_code >= 2;
+  c.sky         = T(st.sky_temperature);
+  c.surface     = T(st.ground_temperature);
+  c.albedo      = st.albedo;
+  if (st.ground_type == 'F') c.fresnel = st.ground_index;
+  e.mu          = rt3::get_quadrature(st.nmu, rt3::quadrature_type::gauss).mu;
+  return e;
+}
+
+//! A solution at the table's rows, per micrometre: [I, Q, U, V], fluxes (MU = -2, 2) in I and Q
+using row_solution = std::function<Vector4(const evans::row&)>;
+
+//! The table level of a height and Evans' stream of a |MU| (printed with 5 decimals)
+Index level_of(const evans_case& e, Numeric z) {
+  for (Index l = 0; l < isize(e.c.height); l++)
+    if (std::abs(e.c.height[l] - z) < 1e-9) return l;
+  throw std::runtime_error(std::format("{}: no level at Z = {}", e.name, z));
+}
+
+Index stream_of(const Vector& mu, Numeric m) {
+  for (Index i = 0; i < isize(mu); i++)
+    if (std::abs(mu[i] - std::abs(m)) < 6e-6) return i;
+  throw std::runtime_error(std::format("No stream at MU = {}", m));
+}
+
+//! VDISORT at Evans' streams (user angles, formal solution) and fluxes, for a solved problem
+row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, const setup& c) {
+  const Index  N = c.nmu, NQuad = 2 * N, NL = c.nlay(), NF = c.nfourier(), ns = c.nstokes, n = isize(e.mu);
+  const Vector mu = signed_streams(N);
+  Vector       user(2 * n);  // up first, as VDISORT's streams
+  for (Index i = 0; i < n; i++) {
+    user[i]     = e.mu[i];
+    user[n + i] = -e.mu[i];
+  }
+
+  rtepack::muelmat_tensor4 Cd(NF, NL, 2 * n, NQuad, rtepack::muelmat{0.0}), Sd = Cd;
+  rtepack::muelmat_tensor3 Cb(NF, NL, 2 * n, rtepack::muelmat{0.0}), Sb = Cb;
+  for (Index l = 0; l < NL; l++) {
+    const Index s = c.set_index[l];
+    if (s < 0) continue;
+    const auto  T    = transport_set(c.sets[s], c);
+    const auto  F    = legendre_matrix(T.legendre);
+    const Index nphi = rt3_azimuth_samples(T.legendre.nrows() - 1, c.aziorder);
+    const auto  d    = fourier_modes(F, user, mu, NF, nphi, ns);
+    const auto  b    = fourier_modes(F, user, Vector{-c.mu0}, NF, nphi, ns);
+    for (Index m = 0; m < NF; m++) {
+      for (Index u = 0; u < 2 * n; u++) {
+        for (Index j = 0; j < NQuad; j++) {
+          Cd[m, l, u, j] = d.C[m, u, j];
+          Sd[m, l, u, j] = d.S[m, u, j];
+        }
+        Cb[m, l, u] = b.C[m, u, 0];
+        Sb[m, l, u] = b.S[m, u, 0];
+      }
+    }
+  }
+  Vector levels(NL + 1, 0.0);
+  for (Index l = 0; l < NL; l++) levels[l + 1] = v.tau()[l];
+  const AscendingGrid tau{std::move(levels)};
+  const Vector        psi{0.0, pi / 2, pi};  // the table's PHI = 0, 90, 180 deg
+  Vector              phi(3);
+  for (Index k = 0; k < 3; k++) phi[k] = wrapped(c.phi0 + psi[k]);
+  auto out = std::make_shared<rtepack::stokvec_tensor3>(NL + 1, 3, 2 * n);
+  v.ungridded_u_user(*out,
+                     tau,
+                     phi,
+                     user,
+                     vdisort::combine_phase_matrices(Cd, Sd),
+                     vdisort::combine_beam_phase_matrices(Cb, Sb));
+  // At an angle that is one of VDISORT's streams, the stream solution: the user-angle formal solution
+  // reflects a Fresnel surface only into the streams (see the RT4 comparison)
+  Tensor4 streams(NL + 1, 3, NQuad, 4);
+  v.ungridded_u(streams, tau, phi);
+  for (Index u = 0; u < 2 * n; u++)
+    for (Index j = 0; j < NQuad; j++)
+      if (std::abs(v.mu()[j] - user[u]) < 1e-12)
+        for (Index l = 0; l <= NL; l++)
+          for (Index k = 0; k < 3; k++)
+            for (Index st = 0; st < 4; st++) (*out)[l, k, u][st] = streams[l, k, j, st];
+
+  auto flux = std::make_shared<Matrix>(4, NL + 1);
+  v.ungridded_flux((*flux)[0], (*flux)[1], (*flux)[2], (*flux)[3], tau);
+
+  return [out, flux, n, &e](const evans::row& r) -> Vector4 {
+    const Index l = level_of(e, r.z);
+    if (std::abs(r.mu) == 2.0) {
+      const Numeric f = r.mu < 0 ? (*flux)[0, l] : (*flux)[1, l] + (*flux)[2, l];
+      return {f / e.per_um, 0.0, 0.0, 0.0};
+    }
+    const Index k = static_cast<Index>(std::lround(r.phi / 90.0)), i = stream_of(e.mu, r.mu);
+    const auto& x = (*out)[l, k, r.mu < 0 ? i : n + i];
+    return {x[0] / e.per_um, x[1] / e.per_um, x[2] / e.per_um, x[3] / e.per_um};
+  };
+}
+
+//! RT3 (the ARTS wrapper) on its own nmu nodes of the quadrature, which must be e.mu
+row_solution rt3_at_table(const evans_case& e, Index nmu, rt3::quadrature_type quad, Numeric max_delta_tau) {
+  setup c         = e.c;
+  c.nmu           = nmu;
+  c.max_delta_tau = max_delta_tau;
+  auto p          = rt3_problem(c);
+  p.quad          = quad;
+  const auto   r  = std::make_shared<rt3::result>(rt3::solve(p));
+  const Vector psi{0.0, pi / 2, pi};
+  auto         up = std::make_shared<Tensor4>(rt3::azimuth_radiance(r->up, psi));
+  auto         dn = std::make_shared<Tensor4>(rt3::azimuth_radiance(r->down, psi));
+  require(isize(r->mu) == isize(e.mu), "RT3's streams must be the evaluation streams");
+  for (Index i = 0; i < isize(e.mu); i++) require(std::abs(r->mu[i] - e.mu[i]) < 1e-15, "RT3's streams must be the evaluation streams");
+  return [r, up, dn, &e](const evans::row& row) -> Vector4 {
+    const Index l = level_of(e, row.z);
+    if (std::abs(row.mu) == 2.0) {
+      const auto& f = row.mu < 0 ? r->up_flux : r->down_flux;
+      return {f[l, 0] / e.per_um, f.ncols() > 1 ? f[l, 1] / e.per_um : 0.0, 0.0, 0.0};
+    }
+    const Index k = static_cast<Index>(std::lround(row.phi / 90.0)), i = stream_of(e.mu, row.mu);
+    const auto& t = row.mu < 0 ? *up : *dn;
+    Vector4     x{};
+    for (Index s = 0; s < t.extent(3); s++) x[s] = t[l, k, i, s] / e.per_um;
+    return x;
+  };
+}
+
+//! max |a - b| over the table's radiance rows per Stokes component / max I, and of the I fluxes / max flux
+struct table_deviation {
+  Vector4 stokes{};
+  Numeric flux{};
+};
+
+//! The table's rows (fluxes and radiances at PHI = 0, 90, 180 deg and every level) on the streams mu
+std::vector<evans::row> rows_on(const evans_case& e, const Vector& mu) {
+  std::vector<evans::row> rows;
+  for (Index l = 0; l < isize(e.c.height); l++) {
+    rows.push_back({.z = e.c.height[l], .phi = 0.0, .mu = -2.0, .n = 4, .iquv = {}, .unit = {}});
+    rows.push_back({.z = e.c.height[l], .phi = 0.0, .mu = 2.0, .n = 4, .iquv = {}, .unit = {}});
+    for (Numeric phi : {0.0, 90.0, 180.0})
+      for (Numeric sign : {-1.0, 1.0})
+        for (Index i = 0; i < isize(mu); i++) rows.push_back({.z = e.c.height[l], .phi = phi, .mu = sign * mu[i], .n = 4, .iquv = {}, .unit = {}});
+  }
+  return rows;
+}
+
+//! max |a - b| over rows, per Stokes component / max I of b, and of the I fluxes / max flux of b
+table_deviation deviation_from(const evans_case& e, const row_solution& a, const row_solution& b,
+                               const std::vector<evans::row>& rows) {
+  Numeric max_i = 0.0, max_f = 0.0;
+  for (const auto& r : rows) {
+    const Numeric x = std::abs(b(r)[0]);
+    if (std::abs(r.mu) == 2.0) max_f = std::max(max_f, x);
+    else max_i = std::max(max_i, x);
+  }
+  table_deviation d;
+  for (const auto& r : rows) {
+    const auto x = a(r), y = b(r);
+    if (std::abs(r.mu) == 2.0) {
+      d.flux = std::max(d.flux, std::abs(x[0] - y[0]) / max_f);
+    } else {
+      for (Index s = 0; s < e.c.nstokes; s++) d.stokes[s] = std::max(d.stokes[s], std::abs(x[s] - y[s]) / max_i);
+    }
+  }
+  return d;
+}
+
+//! Evans' table as a solution
+row_solution table_of() {
+  return [](const evans::row& r) -> Vector4 { return {r.iquv[0], r.iquv[1], r.iquv[2], r.iquv[3]}; };
+}
+
+Numeric max_of(const table_deviation& d) { return std::max({d.stokes[0], d.stokes[1], d.stokes[2], d.stokes[3], d.flux}); }
+
+table_deviation print_deviation(std::string_view what, const table_deviation& d, Numeric tol = -1.0) {
+  std::cout << std::format("    {:<62} I {:8.2e}  Q {:8.2e}  U {:8.2e}  V {:8.2e}  F {:8.2e}{}\n",
+                           what,
+                           d.stokes[0],
+                           d.stokes[1],
+                           d.stokes[2],
+                           d.stokes[3],
+                           d.flux,
+                           tol < 0 ? "" : std::format("  tolerance {:.0e}", tol));
+  require(tol < 0 or max_of(d) <= tol, std::format("{}: {:.2e} exceeds the tolerance {:.0e}", what, max_of(d), tol));
+  return d;
+}
+
+/* E: VDISORT on the settings of Evans' scripts, runmietest (the Mie case
+   of Evans and Stephens 1991) and runtesta (Rayleigh over Mie, gas, solar
+   and thermal), read from the scripts.  Evans' tables are RT3 solutions with
+   Gauss quadrature (the positive half of a 2 nmu-point Gauss-Legendre rule
+   on [-1, 1]; nmu 8 and 4).  VDISORT has double-Gauss streams only, so it
+   solves the same physical problem on its own streams and is evaluated at
+   Evans' angles by its formal solution (ungridded_u_user).  The fluxes are
+   compared in I.
+   - RT3 (the ARTS wrapper) at Evans' settings must reproduce his tables to
+     print precision.  That checks the reading of the scripts, the units
+     (per micrometre, Evans' 5-digit Planck function) and mu0.
+   - VDISORT must be converged in its streams at Evans' angles (nmu 16 and
+     32 agree).
+   - RT3 with double-Gauss nodes must agree with VDISORT on the same
+     streams to RT3's doubling error: the same discrete problem (as R6).
+   - Evans' tables differ from VDISORT by up to 1.3e-2 of max I, largest at
+     grazing upwelling angles at the top.  That is the error of Gauss
+     quadrature, which handles the discontinuity of the radiance at the
+     horizon poorly: RT3 with Gauss quadrature approaches VDISORT steadily
+     (about like 1 / nmu) as nmu grows from 4 to 16.  At Evans' nmu, RT3 is
+     his table (above), so its distance from VDISORT is the table's. */
+void test_evans_settings() {
+  for (const std::string script : {"runmietest", "runtesta"}) {
+    const auto e = read_evans(script);
+    std::cout << std::format("E {} (Evans' benchmark): {} layer(s), nstokes {}, Gauss nmu {}, aziorder {}, source code {}, "
+                             "mu0 {:.6f}\n",
+                             script,
+                             e.c.nlay(),
+                             e.settings.nstokes,
+                             e.settings.nmu,
+                             e.settings.aziorder,
+                             e.settings.src_code,
+                             e.c.mu0);
+    const auto table = table_of();
+    const auto evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);  // rt3.f's MAX_DELTA_TAU
+    print_deviation("RT3 at Evans' settings vs his table", deviation_from(e, evans, table, e.table), 2e-6);
+
+    setup c16 = e.c, c32 = e.c;
+    c16.nmu   = 16;
+    c32.nmu   = 32;
+    const auto v16 = vdisort_solver(c16), v32 = vdisort_solver(c32);
+    const auto v_at = [&](const evans_case& g) { return vdisort_at_table(v32, g, c32); };
+    const auto v    = v_at(e);
+    print_deviation("VDISORT, nmu 16 vs 32, at Evans' angles", deviation_from(e, vdisort_at_table(v16, e, c16), v, e.table), 1e-6);
+    print_deviation("VDISORT (nmu 32) at Evans' angles vs his table", deviation_from(e, v, table, e.table));
+
+    // RT3 with Gauss quadrature approaches VDISORT (32 streams) at its nodes
+    Numeric previous = 1.0;
+    for (Index nmu : {4, 6, 8, 12, 16}) {
+      evans_case g = e;
+      g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
+      const auto d = print_deviation(
+          std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu),
+          deviation_from(g, rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7), v_at(g), rows_on(g, g.mu)));
+      require(max_of(d) < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
+      previous = max_of(d);
+    }
+
+    // RT3 and VDISORT on the same double-Gauss streams: the same discrete problem
+    for (Index nmu : {8, 16}) {
+      evans_case g = e;
+      g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
+      setup c      = e.c;
+      c.nmu        = nmu;
+      print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
+                      deviation_from(g,
+                                     rt3_at_table(g, nmu, rt3::quadrature_type::double_gauss, 1e-7),
+                                     vdisort_at_table(vdisort_solver(c), g, c),
+                                     rows_on(g, g.mu)),
+                      2e-6);
+    }
+  }
+}
+
+
+//! Evans' CONVERT_OUTPUT for UNITS 'T': [I, Q] per micrometre to the effective blackbody temperatures of V and H
+std::array<Numeric, 2> brightness_vh(Numeric i, Numeric q, Numeric lambda, bool flux) {
+  std::array<Numeric, 2> t{};
+  for (Index k = 0; k < 2; k++) {
+    Numeric rad = 2.0 * 0.5 * (i + (k == 0 ? q : -q));
+    if (flux) rad /= pi;
+    const Numeric sign = rad < 0 ? -1.0 : 1.0;
+    t[k] = rad == 0 ? 0.0 : sign * 1.4388e4 / (lambda * std::log(1.0 + 1.1911e8 / (sign * rad * std::pow(lambda, 5))));
+  }
+  return t;
+}
+
+//! max |T_V, T_H of a - the table| over rows [K]
+Numeric brightness_deviation(const evans_case& e, const row_solution& a, const std::vector<evans::row>& rows) {
+  Numeric d = 0.0;
+  for (const auto& r : rows) {
+    const auto x = a(r);
+    const auto t = brightness_vh(x[0], x[1], e.settings.wavelength, std::abs(r.mu) == 2.0);
+    for (Index k = 0; k < 2; k++) d = std::max(d, std::abs(t[k] - r.iquv[k]));
+  }
+  return d;
+}
+
+//! The downwelling radiance rows
+std::vector<evans::row> downward(const std::vector<evans::row>& rows) {
+  std::vector<evans::row> out;
+  for (const auto& r : rows)
+    if (r.mu > 0 and r.mu != 2.0) out.push_back(r);
+  return out;
+}
+
+/* E for Evans' RT4 script runtestr, read from the script: a 2 mm/h rain
+   layer of spherical drops at 85 GHz over water (Fresnel, n = 3.17 -
+   1.75i), 8 Gauss streams, I and Q, brightness temperatures in V and H.
+   The drops are randomly oriented, so RT3 with aziorder 0 and VDISORT solve
+   the same problem from the Mie Legendre series that Evans' scatcnv turns
+   into RT4's scattering file.  For two Stokes components the Fresnel
+   reflectivities depend only on |r_v|^2 and |r_h|^2, so the sign of the
+   imaginary part of n does not matter.
+   - RT3 at Evans' settings must reproduce his RT4 table to 0.01 K (its
+     last printed digit): RT3's m = 0 doubling is RT4's.
+   - VDISORT drops the specular reflection at angles that are not its
+     streams (fresnel_fourier_modes; see the RT4 comparison), so at Evans'
+     Gauss angles only its downwelling radiances are compared.  They differ
+     from the table by the Gauss quadrature of the table, as in E above;
+     the upwelling ones are printed, not asserted.
+   - On the same double-Gauss streams VDISORT and RT3 solve the same
+     discrete problem, with the reflection, and must agree to RT3's
+     doubling error at every level, stream and direction. */
+void test_evans_rt4_settings() {
+  const auto e = read_evans("runtestr");
+  std::cout << std::format("E runtestr (Evans' RT4 benchmark): {} layer(s), nstokes {}, Gauss nmu {}, Fresnel n = {}{:+}i, "
+                           "brightness temperatures in V and H\n",
+                           e.c.nlay(),
+                           e.settings.nstokes,
+                           e.settings.nmu,
+                           e.c.fresnel->real(),
+                           e.c.fresnel->imag());
+  const auto    evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);
+  const Numeric rt3_k = brightness_deviation(e, evans, e.table);
+  std::cout << std::format("    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
+  require(rt3_k <= 0.01 + 1e-9, "RT3 at Evans' settings must reproduce his RT4 table to 0.01 K");
+
+  setup c16 = e.c, c32 = e.c;
+  c16.nmu   = 16;
+  c32.nmu   = 32;
+  const auto v16 = vdisort_solver(c16), v32 = vdisort_solver(c32);
+  const auto v   = vdisort_at_table(v32, e, c32);
+  const auto down = downward(e.table);
+  print_deviation("VDISORT, nmu 16 vs 32, at Evans' angles, downwelling",
+                  deviation_from(e, vdisort_at_table(v16, e, c16), v, down),
+                  1e-6);
+  std::vector<evans::row> up;
+  for (const auto& r : e.table)
+    if (r.mu < 0 and r.mu != -2.0) up.push_back(r);
+  std::cout << std::format("    {:<62} {:.4f} K\n", "VDISORT (nmu 32) at Evans' angles vs his table, downwelling",
+                           brightness_deviation(e, v, down));
+  std::cout << std::format("    {:<62} {:.4f} K  NOT ASSERTED: no off-stream Fresnel reflection\n",
+                           "VDISORT (nmu 32) at Evans' angles vs his table, upwelling",
+                           brightness_deviation(e, v, up));
+  for (Index nmu : {4, 8, 16}) {
+    evans_case g = e;
+    g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
+    std::cout << std::format("    {:<62} {:.4f} K\n",
+                             std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes, downwelling", nmu),
+                             [&] {
+                               const auto r3 = rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7);
+                               const auto vd = vdisort_at_table(v32, g, c32);
+                               Numeric    d  = 0.0;
+                               for (const auto& r : downward(rows_on(g, g.mu))) {
+                                 const auto a = brightness_vh(r3(r)[0], r3(r)[1], e.settings.wavelength, false);
+                                 const auto b = brightness_vh(vd(r)[0], vd(r)[1], e.settings.wavelength, false);
+                                 d            = std::max({d, std::abs(a[0] - b[0]), std::abs(a[1] - b[1])});
+                               }
+                               return d;
+                             }());
+  }
+  for (Index nmu : {8, 16}) {
+    evans_case g = e;
+    g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
+    setup c      = e.c;
+    c.nmu        = nmu;
+    const auto rows = [&] {
+      std::vector<evans::row> r;
+      for (const auto& x : rows_on(g, g.mu))
+        if (std::abs(x.mu) != 2.0 and x.phi == 0.0) r.push_back(x);  // m = 0: one azimuth
+      return r;
+    }();
+    print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
+                    deviation_from(g,
+                                   rt3_at_table(g, nmu, rt3::quadrature_type::double_gauss, 1e-7),
+                                   vdisort_at_table(vdisort_solver(c), g, c),
+                                   rows),
+                    2e-6);
+  }
+}
+
 }  // namespace
 
 int main() try {
@@ -1246,6 +1735,8 @@ int main() try {
   test_convergence();
   test_mistakes();
   test_delta_m();
+  test_evans_settings();
+  test_evans_rt4_settings();
   std::cout << "vdisort-rt3 comparison passed\n";
   return 0;
 } catch (const std::exception& e) {

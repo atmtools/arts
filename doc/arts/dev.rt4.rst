@@ -15,10 +15,14 @@ Provenance
 * **Original code.** K. F. Evans, polradtran (RT3/RT4), 1996, distributed
   from https://nit.coloradolinux.com/polrad.html under the MIT licence
   (``3rdparty/polradtran/LICENSE``).  RT4 is briefly described in Evans and
-  Stephens (1995), J. Atmos. Sci. 52, 2058-2072.  See
-  ``3rdparty/polradtran/rt4/README``.  The ``.orig`` files are
-  byte-identical to the current ``PolRadTran.tar`` (sha256
-  ``7b0eff79...a6f7cff9d``).
+  Stephens (1995), J. Atmos. Sci. 52, 2058-2072.  See Evans'
+  ``3rdparty/polradtran/README``.
+  All of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``) is in the one
+  folder ``3rdparty/polradtran``, as in the tar: where ARTS modifies a file,
+  the modified file has the tar's name and the tar's file is kept beside it
+  as ``.orig``; every other file (``README``, ``rt3.f``, ``rt4.f``,
+  ``scatcnv.f``, the four test scripts and ``cl340d14.dda``) is unchanged.
+  ``README.ARTS`` there lists all changes.
 * **ARTS 2.6 changes** by J. Mendrok and others (the ``.orig`` files keep the
   originals):
 
@@ -31,7 +35,7 @@ Provenance
   * a hard stop for ``NSTOKES > 2``;
   * extra zero-weight angles at the end of the stream list.
 * **ARTS 3 changes**, each marked ``c ARTS3:`` in the source and listed in
-  ``3rdparty/polradtran/README``:
+  ``3rdparty/polradtran/README.ARTS``:
 
   * Planck constants computed from the exact SI h, c and k.  The original
     5-digit constants give a bias of about 3e-5, roughly 8 mK at 250 K.
@@ -41,14 +45,24 @@ Provenance
   * A new ``rt4_c_interface.f90`` with ``ISO_C_BINDING`` entry points, so
     the build needs neither ``-fdefault-integer-8`` nor the hidden
     ``CHARACTER`` length ABI.
-  * A rewritten ``CMakeLists.txt``.
-  * ``radmat.f`` moved, unchanged, from ``rt4/`` to
-    ``3rdparty/polradtran/``, where it is built once as
+  * A rewritten ``CMakeLists.txt``.  ``radmat.f`` is built once as
     ``polradtran_radmat`` for both RT4 and RT3 (:doc:`dev.rt3`).
 
-  ``rt4.f``, the original main program, and the ``.orig`` files are kept
-  for provenance only and are not built.  ``SYMMETRIC`` is still hard-coded
-  to ``.TRUE.``.
+  ``SYMMETRIC`` is still hard-coded to ``.TRUE.``.
+
+  ``rt4.f`` and ``scatcnv.f``, Evans' original programs, are built with the
+  ``.orig`` files as ``rt4-evans`` and ``scatcnv-evans``.
+  ``cpp.fast.polradtran-runtestr`` (a 2 mm/h rain layer of spherical drops
+  at 85 GHz over water: ``scatcnv`` converts the Mie Legendre series to
+  RT4's scattering file, then RT4 with 8 Gauss streams and a Fresnel
+  surface) and ``cpp.fast.polradtran-runtestc`` (cirrus of horizontally
+  oriented ice columns at 340 GHz from the DDA file ``cl340d14.dda``, 8
+  Lobatto streams, a tropical atmosphere over land) run Evans' two RT4
+  scripts with them as they are and reproduce his tables, brightness
+  temperatures with two decimals, exactly.  ``cpp.fast.polradtran-rt4-arts``
+  gives the ARTS library the optics that ``rt4.f`` reads (``cl340d14.dda``,
+  and ``scatcnv``'s conversion of the rain series) and reproduces both
+  tables to 0.005 K.
 
 Build
 -----

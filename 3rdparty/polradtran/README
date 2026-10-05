@@ -1,53 +1,60 @@
-This folder contains code and data from Evans' PolRadTran RTM.
 
-It has been extracted from the original PolRadTran tar and restructured.
-If original code is modified, keep a copy of the original (as *.orig).
+This tar file contains two polarized plane-parallel radiative transfer
+models written by Frank Evans at Colorado State University and the 
+University of Colorado.  The first is rt3 which is for randomly oriented
+particles (isotropic media) and includes solar and thermal sources of
+radiation.  The second is rt4 which is for horizontally oriented
+particles (azimuthally symmetric media), but does only thermal sources. 
+The rt3 model is described in K. F. Evans and G. L. Stephens, 1991: 
+"A New Polarized Atmospheric Radiative Transfer Model", J. Quant. 
+Spectrosc. Radiat. Transfer, v. 46, no. 5, pp. 413-423, 1991.
+The rt4 model is briefly described in Evans, K. F., and G. L. Stephens, 
+1995: "Microwave radiative transfer through clouds composed of 
+realistically shaped ice crystals. Part II: Remote Sensing of Ice Clouds",
+J. Atmos. Sci., v. 52, 2058-2072.   
 
-The original distribution is https://nit.coloradolinux.com/polrad.html
-(PolRadTran.tar, sha256 7b0eff794319330321e27a6f312588a289ed080bb266500dcecf485f6a7cff9d).
-It is distributed under the MIT licence in LICENSE, which must be kept with the
-code.
+This latest version of rt3 and rt4 allows the radiances at any level in
+the input medium to be output. The output format has been changed to
+that the actual radiance is output for a specified number of azimuth
+angles, instead of outputting the Fourier series.  The radiances may now
+be output as V and H polarization and/or brightness temperatures (the
+Planck function is always used internally now).    Delta-M scaling
+may be specified for rt3.
 
-Contents:
+The models are written in a variant of Fortran 77 which allows long
+subroutine and variable names and the use of ENDDO in DO loops.  The
+arrays are currently setup for a radiance vector length of 64 (e.g. 16
+angles, 4 Stokes parameters).  See the beginning  of rt3.f and
+radtran3.f or rt4.f and radtran4.f for documentation on using the
+programs.
 
-- radmat.f: Evans' matrix routines, used by both RT4 and RT3 and built once
-  as the library polradtran_radmat.  It differs from the tar only by the
-  rt4_ prefix on its BLAS helpers (rt4_daxpy, rt4_dscal, rt4_idamax,
-  rt4_dswap), made in ARTS 2.  It keeps no state between calls; it is
-  compiled with -frecursive (GNU) or -auto (Intel) so that MINVERT's local
-  arrays are on the stack, because RT4 and RT3 serialise their calls with
-  separate mutexes and may call it concurrently.
-- rt4/: RT4 (horizontally oriented particles, thermal source, I and Q),
-  as modified for ARTS 2.6.  The rt4/*.orig files and rt4/rt4.f are
-  byte-identical to the tar.  Only the code needed to run RT4 is kept (no
-  RT3-to-RT4 scattering data conversion, test data or run scripts).
-- rt3/: RT3 (randomly oriented particles, solar and thermal sources, all
-  Fourier azimuth modes, I, Q, U and V), new in ARTS 3.  rt3/*.orig,
-  rt3/rt3.f, rt3/runmietest and rt3/runtesta are byte-identical to the tar;
-  the two scripts hold Evans' expected benchmark outputs, which the ARTS
-  tests compare with.  See rt3/README.
+This code is distributed according to the terms of the "MIT License"
+in the included LICENSE file.
 
-ARTS3 changes to RT4 (each marked with a "c ARTS3:" comment in the source):
+The following is a list of the files:
 
-- rt4/radutil4.f PLANCK_FUNCTION: the 5-digit radiation constants 1.1911D8
-  and 1.4388D4 (a ~3e-5 relative bias, ~8 mK at 250 K) are replaced by 2hc^2
-  [W m-2 sr-1 um^4] and hc/k [um K] evaluated from the exact SI (CODATA 2018)
-  h, c and k.
-- rt4/radtran4.f RADTRANO: NUUMMU is declared INTEGER (it was implicitly
-  typed), and UP_RAD/DOWN_RAD are declared with their written extent
-  NSTOKES*NUMMU*(NUM_LAYERS+1).
-- rt4/rt4_c_interface.f90 (new): ISO_C_BINDING entry points with explicit C
-  types for RADTRANO, PLANCK_FUNCTION and the three quadratures, so the build
-  needs neither -fdefault-integer-8 nor the hidden CHARACTER length ABI.
-- rt4/CMakeLists.txt: rewritten for ARTS3 (ENABLE_RT4).  rt4.f and the
-  *.orig files are not built.  radmat.f moved from rt4/ to this folder
-  (unchanged) when RT3 was added.
+  rt3.f         main program, contains documentation at beginning
+  radtran3.f    RADTRAN subroutine with documentation at beginning
+  radscat3.f    subroutines
+  radintg3.f        "
+  radutil3.f        "
+  radmat.f          "
 
-Nothing else is changed in RT4; in particular SYMMETRIC stays .TRUE., so RT4
-only handles media that are mirror symmetric between the two hemispheres.
-The C++ wrapper is src/core/rt4.
+  rt4.f         main program, contains documentation at beginning
+  radtran4.f    RADTRANO subroutine with documentation at beginning
+  radscat4.f    subroutines
+  radintg4.f        "
+  radutil4.f        "
 
-The ARTS3 changes to RT3 are listed in rt3/README; its C++ wrapper is
-src/core/rt3.  CMakeLists.txt here enables the two with ENABLE_RT4 and
-ENABLE_RT3; the legacy *.f files of both are compiled with
--std=legacy -fdefault-real-8 -fdefault-double-8 (GNU) or -r8 (Intel).
+  scatcnv.f     program to convert scattering files from rt3 format 
+                  (Legendre series in scattering angle) to rt4 format.
+
+  runmietest    Unix script to test rt3 with the Mie example from the paper.
+  runtesta      Unix script for a more general test of rt3.
+  runtestr      Unix script that does a test of rt4 with spherical raindrops.
+  runtestc      Unix script for a test of rt4 using oriented ice columns.
+
+
+    Frank Evans           May 22, 2023
+    retired from the University of Colorado, Boulder
+    frank.evans@Colorado.edu  or  evansgmr3@gmail.com

@@ -8,7 +8,7 @@
      Evans' runtesta).  ARTS's GasScatterer is a polynomial of degree 2, so
      the projection must be exact to round-off.
    - B2: Evans' runmietest series (Table 3 of Evans and Stephens 1991,
-     3rdparty/polradtran/rt3/runmietest): Mie scattering at 0.951 um by a
+     3rdparty/polradtran/runmietest): Mie scattering at 0.951 um by a
      gamma distribution of spheres with effective radius 0.2 um, effective
      variance 0.07 and refractive index 1.44 (the L = 13 problem of Garcia
      and Siewert 1989), printed with 8 decimals.  ARTS's Mie code

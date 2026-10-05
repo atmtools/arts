@@ -13,7 +13,7 @@
  * beam and thermal sources, for every Fourier azimuth mode and the Stokes
  * components [I], [I, Q], [I, Q, U] or [I, Q, U, V] (K. F. Evans and
  * G. L. Stephens, 1991, JQSRT 46, 413-423).  The Fortran sources are in
- * 3rdparty/polradtran/rt3 (the ARTS3 changes are listed in its README).
+ * 3rdparty/polradtran (the ARTS3 changes are listed in its README.ARTS).
  * This wrapper exists so that RT3 can serve as an external reference for
  * other solvers, in particular for the solar-beam, m > 0 and U, V paths of
  * VDISORT; it has no workspace layer.
