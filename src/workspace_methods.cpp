@@ -2440,23 +2440,32 @@ same as in *surface_models*.
 
 The input path point must be close to the surface.
 
-The incoming radiation is a delta-function beam whose direction is given by
-*direct_beam_los* ([zenith, azimuth], degrees, local ENU at the surface point,
-e.g. the sun). Only that single direction is traced and the diffuse BRDF and
-emissivity are evaluated at these exact directions; no angular quadrature is
-required. This makes the method much cheaper than
-*spectral_radSurfaceScatteringFlatDiffuse* for direct-radiation sources.
+The incoming radiation is one delta-function beam per sun in *suns*.  The beam
+direction is estimated internally at the surface point: first geometrically
+towards the sun, then refined to a refraction-aware line-of-sight using
+*ray_path_observer_agenda* (the same iterative sun-path search as
+*sun_pathFromObserverAgenda*, with ``just_hit = 1``).  The control parameters
+``angle_cut`` and ``refinement`` are passed to that search.  Only these single
+directions are traced and the diffuse BRDF and emissivity are evaluated at
+these exact directions; no angular quadrature is required.  This makes the
+method much cheaper than *spectral_radSurfaceScatteringFlatDiffuse* for
+direct-radiation sources.
+
+With no suns in *suns* there is no scattered term at all, only the surface
+emission.  With multiple suns the scattered contributions of all visible suns
+are summed.
 
 The beam radiance is interpreted as a delta-weighted radiance: the scattered
-term is exactly BRDF * incoming radiance, equivalent to a single unit-weight
-quadrature point in *spectral_radSurfaceScatteringFlatDiffuse*.
+term of each sun is exactly BRDF * incoming radiance, equivalent to a single
+unit-weight quadrature point in *spectral_radSurfaceScatteringFlatDiffuse*.
 
-If the beam comes from below the local surface horizon, i.e. from the opposite
-side of the surface normal at the point, only the surface emission is returned.
+If a sun is below the local surface horizon, i.e. on the opposite side of the
+surface normal at the point, it contributes nothing (no error); if all suns are
+below the horizon only the surface emission is returned.
 
-The *spectral_rad_incoming_agenda* produces the beam radiance along
-*direct_beam_los*.  The *spectral_rad_closed_surface_agenda* should produce the
-surface emission, though pure surface emission is fine.
+The *spectral_rad_incoming_agenda* produces the beam radiance along the
+estimated line-of-sight of each sun.  The *spectral_rad_closed_surface_agenda*
+should produce the surface emission, though pure surface emission is fine.
 
 The surface field must contain at least one surface mask for a surface type.
 The surface masks live under the *SurfacePropertyTag* keys, which must be the
@@ -2471,9 +2480,15 @@ same as in *surface_models*.
                          "surface_models",
                          "jac_targets",
                          "ray_point",
-                         "direct_beam_los",
+                         "suns",
+                         "ray_path_observer_agenda",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
+      .gin            = {"angle_cut", "refinement"},
+      .gin_type       = {"Numeric", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{1}},
+      .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                         "The refinement of the sun-path search algorithm (twice the power of this is the resolution)"},
       .pass_workspace = true,
   };
 

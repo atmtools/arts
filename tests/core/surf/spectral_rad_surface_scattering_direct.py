@@ -5,9 +5,12 @@ Verifies:
 2. Absorbing surface (r=0): output equals the surface blackbody emission
 3. Beam normalization: with a known (cosmic background) incoming, the output
    equals r * I_cmb + (1 - r) * B(T_surf) in closed form (brdf = r, emiss = 1 - r)
-4. Sub-horizon beam: beam below the surface-normal horizon is hard-zeroed
-5. Jacobian shape: correct dimensions when jac_targets is non-empty
-6. Consistency with FlatDiffuse on a single unit-weight quadrature point
+4. Sub-horizon sun: sun below the surface-normal horizon is hard-zeroed
+5. No suns: empty suns yields emission only
+6. Multi-sun: two visible suns give the sum of the single-sun contributions
+7. Jacobian shape: correct dimensions when jac_targets is non-empty
+8. Consistency with FlatDiffuse on a single unit-weight quadrature point
+9. arts.sun.geometric_los / arts.sun.refractive_los vs sun_pathFromObserverAgenda
 """
 
 import numpy as np
@@ -18,6 +21,9 @@ arts = pyarts.arts
 
 T_CMB = 2.725  # Constant::cosmic_microwave_background_temperature
 
+SUN_DISTANCE = 1.496e11
+SUN_RADIUS = 6.957e8
+
 
 def planck(f, T):
     """Planck function [W m-2 sr-1 Hz-1]."""
@@ -25,6 +31,16 @@ def planck(f, T):
     c   = constants.c
     k_B = constants.k
     return (2 * h * f**3 / c**2) / (np.exp(h * f / (k_B * T)) - 1)
+
+
+def make_sun(latitude, longitude, distance=SUN_DISTANCE, radius=SUN_RADIUS):
+    """Create a Sun at the given sky position (geodetic lat/lon from planet center)."""
+    sun = arts.Sun()
+    sun.distance = distance
+    sun.radius = radius
+    sun.latitude = latitude
+    sun.longitude = longitude
+    return sun
 
 
 def set_cmb_incoming_agenda(ws):
@@ -41,7 +57,7 @@ def set_cmb_incoming_agenda(ws):
         ws.spectral_rad_jacEmpty()
 
 
-def setup_workspace_base(freq_grid):
+def setup_workspace_base(freq_grid, suns=None):
     """Create and configure a minimal workspace for direct-beam tests."""
     ws = pyarts.Workspace()
 
@@ -66,10 +82,14 @@ def setup_workspace_base(freq_grid):
     ws.ray_point.pos = [0.0, 0.0, 0.0]
     ws.ray_point.los = [180.0, 0.0]
 
-    # Direct beam from above the horizon (visible at (0, 0) on Earth)
-    ws.direct_beam_los = arts.Vector2([30.0, 45.0])
+    # Suns: default is a single sun above the horizon at (0, 0) on Earth
+    if suns is None:
+        suns = [make_sun(30.0, 45.0)]
+    ws.suns = suns
 
-    # Agendas -- CMB incoming gives a known non-zero beam radiance
+    # Agendas -- CMB incoming gives a known non-zero beam radiance;
+    # the geometric observer agenda makes the refractive LOS search reduce
+    # to the geometric LOS
     set_cmb_incoming_agenda(ws)
     ws.ray_path_observer_agendaSetGeometric()
 
@@ -108,10 +128,9 @@ def rad_array(ws, nf):
     return np.array([float(ws.spectral_rad[i][0]) for i in range(nf)])
 
 
-def run_direct(freq_grid, reflectivity, direct_beam_los=(30.0, 45.0)):
-    """Run the direct method for a given Lambertian reflectivity."""
-    ws = setup_workspace_base(freq_grid)
-    ws.direct_beam_los = arts.Vector2(list(direct_beam_los))
+def run_direct(freq_grid, reflectivity, suns=None):
+    """Run the direct method for a given Lambertian reflectivity and sun list."""
+    ws = setup_workspace_base(freq_grid, suns=suns)
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
     ws.spectral_radSurfaceScatteringDirect()
@@ -187,45 +206,97 @@ def test_spectral_rad_surface_scattering_direct_beam_value():
         [r * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
     )
 
-    assert np.allclose(rad, expected, rtol=1e-7), \
+    assert np.allclose(rad, expected, rtol=1e-7, atol=0.0), \
         f"Beam normalization violated:\n got      {rad}\n expected {expected}"
 
     # The scattered CMB term must be strictly positive (non-zero incoming)
     rad_1 = run_direct(freq_grid, 1.0)
     expected_1 = np.array([planck(f, T_CMB) for f in freq_grid])
-    assert np.allclose(rad_1, expected_1, rtol=1e-7), \
+    assert np.allclose(rad_1, expected_1, rtol=1e-7, atol=0.0), \
         f"Pure reflector must equal CMB:\n got      {rad_1}\n expected {expected_1}"
 
     print("Test 3 passed: scattered term equals r * I_cmb + (1-r) * B(T_surf)")
 
 
 # ============================================================================
-# Test 4: Sub-horizon beam is hard-zeroed (emission only)
+# Test 4: Sub-horizon sun is hard-zeroed (emission only)
 # ============================================================================
 def test_spectral_rad_surface_scattering_direct_subhorizon():
-    """A beam below the surface-normal horizon contributes nothing."""
+    """A sun below the surface-normal horizon contributes nothing."""
     freq_grid = [10e9, 100e9, 183e9]
     r = 0.5
 
-    # za = 100 > 90: below the (near-vertical) normal-based horizon at (0, 0)
-    rad_sub = run_direct(freq_grid, r, direct_beam_los=(100.0, 0.0))
+    # Sun at latitude 100 deg: geometric za ~ 100 > 90 at observer (0, 0),
+    # i.e. below the (near-vertical) normal-based horizon
+    rad_sub = run_direct(freq_grid, r, suns=[make_sun(100.0, 0.0)])
 
     T_surf = 280.0
     expected = np.array([(1.0 - r) * planck(f, T_surf) for f in freq_grid])
 
-    assert np.allclose(rad_sub, expected, rtol=1e-7), \
-        f"Sub-horizon beam must not contribute:\n got      {rad_sub}\n expected {expected}"
+    assert np.allclose(rad_sub, expected, rtol=1e-7, atol=0.0), \
+        f"Sub-horizon sun must not contribute:\n got      {rad_sub}\n expected {expected}"
 
-    # A visible beam must give strictly more than the sub-horizon case
-    rad_vis = run_direct(freq_grid, r, direct_beam_los=(30.0, 45.0))
+    # A visible sun must give strictly more than the sub-horizon case
+    rad_vis = run_direct(freq_grid, r, suns=[make_sun(30.0, 45.0)])
     assert np.all(rad_vis > rad_sub), \
-        f"Visible beam must add scattered term:\n vis {rad_vis}\n sub {rad_sub}"
+        f"Visible sun must add scattered term:\n vis {rad_vis}\n sub {rad_sub}"
 
-    print("Test 4 passed: sub-horizon beam yields emission only")
+    print("Test 4 passed: sub-horizon sun yields emission only")
 
 
 # ============================================================================
-# Test 5: Jacobian shape check
+# Test 5: No suns -> emission only
+# ============================================================================
+def test_spectral_rad_surface_scattering_direct_no_suns():
+    """An empty suns list must yield the emission term only."""
+    freq_grid = [10e9, 100e9, 183e9]
+    r = 0.5
+
+    rad = run_direct(freq_grid, r, suns=[])
+
+    T_surf = 280.0
+    expected = np.array([(1.0 - r) * planck(f, T_surf) for f in freq_grid])
+
+    assert np.allclose(rad, expected, rtol=1e-7, atol=0.0), \
+        f"No-sun case must be emission only:\n got      {rad}\n expected {expected}"
+
+    print("Test 5 passed: no suns yields emission only")
+
+
+# ============================================================================
+# Test 6: Multi-sun -> sum of the single-sun contributions
+# ============================================================================
+def test_spectral_rad_surface_scattering_direct_multi_suns():
+    """Two visible suns: result equals the sum of the two single-sun runs
+    (the emission term is counted once, so subtract the no-sun run)."""
+    freq_grid = [10e9, 100e9, 183e9]
+    r = 0.5
+
+    sun_a = make_sun(30.0, 45.0)
+    sun_b = make_sun(10.0, 60.0)
+
+    rad_a = run_direct(freq_grid, r, suns=[sun_a])
+    rad_b = run_direct(freq_grid, r, suns=[sun_b])
+    rad_none = run_direct(freq_grid, r, suns=[])
+    rad_two = run_direct(freq_grid, r, suns=[sun_a, sun_b])
+
+    expected = rad_a + rad_b - rad_none
+    assert np.allclose(rad_two, expected, rtol=1e-7, atol=0.0), \
+        f"Multi-sun sum violated:\n got      {rad_two}\n expected {expected}"
+
+    # Both suns above horizon: two scattered terms plus one emission
+    T_surf = 280.0
+    closed_form = np.array(
+        [2.0 * r * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
+    )
+    assert np.allclose(rad_two, closed_form, rtol=1e-7, atol=0.0), \
+        f"Multi-sun closed form violated:\n got      {rad_two}\n expected {closed_form}"
+
+    print("Test 6 passed: multi-sun result equals sum of single-sun runs")
+
+
+# ============================================================================
+# Test 7: Jacobian shape check
 # ============================================================================
 def test_spectral_rad_surface_scattering_direct_jacobian():
     """Test Jacobian computation with non-empty jac_targets."""
@@ -252,27 +323,28 @@ def test_spectral_rad_surface_scattering_direct_jacobian():
 
     assert np.all(np.isfinite(jac_array)), "Jacobian contains non-finite values"
 
-    print("Test 5 passed: Jacobian has correct shape and finite values")
+    print("Test 7 passed: Jacobian has correct shape and finite values")
 
 
 # ============================================================================
-# Test 6: Agreement with FlatDiffuse on a single unit-weight quadrature point
+# Test 8: Agreement with FlatDiffuse on a single unit-weight quadrature point
 # ============================================================================
 def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
     """The direct method must reproduce FlatDiffuse with a single-direction
     quadrature grid and unit weights (shared delta-weighted convention)."""
     freq_grid = [10e9, 100e9, 183e9]
-    za, aa = 40.0, 137.0
 
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    # Direct method
-    ws.direct_beam_los = arts.Vector2([za, aa])
+    # Direct method -- take the internally estimated LOS from the sun for the
+    # matching diffuse quadrature direction
     ws.spectral_radSurfaceScatteringDirect()
     rad_direct = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                            for i in range(len(freq_grid))])
+
+    za, aa = arts.sun.geometric_los(ws.suns[0], ws.ray_point.pos, ws.surf_field)
 
     # Diffuse method on the single direction with unit weights
     ws.zen_grid = arts.ZenGrid([za])
@@ -286,11 +358,45 @@ def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
     rad_diffuse = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                             for i in range(len(freq_grid))])
 
-    assert np.allclose(rad_direct, rad_diffuse, rtol=1e-12), \
+    assert np.allclose(rad_direct, rad_diffuse, rtol=1e-12, atol=0.0), \
         f"Normalization mismatch between direct and diffuse:\n" \
         f" direct  {rad_direct}\n diffuse {rad_diffuse}"
 
-    print("Test 6 passed: direct method agrees with single-point FlatDiffuse")
+    print("Test 8 passed: direct method agrees with single-point FlatDiffuse")
+
+
+# ============================================================================
+# Test 9: arts.sun LOS helpers vs sun_pathFromObserverAgenda
+# ============================================================================
+def test_arts_sun_los_helpers():
+    """arts.sun.geometric_los / refractive_los must match the WSM sun path."""
+    freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
+    sun = ws.suns[0]
+    ws.sun = sun
+
+    geo = arts.sun.geometric_los(sun, ws.ray_point.pos, ws.surf_field)
+    ref = arts.sun.refractive_los(
+        ws, sun, ws.ray_point.pos, ws.surf_field, ws.ray_path_observer_agenda
+    )
+
+    # With the geometric observer agenda the refractive search reduces to the
+    # geometric LOS
+    assert np.allclose(geo, ref, rtol=1e-12, atol=0.0), \
+        f"Geometric and refractive LOS differ with geometric agenda:\n {geo}\n {ref}"
+
+    # The WSM sun path starts at the observer with the light propagation
+    # direction; mirroring it gives back the observer-pointing LOS
+    ws.sun_pathFromObserverAgenda(pos=ws.ray_point.pos, angle_cut=0.0, refinement=1, just_hit=1)
+    path_los = arts.path.mirror(np.array(ws.sun_path[0].los))
+
+    assert np.allclose(geo, path_los, rtol=1e-12, atol=0.0), \
+        f"arts.sun.geometric_los != mirrored sun_path front LOS:\n {geo}\n {path_los}"
+
+    # The sun must be above the horizon at the observer for this setup
+    assert 0.0 <= geo[0] < 90.0, f"Expected above-horizon sun, got za = {geo[0]}"
+
+    print("Test 9 passed: arts.sun LOS helpers match sun_pathFromObserverAgenda")
 
 
 # ============================================================================
@@ -301,6 +407,9 @@ if __name__ == "__main__":
     test_spectral_rad_surface_scattering_direct_absorbing()
     test_spectral_rad_surface_scattering_direct_beam_value()
     test_spectral_rad_surface_scattering_direct_subhorizon()
+    test_spectral_rad_surface_scattering_direct_no_suns()
+    test_spectral_rad_surface_scattering_direct_multi_suns()
     test_spectral_rad_surface_scattering_direct_jacobian()
     test_spectral_rad_surface_scattering_direct_agrees_with_diffuse()
+    test_arts_sun_los_helpers()
     print("\nAll tests passed!")
