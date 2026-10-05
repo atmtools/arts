@@ -1015,14 +1015,16 @@ No density, stimulated-emission, or abundance factor is applied here.)");
          const LinemixingEcsData& abs_ecs_data,
          const AtmPoint&          atm,
          const Vector&            T) {
-        lbl::voigt::ecs::ComputeData com_data({}, atm);
+        const auto N = band.size();
+        ARTS_USER_ERROR_IF(N == 0, "Cannot use an empty band in equivalent_lines")
 
         const auto K = band.front().ls.single_models.size();
-        const auto N = band.size();
         const auto M = T.size();
 
         auto eqv_str = ComplexTensor3(M, K, N);
         auto eqv_val = ComplexTensor3(M, K, N);
+
+        lbl::voigt::ecs::ComputeData com_data({}, atm);
 
         equivalent_values(eqv_str, eqv_val, com_data, qid, band, abs_ecs_data.at(qid.isot), atm, T);
 
