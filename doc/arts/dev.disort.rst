@@ -203,7 +203,8 @@ depth within each layer (``[c0, c1]`` in the global optical depth), and the
 surface emits; the sky is a blackbody at ``sky_temperature``.  A Lambertian
 surface uses ``brdf::lambertian_fourier_modes`` and emits
 ``[(1 - A) B, 0, 0, 0]``; a Fresnel surface uses
-``brdf::fresnel_fourier_modes``, reflects only between quadrature streams,
+``brdf::fresnel_fourier_modes`` (the specular part R(mu); at an upward user
+angle VDISORT reflects the downward user-angle radiance at the same angle),
 and emits ``B ([1, 0, 0, 0] - R[:, 0])``.  A beam has the Stokes irradiance
 ``[beam_flux / beam_mu, 0, 0, 0]`` normal to it, and ``beam_mu`` must not be
 a stream.

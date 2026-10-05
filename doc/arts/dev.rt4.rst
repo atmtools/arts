@@ -547,6 +547,9 @@ For layer l with particle extinction ``k_e``, absorption ``a1``, scattering
     stream ``N + i`` is RT4 ``(down, i)``.
   * RT4's ``extra_mu`` correspond to VDISORT's user angles
     (``ungridded_u_user``): ``+mu`` for ``up`` and ``-mu`` for ``down``.
+    Over a Fresnel surface an upward user angle ``+mu`` needs ``-mu`` as
+    well: VDISORT reflects the downward user-angle radiance into it, and
+    throws without it.
     ``user_phase[alpha, 0, l, u, j]`` is the same ``4 pi Z / k_s`` as below,
     taken from the RT4 ``phase`` row of the extra angle.  The RT4 phase rows
     of the extra angles must hold the physical phase matrix; their columns

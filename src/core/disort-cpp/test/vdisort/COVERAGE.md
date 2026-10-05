@@ -158,15 +158,17 @@ exchanges remain undetectable:
   the beam and m > 0.
 - Direction-dependent extinction or emission.  VDISORT cannot represent
   them.
-- Upward user-angle radiances over a Fresnel surface.  This comparison is
-  printed but not asserted, because it fails.  `fresnel_fourier_modes`
-  reflects only into an outgoing mu equal to a quadrature node.  At mu = 0.35
-  and 1 (8 streams per hemisphere, n = 3+0.2i), VDISORT's upward radiance at
-  the surface is therefore the emission alone.  RT4 also includes the
-  specular reflection R I_down, which is 22% and 13% of max I there.  The
-  remaining difference is the barycentric interpolation of the
-  angle-dependent emission from the nodes: 7e-4 and 1.4e-3 of B_s.  The
-  downward user-angle radiances agree.
+- Nothing about the Fresnel surface at user angles.  A Fresnel surface is
+  the specular part `BDRF::specular` = R(mu) of its modes, without a
+  reflection kernel; VDISORT applies it between equal streams and, at an
+  upward user angle mu, to the downward user-angle radiance at -mu at the
+  surface, so an upward user angle needs its downward partner (otherwise it
+  throws, which the test asserts).  The upward user-angle radiances at
+  mu = 0.35 and 1 then agree with RT4 to 1.2e-8 of max I at every level,
+  once the interpolation of the surface emission from the streams
+  (barycentric, 1.4e-3 of B_s here, reproduced exactly by the test and
+  attenuated along the ray) is removed.  The specular reflection itself was
+  22% and 13% of max I there.
 
 **MKL.** The top-level CMakeLists.txt enables Fortran only after LAPACK has
 been found.  Enabled earlier, it makes CMake's FindBLAS link MKL's GNU layers
@@ -370,22 +372,22 @@ temperatures) is a randomly oriented problem, so RT3 (aziorder 0) and
 VDISORT solve it from the Mie Legendre series that scatcnv converts for
 RT4:
 
-| runtestr | |
+VDISORT is evaluated at Evans' angles by its formal solution; the upward
+radiance reflects the downward one at the same angle (`BDRF::specular`).
+
+| runtestr, every level, angle and direction | |
 |---|---|
 | RT3 at Evans' settings vs his RT4 table | 0.005 K (asserted, 0.01 K) |
-| VDISORT 16 vs 32 streams at Evans' angles, downwelling | 1.7e-8 of max I |
-| VDISORT at Evans' angles vs his table, downwelling | 0.081 K |
-| RT3 Gauss nmu 4, 8, 16 vs VDISORT at RT3's nodes, downwelling | 0.38, 0.078, 0.018 K |
-| RT3 double-Gauss nmu 8 and 16 vs VDISORT on the same streams, up and down | 3.7e-8, 5.3e-8 of max I (asserted, 2e-6) |
-| VDISORT at Evans' angles vs his table, upwelling | 220 K, not asserted |
+| VDISORT, 16 vs 32 streams, at Evans' angles | 0.0001 K (asserted, 0.01 K) |
+| VDISORT (32 streams) at Evans' angles vs his table | 0.73 K |
+| RT3 Gauss nmu 4, 8, 16 vs VDISORT at RT3's nodes | 1.48, 0.73, 0.36 K (asserted to decrease) |
+| RT3 double-Gauss nmu 8 and 16 vs VDISORT on the same streams | 3.7e-8, 5.3e-8 of max I (asserted, 2e-6) |
 
-The downwelling difference from the table is again its Gauss quadrature.
-The upwelling one is VDISORT's: at an angle that is not one of its streams
-the user-angle formal solution starts from the surface emission alone,
-because `fresnel_fourier_modes` reflects only between streams (see the RT4
-comparison above).  Over water the missing specular reflection R I_down is
-up to 220 K in H at grazing angles.  On its own streams, with the
-reflection, VDISORT agrees with RT3.
+The difference from the table is again its Gauss quadrature: RT3 with Gauss
+quadrature halves its distance from VDISORT when nmu doubles, and at Evans'
+nmu 8 that distance (0.73 K) is the table's.  It is largest in the
+upwelling H radiance at grazing angles, where the Fresnel reflection of the
+downwelling radiance dominates.
 
 ## The three solvers on shared problems, and CI
 

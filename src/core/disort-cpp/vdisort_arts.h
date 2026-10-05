@@ -98,7 +98,8 @@ struct lambertian_surface {
 
 /** A flat Fresnel surface under a medium of index 1: vdisort::brdf::fresnel_fourier_modes, emission
  *  B ([1, 0, 0, 0] - R(mu)[:, 0]) with R the Fresnel reflection matrix of vdisort::brdf::Fresnel.
- *  VDISORT reflects only between its quadrature streams; off-node user angles see the emission alone. */
+ *  The reflection is the specular part of the modes: at an upward user angle VDISORT reflects the downward
+ *  user-angle radiance at the same angle, so user angles must come in up and down pairs. */
 struct fresnel_surface {
   Complex refractive_index{1.0, 0.0};
 };

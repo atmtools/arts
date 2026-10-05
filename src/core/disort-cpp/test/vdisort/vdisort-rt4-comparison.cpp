@@ -527,21 +527,23 @@ field vdisort_streams(const vdisort::main_data& v, Index nstokes) {
 }
 
 //! VDISORT's user-angle formal solution at the setup's extra angles, at every level, both directions
-field vdisort_extra_angles(const vdisort::main_data& v, const setup& c) {
+//! VDISORT at the extra angles by its user-angle formal solution, up and down or (upward = false) down only
+field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upward = true) {
   const Index N = c.s.nmu, NQuad = 2 * N, NL = c.nlay(), ne = c.s.total() - N;
-  Vector      user_mu(2 * ne);
+  const Index first = upward ? 0 : ne;  // the user directions are the extra angles up, then down
+  Vector      user_mu(2 * ne - first);
   for (Index e = 0; e < ne; e++) {
-    user_mu[e]      = c.s.mu[N + e];
-    user_mu[ne + e] = -c.s.mu[N + e];
+    if (upward) user_mu[e] = c.s.mu[N + e];
+    user_mu[ne + e - first] = -c.s.mu[N + e];
   }
-  vdisort::phase_matrix_data user_phase(2, 1, NL, 2 * ne, NQuad, rtepack::muelmat{0.0});
+  vdisort::phase_matrix_data user_phase(2, 1, NL, 2 * ne - first, NQuad, rtepack::muelmat{0.0});
   for (Index l = 0; l < NL; l++) {
     if (c.sigma(l) == 0.0) continue;
     const auto& o = c.optics[c.optics_index[l]];
-    for (Index u = 0; u < 2 * ne; u++) {
+    for (Index u = first; u < 2 * ne; u++) {
       for (Index j = 0; j < NQuad; j++) {
-        set_vdisort_phase(user_phase[vdisort::cosine_mode, 0, l, u, j],
-                          user_phase[vdisort::sine_mode, 0, l, u, j],
+        set_vdisort_phase(user_phase[vdisort::cosine_mode, 0, l, u - first, j],
+                          user_phase[vdisort::sine_mode, 0, l, u - first, j],
                           o.Z[u < ne ? up : down, j < N ? up : down, N + u % ne, j % N],
                           o.sigma,
                           c.nstokes);
@@ -551,15 +553,15 @@ field vdisort_extra_angles(const vdisort::main_data& v, const setup& c) {
   Vector levels(NL + 1, 0.0);
   for (Index l = 0; l < NL; l++) levels[l + 1] = v.tau()[l];
   const AscendingGrid      tau{std::move(levels)};
-  rtepack::stokvec_tensor3 out(NL + 1, 1, 2 * ne);
+  rtepack::stokvec_tensor3 out(NL + 1, 1, 2 * ne - first);
   v.ungridded_u_user(out, tau, Vector{0.0}, user_mu, user_phase);
 
   field f{.up = Tensor3(NL + 1, ne, c.nstokes, 0.0), .down = Tensor3(NL + 1, ne, c.nstokes, 0.0)};
   for (Index l = 0; l <= NL; l++) {
     for (Index e = 0; e < ne; e++) {
       for (Index s = 0; s < c.nstokes; s++) {
-        f.up[l, e, s]   = out[l, 0, e][s];
-        f.down[l, e, s] = out[l, 0, ne + e][s];
+        if (upward) f.up[l, e, s] = out[l, 0, e][s];
+        f.down[l, e, s] = out[l, 0, ne + e - first][s];
       }
     }
   }
@@ -1043,49 +1045,86 @@ void test_extra_angles() {
           c.s.nmu);
   }
 
-  /* The Fresnel surface.  VDISORT's fresnel_fourier_modes reflects only
-     when the outgoing mu equals an incident node.  So at an off-node user
-     angle, VDISORT's upward radiance at the surface is the interpolated
-     emission alone, while RT4 also reflects specularly at that angle.  The
-     downward user-angle radiances do not involve that reflection and are
-     asserted.  The upward ones are printed with the reflected term
-     R(mu) I_down(mu) of RT4 and with the distance of VDISORT's surface
-     value from the exact Fresnel emission. */
+  /* The Fresnel surface.  VDISORT reflects the downward user-angle radiance
+     at -mu into mu (BDRF::specular), so it needs both directions; without
+     the downward partner it must refuse an upward user angle.  The surface
+     emission at a user angle is interpolated from the streams (barycentric
+     in mu, disort_common::barycentric_interpolate), so VDISORT's upward
+     radiance carries the interpolation error d(mu) = interpolated - exact
+     emission [(1 - R11) B_s, -R21 B_s], attenuated by exp(-(tau_s - tau) / mu).
+     With that term removed, every level must agree with RT4 to its doubling
+     error: the reflection R(mu) I_down(mu) is then exact. */
   const auto c = extra_angle_setup(rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}});
   const auto x = run(c);
   check("Extra-angle setup, Fresnel 3+0.2i: quadrature streams", c, x.r, x.f, 0);
-  const auto    vu    = vdisort_extra_angles(x.v, c);
-  const auto    tol   = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
-  const auto    dup   = compare(x.r, vu, c.s.nmu, directions::up_only);
-  const Index   L     = c.nlay();
-  const Numeric Bs    = planck(frequency, c.surface);
-  Numeric       scale = 0.0;
-  for (Index l = 0; l <= L; l++)
-    for (Index i = c.s.nmu; i < c.s.total(); i++) scale = std::max({scale, x.r.up[l, i, 0], x.r.down[l, i, 0]});
+  const auto    vu  = vdisort_extra_angles(x.v, c);
+  const auto    tol = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
+  const Index   N = c.s.nmu, L = c.nlay(), ne = c.s.total() - N;
+  const Numeric Bs  = planck(frequency, c.surface);
   report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, downward",
-         compare(x.r, vu, c.s.nmu, directions::down_only),
+         compare(x.r, vu, N, directions::down_only),
          tol);
-  std::cout << std::format("{:<66} I {:9.3e}  Q {:9.3e}  NOT ASSERTED: VDISORT drops the off-node Fresnel reflection\n",
-                           "Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, upward",
-                           dup.I,
-                           dup.Q);
-  for (Index e = 0; e < c.s.total() - c.s.nmu; e++) {
-    const Index   i  = c.s.nmu + e;
-    const auto    F  = vdisort::brdf::Fresnel{Complex{3.0, 0.2}}(c.s.mu[i]);
-    const Numeric RI = F[0, 0] * x.r.down[L, i, 0] + F[0, 1] * x.r.down[L, i, 1];
-    const Numeric RQ = F[1, 0] * x.r.down[L, i, 0] + F[1, 1] * x.r.down[L, i, 1];
-    std::cout << std::format(
-        "    surface, mu = {:4.2f}: (RT4 - VDISORT) / max I = [{:+.4e}, {:+.4e}]; R I_down / max I = [{:+.4e}, "
-        "{:+.4e}]; (VDISORT - exact emission) / B_s = [{:+.1e}, {:+.1e}]\n",
-        c.s.mu[i],
-        (x.r.up[L, i, 0] - vu.up[L, e, 0]) / scale,
-        (x.r.up[L, i, 1] - vu.up[L, e, 1]) / scale,
-        RI / scale,
-        RQ / scale,
-        (vu.up[L, e, 0] - (1 - F[0, 0]) * Bs) / Bs,
-        (vu.up[L, e, 1] + F[1, 0] * Bs) / Bs);
+
+  const Vector     nodes{x.v.mu()[Range(0, N)]};
+  Vector           weights(N), emission_i(N), emission_q(N);
+  disort_common::barycentric_weights(weights, nodes);
+  const vdisort::brdf::Fresnel fresnel{.refractive_index = Complex{3.0, 0.2}};
+  for (Index i = 0; i < N; i++) {
+    const auto R  = fresnel(nodes[i]);
+    emission_i[i] = (1 - R[0, 0]) * Bs;
+    emission_q[i] = -R[1, 0] * Bs;
   }
+  Numeric scale = 0.0, raw = 0.0, corrected = 0.0, interpolation = 0.0;
+  for (Index l = 0; l <= L; l++)
+    for (Index e = 0; e < ne; e++) scale = std::max({scale, std::abs(x.r.up[l, N + e, 0]), std::abs(x.r.down[l, N + e, 0])});
+  for (Index e = 0; e < ne; e++) {
+    const Numeric mu = c.s.mu[N + e];
+    const auto    R  = fresnel(mu);
+    const Numeric d_i = disort_common::barycentric_interpolate(nodes, weights, emission_i, mu) - (1 - R[0, 0]) * Bs;
+    const Numeric d_q = disort_common::barycentric_interpolate(nodes, weights, emission_q, mu) + R[1, 0] * Bs;
+    interpolation     = std::max({interpolation, std::abs(d_i) / Bs, std::abs(d_q) / Bs});
+    for (Index l = 0; l <= L; l++) {
+      const Numeric tau  = l == 0 ? 0.0 : x.v.tau()[l - 1];
+      const Numeric att  = std::exp(-(x.v.tau()[L - 1] - tau) / mu);
+      for (Index st = 0; st < std::min<Index>(c.nstokes, 2); st++) {
+        const Numeric diff = vu.up[l, e, st] - x.r.up[l, N + e, st];
+        raw                = std::max(raw, std::abs(diff) / scale);
+        corrected          = std::max(corrected, std::abs(diff - (st == 0 ? d_i : d_q) * att) / scale);
+      }
+    }
+  }
+  std::cout << std::format(
+      "{:<66} I, Q {:9.3e} after removing the emission interpolation ({:.1e} of B_s; {:.1e} of max I before); "
+      "tolerance {:.1e}\n",
+      "Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, upward",
+      corrected,
+      interpolation,
+      raw,
+      tol);
+  require(corrected <= tol,
+          std::format("VDISORT's upward user-angle radiance over a Fresnel surface must be RT4's up to its emission "
+                      "interpolation, to {:.1e}; got {:.2e}",
+                      tol,
+                      corrected));
+
+  // Without the downward partner an upward user angle must be refused
+  bool refused = false;
+  try {
+    rtepack::stokvec_tensor3 out(1, 1, 1);
+    x.v.ungridded_u_user(out,
+                         AscendingGrid{Vector{0.0}},
+                         Vector{0.0},
+                         Vector{c.s.mu[N]},
+                         vdisort::phase_matrix_data(2, 1, L, 1, 2 * N, rtepack::muelmat{0.0}));
+  } catch (const std::exception&) {
+    refused = true;
+  }
+  std::cout << std::format("{:<66} {}\n",
+                           "Extra-angle setup, Fresnel 3+0.2i: upward without its downward partner",
+                           refused ? "refused, as required" : "NOT REFUSED");
+  require(refused, "VDISORT must refuse an upward user angle over a Fresnel surface without its downward partner");
 }
+
 }  // namespace
 
 int main() try {

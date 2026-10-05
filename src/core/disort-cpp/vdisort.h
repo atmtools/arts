@@ -175,6 +175,14 @@ struct BDRF {
   func_t beam_cosine;
   func_t beam_sine;
 
+  /** The mirror (specular) part of this mode, or empty.  Radiance propagating down at the cosine mu is reflected
+   *  into the upward direction at mu and the same azimuth, I_up(mu) = R(mu) I_down(mu), in addition to the
+   *  reflection kernels above and in both combined systems; R is the same for every Fourier mode.  A delta
+   *  distribution in direction has no kernel on the streams, so the solver applies it itself: R(mu_i) between
+   *  equal streams, and at a user angle R(mu) times the downward user-angle radiance at the surface. */
+  using specular_t = CustomOperator<rtepack::muelmat, Numeric>;
+  specular_t specular{};
+
   /** Evaluate one combined cosine or sine BRDF Fourier operator. */
   void operator()(Index                        alpha,
                   rtepack::muelmat_matrix_view out,
@@ -391,6 +399,13 @@ class main_data {
    * The discrete-ordinate field is formally integrated along each requested
    * ray.  This call is on demand and does not add work to u(), gridded_u(), or
    * the flux methods.
+   *
+   * Over a surface with a specular part (BDRF::specular, e.g.
+   * brdf::fresnel_fourier_modes), the upward radiance at a user cosine mu
+   * reflects the downward radiance at -mu at the surface, so every upward
+   * user cosine must come with -mu (and its phase matrices); otherwise this
+   * throws.  The surface emission at a user cosine is interpolated from the
+   * streams' boundary values.
    */
   void u_user(user_u_data&                  data,
               Numeric                       tau,
@@ -416,6 +431,8 @@ class main_data {
    * User-direction phase projections are formed once per call and the
    * layerwise modal exponentials are integrated analytically.  This is the
    * bulk, test-facing counterpart of DISORT's TERPEV/TERPSO/USRINT path.
+   * Over a specular surface, upward user cosines need their downward
+   * partners, as for u_user().
    */
   void ungridded_u_user(rtepack::stokvec_tensor3_view out,
                         const AscendingGrid&          tau,

@@ -44,8 +44,7 @@ def test_layered_single_scattering_recurrence():
     omega = np.array([0.35, 0.82])
     phase_value = np.array([0.7, 1.6])
     mu0 = 0.73
-    user_mu = np.linspace(0.05, 0.95, 61)
-    nquad = 4
+    nquad = 64
 
     phase = _empty_phase(1, 2, nquad)
     beam_phase = np.zeros((2, 1, 2, nquad, 4, 4))
@@ -61,18 +60,10 @@ def test_layered_single_scattering_recurrence():
         beam_phase_matrix=beam_phase,
     )
 
-    user_phase = np.zeros((2, 1, 2, len(user_mu), nquad, 4, 4))
-    user_beam = np.zeros((2, 1, 2, len(user_mu), 4, 4))
-    user_beam[COSINE, 0, :, :, 0, 0] = phase_value[:, None]
-    result = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0]),
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam,
-        )
-    )[0, 0]
+    # The upward streams at the top; without diffuse scattering the stream
+    # solution is the exact single-scattering radiance
+    user_mu = np.asarray(model.mu)[: nquad // 2]
+    result = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
     expected = np.zeros_like(user_mu)
     tops = np.concatenate(([0.0], interfaces[:-1]))
@@ -312,7 +303,7 @@ def _mueller_from_real_jones(jones):
 
 def test_figure_3_cox_munk_reflection():
     """Reproduce paper Figure 3 from its analytic 5 m/s ocean BPrDF."""
-    nquad = 2
+    nquad = 96
     nfourier = 24
     mu0 = np.cos(np.deg2rad(30.0))
     phase = _empty_phase(nfourier, 1, nquad)
@@ -335,20 +326,13 @@ def test_figure_3_cox_munk_reflection():
         BDRF_Fourier_modes=modes,
     )
 
-    polar_angle = np.deg2rad(np.linspace(2.0, 82.0, 41))
-    mu = np.cos(polar_angle)
+    # The upward streams with polar angles from 2 to 82 degrees
+    upward = np.asarray(model.mu)[: nquad // 2]
+    streams = np.flatnonzero((upward <= np.cos(np.deg2rad(2.0))) & (upward >= np.cos(np.deg2rad(82.0))))
+    mu = upward[streams]
+    polar_angle = np.arccos(mu)
     azimuth = np.deg2rad(np.array([0.0, 45.0, 90.0, 135.0, 180.0]))
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    reflected = np.asarray(
-        model.u_user(
-            tau=np.array([1.0e-10]),
-            phi=azimuth,
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0]
+    reflected = np.asarray(model.u(tau=np.array([1.0e-10]), phi=azimuth))[0][:, streams]
     analytic = np.array(
         [
             [
@@ -481,18 +465,9 @@ def test_multiple_scattering_rayleigh_principal_plane():
         phi0=0.0,
         beam_phase_matrix=beam,
     )
-    user_mu = np.linspace(0.05, 0.95, 37)
-    user_phase = _rayleigh_fourier(user_mu, quadrature_mu, nfourier)
-    user_beam = _rayleigh_beam_fourier(user_mu, mu0, nfourier)
-    field = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0, np.pi]),
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam,
-        )
-    )[0]
+    # The upward streams at the top, in the forward and backward principal plane
+    user_mu = np.asarray(model.mu)[: nquad // 2]
+    field = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0, np.pi])))[0][:, : nquad // 2]
 
     assert np.all(np.isfinite(field))
     assert np.max(np.abs(field[..., 1])) > 1.0e-5

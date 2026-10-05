@@ -850,6 +850,15 @@ void test_combined_surface_models() try {
                            fresnel_fraction * specular[i, j][so, si] + (1.0 - fresnel_fraction) * diffuse[i, j][so, si],
                            "Fresnel/Lambertian mixture");
     }
+    // The Fresnel part is specular: the weighted Fresnel matrix, and no kernel
+    for (const Numeric mu : {0.2, 0.7}) {
+      const auto R = combined[mode].specular(mu);
+      const auto F = vdisort::brdf::Fresnel{Complex{1.5, 0.0}}(mu);
+      for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+        for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+          expect_close(R[so, si], fresnel_fraction * F[so, si], "Fresnel/Lambertian specular part");
+    }
+    ARTS_USER_ERROR_IF(static_cast<bool>(lambert[mode].specular.f), "A Lambertian surface has no specular part");
   }
 
   constexpr Numeric cox_fraction = 0.35;

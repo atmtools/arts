@@ -1409,6 +1409,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
   const Vector        psi{0.0, pi / 2, pi};  // the table's PHI = 0, 90, 180 deg
   Vector              phi(3);
   for (Index k = 0; k < 3; k++) phi[k] = wrapped(c.phi0 + psi[k]);
+  // Every Evans angle in both directions: over a Fresnel surface the upward one reflects the downward one
   auto out = std::make_shared<rtepack::stokvec_tensor3>(NL + 1, 3, 2 * n);
   v.ungridded_u_user(*out,
                      tau,
@@ -1416,16 +1417,6 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
                      user,
                      vdisort::combine_phase_matrices(Cd, Sd),
                      vdisort::combine_beam_phase_matrices(Cb, Sb));
-  // At an angle that is one of VDISORT's streams, the stream solution: the user-angle formal solution
-  // reflects a Fresnel surface only into the streams (see the RT4 comparison)
-  Tensor4 streams(NL + 1, 3, NQuad, 4);
-  v.ungridded_u(streams, tau, phi);
-  for (Index u = 0; u < 2 * n; u++)
-    for (Index j = 0; j < NQuad; j++)
-      if (std::abs(v.mu()[j] - user[u]) < 1e-12)
-        for (Index l = 0; l <= NL; l++)
-          for (Index k = 0; k < 3; k++)
-            for (Index st = 0; st < 4; st++) (*out)[l, k, u][st] = streams[l, k, j, st];
 
   auto flux = std::make_shared<Matrix>(4, NL + 1);
   v.ungridded_flux((*flux)[0], (*flux)[1], (*flux)[2], (*flux)[3], tau);
@@ -1627,14 +1618,6 @@ Numeric brightness_deviation(const evans_case& e, const row_solution& a, const s
   return d;
 }
 
-//! The downwelling radiance rows
-std::vector<evans::row> downward(const std::vector<evans::row>& rows) {
-  std::vector<evans::row> out;
-  for (const auto& r : rows)
-    if (r.mu > 0 and r.mu != 2.0) out.push_back(r);
-  return out;
-}
-
 /* E for Evans' RT4 script runtestr, read from the script: a 2 mm/h rain
    layer of spherical drops at 85 GHz over water (Fresnel, n = 3.17 -
    1.75i), 8 Gauss streams, I and Q, brightness temperatures in V and H.
@@ -1645,11 +1628,12 @@ std::vector<evans::row> downward(const std::vector<evans::row>& rows) {
    imaginary part of n does not matter.
    - RT3 at Evans' settings must reproduce his RT4 table to 0.01 K (its
      last printed digit): RT3's m = 0 doubling is RT4's.
-   - VDISORT drops the specular reflection at angles that are not its
-     streams (fresnel_fourier_modes; see the RT4 comparison), so at Evans'
-     Gauss angles only its downwelling radiances are compared.  They differ
-     from the table by the Gauss quadrature of the table, as in E above;
-     the upwelling ones are printed, not asserted.
+   - VDISORT is evaluated at Evans' angles by its formal solution; over the
+     Fresnel surface the upward radiance at mu reflects the downward one at
+     -mu (BDRF::specular).  It must be converged in the streams (16 against
+     32) to 0.01 K.  It differs from the table by the Gauss quadrature of
+     the table, as in E above: RT3 with Gauss quadrature approaches VDISORT
+     as nmu grows.
    - On the same double-Gauss streams VDISORT and RT3 solve the same
      discrete problem, with the reflection, and must agree to RT3's
      doubling error at every level, stream and direction. */
@@ -1667,39 +1651,50 @@ void test_evans_rt4_settings() {
   std::cout << std::format("    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
   require(rt3_k <= 0.01 + 1e-9, "RT3 at Evans' settings must reproduce his RT4 table to 0.01 K");
 
-  setup c16 = e.c, c32 = e.c;
-  c16.nmu   = 16;
-  c32.nmu   = 32;
-  const auto v16 = vdisort_solver(c16), v32 = vdisort_solver(c32);
-  const auto v   = vdisort_at_table(v32, e, c32);
-  const auto down = downward(e.table);
-  print_deviation("VDISORT, nmu 16 vs 32, at Evans' angles, downwelling",
-                  deviation_from(e, vdisort_at_table(v16, e, c16), v, down),
-                  1e-6);
-  std::vector<evans::row> up;
+  // VDISORT at Evans' angles, 16 and 32 streams
+  setup coarse = e.c, fine = e.c;
+  coarse.nmu = 16;
+  fine.nmu   = 32;
+  const auto v_coarse = vdisort_solver(coarse), v_fine = vdisort_solver(fine);
+  const auto v        = vdisort_at_table(v_fine, e, fine);
+  std::vector<evans::row> radiances;
   for (const auto& r : e.table)
-    if (r.mu < 0 and r.mu != -2.0) up.push_back(r);
-  std::cout << std::format("    {:<62} {:.4f} K\n", "VDISORT (nmu 32) at Evans' angles vs his table, downwelling",
-                           brightness_deviation(e, v, down));
-  std::cout << std::format("    {:<62} {:.4f} K  NOT ASSERTED: no off-stream Fresnel reflection\n",
-                           "VDISORT (nmu 32) at Evans' angles vs his table, upwelling",
-                           brightness_deviation(e, v, up));
+    if (std::abs(r.mu) != 2.0) radiances.push_back(r);
+  const Numeric converged = [&] {
+    const auto a = vdisort_at_table(v_coarse, e, coarse);
+    Numeric    d = 0.0;
+    for (const auto& r : radiances) {
+      const auto x = brightness_vh(a(r)[0], a(r)[1], e.settings.wavelength, false);
+      const auto y = brightness_vh(v(r)[0], v(r)[1], e.settings.wavelength, false);
+      d            = std::max({d, std::abs(x[0] - y[0]), std::abs(x[1] - y[1])});
+    }
+    return d;
+  }();
+  std::cout << std::format("    {:<62} {:.4f} K (tolerance 0.01 K)\n",
+                           "VDISORT, 16 vs 32 streams, at Evans' angles",
+                           converged);
+  require(converged <= 0.01, "VDISORT's radiances at Evans' angles must be converged in the streams to 0.01 K");
+  std::cout << std::format("    {:<62} {:.4f} K\n",
+                           "VDISORT (32 streams) at Evans' angles vs his table",
+                           brightness_deviation(e, v, radiances));
+
+  // RT3 with Gauss quadrature approaches VDISORT at RT3's nodes
+  Numeric previous = 1e9;
   for (Index nmu : {4, 8, 16}) {
     evans_case g = e;
     g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
-    std::cout << std::format("    {:<62} {:.4f} K\n",
-                             std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes, downwelling", nmu),
-                             [&] {
-                               const auto r3 = rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7);
-                               const auto vd = vdisort_at_table(v32, g, c32);
-                               Numeric    d  = 0.0;
-                               for (const auto& r : downward(rows_on(g, g.mu))) {
-                                 const auto a = brightness_vh(r3(r)[0], r3(r)[1], e.settings.wavelength, false);
-                                 const auto b = brightness_vh(vd(r)[0], vd(r)[1], e.settings.wavelength, false);
-                                 d            = std::max({d, std::abs(a[0] - b[0]), std::abs(a[1] - b[1])});
-                               }
-                               return d;
-                             }());
+    const auto r3 = rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7);
+    const auto vd = vdisort_at_table(v_fine, g, fine);
+    Numeric    d  = 0.0;
+    for (const auto& r : rows_on(g, g.mu)) {
+      if (std::abs(r.mu) == 2.0 or r.phi != 0.0) continue;
+      const auto a = brightness_vh(r3(r)[0], r3(r)[1], e.settings.wavelength, false);
+      const auto b = brightness_vh(vd(r)[0], vd(r)[1], e.settings.wavelength, false);
+      d            = std::max({d, std::abs(a[0] - b[0]), std::abs(a[1] - b[1])});
+    }
+    std::cout << std::format("    {:<62} {:.4f} K\n", std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu), d);
+    require(d < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
+    previous = d;
   }
   for (Index nmu : {8, 16}) {
     evans_case g = e;

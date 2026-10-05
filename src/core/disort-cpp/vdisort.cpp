@@ -1259,6 +1259,15 @@ void main_data::solve_for_coefs() {
               for (Index si = 0; si < stokes_dimension; ++si)
                 reflection[state_index(i, so), state_index(j, si)] =
                     Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * raw[i, j][so, si];
+        // The specular part reflects each downward stream into the upward stream of the same cosine
+        if (brdf_fourier_modes[m].specular.f) {
+          for (Index i = 0; i < N; ++i) {
+            const rtepack::muelmat R = brdf_fourier_modes[m].specular(mu_arr[i]);
+            for (Index so = 0; so < stokes_dimension; ++so)
+              for (Index si = 0; si < stokes_dimension; ++si)
+                reflection[state_index(i, so), state_index(i, si)] += R[so, si];
+          }
+        }
 
         if (has_beam_source) {
           rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
@@ -1568,6 +1577,51 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                      NLayers,
                      nuser);
 
+  /* A specular surface part (BDRF::specular) reflects the downward radiance at the surface into the upward
+     direction of the same cosine.  So the upward boundary value of an upward user direction mu includes
+     R(mu) I_down(-mu) at the surface, from the user direction -mu, whose phase matrices only the caller has:
+     every upward user direction must come with its downward partner. */
+  const bool     specular = stdr::any_of(brdf_fourier_modes, [](const BDRF& b) { return static_cast<bool>(b.specular.f); });
+  std::vector<Index> partner(nuser, -1);  // the downward partner of an upward user direction, as an index of below
+  ComplexTensor4     partner_modes;       // [1, partners, 2 NFourier, Stokes] at the surface
+  if (specular) {
+    std::vector<Index> partners;
+    for (Index iu = 0; iu < nuser; ++iu) {
+      if (user_mu[iu] < 0.0) continue;
+      Index found = -1;
+      for (Index id = 0; id < nuser; ++id)
+        if (user_mu[id] < 0.0 and std::abs(user_mu[id] + user_mu[iu]) <= 64.0 * std::numeric_limits<Numeric>::epsilon())
+          found = id;
+      ARTS_USER_ERROR_IF(found < 0,
+                         "The surface reflects specularly, so the upward radiance at the user cosine {} reflects the "
+                         "downward radiance at {} at the surface: include {} in the user cosines, with its phase "
+                         "matrices",
+                         user_mu[iu],
+                         -user_mu[iu],
+                         -user_mu[iu]);
+      partner[iu] = static_cast<Index>(partners.size());
+      partners.push_back(found);
+    }
+    if (not partners.empty()) {
+      const Index        np = static_cast<Index>(partners.size());
+      Vector             partner_mu(np);
+      phase_matrix_data  partner_phase(2, NFourier, NLayers, np, NQuad);
+      beam_phase_matrix_data partner_beam;
+      if (has_beam_source) partner_beam.resize(2, NFourier, NLayers, np);
+      for (Index p = 0; p < np; ++p) {
+        partner_mu[p] = user_mu[partners[p]];
+        for (Index alpha = 0; alpha < 2; ++alpha)
+          for (Index m = 0; m < NFourier; ++m)
+            for (Index layer = 0; layer < NLayers; ++layer) {
+              for (Index j = 0; j < NQuad; ++j)
+                partner_phase[alpha, m, layer, p, j] = user_phase_matrix[alpha, m, layer, partners[p], j];
+              if (has_beam_source) partner_beam[alpha, m, layer, p] = user_beam_phase_matrix[alpha, m, layer, partners[p]];
+            }
+      }
+      user_fourier_modes(partner_modes, AscendingGrid{Vector{tau_arr.back()}}, partner_mu, partner_phase, partner_beam);
+    }
+  }
+
   const auto interpolate_boundary =
       [&](const rtepack::stokvec_tensor3& boundary, const Index alpha, const Index m, const Numeric abs_mu) {
         return dc::barycentric_interpolate(
@@ -1603,6 +1657,12 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
           if (has_beam_source) {
             brdf_fourier_modes[m].beam(alpha, beam_raw, outgoing, beam_direction);
             mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (beam_raw[0, 0] * beam_stokes);
+          }
+          if (brdf_fourier_modes[m].specular.f) {
+            rtepack::stokvec down;
+            for (Index s = 0; s < stokes_dimension; ++s)
+              down[s] = partner_modes[0, partner[iu], alpha * NFourier + m, s].real();
+            mode += brdf_fourier_modes[m].specular(abs_mu) * down;
           }
         }
         for (Index t = 0; t < ntau; ++t) {
