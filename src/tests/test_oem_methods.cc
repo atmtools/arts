@@ -59,7 +59,7 @@ bool is_lm(std::string_view method) { return method.starts_with("lm") or method.
 
 // This fixture uses the public workspace interface, including agenda validation,
 // covariance inversion, optimizer dispatch, diagnostics, and gain calculation.
-// No atmospheric data files or Python/Matlab installation are required.
+// No atmospheric data files are required.
 struct Retrieval {
   Workspace                     ws{WorkspaceInitialization::Empty};
   OptimalEstimationData         data;

@@ -27,7 +27,7 @@ add_executable(test_integration
 
 target_link_libraries(test_integration PUBLIC artstime matpack)
 
-# Deterministic workspace-interface OEM regressions, independent of Matlab.
+# Deterministic workspace-interface OEM regressions.
 if(OEM_SUPPORT)
   add_executable(test_oem_methods test_oem_methods.cc)
   target_link_libraries(test_oem_methods PRIVATE artsworkspace)
@@ -59,42 +59,6 @@ target_link_libraries(test_agenda_operator PRIVATE artsworkspace)
 add_dependencies(check-deps test_agenda_operator)
 add_test(NAME "cpp.fast.agenda.operator" COMMAND test_agenda_operator)
 set_tests_properties("cpp.fast.agenda.operator" PROPERTIES TIMEOUT 30)
-
-# ########## next testcase ###############
-set(MATLABDIR OFF CACHE PATH
-  "Path to the Matlab install folder on the system.")
-set(ATMLABDIR OFF CACHE PATH
-  "Path to the Atmlab install folder on the system")
-
-find_program(CSHFOUND csh)
-
-if(MATLABDIR AND ATMLABDIR AND CSHFOUND AND OEM_SUPPORT)
-  if(OpenMP_CXX_FOUND)
-    add_definitions(-DOMP)
-  endif()
-
-  add_executable(test_oem
-    timings.cc
-    test_oem.cc)
-
-  include_directories(${MATLABDIR}/extern/include)
-
-  # Macros for Matlab interface.
-  add_definitions(-DSOURCEDIR="${ARTS_BINARY_DIR}/src")
-  add_definitions(-DATMLABDIR="${ATMLABDIR}")
-
-  FIND_LIBRARY(ENGVAR libeng.so ${MATLABDIR}/bin/glnxa64)
-  FIND_LIBRARY(MXVAR libmx.so ${MATLABDIR}/bin/glnxa64)
-
-  target_link_libraries(test_oem matpack test_utils ${MXVAR} ${ENGVAR})
-
-  # Copy test scripts.
-  FILE(MAKE_DIRECTORY test_oem_files)
-  FILE(COPY test_oem/test_oem.m test_oem/linear_forward_model.m test_oem/make_plot.m
-    test_oem/test_mult.m test_oem/forward_model.m test_oem/test_oem_gauss_newton.m
-    test_oem/test_oem_levenberg_marquardt.m test_oem/test_inv.m
-    DESTINATION test_oem_files)
-endif()
 
 # ########## next testcase ###############
 add_executable(test_matpack test_matpack.cc)
