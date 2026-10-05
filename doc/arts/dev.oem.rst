@@ -41,8 +41,7 @@ otherwise retain an earlier run's gain or errors are cleared, and the
 small deterministic forward models.  CTest registers the individual cases
 as ``cpp.fast.oem.<method>``, plus settings and validation cases.  Each
 supported spelling, including ``ml`` and ``ml_cg``, is part of the contract.
-These tests run without the optional MATLAB integration required by the
-legacy invlib-level tests in ``src/tests/test_oem.cc``.  They complement
+These tests run without any optional external dependencies.  They complement
 the atmospheric retrieval examples under ``tests/core/vmr``.  Exact initial
 solutions and underdetermined problems are covered; a zero right-hand side
 now returns a zero CG solution directly.
