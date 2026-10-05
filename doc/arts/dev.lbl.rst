@@ -81,7 +81,7 @@ prepare the following arrays:
      - Convention
    * - ``W``
      - ``[n, n]``
-     - Real relaxation matrix, ``W[from, to]``; Hz for spectral calculations.
+     - Real relaxation matrix, ``W[to, from]`` — coupling into ``to`` from ``from``; Hz for spectral calculations.
    * - ``e0``, ``Omega_line``
      - ``[n]``
      - Original lower-state energies in J and corresponding adiabatic factors.

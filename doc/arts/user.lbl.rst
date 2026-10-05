@@ -115,10 +115,11 @@ Prepared-matrix spectra
 
 ``lbl.relaxation_matrix_profile(frequency, f0, W, population, dipole, gd_fac)``
 evaluates a prepared real relaxation matrix. ``frequency`` and ``f0`` are in Hz;
-``W[from, to]`` is in Hz and includes nonnegative diagonal half-widths. Pressure
-shifts may be included in ``f0``. ``gd_fac`` is the Gaussian 1/e half-width
-divided by frequency. The returned complex shape does not contain absorber
-density, isotopic abundance, or the stimulated-emission factor.
+``W[to, from]`` is the coupling into line ``to`` from line ``from``, is in Hz,
+and includes nonnegative diagonal half-widths. Pressure shifts may be included
+in ``f0``. ``gd_fac`` is the Gaussian 1/e half-width divided by frequency.
+The returned complex shape does not contain absorber density, isotopic
+abundance, or the stimulated-emission factor.
 
 For the NH3 lower-state convention, prepare the dimensionless populations and
 signed dipoles as follows, where ``gl`` and ``gu`` are the catalogue statistical
