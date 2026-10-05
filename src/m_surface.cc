@@ -472,3 +472,136 @@ void spectral_radSurfaceScatteringSpecular(
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radSurfaceScatteringFlatDirect(
+    const Workspace& ws,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
+    const AscendingGrid& freq_grid,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const MapOfSurfaceScatteringModel& surface_models,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const Vector2& direct_beam_los,
+    const Agenda& spectral_rad_incoming_agenda,
+    const Agenda& spectral_rad_closed_surface_agenda) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  ARTS_USER_ERROR_IF(direct_beam_los[0] < 0.0 or direct_beam_los[0] > 180.0,
+                     "The zenith angle of *direct_beam_los* must be within [0, 180], but is {}.",
+                     direct_beam_los[0])
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Single incoming (beam) and outgoing (ray) directions
+  const Vector za_in  {direct_beam_los[0]};
+  const Vector aa_in  {direct_beam_los[1]};
+  const Vector za_out {ray_point.los[0]};
+  const Vector aa_out {ray_point.los[1]};
+
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(
+          surf_point,
+          ray_point.pos[1],
+          ray_point.pos[2],
+          freq_grid,
+          za_in,
+          aa_in,
+          za_out,
+          aa_out);
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  // The beam is visible only above the horizon defined by the actual surface
+  // normal; below it the direct term is hard-zero (no error), emission remains.
+  // The surface normal is stored with the outward direction at za = 180, so its
+  // ECEF image points inward; the beam is visible when it opposes that inward
+  // vector, i.e. when the dot product with it is negative.
+  const auto [_, ecef_los_in]  = geodetic_los2ecef(ray_point.pos, direct_beam_los, surf_field.ellipsoid);
+  const auto [__, ecef_normal] = geodetic_los2ecef(ray_point.pos, surf_point.normal, surf_field.ellipsoid);
+  const bool beam_visible      = dot(ecef_los_in, ecef_normal) < 0.0;
+
+  StokvecVector spectral_rad_scattered(nf);
+  spectral_rad_scattered = 0.0;
+  StokvecMatrix spectral_rad_scattered_jac(nq, nf);
+  spectral_rad_scattered_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  if (beam_visible) {
+    // get the incoming radiation from the single beam direction
+    StokvecVector spectral_rad_incoming;
+    StokvecMatrix spectral_rad_incoming_jac;
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        direct_beam_los,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+
+    // No quadrature weights: the beam radiance is delta-weighted
+    // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_scattered[i_f] =
+          surface_props.brdf_matrix_diffuse[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+    }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_scattered_jac[i_jac, i_f] =
+            surface_props.brdf_matrix_diffuse[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+      }
+    }
+  }
+
+  // Calculate upward emission with the diffuse emissivity
+  // For now, there is no jacobian for the surface scattering model!!!
+  StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i_f = 0; i_f < nf; i_f++) {
+    spectral_rad_surface[i_f] = surface_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_surface[i_f];
+  }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+  for (Size i_jac = 0; i_jac < nq; i_jac++) {
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_jac_subsurface[i_jac, i_f] =
+          surface_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+    }
+  }
+
+  spectral_rad += spectral_rad_scattered;
+  spectral_rad += spectral_rad_surface;
+  spectral_rad_jac += spectral_rad_scattered_jac;
+  spectral_rad_jac += spectral_rad_jac_subsurface;
+}
+ARTS_METHOD_ERROR_CATCH
+
