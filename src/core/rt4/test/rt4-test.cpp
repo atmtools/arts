@@ -11,6 +11,7 @@
 #include <format>
 #include <functional>
 #include <iostream>
+#include <numeric>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -308,8 +309,9 @@ void test_doubling_convergence() {
  *  dependent, lower-triangular K(mu) = [[k(mu), 0], [kappa(mu), k(mu)]],
  *  absorption a(mu) = [aI(mu), aQ(mu)], and a phase matrix that only scatters
  *  forward into the same stream, P(h <- h)(i, j) = c delta_ij / (2 pi w_j),
- *  for I and Q.  On a quadrature stream this is a medium with extinction
- *  K - c 1; the zero-weight extra stream gets no in-scattering.  A
+ *  for I and Q, with aI = k - c so that energy is conserved.  On a
+ *  quadrature stream this is a medium with extinction K - c 1; the
+ *  zero-weight extra stream gets no in-scattering.  A
  *  permutation of streams, a Stokes transpose of K, or forward/backward
  *  quadrants swapped all change the answer. */
 void test_layout() {
@@ -324,7 +326,8 @@ void test_layout() {
   const auto k     = [&](Index l, Index i) { return atm.gas[l] * (1.0 + 0.4 * mu[i]); };
   const auto kappa = [&](Index l, Index i) { return 0.3 * atm.gas[l] * mu[i]; };
   const auto c     = [&](Index l, Index i) { return i < p.nmu ? 0.35 * atm.gas[l] : 0.0; };
-  const auto aI    = [&](Index l, Index i) { return 0.8 * atm.gas[l] * (1.0 + 0.4 * mu[i]); };
+  // Energy conservation (rt4::solve checks it): the absorption is the extinction minus what the stream scatters
+  const auto aI    = [&](Index l, Index i) { return k(l, i) - c(l, i); };
   const auto aQ    = [&](Index l, Index i) { return -0.2 * atm.gas[l] * (1.0 - mu[i]); };
 
   for (Index l = 0; l < atm.nlay(); l++) {
@@ -468,8 +471,12 @@ void test_surfaces() {
  *  because the quadrature integrates 1 - 3 mu'^2 to 0.  Q = 0 thus detects
  *  a Stokes or a stream transpose of Z, but not both at once.
  *
- *  non-reciprocal: P multiplied by (1 + 0.3 mu_out) and a from the Kirchhoff
- *  formula, so a_Q != 0.  This detects the full transpose too. */
+ *  non-reciprocal: the Q row of P (P_QI, P_QQ) multiplied by
+ *  (1 + 0.3 mu_out) and a from the Kirchhoff formula, so a_Q != 0.  This
+ *  detects the full transpose too.  P_II stays reciprocal, so its row and
+ *  column sums agree and the medium conserves energy (rt4::solve checks it):
+ *  a medium whose P_II were non-reciprocal could not obey both Kirchhoff's
+ *  law and energy conservation with one absorption. */
 void test_kirchhoff(bool reciprocal) {
   constexpr Numeric T = 260.0;
   atmosphere        atm;
@@ -494,7 +501,7 @@ void test_kirchhoff(bool reciprocal) {
 
   constexpr Numeric sigma = 6e-4, kabs = 4e-4;
   const auto        P = [reciprocal](Index s, Index t, Numeric m, Numeric mp) {
-    const Numeric a = m * m, b = mp * mp, f = reciprocal ? 1.0 : 1.0 + 0.3 * m;
+    const Numeric a = m * m, b = mp * mp, f = reciprocal or s == 0 ? 1.0 : 1.0 + 0.3 * m;
     if (s == 0 and t == 0) return f * 3.0 / 8.0 * (3 - a - b + 3 * a * b);
     if (s == 0 and t == 1) return f * 3.0 / 8.0 * (1 - 3 * a) * (1 - b);
     if (s == 1 and t == 0) return f * 3.0 / 8.0 * (1 - a) * (1 - 3 * b);
@@ -566,13 +573,16 @@ void test_errors() {
   const auto       good = [&] {
     auto              p   = base_problem(atm, 2);
     const Index       nmu = p.nmu + static_cast<Index>(p.extra_mu.size());
+    const auto        q   = rt4::get_quadrature(p.nmu, p.quad);
     rt4::layer_optics o{.extinction = Tensor4(2, nmu, 2, 2, 0.0),
                         .absorption = Tensor3(2, nmu, 2, 0.0),
                         .phase      = Tensor6(2, 2, nmu, nmu, 2, 2, 0.0)};
+    // Energy conservation: a1 = K11 - 2 pi sum_i w_i (1e-6 + 2e-6) over the quadrature streams
+    const Numeric scattered = 2 * pi * 3e-6 * std::accumulate(q.weights.begin(), q.weights.end(), 0.0);
     for (Index h = 0; h < 2; h++)
       for (Index i = 0; i < nmu; i++) {
         o.extinction[h, i, 0, 0] = o.extinction[h, i, 1, 1] = 1e-4;
-        o.absorption[h, i, 0]                               = 5e-5;
+        o.absorption[h, i, 0]                               = 1e-4 - scattered;
         for (Index j = 0; j < nmu; j++) {
           o.phase[h, h, i, j, 0, 0]     = 1e-6;
           o.phase[h, 1 - h, i, j, 0, 0] = 2e-6;
@@ -584,6 +594,12 @@ void test_errors() {
   };
   rt4::solve(good());
 
+  expect_throw("optics that do not conserve energy", [&] {
+    auto p                      = good();
+    p.optics[0].absorption[0, 0, 0] *= 1.01;
+    p.optics[0].absorption[1, 0, 0] *= 1.01;  // mirror symmetric, so only the energy balance fails
+    rt4::solve(p);
+  });
   expect_throw("nstokes = 3", [&] {
     auto p    = good();
     p.nstokes = 3;

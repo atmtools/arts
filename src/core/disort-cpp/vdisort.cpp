@@ -1444,14 +1444,16 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   }
 }
 
-void main_data::u_user(user_u_data&                  data,
-                       const Numeric                 tau,
-                       const Numeric                 phi,
-                       const ConstVectorView&        user_mu,
-                       const phase_matrix_data&      user_phase_matrix,
-                       const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::u_user(user_u_data&                    data,
+                       const Numeric                   tau,
+                       const Numeric                   phi,
+                       const ConstVectorView&          user_mu,
+                       const phase_matrix_data&        user_phase_matrix,
+                       const beam_phase_matrix_data&   user_beam_phase_matrix,
+                       const rtepack::stokvec_tensor3& user_boundary) const {
   rtepack::stokvec_tensor3 result(1, 1, user_mu.size());
-  ungridded_u_user(result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  ungridded_u_user(
+      result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
   data.intensities.resize(user_mu.size());
   for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user) data.intensities[user] = result[0, 0, user];
 }
@@ -1543,11 +1545,12 @@ void main_data::u_user_corr(user_u_data&                    data,
     data.intensities[user] += tms[user] + ims[user];
 }
 
-void main_data::user_fourier_modes(ComplexTensor4&               modes,
-                                   const AscendingGrid&          tau,
-                                   const ConstVectorView&        user_mu,
-                                   const phase_matrix_data&      user_phase_matrix,
-                                   const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::user_fourier_modes(ComplexTensor4&                 modes,
+                                   const AscendingGrid&            tau,
+                                   const ConstVectorView&          user_mu,
+                                   const phase_matrix_data&        user_phase_matrix,
+                                   const beam_phase_matrix_data&   user_beam_phase_matrix,
+                                   const rtepack::stokvec_tensor3& user_boundary) const {
   ARTS_TIME_REPORT
 
   const Index ntau  = static_cast<Index>(tau.size());
@@ -1561,6 +1564,12 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
       stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
+  ARTS_USER_ERROR_IF(not user_boundary.empty() and
+                         user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}),
+                     "The user-direction boundary radiances have shape {:B,}, expected [2, {}, {}] Stokes vectors",
+                     user_boundary.shape(),
+                     NFourier,
+                     nuser);
   const std::array<Index, 5> expected_phase_shape{2, NFourier, NLayers, nuser, NQuad};
   const std::array<Index, 4> expected_beam_shape{2, NFourier, NLayers, nuser};
   ARTS_USER_ERROR_IF(user_phase_matrix.shape() != expected_phase_shape,
@@ -1608,6 +1617,8 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
       phase_matrix_data  partner_phase(2, NFourier, NLayers, np, NQuad);
       beam_phase_matrix_data partner_beam;
       if (has_beam_source) partner_beam.resize(2, NFourier, NLayers, np);
+      rtepack::stokvec_tensor3 partner_boundary;
+      if (not user_boundary.empty()) partner_boundary.resize(2, NFourier, np);
       for (Index p = 0; p < np; ++p) {
         partner_mu[p] = user_mu[partners[p]];
         for (Index alpha = 0; alpha < 2; ++alpha)
@@ -1617,8 +1628,16 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                 partner_phase[alpha, m, layer, p, j] = user_phase_matrix[alpha, m, layer, partners[p], j];
               if (has_beam_source) partner_beam[alpha, m, layer, p] = user_beam_phase_matrix[alpha, m, layer, partners[p]];
             }
+        if (not user_boundary.empty())
+          for (Index alpha = 0; alpha < 2; ++alpha)
+            for (Index m = 0; m < NFourier; ++m) partner_boundary[alpha, m, p] = user_boundary[alpha, m, partners[p]];
       }
-      user_fourier_modes(partner_modes, AscendingGrid{Vector{tau_arr.back()}}, partner_mu, partner_phase, partner_beam);
+      user_fourier_modes(partner_modes,
+                         AscendingGrid{Vector{tau_arr.back()}},
+                         partner_mu,
+                         partner_phase,
+                         partner_beam,
+                         partner_boundary);
     }
   }
 
@@ -1645,7 +1664,10 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
-        rtepack::stokvec mode = interpolate_boundary(downward ? boundary_down : boundary_up, alpha, m, abs_mu);
+        // The boundary radiance where the ray starts: given, or interpolated from the streams
+        rtepack::stokvec mode = user_boundary.empty()
+                                    ? interpolate_boundary(downward ? boundary_down : boundary_up, alpha, m, abs_mu)
+                                    : user_boundary[alpha, m, iu];
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
         if (not downward and m < NBDRF) {
@@ -1798,12 +1820,13 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
   }
 }
 
-void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
-                                 const AscendingGrid&          tau,
-                                 const Vector&                 phi,
-                                 const ConstVectorView&        user_mu,
-                                 const phase_matrix_data&      user_phase_matrix,
-                                 const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
+                                 const AscendingGrid&            tau,
+                                 const Vector&                   phi,
+                                 const ConstVectorView&          user_mu,
+                                 const phase_matrix_data&        user_phase_matrix,
+                                 const beam_phase_matrix_data&   user_beam_phase_matrix,
+                                 const rtepack::stokvec_tensor3& user_boundary) const {
   ARTS_TIME_REPORT
 
   const std::array<Index, 3> expected_shape{
@@ -1821,7 +1844,7 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
       phi);
 
   ComplexTensor4 modes;
-  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
   out = rtepack::stokvec{};
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
     for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu) {

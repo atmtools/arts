@@ -1022,6 +1022,61 @@ void test_eigenvalue_direction_check() try {
 }
 }  // namespace
 
+/* Specular (Fresnel) reflection in both combined systems.  A non-scattering
+   layer (omega = 0, depth tau) over a Fresnel surface of an absorbing index
+   (so R mixes U and V), lit only by a diffuse sky with m = 0 and m = 1
+   content in the cosine system (I^c, Q^c, U^s, V^s) and in the sine system
+   (I^s, Q^s, U^c, V^c; azimuth-independent U and V are here, m = 0).  The
+   upward radiance at the top of every stream mu and azimuth phi must be the
+   attenuated mirror image of the downward one there,
+     I_up(0, mu, phi) = exp(-2 tau / mu) R(mu) I_down(0, mu, phi),
+   with R the Fresnel matrix (vdisort::brdf::Fresnel).  The old Fresnel
+   kernel left the sine system unreflected, which this detects. */
+void test_specular_reflection_both_systems() try {
+  constexpr Index   nquad = 8, n = nquad / 2, modes = 2;
+  constexpr Numeric depth = 0.3;
+  const Complex     index{1.5, 0.3};
+  for (const Index system : {vdisort::cosine_mode, vdisort::sine_mode}) {
+    Tensor7 phase(2, modes, 1, nquad, nquad, 4, 4, 0.0);
+    Tensor4 up(2, modes, n, 4, 0.0), down(2, modes, n, 4, 0.0);
+    for (Index i = 0; i < n; ++i) {
+      const Numeric g = 1.0 + 0.1 * static_cast<Numeric>(i);
+      for (Index s = 0; s < 4; ++s) {
+        down[system, 0, i, s] = g * std::array{1.0, 0.3, 0.2, 0.05}[s];
+        down[system, 1, i, s] = g * std::array{0.4, -0.1, 0.15, 0.03}[s];
+      }
+    }
+    auto model = make_vdisort(nquad,
+                              AscendingGrid{depth},
+                              Vector{0.0},
+                              std::move(phase),
+                              std::move(up),
+                              std::move(down),
+                              {},
+                              Vector(4, 0.0),
+                              {},
+                              vdisort::brdf::fresnel_fourier_modes(index, modes));
+    const Vector phi{0.0, 0.7, 2.1, 4.0};
+    Tensor4      u(1, phi.size(), nquad, 4);
+    model.ungridded_u(u, AscendingGrid{0.0}, phi);
+    Numeric largest = 0.0;
+    for (Index k = 0; k < static_cast<Index>(phi.size()); ++k) {
+      for (Index i = 0; i < n; ++i) {
+        const Numeric          mu = model.mu()[i];
+        const rtepack::stokvec sky{u[0, k, n + i, 0], u[0, k, n + i, 1], u[0, k, n + i, 2], u[0, k, n + i, 3]};
+        const rtepack::stokvec expected = std::exp(-2.0 * depth / mu) * (vdisort::brdf::Fresnel{index}(mu) * sky);
+        for (Index s = 0; s < 4; ++s) {
+          expect_close(u[0, k, i, s], expected[s], "specular reflection of the sky");
+          largest = std::max(largest, std::abs(expected[s]));
+        }
+      }
+    }
+    ARTS_USER_ERROR_IF(not(largest > 0.01), "The reflected radiance must not vanish");
+  }
+} catch (std::exception& e) {
+  throw std::runtime_error(std::format("Error in test-specular-reflection-both-systems:\n{}", e.what()));
+}
+
 int main() try {
   test_analytic_iq_two_stream();
   test_analytic_uv_two_stream();
@@ -1033,6 +1088,7 @@ int main() try {
   test_conservative_reflecting_source_limit();
   test_vector_source();
   test_polarized_brdf();
+  test_specular_reflection_both_systems();
   test_complex_uv_eigenmodes();
   test_bulk_quadrature_equivalence();
   test_delta_m_correction_api_overlap();

@@ -21,8 +21,8 @@
 #include <cmath>
 
 namespace {
-/** The Rayleigh scattering matrix [F11, F12, F22, F33, F34, F44] at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
-std::array<Numeric, 6> rayleigh_scattering_matrix(Numeric theta_rad, Numeric depolarization_factor) {
+/** The Rayleigh scattering matrix at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
+rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Numeric depolarization_factor) {
   using Math::pow2;
 
   const Numeric delta       = (1.0 - depolarization_factor) / (1.0 + 0.5 * depolarization_factor);
@@ -69,9 +69,10 @@ Numeric air_simple_cross_section(Numeric frequency) {
 }
 
 /** The scattering matrix at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
-std::array<Numeric, 6> normalized_phase_matrix(const GasScatteringPhaseMatrix& phase_matrix, Numeric scattering_angle) {
+rtepack::compact_planar_muelmat normalized_phase_matrix(const GasScatteringPhaseMatrix& phase_matrix,
+                                                        Numeric                         scattering_angle) {
   return std::visit(
-      [scattering_angle](const auto& phase) -> std::array<Numeric, 6> {
+      [scattering_angle](const auto& phase) -> rtepack::compact_planar_muelmat {
         using Phase = std::remove_cvref_t<decltype(phase)>;
         if constexpr (std::is_same_v<Phase, IsotropicGasScattering>) {
           return {1.0, 0.0, 1.0, 1.0, 0.0, 1.0};

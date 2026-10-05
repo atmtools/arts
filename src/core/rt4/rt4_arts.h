@@ -74,6 +74,17 @@ namespace rt4 {
  * laboratory frame, the limit along its meridian, so vertical rays need no
  * special treatment.
  *
+ * What rt4::solve then requires of the optics, and rejects otherwise:
+ *  - Mirror symmetry between the hemispheres (RT4's SYMMETRIC).  Azimuthal
+ *    random orientation does not imply it: species whose orientation is not
+ *    symmetric under reflection in the horizontal plane (tilted or
+ *    asymmetric particles) give optics that rt4::solve refuses.
+ *  - Energy conservation on the streams (problem::normalisation_tolerance):
+ *    every incident quadrature stream must scatter K11 - a1 into the
+ *    quadrature streams.  The azimuthal mean of Z sampled at the streams
+ *    need not, for forward-peaked optics (large drops, ice at high
+ *    frequency) whose peak falls between the streams; use more streams.
+ *
  * An empty species array gives all-zero optics.  Species without a phase
  * matrix, or that do not provide laboratory-frame (ARO gridded) data, are an
  * error.

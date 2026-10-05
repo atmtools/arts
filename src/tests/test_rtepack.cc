@@ -125,9 +125,34 @@ void test_inv() {
   std::print(std::cout, "{}\n", inv_k);
 }
 
+//! The compact scattering-plane Mueller matrix: its layout, and products that are those of the full matrix
+void test_compact_planar_muelmat() {
+  const rtepack::compact_planar_muelmat f{1.0, -0.3, 0.8, 0.6, 0.2, 0.5};
+  const rtepack::muelmat                F = f.expand();
+  const rtepack::muelmat                expected{
+      1.0, -0.3, 0.0, 0.0, -0.3, 0.8, 0.0, 0.0, 0.0, 0.0, 0.6, 0.2, 0.0, 0.0, -0.2, 0.5};
+  const rtepack::muelmat L = rtepack::stokes_rotation(std::cos(0.8), std::sin(0.8));
+  const rtepack::muelmat LF = L * f, FL = f * L, FF = f * f, LF_ = L * F, FL_ = F * L, FF_ = F * F;
+  for (Index i = 0; i < 4; i++) {
+    for (Index j = 0; j < 4; j++) {
+      const bool layout   = F[i, j] == expected[i, j];
+      // Equal up to floating-point contraction of the inlined products
+      const auto close    = [](Numeric a, Numeric b) { return std::abs(a - b) <= 4 * std::numeric_limits<Numeric>::epsilon(); };
+      const bool products = close(LF[i, j], LF_[i, j]) and close(FL[i, j], FL_[i, j]) and close(FF[i, j], FF_[i, j]);
+      ARTS_USER_ERROR_IF(not layout, "compact_planar_muelmat expands wrongly at [{}, {}]", i, j)
+      ARTS_USER_ERROR_IF(not products, "compact_planar_muelmat products must be those of the full matrix at [{}, {}]", i, j)
+    }
+  }
+  ARTS_USER_ERROR_IF(f.F11() != 1.0 or f.F12() != -0.3 or f.F22() != 0.8 or f.F33() != 0.6 or f.F34() != 0.2 or
+                         f.F44() != 0.5,
+                     "compact_planar_muelmat accessors are in the wrong order")
+  std::cout << "compact_planar_muelmat: layout, accessors and products OK\n";
+}
+
 int main() {
   test_expm();
   test_dexpm();
   test_inv();
+  test_compact_planar_muelmat();
   return 0;
 }

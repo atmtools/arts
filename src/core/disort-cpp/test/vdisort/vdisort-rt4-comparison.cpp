@@ -527,8 +527,10 @@ field vdisort_streams(const vdisort::main_data& v, Index nstokes) {
 }
 
 //! VDISORT's user-angle formal solution at the setup's extra angles, at every level, both directions
-//! VDISORT at the extra angles by its user-angle formal solution, up and down or (upward = false) down only
-field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upward = true) {
+/* VDISORT at the extra angles by its user-angle formal solution, up and down or (upward = false) down only.
+   With exact_boundary the boundary radiances where the user rays start are given (the Kirchhoff emission of a
+   Lambertian or Fresnel surface, the sky); otherwise VDISORT interpolates them from the streams. */
+field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upward = true, bool exact_boundary = false) {
   const Index N = c.s.nmu, NQuad = 2 * N, NL = c.nlay(), ne = c.s.total() - N;
   const Index first = upward ? 0 : ne;  // the user directions are the extra angles up, then down
   Vector      user_mu(2 * ne - first);
@@ -553,8 +555,24 @@ field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upw
   Vector levels(NL + 1, 0.0);
   for (Index l = 0; l < NL; l++) levels[l + 1] = v.tau()[l];
   const AscendingGrid      tau{std::move(levels)};
+  rtepack::stokvec_tensor3 boundary;
+  if (exact_boundary) {
+    const Numeric Bs = planck(frequency, c.surface), Bsky = planck(frequency, c.sky);
+    boundary.resize(2, 1, 2 * ne - first);
+    boundary = rtepack::stokvec{};
+    for (Index u = 0; u < 2 * ne - first; u++) {
+      if (user_mu[u] < 0.0) {
+        boundary[vdisort::cosine_mode, 0, u] = {Bsky, 0.0, 0.0, 0.0};
+      } else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g)) {
+        const auto R                         = vdisort::brdf::Fresnel{f->refractive_index}(user_mu[u]);
+        boundary[vdisort::cosine_mode, 0, u] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
+      } else {
+        boundary[vdisort::cosine_mode, 0, u] = {(1 - std::get<rt4::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
+      }
+    }
+  }
   rtepack::stokvec_tensor3 out(NL + 1, 1, 2 * ne - first);
-  v.ungridded_u_user(out, tau, Vector{0.0}, user_mu, user_phase);
+  v.ungridded_u_user(out, tau, Vector{0.0}, user_mu, user_phase, {}, boundary);
 
   field f{.up = Tensor3(NL + 1, ne, c.nstokes, 0.0), .down = Tensor3(NL + 1, ne, c.nstokes, 0.0)};
   for (Index l = 0; l <= NL; l++) {
@@ -1106,6 +1124,10 @@ void test_extra_angles() {
                       "interpolation, to {:.1e}; got {:.2e}",
                       tol,
                       corrected));
+
+  // With the exact boundary radiances given there is no interpolation: VDISORT is RT4 at every level
+  const auto exact = vdisort_extra_angles(x.v, c, true, true);
+  report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, exact boundaries given", compare(x.r, exact, N), tol);
 
   // Without the downward partner an upward user angle must be refused
   bool refused = false;

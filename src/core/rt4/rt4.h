@@ -141,6 +141,10 @@ struct problem {
   Vector extra_mu{};
   //! Maximum vertical optical thickness of the initial doubling sublayer, > 0
   Numeric max_delta_tau{1e-6};
+  //! The energy conservation every optics set must meet on the streams, relative to its K11: every incident
+  //! quadrature stream must scatter 2 pi sum_i w_i (phase[down] + phase[up])[I, I] = K11 - a1 into the
+  //! quadrature streams of both hemispheres, >= 0
+  Numeric normalisation_tolerance{1e-6};
   //! Frequency [Hz]; RT4 is given the wavelength 1e6 c / f in micrometres
   Numeric frequency{};
   //! [nlay + 1] layer interfaces, top-down.  Only |differences| are used;
@@ -182,8 +186,9 @@ struct result {
  *
  * Validates the shapes, every precondition on which the Fortran code would
  * STOP (nstokes <= 2, nstokes * nmu_total <= 64, nlay <= 400,
- * (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), and the mirror
- * symmetry that RT4 requires, then calls RADTRANO.
+ * (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), the mirror
+ * symmetry that RT4 requires, and that every optics set conserves energy on
+ * the streams to problem::normalisation_tolerance, then calls RADTRANO.
  */
 result solve(const problem& p);
 }  // namespace rt4

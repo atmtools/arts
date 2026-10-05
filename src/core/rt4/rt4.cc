@@ -107,6 +107,42 @@ void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index n
                      zt_ok,
                      zr_ok);
 }
+
+/* RT4 conserves energy only if every incident quadrature stream scatters
+   K11 - a1 into the quadrature streams of both hemispheres, 2 pi sum_i w_i
+   (phase[down, h, i, j] + phase[up, h, i, j])[I, I].  RT4's own check
+   (CHECK_NORM in radscat4.f) only printed a warning and was disabled in
+   ARTS 2, whose interface checked and renormalised the phase matrices
+   instead.  Here it is an error.  If sampled phase matrices (forward peaks
+   between the streams) make this a real problem, an explicit
+   renormalisation step could be added, as ARTS 2 had. */
+void check_normalisation(
+    const layer_optics& o, Index iset, const quadrature& q, Index nquad, Numeric tolerance) {
+  for (Index h = 0; h < 2; h++) {
+    for (Index j = 0; j < nquad; j++) {
+      Numeric scattered = 0.0;
+      for (Index ho = 0; ho < 2; ho++)
+        for (Index i = 0; i < nquad; i++) scattered += 2.0 * Constant::pi * q.weights[i] * o.phase[ho, h, i, j, 0, 0];
+      const Numeric k11 = o.extinction[h, j, 0, 0], expected = k11 - o.absorption[h, j, 0];
+      ARTS_USER_ERROR_IF(
+          not(std::abs(scattered - expected) <= tolerance * std::abs(k11)),
+          "RT4 optics set {} does not conserve energy on the streams: the {} quadrature stream {} (mu = {}) "
+          "scatters 2 pi sum_i w_i phase[I, I] = {} into the quadrature streams, but K11 - a1 = {} - {} = {} (a "
+          "difference of {:.3e} of K11, above normalisation_tolerance = {:.1e}).  Sample the phase matrix more "
+          "finely or use more streams",
+          iset,
+          h == down ? "downward" : "upward",
+          j,
+          q.mu[j],
+          scattered,
+          k11,
+          o.absorption[h, j, 0],
+          expected,
+          std::abs(scattered - expected) / std::abs(k11),
+          tolerance);
+    }
+  }
+}
 #endif
 }  // namespace
 
@@ -171,6 +207,9 @@ result solve(const problem& p) {
                      n,
                      (nlay + 1) * n * n);
   ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
+  ARTS_USER_ERROR_IF(not(p.normalisation_tolerance >= 0.0),
+                     "normalisation_tolerance must be >= 0, got {}",
+                     p.normalisation_tolerance);
   ARTS_USER_ERROR_IF(not(p.frequency > 0.0), "frequency must be positive, got {} Hz", p.frequency);
   ARTS_USER_ERROR_IF(static_cast<Index>(p.temperature.size()) != nlay + 1 or
                          static_cast<Index>(p.gas_extinction.size()) != nlay or
@@ -191,6 +230,7 @@ result solve(const problem& p) {
                      "layer_optics_index values must be < optics.size() = {} (negative means gas-only)",
                      nsl);
 
+  const auto quad_nodes = get_quadrature(nquad, p.quad);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& o = p.optics[iset];
     ARTS_USER_ERROR_IF(o.extinction.shape() != (std::array<Index, 4>{2, nmu, ns, ns}) or
@@ -214,6 +254,7 @@ result solve(const problem& p) {
                        o.absorption.shape(),
                        o.phase.shape());
     check_mirror_symmetry(o, iset, nmu, ns);
+    check_normalisation(o, iset, quad_nodes, nquad, p.normalisation_tolerance);
   }
 
   // RADTRANO arguments.  A row-major [a, b, c] array is the Fortran
@@ -359,8 +400,7 @@ result solve(const problem& p) {
 
   // RADTRANO does not return its weights; they are a function of the
   // quadrature alone, the extra angles having weight 0.
-  const auto q               = get_quadrature(nquad, p.quad);
-  r.weights[Range(0, nquad)] = q.weights;
+  r.weights[Range(0, nquad)] = quad_nodes.weights;
   return r;
 #else
   (void)p;

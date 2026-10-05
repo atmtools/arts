@@ -1,6 +1,7 @@
 #pragma once
 
 #include "array.h"
+#include "rtepack_compact_planar_mueller_matrix.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
 #include "rtepack_propagation_matrix.h"
@@ -11,6 +12,8 @@
 #include "rtepack_stokes_vector.h"
 #include "rtepack_surface.h"
 #include "rtepack_transmission.h"
+
+using CompactPlanarMuelmat = rtepack::compact_planar_muelmat;
 
 using Propmat                     = rtepack::propmat;
 using PropmatVector               = rtepack::propmat_vector;

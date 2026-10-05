@@ -257,9 +257,12 @@ def test_kirchhoff(reciprocal):
     """Isothermal sky, layers and surface: I = B, Q = 0 exactly on the streams
     when a(h, mu_j) = K [1, 0] - 2 pi sum_{i, h'} w_i Z(h, j <- h', i) [1, 0].
 
-    The non-reciprocal variant multiplies Z by (1 + 0.3 mu_out), which makes
-    a_Q non-zero and catches a full transpose of Z that the reciprocal
-    Rayleigh matrix is blind to.  Only round-off remains, which grows with the
+    The non-reciprocal variant multiplies the Q row of Z (Z_QI, Z_QQ) by
+    (1 + 0.3 mu_out), which makes a_Q non-zero and catches a full transpose
+    of Z that the reciprocal Rayleigh matrix is blind to.  Z_II stays
+    reciprocal, so the medium conserves energy (rt4.solve checks it); a
+    non-reciprocal Z_II could not obey Kirchhoff's law and energy
+    conservation with one absorption.  Only round-off remains, which grows with the
     number of sublayers 2^n.
     """
     t = 260.0
@@ -282,8 +285,9 @@ def test_kirchhoff(reciprocal):
     z = np.zeros((nmu, nmu, 2, 2))
     for i in range(nmu):
         for j in range(nmu):
-            f = 1.0 if reciprocal else 1.0 + 0.3 * mu[i]
-            z[i, j] = f * sigma * rayleigh_m0(mu[i], mu[j]) / (4.0 * np.pi)
+            z[i, j] = sigma * rayleigh_m0(mu[i], mu[j]) / (4.0 * np.pi)
+            if not reciprocal:
+                z[i, j, 1, :] *= 1.0 + 0.3 * mu[i]
     phase = np.broadcast_to(z, (2, 2) + z.shape).copy()
 
     ext = np.zeros((2, nmu, 2, 2))

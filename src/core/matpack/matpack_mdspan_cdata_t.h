@@ -285,6 +285,7 @@ template <std::size_t I, matpack::any_cdata T> struct tuple_element<I, T> {
 using Vector2         = matpack::cdata_t<Numeric, 2>;
 using Vector3         = matpack::cdata_t<Numeric, 3>;
 using Vector4         = matpack::cdata_t<Numeric, 4>;
+using Vector6         = matpack::cdata_t<Numeric, 6>;
 using Vector7         = matpack::cdata_t<Numeric, 7>;
 using Matrix33        = matpack::cdata_t<Numeric, 3, 3>;
 using Matrix44        = matpack::cdata_t<Numeric, 4, 4>;

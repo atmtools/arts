@@ -155,6 +155,7 @@ is not used for this surface.)";
              rt4::quadrature_type                  quad,
              const Vector&                         extra_mu,
              Numeric                               max_delta_tau,
+             Numeric                               normalisation_tolerance,
              Numeric                               frequency,
              const Vector&                         height,
              const Vector&                         temperature,
@@ -168,7 +169,8 @@ is not used for this surface.)";
                                  .nmu                 = nmu,
                                  .quad                = quad,
                                  .extra_mu            = extra_mu,
-                                 .max_delta_tau       = max_delta_tau,
+                                 .max_delta_tau           = max_delta_tau,
+                                 .normalisation_tolerance = normalisation_tolerance,
                                  .frequency           = frequency,
                                  .height              = height,
                                  .temperature         = temperature,
@@ -184,6 +186,7 @@ is not used for this surface.)";
           "quad"_a                = d.quad,
           "extra_mu"_a            = d.extra_mu,
           "max_delta_tau"_a       = d.max_delta_tau,
+          "normalisation_tolerance"_a = d.normalisation_tolerance,
           "frequency"_a           = d.frequency,
           "height"_a              = d.height,
           "temperature"_a         = d.temperature,
@@ -203,6 +206,10 @@ is not used for this surface.)";
       .def_rw("max_delta_tau",
               &rt4::problem::max_delta_tau,
               "Maximum vertical optical thickness of the initial doubling sublayer, > 0\n\n.. :class:`float`")
+      .def_rw("normalisation_tolerance",
+              &rt4::problem::normalisation_tolerance,
+              "Energy conservation every optics set must meet on the streams, relative to K11: every incident "
+              "quadrature stream must scatter K11 - a1 into the quadrature streams\n\n.. :class:`float`")
       .def_rw("frequency", &rt4::problem::frequency, "Frequency [Hz]\n\n.. :class:`float`")
       .def_rw("height",
               &rt4::problem::height,
