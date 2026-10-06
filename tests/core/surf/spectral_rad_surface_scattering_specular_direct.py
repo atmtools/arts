@@ -98,10 +98,6 @@ def setup_workspace_base(freq_grid, suns=None):
     set_cmb_incoming_agenda(ws)
     ws.ray_path_observer_agendaSetGeometric()
 
-    # Initialize spectral_rad and spectral_rad_jac (will be resized by the method)
-    ws.spectral_rad = arts.StokvecVector()
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
     return ws
 
 
@@ -200,6 +196,7 @@ def run_specular_direct(freq_grid, reflectivity, suns=None, tag_key="flat_scalar
         set_tilted_surface(ws, tilt_deg)
     add_surface_mask(ws, tag_key)
     ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
     return rad_array(ws, len(freq_grid))
 
@@ -243,6 +240,7 @@ def test_specular_direct_zero_with_diffuse_model():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_lambertian_models(freq_grid, reflectivity=0.5)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
     rad = rad_array(ws, len(freq_grid))
 
@@ -408,6 +406,7 @@ def test_specular_direct_fresnel():
     add_surface_mask(ws, "fresnel")
     ws.surface_models = create_fresnel_models(freq_grid, n2)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
     stokes = stokes_array(ws, len(freq_grid))
 
@@ -438,8 +437,7 @@ def test_specular_direct_jacobian():
     add_surface_mask(ws, "flat_scalar")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
 
     jac_array = np.array(ws.spectral_rad_jac)

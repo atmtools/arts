@@ -44,10 +44,6 @@ def setup_workspace_base(freq_grid):
     ws.spectral_rad_incoming_agendaSet(option="Emission")
     ws.ray_path_observer_agendaSetGeometric()
 
-    # Initialize spectral_rad and spectral_rad_jac (will be resized by the method)
-    ws.spectral_rad = arts.StokvecVector()
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
     return ws
 
 
@@ -86,6 +82,7 @@ def test_spectral_rad_surface_scattering_specular_basic():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
 
     assert len(ws.spectral_rad) == len(freq_grid), \
@@ -112,6 +109,7 @@ def test_spectral_rad_surface_scattering_specular_zero_with_diffuse_model():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
 
     rad_array = np.array([float(ws.spectral_rad[i][0]) for i in range(len(freq_grid))])
@@ -138,8 +136,7 @@ def test_spectral_rad_surface_scattering_specular_jacobian():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
 
     jac_array = np.array(ws.spectral_rad_jac)

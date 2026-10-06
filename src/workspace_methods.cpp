@@ -2330,11 +2330,32 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
       .pass_workspace = true,
   };
 
+  wsm_data["spectral_radSurfaceScatteringInit"] = {
+      .desc =
+          R"--(Zero and size *spectral_rad* and *spectral_rad_jac* for surface scattering methods.
+
+The ``spectral_radSurfaceScattering`` methods add their contribution to *spectral_rad*
+and *spectral_rad_jac*.  This method must therefore be called before the first of them,
+and only once per agenda execution.  It is what makes it possible to chain several
+surface scattering methods, for example a diffuse and a specular one, into a single
+*spectral_rad_surface_agenda*.
+
+Sizes: *spectral_rad* is (*freq_grid*), *spectral_rad_jac* is (*jac_targets*, *freq_grid*).
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid", "jac_targets"},
+   };
+
   wsm_data["spectral_radSurfaceScatteringDiffuse"] = {
       .desc =
-          R"--(Set surface spectral radiance to use sub-surface emission and surface scattering.
+          R"--(Add surface scattering and sub-surface emission to *spectral_rad*.
 
 The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
 
 The incoming quadrature directions are checked against the horizon defined by
 the actual surface normal at the point: directions below that horizon
@@ -2370,9 +2391,13 @@ The surface masks lives under the *SurfacePropertyTag* keys, which must be the s
 
   wsm_data["spectral_radSurfaceScatteringSpecular"] = {
       .desc =
-          R"--(Set surface spectral radiance to use sub-surface emission and specular surface scattering.
+          R"--(Add specular surface scattering and sub-surface emission to *spectral_rad*.
 
 The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
 
 The direction of the incoming radiation is the mirror reflection of the
 outgoing (ray) direction about the local surface normal, so only a single
@@ -2402,10 +2427,14 @@ same as in *surface_models*.
 
   wsm_data["spectral_radSurfaceScatteringDiffuseDirect"] = {
       .desc =
-          R"--(Set surface spectral radiance to sub-surface emission plus direct
-(collimated) incoming beam radiation scattered by a diffuse surface.
+          R"--(Add sub-surface emission plus direct (collimated) incoming beam
+radiation scattered by a diffuse surface to *spectral_rad*.
 
 The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
 
 The incoming radiation is one delta-function beam per sun in *suns*.  The beam
 direction is estimated internally at the surface point: first geometrically
@@ -2459,11 +2488,15 @@ same as in *surface_models*.
        .pass_workspace = true,
    };
 
-   wsm_data["spectral_radSurfaceScatteringSpecularDirect"] = {
-       .desc = R"--(Set surface spectral radiance to sub-surface emission plus direct
-(collimated) incoming beam radiation specularly reflected by the surface.
+    wsm_data["spectral_radSurfaceScatteringSpecularDirect"] = {
+        .desc = R"--(Add sub-surface emission plus direct (collimated) incoming beam
+radiation specularly reflected by the surface to *spectral_rad*.
 
 The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
 
 The incoming radiation is one delta-function beam per sun in *suns*.  The
 outgoing direction is the ray line-of-sight, and the specular direction is its

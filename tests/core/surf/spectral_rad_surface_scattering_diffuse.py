@@ -80,10 +80,6 @@ def setup_workspace_base(freq_grid, nza=5, za_max=85.0):
     ws.spectral_rad_incoming_agendaSet(option="Emission")
     ws.ray_path_observer_agendaSetGeometric()
 
-    # Initialize spectral_rad and spectral_rad_jac (will be resized by the method)
-    ws.spectral_rad = arts.StokvecVector()
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
     return ws
 
 
@@ -187,6 +183,7 @@ def test_spectral_rad_surface_scattering_diffuse_basic():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
 
     assert len(ws.spectral_rad) == len(freq_grid), \
@@ -218,6 +215,7 @@ def test_spectral_rad_surface_scattering_diffuse_closed_form():
     assert np.isclose(frac, 1.0, rtol=1e-12, atol=0.0), \
         f"All directions should be visible on flat terrain, got fraction {frac}"
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
     rad = rad_array(ws, len(freq_grid))
 
@@ -246,6 +244,7 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
     set_cmb_incoming_agenda(ws1)
     add_surface_mask(ws1, "lambertian")
     ws1.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws1.spectral_radSurfaceScatteringInit()
     ws1.spectral_radSurfaceScatteringDiffuse()
     rad_flat = rad_array(ws1, len(freq_grid))
 
@@ -254,6 +253,7 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
     set_cmb_incoming_agenda(ws2)
     add_surface_mask(ws2, "lambertian")
     ws2.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws2.spectral_radSurfaceScatteringInit()
     ws2.spectral_radSurfaceScatteringDiffuse()
     rad_diffuse = rad_array(ws2, len(freq_grid))
 
@@ -284,6 +284,7 @@ def test_spectral_rad_surface_scattering_diffuse_absorbing():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
     rad_absorbing = rad_array(ws, len(freq_grid))
 
@@ -317,12 +318,14 @@ def test_spectral_rad_surface_scattering_diffuse_reflector():
     ws1 = setup_workspace_base(freq_grid)
     add_surface_mask(ws1, "lambertian")
     ws1.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+    ws1.spectral_radSurfaceScatteringInit()
     ws1.spectral_radSurfaceScatteringDiffuse()
     rad_absorbing = rad_array(ws1, len(freq_grid))
 
     ws2 = setup_workspace_base(freq_grid)
     add_surface_mask(ws2, "lambertian")
     ws2.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws2.spectral_radSurfaceScatteringInit()
     ws2.spectral_radSurfaceScatteringDiffuse()
     rad_reflector = rad_array(ws2, len(freq_grid))
 
@@ -353,8 +356,7 @@ def test_spectral_rad_surface_scattering_diffuse_jacobian():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
 
     jac_array = np.array(ws.spectral_rad_jac)
