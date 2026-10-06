@@ -2340,7 +2340,7 @@ The incoming quadrature directions are checked against the horizon defined by
 the actual surface normal at the point: directions below that horizon
 contribute nothing to the scattered term, and directions above it that a flat
 horizon would hide are included.  The gating is the same as the beam visibility
-test of *spectral_radSurfaceScatteringDirect*.  Extend *zen_grid* beyond 90
+test of *spectral_radSurfaceScatteringDiffuseDirect*.  Extend *zen_grid* beyond 90
 degrees to capture directions made visible by the surface tilt.
 
 The *spectral_rad_closed_surface_agenda* should produce the surface emission,
@@ -2400,7 +2400,7 @@ same as in *surface_models*.
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radSurfaceScatteringDirect"] = {
+  wsm_data["spectral_radSurfaceScatteringDiffuseDirect"] = {
       .desc =
           R"--(Set surface spectral radiance to sub-surface emission plus direct
 (collimated) incoming beam radiation scattered by a diffuse surface.
