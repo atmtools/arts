@@ -75,3 +75,17 @@ try:
     raise AssertionError("modes to m = 4 must not give m = 5")
 except RuntimeError:
     pass
+
+# A user's function must give exactly the Legendre series asked for
+rayleigh = A.GasScatterer(A.ConstantGasScattering(1e-30), A.RayleighGasScattering(0.0))
+good, bad = A.ArrayOfScatteringSpecies(), A.ArrayOfScatteringSpecies()
+good.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l)))
+bad.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l + 1)))
+user = good.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
+builtin = rayleigh.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
+assert np.array_equal(np.asarray(user.phase_matrix), np.asarray(builtin.phase_matrix))
+try:
+    bad.get_bulk_scattering_properties_tro_spectral(point, [FREQ], 4)
+    raise AssertionError("a user function giving the wrong degree must fail")
+except RuntimeError as e:
+    assert "user's scattering function" in str(e), str(e)

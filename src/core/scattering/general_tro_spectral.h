@@ -40,6 +40,13 @@ struct ScatteringTroSpectralVector {
 using ScatteringGeneralSpectralTROFunc =
     CustomOperator<ScatteringTroSpectralVector, const AtmPoint&, const Vector&, Index>;
 
+/** A scattering species given by a user's function of its TRO Legendre series
+ *
+ * f(atm_point, f_grid, degree) must give the bulk Legendre series to degree
+ * at f_grid (see ScatteringTroSpectralVector), with the extinction and
+ * absorption at f_grid; get_bulk_scattering_properties_tro_spectral throws
+ * if it gives anything else.
+ */
 struct ScatteringGeneralSpectralTRO {
   ScatteringGeneralSpectralTROFunc f{};
 
