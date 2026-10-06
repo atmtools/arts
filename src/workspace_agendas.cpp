@@ -207,10 +207,24 @@ The input path point should be as if it is looking at the surface.
 Subsurface calculations are also supported through this agenda,
 but might require setting *spectral_rad_closed_surface_agenda*
 as well.
+
+The ``SurfaceScatteringModel`` options chain the ``spectral_radSurfaceScattering``
+methods and require *surface_models* plus *spectral_rad_incoming_agenda* and
+*spectral_rad_closed_surface_agenda*.  The non-``Direct`` methods additionally
+require the quadrature grids *zen_grid*, *az_grid*, *zen_grid_weights* and
+*az_grid_weights*; the ``Direct`` methods require *suns* and
+*ray_path_observer_agenda*.  ``SurfaceScatteringModel`` chains both quadrature-
+and sun-beam-based methods: if the sun falls inside the quadrature grids its
+direct beam is counted twice.
 )--",
       .output         = {"spectral_rad", "spectral_rad_jac"},
       .input          = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
-      .enum_options   = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .enum_options   = {"Blackbody",
+                         "Transmission",
+                         "SurfaceReflectance",
+                         "SurfaceScatteringModel",
+                         "SurfaceScatteringModelDiffuseOnly",
+                         "SurfaceScatteringModelDirectOnly"},
       .enum_default   = "Blackbody",
       .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
 
