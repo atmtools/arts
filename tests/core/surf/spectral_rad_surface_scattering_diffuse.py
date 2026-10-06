@@ -1,25 +1,37 @@
 """Tests for spectral_radSurfaceScatteringDiffuse workspace method.
 
-The method is the surface-normal-aware version of
-spectral_radSurfaceScatteringFlatDiffuse: each quadrature direction is
-checked against the horizon defined by the actual surface normal, and
-directions below that horizon contribute nothing to the scattered term.
+Each quadrature direction is checked against the horizon defined by the
+actual surface normal, and directions below that horizon contribute nothing
+to the scattered term.
 
 Verifies:
 1. Basic execution (smoke test): method runs and produces finite output
-2. Flat-surface equivalence: identical to FlatDiffuse when the surface is
-   flat and the grid excludes the exact horizon
-3. Tilted-surface sub-horizon gating: with a known uniform (CMB) incoming
-   field and a perfect Lambertian reflector, the scattered term equals the
-   flat result scaled by the fraction of quadrature weight above the
-   tilted horizon
-4. Jacobian shape: correct dimensions when jac_targets is non-empty
+2. Closed-form hemisphere integration: with a perfect Lambertian reflector
+   (emissivity = 0) and a uniform CMB incoming field, the radiance equals
+   I_cmb times the total visible quadrature weight
+3. Tilted-surface sub-horizon gating: the scattered term on a tilted surface
+   equals the flat-surface result scaled by the visible weight fraction
+4. Absorbing surface (r = 0): output equals the surface blackbody
+5. Kirchhoff coupling: perfect reflector (r = 1) emits nothing and reflects
+   no thermal radiation, so it produces far less radiance than the absorber
+6. Jacobian shape: correct dimensions when jac_targets is non-empty
 """
 
 import numpy as np
 import pyarts3 as pyarts
+from scipy import constants
 
 arts = pyarts.arts
+
+T_CMB = 2.725  # Constant::cosmic_microwave_background_temperature
+
+
+def planck(f, T):
+    """Planck function [W m-2 sr-1 Hz-1]."""
+    h = constants.h
+    c = constants.c
+    k_B = constants.k
+    return (2 * h * f**3 / c**2) / (np.exp(h * f / (k_B * T)) - 1)
 
 
 def setup_workspace_base(freq_grid, nza=5, za_max=85.0):
@@ -115,6 +127,10 @@ def rad_array(ws, nf):
     return np.array([float(ws.spectral_rad[i][0]) for i in range(nf)])
 
 
+def total_quadrature_weight(ws):
+    return float(np.sum(np.array(ws.zen_grid_weights)) * np.sum(np.array(ws.az_grid_weights)))
+
+
 def set_tilted_surface(ws, slope_m_per_deg_lat=111320.0):
     """Replace the surface elevation with a plane tilted in the latitudinal
     direction: h = slope * lat.  With slope ~ 111320 m/deg the surface is
@@ -184,30 +200,34 @@ def test_spectral_rad_surface_scattering_diffuse_basic():
 
 
 # ============================================================================
-# Test 2: Equivalence with FlatDiffuse on a flat surface
+# Test 2: Closed-form hemisphere integration on flat terrain
 # ============================================================================
-def test_spectral_rad_surface_scattering_diffuse_flat_equivalence():
-    """On flat terrain with the grid away from the exact horizon every
-    direction is above the surface-normal horizon, so the method must
-    reproduce FlatDiffuse exactly."""
+def test_spectral_rad_surface_scattering_diffuse_closed_form():
+    """With a perfect Lambertian reflector (r = 1, emissivity = 0) and a
+    uniform CMB incoming field the method must return exactly
+    I_cmb * sum(visible quadrature weights).  On flat terrain with the grid
+    away from the exact horizon every direction is visible."""
     freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
 
-    ws1 = setup_workspace_base(freq_grid)
-    add_surface_mask(ws1, "lambertian")
-    ws1.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
-    ws1.spectral_radSurfaceScatteringFlatDiffuse()
-    rad_flat = rad_array(ws1, len(freq_grid))
+    set_cmb_incoming_agenda(ws)
+    add_surface_mask(ws, "lambertian")
+    ws.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
 
-    ws2 = setup_workspace_base(freq_grid)
-    add_surface_mask(ws2, "lambertian")
-    ws2.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
-    ws2.spectral_radSurfaceScatteringDiffuse()
-    rad_diffuse = rad_array(ws2, len(freq_grid))
+    frac = visible_weight_fraction(ws)
+    assert np.isclose(frac, 1.0, rtol=1e-12, atol=0.0), \
+        f"All directions should be visible on flat terrain, got fraction {frac}"
 
-    assert np.allclose(rad_flat, rad_diffuse, rtol=1e-12, atol=0.0), \
-        f"Flat equivalence violated:\n  flat    = {rad_flat}\n  diffuse = {rad_diffuse}"
+    ws.spectral_radSurfaceScatteringDiffuse()
+    rad = rad_array(ws, len(freq_grid))
 
-    print("Test 2 passed: identical to FlatDiffuse on flat terrain")
+    cmb = np.array([planck(f, T_CMB) for f in freq_grid])
+    expected = cmb * total_quadrature_weight(ws)
+
+    assert np.allclose(rad, expected, rtol=1e-12, atol=0.0), \
+        f"Closed-form hemisphere integration violated:\n  got      = {rad}\n  expected = {expected}"
+
+    print("Test 2 passed: hemisphere integration matches closed form on flat terrain")
 
 
 # ============================================================================
@@ -217,17 +237,16 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
     """On a ~45 deg tilted surface with a perfect Lambertian reflector
     (emissivity = 0) and a uniform CMB incoming field, the scattered term
     is r * I_cmb * sum(weights of visible directions).  The ratio to the
-    flat-horizon result is therefore exactly the visible weight fraction,
+    flat-surface result is therefore exactly the visible weight fraction,
     which must be strictly below 1."""
     freq_grid = [10e9, 100e9, 183e9]
 
-    # Flat-horizon reference on the same tilted surface field
+    # Flat-terrain reference with the identical setup
     ws1 = setup_workspace_base(freq_grid)
-    set_tilted_surface(ws1)
     set_cmb_incoming_agenda(ws1)
     add_surface_mask(ws1, "lambertian")
     ws1.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
-    ws1.spectral_radSurfaceScatteringFlatDiffuse()
+    ws1.spectral_radSurfaceScatteringDiffuse()
     rad_flat = rad_array(ws1, len(freq_grid))
 
     ws2 = setup_workspace_base(freq_grid)
@@ -254,7 +273,72 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
 
 
 # ============================================================================
-# Test 4: Jacobian shape check
+# Test 4: Absorbing surface (reflectivity = 0)
+# ============================================================================
+def test_spectral_rad_surface_scattering_diffuse_absorbing():
+    """With reflectivity = 0 the scattering contribution vanishes and the
+    output is the pure surface emission at the surface temperature."""
+    freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
+
+    add_surface_mask(ws, "lambertian")
+    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+
+    ws.spectral_radSurfaceScatteringDiffuse()
+    rad_absorbing = rad_array(ws, len(freq_grid))
+
+    assert np.all(np.isfinite(rad_absorbing)), \
+        "Absorbing surface: spectral_rad contains non-finite values"
+    assert np.all(rad_absorbing > 0), \
+        "Absorbing surface: spectral_rad should be positive (surface emission)"
+
+    T_surf = ws.surf_field["t"](0, 0)
+    idx = 1
+    ratio = rad_absorbing[idx] / planck(freq_grid[idx], T_surf)
+    assert 0.9999999 < ratio < 1.0000001, \
+        f"Planck ratio out of range: {ratio} (expect 1.0 for emissivity = 1)"
+
+    print("Test 4 passed: absorbing surface produces the surface blackbody")
+
+
+# ============================================================================
+# Test 5: Kirchhoff coupling, perfect reflector (reflectivity = 1)
+# ============================================================================
+def test_spectral_rad_surface_scattering_diffuse_reflector():
+    """Test the Kirchhoff coupling emissivity = 1 - reflectivity.
+
+    The test atmosphere contains no absorption species, so there is no
+    incoming thermal radiation for the surface to reflect.  Therefore a
+    perfect reflector (r = 1, emissivity = 0) produces (near-)zero radiance,
+    while the absorbing surface (r = 0) produces the full 280 K blackbody.
+    """
+    freq_grid = [10e9, 100e9, 183e9]
+
+    ws1 = setup_workspace_base(freq_grid)
+    add_surface_mask(ws1, "lambertian")
+    ws1.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+    ws1.spectral_radSurfaceScatteringDiffuse()
+    rad_absorbing = rad_array(ws1, len(freq_grid))
+
+    ws2 = setup_workspace_base(freq_grid)
+    add_surface_mask(ws2, "lambertian")
+    ws2.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws2.spectral_radSurfaceScatteringDiffuse()
+    rad_reflector = rad_array(ws2, len(freq_grid))
+
+    assert np.all(rad_reflector < rad_absorbing), \
+        f"Emissivity = 1 - r violated: reflector {rad_reflector} >= absorber {rad_absorbing}"
+
+    idx = 1
+    ratio = rad_reflector[idx] / planck(freq_grid[idx], 280.0)
+    assert ratio < 0.1, \
+        f"Perfect reflector radiance too close to blackbody level: ratio = {ratio}"
+
+    print("Test 5 passed: perfect reflector (emissivity = 0) produces no thermal emission")
+
+
+# ============================================================================
+# Test 6: Jacobian shape check
 # ============================================================================
 def test_spectral_rad_surface_scattering_diffuse_jacobian():
     """Test Jacobian computation with non-empty jac_targets."""
@@ -281,7 +365,7 @@ def test_spectral_rad_surface_scattering_diffuse_jacobian():
 
     assert np.all(np.isfinite(jac_array)), "Jacobian contains non-finite values"
 
-    print("Test 4 passed: Jacobian has correct shape and finite values")
+    print("Test 6 passed: Jacobian has correct shape and finite values")
 
 
 # ============================================================================
@@ -289,7 +373,9 @@ def test_spectral_rad_surface_scattering_diffuse_jacobian():
 # ============================================================================
 if __name__ == "__main__":
     test_spectral_rad_surface_scattering_diffuse_basic()
-    test_spectral_rad_surface_scattering_diffuse_flat_equivalence()
+    test_spectral_rad_surface_scattering_diffuse_closed_form()
     test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon()
+    test_spectral_rad_surface_scattering_diffuse_absorbing()
+    test_spectral_rad_surface_scattering_diffuse_reflector()
     test_spectral_rad_surface_scattering_diffuse_jacobian()
     print("\nAll tests passed!")

@@ -9,7 +9,7 @@ Verifies:
 5. No suns: empty suns yields emission only
 6. Multi-sun: two visible suns give the sum of the single-sun contributions
 7. Jacobian shape: correct dimensions when jac_targets is non-empty
-8. Consistency with FlatDiffuse on a single unit-weight quadrature point
+8. Consistency with Diffuse on a single unit-weight quadrature point
 9. arts.sun.geometric_los / arts.sun.refractive_los vs sun_pathFromObserverAgenda
 """
 
@@ -327,11 +327,12 @@ def test_spectral_rad_surface_scattering_direct_jacobian():
 
 
 # ============================================================================
-# Test 8: Agreement with FlatDiffuse on a single unit-weight quadrature point
+# Test 8: Agreement with Diffuse on a single unit-weight quadrature point
 # ============================================================================
 def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
-    """The direct method must reproduce FlatDiffuse with a single-direction
-    quadrature grid and unit weights (shared delta-weighted convention)."""
+    """The direct method must reproduce the diffuse method with a
+    single-direction quadrature grid and unit weights (shared delta-weighted
+    convention)."""
     freq_grid = [10e9, 100e9, 183e9]
 
     ws = setup_workspace_base(freq_grid)
@@ -354,7 +355,7 @@ def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
 
     ws.spectral_rad = arts.StokvecVector()
     ws.spectral_rad_jac = arts.StokvecMatrix()
-    ws.spectral_radSurfaceScatteringFlatDiffuse()
+    ws.spectral_radSurfaceScatteringDiffuse()
     rad_diffuse = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                             for i in range(len(freq_grid))])
 
@@ -362,7 +363,7 @@ def test_spectral_rad_surface_scattering_direct_agrees_with_diffuse():
         f"Normalization mismatch between direct and diffuse:\n" \
         f" direct  {rad_direct}\n diffuse {rad_diffuse}"
 
-    print("Test 8 passed: direct method agrees with single-point FlatDiffuse")
+    print("Test 8 passed: direct method agrees with single-point diffuse quadrature")
 
 
 # ============================================================================
