@@ -153,8 +153,9 @@ For a run without a display window::
 
     ARTS_HEADLESS=1 python tests/core/lbl/ecs_nh3.py
 
-The script saves ``ecs_nh3.png`` in the current directory. It gathers twelve
-catalogue nu2 Q lines with J <= 3 across both inversion subbranches and plots
+The script opens a Matplotlib window unless ``ARTS_HEADLESS`` is set. It
+gathers twelve catalogue nu2 Q lines with J <= 3 across both inversion
+subbranches and plots
 mixed and independent-line absorption, plus their differences. Conditions are
 296 K, an 85% H2 / 15% He bath, 1 ppm NH3-4111, and densities of 1, 10, and
 30 amagat; the plot labels show the corresponding ideal-gas pressures.
