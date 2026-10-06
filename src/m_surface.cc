@@ -1,8 +1,12 @@
 #include <arts_omp.h>
 #include <geodetic.h>
+#include <sun.h>
 #include <sun_methods.h>
 #include <workspace.h>
 #include "rtepack.h"
+
+#include <algorithm>
+#include <cmath>
 
 namespace {
 Vector2 specular_losNormal(const Vector2& normal, const Vector2& los, const Vector3& pos, const Vector2& ell) {
@@ -622,6 +626,173 @@ void spectral_radSurfaceScatteringSpecular(
   spectral_rad += spectral_rad_reflected;
   spectral_rad += spectral_rad_surface;
   spectral_rad_jac += spectral_rad_reflected_jac;
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringSpecularDirect(
+    const Workspace& ws,
+    StokvecVector& spectral_rad,
+    StokvecMatrix& spectral_rad_jac,
+    const AscendingGrid& freq_grid,
+    const AtmField& atm_field,
+    const SurfaceField& surf_field,
+    const SubsurfaceField& subsurf_field,
+    const MapOfSurfaceScatteringModel& surface_models,
+    const JacobianTargets& jac_targets,
+    const PropagationPathPoint& ray_point,
+    const ArrayOfSun& suns,
+    const Agenda& ray_path_observer_agenda,
+    const Agenda& spectral_rad_incoming_agenda,
+    const Agenda& spectral_rad_closed_surface_agenda,
+    const Numeric& angle_cut,
+    const Index& refinement) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Glint direction: the mirror reflection of the outgoing (ray) direction about
+  // the local surface normal.  It is stored as the looking direction towards the
+  // beam source that mirrors into the ray direction, i.e. directly comparable
+  // with sun_geometric_los and the obs_los of spectral_rad_incoming_agenda.
+  const Vector2 los_spec =
+      specular_losNormal(surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
+
+  // Single outgoing (ray) direction; the incoming directions are the sun beams
+  const Vector za_out {ray_point.los[0]};
+  const Vector aa_out {ray_point.los[1]};
+
+  // The specular emissivity depends only on the outgoing direction, so it is
+  // evaluated once here with a dummy incidence for the emission term
+  const surface_scattering::SurfaceScatteringModelProperties emission_props =
+      surface_models.get_surface_scattering_model_properties(
+          surf_point,
+          ray_point.pos[1],
+          ray_point.pos[2],
+          freq_grid,
+          Vector{0.0},
+          Vector{0.0},
+          za_out,
+          aa_out);
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  // ECEF image of the glint direction, used for the refractive disc re-test
+  const auto [_, ecef_los_spec] = geodetic_los2ecef(ray_point.pos, los_spec, surf_field.ellipsoid);
+
+  StokvecVector spectral_rad_scattered(nf);
+  spectral_rad_scattered = 0.0;
+  StokvecMatrix spectral_rad_scattered_jac(nq, nf);
+  spectral_rad_scattered_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  // One delta-function beam per sun, contributions summed; no suns means no
+  // scattered term at all
+  for (const auto& sun : suns) {
+    // Solar disc test on the glint direction: the sun contributes only if the
+    // specular direction falls inside the disc, i.e. beta <= alpha with alpha
+    // the angular radius of the sun at the point.  This gate subsumes the
+    // horizon gate: a sun on the far side of the (possibly tilted) surface
+    // normal can never satisfy beta <= alpha.
+    const auto [beta, hit] = hit_sun(sun, ray_point.pos, los_spec, surf_field.ellipsoid);
+    if (not hit) continue;
+
+    // Refraction-aware beam direction via the observer agenda
+    const Vector2 los_in =
+        sun_refractive_los(ws, sun, ray_point.pos, surf_field, ray_path_observer_agenda, angle_cut, refinement);
+
+    // Disc re-test on the refracted LOS against the glint direction
+    const Numeric alpha = std::asin(std::sqrt(sun.sin_alpha_squared(ray_point.pos, surf_field.ellipsoid)));
+    const auto [__, ecef_los_in] = geodetic_los2ecef(ray_point.pos, los_in, surf_field.ellipsoid);
+    const Numeric beta_ref = std::acos(std::clamp(dot(ecef_los_spec, ecef_los_in), -1.0, 1.0));
+    if (beta_ref > alpha) continue;
+
+    const Vector za_in {los_in[0]};
+    const Vector aa_in {los_in[1]};
+
+    const surface_scattering::SurfaceScatteringModelProperties sun_props =
+        surface_models.get_surface_scattering_model_properties(
+            surf_point,
+            ray_point.pos[1],
+            ray_point.pos[2],
+            freq_grid,
+            za_in,
+            aa_in,
+            za_out,
+            aa_out);
+
+    // get the incoming radiation from this single beam direction
+    StokvecVector spectral_rad_incoming;
+    StokvecMatrix spectral_rad_incoming_jac;
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        los_in,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+
+    // No quadrature weights: the beam radiance is delta-weighted; radiance is
+    // conserved by specular reflection so BRDF * I_in is the exact normalisation
+    // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_scattered[i_f] += sun_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+    }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_scattered_jac[i_jac, i_f] +=
+            sun_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+      }
+    }
+  }
+
+  // Calculate upward emission with the specular emissivity
+  // For now, there is no jacobian for the surface scattering model!!!
+  StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
+#pragma omp parallel for if (not arts_omp_in_parallel())
+  for (Size i_f = 0; i_f < nf; i_f++) {
+    spectral_rad_surface[i_f] = emission_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_surface[i_f];
+  }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+  for (Size i_jac = 0; i_jac < nq; i_jac++) {
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_jac_subsurface[i_jac, i_f] =
+          emission_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+    }
+  }
+
+  spectral_rad += spectral_rad_scattered;
+  spectral_rad += spectral_rad_surface;
+  spectral_rad_jac += spectral_rad_scattered_jac;
+  spectral_rad_jac += spectral_rad_jac_subsurface;
 }
 ARTS_METHOD_ERROR_CATCH
 

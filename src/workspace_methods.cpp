@@ -2484,15 +2484,72 @@ same as in *surface_models*.
                          "ray_path_observer_agenda",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
-      .gin            = {"angle_cut", "refinement"},
-      .gin_type       = {"Numeric", "Index"},
-      .gin_value      = {Numeric{0.0}, Index{1}},
-      .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
-                         "The refinement of the sun-path search algorithm (twice the power of this is the resolution)"},
-      .pass_workspace = true,
-  };
+       .gin            = {"angle_cut", "refinement"},
+       .gin_type       = {"Numeric", "Index"},
+       .gin_value      = {Numeric{0.0}, Index{1}},
+       .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                          "The refinement of the sun-path search algorithm (twice the power of this is the resolution)"},
+       .pass_workspace = true,
+   };
 
-  wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
+   wsm_data["spectral_radSurfaceScatteringSpecularDirect"] = {
+       .desc = R"--(Set surface spectral radiance to sub-surface emission plus direct
+(collimated) incoming beam radiation specularly reflected by the surface.
+
+The input path point must be close to the surface.
+
+The incoming radiation is one delta-function beam per sun in *suns*.  The
+outgoing direction is the ray line-of-sight, and the specular direction is its
+mirror reflection about the local surface normal.  A sun contributes only if
+that specular direction falls inside the solar disc, i.e. if the angle ``beta``
+between the specular direction and the sun centre is not larger than the
+angular radius ``alpha`` of the sun as seen from the point
+(alpha = asin(sun.radius / distance)).  The test is applied geometrically
+first, and again on the refraction-aware beam line-of-sight obtained from
+*ray_path_observer_agenda* (the same iterative sun-path search as
+*sun_pathFromObserverAgenda*, with ``just_hit = 1``; control parameters
+``angle_cut`` and ``refinement``).
+
+Because the disc test uses the actual surface normal, it also gates the local
+horizon: a sun below the horizon of a flat or tilted surface contributes
+nothing (no error).  If no sun is in the specular direction only the surface
+emission is returned.
+
+Only these single directions are traced and the specular BRDF and emissivity
+are evaluated at these exact directions; no angular quadrature is required.
+The beam radiance is interpreted as a delta-weighted radiance: the scattered
+term of each sun is exactly BRDF * incoming radiance.
+
+The *spectral_rad_incoming_agenda* produces the beam radiance along the
+estimated line-of-sight of each sun.  The *spectral_rad_closed_surface_agenda*
+should produce the surface emission, though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks live under the *SurfacePropertyTag* keys, which must be the
+same as in *surface_models*.
+)--",
+       .author         = {"Manfred Brath"},
+       .out            = {"spectral_rad", "spectral_rad_jac"},
+       .in             = {"freq_grid",
+                          "atm_field",
+                          "surf_field",
+                          "subsurf_field",
+                          "surface_models",
+                          "jac_targets",
+                          "ray_point",
+                          "suns",
+                          "ray_path_observer_agenda",
+                          "spectral_rad_incoming_agenda",
+                          "spectral_rad_closed_surface_agenda"},
+       .gin            = {"angle_cut", "refinement"},
+       .gin_type       = {"Numeric", "Index"},
+       .gin_value      = {Numeric{0.0}, Index{1}},
+       .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                          "The refinement of the sun-path search algorithm (twice the power of this is the resolution)"},
+       .pass_workspace = true,
+   };
+
+   wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
       .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
 
 This is done via perturbation based on the input delta values to the sensor
