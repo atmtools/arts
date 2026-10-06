@@ -278,7 +278,7 @@ void spectral_radSurfaceScatteringDiffuse(
   // The surface normal is stored with the outward direction at za = 180, so its
   // ECEF image points inward; an incoming direction is visible when it opposes
   // that inward vector, i.e. when the dot product with it is negative.  This is
-  // the same horizon visibility test as in spectral_radSurfaceScatteringDirect,
+  // the same horizon visibility test as in spectral_radSurfaceScatteringDiffuseDirect,
   // applied per quadrature direction: directions below the horizon defined by
   // the actual surface normal contribute hard-zero (no error), emission remains.
   const auto [__, ecef_normal] = geodetic_los2ecef(ray_point.pos, surf_point.normal, surf_field.ellipsoid);
@@ -653,7 +653,7 @@ void spectral_radSurfaceScatteringSpecularDirect(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_radSurfaceScatteringDirect(
+void spectral_radSurfaceScatteringDiffuseDirect(
     const Workspace& ws,
     StokvecVector& spectral_rad,
     StokvecMatrix& spectral_rad_jac,
