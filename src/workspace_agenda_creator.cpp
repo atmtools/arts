@@ -159,6 +159,23 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
     case Blackbody:          agenda.add("spectral_radSurfaceBlackbody"); break;
     case Transmission:       agenda.add("spectral_radDefaultTransmission"); break;
     case SurfaceReflectance: agenda.add("spectral_radSurfaceReflectance"); break;
+    case SurfaceScatteringModel:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuse");
+      agenda.add("spectral_radSurfaceScatteringSpecular");
+      agenda.add("spectral_radSurfaceScatteringDiffuseDirect");
+      agenda.add("spectral_radSurfaceScatteringSpecularDirect");
+      break;
+    case SurfaceScatteringModelDiffuseOnly:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuse");
+      agenda.add("spectral_radSurfaceScatteringSpecular");
+      break;
+    case SurfaceScatteringModelDirectOnly:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuseDirect");
+      agenda.add("spectral_radSurfaceScatteringSpecularDirect");
+      break;
   }
 
   return std::move(agenda).finalize(true);
