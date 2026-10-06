@@ -1032,9 +1032,9 @@ template <std::floating_point Scalar, Representation repr> class PhaseMatrixData
     return result;
   }
 
-  /** The series at the 2 degree + 2 Fejer nodes, exactly */
+  /** The series at the 2 degree + 2 Gauss-Legendre nodes, exactly */
   PhaseMatrixDataGridded to_gridded() const {
-    return to_gridded(std::make_shared<const ZenithAngleGrid>(FejerGrid(2 * degree_ + 2)));
+    return to_gridded(std::make_shared<const ZenithAngleGrid>(GaussLegendreGrid(2 * degree_ + 2)));
   }
 
   /** The laboratory-frame phase matrix, the series evaluated at the exact scattering angle of every direction pair */

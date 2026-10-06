@@ -10,10 +10,15 @@
      order, the hemisphere quadrants and the normalisation.  GasScatterer
      gives the azimuthal mean exactly (its m = 0 Fourier mode at the
      streams), so the tolerance is round-off.
+   - A3: strongly forward-peaked Henyey-Greenstein scattering (g up to
+     0.99): the azimuthal mean of Z11 is, by the addition theorem,
+     sigma sum_l (2 l + 1) / (4 pi) g^l P_l(mu_o) P_l(mu_i) with signed stream
+     cosines, summed until g^l < 1e-17.
    - The path builder must reproduce the path data it is given (heights,
      temperatures, midpoint gas extinction) and the level optics of
      scattering_optics() averaged per layer. */
 #include <arts_constants.h>
+#include <legendre.h>
 #include <physics_funcs.h>
 #include <rt4_arts.h>
 
@@ -156,6 +161,54 @@ void test_rayleigh() {
   require_error([&] { (void)rt4::scattering_optics(species, atm, -1.0, mu, 2); }, "negative frequency");
 }
 
+//! A3: forward-peaked Henyey-Greenstein against the addition theorem
+void test_forward_peaked_hg() {
+  const auto atm = air(8e4, 260.0);
+  const auto q   = rt4::get_quadrature(8, rt4::quadrature_type::double_gauss);
+  Vector     mu(q.mu.size() + 1);
+  std::ranges::copy(q.mu, mu.begin());
+  mu[q.mu.size()]       = 1.0;
+  const Index   n       = static_cast<Index>(mu.size());
+  const Numeric sigma   = 0.9e-4;
+
+  for (const Numeric g : {0.9, 0.95, 0.99}) {
+    ArrayOfScatteringSpecies species;
+    species.add(HenyeyGreensteinScatterer{
+        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
+    const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 1);
+
+    const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));
+    Vector     po(L + 1), pi_(L + 1);
+    Numeric    d = 0.0, scale = 0.0;
+    for (Index ho = 0; ho < 2; ho++) {
+      for (Index hi = 0; hi < 2; hi++) {
+        for (Index io = 0; io < n; io++) {
+          for (Index ii = 0; ii < n; ii++) {
+            Legendre::legendre_polynomials(po, signed_mu(ho, mu[io]));
+            Legendre::legendre_polynomials(pi_, signed_mu(hi, mu[ii]));
+            Numeric ref = 0.0, gl = 1.0;
+            for (Index l = 0; l <= L; l++, gl *= g)
+              ref += (2.0 * static_cast<Numeric>(l) + 1.0) / (4 * pi) * gl * po[l] * pi_[l];
+            ref   *= sigma;
+            scale  = std::max(scale, std::abs(ref));
+            d      = std::max(d, std::abs(o.phase[ho, hi, io, ii, 0, 0] - ref));
+          }
+        }
+      }
+    }
+    std::cout << std::format(
+        "A3 Henyey-Greenstein g = {}, 8 double-Gauss streams and mu = 1: max |phase_II - addition theorem| / max "
+        "{:.1e} (tolerance 1e-10)\n",
+        g,
+        d / scale);
+    require(d <= 1e-10 * scale,
+            std::format("A3: RT4's azimuthal mean of Henyey-Greenstein scattering with g = {} must be that of the "
+                        "addition theorem to 1e-10, got {:.2e}",
+                        g,
+                        d / scale));
+  }
+}
+
 //! A path of nlev levels, top first, with gas extinction 1e-4 * (1 + level) per metre
 struct path_data {
   ArrayOfPropagationPathPoint ray_path;
@@ -271,6 +324,7 @@ void test_path() {
 
 int main() try {
   test_rayleigh();
+  test_forward_peaked_hg();
   test_path();
   std::cout << "rt4-arts test passed\n";
   return 0;

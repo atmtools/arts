@@ -339,29 +339,6 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
                                                                            forwardscatter_matrix);
   }
 
-  /** The Legendre series to degree of gridded TRO data, and how well it represents them.
-   *
-   * The report's normalisation_error is (2 pi int F11 dcos(Theta) - (K11 -
-   * a1)) / K11 of the series, which a solver that takes its albedo from K11 -
-   * a1 needs to be small.
-   */
-  std::pair<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>, LegendreReport>
-  to_spectral_with_report(Index degree) const
-    requires(format == Format::TRO and repr == Representation::Gridded)
-  {
-    ARTS_USER_ERROR_IF(not phase_matrix, "Scattering data without a phase matrix have no Legendre series")
-    auto       spectral = to_spectral(degree);
-    auto       report   = phase_matrix->legendre_report(*spectral.phase_matrix);
-    const auto integral = spectral.phase_matrix->integrate_phase_matrix();
-    for (Index i_t = 0; i_t < integral.extent(0); ++i_t) {
-      for (Index i_f = 0; i_f < integral.extent(1); ++i_f) {
-        const Numeric k11 = extinction_matrix[i_t, i_f, 0], a1 = absorption_vector[i_t, i_f, 0];
-        report.normalisation_error[i_t, i_f] = (integral[i_t, i_f, 0] - (k11 - a1)) / k11;
-      }
-    }
-    return {std::move(spectral), std::move(report)};
-  }
-
   /** The azimuthal Fourier modes to m = max_mode of the laboratory-frame phase matrix of a TRO Legendre series
    *
    * The temperatures and frequencies are those of grids, interpolated; the
@@ -456,6 +433,28 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
   BackscatterMatrixData<Scalar, format>                backscatter_matrix;
   ForwardscatterMatrixData<Scalar, format>             forwardscatter_matrix;
 };
+
+/** The Legendre series to degree of gridded TRO data, and how well it represents them.
+ *
+ * The report's normalisation_error is (2 pi int F11 dcos(Theta) - (K11 - a1))
+ * / K11 of the series, which a solver that takes its albedo from K11 - a1
+ * needs to be small.  A free function: MSVC cannot instantiate the pair of a
+ * class template inside that class.
+ */
+inline std::pair<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>, LegendreReport>
+to_spectral_with_report(const SingleScatteringData<Numeric, Format::TRO, Representation::Gridded> &ssd, Index degree) {
+  ARTS_USER_ERROR_IF(not ssd.phase_matrix, "Scattering data without a phase matrix have no Legendre series")
+  auto       spectral = ssd.to_spectral(degree);
+  auto       report   = ssd.phase_matrix->legendre_report(*spectral.phase_matrix);
+  const auto integral = spectral.phase_matrix->integrate_phase_matrix();
+  for (Index i_t = 0; i_t < integral.extent(0); ++i_t) {
+    for (Index i_f = 0; i_f < integral.extent(1); ++i_f) {
+      const Numeric k11 = ssd.extinction_matrix[i_t, i_f, 0], a1 = ssd.absorption_vector[i_t, i_f, 0];
+      report.normalisation_error[i_t, i_f] = (integral[i_t, i_f, 0] - (k11 - a1)) / k11;
+    }
+  }
+  return {std::move(spectral), std::move(report)};
+}
 
 template <std::floating_point Scalar, Format format, Representation repr> class ArrayOfSingleScatteringData
     : public std::vector<SingleScatteringData<Scalar, format, repr>> {

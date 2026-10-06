@@ -28,7 +28,12 @@
      laboratory-frame phase matrix, gridded on the streams and over all
      scattering zenith angles, must give the GasScatterer's coefficients to
      the accuracy of its 1 deg grids; data without the phase integral, and
-     optics that depend on the direction, must be errors. */
+     optics that depend on the direction, must be errors.
+   - V6: strongly forward-peaked Henyey-Greenstein scattering (g up to 0.99)
+     against the addition theorem: the Legendre coefficients of p are
+     (2 l + 1) / (4 pi) g^l, so the azimuthal modes of Z11 are
+     sigma (2 - delta_m0) sum_l g^l Pn_l^m(mu_o) Pn_l^m(mu_i), with Pn the
+     orthonormal associated Legendre functions, summed until g^l < 1e-17. */
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <legendre.h>
@@ -37,6 +42,7 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cmath>
 #include <format>
 #include <functional>
@@ -44,6 +50,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 #include "lab-frame.h"
 
@@ -486,6 +493,76 @@ void test_path() {
       "a layer without optical thickness");
   std::cout << std::format("V4 path builder: tau and omega to {:.1e}, gas-only, 2 error paths\n", dev);
 }
+/* The orthonormal associated Legendre functions Pn_l^m(x), l = m .. L, with
+   Pn_l^m(x)^2 integrating to 1 / (2 pi) over x in [-1, 1] (Y_lm without the
+   azimuth), by the standard stable recurrences. */
+Vector orthonormal_legendre(Index m, Index L, Numeric x) {
+  Vector  p(L + 1, 0.0);
+  Numeric pmm = 1.0 / std::sqrt(4 * pi);
+  for (Index k = 1; k <= m; k++)
+    pmm *= -std::sqrt((2.0 * static_cast<Numeric>(k) + 1.0) / (2.0 * static_cast<Numeric>(k))) * std::sqrt(1 - x * x);
+  p[m] = pmm;
+  if (m < L) p[m + 1] = x * std::sqrt(2.0 * static_cast<Numeric>(m) + 3.0) * pmm;
+  for (Index l = m + 2; l <= L; l++) {
+    const auto    dl = static_cast<Numeric>(l), dm = static_cast<Numeric>(m);
+    const Numeric a  = std::sqrt((4 * dl * dl - 1) / (dl * dl - dm * dm));
+    const Numeric b  = std::sqrt(((dl - 1) * (dl - 1) - dm * dm) / (4 * (dl - 1) * (dl - 1) - 1));
+    p[l]             = a * (x * p[l - 1] - b * p[l - 2]);
+  }
+  return p;
+}
+
+//! V6: forward-peaked Henyey-Greenstein against the addition theorem, and the time of the Fourier modes
+void test_forward_peaked_hg() {
+  Vector mu(16), inv(16), w(8);
+  disort_common::initialize_streams(mu, inv, w);
+  Vector mu_in(17);
+  mu_in[Range(0, 16)] = mu;
+  mu_in[16]           = -0.6;
+  const auto atm      = air(9e4, 270.0);
+  constexpr Index NF  = 4;
+
+  for (const Numeric g : {0.9, 0.95, 0.99}) {
+    ArrayOfScatteringSpecies species;
+    species.add(HenyeyGreensteinScatterer{
+        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
+
+    const auto start = std::chrono::steady_clock::now();
+    const auto f     = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, NF, 1e-10);
+    const auto time  = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
+
+    const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));
+    Numeric    d = 0.0, scale = 0.0, sine = 0.0;
+    for (Index m = 0; m < NF; m++) {
+      std::vector<Vector> po, pi_;
+      for (Index o = 0; o < 16; o++) po.push_back(orthonormal_legendre(m, L, mu[o]));
+      for (Index i = 0; i < 17; i++) pi_.push_back(orthonormal_legendre(m, L, mu_in[i]));
+      for (Index o = 0; o < 16; o++) {
+        for (Index i = 0; i < 17; i++) {
+          Numeric ref = 0.0, gl = std::pow(g, m);
+          for (Index l = m; l <= L; l++, gl *= g) ref += gl * po[o][l] * pi_[i][l];
+          ref   *= 4 * pi;
+          scale  = std::max(scale, std::abs(ref));
+          d      = std::max(d, std::abs(f.cosine[m, o, i][0, 0] - ref));
+          sine   = std::max(sine, std::abs(f.sine[m, o, i][0, 0]));
+        }
+      }
+    }
+    std::cout << std::format(
+        "V6 Henyey-Greenstein g = {}, 16 streams and the beam, m = 0..3: max |C^m_11 - addition theorem| / max {:.1e}, "
+        "max |S^m_11| / max {:.1e} (tolerance 1e-10); {:.3f} s\n",
+        g,
+        d / scale,
+        sine / scale,
+        time);
+    require(d <= 1e-10 * scale and sine <= 1e-10 * scale,
+            std::format("V6: the Fourier modes of Henyey-Greenstein scattering with g = {} must be those of the "
+                        "addition theorem to 1e-10, got {:.2e}",
+                        g,
+                        d / scale));
+  }
+}
+
 //! V5: ARO particle data in VDISORT
 void test_aro_data() {
   using ARO = scattering::SingleScatteringData<Numeric, scattering::Format::ARO, scattering::Representation::Gridded>;
@@ -568,6 +645,7 @@ int main() try {
   test_fourier_against_vector_geometry(c);
   test_path();
   test_aro_data();
+  test_forward_peaked_hg();
   std::cout << "vdisort-arts test passed\n";
   return 0;
 } catch (const std::exception& e) {

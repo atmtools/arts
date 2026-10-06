@@ -78,6 +78,7 @@ bool test_air_simple_rayleigh() {
    directions, so an SHT of degree and order 8 holds it exactly, and its modes at any scattering zenith angle and
    its phase integral are exact.  The polarized elements are not compared: referenced to the meridian, which
    turns with the azimuth at the poles, they are not finite series in scalar spherical harmonics. */
+#ifndef ARTS_NO_SHTNS
 bool test_rayleigh_sht_to_fourier() {
   const AtmPoint point{8e4, 260.0};
   const Vector   frequencies{89e9};
@@ -105,14 +106,17 @@ bool test_rayleigh_sht_to_fourier() {
   }
   return true;
 }
+#endif
 
 }  // namespace
 
 int main() {
+#ifndef ARTS_NO_SHTNS
   if (not test_rayleigh_sht_to_fourier()) {
     std::cerr << "Rayleigh SHT to Fourier modes failed\n";
     return 1;
   }
+#endif
   if (not test_constant_isotropic()) {
     std::cerr << "Constant/isotropic gas scattering failed\n";
     return 1;

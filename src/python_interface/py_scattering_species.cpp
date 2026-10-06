@@ -284,9 +284,10 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
         return oss.str();
       });
   if constexpr (format == scattering::Format::TRO and repr == scattering::Representation::Gridded) {
-    s.def("to_spectral_with_report",
-          &SSDClass::to_spectral_with_report,
-          "degree"_a,
+    s.def(
+        "to_spectral_with_report",
+        [](const SSDClass& ssd, Index degree) { return scattering::to_spectral_with_report(ssd, degree); },
+        "degree"_a,
           "The Legendre series to degree and the report on how well it represents the data");
   }
   return s;
@@ -735,9 +736,12 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
            "f_grid"_a,
            "l"_a,
            "Convert scattering data to TRO spectral format")
-      .def("to_tro_spectral_with_report",
-           &ParticleHabit::to_tro_spectral_with_report,
-           "t_grid"_a,
+      .def(
+          "to_tro_spectral_with_report",
+          [](const ParticleHabit& habit, const Vector& t_grid, const Vector& f_grid, Index l) {
+            return scattering::to_tro_spectral_with_report(habit, t_grid, f_grid, l);
+          },
+          "t_grid"_a,
            "f_grid"_a,
            "l"_a,
            R"(The habit as Legendre series to degree l on the grids, and a LegendreReport per particle

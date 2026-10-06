@@ -228,13 +228,6 @@ class ParticleHabit {
 
   ParticleHabit to_tro_gridded(const Vector& t_grid, const Vector& f_grid, const ZenithAngleGrid& za_scat_grid);
 
-  /** The habit as Legendre series to degree l on new temperature and frequency grids, and a report per particle
-   *
-   * The reports are on each particle's own grids, before the regridding.
-   */
-  std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_report(const Vector& t_grid,
-                                                                                    const Vector& f_grid,
-                                                                                    Index         l) const;
 
   ParticleHabit to_aro_spectral(
       const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m);
@@ -257,5 +250,15 @@ class ParticleHabit {
   ScatteringData                     scattering_data;
   std::optional<ScatteringDataGrids> grids;
 };
+
+/** The habit as Legendre series to degree l on new temperature and frequency grids, and a report per particle
+ *
+ * The reports are on each particle's own grids, before the regridding.  The
+ * habit must hold gridded TRO data.
+ */
+std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_report(const ParticleHabit& habit,
+                                                                                  const Vector&        t_grid,
+                                                                                  const Vector&        f_grid,
+                                                                                  Index                l);
 
 }  // namespace scattering
