@@ -1,11 +1,13 @@
 #pragma once
 
+#include <arts_omp.h>
 #include <legendre.h>
 #include <matpack.h>
 #include <rtepack.h>
 
 #include <algorithm>
 #include <limits>
+#include <map>
 #include <memory>
 
 #include "arts_constants.h"
@@ -538,12 +540,14 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
  * exact forward (delta = 0, za_inc = za_scat) and backward (delta = 180 deg)
  * scattering it has a kink unless the scattering matrix is regular there, as
  * a physical one is (F12 = F34 = 0, F22 = F33 forward and F22 = -F33
- * backward), and a Legendre series of data is only to its accuracy.  The
- * modes are therefore integrated with a Gauss-Legendre rule on each of [0,
- * 180] and [180, 360] deg, whose ends those directions are, doubling the
- * nodes until the modes no longer change to rounding (1e-13 of the largest
- * phase-matrix element of the direction pair); a pair that has not converged
- * at 8192 azimuths is an error.
+ * backward), and a Legendre series of data is only to its accuracy.  Z is
+ * mirror symmetric, Z(360 deg - delta) = D Z(delta) D with D = diag(1, 1,
+ * -1, -1), so the elements with exactly one index in {U, V} have sine modes
+ * only and the others cosine modes only, from [0, 180] deg alone.  The modes
+ * are integrated with a Gauss-Legendre rule on [0, 180] deg, whose ends those
+ * directions are, doubling the nodes until the modes no longer change to
+ * rounding (1e-13 of the largest phase-matrix element of the direction pair);
+ * a pair that has not converged at 4096 azimuths is an error.
  *
  * scattering_matrix is as for tro_lab_frame, and must be exact: the modes
  * are as accurate as it is.  phase_integral [t, f] is its 2 pi int F11
@@ -1063,9 +1067,12 @@ template <std::floating_point Scalar, Representation repr> class PhaseMatrixData
 
   /** The scattering matrix as tro_lab_frame and tro_lab_frame_fourier_modes take it, from the series */
   auto scattering_matrix_function() const {
-    return [this, p = Vector(degree_ + 1)](Scalar theta, matpack::data_t<Scalar, 3> &scattering_matrix) mutable {
+    Vector norm(degree_ + 1);
+    for (Index l = 0; l <= degree_; ++l) norm[l] = std::sqrt(static_cast<Scalar>(2 * l + 1) / (4.0 * pi_v<Scalar>));
+    return [this, p = Vector(degree_ + 1), norm = std::move(norm)](Scalar                      theta,
+                                                                    matpack::data_t<Scalar, 3> &scattering_matrix) mutable {
       Legendre::legendre_polynomials(p, std::clamp<Scalar>(std::cos(theta), -1.0, 1.0));
-      for (Index l = 0; l <= degree_; ++l) p[l] *= std::sqrt(static_cast<Scalar>(2 * l + 1) / (4.0 * pi_v<Scalar>));
+      for (Index l = 0; l <= degree_; ++l) p[l] *= norm[l];
       for (Index i_t = 0; i_t < n_temps_; ++i_t) {
         for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
           for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
@@ -2320,77 +2327,123 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
   constexpr Numeric tolerance = 1e-13;
   const Index       nt = t_grid->size(), nf = f_grid->size(), M = max_mode, nset = nt * nf;
 
+  // Z(2 pi - delta) = D Z(delta) D with D = diag(1, 1, -1, -1), the side flip of expand_and_transform: the
+  // elements with exactly one index in {U, V} are odd in delta and have sine modes only, the others cosine modes
+  // only.  So [0, pi] gives the modes: C_m = (2 - delta_m0) / 2 sum_k w_k Z(phi_k) cos(m phi_k) and S_m = sum_k
+  // w_k Z(phi_k) sin(m phi_k) for the n-point Gauss-Legendre rule (w_k, phi_k) on [0, pi], whose ends are the
+  // only directions where Z can have a kink (exact forward and backward scattering).
+  constexpr std::array<bool, 16> odd{
+      false, false, true, true, false, false, true, true, true, true, false, false, true, true, false, false};
+
+  //! The rule of n nodes on [0, pi], and its weights of every mode, [n, M + 1]
+  struct rule {
+    Vector phi;
+    Matrix cos_weight, sin_weight;
+  };
+
   Index start = 16;
   while (start < M + 8) start *= 2;
 
-  matpack::data_t<Scalar, 3> F(nt, nf, detail::get_n_mat_elems(Format::TRO));
-  Vector                     Z(16);
-  Tensor4                    coarse(nset, M + 1, 2, 16), fine(nset, M + 1, 2, 16);
+  // [set, m, (cos, sin), element]
+  const Index nmode = (M + 1) * 2 * 16;
 
-  for (Size ii = 0; ii < za_inc_grid->size(); ii++) {
-    for (Size is = 0; is < za_scat.size(); is++) {
-      // The modes by an n-point Gauss-Legendre rule on each of [0, pi] and [pi, 2 pi]: Z can have a kink only
-      // where the scattering plane is undefined, at exact forward (delta = 0) and backward (delta = pi)
-      // scattering, which are the ends of these intervals
-      Numeric    scale = 0.0;
-      const auto modes = [&](Index n, Tensor4& c) {
+  // The direction pairs are independent; each thread has its own copy of the scattering matrix (which may keep
+  // scratch), its own rules and its own work arrays, and every pair writes its own part of out
+  std::string error;
+#pragma omp parallel if (not arts_omp_in_parallel())
+  {
+    auto                       local_matrix = scattering_matrix;
+    std::map<Index, rule>      rules;
+    matpack::data_t<Scalar, 3> F(nt, nf, detail::get_n_mat_elems(Format::TRO));
+    Vector                     Z(16);
+    std::vector<Numeric>       coarse(nset * nmode), fine(nset * nmode);
+
+    const auto get_rule = [&](Index n) -> const rule & {
+      auto [it, inserted] = rules.try_emplace(n);
+      if (inserted) {
         Vector x(n), w(n);
         Legendre::GaussLegendre(x, w);
-        c = 0.0;
-        for (Index half = 0; half < 2; half++) {
-          for (Index k = 0; k < n; k++) {
-            const Numeric phi   = pi_v<Numeric> * (0.5 * (x[k] + 1.0) + static_cast<Numeric>(half));
-            const Numeric delta = Conversion::rad2deg(phi);
-            const auto    rc    = detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
-            scattering_matrix(std::get<0>(rc), F);
-            for (Index i_t = 0; i_t < nt; i_t++) {
-              for (Index i_f = 0; i_f < nf; i_f++) {
+        rule &r = it->second;
+        r.phi   = Vector(n);
+        r.cos_weight.resize(n, M + 1);
+        r.sin_weight.resize(n, M + 1);
+        for (Index k = 0; k < n; k++) {
+          r.phi[k] = pi_v<Numeric> * 0.5 * (x[k] + 1.0);
+          for (Index m = 0; m <= M; m++) {
+            const Numeric dm   = static_cast<Numeric>(m);
+            r.cos_weight[k, m] = (m == 0 ? 0.5 : 1.0) * w[k] * std::cos(dm * r.phi[k]);
+            r.sin_weight[k, m] = w[k] * std::sin(dm * r.phi[k]);
+          }
+        }
+      }
+      return it->second;
+    };
+
+#pragma omp for collapse(2) schedule(dynamic)
+    for (Size ii = 0; ii < za_inc_grid->size(); ii++) {
+      for (Size is = 0; is < za_scat.size(); is++) {
+        try {
+          Numeric    scale = 0.0;
+          const auto modes = [&](Index n, std::vector<Numeric> &c) {
+            const rule &r = get_rule(n);
+            stdr::fill(c, 0.0);
+            for (Index k = 0; k < n; k++) {
+              const Numeric delta = Conversion::rad2deg(r.phi[k]);
+              const auto rc = detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
+              local_matrix(std::get<0>(rc), F);
+              for (Index set = 0; set < nset; set++) {
                 detail::expand_and_transform<Scalar>(
-                    Z, rtepack::compact_planar_muelmat{F[i_t, i_f, joker]}, rc, delta > 180.0);
+                    Z, rtepack::compact_planar_muelmat{F[set / nf, set % nf, joker]}, rc, false);
                 for (Index e = 0; e < 16; e++) scale = std::max<Numeric>(scale, std::abs(Z[e]));
-                for (Index m = 0; m <= M; m++) {
-                  // (1 / 2 pi) int for m = 0, (1 / pi) int for m > 0; the rule's weight on [0, pi] is pi / 2 w
-                  const Numeric wm = 0.5 * w[k] * (m == 0 ? 0.5 : 1.0);
-                  const Numeric wc = wm * std::cos(static_cast<Numeric>(m) * phi);
-                  const Numeric ws = wm * std::sin(static_cast<Numeric>(m) * phi);
+                Numeric *cs = c.data() + set * nmode;
+                for (Index m = 0; m <= M; m++, cs += 32) {
+                  const Numeric wc = r.cos_weight[k, m], ws = r.sin_weight[k, m];
                   for (Index e = 0; e < 16; e++) {
-                    c[i_t * nf + i_f, m, 0, e] += wc * Z[e];
-                    c[i_t * nf + i_f, m, 1, e] += ws * Z[e];
+                    cs[e]      += wc * Z[e];
+                    cs[16 + e] += ws * Z[e];
                   }
                 }
               }
             }
+            // The parts that vanish by the symmetry
+            for (Index j = 0; j < nset * (M + 1); j++)
+              for (Index e = 0; e < 16; e++) c[j * 32 + (odd[e] ? 0 : 16) + e] = 0.0;
+          };
+
+          Index n = start;
+          modes(n, coarse);
+          while (true) {
+            n *= 2;
+            modes(n, fine);
+            Numeric change = 0.0;
+            for (Size j = 0; j < fine.size(); j++) change = std::max(change, std::abs(fine[j] - coarse[j]));
+            if (change <= tolerance * scale) break;
+            ARTS_USER_ERROR_IF(2 * n > max_nodes,
+                               "The azimuthal Fourier modes of the laboratory-frame phase matrix at za_inc = {} deg "
+                               "and za_scat = {} deg did not converge with {} azimuths (they still change by {:.3e} "
+                               "of the largest phase-matrix element); the scattering matrix is too sharp in the "
+                               "scattering angle to resolve",
+                               (*za_inc_grid)[ii],
+                               za_scat[is],
+                               2 * n,
+                               change / scale)
+            std::swap(coarse, fine);
           }
+
+          for (Index i_t = 0; i_t < nt; i_t++)
+            for (Index i_f = 0; i_f < nf; i_f++)
+              for (Index m = 0; m <= M; m++)
+                for (Index cs = 0; cs < 2; cs++)
+                  for (Index e = 0; e < 16; e++)
+                    out[i_t, i_f, ii, is, m, cs, e] = fine[(i_t * nf + i_f) * nmode + (m * 2 + cs) * 16 + e];
+        } catch (const std::exception &e) {
+#pragma omp critical(tro_lab_frame_fourier_modes)
+          if (error.empty()) error = e.what();
         }
-      };
-
-      Index n = start;
-      modes(n, coarse);
-      while (true) {
-        n *= 2;
-        modes(n, fine);
-        Numeric change = 0.0;
-        for (auto [a, b] : std::views::zip(fine | by_elem, coarse | by_elem)) change = std::max(change, std::abs(a - b));
-        if (change <= tolerance * scale) break;
-        ARTS_USER_ERROR_IF(2 * n > max_nodes,
-                           "The azimuthal Fourier modes of the laboratory-frame phase matrix at za_inc = {} deg and "
-                           "za_scat = {} deg did not converge with {} azimuths (they still change by {:.3e} of the "
-                           "largest phase-matrix element); the scattering matrix is too sharp in the scattering angle "
-                           "to resolve",
-                           (*za_inc_grid)[ii],
-                           za_scat[is],
-                           2 * n,
-                           change / scale)
-        std::swap(coarse, fine);
       }
-
-      for (Index i_t = 0; i_t < nt; i_t++)
-        for (Index i_f = 0; i_f < nf; i_f++)
-          for (Index m = 0; m <= M; m++)
-            for (Index cs = 0; cs < 2; cs++)
-              for (Index e = 0; e < 16; e++) out[i_t, i_f, ii, is, m, cs, e] = fine[i_t * nf + i_f, m, cs, e];
     }
   }
+  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
   return out;
 }
 
