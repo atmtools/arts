@@ -9,7 +9,7 @@
    solvers get their inputs from the same ARTS data by three different
    routes:
    - RT4: the azimuthal mean of ARTS's laboratory-frame phase matrix
-     (get_bulk_scattering_properties_aro_spectral, Mishchenko-style
+     (get_bulk_scattering_properties_aro_fourier, Mishchenko-style
      rotations) on RT4's streams;
    - RT3: the species' Legendre series, which RT3 rotates and
      Fourier-transforms itself;

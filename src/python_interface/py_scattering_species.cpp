@@ -133,16 +133,16 @@ auto bind_phase_matrix_data_aro_gridded(py::module_& m, const std::string& class
 
   py::class_<PMD, matpack::data_t<Scalar, 6>> s(m, class_name.c_str());
   s.def(py::init<>())
-      .def("to_spectral",
-           &PMD::to_spectral,
+      .def("to_fourier",
+           &PMD::to_fourier,
            "max_mode"_a,
            "The azimuthal Fourier modes, exactly those of the data linear in the azimuth difference over one period");
   return s;
 }
 
 template <typename Scalar> [[nodiscard]]
-auto bind_phase_matrix_data_aro_spectral(py::module_& m, const std::string& class_name) {
-  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Spectral>;
+auto bind_phase_matrix_data_aro_fourier(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Fourier>;
 
   py::class_<PMD, matpack::data_t<Scalar, 7>> s(m, class_name.c_str());
   s.def(py::init<>())
@@ -162,7 +162,7 @@ auto bind_phase_matrix_data_aro_spectral(py::module_& m, const std::string& clas
           },
           "delta_aa_grid"_a,
           "The phase matrix at azimuth differences [deg], exactly")
-      .def("to_spectral", &PMD::to_spectral, "max_mode"_a, "The modes truncated to a lower highest mode");
+      .def("to_fourier", &PMD::to_fourier, "max_mode"_a, "The modes truncated to a lower highest mode");
   s.doc() = R"(Azimuthal Fourier modes of a laboratory-frame phase matrix
 
 Data [t, f, za_inc, za_scat, m, 2, 16]: Z(Delta) = sum_m C_m cos(m Delta) + S_m sin(m Delta),
@@ -275,8 +275,9 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
       .def_static("from_legacy_tro", &SSDClass::from_legacy_tro, "ssd"_a, "smd"_a, "Create from legacy TRO")
       .def("to_spectral",
            &SSDClass::to_spectral,
-           "n"_a,
-           "The spectral form: TRO data as the Legendre series to degree n, ARO data as the Fourier modes to m = n")
+           "l"_a,
+           "m"_a = 0,
+           "The spectral form: TRO data as the Legendre series to degree l (m = 0), ARO data as the SHT of degree l and order m")
       .def("__repr__", [](const SSDClass& ssd) {
         std::ostringstream oss;
         oss << ssd;
@@ -564,14 +565,14 @@ void py_scattering_species(py::module_& m) try {
           "za_scat_grid"_a,
           "Get bulk scattering properties")
       .def(
-          "get_bulk_scattering_properties_aro_spectral",
+          "get_bulk_scattering_properties_aro_fourier",
           [](const ArrayOfScatteringSpecies& aoss,
              const AtmPoint&                 atm_point,
              const Vector&                   f_grid,
              const Vector&                   za_inc_grid,
              const Vector&                   za_scat_grid,
              Index                           max_mode) {
-            return aoss.get_bulk_scattering_properties_aro_spectral(
+            return aoss.get_bulk_scattering_properties_aro_fourier(
                 atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
           },
           "atm_point"_a,
@@ -586,7 +587,7 @@ void py_scattering_species(py::module_& m) try {
   bind_phase_matrix_data_tro_gridded<double>(m, "PhaseMatrixDataTROGridded4").doc()   = "Phase matrix data";
   bind_phase_matrix_data_tro_spectral<double>(m, "PhaseMatrixDataTROSpectral4").doc() = "Phase matrix data";
   bind_phase_matrix_data_aro_gridded<double>(m, "PhaseMatrixDataAROGridded4").doc()   = "Phase matrix data";
-  (void)bind_phase_matrix_data_aro_spectral<double>(m, "PhaseMatrixDataAROSpectral4");
+  (void)bind_phase_matrix_data_aro_fourier<double>(m, "PhaseMatrixDataAROFourier4");
 
   py::class_<scattering::LegendreReport>(m, "LegendreReport")
       .def_ro("reconstruction_error",
@@ -671,8 +672,8 @@ void py_scattering_species(py::module_& m) try {
   bind_bulk_scattering_properties<scattering::Format::ARO, scattering::Representation::Gridded>(
       m, "BulkScatteringPropertiesAROGridded4")
       .doc() = "Bulk scattering properties";
-  bind_bulk_scattering_properties<scattering::Format::ARO, scattering::Representation::Spectral>(
-      m, "BulkScatteringPropertiesAROSpectral4")
+  bind_bulk_scattering_properties<scattering::Format::ARO, scattering::Representation::Fourier>(
+      m, "BulkScatteringPropertiesAROFourier4")
       .doc() = "Bulk scattering properties as azimuthal Fourier modes";
 
   py::class_<ParticleHabit>(m, "ParticleHabit")
@@ -742,14 +743,7 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
            R"(The habit as Legendre series to degree l on the grids, and a LegendreReport per particle
 
 The reports are on each particle's own grids, before regridding.)")
-      .def("to_aro_spectral",
-           &ParticleHabit::to_aro_spectral,
-           "t_grid"_a,
-           "f_grid"_a,
-           "za_inc_grid"_a,
-           "za_scat_grid"_a,
-           "max_mode"_a,
-           "The habit as azimuthal Fourier modes of its laboratory-frame phase matrices")
+
       .def(
           "__getitem__",
           [](ParticleHabit& habit, Index ind) { return habit[ind % habit.size()]; },
@@ -779,8 +773,8 @@ The reports are on each particle's own grids, before regridding.)")
            "f_grid"_a,
            "degree"_a,
            "The bulk Legendre series to degree; every particle must hold a TRO Legendre series of at least that degree")
-      .def("get_bulk_scattering_properties_aro_spectral",
-           &ScatteringHabit::get_bulk_scattering_properties_aro_spectral,
+      .def("get_bulk_scattering_properties_aro_fourier",
+           &ScatteringHabit::get_bulk_scattering_properties_aro_fourier,
            "point"_a,
            "f_grid"_a,
            "za_inc_grid"_a,

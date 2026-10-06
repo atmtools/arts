@@ -759,7 +759,7 @@ matrix ``P = 4 pi Z / sigma``, normalised to 1 over 4 pi, built by vector
 geometry in VDISORT's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*)).
 The modes, extinction, absorption and phase integral ``sigma = int Z11 dOmega``
 all come from the species' Fourier modes at exactly these zenith angles
-(``get_bulk_scattering_properties_aro_spectral``).  VDISORT's optical depth and
+(``get_bulk_scattering_properties_aro_fourier``).  VDISORT's optical depth and
 albedo are scalars, so to ``normalisation_tolerance`` times K11 the extinction,
 absorption and ``sigma`` must not depend on the incidence angle nor polarize,
 and ``sigma`` must match K11 - a1.  ARTS's own

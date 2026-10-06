@@ -113,17 +113,17 @@ std::pair<ParticleHabit, std::vector<LegendreReport>> ParticleHabit::to_tro_spec
   return {ParticleHabit(new_scat_data, new_grids), std::move(reports)};
 }
 
-ParticleHabit ParticleHabit::to_aro_spectral(const Vector&          t_grid,
-                                             const Vector&          f_grid,
-                                             const Vector&          za_inc_grid,
-                                             const ZenithAngleGrid& za_scat_grid,
-                                             Index                  max_mode) const {
-  auto new_grids = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
-                                       std::make_shared<const Vector>(f_grid),
-                                       std::make_shared<const Vector>(za_inc_grid),
-                                       nullptr,
-                                       std::make_shared<const ZenithAngleGrid>(za_scat_grid));
-  auto transform = [&new_grids, max_mode](const auto& ssd) { return ssd_to_aro_spectral(new_grids, max_mode, ssd); };
+ParticleHabit ParticleHabit::to_aro_spectral(
+    const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m) {
+  auto sht_ptr      = sht::provider.get_instance_lm(l, m);
+  auto aa_scat_grid = sht_ptr->get_azimuth_angle_grid();
+  auto za_scat_grid = sht_ptr->get_zenith_angle_grid();
+  auto new_grids    = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
+                                          std::make_shared<const Vector>(f_grid),
+                                          std::make_shared<const Vector>(za_inc_grid),
+                                          std::make_shared<const Vector>(aa_scat_grid),
+                                          std::make_shared<const ZenithAngleGrid>(za_scat_grid));
+  auto transform    = [&new_grids, &l, &m](const auto& ssd) { return ssd_to_aro_spectral(new_grids, l, m, ssd); };
   std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>> new_scattering_data;
   new_scattering_data.reserve(scattering_data.size());
   for (const ParticleData& pd : scattering_data) { new_scattering_data.push_back(std::visit(transform, pd)); }

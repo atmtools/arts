@@ -23,6 +23,8 @@ using PhaseMatrixAROGridded = PhaseMatrixData<Numeric, Format::ARO, Representati
 
 using PhaseMatrixAROSpectral = PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral>;
 
+using PhaseMatrixAROFourier = PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier>;
+
 /** Create a TRO phase matrix for testing
  *
  * Creates a phase matrix with Legendre polynomials with the degree
@@ -426,6 +428,58 @@ bool test_backscatter_matrix_regrid_tro() {
   return true;
 }
 
+bool test_phase_matrix_aro() {
+  Index l_max         = 128;
+  Index m_max         = 128;
+  auto  sht           = sht::provider.get_instance(l_max, m_max);
+  auto  t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto  f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto  za_inc_grid   = std::make_shared<Vector>(Vector({20.0}));
+  auto  za_scat_grid  = sht->get_za_grid_ptr();
+  auto  delta_aa_grid = sht->get_aa_grid_ptr();
+
+  auto phase_matrix_gridded = make_phase_matrix(t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
+
+  //
+  // Test conversion between spectral and gridded format.
+  //
+  auto          phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
+  ComplexVector coeffs_ref(phase_matrix_spectral.extent(3));
+  for (Index i_t = 0; i_t < phase_matrix_spectral.extent(0); ++i_t) {
+    for (Index i_f = 0; i_f < phase_matrix_spectral.extent(1); ++i_f) {
+      Index l                                = i_t;
+      Index m                                = std::min(i_t, i_f);
+      coeffs_ref                             = std::complex<Numeric>(0.0, 0.0);
+      coeffs_ref[sht->get_coeff_index(l, m)] = std::complex<Numeric>(1.0, 0.0);
+      for (Index i_za_inc = 0; i_za_inc < phase_matrix_spectral.extent(2); ++i_za_inc) {
+        for (Index i_s = 0; i_s < phase_matrix_spectral.extent(4); ++i_s) {
+          Numeric err = max_error<ComplexVector>(
+              coeffs_ref, static_cast<ComplexVector>(phase_matrix_spectral[i_t, i_f, i_za_inc, joker, i_s]));
+          if (err > 1e-6) return false;
+        }
+      }
+    }
+  }
+  auto    phase_matrix_gridded_2 = phase_matrix_spectral.to_gridded();
+  Numeric err                    = max_error(phase_matrix_gridded, phase_matrix_gridded_2);
+  if (err > 1e-6) { return false; }
+
+  auto backscatter_matrix   = phase_matrix_gridded.extract_backscatter_matrix();
+  auto backscatter_matrix_2 = phase_matrix_spectral.extract_backscatter_matrix();
+  err                       = max_error<Tensor4>(backscatter_matrix, backscatter_matrix_2);
+  if (err > 1e-3) return false;
+
+  auto forwardscatter_matrix   = phase_matrix_gridded.extract_forwardscatter_matrix();
+  auto forwardscatter_matrix_2 = phase_matrix_spectral.extract_forwardscatter_matrix();
+  err                          = max_error<Tensor4>(forwardscatter_matrix, forwardscatter_matrix_2);
+  if (err > 1e-3) return false;
+  auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs();
+  err                         = max_error<Tensor6View>(phase_matrix_gridded_1, phase_matrix_gridded);
+  if (err > 0) return false;
+
+  return true;
+}
+
 /** ARO azimuthal Fourier modes.
  *
  * Gridded data linear in the azimuth difference are their own interpolant,
@@ -433,7 +487,7 @@ bool test_backscatter_matrix_regrid_tro() {
  * S_m = 2 (-1)^(m + 1) / m.  A series evaluates exactly on any grid, and the
  * modes of finely gridded samples converge to it.
  */
-bool test_phase_matrix_aro() {
+bool test_phase_matrix_aro_fourier() {
   auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0}));
   auto f_grid       = std::make_shared<Vector>(Vector({1e9}));
   auto za_inc_grid  = std::make_shared<Vector>(Vector({20.0, 140.0}));
@@ -446,7 +500,7 @@ bool test_phase_matrix_aro() {
     linear[joker, joker, joker, 0, joker, e] = -std::numbers::pi;
     linear[joker, joker, joker, 1, joker, e] = std::numbers::pi;
   }
-  auto    modes = linear.to_spectral(M);
+  auto    modes = linear.to_fourier(M);
   Numeric err   = 0.0;
   for (Index m = 0; m <= M; ++m) {
     const Numeric S = m == 0 ? 0.0 : 2.0 * (m % 2 == 1 ? 1.0 : -1.0) / static_cast<Numeric>(m);
@@ -465,7 +519,7 @@ bool test_phase_matrix_aro() {
     flat[0, joker, joker, joker, i_s, 0] = 1.0;
     flat[1, joker, joker, joker, i_s, 0] = Conversion::deg2rad(grid_vector(*full)[i_s]);
   }
-  const auto flat_modes = flat.to_spectral(M);
+  const auto flat_modes = flat.to_fourier(M);
   if (std::abs(flat_modes.get_phase_integral()[0, 0, 1] - 4.0 * std::numbers::pi) > 1e-13) return false;
   if (std::abs(flat_modes.get_phase_integral()[1, 0, 0] - 2.0 * std::numbers::pi * std::numbers::pi) > 1e-13)
     return false;
@@ -473,26 +527,26 @@ bool test_phase_matrix_aro() {
   // Data that do not span one period cannot give the modes
   try {
     PhaseMatrixAROGridded half(t_grid, f_grid, za_inc_grid, std::make_shared<Vector>(Vector({0.0, 180.0})), za_scat_grid);
-    (void)half.to_spectral(M);
+    (void)half.to_fourier(M);
     return false;
   } catch (const std::exception&) {
   }
 
   // A series, evaluated finely and back
-  PhaseMatrixAROSpectral series(t_grid, f_grid, za_inc_grid, za_scat_grid, M);
+  PhaseMatrixAROFourier series(t_grid, f_grid, za_inc_grid, za_scat_grid, M);
   for (Index m = 0; m <= M; ++m) {
     series[joker, joker, joker, joker, m, 0, joker] = 1.0 / (1.0 + static_cast<Numeric>(m));
     if (m > 0) series[joker, joker, joker, joker, m, 1, joker] = 0.5 / static_cast<Numeric>(m);
   }
   auto fine = std::make_shared<Vector>(nlinspace(-180.0, 180.0, 3601));
-  auto back = series.to_gridded(fine).to_spectral(M);
+  auto back = series.to_gridded(fine).to_fourier(M);
   err       = max_error<matpack::strided_view_t<const Numeric, 7>>(back, series);
   if (err > 1e-4) return false;
 
   // Truncation, and its limit
-  if (series.to_spectral(2).get_max_mode() != 2) return false;
+  if (series.to_fourier(2).get_max_mode() != 2) return false;
   try {
-    (void)series.to_spectral(M + 1);
+    (void)series.to_fourier(M + 1);
     return false;
   } catch (const std::exception&) {
   }
@@ -559,12 +613,14 @@ bool test_tro_lab_frame_fourier_modes() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_aro() {
+  auto sht                   = sht::provider.get_instance(1, 32);
   auto t_grid                = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
   auto f_grid                = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  std::shared_ptr<const ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(FejerGrid(32));
+  auto za_scat_grid          = sht->get_za_grid_ptr();
   auto za_inc_grid           = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
   auto delta_aa_grid         = std::make_shared<Vector>(stdv::iota(0, 180));
   auto phase_matrix_gridded  = make_phase_matrix(t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
+  auto phase_matrix_spectral = phase_matrix_gridded.to_spectral();
 
   //
   // First test: Extract element at lowest temp, freq and za_scat angle.
@@ -589,6 +645,19 @@ bool test_phase_matrix_regrid_aro() {
   auto    phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
   Numeric err = max_error(static_cast<VectorView>(phase_matrix_gridded[0, 0, 0, 0, 0, joker]),
                           static_cast<VectorView>(phase_matrix_gridded_interp[0, 0, 0, 0, 0, joker]));
+  if (err > 1e-10) { return false; }
+
+  //
+  // Do the same for data in spectral representation. Here, however, all
+  // scattering angles are extracted because there's no way to perform
+  // angle interpolation in spectral space.
+  //
+
+  auto phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
+  phase_matrix_gridded_interp       = phase_matrix_spectral_interp.to_gridded();
+
+  err = max_error(static_cast<Tensor3View>(phase_matrix_gridded[0, 0, 0, joker, joker, joker]),
+                  static_cast<Tensor3View>(phase_matrix_gridded_interp[0, 0, 0, joker, joker, joker]));
   if (err > 1e-10) { return false; }
 
   //
@@ -620,6 +689,10 @@ bool test_phase_matrix_regrid_aro() {
 
   if (err > 1e-10) { return false; }
 
+  fill_along_axis<0>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
 
@@ -628,6 +701,10 @@ bool test_phase_matrix_regrid_aro() {
   err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
+  fill_along_axis<1>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  if (err > 1e-10) { return false; }
 
   // Test interpolation along za_inc axis.
 
@@ -636,6 +713,10 @@ bool test_phase_matrix_regrid_aro() {
   err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
+  fill_along_axis<2>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  if (err > 1e-10) { return false; }
 
   // Test interpolation along aa_scat axis.
   fill_along_axis<3>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
@@ -914,8 +995,19 @@ int main() {
     return 1;
   }
 
+#ifndef ARTS_NO_SHTNS
   std::cout << "Testing phase matrix (ARO): ";
   passed = test_phase_matrix_aro();
+  if (passed) {
+    std::cout << "PASSED." << '\n';
+  } else {
+    std::cout << "FAILED." << '\n';
+    return 1;
+  }
+#endif
+
+  std::cout << "Testing azimuthal Fourier modes (ARO): ";
+  passed = test_phase_matrix_aro_fourier();
   if (passed) {
     std::cout << "PASSED." << '\n';
   } else {
@@ -932,6 +1024,7 @@ int main() {
     return 1;
   }
 
+#ifndef ARTS_NO_SHTNS
   std::cout << "Testing phase matrix regridding (ARO): ";
   passed = test_phase_matrix_regrid_aro();
   if (passed) {
@@ -940,6 +1033,7 @@ int main() {
     std::cout << "FAILED." << '\n';
     return 1;
   }
+#endif
 
   std::cout << "Testing backscatter matrix regridding (ARO): ";
   passed = test_backscatter_matrix_regrid_aro();

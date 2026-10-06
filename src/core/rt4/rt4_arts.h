@@ -16,7 +16,7 @@
  * physics of their own: the particle optics are ARTS's bulk scattering
  * properties in the laboratory frame, as the azimuthal Fourier modes the
  * species give at the streams
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral), so
+ * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_fourier), so
  * azimuthally randomly oriented (ARO) species are supported as well as
  * totally randomly oriented (TRO) ones.
  *
@@ -53,7 +53,7 @@ namespace rt4 {
  *     (1 / 2 pi) int Z(ho, mu_o <- hi, mu_i; dphi) ddphi of ARTS's
  *     laboratory-frame phase matrix: the m = 0 azimuthal Fourier mode the
  *     species give at the streams
- *     (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral).
+ *     (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_fourier).
  *     GasScatterer and HenyeyGreensteinScatterer give it exactly from their
  *     closed forms, particle habits from their Legendre series (gridded TRO
  *     particle data must be converted to one first).

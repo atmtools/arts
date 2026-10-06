@@ -3,6 +3,7 @@
 #include <cmath>
 
 #include "math_funcs.h"
+#include "sht.h"
 
 namespace scattering {
 ExtinctionSSALookup::ExtinctionSSALookup(ScatteringSpeciesProperty extinction_field_,
@@ -238,11 +239,20 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded_derivative
 }
 
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
-HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
-                                                                       const Vector&   f_grid,
-                                                                       const Vector&   za_inc_grid,
-                                                                       const Vector&   za_scat_grid,
-                                                                       Index           max_mode) const {
+HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(
+    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
+  auto sht = sht::provider.get_instance_lm(degree, order);
+  return get_bulk_scattering_properties_aro_gridded(
+             atm_point, f_grid, za_inc_grid, *sht->get_aa_grid_ptr(), std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+      .to_spectral(degree, order);
+}
+
+BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
+HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
+                                                                      const Vector&   f_grid,
+                                                                      const Vector&   za_inc_grid,
+                                                                      const Vector&   za_scat_grid,
+                                                                      Index           max_mode) const {
   const auto c      = coefficients(ext_ssa_callback, atm_point, f_grid);
   auto       za_inc = std::make_shared<const Vector>(za_inc_grid);
   Matrix     integral(1, f_grid.size());  // p integrates to 1, so the phase integral is the scattering coefficient
@@ -256,8 +266,8 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const Atm
       integral,
       scattering_matrix(c, g));
   return {.phase_matrix      = std::move(phase),
-          .extinction_matrix = c.extinction.to_lab_frame(za_inc).to_spectral(),
-          .absorption_vector = c.absorption.to_lab_frame(za_inc).to_spectral()};
+          .extinction_matrix = c.extinction.to_lab_frame(za_inc).to_fourier(),
+          .absorption_vector = c.absorption.to_lab_frame(za_inc).to_fourier()};
 }
 
 std::ostream& operator<<(std::ostream& os, const HenyeyGreensteinScatterer& scatterer) {

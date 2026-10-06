@@ -9,15 +9,25 @@
 
 #include "arts_constants.h"
 #include "integration.h"
+#include "sht.h"
 #include "tro_legendre.h"
 #include "utils.h"
 
 namespace scattering {
 
+using sht::SHT;
+
 enum class Format { TRO, ARO, General };
 std::ostream &operator<<(std::ostream &out, Format format);
 
-enum class Representation { Gridded, Spectral, DoublySpectral };
+/** The representation of scattering data
+ *
+ * Gridded: on angular grids.  Spectral: spherical-harmonics (SHT) coefficients
+ * over the scattering directions (Legendre coefficients for TRO).  Fourier:
+ * azimuthal Fourier modes of the laboratory-frame phase matrix at given zenith
+ * angles, the form plane-parallel solvers consume (ARO only).
+ */
+enum class Representation { Gridded, Spectral, DoublySpectral, Fourier };
 std::ostream &operator<<(std::ostream &out, Representation repr);
 
 namespace detail {
@@ -561,7 +571,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
  * @param scattering_matrix As for tro_lab_frame
  */
 template <std::floating_point Scalar, typename ScatteringMatrix>
-PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> tro_lab_frame_fourier_modes(
+PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_fourier_modes(
     std::shared_ptr<const Vector>          t_grid,
     std::shared_ptr<const Vector>          f_grid,
     std::shared_ptr<const Vector>          za_inc_grid,
@@ -1050,7 +1060,7 @@ template <std::floating_point Scalar, Representation repr> class PhaseMatrixData
    *
    * See tro_lab_frame_fourier_modes; the series is evaluated exactly at every scattering angle.
    */
-  PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> to_lab_frame_fourier_modes(
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
       std::shared_ptr<const Vector>          za_inc_grid,
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
       Index                                  max_mode) const {
@@ -1220,6 +1230,8 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
  public:
   /// Spectral transform of this phase matrix.
   using PhaseMatrixDataSpectral = PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>;
+  /// Azimuthal Fourier modes of this phase matrix.
+  using PhaseMatrixDataFourier = PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier>;
 
   /// The number of stokes coefficients.
   static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::ARO);
@@ -1310,6 +1322,38 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
     return *this;
   }
 
+  /** Transform phase matrix to spectral format.
+   *
+   * @param Pointer to the SHT to use for the transformation.
+   */
+  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const {
+    assert(sht->get_n_azimuth_angles() == n_delta_aa_);
+    assert(sht->get_n_zenith_angles() == n_za_scat_);
+
+    PhaseMatrixDataSpectral result(t_grid_, f_grid_, za_inc_grid_, sht);
+
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            result[i_t, i_f, i_za_inc, joker, i_s] =
+                sht->transform(this->operator[](i_t, i_f, i_za_inc, joker, joker, i_s));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const {
+    auto sht_ptr = sht::provider.get_instance_lm(degree, order);
+    return to_spectral(sht_ptr);
+  }
+
+  PhaseMatrixDataSpectral to_spectral() const {
+    return to_spectral(sht::provider.get_instance(n_delta_aa_, n_za_scat_));
+  }
+
   /** The azimuthal Fourier modes of this phase matrix, m = 0..max_mode.
    *
    * The modes are those of the function the gridded data define in the
@@ -1322,7 +1366,7 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
    *
    * @param max_mode The highest mode, >= 0
    */
-  PhaseMatrixDataSpectral to_spectral(Index max_mode) const {
+  PhaseMatrixDataFourier to_fourier(Index max_mode) const {
     ARTS_USER_ERROR_IF(max_mode < 0, "The highest Fourier mode must be >= 0, got {}", max_mode)
     ARTS_USER_ERROR_IF(n_delta_aa_ < 2 or std::abs((*delta_aa_grid_)[n_delta_aa_ - 1] - (*delta_aa_grid_)[0] - 360.0) > 1e-9,
                        "Azimuthal Fourier modes need the ARO data over one full period of azimuth differences (the "
@@ -1333,7 +1377,7 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
       ARTS_USER_ERROR_IF(not((*delta_aa_grid_)[k] < (*delta_aa_grid_)[k + 1]),
                          "The azimuth-difference grid must ascend strictly")
 
-    PhaseMatrixDataSpectral result(t_grid_, f_grid_, za_inc_grid_, za_scat_grid_, max_mode);
+    PhaseMatrixDataFourier result(t_grid_, f_grid_, za_inc_grid_, za_scat_grid_, max_mode);
     // w[k, m, cs]: the weight of node k in C_m (cs = 0) and S_m (cs = 1) of the piecewise-linear function
     Tensor3 w(n_delta_aa_, max_mode + 1, 2, 0.0);
     for (Index k = 0; k + 1 < n_delta_aa_; ++k) {
@@ -1678,6 +1722,348 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
   return result;
 }
 
+template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
+    : public matpack::data_t<std::complex<Scalar>, 5> {
+ private:
+  // Hiding resize and reshape functions to avoid inconsistencies.
+  // between grids and data.
+  using matpack::data_t<std::complex<Scalar>, 5>::resize;
+  using matpack::data_t<std::complex<Scalar>, 5>::reshape;
+
+ public:
+  /// Spectral transform of this phase matrix.
+  using PhaseMatrixDataGridded = PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded>;
+
+  /// The number of stokes coefficients.
+  static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::ARO);
+  using CoeffVector                      = matpack::cdata_t<std::complex<Scalar>, n_stokes_coeffs>;
+
+  PhaseMatrixData()                                   = default;
+  PhaseMatrixData(const PhaseMatrixData &)            = default;
+  PhaseMatrixData(PhaseMatrixData &&)                 = default;
+  PhaseMatrixData &operator=(const PhaseMatrixData &) = default;
+  PhaseMatrixData &operator=(PhaseMatrixData &&)      = default;
+
+  /** Create a new PhaseMatrixData container.
+   *
+   * Creates a container to hold phase matrix data for the
+   * provided grids. The phase matrix data in the container is
+   * initialized to 0.
+   *
+   * @param t_grid: A pointer to the temperature grid over which the
+   * data is defined.
+   * @param f_grid: A pointer to the frequency grid over which the
+   * data is defined.
+   * @param za_inc_grid: A pointer to the incoming zenith-angle grid
+   * over which the data is defined.
+   * @param sht: A shared pointer to the SHT object used to transform
+   * the phase matrix data.
+   */
+  PhaseMatrixData(std::shared_ptr<const Vector> t_grid,
+                  std::shared_ptr<const Vector> f_grid,
+                  std::shared_ptr<const Vector> za_inc_grid,
+                  std::shared_ptr<SHT>          sht)
+      : matpack::data_t<std::complex<Scalar>, 5>(
+            t_grid->size(), f_grid->size(), za_inc_grid->size(), sht->get_n_spectral_coeffs(), n_stokes_coeffs),
+        n_temps_(t_grid->size()),
+        t_grid_(t_grid),
+        n_freqs_(f_grid->size()),
+        f_grid_(f_grid),
+        n_za_inc_(za_inc_grid->size()),
+        za_inc_grid_(za_inc_grid),
+        n_spectral_coeffs_(sht->get_n_spectral_coeffs()),
+        sht_(sht) {
+    matpack::data_t<std::complex<Scalar>, 5>::operator=(0.0);
+  }
+
+  PhaseMatrixData &operator=(const matpack::data_t<std::complex<Scalar>, 5> &data) {
+    ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
+                       "Provided backscatter coefficient data do not match temperature grid.");
+    ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
+                       "Provided backscatter coefficient data do not match frequency grid.");
+    ARTS_USER_ERROR_IF(data.shape()[2] != n_za_inc_,
+                       "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
+    ARTS_USER_ERROR_IF(data.shape()[3] != n_spectral_coeffs_,
+                       "Provided backscatter coefficient data do not match expected number of SHT coefficients.");
+    ARTS_USER_ERROR_IF(data.shape()[4] != n_stokes_coeffs,
+                       "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
+    this->template data_t<std::complex<Scalar>, 5>::operator=(data);
+    return *this;
+  }
+
+  constexpr matpack::view_t<CoeffVector, 4> get_coeff_vector_view() {
+    return matpack::view_t<CoeffVector, 4>{matpack::mdview_t<CoeffVector, 4>(
+        reinterpret_cast<CoeffVector *>(this->data_handle()),
+        std::array<Index, 4>{this->extent(0), this->extent(1), this->extent(2), this->extent(3)})};
+  }
+
+  constexpr matpack::view_t<const CoeffVector, 4> get_const_coeff_vector_view() const {
+    return matpack::view_t<const CoeffVector, 4>{matpack::mdview_t<const CoeffVector, 4>(
+        reinterpret_cast<const CoeffVector *>(this->data_handle()),
+        std::array<Index, 4>{this->extent(0), this->extent(1), this->extent(2), this->extent(3)})};
+  }
+
+  std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
+  std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
+  std::shared_ptr<const Vector> get_za_inc_grid() const { return za_inc_grid_; }
+  std::shared_ptr<SHT>          get_sht() const { return sht_; }
+
+  /** The azimuthal Fourier modes m = 0..max_mode at the scattering zenith angles of a grid, exactly
+   *
+   * The series has orders up to the SHT's m_max in the azimuth difference, so
+   * equally spaced azimuths, more than m_max + max_mode of them, integrate
+   * the modes exactly, and the modes above m_max are zero.  The series is
+   * evaluated exactly at each scattering zenith angle.  The phase integral is
+   * that of the series (integrate_phase_matrix).
+   *
+   * @param za_scat_grid The scattering zenith angles [deg]
+   * @param max_mode The highest mode, >= 0
+   */
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> to_fourier(
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid, Index max_mode) const {
+    PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> out(
+        t_grid_, f_grid_, za_inc_grid_, za_scat_grid, max_mode);
+    const Vector za{grid_vector(*za_scat_grid)};
+    const Index  N = 2 * (sht_->get_m_max() + max_mode) + 2;
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_i = 0; i_i < n_za_inc_; ++i_i) {
+          for (Index e = 0; e < n_stokes_coeffs; ++e) {
+            const auto coeffs = this->operator[](i_t, i_f, i_i, joker, e);
+            for (Size i_s = 0; i_s < za.size(); ++i_s) {
+              const Numeric theta = Conversion::deg2rad(za[i_s]);
+              for (Index k = 0; k < N; ++k) {
+                const Numeric phi = 2.0 * pi_v<Numeric> * static_cast<Numeric>(k) / static_cast<Numeric>(N);
+                const Numeric v   = sht_->evaluate(coeffs, phi, theta) / static_cast<Numeric>(N);
+                for (Index m = 0; m <= max_mode; ++m) {
+                  const Numeric w = m == 0 ? 1.0 : 2.0;
+                  out[i_t, i_f, i_i, i_s, m, 0, e] += w * v * std::cos(static_cast<Numeric>(m) * phi);
+                  out[i_t, i_f, i_i, i_s, m, 1, e] += w * v * std::sin(static_cast<Numeric>(m) * phi);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    const Tensor4 integral = integrate_phase_matrix();
+    Tensor3       sigma(n_temps_, n_freqs_, n_za_inc_);
+    for (Index i_t = 0; i_t < n_temps_; ++i_t)
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+        for (Index i_i = 0; i_i < n_za_inc_; ++i_i) sigma[i_t, i_f, i_i] = integral[i_t, i_f, i_i, 0];
+    out.set_phase_integral(std::move(sigma));
+    return out;
+  }
+
+  /** Transform phase matrix to gridded format.
+   *
+   * @param Pointer to the SHT to use for the transformation.
+   */
+  PhaseMatrixDataGridded to_gridded() const {
+    PhaseMatrixDataGridded result(t_grid_, f_grid_, za_inc_grid_, sht_->get_aa_grid_ptr(), sht_->get_za_grid_ptr());
+
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            result[i_t, i_f, i_za_inc, joker, joker, i_s] =
+                sht_->synthesize(this->operator[](i_t, i_f, i_za_inc, joker, i_s));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /** Transform phase matixr to spectral format.
+   *
+   * @param Pointer to the SHT to use for the transformation.
+   */
+  PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
+    auto            sht_new = sht::provider.get_instance_lm(l_new, m_new);
+    PhaseMatrixData pm_new(t_grid_, f_grid_, za_inc_grid_, sht_new);
+    for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
+      for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
+        for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid_->size(); ++za_inc_ind) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            pm_new[t_ind, f_ind, za_inc_ind, joker, i_s] = sht::add_coeffs(
+                *sht_new, pm_new[t_ind, f_ind, za_inc_ind, joker, i_s], *sht_, (*this)[t_ind, f_ind, za_inc_ind, joker, i_s]);
+          }
+        }
+      }
+    }
+    return pm_new;
+  }
+
+  BackscatterMatrixData<Scalar, Format::ARO> extract_backscatter_matrix() const {
+    BackscatterMatrixData<Scalar, Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
+
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          auto   za_inc  = (*za_inc_grid_)[i_za_inc];
+          Scalar za_scat = 180.0 - za_inc;
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            auto coeffs = this->operator[](i_t, i_f, i_za_inc, joker, i_s);
+            result[i_t, i_f, i_za_inc, i_s] =
+                sht_->evaluate(coeffs, Conversion::deg2rad(180.0), Conversion::deg2rad(za_scat));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  ForwardscatterMatrixData<Scalar, Format::ARO> extract_forwardscatter_matrix() {
+    BackscatterMatrixData<Scalar, Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
+
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          auto za_inc = (*za_inc_grid_)[i_za_inc];
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            auto coeffs = this->operator[](i_t, i_f, i_za_inc, joker, i_s);
+            result[i_t, i_f, i_za_inc, i_s] =
+                sht_->evaluate(coeffs, Conversion::deg2rad(0.0), Conversion::deg2rad(za_inc));
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /** The integral over all scattering directions of every element [t, f, za_inc, 16]
+   *
+   * sqrt(4 pi) times the l = 0 coefficient on the orthonormal Y_00; a
+   * degree-0 SHT holds the value itself as its coefficient.
+   */
+  Tensor4 integrate_phase_matrix() const {
+    const Scalar factor = sht_->get_l_max() == 0 ? 4.0 * pi_v<Scalar> : std::sqrt(4.0 * pi_v<Scalar>);
+    Tensor4      results(n_temps_, n_freqs_, n_za_inc_, n_stokes_coeffs);
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
+            results[i_t, i_f, i_za_inc, i_s] = this->operator[](i_t, i_f, i_za_inc, 0, i_s).real() * factor;
+          }
+        }
+      }
+    }
+    return results;
+  }
+
+  /** Extract single scattering data for given stokes dimension.
+   *
+   * @return A new phase matrix data object containing only data required
+   * for the requested stokes dimensions.
+   */
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> extract_stokes_coeffs() const {
+    PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> result(t_grid_, f_grid_, za_inc_grid_, sht_);
+    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+          for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+            for (Index i_s = 0; i_s < result.n_stokes_coeffs; ++i_s) {
+              result[i_t, i_f, i_za_inc, i_sht, i_s] = this->operator[](i_t, i_f, i_za_inc, i_sht, i_s);
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const {
+    PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
+    auto            coeffs_this = get_const_coeff_vector_view();
+    auto            coeffs_res  = result.get_coeff_vector_view();
+
+    for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
+      GridPos     gp_t    = weights.t_grid_weights[i_t];
+      const Index t_upper = std::min<Index>(gp_t.idx + 1, coeffs_this.extent(0) - 1);
+      Numeric     w_t_l   = gp_t.fd[1];
+      Numeric     w_t_r   = gp_t.fd[0];
+      for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
+        GridPos     gp_f    = weights.f_grid_weights[i_f];
+        const Index f_upper = std::min<Index>(gp_f.idx + 1, coeffs_this.extent(1) - 1);
+        Numeric     w_f_l   = gp_f.fd[1];
+        Numeric     w_f_r   = gp_f.fd[0];
+        for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size(); ++i_za_inc) {
+          GridPos     gp_za_inc    = weights.za_inc_grid_weights[i_za_inc];
+          const Index za_inc_upper = std::min<Index>(gp_za_inc.idx + 1, coeffs_this.extent(2) - 1);
+          Numeric     w_za_inc_l   = gp_za_inc.fd[1];
+          Numeric     w_za_inc_r   = gp_za_inc.fd[0];
+
+          for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+            coeffs_res[i_t, i_f, i_za_inc, i_sht] = CoeffVector{};
+          }
+
+          if (w_t_l > 0.0) {
+            if (w_f_l > 0.0) {
+              for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_l * w_f_l * w_za_inc_l * coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, i_sht];
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_l * w_f_l * w_za_inc_r * coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, i_sht];
+              }
+            }
+            if (w_f_r > 0.0) {
+              for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_l * w_f_r * w_za_inc_l * coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, i_sht];
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_l * w_f_r * w_za_inc_r * coeffs_this[gp_t.idx, f_upper, za_inc_upper, i_sht];
+              }
+            }
+          }
+          if (w_t_r > 0.0) {
+            if (w_f_l > 0.0) {
+              for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_r * w_f_l * w_za_inc_l * coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, i_sht];
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_r * w_f_l * w_za_inc_r * coeffs_this[t_upper, gp_f.idx, za_inc_upper, i_sht];
+              }
+            }
+            if (w_f_r > 0.0) {
+              for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_r * w_f_r * w_za_inc_l * coeffs_this[t_upper, f_upper, gp_za_inc.idx, i_sht];
+                coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
+                    w_t_r * w_f_r * w_za_inc_r * coeffs_this[t_upper, f_upper, za_inc_upper, i_sht];
+              }
+            }
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const {
+    auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, za_inc_grid_, nullptr, nullptr, grids);
+    return regrid(grids, weights);
+  }
+
+ protected:
+  /// The size of the temperature grid.
+  Index n_temps_;
+  /// The temperature grid.
+  std::shared_ptr<const Vector> t_grid_;
+  /// The size of the frequency grid.
+  Index n_freqs_;
+  /// The frequency grid.
+  std::shared_ptr<const Vector> f_grid_;
+  /// The number of incoming zenith angles.
+  Index n_za_inc_;
+  /// The incoming zenith angle grid.
+  std::shared_ptr<const Vector> za_inc_grid_;
+  /// The number of SHT coefficients.
+  Index n_spectral_coeffs_;
+  /// The incoming zenith angle grid.
+  std::shared_ptr<SHT> sht_;
+};
+
 /** The azimuthal Fourier modes of the laboratory-frame phase matrix of an azimuthally randomly oriented scatterer.
  *
  * For every temperature, frequency, incidence zenith angle and scattering
@@ -1699,7 +2085,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
  * the phase matrix, to be compared with K11 - a1.  Its producers give it
  * exactly, or NaN where their data do not cover all scattering directions.
  */
-template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral>
+template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier>
     : public matpack::data_t<Scalar, 7> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
@@ -1813,7 +2199,7 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
    *
    * @param max_mode At most this data's highest mode: truncated modes do not tell the higher ones
    */
-  PhaseMatrixData to_spectral(Index max_mode) const {
+  PhaseMatrixData to_fourier(Index max_mode) const {
     ARTS_USER_ERROR_IF(max_mode > max_mode_,
                        "The Fourier modes go to m = {}, so they cannot give the modes to m = {}; convert the gridded "
                        "data to that mode instead",
@@ -1911,7 +2297,7 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
 };
 
 template <std::floating_point Scalar, typename ScatteringMatrix>
-PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> tro_lab_frame_fourier_modes(
+PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_fourier_modes(
     std::shared_ptr<const Vector>          t_grid,
     std::shared_ptr<const Vector>          f_grid,
     std::shared_ptr<const Vector>          za_inc_grid,
@@ -1919,7 +2305,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> tro_lab_frame_fou
     Index                                  max_mode,
     const ConstMatrixView                 &phase_integral,
     ScatteringMatrix                     &&scattering_matrix) {
-  PhaseMatrixData<Scalar, Format::ARO, Representation::Spectral> out(
+  PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> out(
       t_grid, f_grid, za_inc_grid, za_scat_grid, max_mode);
   ARTS_USER_ERROR_IF(phase_integral.nrows() != static_cast<Index>(t_grid->size()) or
                          phase_integral.ncols() != static_cast<Index>(f_grid->size()),

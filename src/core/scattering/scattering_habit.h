@@ -53,11 +53,12 @@ class ScatteringHabit {
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix at the zenith angles [deg]
    *
-   * TRO Legendre series give them exactly (see tro_lab_frame_fourier_modes);
-   * ARO data on their own zenith grids only.  Gridded TRO data must be
-   * converted to a Legendre series first.
+   * See ssd_to_aro_fourier: TRO Legendre series and SHT ARO data give them
+   * exactly at any scattering zenith angle, gridded ARO data on their own
+   * zenith grids.  Gridded TRO data must be converted to a Legendre series
+   * first.
    */
-  BulkScatteringProperties<Format::ARO, Representation::Spectral> get_bulk_scattering_properties_aro_spectral(
+  BulkScatteringProperties<Format::ARO, Representation::Fourier> get_bulk_scattering_properties_aro_fourier(
       const AtmPoint&, const Vector& f_grid, const Vector& za_inc_grid, const Vector& za_scat_grid, Index max_mode)
       const;
 

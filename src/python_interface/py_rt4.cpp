@@ -278,7 +278,7 @@ Calls are serialised by one global lock.)",
          R"(The particle optics of ARTS scattering species at one atmospheric point on RT4's streams.
 
 Uses the azimuthal mean (the m = 0 Fourier mode) of ARTS's laboratory-frame
-bulk phase matrix at the streams (``get_bulk_scattering_properties_aro_spectral``),
+bulk phase matrix at the streams (``get_bulk_scattering_properties_aro_fourier``),
 so azimuthally randomly oriented species work as well as totally randomly
 oriented ones.  RT4's stream ``(down, mu)`` is ARTS's propagation zenith
 angle ``180 - acos(mu)`` deg, ``(up, mu)`` is ``acos(mu)``.

@@ -509,8 +509,8 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
   return out;
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Spectral>
-ScatteringHabit::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
+BulkScatteringProperties<Format::ARO, Representation::Fourier>
+ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& point,
                                                              const Vector&   f_grid,
                                                              const Vector&   za_inc_grid,
                                                              const Vector&   za_scat_grid,
@@ -524,7 +524,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_spectral(const AtmPoint& poi
   const auto grids   = ScatteringDataGrids(t_grid, f_ptr, za_inc, nullptr, za_scat);
   const auto tf      = ScatteringDataGrids(t_grid, f_ptr);
 
-  using Bulk = BulkScatteringProperties<Format::ARO, Representation::Spectral>;
+  using Bulk = BulkScatteringProperties<Format::ARO, Representation::Fourier>;
   std::optional<Bulk> result;
   const auto          add = [&result](Bulk&& b) {
     if (result)
@@ -555,7 +555,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_spectral(const AtmPoint& poi
       tro->extinction_matrix += local.extinction_matrix;
       tro->absorption_vector += local.absorption_vector;
     } else {
-      auto data = std::visit([&](const auto& s) { return ssd_to_aro_spectral(grids, max_mode, s); }, particle_habit[i]);
+      auto data = std::visit([&](const auto& s) { return ssd_to_aro_fourier(grids, max_mode, s); }, particle_habit[i]);
       if (pnd[i] == 0.0) continue;
       ARTS_USER_ERROR_IF(not data.phase_matrix, "Particle {} of the scattering habit has no phase matrix", i)
       Bulk bulk{.phase_matrix      = std::move(data.phase_matrix),
@@ -571,9 +571,9 @@ ScatteringHabit::get_bulk_scattering_properties_aro_spectral(const AtmPoint& poi
   }
   if (not result) {
     // Every particle is absent: zero optics on the requested grids
-    Bulk zero{PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc, za_scat, max_mode),
-              ExtinctionMatrixData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc),
-              AbsorptionVectorData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc)};
+    Bulk zero{PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc, za_scat, max_mode),
+              ExtinctionMatrixData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc),
+              AbsorptionVectorData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc)};
     return zero;
   }
   return std::move(*result);

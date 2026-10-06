@@ -96,6 +96,12 @@ struct GasScatterer {
                                                         std::shared_ptr<ZenithAngleGrid>,
                                                         const AtmKeyVal&) const;
 
+  /** The SHT of degree and order of the laboratory-frame phase matrix over the scattering directions, per
+   *  incidence zenith angle [deg]: the closed form sampled exactly on the SHT's own grid and transformed */
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral>
+  get_bulk_scattering_properties_aro_spectral(
+      const AtmPoint&, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const;
+
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix, exactly
    *
    * See tro_lab_frame_fourier_modes; the phase matrix is the closed form at
@@ -106,8 +112,8 @@ struct GasScatterer {
    * @param za_scat_grid The scattering zenith angles [deg], ascending
    * @param max_mode The highest mode, >= 0
    */
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral>
-  get_bulk_scattering_properties_aro_spectral(const AtmPoint&,
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier>
+  get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
                                               const Vector& f_grid,
                                               const Vector& za_inc_grid,
                                               const Vector& za_scat_grid,

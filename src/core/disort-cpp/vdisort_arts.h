@@ -67,7 +67,7 @@ struct fourier_optics {
  * ARTS's laboratory-frame phase matrix from the incident za = acos(mu_i) to
  * the scattered za = acos(mu_o) at delta_aa = aa_scat - aa_inc = phi.
  * Everything comes from the species' azimuthal Fourier modes at exactly
- * these zenith angles (get_bulk_scattering_properties_aro_spectral): the
+ * these zenith angles (get_bulk_scattering_properties_aro_fourier): the
  * modes, the extinction and absorption, and the phase integral
  * sigma = int Z11 dOmega.  They are exact for GasScatterer and
  * HenyeyGreensteinScatterer, and for particle habits from their Legendre

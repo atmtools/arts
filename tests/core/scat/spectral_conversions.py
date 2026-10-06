@@ -5,7 +5,7 @@
 - A habit of gridded data refuses to give a Legendre series, and names the
   conversion; converted, it gives one of the degree asked for.
 - The azimuthal Fourier modes of the laboratory-frame phase matrix
-  (get_bulk_scattering_properties_aro_spectral) evaluate to the gridded
+  (get_bulk_scattering_properties_aro_fourier) evaluate to the gridded
   laboratory-frame phase matrix at any azimuth, exactly for Rayleigh
   scattering, whose modes above m = 2 vanish.
 """
@@ -64,14 +64,14 @@ except RuntimeError:
 species = A.ArrayOfScatteringSpecies()
 species.add(A.GasScatterer(A.ConstantGasScattering(1e-30), A.RayleighGasScattering(0.0)))
 za_inc, za_scat, delta = [0.0, 30.0, 150.0], [20.0, 30.0, 160.0, 180.0], [0.0, 45.0, 180.0, 200.0, 359.0]
-modes = species.get_bulk_scattering_properties_aro_spectral(point, [FREQ], za_inc, za_scat, 4)
+modes = species.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
 lab = species.get_bulk_scattering_properties_aro_gridded(point, [FREQ], za_inc, delta, A.IrregularZenithAngleGrid(za_scat))
 from_modes = np.asarray(modes.phase_matrix.to_gridded(delta))
 reference = np.asarray(lab.phase_matrix)
 assert np.abs(from_modes - reference).max() < 1e-12 * np.abs(reference).max(), np.abs(from_modes - reference).max()
 assert np.abs(np.asarray(modes.phase_matrix)[:, :, :, :, 3:]).max() < 1e-13 * np.abs(reference).max()
 try:
-    modes.phase_matrix.to_spectral(5)
+    modes.phase_matrix.to_fourier(5)
     raise AssertionError("modes to m = 4 must not give m = 5")
 except RuntimeError:
     pass

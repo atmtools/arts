@@ -162,7 +162,34 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded_derivative(
 }
 
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
-ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
+ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
+    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
+  if (species.size() == 0) return {std::nullopt, {}, {}};
+
+  const auto visitor =
+      [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral> {
+    if constexpr (requires {
+                    spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, degree, order);
+                  }) {
+      return spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, degree, order);
+    } else {
+      throw std::runtime_error(std::format("Method not implemented for ARO Spectral for species:\n{:N}", spec));
+    }
+
+    std::unreachable();
+  };
+
+  auto& scat_spec = species[0];
+  auto  bsp       = std::visit(visitor, scat_spec);
+  for (Size ind = 1; ind < species.size(); ++ind) {
+    auto& scat_spec  = species[ind];
+    bsp             += std::visit(visitor, scat_spec);
+  }
+  return bsp;
+}
+
+BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
+ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
                                                                       const Vector&   f_grid,
                                                                       const Vector&   za_inc_grid,
                                                                       const Vector&   za_scat_grid,
@@ -170,14 +197,14 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(const AtmP
   if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =
-      [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral> {
+      [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier> {
     if constexpr (requires {
-                    spec.get_bulk_scattering_properties_aro_spectral(
+                    spec.get_bulk_scattering_properties_aro_fourier(
                         atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
                   }) {
-      return spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
+      return spec.get_bulk_scattering_properties_aro_fourier(atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for ARO Spectral for species:\n{:N}", spec));
+      throw std::runtime_error(std::format("Method not implemented for ARO Fourier modes for species:\n{:N}", spec));
     }
 
     std::unreachable();

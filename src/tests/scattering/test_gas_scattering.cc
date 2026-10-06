@@ -73,9 +73,46 @@ bool test_air_simple_rayleigh() {
   return true;
 }
 
+/* The SHT of Rayleigh scattering (aro_spectral) and the Fourier modes taken from it, against the exact modes
+   (aro_fourier).  The laboratory-frame Z11 is a spherical-harmonic series of degree 2 over the scattering
+   directions, so an SHT of degree and order 8 holds it exactly, and its modes at any scattering zenith angle and
+   its phase integral are exact.  The polarized elements are not compared: referenced to the meridian, which
+   turns with the azimuth at the poles, they are not finite series in scalar spherical harmonics. */
+bool test_rayleigh_sht_to_fourier() {
+  const AtmPoint point{8e4, 260.0};
+  const Vector   frequencies{89e9};
+  const Vector   za_inc{0.0, 35.0, 120.0};
+  const Vector   za_scat{0.0, 20.0, 35.0, 90.0, 157.0, 180.0};
+  const Index    M = 3;
+
+  const scattering::GasScatterer gas{scattering::ConstantGasScattering{1e-30}, scattering::RayleighGasScattering{0.0}};
+  const auto sht   = gas.get_bulk_scattering_properties_aro_spectral(point, frequencies, za_inc, 8, 8);
+  const auto exact = gas.get_bulk_scattering_properties_aro_fourier(point, frequencies, za_inc, za_scat, M);
+  const auto modes = sht.phase_matrix->to_fourier(
+      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)), M);
+
+  Numeric scale = 0.0;
+  for (Numeric x : *exact.phase_matrix | by_elem) scale = std::max(scale, std::abs(x));
+  if (not(scale > 0.0) or modes[0, 0, 1, 2, 2, 0, 0] == 0.0) return false;  // a non-trivial comparison, m = 2 included
+  for (Size i = 0; i < za_inc.size(); ++i) {
+    if (not close(modes.get_phase_integral()[0, 0, i], exact.phase_matrix->get_phase_integral()[0, 0, i], 1e-12))
+      return false;
+    for (Size j = 0; j < za_scat.size(); ++j)
+      for (Index m = 0; m <= M; ++m)
+        for (Index cs = 0; cs < 2; ++cs)
+          if (std::abs(modes[0, 0, i, j, m, cs, 0] - (*exact.phase_matrix)[0, 0, i, j, m, cs, 0]) > 1e-12 * scale)
+            return false;
+  }
+  return true;
+}
+
 }  // namespace
 
 int main() {
+  if (not test_rayleigh_sht_to_fourier()) {
+    std::cerr << "Rayleigh SHT to Fourier modes failed\n";
+    return 1;
+  }
   if (not test_constant_isotropic()) {
     std::cerr << "Constant/isotropic gas scattering failed\n";
     return 1;

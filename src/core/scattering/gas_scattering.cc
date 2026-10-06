@@ -20,6 +20,8 @@
 
 #include <cmath>
 
+#include "sht.h"
+
 namespace {
 /** The Rayleigh scattering matrix at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
 rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Numeric depolarization_factor) {
@@ -259,7 +261,16 @@ GasScatterer::get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoi
   return out;
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Spectral> GasScatterer::get_bulk_scattering_properties_aro_spectral(
+BulkScatteringProperties<Format::ARO, Representation::Spectral>
+GasScatterer::get_bulk_scattering_properties_aro_spectral(
+    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
+  auto sht = sht::provider.get_instance_lm(degree, order);
+  return get_bulk_scattering_properties_aro_gridded(
+             atm_point, f_grid, za_inc_grid, *sht->get_aa_grid_ptr(), std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+      .to_spectral(degree, order);
+}
+
+BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get_bulk_scattering_properties_aro_fourier(
     const AtmPoint& atm_point,
     const Vector&   f_grid,
     const Vector&   za_inc_grid,
@@ -295,8 +306,8 @@ BulkScatteringProperties<Format::ARO, Representation::Spectral> GasScatterer::ge
       closed_form);
 
   return {.phase_matrix      = std::move(phase),
-          .extinction_matrix = extinction.to_lab_frame(za_inc_ptr).to_spectral(),
-          .absorption_vector = absorption.to_lab_frame(za_inc_ptr).to_spectral()};
+          .extinction_matrix = extinction.to_lab_frame(za_inc_ptr).to_fourier(),
+          .absorption_vector = absorption.to_lab_frame(za_inc_ptr).to_fourier()};
 }
 
 }  // namespace scattering
