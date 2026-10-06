@@ -20,6 +20,25 @@ Vector2 specular_losNormal(const Vector2& normal, const Vector2& los, const Vect
 
   return ecef2geodetic_los(ecef_pos, normalized(ecef_spec), ell).second;
 }
+
+void require_surface_scattering_init(const StokvecVector& spectral_rad,
+                                     const StokvecMatrix& spectral_rad_jac,
+                                     const Size           nf,
+                                     const Size           nq) {
+  ARTS_USER_ERROR_IF(spectral_rad.size() != nf or spectral_rad_jac.nrows() != nq or spectral_rad_jac.ncols() != nf,
+                     R"--(spectral_rad and spectral_rad_jac not initialised for surface scattering.
+
+The *spectral_radSurfaceScattering* methods add to their outputs and require them to be
+sized and zeroed first by *spectral_radSurfaceScatteringInit*.
+
+Expected shapes ({}, {}) and ({}, {}), got shapes {:B,} and {:B,}.)--",
+                     nf,
+                     nf,
+                     nq,
+                     nf,
+                     spectral_rad.shape(),
+                     spectral_rad_jac.shape())
+}
 }  // namespace
 
 void spectral_surf_reflFlatRealFresnel(MuelmatVector&              spectral_surf_refl,
@@ -214,6 +233,23 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radSurfaceScatteringInit(StokvecVector&       spectral_rad,
+                                       StokvecMatrix&       spectral_rad_jac,
+                                       const AscendingGrid& freq_grid,
+                                       const JacobianTargets& jac_targets) try {
+  ARTS_TIME_REPORT
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+}
+ARTS_METHOD_ERROR_CATCH
+
 void spectral_radSurfaceScatteringDiffuse(
     const Workspace& ws,
     StokvecVector& spectral_rad,
@@ -240,11 +276,7 @@ void spectral_radSurfaceScatteringDiffuse(
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
 
-  spectral_rad.resize(nf);
-  spectral_rad = 0.0;
-
-  spectral_rad_jac.resize(nq, nf);
-  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
 
   const Vector       za_out     = {ray_point.los[0]};
   const Vector       aa_out     = {ray_point.los[1]};
@@ -388,11 +420,7 @@ void spectral_radSurfaceScatteringSpecular(
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
 
-  spectral_rad.resize(nf);
-  spectral_rad = 0.0;
-
-  spectral_rad_jac.resize(nq, nf);
-  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
 
   const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
 
@@ -472,10 +500,11 @@ void spectral_radSurfaceScatteringSpecular(
   for (Size i_f = 0; i_f < nf; i_f++) {
     spectral_rad_surface[i_f] = surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_surface[i_f];
   }
+  StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
 #pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
   for (Size i_jac = 0; i_jac < nq; i_jac++) {
     for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad_jac[i_jac, i_f] =
+      spectral_rad_jac_subsurface[i_jac, i_f] =
           surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
     }
   }
@@ -483,6 +512,7 @@ void spectral_radSurfaceScatteringSpecular(
   spectral_rad += spectral_rad_reflected;
   spectral_rad += spectral_rad_surface;
   spectral_rad_jac += spectral_rad_reflected_jac;
+  spectral_rad_jac += spectral_rad_jac_subsurface;
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -512,11 +542,7 @@ void spectral_radSurfaceScatteringSpecularDirect(
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
 
-  spectral_rad.resize(nf);
-  spectral_rad = 0.0;
-
-  spectral_rad_jac.resize(nq, nf);
-  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
 
   const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
 
@@ -679,11 +705,7 @@ void spectral_radSurfaceScatteringDiffuseDirect(
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
 
-  spectral_rad.resize(nf);
-  spectral_rad = 0.0;
-
-  spectral_rad_jac.resize(nq, nf);
-  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
 
   const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
 

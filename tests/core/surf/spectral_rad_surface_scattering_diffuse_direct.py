@@ -93,10 +93,6 @@ def setup_workspace_base(freq_grid, suns=None):
     set_cmb_incoming_agenda(ws)
     ws.ray_path_observer_agendaSetGeometric()
 
-    # Initialize spectral_rad and spectral_rad_jac (will be resized by the method)
-    ws.spectral_rad = arts.StokvecVector()
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
     return ws
 
 
@@ -133,6 +129,7 @@ def run_direct(freq_grid, reflectivity, suns=None):
     ws = setup_workspace_base(freq_grid, suns=suns)
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
     return rad_array(ws, len(freq_grid))
 
@@ -148,6 +145,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_basic():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
 
     assert len(ws.spectral_rad) == len(freq_grid), \
@@ -171,6 +169,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_absorbing():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
 
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
     rad = rad_array(ws, len(freq_grid))
 
@@ -311,8 +310,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_jacobian():
     add_surface_mask(ws, "lambertian")
     ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
 
-    ws.spectral_rad_jac = arts.StokvecMatrix()
-
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
 
     jac_array = np.array(ws.spectral_rad_jac)
@@ -341,6 +339,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
 
     # Direct method -- take the internally estimated LOS from the sun for the
     # matching diffuse quadrature direction
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
     rad_direct = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                            for i in range(len(freq_grid))])
@@ -353,8 +352,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
     ws.zen_grid_weights = arts.Vector([1.0])
     ws.az_grid_weights = arts.Vector([1.0])
 
-    ws.spectral_rad = arts.StokvecVector()
-    ws.spectral_rad_jac = arts.StokvecMatrix()
+    ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
     rad_diffuse = np.array([[float(ws.spectral_rad[i][s]) for s in range(4)]
                             for i in range(len(freq_grid))])
