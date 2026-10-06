@@ -2330,37 +2330,6 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_radSurfaceScatteringFlatDiffuse"] = {
-      .desc =
-          R"--(Set surface spectral radiance to use sub-surface emission and surface scattering.
-
-The input path point must be close to the surface.
-
-The *spectral_rad_closed_surface_agenda* should produce the surface emission,
-though pure surface emission is fine.
-
-The surface field must contain at least one surface mask for a surface type.
-The surface masks lives under the *SurfacePropertyTag* keys, which must be the same as in
-*surface_models*.
-)--",
-      .author         = {"Manfred Brath"},
-      .out            = {"spectral_rad", "spectral_rad_jac"},
-      .in             = {"freq_grid",
-                         "atm_field",
-                         "surf_field",
-                         "subsurf_field",
-                         "surface_models",
-                         "jac_targets",
-                         "ray_point",
-                         "zen_grid",
-                         "az_grid",
-                         "zen_grid_weights",
-                         "az_grid_weights",
-                         "spectral_rad_incoming_agenda",
-                         "spectral_rad_closed_surface_agenda"},
-       .pass_workspace = true,
-   };
-
   wsm_data["spectral_radSurfaceScatteringDiffuse"] = {
       .desc =
           R"--(Set surface spectral radiance to use sub-surface emission and surface scattering.
@@ -2370,11 +2339,9 @@ The input path point must be close to the surface.
 The incoming quadrature directions are checked against the horizon defined by
 the actual surface normal at the point: directions below that horizon
 contribute nothing to the scattered term, and directions above it that a flat
-horizon would hide are included.  This generalizes
-*spectral_radSurfaceScatteringFlatDiffuse* to tilted surfaces, in the same way
-that *spectral_radSurfaceScatteringDirect* gates its beam by the surface
-normal.  Extend *zen_grid* beyond 90 degrees to capture directions made
-visible by the surface tilt.
+horizon would hide are included.  The gating is the same as the beam visibility
+test of *spectral_radSurfaceScatteringDirect*.  Extend *zen_grid* beyond 90
+degrees to capture directions made visible by the surface tilt.
 
 The *spectral_rad_closed_surface_agenda* should produce the surface emission,
 though pure surface emission is fine.
@@ -2448,7 +2415,7 @@ towards the sun, then refined to a refraction-aware line-of-sight using
 ``angle_cut`` and ``refinement`` are passed to that search.  Only these single
 directions are traced and the diffuse BRDF and emissivity are evaluated at
 these exact directions; no angular quadrature is required.  This makes the
-method much cheaper than *spectral_radSurfaceScatteringFlatDiffuse* for
+method much cheaper than *spectral_radSurfaceScatteringDiffuse* for
 direct-radiation sources.
 
 With no suns in *suns* there is no scattered term at all, only the surface
@@ -2457,7 +2424,7 @@ are summed.
 
 The beam radiance is interpreted as a delta-weighted radiance: the scattered
 term of each sun is exactly BRDF * incoming radiance, equivalent to a single
-unit-weight quadrature point in *spectral_radSurfaceScatteringFlatDiffuse*.
+unit-weight quadrature point in *spectral_radSurfaceScatteringDiffuse*.
 
 If a sun is below the local surface horizon, i.e. on the opposite side of the
 surface normal at the point, it contributes nothing (no error); if all suns are
