@@ -5,7 +5,6 @@
 #include <variant>
 
 #include "psd.h"
-#include "sht.h"
 #include "single_scattering_data.h"
 
 namespace scattering {
@@ -25,7 +24,7 @@ auto ssd_to_tro_spectral(const ScatteringDataGrids&                         new_
   if constexpr (format == Format::ARO) {
     ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
   } else {
-    return ssd.to_spectral(l, 0).regrid(new_grids);
+    return ssd.to_spectral(l).regrid(new_grids);
   }
 };
 
@@ -64,17 +63,25 @@ auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
   }
 };
 
+/** The azimuthal Fourier modes to m = max_mode of the laboratory-frame phase matrix, on the zenith grids of new_grids
+ *
+ * TRO Legendre series give them exactly at any zenith angles.  ARO data give
+ * them on their own zenith grids only.  Gridded TRO data define the phase
+ * matrix only between their scattering-angle nodes, too coarsely for the
+ * modes; they must be converted to a Legendre series first.
+ */
 template <Format format, Representation repr> auto ssd_to_aro_spectral(
-    const ScatteringDataGrids& new_grids, Index l, Index m, const SingleScatteringData<Numeric, format, repr>& ssd)
+    const ScatteringDataGrids& new_grids, Index max_mode, const SingleScatteringData<Numeric, format, repr>& ssd)
     -> SingleScatteringData<Numeric, Format::ARO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
-    return ssd.to_spectral(l, m).regrid(new_grids);
+    return ssd.to_spectral(max_mode).regrid(new_grids);
+  } else if constexpr (repr == Representation::Gridded) {
+    ARTS_USER_ERROR(
+        "Gridded TRO scattering data define the phase matrix only between their scattering angles, which does not "
+        "give its azimuthal Fourier modes exactly; convert them to a Legendre series first (ParticleHabit.to_tro_spectral, "
+        "with its report on the conversion)");
   } else {
-    if constexpr (repr == Representation::Gridded) {
-      return ssd.to_lab_frame(new_grids).to_spectral(l, m);
-    } else {
-      return ssd.to_gridded().to_lab_frame(new_grids).to_spectral(l, m);
-    }
+    return ssd.to_lab_frame_fourier_modes(new_grids, max_mode);
   }
 };
 
@@ -199,8 +206,20 @@ class ParticleHabit {
 
   ParticleHabit to_tro_gridded(const Vector& t_grid, const Vector& f_grid, const ZenithAngleGrid& za_scat_grid);
 
-  ParticleHabit to_aro_spectral(
-      const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m);
+  /** The habit as Legendre series to degree l on new temperature and frequency grids, and a report per particle
+   *
+   * The reports are on each particle's own grids, before the regridding.
+   */
+  std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_report(const Vector& t_grid,
+                                                                                    const Vector& f_grid,
+                                                                                    Index         l) const;
+
+  /** The habit as azimuthal Fourier modes to m = max_mode (see ssd_to_aro_spectral) */
+  ParticleHabit to_aro_spectral(const Vector&          t_grid,
+                                const Vector&          f_grid,
+                                const Vector&          za_inc_grid,
+                                const ZenithAngleGrid& za_scat_grid,
+                                Index                  max_mode) const;
 
   ParticleHabit to_aro_gridded(const Vector& t_grid,
                                const Vector& f_grid,

@@ -14,8 +14,9 @@
  * These helpers translate ARTS scattering species, atmospheric points and
  * propagation paths into rt4::layer_optics and rt4::problem.  They add no
  * physics of their own: the particle optics are ARTS's bulk scattering
- * properties in the laboratory frame
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded), so
+ * properties in the laboratory frame, as the azimuthal Fourier modes the
+ * species give at the streams
+ * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral), so
  * azimuthally randomly oriented (ARO) species are supported as well as
  * totally randomly oriented (TRO) ones.
  *
@@ -42,8 +43,6 @@ namespace rt4 {
  *   (0, 1]: RT4's quadrature nodes followed by the extra angles, as in
  *   problem.  The same values are used in both hemispheres.
  * nstokes: 1 ([I]) or 2 ([I, Q]).
- * azimuth_count: N, the number of azimuth differences of the periodic
- *   midpoint rule for the azimuthal mean, even and >= 2.
  *
  * Returns, with h the hemisphere (rt4::down or rt4::up) and mu_i = mu[i]:
  *   extinction[h, i]: the ARO extinction matrix for propagation in (h, mu_i),
@@ -52,22 +51,12 @@ namespace rt4 {
  *   absorption[h, i]: [a1, a2] (a1 only for nstokes = 1).
  *   phase[ho, hi, o, i]: the [I, Q] block of the azimuthal mean
  *     (1 / 2 pi) int Z(ho, mu_o <- hi, mu_i; dphi) ddphi of ARTS's
- *     laboratory-frame phase matrix, by the midpoint rule at
- *     dphi_k = (k + 1/2) 360 deg / N.  The samples above 180 deg mirror those
- *     below, whose [I, Q] blocks are the same for a medium with mirror
- *     symmetry (which ARTS's TRO and ARO formats have), so ARTS is only asked
- *     for the N / 2 azimuths in (0, 180) deg.
- *
- * Accuracy of the azimuthal mean.  For a scattering matrix that is a regular
- * Legendre series of degree L in cos(Theta), Z is a trigonometric polynomial
- * of degree L in dphi, and the rule is exact for N > L (Rayleigh: N >= 4).
- * Otherwise it converges as fast as the Fourier series of Z in dphi.  The
- * midpoints avoid dphi = 0 and 180 deg, where ARTS's rotation coefficients
- * snap angles within about 1e-3 rad of the principal plane.  The data are as
- * accurate as ARTS's laboratory-frame phase matrix: GasScatterer and
- * HenyeyGreensteinScatterer evaluate their closed-form scattering matrix at
- * the exact scattering angle of every direction pair; particle habits
- * interpolate linearly on their own scattering-angle grid.
+ *     laboratory-frame phase matrix: the m = 0 azimuthal Fourier mode the
+ *     species give at the streams
+ *     (ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral).
+ *     GasScatterer and HenyeyGreensteinScatterer give it exactly from their
+ *     closed forms, particle habits from their Legendre series (gridded TRO
+ *     particle data must be converted to one first).
  *
  * Vertical rays.  A vertical ray (mu = 1, e.g. the last Lobatto node or an
  * extra angle) has the meridional plane of its azimuth label in ARTS's
@@ -86,15 +75,13 @@ namespace rt4 {
  *    frequency) whose peak falls between the streams; use more streams.
  *
  * An empty species array gives all-zero optics.  Species without a phase
- * matrix, or that do not provide laboratory-frame (ARO gridded) data, are an
- * error.
+ * matrix, or that cannot give the Fourier modes, are an error.
  */
 layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                const AtmPoint&                 atm_point,
                                Numeric                         frequency,
                                const Vector&                   mu,
-                               Index                           nstokes,
-                               Index                           azimuth_count);
+                               Index                           nstokes);
 
 //! The solver settings of problem_from_path
 struct path_settings {
@@ -107,8 +94,6 @@ struct path_settings {
   Vector extra_mu{};
   //! Maximum vertical optical thickness of the initial doubling sublayer, > 0
   Numeric max_delta_tau{1e-6};
-  //! Azimuth differences of the azimuthal mean (see scattering_optics), even, >= 2
-  Index azimuth_count{64};
 };
 
 /** An RT4 problem from an ARTS propagation path.

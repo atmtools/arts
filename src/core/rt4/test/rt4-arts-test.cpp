@@ -8,9 +8,8 @@
      trigonometry), so the comparison tests the direction mapping (RT4's
      hemispheres to ARTS's propagation zenith angles), the in/out and Stokes
      order, the hemisphere quadrants and the normalisation.  GasScatterer
-     evaluates its scattering matrix at the exact scattering angles, and the
-     midpoint rule is exact for Rayleigh scattering (azimuth_count >= 4), so
-     the tolerance is round-off.
+     gives the azimuthal mean exactly (its m = 0 Fourier mode at the
+     streams), so the tolerance is round-off.
    - The path builder must reproduce the path data it is given (heights,
      temperatures, midpoint gas extinction) and the level optics of
      scattering_optics() averaged per layer. */
@@ -87,8 +86,8 @@ void test_rayleigh() {
 
   const Numeric tol = 1e-13 * sigma / (4 * pi);
 
-  for (Index nphi : {4, 64}) {
-    const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 2, nphi);
+  {
+    const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 2);
     require(o.phase.shape() == (std::array<Index, 6>{2, 2, n, n, 2, 2}) and
                 o.extinction.shape() == (std::array<Index, 4>{2, n, 2, 2}) and
                 o.absorption.shape() == (std::array<Index, 3>{2, n, 2}),
@@ -122,24 +121,22 @@ void test_rayleigh() {
       }
     }
     std::cout << std::format(
-        "A1 Rayleigh GasScatterer, azimuth_count {:2}: max |phase - closed form| / (sigma / 4 pi) {:.2e} (tolerance "
-        "{:.2e}); K, a {:.1e}, mu = 1 included\n",
-        nphi,
+        "A1 Rayleigh GasScatterer: max |phase - closed form| / (sigma / 4 pi) {:.2e} (tolerance {:.2e}); K, a "
+        "{:.1e}, mu = 1 included\n",
         dz / (sigma / (4 * pi)),
         tol / (sigma / (4 * pi)),
         dk / sigma);
     require(dz <= tol,
             std::format("A1: the RT4 phase quadrants of ARTS's Rayleigh GasScatterer must equal sigma / (4 pi) times "
-                        "the m = 0 closed form to {:.2e} (azimuth_count {}), got {:.2e}",
+                        "the m = 0 closed form to {:.2e}, got {:.2e}",
                         tol,
-                        nphi,
                         dz));
     require(dk <= 1e-14 * sigma, "A1: the extinction must be sigma on the diagonal and the absorption zero");
   }
 
   // nstokes 1 is the I element alone
-  const auto o1 = rt4::scattering_optics(species, atm, 89e9, mu, 1, 8);
-  const auto o2 = rt4::scattering_optics(species, atm, 89e9, mu, 2, 8);
+  const auto o1 = rt4::scattering_optics(species, atm, 89e9, mu, 1);
+  const auto o2 = rt4::scattering_optics(species, atm, 89e9, mu, 2);
   Numeric    d1 = 0.0;
   for (Index ho = 0; ho < 2; ho++)
     for (Index hi = 0; hi < 2; hi++)
@@ -149,15 +146,14 @@ void test_rayleigh() {
   require(d1 == 0.0, "A1: nstokes 1 must give the I element of nstokes 2");
 
   // No species: zero optics of the right shape
-  const auto z = rt4::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, mu, 2, 8);
+  const auto z = rt4::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, mu, 2);
   require(z.phase.shape() == (std::array<Index, 6>{2, 2, n, n, 2, 2}) and
               stdr::all_of(z.phase | by_elem, [](Numeric x) { return x == 0.0; }),
           "A1: an empty species array must give zero optics");
 
-  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, mu, 3, 8); }, "nstokes 3");
-  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, mu, 2, 7); }, "odd azimuth_count");
-  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, Vector{0.5, 0.0}, 2, 8); }, "mu = 0");
-  require_error([&] { (void)rt4::scattering_optics(species, atm, -1.0, mu, 2, 8); }, "negative frequency");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, mu, 3); }, "nstokes 3");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, 89e9, Vector{0.5, 0.0}, 2); }, "mu = 0");
+  require_error([&] { (void)rt4::scattering_optics(species, atm, -1.0, mu, 2); }, "negative frequency");
 }
 
 //! A path of nlev levels, top first, with gas extinction 1e-4 * (1 + level) per metre
@@ -189,7 +185,7 @@ void test_path() {
   const auto species = rayleigh_species();
   const auto d       = make_path(Vector{3000.0, 2000.0, 800.0, 0.0}, Vector{230.0, 245.0, 270.0, 288.0});
 
-  const rt4::path_settings s{.nstokes = 2, .nmu = 6, .extra_mu = Vector{1.0}, .azimuth_count = 16};
+  const rt4::path_settings s{.nstokes = 2, .nmu = 6, .extra_mu = Vector{1.0}};
   const auto               p = rt4::problem_from_path(d.ray_path,
                                                       d.atm_path,
                                                       d.propmat,
@@ -220,8 +216,8 @@ void test_path() {
   Vector     mu(7);
   std::ranges::copy(q.mu, mu.begin());
   mu[6]        = 1.0;
-  const auto a = rt4::scattering_optics(species, d.atm_path[1], 89e9, mu, 2, 16);
-  const auto b = rt4::scattering_optics(species, d.atm_path[2], 89e9, mu, 2, 16);
+  const auto a = rt4::scattering_optics(species, d.atm_path[1], 89e9, mu, 2);
+  const auto b = rt4::scattering_optics(species, d.atm_path[2], 89e9, mu, 2);
   Numeric    m = 0.0, scale = 0.0;
   for (Index x = 0; x < static_cast<Index>(a.phase.size()); x++) {
     const Numeric ref = 0.5 * (a.phase.data_handle()[x] + b.phase.data_handle()[x]);

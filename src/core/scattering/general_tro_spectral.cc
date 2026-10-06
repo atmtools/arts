@@ -2,7 +2,6 @@
 
 #include <memory>
 
-#include "sht.h"
 
 ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_tro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
@@ -33,7 +32,7 @@ ScatteringTroSpectralVector::to_general(const SpecmatMatrix& phase_matrix, const
   ARTS_USER_ERROR_IF(l < 0, "Legendre degree must be non-negative, is {}", l);
 
   scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> pm{
-      t_grid, f_grid_ptr, scattering::sht::provider.get_instance_lm(l, 0)};
+      t_grid, f_grid_ptr, l};
 
   for (Index f_ind = 0; f_ind < phase_matrix.nrows(); ++f_ind) {
     for (Index ind = 0; ind < phase_matrix.ncols(); ++ind) {

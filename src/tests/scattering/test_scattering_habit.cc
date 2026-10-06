@@ -137,7 +137,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test temperature interpolation.
   ///
   auto point      = AtmPoint{1e4, 290.0};
-  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, -1);
+  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, l);
 
   auto pm   = bulk_props.phase_matrix.value();
   using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
@@ -160,20 +160,13 @@ bool test_calculate_bulk_properties_tro_spectral() {
       if (err > 1e-3) return false;
     }
 
-    for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-      Numeric rel_diff =
-          std::abs((bulk_props.extinction_matrix[f_ind].A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]);
-      if (rel_diff > 1e-3) return false;
-      rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].B() - em_ref[1, f_ind, 1]) / em_ref[1, f_ind, 1]);
-      if (rel_diff > 1e-3) return false;
-      rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].C() - em_ref[1, f_ind, 2]) / em_ref[1, f_ind, 2]);
-      if (rel_diff > 1e-3) return false;
-      rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].D() - em_ref[1, f_ind, 3]) / em_ref[1, f_ind, 3]);
-      if (rel_diff > 1e-3) return false;
-    }
-
-    Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
-    if (err > 1e-3) return false;
+    // TRO extinction and absorption have K11 and a1 only
+    const auto& K = bulk_props.extinction_matrix[f_ind];
+    if (std::abs((K.A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]) > 1e-3) return false;
+    if (K.B() != 0.0 or K.C() != 0.0 or K.D() != 0.0 or K.U() != 0.0 or K.V() != 0.0 or K.W() != 0.0) return false;
+    const auto& a = bulk_props.absorption_vector[f_ind];
+    if (std::abs((a[0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3) return false;
+    if (a[1] != 0.0 or a[2] != 0.0 or a[3] != 0.0) return false;
   }
   return true;
 
@@ -181,7 +174,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, -1);
+  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, l);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
@@ -190,8 +183,8 @@ bool test_calculate_bulk_properties_tro_spectral() {
     if (err > 1e-3) return false;
   }
 
-  Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
-  if (err > 1e-3) return false;
+  if (std::abs((bulk_props.absorption_vector[f_ind][0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3)
+    return false;
   return true;
 }
 

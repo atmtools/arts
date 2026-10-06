@@ -14,9 +14,8 @@
  * These helpers translate ARTS scattering species, atmospheric points and
  * propagation paths into rt3::scattering_set and rt3::problem.  RT3 takes
  * the scattering matrix of totally randomly oriented (TRO) particles as
- * Legendre series, so only species with TRO data
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded)
- * can be used.
+ * Legendre series, and gets them from the species' own Legendre series
+ * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral).
  *
  * Stokes and sign conventions.  ARTS's TRO scattering matrix is stored as
  * [F11, F12, F22, F33, F34, F44] in the scattering-plane basis with
@@ -39,16 +38,12 @@
 namespace rt3 {
 /** The scattering set of scattering species at one atmospheric point.
  *
- * The species' TRO scattering matrix F is evaluated at the nodes of an
- * n-point Gauss-Legendre rule in cos(Theta), n = scattering_angle_count, and
- * projected on the Legendre polynomials,
- *   c_l = (2 l + 1) / 2 int F(x) P_l(x) dx,  l = 0 .. degree,
- * by that rule.  The projection is exact when every element of F is a
- * polynomial of degree <= 2 n - 1 - degree in cos(Theta) (Rayleigh: n >= 3
- * for degree 2); otherwise it has the quadrature error of the rule, and the
- * series is the truncation of F at degree.  Species that tabulate F on their
- * own grid of scattering angles (particle habits) interpolate it linearly to
- * the nodes.
+ * The species give their Legendre series to degree themselves
+ * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral,
+ * coefficients a_l on the orthonormal Y_l0); these are the Legendre
+ * coefficients c_l = a_l sqrt((2 l + 1) / 4 pi) of F = sum_l c_l P_l.
+ * Species that cannot give them (gridded particle data, ARO data) are an
+ * error from the species.
  *
  * Returns:
  *   extinction: K11 of the particles per metre.
@@ -70,7 +65,6 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  const AtmPoint&                 atm_point,
                                  Numeric                         frequency,
                                  Index                           degree,
-                                 Index                           scattering_angle_count,
                                  Numeric                         normalisation_tolerance);
 
 //! The solver settings of problem_from_path
@@ -93,8 +87,6 @@ struct path_settings {
    *  2 (nmu + extra_mu.size()), the degree at which RT3 reads the delta-M
    *  fraction. */
   Index legendre_degree{-1};
-  //! Gauss-Legendre nodes of the Legendre projection (see scattering_optics), > legendre_degree
-  Index scattering_angle_count{512};
   //! See scattering_optics
   Numeric normalisation_tolerance{1e-3};
 };

@@ -63,23 +63,26 @@ struct fourier_optics {
  *   C^m(o, i) = (1 / 2 pi) int P(mu_o, 0; mu_i, phi) cos(m phi) dphi,
  *   S^m(o, i) = (1 / 2 pi) int P(mu_o, 0; mu_i, phi) sin(m phi) dphi,
  * m = 0 .. nfourier - 1, of the laboratory-frame phase matrix
- * P = 4 pi Z / sigma in the basis above, normalised to 1 over 4 pi:
- *   sigma = 2 pi int F11 dcos(Theta)
- * by an n-point Gauss-Legendre rule, n = scattering_angle_count, over the
- * species' TRO scattering matrix F.  Z is ARTS's laboratory-frame phase
- * matrix (get_bulk_scattering_properties_aro_gridded) from the incident
- * za = acos(mu_i) to the scattered za = acos(mu_o) at
- * delta_aa = aa_scat - aa_inc = phi.  The integral over phi is the periodic
- * midpoint rule at phi_k = (k + 1/2) 2 pi / N, N = azimuth_count.  For a regular Legendre
- * series of degree L, Z is a trigonometric polynomial of degree L in phi and
- * the rule is exact for N > L + nfourier - 1; otherwise it converges as fast
- * as the Fourier series of Z in phi.  These coefficients go to
+ * P = 4 pi Z / sigma in the basis above, normalised to 1 over 4 pi.  Z is
+ * ARTS's laboratory-frame phase matrix from the incident za = acos(mu_i) to
+ * the scattered za = acos(mu_o) at delta_aa = aa_scat - aa_inc = phi.
+ * Everything comes from the species' azimuthal Fourier modes at exactly
+ * these zenith angles (get_bulk_scattering_properties_aro_spectral): the
+ * modes, the extinction and absorption, and the phase integral
+ * sigma = int Z11 dOmega.  They are exact for GasScatterer and
+ * HenyeyGreensteinScatterer, and for particle habits from their Legendre
+ * series (gridded TRO particle data must be converted to one first) or, on
+ * their own zenith grids, their ARO data.  These coefficients go to
  * vdisort::combine_phase_matrices (diffuse) and
  * vdisort::combine_beam_phase_matrices (beam column).
  *
- * sigma and the scattering coefficient K11 - a1 must agree to
- * normalisation_tolerance * K11 (as in rt3::scattering_optics), otherwise
- * this is an error.  Without particles the coefficients are zero.
+ * VDISORT's optical depth and albedo are scalars, so to
+ * normalisation_tolerance * K11 at every incidence angle K11, a1 and sigma
+ * must be the same, K12, K34 and a2 must vanish, and sigma must equal the
+ * scattering coefficient K11 - a1 (as in rt3::scattering_optics); otherwise
+ * this is an error.  TRO particles always meet the first conditions;
+ * azimuthally randomly oriented ones generally do not.  Without particles
+ * the coefficients are zero.  mu_out and mu_in must not be empty.
  */
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
@@ -87,8 +90,6 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  const Vector&                   mu_out,
                                  const Vector&                   mu_in,
                                  Index                           nfourier,
-                                 Index                           azimuth_count,
-                                 Index                           scattering_angle_count,
                                  Numeric                         normalisation_tolerance);
 
 //! A depolarizing Lambertian surface: vdisort::brdf::lambertian_fourier_modes, emission [(1 - A) B, 0, 0, 0]
@@ -112,10 +113,6 @@ struct path_settings {
   Index nquad{16};
   //! Number of Fourier azimuth modes
   Index nfourier{1};
-  //! Azimuth samples of the Fourier coefficients (see scattering_optics)
-  Index azimuth_count{64};
-  //! Gauss-Legendre nodes of the phase-function normalisation (see scattering_optics)
-  Index scattering_angle_count{512};
   //! See scattering_optics
   Numeric normalisation_tolerance{1e-3};
   //! Thermal emission of the layers and of the surface; the sky always emits

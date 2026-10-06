@@ -16,13 +16,19 @@
      propagation zenith angle za and azimuth aa map to mu = cos(za) and
      phi = -aa, with the same I, Q, U, V and the same F, including F34.
      The other azimuth sense and a negated F34 must both fail.  Exact and
-     snapped near-forward pairs must give Z = F (phase_matrix.h used Z22 =
-     -F22 there).
-   - V3: vdisort::scattering_optics for the same particle, which takes
-     ARTS's laboratory-frame phase matrix, against the Fourier coefficients
-     of the vector-geometry phase matrix of lab-frame.h (V2's mapping),
-     diffuse and beam column.
-   - V4: main_data_from_path against the path data it is given. */
+     near-forward pairs must keep the diagonal of F (phase_matrix.h used
+     Z22 = -F22 there).
+   - V3: vdisort::scattering_optics for the same particle as a Legendre
+     series (exact from its Gauss-Legendre nodes), which takes the Fourier
+     modes of ARTS's laboratory-frame phase matrix, against the Fourier
+     coefficients of the vector-geometry phase matrix of lab-frame.h (V2's
+     mapping) of the same series, diffuse and beam column.
+   - V4: main_data_from_path against the path data it is given.
+   - V5: azimuthally randomly oriented particle data: Rayleigh's own
+     laboratory-frame phase matrix, gridded on the streams and over all
+     scattering zenith angles, must give the GasScatterer's coefficients to
+     the accuracy of its 1 deg grids; data without the phase integral, and
+     optics that depend on the direction, must be errors. */
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <legendre.h>
@@ -146,9 +152,8 @@ void test_rayleigh() {
   std::ranges::copy(mu, mu_in.begin());
   mu_in[mu.size()] = -0.6;  // a beam
 
-  // A trigonometric polynomial of degree 2 times cos, sin(m phi), m <= 3: 8 midpoints are exact
-  for (Index nphi : {8, 64}) {
-    const auto f = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, 4, nphi, 16, 1e-12);
+  {
+    const auto f = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, 4, 1e-12);
     require(std::abs(f.extinction - sigma) < 1e-14 * sigma and std::abs(f.scattering - sigma) < 1e-14 * sigma,
             "V1: Rayleigh extinction and scattering must be sigma");
     Numeric d = 0.0;
@@ -163,21 +168,18 @@ void test_rayleigh() {
       }
     }
     std::cout << std::format(
-        "V1 Rayleigh GasScatterer, m = 0..3, 16 streams, +-0.35, +-1 and the beam -0.6, azimuth_count {:2}: "
-        "max |C^m, S^m - closed form| {:.1e} (tolerance 1e-13)\n",
-        nphi,
+        "V1 Rayleigh GasScatterer, m = 0..3, 16 streams, +-0.35, +-1 and the beam -0.6: max |C^m, S^m - closed "
+        "form| {:.1e} (tolerance 1e-13)\n",
         d);
     require(d <= 1e-13,
             std::format("V1: the Fourier coefficients of ARTS's Rayleigh GasScatterer must equal the dipole closed "
-                        "forms to 1e-13 (azimuth_count {}), got {:.2e}",
-                        nphi,
+                        "forms to 1e-13, got {:.2e}",
                         d));
   }
 
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, Vector{0.0}, mu, 2, 8, 16, 1e-3); },
-                "mu = 0");
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, mu, mu, 0, 8, 16, 1e-3); }, "nfourier 0");
-  const auto none = vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, 50e9, mu, mu, 2, 8, 16, 1e-3);
+  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, Vector{0.0}, mu, 2, 1e-3); }, "mu = 0");
+  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, mu, mu, 0, 1e-3); }, "nfourier 0");
+  const auto none = vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, 50e9, mu, mu, 2, 1e-3);
   require(none.extinction == 0.0 and
               stdr::all_of(none.cosine | by_elem,
                            [](const auto& z) { return stdr::all_of(z | by_elem, [](Numeric x) { return x == 0.0; }); }),
@@ -190,8 +192,17 @@ void test_rayleigh() {
 constexpr Numeric mie_frequency = Constant::speed_of_light / 0.951e-6;
 constexpr Index   mie_nodes     = 2000;
 
+using TroSeries = scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+
+//! The degree of the particle's Legendre series, converged to rounding for size parameter 1.65
+constexpr Index mie_degree = 40;
+
 struct mie_case {
+  //! The particle as gridded data on the Gauss-Legendre nodes
   ArrayOfScatteringSpecies species;
+  //! The particle as its Legendre series to mie_degree
+  ArrayOfScatteringSpecies spectral_species;
+  TroSeries                series;
   AtmPoint                 atm;
 };
 
@@ -206,10 +217,43 @@ mie_case mie() {
   const auto habit = ParticleHabit::sphere(
       t_grid, f_grid, d, scattering::ZenithAngleGrid{scattering::IrregularZenithAngleGrid(angles)}, index, 1000.0);
   const auto prop = ScatteringSpeciesProperty{"mie", ParticulateProperty::NumberDensity};
-  mie_case   c{.species = {}, .atm = air(1e5, 280.0)};
+  mie_case   c{.species = {}, .spectral_species = {}, .series = {}, .atm = air(1e5, 280.0)};
   c.species.add(ScatteringHabit{habit, scattering::PSD{scattering::MonodispersePSD{prop}}, 1.0, 3.0});
   c.atm[prop] = 1e9;
+
+  // a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
+  using Gridded  = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  const auto& gridded = std::get<Gridded>(habit[0]);
+  c.series            = TroSeries(gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), mie_degree);
+  Vector p(mie_degree + 1);
+  for (Index i = 0; i < mie_nodes; i++) {
+    Legendre::legendre_polynomials(p, x[i]);
+    for (Index l = 0; l <= mie_degree; l++) {
+      const Numeric f = 2 * pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4 * pi)) * w[i] * p[l];
+      for (Index k = 0; k < 6; k++) c.series[0, 0, l, k] += f * (*gridded.phase_matrix)[0, 0, i, k];
+    }
+  }
+  const Spectral spectral(gridded.properties,
+                          c.series,
+                          gridded.extinction_matrix.to_spectral(),
+                          gridded.absorption_vector.to_spectral(),
+                          gridded.backscatter_matrix,
+                          gridded.forwardscatter_matrix);
+  c.spectral_species.add(ScatteringHabit{
+      ParticleHabit{std::vector<Spectral>{spectral}}, scattering::PSD{scattering::MonodispersePSD{prop}}, 1.0, 3.0});
   return c;
+}
+
+//! The scattering matrix of the particle's Legendre series at cos(Theta), times its number density
+vdisort_test::tro_matrix series_of(const mie_case& c) {
+  return [&c](Numeric cos_theta) {
+    const Matrix  f = scattering::tro_legendre::evaluate(c.series.coefficients(0, 0),
+                                                        Vector{Conversion::rad2deg(std::acos(cos_theta))});
+    const Numeric n = 1e9;
+    return vdisort_test::tro_elements{
+        .F11 = n * f[0, 0], .F12 = n * f[0, 1], .F22 = n * f[0, 2], .F33 = n * f[0, 3], .F34 = n * f[0, 4], .F44 = n * f[0, 5]};
+  };
 }
 
 //! ARTS's laboratory-frame Z for the incident propagation zenith za_in, za_out and aa_out - aa_in [deg]
@@ -295,12 +339,10 @@ void test_lab_frame(const mie_case& c) {
   require(sense > 1e-2 and flipped > 1e-2,
           "V2: the other azimuth sense and a negated F34 must both miss ARTS's phase matrix by more than 1e-2");
 
-  /* Exact forward (rays equal) and a near-forward pair (Theta = 8.7e-4 rad)
-     that ARTS snaps to exact forward.  The diagonal must be that of F: for
-     forward-scattered Q, Z22 = F22 (phase_matrix.h had Z22 = -F22, Z33 =
-     -F33 there).  The off-diagonal elements of the near-forward pair differ
-     by the O(Theta) turn of the meridional planes that the snapping drops;
-     that is printed, not asserted. */
+  /* Exact forward (rays equal) and a near-forward pair (Theta = 8.7e-4 rad).
+     The diagonal must be that of F: for forward-scattered Q, Z22 = F22
+     (phase_matrix.h had Z22 = -F22, Z33 = -F33 there).  The difference of
+     all elements is printed, not asserted. */
   for (auto [z0, daa] : {std::pair{60.0, 0.0}, std::pair{85.0, 0.05}}) {
     const auto Za       = arts_lab_frame(c, z0, daa, z0);
     const auto Zv       = vdisort_test::lab_frame(F, std::cos(rad(z0)), 0.0, std::cos(rad(z0)), -rad(daa));
@@ -334,24 +376,15 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
   mu_in[Range(0, 8)] = mu;
   mu_in[8]           = -0.6;
 
-  constexpr Index NF = 4, N = 16;
-  const auto      f = vdisort::scattering_optics(c.species, c.atm, mie_frequency, mu, mu_in, NF, N, mie_nodes, 1e-9);
+  constexpr Index NF = 4, N = 512;
+  const auto      f = vdisort::scattering_optics(c.spectral_species, c.atm, mie_frequency, mu, mu_in, NF, 1e-9);
 
-  // sigma = 2 pi int F11 dx on the species' own nodes
-  Vector x(mie_nodes), wx(mie_nodes), angles(mie_nodes);
-  Legendre::GaussLegendre(x, wx);
-  stdr::reverse(x);
-  stdr::reverse(wx);
-  for (Index i = 0; i < mie_nodes; i++) angles[i] = Conversion::rad2deg(std::acos(x[i]));
-  const auto tro = c.species.get_bulk_scattering_properties_tro_gridded(
-      c.atm,
-      Vector{mie_frequency},
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(angles)));
-  Numeric sigma = 0.0;
-  for (Index i = 0; i < mie_nodes; i++) sigma += 2 * pi * wx[i] * (*tro.phase_matrix)[0, 0, i, 0];
+  // sigma = 2 pi int F11 dx = sqrt(4 pi) a_0 of the series
+  const Numeric sigma = 1e9 * std::sqrt(4 * pi) * c.series[0, 0, 0, 0].real();
 
-  // Incidence at phi_k and scattering at 0, the convention of scattering_optics
-  const auto F = tro_of(c);
+  // Incidence at phi_k and scattering at 0, the convention of scattering_optics; 512 midpoints resolve the
+  // modes of the series to rounding
+  const auto F = series_of(c);
   Numeric    d = 0.0, scale = 0.0;
   for (Index o = 0; o < static_cast<Index>(mu.size()); o++) {
     for (Index i = 0; i < static_cast<Index>(mu_in.size()); i++) {
@@ -371,9 +404,9 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
     }
   }
   std::cout << std::format(
-      "V3 vdisort::scattering_optics (ARTS's laboratory frame) vs the Fourier coefficients of the vector-geometry "
-      "phase matrix, Mie, m = 0..3, 8 streams and the beam -0.6: max |dC|, |dS| / max |C| {:.1e} (tolerance "
-      "1e-10)\n",
+      "V3 vdisort::scattering_optics (ARTS's laboratory-frame Fourier modes) vs the Fourier coefficients of the "
+      "vector-geometry phase matrix, Mie Legendre series of degree 40, m = 0..3, 8 streams and the beam -0.6: max "
+      "|dC|, |dS| / max |C| {:.1e} (tolerance 1e-10)\n",
       d / scale);
   require(d <= 1e-10 * scale,
           std::format("V3: VDISORT's Fourier coefficients must be those of the vector-geometry phase matrix to 1e-10, "
@@ -453,6 +486,79 @@ void test_path() {
       "a layer without optical thickness");
   std::cout << std::format("V4 path builder: tau and omega to {:.1e}, gas-only, 2 error paths\n", dev);
 }
+//! V5: ARO particle data in VDISORT
+void test_aro_data() {
+  using ARO = scattering::SingleScatteringData<Numeric, scattering::Format::ARO, scattering::Representation::Gridded>;
+  const auto gas = rayleigh_species();
+  const auto atm = air(9e4, 270.0);
+  Vector     mu(4), inv(4), w(2);
+  disort_common::initialize_streams(mu, inv, w);
+
+  // The streams' propagation zenith angles, and 1 deg grids that hold them (or, without the ends, do not span)
+  Vector streams(4);
+  for (Index i = 0; i < 4; i++) streams[i] = Conversion::rad2deg(std::acos(mu[i]));
+  stdr::sort(streams);
+  const auto with_streams = [&](Numeric first, Numeric last) {
+    std::vector<Numeric> za;
+    for (Numeric x = first; x <= last + 1e-9; x += 1.0) za.push_back(x);
+    for (Numeric x : streams) za.push_back(x);
+    stdr::sort(za);
+    return Vector(za);
+  };
+  const Vector delta = nlinspace(-180.0, 180.0, 361);
+
+  const auto aro_species = [&](const Vector& za_scat, Numeric extinction_change) {
+    auto bulk = gas.get_bulk_scattering_properties_aro_gridded(
+        atm, Vector{50e9}, streams, delta, std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
+    bulk.extinction_matrix[0, 0, 1, 0] *= 1.0 + extinction_change;
+    const auto& pm = *bulk.phase_matrix;
+    ARO         ssd(scattering::ParticleProperties{.name = "rayleigh", .mass = 1e-12, .d_veq = 1e-6, .d_max = 1e-6},
+            pm,
+            bulk.extinction_matrix,
+            bulk.absorption_vector,
+            scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>(pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()),
+            scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO>(pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()));
+    const auto prop = ScatteringSpeciesProperty{"aro", ParticulateProperty::NumberDensity};
+    ArrayOfScatteringSpecies species;
+    species.add(ScatteringHabit{ParticleHabit{std::vector<ARO>{ssd}}, scattering::PSD{scattering::MonodispersePSD{prop}}, 1.0, 3.0});
+    auto a  = atm;
+    a[prop] = 1.0;
+    return std::pair{species, a};
+  };
+
+  const auto [species, a] = aro_species(with_streams(0.0, 180.0), 0.0);
+  const auto f            = vdisort::scattering_optics(species, a, 50e9, mu, mu, 2, 1e-3);
+  const auto g            = vdisort::scattering_optics(gas, atm, 50e9, mu, mu, 2, 1e-3);
+  Numeric    d = 0.0, scale = 0.0;
+  for (Index m = 0; m < 2; m++) {
+    for (Index o = 0; o < 4; o++) {
+      for (Index i = 0; i < 4; i++) {
+        scale = std::max(scale, max_abs(g.cosine[m, o, i]));
+        d     = std::max({d, max_diff(f.cosine[m, o, i], g.cosine[m, o, i]), max_diff(f.sine[m, o, i], g.sine[m, o, i])});
+      }
+    }
+  }
+  std::cout << std::format(
+      "V5 ARO data (Rayleigh's laboratory frame on 1 deg grids) vs GasScatterer, m = 0, 1, 4 streams: max |dC|, |dS| / "
+      "max |C| {:.1e} (tolerance 1e-3); extinction {:.1e}\n",
+      d / scale,
+      std::abs(f.extinction - g.extinction) / g.extinction);
+  require(d <= 1e-3 * scale and std::abs(f.extinction - g.extinction) <= 1e-14 * g.extinction,
+          "V5: ARO data must give VDISORT the coefficients of the medium they tabulate");
+
+  require_error(
+      [&] {
+        const auto [s2, a2] = aro_species(with_streams(1.0, 179.0), 0.0);
+        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+      },
+      "ARO data without all scattering zenith angles have no phase integral");
+  require_error(
+      [&] {
+        const auto [s2, a2] = aro_species(with_streams(0.0, 180.0), 0.1);
+        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+      },
+      "an extinction that depends on the direction");
+}
 }  // namespace
 
 int main() try {
@@ -461,6 +567,7 @@ int main() try {
   test_lab_frame(c);
   test_fourier_against_vector_geometry(c);
   test_path();
+  test_aro_data();
   std::cout << "vdisort-arts test passed\n";
   return 0;
 } catch (const std::exception& e) {

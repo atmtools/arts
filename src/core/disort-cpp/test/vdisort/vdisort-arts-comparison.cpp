@@ -8,13 +8,13 @@
    that makes them external references for each other).  Here the three
    solvers get their inputs from the same ARTS data by three different
    routes:
-   - RT4: ARTS's laboratory-frame phase matrix (get_bulk_scattering_
-     properties_aro_gridded, Mishchenko-style rotations), averaged over the
-     azimuth on RT4's streams;
-   - RT3: the TRO scattering matrix projected on Legendre polynomials, which
-     RT3 rotates and Fourier-transforms itself;
-   - VDISORT: the TRO scattering matrix at the exact scattering angles,
-     rotated by vector geometry and Fourier-transformed.
+   - RT4: the azimuthal mean of ARTS's laboratory-frame phase matrix
+     (get_bulk_scattering_properties_aro_spectral, Mishchenko-style
+     rotations) on RT4's streams;
+   - RT3: the species' Legendre series, which RT3 rotates and
+     Fourier-transforms itself;
+   - VDISORT: the Fourier modes of the same laboratory-frame phase matrix on
+     VDISORT's streams, in VDISORT's vector-geometry basis.
    With the same double-Gauss streams, the solvers then solve the same
    problem, and RT3 and RT4 differ from VDISORT by their first-order
    doubling error, below 10 max_delta_tau / mu0 of max I (mu0 = 1 without a
@@ -23,9 +23,8 @@
    source or surface) would not.
 
    The routes evaluate the same scattering matrices: the GasScatterer's
-   closed form at the exact scattering angles, and the cloud's tabulated
-   matrix interpolated on its own grid, for the laboratory frame as for the
-   TRO data.  test_thermal() checks that RT4's layer phase matrices equal
+   closed form, and the cloud's Legendre series (exact from its tabulated
+   matrix on the nodes of a Gauss-Legendre rule).  test_thermal() checks that RT4's layer phase matrices equal
    VDISORT's to round-off.
 
    The atmosphere: an AtmField with exponential pressure, a temperature
@@ -54,7 +53,8 @@
 namespace {
 constexpr Numeric frequency     = 89e9;
 constexpr Index   nmu           = 8;
-constexpr Index   native_angles = 4000;  // the cloud's scattering-angle grid, also the projection rule
+constexpr Index   native_angles = 4000;  // the cloud's scattering-angle grid, the nodes of its projection rule
+constexpr Index   cloud_degree  = 64;    // the degree of the cloud's Legendre series, converged to rounding
 
 void require(bool ok, const std::string& what) {
   if (not ok) throw std::runtime_error(what);
@@ -100,7 +100,32 @@ atmosphere make_atmosphere() {
   Vector     t_grid{220.0, 250.0, 280.0, 310.0}, f_grid{frequency}, diameter{1.5e-3};
   const auto habit = ParticleHabit::liquid_sphere(
       t_grid, f_grid, diameter, scattering::ZenithAngleGrid{scattering::IrregularZenithAngleGrid(angles)});
-  a.species.add(ScatteringHabit{habit, scattering::PSD{scattering::MonodispersePSD{drops}}, 1.0, 3.0});
+
+  // The Legendre series, a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
+  using Gridded  = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  const auto& gridded = std::get<Gridded>(habit[0]);
+  scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> series(
+      gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), cloud_degree);
+  Vector p(cloud_degree + 1);
+  for (Index i = 0; i < native_angles; i++) {
+    Legendre::legendre_polynomials(p, x[i]);
+    for (Index l = 0; l <= cloud_degree; l++) {
+      // The Gauss-Legendre weights are symmetric, so w is that of the reversed x too
+      const Numeric f =
+          2.0 * Constant::pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi)) * w[i] * p[l];
+      for (Index it = 0; it < series.extent(0); it++)
+        for (Index k = 0; k < 6; k++) series[it, 0, l, k] += f * (*gridded.phase_matrix)[it, 0, i, k];
+    }
+  }
+  const Spectral spectral(gridded.properties,
+                          series,
+                          gridded.extinction_matrix.to_spectral(),
+                          gridded.absorption_vector.to_spectral(),
+                          gridded.backscatter_matrix,
+                          gridded.forwardscatter_matrix);
+  a.species.add(ScatteringHabit{
+      ParticleHabit{std::vector<Spectral>{spectral}}, scattering::PSD{scattering::MonodispersePSD{drops}}, 1.0, 3.0});
   return a;
 }
 
@@ -189,7 +214,7 @@ Numeric rt4_input_difference(const atmosphere& a, const rt4::problem& p) {
     const auto&                            o = p.optics[p.layer_optics_index[l]];
     std::array<vdisort::fourier_optics, 2> v;
     for (Index j = 0; j < 2; j++)
-      v[j] = vdisort::scattering_optics(a.species, a.atm_path[l + j], frequency, mu, mu, 1, 64, native_angles, 1e-6);
+      v[j] = vdisort::scattering_optics(a.species, a.atm_path[l + j], frequency, mu, mu, 1, 1e-6);
     Numeric scale = 0.0, diff = 0.0;
     for (Index ho = 0; ho < 2; ho++) {
       for (Index hi = 0; hi < 2; hi++) {
@@ -238,8 +263,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                          {.nstokes       = 2,
                                           .nmu           = nmu,
                                           .quad          = rt4::quadrature_type::double_gauss,
-                                          .max_delta_tau = max_delta_tau,
-                                          .azimuth_count = 64},
+                                          .max_delta_tau = max_delta_tau},
                                          g4,
                                          288.0,
                                          2.7);
@@ -253,7 +277,6 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                           .nmu                     = nmu,
                                           .quad                    = rt3::quadrature_type::double_gauss,
                                           .max_delta_tau           = max_delta_tau,
-                                          .scattering_angle_count  = native_angles,
                                           .normalisation_tolerance = 1e-6},
                                          g3,
                                          288.0,
@@ -266,8 +289,6 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                                a.species,
                                                {.nquad                   = 2 * nmu,
                                                 .nfourier                = 1,
-                                                .azimuth_count           = 64,
-                                                .scattering_angle_count  = native_angles,
                                                 .normalisation_tolerance = 1e-6},
                                                gv,
                                                288.0,
@@ -346,7 +367,6 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
                                             .quad                    = rt3::quadrature_type::double_gauss,
                                             .aziorder                = aziorder,
                                             .max_delta_tau           = max_delta_tau,
-                                            .scattering_angle_count  = native_angles,
                                             .normalisation_tolerance = 1e-6},
                                            rt3::lambertian_surface{.albedo = 0.3},
                                            288.0,
@@ -363,8 +383,6 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
                                               a.species,
                                               {.nquad                   = 2 * nmu,
                                                .nfourier                = aziorder + 1,
-                                               .azimuth_count           = 64,
-                                               .scattering_angle_count  = native_angles,
                                                .normalisation_tolerance = 1e-6,
                                                .beam_flux               = flux,
                                                .beam_mu                 = mu0},

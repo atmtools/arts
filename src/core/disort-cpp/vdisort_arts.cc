@@ -3,7 +3,6 @@
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <debug.h>
-#include <legendre.h>
 #include <physics_funcs.h>
 
 #include <algorithm>
@@ -49,15 +48,11 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  const Vector&                   mu_out,
                                  const Vector&                   mu_in,
                                  Index                           nfourier,
-                                 Index                           azimuth_count,
-                                 Index                           scattering_angle_count,
                                  Numeric                         normalisation_tolerance) {
   const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
   check_cosines(mu_out, "mu_out");
   check_cosines(mu_in, "mu_in");
   ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
-  ARTS_USER_ERROR_IF(azimuth_count < 1, "azimuth_count must be >= 1, got {}", azimuth_count);
-  ARTS_USER_ERROR_IF(scattering_angle_count < 1, "scattering_angle_count must be >= 1, got {}", scattering_angle_count);
   ARTS_USER_ERROR_IF(
       not(normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
   ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
@@ -68,37 +63,58 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                      .sine       = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
   if (scattering_species.species.empty()) return out;
 
-  const Vector f_grid{frequency};
+  ARTS_USER_ERROR_IF(no == 0 or ni == 0, "VDISORT's scattering optics need at least one mu_out and one mu_in");
 
-  // Extinction, absorption and the phase-function integral
-  Vector x(scattering_angle_count), weights(scattering_angle_count), gl_angles(scattering_angle_count);
-  Legendre::GaussLegendre(x, weights);
-  stdr::reverse(x);  // ascending scattering angles, as ARTS's angular grids must be
-  stdr::reverse(weights);
-  for (Index i = 0; i < scattering_angle_count; i++) gl_angles[i] = Conversion::rad2deg(std::acos(x[i]));
-  const auto bulk = scattering_species.get_bulk_scattering_properties_tro_gridded(
-      atm_point,
-      f_grid,
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(gl_angles)));
-  ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
+  // The azimuthal Fourier modes Z = sum_m C_m cos(m phi) + S_m sin(m phi) of ARTS's laboratory-frame phase
+  // matrix at the propagation zenith angles, with the extinction, the absorption and the phase integral
+  // int Z11 dOmega at the incidence angles
+  const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
+  const auto [za_scat, sca] = zenith_angle_grid(mu_out);
+  const auto lab            = scattering_species.get_bulk_scattering_properties_aro_spectral(
+      atm_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
+  ARTS_USER_ERROR_IF(not lab.phase_matrix.has_value(),
                      "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
                      "have none");
-  ARTS_USER_ERROR_IF(bulk.extinction_matrix.extent(0) != 1 or bulk.absorption_vector.extent(0) != 1 or
-                         bulk.phase_matrix->extent(0) != 1,
-                     "The bulk scattering properties must be at a single temperature; they have {}, {} and {} "
-                     "temperatures for the extinction, absorption and phase matrix",
-                     bulk.extinction_matrix.extent(0),
-                     bulk.absorption_vector.extent(0),
-                     bulk.phase_matrix->extent(0));
-  out.extinction = bulk.extinction_matrix[0, 0, 0];
-  out.scattering = out.extinction - bulk.absorption_vector[0, 0, 0];
+  const auto& pha      = *lab.phase_matrix;
+  const auto& ext      = lab.extinction_matrix;
+  const auto& abs      = lab.absorption_vector;
+  const auto& integral = pha.get_phase_integral();
 
-  Numeric sigma = 0.0;
-  for (Index i = 0; i < scattering_angle_count; i++) sigma += weights[i] * (*bulk.phase_matrix)[0, 0, i, 0];
-  sigma *= 2.0 * Constant::pi;
+  out.extinction      = ext[0, 0, 0, 0];
+  out.scattering      = out.extinction - abs[0, 0, 0, 0];
+  const Numeric sigma = integral[0, 0, 0];
 
-  ARTS_USER_ERROR_IF(not(std::abs(sigma - out.scattering) <= normalisation_tolerance * out.extinction),
-                     "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
+  // VDISORT's optical depth and albedo are scalars: the particles' extinction must not depend on the direction
+  // nor polarize, and their absorption and phase integral must not depend on the direction
+  const Numeric tol = normalisation_tolerance * out.extinction;
+  for (Index j = 0; j < static_cast<Index>(za_inc.size()); j++) {
+    ARTS_USER_ERROR_IF(std::isnan(integral[0, 0, j]),
+                       "The scattering species do not give the phase integral int Z11 dOmega at the incidence zenith "
+                       "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
+                       za_inc[j])
+    const Numeric dk = std::abs(ext[0, 0, j, 0] - out.extinction), dpol = std::max(std::abs(ext[0, 0, j, 1]),
+                                                                                std::abs(ext[0, 0, j, 2]));
+    const Numeric da = std::abs(abs[0, 0, j, 0] - abs[0, 0, 0, 0]), da2 = std::abs(abs[0, 0, j, 1]);
+    const Numeric ds = std::abs(integral[0, 0, j] - sigma);
+    ARTS_USER_ERROR_IF(not(std::max({dk, dpol, da, da2, ds}) <= tol),
+                       "VDISORT's optical depth and single-scattering albedo are scalars, but at the incidence zenith "
+                       "angle {} deg the particles' K11 differs by {} per m, K12 or K34 is {} per m, a1 differs by {} "
+                       "per m, a2 is {} per m, or the phase integral differs by {} per m from those at {} deg, more "
+                       "than normalisation_tolerance times K11, {} * {} per m (azimuthally randomly oriented "
+                       "particles generally give such optics, which VDISORT cannot transport)",
+                       za_inc[j],
+                       dk,
+                       dpol,
+                       da,
+                       da2,
+                       ds,
+                       za_inc[0],
+                       normalisation_tolerance,
+                       out.extinction)
+  }
+
+  ARTS_USER_ERROR_IF(not(std::abs(sigma - out.scattering) <= tol),
+                     "The scattering coefficient from the phase matrix, int Z11 dOmega = {} per m, and the "
                      "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
                      "extinction, {} * {} per m (VDISORT normalises the phase matrix and takes the albedo from the "
                      "latter)",
@@ -106,42 +122,16 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                      out.scattering,
                      normalisation_tolerance,
                      out.extinction);
-  if (sigma == 0.0 or no == 0 or ni == 0) return out;
+  if (sigma == 0.0) return out;
 
-  /* ARTS's laboratory-frame phase matrix, [t, f, za_inc, delta_aa, za_scat,
-     4 * row + col], from the incident za of mu_in to the scattered za of
-     mu_out at delta_aa = phi_k: VDISORT's radiance at azimuth phi is ARTS's
-     at aa = -phi, so incidence at phi_k and scattering at 0 is
-     aa_scat - aa_inc = phi_k (cpp.fast.vdisort-arts-test, V2). */
-  const auto phi = [n = static_cast<Numeric>(azimuth_count)](Index k) {
-    return 2.0 * Constant::pi * (static_cast<Numeric>(k) + 0.5) / n;
-  };
-  const Index nk = azimuth_count;
-  Vector      delta_aa(nk);
-  for (Index k = 0; k < nk; k++) delta_aa[k] = Conversion::rad2deg(phi(k));
-  const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
-  const auto [za_scat, sca] = zenith_angle_grid(mu_out);
-  const auto lab            = scattering_species.get_bulk_scattering_properties_aro_gridded(
-      atm_point,
-      f_grid,
-      za_inc,
-      delta_aa,
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
-  ARTS_USER_ERROR_IF(not lab.phase_matrix.has_value(),
-                     "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
-                     "have none");
-  const auto& pha = *lab.phase_matrix;
-
-  const Numeric scale = 4.0 * Constant::pi / sigma / static_cast<Numeric>(nk);
-  for (Index o = 0; o < no; o++) {
-    for (Index i = 0; i < ni; i++) {
-      for (Index k = 0; k < nk; k++) {
-        const rtepack::muelmat Z = scale * rtepack::muelmat{pha[0, 0, inc[i], k, sca[o]]};
-        for (Index m = 0; m < nfourier; m++) {
-          const Numeric arg    = static_cast<Numeric>(m) * phi(k);
-          out.cosine[m, o, i] += std::cos(arg) * Z;
-          out.sine[m, o, i]   += std::sin(arg) * Z;
-        }
+  // VDISORT's coefficients are (1 / 2 pi) int P cos(m phi) dphi with P = 4 pi Z / sigma, i.e. C_0 and half of
+  // C_m and S_m for m > 0 (cpp.fast.vdisort-arts-test, V2)
+  for (Index m = 0; m < nfourier; m++) {
+    const Numeric scale = (m == 0 ? 1.0 : 0.5) * 4.0 * Constant::pi / sigma;
+    for (Index o = 0; o < no; o++) {
+      for (Index i = 0; i < ni; i++) {
+        out.cosine[m, o, i] = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 0]};
+        out.sine[m, o, i]   = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 1]};
       }
     }
   }
@@ -222,8 +212,6 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
                                       mu,
                                       mu_in,
                                       NF,
-                                      settings.azimuth_count,
-                                      settings.scattering_angle_count,
                                       settings.normalisation_tolerance));
 
   Vector                   tau(nlay), omega(nlay);

@@ -59,6 +59,7 @@ ScatteringTroSpectralVector ArrayOfScatteringSpecies::get_bulk_scattering_proper
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
   if (species.size() == 0) return {std::nullopt, {}, {}};
 
+  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
   const auto visitor = [&](const auto& spec) -> ScatteringTroSpectralVector {
     if constexpr (requires { spec.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree); }) {
       return spec.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree);
@@ -69,11 +70,33 @@ ScatteringTroSpectralVector ArrayOfScatteringSpecies::get_bulk_scattering_proper
     std::unreachable();
   };
 
-  auto& scat_spec = species[0];
-  auto  bsp       = std::visit(visitor, scat_spec);
+  // Every species, a user's function too, must give exactly what was asked
+  const Size nf    = f_grid.size();
+  const auto check = [&](const ScatteringTroSpectralVector& v, Size ind) {
+    ARTS_USER_ERROR_IF(not v.phase_matrix.has_value(), "Scattering species {} gives no Legendre series", ind)
+    ARTS_USER_ERROR_IF(v.phase_matrix->nrows() != static_cast<Index>(nf) or v.phase_matrix->ncols() != degree + 1,
+                       "Scattering species {} gives Legendre series of shape [{}, {}], but [{} frequencies, degree "
+                       "{} + 1] were asked for",
+                       ind,
+                       v.phase_matrix->nrows(),
+                       v.phase_matrix->ncols(),
+                       nf,
+                       degree)
+    ARTS_USER_ERROR_IF(v.extinction_matrix.size() != nf or v.absorption_vector.size() != nf,
+                       "Scattering species {} gives {} extinction matrices and {} absorption vectors for {} "
+                       "frequencies",
+                       ind,
+                       v.extinction_matrix.size(),
+                       v.absorption_vector.size(),
+                       nf)
+  };
+
+  auto bsp = std::visit(visitor, species[0]);
+  check(bsp, 0);
   for (Size ind = 1; ind < species.size(); ++ind) {
-    auto& scat_spec  = species[ind];
-    bsp             += std::visit(visitor, scat_spec);
+    auto next = std::visit(visitor, species[ind]);
+    check(next, ind);
+    bsp += next;
   }
   return bsp;
 }
@@ -139,16 +162,20 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded_derivative(
 }
 
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
-ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
-    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
+                                                                      const Vector&   f_grid,
+                                                                      const Vector&   za_inc_grid,
+                                                                      const Vector&   za_scat_grid,
+                                                                      Index           max_mode) const {
+  if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral> {
     if constexpr (requires {
-                    spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, degree, order);
+                    spec.get_bulk_scattering_properties_aro_spectral(
+                        atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
                   }) {
-      return spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, degree, order);
+      return spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
     } else {
       throw std::runtime_error(std::format("Method not implemented for ARO Spectral for species:\n{:N}", spec));
     }

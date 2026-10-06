@@ -94,17 +94,36 @@ ParticleHabit ParticleHabit::to_tro_gridded(const Vector&          t_grid,
   return ParticleHabit(new_scattering_data, new_grids);
 }
 
-ParticleHabit ParticleHabit::to_aro_spectral(
-    const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m) {
-  auto sht_ptr      = sht::provider.get_instance_lm(l, m);
-  auto aa_scat_grid = sht_ptr->get_azimuth_angle_grid();
-  auto za_scat_grid = sht_ptr->get_zenith_angle_grid();
-  auto new_grids    = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
-                                          std::make_shared<const Vector>(f_grid),
-                                          std::make_shared<const Vector>(za_inc_grid),
-                                          std::make_shared<const Vector>(aa_scat_grid),
-                                          std::make_shared<const ZenithAngleGrid>(za_scat_grid));
-  auto transform    = [&new_grids, &l, &m](const auto& ssd) { return ssd_to_aro_spectral(new_grids, l, m, ssd); };
+std::pair<ParticleHabit, std::vector<LegendreReport>> ParticleHabit::to_tro_spectral_with_report(const Vector& t_grid,
+                                                                                                 const Vector& f_grid,
+                                                                                                 Index l) const {
+  using Spectral = SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>;
+  using Gridded  = SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>;
+  auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid), std::make_shared<Vector>(f_grid));
+  std::vector<Spectral>       new_scat_data;
+  std::vector<LegendreReport> reports;
+  for (const ParticleData& pd : scattering_data) {
+    const auto* gridded = std::get_if<Gridded>(&pd);
+    ARTS_USER_ERROR_IF(not gridded,
+                       "A report on the Legendre conversion needs gridded TRO data, but the habit holds other data")
+    auto [spectral, report] = gridded->to_spectral_with_report(l);
+    new_scat_data.push_back(spectral.regrid(new_grids));
+    reports.push_back(std::move(report));
+  }
+  return {ParticleHabit(new_scat_data, new_grids), std::move(reports)};
+}
+
+ParticleHabit ParticleHabit::to_aro_spectral(const Vector&          t_grid,
+                                             const Vector&          f_grid,
+                                             const Vector&          za_inc_grid,
+                                             const ZenithAngleGrid& za_scat_grid,
+                                             Index                  max_mode) const {
+  auto new_grids = ScatteringDataGrids(std::make_shared<const Vector>(t_grid),
+                                       std::make_shared<const Vector>(f_grid),
+                                       std::make_shared<const Vector>(za_inc_grid),
+                                       nullptr,
+                                       std::make_shared<const ZenithAngleGrid>(za_scat_grid));
+  auto transform = [&new_grids, max_mode](const auto& ssd) { return ssd_to_aro_spectral(new_grids, max_mode, ssd); };
   std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>> new_scattering_data;
   new_scattering_data.reserve(scattering_data.size());
   for (const ParticleData& pd : scattering_data) { new_scattering_data.push_back(std::visit(transform, pd)); }

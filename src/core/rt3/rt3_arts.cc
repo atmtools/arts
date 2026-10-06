@@ -2,7 +2,7 @@
 
 #include <arts_conversions.h>
 #include <debug.h>
-#include <legendre.h>
+#include <arts_constants.h>
 
 #include <algorithm>
 #include <array>
@@ -27,54 +27,29 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  const AtmPoint&                 atm_point,
                                  Numeric                         frequency,
                                  Index                           degree,
-                                 Index                           scattering_angle_count,
                                  Numeric                         normalisation_tolerance) {
   ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree);
-  ARTS_USER_ERROR_IF(scattering_angle_count <= degree,
-                     "The Legendre projection needs more Gauss-Legendre nodes than the degree; got {} nodes for "
-                     "degree {}",
-                     scattering_angle_count,
-                     degree);
   ARTS_USER_ERROR_IF(
       not(normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
   ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
 
   if (scattering_species.species.empty()) return no_scattering(degree);
 
-  // The Gauss-Legendre rule in x = cos(Theta), as scattering angles [deg]
-  const Index n = scattering_angle_count;
-  Vector      x(n), weights(n), angles(n);
-  Legendre::GaussLegendre(x, weights);
-  stdr::reverse(x);  // ascending scattering angles, as ARTS's angular grids must be
-  stdr::reverse(weights);
-  for (Index i = 0; i < n; i++) angles[i] = Conversion::rad2deg(std::acos(x[i]));
-  const auto grid = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(angles));
-  const auto bulk = scattering_species.get_bulk_scattering_properties_tro_gridded(atm_point, Vector{frequency}, grid);
-  ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
-                     "RT3 needs the phase matrix of every scattering species; the bulk scattering properties have "
-                     "none");
+  const auto bulk = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
+  const Numeric extinction = bulk.extinction_matrix[0].A();
+  const Numeric scattering = extinction - bulk.absorption_vector[0][0];
 
-  const auto& pha = *bulk.phase_matrix;
-  ARTS_USER_ERROR_IF(
-      bulk.extinction_matrix.extent(0) != 1 or bulk.absorption_vector.extent(0) != 1 or pha.extent(0) != 1,
-      "The bulk scattering properties must be at a single temperature; they have {}, {} and {} "
-      "temperatures for the extinction, absorption and phase matrix",
-      bulk.extinction_matrix.extent(0),
-      bulk.absorption_vector.extent(0),
-      pha.extent(0));
-
-  const Numeric extinction = bulk.extinction_matrix[0, 0, 0];
-  const Numeric scattering = extinction - bulk.absorption_vector[0, 0, 0];
-
-  // c_l = (2 l + 1) / 2 sum_i w_i F(x_i) P_l(x_i), in ARTS's element order
-  Matrix c(degree + 1, 6, 0.0);
-  Vector p(degree + 1);
-  for (Index i = 0; i < n; i++) {
-    Legendre::legendre_polynomials(p, x[i]);
-    for (Index l = 0; l <= degree; l++) {
-      const Numeric f = 0.5 * static_cast<Numeric>(2 * l + 1) * weights[i] * p[l];
-      for (Index k = 0; k < 6; k++) c[l, k] += f * pha[0, 0, i, k];
-    }
+  // c_l = a_l sqrt((2 l + 1) / 4 pi), in ARTS's element order; each a_l is the scattering-plane Mueller matrix
+  Matrix c(degree + 1, 6);
+  for (Index l = 0; l <= degree; l++) {
+    const auto&   a = (*bulk.phase_matrix)[0, l];
+    const Numeric y = std::sqrt(static_cast<Numeric>(2 * l + 1) / (4.0 * Constant::pi));
+    c[l, 0]         = y * a[0, 0].real();
+    c[l, 1]         = y * a[0, 1].real();
+    c[l, 2]         = y * a[1, 1].real();
+    c[l, 3]         = y * a[2, 2].real();
+    c[l, 4]         = y * a[2, 3].real();
+    c[l, 5]         = y * a[3, 3].real();
   }
 
   // The scattering coefficient implied by the phase matrix, 2 pi int F11 dx
@@ -184,7 +159,6 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                                       atm,
                                       p.frequency,
                                       degree,
-                                      settings.scattering_angle_count,
                                       settings.normalisation_tolerance));
 
   for (Index l = 0; l < nlay; l++) {

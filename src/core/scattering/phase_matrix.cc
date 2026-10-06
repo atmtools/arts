@@ -39,8 +39,8 @@ Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
   mat[1, 1] = detail::f22(compact);
   mat[2, 2] = detail::f33(compact);
   mat[2, 3] = detail::f34(compact);
-  mat[3, 2] = detail::f34(compact);
-  mat[3, 3] = detail::f33(compact);
+  mat[3, 2] = -detail::f34(compact);
+  mat[3, 3] = detail::f44(compact);
   return mat;
 }
 
@@ -52,8 +52,8 @@ ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact) 
   mat[1, 1] = detail::f22(compact);
   mat[2, 2] = detail::f33(compact);
   mat[2, 3] = detail::f34(compact);
-  mat[3, 2] = detail::f34(compact);
-  mat[3, 3] = detail::f33(compact);
+  mat[3, 2] = -detail::f34(compact);
+  mat[3, 3] = detail::f44(compact);
   return mat;
 }
 

@@ -193,8 +193,7 @@ bool test_henyey_greenstein_spectral() {
  * give the same limit, the matrix at exact backscattering, so the deviation
  * must shrink in proportion to the distance.  This holds only for a matrix
  * with F33 = -F22 at 180 deg; F33 = F22 everywhere gives an O(1) deviation at
- * any distance.  The distances stay outside the 0.08 deg within which ARTS's
- * rotation coefficients snap to exact backscattering.
+ * any distance.
  */
 bool test_henyey_greenstein_backscatter() {
   const Numeric                   g = 0.5;

@@ -122,15 +122,9 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(Coeff
   return {std::move(phase), std::move(c.extinction), std::move(c.absorption)};
 }
 
-/** The lab-frame phase matrix at the exact scattering angle of every direction pair */
-BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
-    const Coefficients&              c,
-    Numeric                          g,
-    const Vector&                    za_inc_grid,
-    const Vector&                    delta_aa_grid,
-    std::shared_ptr<ZenithAngleGrid> za_scat_grid) {
-  auto       za_inc            = std::make_shared<const Vector>(za_inc_grid);
-  const auto henyey_greenstein = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+/** The scattering matrix at scattering angle theta [rad] as tro_lab_frame takes it, from the closed form */
+auto scattering_matrix(const Coefficients& c, Numeric g) {
+  return [&c, g](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
     const Numeric p = phase_function(g, theta);
     const Numeric f = polarization_ratio(std::cos(theta));
     for (Size iv = 0; iv < c.f_grid->size(); ++iv) {
@@ -143,13 +137,25 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
       scattering_matrix[0, iv, 5] = z * f;
     }
   };
-  auto phase = tro_lab_frame<Numeric>(c.t_grid,
-                                      c.f_grid,
-                                      za_inc,
-                                      std::make_shared<const Vector>(delta_aa_grid),
-                                      std::move(za_scat_grid),
-                                      henyey_greenstein);
-  return {std::move(phase), c.extinction.to_lab_frame(za_inc), c.absorption.to_lab_frame(za_inc)};
+}
+
+/** The lab-frame phase matrix at the exact scattering angle of every direction pair */
+BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
+    const Coefficients&              c,
+    Numeric                          g,
+    const Vector&                    za_inc_grid,
+    const Vector&                    delta_aa_grid,
+    std::shared_ptr<ZenithAngleGrid> za_scat_grid) {
+  auto za_inc = std::make_shared<const Vector>(za_inc_grid);
+  auto phase  = tro_lab_frame<Numeric>(c.t_grid,
+                                       c.f_grid,
+                                       za_inc,
+                                       std::make_shared<const Vector>(delta_aa_grid),
+                                       std::move(za_scat_grid),
+                                       scattering_matrix(c, g));
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = c.extinction.to_lab_frame(za_inc),
+          .absorption_vector = c.absorption.to_lab_frame(za_inc)};
 }
 }  // namespace
 
@@ -232,14 +238,26 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_gridded_derivative
 }
 
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
-HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(
-    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
-  auto sht_ptr          = sht::provider.get_instance(degree, order);
-  auto aa_scat_grid_ptr = sht_ptr->get_aa_grid_ptr();
-  auto za_scat_grid_ptr = std::make_shared<ZenithAngleGrid>(sht_ptr->get_zenith_angle_grid());
-  auto bsp_tro          = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid_ptr);
-  auto bsp_aro = bsp_tro.to_lab_frame(std::make_shared<Vector>(za_inc_grid), aa_scat_grid_ptr, za_scat_grid_ptr);
-  return bsp_aro.to_spectral(degree, order);
+HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
+                                                                       const Vector&   f_grid,
+                                                                       const Vector&   za_inc_grid,
+                                                                       const Vector&   za_scat_grid,
+                                                                       Index           max_mode) const {
+  const auto c      = coefficients(ext_ssa_callback, atm_point, f_grid);
+  auto       za_inc = std::make_shared<const Vector>(za_inc_grid);
+  Matrix     integral(1, f_grid.size());  // p integrates to 1, so the phase integral is the scattering coefficient
+  integral[0, joker] = c.scattering;
+  auto phase         = tro_lab_frame_fourier_modes<Numeric>(
+      c.t_grid,
+      c.f_grid,
+      za_inc,
+      std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
+      max_mode,
+      integral,
+      scattering_matrix(c, g));
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = c.extinction.to_lab_frame(za_inc).to_spectral(),
+          .absorption_vector = c.absorption.to_lab_frame(za_inc).to_spectral()};
 }
 
 std::ostream& operator<<(std::ostream& os, const HenyeyGreensteinScatterer& scatterer) {

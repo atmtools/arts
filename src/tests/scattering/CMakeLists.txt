@@ -62,10 +62,20 @@ target_include_directories(test_particle_habit PRIVATE ${ARTS_SOURCE_DIR}/src/co
 add_executable(test_scattering_habit test_scattering_habit.cc)
 target_link_libraries(test_scattering_habit scattering)
 target_include_directories(test_scattering_habit PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME "cpp.fast.scattering.test_scattering_habit" COMMAND test_scattering_habit)
+add_dependencies(check-deps test_scattering_habit)
 
 add_executable(test_psd test_psd.cc)
 target_link_libraries(test_psd scattering)
 target_include_directories(test_psd PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME "cpp.fast.scattering.test_psd" COMMAND test_psd)
+add_dependencies(check-deps test_psd)
 
 # add_test(NAME "cpp.fast.scattering.test_particle_habit" COMMAND test_particle_habit)
 #add_dependencies(check-deps test_particle_habit)
+
+add_executable(test_tro_legendre test_tro_legendre.cc)
+target_link_libraries(test_tro_legendre scattering)
+target_include_directories(test_tro_legendre PRIVATE ${ARTS_SOURCE_DIR}/src/core ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME "cpp.fast.scattering.test_tro_legendre" COMMAND test_tro_legendre)
+add_dependencies(check-deps test_tro_legendre)

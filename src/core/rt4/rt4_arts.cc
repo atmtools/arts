@@ -23,8 +23,7 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
                                const AtmPoint&                 atm_point,
                                Numeric                         frequency,
                                const Vector&                   mu,
-                               Index                           nstokes,
-                               Index                           azimuth_count) {
+                               Index                           nstokes) {
   const Index ns = nstokes;
   const Index n  = static_cast<Index>(mu.size());
 
@@ -32,10 +31,6 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   ARTS_USER_ERROR_IF(n < 1, "RT4 needs at least one stream per hemisphere, got an empty mu");
   ARTS_USER_ERROR_IF(stdr::any_of(mu, [](Numeric x) { return not(x > 0.0 and x <= 1.0); }),
                      "RT4 stream cosines mu must be in (0, 1]");
-  ARTS_USER_ERROR_IF(azimuth_count < 2 or azimuth_count % 2 != 0,
-                     "azimuth_count is the number of azimuth differences of the periodic midpoint rule and must be "
-                     "even and at least 2, got {}",
-                     azimuth_count);
   ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
 
   layer_optics o{.extinction = Tensor4(2, n, ns, ns, 0.0),
@@ -61,18 +56,8 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   }
   ARTS_USER_ERROR_IF(not ZenGrid::is_sorted(za), "RT4 stream cosines mu must be distinct");
 
-  // The midpoints in (0, 180) deg; those in (180, 360) deg are their mirror images
-  const Index half = azimuth_count / 2;
-  Vector      delta_aa(half);
-  for (Index k = 0; k < half; k++)
-    delta_aa[k] = (static_cast<Numeric>(k) + 0.5) * 360.0 / static_cast<Numeric>(azimuth_count);
-
-  const auto bulk = scattering_species.get_bulk_scattering_properties_aro_gridded(
-      atm_point,
-      Vector{frequency},
-      za,
-      delta_aa,
-      std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za)));
+  const auto bulk = scattering_species.get_bulk_scattering_properties_aro_spectral(
+      atm_point, Vector{frequency}, za, za, 0);
   ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
                      "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "
                      "none");
@@ -98,20 +83,14 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
     }
   }
 
-  // ARO phase matrix [t, f, za_inc, delta_aa, za_scat, 4 * row + col]
-  const Numeric weight = 2.0 / static_cast<Numeric>(azimuth_count);
+  // The azimuthal mean C_0 [t, f, za_inc, za_scat, m = 0, cosine, 4 * row + col]
   for (Index ho = 0; ho < 2; ho++) {
     for (Index hi = 0; hi < 2; hi++) {
       for (Index io = 0; io < n; io++) {
         for (Index ii = 0; ii < n; ii++) {
           const Index out = stream[ho * n + io], in = stream[hi * n + ii];
-          for (Index so = 0; so < ns; so++) {
-            for (Index si = 0; si < ns; si++) {
-              Numeric sum = 0.0;
-              for (Index k = 0; k < half; k++) sum += pha[0, 0, in, k, out, 4 * so + si];
-              o.phase[ho, hi, io, ii, so, si] = weight * sum;
-            }
-          }
+          for (Index so = 0; so < ns; so++)
+            for (Index si = 0; si < ns; si++) o.phase[ho, hi, io, ii, so, si] = pha[0, 0, in, out, 0, 0, 4 * so + si];
         }
       }
     }
@@ -192,7 +171,7 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
   level.reserve(nlev);
   for (const auto& atm : atm_path)
     level.push_back(
-        scattering_optics(scattering_species, atm, p.frequency, mu, settings.nstokes, settings.azimuth_count));
+        scattering_optics(scattering_species, atm, p.frequency, mu, settings.nstokes));
 
   for (Index l = 0; l < nlay; l++) {
     layer_optics o  = level[l];

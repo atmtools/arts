@@ -49,7 +49,7 @@ atm = air(8e4, 260.0)
 sigma = CROSS_SECTION * atm.pressure / (K_BOLTZMANN * atm.temperature)
 
 # RT3: the Legendre series of Rayleigh scattering, RT3's column order
-s = A.rt3.scattering_optics(species, atm, FREQ, 2, 8, 1e-12)
+s = A.rt3.scattering_optics(species, atm, FREQ, 2, 1e-12)
 ref = np.array(
     [
         [1.0, -0.5, 0.0, 0.0, 1.0, 0.0],
@@ -65,7 +65,7 @@ assert (
 
 # RT4: the azimuthal mean of the laboratory-frame phase matrix on the streams
 mu = np.asarray(A.rt4.get_quadrature(8).mu)
-o = A.rt4.scattering_optics(species, atm, FREQ, mu, 2, 16)
+o = A.rt4.scattering_optics(species, atm, FREQ, mu, 2)
 phase = np.asarray(o.phase)
 dev = 0.0
 for ho in (A.rt4.down, A.rt4.up):
@@ -84,7 +84,7 @@ assert dev < 1e-13, dev
 
 # VDISORT: the m = 0 cosine coefficients on signed streams
 signed = np.concatenate((mu, -mu))
-f = A.vdisort.scattering_optics(species, atm, FREQ, signed, signed, 2, 16, 16, 1e-12)
+f = A.vdisort.scattering_optics(species, atm, FREQ, signed, signed, 2, 1e-12)
 c0 = np.asarray(f.cosine)[0]
 dev = max(
     np.abs(c0[o_, i_, :2, :2] - rayleigh_m0(signed[o_], signed[i_])).max()

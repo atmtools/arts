@@ -73,9 +73,15 @@ struct ArrayOfScatteringSpecies {
                                                         std::shared_ptr<scattering::ZenithAngleGrid>,
                                                         const AtmKeyVal&) const;
 
+  /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix (see
+   * PhaseMatrixData<ARO, Spectral>), at exactly the given zenith angles [deg], summed over the species
+   */
   [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
-  get_bulk_scattering_properties_aro_spectral(
-      const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const;
+  get_bulk_scattering_properties_aro_spectral(const AtmPoint& atm_point,
+                                              const Vector&   f_grid,
+                                              const Vector&   za_inc_grid,
+                                              const Vector&   za_scat_grid,
+                                              Index           max_mode) const;
 };
 
 template <> struct std::formatter<ArrayOfScatteringSpecies> {

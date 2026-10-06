@@ -54,11 +54,8 @@ Numeric max_relative_difference(const Vector& v1, const Vector& v2) {
 BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
                                                                                                const Vector&   f_grid,
                                                                                                const Numeric) const {
-  auto  sizes       = particle_habit.get_sizes(SizeParameter::DVeq);
-  Index n_particles = sizes.size();
-  auto  pnd         = std::visit(
-      [&point, &sizes, this](const auto& psd) { return psd.evaluate(point, sizes, mass_size_rel_a, mass_size_rel_b); },
-      psd);
+  const auto  pnd         = number_densities(point);
+  const Index n_particles = pnd.size();
 
   if (!particle_habit.grids.has_value()) {
     ARTS_USER_ERROR("Particle habit must be brought on a shared grid before buld properties can be computed.")
@@ -104,9 +101,9 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
               pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 4];
           phase_matrix[f_ind, ang_ind, 2, 3] +=
               pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 3, 2] +=
+          phase_matrix[f_ind, ang_ind, 3, 2] -=
               pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 3, 2] +=
+          phase_matrix[f_ind, ang_ind, 3, 2] -=
               pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 4];
           phase_matrix[f_ind, ang_ind, 3, 3] +=
               pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 5];
@@ -180,10 +177,7 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded>
 ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint&                  point,
                                                             const Vector&                    f_grid,
                                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
-  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
-  const auto pnd   = std::visit(
-      [&point, &sizes, this](const auto& p) { return p.evaluate(point, sizes, mass_size_rel_a, mass_size_rel_b); },
-      psd);
+  const auto pnd = number_densities(point);
   ARTS_USER_ERROR_IF(pnd.size() != static_cast<Size>(particle_habit.size()), "PSD and particle-habit sizes differ.")
 
   auto grids = ScatteringDataGrids(
@@ -217,12 +211,7 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded_derivative(const Atm
                                                                        const Vector&                    f_grid,
                                                                        std::shared_ptr<ZenithAngleGrid> za_scat_grid,
                                                                        const AtmKeyVal&                 target) const {
-  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
-  const auto pnd   = std::visit(
-      [&point, &sizes, this](const auto& p) {
-        return p.evaluate_with_derivatives(point, sizes, mass_size_rel_a, mass_size_rel_b);
-      },
-      psd);
+  const auto pnd = number_densities_with_derivatives(point);
   ARTS_USER_ERROR_IF(pnd.values.size() != static_cast<Size>(particle_habit.size()),
                      "PSD and particle-habit sizes differ.")
 
@@ -324,10 +313,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded(const AtmPoint&     
                                                             const Vector&                    za_inc_grid,
                                                             const Vector&                    delta_aa_grid,
                                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
-  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
-  const auto pnd   = std::visit(
-      [&point, &sizes, this](const auto& p) { return p.evaluate(point, sizes, mass_size_rel_a, mass_size_rel_b); },
-      psd);
+  const auto pnd = number_densities(point);
   ARTS_USER_ERROR_IF(pnd.size() != static_cast<Size>(particle_habit.size()), "PSD and particle-habit sizes differ.")
 
   auto grids = ScatteringDataGrids(std::make_shared<Vector>(Vector{point.temperature}),
@@ -370,12 +356,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
                                                                        const Vector&                    delta_aa_grid,
                                                                        std::shared_ptr<ZenithAngleGrid> za_scat_grid,
                                                                        const AtmKeyVal&                 target) const {
-  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
-  const auto pnd   = std::visit(
-      [&point, &sizes, this](const auto& p) {
-        return p.evaluate_with_derivatives(point, sizes, mass_size_rel_a, mass_size_rel_b);
-      },
-      psd);
+  const auto pnd = number_densities_with_derivatives(point);
   ARTS_USER_ERROR_IF(pnd.values.size() != static_cast<Size>(particle_habit.size()),
                      "PSD and particle-habit sizes differ.")
 
@@ -472,117 +453,151 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
   return std::move(*result);
 }
 
+namespace {
+/** Why particle i of a habit has no Legendre series, for the error message */
+std::string_view no_legendre_series(const ParticleData& data) {
+  if (std::holds_alternative<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>>(data))
+    return "it holds gridded TRO data; convert the habit with ParticleHabit.to_tro_spectral (or "
+           "to_tro_spectral_with_report, which also reports how well the series represents the data)";
+  return "it holds ARO data, whose phase matrix depends on more than the scattering angle";
+}
+
+using TroSpectralSSD = SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>;
+
+/** The TRO Legendre series of particle i at the temperature and frequencies of grids, checked */
+TroSpectralSSD tro_series(const ParticleData& data, Index i, Index degree, const ScatteringDataGrids& grids) {
+  const auto* ssd = std::get_if<TroSpectralSSD>(&data);
+  ARTS_USER_ERROR_IF(
+      not ssd, "Particle {} of the scattering habit has no Legendre series: {}", i, no_legendre_series(data))
+  ARTS_USER_ERROR_IF(not ssd->phase_matrix, "Particle {} of the scattering habit has no phase matrix", i)
+  ARTS_USER_ERROR_IF(ssd->phase_matrix->get_degree() < degree,
+                     "Particle {} of the scattering habit has a Legendre series to degree {}, which does not give "
+                     "the coefficients to degree {}; convert its gridded data to that degree",
+                     i,
+                     ssd->phase_matrix->get_degree(),
+                     degree)
+  return ssd->regrid(grids);
+}
+}  // namespace
+
 ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_spectral(const AtmPoint& point,
                                                                                          const Vector&   f_grid,
-                                                                                         const Index     degree
-                                                                                         [[maybe_unused]]) const {
-  auto   sizes = particle_habit.get_sizes(std::visit([](const auto& psd) { return psd.get_size_parameter(); }, psd));
-  Index  n_particles = sizes.size();
-  Vector bin_widths  = sizes;
-  for (Index ind = 1; ind < n_particles - 1; ++ind) { bin_widths[ind] = 0.5 * (sizes[ind + 1] - sizes[ind - 1]); }
-  bin_widths[0]               = sizes[1] - sizes[0];
-  bin_widths[n_particles - 1] = sizes[n_particles - 1] - sizes[n_particles - 2];
+                                                                                         const Index     degree) const {
+  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
+  ARTS_USER_ERROR_IF(particle_habit.size() == 0, "Cannot calculate bulk properties for an empty particle habit.")
+  const auto pnd = number_densities(point);
+  const auto grids =
+      ScatteringDataGrids(std::make_shared<Vector>(Vector{point.temperature}), std::make_shared<Vector>(f_grid));
 
-  auto pnd = std::visit(
-      [&point, &sizes, this](const auto& psd) { return psd.evaluate(point, sizes, mass_size_rel_a, mass_size_rel_b); },
-      psd);
-  for (Index ind = 0; ind < n_particles; ++ind) { pnd[ind] *= bin_widths[ind]; }
-
-  if (!particle_habit.grids.has_value()) {
-    ARTS_USER_ERROR("Particle habit must be brought on a shared grid before buld properties can be computed.")
-  }
-
-  auto    grids  = particle_habit.grids.value();
-  GridPos interp = find_interp_weights(*grids.t_grid, point[AtmKey::t]);
-
-  Index n_freqs = grids.f_grid->size();
-  if (particle_habit.size() == 0) { ARTS_USER_ERROR("Encountered empty scattering habit without particles."); }
-  auto  ssd      = std::get<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>>(particle_habit[0]);
-  Index n_coeffs = ssd.phase_matrix.value().extent(2);
-
-  SpecmatMatrix phase_matrix(n_freqs, n_coeffs, Specmat(0.0));
-  PropmatVector extinction_matrix(n_freqs);
-  StokvecVector absorption_vector(n_freqs);
-
-  Numeric integral_fac = sqrt(4.0 * Constant::pi);
-
-  for (Index part_ind = 0; part_ind < n_particles; ++part_ind) {
-    try {
-      auto ssd =
-          std::get<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>>(particle_habit[part_ind]);
-      for (Index f_ind = 0; f_ind < n_freqs; ++f_ind) {
-        for (Index coeff_ind = 0; coeff_ind < n_coeffs; ++coeff_ind) {
-          phase_matrix[f_ind, coeff_ind][0, 0] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 0];
-          phase_matrix[f_ind, coeff_ind][0, 0] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 0];
-          phase_matrix[f_ind, coeff_ind][0, 1] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 1];
-          phase_matrix[f_ind, coeff_ind][0, 1] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 1];
-          phase_matrix[f_ind, coeff_ind][1, 0] -=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 1];
-          phase_matrix[f_ind, coeff_ind][1, 0] -= integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 1];
-          phase_matrix[f_ind, coeff_ind][1, 1] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 2];
-          phase_matrix[f_ind, coeff_ind][1, 1] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 2];
-          phase_matrix[f_ind, coeff_ind][2, 2] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 3];
-          phase_matrix[f_ind, coeff_ind][2, 2] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 3];
-          phase_matrix[f_ind, coeff_ind][2, 3] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 4];
-          phase_matrix[f_ind, coeff_ind][2, 3] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 4];
-          phase_matrix[f_ind, coeff_ind][3, 2] -=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 4];
-          phase_matrix[f_ind, coeff_ind][3, 2] -= integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 4];
-          phase_matrix[f_ind, coeff_ind][3, 3] +=
-              integral_fac * pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, coeff_ind, 5];
-          phase_matrix[f_ind, coeff_ind][3, 3] += integral_fac * pnd[part_ind] * interp.fd[0] *
-                                                  ssd.phase_matrix.value()[interp.idx + 1, f_ind, coeff_ind, 5];
-        }
-
-        extinction_matrix[f_ind].A() += pnd[part_ind] * interp.fd[1] * ssd.extinction_matrix[interp.idx, f_ind, 0];
-        extinction_matrix[f_ind].A() += pnd[part_ind] * interp.fd[0] * ssd.extinction_matrix[interp.idx + 1, f_ind, 0];
-
-        absorption_vector[f_ind][0] += pnd[part_ind] * interp.fd[1] * ssd.absorption_vector[interp.idx, f_ind, 0];
-        absorption_vector[f_ind][0] += pnd[part_ind] * interp.fd[0] * ssd.absorption_vector[interp.idx + 1, f_ind, 0];
+  const Index                 nf = f_grid.size();
+  ScatteringTroSpectralVector out{.phase_matrix      = SpecmatMatrix(nf, degree + 1, Specmat{0.0}),
+                                  .extinction_matrix = PropmatVector(nf, Propmat{}),
+                                  .absorption_vector = StokvecVector(nf, Stokvec{})};
+  for (Index i = 0; i < particle_habit.size(); ++i) {
+    const auto ssd = tro_series(particle_habit[i], i, degree, grids);
+    if (pnd[i] == 0.0) continue;
+    for (Index iv = 0; iv < nf; ++iv) {
+      for (Index l = 0; l <= degree; ++l) {
+        const auto c = [&](Index e) { return pnd[i] * (*ssd.phase_matrix)[0, iv, l, e].real(); };
+        // The scattering-plane Mueller matrix of each coefficient
+        (*out.phase_matrix)[iv, l] += Specmat{c(0), c(1), 0, 0, c(1), c(2), 0, 0, 0, 0, c(3), c(4), 0, 0, -c(4), c(5)};
       }
-    } catch (const std::bad_variant_access& e) {
-      ARTS_USER_ERROR("Scattering habit must be in TRO gridded format to extract bulk scattering properties.");
+      out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv, 0];
+      out.absorption_vector[iv][0]  += pnd[i] * ssd.absorption_vector[0, iv, 0];
     }
   }
+  return out;
+}
 
-  auto f_diff = detail::max_relative_difference(f_grid, *grids.f_grid);
+BulkScatteringProperties<Format::ARO, Representation::Spectral>
+ScatteringHabit::get_bulk_scattering_properties_aro_spectral(const AtmPoint& point,
+                                                             const Vector&   f_grid,
+                                                             const Vector&   za_inc_grid,
+                                                             const Vector&   za_scat_grid,
+                                                             Index           max_mode) const {
+  ARTS_USER_ERROR_IF(particle_habit.size() == 0, "Cannot calculate bulk properties for an empty particle habit.")
+  const auto pnd     = number_densities(point);
+  auto       t_grid  = std::make_shared<Vector>(Vector{point.temperature});
+  auto       f_ptr   = std::make_shared<Vector>(f_grid);
+  auto       za_inc  = std::make_shared<const Vector>(za_inc_grid);
+  auto       za_scat = std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid));
+  const auto grids   = ScatteringDataGrids(t_grid, f_ptr, za_inc, nullptr, za_scat);
+  const auto tf      = ScatteringDataGrids(t_grid, f_ptr);
 
-  // If frequency grids are the same, return calculated bulk properties.
-  if (f_diff < 1e-3) { return ScatteringTroSpectralVector(phase_matrix, extinction_matrix, absorption_vector); }
+  using Bulk = BulkScatteringProperties<Format::ARO, Representation::Spectral>;
+  std::optional<Bulk> result;
+  const auto          add = [&result](Bulk&& b) {
+    if (result)
+      *result += b;
+    else
+      result = std::move(b);
+  };
 
-  Index n_freqs_new = f_grid.size();
-
-  // Otherwise perform frequency interpolation.
-  ArrayOfGridPos interp_weights{f_grid.size()};
-  gridpos(interp_weights, *grids.f_grid, f_grid);
-  SpecmatMatrix phase_matrix_new(n_freqs_new, n_coeffs, Specmat(0.0));
-  PropmatVector extinction_matrix_new(n_freqs_new);
-  StokvecVector absorption_vector_new(n_freqs_new);
-
-  for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
-    auto weights = interp_weights[f_ind];
-    for (Index coeff_ind = 0; coeff_ind < n_coeffs; ++coeff_ind) {
-      phase_matrix_new[f_ind, coeff_ind] += weights.fd[1] * phase_matrix[weights.idx, coeff_ind];
-      phase_matrix_new[f_ind, coeff_ind] += weights.fd[0] * phase_matrix[weights.idx + 1, coeff_ind];
+  // The Legendre series of TRO particles add up before the one conversion to Fourier modes, which is linear
+  std::optional<TroSpectralSSD> tro;
+  for (Index i = 0; i < particle_habit.size(); ++i) {
+    if (const auto* ssd = std::get_if<TroSpectralSSD>(&particle_habit[i])) {
+      ARTS_USER_ERROR_IF(not ssd->phase_matrix, "Particle {} of the scattering habit has no phase matrix", i)
+      if (pnd[i] == 0.0) continue;
+      auto local               = ssd->regrid(tf);
+      *local.phase_matrix     *= pnd[i];
+      local.extinction_matrix *= pnd[i];
+      local.absorption_vector *= pnd[i];
+      if (not tro) {
+        tro = std::move(local);
+        continue;
+      }
+      // Series of different degrees add as the longer one
+      if (local.phase_matrix->get_degree() > tro->phase_matrix->get_degree()) std::swap(*tro, local);
+      for (Index iv = 0; iv < f_ptr->size(); ++iv)
+        for (Index l = 0; l <= local.phase_matrix->get_degree(); ++l)
+          for (Index e = 0; e < 6; ++e) (*tro->phase_matrix)[0, iv, l, e] += (*local.phase_matrix)[0, iv, l, e];
+      tro->extinction_matrix += local.extinction_matrix;
+      tro->absorption_vector += local.absorption_vector;
+    } else {
+      auto data = std::visit([&](const auto& s) { return ssd_to_aro_spectral(grids, max_mode, s); }, particle_habit[i]);
+      if (pnd[i] == 0.0) continue;
+      ARTS_USER_ERROR_IF(not data.phase_matrix, "Particle {} of the scattering habit has no phase matrix", i)
+      Bulk bulk{.phase_matrix      = std::move(data.phase_matrix),
+                .extinction_matrix = std::move(data.extinction_matrix),
+                .absorption_vector = std::move(data.absorption_vector)};
+      bulk *= pnd[i];
+      add(std::move(bulk));
     }
-    extinction_matrix_new[f_ind] += weights.fd[1] * extinction_matrix[weights.idx];
-    extinction_matrix_new[f_ind] += weights.fd[0] * extinction_matrix[weights.idx + 1];
-    absorption_vector_new[f_ind] += weights.fd[1] * absorption_vector[weights.idx];
-    absorption_vector_new[f_ind] += weights.fd[0] * absorption_vector[weights.idx + 1];
   }
-  return ScatteringTroSpectralVector(phase_matrix_new, extinction_matrix_new, absorption_vector_new);
+  if (tro) {
+    auto data = tro->to_lab_frame_fourier_modes(grids, max_mode);
+    add(Bulk{std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)});
+  }
+  if (not result) {
+    // Every particle is absent: zero optics on the requested grids
+    Bulk zero{PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc, za_scat, max_mode),
+              ExtinctionMatrixData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc),
+              AbsorptionVectorData<Numeric, Format::ARO, Representation::Spectral>(t_grid, f_ptr, za_inc)};
+    return zero;
+  }
+  return std::move(*result);
+}
+
+Vector ScatteringHabit::number_densities(const AtmPoint& point) const {
+  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
+  auto       pnd   = std::visit(
+      [&](const auto& p) { return scattering::number_densities(p, point, sizes, mass_size_rel_a, mass_size_rel_b); },
+      psd);
+  ARTS_USER_ERROR_IF(pnd.size() != static_cast<Size>(particle_habit.size()), "PSD and particle-habit sizes differ.")
+  return pnd;
+}
+
+PSDData ScatteringHabit::number_densities_with_derivatives(const AtmPoint& point) const {
+  const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
+  auto       pnd   = std::visit(
+      [&](const auto& p) {
+        return scattering::number_densities_with_derivatives(p, point, sizes, mass_size_rel_a, mass_size_rel_b);
+      },
+      psd);
+  ARTS_USER_ERROR_IF(pnd.values.size() != static_cast<Size>(particle_habit.size()),
+                     "PSD and particle-habit sizes differ.")
+  return pnd;
 }
 
 }  // namespace scattering

@@ -41,16 +41,10 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
     }
   }
 
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral() {
+  //! The spectral form, see SingleScatteringData::to_spectral
+  BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index n) const {
     return BulkScatteringProperties<format, Representation::Spectral>{
-        phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(); }),
-        extinction_matrix,
-        absorption_vector};
-  }
-
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index degree, Index order) {
-    return BulkScatteringProperties<format, Representation::Spectral>{
-        phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(degree, order); }),
+        phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(n); }),
         extinction_matrix.to_spectral(),
         absorption_vector.to_spectral()};
   }

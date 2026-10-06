@@ -748,8 +748,6 @@ supplied as ``[B, 0, 0, 0]``.
                  "mu_out"_a,
                  "mu_in"_a,
                  "nfourier"_a,
-                 "azimuth_count"_a           = 64,
-                 "scattering_angle_count"_a  = 512,
                  "normalisation_tolerance"_a = 1e-3,
                  R"(The phase-matrix Fourier coefficients of ARTS scattering species at one atmospheric point.
 
@@ -758,11 +756,13 @@ VDISORT's streams and, for the beam column, ``[-mu0]``.  Returns the
 ordinary coefficients ``C^m, S^m = (1 / 2 pi) int P(mu_o, 0; mu_i, phi)
 {cos, sin}(m phi) dphi`` (no 2 - delta_m0) of the laboratory-frame phase
 matrix ``P = 4 pi Z / sigma``, normalised to 1 over 4 pi, built by vector
-geometry in VDISORT's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*))
-from the species' TRO scattering matrix at the exact scattering angles, by
-the ``azimuth_count``-point midpoint rule in phi.  ``sigma`` comes from a
-``scattering_angle_count``-point Gauss-Legendre rule and must match
-K11 - a1 to ``normalisation_tolerance`` times K11.  ARTS's own
+geometry in VDISORT's meridional basis (Q = I_v - I_h, U = 2 Re(E_v E_h*)).
+The modes, extinction, absorption and phase integral ``sigma = int Z11 dOmega``
+all come from the species' Fourier modes at exactly these zenith angles
+(``get_bulk_scattering_properties_aro_spectral``).  VDISORT's optical depth and
+albedo are scalars, so to ``normalisation_tolerance`` times K11 the extinction,
+absorption and ``sigma`` must not depend on the incidence angle nor polarize,
+and ``sigma`` must match K11 - a1.  ARTS's own
 laboratory-frame phase matrix for the propagation directions (za, aa) is
 this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
 :func:`combine_phase_matrices` and :func:`combine_beam_phase_matrices`.
@@ -795,8 +795,6 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
           [](vdisort::path_settings* s,
              Index                   nquad,
              Index                   nfourier,
-             Index                   azimuth_count,
-             Index                   scattering_angle_count,
              Numeric                 normalisation_tolerance,
              bool                    thermal,
              Numeric                 beam_flux,
@@ -804,8 +802,6 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
              Numeric                 beam_azimuth) {
             new (s) vdisort::path_settings{.nquad                   = nquad,
                                            .nfourier                = nfourier,
-                                           .azimuth_count           = azimuth_count,
-                                           .scattering_angle_count  = scattering_angle_count,
                                            .normalisation_tolerance = normalisation_tolerance,
                                            .thermal                 = thermal,
                                            .beam_flux               = beam_flux,
@@ -814,8 +810,6 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
           },
           "nquad"_a                   = vps.nquad,
           "nfourier"_a                = vps.nfourier,
-          "azimuth_count"_a           = vps.azimuth_count,
-          "scattering_angle_count"_a  = vps.scattering_angle_count,
           "normalisation_tolerance"_a = vps.normalisation_tolerance,
           "thermal"_a                 = vps.thermal,
           "beam_flux"_a               = vps.beam_flux,
@@ -823,12 +817,6 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
           "beam_azimuth"_a            = vps.beam_azimuth)
       .def_rw("nquad", &vdisort::path_settings::nquad, "Number of streams, even\n\n.. :class:`int`")
       .def_rw("nfourier", &vdisort::path_settings::nfourier, "Number of Fourier modes\n\n.. :class:`int`")
-      .def_rw("azimuth_count",
-              &vdisort::path_settings::azimuth_count,
-              "Azimuth samples of the Fourier coefficients\n\n.. :class:`int`")
-      .def_rw("scattering_angle_count",
-              &vdisort::path_settings::scattering_angle_count,
-              "Gauss-Legendre nodes of the phase-function normalisation\n\n.. :class:`int`")
       .def_rw("normalisation_tolerance",
               &vdisort::path_settings::normalisation_tolerance,
               "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "

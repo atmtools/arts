@@ -296,14 +296,13 @@ and sum_m c_m sin(m phi) for U, V, as rt3.f's OUTPUT_FILE does.)");
          "atm_point"_a,
          "frequency"_a,
          "degree"_a,
-         "scattering_angle_count"_a  = 512,
          "normalisation_tolerance"_a = 1e-3,
          R"(The RT3 scattering set of ARTS scattering species at one atmospheric point.
 
-The species' totally randomly oriented (TRO) scattering matrix is projected
-on the Legendre polynomials up to ``degree`` by a
-``scattering_angle_count``-point Gauss-Legendre rule in cos(Theta), exact for
-polynomial matrices of degree <= 2 n - 1 - degree.  ARTS's elements
+The species give their totally randomly oriented (TRO) Legendre series up to
+``degree`` themselves (``get_bulk_scattering_properties_tro_spectral``);
+gridded particle data must be converted to a Legendre series first
+(``ParticleHabit.to_tro_spectral_with_report``).  ARTS's elements
 [F11, F12, F22, F33, F34, F44] are reordered to RT3's columns
 (F11, F12, F33, F34, F22, F44) without sign changes, and the series is
 normalised so that ``legendre[0, 0] == 1``.  ``extinction`` is K11 and
@@ -328,7 +327,6 @@ convention.  See :doc:`dev.rt3`.
              Numeric              max_delta_tau,
              bool                 delta_m,
              Index                legendre_degree,
-             Index                scattering_angle_count,
              Numeric              normalisation_tolerance) {
             new (s) rt3::path_settings{.nstokes                 = nstokes,
                                        .nmu                     = nmu,
@@ -338,7 +336,6 @@ convention.  See :doc:`dev.rt3`.
                                        .max_delta_tau           = max_delta_tau,
                                        .delta_m                 = delta_m,
                                        .legendre_degree         = legendre_degree,
-                                       .scattering_angle_count  = scattering_angle_count,
                                        .normalisation_tolerance = normalisation_tolerance};
           },
           "nstokes"_a                 = ds.nstokes,
@@ -349,7 +346,6 @@ convention.  See :doc:`dev.rt3`.
           "max_delta_tau"_a           = ds.max_delta_tau,
           "delta_m"_a                 = ds.delta_m,
           "legendre_degree"_a         = ds.legendre_degree,
-          "scattering_angle_count"_a  = ds.scattering_angle_count,
           "normalisation_tolerance"_a = ds.normalisation_tolerance)
       .def_rw("nstokes", &rt3::path_settings::nstokes, "1 to 4\n\n.. :class:`int`")
       .def_rw("nmu", &rt3::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
@@ -366,9 +362,6 @@ convention.  See :doc:`dev.rt3`.
               &rt3::path_settings::legendre_degree,
               "Degree of the Legendre series; negative selects RT3's maximum (at least 2 nmu_total with "
               "delta_m)\n\n.. :class:`int`")
-      .def_rw("scattering_angle_count",
-              &rt3::path_settings::scattering_angle_count,
-              "Gauss-Legendre nodes of the Legendre projection\n\n.. :class:`int`")
       .def_rw("normalisation_tolerance",
               &rt3::path_settings::normalisation_tolerance,
               "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "

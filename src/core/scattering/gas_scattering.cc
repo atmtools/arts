@@ -180,10 +180,11 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
             const Numeric delta_prime = (1.0 - 2.0 * model.depolarization_factor) / (1.0 - model.depolarization_factor);
 
             // F11 = 1 + delta/2 P2, F12 = delta/2(P2 - 1),
-            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1.
+            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1, each coefficient
+            // the scattering-plane Mueller matrix, so [1, 0] = F12.
             phase[iv, 0][0, 0] = amp;
             phase[iv, 0][0, 1] = -0.5 * delta * amp;
-            phase[iv, 0][1, 0] = 0.5 * delta * amp;
+            phase[iv, 0][1, 0] = -0.5 * delta * amp;
             phase[iv, 0][1, 1] = delta * amp;
 
             if (degree >= 1) {
@@ -194,7 +195,7 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
               const Numeric p2   = 0.5 * delta * amp / std::sqrt(5.0);
               phase[iv, 2][0, 0] = p2;
               phase[iv, 2][0, 1] = p2;
-              phase[iv, 2][1, 0] = -p2;
+              phase[iv, 2][1, 0] = p2;
               phase[iv, 2][1, 1] = p2;
             }
           }
@@ -258,15 +259,44 @@ GasScatterer::get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoi
   return out;
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Spectral>
-GasScatterer::get_bulk_scattering_properties_aro_spectral(
-    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
-  auto sht_ptr          = sht::provider.get_instance(degree, order);
-  auto aa_scat_grid_ptr = sht_ptr->get_aa_grid_ptr();
-  auto za_scat_grid_ptr = std::make_shared<ZenithAngleGrid>(sht_ptr->get_zenith_angle_grid());
-  auto properties       = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid_ptr)
-                              .to_lab_frame(std::make_shared<Vector>(za_inc_grid), aa_scat_grid_ptr, za_scat_grid_ptr);
-  return properties.to_spectral(degree, order);
+BulkScatteringProperties<Format::ARO, Representation::Spectral> GasScatterer::get_bulk_scattering_properties_aro_spectral(
+    const AtmPoint& atm_point,
+    const Vector&   f_grid,
+    const Vector&   za_inc_grid,
+    const Vector&   za_scat_grid,
+    Index           max_mode) const {
+  auto t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto f_grid_ptr = std::make_shared<Vector>(f_grid);
+  auto za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
+  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  Vector                                                              scale(f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); ++iv) {
+    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+  }
+
+  const auto closed_form = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+    const auto normalized = normalized_phase_matrix(phase_matrix, theta);
+    for (Size iv = 0; iv < f_grid.size(); ++iv) {
+      for (Index is = 0; is < 6; ++is) scattering_matrix[0, iv, is] = scale[iv] * normalized[is];
+    }
+  };
+  // F11 / scale integrates to 4 pi, so the phase integral is the scattering coefficient
+  Matrix integral(1, f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv, 0];
+  auto phase = tro_lab_frame_fourier_modes<Numeric>(
+      t_grid_ptr,
+      f_grid_ptr,
+      za_inc_ptr,
+      std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
+      max_mode,
+      integral,
+      closed_form);
+
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = extinction.to_lab_frame(za_inc_ptr).to_spectral(),
+          .absorption_vector = absorption.to_lab_frame(za_inc_ptr).to_spectral()};
 }
 
 }  // namespace scattering

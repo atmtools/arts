@@ -38,7 +38,8 @@ assert A.rt3.available() and A.rt4.available(), "collected only with ENABLE_RT3=
 FREQUENCY = 89e9
 NMU = 8
 MAX_DELTA_TAU = 1e-7
-NATIVE_ANGLES = 4000  # the Mie habit's scattering-angle grid, also RT3's projection rule
+NATIVE_ANGLES = 4000  # the Mie habit's scattering-angle grid
+MIE_DEGREE = 64  # the degree of the Mie habit's Legendre series
 
 hg_ext = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.Extinction)
 hg_ssa = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.SingleScatteringAlbedo)
@@ -60,12 +61,20 @@ def henyey_greenstein():
 
 
 def mie_drops():
-    # The Gauss-Legendre nodes of RT3's projection, as ascending scattering angles
+    """Liquid drops as a Legendre series, converted from gridded Mie data with the conversion's report.
+
+    All solvers take the same series, so they solve the same problem whatever its accuracy; the report
+    says how well it represents the gridded data, and its normalisation must suit the 1e-6 tolerance of
+    the solvers' phase-function check.
+    """
     x, _ = A.math.leggauss(NATIVE_ANGLES)
     angles = np.degrees(np.arccos(np.asarray(x)[::-1]))
-    habit = A.ParticleHabit.liquid_sphere(
-        [220.0, 250.0, 280.0, 310.0], [FREQUENCY], [1.5e-3], A.IrregularZenithAngleGrid(angles)
-    )
+    t_grid, f_grid = [220.0, 250.0, 280.0, 310.0], [FREQUENCY]
+    habit = A.ParticleHabit.liquid_sphere(t_grid, f_grid, [1.5e-3], A.IrregularZenithAngleGrid(angles))
+    habit, reports = habit.to_tro_spectral_with_report(t_grid, f_grid, MIE_DEGREE)
+    (report,) = reports
+    assert np.abs(np.asarray(report.normalisation_error)).max() < 1e-7, np.asarray(report.normalisation_error)
+    assert np.asarray(report.tail).max() < 1e-12, "the series must have converged at its degree"
     return A.ScatteringHabit(habit, A.MonodispersePSD(drops, 0.0, 400.0), 1.0, 3.0)
 
 
@@ -116,8 +125,6 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
         A.vdisort.PathSettings(
             nquad=2 * NMU,
             nfourier=aziorder + 1,
-            azimuth_count=64,
-            scattering_angle_count=NATIVE_ANGLES,
             normalisation_tolerance=1e-6,
             beam_flux=flux,
             beam_mu=mu0,
@@ -138,7 +145,6 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
             quad=A.rt3.QuadratureType.double_gauss,
             aziorder=aziorder,
             max_delta_tau=MAX_DELTA_TAU,
-            scattering_angle_count=NATIVE_ANGLES,
             normalisation_tolerance=1e-6,
         ),
         surf["rt3"],
@@ -154,7 +160,7 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
     if beam is None and nstokes <= 2:
         p4 = A.rt4.problem_from_path(
             *args,
-            A.rt4.PathSettings(nstokes=nstokes, nmu=NMU, max_delta_tau=MAX_DELTA_TAU, azimuth_count=64),
+            A.rt4.PathSettings(nstokes=nstokes, nmu=NMU, max_delta_tau=MAX_DELTA_TAU),
             surf["rt4"],
             288.0,
             2.7,

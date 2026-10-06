@@ -274,12 +274,12 @@ Calls are serialised by one global lock.)",
          "atm_point"_a,
          "frequency"_a,
          "mu"_a,
-         "nstokes"_a       = 2,
-         "azimuth_count"_a = 64,
+         "nstokes"_a = 2,
          R"(The particle optics of ARTS scattering species at one atmospheric point on RT4's streams.
 
-Uses ARTS's laboratory-frame (ARO gridded) bulk scattering properties, so
-azimuthally randomly oriented species work as well as totally randomly
+Uses the azimuthal mean (the m = 0 Fourier mode) of ARTS's laboratory-frame
+bulk phase matrix at the streams (``get_bulk_scattering_properties_aro_spectral``),
+so azimuthally randomly oriented species work as well as totally randomly
 oriented ones.  RT4's stream ``(down, mu)`` is ARTS's propagation zenith
 angle ``180 - acos(mu)`` deg, ``(up, mu)`` is ``acos(mu)``.
 
@@ -294,19 +294,14 @@ mu : ~pyarts3.arts.Vector
     nodes followed by the extra angles.
 nstokes : int
     1 or 2.
-azimuth_count : int
-    Even number N of azimuth differences of the midpoint rule for the
-    azimuthal mean, at (k + 1/2) 360 / N deg; exact for N > L when the
-    scattering matrix is a regular Legendre series of degree L.
 
 Returns
 -------
 LayerOptics
     Extinction ([[K11, K12], [K12, K11]]), absorption ([a1, a2]) and the
     azimuthal mean of the [I, Q] block of the phase matrix, per metre and
-    steradian.  ARTS's GasScatterer and HenyeyGreensteinScatterer
-    interpolate their laboratory-frame data on a 1 deg grid of scattering
-    angles (an error of up to 5.7e-5 sigma / (4 pi) for Rayleigh).
+    steradian.  GasScatterer and HenyeyGreensteinScatterer give it exactly
+    from their closed forms, particle habits from their Legendre series.
 )");
 
   const rt4::path_settings ds{};
@@ -318,21 +313,15 @@ LayerOptics
              Index                nmu,
              rt4::quadrature_type quad,
              const Vector&        extra_mu,
-             Numeric              max_delta_tau,
-             Index                azimuth_count) {
-            new (s) rt4::path_settings{.nstokes       = nstokes,
-                                       .nmu           = nmu,
-                                       .quad          = quad,
-                                       .extra_mu      = extra_mu,
-                                       .max_delta_tau = max_delta_tau,
-                                       .azimuth_count = azimuth_count};
+             Numeric              max_delta_tau) {
+            new (s) rt4::path_settings{
+                .nstokes = nstokes, .nmu = nmu, .quad = quad, .extra_mu = extra_mu, .max_delta_tau = max_delta_tau};
           },
           "nstokes"_a       = ds.nstokes,
           "nmu"_a           = ds.nmu,
           "quad"_a          = ds.quad,
           "extra_mu"_a      = ds.extra_mu,
-          "max_delta_tau"_a = ds.max_delta_tau,
-          "azimuth_count"_a = ds.azimuth_count)
+          "max_delta_tau"_a = ds.max_delta_tau)
       .def_rw("nstokes", &rt4::path_settings::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
       .def_rw("nmu", &rt4::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
       .def_rw("quad", &rt4::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
@@ -342,9 +331,6 @@ LayerOptics
       .def_rw("max_delta_tau",
               &rt4::path_settings::max_delta_tau,
               "Maximum vertical optical thickness of the initial doubling sublayer\n\n.. :class:`float`")
-      .def_rw("azimuth_count",
-              &rt4::path_settings::azimuth_count,
-              "Azimuth differences of the azimuthal mean, even\n\n.. :class:`int`")
       .doc() = "Solver settings of problem_from_path";
 
   rt.def("problem_from_path",
