@@ -25,7 +25,8 @@ void require_surface_scattering_init(const StokvecVector& spectral_rad,
                                      const StokvecMatrix& spectral_rad_jac,
                                      const Size           nf,
                                      const Size           nq) {
-  ARTS_USER_ERROR_IF(spectral_rad.size() != nf or spectral_rad_jac.nrows() != nq or spectral_rad_jac.ncols() != nf,
+  ARTS_USER_ERROR_IF(spectral_rad.size() != nf or spectral_rad_jac.nrows() != static_cast<Index>(nq) or
+                     spectral_rad_jac.ncols() != static_cast<Index>(nf),
                      R"--(spectral_rad and spectral_rad_jac not initialised for surface scattering.
 
 The *spectral_radSurfaceScattering* methods add to their outputs and require them to be
