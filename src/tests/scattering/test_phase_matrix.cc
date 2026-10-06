@@ -841,7 +841,7 @@ bool test_forward_backward_limit() {
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
     Vector     z(16);
     const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
-    detail::expand_and_transform<Numeric>(z, f, rc, delta_aa > 180.0);
+    detail::expand_and_transform<Numeric>(z, rtepack::compact_planar_muelmat{f}, rc, delta_aa > 180.0);
     Matrix Z(4, 4);
     for (Index i = 0; i < 4; i++)
       for (Index j = 0; j < 4; j++) Z[i, j] = z[4 * i + j];
@@ -903,7 +903,7 @@ bool test_pole_limit() {
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
     Vector     z(16);
     const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
-    detail::expand_and_transform<Numeric>(z, f, rc, delta_aa > 180.0);
+    detail::expand_and_transform<Numeric>(z, rtepack::compact_planar_muelmat{f}, rc, delta_aa > 180.0);
     return z;
   };
   const auto distance = [](const Vector& a, const Vector& b) {

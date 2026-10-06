@@ -2,6 +2,7 @@
 
 #include <legendre.h>
 #include <matpack.h>
+#include <rtepack.h>
 
 #include <algorithm>
 #include <limits>
@@ -142,47 +143,35 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
   return {theta, c_1, c_2, s_1, s_2};
 }
 
-/// [1, 1] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f11(const VectorType &v) { return v[0]; }
-
-/// [1, 2] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f12(const VectorType &v) { return v[1]; }
-
-/// [2, 2] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f22(const VectorType &v) { return v[2]; }
-
-/// [3, 3] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f33(const VectorType &v) { return v[3]; }
-
-/// [3, 4] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f34(const VectorType &v) { return v[4]; }
-
-/// [4, 4] element of phase matrix stored in compact format.
-template <typename VectorType> constexpr auto f44(const VectorType &v) { return v[5]; }
-
-template <typename Scalar> void expand_and_transform(StridedVectorView             output,
-                                                     const StridedConstVectorView &input,
-                                                     const std::array<Scalar, 5>   rotation_coefficients,
-                                                     bool                          delta_aa_gt_180) {
+/** The laboratory-frame phase matrix, row-major into output[16], of the scattering matrix F
+ *
+ * F is in the scattering-plane basis; rotation_coefficients are those of
+ * rotation_coefficients(), and delta_aa_gt_180 tells the side of the
+ * principal plane.
+ */
+template <typename Scalar> void expand_and_transform(StridedVectorView                      output,
+                                                     const rtepack::compact_planar_muelmat &F,
+                                                     const std::array<Scalar, 5>            rotation_coefficients,
+                                                     bool                                   delta_aa_gt_180) {
   Scalar c_1 = std::get<1>(rotation_coefficients);
   Scalar c_2 = std::get<2>(rotation_coefficients);
   Scalar s_1 = std::get<3>(rotation_coefficients);
   Scalar s_2 = std::get<4>(rotation_coefficients);
 
   // Stokes dim 1
-  output[0] = f11(input);
+  output[0] = F.F11();
 
   // Stokes dim 2 and higher.
-  output[1] = c_1 * f12(input);
-  output[4] = c_2 * f12(input);
-  output[5] = c_1 * c_2 * f22(input) - s_1 * s_2 * f33(input);
+  output[1] = c_1 * F.F12();
+  output[4] = c_2 * F.F12();
+  output[5] = c_1 * c_2 * F.F22() - s_1 * s_2 * F.F33();
 
   // Stokes dim 3 and higher.
-  output[2]  = s_1 * f12(input);
-  output[6]  = s_1 * c_2 * f22(input) + c_1 * s_2 * f33(input);
-  output[8]  = -s_2 * f12(input);
-  output[9]  = -c_1 * s_2 * f22(input) - s_1 * c_2 * f33(input);
-  output[10] = -s_1 * s_2 * f22(input) + c_1 * c_2 * f33(input);
+  output[2]  = s_1 * F.F12();
+  output[6]  = s_1 * c_2 * F.F22() + c_1 * s_2 * F.F33();
+  output[8]  = -s_2 * F.F12();
+  output[9]  = -c_1 * s_2 * F.F22() - s_1 * c_2 * F.F33();
+  output[10] = -s_1 * s_2 * F.F22() + c_1 * c_2 * F.F33();
 
   if (delta_aa_gt_180) {
     output[2] *= -1.0;
@@ -193,12 +182,12 @@ template <typename Scalar> void expand_and_transform(StridedVectorView          
 
   // Stokes dim 4 and higher.
   output[3]  = 0.0;
-  output[7]  = s_2 * f34(input);
-  output[11] = c_2 * f34(input);
+  output[7]  = s_2 * F.F34();
+  output[11] = c_2 * F.F34();
   output[12] = 0.0;
-  output[13] = s_1 * f34(input);
-  output[14] = -c_1 * f34(input);
-  output[15] = f44(input);
+  output[13] = s_1 * F.F34();
+  output[14] = -c_1 * F.F34();
+  output[15] = F.F44();
 
   if (delta_aa_gt_180) {
     output[7]  *= -1.0;
@@ -1711,7 +1700,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
         for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
           for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
             detail::expand_and_transform<Scalar>(result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker],
-                                                 tro[i_t, i_f, joker],
+                                                 rtepack::compact_planar_muelmat{tro[i_t, i_f, joker]},
                                                  coeffs,
                                                  delta_aa > 180.0);
           }
@@ -2356,7 +2345,8 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
             scattering_matrix(std::get<0>(rc), F);
             for (Index i_t = 0; i_t < nt; i_t++) {
               for (Index i_f = 0; i_f < nf; i_f++) {
-                detail::expand_and_transform<Scalar>(Z, F[i_t, i_f, joker], rc, delta > 180.0);
+                detail::expand_and_transform<Scalar>(
+                    Z, rtepack::compact_planar_muelmat{F[i_t, i_f, joker]}, rc, delta > 180.0);
                 for (Index e = 0; e < 16; e++) scale = std::max<Numeric>(scale, std::abs(Z[e]));
                 for (Index m = 0; m <= M; m++) {
                   // (1 / 2 pi) int for m = 0, (1 / pi) int for m > 0; the rule's weight on [0, pi] is pi / 2 w

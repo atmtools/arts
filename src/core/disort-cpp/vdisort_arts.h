@@ -81,8 +81,10 @@ struct fourier_optics {
  * must be the same, K12, K34 and a2 must vanish, and sigma must equal the
  * scattering coefficient K11 - a1 (as in rt3::scattering_optics); otherwise
  * this is an error.  TRO particles always meet the first conditions;
- * azimuthally randomly oriented ones generally do not.  Without particles
- * the coefficients are zero.  mu_out and mu_in must not be empty.
+ * azimuthally randomly oriented ones generally do not.  An infinite
+ * normalisation_tolerance checks none of this, but sigma must be known.
+ * Without particles the coefficients are zero.  mu_out and mu_in must not be
+ * empty.
  */
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
@@ -113,7 +115,7 @@ struct path_settings {
   Index nquad{16};
   //! Number of Fourier azimuth modes
   Index nfourier{1};
-  //! See scattering_optics
+  //! See scattering_optics; infinity checks nothing
   Numeric normalisation_tolerance{1e-3};
   //! Thermal emission of the layers and of the surface; the sky always emits
   bool thermal{true};

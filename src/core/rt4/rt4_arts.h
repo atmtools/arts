@@ -94,6 +94,8 @@ struct path_settings {
   Vector extra_mu{};
   //! Maximum vertical optical thickness of the initial doubling sublayer, > 0
   Numeric max_delta_tau{1e-6};
+  //! problem::normalisation_tolerance, >= 0; infinity checks nothing
+  Numeric normalisation_tolerance{1e-6};
 };
 
 /** An RT4 problem from an ARTS propagation path.

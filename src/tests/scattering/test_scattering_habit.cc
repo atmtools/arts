@@ -65,14 +65,17 @@ bool test_calculate_bulk_properties_tro_gridded() {
       if (err > 1e-3) return false;
     }
 
-    for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-      Numeric ref      = em_ref[1, f_ind, stokes_ind];
-      Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind, stokes_ind, stokes_ind] - ref) / ref);
-      if (rel_diff > 1e-3) return false;
+    // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
+    const Numeric k11 = em_ref[1, f_ind, 0], a1 = av_ref[1, f_ind, 0];
+    for (Index i = 0; i < 4; ++i) {
+      for (Index j = 0; j < 4; ++j) {
+        const Numeric k = bulk_props.extinction_matrix[f_ind, i, j];
+        if (i == j ? std::abs((k - k11) / k11) > 1e-3 : k != 0.0) return false;
+      }
     }
-
-    Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
-    if (err > 1e-3) return false;
+    if (std::abs((bulk_props.absorption_vector[f_ind, 0] - a1) / a1) > 1e-3) return false;
+    for (Index i = 1; i < 4; ++i)
+      if (bulk_props.absorption_vector[f_ind, i] != 0.0) return false;
   }
   return true;
 

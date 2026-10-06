@@ -55,7 +55,8 @@ namespace rt3 {
  * the scattering coefficient K11 - a1 must agree to
  * normalisation_tolerance * K11, otherwise this is an error: RT3 normalises
  * the series and takes the albedo from the scattering coefficient, so a
- * mismatch would silently change the scattered energy.
+ * mismatch would silently change the scattered energy.  An infinite
+ * normalisation_tolerance checks nothing.
  *
  * Without particles (an empty species array, or zero extinction and phase
  * matrix) the set has zero extinction and scattering and the isotropic,
@@ -87,7 +88,7 @@ struct path_settings {
    *  2 (nmu + extra_mu.size()), the degree at which RT3 reads the delta-M
    *  fraction. */
   Index legendre_degree{-1};
-  //! See scattering_optics
+  //! See scattering_optics; infinity checks nothing
   Numeric normalisation_tolerance{1e-3};
 };
 

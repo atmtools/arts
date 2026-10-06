@@ -54,7 +54,8 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   // The scattering coefficient implied by the phase matrix, 2 pi int F11 dx
   const Numeric phase_integral = 4.0 * Constant::pi * c[0, 0];
-  ARTS_USER_ERROR_IF(not(std::abs(phase_integral - scattering) <= normalisation_tolerance * extinction),
+  ARTS_USER_ERROR_IF(not std::isinf(normalisation_tolerance) and
+                         not(std::abs(phase_integral - scattering) <= normalisation_tolerance * extinction),
                      "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
                      "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
                      "extinction, {} * {} per m (RT3 normalises the phase function and takes the albedo from the "

@@ -600,6 +600,20 @@ void test_errors() {
     p.optics[0].absorption[1, 0, 0] *= 1.01;  // mirror symmetric, so only the energy balance fails
     rt4::solve(p);
   });
+  {
+    // An infinite tolerance accepts anything: the same optics, and an all-zero optics set (K11 = 0)
+    auto p                      = good();
+    p.optics[0].absorption[0, 0, 0] *= 1.01;
+    p.optics[0].absorption[1, 0, 0] *= 1.01;
+    auto zero = p.optics[0];
+    zero.extinction = 0.0;
+    zero.absorption = 0.0;
+    zero.phase      = 0.0;
+    p.optics.push_back(zero);
+    p.layer_optics_index[0]   = 1;
+    p.normalisation_tolerance = std::numeric_limits<Numeric>::infinity();
+    rt4::solve(p);
+  }
   expect_throw("nstokes = 3", [&] {
     auto p    = good();
     p.nstokes = 3;

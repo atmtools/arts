@@ -175,30 +175,24 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
     std::visit(
         [&](const auto& model) {
           using Model = std::remove_cvref_t<decltype(model)>;
+          // Each coefficient is the scattering-plane Mueller matrix of the degree
+          const auto set = [&](Index l, const rtepack::compact_planar_muelmat& F) {
+            phase[iv, l] = Specmat{F.expand().data};
+          };
           if constexpr (std::is_same_v<Model, IsotropicGasScattering>) {
-            for (Index is = 0; is < 4; ++is) phase[iv, 0][is, is] = amp;
+            set(0, {amp, 0.0, amp, amp, 0.0, amp});
           } else {
             const Numeric delta       = (1.0 - model.depolarization_factor) / (1.0 + 0.5 * model.depolarization_factor);
             const Numeric delta_prime = (1.0 - 2.0 * model.depolarization_factor) / (1.0 - model.depolarization_factor);
 
             // F11 = 1 + delta/2 P2, F12 = delta/2(P2 - 1),
-            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1, each coefficient
-            // the scattering-plane Mueller matrix, so [1, 0] = F12.
-            phase[iv, 0][0, 0] = amp;
-            phase[iv, 0][0, 1] = -0.5 * delta * amp;
-            phase[iv, 0][1, 0] = -0.5 * delta * amp;
-            phase[iv, 0][1, 1] = delta * amp;
-
-            if (degree >= 1) {
-              phase[iv, 1][2, 2] = 0.5 * std::sqrt(3.0) * delta * amp;
-              phase[iv, 1][3, 3] = 0.5 * std::sqrt(3.0) * delta * delta_prime * amp;
-            }
+            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1, F44 = 3 delta delta'/2 P1
+            set(0, {amp, -0.5 * delta * amp, delta * amp, 0.0, 0.0, 0.0});
+            if (degree >= 1)
+              set(1, {0.0, 0.0, 0.0, 0.5 * std::numbers::sqrt3 * delta * amp, 0.0, 0.5 * std::numbers::sqrt3 * delta * delta_prime * amp});
             if (degree >= 2) {
-              const Numeric p2   = 0.5 * delta * amp / std::sqrt(5.0);
-              phase[iv, 2][0, 0] = p2;
-              phase[iv, 2][0, 1] = p2;
-              phase[iv, 2][1, 0] = p2;
-              phase[iv, 2][1, 1] = p2;
+              const Numeric p2 = 0.5 * delta * amp / std::sqrt(5.0);
+              set(2, {p2, p2, p2, 0.0, 0.0, 0.0});
             }
           }
         },

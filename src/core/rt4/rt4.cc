@@ -118,6 +118,7 @@ void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index n
    renormalisation step could be added, as ARTS 2 had. */
 void check_normalisation(
     const layer_optics& o, Index iset, const quadrature& q, Index nquad, Numeric tolerance) {
+  if (std::isinf(tolerance)) return;  // the user accepts any optics
   for (Index h = 0; h < 2; h++) {
     for (Index j = 0; j < nquad; j++) {
       Numeric scattered = 0.0;

@@ -143,7 +143,7 @@ struct problem {
   Numeric max_delta_tau{1e-6};
   //! The energy conservation every optics set must meet on the streams, relative to its K11: every incident
   //! quadrature stream must scatter 2 pi sum_i w_i (phase[down] + phase[up])[I, I] = K11 - a1 into the
-  //! quadrature streams of both hemispheres, >= 0
+  //! quadrature streams of both hemispheres, >= 0; infinity checks nothing
   Numeric normalisation_tolerance{1e-6};
   //! Frequency [Hz]; RT4 is given the wavelength 1e6 c / f in micrometres
   Numeric frequency{};

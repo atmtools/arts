@@ -209,7 +209,7 @@ is not used for this surface.)";
       .def_rw("normalisation_tolerance",
               &rt4::problem::normalisation_tolerance,
               "Energy conservation every optics set must meet on the streams, relative to K11: every incident "
-              "quadrature stream must scatter K11 - a1 into the quadrature streams\n\n.. :class:`float`")
+              "quadrature stream must scatter K11 - a1 into the quadrature streams; infinity checks nothing\n\n.. :class:`float`")
       .def_rw("frequency", &rt4::problem::frequency, "Frequency [Hz]\n\n.. :class:`float`")
       .def_rw("height",
               &rt4::problem::height,
@@ -313,15 +313,21 @@ LayerOptics
              Index                nmu,
              rt4::quadrature_type quad,
              const Vector&        extra_mu,
-             Numeric              max_delta_tau) {
-            new (s) rt4::path_settings{
-                .nstokes = nstokes, .nmu = nmu, .quad = quad, .extra_mu = extra_mu, .max_delta_tau = max_delta_tau};
+             Numeric              max_delta_tau,
+             Numeric              normalisation_tolerance) {
+            new (s) rt4::path_settings{.nstokes                 = nstokes,
+                                       .nmu                     = nmu,
+                                       .quad                    = quad,
+                                       .extra_mu                = extra_mu,
+                                       .max_delta_tau           = max_delta_tau,
+                                       .normalisation_tolerance = normalisation_tolerance};
           },
-          "nstokes"_a       = ds.nstokes,
-          "nmu"_a           = ds.nmu,
-          "quad"_a          = ds.quad,
-          "extra_mu"_a      = ds.extra_mu,
-          "max_delta_tau"_a = ds.max_delta_tau)
+          "nstokes"_a                 = ds.nstokes,
+          "nmu"_a                     = ds.nmu,
+          "quad"_a                    = ds.quad,
+          "extra_mu"_a                = ds.extra_mu,
+          "max_delta_tau"_a           = ds.max_delta_tau,
+          "normalisation_tolerance"_a = ds.normalisation_tolerance)
       .def_rw("nstokes", &rt4::path_settings::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
       .def_rw("nmu", &rt4::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
       .def_rw("quad", &rt4::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
@@ -331,6 +337,10 @@ LayerOptics
       .def_rw("max_delta_tau",
               &rt4::path_settings::max_delta_tau,
               "Maximum vertical optical thickness of the initial doubling sublayer\n\n.. :class:`float`")
+      .def_rw("normalisation_tolerance",
+              &rt4::path_settings::normalisation_tolerance,
+              "Allowed energy imbalance of the optics on the streams, relative to K11; infinity checks "
+              "nothing\n\n.. :class:`float`")
       .doc() = "Solver settings of problem_from_path";
 
   rt.def("problem_from_path",

@@ -76,49 +76,22 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
       auto ssd =
           std::get<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>>(particle_habit[part_ind]);
       for (Index f_ind = 0; f_ind < n_freqs; ++f_ind) {
+        // The scattering matrices at the two temperatures, weighted and expanded to the scattering-plane 4 x 4
+        const std::array<std::pair<Numeric, Index>, 2> nodes{
+            {{pnd[part_ind] * interp.fd[1], interp.idx}, {pnd[part_ind] * interp.fd[0], interp.idx + 1}}};
         for (Index ang_ind = 0; ang_ind < n_angs; ++ang_ind) {
-          phase_matrix[f_ind, ang_ind, 0, 0] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 0];
-          phase_matrix[f_ind, ang_ind, 0, 0] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 0];
-          phase_matrix[f_ind, ang_ind, 0, 1] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 1];
-          phase_matrix[f_ind, ang_ind, 0, 1] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 1];
-          phase_matrix[f_ind, ang_ind, 1, 0] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 1];
-          phase_matrix[f_ind, ang_ind, 1, 0] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 1];
-          phase_matrix[f_ind, ang_ind, 1, 1] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 2];
-          phase_matrix[f_ind, ang_ind, 1, 1] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 2];
-          phase_matrix[f_ind, ang_ind, 2, 2] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 3];
-          phase_matrix[f_ind, ang_ind, 2, 2] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 3];
-          phase_matrix[f_ind, ang_ind, 2, 3] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 2, 3] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 3, 2] -=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 3, 2] -=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 4];
-          phase_matrix[f_ind, ang_ind, 3, 3] +=
-              pnd[part_ind] * interp.fd[1] * ssd.phase_matrix.value()[interp.idx, f_ind, ang_ind, 5];
-          phase_matrix[f_ind, ang_ind, 3, 3] +=
-              pnd[part_ind] * interp.fd[0] * ssd.phase_matrix.value()[interp.idx + 1, f_ind, ang_ind, 5];
+          for (const auto& [w, it] : nodes) {
+            const auto Z =
+                (w * rtepack::compact_planar_muelmat{ssd.phase_matrix.value()[it, f_ind, ang_ind, joker]}).expand();
+            for (Index i = 0; i < 4; ++i)
+              for (Index j = 0; j < 4; ++j) phase_matrix[f_ind, ang_ind, i, j] += Z[i, j];
+          }
         }
-        for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-          extinction_matrix[f_ind, stokes_ind, stokes_ind] +=
-              pnd[part_ind] * interp.fd[1] * ssd.extinction_matrix[interp.idx, f_ind, stokes_ind];
-          extinction_matrix[f_ind, stokes_ind, stokes_ind] +=
-              pnd[part_ind] * interp.fd[0] * ssd.extinction_matrix[interp.idx + 1, f_ind, stokes_ind];
-          absorption_vector[f_ind, stokes_ind] +=
-              pnd[part_ind] * interp.fd[1] * ssd.absorption_vector[interp.idx, f_ind, stokes_ind];
-          absorption_vector[f_ind, stokes_ind] +=
-              pnd[part_ind] * interp.fd[0] * ssd.absorption_vector[interp.idx + 1, f_ind, stokes_ind];
+        // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
+        for (const auto& [w, it] : nodes) {
+          for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind)
+            extinction_matrix[f_ind, stokes_ind, stokes_ind] += w * ssd.extinction_matrix[it, f_ind, 0];
+          absorption_vector[f_ind, 0] += w * ssd.absorption_vector[it, f_ind, 0];
         }
       }
     } catch (const std::bad_variant_access& e) {
@@ -498,9 +471,11 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
     if (pnd[i] == 0.0) continue;
     for (Index iv = 0; iv < nf; ++iv) {
       for (Index l = 0; l <= degree; ++l) {
-        const auto c = [&](Index e) { return pnd[i] * (*ssd.phase_matrix)[0, iv, l, e].real(); };
-        // The scattering-plane Mueller matrix of each coefficient
-        (*out.phase_matrix)[iv, l] += Specmat{c(0), c(1), 0, 0, c(1), c(2), 0, 0, 0, 0, c(3), c(4), 0, 0, -c(4), c(5)};
+        // The scattering-plane Mueller matrix of each (real) coefficient
+        const auto coeffs = (*ssd.phase_matrix)[0, iv, l, joker];
+        const auto F =
+            pnd[i] * rtepack::compact_planar_muelmat{coeffs | std::views::transform([](const Complex& x) { return x.real(); })};
+        (*out.phase_matrix)[iv, l] += Specmat{F.expand().data};
       }
       out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv, 0];
       out.absorption_vector[iv][0]  += pnd[i] * ssd.absorption_vector[0, iv, 0];

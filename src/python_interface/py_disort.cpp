@@ -820,7 +820,7 @@ this one with ``mu = cos(za)`` and ``phi = -aa``.  Pass the results to
       .def_rw("normalisation_tolerance",
               &vdisort::path_settings::normalisation_tolerance,
               "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "
-              "extinction\n\n.. :class:`float`")
+              "extinction; infinity checks nothing\n\n.. :class:`float`")
       .def_rw("thermal",
               &vdisort::path_settings::thermal,
               "Thermal emission of the layers and the surface\n\n.. :class:`bool`")

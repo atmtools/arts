@@ -365,7 +365,7 @@ convention.  See :doc:`dev.rt3`.
       .def_rw("normalisation_tolerance",
               &rt3::path_settings::normalisation_tolerance,
               "Allowed mismatch of phase-function integral and scattering coefficient, relative to the "
-              "extinction\n\n.. :class:`float`")
+              "extinction; infinity checks nothing\n\n.. :class:`float`")
       .doc() = "Solver settings of problem_from_path";
 
   rt.def("problem_from_path",

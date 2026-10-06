@@ -86,12 +86,15 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   // VDISORT's optical depth and albedo are scalars: the particles' extinction must not depend on the direction
   // nor polarize, and their absorption and phase integral must not depend on the direction
-  const Numeric tol = normalisation_tolerance * out.extinction;
+  // An infinite normalisation_tolerance checks nothing; sigma must still be known to normalise P
+  const bool    check = not std::isinf(normalisation_tolerance);
+  const Numeric tol   = normalisation_tolerance * out.extinction;
   for (Index j = 0; j < static_cast<Index>(za_inc.size()); j++) {
     ARTS_USER_ERROR_IF(std::isnan(integral[0, 0, j]),
                        "The scattering species do not give the phase integral int Z11 dOmega at the incidence zenith "
                        "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
                        za_inc[j])
+    if (not check) continue;
     const Numeric dk = std::abs(ext[0, 0, j, 0] - out.extinction), dpol = std::max(std::abs(ext[0, 0, j, 1]),
                                                                                 std::abs(ext[0, 0, j, 2]));
     const Numeric da = std::abs(abs[0, 0, j, 0] - abs[0, 0, 0, 0]), da2 = std::abs(abs[0, 0, j, 1]);
@@ -113,7 +116,7 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                        out.extinction)
   }
 
-  ARTS_USER_ERROR_IF(not(std::abs(sigma - out.scattering) <= tol),
+  ARTS_USER_ERROR_IF(check and not(std::abs(sigma - out.scattering) <= tol),
                      "The scattering coefficient from the phase matrix, int Z11 dOmega = {} per m, and the "
                      "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
                      "extinction, {} * {} per m (VDISORT normalises the phase matrix and takes the albedo from the "
