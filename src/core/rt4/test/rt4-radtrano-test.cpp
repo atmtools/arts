@@ -229,7 +229,7 @@ rt4::surface ground_of(const inputs& in) {
 
 //! The C++ RADTRANO, with its ground made by rt4::ground_surface on the
 //! streams RADTRANO makes
-outputs run_cpp(inputs in) {
+outputs run_cpp(inputs in, rt4::rt4_workdata& work) {
   Tensor3 up_rad(in.height.extent(0), in.nummu, in.nstokes, 0.0);
   Tensor3 down_rad(in.height.extent(0), in.nummu, in.nstokes, 0.0);
   // The extra angles go in on their own; all of mu_values is output
@@ -262,7 +262,8 @@ outputs run_cpp(inputs in) {
                 extra_mu,
                 in.mu_values,
                 up_rad,
-                down_rad);
+                down_rad,
+                work);
   return {.gnd_radiance = std::move(gnd_radiance),
           .gas_extinct  = std::move(in.gas_extinct),
           .mu_values    = std::move(in.mu_values),
@@ -744,11 +745,12 @@ void check_doubling_integration() {
           rt4::initial_source(1e-6, q.mu, 1e-15, emis, 1e-2, lin.view_as(2, nummu, nstokes));
           const Numeric linfactor = 0.3 / std::pow(2.0, num_doubles);
 
-          Tensor3 rf{reflect}, tf{trans};
-          Matrix  lf{lin};
-          Tensor3 tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n), ttf(2, n, n);
-          Matrix  ts(2, n, nan), tsf(2, n);
-          rt4::doubling_integration(num_doubles, symmetric, reflect, trans, lin, linfactor, tr, tt, ts);
+          Tensor3           rf{reflect}, tf{trans};
+          Matrix            lf{lin};
+          Tensor3           tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n), ttf(2, n, n);
+          Matrix            ts(2, n, nan), tsf(2, n);
+          rt4::rt4_workdata work(nstokes, nummu, 0);
+          rt4::doubling_integration(num_doubles, symmetric, reflect, trans, lin, linfactor, tr, tt, ts, work);
           rt4_doubling_integration(n,
                                    num_doubles,
                                    symmetric,
@@ -815,9 +817,10 @@ slab random_slab(std::mt19937_64& gen, Index nstokes, Index nummu, Index num_dou
                   t1.view_as(2, nummu, nstokes, nummu, nstokes));
   rt4::initial_source(1e-6, q.mu, 1e-15 * (0.5 + u(gen)), emis, 1e-2, lin.view_as(2, nummu, nstokes));
 
-  slab out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
+  slab              out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
+  rt4::rt4_workdata work(nstokes, nummu, 0);
   rt4::doubling_integration(
-      num_doubles, symmetric, r1, t1, lin, 0.3 / std::pow(2.0, num_doubles), out.reflect, out.trans, out.source);
+      num_doubles, symmetric, r1, t1, lin, 0.3 / std::pow(2.0, num_doubles), out.reflect, out.trans, out.source, work);
   return out;
 }
 
@@ -850,10 +853,11 @@ void check_combine_layers() {
               bottom = random_slab(gen, nstokes, nummu, d2, symmetric);
             }
 
-            Tensor3 r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
-            Matrix  src(2, n, nan), srcf(2, n);
+            Tensor3           r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
+            Matrix            src(2, n, nan), srcf(2, n);
+            rt4::rt4_workdata work(nstokes, nummu, 0);
             rt4::combine_layers(
-                top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src);
+                top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src, work);
 
             // The Fortran declares no intent: give it copies
             slab a = top, b = bottom;
@@ -903,7 +907,8 @@ void check_internal_radiance() {
             for (auto& x : top) x = 1e-17 * u(gen);
             for (auto& x : bottom) x = 1e-15 * u(gen);
 
-            Vector up(n, nan), down(n, nan), upf(n), downf(n);
+            Vector            up(n, nan), down(n, nan), upf(n), downf(n);
+            rt4::rt4_workdata work(nstokes, nummu, 0);
             rt4::internal_radiance(above.reflect,
                                    above.trans,
                                    above.source,
@@ -913,7 +918,8 @@ void check_internal_radiance() {
                                    top,
                                    bottom,
                                    up,
-                                   down);
+                                   down,
+                                   work);
 
             // The Fortran declares no intent: give it copies
             slab   a = above, b = below;
@@ -1089,15 +1095,26 @@ int main() try {
   check_nonscatter_layer();
 
   std::mt19937_64 gen(20261007);
-  Index           identical = 0, failed = 0;
+  Index           identical = 0, failed = 0, reuse_differ = 0;
   Numeric         worst = 0.0;
   const auto      all   = cases();
+
+  // One work data over all cases, whose sizes differ, against a fresh one
+  // per case: reuse must not change a bit
+  rt4::rt4_workdata shared;
   for (const auto& c : all) {
     const auto in  = make_inputs(c, gen);
     Index      nsl = 0;
     for (auto t : in.scatlayers) nsl = std::max(nsl, static_cast<Index>(t));
-    const auto cpp = run_cpp(in);
-    const auto f77 = run_fortran(in, nsl);
+    rt4::rt4_workdata fresh;
+    const auto        cpp    = run_cpp(in, fresh);
+    const auto        reused = run_cpp(in, shared);
+    const auto        f77    = run_fortran(in, nsl);
+    for (auto [count, rel] : {differ(cpp.up_rad, reused.up_rad),
+                              differ(cpp.down_rad, reused.down_rad),
+                              differ(cpp.gnd_radiance, reused.gnd_radiance),
+                              differ(cpp.mu_values, reused.mu_values)})
+      reuse_differ += count;
 
     std::string bad;
     Index       ndiffer = 0;
@@ -1123,9 +1140,30 @@ int main() try {
   bool threw = false;
   try {
     auto in = make_inputs({1, 1, 0, rt4::quadrature_type::double_gauss, 'L', 401, layout::mixed, 1e-6}, gen);
-    run_cpp(in);
+    rt4::rt4_workdata work;
+    run_cpp(in, work);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("NUM_LAYERS = 401 > MAXLAY did not throw");
+
+  std::cout << std::format(
+      "One rt4_workdata reused over all {} cases (of different sizes) against a fresh one per case: {} values "
+      "differ\n",
+      all.size(),
+      reuse_differ);
+  if (reuse_differ > 0) throw std::runtime_error("reusing an rt4_workdata changes the results");
+
+  // The routines refuse a work data that is not sized for their streams
+  {
+    bool              refused = false;
+    rt4::rt4_workdata work(2, 4, 0);  // 8 streams
+    Tensor3           r(2, 2, 2, 0.0), t(2, 2, 2, 0.0);
+    Matrix            src(2, 2, 0.0);
+    Vector            top(2, 0.0), bottom(2, 0.0), up(2), down(2);
+    try {
+      rt4::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
+    } catch (const std::exception&) { refused = true; }
+    if (not refused) throw std::runtime_error("internal_radiance accepted an rt4_workdata for 8 streams with 2");
+  }
 
   std::cout << std::format(
       "C++ against Fortran RADTRANO: {} of {} cases within {:.0e} (largest relative difference {:.2e}), {} "

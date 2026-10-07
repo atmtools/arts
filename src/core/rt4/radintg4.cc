@@ -8,15 +8,16 @@
 #include <cmath>
 
 namespace rt4 {
-void doubling_integration(Index       num_doubles,
-                          bool        symmetric,
-                          Tensor3View reflect,
-                          Tensor3View trans,
-                          MatrixView  lin_source,
-                          Numeric     linfactor,
-                          Tensor3View t_reflect,
-                          Tensor3View t_trans,
-                          MatrixView  t_source) {
+void doubling_integration(Index         num_doubles,
+                          bool          symmetric,
+                          Tensor3View   reflect,
+                          Tensor3View   trans,
+                          MatrixView    lin_source,
+                          Numeric       linfactor,
+                          Tensor3View   t_reflect,
+                          Tensor3View   t_trans,
+                          MatrixView    t_source,
+                          rt4_workdata& work) {
   const Index n = reflect.extent(1);
   ARTS_USER_ERROR_IF(
       reflect.shape() != (std::array<Index, 3>{2, n, n}) or trans.shape() != (std::array<Index, 3>{2, n, n}) or
@@ -42,15 +43,23 @@ void doubling_integration(Index       num_doubles,
   const auto tp = trans[0], tm = trans[1];
   const auto sp = lin_source[0], sm = lin_source[1];
 
-  // X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/), and the vectors
-  // X and Y take as well
-  Matrix       x(n, n), y(n, n), gamma(n, n);
-  Vector       xv(n), yv(n);
-  Matrix       t_lin(2, n), t_const(2, n);
-  inv_workdata wo(n);
+  // X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/), the vectors X and Y
+  // take as well, T_LIN, CONST and T_CONST: the work data's
+  ARTS_USER_ERROR_IF(not work.scratch_sized(n),
+                     "DOUBLING_INTEGRATION needs an rt4_workdata sized for {} streams (rt4_workdata::resize)",
+                     n);
+  Matrix&       x       = work.x;
+  Matrix&       y       = work.y;
+  Matrix&       gamma   = work.gamma;
+  Vector&       xv      = work.xv;
+  Vector&       yv      = work.yv;
+  Matrix&       t_lin   = work.t_lin;
+  Matrix&       t_const = work.t_const;
+  Matrix&       cnst    = work.cnst;
+  inv_workdata& wo      = work.inv;
 
-  Numeric    linfac = linfactor;
-  Matrix     cnst{lin_source};
+  Numeric linfac = linfactor;
+  cnst           = lin_source;
   const auto cp = cnst[0], cm = cnst[1];
 
   for (Index i = 0; i < num_doubles; i++) {
@@ -149,7 +158,8 @@ void combine_layers(ConstTensor3View reflect1,
                     ConstMatrixView  source2,
                     Tensor3View      out_reflect,
                     Tensor3View      out_trans,
-                    MatrixView       out_source) {
+                    MatrixView       out_source,
+                    rt4_workdata&    work) {
   const Index n = reflect1.extent(1);
   for (auto shape :
        {reflect1.shape(), trans1.shape(), reflect2.shape(), trans2.shape(), out_reflect.shape(), out_trans.shape()})
@@ -169,11 +179,16 @@ void combine_layers(ConstTensor3View reflect1,
   const auto r2p = reflect2[0], r2m = reflect2[1], t2p = trans2[0], t2m = trans2[1];
   const auto s1p = source1[0], s1m = source1[1], s2p = source2[0], s2m = source2[1];
 
-  // X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/), and the vectors
-  // X and Y take as well
-  Matrix       x(n, n), y(n, n), gamma(n, n);
-  Vector       xv(n), yv(n);
-  inv_workdata wo(n);
+  // X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/), and the vectors X
+  // and Y take as well: the work data's
+  ARTS_USER_ERROR_IF(
+      not work.scratch_sized(n), "COMBINE_LAYERS needs an rt4_workdata sized for {} streams (rt4_workdata::resize)", n);
+  Matrix&       x     = work.x;
+  Matrix&       y     = work.y;
+  Matrix&       gamma = work.gamma;
+  Vector&       xv    = work.xv;
+  Vector&       yv    = work.yv;
+  inv_workdata& wo    = work.inv;
 
   // GAMMAp = inv[1 - R1p * R2m]     (p for +,  m for -)
   mult(matpack::identity(gamma), r2m, r1p, -1.0, 1.0);
@@ -227,7 +242,8 @@ void internal_radiance(ConstTensor3View upreflect,
                        ConstVectorView  intoprad,
                        ConstVectorView  inbottomrad,
                        VectorView       uprad,
-                       VectorView       downrad) {
+                       VectorView       downrad,
+                       rt4_workdata&    work) {
   const Index n = upreflect.extent(1);
   for (auto shape : {upreflect.shape(), uptrans.shape(), downreflect.shape(), downtrans.shape()})
     ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
@@ -250,10 +266,15 @@ void internal_radiance(ConstTensor3View upreflect,
   const auto rdm = downreflect[1], tdm = downtrans[1];
   const auto sup = upsource[0], sdm = downsource[1];
 
-  // X (COMMON /SCRATCH1/), and the vectors S and V
-  Matrix       x(n, n);
-  Vector       s(n), v(n);
-  inv_workdata wo(n);
+  // X (COMMON /SCRATCH1/), here the inverse, and the vectors S and V: the
+  // work data's gamma, xv and yv
+  ARTS_USER_ERROR_IF(not work.scratch_sized(n),
+                     "INTERNAL_RADIANCE needs an rt4_workdata sized for {} streams (rt4_workdata::resize)",
+                     n);
+  Matrix&       x  = work.gamma;
+  Vector&       s  = work.xv;
+  Vector&       v  = work.yv;
+  inv_workdata& wo = work.inv;
 
   // Compute gamma plus: inv[1 - UPREFLECT(+) DOWNREFLECT(-)]
   mult(matpack::identity(x), rdm, rup, -1.0, 1.0);

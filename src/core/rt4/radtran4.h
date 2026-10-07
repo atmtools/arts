@@ -3,6 +3,7 @@
 #include <matpack.h>
 
 #include "rt4.h"
+#include "rt4_workdata.h"
 
 namespace rt4 {
 /** RADTRANO of 3rdparty/polradtran/radtran4.f, ported to C++.
@@ -47,6 +48,10 @@ namespace rt4 {
  * frequency is in Hz, and the radiances (gnd_radiance, up_rad, down_rad)
  * are in W m-2 Hz-1 sr-1 (RADTRANO: WAVELENGTH in um and W m-2 sr-1 um-1).
  * The temperatures, sky_temp too, must be >= 0 K.
+ *
+ * work holds every work array (rt4_workdata); radtrano sizes it, so it
+ * allocates only where an array grows.  Keep one for repeated calls with
+ * the same streams, as over frequency.
  */
 void radtrano(Numeric          max_delta_tau,
               quadrature_type  quad_type,
@@ -64,5 +69,6 @@ void radtrano(Numeric          max_delta_tau,
               ConstVectorView  extra_mu,
               VectorView       mu_values,
               Tensor3View      up_rad,
-              Tensor3View      down_rad);
+              Tensor3View      down_rad,
+              rt4_workdata&    work);
 }  // namespace rt4

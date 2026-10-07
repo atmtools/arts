@@ -177,6 +177,18 @@ Provenance
     routine it differs by at most 8.4e-16; the radiances of ``rt4.solve``
     change by at most 1.3e-15 of I.  With it, the Fortran mutex of
     ``rt4::solve`` is gone.
+  * All work arrays of ``rt4::radtrano`` and the routines it calls are in
+    one ``rt4::rt4_workdata`` (``src/core/rt4/rt4_workdata.h``), grouped by
+    lifecycle: the layers' R, T and S, ``RADTRANO``'s arrays on the
+    streams, ``DOUBLING_INTEGRATION``'s linear source, and the scratch that
+    ``DOUBLING_INTEGRATION``, ``COMBINE_LAYERS`` and ``INTERNAL_RADIANCE``
+    use one at a time (``X``, ``Y``, ``GAMMA``, two vectors and LAPACK's
+    workspace, as RT4's COMMON blocks shared them).  ``rt4::radtrano``
+    sizes it, allocating only where an array grows, so one work data kept
+    over repeated calls with the same streams (as over frequency) allocates
+    nothing; ``rt4::solve`` makes one per call.  Reusing one over the 84
+    cases of ``cpp.fast.rt4-radtrano-test``, of different sizes, gives the
+    same bits as a fresh one per case.
 
   The Fortran ``RADTRANO`` is still built, as the reference:
   ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over

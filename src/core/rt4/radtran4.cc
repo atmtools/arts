@@ -27,7 +27,8 @@ void radtrano(Numeric          max_delta_tau,
               ConstVectorView  extra_mu,
               VectorView       mu_values,
               Tensor3View      up_rad,
-              Tensor3View      down_rad) {
+              Tensor3View      down_rad,
+              rt4_workdata&    work) {
   // NSTOKES, NUMMU, NUUMMU, NUM_LAYERS and NSL
   const Index nstokes    = up_rad.extent(2);
   const Index nummu      = mu_values.extent(0);
@@ -105,21 +106,29 @@ void radtrano(Numeric          max_delta_tau,
                      nummu,
                      (num_layers + 1) * n * n);
 
-  /* RADTRANO's work arrays, as the subroutines read them.  The reflection
-     and transmission of a slab are [2, n, n], the column-major n x n
-     matrices of the + and - directions, a source or a radiance is [2, n].
-     The layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 +
-     2*N*N*(L-1) and KS = 1 + 2*N*(L-1), are reflect[L-1], trans[L-1] and
-     source[L-1]; L = NUM_LAYERS+1 is the surface. */
-  Vector  quad_weights(nummu);
-  Matrix  lin_source(2, n);
-  Tensor3 reflect1(2, n, n), upreflect(2, n, n), downreflect(2, n, n);
-  Tensor3 trans1(2, n, n), uptrans(2, n, n), downtrans(2, n, n);
-  Matrix  source1(2, n), upsource(2, n), downsource(2, n);
-  Tensor4 reflect(num_layers + 1, 2, n, n);
-  Tensor4 trans(num_layers + 1, 2, n, n);
-  Tensor3 source(num_layers + 1, 2, n);
-  Matrix  sky_radiance(2, n);
+  /* RADTRANO's work arrays, as the subroutines read them: those of the
+     work data (rt4_workdata), sized for this problem.  The reflection and
+     transmission of a slab are [2, n, n], the column-major n x n matrices
+     of the + and - directions, a source or a radiance is [2, n].  The
+     layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 + 2*N*N*(L-1)
+     and KS = 1 + 2*N*(L-1), are reflect[L-1], trans[L-1] and source[L-1];
+     L = NUM_LAYERS+1 is the surface. */
+  work.resize(nstokes, nummu, num_layers);
+  Vector&  quad_weights = work.quad_weights;
+  Matrix&  lin_source   = work.lin_source;
+  Tensor3& reflect1     = work.reflect1;
+  Tensor3& upreflect    = work.upreflect;
+  Tensor3& downreflect  = work.downreflect;
+  Tensor3& trans1       = work.trans1;
+  Tensor3& uptrans      = work.uptrans;
+  Tensor3& downtrans    = work.downtrans;
+  Matrix&  source1      = work.source1;
+  Matrix&  upsource     = work.upsource;
+  Matrix&  downsource   = work.downsource;
+  Tensor4& reflect      = work.reflect;
+  Tensor4& trans        = work.trans;
+  Tensor3& source       = work.source;
+  Matrix&  sky_radiance = work.sky_radiance;
 
   // The radiances are in SI, W m-2 Hz-1 sr-1: the Planck function is
   // ARTS's planck() at the frequency
@@ -200,8 +209,16 @@ void radtrano(Numeric          max_delta_tau,
                  trans1.view_as(2, nummu, nstokes, nummu, nstokes));
 
       // Double up to the thickness of the layer
-      doubling_integration(
-          num_doubles, symmetric, reflect1, trans1, lin_source, linfactor, reflect[layer], trans[layer], source[layer]);
+      doubling_integration(num_doubles,
+                           symmetric,
+                           reflect1,
+                           trans1,
+                           lin_source,
+                           linfactor,
+                           reflect[layer],
+                           trans[layer],
+                           source[layer],
+                           work);
     }
   }
   // End of layer loop
@@ -241,7 +258,7 @@ void radtrano(Numeric          max_delta_tau,
         reflect1 = upreflect;
         trans1   = uptrans;
         source1  = upsource;
-        combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource);
+        combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource, work);
       }
     }
     for (Index l = layer; l < num_layers + 1; l++) {
@@ -253,7 +270,8 @@ void radtrano(Numeric          max_delta_tau,
         reflect1 = downreflect;
         trans1   = downtrans;
         source1  = downsource;
-        combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource);
+        combine_layers(
+            reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource, work);
       }
     }
     internal_radiance(upreflect,
@@ -265,7 +283,8 @@ void radtrano(Numeric          max_delta_tau,
                       sky_radiance[0],
                       gnd_radiance.view_as(n),
                       up_rad[i].view_as(n),
-                      down_rad[i].view_as(n));
+                      down_rad[i].view_as(n),
+                      work);
   }
 
   // Integrate the mu times the radiance to find the fluxes
