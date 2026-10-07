@@ -14,6 +14,7 @@ Verifies:
 9. FresnelSurfaceScatterer at normal incidence: closed form with
    R = ((n1 - n2)/(n1 + n2))^2
 10. Jacobian shape with jac_targetsAddSurface(target="t")
+11. Unusable sun position (latitude outside [-90, 90]) -> user error
 
 The ray_point.los uses the *upward* propagation convention: a nadir path
 stores los = [0, 180] at the surface point, so specular_losNormal gives the
@@ -314,7 +315,10 @@ def test_specular_direct_below_horizon():
     freq_grid = [10e9, 100e9, 183e9]
     R = 0.5
 
-    rad_sub = run_specular_direct(freq_grid, R, suns=[make_sun(100.0, 0.0)])
+    # Sun at (lat, lon) = (80, 180) is below the horizon at the observer
+    # (geometric za ~ 100).  Sun latitude is a geodetic coordinate relative to
+    # the planet centre and must stay within [-90, 90].
+    rad_sub = run_specular_direct(freq_grid, R, suns=[make_sun(80.0, 180.0)])
     expected = emission_only(freq_grid, R)
 
     assert np.allclose(rad_sub, expected, rtol=1e-7, atol=0.0), \
@@ -452,6 +456,38 @@ def test_specular_direct_jacobian():
 
 
 # ============================================================================
+# Test 11: Unusable sun position is a user error
+# ============================================================================
+def test_specular_direct_unusable_sun():
+    """A sun that cannot be placed in the sky of the planet is rejected.
+
+    Sun latitude and longitude are geodetic coordinates relative to the centre
+    of the planet, so the latitude must stay within [-90, 90].  Such values
+    used to reach the sph2cart assertions, aborting assertion-enabled builds
+    and passing silently in Release builds.
+    """
+    freq_grid = [10e9, 100e9, 183e9]
+
+    unusable_suns = [make_sun(100.0, 0.0),
+                     make_sun(0.0, 400.0),
+                     make_sun(0.0, 0.0, distance=-1.0),
+                     make_sun(0.0, 0.0, radius=-1.0)]
+
+    for sun in unusable_suns:
+        try:
+            run_specular_direct(freq_grid, 0.5, suns=[sun])
+        except RuntimeError as error:
+            assert "placed in the sky of the planet" in str(error), \
+                f"Unexpected error for sun ({sun.latitude}, {sun.longitude}):\n{error}"
+        else:
+            raise AssertionError(
+                f"Unusable sun ({sun.latitude}, {sun.longitude}, "
+                f"{sun.distance}, {sun.radius}) was accepted")
+
+    print("Test 11 passed: unusable sun positions raise a user error")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 if __name__ == "__main__":
@@ -465,4 +501,5 @@ if __name__ == "__main__":
     test_specular_direct_tilted_surface()
     test_specular_direct_fresnel()
     test_specular_direct_jacobian()
+    test_specular_direct_unusable_sun()
     print("\nAll tests passed!")

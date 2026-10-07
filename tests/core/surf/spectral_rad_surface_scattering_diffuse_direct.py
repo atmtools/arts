@@ -11,6 +11,7 @@ Verifies:
 7. Jacobian shape: correct dimensions when jac_targets is non-empty
 8. Consistency with Diffuse on a single unit-weight quadrature point
 9. arts.sun.geometric_los / arts.sun.refractive_los vs sun_pathFromObserverAgenda
+10. Unusable sun position (latitude outside [-90, 90]) -> user error
 """
 
 import numpy as np
@@ -225,9 +226,11 @@ def test_spectral_rad_surface_scattering_diffuse_direct_subhorizon():
     freq_grid = [10e9, 100e9, 183e9]
     r = 0.5
 
-    # Sun at latitude 100 deg: geometric za ~ 100 > 90 at observer (0, 0),
-    # i.e. below the (near-vertical) normal-based horizon
-    rad_sub = run_direct(freq_grid, r, suns=[make_sun(100.0, 0.0)])
+    # Sun at (lat, lon) = (80, 180): geometric za ~ 100 > 90 at observer (0, 0),
+    # i.e. below the (near-vertical) normal-based horizon.  Sun latitude is a
+    # geodetic coordinate relative to the planet centre and must stay within
+    # [-90, 90]; the sub-horizon geometry is reached through the longitude.
+    rad_sub = run_direct(freq_grid, r, suns=[make_sun(80.0, 180.0)])
 
     T_surf = 280.0
     expected = np.array([(1.0 - r) * planck(f, T_surf) for f in freq_grid])
@@ -399,6 +402,42 @@ def test_arts_sun_los_helpers():
 
 
 # ============================================================================
+# Test 10: Unusable sun position is a user error
+# ============================================================================
+def test_spectral_rad_surface_scattering_diffuse_direct_unusable_sun():
+    """A sun that cannot be placed in the sky of the planet is rejected.
+
+    Sun latitude and longitude are geodetic coordinates relative to the centre
+    of the planet, so the latitude must stay within [-90, 90].  Such values
+    used to reach the sph2cart assertions, aborting assertion-enabled builds
+    and passing silently in Release builds.
+    """
+    freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
+
+    unusable_suns = [make_sun(100.0, 0.0),
+                     make_sun(0.0, 400.0),
+                     make_sun(0.0, 0.0, distance=-1.0),
+                     make_sun(0.0, 0.0, radius=-1.0)]
+
+    for sun in unusable_suns:
+        for name, call in [("method", lambda sun=sun: run_direct(freq_grid, 0.5, suns=[sun])),
+                           ("arts.sun.geometric_los",
+                            lambda sun=sun: arts.sun.geometric_los(sun, [0.0, 0.0, 0.0], ws.surf_field))]:
+            try:
+                call()
+            except RuntimeError as error:
+                assert "placed in the sky of the planet" in str(error), \
+                    f"Unexpected error from {name} for sun ({sun.latitude}, {sun.longitude}):\n{error}"
+            else:
+                raise AssertionError(
+                    f"{name} accepted the unusable sun ({sun.latitude}, {sun.longitude}, "
+                    f"{sun.distance}, {sun.radius})")
+
+    print("Test 10 passed: unusable sun positions raise a user error")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 if __name__ == "__main__":
@@ -411,4 +450,5 @@ if __name__ == "__main__":
     test_spectral_rad_surface_scattering_diffuse_direct_jacobian()
     test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse()
     test_arts_sun_los_helpers()
+    test_spectral_rad_surface_scattering_diffuse_direct_unusable_sun()
     print("\nAll tests passed!")
