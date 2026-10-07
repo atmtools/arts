@@ -59,6 +59,8 @@ elseif(CMAKE_Fortran_COMPILER_ID MATCHES "^Intel")
 endif()
 add_library(polradtran_radmat ${polradtran_library_type} radmat.f)
 set_target_properties(polradtran_radmat PROPERTIES POSITION_INDEPENDENT_CODE ON)
+# MMULT calls BLAS DGEMM: the BLAS of ARTS's LAPACK (README.ARTS)
+target_link_libraries(polradtran_radmat PRIVATE ${LAPACK_LIBRARIES})
 set_source_files_properties(radmat.f PROPERTIES COMPILE_OPTIONS "${polradtran_radmat_options}")
 
 # The libraries behind src/core/rt4 and src/core/rt3, from the sources with

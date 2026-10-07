@@ -142,17 +142,15 @@ C				     X gets LU decomposition.
 
 
       SUBROUTINE MMULT (N, M, L, MATRIX1, MATRIX2, MATRIX3)
-      INTEGER  N, M, L,  I, J, K
-      REAL*8   MATRIX1(N,M), MATRIX2(M,L), MATRIX3(N,L),   SUM
+C       ARTS: BLAS DGEMM instead of the triple loop (README.ARTS).  An
+C       empty product is returned untouched, as by the loop, because BLAS
+C       rejects a leading dimension of 0.
+      INTEGER  N, M, L
+      REAL*8   MATRIX1(N,M), MATRIX2(M,L), MATRIX3(N,L)
 
-      DO 200 I = 1, N
-        DO 200 J = 1, L
-          SUM = 0.0
-          DO 100 K = 1, M
-            SUM = SUM + MATRIX1(I,K)*MATRIX2(K,J)
-100       CONTINUE
-          MATRIX3(I,J) = SUM
-200     CONTINUE
+      IF (N .LE. 0 .OR. L .LE. 0) RETURN
+      CALL DGEMM ('N', 'N', N, L, M, 1.0D0, MATRIX1, N,
+     .            MATRIX2, MAX(1,M), 0.0D0, MATRIX3, N)
       RETURN
       END
 

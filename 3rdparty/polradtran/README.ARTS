@@ -24,9 +24,12 @@ What is built (CMakeLists.txt; ENABLE_RT3 and ENABLE_RT4, on by default when
 a Fortran compiler is found):
 
 - polradtran_radmat: radmat.f, Evans' matrix routines, shared by both
-  libraries.  It differs from the tar only by the rt4_ prefix on its BLAS
+  libraries.  It differs from the tar by the rt4_ prefix on its BLAS
   helpers (rt4_daxpy, rt4_dscal, rt4_idamax, rt4_dswap), so that it cannot
-  clash with a linked BLAS.  It keeps no state between calls and is compiled
+  clash with a linked BLAS, and by MMULT, which calls BLAS DGEMM (ARTS's
+  LAPACK libraries) instead of Evans' triple loop.  The doubling of both
+  solvers spends most of its time in MMULT; the results differ from the
+  loop's by the summation order only, at rounding.  It keeps no state between calls and is compiled
   with -frecursive (GNU) or -auto (Intel) so that MINVERT's local arrays are
   on the stack, because RT4 and RT3 serialise their calls with separate
   mutexes and may call it concurrently.
