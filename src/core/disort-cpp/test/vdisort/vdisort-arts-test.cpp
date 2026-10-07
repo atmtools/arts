@@ -69,6 +69,30 @@ void require_error(const std::function<void()>& f, const std::string& what) {
   require(threw, std::format("Expected an error: {}", what));
 }
 
+void test_tro_backscatter_expansion() {
+  const auto t_grid  = std::make_shared<const Vector>(Vector{280.0});
+  const auto f_grid  = std::make_shared<const Vector>(Vector{100e9});
+  const auto za_grid = std::make_shared<const Vector>(Vector{45.0, 90.0});
+
+  scattering::BackscatterMatrixData<Numeric, scattering::Format::TRO> compact(t_grid, f_grid);
+  for (Index i = 0; i < 6; ++i) compact[0, 0, i] = static_cast<Numeric>(i + 1);
+  const auto expected = rtepack::compact_planar_muelmat{compact[0, 0, joker]}.expand();
+
+  scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO> backscatter(compact, za_grid);
+  scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO> forwardscatter(compact, za_grid);
+  for (Index za = 0; za < 2; ++za) {
+    for (Index i = 0; i < 4; ++i) {
+      for (Index j = 0; j < 4; ++j) {
+        const Numeric value = expected[i, j];
+        require(backscatter[0, 0, za, 4 * i + j] == value,
+                "TRO backscatter matrices must expand their six stored Mueller elements");
+        require(forwardscatter[0, 0, za, 4 * i + j] == value,
+                "TRO forwardscatter matrices must expand their six stored Mueller elements");
+      }
+    }
+  }
+}
+
 AtmPoint air(Numeric p, Numeric t) {
   AtmPoint a;
   a.pressure    = p;
@@ -652,6 +676,7 @@ void test_aro_data() {
 }  // namespace
 
 int main() try {
+  test_tro_backscatter_expansion();
   test_rayleigh();
   const auto c = mie();
   test_lab_frame(c);

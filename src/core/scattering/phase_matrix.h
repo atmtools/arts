@@ -385,10 +385,11 @@ template <std::floating_point Scalar> class BackscatterMatrixData<Scalar, Format
         za_inc_grid_(za_inc_grid) {
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
+        const auto expanded =
+            rtepack::compact_planar_muelmat{bsmat[i_t, i_f, joker]}.expand();
         for (Index i_za = 0; i_za < n_za_inc_; ++i_za) {
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            this->operator[](i_t, i_f, i_za, i_s) = bsmat[i_t, i_f, i_s];
-          }
+          for (Index i = 0; i < 4; ++i)
+            for (Index j = 0; j < 4; ++j) this->operator[](i_t, i_f, i_za, 4 * i + j) = expanded[i, j];
         }
       }
     }
