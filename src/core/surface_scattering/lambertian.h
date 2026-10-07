@@ -21,7 +21,7 @@ namespace surface_scattering {
  * the simulation's f_grid, decoupling the stored spectral resolution from the
  * simulation grid.
  *
- *   BRDF(I->I) = r(f) / pi
+ *   BRDF(I->I) = r(f)
  *   emissivity(I) = 1 - r(f)
  *
  * where r(f) is the reflectivity interpolated to frequency f.
