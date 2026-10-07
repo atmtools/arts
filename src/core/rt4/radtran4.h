@@ -13,7 +13,7 @@ namespace rt4 {
  * INITIALIZE, DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE
  * (radintg4.h), EXTERNAL_SURFACE and THERMAL_RADIANCE (radutil4.h).  The
  * quadratures are ARTS's (rt4::get_quadrature), the Planck function is
- * ARTS's planck(), MZERO is "= 0.0", MIDENTITY matpack::identity and MCOPY
+ * ARTS's planck(), MZERO is "= 0.0", MIDENTITY identity and MCOPY
  * "=".  It calls no Fortran and keeps no state between calls.  The STOPs
  * of RADTRANO throw instead.
  *

@@ -243,10 +243,10 @@ void radtrano(Numeric          max_delta_tau,
     const Index layer = std::min(std::max(i, Index{0}), num_layers + 1);
     upreflect         = 0.0;
     downreflect       = 0.0;
-    matpack::identity(uptrans[0]);
-    matpack::identity(uptrans[1]);
-    matpack::identity(downtrans[0]);
-    matpack::identity(downtrans[1]);
+    identity(uptrans[0]);
+    identity(uptrans[1]);
+    identity(downtrans[0]);
+    identity(downtrans[1]);
     upsource   = 0.0;
     downsource = 0.0;
     for (Index l = 0; l < layer; l++) {

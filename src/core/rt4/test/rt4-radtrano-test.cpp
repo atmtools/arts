@@ -898,7 +898,7 @@ void check_internal_radiance() {
             slab above;
             if (d1 < 0) {
               above = {.reflect = Tensor3(2, n, n, 0.0), .trans = Tensor3(2, n, n), .source = Matrix(2, n, 0.0)};
-              for (Index h = 0; h < 2; h++) matpack::identity(above.trans[h]);
+              for (Index h = 0; h < 2; h++) identity(above.trans[h]);
             } else {
               above = random_slab(gen, nstokes, nummu, d1, symmetric);
             }

@@ -64,7 +64,7 @@ void doubling_integration(Index         num_doubles,
 
   for (Index i = 0; i < num_doubles; i++) {
     // Make gamma plus matrix: GAMMA = inv[1 - Rp*Rm]
-    mult(matpack::identity(gamma), rm, rp, -1.0, 1.0);
+    mult(identity(gamma), rm, rp, -1.0, 1.0);
     inv_inplace(gamma, wo);
 
     // Rp(2N) = Rp + Tp * GAMMA * Rp * Tm
@@ -84,26 +84,26 @@ void doubling_integration(Index         num_doubles,
     yv  = sm;
     yv += xv;
     xv  = sp;
-    mult(xv, matpack::transpose(rp), yv, 1.0, 1.0);
-    mult(yv, matpack::transpose(gamma), xv);
+    mult(xv, transpose(rp), yv, 1.0, 1.0);
+    mult(yv, transpose(gamma), xv);
     t_lin[0] = sp;
-    mult(t_lin[0], matpack::transpose(tp), yv, 1.0, 1.0);
+    mult(t_lin[0], transpose(tp), yv, 1.0, 1.0);
     yv        = cp;
     yv       *= linfac;
     t_lin[0] += yv;
     //   Cp(2N) = Cp + Tp * GAMMA * (Cp + Rp * Cm)
     yv = cp;
-    mult(yv, matpack::transpose(rp), cm, 1.0, 1.0);
-    mult(xv, matpack::transpose(gamma), yv);
+    mult(yv, transpose(rp), cm, 1.0, 1.0);
+    mult(xv, transpose(gamma), yv);
     t_const[0] = cp;
-    mult(t_const[0], matpack::transpose(tp), xv, 1.0, 1.0);
+    mult(t_const[0], transpose(tp), xv, 1.0, 1.0);
 
     if (symmetric) {
       t_reflect[1] = t_reflect[0];
       t_trans[1]   = t_trans[0];
     } else {
       // Make gamma minus matrix: GAMMA = inv[1 - Rm*Rp]
-      mult(matpack::identity(gamma), rp, rm, -1.0, 1.0);
+      mult(identity(gamma), rp, rm, -1.0, 1.0);
       inv_inplace(gamma, wo);
 
       // Rm(2N) = Rm + Tm * GAMMA * Rm * Tp
@@ -123,16 +123,16 @@ void doubling_integration(Index         num_doubles,
     xv *= linfac;
     yv  = sm;
     yv += xv;
-    mult(yv, matpack::transpose(rm), sp, 1.0, 1.0);
-    mult(xv, matpack::transpose(gamma), yv);
+    mult(yv, transpose(rm), sp, 1.0, 1.0);
+    mult(xv, transpose(gamma), yv);
     t_lin[1] = sm;
-    mult(t_lin[1], matpack::transpose(tm), xv, 1.0, 1.0);
+    mult(t_lin[1], transpose(tm), xv, 1.0, 1.0);
     //   Cm(2N) = Cm + Tm * GAMMA * (Cm + Rm * Cp)
     yv = cm;
-    mult(yv, matpack::transpose(rm), cp, 1.0, 1.0);
-    mult(xv, matpack::transpose(gamma), yv);
+    mult(yv, transpose(rm), cp, 1.0, 1.0);
+    mult(xv, transpose(gamma), yv);
     t_const[1] = cm;
-    mult(t_const[1], matpack::transpose(tm), xv, 1.0, 1.0);
+    mult(t_const[1], transpose(tm), xv, 1.0, 1.0);
 
     lin_source  = t_lin;
     cnst        = t_const;
@@ -191,7 +191,7 @@ void combine_layers(ConstTensor3View reflect1,
   inv_workdata& wo    = work.inv;
 
   // GAMMAp = inv[1 - R1p * R2m]     (p for +,  m for -)
-  mult(matpack::identity(gamma), r2m, r1p, -1.0, 1.0);
+  mult(identity(gamma), r2m, r1p, -1.0, 1.0);
   inv_inplace(gamma, wo);
 
   // RTp = R2p + T2p * GAMMAp * R1p * T2m
@@ -206,13 +206,13 @@ void combine_layers(ConstTensor3View reflect1,
 
   // STp = S2p + T2p * GAMMAp * (S1p + R1p * S2m)
   yv = s1p;
-  mult(yv, matpack::transpose(r1p), s2m, 1.0, 1.0);
-  mult(xv, matpack::transpose(gamma), yv);
+  mult(yv, transpose(r1p), s2m, 1.0, 1.0);
+  mult(xv, transpose(gamma), yv);
   out_source[0] = s2p;
-  mult(out_source[0], matpack::transpose(t2p), xv, 1.0, 1.0);
+  mult(out_source[0], transpose(t2p), xv, 1.0, 1.0);
 
   // GAMMAm = inv[1 - R2m * R1p]
-  mult(matpack::identity(gamma), r1p, r2m, -1.0, 1.0);
+  mult(identity(gamma), r1p, r2m, -1.0, 1.0);
   inv_inplace(gamma, wo);
 
   // RTm = R1m + T1m * GAMMAm * R2m * T1p
@@ -227,10 +227,10 @@ void combine_layers(ConstTensor3View reflect1,
 
   // STm = S1m + T1m * GAMMAm * (S2m + R2m * S1p)
   yv = s2m;
-  mult(yv, matpack::transpose(r2m), s1p, 1.0, 1.0);
-  mult(xv, matpack::transpose(gamma), yv);
+  mult(yv, transpose(r2m), s1p, 1.0, 1.0);
+  mult(xv, transpose(gamma), yv);
   out_source[1] = s1m;
-  mult(out_source[1], matpack::transpose(t1m), xv, 1.0, 1.0);
+  mult(out_source[1], transpose(t1m), xv, 1.0, 1.0);
 }
 
 void internal_radiance(ConstTensor3View upreflect,
@@ -277,26 +277,26 @@ void internal_radiance(ConstTensor3View upreflect,
   inv_workdata& wo = work.inv;
 
   // Compute gamma plus: inv[1 - UPREFLECT(+) DOWNREFLECT(-)]
-  mult(matpack::identity(x), rdm, rup, -1.0, 1.0);
+  mult(identity(x), rdm, rup, -1.0, 1.0);
   inv_inplace(x, wo);
   // Calculate the internal downwelling (plus) radiance vector
-  mult(v, matpack::transpose(tdm), inbottomrad);
-  mult(s, matpack::transpose(rup), v);
-  mult(s, matpack::transpose(tup), intoprad, 1.0, 1.0);
-  mult(s, matpack::transpose(rup), sdm, 1.0, 1.0);
+  mult(v, transpose(tdm), inbottomrad);
+  mult(s, transpose(rup), v);
+  mult(s, transpose(tup), intoprad, 1.0, 1.0);
+  mult(s, transpose(rup), sdm, 1.0, 1.0);
   s += sup;
-  mult(downrad, matpack::transpose(x), s);
+  mult(downrad, transpose(x), s);
 
   // Compute gamma minus: inv[1 - DOWNREFLECT(-) UPREFLECT(+)]
-  mult(matpack::identity(x), rup, rdm, -1.0, 1.0);
+  mult(identity(x), rup, rdm, -1.0, 1.0);
   inv_inplace(x, wo);
   // Calculate the internal upwelling (minus) radiance vector
-  mult(v, matpack::transpose(tup), intoprad);
-  mult(s, matpack::transpose(rdm), v);
-  mult(s, matpack::transpose(tdm), inbottomrad, 1.0, 1.0);
-  mult(s, matpack::transpose(rdm), sup, 1.0, 1.0);
+  mult(v, transpose(tup), intoprad);
+  mult(s, transpose(rdm), v);
+  mult(s, transpose(tdm), inbottomrad, 1.0, 1.0);
+  mult(s, transpose(rdm), sup, 1.0, 1.0);
   s += sdm;
-  mult(uprad, matpack::transpose(x), s);
+  mult(uprad, transpose(x), s);
 }
 
 void initialize(Numeric          delta_z,
@@ -401,8 +401,8 @@ void nonscatter_layer(Numeric         deltatau,
   trans = 0.0;
   for (Index j = 0; j < nummu; j++) {
     const Numeric factor = std::exp(-deltatau / mu_values[j]);
-    matpack::identity(trans[0, j, joker, j, joker], factor);
-    matpack::identity(trans[1, j, joker, j, joker], factor);
+    identity(trans[0, j, joker, j, joker], factor);
+    identity(trans[1, j, joker, j, joker], factor);
   }
 
   source = 0.0;

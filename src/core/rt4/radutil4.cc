@@ -33,7 +33,7 @@ void lambert_surface_layer(Index           mode,
 
   reflect = 0.0;
   source  = 0.0;
-  for (Index h = 0; h < 2; h++) matpack::identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
+  for (Index h = 0; h < 2; h++) identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
   // The Lambertian ground reflects the flux equally in all direction
   // and completely unpolarizes the radiation
   if (mode == 0) {
@@ -69,7 +69,7 @@ void fresnel_surface_layer(
 
   reflect = 0.0;
   source  = 0.0;
-  for (Index h = 0; h < 2; h++) matpack::identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
+  for (Index h = 0; h < 2; h++) identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
 
   // REFLECT(I, J, K, J, 2) = R(I, K): R1 and R2 in the [I, Q] block, R3 and
   // R4 in the [U, V] block
@@ -77,7 +77,7 @@ void fresnel_surface_layer(
   for (Index j = 0; j < nummu; j++) {
     const auto [rv, rh]            = fresnel(1.0, index, Conversion::acosd(mu_values[j]));
     const Muelmat r                = rtepack::fresnel_reflectance(rv, rh);
-    reflect[1, j, joker, j, joker] = matpack::transpose(r.view()[stokes, stokes]);
+    reflect[1, j, joker, j, joker] = transpose(r.view()[stokes, stokes]);
   }
 }
 
@@ -119,10 +119,10 @@ void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, 
 
   reflect = 0.0;
   source  = 0.0;
-  for (Index h = 0; h < 2; h++) matpack::identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
+  for (Index h = 0; h < 2; h++) identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
 
   // REFLECT(S1, J, S2, J, 2) = GROUND_REFLEC(S2, S1) = R(S1, S2)
-  for (Index j = 0; j < nummu; j++) reflect[1, j, joker, j, joker] = matpack::transpose(ground_reflec);
+  for (Index j = 0; j < nummu; j++) reflect[1, j, joker, j, joker] = transpose(ground_reflec);
 }
 
 void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
@@ -163,7 +163,7 @@ void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, 
 
   reflect = 0.0;
   source  = 0.0;
-  for (Index h = 0; h < 2; h++) matpack::identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
+  for (Index h = 0; h < 2; h++) identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
 
   // REFLECT(I1, J1, I2, J2, 2) = SURF_REFL(I1, J1, I2, J2)
   reflect[1] = surf_reflect;
@@ -251,8 +251,7 @@ void ground_surface(const surface&  ground,
                              g.emission.shape());
           gnd_radiance = g.emission;
           for (Index io = 0; io < nummu; io++)
-            for (Index ii = 0; ii < nummu; ii++)
-              surf_reflect[ii, joker, io, joker] = matpack::transpose(g.reflection[io, ii]);
+            for (Index ii = 0; ii < nummu; ii++) surf_reflect[ii, joker, io, joker] = transpose(g.reflection[io, ii]);
         }
       },
       ground);

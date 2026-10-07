@@ -62,7 +62,7 @@ Provenance
     It takes no counts: ``NSTOKES``, ``NUMMU``, ``NUUMMU``, ``NUM_LAYERS``
     and ``NSL`` are the extents of its arrays, with the extra angles as an
     input of their own.  ``MZERO`` is ``= 0.0``, ``MCOPY`` is ``=`` and
-    ``MIDENTITY`` is ``matpack::identity`` (which sets a square matrix to a
+    ``MIDENTITY`` is ``identity`` (which sets a square matrix to a
     multiple of the identity and returns it, so that ``1 - R R`` is
     ``mult(identity(y), R, R, -1.0, 1.0)``).  Its work arrays are sized to
     the problem; its ``STOP`` checks, including the static-array limits
