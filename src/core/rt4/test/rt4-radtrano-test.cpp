@@ -9,21 +9,30 @@
 // ARTS's planck() replaced PLANCK_FUNCTION for the layers, the more accurate
 // at small h nu / k T.  Then the port of DOUBLING_INTEGRATION folded the
 // MADD, MSUB and MIDENTITY after a product into DGEMM's alpha and beta, and
-// inverts with LAPACK instead of LINPACK; in optically thick layers the
-// doubling amplifies the rounding of the inverse.  The radiances differ by
-// up to about 4e-13 of the largest radiance.  The test reports how many
-// cases are still bit-identical and the largest difference.
+// inverts with LAPACK instead of LINPACK.
+//
+// Mathematically equivalent evaluations are accepted: the tolerances allow
+// a few ulp (rounding, 16 epsilon) times what a computation amplifies
+// rounding by, so that FMA contraction, vectorised libm functions and other
+// BLAS kernels pass and an error of the port does not.  n doublings
+// amplify rounding by 2^n, so the radiances must agree to 1e-11 (for the
+// replaced quadratures and planck()) plus rounding times 2^n for the
+// layer doubled most; they differ by up to 4e-13 of the largest radiance
+// on Apple arm64 with OpenBLAS and 1.5e-9 on AMD x86_64 with MKL.  The test
+// reports how many cases are still bit-identical and the largest
+// difference.
 //
 // It also checks each replaced or ported routine against its Fortran: the
 // quadratures, planck() and the ground and sky radiances (lambert_,
 // fresnel_, specular_ and thermal_radiance, which use planck()) to rounding,
 // fresnel_surface_layer (ARTS's fresnel()), combine_layers and
-// internal_radiance to 1e-13,
-// doubling_integration to 1e-10, and the routines ported as is (initialize, initial_source,
+// internal_radiance to 1e-13, doubling_integration to rounding times 2^n,
+// and the routines ported as is (initialize, initial_source,
 // nonscatter_layer, lambert_surface_layer, specular_surface_layer,
-// external_surface_layer) to 1e-14, reporting how many cases are bit-identical (all of them with Apple
-// clang and gfortran; another compiler may contract multiply-adds into FMAs
-// differently).
+// external_surface_layer) to 1e-14, nonscatter_layer's source to rounding
+// times the cancellation of its terms, reporting how many cases are
+// bit-identical (all of them with Apple clang and gfortran; on glibc,
+// gfortran vectorises NONSCATTER_LAYER's exp to libmvec's).
 //
 // The inputs are random, in RADTRANO's own layouts, and cover each branch of
 // RADTRANO: the three quadratures, extra angles, the four ground types,
@@ -316,6 +325,20 @@ outputs run_fortran(inputs in, Index nsl) {
           .down_rad     = std::move(down_rad)};
 }
 
+//! 2^n for the most doublings n of a scattering layer, as RADTRANO counts
+//! them: the amplification of rounding (see check_doubling_integration)
+Numeric doubling_amplification(const inputs& in) {
+  Numeric amp = 1.0;
+  for (Index l = 0; l < in.scatlayers.extent(0); l++) {
+    const Index set = std::lround(in.scatlayers[l]);
+    if (set < 1) continue;
+    const Numeric extinct = in.extinct_matrix[set - 1, 0, 0, 0, 0] + std::max(in.gas_extinct[l], 0.0);
+    const Numeric f = std::log2(std::max(extinct * std::abs(in.height[l] - in.height[l + 1]), 1e-7) / in.max_delta_tau);
+    if (f > 0.0) amp = std::max(amp, std::pow(2.0, std::floor(f) + 1.0));
+  }
+  return amp;
+}
+
 //! The number of elements that differ, and the largest difference relative
 //! to the largest magnitude in either array (Q can be near 0 beside I)
 std::pair<Index, Numeric> differ(const auto& a, const auto& b) {
@@ -390,31 +413,61 @@ void check_planck() {
   if (worst > 1e-12) throw std::runtime_error("planck() and PLANCK_FUNCTION differ by more than rounding");
 }
 
+/* The rounding of a few operations, per unit of amplification.  An
+   evaluation that is mathematically the same but rounds differently (FMA
+   contraction, a vectorised libm exp, another BLAS kernel or summation
+   order, LAPACK's inverse for LINPACK's) changes a result by a few ulp
+   times what the computation amplifies rounding by. */
+constexpr Numeric rounding = 16 * std::numeric_limits<Numeric>::epsilon();
+
+//! The differ() of one output, and how much its computation amplifies
+//! rounding (1: not at all)
+struct output_difference {
+  Index   count{};
+  Numeric rel{}, amplification{1.0};
+
+  output_difference(std::pair<Index, Numeric> d, Numeric amp = 1.0)
+      : count{d.first}, rel{d.second}, amplification{amp} {}
+};
+
 //! A ported routine against its Fortran, case by case
 struct routine_tally {
   Index   ncase{}, identical{};
-  Numeric worst{};
+  Numeric worst{}, worst_per_amplification{};
+  bool    amplified{false};
 
   //! One case, from the differ() of each output
-  void add(std::initializer_list<std::pair<Index, Numeric>> outputs) {
+  void add(std::initializer_list<output_difference> outputs) {
     Index ndiffer = 0;
-    for (auto [count, rel] : outputs) {
-      ndiffer += count;
-      worst    = std::max(worst, rel);
+    for (const auto& out : outputs) {
+      ndiffer                 += out.count;
+      worst                    = std::max(worst, out.rel);
+      worst_per_amplification  = std::max(worst_per_amplification, out.rel / out.amplification);
+      amplified                = amplified or out.amplification != 1.0;
     }
     identical += ndiffer == 0;
     ncase++;
   }
 
+  //! Throws if an output differs by more than tolerance times its
+  //! amplification
   void report(std::string_view cpp, std::string_view fortran, Numeric tolerance = 1e-14) const {
-    std::cout << std::format("{} against {}: {} of {} cases bit-identical (largest relative difference {:.2e})\n",
+    std::cout << std::format("{} against {}: {} of {} cases bit-identical (largest relative difference {:.2e}{})\n",
                              cpp,
                              fortran,
                              identical,
                              ncase,
-                             worst);
-    if (worst > tolerance)
-      throw std::runtime_error(std::format("{} differs from {} by more than {:.0e}", cpp, fortran, tolerance));
+                             worst,
+                             amplified ? std::format(", {:.2e} per unit of rounding amplification against {:.2e}",
+                                                     worst_per_amplification,
+                                                     tolerance)
+                                       : std::string{});
+    if (worst_per_amplification > tolerance)
+      throw std::runtime_error(std::format("{} differs from {} by more than {:.2e}{}",
+                                           cpp,
+                                           fortran,
+                                           tolerance,
+                                           amplified ? " times the rounding amplification" : ""));
   }
 };
 
@@ -696,9 +749,13 @@ void check_thermal_radiance() {
    to 0.95) made by rt4::initialize and rt4::initial_source.  It is not as
    is: DGEMM's alpha and beta absorb the MIDENTITY, MSUB and MADD after a
    product (one rounding fewer each), and the inverse is LAPACK's instead of
-   LINPACK's, so the two agree to rounding amplified by the doublings:
-   about 1e-15 for 6 doublings, 1.3e-11 for 24 doublings of 32 streams
-   (Apple arm64, OpenBLAS). */
+   LINPACK's, so the two agree to rounding amplified by the doublings.  Each
+   doubling about squares T, which doubles its relative error, so n
+   doublings amplify rounding by 2^n: perturbing the Fortran's inputs by
+   1 ulp changes its output by 3.7e-9 for 24 doublings, and in quad
+   precision the C++ and the Fortran are both 1.9e-9 off.  The C++ and the
+   Fortran differ by 2e-14 for 6 doublings and 1.2e-9 for 24 (AMD x86_64,
+   MKL; 1.3e-11 on Apple arm64 with OpenBLAS). */
 void check_doubling_integration() {
   std::mt19937_64                         gen(1995);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
@@ -761,17 +818,18 @@ void check_doubling_integration() {
                                    trf.data_handle(),
                                    ttf.data_handle(),
                                    tsf.data_handle());
-          tally.add({differ(tr, trf),
-                     differ(tt, ttf),
-                     differ(ts, tsf),
-                     differ(reflect, rf),
-                     differ(trans, tf),
-                     differ(lin, lf)});
+          const Numeric amp = std::pow(2.0, num_doubles);
+          tally.add({{differ(tr, trf), amp},
+                     {differ(tt, ttf), amp},
+                     {differ(ts, tsf), amp},
+                     {differ(reflect, rf), amp},
+                     {differ(trans, tf), amp},
+                     {differ(lin, lf), amp}});
         }
       }
     }
   }
-  tally.report("doubling_integration", "DOUBLING_INTEGRATION", 1e-10);
+  tally.report("doubling_integration", "DOUBLING_INTEGRATION", rounding);
 }
 
 //! A physical slab: R, T and S of random optics (single-scattering albedo
@@ -1046,12 +1104,26 @@ void check_nonscatter_layer() {
                                rf.data_handle(),
                                tf.data_handle(),
                                srcf.data_handle());
-          tally.add({differ(r, rf), differ(t, tf), differ(src, srcf)});
+          // The source's terms, of size planck + slope, cancel to about
+          // planck * path, so at a small path an ulp of exp(-path) (gfortran
+          // vectorises it to libmvec's, up to 3.5 ulp off) is amplified by
+          // the sum of their magnitudes over the largest source
+          Numeric terms = 0.0, largest = 0.0;
+          if (deltatau > 0.0) {
+            for (Index j = 0; j < nummu; j++) {
+              const Numeric path = deltatau / mu[j], slope = std::abs(planck1 - planck0) / path,
+                            p = std::max(planck0, planck1);
+              terms           = std::max(terms, p + slope + (p + slope * (1.0 + path)) * std::exp(-path));
+            }
+          }
+          for (auto s : src | by_elem) largest = std::max(largest, std::abs(s));
+          const Numeric amp = largest > 0.0 ? std::max(1.0, terms / largest) : 1.0;
+          tally.add({differ(r, rf), differ(t, tf), {differ(src, srcf), amp}});
         }
       }
     }
   }
-  tally.report("nonscatter_layer", "NONSCATTER_LAYER");
+  tally.report("nonscatter_layer", "NONSCATTER_LAYER", rounding);
 }
 
 std::vector<case_spec> cases() {
@@ -1075,6 +1147,8 @@ std::vector<case_spec> cases() {
 }  // namespace
 
 int main() try {
+  // ARTS's quadratures and planck() for RT4's, which differ by 2.3e-12 and
+  // 4.5e-13; to this is added the rounding amplified by the doublings
   constexpr Numeric tolerance = 1e-11;
 
   check_quadratures();
@@ -1096,8 +1170,8 @@ int main() try {
 
   std::mt19937_64 gen(20261007);
   Index           identical = 0, failed = 0, reuse_differ = 0;
-  Numeric         worst = 0.0;
-  const auto      all   = cases();
+  Numeric         worst = 0.0, worst_of_tolerance = 0.0;
+  const auto      all = cases();
 
   // One work data over all cases, whose sizes differ, against a fresh one
   // per case: reuse must not change a bit
@@ -1116,13 +1190,15 @@ int main() try {
                               differ(cpp.mu_values, reused.mu_values)})
       reuse_differ += count;
 
-    std::string bad;
-    Index       ndiffer = 0;
-    const auto  check   = [&](const char* name, const auto& a, const auto& b) {
+    std::string   bad;
+    Index         ndiffer        = 0;
+    const Numeric case_tolerance = tolerance + rounding * doubling_amplification(in);
+    const auto    check          = [&](const char* name, const auto& a, const auto& b) {
       const auto [count, rel]  = differ(a, b);
       ndiffer                 += count;
       worst                    = std::max(worst, rel);
-      if (rel > tolerance) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
+      worst_of_tolerance       = std::max(worst_of_tolerance, rel / case_tolerance);
+      if (rel > case_tolerance) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
     };
     check("up_rad", cpp.up_rad, f77.up_rad);
     check("down_rad", cpp.down_rad, f77.down_rad);
@@ -1132,7 +1208,7 @@ int main() try {
     identical += ndiffer == 0;
     if (not bad.empty()) {
       failed++;
-      std::cout << std::format("Differs by more than {:.0e}: {}:{}\n", tolerance, describe(c), bad);
+      std::cout << std::format("Differs by more than {:.2e}: {}:{}\n", case_tolerance, describe(c), bad);
     }
   }
 
@@ -1166,12 +1242,13 @@ int main() try {
   }
 
   std::cout << std::format(
-      "C++ against Fortran RADTRANO: {} of {} cases within {:.0e} (largest relative difference {:.2e}), {} "
-      "bit-identical\n",
+      "C++ against Fortran RADTRANO: {} of {} cases within {:.0e} plus the rounding amplified by their doublings "
+      "(largest relative difference {:.2e}, at most {:.2f} of a case's tolerance), {} bit-identical\n",
       all.size() - failed,
       all.size(),
       tolerance,
       worst,
+      worst_of_tolerance,
       identical);
   return failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 } catch (const std::exception& e) {

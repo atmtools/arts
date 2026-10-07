@@ -142,7 +142,10 @@ Provenance
     ``rt4::initialize`` (``src/core/rt4/radintg4.h``, where the
     ``radintg4.f`` routines go as they are ported), as is, with ``= 0.0``
     for ``MZERO`` and ``Constant::two_pi`` for ``C``; they call no Fortran.
-    All are bit-identical to the Fortran.
+    All are bit-identical to the Fortran, except where gfortran on glibc
+    vectorises ``NONSCATTER_LAYER``'s ``DEXP`` to libmvec's (up to 3.5 ulp
+    off): its source, whose terms cancel to about the Planck function
+    times the path, then differs by up to 5e-9 at a path of 1e-4.
   * ``DOUBLING_INTEGRATION`` is ``rt4::doubling_integration`` (also in
     ``radintg4.h``), with matpack for Evans' matrix helpers: ``MCOPY`` is
     ``=``, ``MSCALARMULT`` and ``MADD`` on vectors ``*=`` and ``+=``,
@@ -164,8 +167,11 @@ Provenance
     most 2.2e-15 of I; LAPACK's inverse instead of LINPACK's by at most
     2e-12 of I (median 4e-18), in an optically thick, strongly scattering
     layer, where about 26 doublings each invert a poorly conditioned
-    ``1 - R R``.  Against the Fortran routine directly the difference grows
-    from 1e-15 for 6 doublings to 1.3e-11 for 24 doublings of 32 streams.
+    ``1 - R R``.  Each doubling about squares T, doubling its relative
+    error, so n doublings amplify rounding by 2^n: against the Fortran
+    routine directly the difference grows from 2e-14 for 6 doublings to
+    1.2e-9 for 24 (1.3e-11 on Apple arm64 with OpenBLAS), and in quad
+    precision both are 1.9e-9 off.
   * ``COMBINE_LAYERS`` is ``rt4::combine_layers`` (``radintg4.h``), in the
     same way as ``rt4::doubling_integration``.  Against the Fortran
     routine it differs by at most 7.7e-16 (one combination does not
@@ -193,12 +199,18 @@ Provenance
   The Fortran ``RADTRANO`` is still built, as the reference:
   ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over
   every branch of ``RADTRANO``.  The port was bit-identical until the
-  quadratures were replaced; every output must now agree to 1e-11 of the
-  largest value in it (the largest difference is about 4e-13), and the
-  test also checks the quadratures, ``planck()`` and each ported routine
-  against Evans' routines: ``doubling_integration`` to 1e-10, and the
-  routines ported as is bit-identical in all cases (the test allows 1e-14,
-  for compilers that contract multiply-adds into FMAs differently).
+  quadratures were replaced.  Mathematically equivalent evaluations (FMA
+  contraction, vectorised libm functions, other BLAS kernels) are
+  accepted: the tolerances allow 16 epsilon times what a computation
+  amplifies rounding by.  Every output must agree to 1e-11 of the largest
+  value in it, for the replaced quadratures and ``planck()``, plus 16
+  epsilon times 2^n for the layer doubled n times most (the largest
+  difference is 4e-13 on Apple arm64 with OpenBLAS, 1.5e-9 on AMD x86_64
+  with MKL).  The test also checks the quadratures, ``planck()`` and each
+  ported routine against Evans' routines: ``doubling_integration`` to 16
+  epsilon times 2^n, ``nonscatter_layer``'s source to 16 epsilon times
+  the cancellation of its terms, and the other routines ported as is to
+  1e-14.
   A step meant to leave the numbers alone is also checked bit for bit
   against the step before; one that changes them, like the quadratures, has
   the change measured.
