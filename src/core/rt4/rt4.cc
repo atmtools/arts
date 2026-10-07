@@ -2,70 +2,24 @@
 
 #include <arts_constants.h>
 #include <debug.h>
+#include <integration.h>
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
-#include <mutex>
-#include <type_traits>
 
 #ifdef ARTS_HAS_RT4
-// ISO_C_BINDING entry points of 3rdparty/polradtran/rt4_c_interface.f90.
-// The arrays are Fortran column-major; see the layouts in solve().
-extern "C" {
-void rt4_radtrano(std::int64_t nstokes,
-                  std::int64_t nummu,
-                  std::int64_t nuummu,
-                  double       max_delta_tau,
-                  char         quad_type,
-                  double       ground_temp,
-                  char         ground_type,
-                  double       ground_albedo,
-                  double       ground_index_re,
-                  double       ground_index_im,
-                  double*      ground_reflec,
-                  double*      surf_reflect,
-                  double*      gnd_radiance,
-                  double       sky_temp,
-                  double       wavelength,
-                  std::int64_t num_layers,
-                  double*      height,
-                  double*      temperatures,
-                  double*      gas_extinct,
-                  std::int64_t nsl,
-                  double*      scatlayers,
-                  double*      extinct_matrix,
-                  double*      emis_vector,
-                  double*      scatter_matrix,
-                  double*      mu_values,
-                  double*      up_rad,
-                  double*      down_rad);
-void rt4_double_gauss_quadrature(std::int64_t num, double* abscissas, double* weights);
-void rt4_gauss_legendre_quadrature(std::int64_t num, double* abscissas, double* weights);
-void rt4_lobatto_quadrature(std::int64_t num, double* abscissas, double* weights);
-}
+#include "radtran4.h"
+#include "radutil4.h"
 #endif
 
 namespace rt4 {
 namespace {
 #ifdef ARTS_HAS_RT4
-//! RT4 uses COMMON blocks and large static local arrays: serialise every call.
-std::mutex fortran_mutex;
-
-//! Fixed sizes in radtran4.f (MAXV, MAXLAY, MAXLM).  MAXM = MAXV^2 and the
-//! MINVERT limit of 256 are implied by MAXV.
+//! Fixed sizes in radtran4.f (MAXV, MAXLAY, MAXLM), kept by radtrano().
+//! MAXM = MAXV^2 and the MINVERT limit of 256 are implied by MAXV.
 constexpr Index max_vector       = 64;
 constexpr Index max_layers       = 400;
 constexpr Index max_layer_matrix = 301 * 4096;
-
-char quad_char(quadrature_type type) {
-  switch (type) {
-    case quadrature_type::double_gauss: return 'D';
-    case quadrature_type::gauss:        return 'G';
-    case quadrature_type::lobatto:      return 'L';
-  }
-  ARTS_USER_ERROR("Unknown RT4 quadrature type {}", static_cast<int>(type));
-}
 
 void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index ns) {
   constexpr Numeric rel = 1e-10;
@@ -155,24 +109,19 @@ bool available() {
 }
 
 quadrature get_quadrature(Index nmu, quadrature_type type) {
-  ARTS_USER_ERROR_IF(not available(), "RT4 requires ENABLE_RT4=ON");
   ARTS_USER_ERROR_IF(nmu < 1, "RT4 needs at least one quadrature node per hemisphere, got nmu = {}", nmu);
 
-  quadrature q{.mu = Vector(nmu, 0.0), .weights = Vector(nmu, 0.0)};
-#ifdef ARTS_HAS_RT4
-  const char c = quad_char(type);
-
-  std::lock_guard lock(fortran_mutex);
-  if (c == 'D')
-    rt4_double_gauss_quadrature(nmu, q.mu.data_handle(), q.weights.data_handle());
-  else if (c == 'L')
-    rt4_lobatto_quadrature(nmu, q.mu.data_handle(), q.weights.data_handle());
-  else
-    rt4_gauss_legendre_quadrature(nmu, q.mu.data_handle(), q.weights.data_handle());
-#else
-  (void)type;
-#endif
-  return q;
+  // The positive half of ARTS's 2 nmu-point rule on [-1, 1]
+  const auto positive_half = [nmu](const auto& rule) {
+    return quadrature{.mu      = Vector{rule.get_nodes()[Range{nmu, nmu}]},
+                      .weights = Vector{rule.get_weights()[Range{nmu, nmu}]}};
+  };
+  switch (type) {
+    case quadrature_type::double_gauss: return positive_half(scattering::DoubleGaussQuadrature(2 * nmu));
+    case quadrature_type::gauss:        return positive_half(scattering::GaussLegendreQuadrature(2 * nmu));
+    case quadrature_type::lobatto:      return positive_half(scattering::LobattoQuadrature(2 * nmu));
+  }
+  ARTS_USER_ERROR("Unknown RT4 quadrature type {}", static_cast<int>(type));
 }
 
 result solve(const problem& p) {
@@ -256,11 +205,9 @@ result solve(const problem& p) {
     check_normalisation(o, iset, quad_nodes, nquad, p.normalisation_tolerance);
   }
 
-  // RADTRANO arguments.  A row-major [a, b, c] array is the Fortran
-  // column-major (c, b, a) array.  The legacy code declares no intent, so
-  // the inputs are passed as copies.
-  Vector height         = p.height;
-  Vector temperature    = p.temperature;
+  // RADTRANO arguments (radtran4.h).  A row-major [a, b, c] array is the
+  // Fortran column-major (c, b, a) array.  RADTRANO clips the gas
+  // extinction at zero in place, so it gets a copy.
   Vector gas_extinction = p.gas_extinction;
 
   // SCATLAYERS(layer): 1-based optics set, 0 for gas-only
@@ -293,68 +240,18 @@ result solve(const problem& p) {
     }
   }
 
-  const Numeric wavelength_um = 1e6 * Constant::c / p.frequency;
-  // RT4 radiance is per micrometre: B_nu = B_lambda[um^-1] * lambda[um] / f
-  const Numeric per_um_to_per_hz = wavelength_um / p.frequency;
+  // The streams, as RADTRANO makes them (MU_VALUES and its weights): the
+  // nquad nodes followed by the extra angles, which have weight 0
+  Vector mu(nmu), weights(nmu, 0.0);
+  mu[Range{0, nquad}]      = quad_nodes.mu;
+  mu[Range{nquad, nextra}] = p.extra_mu;
+  weights[Range{0, nquad}] = quad_nodes.weights;
 
-  // Surface.  GROUND_REFLEC(in, out) is read transposed by SPECULAR_SURFACE,
-  // so the row-major R(out, in) is passed as is.  SURF_REFLECT(out s, out mu,
-  // in s, in mu) is [in mu, in s, out mu, out s]; GND_RADIANCE(s, mu) is
-  // [mu, s], input for 'A' and output otherwise.
-  char    ground_type = 'L';
-  Numeric albedo      = 0.0;
-  Complex index{1.0, 0.0};
-  Matrix  ground_reflec(ns, ns, 0.0);
-  Tensor4 surf_reflect(nmu, ns, nmu, ns, 0.0);
-  Matrix  gnd_radiance(nmu, ns, 0.0);
-  std::visit(
-      [&](const auto& g) {
-        using T = std::remove_cvref_t<decltype(g)>;
-        if constexpr (std::is_same_v<T, lambertian_surface>) {
-          ground_type = 'L';
-          albedo      = g.albedo;
-        } else if constexpr (std::is_same_v<T, fresnel_surface>) {
-          ground_type = 'F';
-          index       = g.refractive_index;
-        } else if constexpr (std::is_same_v<T, specular_surface>) {
-          ARTS_USER_ERROR_IF(g.reflectivity.shape() != (std::array<Index, 2>{ns, ns}),
-                             "specular_surface reflectivity must be [{}, {}] (nstokes = {}), got {:B,}",
-                             ns,
-                             ns,
-                             ns,
-                             g.reflectivity.shape());
-          ground_type   = 'S';
-          ground_reflec = g.reflectivity;
-        } else {
-          static_assert(std::is_same_v<T, discrete_surface>);
-          ARTS_USER_ERROR_IF(g.reflection.shape() != (std::array<Index, 4>{nmu, nmu, ns, ns}) or
-                                 g.emission.shape() != (std::array<Index, 2>{nmu, ns}),
-                             "discrete_surface must have reflection [{}, {}, {}, {}] and emission [{}, {}] "
-                             "(nmu_total = {}, nstokes = {}); got {:B,} and {:B,}",
-                             nmu,
-                             nmu,
-                             ns,
-                             ns,
-                             nmu,
-                             ns,
-                             nmu,
-                             ns,
-                             g.reflection.shape(),
-                             g.emission.shape());
-          ground_type   = 'A';
-          gnd_radiance  = g.emission;
-          gnd_radiance /= per_um_to_per_hz;
-          for (Index io = 0; io < nmu; io++)
-            for (Index ii = 0; ii < nmu; ii++)
-              for (Index so = 0; so < ns; so++)
-                for (Index si = 0; si < ns; si++) surf_reflect[ii, si, io, so] = g.reflection[io, ii, so, si];
-        }
-      },
-      p.ground);
-
-  // MU_VALUES: RT4 writes the nquad nodes, the caller supplies the extra angles
-  Vector mu(nmu, 0.0);
-  mu[Range(nquad, nextra)] = p.extra_mu;
+  // The ground as RADTRANO's external surface: SURF_REFLECT(out s, out mu,
+  // in s, in mu) is [in mu, in s, out mu, out s], GND_RADIANCE(s, mu) is
+  // [mu, s]
+  Tensor4 surf_reflect(nmu, ns, nmu, ns);
+  Matrix  gnd_radiance(nmu, ns);
 
   // UP_RAD/DOWN_RAD(s, mu, level) is the row-major [level, mu, s] layout
   result r{.mu      = Vector(nmu, 0.0),
@@ -362,44 +259,28 @@ result solve(const problem& p) {
            .up      = Tensor3(nlay + 1, nmu, ns, 0.0),
            .down    = Tensor3(nlay + 1, nmu, ns, 0.0)};
 
-  {
-    std::lock_guard lock(fortran_mutex);
-    rt4_radtrano(ns,
-                 nmu,
-                 nextra,
-                 p.max_delta_tau,
-                 quad_char(p.quad),
-                 p.surface_temperature,
-                 ground_type,
-                 albedo,
-                 index.real(),
-                 index.imag(),
-                 ground_reflec.data_handle(),
-                 surf_reflect.data_handle(),
-                 gnd_radiance.data_handle(),
-                 p.sky_temperature,
-                 wavelength_um,
-                 nlay,
-                 height.data_handle(),
-                 temperature.data_handle(),
-                 gas_extinction.data_handle(),
-                 nsl,
-                 scatlayers.data_handle(),
-                 extinct.data_handle(),
-                 emis.data_handle(),
-                 scatter.data_handle(),
-                 mu.data_handle(),
-                 r.up.data_handle(),
-                 r.down.data_handle());
-  }
+  ground_surface(p.ground, mu, weights, p.frequency, p.surface_temperature, surf_reflect, gnd_radiance);
 
-  r.up   *= per_um_to_per_hz;
-  r.down *= per_um_to_per_hz;
-  r.mu    = mu;
+  radtrano(p.max_delta_tau,
+           p.quad,
+           surf_reflect,
+           gnd_radiance,
+           p.sky_temperature,
+           p.frequency,
+           p.height,
+           p.temperature,
+           gas_extinction,
+           scatlayers,
+           extinct,
+           emis,
+           scatter,
+           p.extra_mu,
+           mu,
+           r.up,
+           r.down);
 
-  // RADTRANO does not return its weights; they are a function of the
-  // quadrature alone, the extra angles having weight 0.
-  r.weights[Range(0, nquad)] = quad_nodes.weights;
+  r.mu      = mu;
+  r.weights = weights;
   return r;
 #else
   (void)p;

@@ -10,10 +10,12 @@
  *
  * RT4 solves the thermal-only radiative transfer equation for a
  * plane-parallel, azimuthally symmetric medium for the Stokes components
- * [I] or [I, Q].  The Fortran sources are the ARTS 2.6 version in
- * 3rdparty/polradtran (with the ARTS3 changes listed in its README).  This
- * wrapper exists so that RT4 can serve as an external reference for other
- * solvers; it has no workspace layer.
+ * [I] or [I, Q].  It is the C++ port of RADTRANO (rt4::radtrano,
+ * radtran4.h) and its subroutines (radintg4.h, radutil4.h); the Fortran
+ * sources, the ARTS 2.6 version in 3rdparty/polradtran with the ARTS3
+ * changes listed in its README, are kept as the reference the port is
+ * tested against.  This wrapper exists so that RT4 can serve as an
+ * external reference for other solvers; it has no workspace layer.
  *
  * Conventions:
  *   - Stokes basis [I, Q] with the meridional-plane reference: "vertical"
@@ -35,8 +37,8 @@
  *     phase[down, down] == phase[up, up] and phase[down, up] ==
  *     phase[up, down].  solve() rejects optics that are not.
  *
- * None of the Fortran code is reentrant (COMMON blocks and about 40 MB of
- * static local arrays).  All calls are serialised by one global mutex.
+ * The C++ solver keeps no state between calls, so concurrent calls run in
+ * parallel.
  */
 namespace rt4 {
 //! Whether the optional Fortran backend is built (ENABLE_RT4=ON).
@@ -56,7 +58,16 @@ struct quadrature {
   Vector weights;
 };
 
-//! RT4's own quadrature routines.  nmu >= 1.
+/** The streams of RT4, nmu >= 1.
+ *
+ * ARTS's quadratures (scattering/integration.h) in place of RT4's own: the
+ * positive half of scattering::DoubleGaussQuadrature,
+ * GaussLegendreQuadrature or LobattoQuadrature of degree 2 nmu.  They are
+ * RT4's rules; the nodes agree with RT4's DOUBLE_GAUSS_QUADRATURE,
+ * GAUSS_LEGENDRE_QUADRATURE and LOBATTO_QUADRATURE to 4.4e-16 and the
+ * weights to 2.4e-12 relative (RT4's Gauss weights are the less accurate).
+ * rt4::radtrano uses the same.  Needs no Fortran.
+ */
 quadrature get_quadrature(Index nmu, quadrature_type type);
 
 //! Hemisphere indices (see the conventions above).
@@ -145,7 +156,7 @@ struct problem {
   //! quadrature stream must scatter 2 pi sum_i w_i (phase[down] + phase[up])[I, I] = K11 - a1 into the
   //! quadrature streams of both hemispheres, >= 0; infinity checks nothing
   Numeric normalisation_tolerance{1e-6};
-  //! Frequency [Hz]; RT4 is given the wavelength 1e6 c / f in micrometres
+  //! Frequency [Hz]
   Numeric frequency{};
   //! [nlay + 1] layer interfaces, top-down.  Only |differences| are used;
   //! the unit must be the inverse of the extinction unit.
@@ -188,7 +199,7 @@ struct result {
  * STOP (nstokes <= 2, nstokes * nmu_total <= 64, nlay <= 400,
  * (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), the mirror
  * symmetry that RT4 requires, and that every optics set conserves energy on
- * the streams to problem::normalisation_tolerance, then calls RADTRANO.
+ * the streams to problem::normalisation_tolerance, then calls RADTRANO (rt4::radtrano).
  */
 result solve(const problem& p);
 }  // namespace rt4

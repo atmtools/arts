@@ -78,6 +78,19 @@ ARTS3 changes to RT4 (each marked with a "c ARTS3:" comment in the source):
 - rt4_c_interface.f90 (new): ISO_C_BINDING entry points with explicit C
   types for RADTRANO, PLANCK_FUNCTION and the three quadratures, so the build
   needs neither -fdefault-integer-8 nor the hidden CHARACTER length ABI.
+  It also has an entry point for every other subroutine RADTRANO calls
+  (INITIALIZE, INITIAL_SOURCE, NONSCATTER_LAYER, DOUBLING_INTEGRATION,
+  COMBINE_LAYERS, INTERNAL_RADIANCE, the LAMBERT_, FRESNEL_, SPECULAR_ and
+  EXTERNAL_SURFACE/_RADIANCE routines, THERMAL_RADIANCE, and MCOPY, MZERO
+  and MIDENTITY of radmat.f).  ARTS's RT4 is the C++ port of RADTRANO and
+  of all these routines (src/core/rt4/radtran4.cc, radintg4.cc and
+  radutil4.cc) and calls no Fortran.  It uses ARTS's quadratures instead
+  of the three quadrature routines, ARTS's planck() in SI instead of
+  PLANCK_FUNCTION, ARTS's fresnel() and rtepack for the Fresnel ground, and
+  matpack and BLAS/LAPACK instead of radmat.f, and it takes the ground as
+  external data (ground type A) for every kind of ground.  The Fortran
+  RADTRANO and these entry points stay in librt4 as the reference that
+  cpp.fast.rt4-radtrano-test compares the port with.
 
 Nothing else is changed in RT4 beyond the ARTS 2 changes above; in
 particular SYMMETRIC stays .TRUE., so RT4 only handles media that are mirror

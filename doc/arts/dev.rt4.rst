@@ -50,6 +50,147 @@ Provenance
 
   ``SYMMETRIC`` is still hard-coded to ``.TRUE.``.
 
+* **Port to C++.** RT4 is ported to C++, one routine at a time, on matpack
+  and rtepack types, with the method unchanged; ``rt4::solve`` calls no
+  Fortran.  Over the whole port the radiances of 91 test problems changed
+  by at most 2.1e-12 of I (median 1.2e-14), the most in an optically thick,
+  strongly scattering layer through LAPACK's inverse.  The steps:
+
+  * ``RADTRANO`` is ``rt4::radtrano`` (``src/core/rt4/radtran4.h``).  It
+    follows the Fortran step by step and calls the same subroutines.
+    All of them are ported, so it calls no Fortran and keeps no state.
+    It takes no counts: ``NSTOKES``, ``NUMMU``, ``NUUMMU``, ``NUM_LAYERS``
+    and ``NSL`` are the extents of its arrays, with the extra angles as an
+    input of their own.  ``MZERO`` is ``= 0.0``, ``MCOPY`` is ``=`` and
+    ``MIDENTITY`` is ``matpack::identity`` (which sets a square matrix to a
+    multiple of the identity and returns it, so that ``1 - R R`` is
+    ``mult(identity(y), R, R, -1.0, 1.0)``).  Its work arrays are sized to
+    the problem; its ``STOP`` checks, including the static-array limits
+    ``MAXLAY`` and ``MAXLM``, throw.
+  * The quadratures (``DOUBLE_GAUSS_QUADRATURE``,
+    ``GAUSS_LEGENDRE_QUADRATURE``, ``LOBATTO_QUADRATURE``) are ARTS's: the
+    positive half of ``scattering::DoubleGaussQuadrature``,
+    ``GaussLegendreQuadrature`` or ``LobattoQuadrature`` of degree
+    ``2 nmu`` (``rt4::get_quadrature``, which ``rt4::radtrano`` and
+    ``rt4::solve`` share).  They are RT4's rules and differ from Evans'
+    routines by rounding: for ``nmu`` up to 64 the nodes by at most
+    4.4e-16 and the weights by at most 2.4e-12 relative.  Against a
+    40-digit reference, Evans' Gauss weights are off by up to 2e4 ulps (his
+    Newton iteration takes P' at the last iterate but one), ARTS's by at
+    most 4; ARTS's smallest ``gauss`` node, cos(theta) near theta = pi/2,
+    is off by up to 4e-16 absolute, Evans' by 3 ulps.
+  * ``rt4::radtrano`` works in SI: it takes the frequency [Hz] and its
+    radiances are W m-2 Hz-1 sr-1.  The layers' Planck function
+    (``PLANCK_FUNCTION`` in ``RADTRANO``) is ARTS's ``planck()``, as are
+    those of the ground and the sky as their routines were ported.
+    Both functions use the exact SI h, c and k, but ``PLANCK_FUNCTION``
+    evaluates ``exp(x) - 1``: against a 40-digit reference it is off by
+    4.5e-13 at 1 GHz and 250 K, ``planck()`` (``expm1``) by 2e-16.
+    ``RADTRANO`` gave 0 below 0 K, ``planck()`` a negative value, so
+    ``rt4::radtrano`` rejects negative temperatures.
+  * The ground is external to ``rt4::radtrano``: it takes ``SURF_REFLECT``
+    and ``GND_RADIANCE`` (RT4's ground type ``'A'``) for every kind of
+    ground, and ``GROUND_TEMP``, ``GROUND_TYPE``, ``GROUND_ALBEDO``,
+    ``GROUND_INDEX`` and ``GROUND_REFLEC`` are gone.  Every ground routine
+    of RT4 makes the same surface layer (no reflection from above, the
+    identity as transmission, no source); only the reflection back up,
+    ``REFLECT(..., 2)``, and the ground's radiance depend on the ground, and
+    ``EXTERNAL_SURFACE`` makes that layer from exactly these two.
+    ``rt4::ground_surface`` (``src/core/rt4/radutil4.h``) makes them from
+    an ``rt4::surface``: for the Lambertian, Fresnel and specular grounds
+    with the ``*_SURFACE`` and ``*_RADIANCE`` routines, for a
+    ``discrete_surface`` as given.  This is bit-identical to the ground
+    types inside ``RADTRANO``.  The ``*_SURFACE`` routines are ported as
+    ``rt4::*_surface_layer`` (they make the ground as a layer for the
+    adding; ``rt4::fresnel_surface`` and ``rt4::specular_surface`` are the
+    types of ``rt4.h``).  ``LAMBERT_SURFACE`` and ``LAMBERT_RADIANCE`` are
+    ``rt4::lambert_surface_layer`` and ``rt4::lambert_radiance``
+    (``radutil4.h``), as is, the radiance with
+    ``planck()`` in SI instead of ``PLANCK_FUNCTION`` per micrometre (and
+    rejecting a negative ground temperature, where ``PLANCK_FUNCTION``
+    gave 0); the reflection is bit-identical, the radiances of a Lambertian
+    ground change by at most 3.3e-15 of I.  ``FRESNEL_SURFACE`` and
+    ``FRESNEL_RADIANCE`` are ``rt4::fresnel_surface_layer`` and
+    ``rt4::fresnel_radiance``, with ARTS's ``fresnel()`` amplitudes
+    (``physics_funcs.h``) and ``rtepack::fresnel_reflectance``, whose
+    Mueller matrix is RT4's (``R1`` and ``R2`` in the [I, Q] block, ``R3``
+    and ``R4`` in the [U, V] block), and the emission ``(1 - R) B``.
+    ``fresnel()`` was made exact for this: it used the real Snell angle of
+    ``Re n2``, which for an absorbing ground is off by up to 5e-3 in
+    reflectivity (about 1.4 K over water); it now uses the complex
+    transmitted cosine, like RT4 (for a real ``n2``, as
+    ``spectral_surf_reflFlatRealFresnel`` passes, the change is rounding).
+    The reflection matches RT4's to 3.4e-15, the radiances of a Fresnel
+    ground change by at most 3e-15 of I.  ``SPECULAR_SURFACE`` and
+    ``SPECULAR_RADIANCE`` are ``rt4::specular_surface_layer``, as is
+    (bit-identical), and ``rt4::specular_radiance``, the emission
+    ``(1 - R) B`` with rtepack (RT4's ``[(1 - R(I, I)) B, -R(Q, I) B]``;
+    for more than two Stokes components it also gives the U and V that RT4
+    set to 0); the radiances of a specular ground change by at most 3.1e-15
+    of I.  ``rt4::ground_surface`` calls no Fortran.  ``EXTERNAL_SURFACE``,
+    which makes the surface layer in ``RADTRANO`` from ``SURF_REFLECT``, is
+    ``rt4::external_surface_layer``, as is (bit-identical), without the
+    ``RADIANCE`` argument that ``EXTERNAL_SURFACE`` does not use (the
+    ground's radiance goes to ``INTERNAL_RADIANCE``).  ``THERMAL_RADIANCE``,
+    the sky, is ``rt4::thermal_radiance`` with ``planck()`` in SI, so
+    ``rt4::radtrano`` has no unit conversion left; its radiances change by
+    at most 6e-16 of I, and an isothermal atmosphere now reproduces
+    ``planck()`` to 1.7e-16 (1.6e-14 with ``PLANCK_FUNCTION`` for the sky
+    and the ground).
+  * ``NONSCATTER_LAYER``, ``INITIAL_SOURCE`` and ``INITIALIZE`` are
+    ``rt4::nonscatter_layer``, ``rt4::initial_source`` and
+    ``rt4::initialize`` (``src/core/rt4/radintg4.h``, where the
+    ``radintg4.f`` routines go as they are ported), as is, with ``= 0.0``
+    for ``MZERO`` and ``Constant::two_pi`` for ``C``; they call no Fortran.
+    All are bit-identical to the Fortran.
+  * ``DOUBLING_INTEGRATION`` is ``rt4::doubling_integration`` (also in
+    ``radintg4.h``), with matpack for Evans' matrix helpers: ``MCOPY`` is
+    ``=``, ``MSCALARMULT`` and ``MADD`` on vectors ``*=`` and ``+=``,
+    ``MINVERT`` (LINPACK ``DGEFA``/``DGEDI``) is ``inv_inplace`` (LAPACK
+    ``dgetrf``/``dgetri``), and ``MMULT`` is ``mult`` (``DGEMM``), whose
+    ``alpha`` and ``beta`` absorb the ``MIDENTITY`` and ``MSUB`` of
+    ``1 - R R`` and the ``MADD`` that follows a product.  The row-major
+    matpack matrix of a Fortran matrix is its transpose, so ``MMULT``'s
+    ``C = A B`` is ``mult(C, B, A)``, the same ``DGEMM`` call, and a
+    matrix-vector product ``y = A x`` is ``mult(y, transpose(A), x)``,
+    ``DGEMV`` (``MMULT`` used ``DGEMM`` with one column; OpenBLAS gives the
+    same result except for 1 x 1, by 1 ulp).  This mapping goes when
+    ``COMBINE_LAYERS`` and ``INTERNAL_RADIANCE``, which read the same
+    arrays, are ported and the matrices can be stored as the equations read.
+    Two parts change the numbers, measured
+    separately on the full ``rt4.solve``: with the products and additions
+    unfused and LINPACK's inverse, the port is bit-identical; the fused
+    ``beta`` (one rounding fewer per product) changes the radiances by at
+    most 2.2e-15 of I; LAPACK's inverse instead of LINPACK's by at most
+    2e-12 of I (median 4e-18), in an optically thick, strongly scattering
+    layer, where about 26 doublings each invert a poorly conditioned
+    ``1 - R R``.  Against the Fortran routine directly the difference grows
+    from 1e-15 for 6 doublings to 1.3e-11 for 24 doublings of 32 streams.
+  * ``COMBINE_LAYERS`` is ``rt4::combine_layers`` (``radintg4.h``), in the
+    same way as ``rt4::doubling_integration``.  Against the Fortran
+    routine it differs by at most 7.7e-16 (one combination does not
+    amplify the rounding as repeated doublings do); the radiances of
+    ``rt4.solve`` change by at most 3e-15 of I.
+  * ``INTERNAL_RADIANCE`` is ``rt4::internal_radiance`` (``radintg4.h``),
+    in the same way: the matrix-vector products are ``DGEMV`` with
+    ``beta`` absorbing the ``MADD`` after them.  Against the Fortran
+    routine it differs by at most 8.4e-16; the radiances of ``rt4.solve``
+    change by at most 1.3e-15 of I.  With it, the Fortran mutex of
+    ``rt4::solve`` is gone.
+
+  The Fortran ``RADTRANO`` is still built, as the reference:
+  ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over
+  every branch of ``RADTRANO``.  The port was bit-identical until the
+  quadratures were replaced; every output must now agree to 1e-11 of the
+  largest value in it (the largest difference is about 4e-13), and the
+  test also checks the quadratures, ``planck()`` and each ported routine
+  against Evans' routines: ``doubling_integration`` to 1e-10, and the
+  routines ported as is bit-identical in all cases (the test allows 1e-14,
+  for compilers that contract multiply-adds into FMAs differently).
+  A step meant to leave the numbers alone is also checked bit for bit
+  against the step before; one that changes them, like the quadratures, has
+  the change measured.
+
   ``rt4.f`` and ``scatcnv.f``, Evans' original programs, are built with the
   ``.orig`` files as ``rt4-evans`` and ``scatcnv-evans``.
   ``cpp.fast.polradtran-runtestr`` (a 2 mm/h rain layer of spherical drops
@@ -93,9 +234,9 @@ see :doc:`dev.licenses`.
   the ARTS licence.
 
 The C++ wrapper ``arts_rt4`` is always built.  When RT4 is disabled,
-``rt4::available()`` returns false and ``rt4::get_quadrature()`` and
-``rt4::solve()`` throw.  The Python module exists in both cases and raises
-``RuntimeError`` the same way.
+``rt4::available()`` returns false and ``rt4::solve()`` throws;
+``rt4::get_quadrature()``, which needs no Fortran, works.  The Python module
+exists in both cases and raises ``RuntimeError`` the same way.
 
 Python test files whose names contain ``.rt4.`` are collected only with
 ``ENABLE_RT4=ON``.  There are two tests of the solver wrapper:
@@ -247,8 +388,8 @@ Conventions
 
 * Streams are given per hemisphere as ``mu = |cos(zenith)|`` in (0, 1].
   Both hemispheres use the same ``mu`` values.
-* The first ``nmu`` are RT4's quadrature nodes, in ascending order.  None
-  of the rules includes ``mu = 0``.
+* The first ``nmu`` are the quadrature nodes (``get_quadrature``), in
+  ascending order.  None of the rules includes ``mu = 0``.
 * The zero-weight ``extra_mu`` angles follow, in the order given; each must
   be in (0, 1].  ``nmu_total = nmu + len(extra_mu)``.
 * Weights are for the integral over mu in [0, 1] and sum to 1.  The 2 pi
@@ -328,13 +469,12 @@ I component of a.  It is scalar and unpolarized.
 
 **Units.**
 
-* ``frequency`` is in Hz.  RT4 is given the wavelength ``1e6 c / f`` in
-  micrometres; the wavelength is used only in its Planck function.
-* RT4's radiances are per micrometre.  The wrapper multiplies them by
-  ``lambda[um] / f`` to give W m-2 Hz-1 sr-1, the unit of ``result.up``,
-  ``result.down`` and ``DiscreteSurface.emission``.
+* ``frequency`` is in Hz, and the radiances (``result.up``,
+  ``result.down`` and ``DiscreteSurface.emission``) are W m-2 Hz-1 sr-1;
+  ``rt4::radtrano`` works in these units (see the port above).
 * The sky is an isotropic, unpolarized blackbody at ``sky_temperature``.
-  RT4's Planck function is 0 for a temperature <= 0.
+  RT4's Planck function for the sky and the ground is 0 for a temperature
+  <= 0.
 * ``result.weights`` comes from a second quadrature call, because RADTRANO
   does not return its weights.
 
@@ -497,16 +637,18 @@ Limitations
   the largest magnitude of each quantity.  Because RT4 requires
   ``phase[down, up] == phase[up, down]``, a test can never detect an
   exchange of those two quadrants.
-* **Not reentrant.** RT4 uses COMMON blocks and about 40 MB of static local
-  arrays.  Every Fortran call is serialised by one global mutex (separate
-  from RT3's; the two share only the reentrant ``radmat.f`` routines);
-  concurrent calls are safe but do not run in parallel.
+* **Reentrant.** The C++ port keeps no state between calls, so concurrent
+  ``rt4::solve`` calls run in parallel.  (RT4's Fortran, which uses COMMON
+  blocks and static local arrays, is only called by the port's tests.)
 * **Lambertian with G or L quadrature.** The Lambertian surface conserves
   energy on the streams only with ``double_gauss``, where
   ``2 sum mu w = 1``.  With ``gauss`` or ``lobatto`` it is off by about
   3e-3 A for 8 streams, so use ``double_gauss``.
 * **Array limits.** ``nstokes * nmu_total <= 64``, ``nlay <= 400`` and
-  ``(nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096``.  These limits, the
+  ``(nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096``.  The last two
+  are the sizes of the Fortran ``RADTRANO``'s static arrays, which
+  ``rt4::radtrano`` keeps although its own arrays are sized to the problem;
+  the first is that of the subroutines' scratch.  These limits, the
   other preconditions above and the shapes are all checked in C++ before the
   Fortran call, because a Fortran ``STOP`` would end the host process,
   Python included.

@@ -15,8 +15,7 @@ void py_rt4(py::module_& m) try {
 A thermal-only, plane-parallel solver for azimuthally symmetric media and the
 Stokes components [I] or [I, Q], kept as an external reference for other
 solvers.  It has no workspace layer.  Use available() to check whether the
-optional Fortran backend is built (ENABLE_RT4=ON); otherwise get_quadrature()
-and solve() raise.
+optional Fortran backend is built (ENABLE_RT4=ON); otherwise solve() raises.
 
 Conventions: Stokes basis [I, Q] with :math:`Q = I_v - I_h` in the meridional plane,
 the same basis in both hemispheres.  Hemisphere index ``down`` (0) is
@@ -53,7 +52,8 @@ See :doc:`dev.rt4` for all conventions, limitations and the mapping to VDISORT.
          &rt4::get_quadrature,
          "nmu"_a,
          "type"_a = rt4::quadrature_type::double_gauss,
-         "RT4's own quadrature with nmu >= 1 nodes per hemisphere.",
+         "RT4's streams, nmu >= 1 nodes per hemisphere: the positive half of ARTS's 2 nmu-point rule, as "
+         "RT4 uses them.",
          py::call_guard<py::gil_scoped_release>());
 
   py::class_<rt4::layer_optics>(rt, "LayerOptics")
@@ -264,9 +264,8 @@ is not used for this surface.)";
          "problem"_a,
          R"(Run RT4.
 
-Validates the shapes, every precondition on which the Fortran code would stop
-the process, and the mirror symmetry RT4 requires, then calls RADTRANO.
-Calls are serialised by one global lock.)",
+Validates the shapes, every precondition on which RADTRANO would stop, and the
+mirror symmetry RT4 requires, then runs RADTRANO (ported to C++).)",
          py::call_guard<py::gil_scoped_release>());
 
   rt.def("scattering_optics",
