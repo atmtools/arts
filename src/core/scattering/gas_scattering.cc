@@ -189,7 +189,13 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
             // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1, F44 = 3 delta delta'/2 P1
             set(0, {amp, -0.5 * delta * amp, delta * amp, 0.0, 0.0, 0.0});
             if (degree >= 1)
-              set(1, {0.0, 0.0, 0.0, 0.5 * std::numbers::sqrt3 * delta * amp, 0.0, 0.5 * std::numbers::sqrt3 * delta * delta_prime * amp});
+              set(1,
+                  {0.0,
+                   0.0,
+                   0.0,
+                   0.5 * std::numbers::sqrt3 * delta * amp,
+                   0.0,
+                   0.5 * std::numbers::sqrt3 * delta * delta_prime * amp});
             if (degree >= 2) {
               const Numeric p2 = 0.5 * delta * amp / std::sqrt(5.0);
               set(2, {p2, p2, p2, 0.0, 0.0, 0.0});
@@ -259,8 +265,11 @@ BulkScatteringProperties<Format::ARO, Representation::Spectral>
 GasScatterer::get_bulk_scattering_properties_aro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
   auto sht = sht::provider.get_instance_lm(degree, order);
-  return get_bulk_scattering_properties_aro_gridded(
-             atm_point, f_grid, za_inc_grid, *sht->get_aa_grid_ptr(), std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+  return get_bulk_scattering_properties_aro_gridded(atm_point,
+                                                    f_grid,
+                                                    za_inc_grid,
+                                                    *sht->get_aa_grid_ptr(),
+                                                    std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
       .to_spectral(degree, order);
 }
 

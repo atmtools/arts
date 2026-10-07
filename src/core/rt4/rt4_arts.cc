@@ -56,8 +56,8 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   }
   ARTS_USER_ERROR_IF(not ZenGrid::is_sorted(za), "RT4 stream cosines mu must be distinct");
 
-  const auto bulk = scattering_species.get_bulk_scattering_properties_aro_fourier(
-      atm_point, Vector{frequency}, za, za, 0);
+  const auto bulk =
+      scattering_species.get_bulk_scattering_properties_aro_fourier(atm_point, Vector{frequency}, za, za, 0);
   ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
                      "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "
                      "none");
@@ -139,21 +139,21 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                      freq_index);
 
   const Index nlay = nlev - 1;
-  problem     p{.nstokes             = settings.nstokes,
-                .nmu                 = settings.nmu,
-                .quad                = settings.quad,
-                .extra_mu            = settings.extra_mu,
+  problem     p{.nstokes                 = settings.nstokes,
+                .nmu                     = settings.nmu,
+                .quad                    = settings.quad,
+                .extra_mu                = settings.extra_mu,
                 .max_delta_tau           = settings.max_delta_tau,
                 .normalisation_tolerance = settings.normalisation_tolerance,
                 .frequency               = freq_grid[freq_index],
-                .height              = Vector(nlev),
-                .temperature         = Vector(nlev),
-                .gas_extinction      = Vector(nlay),
-                .optics              = {},
-                .layer_optics_index  = ArrayOfIndex(nlay, -1),
-                .sky_temperature     = sky_temperature,
-                .surface_temperature = surface_temperature,
-                .ground              = ground};
+                .height                  = Vector(nlev),
+                .temperature             = Vector(nlev),
+                .gas_extinction          = Vector(nlay),
+                .optics                  = {},
+                .layer_optics_index      = ArrayOfIndex(nlay, -1),
+                .sky_temperature         = sky_temperature,
+                .surface_temperature     = surface_temperature,
+                .ground                  = ground};
 
   for (Index l = 0; l < nlev; l++) {
     p.height[l]      = ray_path[l].altitude();
@@ -171,8 +171,7 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
   std::vector<layer_optics> level;
   level.reserve(nlev);
   for (const auto& atm : atm_path)
-    level.push_back(
-        scattering_optics(scattering_species, atm, p.frequency, mu, settings.nstokes));
+    level.push_back(scattering_optics(scattering_species, atm, p.frequency, mu, settings.nstokes));
 
   for (Index l = 0; l < nlay; l++) {
     layer_optics o  = level[l];

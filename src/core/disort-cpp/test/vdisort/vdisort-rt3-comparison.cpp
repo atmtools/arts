@@ -1266,11 +1266,11 @@ constexpr Numeric planck_c2 = Constant::h * Constant::c / Constant::k * 1e6;
    which the exact Planck function equals Evans' (see evans-scripts.h). */
 struct evans_case {
   std::string             name;
-  evans::rt3_settings         settings;
+  evans::rt3_settings     settings;
   std::vector<evans::row> table;
-  setup                   c;       // c.nmu is VDISORT's, to be set
-  Numeric                 per_um;  // W m-2 Hz-1 sr-1 per W m-2 um-1 sr-1
-  Vector                  mu;      // Evans' streams, the table's |MU|
+  setup                   c;                  // c.nmu is VDISORT's, to be set
+  Numeric                 per_um;             // W m-2 Hz-1 sr-1 per W m-2 um-1 sr-1
+  Vector                  mu;                 // Evans' streams, the table's |MU|
   bool                    brightness{false};  // the table holds V, H brightness temperatures (rt4.f, UNITS T)
 };
 
@@ -1306,31 +1306,32 @@ evans_case read_evans(const std::string& script) {
       if (r.program == "scatcnv") {
         evans::answers a(r);
         const auto     in = a.first(), out = a.first();
-        legendre_of[out]  = in;
+        legendre_of[out] = in;
       }
   }
   const auto& st = e.settings;
-  require(st.quad == 'G' and st.ground_type != 'S' and not st.delta_m,
-          std::format("{}: only Gauss quadrature, a Lambertian or Fresnel ground and no delta-M are handled here", script));
+  require(
+      st.quad == 'G' and st.ground_type != 'S' and not st.delta_m,
+      std::format("{}: only Gauss quadrature, a Lambertian or Fresnel ground and no delta-M are handled here", script));
 
   const auto levels = evans::read_layers(sc.files.at(st.layer_file));
-  const auto T      = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
-  setup&     c      = e.c;
-  c.nstokes         = st.nstokes;
-  c.aziorder        = st.aziorder;
-  c.frequency       = Constant::c / (st.wavelength * 1e-6);
-  e.per_um          = st.wavelength / c.frequency;
-  const Index nlay  = isize(levels) - 1;
-  c.height          = Vector(nlay + 1);
-  c.temperature     = Vector(nlay + 1);
-  c.gas             = Vector(nlay);
-  c.set_index       = ArrayOfIndex(nlay, -1);
+  const auto T = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
+  setup&     c = e.c;
+  c.nstokes    = st.nstokes;
+  c.aziorder   = st.aziorder;
+  c.frequency  = Constant::c / (st.wavelength * 1e-6);
+  e.per_um     = st.wavelength / c.frequency;
+  const Index nlay = isize(levels) - 1;
+  c.height         = Vector(nlay + 1);
+  c.temperature    = Vector(nlay + 1);
+  c.gas            = Vector(nlay);
+  c.set_index      = ArrayOfIndex(nlay, -1);
   std::map<std::string, Index> set_of;
   for (Index l = 0; l <= nlay; l++) {
     c.height[l]      = levels[l].height;
     c.temperature[l] = T(levels[l].temperature);
     if (l == nlay) break;
-    c.gas[l]          = levels[l].gas;
+    c.gas[l]         = levels[l].gas;
     const auto& file = levels[l].scattering_file;
     if (file.empty()) continue;
     if (not set_of.contains(file)) {
@@ -1352,7 +1353,7 @@ evans_case read_evans(const std::string& script) {
   c.surface     = T(st.ground_temperature);
   c.albedo      = st.albedo;
   if (st.ground_type == 'F') c.fresnel = st.ground_index;
-  e.mu          = rt3::get_quadrature(st.nmu, rt3::quadrature_type::gauss).mu;
+  e.mu = rt3::get_quadrature(st.nmu, rt3::quadrature_type::gauss).mu;
   return e;
 }
 
@@ -1383,7 +1384,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
   }
 
   rtepack::muelmat_tensor4 Cd(NF, NL, 2 * n, NQuad, rtepack::muelmat{0.0}), Sd = Cd;
-  rtepack::muelmat_tensor3 Cb(NF, NL, 2 * n, rtepack::muelmat{0.0}), Sb = Cb;
+  rtepack::muelmat_tensor3 Cb(NF, NL, 2 * n, rtepack::muelmat{0.0}), Sb        = Cb;
   for (Index l = 0; l < NL; l++) {
     const Index s = c.set_index[l];
     if (s < 0) continue;
@@ -1411,12 +1412,8 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
   for (Index k = 0; k < 3; k++) phi[k] = wrapped(c.phi0 + psi[k]);
   // Every Evans angle in both directions: over a Fresnel surface the upward one reflects the downward one
   auto out = std::make_shared<rtepack::stokvec_tensor3>(NL + 1, 3, 2 * n);
-  v.ungridded_u_user(*out,
-                     tau,
-                     phi,
-                     user,
-                     vdisort::combine_phase_matrices(Cd, Sd),
-                     vdisort::combine_beam_phase_matrices(Cb, Sb));
+  v.ungridded_u_user(
+      *out, tau, phi, user, vdisort::combine_phase_matrices(Cd, Sd), vdisort::combine_beam_phase_matrices(Cb, Sb));
 
   auto flux = std::make_shared<Matrix>(4, NL + 1);
   v.ungridded_flux((*flux)[0], (*flux)[1], (*flux)[2], (*flux)[3], tau);
@@ -1445,7 +1442,8 @@ row_solution rt3_at_table(const evans_case& e, Index nmu, rt3::quadrature_type q
   auto         up = std::make_shared<Tensor4>(rt3::azimuth_radiance(r->up, psi));
   auto         dn = std::make_shared<Tensor4>(rt3::azimuth_radiance(r->down, psi));
   require(isize(r->mu) == isize(e.mu), "RT3's streams must be the evaluation streams");
-  for (Index i = 0; i < isize(e.mu); i++) require(std::abs(r->mu[i] - e.mu[i]) < 1e-15, "RT3's streams must be the evaluation streams");
+  for (Index i = 0; i < isize(e.mu); i++)
+    require(std::abs(r->mu[i] - e.mu[i]) < 1e-15, "RT3's streams must be the evaluation streams");
   return [r, up, dn, &e](const evans::row& row) -> Vector4 {
     const Index l = level_of(e, row.z);
     if (std::abs(row.mu) == 2.0) {
@@ -1474,19 +1472,24 @@ std::vector<evans::row> rows_on(const evans_case& e, const Vector& mu) {
     rows.push_back({.z = e.c.height[l], .phi = 0.0, .mu = 2.0, .n = 4, .iquv = {}, .unit = {}});
     for (Numeric phi : {0.0, 90.0, 180.0})
       for (Numeric sign : {-1.0, 1.0})
-        for (Index i = 0; i < isize(mu); i++) rows.push_back({.z = e.c.height[l], .phi = phi, .mu = sign * mu[i], .n = 4, .iquv = {}, .unit = {}});
+        for (Index i = 0; i < isize(mu); i++)
+          rows.push_back({.z = e.c.height[l], .phi = phi, .mu = sign * mu[i], .n = 4, .iquv = {}, .unit = {}});
   }
   return rows;
 }
 
 //! max |a - b| over rows, per Stokes component / max I of b, and of the I fluxes / max flux of b
-table_deviation deviation_from(const evans_case& e, const row_solution& a, const row_solution& b,
+table_deviation deviation_from(const evans_case&              e,
+                               const row_solution&            a,
+                               const row_solution&            b,
                                const std::vector<evans::row>& rows) {
   Numeric max_i = 0.0, max_f = 0.0;
   for (const auto& r : rows) {
     const Numeric x = std::abs(b(r)[0]);
-    if (std::abs(r.mu) == 2.0) max_f = std::max(max_f, x);
-    else max_i = std::max(max_i, x);
+    if (std::abs(r.mu) == 2.0)
+      max_f = std::max(max_f, x);
+    else
+      max_i = std::max(max_i, x);
   }
   table_deviation d;
   for (const auto& r : rows) {
@@ -1505,7 +1508,9 @@ row_solution table_of() {
   return [](const evans::row& r) -> Vector4 { return {r.iquv[0], r.iquv[1], r.iquv[2], r.iquv[3]}; };
 }
 
-Numeric max_of(const table_deviation& d) { return std::max({d.stokes[0], d.stokes[1], d.stokes[2], d.stokes[3], d.flux}); }
+Numeric max_of(const table_deviation& d) {
+  return std::max({d.stokes[0], d.stokes[1], d.stokes[2], d.stokes[3], d.flux});
+}
 
 table_deviation print_deviation(std::string_view what, const table_deviation& d, Numeric tol = -1.0) {
   std::cout << std::format("    {:<62} I {:8.2e}  Q {:8.2e}  U {:8.2e}  V {:8.2e}  F {:8.2e}{}\n",
@@ -1544,26 +1549,28 @@ table_deviation print_deviation(std::string_view what, const table_deviation& d,
 void test_evans_settings() {
   for (const std::string script : {"runmietest", "runtesta"}) {
     const auto e = read_evans(script);
-    std::cout << std::format("E {} (Evans' benchmark): {} layer(s), nstokes {}, Gauss nmu {}, aziorder {}, source code {}, "
-                             "mu0 {:.6f}\n",
-                             script,
-                             e.c.nlay(),
-                             e.settings.nstokes,
-                             e.settings.nmu,
-                             e.settings.aziorder,
-                             e.settings.src_code,
-                             e.c.mu0);
+    std::cout << std::format(
+        "E {} (Evans' benchmark): {} layer(s), nstokes {}, Gauss nmu {}, aziorder {}, source code {}, "
+        "mu0 {:.6f}\n",
+        script,
+        e.c.nlay(),
+        e.settings.nstokes,
+        e.settings.nmu,
+        e.settings.aziorder,
+        e.settings.src_code,
+        e.c.mu0);
     const auto table = table_of();
     const auto evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);  // rt3.f's MAX_DELTA_TAU
     print_deviation("RT3 at Evans' settings vs his table", deviation_from(e, evans, table, e.table), 2e-6);
 
     setup c16 = e.c, c32 = e.c;
-    c16.nmu   = 16;
-    c32.nmu   = 32;
+    c16.nmu        = 16;
+    c32.nmu        = 32;
     const auto v16 = vdisort_solver(c16), v32 = vdisort_solver(c32);
     const auto v_at = [&](const evans_case& g) { return vdisort_at_table(v32, g, c32); };
     const auto v    = v_at(e);
-    print_deviation("VDISORT, nmu 16 vs 32, at Evans' angles", deviation_from(e, vdisort_at_table(v16, e, c16), v, e.table), 1e-6);
+    print_deviation(
+        "VDISORT, nmu 16 vs 32, at Evans' angles", deviation_from(e, vdisort_at_table(v16, e, c16), v, e.table), 1e-6);
     print_deviation("VDISORT (nmu 32) at Evans' angles vs his table", deviation_from(e, v, table, e.table));
 
     // RT3 with Gauss quadrature approaches VDISORT (32 streams) at its nodes
@@ -1593,7 +1600,6 @@ void test_evans_settings() {
     }
   }
 }
-
 
 //! Evans' CONVERT_OUTPUT for UNITS 'T': [I, Q] per micrometre to the effective blackbody temperatures of V and H
 std::array<Numeric, 2> brightness_vh(Numeric i, Numeric q, Numeric lambda, bool flux) {
@@ -1639,24 +1645,26 @@ Numeric brightness_deviation(const evans_case& e, const row_solution& a, const s
      doubling error at every level, stream and direction. */
 void test_evans_rt4_settings() {
   const auto e = read_evans("runtestr");
-  std::cout << std::format("E runtestr (Evans' RT4 benchmark): {} layer(s), nstokes {}, Gauss nmu {}, Fresnel n = {}{:+}i, "
-                           "brightness temperatures in V and H\n",
-                           e.c.nlay(),
-                           e.settings.nstokes,
-                           e.settings.nmu,
-                           e.c.fresnel->real(),
-                           e.c.fresnel->imag());
+  std::cout << std::format(
+      "E runtestr (Evans' RT4 benchmark): {} layer(s), nstokes {}, Gauss nmu {}, Fresnel n = {}{:+}i, "
+      "brightness temperatures in V and H\n",
+      e.c.nlay(),
+      e.settings.nstokes,
+      e.settings.nmu,
+      e.c.fresnel->real(),
+      e.c.fresnel->imag());
   const auto    evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);
   const Numeric rt3_k = brightness_deviation(e, evans, e.table);
-  std::cout << std::format("    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
+  std::cout << std::format(
+      "    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
   require(rt3_k <= 0.01 + 1e-9, "RT3 at Evans' settings must reproduce his RT4 table to 0.01 K");
 
   // VDISORT at Evans' angles, 16 and 32 streams
   setup coarse = e.c, fine = e.c;
-  coarse.nmu = 16;
-  fine.nmu   = 32;
-  const auto v_coarse = vdisort_solver(coarse), v_fine = vdisort_solver(fine);
-  const auto v        = vdisort_at_table(v_fine, e, fine);
+  coarse.nmu                       = 16;
+  fine.nmu                         = 32;
+  const auto              v_coarse = vdisort_solver(coarse), v_fine = vdisort_solver(fine);
+  const auto              v = vdisort_at_table(v_fine, e, fine);
   std::vector<evans::row> radiances;
   for (const auto& r : e.table)
     if (std::abs(r.mu) != 2.0) radiances.push_back(r);
@@ -1670,9 +1678,8 @@ void test_evans_rt4_settings() {
     }
     return d;
   }();
-  std::cout << std::format("    {:<62} {:.4f} K (tolerance 0.01 K)\n",
-                           "VDISORT, 16 vs 32 streams, at Evans' angles",
-                           converged);
+  std::cout << std::format(
+      "    {:<62} {:.4f} K (tolerance 0.01 K)\n", "VDISORT, 16 vs 32 streams, at Evans' angles", converged);
   require(converged <= 0.01, "VDISORT's radiances at Evans' angles must be converged in the streams to 0.01 K");
   std::cout << std::format("    {:<62} {:.4f} K\n",
                            "VDISORT (32 streams) at Evans' angles vs his table",
@@ -1681,8 +1688,8 @@ void test_evans_rt4_settings() {
   // RT3 with Gauss quadrature approaches VDISORT at RT3's nodes
   Numeric previous = 1e9;
   for (Index nmu : {4, 8, 16}) {
-    evans_case g = e;
-    g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
+    evans_case g  = e;
+    g.mu          = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
     const auto r3 = rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7);
     const auto vd = vdisort_at_table(v_fine, g, fine);
     Numeric    d  = 0.0;
@@ -1692,15 +1699,16 @@ void test_evans_rt4_settings() {
       const auto b = brightness_vh(vd(r)[0], vd(r)[1], e.settings.wavelength, false);
       d            = std::max({d, std::abs(a[0] - b[0]), std::abs(a[1] - b[1])});
     }
-    std::cout << std::format("    {:<62} {:.4f} K\n", std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu), d);
+    std::cout << std::format(
+        "    {:<62} {:.4f} K\n", std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu), d);
     require(d < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
     previous = d;
   }
   for (Index nmu : {8, 16}) {
-    evans_case g = e;
-    g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
-    setup c      = e.c;
-    c.nmu        = nmu;
+    evans_case g    = e;
+    g.mu            = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
+    setup c         = e.c;
+    c.nmu           = nmu;
     const auto rows = [&] {
       std::vector<evans::row> r;
       for (const auto& x : rows_on(g, g.mu))

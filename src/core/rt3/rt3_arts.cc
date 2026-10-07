@@ -1,8 +1,8 @@
 #include "rt3_arts.h"
 
+#include <arts_constants.h>
 #include <arts_conversions.h>
 #include <debug.h>
-#include <arts_constants.h>
 
 #include <algorithm>
 #include <array>
@@ -35,7 +35,8 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   if (scattering_species.species.empty()) return no_scattering(degree);
 
-  const auto bulk = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
+  const auto bulk =
+      scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
   const Numeric extinction = bulk.extinction_matrix[0].A();
   const Numeric scattering = extinction - bulk.absorption_vector[0][0];
 
@@ -156,11 +157,7 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
   std::vector<scattering_set> level;
   level.reserve(nlev);
   for (const auto& atm : atm_path)
-    level.push_back(scattering_optics(scattering_species,
-                                      atm,
-                                      p.frequency,
-                                      degree,
-                                      settings.normalisation_tolerance));
+    level.push_back(scattering_optics(scattering_species, atm, p.frequency, degree, settings.normalisation_tolerance));
 
   for (Index l = 0; l < nlay; l++) {
     const auto& a = level[l];

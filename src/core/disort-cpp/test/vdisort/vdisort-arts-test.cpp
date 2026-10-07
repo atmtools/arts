@@ -229,8 +229,10 @@ mie_case mie() {
   c.atm[prop] = 1e9;
 
   // a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
-  using Gridded  = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded =
+      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral =
+      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
   const auto& gridded = std::get<Gridded>(habit[0]);
   c.series            = TroSeries(gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), mie_degree);
   Vector p(mie_degree + 1);
@@ -256,10 +258,14 @@ mie_case mie() {
 vdisort_test::tro_matrix series_of(const mie_case& c) {
   return [&c](Numeric cos_theta) {
     const Matrix  f = scattering::tro_legendre::evaluate(c.series.coefficients(0, 0),
-                                                        Vector{Conversion::rad2deg(std::acos(cos_theta))});
+                                                         Vector{Conversion::rad2deg(std::acos(cos_theta))});
     const Numeric n = 1e9;
-    return vdisort_test::tro_elements{
-        .F11 = n * f[0, 0], .F12 = n * f[0, 1], .F22 = n * f[0, 2], .F33 = n * f[0, 3], .F34 = n * f[0, 4], .F44 = n * f[0, 5]};
+    return vdisort_test::tro_elements{.F11 = n * f[0, 0],
+                                      .F12 = n * f[0, 1],
+                                      .F22 = n * f[0, 2],
+                                      .F33 = n * f[0, 3],
+                                      .F34 = n * f[0, 4],
+                                      .F44 = n * f[0, 5]};
   };
 }
 
@@ -505,9 +511,9 @@ Vector orthonormal_legendre(Index m, Index L, Numeric x) {
   if (m < L) p[m + 1] = x * std::sqrt(2.0 * static_cast<Numeric>(m) + 3.0) * pmm;
   for (Index l = m + 2; l <= L; l++) {
     const auto    dl = static_cast<Numeric>(l), dm = static_cast<Numeric>(m);
-    const Numeric a  = std::sqrt((4 * dl * dl - 1) / (dl * dl - dm * dm));
-    const Numeric b  = std::sqrt(((dl - 1) * (dl - 1) - dm * dm) / (4 * (dl - 1) * (dl - 1) - 1));
-    p[l]             = a * (x * p[l - 1] - b * p[l - 2]);
+    const Numeric a = std::sqrt((4 * dl * dl - 1) / (dl * dl - dm * dm));
+    const Numeric b = std::sqrt(((dl - 1) * (dl - 1) - dm * dm) / (4 * (dl - 1) * (dl - 1) - 1));
+    p[l]            = a * (x * p[l - 1] - b * p[l - 2]);
   }
   return p;
 }
@@ -519,7 +525,7 @@ void test_forward_peaked_hg() {
   Vector mu_in(17);
   mu_in[Range(0, 16)] = mu;
   mu_in[16]           = -0.6;
-  const auto atm      = air(9e4, 270.0);
+  const auto      atm = air(9e4, 270.0);
   constexpr Index NF  = 4;
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
@@ -586,18 +592,25 @@ void test_aro_data() {
 
   const auto aro_species = [&](const Vector& za_scat, Numeric extinction_change) {
     auto bulk = gas.get_bulk_scattering_properties_aro_gridded(
-        atm, Vector{50e9}, streams, delta, std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
+        atm,
+        Vector{50e9},
+        streams,
+        delta,
+        std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
     bulk.extinction_matrix[0, 0, 1, 0] *= 1.0 + extinction_change;
-    const auto& pm = *bulk.phase_matrix;
+    const auto& pm                      = *bulk.phase_matrix;
     ARO         ssd(scattering::ParticleProperties{.name = "rayleigh", .mass = 1e-12, .d_veq = 1e-6, .d_max = 1e-6},
-            pm,
-            bulk.extinction_matrix,
-            bulk.absorption_vector,
-            scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>(pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()),
-            scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO>(pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()));
-    const auto prop = ScatteringSpeciesProperty{"aro", ParticulateProperty::NumberDensity};
+                    pm,
+                    bulk.extinction_matrix,
+                    bulk.absorption_vector,
+                    scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>(
+                        pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()),
+                    scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO>(
+                        pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()));
+    const auto  prop = ScatteringSpeciesProperty{"aro", ParticulateProperty::NumberDensity};
     ArrayOfScatteringSpecies species;
-    species.add(ScatteringHabit{ParticleHabit{std::vector<ARO>{ssd}}, scattering::PSD{scattering::MonodispersePSD{prop}}, 1.0, 3.0});
+    species.add(ScatteringHabit{
+        ParticleHabit{std::vector<ARO>{ssd}}, scattering::PSD{scattering::MonodispersePSD{prop}}, 1.0, 3.0});
     auto a  = atm;
     a[prop] = 1.0;
     return std::pair{species, a};
@@ -611,7 +624,7 @@ void test_aro_data() {
     for (Index o = 0; o < 4; o++) {
       for (Index i = 0; i < 4; i++) {
         scale = std::max(scale, max_abs(g.cosine[m, o, i]));
-        d     = std::max({d, max_diff(f.cosine[m, o, i], g.cosine[m, o, i]), max_diff(f.sine[m, o, i], g.sine[m, o, i])});
+        d = std::max({d, max_diff(f.cosine[m, o, i], g.cosine[m, o, i]), max_diff(f.sine[m, o, i], g.sine[m, o, i])});
       }
     }
   }

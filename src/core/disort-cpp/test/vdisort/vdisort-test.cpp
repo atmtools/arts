@@ -1046,16 +1046,16 @@ void test_specular_reflection_both_systems() try {
         down[system, 1, i, s] = g * std::array{0.4, -0.1, 0.15, 0.03}[s];
       }
     }
-    auto model = make_vdisort(nquad,
-                              AscendingGrid{depth},
-                              Vector{0.0},
-                              std::move(phase),
-                              std::move(up),
-                              std::move(down),
-                              {},
-                              Vector(4, 0.0),
-                              {},
-                              vdisort::brdf::fresnel_fourier_modes(index, modes));
+    auto         model = make_vdisort(nquad,
+                                      AscendingGrid{depth},
+                                      Vector{0.0},
+                                      std::move(phase),
+                                      std::move(up),
+                                      std::move(down),
+                                      {},
+                                      Vector(4, 0.0),
+                                      {},
+                                      vdisort::brdf::fresnel_fourier_modes(index, modes));
     const Vector phi{0.0, 0.7, 2.1, 4.0};
     Tensor4      u(1, phi.size(), nquad, 4);
     model.ungridded_u(u, AscendingGrid{0.0}, phi);
@@ -1064,7 +1064,7 @@ void test_specular_reflection_both_systems() try {
       for (Index i = 0; i < n; ++i) {
         const Numeric          mu = model.mu()[i];
         const rtepack::stokvec sky{u[0, k, n + i, 0], u[0, k, n + i, 1], u[0, k, n + i, 2], u[0, k, n + i, 3]};
-        const rtepack::stokvec expected = std::exp(-2.0 * depth / mu) * (vdisort::brdf::Fresnel{index}(mu) * sky);
+        const rtepack::stokvec expected = std::exp(-2.0 * depth / mu) * (vdisort::brdf::Fresnel{index}(mu)*sky);
         for (Index s = 0; s < 4; ++s) {
           expect_close(u[0, k, i, s], expected[s], "specular reflection of the sky");
           largest = std::max(largest, std::abs(expected[s]));

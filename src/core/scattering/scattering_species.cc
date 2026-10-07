@@ -163,10 +163,10 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
 
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
 ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
-                                                                      const Vector&   f_grid,
-                                                                      const Vector&   za_inc_grid,
-                                                                      const Vector&   za_scat_grid,
-                                                                      Index           max_mode) const {
+                                                                     const Vector&   f_grid,
+                                                                     const Vector&   za_inc_grid,
+                                                                     const Vector&   za_scat_grid,
+                                                                     Index           max_mode) const {
   if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =

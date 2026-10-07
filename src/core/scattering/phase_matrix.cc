@@ -39,8 +39,14 @@ Matrix expand_phase_matrix(const StridedConstVectorView &compact) {
 
 ComplexMatrix expand_phase_matrix(const StridedConstComplexVectorView &compact) {
   // The real and the imaginary parts expand alike
-  const auto re = rtepack::compact_planar_muelmat{compact | std::views::transform([](const Complex &x) { return x.real(); })}.expand();
-  const auto im = rtepack::compact_planar_muelmat{compact | std::views::transform([](const Complex &x) { return x.imag(); })}.expand();
+  const auto re = rtepack::compact_planar_muelmat{
+      compact | std::views::transform([](const Complex &x) {
+        return x.real();
+      })}.expand();
+  const auto im = rtepack::compact_planar_muelmat{
+      compact | std::views::transform([](const Complex &x) {
+        return x.imag();
+      })}.expand();
   ComplexMatrix mat(4, 4);
   for (Index i = 0; i < 4; ++i)
     for (Index j = 0; j < 4; ++j) mat[i, j] = Complex{re[i, j], im[i, j]};

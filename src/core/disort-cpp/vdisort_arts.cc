@@ -95,8 +95,8 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                        "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
                        za_inc[j])
     if (not check) continue;
-    const Numeric dk = std::abs(ext[0, 0, j, 0] - out.extinction), dpol = std::max(std::abs(ext[0, 0, j, 1]),
-                                                                                std::abs(ext[0, 0, j, 2]));
+    const Numeric dk   = std::abs(ext[0, 0, j, 0] - out.extinction),
+                  dpol = std::max(std::abs(ext[0, 0, j, 1]), std::abs(ext[0, 0, j, 2]));
     const Numeric da = std::abs(abs[0, 0, j, 0] - abs[0, 0, 0, 0]), da2 = std::abs(abs[0, 0, j, 1]);
     const Numeric ds = std::abs(integral[0, 0, j] - sigma);
     ARTS_USER_ERROR_IF(not(std::max({dk, dpol, da, da2, ds}) <= tol),
@@ -209,13 +209,8 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
   std::vector<fourier_optics> level;
   level.reserve(nlev);
   for (const auto& atm : atm_path)
-    level.push_back(scattering_optics(scattering_species,
-                                      atm,
-                                      frequency,
-                                      mu,
-                                      mu_in,
-                                      NF,
-                                      settings.normalisation_tolerance));
+    level.push_back(
+        scattering_optics(scattering_species, atm, frequency, mu, mu_in, NF, settings.normalisation_tolerance));
 
   Vector                   tau(nlay), omega(nlay);
   rtepack::muelmat_tensor4 C(NF, nlay, NQ, NQ, rtepack::muelmat{0.0}), S = C;

@@ -30,8 +30,8 @@ struct MonodispersePSD {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the number density [m^-3] of the one particle
   static constexpr bool size_density = false;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 /*** Single-moment modified gamma distribution
@@ -106,8 +106,8 @@ struct MGDMass {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 enum class MGDTwoMomentType : char { MassMeanSize, MassNumberDensity };
@@ -130,8 +130,8 @@ struct MGDTwoMoment {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 /** Delanoe et al. (2014) normalized ice PSD. */
@@ -163,8 +163,8 @@ struct DelanoeEtAl14 {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 /** Field et al. (2007) tropical or midlatitude ice PSD. */
@@ -183,8 +183,8 @@ struct FieldEtAl07 {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 /** McFarquhar and Heymsfield (1997) cloud-ice PSD. */
@@ -202,8 +202,8 @@ struct McFarquharHeymsfield97 {
   static constexpr SizeParameter get_size_parameter() { return SizeParameter::DVeq; }
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
-  Vector                         evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
-  PSDData                        evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  Vector                evaluate(const AtmPoint&, const Vector&, Numeric, Numeric) const;
+  PSDData               evaluate_with_derivatives(const AtmPoint&, const Vector&, Numeric, Numeric) const;
 };
 
 /*** Binned PSD
@@ -259,8 +259,7 @@ Vector number_densities(const PSD& psd, const AtmPoint& point, const Vector& siz
 }
 
 //! number_densities and their derivatives
-template <typename PSD>
-PSDData number_densities_with_derivatives(
+template <typename PSD> PSDData number_densities_with_derivatives(
     const PSD& psd, const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) {
   PSDData out = psd.evaluate_with_derivatives(point, sizes, a, b);
   if constexpr (PSD::size_density) {

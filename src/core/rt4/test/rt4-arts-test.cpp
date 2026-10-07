@@ -167,9 +167,9 @@ void test_forward_peaked_hg() {
   const auto q   = rt4::get_quadrature(8, rt4::quadrature_type::double_gauss);
   Vector     mu(q.mu.size() + 1);
   std::ranges::copy(q.mu, mu.begin());
-  mu[q.mu.size()]       = 1.0;
-  const Index   n       = static_cast<Index>(mu.size());
-  const Numeric sigma   = 0.9e-4;
+  mu[q.mu.size()]     = 1.0;
+  const Index   n     = static_cast<Index>(mu.size());
+  const Numeric sigma = 0.9e-4;
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;

@@ -242,8 +242,11 @@ BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Sp
 HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
   auto sht = sht::provider.get_instance_lm(degree, order);
-  return get_bulk_scattering_properties_aro_gridded(
-             atm_point, f_grid, za_inc_grid, *sht->get_aa_grid_ptr(), std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+  return get_bulk_scattering_properties_aro_gridded(atm_point,
+                                                    f_grid,
+                                                    za_inc_grid,
+                                                    *sht->get_aa_grid_ptr(),
+                                                    std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
       .to_spectral(degree, order);
 }
 

@@ -531,7 +531,6 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
     std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
     ScatteringMatrix                     &&scattering_matrix);
 
-
 /** The azimuthal Fourier modes of the laboratory-frame phase matrix of a totally randomly oriented scatterer.
  *
  * At fixed incidence and scattering zenith angles, the laboratory-frame
@@ -984,8 +983,7 @@ template <std::floating_point Scalar, Representation repr> class PhaseMatrixData
   PhaseMatrixData &operator=(const matpack::data_t<std::complex<Scalar>, 4> &data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided phase matrix coefficients do not match temperature grid.");
-    ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
-                       "Provided phase matrix coefficients do not match frequency grid.");
+    ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided phase matrix coefficients do not match frequency grid.");
     ARTS_USER_ERROR_IF(data.shape()[2] != degree_ + 1,
                        "Provided phase matrix coefficients do not match the Legendre degree {}.",
                        degree_);
@@ -1069,8 +1067,8 @@ template <std::floating_point Scalar, Representation repr> class PhaseMatrixData
   auto scattering_matrix_function() const {
     Vector norm(degree_ + 1);
     for (Index l = 0; l <= degree_; ++l) norm[l] = std::sqrt(static_cast<Scalar>(2 * l + 1) / (4.0 * pi_v<Scalar>));
-    return [this, p = Vector(degree_ + 1), norm = std::move(norm)](Scalar                      theta,
-                                                                    matpack::data_t<Scalar, 3> &scattering_matrix) mutable {
+    return [this, p = Vector(degree_ + 1), norm = std::move(norm)](
+               Scalar theta, matpack::data_t<Scalar, 3> &scattering_matrix) mutable {
       Legendre::legendre_polynomials(p, std::clamp<Scalar>(std::cos(theta), -1.0, 1.0));
       for (Index l = 0; l <= degree_; ++l) p[l] *= norm[l];
       for (Index i_t = 0; i_t < n_temps_; ++i_t) {
@@ -1364,11 +1362,12 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
    */
   PhaseMatrixDataFourier to_fourier(Index max_mode) const {
     ARTS_USER_ERROR_IF(max_mode < 0, "The highest Fourier mode must be >= 0, got {}", max_mode)
-    ARTS_USER_ERROR_IF(n_delta_aa_ < 2 or std::abs((*delta_aa_grid_)[n_delta_aa_ - 1] - (*delta_aa_grid_)[0] - 360.0) > 1e-9,
-                       "Azimuthal Fourier modes need the ARO data over one full period of azimuth differences (the "
-                       "last angle of the grid 360 deg above the first), but the grid spans [{}, {}] deg",
-                       n_delta_aa_ > 0 ? (*delta_aa_grid_)[0] : 0.0,
-                       n_delta_aa_ > 0 ? (*delta_aa_grid_)[n_delta_aa_ - 1] : 0.0)
+    ARTS_USER_ERROR_IF(
+        n_delta_aa_ < 2 or std::abs((*delta_aa_grid_)[n_delta_aa_ - 1] - (*delta_aa_grid_)[0] - 360.0) > 1e-9,
+        "Azimuthal Fourier modes need the ARO data over one full period of azimuth differences (the "
+        "last angle of the grid 360 deg above the first), but the grid spans [{}, {}] deg",
+        n_delta_aa_ > 0 ? (*delta_aa_grid_)[0] : 0.0,
+        n_delta_aa_ > 0 ? (*delta_aa_grid_)[n_delta_aa_ - 1] : 0.0)
     for (Index k = 0; k + 1 < n_delta_aa_; ++k)
       ARTS_USER_ERROR_IF(not((*delta_aa_grid_)[k] < (*delta_aa_grid_)[k + 1]),
                          "The azimuth-difference grid must ascend strictly")
@@ -1378,9 +1377,9 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
     Tensor3 w(n_delta_aa_, max_mode + 1, 2, 0.0);
     for (Index k = 0; k + 1 < n_delta_aa_; ++k) {
       const Numeric a = Conversion::deg2rad((*delta_aa_grid_)[k]), b = Conversion::deg2rad((*delta_aa_grid_)[k + 1]);
-      const Numeric h = b - a;
-      w[k, 0, 0]     += 0.5 * h / (2.0 * pi_v<Numeric>);
-      w[k + 1, 0, 0] += 0.5 * h / (2.0 * pi_v<Numeric>);
+      const Numeric h  = b - a;
+      w[k, 0, 0]      += 0.5 * h / (2.0 * pi_v<Numeric>);
+      w[k + 1, 0, 0]  += 0.5 * h / (2.0 * pi_v<Numeric>);
       for (Index m = 1; m <= max_mode; ++m) {
         // int f cos(m x) = [f sin(m x) / m] + s [cos(m x)] / m^2, int f sin(m x) = [-f cos(m x) / m] + s [sin(m x)] / m^2,
         // with f linear from f_a at a to f_b at b and s = (f_b - f_a) / h
@@ -1832,7 +1831,7 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
                 const Numeric phi = 2.0 * pi_v<Numeric> * static_cast<Numeric>(k) / static_cast<Numeric>(N);
                 const Numeric v   = sht_->evaluate(coeffs, phi, theta) / static_cast<Numeric>(N);
                 for (Index m = 0; m <= max_mode; ++m) {
-                  const Numeric w = m == 0 ? 1.0 : 2.0;
+                  const Numeric w                   = m == 0 ? 1.0 : 2.0;
                   out[i_t, i_f, i_i, i_s, m, 0, e] += w * v * std::cos(static_cast<Numeric>(m) * phi);
                   out[i_t, i_f, i_i, i_s, m, 1, e] += w * v * std::sin(static_cast<Numeric>(m) * phi);
                 }
@@ -1882,8 +1881,11 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
       for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
         for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid_->size(); ++za_inc_ind) {
           for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            pm_new[t_ind, f_ind, za_inc_ind, joker, i_s] = sht::add_coeffs(
-                *sht_new, pm_new[t_ind, f_ind, za_inc_ind, joker, i_s], *sht_, (*this)[t_ind, f_ind, za_inc_ind, joker, i_s]);
+            pm_new[t_ind, f_ind, za_inc_ind, joker, i_s] =
+                sht::add_coeffs(*sht_new,
+                                pm_new[t_ind, f_ind, za_inc_ind, joker, i_s],
+                                *sht_,
+                                (*this)[t_ind, f_ind, za_inc_ind, joker, i_s]);
           }
         }
       }
@@ -2221,10 +2223,10 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
    * whose modes and phase integral are then taken as they are.
    */
   PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const {
-    auto        new_inc  = grids.za_inc_grid ? grids.za_inc_grid : za_inc_grid_;
-    auto        new_scat = grids.za_scat_grid ? grids.za_scat_grid : za_scat_grid_;
-    const auto  inc      = node_indices(*new_inc, *za_inc_grid_, "incidence");
-    const auto  scat     = node_indices(grid_vector(*new_scat), grid_vector(*za_scat_grid_), "scattering");
+    auto            new_inc  = grids.za_inc_grid ? grids.za_inc_grid : za_inc_grid_;
+    auto            new_scat = grids.za_scat_grid ? grids.za_scat_grid : za_scat_grid_;
+    const auto      inc      = node_indices(*new_inc, *za_inc_grid_, "incidence");
+    const auto      scat     = node_indices(grid_vector(*new_scat), grid_vector(*za_scat_grid_), "scattering");
     PhaseMatrixData result(grids.t_grid, grids.f_grid, new_inc, new_scat, max_mode_);
     const Index     nt = this->extent(0), nf = this->extent(1);
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
@@ -2233,11 +2235,10 @@ template <std::floating_point Scalar> class PhaseMatrixData<Scalar, Format::ARO,
       for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
         const GridPos gp_f = weights.f_grid_weights[i_f];
         const Index   f0 = std::clamp<Index>(gp_f.idx, 0, nf - 1), f1 = std::min<Index>(f0 + 1, nf - 1);
-        const std::array<std::tuple<Numeric, Index, Index>, 4> corners{
-            {{gp_t.fd[1] * gp_f.fd[1], t0, f0},
-             {gp_t.fd[1] * gp_f.fd[0], t0, f1},
-             {gp_t.fd[0] * gp_f.fd[1], t1, f0},
-             {gp_t.fd[0] * gp_f.fd[0], t1, f1}}};
+        const std::array<std::tuple<Numeric, Index, Index>, 4> corners{{{gp_t.fd[1] * gp_f.fd[1], t0, f0},
+                                                                        {gp_t.fd[1] * gp_f.fd[0], t0, f1},
+                                                                        {gp_t.fd[0] * gp_f.fd[1], t1, f0},
+                                                                        {gp_t.fd[0] * gp_f.fd[0], t1, f1}}};
         for (const auto &[w, it, jf] : corners) {
           if (w == 0.0) continue;
           for (Size i_i = 0; i_i < inc.size(); ++i_i) {
@@ -2309,8 +2310,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
                      phase_integral.nrows(),
                      phase_integral.ncols(),
                      t_grid->size(),
-                     f_grid->size())
-  {
+                     f_grid->size()) {
     Tensor3 integral(t_grid->size(), f_grid->size(), za_inc_grid->size());
     for (Index i_t = 0; i_t < integral.extent(0); ++i_t)
       for (Index i_f = 0; i_f < integral.extent(1); ++i_f) integral[i_t, i_f, joker] = phase_integral[i_t, i_f];
@@ -2389,7 +2389,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
             stdr::fill(c, 0.0);
             for (Index k = 0; k < n; k++) {
               const Numeric delta = Conversion::rad2deg(r.phi[k]);
-              const auto rc = detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
+              const auto    rc    = detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
               local_matrix(std::get<0>(rc), F);
               for (Index set = 0; set < nset; set++) {
                 detail::expand_and_transform<Scalar>(

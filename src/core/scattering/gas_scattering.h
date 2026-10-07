@@ -114,10 +114,10 @@ struct GasScatterer {
    */
   [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier>
   get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
-                                              const Vector& f_grid,
-                                              const Vector& za_inc_grid,
-                                              const Vector& za_scat_grid,
-                                              Index         max_mode) const;
+                                             const Vector& f_grid,
+                                             const Vector& za_inc_grid,
+                                             const Vector& za_scat_grid,
+                                             Index         max_mode) const;
 };
 
 }  // namespace scattering

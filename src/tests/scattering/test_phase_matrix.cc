@@ -129,7 +129,7 @@ bool test_phase_matrix_tro() {
   Numeric err                    = max_error(phase_matrix_gridded, phase_matrix_gridded_2);
   if (err > 1e-12) { return false; }
 
-  auto fine = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(nlinspace(0.0, 180.0, 3601)));
+  auto fine      = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(nlinspace(0.0, 180.0, 3601)));
   auto projected = make_phase_matrix(t_grid, f_grid, fine).to_spectral(15);
   err            = max_error<matpack::strided_view_t<const std::complex<Numeric>, 4>>(projected, phase_matrix_spectral);
   if (err > 1e-5) { return false; }
@@ -197,10 +197,10 @@ bool test_phase_matrix_tro() {
   if (err > 1e-15) return false;
 
   // The back- and forward-scatter matrices of a series are the series at 180 and 0 deg
-  const auto ends = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{0.0, 180.0}));
+  const auto ends    = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{0.0, 180.0}));
   const auto at_ends = phase_matrix_spectral.to_gridded(ends);
-  err = max_error<Tensor3>(phase_matrix_spectral.extract_backscatter_matrix(),
-                           static_cast<Tensor3>(at_ends[joker, joker, 1, joker]));
+  err                = max_error<Tensor3>(phase_matrix_spectral.extract_backscatter_matrix(),
+                                          static_cast<Tensor3>(at_ends[joker, joker, 1, joker]));
   if (err > 1e-14) return false;
   err = max_error<Tensor3>(phase_matrix_spectral.extract_forwardscatter_matrix(),
                            static_cast<Tensor3>(at_ends[joker, joker, 0, joker]));
@@ -223,10 +223,10 @@ bool test_phase_matrix_tro() {
 }
 
 bool test_phase_matrix_copy_const_tro() {
-  auto                                   t_grid               = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto                                   f_grid               = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  std::shared_ptr<const ZenithAngleGrid> za_scat_grid         = std::make_shared<ZenithAngleGrid>(GaussLegendreGrid(32));
-  auto                                   phase_matrix_gridded = make_phase_matrix(t_grid, f_grid, za_scat_grid);
+  auto                                   t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto                                   f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(GaussLegendreGrid(32));
+  auto                                   phase_matrix_gridded  = make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto                                   phase_matrix_spectral = make_unit_series(t_grid, f_grid);
 
   // A gridded copy of a series of degree 15 is the series at the 32 Gauss-Legendre nodes
@@ -246,11 +246,11 @@ bool test_phase_matrix_copy_const_tro() {
  * @return true if all tests passed, false otherwise.
  */
 bool test_phase_matrix_regrid_tro() {
-  auto t_grid                = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid                = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto                                   t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto                                   f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(GaussLegendreGrid(32));
-  auto phase_matrix_gridded  = make_phase_matrix(t_grid, f_grid, za_scat_grid);
-  auto phase_matrix_spectral = make_unit_series(t_grid, f_grid);
+  auto                                   phase_matrix_gridded  = make_phase_matrix(t_grid, f_grid, za_scat_grid);
+  auto                                   phase_matrix_spectral = make_unit_series(t_grid, f_grid);
 
   //
   // First test: Extract element at lowest temp, freq and za_scat angle.
@@ -376,11 +376,10 @@ bool test_phase_matrix_regrid_tro() {
 }
 
 bool test_backscatter_matrix_regrid_tro() {
-  auto t_grid = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  auto za_scat_grid =
-      std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(GaussLegendreGrid(32).angles.vec()));
-  auto phase_matrix       = make_phase_matrix(t_grid, f_grid, za_scat_grid);
+  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto f_grid       = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(GaussLegendreGrid(32).angles.vec()));
+  auto phase_matrix = make_phase_matrix(t_grid, f_grid, za_scat_grid);
   auto backscatter_matrix = phase_matrix.extract_backscatter_matrix();
 
   //
@@ -488,13 +487,13 @@ bool test_phase_matrix_aro() {
  * modes of finely gridded samples converge to it.
  */
 bool test_phase_matrix_aro_fourier() {
-  auto t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0}));
-  auto f_grid       = std::make_shared<Vector>(Vector({1e9}));
-  auto za_inc_grid  = std::make_shared<Vector>(Vector({20.0, 140.0}));
-  auto za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({10.0, 90.0})));
-  const Index M     = 6;
+  auto        t_grid       = std::make_shared<Vector>(Vector({210.0, 250.0}));
+  auto        f_grid       = std::make_shared<Vector>(Vector({1e9}));
+  auto        za_inc_grid  = std::make_shared<Vector>(Vector({20.0, 140.0}));
+  auto        za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({10.0, 90.0})));
+  const Index M            = 6;
 
-  auto          two = std::make_shared<Vector>(Vector({-180.0, 180.0}));
+  auto                  two = std::make_shared<Vector>(Vector({-180.0, 180.0}));
   PhaseMatrixAROGridded linear(t_grid, f_grid, za_inc_grid, two, za_scat_grid);
   for (Index e = 0; e < 16; ++e) {
     linear[joker, joker, joker, 0, joker, e] = -std::numbers::pi;
@@ -513,7 +512,7 @@ bool test_phase_matrix_aro_fourier() {
 
   // The phase integral of Z11 = 1 and Z11 = za [rad], linear in za between nodes spanning [0, 180] deg:
   // 2 pi int sin = 4 pi and 2 pi int x sin(x) = 2 pi^2, exactly
-  auto full = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 60.0, 180.0})));
+  auto                  full = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 60.0, 180.0})));
   PhaseMatrixAROGridded flat(t_grid, f_grid, za_inc_grid, two, full);
   for (Index i_s = 0; i_s < 3; ++i_s) {
     flat[0, joker, joker, joker, i_s, 0] = 1.0;
@@ -526,11 +525,11 @@ bool test_phase_matrix_aro_fourier() {
 
   // Data that do not span one period cannot give the modes
   try {
-    PhaseMatrixAROGridded half(t_grid, f_grid, za_inc_grid, std::make_shared<Vector>(Vector({0.0, 180.0})), za_scat_grid);
+    PhaseMatrixAROGridded half(
+        t_grid, f_grid, za_inc_grid, std::make_shared<Vector>(Vector({0.0, 180.0})), za_scat_grid);
     (void)half.to_fourier(M);
     return false;
-  } catch (const std::exception&) {
-  }
+  } catch (const std::exception&) {}
 
   // A series, evaluated finely and back
   PhaseMatrixAROFourier series(t_grid, f_grid, za_inc_grid, za_scat_grid, M);
@@ -548,8 +547,7 @@ bool test_phase_matrix_aro_fourier() {
   try {
     (void)series.to_fourier(M + 1);
     return false;
-  } catch (const std::exception&) {
-  }
+  } catch (const std::exception&) {}
   return true;
 }
 
@@ -563,11 +561,11 @@ bool test_phase_matrix_aro_fourier() {
  * include the zenith, the nadir and the forward direction (za_inc = za_scat).
  */
 bool test_tro_lab_frame_fourier_modes() {
-  auto       t_grid       = std::make_shared<Vector>(Vector({250.0}));
-  auto       f_grid       = std::make_shared<Vector>(Vector({1e9, 2e9}));
-  auto       za_inc_grid  = std::make_shared<Vector>(Vector({0.0, 35.0, 120.0, 180.0}));
-  auto       za_scat_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 35.0, 77.0, 180.0})));
-  const auto rayleigh     = [](Numeric theta, matpack::data_t<Numeric, 3>& F) {
+  auto t_grid         = std::make_shared<Vector>(Vector({250.0}));
+  auto f_grid         = std::make_shared<Vector>(Vector({1e9, 2e9}));
+  auto za_inc_grid    = std::make_shared<Vector>(Vector({0.0, 35.0, 120.0, 180.0}));
+  auto za_scat_grid   = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 35.0, 77.0, 180.0})));
+  const auto rayleigh = [](Numeric theta, matpack::data_t<Numeric, 3>& F) {
     const Numeric c = std::cos(theta);
     for (Index i_f = 0; i_f < F.extent(1); ++i_f) {
       const Numeric s = 1.0 + static_cast<Numeric>(i_f);
@@ -579,7 +577,7 @@ bool test_tro_lab_frame_fourier_modes() {
       F[0, i_f, 5]    = s * 1.5 * c;
     }
   };
-  const Index M     = 5;
+  const Index M = 5;
   Matrix      integral(1, 2);  // 2 pi int F11 dcos(Theta) = 4 pi s
   integral[0, 0] = 4.0 * std::numbers::pi;
   integral[0, 1] = 8.0 * std::numbers::pi;
@@ -587,9 +585,9 @@ bool test_tro_lab_frame_fourier_modes() {
   for (Index i = 0; i < 4; ++i)
     if (modes.get_phase_integral()[0, 0, i] != integral[0, 0] or modes.get_phase_integral()[0, 1, i] != integral[0, 1])
       return false;
-  auto        delta = std::make_shared<Vector>(Vector({0.0, 13.0, 90.0, 179.0, 180.0, 181.0, 271.0, 359.0}));
-  auto        lab   = tro_lab_frame<Numeric>(t_grid, f_grid, za_inc_grid, delta, za_scat_grid, rayleigh);
-  Numeric     err   = max_error<matpack::strided_view_t<const Numeric, 6>>(modes.to_gridded(delta), lab);
+  auto    delta = std::make_shared<Vector>(Vector({0.0, 13.0, 90.0, 179.0, 180.0, 181.0, 271.0, 359.0}));
+  auto    lab   = tro_lab_frame<Numeric>(t_grid, f_grid, za_inc_grid, delta, za_scat_grid, rayleigh);
+  Numeric err   = max_error<matpack::strided_view_t<const Numeric, 6>>(modes.to_gridded(delta), lab);
   if (err > 1e-12) return false;
   // Azimuth differences of any period: -90 and -1 deg are 270 and 359 deg
   auto negative = std::make_shared<Vector>(Vector({-90.0, -1.0}));
@@ -734,11 +732,11 @@ bool test_phase_matrix_regrid_aro() {
 }
 
 bool test_backscatter_matrix_regrid_aro() {
-  auto t_grid               = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
-  auto f_grid               = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
-  std::shared_ptr<const ZenithAngleGrid> za_scat_grid = std::make_shared<ZenithAngleGrid>(GaussLegendreGrid(32));
-  auto za_inc_grid          = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
-  auto delta_aa_grid        = std::make_shared<Vector>(stdv::iota(0, 180));
+  auto                                   t_grid        = std::make_shared<Vector>(Vector({210.0, 250.0, 270.0}));
+  auto                                   f_grid        = std::make_shared<Vector>(Vector({1e9, 10e9, 100e9}));
+  std::shared_ptr<const ZenithAngleGrid> za_scat_grid  = std::make_shared<ZenithAngleGrid>(GaussLegendreGrid(32));
+  auto                                   za_inc_grid   = std::make_shared<Vector>(Vector({0.0, 20.0, 40.0}));
+  auto                                   delta_aa_grid = std::make_shared<Vector>(stdv::iota(0, 180));
   auto phase_matrix_gridded = make_phase_matrix(t_grid, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
   auto backscatter_matrix   = phase_matrix_gridded.extract_backscatter_matrix();
 

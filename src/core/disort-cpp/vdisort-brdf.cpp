@@ -264,7 +264,7 @@ std::vector<BDRF> fresnel_fourier_modes(const Complex refractive_index, const In
   static_cast<void>(fresnel(1.0));
 
   // A flat surface reflects specularly only: no reflection kernel, and the Fresnel matrix as the specular part
-  const auto no_kernel        = [](rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
+  const auto no_kernel = [](rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
     output = rtepack::muelmat{0.0};
   };
   const auto unsupported_beam = [](rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&) {

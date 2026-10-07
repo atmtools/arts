@@ -93,6 +93,5 @@ using compact_planar_muelmat_vector_const_view = matpack::view_t<const compact_p
 
 template <> struct std::formatter<rtepack::compact_planar_muelmat> : std::formatter<Vector6> {};
 
-template <>
-struct xml_io_stream<rtepack::compact_planar_muelmat>
+template <> struct xml_io_stream<rtepack::compact_planar_muelmat>
     : xml_io_stream_inherit<Vector6, rtepack::compact_planar_muelmat> {};

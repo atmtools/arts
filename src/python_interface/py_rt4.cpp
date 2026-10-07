@@ -165,37 +165,37 @@ is not used for this surface.)";
              Numeric                               sky_temperature,
              Numeric                               surface_temperature,
              const rt4::surface&                   ground) {
-            new (p) rt4::problem{.nstokes             = nstokes,
-                                 .nmu                 = nmu,
-                                 .quad                = quad,
-                                 .extra_mu            = extra_mu,
+            new (p) rt4::problem{.nstokes                 = nstokes,
+                                 .nmu                     = nmu,
+                                 .quad                    = quad,
+                                 .extra_mu                = extra_mu,
                                  .max_delta_tau           = max_delta_tau,
                                  .normalisation_tolerance = normalisation_tolerance,
-                                 .frequency           = frequency,
-                                 .height              = height,
-                                 .temperature         = temperature,
-                                 .gas_extinction      = gas_extinction,
-                                 .optics              = optics,
-                                 .layer_optics_index  = layer_optics_index,
-                                 .sky_temperature     = sky_temperature,
-                                 .surface_temperature = surface_temperature,
-                                 .ground              = ground};
+                                 .frequency               = frequency,
+                                 .height                  = height,
+                                 .temperature             = temperature,
+                                 .gas_extinction          = gas_extinction,
+                                 .optics                  = optics,
+                                 .layer_optics_index      = layer_optics_index,
+                                 .sky_temperature         = sky_temperature,
+                                 .surface_temperature     = surface_temperature,
+                                 .ground                  = ground};
           },
-          "nstokes"_a             = d.nstokes,
-          "nmu"_a                 = d.nmu,
-          "quad"_a                = d.quad,
-          "extra_mu"_a            = d.extra_mu,
-          "max_delta_tau"_a       = d.max_delta_tau,
+          "nstokes"_a                 = d.nstokes,
+          "nmu"_a                     = d.nmu,
+          "quad"_a                    = d.quad,
+          "extra_mu"_a                = d.extra_mu,
+          "max_delta_tau"_a           = d.max_delta_tau,
           "normalisation_tolerance"_a = d.normalisation_tolerance,
-          "frequency"_a           = d.frequency,
-          "height"_a              = d.height,
-          "temperature"_a         = d.temperature,
-          "gas_extinction"_a      = d.gas_extinction,
-          "optics"_a              = d.optics,
-          "layer_optics_index"_a  = d.layer_optics_index,
-          "sky_temperature"_a     = d.sky_temperature,
-          "surface_temperature"_a = d.surface_temperature,
-          "ground"_a              = d.ground)
+          "frequency"_a               = d.frequency,
+          "height"_a                  = d.height,
+          "temperature"_a             = d.temperature,
+          "gas_extinction"_a          = d.gas_extinction,
+          "optics"_a                  = d.optics,
+          "layer_optics_index"_a      = d.layer_optics_index,
+          "sky_temperature"_a         = d.sky_temperature,
+          "surface_temperature"_a     = d.surface_temperature,
+          "ground"_a                  = d.ground)
       .def_rw("nstokes", &rt4::problem::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
       .def_rw("nmu", &rt4::problem::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
       .def_rw("quad", &rt4::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
@@ -206,10 +206,11 @@ is not used for this surface.)";
       .def_rw("max_delta_tau",
               &rt4::problem::max_delta_tau,
               "Maximum vertical optical thickness of the initial doubling sublayer, > 0\n\n.. :class:`float`")
-      .def_rw("normalisation_tolerance",
-              &rt4::problem::normalisation_tolerance,
-              "Energy conservation every optics set must meet on the streams, relative to K11: every incident "
-              "quadrature stream must scatter K11 - a1 into the quadrature streams; infinity checks nothing\n\n.. :class:`float`")
+      .def_rw(
+          "normalisation_tolerance",
+          &rt4::problem::normalisation_tolerance,
+          "Energy conservation every optics set must meet on the streams, relative to K11: every incident "
+          "quadrature stream must scatter K11 - a1 into the quadrature streams; infinity checks nothing\n\n.. :class:`float`")
       .def_rw("frequency", &rt4::problem::frequency, "Frequency [Hz]\n\n.. :class:`float`")
       .def_rw("height",
               &rt4::problem::height,

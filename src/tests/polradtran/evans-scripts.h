@@ -50,8 +50,8 @@ inline script read_script(const std::filesystem::path& path) {
   for (std::string line; std::getline(in, line);) {
     const auto here = line.find(" <<EOF");
     if (here == std::string::npos) continue;
-    const std::string head = line.substr(0, here);
-    std::string       body;
+    const std::string        head = line.substr(0, here);
+    std::string              body;
     std::vector<std::string> answers;
     for (std::string l; std::getline(in, l) and l != "EOF";) {
       body += l + '\n';
@@ -105,8 +105,7 @@ inline std::vector<row> read_output(const std::string& text) {
     std::vector<std::string> tokens;
     for (std::string t; is >> t;) tokens.push_back(t);
     const std::size_t first = phi ? 3 : 2;
-    require(tokens.size() > first and tokens.size() <= first + 4,
-            std::format("Unexpected output line \"{}\"", line));
+    require(tokens.size() > first and tokens.size() <= first + 4, std::format("Unexpected output line \"{}\"", line));
     row r{};
     r.z   = std::stod(tokens[0]);
     r.phi = phi ? std::stod(tokens[1]) : 0.0;

@@ -74,9 +74,9 @@ rt4::layer_optics read_rt4_scattering(const std::string& text, Index nmu, char q
   // NMU, NAZ and the quoted quadrature name
   Index n = 0, naz = -1;
   std::istringstream(lines.front()) >> n >> naz;
-  const auto  quote = lines.front().find('\'');
-  const std::string q = quote == std::string::npos ? "" : lines.front().substr(quote + 1);
-  std::string rest;
+  const auto        quote = lines.front().find('\'');
+  const std::string q     = quote == std::string::npos ? "" : lines.front().substr(quote + 1);
+  std::string       rest;
   for (std::size_t k = 1; k < lines.size(); k++) rest += lines[k] + '\n';
   std::istringstream tokens(rest);
   require(n == nmu and not q.empty() and q.front() == quad and naz == 0,
@@ -90,7 +90,7 @@ rt4::layer_optics read_rt4_scattering(const std::string& text, Index nmu, char q
   rt4::layer_optics o{.extinction = Tensor4(2, nmu, ns, ns, 0.0),
                       .absorption = Tensor3(2, nmu, ns, 0.0),
                       .phase      = Tensor6(2, 2, nmu, nmu, ns, ns, 0.0)};
-  const auto number = [&] {
+  const auto        number = [&] {
     Numeric x;
     tokens >> x;
     require(not tokens.fail(), "Scattering file ended early");
@@ -165,17 +165,19 @@ Numeric run(const fs::path& folder, const std::string& name, const fs::path& sca
     std::ofstream answers(work / "scatcnv.in");
     for (const auto& a : r.answers) answers << a << '\n';
     answers.close();
-    const auto command = std::format("cd \"{}\" && \"{}\" < scatcnv.in > scatcnv.log 2>&1", work.string(), scatcnv.string());
-    require(std::system(command.c_str()) == 0, std::format("{} failed; see {}", scatcnv.string(), (work / "scatcnv.log").string()));
+    const auto command =
+        std::format("cd \"{}\" && \"{}\" < scatcnv.in > scatcnv.log 2>&1", work.string(), scatcnv.string());
+    require(std::system(command.c_str()) == 0,
+            std::format("{} failed; see {}", scatcnv.string(), (work / "scatcnv.log").string()));
   }
   const auto optics_of = [&](const std::string& file) {
     const auto path = s.files.contains(file) or fs::exists(work / file) ? work / file : folder / file;
     return read_rt4_scattering(read_file(path), st.nmu, st.quad, st.nstokes);
   };
 
-  const auto    levels    = evans::read_layers(s.files.at(st.layer_file));
-  const auto    T         = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
-  const Index   nlay      = static_cast<Index>(levels.size()) - 1;
+  const auto  levels = evans::read_layers(s.files.at(st.layer_file));
+  const auto  T = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
+  const Index nlay        = static_cast<Index>(levels.size()) - 1;
   const Numeric frequency = Constant::c / (st.wavelength * 1e-6);
   const Numeric per_um    = st.wavelength / frequency;
 

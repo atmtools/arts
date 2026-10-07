@@ -98,10 +98,10 @@ struct HenyeyGreensteinScatterer {
    */
   [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
   get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
-                                              const Vector& f_grid,
-                                              const Vector& za_inc_grid,
-                                              const Vector& za_scat_grid,
-                                              Index         max_mode) const;
+                                             const Vector& f_grid,
+                                             const Vector& za_inc_grid,
+                                             const Vector& za_scat_grid,
+                                             Index         max_mode) const;
 
   [[nodiscard]] Numeric get_g() const { return g; };
   void                  set_g(const Numeric& g_) { g = g_; };

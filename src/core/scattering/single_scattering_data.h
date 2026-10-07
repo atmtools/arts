@@ -346,18 +346,18 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
    */
   SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
       const ScatteringDataGrids &grids, Index max_mode) const
-    requires(format == Format::TRO and repr == Representation::Spectral)
-  {
+      requires(format == Format::TRO and repr == Representation::Spectral) {
     ARTS_USER_ERROR_IF(not grids.za_inc_grid or not grids.za_scat_grid,
                        "Laboratory-frame Fourier modes need incidence and scattering zenith-angle grids")
     const ScatteringDataGrids tf_grids(grids.t_grid, grids.f_grid);
     auto                      new_pm = phase_matrix.transform([&](const auto &pm) {
       return pm.regrid(tf_grids).to_lab_frame_fourier_modes(grids.za_inc_grid, grids.za_scat_grid, max_mode);
     });
-    auto new_em  = extinction_matrix.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
-    auto new_av  = absorption_vector.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
+    auto                      new_em = extinction_matrix.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
+    auto                      new_av = absorption_vector.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
     auto new_bsm = BackscatterMatrixData<Numeric, Format::ARO>(backscatter_matrix.regrid(tf_grids), grids.za_inc_grid);
-    auto new_fsm = ForwardscatterMatrixData<Numeric, Format::ARO>(forwardscatter_matrix.regrid(tf_grids), grids.za_inc_grid);
+    auto new_fsm =
+        ForwardscatterMatrixData<Numeric, Format::ARO>(forwardscatter_matrix.regrid(tf_grids), grids.za_inc_grid);
     return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
         properties, new_pm, new_em, new_av, new_bsm, new_fsm);
   }
@@ -367,8 +367,7 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
    * See PhaseMatrixData<ARO, Gridded>::to_fourier.
    */
   SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_fourier(Index max_mode) const
-    requires(format == Format::ARO and repr == Representation::Gridded)
-  {
+      requires(format == Format::ARO and repr == Representation::Gridded) {
     return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
         properties,
         phase_matrix.transform([max_mode](const auto &pm) { return pm.to_fourier(max_mode); }),
@@ -384,8 +383,7 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
    */
   SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_fourier(
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid, Index max_mode) const
-    requires(format == Format::ARO and repr == Representation::Spectral)
-  {
+      requires(format == Format::ARO and repr == Representation::Spectral) {
     return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
         properties,
         phase_matrix.transform([&](const auto &pm) { return pm.to_fourier(za_scat_grid, max_mode); }),

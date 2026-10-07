@@ -112,10 +112,10 @@ Matrix evaluate(const ConstMatrixView& coefficients, const ConstVectorView& angl
 report assess(const ConstMatrixView& coefficients, const ConstVectorView& angles, const ConstMatrixView& values) {
   ARTS_USER_ERROR_IF(coefficients.ncols() != 6 or values.ncols() != 6,
                      "A TRO report needs the six elements [F11, F12, F22, F33, F34, F44]")
-  const Index L = coefficients.nrows() - 1;
+  const Index       L   = coefficients.nrows() - 1;
   constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
-  report out;
+  report  out;
   Numeric scale = 0.0;
   for (Index i = 0; i < values.nrows(); i++) scale = std::max(scale, std::abs(values[i, 0]));
   const Numeric inv_scale = scale > 0.0 ? 1.0 / scale : nan;

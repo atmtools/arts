@@ -11,8 +11,8 @@
 #include <format>
 #include <functional>
 #include <iostream>
-#include <numeric>
 #include <limits>
+#include <numeric>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -327,8 +327,8 @@ void test_layout() {
   const auto kappa = [&](Index l, Index i) { return 0.3 * atm.gas[l] * mu[i]; };
   const auto c     = [&](Index l, Index i) { return i < p.nmu ? 0.35 * atm.gas[l] : 0.0; };
   // Energy conservation (rt4::solve checks it): the absorption is the extinction minus what the stream scatters
-  const auto aI    = [&](Index l, Index i) { return k(l, i) - c(l, i); };
-  const auto aQ    = [&](Index l, Index i) { return -0.2 * atm.gas[l] * (1.0 - mu[i]); };
+  const auto aI = [&](Index l, Index i) { return k(l, i) - c(l, i); };
+  const auto aQ = [&](Index l, Index i) { return -0.2 * atm.gas[l] * (1.0 - mu[i]); };
 
   for (Index l = 0; l < atm.nlay(); l++) {
     rt4::layer_optics o{.extinction = Tensor4(2, nmu, 2, 2, 0.0),
@@ -595,20 +595,20 @@ void test_errors() {
   rt4::solve(good());
 
   expect_throw("optics that do not conserve energy", [&] {
-    auto p                      = good();
+    auto p                           = good();
     p.optics[0].absorption[0, 0, 0] *= 1.01;
     p.optics[0].absorption[1, 0, 0] *= 1.01;  // mirror symmetric, so only the energy balance fails
     rt4::solve(p);
   });
   {
     // An infinite tolerance accepts anything: the same optics, and an all-zero optics set (K11 = 0)
-    auto p                      = good();
+    auto p                           = good();
     p.optics[0].absorption[0, 0, 0] *= 1.01;
     p.optics[0].absorption[1, 0, 0] *= 1.01;
-    auto zero = p.optics[0];
-    zero.extinction = 0.0;
-    zero.absorption = 0.0;
-    zero.phase      = 0.0;
+    auto zero                        = p.optics[0];
+    zero.extinction                  = 0.0;
+    zero.absorption                  = 0.0;
+    zero.phase                       = 0.0;
     p.optics.push_back(zero);
     p.layer_optics_index[0]   = 1;
     p.normalisation_tolerance = std::numeric_limits<Numeric>::infinity();

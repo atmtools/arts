@@ -1564,8 +1564,7 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
       stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
-  ARTS_USER_ERROR_IF(not user_boundary.empty() and
-                         user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}),
+  ARTS_USER_ERROR_IF(not user_boundary.empty() and user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}),
                      "The user-direction boundary radiances have shape {:B,}, expected [2, {}, {}] Stokes vectors",
                      user_boundary.shape(),
                      NFourier,
@@ -1590,7 +1589,7 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
      direction of the same cosine.  So the upward boundary value of an upward user direction mu includes
      R(mu) I_down(-mu) at the surface, from the user direction -mu, whose phase matrices only the caller has:
      every upward user direction must come with its downward partner. */
-  const bool     specular = stdr::any_of(brdf_fourier_modes, [](const BDRF& b) { return static_cast<bool>(b.specular.f); });
+  const bool specular = stdr::any_of(brdf_fourier_modes, [](const BDRF& b) { return static_cast<bool>(b.specular.f); });
   std::vector<Index> partner(nuser, -1);  // the downward partner of an upward user direction, as an index of below
   ComplexTensor4     partner_modes;       // [1, partners, 2 NFourier, Stokes] at the surface
   if (specular) {
@@ -1612,9 +1611,9 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
       partners.push_back(found);
     }
     if (not partners.empty()) {
-      const Index        np = static_cast<Index>(partners.size());
-      Vector             partner_mu(np);
-      phase_matrix_data  partner_phase(2, NFourier, NLayers, np, NQuad);
+      const Index            np = static_cast<Index>(partners.size());
+      Vector                 partner_mu(np);
+      phase_matrix_data      partner_phase(2, NFourier, NLayers, np, NQuad);
       beam_phase_matrix_data partner_beam;
       if (has_beam_source) partner_beam.resize(2, NFourier, NLayers, np);
       rtepack::stokvec_tensor3 partner_boundary;
@@ -1626,7 +1625,8 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
             for (Index layer = 0; layer < NLayers; ++layer) {
               for (Index j = 0; j < NQuad; ++j)
                 partner_phase[alpha, m, layer, p, j] = user_phase_matrix[alpha, m, layer, partners[p], j];
-              if (has_beam_source) partner_beam[alpha, m, layer, p] = user_beam_phase_matrix[alpha, m, layer, partners[p]];
+              if (has_beam_source)
+                partner_beam[alpha, m, layer, p] = user_beam_phase_matrix[alpha, m, layer, partners[p]];
             }
         if (not user_boundary.empty())
           for (Index alpha = 0; alpha < 2; ++alpha)

@@ -102,8 +102,10 @@ atmosphere make_atmosphere() {
       t_grid, f_grid, diameter, scattering::ZenithAngleGrid{scattering::IrregularZenithAngleGrid(angles)});
 
   // The Legendre series, a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
-  using Gridded  = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded =
+      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral =
+      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
   const auto& gridded = std::get<Gridded>(habit[0]);
   scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> series(
       gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), cloud_degree);
@@ -254,19 +256,17 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                   ? vdisort::surface{vdisort::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
                                   : vdisort::surface{vdisort::lambertian_surface{.albedo = 0.3}};
 
-  const auto p4 = rt4::problem_from_path(a.ray_path,
-                                         a.atm_path,
-                                         a.propmat,
-                                         a.freq_grid,
-                                         0,
-                                         a.species,
-                                         {.nstokes       = 2,
-                                          .nmu           = nmu,
-                                          .quad          = rt4::quadrature_type::double_gauss,
-                                          .max_delta_tau = max_delta_tau},
-                                         g4,
-                                         288.0,
-                                         2.7);
+  const auto p4 = rt4::problem_from_path(
+      a.ray_path,
+      a.atm_path,
+      a.propmat,
+      a.freq_grid,
+      0,
+      a.species,
+      {.nstokes = 2, .nmu = nmu, .quad = rt4::quadrature_type::double_gauss, .max_delta_tau = max_delta_tau},
+      g4,
+      288.0,
+      2.7);
   const auto p3 = rt3::problem_from_path(a.ray_path,
                                          a.atm_path,
                                          a.propmat,
@@ -287,9 +287,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                                a.freq_grid,
                                                0,
                                                a.species,
-                                               {.nquad                   = 2 * nmu,
-                                                .nfourier                = 1,
-                                                .normalisation_tolerance = 1e-6},
+                                               {.nquad = 2 * nmu, .nfourier = 1, .normalisation_tolerance = 1e-6},
                                                gv,
                                                288.0,
                                                2.7);
@@ -375,20 +373,17 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
     p.direct_mu   = mu0;
     return p;
   }();
-  const auto v = vdisort::main_data_from_path(a.ray_path,
-                                              a.atm_path,
-                                              a.propmat,
-                                              a.freq_grid,
-                                              0,
-                                              a.species,
-                                              {.nquad                   = 2 * nmu,
-                                               .nfourier                = aziorder + 1,
-                                               .normalisation_tolerance = 1e-6,
-                                               .beam_flux               = flux,
-                                               .beam_mu                 = mu0},
-                                              vdisort::lambertian_surface{.albedo = 0.3},
-                                              288.0,
-                                              2.7);
+  const auto v = vdisort::main_data_from_path(
+      a.ray_path,
+      a.atm_path,
+      a.propmat,
+      a.freq_grid,
+      0,
+      a.species,
+      {.nquad = 2 * nmu, .nfourier = aziorder + 1, .normalisation_tolerance = 1e-6, .beam_flux = flux, .beam_mu = mu0},
+      vdisort::lambertian_surface{.albedo = 0.3},
+      288.0,
+      2.7);
 
   Vector psi(6);
   for (Index k = 0; k < 6; k++) psi[k] = Conversion::deg2rad(std::array{0.0, 30.0, 75.0, 135.0, 180.0, 250.0}[k]);

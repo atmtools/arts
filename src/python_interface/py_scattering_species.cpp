@@ -273,11 +273,12 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
       .def_rw("backscatter_matrix", &SSDClass::backscatter_matrix, "Back scatter matrix\n\n.. :class:`object`")
       .def_rw("forwardscatter_matrix", &SSDClass::forwardscatter_matrix, "Forward scatter matrix\n\n.. :class:`object`")
       .def_static("from_legacy_tro", &SSDClass::from_legacy_tro, "ssd"_a, "smd"_a, "Create from legacy TRO")
-      .def("to_spectral",
-           &SSDClass::to_spectral,
-           "l"_a,
-           "m"_a = 0,
-           "The spectral form: TRO data as the Legendre series to degree l (m = 0), ARO data as the SHT of degree l and order m")
+      .def(
+          "to_spectral",
+          &SSDClass::to_spectral,
+          "l"_a,
+          "m"_a = 0,
+          "The spectral form: TRO data as the Legendre series to degree l (m = 0), ARO data as the SHT of degree l and order m")
       .def("__repr__", [](const SSDClass& ssd) {
         std::ostringstream oss;
         oss << ssd;
@@ -288,7 +289,7 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
         "to_spectral_with_report",
         [](const SSDClass& ssd, Index degree) { return scattering::to_spectral_with_report(ssd, degree); },
         "degree"_a,
-          "The Legendre series to degree and the report on how well it represents the data");
+        "The Legendre series to degree and the report on how well it represents the data");
   }
   return s;
 }
@@ -742,9 +743,9 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
             return scattering::to_tro_spectral_with_report(habit, t_grid, f_grid, l);
           },
           "t_grid"_a,
-           "f_grid"_a,
-           "l"_a,
-           R"(The habit as Legendre series to degree l on the grids, and a LegendreReport per particle
+          "f_grid"_a,
+          "l"_a,
+          R"(The habit as Legendre series to degree l on the grids, and a LegendreReport per particle
 
 The reports are on each particle's own grids, before regridding.)")
 

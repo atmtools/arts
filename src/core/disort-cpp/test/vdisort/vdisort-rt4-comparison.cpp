@@ -530,7 +530,10 @@ field vdisort_streams(const vdisort::main_data& v, Index nstokes) {
 /* VDISORT at the extra angles by its user-angle formal solution, up and down or (upward = false) down only.
    With exact_boundary the boundary radiances where the user rays start are given (the Kirchhoff emission of a
    Lambertian or Fresnel surface, the sky); otherwise VDISORT interpolates them from the streams. */
-field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upward = true, bool exact_boundary = false) {
+field vdisort_extra_angles(const vdisort::main_data& v,
+                           const setup&              c,
+                           bool                      upward         = true,
+                           bool                      exact_boundary = false) {
   const Index N = c.s.nmu, NQuad = 2 * N, NL = c.nlay(), ne = c.s.total() - N;
   const Index first = upward ? 0 : ne;  // the user directions are the extra angles up, then down
   Vector      user_mu(2 * ne - first);
@@ -567,7 +570,8 @@ field vdisort_extra_angles(const vdisort::main_data& v, const setup& c, bool upw
         const auto R                         = vdisort::brdf::Fresnel{f->refractive_index}(user_mu[u]);
         boundary[vdisort::cosine_mode, 0, u] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
       } else {
-        boundary[vdisort::cosine_mode, 0, u] = {(1 - std::get<rt4::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
+        boundary[vdisort::cosine_mode, 0, u] = {
+            (1 - std::get<rt4::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
       }
     }
   }
@@ -1078,13 +1082,11 @@ void test_extra_angles() {
   const auto    vu  = vdisort_extra_angles(x.v, c);
   const auto    tol = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
   const Index   N = c.s.nmu, L = c.nlay(), ne = c.s.total() - N;
-  const Numeric Bs  = planck(frequency, c.surface);
-  report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, downward",
-         compare(x.r, vu, N, directions::down_only),
-         tol);
+  const Numeric Bs = planck(frequency, c.surface);
+  report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, downward", compare(x.r, vu, N, directions::down_only), tol);
 
-  const Vector     nodes{x.v.mu()[Range(0, N)]};
-  Vector           weights(N), emission_i(N), emission_q(N);
+  const Vector nodes{x.v.mu()[Range(0, N)]};
+  Vector       weights(N), emission_i(N), emission_q(N);
   disort_common::barycentric_weights(weights, nodes);
   const vdisort::brdf::Fresnel fresnel{.refractive_index = Complex{3.0, 0.2}};
   for (Index i = 0; i < N; i++) {
@@ -1094,16 +1096,17 @@ void test_extra_angles() {
   }
   Numeric scale = 0.0, raw = 0.0, corrected = 0.0, interpolation = 0.0;
   for (Index l = 0; l <= L; l++)
-    for (Index e = 0; e < ne; e++) scale = std::max({scale, std::abs(x.r.up[l, N + e, 0]), std::abs(x.r.down[l, N + e, 0])});
+    for (Index e = 0; e < ne; e++)
+      scale = std::max({scale, std::abs(x.r.up[l, N + e, 0]), std::abs(x.r.down[l, N + e, 0])});
   for (Index e = 0; e < ne; e++) {
-    const Numeric mu = c.s.mu[N + e];
-    const auto    R  = fresnel(mu);
+    const Numeric mu  = c.s.mu[N + e];
+    const auto    R   = fresnel(mu);
     const Numeric d_i = disort_common::barycentric_interpolate(nodes, weights, emission_i, mu) - (1 - R[0, 0]) * Bs;
     const Numeric d_q = disort_common::barycentric_interpolate(nodes, weights, emission_q, mu) + R[1, 0] * Bs;
     interpolation     = std::max({interpolation, std::abs(d_i) / Bs, std::abs(d_q) / Bs});
     for (Index l = 0; l <= L; l++) {
-      const Numeric tau  = l == 0 ? 0.0 : x.v.tau()[l - 1];
-      const Numeric att  = std::exp(-(x.v.tau()[L - 1] - tau) / mu);
+      const Numeric tau = l == 0 ? 0.0 : x.v.tau()[l - 1];
+      const Numeric att = std::exp(-(x.v.tau()[L - 1] - tau) / mu);
       for (Index st = 0; st < std::min<Index>(c.nstokes, 2); st++) {
         const Numeric diff = vu.up[l, e, st] - x.r.up[l, N + e, st];
         raw                = std::max(raw, std::abs(diff) / scale);
@@ -1138,9 +1141,7 @@ void test_extra_angles() {
                          Vector{0.0},
                          Vector{c.s.mu[N]},
                          vdisort::phase_matrix_data(2, 1, L, 1, 2 * N, rtepack::muelmat{0.0}));
-  } catch (const std::exception&) {
-    refused = true;
-  }
+  } catch (const std::exception&) { refused = true; }
   std::cout << std::format("{:<66} {}\n",
                            "Extra-angle setup, Fresnel 3+0.2i: upward without its downward partner",
                            refused ? "refused, as required" : "NOT REFUSED");

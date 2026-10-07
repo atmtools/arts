@@ -34,7 +34,6 @@ struct ScatteringTroSpectralVector {
   [[nodiscard]] gridded_t to_lab_frame(std::shared_ptr<const Vector>                      za_inc_grid,
                                        std::shared_ptr<const Vector>                      delta_aa_grid,
                                        std::shared_ptr<const scattering::ZenithAngleGrid> za_scat_grid_new) const;
-
 };
 
 using ScatteringGeneralSpectralTROFunc =

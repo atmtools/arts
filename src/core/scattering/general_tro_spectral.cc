@@ -4,14 +4,13 @@
 
 #include <memory>
 
-
 ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_tro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
   ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
 
   // The user's function must give exactly what was asked
-  auto          out = f(atm_point, f_grid, degree);
-  const Index   nf  = static_cast<Index>(f_grid.size());
+  auto        out = f(atm_point, f_grid, degree);
+  const Index nf  = static_cast<Index>(f_grid.size());
   ARTS_USER_ERROR_IF(not out.phase_matrix.has_value(),
                      "The user's scattering function gives no phase matrix; it must give its Legendre series")
   ARTS_USER_ERROR_IF(out.phase_matrix->nrows() != nf or out.phase_matrix->ncols() != degree + 1,
@@ -21,13 +20,13 @@ ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_pr
                      out.phase_matrix->ncols(),
                      nf,
                      degree + 1)
-  ARTS_USER_ERROR_IF(static_cast<Index>(out.extinction_matrix.size()) != nf or
-                         static_cast<Index>(out.absorption_vector.size()) != nf,
-                     "The user's scattering function gives {} extinction matrices and {} absorption vectors, but "
-                     "there are {} frequencies",
-                     out.extinction_matrix.size(),
-                     out.absorption_vector.size(),
-                     nf)
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(out.extinction_matrix.size()) != nf or static_cast<Index>(out.absorption_vector.size()) != nf,
+      "The user's scattering function gives {} extinction matrices and {} absorption vectors, but "
+      "there are {} frequencies",
+      out.extinction_matrix.size(),
+      out.absorption_vector.size(),
+      nf)
   return out;
 }
 

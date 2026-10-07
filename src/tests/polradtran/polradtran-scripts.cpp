@@ -90,15 +90,16 @@ int main(int argc, char** argv) try {
     answers.close();
     const int status =
         std::system(std::format("\"{}\" < {} > {} 2>&1", programs.at(r.program).string(), in, log).c_str());
-    require(status == 0,
-            std::format("{} failed (status {}); see {}", programs.at(r.program).string(), status, (work / log).string()));
+    require(
+        status == 0,
+        std::format("{} failed (status {}); see {}", programs.at(r.program).string(), status, (work / log).string()));
   }
 
   const auto ref = evans::read_output(s.files.at(s.check));
   const auto got = evans::read_output(read_file(work / output));
   require(ref.size() == got.size(), std::format("{} has {} lines, {} has {}", output, got.size(), s.check, ref.size()));
 
-  const bool rt3 = s.solver().program == "rt3";
+  const bool rt3   = s.solver().program == "rt3";
   double     max_i = 0.0;
   for (const auto& r : ref) max_i = std::max(max_i, std::abs(r.iquv[0]));
 
@@ -134,7 +135,9 @@ int main(int argc, char** argv) try {
                            ref.size(),
                            values,
                            worst);
-  if (rt3) std::cout << std::format("; {} zero by symmetry, max |value| / max I {:.1e} (tolerance 1e-7)", zeros, worst_zero / max_i);
+  if (rt3)
+    std::cout << std::format(
+        "; {} zero by symmetry, max |value| / max I {:.1e} (tolerance 1e-7)", zeros, worst_zero / max_i);
   std::cout << '\n';
   require(worst <= 1.0 + 1e-9, "The output must agree with Evans' table to one unit in the last printed digit");
   require(worst_zero <= 1e-7 * max_i, "The values that are zero by symmetry must stay below 1e-7 of max I");

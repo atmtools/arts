@@ -24,9 +24,9 @@ Numeric ylm0_norm(Index l) { return std::sqrt(static_cast<Numeric>(2 * l + 1) / 
 void test_linear_is_exact() {
   const Vector angles{0.0, 180.0};
   Matrix       values(2, 1);
-  values[0, 0] = 0.0;
-  values[1, 0] = Constant::pi;
-  const Matrix a = tro_legendre::project(angles, values, 1);
+  values[0, 0]     = 0.0;
+  values[1, 0]     = Constant::pi;
+  const Matrix  a  = tro_legendre::project(angles, values, 1);
   const Numeric b0 = a[0, 0] / (2.0 * Constant::pi * ylm0_norm(0)), b1 = a[1, 0] / (2.0 * Constant::pi * ylm0_norm(1));
   check(std::abs(b0 - Constant::pi) < 1e-14 and std::abs(b1 + 0.25 * Constant::pi) < 1e-14,
         "projection of a function linear in the scattering angle is exact");
@@ -37,8 +37,8 @@ void test_linear_is_exact() {
 void test_constant_ends() {
   const Vector angles{30.0, 90.0, 150.0};
   Matrix       values(3, 2, 1.0);
-  const Matrix a  = tro_legendre::project(angles, values, 12);
-  Numeric      e  = std::abs(a[0, 0] - std::sqrt(4.0 * Constant::pi));
+  const Matrix a = tro_legendre::project(angles, values, 12);
+  Numeric      e = std::abs(a[0, 0] - std::sqrt(4.0 * Constant::pi));
   for (Index l = 1; l <= 12; l++) e = std::max(e, std::abs(a[l, 1]));
   check(e < 1e-14, "the constant extension beyond the first and last angle");
 }
@@ -54,14 +54,14 @@ void test_evaluate() {
   const Matrix f = tro_legendre::evaluate(a, angles);
   Numeric      e = 0.0;
   for (Size i = 0; i < angles.size(); i++) {
-    const Numeric x = std::cos(Conversion::deg2rad(angles[i]));
+    const Numeric x  = std::cos(Conversion::deg2rad(angles[i]));
     Numeric       p0 = 1.0, p1 = x, ref = 1.0 / (4.0 * Constant::pi) * (1.0 + 3.0 * g * x);
     for (Index l = 1; l < L; l++) {
-      const auto    dl = static_cast<Numeric>(l);
-      const Numeric p2 = ((2.0 * dl + 1.0) * x * p1 - dl * p0) / (dl + 1.0);
-      ref += (2.0 * dl + 3.0) / (4.0 * Constant::pi) * std::pow(g, l + 1) * p2;
-      p0 = p1;
-      p1 = p2;
+      const auto    dl  = static_cast<Numeric>(l);
+      const Numeric p2  = ((2.0 * dl + 1.0) * x * p1 - dl * p0) / (dl + 1.0);
+      ref              += (2.0 * dl + 3.0) / (4.0 * Constant::pi) * std::pow(g, l + 1) * p2;
+      p0                = p1;
+      p1                = p2;
     }
     e = std::max(e, std::abs(f[i, 0] - ref) / ref);
   }
@@ -72,16 +72,16 @@ void test_evaluate() {
    coefficients as the grid refines (second order in the spacing), and the
    report sees the truncation. */
 void test_hg_convergence() {
-  const Numeric g = 0.7;
-  const Index   L = 16;
+  const Numeric g        = 0.7;
+  const Index   L        = 16;
   Numeric       previous = 0.0;
   for (const Index n : {181, 721}) {
     Vector angles(n);
     Matrix values(n, 6, 0.0);
     for (Index i = 0; i < n; i++) {
-      angles[i]     = 180.0 * static_cast<Numeric>(i) / static_cast<Numeric>(n - 1);
+      angles[i]       = 180.0 * static_cast<Numeric>(i) / static_cast<Numeric>(n - 1);
       const Numeric x = std::cos(Conversion::deg2rad(angles[i]));
-      values[i, 0]  = (1.0 - g * g) / (4.0 * Constant::pi * std::pow(1.0 + g * g - 2.0 * g * x, 1.5));
+      values[i, 0]    = (1.0 - g * g) / (4.0 * Constant::pi * std::pow(1.0 + g * g - 2.0 * g * x, 1.5));
     }
     const Matrix a = tro_legendre::project(angles, values, L);
     Numeric      e = 0.0;
@@ -103,9 +103,7 @@ void test_errors() {
   const auto throws = [](auto&& f) {
     try {
       f();
-    } catch (const std::exception&) {
-      return true;
-    }
+    } catch (const std::exception&) { return true; }
     return false;
   };
   Matrix v(2, 1, 1.0);

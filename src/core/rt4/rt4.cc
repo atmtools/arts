@@ -116,8 +116,7 @@ void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index n
    instead.  Here it is an error.  If sampled phase matrices (forward peaks
    between the streams) make this a real problem, an explicit
    renormalisation step could be added, as ARTS 2 had. */
-void check_normalisation(
-    const layer_optics& o, Index iset, const quadrature& q, Index nquad, Numeric tolerance) {
+void check_normalisation(const layer_optics& o, Index iset, const quadrature& q, Index nquad, Numeric tolerance) {
   if (std::isinf(tolerance)) return;  // the user accepts any optics
   for (Index h = 0; h < 2; h++) {
     for (Index j = 0; j < nquad; j++) {
@@ -208,9 +207,8 @@ result solve(const problem& p) {
                      n,
                      (nlay + 1) * n * n);
   ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
-  ARTS_USER_ERROR_IF(not(p.normalisation_tolerance >= 0.0),
-                     "normalisation_tolerance must be >= 0, got {}",
-                     p.normalisation_tolerance);
+  ARTS_USER_ERROR_IF(
+      not(p.normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", p.normalisation_tolerance);
   ARTS_USER_ERROR_IF(not(p.frequency > 0.0), "frequency must be positive, got {} Hz", p.frequency);
   ARTS_USER_ERROR_IF(static_cast<Index>(p.temperature.size()) != nlay + 1 or
                          static_cast<Index>(p.gas_extinction.size()) != nlay or

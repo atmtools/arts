@@ -473,8 +473,8 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
       for (Index l = 0; l <= degree; ++l) {
         // The scattering-plane Mueller matrix of each (real) coefficient
         const auto coeffs = (*ssd.phase_matrix)[0, iv, l, joker];
-        const auto F =
-            pnd[i] * rtepack::compact_planar_muelmat{coeffs | std::views::transform([](const Complex& x) { return x.real(); })};
+        const auto F      = pnd[i] * rtepack::compact_planar_muelmat{
+                                         coeffs | std::views::transform([](const Complex& x) { return x.real(); })};
         (*out.phase_matrix)[iv, l] += Specmat{F.expand().data};
       }
       out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv, 0];
@@ -486,10 +486,10 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
 
 BulkScatteringProperties<Format::ARO, Representation::Fourier>
 ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& point,
-                                                             const Vector&   f_grid,
-                                                             const Vector&   za_inc_grid,
-                                                             const Vector&   za_scat_grid,
-                                                             Index           max_mode) const {
+                                                            const Vector&   f_grid,
+                                                            const Vector&   za_inc_grid,
+                                                            const Vector&   za_scat_grid,
+                                                            Index           max_mode) const {
   ARTS_USER_ERROR_IF(particle_habit.size() == 0, "Cannot calculate bulk properties for an empty particle habit.")
   const auto pnd     = number_densities(point);
   auto       t_grid  = std::make_shared<Vector>(Vector{point.temperature});

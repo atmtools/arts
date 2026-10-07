@@ -87,8 +87,10 @@ template <Format format, Representation repr> auto ssd_to_aro_spectral(
  * scattering-angle nodes, too coarsely for the modes; they must be converted
  * to a Legendre series first.
  */
-template <Format format, Representation repr> auto ssd_to_aro_fourier(
-    const ScatteringDataGrids& new_grids, Index max_mode, const SingleScatteringData<Numeric, format, repr>& ssd)
+template <Format format, Representation repr>
+auto ssd_to_aro_fourier(const ScatteringDataGrids&                         new_grids,
+                        Index                                              max_mode,
+                        const SingleScatteringData<Numeric, format, repr>& ssd)
     -> SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> {
   if constexpr (format == Format::ARO and repr == Representation::Gridded) {
     return ssd.to_fourier(max_mode).regrid(new_grids);
@@ -227,7 +229,6 @@ class ParticleHabit {
   ParticleHabit to_tro_spectral(const Vector& t_grid, const Vector& f_grid, Index l);
 
   ParticleHabit to_tro_gridded(const Vector& t_grid, const Vector& f_grid, const ZenithAngleGrid& za_scat_grid);
-
 
   ParticleHabit to_aro_spectral(
       const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m);
