@@ -524,7 +524,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& poin
       }
       // Series of different degrees add as the longer one
       if (local.phase_matrix->get_degree() > tro->phase_matrix->get_degree()) std::swap(*tro, local);
-      for (Index iv = 0; iv < f_ptr->size(); ++iv)
+      for (Size iv = 0; iv < f_ptr->size(); ++iv)
         for (Index l = 0; l <= local.phase_matrix->get_degree(); ++l)
           for (Index e = 0; e < 6; ++e) (*tro->phase_matrix)[0, iv, l, e] += (*local.phase_matrix)[0, iv, l, e];
       tro->extinction_matrix += local.extinction_matrix;

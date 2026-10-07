@@ -116,6 +116,7 @@ std::ostream &operator<<(std::ostream &out, Representation repr) {
     case Representation::Gridded:        out << "gridded"; break;
     case Representation::Spectral:       out << "spectral"; break;
     case Representation::DoublySpectral: out << "doubly-spectral"; break;
+    case Representation::Fourier:        out << "fourier"; break;
   }
   return out;
 }
