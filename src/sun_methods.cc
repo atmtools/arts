@@ -146,6 +146,8 @@ Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
 }
 
 Vector2 sun_geometric_los(const Sun& sun, const Vector3 observer_pos, const SurfaceField& surf_field) {
+  sun.require_placeable();
+
   const Vector3 sun_pos{{sun.distance - surf_field.single_value(SurfaceKey::h, observer_pos[1], observer_pos[2]),
                          sun.latitude,
                          sun.longitude}};
@@ -225,6 +227,7 @@ void find_sun_path(const Workspace&             ws,
   ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
                      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
                      surf_field.ellipsoid)
+  sun.require_placeable();
 
   assert(angle_cut >= 0.0);
 
