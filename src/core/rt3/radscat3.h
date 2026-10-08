@@ -121,11 +121,18 @@ IndexVector6 number_sums(Index nstokes, ConstMatrixView coef);
  * (2,1) = (1,2), (4,3) = -(3,4), and (2,2) = (1,1) and (4,4) = (3,3) when
  * F22 and F44 are not summed.  The other elements are not written.
  *
+ * The Legendre polynomials are ARTS's (Legendre::legendre_polynomials, the
+ * generator of every Legendre series in ARTS), made once for all six
+ * series in work.legendre_p, which it sizes.  x is clamped to [-1, 1]: as
+ * the cosine of a scattering angle computed from the directions, it can
+ * round to just outside.
+ *
  *   coef          [nlegen + 1, 6]  COEF(6, NLEGEN+1)
  *   phase_matrix  [4, 4]           PHASE_MATRIX(4, 4), output: element (r, c)
  *                                  is phase_matrix[c - 1, r - 1]
  */
-void sum_legendre(ConstMatrixView coef, Numeric x, const IndexVector6& dosum, MatrixView phase_matrix);
+void sum_legendre(
+    ConstMatrixView coef, Numeric x, const IndexVector6& dosum, MatrixView phase_matrix, rt3_workdata& work);
 
 /** ROTATE_PHASE_MATRIX: rotates the polarization basis of the phase matrix
  * from the incident plane into the scattering plane and from the

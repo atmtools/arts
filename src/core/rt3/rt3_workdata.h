@@ -45,13 +45,15 @@ struct rt3_workdata {
   /////////////////////////////////////////////////////////////////////////////
   // The scratch of SCATTERING and DIRECT_SCATTERING, one at a time: the
   // phase matrices at the azimuths they sample (SCAT_MATRIX, Fortran
-  // layout) and their Fourier modes (BASIS_MATRIX); that of FOURIER_MATRIX
-  // (REAL_VECTOR, BASIS_VECTOR); and FFT1DR's phase table, kept between
-  // calls.  The routines size them.
+  // layout) and their Fourier modes (BASIS_MATRIX); that of SUM_LEGENDRE
+  // (the Legendre polynomials at the scattering angle) and of
+  // FOURIER_MATRIX (REAL_VECTOR, BASIS_VECTOR); and FFT1DR's phase table,
+  // kept between calls.  The routines size them.
   /////////////////////////////////////////////////////////////////////////////
 
   Tensor3      scat_matrix;   //!< [numpts (+ 1), 4, 4]
   Tensor3      basis_matrix;  //!< [2 aziorder + 1, 4, 4]
+  Vector       legendre_p;    //!< [numlegendre + 1]
   Vector       real_vector;   //!< [numpts]
   Vector       basis_vector;  //!< [2 aziorder + 1]
   fft_workdata fft;

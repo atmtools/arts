@@ -897,7 +897,10 @@ void check_number_sums() {
 /* rt3::sum_legendre against SUM_LEGENDRE, for series of degree 0 to 120
    at scattering angles from -1 to 1, with each DOSUM of NUMBER_SUMS and
    none.  Both phase matrices start with the same distinct values, so an
-   element that only one of them writes differs. */
+   element that only one of them writes differs.  Not bit-identical: the
+   polynomials are ARTS's (Boost's recurrence), RT3's had two divisions
+   per step.  A cosine rounded to just outside [-1, 1] is clamped (RT3
+   summed its series there). */
 void check_sum_legendre() {
   std::mt19937_64                         gen(1997);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
@@ -908,6 +911,7 @@ void check_sum_legendre() {
                                                  {1, 1, 1, 1, 1, 1},
                                                  {0, 0, 0, 0, 0, 0}};
   routine_tally                           tally;
+  rt3::rt3_workdata                       work;
   for (Index nlegen : {0, 1, 2, 7, 30, 120}) {
     Matrix coef(nlegen + 1, 6);
     for (Index l = 0; l <= nlegen; l++)
@@ -917,13 +921,25 @@ void check_sum_legendre() {
       for (const auto& dosum : dosums) {
         Matrix44 pm, pmf;
         for (Index k = 0; k < 16; k++) pm.data_handle()[k] = pmf.data_handle()[k] = 1000.0 + static_cast<Numeric>(k);
-        rt3::sum_legendre(coef, x, dosum, pm);
+        rt3::sum_legendre(coef, x, dosum, pm, work);
         rt3_sum_legendre(nlegen, coef.data_handle(), x, dosum.data_handle(), pmf.data_handle());
         tally.add({differ(pm, pmf)});
       }
     }
   }
   tally.report("sum_legendre", "SUM_LEGENDRE");
+
+  // One ulp outside [-1, 1] is the value at -1 and 1
+  Matrix coef(31, 6);
+  for (Index l = 0; l <= 30; l++)
+    for (Index k = 0; k < 6; k++) coef[l, k] = static_cast<Numeric>(2 * l + 1) * std::pow(0.9, static_cast<Numeric>(l));
+  for (Numeric x : {-1.0, 1.0}) {
+    Matrix44 at{}, outside{};
+    rt3::sum_legendre(coef, x, {1, 1, 1, 1, 1, 1}, at, work);
+    rt3::sum_legendre(coef, std::nextafter(x, 2.0 * x), {1, 1, 1, 1, 1, 1}, outside, work);
+    if (differ(at, outside).first != 0)
+      throw std::runtime_error(std::format("sum_legendre does not clamp a cosine one ulp outside {}", x));
+  }
 }
 
 /* rt3::rotate_phase_matrix against ROTATE_PHASE_MATRIX, for 1 to 4 Stokes
@@ -1806,6 +1822,7 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
       in.spec.nstokes, in.nummu, in.spec.aziorder, in.spec.nlay, in.scat_extinct.extent(0), legendre_rows);
   w.scat_matrix.resize(1025, 4, 4);
   w.basis_matrix.resize(1025, 4, 4);
+  w.legendre_p.resize(1024);
   w.real_vector.resize(1024);
   w.basis_vector.resize(1025);
   for (Vector* v : {&w.quad_weights,
@@ -1814,6 +1831,7 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
                     &w.extinctions,
                     &w.albedos,
                     &w.direct_level_flux,
+                    &w.legendre_p,
                     &w.real_vector,
                     &w.basis_vector,
                     &w.xv,

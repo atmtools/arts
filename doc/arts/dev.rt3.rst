@@ -121,8 +121,17 @@ Provenance
       stopped (the I-I term not integrating to 1 within 1e-7), and also for
       NaN, which the Fortran let pass.
     * ``rt3::number_sums`` (``NUMBER_SUMS``) returns ``DOSUM``.
-    * ``rt3::sum_legendre`` (``SUM_LEGENDRE``) sums with RT3's own
-      recurrence.
+    * ``rt3::sum_legendre`` (``SUM_LEGENDRE``) sums with ARTS's Legendre
+      polynomials (``Legendre::legendre_polynomials``, Boost's recurrence),
+      the generator of every Legendre series in ARTS, made once for all
+      six series where RT3 ran its own recurrence for each.  Against
+      50-digit references, for series (2l + 1) g^l up to degree 1023 and
+      cosines clustered at +-1, both recurrences err by at most 2e-13 of
+      sum |c_l|, ARTS's by half as much on average (7e-16 against
+      1.3e-15).  The cosine is clamped to [-1, 1], which it can leave by
+      rounding (one ulp at 1 moves P_1023 by 1e-10).  Against the Fortran
+      it agrees to 1.1e-16 of the largest value; the 148 capture problems
+      changed by at most 1.1e-15 of the m = 0 I.
     * ``rt3::rotate_phase_matrix`` (``ROTATE_PHASE_MATRIX``).
     * ``rt3::matrix_symmetry`` (``MATRIX_SYMMETRY``) copies and negates
       2 x 2 blocks, also in place, as ``SCATTERING`` calls it at

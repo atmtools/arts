@@ -2,6 +2,7 @@
 
 #include <arts_constants.h>
 #include <debug.h>
+#include <legendre.h>
 
 #include <algorithm>
 #include <array>
@@ -95,7 +96,8 @@ IndexVector6 number_sums(Index nstokes, ConstMatrixView coef) {
   return matpack::to<IndexVector6>(sumcases[sum_case - 1]);
 }
 
-void sum_legendre(ConstMatrixView coef, Numeric x, const IndexVector6& dosum, MatrixView phase_matrix) {
+void sum_legendre(
+    ConstMatrixView coef, Numeric x, const IndexVector6& dosum, MatrixView phase_matrix, rt3_workdata& work) {
   const Index nlegen = coef.nrows() - 1;
   ARTS_USER_ERROR_IF(nlegen < 0 or coef.ncols() != 6 or phase_matrix.nrows() != 4 or phase_matrix.ncols() != 4,
                      "SUM_LEGENDRE needs coef [nlegen + 1, 6] and phase_matrix [4, 4]; got {:B,} and {:B,}",
@@ -105,22 +107,12 @@ void sum_legendre(ConstMatrixView coef, Numeric x, const IndexVector6& dosum, Ma
   // ROW and COL: the element of each series in the phase matrix, 0-based
   constexpr IndexVector6 row{0, 0, 2, 2, 1, 3}, col{0, 1, 2, 3, 1, 3};
 
+  // The Legendre polynomials P_0(x) to P_nlegen(x), for all the series
+  Vector& p = work.legendre_p.resize(nlegen + 1);
+  Legendre::legendre_polynomials(p, std::clamp(x, -1.0, 1.0));
+
   // Sum the Legendre series
-  for (Index i = 0; i < 6; i++) {
-    Numeric sum = 0.0;
-    if (dosum[i] == 1) {
-      Numeric pl1 = 1.0, pl = 1.0, pl2 = 0.0;
-      for (Index l = 0; l <= nlegen; l++) {
-        if (l > 0)
-          pl = static_cast<Numeric>(2 * l - 1) * x * pl1 / static_cast<Numeric>(l) -
-               static_cast<Numeric>(l - 1) * pl2 / static_cast<Numeric>(l);
-        sum = sum + coef[l, i] * pl;
-        pl2 = pl1;
-        pl1 = pl;
-      }
-    }
-    phase_matrix[col[i], row[i]] = sum;
-  }
+  for (Index i = 0; i < 6; i++) phase_matrix[col[i], row[i]] = dosum[i] == 1 ? dot(coef[joker, i], p) : 0.0;
   phase_matrix[0, 1] = phase_matrix[1, 0];
   phase_matrix[2, 3] = -phase_matrix[3, 2];
   if (dosum[4] == 0) phase_matrix[1, 1] = phase_matrix[0, 0];
@@ -394,7 +386,7 @@ void scattering(ConstVectorView mu_values,
         for (Index k = 1; k <= numpts / 2 + 1; k++) {
           const Numeric delphi   = (two_pi * static_cast<Numeric>(k - 1)) / static_cast<Numeric>(numpts);
           const Numeric cos_scat = mu1 * mu2 + std::sqrt((1.0 - mu1 * mu1) * (1.0 - mu2 * mu2)) * std::cos(delphi);
-          sum_legendre(legendre_coef, cos_scat, dosum, phase_matrix);
+          sum_legendre(legendre_coef, cos_scat, dosum, phase_matrix, work);
           rotate_phase_matrix(phase_matrix, mu1, mu2, delphi, cos_scat, scat_matrix[k - 1, stokes, stokes]);
           // k = numpts / 2 + 1 maps onto itself
           matrix_symmetry(scat_matrix[k - 1, stokes, stokes], scat_matrix[numpts - k + 1, stokes, stokes]);
@@ -459,7 +451,7 @@ void direct_scattering(ConstVectorView mu_values,
         const Numeric delphi = -(two_pi * static_cast<Numeric>(k)) / static_cast<Numeric>(numpts);
         const Numeric cos_scat =
             mu2 * direct_mu + std::sqrt((1.0 - mu2 * mu2) * (1.0 - direct_mu * direct_mu)) * std::cos(delphi);
-        sum_legendre(legendre_coef, cos_scat, dosum, phase_matrix);
+        sum_legendre(legendre_coef, cos_scat, dosum, phase_matrix, work);
         rotate_phase_matrix(phase_matrix, direct_mu, mu2, delphi, cos_scat, scat_matrix[k, stokes, stokes]);
       }
       fourier_matrix(scat_matrix[joker, stokes, stokes], basis_matrix[joker, stokes, stokes], work);
