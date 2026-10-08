@@ -76,6 +76,10 @@ def setup_workspace_base(freq_grid, nza=5, za_max=85.0):
     ws.zen_grid_weights = arts.Vector(za_weights.tolist())
     ws.az_grid_weights = arts.Vector(az_weights.tolist())
 
+    # suns is a required input of the scattering methods (the sun-beam exclusion
+    # gate); empty list keeps the gate inert
+    ws.suns = []
+
     # Agendas
     ws.spectral_rad_incoming_agendaSet(option="Emission")
     ws.ray_path_observer_agendaSetGeometric()

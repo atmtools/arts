@@ -2383,6 +2383,13 @@ though pure surface emission is fine.
 The surface field must contain at least one surface mask for a surface type.
 The surface masks lives under the *SurfacePropertyTag* keys, which must be the same as in
 *surface_models*.
+
+If ``exclude_suns`` is 1, an incoming direction that falls inside the solar disc of a
+sun in *suns* is dropped from the integration (no trace, no contribution).  Use it
+when a ``…Direct`` method is chained in the same agenda: those methods add each sun
+once as a delta beam, and without the exclusion the sun would be counted twice.
+The default 0 keeps the sun inside the quadrature radiation, which is what a chain
+without a ``…Direct`` method needs.
 )--",
       .author         = {"Manfred Brath"},
       .out            = {"spectral_rad", "spectral_rad_jac"},
@@ -2393,12 +2400,21 @@ The surface masks lives under the *SurfacePropertyTag* keys, which must be the s
                          "surface_models",
                          "jac_targets",
                          "ray_point",
+                         "suns",
                          "zen_grid",
                          "az_grid",
                          "zen_grid_weights",
                          "az_grid_weights",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
+      .gin            = {"exclude_suns"},
+      .gin_type       = {"Index"},
+      .gin_value      = {Index{0}},
+      .gin_desc       = {"If 1, incoming directions that hit a sun in *suns* are excluded "
+                         "from the integration, because the sun beams are added separately "
+                         "by the ``spectral_radSurfaceScattering``Direct methods.  Set to 1 "
+                         "when a Direct method is chained in the same "
+                         "*spectral_rad_surface_agenda*, 0 otherwise."},
       .pass_workspace = true,
    };
 
@@ -2423,6 +2439,13 @@ though pure surface emission is fine.
 The surface field must contain at least one surface mask for a surface type.
 The surface masks live under the *SurfacePropertyTag* keys, which must be the
 same as in *surface_models*.
+
+If ``exclude_suns`` is 1, an incoming direction that falls inside the solar disc of a
+sun in *suns* is dropped from the integration (no trace, no contribution).  Use it
+when a ``…Direct`` method is chained in the same agenda: those methods add each sun
+once as a delta beam, and without the exclusion the sun would be counted twice.
+The default 0 keeps the sun inside the mirror-direction radiation, which is what a
+chain without a ``…Direct`` method needs.
 )--",
       .author         = {"Manfred Brath"},
       .out            = {"spectral_rad", "spectral_rad_jac"},
@@ -2433,8 +2456,17 @@ same as in *surface_models*.
                          "surface_models",
                          "jac_targets",
                          "ray_point",
+                         "suns",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
+      .gin            = {"exclude_suns"},
+      .gin_type       = {"Index"},
+      .gin_value      = {Index{0}},
+      .gin_desc       = {"If 1, incoming directions that hit a sun in *suns* are excluded "
+                         "from the integration, because the sun beams are added separately "
+                         "by the ``spectral_radSurfaceScattering``Direct methods.  Set to 1 "
+                         "when a Direct method is chained in the same "
+                         "*spectral_rad_surface_agenda*, 0 otherwise."},
       .pass_workspace = true,
   };
 

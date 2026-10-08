@@ -40,6 +40,10 @@ def setup_workspace_base(freq_grid):
     ws.ray_point.pos = [0.0, 0.0, 0.0]
     ws.ray_point.los = [180.0, 0.0]
 
+    # suns is a required input of the scattering methods (the sun-beam exclusion
+    # gate); empty list keeps the gate inert
+    ws.suns = []
+
     # Agendas
     ws.spectral_rad_incoming_agendaSet(option="Emission")
     ws.ray_path_observer_agendaSetGeometric()
