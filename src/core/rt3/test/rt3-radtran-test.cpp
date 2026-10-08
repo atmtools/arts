@@ -27,7 +27,9 @@
 // matrix_symmetry, get_scattering, scatter_symmetry, get_direct).  The
 // port is not bitwise: the C++ evaluates in its natural order and lets the
 // compiler contract multiply-adds into FMAs.  The test reports how many
-// cases are bit-identical for information.
+// cases are bit-identical for information.  Each RADTRAN case also runs
+// again with one rt3_workdata reused over all cases and with one whose
+// every array is NaN, which must not change a bit.
 //
 // The inputs are random, in RADTRAN's own layouts, and cover each branch of
 // RADTRAN: 1 to 4 Stokes components, the quadratures (with extra angles,
@@ -770,8 +772,8 @@ void check_check_norm() {
         const Matrix coef   = legendre_set(kind, 0.3 + 0.5 * u(gen), kind == 0 ? 2 : degree);
 
         Tensor6           buf(1, 2, nummu, nummu, nstokes, nstokes);
-        rt3::fft_workdata fft;
-        rt3::scattering(mu, w, coef, buf, fft);
+        rt3::rt3_workdata work;
+        rt3::scattering(mu, w, coef, buf, work);
         Tensor5 sm(4, nummu, nstokes, nummu, nstokes);
         rt3::get_scattering(0, buf, sm);
 
@@ -1227,8 +1229,8 @@ void check_fourier_matrix() {
       Tensor3 basis(numazi, 4, 4), basisf(numazi, 4, 4);
       for (std::size_t e = 0; e < basis.size(); e++)
         basis.data_handle()[e] = basisf.data_handle()[e] = 1000.0 + static_cast<Numeric>(e);
-      rt3::fft_workdata fft;
-      rt3::fourier_matrix(real_matrix[joker, stokes, stokes], basis[joker, stokes, stokes], fft);
+      rt3::rt3_workdata work;
+      rt3::fourier_matrix(real_matrix[joker, stokes, stokes], basis[joker, stokes, stokes], work);
       rt3_fourier_matrix(aziorder, numpts, nstokes, real_matrix.data_handle(), basisf.data_handle());
       tally.add({differ(basis, basisf)});
     }
@@ -1295,8 +1297,8 @@ void check_scattering() {
 
             Tensor6           buf(aziorder + 1, 2, nummu, nummu, nstokes, nstokes, nan);
             Tensor6           buff(aziorder + 1, 2, nummu, nummu, nstokes, nstokes, 0.0);
-            rt3::fft_workdata fft;
-            rt3::scattering(mu, w, coef, buf, fft);
+            rt3::rt3_workdata work;
+            rt3::scattering(mu, w, coef, buf, work);
             rt3_scattering(nummu,
                            aziorder,
                            nstokes,
@@ -1342,8 +1344,8 @@ void check_direct_scattering() {
 
             Tensor4           buf(aziorder + 1, 2, nummu, nstokes, nan);
             Tensor4           buff(aziorder + 1, 2, nummu, nstokes, 0.0);
-            rt3::fft_workdata fft;
-            rt3::direct_scattering(mu, coef, direct_mu, buf, fft);
+            rt3::rt3_workdata work;
+            rt3::direct_scattering(mu, coef, direct_mu, buf, work);
             rt3_direct_scattering(nummu,
                                   aziorder,
                                   nstokes,
@@ -1385,8 +1387,8 @@ void check_doubling_integration() {
         for (Index src_code : {0, 1, 2, 3}) {
           const Matrix      coef = legendre_set(2, 0.3 + 0.5 * u(gen), 7);
           Tensor6           buf(2, 2, nummu, nummu, nstokes, nstokes);
-          rt3::fft_workdata fft;
-          rt3::scattering(mu, w, coef, buf, fft);
+          rt3::rt3_workdata work(nstokes, nummu, 0, 0, 0, 0);
+          rt3::scattering(mu, w, coef, buf, work);
           Tensor5 sm(4, nummu, nstokes, nummu, nstokes);
           rt3::get_scattering(mode, buf, sm);
 
@@ -1422,7 +1424,8 @@ void check_doubling_integration() {
                                     linfactor,
                                     tr,
                                     tt,
-                                    ts);
+                                    ts,
+                                    work);
           rt3_doubling_integration(n,
                                    num_doubles,
                                    src_code,
@@ -1467,8 +1470,8 @@ slab scattering_slab(
   const Index                             nummu = mu.size(), n = nstokes * nummu;
   const Matrix                            coef = legendre_set(2, 0.3 + 0.5 * u(gen), 7);
   Tensor6                                 buf(2, 2, nummu, nummu, nstokes, nstokes);
-  rt3::fft_workdata                       fft;
-  rt3::scattering(mu, w, coef, buf, fft);
+  rt3::rt3_workdata                       work(nstokes, nummu, 0, 0, 0, 0);
+  rt3::scattering(mu, w, coef, buf, work);
   Tensor5 sm(4, nummu, nstokes, nummu, nstokes);
   rt3::get_scattering(mode, buf, sm);
 
@@ -1501,7 +1504,8 @@ slab scattering_slab(
                             0.3 / std::pow(2.0, static_cast<Numeric>(num_doubles)),
                             out.reflect,
                             out.trans,
-                            out.source);
+                            out.source,
+                            work);
   return out;
 }
 
@@ -1544,10 +1548,11 @@ void check_combine_layers() {
           for (int bottom_kind : {0, 1, 2, 3, 4}) {
             const slab top = layer(top_kind), bottom = layer(bottom_kind);
 
-            Tensor3 r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
-            Matrix  src(2, n, nan), srcf(2, n);
+            Tensor3           r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
+            Matrix            src(2, n, nan), srcf(2, n);
+            rt3::rt3_workdata work(nstokes, nummu, 0, 0, 0, 0);
             rt3::combine_layers(
-                top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src);
+                top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src, work);
 
             // The Fortran declares no intent: give it copies
             slab a = top, b = bottom;
@@ -1613,7 +1618,8 @@ void check_internal_radiance() {
               rt3::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
             else
               rt3::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
-            slab down{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
+            rt3::rt3_workdata work(nstokes, nummu, 0, 0, 0, 0);
+            slab              down{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
             rt3::combine_layers(layer.reflect,
                                 layer.trans,
                                 layer.source,
@@ -1622,7 +1628,8 @@ void check_internal_radiance() {
                                 src.view_as(2, n),
                                 down.reflect,
                                 down.trans,
-                                down.source);
+                                down.source,
+                                work);
 
             Vector intoprad(n), inbottomrad(n);
             for (Index k = 0; k < n; k++) {
@@ -1640,7 +1647,8 @@ void check_internal_radiance() {
                                    intoprad,
                                    inbottomrad,
                                    uprad,
-                                   downrad);
+                                   downrad,
+                                   work);
 
             // The Fortran declares no intent: give it copies
             slab   a = up, b = down;
@@ -1727,7 +1735,7 @@ inputs make_inputs(const case_spec& c, std::mt19937_64& gen) {
 //! mu_values is output.  It works in SI at the frequency, the Fortran per
 //! micrometre at the wavelength: its inputs and outputs are converted
 //! (B_nu = B_lambda[um^-1] lambda[um] / f)
-outputs run_cpp(const inputs& in) {
+outputs run_cpp(const inputs& in, rt3::rt3_workdata& work) {
   const Numeric frequency        = 1e6 * Constant::c / in.wavelength;
   const Numeric per_um_to_per_hz = in.wavelength / frequency;
   const Index   no = static_cast<Index>(in.outlevels.size()), ns = in.spec.nstokes;
@@ -1777,12 +1785,76 @@ outputs run_cpp(const inputs& in) {
                out.up_flux,
                out.down_flux,
                out.up_rad,
-               out.down_rad);
+               out.down_rad,
+               work);
   out.up_flux   /= per_um_to_per_hz;
   out.down_flux /= per_um_to_per_hz;
   out.up_rad    /= per_um_to_per_hz;
   out.down_rad  /= per_um_to_per_hz;
   return out;
+}
+
+/* A work data sized for RADTRAN's inputs, as rt3::radtran sizes it, with
+   every array NaN, so that a read before a write shows in the results.  The
+   scratch of the scattering routines, which they size themselves, is NaN
+   at its largest size.  FFT1DR's table is kept between calls, so it stays
+   empty. */
+rt3::rt3_workdata poisoned_workdata(const inputs& in) {
+  Index legendre_rows = 2 * in.nummu;
+  for (Index l : in.scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
+  rt3::rt3_workdata w(
+      in.spec.nstokes, in.nummu, in.spec.aziorder, in.spec.nlay, in.scat_extinct.extent(0), legendre_rows);
+  w.scat_matrix.resize(1025, 4, 4);
+  w.basis_matrix.resize(1025, 4, 4);
+  w.real_vector.resize(1024);
+  w.basis_vector.resize(1025);
+  for (Vector* v : {&w.quad_weights,
+                    &w.set_extinct,
+                    &w.set_scatter,
+                    &w.extinctions,
+                    &w.albedos,
+                    &w.direct_level_flux,
+                    &w.real_vector,
+                    &w.basis_vector,
+                    &w.xv,
+                    &w.yv})
+    *v = nan;
+  for (Matrix* m : {&w.legendre_coef,
+                    &w.direct_vector,
+                    &w.thermal_vector,
+                    &w.exp_source,
+                    &w.lin_source,
+                    &w.source1,
+                    &w.upsource,
+                    &w.downsource,
+                    &w.sky_radiance,
+                    &w.ground_radiance,
+                    &w.direct_radiance,
+                    &w.t_exp,
+                    &w.t_lin,
+                    &w.cnst,
+                    &w.t_const,
+                    &w.x,
+                    &w.y,
+                    &w.gamma})
+    *m = nan;
+  for (Tensor3* t : {&w.scat_matrix,
+                     &w.basis_matrix,
+                     &w.source,
+                     &w.reflect1,
+                     &w.upreflect,
+                     &w.downreflect,
+                     &w.trans1,
+                     &w.uptrans,
+                     &w.downtrans})
+    *t = nan;
+  w.reflect        = nan;
+  w.trans          = nan;
+  w.scatter_matrix = nan;
+  w.directbuf      = nan;
+  w.scatbuf        = nan;
+  for (Index& s : w.scat_nums) s = -1;
+  return w;
 }
 
 //! The Fortran RADTRAN, which marks the extra angles by non-zero MU_VALUES
@@ -1916,13 +1988,23 @@ int main() try {
   constexpr Numeric tolerance = 1e-10;
 
   std::mt19937_64 gen(20261008);
-  Index           identical = 0, failed = 0;
+  Index           identical = 0, failed = 0, reuse_differ = 0;
   Numeric         worst = 0.0;
   const auto      all   = cases();
+  // One work data over all cases, whose sizes differ, and one with every
+  // array NaN, against a fresh one per case: neither may change a bit
+  rt3::rt3_workdata shared;
   for (const auto& c : all) {
-    const auto in  = make_inputs(c, gen);
-    const auto cpp = run_cpp(in);
-    const auto f77 = run_fortran(in);
+    const auto        in = make_inputs(c, gen);
+    rt3::rt3_workdata fresh, poisoned = poisoned_workdata(in);
+    const auto        cpp = run_cpp(in, fresh);
+    const auto        f77 = run_fortran(in);
+    for (rt3::rt3_workdata* work : {&shared, &poisoned}) {
+      const auto again  = run_cpp(in, *work);
+      reuse_differ     += differ(again.up_rad, cpp.up_rad).first + differ(again.down_rad, cpp.down_rad).first +
+                          differ(again.up_flux, cpp.up_flux).first + differ(again.down_flux, cpp.down_flux).first +
+                          differ(again.mu_values, cpp.mu_values).first;
+    }
 
     std::string bad;
     Index       ndiffer = 0;
@@ -1944,11 +2026,32 @@ int main() try {
     }
   }
 
+  std::cout << std::format(
+      "One rt3_workdata reused over all {} cases (of different sizes), and one with every array NaN, against a "
+      "fresh one per case: {} values differ\n",
+      all.size(),
+      reuse_differ);
+  if (reuse_differ > 0) throw std::runtime_error("reusing an rt3_workdata changes the results");
+
+  // The routines refuse a work data that is not sized for their streams
+  {
+    rt3::rt3_workdata work(2, 4, 0, 0, 0, 0);  // 8 streams
+    Tensor3           r(2, 2, 2, 0.0), t(2, 2, 2, 0.0);
+    Matrix            src(2, 2, 0.0);
+    Vector            top(2, 0.0), bottom(2, 0.0), up(2), down(2);
+    bool              refused = false;
+    try {
+      rt3::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
+    } catch (const std::exception&) { refused = true; }
+    if (not refused) throw std::runtime_error("internal_radiance accepted an rt3_workdata for 8 streams with 2");
+  }
+
   // A STOP of the Fortran is an error of the port
   bool threw = false;
   try {
     auto in = make_inputs({2, 6, 0, quadrature_type::gauss, 0, 3, false, 'F', 3, layout::mixed, 1e-6}, gen);
-    run_cpp(in);
+    rt3::rt3_workdata work;
+    run_cpp(in, work);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("a solar source over a Fresnel ground did not throw");
 

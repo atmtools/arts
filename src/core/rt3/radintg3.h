@@ -2,6 +2,8 @@
 
 #include <matpack.h>
 
+#include "rt3_workdata.h"
+
 /* The subroutines of 3rdparty/polradtran/radintg3.f, ported to C++ one at a
    time.  The reflection and transmission matrices of a slab are the
    Fortran's (NSTOKES, NUMMU, NSTOKES, NUMMU, 2): [2, nummu, nstokes, nummu,
@@ -33,20 +35,23 @@ namespace rt3 {
  * As matpack matrices, the Fortran's column-major n x n matrices hold their
  * transposes; the products are computed for the Fortran matrices (C = A B
  * is mult(C, B, A), y = A x is mult(y, transpose(A), x)).  MINVERT is
- * LAPACK's inv_inplace.
+ * LAPACK's inv_inplace.  The scratch (X, Y, GAMMA, T_EXP, T_LIN, CONST,
+ * T_CONST and two vectors) is work's, which must be sized for the n
+ * streams (rt3_workdata::resize).
  */
-void doubling_integration(Index       num_doubles,
-                          Index       src_code,
-                          bool        symmetric,
-                          Tensor3View reflect,
-                          Tensor3View trans,
-                          MatrixView  exp_source,
-                          Numeric     expfactor,
-                          MatrixView  lin_source,
-                          Numeric     linfactor,
-                          Tensor3View t_reflect,
-                          Tensor3View t_trans,
-                          MatrixView  t_source);
+void doubling_integration(Index         num_doubles,
+                          Index         src_code,
+                          bool          symmetric,
+                          Tensor3View   reflect,
+                          Tensor3View   trans,
+                          MatrixView    exp_source,
+                          Numeric       expfactor,
+                          MatrixView    lin_source,
+                          Numeric       linfactor,
+                          Tensor3View   t_reflect,
+                          Tensor3View   t_trans,
+                          MatrixView    t_source,
+                          rt3_workdata& work);
 
 /** COMBINE_LAYERS (RT3_COMBINE_LAYERS): combines the reflection and
  * transmission matrices and source vectors of two layers into those of the
@@ -61,7 +66,8 @@ void doubling_integration(Index       num_doubles,
  *
  * The outputs must not overlap the inputs.  As matpack matrices, the
  * Fortran's column-major n x n matrices hold their transposes, as for
- * doubling_integration; MINVERT is LAPACK's inv_inplace.
+ * doubling_integration; MINVERT is LAPACK's inv_inplace.  The scratch is
+ * work's, as for doubling_integration.
  */
 void combine_layers(ConstTensor3View reflect1,
                     ConstTensor3View trans1,
@@ -71,7 +77,8 @@ void combine_layers(ConstTensor3View reflect1,
                     ConstMatrixView  source2,
                     Tensor3View      out_reflect,
                     Tensor3View      out_trans,
-                    MatrixView       out_source);
+                    MatrixView       out_source,
+                    rt3_workdata&    work);
 
 /** INTERNAL_RADIANCE (RT3_INTERNAL_RADIANCE): the internal radiance at a
  * level.  The reflection and transmission matrices and source vectors are
@@ -86,7 +93,7 @@ void combine_layers(ConstTensor3View reflect1,
  *
  * As matpack matrices, the Fortran's column-major n x n matrices hold their
  * transposes, as for doubling_integration; MINVERT is LAPACK's
- * inv_inplace.
+ * inv_inplace.  The scratch is work's, as for doubling_integration.
  */
 void internal_radiance(ConstTensor3View upreflect,
                        ConstTensor3View uptrans,
@@ -97,7 +104,8 @@ void internal_radiance(ConstTensor3View upreflect,
                        ConstVectorView  intoprad,
                        ConstVectorView  inbottomrad,
                        VectorView       uprad,
-                       VectorView       downrad);
+                       VectorView       downrad,
+                       rt3_workdata&    work);
 
 /** INITIALIZE (RT3_INITIALIZE): infinitesimal generator initialization of
  * the local reflection and transmission matrices of a layer of thickness

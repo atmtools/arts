@@ -37,7 +37,8 @@ void radtran(Numeric             max_delta_tau,
              MatrixView          up_flux,
              MatrixView          down_flux,
              Tensor4View         up_rad,
-             Tensor4View         down_rad) {
+             Tensor4View         down_rad,
+             rt3_workdata&       work) {
   // NSTOKES, NUMMU, AZIORDER, NUM_LAYERS, NSL, LDCOEF and NOUTLEVELS
   const Index nstokes    = up_rad.extent(3);
   const Index nummu      = mu_values.extent(0);
@@ -134,39 +135,51 @@ void radtran(Numeric             max_delta_tau,
   ARTS_USER_ERROR_IF(solar and maxdbuf < (aziorder + 1) * 2 * n * nsl, "Direct source buffer size exceeded.");
   ARTS_USER_ERROR_IF((num_layers + 1) * n * n > maxlm, "Matrix layer size exceeded.  Maximum number : {}", maxlm);
 
-  /* RADTRAN's work arrays, as the subroutines read them.  The reflection
-     and transmission of a slab are [2, n, n], the column-major n x n
-     matrices of the + and - directions, a source or a radiance is [2, n].
-     The layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 +
+  /* RADTRAN's work arrays, as the subroutines read them: those of the work
+     data (rt3_workdata), sized for this problem.  The reflection and
+     transmission of a slab are [2, n, n], the column-major n x n matrices
+     of the + and - directions, a source or a radiance is [2, n].  The
+     layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 +
      2*N*N*(L-1) and KS = 1 + 2*N*(L-1), are reflect[L-1], trans[L-1] and
      source[L-1]; L = NUM_LAYERS+1 is the surface.  SCATBUF and DIRECTBUF
      hold the scattering matrices and direct vectors of every set and mode,
      as SCATTERING and DIRECT_SCATTERING lay them out; scatbuf[SCAT_NUM-1]
      and directbuf[SCAT_NUM-1] are the set's parts (see rt3::scattering and
-     rt3::direct_scattering); SCATTER_MATRIX
-     (PHASE_FUNCTION to INITIALIZE) is [4, nummu, nstokes, nummu, nstokes]. */
+     rt3::direct_scattering); SCATTER_MATRIX (PHASE_FUNCTION to INITIALIZE)
+     is [4, nummu, nstokes, nummu, nstokes]. */
   Index legendre_rows = 2 * nummu;
   for (Index l : scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
-  Vector       quad_weights(nummu);
-  Matrix       legendre_coef(legendre_rows, 6, 0.0);
-  Vector       set_extinct(nsl), set_scatter(nsl);
-  Tensor7      scatbuf(nsl, aziorder + 1, 2, nummu, nummu, nstokes, nstokes);
-  fft_workdata fft;
-  Tensor5      directbuf(nsl, aziorder + 1, 2, nummu, nstokes);
-  ArrayOfIndex scat_nums(num_layers);
-  Vector       extinctions(num_layers), albedos(num_layers);
-  Vector       direct_level_flux(num_layers + 1, 0.0);
-  Tensor5      scatter_matrix(4, nummu, nstokes, nummu, nstokes);
-  Matrix       direct_vector(2, n), exp_source(2, n, 0.0);
-  Matrix       thermal_vector(2, n, 0.0), lin_source(2, n, 0.0);
-  Tensor3      reflect1(2, n, n), upreflect(2, n, n), downreflect(2, n, n);
-  Tensor3      trans1(2, n, n), uptrans(2, n, n), downtrans(2, n, n);
-  Matrix       source1(2, n), upsource(2, n), downsource(2, n);
-  Tensor4      reflect(num_layers + 1, 2, n, n);
-  Tensor4      trans(num_layers + 1, 2, n, n);
-  Tensor3      source(num_layers + 1, 2, n);
-  Matrix       ground_radiance(nummu, nstokes), direct_radiance(nummu, nstokes);
-  Matrix       sky_radiance(2, n);
+  work.resize(nstokes, nummu, aziorder, num_layers, nsl, legendre_rows);
+  Vector&       quad_weights      = work.quad_weights;
+  Matrix&       legendre_coef     = work.legendre_coef;
+  Vector&       set_extinct       = work.set_extinct;
+  Vector&       set_scatter       = work.set_scatter;
+  Tensor7&      scatbuf           = work.scatbuf;
+  Tensor5&      directbuf         = work.directbuf;
+  ArrayOfIndex& scat_nums         = work.scat_nums;
+  Vector&       extinctions       = work.extinctions;
+  Vector&       albedos           = work.albedos;
+  Vector&       direct_level_flux = work.direct_level_flux;
+  Tensor5&      scatter_matrix    = work.scatter_matrix;
+  Matrix&       direct_vector     = work.direct_vector;
+  Matrix&       exp_source        = work.exp_source;
+  Matrix&       thermal_vector    = work.thermal_vector;
+  Matrix&       lin_source        = work.lin_source;
+  Tensor3&      reflect1          = work.reflect1;
+  Tensor3&      upreflect         = work.upreflect;
+  Tensor3&      downreflect       = work.downreflect;
+  Tensor3&      trans1            = work.trans1;
+  Tensor3&      uptrans           = work.uptrans;
+  Tensor3&      downtrans         = work.downtrans;
+  Matrix&       source1           = work.source1;
+  Matrix&       upsource          = work.upsource;
+  Matrix&       downsource        = work.downsource;
+  Tensor4&      reflect           = work.reflect;
+  Tensor4&      trans             = work.trans;
+  Tensor3&      source            = work.source;
+  Matrix&       ground_radiance   = work.ground_radiance;
+  Matrix&       direct_radiance   = work.direct_radiance;
+  Matrix&       sky_radiance      = work.sky_radiance;
 
   // Make the desired quadrature abscissas and weights (ARTS's quadratures,
   // rt3::get_quadrature); with QUAD_TYPE 'E' the extra angles follow them.
@@ -199,9 +212,9 @@ void radtran(Numeric             max_delta_tau,
     // prints that it does)
     if (numlegen > nleglim) numlegen = nleglim;
     // Make the scattering matrix
-    scattering(mu_values, quad_weights, legendre_coef[Range{0, numlegen + 1}], scatbuf[s], fft);
+    scattering(mu_values, quad_weights, legendre_coef[Range{0, numlegen + 1}], scatbuf[s], work);
     // Make the direct (solar) pseudo source
-    if (solar) direct_scattering(mu_values, legendre_coef[Range{0, numlegen + 1}], direct_mu, directbuf[s], fft);
+    if (solar) direct_scattering(mu_values, legendre_coef[Range{0, numlegen + 1}], direct_mu, directbuf[s], work);
   }
 
   // SCATLAYERS(LAYER) is the set of each layer.  A non-scattering layer (0)
@@ -347,7 +360,8 @@ void radtran(Numeric             max_delta_tau,
                              linfactor,
                              reflect[layer],
                              trans[layer],
-                             source[layer]);
+                             source[layer],
+                             work);
       }
     }
     // End of layer loop
@@ -394,7 +408,8 @@ void radtran(Numeric             max_delta_tau,
           reflect1 = upreflect;
           trans1   = uptrans;
           source1  = upsource;
-          combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource);
+          combine_layers(
+              reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource, work);
         }
       }
       for (Index l = layer; l < num_layers + 1; l++) {
@@ -407,7 +422,7 @@ void radtran(Numeric             max_delta_tau,
           trans1   = downtrans;
           source1  = downsource;
           combine_layers(
-              reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource);
+              reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource, work);
         }
       }
       internal_radiance(upreflect,
@@ -419,7 +434,8 @@ void radtran(Numeric             max_delta_tau,
                         sky_radiance[0],
                         ground_radiance.view_as(n),
                         up_rad[i, mode].view_as(n),
-                        down_rad[i, mode].view_as(n));
+                        down_rad[i, mode].view_as(n),
+                        work);
     }
   }
   // End of azimuth mode loop

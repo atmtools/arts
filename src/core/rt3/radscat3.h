@@ -3,6 +3,7 @@
 #include <matpack.h>
 
 #include "rt3_fft.h"
+#include "rt3_workdata.h"
 
 /* The subroutines of 3rdparty/polradtran/radscat3.f, ported to C++ one at a
    time.  Each follows its Fortran step by step and calls the same
@@ -189,9 +190,11 @@ void fourier_basis(
  *
  * (the leading nstokes x nstokes of the Fortran 4 x 4).  With aziorder > 0
  * fourier_basis transforms with fft1dr, so numpts must be a power of two,
- * at most 512; fft is its state.
+ * at most 512.  REAL_VECTOR and BASIS_VECTOR are work's real_vector and
+ * basis_vector, which it sizes, and work.fft is the state of the FFT; the
+ * matrices must not be work's real_vector or basis_vector.
  */
-void fourier_matrix(StridedConstTensor3View real_matrix, StridedTensor3View basis_matrix, fft_workdata& fft);
+void fourier_matrix(StridedConstTensor3View real_matrix, StridedTensor3View basis_matrix, rt3_workdata& work);
 
 /** COMBINE_PHASE_MODES: azimuth mode m of a phase matrix, from its Fourier
  * modes (of fourier_matrix), times the quadrature factor tmp.  The
@@ -227,13 +230,14 @@ void combine_phase_modes(Index m, Numeric tmp, StridedConstTensor3View basis_mat
  * where the Fortran would stop or overflow: numpts > 512 with aziorder > 0
  * (FFT1DR), numpts or 2 aziorder + 1 above 512 (the buffers of the Fortran
  * DIRECT_SCATTERING, which the port does not have; kept as RT3's limit).
- * fft is the state of the FFT (fft1dr).
+ * SCAT_MATRIX and BASIS_MATRIX are work's scat_matrix and basis_matrix,
+ * which it sizes; work.fft is the state of the FFT (fft1dr).
  */
 void direct_scattering(ConstVectorView mu_values,
                        ConstMatrixView legendre_coef,
                        Numeric         direct_mu,
                        Tensor4View     directbuf,
-                       fft_workdata&   fft);
+                       rt3_workdata&   work);
 
 /** SCATTERING: the polarized scattering matrices of one scattering set for
  * every azimuth mode.  For each pair of quadrature angles (incoming and
@@ -260,12 +264,13 @@ void direct_scattering(ConstVectorView mu_values,
  * 2 int((numlegendre + 1) / 2) + 4.  Throws where the Fortran would stop or
  * overflow: NUMPTS > 512 with aziorder > 0 (FFT1DR), NUMPTS or
  * 2 aziorder + 1 above 1024 (the buffers of the Fortran FOURIER_MATRIX,
- * which the port does not have; kept as RT3's limit).  fft is the state
- * of the FFT (fft1dr).
+ * which the port does not have; kept as RT3's limit).  SCAT_MATRIX and
+ * BASIS_MATRIX are work's scat_matrix and basis_matrix, which it sizes;
+ * work.fft is the state of the FFT (fft1dr).
  */
 void scattering(ConstVectorView mu_values,
                 ConstVectorView quad_weights,
                 ConstMatrixView legendre_coef,
                 Tensor6View     scatbuf,
-                fft_workdata&   fft);
+                rt3_workdata&   work);
 }  // namespace rt3

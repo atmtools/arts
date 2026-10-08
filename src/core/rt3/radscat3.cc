@@ -273,7 +273,7 @@ void fourier_basis(
   }
 }
 
-void fourier_matrix(StridedConstTensor3View real_matrix, StridedTensor3View basis_matrix, fft_workdata& fft) {
+void fourier_matrix(StridedConstTensor3View real_matrix, StridedTensor3View basis_matrix, rt3_workdata& work) {
   const Index numpts   = real_matrix.extent(0);
   const Index nstokes  = real_matrix.extent(1);
   const Index numazi   = basis_matrix.extent(0);
@@ -286,11 +286,12 @@ void fourier_matrix(StridedConstTensor3View real_matrix, StridedTensor3View basi
                      basis_matrix.shape());
 
   // REAL_VECTOR and BASIS_VECTOR; FFT1DR transforms REAL_VECTOR in place
-  Vector real_vector(numpts), basis_vector(numazi);
+  Vector& real_vector  = work.real_vector.resize(numpts);
+  Vector& basis_vector = work.basis_vector.resize(numazi);
   for (Index i = 0; i < nstokes; i++) {
     for (Index j = 0; j < nstokes; j++) {
       real_vector = real_matrix[joker, j, i];
-      fourier_basis(aziorder, fourier_direction::to_basis, basis_vector, real_vector, fft);
+      fourier_basis(aziorder, fourier_direction::to_basis, basis_vector, real_vector, work.fft);
       basis_matrix[joker, j, i] = basis_vector;
     }
   }
@@ -338,7 +339,7 @@ void scattering(ConstVectorView mu_values,
                 ConstVectorView quad_weights,
                 ConstMatrixView legendre_coef,
                 Tensor6View     scatbuf,
-                fft_workdata&   fft) {
+                rt3_workdata&   work) {
   using Constant::two_pi;
 
   const Index nummu       = mu_values.size();
@@ -374,8 +375,8 @@ void scattering(ConstVectorView mu_values,
   // to scatbuf, which held OUT_MATRIX's copy.
   const Range stokes{0, nstokes};
   Matrix44    phase_matrix{};
-  Tensor3     scat_matrix(numpts + 1, 4, 4, 0.0);
-  Tensor3     basis_matrix(2 * aziorder + 1, 4, 4, 0.0);
+  Tensor3&    scat_matrix  = work.scat_matrix.resize(numpts + 1, 4, 4);
+  Tensor3&    basis_matrix = work.basis_matrix.resize(2 * aziorder + 1, 4, 4);
 
   // Find how many Legendre series must be summed
   const IndexVector6 dosum = number_sums(nstokes, legendre_coef);
@@ -398,7 +399,7 @@ void scattering(ConstVectorView mu_values,
           // k = numpts / 2 + 1 maps onto itself
           matrix_symmetry(scat_matrix[k - 1, stokes, stokes], scat_matrix[numpts - k + 1, stokes, stokes]);
         }
-        fourier_matrix(scat_matrix[Range{0, numpts}, stokes, stokes], basis_matrix[joker, stokes, stokes], fft);
+        fourier_matrix(scat_matrix[Range{0, numpts}, stokes, stokes], basis_matrix[joker, stokes, stokes], work);
 
         for (Index m = 0; m <= aziorder; m++)
           combine_phase_modes(m, tmp, basis_matrix[joker, stokes, stokes], scatbuf[m, l - 1, j1, j2]);
@@ -411,7 +412,7 @@ void direct_scattering(ConstVectorView mu_values,
                        ConstMatrixView legendre_coef,
                        Numeric         direct_mu,
                        Tensor4View     directbuf,
-                       fft_workdata&   fft) {
+                       rt3_workdata&   work) {
   using Constant::two_pi;
 
   const Index nummu       = mu_values.size();
@@ -445,8 +446,8 @@ void direct_scattering(ConstVectorView mu_values,
   // Q (iq) of its cosine and the U and V (uv) of its sine.
   const Range stokes{0, nstokes}, iq{0, std::min<Index>(nstokes, 2)}, uv{2, nstokes - 2};
   Matrix44    phase_matrix{};
-  Tensor3     scat_matrix(numpts, 4, 4, 0.0);
-  Tensor3     basis_matrix(2 * aziorder + 1, 4, 4, 0.0);
+  Tensor3&    scat_matrix  = work.scat_matrix.resize(numpts, 4, 4);
+  Tensor3&    basis_matrix = work.basis_matrix.resize(2 * aziorder + 1, 4, 4);
 
   // Find how many Legendre series must be summed
   const IndexVector6 dosum = number_sums(nstokes, legendre_coef);
@@ -461,7 +462,7 @@ void direct_scattering(ConstVectorView mu_values,
         sum_legendre(legendre_coef, cos_scat, dosum, phase_matrix);
         rotate_phase_matrix(phase_matrix, direct_mu, mu2, delphi, cos_scat, scat_matrix[k, stokes, stokes]);
       }
-      fourier_matrix(scat_matrix[joker, stokes, stokes], basis_matrix[joker, stokes, stokes], fft);
+      fourier_matrix(scat_matrix[joker, stokes, stokes], basis_matrix[joker, stokes, stokes], work);
 
       // Store away the first column of the combined mode phase matrix
       directbuf[0, l, j, iq] = basis_matrix[0, 0, iq];

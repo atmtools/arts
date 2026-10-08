@@ -313,6 +313,7 @@ result solve(const problem& p) {
   const std::int64_t src_code = (beam ? 1 : 0) + (p.thermal ? 2 : 0);
   ground_surface(
       p.ground, src_code, mu, weights, p.frequency, p.surface_temperature, surf_reflect, gnd_radiance, direct_reflect);
+  rt3_workdata work;
   {
     std::lock_guard lock(fortran_mutex);
     radtran(p.max_delta_tau,
@@ -340,7 +341,8 @@ result solve(const problem& p) {
             r.up_flux,
             r.down_flux,
             r.up,
-            r.down);
+            r.down,
+            work);
   }
 
   r.mu      = mu;

@@ -70,9 +70,10 @@ Provenance
     ``NUM_LAYERS``, ``NSL``, ``LDCOEF`` and ``NOUTLEVELS`` are the extents
     of its arrays), the extra angles as an input of their own instead of
     ``QUAD_TYPE 'E'`` and non-zero ``MU_VALUES``, the ground as data (see
-    below), and ``rt3::quadrature_type``.  Its work arrays are sized to the problem,
-    including the 210 MB static scattering-matrix buffer; its ``STOP``
-    checks throw.  It does not print RADTRAN's message when it truncates a
+    below), and ``rt3::quadrature_type``.  Its work arrays are sized to the
+    problem, including the 210 MB static scattering-matrix buffer, and are
+    those of an ``rt3::rt3_workdata`` (see below); its ``STOP`` checks
+    throw.  It does not print RADTRAN's message when it truncates a
     Legendre series (``rt3::solve`` rejects a truncation that drops a
     non-zero coefficient).
   * The quadratures are ARTS's: ``rt3::get_quadrature`` (used by
@@ -228,6 +229,23 @@ Provenance
     as ``rt3::combine_layers``.  It agrees with the Fortran to 3.5e-16 of
     the largest value; the 148 capture problems changed by at most
     6.2e-16 of the m = 0 I.  With it ``rt3::radtran`` calls no Fortran.
+  * Every work array of ``rt3::radtran`` and the routines it calls is in
+    ``rt3::rt3_workdata`` (``src/core/rt3/rt3_workdata.h``), as for RT4's
+    ``rt4_workdata``: the scattering sets and the layers' optics, the
+    scratch of ``SCATTERING``, ``DIRECT_SCATTERING`` and
+    ``FOURIER_MATRIX`` with ``FFT1DR``'s table, the layers and the ground,
+    ``RADTRAN``'s arrays on the streams, ``DOUBLING_INTEGRATION``'s
+    sources, and one ``X``, ``Y``, ``GAMMA``, two vectors and LAPACK's
+    workspace for the inverse, shared by the doubling and the adding.
+    ``radtran`` takes it last and sizes it, so a repeated call with the
+    same sizes (as over frequency) allocates nothing; the scattering
+    routines size their own scratch, as only they know how many azimuths
+    they sample, and the doubling and adding throw if it is not sized for
+    their streams.  Its values between calls are unspecified, except the
+    FFT's table.  ``cpp.fast.rt3-radtran-test`` runs every case again with
+    one work data shared over all cases and with one sized for the case
+    whose every array is NaN: neither changes a bit.  ``rt3::solve`` keeps
+    one per call.
   * ``RT3_INITIAL_SOURCE`` is ``rt3::initial_source``: the thin starting
     layer's source, delta_z / mu times the extinction times a source vector
     (the solar pseudo source or the thermal one), per angle.
@@ -241,7 +259,7 @@ Provenance
     (FFTW's r2c followed by a complex conjugate, and a conjugate followed
     by c2r), and ``cpp.fast.rt3-radtran-test`` checks it against direct
     sums.  ``FFT1DR``'s SAVEd phase table is ``fft_workdata``, which the
-    caller owns and passes down (``radtran`` keeps one per call; FFTW would
+    caller owns and passes down (it is part of ``rt3_workdata``; FFTW would
     keep its plans there).  Its limit of 512 values is kept (``FFT1DR``'s
     ``STOP`` throws).  ``MAKEPHASE``'s table fits in ``4 nmax`` values only
     for ``nmax`` a power of two, as ``FFT1DR`` uses it; for another

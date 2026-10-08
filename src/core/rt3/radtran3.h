@@ -3,6 +3,7 @@
 #include <matpack.h>
 
 #include "rt3.h"
+#include "rt3_workdata.h"
 
 namespace rt3 {
 /** RADTRAN of 3rdparty/polradtran/radtran3.f, ported to C++.
@@ -69,6 +70,10 @@ namespace rt3 {
  * (W m-2 Hz-1 sr-1) at the frequency in Hz, as is direct_flux
  * (W m-2 Hz-1); RADTRAN took the wavelength in micrometres and worked per
  * micrometre.
+ *
+ * work holds every work array (rt3_workdata); radtran sizes it, so it
+ * allocates only where an array grows.  Keep one for repeated calls with
+ * the same streams, as over frequency.
  */
 void radtran(Numeric             max_delta_tau,
              Index               src_code,
@@ -95,5 +100,6 @@ void radtran(Numeric             max_delta_tau,
              MatrixView          up_flux,
              MatrixView          down_flux,
              Tensor4View         up_rad,
-             Tensor4View         down_rad);
+             Tensor4View         down_rad,
+             rt3_workdata&       work);
 }  // namespace rt3

@@ -7,18 +7,19 @@
 #include <cmath>
 
 namespace rt3 {
-void doubling_integration(Index       num_doubles,
-                          Index       src_code,
-                          bool        symmetric,
-                          Tensor3View reflect,
-                          Tensor3View trans,
-                          MatrixView  exp_source,
-                          Numeric     expfactor,
-                          MatrixView  lin_source,
-                          Numeric     linfactor,
-                          Tensor3View t_reflect,
-                          Tensor3View t_trans,
-                          MatrixView  t_source) {
+void doubling_integration(Index         num_doubles,
+                          Index         src_code,
+                          bool          symmetric,
+                          Tensor3View   reflect,
+                          Tensor3View   trans,
+                          MatrixView    exp_source,
+                          Numeric       expfactor,
+                          MatrixView    lin_source,
+                          Numeric       linfactor,
+                          Tensor3View   t_reflect,
+                          Tensor3View   t_trans,
+                          MatrixView    t_source,
+                          rt3_workdata& work) {
   const Index n = reflect.extent(1);
   ARTS_USER_ERROR_IF(
       n < 1 or reflect.shape() != (std::array<Index, 3>{2, n, n}) or trans.shape() != reflect.shape() or
@@ -51,11 +52,21 @@ void doubling_integration(Index       num_doubles,
   const auto sp = lin_source[0], sm = lin_source[1];
 
   // X, Y and GAMMA (COMMON /RT3_SCRATCH1/ and /RT3_SCRATCH2/), the vectors
-  // X and Y take as well, T_EXP, T_LIN, CONST and T_CONST
-  Matrix     x(n, n), y(n, n), gamma(n, n);
-  Vector     xv(n), yv(n);
-  Matrix     t_exp(2, n), t_lin(2, n), t_const(2, n);
-  Matrix     cnst{lin_source};
+  // X and Y take as well, T_EXP, T_LIN, CONST and T_CONST: the work data's
+  ARTS_USER_ERROR_IF(not work.scratch_sized(n),
+                     "DOUBLING_INTEGRATION needs an rt3_workdata sized for {} streams (rt3_workdata::resize)",
+                     n);
+  Matrix&       x       = work.x;
+  Matrix&       y       = work.y;
+  Matrix&       gamma   = work.gamma;
+  Vector&       xv      = work.xv;
+  Vector&       yv      = work.yv;
+  Matrix&       t_exp   = work.t_exp;
+  Matrix&       t_lin   = work.t_lin;
+  Matrix&       t_const = work.t_const;
+  Matrix&       cnst    = work.cnst;
+  inv_workdata& wo      = work.inv;
+  cnst                  = lin_source;
   const auto cp = cnst[0], cm = cnst[1];
 
   Numeric expfac = expfactor;
@@ -63,7 +74,7 @@ void doubling_integration(Index       num_doubles,
   for (Index i = 0; i < num_doubles; i++) {
     // Make gamma plus matrix: GAMMA = inv[1 - Rp*Rm]
     mult(identity(gamma), rm, rp, -1.0, 1.0);
-    inv_inplace(gamma);
+    inv_inplace(gamma, wo);
 
     // Rp(2N) = Rp + Tp * GAMMA * Rp * Tm
     mult(x, tm, rp);
@@ -117,7 +128,7 @@ void doubling_integration(Index       num_doubles,
     } else {
       // Make gamma minus matrix: GAMMA = inv[1 - Rm*Rp]
       mult(identity(gamma), rp, rm, -1.0, 1.0);
-      inv_inplace(gamma);
+      inv_inplace(gamma, wo);
 
       // Rm(2N) = Rm + Tm * GAMMA * Rm * Tp
       mult(x, tp, rm);
@@ -296,7 +307,8 @@ void combine_layers(ConstTensor3View reflect1,
                     ConstMatrixView  source2,
                     Tensor3View      out_reflect,
                     Tensor3View      out_trans,
-                    MatrixView       out_source) {
+                    MatrixView       out_source,
+                    rt3_workdata&    work) {
   const Index n = reflect1.extent(1);
   for (auto shape :
        {reflect1.shape(), trans1.shape(), reflect2.shape(), trans2.shape(), out_reflect.shape(), out_trans.shape()})
@@ -318,13 +330,19 @@ void combine_layers(ConstTensor3View reflect1,
   const auto s1p = source1[0], s1m = source1[1], s2p = source2[0], s2m = source2[1];
 
   // X, Y and GAMMA (COMMON /RT3_SCRATCH1/ and /RT3_SCRATCH2/), and the
-  // vectors X and Y take as well
-  Matrix x(n, n), y(n, n), gamma(n, n);
-  Vector xv(n), yv(n);
+  // vectors X and Y take as well: the work data's
+  ARTS_USER_ERROR_IF(
+      not work.scratch_sized(n), "COMBINE_LAYERS needs an rt3_workdata sized for {} streams (rt3_workdata::resize)", n);
+  Matrix&       x     = work.x;
+  Matrix&       y     = work.y;
+  Matrix&       gamma = work.gamma;
+  Vector&       xv    = work.xv;
+  Vector&       yv    = work.yv;
+  inv_workdata& wo    = work.inv;
 
   // GAMMAp = inv[1 - R1p * R2m]     (p for +,  m for -)
   mult(identity(gamma), r2m, r1p, -1.0, 1.0);
-  inv_inplace(gamma);
+  inv_inplace(gamma, wo);
 
   // RTp = R2p + T2p * GAMMAp * R1p * T2m
   mult(x, t2m, r1p);
@@ -345,7 +363,7 @@ void combine_layers(ConstTensor3View reflect1,
 
   // GAMMAm = inv[1 - R2m * R1p]
   mult(identity(gamma), r1p, r2m, -1.0, 1.0);
-  inv_inplace(gamma);
+  inv_inplace(gamma, wo);
 
   // RTm = R1m + T1m * GAMMAm * R2m * T1p
   mult(x, t1p, r2m);
@@ -374,7 +392,8 @@ void internal_radiance(ConstTensor3View upreflect,
                        ConstVectorView  intoprad,
                        ConstVectorView  inbottomrad,
                        VectorView       uprad,
-                       VectorView       downrad) {
+                       VectorView       downrad,
+                       rt3_workdata&    work) {
   const Index n = upreflect.extent(1);
   for (auto shape : {upreflect.shape(), uptrans.shape(), downreflect.shape(), downtrans.shape()})
     ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
@@ -398,13 +417,19 @@ void internal_radiance(ConstTensor3View upreflect,
   const auto rdm = downreflect[1], tdm = downtrans[1];
   const auto sup = upsource[0], sdm = downsource[1];
 
-  // X (COMMON /RT3_SCRATCH1/), here the inverse, and the vectors S and V
-  Matrix x(n, n);
-  Vector s(n), v(n);
+  // X (COMMON /RT3_SCRATCH1/), here the inverse, and the vectors S and V:
+  // the work data's gamma, xv and yv
+  ARTS_USER_ERROR_IF(not work.scratch_sized(n),
+                     "INTERNAL_RADIANCE needs an rt3_workdata sized for {} streams (rt3_workdata::resize)",
+                     n);
+  Matrix&       x  = work.gamma;
+  Vector&       s  = work.xv;
+  Vector&       v  = work.yv;
+  inv_workdata& wo = work.inv;
 
   // Compute gamma plus: inv[1 - UPREFLECT(+) DOWNREFLECT(-)]
   mult(identity(x), rdm, rup, -1.0, 1.0);
-  inv_inplace(x);
+  inv_inplace(x, wo);
   // Calculate the internal downwelling (plus) radiance vector
   mult(v, transpose(tdm), inbottomrad);
   mult(s, transpose(rup), v);
@@ -415,7 +440,7 @@ void internal_radiance(ConstTensor3View upreflect,
 
   // Compute gamma minus: inv[1 - DOWNREFLECT(-) UPREFLECT(+)]
   mult(identity(x), rup, rdm, -1.0, 1.0);
-  inv_inplace(x);
+  inv_inplace(x, wo);
   // Calculate the internal upwelling (minus) radiance vector
   mult(v, transpose(tup), intoprad);
   mult(s, transpose(rdm), v);
