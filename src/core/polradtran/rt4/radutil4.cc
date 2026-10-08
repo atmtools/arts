@@ -1,6 +1,5 @@
 #include "radutil4.h"
 
-#include <arts_conversions.h>
 #include <debug.h>
 #include <physics_funcs.h>
 #include <radutil.h>
@@ -11,39 +10,6 @@
 #include <variant>
 
 namespace polradtran::rt4 {
-void lambert_radiance(Numeric ground_albedo, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
-  ARTS_USER_ERROR_IF(
-      not(ground_temp >= 0.0), "LAMBERT_RADIANCE needs a ground temperature >= 0 K, got {} K", ground_temp);
-
-  // Thermal radiation going up
-  radiance = 0.0;
-
-  const Numeric thermal = (1.0 - ground_albedo) * planck(frequency, ground_temp);
-  radiance[joker, 0]    = thermal;
-}
-
-void fresnel_radiance(
-    ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
-  const Index nummu   = mu_values.extent(0);
-  const Index nstokes = radiance.extent(1);
-  ARTS_USER_ERROR_IF(nstokes > 4 or radiance.extent(0) != nummu,
-                     "FRESNEL_RADIANCE with {} mu_values needs radiance [nummu, nstokes <= 4]; got {:B,}",
-                     nummu,
-                     radiance.shape());
-  ARTS_USER_ERROR_IF(
-      not(ground_temp >= 0.0), "FRESNEL_RADIANCE needs a ground temperature >= 0 K, got {} K", ground_temp);
-
-  // Thermal radiation going up: [(1 - R1) B, -R2 B, 0, 0]
-  radiance = 0.0;
-  const Range   stokes{0, nstokes};
-  const Stokvec planck_ground{planck(frequency, ground_temp)};
-  for (Index j = 0; j < nummu; j++) {
-    const auto [rv, rh] = fresnel(1.0, index, Conversion::acosd(mu_values[j]));
-    const Stokvec e     = (Muelmat::id() - rtepack::fresnel_reflectance(rv, rh)) * planck_ground;
-    radiance[j]         = e.view()[stokes];
-  }
-}
-
 void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, Tensor5View trans, Tensor3View source) {
   const Index nummu   = reflect.extent(1);
   const Index nstokes = ground_reflec.extent(0);
@@ -87,16 +53,6 @@ void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numer
   for (Index s = 0; s < nstokes; s++) radiance[joker, s] = e[s];
 }
 
-void thermal_radiance(Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance) {
-  ARTS_USER_ERROR_IF(
-      radiance.extent(0) != 2, "THERMAL_RADIANCE needs radiance [2, nummu, nstokes]; got {:B,}", radiance.shape());
-  ARTS_USER_ERROR_IF(not(temperature >= 0.0), "THERMAL_RADIANCE needs a temperature >= 0 K, got {} K", temperature);
-
-  radiance                  = 0.0;
-  const Numeric thermal     = (1.0 - albedo) * planck(frequency, temperature);
-  radiance[joker, joker, 0] = thermal;
-}
-
 void ground_surface(const surface&  ground,
                     ConstVectorView mu_values,
                     ConstVectorView quad_weights,
@@ -129,13 +85,14 @@ void ground_surface(const surface&  ground,
           // For a Lambertian surface
           lambert_surface_layer(0, mu_values, quad_weights, g.albedo, reflect, trans, source);
           // The radiance from the ground is thermal and reflected direct
-          lambert_radiance(g.albedo, ground_temp, frequency, gnd_radiance);
+          // (RT4 has the azimuth mode 0 and the thermal source alone)
+          lambert_radiance(0, 2, g.albedo, ground_temp, frequency, 0.0, gnd_radiance);
           surf_reflect = reflect[1];
         } else if constexpr (std::is_same_v<T, fresnel_surface>) {
           // For a Fresnel surface
           fresnel_surface_layer(mu_values, g.refractive_index, reflect, trans, source);
           // The radiance from the ground is thermal
-          fresnel_radiance(mu_values, g.refractive_index, ground_temp, frequency, gnd_radiance);
+          fresnel_radiance(0, mu_values, g.refractive_index, ground_temp, frequency, gnd_radiance);
           surf_reflect = reflect[1];
         } else if constexpr (std::is_same_v<T, specular_surface>) {
           // For a Specular surface

@@ -1,5 +1,6 @@
 #include "radutil.h"
 
+#include <arts_constants.h>
 #include <arts_conversions.h>
 #include <debug.h>
 #include <physics_funcs.h>
@@ -89,5 +90,69 @@ void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, 
 
   // REFLECT(I1, J1, I2, J2, 2) = SURF_REFL(I1, J1, I2, J2)
   reflect[1] = surf_reflect;
+}
+
+void thermal_radiance(Index mode, Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance) {
+  ARTS_USER_ERROR_IF(radiance.extent(0) != 2 or radiance.extent(1) < 1 or radiance.extent(2) < 1,
+                     "THERMAL_RADIANCE needs radiance [2, nummu, nstokes], got {:B,}",
+                     radiance.shape());
+  ARTS_USER_ERROR_IF(
+      not(temperature >= 0.0), "THERMAL_RADIANCE needs a temperature of at least 0 K, got {} K", temperature);
+  ARTS_USER_ERROR_IF(not(frequency > 0.0), "THERMAL_RADIANCE needs a positive frequency, got {} Hz", frequency);
+
+  radiance = 0.0;
+  if (mode == 0) radiance[joker, joker, 0] = (1.0 - albedo) * planck(frequency, temperature);
+}
+
+void lambert_radiance(Index      mode,
+                      Index      src_code,
+                      Numeric    ground_albedo,
+                      Numeric    ground_temp,
+                      Numeric    frequency,
+                      Numeric    direct_sfc_flux,
+                      MatrixView radiance) {
+  ARTS_USER_ERROR_IF(radiance.extent(0) < 1 or radiance.extent(1) < 1,
+                     "LAMBERT_RADIANCE needs radiance [nummu, nstokes], got {:B,}",
+                     radiance.shape());
+
+  radiance = 0.0;
+  if (mode == 0) {
+    // Thermal radiation going up
+    if (src_code == 2 or src_code == 3) {
+      ARTS_USER_ERROR_IF(not(ground_temp >= 0.0),
+                         "LAMBERT_RADIANCE needs a ground temperature of at least 0 K, got {} K",
+                         ground_temp);
+      ARTS_USER_ERROR_IF(not(frequency > 0.0), "LAMBERT_RADIANCE needs a positive frequency, got {} Hz", frequency);
+      radiance[joker, 0] = (1.0 - ground_albedo) * planck(frequency, ground_temp);
+    }
+
+    // Direct solar reflection (unpolarized)
+    if (src_code == 1 or src_code == 3) radiance[joker, 0] += direct_sfc_flux * ground_albedo / Constant::pi;
+  }
+}
+
+void fresnel_radiance(
+    Index mode, ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
+  const Index nummu   = mu_values.extent(0);
+  const Index nstokes = radiance.extent(1);
+  ARTS_USER_ERROR_IF(nstokes > 4 or radiance.extent(0) != nummu,
+                     "FRESNEL_RADIANCE with {} mu_values needs radiance [nummu, nstokes <= 4]; got {:B,}",
+                     nummu,
+                     radiance.shape());
+
+  // Thermal radiation going up: [(1 - R1) B, -R2 B, 0, 0]
+  radiance = 0.0;
+  if (mode == 0) {
+    ARTS_USER_ERROR_IF(
+        not(ground_temp >= 0.0), "FRESNEL_RADIANCE needs a ground temperature of at least 0 K, got {} K", ground_temp);
+    ARTS_USER_ERROR_IF(not(frequency > 0.0), "FRESNEL_RADIANCE needs a positive frequency, got {} Hz", frequency);
+    const Range   stokes{0, nstokes};
+    const Stokvec planck_ground{planck(frequency, ground_temp)};
+    for (Index j = 0; j < nummu; j++) {
+      const auto [rv, rh] = fresnel(1.0, index, Conversion::acosd(mu_values[j]));
+      const Stokvec e     = (Muelmat::id() - rtepack::fresnel_reflectance(rv, rh)) * planck_ground;
+      radiance[j]         = e.view()[stokes];
+    }
+  }
 }
 }  // namespace polradtran

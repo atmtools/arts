@@ -9,11 +9,12 @@ namespace polradtran::rt4 {
 /** RADTRANO of 3rdparty/polradtran/radtran4.f, ported to C++.
  *
  * The method is RADTRANO's, step by step, in SI units, and every
- * subroutine it calls is ported too: NONSCATTER_LAYER, INITIAL_SOURCE,
- * INITIALIZE and DOUBLING_INTEGRATION (radintg4.h), COMBINE_LAYERS and
- * INTERNAL_RADIANCE, which RT3 shares (radintg.h), EXTERNAL_SURFACE
- * (radutil.h) and THERMAL_RADIANCE (radutil4.h).  The
- * quadratures are ARTS's (rt4::get_quadrature), the Planck function is
+ * subroutine it calls is ported too: INITIAL_SOURCE and INITIALIZE
+ * (radintg4.h), and those RT3 shares, NONSCATTER_LAYER,
+ * DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE (radintg.h),
+ * EXTERNAL_SURFACE and THERMAL_RADIANCE (radutil.h).  RT4 is RT3 in the
+ * azimuth mode 0 with the thermal source alone, so the shared routines
+ * that take a mode get 0.  The quadratures are ARTS's (rt4::get_quadrature), the Planck function is
  * ARTS's planck(), MZERO is "= 0.0", MIDENTITY identity and MCOPY
  * "=".  It calls no Fortran and keeps no state between calls.  The STOPs
  * of RADTRANO throw instead.

@@ -47,7 +47,8 @@ struct workdata {
   Matrix  source1, upsource, downsource;     //!< [2, n]
 
   /////////////////////////////////////////////////////////////////////////////
-  // DOUBLING_INTEGRATION's linear source: T_LIN, CONST and T_CONST.
+  // DOUBLING_INTEGRATION's linear source: T_LIN, CONST and T_CONST (its
+  // solar source's T_EXP is its output t_source).
   /////////////////////////////////////////////////////////////////////////////
 
   Matrix t_lin, cnst, t_const;  //!< [2, n]

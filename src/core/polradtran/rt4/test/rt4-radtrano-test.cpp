@@ -518,7 +518,7 @@ void check_lambert_surface() {
   tally.report("lambert_surface_layer", "LAMBERT_SURFACE");
 }
 
-/* rt4::lambert_radiance against LAMBERT_RADIANCE, whose PLANCK_FUNCTION per
+/* polradtran::lambert_radiance against LAMBERT_RADIANCE, whose PLANCK_FUNCTION per
    micrometre is converted to SI: they differ as planck() and
    PLANCK_FUNCTION do (check_planck). */
 void check_lambert_radiance() {
@@ -533,7 +533,7 @@ void check_lambert_radiance() {
         const Numeric albedo = u(gen);
 
         Matrix rad(nummu, nstokes, nan), radf(nummu, nstokes);
-        rt4::lambert_radiance(albedo, t, f, rad);
+        polradtran::lambert_radiance(0, 2, albedo, t, f, 0.0, rad);
 
         const Numeric wavelength = 1e6 * Constant::c / f;
         rt4_lambert_radiance(nstokes, nummu, albedo, t, wavelength, radf.data_handle());
@@ -548,7 +548,7 @@ void check_lambert_radiance() {
   bool threw = false;
   try {
     Matrix rad(3, 2);
-    rt4::lambert_radiance(0.3, -1.0, 89e9, rad);
+    polradtran::lambert_radiance(0, 2, 0.3, -1.0, 89e9, 0.0, rad);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("lambert_radiance at -1 K did not throw");
 }
@@ -593,7 +593,7 @@ void check_fresnel_surface() {
   tally.report("fresnel_surface_layer", "FRESNEL_SURFACE", 1e-13);
 }
 
-/* rt4::fresnel_radiance against FRESNEL_RADIANCE, whose PLANCK_FUNCTION per
+/* polradtran::fresnel_radiance against FRESNEL_RADIANCE, whose PLANCK_FUNCTION per
    micrometre is converted to SI: they differ as planck() and
    PLANCK_FUNCTION do (6e-13 at 1 GHz and 150 K, where RT4's exp(x) - 1
    loses digits), and in the reflection to rounding. */
@@ -612,7 +612,7 @@ void check_fresnel_radiance() {
           mu[nummu - 1] = 1.0;
 
           Matrix rad(nummu, nstokes, nan), radf(nummu, nstokes);
-          rt4::fresnel_radiance(mu, index, t, f, rad);
+          polradtran::fresnel_radiance(0, mu, index, t, f, rad);
 
           const Numeric wavelength = 1e6 * Constant::c / f;
           rt4_fresnel_radiance(
@@ -712,7 +712,7 @@ void check_external_surface() {
   tally.report("external_surface_layer", "EXTERNAL_SURFACE");
 }
 
-/* rt4::thermal_radiance against THERMAL_RADIANCE, whose PLANCK_FUNCTION per
+/* polradtran::thermal_radiance against THERMAL_RADIANCE, whose PLANCK_FUNCTION per
    micrometre is converted to SI: they differ as planck() and
    PLANCK_FUNCTION do. */
 void check_thermal_radiance() {
@@ -728,7 +728,7 @@ void check_thermal_radiance() {
           const Numeric albedo = zero_albedo ? 0.0 : u(gen);
 
           Tensor3 rad(2, nummu, nstokes, nan), radf(2, nummu, nstokes);
-          rt4::thermal_radiance(t, albedo, f, rad);
+          polradtran::thermal_radiance(0, t, albedo, f, rad);
 
           const Numeric wavelength = 1e6 * Constant::c / f;
           rt4_thermal_radiance(nstokes, nummu, t, albedo, wavelength, radf.data_handle());
@@ -743,12 +743,12 @@ void check_thermal_radiance() {
   bool threw = false;
   try {
     Tensor3 rad(2, 3, 2);
-    rt4::thermal_radiance(-1.0, 0.0, 89e9, rad);
+    polradtran::thermal_radiance(0, -1.0, 0.0, 89e9, rad);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("thermal_radiance at -1 K did not throw");
 }
 
-/* rt4::doubling_integration against DOUBLING_INTEGRATION, from the thin
+/* polradtran::doubling_integration against DOUBLING_INTEGRATION, from the thin
    initial sublayer of random, physical optics (single-scattering albedo 0.5
    to 0.95) made by rt4::initialize and rt4::initial_source.  It is not as
    is: DGEMM's alpha and beta absorb the MIDENTITY, MSUB and MADD after a
@@ -811,7 +811,7 @@ void check_doubling_integration() {
           Tensor3              tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n), ttf(2, n, n);
           Matrix               ts(2, n, nan), tsf(2, n);
           polradtran::workdata work(nstokes, nummu, 0);
-          rt4::doubling_integration(num_doubles, symmetric, reflect, trans, lin, linfactor, tr, tt, ts, work);
+          polradtran::doubling_integration(num_doubles, symmetric, reflect, trans, lin, linfactor, tr, tt, ts, work);
           rt4_doubling_integration(n,
                                    num_doubles,
                                    symmetric,
@@ -881,7 +881,7 @@ slab random_slab(std::mt19937_64& gen, Index nstokes, Index nummu, Index num_dou
 
   slab                 out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
   polradtran::workdata work(nstokes, nummu, 0);
-  rt4::doubling_integration(
+  polradtran::doubling_integration(
       num_doubles, symmetric, r1, t1, lin, 0.3 / std::pow(2.0, num_doubles), out.reflect, out.trans, out.source, work);
   return out;
 }
@@ -1095,7 +1095,7 @@ void check_nonscatter_layer() {
 
           Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
           Tensor3 src(2, nummu, nstokes, nan);
-          rt4::nonscatter_layer(deltatau, mu, planck0, planck1, r, t, src);
+          polradtran::nonscatter_layer(0, deltatau, mu, planck0, planck1, r, t, src);
 
           Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
           Tensor3 srcf(2, nummu, nstokes);

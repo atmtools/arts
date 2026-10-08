@@ -5,35 +5,16 @@
 #include "rt4.h"
 
 /* The ground of 3rdparty/polradtran/radutil4.f, as the external surface of
-   RADTRANO, and its routines ported to C++ one at a time; LAMBERT_SURFACE,
-   FRESNEL_SURFACE and EXTERNAL_SURFACE, which RT3 shares, are polradtran's
-   (radutil.h).  Each follows its
-   Fortran step by step, with matpack in place of Evans' matrix helpers
-   (MZERO is "= 0.0", MIDENTITY a unit diagonal) and ARTS's planck() in SI
-   in place of PLANCK_FUNCTION.  A Fortran array A(d1, ..., dk) is the
-   row-major matpack array [dk, ..., d1]; the counts (NSTOKES, NUMMU) are
-   the extents of the arrays. */
+   RADTRANO, and its routines ported to C++ one at a time.  Those RT3
+   shares (LAMBERT_SURFACE, LAMBERT_RADIANCE, FRESNEL_SURFACE,
+   FRESNEL_RADIANCE, EXTERNAL_SURFACE and THERMAL_RADIANCE) are
+   polradtran's (radutil.h); SPECULAR_SURFACE and SPECULAR_RADIANCE are
+   RT4's own.  Each follows its Fortran step by step, with matpack in place
+   of Evans' matrix helpers (MZERO is "= 0.0", MIDENTITY a unit diagonal)
+   and ARTS's planck() in SI in place of PLANCK_FUNCTION.  A Fortran array
+   A(d1, ..., dk) is the row-major matpack array [dk, ..., d1]; the counts
+   (NSTOKES, NUMMU) are the extents of the arrays. */
 namespace polradtran::rt4 {
-/** LAMBERT_RADIANCE: the thermal radiance of a Lambertian ground,
- * (1 - ground_albedo) B(ground_temp) in I, in W m-2 Hz-1 sr-1 at the
- * frequency [Hz].  ground_temp [K] must be >= 0 (planck() is negative
- * below 0 K, where PLANCK_FUNCTION gave 0).
- *
- *   radiance  [nummu, nstokes]  RADIANCE(NSTOKES, NUMMU), output
- */
-void lambert_radiance(Numeric ground_albedo, Numeric ground_temp, Numeric frequency, MatrixView radiance);
-
-/** FRESNEL_RADIANCE: the thermal radiance of a plane surface of complex
- * refractive index index under a medium of index 1, (1 - R) B(ground_temp)
- * for the unpolarized B and the Fresnel reflection matrix R, in
- * W m-2 Hz-1 sr-1 at the frequency [Hz].  ground_temp [K] must be >= 0.
- *
- *   mu_values  [nummu]           MU_VALUES
- *   radiance   [nummu, nstokes]  RADIANCE(NSTOKES, NUMMU), output
- */
-void fresnel_radiance(
-    ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance);
-
 /** SPECULAR_SURFACE: the reflection matrix of a plane surface with the
  * fixed reflectivity ground_reflec, applied specularly to every stream, the
  * identity as transmission, and no source.
@@ -56,16 +37,6 @@ void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, 
  *   radiance       [nummu, nstokes]    RADIANCE(NSTOKES, NUMMU), output
  */
 void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numeric frequency, MatrixView radiance);
-
-/** THERMAL_RADIANCE: the polarized radiance vector of the thermal emission
- * of a body of albedo albedo at temperature [K], (1 - albedo) B(temperature)
- * in I in both hemispheres, in W m-2 Hz-1 sr-1 at the frequency [Hz].  The
- * emission is isotropic and unpolarized.  temperature must be >= 0
- * (planck() is negative below 0 K, where PLANCK_FUNCTION gave 0).
- *
- *   radiance  [2, nummu, nstokes]  RADIANCE(NSTOKES, NUMMU, 2), output
- */
-void thermal_radiance(Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance);
 
 /** The ground as RADTRANO's external surface (ground type 'A').
  *

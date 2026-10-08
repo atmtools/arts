@@ -3,8 +3,6 @@
 #include <matpack.h>
 #include <polradtran_workdata.h>
 
-#include <array>
-
 #include "rt3_fft.h"
 
 namespace polradtran::rt3 {
@@ -70,13 +68,6 @@ struct rt3_workdata : workdata {
   Matrix  exp_source;                        //!< [2, n]
   Matrix  ground_radiance, direct_radiance;  //!< [nummu, nstokes]
 
-  /////////////////////////////////////////////////////////////////////////////
-  // DOUBLING_INTEGRATION's solar source, T_EXP; the scratch of its linear
-  // source is shared.
-  /////////////////////////////////////////////////////////////////////////////
-
-  Matrix t_exp;  //!< [2, n]
-
   rt3_workdata() = default;
   rt3_workdata(Index nstokes, Index nummu, Index aziorder, Index num_layers, Index nsl, Index legendre_rows) {
     resize(nstokes, nummu, aziorder, num_layers, nsl, legendre_rows);
@@ -99,15 +90,9 @@ struct rt3_workdata : workdata {
     direct_level_flux.resize(num_layers + 1);
 
     scatter_matrix.resize(4, nummu, nstokes, nummu, nstokes);
-    for (Matrix* m : {&direct_vector, &thermal_vector, &exp_source, &t_exp}) m->resize(2, n);
+    for (Matrix* m : {&direct_vector, &thermal_vector, &exp_source}) m->resize(2, n);
     ground_radiance.resize(nummu, nstokes);
     direct_radiance.resize(nummu, nstokes);
-  }
-
-  //! Whether the scratch of DOUBLING_INTEGRATION, COMBINE_LAYERS and
-  //! INTERNAL_RADIANCE (the shared one and T_EXP) is sized for n streams
-  [[nodiscard]] bool scratch_sized(Index n) const {
-    return workdata::scratch_sized(n) and t_exp.shape() == (std::array<Index, 2>{2, n});
   }
 };
 }  // namespace polradtran::rt3

@@ -217,7 +217,7 @@ void check_initial_source() {
   tally.report("initial_source", "RT3_INITIAL_SOURCE");
 }
 
-/* rt3::nonscatter_layer against RT3_NONSCATTER_LAYER, for 1 to 4 Stokes
+/* polradtran::nonscatter_layer against RT3_NONSCATTER_LAYER, for 1 to 4 Stokes
    parameters, gauss nodes and the extra angle 1, modes 0 and 1, optical
    depths from 0 to 30, and Planck functions rising, falling, equal and 0. */
 void check_nonscatter_layer() {
@@ -238,7 +238,7 @@ void check_nonscatter_layer() {
           Tensor3 src(2, nummu, nstokes, nan);
           Tensor3 rf(2, n, n, 0.0), tf(2, n, n, 0.0);
           Matrix  srcf(2, n, 0.0);
-          rt3::nonscatter_layer(mode, deltatau, mu, planck0, planck1, r, t, src);
+          polradtran::nonscatter_layer(mode, deltatau, mu, planck0, planck1, r, t, src);
           rt3_nonscatter_layer(nstokes,
                                nummu,
                                mode,
@@ -257,7 +257,7 @@ void check_nonscatter_layer() {
   tally.report("nonscatter_layer", "RT3_NONSCATTER_LAYER");
 }
 
-/* rt3::thermal_radiance (SI, ARTS's planck()) against RT3_THERMAL_RADIANCE
+/* polradtran::thermal_radiance (SI, ARTS's planck()) against RT3_THERMAL_RADIANCE
    (per micrometre, RT3's PLANCK_FUNCTION on the same exact constants),
    converted, from 1 GHz to 100 THz and 0 to 330 K, for both modes.  RT3
    evaluates exp(x) - 1 where planck() has expm1(x), so it loses digits at
@@ -272,7 +272,7 @@ void check_thermal_radiance() {
         for (Index mode : {0, 1}) {
           for (auto [nstokes, nummu] : {std::pair{Index{1}, Index{1}}, std::pair{Index{4}, Index{3}}}) {
             Tensor3 rad(2, nummu, nstokes, nan), radf(2, nummu, nstokes, nan);
-            rt3::thermal_radiance(mode, temperature, albedo, frequency, rad);
+            polradtran::thermal_radiance(mode, temperature, albedo, frequency, rad);
             rt3_thermal_radiance(nstokes, nummu, mode, temperature, albedo, wavelength, radf.data_handle());
             radf *= per_um_to_per_hz;
             tally.add({differ(rad, radf)});
@@ -286,7 +286,7 @@ void check_thermal_radiance() {
   bool threw = false;
   try {
     Tensor3 rad(2, 1, 1);
-    rt3::thermal_radiance(0, -1.0, 0.0, 89e9, rad);
+    polradtran::thermal_radiance(0, -1.0, 0.0, 89e9, rad);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("thermal_radiance of a negative temperature did not throw");
 }
@@ -332,7 +332,7 @@ void check_lambert_surface() {
   tally.report("lambert_surface_layer", "RT3_LAMBERT_SURFACE");
 }
 
-/* rt3::lambert_radiance (SI, ARTS's planck()) against
+/* polradtran::lambert_radiance (SI, ARTS's planck()) against
    RT3_LAMBERT_RADIANCE (per micrometre, RT3's PLANCK_FUNCTION), converted,
    from 1 GHz to 100 THz and 0 to 330 K, for modes 0 and 1 and every source
    code: they differ as the two Planck functions do (check_thermal_radiance),
@@ -352,7 +352,7 @@ void check_lambert_radiance() {
             const Numeric albedo          = u(gen);
             const Numeric direct_sfc_flux = 1e-4 * u(gen);
             Matrix        rad(nummu, nstokes, nan), radf(nummu, nstokes);
-            rt3::lambert_radiance(mode, src_code, albedo, ground_temp, frequency, direct_sfc_flux, rad);
+            polradtran::lambert_radiance(mode, src_code, albedo, ground_temp, frequency, direct_sfc_flux, rad);
             rt3_lambert_radiance(nstokes,
                                  nummu,
                                  mode,
@@ -375,7 +375,7 @@ void check_lambert_radiance() {
   bool threw = false;
   try {
     Matrix rad(3, 2);
-    rt3::lambert_radiance(0, 2, 0.3, -1.0, 89e9, 0.0, rad);
+    polradtran::lambert_radiance(0, 2, 0.3, -1.0, 89e9, 0.0, rad);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("lambert_radiance at -1 K did not throw");
 }
@@ -421,7 +421,7 @@ void check_fresnel_surface() {
   tally.report("fresnel_surface_layer", "RT3_FRESNEL_SURFACE", 1e-13);
 }
 
-/* rt3::fresnel_radiance (SI, ARTS's planck()) against RT3_FRESNEL_RADIANCE
+/* polradtran::fresnel_radiance (SI, ARTS's planck()) against RT3_FRESNEL_RADIANCE
    (per micrometre, RT3's PLANCK_FUNCTION), converted, for modes 0 and 1:
    they differ as the two Planck functions do (check_thermal_radiance), and
    in the reflection to rounding. */
@@ -441,7 +441,7 @@ void check_fresnel_radiance() {
             mu[nummu - 1] = 1.0;
 
             Matrix rad(nummu, nstokes, nan), radf(nummu, nstokes);
-            rt3::fresnel_radiance(mode, mu, index, ground_temp, frequency, rad);
+            polradtran::fresnel_radiance(mode, mu, index, ground_temp, frequency, rad);
 
             const Numeric wavelength = 1e6 * Constant::c / frequency;
             rt3_fresnel_radiance(nstokes,
@@ -466,7 +466,7 @@ void check_fresnel_radiance() {
   bool threw = false;
   try {
     Matrix rad(2, 2);
-    rt3::fresnel_radiance(0, Vector{0.3, 0.8}, Complex{1.5, 0.0}, -1.0, 89e9, rad);
+    polradtran::fresnel_radiance(0, Vector{0.3, 0.8}, Complex{1.5, 0.0}, -1.0, 89e9, rad);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("fresnel_radiance at -1 K did not throw");
 }
@@ -1385,7 +1385,7 @@ void check_direct_scattering() {
   tally.report("direct_scattering", "DIRECT_SCATTERING", 1e-13);
 }
 
-/* rt3::doubling_integration against RT3_DOUBLING_INTEGRATION, on the thin
+/* polradtran::doubling_integration against RT3_DOUBLING_INTEGRATION, on the thin
    starting layer of a scattering set (rt3::scattering, get_scattering,
    initialize) for 1 to 4 Stokes parameters (symmetric for 1 and 2), modes
    0 and 1, every source code and 0 to 20 doublings, with random source
@@ -1433,19 +1433,19 @@ void check_doubling_integration() {
           Matrix  exp_sourcef = exp_source, lin_sourcef = lin_source;
           Tensor3 tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n, 0.0), ttf(2, n, n, 0.0);
           Matrix  ts(2, n, nan), tsf(2, n, 0.0);
-          rt3::doubling_integration(num_doubles,
-                                    src_code,
-                                    symmetric,
-                                    reflect,
-                                    trans,
-                                    exp_source,
-                                    expfactor,
-                                    lin_source,
-                                    linfactor,
-                                    tr,
-                                    tt,
-                                    ts,
-                                    work);
+          polradtran::doubling_integration(num_doubles,
+                                           src_code,
+                                           symmetric,
+                                           reflect,
+                                           trans,
+                                           exp_source,
+                                           expfactor,
+                                           lin_source,
+                                           linfactor,
+                                           tr,
+                                           tt,
+                                           ts,
+                                           work);
           rt3_doubling_integration(n,
                                    num_doubles,
                                    src_code,
@@ -1513,19 +1513,19 @@ slab scattering_slab(
   }
 
   slab out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
-  rt3::doubling_integration(num_doubles,
-                            3,
-                            nstokes <= 2,
-                            reflect,
-                            trans,
-                            exp_source,
-                            std::exp(-extinction * delta_z / 0.6),
-                            lin_source,
-                            0.3 / std::pow(2.0, static_cast<Numeric>(num_doubles)),
-                            out.reflect,
-                            out.trans,
-                            out.source,
-                            work);
+  polradtran::doubling_integration(num_doubles,
+                                   3,
+                                   nstokes <= 2,
+                                   reflect,
+                                   trans,
+                                   exp_source,
+                                   std::exp(-extinction * delta_z / 0.6),
+                                   lin_source,
+                                   0.3 / std::pow(2.0, static_cast<Numeric>(num_doubles)),
+                                   out.reflect,
+                                   out.trans,
+                                   out.source,
+                                   work);
   return out;
 }
 
@@ -1557,7 +1557,7 @@ void check_combine_layers() {
           if (kind < 2) return scattering_slab(gen, mu, w, nstokes, mode, kind == 0 ? 1e-3 : 4.0);
           Tensor5 r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
           Tensor3 src(2, nummu, nstokes);
-          if (kind == 2) rt3::nonscatter_layer(mode, 0.7, mu, 3e-15, 4e-15, r, t, src);
+          if (kind == 2) polradtran::nonscatter_layer(mode, 0.7, mu, 3e-15, 4e-15, r, t, src);
           if (kind == 3) polradtran::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
           if (kind == 4) polradtran::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
           return slab{.reflect = Tensor3{r.view_as(2, n, n)},
@@ -1625,7 +1625,7 @@ void check_internal_radiance() {
             } else {
               Tensor5 r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
               Tensor3 src(2, nummu, nstokes);
-              rt3::nonscatter_layer(mode, 0.7, mu, 3e-15, 4e-15, r, t, src);
+              polradtran::nonscatter_layer(mode, 0.7, mu, 3e-15, 4e-15, r, t, src);
               up = {.reflect = Tensor3{r.view_as(2, n, n)},
                     .trans   = Tensor3{t.view_as(2, n, n)},
                     .source  = Matrix{src.view_as(2, n)}};
@@ -1852,7 +1852,6 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
                     &w.sky_radiance,
                     &w.ground_radiance,
                     &w.direct_radiance,
-                    &w.t_exp,
                     &w.t_lin,
                     &w.cnst,
                     &w.t_const,

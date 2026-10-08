@@ -144,8 +144,8 @@ Provenance
     * ``rt3::combine_phase_modes`` (``COMBINE_PHASE_MODES``): its
       ``SINFLAG`` table is the block structure of ``MATRIX_SYMMETRY``.
 
-  * ``RT3_THERMAL_RADIANCE`` is ``rt3::thermal_radiance``
-    (``src/core/polradtran/rt3/radutil3.h``, the C++ of ``radutil3.f``), with ARTS's
+  * ``RT3_THERMAL_RADIANCE`` is ``polradtran::thermal_radiance``
+    (``src/core/polradtran/radutil.h``, shared with RT4), with ARTS's
     ``planck()`` in SI in place of RT3's ``PLANCK_FUNCTION``; it throws for
     a negative temperature, where RT3 gave 0.  ``planck()`` evaluates
     ``expm1``: against 50-digit references it is within 1.7e-15, RT3's
@@ -186,14 +186,14 @@ Provenance
     from stream j into every stream, I to I only, in mode 0, as joker
     slices of a ``[2, nummu, nstokes, nummu, nstokes]`` view.
     Bit-identical.
-  * ``RT3_LAMBERT_RADIANCE`` is ``rt3::lambert_radiance``, in SI with
+  * ``RT3_LAMBERT_RADIANCE`` is ``polradtran::lambert_radiance``, in SI with
     ARTS's ``planck()``: in mode 0 the emission ``(1 - A) B`` with the
     thermal source and the reflected beam ``F A / pi`` with the solar
     source.  It throws for a negative temperature where it uses it (RT3
     gave 0).  Against the Fortran it differs as the Planck functions do
     (2.8e-13); the capture changed by at most 3.3e-15 of the m = 0 I.
   * ``RT3_FRESNEL_SURFACE`` and ``RT3_FRESNEL_RADIANCE`` are
-    ``polradtran::fresnel_surface_layer`` and ``rt3::fresnel_radiance``, as in
+    ``polradtran::fresnel_surface_layer`` and ``polradtran::fresnel_radiance``, as in
     the RT4 port: ARTS's ``fresnel()`` amplitudes at ``acos(mu)`` and
     ``rtepack::fresnel_reflectance`` for the Mueller matrix (RT3's
     ``R``, with ``R(U, V) = -R4`` and ``R(V, U) = R4``), and the emission
@@ -202,8 +202,8 @@ Provenance
     (6.1e-13 at 1 GHz and 150 K); the capture changed by at most 3.2e-15
     of the m = 0 I.  With these, ``rt3::radtran`` uses nothing of
     ``radutil3.f`` (its Planck function and quadratures are ARTS's).
-  * ``RT3_NONSCATTER_LAYER`` is ``rt3::nonscatter_layer``
-    (``src/core/polradtran/rt3/radintg3.h``, the C++ of ``radintg3.f``): the
+  * ``RT3_NONSCATTER_LAYER`` is ``polradtran::nonscatter_layer``
+    (``src/core/polradtran/radintg.h``, shared with RT4): the
     reflection, transmission and source of a purely absorbing layer, the
     source in mode 0 only.  ``radtran`` passes it
     ``[2, nummu, nstokes, nummu, nstokes]`` and ``[2, nummu, nstokes]``
@@ -217,18 +217,21 @@ Provenance
     relative 1e-10 of it, which the doubling carries to the radiances
     (computed as ``(1 - f) + f albedo P``, rounded twice, some
     ``cpp.fast.rt3-radtran-test`` cases moved by up to 9e-10).
-  * ``RT3_DOUBLING_INTEGRATION`` is ``rt3::doubling_integration``, written
-    as RT4's (:doc:`dev.rt4`) but RT3's own: the products are BLAS
+  * ``RT3_DOUBLING_INTEGRATION`` is ``polradtran::doubling_integration``,
+    which RT4 shares (with the linear source alone): the products are BLAS
     ``mult`` (DGEMM, and DGEMV for the source vectors) whose alpha and beta
     absorb the ``MIDENTITY``, ``MSUB`` and ``MADD`` around them, and
     ``MINVERT`` is LAPACK's ``inv_inplace``; it doubles RT3's exponential
-    (solar) source as well as the linear (thermal) one.  Against the
+    (solar) source as well as the linear (thermal) one.  Its ``T_EXP``,
+    the doubled solar source of a step, is held in the output ``t_source``,
+    which is written only after the doubling, so the work data needs no
+    array that RT4 would not use.  Against the
     Fortran it agrees to 7.6e-13 of the largest value; the 148 capture
     problems changed by at most 4.5e-13 of the m = 0 I (in optically thick
     layers, through the inverse).
   * ``RT3_COMBINE_LAYERS`` is ``polradtran::combine_layers``, which puts one
     layer on top of another in the adding, written as
-    ``rt3::doubling_integration`` (BLAS ``mult`` with alpha and beta,
+    ``polradtran::doubling_integration`` (BLAS ``mult`` with alpha and beta,
     LAPACK's ``inv_inplace``).  It is RT4's ``COMBINE_LAYERS``, line by
     line, so both ports share it (below).
     On the layers ``RADTRAN`` combines (thin and thick scattering layers,
@@ -263,7 +266,11 @@ Provenance
     routines that are the same Fortran in both, line by line
     (``RT3_COMBINE_LAYERS``, ``RT3_INTERNAL_RADIANCE``,
     ``RT3_LAMBERT_SURFACE`` and ``RT3_FRESNEL_SURFACE`` are RT4's
-    routines without the prefix), with RT4's ``EXTERNAL_SURFACE``, and
+    routines without the prefix), those of which RT4's is RT3's in the
+    azimuth mode 0 with the thermal source alone
+    (``RT3_DOUBLING_INTEGRATION``, ``RT3_NONSCATTER_LAYER``,
+    ``RT3_THERMAL_RADIANCE``, ``RT3_LAMBERT_RADIANCE`` and
+    ``RT3_FRESNEL_RADIANCE``), RT4's ``EXTERNAL_SURFACE``, and
     ``polradtran::workdata``, RT4's work data, which ``rt3::rt3_workdata``
     extends.  Both ``cpp.fast.rt3-radtran-test`` and
     ``cpp.fast.rt4-radtrano-test`` compare it with their own Fortran, and

@@ -106,14 +106,16 @@ Provenance
     adding; ``rt4::fresnel_surface`` and ``rt4::specular_surface`` are the
     types of ``rt4.h``); those RT3 shares are ``polradtran``'s
     (``radutil.h``, below).  ``LAMBERT_SURFACE`` and ``LAMBERT_RADIANCE``
-    are ``polradtran::lambert_surface_layer`` and ``rt4::lambert_radiance``
-    (``radutil4.h``), as is, the radiance with
+    are ``polradtran::lambert_surface_layer`` and
+    ``polradtran::lambert_radiance`` (``radutil.h``; RT4's
+    ``LAMBERT_RADIANCE`` is RT3's in mode 0 with the thermal source alone),
+    as is, the radiance with
     ``planck()`` in SI instead of ``PLANCK_FUNCTION`` per micrometre (and
     rejecting a negative ground temperature, where ``PLANCK_FUNCTION``
     gave 0); the reflection is bit-identical, the radiances of a Lambertian
     ground change by at most 3.3e-15 of I.  ``FRESNEL_SURFACE`` and
     ``FRESNEL_RADIANCE`` are ``polradtran::fresnel_surface_layer`` and
-    ``rt4::fresnel_radiance``, with ARTS's ``fresnel()`` amplitudes
+    ``polradtran::fresnel_radiance`` (RT3's in mode 0), with ARTS's ``fresnel()`` amplitudes
     (``physics_funcs.h``) and ``rtepack::fresnel_reflectance``, whose
     Mueller matrix is RT4's (``R1`` and ``R2`` in the [I, Q] block, ``R3``
     and ``R4`` in the [U, V] block), and the emission ``(1 - R) B``.
@@ -134,22 +136,23 @@ Provenance
     ``polradtran::external_surface_layer``, as is (bit-identical), without the
     ``RADIANCE`` argument that ``EXTERNAL_SURFACE`` does not use (the
     ground's radiance goes to ``INTERNAL_RADIANCE``).  ``THERMAL_RADIANCE``,
-    the sky, is ``rt4::thermal_radiance`` with ``planck()`` in SI, so
+    the sky, is ``polradtran::thermal_radiance`` (RT3's in mode 0) with ``planck()`` in SI, so
     ``rt4::radtrano`` has no unit conversion left; its radiances change by
     at most 6e-16 of I, and an isothermal atmosphere now reproduces
     ``planck()`` to 1.7e-16 (1.6e-14 with ``PLANCK_FUNCTION`` for the sky
     and the ground).
   * ``NONSCATTER_LAYER``, ``INITIAL_SOURCE`` and ``INITIALIZE`` are
-    ``rt4::nonscatter_layer``, ``rt4::initial_source`` and
-    ``rt4::initialize`` (``src/core/polradtran/rt4/radintg4.h``, where the
-    ``radintg4.f`` routines go as they are ported), as is, with ``= 0.0``
+    ``polradtran::nonscatter_layer`` (``radintg.h``, RT3's in mode 0),
+    ``rt4::initial_source`` and ``rt4::initialize``
+    (``src/core/polradtran/rt4/radintg4.h``), as is, with ``= 0.0``
     for ``MZERO`` and ``Constant::two_pi`` for ``C``; they call no Fortran.
     All are bit-identical to the Fortran, except where gfortran on glibc
     vectorises ``NONSCATTER_LAYER``'s ``DEXP`` to libmvec's (up to 3.5 ulp
     off): its source, whose terms cancel to about the Planck function
     times the path, then differs by up to 5e-9 at a path of 1e-4.
-  * ``DOUBLING_INTEGRATION`` is ``rt4::doubling_integration`` (also in
-    ``radintg4.h``), with matpack for Evans' matrix helpers: ``MCOPY`` is
+  * ``DOUBLING_INTEGRATION`` is ``polradtran::doubling_integration``
+    (``radintg.h``), RT3's with the linear (thermal) source alone, which
+    has an overload with RT4's arguments; with matpack for Evans' matrix helpers: ``MCOPY`` is
     ``=``, ``MSCALARMULT`` and ``MADD`` on vectors ``*=`` and ``+=``,
     ``MINVERT`` (LINPACK ``DGEFA``/``DGEDI``) is ``inv_inplace`` (LAPACK
     ``dgetrf``/``dgetri``), and ``MMULT`` is ``mult`` (``DGEMM``), whose
@@ -175,7 +178,7 @@ Provenance
     1.2e-9 for 24 (1.3e-11 on Apple arm64 with OpenBLAS), and in quad
     precision both are 1.9e-9 off.
   * ``COMBINE_LAYERS`` is ``polradtran::combine_layers`` (``radintg.h``), in the
-    same way as ``rt4::doubling_integration``.  Against the Fortran
+    same way as ``polradtran::doubling_integration``.  Against the Fortran
     routine it differs by at most 7.7e-16 (one combination does not
     amplify the rounding as repeated doublings do); the radiances of
     ``rt4.solve`` change by at most 3e-15 of I.
@@ -202,9 +205,12 @@ Provenance
     (``src/core/polradtran``, the library ``arts_polradtran``): the
     routines that are the same Fortran in both, line by line
     (``COMBINE_LAYERS``, ``INTERNAL_RADIANCE``, ``LAMBERT_SURFACE`` and
-    ``FRESNEL_SURFACE``; RT3's names have the prefix ``RT3_``), with
-    ``EXTERNAL_SURFACE``, which ``rt3::radtran`` also uses, and the work
-    data, of which ``rt3::rt3_workdata`` extends RT4's.  Both
+    ``FRESNEL_SURFACE``; RT3's names have the prefix ``RT3_``), those of
+    which RT4's is RT3's in the azimuth mode 0 with the thermal source
+    alone (``DOUBLING_INTEGRATION``, ``NONSCATTER_LAYER``,
+    ``THERMAL_RADIANCE``, ``LAMBERT_RADIANCE`` and ``FRESNEL_RADIANCE``;
+    RT4 passes mode 0), ``EXTERNAL_SURFACE``, which ``rt3::radtran`` also
+    uses, and the work data, of which ``rt3::rt3_workdata`` extends RT4's.  Both
     ``cpp.fast.rt4-radtrano-test`` and ``cpp.fast.rt3-radtran-test``
     compare it with their own Fortran, and sharing it left every result
     of both ports bit-identical.

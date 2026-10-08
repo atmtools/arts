@@ -4,61 +4,17 @@
 
 #include "rt3.h"
 
-/* The subroutines of 3rdparty/polradtran/radutil3.f, ported to C++ one at a
-   time; RT3_LAMBERT_SURFACE and RT3_FRESNEL_SURFACE, which RT4 shares, are
-   polradtran's (radutil.h).  Radiances are in SI, W m-2 Hz-1 sr-1, at the frequency in Hz (the
-   Fortran's are per micrometre at the wavelength in micrometres).
+/* The ground of 3rdparty/polradtran/radutil3.f as rt3::radtran's input.
+   Its routines (RT3_LAMBERT_SURFACE, RT3_LAMBERT_RADIANCE,
+   RT3_FRESNEL_SURFACE, RT3_FRESNEL_RADIANCE and RT3_THERMAL_RADIANCE) are
+   RT4's too, and polradtran's (radutil.h).  Radiances are in SI,
+   W m-2 Hz-1 sr-1, at the frequency in Hz (the Fortran's are per
+   micrometre at the wavelength in micrometres).
 
    A Fortran array A(d1, ..., dk) is the row-major matpack array
    [dk, ..., d1].  The counts are not passed; they are the extents of the
    arrays. */
 namespace polradtran::rt3 {
-/** THERMAL_RADIANCE (RT3_THERMAL_RADIANCE): the polarized radiance vector of
- * thermal emission at frequency for a body with albedo and temperature (K):
- * (1 - albedo) times ARTS's planck() in I, in the azimuth mode 0 only (the
- * emission is isotropic and unpolarized), the same for all mu.  Throws for
- * a negative temperature (the Fortran gave 0).
- *
- *   radiance  [2, nummu, nstokes]  RADIANCE(NSTOKES, NUMMU, 2), output
- */
-void thermal_radiance(Index mode, Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance);
-
-/** LAMBERT_RADIANCE (RT3_LAMBERT_RADIANCE): the ground radiance of a
- * Lambertian ground of albedo ground_albedo, in the azimuth mode 0 only:
- * with the thermal source (src_code 2 or 3) its emission,
- * (1 - ground_albedo) times ARTS's planck() at ground_temp [K] and the
- * frequency [Hz], and with the solar source (src_code 1 or 3) the direct
- * beam it reflects, direct_sfc_flux ground_albedo / pi, both in I and
- * unpolarized.  direct_sfc_flux is the direct flux on the ground, on the
- * horizontal, in W m-2 Hz-1; the radiance is in W m-2 Hz-1 sr-1.  With the
- * thermal source, it throws for a negative ground_temp (the Fortran gave
- * 0) and needs a positive frequency.
- *
- *   radiance  [nummu, nstokes]  RADIANCE(NSTOKES, NUMMU), output
- */
-void lambert_radiance(Index      mode,
-                      Index      src_code,
-                      Numeric    ground_albedo,
-                      Numeric    ground_temp,
-                      Numeric    frequency,
-                      Numeric    direct_sfc_flux,
-                      MatrixView radiance);
-
-/** FRESNEL_RADIANCE (RT3_FRESNEL_RADIANCE): the thermal radiance of a plane
- * ground of complex refractive index index under a medium of index 1, in
- * the azimuth mode 0 only: (1 - R) B for the unpolarized B, ARTS's
- * planck() at ground_temp [K] and the frequency [Hz], and the Fresnel
- * reflection R of fresnel_surface_layer, i.e. [(1 - R1) B, -R2 B, 0, 0],
- * in W m-2 Hz-1 sr-1.  It cannot reflect the direct beam (specularly).  In
- * mode 0 it throws for a negative ground_temp (the Fortran gave 0) and
- * needs a positive frequency.
- *
- *   mu_values  [nummu]           MU_VALUES
- *   radiance   [nummu, nstokes]  RADIANCE(NSTOKES, NUMMU), output
- */
-void fresnel_radiance(
-    Index mode, ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance);
-
 /** The ground as rt3::radtran's input, for every azimuth mode.
  *
  * Both grounds of RT3 (LAMBERT_SURFACE, FRESNEL_SURFACE) make the same

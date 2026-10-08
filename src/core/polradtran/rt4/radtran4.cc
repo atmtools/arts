@@ -171,7 +171,8 @@ void radtrano(Numeric          max_delta_tau,
       // If the layer is purely absorbing then quickly
       // make the reflection and transmission matrices
       // and source vector instead of doubling.
-      nonscatter_layer(zdiff * gas_extinct[layer],
+      nonscatter_layer(0,
+                       zdiff * gas_extinct[layer],
                        mu_values,
                        planck0,
                        planck1,
@@ -236,7 +237,7 @@ void radtrano(Numeric          max_delta_tau,
                          source[ground].view_as(2, nummu, nstokes));
 
   // Assume the radiation coming from above is blackbody radiation
-  thermal_radiance(sky_temp, zero, frequency, sky_radiance.view_as(2, nummu, nstokes));
+  thermal_radiance(0, sky_temp, zero, frequency, sky_radiance.view_as(2, nummu, nstokes));
 
   // For each desired output level (1 thru NL+2) add layers
   // above and below level and compute internal radiance.
