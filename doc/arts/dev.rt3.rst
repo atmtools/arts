@@ -168,7 +168,7 @@ Provenance
     The direct flux that reaches the ground is computed inside
     ``radtran``, so the ground cannot add that part itself: ``radtran``
     makes ``GND_RADIANCE = gnd_radiance + F direct_reflect`` with the
-    solar source.  ``rt3::external_surface_layer`` makes the surface layer
+    solar source.  ``polradtran::external_surface_layer`` makes the surface layer
     (RT4's ``EXTERNAL_SURFACE``; RT3 has none).
     ``rt3::ground_surface`` (``src/core/polradtran/rt3/radutil3.h``) makes the three
     arrays from an ``rt3::surface``: the Lambertian ground reflects and
@@ -180,7 +180,7 @@ Provenance
     ``rt3::solve`` calls it outside the RT3 lock.  Making the ground an
     input changed the 148 capture problems by at most 4.3e-16 of the
     m = 0 I (the beam's reflection is added in SI).
-  * ``RT3_LAMBERT_SURFACE`` is ``rt3::lambert_surface_layer`` (named, as
+  * ``RT3_LAMBERT_SURFACE`` is ``polradtran::lambert_surface_layer`` (named, as
     in the RT4 port, for the layer it makes, since
     ``rt3::lambertian_surface`` is the ground's type): ``2 A mu_j w_j``
     from stream j into every stream, I to I only, in mode 0, as joker
@@ -193,7 +193,7 @@ Provenance
     gave 0).  Against the Fortran it differs as the Planck functions do
     (2.8e-13); the capture changed by at most 3.3e-15 of the m = 0 I.
   * ``RT3_FRESNEL_SURFACE`` and ``RT3_FRESNEL_RADIANCE`` are
-    ``rt3::fresnel_surface_layer`` and ``rt3::fresnel_radiance``, as in
+    ``polradtran::fresnel_surface_layer`` and ``rt3::fresnel_radiance``, as in
     the RT4 port: ARTS's ``fresnel()`` amplitudes at ``acos(mu)`` and
     ``rtepack::fresnel_reflectance`` for the Mueller matrix (RT3's
     ``R``, with ``R(U, V) = -R4`` and ``R(V, U) = R4``), and the emission
@@ -226,22 +226,24 @@ Provenance
     Fortran it agrees to 7.6e-13 of the largest value; the 148 capture
     problems changed by at most 4.5e-13 of the m = 0 I (in optically thick
     layers, through the inverse).
-  * ``RT3_COMBINE_LAYERS`` is ``rt3::combine_layers``, which puts one
+  * ``RT3_COMBINE_LAYERS`` is ``polradtran::combine_layers``, which puts one
     layer on top of another in the adding, written as
     ``rt3::doubling_integration`` (BLAS ``mult`` with alpha and beta,
-    LAPACK's ``inv_inplace``) and RT3's own copy of what RT4's port has.
+    LAPACK's ``inv_inplace``).  It is RT4's ``COMBINE_LAYERS``, line by
+    line, so both ports share it (below).
     On the layers ``RADTRAN`` combines (thin and thick scattering layers,
     gas, the Lambertian and Fresnel grounds) it agrees with the Fortran to
     6.8e-16 of the largest value; the 148 capture problems changed by at
     most 2.9e-15 of the m = 0 I.
-  * ``RT3_INTERNAL_RADIANCE`` is ``rt3::internal_radiance``, the
+  * ``RT3_INTERNAL_RADIANCE`` is ``polradtran::internal_radiance``, the
     radiances at a level from the atmosphere above and below it, written
-    as ``rt3::combine_layers``.  It agrees with the Fortran to 3.5e-16 of
+    as ``polradtran::combine_layers``.  It agrees with the Fortran to 3.5e-16 of
     the largest value; the 148 capture problems changed by at most
     6.2e-16 of the m = 0 I.  With it ``rt3::radtran`` calls no Fortran.
   * Every work array of ``rt3::radtran`` and the routines it calls is in
-    ``rt3::rt3_workdata`` (``src/core/polradtran/rt3/rt3_workdata.h``), as for RT4's
-    ``rt4_workdata``: the scattering sets and the layers' optics, the
+    ``rt3::rt3_workdata`` (``src/core/polradtran/rt3/rt3_workdata.h``): the
+    arrays it shares with RT4 (``polradtran::workdata``, below) and its own,
+    the scattering sets and the layers' optics, the
     scratch of ``SCATTERING``, ``DIRECT_SCATTERING`` and
     ``FOURIER_MATRIX`` with ``FFT1DR``'s table, the layers and the ground,
     ``RADTRAN``'s arrays on the streams, ``DOUBLING_INTEGRATION``'s
@@ -256,6 +258,16 @@ Provenance
     one work data shared over all cases and with one sized for the case
     whose every array is NaN: neither changes a bit.  ``rt3::solve`` keeps
     one per call.
+  * What RT3 and RT4 share is one C++, in the namespace ``polradtran``
+    (``src/core/polradtran``, the library ``arts_polradtran``): the
+    routines that are the same Fortran in both, line by line
+    (``RT3_COMBINE_LAYERS``, ``RT3_INTERNAL_RADIANCE``,
+    ``RT3_LAMBERT_SURFACE`` and ``RT3_FRESNEL_SURFACE`` are RT4's
+    routines without the prefix), with RT4's ``EXTERNAL_SURFACE``, and
+    ``polradtran::workdata``, RT4's work data, which ``rt3::rt3_workdata``
+    extends.  Both ``cpp.fast.rt3-radtran-test`` and
+    ``cpp.fast.rt4-radtrano-test`` compare it with their own Fortran, and
+    sharing it left every result of both ports bit-identical.
   * ``RT3_INITIAL_SOURCE`` is ``rt3::initial_source``: the thin starting
     layer's source, delta_z / mu times the extinction times a source vector
     (the solar pseudo source or the thermal one), per angle.

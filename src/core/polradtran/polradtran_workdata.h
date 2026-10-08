@@ -6,22 +6,25 @@
 #include <array>
 #include <cstddef>
 
-namespace polradtran::rt4 {
-/** The work arrays of rt4::radtrano and the routines it calls, for
- * n = nstokes * nummu streams and num_layers layers.
+namespace polradtran {
+/** The work arrays that RADTRAN (rt3::radtran) and RADTRANO (rt4::radtrano)
+ * and the routines they call share, for n = nstokes * nummu streams and
+ * num_layers layers.  They are all of RT4's; rt3::rt3_workdata adds RT3's
+ * own.
  *
  * Keep one (per thread) for repeated calls with the same streams, as over
- * frequency: they then allocate nothing.  rt4::radtrano sizes it; its
- * values between calls are unspecified, as every routine writes an array
- * before it reads it.  As in RADTRANO, an n x n matrix of two hemispheres
- * is [2, n, n] (the column-major Fortran matrix, so the matpack matrix
- * holds its transpose), and a source or a radiance is [2, n].
+ * frequency: they then allocate nothing.  The solvers size it; its values
+ * between calls are unspecified, as every routine writes an array before
+ * it reads it.  As in RADTRAN and RADTRANO, an n x n matrix of two
+ * hemispheres is [2, n, n] (the column-major Fortran matrix, so the matpack
+ * matrix holds its transpose), and a source or a radiance is [2, n].
  */
-struct rt4_workdata {
+struct workdata {
   /////////////////////////////////////////////////////////////////////////////
-  // The layers and the ground: made by RADTRANO's layer loop, combined by its
-  // level loop.  REFLECT(KRT), TRANS(KRT) and SOURCE(KS) of layer L are
-  // reflect[L-1], trans[L-1] and source[L-1]; L = NUM_LAYERS+1 is the ground.
+  // The layers and the ground (of an azimuth mode, in RT3): made by the
+  // solver's layer loop, combined by its level loop.  REFLECT(KRT),
+  // TRANS(KRT) and SOURCE(KS) of layer L are reflect[L-1], trans[L-1] and
+  // source[L-1]; L = NUM_LAYERS+1 is the ground.
   /////////////////////////////////////////////////////////////////////////////
 
   Tensor4 reflect;  //!< [num_layers + 1, 2, n, n]
@@ -29,7 +32,7 @@ struct rt4_workdata {
   Tensor3 source;   //!< [num_layers + 1, 2, n]
 
   /////////////////////////////////////////////////////////////////////////////
-  // RADTRANO on the streams: the quadrature weights, the sky radiance, the
+  // The solver on the streams: the quadrature weights, the sky radiance, the
   // initial sublayer of a scattering layer and its linear source (reflect1,
   // trans1, lin_source), and the atmosphere above (up) and below (down) a
   // level, of which reflect1, trans1 and source1 also hold the copy that
@@ -51,17 +54,17 @@ struct rt4_workdata {
 
   /////////////////////////////////////////////////////////////////////////////
   // The scratch of DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE,
-  // one at a time: X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/), two
-  // vectors (INTERNAL_RADIANCE's S and V), and LAPACK's workspace for the
-  // inverse of GAMMA.
+  // one at a time: X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/, RT3's
+  // /RT3_SCRATCH1/ and /RT3_SCRATCH2/), two vectors (INTERNAL_RADIANCE's S
+  // and V), and LAPACK's workspace for the inverse of GAMMA.
   /////////////////////////////////////////////////////////////////////////////
 
   Matrix       x, y, gamma;  //!< [n, n]
   Vector       xv, yv;       //!< [n]
   inv_workdata inv;          //!< n
 
-  rt4_workdata() = default;
-  rt4_workdata(Index nstokes, Index nummu, Index num_layers) { resize(nstokes, nummu, num_layers); }
+  workdata() = default;
+  workdata(Index nstokes, Index nummu, Index num_layers) { resize(nstokes, nummu, num_layers); }
 
   //! Sizes the arrays; this allocates only where an array grows
   void resize(Index nstokes, Index nummu, Index num_layers) {
@@ -91,4 +94,4 @@ struct rt4_workdata {
            t_const.shape() == two_n;
   }
 };
-}  // namespace polradtran::rt4
+}  // namespace polradtran

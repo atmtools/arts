@@ -1,17 +1,18 @@
 #pragma once
 
 #include <matpack.h>
+#include <polradtran_workdata.h>
 
 #include "rt4.h"
-#include "rt4_workdata.h"
 
 namespace polradtran::rt4 {
 /** RADTRANO of 3rdparty/polradtran/radtran4.f, ported to C++.
  *
  * The method is RADTRANO's, step by step, in SI units, and every
  * subroutine it calls is ported too: NONSCATTER_LAYER, INITIAL_SOURCE,
- * INITIALIZE, DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE
- * (radintg4.h), EXTERNAL_SURFACE and THERMAL_RADIANCE (radutil4.h).  The
+ * INITIALIZE and DOUBLING_INTEGRATION (radintg4.h), COMBINE_LAYERS and
+ * INTERNAL_RADIANCE, which RT3 shares (radintg.h), EXTERNAL_SURFACE
+ * (radutil.h) and THERMAL_RADIANCE (radutil4.h).  The
  * quadratures are ARTS's (rt4::get_quadrature), the Planck function is
  * ARTS's planck(), MZERO is "= 0.0", MIDENTITY identity and MCOPY
  * "=".  It calls no Fortran and keeps no state between calls.  The STOPs
@@ -49,7 +50,7 @@ namespace polradtran::rt4 {
  * are in W m-2 Hz-1 sr-1 (RADTRANO: WAVELENGTH in um and W m-2 sr-1 um-1).
  * The temperatures, sky_temp too, must be >= 0 K.
  *
- * work holds every work array (rt4_workdata); radtrano sizes it, so it
+ * work holds every work array (polradtran::workdata); radtrano sizes it, so it
  * allocates only where an array grows.  Keep one for repeated calls with
  * the same streams, as over frequency.
  */
@@ -70,5 +71,5 @@ void radtrano(Numeric          max_delta_tau,
               VectorView       mu_values,
               Tensor3View      up_rad,
               Tensor3View      down_rad,
-              rt4_workdata&    work);
+              workdata&        work);
 }  // namespace polradtran::rt4

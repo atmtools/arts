@@ -2,6 +2,8 @@
 
 #include <debug.h>
 #include <physics_funcs.h>
+#include <radintg.h>
+#include <radutil.h>
 
 #include <algorithm>
 #include <array>
@@ -28,7 +30,7 @@ void radtrano(Numeric          max_delta_tau,
               VectorView       mu_values,
               Tensor3View      up_rad,
               Tensor3View      down_rad,
-              rt4_workdata&    work) {
+              workdata&        work) {
   // NSTOKES, NUMMU, NUUMMU, NUM_LAYERS and NSL
   const Index nstokes    = up_rad.extent(2);
   const Index nummu      = mu_values.extent(0);
@@ -107,7 +109,7 @@ void radtrano(Numeric          max_delta_tau,
                      (num_layers + 1) * n * n);
 
   /* RADTRANO's work arrays, as the subroutines read them: those of the
-     work data (rt4_workdata), sized for this problem.  The reflection and
+     work data (polradtran::workdata), sized for this problem.  The reflection and
      transmission of a slab are [2, n, n], the column-major n x n matrices
      of the + and - directions, a source or a radiance is [2, n].  The
      layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 + 2*N*N*(L-1)

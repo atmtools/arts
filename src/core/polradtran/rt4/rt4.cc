@@ -261,7 +261,7 @@ result solve(const problem& p) {
 
   ground_surface(p.ground, mu, weights, p.frequency, p.surface_temperature, surf_reflect, gnd_radiance);
 
-  rt4_workdata work;
+  workdata work;
   radtrano(p.max_delta_tau,
            p.quad,
            surf_reflect,

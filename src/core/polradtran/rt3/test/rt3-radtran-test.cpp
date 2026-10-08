@@ -40,9 +40,11 @@
 // summation cases), negative gas extinction, output levels in any order,
 // and the size limits.
 #include <arts_constants.h>
+#include <radintg.h>
 #include <radintg3.h>
 #include <radscat3.h>
 #include <radtran3.h>
+#include <radutil.h>
 #include <radutil3.h>
 #include <rt3.h>
 #include <rt3_c_interface.h>
@@ -289,7 +291,7 @@ void check_thermal_radiance() {
   if (not threw) throw std::runtime_error("thermal_radiance of a negative temperature did not throw");
 }
 
-/* rt3::lambert_surface_layer against RT3_LAMBERT_SURFACE, for 1 to 4
+/* polradtran::lambert_surface_layer against RT3_LAMBERT_SURFACE, for 1 to 4
    Stokes components, mode 0 (the reflecting one) and modes 1 and 2 (no
    reflection), random streams with a zero-weight extra angle, and the
    N = 64 limit. */
@@ -310,7 +312,7 @@ void check_lambert_surface() {
 
         Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
         Tensor3 src(2, nummu, nstokes, nan);
-        rt3::lambert_surface_layer(mode, mu, w, albedo, r, t, src);
+        polradtran::lambert_surface_layer(mode, mu, w, albedo, r, t, src);
 
         Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
         Tensor3 srcf(2, nummu, nstokes);
@@ -381,7 +383,7 @@ void check_lambert_radiance() {
 //! The refractive indices of the Fresnel checks: lossless to water-like
 const std::vector<Complex> fresnel_indices{{1.33, 0.0}, {1.5, 0.0}, {3.0, 0.2}, {3.1, 0.4}, {5.5, 2.9}, {7.0, 2.5}};
 
-/* rt3::fresnel_surface_layer against RT3_FRESNEL_SURFACE, for 1 to 4 Stokes
+/* polradtran::fresnel_surface_layer against RT3_FRESNEL_SURFACE, for 1 to 4 Stokes
    components (the [U, V] block with R3 and R4 too), random streams and
    mu = 1.  Not bit-identical: the amplitudes are ARTS's fresnel() at
    acos(mu) in degrees, with the transmitted cosine sqrt(1 - sin^2 / n^2)
@@ -401,7 +403,7 @@ void check_fresnel_surface() {
 
       Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
       Tensor3 src(2, nummu, nstokes, nan);
-      rt3::fresnel_surface_layer(mu, index, r, t, src);
+      polradtran::fresnel_surface_layer(mu, index, r, t, src);
 
       Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
       Tensor3 srcf(2, nummu, nstokes);
@@ -472,7 +474,7 @@ void check_fresnel_radiance() {
 /* rt3::ground_surface against the Fortran grounds it gives RADTRAN, for
    the Lambertian and the Fresnel ground, 1 to 4 Stokes components, azimuth
    orders 0 and 2, and every source code the ground allows.  In each mode
-   the surface layer that rt3::external_surface_layer makes of surf_reflect
+   the surface layer that polradtran::external_surface_layer makes of surf_reflect
    must be the layer of LAMBERT_SURFACE or FRESNEL_SURFACE, and
    gnd_radiance + F direct_reflect (F only with the solar source) the
    radiance of LAMBERT_RADIANCE or FRESNEL_RADIANCE with the direct flux F
@@ -513,7 +515,7 @@ void check_ground_surface() {
           for (Index mode = 0; mode <= aziorder; mode++) {
             Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
             Tensor3 src(2, nummu, nstokes, nan);
-            rt3::external_surface_layer(surf_reflect[mode], r, t, src);
+            polradtran::external_surface_layer(surf_reflect[mode], r, t, src);
             Matrix rad(nummu, nstokes), direct(nummu, nstokes);
             rad = gnd_radiance[mode];
             if (solar) {
@@ -1527,7 +1529,7 @@ slab scattering_slab(
   return out;
 }
 
-/* rt3::combine_layers against RT3_COMBINE_LAYERS: pairs of the layers
+/* polradtran::combine_layers against RT3_COMBINE_LAYERS: pairs of the layers
    RADTRAN combines, for 1 to 4 Stokes components, modes 0 and 1 and two
    numbers of streams (with an extra angle): thin (tau 1e-3) and thick
    (tau 4) scattering layers, a gas layer, and the Lambertian and Fresnel
@@ -1556,8 +1558,8 @@ void check_combine_layers() {
           Tensor5 r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
           Tensor3 src(2, nummu, nstokes);
           if (kind == 2) rt3::nonscatter_layer(mode, 0.7, mu, 3e-15, 4e-15, r, t, src);
-          if (kind == 3) rt3::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
-          if (kind == 4) rt3::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
+          if (kind == 3) polradtran::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
+          if (kind == 4) polradtran::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
           return slab{.reflect = Tensor3{r.view_as(2, n, n)},
                       .trans   = Tensor3{t.view_as(2, n, n)},
                       .source  = Matrix{src.view_as(2, n)}};
@@ -1569,7 +1571,7 @@ void check_combine_layers() {
             Tensor3           r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
             Matrix            src(2, n, nan), srcf(2, n);
             rt3::rt3_workdata work(nstokes, nummu, 0, 0, 0, 0);
-            rt3::combine_layers(
+            polradtran::combine_layers(
                 top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src, work);
 
             // The Fortran declares no intent: give it copies
@@ -1593,11 +1595,11 @@ void check_combine_layers() {
   tally.report("combine_layers", "RT3_COMBINE_LAYERS", 1e-13);
 }
 
-/* rt3::internal_radiance against RT3_INTERNAL_RADIANCE, for 1 to 4 Stokes
+/* polradtran::internal_radiance against RT3_INTERNAL_RADIANCE, for 1 to 4 Stokes
    components, modes 0 and 1 and two numbers of streams (with an extra
    angle): above the level a thin or thick scattering layer, or a gas
    layer, below it a scattering layer on a Lambertian or Fresnel ground
-   (combined by rt3::combine_layers), with random incident radiances at the
+   (combined by polradtran::combine_layers), with random incident radiances at the
    top and bottom.  Not as is: BLAS's alpha and beta absorb the MIDENTITY,
    MSUB and MADD, and the inverse is LAPACK's. */
 void check_internal_radiance() {
@@ -1633,21 +1635,21 @@ void check_internal_radiance() {
             Tensor5    r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
             Tensor3    src(2, nummu, nstokes);
             if (fresnel)
-              rt3::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
+              polradtran::fresnel_surface_layer(mu, Complex{3.1, 0.4}, r, t, src);
             else
-              rt3::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
+              polradtran::lambert_surface_layer(mode, mu, w, 0.3, r, t, src);
             rt3::rt3_workdata work(nstokes, nummu, 0, 0, 0, 0);
             slab              down{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
-            rt3::combine_layers(layer.reflect,
-                                layer.trans,
-                                layer.source,
-                                r.view_as(2, n, n),
-                                t.view_as(2, n, n),
-                                src.view_as(2, n),
-                                down.reflect,
-                                down.trans,
-                                down.source,
-                                work);
+            polradtran::combine_layers(layer.reflect,
+                                       layer.trans,
+                                       layer.source,
+                                       r.view_as(2, n, n),
+                                       t.view_as(2, n, n),
+                                       src.view_as(2, n),
+                                       down.reflect,
+                                       down.trans,
+                                       down.source,
+                                       work);
 
             Vector intoprad(n), inbottomrad(n);
             for (Index k = 0; k < n; k++) {
@@ -1656,17 +1658,17 @@ void check_internal_radiance() {
             }
 
             Vector uprad(n, nan), downrad(n, nan), upradf(n), downradf(n);
-            rt3::internal_radiance(up.reflect,
-                                   up.trans,
-                                   up.source,
-                                   down.reflect,
-                                   down.trans,
-                                   down.source,
-                                   intoprad,
-                                   inbottomrad,
-                                   uprad,
-                                   downrad,
-                                   work);
+            polradtran::internal_radiance(up.reflect,
+                                          up.trans,
+                                          up.source,
+                                          down.reflect,
+                                          down.trans,
+                                          down.source,
+                                          intoprad,
+                                          inbottomrad,
+                                          uprad,
+                                          downrad,
+                                          work);
 
             // The Fortran declares no intent: give it copies
             slab   a = up, b = down;
@@ -2061,7 +2063,7 @@ int main() try {
     Vector            top(2, 0.0), bottom(2, 0.0), up(2), down(2);
     bool              refused = false;
     try {
-      rt3::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
+      polradtran::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
     } catch (const std::exception&) { refused = true; }
     if (not refused) throw std::runtime_error("internal_radiance accepted an rt3_workdata for 8 streams with 2");
   }

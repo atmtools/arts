@@ -5,7 +5,8 @@
 #include "rt3.h"
 
 /* The subroutines of 3rdparty/polradtran/radutil3.f, ported to C++ one at a
-   time.  Radiances are in SI, W m-2 Hz-1 sr-1, at the frequency in Hz (the
+   time; RT3_LAMBERT_SURFACE and RT3_FRESNEL_SURFACE, which RT4 shares, are
+   polradtran's (radutil.h).  Radiances are in SI, W m-2 Hz-1 sr-1, at the frequency in Hz (the
    Fortran's are per micrometre at the wavelength in micrometres).
 
    A Fortran array A(d1, ..., dk) is the row-major matpack array
@@ -21,27 +22,6 @@ namespace polradtran::rt3 {
  *   radiance  [2, nummu, nstokes]  RADIANCE(NSTOKES, NUMMU, 2), output
  */
 void thermal_radiance(Index mode, Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance);
-
-/** LAMBERT_SURFACE (RT3_LAMBERT_SURFACE): the surface layer of a
- * Lambertian ground of albedo ground_albedo, which reflects the flux
- * equally into all directions and completely unpolarizes the radiation, in
- * the azimuth mode 0 (2 ground_albedo mu_j w_j from stream j into every
- * stream, I to I only; any other mode reflects nothing), with the identity
- * as transmission and no source.
- *
- *   mu_values     [nummu]                              MU_VALUES
- *   quad_weights  [nummu]                              QUAD_WEIGHTS
- *   reflect       [2, nummu, nstokes, nummu, nstokes]  REFLECT(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   trans         [2, nummu, nstokes, nummu, nstokes]  TRANS(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   source        [2, nummu, nstokes]                  SOURCE(NSTOKES, NUMMU, 2), output
- */
-void lambert_surface_layer(Index           mode,
-                           ConstVectorView mu_values,
-                           ConstVectorView quad_weights,
-                           Numeric         ground_albedo,
-                           Tensor5View     reflect,
-                           Tensor5View     trans,
-                           Tensor3View     source);
 
 /** LAMBERT_RADIANCE (RT3_LAMBERT_RADIANCE): the ground radiance of a
  * Lambertian ground of albedo ground_albedo, in the azimuth mode 0 only:
@@ -64,22 +44,6 @@ void lambert_radiance(Index      mode,
                       Numeric    direct_sfc_flux,
                       MatrixView radiance);
 
-/** FRESNEL_SURFACE (RT3_FRESNEL_SURFACE): the surface layer of a plane
- * ground of complex refractive index index under a medium of index 1: the
- * Fresnel reflection of each stream into itself, with ARTS's fresnel()
- * amplitudes and rtepack::fresnel_reflectance as the Mueller matrix
- * R = [[R1, R2, 0, 0], [R2, R1, 0, 0], [0, 0, R3, -R4], [0, 0, R4, R3]],
- * the identity as transmission, and no source.  It is the same in every
- * azimuth mode.
- *
- *   mu_values  [nummu]                              MU_VALUES
- *   reflect    [2, nummu, nstokes, nummu, nstokes]  REFLECT(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   trans      [2, nummu, nstokes, nummu, nstokes]  TRANS(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   source     [2, nummu, nstokes]                  SOURCE(NSTOKES, NUMMU, 2), output
- */
-void fresnel_surface_layer(
-    ConstVectorView mu_values, Complex index, Tensor5View reflect, Tensor5View trans, Tensor3View source);
-
 /** FRESNEL_RADIANCE (RT3_FRESNEL_RADIANCE): the thermal radiance of a plane
  * ground of complex refractive index index under a medium of index 1, in
  * the azimuth mode 0 only: (1 - R) B for the unpolarized B, ARTS's
@@ -95,23 +59,10 @@ void fresnel_surface_layer(
 void fresnel_radiance(
     Index mode, ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance);
 
-/** The surface layer of a ground given by its reflection back up,
- * surf_reflect: no reflection from above, surf_reflect as the reflection
- * back up, the identity as transmission, and no source.  This is RT4's
- * EXTERNAL_SURFACE; RT3 has none, but its LAMBERT_SURFACE and
- * FRESNEL_SURFACE make this layer for their own reflections.
- *
- *   surf_reflect  [nummu, nstokes, nummu, nstokes]     REFLECT(NSTOKES, NUMMU, NSTOKES, NUMMU, 2) of the ground
- *   reflect       [2, nummu, nstokes, nummu, nstokes]  REFLECT(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   trans         [2, nummu, nstokes, nummu, nstokes]  TRANS(NSTOKES, NUMMU, NSTOKES, NUMMU, 2), output
- *   source        [2, nummu, nstokes]                  SOURCE(NSTOKES, NUMMU, 2), output
- */
-void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, Tensor5View trans, Tensor3View source);
-
 /** The ground as rt3::radtran's input, for every azimuth mode.
  *
  * Both grounds of RT3 (LAMBERT_SURFACE, FRESNEL_SURFACE) make the same
- * surface layer, external_surface_layer's: only the reflection back up,
+ * surface layer, polradtran::external_surface_layer's: only the reflection back up,
  * REFLECT(..., 2), depends on the ground and the mode.  With the ground's
  * radiance (LAMBERT_RADIANCE, FRESNEL_RADIANCE), that reflection is all a
  * ground is, and rt3::radtran takes the two as data.  LAMBERT_RADIANCE also
@@ -119,7 +70,7 @@ void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, 
  * The direct flux that reaches the ground is radtran's, so that part is
  * given per unit of direct flux, as direct_reflect, and radtran scales it.
  * The ground routines are ported (LAMBERT_SURFACE and FRESNEL_SURFACE as
- * lambert_surface_layer and fresnel_surface_layer, since
+ * polradtran::lambert_surface_layer and fresnel_surface_layer, since
  * rt3::lambertian_surface and rt3::fresnel_surface are the types of
  * rt3.h), so this calls no Fortran.
  *

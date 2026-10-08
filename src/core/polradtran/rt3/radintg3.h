@@ -5,7 +5,8 @@
 #include "rt3_workdata.h"
 
 /* The subroutines of 3rdparty/polradtran/radintg3.f, ported to C++ one at a
-   time.  The reflection and transmission matrices of a slab are the
+   time; RT3_COMBINE_LAYERS and RT3_INTERNAL_RADIANCE, which RT4 shares, are
+   polradtran's (radintg.h).  The reflection and transmission matrices of a slab are the
    Fortran's (NSTOKES, NUMMU, NSTOKES, NUMMU, 2): [2, nummu, nstokes, nummu,
    nstokes], whose [l, j2, i2, j1, i1] is the column-major n x n matrix l
    (n = nstokes nummu) at row (i1, j1) and column (i2, j2), and its sources
@@ -52,60 +53,6 @@ void doubling_integration(Index         num_doubles,
                           Tensor3View   t_trans,
                           MatrixView    t_source,
                           rt3_workdata& work);
-
-/** COMBINE_LAYERS (RT3_COMBINE_LAYERS): combines the reflection and
- * transmission matrices and source vectors of two layers into those of the
- * combined layer.  The positive side (down) of the first layer is attached
- * to the negative side (up) of the second layer; thus layer 1 is put on top
- * of layer 2.
- *
- *   reflect1, trans1, reflect2, trans2  [2, n, n]  REFLECT1(N, N, 2), ..., the + and - n x n matrices
- *   source1, source2                    [2, n]     SOURCE1(N, 2), SOURCE2(N, 2)
- *   out_reflect, out_trans              [2, n, n]  OUT_REFLECT(N, N, 2), OUT_TRANS(N, N, 2), output
- *   out_source                          [2, n]     OUT_SOURCE(N, 2), output
- *
- * The outputs must not overlap the inputs.  As matpack matrices, the
- * Fortran's column-major n x n matrices hold their transposes, as for
- * doubling_integration; MINVERT is LAPACK's inv_inplace.  The scratch is
- * work's, as for doubling_integration.
- */
-void combine_layers(ConstTensor3View reflect1,
-                    ConstTensor3View trans1,
-                    ConstMatrixView  source1,
-                    ConstTensor3View reflect2,
-                    ConstTensor3View trans2,
-                    ConstMatrixView  source2,
-                    Tensor3View      out_reflect,
-                    Tensor3View      out_trans,
-                    MatrixView       out_source,
-                    rt3_workdata&    work);
-
-/** INTERNAL_RADIANCE (RT3_INTERNAL_RADIANCE): the internal radiance at a
- * level.  The reflection and transmission matrices and source vectors are
- * given for the atmosphere above (up) and below (down) the level.  The
- * upwelling and downwelling radiances are computed from the two layer
- * properties and the radiance incident on the top and bottom.
- *
- *   upreflect, uptrans, downreflect, downtrans  [2, n, n]  UPREFLECT(N, N, 2), ...
- *   upsource, downsource                        [2, n]     UPSOURCE(N, 2), DOWNSOURCE(N, 2)
- *   intoprad, inbottomrad                       [n]        INTOPRAD(N), INBOTTOMRAD(N)
- *   uprad, downrad                              [n]        UPRAD(N), DOWNRAD(N), output
- *
- * As matpack matrices, the Fortran's column-major n x n matrices hold their
- * transposes, as for doubling_integration; MINVERT is LAPACK's
- * inv_inplace.  The scratch is work's, as for doubling_integration.
- */
-void internal_radiance(ConstTensor3View upreflect,
-                       ConstTensor3View uptrans,
-                       ConstMatrixView  upsource,
-                       ConstTensor3View downreflect,
-                       ConstTensor3View downtrans,
-                       ConstMatrixView  downsource,
-                       ConstVectorView  intoprad,
-                       ConstVectorView  inbottomrad,
-                       VectorView       uprad,
-                       VectorView       downrad,
-                       rt3_workdata&    work);
 
 /** INITIALIZE (RT3_INITIALIZE): infinitesimal generator initialization of
  * the local reflection and transmission matrices of a layer of thickness

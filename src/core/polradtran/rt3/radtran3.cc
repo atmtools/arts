@@ -2,6 +2,8 @@
 
 #include <arts_constants.h>
 #include <debug.h>
+#include <radintg.h>
+#include <radutil.h>
 
 #include <algorithm>
 #include <array>

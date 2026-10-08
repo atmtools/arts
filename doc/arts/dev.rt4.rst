@@ -104,14 +104,15 @@ Provenance
     types inside ``RADTRANO``.  The ``*_SURFACE`` routines are ported as
     ``rt4::*_surface_layer`` (they make the ground as a layer for the
     adding; ``rt4::fresnel_surface`` and ``rt4::specular_surface`` are the
-    types of ``rt4.h``).  ``LAMBERT_SURFACE`` and ``LAMBERT_RADIANCE`` are
-    ``rt4::lambert_surface_layer`` and ``rt4::lambert_radiance``
+    types of ``rt4.h``); those RT3 shares are ``polradtran``'s
+    (``radutil.h``, below).  ``LAMBERT_SURFACE`` and ``LAMBERT_RADIANCE``
+    are ``polradtran::lambert_surface_layer`` and ``rt4::lambert_radiance``
     (``radutil4.h``), as is, the radiance with
     ``planck()`` in SI instead of ``PLANCK_FUNCTION`` per micrometre (and
     rejecting a negative ground temperature, where ``PLANCK_FUNCTION``
     gave 0); the reflection is bit-identical, the radiances of a Lambertian
     ground change by at most 3.3e-15 of I.  ``FRESNEL_SURFACE`` and
-    ``FRESNEL_RADIANCE`` are ``rt4::fresnel_surface_layer`` and
+    ``FRESNEL_RADIANCE`` are ``polradtran::fresnel_surface_layer`` and
     ``rt4::fresnel_radiance``, with ARTS's ``fresnel()`` amplitudes
     (``physics_funcs.h``) and ``rtepack::fresnel_reflectance``, whose
     Mueller matrix is RT4's (``R1`` and ``R2`` in the [I, Q] block, ``R3``
@@ -130,7 +131,7 @@ Provenance
     set to 0); the radiances of a specular ground change by at most 3.1e-15
     of I.  ``rt4::ground_surface`` calls no Fortran.  ``EXTERNAL_SURFACE``,
     which makes the surface layer in ``RADTRANO`` from ``SURF_REFLECT``, is
-    ``rt4::external_surface_layer``, as is (bit-identical), without the
+    ``polradtran::external_surface_layer``, as is (bit-identical), without the
     ``RADIANCE`` argument that ``EXTERNAL_SURFACE`` does not use (the
     ground's radiance goes to ``INTERNAL_RADIANCE``).  ``THERMAL_RADIANCE``,
     the sky, is ``rt4::thermal_radiance`` with ``planck()`` in SI, so
@@ -173,19 +174,20 @@ Provenance
     routine directly the difference grows from 2e-14 for 6 doublings to
     1.2e-9 for 24 (1.3e-11 on Apple arm64 with OpenBLAS), and in quad
     precision both are 1.9e-9 off.
-  * ``COMBINE_LAYERS`` is ``rt4::combine_layers`` (``radintg4.h``), in the
+  * ``COMBINE_LAYERS`` is ``polradtran::combine_layers`` (``radintg.h``), in the
     same way as ``rt4::doubling_integration``.  Against the Fortran
     routine it differs by at most 7.7e-16 (one combination does not
     amplify the rounding as repeated doublings do); the radiances of
     ``rt4.solve`` change by at most 3e-15 of I.
-  * ``INTERNAL_RADIANCE`` is ``rt4::internal_radiance`` (``radintg4.h``),
+  * ``INTERNAL_RADIANCE`` is ``polradtran::internal_radiance`` (``radintg.h``),
     in the same way: the matrix-vector products are ``DGEMV`` with
     ``beta`` absorbing the ``MADD`` after them.  Against the Fortran
     routine it differs by at most 8.4e-16; the radiances of ``rt4.solve``
     change by at most 1.3e-15 of I.  With it, the Fortran mutex of
     ``rt4::solve`` is gone.
   * All work arrays of ``rt4::radtrano`` and the routines it calls are in
-    one ``rt4::rt4_workdata`` (``src/core/polradtran/rt4/rt4_workdata.h``), grouped by
+    one ``polradtran::workdata`` (``src/core/polradtran/polradtran_workdata.h``,
+    shared with RT3), grouped by
     lifecycle: the layers' R, T and S, ``RADTRANO``'s arrays on the
     streams, ``DOUBLING_INTEGRATION``'s linear source, and the scratch that
     ``DOUBLING_INTEGRATION``, ``COMBINE_LAYERS`` and ``INTERNAL_RADIANCE``
@@ -196,6 +198,16 @@ Provenance
     nothing; ``rt4::solve`` makes one per call.  Reusing one over the 84
     cases of ``cpp.fast.rt4-radtrano-test``, of different sizes, gives the
     same bits as a fresh one per case.
+  * What RT4 and RT3 share is one C++, in the namespace ``polradtran``
+    (``src/core/polradtran``, the library ``arts_polradtran``): the
+    routines that are the same Fortran in both, line by line
+    (``COMBINE_LAYERS``, ``INTERNAL_RADIANCE``, ``LAMBERT_SURFACE`` and
+    ``FRESNEL_SURFACE``; RT3's names have the prefix ``RT3_``), with
+    ``EXTERNAL_SURFACE``, which ``rt3::radtran`` also uses, and the work
+    data, of which ``rt3::rt3_workdata`` extends RT4's.  Both
+    ``cpp.fast.rt4-radtrano-test`` and ``cpp.fast.rt3-radtran-test``
+    compare it with their own Fortran, and sharing it left every result
+    of both ports bit-identical.
 
   The Fortran ``RADTRANO`` is still built, as the reference:
   ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over

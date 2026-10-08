@@ -43,8 +43,10 @@
 // wavelength; the test converts.
 #include <arts_constants.h>
 #include <physics_funcs.h>
+#include <radintg.h>
 #include <radintg4.h>
 #include <radtran4.h>
+#include <radutil.h>
 #include <radutil4.h>
 #include <rt4.h>
 #include <rt4_c_interface.h>
@@ -240,7 +242,7 @@ rt4::surface ground_of(const inputs& in) {
 
 //! The C++ RADTRANO, with its ground made by rt4::ground_surface on the
 //! streams RADTRANO makes
-outputs run_cpp(inputs in, rt4::rt4_workdata& work) {
+outputs run_cpp(inputs in, polradtran::workdata& work) {
   Tensor3 up_rad(in.height.extent(0), in.nummu, in.nstokes, 0.0);
   Tensor3 down_rad(in.height.extent(0), in.nummu, in.nstokes, 0.0);
   // The extra angles go in on their own; all of mu_values is output
@@ -477,7 +479,7 @@ constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
 /* The routines ported as is against their Fortran.  The C++ outputs start
    as NaN, so an element a routine does not write differs. */
-/* rt4::lambert_surface_layer against LAMBERT_SURFACE, ported as is, for mode 0
+/* polradtran::lambert_surface_layer against LAMBERT_SURFACE, ported as is, for mode 0
    (RT4's) and 1 (no reflection), with zero-weight extra angles. */
 void check_lambert_surface() {
   std::mt19937_64                         gen(1995);
@@ -496,7 +498,7 @@ void check_lambert_surface() {
 
         Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
         Tensor3 src(2, nummu, nstokes, nan);
-        rt4::lambert_surface_layer(mode, mu, w, albedo, r, t, src);
+        polradtran::lambert_surface_layer(mode, mu, w, albedo, r, t, src);
 
         Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
         Tensor3 srcf(2, nummu, nstokes);
@@ -554,7 +556,7 @@ void check_lambert_radiance() {
 //! The refractive indices of the Fresnel checks: lossless to water-like
 const std::vector<Complex> fresnel_indices{{1.33, 0.0}, {1.5, 0.0}, {3.0, 0.2}, {3.1, 0.4}, {5.5, 2.9}, {7.0, 2.5}};
 
-/* rt4::fresnel_surface_layer against FRESNEL_SURFACE, for up to 4 Stokes
+/* polradtran::fresnel_surface_layer against FRESNEL_SURFACE, for up to 4 Stokes
    components (the [U, V] block too).  Not bit-identical: the amplitudes
    are ARTS's fresnel() at acos(mu) in degrees, with the transmitted cosine
    sqrt(1 - sin^2 / n^2) where RT4 has sqrt(n^2 - sin^2), and C++ complex
@@ -573,7 +575,7 @@ void check_fresnel_surface() {
 
       Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
       Tensor3 src(2, nummu, nstokes, nan);
-      rt4::fresnel_surface_layer(mu, index, r, t, src);
+      polradtran::fresnel_surface_layer(mu, index, r, t, src);
 
       Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
       Tensor3 srcf(2, nummu, nstokes);
@@ -678,7 +680,7 @@ void check_specular_radiance() {
   tally.report("specular_radiance", "SPECULAR_RADIANCE", 2e-12);
 }
 
-/* rt4::external_surface_layer against EXTERNAL_SURFACE, ported as is (its
+/* polradtran::external_surface_layer against EXTERNAL_SURFACE, ported as is (its
    unused RADIANCE argument dropped). */
 void check_external_surface() {
   std::mt19937_64                         gen(1995);
@@ -693,7 +695,7 @@ void check_external_surface() {
 
       Tensor5 r(2, nummu, nstokes, nummu, nstokes, nan), t(2, nummu, nstokes, nummu, nstokes, nan);
       Tensor3 src(2, nummu, nstokes, nan);
-      rt4::external_surface_layer(refl, r, t, src);
+      polradtran::external_surface_layer(refl, r, t, src);
 
       Tensor5 rf(2, nummu, nstokes, nummu, nstokes), tf(2, nummu, nstokes, nummu, nstokes);
       Tensor3 srcf(2, nummu, nstokes);
@@ -804,11 +806,11 @@ void check_doubling_integration() {
           rt4::initial_source(1e-6, q.mu, 1e-15, emis, 1e-2, lin.view_as(2, nummu, nstokes));
           const Numeric linfactor = 0.3 / std::pow(2.0, num_doubles);
 
-          Tensor3           rf{reflect}, tf{trans};
-          Matrix            lf{lin};
-          Tensor3           tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n), ttf(2, n, n);
-          Matrix            ts(2, n, nan), tsf(2, n);
-          rt4::rt4_workdata work(nstokes, nummu, 0);
+          Tensor3              rf{reflect}, tf{trans};
+          Matrix               lf{lin};
+          Tensor3              tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n), ttf(2, n, n);
+          Matrix               ts(2, n, nan), tsf(2, n);
+          polradtran::workdata work(nstokes, nummu, 0);
           rt4::doubling_integration(num_doubles, symmetric, reflect, trans, lin, linfactor, tr, tt, ts, work);
           rt4_doubling_integration(n,
                                    num_doubles,
@@ -877,14 +879,14 @@ slab random_slab(std::mt19937_64& gen, Index nstokes, Index nummu, Index num_dou
                   t1.view_as(2, nummu, nstokes, nummu, nstokes));
   rt4::initial_source(1e-6, q.mu, 1e-15 * (0.5 + u(gen)), emis, 1e-2, lin.view_as(2, nummu, nstokes));
 
-  slab              out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
-  rt4::rt4_workdata work(nstokes, nummu, 0);
+  slab                 out{.reflect = Tensor3(2, n, n), .trans = Tensor3(2, n, n), .source = Matrix(2, n)};
+  polradtran::workdata work(nstokes, nummu, 0);
   rt4::doubling_integration(
       num_doubles, symmetric, r1, t1, lin, 0.3 / std::pow(2.0, num_doubles), out.reflect, out.trans, out.source, work);
   return out;
 }
 
-/* rt4::combine_layers against COMBINE_LAYERS: pairs of physical slabs,
+/* polradtran::combine_layers against COMBINE_LAYERS: pairs of physical slabs,
    thin and thick, symmetric or not, and a slab on a Lambertian ground's
    surface layer.  Not as is, like doubling_integration: DGEMM's beta
    absorbs the MADD and MSUB after a product, and the inverse is LAPACK's. */
@@ -905,7 +907,7 @@ void check_combine_layers() {
               const auto q = rt4::get_quadrature(nummu, rt4::quadrature_type::double_gauss);
               Tensor5    r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
               Tensor3    src(2, nummu, nstokes);
-              rt4::lambert_surface_layer(0, q.mu, q.weights, 0.3, r, t, src);
+              polradtran::lambert_surface_layer(0, q.mu, q.weights, 0.3, r, t, src);
               bottom = {.reflect = Tensor3{r.view_as(2, n, n)},
                         .trans   = Tensor3{t.view_as(2, n, n)},
                         .source  = Matrix{src.view_as(2, n)}};
@@ -913,10 +915,10 @@ void check_combine_layers() {
               bottom = random_slab(gen, nstokes, nummu, d2, symmetric);
             }
 
-            Tensor3           r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
-            Matrix            src(2, n, nan), srcf(2, n);
-            rt4::rt4_workdata work(nstokes, nummu, 0);
-            rt4::combine_layers(
+            Tensor3              r(2, n, n, nan), t(2, n, n, nan), rf(2, n, n), tf(2, n, n);
+            Matrix               src(2, n, nan), srcf(2, n);
+            polradtran::workdata work(nstokes, nummu, 0);
+            polradtran::combine_layers(
                 top.reflect, top.trans, top.source, bottom.reflect, bottom.trans, bottom.source, r, t, src, work);
 
             // The Fortran declares no intent: give it copies
@@ -940,7 +942,7 @@ void check_combine_layers() {
   tally.report("combine_layers", "COMBINE_LAYERS", 1e-13);
 }
 
-/* rt4::internal_radiance against INTERNAL_RADIANCE: the radiances at a level
+/* polradtran::internal_radiance against INTERNAL_RADIANCE: the radiances at a level
    between physical slabs, symmetric or not, and at the top, under vacuum
    (R = 0, T = 1, S = 0, as RADTRANO has it).  Not as is, like
    combine_layers. */
@@ -967,19 +969,19 @@ void check_internal_radiance() {
             for (auto& x : top) x = 1e-17 * u(gen);
             for (auto& x : bottom) x = 1e-15 * u(gen);
 
-            Vector            up(n, nan), down(n, nan), upf(n), downf(n);
-            rt4::rt4_workdata work(nstokes, nummu, 0);
-            rt4::internal_radiance(above.reflect,
-                                   above.trans,
-                                   above.source,
-                                   below.reflect,
-                                   below.trans,
-                                   below.source,
-                                   top,
-                                   bottom,
-                                   up,
-                                   down,
-                                   work);
+            Vector               up(n, nan), down(n, nan), upf(n), downf(n);
+            polradtran::workdata work(nstokes, nummu, 0);
+            polradtran::internal_radiance(above.reflect,
+                                          above.trans,
+                                          above.source,
+                                          below.reflect,
+                                          below.trans,
+                                          below.source,
+                                          top,
+                                          bottom,
+                                          up,
+                                          down,
+                                          work);
 
             // The Fortran declares no intent: give it copies
             slab   a = above, b = below;
@@ -1177,15 +1179,15 @@ int main() try {
 
   // One work data over all cases, whose sizes differ, against a fresh one
   // per case: reuse must not change a bit
-  rt4::rt4_workdata shared;
+  polradtran::workdata shared;
   for (const auto& c : all) {
     const auto in  = make_inputs(c, gen);
     Index      nsl = 0;
     for (auto t : in.scatlayers) nsl = std::max(nsl, static_cast<Index>(t));
-    rt4::rt4_workdata fresh;
-    const auto        cpp    = run_cpp(in, fresh);
-    const auto        reused = run_cpp(in, shared);
-    const auto        f77    = run_fortran(in, nsl);
+    polradtran::workdata fresh;
+    const auto           cpp    = run_cpp(in, fresh);
+    const auto           reused = run_cpp(in, shared);
+    const auto           f77    = run_fortran(in, nsl);
     for (auto [count, rel] : {differ(cpp.up_rad, reused.up_rad),
                               differ(cpp.down_rad, reused.down_rad),
                               differ(cpp.gnd_radiance, reused.gnd_radiance),
@@ -1218,29 +1220,29 @@ int main() try {
   bool threw = false;
   try {
     auto in = make_inputs({1, 1, 0, rt4::quadrature_type::double_gauss, 'L', 401, layout::mixed, 1e-6}, gen);
-    rt4::rt4_workdata work;
+    polradtran::workdata work;
     run_cpp(in, work);
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("NUM_LAYERS = 401 > MAXLAY did not throw");
 
   std::cout << std::format(
-      "One rt4_workdata reused over all {} cases (of different sizes) against a fresh one per case: {} values "
+      "One workdata reused over all {} cases (of different sizes) against a fresh one per case: {} values "
       "differ\n",
       all.size(),
       reuse_differ);
-  if (reuse_differ > 0) throw std::runtime_error("reusing an rt4_workdata changes the results");
+  if (reuse_differ > 0) throw std::runtime_error("reusing a workdata changes the results");
 
   // The routines refuse a work data that is not sized for their streams
   {
-    bool              refused = false;
-    rt4::rt4_workdata work(2, 4, 0);  // 8 streams
-    Tensor3           r(2, 2, 2, 0.0), t(2, 2, 2, 0.0);
-    Matrix            src(2, 2, 0.0);
-    Vector            top(2, 0.0), bottom(2, 0.0), up(2), down(2);
+    bool                 refused = false;
+    polradtran::workdata work(2, 4, 0);  // 8 streams
+    Tensor3              r(2, 2, 2, 0.0), t(2, 2, 2, 0.0);
+    Matrix               src(2, 2, 0.0);
+    Vector               top(2, 0.0), bottom(2, 0.0), up(2), down(2);
     try {
-      rt4::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
+      polradtran::internal_radiance(r, t, src, r, t, src, top, bottom, up, down, work);
     } catch (const std::exception&) { refused = true; }
-    if (not refused) throw std::runtime_error("internal_radiance accepted an rt4_workdata for 8 streams with 2");
+    if (not refused) throw std::runtime_error("internal_radiance accepted a workdata for 8 streams with 2");
   }
 
   std::cout << std::format(

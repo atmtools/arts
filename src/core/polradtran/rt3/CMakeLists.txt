@@ -8,7 +8,7 @@ if(ENABLE_RT3)
   # radintg3.f (radintg3.cc).  It calls no Fortran; the Fortran library rt3
   # is the reference the tests compare the port with
   target_sources(arts_rt3 PRIVATE radtran3.cc radintg3.cc radscat3.cc rt3_fft.cc radutil3.cc)
-  target_link_libraries(arts_rt3 PRIVATE physics)
+  target_link_libraries(arts_rt3 PUBLIC arts_polradtran PRIVATE physics)
   target_compile_definitions(arts_rt3 PRIVATE ARTS_HAS_RT3=1)
   add_subdirectory(test)
 endif()

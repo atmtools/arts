@@ -10,9 +10,10 @@ namespace polradtran::rt3 {
  *
  * The method is RADTRAN's, step by step, calling the same subroutines,
  * all ported: those of radscat3.f (radscat3.h), THERMAL_RADIANCE
- * (radutil3.h), NONSCATTER_LAYER, INITIAL_SOURCE, INITIALIZE,
- * DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE (radintg3.h),
- * and the grounds of radutil3.f behind rt3::ground_surface.  It calls no
+ * (radutil3.h), NONSCATTER_LAYER, INITIAL_SOURCE, INITIALIZE and
+ * DOUBLING_INTEGRATION (radintg3.h), COMBINE_LAYERS and INTERNAL_RADIANCE,
+ * which RT4 shares (radintg.h), RT4's EXTERNAL_SURFACE (radutil.h), and
+ * the grounds of radutil3.f behind rt3::ground_surface.  It calls no
  * Fortran and keeps no state between calls.  The quadratures are ARTS's
  * (rt3::get_quadrature), the Planck function is ARTS's planck(), and
  * Evans' matrix helpers are matpack: MZERO is "= 0.0", MIDENTITY
