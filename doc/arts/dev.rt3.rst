@@ -225,8 +225,12 @@ Provenance
     (solar) source as well as the linear (thermal) one.  Its ``T_EXP``,
     the doubled solar source of a step, is held in the output ``t_source``,
     which is written only after the doubling, so the work data needs no
-    array that RT4 would not use.  Against the
-    Fortran it agrees to 7.6e-13 of the largest value; the 148 capture
+    array that RT4 would not use.  Each doubling about squares T, doubling
+    its relative error, and inverts ``1 - R R``, whose condition number
+    kappa amplifies the inverse's rounding, so n doublings amplify rounding
+    by 2^n kappa.  Against the Fortran it agrees to 0.8 epsilon times
+    2^n kappa: 7.6e-13 of the largest value on Apple arm64 with OpenBLAS,
+    1.8e-10 (20 doublings) on AMD x86_64 with MKL.  The 148 capture
     problems changed by at most 4.5e-13 of the m = 0 I (in optically thick
     layers, through the inverse).
   * ``RT3_COMBINE_LAYERS`` is ``polradtran::combine_layers``, which puts one
@@ -296,8 +300,15 @@ Provenance
 
   The Fortran ``RADTRAN`` is still built, as the reference:
   ``cpp.fast.rt3-radtran-test`` runs both on the same random inputs over
-  every branch of ``RADTRAN`` (178 cases) and requires every output to
-  agree to 1e-10 of its largest value.  It also checks
+  every branch of ``RADTRAN`` (178 cases).  Mathematically equivalent
+  evaluations (FMA contraction, vectorised libm functions, other BLAS
+  kernels) are accepted: the tolerances allow 16 epsilon times what a
+  computation amplifies rounding by.  Every output must agree to 1e-10 of
+  its largest value, for the replaced quadratures and Planck function,
+  plus 16 epsilon times 2^n for the layer doubled n times most (the largest
+  difference is 1.2e-9 on AMD x86_64 with MKL), and
+  ``polradtran::doubling_integration`` to 16 epsilon times 2^n kappa.  It
+  also checks
   ``rt3::get_quadrature`` against RT3's three quadrature routines,
   ``rt3::ground_surface`` against the Fortran grounds, and each
   ported routine against its Fortran: to rounding (1e-14 of the largest

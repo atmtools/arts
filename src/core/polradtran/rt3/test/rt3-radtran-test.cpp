@@ -3,6 +3,15 @@
 // tolerance, relative to the largest magnitude in that output.  The test
 // reports how many cases are bit-identical and the largest difference.
 //
+// Mathematically equivalent evaluations are accepted: the tolerances allow
+// a few ulp (rounding, 16 epsilon) times what a computation amplifies
+// rounding by, so that FMA contraction, vectorised libm functions and other
+// BLAS kernels pass and an error of the port does not.  n doublings
+// amplify rounding by 2^n, so the radiances and fluxes must agree to 1e-10
+// (for the replaced quadratures and Planck function) plus rounding times
+// 2^n for the layer doubled most; they differ by up to 1.2e-9 on AMD x86_64
+// with MKL.
+//
 // Each porting step is first checked bit for bit against the previous one.
 // The port was bit-identical to the Fortran until RT3's quadratures were
 // replaced by ARTS's (rt3::get_quadrature), which differ by rounding: the
@@ -17,9 +26,10 @@
 // routines, thermal_radiance against RT3's (to 2e-12: RT3's Planck
 // function loses digits at small h nu / k T), ground_surface against the
 // Fortran grounds that RADTRAN used to make itself, doubling_integration,
-// combine_layers and internal_radiance against RT3's (to 1e-10, 1e-13 and
-// 1e-13: LAPACK's inverse in place of LINPACK's, and the products of
-// BLAS), check_norm's limit, and each ported routine against its Fortran:
+// combine_layers and internal_radiance against RT3's (to rounding times
+// 2^n kappa for n doublings that each invert a 1 - R R of condition number
+// kappa, 1e-13 and 1e-13: LAPACK's inverse in place of LINPACK's, and the
+// products of BLAS), check_norm's limit, and each ported routine against its Fortran:
 // to rounding (1e-14 of the largest value; 1e-13 for scattering and
 // direct_scattering, whose Legendre sums amplify the rounding of the
 // scattering angle; 2e-12 for the ground radiances, with ARTS's Planck
@@ -40,6 +50,7 @@
 // summation cases), negative gas extinction, output levels in any order,
 // and the size limits.
 #include <arts_constants.h>
+#include <lin_alg.h>
 #include <radintg.h>
 #include <radintg3.h>
 #include <radscat3.h>
@@ -121,31 +132,61 @@ void check_quadratures() {
   if (dmu > 1e-15 or dw > 1e-11) throw std::runtime_error("the quadratures differ by more than rounding");
 }
 
+/* The rounding of a few operations, per unit of amplification.  An
+   evaluation that is mathematically the same but rounds differently (FMA
+   contraction, a vectorised libm exp, another BLAS kernel or summation
+   order, LAPACK's inverse for LINPACK's) changes a result by a few ulp
+   times what the computation amplifies rounding by. */
+constexpr Numeric rounding = 16 * std::numeric_limits<Numeric>::epsilon();
+
+//! The differ() of one output, and how much its computation amplifies
+//! rounding (1: not at all)
+struct output_difference {
+  Index   count{};
+  Numeric rel{}, amplification{1.0};
+
+  output_difference(std::pair<Index, Numeric> d, Numeric amp = 1.0)
+      : count{d.first}, rel{d.second}, amplification{amp} {}
+};
+
 //! A ported routine against its Fortran, case by case
 struct routine_tally {
   Index   ncase{}, identical{};
-  Numeric worst{};
+  Numeric worst{}, worst_per_amplification{};
+  bool    amplified{false};
 
   //! One case, from the differ() of each output
-  void add(std::initializer_list<std::pair<Index, Numeric>> outputs) {
+  void add(std::initializer_list<output_difference> outputs) {
     Index ndiffer = 0;
-    for (auto [count, rel] : outputs) {
-      ndiffer += count;
-      worst    = std::max(worst, rel);
+    for (const auto& out : outputs) {
+      ndiffer                 += out.count;
+      worst                    = std::max(worst, out.rel);
+      worst_per_amplification  = std::max(worst_per_amplification, out.rel / out.amplification);
+      amplified                = amplified or out.amplification != 1.0;
     }
     identical += ndiffer == 0;
     ncase++;
   }
 
+  //! Throws if an output differs by more than tolerance times its
+  //! amplification
   void report(std::string_view cpp, std::string_view fortran, Numeric tolerance = 1e-14) const {
-    std::cout << std::format("{} against {}: {} of {} cases bit-identical (largest relative difference {:.2e})\n",
+    std::cout << std::format("{} against {}: {} of {} cases bit-identical (largest relative difference {:.2e}{})\n",
                              cpp,
                              fortran,
                              identical,
                              ncase,
-                             worst);
-    if (worst > tolerance)
-      throw std::runtime_error(std::format("{} differs from {} by more than {:.0e}", cpp, fortran, tolerance));
+                             worst,
+                             amplified ? std::format(", {:.2e} per unit of rounding amplification against {:.2e}",
+                                                     worst_per_amplification,
+                                                     tolerance)
+                                       : std::string{});
+    if (worst_per_amplification > tolerance)
+      throw std::runtime_error(std::format("{} differs from {} by more than {:.2e}{}",
+                                           cpp,
+                                           fortran,
+                                           tolerance,
+                                           amplified ? " times the rounding amplification" : ""));
   }
 };
 
@@ -825,7 +866,7 @@ void check_scatter_symmetry() {
       Index nsign = 0;
       for (std::size_t e = 0; e < scat.size(); e++)
         nsign += std::signbit(scat.data_handle()[e]) != std::signbit(scatf.data_handle()[e]);
-      tally.add({differ(scat, scatf), {nsign, static_cast<Numeric>(nsign)}});
+      tally.add({differ(scat, scatf), std::pair{nsign, static_cast<Numeric>(nsign)}});
     }
   }
   tally.report("scatter_symmetry", "SCATTER_SYMMETRY", 0.0);
@@ -1015,7 +1056,7 @@ void check_matrix_symmetry() {
         // A zero must keep its sign as the Fortran gives it
         Index nsign = 0;
         for (Index e = 0; e < 16; e++) nsign += std::signbit(m2.data_handle()[e]) != std::signbit(m2f.data_handle()[e]);
-        tally.add({differ(m2, m2f), {nsign, static_cast<Numeric>(nsign)}});
+        tally.add({differ(m2, m2f), std::pair{nsign, static_cast<Numeric>(nsign)}});
       }
     }
   }
@@ -1284,7 +1325,7 @@ void check_combine_phase_modes() {
         Index nsign = 0;
         for (std::size_t e = 0; e < out.size(); e++)
           nsign += std::signbit(out.data_handle()[e]) != std::signbit(outf.data_handle()[e]);
-        tally.add({differ(out, outf), {nsign, static_cast<Numeric>(nsign)}});
+        tally.add({differ(out, outf), std::pair{nsign, static_cast<Numeric>(nsign)}});
       }
     }
   }
@@ -1385,11 +1426,35 @@ void check_direct_scattering() {
   tally.report("direct_scattering", "DIRECT_SCATTERING", 1e-13);
 }
 
+//! The condition number (infinity norm) of 1 - R R, the larger of plus and
+//! minus, which the doubling inverts: it amplifies the inverse's rounding
+Numeric inverse_condition(ConstTensor3View reflect) {
+  const Index n     = reflect.extent(1);
+  Numeric     kappa = 1.0;
+  for (Index h = 0; h < 2; h++) {
+    Matrix a(n, n), ainv(n, n);
+    identity(a);
+    mult(a, reflect[h], reflect[1 - h], -1.0, 1.0);
+    inv(ainv, a);
+    kappa = std::max(kappa, norm_inf(a) * norm_inf(ainv));
+  }
+  return kappa;
+}
+
 /* polradtran::doubling_integration against RT3_DOUBLING_INTEGRATION, on the thin
    starting layer of a scattering set (rt3::scattering, get_scattering,
    initialize) for 1 to 4 Stokes parameters (symmetric for 1 and 2), modes
    0 and 1, every source code and 0 to 20 doublings, with random source
-   vectors.  All outputs are compared, and the overwritten inputs. */
+   vectors.  All outputs are compared, and the overwritten inputs.  LAPACK's
+   inverse replaces LINPACK's and DGEMM's alpha and beta absorb the matrix
+   additions, so the two agree to rounding amplified by the doublings: each
+   about squares T, doubling its relative error, and inverts 1 - R R,
+   whose condition number kappa amplifies the inverse's rounding.  n
+   doublings amplify rounding by 2^n kappa.  With 0 and 1 doublings the
+   starting layer is optically thick (tau 4 and 2), R is near 1 and kappa
+   up to 1e2; with 20 it is thin and kappa 1.  The C++ and the Fortran
+   differ by up to 0.8 epsilon times 2^n kappa: 7e-15 for 1 doubling (kappa
+   99) and 1.8e-10 for 20 (AMD x86_64, MKL). */
 void check_doubling_integration() {
   std::mt19937_64                         gen(2014);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
@@ -1429,6 +1494,10 @@ void check_doubling_integration() {
           }
           const Numeric expfactor = std::exp(-extinction * delta_z / 0.6), linfactor = 0.3 * delta_z / 2000.0;
 
+          const Numeric amp = num_doubles == 0
+                                  ? 1.0
+                                  : std::pow(2.0, static_cast<Numeric>(num_doubles)) * inverse_condition(reflect);
+
           Tensor3 reflectf = reflect, transf = trans;
           Matrix  exp_sourcef = exp_source, lin_sourcef = lin_source;
           Tensor3 tr(2, n, n, nan), tt(2, n, n, nan), trf(2, n, n, 0.0), ttf(2, n, n, 0.0);
@@ -1459,18 +1528,18 @@ void check_doubling_integration() {
                                    trf.data_handle(),
                                    ttf.data_handle(),
                                    tsf.data_handle());
-          tally.add({differ(tr, trf),
-                     differ(tt, ttf),
-                     differ(ts, tsf),
-                     differ(reflect, reflectf),
-                     differ(trans, transf),
-                     differ(exp_source, exp_sourcef),
-                     differ(lin_source, lin_sourcef)});
+          tally.add({{differ(tr, trf), amp},
+                     {differ(tt, ttf), amp},
+                     {differ(ts, tsf), amp},
+                     {differ(reflect, reflectf), amp},
+                     {differ(trans, transf), amp},
+                     {differ(exp_source, exp_sourcef), amp},
+                     {differ(lin_source, lin_sourcef), amp}});
         }
       }
     }
   }
-  tally.report("doubling_integration", "RT3_DOUBLING_INTEGRATION", 1e-10);
+  tally.report("doubling_integration", "RT3_DOUBLING_INTEGRATION", rounding);
 }
 
 //! A layer as RADTRAN combines them: [2, n, n] reflection and transmission
@@ -1755,6 +1824,22 @@ inputs make_inputs(const case_spec& c, std::mt19937_64& gen) {
 //! mu_values is output.  It works in SI at the frequency, the Fortran per
 //! micrometre at the wavelength: its inputs and outputs are converted
 //! (B_nu = B_lambda[um^-1] lambda[um] / f)
+//! 2^n for the most doublings n of a scattering layer, as RADTRAN counts
+//! them (delta-M, which only lowers the extinction, aside): the
+//! amplification of rounding (see check_doubling_integration)
+Numeric doubling_amplification(const inputs& in) {
+  Numeric amp = 1.0;
+  for (std::size_t l = 0; l < in.scatlayers.size(); l++) {
+    const Index set = in.scatlayers[l];
+    if (set < 1 or in.scat_scatter[set - 1] == 0.0) continue;
+    const Numeric extinct = in.scat_extinct[set - 1] + std::max(in.gas_extinct[l], 0.0);
+    const Numeric f =
+        std::log2(std::max(extinct * std::abs(in.height[l] - in.height[l + 1]), 1e-7) / in.spec.max_delta_tau);
+    if (f > 0.0) amp = std::max(amp, std::pow(2.0, std::floor(f) + 1.0));
+  }
+  return amp;
+}
+
 outputs run_cpp(const inputs& in, rt3::rt3_workdata& work) {
   const Numeric frequency        = 1e6 * Constant::c / in.wavelength;
   const Numeric per_um_to_per_hz = in.wavelength / frequency;
@@ -2006,11 +2091,13 @@ int main() try {
   check_scattering();
   check_direct_scattering();
 
+  // ARTS's quadratures and Planck function for RT3's; to this is added the
+  // rounding amplified by the doublings
   constexpr Numeric tolerance = 1e-10;
 
   std::mt19937_64 gen(20261008);
   Index           identical = 0, failed = 0, reuse_differ = 0;
-  Numeric         worst = 0.0;
+  Numeric         worst = 0.0, worst_of_tolerance = 0.0;
   const auto      all   = cases();
   // One work data over all cases, whose sizes differ, and one with every
   // array NaN, against a fresh one per case: neither may change a bit
@@ -2027,13 +2114,15 @@ int main() try {
                           differ(again.mu_values, cpp.mu_values).first;
     }
 
-    std::string bad;
-    Index       ndiffer = 0;
-    const auto  check   = [&](const char* name, const auto& a, const auto& b) {
+    std::string   bad;
+    Index         ndiffer        = 0;
+    const Numeric case_tolerance = tolerance + rounding * doubling_amplification(in);
+    const auto    check          = [&](const char* name, const auto& a, const auto& b) {
       const auto [count, rel]  = differ(a, b);
       ndiffer                 += count;
       worst                    = std::max(worst, rel);
-      if (rel > tolerance) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
+      worst_of_tolerance       = std::max(worst_of_tolerance, rel / case_tolerance);
+      if (rel > case_tolerance) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
     };
     check("up_rad", cpp.up_rad, f77.up_rad);
     check("down_rad", cpp.down_rad, f77.down_rad);
@@ -2043,7 +2132,7 @@ int main() try {
     identical += ndiffer == 0;
     if (not bad.empty()) {
       failed++;
-      std::cout << std::format("Differs by more than {:.0e}: {}:{}\n", tolerance, describe(c), bad);
+      std::cout << std::format("Differs by more than {:.2e}: {}:{}\n", case_tolerance, describe(c), bad);
     }
   }
 
@@ -2077,12 +2166,13 @@ int main() try {
   if (not threw) throw std::runtime_error("a solar source over a Fresnel ground did not throw");
 
   std::cout << std::format(
-      "C++ against Fortran RADTRAN: {} of {} cases within {:.0e} (largest relative difference {:.2e}), {} "
-      "bit-identical\n",
+      "C++ against Fortran RADTRAN: {} of {} cases within {:.0e} plus the rounding amplified by their doublings "
+      "(largest relative difference {:.2e}, at most {:.2f} of a case's tolerance), {} bit-identical\n",
       all.size() - failed,
       all.size(),
       tolerance,
       worst,
+      worst_of_tolerance,
       identical);
   return failed == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 } catch (const std::exception& e) {
