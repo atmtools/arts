@@ -127,6 +127,14 @@ Agenda get_spectral_rad_incoming_agenda(const std::string_view option) {
       agenda.add("ray_path_observer_agendaExecute");
       agenda.add("spectral_radClearskyEmission");
       break;
+    case ClearskyRayleighScattering:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyRayleighScattering");
+      break;
+    case ClearskyRayleighScatteringOnly:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyRayleighScatteringOnly");
+      break;
   }
 
   return std::move(agenda).finalize(true);

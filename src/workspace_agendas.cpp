@@ -156,6 +156,10 @@ The intent of this agenda is to provide the spectral radiance as seen from a
 position and line of sights. The main intent is to provide the spectral radiance
 coming to the surface for surface scattering calculations.
 
+The ``ClearskyRayleighScattering`` and ``ClearskyRayleighScatteringOnly`` options
+additionally require *suns*, the scattering propmat agendas, and the background
+agendas; ``ClearskyRayleighScatteringOnly`` omits thermal emission entirely.
+
 )--",
     .output       = {"spectral_rad", "spectral_rad_jac"},
     .input        = {"freq_grid",
@@ -165,7 +169,7 @@ coming to the surface for surface scattering calculations.
                      "atm_field",
                      "surf_field",
                      "subsurf_field"},
-    .enum_options = {"Emission"},
+    .enum_options = {"Emission", "ClearskyRayleighScattering", "ClearskyRayleighScatteringOnly"},
     .enum_default = "Emission",
     };
 

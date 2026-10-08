@@ -1373,6 +1373,19 @@ The output dimensions are:
                  "jac_targets"},
   };
 
+  wsm_data["spectral_rad_srcvec_pathZero"] = {
+      .desc =
+          R"--(Zero-size the source vector along the path without LTE emission.
+
+Sets *spectral_rad_srcvec_path* to the shape implied by *spectral_propmat_jac_path*
+with J = 0 and dJ = 0.  Use this instead of *spectral_rad_srcvec_pathFromPropmat*
+in scattering-only chains where thermal emission must not enter the source vector.
+)--",
+      .author = {"Manfred Brath"},
+      .out    = {"spectral_rad_srcvec_path"},
+      .in     = {"spectral_propmat_path", "spectral_propmat_jac_path", "freq_grid_path"},
+  };
+
   wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
       .desc   = R"--(Sets the data for MT CKD 4.0 Water model
 
