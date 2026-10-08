@@ -17,7 +17,7 @@
 !
 ! The real arrays are passed through unchanged.  Their layouts are
 ! documented at the RADTRAN header in radtran3.f and in
-! src/core/rt3/rt3.h.  None of these routines is reentrant: RT3 uses
+! src/core/polradtran/rt3/rt3.h.  None of these routines is reentrant: RT3 uses
 ! COMMON blocks, SAVEd FFT tables and large static local arrays, so the
 ! caller must serialise all calls.
 module rt3_c_interface
@@ -64,7 +64,7 @@ module rt3_c_interface
     end subroutine rt3_lobatto_quadrature
 
     ! The routines RADTRAN calls, for the C++ port of RADTRAN
-    ! (src/core/rt3/radtran3.cc)
+    ! (src/core/polradtran/rt3/radtran3.cc)
     subroutine get_scat_set(deltam, nummu, nlegin, coefin, extin, scatin, &
         nlegen, coef, extinction, scatter)
       integer :: nummu, nlegin, nlegen
@@ -188,7 +188,7 @@ module rt3_c_interface
     end subroutine rt3_fresnel_radiance
 
     ! The routines SCATTERING calls, for its C++ port
-    ! (src/core/rt3/radscat3.cc)
+    ! (src/core/polradtran/rt3/radscat3.cc)
     subroutine number_sums(nstokes, nlegen, coef, dosum)
       integer :: nstokes, nlegen, dosum(6)
       real(8) :: coef(*)

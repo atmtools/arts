@@ -50,6 +50,9 @@
 #include <stdexcept>
 #include <string>
 
+namespace rt3 = polradtran::rt3;
+namespace rt4 = polradtran::rt4;
+
 namespace {
 constexpr Numeric frequency     = 89e9;
 constexpr Index   nmu           = 8;

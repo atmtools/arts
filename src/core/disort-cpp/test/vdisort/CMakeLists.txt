@@ -18,7 +18,7 @@ target_link_libraries(vdisort-fortran-test vdisort-cpp disort-cpp artstime)
 add_test(NAME "cpp.fast.vdisort-fortran-test" COMMAND vdisort-fortran-test)
 add_dependencies(check-deps vdisort-fortran-test)
 
-# VDISORT against Evans' RT4 doubling-adding solver (src/core/rt4), an external reference
+# VDISORT against Evans' RT4 doubling-adding solver (src/core/polradtran/rt4), an external reference
 if (ENABLE_RT4)
   add_executable(vdisort-rt4-test vdisort-rt4-comparison.cpp)
   target_link_libraries(vdisort-rt4-test vdisort-cpp disort-cpp arts_rt4 physics artstime)
@@ -26,7 +26,7 @@ if (ENABLE_RT4)
   add_dependencies(check-deps vdisort-rt4-test)
 endif ()
 
-# VDISORT against Evans' RT3 doubling-adding solver (src/core/rt3), an external reference
+# VDISORT against Evans' RT3 doubling-adding solver (src/core/polradtran/rt3), an external reference
 if (ENABLE_RT3)
   add_executable(vdisort-rt3-test vdisort-rt3-comparison.cpp)
   target_link_libraries(vdisort-rt3-test vdisort-cpp disort-cpp arts_rt3 physics legendre artstime)

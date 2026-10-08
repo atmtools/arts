@@ -1,4 +1,4 @@
-/* ARTS's RT4 (src/core/rt4, the library with the ARTS changes) on Evans'
+/* ARTS's RT4 (src/core/polradtran/rt4, the library with the ARTS changes) on Evans'
    two RT4 benchmark scripts, against his expected outputs.
 
    polradtran-rt4-arts <polradtran folder> <scatcnv program> <work directory>
@@ -39,6 +39,8 @@
 #include <vector>
 
 #include "evans-scripts.h"
+
+namespace rt4 = polradtran::rt4;
 
 namespace {
 namespace fs = std::filesystem;

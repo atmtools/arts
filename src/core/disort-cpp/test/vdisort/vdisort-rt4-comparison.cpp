@@ -1,4 +1,4 @@
-/* VDISORT against Evans' RT4 polarized doubling-adding solver (src/core/rt4).
+/* VDISORT against Evans' RT4 polarized doubling-adding solver (src/core/polradtran/rt4).
 
    Where the expected answer comes from.  RT4 builds layer reflection,
    transmission and source operators by doubling a thin initial layer and
@@ -60,6 +60,8 @@
 #include <vector>
 
 #include "lab-frame.h"
+
+namespace rt4 = polradtran::rt4;
 
 namespace {
 constexpr Numeric pi        = Constant::pi;

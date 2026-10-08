@@ -23,7 +23,7 @@ if(ENABLE_RT4)
   add_dependencies(check-deps rt4-evans scatcnv-evans)
 endif()
 
-# ARTS's RT4 (src/core/rt4) on Evans' RT4 scripts, with his optics (cl340d14.dda, and scatcnv's conversion)
+# ARTS's RT4 (src/core/polradtran/rt4) on Evans' RT4 scripts, with his optics (cl340d14.dda, and scatcnv's conversion)
 if(ENABLE_RT4)
   add_executable(polradtran-rt4-arts polradtran-rt4-arts.cpp)
   target_link_libraries(polradtran-rt4-arts arts_rt4)

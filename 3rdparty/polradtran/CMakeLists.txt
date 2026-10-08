@@ -63,8 +63,8 @@ set_target_properties(polradtran_radmat PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(polradtran_radmat PRIVATE ${LAPACK_LIBRARIES})
 set_source_files_properties(radmat.f PROPERTIES COMPILE_OPTIONS "${polradtran_radmat_options}")
 
-# The libraries behind src/core/rt4 and src/core/rt3, from the sources with
-# the ARTS changes listed in README.ARTS.
+# The libraries behind src/core/polradtran/rt4 and src/core/polradtran/rt3,
+# from the sources with the ARTS changes listed in README.ARTS.
 if(ENABLE_RT4)
   set(rt4_legacy_sources radtran4.f radutil4.f radintg4.f radscat4.f)
   add_library(rt4 ${polradtran_library_type} ${rt4_legacy_sources} rt4_c_interface.f90)

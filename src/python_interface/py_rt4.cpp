@@ -6,6 +6,8 @@
 
 #include "hpy_arts.h"
 
+namespace rt4 = polradtran::rt4;
+
 NB_MAKE_OPAQUE(std::vector<rt4::layer_optics>);
 
 namespace Python {

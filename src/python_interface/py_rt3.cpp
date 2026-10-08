@@ -6,6 +6,8 @@
 
 #include "hpy_arts.h"
 
+namespace rt3 = polradtran::rt3;
+
 NB_MAKE_OPAQUE(std::vector<rt3::scattering_set>);
 
 namespace Python {

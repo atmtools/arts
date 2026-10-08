@@ -6,8 +6,9 @@ ARTS 3 keeps it only as an external reference for validating other solvers,
 in particular the polarized discrete-ordinate solver VDISORT.  It solves the
 thermal-only radiative transfer equation in a plane-parallel, azimuthally
 symmetric medium, for the Stokes components [I] or [I, Q].  It has a core C++
-interface (``src/core/rt4``) and a low-level Python interface
-(``pyarts3.arts.rt4``).  It has no workspace methods, variables or agendas.
+interface, the namespace ``polradtran::rt4`` (``src/core/polradtran/rt4``;
+``rt4::`` below), and a low-level Python interface (``pyarts3.arts.rt4``).  It
+has no workspace methods, variables or agendas.
 
 Provenance
 ----------
@@ -56,7 +57,7 @@ Provenance
   by at most 2.1e-12 of I (median 1.2e-14), the most in an optically thick,
   strongly scattering layer through LAPACK's inverse.  The steps:
 
-  * ``RADTRANO`` is ``rt4::radtrano`` (``src/core/rt4/radtran4.h``).  It
+  * ``RADTRANO`` is ``rt4::radtrano`` (``src/core/polradtran/rt4/radtran4.h``).  It
     follows the Fortran step by step and calls the same subroutines.
     All of them are ported, so it calls no Fortran and keeps no state.
     It takes no counts: ``NSTOKES``, ``NUMMU``, ``NUUMMU``, ``NUM_LAYERS``
@@ -96,7 +97,7 @@ Provenance
     identity as transmission, no source); only the reflection back up,
     ``REFLECT(..., 2)``, and the ground's radiance depend on the ground, and
     ``EXTERNAL_SURFACE`` makes that layer from exactly these two.
-    ``rt4::ground_surface`` (``src/core/rt4/radutil4.h``) makes them from
+    ``rt4::ground_surface`` (``src/core/polradtran/rt4/radutil4.h``) makes them from
     an ``rt4::surface``: for the Lambertian, Fresnel and specular grounds
     with the ``*_SURFACE`` and ``*_RADIANCE`` routines, for a
     ``discrete_surface`` as given.  This is bit-identical to the ground
@@ -139,7 +140,7 @@ Provenance
     and the ground).
   * ``NONSCATTER_LAYER``, ``INITIAL_SOURCE`` and ``INITIALIZE`` are
     ``rt4::nonscatter_layer``, ``rt4::initial_source`` and
-    ``rt4::initialize`` (``src/core/rt4/radintg4.h``, where the
+    ``rt4::initialize`` (``src/core/polradtran/rt4/radintg4.h``, where the
     ``radintg4.f`` routines go as they are ported), as is, with ``= 0.0``
     for ``MZERO`` and ``Constant::two_pi`` for ``C``; they call no Fortran.
     All are bit-identical to the Fortran, except where gfortran on glibc
@@ -184,7 +185,7 @@ Provenance
     change by at most 1.3e-15 of I.  With it, the Fortran mutex of
     ``rt4::solve`` is gone.
   * All work arrays of ``rt4::radtrano`` and the routines it calls are in
-    one ``rt4::rt4_workdata`` (``src/core/rt4/rt4_workdata.h``), grouped by
+    one ``rt4::rt4_workdata`` (``src/core/polradtran/rt4/rt4_workdata.h``), grouped by
     lifecycle: the layers' R, T and S, ``RADTRANO``'s arrays on the
     streams, ``DOUBLING_INTEGRATION``'s linear source, and the scratch that
     ``DOUBLING_INTEGRATION``, ``COMBINE_LAYERS`` and ``INTERNAL_RADIANCE``
@@ -265,7 +266,7 @@ exists in both cases and raises ``RuntimeError`` the same way.
 Python test files whose names contain ``.rt4.`` are collected only with
 ``ENABLE_RT4=ON``.  There are two tests of the solver wrapper:
 
-* ``cpp.fast.rt4-test`` (``src/core/rt4/test/rt4-test.cpp``);
+* ``cpp.fast.rt4-test`` (``src/core/polradtran/rt4/test/rt4-test.cpp``);
 * ``tests/core/rt4/closed-form.rt4.py``.
 
 Every reference in both is a closed form derived in the test, never an RT4
@@ -540,7 +541,7 @@ I component of a.  It is scalar and unpolarized.
 Inputs from ARTS data
 ---------------------
 
-``src/core/rt4/rt4_arts.h`` builds RT4 inputs from ARTS scattering species,
+``src/core/polradtran/rt4/rt4_arts.h`` builds RT4 inputs from ARTS scattering species,
 atmospheric points and propagation paths.  It adds no physics: the optics
 are ARTS's bulk scattering properties in the laboratory frame
 (``ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded``),
@@ -609,7 +610,7 @@ methods (``disort_settingsOpticalThicknessFromPath``,
 
 Tests (references external to the code under test):
 
-* ``cpp.fast.rt4-arts-test`` (``src/core/rt4/test/rt4-arts-test.cpp``):
+* ``cpp.fast.rt4-arts-test`` (``src/core/polradtran/rt4/test/rt4-arts-test.cpp``):
   ARTS's Rayleigh ``GasScatterer`` through ``scattering_optics`` against
   ``sigma / (4 pi)`` times the m = 0 closed form
   (``P_II = 3/8 (3 - a - b + 3 a b)``, ``P_IQ = 3/8 (1 - 3 a)(1 - b)``,

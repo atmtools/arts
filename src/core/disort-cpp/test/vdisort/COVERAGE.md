@@ -91,7 +91,7 @@ exists.  Problem 16 will remain the sole intentionally unsupported problem.
 
 `cpp.fast.vdisort-rt4-test` (`vdisort-rt4-comparison.cpp`) is built only with
 `ENABLE_RT4=ON`.  It compares VDISORT with Evans' RT4, a polarized
-doubling-adding solver (`src/core/rt4`, `doc/arts/dev.rt4.rst`).  This is the
+doubling-adding solver (`src/core/polradtran/rt4`, `doc/arts/dev.rt4.rst`).  This is the
 external reference that the scalar ports above cannot provide.  Both solvers
 get the same discrete problem:
 
@@ -182,7 +182,7 @@ NQuad = 12 with two layers.
 `cpp.fast.vdisort-rt3-test` (`vdisort-rt3-comparison.cpp`) is built only with
 `ENABLE_RT3=ON`.  It compares VDISORT with Evans' RT3, a polarized
 doubling-adding solver with a solar beam and every Fourier azimuth mode
-(`src/core/rt3`, `doc/arts/dev.rt3.rst`).  RT3 makes its own Fourier modes of
+(`src/core/polradtran/rt3`, `doc/arts/dev.rt3.rst`).  RT3 makes its own Fourier modes of
 the phase matrix from the Legendre series of the six scattering-plane
 elements, with its own rotations, FFT and beam pseudo-source.  Both solvers
 get the same discrete problem:

@@ -8,9 +8,10 @@ and U, V paths of the polarized discrete-ordinate solver VDISORT, which RT4
 (:doc:`dev.rt4`) cannot check.  RT3 solves the plane-parallel radiative
 transfer equation with a direct (solar) beam and thermal sources, for every
 Fourier azimuth mode and the Stokes components [I], [I, Q], [I, Q, U] or
-[I, Q, U, V].  It has a core C++ interface (``src/core/rt3``) and a
-low-level Python interface (``pyarts3.arts.rt3``).  It has no workspace
-methods, variables or agendas.
+[I, Q, U, V].  It has a core C++ interface, the namespace ``polradtran::rt3``
+(``src/core/polradtran/rt3``; ``rt3::`` below), and a low-level Python
+interface (``pyarts3.arts.rt3``).  It has no workspace methods, variables or
+agendas.
 
 Provenance
 ----------
@@ -59,10 +60,10 @@ Provenance
   It still takes the RT3 lock, and is still built only with
   ``ENABLE_RT3``, which also builds the Fortran reference.  The steps:
 
-  * ``RADTRAN`` is ``rt3::radtran`` (``src/core/rt3/radtran3.h``).  It
+  * ``RADTRAN`` is ``rt3::radtran`` (``src/core/polradtran/rt3/radtran3.h``).  It
     follows the Fortran step by step and calls the same subroutines, all
     now C++.  The Fortran ones were called through entry points in
-    ``rt3_c_interface.f90``, declared in ``src/core/rt3/rt3_c_interface.h``,
+    ``rt3_c_interface.f90``, declared in ``src/core/polradtran/rt3/rt3_c_interface.h``,
     which the test still uses.
     Evans' matrix helpers are matpack (``MZERO`` is ``= 0.0``,
     ``MIDENTITY`` ``matpack::identity``, ``MCOPY`` ``=``, ``MSCALARMULT``
@@ -89,7 +90,7 @@ Provenance
     case changes by 1.7e-11 of the largest radiance: its smallest node
     moves by 3 ulp, which flips a pivot of LINPACK's ``DGEFA`` in the
     doubling, where the inverse is ill-conditioned.
-  * All of ``radscat3.f`` is C++ (``src/core/rt3/radscat3.h``, with the FFT
+  * All of ``radscat3.f`` is C++ (``src/core/polradtran/rt3/radscat3.h``, with the FFT
     in ``rt3_fft.h``); it calls no Fortran and keeps no static state.  The counts are the extents of their
     arrays, and the 4 x 4 phase matrices keep the Fortran layout (element
     (r, c) is ``[c - 1, r - 1]``), viewed ``[nstokes, nstokes]``:
@@ -144,7 +145,7 @@ Provenance
       ``SINFLAG`` table is the block structure of ``MATRIX_SYMMETRY``.
 
   * ``RT3_THERMAL_RADIANCE`` is ``rt3::thermal_radiance``
-    (``src/core/rt3/radutil3.h``, the C++ of ``radutil3.f``), with ARTS's
+    (``src/core/polradtran/rt3/radutil3.h``, the C++ of ``radutil3.f``), with ARTS's
     ``planck()`` in SI in place of RT3's ``PLANCK_FUNCTION``; it throws for
     a negative temperature, where RT3 gave 0.  ``planck()`` evaluates
     ``expm1``: against 50-digit references it is within 1.7e-15, RT3's
@@ -169,7 +170,7 @@ Provenance
     makes ``GND_RADIANCE = gnd_radiance + F direct_reflect`` with the
     solar source.  ``rt3::external_surface_layer`` makes the surface layer
     (RT4's ``EXTERNAL_SURFACE``; RT3 has none).
-    ``rt3::ground_surface`` (``src/core/rt3/radutil3.h``) makes the three
+    ``rt3::ground_surface`` (``src/core/polradtran/rt3/radutil3.h``) makes the three
     arrays from an ``rt3::surface``: the Lambertian ground reflects and
     emits in mode 0 only, emits only with the thermal source, and reflects
     the beam as ``A / pi``.  The Fresnel ground reflects the same in
@@ -202,7 +203,7 @@ Provenance
     of the m = 0 I.  With these, ``rt3::radtran`` uses nothing of
     ``radutil3.f`` (its Planck function and quadratures are ARTS's).
   * ``RT3_NONSCATTER_LAYER`` is ``rt3::nonscatter_layer``
-    (``src/core/rt3/radintg3.h``, the C++ of ``radintg3.f``): the
+    (``src/core/polradtran/rt3/radintg3.h``, the C++ of ``radintg3.f``): the
     reflection, transmission and source of a purely absorbing layer, the
     source in mode 0 only.  ``radtran`` passes it
     ``[2, nummu, nstokes, nummu, nstokes]`` and ``[2, nummu, nstokes]``
@@ -239,7 +240,7 @@ Provenance
     the largest value; the 148 capture problems changed by at most
     6.2e-16 of the m = 0 I.  With it ``rt3::radtran`` calls no Fortran.
   * Every work array of ``rt3::radtran`` and the routines it calls is in
-    ``rt3::rt3_workdata`` (``src/core/rt3/rt3_workdata.h``), as for RT4's
+    ``rt3::rt3_workdata`` (``src/core/polradtran/rt3/rt3_workdata.h``), as for RT4's
     ``rt4_workdata``: the scattering sets and the layers' optics, the
     scratch of ``SCATTERING``, ``DIRECT_SCATTERING`` and
     ``FOURIER_MATRIX`` with ``FFT1DR``'s table, the layers and the ground,
@@ -260,7 +261,7 @@ Provenance
     (the solar pseudo source or the thermal one), per angle.
   * ``FFT1DR``, Evans' real FFT with ``FFTC``, ``FIXREAL`` and
     ``MAKEPHASE``, is ``rt3::fft1dr`` in a file pair of its own
-    (``src/core/rt3/rt3_fft.h``).  It is RT3's FFT and the default.  A
+    (``src/core/polradtran/rt3/rt3_fft.h``).  It is RT3's FFT and the default.  A
     build may use FFTW instead, but only as a compile-time option: FFTW's
     license keeps it out of the default build.  The rest of RT3 uses only
     ``fft1dr``, ``fft_direction`` and ``fft_workdata``.  The header gives
@@ -337,7 +338,7 @@ Tests
 -----
 
 There are two tests, ``cpp.fast.rt3-test``
-(``src/core/rt3/test/rt3-test.cpp``) and
+(``src/core/polradtran/rt3/test/rt3-test.cpp``) and
 ``tests/core/rt3/closed-form.rt3.py``.  Every reference is either Evans' own
 benchmark output of the original program or a closed form derived in the
 test; none is an output of this build.  The C++ test covers:
@@ -642,7 +643,7 @@ exactly the row-major ``[level, m, mu, s]`` of the result, and
 Inputs from ARTS data
 ---------------------
 
-``src/core/rt3/rt3_arts.h`` builds RT3 inputs from ARTS scattering species,
+``src/core/polradtran/rt3/rt3_arts.h`` builds RT3 inputs from ARTS scattering species,
 atmospheric points and propagation paths.  RT3 takes the scattering matrix of
 totally randomly oriented particles as Legendre series, so only species with
 TRO data (``ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded``)
@@ -708,7 +709,7 @@ delta-M fraction.  The problem has thermal emission and no beam; set
 
 Tests:
 
-* ``cpp.fast.rt3-arts-test`` (``src/core/rt3/test/rt3-arts-test.cpp``):
+* ``cpp.fast.rt3-arts-test`` (``src/core/polradtran/rt3/test/rt3-arts-test.cpp``):
   ARTS's Rayleigh ``GasScatterer`` against RT3's ``rayleigh.sca`` series
   ``[[1, -1/2, 0, 0, 1, 0], [0, 0, 3/2, 0, 0, 3/2], [1/2, 1/2, 0, 0, 1/2,
   0]]`` (1.3e-15); runmietest as above; the path builder against its inputs

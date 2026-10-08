@@ -1,4 +1,4 @@
-/* VDISORT against Evans' RT3 polarized doubling-adding solver (src/core/rt3).
+/* VDISORT against Evans' RT3 polarized doubling-adding solver (src/core/polradtran/rt3).
 
    Where the expected answer comes from.  For every Fourier azimuth mode,
    RT3 builds the reflection, transmission and source operators of each
@@ -87,6 +87,8 @@
 
 #include "evans-scripts.h"
 #include "lab-frame.h"
+
+namespace rt3 = polradtran::rt3;
 
 namespace {
 constexpr Numeric pi  = Constant::pi;

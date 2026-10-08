@@ -10,13 +10,13 @@
 !
 ! The array arguments are passed through unchanged.  Their layouts are
 ! documented at the RADTRANO header in radtran4.f and in
-! src/core/rt4/rt4.h.  None of these routines is reentrant: RT4 uses
+! src/core/polradtran/rt4/rt4.h.  None of these routines is reentrant: RT4 uses
 ! COMMON blocks and large static local arrays, so the caller must
 ! serialise all calls.
 !
 ! Besides RADTRANO itself, every subroutine that RADTRANO calls has an
 ! entry point here (rt4_ and the lower-case name), for the C++ port of
-! RADTRANO in src/core/rt4/radtran4.cc.
+! RADTRANO in src/core/polradtran/rt4/radtran4.cc.
 module rt4_c_interface
   use, intrinsic :: iso_c_binding, only: c_int64_t, c_double, c_char, c_bool
   implicit none

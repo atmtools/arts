@@ -33,8 +33,8 @@ a Fortran compiler is found):
   with -frecursive (GNU) or -auto (Intel) so that MINVERT's local arrays are
   on the stack, because RT4 and RT3 serialise their calls with separate
   mutexes and may call it concurrently.
-- rt3 and rt4: the libraries behind src/core/rt3 and src/core/rt4, from the
-  modified sources and the C interfaces.
+- rt3 and rt4: the libraries behind src/core/polradtran/rt3 and
+  src/core/polradtran/rt4, from the modified sources and the C interfaces.
 - rt3-evans, rt4-evans and scatcnv-evans: Evans' original programs rt3.f,
   rt4.f and scatcnv.f, built from the unmodified sources (the *.orig files
   and radmat.f.orig) and not linked into ARTS.  They run Evans' four
@@ -83,7 +83,7 @@ ARTS3 changes to RT4 (each marked with a "c ARTS3:" comment in the source):
   COMBINE_LAYERS, INTERNAL_RADIANCE, the LAMBERT_, FRESNEL_, SPECULAR_ and
   EXTERNAL_SURFACE/_RADIANCE routines, THERMAL_RADIANCE, and MCOPY, MZERO
   and MIDENTITY of radmat.f).  ARTS's RT4 is the C++ port of RADTRANO and
-  of all these routines (src/core/rt4/radtran4.cc, radintg4.cc and
+  of all these routines (src/core/polradtran/rt4/radtran4.cc, radintg4.cc and
   radutil4.cc) and calls no Fortran.  It uses ARTS's quadratures instead
   of the three quadrature routines, ARTS's planck() in SI instead of
   PLANCK_FUNCTION, ARTS's fresnel() and rtepack for the Fresnel ground, and
@@ -132,7 +132,7 @@ ARTS3 changes to RT3 (each marked with a "c ARTS3:" comment in the source):
   value, the complex ground index as two doubles), and an entry point for
   every other subroutine that RADTRAN calls (rt3_ and the routine's name
   without its RT3_ prefix).  RADTRAN and all of them are ported to C++
-  (src/core/rt3/radtran3.cc, radscat3.cc, rt3_fft.cc for Evans' FFT,
+  (src/core/polradtran/rt3/radtran3.cc, radscat3.cc, rt3_fft.cc for Evans' FFT,
   radutil3.cc and radintg3.cc), which ARTS calls instead; ARTS calls no
   RT3 Fortran.  The Fortran routines stay in librt3 as the reference that
   cpp.fast.rt3-radtran-test compares the port with, through these entry
@@ -140,4 +140,4 @@ ARTS3 changes to RT3 (each marked with a "c ARTS3:" comment in the source):
 
 Nothing else is changed.  The remaining STOPs (array limits, the Legendre
 normalisation check, the FFT size) are checked by the C++ wrapper before
-the call; see src/core/rt3/rt3.h and doc/arts/dev.rt3.rst.
+the call; see src/core/polradtran/rt3/rt3.h and doc/arts/dev.rt3.rst.
