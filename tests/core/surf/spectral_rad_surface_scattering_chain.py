@@ -12,15 +12,28 @@ Verifies:
 4. Chaining Diffuse + DiffuseDirect adds radiance and jacobian
 5. Chaining a specular method onto a pure diffuse model leaves the diffuse
    result untouched
+6. A hand-written chain can set exclude_suns through the agenda decorator and
+   then counts the sun exactly once
 """
 
 import numpy as np
 import pyarts3 as pyarts
+from scipy import constants
 
 arts = pyarts.arts
 
+T_CMB = 2.725  # Constant::cosmic_microwave_background_temperature
+
 SUN_DISTANCE = 1.496e11
 SUN_RADIUS = 6.957e8
+
+
+def planck(f, T):
+    """Planck function [W m-2 sr-1 Hz-1]."""
+    h = constants.h
+    c = constants.c
+    k_B = constants.k
+    return (2 * h * f**3 / c**2) / (np.exp(h * f / (k_B * T)) - 1)
 
 
 def make_sun(latitude, longitude, distance=SUN_DISTANCE, radius=SUN_RADIUS):
@@ -75,6 +88,10 @@ def setup_workspace_base(freq_grid, suns=None):
 
     if suns is not None:
         ws.suns = suns
+    else:
+        # suns is a required input of the scattering methods (the sun-beam
+        # exclusion gate); empty list keeps the gate inert
+        ws.suns = []
 
     # Agendas
     set_cmb_incoming_agenda(ws)
@@ -333,6 +350,63 @@ def test_chain_specular_on_diffuse_only_model():
     print("Test 6 passed: specular methods add nothing to a diffuse-only model")
 
 
+# ============================================================================
+# Test 7: A hand-written chain can gate the sun with exclude_suns
+# ============================================================================
+def test_chain_diffuse_direct_exclude_suns():
+    """The exclude_suns gin must be reachable from user-written agendas.
+
+    With the sun inside the single up-looking quadrature direction, the chain
+    Init + Diffuse(exclude_suns=1) + DiffuseDirect counts the sun exactly once:
+    the scattered term is r*I_CMB, not 2*r*I_CMB.  The emission is still added
+    once per invoked method (the separate emission double count).
+    """
+    freq_grid = [10e9, 100e9, 183e9]
+    suns = [make_sun(0.0, 0.0)]
+    r = 0.5
+
+    def build():
+        ws = setup_workspace_base(freq_grid, suns=suns)
+        add_surface_mask(ws, "lambertian")
+        ws.surface_models = lambertian_models(freq_grid, r)
+        return ws
+
+    ws = build()
+
+    @pyarts.workspace.arts_agenda(ws=ws, fix=True)
+    def spectral_rad_surface_agenda(ws):
+        ws.spectral_radSurfaceScatteringInit()
+        ws.spectral_radSurfaceScatteringDiffuse(exclude_suns=1)
+        ws.spectral_radSurfaceScatteringDiffuseDirect()
+
+    ws.spectral_rad_surface_agendaExecute()
+    rad_gated = stokes_array(ws, len(freq_grid))
+
+    ws = build()
+
+    @pyarts.workspace.arts_agenda(ws=ws, fix=True)
+    def spectral_rad_surface_agenda(ws):
+        ws.spectral_radSurfaceScatteringInit()
+        ws.spectral_radSurfaceScatteringDiffuse()
+        ws.spectral_radSurfaceScatteringDiffuseDirect()
+
+    ws.spectral_rad_surface_agendaExecute()
+    rad_ungated = stokes_array(ws, len(freq_grid))
+
+    emission = 2.0 * (1.0 - r) * np.array([planck(f, 280.0) for f in freq_grid])
+    expected_gated = r * np.array([planck(f, T_CMB) for f in freq_grid]) + emission
+    expected_ungated = 2.0 * r * np.array([planck(f, T_CMB) for f in freq_grid]) + emission
+
+    assert np.allclose(rad_gated[:, 0], expected_gated, rtol=1e-7, atol=0.0), (
+        f"Gated chain must count the sun once:\n  gated    = {rad_gated[:, 0]}\n  expected = {expected_gated}"
+    )
+    assert np.allclose(rad_ungated[:, 0], expected_ungated, rtol=1e-7, atol=0.0), (
+        f"Ungated chain must keep the default double count:\n  ungated  = {rad_ungated[:, 0]}\n  expected = {expected_ungated}"
+    )
+
+    print("Test 7 passed: hand-written chain with exclude_suns=1 counts the sun once")
+
+
 if __name__ == "__main__":
     test_init_sizes_and_zeroes()
     test_methods_require_init()
@@ -340,3 +414,4 @@ if __name__ == "__main__":
     test_chain_diffuse_plus_specular_jacobian()
     test_chain_diffuse_plus_diffuse_direct()
     test_chain_specular_on_diffuse_only_model()
+    test_chain_diffuse_direct_exclude_suns()

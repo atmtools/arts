@@ -169,8 +169,8 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
     case SurfaceReflectance: agenda.add("spectral_radSurfaceReflectance"); break;
     case SurfaceScatteringModel:
       agenda.add("spectral_radSurfaceScatteringInit");
-      agenda.add("spectral_radSurfaceScatteringDiffuse");
-      agenda.add("spectral_radSurfaceScatteringSpecular");
+      agenda.add("spectral_radSurfaceScatteringDiffuse", SetWsv("exclude_suns", Index{1}));
+      agenda.add("spectral_radSurfaceScatteringSpecular", SetWsv("exclude_suns", Index{1}));
       agenda.add("spectral_radSurfaceScatteringDiffuseDirect");
       agenda.add("spectral_radSurfaceScatteringSpecularDirect");
       break;

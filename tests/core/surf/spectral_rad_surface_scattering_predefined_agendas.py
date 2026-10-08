@@ -10,7 +10,8 @@ Verifies:
 1. Each option builds with the exact expected method chain
 2. Each option executes in a workspace with a blended model, a sun, and a quadrature point
 3. radiance(DiffuseOnly) + radiance(DirectOnly) == radiance(SurfaceScatteringModel),
-   and the same for spectral_rad_jac
+   and the same for spectral_rad_jac -- with the sun placed outside every traced
+   direction, because the full option gates sun-containing directions (exclude_suns)
 4. With no suns the DirectOnly option returns only surface emission
 """
 
@@ -72,8 +73,10 @@ def test_options_build():
 
     for option, expected in EXPECTED_CHAINS.items():
         ws = build_workspace(freq_grid, option, suns=[make_sun(0.0, 0.0)])
-        # finalize() inserts anonymous set-methods (_angle_cut, _refinement) for gin defaults
-        names = [m.name for m in ws.spectral_rad_surface_agenda.methods if not m.name.startswith("_")]
+        # finalize() inserts anonymous set-methods (_angle_cut, _refinement) for gin
+        # defaults, and the agenda creator presets gins via @-prefixed named inputs
+        # (@exclude_suns); neither is part of the method chain proper
+        names = [m.name for m in ws.spectral_rad_surface_agenda.methods if not m.name.startswith(("_", "@"))]
         assert names == expected, f"{option}: wrong method chain:\n  got      = {names}\n  expected = {expected}"
 
     print("Test 1 passed: all three options build with the expected method chains")
@@ -101,8 +104,17 @@ def test_options_execute():
 # Test 3: DiffuseOnly + DirectOnly == SurfaceScatteringModel
 # ============================================================================
 def test_options_sum_identity():
+    """The full option must equal the sum of the two half options.
+
+    The sun is placed at 45 deg, outside every traced direction (the single
+    up-looking quadrature point and the zenith mirror/glint direction).  With
+    the sun at zenith the full option runs the non-Direct methods with
+    exclude_suns = 1 and drops those directions, so the identity would no
+    longer hold -- that difference *is* the sun de-duplication, pinned by
+    tests/core/surf/spectral_rad_surface_scattering_sun_double_count.py.
+    """
     freq_grid = [10e9, 100e9, 183e9]
-    suns = [make_sun(0.0, 0.0)]
+    suns = [make_sun(45.0, 0.0)]
 
     rad_full, jac_full = run_option(freq_grid, "SurfaceScatteringModel", suns, with_jac=True)
     rad_diffuse, jac_diffuse = run_option(freq_grid, "SurfaceScatteringModelDiffuseOnly", suns, with_jac=True)

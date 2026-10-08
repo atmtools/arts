@@ -262,12 +262,14 @@ void spectral_radSurfaceScatteringDiffuse(
     const MapOfSurfaceScatteringModel& surface_models,
     const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_point,
+    const ArrayOfSun& suns,
     const ZenGrid& zen_grid,
     const AziGrid& az_grid,
     const Vector&  zen_grid_weights,
     const Vector&   az_grid_weights,
     const Agenda& spectral_rad_incoming_agenda,
-    const Agenda& spectral_rad_closed_surface_agenda) try {
+    const Agenda& spectral_rad_closed_surface_agenda,
+    const Index& exclude_suns) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
@@ -325,6 +327,24 @@ void spectral_radSurfaceScatteringDiffuse(
 
       const auto [_, ecef_los_in] = geodetic_los2ecef(ray_point.pos, los_incoming, surf_field.ellipsoid);
       if (dot(ecef_los_in, ecef_normal) >= 0.0) continue;  // Below the tilted horizon: zero contribution
+
+      // A quadrature direction that contains a sun carries the solar beam, which
+      // the *spectral_radSurfaceScattering*Direct methods add separately as a
+      // delta beam.  Counting it here as well double counts the sun and smears the
+      // disc over the whole cell, so drop the direction when the caller declares
+      // that the beams are handled elsewhere (the ARTS 2 iySurfaceLambertian
+      // suns_do gate).  The entry stays zero, so the accumulation loops are
+      // untouched; the trace is skipped, so this is also cheaper.
+      if (exclude_suns) {
+        bool sun_in_los = false;
+        for (const auto& sun : suns) {
+          if (hit_sun(sun, ray_point.pos, los_incoming, surf_field.ellipsoid).second) {
+            sun_in_los = true;
+            break;
+          }
+        }
+        if (sun_in_los) continue;
+      }
 
       StokvecVector spectral_rad_incoming_temp;
       StokvecMatrix spectral_rad_incoming_jac_temp;
@@ -410,8 +430,10 @@ void spectral_radSurfaceScatteringSpecular(
     const MapOfSurfaceScatteringModel& surface_models,
     const JacobianTargets& jac_targets,
     const PropagationPathPoint& ray_point,
+    const ArrayOfSun& suns,
     const Agenda& spectral_rad_incoming_agenda,
-    const Agenda& spectral_rad_closed_surface_agenda) try {
+    const Agenda& spectral_rad_closed_surface_agenda,
+    const Index& exclude_suns) try {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
@@ -428,6 +450,20 @@ void spectral_radSurfaceScatteringSpecular(
   // Incoming direction is the mirror reflection of the outgoing direction
   // about the local surface normal (see spectral_radSurfaceReflectance)
   const Vector2 los_in = specular_losNormal(surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
+
+  // Sun-beam exclusion, the same geometric disc test as the first gate of
+  // spectral_radSurfaceScatteringSpecularDirect.  When the caller chains that
+  // method, the sun in the mirror direction is added there as a delta beam;
+  // tracing it here as well counts it twice.  The emission term is unaffected.
+  bool sun_in_mirror = false;
+  if (exclude_suns) {
+    for (const auto& sun : suns) {
+      if (hit_sun(sun, ray_point.pos, los_in, surf_field.ellipsoid).second) {
+        sun_in_mirror = true;
+        break;
+      }
+    }
+  }
 
   // get the emissivity vector and BRDF matrix at the exact (single)
   // incident and outgoing directions
@@ -460,20 +496,27 @@ void spectral_radSurfaceScatteringSpecular(
                                      subsurf_field,
                                      spectral_rad_closed_surface_agenda);
 
-  // get the incoming radiation from the single specular direction
-  StokvecVector spectral_rad_incoming;
-  StokvecMatrix spectral_rad_incoming_jac;
-  spectral_rad_incoming_agendaExecute(ws,
-                                      spectral_rad_incoming,
-                                      spectral_rad_incoming_jac,
-                                      freq_grid,
-                                      jac_targets,
-                                      ray_point.pos,
-                                      los_in,
-                                      atm_field,
-                                      surf_field,
-                                      subsurf_field,
-                                      spectral_rad_incoming_agenda);
+  // get the incoming radiation from the single specular direction, unless the
+  // direction is gated off by the sun-beam exclusion; the zero pair then keeps
+  // the reflected term zero without touching the accumulation loops
+  StokvecVector spectral_rad_incoming(nf);
+  spectral_rad_incoming = 0.0;
+  StokvecMatrix spectral_rad_incoming_jac(nq, nf);
+  spectral_rad_incoming_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  if (not sun_in_mirror) {
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        los_in,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+  }
 
   // Calculate reflected radiation (no angular integration: single direction)
   StokvecVector spectral_rad_reflected(nf);
