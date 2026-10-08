@@ -47,6 +47,223 @@ Provenance
     limit, growing to -2e-4 and -3e-4 at 3 um and 300 and 200 K.
   * A new ``rt3_c_interface.f90`` with ``ISO_C_BINDING`` entry points.
 
+* **Port to C++.** RT3 is ported to C++ one routine at a time, as RT4 was
+  (:doc:`dev.rt4`), on matpack and rtepack types with the method unchanged,
+  sharing no code with the RT4 port while it lasts (so that every step
+  compares with RT3's own Fortran).  The port is not bitwise: the C++ is
+  written in its natural order and the compiler may contract multiply-adds
+  into FMAs, so results differ from the Fortran by rounding.  Every routine
+  that ``RADTRAN`` calls is ported, and ``rt3::solve`` calls no Fortran;
+  over the whole port, the 148 capture problems changed by at most 4.7e-13
+  of the m = 0 I (in optically thick layers, through LAPACK's inverse).
+  It still takes the RT3 lock, and is still built only with
+  ``ENABLE_RT3``, which also builds the Fortran reference.  The steps:
+
+  * ``RADTRAN`` is ``rt3::radtran`` (``src/core/rt3/radtran3.h``).  It
+    follows the Fortran step by step and calls the same subroutines, all
+    now C++.  The Fortran ones were called through entry points in
+    ``rt3_c_interface.f90``, declared in ``src/core/rt3/rt3_c_interface.h``,
+    which the test still uses.
+    Evans' matrix helpers are matpack (``MZERO`` is ``= 0.0``,
+    ``MIDENTITY`` ``matpack::identity``, ``MCOPY`` ``=``, ``MSCALARMULT``
+    ``*=``).  It takes no counts (``NSTOKES``, ``NUMMU``, ``AZIORDER``,
+    ``NUM_LAYERS``, ``NSL``, ``LDCOEF`` and ``NOUTLEVELS`` are the extents
+    of its arrays), the extra angles as an input of their own instead of
+    ``QUAD_TYPE 'E'`` and non-zero ``MU_VALUES``, the ground as data (see
+    below), and ``rt3::quadrature_type``.  Its work arrays are sized to the problem,
+    including the 210 MB static scattering-matrix buffer; its ``STOP``
+    checks throw.  It does not print RADTRAN's message when it truncates a
+    Legendre series (``rt3::solve`` rejects a truncation that drops a
+    non-zero coefficient).
+  * The quadratures are ARTS's: ``rt3::get_quadrature`` (used by
+    ``rt3::radtran`` and ``rt3::solve``) is the positive half of
+    ``scattering::DoubleGaussQuadrature``, ``GaussLegendreQuadrature`` or
+    ``LobattoQuadrature`` of degree ``2 nmu``.  They are RT3's rules.
+    Against 50-digit references for nmu up to 64, RT3's Gauss and
+    double-Gauss weights are off by up to 2.3e-12 relative and ARTS's by
+    3e-16; the Lobatto rules are equally accurate (4.5e-14).  The radiances
+    of the 148 capture problems changed by at most 4.3e-14 of the m = 0 I
+    at the same level and stream (median 2.7e-15).  In
+    ``cpp.fast.rt3-radtran-test`` one optically thick, strongly scattering
+    case changes by 1.7e-11 of the largest radiance: its smallest node
+    moves by 3 ulp, which flips a pivot of LINPACK's ``DGEFA`` in the
+    doubling, where the inverse is ill-conditioned.
+  * All of ``radscat3.f`` is C++ (``src/core/rt3/radscat3.h``, with the FFT
+    in ``rt3_fft.h``); it calls no Fortran and keeps no static state.  The counts are the extents of their
+    arrays, and the 4 x 4 phase matrices keep the Fortran layout (element
+    (r, c) is ``[c - 1, r - 1]``), viewed ``[nstokes, nstokes]``:
+
+    * ``rt3::get_scat_set`` (``GET_SCAT_SET``) throws where the delta-M
+      scaling divides by zero (an extinction that is not positive,
+      ``1 - f = 0`` or ``1 - albedo f = 0``), where the Fortran returned NaN
+      or infinity.
+    * ``rt3::scattering`` (``SCATTERING``) writes the part of ``SCATBUF`` of
+      one set, a ``[aziorder + 1, 2, nummu, nummu, nstokes, nstokes]``
+      tensor, each mode straight into it.  It throws where the Fortran
+      would stop or overflow (``FFT1DR`` takes at most 512 azimuths, the
+      Fortran ``FOURIER_MATRIX`` 1024; the port has no such buffers, but
+      keeps the limit as RT3's).
+    * ``rt3::direct_scattering`` (``DIRECT_SCATTERING``) writes the part of
+      ``DIRECTBUF`` of one set, ``[aziorder + 1, 2, nummu, nstokes]``: the
+      first column of each mode of the phase matrix from the sun's
+      direction (the cosine modes of I and Q, the sine modes of U and V).
+      It keeps the Fortran's limit of 512 azimuths and modes.
+    * ``rt3::get_scattering`` (``GET_SCATTERING``) copies one mode of a
+      set's ``SCATBUF`` part into ``SCATTER_MATRIX``
+      (``[4, nummu, nstokes, nummu, nstokes]``), and
+      ``rt3::scatter_symmetry`` (``SCATTER_SYMMETRY``) makes P-- and P-+
+      from it, copying the diagonal 2 x 2 Stokes blocks and negating the
+      others.
+    * ``rt3::get_direct`` (``GET_DIRECT``) copies one mode of a set's
+      ``DIRECTBUF`` part, ``[2, nummu, nstokes]``.
+    * ``rt3::check_norm`` (``RT3_CHECK_NORM``) throws where the Fortran
+      stopped (the I-I term not integrating to 1 within 1e-7), and also for
+      NaN, which the Fortran let pass.
+    * ``rt3::number_sums`` (``NUMBER_SUMS``) returns ``DOSUM``.
+    * ``rt3::sum_legendre`` (``SUM_LEGENDRE``) sums with RT3's own
+      recurrence.
+    * ``rt3::rotate_phase_matrix`` (``ROTATE_PHASE_MATRIX``).
+    * ``rt3::matrix_symmetry`` (``MATRIX_SYMMETRY``) copies and negates
+      2 x 2 blocks, also in place, as ``SCATTERING`` calls it at
+      delphi = pi.
+    * ``rt3::fourier_matrix`` and ``rt3::fourier_basis`` (``FOURIER_MATRIX``,
+      ``FOURIER_BASIS``, with ``rt3::fourier_direction`` in place of the
+      sign of ``DIRECTION``); the basis order is passed, as the basis has
+      ``order + 1`` or ``2 order + 1`` elements.
+    * ``rt3::combine_phase_modes`` (``COMBINE_PHASE_MODES``): its
+      ``SINFLAG`` table is the block structure of ``MATRIX_SYMMETRY``.
+
+  * ``RT3_THERMAL_RADIANCE`` is ``rt3::thermal_radiance``
+    (``src/core/rt3/radutil3.h``, the C++ of ``radutil3.f``), with ARTS's
+    ``planck()`` in SI in place of RT3's ``PLANCK_FUNCTION``; it throws for
+    a negative temperature, where RT3 gave 0.  ``planck()`` evaluates
+    ``expm1``: against 50-digit references it is within 1.7e-15, RT3's
+    ``exp(x) - 1`` within 2.8e-13 (at small h nu / k T).  With it
+    ``rt3::radtran`` works in SI (W m-2 Hz-1 sr-1) at the frequency, and
+    ``rt3::solve`` no longer converts (the Fortran ground radiances, per
+    micrometre, were converted until they were ported).  The 148 capture
+    problems changed by at most 7.4e-15 of the m = 0 I.
+  * The ground is an input of ``rt3::radtran``, as RT4's is of
+    ``rt4::radtrano``, in place of ``GROUND_TEMP``, ``GROUND_TYPE``,
+    ``GROUND_ALBEDO`` and ``GROUND_INDEX``.  Both grounds of RT3 make the
+    same surface layer (no reflection from above, the identity as
+    transmission, no source); only the reflection back up depends on the
+    ground and the azimuth mode.  ``radtran`` takes, for every mode,
+    that reflection (``surf_reflect``,
+    ``[aziorder + 1, nummu, nstokes, nummu, nstokes]``), the ground's own
+    radiance (``gnd_radiance``, ``[aziorder + 1, nummu, nstokes]``) and,
+    unlike RT4, which has no beam, the radiance reflected from the direct
+    beam per unit of direct flux (``direct_reflect``, sr-1, same shape).
+    The direct flux that reaches the ground is computed inside
+    ``radtran``, so the ground cannot add that part itself: ``radtran``
+    makes ``GND_RADIANCE = gnd_radiance + F direct_reflect`` with the
+    solar source.  ``rt3::external_surface_layer`` makes the surface layer
+    (RT4's ``EXTERNAL_SURFACE``; RT3 has none).
+    ``rt3::ground_surface`` (``src/core/rt3/radutil3.h``) makes the three
+    arrays from an ``rt3::surface``: the Lambertian ground reflects and
+    emits in mode 0 only, emits only with the thermal source, and reflects
+    the beam as ``A / pi``.  The Fresnel ground reflects the same in
+    every mode, always emits (in mode 0, as in RT3), and throws with the
+    solar source, because RT3 cannot reflect the beam specularly.  It
+    calls no Fortran (the ground routines are ported, below), and
+    ``rt3::solve`` calls it outside the RT3 lock.  Making the ground an
+    input changed the 148 capture problems by at most 4.3e-16 of the
+    m = 0 I (the beam's reflection is added in SI).
+  * ``RT3_LAMBERT_SURFACE`` is ``rt3::lambert_surface_layer`` (named, as
+    in the RT4 port, for the layer it makes, since
+    ``rt3::lambertian_surface`` is the ground's type): ``2 A mu_j w_j``
+    from stream j into every stream, I to I only, in mode 0, as joker
+    slices of a ``[2, nummu, nstokes, nummu, nstokes]`` view.
+    Bit-identical.
+  * ``RT3_LAMBERT_RADIANCE`` is ``rt3::lambert_radiance``, in SI with
+    ARTS's ``planck()``: in mode 0 the emission ``(1 - A) B`` with the
+    thermal source and the reflected beam ``F A / pi`` with the solar
+    source.  It throws for a negative temperature where it uses it (RT3
+    gave 0).  Against the Fortran it differs as the Planck functions do
+    (2.8e-13); the capture changed by at most 3.3e-15 of the m = 0 I.
+  * ``RT3_FRESNEL_SURFACE`` and ``RT3_FRESNEL_RADIANCE`` are
+    ``rt3::fresnel_surface_layer`` and ``rt3::fresnel_radiance``, as in
+    the RT4 port: ARTS's ``fresnel()`` amplitudes at ``acos(mu)`` and
+    ``rtepack::fresnel_reflectance`` for the Mueller matrix (RT3's
+    ``R``, with ``R(U, V) = -R4`` and ``R(V, U) = R4``), and the emission
+    ``(1 - R) B`` with ``planck()``.  The layer agrees with the Fortran to
+    1.4e-15 of its largest value, the radiance as the Planck functions do
+    (6.1e-13 at 1 GHz and 150 K); the capture changed by at most 3.2e-15
+    of the m = 0 I.  With these, ``rt3::radtran`` uses nothing of
+    ``radutil3.f`` (its Planck function and quadratures are ARTS's).
+  * ``RT3_NONSCATTER_LAYER`` is ``rt3::nonscatter_layer``
+    (``src/core/rt3/radintg3.h``, the C++ of ``radintg3.f``): the
+    reflection, transmission and source of a purely absorbing layer, the
+    source in mode 0 only.  ``radtran`` passes it
+    ``[2, nummu, nstokes, nummu, nstokes]`` and ``[2, nummu, nstokes]``
+    views of its layer arrays.
+  * ``RT3_INITIALIZE`` is ``rt3::initialize``: the thin starting layer's
+    reflection and transmission from the phase function, extinction and
+    albedo, as row slices of ``[2, nummu, nstokes, nummu, nstokes]`` views.
+    The diagonal of the transmission is kept in the Fortran's form,
+    ``1 - f (1 - albedo P)`` rounded once: the layer's extinction ``f`` is
+    as small as ``max_delta_tau`` (1e-6), so the diagonal's last bit is a
+    relative 1e-10 of it, which the doubling carries to the radiances
+    (computed as ``(1 - f) + f albedo P``, rounded twice, some
+    ``cpp.fast.rt3-radtran-test`` cases moved by up to 9e-10).
+  * ``RT3_DOUBLING_INTEGRATION`` is ``rt3::doubling_integration``, written
+    as RT4's (:doc:`dev.rt4`) but RT3's own: the products are BLAS
+    ``mult`` (DGEMM, and DGEMV for the source vectors) whose alpha and beta
+    absorb the ``MIDENTITY``, ``MSUB`` and ``MADD`` around them, and
+    ``MINVERT`` is LAPACK's ``inv_inplace``; it doubles RT3's exponential
+    (solar) source as well as the linear (thermal) one.  Against the
+    Fortran it agrees to 7.6e-13 of the largest value; the 148 capture
+    problems changed by at most 4.5e-13 of the m = 0 I (in optically thick
+    layers, through the inverse).
+  * ``RT3_COMBINE_LAYERS`` is ``rt3::combine_layers``, which puts one
+    layer on top of another in the adding, written as
+    ``rt3::doubling_integration`` (BLAS ``mult`` with alpha and beta,
+    LAPACK's ``inv_inplace``) and RT3's own copy of what RT4's port has.
+    On the layers ``RADTRAN`` combines (thin and thick scattering layers,
+    gas, the Lambertian and Fresnel grounds) it agrees with the Fortran to
+    6.8e-16 of the largest value; the 148 capture problems changed by at
+    most 2.9e-15 of the m = 0 I.
+  * ``RT3_INTERNAL_RADIANCE`` is ``rt3::internal_radiance``, the
+    radiances at a level from the atmosphere above and below it, written
+    as ``rt3::combine_layers``.  It agrees with the Fortran to 3.5e-16 of
+    the largest value; the 148 capture problems changed by at most
+    6.2e-16 of the m = 0 I.  With it ``rt3::radtran`` calls no Fortran.
+  * ``RT3_INITIAL_SOURCE`` is ``rt3::initial_source``: the thin starting
+    layer's source, delta_z / mu times the extinction times a source vector
+    (the solar pseudo source or the thermal one), per angle.
+  * ``FFT1DR``, Evans' real FFT with ``FFTC``, ``FIXREAL`` and
+    ``MAKEPHASE``, is ``rt3::fft1dr`` in a file pair of its own
+    (``src/core/rt3/rt3_fft.h``).  It is RT3's FFT and the default.  A
+    build may use FFTW instead, but only as a compile-time option: FFTW's
+    license keeps it out of the default build.  The rest of RT3 uses only
+    ``fft1dr``, ``fft_direction`` and ``fft_workdata``.  The header gives
+    the packed format and scaling that an FFTW ``fft1dr`` must also give
+    (FFTW's r2c followed by a complex conjugate, and a conjugate followed
+    by c2r), and ``cpp.fast.rt3-radtran-test`` checks it against direct
+    sums.  ``FFT1DR``'s SAVEd phase table is ``fft_workdata``, which the
+    caller owns and passes down (``radtran`` keeps one per call; FFTW would
+    keep its plans there).  Its limit of 512 values is kept (``FFT1DR``'s
+    ``STOP`` throws).  ``MAKEPHASE``'s table fits in ``4 nmax`` values only
+    for ``nmax`` a power of two, as ``FFT1DR`` uses it; for another
+    ``nmax`` the Fortran writes past it, so ``rt3::makephase`` throws.
+
+  The Fortran ``RADTRAN`` is still built, as the reference:
+  ``cpp.fast.rt3-radtran-test`` runs both on the same random inputs over
+  every branch of ``RADTRAN`` (178 cases) and requires every output to
+  agree to 1e-10 of its largest value.  It also checks
+  ``rt3::get_quadrature`` against RT3's three quadrature routines,
+  ``rt3::ground_surface`` against the Fortran grounds, and each
+  ported routine against its Fortran: to rounding (1e-14 of the largest
+  value; 1e-13 for ``rt3::scattering`` and ``rt3::direct_scattering``,
+  whose Legendre sums amplify the rounding of the scattering angle), or
+  exactly for the integer and copying ones (``number_sums``,
+  ``matrix_symmetry``, ``get_scattering``, ``scatter_symmetry``,
+  ``get_direct``), and reports how many cases are
+  bit-identical.  Each step is also measured against the step before.
+  Since the FFT and the natural order of operations, the 148 capture
+  problems differ from the all-Fortran ``SCATTERING`` by at most 5.4e-16 of
+  the m = 0 I.
+
   ``rt3.f``, the original main program, is built with the ``.orig`` files
   as the program ``rt3-evans``.  ``cpp.fast.polradtran-runmietest`` and
   ``cpp.fast.polradtran-runtesta`` run Evans' two RT3 scripts with it as
@@ -84,8 +301,8 @@ RT3 has about 230 MB of static arrays (the scattering-matrix buffer
 pages are only touched as far as a problem needs them.
 
 The C++ wrapper ``arts_rt3`` is always built.  When RT3 is disabled,
-``rt3::available()`` returns false and ``rt3::get_quadrature()`` and
-``rt3::solve()`` throw.  The Python module exists in both cases and raises
+``rt3::available()`` returns false and ``rt3::solve()`` throws
+(``rt3::get_quadrature()`` needs no Fortran).  The Python module exists in both cases and raises
 ``RuntimeError`` the same way.  Python test files whose names contain
 ``.rt3.`` are collected only with ``ENABLE_RT3=ON``.
 

@@ -129,7 +129,14 @@ ARTS3 changes to RT3 (each marked with a "c ARTS3:" comment in the source):
   and 300-200 K this raises B by 2.1e-4 to 3.4e-4 relative.
 - rt3_c_interface.f90 (new): rt3_radtran and the three quadratures with
   explicit C types (int64_t scalars and index arrays, one-character flags by
-  value, the complex ground index as two doubles).
+  value, the complex ground index as two doubles), and an entry point for
+  every other subroutine that RADTRAN calls (rt3_ and the routine's name
+  without its RT3_ prefix).  RADTRAN and all of them are ported to C++
+  (src/core/rt3/radtran3.cc, radscat3.cc, rt3_fft.cc for Evans' FFT,
+  radutil3.cc and radintg3.cc), which ARTS calls instead; ARTS calls no
+  RT3 Fortran.  The Fortran routines stay in librt3 as the reference that
+  cpp.fast.rt3-radtran-test compares the port with, through these entry
+  points.
 
 Nothing else is changed.  The remaining STOPs (array limits, the Legendre
 normalisation check, the FFT size) are checked by the C++ wrapper before

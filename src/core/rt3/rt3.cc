@@ -2,63 +2,24 @@
 
 #include <arts_constants.h>
 #include <debug.h>
+#include <integration.h>
 
 #include <algorithm>
 #include <cmath>
-#include <cstdint>
 #include <mutex>
-#include <type_traits>
 
 #ifdef ARTS_HAS_RT3
-// ISO_C_BINDING entry points of 3rdparty/polradtran/rt3_c_interface.f90.
-// The arrays are Fortran column-major; see the layouts in solve().
-extern "C" {
-void rt3_radtran(std::int64_t        nstokes,
-                 std::int64_t        nummu,
-                 std::int64_t        aziorder,
-                 double              max_delta_tau,
-                 std::int64_t        src_code,
-                 char                quad_type,
-                 char                deltam,
-                 double              direct_flux,
-                 double              direct_mu,
-                 double              ground_temp,
-                 char                ground_type,
-                 double              ground_albedo,
-                 double              ground_index_re,
-                 double              ground_index_im,
-                 double              sky_temp,
-                 double              wavelength,
-                 std::int64_t        num_layers,
-                 double*             height,
-                 double*             temperatures,
-                 double*             gas_extinct,
-                 std::int64_t        nsl,
-                 double*             scat_extinct,
-                 double*             scat_scatter,
-                 const std::int64_t* scat_nlegen,
-                 std::int64_t        ldcoef,
-                 double*             scat_coef,
-                 const std::int64_t* scatlayers,
-                 std::int64_t        noutlevels,
-                 const std::int64_t* outlevels,
-                 double*             mu_values,
-                 double*             up_flux,
-                 double*             down_flux,
-                 double*             up_rad,
-                 double*             down_rad);
-void rt3_double_gauss_quadrature(std::int64_t num, double* abscissas, double* weights);
-void rt3_gauss_legendre_quadrature(std::int64_t num, double* abscissas, double* weights);
-void rt3_lobatto_quadrature(std::int64_t num, double* abscissas, double* weights);
-}
+#include "radtran3.h"
+#include "radutil3.h"
 #endif
 
 namespace rt3 {
 namespace {
 #ifdef ARTS_HAS_RT3
-//! RT3 uses COMMON blocks, SAVEd FFT tables and large static local arrays:
-//! serialise every call.  RT4 has its own mutex; the two share only the
-//! reentrant radmat routines.
+//! Serialises every call.  The Fortran RADTRAN needed it (COMMON blocks,
+//! SAVEd FFT tables and large static local arrays); its C++ port,
+//! rt3::radtran, calls no Fortran and keeps no state, but the lock is still
+//! taken.  RT4 has its own.
 std::mutex fortran_mutex;
 
 //! Fixed sizes in radtran3.f (MAXV, MAXLAY, MAXLM, MAXLEG, MAXSBUF, MAXDBUF)
@@ -76,8 +37,9 @@ constexpr Index max_fft_degree = 251;
 //! BASIS_MATRIX (2 * 256) and in FOURIER_MATRIX's BASIS_VECTOR (4 * 256)
 constexpr Index max_basis_direct = 512;
 constexpr Index max_basis        = 1024;
-//! RT3's CHECK_NORM stops above 1e-7; the discrete normalisation equals
-//! legendre[0, 0] - 1 up to round-off for a series within NLEGLIM.
+//! RT3's CHECK_NORM (rt3::check_norm) throws above 1e-7; the discrete
+//! normalisation equals legendre[0, 0] - 1 up to round-off for a series
+//! within NLEGLIM.
 constexpr Numeric normalisation_tolerance = 1e-9;
 
 const char* quad_name(quadrature_type type) {
@@ -108,22 +70,19 @@ bool available() {
 }
 
 quadrature get_quadrature(Index nmu, quadrature_type type) {
-  ARTS_USER_ERROR_IF(not available(), "RT3 requires ENABLE_RT3=ON");
   ARTS_USER_ERROR_IF(nmu < 1, "RT3 needs at least one quadrature node per hemisphere, got nmu = {}", nmu);
 
-  quadrature q{.mu = Vector(nmu, 0.0), .weights = Vector(nmu, 0.0)};
-#ifdef ARTS_HAS_RT3
-  using routine = void (*)(std::int64_t, double*, double*);
-  routine quad  = rt3_gauss_legendre_quadrature;
-  if (type == quadrature_type::double_gauss) quad = rt3_double_gauss_quadrature;
-  if (type == quadrature_type::lobatto) quad = rt3_lobatto_quadrature;
-
-  std::lock_guard lock(fortran_mutex);
-  quad(nmu, q.mu.data_handle(), q.weights.data_handle());
-#else
-  (void)type;
-#endif
-  return q;
+  // The positive half of ARTS's 2 nmu-point rule on [-1, 1]
+  const auto positive_half = [nmu](const auto& rule) {
+    return quadrature{.mu      = Vector{rule.get_nodes()[Range{nmu, nmu}]},
+                      .weights = Vector{rule.get_weights()[Range{nmu, nmu}]}};
+  };
+  switch (type) {
+    case quadrature_type::double_gauss: return positive_half(scattering::DoubleGaussQuadrature(2 * nmu));
+    case quadrature_type::gauss:        return positive_half(scattering::GaussLegendreQuadrature(2 * nmu));
+    case quadrature_type::lobatto:      return positive_half(scattering::LobattoQuadrature(2 * nmu));
+  }
+  ARTS_USER_ERROR("Unknown RT3 quadrature type {}", static_cast<int>(type));
 }
 
 Index max_legendre_degree(Index nmu, quadrature_type type) {
@@ -262,7 +221,7 @@ result solve(const problem& p) {
     const Numeric c0 = scaled(0, 0);
     ARTS_USER_ERROR_IF(not(std::abs(c0 - 1.0) <= normalisation_tolerance),
                        "The phase function of scattering set {} must be normalised: legendre[0, 0] (F11, l = 0){} "
-                       "must be 1 to {}, got {} (RT3's CHECK_NORM would stop the process)",
+                       "must be 1 to {}, got {} (RT3's CHECK_NORM would reject it)",
                        iset,
                        p.delta_m ? " after delta-M scaling" : "",
                        normalisation_tolerance,
@@ -302,12 +261,8 @@ result solve(const problem& p) {
                        summed);
   }
 
-  // RADTRAN arguments.  A row-major [a, b, c] array is the Fortran
-  // column-major (c, b, a) array.  The legacy code declares no intent, so
-  // the inputs are passed as copies.
-  Vector height         = p.height;
-  Vector temperature    = p.temperature;
-  Vector gas_extinction = p.gas_extinction;
+  // RADTRAN arguments (radtran3.h).  A row-major [a, b, c] array is the
+  // Fortran column-major (c, b, a) array.
 
   // SCATLAYERS(layer): 1-based set, 0 for gas-only
   ArrayOfIndex scatlayers(nlay);
@@ -321,10 +276,9 @@ result solve(const problem& p) {
   // SCAT_COEF(6, LDCOEF, set) is [set, LDCOEF, 6]: the [nleg + 1, 6] legendre
   // of each set is its leading block
   const Index  ldcoef = nsl > 0 ? *stdr::max_element(degree) + 1 : 1;
-  const Index  nset   = std::max<Index>(nsl, 1);
-  Vector       scat_extinct(nset, 0.0), scat_scatter(nset, 0.0);
-  ArrayOfIndex scat_nlegen(nset, 0);
-  Tensor3      scat_coef(nset, ldcoef, 6, 0.0);
+  Vector       scat_extinct(nsl, 0.0), scat_scatter(nsl, 0.0);
+  ArrayOfIndex scat_nlegen(nsl, 0);
+  Tensor3      scat_coef(nsl, ldcoef, 6, 0.0);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s                               = p.scattering_sets[iset];
     scat_extinct[iset]                          = s.extinction;
@@ -333,38 +287,19 @@ result solve(const problem& p) {
     scat_coef[iset, Range(0, degree[iset] + 1)] = s.legendre[Range(0, degree[iset] + 1)];
   }
 
-  const Numeric wavelength_um = 1e6 * Constant::c / p.frequency;
-  // RT3 radiance is per micrometre: B_nu = B_lambda[um^-1] * lambda[um] / f
-  const Numeric per_um_to_per_hz = wavelength_um / p.frequency;
+  // MU_VALUES and their weights, as RADTRAN makes them: the nquad nodes
+  // followed by the extra angles, which have weight 0
+  const auto q = get_quadrature(nquad, p.quad);
+  Vector     mu(nmu), weights(nmu, 0.0);
+  mu[Range{0, nquad}]      = q.mu;
+  mu[Range{nquad, nextra}] = p.extra_mu;
+  weights[Range{0, nquad}] = q.weights;
 
-  char    ground_type = 'L';
-  Numeric albedo      = 0.0;
-  Complex index{1.0, 0.0};
-  std::visit(
-      [&](const auto& g) {
-        using T = std::remove_cvref_t<decltype(g)>;
-        if constexpr (std::is_same_v<T, lambertian_surface>) {
-          ground_type = 'L';
-          albedo      = g.albedo;
-        } else {
-          static_assert(std::is_same_v<T, fresnel_surface>);
-          ground_type = 'F';
-          index       = g.refractive_index;
-        }
-      },
-      p.ground);
-
-  char quad_type = 'G';
-  switch (p.quad) {
-    case quadrature_type::gauss:        quad_type = nextra > 0 ? 'E' : 'G'; break;
-    case quadrature_type::double_gauss: quad_type = 'D'; break;
-    case quadrature_type::lobatto:      quad_type = 'L'; break;
-  }
-
-  // MU_VALUES: RT3 writes the nquad nodes; for 'E' the first nquad entries
-  // must be 0 and the extra angles follow
-  Vector mu(nmu, 0.0);
-  mu[Range(nquad, nextra)] = p.extra_mu;
+  // The ground as RADTRAN's input: SURF_REFLECT(out s, out mu, in s, in mu)
+  // of each mode is [mode, in mu, in s, out mu, out s], GND_RADIANCE(s, mu)
+  // [mode, mu, s]
+  Tensor5 surf_reflect(nazi, nmu, ns, nmu, ns);
+  Tensor3 gnd_radiance(nazi, nmu, ns), direct_reflect(nazi, nmu, ns);
 
   // UP_RAD/DOWN_RAD(s, mu, m + 1, level) is the row-major [level, m, mu, s]
   // layout, UP_FLUX/DOWN_FLUX(s, level) the row-major [level, s]
@@ -376,54 +311,40 @@ result solve(const problem& p) {
            .down_flux = Matrix(nlay + 1, ns, 0.0)};
 
   const std::int64_t src_code = (beam ? 1 : 0) + (p.thermal ? 2 : 0);
+  ground_surface(
+      p.ground, src_code, mu, weights, p.frequency, p.surface_temperature, surf_reflect, gnd_radiance, direct_reflect);
   {
     std::lock_guard lock(fortran_mutex);
-    rt3_radtran(ns,
-                nmu,
-                p.aziorder,
-                p.max_delta_tau,
-                src_code,
-                quad_type,
-                p.delta_m ? 'Y' : 'N',
-                p.direct_flux / per_um_to_per_hz,
-                beam ? p.direct_mu : 1.0,
-                p.surface_temperature,
-                ground_type,
-                albedo,
-                index.real(),
-                index.imag(),
-                p.sky_temperature,
-                wavelength_um,
-                nlay,
-                height.data_handle(),
-                temperature.data_handle(),
-                gas_extinction.data_handle(),
-                nsl,
-                scat_extinct.data_handle(),
-                scat_scatter.data_handle(),
-                scat_nlegen.data(),
-                ldcoef,
-                scat_coef.data_handle(),
-                scatlayers.data(),
-                nlay + 1,
-                outlevels.data(),
-                mu.data_handle(),
-                r.up_flux.data_handle(),
-                r.down_flux.data_handle(),
-                r.up.data_handle(),
-                r.down.data_handle());
+    radtran(p.max_delta_tau,
+            src_code,
+            p.quad,
+            p.delta_m,
+            p.direct_flux,
+            beam ? p.direct_mu : 1.0,
+            surf_reflect,
+            gnd_radiance,
+            direct_reflect,
+            p.sky_temperature,
+            p.frequency,
+            p.height,
+            p.temperature,
+            p.gas_extinction,
+            scat_extinct,
+            scat_scatter,
+            scat_nlegen,
+            scat_coef,
+            scatlayers,
+            outlevels,
+            p.extra_mu,
+            mu,
+            r.up_flux,
+            r.down_flux,
+            r.up,
+            r.down);
   }
 
-  r.up        *= per_um_to_per_hz;
-  r.down      *= per_um_to_per_hz;
-  r.up_flux   *= per_um_to_per_hz;
-  r.down_flux *= per_um_to_per_hz;
-  r.mu         = mu;
-
-  // RADTRAN does not return its weights; they are a function of the
-  // quadrature alone, the extra angles having weight 0.
-  const auto q               = get_quadrature(nquad, p.quad);
-  r.weights[Range(0, nquad)] = q.weights;
+  r.mu      = mu;
+  r.weights = weights;
   return r;
 #else
   (void)p;

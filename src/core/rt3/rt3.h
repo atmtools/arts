@@ -14,6 +14,9 @@
  * components [I], [I, Q], [I, Q, U] or [I, Q, U, V] (K. F. Evans and
  * G. L. Stephens, 1991, JQSRT 46, 413-423).  The Fortran sources are in
  * 3rdparty/polradtran (the ARTS3 changes are listed in its README.ARTS).
+ * RT3 is ported to C++: rt3::solve calls rt3::radtran (radtran3.h) and
+ * rt3::ground_surface, which call no Fortran; the Fortran is built as the
+ * reference the port is tested against.
  * This wrapper exists so that RT3 can serve as an external reference for
  * other solvers, in particular for the solar-beam, m > 0 and U, V paths of
  * VDISORT; it has no workspace layer.
@@ -55,9 +58,9 @@
  *     and V are 0.
  *
  * None of the Fortran code is reentrant (COMMON blocks, SAVEd FFT tables
- * and about 230 MB of static local arrays, mostly the 210 MB
- * scattering-matrix buffer).  All calls are serialised by one mutex,
- * separate from RT4's.
+ * and static local arrays).  rt3::solve still serialises its calls with
+ * the mutex that guarded it, separate from RT4's, although rt3::radtran
+ * no longer calls the Fortran.
  */
 namespace rt3 {
 //! Whether the optional Fortran backend is built (ENABLE_RT3=ON).
@@ -77,7 +80,15 @@ struct quadrature {
   Vector weights;
 };
 
-//! RT3's own quadrature routines.  nmu >= 1.
+/** The streams of RT3, nmu >= 1.
+ *
+ * ARTS's quadratures (scattering/integration.h) in place of RT3's own: the
+ * positive half of scattering::DoubleGaussQuadrature,
+ * GaussLegendreQuadrature or LobattoQuadrature of degree 2 nmu.  They are
+ * RT3's rules, to rounding, as RT3_DOUBLE_GAUSS_QUADRATURE,
+ * RT3_GAUSS_LEGENDRE_QUADRATURE and RT3_LOBATTO_QUADRATURE compute them.
+ * rt3::radtran uses the same.  Needs no Fortran.
+ */
 quadrature get_quadrature(Index nmu, quadrature_type type);
 
 /** Highest Legendre degree RT3 keeps for a quadrature (its NLEGLIM):

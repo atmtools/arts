@@ -16,8 +16,8 @@ A plane-parallel solver for randomly oriented particles with a solar beam and
 thermal sources, for every Fourier azimuth mode and the Stokes components
 [I], [I, Q], [I, Q, U] or [I, Q, U, V], kept as an external reference for
 other solvers.  It has no workspace layer.  Use available() to check whether
-the optional Fortran backend is built (ENABLE_RT3=ON); otherwise
-get_quadrature() and solve() raise.
+the optional Fortran backend is built (ENABLE_RT3=ON); otherwise solve()
+raises.
 
 Conventions: a right-handed frame with z up; the direct beam propagates
 downward toward azimuth 0, and phi is the azimuth of the propagation direction
@@ -57,7 +57,8 @@ See :doc:`dev.rt3` for all conventions, limitations and the benchmarks.
          &rt3::get_quadrature,
          "nmu"_a,
          "type"_a = rt3::quadrature_type::gauss,
-         "RT3's own quadrature with nmu >= 1 nodes per hemisphere.",
+         "RT3's streams, nmu >= 1 nodes per hemisphere: the positive half of ARTS's 2 nmu-point rule, as "
+         "RT3 uses them.",
          py::call_guard<py::gil_scoped_release>());
 
   rt.def("max_legendre_degree",
