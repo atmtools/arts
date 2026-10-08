@@ -25,7 +25,6 @@ SurfaceScatteringModelProperties lambertian_properties(
     const auto& r_data,
     Index nf, Index nzi, Index nai, Index nzs, Index nas) {
   MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
-  // Tensor3 emissivity(nf, nzs, 4, 0.0);
   MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
   // Lambertian scattering has no specular component; keep the tensors sized
