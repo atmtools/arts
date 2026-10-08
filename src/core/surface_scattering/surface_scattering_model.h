@@ -47,7 +47,7 @@ using FlatScalarSurfaceScattererField = surface_scattering::FlatScalarSurfaceSca
  *
  * Models are stored by name for later individual lookup, and their bulk
  * surface scattering properties are accumulated in insertion order when
- * get_bulk_surface_scattering_properties() is called.
+ * get_surface_scattering_model_properties() is called.
  * Mirrors ArrayOfScatteringSpecies but uses a named std::map instead of a
  * plain vector, matching the plan for MapOfSurfaceScatteringModel.
  */

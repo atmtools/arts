@@ -1,7 +1,8 @@
 """Plumbing tests for spectral_radSurfaceScatteringSpecular workspace method.
 
-No specular-capable surface scattering model exists yet (Lambertian only
-produces the diffuse contribution), so these tests verify the plumbing:
+Specular-capable models (Fresnel, FlatScalar) exist, but these tests
+deliberately register only a pure diffuse (Lambertian) model, so they
+verify the plumbing:
 
 1. Basic execution (smoke test): method runs and produces finite output
 2. Zero-specular consistency: with a pure diffuse (Lambertian) model the

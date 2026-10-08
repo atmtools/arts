@@ -769,8 +769,6 @@ For more information, see :doc:`user.subsurf_field`.
   wsv_data["surface_models"] = {
     .desc =
         R"--(A Map of surface scattering models.
-
-For more information, see :doc:`user.MapOfSurfaceScatteringModel`.
 )--",
     .type = "MapOfSurfaceScatteringModel",
 };

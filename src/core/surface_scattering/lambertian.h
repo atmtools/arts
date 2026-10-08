@@ -35,7 +35,7 @@ struct LambertianSurfaceScatterer {
   /// Values are expected in [0, 1]; out-of-range values are clamped.
   SortedGriddedField1 reflectivity_spectrum{};
 
-  /// Interpolation and extrapolation method for latitude and longitude.
+  /// Interpolation and extrapolation method for the frequency grid.
   /// Controls how values outside the grid domain are handled.
   InterpolationExtrapolation interp_extrapolation{
     InterpolationExtrapolation::Nearest};
@@ -77,7 +77,7 @@ struct LambertianSurfaceScatterer {
  * in the geographic dimensions and linearly interpolated onto the simulation
  * f_grid.
  *
- *   BRDF(I->I) = r(lat, lon, f) / pi
+ *   BRDF(I->I) = r(lat, lon, f)
  *   emissivity(I) = 1 - r(lat, lon, f)
  *
  * Values are clamped to [0, 1] after interpolation.

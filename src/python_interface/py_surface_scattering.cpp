@@ -24,13 +24,13 @@ void py_surface_scattering(py::module_& m) try {
               "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
       .def_rw("emissivity_vector_diffuse",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
-              "Diffuse emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
+              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
       .def_rw("brdf_matrix_specular",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
               "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
       .def_rw("emissivity_vector_specular",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
-              "Specular emissivity vector: dims [nf, nza_scat, 4]\n\n.. :class:`class-information`")
+              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
       .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).";
 
   //
@@ -132,7 +132,7 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
       .def_rw(
           "interp_extrapolation",
           &LambertianSurfaceScattererField::interp_extrapolation,
-          "Interpolation and extrapolation method for latitude and longitude dimensions\n\n.. :class:`class-information`")
+          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`class-information`")
       .def(
           "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScattererField& self,

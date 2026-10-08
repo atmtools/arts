@@ -119,7 +119,7 @@ does not change the global workspace while minimizing the number of variables th
 
 Models are stored by string name for individual lookup and their bulk
 surface scattering properties are accumulated when
-``get_bulk_surface_scattering_properties`` is called.
+``get_surface_scattering_model_properties`` is called.
 )",
   };
 
