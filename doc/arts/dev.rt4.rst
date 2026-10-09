@@ -8,16 +8,16 @@ thermal-only radiative transfer equation in a plane-parallel, azimuthally
 symmetric medium, for the Stokes components [I] or [I, Q].  It has a core C++
 interface, the namespace ``polradtran::rt4`` (``src/core/polradtran/rt4``;
 ``rt4::`` below), and a low-level Python interface (``pyarts3.arts.rt4``).  It
-has no workspace methods, variables or agendas.
+has no workspace methods, variables or agendas.  Its equations are in
+:doc:`concept.rt4`.
 
 Provenance
 ----------
 
 * **Original code.** K. F. Evans, polradtran (RT3/RT4), 1996, distributed
   from https://nit.coloradolinux.com/polrad.html under the MIT licence
-  (``3rdparty/polradtran/LICENSE``).  RT4 is briefly described in Evans and
-  Stephens (1995), J. Atmos. Sci. 52, 2058-2072.  See Evans'
-  ``3rdparty/polradtran/README``.
+  (``3rdparty/polradtran/LICENSE``).  RT4 is briefly described by
+  :cite:t:`Evans1995`.  See Evans' ``3rdparty/polradtran/README``.
   Of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``),
   ``3rdparty/polradtran`` keeps the licence, ``README``, the four test
   scripts and ``cl340d14.dda``, unchanged.  The Fortran was removed once the

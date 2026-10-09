@@ -594,10 +594,12 @@ void py_scattering_species(py::module_& m) try {
   py::class_<scattering::LegendreReport>(m, "LegendreReport")
       .def_ro("reconstruction_error",
               &scattering::LegendreReport::reconstruction_error,
-              "[t, f, 6]: max |series - data| at the nodes per element, relative to max |F11|\n\n.. :class:`Tensor3`")
+              "[t, f, 6]: the largest :math:`|\\text{series} - \\text{data}|` at the nodes per element, relative to "
+              "the largest :math:`|F_{11}|`\n\n.. :class:`Tensor3`")
       .def_ro("tail",
               &scattering::LegendreReport::tail,
-              "[t, f, 6]: |a_degree| per element relative to |a_0| of F11\n\n.. :class:`Tensor3`")
+              "[t, f, 6]: :math:`|a_\\text{degree}|` per element relative to :math:`|a_0|` of F11\n\n"
+              ".. :class:`Tensor3`")
       .def_ro("min_f11",
               &scattering::LegendreReport::min_f11,
               "[t, f]: the smallest F11 of the series, relative; negative is truncation ringing\n\n.. :class:`Matrix`")

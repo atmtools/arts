@@ -11,16 +11,15 @@ Fourier azimuth mode and the Stokes components [I], [I, Q], [I, Q, U] or
 [I, Q, U, V].  It has a core C++ interface, the namespace ``polradtran::rt3``
 (``src/core/polradtran/rt3``; ``rt3::`` below), and a low-level Python
 interface (``pyarts3.arts.rt3``).  It has no workspace methods, variables or
-agendas.
+agendas.  Its equations are in :doc:`concept.rt3`.
 
 Provenance
 ----------
 
 * **Original code.** K. F. Evans, polradtran (RT3/RT4), distributed from
   https://nit.coloradolinux.com/polrad.html under the MIT licence
-  (``3rdparty/polradtran/LICENSE``).  RT3 is described in Evans and Stephens
-  (1991), J. Quant. Spectrosc. Radiat. Transfer 46, 413-423.  ARTS 2 never
-  shipped RT3.
+  (``3rdparty/polradtran/LICENSE``).  RT3 is described by
+  :cite:t:`Evans1999`.  ARTS 2 never shipped RT3.
   Of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``),
   ``3rdparty/polradtran`` keeps the licence, ``README``, the four test
   scripts and ``cl340d14.dda``, unchanged.  The Fortran was removed once the
@@ -138,7 +137,7 @@ Provenance
       six series where RT3 ran its own recurrence for each.  Against
       50-digit references, for series (2l + 1) g^l up to degree 1023 and
       cosines clustered at +-1, both recurrences err by at most 2e-13 of
-      sum |c_l|, ARTS's by half as much on average (7e-16 against
+      :math:`\sum_l|c_l|`, ARTS's by half as much on average (7e-16 against
       1.3e-15).  The cosine is clamped to [-1, 1], which it can leave by
       rounding (one ulp at 1 moves P_1023 by 1e-10).  Against the Fortran
       it agrees to 1.1e-16 of the largest value; the 148 capture problems
@@ -369,7 +368,7 @@ benchmark output of the original program or a closed form derived in the
 test; none is an output of this build.  The C++ test covers:
 
 * **(a) Quadrature exactness** of the three rules (moment errors 1e-14).
-* **(b) runmietest**, the Mie case of Evans and Stephens (1991): tau = 1,
+* **(b) runmietest**, the Mie case of :cite:t:`Evans1999`: tau = 1,
   omega = 0.99, an 11-term Mie series, Lambertian albedo 0.1, solar flux
   0.2 pi on the horizontal at mu0 = 0.2 (rt3.f's own conversion of the
   zenith angle 78.46304097 deg, with its truncated pi / 180), gauss with 8
@@ -559,7 +558,7 @@ Conventions
   oblique angles.
 * RT3 transports V through F34 (and the Fresnel R4), so V has the sign
   convention of the scattering data.  Evans' runmietest series is in the
-  convention of Evans and Stephens (1991), in which RT3 reproduced the V of
+  convention of :cite:t:`Evans1999`, in which RT3 reproduced the V of
   Garcia and Siewert (1989).  For the same physical spheres, ARTS's Mie code
   gives F34 of the opposite sign (see `Inputs from ARTS data`_), so RT3 run
   on ARTS data gives -1 times V in the convention of that paper.  Which of
@@ -722,7 +721,7 @@ of ``max |Z|``).  ARTS's azimuth runs clockwise seen from above, RT3's
 counterclockwise.  RT3 itself uses exactly that vector-geometry matrix
 (``cpp.fast.vdisort-rt3-test``).  Against an external reference,
 ``cpp.fast.rt3-arts-test`` reproduces Evans' runmietest series, the Mie
-case of Evans and Stephens (1991) and of Garcia and Siewert (1989): spheres
+case of :cite:t:`Evans1999` and of Garcia and Siewert (1989): spheres
 of refractive index 1.44 at 0.951 um with a gamma distribution of effective
 radius 0.2 um and effective variance 0.07, integrated with ARTS's Mie code.
 F11, F12 and F33 (and F22 = F11, F44 = F33) agree with Evans' table to
