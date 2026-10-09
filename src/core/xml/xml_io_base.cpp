@@ -493,7 +493,7 @@ void xml_open_input_file(igzstream& ifs, const String& name) {
 
   \param str_error Error description
 */
-void xml_parse_error(const String& str_error) {
+[[noreturn]] void xml_parse_error(const String& str_error) {
   std::ostringstream os;
   os << "XML parse error: " << str_error << '\n' << "Check syntax of XML file\n";
   throw std::runtime_error(os.str());
@@ -507,7 +507,7 @@ void xml_parse_error(const String& str_error) {
   \param tag        XMLTag
   \param str_error  Error description
 */
-void xml_data_parse_error(XMLTag& tag, const String& str_error) {
+[[noreturn]] void xml_data_parse_error(XMLTag& tag, const String& str_error) {
   std::ostringstream os;
   os << "XML data parse error: Error reading ";
   tag.write_to_stream(os);
