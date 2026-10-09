@@ -78,7 +78,7 @@ void test_tro_backscatter_expansion() {
   for (Index i = 0; i < 6; ++i) compact[0, 0, i] = static_cast<Numeric>(i + 1);
   const auto expected = rtepack::compact_planar_muelmat{compact[0, 0, joker]}.expand();
 
-  scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO> backscatter(compact, za_grid);
+  scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>    backscatter(compact, za_grid);
   scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO> forwardscatter(compact, za_grid);
   for (Index za = 0; za < 2; ++za) {
     for (Index i = 0; i < 4; ++i) {
