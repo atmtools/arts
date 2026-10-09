@@ -13,7 +13,13 @@
 #include "rtepack_surface.h"
 #include "rtepack_transmission.h"
 
-using CompactPlanarMuelmat = rtepack::compact_planar_muelmat;
+using CompactPlanarMuelmat                = rtepack::compact_planar_muelmat;
+using CompactPlanarMuelmatVector          = rtepack::compact_planar_muelmat_vector;
+using CompactPlanarMuelmatVectorView      = rtepack::compact_planar_muelmat_vector_view;
+using CompactPlanarMuelmatConstVectorView = rtepack::compact_planar_muelmat_vector_const_view;
+using CompactPlanarMuelmatMatrix          = rtepack::compact_planar_muelmat_matrix;
+using CompactPlanarMuelmatMatrixView      = rtepack::compact_planar_muelmat_matrix_view;
+using CompactPlanarMuelmatConstMatrixView = rtepack::compact_planar_muelmat_matrix_const_view;
 
 using Propmat                     = rtepack::propmat;
 using PropmatVector               = rtepack::propmat_vector;

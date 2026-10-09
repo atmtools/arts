@@ -123,17 +123,17 @@ std::string describe(const case_spec& c) {
 
 //! RADTRAN's inputs
 struct inputs {
-  case_spec    spec;
-  Index        nummu{};
-  Vector       height, temperatures, gas_extinct;
-  Vector       scat_extinct, scat_scatter;
-  ArrayOfIndex scat_nlegen;
-  Tensor3      scat_coef;
-  ArrayOfIndex scatlayers, outlevels;
-  Vector       extra_mu;
-  Numeric      direct_flux{3e-4}, direct_mu{0.6}, ground_temp{287.5}, ground_albedo{0.27}, sky_temp{2.73};
-  Numeric      wavelength{3370.0};  // 89 GHz
-  Complex      ground_index{3.1, 0.4};
+  case_spec                  spec;
+  Index                      nummu{};
+  Vector                     height, temperatures, gas_extinct;
+  Vector                     scat_extinct, scat_scatter;
+  ArrayOfIndex               scat_nlegen;
+  CompactPlanarMuelmatMatrix scat_coef;
+  ArrayOfIndex               scatlayers, outlevels;
+  Vector                     extra_mu;
+  Numeric                    direct_flux{3e-4}, direct_mu{0.6}, ground_temp{287.5}, ground_albedo{0.27}, sky_temp{2.73};
+  Numeric                    wavelength{3370.0};  // 89 GHz
+  Complex                    ground_index{3.1, 0.4};
 };
 
 struct outputs {
@@ -142,29 +142,27 @@ struct outputs {
   Tensor4 up_rad, down_rad;
 };
 
-//! [degree + 1, 6] Legendre coefficients (F11, F12, F33, F34, F22, F44) of
-//! RT3's three summation cases: Rayleigh (F22 = F11, F44 = F33, no F34),
-//! Mie (with F34) and general
-Matrix legendre_set(int kind, Numeric g, Index degree) {
-  Matrix c(degree + 1, 6, 0.0);
+//! [degree + 1] Legendre coefficients of RT3's three summation cases:
+//! Rayleigh (F22 = F11, F44 = F33, no F34), Mie (with F34) and general
+CompactPlanarMuelmatVector legendre_set(int kind, Numeric g, Index degree) {
+  // Each coefficient is {F11, F12, F22, F33, F34, F44}
+  CompactPlanarMuelmatVector c(degree + 1);
   if (kind == 0) {
-    c[0, 0] = 1.0;
-    c[0, 1] = -0.5;
-    c[0, 4] = 1.0;
-    if (degree >= 1) c[1, 2] = c[1, 5] = 1.5;
-    if (degree >= 2) c[2, 0] = c[2, 1] = c[2, 4] = 0.5;
+    c[0] = {1.0, -0.5, 1.0, 0.0, 0.0, 0.0};
+    if (degree >= 1) c[1] = {0.0, 0.0, 0.0, 1.5, 0.0, 1.5};
+    if (degree >= 2) c[2] = {0.5, 0.5, 0.5, 0.0, 0.0, 0.0};
     return c;
   }
   for (Index l = 0; l <= degree; l++) {
     const Numeric hg = static_cast<Numeric>(2 * l + 1) * std::pow(g, l);
-    c[l, 0]          = hg;
-    c[l, 1]          = l > 0 ? -0.1 * hg : 0.0;
-    c[l, 2]          = 0.9 * hg;
-    c[l, 3]          = l > 0 ? 0.05 * hg : 0.0;
-    c[l, 4]          = kind == 1 ? hg : 0.97 * hg;
-    c[l, 5]          = kind == 1 ? 0.9 * hg : 0.85 * hg;
+    c[l]             = {hg,
+                        l > 0 ? -0.1 * hg : 0.0,
+                        kind == 1 ? hg : 0.97 * hg,
+                        0.9 * hg,
+                        l > 0 ? 0.05 * hg : 0.0,
+                        kind == 1 ? 0.9 * hg : 0.85 * hg};
   }
-  c[0, 0] = 1.0;
+  c[0].F11() = 1.0;
   return c;
 }
 
@@ -192,7 +190,7 @@ inputs make_inputs(const case_spec& c, std::mt19937_64& gen) {
   // Delta-M needs a series beyond 2 nummu to do anything
   const Index degree = c.delta_m ? 2 * in.nummu + 3 : std::min<Index>(6, nleglim);
 
-  std::vector<Matrix> sets;
+  std::vector<CompactPlanarMuelmatVector> sets;
   in.scatlayers = ArrayOfIndex(c.nlay, 0);
   for (Index l = 0; l < c.nlay; l++) {
     if (c.lay == layout::gas or (c.lay == layout::mixed and l % 3 == 1)) continue;
@@ -208,17 +206,17 @@ inputs make_inputs(const case_spec& c, std::mt19937_64& gen) {
 
   const Index nsl    = static_cast<Index>(sets.size());
   Index       ldcoef = 1;
-  for (const auto& s : sets) ldcoef = std::max(ldcoef, s.nrows());
+  for (const auto& s : sets) ldcoef = std::max<Index>(ldcoef, s.size());
   in.scat_extinct     = Vector(nsl);
   in.scat_scatter     = Vector(nsl);
   in.scat_nlegen      = ArrayOfIndex(nsl);
-  in.scat_coef        = Tensor3(nsl, ldcoef, 6, 0.0);
+  in.scat_coef        = CompactPlanarMuelmatMatrix(nsl, ldcoef);
   const Numeric scale = c.lay == layout::thin ? 1e-11 : c.lay == layout::thick ? 5e-3 : 2e-4;
   for (Index s = 0; s < nsl; s++) {
-    in.scat_extinct[s]                         = scale * (0.5 + u(gen));
-    in.scat_scatter[s]                         = in.scat_extinct[s] * (0.3 + 0.65 * u(gen));
-    in.scat_nlegen[s]                          = sets[s].nrows() - 1;
-    in.scat_coef[s, Range{0, sets[s].nrows()}] = sets[s];
+    in.scat_extinct[s]                        = scale * (0.5 + u(gen));
+    in.scat_scatter[s]                        = in.scat_extinct[s] * (0.3 + 0.65 * u(gen));
+    in.scat_nlegen[s]                         = sets[s].size() - 1;
+    in.scat_coef[s, Range{0, sets[s].size()}] = sets[s];
   }
 
   // Every level, the bottom one first
@@ -315,10 +313,10 @@ outputs run_cpp(const inputs& in, rt3::rt3_workdata& work) {
    at its largest size.  FFT1DR's table is kept between calls, so it stays
    empty. */
 rt3::rt3_workdata poisoned_workdata(const inputs& in) {
-  Index legendre_rows = 2 * in.nummu;
-  for (Index l : in.scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
+  Index num_legendre = 2 * in.nummu;
+  for (Index l : in.scat_nlegen) num_legendre = std::max(num_legendre, l + 1);
   rt3::rt3_workdata w(
-      in.spec.nstokes, in.nummu, in.spec.aziorder, in.spec.nlay, in.scat_extinct.extent(0), legendre_rows);
+      in.spec.nstokes, in.nummu, in.spec.aziorder, in.spec.nlay, in.scat_extinct.extent(0), num_legendre);
   w.scat_matrix.resize(1025);
   w.basis_matrix.resize(1025);
   w.legendre_p.resize(1024);
@@ -336,8 +334,7 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
                     &w.xv,
                     &w.yv})
     *v = nan;
-  for (Matrix* m : {&w.legendre_coef,
-                    &w.direct_vector,
+  for (Matrix* m : {&w.direct_vector,
                     &w.thermal_vector,
                     &w.exp_source,
                     &w.lin_source,
@@ -360,8 +357,9 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
   w.trans          = nan;
   w.scatter_matrix = nan;
   for (MuelmatVector* v : {&w.scat_matrix, &w.basis_matrix}) *v = Muelmat::constant(nan);
-  w.scatbuf   = Muelmat::constant(nan);
-  w.directbuf = Stokvec{nan, nan, nan, nan};
+  w.legendre_coef = CompactPlanarMuelmat{nan, nan, nan, nan, nan, nan};
+  w.scatbuf       = Muelmat::constant(nan);
+  w.directbuf     = Stokvec{nan, nan, nan, nan};
   for (Index& s : w.scat_nums) s = -1;
   return w;
 }
@@ -421,9 +419,9 @@ void check_large_fft() {
   const Vector mu{0.15, 0.55, 0.95}, w{0.3, 0.4, 0.3};
   Numeric      worst = 0.0;
   for (Index degree : {300, 1100}) {
-    const Matrix      coef = legendre_set(2, 0.6, degree);
-    rt3::rt3_workdata work;
-    MuelmatTensor4    s0(1, 2, 3, 3), s2(3, 2, 3, 3);
+    const CompactPlanarMuelmatVector coef = legendre_set(2, 0.6, degree);
+    rt3::rt3_workdata                work;
+    MuelmatTensor4                   s0(1, 2, 3, 3), s2(3, 2, 3, 3);
     rt3::scattering(mu, w, coef, 4, s0, work);
     rt3::scattering(mu, w, coef, 4, s2, work);
     Tensor3 p0(2, 3, 3), p2(2, 3, 3);

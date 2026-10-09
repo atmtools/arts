@@ -6,13 +6,14 @@
 #include <algorithm>
 #include <cmath>
 
+#include "radscat3.h"
 #include "radtran3.h"
 #include "radutil3.h"
 
 namespace polradtran::rt3 {
 namespace {
 //! RT3's CHECK_NORM (rt3::check_norm) throws above 1e-7; the discrete
-//! normalisation equals legendre[0, 0] - 1 up to round-off for a series
+//! normalisation equals legendre[0].F11() - 1 up to round-off for a series
 //! within NLEGLIM.
 constexpr Numeric normalisation_tolerance = 1e-9;
 
@@ -25,11 +26,15 @@ const char* quad_name(quadrature_type type) {
   return "unknown";
 }
 
-//! The highest row of a [nleg + 1, 6] series with a non-zero coefficient (0 if none)
-Index stripped_degree(const Matrix& legendre) {
-  for (Index l = legendre.nrows() - 1; l > 0; l--)
-    for (Index c = 0; c < 6; c++)
-      if (legendre[l, c] != 0.0) return l;
+//! Whether any element of c is non-zero
+bool nonzero(const CompactPlanarMuelmat& c) {
+  return stdr::any_of(c.data, [](Numeric x) { return x != 0.0; });
+}
+
+//! The highest degree of a series with a non-zero coefficient (0 if none)
+Index stripped_degree(const CompactPlanarMuelmatVector& legendre) {
+  for (Index l = legendre.size() - 1; l > 0; l--)
+    if (nonzero(legendre[l])) return l;
   return 0;
 }
 }  // namespace
@@ -93,41 +98,34 @@ result solve(const problem& p) {
   ArrayOfIndex degree(nsl);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s = p.scattering_sets[iset];
-    ARTS_USER_ERROR_IF(s.legendre.ncols() != 6 or s.legendre.nrows() < 1,
-                       "Scattering set {} must have legendre [nleg + 1, 6], got {:B,}",
-                       iset,
-                       s.legendre.shape());
+    ARTS_USER_ERROR_IF(s.legendre.size() < 1, "Scattering set {} must have a legendre series", iset);
     const Index nleg = stripped_degree(s.legendre);
     degree[iset]     = nleg;
     Numeric f        = 0.0;
-    if (p.delta_m and mdm <= nleg) f = s.legendre[mdm, 0] / static_cast<Numeric>(2 * mdm + 1);
+    if (p.delta_m and mdm <= nleg) f = s.legendre[mdm].F11() / static_cast<Numeric>(2 * mdm + 1);
     ARTS_USER_ERROR_IF(p.delta_m and 1.0 - f == 0.0,
-                       "Delta-M scaling of scattering set {} divides by 1 - f, with f = legendre[{}, 0] / {} = 1",
+                       "Delta-M scaling of scattering set {} divides by 1 - f, with f = legendre[{}].F11() / {} = 1",
                        iset,
                        mdm,
                        2 * mdm + 1);
-    // The coefficient c of row l and column k as RT3 sums it
-    const auto scaled = [&](Index l, Index k) {
-      const Numeric c = l <= nleg ? s.legendre[l, k] : 0.0;
-      if (not p.delta_m) return c;
-      const auto m    = static_cast<Numeric>(2 * l + 1);
-      const bool diag = k == 0 or k == 2 or k == 4 or k == 5;
-      return diag ? m * (c / m - f) / (1.0 - f) : m * (c / m) / (1.0 - f);
+    // The coefficient of degree l as RT3 sums it
+    const auto scaled = [&](Index l) {
+      const CompactPlanarMuelmat c = l <= nleg ? s.legendre[l] : CompactPlanarMuelmat{};
+      return p.delta_m ? delta_m_scaled(c, l, f) : c;
     };
     const Index rt3_degree = p.delta_m ? mdm - 1 : nleg;
 
-    const Numeric c0 = scaled(0, 0);
+    const Numeric c0 = scaled(0).F11();
     ARTS_USER_ERROR_IF(not(std::abs(c0 - 1.0) <= normalisation_tolerance),
-                       "The phase function of scattering set {} must be normalised: legendre[0, 0] (F11, l = 0){} "
-                       "must be 1 to {}, got {} (RT3's CHECK_NORM would reject it)",
+                       "The phase function of scattering set {} must be normalised: legendre[0].F11(){} must be 1 "
+                       "to {}, got {} (RT3's CHECK_NORM would reject it)",
                        iset,
                        p.delta_m ? " after delta-M scaling" : "",
                        normalisation_tolerance,
                        c0);
 
     bool dropped = false;
-    for (Index l = nleglim + 1; l <= rt3_degree; l++)
-      for (Index k = 0; k < 6; k++) dropped = dropped or scaled(l, k) != 0.0;
+    for (Index l = nleglim + 1; l <= rt3_degree; l++) dropped = dropped or nonzero(scaled(l));
     ARTS_USER_ERROR_IF(dropped and p.delta_m,
                        "RT3 would silently truncate the delta-M scaled Legendre series of scattering set {} from "
                        "degree 2 * nmu_total - 1 = {} to {} (NLEGLIM of the {} quadrature with nmu = {}), dropping "
@@ -163,12 +161,12 @@ result solve(const problem& p) {
   ArrayOfIndex outlevels(nlay + 1);
   for (Index l = 0; l <= nlay; l++) outlevels[l] = l + 1;
 
-  // SCAT_COEF(6, LDCOEF, set) is [set, LDCOEF, 6]: the [nleg + 1, 6] legendre
-  // of each set is its leading block
-  const Index  ldcoef = nsl > 0 ? *stdr::max_element(degree) + 1 : 1;
-  Vector       scat_extinct(nsl, 0.0), scat_scatter(nsl, 0.0);
-  ArrayOfIndex scat_nlegen(nsl, 0);
-  Tensor3      scat_coef(nsl, ldcoef, 6, 0.0);
+  // SCAT_COEF(6, LDCOEF, set) is [set, LDCOEF]: the legendre of each set
+  // leads its row
+  const Index                ldcoef = nsl > 0 ? *stdr::max_element(degree) + 1 : 1;
+  Vector                     scat_extinct(nsl, 0.0), scat_scatter(nsl, 0.0);
+  ArrayOfIndex               scat_nlegen(nsl, 0);
+  CompactPlanarMuelmatMatrix scat_coef(nsl, ldcoef);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s                               = p.scattering_sets[iset];
     scat_extinct[iset]                          = s.extinction;

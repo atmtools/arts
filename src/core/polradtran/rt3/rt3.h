@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 #include <polradtran.h>
+#include <rtepack.h>
 
 #include <variant>
 #include <vector>
@@ -73,25 +74,26 @@ Index max_legendre_degree(Index nmu, quadrature_type type);
  * extinction, scattering: the particle extinction and scattering
  *   coefficients per unit length, in the inverse of the unit of
  *   problem::height.  Gas extinction is added separately by RT3.
- * legendre: [nleg + 1, 6], the scattering-plane phase matrix
+ * legendre: [nleg + 1], the scattering-plane phase matrix
  *     F(Theta) = [[F11, F12, 0, 0], [F12, F22, 0, 0],
  *                 [0, 0, F33, F34], [0, 0, -F34, F44]]
- *   as plain Legendre series in cos(Theta),
- *     F_c(Theta) = sum_l legendre[l, c] P_l(cos(Theta)),
- *   with the columns in the order of RT3's scattering files,
- *     c = 0: F11, 1: F12, 2: F33, 3: F34, 4: F22, 5: F44
- *   (SUM_LEGENDRE in radscat3.f).  The basis is that of the scattering
- *   plane, Q = I_par - I_perp, so Rayleigh scattering has
- *   F12 = -3/4 sin^2(Theta), i.e. legendre = [[1, -1/2, 0, 0, 1, 0],
- *   [0, 0, 3/2, 0, 0, 3/2], [1/2, 1/2, 0, 0, 1/2, 0]].  The phase function
- *   is normalised to 1 over 4 pi: legendre[0, 0] must be 1.  Note that the
- *   coefficients include the factor 2 l + 1, e.g. Henyey-Greenstein is
- *   legendre[l, 0] = (2 l + 1) g^l.  Trailing all-zero rows are ignored.
+ *   as a plain Legendre series in cos(Theta),
+ *     F(Theta) = sum_l legendre[l] P_l(cos(Theta)),
+ *   each coefficient a CompactPlanarMuelmat (its elements by name; RT3's
+ *   scattering files have them in the order F11, F12, F33, F34, F22, F44).
+ *   The basis is that of the scattering plane, Q = I_par - I_perp, so
+ *   Rayleigh scattering has F12 = -3/4 sin^2(Theta), i.e. legendre =
+ *   [{F11 1, F12 -1/2, F22 1}, {F33 3/2, F44 3/2},
+ *   {F11 1/2, F12 1/2, F22 1/2}].  The phase function is normalised to 1
+ *   over 4 pi: legendre[0].F11() must be 1.  Note that the coefficients
+ *   include the factor 2 l + 1, e.g. Henyey-Greenstein has
+ *   legendre[l].F11() = (2 l + 1) g^l.  Trailing all-zero coefficients are
+ *   ignored.
  */
 struct scattering_set {
-  Numeric extinction{};
-  Numeric scattering{};
-  Matrix  legendre{};
+  Numeric                    extinction{};
+  Numeric                    scattering{};
+  CompactPlanarMuelmatVector legendre{};
 };
 
 //! The grounds of RT3, polradtran's 'L' and 'F' (polradtran.h)

@@ -55,6 +55,9 @@ struct compact_planar_muelmat final : Vector6 {
   [[nodiscard]] constexpr Numeric &F34() { return data[4]; }
   [[nodiscard]] constexpr Numeric &F44() { return data[5]; }
 
+  //! The identity, F11 = F22 = F33 = F44 = 1 (as muelmat::id())
+  static constexpr compact_planar_muelmat id() { return {1.0, 0.0, 1.0, 1.0, 0.0, 1.0}; }
+
   //! The full 4 x 4 matrix, in the scattering-plane basis
   [[nodiscard]] constexpr muelmat expand() const {
     return {F11(), F12(), 0, 0, F12(), F22(), 0, 0, 0, 0, F33(), F34(), 0, 0, -F34(), F44()};
@@ -65,15 +68,27 @@ struct compact_planar_muelmat final : Vector6 {
     return *this;
   }
 
+  constexpr compact_planar_muelmat &operator/=(Numeric x) {
+    for (auto &v : data) v /= x;
+    return *this;
+  }
+
   constexpr compact_planar_muelmat &operator+=(const compact_planar_muelmat &x) {
     for (Size i = 0; i < 6; i++) data[i] += x.data[i];
+    return *this;
+  }
+
+  constexpr compact_planar_muelmat &operator-=(const compact_planar_muelmat &x) {
+    for (Size i = 0; i < 6; i++) data[i] -= x.data[i];
     return *this;
   }
 };
 
 constexpr compact_planar_muelmat operator*(compact_planar_muelmat a, Numeric x) { return a *= x; }
 constexpr compact_planar_muelmat operator*(Numeric x, compact_planar_muelmat a) { return a *= x; }
+constexpr compact_planar_muelmat operator/(compact_planar_muelmat a, Numeric x) { return a /= x; }
 constexpr compact_planar_muelmat operator+(compact_planar_muelmat a, const compact_planar_muelmat &b) { return a += b; }
+constexpr compact_planar_muelmat operator-(compact_planar_muelmat a, const compact_planar_muelmat &b) { return a -= b; }
 
 //! A * F, a muelmat
 constexpr muelmat operator*(const muelmat &a, const compact_planar_muelmat &f) { return a * f.expand(); }
@@ -118,6 +133,9 @@ constexpr muelmat rotated(
 using compact_planar_muelmat_vector            = matpack::data_t<compact_planar_muelmat, 1>;
 using compact_planar_muelmat_vector_view       = matpack::view_t<compact_planar_muelmat, 1>;
 using compact_planar_muelmat_vector_const_view = matpack::view_t<const compact_planar_muelmat, 1>;
+using compact_planar_muelmat_matrix            = matpack::data_t<compact_planar_muelmat, 2>;
+using compact_planar_muelmat_matrix_view       = matpack::view_t<compact_planar_muelmat, 2>;
+using compact_planar_muelmat_matrix_const_view = matpack::view_t<const compact_planar_muelmat, 2>;
 }  // namespace rtepack
 
 template <> struct std::formatter<rtepack::compact_planar_muelmat> : std::formatter<Vector6> {};

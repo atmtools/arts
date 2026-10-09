@@ -103,6 +103,10 @@ def read_layers(text):
     return levels
 
 
+#: The columns of an RT3 scattering file (F11, F12, F33, F34, F22, F44) in rtepack's order (F11, F12, F22, F33, F34, F44)
+RTEPACK_ORDER = [0, 1, 4, 2, 3, 5]
+
+
 def read_legendre(text):
     """An RT3 scattering file: extinction, scattering and the [L + 1, 6] series (F11, F12, F33, F34, F22, F44)."""
     lines = [l for l in text.splitlines() if not l.startswith("C")]
@@ -393,7 +397,7 @@ def rt3(case, nmu, quad, max_delta_tau=1e-7):
             continue
         ext, sca, coef = case["legendre"][name]
         index.append(len(sets))
-        sets.append(A.rt3.ScatteringSet(ext, sca, coef))
+        sets.append(A.rt3.ScatteringSet(ext, sca, coef[:, RTEPACK_ORDER]))
     ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt3.Problem(
         nstokes=case["nstokes"],

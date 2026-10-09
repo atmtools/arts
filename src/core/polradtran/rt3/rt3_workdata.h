@@ -32,13 +32,13 @@ struct rt3_workdata : workdata {
   // them out; legendre_coef is GET_SCAT_SET's COEF, one set at a time.
   /////////////////////////////////////////////////////////////////////////////
 
-  Matrix         legendre_coef;             //!< [max(2 nummu, max nlegen + 1), 6]
-  Vector         set_extinct, set_scatter;  //!< [nsl]
-  MuelmatTensor5 scatbuf;                   //!< [nsl, aziorder + 1, 2, nummu, nummu]
-  StokvecTensor4 directbuf;                 //!< [nsl, aziorder + 1, 2, nummu]
-  ArrayOfIndex   scat_nums;                 //!< [num_layers]
-  Vector         extinctions, albedos;      //!< [num_layers]
-  Vector         direct_level_flux;         //!< [num_layers + 1]
+  CompactPlanarMuelmatVector legendre_coef;             //!< [max(2 nummu, max nlegen + 1)]
+  Vector                     set_extinct, set_scatter;  //!< [nsl]
+  MuelmatTensor5             scatbuf;                   //!< [nsl, aziorder + 1, 2, nummu, nummu]
+  StokvecTensor4             directbuf;                 //!< [nsl, aziorder + 1, 2, nummu]
+  ArrayOfIndex               scat_nums;                 //!< [num_layers]
+  Vector                     extinctions, albedos;      //!< [num_layers]
+  Vector                     direct_level_flux;         //!< [num_layers + 1]
 
   /////////////////////////////////////////////////////////////////////////////
   // The scratch of SCATTERING and DIRECT_SCATTERING, one at a time: the
@@ -70,17 +70,17 @@ struct rt3_workdata : workdata {
   Matrix  ground_radiance, direct_radiance;  //!< [nummu, nstokes]
 
   rt3_workdata() = default;
-  rt3_workdata(Index nstokes, Index nummu, Index aziorder, Index num_layers, Index nsl, Index legendre_rows) {
-    resize(nstokes, nummu, aziorder, num_layers, nsl, legendre_rows);
+  rt3_workdata(Index nstokes, Index nummu, Index aziorder, Index num_layers, Index nsl, Index num_legendre) {
+    resize(nstokes, nummu, aziorder, num_layers, nsl, num_legendre);
   }
 
   //! Sizes the arrays but the scratch of the scattering routines; this
   //! allocates only where an array grows
-  void resize(Index nstokes, Index nummu, Index aziorder, Index num_layers, Index nsl, Index legendre_rows) {
+  void resize(Index nstokes, Index nummu, Index aziorder, Index num_layers, Index nsl, Index num_legendre) {
     const Index n = nstokes * nummu;
     workdata::resize(nstokes, nummu, num_layers);
 
-    legendre_coef.resize(legendre_rows, 6);
+    legendre_coef.resize(num_legendre);
     set_extinct.resize(nsl);
     set_scatter.resize(nsl);
     scatbuf.resize(nsl, aziorder + 1, 2, nummu, nummu);

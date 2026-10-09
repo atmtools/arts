@@ -228,18 +228,16 @@ constexpr table_row testa_check[] = {
     {.000, 180.0, .96029, {.184590E+00, -.147828E-01, -.235030E-08, .252312E-11}},
 };
 
-Matrix legendre(std::initializer_list<std::array<Numeric, 6>> rows) {
-  Matrix m(static_cast<Index>(rows.size()), 6);
-  Index  l = 0;
-  for (const auto& r : rows) {
-    for (Index k = 0; k < 6; k++) m[l, k] = r[k];
-    l++;
-  }
-  return m;
+//! A series from the rows of an RT3 scattering file, in its column order (F11, F12, F33, F34, F22, F44)
+CompactPlanarMuelmatVector legendre(std::initializer_list<std::array<Numeric, 6>> rows) {
+  CompactPlanarMuelmatVector c(static_cast<Index>(rows.size()));
+  Index                      l = 0;
+  for (const auto& [f11, f12, f33, f34, f22, f44] : rows) c[l++] = {f11, f12, f22, f33, f34, f44};
+  return c;
 }
 
-//! mietest.sca of runmietest and runtesta (columns F11, F12, F33, F34, F22, F44)
-Matrix mie_legendre() {
+//! mietest.sca of runmietest and runtesta
+CompactPlanarMuelmatVector mie_legendre() {
   return legendre({
       {1.00000000, -.32071711, .71206342, -.01882245, 1.00000000, .71206342},
       {1.45529318, -.20350675, 1.76014119, -.04725108, 1.45529318, 1.76014119},
@@ -257,15 +255,18 @@ Matrix mie_legendre() {
 }
 
 //! rayleigh.sca of runtesta
-Matrix rayleigh_legendre() {
+CompactPlanarMuelmatVector rayleigh_legendre() {
   return legendre({{1.0, -0.5, 0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 1.5, 0.0, 0.0, 1.5}, {0.5, 0.5, 0.0, 0.0, 0.5, 0.0}});
 }
 
 //! Henyey-Greenstein F11 = (2 l + 1) g^l to degree nleg; F22 = F11, the rest 0
-Matrix henyey_greenstein(Numeric g, Index nleg) {
-  Matrix m(nleg + 1, 6, 0.0);
-  for (Index l = 0; l <= nleg; l++) m[l, 0] = m[l, 4] = static_cast<Numeric>(2 * l + 1) * std::pow(g, l);
-  return m;
+CompactPlanarMuelmatVector henyey_greenstein(Numeric g, Index nleg) {
+  CompactPlanarMuelmatVector c(nleg + 1);
+  for (Index l = 0; l <= nleg; l++) {
+    const Numeric h = static_cast<Numeric>(2 * l + 1) * std::pow(g, l);
+    c[l]            = {h, 0.0, h, 0.0, 0.0, 0.0};
+  }
+  return c;
 }
 
 //! rt3.f USER_INPUT turns the solar zenith angle into DIRECT_MU with a truncated pi / 180
@@ -1022,14 +1023,14 @@ void test_errors() {
     p.layer_scattering_index[0] = 1;
     rt3::solve(p);
   });
-  expect_throw("legendre with 5 columns", "must have legendre [nleg + 1, 6]", [&] {
+  expect_throw("empty legendre", "must have a legendre series", [&] {
     auto p                        = good();
-    p.scattering_sets[0].legendre = Matrix(3, 5, 0.0);
+    p.scattering_sets[0].legendre = CompactPlanarMuelmatVector{};
     rt3::solve(p);
   });
-  expect_throw("legendre[0, 0] = 0.99", "must be normalised", [&] {
-    auto p                              = good();
-    p.scattering_sets[0].legendre[0, 0] = 0.99;
+  expect_throw("legendre[0].F11() = 0.99", "must be normalised", [&] {
+    auto p                                 = good();
+    p.scattering_sets[0].legendre[0].F11() = 0.99;
     rt3::solve(p);
   });
   expect_throw("delta-M with f = 1", "divides by 1 - f", [&] {

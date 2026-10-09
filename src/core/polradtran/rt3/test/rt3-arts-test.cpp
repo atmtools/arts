@@ -74,14 +74,15 @@ void test_rayleigh() {
   const auto atm     = air(7e4, 250.0);
   const auto sigma   = cross_section * number_density(atm.pressure, atm.temperature);
 
-  const std::array<std::array<Numeric, 6>, 3> ref{
-      {{1.0, -0.5, 0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 1.5, 0.0, 0.0, 1.5}, {0.5, 0.5, 0.0, 0.0, 0.5, 0.0}}};
+  // rayleigh.sca, {F11, F12, F22, F33, F34, F44}
+  const std::array<CompactPlanarMuelmat, 3> ref{
+      {{1.0, -0.5, 1.0, 0.0, 0.0, 0.0}, {0.0, 0.0, 0.0, 1.5, 0.0, 1.5}, {0.5, 0.5, 0.5, 0.0, 0.0, 0.0}}};
   for (const Index degree : {2, 6}) {
     const auto s = rt3::scattering_optics(species, atm, 89e9, degree, 1e-12);
-    require(s.legendre.shape() == (std::array<Index, 2>{degree + 1, 6}), "B1: legendre shape");
+    require(s.legendre.size() == static_cast<Size>(degree + 1), "B1: legendre size");
     Numeric d = 0.0;
     for (Index l = 0; l <= degree; l++)
-      for (Index k = 0; k < 6; k++) d = std::max(d, std::abs(s.legendre[l, k] - (l < 3 ? ref[l][k] : 0.0)));
+      for (Index k = 0; k < 6; k++) d = std::max(d, std::abs(s.legendre[l].data[k] - (l < 3 ? ref[l].data[k] : 0.0)));
     const Numeric dk = std::max(std::abs(s.extinction - sigma), std::abs(s.scattering - sigma)) / sigma;
     std::cout << std::format(
         "B1 Rayleigh GasScatterer, degree {}: max |legendre - closed form| {:.1e}; extinction and scattering "
@@ -97,9 +98,10 @@ void test_rayleigh() {
                         dk));
   }
 
-  const auto z = rt3::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, 4, 1e-3);
-  require(z.extinction == 0.0 and z.scattering == 0.0 and z.legendre[0, 0] == 1.0 and
-              stdr::count(z.legendre | by_elem, 0.0) == 5 * 6 - 1,
+  const auto z     = rt3::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, 4, 1e-3);
+  Index      zeros = 0;
+  for (const auto& c : z.legendre) zeros += stdr::count(c.data, 0.0);
+  require(z.extinction == 0.0 and z.scattering == 0.0 and z.legendre[0].F11() == 1.0 and zeros == 5 * 6 - 1,
           "B1: an empty species array must give no scattering and the isotropic series");
   require_error([&] { (void)rt3::scattering_optics(species, atm, 89e9, -1, 1e-3); }, "negative degree");
 }
@@ -190,19 +192,17 @@ void test_mietest() {
 
   const auto s = rt3::scattering_optics(species, atm, frequency, degree, 1e-10);
 
-  // RT3 columns: 0 F11, 1 F12, 2 F33, 3 F34, 4 F22, 5 F44
   Numeric same = 0.0, f34_opposite = 0.0, f34_same = 0.0, spheres = 0.0, tail = 0.0;
   for (Index l = 0; l <= degree; l++) {
-    const bool tabulated = l < static_cast<Index>(evans_table3.size());
-    for (Index k = 0; k < 3; k++)
-      same = std::max(same, std::abs(s.legendre[l, k] - (tabulated ? evans_table3[l][k] : 0.0)));
-    const Numeric p4 = tabulated ? evans_table3[l][3] : 0.0;
-    f34_opposite     = std::max(f34_opposite, std::abs(s.legendre[l, 3] + p4));
-    f34_same         = std::max(f34_same, std::abs(s.legendre[l, 3] - p4));
-    spheres          = std::max(
-        {spheres, std::abs(s.legendre[l, 4] - s.legendre[l, 0]), std::abs(s.legendre[l, 5] - s.legendre[l, 2])});
+    const bool                  tabulated = l < static_cast<Index>(evans_table3.size());
+    const CompactPlanarMuelmat& c         = s.legendre[l];
+    const auto                  table     = [&](Index k) { return tabulated ? evans_table3[l][k] : 0.0; };
+    same = std::max({same, std::abs(c.F11() - table(0)), std::abs(c.F12() - table(1)), std::abs(c.F33() - table(2))});
+    f34_opposite = std::max(f34_opposite, std::abs(c.F34() + table(3)));
+    f34_same     = std::max(f34_same, std::abs(c.F34() - table(3)));
+    spheres      = std::max({spheres, std::abs(c.F22() - c.F11()), std::abs(c.F44() - c.F33())});
     if (not tabulated)
-      for (Index k = 0; k < 6; k++) tail = std::max(tail, std::abs(s.legendre[l, k]));
+      for (const Numeric e : c.data) tail = std::max(tail, std::abs(e));
   }
   constexpr Numeric tol = 6e-9;  // half a unit in the 8th decimal, plus 1e-9 for the radius quadrature
   std::cout << std::format(
@@ -275,7 +275,8 @@ void test_path() {
                                                            3.0);
   const Index              degree = rt3::max_legendre_degree(6, polradtran::quadrature_type::double_gauss);
   require(p.scattering_sets.size() == 2 and p.layer_scattering_index == ArrayOfIndex({0, 1}) and
-              p.scattering_sets[0].legendre.nrows() == degree + 1 and p.thermal and p.direct_flux == 0.0,
+              p.scattering_sets[0].legendre.size() == static_cast<Size>(degree + 1) and p.thermal and
+              p.direct_flux == 0.0,
           "B3: one scattering set per layer, of RT3's maximum degree, thermal and no beam");
 
   Numeric dev = 0.0;
@@ -290,16 +291,16 @@ void test_path() {
   for (Index l = 0; l < 2; l++) {
     const auto a = rt3::scattering_optics(species, d.atm_path[l], 89e9, degree, 1e-3);
     const auto b = rt3::scattering_optics(species, d.atm_path[l + 1], 89e9, degree, 1e-3);
-    if (l == 0) mix = std::max(mix, std::abs(a.legendre[1, 0] - b.legendre[1, 0]));
+    if (l == 0) mix = std::max(mix, std::abs(a.legendre[1].F11() - b.legendre[1].F11()));
     const auto& t = p.scattering_sets[l];
     dev           = std::max({dev,
                               std::abs(t.extinction - 0.5 * (a.extinction + b.extinction)) / t.extinction,
                               std::abs(t.scattering - 0.5 * (a.scattering + b.scattering)) / t.extinction});
-    for (Index i = 0; i <= degree; i++)
-      for (Index k = 0; k < 6; k++)
-        dev = std::max(dev,
-                       std::abs(t.legendre[i, k] - (a.scattering * a.legendre[i, k] + b.scattering * b.legendre[i, k]) /
-                                                       (a.scattering + b.scattering)));
+    for (Index i = 0; i <= degree; i++) {
+      const CompactPlanarMuelmat mean =
+          (a.scattering * a.legendre[i] + b.scattering * b.legendre[i]) / (a.scattering + b.scattering);
+      for (Index k = 0; k < 6; k++) dev = std::max(dev, std::abs(t.legendre[i].data[k] - mean.data[k]));
+    }
   }
   require(dev < 1e-14, std::format("B3: path data and scattering-weighted layer means, deviation {:.1e}", dev));
   require(mix > 0.1, "B3: the level series must differ for the layer mean to be a test");
@@ -308,9 +309,10 @@ void test_path() {
   const rt3::path_settings sd{.nmu = 6, .quad = polradtran::quadrature_type::gauss, .delta_m = true};
   const auto               pd = rt3::problem_from_path(
       d.ray_path, d.atm_path, d.propmat, d.freq_grid, 0, species, sd, polradtran::lambertian_surface{}, 285.0, 3.0);
-  require(pd.scattering_sets[0].legendre.nrows() ==
-              std::max(rt3::max_legendre_degree(6, polradtran::quadrature_type::gauss), Index{12}) + 1,
-          "B3: delta-M degree");
+  require(
+      pd.scattering_sets[0].legendre.size() ==
+          static_cast<Size>(std::max(rt3::max_legendre_degree(6, polradtran::quadrature_type::gauss), Index{12}) + 1),
+      "B3: delta-M degree");
 
   const auto build = [&](const path_data& x) {
     (void)rt3::problem_from_path(

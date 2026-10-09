@@ -48,13 +48,13 @@ species = rayleigh_species()
 atm = air(8e4, 260.0)
 sigma = CROSS_SECTION * atm.pressure / (K_BOLTZMANN * atm.temperature)
 
-# RT3: the Legendre series of Rayleigh scattering, RT3's column order
+# RT3: the Legendre series of Rayleigh scattering, (F11, F12, F22, F33, F34, F44)
 s = A.rt3.scattering_optics(species, atm, FREQ, 2, 1e-12)
 ref = np.array(
     [
-        [1.0, -0.5, 0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 1.5, 0.0, 0.0, 1.5],
-        [0.5, 0.5, 0.0, 0.0, 0.5, 0.0],
+        [1.0, -0.5, 1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.5, 0.0, 1.5],
+        [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],
     ]
 )
 assert np.abs(np.asarray(s.legendre) - ref).max() < 1e-14

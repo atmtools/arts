@@ -121,21 +121,21 @@ Numeric wrapped(Numeric phi) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// Scattering sets (columns F11, F12, F33, F34, F22, F44, as RT3's files)
+// Scattering sets
 //////////////////////////////////////////////////////////////////////////////
 
-Matrix legendre(std::initializer_list<std::array<Numeric, 6>> rows) {
-  Matrix m(isize(rows), 6);
-  Index  l = 0;
-  for (const auto& r : rows) {
-    for (Index k = 0; k < 6; k++) m[l, k] = r[k];
-    l++;
+//! A series from the rows of an RT3 scattering file, in its column order (F11, F12, F33, F34, F22, F44)
+CompactPlanarMuelmatVector legendre(const std::vector<std::array<Numeric, 6>>& rows) {
+  CompactPlanarMuelmatVector c(isize(rows));
+  for (Index l = 0; l < isize(rows); l++) {
+    const auto& [f11, f12, f33, f34, f22, f44] = rows[l];
+    c[l]                                       = {f11, f12, f22, f33, f34, f44};
   }
-  return m;
+  return c;
 }
 
 //! mietest.sca of Evans' runmietest and runtesta (3rdparty/polradtran)
-Matrix mie_legendre() {
+CompactPlanarMuelmatVector mie_legendre() {
   return legendre({
       {1.00000000, -.32071711, .71206342, -.01882245, 1.00000000, .71206342},
       {1.45529318, -.20350675, 1.76014119, -.04725108, 1.45529318, 1.76014119},
@@ -153,35 +153,31 @@ Matrix mie_legendre() {
 }
 
 //! rayleigh.sca of runtesta: F11 = 3/4 (1 + x^2), F12 = -3/4 (1 - x^2), F33 = F44 = 3/2 x
-Matrix rayleigh_legendre() {
+CompactPlanarMuelmatVector rayleigh_legendre() {
   return legendre({{1.0, -0.5, 0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 1.5, 0.0, 0.0, 1.5}, {0.5, 0.5, 0.0, 0.0, 0.5, 0.0}});
 }
 
-//! The first degree + 1 rows of a series
-Matrix truncated(const Matrix& coef, Index degree) {
-  const Index n = std::min(degree + 1, coef.nrows());
-  Matrix      m(n, 6);
-  for (Index l = 0; l < n; l++)
-    for (Index k = 0; k < 6; k++) m[l, k] = coef[l, k];
-  return m;
+//! The first degree + 1 coefficients of a series
+CompactPlanarMuelmatVector truncated(const CompactPlanarMuelmatVector& coef, Index degree) {
+  return CompactPlanarMuelmatVector{coef[Range{0, std::min(degree + 1, isize(coef))}]};
 }
 
-//! The highest row with a non-zero coefficient (0 if none), as rt3::solve strips the series
-Index stripped_degree(const Matrix& coef) {
-  for (Index l = coef.nrows() - 1; l > 0; l--)
-    for (Index k = 0; k < 6; k++)
-      if (coef[l, k] != 0.0) return l;
+//! The highest degree with a non-zero coefficient (0 if none), as rt3::solve strips the series
+Index stripped_degree(const CompactPlanarMuelmatVector& coef) {
+  for (Index l = isize(coef) - 1; l > 0; l--)
+    if (stdr::any_of(coef[l].data, [](Numeric x) { return x != 0.0; })) return l;
   return 0;
 }
 
-//! F(cos Theta) of a series, each element a plain Legendre series (RT3's SUM_LEGENDRE)
-tro_matrix legendre_matrix(const Matrix& coef) {
+//! F(cos Theta) of a series (RT3's SUM_LEGENDRE)
+tro_matrix legendre_matrix(const CompactPlanarMuelmatVector& coef) {
   return [coef](Numeric x) {
-    Vector p(coef.nrows()), sum(6, 0.0);
+    Vector p(isize(coef));
     Legendre::legendre_polynomials(p, x);
-    for (Index l = 0; l < coef.nrows(); l++)
-      for (Index k = 0; k < 6; k++) sum[k] += coef[l, k] * p[l];
-    return tro_elements{.F11 = sum[0], .F12 = sum[1], .F22 = sum[4], .F33 = sum[2], .F34 = sum[3], .F44 = sum[5]};
+    CompactPlanarMuelmat sum{};
+    for (Index l = 0; l < isize(coef); l++) sum += coef[l] * p[l];
+    return tro_elements{
+        .F11 = sum.F11(), .F12 = sum.F12(), .F22 = sum.F22(), .F33 = sum.F33(), .F34 = sum.F34(), .F44 = sum.F44()};
   };
 }
 
@@ -220,10 +216,10 @@ struct setup {
 /* A scattering set as RT3 transports it: trailing zero rows dropped (as
    rt3::solve does), and with delta-M scaled exactly as GET_SCAT_SET
    (radscat3.f), M = 2 nmu:
-     f = legendre[M, 0] / (2 M + 1), k' = (1 - w f) k with w = sigma / k,
+     f = legendre[M].F11() / (2 M + 1), k' = (1 - w f) k with w = sigma / k,
      w' = (1 - f) w / (1 - w f), sigma' = w' k',
-     diagonal (F11, F33, F22, F44): (2 l + 1) (c_l / (2 l + 1) - f) / (1 - f),
-     off-diagonal (F12, F34): (2 l + 1) (c_l / (2 l + 1)) / (1 - f),
+     c_l' = (2 l + 1) (c_l / (2 l + 1) - f id) / (1 - f), so the diagonal
+     (F11, F22, F33, F44) loses f and F12 and F34 are only renormalised,
    for l <= M - 1, then truncated to RT3's NLEGLIM.  rt3::solve rejects a
    problem in which that truncation would drop a non-zero coefficient. */
 rt3::scattering_set transport_set(const rt3::scattering_set& s, const setup& c) {
@@ -232,19 +228,16 @@ rt3::scattering_set transport_set(const rt3::scattering_set& s, const setup& c) 
     return {.extinction = s.extinction, .scattering = s.scattering, .legendre = truncated(s.legendre, nleg)};
 
   const Index   M      = 2 * c.nmu;
-  const Numeric f      = M <= nleg ? s.legendre[M, 0] / static_cast<Numeric>(2 * M + 1) : 0.0;
+  const Numeric f      = M <= nleg ? s.legendre[M].F11() / static_cast<Numeric>(2 * M + 1) : 0.0;
   const Numeric w      = s.scattering / s.extinction;
   const Numeric ext    = (1 - w * f) * s.extinction;
   const Numeric sca    = (1 - f) * w / (1 - w * f) * ext;
   const Index   degree = std::min(M - 1, rt3::max_legendre_degree(c.nmu, polradtran::quadrature_type::double_gauss));
-  Matrix        L(degree + 1, 6, 0.0);
+  CompactPlanarMuelmatVector L(degree + 1);
   for (Index l = 0; l <= degree; l++) {
-    const auto m = static_cast<Numeric>(2 * l + 1);
-    for (Index k = 0; k < 6; k++) {
-      const Numeric x    = l <= nleg ? s.legendre[l, k] : 0.0;
-      const bool    diag = k == 0 or k == 2 or k == 4 or k == 5;
-      L[l, k]            = diag ? m * (x / m - f) / (1 - f) : m * (x / m) / (1 - f);
-    }
+    const auto                 m = static_cast<Numeric>(2 * l + 1);
+    const CompactPlanarMuelmat x = l <= nleg ? s.legendre[l] : CompactPlanarMuelmat{};
+    L[l]                         = m * (x / m - f * CompactPlanarMuelmat::id()) / (1 - f);
   }
   return {.extinction = ext, .scattering = sca, .legendre = std::move(L)};
 }
@@ -420,7 +413,7 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   std::vector<ordinary_modes> diffuse, beam;
   for (const auto& s : T) {
     const auto    F    = legendre_matrix(s.legendre);
-    const Index   nphi = rt3_azimuth_samples(s.legendre.nrows() - 1, c.aziorder);
+    const Index   nphi = rt3_azimuth_samples(isize(s.legendre) - 1, c.aziorder);
     const Numeric sign = mk == mistake::mirrored_azimuth ? -1.0 : 1.0;
     diffuse.push_back(fourier_modes(F, mu, mu, NF, nphi, ns, false, sign));
     beam.push_back(fourier_modes(F, mu, Vector{-c.mu0}, NF, nphi, ns, false, sign));
@@ -1224,26 +1217,24 @@ void test_mistakes() {
    scales k by 1 - omega f, attenuates the beam with the scaled tau, and
    recovers the Mie series.  The Rayleigh set, of degree 2 < M, has f = 0. */
 void test_delta_m() {
-  auto          c   = multilayer(8);
-  const Index   M   = 2 * c.nmu;
-  const Numeric f   = 0.25;
-  const Matrix  mie = mie_legendre();
-  Matrix        peaked(M + 1, 6, 0.0);
+  auto                       c   = multilayer(8);
+  const Index                M   = 2 * c.nmu;
+  const Numeric              f   = 0.25;
+  const auto                 mie = mie_legendre();
+  CompactPlanarMuelmatVector peaked(M + 1);
   for (Index l = 0; l <= M; l++) {
-    const auto w = static_cast<Numeric>(2 * l + 1);
-    for (Index k = 0; k < 6; k++) {
-      const Numeric x    = l < mie.nrows() ? mie[l, k] : 0.0;
-      const bool    diag = k == 0 or k == 2 or k == 4 or k == 5;
-      peaked[l, k]       = (1 - f) * x + (diag ? f * w : 0.0);
-    }
+    const auto                 w = static_cast<Numeric>(2 * l + 1);
+    const CompactPlanarMuelmat x = l < isize(mie) ? mie[l] : CompactPlanarMuelmat{};
+    peaked[l]                    = (1 - f) * x + f * w * CompactPlanarMuelmat::id();
   }
   c.sets[1].legendre = std::move(peaked);
   c.delta_m          = true;
 
   const auto s   = transport_set(c.sets[1], c);
   Numeric    dev = std::abs(s.extinction - (1 - 0.99 * f) * 0.35) / 0.35;
-  for (Index l = 0; l < s.legendre.nrows(); l++)
-    for (Index k = 0; k < 6; k++) dev = std::max(dev, std::abs(s.legendre[l, k] - (l < mie.nrows() ? mie[l, k] : 0.0)));
+  for (Index l = 0; l < isize(s.legendre); l++)
+    for (Index k = 0; k < 6; k++)
+      dev = std::max(dev, std::abs(s.legendre[l].data[k] - (l < isize(mie) ? mie[l].data[k] : 0.0)));
   std::cout << std::format("    R9 scaled set: f = {}, k' = {:.6f}, omega' = {:.6f}; max |scaled - Mie| {:.1e}\n",
                            f,
                            s.extinction,
@@ -1340,11 +1331,8 @@ evans_case read_evans(const std::string& script) {
       require(sc.files.contains(legendre_of.contains(file) ? legendre_of[file] : file),
               std::format("{}: the scattering file {} is not a Legendre series (RT3 format)", script, file));
       const auto f = evans::read_scattering(sc.files.at(legendre_of.contains(file) ? legendre_of[file] : file));
-      Matrix     L(isize(f.legendre), 6);
-      for (Index i = 0; i < L.nrows(); i++)
-        for (Index k = 0; k < 6; k++) L[i, k] = f.legendre[i][k];
       set_of[file] = isize(c.sets);
-      c.sets.push_back({.extinction = f.extinction, .scattering = f.scattering, .legendre = std::move(L)});
+      c.sets.push_back({.extinction = f.extinction, .scattering = f.scattering, .legendre = legendre(f.legendre)});
     }
     c.set_index[l] = set_of[file];
   }
@@ -1392,7 +1380,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
     if (s < 0) continue;
     const auto  T    = transport_set(c.sets[s], c);
     const auto  F    = legendre_matrix(T.legendre);
-    const Index nphi = rt3_azimuth_samples(T.legendre.nrows() - 1, c.aziorder);
+    const Index nphi = rt3_azimuth_samples(isize(T.legendre) - 1, c.aziorder);
     const auto  d    = fourier_modes(F, user, mu, NF, nphi, ns);
     const auto  b    = fourier_modes(F, user, Vector{-c.mu0}, NF, nphi, ns);
     for (Index m = 0; m < NF; m++) {

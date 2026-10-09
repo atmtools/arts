@@ -14,33 +14,33 @@
 #include "radutil3.h"
 
 namespace polradtran::rt3 {
-void radtran(Numeric             max_delta_tau,
-             Index               src_code,
-             quadrature_type     quad_type,
-             bool                delta_m,
-             Numeric             direct_flux,
-             Numeric             direct_mu,
-             ConstTensor5View    surf_reflect,
-             ConstTensor3View    gnd_radiance,
-             ConstTensor3View    direct_reflect,
-             Numeric             sky_temp,
-             Numeric             frequency,
-             ConstVectorView     height,
-             ConstVectorView     temperatures,
-             ConstVectorView     gas_extinct,
-             ConstVectorView     scat_extinct,
-             ConstVectorView     scat_scatter,
-             const ArrayOfIndex& scat_nlegen,
-             ConstTensor3View    scat_coef,
-             const ArrayOfIndex& scatlayers,
-             const ArrayOfIndex& outlevels,
-             ConstVectorView     extra_mu,
-             VectorView          mu_values,
-             MatrixView          up_flux,
-             MatrixView          down_flux,
-             Tensor4View         up_rad,
-             Tensor4View         down_rad,
-             rt3_workdata&       work) {
+void radtran(Numeric                             max_delta_tau,
+             Index                               src_code,
+             quadrature_type                     quad_type,
+             bool                                delta_m,
+             Numeric                             direct_flux,
+             Numeric                             direct_mu,
+             ConstTensor5View                    surf_reflect,
+             ConstTensor3View                    gnd_radiance,
+             ConstTensor3View                    direct_reflect,
+             Numeric                             sky_temp,
+             Numeric                             frequency,
+             ConstVectorView                     height,
+             ConstVectorView                     temperatures,
+             ConstVectorView                     gas_extinct,
+             ConstVectorView                     scat_extinct,
+             ConstVectorView                     scat_scatter,
+             const ArrayOfIndex&                 scat_nlegen,
+             CompactPlanarMuelmatConstMatrixView scat_coef,
+             const ArrayOfIndex&                 scatlayers,
+             const ArrayOfIndex&                 outlevels,
+             ConstVectorView                     extra_mu,
+             VectorView                          mu_values,
+             MatrixView                          up_flux,
+             MatrixView                          down_flux,
+             Tensor4View                         up_rad,
+             Tensor4View                         down_rad,
+             rt3_workdata&                       work) {
   // NSTOKES, NUMMU, AZIORDER, NUM_LAYERS, NSL, LDCOEF and NOUTLEVELS
   const Index nstokes    = up_rad.extent(3);
   const Index nummu      = mu_values.extent(0);
@@ -48,7 +48,7 @@ void radtran(Numeric             max_delta_tau,
   const Index aziorder   = up_rad.extent(1) - 1;
   const Index num_layers = height.extent(0) - 1;
   const Index nsl        = scat_coef.extent(0);
-  const Index ldcoef     = scat_coef.extent(2) == 6 ? scat_coef.extent(1) : 0;
+  const Index ldcoef     = scat_coef.extent(1);
   const Index noutlevels = static_cast<Index>(outlevels.size());
 
   constexpr Numeric pi = Constant::pi, twopi = Constant::two_pi, zero = 0.0;
@@ -71,14 +71,14 @@ void radtran(Numeric             max_delta_tau,
                      temperatures.size(),
                      gas_extinct.size(),
                      scatlayers.size());
-  ARTS_USER_ERROR_IF(scat_extinct.extent(0) != nsl or scat_scatter.extent(0) != nsl or
-                         static_cast<Index>(scat_nlegen.size()) != nsl or (nsl > 0 and scat_coef.extent(2) != 6),
-                     "RADTRAN needs scat_extinct, scat_scatter and scat_nlegen [nsl] and scat_coef [nsl, ldcoef, 6]; "
-                     "got {}, {}, {} and {:B,}",
-                     scat_extinct.size(),
-                     scat_scatter.size(),
-                     scat_nlegen.size(),
-                     scat_coef.shape());
+  ARTS_USER_ERROR_IF(
+      scat_extinct.extent(0) != nsl or scat_scatter.extent(0) != nsl or static_cast<Index>(scat_nlegen.size()) != nsl,
+      "RADTRAN needs scat_extinct, scat_scatter and scat_nlegen [nsl] and scat_coef [nsl, ldcoef]; "
+      "got {}, {}, {} and {:B,}",
+      scat_extinct.size(),
+      scat_scatter.size(),
+      scat_nlegen.size(),
+      scat_coef.shape());
   ARTS_USER_ERROR_IF(stdr::any_of(scat_nlegen, [ldcoef](Index l) { return l < 0 or l + 1 > ldcoef; }),
                      "RADTRAN needs every SCAT_NLEGEN in [0, LDCOEF - 1] = [0, {}]",
                      ldcoef - 1);
@@ -137,33 +137,33 @@ void radtran(Numeric             max_delta_tau,
      and directbuf[SCAT_NUM-1] are the set's parts (see rt3::scattering and
      rt3::direct_scattering); SCATTER_MATRIX (PHASE_FUNCTION to INITIALIZE)
      is [4, nummu, nstokes, nummu, nstokes]. */
-  Index legendre_rows = 2 * nummu;
-  for (Index l : scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
-  work.resize(nstokes, nummu, aziorder, num_layers, nsl, legendre_rows);
-  Vector&         quad_weights      = work.quad_weights;
-  Matrix&         legendre_coef     = work.legendre_coef;
-  Vector&         set_extinct       = work.set_extinct;
-  Vector&         set_scatter       = work.set_scatter;
-  MuelmatTensor5& scatbuf           = work.scatbuf;
-  StokvecTensor4& directbuf         = work.directbuf;
-  ArrayOfIndex&   scat_nums         = work.scat_nums;
-  Vector&         extinctions       = work.extinctions;
-  Vector&         albedos           = work.albedos;
-  Vector&         direct_level_flux = work.direct_level_flux;
-  Tensor5&        scatter_matrix    = work.scatter_matrix;
-  Matrix&         direct_vector     = work.direct_vector;
-  Matrix&         exp_source        = work.exp_source;
-  Matrix&         thermal_vector    = work.thermal_vector;
-  Matrix&         lin_source        = work.lin_source;
-  Tensor3&        reflect1          = work.reflect1;
-  Tensor3&        trans1            = work.trans1;
-  Matrix&         source1           = work.source1;
-  Tensor4&        reflect           = work.reflect;
-  Tensor4&        trans             = work.trans;
-  Tensor3&        source            = work.source;
-  Matrix&         ground_radiance   = work.ground_radiance;
-  Matrix&         direct_radiance   = work.direct_radiance;
-  Matrix&         sky_radiance      = work.sky_radiance;
+  Index num_legendre = 2 * nummu;
+  for (Index l : scat_nlegen) num_legendre = std::max(num_legendre, l + 1);
+  work.resize(nstokes, nummu, aziorder, num_layers, nsl, num_legendre);
+  Vector&                     quad_weights      = work.quad_weights;
+  CompactPlanarMuelmatVector& legendre_coef     = work.legendre_coef;
+  Vector&                     set_extinct       = work.set_extinct;
+  Vector&                     set_scatter       = work.set_scatter;
+  MuelmatTensor5&             scatbuf           = work.scatbuf;
+  StokvecTensor4&             directbuf         = work.directbuf;
+  ArrayOfIndex&               scat_nums         = work.scat_nums;
+  Vector&                     extinctions       = work.extinctions;
+  Vector&                     albedos           = work.albedos;
+  Vector&                     direct_level_flux = work.direct_level_flux;
+  Tensor5&                    scatter_matrix    = work.scatter_matrix;
+  Matrix&                     direct_vector     = work.direct_vector;
+  Matrix&                     exp_source        = work.exp_source;
+  Matrix&                     thermal_vector    = work.thermal_vector;
+  Matrix&                     lin_source        = work.lin_source;
+  Tensor3&                    reflect1          = work.reflect1;
+  Tensor3&                    trans1            = work.trans1;
+  Matrix&                     source1           = work.source1;
+  Tensor4&                    reflect           = work.reflect;
+  Tensor4&                    trans             = work.trans;
+  Tensor3&                    source            = work.source;
+  Matrix&                     ground_radiance   = work.ground_radiance;
+  Matrix&                     direct_radiance   = work.direct_radiance;
+  Matrix&                     sky_radiance      = work.sky_radiance;
 
   // Make the desired quadrature abscissas and weights (ARTS's quadratures,
   // polradtran::get_quadrature); with QUAD_TYPE 'E' the extra angles follow them.

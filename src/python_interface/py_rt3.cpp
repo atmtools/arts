@@ -47,7 +47,10 @@ that would drop a non-zero coefficient.)");
   py::class_<rt3::scattering_set>(rt, "ScatteringSet")
       .def(
           "__init__",
-          [](rt3::scattering_set* s, Numeric extinction, Numeric scattering, const Matrix& legendre) {
+          [](rt3::scattering_set*              s,
+             Numeric                           extinction,
+             Numeric                           scattering,
+             const CompactPlanarMuelmatVector& legendre) {
             new (s) rt3::scattering_set{.extinction = extinction, .scattering = scattering, .legendre = legendre};
           },
           "extinction"_a,
@@ -61,18 +64,20 @@ that would drop a non-zero coefficient.)");
               "Particle scattering coefficient per unit length\n\n.. :class:`float`")
       .def_rw("legendre",
               &rt3::scattering_set::legendre,
-              "[nleg + 1, 6] Legendre coefficients in cos(Theta) of (F11, F12, F33, F34, F22, F44), legendre[0, 0] "
-              "= 1\n\n.. :class:`~pyarts3.arts.Matrix`")
+              "[nleg + 1] Legendre coefficients in cos(Theta) of the scattering-plane phase matrix, "
+              "legendre[0].F11 = 1\n\n.. :class:`~pyarts3.arts.CompactPlanarMuelmatVector`")
       .doc() = R"(Single-scattering properties of a homogeneous particle population.
 
 The scattering-plane phase matrix [[F11, F12, 0, 0], [F12, F22, 0, 0],
-[0, 0, F33, F34], [0, 0, -F34, F44]] with Q = I_par - I_perp, each element a
-plain Legendre series F_c(Theta) = sum_l legendre[l, c] P_l(cos(Theta)) in
-the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
-3: F34, 4: F22, 5: F44.  The coefficients include the factor 2 l + 1
+[0, 0, F33, F34], [0, 0, -F34, F44]] with Q = I_par - I_perp, as a plain
+Legendre series F(Theta) = sum_l legendre[l] P_l(cos(Theta)) of
+:class:`~pyarts3.arts.CompactPlanarMuelmat` coefficients.  As an array,
+``legendre`` is [nleg + 1, 6] in rtepack's element order
+[F11, F12, F22, F33, F34, F44] (RT3's scattering files have
+F11, F12, F33, F34, F22, F44).  The coefficients include the factor 2 l + 1
 (Henyey-Greenstein is (2 l + 1) g^l) and the phase function is normalised to
-1 over 4 pi, legendre[0, 0] = 1.  Rayleigh scattering is
-[[1, -1/2, 0, 0, 1, 0], [0, 0, 3/2, 0, 0, 3/2], [1/2, 1/2, 0, 0, 1/2, 0]].)";
+1 over 4 pi, legendre[0].F11 = 1.  Rayleigh scattering is
+[[1, -1/2, 1, 0, 0, 0], [0, 0, 0, 3/2, 0, 3/2], [1/2, 1/2, 1/2, 0, 0, 0]].)";
 
   auto aoss =
       py::bind_vector<std::vector<rt3::scattering_set>, py::rv_policy::reference_internal>(rt, "ArrayOfScatteringSet");
@@ -253,10 +258,8 @@ and sum_m c_m sin(m phi) for U, V, as rt3.f's OUTPUT_FILE does.)");
 The species give their totally randomly oriented (TRO) Legendre series up to
 ``degree`` themselves (``get_bulk_scattering_properties_tro_spectral``);
 gridded particle data must be converted to a Legendre series first
-(``ParticleHabit.to_tro_spectral_with_report``).  ARTS's elements
-[F11, F12, F22, F33, F34, F44] are reordered to RT3's columns
-(F11, F12, F33, F34, F22, F44) without sign changes, and the series is
-normalised so that ``legendre[0, 0] == 1``.  ``extinction`` is K11 and
+(``ParticleHabit.to_tro_spectral_with_report``).  The series is
+normalised so that ``legendre[0].F11 == 1``.  ``extinction`` is K11 and
 ``scattering`` is K11 - a1; the phase-function integral must match the latter
 to ``normalisation_tolerance`` times the extinction.
 

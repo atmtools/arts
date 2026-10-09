@@ -7,6 +7,7 @@
 #include <rtepack.h>
 
 #include <algorithm>
+#include <concepts>
 
 #include "hpy_numpy.h"
 
@@ -60,14 +61,16 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
   py::implicitly_convertible<nd, matpack::data_t<T, M>>();
   py::implicitly_convertible<const_nd, matpack::data_t<T, M>>();
 
-  c.def(
-      "__init__",
-      [](matpack::data_t<T, M> *y, const matpack::data_t<U, M> &x) {
-        new (y) matpack::data_t<T, M>(x.shape());
-        std::transform(x.elem_begin(), x.elem_end(), y->elem_begin(), [](const U &z) { return T(z); });
-      },
-      "x"_a);
-  py::implicitly_convertible<matpack::data_t<U, M>, matpack::data_t<T, M>>();
+  if constexpr (std::constructible_from<T, U>) {
+    c.def(
+        "__init__",
+        [](matpack::data_t<T, M> *y, const matpack::data_t<U, M> &x) {
+          new (y) matpack::data_t<T, M>(x.shape());
+          std::transform(x.elem_begin(), x.elem_end(), y->elem_begin(), [](const U &z) { return T(z); });
+        },
+        "x"_a);
+    py::implicitly_convertible<matpack::data_t<U, M>, matpack::data_t<T, M>>();
+  }
   c.def(
       "__init__",
       [](matpack::data_t<T, M> *y, const matpack::data_t<U, M + sizeof...(N)> &x) {

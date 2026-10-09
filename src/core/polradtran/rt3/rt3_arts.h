@@ -48,8 +48,8 @@ namespace polradtran::rt3 {
  * Returns:
  *   extinction: K11 of the particles per metre.
  *   scattering: K11 - a1, the extinction minus the absorption.
- *   legendre: [degree + 1, 6], the series c / c_0(F11), in RT3's column order
- *     (F11, F12, F33, F34, F22, F44), so legendre[0, 0] = 1.
+ *   legendre: [degree + 1], the series c / c_0.F11(), so
+ *     legendre[0].F11() = 1.
  *
  * The phase-function integral 4 pi c_0(F11) = 2 pi int F11 dcos(Theta) and
  * the scattering coefficient K11 - a1 must agree to

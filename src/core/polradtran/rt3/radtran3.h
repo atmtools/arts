@@ -54,7 +54,7 @@ namespace polradtran::rt3 {
  *   scat_extinct    [nsl]                  SCAT_EXTINCT
  *   scat_scatter    [nsl]                  SCAT_SCATTER
  *   scat_nlegen     [nsl]                  SCAT_NLEGEN
- *   scat_coef       [nsl, ldcoef, 6]       SCAT_COEF(6, LDCOEF, NSL)
+ *   scat_coef       [nsl, ldcoef]          SCAT_COEF(6, LDCOEF, NSL), the Legendre series of each set
  *   scatlayers      [num_layers]           SCATLAYERS, the 1-based set of each layer, 0 for none
  *   outlevels       [noutlevels]           OUTLEVELS, 1 (top) to num_layers + 1 (bottom)
  *   extra_mu        [nuummu]               the extra angles, input, with any quadrature (RADTRAN: gauss only)
@@ -77,31 +77,31 @@ namespace polradtran::rt3 {
  * allocates only where an array grows.  Keep one for repeated calls with
  * the same streams, as over frequency.
  */
-void radtran(Numeric             max_delta_tau,
-             Index               src_code,
-             quadrature_type     quad_type,
-             bool                delta_m,
-             Numeric             direct_flux,
-             Numeric             direct_mu,
-             ConstTensor5View    surf_reflect,
-             ConstTensor3View    gnd_radiance,
-             ConstTensor3View    direct_reflect,
-             Numeric             sky_temp,
-             Numeric             frequency,
-             ConstVectorView     height,
-             ConstVectorView     temperatures,
-             ConstVectorView     gas_extinct,
-             ConstVectorView     scat_extinct,
-             ConstVectorView     scat_scatter,
-             const ArrayOfIndex& scat_nlegen,
-             ConstTensor3View    scat_coef,
-             const ArrayOfIndex& scatlayers,
-             const ArrayOfIndex& outlevels,
-             ConstVectorView     extra_mu,
-             VectorView          mu_values,
-             MatrixView          up_flux,
-             MatrixView          down_flux,
-             Tensor4View         up_rad,
-             Tensor4View         down_rad,
-             rt3_workdata&       work);
+void radtran(Numeric                             max_delta_tau,
+             Index                               src_code,
+             quadrature_type                     quad_type,
+             bool                                delta_m,
+             Numeric                             direct_flux,
+             Numeric                             direct_mu,
+             ConstTensor5View                    surf_reflect,
+             ConstTensor3View                    gnd_radiance,
+             ConstTensor3View                    direct_reflect,
+             Numeric                             sky_temp,
+             Numeric                             frequency,
+             ConstVectorView                     height,
+             ConstVectorView                     temperatures,
+             ConstVectorView                     gas_extinct,
+             ConstVectorView                     scat_extinct,
+             ConstVectorView                     scat_scatter,
+             const ArrayOfIndex&                 scat_nlegen,
+             CompactPlanarMuelmatConstMatrixView scat_coef,
+             const ArrayOfIndex&                 scatlayers,
+             const ArrayOfIndex&                 outlevels,
+             ConstVectorView                     extra_mu,
+             VectorView                          mu_values,
+             MatrixView                          up_flux,
+             MatrixView                          down_flux,
+             Tensor4View                         up_rad,
+             Tensor4View                         down_rad,
+             rt3_workdata&                       work);
 }  // namespace polradtran::rt3

@@ -6,7 +6,6 @@
 #include <polradtran_arts.h>
 
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <memory>
 #include <numeric>
@@ -14,12 +13,9 @@
 
 namespace polradtran::rt3 {
 namespace {
-//! ARTS's compact TRO element of each RT3 column (F11, F12, F33, F34, F22, F44)
-constexpr std::array<Index, 6> arts_element{0, 1, 3, 4, 2, 5};
-
 scattering_set no_scattering(Index degree) {
-  scattering_set s{.extinction = 0.0, .scattering = 0.0, .legendre = Matrix(degree + 1, 6, 0.0)};
-  s.legendre[0, 0] = 1.0;
+  scattering_set s{.extinction = 0.0, .scattering = 0.0, .legendre = CompactPlanarMuelmatVector(degree + 1)};
+  s.legendre[0].F11() = 1.0;
   return s;
 }
 }  // namespace
@@ -41,21 +37,17 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const Numeric extinction = bulk.extinction_matrix[0].A();
   const Numeric scattering = extinction - bulk.absorption_vector[0][0];
 
-  // c_l = a_l sqrt((2 l + 1) / 4 pi), in ARTS's element order; each a_l is the scattering-plane Mueller matrix
-  Matrix c(degree + 1, 6);
+  // c_l = a_l sqrt((2 l + 1) / 4 pi); each a_l is the scattering-plane Mueller matrix
+  CompactPlanarMuelmatVector c(degree + 1);
   for (Index l = 0; l <= degree; l++) {
     const auto&   a = (*bulk.phase_matrix)[0, l];
     const Numeric y = std::sqrt(static_cast<Numeric>(2 * l + 1) / (4.0 * Constant::pi));
-    c[l, 0]         = y * a[0, 0].real();
-    c[l, 1]         = y * a[0, 1].real();
-    c[l, 2]         = y * a[1, 1].real();
-    c[l, 3]         = y * a[2, 2].real();
-    c[l, 4]         = y * a[2, 3].real();
-    c[l, 5]         = y * a[3, 3].real();
+    c[l]            = y * CompactPlanarMuelmat{
+                              a[0, 0].real(), a[0, 1].real(), a[1, 1].real(), a[2, 2].real(), a[2, 3].real(), a[3, 3].real()};
   }
 
   // The scattering coefficient implied by the phase matrix, 2 pi int F11 dx
-  const Numeric phase_integral = 4.0 * Constant::pi * c[0, 0];
+  const Numeric phase_integral = 4.0 * Constant::pi * c[0].F11();
   ARTS_USER_ERROR_IF(not std::isinf(normalisation_tolerance) and
                          not(std::abs(phase_integral - scattering) <= normalisation_tolerance * extinction),
                      "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
@@ -73,10 +65,9 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
     return s;
   }
 
-  scattering_set s{.extinction = extinction, .scattering = scattering, .legendre = Matrix(degree + 1, 6)};
-  for (Index l = 0; l <= degree; l++)
-    for (Index k = 0; k < 6; k++) s.legendre[l, k] = c[l, arts_element[k]] / c[0, 0];
-  return s;
+  const Numeric c0 = c[0].F11();
+  for (auto& cl : c) cl /= c0;
+  return {.extinction = extinction, .scattering = scattering, .legendre = std::move(c)};
 }
 
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
@@ -134,10 +125,9 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                      .legendre   = a.legendre};
     if (s.extinction == 0.0) continue;
     if (a.scattering + b.scattering != 0.0) {
-      s.legendre *= a.scattering / (a.scattering + b.scattering);
-      for (Index i = 0; i <= degree; i++)
-        for (Index k = 0; k < 6; k++)
-          s.legendre[i, k] += b.scattering / (a.scattering + b.scattering) * b.legendre[i, k];
+      const Numeric wa = a.scattering / (a.scattering + b.scattering),
+                    wb = b.scattering / (a.scattering + b.scattering);
+      for (Index i = 0; i <= degree; i++) s.legendre[i] = wa * s.legendre[i] + wb * b.legendre[i];
     }
     p.layer_scattering_index[l] = static_cast<Index>(p.scattering_sets.size());
     p.scattering_sets.push_back(std::move(s));

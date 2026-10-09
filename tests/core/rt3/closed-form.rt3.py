@@ -30,6 +30,12 @@ def heredoc(text, name):
     return text.split(f"cat >{name} <<EOF\n")[1].split("\nEOF")[0]
 
 
+def from_rt3_file(columns):
+    """The [nleg + 1, 6] series of an RT3 scattering file, columns (F11, F12,
+    F33, F34, F22, F44), in rtepack's order (F11, F12, F22, F33, F34, F44)."""
+    return np.asarray(columns)[:, [0, 1, 4, 2, 3, 5]]
+
+
 def planck(f, t):
     """B_nu(T) in W m-2 Hz-1 sr-1."""
     return 2.0 * H * f**3 / C**2 / np.expm1(H * f / (K * t))
@@ -96,7 +102,7 @@ def test_mietest():
     sca = heredoc(text, "mietest.sca").splitlines()
     extinction, scattering = float(sca[0].split()[0]), float(sca[1].split()[0])
     nleg = int(sca[3].split()[0])
-    legendre = np.array(
+    legendre = from_rt3_file(
         [[float(x) for x in line.split()[1:]] for line in sca[4 : 4 + nleg + 1]]
     )
     table = np.array(
@@ -198,11 +204,11 @@ def test_single_scattering():
     phi = 0: exact single scattering, up at the top and down at the bottom.
     The neglected multiple scattering is of relative order tau."""
     tau, mu0, flux = 1e-6, 0.6, 2.5
-    rayleigh = np.array(
+    rayleigh = np.array(  # F11, F12, F22, F33, F34, F44
         [
-            [1.0, -0.5, 0.0, 0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.5, 0.0, 0.0, 1.5],
-            [0.5, 0.5, 0.0, 0.0, 0.5, 0.0],
+            [1.0, -0.5, 1.0, 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.5, 0.0, 1.5],
+            [0.5, 0.5, 0.5, 0.0, 0.0, 0.0],
         ]
     )
     p = rt3.Problem(
@@ -342,7 +348,7 @@ def test_errors():
         layer_scattering_index=[0],
         ground=polradtran.LambertianSurface(0.1),
     )
-    mie = np.array(
+    mie = from_rt3_file(
         [
             [float(x) for x in line.split()[1:]]
             for line in heredoc(RUNMIETEST.read_text(), "mietest.sca").splitlines()[4:]

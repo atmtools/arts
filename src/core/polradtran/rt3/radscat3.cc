@@ -9,40 +9,46 @@
 #include <cmath>
 
 namespace polradtran::rt3 {
-void get_scat_set(bool            delta_m,
-                  Index           nummu,
-                  ConstMatrixView coefin,
-                  Numeric         extin,
-                  Numeric         scatin,
-                  Index&          nlegen,
-                  MatrixView      coef,
-                  Numeric&        extinction,
-                  Numeric&        scatter) {
-  const Index nlegin = coefin.nrows() - 1;
-  const Index nrows  = std::max(nlegin + 1, 2 * nummu);
-  ARTS_USER_ERROR_IF(nummu < 1 or nlegin < 0 or coefin.ncols() != 6 or coef.ncols() != 6 or coef.nrows() < nrows,
-                     "GET_SCAT_SET needs nummu >= 1, coefin [nlegin + 1, 6] and coef [max(nlegin + 1, 2 nummu) or "
-                     "more, 6]; got nummu {}, coefin {:B,} and coef {:B,}",
+CompactPlanarMuelmat delta_m_scaled(const CompactPlanarMuelmat& c, Index l, Numeric f) {
+  const auto k = static_cast<Numeric>(2 * l + 1);
+  return k * (c / k - f * CompactPlanarMuelmat::id()) / (1.0 - f);
+}
+
+void get_scat_set(bool                                delta_m,
+                  Index                               nummu,
+                  CompactPlanarMuelmatConstVectorView coefin,
+                  Numeric                             extin,
+                  Numeric                             scatin,
+                  Index&                              nlegen,
+                  CompactPlanarMuelmatVectorView      coef,
+                  Numeric&                            extinction,
+                  Numeric&                            scatter) {
+  const Index nlegin = static_cast<Index>(coefin.size()) - 1;
+  const Index ncoef  = std::max(nlegin + 1, 2 * nummu);
+  ARTS_USER_ERROR_IF(nummu < 1 or nlegin < 0 or static_cast<Index>(coef.size()) < ncoef,
+                     "GET_SCAT_SET needs nummu >= 1, coefin [nlegin + 1] and coef [max(nlegin + 1, 2 nummu) or "
+                     "more]; got nummu {}, coefin [{}] and coef [{}]",
                      nummu,
-                     coefin.shape(),
-                     coef.shape());
+                     coefin.size(),
+                     coef.size());
 
   // Copy the set where READ_SCAT_FILE read the file.  With delta_m the
   // scaling below reads coef up to l = 2 nummu even when nlegen + 1 is
-  // smaller; those rows are zero.
+  // smaller; those coefficients are zero.
   extinction                 = extin;
   scatter                    = scatin;
   nlegen                     = nlegin;
-  coef[Range{0, nrows}]      = 0.0;
+  coef[Range{0, ncoef}]      = CompactPlanarMuelmat{};
   coef[Range{0, nlegen + 1}] = coefin;
 
   if (delta_m) {
     const Index m = 2 * nummu;
     Numeric     f = 0.0;
-    if (m + 1 <= nlegen + 1) f = coef[m, 0] / static_cast<Numeric>(2 * m + 1);
+    if (m + 1 <= nlegen + 1) f = coef[m].F11() / static_cast<Numeric>(2 * m + 1);
     ARTS_USER_ERROR_IF(
         not(extinction > 0.0), "Delta-M scaling divides by the extinction, which must be positive, got {}", extinction);
-    ARTS_USER_ERROR_IF(1.0 - f == 0.0, "Delta-M scaling divides by 1 - f, with f = coef[{}, 0] / {} = 1", m, 2 * m + 1);
+    ARTS_USER_ERROR_IF(
+        1.0 - f == 0.0, "Delta-M scaling divides by 1 - f, with f = coef[{}].F11() / {} = 1", m, 2 * m + 1);
     Numeric albedo = scatter / extinction;
     ARTS_USER_ERROR_IF(
         1.0 - albedo * f == 0.0, "Delta-M scaling divides by 1 - albedo f, with albedo {} and f {}", albedo, f);
@@ -50,37 +56,32 @@ void get_scat_set(bool            delta_m,
     albedo     = (1.0 - f) * albedo / (1.0 - albedo * f);
     scatter    = albedo * extinction;
     nlegen     = m - 1;
-    // Scale the diagonal and off-diagonal phase matrix elements differently
-    for (Index l = 0; l <= nlegen; l++) {
-      const auto k = static_cast<Numeric>(2 * l + 1);
-      coef[l, 0]   = k * (coef[l, 0] / k - f) / (1.0 - f);
-      coef[l, 1]   = k * (coef[l, 1] / k) / (1.0 - f);
-      coef[l, 2]   = k * (coef[l, 2] / k - f) / (1.0 - f);
-      coef[l, 3]   = k * (coef[l, 3] / k) / (1.0 - f);
-      coef[l, 4]   = k * (coef[l, 4] / k - f) / (1.0 - f);
-      coef[l, 5]   = k * (coef[l, 5] / k - f) / (1.0 - f);
-    }
+    for (Index l = 0; l <= nlegen; l++) coef[l] = delta_m_scaled(coef[l], l, f);
   }
 }
 
-CompactPlanarMuelmat sum_legendre(ConstMatrixView coef, Numeric x, Index nstokes, rt3_workdata& work) {
-  const Index nlegen = coef.nrows() - 1;
-  ARTS_USER_ERROR_IF(nlegen < 0 or coef.ncols() != 6 or nstokes < 1 or nstokes > 4,
-                     "SUM_LEGENDRE needs coef [nlegen + 1, 6] and 1 to 4 Stokes parameters; got {:B,} and {}",
-                     coef.shape(),
+CompactPlanarMuelmat sum_legendre(CompactPlanarMuelmatConstVectorView coef,
+                                  Numeric                             x,
+                                  Index                               nstokes,
+                                  rt3_workdata&                       work) {
+  const Index nlegen = static_cast<Index>(coef.size()) - 1;
+  ARTS_USER_ERROR_IF(nlegen < 0 or nstokes < 1 or nstokes > 4,
+                     "SUM_LEGENDRE needs coef [nlegen + 1] and 1 to 4 Stokes parameters; got [{}] and {}",
+                     coef.size(),
                      nstokes);
 
   // The Legendre polynomials P_0(x) to P_nlegen(x), for all the series
   Vector& p = work.legendre_p.resize(nlegen + 1);
   Legendre::legendre_polynomials(p, std::clamp(x, -1.0, 1.0));
 
-  // Sum the Legendre series of COEF's F11, F12, F33, F34, F22 and F44, or
-  // F11 alone for the intensity, into ARTS's order by name
-  const Range series{0, nstokes == 1 ? 1 : 6};
-  Vector6     f{};
-  mult(f[series], transpose(coef[joker, series]), p);
-  const auto [f11, f12, f33, f34, f22, f44] = f.data;
-  return {f11, f12, f22, f33, f34, f44};
+  // Sum the Legendre series, or that of F11 alone for the intensity
+  CompactPlanarMuelmat f{};
+  if (nstokes == 1) {
+    for (Index l = 0; l <= nlegen; l++) f.F11() += p[l] * coef[l].F11();
+  } else {
+    for (Index l = 0; l <= nlegen; l++) f += p[l] * coef[l];
+  }
+  return f;
 }
 
 Muelmat rotate_phase_matrix(
@@ -226,28 +227,27 @@ Muelmat combine_phase_modes(Index m, Numeric tmp, MuelmatConstVectorView basis_m
   return out;
 }
 
-void scattering(ConstVectorView    mu_values,
-                ConstVectorView    quad_weights,
-                ConstMatrixView    legendre_coef,
-                Index              nstokes,
-                MuelmatTensor4View scatbuf,
-                rt3_workdata&      work) {
+void scattering(ConstVectorView                     mu_values,
+                ConstVectorView                     quad_weights,
+                CompactPlanarMuelmatConstVectorView legendre_coef,
+                Index                               nstokes,
+                MuelmatTensor4View                  scatbuf,
+                rt3_workdata&                       work) {
   using Constant::two_pi;
 
   const Index nummu       = mu_values.size();
   const Index aziorder    = scatbuf.extent(0) - 1;
-  const Index numlegendre = legendre_coef.nrows() - 1;
-  ARTS_USER_ERROR_IF(
-      nummu < 1 or quad_weights.size() != mu_values.size() or numlegendre < 0 or legendre_coef.ncols() != 6 or
-          nstokes < 1 or nstokes > 4 or aziorder < 0 or
-          scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}),
-      "SCATTERING needs mu_values and quad_weights [nummu], legendre_coef [numlegendre + 1, 6], 1 to 4 Stokes "
-      "parameters and scatbuf [aziorder + 1, 2, nummu, nummu]; got {}, {}, {:B,}, {} and {:B,}",
-      mu_values.size(),
-      quad_weights.size(),
-      legendre_coef.shape(),
-      nstokes,
-      scatbuf.shape());
+  const Index numlegendre = static_cast<Index>(legendre_coef.size()) - 1;
+  ARTS_USER_ERROR_IF(nummu < 1 or quad_weights.size() != mu_values.size() or numlegendre < 0 or nstokes < 1 or
+                         nstokes > 4 or aziorder < 0 or
+                         scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}),
+                     "SCATTERING needs mu_values and quad_weights [nummu], legendre_coef [numlegendre + 1], 1 to 4 "
+                     "Stokes parameters and scatbuf [aziorder + 1, 2, nummu, nummu]; got {}, {}, [{}], {} and {:B,}",
+                     mu_values.size(),
+                     quad_weights.size(),
+                     legendre_coef.size(),
+                     nstokes,
+                     scatbuf.shape());
 
   Index numpts =
       2 * (Index{1} << static_cast<Index>(std::log(static_cast<Numeric>(numlegendre + 4)) / std::log(2.0) + 1.0));
@@ -286,23 +286,23 @@ void scattering(ConstVectorView    mu_values,
   }
 }
 
-void direct_scattering(ConstVectorView    mu_values,
-                       ConstMatrixView    legendre_coef,
-                       Numeric            direct_mu,
-                       Index              nstokes,
-                       StokvecTensor3View directbuf,
-                       rt3_workdata&      work) {
+void direct_scattering(ConstVectorView                     mu_values,
+                       CompactPlanarMuelmatConstVectorView legendre_coef,
+                       Numeric                             direct_mu,
+                       Index                               nstokes,
+                       StokvecTensor3View                  directbuf,
+                       rt3_workdata&                       work) {
   using Constant::two_pi;
 
   const Index nummu       = mu_values.size();
   const Index aziorder    = directbuf.extent(0) - 1;
-  const Index numlegendre = legendre_coef.nrows() - 1;
-  ARTS_USER_ERROR_IF(nummu < 1 or numlegendre < 0 or legendre_coef.ncols() != 6 or nstokes < 1 or nstokes > 4 or
-                         aziorder < 0 or directbuf.shape() != (std::array<Index, 3>{aziorder + 1, 2, nummu}),
-                     "DIRECT_SCATTERING needs mu_values [nummu], legendre_coef [numlegendre + 1, 6], 1 to 4 Stokes "
-                     "parameters and directbuf [aziorder + 1, 2, nummu]; got {}, {:B,}, {} and {:B,}",
+  const Index numlegendre = static_cast<Index>(legendre_coef.size()) - 1;
+  ARTS_USER_ERROR_IF(nummu < 1 or numlegendre < 0 or nstokes < 1 or nstokes > 4 or aziorder < 0 or
+                         directbuf.shape() != (std::array<Index, 3>{aziorder + 1, 2, nummu}),
+                     "DIRECT_SCATTERING needs mu_values [nummu], legendre_coef [numlegendre + 1], 1 to 4 Stokes "
+                     "parameters and directbuf [aziorder + 1, 2, nummu]; got {}, [{}], {} and {:B,}",
                      mu_values.size(),
-                     legendre_coef.shape(),
+                     legendre_coef.size(),
                      nstokes,
                      directbuf.shape());
   ARTS_USER_ERROR_IF(

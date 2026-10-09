@@ -23,38 +23,44 @@
    transformed; the rest is 0.  The counts are not passed; they are the
    extents of the arrays. */
 namespace polradtran::rt3 {
+/** Coefficient l of a delta-M scaled Legendre series, as GET_SCAT_SET
+ * scales it: the forward peak, f times the identity, is removed from the
+ * normalised coefficient c / (2 l + 1) and the rest renormalised,
+ * (2 l + 1) (c / (2 l + 1) - f id) / (1 - f).  So the diagonal elements
+ * (F11, F22, F33, F44) lose f and F12 and F34 are only renormalised.
+ */
+CompactPlanarMuelmat delta_m_scaled(const CompactPlanarMuelmat& c, Index l, Numeric f);
+
 /** GET_SCAT_SET: one scattering set as RADTRAN uses it (READ_SCAT_FILE of
  * Evans' RT3, which read it from a file).  It returns the degree of the
  * Legendre series, the extinction, the scattering coefficient and the
- * Legendre coefficients of the six unique elements of the phase matrix
- * (F11, F12, F33, F34, F22, F44, each including the factor 2 l + 1).
+ * Legendre coefficients of the phase matrix (each including the factor
+ * 2 l + 1).
  *
  * With delta_m, the extinction, the single scattering albedo and the
- * series are delta-M scaled with f = coefin[M, 0] / (2 M + 1), M = 2 nummu
- * (f = 0 for a shorter series), and the series is truncated to degree
- * M - 1: the diagonal elements (F11, F33, F22, F44) become
- * (2 l + 1) (c / (2 l + 1) - f) / (1 - f) and the others
- * (2 l + 1) (c / (2 l + 1)) / (1 - f).  nummu counts all of RADTRAN's
- * angles, the extra ones included.
+ * series are delta-M scaled (delta_m_scaled) with
+ * f = coefin[M].F11() / (2 M + 1), M = 2 nummu (f = 0 for a shorter
+ * series), and the series is truncated to degree M - 1.  nummu counts all
+ * of RADTRAN's angles, the extra ones included.
  *
- *   coefin  [nlegin + 1, 6]                    COEFIN(6, NLEGIN+1), the set's series
- *   coef    [max(nlegin + 1, 2 nummu) or more, 6]
- *                                              COEF(6, *), output: the rows to
- *                                              max(nlegin + 1, 2 nummu) are written,
- *                                              zero beyond the series
+ *   coefin  [nlegin + 1]                    COEFIN(6, NLEGIN+1), the set's series
+ *   coef    [max(nlegin + 1, 2 nummu) or more]
+ *                                           COEF(6, *), output: the coefficients to
+ *                                           max(nlegin + 1, 2 nummu) are written,
+ *                                           zero beyond the series
  *
  * Throws where the scaling divides by zero: delta_m with an extinction
  * that is not positive, 1 - f = 0 or 1 - albedo f = 0.
  */
-void get_scat_set(bool            delta_m,
-                  Index           nummu,
-                  ConstMatrixView coefin,
-                  Numeric         extin,
-                  Numeric         scatin,
-                  Index&          nlegen,
-                  MatrixView      coef,
-                  Numeric&        extinction,
-                  Numeric&        scatter);
+void get_scat_set(bool                                delta_m,
+                  Index                               nummu,
+                  CompactPlanarMuelmatConstVectorView coefin,
+                  Numeric                             extin,
+                  Numeric                             scatin,
+                  Index&                              nlegen,
+                  CompactPlanarMuelmatVectorView      coef,
+                  Numeric&                            extinction,
+                  Numeric&                            scatter);
 
 /** GET_SCATTERING: azimuth mode `mode` of the scattering matrix of one
  * set, from its part of SCATBUF (of scattering).  The scattering matrix is
@@ -106,10 +112,10 @@ void scatter_symmetry(Tensor5View scat);
 void get_direct(Index mode, StokvecConstTensor3View directbuf, Tensor3View direct_vector);
 
 /** SUM_LEGENDRE: the phase matrix in the scattering plane at x, the cosine
- * of the scattering angle, from the Legendre series of the six independent
- * elements of randomly oriented particles with a plane of symmetry, coef's
- * F11, F12, F33, F34, F22 and F44 (Evans' order; the result has them by
- * name).  For one Stokes parameter only F11 is summed; the rest is 0.  This is
+ * of the scattering angle, from its Legendre series,
+ * F(x) = sum_l coef[l] P_l(x), for randomly oriented particles with a plane
+ * of symmetry.  For one Stokes parameter only F11 is summed; the rest is 0.
+ * This is
  * NUMBER_SUMS's choice where it matters: it skipped F34 for 2 and 3 Stokes
  * parameters, where the rotation does not mix it into the leading 3 x 3,
  * and took F22 and F44 from F11 and F33 when the series were equal.
@@ -120,9 +126,12 @@ void get_direct(Index mode, StokvecConstTensor3View directbuf, Tensor3View direc
  * the cosine of a scattering angle computed from the directions, it can
  * round to just outside.
  *
- *   coef  [nlegen + 1, 6]  COEF(6, NLEGEN+1)
+ *   coef  [nlegen + 1]  COEF(6, NLEGEN+1)
  */
-CompactPlanarMuelmat sum_legendre(ConstMatrixView coef, Numeric x, Index nstokes, rt3_workdata& work);
+CompactPlanarMuelmat sum_legendre(CompactPlanarMuelmatConstVectorView coef,
+                                  Numeric                             x,
+                                  Index                               nstokes,
+                                  rt3_workdata&                       work);
 
 /** ROTATE_PHASE_MATRIX: the phase matrix in the meridional planes of the
  * two directions, from that in the scattering plane (of sum_legendre): its
@@ -200,7 +209,7 @@ Muelmat combine_phase_modes(Index m, Numeric tmp, MuelmatConstVectorView basis_m
  * Only the leading nstokes of each vector are made; the rest is 0.
  *
  *   mu_values      [nummu]                  MU_VALUES
- *   legendre_coef  [numlegendre + 1, 6]     LEGENDRE_COEF(6, NUMLEGENDRE+1)
+ *   legendre_coef  [numlegendre + 1]        LEGENDRE_COEF(6, NUMLEGENDRE+1)
  *   directbuf      [aziorder + 1, 2, nummu] output, the set's part of DIRECTBUF: [m, l, j] for the
  *                                           outgoing mu = +-mu_values[j] (+ for l = 0)
  *
@@ -210,12 +219,12 @@ Muelmat combine_phase_modes(Index m, Numeric tmp, MuelmatConstVectorView basis_m
  * work's scat_matrix and basis_matrix, which it sizes; work.fft is the
  * state of the FFT (fft1dr).
  */
-void direct_scattering(ConstVectorView    mu_values,
-                       ConstMatrixView    legendre_coef,
-                       Numeric            direct_mu,
-                       Index              nstokes,
-                       StokvecTensor3View directbuf,
-                       rt3_workdata&      work);
+void direct_scattering(ConstVectorView                     mu_values,
+                       CompactPlanarMuelmatConstVectorView legendre_coef,
+                       Numeric                             direct_mu,
+                       Index                               nstokes,
+                       StokvecTensor3View                  directbuf,
+                       rt3_workdata&                       work);
 
 /** SCATTERING: the polarized scattering matrices of one scattering set for
  * every azimuth mode.  For each pair of quadrature angles (incoming and
@@ -230,7 +239,7 @@ void direct_scattering(ConstVectorView    mu_values,
  *
  *   mu_values      [nummu]                         MU_VALUES
  *   quad_weights   [nummu]                         QUAD_WEIGHTS
- *   legendre_coef  [numlegendre + 1, 6]            LEGENDRE_COEF(6, NUMLEGENDRE+1)
+ *   legendre_coef  [numlegendre + 1]               LEGENDRE_COEF(6, NUMLEGENDRE+1)
  *   scatbuf        [aziorder + 1, 2, nummu, nummu] output, the set's part of SCATBUF: [m, l, j1, j2] is
  *                                                  the matrix of record
  *                                                  M*2*NUMMU**2 + (L-1)*NUMMU**2 + (J1-1)*NUMMU + J2,
@@ -245,10 +254,10 @@ void direct_scattering(ConstVectorView    mu_values,
  * SCAT_MATRIX and BASIS_MATRIX are work's scat_matrix and basis_matrix,
  * which it sizes; work.fft is the state of the FFT (fft1dr).
  */
-void scattering(ConstVectorView    mu_values,
-                ConstVectorView    quad_weights,
-                ConstMatrixView    legendre_coef,
-                Index              nstokes,
-                MuelmatTensor4View scatbuf,
-                rt3_workdata&      work);
+void scattering(ConstVectorView                     mu_values,
+                ConstVectorView                     quad_weights,
+                CompactPlanarMuelmatConstVectorView legendre_coef,
+                Index                               nstokes,
+                MuelmatTensor4View                  scatbuf,
+                rt3_workdata&                       work);
 }  // namespace polradtran::rt3

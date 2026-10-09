@@ -91,36 +91,48 @@ Provenance
     doubling, where the inverse is ill-conditioned.
   * All of ``radscat3.f`` is C++ (``src/core/polradtran/rt3/radscat3.h``, with the FFT
     in ``rt3_fft.h``); it calls no Fortran and keeps no static state.  The counts are the extents of their
-    arrays, and the 4 x 4 phase matrices keep the Fortran layout (element
-    (r, c) is ``[c - 1, r - 1]``), viewed ``[nstokes, nstokes]``:
+    arrays.  A Legendre series is a ``CompactPlanarMuelmatVector``, each
+    coefficient the six elements of a scattering-plane phase matrix by name
+    (not in the column order of RT3's files), the phase matrix in the
+    scattering plane is a ``CompactPlanarMuelmat``, and the phase matrices in
+    the meridional planes are ``Muelmat`` (element (r, c) of the Fortran
+    matrix is ``[r - 1, c - 1]``), of which only the leading
+    ``nstokes x nstokes`` is transformed (the rest is 0):
 
     * ``rt3::get_scat_set`` (``GET_SCAT_SET``) throws where the delta-M
       scaling divides by zero (an extinction that is not positive,
       ``1 - f = 0`` or ``1 - albedo f = 0``), where the Fortran returned NaN
-      or infinity.
+      or infinity.  Its delta-M scaling of a coefficient is
+      ``rt3::delta_m_scaled``, which ``rt3::solve`` also uses to check the
+      scaled series.
     * ``rt3::scattering`` (``SCATTERING``) writes the part of ``SCATBUF`` of
-      one set, a ``[aziorder + 1, 2, nummu, nummu, nstokes, nstokes]``
-      tensor, each mode straight into it.  The Fortran's limits (``FFT1DR``
+      one set, a ``MuelmatTensor4 [aziorder + 1, 2, nummu, nummu]``, each
+      mode straight into it.  The Fortran's limits (``FFT1DR``
       took at most 512 azimuths, ``FOURIER_MATRIX`` 1024) were the sizes of
       its buffers, which the port does not have.
     * ``rt3::direct_scattering`` (``DIRECT_SCATTERING``) writes the part of
-      ``DIRECTBUF`` of one set, ``[aziorder + 1, 2, nummu, nstokes]``: the
+      ``DIRECTBUF`` of one set, a ``StokvecTensor3 [aziorder + 1, 2, nummu]``: the
       first column of each mode of the phase matrix from the sun's
       direction (the cosine modes of I and Q, the sine modes of U and V).
       The Fortran's limit of 512 azimuths and modes is not the port's.
-    * ``rt3::get_scattering`` (``GET_SCATTERING``) copies one mode of a
-      set's ``SCATBUF`` part into ``SCATTER_MATRIX``
+    * ``rt3::get_scattering`` (``GET_SCATTERING``) copies the leading
+      ``nstokes x nstokes`` of one mode of a set's ``SCATBUF`` part into
+      ``SCATTER_MATRIX``
       (``[4, nummu, nstokes, nummu, nstokes]``), and
       ``rt3::scatter_symmetry`` (``SCATTER_SYMMETRY``) makes P-- and P-+
       from it, copying the diagonal 2 x 2 Stokes blocks and negating the
       others.
-    * ``rt3::get_direct`` (``GET_DIRECT``) copies one mode of a set's
-      ``DIRECTBUF`` part, ``[2, nummu, nstokes]``.
+    * ``rt3::get_direct`` (``GET_DIRECT``) copies the leading ``nstokes`` of
+      one mode of a set's ``DIRECTBUF`` part, ``[2, nummu, nstokes]``.
     * ``rt3::check_norm`` (``RT3_CHECK_NORM``) throws where the Fortran
       stopped (the I-I term not integrating to 1 within 1e-7), and also for
       NaN, which the Fortran let pass.
-    * ``rt3::number_sums`` (``NUMBER_SUMS``) returns ``DOSUM``.
-    * ``rt3::sum_legendre`` (``SUM_LEGENDRE``) sums with ARTS's Legendre
+    * ``rt3::sum_legendre`` (``SUM_LEGENDRE``) sums the series of compact
+      matrices, or that of F11 alone for nstokes 1.  That is ``NUMBER_SUMS``'s
+      choice where it matters (it also skipped F34 for nstokes 2 and 3, which
+      the rotation does not mix into the leading 3 x 3, and took F22 and F44
+      from F11 and F33 when they were equal), so ``NUMBER_SUMS`` is gone.  It
+      sums with ARTS's Legendre
       polynomials (``Legendre::legendre_polynomials``, Boost's recurrence),
       the generator of every Legendre series in ARTS, made once for all
       six series where RT3 ran its own recurrence for each.  Against
@@ -131,16 +143,18 @@ Provenance
       rounding (one ulp at 1 moves P_1023 by 1e-10).  Against the Fortran
       it agrees to 1.1e-16 of the largest value; the 148 capture problems
       changed by at most 1.1e-15 of the m = 0 I.
-    * ``rt3::rotate_phase_matrix`` (``ROTATE_PHASE_MATRIX``).
-    * ``rt3::matrix_symmetry`` (``MATRIX_SYMMETRY``) copies and negates
-      2 x 2 blocks, also in place, as ``SCATTERING`` calls it at
-      delphi = pi.
+    * ``rt3::rotate_phase_matrix`` (``ROTATE_PHASE_MATRIX``) finds RT3's
+      rotation angles and rotates the compact matrix with
+      ``rtepack::rotated``, the closed form of the two Stokes rotations
+      around it.
+    * ``MATRIX_SYMMETRY``, which negates the off-diagonal 2 x 2 blocks, is
+      ``rtepack::mirror``.
     * ``rt3::fourier_matrix`` and ``rt3::fourier_basis`` (``FOURIER_MATRIX``,
       ``FOURIER_BASIS``, with ``rt3::fourier_direction`` in place of the
       sign of ``DIRECTION``); the basis order is passed, as the basis has
-      ``order + 1`` or ``2 order + 1`` elements.
+      ``order + 1`` or ``2 order + 1`` elements, and so is nstokes.
     * ``rt3::combine_phase_modes`` (``COMBINE_PHASE_MODES``): its
-      ``SINFLAG`` table is the block structure of ``MATRIX_SYMMETRY``.
+      ``SINFLAG`` table is the block structure of ``rtepack::mirror``.
 
   * ``RT3_THERMAL_RADIANCE`` is ``polradtran::thermal_radiance``
     (``src/core/polradtran/radutil.h``, shared with RT4), with ARTS's
@@ -452,7 +466,7 @@ and the grounds it shares with RT4 in ``polradtran.h``, namespace
 
   // rt3.h, namespace polradtran::rt3
   Index max_legendre_degree(Index nmu, quadrature_type type);    // RT3's NLEGLIM
-  struct scattering_set { Numeric extinction; Numeric scattering; Matrix legendre; };  // [nleg + 1, 6]
+  struct scattering_set { Numeric extinction; Numeric scattering; CompactPlanarMuelmatVector legendre; };  // [nleg + 1]
   using surface = std::variant<lambertian_surface, fresnel_surface>;
   struct problem {
     Index nstokes{4}; Index nmu{8}; quadrature_type quad{quadrature_type::gauss};
@@ -503,9 +517,9 @@ normalisation_tolerance=1e-3)``, ``PathSettings(...)`` and
   from pyarts3 import arts
 
   rt3 = arts.rt3
-  rayleigh = np.array([[1.0, -0.5, 0.0, 0.0, 1.0, 0.0],    # F11 F12 F33 F34 F22 F44, l = 0
-                       [0.0, 0.0, 1.5, 0.0, 0.0, 1.5],     # l = 1
-                       [0.5, 0.5, 0.0, 0.0, 0.5, 0.0]])    # l = 2
+  rayleigh = np.array([[1.0, -0.5, 1.0, 0.0, 0.0, 0.0],    # F11 F12 F22 F33 F34 F44, l = 0
+                       [0.0, 0.0, 0.0, 1.5, 0.0, 1.5],     # l = 1
+                       [0.5, 0.5, 0.5, 0.0, 0.0, 0.0]])    # l = 2
   p = rt3.Problem(nstokes=4, nmu=8, aziorder=2,
                   direct_flux=1.0, direct_mu=0.6, thermal=False,
                   frequency=6e14,
@@ -605,7 +619,7 @@ Conventions
   length.  The gas extinction is added per layer; it is scalar and
   unpolarized.  The single-scattering albedo of a layer is
   ``scattering / (extinction + gas)``.
-* ``legendre[l, c]`` is ``[nleg + 1, 6]``: the scattering-plane phase matrix
+* ``legendre`` is ``[nleg + 1]``: the scattering-plane phase matrix
 
   ::
 
@@ -614,23 +628,24 @@ Conventions
      [  0,   0, F33, F34],
      [  0,   0, -F34, F44]]
 
-  with each element a plain Legendre series in cos(Theta),
-  ``F_c = sum_l legendre[l, c] P_l(cos(Theta))``, and the columns in the
-  order of RT3's scattering files: c = 0 F11, 1 F12, 2 F33, 3 F34, 4 F22,
-  5 F44 (``SUM_LEGENDRE`` in ``radscat3.f``).
+  as a plain Legendre series in cos(Theta),
+  ``F = sum_l legendre[l] P_l(cos(Theta))``, each coefficient a
+  ``CompactPlanarMuelmat`` with its elements by name.  As an array (in
+  Python) it is ``[nleg + 1, 6]`` in rtepack's order F11, F12, F22, F33,
+  F34, F44; RT3's scattering files have the columns F11, F12, F33, F34,
+  F22, F44, and must be reordered.
 * The basis is that of the scattering plane with Q = I_par - I_perp, so
   Rayleigh scattering has F12 = -3/4 sin^2(Theta) (the ``rayleigh`` array
   in the example).  The coefficients include the factor 2 l + 1
   (Henyey-Greenstein is ``(2 l + 1) g^l``), and the phase function is
-  normalised to 1 over 4 pi: ``legendre[0, 0]`` must be 1.
-* RT3 sums F22 and F44 only when they differ from F11 and F33 for some l,
-  F34 only for nstokes 4, and only F11 for nstokes 1.  Trailing all-zero
-  rows are dropped before the call.
+  normalised to 1 over 4 pi: ``legendre[0].F11()`` must be 1.
+* RT3 sums only F11 for nstokes 1.  Trailing all-zero coefficients are
+  dropped before the call.
 * With ``delta_m``, every set is scaled with M = 2 nmu_total (including the
-  extra angles, because RT3 passes its NUMMU): f = legendre[M, 0] / (2 M +
-  1), extinction (1 - omega f) k, albedo (1 - f) omega / (1 - omega f),
-  diagonal series ``(2 l + 1) (c_l / (2 l + 1) - f) / (1 - f)``,
-  off-diagonal (F12, F34) ``c_l / (1 - f)``, degree M - 1.  The beam is
+  extra angles, because RT3 passes its NUMMU): f = legendre[M].F11() /
+  (2 M + 1), extinction (1 - omega f) k, albedo (1 - f) omega / (1 - omega f),
+  series ``(2 l + 1) (c_l / (2 l + 1) - f id) / (1 - f)`` with ``id`` the
+  identity (so F12 and F34 become ``c_l / (1 - f)``), degree M - 1.  The beam is
   attenuated with the scaled extinction.  There is no correction of the
   radiances for the truncated peak.
 
@@ -657,8 +672,9 @@ Conventions
   ``R4 = Im(r_v r_h*)``; emission ``[(1 - R1) B, -R2 B, 0, 0]``.  Without a
   beam the field is azimuthally symmetric, so R3 and R4 never act.
 
-**Fortran buffers** (for maintainers): ``SCAT_COEF(6, LDCOEF, set)`` is the
-row-major ``legendre`` of each set; ``SCATLAYERS`` is the 1-based set or 0;
+**Fortran buffers** (for maintainers): ``SCAT_COEF(6, LDCOEF, set)`` is a
+``CompactPlanarMuelmatMatrix [set, LDCOEF]`` that the ``legendre`` of each
+set leads; ``SCATLAYERS`` is the 1-based set or 0;
 ``OUTLEVELS`` lists every level; ``UP_RAD``/``DOWN_RAD(s, mu, m, level)`` is
 exactly the row-major ``[level, m, mu, s]`` of the result, and
 ``UP_FLUX``/``DOWN_FLUX(s, level)`` the row-major ``[level, s]``.  For the
@@ -684,9 +700,8 @@ atmospheric point:
   ``n >= 3`` for degree 2); otherwise it has the error of the rule, and the
   series is the truncation of F at ``degree``.  Particle habits interpolate F
   linearly from their own (ascending) scattering-angle grid to the nodes.
-* ARTS's elements ``[F11, F12, F22, F33, F34, F44]`` are reordered to RT3's
-  columns (F11, F12, F33, F34, F22, F44) without any sign change, and the
-  series is normalised by ``c_0(F11)`` so that ``legendre[0, 0] = 1``.
+* The elements are ARTS's, by name, without any sign change, and the series
+  is normalised by ``c_0.F11()`` so that ``legendre[0].F11() = 1``.
 * ``extinction`` is K11 and ``scattering`` is K11 - a1, per metre.  The
   phase-function integral ``4 pi c_0(F11)`` must equal K11 - a1 to
   ``normalisation_tolerance`` times K11, otherwise it is an error: RT3
@@ -772,10 +787,10 @@ Limitations
   2 nmu_total - 1,
   ``delta_m`` with ``double_gauss`` (nmu >= 2), or with ``gauss`` and nmu or
   more extra angles, is rejected unless the scaled series vanishes there.
-* **Normalisation.** ``legendre[0, 0]`` must be 1 to 1e-9 after delta-M
+* **Normalisation.** ``legendre[0].F11()`` must be 1 to 1e-9 after delta-M
   scaling.  RT3's ``CHECK_NORM`` stops the process when the discrete
   normalisation is off by more than 1e-7; for a series within NLEGLIM that
-  discrete normalisation equals ``legendre[0, 0] - 1`` up to round-off.
+  discrete normalisation equals ``legendre[0].F11() - 1`` up to round-off.
 * **No array limits.** Every array is sized to the problem.  The Fortran's
   static arrays limited N = nstokes * nmu_total to 64, the layers and the
   scattering sets to 200 each, the scattering-matrix, direct-beam and
