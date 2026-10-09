@@ -1291,6 +1291,8 @@ std::string EnumeratedOption::head() const {
     }
   }
 
+  if (values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + name); }
+
   [*this]() {
     std::vector<std::string> all;
     all.reserve(values_and_desc.size() * (values_and_desc.front().size()));
@@ -1306,7 +1308,6 @@ std::string EnumeratedOption::head() const {
     }
   }();
 
-  if (values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + name); }
   const auto n = values_and_desc.front().size();
 
   if (n < 2) {
