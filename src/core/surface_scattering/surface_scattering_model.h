@@ -8,6 +8,7 @@
 #include <xml_io_stream.h>
 #include <xml_io_stream_variant.h>
 
+#include <cstdint>
 #include <format>
 #include <map>
 #include <stdexcept>
@@ -46,10 +47,10 @@ using FlatScalarSurfaceScattererField = surface_scattering::FlatScalarSurfaceSca
 /** Named map of surface scattering models.
  *
  * Models are stored by name for later individual lookup, and their bulk
- * surface scattering properties are accumulated in insertion order when
- * get_surface_scattering_model_properties() is called.
- * Mirrors ArrayOfScatteringSpecies but uses a named std::map instead of a
- * plain vector, matching the plan for MapOfSurfaceScatteringModel.
+ * surface scattering properties are accumulated over the models with
+ * per-model weights derived from the *SurfacePropertyTag* masks of the
+ * SurfacePoint (iteration follows std::map key order).  See Weighting for
+ * how the masks become model weights.
  */
 struct MapOfSurfaceScatteringModel {
   std::map<std::string, surface_scattering::SurfaceScatteringModel> models;
@@ -69,10 +70,17 @@ struct MapOfSurfaceScatteringModel {
                                          const Vector& za_scat_grid,
                                          const Vector& aa_scat_grid) const;
 
-  // weigthing options for combining multiple models
+  // Weighting options for combining multiple models.  The raw per-model
+  // weights are the SurfacePoint mask values under the model's name key
+  // (missing key -> 0); masks must be non-negative.
   enum class Weighting : std::uint8_t  {
-    Maximum,  // Take the maximum value across models for each BRDF/emissivity element
-    Average,  // Take the average value across models for each BRDF/emissivity element
+    /// Winner takes all: the model(s) with the largest mask value get weight
+    /// 1 (split equally on ties), all others 0.  All-zero masks give every
+    /// model weight 1/N.
+    Maximum,
+    /// Mask-weighted average: weights are the raw mask values normalized to
+    /// sum 1.  All-zero masks give all-zero weights (no scattering).
+    Average,
   };
   Weighting weighting_option = Weighting::Maximum;
 

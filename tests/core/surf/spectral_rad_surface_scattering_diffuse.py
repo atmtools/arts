@@ -15,6 +15,8 @@ Verifies:
 5. Kirchhoff coupling: perfect reflector (r = 1) emits nothing and reflects
    no thermal radiation, so it produces far less radiance than the absorber
 6. Jacobian shape: correct dimensions when jac_targets is non-empty
+7. Unusable sun position (latitude outside [-90, 90]) -> user error
+8. Weight/grid size mismatch -> user error
 """
 
 import numpy as np
@@ -32,6 +34,16 @@ def planck(f, T):
     c = constants.c
     k_B = constants.k
     return (2 * h * f**3 / c**2) / (np.exp(h * f / (k_B * T)) - 1)
+
+
+def make_sun(latitude, longitude, distance=1.496e11, radius=6.957e8):
+    """Create a Sun at the given sky position (geodetic lat/lon from planet center)."""
+    sun = arts.Sun()
+    sun.distance = distance
+    sun.radius = radius
+    sun.latitude = latitude
+    sun.longitude = longitude
+    return sun
 
 
 def setup_workspace_base(freq_grid, nza=5, za_max=85.0):
@@ -375,6 +387,80 @@ def test_spectral_rad_surface_scattering_diffuse_jacobian():
 
 
 # ============================================================================
+# Test 7: Unusable sun position is a user error
+# ============================================================================
+def test_spectral_rad_surface_scattering_diffuse_unusable_sun():
+    """A sun that cannot be placed in the sky of the planet is rejected.
+
+    The exclude_suns gate calls hit_sun directly, so malformed sun positions
+    must be rejected by the ArrayOfSun workspace invariant before the method
+    body runs -- otherwise they reach the sph2cart assertions inside hit_sun.
+    """
+    freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
+    add_surface_mask(ws, "lambertian")
+    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+
+    unusable_suns = [make_sun(100.0, 0.0),
+                     make_sun(0.0, 400.0),
+                     make_sun(0.0, 0.0, distance=-1.0),
+                     make_sun(0.0, 0.0, radius=-1.0)]
+
+    for sun in unusable_suns:
+        ws.suns = [sun]
+        ws.spectral_radSurfaceScatteringInit()
+        try:
+            ws.spectral_radSurfaceScatteringDiffuse(exclude_suns=1)
+        except RuntimeError as error:
+            assert "placed in the sky of the planet" in str(error), \
+                f"Unexpected error for sun ({sun.latitude}, {sun.longitude}):\n{error}"
+        else:
+            raise AssertionError(
+                f"Unusable sun ({sun.latitude}, {sun.longitude}, "
+                f"{sun.distance}, {sun.radius}) was accepted")
+
+    print("Test 7 passed: unusable sun positions raise a user error")
+
+
+# ============================================================================
+# Test 8: Weight/grid size mismatch is a user error
+# ============================================================================
+def test_spectral_rad_surface_scattering_diffuse_weight_mismatch():
+    """zen/az grid weights must be given per quadrature angle."""
+    freq_grid = [10e9, 100e9, 183e9]
+    ws = setup_workspace_base(freq_grid)
+    add_surface_mask(ws, "lambertian")
+    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+
+    ws.zen_grid = arts.ZenGrid([0.0, 45.0])
+    ws.az_grid = arts.AziGrid([0.0])
+    ws.zen_grid_weights = arts.Vector([1.0])          # one entry too few
+    ws.az_grid_weights = arts.Vector([1.0])
+
+    ws.spectral_radSurfaceScatteringInit()
+    try:
+        ws.spectral_radSurfaceScatteringDiffuse()
+    except RuntimeError as error:
+        assert "zen_grid_weights" in str(error), \
+            f"Unexpected error message:\n{error}"
+    else:
+        raise AssertionError("Weight/grid size mismatch was accepted")
+
+    ws.zen_grid_weights = arts.Vector([1.0, 1.0])
+    ws.az_grid_weights = arts.Vector([1.0, 1.0])      # one entry too many
+    ws.spectral_radSurfaceScatteringInit()
+    try:
+        ws.spectral_radSurfaceScatteringDiffuse()
+    except RuntimeError as error:
+        assert "az_grid_weights" in str(error), \
+            f"Unexpected error message:\n{error}"
+    else:
+        raise AssertionError("Weight/grid size mismatch was accepted")
+
+    print("Test 8 passed: weight/grid size mismatch raises a user error")
+
+
+# ============================================================================
 # Main
 # ============================================================================
 if __name__ == "__main__":
@@ -384,4 +470,6 @@ if __name__ == "__main__":
     test_spectral_rad_surface_scattering_diffuse_absorbing()
     test_spectral_rad_surface_scattering_diffuse_reflector()
     test_spectral_rad_surface_scattering_diffuse_jacobian()
+    test_spectral_rad_surface_scattering_diffuse_unusable_sun()
+    test_spectral_rad_surface_scattering_diffuse_weight_mismatch()
     print("\nAll tests passed!")

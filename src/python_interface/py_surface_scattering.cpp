@@ -64,6 +64,10 @@ they are clamped when the BRDF is computed.
 
 .. :class:`SortedGriddedField1`
 )")
+      .def_rw(
+          "interp_extrapolation",
+          &LambertianSurfaceScatterer::interp_extrapolation,
+          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`class-information`")
       .def(
           "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScatterer& self,
@@ -571,9 +575,12 @@ remain zero.
   // Weighting enum for combining multiple models
   py::enum_<MapOfSurfaceScatteringModel::Weighting>(mossm, "Weighting")
       .value("Maximum", MapOfSurfaceScatteringModel::Weighting::Maximum,
-             "Take the maximum value across models for each BRDF/emissivity element")
+             "Winner takes all: the model(s) with the largest surface mask value at the\n"
+             "point get weight 1 (split equally on ties), all others 0.  All-zero masks\n"
+             "give every model weight 1/N.")
       .value("Average", MapOfSurfaceScatteringModel::Weighting::Average,
-             "Take the average value across models for each BRDF/emissivity element");
+             "Mask-weighted average: model weights are the surface mask values normalized\n"
+             "to sum 1.  All-zero masks give all-zero weights (no scattering).");
 
 } catch (std::exception& e) {
   throw std::runtime_error(

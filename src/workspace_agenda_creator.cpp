@@ -171,8 +171,10 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
       agenda.add("spectral_radSurfaceScatteringInit");
       agenda.add("spectral_radSurfaceScatteringDiffuse", SetWsv("exclude_suns", Index{1}));
       agenda.add("spectral_radSurfaceScatteringSpecular", SetWsv("exclude_suns", Index{1}));
-      agenda.add("spectral_radSurfaceScatteringDiffuseDirect");
-      agenda.add("spectral_radSurfaceScatteringSpecularDirect");
+      // The non-Direct methods above already add each channel's sub-surface
+      // emission once; the Direct methods must not add it again
+      agenda.add("spectral_radSurfaceScatteringDiffuseDirect", SetWsv("include_emission", Index{0}));
+      agenda.add("spectral_radSurfaceScatteringSpecularDirect", SetWsv("include_emission", Index{0}));
       break;
     case SurfaceScatteringModelDiffuseOnly:
       agenda.add("spectral_radSurfaceScatteringInit");

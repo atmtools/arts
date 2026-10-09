@@ -9,6 +9,7 @@
 #include <surf.h>
 #include <xml_io_stream.h>
 
+#include "scattering_internal.h"
 #include "surface_scattering_properties.h"
 
 namespace surface_scattering {
@@ -31,7 +32,10 @@ struct FlatScalarSurfaceScatterer {
   SortedGriddedField1 reflectivity_spectrum{};
 
   /// Interpolation and extrapolation method for frequency.
-  /// Controls how values outside the grid domain are handled.
+  /// Linear: unlimited linear extrapolation beyond the stored grid.
+  /// Nearest: values outside the stored grid evaluate to the edge value.
+  /// None: frequencies outside the stored grid are a user error.
+  /// Zero: values outside the stored grid are 0.
   InterpolationExtrapolation interp_extrapolation{
       InterpolationExtrapolation::Nearest};
 
@@ -103,6 +107,7 @@ struct FlatScalarSurfaceScattererField {
     return reflectivity_field;
   }
   void set_reflectivity_field(const SortedGriddedField3& f) {
+    validate_longitude_grid(f.grid<1>());
     reflectivity_field = f;
   }
 

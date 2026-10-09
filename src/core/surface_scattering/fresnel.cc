@@ -11,6 +11,11 @@
 
 namespace {
 
+//! Fold an ARTS zenith angle in [0, 180] onto [0, 90] — the domain where the
+//! Fresnel formulas are physical.  R(180 - za) = R(za) for real indices, so
+//! the fold is exact for the downward hemisphere.
+Numeric za_fold(Numeric za) { return za <= 90.0 ? za : 180.0 - za; }
+
 //! Compute the Fresnel (specular) BRDF and complementary emissivity from a
 //! per-frequency real refractive-index pair (n1 constant, n2 varying).
 //!
@@ -36,7 +41,13 @@ void fresnel_tensors(const Numeric n1,
     const Numeric n2 = n2_data[f];
 
     for (Index zi = 0; zi < nzi; ++zi) {
-      const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_inc_grid[zi]);
+      // ARTS zenith angles span [0, 180]; the Fresnel formulas are defined for
+      // the angle from the surface normal on the illuminated side.  Fold the
+      // downward hemisphere onto the upward one (R(180-za) = R(za)); passing
+      // za > 90 raw inverts the reflectance (R -> 1/R) and blows up near the
+      // conjugate Brewster angle.
+      const Numeric za_eff = za_fold(za_inc_grid[zi]);
+      const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_eff);
       const Muelmat M     = rtepack::fresnel_reflectance(Rv, Rh);
 
       for (Index ai = 0; ai < nai; ++ai)
@@ -47,7 +58,8 @@ void fresnel_tensors(const Numeric n1,
 
     for (Index zs = 0; zs < nzs; ++zs) {
       for (Index as = 0; as < nas; ++as) {
-        const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_scat_grid[zs]);
+        const Numeric za_eff = za_fold(za_scat_grid[zs]);
+        const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_eff);
         const Muelmat M     = rtepack::fresnel_reflectance(Rv, Rh);
         Muelmat E{};
         for (Index r = 0; r < 4; ++r)
@@ -93,14 +105,17 @@ FresnelSurfaceScatterer::get_surface_scattering_model_properties(
       "refractive_index_spectrum frequency grid is empty.");
 
   using id = lagrange_interp::grid_identity;
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+
+  const auto [gmin, gmax] = grid_range(refractive_index_spectrum.grid<0>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "refractive_index_spectrum");
 
   const auto n2_lag = lagrange_interp::make_lags<1, id>(
       refractive_index_spectrum.grid<0>(),
-      f_grid,
-      extrap_limit,
+      f_query,
+      std::numeric_limits<Numeric>::max(),
       "Refractive index frequency grid");
-  const auto n2_data = lagrange_interp::reinterp(refractive_index_spectrum.data, n2_lag);
+  auto n2_data = lagrange_interp::reinterp(refractive_index_spectrum.data, n2_lag);
+  extrap_postprocess(n2_data, f_grid, gmin, gmax, interp_extrapolation);
 
   const Size nf_size = f_grid.size();
   for (Index f = 0; f < Index(nf_size); ++f) {
@@ -193,18 +208,21 @@ FresnelSurfaceScattererField::get_surface_scattering_model_properties(
       "refractive_index_field frequency grid is empty.");
 
   using id = lagrange_interp::grid_identity;
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+
+  const auto [gmin, gmax] = grid_range(refractive_index_field.grid<2>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "refractive_index_field");
 
   const auto lat_lag  = refractive_index_field.grid<0>().lag<1, id>(lat);
   const auto lon_lag  = refractive_index_field.grid<1>().lag<1, lon_cycler>(lon);
   const auto freq_lag = refractive_index_field.grid<2>().lag<1, id>(
-      f_grid, extrap_limit, "Refractive index frequency grid");
+      f_query, std::numeric_limits<Numeric>::max(), "Refractive index frequency grid");
 
   const Index nf = f_grid.size();
   Vector       n2_data(nf);
   for (Index f = 0; f < nf; ++f) {
     n2_data[f] = lagrange_interp::interp(refractive_index_field.data, lat_lag, lon_lag, freq_lag[f]);
   }
+  extrap_postprocess(n2_data, f_grid, gmin, gmax, interp_extrapolation);
   for (Index f = 0; f < nf; ++f) {
     ARTS_USER_ERROR_IF(not (n2_data[f] > 0.0),
                        "Refractive index must be positive, but {} (f={}).",

@@ -32,14 +32,28 @@ Vector MapOfSurfaceScatteringModel::get_raw_weighting(
     }
     i++;
   }
+
+  // Negative masks make the weighting schemes meaningless (Average would
+  // normalize by a possibly non-positive sum, Maximum could pick a negative
+  // mask as the winner)
+  i = 0;
+  for (const auto& [key, model] : models) {
+    ARTS_USER_ERROR_IF(weights[i] < 0.0,
+                       "Surface mask {} is negative ({}) at this point — "
+                       "surface masks must be non-negative.",
+                       key,
+                       weights[i]);
+    ++i;
+  }
+
   return weights;
 }
 
 Vector MapOfSurfaceScatteringModel::maximum_weighting(
     const SurfacePoint& surf_point) const {
   Vector weights = get_raw_weighting(surf_point);
-  // Since we now have the weights, we now set every weight except the maximum to zero and
-  // the maximum to 1
+  // Winner takes all: every weight below the maximum mask value becomes 0,
+  // the maximum one(s) become 1
   Numeric max_weight = *std::max_element(weights.begin(), weights.end());
   for (auto& w : weights) {
     if (w < max_weight) {
@@ -49,8 +63,8 @@ Vector MapOfSurfaceScatteringModel::maximum_weighting(
     }
   }
 
-  // Now we check if the sum of the weights is 1, if not we normalize the weights
-  // This can happen if more then one value has the same value as the maximum
+  // More than one model shares the maximum mask value -> split the weight
+  // equally; all-zero masks leave every model at 1/N
   Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
   if (sum_weights > 1) {
     for (auto& w : weights) {
@@ -64,7 +78,8 @@ Vector MapOfSurfaceScatteringModel::maximum_weighting(
 Vector MapOfSurfaceScatteringModel::average_weighting(
     const SurfacePoint& surf_point) const {
   Vector weights = get_raw_weighting(surf_point);
-  // Since we now have the weights, we now set every weight to the average of the weights
+  // Mask-weighted average: normalize the raw masks to sum 1; an all-zero
+  // mask leaves all weights at 0 (no scattering at this point)
   Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
 
   if (sum_weights > 0) {
@@ -102,7 +117,7 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
 
   const auto visitor = [&](const auto& model)
       -> surface_scattering::SurfaceScatteringModelProperties {
-    if constexpr (requires {
+    static_assert(requires {
                     model.get_surface_scattering_model_properties(surf_point,
                                                                   lat,
                                                                   lon,
@@ -111,20 +126,18 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
                                                                   aa_inc_grid,
                                                                   za_scat_grid,
                                                                   aa_scat_grid);
-                  }) {
-      return model.get_surface_scattering_model_properties(surf_point,
-                                                           lat,
-                                                           lon,
-                                                           f_grid,
-                                                           za_inc_grid,
-                                                           aa_inc_grid,
-                                                           za_scat_grid,
-                                                           aa_scat_grid);
-    } else {
-      throw std::runtime_error(std::format(
-          "Method not implemented for surface scattering model:\n{:N}", model));
-    }
-    std::unreachable();
+                  },
+                  "Every surface scattering model variant member must implement "
+                  "get_surface_scattering_model_properties");
+
+    return model.get_surface_scattering_model_properties(surf_point,
+                                                         lat,
+                                                         lon,
+                                                         f_grid,
+                                                         za_inc_grid,
+                                                         aa_inc_grid,
+                                                         za_scat_grid,
+                                                         aa_scat_grid);
   };
 
   // Now we need the weighting according to weighting_option
@@ -154,6 +167,16 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     i++;
   }
   return bsp;
+}
+
+surface_scattering::SurfaceScatteringModelProperties&
+surface_scattering::SurfaceScatteringModelProperties::operator+=(
+    const surface_scattering::SurfaceScatteringModelProperties& other) {
+  brdf_matrix_diffuse += other.brdf_matrix_diffuse;
+  emissivity_vector_diffuse += other.emissivity_vector_diffuse;
+  brdf_matrix_specular += other.brdf_matrix_specular;
+  emissivity_vector_specular += other.emissivity_vector_specular;
+  return *this;
 }
 
 surface_scattering::SurfaceScatteringModelProperties&

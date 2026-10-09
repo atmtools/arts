@@ -6,5 +6,5 @@ add_library(surface_scattering STATIC
 )
 
 target_include_directories(surface_scattering PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(surface_scattering PUBLIC matpack surface physics)
+target_link_libraries(surface_scattering PUBLIC matpack surface physics rtepack)
 

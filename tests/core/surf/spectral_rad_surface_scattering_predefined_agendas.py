@@ -9,9 +9,10 @@ The options chain the *spectral_radSurfaceScattering* methods:
 Verifies:
 1. Each option builds with the exact expected method chain
 2. Each option executes in a workspace with a blended model, a sun, and a quadrature point
-3. radiance(DiffuseOnly) + radiance(DirectOnly) == radiance(SurfaceScatteringModel),
+3. radiance(DiffuseOnly) + radiance(DirectOnly) - emission == radiance(SurfaceScatteringModel),
    and the same for spectral_rad_jac -- with the sun placed outside every traced
    direction, because the full option gates sun-containing directions (exclude_suns)
+   and runs the Direct methods with include_emission = 0 (single emission)
 4. With no suns the DirectOnly option returns only surface emission
 """
 
@@ -104,7 +105,7 @@ def test_options_execute():
 # Test 3: DiffuseOnly + DirectOnly == SurfaceScatteringModel
 # ============================================================================
 def test_options_sum_identity():
-    """The full option must equal the sum of the two half options.
+    """The full option must equal the sum of the two half options minus emission.
 
     The sun is placed at 45 deg, outside every traced direction (the single
     up-looking quadrature point and the zenith mirror/glint direction).  With
@@ -112,6 +113,12 @@ def test_options_sum_identity():
     exclude_suns = 1 and drops those directions, so the identity would no
     longer hold -- that difference *is* the sun de-duplication, pinned by
     tests/core/surf/spectral_rad_surface_scattering_sun_double_count.py.
+
+    The full option runs the Direct methods with include_emission = 0, so it
+    carries the sub-surface emission exactly once while DiffuseOnly and
+    DirectOnly each carry it once.  The emission is isolated by running
+    DirectOnly without suns, which is pure emission -- the full option equals
+    DiffuseOnly + DirectOnly minus that.
     """
     freq_grid = [10e9, 100e9, 183e9]
     suns = [make_sun(45.0, 0.0)]
@@ -119,23 +126,25 @@ def test_options_sum_identity():
     rad_full, jac_full = run_option(freq_grid, "SurfaceScatteringModel", suns, with_jac=True)
     rad_diffuse, jac_diffuse = run_option(freq_grid, "SurfaceScatteringModelDiffuseOnly", suns, with_jac=True)
     rad_direct, jac_direct = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", suns, with_jac=True)
+    rad_emis, jac_emis = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", [], with_jac=True)
 
     assert jac_full.shape == jac_diffuse.shape == jac_direct.shape, (
         f"Jacobian shape mismatch: {jac_full.shape}, {jac_diffuse.shape}, {jac_direct.shape}"
     )
     assert jac_full.shape[0] > 0, "Expected a non-empty jacobian with a surface target"
+    assert np.all(rad_emis[:, 0] > 0.0), f"DirectOnly without suns must be pure emission:\n{rad_emis}"
 
-    expected = rad_diffuse + rad_direct
+    expected = rad_diffuse + rad_direct - rad_emis
     assert np.allclose(rad_full, expected, rtol=1e-10, atol=0.0), (
         f"Option sum identity violated for spectral_rad:\n  full     = {rad_full}\n  expected = {expected}"
     )
 
-    expected_jac = jac_diffuse + jac_direct
+    expected_jac = jac_diffuse + jac_direct - jac_emis
     assert np.allclose(jac_full, expected_jac, rtol=1e-10, atol=0.0), (
         f"Option sum identity violated for spectral_rad_jac:\n  full     = {jac_full}\n  expected = {expected_jac}"
     )
 
-    print("Test 3 passed: DiffuseOnly + DirectOnly equals SurfaceScatteringModel for rad and jac")
+    print("Test 3 passed: full equals DiffuseOnly + DirectOnly minus the single emission")
 
 
 # ============================================================================

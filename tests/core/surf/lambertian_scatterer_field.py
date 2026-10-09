@@ -170,4 +170,50 @@ assert not np.all(brdf_bulk == 0.0), "Bulk BRDF should be non-zero"
 print("Test 5 passed: MapOfSurfaceScatteringModel accepts new type")
 
 
+# ---------------------------------------------------------------------------
+# Test 6: Full 4x4 Mueller structure — all non-[0,0] elements must be zero.
+# Regression test for the muelmat identity-default bug: a default-constructed
+# Muelmat is the identity, which leaked reflectance/emissivity 1 into the
+# Q/U/V channels.
+# ---------------------------------------------------------------------------
+r_test = 0.5
+spec1d_t6 = arts.SortedGriddedField1(
+    name="spectrum", grid_names=["Frequency"], grids=[[1e10, 1e12]],
+    data=[r_test, r_test],
+)
+sc_t6 = arts.LambertianSurfaceScatterer(spec1d_t6)
+
+za_inc_t6  = arts.Vector([0.0, 45.0, 90.0])
+aa_inc_t6  = arts.Vector([0.0, 180.0])
+za_scat_t6 = arts.Vector([30.0, 90.0])
+aa_scat_t6 = arts.Vector([-90.0, 90.0])
+
+for sc, label in [(sc_t6, "LambertianSurfaceScatterer"),
+                  (sc_field, "LambertianSurfaceScattererField")]:
+    props_t6 = sc.get_surface_scattering_model_properties(
+        surf_pt, 30.0, 45.0, f_grid, za_inc_t6, aa_inc_t6, za_scat_t6, aa_scat_t6)
+
+    brdf_t6  = np.array(props_t6.brdf_matrix_diffuse)
+    emiss_t6 = np.array(props_t6.emissivity_vector_diffuse)
+    brdf_sp  = np.array(props_t6.brdf_matrix_specular)
+    emiss_sp = np.array(props_t6.emissivity_vector_specular)
+
+    r_eff = r_test if sc is sc_t6 else r_uniform  # sc_field is the uniform 0.3 field
+
+    expected_brdf  = np.zeros(brdf_t6.shape)
+    expected_brdf[..., 0, 0] = r_eff
+    expected_emiss = np.zeros(emiss_t6.shape)
+    expected_emiss[..., 0, 0] = 1.0 - r_eff
+
+    assert np.allclose(brdf_t6, expected_brdf, atol=1e-12), (
+        f"{label}: diffuse BRDF not diag(r,0,0,0), max off-diag = "
+        f"{np.max(np.abs(brdf_t6 - expected_brdf)):.2e}")
+    assert np.allclose(emiss_t6, expected_emiss, atol=1e-12), (
+        f"{label}: diffuse emissivity not diag(1-r,0,0,0), max off-diag = "
+        f"{np.max(np.abs(emiss_t6 - expected_emiss)):.2e}")
+    assert np.all(brdf_sp == 0.0), f"{label}: specular BRDF must be zero"
+    assert np.all(emiss_sp == 0.0), f"{label}: specular emissivity must be zero"
+print("Test 6 passed: full Mueller structure diag(r,0,0,0) / diag(1-r,0,0,0)")
+
+
 print("\nAll LambertianSurfaceScattererField tests passed.")

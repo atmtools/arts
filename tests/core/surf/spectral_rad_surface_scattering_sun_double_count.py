@@ -24,7 +24,7 @@ Verifies:
 5. Diffuse de-duplication in the full chain: with r = 1 the full option equals
    the DirectOnly option exactly
 6. No regression when nothing is hit: sun at 45 deg, exclude_suns = 0 and 1 give
-   identical results, and full == DiffuseOnly + DirectOnly still holds
+   identical results, and full == DiffuseOnly + DirectOnly - emission holds
 7. Jacobian sanity: with a surface target and eps = 0 models the jacobian keeps
    its shape and is exactly zero
 
@@ -210,7 +210,7 @@ def test_specular_gate_closed_form():
         f"exclude_suns=1 must drop the reflected term and keep the emission:\n  got      = {rad_out[:, 0]}\n  expected = {expected_out}"
     )
 
-    assert np.all(rad_out[:, 1:] == 0.0) and np.all(rad_out[:, 1:] == 0.0), "Stokes Q/U/V must stay zero"
+    assert np.all(rad_out[:, 1:] == 0.0), "Stokes Q/U/V must stay zero"
 
     print("Test 1 passed: specular gate switches the reflected term on and off")
 
@@ -221,8 +221,8 @@ def test_specular_gate_closed_form():
 def test_specular_gate_no_emission():
     """R = 1 (eps = 0): exclude_suns = 1 must give exactly zero radiance.
 
-    This isolates the sun double count from the emission double count of the
-    full chain option (the emission term is identically zero here).
+    This isolates the sun double count from the emission term (which is
+    identically zero here).
     """
     freq_grid = [10e9, 100e9, 183e9]
 
@@ -320,14 +320,18 @@ def test_no_gate_effect_when_sun_not_hit():
     """Sun at 45 deg: the gate must not change anything.
 
     Neither the up-looking quadrature direction nor the zenith mirror direction
-    contains the sun, so exclude_suns = 0 and 1 agree, and the additivity
-    identity full == DiffuseOnly + DirectOnly still holds for both model types.
+    contains the sun, so exclude_suns = 0 and 1 agree.  The full option runs the
+    Direct methods with include_emission = 0, so it carries the sub-surface
+    emission once while DiffuseOnly and DirectOnly each carry it once -- the
+    additivity identity full == DiffuseOnly + DirectOnly - emission holds for
+    both model types.
     """
     freq_grid = [10e9, 100e9, 183e9]
     suns = [make_sun(45.0, 0.0)]
+    r = 0.5
 
-    for tag_key, models in [("flat_scalar", flat_scalar_models(freq_grid, 0.5)),
-                            ("lambertian", lambertian_models(freq_grid, 0.5))]:
+    for tag_key, models in [("flat_scalar", flat_scalar_models(freq_grid, r)),
+                            ("lambertian", lambertian_models(freq_grid, r))]:
         method = "Specular" if tag_key == "flat_scalar" else "Diffuse"
         rad_off = run_method(freq_grid, method, models, tag_key, 0, suns=suns)
         rad_on = run_method(freq_grid, method, models, tag_key, 1, suns=suns)
@@ -338,13 +342,16 @@ def test_no_gate_effect_when_sun_not_hit():
         rad_full, jac_full = run_option(freq_grid, "SurfaceScatteringModel", models, tag_key, suns=suns)
         rad_diffuse, jac_diffuse = run_option(freq_grid, "SurfaceScatteringModelDiffuseOnly", models, tag_key, suns=suns)
         rad_direct, jac_direct = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", models, tag_key, suns=suns)
+        # DirectOnly without suns is pure sub-surface emission -- the exact term
+        # the full option removes from the Direct methods via include_emission = 0
+        rad_emis, _ = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", models, tag_key, suns=[])
 
-        expected = rad_diffuse + rad_direct
+        expected = rad_diffuse + rad_direct - rad_emis
         assert np.allclose(rad_full, expected, rtol=1e-10, atol=0.0), (
-            f"{tag_key}: full != DiffuseOnly + DirectOnly with the sun off-axis:\n  full     = {rad_full[:, 0]}\n  expected = {expected[:, 0]}"
+            f"{tag_key}: full != DiffuseOnly + DirectOnly - emission with the sun off-axis:\n  full     = {rad_full[:, 0]}\n  expected = {expected[:, 0]}"
         )
 
-    print("Test 6 passed: gate inert and additivity intact when no direction hits the sun")
+    print("Test 6 passed: gate inert and emission-corrected additivity intact when no direction hits the sun")
 
 
 # ============================================================================

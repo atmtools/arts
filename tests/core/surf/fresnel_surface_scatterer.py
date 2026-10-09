@@ -229,4 +229,35 @@ brdf_bulk = np.array(bulk.brdf_matrix_specular)
 assert not np.all(brdf_bulk == 0.0), "Bulk specular BRDF should be non-zero"
 print("Test 7 passed: MapOfSurfaceScatteringModel accepts new types")
 
+# ---------------------------------------------------------------------------
+# Test 8: za > 90 must fold onto 180 - za (regression test for the raw-angle
+# bug: R(180-za) = 1/R(za) if passed unfolded — e.g. za=127 blew up to ~2e6
+# and za=180 gave R ~ 50 instead of ~ 0.02).
+# ---------------------------------------------------------------------------
+za_down = arts.Vector([91.0, 127.0, 180.0])
+za_fold = arts.Vector([89.0, 53.0, 0.0])
+props_d8 = sc.get_surface_scattering_model_properties(
+    surf_pt, 0.0, 0.0, f_grid, za_down, aa_inc, za_down, aa_scat)
+props_f8 = sc.get_surface_scattering_model_properties(
+    surf_pt, 0.0, 0.0, f_grid, za_fold, aa_inc, za_fold, aa_scat)
+
+brdf_d8 = np.array(props_d8.brdf_matrix_specular)
+brdf_f8 = np.array(props_f8.brdf_matrix_specular)
+emiss_d8 = np.array(props_d8.emissivity_vector_specular)
+emiss_f8 = np.array(props_f8.emissivity_vector_specular)
+
+assert np.allclose(brdf_d8, brdf_f8, atol=1e-12), (
+    "BRDF at za>90 must equal BRDF at 180-za")
+assert np.allclose(emiss_d8, emiss_f8, atol=1e-12), (
+    "Emissivity at za>90 must equal emissivity at 180-za")
+
+# Closed-form sanity: za=180 -> same as za=0 -> R = ((n1-n2)/(n1+n2))^2
+R_normal = ((n1 - n2_water) / (n1 + n2_water)) ** 2
+assert abs(float(brdf_d8[0, 2, 0, 2, 0, 0, 0]) - R_normal) < 1e-12, (
+    f"za=180 BRDF[0,0] = {float(brdf_d8[0, 2, 0, 2, 0, 0, 0])}, expected {R_normal}")
+assert abs(float(emiss_d8[0, 2, 0, 0, 0]) - (1.0 - R_normal)) < 1e-12, (
+    "za=180 emissivity must be 1 - R_normal, never negative")
+assert np.all(emiss_d8[..., 0, 0] >= 0.0), "Fresnel emissivity must never be negative"
+print("Test 8 passed: za>90 folds onto 180-za")
+
 print("\nAll FresnelSurfaceScatterer tests passed.")

@@ -12,8 +12,8 @@ Verifies:
 4. Chaining Diffuse + DiffuseDirect adds radiance and jacobian
 5. Chaining a specular method onto a pure diffuse model leaves the diffuse
    result untouched
-6. A hand-written chain can set exclude_suns through the agenda decorator and
-   then counts the sun exactly once
+6. A hand-written chain can set exclude_suns and include_emission through the
+   agenda decorator and then counts the sun and the emission exactly once
 """
 
 import numpy as np
@@ -354,12 +354,13 @@ def test_chain_specular_on_diffuse_only_model():
 # Test 7: A hand-written chain can gate the sun with exclude_suns
 # ============================================================================
 def test_chain_diffuse_direct_exclude_suns():
-    """The exclude_suns gin must be reachable from user-written agendas.
+    """The exclude_suns and include_emission gins must be reachable from user-written agendas.
 
     With the sun inside the single up-looking quadrature direction, the chain
-    Init + Diffuse(exclude_suns=1) + DiffuseDirect counts the sun exactly once:
-    the scattered term is r*I_CMB, not 2*r*I_CMB.  The emission is still added
-    once per invoked method (the separate emission double count).
+    Init + Diffuse(exclude_suns=1) + DiffuseDirect(include_emission=0) counts the
+    sun exactly once and the emission exactly once: the scattered term is
+    r*I_CMB and the emission (1-r)*B(280 K).  Without include_emission=0 the
+    Direct method adds the emission a second time (the documented default).
     """
     freq_grid = [10e9, 100e9, 183e9]
     suns = [make_sun(0.0, 0.0)]
@@ -377,7 +378,7 @@ def test_chain_diffuse_direct_exclude_suns():
     def spectral_rad_surface_agenda(ws):
         ws.spectral_radSurfaceScatteringInit()
         ws.spectral_radSurfaceScatteringDiffuse(exclude_suns=1)
-        ws.spectral_radSurfaceScatteringDiffuseDirect()
+        ws.spectral_radSurfaceScatteringDiffuseDirect(include_emission=0)
 
     ws.spectral_rad_surface_agendaExecute()
     rad_gated = stokes_array(ws, len(freq_grid))
@@ -393,18 +394,19 @@ def test_chain_diffuse_direct_exclude_suns():
     ws.spectral_rad_surface_agendaExecute()
     rad_ungated = stokes_array(ws, len(freq_grid))
 
-    emission = 2.0 * (1.0 - r) * np.array([planck(f, 280.0) for f in freq_grid])
+    emission = (1.0 - r) * np.array([planck(f, 280.0) for f in freq_grid])
     expected_gated = r * np.array([planck(f, T_CMB) for f in freq_grid]) + emission
-    expected_ungated = 2.0 * r * np.array([planck(f, T_CMB) for f in freq_grid]) + emission
+    expected_ungated = (2.0 * r * np.array([planck(f, T_CMB) for f in freq_grid])
+                        + 2.0 * emission)
 
     assert np.allclose(rad_gated[:, 0], expected_gated, rtol=1e-7, atol=0.0), (
-        f"Gated chain must count the sun once:\n  gated    = {rad_gated[:, 0]}\n  expected = {expected_gated}"
+        f"Gated chain must count the sun and the emission once:\n  gated    = {rad_gated[:, 0]}\n  expected = {expected_gated}"
     )
     assert np.allclose(rad_ungated[:, 0], expected_ungated, rtol=1e-7, atol=0.0), (
-        f"Ungated chain must keep the default double count:\n  ungated  = {rad_ungated[:, 0]}\n  expected = {expected_ungated}"
+        f"Ungated chain must keep the default double counts:\n  ungated  = {rad_ungated[:, 0]}\n  expected = {expected_ungated}"
     )
 
-    print("Test 7 passed: hand-written chain with exclude_suns=1 counts the sun once")
+    print("Test 7 passed: hand-written chain with exclude_suns=1 and include_emission=0 counts each term once")
 
 
 if __name__ == "__main__":
