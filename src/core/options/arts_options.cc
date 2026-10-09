@@ -1155,10 +1155,14 @@ std::string add_spaces(const std::string& s, int numspaces) {
 std::string EnumeratedOption::docs() const {
   std::string out;
 
+  if (values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + name); }
+
   const auto n = values_and_desc.front().size();
 
   out += std::format("{}\n\nValid options:\n\n", desc);
   for (auto& v : values_and_desc) {
+    if (v.empty()) { throw std::runtime_error("Empty value for enum class " + name); }
+
     std::string_view x = "- "sv;
     for (auto& s : v | stdv::take(n - 1)) { out += std::format(R"({}``"{}"``)", std::exchange(x, " or "sv), s); }
     out += std::format(":\n  {}\n", add_spaces(v.back(), 2));
@@ -1169,6 +1173,8 @@ std::string EnumeratedOption::docs() const {
 
 std::string EnumeratedOption::tail() const {
   std::string out;
+
+  if (values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + name); }
 
   const auto m = values_and_desc.size();
   const auto n = values_and_desc.front().size();
