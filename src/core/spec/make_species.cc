@@ -53,6 +53,8 @@ inline constexpr std::array Isotopologues{{)");
       done++;
     }
 
+    if (info.code.empty()) { throw std::runtime_error(std::format("Empty isotopologue code for {}", info.name())); }
+
     if (nonstd::isdigit(info.code.front())) {
       std::println(os,
                    R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv, .mass={}, .builtin_ratio={}, .gi={}}},)",
