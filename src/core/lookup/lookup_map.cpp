@@ -254,11 +254,11 @@ void extend_atmosphere(ArrayOfAtmPoint&                 atm,
   }
 
   if (not std::isnan(new_min_pressure)) {
-    ARTS_USER_ERROR_IF(new_max_pressure >= atm.front().pressure,
+    ARTS_USER_ERROR_IF(new_min_pressure >= atm.front().pressure,
                        "The new minimum pressure must be smaller than the "
                        "current minimum pressure: {} >= {}",
                        new_min_pressure,
-                       atm.back().pressure)
+                       atm.front().pressure)
     Atm::extend_in_pressure(atm, new_min_pressure, extrapolation_type);
   }
 }
