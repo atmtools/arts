@@ -18,14 +18,12 @@ Provenance
   (``3rdparty/polradtran/LICENSE``).  RT4 is briefly described in Evans and
   Stephens (1995), J. Atmos. Sci. 52, 2058-2072.  See Evans'
   ``3rdparty/polradtran/README``.
-  All of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``) is in the one
-  folder ``3rdparty/polradtran``, as in the tar: where ARTS modifies a file,
-  the modified file has the tar's name and the tar's file is kept beside it
-  as ``.orig``; every other file (``README``, ``rt3.f``, ``rt4.f``,
-  ``scatcnv.f``, the four test scripts and ``cl340d14.dda``) is unchanged.
-  ``README.ARTS`` there lists all changes.
-* **ARTS 2.6 changes** by J. Mendrok and others (the ``.orig`` files keep the
-  originals):
+  Of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``),
+  ``3rdparty/polradtran`` keeps the licence, ``README``, the four test
+  scripts and ``cl340d14.dda``, unchanged.  The Fortran was removed once the
+  port to C++ was complete; the history of ``README.ARTS`` there lists the
+  ARTS changes to it.
+* **ARTS 2.6 changes** to the Fortran, by J. Mendrok and others:
 
   * optical properties are passed in memory instead of read from files;
   * new surface types ``'S'`` (specular with a fixed reflection matrix) and
@@ -35,8 +33,8 @@ Provenance
   * larger array limits;
   * a hard stop for ``NSTOKES > 2``;
   * extra zero-weight angles at the end of the stream list.
-* **ARTS 3 changes**, each marked ``c ARTS3:`` in the source and listed in
-  ``3rdparty/polradtran/README.ARTS``:
+* **ARTS 3 changes** to the Fortran, each marked ``c ARTS3:`` in the source,
+  before it was ported:
 
   * Planck constants computed from the exact SI h, c and k.  The original
     5-digit constants give a bias of about 3e-5, roughly 8 mK at 250 K.
@@ -225,74 +223,46 @@ Provenance
     propagation path (``polradtran::layers_from_path`` in
     ``polradtran_arts.h``, behind both ``problem_from_path``).
 
-  The Fortran ``RADTRANO`` is still built, as the reference:
-  ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over
-  every branch of ``RADTRANO``.  The port was bit-identical until the
-  quadratures were replaced.  Mathematically equivalent evaluations (FMA
-  contraction, vectorised libm functions, other BLAS kernels) are
-  accepted: the tolerances allow 16 epsilon times what a computation
-  amplifies rounding by.  Every output must agree to 1e-11 of the largest
-  value in it, for the replaced quadratures and ``planck()``, plus 16
-  epsilon times 2^n for the layer doubled n times most (the largest
-  difference is 4e-13 on Apple arm64 with OpenBLAS, 1.5e-9 on AMD x86_64
-  with MKL).  The test also checks the quadratures, ``planck()`` and each
-  ported routine against Evans' routines: ``doubling_integration`` to 16
-  epsilon times 2^n, ``nonscatter_layer``'s source to 16 epsilon times
-  the cancellation of its terms, and the other routines ported as is to
-  1e-14.
-  A step meant to leave the numbers alone is also checked bit for bit
-  against the step before; one that changes them, like the quadratures, has
-  the change measured.
+  The port was tested against the Fortran ``RADTRANO``, built beside it, on
+  random inputs over every branch of ``RADTRANO``.  The port was
+  bit-identical until the quadratures were replaced.  Mathematically
+  equivalent evaluations (FMA contraction, vectorised libm functions, other
+  BLAS kernels) are accepted: the tolerances allow 16 epsilon times what a
+  computation amplifies rounding by.  Every output had to agree to 1e-11 of
+  the largest value in it, for the replaced quadratures and ``planck()``,
+  plus 16 epsilon times 2^n for the layer doubled n times most (the largest
+  difference was 4e-13 on Apple arm64 with OpenBLAS, 1.5e-9 on AMD x86_64
+  with MKL), and each ported routine was checked against Evans' routine.
+  A step meant to leave the numbers alone was also checked bit for bit
+  against the step before; one that changes them, like the quadratures, had
+  the change measured.  When the Fortran was removed, its outputs for nine
+  cases that cover every branch (the four grounds, the three quadratures,
+  extra angles, gas, thin, thick and shared layers, a coarse
+  ``max_delta_tau`` and a 0 K top) were kept as constants
+  (``src/core/polradtran/rt4/test/rt4-radtrano-reference.h``), with which
+  ``cpp.fast.rt4-radtrano-test`` compares the port to the same tolerances.
 
-  ``rt4.f`` and ``scatcnv.f``, Evans' original programs, are built with the
-  ``.orig`` files as ``rt4-evans`` and ``scatcnv-evans``.
-  ``cpp.fast.polradtran-runtestr`` (a 2 mm/h rain layer of spherical drops
-  at 85 GHz over water: ``scatcnv`` converts the Mie Legendre series to
-  RT4's scattering file, then RT4 with 8 Gauss streams and a Fresnel
-  surface) and ``cpp.fast.polradtran-runtestc`` (cirrus of horizontally
-  oriented ice columns at 340 GHz from the DDA file ``cl340d14.dda``, 8
-  Lobatto streams, a tropical atmosphere over land) run Evans' two RT4
-  scripts with them as they are and reproduce his tables, brightness
-  temperatures with two decimals, exactly.  ``cpp.fast.polradtran-rt4-arts``
-  gives the ARTS library the optics that ``rt4.f`` reads (``cl340d14.dda``,
-  and ``scatcnv``'s conversion of the rain series) and reproduces both
-  tables to 0.005 K.
+  Evans' original programs ``rt4.f`` and ``scatcnv.f``, built from the tar,
+  ran his two RT4 scripts and reproduced his tables exactly, before they
+  were removed with the Fortran.  ``cpp.fast.polradtran-rt4-arts`` gives
+  ARTS's RT4 the optics that ``rt4.f`` reads for ``runtestc`` (cirrus of
+  horizontally oriented ice columns at 340 GHz from the DDA file
+  ``cl340d14.dda``, 8 Lobatto streams, a tropical atmosphere over land) and
+  reproduces his table to 0.005 K.  ``runtestr`` (a 2 mm/h rain layer of
+  spherical drops at 85 GHz over water, 8 Gauss streams and a Fresnel
+  surface), whose RT4 scattering file Evans' ``scatcnv`` made, is solved
+  from its Mie Legendre series by
+  ``tests/core/disort/evans-benchmarks.rt3.rt4.py``.
 
 Build
 -----
 
-RT4 is built when CMake finds a Fortran compiler, and ``-DENABLE_RT4=OFF``
-turns it off.  Configuring reports ``RT4 is enabled`` with the compiler, or
-why it is disabled.  Set ``FC`` or pass ``-DCMAKE_Fortran_COMPILER=...`` if
-the compiler is not found.  Its MIT licence is registered as bundled code,
-see :doc:`dev.licenses`.
+RT4 is C++ and always built.  Its MIT licence is registered as bundled
+code, see :doc:`dev.licenses`; it is allowed in LGPL builds, as polradtran
+is MIT licensed (``3rdparty/polradtran/LICENSE``) and the ARTS changes fall
+under the ARTS licence.
 
-* **Compiler flags.** With GNU, the legacy ``.f`` sources are compiled with
-  ``-std=legacy -fdefault-real-8 -fdefault-double-8``; with Intel, with
-  ``-r8``.  Default INTEGER is not promoted.
-* **Conda.** CMake initialises ``CMAKE_Fortran_FLAGS`` from ``FFLAGS`` the
-  first time Fortran is enabled in a build tree, and conda environments
-  export ``FFLAGS``.  For a reproducible build, configure with
-  ``-DCMAKE_Fortran_FLAGS=""``.  The flags in use are printed at configure
-  time.
-* **macOS.** On macOS with GNU Fortran, the library is built shared, for the
-  same Darwin unwind reason as T-matrix (:doc:`dev.tmatrix`).
-* **BLAS/LAPACK.** Fortran is enabled only after LAPACK has been found, so
-  the BLAS/LAPACK choice does not depend on ``ENABLE_RT4``.  Enabled earlier,
-  it makes CMake's FindBLAS link MKL's GNU layers (``mkl_gf_lp64``,
-  ``mkl_gnu_thread``), whose multi-threaded ``zgbsv`` (MKL 2026.1) segfaults
-  for the band widths VDISORT uses from NQuad = 12.
-* **LGPL.** RT4 is allowed in LGPL builds: polradtran is MIT licensed
-  (``3rdparty/polradtran/LICENSE``), and the ARTS modifications fall under
-  the ARTS licence.
-
-The C++ wrapper ``arts_rt4`` is always built.  When RT4 is disabled,
-``rt4::available()`` returns false and ``rt4::solve()`` throws;
-``polradtran::get_quadrature()``, which needs no Fortran, works.  The Python module
-exists in both cases and raises ``RuntimeError`` the same way.
-
-Python test files whose names contain ``.rt4.`` are collected only with
-``ENABLE_RT4=ON``.  There are two tests of the solver wrapper:
+There are two tests of the solver wrapper:
 
 * ``cpp.fast.rt4-test`` (``src/core/polradtran/rt4/test/rt4-test.cpp``);
 * ``tests/core/rt4/closed-form.rt4.py``.
@@ -313,8 +283,8 @@ output.  The C++ test covers:
 The Python test repeats the quadrature, Fresnel, layout, Kirchhoff and
 error-path checks through the bindings.
 
-The comparison of VDISORT against RT4, ``cpp.fast.vdisort-rt4-test``, is also
-built only with ``ENABLE_RT4=ON``.  See `Mapping to VDISORT inputs`_.  The
+The comparison of VDISORT against RT4 is ``cpp.fast.vdisort-rt4-test``.  See
+`Mapping to VDISORT inputs`_.  The
 tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 
 Interface
@@ -334,7 +304,6 @@ and the grounds it shares with RT3 in ``polradtran.h``, namespace
   struct fresnel_surface { Complex refractive_index; };
 
   // rt4.h, namespace polradtran::rt4
-  bool available();
   inline constexpr Index down = 0, up = 1;
   struct layer_optics { Tensor4 extinction; Tensor3 absorption; Tensor6 phase; };
   struct specular_surface { Matrix reflectivity; };
@@ -376,7 +345,6 @@ Python (``pyarts3.arts.rt4``, with what RT3 shares in
   ``polradtran.FresnelSurface(refractive_index)``, and RT4's own
   ``SpecularSurface(reflectivity)`` and ``DiscreteSurface(reflection,
   emission)``;
-* ``available()``;
 * ``down``/``up``;
 * ``LayerOptics(extinction, absorption, phase)`` and ``ArrayOfLayerOptics``;
 * ``Problem(...)``, which takes every field as a keyword argument with the
@@ -640,8 +608,7 @@ methods (``disort_settingsOpticalThicknessFromPath``,
 * Each layer gets the mean of its two levels' ``scattering_optics`` on RT4's
   quadrature for ``settings``, or is gas-only when that mean is all zero.
 * ``settings``, ``ground``, ``surface_temperature`` and ``sky_temperature``
-  go into the problem unchanged.  The builder needs ``ENABLE_RT4`` for the
-  quadrature.
+  go into the problem unchanged.
 
 Tests (references external to the code under test):
 
@@ -655,8 +622,8 @@ Tests (references external to the code under test):
   (tolerance 1e-13); the path builder against its inputs and the level
   optics; error paths.
 * ``cpp.fast.vdisort-arts-comparison``
-  (``src/core/disort-cpp/test/vdisort/vdisort-arts-comparison.cpp``,
-  ``ENABLE_RT3`` and ``ENABLE_RT4``): RT4, RT3 and VDISORT through their path
+  (``src/core/disort-cpp/test/vdisort/vdisort-arts-comparison.cpp``): RT4,
+  RT3 and VDISORT through their path
   builders on an ARTS atmosphere (``AtmField`` with a temperature profile, a
   Rayleigh ``GasScatterer``, a cloud of 1.5 mm water spheres from ARTS's Mie
   code and gas absorption) at 89 GHz, thermal emission, Lambertian and
@@ -698,8 +665,7 @@ Limitations
   ``phase[down, up] == phase[up, down]``, a test can never detect an
   exchange of those two quadrants.
 * **Reentrant.** The C++ port keeps no state between calls, so concurrent
-  ``rt4::solve`` calls run in parallel.  (RT4's Fortran, which uses COMMON
-  blocks and static local arrays, is only called by the port's tests.)
+  ``rt4::solve`` calls run in parallel.
 * **Lambertian with G or L quadrature.** The Lambertian surface conserves
   energy on the streams only with ``double_gauss``, where
   ``2 sum mu w = 1``.  With ``gauss`` or ``lobatto`` it is off by about
@@ -708,13 +674,12 @@ Limitations
   ``(nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096``.  The last two
   are the sizes of the Fortran ``RADTRANO``'s static arrays, which
   ``rt4::radtrano`` keeps although its own arrays are sized to the problem;
-  the first is that of the subroutines' scratch.  These limits, the
-  other preconditions above and the shapes are all checked in C++ before the
-  Fortran call, because a Fortran ``STOP`` would end the host process,
-  Python included.
-* **Zero pivot.** The zero-pivot ``STOP`` in ``MINVERT`` (``radmat.f``)
-  cannot be checked beforehand.  It needs an exactly singular ``1 - R R``,
-  which is not expected for physical inputs.
+  the first is that of the subroutines' scratch.  These limits, the other
+  preconditions above and the shapes are checked before the solve, where
+  the Fortran would have stopped.
+* **Zero pivot.** The inverse of ``1 - R R`` (LAPACK's, where RT4 had
+  ``MINVERT``) throws for an exactly singular matrix, which is not expected
+  for physical inputs.
 * **Beam, m > 0 modes, U and V.** RT4 has none of them; RT3
   (:doc:`dev.rt3`) is the reference for those paths.
 

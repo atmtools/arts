@@ -1730,7 +1730,6 @@ void test_evans_rt4_settings() {
 }  // namespace
 
 int main() try {
-  require(rt3::available(), "This test requires ENABLE_RT3=ON");
   test_fourier_builder();
   test_rayleigh();
   test_mie();

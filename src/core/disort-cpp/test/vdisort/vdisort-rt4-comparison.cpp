@@ -1156,7 +1156,6 @@ void test_extra_angles() {
 }  // namespace
 
 int main() try {
-  require(rt4::available(), "This test requires ENABLE_RT4=ON");
   test_gas_only();
   test_rayleigh_layer();
   test_multilayer();

@@ -6,14 +6,11 @@
 #include <algorithm>
 #include <cmath>
 
-#ifdef ARTS_HAS_RT4
 #include "radtran4.h"
 #include "radutil4.h"
-#endif
 
 namespace polradtran::rt4 {
 namespace {
-#ifdef ARTS_HAS_RT4
 //! Fixed sizes in radtran4.f (MAXV, MAXLAY, MAXLM), kept by radtrano().
 //! MAXM = MAXV^2 and the MINVERT limit of 256 are implied by MAXV.
 constexpr Index max_vector       = 64;
@@ -96,21 +93,9 @@ void check_normalisation(const layer_optics& o, Index iset, const quadrature& q,
     }
   }
 }
-#endif
 }  // namespace
 
-bool available() {
-#ifdef ARTS_HAS_RT4
-  return true;
-#else
-  return false;
-#endif
-}
-
 result solve(const problem& p) {
-  ARTS_USER_ERROR_IF(not available(), "RT4 requires ENABLE_RT4=ON");
-
-#ifdef ARTS_HAS_RT4
   const Index ns     = p.nstokes;
   const Index nquad  = p.nmu;
   const Index nextra = static_cast<Index>(p.extra_mu.size());
@@ -267,9 +252,5 @@ result solve(const problem& p) {
   r.mu      = mu;
   r.weights = weights;
   return r;
-#else
-  (void)p;
-  return {};
-#endif
 }
 }  // namespace polradtran::rt4

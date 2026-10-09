@@ -13,11 +13,9 @@
  * of randomly oriented particles with a plane of symmetry, with a solar
  * beam and thermal sources, for every Fourier azimuth mode and the Stokes
  * components [I], [I, Q], [I, Q, U] or [I, Q, U, V] (K. F. Evans and
- * G. L. Stephens, 1991, JQSRT 46, 413-423).  The Fortran sources are in
- * 3rdparty/polradtran (the ARTS3 changes are listed in its README.ARTS).
- * RT3 is ported to C++: rt3::solve calls rt3::radtran (radtran3.h) and
- * rt3::ground_surface, which call no Fortran; the Fortran is built as the
- * reference the port is tested against.
+ * G. L. Stephens, 1991, JQSRT 46, 413-423).  It is the C++ port of Evans'
+ * Fortran (3rdparty/polradtran keeps its licence and benchmarks):
+ * rt3::solve calls rt3::radtran (radtran3.h) and rt3::ground_surface.
  * This wrapper exists so that RT3 can serve as an external reference for
  * other solvers, in particular for the solar-beam, m > 0 and U, V paths of
  * VDISORT; it has no workspace layer.
@@ -58,15 +56,10 @@
  *     the series as rt3.f's OUTPUT_FILE does).  The m = 0 coefficients of U
  *     and V are 0.
  *
- * None of the Fortran code is reentrant (COMMON blocks, SAVEd FFT tables
- * and static local arrays).  rt3::solve still serialises its calls with
- * the mutex that guarded it, separate from RT4's, although rt3::radtran
- * no longer calls the Fortran.
+ * The solver keeps no state between calls, so concurrent calls run in
+ * parallel.
  */
 namespace polradtran::rt3 {
-//! Whether the optional Fortran backend is built (ENABLE_RT3=ON).
-bool available();
-
 /** Highest Legendre degree RT3 keeps for a quadrature (its NLEGLIM):
  *  gauss 4 nmu - 3, double_gauss 2 nmu - 3, lobatto 4 nmu - 5, at least 1.
  *  nmu counts the quadrature nodes only, not the extra angles.  RT3
@@ -173,9 +166,10 @@ struct result {
 
 /** Run RT3.
  *
- * Validates the shapes and every precondition on which the Fortran code
- * would STOP or overrun a buffer (see the limits below), rejects a Legendre
- * series that RT3 would silently truncate, then calls RADTRAN.
+ * Validates the shapes and every precondition on which Evans' RADTRAN
+ * would STOP or overrun a buffer (see the limits below, which the port
+ * keeps), rejects a Legendre series that RT3 would silently truncate, then
+ * calls RADTRAN (rt3::radtran).
  *
  * Limits (N = nstokes * nmu_total, A = aziorder, beam = direct_flux > 0):
  *   N <= 64; nlay <= 200; (nlay + 1) N^2 <= 101 * 4096;

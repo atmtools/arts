@@ -16,8 +16,7 @@ void py_rt4(py::module_& m) try {
 
 A thermal-only, plane-parallel solver for azimuthally symmetric media and the
 Stokes components [I] or [I, Q], kept as an external reference for other
-solvers.  It has no workspace layer.  Use available() to check whether the
-optional Fortran backend is built (ENABLE_RT4=ON); otherwise solve() raises.
+solvers: the C++ port of Evans' Fortran.  It has no workspace layer.
 
 Conventions: Stokes basis [I, Q] with :math:`Q = I_v - I_h` in the meridional plane,
 the same basis in both hemispheres.  Hemisphere index ``down`` (0) is
@@ -29,7 +28,6 @@ W m-2 Hz-1 sr-1.  Lengths and extinctions must use reciprocal units.
 See :doc:`dev.rt4` for all conventions, limitations and the mapping to VDISORT.
 )");
 
-  rt.def("available", &rt4::available, "Whether the Fortran backend is enabled (ENABLE_RT4=ON).");
   rt.attr("down") = rt4::down;
   rt.attr("up")   = rt4::up;
 

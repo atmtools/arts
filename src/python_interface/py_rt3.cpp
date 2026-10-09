@@ -17,9 +17,7 @@ void py_rt3(py::module_& m) try {
 A plane-parallel solver for randomly oriented particles with a solar beam and
 thermal sources, for every Fourier azimuth mode and the Stokes components
 [I], [I, Q], [I, Q, U] or [I, Q, U, V], kept as an external reference for
-other solvers.  It has no workspace layer.  Use available() to check whether
-the optional Fortran backend is built (ENABLE_RT3=ON); otherwise solve()
-raises.
+other solvers: the C++ port of Evans' Fortran.  It has no workspace layer.
 
 Conventions: a right-handed frame with z up; the direct beam propagates
 downward toward azimuth 0, and phi is the azimuth of the propagation direction
@@ -35,8 +33,6 @@ units.
 
 See :doc:`dev.rt3` for all conventions, limitations and the benchmarks.
 )");
-
-  rt.def("available", &rt3::available, "Whether the Fortran backend is enabled (ENABLE_RT3=ON).");
 
   rt.def("max_legendre_degree",
          &rt3::max_legendre_degree,

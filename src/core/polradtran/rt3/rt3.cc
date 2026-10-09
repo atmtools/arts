@@ -5,22 +5,12 @@
 
 #include <algorithm>
 #include <cmath>
-#include <mutex>
 
-#ifdef ARTS_HAS_RT3
 #include "radtran3.h"
 #include "radutil3.h"
-#endif
 
 namespace polradtran::rt3 {
 namespace {
-#ifdef ARTS_HAS_RT3
-//! Serialises every call.  The Fortran RADTRAN needed it (COMMON blocks,
-//! SAVEd FFT tables and large static local arrays); its C++ port,
-//! rt3::radtran, calls no Fortran and keeps no state, but the lock is still
-//! taken.  RT4 has its own.
-std::mutex fortran_mutex;
-
 //! Fixed sizes in radtran3.f (MAXV, MAXLAY, MAXLM, MAXLEG, MAXSBUF, MAXDBUF)
 constexpr Index max_vector       = 64;
 constexpr Index max_layers       = 200;
@@ -57,16 +47,7 @@ Index stripped_degree(const Matrix& legendre) {
       if (legendre[l, c] != 0.0) return l;
   return 0;
 }
-#endif
 }  // namespace
-
-bool available() {
-#ifdef ARTS_HAS_RT3
-  return true;
-#else
-  return false;
-#endif
-}
 
 Index max_legendre_degree(Index nmu, quadrature_type type) {
   switch (type) {
@@ -78,9 +59,6 @@ Index max_legendre_degree(Index nmu, quadrature_type type) {
 }
 
 result solve(const problem& p) {
-  ARTS_USER_ERROR_IF(not available(), "RT3 requires ENABLE_RT3=ON");
-
-#ifdef ARTS_HAS_RT3
   const Index ns     = p.nstokes;
   const Index nquad  = p.nmu;
   const Index nextra = static_cast<Index>(p.extra_mu.size());
@@ -297,44 +275,37 @@ result solve(const problem& p) {
   ground_surface(
       p.ground, src_code, mu, weights, p.frequency, p.surface_temperature, surf_reflect, gnd_radiance, direct_reflect);
   rt3_workdata work;
-  {
-    std::lock_guard lock(fortran_mutex);
-    radtran(p.max_delta_tau,
-            src_code,
-            p.quad,
-            p.delta_m,
-            p.direct_flux,
-            beam ? p.direct_mu : 1.0,
-            surf_reflect,
-            gnd_radiance,
-            direct_reflect,
-            p.sky_temperature,
-            p.frequency,
-            p.height,
-            p.temperature,
-            p.gas_extinction,
-            scat_extinct,
-            scat_scatter,
-            scat_nlegen,
-            scat_coef,
-            scatlayers,
-            outlevels,
-            p.extra_mu,
-            mu,
-            r.up_flux,
-            r.down_flux,
-            r.up,
-            r.down,
-            work);
-  }
+  radtran(p.max_delta_tau,
+          src_code,
+          p.quad,
+          p.delta_m,
+          p.direct_flux,
+          beam ? p.direct_mu : 1.0,
+          surf_reflect,
+          gnd_radiance,
+          direct_reflect,
+          p.sky_temperature,
+          p.frequency,
+          p.height,
+          p.temperature,
+          p.gas_extinction,
+          scat_extinct,
+          scat_scatter,
+          scat_nlegen,
+          scat_coef,
+          scatlayers,
+          outlevels,
+          p.extra_mu,
+          mu,
+          r.up_flux,
+          r.down_flux,
+          r.up,
+          r.down,
+          work);
 
   r.mu      = mu;
   r.weights = weights;
   return r;
-#else
-  (void)p;
-  return {};
-#endif
 }
 
 Tensor4 azimuth_radiance(const Tensor4& coefficients, const Vector& phi) {

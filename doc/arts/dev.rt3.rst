@@ -21,14 +21,13 @@ Provenance
   (``3rdparty/polradtran/LICENSE``).  RT3 is described in Evans and Stephens
   (1991), J. Quant. Spectrosc. Radiat. Transfer 46, 413-423.  ARTS 2 never
   shipped RT3.
-  All of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``) is in the one
-  folder ``3rdparty/polradtran``, as in the tar: where ARTS modifies a file,
-  the modified file has the tar's name and the tar's file is kept beside it
-  as ``.orig``; every other file (``README``, ``rt3.f``, ``rt4.f``,
-  ``scatcnv.f``, the four test scripts and ``cl340d14.dda``) is unchanged.
-  ``README.ARTS`` there lists all changes.
-* **ARTS 3 changes**, each marked ``c ARTS3:`` in the source and listed in
-  ``3rdparty/polradtran/README.ARTS``:
+  Of ``PolRadTran.tar`` (sha256 ``7b0eff79...a6f7cff9d``),
+  ``3rdparty/polradtran`` keeps the licence, ``README``, the four test
+  scripts and ``cl340d14.dda``, unchanged.  The Fortran was removed once the
+  port to C++ was complete; the history of ``README.ARTS`` there lists the
+  ARTS changes to it.
+* **ARTS 3 changes** to the Fortran, each marked ``c ARTS3:`` in the source,
+  before it was ported:
 
   * The scattering properties are passed in memory as scattering sets
     (extinction, scattering coefficient, Legendre series) with a set index
@@ -42,7 +41,7 @@ Provenance
     ``COMBINE_LAYERS``, the three quadratures, ``PLANCK_FUNCTION``,
     ``/SCRATCH1/``, ``/SCRATCH2/`` and ten more) carry an ``RT3_`` prefix.
     Otherwise the two would share symbols and scratch memory in the ARTS
-    link; ``librt3`` and ``librt4`` export no common symbol.
+    link; ``librt3`` and ``librt4`` exported no common symbol.
   * Planck constants computed from the exact SI h, c and k, as for RT4.  The
     original 5-digit constants give a bias of -3e-5 in the Rayleigh-Jeans
     limit, growing to -2e-4 and -3e-4 at 3 um and 300 and 200 K.
@@ -57,14 +56,14 @@ Provenance
   that ``RADTRAN`` calls is ported, and ``rt3::solve`` calls no Fortran;
   over the whole port, the 148 capture problems changed by at most 4.7e-13
   of the m = 0 I (in optically thick layers, through LAPACK's inverse).
-  It still takes the RT3 lock, and is still built only with
-  ``ENABLE_RT3``, which also builds the Fortran reference.  The steps:
+  The Fortran, and with it the lock that serialised ``rt3::solve``, was
+  then removed.  The steps:
 
   * ``RADTRAN`` is ``rt3::radtran`` (``src/core/polradtran/rt3/radtran3.h``).  It
     follows the Fortran step by step and calls the same subroutines, all
     now C++.  The Fortran ones were called through entry points in
-    ``rt3_c_interface.f90``, declared in ``src/core/polradtran/rt3/rt3_c_interface.h``,
-    which the test still uses.
+    ``rt3_c_interface.f90``, as the tests called the Fortran until it was
+    removed.
     Evans' matrix helpers are matpack (``MZERO`` is ``= 0.0``,
     ``MIDENTITY`` ``matpack::identity``, ``MCOPY`` ``=``, ``MSCALARMULT``
     ``*=``).  It takes no counts (``NSTOKES``, ``NUMMU``, ``AZIORDER``,
@@ -176,8 +175,8 @@ Provenance
     the beam as ``A / pi``.  The Fresnel ground reflects the same in
     every mode, always emits (in mode 0, as in RT3), and throws with the
     solar source, because RT3 cannot reflect the beam specularly.  It
-    calls no Fortran (the ground routines are ported, below), and
-    ``rt3::solve`` calls it outside the RT3 lock.  Making the ground an
+    calls no Fortran (the ground routines are ported, below).  Making the
+    ground an
     input changed the 148 capture problems by at most 4.3e-16 of the
     m = 0 I (the beam's reflection is added in SI).
   * ``RT3_LAMBERT_SURFACE`` is ``polradtran::lambert_surface_layer`` (named, as
@@ -308,71 +307,44 @@ Provenance
     for ``nmax`` a power of two, as ``FFT1DR`` uses it; for another
     ``nmax`` the Fortran writes past it, so ``rt3::makephase`` throws.
 
-  The Fortran ``RADTRAN`` is still built, as the reference:
-  ``cpp.fast.rt3-radtran-test`` runs both on the same random inputs over
-  every branch of ``RADTRAN`` (178 cases).  Mathematically equivalent
-  evaluations (FMA contraction, vectorised libm functions, other BLAS
-  kernels) are accepted: the tolerances allow 16 epsilon times what a
-  computation amplifies rounding by.  Every output must agree to 1e-10 of
-  its largest value, for the replaced quadratures and Planck function,
-  plus 16 epsilon times 2^n for the layer doubled n times most (the largest
-  difference is 1.2e-9 on AMD x86_64 with MKL), and
-  ``polradtran::doubling_integration`` to 16 epsilon times 2^n kappa.  It
-  also checks
-  ``polradtran::get_quadrature`` against RT3's three quadrature routines,
-  ``rt3::ground_surface`` against the Fortran grounds, and each
-  ported routine against its Fortran: to rounding (1e-14 of the largest
-  value; 1e-13 for ``rt3::scattering`` and ``rt3::direct_scattering``,
-  whose Legendre sums amplify the rounding of the scattering angle), or
-  exactly for the integer and copying ones (``number_sums``,
-  ``matrix_symmetry``, ``get_scattering``, ``scatter_symmetry``,
-  ``get_direct``), and reports how many cases are
-  bit-identical.  Each step is also measured against the step before.
-  Since the FFT and the natural order of operations, the 148 capture
-  problems differ from the all-Fortran ``SCATTERING`` by at most 5.4e-16 of
-  the m = 0 I.
+  The port was tested against the Fortran ``RADTRAN``, built beside it, on
+  random inputs over every branch of ``RADTRAN`` (178 cases).
+  Mathematically equivalent evaluations (FMA contraction, vectorised libm
+  functions, other BLAS kernels) are accepted: the tolerances allow 16
+  epsilon times what a computation amplifies rounding by.  Every output had
+  to agree to 1e-10 of its largest value, for the replaced quadratures and
+  Planck function, plus 16 epsilon times 2^n for the layer doubled n times
+  most (the largest difference was 1.2e-9 on AMD x86_64 with MKL), and
+  ``polradtran::doubling_integration`` to 16 epsilon times 2^n kappa.
+  ``polradtran::get_quadrature``, ``rt3::ground_surface`` and each ported
+  routine were checked against the Fortran: to rounding (1e-14 of the
+  largest value; 1e-13 for ``rt3::scattering`` and
+  ``rt3::direct_scattering``, whose Legendre sums amplify the rounding of
+  the scattering angle), or exactly for the integer and copying ones
+  (``number_sums``, ``matrix_symmetry``, ``get_scattering``,
+  ``scatter_symmetry``, ``get_direct``).  Each step was also measured
+  against the step before.  Since the FFT and the natural order of
+  operations, the 148 capture problems differed from the all-Fortran
+  ``SCATTERING`` by at most 5.4e-16 of the m = 0 I.  When the Fortran was
+  removed, its outputs for twelve cases that cover every branch (1 to 4
+  Stokes components, the three quadratures and an extra angle, azimuth
+  orders, delta-M, every source code, both grounds, gas, thin, thick and
+  shared layers, the three summation cases and a coarse ``max_delta_tau``)
+  were kept as constants
+  (``src/core/polradtran/rt3/test/rt3-radtran-reference.h``), with which
+  ``cpp.fast.rt3-radtran-test`` compares the port to the same tolerances.
 
-  ``rt3.f``, the original main program, is built with the ``.orig`` files
-  as the program ``rt3-evans``.  ``cpp.fast.polradtran-runmietest`` and
-  ``cpp.fast.polradtran-runtesta`` run Evans' two RT3 scripts with it as
-  they are (``src/tests/polradtran/polradtran-scripts.cpp`` executes their
-  here-documents, so csh is not needed) and compare the output with his
-  tables numerically: every value to one unit in its last printed digit
-  (measured: 1 and 0), and the values that are zero by symmetry, REAL*4
-  round-off of ``OUTPUT_FILE``, below 1e-7 of max I (measured: 5e-9).
-  ``OUTPUT_FILE`` also shows how RT3 sums its Fourier series.  The RT4
-  scripts are run likewise, see :doc:`dev.rt4`.
+  ``rt3.f``, Evans' original main program, built from the tar, ran his two
+  RT3 scripts and reproduced his tables, every value to one unit in its
+  last printed digit, before it was removed with the Fortran.
+  ``OUTPUT_FILE`` also showed how RT3 sums its Fourier series.
 
 Build
 -----
 
-RT3 is built when CMake finds a Fortran compiler, independently of RT4, and
-``-DENABLE_RT3=OFF`` turns it off.  As for RT4 (see :doc:`dev.rt4` for details):
-
-* the Fortran language is enabled only after LAPACK has been found, so the
-  BLAS/LAPACK choice does not depend on ``ENABLE_RT3``;
-* the legacy ``.f`` sources are compiled with
-  ``-std=legacy -fdefault-real-8 -fdefault-double-8`` (GNU) or ``-r8``
-  (Intel), and default INTEGER is not promoted;
-* configure with ``-DCMAKE_Fortran_FLAGS=""`` in a conda environment; the
-  flags in use are printed at configure time;
-* the library is built shared on macOS with GNU Fortran.
-
-Evans' matrix routines, ``3rdparty/polradtran/radmat.f``, are built once as
-``polradtran_radmat`` and linked by both ``rt4`` and ``rt3``.  They keep no
-state; they are compiled so that their local arrays are on the stack
-(``-frecursive`` for GNU, ``-auto`` for Intel), because RT3 and RT4 are
-serialised by separate mutexes and may call them concurrently.
-
-RT3 has about 230 MB of static arrays (the scattering-matrix buffer
-``SCATBUF`` is 210 MB), which are part of every binary linked with it; the
-pages are only touched as far as a problem needs them.
-
-The C++ wrapper ``arts_rt3`` is always built.  When RT3 is disabled,
-``rt3::available()`` returns false and ``rt3::solve()`` throws
-(``polradtran::get_quadrature()`` needs no Fortran).  The Python module exists in both cases and raises
-``RuntimeError`` the same way.  Python test files whose names contain
-``.rt3.`` are collected only with ``ENABLE_RT3=ON``.
+RT3 is C++ and always built, as RT4 is (:doc:`dev.rt4`).  Its arrays are
+sized to the problem: the 230 MB of static arrays of the Fortran (its
+scattering-matrix buffer ``SCATBUF`` alone was 210 MB) are gone.
 
 Tests
 -----
@@ -450,8 +422,8 @@ directly from ``runmietest`` and compares with the same tolerance (0.94), and
 repeats the quadrature, single-scattering (1.7e-6 at tau = 1e-6), gas-only
 Fresnel (4.4e-15) and error-path checks through the bindings.
 
-The comparison of VDISORT against RT3, ``cpp.fast.vdisort-rt3-test``, is also
-built only with ``ENABLE_RT3=ON``.  See `Mapping to VDISORT inputs`_.  Its
+The comparison of VDISORT against RT3 is ``cpp.fast.vdisort-rt3-test``.  See
+`Mapping to VDISORT inputs`_.  Its
 part E solves the problems of Evans' two scripts, read from the scripts, with
 VDISORT; see ``src/core/disort-cpp/test/vdisort/COVERAGE.md``.  The
 tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
@@ -473,7 +445,6 @@ and the grounds it shares with RT4 in ``polradtran.h``, namespace
   struct fresnel_surface { Complex refractive_index; };
 
   // rt3.h, namespace polradtran::rt3
-  bool available();
   Index max_legendre_degree(Index nmu, quadrature_type type);    // RT3's NLEGLIM
   struct scattering_set { Numeric extinction; Numeric scattering; Matrix legendre; };  // [nleg + 1, 6]
   using surface = std::variant<lambertian_surface, fresnel_surface>;
@@ -509,7 +480,7 @@ and the grounds it shares with RT4 in ``polradtran.h``, namespace
 Python (``pyarts3.arts.rt3``, with what RT4 shares in
 ``pyarts3.arts.polradtran``: ``QuadratureType``, ``get_quadrature(nmu,
 type)``, ``Quadrature``, ``LambertianSurface(albedo)`` and
-``FresnelSurface(refractive_index)``) mirrors this: ``available()``,
+``FresnelSurface(refractive_index)``) mirrors this:
 ``max_legendre_degree(nmu, type)``, ``ScatteringSet(extinction, scattering,
 legendre)`` and ``ArrayOfScatteringSet``, ``Problem(...)`` (every field as a
 keyword argument with the C++ default), ``RT3Result`` (read-only ``mu``,
@@ -798,8 +769,8 @@ Limitations
   scaling.  RT3's ``CHECK_NORM`` stops the process when the discrete
   normalisation is off by more than 1e-7; for a series within NLEGLIM that
   discrete normalisation equals ``legendre[0, 0] - 1`` up to round-off.
-* **Array limits**, all checked before the Fortran call because a Fortran
-  ``STOP`` would end the host process (N = nstokes * nmu_total, A =
+* **Array limits**, the sizes of the Fortran's static arrays, which the port
+  keeps and checks before the solve (N = nstokes * nmu_total, A =
   aziorder):
 
   * N <= 64, nlay <= 200, (nlay + 1) N^2 <= 101 * 4096;
@@ -819,11 +790,11 @@ Limitations
 * **Cost.** For each output level, RT3 adds all layers above and below anew,
   so the cost grows as nlay^2 per azimuth mode; ``solve()`` returns every
   level.
-* **Not reentrant.** RT3 uses COMMON blocks, SAVEd FFT tables and large
-  static arrays.  Every Fortran call is serialised by one mutex, separate
-  from RT4's; concurrent calls are safe but do not run in parallel.
-* **Zero pivot.** The zero-pivot ``STOP`` in ``MINVERT`` (``radmat.f``)
-  cannot be checked beforehand; it needs an exactly singular 1 - R R.
+* **Reentrant.** The C++ port keeps no state between calls, so concurrent
+  ``rt3::solve`` calls run in parallel.
+* **Zero pivot.** The inverse of ``1 - R R`` (LAPACK's, where RT3 had
+  ``MINVERT``) throws for an exactly singular matrix, which is not expected
+  for physical inputs.
 * **Surfaces.** Only Lambertian with a beam; no BRDF.
 * **Azimuth sampling.** RT3 samples the azimuth for its Fourier modes as
   densely as its Legendre degree requires.  That is exact when the

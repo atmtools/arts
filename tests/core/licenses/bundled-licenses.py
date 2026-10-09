@@ -22,11 +22,10 @@ for c in components.values():
 assert len(components) == len(g.bundled_components()), "component names must be unique"
 assert expression.startswith("(LGPL-3.0-or-later OR GPL-3.0-or-later)"), expression
 
-always = {"invlib", "mdspan", "Faddeeva", "wigxjpf"}
+always = {"invlib", "mdspan", "Faddeeva", "wigxjpf", "polradtran"}
 optional = {
     "cdisort": g.data.has_cdisort,
     "tmatrix": pyarts.arts.tmatrix.available(),
-    "polradtran": pyarts.arts.rt3.available() or pyarts.arts.rt4.available(),
 }
 assert always <= set(components), f"missing always-bundled components: {always - set(components)}"
 for name, built in optional.items():

@@ -1,34 +1,29 @@
-/* ARTS's RT4 (src/core/polradtran/rt4, the library with the ARTS changes) on Evans'
-   two RT4 benchmark scripts, against his expected outputs.
+/* ARTS's RT4 (src/core/polradtran/rt4) on Evans' RT4 benchmark script
+   runtestc, against his expected output.
 
-   polradtran-rt4-arts <polradtran folder> <scatcnv program> <work directory>
+   polradtran-rt4-arts <polradtran folder>
 
-   - runtestc: horizontally oriented ice columns at 340 GHz, a cirrus layer
-     in a tropical atmosphere over land, 8 Lobatto streams.  The optics are
-     Evans' RT4 scattering file cl340d14.dda (DDA), read as rt4.f reads it
-     (GET_SCAT_FILE in radscat4.f.orig).
-   - runtestr: a 2 mm/h rain layer of spherical drops at 85 GHz over water
-     (Fresnel), 8 Gauss streams.  As in the script, Evans' scatcnv (the
-     program scatcnv-evans) converts the Mie Legendre series testr.sca to
-     the RT4 scattering file testr.rts, which is read the same way.
-
-   So the library gets exactly the optics that rt4.f gets.  The problems
-   (layers, surface, sky, wavelength) are read from the scripts.  Evans'
-   tables were made with 5-digit Planck constants, which the ARTS3 RT4
-   replaces by exact ones; the temperatures given to the library are those
+   runtestc: horizontally oriented ice columns at 340 GHz, a cirrus layer in
+   a tropical atmosphere over land, 8 Lobatto streams.  The optics are
+   Evans' RT4 scattering file cl340d14.dda (DDA), read as rt4.f read it
+   (GET_SCAT_FILE in radscat4.f), so RT4 gets exactly the optics that rt4.f
+   got.  The problem (layers, surface, sky, wavelength) is read from the
+   script.  Evans' table was made with 5-digit Planck constants, which the
+   ARTS3 RT4 replaces by exact ones; the temperatures given to RT4 are those
    at which the exact Planck function equals Evans' (evans-scripts.h).  The
    output is converted as rt4.f's OUTPUT_FILE and CONVERT_OUTPUT do: fluxes
    2 pi sum_j w_j mu_j I_j on the quadrature streams, the V and H
    polarizations (I +- Q) / 2, and the effective blackbody temperature of
    2 V, 2 H (and of the flux / pi) with Evans' constants.  Every brightness
    temperature must agree with the table to one unit in its last printed
-   digit (0.01 K). */
+   digit (0.01 K).  Evans' other RT4 script, runtestr, needs his scatcnv to
+   make its scattering file; tests/core/disort/evans-benchmarks.rt3.rt4.py
+   solves it from the Legendre series instead. */
 #include <arts_constants.h>
 #include <rt4.h>
 
 #include <array>
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
 #include <format>
 #include <fstream>
@@ -58,7 +53,7 @@ std::string read_file(const fs::path& file) {
   return ss.str();
 }
 
-/* An RT4 scattering file, as GET_SCAT_FILE (radscat4.f.orig) reads it, for
+/* An RT4 scattering file, as Evans' GET_SCAT_FILE (radscat4.f) read it, for
    nstokes <= 4 and the m = 0 mode: after the comment lines, NMU, NAZ and the
    quadrature; then for every incident hemisphere L1 and stream J1, outgoing
    hemisphere L2 and stream J2, a line MU1 MU2 M and the 4 x 4 Mueller matrix
@@ -150,7 +145,7 @@ std::array<Numeric, 2> brightness_vh(Numeric i, Numeric q, Numeric lambda, bool 
 }
 
 //! The library on a script, and its maximum deviation from the table in units of the last printed digit
-Numeric run(const fs::path& folder, const std::string& name, const fs::path& scatcnv, const fs::path& work) {
+Numeric run(const fs::path& folder, const std::string& name) {
   const auto s  = evans::read_script(folder / name);
   const auto st = evans::read_rt4_settings(s);
   require(st.units == 'T' and st.polarization == "VH" and st.nstokes == 2,
@@ -159,22 +154,10 @@ Numeric run(const fs::path& folder, const std::string& name, const fs::path& sca
                     : st.quad == 'G' ? polradtran::quadrature_type::gauss
                                      : polradtran::quadrature_type::double_gauss;
 
-  // The scattering files: Evans' data files, or scatcnv run on the script's input as the script does
-  fs::create_directories(work);
-  for (const auto& [file, body] : s.files) std::ofstream(work / file) << body;
-  for (const auto& r : s.runs) {
-    if (r.program != "scatcnv") continue;
-    std::ofstream answers(work / "scatcnv.in");
-    for (const auto& a : r.answers) answers << a << '\n';
-    answers.close();
-    const auto command =
-        std::format("cd \"{}\" && \"{}\" < scatcnv.in > scatcnv.log 2>&1", work.string(), scatcnv.string());
-    require(std::system(command.c_str()) == 0,
-            std::format("{} failed; see {}", scatcnv.string(), (work / "scatcnv.log").string()));
-  }
+  // The scattering files: the script's own or Evans' data files
   const auto optics_of = [&](const std::string& file) {
-    const auto path = s.files.contains(file) or fs::exists(work / file) ? work / file : folder / file;
-    return read_rt4_scattering(read_file(path), st.nmu, st.quad, st.nstokes);
+    return read_rt4_scattering(
+        s.files.contains(file) ? s.files.at(file) : read_file(folder / file), st.nmu, st.quad, st.nstokes);
   };
 
   const auto  levels = evans::read_layers(s.files.at(st.layer_file));
@@ -254,12 +237,9 @@ Numeric run(const fs::path& folder, const std::string& name, const fs::path& sca
 }  // namespace
 
 int main(int argc, char** argv) try {
-  require(argc == 4, "Usage: polradtran-rt4-arts <polradtran folder> <scatcnv program> <work directory>");
-  require(rt4::available(), "This test requires ENABLE_RT4=ON");
-  const fs::path folder = fs::absolute(argv[1]), scatcnv = fs::absolute(argv[2]), work = fs::absolute(argv[3]);
-  for (const std::string name : {"runtestc", "runtestr"})
-    require(run(folder, name, scatcnv, work / name) <= 1.0 + 1e-9,
-            std::format("{}: the library must reproduce Evans' table to 0.01 K", name));
+  require(argc == 2, "Usage: polradtran-rt4-arts <polradtran folder>");
+  const fs::path folder = fs::absolute(argv[1]);
+  require(run(folder, "runtestc") <= 1.0 + 1e-9, "runtestc: RT4 must reproduce Evans' table to 0.01 K");
   return 0;
 } catch (const std::exception& e) {
   std::cerr << e.what() << '\n';

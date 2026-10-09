@@ -1138,7 +1138,6 @@ void test_errors() {
 }  // namespace
 
 int main() try {
-  if (not rt3::available()) throw std::runtime_error("rt3-test needs ENABLE_RT3=ON");
   test_quadrature();
   test_mietest();
   test_testa();

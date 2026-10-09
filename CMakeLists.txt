@@ -66,15 +66,6 @@ option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (ENABLE_CDISORT "Turn on cdisort" ON)
 option (ENABLE_TMATRIX "Build the original T-matrix solver" OFF)
 option (ENABLE_TMATRIX_QUAD "Use extended-precision T-matrix internals" OFF)
-include(CheckLanguage)
-check_language(Fortran)
-if (CMAKE_Fortran_COMPILER)
-  set (ARTS_FORTRAN_FOUND ON)
-else ()
-  set (ARTS_FORTRAN_FOUND OFF)
-endif ()
-option (ENABLE_RT4 "Build Evans' RT4 polarized reference solver (default: ON if a Fortran compiler is found)" ${ARTS_FORTRAN_FOUND})
-option (ENABLE_RT3 "Build Evans' RT3 polarized reference solver (default: ON if a Fortran compiler is found)" ${ARTS_FORTRAN_FOUND})
 option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" ON)
 option (ENABLE_EXAMPLE_PLOTS "Generate plots for examples in sphinx docs" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
@@ -291,13 +282,13 @@ set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 ########## BLAS/LAPACK support #########
 find_package (LAPACK REQUIRED)
 
-# The optional Fortran reference solvers enable Fortran only after LAPACK is
+# The optional Fortran T-matrix solver enables Fortran only after LAPACK is
 # found.  With Fortran enabled, FindBLAS prefers MKL's GNU Fortran interface
 # and threading layers (mkl_gf_lp64, mkl_gnu_thread) over those of a C/C++
 # build, and the multi-threaded zgbsv of mkl_gnu_thread (MKL 2026.1) crashes
 # for the band widths VDISORT uses.  This keeps the BLAS/LAPACK choice
-# independent of ENABLE_TMATRIX, ENABLE_RT4 and ENABLE_RT3.
-if(ENABLE_TMATRIX OR ENABLE_RT4 OR ENABLE_RT3)
+# independent of ENABLE_TMATRIX.
+if(ENABLE_TMATRIX)
   enable_language(Fortran)
 endif()
 

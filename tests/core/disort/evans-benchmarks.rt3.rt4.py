@@ -4,8 +4,6 @@ Evans' four scripts in 3rdparty/polradtran (runmietest, runtesta, runtestr,
 runtestc) define the problems and hold his expected outputs, the tables.  The
 problems are read from the scripts and solved by
 
-- Evans' original programs (rt3-evans, rt4-evans and scatcnv-evans from the
-  build tree, built from the tar's sources), when they are found;
 - ARTS's RT3 and RT4 (pyarts3.arts.rt3, rt4) at Evans' settings;
 - VDISORT (pyarts3.arts.cppvdisort) on its own double-Gauss streams;
 - RT3 with Gauss quadrature of increasing order, and with VDISORT's
@@ -17,7 +15,7 @@ exact radiance.  Gauss quadrature on [-1, 1] handles the jump of the radiance
 at the horizon poorly, so it converges slowly (about like 1 / nmu).  So:
 
 - ARTS's RT3 and RT4 at Evans' settings must reproduce his tables (to print
-  precision), and so must his original programs;
+  precision), as his own programs did;
 - RT3 and VDISORT on the same double-Gauss streams solve the same discrete
   problem and must agree to RT3's doubling error (about 1e-7);
 - RT3 with Gauss quadrature must approach VDISORT as its number of streams
@@ -30,14 +28,9 @@ extinction, which only RT4 represents; it is solved by RT4 alone.
 VDISORT is evaluated on its streams (64 per hemisphere); its values at
 Evans' angles are cubic Lagrange interpolations in mu, checked against 128
 streams.  Without ARTS_HEADLESS the solutions and differences are plotted.
-
-Collected only when ENABLE_RT3 and ENABLE_RT4 are both on.
 """
 
 import os
-import shutil
-import subprocess
-import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -45,7 +38,6 @@ import pyarts3 as pyarts
 
 A = pyarts.arts
 POLRADTRAN = Path(__file__).resolve().parents[3] / "3rdparty" / "polradtran"
-PROGRAMS = Path(pyarts.__file__).resolve().parents[3] / "3rdparty" / "polradtran"
 HEADLESS = "ARTS_HEADLESS" in os.environ
 
 # Exact SI radiation constants in Evans' units: 2 h c^2 [W m-2 sr-1 um^4], h c / k [um K]
@@ -229,31 +221,6 @@ def read_case(name):
             case["legendre"][f] = read_legendre(s["files"][source])
     case["randomly_oriented"] = all(f == "" or f in case["legendre"] for f in case["files"])
     return case
-
-
-###############################################################################
-# Evans' original programs
-###############################################################################
-
-
-def run_original(case):
-    """Run the script with Evans' programs (from the build tree), as the script does; None if they are missing."""
-    exe = {"rt3": PROGRAMS / "rt3-evans", "rt4": PROGRAMS / "rt4-evans", "scatcnv": PROGRAMS / "scatcnv-evans"}
-    s = case["script"]
-    if not all(exe[p].exists() for p, _ in s["runs"]):
-        return None
-    with tempfile.TemporaryDirectory() as work:
-        work = Path(work)
-        for name, body in s["files"].items():
-            (work / name).write_text(body)
-            for token in body.split("'")[1::2]:
-                token = token.strip()
-                if token and token not in s["files"] and (POLRADTRAN / token).exists():
-                    shutil.copy(POLRADTRAN / token, work / token)
-        for prog, ans in s["runs"]:
-            subprocess.run([str(exe[prog])], input="\n".join(ans) + "\n", text=True, cwd=work, capture_output=True, check=True)
-        output = answers(s["runs"][-1])[-1]
-        return read_output((work / output).read_text())
 
 
 ###############################################################################
@@ -573,21 +540,6 @@ for name in ("runmietest", "runtesta", "runtestr", "runtestc"):
           f"{len(case['height']) - 1} layer(s), {'Fresnel' if case['fresnel'] is not None else 'Lambertian'} ground")
     res = {"case": case}
 
-    original = run_original(case)
-    if original is not None:
-        units = [10.0 ** (np.floor(np.log10(np.maximum(np.abs(r[3]), 1e-300))) - 5) if not case["brightness"] else 0.01 + 0 * r[3] for r in case["table"]]
-        worst = 0.0
-        for r, o, u in zip(case["table"], original, units):
-            symmetric = case["program"] == "rt3" and (r[1] % 180 == 0 or abs(r[2]) == 2)
-            for s in range(len(r[3])):
-                if not (symmetric and s >= 2):
-                    worst = max(worst, abs(o[3][s] - r[3][s]) / u[s])
-        print(f"    Evans' original program vs his table: {worst:.2f} units of the last printed digit")
-        assert worst <= 1.0 + 1e-9
-        res["original"] = original
-    else:
-        print("    Evans' original programs not found in the build tree; not run")
-
     if case["program"] == "rt3":
         evans = rt3(case, case["nmu"], {"G": "gauss", "D": "double_gauss", "L": "lobatto"}[case["quad"]], 1e-6)
     else:
@@ -686,9 +638,6 @@ if not HEADLESS:
                 if "vdisort" in res:
                     ax.plot(x, y[:, s], "-", color="C0", lw=1.5, label="VDISORT (64 double-Gauss streams)")
                 ax.plot(mu_t, [r[3][s] for r in rows], "o", mfc="none", color="k", ms=7, label="Evans' table")
-                if "original" in res:
-                    orig = [o for o in res["original"] if o[0] == z and o[1] == phi and abs(o[2]) != 2]
-                    ax.plot([o[2] for o in orig], [o[3][s] for o in orig], "kx", ms=5, label="Evans' program (rerun)")
                 arts_values = [as_table(case, r, res["arts"][1](level, k, r[2]))[s] for r in rows]
                 ax.plot(mu_t, arts_values, ".", color="C3", ms=5, label=f"ARTS {case['program'].upper()} at Evans' settings")
                 ax.grid(True, alpha=0.3)

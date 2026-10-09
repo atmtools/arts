@@ -114,8 +114,8 @@ struct path_settings {
  * gas-only (layer_optics_index < 0) when that mean is all zero.
  *
  * settings, ground, surface_temperature and sky_temperature go into the
- * problem unchanged.  The streams are RT4's own quadrature, so this needs
- * ENABLE_RT4.  RT4 still requires the optics to be mirror symmetric between
+ * problem unchanged.  The streams are RT4's own quadrature.  RT4 still
+ * requires the optics to be mirror symmetric between
  * the hemispheres (solve() checks it).
  */
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,

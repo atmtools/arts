@@ -17,7 +17,6 @@ from pyarts3 import arts
 
 rt3 = arts.rt3
 polradtran = arts.polradtran
-assert rt3.available(), "this test is only collected with ENABLE_RT3=ON"
 
 H = 6.62607015e-34
 C = 299792458.0

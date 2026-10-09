@@ -11,11 +11,10 @@
  *
  * RT4 solves the thermal-only radiative transfer equation for a
  * plane-parallel, azimuthally symmetric medium for the Stokes components
- * [I] or [I, Q].  It is the C++ port of RADTRANO (rt4::radtrano,
- * radtran4.h) and its subroutines (radintg4.h, radutil4.h); the Fortran
- * sources, the ARTS 2.6 version in 3rdparty/polradtran with the ARTS3
- * changes listed in its README, are kept as the reference the port is
- * tested against.  This wrapper exists so that RT4 can serve as an
+ * [I] or [I, Q].  It is the C++ port of Evans' RADTRANO (rt4::radtrano,
+ * radtran4.h) and its subroutines (radintg4.h, radutil4.h, and those it
+ * shares with RT3 in polradtran); 3rdparty/polradtran keeps the licence and
+ * benchmarks of the Fortran.  This wrapper exists so that RT4 can serve as an
  * external reference for other solvers; it has no workspace layer.
  *
  * Conventions:
@@ -38,13 +37,10 @@
  *     phase[down, down] == phase[up, up] and phase[down, up] ==
  *     phase[up, down].  solve() rejects optics that are not.
  *
- * The C++ solver keeps no state between calls, so concurrent calls run in
+ * The solver keeps no state between calls, so concurrent calls run in
  * parallel.
  */
 namespace polradtran::rt4 {
-//! Whether the optional Fortran backend is built (ENABLE_RT4=ON).
-bool available();
-
 //! Hemisphere indices (see the conventions above).
 inline constexpr Index down = 0;
 inline constexpr Index up   = 1;
@@ -156,11 +152,12 @@ struct result {
 
 /** Run RT4.
  *
- * Validates the shapes, every precondition on which the Fortran code would
- * STOP (nstokes <= 2, nstokes * nmu_total <= 64, nlay <= 400,
- * (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), the mirror
- * symmetry that RT4 requires, and that every optics set conserves energy on
- * the streams to problem::normalisation_tolerance, then calls RADTRANO (rt4::radtrano).
+ * Validates the shapes, every precondition on which Evans' RADTRANO would
+ * STOP, which the port keeps (nstokes <= 2, nstokes * nmu_total <= 64,
+ * nlay <= 400, (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), the
+ * mirror symmetry that RT4 requires, and that every optics set conserves
+ * energy on the streams to problem::normalisation_tolerance, then calls
+ * RADTRANO (rt4::radtrano).
  */
 result solve(const problem& p);
 }  // namespace polradtran::rt4

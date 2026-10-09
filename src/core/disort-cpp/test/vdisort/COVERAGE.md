@@ -89,8 +89,7 @@ exists.  Problem 16 will remain the sole intentionally unsupported problem.
 
 ## Polarized comparison with RT4
 
-`cpp.fast.vdisort-rt4-test` (`vdisort-rt4-comparison.cpp`) is built only with
-`ENABLE_RT4=ON`.  It compares VDISORT with Evans' RT4, a polarized
+`cpp.fast.vdisort-rt4-test` (`vdisort-rt4-comparison.cpp`) compares VDISORT with Evans' RT4, a polarized
 doubling-adding solver (`src/core/polradtran/rt4`, `doc/arts/dev.rt4.rst`).  This is the
 external reference that the scalar ports above cannot provide.  Both solvers
 get the same discrete problem:
@@ -170,8 +169,8 @@ exchanges remain undetectable:
   attenuated along the ray) is removed.  The specular reflection itself was
   22% and 13% of max I there.
 
-**MKL.** The top-level CMakeLists.txt enables Fortran only after LAPACK has
-been found.  Enabled earlier, it makes CMake's FindBLAS link MKL's GNU layers
+**MKL.** The top-level CMakeLists.txt enables Fortran (for the optional
+T-matrix code) only after LAPACK has been found.  Enabled earlier, it makes CMake's FindBLAS link MKL's GNU layers
 (`mkl_gf_lp64`, `mkl_gnu_thread`), whose multi-threaded `zgbsv` (MKL 2026.1)
 segfaults for band widths KL = KU >= 65 independently of the matrix values.
 VDISORT's boundary system has KL = KU = 6 NQuad - 1, so it crashed from
@@ -179,8 +178,7 @@ NQuad = 12 with two layers.
 
 ## Polarized comparison with RT3
 
-`cpp.fast.vdisort-rt3-test` (`vdisort-rt3-comparison.cpp`) is built only with
-`ENABLE_RT3=ON`.  It compares VDISORT with Evans' RT3, a polarized
+`cpp.fast.vdisort-rt3-test` (`vdisort-rt3-comparison.cpp`) compares VDISORT with Evans' RT3, a polarized
 doubling-adding solver with a solar beam and every Fourier azimuth mode
 (`src/core/polradtran/rt3`, `doc/arts/dev.rt3.rst`).  RT3 makes its own Fourier modes of
 the phase matrix from the Legendre series of the six scattering-plane
@@ -313,31 +311,27 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 
 ### Evans' benchmark settings (E)
 
-All four of Evans' scripts in `3rdparty/polradtran` run with his original
-programs (rt3.f, rt4.f, scatcnv.f from the tar's sources) as
-`cpp.fast.polradtran-runmietest`, `-runtesta`, `-runtestr` and `-runtestc`
-(`src/tests/polradtran`), and reproduce his tables: the RT3 ones to one
-unit in the last printed digit, the RT4 ones (brightness temperatures with
-two decimals) exactly.  `cpp.fast.polradtran-rt4-arts` gives ARTS's RT4
-library the optics rt4.f reads (cl340d14.dda, and scatcnv's conversion of
-runtestr's Mie series) and reproduces both RT4 tables to 0.5 of the last
-printed digit (0.005 K).
+All four of Evans' scripts in `3rdparty/polradtran` ran with his original
+programs (rt3.f, rt4.f, scatcnv.f from the tar's sources) and reproduced his
+tables, the RT3 ones to one unit in the last printed digit and the RT4 ones
+(brightness temperatures with two decimals) exactly, until the Fortran was
+removed from ARTS.  `cpp.fast.polradtran-rt4-arts` gives ARTS's RT4 the
+optics rt4.f reads for runtestc (cl340d14.dda) and reproduces its table to
+0.5 of the last printed digit (0.005 K); runtestr, whose scattering file
+scatcnv made, is solved from its Mie series by
+`tests/core/disort/evans-benchmarks.rt3.rt4.py`.
 
 Evans' two RT3 scripts, `runmietest` (the Mie case of Evans and Stephens
 1991: tau 1, omega 0.99, mu0 0.2, A 0.1, nmu 8, aziorder 8) and `runtesta`
 (Rayleigh over Mie with gas, solar and thermal at 3 um, A 0.25, nmu 4,
-aziorder 4), are run three ways, all from the scripts themselves
-(`src/tests/polradtran/evans-scripts.h` reads their here-documents):
-
-- `cpp.fast.polradtran-runmietest` and `-runtesta` run Evans' original
-  program (`rt3.f` with the unmodified sources) on the scripts as they are.
-  It reproduces both tables to one unit in the last printed digit; the
-  values that are zero by symmetry are REAL*4 round-off below 1e-8 of max I
-  in the tables and in the rerun.
-- Part E of `cpp.fast.vdisort-rt3-test` gives RT3 (the ARTS wrapper) the
-  same settings and VDISORT the same physical problem.  VDISORT has
-  double-Gauss streams only, so it is evaluated at Evans' Gauss angles with
-  its formal solution (`ungridded_u_user`).
+aziorder 4), are run from the scripts themselves
+(`src/tests/polradtran/evans-scripts.h` reads their here-documents).  Evans'
+original program reproduced both tables to one unit in the last printed
+digit; the values that are zero by symmetry are REAL*4 round-off below 1e-8
+of max I in the tables.  Part E of `cpp.fast.vdisort-rt3-test` gives RT3
+the same settings and VDISORT the same physical problem.  VDISORT has
+double-Gauss streams only, so it is evaluated at Evans' Gauss angles with
+its formal solution (`ungridded_u_user`).
 
 Measured, relative to max I (radiances) and max F (I fluxes):
 
@@ -417,22 +411,16 @@ scattering matrix that is regular at forward and backward scattering (see
 comparisons above carry the convergence, Richardson and non-blindness
 evidence.
 
-RT3 and RT4 are built by default when a Fortran compiler is found.  CI
-(`.github/workflows/build-test.yml`) still sets `-DENABLE_RT4=ON
--DENABLE_RT3=ON` explicitly, through the `polradtran` matrix key, for every
-job with a Fortran compiler (all Linux jobs, including LGPL, and macOS).  A
-job that loses its compiler then fails to configure instead of silently
-skipping these tests.
-`check` then runs `cpp.fast.rt3-test`, `cpp.fast.rt4-test`,
-`cpp.fast.polradtran-runmietest`, `cpp.fast.polradtran-runtesta`,
-`cpp.fast.vdisort-rt3-test`, `cpp.fast.vdisort-rt4-test`, the closed-form
-Python tests of both bindings, and this three-solver test.  Windows has no
-Fortran compiler in its environment and runs none of them.
+RT3 and RT4 are C++ ports of Evans' Fortran, which ARTS no longer keeps, so
+they are always built and every CI job runs `cpp.fast.rt3-test`,
+`cpp.fast.rt4-test`, `cpp.fast.vdisort-rt3-test`,
+`cpp.fast.vdisort-rt4-test`, the closed-form Python tests of both bindings,
+and this three-solver test.
 
 ## The three solvers on ARTS data
 
 `cpp.fast.vdisort-arts-test` (always built) and
-`cpp.fast.vdisort-arts-comparison` (`ENABLE_RT3` and `ENABLE_RT4`) test the
+`cpp.fast.vdisort-arts-comparison` test the
 ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 (see `doc/arts/dev.disort.rst`, `dev.rt3.rst`, `dev.rt4.rst`).
 

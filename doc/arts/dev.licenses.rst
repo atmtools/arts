@@ -105,8 +105,7 @@ Current components:
    * - polradtran (RT3, RT4)
      - MIT
      - ``LICENSE``
-     - when a Fortran compiler is found, unless ``ENABLE_RT3`` and
-       ``ENABLE_RT4`` are off
+     - always (the C++ ports of RT3 and RT4)
    * - cdisort
      - GPL-3.0-or-later
      - ``NOTICE``, ``COPYING``

@@ -716,7 +716,6 @@ void test_errors() {
 }  // namespace
 
 int main() try {
-  if (not rt4::available()) throw std::runtime_error("rt4-test needs ENABLE_RT4=ON");
   test_quadrature();
   test_planck();
   test_gas_only();

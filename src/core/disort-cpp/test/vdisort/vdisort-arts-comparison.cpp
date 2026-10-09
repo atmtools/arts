@@ -413,7 +413,6 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
 }  // namespace
 
 int main() try {
-  require(rt3::available() and rt4::available(), "This test requires ENABLE_RT3=ON and ENABLE_RT4=ON");
   const auto a = make_atmosphere();
   test_thermal(a);
   test_solar(a, 1e-7);

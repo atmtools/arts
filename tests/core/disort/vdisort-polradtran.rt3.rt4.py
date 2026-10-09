@@ -22,9 +22,6 @@ for RT3's and RT4's scalar I.
 
 Run it without ARTS_HEADLESS to plot each comparison: the solutions'
 plots (pyarts3.plots.cppvdisort, RT4Result and RT3Result) on shared axes.
-
-Collected only when ENABLE_RT3 and ENABLE_RT4 are both on (the ".rt3." and
-".rt4." in the file name).
 """
 
 import os
@@ -33,7 +30,6 @@ import numpy as np
 import pyarts3 as pyarts
 
 A = pyarts.arts
-assert A.rt3.available() and A.rt4.available(), "collected only with ENABLE_RT3=ON and ENABLE_RT4=ON"
 
 FREQUENCY = 89e9
 NMU = 8
