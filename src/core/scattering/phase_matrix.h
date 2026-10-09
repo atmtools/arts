@@ -113,7 +113,7 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
   // At a pole the meridional basis is that of the ray's azimuth, i.e. the
   // limit along its meridian.  The angles there are the limits of the
   // general expressions, which take acos in [0, pi] and leave the side,
-  // aa_scat - aa_inc > pi, to expand_and_transform.  Between the poles the
+  // aa_scat - aa_inc > pi, to rtepack::mirror.  Between the poles the
   // incident basis is taken in the scattering plane (sigma_1 = 0); for a
   // physical F the result does not depend on that choice.
   const Scalar delta_aa = aa_scat - aa_inc;
@@ -143,58 +143,6 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
   Scalar s_2 = sin(2.0 * sigma_2);
 
   return {theta, c_1, c_2, s_1, s_2};
-}
-
-/** The laboratory-frame phase matrix, row-major into output[16], of the scattering matrix F
- *
- * F is in the scattering-plane basis; rotation_coefficients are those of
- * rotation_coefficients(), and delta_aa_gt_180 tells the side of the
- * principal plane.
- */
-template <typename Scalar> void expand_and_transform(StridedVectorView                      output,
-                                                     const rtepack::compact_planar_muelmat &F,
-                                                     const std::array<Scalar, 5>            rotation_coefficients,
-                                                     bool                                   delta_aa_gt_180) {
-  Scalar c_1 = std::get<1>(rotation_coefficients);
-  Scalar c_2 = std::get<2>(rotation_coefficients);
-  Scalar s_1 = std::get<3>(rotation_coefficients);
-  Scalar s_2 = std::get<4>(rotation_coefficients);
-
-  // Stokes dim 1
-  output[0] = F.F11();
-
-  // Stokes dim 2 and higher.
-  output[1] = c_1 * F.F12();
-  output[4] = c_2 * F.F12();
-  output[5] = c_1 * c_2 * F.F22() - s_1 * s_2 * F.F33();
-
-  // Stokes dim 3 and higher.
-  output[2]  = s_1 * F.F12();
-  output[6]  = s_1 * c_2 * F.F22() + c_1 * s_2 * F.F33();
-  output[8]  = -s_2 * F.F12();
-  output[9]  = -c_1 * s_2 * F.F22() - s_1 * c_2 * F.F33();
-  output[10] = -s_1 * s_2 * F.F22() + c_1 * c_2 * F.F33();
-
-  if (delta_aa_gt_180) {
-    output[2] *= -1.0;
-    output[6] *= -1.0;
-    output[8] *= -1.0;
-    output[9] *= -1.0;
-  }
-
-  // Stokes dim 4 and higher.
-  output[3]  = 0.0;
-  output[7]  = s_2 * F.F34();
-  output[11] = c_2 * F.F34();
-  output[12] = 0.0;
-  output[13] = s_1 * F.F34();
-  output[14] = -c_1 * F.F34();
-  output[15] = F.F44();
-
-  if (delta_aa_gt_180) {
-    output[7]  *= -1.0;
-    output[13] *= -1.0;
-  }
 }
 
 /** Number of stored phase matrix elements.
@@ -1701,15 +1649,16 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Gridded> tro_lab_frame(
       Scalar delta_aa = std::fmod((*delta_aa_grid)[i_delta_aa], Scalar{360});
       if (delta_aa < 0) delta_aa += 360;
       for (Size i_za_scat = 0; i_za_scat < za_scat.size(); ++i_za_scat) {
-        const std::array<Scalar, 5> coeffs =
+        const auto [theta, c_1, c_2, s_1, s_2] =
             detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[i_za_inc], delta_aa, za_scat[i_za_scat]);
-        scattering_matrix(std::get<0>(coeffs), tro);
+        scattering_matrix(theta, tro);
         for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
           for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
-            detail::expand_and_transform<Scalar>(result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker],
-                                                 rtepack::compact_planar_muelmat{tro[i_t, i_f, joker]},
-                                                 coeffs,
-                                                 delta_aa > 180.0);
+            // Beyond 180 deg, the mirror image of the other side of the principal plane
+            const rtepack::muelmat Z =
+                rtepack::rotated(rtepack::compact_planar_muelmat{tro[i_t, i_f, joker]}, c_1, s_1, c_2, s_2);
+            result[i_t, i_f, i_za_inc, i_delta_aa, i_za_scat, joker] =
+                (delta_aa > 180.0 ? rtepack::mirror(Z) : Z).view_as(16);
           }
         }
       }
@@ -2328,7 +2277,7 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
   constexpr Numeric tolerance = 1e-13;
   const Index       nt = t_grid->size(), nf = f_grid->size(), M = max_mode, nset = nt * nf;
 
-  // Z(2 pi - delta) = D Z(delta) D with D = diag(1, 1, -1, -1), the side flip of expand_and_transform: the
+  // Z(2 pi - delta) = D Z(delta) D with D = diag(1, 1, -1, -1), the side flip rtepack::mirror: the
   // elements with exactly one index in {U, V} are odd in delta and have sine modes only, the others cosine modes
   // only.  So [0, pi] gives the modes: C_m = (2 - delta_m0) / 2 sum_k w_k Z(phi_k) cos(m phi_k) and S_m = sum_k
   // w_k Z(phi_k) sin(m phi_k) for the n-point Gauss-Legendre rule (w_k, phi_k) on [0, pi], whose ends are the
@@ -2356,7 +2305,6 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
     auto                       local_matrix = scattering_matrix;
     std::map<Index, rule>      rules;
     matpack::data_t<Scalar, 3> F(nt, nf, detail::get_n_mat_elems(Format::TRO));
-    Vector                     Z(16);
     std::vector<Numeric>       coarse(nset * nmode), fine(nset * nmode);
 
     const auto get_rule = [&](Index n) -> const rule & {
@@ -2390,11 +2338,14 @@ PhaseMatrixData<Scalar, Format::ARO, Representation::Fourier> tro_lab_frame_four
             stdr::fill(c, 0.0);
             for (Index k = 0; k < n; k++) {
               const Numeric delta = Conversion::rad2deg(r.phi[k]);
-              const auto    rc    = detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
-              local_matrix(std::get<0>(rc), F);
+              const auto [theta, c_1, c_2, s_1, s_2] =
+                  detail::rotation_coefficients<Scalar>(0.0, (*za_inc_grid)[ii], delta, za_scat[is]);
+              local_matrix(theta, F);
               for (Index set = 0; set < nset; set++) {
-                detail::expand_and_transform<Scalar>(
-                    Z, rtepack::compact_planar_muelmat{F[set / nf, set % nf, joker]}, rc, false);
+                // Its 16 elements, row-major
+                const auto Z =
+                    rtepack::rotated(rtepack::compact_planar_muelmat{F[set / nf, set % nf, joker]}, c_1, s_1, c_2, s_2)
+                        .data;
                 for (Index e = 0; e < 16; e++) scale = std::max<Numeric>(scale, std::abs(Z[e]));
                 Numeric *cs = c.data() + set * nmode;
                 for (Index m = 0; m <= M; m++, cs += 32) {

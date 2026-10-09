@@ -837,13 +837,9 @@ bool test_forward_backward_limit() {
     return F;
   };
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
-    Vector     z(16);
-    const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
-    detail::expand_and_transform<Numeric>(z, rtepack::compact_planar_muelmat{f}, rc, delta_aa > 180.0);
-    Matrix Z(4, 4);
-    for (Index i = 0; i < 4; i++)
-      for (Index j = 0; j < 4; j++) Z[i, j] = z[4 * i + j];
-    return Z;
+    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    const rtepack::muelmat Z = rtepack::rotated(rtepack::compact_planar_muelmat{f}, c_1, s_1, c_2, s_2);
+    return Matrix{(delta_aa > 180.0 ? rtepack::mirror(Z) : Z).view()};
   };
   const auto distance = [](const Matrix& a, const Matrix& b) {
     Numeric d = 0.0;
@@ -899,10 +895,9 @@ bool test_forward_backward_limit() {
  */
 bool test_pole_limit() {
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
-    Vector     z(16);
-    const auto rc = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
-    detail::expand_and_transform<Numeric>(z, rtepack::compact_planar_muelmat{f}, rc, delta_aa > 180.0);
-    return z;
+    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    const rtepack::muelmat Z = rtepack::rotated(rtepack::compact_planar_muelmat{f}, c_1, s_1, c_2, s_2);
+    return Vector{(delta_aa > 180.0 ? rtepack::mirror(Z) : Z).view_as(16)};
   };
   const auto distance = [](const Vector& a, const Vector& b) {
     Numeric d = 0.0;
