@@ -438,16 +438,16 @@ void report_table(std::string_view name, const table_deviation& d) {
 void test_quadrature() {
   Numeric worst = 0.0;
   for (Index n : {1, 2, 5, 8, 16}) {
-    const auto D = rt3::get_quadrature(n, rt3::quadrature_type::double_gauss);
-    const auto G = rt3::get_quadrature(n, rt3::quadrature_type::gauss);
-    const auto L = rt3::get_quadrature(n, rt3::quadrature_type::lobatto);
+    const auto D = polradtran::get_quadrature(n, polradtran::quadrature_type::double_gauss);
+    const auto G = polradtran::get_quadrature(n, polradtran::quadrature_type::gauss);
+    const auto L = polradtran::get_quadrature(n, polradtran::quadrature_type::lobatto);
     for (const auto* q : {&D, &G, &L}) {
       require(size(q->mu) == n and size(q->weights) == n, "quadrature size");
       for (Index i = 0; i < n; i++)
         require(q->mu[i] > 0 and q->mu[i] <= 1 and (i == 0 or q->mu[i] > q->mu[i - 1]),
                 "quadrature nodes must be ascending in (0, 1]");
     }
-    const auto moment = [](const rt3::quadrature& q, Index k) {
+    const auto moment = [](const polradtran::quadrature& q, Index k) {
       Numeric s = 0.0;
       for (Index i = 0; i < size(q.mu); i++) s += q.weights[i] * std::pow(q.mu[i], k);
       return s;
@@ -474,7 +474,7 @@ void test_mietest() {
   rt3::problem p;
   p.nstokes                = 4;
   p.nmu                    = 8;
-  p.quad                   = rt3::quadrature_type::gauss;
+  p.quad                   = polradtran::quadrature_type::gauss;
   p.aziorder               = 8;
   p.delta_m                = false;
   p.max_delta_tau          = 1e-6;  // rt3.f's MAX_DELTA_TAU
@@ -489,7 +489,7 @@ void test_mietest() {
   p.layer_scattering_index = {0};
   p.sky_temperature        = 0.0;
   p.surface_temperature    = 0.0;
-  p.ground                 = rt3::lambertian_surface{.albedo = 0.1};
+  p.ground                 = polradtran::lambertian_surface{.albedo = 0.1};
   const auto r             = rt3::solve(p);
 
   Numeric uv0 = 0.0;
@@ -537,7 +537,7 @@ void test_testa() {
     rt3::problem p;
     p.nstokes                = 4;
     p.nmu                    = 4;
-    p.quad                   = rt3::quadrature_type::gauss;
+    p.quad                   = polradtran::quadrature_type::gauss;
     p.aziorder               = 4;
     p.delta_m                = false;
     p.max_delta_tau          = 1e-6;
@@ -553,7 +553,7 @@ void test_testa() {
     p.layer_scattering_index = {0, 1};
     p.sky_temperature        = 0.0;
     p.surface_temperature    = t(300.0);
-    p.ground                 = rt3::lambertian_surface{.albedo = 0.25};
+    p.ground                 = polradtran::lambertian_surface{.albedo = 0.25};
     const auto r             = rt3::solve(p);
     const auto entries       = evaluate_table(r, p.height, testa_check, 1.0 / sp.per_um_to_per_hz);
     if (five_digit) {
@@ -615,23 +615,23 @@ void test_gas_only() {
         constexpr Numeric A = 0.3;
         const Complex     n{3.0, 0.2};
         rt3::problem      p;
-        p.nstokes                = ns;
-        p.nmu                    = 8;
-        p.quad                   = lambert ? rt3::quadrature_type::double_gauss : rt3::quadrature_type::gauss;
-        p.extra_mu               = lambert ? Vector{} : Vector{0.45, 1.0};
-        p.aziorder               = 2;
-        p.thermal                = true;
-        p.frequency              = frequency;
-        p.height                 = height;
-        p.temperature            = temperature;
-        p.gas_extinction         = gas;
+        p.nstokes        = ns;
+        p.nmu            = 8;
+        p.quad           = lambert ? polradtran::quadrature_type::double_gauss : polradtran::quadrature_type::gauss;
+        p.extra_mu       = lambert ? Vector{} : Vector{0.45, 1.0};
+        p.aziorder       = 2;
+        p.thermal        = true;
+        p.frequency      = frequency;
+        p.height         = height;
+        p.temperature    = temperature;
+        p.gas_extinction = gas;
         p.layer_scattering_index = ArrayOfIndex(nlay, -1);
         p.sky_temperature        = sky;
         p.surface_temperature    = tsurf;
         if (lambert)
-          p.ground = rt3::lambertian_surface{.albedo = A};
+          p.ground = polradtran::lambertian_surface{.albedo = A};
         else
-          p.ground = rt3::fresnel_surface{.refractive_index = n};
+          p.ground = polradtran::fresnel_surface{.refractive_index = n};
         const auto r   = rt3::solve(p);
         const auto nmu = size(r.mu);
 
@@ -755,7 +755,7 @@ void test_single_scattering() {
       rt3::problem p;
       p.nstokes                = ns;
       p.nmu                    = 8;
-      p.quad                   = rt3::quadrature_type::gauss;
+      p.quad                   = polradtran::quadrature_type::gauss;
       p.extra_mu               = Vector{0.5, 0.77};
       p.aziorder               = 4;
       p.max_delta_tau          = 1e-9;
@@ -768,7 +768,7 @@ void test_single_scattering() {
       p.gas_extinction         = Vector{0.0};
       p.scattering_sets        = {{.extinction = tau, .scattering = tau, .legendre = rayleigh_legendre()}};
       p.layer_scattering_index = {0};
-      p.ground                 = rt3::lambertian_surface{.albedo = 0.0};
+      p.ground                 = polradtran::lambertian_surface{.albedo = 0.0};
       const auto r             = rt3::solve(p);
       const auto up            = rt3::azimuth_radiance(r.up, phi);
       const auto dn            = rt3::azimuth_radiance(r.down, phi);
@@ -837,7 +837,7 @@ void test_delta_m_identity() {
                               {.extinction = 1.0, .scattering = 0.99, .legendre = mie_legendre()}};
   p.layer_scattering_index = {0, 1};
   p.surface_temperature    = 300.0;
-  p.ground                 = rt3::lambertian_surface{.albedo = 0.25};
+  p.ground                 = polradtran::lambertian_surface{.albedo = 0.25};
   const auto plain         = rt3::solve(p);
   p.delta_m                = true;
   const auto scaled        = rt3::solve(p);
@@ -878,7 +878,7 @@ void test_direct_beam() {
     p.gas_extinction         = Vector{0.05, 0.0, 0.1};
     p.scattering_sets        = {{.extinction = 0.4, .scattering = 0.3, .legendre = henyey_greenstein(g, 29)}};
     p.layer_scattering_index = {-1, 0, 0};
-    p.ground                 = rt3::lambertian_surface{.albedo = 0.2};
+    p.ground                 = polradtran::lambertian_surface{.albedo = 0.2};
     const auto r             = rt3::solve(p);
 
     const Numeric f  = dm ? std::pow(g, 2 * p.nmu) : 0.0;
@@ -930,7 +930,7 @@ void test_errors() {
     p.scattering_sets        = {{.extinction = 1.0, .scattering = 0.9, .legendre = rayleigh_legendre()}};
     p.layer_scattering_index = {-1, 0};
     p.surface_temperature    = 280.0;
-    p.ground                 = rt3::lambertian_surface{.albedo = 0.1};
+    p.ground                 = polradtran::lambertian_surface{.albedo = 0.1};
     return p;
   };
   rt3::solve(good());
@@ -960,7 +960,7 @@ void test_errors() {
   });
   expect_throw("extra_mu with double_gauss", "only to the gauss", [&] {
     auto p     = good();
-    p.quad     = rt3::quadrature_type::double_gauss;
+    p.quad     = polradtran::quadrature_type::double_gauss;
     p.extra_mu = Vector{0.5};
     rt3::solve(p);
   });
@@ -1056,7 +1056,7 @@ void test_errors() {
   });
   expect_throw("direct beam over a Fresnel surface", "only over a Lambertian surface", [&] {
     auto p   = good();
-    p.ground = rt3::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
+    p.ground = polradtran::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
     rt3::solve(p);
   });
   expect_throw("temperature with nlay values", "temperature needs nlay + 1", [&] {
@@ -1109,7 +1109,7 @@ void test_errors() {
   });
   expect_throw("delta-M with double_gauss", "delta-M scaled Legendre series", [&] {
     auto p                        = good();
-    p.quad                        = rt3::quadrature_type::double_gauss;
+    p.quad                        = polradtran::quadrature_type::double_gauss;
     p.delta_m                     = true;
     p.scattering_sets[0].legendre = henyey_greenstein(0.8, 40);
     rt3::solve(p);

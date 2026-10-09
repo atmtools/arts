@@ -155,9 +155,9 @@ Numeric run(const fs::path& folder, const std::string& name, const fs::path& sca
   const auto st = evans::read_rt4_settings(s);
   require(st.units == 'T' and st.polarization == "VH" and st.nstokes == 2,
           std::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", name));
-  const auto quad = st.quad == 'L'   ? rt4::quadrature_type::lobatto
-                    : st.quad == 'G' ? rt4::quadrature_type::gauss
-                                     : rt4::quadrature_type::double_gauss;
+  const auto quad = st.quad == 'L'   ? polradtran::quadrature_type::lobatto
+                    : st.quad == 'G' ? polradtran::quadrature_type::gauss
+                                     : polradtran::quadrature_type::double_gauss;
 
   // The scattering files: Evans' data files, or scatcnv run on the script's input as the script does
   fs::create_directories(work);
@@ -196,9 +196,9 @@ Numeric run(const fs::path& folder, const std::string& name, const fs::path& sca
   p.sky_temperature     = T(st.sky_temperature);
   p.surface_temperature = T(st.ground_temperature);
   if (st.ground_type == 'F')
-    p.ground = rt4::fresnel_surface{.refractive_index = st.ground_index};
+    p.ground = polradtran::fresnel_surface{.refractive_index = st.ground_index};
   else
-    p.ground = rt4::lambertian_surface{.albedo = st.albedo};
+    p.ground = polradtran::lambertian_surface{.albedo = st.albedo};
   std::map<std::string, Index> set_of;
   for (Index l = 0; l <= nlay; l++) {
     p.height[l]      = levels[l].height;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <polradtran.h>
 
 #include <variant>
 #include <vector>
@@ -66,31 +67,6 @@ namespace polradtran::rt3 {
 //! Whether the optional Fortran backend is built (ENABLE_RT3=ON).
 bool available();
 
-enum class quadrature_type {
-  gauss,         //!< RT3 'G': positive half of a 2*nmu-point Gauss-Legendre rule on [-1, 1]
-  double_gauss,  //!< RT3 'D': nmu-point Gauss-Legendre rule on [0, 1]
-  lobatto,       //!< RT3 'L': positive half of a 2*nmu-point Lobatto rule on [-1, 1]; includes mu = 1
-};
-
-//! One hemisphere's streams: ascending mu in (0, 1]; weights for the
-//! integral over mu in [0, 1], summing to 1.  The 2 pi azimuth factor is not
-//! included.
-struct quadrature {
-  Vector mu;
-  Vector weights;
-};
-
-/** The streams of RT3, nmu >= 1.
- *
- * ARTS's quadratures (scattering/integration.h) in place of RT3's own: the
- * positive half of scattering::DoubleGaussQuadrature,
- * GaussLegendreQuadrature or LobattoQuadrature of degree 2 nmu.  They are
- * RT3's rules, to rounding, as RT3_DOUBLE_GAUSS_QUADRATURE,
- * RT3_GAUSS_LEGENDRE_QUADRATURE and RT3_LOBATTO_QUADRATURE compute them.
- * rt3::radtran uses the same.  Needs no Fortran.
- */
-quadrature get_quadrature(Index nmu, quadrature_type type);
-
 /** Highest Legendre degree RT3 keeps for a quadrature (its NLEGLIM):
  *  gauss 4 nmu - 3, double_gauss 2 nmu - 3, lobatto 4 nmu - 5, at least 1.
  *  nmu counts the quadrature nodes only, not the extra angles.  RT3
@@ -125,27 +101,7 @@ struct scattering_set {
   Matrix  legendre{};
 };
 
-//! RT3 'L'.  Reflection 2 A mu_j w_j of the m = 0 mode into every stream,
-//! I to I only; emission (1 - A) B(surface_temperature) when thermal is
-//! set; reflection of the direct beam A F_direct / pi.  Energy is conserved
-//! on the streams only for double_gauss quadrature (2 sum mu w = 1); gauss
-//! and lobatto are off by about 3e-3 A for 8 streams.
-struct lambertian_surface {
-  Numeric albedo{0.0};
-};
-
-//! RT3 'F'.  Specular Fresnel reflection under a medium of index 1, for
-//! every Fourier mode: with r_v, r_h the amplitude reflection coefficients,
-//! R = [[R1, R2, 0, 0], [R2, R1, 0, 0], [0, 0, R3, -R4], [0, 0, R4, R3]],
-//! R1 = (|r_v|^2 + |r_h|^2) / 2, R2 = (|r_v|^2 - |r_h|^2) / 2,
-//! R3 = Re(r_v r_h*), R4 = Im(r_v r_h*); emission
-//! [(1 - R1) B, -R2 B, 0, 0] with B = B(surface_temperature), always
-//! included (also when thermal is false).  RT3 does not allow a Fresnel
-//! surface with a direct beam.
-struct fresnel_surface {
-  Complex refractive_index{1.0, 0.0};
-};
-
+//! The grounds of RT3, polradtran's 'L' and 'F' (polradtran.h)
 using surface = std::variant<lambertian_surface, fresnel_surface>;
 
 struct problem {

@@ -145,4 +145,47 @@ void internal_radiance(ConstTensor3View upreflect,
                        VectorView       uprad,
                        VectorView       downrad,
                        workdata&        work);
+
+/** The thin initial sublayer of a scattering layer, from which the doubling
+ * starts, as RADTRAN and RADTRANO find it ("Find initial thickness of
+ * sublayer and the number of times to double"): the layer of thickness
+ * zdiff and vertical optical thickness extinction zdiff (at least 1e-7) is
+ * halved num_doubles times, to a sublayer of optical thickness at most
+ * max_delta_tau.  num_sub_layers is 2^num_doubles and delta_z the
+ * sublayer's thickness, zdiff / num_sub_layers.
+ */
+struct sublayer {
+  Index   num_doubles;
+  Numeric num_sub_layers;
+  Numeric delta_z;
+};
+sublayer initial_sublayer(Numeric zdiff, Numeric extinction, Numeric max_delta_tau);
+
+/** The radiances at a level, as the level loop of RADTRAN and RADTRANO
+ * computes them ("add layers above and below level and compute internal
+ * radiance"): the layers above the level are combined into one
+ * (COMBINE_LAYERS), and those below it, with the ground, into another,
+ * from which INTERNAL_RADIANCE gives the radiances at the level.
+ *
+ *   level                    the number of layers above the level, 0 (the top) to num_layers
+ *                            (just above the ground)
+ *   reflect, trans           [num_layers + 1, 2, n, n]  the layers' REFLECT and TRANS, the last the
+ *                                                       ground's
+ *   source                   [num_layers + 1, 2, n]     the layers' SOURCE
+ *   intoprad, inbottomrad    [n]  the radiances incident on the top and from the ground
+ *   uprad, downrad           [n]  the radiances at the level, output
+ *
+ * The atmosphere above and below the level is work's (upreflect, ...,
+ * downsource), and reflect1, trans1 and source1 hold the copy that
+ * combine_layers combines with the next layer.
+ */
+void level_radiance(Index            level,
+                    ConstTensor4View reflect,
+                    ConstTensor4View trans,
+                    ConstTensor3View source,
+                    ConstVectorView  intoprad,
+                    ConstVectorView  inbottomrad,
+                    VectorView       uprad,
+                    VectorView       downrad,
+                    workdata&        work);
 }  // namespace polradtran

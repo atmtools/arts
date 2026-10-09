@@ -64,7 +64,7 @@ assert (
 )
 
 # RT4: the azimuthal mean of the laboratory-frame phase matrix on the streams
-mu = np.asarray(A.rt4.get_quadrature(8).mu)
+mu = np.asarray(A.polradtran.get_quadrature(8, A.polradtran.QuadratureType.double_gauss).mu)
 o = A.rt4.scattering_optics(species, atm, FREQ, mu, 2)
 phase = np.asarray(o.phase)
 dev = 0.0

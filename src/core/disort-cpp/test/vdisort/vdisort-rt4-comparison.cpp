@@ -89,7 +89,7 @@ struct streams {
 };
 
 streams make_streams(Index nmu, const Vector& extra_mu = {}) {
-  const auto  q = rt4::get_quadrature(nmu, rt4::quadrature_type::double_gauss);
+  const auto  q = polradtran::get_quadrature(nmu, polradtran::quadrature_type::double_gauss);
   const Index n = nmu + ssize(extra_mu);
   streams     s{.nmu = nmu, .mu = Vector(n, 0.0), .w = Vector(n, 0.0)};
   for (Index i = 0; i < nmu; i++) {
@@ -253,7 +253,7 @@ struct discrete_reflection {
   std::function<rtepack::muelmat(Numeric, Numeric)> rho;
 };
 
-using ground = std::variant<rt4::lambertian_surface, rt4::fresnel_surface, discrete_reflection>;
+using ground = std::variant<polradtran::lambertian_surface, polradtran::fresnel_surface, discrete_reflection>;
 
 struct setup {
   Index                   nstokes{2};
@@ -266,7 +266,7 @@ struct setup {
   std::vector<optics_set> optics{};
   Numeric                 sky{Constant::cosmic_microwave_background_temperature};
   Numeric                 surface{};
-  ground                  g{rt4::lambertian_surface{.albedo = 0.0}};
+  ground                  g{polradtran::lambertian_surface{.albedo = 0.0}};
 
   Index   nlay() const { return ssize(height) - 1; }
   Numeric dz(Index l) const { return std::abs(height[l] - height[l + 1]); }
@@ -290,7 +290,7 @@ rt4::problem rt4_problem(const setup& c) {
   rt4::problem p;
   p.nstokes  = ns;
   p.nmu      = c.s.nmu;
-  p.quad     = rt4::quadrature_type::double_gauss;
+  p.quad     = polradtran::quadrature_type::double_gauss;
   p.extra_mu = Vector(n - c.s.nmu, 0.0);
   for (Index e = 0; e < n - c.s.nmu; e++) p.extra_mu[e] = c.s.mu[c.s.nmu + e];
   p.max_delta_tau       = c.max_delta_tau;
@@ -335,10 +335,10 @@ rt4::problem rt4_problem(const setup& c) {
       }
     }
     p.ground = ds;
-  } else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g)) {
+  } else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g)) {
     p.ground = *f;
   } else {
-    p.ground = std::get<rt4::lambertian_surface>(c.g);
+    p.ground = std::get<polradtran::lambertian_surface>(c.g);
   }
   return p;
 }
@@ -452,21 +452,21 @@ vdisort::main_data vdisort_solver(const setup& c,
     Vector2 e{};
     if (const auto* d = std::get_if<discrete_reflection>(&c.g)) {
       e = discrete_emission(*d, c.s, i, Bs);
-    } else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g)) {
+    } else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g)) {
       // rtepack::fresnel_reflectance, independent of RT4's Fresnel code
       const auto F = vdisort::brdf::Fresnel{f->refractive_index}(c.s.mu[i]);
       e            = {(1 - F[0, 0]) * Bs, -F[1, 0] * Bs};
     } else {
-      e = {(1 - std::get<rt4::lambertian_surface>(c.g).albedo) * Bs, 0.0};
+      e = {(1 - std::get<polradtran::lambertian_surface>(c.g).albedo) * Bs, 0.0};
     }
     bottom[vdisort::cosine_mode, 0, i] = {e[0], ns > 1 ? e[1] : 0.0, 0.0, 0.0};
   }
   if (const auto* d = std::get_if<discrete_reflection>(&c.g))
     brdf.push_back(discrete_bdrf(*d, surface_mistake));
-  else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g))
+  else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g))
     brdf = vdisort::brdf::fresnel_fourier_modes(f->refractive_index, 1);
   else
-    brdf = vdisort::brdf::lambertian_fourier_modes(std::get<rt4::lambertian_surface>(c.g).albedo, 1);
+    brdf = vdisort::brdf::lambertian_fourier_modes(std::get<polradtran::lambertian_surface>(c.g).albedo, 1);
 
   // B(tau) = c0 + c1 tau in the global optical depth, linear within each layer
   rtepack::stokvec_matrix source(NL, 2);
@@ -568,12 +568,12 @@ field vdisort_extra_angles(const vdisort::main_data& v,
     for (Index u = 0; u < 2 * ne - first; u++) {
       if (user_mu[u] < 0.0) {
         boundary[vdisort::cosine_mode, 0, u] = {Bsky, 0.0, 0.0, 0.0};
-      } else if (const auto* f = std::get_if<rt4::fresnel_surface>(&c.g)) {
+      } else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g)) {
         const auto R                         = vdisort::brdf::Fresnel{f->refractive_index}(user_mu[u]);
         boundary[vdisort::cosine_mode, 0, u] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
       } else {
         boundary[vdisort::cosine_mode, 0, u] = {
-            (1 - std::get<rt4::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
+            (1 - std::get<polradtran::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
       }
     }
   }
@@ -786,10 +786,12 @@ setup gas_atmosphere(ground g) {
 
 //! C1-C3: RT4 integrates gas-only layers analytically, so both solvers are exact
 void test_gas_only() {
-  check("C1 gas-only, black surface", gas_atmosphere(rt4::lambertian_surface{.albedo = 0.0}));
-  check("C2 gas-only, Fresnel n = 1.5", gas_atmosphere(rt4::fresnel_surface{.refractive_index = Complex{1.5, 0.0}}));
-  check("C2 gas-only, Fresnel n = 3+0.2i", gas_atmosphere(rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}));
-  check("C3 gas-only, Lambertian A = 0.3", gas_atmosphere(rt4::lambertian_surface{.albedo = 0.3}));
+  check("C1 gas-only, black surface", gas_atmosphere(polradtran::lambertian_surface{.albedo = 0.0}));
+  check("C2 gas-only, Fresnel n = 1.5",
+        gas_atmosphere(polradtran::fresnel_surface{.refractive_index = Complex{1.5, 0.0}}));
+  check("C2 gas-only, Fresnel n = 3+0.2i",
+        gas_atmosphere(polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}));
+  check("C3 gas-only, Lambertian A = 0.3", gas_atmosphere(polradtran::lambertian_surface{.albedo = 0.3}));
 }
 
 //! C4: one Rayleigh layer, omega 0.9, tau 1, over a black surface; Q comes from scattering only
@@ -823,7 +825,7 @@ setup multilayer(Index nmu, const phase_function& P = rayleigh, Index nstokes = 
   for (const auto& [kp, sigma] : kp_sigma)
     c.optics.push_back({.kp = kp, .sigma = sigma, .Z = on_streams(c.s, sigma, P)});
   c.surface = 295.0;
-  c.g       = rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
+  c.g       = polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
   return c;
 }
 
@@ -839,7 +841,7 @@ void test_thick_conservative() {
   c.optics_index = ArrayOfIndex{0};
   c.optics       = {optics_set{.kp = 20.0, .sigma = 20.0, .Z = on_streams(c.s, 20.0, rayleigh)}};
   c.surface      = 300.0;
-  c.g            = rt4::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
+  c.g            = polradtran::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
   check("C6 conservative Rayleigh tau 20, Fresnel 1.5, cold sky", c);
 }
 
@@ -912,7 +914,7 @@ void test_numerical_phase_matrix() {
   c.optics_index = ArrayOfIndex{-1, 0};
   c.optics       = {optics_set{.kp = 1.35, .sigma = sigma, .Z = std::move(Z)}};
   c.surface      = 290.0;
-  c.g            = rt4::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
+  c.g            = polradtran::fresnel_surface{.refractive_index = Complex{1.5, 0.0}};
   check("C7 polarized HG g 0.7 omega 0.8 tau 1.5, Fresnel 1.5", c);
 }
 
@@ -928,7 +930,7 @@ void test_nonreciprocal() {
   c.optics_index = ArrayOfIndex{-1, 0};
   c.optics       = {optics_set{.kp = 0.9, .sigma = 0.8, .Z = on_streams(c.s, 0.8, constructed)}};
   c.surface      = 290.0;
-  c.g            = rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
+  c.g            = polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
   check("C8 non-reciprocal Stokes-asymmetric phase, Fresnel 3+0.2i", c);
 
   const auto    r   = rt4::solve(rt4_problem(c));
@@ -1057,8 +1059,9 @@ setup extra_angle_setup(ground g) {
 }
 
 void test_extra_angles() {
-  for (const auto& [what, g] : {std::pair<std::string_view, ground>{"black", rt4::lambertian_surface{.albedo = 0.0}},
-                                {"Lambertian A = 0.3", rt4::lambertian_surface{.albedo = 0.3}}}) {
+  for (const auto& [what, g] :
+       {std::pair<std::string_view, ground>{"black", polradtran::lambertian_surface{.albedo = 0.0}},
+        {"Lambertian A = 0.3", polradtran::lambertian_surface{.albedo = 0.3}}}) {
     const auto c = extra_angle_setup(g);
     const auto x = run(c);
     check(std::format("Extra-angle setup, {}: quadrature streams", what), c, x.r, x.f, 0);
@@ -1078,7 +1081,7 @@ void test_extra_angles() {
      emission [(1 - R11) B_s, -R21 B_s], attenuated by exp(-(tau_s - tau) / mu).
      With that term removed, every level must agree with RT4 to its doubling
      error: the reflection R(mu) I_down(mu) is then exact. */
-  const auto c = extra_angle_setup(rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}});
+  const auto c = extra_angle_setup(polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}});
   const auto x = run(c);
   check("Extra-angle setup, Fresnel 3+0.2i: quadrature streams", c, x.r, x.f, 0);
   const auto    vu  = vdisort_extra_angles(x.v, c);

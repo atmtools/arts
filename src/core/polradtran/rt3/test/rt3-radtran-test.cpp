@@ -14,7 +14,7 @@
 //
 // Each porting step is first checked bit for bit against the previous one.
 // The port was bit-identical to the Fortran until RT3's quadratures were
-// replaced by ARTS's (rt3::get_quadrature), which differ by rounding: the
+// replaced by ARTS's (polradtran::get_quadrature), which differ by rounding: the
 // weights by up to 2.4e-12 relative, RT3's being the less accurate.  The
 // radiances mostly change by 1e-15 to 1e-14 of the largest one, but by
 // 1.7e-11 in an optically thick, strongly scattering case: a node 3 ulp
@@ -22,7 +22,7 @@
 // not), and the inverse is ill-conditioned there.
 //
 // It also checks fft1dr's documented format against direct sums (what an
-// FFTW build must also give), rt3::get_quadrature against RT3's quadrature
+// FFTW build must also give), polradtran::get_quadrature against RT3's quadrature
 // routines, thermal_radiance against RT3's (to 2e-12: RT3's Planck
 // function loses digits at small h nu / k T), ground_surface against the
 // Fortran grounds that RADTRAN used to make itself, doubling_integration,
@@ -81,7 +81,7 @@
 namespace rt3 = polradtran::rt3;
 
 namespace {
-using rt3::quadrature_type;
+using polradtran::quadrature_type;
 
 constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
@@ -103,7 +103,7 @@ std::pair<Index, Numeric> differ(const auto& a, const auto& b) {
   return {count, count == 0 ? 0.0 : diff / scale};
 }
 
-/* rt3::get_quadrature against RT3's quadrature routines, which it replaces
+/* polradtran::get_quadrature against RT3's quadrature routines, which it replaces
    in RADTRAN: the same rules, to rounding.  For nmu up to 64 the nodes
    differ by 4.4e-16 and the weights by 2.4e-12 relative (Apple arm64); the
    test allows 1e-15 and 1e-11 for other compilers and libms. */
@@ -115,7 +115,7 @@ void check_quadratures() {
          {std::pair<quadrature_type, fortran_rule>{quadrature_type::double_gauss, rt3_double_gauss_quadrature},
           std::pair<quadrature_type, fortran_rule>{quadrature_type::gauss, rt3_gauss_legendre_quadrature},
           std::pair<quadrature_type, fortran_rule>{quadrature_type::lobatto, rt3_lobatto_quadrature}}) {
-      const auto q = rt3::get_quadrature(n, type);
+      const auto q = polradtran::get_quadrature(n, type);
       Vector     mu(n), w(n);
       fortran(n, mu.data_handle(), w.data_handle());
       for (Index i = 0; i < n; i++) {
@@ -125,7 +125,7 @@ void check_quadratures() {
     }
   }
   std::cout << std::format(
-      "rt3::get_quadrature against RT3's D, G and L routines, nmu 1 to 64: nodes within {:.2e}, weights within "
+      "polradtran::get_quadrature against RT3's D, G and L routines, nmu 1 to 64: nodes within {:.2e}, weights within "
       "{:.2e} relative\n",
       dmu,
       dw);
@@ -200,7 +200,7 @@ void check_initialize() {
   std::mt19937_64                         gen(2013);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
   routine_tally                           tally;
-  const auto                              q = rt3::get_quadrature(4, quadrature_type::gauss);
+  const auto                              q = polradtran::get_quadrature(4, quadrature_type::gauss);
   Vector                                  mu(5);
   mu[Range{0, 4}] = q.mu;
   mu[4]           = 1.0;
@@ -238,7 +238,7 @@ void check_initial_source() {
   std::mt19937_64                         gen(2012);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
   routine_tally                           tally;
-  const auto                              q = rt3::get_quadrature(4, quadrature_type::gauss);
+  const auto                              q = polradtran::get_quadrature(4, quadrature_type::gauss);
   Vector                                  mu(5);
   mu[Range{0, 4}] = q.mu;
   mu[4]           = 1.0;
@@ -263,7 +263,7 @@ void check_initial_source() {
    depths from 0 to 30, and Planck functions rising, falling, equal and 0. */
 void check_nonscatter_layer() {
   routine_tally tally;
-  const auto    q = rt3::get_quadrature(4, quadrature_type::gauss);
+  const auto    q = polradtran::get_quadrature(4, quadrature_type::gauss);
   Vector        mu(5);
   mu[Range{0, 4}] = q.mu;
   mu[4]           = 1.0;
@@ -545,8 +545,8 @@ void check_ground_surface() {
           }
           const Numeric      albedo = u(gen);
           const Complex      index{1.5 + 4.0 * u(gen), 3.0 * u(gen)};
-          const rt3::surface ground = type == 'F' ? rt3::surface{rt3::fresnel_surface{.refractive_index = index}}
-                                                  : rt3::surface{rt3::lambertian_surface{.albedo = albedo}};
+          const rt3::surface ground = type == 'F' ? rt3::surface{polradtran::fresnel_surface{.refractive_index = index}}
+                                                  : rt3::surface{polradtran::lambertian_surface{.albedo = albedo}};
 
           Tensor5 surf_reflect(aziorder + 1, nummu, nstokes, nummu, nstokes, nan);
           Tensor3 gnd_radiance(aziorder + 1, nummu, nstokes, nan), direct_reflect(aziorder + 1, nummu, nstokes, nan);
@@ -620,7 +620,7 @@ void check_ground_surface() {
   try {
     Tensor5 surf_reflect(1, 2, 1, 2, 1);
     Tensor3 gnd_radiance(1, 2, 1), direct_reflect(1, 2, 1);
-    rt3::ground_surface(rt3::fresnel_surface{.refractive_index = Complex{1.5, 0.0}},
+    rt3::ground_surface(polradtran::fresnel_surface{.refractive_index = Complex{1.5, 0.0}},
                         1,
                         Vector{0.3, 0.8},
                         Vector{0.5, 0.5},
@@ -808,7 +808,7 @@ void check_check_norm() {
                                        std::tuple{quadrature_type::lobatto, Index{4}, Index{0}}}) {
       for (int kind : {0, 1, 2}) {
         const Index nummu = nquad + nextra;
-        const auto  q     = rt3::get_quadrature(nquad, quad);
+        const auto  q     = polradtran::get_quadrature(nquad, quad);
         Vector      mu(nummu), w(nummu, 0.0);
         mu[Range{0, nquad}] = q.mu;
         w[Range{0, nquad}]  = q.weights;
@@ -995,7 +995,7 @@ void check_sum_legendre() {
 void check_rotate_phase_matrix() {
   std::mt19937_64                         gen(1998);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
-  const auto                              q = rt3::get_quadrature(4, quadrature_type::gauss);
+  const auto                              q = polradtran::get_quadrature(4, quadrature_type::gauss);
   std::vector<Numeric>                    mus(q.mu.begin(), q.mu.end());
   mus.push_back(1.0);
   for (Index i = 0; i < 4; i++) mus.push_back(u(gen));
@@ -1349,7 +1349,7 @@ void check_scattering() {
         for (int kind : {0, 1, 2}) {
           for (Index degree : {Index{2}, Index{7}, Index{24}}) {
             const Index nummu = nquad + nextra;
-            const auto  q     = rt3::get_quadrature(nquad, quad);
+            const auto  q     = polradtran::get_quadrature(nquad, quad);
             Vector      mu(nummu), w(nummu, 0.0);
             mu[Range{0, nquad}] = q.mu;
             w[Range{0, nquad}]  = q.weights;
@@ -1397,7 +1397,7 @@ void check_direct_scattering() {
         for (int kind : {0, 1, 2}) {
           for (Numeric direct_mu : {0.6, 0.13, 1.0}) {
             const Index nummu = nquad + nextra;
-            const auto  q     = rt3::get_quadrature(nquad, quad);
+            const auto  q     = polradtran::get_quadrature(nquad, quad);
             Vector      mu(nummu);
             mu[Range{0, nquad}] = q.mu;
             for (Index i = 0; i < nextra; i++) mu[nquad + i] = 1.0 - 0.5 * static_cast<Numeric>(i);
@@ -1459,7 +1459,7 @@ void check_doubling_integration() {
   std::mt19937_64                         gen(2014);
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
   routine_tally                           tally;
-  const auto                              q = rt3::get_quadrature(4, quadrature_type::gauss);
+  const auto                              q = polradtran::get_quadrature(4, quadrature_type::gauss);
   Vector                                  mu(5), w(5, 0.0);
   mu[Range{0, 4}] = q.mu;
   w[Range{0, 4}]  = q.weights;
@@ -1611,7 +1611,7 @@ void check_combine_layers() {
 
   routine_tally tally;
   for (Index nquad : {2, 8}) {
-    const auto q = rt3::get_quadrature(nquad, quadrature_type::gauss);
+    const auto q = polradtran::get_quadrature(nquad, quadrature_type::gauss);
     Vector     mu(nquad + 1), w(nquad + 1, 0.0);
     mu[Range{0, nquad}] = q.mu;
     w[Range{0, nquad}]  = q.weights;
@@ -1677,7 +1677,7 @@ void check_internal_radiance() {
 
   routine_tally tally;
   for (Index nquad : {2, 8}) {
-    const auto q = rt3::get_quadrature(nquad, quadrature_type::gauss);
+    const auto q = polradtran::get_quadrature(nquad, quadrature_type::gauss);
     Vector     mu(nquad + 1), w(nquad + 1, 0.0);
     mu[Range{0, nquad}] = q.mu;
     w[Range{0, nquad}]  = q.weights;
@@ -1852,14 +1852,14 @@ outputs run_cpp(const inputs& in, rt3::rt3_workdata& work) {
 
   // The ground, made by rt3::ground_surface on the streams RADTRAN makes
   const Index nquad = in.spec.nquad, nmode = in.spec.aziorder + 1;
-  const auto  q = rt3::get_quadrature(nquad, in.spec.quad);
+  const auto  q = polradtran::get_quadrature(nquad, in.spec.quad);
   Vector      mu(in.nummu), w(in.nummu, 0.0);
   mu[Range{0, nquad}]              = q.mu;
   mu[Range{nquad, in.spec.nuummu}] = in.extra_mu;
   w[Range{0, nquad}]               = q.weights;
-  const rt3::surface ground        = in.spec.ground == 'F'
-                                         ? rt3::surface{rt3::fresnel_surface{.refractive_index = in.ground_index}}
-                                         : rt3::surface{rt3::lambertian_surface{.albedo = in.ground_albedo}};
+  const rt3::surface ground = in.spec.ground == 'F'
+                                  ? rt3::surface{polradtran::fresnel_surface{.refractive_index = in.ground_index}}
+                                  : rt3::surface{polradtran::lambertian_surface{.albedo = in.ground_albedo}};
   Tensor5            surf_reflect(nmode, in.nummu, ns, in.nummu, ns);
   Tensor3            gnd_radiance(nmode, in.nummu, ns), direct_reflect(nmode, in.nummu, ns);
   rt3::ground_surface(

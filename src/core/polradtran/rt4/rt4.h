@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <polradtran.h>
 
 #include <variant>
 #include <vector>
@@ -44,32 +45,6 @@ namespace polradtran::rt4 {
 //! Whether the optional Fortran backend is built (ENABLE_RT4=ON).
 bool available();
 
-enum class quadrature_type {
-  double_gauss,  //!< RT4 'D': nmu-point Gauss-Legendre rule on [0, 1]
-  gauss,         //!< RT4 'G': positive half of a 2*nmu-point Gauss-Legendre rule on [-1, 1]
-  lobatto,       //!< RT4 'L': positive half of a 2*nmu-point Lobatto rule on [-1, 1]; includes mu = 1
-};
-
-//! One hemisphere's streams: ascending mu in (0, 1]; weights for the
-//! integral over mu in [0, 1], summing to 1.  The 2 pi azimuth factor is not
-//! included.
-struct quadrature {
-  Vector mu;
-  Vector weights;
-};
-
-/** The streams of RT4, nmu >= 1.
- *
- * ARTS's quadratures (scattering/integration.h) in place of RT4's own: the
- * positive half of scattering::DoubleGaussQuadrature,
- * GaussLegendreQuadrature or LobattoQuadrature of degree 2 nmu.  They are
- * RT4's rules; the nodes agree with RT4's DOUBLE_GAUSS_QUADRATURE,
- * GAUSS_LEGENDRE_QUADRATURE and LOBATTO_QUADRATURE to 4.4e-16 and the
- * weights to 2.4e-12 relative (RT4's Gauss weights are the less accurate).
- * rt4::radtrano uses the same.  Needs no Fortran.
- */
-quadrature get_quadrature(Index nmu, quadrature_type type);
-
 //! Hemisphere indices (see the conventions above).
 inline constexpr Index down = 0;
 inline constexpr Index up   = 1;
@@ -103,21 +78,6 @@ struct layer_optics {
   Tensor6 phase;
 };
 
-//! RT4 'L'.  Reflection 2 A mu_j w_j into every stream, I to I only;
-//! emission [(1 - A) B, 0].  Energy is conserved on the streams only for
-//! double_gauss quadrature (sum 2 mu w = 1); gauss and lobatto are off by
-//! about 3e-3 A for 8 streams.
-struct lambertian_surface {
-  Numeric albedo{0.0};
-};
-
-//! RT4 'F'.  Specular Fresnel reflection under a medium of index 1 with
-//! R = [[R1, R2], [R2, R1]], R1 = (|r_v|^2 + |r_h|^2) / 2,
-//! R2 = (|r_v|^2 - |r_h|^2) / 2, and emission [(1 - R1) B, -R2 B].
-struct fresnel_surface {
-  Complex refractive_index{1.0, 0.0};
-};
-
 //! RT4 'S'.  reflectivity: [nstokes, nstokes], R(out, in), applied
 //! specularly to every stream; emission [(1 - R(I, I)) B, -R(Q, I) B].
 struct specular_surface {
@@ -140,6 +100,7 @@ struct discrete_surface {
   Matrix  emission;
 };
 
+//! The grounds of RT4: polradtran's 'L' and 'F' (polradtran.h), and RT4's 'S' and 'A'
 using surface = std::variant<lambertian_surface, fresnel_surface, specular_surface, discrete_surface>;
 
 struct problem {

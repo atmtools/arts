@@ -14,7 +14,7 @@ namespace polradtran::rt4 {
  * DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE (radintg.h),
  * EXTERNAL_SURFACE and THERMAL_RADIANCE (radutil.h).  RT4 is RT3 in the
  * azimuth mode 0 with the thermal source alone, so the shared routines
- * that take a mode get 0.  The quadratures are ARTS's (rt4::get_quadrature), the Planck function is
+ * that take a mode get 0.  The quadratures are ARTS's (polradtran::get_quadrature), the Planck function is
  * ARTS's planck(), MZERO is "= 0.0", MIDENTITY identity and MCOPY
  * "=".  It calls no Fortran and keeps no state between calls.  The STOPs
  * of RADTRANO throw instead.
@@ -45,7 +45,7 @@ namespace polradtran::rt4 {
  *   up_rad         [num_layers + 1, nummu, nstokes]  UP_RAD(NSTOKES, NUMMU, NUM_LAYERS + 1)
  *   down_rad       [num_layers + 1, nummu, nstokes]  DOWN_RAD(NSTOKES, NUMMU, NUM_LAYERS + 1)
  *
- * quad_type is the rule of rt4::get_quadrature (QUAD_TYPE 'D', 'G' or
+ * quad_type is the rule of polradtran::get_quadrature (QUAD_TYPE 'D', 'G' or
  * 'L').
  * frequency is in Hz, and the radiances (gnd_radiance, up_rad, down_rad)
  * are in W m-2 Hz-1 sr-1 (RADTRANO: WAVELENGTH in um and W m-2 sr-1 um-1).

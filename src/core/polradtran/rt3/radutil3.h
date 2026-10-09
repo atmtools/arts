@@ -27,7 +27,7 @@ namespace polradtran::rt3 {
  * given per unit of direct flux, as direct_reflect, and radtran scales it.
  * The ground routines are ported (LAMBERT_SURFACE and FRESNEL_SURFACE as
  * polradtran::lambert_surface_layer and fresnel_surface_layer, since
- * rt3::lambertian_surface and rt3::fresnel_surface are the types of
+ * polradtran::lambertian_surface and polradtran::fresnel_surface are the types of
  * rt3.h), so this calls no Fortran.
  *
  *   mu_values       [nummu]           MU_VALUES, the streams of rt3::radtran

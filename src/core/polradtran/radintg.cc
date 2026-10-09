@@ -3,6 +3,7 @@
 #include <debug.h>
 #include <lin_alg.h>
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 
@@ -404,5 +405,97 @@ void internal_radiance(ConstTensor3View upreflect,
   mult(s, transpose(rdm), sup, 1.0, 1.0);
   s += sdm;
   mult(uprad, transpose(x), s);
+}
+
+sublayer initial_sublayer(Numeric zdiff, Numeric extinction, Numeric max_delta_tau) {
+  const Numeric f           = std::log(std::max(extinction * zdiff, 1.0e-7) / max_delta_tau) / std::log(2.0);
+  Index         num_doubles = 0;
+  if (f > 0.0) num_doubles = static_cast<Index>(f) + 1;
+  const Numeric num_sub_layers = std::pow(2.0, num_doubles);
+  return {.num_doubles = num_doubles, .num_sub_layers = num_sub_layers, .delta_z = zdiff / num_sub_layers};
+}
+
+void level_radiance(Index            level,
+                    ConstTensor4View reflect,
+                    ConstTensor4View trans,
+                    ConstTensor3View source,
+                    ConstVectorView  intoprad,
+                    ConstVectorView  inbottomrad,
+                    VectorView       uprad,
+                    VectorView       downrad,
+                    workdata&        work) {
+  const Index num_layers = reflect.extent(0) - 1;
+  const Index n          = reflect.extent(2);
+  ARTS_USER_ERROR_IF(num_layers < 0 or reflect.shape() != (std::array<Index, 4>{num_layers + 1, 2, n, n}) or
+                         trans.shape() != reflect.shape() or
+                         source.shape() != (std::array<Index, 3>{num_layers + 1, 2, n}),
+                     "The level radiance needs reflect and trans [num_layers + 1, 2, n, n] and source "
+                     "[num_layers + 1, 2, n]; got {:B,}, {:B,} and {:B,}",
+                     reflect.shape(),
+                     trans.shape(),
+                     source.shape());
+  ARTS_USER_ERROR_IF(level < 0 or level > num_layers,
+                     "The level radiance needs a level of 0 to num_layers = {} layers above it, got {}",
+                     num_layers,
+                     level);
+  for (auto shape : {work.reflect1.shape(),
+                     work.upreflect.shape(),
+                     work.downreflect.shape(),
+                     work.trans1.shape(),
+                     work.uptrans.shape(),
+                     work.downtrans.shape()})
+    ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
+                       "The level radiance needs a workdata sized for {} streams (workdata::resize)",
+                       n);
+  for (auto shape : {work.source1.shape(), work.upsource.shape(), work.downsource.shape()})
+    ARTS_USER_ERROR_IF(shape != (std::array<Index, 2>{2, n}),
+                       "The level radiance needs a workdata sized for {} streams (workdata::resize)",
+                       n);
+
+  Tensor3& reflect1    = work.reflect1;
+  Tensor3& upreflect   = work.upreflect;
+  Tensor3& downreflect = work.downreflect;
+  Tensor3& trans1      = work.trans1;
+  Tensor3& uptrans     = work.uptrans;
+  Tensor3& downtrans   = work.downtrans;
+  Matrix&  source1     = work.source1;
+  Matrix&  upsource    = work.upsource;
+  Matrix&  downsource  = work.downsource;
+
+  upreflect   = 0.0;
+  downreflect = 0.0;
+  identity(uptrans[0]);
+  identity(uptrans[1]);
+  identity(downtrans[0]);
+  identity(downtrans[1]);
+  upsource   = 0.0;
+  downsource = 0.0;
+  for (Index l = 0; l < level; l++) {
+    if (l == 0) {
+      upreflect = reflect[l];
+      uptrans   = trans[l];
+      upsource  = source[l];
+    } else {
+      reflect1 = upreflect;
+      trans1   = uptrans;
+      source1  = upsource;
+      combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource, work);
+    }
+  }
+  for (Index l = level; l < num_layers + 1; l++) {
+    if (l == level) {
+      downreflect = reflect[l];
+      downtrans   = trans[l];
+      downsource  = source[l];
+    } else {
+      reflect1 = downreflect;
+      trans1   = downtrans;
+      source1  = downsource;
+      combine_layers(
+          reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource, work);
+    }
+  }
+  internal_radiance(
+      upreflect, uptrans, upsource, downreflect, downtrans, downsource, intoprad, inbottomrad, uprad, downrad, work);
 }
 }  // namespace polradtran

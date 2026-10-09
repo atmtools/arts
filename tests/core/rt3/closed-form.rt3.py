@@ -16,6 +16,7 @@ import numpy as np
 from pyarts3 import arts
 
 rt3 = arts.rt3
+polradtran = arts.polradtran
 assert rt3.available(), "this test is only collected with ENABLE_RT3=ON"
 
 H = 6.62607015e-34
@@ -37,10 +38,10 @@ def planck(f, t):
 
 def own_quadrature(nmu, quad):
     """The rules as documented, from numpy's Gauss-Legendre and Legendre roots."""
-    if quad == rt3.QuadratureType.double_gauss:
+    if quad == polradtran.QuadratureType.double_gauss:
         x, w = np.polynomial.legendre.leggauss(nmu)
         return 0.5 * (x + 1.0), 0.5 * w
-    if quad == rt3.QuadratureType.gauss:
+    if quad == polradtran.QuadratureType.gauss:
         x, w = np.polynomial.legendre.leggauss(2 * nmu)
         return x[nmu:], w[nmu:]
     n = 2 * nmu  # Lobatto: +-1 and the roots of P'_{n-1}
@@ -51,16 +52,16 @@ def own_quadrature(nmu, quad):
 
 
 def test_quadrature():
-    for quad in rt3.QuadratureType:
+    for quad in polradtran.QuadratureType:
         for nmu in (1, 2, 5, 8):
-            q = rt3.get_quadrature(nmu, quad)
+            q = polradtran.get_quadrature(nmu, quad)
             mu, w = own_quadrature(nmu, quad)
             np.testing.assert_allclose(np.asarray(q.mu), mu, rtol=0, atol=1e-14)
             np.testing.assert_allclose(np.asarray(q.weights), w, rtol=0, atol=1e-14)
         print(f"quadrature {quad.name:13s} == numpy for nmu = 1, 2, 5, 8")
-    assert rt3.max_legendre_degree(8, rt3.QuadratureType.gauss) == 29
-    assert rt3.max_legendre_degree(8, rt3.QuadratureType.double_gauss) == 13
-    assert rt3.max_legendre_degree(8, rt3.QuadratureType.lobatto) == 27
+    assert rt3.max_legendre_degree(8, polradtran.QuadratureType.gauss) == 29
+    assert rt3.max_legendre_degree(8, polradtran.QuadratureType.double_gauss) == 13
+    assert rt3.max_legendre_degree(8, polradtran.QuadratureType.lobatto) == 27
 
 
 def print_half_unit(v):
@@ -113,7 +114,7 @@ def test_mietest():
     p = rt3.Problem(
         nstokes=4,
         nmu=8,
-        quad=rt3.QuadratureType.gauss,
+        quad=polradtran.QuadratureType.gauss,
         aziorder=8,
         direct_flux=0.628318531 * per_um_to_per_hz,
         direct_mu=abs(
@@ -126,7 +127,7 @@ def test_mietest():
         gas_extinction=[0.0],
         scattering_sets=[rt3.ScatteringSet(extinction, scattering, legendre)],
         layer_scattering_index=[0],
-        ground=rt3.LambertianSurface(0.1),
+        ground=polradtran.LambertianSurface(0.1),
     )
     r = rt3.solve(p)
     mu = np.asarray(r.mu)
@@ -222,7 +223,7 @@ def test_single_scattering():
             rt3.ScatteringSet(extinction=tau, scattering=tau, legendre=rayleigh)
         ],
         layer_scattering_index=[0],
-        ground=rt3.LambertianSurface(0.0),
+        ground=polradtran.LambertianSurface(0.0),
     )
     r = rt3.solve(p)
     phi = np.radians([0.0, 40.0, 90.0, 160.0, 200.0, 300.0])
@@ -277,7 +278,7 @@ def test_gas_fresnel():
         layer_scattering_index=[-1, -1, -1],
         sky_temperature=sky,
         surface_temperature=tsurf,
-        ground=rt3.FresnelSurface(n),
+        ground=polradtran.FresnelSurface(n),
     )
     r = rt3.solve(p)
     mu = np.asarray(r.mu)
@@ -340,7 +341,7 @@ def test_errors():
         temperature=[250.0, 260.0],
         gas_extinction=[0.0],
         layer_scattering_index=[0],
-        ground=rt3.LambertianSurface(0.1),
+        ground=polradtran.LambertianSurface(0.1),
     )
     mie = np.array(
         [
@@ -359,7 +360,7 @@ def test_errors():
     expect_error(
         "beam over a Fresnel surface",
         rt3.Problem(
-            **{**base, "ground": rt3.FresnelSurface(1.5)}, scattering_sets=[ok]
+            **{**base, "ground": polradtran.FresnelSurface(1.5)}, scattering_sets=[ok]
         ),
         "Lambertian",
     )
@@ -377,7 +378,7 @@ def test_errors():
         "extra_mu with lobatto",
         rt3.Problem(
             **base,
-            quad=rt3.QuadratureType.lobatto,
+            quad=polradtran.QuadratureType.lobatto,
             extra_mu=[0.5],
             scattering_sets=[ok],
         ),

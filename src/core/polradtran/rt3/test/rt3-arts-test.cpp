@@ -262,7 +262,7 @@ void test_path() {
     d.atm_path[l][hg_ssa] = 0.9 - 0.2 * static_cast<Numeric>(l);
   }
 
-  const rt3::path_settings s{.nstokes = 4, .nmu = 6, .quad = rt3::quadrature_type::double_gauss};
+  const rt3::path_settings s{.nstokes = 4, .nmu = 6, .quad = polradtran::quadrature_type::double_gauss};
   const auto               p      = rt3::problem_from_path(d.ray_path,
                                                            d.atm_path,
                                                            d.propmat,
@@ -270,10 +270,10 @@ void test_path() {
                                                            0,
                                                            species,
                                                            s,
-                                                           rt3::lambertian_surface{.albedo = 0.1},
+                                                           polradtran::lambertian_surface{.albedo = 0.1},
                                                            285.0,
                                                            3.0);
-  const Index              degree = rt3::max_legendre_degree(6, rt3::quadrature_type::double_gauss);
+  const Index              degree = rt3::max_legendre_degree(6, polradtran::quadrature_type::double_gauss);
   require(p.scattering_sets.size() == 2 and p.layer_scattering_index == ArrayOfIndex({0, 1}) and
               p.scattering_sets[0].legendre.nrows() == degree + 1 and p.thermal and p.direct_flux == 0.0,
           "B3: one scattering set per layer, of RT3's maximum degree, thermal and no beam");
@@ -305,16 +305,16 @@ void test_path() {
   require(mix > 0.1, "B3: the level series must differ for the layer mean to be a test");
 
   // With delta_m and gauss the automatic degree reaches 2 nmu_total
-  const rt3::path_settings sd{.nmu = 6, .quad = rt3::quadrature_type::gauss, .delta_m = true};
+  const rt3::path_settings sd{.nmu = 6, .quad = polradtran::quadrature_type::gauss, .delta_m = true};
   const auto               pd = rt3::problem_from_path(
-      d.ray_path, d.atm_path, d.propmat, d.freq_grid, 0, species, sd, rt3::lambertian_surface{}, 285.0, 3.0);
+      d.ray_path, d.atm_path, d.propmat, d.freq_grid, 0, species, sd, polradtran::lambertian_surface{}, 285.0, 3.0);
   require(pd.scattering_sets[0].legendre.nrows() ==
-              std::max(rt3::max_legendre_degree(6, rt3::quadrature_type::gauss), Index{12}) + 1,
+              std::max(rt3::max_legendre_degree(6, polradtran::quadrature_type::gauss), Index{12}) + 1,
           "B3: delta-M degree");
 
   const auto build = [&](const path_data& x) {
     (void)rt3::problem_from_path(
-        x.ray_path, x.atm_path, x.propmat, x.freq_grid, 0, species, s, rt3::lambertian_surface{}, 285.0, 3.0);
+        x.ray_path, x.atm_path, x.propmat, x.freq_grid, 0, species, s, polradtran::lambertian_surface{}, 285.0, 3.0);
   };
   auto e              = d;
   e.propmat[1][0].B() = 1e-6;

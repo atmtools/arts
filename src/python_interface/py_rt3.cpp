@@ -38,35 +38,10 @@ See :doc:`dev.rt3` for all conventions, limitations and the benchmarks.
 
   rt.def("available", &rt3::available, "Whether the Fortran backend is enabled (ENABLE_RT3=ON).");
 
-  py::enum_<rt3::quadrature_type>(rt, "QuadratureType", "RT3 quadrature rules on one hemisphere")
-      .value("gauss",
-             rt3::quadrature_type::gauss,
-             "RT3 'G' ('E' with extra angles): positive half of a 2*nmu-point Gauss-Legendre rule on [-1, 1]")
-      .value("double_gauss", rt3::quadrature_type::double_gauss, "RT3 'D': nmu-point Gauss-Legendre rule on [0, 1]")
-      .value("lobatto",
-             rt3::quadrature_type::lobatto,
-             "RT3 'L': positive half of a 2*nmu-point Lobatto rule on [-1, 1]; includes mu = 1");
-
-  py::class_<rt3::quadrature>(rt, "Quadrature")
-      .def_ro("mu", &rt3::quadrature::mu, "Ascending nodes in (0, 1]\n\n.. :class:`~pyarts3.arts.Vector`")
-      .def_ro("weights",
-              &rt3::quadrature::weights,
-              "Weights for the integral over mu in [0, 1], summing to 1 (no 2 pi azimuth factor)\n\n.. "
-              ":class:`~pyarts3.arts.Vector`")
-      .doc() = "The streams of one hemisphere";
-
-  rt.def("get_quadrature",
-         &rt3::get_quadrature,
-         "nmu"_a,
-         "type"_a = rt3::quadrature_type::gauss,
-         "RT3's streams, nmu >= 1 nodes per hemisphere: the positive half of ARTS's 2 nmu-point rule, as "
-         "RT3 uses them.",
-         py::call_guard<py::gil_scoped_release>());
-
   rt.def("max_legendre_degree",
          &rt3::max_legendre_degree,
          "nmu"_a,
-         "type"_a = rt3::quadrature_type::gauss,
+         "type"_a = polradtran::quadrature_type::gauss,
          R"(RT3's NLEGLIM: the highest Legendre degree it keeps for nmu quadrature nodes.
 
 gauss 4 nmu - 3, double_gauss 2 nmu - 3, lobatto 4 nmu - 5, at least 1.  RT3
@@ -107,29 +82,6 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
       py::bind_vector<std::vector<rt3::scattering_set>, py::rv_policy::reference_internal>(rt, "ArrayOfScatteringSet");
   aoss.doc() = "A list of ScatteringSet";
 
-  py::class_<rt3::lambertian_surface>(rt, "LambertianSurface")
-      .def(
-          "__init__",
-          [](rt3::lambertian_surface* s, Numeric albedo) { new (s) rt3::lambertian_surface{.albedo = albedo}; },
-          "albedo"_a = 0.0)
-      .def_rw("albedo", &rt3::lambertian_surface::albedo, "Albedo A\n\n.. :class:`float`")
-      .doc() =
-      "RT3 'L': reflection 2 A mu_j w_j of the m = 0 mode, I to I only; emission (1 - A) B with thermal set; "
-      "direct-beam reflection A F / pi.  Energy is conserved on the streams only for double_gauss quadrature.";
-
-  py::class_<rt3::fresnel_surface>(rt, "FresnelSurface")
-      .def(
-          "__init__",
-          [](rt3::fresnel_surface* s, Complex n) { new (s) rt3::fresnel_surface{.refractive_index = n}; },
-          "refractive_index"_a)
-      .def_rw("refractive_index",
-              &rt3::fresnel_surface::refractive_index,
-              "Complex refractive index of the surface (medium above has index 1)\n\n.. :class:`complex`")
-      .doc() =
-      "RT3 'F': specular Fresnel reflection with :math:`R1 = (|r_v|^2 + |r_h|^2) / 2, R2 = (|r_v|^2 - |r_h|^2) / 2, "
-      "R3 = Re(r_v r_h*), R4 = Im(r_v r_h*)`; emission :math:`[(1 - R1) B, -R2 B, 0, 0]`, also when thermal is false.  "
-      "Not allowed with a direct beam.";
-
   const rt3::problem d{};
   py::class_<rt3::problem>(rt, "Problem")
       .def(
@@ -137,7 +89,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
           [](rt3::problem*                           p,
              Index                                   nstokes,
              Index                                   nmu,
-             rt3::quadrature_type                    quad,
+             polradtran::quadrature_type             quad,
              const Vector&                           extra_mu,
              Index                                   aziorder,
              Numeric                                 max_delta_tau,
@@ -195,7 +147,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
           "ground"_a                 = d.ground)
       .def_rw("nstokes", &rt3::problem::nstokes, "1 to 4 for [I] ... [I, Q, U, V]\n\n.. :class:`int`")
       .def_rw("nmu", &rt3::problem::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
-      .def_rw("quad", &rt3::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt3.QuadratureType`")
+      .def_rw("quad", &rt3::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.polradtran.QuadratureType`")
       .def_rw("extra_mu",
               &rt3::problem::extra_mu,
               "Zero-weight output angles appended after the quadrature streams, each in (0, 1]; gauss only\n\n.. "
@@ -245,8 +197,8 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
           "ground",
           [](const rt3::problem& p) { return p.ground; },
           [](rt3::problem& p, const rt3::surface& g) { p.ground = g; },
-          "The surface (a copy is returned; assign to change it)\n\n.. :class:`~pyarts3.arts.rt3.LambertianSurface` "
-          "| :class:`~pyarts3.arts.rt3.FresnelSurface`")
+          "The surface (a copy is returned; assign to change it)\n\n.. :class:`~pyarts3.arts.polradtran.LambertianSurface` "
+          "| :class:`~pyarts3.arts.polradtran.FresnelSurface`")
       .doc() = "An RT3 problem; see :doc:`dev.rt3` for the conventions";
 
   py::class_<rt3::result>(rt, "RT3Result")
@@ -321,16 +273,16 @@ convention.  See :doc:`dev.rt3`.
   py::class_<rt3::path_settings>(rt, "PathSettings")
       .def(
           "__init__",
-          [](rt3::path_settings*  s,
-             Index                nstokes,
-             Index                nmu,
-             rt3::quadrature_type quad,
-             const Vector&        extra_mu,
-             Index                aziorder,
-             Numeric              max_delta_tau,
-             bool                 delta_m,
-             Index                legendre_degree,
-             Numeric              normalisation_tolerance) {
+          [](rt3::path_settings*         s,
+             Index                       nstokes,
+             Index                       nmu,
+             polradtran::quadrature_type quad,
+             const Vector&               extra_mu,
+             Index                       aziorder,
+             Numeric                     max_delta_tau,
+             bool                        delta_m,
+             Index                       legendre_degree,
+             Numeric                     normalisation_tolerance) {
             new (s) rt3::path_settings{.nstokes                 = nstokes,
                                        .nmu                     = nmu,
                                        .quad                    = quad,
@@ -352,7 +304,8 @@ convention.  See :doc:`dev.rt3`.
           "normalisation_tolerance"_a = ds.normalisation_tolerance)
       .def_rw("nstokes", &rt3::path_settings::nstokes, "1 to 4\n\n.. :class:`int`")
       .def_rw("nmu", &rt3::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
-      .def_rw("quad", &rt3::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt3.QuadratureType`")
+      .def_rw(
+          "quad", &rt3::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.polradtran.QuadratureType`")
       .def_rw("extra_mu",
               &rt3::path_settings::extra_mu,
               "Zero-weight output angles (gauss only)\n\n.. :class:`~pyarts3.arts.Vector`")

@@ -3,6 +3,7 @@
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <debug.h>
+#include <polradtran_arts.h>
 
 #include <algorithm>
 #include <array>
@@ -88,35 +89,8 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const surface&                     ground,
                           Numeric                            surface_temperature,
                           Numeric                            sky_temperature) {
-  const Index nlev = static_cast<Index>(ray_path.size());
-  const Index nf   = static_cast<Index>(freq_grid.size());
-
-  ARTS_USER_ERROR_IF(nlev < 2, "ray_path needs at least 2 points (1 layer), got {}", nlev);
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(atm_path.size()) != nlev or static_cast<Index>(spectral_propmat_path.size()) != nlev,
-      "ray_path, atm_path and spectral_propmat_path must have one entry per level; they have {}, {} "
-      "and {}",
-      nlev,
-      atm_path.size(),
-      spectral_propmat_path.size());
-  ARTS_USER_ERROR_IF(freq_index < 0 or freq_index >= nf,
-                     "freq_index must be in [0, {}) for a freq_grid of {} frequencies, got {}",
-                     nf,
-                     nf,
-                     freq_index);
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(spectral_propmat_path, [nf](const PropmatVector& v) { return static_cast<Index>(v.size()) != nf; }),
-      "Every spectral_propmat_path level must have freq_grid.size() = {} propagation matrices",
-      nf);
-  for (Index l = 0; l < nlev - 1; l++)
-    ARTS_USER_ERROR_IF(not(ray_path[l].altitude() > ray_path[l + 1].altitude()),
-                       "The ray_path altitudes must decrease strictly from the first point (top of the atmosphere) "
-                       "to the last (surface)");
-  ARTS_USER_ERROR_IF(stdr::any_of(spectral_propmat_path,
-                                  [freq_index](const PropmatVector& v) { return v[freq_index].is_polarized(); }),
-                     "RT3's gas extinction is scalar: the gas propagation matrices in spectral_propmat_path must not "
-                     "be polarized (only A may be non-zero) at frequency index {}",
-                     freq_index);
+  path_layers layers = layers_from_path(ray_path, atm_path, spectral_propmat_path, freq_grid, freq_index);
+  const Index nlev   = layers.height.size();
 
   const Index nmu_total = settings.nmu + static_cast<Index>(settings.extra_mu.size());
   Index       degree    = settings.legendre_degree;
@@ -136,23 +110,15 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                 .direct_flux            = 0.0,
                 .direct_mu              = 1.0,
                 .thermal                = true,
-                .frequency              = freq_grid[freq_index],
-                .height                 = Vector(nlev),
-                .temperature            = Vector(nlev),
-                .gas_extinction         = Vector(nlay),
+                .frequency              = layers.frequency,
+                .height                 = std::move(layers.height),
+                .temperature            = std::move(layers.temperature),
+                .gas_extinction         = std::move(layers.gas_extinction),
                 .scattering_sets        = {},
                 .layer_scattering_index = ArrayOfIndex(nlay, -1),
                 .sky_temperature        = sky_temperature,
                 .surface_temperature    = surface_temperature,
                 .ground                 = ground};
-
-  for (Index l = 0; l < nlev; l++) {
-    p.height[l]      = ray_path[l].altitude();
-    p.temperature[l] = atm_path[l].temperature;
-  }
-  for (Index l = 0; l < nlay; l++)
-    p.gas_extinction[l] =
-        std::midpoint(spectral_propmat_path[l][freq_index].A(), spectral_propmat_path[l + 1][freq_index].A());
 
   std::vector<scattering_set> level;
   level.reserve(nlev);

@@ -91,7 +91,7 @@ rt4::problem base_problem(const atmosphere& atm, Index nstokes) {
   rt4::problem p;
   p.nstokes             = nstokes;
   p.nmu                 = 8;
-  p.quad                = rt4::quadrature_type::double_gauss;
+  p.quad                = polradtran::quadrature_type::double_gauss;
   p.extra_mu            = Vector{1.0};
   p.frequency           = frequency;
   p.height              = atm.height;
@@ -100,7 +100,7 @@ rt4::problem base_problem(const atmosphere& atm, Index nstokes) {
   p.layer_optics_index  = ArrayOfIndex(atm.nlay(), -1);
   p.sky_temperature     = atm.sky;
   p.surface_temperature = atm.surface;
-  p.ground              = rt4::lambertian_surface{.albedo = 0.0};
+  p.ground              = polradtran::lambertian_surface{.albedo = 0.0};
   return p;
 }
 
@@ -189,16 +189,16 @@ void report(std::string_view name, deviation d, Numeric tol) {
 void test_quadrature() {
   Numeric worst = 0.0;
   for (Index n : {1, 2, 5, 8, 16}) {
-    const auto D = rt4::get_quadrature(n, rt4::quadrature_type::double_gauss);
-    const auto G = rt4::get_quadrature(n, rt4::quadrature_type::gauss);
-    const auto L = rt4::get_quadrature(n, rt4::quadrature_type::lobatto);
+    const auto D = polradtran::get_quadrature(n, polradtran::quadrature_type::double_gauss);
+    const auto G = polradtran::get_quadrature(n, polradtran::quadrature_type::gauss);
+    const auto L = polradtran::get_quadrature(n, polradtran::quadrature_type::lobatto);
     for (const auto* q : {&D, &G, &L}) {
       require(size(q->mu) == n and size(q->weights) == n, "quadrature size");
       for (Index i = 0; i < n; i++)
         require(q->mu[i] > 0 and q->mu[i] <= 1 and (i == 0 or q->mu[i] > q->mu[i - 1]),
                 "quadrature nodes must be ascending in (0, 1]");
     }
-    const auto moment = [](const rt4::quadrature& q, Index k) {
+    const auto moment = [](const polradtran::quadrature& q, Index k) {
       Numeric s = 0.0;
       for (Index i = 0; i < size(q.mu); i++) s += q.weights[i] * std::pow(q.mu[i], k);
       return s;
@@ -320,7 +320,7 @@ void test_layout() {
   const atmosphere atm;
   auto             p   = base_problem(atm, 2);
   const Index      nmu = p.nmu + static_cast<Index>(p.extra_mu.size());
-  const auto       qw  = rt4::get_quadrature(p.nmu, p.quad);
+  const auto       qw  = polradtran::get_quadrature(p.nmu, p.quad);
   Vector           mu(nmu);
   for (Index i = 0; i < p.nmu; i++) mu[i] = qw.mu[i];
   mu[p.nmu] = p.extra_mu[0];
@@ -384,7 +384,7 @@ void test_surfaces() {
 
   for (Complex n : {Complex{1.5, 0.0}, Complex{3.0, 0.2}}) {
     auto p             = base_problem(atm, 2);
-    p.ground           = rt4::fresnel_surface{.refractive_index = n};
+    p.ground           = polradtran::fresnel_surface{.refractive_index = n};
     const auto      r  = rt4::solve(p);
     const auto      dn = closed_form_down(atm, r.mu, gas);
     std::vector<iq> sfc(r.mu.size());
@@ -436,7 +436,7 @@ void test_surfaces() {
     constexpr Numeric A   = 0.3;
     auto              p   = base_problem(atm, 2);
     const Index       nmu = p.nmu + static_cast<Index>(p.extra_mu.size());
-    const auto        qw  = rt4::get_quadrature(p.nmu, p.quad);
+    const auto        qw  = polradtran::get_quadrature(p.nmu, p.quad);
     if (discrete) {
       rt4::discrete_surface s{.reflection = Tensor4(nmu, nmu, 2, 2, 0.0), .emission = Matrix(nmu, 2, 0.0)};
       for (Index i = 0; i < nmu; i++) {
@@ -445,7 +445,7 @@ void test_surfaces() {
       }
       p.ground = s;
     } else {
-      p.ground = rt4::lambertian_surface{.albedo = A};
+      p.ground = polradtran::lambertian_surface{.albedo = A};
     }
     const auto r    = rt4::solve(p);
     const auto dn   = closed_form_down(atm, r.mu, gas);
@@ -489,11 +489,11 @@ void test_kirchhoff(bool reciprocal) {
   atm.surface     = T;
 
   auto p               = base_problem(atm, 2);
-  p.ground             = rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
+  p.ground             = polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
   p.layer_optics_index = ArrayOfIndex{0, -1};
   p.max_delta_tau      = 1e-7;
   const Index nmu      = p.nmu + static_cast<Index>(p.extra_mu.size());
-  const auto  qw       = rt4::get_quadrature(p.nmu, p.quad);
+  const auto  qw       = polradtran::get_quadrature(p.nmu, p.quad);
   Vector      mu(nmu), w(nmu, 0.0);
   for (Index i = 0; i < p.nmu; i++) {
     mu[i] = qw.mu[i];
@@ -575,7 +575,7 @@ void test_errors() {
   const auto       good = [&] {
     auto              p   = base_problem(atm, 2);
     const Index       nmu = p.nmu + static_cast<Index>(p.extra_mu.size());
-    const auto        q   = rt4::get_quadrature(p.nmu, p.quad);
+    const auto        q   = polradtran::get_quadrature(p.nmu, p.quad);
     rt4::layer_optics o{.extinction = Tensor4(2, nmu, 2, 2, 0.0),
                         .absorption = Tensor3(2, nmu, 2, 0.0),
                         .phase      = Tensor6(2, 2, nmu, nmu, 2, 2, 0.0)};

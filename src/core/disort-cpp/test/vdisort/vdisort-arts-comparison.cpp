@@ -251,10 +251,10 @@ struct thermal_result {
 };
 
 thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel) {
-  const rt4::surface     g4 = fresnel ? rt4::surface{rt4::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
-                                      : rt4::surface{rt4::lambertian_surface{.albedo = 0.3}};
-  const rt3::surface     g3 = fresnel ? rt3::surface{rt3::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
-                                      : rt3::surface{rt3::lambertian_surface{.albedo = 0.3}};
+  const rt4::surface     g4 = fresnel ? rt4::surface{polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
+                                      : rt4::surface{polradtran::lambertian_surface{.albedo = 0.3}};
+  const rt3::surface     g3 = fresnel ? rt3::surface{polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
+                                      : rt3::surface{polradtran::lambertian_surface{.albedo = 0.3}};
   const vdisort::surface gv = fresnel
                                   ? vdisort::surface{vdisort::fresnel_surface{.refractive_index = Complex{3.0, 0.2}}}
                                   : vdisort::surface{vdisort::lambertian_surface{.albedo = 0.3}};
@@ -266,7 +266,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
       a.freq_grid,
       0,
       a.species,
-      {.nstokes = 2, .nmu = nmu, .quad = rt4::quadrature_type::double_gauss, .max_delta_tau = max_delta_tau},
+      {.nstokes = 2, .nmu = nmu, .quad = polradtran::quadrature_type::double_gauss, .max_delta_tau = max_delta_tau},
       g4,
       288.0,
       2.7);
@@ -278,7 +278,7 @@ thermal_result thermal(const atmosphere& a, Numeric max_delta_tau, bool fresnel)
                                          a.species,
                                          {.nstokes                 = 2,
                                           .nmu                     = nmu,
-                                          .quad                    = rt3::quadrature_type::double_gauss,
+                                          .quad                    = polradtran::quadrature_type::double_gauss,
                                           .max_delta_tau           = max_delta_tau,
                                           .normalisation_tolerance = 1e-6},
                                          g3,
@@ -365,11 +365,11 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
                                            a.species,
                                            {.nstokes                 = 4,
                                             .nmu                     = nmu,
-                                            .quad                    = rt3::quadrature_type::double_gauss,
+                                            .quad                    = polradtran::quadrature_type::double_gauss,
                                             .aziorder                = aziorder,
                                             .max_delta_tau           = max_delta_tau,
                                             .normalisation_tolerance = 1e-6},
-                                           rt3::lambertian_surface{.albedo = 0.3},
+                                           polradtran::lambertian_surface{.albedo = 0.3},
                                            288.0,
                                            2.7);
     p.direct_flux = flux;

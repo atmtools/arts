@@ -71,13 +71,13 @@ Provenance
     ``NUM_LAYERS``, ``NSL``, ``LDCOEF`` and ``NOUTLEVELS`` are the extents
     of its arrays), the extra angles as an input of their own instead of
     ``QUAD_TYPE 'E'`` and non-zero ``MU_VALUES``, the ground as data (see
-    below), and ``rt3::quadrature_type``.  Its work arrays are sized to the
+    below), and ``polradtran::quadrature_type``.  Its work arrays are sized to the
     problem, including the 210 MB static scattering-matrix buffer, and are
     those of an ``rt3::rt3_workdata`` (see below); its ``STOP`` checks
     throw.  It does not print RADTRAN's message when it truncates a
     Legendre series (``rt3::solve`` rejects a truncation that drops a
     non-zero coefficient).
-  * The quadratures are ARTS's: ``rt3::get_quadrature`` (used by
+  * The quadratures are ARTS's: ``polradtran::get_quadrature`` (used by
     ``rt3::radtran`` and ``rt3::solve``) is the positive half of
     ``scattering::DoubleGaussQuadrature``, ``GaussLegendreQuadrature`` or
     ``LobattoQuadrature`` of degree ``2 nmu``.  They are RT3's rules.
@@ -182,7 +182,7 @@ Provenance
     m = 0 I (the beam's reflection is added in SI).
   * ``RT3_LAMBERT_SURFACE`` is ``polradtran::lambert_surface_layer`` (named, as
     in the RT4 port, for the layer it makes, since
-    ``rt3::lambertian_surface`` is the ground's type): ``2 A mu_j w_j``
+    ``polradtran::lambertian_surface`` is the ground's type): ``2 A mu_j w_j``
     from stream j into every stream, I to I only, in mode 0, as joker
     slices of a ``[2, nummu, nstokes, nummu, nstokes]`` view.
     Bit-identical.
@@ -279,6 +279,16 @@ Provenance
     extends.  Both ``cpp.fast.rt3-radtran-test`` and
     ``cpp.fast.rt4-radtrano-test`` compare it with their own Fortran, and
     sharing it left every result of both ports bit-identical.
+    The level loop of ``RADTRAN`` and ``RADTRANO``, which adds the layers
+    above and below a level and calls ``INTERNAL_RADIANCE``, is
+    ``polradtran::level_radiance``, and their initial sublayer of a
+    scattering layer and its number of doublings
+    ``polradtran::initial_sublayer``.  The interfaces share their streams
+    and grounds (``polradtran.h``: ``quadrature_type``, ``quadrature``,
+    ``get_quadrature``, ``lambertian_surface`` and ``fresnel_surface``, in
+    Python ``pyarts3.arts.polradtran``) and the layers of an ARTS
+    propagation path (``polradtran::layers_from_path`` in
+    ``polradtran_arts.h``, behind both ``problem_from_path``).
   * ``RT3_INITIAL_SOURCE`` is ``rt3::initial_source``: the thin starting
     layer's source, delta_z / mu times the extinction times a source vector
     (the solar pseudo source or the thermal one), per angle.
@@ -309,7 +319,7 @@ Provenance
   difference is 1.2e-9 on AMD x86_64 with MKL), and
   ``polradtran::doubling_integration`` to 16 epsilon times 2^n kappa.  It
   also checks
-  ``rt3::get_quadrature`` against RT3's three quadrature routines,
+  ``polradtran::get_quadrature`` against RT3's three quadrature routines,
   ``rt3::ground_surface`` against the Fortran grounds, and each
   ported routine against its Fortran: to rounding (1e-14 of the largest
   value; 1e-13 for ``rt3::scattering`` and ``rt3::direct_scattering``,
@@ -360,7 +370,7 @@ pages are only touched as far as a problem needs them.
 
 The C++ wrapper ``arts_rt3`` is always built.  When RT3 is disabled,
 ``rt3::available()`` returns false and ``rt3::solve()`` throws
-(``rt3::get_quadrature()`` needs no Fortran).  The Python module exists in both cases and raises
+(``polradtran::get_quadrature()`` needs no Fortran).  The Python module exists in both cases and raises
 ``RuntimeError`` the same way.  Python test files whose names contain
 ``.rt3.`` are collected only with ``ENABLE_RT3=ON``.
 
@@ -449,18 +459,23 @@ tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 Interface
 ---------
 
-C++ (``#include <rt3.h>``, namespace ``rt3``):
+C++ (``#include <rt3.h>``, namespace ``polradtran::rt3``, with the streams
+and the grounds it shares with RT4 in ``polradtran.h``, namespace
+``polradtran``):
 
 .. code-block:: cpp
 
-  bool available();
-  enum class quadrature_type { gauss, double_gauss, lobatto };   // RT3 'G' ('E'), 'D', 'L'
+  // polradtran.h, namespace polradtran (shared with RT4)
+  enum class quadrature_type { gauss, double_gauss, lobatto };   // 'G' (RT3's 'E'), 'D', 'L'
   struct quadrature { Vector mu; Vector weights; };
   quadrature get_quadrature(Index nmu, quadrature_type type);
-  Index max_legendre_degree(Index nmu, quadrature_type type);    // RT3's NLEGLIM
-  struct scattering_set { Numeric extinction; Numeric scattering; Matrix legendre; };  // [nleg + 1, 6]
   struct lambertian_surface { Numeric albedo; };
   struct fresnel_surface { Complex refractive_index; };
+
+  // rt3.h, namespace polradtran::rt3
+  bool available();
+  Index max_legendre_degree(Index nmu, quadrature_type type);    // RT3's NLEGLIM
+  struct scattering_set { Numeric extinction; Numeric scattering; Matrix legendre; };  // [nleg + 1, 6]
   using surface = std::variant<lambertian_surface, fresnel_surface>;
   struct problem {
     Index nstokes{4}; Index nmu{8}; quadrature_type quad{quadrature_type::gauss};
@@ -491,11 +506,12 @@ C++ (``#include <rt3.h>``, namespace ``rt3``):
                             const path_settings& settings, const surface& ground,
                             Numeric surface_temperature, Numeric sky_temperature);
 
-Python (``pyarts3.arts.rt3``) mirrors this: ``available()``,
-``QuadratureType``, ``get_quadrature(nmu, type)``,
+Python (``pyarts3.arts.rt3``, with what RT4 shares in
+``pyarts3.arts.polradtran``: ``QuadratureType``, ``get_quadrature(nmu,
+type)``, ``Quadrature``, ``LambertianSurface(albedo)`` and
+``FresnelSurface(refractive_index)``) mirrors this: ``available()``,
 ``max_legendre_degree(nmu, type)``, ``ScatteringSet(extinction, scattering,
-legendre)`` and ``ArrayOfScatteringSet``, ``LambertianSurface(albedo)``,
-``FresnelSurface(refractive_index)``, ``Problem(...)`` (every field as a
+legendre)`` and ``ArrayOfScatteringSet``, ``Problem(...)`` (every field as a
 keyword argument with the C++ default), ``RT3Result`` (read-only ``mu``,
 ``weights``, ``up``, ``down``, ``up_flux``, ``down_flux``), ``solve(problem)``,
 ``azimuth_radiance(coefficients, phi)``, ``scattering_optics(scattering_species,
@@ -519,7 +535,7 @@ normalisation_tolerance=1e-3)``, ``PathSettings(...)`` and
                   height=[1.0, 0.0], temperature=[0.0, 0.0], gas_extinction=[0.0],
                   scattering_sets=[rt3.ScatteringSet(0.1, 0.1, rayleigh)],
                   layer_scattering_index=[0],
-                  ground=rt3.LambertianSurface(0.0))
+                  ground=arts.polradtran.LambertianSurface(0.0))
   r = rt3.solve(p)
   phi = np.radians([0.0, 45.0, 90.0])
   top_up = np.asarray(rt3.azimuth_radiance(r.up, phi))[0]   # [phi, nmu_total, 4]
@@ -652,11 +668,11 @@ Conventions
 
 **Surfaces.**
 
-* ``LambertianSurface`` (RT3 'L'): reflection ``2 A mu_j w_j`` of the m = 0
+* ``polradtran.LambertianSurface`` (RT3 'L'): reflection ``2 A mu_j w_j`` of the m = 0
   mode into every stream, I to I only; direct-beam reflection
   ``A F_direct(surface) / pi``.  The diffuse reflection conserves energy on
   the streams only with ``double_gauss`` (``2 sum mu w = 1``).
-* ``FresnelSurface`` (RT3 'F'): specular reflection for every mode under a
+* ``polradtran.FresnelSurface`` (RT3 'F'): specular reflection for every mode under a
   medium of index 1, ``[[R1, R2, 0, 0], [R2, R1, 0, 0], [0, 0, R3, -R4],
   [0, 0, R4, R3]]`` with ``R1 = (|r_v|^2 + |r_h|^2) / 2``,
   ``R2 = (|r_v|^2 - |r_h|^2) / 2``, ``R3 = Re(r_v r_h*)``,

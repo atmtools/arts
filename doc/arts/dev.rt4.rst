@@ -72,7 +72,7 @@ Provenance
     ``GAUSS_LEGENDRE_QUADRATURE``, ``LOBATTO_QUADRATURE``) are ARTS's: the
     positive half of ``scattering::DoubleGaussQuadrature``,
     ``GaussLegendreQuadrature`` or ``LobattoQuadrature`` of degree
-    ``2 nmu`` (``rt4::get_quadrature``, which ``rt4::radtrano`` and
+    ``2 nmu`` (``polradtran::get_quadrature``, which ``rt4::radtrano`` and
     ``rt4::solve`` share).  They are RT4's rules and differ from Evans'
     routines by rounding: for ``nmu`` up to 64 the nodes by at most
     4.4e-16 and the weights by at most 2.4e-12 relative.  Against a
@@ -103,7 +103,7 @@ Provenance
     ``discrete_surface`` as given.  This is bit-identical to the ground
     types inside ``RADTRANO``.  The ``*_SURFACE`` routines are ported as
     ``rt4::*_surface_layer`` (they make the ground as a layer for the
-    adding; ``rt4::fresnel_surface`` and ``rt4::specular_surface`` are the
+    adding; ``polradtran::fresnel_surface`` and ``rt4::specular_surface`` are the
     types of ``rt4.h``); those RT3 shares are ``polradtran``'s
     (``radutil.h``, below).  ``LAMBERT_SURFACE`` and ``LAMBERT_RADIANCE``
     are ``polradtran::lambert_surface_layer`` and
@@ -214,6 +214,16 @@ Provenance
     ``cpp.fast.rt4-radtrano-test`` and ``cpp.fast.rt3-radtran-test``
     compare it with their own Fortran, and sharing it left every result
     of both ports bit-identical.
+    The level loop of ``RADTRANO`` and ``RADTRAN``, which adds the layers
+    above and below a level and calls ``INTERNAL_RADIANCE``, is
+    ``polradtran::level_radiance``, and their initial sublayer of a
+    scattering layer and its number of doublings
+    ``polradtran::initial_sublayer``.  The interfaces share their streams
+    and grounds (``polradtran.h``: ``quadrature_type``, ``quadrature``,
+    ``get_quadrature``, ``lambertian_surface`` and ``fresnel_surface``, in
+    Python ``pyarts3.arts.polradtran``) and the layers of an ARTS
+    propagation path (``polradtran::layers_from_path`` in
+    ``polradtran_arts.h``, behind both ``problem_from_path``).
 
   The Fortran ``RADTRANO`` is still built, as the reference:
   ``cpp.fast.rt4-radtrano-test`` runs both on the same random inputs over
@@ -278,7 +288,7 @@ see :doc:`dev.licenses`.
 
 The C++ wrapper ``arts_rt4`` is always built.  When RT4 is disabled,
 ``rt4::available()`` returns false and ``rt4::solve()`` throws;
-``rt4::get_quadrature()``, which needs no Fortran, works.  The Python module
+``polradtran::get_quadrature()``, which needs no Fortran, works.  The Python module
 exists in both cases and raises ``RuntimeError`` the same way.
 
 Python test files whose names contain ``.rt4.`` are collected only with
@@ -310,18 +320,23 @@ tests of the inputs from ARTS data are listed in `Inputs from ARTS data`_.
 Interface
 ---------
 
-C++ (``#include <rt4.h>``, namespace ``rt4``):
+C++ (``#include <rt4.h>``, namespace ``polradtran::rt4``, with the streams
+and the grounds it shares with RT3 in ``polradtran.h``, namespace
+``polradtran``):
 
 .. code-block:: cpp
 
-  bool available();
-  enum class quadrature_type { double_gauss, gauss, lobatto };   // RT4 'D', 'G', 'L'
+  // polradtran.h, namespace polradtran (shared with RT3)
+  enum class quadrature_type { gauss, double_gauss, lobatto };   // 'G', 'D', 'L'
   struct quadrature { Vector mu; Vector weights; };
   quadrature get_quadrature(Index nmu, quadrature_type type);
-  inline constexpr Index down = 0, up = 1;
-  struct layer_optics { Tensor4 extinction; Tensor3 absorption; Tensor6 phase; };
   struct lambertian_surface { Numeric albedo; };
   struct fresnel_surface { Complex refractive_index; };
+
+  // rt4.h, namespace polradtran::rt4
+  bool available();
+  inline constexpr Index down = 0, up = 1;
+  struct layer_optics { Tensor4 extinction; Tensor3 absorption; Tensor6 phase; };
   struct specular_surface { Matrix reflectivity; };
   struct discrete_surface { Tensor4 reflection; Matrix emission; };
   using surface = std::variant<lambertian_surface, fresnel_surface, specular_surface, discrete_surface>;
@@ -351,17 +366,19 @@ C++ (``#include <rt4.h>``, namespace ``rt4``):
                             const path_settings& settings, const surface& ground,
                             Numeric surface_temperature, Numeric sky_temperature);
 
-Python (``pyarts3.arts.rt4``) mirrors this:
+Python (``pyarts3.arts.rt4``, with what RT3 shares in
+``pyarts3.arts.polradtran``) mirrors this:
 
+* ``polradtran.QuadratureType`` (``gauss``, ``double_gauss``, ``lobatto``);
+* ``polradtran.get_quadrature(nmu, type)``, which returns a
+  ``polradtran.Quadrature`` with ``mu`` and ``weights``;
+* the surfaces ``polradtran.LambertianSurface(albedo)``,
+  ``polradtran.FresnelSurface(refractive_index)``, and RT4's own
+  ``SpecularSurface(reflectivity)`` and ``DiscreteSurface(reflection,
+  emission)``;
 * ``available()``;
-* ``QuadratureType`` (``double_gauss``, ``gauss``, ``lobatto``);
-* ``get_quadrature(nmu, type)``, which returns a ``Quadrature`` with ``mu``
-  and ``weights``;
 * ``down``/``up``;
 * ``LayerOptics(extinction, absorption, phase)`` and ``ArrayOfLayerOptics``;
-* the surfaces ``LambertianSurface(albedo)``,
-  ``FresnelSurface(refractive_index)``, ``SpecularSurface(reflectivity)`` and
-  ``DiscreteSurface(reflection, emission)``;
 * ``Problem(...)``, which takes every field as a keyword argument with the
   C++ default;
 * ``RT4Result``, with read-only ``mu``, ``weights``, ``up`` and ``down``;
@@ -389,10 +406,10 @@ GIL.
                   gas_extinction=np.array([1e-4, 3e-4, 5e-4]),          # 1/m per layer
                   layer_optics_index=[-1, 0, -1],
                   sky_temperature=2.725, surface_temperature=290.0,
-                  ground=rt4.FresnelSurface(3.0 + 0.2j))
+                  ground=arts.polradtran.FresnelSurface(3.0 + 0.2j))
 
   n = p.nmu + len(p.extra_mu)
-  q = rt4.get_quadrature(p.nmu, p.quad)
+  q = arts.polradtran.get_quadrature(p.nmu, p.quad)
   w = np.append(q.weights, 0.0)
   sigma, kabs = 6e-4, 4e-4                       # isotropic scattering, per metre
   phase = np.zeros((2, 2, n, n, 2, 2))
@@ -523,9 +540,9 @@ I component of a.  It is scalar and unpolarized.
 
 **Surfaces.**
 
-* ``LambertianSurface`` (RT4 'L'): reflection ``2 A mu_j w_j`` into every
+* ``polradtran.LambertianSurface`` (RT4 'L'): reflection ``2 A mu_j w_j`` into every
   stream, I to I only (depolarizing); emission ``[(1 - A) B_s, 0]``.
-* ``FresnelSurface`` (RT4 'F'): the medium above has index 1, and the
+* ``polradtran.FresnelSurface`` (RT4 'F'): the medium above has index 1, and the
   reflection is specular and stream by stream.
   ``R = [[R1, R2], [R2, R1]]``, with ``R1 = (|r_v|^2 + |r_h|^2) / 2`` and
   ``R2 = (|r_v|^2 - |r_h|^2) / 2``.  Emission is ``[(1 - R1) B_s, -R2 B_s]``.

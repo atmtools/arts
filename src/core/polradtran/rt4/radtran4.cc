@@ -119,14 +119,7 @@ void radtrano(Numeric          max_delta_tau,
   Vector&  quad_weights = work.quad_weights;
   Matrix&  lin_source   = work.lin_source;
   Tensor3& reflect1     = work.reflect1;
-  Tensor3& upreflect    = work.upreflect;
-  Tensor3& downreflect  = work.downreflect;
   Tensor3& trans1       = work.trans1;
-  Tensor3& uptrans      = work.uptrans;
-  Tensor3& downtrans    = work.downtrans;
-  Matrix&  source1      = work.source1;
-  Matrix&  upsource     = work.upsource;
-  Matrix&  downsource   = work.downsource;
   Tensor4& reflect      = work.reflect;
   Tensor4& trans        = work.trans;
   Tensor3& source       = work.source;
@@ -136,7 +129,7 @@ void radtrano(Numeric          max_delta_tau,
   // ARTS's planck() at the frequency
 
   // Make the desired quadrature abscissas and weights (ARTS's quadratures,
-  // rt4::get_quadrature); the extra angles follow them
+  // polradtran::get_quadrature); the extra angles follow them
   const Index j               = nummu - nuummu;
   const auto  q               = get_quadrature(j, quad_type);
   mu_values[Range{0, j}]      = q.mu;
@@ -184,12 +177,8 @@ void radtrano(Numeric          max_delta_tau,
 
       // Find initial thickness of sublayer and
       // the number of times to double
-      const Numeric extinct     = extinct_matrix[tsl - 1, 0, 0, 0, 0] + gas_extinct[layer];
-      const Numeric f           = std::log(std::max(extinct * zdiff, 1.0e-7) / max_delta_tau) / std::log(2.0);
-      Index         num_doubles = 0;
-      if (f > 0.0) num_doubles = static_cast<Index>(f) + 1;
-      const Numeric num_sub_layers = std::pow(2.0, num_doubles);
-      const Numeric delta_z        = zdiff / num_sub_layers;
+      const Numeric extinct                             = extinct_matrix[tsl - 1, 0, 0, 0, 0] + gas_extinct[layer];
+      const auto [num_doubles, num_sub_layers, delta_z] = initial_sublayer(zdiff, extinct, max_delta_tau);
 
       // Initialize the source vector
       initial_source(
@@ -242,53 +231,16 @@ void radtrano(Numeric          max_delta_tau,
   // For each desired output level (1 thru NL+2) add layers
   // above and below level and compute internal radiance.
   // OUTLEVELS gives the desired output levels.
-  for (Index i = 0; i < num_layers + 1; i++) {
-    const Index layer = std::min(std::max(i, Index{0}), num_layers + 1);
-    upreflect         = 0.0;
-    downreflect       = 0.0;
-    identity(uptrans[0]);
-    identity(uptrans[1]);
-    identity(downtrans[0]);
-    identity(downtrans[1]);
-    upsource   = 0.0;
-    downsource = 0.0;
-    for (Index l = 0; l < layer; l++) {
-      if (l == 0) {
-        upreflect = reflect[l];
-        uptrans   = trans[l];
-        upsource  = source[l];
-      } else {
-        reflect1 = upreflect;
-        trans1   = uptrans;
-        source1  = upsource;
-        combine_layers(reflect1, trans1, source1, reflect[l], trans[l], source[l], upreflect, uptrans, upsource, work);
-      }
-    }
-    for (Index l = layer; l < num_layers + 1; l++) {
-      if (l == layer) {
-        downreflect = reflect[l];
-        downtrans   = trans[l];
-        downsource  = source[l];
-      } else {
-        reflect1 = downreflect;
-        trans1   = downtrans;
-        source1  = downsource;
-        combine_layers(
-            reflect1, trans1, source1, reflect[l], trans[l], source[l], downreflect, downtrans, downsource, work);
-      }
-    }
-    internal_radiance(upreflect,
-                      uptrans,
-                      upsource,
-                      downreflect,
-                      downtrans,
-                      downsource,
-                      sky_radiance[0],
-                      gnd_radiance.view_as(n),
-                      up_rad[i].view_as(n),
-                      down_rad[i].view_as(n),
-                      work);
-  }
+  for (Index i = 0; i < num_layers + 1; i++)
+    level_radiance(i,
+                   reflect,
+                   trans,
+                   source,
+                   sky_radiance[0],
+                   gnd_radiance.view_as(n),
+                   up_rad[i].view_as(n),
+                   down_rad[i].view_as(n),
+                   work);
 
   // Integrate the mu times the radiance to find the fluxes
   // jm: we don't care about the fluxes so far. so, just skip this.

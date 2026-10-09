@@ -10,6 +10,7 @@ import numpy as np
 from pyarts3 import arts
 
 rt4 = arts.rt4
+polradtran = arts.polradtran
 assert rt4.available(), "this test is only collected with ENABLE_RT4=ON"
 
 H = 6.62607015e-34
@@ -36,10 +37,10 @@ def fresnel_vh(n, mu):
 
 def own_quadrature(nmu, quad):
     """The rules as documented, from numpy's Gauss-Legendre and Legendre roots."""
-    if quad == rt4.QuadratureType.double_gauss:
+    if quad == polradtran.QuadratureType.double_gauss:
         x, w = np.polynomial.legendre.leggauss(nmu)
         return 0.5 * (x + 1.0), 0.5 * w
-    if quad == rt4.QuadratureType.gauss:
+    if quad == polradtran.QuadratureType.gauss:
         x, w = np.polynomial.legendre.leggauss(2 * nmu)
         return x[nmu:], w[nmu:]
     n = 2 * nmu  # Lobatto: +-1 and the roots of P'_{n-1}
@@ -134,7 +135,7 @@ def problem(**kw):
         "layer_optics_index": [-1, -1, -1],
         "sky_temperature": SKY,
         "surface_temperature": SURFACE,
-        "ground": rt4.FresnelSurface(INDEX),
+        "ground": polradtran.FresnelSurface(INDEX),
     }
     args.update(kw)
     return rt4.Problem(**args)
@@ -142,9 +143,9 @@ def problem(**kw):
 
 def test_quadrature():
     """RT4's rules equal numpy's, ascending, for each type."""
-    for quad in rt4.QuadratureType:
+    for quad in polradtran.QuadratureType:
         for nmu in (1, 2, 5, 8):
-            q = rt4.get_quadrature(nmu, quad)
+            q = polradtran.get_quadrature(nmu, quad)
             mu, w = own_quadrature(nmu, quad)
             np.testing.assert_allclose(
                 np.asarray(q.mu), mu, rtol=0, atol=1e-14, err_msg=str(quad)
@@ -161,7 +162,7 @@ def test_gas_fresnel():
     RT4 solves gas-only layers analytically, so only round-off remains.
     """
     gas = lambda l, i: (GAS[l], 0.0, GAS[l], 0.0)
-    for quad in rt4.QuadratureType:
+    for quad in polradtran.QuadratureType:
         p = problem(quad=quad)
         r = rt4.solve(p)
         mu = np.asarray(r.mu)
@@ -198,7 +199,7 @@ def test_layout():
     sublayer, whose largest slant thickness is max_delta_tau / mu_min.
     """
     p = problem(max_delta_tau=1e-7, layer_optics_index=[-1, 0, -1])
-    q = rt4.get_quadrature(p.nmu, p.quad)
+    q = polradtran.get_quadrature(p.nmu, p.quad)
     mu = np.concatenate([np.asarray(q.mu), np.asarray(p.extra_mu)])
     w = np.concatenate([np.asarray(q.weights), np.zeros(len(p.extra_mu))])
     nmu = len(mu)
@@ -277,7 +278,7 @@ def test_kirchhoff(reciprocal):
         extra_mu=[1.0],
         max_delta_tau=1e-7,
     )
-    q = rt4.get_quadrature(p.nmu, p.quad)
+    q = polradtran.get_quadrature(p.nmu, p.quad)
     mu = np.concatenate([np.asarray(q.mu), [1.0]])
     w = np.concatenate([np.asarray(q.weights), [0.0]])
     nmu = len(mu)

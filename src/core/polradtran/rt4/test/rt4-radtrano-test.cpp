@@ -4,7 +4,7 @@
 //
 // Each porting step is first checked bit for bit against the previous one.
 // The port was bit-identical to the Fortran until RT4's quadratures were
-// replaced by ARTS's (rt4::get_quadrature), which differ by rounding: the
+// replaced by ARTS's (polradtran::get_quadrature), which differ by rounding: the
 // weights by up to 2.4e-12 relative, RT4's being the less accurate.  Then
 // ARTS's planck() replaced PLANCK_FUNCTION for the layers, the more accurate
 // at small h nu / k T.  Then the port of DOUBLING_INTEGRATION folded the
@@ -71,20 +71,20 @@ namespace rt4 = polradtran::rt4;
 
 namespace {
 struct inputs {
-  Index                nstokes{}, nummu{}, nuummu{};
-  Numeric              max_delta_tau{};
-  rt4::quadrature_type quad_type{};
-  char                 ground_type{};
-  Numeric              ground_temp{}, ground_albedo{}, sky_temp{}, frequency{};
-  Complex              ground_index{};
-  Matrix               ground_reflec;
-  Tensor4              surf_reflect;
-  Matrix               gnd_radiance;
-  Vector               height, temperatures, gas_extinct, scatlayers;
-  Tensor5              extinct_matrix;
-  Tensor4              emis_vector;
-  Tensor6              scatter_matrix;
-  Vector               mu_values;
+  Index                       nstokes{}, nummu{}, nuummu{};
+  Numeric                     max_delta_tau{};
+  polradtran::quadrature_type quad_type{};
+  char                        ground_type{};
+  Numeric                     ground_temp{}, ground_albedo{}, sky_temp{}, frequency{};
+  Complex                     ground_index{};
+  Matrix                      ground_reflec;
+  Tensor4                     surf_reflect;
+  Matrix                      gnd_radiance;
+  Vector                      height, temperatures, gas_extinct, scatlayers;
+  Tensor5                     extinct_matrix;
+  Tensor4                     emis_vector;
+  Tensor6                     scatter_matrix;
+  Vector                      mu_values;
 };
 
 struct outputs {
@@ -96,21 +96,21 @@ struct outputs {
 enum class layout { mixed, thin, thick, shared };
 
 struct case_spec {
-  Index                nstokes, nquad, nuummu;
-  rt4::quadrature_type quad;
-  char                 ground;
-  Index                nlay;
-  layout               lay;
-  Numeric              max_delta_tau;
-  bool                 zero_kelvin_top{false};
+  Index                       nstokes, nquad, nuummu;
+  polradtran::quadrature_type quad;
+  char                        ground;
+  Index                       nlay;
+  layout                      lay;
+  Numeric                     max_delta_tau;
+  bool                        zero_kelvin_top{false};
 };
 
 //! RADTRANO's QUAD_TYPE, for the Fortran
-char fortran_quad_type(rt4::quadrature_type type) {
+char fortran_quad_type(polradtran::quadrature_type type) {
   switch (type) {
-    case rt4::quadrature_type::double_gauss: return 'D';
-    case rt4::quadrature_type::gauss:        return 'G';
-    case rt4::quadrature_type::lobatto:      return 'L';
+    case polradtran::quadrature_type::double_gauss: return 'D';
+    case polradtran::quadrature_type::gauss:        return 'G';
+    case polradtran::quadrature_type::lobatto:      return 'L';
   }
   throw std::runtime_error("unknown quadrature type");
 }
@@ -225,8 +225,8 @@ inputs make_inputs(const case_spec& c, std::mt19937_64& gen) {
 //! RADTRANO's ground inputs as an rt4::surface
 rt4::surface ground_of(const inputs& in) {
   switch (in.ground_type) {
-    case 'L': return rt4::lambertian_surface{.albedo = in.ground_albedo};
-    case 'F': return rt4::fresnel_surface{.refractive_index = in.ground_index};
+    case 'L': return polradtran::lambertian_surface{.albedo = in.ground_albedo};
+    case 'F': return polradtran::fresnel_surface{.refractive_index = in.ground_index};
     case 'S': return rt4::specular_surface{.reflectivity = in.ground_reflec};
     default:  break;
   }
@@ -248,7 +248,7 @@ outputs run_cpp(inputs in, polradtran::workdata& work) {
   // The extra angles go in on their own; all of mu_values is output
   const Index  nquad = in.nummu - in.nuummu;
   const Vector extra_mu{in.mu_values[Range{nquad, in.nuummu}]};
-  const auto   q = rt4::get_quadrature(nquad, in.quad_type);
+  const auto   q = polradtran::get_quadrature(nquad, in.quad_type);
   Vector       mu(in.nummu), w(in.nummu, 0.0);
   mu[Range{0, nquad}]         = q.mu;
   mu[Range{nquad, in.nuummu}] = extra_mu;
@@ -360,7 +360,7 @@ std::pair<Index, Numeric> differ(const auto& a, const auto& b) {
   return {count, count == 0 ? 0.0 : diff / scale};
 }
 
-/* rt4::get_quadrature against RT4's quadrature routines, which it replaces
+/* polradtran::get_quadrature against RT4's quadrature routines, which it replaces
    in RADTRANO: the same rules, to rounding.  For nmu up to 64 the nodes
    differ by 4.4e-16 and the weights by 2.4e-12 relative (Apple arm64); the
    test allows 1e-15 and 1e-11 for other compilers and libms. */
@@ -368,12 +368,13 @@ void check_quadratures() {
   using fortran_rule = void (*)(std::int64_t, double*, double*);
   Numeric dmu = 0.0, dw = 0.0;
   for (Index n = 1; n <= 64; n++) {
-    for (auto [type, fortran] :
-         {std::pair<rt4::quadrature_type, fortran_rule>{rt4::quadrature_type::double_gauss,
-                                                        rt4_double_gauss_quadrature},
-          std::pair<rt4::quadrature_type, fortran_rule>{rt4::quadrature_type::gauss, rt4_gauss_legendre_quadrature},
-          std::pair<rt4::quadrature_type, fortran_rule>{rt4::quadrature_type::lobatto, rt4_lobatto_quadrature}}) {
-      const auto q = rt4::get_quadrature(n, type);
+    for (auto [type, fortran] : {std::pair<polradtran::quadrature_type, fortran_rule>{
+                                     polradtran::quadrature_type::double_gauss, rt4_double_gauss_quadrature},
+                                 std::pair<polradtran::quadrature_type, fortran_rule>{
+                                     polradtran::quadrature_type::gauss, rt4_gauss_legendre_quadrature},
+                                 std::pair<polradtran::quadrature_type, fortran_rule>{
+                                     polradtran::quadrature_type::lobatto, rt4_lobatto_quadrature}}) {
+      const auto q = polradtran::get_quadrature(n, type);
       Vector     mu(n), w(n);
       fortran(n, mu.data_handle(), w.data_handle());
       for (Index i = 0; i < n; i++) {
@@ -383,7 +384,7 @@ void check_quadratures() {
     }
   }
   std::cout << std::format(
-      "rt4::get_quadrature against RT4's D, G and L routines, nmu 1 to 64: nodes within {:.2e}, weights within "
+      "polradtran::get_quadrature against RT4's D, G and L routines, nmu 1 to 64: nodes within {:.2e}, weights within "
       "{:.2e} relative\n",
       dmu,
       dw);
@@ -770,7 +771,7 @@ void check_doubling_integration() {
       for (Index num_doubles : {0, 1, 6, 24}) {
         for (bool symmetric : {true, false}) {
           const Index n = nstokes * nummu;
-          const auto  q = rt4::get_quadrature(nummu, rt4::quadrature_type::double_gauss);
+          const auto  q = polradtran::get_quadrature(nummu, polradtran::quadrature_type::double_gauss);
 
           // Extinction k, scattering omega k spread over the streams; with
           // symmetric, the minus hemisphere mirrors the plus one
@@ -847,7 +848,7 @@ slab random_slab(std::mt19937_64& gen, Index nstokes, Index nummu, Index num_dou
   std::uniform_real_distribution<Numeric> u(0.0, 1.0);
 
   const Index n = nstokes * nummu;
-  const auto  q = rt4::get_quadrature(nummu, rt4::quadrature_type::double_gauss);
+  const auto  q = polradtran::get_quadrature(nummu, polradtran::quadrature_type::double_gauss);
   Tensor4     ext(2, nummu, nstokes, nstokes, 0.0);
   Tensor5     sca(4, nummu, nstokes, nummu, nstokes);
   Tensor3     emis(2, nummu, nstokes, 0.0);
@@ -904,7 +905,7 @@ void check_combine_layers() {
             const slab top = random_slab(gen, nstokes, nummu, d1, symmetric);
             slab       bottom;
             if (d2 < 0) {
-              const auto q = rt4::get_quadrature(nummu, rt4::quadrature_type::double_gauss);
+              const auto q = polradtran::get_quadrature(nummu, polradtran::quadrature_type::double_gauss);
               Tensor5    r(2, nummu, nstokes, nummu, nstokes), t(2, nummu, nstokes, nummu, nstokes);
               Tensor3    src(2, nummu, nstokes);
               polradtran::lambert_surface_layer(0, q.mu, q.weights, 0.3, r, t, src);
@@ -1131,8 +1132,8 @@ void check_nonscatter_layer() {
 }
 
 std::vector<case_spec> cases() {
-  constexpr auto D = rt4::quadrature_type::double_gauss, G = rt4::quadrature_type::gauss,
-                 L = rt4::quadrature_type::lobatto;
+  constexpr auto D = polradtran::quadrature_type::double_gauss, G = polradtran::quadrature_type::gauss,
+                 L = polradtran::quadrature_type::lobatto;
 
   std::vector<case_spec> out;
   for (Index ns : {1, 2})
@@ -1219,7 +1220,7 @@ int main() try {
   // A STOP of the Fortran is an error of the port
   bool threw = false;
   try {
-    auto in = make_inputs({1, 1, 0, rt4::quadrature_type::double_gauss, 'L', 401, layout::mixed, 1e-6}, gen);
+    auto in = make_inputs({1, 1, 0, polradtran::quadrature_type::double_gauss, 'L', 401, layout::mixed, 1e-6}, gen);
     polradtran::workdata work;
     run_cpp(in, work);
   } catch (const std::exception&) { threw = true; }

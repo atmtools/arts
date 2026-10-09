@@ -94,14 +94,12 @@ struct path_settings {
 
 /** An RT3 problem from an ARTS propagation path.
  *
- * The path conventions are those of rt4::problem_from_path and of the DISORT
- * workspace methods: ray_path, atm_path and spectral_propmat_path have one
- * entry per level, top first, with strictly decreasing ray_path altitudes
- * (the heights, in metres); the level temperatures are atm_path's; the gas
- * extinction of a layer is the mean of the A elements of the unpolarized gas
- * propagation matrix (spectral_propmat_path, per metre, without particles)
- * at its two levels, and polarized gas propagation matrices are rejected;
- * the frequency is freq_grid[freq_index].
+ * The heights [m], temperatures, gas extinction and frequency are
+ * polradtran::layers_from_path's (polradtran_arts.h), as for
+ * rt4::problem_from_path: ray_path, atm_path and spectral_propmat_path have
+ * one entry per level, top first, and the gas extinction of a layer is the
+ * mean of the A elements of the unpolarized gas propagation matrix at its
+ * two levels.
  *
  * The scattering set of a layer is the mean of its two levels'
  * scattering_optics(): mean extinction, mean scattering, and the

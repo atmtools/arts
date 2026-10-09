@@ -33,31 +33,6 @@ See :doc:`dev.rt4` for all conventions, limitations and the mapping to VDISORT.
   rt.attr("down") = rt4::down;
   rt.attr("up")   = rt4::up;
 
-  py::enum_<rt4::quadrature_type>(rt, "QuadratureType", "RT4 quadrature rules on one hemisphere")
-      .value("double_gauss", rt4::quadrature_type::double_gauss, "RT4 'D': nmu-point Gauss-Legendre rule on [0, 1]")
-      .value("gauss",
-             rt4::quadrature_type::gauss,
-             "RT4 'G': positive half of a 2*nmu-point Gauss-Legendre rule on [-1, 1]")
-      .value("lobatto",
-             rt4::quadrature_type::lobatto,
-             "RT4 'L': positive half of a 2*nmu-point Lobatto rule on [-1, 1]; includes mu = 1");
-
-  py::class_<rt4::quadrature>(rt, "Quadrature")
-      .def_ro("mu", &rt4::quadrature::mu, "Ascending nodes in (0, 1]\n\n.. :class:`~pyarts3.arts.Vector`")
-      .def_ro("weights",
-              &rt4::quadrature::weights,
-              "Weights for the integral over mu in [0, 1], summing to 1 (no 2 pi azimuth factor)\n\n.. "
-              ":class:`~pyarts3.arts.Vector`")
-      .doc() = "The streams of one hemisphere";
-
-  rt.def("get_quadrature",
-         &rt4::get_quadrature,
-         "nmu"_a,
-         "type"_a = rt4::quadrature_type::double_gauss,
-         "RT4's streams, nmu >= 1 nodes per hemisphere: the positive half of ARTS's 2 nmu-point rule, as "
-         "RT4 uses them.",
-         py::call_guard<py::gil_scoped_release>());
-
   py::class_<rt4::layer_optics>(rt, "LayerOptics")
       .def(
           "__init__",
@@ -91,28 +66,6 @@ Energy conservation, K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i
   auto aolo =
       py::bind_vector<std::vector<rt4::layer_optics>, py::rv_policy::reference_internal>(rt, "ArrayOfLayerOptics");
   aolo.doc() = "A list of LayerOptics";
-
-  py::class_<rt4::lambertian_surface>(rt, "LambertianSurface")
-      .def(
-          "__init__",
-          [](rt4::lambertian_surface* s, Numeric albedo) { new (s) rt4::lambertian_surface{.albedo = albedo}; },
-          "albedo"_a = 0.0)
-      .def_rw("albedo", &rt4::lambertian_surface::albedo, "Albedo A\n\n.. :class:`float`")
-      .doc() =
-      "RT4 'L': reflection 2 A mu_j w_j into every stream, I to I only; emission [(1 - A) B, 0].  Energy is "
-      "conserved on the streams only for double_gauss quadrature.";
-
-  py::class_<rt4::fresnel_surface>(rt, "FresnelSurface")
-      .def(
-          "__init__",
-          [](rt4::fresnel_surface* s, Complex n) { new (s) rt4::fresnel_surface{.refractive_index = n}; },
-          "refractive_index"_a)
-      .def_rw("refractive_index",
-              &rt4::fresnel_surface::refractive_index,
-              "Complex refractive index of the surface (medium above has index 1)\n\n.. :class:`complex`")
-      .doc() =
-      "RT4 'F': specular Fresnel reflection :math:`R = [[R1, R2], [R2, R1]], R1 = (|r_v|^2 + |r_h|^2) / 2`, "
-      ":math:`R2 = (|r_v|^2 - |r_h|^2) / 2`; emission :math:`[(1 - R1) B, -R2 B]`.";
 
   py::class_<rt4::specular_surface>(rt, "SpecularSurface")
       .def(
@@ -154,7 +107,7 @@ is not used for this surface.)";
           [](rt4::problem*                         p,
              Index                                 nstokes,
              Index                                 nmu,
-             rt4::quadrature_type                  quad,
+             polradtran::quadrature_type           quad,
              const Vector&                         extra_mu,
              Numeric                               max_delta_tau,
              Numeric                               normalisation_tolerance,
@@ -200,7 +153,7 @@ is not used for this surface.)";
           "ground"_a                  = d.ground)
       .def_rw("nstokes", &rt4::problem::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
       .def_rw("nmu", &rt4::problem::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
-      .def_rw("quad", &rt4::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
+      .def_rw("quad", &rt4::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.polradtran.QuadratureType`")
       .def_rw("extra_mu",
               &rt4::problem::extra_mu,
               "Zero-weight output angles appended after the quadrature streams, each in (0, 1]\n\n.. "
@@ -241,8 +194,8 @@ is not used for this surface.)";
           "ground",
           [](const rt4::problem& p) { return p.ground; },
           [](rt4::problem& p, const rt4::surface& g) { p.ground = g; },
-          "The surface (a copy is returned; assign to change it)\n\n.. :class:`~pyarts3.arts.rt4.LambertianSurface` "
-          "| :class:`~pyarts3.arts.rt4.FresnelSurface` | :class:`~pyarts3.arts.rt4.SpecularSurface` | "
+          "The surface (a copy is returned; assign to change it)\n\n.. :class:`~pyarts3.arts.polradtran.LambertianSurface` "
+          "| :class:`~pyarts3.arts.polradtran.FresnelSurface` | :class:`~pyarts3.arts.rt4.SpecularSurface` | "
           ":class:`~pyarts3.arts.rt4.DiscreteSurface`")
       .doc() = "An RT4 problem; see :doc:`dev.rt4` for the conventions";
 
@@ -310,13 +263,13 @@ LayerOptics
   py::class_<rt4::path_settings>(rt, "PathSettings")
       .def(
           "__init__",
-          [](rt4::path_settings*  s,
-             Index                nstokes,
-             Index                nmu,
-             rt4::quadrature_type quad,
-             const Vector&        extra_mu,
-             Numeric              max_delta_tau,
-             Numeric              normalisation_tolerance) {
+          [](rt4::path_settings*         s,
+             Index                       nstokes,
+             Index                       nmu,
+             polradtran::quadrature_type quad,
+             const Vector&               extra_mu,
+             Numeric                     max_delta_tau,
+             Numeric                     normalisation_tolerance) {
             new (s) rt4::path_settings{.nstokes                 = nstokes,
                                        .nmu                     = nmu,
                                        .quad                    = quad,
@@ -332,7 +285,8 @@ LayerOptics
           "normalisation_tolerance"_a = ds.normalisation_tolerance)
       .def_rw("nstokes", &rt4::path_settings::nstokes, "1 for [I], 2 for [I, Q]\n\n.. :class:`int`")
       .def_rw("nmu", &rt4::path_settings::nmu, "Quadrature nodes per hemisphere\n\n.. :class:`int`")
-      .def_rw("quad", &rt4::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.rt4.QuadratureType`")
+      .def_rw(
+          "quad", &rt4::path_settings::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.polradtran.QuadratureType`")
       .def_rw("extra_mu",
               &rt4::path_settings::extra_mu,
               "Zero-weight output angles, each in (0, 1]\n\n.. :class:`~pyarts3.arts.Vector`")

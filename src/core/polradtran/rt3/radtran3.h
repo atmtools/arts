@@ -15,7 +15,7 @@ namespace polradtran::rt3 {
  * radintg.h, THERMAL_RADIANCE in radutil.h), RT4's EXTERNAL_SURFACE
  * (radutil.h), and the grounds of radutil3.f behind rt3::ground_surface.
  * It calls no Fortran and keeps no state between calls.  The quadratures
- * are ARTS's (rt3::get_quadrature), the Planck function is ARTS's
+ * are ARTS's (polradtran::get_quadrature), the Planck function is ARTS's
  * planck(), and Evans' matrix helpers are matpack: MZERO is "= 0.0",
  * MIDENTITY matpack::identity, MCOPY "=" and MSCALARMULT "*=".  The STOPs
  * of RADTRAN throw instead.

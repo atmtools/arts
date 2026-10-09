@@ -236,7 +236,7 @@ rt3::scattering_set transport_set(const rt3::scattering_set& s, const setup& c) 
   const Numeric w      = s.scattering / s.extinction;
   const Numeric ext    = (1 - w * f) * s.extinction;
   const Numeric sca    = (1 - f) * w / (1 - w * f) * ext;
-  const Index   degree = std::min(M - 1, rt3::max_legendre_degree(c.nmu, rt3::quadrature_type::double_gauss));
+  const Index   degree = std::min(M - 1, rt3::max_legendre_degree(c.nmu, polradtran::quadrature_type::double_gauss));
   Matrix        L(degree + 1, 6, 0.0);
   for (Index l = 0; l <= degree; l++) {
     const auto m = static_cast<Numeric>(2 * l + 1);
@@ -253,7 +253,7 @@ rt3::problem rt3_problem(const setup& c) {
   rt3::problem p;
   p.nstokes                = c.nstokes;
   p.nmu                    = c.nmu;
-  p.quad                   = rt3::quadrature_type::double_gauss;
+  p.quad                   = polradtran::quadrature_type::double_gauss;
   p.aziorder               = c.aziorder;
   p.max_delta_tau          = c.max_delta_tau;
   p.delta_m                = c.delta_m;
@@ -269,9 +269,9 @@ rt3::problem rt3_problem(const setup& c) {
   p.sky_temperature        = c.sky;
   p.surface_temperature    = c.surface;
   if (c.fresnel)
-    p.ground = rt3::fresnel_surface{.refractive_index = *c.fresnel};
+    p.ground = polradtran::fresnel_surface{.refractive_index = *c.fresnel};
   else
-    p.ground = rt3::lambertian_surface{.albedo = c.albedo};
+    p.ground = polradtran::lambertian_surface{.albedo = c.albedo};
   return p;
 }
 
@@ -391,7 +391,7 @@ std::string_view name(mistake m) {
 
 //! The signed VDISORT streams on RT3's double-Gauss nodes: mu_i, then -mu_i
 Vector signed_streams(Index nmu) {
-  const auto q = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss);
+  const auto q = polradtran::get_quadrature(nmu, polradtran::quadrature_type::double_gauss);
   Vector     mu(2 * nmu);
   for (Index i = 0; i < nmu; i++) {
     mu[i]       = q.mu[i];
@@ -507,7 +507,7 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
                            c.phi0,
                            std::move(B));
 
-  const auto q    = rt3::get_quadrature(N, rt3::quadrature_type::double_gauss);
+  const auto q    = polradtran::get_quadrature(N, polradtran::quadrature_type::double_gauss);
   Numeric    node = 0.0;
   for (Index i = 0; i < N; i++)
     node = std::max({node,
@@ -690,7 +690,7 @@ Numeric direct_tolerance(const setup& c, const doubling& d) {
 Numeric richardson_tolerance(const setup& c) {
   const auto    coarse = rt3_doubling(c, richardson_max_delta_tau);
   const auto    fine   = rt3_doubling(c, richardson_max_delta_tau / 2);
-  const Numeric mu_min = rt3::get_quadrature(c.nmu, rt3::quadrature_type::double_gauss).mu[0];
+  const Numeric mu_min = polradtran::get_quadrature(c.nmu, polradtran::quadrature_type::double_gauss).mu[0];
   return coarse.delta * coarse.delta / mu_min + 3 * std::exp2(fine.n) * eps;
 }
 
@@ -1136,7 +1136,7 @@ void test_nstokes() {
    problem. */
 void test_stream_sweep() {
   for (Index nmu : {2, 4, 8, 16}) {
-    const Index degree = rt3::max_legendre_degree(nmu, rt3::quadrature_type::double_gauss);
+    const Index degree = rt3::max_legendre_degree(nmu, polradtran::quadrature_type::double_gauss);
     for (auto c : {mie_layer(nmu), multilayer(nmu)}) {
       Index top = 0;
       for (auto& s : c.sets) {
@@ -1355,7 +1355,7 @@ evans_case read_evans(const std::string& script) {
   c.surface     = T(st.ground_temperature);
   c.albedo      = st.albedo;
   if (st.ground_type == 'F') c.fresnel = st.ground_index;
-  e.mu = rt3::get_quadrature(st.nmu, rt3::quadrature_type::gauss).mu;
+  e.mu = polradtran::get_quadrature(st.nmu, polradtran::quadrature_type::gauss).mu;
   return e;
 }
 
@@ -1433,7 +1433,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
 }
 
 //! RT3 (the ARTS wrapper) on its own nmu nodes of the quadrature, which must be e.mu
-row_solution rt3_at_table(const evans_case& e, Index nmu, rt3::quadrature_type quad, Numeric max_delta_tau) {
+row_solution rt3_at_table(const evans_case& e, Index nmu, polradtran::quadrature_type quad, Numeric max_delta_tau) {
   setup c         = e.c;
   c.nmu           = nmu;
   c.max_delta_tau = max_delta_tau;
@@ -1562,7 +1562,8 @@ void test_evans_settings() {
         e.settings.src_code,
         e.c.mu0);
     const auto table = table_of();
-    const auto evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);  // rt3.f's MAX_DELTA_TAU
+    const auto evans =
+        rt3_at_table(e, e.settings.nmu, polradtran::quadrature_type::gauss, 1e-6);  // rt3.f's MAX_DELTA_TAU
     print_deviation("RT3 at Evans' settings vs his table", deviation_from(e, evans, table, e.table), 2e-6);
 
     setup c16 = e.c, c32 = e.c;
@@ -1579,10 +1580,10 @@ void test_evans_settings() {
     Numeric previous = 1.0;
     for (Index nmu : {4, 6, 8, 12, 16}) {
       evans_case g = e;
-      g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
+      g.mu         = polradtran::get_quadrature(nmu, polradtran::quadrature_type::gauss).mu;
       const auto d = print_deviation(
           std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu),
-          deviation_from(g, rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7), v_at(g), rows_on(g, g.mu)));
+          deviation_from(g, rt3_at_table(g, nmu, polradtran::quadrature_type::gauss, 1e-7), v_at(g), rows_on(g, g.mu)));
       require(max_of(d) < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
       previous = max_of(d);
     }
@@ -1590,12 +1591,12 @@ void test_evans_settings() {
     // RT3 and VDISORT on the same double-Gauss streams: the same discrete problem
     for (Index nmu : {8, 16}) {
       evans_case g = e;
-      g.mu         = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
+      g.mu         = polradtran::get_quadrature(nmu, polradtran::quadrature_type::double_gauss).mu;
       setup c      = e.c;
       c.nmu        = nmu;
       print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
                       deviation_from(g,
-                                     rt3_at_table(g, nmu, rt3::quadrature_type::double_gauss, 1e-7),
+                                     rt3_at_table(g, nmu, polradtran::quadrature_type::double_gauss, 1e-7),
                                      vdisort_at_table(vdisort_solver(c), g, c),
                                      rows_on(g, g.mu)),
                       2e-6);
@@ -1655,7 +1656,7 @@ void test_evans_rt4_settings() {
       e.settings.nmu,
       e.c.fresnel->real(),
       e.c.fresnel->imag());
-  const auto    evans = rt3_at_table(e, e.settings.nmu, rt3::quadrature_type::gauss, 1e-6);
+  const auto    evans = rt3_at_table(e, e.settings.nmu, polradtran::quadrature_type::gauss, 1e-6);
   const Numeric rt3_k = brightness_deviation(e, evans, e.table);
   std::cout << std::format(
       "    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
@@ -1691,8 +1692,8 @@ void test_evans_rt4_settings() {
   Numeric previous = 1e9;
   for (Index nmu : {4, 8, 16}) {
     evans_case g  = e;
-    g.mu          = rt3::get_quadrature(nmu, rt3::quadrature_type::gauss).mu;
-    const auto r3 = rt3_at_table(g, nmu, rt3::quadrature_type::gauss, 1e-7);
+    g.mu          = polradtran::get_quadrature(nmu, polradtran::quadrature_type::gauss).mu;
+    const auto r3 = rt3_at_table(g, nmu, polradtran::quadrature_type::gauss, 1e-7);
     const auto vd = vdisort_at_table(v_fine, g, fine);
     Numeric    d  = 0.0;
     for (const auto& r : rows_on(g, g.mu)) {
@@ -1708,7 +1709,7 @@ void test_evans_rt4_settings() {
   }
   for (Index nmu : {8, 16}) {
     evans_case g    = e;
-    g.mu            = rt3::get_quadrature(nmu, rt3::quadrature_type::double_gauss).mu;
+    g.mu            = polradtran::get_quadrature(nmu, polradtran::quadrature_type::double_gauss).mu;
     setup c         = e.c;
     c.nmu           = nmu;
     const auto rows = [&] {
@@ -1719,7 +1720,7 @@ void test_evans_rt4_settings() {
     }();
     print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
                     deviation_from(g,
-                                   rt3_at_table(g, nmu, rt3::quadrature_type::double_gauss, 1e-7),
+                                   rt3_at_table(g, nmu, polradtran::quadrature_type::double_gauss, 1e-7),
                                    vdisort_at_table(vdisort_solver(c), g, c),
                                    rows),
                     2e-6);

@@ -112,8 +112,8 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
     freq_grid = A.AscendingGrid([FREQUENCY])
     kind, value = surface
     surf = {
-        s: getattr(getattr(A, s), "LambertianSurface" if kind == "lambertian" else "FresnelSurface")(value)
-        for s in ("vdisort", "rt3", "rt4")
+        s: getattr(getattr(A, m), "LambertianSurface" if kind == "lambertian" else "FresnelSurface")(value)
+        for s, m in (("vdisort", "vdisort"), ("rt3", "polradtran"), ("rt4", "polradtran"))
     }
     flux, mu0 = beam if beam else (0.0, 1.0)
     aziorder = 7 if beam else 0
@@ -142,7 +142,7 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
         A.rt3.PathSettings(
             nstokes=nstokes,
             nmu=NMU,
-            quad=A.rt3.QuadratureType.double_gauss,
+            quad=A.polradtran.QuadratureType.double_gauss,
             aziorder=aziorder,
             max_delta_tau=MAX_DELTA_TAU,
             normalisation_tolerance=1e-6,

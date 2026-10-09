@@ -427,11 +427,11 @@ def rt3(case, nmu, quad, max_delta_tau=1e-7):
         ext, sca, coef = case["legendre"][name]
         index.append(len(sets))
         sets.append(A.rt3.ScatteringSet(ext, sca, coef))
-    ground = A.rt3.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.rt3.LambertianSurface(case["albedo"])
+    ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt3.Problem(
         nstokes=case["nstokes"],
         nmu=nmu,
-        quad=getattr(A.rt3.QuadratureType, quad),
+        quad=getattr(A.polradtran.QuadratureType, quad),
         aziorder=case["aziorder"],
         max_delta_tau=max_delta_tau,
         direct_flux=case["flux"] * per_um,
@@ -485,8 +485,8 @@ def rt4(case):
     lam, ns = case["wavelength"], case["nstokes"]
     f = C / (lam * 1e-6)
     per_um = lam / f
-    quad = {"G": A.rt4.QuadratureType.gauss, "L": A.rt4.QuadratureType.lobatto, "D": A.rt4.QuadratureType.double_gauss}[case["quad"]]
-    mu = np.asarray(A.rt4.get_quadrature(case["nmu"], quad).mu)
+    quad = {"G": A.polradtran.QuadratureType.gauss, "L": A.polradtran.QuadratureType.lobatto, "D": A.polradtran.QuadratureType.double_gauss}[case["quad"]]
+    mu = np.asarray(A.polradtran.get_quadrature(case["nmu"], quad).mu)
     optics, index, made = [], [], {}
     for name in case["files"]:
         if not name:
@@ -501,7 +501,7 @@ def rt4(case):
             made[name] = len(optics)
             optics.append(A.rt4.LayerOptics(*o))
         index.append(made[name])
-    ground = A.rt4.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.rt4.LambertianSurface(case["albedo"])
+    ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt4.Problem(
         nstokes=ns,
         nmu=case["nmu"],

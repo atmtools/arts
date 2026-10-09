@@ -48,7 +48,7 @@ void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numer
  * reflection is all a ground is, and RADTRANO takes the two as SURF_REFLECT
  * and GND_RADIANCE.  The ground routines are ported (the X_SURFACE
  * routines as X_surface_layer, which make the ground as a layer for the
- * adding; rt4::fresnel_surface and rt4::specular_surface are the types of
+ * adding; polradtran::fresnel_surface and rt4::specular_surface are the types of
  * rt4.h), so this calls no Fortran.
  */
 void ground_surface(const surface&  ground,

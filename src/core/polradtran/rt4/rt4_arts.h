@@ -100,27 +100,18 @@ struct path_settings {
 
 /** An RT4 problem from an ARTS propagation path.
  *
- * The conventions are those of the DISORT workspace methods
- * (disort_settingsOpticalThicknessFromPath and
- * disort_settingsLayerThermalEmissionLinearInTau):
+ * The heights [m], temperatures, gas extinction and frequency are
+ * polradtran::layers_from_path's (polradtran_arts.h), with the conventions
+ * of the DISORT workspace methods: ray_path, atm_path and
+ * spectral_propmat_path have one entry per level, top first, so layer l
+ * lies between levels l and l + 1, and the gas extinction of a layer is the
+ * mean of the A elements of the unpolarized gas propagation matrix at its
+ * two levels.  RT4 makes the Planck function linear in optical depth within
+ * each layer.
  *
- *   - ray_path, atm_path and spectral_propmat_path have one entry per level,
- *     top first, as for a down-looking path.  The altitudes of ray_path must
- *     decrease strictly; they are the RT4 heights [m], so layer l lies
- *     between levels l and l + 1.  Only the altitudes are used, not the
- *     lines of sight or the horizontal positions.
- *   - The level temperatures are atm_path's; RT4 makes the Planck function
- *     linear in optical depth within each layer.
- *   - spectral_propmat_path is the gas propagation matrix only (no
- *     particles), per metre, with freq_grid.size() entries per level.  The
- *     gas extinction of a layer is the mean of the A elements at its two
- *     levels.  Polarized gas propagation matrices are rejected: RT4's gas
- *     extinction is scalar.
- *   - The particle optics are scattering_optics() at every level on the
- *     streams of settings.  Each layer gets the mean of its two levels'
- *     optics, or is gas-only (layer_optics_index < 0) when that mean is all
- *     zero.
- *   - The frequency is freq_grid[freq_index].
+ * The particle optics are scattering_optics() at every level on the streams
+ * of settings.  Each layer gets the mean of its two levels' optics, or is
+ * gas-only (layer_optics_index < 0) when that mean is all zero.
  *
  * settings, ground, surface_temperature and sky_temperature go into the
  * problem unchanged.  The streams are RT4's own quadrature, so this needs

@@ -84,7 +84,7 @@ void test_rayleigh() {
   const auto atm     = air(8e4, 260.0);
   const auto sigma   = cross_section * number_density(atm.pressure, atm.temperature);
 
-  const auto q = rt4::get_quadrature(8, rt4::quadrature_type::double_gauss);
+  const auto q = polradtran::get_quadrature(8, polradtran::quadrature_type::double_gauss);
   Vector     mu(q.mu.size() + 2);
   std::ranges::copy(q.mu, mu.begin());
   mu[q.mu.size()]     = 0.35;
@@ -166,7 +166,7 @@ void test_rayleigh() {
 //! A3: forward-peaked Henyey-Greenstein against the addition theorem
 void test_forward_peaked_hg() {
   const auto atm = air(8e4, 260.0);
-  const auto q   = rt4::get_quadrature(8, rt4::quadrature_type::double_gauss);
+  const auto q   = polradtran::get_quadrature(8, polradtran::quadrature_type::double_gauss);
   Vector     mu(q.mu.size() + 1);
   std::ranges::copy(q.mu, mu.begin());
   mu[q.mu.size()]     = 1.0;
@@ -248,7 +248,7 @@ void test_path() {
                                                       1,
                                                       species,
                                                       s,
-                                                      rt4::lambertian_surface{.albedo = 0.2},
+                                                      polradtran::lambertian_surface{.albedo = 0.2},
                                                       290.0,
                                                       2.7);
 
@@ -267,7 +267,7 @@ void test_path() {
           "A2: every layer with Rayleigh scattering must have its own optics set");
 
   // Layer 1 is the mean of levels 1 and 2
-  const auto q = rt4::get_quadrature(6, rt4::quadrature_type::double_gauss);
+  const auto q = polradtran::get_quadrature(6, polradtran::quadrature_type::double_gauss);
   Vector     mu(7);
   std::ranges::copy(q.mu, mu.begin());
   mu[6]        = 1.0;
@@ -296,7 +296,7 @@ void test_path() {
                                         0,
                                         ArrayOfScatteringSpecies{},
                                         s,
-                                        rt4::lambertian_surface{},
+                                        polradtran::lambertian_surface{},
                                         290.0,
                                         2.7);
   require(g.optics.empty() and g.layer_optics_index == ArrayOfIndex({-1, -1, -1}) and g.frequency == 50e9 and
@@ -305,7 +305,7 @@ void test_path() {
 
   const auto build = [&](const path_data& x, Index iv) {
     (void)rt4::problem_from_path(
-        x.ray_path, x.atm_path, x.propmat, x.freq_grid, iv, species, s, rt4::lambertian_surface{}, 290.0, 2.7);
+        x.ray_path, x.atm_path, x.propmat, x.freq_grid, iv, species, s, polradtran::lambertian_surface{}, 290.0, 2.7);
   };
   auto e = d;
   require_error([&] { build(e, 2); }, "freq_index out of range");
