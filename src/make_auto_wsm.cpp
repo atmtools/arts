@@ -24,7 +24,7 @@ void scan_wsmr_for_errors(ArrayOfString& errors, const std::string& name, const 
 
   if (wsmr.desc.size() == 0) { errors.push_back(std::format("No description for \"{}\"", name)); }
 
-  if (wsmr.desc.back() not_eq '\n') {
+  if (not wsmr.desc.empty() and wsmr.desc.back() not_eq '\n') {
     errors.push_back(std::format("Description for \"{}\" ends without a newline", name));
   }
 
