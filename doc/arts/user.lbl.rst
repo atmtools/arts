@@ -115,10 +115,11 @@ Prepared-matrix spectra
 
 ``lbl.relaxation_matrix_profile(frequency, f0, W, population, dipole, gd_fac)``
 evaluates a prepared real relaxation matrix. ``frequency`` and ``f0`` are in Hz;
-``W[from, to]`` is in Hz and includes nonnegative diagonal half-widths. Pressure
-shifts may be included in ``f0``. ``gd_fac`` is the Gaussian 1/e half-width
-divided by frequency. The returned complex shape does not contain absorber
-density, isotopic abundance, or the stimulated-emission factor.
+``W[to, from]`` is the coupling into line ``to`` from line ``from``, is in Hz,
+and includes nonnegative diagonal half-widths. Pressure shifts may be included
+in ``f0``. ``gd_fac`` is the Gaussian 1/e half-width divided by frequency.
+The returned complex shape does not contain absorber density, isotopic
+abundance, or the stimulated-emission factor.
 
 For the NH3 lower-state convention, prepare the dimensionless populations and
 signed dipoles as follows, where ``gl`` and ``gu`` are the catalogue statistical
@@ -152,8 +153,9 @@ For a run without a display window::
 
     ARTS_HEADLESS=1 python tests/core/lbl/ecs_nh3.py
 
-The script saves ``ecs_nh3.png`` in the current directory. It gathers twelve
-catalogue nu2 Q lines with J <= 3 across both inversion subbranches and plots
+The script opens a Matplotlib window unless ``ARTS_HEADLESS`` is set. It
+gathers twelve catalogue nu2 Q lines with J <= 3 across both inversion
+subbranches and plots
 mixed and independent-line absorption, plus their differences. Conditions are
 296 K, an 85% H2 / 15% He bath, 1 ppm NH3-4111, and densities of 1, 10, and
 30 amagat; the plot labels show the corresponding ideal-gas pressures.

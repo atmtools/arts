@@ -1,7 +1,7 @@
 """Plot a low-J NH3 nu2 band example using the Hadded C++ core.
 
-Run this file to display the plots; it also saves ecs_nh3.png. ARTS_HEADLESS
-suppresses the window, as in the other ECS tests.
+Run this file to display the plots. ARTS_HEADLESS suppresses the window, as in
+the other ECS tests.
 
 The 12 catalogue Q lines (J <= 3) cover both inversion subbranches. Collision
 cross sections are the final He/H2 values in Hadded et al. (2004), Table I,
