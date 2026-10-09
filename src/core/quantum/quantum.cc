@@ -336,7 +336,7 @@ std::pair<std::string_view, std::string_view> split_hitran_qn(std::string_view x
   auto                                          eq = x.find('=');
   std::pair<std::string_view, std::string_view> out{strip(x.substr(0, eq)), strip(x.substr(eq + 1))};
 
-  if (x.size() > 1 and 'F' == out.first.front() and '#' == out.first[1]) out.first = out.first.substr(0, 1);
+  if (out.first.size() > 1 and out.first.front() == 'F' and out.first[1] == '#') out.first = out.first.substr(0, 1);
 
   return out;
 }

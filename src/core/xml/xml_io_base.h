@@ -97,9 +97,9 @@ struct XMLTag {
 //   General XML handling routines
 ////////////////////////////////////////////////////////////////////////////
 
-void xml_parse_error(const String& str_error);
+[[noreturn]] void xml_parse_error(const String& str_error);
 
-void xml_data_parse_error(XMLTag& tag, const String& str_error);
+[[noreturn]] void xml_data_parse_error(XMLTag& tag, const String& str_error);
 
 void xml_set_stream_precision(std::ostream& os);
 

@@ -37,7 +37,7 @@ Method::Method(const std::string&                                  n,
 
   // Common G-name
   const auto is_gname = [](const auto& str1, auto& str2) {
-    return str1.front() == internal_prefix and std::string_view(str1.begin() + 1, str1.end()) == str2;
+    return str1.starts_with(internal_prefix) and std::string_view(str1.begin() + 1, str1.end()) == str2;
   };
 
   // Positional arguments
@@ -112,7 +112,7 @@ Method::Method(const std::string&                                  n,
 
   // Check that all non-defaulted GINS are set
   for (std::size_t i = 0; i < nargin; i++) {
-    if (inargs[i].front() == internal_prefix and not wsms.at(n).defs.contains(inargs[i])) {
+    if (inargs[i].starts_with(internal_prefix) and not wsms.at(n).defs.contains(inargs[i])) {
       throw std::runtime_error(std::format("Missing required generic input argument \"{}\"",
                                            std::string_view(inargs[i].begin() + 1, inargs[i].end())));
     }
@@ -176,7 +176,7 @@ void Method::add_defaults_to_agenda(Agenda& agenda) const {
   if (not setval) {
     const auto& map = wsms.at(name).defs;
     for (auto& arg : inargs) {
-      if (arg.front() == internal_prefix and map.contains(arg)) { agenda.add(Method{arg, map.at(arg), true}); }
+      if (arg.starts_with(internal_prefix) and map.contains(arg)) { agenda.add(Method{arg, map.at(arg), true}); }
     }
   }
 }
@@ -239,13 +239,13 @@ std::string Method::sphinx_list_item() const {
   std::vector<SetvalHelper>    setvals;
   const WorkspaceMethodRecord& wsm = wsms.at(name);
   for (Size i = 0; i < outargs.size(); i++) {
-    if (outargs[i] != wsm.out[i] and outargs[i].front() != named_input_prefix) {
+    if (outargs[i] != wsm.out[i] and not outargs[i].starts_with(named_input_prefix)) {
       setvals.push_back({wsm.out[i], outargs[i]});
     }
   }
 
   for (Size i = 0; i < inargs.size(); i++) {
-    if (inargs[i] != wsm.in[i] and inargs[i].front() != named_input_prefix and
+    if (inargs[i] != wsm.in[i] and not inargs[i].starts_with(named_input_prefix) and
         wsm.out.end() == stdr::find(wsm.out, wsm.in[i])) {
       setvals.push_back({wsm.in[i], inargs[i]});
     }

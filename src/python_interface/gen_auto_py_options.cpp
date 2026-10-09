@@ -11,6 +11,8 @@
 
 namespace {
 void enum_option(std::ostream& os, const EnumeratedOption& wso) try {
+  if (wso.values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + wso.name); }
+
   std::print(os,
              R"-x-(
 void enum_{0}(py::module_& m) {{
@@ -63,10 +65,13 @@ void enum_{0}(py::module_& m) {{
     return false;
   };
   for (auto& value : wso.values_and_desc) {
+    if (value.empty()) { throw std::runtime_error("Empty value for enum class " + wso.name); }
+
     // Skip last element in value which contains the description
     for (Size i = 0; i < value.size() - 1; i++) {
       auto& x = value[i];
-      if (nonstd::isdigit(x.front()) or contains_invalid_chars(x) or stdr::any_of(value | stdv::take(i), Cmp::eq(x)))
+      if (x.empty() or nonstd::isdigit(x.front()) or contains_invalid_chars(x) or
+          stdr::any_of(value | stdv::take(i), Cmp::eq(x)))
         continue;
 
       os << "  _g" << wso.name << ".def_prop_ro_static(\"" << x;

@@ -226,7 +226,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
 
 void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_data) {
   for (auto& [method, wsmr] : wsm_data) {
-    if (wsmr.desc.back() != '\n') wsmr.desc += '\n';
+    if (not wsmr.desc.empty() and wsmr.desc.back() != '\n') wsmr.desc += '\n';
     if (not wsmr.python_generic_sorting.empty()) {
       if (wsmr.python_generic_sorting.size() != wsmr.gin.size())
         throw std::runtime_error(

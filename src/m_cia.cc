@@ -262,7 +262,7 @@ void abs_cia_dataReadSpeciesSplitCatalog(CIARecords&              abs_cia_data,
   names.erase(std::unique(names.begin(), names.end()), names.end());
 
   const std::filesystem::path inpath{basename.c_str()};
-  const bool                  is_dir = basename.back() == '/' or std::filesystem::is_directory(inpath);
+  const bool is_dir = basename.empty() or basename.ends_with('/') or std::filesystem::is_directory(inpath);
 
   for (Size i = 0; i < names.size(); i++) {
     const auto& name = names[i];
