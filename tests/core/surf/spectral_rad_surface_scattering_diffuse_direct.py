@@ -4,12 +4,13 @@ Verifies:
 1. Basic execution (smoke test): method runs and produces finite output
 2. Absorbing surface (r=0): output equals the surface blackbody emission
 3. Beam normalization: with a known (cosmic background) incoming, the output
-   equals r * I_cmb + (1 - r) * B(T_surf) in closed form (brdf = r, emiss = 1 - r)
+   equals r * cos(theta_inc) * I_cmb + (1 - r) * B(T_surf) in closed form
+   (brdf = r, emiss = 1 - r, projected-area factor at the actual normal)
 4. Sub-horizon sun: sun below the surface-normal horizon is hard-zeroed
 5. No suns: empty suns yields emission only
 6. Multi-sun: two visible suns give the sum of the single-sun contributions
 7. Jacobian shape: correct dimensions when jac_targets is non-empty
-8. Consistency with Diffuse on a single unit-weight quadrature point
+8. Consistency with Diffuse on a single cos(theta_inc)-weighted quadrature point
 9. arts.sun.geometric_los / arts.sun.refractive_los vs sun_pathFromObserverAgenda
 10. Unusable sun position (latitude outside [-90, 90]) -> user error
 """
@@ -42,6 +43,23 @@ def make_sun(latitude, longitude, distance=SUN_DISTANCE, radius=SUN_RADIUS):
     sun.latitude = latitude
     sun.longitude = longitude
     return sun
+
+
+def sun_incidence_cos(latitude, longitude, distance=SUN_DISTANCE, ell_a=6378137.0):
+    """cos(theta_inc) of a far sun at the surface point (lat, lon) = (0, 0).
+
+    Mirrors the method's internal projected-area factor: the cosine between
+    the ECEF beam direction (sun position minus observer position) and the
+    outward surface normal, which at (0, 0) on the reference ellipsoid is the
+    +x ECEF axis.
+    """
+    lat, lon = np.radians(latitude), np.radians(longitude)
+    sun = distance * np.array([np.cos(lat) * np.cos(lon),
+                               np.cos(lat) * np.sin(lon),
+                               np.sin(lat)])
+    obs = np.array([ell_a, 0.0, 0.0])
+    d = sun - obs
+    return float(d[0] / np.linalg.norm(d))
 
 
 def set_cmb_incoming_agenda(ws):
@@ -189,12 +207,13 @@ def test_spectral_rad_surface_scattering_diffuse_direct_absorbing():
 # Test 3: Closed-form normalization with a known (CMB) incoming beam
 # ============================================================================
 def test_spectral_rad_surface_scattering_diffuse_direct_beam_value():
-    """scattered == r * I_cmb, emission == (1 - r) * B(T_surf).
+    """scattered == r * cos(theta_inc) * I_cmb, emission == (1 - r) * B(T_surf).
 
     The incoming agenda supplies the uniform cosmic microwave background, a
     known radiance.  For a Lambertian surface brdf = r and emissivity = 1 - r.
-    The beam radiance is delta-weighted: no quadrature weights, no 1/pi, no
-    cosine factor.  This pins the full normalization in closed form.
+    The beam radiance is delta-weighted: no quadrature weights, no 1/pi, but
+    the projected-area factor cos(theta_inc) at the actual surface normal
+    applies.  This pins the full normalization in closed form.
     """
     freq_grid = [10e9, 100e9, 183e9]
     r = 0.5
@@ -202,8 +221,9 @@ def test_spectral_rad_surface_scattering_diffuse_direct_beam_value():
     rad = run_direct(freq_grid, r)
 
     T_surf = 280.0
+    cos_inc = sun_incidence_cos(30.0, 45.0)
     expected = np.array(
-        [r * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
+        [r * cos_inc * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
     )
 
     assert np.allclose(rad, expected, rtol=1e-7, atol=0.0), \
@@ -211,11 +231,11 @@ def test_spectral_rad_surface_scattering_diffuse_direct_beam_value():
 
     # The scattered CMB term must be strictly positive (non-zero incoming)
     rad_1 = run_direct(freq_grid, 1.0)
-    expected_1 = np.array([planck(f, T_CMB) for f in freq_grid])
+    expected_1 = np.array([cos_inc * planck(f, T_CMB) for f in freq_grid])
     assert np.allclose(rad_1, expected_1, rtol=1e-7, atol=0.0), \
-        f"Pure reflector must equal CMB:\n got      {rad_1}\n expected {expected_1}"
+        f"Pure reflector must equal cos-weighted CMB:\n got      {rad_1}\n expected {expected_1}"
 
-    print("Test 3 passed: scattered term equals r * I_cmb + (1-r) * B(T_surf)")
+    print("Test 3 passed: scattered term equals r * cos(theta_inc) * I_cmb + (1-r) * B(T_surf)")
 
 
 # ============================================================================
@@ -286,10 +306,12 @@ def test_spectral_rad_surface_scattering_diffuse_direct_multi_suns():
     assert np.allclose(rad_two, expected, rtol=1e-7, atol=0.0), \
         f"Multi-sun sum violated:\n got      {rad_two}\n expected {expected}"
 
-    # Both suns above horizon: two scattered terms plus one emission
+    # Both suns above horizon: two cos-weighted scattered terms plus one emission
     T_surf = 280.0
+    cos_a = sun_incidence_cos(30.0, 45.0)
+    cos_b = sun_incidence_cos(10.0, 60.0)
     closed_form = np.array(
-        [2.0 * r * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
+        [r * (cos_a + cos_b) * planck(f, T_CMB) + (1.0 - r) * planck(f, T_surf) for f in freq_grid]
     )
     assert np.allclose(rad_two, closed_form, rtol=1e-7, atol=0.0), \
         f"Multi-sun closed form violated:\n got      {rad_two}\n expected {closed_form}"
@@ -332,8 +354,9 @@ def test_spectral_rad_surface_scattering_diffuse_direct_jacobian():
 # ============================================================================
 def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
     """The direct method must reproduce the diffuse method with a
-    single-direction quadrature grid and unit weights (shared delta-weighted
-    convention)."""
+    single-direction quadrature grid weighted by cos(theta_inc) (shared
+    delta-weighted convention: the Direct channel applies the projected-area
+    factor internally, the quadrature weights must carry it explicitly)."""
     freq_grid = [10e9, 100e9, 183e9]
 
     ws = setup_workspace_base(freq_grid)
@@ -349,10 +372,12 @@ def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
 
     za, aa = arts.sun.geometric_los(ws.suns[0], ws.ray_point.pos, ws.surf_field)
 
-    # Diffuse method on the single direction with unit weights
+    # Diffuse method on the single direction, weight = projected-area cosine.
+    # At the flat-horizon surface point the method's internal factor is exactly
+    # cos(za) of the beam line-of-sight, so use that for an exact match.
     ws.zen_grid = arts.ZenGrid([za])
     ws.az_grid = arts.AziGrid([aa])
-    ws.zen_grid_weights = arts.Vector([1.0])
+    ws.zen_grid_weights = arts.Vector([np.cos(np.radians(za))])
     ws.az_grid_weights = arts.Vector([1.0])
 
     ws.spectral_radSurfaceScatteringInit()
@@ -364,7 +389,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
         f"Normalization mismatch between direct and diffuse:\n" \
         f" direct  {rad_direct}\n diffuse {rad_diffuse}"
 
-    print("Test 8 passed: direct method agrees with single-point diffuse quadrature")
+    print("Test 8 passed: direct method agrees with cos-weighted single-point diffuse quadrature")
 
 
 # ============================================================================

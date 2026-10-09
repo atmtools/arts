@@ -9,6 +9,7 @@
 #include <surf.h>
 #include <xml_io_stream.h>
 
+#include "scattering_internal.h"
 #include "surface_scattering_properties.h"
 
 namespace surface_scattering {
@@ -26,6 +27,16 @@ namespace surface_scattering {
  *
  * where r(f) is the reflectivity interpolated to frequency f.
  *
+ * Units convention: the BRDF is stored as the *dimensionless scattering
+ * kernel* r(f), not as a physical BRDF in [1/sr] (the physical Lambertian
+ * BRDF is r/pi).  Consistent use therefore requires the angular quadrature
+ * weights of *spectral_radSurfaceScatteringDiffuse* to carry the projected
+ * solid angle factor cos(za_in) dOmega -- with pure sin(za) dza daa weights a
+ * uniform incoming radiance field would reflect with effective reflectance
+ * 2*pi*r.  *spectral_radSurfaceScatteringDiffuseDirect* applies the
+ * projected-area factor cos(theta_inc) at the actual surface normal
+ * internally, so a single sun beam scatters as r * cos(theta_inc) * I_beam.
+ *
  * The SurfacePropertyTag names the surface property this model represents,
  * providing a semantic key for future lookup from SurfacePoint.
  */
@@ -36,12 +47,15 @@ struct LambertianSurfaceScatterer {
   SortedGriddedField1 reflectivity_spectrum{};
 
   /// Interpolation and extrapolation method for the frequency grid.
-  /// Controls how values outside the grid domain are handled.
+  /// Linear: unlimited linear extrapolation beyond the stored grid.
+  /// Nearest: values outside the stored grid evaluate to the edge value.
+  /// None: frequencies outside the stored grid are a user error.
+  /// Zero: values outside the stored grid are 0.
   InterpolationExtrapolation interp_extrapolation{
     InterpolationExtrapolation::Nearest};
 
   LambertianSurfaceScatterer() = default;
-  LambertianSurfaceScatterer(SortedGriddedField1 spectrum_);
+  explicit LambertianSurfaceScatterer(SortedGriddedField1 spectrum_);
 
   LambertianSurfaceScatterer(const LambertianSurfaceScatterer&)            = default;
   LambertianSurfaceScatterer(LambertianSurfaceScatterer&&) noexcept        = default;
@@ -90,8 +104,10 @@ struct LambertianSurfaceScattererField {
   SortedGriddedField3 reflectivity_field{};
 
   /// Interpolation and extrapolation method for frequency grid.
-  /// Controls how frequency values outside the stored range are handled.
-  /// Default is Nearest: clamp to nearest grid boundary value.
+  /// Linear: unlimited linear extrapolation beyond the stored grid.
+  /// Nearest: values outside the stored grid evaluate to the edge value.
+  /// None: frequencies outside the stored grid are a user error.
+  /// Zero: values outside the stored grid are 0.
   InterpolationExtrapolation interp_extrapolation{
       InterpolationExtrapolation::Nearest};
 
@@ -117,6 +133,7 @@ struct LambertianSurfaceScattererField {
     return reflectivity_field;
   }
   void set_reflectivity_field(const SortedGriddedField3& f) {
+    validate_longitude_grid(f.grid<1>());
     reflectivity_field = f;
   }
 

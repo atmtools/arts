@@ -3,6 +3,7 @@
 
 #include <lagrange_interp.h>
 #include <xml_io_base.h>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -65,14 +66,17 @@ FlatScalarSurfaceScatterer::get_surface_scattering_model_properties(
       "reflectivity_spectrum frequency grid is empty.");
 
   using id = lagrange_interp::grid_identity;
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+
+  const auto [gmin, gmax] = grid_range(reflectivity_spectrum.grid<0>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "reflectivity_spectrum");
 
   const auto r_lag = lagrange_interp::make_lags<1, id>(
       reflectivity_spectrum.grid<0>(),
-      f_grid,
-      extrap_limit,
+      f_query,
+      std::numeric_limits<Numeric>::max(),
       "Reflectivity frequency grid");
-  const auto r_data = lagrange_interp::reinterp(reflectivity_spectrum.data, r_lag);
+  auto r_data = lagrange_interp::reinterp(reflectivity_spectrum.data, r_lag);
+  extrap_postprocess(r_data, f_grid, gmin, gmax, interp_extrapolation);
 
   MuelmatTensor5 brdf_specular(f_grid.size(),
                                za_inc_grid.size(),
@@ -146,18 +150,21 @@ FlatScalarSurfaceScattererField::get_surface_scattering_model_properties(
       "reflectivity_field frequency grid is empty.");
 
   using id = lagrange_interp::grid_identity;
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+
+  const auto [gmin, gmax] = grid_range(reflectivity_field.grid<2>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "reflectivity_field");
 
   const auto lat_lag  = reflectivity_field.grid<0>().lag<1, id>(lat);
   const auto lon_lag  = reflectivity_field.grid<1>().lag<1, lon_cycler>(lon);
   const auto freq_lag = reflectivity_field.grid<2>().lag<1, id>(
-      f_grid, extrap_limit, "Reflectivity frequency grid");
+      f_query, std::numeric_limits<Numeric>::max(), "Reflectivity frequency grid");
 
   const Index nf = f_grid.size();
   Vector        r_data(nf);
   for (Index f = 0; f < nf; ++f) {
     r_data[f] = lagrange_interp::interp(reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
   }
+  extrap_postprocess(r_data, f_grid, gmin, gmax, interp_extrapolation);
 
   MuelmatTensor5 brdf_specular(f_grid.size(),
                                za_inc_grid.size(),

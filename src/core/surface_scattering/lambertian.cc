@@ -3,6 +3,7 @@
 
 #include <lagrange_interp.h>
 #include <xml_io_base.h>
+#include <algorithm>
 #include <cmath>
 
 #include "scattering_internal.h"
@@ -32,8 +33,11 @@ SurfaceScatteringModelProperties lambertian_properties(
   MuelmatTensor5 brdf_specular(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
   MuelmatTensor3 emissivity_specular(nf, nzs, nas, rtepack::muelmat{0.0});
 
-  Muelmat isotropic_brdf;
-  Muelmat isotropic_emissivity;
+  // NOTE: Default construction of Muelmat gives the *identity* matrix — only
+  // zero-initialize here, the [0,0] element is set per frequency below.  With
+  // the identity default the Q/U/V channels silently carried reflectance 1.
+  Muelmat isotropic_brdf{0.0};
+  Muelmat isotropic_emissivity{0.0};
 
   for (Index f = 0; f < nf; ++f) {
     const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
@@ -81,21 +85,22 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
       reflectivity_spectrum.grid<0>().empty(),
       "reflectivity_spectrum frequency grid is empty.");
 
-  // Linearly interpolate the stored spectral reflectivity onto f_grid.
-  // Extrapolation beyond the stored grid is permitted (extrapolation_limit =
-  // max) so that simulations whose f_grid slightly exceeds the stored range
-  // are handled gracefully; values are clamped to [0, 1] afterwards.
+  // Interpolate the stored spectral reflectivity onto f_grid.  The
+  // interp_extrapolation mode decides what happens outside the stored grid:
+  // unlimited linear (default), edge-value clamping (Nearest), user error
+  // (None), or zero (Zero).
   using id = lagrange_interp::grid_identity;
 
-  // Frequency extrapolation limit based on member setting
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
+  const auto [gmin, gmax] = grid_range(reflectivity_spectrum.grid<0>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "reflectivity_spectrum");
 
   const auto f_lag = lagrange_interp::make_lags<1, id>(
       reflectivity_spectrum.grid<0>(),
-      f_grid,
-      extrap_limit,
+      f_query,
+      std::numeric_limits<Numeric>::max(),
       "Reflectivity frequency grid");
-  const auto r_data = lagrange_interp::reinterp(reflectivity_spectrum.data, f_lag);
+  auto r_data = lagrange_interp::reinterp(reflectivity_spectrum.data, f_lag);
+  extrap_postprocess(r_data, f_grid, gmin, gmax, interp_extrapolation);
 
   return lambertian_properties(r_data,
                                f_grid.size(),
@@ -144,14 +149,15 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
   // Single-point spatial lags with cyclic interpolation
   // Latitude: non-cyclic (use identity), as poles are not continuous
   const auto lat_lag = reflectivity_field.grid<0>().lag<1, id>(lat);
-  
-  // Frequency extrapolation limit based on member setting
-  const Numeric extrap_limit = frequency_extrap_limit(interp_extrapolation);
-  
-  // Multi-point frequency lag using member-controlled extrapolation.
+
+  // Frequency lag with member-controlled extrapolation behaviour outside the
+  // stored grid (unlimited linear / edge clamp / error / zero)
+  const auto [gmin, gmax] = grid_range(reflectivity_field.grid<2>());
+  const auto f_query      = extrap_query_grid(f_grid, gmin, gmax, interp_extrapolation, "reflectivity_field");
+
   const auto freq_lag = reflectivity_field.grid<2>().lag<1, id>(
-      f_grid,
-      extrap_limit,
+      f_query,
+      std::numeric_limits<Numeric>::max(),
       "Reflectivity frequency grid");
 
   // Interpolate: for each target frequency, fix spatial position and
@@ -165,6 +171,7 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
     r_data[f] = lagrange_interp::interp(
         reflectivity_field.data, lat_lag, lon_lag, freq_lag[f]);
   }
+  extrap_postprocess(r_data, f_grid, gmin, gmax, interp_extrapolation);
 
   return lambertian_properties(r_data,
                                nf,
@@ -177,15 +184,6 @@ LambertianSurfaceScattererField::get_surface_scattering_model_properties(
 std::ostream& operator<<(std::ostream& os,
                          [[maybe_unused]] const LambertianSurfaceScattererField& s) {
   return os << "LambertianSurfaceScattererField";
-}
-
-SurfaceScatteringModelProperties& SurfaceScatteringModelProperties::operator+=(
-    const SurfaceScatteringModelProperties& other) {
-  brdf_matrix_diffuse += other.brdf_matrix_diffuse;
-  emissivity_vector_diffuse += other.emissivity_vector_diffuse;
-  brdf_matrix_specular += other.brdf_matrix_specular;
-  emissivity_vector_specular += other.emissivity_vector_specular;
-  return *this;
 }
 
 }  // namespace surface_scattering

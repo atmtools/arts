@@ -9,6 +9,7 @@
 #include <surf.h>
 #include <xml_io_stream.h>
 
+#include "scattering_internal.h"
 #include "surface_scattering_properties.h"
 
 namespace surface_scattering {
@@ -40,7 +41,11 @@ struct FresnelSurfaceScatterer {
   Numeric n1{1.0};
 
   /// Interpolation and extrapolation method for frequency.
-  /// Controls how values outside the grid domain are handled.
+  /// Linear: unlimited linear extrapolation beyond the stored grid.
+  /// Nearest: values outside the stored grid evaluate to the edge value.
+  /// None: frequencies outside the stored grid are a user error.
+  /// Zero: values outside the stored grid are 0 (a user error here, since the
+  ///       refractive index must stay positive).
   InterpolationExtrapolation interp_extrapolation{
       InterpolationExtrapolation::Nearest};
 
@@ -93,6 +98,9 @@ struct FresnelSurfaceScattererField {
   Numeric n1{1.0};
 
   /// Interpolation and extrapolation method for frequency grid.
+  /// Linear: unlimited linear extrapolation; Nearest: edge-value clamp;
+  /// None: user error outside the stored grid; Zero: 0 outside (user error
+  /// here, the refractive index must stay positive).
   InterpolationExtrapolation interp_extrapolation{
       InterpolationExtrapolation::Nearest};
 
@@ -120,6 +128,7 @@ struct FresnelSurfaceScattererField {
     return refractive_index_field;
   }
   void set_refractive_index_field(const SortedGriddedField3& f) {
+    validate_longitude_grid(f.grid<1>());
     refractive_index_field = f;
   }
 

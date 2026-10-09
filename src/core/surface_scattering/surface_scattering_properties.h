@@ -2,7 +2,6 @@
 
 #include <matpack.h>
 
-#include <optional>
 #include "rtepack.h"
 
 namespace surface_scattering {
@@ -15,8 +14,9 @@ using EmissivityVector = MuelmatTensor3;
 
 /** Bulk surface scattering properties accumulated across all surface models.
  *
- * Holds an optional BRDF Mueller matrix and an emissivity vector.
- * Multiple models can be accumulated via operator+=.
+ * Holds the diffuse and specular BRDF matrices and the corresponding
+ * emissivity tensors.  Multiple models can be accumulated via operator+=
+ * and weighted via operator*=.
  */
 struct SurfaceScatteringModelProperties {
   /// Diffuse BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
