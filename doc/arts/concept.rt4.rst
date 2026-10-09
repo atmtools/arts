@@ -20,13 +20,12 @@ Geometry and sign conventions
 *****************************
 
 The geometry, the streams and their weights, and the hemisphere notation are
-those of RT3 (:ref:`Sec RT3 geometry`):
-:math:`\mu>0` upwards, :math:`N` quadrature nodes :math:`\mu_j` with weights
-:math:`w_j` integrating over :math:`[0,1]`, the same in both hemispheres,
-and zero-weight extra directions after them.  Superscripts :math:`+` and
-:math:`-` mark the upward and downward hemispheres; RT4's own "+" is
-downward.  The layers are ordered top-down, and the vertical coordinate is
-the height :math:`h`.
+those of RT3 (:ref:`Sec RT3 geometry`): :math:`\mu>0` upwards, :math:`N`
+quadrature nodes :math:`\mu_j` with weights :math:`w_j` integrating over
+:math:`[0,1]`, the same in both hemispheres, and zero-weight extra directions
+after them.  Superscripts :math:`+` and :math:`-` mark the upward and
+downward hemispheres.  The layers are ordered top-down, and the vertical
+coordinate is the height :math:`h`.
 
 RT4 transports the leading :math:`n_s\le2` components of the ARTS Stokes
 vector, :math:`[I]` or :math:`[I,Q]`, with :math:`Q=I_v-I_h` in the
@@ -99,8 +98,8 @@ streams of both hemispheres:
      \left[\overline{\boldsymbol Z}(\mu_i,\pm\mu_j)
           +\overline{\boldsymbol Z}(-\mu_i,\pm\mu_j)\right]_{II}.
 
-``rt4::solve`` rejects optics that miss it by more than
-``normalisation_tolerance`` times :math:`K_{11}`.
+ARTS rejects optics that miss it by more than a given tolerance relative to
+:math:`K_{11}`.
 
 Doubling and adding
 *******************
@@ -151,7 +150,7 @@ mirror symmetric between the hemispheres,
 the last for both the transmitted (:math:`\mu_o\mu_i>0`) and the reflected
 (:math:`\mu_o\mu_i<0`) parts.  For :math:`n_s\le2` this is RT3's
 :math:`\boldsymbol D`-symmetry with :math:`\boldsymbol D` the identity.
-``rt4::solve`` rejects optics that break it.
+ARTS rejects optics that break it.
 
 Absorbing layers
 ================

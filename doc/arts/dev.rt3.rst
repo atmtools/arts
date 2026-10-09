@@ -581,6 +581,12 @@ Conventions
 * ``down`` is radiation propagating downward, toward increasing optical
   depth (RT3's "+", printed with mu > 0 by rt3.f); ``up`` propagates upward
   (RT3's "-", printed with mu < 0).
+* :doc:`concept.rt3` labels the hemispheres as DISORT does, "+" upward, and
+  names the operators of a slab by their outgoing and incident hemispheres.
+  The code's (Evans') ``R``, ``T`` and ``S`` of the "+" part (``[0]``) are
+  its :math:`R^{-+}`, :math:`T^{--}` and :math:`S^-`, and those of the "-"
+  part (``[1]``) its :math:`R^{+-}`, :math:`T^{++}` and :math:`S^+`.  The
+  same holds for RT4.
 
 **Fourier series.**
 

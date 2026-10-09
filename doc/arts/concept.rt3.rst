@@ -14,9 +14,8 @@ restricted to azimuthally symmetric problems, is described in
 :doc:`concept.rt4`.
 
 This page states the equations in the conventions used for DISORT and VDISORT
-in ARTS.  Evans' code, and the port's internal arrays, label the hemispheres
-the other way round; the mapping is given once below.  The implementation,
-interface and validation are documented in :doc:`dev.rt3`.
+in ARTS.  The implementation, interface and validation are documented in
+:doc:`dev.rt3`.
 
 .. _Sec RT3 geometry:
 
@@ -66,18 +65,14 @@ integrate over :math:`[0,1]`,
    \sum_{j=1}^N w_j = 1.
 
 The rules are the positive half of a :math:`2N`-point Gauss--Legendre rule
-(``gauss``), an :math:`N`-point Gauss--Legendre rule on :math:`[0,1]`
-(``double_gauss``), or the positive half of a :math:`2N`-point Lobatto rule
-(``lobatto``).  Extra directions with zero weight may follow the nodes; see
+(Gauss), an :math:`N`-point Gauss--Legendre rule on :math:`[0,1]` (double
+Gauss), or the positive half of a :math:`2N`-point Lobatto rule (Lobatto).
+Extra directions with zero weight may follow the nodes; see
 `Arbitrary-angle radiances`_.
 
 Below, a superscript :math:`+` marks the upward hemisphere and :math:`-` the
 downward one, and an operator with two superscripts maps its second
-(incident) hemisphere to its first (outgoing) one.  Evans' code calls the
-downward hemisphere "+" and the upward "-": its :math:`R^{+}`,
-:math:`T^{+}` and :math:`S^{+}` are :math:`R^{-+}`, :math:`T^{--}` and
-:math:`S^-` here, and its :math:`R^{-}`, :math:`T^{-}` and :math:`S^{-}` are
-:math:`R^{+-}`, :math:`T^{++}` and :math:`S^+`.
+(incident) hemisphere to its first (outgoing) one.
 
 Single-scattering properties
 ****************************
@@ -108,15 +103,15 @@ of symmetry is that of :doc:`concept.tmatrix`,
    \end{pmatrix},\qquad
    \frac{1}{4\pi}\int_{4\pi} F_{11}\,\mathrm d\Omega = 1,
 
-six elements, ``CompactPlanarMuelmat`` in ARTS.  RT3 takes it as a Legendre
-series in :math:`\cos\Theta` of such matrices,
+six elements.  RT3 takes it as a Legendre series in :math:`\cos\Theta` of
+such matrices,
 
 .. math::
 
    \boldsymbol F(\Theta) = \sum_{l=0}^{L}\boldsymbol c_l\,P_l(\cos\Theta),
    \qquad (\boldsymbol c_0)_{11} = 1,
 
-a ``CompactPlanarMuelmatVector``.  The coefficients include the factor
+each coefficient again of six elements.  The coefficients include the factor
 :math:`2l+1`: in DISORT's moments, :math:`(\boldsymbol c_l)_{11}=(2l+1)\chi_l`.
 Rayleigh scattering is :math:`\boldsymbol c_0=(F_{11},F_{12},F_{22})=(1,-\tfrac12,1)`,
 :math:`\boldsymbol c_1=(F_{33},F_{44})=(\tfrac32,\tfrac32)` and
@@ -146,7 +141,7 @@ with the Stokes rotation
    0 & 0 & 0 & 1
    \end{pmatrix}
 
-(``rtepack::stokes_rotation``).  :math:`\psi_i` and :math:`\psi_o` are the
+:math:`\psi_i` and :math:`\psi_o` are the
 angles between the scattering plane and the meridional planes of the two
 directions.  Exactly forward and backward (:math:`\sin\Theta=0`) the
 scattering plane is undefined and both rotations are the identity.  With
@@ -162,9 +157,8 @@ scattering plane is undefined and both rotations are the identity.  With
    0 & s_iF_{34} & -c_iF_{34} & F_{44}
    \end{pmatrix},
 
-which ``rtepack::rotated`` evaluates in closed form.  It is ARTS's
-laboratory-frame phase matrix of the same :math:`\boldsymbol F`
-(``scattering/phase_matrix.h``) with the directions mapped as above.
+which is ARTS's laboratory-frame phase matrix of the same
+:math:`\boldsymbol F` with the directions mapped as above.
 
 Partition Stokes space into :math:`A=(I,Q)` and :math:`B=(U,V)` and let
 
@@ -173,8 +167,7 @@ Partition Stokes space into :math:`A=(I,Q)` and :math:`B=(U,V)` and let
    \boldsymbol D = \operatorname{diag}(1,1,-1,-1),
 
 the Mueller matrix of a mirror reflection, which changes the signs of
-:math:`U` and :math:`V` (``rtepack::mirror`` forms
-:math:`\boldsymbol D\boldsymbol Z\boldsymbol D`).  Reversing the azimuth and
+:math:`U` and :math:`V`.  Reversing the azimuth and
 negating both direction cosines are both mirror reflections of the geometry:
 
 .. math::
@@ -333,22 +326,22 @@ The discrete phase function must be normalized on the streams:
    \frac12\sum_{i=1}^{N} w_i
    \left[\boldsymbol P^0(\mu_i,\mu_j)+\boldsymbol P^0(-\mu_i,\mu_j)\right]_{II} = 1
 
-for every incident quadrature stream :math:`\pm\mu_j`.  RT3 stops when it fails
-by more than :math:`10^{-7}`.  The series must therefore not exceed the degree
-the quadrature integrates, Evans' NLEGLIM,
+for every incident quadrature stream :math:`\pm\mu_j`, to :math:`10^{-7}` in
+RT3.  The series must therefore not exceed the degree the quadrature
+integrates,
 
 .. math::
 
    L_{\max} =
    \begin{cases}
-     4N-3, & \texttt{gauss},\\
-     2N-3, & \texttt{double\_gauss},\\
-     4N-5, & \texttt{lobatto},
+     4N-3, & \text{Gauss},\\
+     2N-3, & \text{double Gauss},\\
+     4N-5, & \text{Lobatto},
    \end{cases}
    \qquad L_{\max}\ge1,
 
-to which RT3 truncates longer series; ``rt3::solve`` rejects a problem in
-which that would drop a non-zero coefficient.
+to which RT3 truncates longer series; ARTS rejects a problem in which that
+would drop a non-zero coefficient.
 
 .. _Sec RT3 doubling-adding:
 
@@ -380,7 +373,7 @@ Initial layer
 
 A scattering layer of optical thickness :math:`\Delta\tau` is halved
 :math:`n_d` times to an initial sublayer of :math:`\delta\tau` at most
-:math:`\delta\tau_{\max}` (``max_delta_tau``),
+:math:`\delta\tau_{\max}`,
 
 .. math::
 
@@ -491,7 +484,7 @@ Sources and boundary conditions
 *******************************
 
 * The thermal source is unpolarized and enters mode 0 only: the Planck
-  function (ARTS's ``planck``, in W m\ :sup:`-2` Hz\ :sup:`-1` sr\ :sup:`-1`)
+  function (in W m\ :sup:`-2` Hz\ :sup:`-1` sr\ :sup:`-1`)
   of the temperatures at the layer boundaries, linear in :math:`\tau` within
   the layer (see `Doubling`_), times :math:`1-\omega`.
 * The direct flux at level :math:`k` is
@@ -528,7 +521,7 @@ in every mode.
 
 the emission with the thermal source and the reflected beam with the solar
 one.  It conserves energy on the streams when :math:`2\sum_j\mu_jw_j=1`, which
-holds for ``double_gauss``.
+holds for the double-Gauss rule.
 
 **Fresnel** (a plane interface to a medium of refractive index :math:`n`),
 specular, in every mode,
@@ -548,7 +541,7 @@ specular, in every mode,
 with the amplitude reflection coefficients :math:`r_v` and :math:`r_h`,
 :math:`R_1=(|r_v|^2+|r_h|^2)/2`, :math:`R_2=(|r_v|^2-|r_h|^2)/2`,
 :math:`R_3=\Re(r_vr_h^*)` and :math:`R_4=\Im(r_vr_h^*)`
-(``rtepack::fresnel_reflectance``), and the emission, in mode 0,
+and the emission, in mode 0,
 
 .. math::
 
@@ -579,8 +572,7 @@ incident on the whole,
 
 The radiance at the azimuth :math:`\phi` is the sum of the modes,
 :math:`\sum_m\boldsymbol I^m_A\cos m\phi` for :math:`I` and :math:`Q` and
-:math:`\sum_m\boldsymbol I^m_B\sin m\phi` for :math:`U` and :math:`V`
-(``rt3::azimuth_radiance``).
+:math:`\sum_m\boldsymbol I^m_B\sin m\phi` for :math:`U` and :math:`V`.
 
 Delta-M scaling
 ***************
@@ -603,8 +595,7 @@ extra directions, and
 where :math:`\boldsymbol 1` is the identity in compact form
 (:math:`F_{11}=F_{22}=F_{33}=F_{44}=1`): the forward peak removed is
 :math:`f` times the identity, so the diagonal elements lose :math:`f` and
-:math:`F_{12}` and :math:`F_{34}` are only renormalized
-(``rt3::delta_m_scaled``).  The series is then truncated to
+:math:`F_{12}` and :math:`F_{34}` are only renormalized.  The series is then truncated to
 :math:`L_{\max}`.  The scaled extinction attenuates the beam; the thermal
 emission of a layer is unchanged, as
 :math:`(1-\omega')\,\Delta\tau'=(1-\omega)\,\Delta\tau`.  RT3 applies no
@@ -648,6 +639,6 @@ Mathematical limitations
   quadrature; a sharply peaked phase function needs delta-M or more streams.
 * **Plane-parallel.**  There is no pseudo-spherical beam.
 * **Surfaces.**  A Fresnel surface cannot reflect the beam, and a Lambertian
-  surface conserves energy on the streams only for ``double_gauss``.
+  surface conserves energy on the streams only for the double-Gauss rule.
 
 See :doc:`dev.rt3` for the implementation and its validation.
