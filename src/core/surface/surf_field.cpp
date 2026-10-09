@@ -163,16 +163,16 @@ Numeric numeric_interpolation(const GeodeticField2                              
     if (lat_extrap.second == InterpolationExtrapolation::Nearest) lat = lats.back();
   }
 
-  if (lat < lons.front()) {
+  if (lon < lons.front()) {
     ARTS_USER_ERROR_IF(lon_extrap.first == InterpolationExtrapolation::None, "No extrapolation allowed")
     if (lon_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
-    if (lon_extrap.first == InterpolationExtrapolation::Nearest) lat = lons.front();
+    if (lon_extrap.first == InterpolationExtrapolation::Nearest) lon = lons.front();
   }
 
-  if (lat > lons.back()) {
+  if (lon > lons.back()) {
     ARTS_USER_ERROR_IF(lon_extrap.second == InterpolationExtrapolation::None, "No extrapolation allowed")
     if (lon_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
-    if (lon_extrap.second == InterpolationExtrapolation::Nearest) lat = lons.back();
+    if (lon_extrap.second == InterpolationExtrapolation::Nearest) lon = lons.back();
   }
 
   if (lats.size() == 1 and lons.size() == 1) { return data.data[0, 0]; }
