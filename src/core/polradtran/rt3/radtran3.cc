@@ -131,7 +131,8 @@ void radtran(Numeric             max_delta_tau,
      layers' REFLECT(KRT), TRANS(KRT) and SOURCE(KS), KRT = 1 +
      2*N*N*(L-1) and KS = 1 + 2*N*(L-1), are reflect[L-1], trans[L-1] and
      source[L-1]; L = NUM_LAYERS+1 is the surface.  SCATBUF and DIRECTBUF
-     hold the scattering matrices and direct vectors of every set and mode,
+     hold the scattering matrices (Muelmat) and direct vectors (Stokvec) of
+     every set and mode,
      as SCATTERING and DIRECT_SCATTERING lay them out; scatbuf[SCAT_NUM-1]
      and directbuf[SCAT_NUM-1] are the set's parts (see rt3::scattering and
      rt3::direct_scattering); SCATTER_MATRIX (PHASE_FUNCTION to INITIALIZE)
@@ -139,30 +140,30 @@ void radtran(Numeric             max_delta_tau,
   Index legendre_rows = 2 * nummu;
   for (Index l : scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
   work.resize(nstokes, nummu, aziorder, num_layers, nsl, legendre_rows);
-  Vector&       quad_weights      = work.quad_weights;
-  Matrix&       legendre_coef     = work.legendre_coef;
-  Vector&       set_extinct       = work.set_extinct;
-  Vector&       set_scatter       = work.set_scatter;
-  Tensor7&      scatbuf           = work.scatbuf;
-  Tensor5&      directbuf         = work.directbuf;
-  ArrayOfIndex& scat_nums         = work.scat_nums;
-  Vector&       extinctions       = work.extinctions;
-  Vector&       albedos           = work.albedos;
-  Vector&       direct_level_flux = work.direct_level_flux;
-  Tensor5&      scatter_matrix    = work.scatter_matrix;
-  Matrix&       direct_vector     = work.direct_vector;
-  Matrix&       exp_source        = work.exp_source;
-  Matrix&       thermal_vector    = work.thermal_vector;
-  Matrix&       lin_source        = work.lin_source;
-  Tensor3&      reflect1          = work.reflect1;
-  Tensor3&      trans1            = work.trans1;
-  Matrix&       source1           = work.source1;
-  Tensor4&      reflect           = work.reflect;
-  Tensor4&      trans             = work.trans;
-  Tensor3&      source            = work.source;
-  Matrix&       ground_radiance   = work.ground_radiance;
-  Matrix&       direct_radiance   = work.direct_radiance;
-  Matrix&       sky_radiance      = work.sky_radiance;
+  Vector&         quad_weights      = work.quad_weights;
+  Matrix&         legendre_coef     = work.legendre_coef;
+  Vector&         set_extinct       = work.set_extinct;
+  Vector&         set_scatter       = work.set_scatter;
+  MuelmatTensor5& scatbuf           = work.scatbuf;
+  StokvecTensor4& directbuf         = work.directbuf;
+  ArrayOfIndex&   scat_nums         = work.scat_nums;
+  Vector&         extinctions       = work.extinctions;
+  Vector&         albedos           = work.albedos;
+  Vector&         direct_level_flux = work.direct_level_flux;
+  Tensor5&        scatter_matrix    = work.scatter_matrix;
+  Matrix&         direct_vector     = work.direct_vector;
+  Matrix&         exp_source        = work.exp_source;
+  Matrix&         thermal_vector    = work.thermal_vector;
+  Matrix&         lin_source        = work.lin_source;
+  Tensor3&        reflect1          = work.reflect1;
+  Tensor3&        trans1            = work.trans1;
+  Matrix&         source1           = work.source1;
+  Tensor4&        reflect           = work.reflect;
+  Tensor4&        trans             = work.trans;
+  Tensor3&        source            = work.source;
+  Matrix&         ground_radiance   = work.ground_radiance;
+  Matrix&         direct_radiance   = work.direct_radiance;
+  Matrix&         sky_radiance      = work.sky_radiance;
 
   // Make the desired quadrature abscissas and weights (ARTS's quadratures,
   // polradtran::get_quadrature); with QUAD_TYPE 'E' the extra angles follow them.
@@ -193,9 +194,10 @@ void radtran(Numeric             max_delta_tau,
     // prints that it does)
     if (numlegen > nleglim) numlegen = nleglim;
     // Make the scattering matrix
-    scattering(mu_values, quad_weights, legendre_coef[Range{0, numlegen + 1}], scatbuf[s], work);
+    scattering(mu_values, quad_weights, legendre_coef[Range{0, numlegen + 1}], nstokes, scatbuf[s], work);
     // Make the direct (solar) pseudo source
-    if (solar) direct_scattering(mu_values, legendre_coef[Range{0, numlegen + 1}], direct_mu, directbuf[s], work);
+    if (solar)
+      direct_scattering(mu_values, legendre_coef[Range{0, numlegen + 1}], direct_mu, nstokes, directbuf[s], work);
   }
 
   // SCATLAYERS(LAYER) is the set of each layer.  A non-scattering layer (0)

@@ -319,8 +319,8 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
   for (Index l : in.scat_nlegen) legendre_rows = std::max(legendre_rows, l + 1);
   rt3::rt3_workdata w(
       in.spec.nstokes, in.nummu, in.spec.aziorder, in.spec.nlay, in.scat_extinct.extent(0), legendre_rows);
-  w.scat_matrix.resize(1025, 4, 4);
-  w.basis_matrix.resize(1025, 4, 4);
+  w.scat_matrix.resize(1025);
+  w.basis_matrix.resize(1025);
   w.legendre_p.resize(1024);
   w.real_vector.resize(1024);
   w.basis_vector.resize(1025);
@@ -354,21 +354,14 @@ rt3::rt3_workdata poisoned_workdata(const inputs& in) {
                     &w.y,
                     &w.gamma})
     *m = nan;
-  for (Tensor3* t : {&w.scat_matrix,
-                     &w.basis_matrix,
-                     &w.source,
-                     &w.reflect1,
-                     &w.upreflect,
-                     &w.downreflect,
-                     &w.trans1,
-                     &w.uptrans,
-                     &w.downtrans})
+  for (Tensor3* t : {&w.source, &w.reflect1, &w.upreflect, &w.downreflect, &w.trans1, &w.uptrans, &w.downtrans})
     *t = nan;
   w.reflect        = nan;
   w.trans          = nan;
   w.scatter_matrix = nan;
-  w.directbuf      = nan;
-  w.scatbuf        = nan;
+  for (MuelmatVector* v : {&w.scat_matrix, &w.basis_matrix}) *v = Muelmat::constant(nan);
+  w.scatbuf   = Muelmat::constant(nan);
+  w.directbuf = Stokvec{nan, nan, nan, nan};
   for (Index& s : w.scat_nums) s = -1;
   return w;
 }
@@ -430,18 +423,24 @@ void check_large_fft() {
   for (Index degree : {300, 1100}) {
     const Matrix      coef = legendre_set(2, 0.6, degree);
     rt3::rt3_workdata work;
-    Tensor6           s0(1, 2, 3, 3, 4, 4), s2(3, 2, 3, 3, 4, 4);
-    rt3::scattering(mu, w, coef, s0, work);
-    rt3::scattering(mu, w, coef, s2, work);
-    worst = std::max(
-        worst,
-        differ(values(Tensor3{s0[0, joker, joker, joker, 0, 0]}), values(Tensor3{s2[0, joker, joker, joker, 0, 0]}))
-            .second);
-    Tensor4 d0(1, 2, 3, 4), d2(3, 2, 3, 4);
-    rt3::direct_scattering(mu, coef, 0.6, d0, work);
-    rt3::direct_scattering(mu, coef, 0.6, d2, work);
-    worst =
-        std::max(worst, differ(values(Matrix{d0[0, joker, joker, 0]}), values(Matrix{d2[0, joker, joker, 0]})).second);
+    MuelmatTensor4    s0(1, 2, 3, 3), s2(3, 2, 3, 3);
+    rt3::scattering(mu, w, coef, 4, s0, work);
+    rt3::scattering(mu, w, coef, 4, s2, work);
+    Tensor3 p0(2, 3, 3), p2(2, 3, 3);
+    for (Size i = 0; i < p0.size(); i++) {
+      p0.elem_at(i) = s0[0].elem_at(i)[0, 0];
+      p2.elem_at(i) = s2[0].elem_at(i)[0, 0];
+    }
+    worst = std::max(worst, differ(values(p0), values(p2)).second);
+    StokvecTensor3 d0(1, 2, 3), d2(3, 2, 3);
+    rt3::direct_scattering(mu, coef, 0.6, 4, d0, work);
+    rt3::direct_scattering(mu, coef, 0.6, 4, d2, work);
+    Matrix q0(2, 3), q2(2, 3);
+    for (Size i = 0; i < q0.size(); i++) {
+      q0.elem_at(i) = d0[0].elem_at(i).I();
+      q2.elem_at(i) = d2[0].elem_at(i).I();
+    }
+    worst = std::max(worst, differ(values(q0), values(q2)).second);
   }
   std::cout << std::format(
       "SCATTERING and DIRECT_SCATTERING with 1024 and 4096 azimuths: the m = 0 P11 through fft1dr within {:.2e} "

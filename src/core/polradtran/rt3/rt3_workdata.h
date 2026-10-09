@@ -2,6 +2,7 @@
 
 #include <matpack.h>
 #include <polradtran_workdata.h>
+#include <rtepack.h>
 
 #include "rt3_fft.h"
 
@@ -31,29 +32,29 @@ struct rt3_workdata : workdata {
   // them out; legendre_coef is GET_SCAT_SET's COEF, one set at a time.
   /////////////////////////////////////////////////////////////////////////////
 
-  Matrix       legendre_coef;             //!< [max(2 nummu, max nlegen + 1), 6]
-  Vector       set_extinct, set_scatter;  //!< [nsl]
-  Tensor7      scatbuf;                   //!< [nsl, aziorder + 1, 2, nummu, nummu, nstokes, nstokes]
-  Tensor5      directbuf;                 //!< [nsl, aziorder + 1, 2, nummu, nstokes]
-  ArrayOfIndex scat_nums;                 //!< [num_layers]
-  Vector       extinctions, albedos;      //!< [num_layers]
-  Vector       direct_level_flux;         //!< [num_layers + 1]
+  Matrix         legendre_coef;             //!< [max(2 nummu, max nlegen + 1), 6]
+  Vector         set_extinct, set_scatter;  //!< [nsl]
+  MuelmatTensor5 scatbuf;                   //!< [nsl, aziorder + 1, 2, nummu, nummu]
+  StokvecTensor4 directbuf;                 //!< [nsl, aziorder + 1, 2, nummu]
+  ArrayOfIndex   scat_nums;                 //!< [num_layers]
+  Vector         extinctions, albedos;      //!< [num_layers]
+  Vector         direct_level_flux;         //!< [num_layers + 1]
 
   /////////////////////////////////////////////////////////////////////////////
   // The scratch of SCATTERING and DIRECT_SCATTERING, one at a time: the
-  // phase matrices at the azimuths they sample (SCAT_MATRIX, Fortran
-  // layout) and their Fourier modes (BASIS_MATRIX); that of SUM_LEGENDRE
+  // phase matrices at the azimuths they sample (SCAT_MATRIX) and their
+  // Fourier modes (BASIS_MATRIX); that of SUM_LEGENDRE
   // (the Legendre polynomials at the scattering angle) and of
   // FOURIER_MATRIX (REAL_VECTOR, BASIS_VECTOR); and FFT1DR's phase table,
   // kept between calls.  The routines size them.
   /////////////////////////////////////////////////////////////////////////////
 
-  Tensor3      scat_matrix;   //!< [numpts (+ 1), 4, 4]
-  Tensor3      basis_matrix;  //!< [2 aziorder + 1, 4, 4]
-  Vector       legendre_p;    //!< [numlegendre + 1]
-  Vector       real_vector;   //!< [numpts]
-  Vector       basis_vector;  //!< [2 aziorder + 1]
-  fft_workdata fft;
+  MuelmatVector scat_matrix;   //!< [numpts (+ 1)]
+  MuelmatVector basis_matrix;  //!< [2 aziorder + 1]
+  Vector        legendre_p;    //!< [numlegendre + 1]
+  Vector        real_vector;   //!< [numpts]
+  Vector        basis_vector;  //!< [2 aziorder + 1]
+  fft_workdata  fft;
 
   /////////////////////////////////////////////////////////////////////////////
   // RADTRAN on the streams in a mode, beyond what it shares with RT4: the
@@ -82,8 +83,8 @@ struct rt3_workdata : workdata {
     legendre_coef.resize(legendre_rows, 6);
     set_extinct.resize(nsl);
     set_scatter.resize(nsl);
-    scatbuf.resize(nsl, aziorder + 1, 2, nummu, nummu, nstokes, nstokes);
-    directbuf.resize(nsl, aziorder + 1, 2, nummu, nstokes);
+    scatbuf.resize(nsl, aziorder + 1, 2, nummu, nummu);
+    directbuf.resize(nsl, aziorder + 1, 2, nummu);
     scat_nums.resize(num_layers);
     extinctions.resize(num_layers);
     albedos.resize(num_layers);

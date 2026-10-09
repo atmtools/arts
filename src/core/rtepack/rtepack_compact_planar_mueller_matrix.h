@@ -86,6 +86,35 @@ constexpr muelmat operator*(const compact_planar_muelmat &f, const compact_plana
   return f.expand() * g.expand();
 }
 
+/** F rotated from the scattering-plane basis to the bases of the incident and
+    the scattered directions, by 2 psi_in and 2 psi_out:
+
+      stokes_rotation(cos2psi_out, sin2psi_out) * F * stokes_rotation(cos2psi_in, sin2psi_in)
+
+    in closed form.  The two products would also multiply by the zeros of the
+    three matrices, which IEEE arithmetic does not let the compiler drop.  It
+    is rotated(F.expand(), ...) on the six elements, up to rounding. */
+constexpr muelmat rotated(
+    const compact_planar_muelmat &F, Numeric cos2psi_in, Numeric sin2psi_in, Numeric cos2psi_out, Numeric sin2psi_out) {
+  const Numeric c1 = cos2psi_in, s1 = sin2psi_in, c2 = cos2psi_out, s2 = sin2psi_out;
+  return {F.F11(),
+          c1 * F.F12(),
+          s1 * F.F12(),
+          0.0,
+          c2 * F.F12(),
+          c1 * c2 * F.F22() - s1 * s2 * F.F33(),
+          s1 * c2 * F.F22() + c1 * s2 * F.F33(),
+          s2 * F.F34(),
+          -s2 * F.F12(),
+          -c1 * s2 * F.F22() - s1 * c2 * F.F33(),
+          -s1 * s2 * F.F22() + c1 * c2 * F.F33(),
+          c2 * F.F34(),
+          0.0,
+          s1 * F.F34(),
+          -c1 * F.F34(),
+          F.F44()};
+}
+
 using compact_planar_muelmat_vector            = matpack::data_t<compact_planar_muelmat, 1>;
 using compact_planar_muelmat_vector_view       = matpack::view_t<compact_planar_muelmat, 1>;
 using compact_planar_muelmat_vector_const_view = matpack::view_t<const compact_planar_muelmat, 1>;
