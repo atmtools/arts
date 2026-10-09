@@ -77,6 +77,9 @@ void filename_xml_with_index(String& filename, const Index& file_index, const In
 }
 
 String complete_basename(const String& basename) {
+  // Empty basename means no prefix at all, the file name is used as is.
+  if (basename.empty()) return basename;
+
   if (basename.back() == '/') return basename;
   if (basename.back() == '.') return basename;
   if (std::filesystem::is_directory(basename)) return basename + "/";
