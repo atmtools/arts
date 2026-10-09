@@ -38,8 +38,6 @@ void radtrano(Numeric          max_delta_tau,
   const Index num_layers = height.extent(0) - 1;
   const Index nsl        = extinct_matrix.extent(0);
 
-  // The array sizes of radtran4.f
-  constexpr Index   maxv = 64, maxm = 4096, maxlay = 400, maxlm = 301 * 4096;
   constexpr Numeric zero = 0.0;
 
   // The Fortran trusts its declared extents; here they are checked
@@ -95,18 +93,6 @@ void radtrano(Numeric          max_delta_tau,
 
   const bool  symmetric = true;
   const Index n         = nstokes * nummu;
-  ARTS_USER_ERROR_IF(n > maxv, "Vector size exceeded.  Maximum size : {}.  Yours is {}", maxv, n);
-  ARTS_USER_ERROR_IF(n * n > maxm, "Matrix size exceeded.  Maximum size : {}.  Yours is {}*{} = {}", maxm, n, n, n * n);
-  ARTS_USER_ERROR_IF(
-      num_layers > maxlay, "Number of layers exceeded.  Maximum number : {}.  Yours is {}", maxlay, num_layers);
-  ARTS_USER_ERROR_IF((num_layers + 1) * n * n > maxlm,
-                     "Matrix layer size exceeded.  Maximum number (num_layers+1)*(nstokes*nummu)^2: {}.  Yours is "
-                     "({}+1)*({}*{})^2 = {}",
-                     maxlm,
-                     num_layers,
-                     nstokes,
-                     nummu,
-                     (num_layers + 1) * n * n);
 
   /* RADTRANO's work arrays, as the subroutines read them: those of the
      work data (polradtran::workdata), sized for this problem.  The reflection and

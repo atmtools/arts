@@ -14,10 +14,12 @@ namespace polradtran::rt4 {
  * DOUBLING_INTEGRATION, COMBINE_LAYERS and INTERNAL_RADIANCE (radintg.h),
  * EXTERNAL_SURFACE and THERMAL_RADIANCE (radutil.h).  RT4 is RT3 in the
  * azimuth mode 0 with the thermal source alone, so the shared routines
- * that take a mode get 0.  The quadratures are ARTS's (polradtran::get_quadrature), the Planck function is
- * ARTS's planck(), MZERO is "= 0.0", MIDENTITY identity and MCOPY
- * "=".  It calls no Fortran and keeps no state between calls.  The STOPs
- * of RADTRANO throw instead.
+ * that take a mode get 0.  The quadratures are ARTS's
+ * (polradtran::get_quadrature), the Planck function is ARTS's planck(),
+ * MZERO is "= 0.0", MIDENTITY identity and MCOPY "=".  It keeps no state
+ * between calls.  The STOPs of RADTRANO throw instead, except those of its
+ * fixed array sizes, which the port, sizing its arrays to the problem,
+ * does not have.
  *
  * The arguments are RADTRANO's, except that the ground is external data
  * (GROUND_TYPE 'A', made for every kind of ground by rt4::ground_surface,

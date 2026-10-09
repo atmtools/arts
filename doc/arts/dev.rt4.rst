@@ -64,8 +64,8 @@ Provenance
     ``MIDENTITY`` is ``identity`` (which sets a square matrix to a
     multiple of the identity and returns it, so that ``1 - R R`` is
     ``mult(identity(y), R, R, -1.0, 1.0)``).  Its work arrays are sized to
-    the problem; its ``STOP`` checks, including the static-array limits
-    ``MAXLAY`` and ``MAXLM``, throw.
+    the problem; its ``STOP`` checks throw, except those of the static-array
+    sizes (``MAXV``, ``MAXLAY``, ``MAXLM``), which the port does not have.
   * The quadratures (``DOUBLE_GAUSS_QUADRATURE``,
     ``GAUSS_LEGENDRE_QUADRATURE``, ``LOBATTO_QUADRATURE``) are ARTS's: the
     positive half of ``scattering::DoubleGaussQuadrature``,
@@ -277,8 +277,10 @@ output.  The C++ test covers:
 * a layout test with lower-triangular, stream-dependent K, Stokes-asymmetric
   absorption and a forward-only phase matrix;
 * Fresnel, specular, Lambertian and discrete surfaces;
-* isothermal Kirchhoff with Rayleigh and a non-reciprocal Rayleigh variant;
-* 17 error paths.
+* isothermal Kirchhoff with Rayleigh and a non-reciprocal Rayleigh variant,
+  also with ``nstokes * nmu_total = 82`` and with 450 layers, beyond the
+  Fortran's array sizes;
+* 14 error paths.
 
 The Python test repeats the quadrature, Fresnel, layout, Kirchhoff and
 error-path checks through the bindings.
@@ -670,13 +672,12 @@ Limitations
   energy on the streams only with ``double_gauss``, where
   ``2 sum mu w = 1``.  With ``gauss`` or ``lobatto`` it is off by about
   3e-3 A for 8 streams, so use ``double_gauss``.
-* **Array limits.** ``nstokes * nmu_total <= 64``, ``nlay <= 400`` and
-  ``(nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096``.  The last two
-  are the sizes of the Fortran ``RADTRANO``'s static arrays, which
-  ``rt4::radtrano`` keeps although its own arrays are sized to the problem;
-  the first is that of the subroutines' scratch.  These limits, the other
-  preconditions above and the shapes are checked before the solve, where
-  the Fortran would have stopped.
+* **No array limits.** Every array is sized to the problem.  The Fortran's
+  static arrays limited ``nstokes * nmu_total`` to 64, ``nlay`` to 400 and
+  ``(nlay + 1) * (nstokes * nmu_total)^2`` to 301 * 4096; the port does not
+  (``cpp.fast.rt4-test`` runs its isothermal Kirchhoff check with
+  ``nstokes * nmu_total = 82`` and with 450 layers).  The preconditions
+  above and the shapes are checked before the solve.
 * **Zero pivot.** The inverse of ``1 - R R`` (LAPACK's, where RT4 had
   ``MINVERT``) throws for an exactly singular matrix, which is not expected
   for physical inputs.

@@ -914,25 +914,29 @@ void expect_throw(std::string_view what, std::string_view match, const std::func
 
 /** (h) Error paths; each must throw before the Fortran code (which would
  *  STOP the process or overrun a buffer) is called. */
+//! A problem with every source: a beam, thermal emission, a gas-only and a
+//! Rayleigh layer over a Lambertian ground
+rt3::problem solar_thermal_problem() {
+  rt3::problem p;
+  p.nstokes                = 4;
+  p.nmu                    = 4;
+  p.aziorder               = 2;
+  p.direct_flux            = 1.0;
+  p.direct_mu              = 0.5;
+  p.thermal                = true;
+  p.frequency              = Constant::c / 3e-6;
+  p.height                 = Vector{2.0, 1.0, 0.0};
+  p.temperature            = Vector{250.0, 260.0, 270.0};
+  p.gas_extinction         = Vector{0.1, 0.0};
+  p.scattering_sets        = {{.extinction = 1.0, .scattering = 0.9, .legendre = rayleigh_legendre()}};
+  p.layer_scattering_index = {-1, 0};
+  p.surface_temperature    = 280.0;
+  p.ground                 = polradtran::lambertian_surface{.albedo = 0.1};
+  return p;
+}
+
 void test_errors() {
-  const auto good = [] {
-    rt3::problem p;
-    p.nstokes                = 4;
-    p.nmu                    = 4;
-    p.aziorder               = 2;
-    p.direct_flux            = 1.0;
-    p.direct_mu              = 0.5;
-    p.thermal                = true;
-    p.frequency              = Constant::c / 3e-6;
-    p.height                 = Vector{2.0, 1.0, 0.0};
-    p.temperature            = Vector{250.0, 260.0, 270.0};
-    p.gas_extinction         = Vector{0.1, 0.0};
-    p.scattering_sets        = {{.extinction = 1.0, .scattering = 0.9, .legendre = rayleigh_legendre()}};
-    p.layer_scattering_index = {-1, 0};
-    p.surface_temperature    = 280.0;
-    p.ground                 = polradtran::lambertian_surface{.albedo = 0.1};
-    return p;
-  };
+  const auto good = solar_thermal_problem;
   rt3::solve(good());
   const auto isotropic = legendre({{1.0, 0.0, 0.0, 0.0, 1.0, 0.0}});
   const auto layers    = [](rt3::problem& p, Index nlay) {
@@ -958,21 +962,9 @@ void test_errors() {
     p.nmu  = 0;
     rt3::solve(p);
   });
-  expect_throw("extra_mu with double_gauss", "only to the gauss", [&] {
-    auto p     = good();
-    p.quad     = polradtran::quadrature_type::double_gauss;
-    p.extra_mu = Vector{0.5};
-    rt3::solve(p);
-  });
   expect_throw("extra_mu = 0", "extra_mu values must be in (0, 1]", [&] {
     auto p     = good();
     p.extra_mu = Vector{0.0};
-    rt3::solve(p);
-  });
-  expect_throw("nstokes * nmu_total = 4 * (16 + 1) > 64", "<= 64", [&] {
-    auto p     = good();
-    p.nmu      = 16;
-    p.extra_mu = Vector{0.5};
     rt3::solve(p);
   });
   expect_throw("aziorder = -1", "aziorder must be >= 0", [&] {
@@ -980,58 +972,9 @@ void test_errors() {
     p.aziorder = -1;
     rt3::solve(p);
   });
-  expect_throw("2 aziorder + 1 = 513 > 512 with a beam", "2 * aziorder + 1 <= 512", [&] {
-    auto p            = good();
-    p.nstokes         = 1;
-    p.nmu             = 1;
-    p.aziorder        = 256;
-    p.scattering_sets = {{.extinction = 1.0, .scattering = 0.9, .legendre = isotropic}};
-    rt3::solve(p);
-  });
-  expect_throw("2 aziorder + 1 = 1025 > 1024 without a beam", "2 * aziorder + 1 <= 1024", [&] {
-    auto p            = good();
-    p.nstokes         = 1;
-    p.nmu             = 1;
-    p.aziorder        = 512;
-    p.direct_flux     = 0.0;
-    p.scattering_sets = {{.extinction = 1.0, .scattering = 0.9, .legendre = isotropic}};
-    rt3::solve(p);
-  });
   expect_throw("no layer", "at least 2 interfaces", [&] {
     auto p = good();
     layers(p, 0);
-    rt3::solve(p);
-  });
-  expect_throw("201 layers", "at most 200 layers", [&] {
-    auto p = good();
-    layers(p, 201);
-    rt3::solve(p);
-  });
-  expect_throw("(nlay + 1) * 64^2 > 101 * 4096", "(nlay + 1) * (nstokes", [&] {
-    auto p = good();
-    p.nmu  = 16;
-    layers(p, 101);
-    rt3::solve(p);
-  });
-  expect_throw("201 scattering sets", "at most 200 scattering sets", [&] {
-    auto p            = good();
-    p.scattering_sets = std::vector<rt3::scattering_set>(201, p.scattering_sets[0]);
-    rt3::solve(p);
-  });
-  expect_throw(
-      "scattering-matrix buffer (190 sets, N = 64, aziorder 16)", "scattering_sets.size() * (aziorder + 1)", [&] {
-        auto p            = good();
-        p.nmu             = 16;
-        p.aziorder        = 16;
-        p.direct_flux     = 0.0;
-        p.scattering_sets = std::vector<rt3::scattering_set>(190, p.scattering_sets[0]);
-        rt3::solve(p);
-      });
-  expect_throw("direct-beam buffer (100 layers, N = 64, aziorder 32)", "With a direct beam RT3 requires", [&] {
-    auto p     = good();
-    p.nmu      = 16;
-    p.aziorder = 32;
-    layers(p, 100);
     rt3::solve(p);
   });
   expect_throw("max_delta_tau = 0", "max_delta_tau must be positive", [&] {
@@ -1084,12 +1027,6 @@ void test_errors() {
     p.scattering_sets[0].legendre = Matrix(3, 5, 0.0);
     rt3::solve(p);
   });
-  expect_throw("legendre of degree 1024", "at most 1024 Legendre coefficients", [&] {
-    auto p                                 = good();
-    p.scattering_sets[0].legendre          = henyey_greenstein(0.0, 1024);
-    p.scattering_sets[0].legendre[1024, 0] = 1e-30;
-    rt3::solve(p);
-  });
   expect_throw("legendre[0, 0] = 0.99", "must be normalised", [&] {
     auto p                              = good();
     p.scattering_sets[0].legendre[0, 0] = 0.99;
@@ -1114,25 +1051,108 @@ void test_errors() {
     p.scattering_sets[0].legendre = henyey_greenstein(0.8, 40);
     rt3::solve(p);
   });
-  expect_throw("degree 252 with aziorder > 0 (FFT1DR)", "summed to degree 252", [&] {
-    auto p                        = good();
-    p.nstokes                     = 1;
-    p.nmu                         = 64;
-    p.aziorder                    = 1;
-    p.direct_flux                 = 0.0;
-    p.scattering_sets[0].legendre = henyey_greenstein(0.5, 252);
-    rt3::solve(p);
-  });
-  {
-    // The boundary of the last limit runs (RT3 would STOP above it)
-    auto p                        = good();
-    p.nstokes                     = 1;
-    p.nmu                         = 64;
-    p.aziorder                    = 1;
-    p.direct_flux                 = 0.0;
-    p.scattering_sets[0].legendre = henyey_greenstein(0.5, 251);
-    rt3::solve(p);
-    std::cout << "    degree 251 with aziorder 1 and nmu 64 runs\n";
+}
+
+/** Isothermal Kirchhoff: sky, layers and ground (Fresnel) all at T, Rayleigh
+ *  scattering with gas.  RT3's emission (1 - albedo) B makes I = B,
+ *  Q = U = V = 0 the exact discrete solution when the quadrature integrates
+ *  the phase function to 1 and Rayleigh's 1 - 3 mu^2 to 0 (Gauss with
+ *  nmu >= 2 does both); the m > 0 modes vanish.  The doubling keeps this
+ *  fixed point, so only round-off remains, amplified by 2^n for n
+ *  doublings.  It is run beyond Evans' fixed array sizes, which the port
+ *  does not have: nstokes * nmu_total = 4 * 17 > 64 with aziorder 1, and
+ *  420 > 200 layers, alternately scattering and gas-only, with a set of
+ *  its own for each scattering layer (210 > 200 sets). */
+void test_kirchhoff(Index nstokes, Index nmu, Index aziorder, Index nlay) {
+  constexpr Numeric T = 260.0, frequency = 89e9, sigma = 6e-4, kabs = 4e-4;
+  rt3::problem      p;
+  p.nstokes                = nstokes;
+  p.nmu                    = nmu;
+  p.quad                   = polradtran::quadrature_type::gauss;
+  p.aziorder               = aziorder;
+  p.max_delta_tau          = 1e-7;
+  p.thermal                = true;
+  p.frequency              = frequency;
+  p.height                 = Vector(nlay + 1);
+  p.temperature            = Vector(nlay + 1, T);
+  p.gas_extinction         = Vector(nlay);
+  p.sky_temperature        = T;
+  p.surface_temperature    = T;
+  p.ground                 = polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
+  p.layer_scattering_index = ArrayOfIndex(nlay, -1);
+  for (Index l = 0; l <= nlay; l++) p.height[l] = 1000.0 * static_cast<Numeric>(nlay - l);
+  for (Index l = 0; l < nlay; l++) {
+    p.gas_extinction[l] = l % 2 == 0 ? 5e-5 : 2e-4;
+    if (l % 2 != 0) continue;
+    p.layer_scattering_index[l] = static_cast<Index>(p.scattering_sets.size());
+    p.scattering_sets.push_back({.extinction = sigma + kabs, .scattering = sigma, .legendre = rayleigh_legendre()});
+  }
+
+  const auto    r  = rt3::solve(p);
+  const Numeric B  = planck(frequency, T);
+  Numeric       dI = 0.0, dP = 0.0;
+  for (const auto* t : {&r.up, &r.down}) {
+    for (Index l = 0; l < t->extent(0); l++) {
+      for (Index m = 0; m < t->extent(1); m++) {
+        for (Index i = 0; i < t->extent(2); i++) {
+          dI = std::max(dI, std::abs((*t)[l, m, i, 0] - (m == 0 ? B : 0.0)) / B);
+          for (Index s = 1; s < nstokes; s++) dP = std::max(dP, std::abs((*t)[l, m, i, s]) / B);
+        }
+      }
+    }
+  }
+  const Numeric tau = (sigma + kabs + 5e-5) * 1000.0;
+  const Numeric tol =
+      16 * std::exp2(std::floor(std::log2(tau / p.max_delta_tau)) + 1) * std::numeric_limits<Numeric>::epsilon();
+  const auto name = std::format("isothermal Kirchhoff, nstokes {}, nmu {}, aziorder {}, {} layers, {} sets",
+                                nstokes,
+                                nmu,
+                                aziorder,
+                                nlay,
+                                p.scattering_sets.size());
+  std::cout << std::format("{:<84} I - B {:.2e}, Q, U, V {:.2e} of B (tolerance {:.1e})\n", name, dI, dP, tol);
+  require(dI <= tol and dP <= tol, name + ": not I = B, Q = U = V = 0");
+}
+
+/** Extra angles with every quadrature (RT3's 'E' type had them with gauss
+ *  only).  They have weight 0, so they must not change the radiances on
+ *  the quadrature nodes, and an extra angle equal to a node must have that
+ *  node's radiance, both to rounding times 2^n for n doublings (the extra
+ *  angle's row takes another path through the BLAS kernels than the
+ *  node's): the solar and thermal problem of test_errors, with the extra
+ *  angles 1 (a Lobatto node) and a double-Gauss node. */
+void test_extra_angles(const rt3::problem& base) {
+  for (const auto quad : {polradtran::quadrature_type::lobatto, polradtran::quadrature_type::double_gauss}) {
+    auto p           = base;
+    p.quad           = quad;
+    const auto  q    = polradtran::get_quadrature(p.nmu, quad);
+    const Index node = quad == polradtran::quadrature_type::lobatto ? p.nmu - 1 : 1;
+    const auto  r0   = rt3::solve(p);
+    p.extra_mu       = Vector{q.mu[node], 0.35};
+    const auto r1    = rt3::solve(p);
+
+    Numeric scale = 0.0, dnodes = 0.0, dextra = 0.0;
+    for (const auto* t : {&r0.up, &r0.down})
+      for (auto x : *t | by_elem) scale = std::max(scale, std::abs(x));
+    for (auto [a, b] : {std::pair{&r0.up, &r1.up}, std::pair{&r0.down, &r1.down}}) {
+      for (Index l = 0; l < a->extent(0); l++) {
+        for (Index m = 0; m < a->extent(1); m++) {
+          for (Index s = 0; s < a->extent(3); s++) {
+            for (Index i = 0; i < p.nmu; i++) dnodes = std::max(dnodes, std::abs((*a)[l, m, i, s] - (*b)[l, m, i, s]));
+            dextra = std::max(dextra, std::abs((*b)[l, m, node, s] - (*b)[l, m, p.nmu, s]));
+          }
+        }
+      }
+    }
+    const auto name = std::format("extra angles with {}: the nodes, and the extra angle on node {}",
+                                  quad == polradtran::quadrature_type::lobatto ? "lobatto" : "double_gauss",
+                                  node);
+    std::cout << std::format("{:<84} {:.2e} and {:.2e} of max I\n", name, dnodes / scale, dextra / scale);
+    // Rounding, amplified by 2^n for the n doublings of the scattering layer
+    const Numeric tau = p.scattering_sets[0].extinction * std::abs(p.height[1] - p.height[2]);
+    const Numeric tol =
+        16 * std::exp2(std::floor(std::log2(tau / p.max_delta_tau)) + 1) * std::numeric_limits<Numeric>::epsilon();
+    require(dnodes <= tol * scale and dextra <= tol * scale, name + ": changed by the extra angles");
   }
 }
 }  // namespace
@@ -1146,6 +1166,9 @@ int main() try {
   test_delta_m_identity();
   test_direct_beam();
   test_errors();
+  test_extra_angles(solar_thermal_problem());
+  test_kirchhoff(4, 17, 1, 2);   // nstokes * nmu_total = 68 > 64
+  test_kirchhoff(1, 2, 0, 420);  // 420 > 200 layers and 210 > 200 sets
   std::cout << "All RT3 tests passed\n";
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {

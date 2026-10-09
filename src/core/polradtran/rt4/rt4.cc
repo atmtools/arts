@@ -11,12 +11,6 @@
 
 namespace polradtran::rt4 {
 namespace {
-//! Fixed sizes in radtran4.f (MAXV, MAXLAY, MAXLM), kept by radtrano().
-//! MAXM = MAXV^2 and the MINVERT limit of 256 are implied by MAXV.
-constexpr Index max_vector       = 64;
-constexpr Index max_layers       = 400;
-constexpr Index max_layer_matrix = 301 * 4096;
-
 void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index ns) {
   constexpr Numeric rel = 1e-10;
 
@@ -100,7 +94,6 @@ result solve(const problem& p) {
   const Index nquad  = p.nmu;
   const Index nextra = static_cast<Index>(p.extra_mu.size());
   const Index nmu    = nquad + nextra;
-  const Index n      = ns * nmu;
   const Index nlay   = static_cast<Index>(p.height.size()) - 1;
   const Index nsl    = static_cast<Index>(p.optics.size());
 
@@ -108,21 +101,7 @@ result solve(const problem& p) {
   ARTS_USER_ERROR_IF(nquad < 1, "RT4 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
   ARTS_USER_ERROR_IF(stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }),
                      "extra_mu values must be in (0, 1]");
-  ARTS_USER_ERROR_IF(n > max_vector,
-                     "RT4 requires nstokes * (nmu + extra_mu.size()) <= {}, got {} * ({} + {}) = {}",
-                     max_vector,
-                     ns,
-                     nquad,
-                     nextra,
-                     n);
   ARTS_USER_ERROR_IF(nlay < 1, "height needs at least 2 interfaces (1 layer), got {}", p.height.size());
-  ARTS_USER_ERROR_IF(nlay > max_layers, "RT4 supports at most {} layers, got {}", max_layers, nlay);
-  ARTS_USER_ERROR_IF((nlay + 1) * n * n > max_layer_matrix,
-                     "RT4 requires (nlay + 1) * (nstokes * (nmu + extra_mu.size()))^2 <= {}, got ({} + 1) * {}^2 = {}",
-                     max_layer_matrix,
-                     nlay,
-                     n,
-                     (nlay + 1) * n * n);
   ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
   ARTS_USER_ERROR_IF(
       not(p.normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", p.normalisation_tolerance);

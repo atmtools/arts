@@ -318,7 +318,7 @@ def test_gas_fresnel():
 
 
 def expect_error(what, p, match):
-    """solve() must raise before the Fortran code (a STOP there would end this process)."""
+    """solve() must raise."""
     try:
         rt3.solve(p)
     except RuntimeError as e:
@@ -373,16 +373,12 @@ def test_errors():
         rt3.Problem(**base, scattering_sets=[rt3.ScatteringSet(1.0, 0.9, 0.5 * mie)]),
         "normalised",
     )
-    expect_error(
-        "extra_mu with lobatto",
-        rt3.Problem(
-            **base,
-            quad=polradtran.QuadratureType.lobatto,
-            extra_mu=[0.5],
-            scattering_sets=[ok],
-        ),
-        "only to the gauss",
+    # Extra angles with every quadrature (RT3's 'E' type had them with gauss only)
+    r = rt3.solve(
+        rt3.Problem(**base, quad=polradtran.QuadratureType.lobatto, extra_mu=[0.5], scattering_sets=[ok])
     )
+    assert np.asarray(r.mu)[-1] == 0.5 and np.all(np.isfinite(np.asarray(r.up)))
+    print("extra_mu with lobatto runs")
 
 
 test_quadrature()

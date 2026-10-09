@@ -68,7 +68,9 @@ void fftc(VectorView data, ConstVectorView phase);
 void fixreal(VectorView data, Vector2& nyquist, fft_direction isign, ConstVectorView phase);
 
 /** FFT1DR: real 1D FFT in place of data, of n = data.size() values, a
- * power of two from 2 to 512 (512 is FFT1DR's MAXN).  No normalization.
+ * power of two of at least 2 (FFT1DR's MAXN of 512, the size of its phase
+ * table, is not a limit: work's table grows as needed).  No
+ * normalization.
  *
  * forward: the n reals x_j become X_k = sum_j x_j exp(+2 pi i j k / n),
  *          packed as data = [X_0, X_{n/2}, Re X_1, Im X_1, ...,

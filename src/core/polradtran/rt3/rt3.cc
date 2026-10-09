@@ -11,21 +11,6 @@
 
 namespace polradtran::rt3 {
 namespace {
-//! Fixed sizes in radtran3.f (MAXV, MAXLAY, MAXLM, MAXLEG, MAXSBUF, MAXDBUF)
-constexpr Index max_vector       = 64;
-constexpr Index max_layers       = 200;
-constexpr Index max_layer_matrix = 101 * 4096;
-constexpr Index max_coefficients = 1024;
-constexpr Index max_scat_buffer  = 16 * max_layers * 2 * 4096;
-constexpr Index max_direct_buf   = 16 * max_layers * 2 * max_vector;
-//! The phase matrices are sampled at NUMPTS azimuths; with aziorder > 0 that
-//! is 2 * 2^int(log2(degree + 4) + 1), which must fit FFT1DR's MAXN = 512
-//! (and DIRECT_SCATTERING's 2 * MAXLEG = 512 samples): degree + 4 < 256.
-constexpr Index max_fft_degree = 251;
-//! Azimuth basis buffers: 2 * aziorder + 1 entries in DIRECT_SCATTERING's
-//! BASIS_MATRIX (2 * 256) and in FOURIER_MATRIX's BASIS_VECTOR (4 * 256)
-constexpr Index max_basis_direct = 512;
-constexpr Index max_basis        = 1024;
 //! RT3's CHECK_NORM (rt3::check_norm) throws above 1e-7; the discrete
 //! normalisation equals legendre[0, 0] - 1 up to round-off for a series
 //! within NLEGLIM.
@@ -63,7 +48,6 @@ result solve(const problem& p) {
   const Index nquad  = p.nmu;
   const Index nextra = static_cast<Index>(p.extra_mu.size());
   const Index nmu    = nquad + nextra;
-  const Index n      = ns * nmu;
   const Index nlay   = static_cast<Index>(p.height.size()) - 1;
   const Index nsl    = static_cast<Index>(p.scattering_sets.size());
   const Index nazi   = p.aziorder + 1;
@@ -71,50 +55,10 @@ result solve(const problem& p) {
 
   ARTS_USER_ERROR_IF(ns < 1 or ns > 4, "RT3 supports nstokes 1 to 4, got {}", ns);
   ARTS_USER_ERROR_IF(nquad < 1, "RT3 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
-  ARTS_USER_ERROR_IF(nextra > 0 and p.quad != quadrature_type::gauss,
-                     "RT3 adds extra_mu angles only to the gauss quadrature (its 'E' type); got {} extra angles "
-                     "with another quadrature",
-                     nextra);
   ARTS_USER_ERROR_IF(stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }),
                      "extra_mu values must be in (0, 1]");
-  ARTS_USER_ERROR_IF(n > max_vector,
-                     "RT3 requires nstokes * (nmu + extra_mu.size()) <= {}, got {} * ({} + {}) = {}",
-                     max_vector,
-                     ns,
-                     nquad,
-                     nextra,
-                     n);
   ARTS_USER_ERROR_IF(p.aziorder < 0, "aziorder must be >= 0, got {}", p.aziorder);
-  ARTS_USER_ERROR_IF(2 * p.aziorder + 1 > (beam ? max_basis_direct : max_basis),
-                     "RT3 requires 2 * aziorder + 1 <= {} {}, got aziorder = {}",
-                     beam ? max_basis_direct : max_basis,
-                     beam ? "with a direct beam" : "without a direct beam",
-                     p.aziorder);
   ARTS_USER_ERROR_IF(nlay < 1, "height needs at least 2 interfaces (1 layer), got {}", p.height.size());
-  ARTS_USER_ERROR_IF(nlay > max_layers, "RT3 supports at most {} layers, got {}", max_layers, nlay);
-  ARTS_USER_ERROR_IF((nlay + 1) * n * n > max_layer_matrix,
-                     "RT3 requires (nlay + 1) * (nstokes * (nmu + extra_mu.size()))^2 <= {}, got ({} + 1) * {}^2 = {}",
-                     max_layer_matrix,
-                     nlay,
-                     n,
-                     (nlay + 1) * n * n);
-  ARTS_USER_ERROR_IF(nsl > max_layers, "RT3 supports at most {} scattering sets, got {}", max_layers, nsl);
-  ARTS_USER_ERROR_IF(nsl * nazi * 2 * n * n > max_scat_buffer,
-                     "RT3 requires scattering_sets.size() * (aziorder + 1) * 2 * (nstokes * nmu_total)^2 <= {}, "
-                     "got {} * {} * 2 * {}^2 = {}",
-                     max_scat_buffer,
-                     nsl,
-                     nazi,
-                     n,
-                     nsl * nazi * 2 * n * n);
-  ARTS_USER_ERROR_IF(beam and nazi * 2 * n * std::max(nlay, nsl) > max_direct_buf,
-                     "With a direct beam RT3 requires (aziorder + 1) * 2 * nstokes * nmu_total * "
-                     "max(nlay, scattering_sets.size()) <= {}, got {} * 2 * {} * {} = {}",
-                     max_direct_buf,
-                     nazi,
-                     n,
-                     std::max(nlay, nsl),
-                     nazi * 2 * n * std::max(nlay, nsl));
   ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
   ARTS_USER_ERROR_IF(not(p.frequency > 0.0), "frequency must be positive, got {} Hz", p.frequency);
   ARTS_USER_ERROR_IF(not(p.direct_flux >= 0.0), "direct_flux must be >= 0 (0 for no beam), got {}", p.direct_flux);
@@ -155,14 +99,7 @@ result solve(const problem& p) {
                        s.legendre.shape());
     const Index nleg = stripped_degree(s.legendre);
     degree[iset]     = nleg;
-    ARTS_USER_ERROR_IF(nleg + 1 > max_coefficients,
-                       "RT3 holds at most {} Legendre coefficients per series; scattering set {} has degree {} "
-                       "(after dropping trailing zero rows)",
-                       max_coefficients,
-                       iset,
-                       nleg);
-
-    Numeric f = 0.0;
+    Numeric f        = 0.0;
     if (p.delta_m and mdm <= nleg) f = s.legendre[mdm, 0] / static_cast<Numeric>(2 * mdm + 1);
     ARTS_USER_ERROR_IF(p.delta_m and 1.0 - f == 0.0,
                        "Delta-M scaling of scattering set {} divides by 1 - f, with f = legendre[{}, 0] / {} = 1",
@@ -212,14 +149,6 @@ result solve(const problem& p) {
                        quad_name(p.quad),
                        nquad,
                        nleglim);
-
-    const Index summed = std::min(rt3_degree, nleglim);
-    ARTS_USER_ERROR_IF(p.aziorder > 0 and summed > max_fft_degree,
-                       "With aziorder > 0 RT3 can sum Legendre series of degree <= {} (its FFT holds 512 azimuth "
-                       "samples); scattering set {} is summed to degree {}",
-                       max_fft_degree,
-                       iset,
-                       summed);
   }
 
   // RADTRAN arguments (radtran3.h).  A row-major [a, b, c] array is the

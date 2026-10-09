@@ -152,12 +152,12 @@ struct result {
 
 /** Run RT4.
  *
- * Validates the shapes, every precondition on which Evans' RADTRANO would
- * STOP, which the port keeps (nstokes <= 2, nstokes * nmu_total <= 64,
- * nlay <= 400, (nlay + 1) * (nstokes * nmu_total)^2 <= 301 * 4096), the
- * mirror symmetry that RT4 requires, and that every optics set conserves
- * energy on the streams to problem::normalisation_tolerance, then calls
- * RADTRANO (rt4::radtrano).
+ * Validates the shapes, nstokes <= 2, the mirror symmetry that RT4
+ * requires, and that every optics set conserves energy on the streams to
+ * problem::normalisation_tolerance, then calls RADTRANO (rt4::radtrano).
+ * Every array is sized to the problem: Evans' fixed array sizes
+ * (nstokes * nmu_total <= 64, at most 400 layers) are not limits of the
+ * port.
  */
 result solve(const problem& p);
 }  // namespace polradtran::rt4

@@ -18,7 +18,8 @@ namespace polradtran::rt3 {
  * are ARTS's (polradtran::get_quadrature), the Planck function is ARTS's
  * planck(), and Evans' matrix helpers are matpack: MZERO is "= 0.0",
  * MIDENTITY matpack::identity, MCOPY "=" and MSCALARMULT "*=".  The STOPs
- * of RADTRAN throw instead.
+ * of RADTRAN throw instead, except those of its fixed array sizes, which
+ * the port, sizing its arrays to the problem, does not have.
  *
  * The arguments are RADTRAN's, except that the ground is external data,
  * that the extra, zero-weight angles are an input of their own (RADTRAN's
@@ -56,7 +57,7 @@ namespace polradtran::rt3 {
  *   scat_coef       [nsl, ldcoef, 6]       SCAT_COEF(6, LDCOEF, NSL)
  *   scatlayers      [num_layers]           SCATLAYERS, the 1-based set of each layer, 0 for none
  *   outlevels       [noutlevels]           OUTLEVELS, 1 (top) to num_layers + 1 (bottom)
- *   extra_mu        [nuummu]               the extra angles, input; only with the gauss quadrature
+ *   extra_mu        [nuummu]               the extra angles, input, with any quadrature (RADTRAN: gauss only)
  *   mu_values       [nummu]                MU_VALUES, output: the quadrature nodes, then extra_mu
  *   up_flux         [noutlevels, nstokes]  UP_FLUX(NSTOKES, NOUTLEVELS)
  *   down_flux       [noutlevels, nstokes]  DOWN_FLUX(NSTOKES, NOUTLEVELS)
@@ -66,7 +67,7 @@ namespace polradtran::rt3 {
  *                                          DOWN_RAD(NSTOKES, NUMMU, AZIORDER+1, NOUTLEVELS)
  *
  * src_code: 0 none, 1 solar, 2 thermal, 3 both.  quad_type is the rule of
- * the quadrature nodes (QUAD_TYPE 'G', 'D' or 'L'; 'G' with extra_mu is
+ * the quadrature nodes (QUAD_TYPE 'G', 'D' or 'L'; 'G' with extra_mu was
  * 'E').  delta_m is DELTAM = 'Y'.  The radiances are in SI
  * (W m-2 Hz-1 sr-1) at the frequency in Hz, as is direct_flux
  * (W m-2 Hz-1); RADTRAN took the wavelength in micrometres and worked per

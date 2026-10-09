@@ -159,12 +159,8 @@ void fixreal(VectorView data, Vector2& nyquist, fft_direction isign, ConstVector
 }
 
 void fft1dr(VectorView data, fft_direction isign, fft_workdata& work) {
-  //! FFT1DR's MAXN, the size of its phase table
-  constexpr Index maxn = 512;
-
   const Index n = data.size();
   ARTS_USER_ERROR_IF(n < 2 or (n & (n - 1)) != 0, "FFT1DR transforms a power of two of at least 2 values, got {}", n);
-  ARTS_USER_ERROR_IF(n > maxn, "Phase array too small: FFT1DR transforms at most {} values, got {}", maxn, n);
 
   if (work.mn < n) {
     work.mn = n;

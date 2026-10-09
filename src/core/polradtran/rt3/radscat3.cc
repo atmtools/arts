@@ -352,14 +352,6 @@ void scattering(ConstVectorView mu_values,
   Index numpts =
       2 * (Index{1} << static_cast<Index>(std::log(static_cast<Numeric>(numlegendre + 4)) / std::log(2.0) + 1.0));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
-  ARTS_USER_ERROR_IF(aziorder > 0 and numpts > 512,
-                     "SCATTERING samples {} azimuths for a series of degree {}; FFT1DR takes at most 512",
-                     numpts,
-                     numlegendre);
-  ARTS_USER_ERROR_IF(numpts > 1024 or 2 * aziorder + 1 > 1024,
-                     "SCATTERING samples {} azimuths and makes {} Fourier modes; FOURIER_MATRIX takes at most 1024",
-                     numpts,
-                     2 * aziorder + 1);
 
   // PHASE_MATRIX(4, 4), SCAT_MATRIX(4, 4, NUMPTS+1) and BASIS_MATRIX(4, 4,
   // 2*AZIORDER+1) in Fortran layout.  SCATTERING writes SCAT_MATRIX(1, 1,
@@ -424,14 +416,6 @@ void direct_scattering(ConstVectorView mu_values,
   Index numpts =
       2 * (Index{1} << static_cast<Index>(std::log(static_cast<Numeric>(numlegendre + 4)) / std::log(2.0) + 1.0));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
-  ARTS_USER_ERROR_IF(aziorder > 0 and numpts > 512,
-                     "DIRECT_SCATTERING samples {} azimuths for a series of degree {}; FFT1DR takes at most 512",
-                     numpts,
-                     numlegendre);
-  ARTS_USER_ERROR_IF(numpts > 512 or 2 * aziorder + 1 > 512,
-                     "DIRECT_SCATTERING samples {} azimuths and makes {} Fourier modes; RT3 takes at most 512",
-                     numpts,
-                     2 * aziorder + 1);
 
   // PHASE_MATRIX(4, 4), SCAT_MATRIX(4, 4, NUMPTS) and BASIS_MATRIX(4, 4,
   // 2*AZIORDER+1) in Fortran layout.  The vector of a mode holds the I and

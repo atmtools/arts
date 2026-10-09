@@ -372,16 +372,6 @@ int main() try {
     }
   }
 
-  // A STOP of the Fortran is an error of the port
-  bool threw = false;
-  try {
-    std::mt19937_64 gen(1);
-    auto in = make_inputs({1, 1, 0, polradtran::quadrature_type::double_gauss, 'L', 401, layout::mixed, 1e-6}, gen);
-    polradtran::workdata work;
-    run_cpp(in, work);
-  } catch (const std::exception&) { threw = true; }
-  if (not threw) throw std::runtime_error("NUM_LAYERS = 401 > MAXLAY did not throw");
-
   std::cout << std::format(
       "One workdata reused over all {} cases (of different sizes) against a fresh one per case: {} values "
       "differ\n",

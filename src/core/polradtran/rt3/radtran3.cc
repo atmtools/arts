@@ -51,10 +51,6 @@ void radtran(Numeric             max_delta_tau,
   const Index ldcoef     = scat_coef.extent(2) == 6 ? scat_coef.extent(1) : 0;
   const Index noutlevels = static_cast<Index>(outlevels.size());
 
-  // The array sizes of radtran3.f
-  constexpr Index   maxv = 64, maxm = 4096, maxlm = 101 * maxm;
-  constexpr Index   maxleg = 1024, maxlay = 200;
-  constexpr Index   maxsbuf = 16 * maxlay * 2 * maxm, maxdbuf = 16 * maxlay * 2 * maxv;
   constexpr Numeric pi = Constant::pi, twopi = Constant::two_pi, zero = 0.0;
 
   // The Fortran trusts its declared extents; here they are checked
@@ -66,8 +62,6 @@ void radtran(Numeric             max_delta_tau,
                      aziorder,
                      nummu,
                      nuummu);
-  ARTS_USER_ERROR_IF(nuummu > 0 and quad_type != quadrature_type::gauss,
-                     "RADTRAN takes extra angles only with the gauss quadrature (QUAD_TYPE 'E')");
   ARTS_USER_ERROR_IF(num_layers < 0, "RADTRAN needs at least one height");
   ARTS_USER_ERROR_IF(temperatures.extent(0) != num_layers + 1 or gas_extinct.extent(0) != num_layers or
                          static_cast<Index>(scatlayers.size()) != num_layers,
@@ -129,13 +123,6 @@ void radtran(Numeric             max_delta_tau,
 
   const bool  symmetric = nstokes <= 2;
   const Index n         = nstokes * nummu;
-  ARTS_USER_ERROR_IF(n > maxv, "Vector size exceeded.  Maximum size : {}", maxv);
-  ARTS_USER_ERROR_IF(n * n > maxm, "Matrix size exceeded.  Maximum size : {}", maxm);
-  ARTS_USER_ERROR_IF(solar and maxdbuf < (aziorder + 1) * 2 * n * num_layers, "Direct source buffer size exceeded.");
-  ARTS_USER_ERROR_IF(num_layers > maxlay, "Too many layers.  Maximum number : {}", maxlay);
-  ARTS_USER_ERROR_IF(nsl > maxlay, "Too many scattering sets.  Maximum number : {}", maxlay);
-  ARTS_USER_ERROR_IF(solar and maxdbuf < (aziorder + 1) * 2 * n * nsl, "Direct source buffer size exceeded.");
-  ARTS_USER_ERROR_IF((num_layers + 1) * n * n > maxlm, "Matrix layer size exceeded.  Maximum number : {}", maxlm);
 
   /* RADTRAN's work arrays, as the subroutines read them: those of the work
      data (rt3_workdata), sized for this problem.  The reflection and
@@ -191,10 +178,8 @@ void radtran(Numeric             max_delta_tau,
   // Make all of the scattering matrices ahead of time
   // and store them in memory
   for (Index scat_num = 1; scat_num <= nsl; scat_num++) {
-    const Index s = scat_num - 1;
-    ARTS_USER_ERROR_IF(scat_num * (aziorder + 1) * 2 * n * n > maxsbuf, "Scattering matrix buffer size exceeded.");
-    ARTS_USER_ERROR_IF(scat_nlegen[s] + 1 > maxleg, "Too many Legendre terms.");
-    Index numlegen = 0;
+    const Index s        = scat_num - 1;
+    Index       numlegen = 0;
     get_scat_set(delta_m,
                  nummu,
                  scat_coef[s, Range{0, scat_nlegen[s] + 1}],

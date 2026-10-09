@@ -315,7 +315,7 @@ def test_kirchhoff(reciprocal):
 
 
 def expect_error(what, p, match):
-    """solve() must raise before the Fortran code (a STOP there would end this process)."""
+    """solve() must raise."""
     try:
         rt4.solve(p)
     except RuntimeError as e:
@@ -327,7 +327,10 @@ def expect_error(what, p, match):
 
 def test_errors():
     expect_error("nstokes = 3", problem(nstokes=3), "nstokes 1 ([I]) or 2 ([I, Q])")
-    expect_error("nstokes * nmu_total > 64", problem(nmu=31), "<= 64")
+    # Evans' fixed array sizes are not limits of the port: 2 * (31 + 2) > 64
+    r = rt4.solve(problem(nmu=31))
+    assert np.asarray(r.up).shape == (4, 33, 2) and np.all(np.isfinite(np.asarray(r.up)))
+    print("nstokes * nmu_total = 66 > 64 runs")
 
     p = problem(layer_optics_index=[-1, 0, -1])
     nmu = p.nmu + len(p.extra_mu)

@@ -100,15 +100,14 @@ Provenance
       or infinity.
     * ``rt3::scattering`` (``SCATTERING``) writes the part of ``SCATBUF`` of
       one set, a ``[aziorder + 1, 2, nummu, nummu, nstokes, nstokes]``
-      tensor, each mode straight into it.  It throws where the Fortran
-      would stop or overflow (``FFT1DR`` takes at most 512 azimuths, the
-      Fortran ``FOURIER_MATRIX`` 1024; the port has no such buffers, but
-      keeps the limit as RT3's).
+      tensor, each mode straight into it.  The Fortran's limits (``FFT1DR``
+      took at most 512 azimuths, ``FOURIER_MATRIX`` 1024) were the sizes of
+      its buffers, which the port does not have.
     * ``rt3::direct_scattering`` (``DIRECT_SCATTERING``) writes the part of
       ``DIRECTBUF`` of one set, ``[aziorder + 1, 2, nummu, nstokes]``: the
       first column of each mode of the phase matrix from the sun's
       direction (the cosine modes of I and Q, the sine modes of U and V).
-      It keeps the Fortran's limit of 512 azimuths and modes.
+      The Fortran's limit of 512 azimuths and modes is not the port's.
     * ``rt3::get_scattering`` (``GET_SCATTERING``) copies one mode of a
       set's ``SCATBUF`` part into ``SCATTER_MATRIX``
       (``[4, nummu, nstokes, nummu, nstokes]``), and
@@ -381,7 +380,14 @@ test; none is an output of this build.  The C++ test covers:
   zero-filling in ``GET_SCAT_SET``).
 * **(g) The direct beam**, ``F exp(-tau / mu0)``, with the delta-M scaled
   tau ``(1 - omega f) k`` for a Henyey-Greenstein set.
-* **(h) 31 error paths**, and the boundary case just inside the FFT limit.
+* **(h) 20 error paths.**
+* **(i) Extra angles** with Lobatto and double-Gauss leave the radiances on
+  the quadrature nodes unchanged, and an extra angle on a node reproduces
+  it (to rounding times 2^n).
+* **(j) Isothermal Kirchhoff**, I = B and Q = U = V = 0 in an isothermal
+  Rayleigh medium over a Fresnel ground, with N = 68 and aziorder 1 and
+  with 420 layers and 210 scattering sets, beyond the Fortran's array
+  sizes.
 
 The tables of (b) and (c) were printed by ``OUTPUT_FILE``, which sums the
 Fourier series in single precision (REAL*4 ``PHI``, cosine and running sum)
@@ -555,9 +561,10 @@ Conventions
   ``double_gauss`` ('D'): an nmu-point Gauss-Legendre rule on [0, 1];
   ``lobatto`` ('L'): the positive half of a 2 nmu-point Lobatto rule,
   including mu = 1.  Weights are for the integral over [0, 1] and sum to 1.
-* ``extra_mu`` is allowed only with ``gauss``; RT3 then uses its 'E' type,
-  which is Gauss-based.  The extra angles receive scattering and reflection
-  but carry no weight.
+* ``extra_mu`` is allowed with every rule (RT3's 'E' type had them with
+  ``gauss`` only).  The extra angles receive scattering and reflection but
+  carry no weight, so they do not change the radiances on the quadrature
+  nodes.
 * ``down`` is radiation propagating downward, toward increasing optical
   depth (RT3's "+", printed with mu > 0 by rt3.f); ``up`` propagates upward
   (RT3's "-", printed with mu < 0).
@@ -655,7 +662,7 @@ row-major ``legendre`` of each set; ``SCATLAYERS`` is the 1-based set or 0;
 ``OUTLEVELS`` lists every level; ``UP_RAD``/``DOWN_RAD(s, mu, m, level)`` is
 exactly the row-major ``[level, m, mu, s]`` of the result, and
 ``UP_FLUX``/``DOWN_FLUX(s, level)`` the row-major ``[level, s]``.  For the
-'E' type the first ``nmu`` entries of ``MU_VALUES`` are passed as 0.
+'E' type the first ``nmu`` entries of ``MU_VALUES`` were passed as 0.
 
 Inputs from ARTS data
 ---------------------
@@ -769,19 +776,18 @@ Limitations
   scaling.  RT3's ``CHECK_NORM`` stops the process when the discrete
   normalisation is off by more than 1e-7; for a series within NLEGLIM that
   discrete normalisation equals ``legendre[0, 0] - 1`` up to round-off.
-* **Array limits**, the sizes of the Fortran's static arrays, which the port
-  keeps and checks before the solve (N = nstokes * nmu_total, A =
-  aziorder):
-
-  * N <= 64, nlay <= 200, (nlay + 1) N^2 <= 101 * 4096;
-  * at most 200 scattering sets, and sets * (A + 1) * 2 N^2 <= 26214400
-    (every set is precomputed, also an unused one);
-  * with a beam, (A + 1) * 2 N * max(nlay, sets) <= 409600;
-  * 2 A + 1 <= 512 with a beam, <= 1024 without (azimuth basis buffers);
-  * nleg <= 1023 per set (after dropping trailing zero rows);
-  * with A > 0, the degree RT3 sums, ``min(degree, NLEGLIM)``, must be
-    <= 251 (its FFT holds 512 azimuth samples).  This only binds for
-    nstokes 1 with 64 gauss nodes.
+* **No array limits.** Every array is sized to the problem.  The Fortran's
+  static arrays limited N = nstokes * nmu_total to 64, the layers and the
+  scattering sets to 200 each, the scattering-matrix, direct-beam and
+  azimuth-basis buffers (2 A + 1 to 512 with a beam and 1024 without), the
+  Legendre degree to 1023, and with A > 0 the degree it sums to 251 (its
+  FFT held 512 azimuth samples); the port has none of them.
+  ``cpp.fast.rt3-test`` runs its isothermal Kirchhoff check with N = 68 and
+  with 420 layers and 210 sets, and ``cpp.fast.rt3-radtran-test`` checks
+  ``fft1dr`` up to 4096 values and the m = 0 mode of ``SCATTERING`` and
+  ``DIRECT_SCATTERING`` with 1024 and 4096 azimuths (degree 300 and 1100).
+  Every scattering set is precomputed, also an unused one, so memory grows
+  as sets * (A + 1) * 2 N^2.
 * **Accuracy.** The initial doubling sublayer is first order in its slant
   thickness ``max_delta_tau / mu_min``.  Its transmission is stored as
   1 - O(max_delta_tau), so results carry a round-off floor of about

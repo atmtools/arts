@@ -478,22 +478,30 @@ void test_surfaces() {
  *  detects the full transpose too.  P_II stays reciprocal, so its row and
  *  column sums agree and the medium conserves energy (rt4::solve checks it):
  *  a medium whose P_II were non-reciprocal could not obey both Kirchhoff's
- *  law and energy conservation with one absorption. */
-void test_kirchhoff(bool reciprocal) {
+ *  law and energy conservation with one absorption.
+ *
+ *  nmu quadrature nodes (and one extra angle) and nlay layers, alternately
+ *  scattering and gas-only: beyond Evans' fixed array sizes, which the port
+ *  does not have, too (nstokes * nmu_total <= 64, at most 400 layers). */
+void test_kirchhoff(bool reciprocal, Index nmu_quad = 8, Index nlay = 2) {
   constexpr Numeric T = 260.0;
   atmosphere        atm;
-  atm.height      = Vector{2000.0, 1000.0, 0.0};
-  atm.temperature = Vector{T, T, T};
-  atm.gas         = Vector{5e-5, 2e-4};
+  atm.height      = Vector(nlay + 1);
+  atm.temperature = Vector(nlay + 1, T);
+  atm.gas         = Vector(nlay);
   atm.sky         = T;
   atm.surface     = T;
+  for (Index l = 0; l <= nlay; l++) atm.height[l] = 1000.0 * static_cast<Numeric>(nlay - l);
+  for (Index l = 0; l < nlay; l++) atm.gas[l] = l % 2 == 0 ? 5e-5 : 2e-4;
 
   auto p               = base_problem(atm, 2);
+  p.nmu                = nmu_quad;
   p.ground             = polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}};
-  p.layer_optics_index = ArrayOfIndex{0, -1};
-  p.max_delta_tau      = 1e-7;
-  const Index nmu      = p.nmu + static_cast<Index>(p.extra_mu.size());
-  const auto  qw       = polradtran::get_quadrature(p.nmu, p.quad);
+  p.layer_optics_index = ArrayOfIndex(nlay, -1);
+  for (Index l = 0; l < nlay; l += 2) p.layer_optics_index[l] = 0;
+  p.max_delta_tau = 1e-7;
+  const Index nmu = p.nmu + static_cast<Index>(p.extra_mu.size());
+  const auto  qw  = polradtran::get_quadrature(p.nmu, p.quad);
   Vector      mu(nmu), w(nmu, 0.0);
   for (Index i = 0; i < p.nmu; i++) {
     mu[i] = qw.mu[i];
@@ -551,8 +559,10 @@ void test_kirchhoff(bool reciprocal) {
   // it grows with the number of sublayers 2^n, n = int(log2(tau / max_delta_tau)) + 1.
   const Numeric tau     = (sigma + kabs + atm.gas[0]) * atm.dz(0);
   const Numeric n_doubl = std::floor(std::log2(tau / p.max_delta_tau)) + 1;
-  report(std::format("(d) isothermal Kirchhoff, {} + gas + Fresnel 3+0.2i",
-                     reciprocal ? "Rayleigh" : "non-reciprocal Rayleigh"),
+  report(std::format("(d) isothermal Kirchhoff, {} + gas + Fresnel 3+0.2i, nmu {} + 1, {} layers",
+                     reciprocal ? "Rayleigh" : "non-reciprocal Rayleigh",
+                     nmu_quad,
+                     nlay),
          d,
          std::exp2(n_doubl) * std::numeric_limits<Numeric>::epsilon());
 }
@@ -568,8 +578,7 @@ void expect_throw(std::string_view what, const std::function<void()>& f) {
   require(threw, std::format("{} did not throw", what));
 }
 
-/** (f) Error paths; each must throw before the Fortran code (which would
- *  STOP the process) is called. */
+/** (f) Error paths: inputs that RT4 must refuse. */
 void test_errors() {
   const atmosphere atm;
   const auto       good = [&] {
@@ -619,37 +628,6 @@ void test_errors() {
   expect_throw("nstokes = 3", [&] {
     auto p    = good();
     p.nstokes = 3;
-    rt4::solve(p);
-  });
-  expect_throw("nstokes * nmu_total = 2 * 40 > 64", [&] {
-    auto p = base_problem(atm, 2);
-    p.nmu  = 39;
-    rt4::solve(p);
-  });
-  expect_throw("nstokes * nmu_total = 2 * (32 + 1) > 64", [&] {
-    auto p = base_problem(atm, 2);
-    p.nmu  = 32;
-    rt4::solve(p);
-  });
-  expect_throw("401 layers", [&] {
-    auto p               = base_problem(atm, 1);
-    p.nmu                = 1;
-    p.extra_mu           = Vector{};
-    p.height             = Vector(402, 0.0);
-    p.temperature        = Vector(402, 250.0);
-    p.gas_extinction     = Vector(401, 0.0);
-    p.layer_optics_index = ArrayOfIndex(401, -1);
-    for (Index i = 0; i < 402; i++) p.height[i] = static_cast<Numeric>(402 - i);
-    rt4::solve(p);
-  });
-  expect_throw("(nlay + 1) * 64^2 > 301 * 4096", [&] {
-    auto p               = base_problem(atm, 2);
-    p.nmu                = 31;
-    p.height             = Vector(302, 0.0);
-    p.temperature        = Vector(302, 250.0);
-    p.gas_extinction     = Vector(301, 0.0);
-    p.layer_optics_index = ArrayOfIndex(301, -1);
-    for (Index i = 0; i < 302; i++) p.height[i] = static_cast<Numeric>(302 - i);
     rt4::solve(p);
   });
   expect_throw("asymmetric extinction", [&] {
@@ -724,6 +702,8 @@ int main() try {
   test_surfaces();
   test_kirchhoff(true);
   test_kirchhoff(false);
+  test_kirchhoff(true, 40, 2);   // nstokes * nmu_total = 82 > 64
+  test_kirchhoff(true, 2, 450);  // 450 > 400 layers
   test_errors();
   std::cout << "All RT4 tests passed\n";
   return EXIT_SUCCESS;

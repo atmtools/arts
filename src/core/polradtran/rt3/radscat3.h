@@ -181,7 +181,7 @@ enum class fourier_direction { to_real, to_basis };
  *                                             (then overwritten when order > 0)
  *
  * With order > 0 it transforms with fft1dr, so numpts must be a power of
- * two from 2 to 512 (throws otherwise), whose state fft keeps.
+ * two of at least 2 (throws otherwise), whose state fft keeps.
  */
 void fourier_basis(
     Index order, fourier_direction direction, VectorView basis_vector, VectorView real_vector, fft_workdata& fft);
@@ -196,8 +196,8 @@ void fourier_basis(
  *                                                      output
  *
  * (the leading nstokes x nstokes of the Fortran 4 x 4).  With aziorder > 0
- * fourier_basis transforms with fft1dr, so numpts must be a power of two,
- * at most 512.  REAL_VECTOR and BASIS_VECTOR are work's real_vector and
+ * fourier_basis transforms with fft1dr, so numpts must be a power of two.
+ * REAL_VECTOR and BASIS_VECTOR are work's real_vector and
  * basis_vector, which it sizes, and work.fft is the state of the FFT; the
  * matrices must not be work's real_vector or basis_vector.
  */
@@ -233,11 +233,9 @@ void combine_phase_modes(Index m, Numeric tmp, StridedConstTensor3View basis_mat
  *                  output, the set's part of DIRECTBUF: [m, l, j] for the
  *                  outgoing mu = +-mu_values[j] (+ for l = 0)
  *
- * numpts is that of SCATTERING.  Throws for a direct_mu outside [-1, 1], and
- * where the Fortran would stop or overflow: numpts > 512 with aziorder > 0
- * (FFT1DR), numpts or 2 aziorder + 1 above 512 (the buffers of the Fortran
- * DIRECT_SCATTERING, which the port does not have; kept as RT3's limit).
- * SCAT_MATRIX and BASIS_MATRIX are work's scat_matrix and basis_matrix,
+ * numpts is that of SCATTERING.  Throws for a direct_mu outside [-1, 1].
+ * The Fortran's limits of 512 azimuths and 2 aziorder + 1 <= 512 (FFT1DR
+ * and its buffers) are not the port's.  SCAT_MATRIX and BASIS_MATRIX are work's scat_matrix and basis_matrix,
  * which it sizes; work.fft is the state of the FFT (fft1dr).
  */
 void direct_scattering(ConstVectorView mu_values,
@@ -268,10 +266,10 @@ void direct_scattering(ConstVectorView mu_values,
  *
  * With aziorder > 0 the phase matrices are sampled at
  * NUMPTS = 2 * 2^int(log2(numlegendre + 4) + 1) azimuths, else at
- * 2 int((numlegendre + 1) / 2) + 4.  Throws where the Fortran would stop or
- * overflow: NUMPTS > 512 with aziorder > 0 (FFT1DR), NUMPTS or
- * 2 aziorder + 1 above 1024 (the buffers of the Fortran FOURIER_MATRIX,
- * which the port does not have; kept as RT3's limit).  SCAT_MATRIX and
+ * 2 int((numlegendre + 1) / 2) + 4.  The Fortran's limits of 512
+ * azimuths with aziorder > 0 (FFT1DR) and 1024 for NUMPTS and
+ * 2 aziorder + 1 (FOURIER_MATRIX's buffers) are not the port's.  SCAT_MATRIX
+ * and
  * BASIS_MATRIX are work's scat_matrix and basis_matrix, which it sizes;
  * work.fft is the state of the FFT (fft1dr).
  */

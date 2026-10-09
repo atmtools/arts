@@ -40,8 +40,8 @@
  *   - Streams are given per hemisphere by mu = |cos(zenith)| in (0, 1],
  *     ascending, the same mu values in both hemispheres.  The first nmu are
  *     RT3's quadrature nodes, followed by the zero-weight extra_mu angles
- *     (only with the gauss quadrature; RT3's 'E' type).
- *     nmu_total = nmu + extra_mu.size().
+ *     (RT3's 'E' type had them with the gauss quadrature only; the port
+ *     takes them with any).  nmu_total = nmu + extra_mu.size().
  *   - Hemispheres: "down" is radiation propagating downward, toward
  *     increasing optical depth (RT3's "+", printed with mu > 0 by rt3.f),
  *     "up" propagating upward (RT3's "-", printed with mu < 0).
@@ -104,7 +104,7 @@ struct problem {
   Index           nmu{8};
   quadrature_type quad{quadrature_type::gauss};
   //! Zero-weight output angles appended after the quadrature streams, each
-  //! in (0, 1]; only with quadrature_type::gauss (RT3's 'E' type)
+  //! in (0, 1]
   Vector extra_mu{};
   //! Highest Fourier azimuth mode, >= 0
   Index aziorder{0};
@@ -131,7 +131,7 @@ struct problem {
   Vector temperature{};
   //! [nlay] scalar, unpolarized gas extinction per unit length, >= 0
   Vector gas_extinction{};
-  //! Scattering sets, at most 200
+  //! Scattering sets
   std::vector<scattering_set> scattering_sets{};
   //! [nlay] index into scattering_sets per layer, or < 0 for a gas-only layer
   ArrayOfIndex layer_scattering_index{};
@@ -166,21 +166,17 @@ struct result {
 
 /** Run RT3.
  *
- * Validates the shapes and every precondition on which Evans' RADTRAN
- * would STOP or overrun a buffer (see the limits below, which the port
- * keeps), rejects a Legendre series that RT3 would silently truncate, then
- * calls RADTRAN (rt3::radtran).
+ * Validates the shapes and the inputs, rejects a Legendre series that RT3
+ * would silently truncate, then calls RADTRAN (rt3::radtran).  Every array
+ * is sized to the problem: Evans' fixed array sizes (N = nstokes *
+ * nmu_total <= 64, at most 200 layers and sets, his scattering, direct-beam
+ * and azimuth buffers, Legendre degree <= 1023, and an FFT of at most 512
+ * azimuths) are not limits of the port.
  *
- * Limits (N = nstokes * nmu_total, A = aziorder, beam = direct_flux > 0):
- *   N <= 64; nlay <= 200; (nlay + 1) N^2 <= 101 * 4096;
- *   scattering_sets.size() <= 200;
- *   scattering_sets.size() (A + 1) 2 N^2 <= 16 * 200 * 2 * 4096;
- *   beam: (A + 1) 2 N max(nlay, scattering_sets.size()) <= 16 * 200 * 2 * 64;
- *   2 A + 1 <= 512 (beam) or 1024 (no beam);
- *   per set: nleg <= 1023; legendre[0, 0] == 1 to 1e-9 (after delta-M);
- *   no non-zero coefficient above max_legendre_degree() (after delta-M);
- *   A > 0: the degree RT3 sums, min(degree, max_legendre_degree()), <= 251;
- *   beam: Lambertian surface.
+ * Requirements (beam = direct_flux > 0): per scattering set,
+ * legendre[0, 0] == 1 to 1e-9 and no non-zero coefficient above
+ * max_legendre_degree() (both after delta-M); with a beam, a Lambertian
+ * surface.
  */
 result solve(const problem& p);
 

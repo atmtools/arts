@@ -146,7 +146,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
       .def_rw("quad", &rt3::problem::quad, "Quadrature rule\n\n.. :class:`~pyarts3.arts.polradtran.QuadratureType`")
       .def_rw("extra_mu",
               &rt3::problem::extra_mu,
-              "Zero-weight output angles appended after the quadrature streams, each in (0, 1]; gauss only\n\n.. "
+              "Zero-weight output angles appended after the quadrature streams, each in (0, 1]\n\n.. "
               ":class:`~pyarts3.arts.Vector`")
       .def_rw("aziorder", &rt3::problem::aziorder, "Highest Fourier azimuth mode, >= 0\n\n.. :class:`int`")
       .def_rw("max_delta_tau",
@@ -180,7 +180,7 @@ the column order of RT3's scattering files, c = 0: F11, 1: F12, 2: F33,
               "[nlay] scalar, unpolarized gas extinction per unit length, >= 0\n\n.. :class:`~pyarts3.arts.Vector`")
       .def_rw("scattering_sets",
               &rt3::problem::scattering_sets,
-              "Scattering sets, at most 200\n\n.. :class:`~pyarts3.arts.rt3.ArrayOfScatteringSet`")
+              "Scattering sets\n\n.. :class:`~pyarts3.arts.rt3.ArrayOfScatteringSet`")
       .def_rw("layer_scattering_index",
               &rt3::problem::layer_scattering_index,
               "[nlay] index into scattering_sets per layer, or < 0 for a gas-only layer\n\n.. "

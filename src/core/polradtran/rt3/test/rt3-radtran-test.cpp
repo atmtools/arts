@@ -27,8 +27,10 @@
 // mt19937_64, whose output is the same on every platform.
 //
 // It also checks fft1dr's documented format against direct sums (what an
-// FFTW build must also give) and that makephase refuses a table that is
-// not a power of two.
+// FFTW build must also give), up to 4096 values, beyond Evans' 512, that
+// SCATTERING and DIRECT_SCATTERING give the same m = 0 mode through it
+// for 1024 and 4096 azimuths as without it, and that makephase refuses a
+// table that is not a power of two.
 #include <arts_constants.h>
 #include <radintg.h>
 #include <radscat3.h>
@@ -381,7 +383,7 @@ void check_fft1dr_format() {
   const auto        u     = uniform;
   Numeric           worst = 0.0;
   rt3::fft_workdata fft;
-  for (Index n : {2, 4, 8, 64, 512}) {
+  for (Index n : {2, 4, 8, 64, 512, 1024, 4096}) {
     const auto angle = [n](Index j, Index k) {
       return Constant::two_pi * static_cast<Numeric>(j * k % n) / static_cast<Numeric>(n);
     };
@@ -411,6 +413,41 @@ void check_fft1dr_format() {
   }
   std::cout << std::format("fft1dr against the direct sums of its format: within {:.2e} of the largest value\n", worst);
   if (worst > 1e-12) throw std::runtime_error("fft1dr does not give its documented format");
+}
+
+/* SCATTERING and DIRECT_SCATTERING above the 512 azimuth samples of
+   Evans' FFT1DR, which the port does not have: with aziorder > 0 they
+   sample 2 * 2^int(log2(degree + 4) + 1) azimuths (1024 for degree 300,
+   4096 for degree 1100, also above Evans' 1023) and transform them with
+   fft1dr; with aziorder 0 they average 2 int((degree + 1) / 2) + 4 samples
+   without it.  P11 is a polynomial of the degree in cos(phi), so both
+   sample its m = 0 mode without aliasing and must agree to 1e-12 of the
+   largest value.  (The polarized elements also depend on the rotation
+   angles, which are not band-limited: RT3 samples them with aliasing.) */
+void check_large_fft() {
+  const Vector mu{0.15, 0.55, 0.95}, w{0.3, 0.4, 0.3};
+  Numeric      worst = 0.0;
+  for (Index degree : {300, 1100}) {
+    const Matrix      coef = legendre_set(2, 0.6, degree);
+    rt3::rt3_workdata work;
+    Tensor6           s0(1, 2, 3, 3, 4, 4), s2(3, 2, 3, 3, 4, 4);
+    rt3::scattering(mu, w, coef, s0, work);
+    rt3::scattering(mu, w, coef, s2, work);
+    worst = std::max(
+        worst,
+        differ(values(Tensor3{s0[0, joker, joker, joker, 0, 0]}), values(Tensor3{s2[0, joker, joker, joker, 0, 0]}))
+            .second);
+    Tensor4 d0(1, 2, 3, 4), d2(3, 2, 3, 4);
+    rt3::direct_scattering(mu, coef, 0.6, d0, work);
+    rt3::direct_scattering(mu, coef, 0.6, d2, work);
+    worst =
+        std::max(worst, differ(values(Matrix{d0[0, joker, joker, 0]}), values(Matrix{d2[0, joker, joker, 0]})).second);
+  }
+  std::cout << std::format(
+      "SCATTERING and DIRECT_SCATTERING with 1024 and 4096 azimuths: the m = 0 P11 through fft1dr within {:.2e} "
+      "of the mean\n",
+      worst);
+  if (not(worst <= 1e-12)) throw std::runtime_error("the m = 0 mode through fft1dr differs from the mean");
 }
 
 //! makephase's table fits in 4 nmax values only for nmax a power of two,
@@ -450,6 +487,7 @@ std::vector<case_spec> reference_cases() {
 int main() try {
   check_fft1dr_format();
   check_makephase_limits();
+  check_large_fft();
 
   // ARTS's quadratures and Planck function for RT3's; to this is added the
   // rounding amplified by the doublings

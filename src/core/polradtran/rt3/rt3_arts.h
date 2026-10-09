@@ -75,7 +75,7 @@ struct path_settings {
   //! Quadrature nodes per hemisphere
   Index           nmu{8};
   quadrature_type quad{quadrature_type::gauss};
-  //! Zero-weight output angles, each in (0, 1]; only with quadrature_type::gauss
+  //! Zero-weight output angles, each in (0, 1]
   Vector extra_mu{};
   //! Highest Fourier azimuth mode, >= 0
   Index aziorder{0};
