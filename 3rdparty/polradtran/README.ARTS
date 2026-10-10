@@ -1,0 +1,30 @@
+This folder holds what ARTS keeps of Evans' PolRadTran radiative transfer
+models RT3 and RT4: the licence and description of the package, and his
+benchmark scripts and data, which ARTS's tests read.
+
+Origin: PolRadTran.tar from https://nit.coloradolinux.com/polrad.html
+(sha256 7b0eff794319330321e27a6f312588a289ed080bb266500dcecf485f6a7cff9d),
+under the MIT licence in LICENSE, which must be kept with the code: ARTS's
+RT3 and RT4 (src/core/polradtran) are C++ ports of the tar's Fortran, with
+ARTS's changes (doc/arts/dev.rt3.rst and doc/arts/dev.rt4.rst).  README is
+Evans' description of the package.  RT3 (randomly oriented particles,
+solar and thermal sources, all Fourier azimuth modes, I, Q, U and V) is
+Evans and Stephens (1991), JQSRT 46, 413-423; RT4 (horizontally oriented
+particles, thermal source, I and Q) is Evans and Stephens (1995), J. Atmos.
+Sci. 52, 2058-2072.
+
+Kept from the tar, unchanged: LICENSE, README, Evans' four benchmark scripts
+runmietest, runtesta (RT3), runtestr and runtestc (RT4), which define their
+problems and hold his expected outputs, and cl340d14.dda, the RT4
+scattering file that runtestc reads.  They are read by cpp.fast.rt3-test,
+cpp.fast.vdisort-rt3-test and cpp.fast.polradtran-rt4-arts (through
+src/tests/polradtran/evans-scripts.h) and by
+tests/core/disort/evans-benchmarks.rt3.rt4.py.
+
+The Fortran (rt3.f, rt4.f, scatcnv.f and the rad*.f subroutines, with the
+ARTS 2 and ARTS 3 changes to them, and the C interfaces to them) was removed
+once the port was complete, as the C++ calls none of it.  Its outputs for
+the cases of cpp.fast.rt3-radtran-test and cpp.fast.rt4-radtrano-test are
+kept as the references of those tests (rt3-radtran-reference.h and
+rt4-radtrano-reference.h).  The ARTS changes to the Fortran are listed in
+the history of this file.

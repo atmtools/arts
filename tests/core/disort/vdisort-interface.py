@@ -654,7 +654,7 @@ def test_fresnel_lambertian_depolarization():
 def test_optically_thin_rayleigh_atmosphere():
     """Recover the analytical single-Rayleigh-scattering Stokes field."""
     depth = 1.0e-8
-    nquad = 4
+    nquad = 160
     nfourier = 1
 
     # A vertical beam makes the Rayleigh field axisymmetric.  Diffuse
@@ -684,25 +684,12 @@ def test_optically_thin_rayleigh_atmosphere():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    # Positive mu observes the upward field at the top of the atmosphere.  For
-    # a downward vertical beam, cos(scattering angle) = -mu.  The smallest mu
-    # samples 90 degrees to within 0.006 degrees while remaining a valid ray.
-    mu = np.geomspace(1.0e-4, 1.0, 80)
+    # The upward streams observe the upward field at the top of the
+    # atmosphere.  For a downward vertical beam, cos(scattering angle) = -mu.
+    # The smallest of the 80 streams samples 90 degrees to within 0.02 degrees.
+    mu = np.asarray(model.mu)[: nquad // 2]
     rayleigh = _rayleigh_phase_matrix(-mu)
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, :2, :2] = rayleigh[:, :2, :2]
-    user_beam_phase[arts.vdisort.sine_mode, 0, 0, :, 2:, 2:] = rayleigh[:, 2:, 2:]
-
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0]),
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, 0]
+    stokes = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
     # Along an upward ray at the top boundary, the attenuated direct-beam
     # source integrates to [1-exp(-depth*(1+1/mu))]/(1+mu).
@@ -715,7 +702,7 @@ def test_optically_thin_rayleigh_atmosphere():
     np.testing.assert_allclose(
         linear_polarization, expected_polarization, rtol=2.0e-8, atol=2.0e-12
     )
-    assert linear_polarization[0] > 1.0 - 3.0e-8
+    assert linear_polarization[np.argmin(mu)] > 1.0 - 3.0 * mu.min() ** 2
     np.testing.assert_allclose(stokes[:, 2:], 0.0, atol=2.0e-15)
 
     if "ARTS_HEADLESS" not in os.environ:
@@ -793,19 +780,12 @@ def test_nonprincipal_plane_rayleigh_polarization():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    user_mu = np.array([0.4])
+    # The upward stream closest to mu = 0.4, at the top
+    upward = np.asarray(model.mu)[: nquad // 2]
+    stream = int(np.argmin(np.abs(upward - 0.4)))
+    user_mu = upward[stream : stream + 1]
     phi = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
-    user_phase = np.zeros((2, nfourier, 1, 1, nquad, 4, 4))
-    user_beam_phase = _rayleigh_beam_fourier(user_mu, mu0, phi0, nfourier)
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=phi,
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, :, 0]
+    stokes = np.asarray(model.u(tau=np.array([0.0]), phi=phi))[0, :, stream]
 
     expected_phase = _rayleigh_stokes_column(user_mu[0], phi, mu0, phi0)
     ray_integral = -np.expm1(-depth * (1.0 / mu0 + 1.0 / user_mu[0])) / (
@@ -869,8 +849,12 @@ def test_nonprincipal_plane_rayleigh_polarization():
 
 def test_optically_thin_sun_halo():
     """Transport a prescribed 22-degree halo through a thin atmosphere."""
-    depth = 1.0e-8
-    nquad = 4
+    # Without diffuse scattering the single-scattering formula below is exact
+    # at any depth.  The stream solution subtracts exp(-tau/mu) from
+    # exp(-tau/mu0) with mu0 = 1, so depth 1e-3 rather than 1e-8 keeps its
+    # cancellation (eps / (depth (1/mu - 1))) below the tolerance.
+    depth = 1.0e-3
+    nquad = 256
     nfourier = 1
 
     # Normalize the prescribed phase function to unit spherical mean.  It is
@@ -903,22 +887,17 @@ def test_optically_thin_sun_halo():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    scattering_angle = np.deg2rad(np.linspace(1.0, 45.0, 177))
-    mu = -np.cos(scattering_angle)
+    # The downward streams at the bottom with scattering angles from 1 to 45
+    # degrees, in ascending scattering angle
+    downward = np.asarray(model.mu)[nquad // 2 :]
+    streams = np.flatnonzero(
+        (-downward <= np.cos(np.deg2rad(1.0))) & (-downward >= np.cos(np.deg2rad(45.0)))
+    )
+    streams = streams[np.argsort(np.arccos(-downward[streams]))]
+    mu = downward[streams]
+    scattering_angle = np.arccos(-mu)
     halo_phase = _sun_halo_profile(scattering_angle) / phase_normalization
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = halo_phase
-
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([depth]),
-            phi=np.array([0.0]),
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, 0]
+    stokes = np.asarray(model.u(tau=np.array([depth]), phi=np.array([0.0])))[0, 0, nquad // 2 + streams]
 
     abs_mu = np.abs(mu)
     slant_difference = depth * (1.0 / abs_mu - 1.0)
@@ -929,9 +908,11 @@ def test_optically_thin_sun_halo():
     )
     np.testing.assert_allclose(stokes[:, 1:], 0.0, atol=2.0e-15)
 
+    # The brightest stream is the one closest to 22 degrees
     peak = np.argmax(stokes[:, 0])
     peak_angle = scattering_angle[peak]
-    assert abs(peak_angle - np.deg2rad(22.0)) <= np.deg2rad(0.25)
+    spacing = np.max(np.abs(np.diff(scattering_angle[max(peak - 1, 0) : peak + 2])))
+    assert abs(peak_angle - np.deg2rad(22.0)) <= 0.5 * spacing + 1e-12
     assert stokes[peak, 0] > 40.0 * stokes[0, 0]
     assert stokes[peak, 0] > 25.0 * stokes[-1, 0]
 

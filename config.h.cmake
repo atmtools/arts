@@ -23,9 +23,6 @@
 /* Define to compile with DISORT support */
 #cmakedefine ENABLE_DISORT
 
-/* Define to compile with RT4 support */
-#cmakedefine ENABLE_RT4
-
 /* Define to compile with FASTEM support */
 #cmakedefine ENABLE_FASTEM
 

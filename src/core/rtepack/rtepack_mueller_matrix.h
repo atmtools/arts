@@ -212,6 +212,82 @@ constexpr muelmat adj(const muelmat &A) {
 
 constexpr muelmat inv(const muelmat &A) { return adj(A) / det(A); }
 
+/** The rotation of the Stokes reference plane by psi:
+ *  Q' = cos(2 psi) Q + sin(2 psi) U,  U' = -sin(2 psi) Q + cos(2 psi) U. */
+constexpr muelmat stokes_rotation(Numeric cos2psi, Numeric sin2psi) {
+  return {1, 0, 0, 0, 0, cos2psi, sin2psi, 0, 0, -sin2psi, cos2psi, 0, 0, 0, 0, 1};
+}
+
+/** D A D with D = diag(1, 1, -1, -1): A in the mirror image of its geometry
+ *  (reflected in the reference plane, azimuth phi to -phi), under which U and
+ *  V change sign.  The diagonal 2 x 2 blocks are kept and the off-diagonal
+ *  ones negated. */
+constexpr muelmat mirror(const muelmat &A) {
+  const auto [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = A;
+  return {a00, a01, -a02, -a03, a10, a11, -a12, -a13, -a20, -a21, a22, a23, -a30, -a31, a32, a33};
+}
+
+/** A with its reference planes rotated by 2 psi_in on the incident side and
+ *  2 psi_out on the outgoing side:
+ *
+ *    stokes_rotation(cos2psi_out, sin2psi_out) * A * stokes_rotation(cos2psi_in, sin2psi_in)
+ *
+ *  in closed form.  The incident rotation mixes the Q and U columns of every
+ *  row (also the I row: element [0, 1] is c_in a01 - s_in a02), and the
+ *  outgoing rotation the Q and U rows of every column, so only the corners
+ *  a00, a03, a30 and a33 are unchanged.  The two products would also multiply
+ *  by the zeros of the rotations, which IEEE arithmetic does not let the
+ *  compiler drop.  For a scattering-plane F, rotated(compact_planar_muelmat,
+ *  ...) is the same operation on the six elements. */
+constexpr muelmat rotated(
+    const muelmat &A, Numeric cos2psi_in, Numeric sin2psi_in, Numeric cos2psi_out, Numeric sin2psi_out) {
+  const Numeric c1 = cos2psi_in, s1 = sin2psi_in, c2 = cos2psi_out, s2 = sin2psi_out;
+  const auto [a00, a01, a02, a03, a10, a11, a12, a13, a20, a21, a22, a23, a30, a31, a32, a33] = A;
+
+  // A stokes_rotation(c1, s1): the Q and U columns
+  const Numeric b01 = c1 * a01 - s1 * a02, b02 = s1 * a01 + c1 * a02;
+  const Numeric b11 = c1 * a11 - s1 * a12, b12 = s1 * a11 + c1 * a12;
+  const Numeric b21 = c1 * a21 - s1 * a22, b22 = s1 * a21 + c1 * a22;
+  const Numeric b31 = c1 * a31 - s1 * a32, b32 = s1 * a31 + c1 * a32;
+
+  // stokes_rotation(c2, s2) times that: the Q and U rows
+  return {a00,
+          b01,
+          b02,
+          a03,
+          c2 * a10 + s2 * a20,
+          c2 * b11 + s2 * b21,
+          c2 * b12 + s2 * b22,
+          c2 * a13 + s2 * a23,
+          c2 * a20 - s2 * a10,
+          c2 * b21 - s2 * b11,
+          c2 * b22 - s2 * b12,
+          c2 * a23 - s2 * a13,
+          a30,
+          b31,
+          b32,
+          a33};
+}
+
+constexpr muelmat linear_polarization(Numeric cos2psi, Numeric sin2psi) {
+  return {0.5,
+          0.5 * cos2psi,
+          0.5 * sin2psi,
+          0.0,
+          0.5 * cos2psi,
+          0.5 * cos2psi * cos2psi,
+          0.5 * cos2psi * sin2psi,
+          0.0,
+          0.5 * sin2psi,
+          0.5 * sin2psi * cos2psi,
+          0.5 * sin2psi * sin2psi,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0};
+}
+
 using muelmat_vector            = matpack::data_t<muelmat, 1>;
 using muelmat_vector_view       = matpack::view_t<muelmat, 1>;
 using muelmat_vector_const_view = matpack::view_t<const muelmat, 1>;

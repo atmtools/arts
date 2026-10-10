@@ -226,6 +226,13 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
     return avd_new;
   }
 
+  //! The same data, as the absorption vector of azimuthal Fourier-mode optics (it has no azimuth dependence)
+  AbsorptionVectorData<Scalar, Format::ARO, Representation::Fourier> to_fourier() const {
+    AbsorptionVectorData<Scalar, Format::ARO, Representation::Fourier> avd_new(t_grid_, f_grid_, za_inc_grid_);
+    reinterpret_cast<matpack::data_t<Scalar, 4>&>(avd_new) = *this;
+    return avd_new;
+  }
+
   AbsorptionVectorData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
     AbsorptionVectorData result(grids.t_grid, grids.f_grid, std::make_shared<Vector>(grid_vector(*grids.za_inc_grid)));
     auto                 coeffs_this = get_const_coeff_vector_view();

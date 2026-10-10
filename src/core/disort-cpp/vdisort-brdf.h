@@ -88,16 +88,17 @@ struct Fresnel {
 
 /** Construct VDISORT modes for an ideal flat Fresnel surface.
  *
- * The callbacks recognize matching incoming and outgoing discrete ordinates.
- * Consequently this representation is intended for the native quadrature
- * solution, not direct-beam reflection at arbitrary user directions.
+ * The surface reflects only specularly: the modes have no reflection kernel,
+ * and their specular part (BDRF::specular) is the Fresnel matrix R(mu) for
+ * every mode, which VDISORT applies on the streams and at user directions.
+ * A direct beam is refused: its mirror image is an upward beam.
  */
 [[nodiscard]] std::vector<BDRF> fresnel_fourier_modes(Complex refractive_index, Index number_of_modes);
 
 /** Form a weighted sum of two already-projected polarized surface models.
  *
- * Diffuse and direct-beam callbacks are combined independently.  A missing
- * higher mode is zero.  Weights must be finite and nonnegative, but need not
+ * Diffuse, direct-beam and specular parts are combined independently.  A
+ * missing higher mode is zero.  Weights must be finite and nonnegative, but need not
  * sum to one.
  */
 [[nodiscard]] std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,

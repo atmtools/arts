@@ -186,6 +186,9 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_montecarlo.cpp
     py_rng.cpp
     py_tmatrix.cpp
+    py_polradtran.cpp
+    py_rt3.cpp
+    py_rt4.cpp
 )
 
 if(ENABLE_PCH)
@@ -229,4 +232,7 @@ arts_add_cpp_stubs(
   rtepack
   zeeman
   tmatrix
+  polradtran
+  rt3
+  rt4
 )

@@ -321,6 +321,12 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
                                 forwardscatter_matrix.regrid(grids));
   }
 
+  /** The spectral form: for TRO data the Legendre series to degree l (m must be 0), for ARO data the SHT of degree l
+   *  and order m.
+   *
+   * See PhaseMatrixData::to_spectral of the format.  The extinction matrix,
+   * absorption vector and back- and forward-scatter matrices are unchanged.
+   */
   SingleScatteringData<Numeric, format, Representation::Spectral> to_spectral(Index l, Index m = 0) const {
     ARTS_USER_ERROR_IF((format == Format::TRO) && (m > 0),
                        "Order of SHT representation must be 0 for scattering data in TRO format");
@@ -331,6 +337,60 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
                                                                            absorption_vector.to_spectral(),
                                                                            backscatter_matrix,
                                                                            forwardscatter_matrix);
+  }
+
+  /** The azimuthal Fourier modes to m = max_mode of the laboratory-frame phase matrix of a TRO Legendre series
+   *
+   * The temperatures and frequencies are those of grids, interpolated; the
+   * incidence and scattering zenith angles are those of grids, exactly.
+   */
+  SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
+      const ScatteringDataGrids &grids, Index max_mode) const
+      requires(format == Format::TRO and repr == Representation::Spectral) {
+    ARTS_USER_ERROR_IF(not grids.za_inc_grid or not grids.za_scat_grid,
+                       "Laboratory-frame Fourier modes need incidence and scattering zenith-angle grids")
+    const ScatteringDataGrids tf_grids(grids.t_grid, grids.f_grid);
+    auto                      new_pm = phase_matrix.transform([&](const auto &pm) {
+      return pm.regrid(tf_grids).to_lab_frame_fourier_modes(grids.za_inc_grid, grids.za_scat_grid, max_mode);
+    });
+    auto                      new_em = extinction_matrix.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
+    auto                      new_av = absorption_vector.regrid(tf_grids).to_lab_frame(grids.za_inc_grid).to_fourier();
+    auto new_bsm = BackscatterMatrixData<Numeric, Format::ARO>(backscatter_matrix.regrid(tf_grids), grids.za_inc_grid);
+    auto new_fsm =
+        ForwardscatterMatrixData<Numeric, Format::ARO>(forwardscatter_matrix.regrid(tf_grids), grids.za_inc_grid);
+    return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
+        properties, new_pm, new_em, new_av, new_bsm, new_fsm);
+  }
+
+  /** The azimuthal Fourier modes to m = max_mode of gridded ARO data, on their own zenith grids
+   *
+   * See PhaseMatrixData<ARO, Gridded>::to_fourier.
+   */
+  SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_fourier(Index max_mode) const
+      requires(format == Format::ARO and repr == Representation::Gridded) {
+    return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
+        properties,
+        phase_matrix.transform([max_mode](const auto &pm) { return pm.to_fourier(max_mode); }),
+        extinction_matrix.to_fourier(),
+        absorption_vector.to_fourier(),
+        backscatter_matrix,
+        forwardscatter_matrix);
+  }
+
+  /** The azimuthal Fourier modes to m = max_mode of SHT ARO data at the scattering zenith angles of a grid
+   *
+   * See PhaseMatrixData<ARO, Spectral>::to_fourier.
+   */
+  SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> to_fourier(
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid, Index max_mode) const
+      requires(format == Format::ARO and repr == Representation::Spectral) {
+    return SingleScatteringData<Numeric, Format::ARO, Representation::Fourier>(
+        properties,
+        phase_matrix.transform([&](const auto &pm) { return pm.to_fourier(za_scat_grid, max_mode); }),
+        extinction_matrix.to_fourier(),
+        absorption_vector.to_fourier(),
+        backscatter_matrix,
+        forwardscatter_matrix);
   }
 
   SingleScatteringData<Numeric, format, Representation::Gridded> to_gridded() const {
@@ -371,6 +431,28 @@ template <std::floating_point Scalar, Format format, Representation repr> struct
   BackscatterMatrixData<Scalar, format>                backscatter_matrix;
   ForwardscatterMatrixData<Scalar, format>             forwardscatter_matrix;
 };
+
+/** The Legendre series to degree of gridded TRO data, and how well it represents them.
+ *
+ * The report's normalisation_error is (2 pi int F11 dcos(Theta) - (K11 - a1))
+ * / K11 of the series, which a solver that takes its albedo from K11 - a1
+ * needs to be small.  A free function: MSVC cannot instantiate the pair of a
+ * class template inside that class.
+ */
+inline std::pair<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>, LegendreReport>
+to_spectral_with_report(const SingleScatteringData<Numeric, Format::TRO, Representation::Gridded> &ssd, Index degree) {
+  ARTS_USER_ERROR_IF(not ssd.phase_matrix, "Scattering data without a phase matrix have no Legendre series")
+  auto       spectral = ssd.to_spectral(degree);
+  auto       report   = ssd.phase_matrix->legendre_report(*spectral.phase_matrix);
+  const auto integral = spectral.phase_matrix->integrate_phase_matrix();
+  for (Index i_t = 0; i_t < integral.extent(0); ++i_t) {
+    for (Index i_f = 0; i_f < integral.extent(1); ++i_f) {
+      const Numeric k11 = ssd.extinction_matrix[i_t, i_f, 0], a1 = ssd.absorption_vector[i_t, i_f, 0];
+      report.normalisation_error[i_t, i_f] = (integral[i_t, i_f, 0] - (k11 - a1)) / k11;
+    }
+  }
+  return {std::move(spectral), std::move(report)};
+}
 
 template <std::floating_point Scalar, Format format, Representation repr> class ArrayOfSingleScatteringData
     : public std::vector<SingleScatteringData<Scalar, format, repr>> {

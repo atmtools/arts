@@ -49,6 +49,10 @@ void singleton_regridding() {
   std::fill_n(spectral.data_handle(), spectral.size(), Complex{6.0, 7.0});
   constant(spectral.regrid(grids), Complex{6.0, 7.0});
 #endif
+  // The Fourier modes are interpolated in temperature and frequency only
+  PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier> fourier(t, f, za, scat, 2);
+  std::fill_n(fourier.data_handle(), fourier.size(), 6.0);
+  constant(fourier.regrid(ScatteringDataGrids(grids.t_grid, grids.f_grid)), 6.0);
 }
 
 void monodisperse_cutoff() {

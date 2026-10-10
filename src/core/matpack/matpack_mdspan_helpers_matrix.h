@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "matpack_mdspan_common_types.h"
 
 namespace matpack {
@@ -22,5 +24,19 @@ template <ranked_md<2> MAT> constexpr strided_view_t<element_type<MAT>, 1> diago
   assert(A.nrows() == A.ncols());
   return strided_view_t<element_type<MAT>, 1>{
       mdstrided_t<element_type<MAT>, 1>{A.data_handle(), {std::array{A.extent(0)}, std::array{A.extent(0) + 1}}}};
+}
+
+/** Sets the square matrix A to value times the identity matrix
+ *
+ * @param[out] A Any square matrix, strided views too
+ * @param value The diagonal elements; all others are set to 0
+ * @return A, forwarded, so that the call can be an argument (as in
+ *   mult(identity(A), B, C, -1.0, 1.0) for A = 1 - B C)
+ */
+template <mut_ranked_md<2> MAT> constexpr MAT &&identity(MAT &&A, element_type<MAT> value = 1.0) {
+  assert(A.nrows() == A.ncols());
+  A = element_type<MAT>{};
+  for (Index i = 0; i < A.nrows(); ++i) A[i, i] = value;
+  return std::forward<MAT>(A);
 }
 }  // namespace matpack

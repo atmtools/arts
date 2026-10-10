@@ -48,6 +48,8 @@ from . import Matrix
 from . import MuelmatVector
 from . import PropmatMatrix
 from . import PropmatVector
+from . import RT3Result
+from . import RT4Result
 from . import SortedGriddedField1
 from . import SortedGriddedField2
 from . import StokvecMatrix
@@ -58,6 +60,7 @@ from . import SurfaceField
 from . import SensorObsel
 from . import Vector
 from . import ZenGrid
+from . import cppvdisort
 
 
 def plot(data: object,

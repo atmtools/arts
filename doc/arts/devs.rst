@@ -24,6 +24,7 @@ and how to use existing features.
    dev.edit
    dev.gui
    dev.doc
+   dev.licenses
    dev.xml
    dev.species
    dev.arts2missing
@@ -31,6 +32,8 @@ and how to use existing features.
 
    dev.lbl
    dev.tmatrix
+   dev.rt4
+   dev.rt3
    dev.heating
    dev.disort
    dev.surface_emissivity

@@ -4,6 +4,7 @@
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/function.h>
 #include <nanobind/stl/optional.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/stl/string_view.h>
 #include <nanobind/stl/variant.h>
@@ -52,7 +53,18 @@ auto bind_phase_matrix_data_tro_gridded(py::module_& m, const std::string& class
           "Get scattering zenith angle grid")
 
       .def(
-          "to_spectral", [](const PMD& obj) { return obj.to_spectral(); }, "Convert to spectral")
+          "to_spectral",
+          [](const PMD& obj, Index degree) { return obj.to_spectral(degree); },
+          "degree"_a,
+          R"(The Legendre series to degree, exactly that of the function the data define
+
+That function is linear in the scattering angle between the nodes and constant
+beyond the first and the last.  Use legendre_report to see how well the degree
+resolves it.)")
+      .def("legendre_report",
+           &PMD::legendre_report,
+           "spectral"_a,
+           "How well a Legendre series (e.g. to_spectral(degree)) represents this phase matrix")
 
       // Bind other member functions
       .def("integrate_phase_matrix", &PMD::integrate_phase_matrix, "Integrate phase matrix")
@@ -87,8 +99,28 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m, const std::string& clas
       .def("get_t_grid", &PMD::get_t_grid, "Get temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Get frequency grid")
 
+      .def("get_degree", &PMD::get_degree, "The highest Legendre degree")
       .def(
-          "to_gridded", [](const PMD& obj) { return obj.to_gridded(); }, "Convert to gridded")
+          "to_gridded", [](const PMD& obj) { return obj.to_gridded(); }, "The series at the 2 degree + 2 Fejer nodes")
+      .def(
+          "to_gridded",
+          [](const PMD& obj, scattering::ZenithAngleGrid za_scat_grid) {
+            return obj.to_gridded(std::make_shared<const scattering::ZenithAngleGrid>(std::move(za_scat_grid)));
+          },
+          "za_scat_grid"_a,
+          "The series at the scattering angles of a grid, exactly")
+      .def(
+          "to_lab_frame_fourier_modes",
+          [](const PMD& obj, const Vector& za_inc_grid, scattering::ZenithAngleGrid za_scat_grid, Index max_mode) {
+            return obj.to_lab_frame_fourier_modes(
+                std::make_shared<const Vector>(za_inc_grid),
+                std::make_shared<const scattering::ZenithAngleGrid>(std::move(za_scat_grid)),
+                max_mode);
+          },
+          "za_inc_grid"_a,
+          "za_scat_grid"_a,
+          "max_mode"_a,
+          "The azimuthal Fourier modes of the laboratory-frame phase matrix of the series, exactly")
       .def("integrate_phase_matrix", &PMD::integrate_phase_matrix, "Integrate phase matrix")
       .def("extract_stokes_coeffs", &PMD::extract_stokes_coeffs, "Extract stokes coefficients from phase matrix");
   //   .def("regrid", &PMD::regrid, "Regrid phase matrix");
@@ -100,7 +132,41 @@ auto bind_phase_matrix_data_aro_gridded(py::module_& m, const std::string& class
   using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Gridded>;
 
   py::class_<PMD, matpack::data_t<Scalar, 6>> s(m, class_name.c_str());
-  s.def(py::init<>());
+  s.def(py::init<>())
+      .def("to_fourier",
+           &PMD::to_fourier,
+           "max_mode"_a,
+           "The azimuthal Fourier modes, exactly those of the data linear in the azimuth difference over one period");
+  return s;
+}
+
+template <typename Scalar> [[nodiscard]]
+auto bind_phase_matrix_data_aro_fourier(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Fourier>;
+
+  py::class_<PMD, matpack::data_t<Scalar, 7>> s(m, class_name.c_str());
+  s.def(py::init<>())
+      .def("get_t_grid", &PMD::get_t_grid, "Temperature grid")
+      .def("get_f_grid", &PMD::get_f_grid, "Frequency grid")
+      .def("get_za_inc_grid", &PMD::get_za_inc_grid, "Incidence zenith angles [deg]")
+      .def(
+          "get_za_scat_grid", [](const PMD& p) { return *p.get_za_scat_grid(); }, "Scattering zenith angles [deg]")
+      .def("get_max_mode", &PMD::get_max_mode, "The highest Fourier mode")
+      .def("get_phase_integral",
+           &PMD::get_phase_integral,
+           "int Z11 dOmega over all scattering directions [t, f, za_inc]; NaN where the data do not tell")
+      .def(
+          "to_gridded",
+          [](const PMD& p, const Vector& delta_aa_grid) {
+            return p.to_gridded(std::make_shared<const Vector>(delta_aa_grid));
+          },
+          "delta_aa_grid"_a,
+          "The phase matrix at azimuth differences [deg], exactly")
+      .def("to_fourier", &PMD::to_fourier, "max_mode"_a, "The modes truncated to a lower highest mode");
+  s.doc() = R"(Azimuthal Fourier modes of a laboratory-frame phase matrix
+
+Data [t, f, za_inc, za_scat, m, 2, 16]: Z(Delta) = sum_m C_m cos(m Delta) + S_m sin(m Delta),
+with C at index 0 and S at index 1 of the sixth axis, and the 4 x 4 matrix row-major.)";
   return s;
 }
 
@@ -207,11 +273,24 @@ auto bind_single_scattering_data(py::module_& m, const std::string& name) {
       .def_rw("backscatter_matrix", &SSDClass::backscatter_matrix, "Back scatter matrix\n\n.. :class:`object`")
       .def_rw("forwardscatter_matrix", &SSDClass::forwardscatter_matrix, "Forward scatter matrix\n\n.. :class:`object`")
       .def_static("from_legacy_tro", &SSDClass::from_legacy_tro, "ssd"_a, "smd"_a, "Create from legacy TRO")
+      .def(
+          "to_spectral",
+          &SSDClass::to_spectral,
+          "l"_a,
+          "m"_a = 0,
+          "The spectral form: TRO data as the Legendre series to degree l (m = 0), ARO data as the SHT of degree l and order m")
       .def("__repr__", [](const SSDClass& ssd) {
         std::ostringstream oss;
         oss << ssd;
         return oss.str();
       });
+  if constexpr (format == scattering::Format::TRO and repr == scattering::Representation::Gridded) {
+    s.def(
+        "to_spectral_with_report",
+        [](const SSDClass& ssd, Index degree) { return scattering::to_spectral_with_report(ssd, degree); },
+        "degree"_a,
+        "The Legendre series to degree and the report on how well it represents the data");
+  }
   return s;
 }
 
@@ -392,45 +471,51 @@ void py_scattering_species(py::module_& m) try {
           "f_grid"_a,
           "za_grid"_a,
           "Get bulk scattering properties")
-      .doc() = "Henyey-Greenstein scatterer";
+      .doc() =
+      "Henyey-Greenstein scatterer: F11 = F22 = p, F33 = F44 = p (3 cos(Theta) - cos^3(Theta)) / 2 and "
+      "F12 = F34 = 0, with p the Henyey-Greenstein phase function";
 
   py::class_<scattering::IrregularZenithAngleGrid> irr_grid(m, "IrregularZenithAngleGrid");
   irr_grid.def(py::init<Vector>())
-      .def_rw("value",
+      .def_ro("value",
               &scattering::IrregularZenithAngleGrid::angles,
-              "Zenith angle grid\n\n.. :class:`~pyarts3.arts.Vector`")
+              "Zenith angle grid [deg], strictly ascending in [0, 180]\n\n.. :class:`~pyarts3.arts.ZenGrid`")
       .doc() = "Irregular zenith angle grid";
   common_ndarray(irr_grid);
 
   py::class_<scattering::GaussLegendreGrid> gauss_grid(m, "GaussLegendreGrid");
   gauss_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::GaussLegendreGrid::angles,
-              "Zenith angle grid for Legendre calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_ro(
+          "value",
+          &scattering::GaussLegendreGrid::angles,
+          "Zenith angle grid for Legendre calculations [deg], strictly ascending in [0, 180]\n\n.. :class:`~pyarts3.arts.ZenGrid`")
       .doc() = "Gaussian Legendre grid";
   common_ndarray(gauss_grid);
 
   py::class_<scattering::DoubleGaussGrid> double_gauss_grid(m, "DoubleGaussGrid");
   double_gauss_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::DoubleGaussGrid::angles,
-              "Zenith angle grid for Double Gauss calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_ro(
+          "value",
+          &scattering::DoubleGaussGrid::angles,
+          "Zenith angle grid for Double Gauss calculations [deg], strictly ascending in [0, 180]\n\n.. :class:`~pyarts3.arts.ZenGrid`")
       .doc() = "Double Gaussian grid";
   common_ndarray(double_gauss_grid);
 
   py::class_<scattering::LobattoGrid> lobatto_grid(m, "LobattoGrid");
   lobatto_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::LobattoGrid::angles,
-              "Zenith angle grid for Lobatto calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_ro(
+          "value",
+          &scattering::LobattoGrid::angles,
+          "Zenith angle grid for Lobatto calculations [deg], strictly ascending in [0, 180]\n\n.. :class:`~pyarts3.arts.ZenGrid`")
       .doc() = "Lobatto grid";
   common_ndarray(lobatto_grid);
 
   py::class_<scattering::FejerGrid> fejer_grid(m, "FejerGrid");
   fejer_grid.def(py::init<Index>())
-      .def_rw("value",
-              &scattering::FejerGrid::angles,
-              "Zenith angle grid for Fejer calculations\n\n.. :class:`~pyarts3.arts.Vector`")
+      .def_ro(
+          "value",
+          &scattering::FejerGrid::angles,
+          "Zenith angle grid for Fejer calculations [deg], strictly ascending in [0, 180]\n\n.. :class:`~pyarts3.arts.ZenGrid`")
       .doc() = "Fejer grid";
   common_ndarray(fejer_grid);
 
@@ -480,31 +565,52 @@ void py_scattering_species(py::module_& m) try {
           "za_inc_grid"_a,
           "delta_aa_grid"_a,
           "za_scat_grid"_a,
-          "Get bulk scattering properties");
-  //   .def(
-  //       "get_bulk_scattering_properties_aro_spectral",
-  //       [](const ArrayOfScatteringSpecies& aoss,
-  //          const AtmPoint& atm_point,
-  //          const Vector& f_grid,
-  //          const Vector& za_inc_grid,
-  //          Index l,
-  //          Index m) {
-  //         return BulkScatteringPropertiesAROSpectral{
-  //             aoss.get_bulk_scattering_properties_aro_spectral(
-  //                 atm_point, f_grid, za_inc_grid, l, m)};
-  //       },
-  //       "atm_point"_a,
-  //       "f_grid"_a,
-  //       "za_inc_grid"_a,
-  //       "l"_a,
-  //       "m"_a,
-  //       "Get bulk scattering properties");
+          "Get bulk scattering properties")
+      .def(
+          "get_bulk_scattering_properties_aro_fourier",
+          [](const ArrayOfScatteringSpecies& aoss,
+             const AtmPoint&                 atm_point,
+             const Vector&                   f_grid,
+             const Vector&                   za_inc_grid,
+             const Vector&                   za_scat_grid,
+             Index                           max_mode) {
+            return aoss.get_bulk_scattering_properties_aro_fourier(
+                atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
+          },
+          "atm_point"_a,
+          "f_grid"_a,
+          "za_inc_grid"_a,
+          "za_scat_grid"_a,
+          "max_mode"_a,
+          "The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix at the zenith angles");
 
   generic_interface(aoss);
 
   bind_phase_matrix_data_tro_gridded<double>(m, "PhaseMatrixDataTROGridded4").doc()   = "Phase matrix data";
   bind_phase_matrix_data_tro_spectral<double>(m, "PhaseMatrixDataTROSpectral4").doc() = "Phase matrix data";
   bind_phase_matrix_data_aro_gridded<double>(m, "PhaseMatrixDataAROGridded4").doc()   = "Phase matrix data";
+  (void)bind_phase_matrix_data_aro_fourier<double>(m, "PhaseMatrixDataAROFourier4");
+
+  py::class_<scattering::LegendreReport>(m, "LegendreReport")
+      .def_ro("reconstruction_error",
+              &scattering::LegendreReport::reconstruction_error,
+              "[t, f, 6]: the largest :math:`|\\text{series} - \\text{data}|` at the nodes per element, relative to "
+              "the largest :math:`|F_{11}|`\n\n.. :class:`Tensor3`")
+      .def_ro("tail",
+              &scattering::LegendreReport::tail,
+              "[t, f, 6]: :math:`|a_\\text{degree}|` per element relative to :math:`|a_0|` of F11\n\n"
+              ".. :class:`Tensor3`")
+      .def_ro("min_f11",
+              &scattering::LegendreReport::min_f11,
+              "[t, f]: the smallest F11 of the series, relative; negative is truncation ringing\n\n.. :class:`Matrix`")
+      .def_ro("asymmetry",
+              &scattering::LegendreReport::asymmetry,
+              "[t, f]: the asymmetry parameter of the series\n\n.. :class:`Matrix`")
+      .def_ro("normalisation_error",
+              &scattering::LegendreReport::normalisation_error,
+              "[t, f]: (2 pi int F11 dcos(Theta) - (K11 - a1)) / K11 of the series, NaN without optics\n\n.. "
+              ":class:`Matrix`")
+      .doc() = "How well a Legendre series represents gridded TRO scattering data";
 
   bind_absorption_vector_data_tro<double, scattering::Representation::Gridded>(m, "AbsorptionVectorDataGriddedTRO4")
       .doc() = "Absorption vector data";
@@ -570,6 +676,9 @@ void py_scattering_species(py::module_& m) try {
   bind_bulk_scattering_properties<scattering::Format::ARO, scattering::Representation::Gridded>(
       m, "BulkScatteringPropertiesAROGridded4")
       .doc() = "Bulk scattering properties";
+  bind_bulk_scattering_properties<scattering::Format::ARO, scattering::Representation::Fourier>(
+      m, "BulkScatteringPropertiesAROFourier4")
+      .doc() = "Bulk scattering properties as azimuthal Fourier modes";
 
   py::class_<ParticleHabit>(m, "ParticleHabit")
       .def_static("tmatrix",
@@ -631,6 +740,18 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
            "l"_a,
            "Convert scattering data to TRO spectral format")
       .def(
+          "to_tro_spectral_with_report",
+          [](const ParticleHabit& habit, const Vector& t_grid, const Vector& f_grid, Index l) {
+            return scattering::to_tro_spectral_with_report(habit, t_grid, f_grid, l);
+          },
+          "t_grid"_a,
+          "f_grid"_a,
+          "l"_a,
+          R"(The habit as Legendre series to degree l on the grids, and a LegendreReport per particle
+
+The reports are on each particle's own grids, before regridding.)")
+
+      .def(
           "__getitem__",
           [](ParticleHabit& habit, Index ind) { return habit[ind % habit.size()]; },
           py::rv_policy::reference_internal)
@@ -658,7 +779,15 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
            "point"_a,
            "f_grid"_a,
            "degree"_a,
-           "Get the bulk scattering properties for totally random orientation but ignores the degree")
+           "The bulk Legendre series to degree; every particle must hold a TRO Legendre series of at least that degree")
+      .def("get_bulk_scattering_properties_aro_fourier",
+           &ScatteringHabit::get_bulk_scattering_properties_aro_fourier,
+           "point"_a,
+           "f_grid"_a,
+           "za_inc_grid"_a,
+           "za_scat_grid"_a,
+           "max_mode"_a,
+           "The azimuthal Fourier modes of the laboratory-frame bulk phase matrix")
       .doc() =
       "A scattering habit combines a particle habit with a PSD so that it can be used as a scattering species.";
 

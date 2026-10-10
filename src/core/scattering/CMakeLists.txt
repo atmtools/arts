@@ -14,10 +14,11 @@ add_library(scattering STATIC
    bulk_scattering_properties.cc
    optproperties.cc
    gas_scattering.cc
+   tro_legendre.cc
 )
 
 target_include_directories(scattering PUBLIC  "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(scattering PUBLIC auto_partfun matpack atm rtepack)
+target_link_libraries(scattering PUBLIC auto_partfun matpack atm rtepack legendre)
 
 if (DISABLE_SHTNS)
 target_compile_definitions(scattering PUBLIC ARTS_NO_SHTNS)

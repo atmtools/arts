@@ -28,4 +28,21 @@ void sumlegtest() {
   if (sum_squared_diff > 1e-10) { throw std::runtime_error("Legendre sum test failed"); }
 }
 
-int main() { sumlegtest(); }
+//! legendre_polynomials against boost's single-order legendre, and the closed form P_l(1) = 1, P_l(-1) = (-1)^l
+void polynomialstest() {
+  Vector p(40);
+  for (Numeric x : {-1.0, -0.7, -0.1, 0.0, 0.3, 0.95, 1.0}) {
+    Legendre::legendre_polynomials(p, x);
+    for (Index l = 0; l < static_cast<Index>(p.size()); l++) {
+      const Numeric ref = Legendre::legendre(l, x);
+      if (std::abs(p[l] - ref) > 1e-13) throw std::runtime_error("Legendre polynomials test failed");
+      if (std::abs(x) == 1.0 and p[l] != (x < 0 and l % 2 == 1 ? -1.0 : 1.0))
+        throw std::runtime_error("Legendre polynomials test failed at x = +-1");
+    }
+  }
+}
+
+int main() {
+  sumlegtest();
+  polynomialstest();
+}

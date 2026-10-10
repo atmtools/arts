@@ -1,5 +1,11 @@
 add_subdirectory(SHT)
 
+# The library is always built but only linked into ARTS when SHTns is in use
+# (src/core/scattering/CMakeLists.txt).
+if(NOT DISABLE_SHTNS)
+  arts_add_bundled_license(shtns SPDX CeCILL-2.1 FILES COPYRIGHT LICENSE)
+endif()
+
 include(CheckSymbolExists)
 check_include_file(complex.h HAVE_COMPLEX_H)
 check_include_file(c_asm.h HAVE_C_ASM_H)

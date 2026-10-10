@@ -78,6 +78,37 @@ template <Format format, Representation repr> auto ssd_to_aro_spectral(
   }
 };
 
+/** The azimuthal Fourier modes to m = max_mode of the laboratory-frame phase matrix, on the zenith grids of new_grids
+ *
+ * TRO Legendre series give them exactly at any zenith angles, and so do SHT
+ * ARO data at any scattering zenith angles.  ARO data give them on their own
+ * incidence zenith grid, and gridded ARO data on their own scattering
+ * zenith grid.  Gridded TRO data define the phase matrix only between their
+ * scattering-angle nodes, too coarsely for the modes; they must be converted
+ * to a Legendre series first.
+ */
+template <Format format, Representation repr>
+auto ssd_to_aro_fourier(const ScatteringDataGrids&                         new_grids,
+                        Index                                              max_mode,
+                        const SingleScatteringData<Numeric, format, repr>& ssd)
+    -> SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> {
+  if constexpr (format == Format::ARO and repr == Representation::Gridded) {
+    return ssd.to_fourier(max_mode).regrid(new_grids);
+  } else if constexpr (format == Format::ARO and repr == Representation::Spectral) {
+    ARTS_USER_ERROR_IF(not new_grids.za_scat_grid, "Fourier modes of SHT data need scattering zenith angles")
+    return ssd.to_fourier(new_grids.za_scat_grid, max_mode).regrid(new_grids);
+  } else if constexpr (format == Format::ARO) {
+    ARTS_USER_ERROR("No Fourier modes for this representation of ARO data");
+  } else if constexpr (repr == Representation::Gridded) {
+    ARTS_USER_ERROR(
+        "Gridded TRO scattering data define the phase matrix only between their scattering angles, which does not "
+        "give its azimuthal Fourier modes exactly; convert them to a Legendre series first (ParticleHabit.to_tro_spectral, "
+        "with its report on the conversion)");
+  } else {
+    return ssd.to_lab_frame_fourier_modes(new_grids, max_mode);
+  }
+};
+
 /*! Derives a and b for relationship mass = a * x^b
 
     The parameters a and b are derived by a fit including all data inside the
@@ -220,5 +251,15 @@ class ParticleHabit {
   ScatteringData                     scattering_data;
   std::optional<ScatteringDataGrids> grids;
 };
+
+/** The habit as Legendre series to degree l on new temperature and frequency grids, and a report per particle
+ *
+ * The reports are on each particle's own grids, before the regridding.  The
+ * habit must hold gridded TRO data.
+ */
+std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_report(const ParticleHabit& habit,
+                                                                                  const Vector&        t_grid,
+                                                                                  const Vector&        f_grid,
+                                                                                  Index                l);
 
 }  // namespace scattering

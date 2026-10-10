@@ -556,7 +556,7 @@ then
 where :math:`N` is the total number density of the absorbing species.
 
 ECS Jacobians
-~~~~~~~~~~~~~
+-------------
 
 Derivatives of the absorption spectrum follow from the dependence of the
 collision matrix, optical populations, dipole amplitudes, and Doppler widths on

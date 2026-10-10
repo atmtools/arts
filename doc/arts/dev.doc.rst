@@ -29,6 +29,27 @@ equation to ARTS without turning a concept page into an API tutorial.
 
 Register pages in ``users.rst``, ``devs.rst``, or ``concepts.rst`` accordingly.
 
+Describing the current code
+===========================
+
+Documentation describes what the code does now.  It is not a change log:
+
+* Do not add notes such as "has since been ported", "now supports", "was
+  fixed", "used to", or "reconnected".  The git history and the commit
+  messages record changes.
+* When a change makes a statement false, rewrite or delete that statement in
+  the same change, wherever it is.
+
+This matters most for the two ARTS 2 status pages, which list only what is
+absent from ARTS 3:
+
+* :doc:`dev.arts2missing` lists ARTS 2 capabilities that ARTS 3 lacks.
+* :doc:`dev.arts2notintended` lists ARTS 2 features that ARTS 3 deliberately
+  does not port.
+
+Anything that exists in ARTS 3 belongs on neither page, however it was ported.
+When a change provides a listed capability, delete its entry in that change.
+
 Examples folder
 ===============
 

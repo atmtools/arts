@@ -17,6 +17,7 @@
 #include <debug.h>
 
 #include <cmath>
+#include <tuple>
 
 inline constexpr Numeric BOLTZMAN_CONST = Constant::boltzmann_constant;
 inline constexpr Numeric DEG2RAD        = Conversion::deg2rad(1);
@@ -150,42 +151,37 @@ Numeric refractive_index_water_visible_nir_harvey98(const Numeric frequency,
  *  n = sqrt( eps ). The power reflection coefficient, r, for one
  *  polarisation is r = abs(R)^2.
  *
+ *  Snell's law is applied with the complex indices, n1 sin(theta1) =
+ *  n2 sin(theta2), so the transmitted cosine is complex for an absorbing
+ *  medium and beyond total reflection.  Its root is that of a wave
+ *  decaying into the reflecting medium (non-negative real part, and
+ *  non-negative imaginary part for a zero real part).
+ *
  *  @param[out]  Rv    Reflection coefficient for vertical polarisation.
  *  @param[out]  Rh    Reflection coefficient for vertical polarisation.
  *  @param[in]   n1    Refractive index of medium where radiation propagates.
  *  @param[in]   n2    Refractive index of reflecting medium.
  *  @param[in]   theta Propagation angle from normal of radiation to be.
- *                     reflected
+ *                     reflected [deg]
  *
  *  @author Patrick Eriksson
  *  @date   2004-09-21
  */
 void fresnel(Complex& Rv, Complex& Rh, const Complex& n1, const Complex& n2, const Numeric& theta) {
-  const Numeric theta1    = DEG2RAD * theta;
-  const Numeric costheta1 = cos(theta1);
-  const Numeric costheta2 = cos(asin(n1.real() * sin(theta1) / n2.real()));
-
-  Complex a, b;
-  a  = n2 * costheta1;
-  b  = n1 * costheta2;
-  Rv = (a - b) / (a + b);
-  a  = n1 * costheta1;
-  b  = n2 * costheta2;
-  Rh = (a - b) / (a + b);
+  std::tie(Rv, Rh) = fresnel(n1, n2, theta);
 }
 
 std::pair<Complex, Complex> fresnel(const Complex& n1, const Complex& n2, const Numeric& theta) {
   const Numeric theta1    = DEG2RAD * theta;
   const Numeric costheta1 = std::cos(theta1);
-  const Numeric sintheta2 = n1.real() * std::sin(theta1) / n2.real();
+  const Complex sintheta2 = n1 * std::sin(theta1) / n2;
+  Complex       costheta2 = std::sqrt(1.0 - sintheta2 * sintheta2);
+  if (costheta2.real() < 0.0 or (costheta2.real() == 0.0 and costheta2.imag() < 0.0)) costheta2 = -costheta2;
 
-  if (nonstd::abs(sintheta2) > 1.0) return {1.0, 1.0};
-
-  const Numeric costheta2 = std::cos(std::asin(sintheta2));
-  const Complex a         = n2 * costheta1;
-  const Complex b         = n1 * costheta2;
-  const Complex c         = n1 * costheta1;
-  const Complex d         = n2 * costheta2;
+  const Complex a = n2 * costheta1;
+  const Complex b = n1 * costheta2;
+  const Complex c = n1 * costheta1;
+  const Complex d = n2 * costheta2;
 
   return {(a - b) / (a + b), (c - d) / (c + d)};
 }

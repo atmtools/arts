@@ -1,5 +1,6 @@
 #include <arts_constants.h>
 #include <atm_path.h>
+#include <lagrange_interp.h>
 #include <mc_antenna.h>
 #include <path_point.h>
 #include <physics_funcs.h>
@@ -7,6 +8,7 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 
@@ -76,14 +78,32 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
           .emission   = rtepack::level_emission(absorption, src[0], frequency, atm.temperature)};
 }
 
+//! Linear interpolation of a cyclic coordinate along the shorter arc from ya to yb, cycled to the cycler's range
+template <lagrange_interp::cyclic cycler>
+Numeric cyclic_interp(Numeric ya, Numeric yb, const lagrange_interp::lag_t<1>& lag) {
+  ya                    = cycler::cycle(ya);
+  const Numeric shorter = cycler::cycle(cycler::cycle(yb) - ya + cycler::midpoint()) - cycler::midpoint();
+  return cycler::cycle(lagrange_interp::interp(Vector2{ya, ya + shorter}, lag));
+}
+
+//! The path point at the fraction x in [0, 1] of the segment from a to b
 PropagationPathPoint interpolate(const PropagationPathPoint& a, const PropagationPathPoint& b, Numeric x) {
+  static constexpr std::array<Numeric, 2> segment{0.0, 1.0};
+  const lagrange_interp::lag_t<1>         lag(segment, x, lagrange_interp::ascending_grid_t{});
+  const auto linear = [&lag](Numeric ya, Numeric yb) { return lagrange_interp::interp(Vector2{ya, yb}, lag); };
+
   PropagationPathPoint p = a;
   p.pos_type             = PathPositionType::atm;
   p.los_type             = PathPositionType::atm;
-  p.pos                  = (1.0 - x) * a.pos + x * b.pos;
-  p.los                  = (1.0 - x) * a.los + x * b.los;
-  p.nreal                = (1.0 - x) * a.nreal + x * b.nreal;
-  p.ngroup               = (1.0 - x) * a.ngroup + x * b.ngroup;
+  p.pos[0]               = linear(a.pos[0], b.pos[0]);
+  p.pos[1]               = linear(a.pos[1], b.pos[1]);
+  p.pos[2]               = cyclic_interp<lagrange_interp::loncross>(a.pos[2], b.pos[2], lag);
+  // The interpolated zenith angle lies between the end points; the clamp removes the round-off of the weights,
+  // which can otherwise leave [0, 180] deg
+  p.los[0] = std::clamp(linear(a.los[0], b.los[0]), std::min(a.los[0], b.los[0]), std::max(a.los[0], b.los[0]));
+  p.los[1] = cyclic_interp<lagrange_interp::azicross>(a.los[1], b.los[1], lag);
+  p.nreal  = linear(a.nreal, b.nreal);
+  p.ngroup = linear(a.ngroup, b.ngroup);
   return p;
 }
 

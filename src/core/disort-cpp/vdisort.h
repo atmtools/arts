@@ -175,6 +175,14 @@ struct BDRF {
   func_t beam_cosine;
   func_t beam_sine;
 
+  /** The mirror (specular) part of this mode, or empty.  Radiance propagating down at the cosine mu is reflected
+   *  into the upward direction at mu and the same azimuth, I_up(mu) = R(mu) I_down(mu), in addition to the
+   *  reflection kernels above and in both combined systems; R is the same for every Fourier mode.  A delta
+   *  distribution in direction has no kernel on the streams, so the solver applies it itself: R(mu_i) between
+   *  equal streams, and at a user angle R(mu) times the downward user-angle radiance at the surface. */
+  using specular_t = CustomOperator<rtepack::muelmat, Numeric>;
+  specular_t specular{};
+
   /** Evaluate one combined cosine or sine BRDF Fourier operator. */
   void operator()(Index                        alpha,
                   rtepack::muelmat_matrix_view out,
@@ -197,7 +205,14 @@ struct BDRF {
 [[nodiscard]] phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
                                                        const rtepack::muelmat_tensor4& sine);
 
-/** Beam-angle counterpart of combine_phase_matrices. */
+/** Beam-angle counterpart of combine_phase_matrices.
+ *
+ * Inputs are the ordinary cosine/sine coefficients C^m(mu_i, -mu0) and
+ * S^m(mu_i, -mu0) with shape [NFourier, NLayers, NQuad] of Mueller blocks.
+ * The beam has only cosine azimuth terms, so this is not Eq. (81): the
+ * cosine system takes rows I, Q of C^m and rows U, V of S^m, and the sine
+ * system rows I, Q of S^m and rows U, V of C^m.
+ */
 [[nodiscard]] beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                                  const rtepack::muelmat_tensor3& sine);
 
@@ -301,11 +316,12 @@ class main_data {
   /** Assemble all combined Fourier and Stokes components on quadrature streams. */
   void combined_field(MatrixView out, Numeric tau) const;
   /** Formally integrate the cached modal solution along arbitrary user directions. */
-  void user_fourier_modes(ComplexTensor4&               out,
-                          const AscendingGrid&          tau,
-                          const ConstVectorView&        user_mu,
-                          const phase_matrix_data&      user_phase_matrix,
-                          const beam_phase_matrix_data& user_beam_phase_matrix) const;
+  void user_fourier_modes(ComplexTensor4&                 out,
+                          const AscendingGrid&            tau,
+                          const ConstVectorView&          user_mu,
+                          const phase_matrix_data&        user_phase_matrix,
+                          const beam_phase_matrix_data&   user_beam_phase_matrix,
+                          const rtepack::stokvec_tensor3& user_boundary) const;
   /** Validate that a correction cache uses this solver's scaled depth grid and optionally its streams. */
   void check_correction_compatibility(const delta_m_correction_cache& correction, bool quadrature_angles) const;
 
@@ -384,13 +400,28 @@ class main_data {
    * The discrete-ordinate field is formally integrated along each requested
    * ray.  This call is on demand and does not add work to u(), gridded_u(), or
    * the flux methods.
+   *
+   * Over a surface with a specular part (BDRF::specular, e.g.
+   * brdf::fresnel_fourier_modes), the upward radiance at a user cosine mu
+   * reflects the downward radiance at -mu at the surface, so every upward
+   * user cosine must come with -mu (and its phase matrices); otherwise this
+   * throws.
+   *
+   * user_boundary [2, NFourier, NUser], optional: the boundary radiance at
+   * the start of each user ray, in the combined cosine/sine Fourier modes of
+   * boundary_up and boundary_down, i.e. the surface emission for an upward
+   * direction and the radiance incident at the top for a downward one.
+   * Without it these are interpolated from the streams' boundary values
+   * (barycentric in mu), which is exact only for boundaries that are
+   * polynomials of low degree in mu.
    */
-  void u_user(user_u_data&                  data,
-              Numeric                       tau,
-              Numeric                       phi,
-              const ConstVectorView&        user_mu,
-              const phase_matrix_data&      user_phase_matrix,
-              const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
+  void u_user(user_u_data&                    data,
+              Numeric                         tau,
+              Numeric                         phi,
+              const ConstVectorView&          user_mu,
+              const phase_matrix_data&        user_phase_matrix,
+              const beam_phase_matrix_data&   user_beam_phase_matrix = {},
+              const rtepack::stokvec_tensor3& user_boundary          = {}) const;
 
   /** Evaluate and apply cached polarized IMS/TMS corrections at arbitrary user directions. */
   void u_user_corr(user_u_data&                    data,
@@ -409,13 +440,16 @@ class main_data {
    * User-direction phase projections are formed once per call and the
    * layerwise modal exponentials are integrated analytically.  This is the
    * bulk, test-facing counterpart of DISORT's TERPEV/TERPSO/USRINT path.
+   * Over a specular surface, upward user cosines need their downward
+   * partners, and user_boundary is optional, as for u_user().
    */
-  void ungridded_u_user(rtepack::stokvec_tensor3_view out,
-                        const AscendingGrid&          tau,
-                        const Vector&                 phi,
-                        const ConstVectorView&        user_mu,
-                        const phase_matrix_data&      user_phase_matrix,
-                        const beam_phase_matrix_data& user_beam_phase_matrix = {}) const;
+  void ungridded_u_user(rtepack::stokvec_tensor3_view   out,
+                        const AscendingGrid&            tau,
+                        const Vector&                   phi,
+                        const ConstVectorView&          user_mu,
+                        const phase_matrix_data&        user_phase_matrix,
+                        const beam_phase_matrix_data&   user_beam_phase_matrix = {},
+                        const rtepack::stokvec_tensor3& user_boundary          = {}) const;
 
   /** Evaluate the azimuth-independent quadrature-stream field at one depth. */
   void u0(u0_data& data, Numeric tau) const;

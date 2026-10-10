@@ -263,43 +263,42 @@ std::vector<BDRF> fresnel_fourier_modes(const Complex refractive_index, const In
   // Validate eagerly, including when zero modes are requested.
   static_cast<void>(fresnel(1.0));
 
+  // A flat surface reflects specularly only: no reflection kernel, and the Fresnel matrix as the specular part
+  const auto no_kernel = [](rtepack::muelmat_matrix_view output, const ConstVectorView&, const ConstVectorView&) {
+    output = rtepack::muelmat{0.0};
+  };
+  const auto unsupported_beam = [](rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&) {
+    throw std::runtime_error(
+        "Ideal Fresnel reflection reflects the direct beam into the single mirror direction, an upward beam that "
+        "VDISORT cannot represent; use a finite-width surface model such as Cox-Munk");
+  };
   std::vector<BDRF> result;
   result.reserve(static_cast<std::size_t>(number_of_modes));
   for (Index mode = 0; mode < number_of_modes; ++mode) {
-    const auto evaluate = [fresnel, mode](const Index                  alpha,
-                                          rtepack::muelmat_matrix_view output,
-                                          const ConstVectorView&       outgoing,
-                                          const ConstVectorView&       incoming) {
-      output = rtepack::muelmat{0.0};
-      if (alpha == sine_mode) return;
-
-      Vector nodes(incoming.size()), weights(incoming.size());
-      Legendre::PositiveDoubleGaussLegendre(nodes, weights);
-      const Numeric azimuth_factor = mode == 0 ? 1.0 : 2.0;
-      for (Index i = 0; i < static_cast<Index>(outgoing.size()); ++i)
-        for (Index j = 0; j < static_cast<Index>(incoming.size()); ++j) {
-          const Numeric mu_in = std::abs(incoming[j]);
-          if (std::abs(outgoing[i] - mu_in) > 64.0 * std::numeric_limits<Numeric>::epsilon()) continue;
-          output[i, j] = azimuth_factor / (Constant::pi * weights[j] * mu_in) * fresnel(mu_in);
-        }
-    };
-    const auto unsupported_beam = [](rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&) {
-      throw std::runtime_error(
-          "Ideal Fresnel reflection is a directional delta distribution and cannot reflect a direct beam into the "
-          "native VDISORT quadrature; use a finite-width surface model such as Cox-Munk");
-    };
-    result.push_back(BDRF{
-        .cosine = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view out,
-                                          const ConstVectorView&       mu_out,
-                                          const ConstVectorView& mu_in) { evaluate(cosine_mode, out, mu_out, mu_in); }},
-        .sine   = BDRF::func_t{[evaluate](rtepack::muelmat_matrix_view out,
-                                          const ConstVectorView&       mu_out,
-                                          const ConstVectorView& mu_in) { evaluate(sine_mode, out, mu_out, mu_in); }},
-        .beam_cosine = BDRF::func_t{unsupported_beam},
-        .beam_sine   = BDRF::func_t{unsupported_beam}});
+    result.push_back(BDRF{.cosine      = BDRF::func_t{no_kernel},
+                          .sine        = BDRF::func_t{no_kernel},
+                          .beam_cosine = BDRF::func_t{unsupported_beam},
+                          .beam_sine   = BDRF::func_t{unsupported_beam},
+                          .specular    = BDRF::specular_t{[fresnel](const Numeric mu) { return fresnel(mu); }}});
   }
   return result;
 }
+
+namespace {
+//! The weighted sum of the specular parts of a mode, or empty if neither component has one
+template <typename Components> BDRF::specular_t specular_part(const std::shared_ptr<Components>& c, std::size_t mode) {
+  const auto has = [mode](const std::vector<BDRF>& modes, Numeric weight) {
+    return weight != 0.0 and mode < modes.size() and static_cast<bool>(modes[mode].specular.f);
+  };
+  if (not has(c->first, c->first_weight) and not has(c->second, c->second_weight)) return {};
+  return BDRF::specular_t{[c, mode, has](const Numeric mu) {
+    rtepack::muelmat r{0.0};
+    if (has(c->first, c->first_weight)) r += c->first_weight * c->first[mode].specular(mu);
+    if (has(c->second, c->second_weight)) r += c->second_weight * c->second[mode].specular(mu);
+    return r;
+  }};
+}
+}  // namespace
 
 std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
                                         const Numeric     first_weight,
@@ -359,7 +358,8 @@ std::vector<BDRF> combine_fourier_modes(std::vector<BDRF> first,
                                                                  const ConstVectorView&       outgoing,
                                                                  const ConstVectorView&       incoming) {
                             evaluate(true, sine_mode, output, outgoing, incoming);
-                          }}});
+                          }},
+                          .specular    = specular_part(components, mode)});
   }
   return result;
 }

@@ -1,4 +1,7 @@
 if(ENABLE_CDISORT)
+# GPL-3.0-or-later per the notice in cdisort.h (NOTICE); COPYING is the
+# GPL version 2 text that the cdisort distribution ships.
+arts_add_bundled_license(cdisort SPDX GPL-3.0-or-later FILES NOTICE COPYING)
 add_library (cdisort STATIC
   cdisort.cc
   locate.c

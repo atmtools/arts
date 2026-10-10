@@ -40,9 +40,30 @@ class ScatteringHabit {
   BulkScatteringProperties<Format::TRO, Representation::Gridded> get_bulk_scattering_properties_tro_gridded_derivative(
       const AtmPoint&, const Vector&, std::shared_ptr<ZenithAngleGrid>, const AtmKeyVal&) const;
 
+  /** The bulk Legendre series to degree at f_grid, summed over the particles
+   *
+   * Every particle must hold a TRO Legendre series of at least that degree.
+   * The series are interpolated linearly in temperature and frequency.  Each
+   * coefficient is the scattering-plane Mueller matrix on Y_l0 (see
+   * tro_legendre.h).
+   */
   ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
                                                                           const Vector& f_grid,
-                                                                          const Index   degree [[maybe_unused]]) const;
+                                                                          const Index   degree) const;
+
+  /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix at the zenith angles [deg]
+   *
+   * See ssd_to_aro_fourier: TRO Legendre series and SHT ARO data give them
+   * exactly at any scattering zenith angle, gridded ARO data on their own
+   * zenith grids.  Gridded TRO data must be converted to a Legendre series
+   * first.
+   */
+  BulkScatteringProperties<Format::ARO, Representation::Fourier> get_bulk_scattering_properties_aro_fourier(
+      const AtmPoint&,
+      const Vector& f_grid,
+      const Vector& za_inc_grid,
+      const Vector& za_scat_grid,
+      Index         max_mode) const;
 
   BulkScatteringProperties<Format::ARO, Representation::Gridded> get_bulk_scattering_properties_aro_gridded(
       const AtmPoint&                  point,
@@ -62,6 +83,10 @@ class ScatteringHabit {
   //      Index l) const;
 
  private:
+  //! The number density [m^-3] each particle stands for at point (see scattering::number_densities)
+  Vector  number_densities(const AtmPoint& point) const;
+  PSDData number_densities_with_derivatives(const AtmPoint& point) const;
+
   ParticleHabit particle_habit;
   Numeric       mass_size_rel_a, mass_size_rel_b;
   PSD           psd;

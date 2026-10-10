@@ -94,6 +94,28 @@ ParticleHabit ParticleHabit::to_tro_gridded(const Vector&          t_grid,
   return ParticleHabit(new_scattering_data, new_grids);
 }
 
+std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_report(const ParticleHabit& habit,
+                                                                                  const Vector&        t_grid,
+                                                                                  const Vector&        f_grid,
+                                                                                  Index                l) {
+  using Spectral = SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>;
+  using Gridded  = SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>;
+  auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid), std::make_shared<Vector>(f_grid));
+  std::vector<Spectral>       new_scat_data;
+  std::vector<LegendreReport> reports;
+  for (Index i = 0; i < habit.size(); ++i) {
+    const auto* gridded = std::get_if<Gridded>(&habit[i]);
+    ARTS_USER_ERROR_IF(not gridded,
+                       "A report on the Legendre conversion needs gridded TRO data, but particle {} of the habit holds "
+                       "other data",
+                       i)
+    auto [spectral, report] = to_spectral_with_report(*gridded, l);
+    new_scat_data.push_back(spectral.regrid(new_grids));
+    reports.push_back(std::move(report));
+  }
+  return {ParticleHabit(new_scat_data, new_grids), std::move(reports)};
+}
+
 ParticleHabit ParticleHabit::to_aro_spectral(
     const Vector& t_grid, const Vector& f_grid, const Vector& za_inc_grid, Index l, Index m) {
   auto sht_ptr      = sht::provider.get_instance_lm(l, m);

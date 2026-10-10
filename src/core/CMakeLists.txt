@@ -20,6 +20,7 @@ add_subdirectory(igrf)
 add_subdirectory(jacobian)
 
 add_subdirectory(lbl)
+add_subdirectory(licenses)
 add_subdirectory(legendre)
 add_subdirectory(lookup)
 
@@ -46,6 +47,7 @@ add_subdirectory(sun)
 add_subdirectory(surface)
 add_subdirectory(subsurface)
 
+add_subdirectory(polradtran)
 add_subdirectory(tmatrix)
 
 add_subdirectory(util)
@@ -58,6 +60,7 @@ add_subdirectory(xml)
 add_library(artscore INTERFACE)
 
 target_link_libraries(artscore INTERFACE
+  arts_licenses
   absorption
   arts_enum_options
   artstime
@@ -85,6 +88,8 @@ target_link_libraries(artscore INTERFACE
   subsurface
   sun
   surface
+  arts_rt3
+  arts_rt4
   arts_tmatrix
   util
   xml_io

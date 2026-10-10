@@ -314,9 +314,8 @@ std::pair<Numeric, Numeric> line_ellipsoid_latitude_intersect(const Numeric lat,
 
 Numeric line_ellipsoid_longitude_intersect(
     const Numeric lon, const Vector3 pos, const Vector2 los, const Vector3 ecef, const Vector3 decef) {
-  if ((los[1] == 0) or (nonstd::abs(los[1]) == 180) or (pos[2] > lon and los[1] > 0) or (pos[2] < lon and los[1] < 0)) {
-    return nan;
-  }
+  const Numeric aa = cycled_azimuth(los);
+  if ((aa == 0) or (aa == 180) or (pos[2] > lon and aa < 180) or (pos[2] < lon and aa > 180)) return nan;
 
   const Numeric tanlon = Conversion::tand(lon);
   return (ecef[1] - ecef[0] * tanlon) / (decef[0] * tanlon - decef[1]);
@@ -774,7 +773,10 @@ Vector distance(const ArrayOfPropagationPathPoint& path, const Vector2 ellipsoid
 ArrayOfPropagationPathPoint& fix_updown_azimuth_to_first(ArrayOfPropagationPathPoint& path) {
   if (path.size() == 0) return path;
 
-  constexpr auto atan2_failstate = [](const Vector2 los) { return los[1] == 0.0 or los[1] == 90.0 or los[1] == -90.0; };
+  constexpr auto atan2_failstate = [](const Vector2 los) {
+    const Numeric aa = cycled_azimuth(los);
+    return aa == 0.0 or aa == 90.0 or aa == 270.0;
+  };
   constexpr auto updown_failstate = [](const Vector2 los) { return los[0] == 0.0 or los[0] == 180.0; };
 
   if (stdr::all_of(path, atan2_failstate, &PropagationPathPoint::los) or

@@ -1,12 +1,33 @@
 #include "general_tro_spectral.h"
 
-#include <memory>
+#include <debug.h>
 
-#include "sht.h"
+#include <memory>
 
 ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_tro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
-  return f(atm_point, f_grid, degree);
+  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
+
+  // The user's function must give exactly what was asked
+  auto        out = f(atm_point, f_grid, degree);
+  const Index nf  = static_cast<Index>(f_grid.size());
+  ARTS_USER_ERROR_IF(not out.phase_matrix.has_value(),
+                     "The user's scattering function gives no phase matrix; it must give its Legendre series")
+  ARTS_USER_ERROR_IF(out.phase_matrix->nrows() != nf or out.phase_matrix->ncols() != degree + 1,
+                     "The user's scattering function gives a Legendre series of shape [{}, {}], but [{}, {}] "
+                     "([frequencies, degree + 1]) was asked for",
+                     out.phase_matrix->nrows(),
+                     out.phase_matrix->ncols(),
+                     nf,
+                     degree + 1)
+  ARTS_USER_ERROR_IF(
+      static_cast<Index>(out.extinction_matrix.size()) != nf or static_cast<Index>(out.absorption_vector.size()) != nf,
+      "The user's scattering function gives {} extinction matrices and {} absorption vectors, but "
+      "there are {} frequencies",
+      out.extinction_matrix.size(),
+      out.absorption_vector.size(),
+      nf)
+  return out;
 }
 
 ScatteringTroSpectralVector& ScatteringTroSpectralVector::operator+=(const ScatteringTroSpectralVector& other) {
@@ -33,7 +54,7 @@ ScatteringTroSpectralVector::to_general(const SpecmatMatrix& phase_matrix, const
   ARTS_USER_ERROR_IF(l < 0, "Legendre degree must be non-negative, is {}", l);
 
   scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> pm{
-      t_grid, f_grid_ptr, scattering::sht::provider.get_instance_lm(l, 0)};
+      t_grid, f_grid_ptr, l};
 
   for (Index f_ind = 0; f_ind < phase_matrix.nrows(); ++f_ind) {
     for (Index ind = 0; ind < phase_matrix.ncols(); ++ind) {

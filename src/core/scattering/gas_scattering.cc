@@ -20,9 +20,28 @@
 
 #include <cmath>
 
+#include "sht.h"
+
+namespace {
+/** The Rayleigh scattering matrix at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
+rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Numeric depolarization_factor) {
+  using Math::pow2;
+
+  const Numeric delta       = (1.0 - depolarization_factor) / (1.0 + 0.5 * depolarization_factor);
+  const Numeric delta_prime = (1.0 - 2.0 * depolarization_factor) / (1.0 - depolarization_factor);
+  const Numeric cos_theta   = cos(theta_rad);
+
+  return {0.75 * delta * (1.0 + pow2(cos_theta)) + 1.0 - delta,  // F11
+          -0.75 * delta * pow2(sin(theta_rad)),                  // F12
+          0.75 * delta * (1.0 + pow2(cos_theta)),                // F22
+          1.5 * delta * cos_theta,                               // F33
+          0.0,                                                   // F34
+          1.5 * delta * delta_prime * cos_theta};                // F44
+}
+}  // namespace
+
 Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
   using Constant::pi;
-  using Math::pow2;
 
   ARTS_USER_ERROR_IF(theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
                      "Error in calc_rayleighPhaMat: Scattering angle must be in the range [0, pi], is {}",
@@ -31,20 +50,8 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarizati
                      "The depolarization factor must be in [0, 1), is {}",
                      depolarization_factor);
 
-  Vector pha_mat_int(6, 0.0);
-
-  const Numeric delta       = (1.0 - depolarization_factor) / (1.0 + 0.5 * depolarization_factor);
-  const Numeric delta_prime = (1.0 - 2.0 * depolarization_factor) / (1.0 - depolarization_factor);
-  const Numeric cos_theta   = cos(theta_rad);
-
-  pha_mat_int[0] = 0.75 * delta * (1.0 + pow2(cos_theta)) + 1.0 - delta;  // F11
-  pha_mat_int[1] = -0.75 * delta * pow2(sin(theta_rad));                  // F12
-  pha_mat_int[2] = 0.75 * delta * (1.0 + pow2(cos_theta));                // F22
-  pha_mat_int[3] = 1.5 * delta * cos_theta;                               // F33
-  pha_mat_int[4] = 0.0;                                                   // F34
-  pha_mat_int[5] = 1.5 * delta * delta_prime * cos_theta;                 // F44
-
-  return pha_mat_int;
+  const auto f = rayleigh_scattering_matrix(theta_rad, depolarization_factor);
+  return Vector{f[0], f[1], f[2], f[3], f[4], f[5]};
 }
 
 namespace scattering {
@@ -63,14 +70,16 @@ Numeric air_simple_cross_section(Numeric frequency) {
   return 1e-32 * sum / Math::pow4(wavelength_um);
 }
 
-Vector normalized_phase_matrix(const GasScatteringPhaseMatrix& phase_matrix, Numeric scattering_angle) {
+/** The scattering matrix at scattering angle theta [rad], with F11 integrating to 4 pi over the sphere */
+rtepack::compact_planar_muelmat normalized_phase_matrix(const GasScatteringPhaseMatrix& phase_matrix,
+                                                        Numeric                         scattering_angle) {
   return std::visit(
-      [scattering_angle](const auto& phase) {
+      [scattering_angle](const auto& phase) -> rtepack::compact_planar_muelmat {
         using Phase = std::remove_cvref_t<decltype(phase)>;
         if constexpr (std::is_same_v<Phase, IsotropicGasScattering>) {
-          return Vector{1.0, 0.0, 1.0, 1.0, 0.0, 1.0};
+          return {1.0, 0.0, 1.0, 1.0, 0.0, 1.0};
         } else {
-          return calc_rayleighPhaMat(scattering_angle, phase.depolarization_factor);
+          return rayleigh_scattering_matrix(scattering_angle, phase.depolarization_factor);
         }
       },
       phase_matrix);
@@ -80,6 +89,13 @@ Numeric scattering_coefficient(const GasScatteringCoefficient& coefficient,
                                Numeric                         frequency,
                                const AtmPoint&                 atm_point) {
   return std::visit([&](const auto& model) { return model(frequency, atm_point); }, coefficient);
+}
+
+/** The relative derivative of the scattering coefficient, which is proportional to number density */
+Numeric relative_derivative(const AtmPoint& atm_point, const AtmKeyVal& target) {
+  if (target == AtmKeyVal{AtmKey::p}) return 1.0 / atm_point.pressure;
+  if (target == AtmKeyVal{AtmKey::t}) return -1.0 / atm_point.temperature;
+  return 0.0;
 }
 
 }  // namespace
@@ -120,7 +136,7 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get
     const Numeric coefficient_per_m = scattering_coefficient(coefficient, f_grid[iv], atm_point);
     extinction[0, iv, 0]            = coefficient_per_m;
     for (Size ia = 0; ia < angles.size(); ++ia) {
-      const Vector normalized = normalized_phase_matrix(phase_matrix, Conversion::deg2rad(angles[ia]));
+      const auto normalized = normalized_phase_matrix(phase_matrix, Conversion::deg2rad(angles[ia]));
       for (Index is = 0; is < 6; ++is) {
         phase[0, iv, ia, is] = coefficient_per_m * normalized[is] / (4.0 * Constant::pi);
       }
@@ -137,11 +153,8 @@ GasScatterer::get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoi
                                                                     const Vector&                    f_grid,
                                                                     std::shared_ptr<ZenithAngleGrid> za_scat_grid,
                                                                     const AtmKeyVal&                 target) const {
-  auto    out    = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, std::move(za_scat_grid));
-  Numeric factor = 0.0;
-  if (target == AtmKeyVal{AtmKey::p}) factor = 1.0 / atm_point.pressure;
-  if (target == AtmKeyVal{AtmKey::t}) factor = -1.0 / atm_point.temperature;
-  out *= factor;
+  auto out  = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, std::move(za_scat_grid));
+  out      *= relative_derivative(atm_point, target);
   return out;
 }
 
@@ -162,29 +175,30 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
     std::visit(
         [&](const auto& model) {
           using Model = std::remove_cvref_t<decltype(model)>;
+          // Each coefficient is the scattering-plane Mueller matrix of the degree
+          const auto set = [&](Index l, const rtepack::compact_planar_muelmat& F) {
+            phase[iv, l] = Specmat{F.expand().data};
+          };
           if constexpr (std::is_same_v<Model, IsotropicGasScattering>) {
-            for (Index is = 0; is < 4; ++is) phase[iv, 0][is, is] = amp;
+            set(0, {amp, 0.0, amp, amp, 0.0, amp});
           } else {
             const Numeric delta       = (1.0 - model.depolarization_factor) / (1.0 + 0.5 * model.depolarization_factor);
             const Numeric delta_prime = (1.0 - 2.0 * model.depolarization_factor) / (1.0 - model.depolarization_factor);
 
             // F11 = 1 + delta/2 P2, F12 = delta/2(P2 - 1),
-            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1.
-            phase[iv, 0][0, 0] = amp;
-            phase[iv, 0][0, 1] = -0.5 * delta * amp;
-            phase[iv, 0][1, 0] = 0.5 * delta * amp;
-            phase[iv, 0][1, 1] = delta * amp;
-
-            if (degree >= 1) {
-              phase[iv, 1][2, 2] = 0.5 * std::sqrt(3.0) * delta * amp;
-              phase[iv, 1][3, 3] = 0.5 * std::sqrt(3.0) * delta * delta_prime * amp;
-            }
+            // F22 = delta(1 + P2/2), F33 = 3 delta/2 P1, F44 = 3 delta delta'/2 P1
+            set(0, {amp, -0.5 * delta * amp, delta * amp, 0.0, 0.0, 0.0});
+            if (degree >= 1)
+              set(1,
+                  {0.0,
+                   0.0,
+                   0.0,
+                   0.5 * std::numbers::sqrt3 * delta * amp,
+                   0.0,
+                   0.5 * std::numbers::sqrt3 * delta * delta_prime * amp});
             if (degree >= 2) {
-              const Numeric p2   = 0.5 * delta * amp / std::sqrt(5.0);
-              phase[iv, 2][0, 0] = p2;
-              phase[iv, 2][0, 1] = p2;
-              phase[iv, 2][1, 0] = -p2;
-              phase[iv, 2][1, 1] = p2;
+              const Numeric p2 = 0.5 * delta * amp / std::sqrt(5.0);
+              set(2, {p2, p2, p2, 0.0, 0.0, 0.0});
             }
           }
         },
@@ -202,10 +216,36 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
     const Vector&                    za_inc_grid,
     const Vector&                    delta_aa_grid,
     std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
-  auto scattering_angles = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(nlinspace(0.0, 180.0, 181)));
-  return get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, std::move(scattering_angles))
-      .to_lab_frame(
-          std::make_shared<Vector>(za_inc_grid), std::make_shared<Vector>(delta_aa_grid), std::move(za_scat_grid));
+  ARTS_USER_ERROR_IF(not za_scat_grid, "A scattering zenith-angle grid is required")
+
+  auto t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto f_grid_ptr = std::make_shared<Vector>(f_grid);
+  auto za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
+  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  Vector                                                              scale(f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); ++iv) {
+    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+  }
+
+  // The lab-frame phase matrix at the exact scattering angle of every direction pair
+  const auto closed_form = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+    const auto normalized = normalized_phase_matrix(phase_matrix, theta);
+    for (Size iv = 0; iv < f_grid.size(); ++iv) {
+      for (Index is = 0; is < 6; ++is) scattering_matrix[0, iv, is] = scale[iv] * normalized[is];
+    }
+  };
+  auto phase = tro_lab_frame<Numeric>(t_grid_ptr,
+                                      f_grid_ptr,
+                                      za_inc_ptr,
+                                      std::make_shared<Vector>(delta_aa_grid),
+                                      std::move(za_scat_grid),
+                                      closed_form);
+
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = extinction.to_lab_frame(za_inc_ptr),
+          .absorption_vector = absorption.to_lab_frame(za_inc_ptr)};
 }
 
 BulkScatteringProperties<Format::ARO, Representation::Gridded>
@@ -215,21 +255,62 @@ GasScatterer::get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoi
                                                                     const Vector&                    delta_aa_grid,
                                                                     std::shared_ptr<ZenithAngleGrid> za_scat_grid,
                                                                     const AtmKeyVal&                 target) const {
-  auto scattering_angles = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(nlinspace(0.0, 180.0, 181)));
-  return get_bulk_scattering_properties_tro_gridded_derivative(atm_point, f_grid, std::move(scattering_angles), target)
-      .to_lab_frame(
-          std::make_shared<Vector>(za_inc_grid), std::make_shared<Vector>(delta_aa_grid), std::move(za_scat_grid));
+  auto out = get_bulk_scattering_properties_aro_gridded(
+      atm_point, f_grid, za_inc_grid, delta_aa_grid, std::move(za_scat_grid));
+  out *= relative_derivative(atm_point, target);
+  return out;
 }
 
 BulkScatteringProperties<Format::ARO, Representation::Spectral>
 GasScatterer::get_bulk_scattering_properties_aro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
-  auto sht_ptr          = sht::provider.get_instance(degree, order);
-  auto aa_scat_grid_ptr = sht_ptr->get_aa_grid_ptr();
-  auto za_scat_grid_ptr = std::make_shared<ZenithAngleGrid>(sht_ptr->get_zenith_angle_grid());
-  auto properties       = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid_ptr)
-                              .to_lab_frame(std::make_shared<Vector>(za_inc_grid), aa_scat_grid_ptr, za_scat_grid_ptr);
-  return properties.to_spectral(degree, order);
+  auto sht = sht::provider.get_instance_lm(degree, order);
+  return get_bulk_scattering_properties_aro_gridded(atm_point,
+                                                    f_grid,
+                                                    za_inc_grid,
+                                                    *sht->get_aa_grid_ptr(),
+                                                    std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+      .to_spectral(degree, order);
+}
+
+BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get_bulk_scattering_properties_aro_fourier(
+    const AtmPoint& atm_point,
+    const Vector&   f_grid,
+    const Vector&   za_inc_grid,
+    const Vector&   za_scat_grid,
+    Index           max_mode) const {
+  auto t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto f_grid_ptr = std::make_shared<Vector>(f_grid);
+  auto za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
+  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  Vector                                                              scale(f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); ++iv) {
+    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+  }
+
+  const auto closed_form = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+    const auto normalized = normalized_phase_matrix(phase_matrix, theta);
+    for (Size iv = 0; iv < f_grid.size(); ++iv) {
+      for (Index is = 0; is < 6; ++is) scattering_matrix[0, iv, is] = scale[iv] * normalized[is];
+    }
+  };
+  // F11 / scale integrates to 4 pi, so the phase integral is the scattering coefficient
+  Matrix integral(1, f_grid.size());
+  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv, 0];
+  auto phase = tro_lab_frame_fourier_modes<Numeric>(
+      t_grid_ptr,
+      f_grid_ptr,
+      za_inc_ptr,
+      std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
+      max_mode,
+      integral,
+      closed_form);
+
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = extinction.to_lab_frame(za_inc_ptr).to_fourier(),
+          .absorption_vector = absorption.to_lab_frame(za_inc_ptr).to_fourier()};
 }
 
 }  // namespace scattering

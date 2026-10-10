@@ -573,10 +573,25 @@ beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor
                      sine.shape());
   const auto [nfourier, nlayers, nout] = cosine.shape();
   beam_phase_matrix_data out(2, nfourier, nlayers, nout, rtepack::muelmat{0.0});
-  for (Index m = 0; m < nfourier; ++m)
-    for (Index l = 0; l < nlayers; ++l)
-      for (Index i = 0; i < nout; ++i)
-        fill_combined(out[cosine_mode, m, l, i], out[sine_mode, m, l, i], cosine[m, l, i], sine[m, l, i], m);
+
+  // Unlike the diffuse operator of Eq. (81), the beam is a delta in azimuth
+  // at phi0 with only cosine terms, for every Stokes component of the beam.
+  // Its scattered source sum_m [C^m cos m(phi0 - phi) + S^m sin m(phi0 - phi)] b
+  // feeds the cosine system (I^c, Q^c, U^s, V^s) with rows I, Q of C^m and
+  // rows U, V of S^m, and the sine system (I^s, Q^s, U^c, V^c) with rows I, Q
+  // of S^m and rows U, V of C^m, in all four columns.
+  for (Index m = 0; m < nfourier; ++m) {
+    for (Index l = 0; l < nlayers; ++l) {
+      for (Index i = 0; i < nout; ++i) {
+        for (Index r = 0; r < stokes_dimension; ++r) {
+          for (Index c = 0; c < stokes_dimension; ++c) {
+            out[cosine_mode, m, l, i][r, c] = r < 2 ? cosine[m, l, i][r, c] : sine[m, l, i][r, c];
+            out[sine_mode, m, l, i][r, c]   = r < 2 ? sine[m, l, i][r, c] : cosine[m, l, i][r, c];
+          }
+        }
+      }
+    }
+  }
   return out;
 }
 
@@ -1244,6 +1259,15 @@ void main_data::solve_for_coefs() {
               for (Index si = 0; si < stokes_dimension; ++si)
                 reflection[state_index(i, so), state_index(j, si)] =
                     Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * raw[i, j][so, si];
+        // The specular part reflects each downward stream into the upward stream of the same cosine
+        if (brdf_fourier_modes[m].specular.f) {
+          for (Index i = 0; i < N; ++i) {
+            const rtepack::muelmat R = brdf_fourier_modes[m].specular(mu_arr[i]);
+            for (Index so = 0; so < stokes_dimension; ++so)
+              for (Index si = 0; si < stokes_dimension; ++si)
+                reflection[state_index(i, so), state_index(i, si)] += R[so, si];
+          }
+        }
 
         if (has_beam_source) {
           rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
@@ -1420,14 +1444,16 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   }
 }
 
-void main_data::u_user(user_u_data&                  data,
-                       const Numeric                 tau,
-                       const Numeric                 phi,
-                       const ConstVectorView&        user_mu,
-                       const phase_matrix_data&      user_phase_matrix,
-                       const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::u_user(user_u_data&                    data,
+                       const Numeric                   tau,
+                       const Numeric                   phi,
+                       const ConstVectorView&          user_mu,
+                       const phase_matrix_data&        user_phase_matrix,
+                       const beam_phase_matrix_data&   user_beam_phase_matrix,
+                       const rtepack::stokvec_tensor3& user_boundary) const {
   rtepack::stokvec_tensor3 result(1, 1, user_mu.size());
-  ungridded_u_user(result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  ungridded_u_user(
+      result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
   data.intensities.resize(user_mu.size());
   for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user) data.intensities[user] = result[0, 0, user];
 }
@@ -1519,11 +1545,12 @@ void main_data::u_user_corr(user_u_data&                    data,
     data.intensities[user] += tms[user] + ims[user];
 }
 
-void main_data::user_fourier_modes(ComplexTensor4&               modes,
-                                   const AscendingGrid&          tau,
-                                   const ConstVectorView&        user_mu,
-                                   const phase_matrix_data&      user_phase_matrix,
-                                   const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::user_fourier_modes(ComplexTensor4&                 modes,
+                                   const AscendingGrid&            tau,
+                                   const ConstVectorView&          user_mu,
+                                   const phase_matrix_data&        user_phase_matrix,
+                                   const beam_phase_matrix_data&   user_beam_phase_matrix,
+                                   const rtepack::stokvec_tensor3& user_boundary) const {
   ARTS_TIME_REPORT
 
   const Index ntau  = static_cast<Index>(tau.size());
@@ -1537,6 +1564,11 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
       stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
+  ARTS_USER_ERROR_IF(not user_boundary.empty() and user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}),
+                     "The user-direction boundary radiances have shape {:B,}, expected [2, {}, {}] Stokes vectors",
+                     user_boundary.shape(),
+                     NFourier,
+                     nuser);
   const std::array<Index, 5> expected_phase_shape{2, NFourier, NLayers, nuser, NQuad};
   const std::array<Index, 4> expected_beam_shape{2, NFourier, NLayers, nuser};
   ARTS_USER_ERROR_IF(user_phase_matrix.shape() != expected_phase_shape,
@@ -1552,6 +1584,62 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
                      NFourier,
                      NLayers,
                      nuser);
+
+  /* A specular surface part (BDRF::specular) reflects the downward radiance at the surface into the upward
+     direction of the same cosine.  So the upward boundary value of an upward user direction mu includes
+     R(mu) I_down(-mu) at the surface, from the user direction -mu, whose phase matrices only the caller has:
+     every upward user direction must come with its downward partner. */
+  const bool specular = stdr::any_of(brdf_fourier_modes, [](const BDRF& b) { return static_cast<bool>(b.specular.f); });
+  std::vector<Index> partner(nuser, -1);  // the downward partner of an upward user direction, as an index of below
+  ComplexTensor4     partner_modes;       // [1, partners, 2 NFourier, Stokes] at the surface
+  if (specular) {
+    std::vector<Index> partners;
+    for (Index iu = 0; iu < nuser; ++iu) {
+      if (user_mu[iu] < 0.0) continue;
+      Index found = -1;
+      for (Index id = 0; id < nuser; ++id)
+        if (user_mu[id] < 0.0 and std::abs(user_mu[id] + user_mu[iu]) <= 64.0 * std::numeric_limits<Numeric>::epsilon())
+          found = id;
+      ARTS_USER_ERROR_IF(found < 0,
+                         "The surface reflects specularly, so the upward radiance at the user cosine {} reflects the "
+                         "downward radiance at {} at the surface: include {} in the user cosines, with its phase "
+                         "matrices",
+                         user_mu[iu],
+                         -user_mu[iu],
+                         -user_mu[iu]);
+      partner[iu] = static_cast<Index>(partners.size());
+      partners.push_back(found);
+    }
+    if (not partners.empty()) {
+      const Index            np = static_cast<Index>(partners.size());
+      Vector                 partner_mu(np);
+      phase_matrix_data      partner_phase(2, NFourier, NLayers, np, NQuad);
+      beam_phase_matrix_data partner_beam;
+      if (has_beam_source) partner_beam.resize(2, NFourier, NLayers, np);
+      rtepack::stokvec_tensor3 partner_boundary;
+      if (not user_boundary.empty()) partner_boundary.resize(2, NFourier, np);
+      for (Index p = 0; p < np; ++p) {
+        partner_mu[p] = user_mu[partners[p]];
+        for (Index alpha = 0; alpha < 2; ++alpha)
+          for (Index m = 0; m < NFourier; ++m)
+            for (Index layer = 0; layer < NLayers; ++layer) {
+              for (Index j = 0; j < NQuad; ++j)
+                partner_phase[alpha, m, layer, p, j] = user_phase_matrix[alpha, m, layer, partners[p], j];
+              if (has_beam_source)
+                partner_beam[alpha, m, layer, p] = user_beam_phase_matrix[alpha, m, layer, partners[p]];
+            }
+        if (not user_boundary.empty())
+          for (Index alpha = 0; alpha < 2; ++alpha)
+            for (Index m = 0; m < NFourier; ++m) partner_boundary[alpha, m, p] = user_boundary[alpha, m, partners[p]];
+      }
+      user_fourier_modes(partner_modes,
+                         AscendingGrid{Vector{tau_arr.back()}},
+                         partner_mu,
+                         partner_phase,
+                         partner_beam,
+                         partner_boundary);
+    }
+  }
 
   const auto interpolate_boundary =
       [&](const rtepack::stokvec_tensor3& boundary, const Index alpha, const Index m, const Numeric abs_mu) {
@@ -1576,7 +1664,10 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
-        rtepack::stokvec mode = interpolate_boundary(downward ? boundary_down : boundary_up, alpha, m, abs_mu);
+        // The boundary radiance where the ray starts: given, or interpolated from the streams
+        rtepack::stokvec mode = user_boundary.empty()
+                                    ? interpolate_boundary(downward ? boundary_down : boundary_up, alpha, m, abs_mu)
+                                    : user_boundary[alpha, m, iu];
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
         if (not downward and m < NBDRF) {
@@ -1588,6 +1679,12 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
           if (has_beam_source) {
             brdf_fourier_modes[m].beam(alpha, beam_raw, outgoing, beam_direction);
             mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (beam_raw[0, 0] * beam_stokes);
+          }
+          if (brdf_fourier_modes[m].specular.f) {
+            rtepack::stokvec down;
+            for (Index s = 0; s < stokes_dimension; ++s)
+              down[s] = partner_modes[0, partner[iu], alpha * NFourier + m, s].real();
+            mode += brdf_fourier_modes[m].specular(abs_mu) * down;
           }
         }
         for (Index t = 0; t < ntau; ++t) {
@@ -1723,12 +1820,13 @@ void main_data::user_fourier_modes(ComplexTensor4&               modes,
   }
 }
 
-void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
-                                 const AscendingGrid&          tau,
-                                 const Vector&                 phi,
-                                 const ConstVectorView&        user_mu,
-                                 const phase_matrix_data&      user_phase_matrix,
-                                 const beam_phase_matrix_data& user_beam_phase_matrix) const {
+void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
+                                 const AscendingGrid&            tau,
+                                 const Vector&                   phi,
+                                 const ConstVectorView&          user_mu,
+                                 const phase_matrix_data&        user_phase_matrix,
+                                 const beam_phase_matrix_data&   user_beam_phase_matrix,
+                                 const rtepack::stokvec_tensor3& user_boundary) const {
   ARTS_TIME_REPORT
 
   const std::array<Index, 3> expected_shape{
@@ -1746,7 +1844,7 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view out,
       phi);
 
   ComplexTensor4 modes;
-  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix);
+  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
   out = rtepack::stokvec{};
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
     for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu) {
