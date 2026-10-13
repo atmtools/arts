@@ -124,7 +124,7 @@ Index c_asymmetric_matrix(MatrixView P, VectorView W, MatrixView A, VectorView w
    */
 
   for (Index j = k; j >= 0; j--) {
-    const Range   oj{0, j}, jm{j + 1, m - j - 1};
+    const Range   oj{0, j}, jm{j + 1, k - j};
     const Numeric row = abssum(A[j, oj]) + abssum(A[j, jm]);
 
     if (row == 0) {
@@ -146,7 +146,7 @@ Index c_asymmetric_matrix(MatrixView P, VectorView W, MatrixView A, VectorView w
    */
 
   for (Index j = l; j <= k; j++) {
-    const Range   oj{0, j}, jm{j + 1, m - j - 1};
+    const Range   oj{l, j - l}, jm{j + 1, k - j};
     const Numeric col = abssum(A[oj, j]) + abssum(A[jm, j]);
 
     if (col == 0) {
@@ -567,7 +567,7 @@ S550:
     /*
      * Multiply by transformation matrix
      */
-    if (k != 0) {
+    if (k >= 0) {
       for (j = m - 1; j >= l; j--) {
         for (i = l; i <= k; i++) {
           const Range nk(l, min(j, k) - l + 1);
