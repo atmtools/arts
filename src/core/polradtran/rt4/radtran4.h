@@ -6,7 +6,7 @@
 #include "rt4.h"
 
 namespace polradtran::rt4 {
-/** RADTRANO of 3rdparty/polradtran/radtran4.f, ported to C++.
+/** RADTRANO of Evans' radtran4.f, ported to C++.
  *
  * The method is RADTRANO's, step by step, in SI units, and every
  * subroutine it calls is ported too: INITIAL_SOURCE and INITIALIZE

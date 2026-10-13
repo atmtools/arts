@@ -4,7 +4,7 @@
 
 #include "rt4.h"
 
-/* The ground of 3rdparty/polradtran/radutil4.f, as the external surface of
+/* The ground of Evans' radutil4.f, as the external surface of
    RADTRANO, and its routines ported to C++ one at a time.  Those RT3
    shares (LAMBERT_SURFACE, LAMBERT_RADIANCE, FRESNEL_SURFACE,
    FRESNEL_RADIANCE, EXTERNAL_SURFACE and THERMAL_RADIANCE) are

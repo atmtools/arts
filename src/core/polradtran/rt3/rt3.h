@@ -123,7 +123,7 @@ struct problem {
   //! and a Fresnel surface always emit (RT3 includes them regardless of
   //! its source code); set their temperatures to 0 K to remove them.
   bool thermal{true};
-  //! Frequency [Hz]; RT3 is given the wavelength 1e6 c / f in micrometres
+  //! Frequency [Hz] of the Planck function; the radiances are per hertz
   Numeric frequency{};
   //! [nlay + 1] layer interfaces, top-down.  Only |differences| are used;
   //! the unit must be the inverse of the extinction unit.

@@ -2,7 +2,7 @@
 
 #include <matpack.h>
 
-/* The ground routines that 3rdparty/polradtran/radutil3.f and radutil4.f
+/* The ground routines that Evans' radutil3.f and radutil4.f
    share, ported to C++: RT3's RT3_X is RT4's X, line by line, or RT4's X
    is RT3's in the azimuth mode 0 with the thermal source alone.  The
    X_SURFACE routines make the ground as a surface layer for the adding:

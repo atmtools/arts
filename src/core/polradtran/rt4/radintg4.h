@@ -2,7 +2,7 @@
 
 #include <matpack.h>
 
-/* The subroutines of 3rdparty/polradtran/radintg4.f that RT3 does not
+/* The subroutines of Evans' radintg4.f that RT3 does not
    share, ported to C++ one at a time: INITIALIZE and INITIAL_SOURCE, which
    make the thin initial sublayer of the doubling from RT4's optics sets.
    The others (DOUBLING_INTEGRATION, COMBINE_LAYERS, INTERNAL_RADIANCE and

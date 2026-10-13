@@ -829,10 +829,17 @@ generic combiner permits other pairs and repeated composition.  The named
 factories use complementary fractions, whereas the generic weights need not
 sum to one.
 
-An ideal Fresnel surface is a directional delta distribution.  Its diffuse
-operator is exact on matching native quadrature directions, but its reflected
-direct beam generally lies off that grid.  Mixing it with Lambertian reflection
-does not remove this limitation.  A Cox--Munk/Lambertian mixture supplies a
+An ideal Fresnel surface is a directional delta distribution, so VDISORT
+represents it by a specular part rather than a reflection kernel: the Fresnel
+matrix :math:`\boldsymbol R(\mu)`, the same in every Fourier mode, reflects
+downward radiance at :math:`-\mu` into the upward direction :math:`\mu`.  The
+solver applies it between equal quadrature streams and, at an upward user
+direction, to the downward radiance in the partner direction :math:`-\mu`,
+which the caller must therefore also request.  Mixing sums the specular parts
+with the same weights as the kernels.  The reflected direct beam would be an
+upward beam, which the solver cannot represent, so an ideal Fresnel surface
+refuses a beam.  Mixing it with Lambertian reflection does not remove this
+limitation.  A Cox--Munk/Lambertian mixture supplies a
 finite-width polarized specular lobe and is therefore the beam-compatible
 choice.  Surface thermal emission is a separate boundary input: for a physical
 opaque surface it must be derived from the directional hemispherical

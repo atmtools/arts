@@ -2,18 +2,17 @@
 
 #include <matpack.h>
 
-/* Evans' real FFT of 3rdparty/polradtran/radscat3.f (FFT1DR, and the FFTC,
+/* Evans' real FFT (FFT1DR of his radscat3.f, and the FFTC,
    FIXREAL and MAKEPHASE it calls), ported to C++.  It is RT3's FFT, and
    the default.  It calls no Fortran and keeps its state in fft_workdata
    only.
 
-   It is in a file pair of its own because a build may use FFTW instead, as
-   a compile-time option only (FFTW's license keeps it out of the default
-   build).  The rest of RT3 uses only fft1dr, fft_direction and
-   fft_workdata.  An FFTW fft1dr must give the packed format and scaling
-   below (FFTW's r2c followed by a complex conjugate, and a conjugate
-   followed by c2r) and may keep its plans in fft_workdata.
-   cpp.fast.rt3-radtran-test checks the format against direct sums. */
+   It is in a file pair of its own so that another FFT can replace it: the
+   rest of RT3 uses only fft1dr, fft_direction and fft_workdata.  A
+   replacement must give the packed format and scaling below (for FFTW, r2c
+   followed by a complex conjugate, and a conjugate followed by c2r) and may
+   keep its state in fft_workdata.  The RADTRAN test (rt3/test) checks the
+   format against direct sums. */
 namespace polradtran::rt3 {
 //! FFT1DR's ISIGN
 enum class fft_direction {

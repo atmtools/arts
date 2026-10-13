@@ -15,10 +15,11 @@
  *
  * These helpers translate ARTS scattering species, atmospheric points and
  * propagation paths into VDISORT's phase-matrix Fourier coefficients and a
- * solved vdisort::main_data.  VDISORT has a scalar extinction, so only
- * species with totally randomly oriented (TRO) data
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded) can
- * be used.
+ * solved vdisort::main_data.  VDISORT has a scalar extinction and
+ * single-scattering albedo, so the species' optics must not depend on the
+ * direction nor polarize the extinction (see scattering_optics): totally
+ * randomly oriented (TRO) species always qualify, azimuthally randomly
+ * oriented (ARO) ones only when their optics are scalar.
  *
  * Geometry and Stokes basis (those of VDISORT's polarized tests and of RT3,
  * see rt3.h): z points up; a ray propagating at the direction cosine mu

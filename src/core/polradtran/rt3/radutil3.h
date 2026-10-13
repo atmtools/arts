@@ -4,7 +4,7 @@
 
 #include "rt3.h"
 
-/* The ground of 3rdparty/polradtran/radutil3.f as rt3::radtran's input.
+/* The ground of Evans' radutil3.f as rt3::radtran's input.
    Its routines (RT3_LAMBERT_SURFACE, RT3_LAMBERT_RADIANCE,
    RT3_FRESNEL_SURFACE, RT3_FRESNEL_RADIANCE and RT3_THERMAL_RADIANCE) are
    RT4's too, and polradtran's (radutil.h).  Radiances are in SI,

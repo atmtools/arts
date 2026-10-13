@@ -8,7 +8,7 @@ solar beam and thermal sources for randomly oriented particles with a plane
 of symmetry.  It separates the field into azimuthal Fourier modes, and for
 every mode it builds the reflection, transmission and source operators of
 each layer by doubling a thin initial layer, then combines the layers by
-adding.  The method is that of :cite:t:`Evans1999`.  ARTS keeps RT3 as an
+adding.  The method is that of :cite:t:`Evans1991`.  ARTS keeps RT3 as an
 independent reference for VDISORT (:doc:`concept.disort`); its RT4 sibling,
 restricted to azimuthally symmetric problems, is described in
 :doc:`concept.rt4`.

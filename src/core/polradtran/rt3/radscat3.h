@@ -6,7 +6,7 @@
 #include "rt3_fft.h"
 #include "rt3_workdata.h"
 
-/* The subroutines of 3rdparty/polradtran/radscat3.f, ported to C++ one at a
+/* The subroutines of Evans' radscat3.f, ported to C++ one at a
    time.  Each follows its Fortran step by step and calls the same
    subroutines.  None of them calls Fortran or keeps static state (the FFT
    is in rt3_fft.h).

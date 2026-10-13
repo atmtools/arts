@@ -4,7 +4,7 @@
 
 #include "polradtran_workdata.h"
 
-/* The subroutines that 3rdparty/polradtran/radintg3.f and radintg4.f share,
+/* The subroutines that Evans' radintg3.f and radintg4.f share,
    ported to C++: RT3's RT3_X is RT4's X, line by line, or RT4's X is RT3's
    in the azimuth mode 0 with the thermal source alone.  Each follows its
    Fortran step by step, with matpack in place of Evans' matrix helpers

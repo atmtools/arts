@@ -61,7 +61,8 @@ inline constexpr Index up   = 1;
  *   energy conservation on the streams reads
  *     K11(h, mu_j) = a1(h, mu_j)
  *                  + 2 pi sum_i w_i [Z(up <- h)(1, i; 1, j) + Z(down <- h)(1, i; 1, j)].
- *   Neither RT4 nor this wrapper checks or enforces it.
+ *   solve() checks it on the quadrature streams to
+ *   problem::normalisation_tolerance and rejects optics that break it.
  *
  * RT4 chooses the number of doublings from extinction[down, 0, 0, 0] plus
  * the gas extinction, so that the initial sublayer has a vertical optical

@@ -59,7 +59,8 @@ The medium must be mirror symmetric between the hemispheres
 (``extinction[down] == extinction[up]``, ``absorption[down] == absorption[up]``,
 ``phase[down, down] == phase[up, up]``, ``phase[down, up] == phase[up, down]``).
 Energy conservation, K11(h, mu_j) = a1(h, mu_j) + 2 pi sum_i w_i
-[Z(up <- h)(1, i; 1, j) + Z(down <- h)(1, i; 1, j)], is not enforced.)";
+[Z(up <- h)(1, i; 1, j) + Z(down <- h)(1, i; 1, j)], is checked by :func:`solve` on the quadrature
+streams to ``Problem.normalisation_tolerance``.)";
 
   auto aolo =
       py::bind_vector<std::vector<rt4::layer_optics>, py::rv_policy::reference_internal>(rt, "ArrayOfLayerOptics");
@@ -217,8 +218,9 @@ is not used for this surface.)";
          "problem"_a,
          R"(Run RT4.
 
-Validates the shapes, every precondition on which RADTRANO would stop, and the
-mirror symmetry RT4 requires, then runs RADTRANO (ported to C++).)",
+Validates the shapes, every precondition on which RADTRANO would stop, the
+mirror symmetry RT4 requires and the energy conservation of the optics on the
+streams, then runs RADTRANO (ported to C++).)",
          py::call_guard<py::gil_scoped_release>());
 
   rt.def("scattering_optics",

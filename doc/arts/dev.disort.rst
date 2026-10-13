@@ -122,103 +122,93 @@ external reference.
 VDISORT inputs from ARTS data
 *****************************
 
-``src/core/disort-cpp/vdisort_arts.h`` (namespace ``vdisort``, part of
-``vdisort-cpp``) builds VDISORT inputs from ARTS scattering species,
-atmospheric points and propagation paths.  VDISORT has a scalar extinction,
-so only species with totally randomly oriented (TRO) data can be used.
+``src/core/disort-cpp/vdisort_arts.h`` builds VDISORT inputs from ARTS
+scattering species, atmospheric points and propagation paths.  Its Python
+counterparts are in ``pyarts3.arts.vdisort``.  The header and the docstrings
+are the reference for names, fields and defaults.  The builders follow the
+same paradigms as those of RT3 and RT4 (:doc:`dev.rt3`, :doc:`dev.rt4`).
 
-.. code-block:: cpp
+**The phase-matrix Fourier coefficients at an atmospheric point** come from
+the azimuthal Fourier modes that the scattering species give of ARTS's
+laboratory-frame phase matrix:
 
-  struct fourier_optics { Numeric extinction; Numeric scattering;
-                          rtepack::muelmat_tensor3 cosine; rtepack::muelmat_tensor3 sine; };
-  fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
-                                   const AtmPoint& atm_point, Numeric frequency,
-                                   const Vector& mu_out, const Vector& mu_in, Index nfourier,
-                                   Index azimuth_count, Index scattering_angle_count,
-                                   Numeric normalisation_tolerance);
-  struct lambertian_surface { Numeric albedo; };
-  struct fresnel_surface { Complex refractive_index; };
-  using surface = std::variant<lambertian_surface, fresnel_surface>;
-  struct path_settings {
-    Index nquad{16}; Index nfourier{1}; Index azimuth_count{64};
-    Index scattering_angle_count{512}; Numeric normalisation_tolerance{1e-3};
-    bool thermal{true}; Numeric beam_flux{0.0}; Numeric beam_mu{0.5}; Numeric beam_azimuth{0.0};
-  };
-  main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
-                                const ArrayOfAtmPoint& atm_path,
-                                const ArrayOfPropmatVector& spectral_propmat_path,
-                                const AscendingGrid& freq_grid, Index freq_index,
-                                const ArrayOfScatteringSpecies& scattering_species,
-                                const path_settings& settings, const surface& ground,
-                                Numeric surface_temperature, Numeric sky_temperature);
+* They are taken at the propagation zenith angles of signed direction
+  cosines (> 0 upward): VDISORT's streams, and the beam's cosine for the
+  beam column.
+* They are VDISORT's ordinary coefficients, without :math:`2-\delta_{m0}`,
+  of the phase matrix ``P = 4 pi Z / sigma`` normalised to 1 over 4 pi.
+* The phase integral ``sigma = int Z11 dOmega`` comes from the species'
+  modes too, so nothing is integrated numerically.
+* They are as accurate as the species' modes:
 
-The same names are in ``pyarts3.arts.vdisort`` (``FourierOptics``,
-``scattering_optics``, ``LambertianSurface``, ``FresnelSurface``,
-``PathSettings``, ``main_data_from_path``, which returns a
-:class:`~pyarts3.arts.cppvdisort`).  Its read-only ``tau``, ``omega``,
-``mu`` and ``weights`` give the layers and streams, ``u(tau, phi)`` the
-radiance, and :func:`pyarts3.plots.cppvdisort.plot` draws it on the streams
-at a layer boundary.
+  * exact for the closed-form scatterers (Rayleigh gas scattering,
+    Henyey-Greenstein) and for Legendre series;
+  * gridded ARO data give them only at their own zenith angles;
+  * gridded TRO data must first be converted to a Legendre series.
+* ARTS's propagation directions (za, aa), with aa clockwise seen from above,
+  are VDISORT's with ``mu = cos(za)`` and ``phi = -aa``.  ARTS's Stokes vector
+  is VDISORT's meridional one (``h = k x z / |k x z|``, ``v = h x k``,
+  Q = I_v - I_h, U = 2 Re(E_v E_h*)).  See :doc:`dev.rt3` for the test of
+  this and for the sign of F34.
+* VDISORT's beam propagates toward its azimuth ``phi0``, and its radiance at
+  ``phi0 + psi`` is RT3's at ``psi``.
+* VDISORT's optical depth and single-scattering albedo are scalars, so the
+  particles' optics must be scalar:
 
-**scattering_optics** returns, for signed direction cosines ``mu_out`` and
-``mu_in`` (> 0 upward; VDISORT's streams, and ``[-mu0]`` for the beam
-column), the ordinary Fourier coefficients without :math:`2-\delta_{m0}`,
-``C^m, S^m = (1 / 2 pi) int P(mu_o, 0; mu_i, phi) {cos, sin}(m phi) dphi``,
-``m = 0 .. nfourier - 1``, of the laboratory-frame phase matrix
-``P = 4 pi Z / sigma``:
+  * K11, a1 and sigma must not depend on the incidence direction;
+  * K12, K34 and a2 must vanish;
+  * sigma must equal the scattering coefficient K11 - a1.
 
-* Z is ARTS's laboratory-frame phase matrix
-  (``get_bulk_scattering_properties_aro_gridded``) from the incident
-  ``za = acos(mu_i)`` to the scattered ``za = acos(mu_o)`` at
-  ``delta_aa = aa_scat - aa_inc = phi``.  ARTS's propagation directions
-  (za, aa), aa clockwise from above, are VDISORT's with ``mu = cos(za)`` and
-  ``phi = -aa``, and its Stokes vector is VDISORT's meridional one
-  (``h = k x z / |k x z|``, ``v = h x k``, Q = I_v - I_h,
-  U = 2 Re(E_v E_h*); z up, ``k = (sin cos phi, sin sin phi, mu)``); see
-  :doc:`dev.rt3` for the test and the F34 sign.
-* The phi integral is the periodic midpoint rule at
-  ``(k + 1/2) 2 pi / azimuth_count``.  For a regular Legendre series of
-  degree L, Z is a trigonometric polynomial of degree L in phi, and the rule
-  is exact for ``azimuth_count > L + nfourier - 1``.
-* ``sigma = 2 pi int F11 dcos(Theta)`` by a ``scattering_angle_count``-point
-  Gauss-Legendre rule normalises P to 1 over 4 pi.  ``extinction`` is K11 and
-  ``scattering`` is K11 - a1; sigma must equal K11 - a1 to
-  ``normalisation_tolerance`` times K11.
-* The results go to ``combine_phase_matrices`` (diffuse) and
-  ``combine_beam_phase_matrices`` (beam column).  VDISORT's beam propagates
-  toward its azimuth ``phi0``; its radiance at ``phi0 + psi`` is RT3's at
-  ``psi``.
+  These are checked to a tolerance relative to K11, and an infinite
+  tolerance disables the checks.  Totally randomly oriented (TRO) particles
+  always meet the first two conditions.  Azimuthally randomly oriented
+  (ARO) particles generally do not, but ARO species whose optics are scalar
+  can be used.
 
-**main_data_from_path** uses the path conventions of the RT3 and RT4
-builders and of the DISORT workspace methods (one entry per level, top
-first, strictly decreasing altitudes in metres, unpolarized gas propagation
-matrix per metre, gas extinction the mean of A at the two levels, frequency
-``freq_grid[freq_index]``).  A layer has the mean extinction and scattering
-of its two levels' ``scattering_optics`` on VDISORT's streams and the
-scattering-weighted mean of their coefficients; ``tau`` is the cumulative
-(gas + particle) optical depth, which must increase in every layer, and
-``omega`` the scattering over the total extinction.  With ``thermal`` the
-source is ARTS's ``planck`` at the level temperatures, linear in optical
-depth within each layer (``[c0, c1]`` in the global optical depth), and the
-surface emits; the sky is a blackbody at ``sky_temperature``.  A Lambertian
-surface uses ``brdf::lambertian_fourier_modes`` and emits
-``[(1 - A) B, 0, 0, 0]``; a Fresnel surface uses
-``brdf::fresnel_fourier_modes`` (the specular part R(mu); at an upward user
-angle VDISORT reflects the downward user-angle radiance at the same angle),
-and emits ``B ([1, 0, 0, 0] - R[:, 0])``.  A beam has the Stokes irradiance
-``[beam_flux / beam_mu, 0, 0, 0]`` normal to it, and ``beam_mu`` must not be
-a stream.
+**A solved problem from a propagation path** uses the path conventions of
+the RT3 and RT4 builders and of the DISORT workspace methods:
 
-Tests: ``cpp.fast.vdisort-arts-test``
-(``src/core/disort-cpp/test/vdisort/vdisort-arts-test.cpp``) compares
-``scattering_optics`` for ARTS's Rayleigh ``GasScatterer`` with closed forms
-of C^m and S^m for m = 0 .. 3 derived from the dipole Jones matrix in the
-meridional basis (diffuse and beam column, including mu = +-1; 6.1e-15),
-ARTS's laboratory-frame phase matrix with the vector geometry for a
-polarizing Mie particle (6.7e-15), the coefficients with those of the
-vector-geometry phase matrix (1.3e-15), and the path builder with its
-inputs.
-``cpp.fast.vdisort-arts-comparison`` runs VDISORT, RT3 and RT4 on one ARTS
-atmosphere (see :doc:`dev.rt3` and :doc:`dev.rt4`).
+* The ray path, the atmospheric path and the gas propagation matrices have
+  one entry per level, top first, with strictly decreasing altitudes in
+  metres.
+* The gas propagation matrices are unpolarized, per metre, and a layer's gas
+  extinction is the mean of A at its two levels.
+* The frequency is selected from the frequency grid by index.
+* A layer has the mean extinction and scattering of its two levels'
+  coefficients on VDISORT's streams, and the scattering-weighted mean of
+  their normalised coefficients.
+* The optical depth is the cumulative gas plus particle optical depth, and
+  it must increase in every layer.  The single-scattering albedo is the
+  scattering over the total extinction.
+* With thermal emission, the source is ARTS's Planck function at the level
+  temperatures, linear in optical depth within each layer, and the ground
+  emits.  The sky is a blackbody at the sky temperature.
+* A Lambertian ground uses VDISORT's Lambertian modes and emits
+  ``[(1 - A) B, 0, 0, 0]``.
+* A Fresnel ground uses VDISORT's Fresnel modes, whose reflection is their
+  specular part R(mu), and emits ``B ([1, 0, 0, 0] - R[:, 0])``.  At an
+  upward user angle, VDISORT reflects the downward user-angle radiance at
+  the same cosine.  User angles must therefore come in up and down pairs.
+* A beam has the Stokes irradiance ``[F / mu0, 0, 0, 0]`` normal to it, with
+  F its flux on the horizontal plane.  Its cosine must not be a stream.
+
+**Tests:**
+
+* VDISORT's ARTS-input test in ``src/core/disort-cpp/test/vdisort`` checks:
+
+  * the coefficients of ARTS's Rayleigh gas scattering against closed forms
+    derived from the dipole Jones matrix in the meridional basis, for the
+    diffuse and beam columns, including mu = +-1;
+  * ARTS's laboratory-frame phase matrix of a polarizing Mie particle
+    against vector geometry;
+  * the coefficients of that particle against the Fourier modes of the
+    vector-geometry phase matrix;
+  * the coefficients of Henyey-Greenstein scattering against the addition
+    theorem;
+  * the modes of gridded ARO data (Rayleigh scattering on a grid) against
+    the exact ones, to the interpolation error of the grid;
+  * the path builder against its inputs.
+* The same directory runs VDISORT, RT3 and RT4 on one ARTS atmosphere
+  (see :doc:`dev.rt3` and :doc:`dev.rt4`).
 
 Caller conventions are described in :doc:`user.disort`.

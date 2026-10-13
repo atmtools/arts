@@ -129,8 +129,17 @@ sources:
   polarizing, non-reciprocal surface;
 - 2 to 32 streams per hemisphere;
 - RT4 `nstokes = 1` against the I-only embedding;
-- the user-angle formal solution at off-node angles, for black and Lambertian
-  surfaces.
+- the user-angle formal solution at off-node angles, for black, Lambertian
+  and Fresnel surfaces.  A Fresnel surface is the specular part
+  `BDRF::specular` = R(mu) of its modes, without a reflection kernel.  VDISORT
+  applies it between equal streams and, at an upward user angle mu, to the
+  downward user-angle radiance at -mu at the surface.  An upward user angle
+  therefore needs its downward partner, and the test asserts that VDISORT
+  refuses one without it.  The surface emission at a user angle is
+  interpolated from the streams (barycentric in mu).  The test reproduces
+  that interpolation exactly and removes it, after which the upward
+  user-angle radiances must agree with RT4 to its doubling error at every
+  level.
 
 **Not blind.** The test feeds VDISORT deliberately wrong inputs and asserts
 that each misses RT4 by more than 100 times the tolerance:
@@ -157,17 +166,6 @@ exchanges remain undetectable:
   the beam and m > 0.
 - Direction-dependent extinction or emission.  VDISORT cannot represent
   them.
-- Nothing about the Fresnel surface at user angles.  A Fresnel surface is
-  the specular part `BDRF::specular` = R(mu) of its modes, without a
-  reflection kernel; VDISORT applies it between equal streams and, at an
-  upward user angle mu, to the downward user-angle radiance at -mu at the
-  surface, so an upward user angle needs its downward partner (otherwise it
-  throws, which the test asserts).  The upward user-angle radiances at
-  mu = 0.35 and 1 then agree with RT4 to 1.2e-8 of max I at every level,
-  once the interpolation of the surface emission from the streams
-  (barycentric, 1.4e-3 of B_s here, reproduced exactly by the test and
-  attenuated along the ray) is removed.  The specular reflection itself was
-  22% and 13% of max I there.
 
 **MKL.** The top-level CMakeLists.txt enables Fortran (for the optional
 T-matrix code) only after LAPACK has been found.  Enabled earlier, it makes CMake's FindBLAS link MKL's GNU layers
@@ -297,10 +295,11 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
   Lambertian surface with a beam.  Thermal Fresnel at m = 0 is covered by
   RT4.
 - Off-node user angles (`ungridded_u_user`) against RT3 at the same
-  angles: RT3's extra angles need its gauss quadrature, which VDISORT does
-  not have.  Part E below evaluates VDISORT at Evans' Gauss angles and shows
-  that it is converged there, but the RT3 reference at those angles carries
-  the error of Gauss quadrature.
+  angles.  RT3 takes extra angles with every quadrature rule, including
+  double Gauss, so this comparison is possible on identical streams, but the
+  test does not make it.  Part E below evaluates VDISORT at Evans' Gauss
+  angles and shows that it is converged there, but the RT3 reference at
+  those angles carries the error of Gauss quadrature.
 - The absolute sign of V.  V agrees, but it is generated through F34, so
   this tests that the two solvers use F34 consistently, not V's sign.
   Neither RT3 nor this test pins V against an external derivation.
@@ -311,11 +310,10 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 
 ### Evans' benchmark settings (E)
 
-All four of Evans' scripts in `3rdparty/polradtran` ran with his original
-programs (rt3.f, rt4.f, scatcnv.f from the tar's sources) and reproduced his
-tables, the RT3 ones to one unit in the last printed digit and the RT4 ones
-(brightness temperatures with two decimals) exactly, until the Fortran was
-removed from ARTS.  `cpp.fast.polradtran-rt4-arts` gives ARTS's RT4 the
+Evans' original programs from the tar (rt3.f, rt4.f, scatcnv.f) reproduce the
+tables of all four of his scripts in `3rdparty/polradtran`: the RT3 ones to one
+unit in the last printed digit, the RT4 ones (brightness temperatures with two
+decimals) exactly.  ARTS keeps none of the Fortran.  `cpp.fast.polradtran-rt4-arts` gives ARTS's RT4 the
 optics rt4.f reads for runtestc (cl340d14.dda) and reproduces its table to
 0.5 of the last printed digit (0.005 K); runtestr, whose scattering file
 scatcnv made, is solved from its Mie series by
@@ -424,16 +422,19 @@ and this three-solver test.
 ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 (see `doc/arts/dev.disort.rst`, `dev.rt3.rst`, `dev.rt4.rst`).
 
-| test | reference | measured |
-|---|---|---|
-| V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms | 6.1e-15 |
-| V2: ARTS's laboratory-frame Z of a polarizing Mie particle, 300 directions | vector geometry, mu = cos(za), phi = -aa, same F | 6.7e-15 (other azimuth sense: 2; F34 negated: 0.35) |
-| V2: exact and near-forward pairs | Z = F on the diagonal (forward-scattered Q) | 6.5e-13 |
-| V3: `vdisort::scattering_optics` (ARTS's laboratory-frame Z) of that particle | Fourier modes of the vector-geometry Z of `lab-frame.h` | 1.3e-15 |
-| thermal, 89 GHz, Rayleigh + Mie cloud + gas, Lambertian / Fresnel | RT3 vs VDISORT | 5.4e-7 / 5.2e-7 of max I (tolerance 1e-6) |
-| same | RT4's layer phase matrices vs VDISORT's (different input routes) | 1.2e-15 relative (tolerance 1e-12) |
-| same | RT4 vs RT3 (identical doubling) | 5.3e-10 / 5.0e-10 (tolerance 1e-8) |
-| same | RT4 vs VDISORT | 5.4e-7 / 5.2e-7 (tolerance 1e-6) |
-| solar mu0 = 0.6 + thermal, 8 modes, nstokes 4 | RT3 vs VDISORT | 5.8e-7 (tolerance 1.7e-6) |
+| test | reference |
+|---|---|
+| V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms |
+| V2: ARTS's laboratory-frame Z of a polarizing Mie particle, generic directions | vector geometry with mu = cos(za), phi = -aa and the same F; the other azimuth sense and a negated F34 must miss |
+| V2: exact and near-forward pairs | Z = F on the diagonal (forward-scattered Q) |
+| V3: VDISORT's coefficients of that particle from ARTS's Fourier modes | Fourier modes of the vector-geometry Z of `lab-frame.h` |
+| V4: the path builder | its inputs |
+| V5: gridded ARO data (Rayleigh's laboratory frame on a grid) | `GasScatterer`'s exact modes, to the interpolation error of the grid |
+| V6: Henyey-Greenstein, m = 0..3, diffuse and beam | the addition theorem |
+| thermal, 89 GHz, Rayleigh + Mie cloud + gas, Lambertian / Fresnel | RT3 vs VDISORT: their doubling error |
+| same | RT4's layer phase matrices vs VDISORT's (both the species' Fourier modes): rounding |
+| same | RT4 vs RT3 (identical doubling; Fourier modes against Legendre series): rounding |
+| same | RT4 vs VDISORT: RT4's doubling error |
+| solar beam + thermal, 8 modes, nstokes 4 | RT3 vs VDISORT: RT3's doubling error with a beam |
 
-The RT3 - VDISORT difference falls by 11.7 per decade of `max_delta_tau`.
+The tests print the measured values and enforce the tolerances.  The RT3 - VDISORT difference must fall with `max_delta_tau`, as RT3's first-order doubling error does.

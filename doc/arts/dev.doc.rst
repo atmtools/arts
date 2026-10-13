@@ -50,6 +50,27 @@ absent from ARTS 3:
 Anything that exists in ARTS 3 belongs on neither page, however it was ported.
 When a change provides a listed capability, delete its entry in that change.
 
+Developer pages that cannot drift
+=================================
+
+No test reads the documentation, so anything a page copies from the code goes
+stale without anyone noticing.  A developer page describes the design: the
+paradigms, the conventions, and where to look.  The code is the reference for
+the details.
+
+* Do not copy signatures, structure fields, default values, argument lists or
+  enumerators into a page.  Describe what the interface holds, for example
+  what a problem description contains and what a result returns, and name the
+  header or Python module that documents it.
+* Do not quote measured values, such as the agreement with a reference, case
+  counts or timings.  State what is compared with what, and where the
+  reference comes from.  The tests enforce the tolerances and print the
+  measured values.
+* Do not paste examples that nothing runs.  Point to the tests that use the
+  interface: they run with every build and serve as the usage examples.
+* Conventions are the paradigm and belong on the page: Stokes bases, signs,
+  hemispheres, normalisations, units, and what each array index means.
+
 Examples folder
 ===============
 

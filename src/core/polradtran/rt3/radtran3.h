@@ -6,7 +6,7 @@
 #include "rt3_workdata.h"
 
 namespace polradtran::rt3 {
-/** RADTRAN of 3rdparty/polradtran/radtran3.f, ported to C++.
+/** RADTRAN of Evans' radtran3.f, ported to C++.
  *
  * The method is RADTRAN's, step by step, calling the same subroutines,
  * all ported: those of radscat3.f (radscat3.h), INITIAL_SOURCE and
