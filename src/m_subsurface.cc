@@ -40,9 +40,9 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
                                                       const SubsurfaceField&      subsurf_field_,
                                                       const JacobianTargets&      jac_targets,
                                                       const PropagationPathPoint& ray_point,
-                                                      const Index&                disort_quadrature_dimension,
-                                                      const Index&                disort_fourier_mode_dimension,
-                                                      const Index&                disort_legendre_polynomial_dimension,
+                                                      const Index&                quadrature_dimension,
+                                                      const Index&                fourier_mode_dimension,
+                                                      const Index&                legendre_polynomial_dimension,
                                                       const Agenda&               disort_settings_agenda,
                                                       const Agenda&         disort_settings_downwelling_wrapper_agenda,
                                                       const DescendingGrid& depth_profile) {
@@ -51,7 +51,7 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
   DisortSettings              disort_settings              = {};
   ArrayOfPropagationPathPoint ray_path                     = {};
   DisortRadiance              disort_spectral_rad_field    = {};
-  ZenGriddedField1            disort_quadrature            = {};
+  ZenGriddedField1            quadrature                   = {};
   Vector                      model_state_vec              = {};
   Vector                      model_state_vec_perturbation = {};
   StokvecVector               spectral_rad2                = {};
@@ -67,14 +67,14 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
                                        disort_settings,
                                        ray_path,
                                        disort_spectral_rad_field,
-                                       disort_quadrature,
+                                       quadrature,
                                        atm_field,
-                                       disort_fourier_mode_dimension,
-                                       disort_legendre_polynomial_dimension,
-                                       disort_quadrature_dimension,
                                        disort_settings_agenda,
                                        disort_settings_downwelling_wrapper_agenda,
+                                       fourier_mode_dimension,
                                        freq_grid,
+                                       legendre_polynomial_dimension,
+                                       quadrature_dimension,
                                        ray_point,
                                        subsurf_field,
                                        surf_field,
@@ -89,16 +89,16 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
 
   String error{};
 
-#pragma omp parallel for if (not arts_omp_in_parallel() and                                               \
-                                 static_cast<Size>(disort_quadrature_dimension) < model_state_vec.size()) \
-    firstprivate(model_state_vec,                                                                         \
-                     atm_field,                                                                           \
-                     surf_field,                                                                          \
-                     subsurf_field,                                                                       \
-                     disort_settings,                                                                     \
-                     ray_path,                                                                            \
-                     disort_spectral_rad_field,                                                           \
-                     disort_quadrature,                                                                   \
+#pragma omp parallel for if (not arts_omp_in_parallel() and                                        \
+                                 static_cast<Size>(quadrature_dimension) < model_state_vec.size()) \
+    firstprivate(model_state_vec,                                                                  \
+                     atm_field,                                                                    \
+                     surf_field,                                                                   \
+                     subsurf_field,                                                                \
+                     disort_settings,                                                              \
+                     ray_path,                                                                     \
+                     disort_spectral_rad_field,                                                    \
+                     quadrature,                                                                   \
                      spectral_rad2)
   for (Size i = 0; i < model_state_vec.size(); i++) {
     try {
@@ -116,14 +116,14 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
                                            disort_settings,
                                            ray_path,
                                            disort_spectral_rad_field,
-                                           disort_quadrature,
+                                           quadrature,
                                            atm_field,
-                                           disort_fourier_mode_dimension,
-                                           disort_legendre_polynomial_dimension,
-                                           disort_quadrature_dimension,
                                            disort_settings_agenda,
                                            disort_settings_downwelling_wrapper_agenda,
+                                           fourier_mode_dimension,
                                            freq_grid,
+                                           legendre_polynomial_dimension,
+                                           quadrature_dimension,
                                            ray_point,
                                            subsurf_field,
                                            surf_field,

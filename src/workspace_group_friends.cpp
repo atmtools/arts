@@ -480,6 +480,21 @@ Both the data and the grid may be named.  The grids are not sorted.
       .desc = "A bidirectional reflectance function\n",
   };
 
+  wsg_data["VDisortBDRF"] = {
+      .file = "vdisort_settings.h",
+      .desc = R"(A polarized bidirectional reflectance function of VDISORT, one Fourier mode.
+
+Its reflection kernels are Mueller matrices in VDISORT's combined cosine and
+sine representation, and it may have a specular part (an ideal Fresnel
+surface).
+)",
+  };
+
+  wsg_data["MatrixOfVDisortBDRF"] = {
+      .file = "vdisort_settings.h",
+      .desc = "A 2 dimensional array of *VDisortBDRF*\n",
+  };
+
   wsg_data["AbsorptionLookupTable"] = {
       .file = "lookup_map.h",
       .desc = R"(A table of lookup calculations.

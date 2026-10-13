@@ -11,7 +11,7 @@
 ////////////////////////////////////////////////////////////////////////
 
 void disort_spectral_rad_fieldCalc(DisortRadiance&       disort_spectral_rad_field,
-                                   ZenGriddedField1&     disort_quadrature,
+                                   ZenGriddedField1&     quadrature,
                                    const DisortSettings& disort_settings,
                                    const AziGrid&        phis) try {
   ARTS_TIME_REPORT
@@ -25,11 +25,11 @@ void disort_spectral_rad_fieldCalc(DisortRadiance&       disort_spectral_rad_fie
   Tensor3           tms(np, phis.size(), nquad);
 
   //! Supplementary outputs
-  disort_quadrature = dis.gridded_weights();
+  quadrature = dis.gridded_weights();
 
   //! Main output
   disort_spectral_rad_field.resize(
-      disort_settings.freq_grid, disort_settings.alt_grid, phis, ZenGrid{disort_quadrature.grid<0>()});
+      disort_settings.freq_grid, disort_settings.alt_grid, phis, ZenGrid{quadrature.grid<0>()});
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis, tms, ims)
@@ -50,12 +50,12 @@ void disort_spectral_rad_fieldCalc(DisortRadiance&       disort_spectral_rad_fie
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field, const DisortSettings& disort_settings) try {
+void disort_spectral_flux_fieldCalc(SpectralFluxField& spectral_flux_field, const DisortSettings& disort_settings) try {
   ARTS_TIME_REPORT
 
   const Index nv = disort_settings.frequency_count();
 
-  disort_spectral_flux_field.resize(disort_settings.freq_grid, disort_settings.alt_grid);
+  spectral_flux_field.resize(disort_settings.freq_grid, disort_settings.alt_grid);
 
   disort::main_data dis = disort_settings.init();
 
@@ -66,10 +66,10 @@ void disort_spectral_flux_fieldCalc(DisortFlux& disort_spectral_flux_field, cons
     try {
       disort_settings.set(dis, iv);
 
-      dis.gridded_flux(disort_spectral_flux_field.up[iv],
-                       disort_spectral_flux_field.down_diffuse[iv],
-                       disort_spectral_flux_field.down_direct[iv],
-                       disort_spectral_flux_field.dfdt[iv]);
+      dis.gridded_flux(spectral_flux_field.up[iv],
+                       spectral_flux_field.down_diffuse[iv],
+                       spectral_flux_field.down_direct[iv],
+                       spectral_flux_field.dfdt[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -85,7 +85,7 @@ ARTS_METHOD_ERROR_CATCH
 ////////////////////////////////////////////////////////////////////////
 
 void disort_spectral_rad_fieldCoupledCalc(DisortRadiance&       disort_spectral_rad_field,
-                                          ZenGriddedField1&     disort_quadrature,
+                                          ZenGriddedField1&     quadrature,
                                           const DisortSettings& atm_disort_settings,
                                           const DisortSettings& subsurf_disort_settings,
                                           const AziGrid&        phis,
@@ -104,14 +104,14 @@ void disort_spectral_rad_fieldCoupledCalc(DisortRadiance&       disort_spectral_
   Tensor3           tms(np, phis.size(), nquad);
 
   //! Supplementary outputs
-  disort_quadrature = dis_atm.gridded_weights();
+  quadrature = dis_atm.gridded_weights();
 
   //! Main outputs
   DisortRadiance disort_atm_spectral_rad_field, disort_subsurf_spectral_rad_field;
   disort_atm_spectral_rad_field.resize(
-      atm_disort_settings.freq_grid, atm_disort_settings.alt_grid, phis, disort_quadrature.grid<0>());
+      atm_disort_settings.freq_grid, atm_disort_settings.alt_grid, phis, quadrature.grid<0>());
   disort_subsurf_spectral_rad_field.resize(
-      subsurf_disort_settings.freq_grid, subsurf_disort_settings.alt_grid, phis, disort_quadrature.grid<0>());
+      subsurf_disort_settings.freq_grid, subsurf_disort_settings.alt_grid, phis, quadrature.grid<0>());
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis_atm, dis_subsurf, tms, ims)
@@ -140,7 +140,7 @@ void disort_spectral_rad_fieldCoupledCalc(DisortRadiance&       disort_spectral_
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_spectral_flux_fieldCoupledCalc(DisortFlux&           disort_spectral_flux_field,
+void disort_spectral_flux_fieldCoupledCalc(SpectralFluxField&    spectral_flux_field,
                                            const DisortSettings& atm_disort_settings,
                                            const DisortSettings& subsurf_disort_settings,
                                            const Numeric&        tolerance,
@@ -150,7 +150,7 @@ void disort_spectral_flux_fieldCoupledCalc(DisortFlux&           disort_spectral
 
   const Index nv = atm_disort_settings.frequency_count();
 
-  DisortFlux disort_atm_spectral_flux_field, disort_subsurf_spectral_flux_field;
+  SpectralFluxField disort_atm_spectral_flux_field, disort_subsurf_spectral_flux_field;
   disort_atm_spectral_flux_field.resize(atm_disort_settings.freq_grid, atm_disort_settings.alt_grid);
 
   disort_subsurf_spectral_flux_field.resize(subsurf_disort_settings.freq_grid, subsurf_disort_settings.alt_grid);
@@ -193,7 +193,7 @@ void disort_spectral_flux_fieldCoupledCalc(DisortFlux&           disort_spectral
 
   ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 
-  disort_spectral_flux_field = disort_atm_spectral_flux_field.combine(disort_subsurf_spectral_flux_field);
+  spectral_flux_field = disort_atm_spectral_flux_field.combine(disort_subsurf_spectral_flux_field);
 }
 ARTS_METHOD_ERROR_CATCH
 

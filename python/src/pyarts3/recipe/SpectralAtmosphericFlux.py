@@ -59,9 +59,9 @@ class SpectralAtmosphericFlux:
 
         self.ws = pyarts.Workspace()
 
-        self.ws.disort_quadrature_dimension = NQuad
-        self.ws.disort_fourier_mode_dimension = 1
-        self.ws.disort_legendre_polynomial_dimension = 1
+        self.ws.quadrature_dimension = NQuad
+        self.ws.fourier_mode_dimension = 1
+        self.ws.legendre_polynomial_dimension = 1
 
         self.ws.abs_speciesSet(species=species)
 
@@ -173,8 +173,8 @@ class SpectralAtmosphericFlux:
         # Shape is f x 3 x np, we want 3 x f x np
 
         return (
-            Flux(self.ws.disort_spectral_flux_field.up, self.ws.disort_spectral_flux_field.down_diffuse,
-                 self.ws.disort_spectral_flux_field.down_direct),
+            Flux(self.ws.spectral_flux_field.up, self.ws.spectral_flux_field.down_diffuse,
+                 self.ws.spectral_flux_field.down_direct),
             np.array(
                 [
                     0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])

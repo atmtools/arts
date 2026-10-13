@@ -139,7 +139,7 @@ def from_optical_depth_derivative(dfdt, extinction, density, heat_capacity):
 
 
 def from_disort(flux, extinction, density, heat_capacity, *, weights=None):
-    """Return lower-layer-boundary heating [K/s] from an ARTS ``DisortFlux``.
+    """Return lower-layer-boundary heating [K/s] from an ARTS ``SpectralFluxField``.
 
     ``extinction`` [1/m] broadcasts to ``flux.dfdt`` (frequency, layer),
     while density and heat capacity normally have shape (layer,).

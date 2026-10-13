@@ -72,9 +72,9 @@ dt = datetime.now()
 ws.disort_spectral_rad_fieldProfileCdisort(
     lon=lon,
     lat=lat,
-    disort_quadrature_dimension=N_quad,
-    disort_legendre_polynomial_dimension=1,
-    disort_fourier_mode_dimension=1,
+    quadrature_dimension=N_quad,
+    legendre_polynomial_dimension=1,
+    fourier_mode_dimension=1,
 )
 print("cdisort:   ", datetime.now() - dt)
 
@@ -85,9 +85,9 @@ dt = datetime.now()
 ws.disort_spectral_rad_fieldProfile(
     lon=lon,
     lat=lat,
-    disort_quadrature_dimension=N_quad,
-    disort_legendre_polynomial_dimension=1,
-    disort_fourier_mode_dimension=1,
+    quadrature_dimension=N_quad,
+    legendre_polynomial_dimension=1,
+    fourier_mode_dimension=1,
 )
 print("cppdisort: ", datetime.now() - dt)
 
@@ -108,7 +108,7 @@ imax = np.unravel_index(
 print(
     f"max location: {ws.ray_path[imax[1]].pos[0] / 1000:.1f} km, "
     f"{ws.freq_grid[imax[0]] / 1e9:.1f} GHz, "
-    f"{ws.disort_quadrature.grids[0][imax[-1]]:.2f}°"
+    f"{ws.quadrature.grids[0][imax[-1]]:.2f}°"
 )
 
 
@@ -128,7 +128,7 @@ def plot_field(fig, I, ax, title, reldiff=False):
     # =============================================================================
     cmap = cm["managua"]
     colors = cmap(np.linspace(0, 1, N_quad))
-    angles = ws.disort_quadrature.grids[0][:]
+    angles = ws.quadrature.grids[0][:]
     idx = np.argsort(angles)
     angles = angles[idx]
     I = I[:, :, idx] * 1.0

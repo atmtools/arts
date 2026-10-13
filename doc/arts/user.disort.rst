@@ -22,4 +22,26 @@ frequency integration, and pressure-based heating diagnostics.
   transformation twice, adding an extra factor of two, or mixing
   :math:`[I,Q,U,V]` with :math:`[I_v,I_h,U,V]` changes the physics.
 
+Workspace methods
+-----------------
+
+* **The same methods for both solvers.**  DISORT's workspace methods and
+  agendas have VDISORT counterparts named with ``vdisort`` in place of
+  ``disort``.  Those of VDISORT take and give Stokes vectors where DISORT's
+  take and give numbers.  Delta-M-plus scaling and the subsurface and
+  coupled calculations are DISORT's only, and Fresnel surfaces are VDISORT's
+  only.
+* **Shared variables and options.**  Both solvers use the same quadrature,
+  Legendre and Fourier dimensions, write the same quadrature and spectral
+  flux field, and take the same named setup options.  VDISORT refuses the
+  delta-M-plus scattering option.
+* **Directions are propagation directions.**  The radiance fields are
+  indexed by the direction in which the radiation propagates, as is the line
+  of sight of a ray path point: a zenith angle below 90 degrees is upwelling
+  radiation.  VDISORT's azimuth grid is the propagation azimuth too.
+* **The sun.**  The settings' solar zenith and azimuth angles are those of
+  the line of sight toward the sun.
+* **Surface emission.**  Surface emission by temperature is the Planck
+  function of the surface temperature, whatever the surface reflects.
+
 Implementation and validation details are in :doc:`dev.disort`.

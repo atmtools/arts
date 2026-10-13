@@ -65,15 +65,15 @@ Total extinction is required: the absorption fraction is already present in
 DFDT. Frequency-dependent extinction must be applied before integration::
 
     rate = heating.from_disort(
-        ws.disort_spectral_flux_field,
+        ws.spectral_flux_field,
         extinction, density, heat_capacity,
         weights=frequency_quadrature_weights)
 
 Omit ``weights`` for trapezoidal integration. Extinction broadcasts to
 (frequency, layer); density and heat capacity normally have shape (layer,).
-Workspace ``DisortFlux`` stores values at ``alt_grid[1:]``, the lower boundary
-of each layer, and uses optical properties of the layer immediately above
-that boundary. It omits the top boundary. It does not store layer averages
+Workspace ``SpectralFluxField`` stores values at ``alt_grid[1:]``, the lower
+boundary of each layer, and uses optical properties of the layer immediately
+above that boundary. It omits the top boundary. It does not store layer averages
 or layer-center values. Thermodynamic inputs must match the output locations.
 This local DFDT diagnostic differs from finite-differencing flux on pressure
 levels and need not produce identical numbers.

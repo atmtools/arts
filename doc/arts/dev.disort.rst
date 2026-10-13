@@ -260,4 +260,68 @@ the RT3 and RT4 builders and of the DISORT workspace methods:
 * The same directory runs VDISORT, RT3 and RT4 on one ARTS atmosphere
   (see :doc:`dev.rt3` and :doc:`dev.rt4`).
 
+The VDISORT workspace layer
+***************************
+
+VDISORT has DISORT's workspace layer, method for method.
+
+* What the two solvers share has one solver-neutral name: the quadrature,
+  Legendre and Fourier dimensions, the quadrature and the spectral flux
+  field with its group.  The named setup options are shared too, and a
+  solver refuses an option that it does not support.
+* The settings, the radiance field, the agendas and the methods are each
+  solver's own, with ``vdisort`` in place of ``disort`` in their names and
+  ``VDisort`` in place of ``Disort`` in the groups.
+* In ``src/workspace_methods.cpp`` and ``src/workspace_meta_methods.cpp``,
+  a lambda makes the VDISORT record from a DISORT record, and each DISORT
+  record that VDISORT shares is followed by that call.  A new DISORT method
+  gets its VDISORT counterpart by adding the call after it.
+* VDISORT also has Fresnel surface methods, which DISORT lacks.
+
+The settings and radiance types are in
+``src/core/disort-cpp/vdisort_settings.h``.  Their conventions:
+
+* Where DISORT has a number, VDISORT has a Stokes vector: the sun, the
+  boundary conditions, the source polynomial and the radiance field.  The
+  fluxes are those of I.
+* The settings hold each layer's scattering as the Legendre moments of the
+  six scattering-plane elements F11, F12, F22, F33, F34 and F44, normalised
+  so that the first moment of F11 is one.  The Fourier coefficients of the
+  phase matrices on the streams, and from the beam, are built from them per
+  frequency when the solver is set up.
+* The boundary conditions are in VDISORT's combined Fourier representation.
+  An azimuth-independent Stokes vector [I, Q, U, V] is [I, Q, 0, 0] in the
+  cosine system and [0, 0, U, V] in the sine system of mode 0.
+* The sources follow DISORT's methods.  The layers' source is linear in
+  optical depth, from the Planck function or the non-LTE source vector.
+  Surface emission by temperature sets the upward boundary to B(T), and the
+  surface reflection methods set the reflection independently of it.  The
+  sky is the cosmic background, nothing, or the Stokes vector that the
+  observer agenda gives at the top of the path.
+* The extinction is scalar, as in DISORT, so a polarized gas propagation
+  matrix is refused.
+* The radiance field's zenith and azimuth grids are those of the propagation
+  direction, as is the line of sight of a ray path point.  ARTS's azimuth,
+  clockwise seen from above, is VDISORT's ``phi = -aa``.  The settings' solar
+  zenith and azimuth are those of the line of sight toward the sun, so the
+  beam propagates at the solar azimuth plus 180 degrees.
+* DISORT methods without a VDISORT core counterpart are not mirrored:
+  delta-M-plus scaling, the subsurface and coupled calculations, and cDISORT.
+
+**Tests:** ``tests/core/disort/vdisort-workspace.rt3.py`` checks the layer
+against references derived outside VDISORT:
+
+* the exact solution of the transfer equation through clear-sky layers whose
+  Planck function is linear in optical depth, below a polarized sky and with
+  an empty layer;
+* the first-order closed form of single scattering of the sun by an
+  optically thin Henyey-Greenstein layer, which pins the field's grids to
+  propagation directions and the beam to the sun's position;
+* RT3 on the same path, through its path builder, for thermal emission and
+  for the sun, with polarizing Rayleigh and Mie scattering in all four Stokes
+  components.
+
+The sign of U and V relative to ARTS's sensor polarization convention is not
+tested.
+
 Caller conventions are described in :doc:`user.disort`.

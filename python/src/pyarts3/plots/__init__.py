@@ -37,7 +37,6 @@ from . import AtmField
 from . import AziGrid
 from . import CIARecord
 from . import CIARecords
-from . import DisortFlux
 from . import DisortRadiance
 from . import GeodeticField2
 from . import GriddedField2
@@ -52,12 +51,14 @@ from . import RT3Result
 from . import RT4Result
 from . import SortedGriddedField1
 from . import SortedGriddedField2
+from . import SpectralFluxField
 from . import StokvecMatrix
 from . import StokvecVector
 from . import SubsurfaceField
 from . import Sun
 from . import SurfaceField
 from . import SensorObsel
+from . import VDisortRadiance
 from . import Vector
 from . import ZenGrid
 from . import cppvdisort

@@ -968,13 +968,13 @@ void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             d
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emission_type& layer_emission_setting,
-                                   const disort_settings_agenda_setup_scattering_type&     scattering_setting,
-                                   const disort_settings_agenda_setup_space_type&          space_setting,
-                                   const disort_settings_agenda_setup_sun_type&            sun_setting,
-                                   const disort_settings_agenda_setup_surface_type&        surf_setting,
-                                   const Vector&                                           surf_lambertian_value,
-                                   const Numeric&                                          min_optical_depth) {
+Agenda disort_settings_agendaSetup(const settings_agenda_setup_layer_emission_type& layer_emission_setting,
+                                   const settings_agenda_setup_scattering_type&     scattering_setting,
+                                   const settings_agenda_setup_space_type&          space_setting,
+                                   const settings_agenda_setup_sun_type&            sun_setting,
+                                   const settings_agenda_setup_surface_type&        surf_setting,
+                                   const Vector&                                    surf_lambertian_value,
+                                   const Numeric&                                   min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -989,7 +989,7 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
   agenda.add("disort_settingsInit");
 
   switch (scattering_setting) {
-    using enum disort_settings_agenda_setup_scattering_type;
+    using enum settings_agenda_setup_scattering_type;
     case ScatteringSpecies:
       agenda.add("legendre_degreeFromDisortSettings");
       agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
@@ -1020,20 +1020,20 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
 
   // Since we have the optical thickness, we can set the thermal emission
   switch (layer_emission_setting) {
-    using enum disort_settings_agenda_setup_layer_emission_type;
+    using enum settings_agenda_setup_layer_emission_type;
     case LinearInTau:       agenda.add("disort_settingsLayerThermalEmissionLinearInTau"); break;
     case LinearInTauNonLTE: agenda.add("disort_settingsLayerNonThermalEmissionLinearInTau"); break;
     case None:              agenda.add("disort_settingsNoLayerThermalEmission"); break;
   }
 
   switch (space_setting) {
-    using enum disort_settings_agenda_setup_space_type;
+    using enum settings_agenda_setup_space_type;
     case None:                               agenda.add("disort_settingsNoSpaceEmission"); break;
     case CosmicMicrowaveBackgroundRadiation: agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation"); break;
   }
 
   switch (surf_setting) {
-    using enum disort_settings_agenda_setup_surface_type;
+    using enum settings_agenda_setup_surface_type;
     case None:
       agenda.add("disort_settingsNoSurfaceEmission");
       agenda.add("disort_settingsNoSurfaceScattering");
@@ -1055,7 +1055,7 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
   }
 
   switch (sun_setting) {
-    using enum disort_settings_agenda_setup_sun_type;
+    using enum settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
       agenda.add("ray_pointHighestFromPath");
@@ -1066,8 +1066,8 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
   return std::move(agenda).finalize(false);
 }
 
-Agenda disort_settings_agendaSubsurfaceSetup(const disort_settings_agenda_setup_sun_type& sun_setting,
-                                             const Numeric&                               min_optical_depth) {
+Agenda disort_settings_agendaSubsurfaceSetup(const settings_agenda_setup_sun_type& sun_setting,
+                                             const Numeric&                        min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -1085,7 +1085,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(const disort_settings_agenda_setup_
   agenda.add("disort_settingsNoLegendre");
 
   switch (sun_setting) {
-    using enum disort_settings_agenda_setup_sun_type;
+    using enum settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
       agenda.add("ray_pointHighestFromPath");
@@ -1108,11 +1108,11 @@ void disort_settings_agendaSetup(Agenda&        disort_settings_agenda,
   ARTS_TIME_REPORT
 
   disort_settings_agenda =
-      disort_settings_agendaSetup(to<disort_settings_agenda_setup_layer_emission_type>(layer_emission_setting),
-                                  to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
-                                  to<disort_settings_agenda_setup_space_type>(space_setting),
-                                  to<disort_settings_agenda_setup_sun_type>(sun_setting),
-                                  to<disort_settings_agenda_setup_surface_type>(surf_setting),
+      disort_settings_agendaSetup(to<settings_agenda_setup_layer_emission_type>(layer_emission_setting),
+                                  to<settings_agenda_setup_scattering_type>(scattering_setting),
+                                  to<settings_agenda_setup_space_type>(space_setting),
+                                  to<settings_agenda_setup_sun_type>(sun_setting),
+                                  to<settings_agenda_setup_surface_type>(surf_setting),
                                   surf_lambertian_value,
                                   min_optical_depth);
 }
@@ -1123,7 +1123,7 @@ void disort_settings_agendaSubsurfaceSetup(Agenda&        disort_settings_agenda
   ARTS_TIME_REPORT
 
   disort_settings_agenda =
-      disort_settings_agendaSubsurfaceSetup(to<disort_settings_agenda_setup_sun_type>(sun_setting), min_optical_depth);
+      disort_settings_agendaSubsurfaceSetup(to<settings_agenda_setup_sun_type>(sun_setting), min_optical_depth);
 }
 
 void CoupledAtmosphereAndSubsurfaceDisortSettings(const Workspace&     ws,
@@ -1136,9 +1136,9 @@ void CoupledAtmosphereAndSubsurfaceDisortSettings(const Workspace&     ws,
                                                   const AscendingGrid& alt_grid,
                                                   const Numeric&       lat,
                                                   const Numeric&       lon,
-                                                  const Index&         disort_quadrature_dimension,
-                                                  const Index&         disort_fourier_mode_dimension,
-                                                  const Index&         disort_legendre_polynomial_dimension) try {
+                                                  const Index&         quadrature_dimension,
+                                                  const Index&         fourier_mode_dimension,
+                                                  const Index&         legendre_polynomial_dimension) try {
   ARTS_TIME_REPORT
 
   const Numeric surf_elev = surf_field.single_value(SurfaceKey::h, lat, lon);
@@ -1187,9 +1187,9 @@ alt_grid:          {:B,}
                                           subsurf_disort_settings,
                                           freq_grid,
                                           subsurf_ray_path,
-                                          disort_quadrature_dimension,
-                                          disort_fourier_mode_dimension,
-                                          disort_legendre_polynomial_dimension,
+                                          quadrature_dimension,
+                                          fourier_mode_dimension,
+                                          legendre_polynomial_dimension,
                                           subsurf_disort_settings_agenda);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in subsurface disort settings agenda:\n" + std::string(e.what()));
@@ -1200,9 +1200,9 @@ alt_grid:          {:B,}
                                       atm_disort_settings,
                                       freq_grid,
                                       atm_ray_path,
-                                      disort_quadrature_dimension,
-                                      disort_fourier_mode_dimension,
-                                      disort_legendre_polynomial_dimension,
+                                      quadrature_dimension,
+                                      fourier_mode_dimension,
+                                      legendre_polynomial_dimension,
                                       atm_disort_settings_agenda);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in atmospheric disort settings agenda:\n" + std::string(e.what()));

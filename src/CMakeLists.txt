@@ -132,6 +132,8 @@ add_library(artsworkspace STATIC
   m_xml.cc
   m_disort.cc
   m_disort_settings.cc
+  m_vdisort.cc
+  m_vdisort_settings.cc
   m_frequency_grid.cc
   m_fwd.cc
   m_predefined_absorption_models.cc

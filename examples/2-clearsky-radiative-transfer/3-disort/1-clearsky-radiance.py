@@ -44,9 +44,9 @@ ws.disort_settings_agendaSetup()
 ws.disort_spectral_rad_fieldProfile(
     lon=lon,
     lat=lat,
-    disort_quadrature_dimension=NQuad,
-    disort_legendre_polynomial_dimension=1,
-    disort_fourier_mode_dimension=1,
+    quadrature_dimension=NQuad,
+    legendre_polynomial_dimension=1,
+    fourier_mode_dimension=1,
 )
 
 # %% Equivalent ARTS calculations

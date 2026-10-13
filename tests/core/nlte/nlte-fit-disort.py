@@ -48,8 +48,8 @@ ws.ray_pathSetGeometricExtremes()
 ws.ray_pathAddGeometricGridCrossings()
 ws.ray_path.pop(0)
 
-ws.disort_quadrature_dimension = 40
-ws.disort_fourier_mode_dimension = 1
-ws.disort_legendre_polynomial_dimension = 1
+ws.quadrature_dimension = 40
+ws.fourier_mode_dimension = 1
+ws.legendre_polynomial_dimension = 1
 ws.disort_settings_agendaSetup()
 ws.disort_settings_agendaExecute()

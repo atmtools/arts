@@ -48,9 +48,9 @@ ws.oemAddSubsurface(target="t", matrix=np.diag(1e-1 * np.ones_like(z)))
 pos = [0, 0, 0]
 los = [120.0, 0.0]
 
-ws.disort_fourier_mode_dimension = 1
-ws.disort_legendre_polynomial_dimension = 1
-ws.disort_quadrature_dimension = 10
+ws.fourier_mode_dimension = 1
+ws.legendre_polynomial_dimension = 1
+ws.quadrature_dimension = 10
 
 ws.measurement_sensorSimple(pos=pos, los=los, pol="RC")
 

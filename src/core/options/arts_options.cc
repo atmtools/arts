@@ -232,9 +232,9 @@ compiled into ARTS and require no external sensor-response data files.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "disort_settings_agenda_setup_layer_emission_type",
+      .name = "settings_agenda_setup_layer_emission_type",
       .desc =
-          R"(For atmospheric emission settings with *disort_settings_agendaSetup*.
+          R"(For atmospheric emission settings with *disort_settings_agendaSetup* and *vdisort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No atmospheric emission"},
                           Value{"LinearInTau", "Layer emission is linear in optical depth"},
@@ -243,18 +243,18 @@ compiled into ARTS and require no external sensor-response data files.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "disort_settings_agenda_setup_sun_type",
+      .name = "settings_agenda_setup_sun_type",
       .desc =
-          R"(For direct radiation settings with *disort_settings_agendaSetup*.
+          R"(For direct radiation settings with *disort_settings_agendaSetup* and *vdisort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No direct radiation"},
                           Value{"Sun", "Add a *Sun* object as the direct radiation source"}},
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "disort_settings_agenda_setup_space_type",
+      .name = "settings_agenda_setup_space_type",
       .desc =
-          R"(For space boundary settings with *disort_settings_agendaSetup*.
+          R"(For space boundary settings with *disort_settings_agendaSetup* and *vdisort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No isotropic emission from space"},
                           Value{"CosmicMicrowaveBackgroundRadiation",
@@ -262,20 +262,20 @@ compiled into ARTS and require no external sensor-response data files.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "disort_settings_agenda_setup_scattering_type",
+      .name = "settings_agenda_setup_scattering_type",
       .desc =
-          R"(For atmospheric scattering settings with *disort_settings_agendaSetup*.
+          R"(For atmospheric scattering settings with *disort_settings_agendaSetup* and *vdisort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No atmospheric scattering"},
                           Value{"ScatteringSpecies", "Use *ArrayOfScatteringSpecies* for scattering"},
                           Value{"ScatteringSpeciesDeltaMPlus",
-                                "Use *ArrayOfScatteringSpecies* with spectral delta-M-plus scaling"}},
+                                "Use *ArrayOfScatteringSpecies* with spectral delta-M-plus scaling (DISORT only)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "disort_settings_agenda_setup_surface_type",
+      .name = "settings_agenda_setup_surface_type",
       .desc =
-          R"(For surface boundary settings with *disort_settings_agendaSetup*.
+          R"(For surface boundary settings with *disort_settings_agendaSetup* and *vdisort_settings_agendaSetup*.
 )",
       .values_and_desc = {Value{"None", "No surface emission or scattering"},
                           Value{"Thermal", "Thermal emission, no scattering"},

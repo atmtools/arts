@@ -3,6 +3,8 @@
 #include <arts_constants.h>
 #include <arts_conversions.h>
 #include <debug.h>
+#include <legendre.h>
+#include <phase_matrix.h>
 #include <physics_funcs.h>
 
 #include <algorithm>
@@ -135,6 +137,65 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
       for (Index i = 0; i < ni; i++) {
         out.cosine[m, o, i] = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 0]};
         out.sine[m, o, i]   = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 1]};
+      }
+    }
+  }
+  return out;
+}
+
+fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
+                                       const Vector&          mu_out,
+                                       const Vector&          mu_in,
+                                       Index                  nfourier) {
+  const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
+  const Index nleg = moments.nrows();
+  check_cosines(mu_out, "mu_out");
+  check_cosines(mu_in, "mu_in");
+  ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
+  ARTS_USER_ERROR_IF(nleg < 1 or moments.ncols() != 6,
+                     "The Legendre moments must be [nleg >= 1, 6] (F11, F12, F22, F33, F34, F44), got {:B,}",
+                     moments.shape());
+  ARTS_USER_ERROR_IF(no == 0 or ni == 0, "The Fourier coefficients need at least one mu_out and one mu_in");
+
+  fourier_optics out{.extinction = 0.0,
+                     .scattering = 0.0,
+                     .cosine     = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0}),
+                     .sine       = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
+
+  const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
+  const auto [za_scat, sca] = zenith_angle_grid(mu_out);
+
+  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), element by element; its phase integral is 4 pi
+  Vector scaled(nleg);
+  for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
+  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](Numeric                     theta,
+                                                                          matpack::data_t<Numeric, 3>& F) mutable {
+    Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
+    for (Index e = 0; e < 6; e++) {
+      Numeric value = 0.0;
+      for (Index l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
+      F[0, 0, e] = value;
+    }
+  };
+
+  const auto one   = std::make_shared<const Vector>(Vector{0.0});
+  const auto modes = scattering::tro_lab_frame_fourier_modes<Numeric>(
+      one,
+      one,
+      std::make_shared<const Vector>(za_inc),
+      std::make_shared<const scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)),
+      nfourier - 1,
+      Matrix(1, 1, 4.0 * Constant::pi),
+      scattering_matrix);
+
+  // VDISORT's coefficients are (1 / 2 pi) int P cos(m phi) dphi: C_0 and half of C_m and S_m for m > 0, as in
+  // scattering_optics
+  for (Index m = 0; m < nfourier; m++) {
+    const Numeric scale = m == 0 ? 1.0 : 0.5;
+    for (Index o = 0; o < no; o++) {
+      for (Index i = 0; i < ni; i++) {
+        out.cosine[m, o, i] = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 0]};
+        out.sine[m, o, i]   = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 1]};
       }
     }
   }

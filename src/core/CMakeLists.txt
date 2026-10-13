@@ -68,6 +68,7 @@ target_link_libraries(artscore INTERFACE
   binio
   coretypes
   disort-cpp
+  vdisort-cpp
   fwd
   jacobian
   lbl

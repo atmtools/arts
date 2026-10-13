@@ -28,6 +28,7 @@ std::unordered_map<std::string, WsvShortForm> workspace_variables_shortnames_imp
   shortnames["pos"]     = {.desc = "Position"};
   shortnames["los"]     = {.desc = "Line-of-sight"};
   shortnames["disort"]  = {.desc = "Discrete ordinate radiative transfer"};
+  shortnames["vdisort"] = {.desc = "Polarized (vector) discrete ordinate radiative transfer"};
   shortnames["covmat"]  = {.desc = "Covariance matrices"};
 
   shortnames["alt"] = {

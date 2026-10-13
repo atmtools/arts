@@ -55,9 +55,9 @@ def test_delta_m_plus_solver_initialization():
     ws.disort_settingsInit(
         freq_grid=[1.0],
         ray_path=[upper, lower],
-        disort_quadrature_dimension=2,
-        disort_legendre_polynomial_dimension=2,
-        disort_fourier_mode_dimension=1,
+        quadrature_dimension=2,
+        legendre_polynomial_dimension=2,
+        fourier_mode_dimension=1,
     )
     ws.disort_settingsNoSun()
     ws.disort_settings.optical_thicknesses = [[0.2]]
@@ -69,7 +69,7 @@ def test_delta_m_plus_solver_initialization():
     assert np.shape(ws.disort_settings.legendre_coefficients) == (1, 1, 4)
 
     ws.disort_spectral_flux_fieldCalc()
-    flux = ws.disort_spectral_flux_field
+    flux = ws.spectral_flux_field
     assert np.all(np.isfinite(np.asarray(flux.up)))
     assert np.all(np.isfinite(np.asarray(flux.down_diffuse)))
     assert np.all(np.isfinite(np.asarray(flux.down_direct)))

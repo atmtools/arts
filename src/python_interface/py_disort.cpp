@@ -10,6 +10,7 @@
 #include <vdisort-brdf.h>
 #include <vdisort.h>
 #include <vdisort_arts.h>
+#include <vdisort_settings.h>
 
 #include <concepts>
 #include <optional>
@@ -20,8 +21,6 @@
 #include "hpy_arts.h"
 #include "operators.h"
 #include "sorting.h"
-
-NB_MAKE_OPAQUE(std::vector<vdisort::BDRF>);
 
 namespace Python {
 using DisortBDRFOperator = CustomOperator<Matrix, const Vector&, const Vector&>;
@@ -691,23 +690,24 @@ supplied as ``[B, 0, 0, 0]``.
   disort_settings.def_rw(
       "downward_boundary_condition", &DisortSettings::downward_boundary_condition, ".. :class:`~pyarts3.arts.Tensor3`");
 
-  py::class_<DisortFlux> df(m, "DisortFlux");
+  py::class_<SpectralFluxField> df(m, "SpectralFluxField");
   generic_interface(df);
-  df.def_rw(
-      "freq_grid", &DisortFlux::freq_grid, "Frequency grid of the fluxes\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  df.def_rw("freq_grid",
+            &SpectralFluxField::freq_grid,
+            "Frequency grid of the fluxes\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
   df.def_rw("alt_grid",
-            &DisortFlux::alt_grid,
+            &SpectralFluxField::alt_grid,
             "Altitude grid of the fluxes (level values)\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
-  df.def_rw("up", &DisortFlux::up, "Upwelling flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
+  df.def_rw("up", &SpectralFluxField::up, "Upwelling flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw("down_diffuse",
-            &DisortFlux::down_diffuse,
+            &SpectralFluxField::down_diffuse,
             "Downward diffuse flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw("down_direct",
-            &DisortFlux::down_direct,
+            &SpectralFluxField::down_direct,
             "Downward direct flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw(
       "dfdt",
-      &DisortFlux::dfdt,
+      &SpectralFluxField::dfdt,
       "Derivative of net upward flux with respect to downward optical depth [W/(m^2 Hz)], "
       "at each layer's lower boundary (alt_grid[1:]), using that layer's optical properties. "
       "Not a temperature tendency. See pyarts3.recipe.heating_rates.from_disort.\n\n.. :class:`~pyarts3.arts.Matrix`");
@@ -723,6 +723,60 @@ supplied as ``[B, 0, 0, 0]``.
   dr.def_rw("zen_grid", &DisortRadiance::zen_grid, "Zenith grid\n\n.. :class:`~pyarts3.arts.ZenGrid`");
   dr.def_rw("azi_grid", &DisortRadiance::azi_grid, "Azimuth grid\n\n.. :class:`~pyarts3.arts.AziGrid`");
   dr.def_rw("data", &DisortRadiance::data, "Radiance field (layer values)\n\n.. :class:`~pyarts3.arts.Tensor4`");
+
+  // VDISORT workspace groups (vdisort_settings.h), the counterparts of the Disort groups above
+  py::class_<MatrixOfVDisortBDRF> mat_vdisbdrf(m, "MatrixOfVDisortBDRF");
+  generic_interface(mat_vdisbdrf);
+
+  py::class_<VDisortSettings> vdisort_settings(m, "VDisortSettings");
+  generic_interface(vdisort_settings);
+  vdisort_settings.def_rw(
+      "quadrature_dimension", &VDisortSettings::quadrature_dimension, ".. :class:`~pyarts3.arts.Index`");
+  vdisort_settings.def_rw("legendre_polynomial_dimension",
+                          &VDisortSettings::legendre_polynomial_dimension,
+                          ".. :class:`~pyarts3.arts.Index`");
+  vdisort_settings.def_rw(
+      "fourier_mode_dimension", &VDisortSettings::fourier_mode_dimension, ".. :class:`~pyarts3.arts.Index`");
+  vdisort_settings.def_rw("freq_grid", &VDisortSettings::freq_grid, ".. :class:`~pyarts3.arts.AscendingGrid`");
+  vdisort_settings.def_rw("alt_grid", &VDisortSettings::alt_grid, ".. :class:`~pyarts3.arts.DescendingGrid`");
+  vdisort_settings.def_rw(
+      "solar_azimuth_angle", &VDisortSettings::solar_azimuth_angle, ".. :class:`~pyarts3.arts.Vector`");
+  vdisort_settings.def_rw(
+      "solar_zenith_angle", &VDisortSettings::solar_zenith_angle, ".. :class:`~pyarts3.arts.Vector`");
+  vdisort_settings.def_rw(
+      "solar_source", &VDisortSettings::solar_source, ".. :class:`~pyarts3.arts.StokvecVector`");
+  vdisort_settings.def_rw("bidirectional_reflectance_distribution_functions",
+                          &VDisortSettings::bidirectional_reflectance_distribution_functions,
+                          ".. :class:`~pyarts3.arts.MatrixOfVDisortBDRF`");
+  vdisort_settings.def_rw(
+      "optical_thicknesses", &VDisortSettings::optical_thicknesses, ".. :class:`~pyarts3.arts.Matrix`");
+  vdisort_settings.def_rw(
+      "single_scattering_albedo", &VDisortSettings::single_scattering_albedo, ".. :class:`~pyarts3.arts.Matrix`");
+  vdisort_settings.def_rw(
+      "source_polynomial", &VDisortSettings::source_polynomial, ".. :class:`~pyarts3.arts.StokvecTensor3`");
+  vdisort_settings.def_rw("legendre_coefficients",
+                          &VDisortSettings::legendre_coefficients,
+                          "Legendre moments of [F11, F12, F22, F33, F34, F44]\n\n.. :class:`~pyarts3.arts.Tensor4`");
+  vdisort_settings.def_rw("upward_boundary_condition",
+                          &VDisortSettings::upward_boundary_condition,
+                          ".. :class:`~pyarts3.arts.StokvecTensor4`");
+  vdisort_settings.def_rw("downward_boundary_condition",
+                          &VDisortSettings::downward_boundary_condition,
+                          ".. :class:`~pyarts3.arts.StokvecTensor4`");
+
+  py::class_<VDisortRadiance> vdr(m, "VDisortRadiance");
+  generic_interface(vdr);
+  vdr.def_rw("freq_grid",
+             &VDisortRadiance::freq_grid,
+             "Frequency grid of the radiances\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  vdr.def_rw("alt_grid",
+             &VDisortRadiance::alt_grid,
+             "Altitude grid of the radiances (level values)\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
+  vdr.def_rw("zen_grid", &VDisortRadiance::zen_grid, "Zenith grid\n\n.. :class:`~pyarts3.arts.ZenGrid`");
+  vdr.def_rw("azi_grid", &VDisortRadiance::azi_grid, "Azimuth grid\n\n.. :class:`~pyarts3.arts.AziGrid`");
+  vdr.def_rw("data",
+             &VDisortRadiance::data,
+             "Stokes radiance field (layer values)\n\n.. :class:`~pyarts3.arts.StokvecTensor4`");
 
   // VDISORT PYTHON INTERFACE BEGIN: inputs from ARTS-native data (vdisort_arts.h)
   py::class_<vdisort::fourier_optics> fo(vdisort_nm, "FourierOptics");

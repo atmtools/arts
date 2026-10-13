@@ -377,7 +377,7 @@ Mapping to VDISORT inputs
 Feed both solvers the same layer optics, so that a comparison tests the
 solvers and not two preprocessing chains.  The comparison test in
 ``src/core/disort-cpp/test/vdisort`` implements this mapping, and it is the
-reference for the code.  VDISORT has no workspace layer either.
+reference for the code.
 
 VDISORT can represent only a subset of RT4's inputs:
 

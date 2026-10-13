@@ -45,15 +45,15 @@ ws.disort_settings_agendaSetup()
 ws.ray_pathGeometricDownlooking(lon=lon, lat=lat, max_stepsize=40_000)
 
 ws.disort_spectral_flux_fieldFromAgenda(
-    disort_quadrature_dimension=NQuad,
-    disort_legendre_polynomial_dimension=1,
-    disort_fourier_mode_dimension=1,
+    quadrature_dimension=NQuad,
+    legendre_polynomial_dimension=1,
+    fourier_mode_dimension=1,
 )
 
 assert np.allclose(
     np.append(
-        ws.disort_spectral_flux_field.up,
-        ws.disort_spectral_flux_field.down_diffuse,
+        ws.spectral_flux_field.up,
+        ws.spectral_flux_field.down_diffuse,
         axis=1,
     ).flatten()
     / np.array([2.65924817e-15, 2.66163119e-15, 2.75440515e-15, 9.50591876e-18,
@@ -68,7 +68,7 @@ assert np.allclose(
 ), "Mismatch from historical Disort spectral fluxes"
 
 fig = plt.figure(figsize=(16, 5))
-fig, ax = pyarts.plot(ws.disort_spectral_flux_field, fig=fig, levels=50)
+fig, ax = pyarts.plot(ws.spectral_flux_field, fig=fig, levels=50)
 fig.suptitle("Disort clearsky spectral fluxes")
 [a.set_ylabel("Altitude [km]") for a in ax]
 [a.set_xlabel("Frequency [GHz]") for a in ax]

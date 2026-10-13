@@ -23,7 +23,7 @@ import pyarts3 as pa
 
 A = pa.arts
 FREQ = 89e9
-L = 16  # disort_legendre_polynomial_dimension
+L = 16  # legendre_polynomial_dimension
 
 drops = A.ScatteringSpeciesProperty("drops", A.ParticulateProperty.NumberDensity)
 habit = A.ParticleHabit.liquid_sphere([280.0], [FREQ], [1.5e-3], A.IrregularZenithAngleGrid(np.linspace(0, 180, 1801)))
@@ -77,9 +77,9 @@ ws = pa.Workspace()
 ws.disort_settingsInit(
     freq_grid=[FREQ],
     ray_path=[upper, lower],
-    disort_quadrature_dimension=4,
-    disort_legendre_polynomial_dimension=L,
-    disort_fourier_mode_dimension=1,
+    quadrature_dimension=4,
+    legendre_polynomial_dimension=L,
+    fourier_mode_dimension=1,
 )
 ws.disort_settingsLegendreCoefficientsFromPath(
     spectral_phamat_spectral_path=[series(mix, point)[2] for point in levels]

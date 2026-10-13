@@ -30,9 +30,9 @@ ws.subsurf_field["t"].alt_upp = "Linear"
 
 NQUAD = 40
 ws.disort_spectral_rad_fieldDepthProfile(
-    disort_fourier_mode_dimension=1,
-    disort_legendre_polynomial_dimension=1,
-    disort_quadrature_dimension=NQUAD,
+    fourier_mode_dimension=1,
+    legendre_polynomial_dimension=1,
+    quadrature_dimension=NQUAD,
     depth_profile=z
 )
 

@@ -95,6 +95,26 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  Index                           nfourier,
                                  Numeric                         normalisation_tolerance);
 
+/** The normalised phase-matrix Fourier coefficients of randomly oriented particles from Legendre moments.
+ *
+ * moments: [nleg, 6], the Legendre moments beta_l of the scattering-plane
+ *   matrix elements [F11, F12, F22, F33, F34, F44] (rtepack's compact order),
+ *   P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), with the F11 moment of
+ *   degree 0 equal to 1, so that P is normalised to 1 over 4 pi.  These are
+ *   the moments DISORT takes for F11 (VDisortSettings, DisortSettings).
+ * mu_out, mu_in: signed direction cosines (> 0 upward), as for
+ *   scattering_optics.
+ *
+ * Returns the ordinary Fourier coefficients C^m and S^m of the
+ * laboratory-frame phase matrix in the basis of scattering_optics, made by
+ * the same azimuthal integration (scattering::tro_lab_frame_fourier_modes);
+ * extinction and scattering are 0.
+ */
+fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
+                                       const Vector&          mu_out,
+                                       const Vector&          mu_in,
+                                       Index                  nfourier);
+
 //! A depolarizing Lambertian surface: vdisort::brdf::lambertian_fourier_modes, emission [(1 - A) B, 0, 0, 0]
 struct lambertian_surface {
   Numeric albedo{0.0};

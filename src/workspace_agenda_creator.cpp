@@ -227,6 +227,20 @@ Agenda get_disort_settings_downwelling_wrapper_agenda(const std::string_view opt
   return std::move(agenda).finalize(true);
 }
 
+Agenda get_vdisort_settings_downwelling_wrapper_agenda(const std::string_view option) {
+  AgendaCreator agenda("vdisort_settings_downwelling_wrapper_agenda");
+
+  using enum vdisort_settings_downwelling_wrapper_agendaPredefined;
+  switch (to<vdisort_settings_downwelling_wrapper_agendaPredefined>(option)) {
+    case Standard:
+      agenda.add("vdisort_settings_agendaExecute");
+      agenda.add("vdisort_settingsDownwellingObserver");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
 Agenda get_single_rad_space_agenda(const std::string_view option) {
   AgendaCreator agenda("single_rad_space_agenda");
 
