@@ -383,23 +383,45 @@ endif (WERROR)
 ########### Address sanitizer ##########
 set (ASAN_PRELOAD_ENV "")
 if (ENABLE_ASAN)
-  if (NOT CMAKE_CXX_COMPILER_ID MATCHES Clang)
-    message(FATAL_ERROR "Address sanitizer is only supported with clang")
-  endif()
-  set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-  if (APPLE)
-    execute_process(
-      COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan_osx_dynamic.dylib
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
-    set(ASAN_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB};")
-  elseif (UNIX)
-    execute_process(
-      COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan-x86_64.so
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
-    set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
+  if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    # MSVC AddressSanitizer (x86/x64, Windows 10+); the runtime is linked
+    # automatically and loaded from clang_rt.asan_dynamic-<arch>.dll at runtime
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /fsanitize=address")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address")
+    # /fsanitize=address is incompatible with edit-and-continue (/ZI) and /RTC
+    set (CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "ProgramDatabase")
+    string (REPLACE "/RTC1" "" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+    string (REPLACE "/RTC1" "" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    # The ASan runtime DLL must be found at load time. Windows executables search
+    # PATH, but Python's secure DLL search (3.8+) does not, so locate it here and
+    # copy it next to the pyarts extension module (src/python_interface).
+    get_filename_component (_msvc_bin_dir "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set (ARTS_ASAN_RUNTIME_DLL "${_msvc_bin_dir}/clang_rt.asan_dynamic-x86_64.dll")
+    else ()
+      set (ARTS_ASAN_RUNTIME_DLL "${_msvc_bin_dir}/clang_rt.asan_dynamic-i386.dll")
+    endif ()
+    if (NOT EXISTS "${ARTS_ASAN_RUNTIME_DLL}")
+      message (WARNING "MSVC AddressSanitizer runtime not found at ${ARTS_ASAN_RUNTIME_DLL}")
+    endif ()
+  elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+    if (APPLE)
+      execute_process(
+        COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan_osx_dynamic.dylib
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
+      set(ASAN_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB};")
+    elseif (UNIX)
+      execute_process(
+        COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan-x86_64.so
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
+      set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
+    endif()
+  else()
+    message(FATAL_ERROR "Address sanitizer is only supported with Clang or MSVC")
   endif()
   set(ENABLE_PYARTS_STUBS off)
 endif()
@@ -553,12 +575,15 @@ endif ()
 
 if (ENABLE_ASAN)
   message(STATUS "!!! Address sanitizer is enabled")
-  message(STATUS "!!! When you manually execute ARTS python scripts, you need to prepend the following to the command line:")
-  if (APPLE)
-    message(STATUS "!!! DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB} python ...")
-  elseif (UNIX)
-    message(STATUS "!!! LD_PRELOAD=${ASAN_PRELOAD_LIB} python ...")
+  if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    message(STATUS "!!! Make sure clang_rt.asan_dynamic-x86_64.dll is on PATH when you run ARTS,")
+    message(STATUS "!!! for example by running from a Visual Studio Developer Command Prompt")
   else()
-    message(FATAL_ERROR "Address sanitizer is not supported on this platform")
+    message(STATUS "!!! When you manually execute ARTS python scripts, you need to prepend the following to the command line:")
+    if (APPLE)
+      message(STATUS "!!! DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB} python ...")
+    elseif (UNIX)
+      message(STATUS "!!! LD_PRELOAD=${ASAN_PRELOAD_LIB} python ...")
+    endif()
   endif()
 endif()

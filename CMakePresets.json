@@ -184,6 +184,14 @@
       }
     },
     {
+      "name": "asan-msvc-conda",
+      "inherits": "default-msvc-conda",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "ENABLE_ASAN": "ON"
+      }
+    },
+    {
       "name": "doc-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {

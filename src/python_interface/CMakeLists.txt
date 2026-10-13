@@ -200,6 +200,17 @@ set_target_properties(
     pyarts_cpp PROPERTIES LIBRARY_OUTPUT_DIRECTORY
     "${ARTS_BINARY_DIR}/python/src/pyarts3/")
 
+# The MSVC AddressSanitizer runtime has to sit next to the extension module,
+# because Python's DLL search does not consult PATH (see the ASan block in the
+# top-level CMakeLists.txt).
+if (ENABLE_ASAN AND WIN32 AND ARTS_ASAN_RUNTIME_DLL AND EXISTS "${ARTS_ASAN_RUNTIME_DLL}")
+  add_custom_command(TARGET pyarts_cpp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${ARTS_ASAN_RUNTIME_DLL}"
+            "$<TARGET_FILE_DIR:pyarts_cpp>"
+    COMMENT "Copying MSVC AddressSanitizer runtime next to the pyarts extension")
+endif()
+
 if (APPLE
     AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
     AND CMAKE_CXX_STANDARD GREATER_EQUAL 26
