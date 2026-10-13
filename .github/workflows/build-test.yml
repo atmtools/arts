@@ -157,6 +157,10 @@ jobs:
         if: matrix.check == 'yes'
         shell: bash -l {0}
         run: |
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            export OPENBLAS_NUM_THREADS=1
+            export OMP_NUM_THREADS=1
+          fi
           cmake --build build -j1 --target check
 
       - name: Python Wheel
