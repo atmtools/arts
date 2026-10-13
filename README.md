@@ -258,10 +258,13 @@ For details see https://ccache.samba.org/
 Address sanitizer
 -----------------
 
-ARTS can be built with address sanitizer (ASAN) support. This is enabled by using the following preset:
+ARTS can be built with address sanitizer (ASAN) support. This is enabled by using one of the following presets:
 
 ```
+# Clang (Linux/macOS)
 cmake --preset=asan-clang-conda
+# MSVC (Windows)
+cmake --preset=asan-msvc-conda
 ```
 
 When you manually execute ARTS python scripts, you need to prepend the following to the command line:
@@ -272,6 +275,15 @@ DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dyli
 # Linux
 LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...
 ```
+
+On Windows the MSVC AddressSanitizer runtime is loaded from
+`clang_rt.asan_dynamic-x86_64.dll`. The build copies this DLL next to the
+`pyarts` extension module automatically, so the Python tests work out of the
+box. The C++ test executables find it through `PATH`, and must be run from a
+Visual Studio Developer Command Prompt (or with the MSVC `bin\Hostx64\x64`
+directory on `PATH`). Note that MSVC AddressSanitizer requires the Visual
+Studio **C++ AddressSanitizer** component and is only available for the x86 and
+x64 architectures.
 
 Linux perf profiling
 --------------------
