@@ -2,8 +2,10 @@
 
 #include "array.h"
 #include "rtepack_compact_planar_mueller_matrix.h"
+#include "rtepack_jones_matrix.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
+#include "rtepack_polarization.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_rtestep.h"
 #include "rtepack_scattering.h"
@@ -58,6 +60,8 @@ using ArrayOfStokvecMatrix        = Array<StokvecMatrix>;
 using ArrayOfStokvecTensor3       = Array<StokvecTensor3>;
 using ArrayOfArrayOfStokvecVector = Array<ArrayOfStokvecVector>;
 using ArrayOfArrayOfStokvecMatrix = Array<ArrayOfStokvecMatrix>;
+
+using Jones = rtepack::jones;
 
 using Muelmat                     = rtepack::muelmat;
 using MuelmatVector               = rtepack::muelmat_vector;

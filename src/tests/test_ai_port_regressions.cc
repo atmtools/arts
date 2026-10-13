@@ -140,8 +140,9 @@ void surface_polarization() {
   const auto    physical = [](const Muelmat& r) {
     const Numeric rv = r[0, 0] + r[0, 1];
     const Numeric rh = r[0, 0] - r[0, 1];
-    close(r[2, 2], std::sqrt(rv * rh), "U reflection must use amplitude product");
-    close(r[3, 3], std::sqrt(rv * rh), "V reflection must use amplitude product");
+    // Without the phase between the amplitudes, that of a loss-free Fresnel surface below the Brewster angle
+    close(r[2, 2], -std::sqrt(rv * rh), "U reflection must use minus the amplitude product");
+    close(r[3, 3], -std::sqrt(rv * rh), "V reflection must use minus the amplitude product");
     const Stokvec reflected = r * Stokvec{1.0, 0.0, 1.0, 0.0};
     check(reflected.I() + 1e-14 >= std::hypot(reflected.Q(), reflected.U(), reflected.V()),
           "Surface must preserve physical Stokes vectors");

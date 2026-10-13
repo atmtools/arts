@@ -1,5 +1,6 @@
 #pragma once
 
+#include <debug.h>
 #include <matpack.h>
 #include <operators.h>
 #include <rtepack_mueller_matrix.h>
@@ -81,6 +82,18 @@ using lab_phase_pair_convolution_function =
 
 /** Cached, fully Mueller-valued Nakajima-Tanaka delta-M correction.
  *
+ * TMS replaces the single scattering of the beam that the transport solver
+ * carries by that of the original phase matrix.  The cache holds the
+ * original part, from `original_phase`.  The transport part is what the
+ * solver used: the combined beam phase matrices into the correction's
+ * directions, synthesised from their NFourier modes at each azimuth, which
+ * TMS(), gridded_TMS() and evaluate() take as `transport_beam_phase`
+ * (main_data passes its own, or those given to u_user()).  For F11 this is
+ * the whole transport matrix, since its series has azimuthal modes
+ * m < NFourier only; the polarized elements also contain the rotation
+ * angles, which are not band-limited, so subtracting the full transport
+ * matrix would add their azimuthal truncation back as an error.
+ *
  * `removed_phase` is the normalized angular shape R of the removed peak.  The
  * IMS cache evaluates 2R - (1/4pi) integral R(out,mid) R(mid,beam) dOmega_mid,
  * with all matrices expressed in the laboratory Stokes frame.  Consequently
@@ -99,10 +112,19 @@ class delta_m_correction_cache {
   Numeric          phi0_{};
   rtepack::stokvec beam_{};
 
-  rtepack::muelmat_tensor3 tms_operator_;  // [layer, phi, user]
+  rtepack::muelmat_tensor3 tms_operator_;  // [layer, phi, user], the original part of TMS
   rtepack::muelmat_tensor3 ims_operator_;  // [boundary, phi, user]
   Vector                   ims_scalar_;    // [boundary]
   Vector                   ims_mu0_;       // [boundary]
+
+  //! The TMS source of a layer into a user direction at a cached azimuth: original minus transport part
+  [[nodiscard]] rtepack::stokvec tms_source(const beam_phase_matrix_data& transport_beam_phase,
+                                            Index                         layer,
+                                            Index                         phi_index,
+                                            Index                         user) const;
+
+  //! Check that the transport beam phase matrices are [2, NFourier, NLayers, NUser] or empty
+  void check_transport_beam_phase(const beam_phase_matrix_data& transport_beam_phase) const;
 
  public:
   /** Construct an empty correction cache. */
@@ -118,14 +140,20 @@ class delta_m_correction_cache {
                            Vector                              user_mu,
                            Vector                              phi,
                            lab_phase_function                  original_phase,
-                           lab_phase_function                  transport_phase,
                            lab_phase_function                  removed_phase,
                            Index                               intermediate_mu          = 32,
                            Index                               intermediate_phi         = 64,
                            lab_phase_pair_convolution_function removed_pair_convolution = {});
 
-  /** Evaluate the cached Mueller-valued TMS correction at one physical depth and cached azimuth. */
-  void TMS(rtepack::stokvec_vector& tms, Numeric tau, Index phi_index) const;
+  /** Evaluate the cached Mueller-valued TMS correction at one physical depth and cached azimuth.
+   *
+   * transport_beam_phase is [2, NFourier, NLayers, NUser]: the solver's combined beam phase matrices into
+   * the correction's directions.  Empty means that the solver carries no beam single scattering.
+   */
+  void TMS(rtepack::stokvec_vector&      tms,
+           Numeric                       tau,
+           Index                         phi_index,
+           const beam_phase_matrix_data& transport_beam_phase) const;
 
   /** Evaluate the cached Mueller-valued IMS correction at one physical depth and cached azimuth. */
   void IMS(rtepack::stokvec_vector& ims,
@@ -133,15 +161,16 @@ class delta_m_correction_cache {
            Index                    phi_index,
            ims_convention           convention = ims_convention::disort) const;
 
-  /** Evaluate TMS at every physical layer bottom, cached azimuth, and user direction. */
-  void gridded_TMS(rtepack::stokvec_tensor3_view tms) const;
+  /** Evaluate TMS at every physical layer bottom, cached azimuth, and user direction (see TMS()). */
+  void gridded_TMS(rtepack::stokvec_tensor3_view tms, const beam_phase_matrix_data& transport_beam_phase) const;
 
   /** Evaluate IMS at every physical layer bottom, cached azimuth, and user direction. */
   void gridded_IMS(rtepack::stokvec_tensor3_view ims, ims_convention convention = ims_convention::disort) const;
 
-  /** Return the cached TMS+IMS Stokes correction at one cached azimuth. */
-  [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric        tau,
-                                                 Index          phi_index,
+  /** Return the cached TMS+IMS Stokes correction at one cached azimuth (see TMS()). */
+  [[nodiscard]] rtepack::stokvec_vector evaluate(Numeric                       tau,
+                                                 Index                         phi_index,
+                                                 const beam_phase_matrix_data& transport_beam_phase,
                                                  ims_convention convention = ims_convention::disort) const;
 
   /** Map one physical optical depth to the transport solver's scaled coordinate. */
@@ -162,7 +191,8 @@ class delta_m_correction_cache {
 
 /** Polarized BRDF Fourier mode in the combined representation.
  *
- * Each callback fills a Mueller-block matrix with shape [n_out, n_in].  Block
+ * Each callback assigns every block of a Mueller-block matrix with shape
+ * [n_out, n_in], which the solver reuses between calls.  Block
  * (i,j) maps the incident Stokes vector at mu_in[j] to the reflected Stokes
  * vector at mu_out[i].  Values are the reflection matrices R^m in Eq. (123),
  * before the pi*w*mu quadrature factor in Eq. (124).
@@ -292,6 +322,41 @@ class main_data {
   Vector                  half_range_barycentric_weights{};  // [N]
   rtepack::stokvec_matrix scaled_source_poly_coeffs{};       // [NLayers, Nscoeffs], transport emission
 
+  /* Scratch of update_all(), sized by the constructor and reused by every
+     update.  What is accumulated or written only conditionally is reset
+     where it is used; everything else is overwritten. */
+  Matrix                  transport{};              // [NState, NState], A of one Fourier mode and layer
+  Matrix                  transport_work{};         // [NState, NState], a copy for the destructive solves
+  Matrix                  real_eigenvectors{};      // [NState, NState], a conjugate pair as Re and Im columns
+  Vector                  eigenvalues_real{};       // [NState]
+  Vector                  eigenvalues_imag{};       // [NState]
+  ComplexMatrix           eigenvectors{};           // [NState, NState]
+  ComplexVector           eigenvalues{};            // [NState]
+  std::vector<Index>      eigen_order{};            // [NState]
+  std::vector<Index>      eigen_partner{};          // [NState], the conjugate partner before sorting, or -1
+  std::vector<Index>      eigen_position{};         // [NState], the sorted position of each eigenpair
+  Matrix                  half_sum{};               // [NHalfState, NHalfState], alpha + beta Delta
+  Matrix                  half_difference{};        // [NHalfState, NHalfState], alpha - beta Delta
+  Matrix                  half_product{};           // [NHalfState, NHalfState], their product
+  Matrix                  half_eigenvectors{};      // [NHalfState, NHalfState], a conjugate pair as Re and Im columns
+  Matrix                  half_images{};            // [NHalfState, NHalfState], half_sum times the eigenvectors
+  Vector                  half_eigenvalues_real{};  // [NHalfState]
+  Vector                  half_eigenvalues_imag{};  // [NHalfState]
+  diagonalize_workdata    half_eigen_work{};        // [NHalfState]
+  diagonalize_workdata    eigen_work{};             // [NState]
+  solve_workdata          solve_work{};             // [NState]
+  Vector                  state_rhs{};              // [NState], right-hand sides of the solves
+  Vector                  state_next{};             // [NState], the source polynomial's next coefficient
+  matpack::band_matrix    boundary_lhs{};           // [NLayers NState, NLayers NState], banded and real
+  Vector                  boundary_rhs{};           // [NLayers NState]
+  ComplexTensor3          mode_exponential{};       // [NLayers, 2, NState], at each layer's top and bottom
+  Matrix                  surface_reflection{};     // [NHalfState, NHalfState]
+  Vector                  direct_reflection{};      // [NHalfState]
+  rtepack::muelmat_matrix brdf_streams{};           // [N, N]
+  rtepack::muelmat_matrix brdf_beam{};              // [N, 1]
+  Vector                  beam_mu{};                // [1]
+  Matrix                  layer_field{};            // [2 NFourier, NState]
+
   // The homogeneous solution is complex (paper Sec. 3.3.1).
   ComplexTensor5                    G_collect{};                // [2, NFourier, NLayers, NState, NState]
   ComplexTensor4                    K_collect{};                // [2, NFourier, NLayers, NState]
@@ -300,6 +365,7 @@ class main_data {
   rtepack::stokvec_tensor5          source_collect{};           // [2, NFourier, NLayers, NQuad, Nscoeffs]
   rtepack::stokvec_tensor4          um{};                       // [NLayers, 2, NFourier, NQuad], layer-bottom fields
   std::vector<unsigned char>        top_anchored{};             // one flag per eigenmode collection
+  std::vector<Index>                conjugate_partner{};        // per eigenmode collection: its conjugate, or -1
   std::vector<std::array<Index, 2>> conservative_pair_index{};  // [NLayers], stable m=0 cosine pair, or {-1,-1}
   Vector                            conservative_pair_kappa{};  // [NLayers]
 
@@ -322,6 +388,13 @@ class main_data {
                           const phase_matrix_data&        user_phase_matrix,
                           const beam_phase_matrix_data&   user_beam_phase_matrix,
                           const rtepack::stokvec_tensor3& user_boundary) const;
+  /** Whether a layer's combined phase matrix of one Fourier mode is mirror symmetric about the horizontal
+   * plane, P(-mu, -mu') = D P(mu, mu') D and P(-mu, mu') = D P(mu, -mu') D with D = diag(1, 1, -1, -1),
+   * to rounding. */
+  [[nodiscard]] bool mirror_symmetric(Index alpha, Index m, Index layer) const;
+  /** Diagonalize the mirror-symmetric transport operator through its half-size product problem.
+   * Returns false, leaving the eigensolution to the full problem, if a squared eigenvalue is zero. */
+  [[nodiscard]] bool half_size_eigensolution();
   /** Validate that a correction cache uses this solver's scaled depth grid and optionally its streams. */
   void check_correction_compatibility(const delta_m_correction_cache& correction, bool quadrature_angles) const;
 
@@ -364,7 +437,7 @@ class main_data {
   /** Return the layer containing a physical optical depth. */
   [[nodiscard]] Index tau_index(Numeric tau) const;
 
-  /** Evaluate polarized TMS from a compatible physical-phase correction cache. */
+  /** Evaluate polarized TMS from a compatible physical-phase correction cache on the quadrature streams. */
   void TMS(rtepack::stokvec_vector&        tms,
            Numeric                         physical_tau,
            Index                           phi_index,
@@ -377,7 +450,7 @@ class main_data {
            const delta_m_correction_cache& correction,
            ims_convention                  convention = ims_convention::disort) const;
 
-  /** Evaluate polarized TMS at every layer bottom and cached correction angle. */
+  /** Evaluate polarized TMS at every layer bottom and cached azimuth on the quadrature streams. */
   void gridded_TMS(rtepack::stokvec_tensor3_view tms, const delta_m_correction_cache& correction) const;
 
   /** Evaluate polarized IMS at every layer bottom and cached correction angle. */
@@ -487,10 +560,13 @@ class main_data {
 
   /** Assemble and diagonalize each layer and Fourier-mode transport operator.
    *
-   * The full nonsymmetric Stokes operator is solved in complex arithmetic.
-   * Near conservation, unresolved nominally real roots are checked with a
-   * real eigensolve.  An exactly conservative operator is represented by an
-   * explicitly constructed null vector and generalized Jordan vector.
+   * The operator is diagonalized in real arithmetic, and each conjugate pair
+   * is expanded to two complex columns.  Without scattering the eigenvectors
+   * are the states.  A mirror-symmetric operator is diagonalized through its
+   * half-size product problem, except in the cosine system of order zero,
+   * which holds the energy-conservation pair.  An exactly conservative
+   * operator is represented by an explicitly constructed null vector and
+   * generalized Jordan vector.
    */
   void diagonalize();
   /** Derive source-coordinate scales and internally scaled source coefficients. */
@@ -499,7 +575,8 @@ class main_data {
   void transmission();
   /** Compute polynomial particular solutions for internal thermal sources. */
   void source_function();
-  /** Solve the banded multilayer boundary and continuity system. */
+  /** Solve the banded multilayer boundary and continuity system, in real arithmetic: a conjugate pair of
+   * modes contributes the real and imaginary parts of one of them. */
   void solve_for_coefs();
   /** Cache the combined Fourier fields at every layer bottom. */
   void rad_field();
@@ -520,13 +597,24 @@ class main_data {
   [[nodiscard]] const Vector& weights() const { return W; }
   /** Return physical layer-bottom optical depths. */
   [[nodiscard]] const AscendingGrid& tau() const { return tau_arr; }
+  /** Replace the physical layer-bottom optical depths, keeping their number. */
+  template <matpack::exact_md<Numeric, 1> T> void tau(T&& x) {
+    ARTS_USER_ERROR_IF(static_cast<Index>(x.size()) != NLayers, "Invalid size for tau: {}", x.size());
+    tau_arr = std::forward<T>(x);
+  }
   /** Return physical single-scattering albedos. */
   [[nodiscard]] const Vector& omega() const { return omega_arr; }
+  /** Return writable physical single-scattering albedos. */
+  [[nodiscard]] VectorView omega() { return omega_arr; }
 
   /** Return a read-only view of all combined phase-matrix Fourier coefficients. */
   [[nodiscard]] const phase_matrix_data& all_phase_matrices() const { return phase_matrix; }
   /** Return a writable view of all combined phase-matrix Fourier coefficients. */
   [[nodiscard]] rtepack::muelmat_tensor5_view all_phase_matrices() { return phase_matrix; }
+  /** Return a read-only view of all combined beam phase-matrix Fourier coefficients. */
+  [[nodiscard]] const beam_phase_matrix_data& all_beam_phase_matrices() const { return beam_phase_matrix; }
+  /** Return a writable view of all combined beam phase-matrix Fourier coefficients. */
+  [[nodiscard]] rtepack::muelmat_tensor4_view all_beam_phase_matrices() { return beam_phase_matrix; }
   /** Return the prescribed upward boundary Fourier coefficients. */
   [[nodiscard]] const rtepack::stokvec_tensor3& upward_boundary() const { return boundary_up; }
   /** Return writable prescribed upward boundary Fourier coefficients. */

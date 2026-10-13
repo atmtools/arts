@@ -163,7 +163,7 @@ exchanges remain undetectable:
   V.
 - Fourier modes m > 0, the solar beam, and delta-M, IMS and TMS.  RT4 is
   thermal-only and azimuthally symmetric.  The RT3 comparison below covers
-  the beam and m > 0.
+  the beam and m > 0, and the polarized delta-M test covers IMS and TMS.
 - Direction-dependent extinction or emission.  VDISORT cannot represent
   them.
 
@@ -185,8 +185,9 @@ get the same discrete problem:
 
 - RT3's double-Gauss streams, which are VDISORT's (asserted);
 - the same Legendre series.  The test builds VDISORT's ordinary Fourier
-  coefficients C^m and S^m (no epsilon_m) from it by vector geometry
-  (`lab-frame.h`, shared with the RT4 comparison), at RT3's azimuth samples.
+  coefficients C^m and S^m (no epsilon_m) from it with ARTS's polarization
+  geometry (`lab-frame.h`, shared with the RT4 comparison; the geometry is
+  tested against electric fields, see below), at RT3's azimuth samples.
   It combines the diffuse ones with `vdisort::combine_phase_matrices` and the
   beam ones with `vdisort::combine_beam_phase_matrices`, which V0 checks
   against the test's own `combine_beam()` (see the beam operator below);
@@ -290,23 +291,40 @@ fluxes unchanged, and reaches 0.18 to 0.51 of max I in R1 to R3.
 **What it does not validate.**
 
 - IMS and TMS, and delta-M-plus.  The delta-M case gives VDISORT RT3's
-  scaled problem; VDISORT's own corrected delta-M is not compared.
+  scaled problem; VDISORT's own corrected delta-M is not compared with RT3.
+  The polarized delta-M test below checks it against VDISORT without
+  delta-M.  Polarized delta-M-plus is not covered.
 - Fresnel, Cox-Munk and the other BRDFs with a beam.  RT3 allows only a
   Lambertian surface with a beam.  Thermal Fresnel at m = 0 is covered by
-  RT4.
-- Off-node user angles (`ungridded_u_user`) against RT3 at the same
-  angles.  RT3 takes extra angles with every quadrature rule, including
-  double Gauss, so this comparison is possible on identical streams, but the
-  test does not make it.  Part E below evaluates VDISORT at Evans' Gauss
-  angles and shows that it is converged there, but the RT3 reference at
-  those angles carries the error of Gauss quadrature.
+  RT4, and the reflection of a beam by the polarized Cox-Munk surface by the
+  field-level test below.
 - The absolute sign of V.  V agrees, but it is generated through F34, so
-  this tests that the two solvers use F34 consistently, not V's sign.
-  Neither RT3 nor this test pins V against an external derivation.
-- A polarized beam (`beam_stokes` Q, U, V), because RT3's beam is
-  unpolarized.  Only column I of the beam matrices acts.
+  this tests that the two solvers use F34 consistently, not V's sign.  The
+  field-level tests below pin V = 2 Im(E_v E_h*) in the meridional basis for
+  a polarized beam and for Cox-Munk reflection; which circular polarization
+  that makes positive is not tested.
+- A polarized beam (Q, U, V of the beam), because RT3's beam is
+  unpolarized.  Only column I of the beam matrices acts.  The field-level
+  test below covers it.
 - Phase matrices that are not of the six-element form of randomly oriented
   particles with a plane of symmetry.
+
+### User angles between the streams (R10)
+
+RT3 takes zero-weight extra angles with its double-Gauss rule, so VDISORT's
+formal solution at user angles can be compared on identical streams.  R10
+gives RT3 seven extra angles between the streams (mu = 0.05, 0.13, 0.31, 0.5,
+0.77, 0.93, 0.99) and evaluates VDISORT at the same angles, upward and
+downward, at every level and at the azimuths of the main comparison.
+Relative to max I:
+
+| Case | max_delta_tau = 1e-7: I / Q / U / V | RT3 Richardson-extrapolated: I / Q / U / V |
+|---|---|---|
+| R2 (Mie layer) | 2.1e-7 / 2.4e-8 / 1.4e-8 / 8.3e-11 (0.69 delta / mu0) | 7.6e-11 / 2.8e-11 / 8.2e-12 / 2.0e-13 |
+| R3 (Rayleigh / Mie / gas, solar + thermal) | 8.2e-8 / 2.5e-8 / 4.3e-8 / 9.0e-11 (0.49 delta / mu0) | 3.8e-11 / 1.6e-11 / 1.1e-11 / 5.8e-14 |
+
+Between the streams the formal solution agrees with RT3 to RT3's doubling
+error, as on the streams, with the same tolerances.
 
 ### Evans' benchmark settings (E)
 
@@ -425,9 +443,9 @@ ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 | test | reference |
 |---|---|
 | V1: Rayleigh `GasScatterer` C^m, S^m, m = 0..3, diffuse and beam, mu = +-1 included | dipole Jones-matrix closed forms |
-| V2: ARTS's laboratory-frame Z of a polarizing Mie particle, generic directions | vector geometry with mu = cos(za), phi = -aa and the same F; the other azimuth sense and a negated F34 must miss |
+| V2: ARTS's laboratory-frame Z of a polarizing Mie particle, generic directions | the polarization geometry with mu = cos(za), phi = -aa and the same F; the other azimuth sense and a negated F34 must miss.  Both sides use the shared geometry (tested against fields below), so this pins the direction convention and the sign of F34 |
 | V2: exact and near-forward pairs | Z = F on the diagonal (forward-scattered Q) |
-| V3: VDISORT's coefficients of that particle from ARTS's Fourier modes | Fourier modes of the vector-geometry Z of `lab-frame.h` |
+| V3: VDISORT's coefficients of that particle from ARTS's Fourier modes | Fourier modes of the geometry's Z (`lab-frame.h`) |
 | V4: the path builder | its inputs |
 | V5: gridded ARO data (Rayleigh's laboratory frame on a grid) | `GasScatterer`'s exact modes, to the interpolation error of the grid |
 | V6: Henyey-Greenstein, m = 0..3, diffuse and beam | the addition theorem |
@@ -438,3 +456,168 @@ ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 | solar beam + thermal, 8 modes, nstokes 4 | RT3 vs VDISORT: RT3's doubling error with a beam |
 
 The tests print the measured values and enforce the tolerances.  The RT3 - VDISORT difference must fall with `max_delta_tau`, as RT3's first-order doubling error does.
+
+## Polarized delta-M with IMS and TMS
+
+`cpp.fast.vdisort-delta-m-test` (`vdisort-delta-m-test.cpp`) checks VDISORT's
+classical delta-M with the cached polarized TMS and IMS corrections in all
+four Stokes components.  There is no external polarized reference, so the
+reference is VDISORT itself without delta-M, on enough streams to carry the
+whole phase-matrix series.  It shares the transport solver, which the RT3 and
+RT4 comparisons validate, but not the scaling, the removed peak or the
+corrections.
+
+**Problem.**  One layer (omega 0.9) under an unpolarized beam (mu0 0.5) with
+a forward-peaked, polarizing phase matrix: Henyey-Greenstein F11 (g = 0.75)
+with F12 and F34 of a few tenths of F11 away from the forward and backward
+directions.  The matrix is built in angle space so that it is regular at
+forward and backward scattering (F12 = F34 = 0, F22 = F33 forward, F22 = -F33
+backward).  Otherwise its laboratory-frame Q and U elements jump at the
+forward peak and no discrete-ordinate solution converges there.  The delta-M
+split is DISORT's classical one applied to the whole matrix, exact for every
+Legendre degree.  User directions lie near and away from the forward peak
+(upward at the top, downward at the bottom, five azimuths).
+
+**Reference convergence.**  64 against 48 streams: 1.0e-5 in I and below
+1e-7 in Q, U and V, relative to max I.  The reference has max |Q|, |U|, |V| /
+max I of 1.9e-2, 1.8e-2 and 4.2e-5, so every component is exercised.
+
+**Results** (optical depth 1), maximum deviation from the reference relative
+to max I:
+
+| NQuad | f | delta-M: I / Q / U / V | with TMS and IMS: I / Q / U / V |
+|---|---|---|---|
+| 8 | 0.10 | 4.2e-1 / 3.2e-3 / 1.2e-3 / 6.8e-6 | 1.6e-3 / 1.6e-3 / 3.9e-4 / 6.8e-6 |
+| 12 | 3.2e-2 | 2.2e-1 / 1.2e-3 / 5.5e-4 / 2.5e-6 | 3.7e-4 / 3.8e-4 / 4.8e-5 / 2.5e-6 |
+| 16 | 1.0e-2 | 1.1e-1 / 4.4e-4 / 2.4e-4 / 5.4e-7 | 7.7e-5 / 9.1e-5 / 8.1e-6 / 5.4e-7 |
+| 24 | 1.0e-3 | 2.0e-2 / 4.5e-5 / 1.8e-5 / 1.3e-8 | 5.2e-6 / 6.2e-6 / 8.6e-7 / 1.3e-8 |
+
+The test requires the corrections to reduce the error of I by more than 100
+times and those of Q and U by more than 1.5 times, not to increase that of V,
+and the corrected error to fall with NQuad.  V's error comes from multiple
+scattering through the small F34, which the single-scattering corrections do
+not address.
+
+In a thin layer (optical depth 0.02, reference on 48 streams), where single
+scattering dominates, TMS alone must remove most of delta-M's error: by more than 100 times in I and 10
+times in Q and U.  Measured at NQuad 8 and 16: I 5.5e-1 and 1.5e-1 become
+2.1e-3 and 4.0e-4, Q 4.6e-3 and 7.0e-4 become 1.4e-4 and 2.5e-5, and U
+2.0e-3 and 4.1e-4 become 1.6e-4 and 2.8e-5.
+
+**TMS.**  TMS subtracts the beam's single scattering as the solver carries
+it, the NFourier-mode synthesis of the transport beam phase matrices, and
+adds the exact one.  For F11 that is the whole transport matrix.  The
+polarized elements also contain the rotations between the scattering and
+meridional planes, which are not band-limited in azimuth; subtracting the
+full transport matrix made Q 2 to 4 times worse than delta-M without
+corrections.
+
+**Cost.**  The corrections are cheap: VDISORT's cache arithmetic takes about
+15 ms for the whole test and applying them 0.07 s.  The test takes about
+20 s, most of it the reference solves (64 and 48 streams at optical depth 1,
+48 for the thin layer).  With one OpenMP thread it takes 10 s; the difference
+is the threaded BLAS waking its threads for every small call inside the
+eigensolutions.
+
+**Not covered.**  Delta-M-plus, multilayer atmospheres, surfaces and thermal
+sources with the corrections.
+
+## Polarized beam and surface against electric fields
+
+`tests/core/disort/vdisort-polarized-beam-surface.py` covers through
+`pyarts3` what the RT3 and RT4 comparisons cannot: a polarized beam, and a
+polarized surface reflecting a beam.  Its references are built from electric
+fields with ARTS's polarization primitives (the meridional basis and the
+Mueller matrix of a Jones matrix, tested against fields below), not from
+VDISORT's phase matrices or rtepack's reflection matrices.  Relative to max I:
+
+| Part | Reference | Deviation | Not blind |
+|---|---|---|---|
+| A: polarized beam, single scattering in a thin Rayleigh layer | dipole field projected on the meridional bases | 4.2e-11 to 6.8e-11 in I, Q, U, V | an unpolarized beam misses by 0.48, the mirrored azimuth by 1.38 |
+| B: VDISORT's raw polarized Cox-Munk reflection, n = 1.34, 1.5+0.3i, 7+3i | Fresnel fields of the specular facet in its plane of incidence, divided by M00 | 1.2e-15 to 1.4e-15 | |
+| C: beam reflected by Cox-Munk under a transparent atmosphere, unpolarized and polarized beam | mu0 F times the facet reflection, Fourier-truncated as the solver's surface modes are | at most 5.2e-11 | the mirrored relative azimuth misses by 0.10 and 0.11 |
+
+In C the reflected max |Q|, |U| and |V| / max I reach 0.80, 0.17 and 0.44, so
+all components are exercised.  The scalar part of Cox-Munk (slope
+distribution and shadowing) is DISORT's, validated by the Fortran problems;
+B tests the polarization structure.
+
+## Shared polarization geometry
+
+ARTS has one polarization geometry (`doc/arts/concept.polarization.rst`): the
+meridional basis of a ray, the Stokes rotation between two bases, the Mueller
+matrix of a Jones matrix, the rotation of a scattering-plane matrix into the
+laboratory frame, and Fresnel reflection by a facet.  The VDISORT tests'
+laboratory-frame phase matrices (`lab-frame.h`, used by the RT3, RT4, ARTS
+and delta-M tests), ARTS's conversion of randomly oriented scattering data
+to the laboratory frame, VDISORT's Cox-Munk surface and ARTS's non-specular
+surface reflection all use it.
+
+`cpp.fast.test_rtepack_polarization` tests it against electric fields only.
+For random pure states it compares the Mueller matrix applied to the Stokes
+vector of a field with the Stokes vector of the transformed field, both from
+the field components:
+
+- the basis is orthonormal, right-handed with the ray, has v on the upward
+  side, and at the poles is the limit along the given meridian;
+- the rotation between two bases of a ray, and refusal of a basis of the
+  other handedness;
+- the Mueller matrix of random Jones matrices;
+- the laboratory-frame phase matrix of scattering amplitudes diag(S2, S1)
+  in the scattering plane, real (Rayleigh) and complex (giving F34), at
+  generic directions and exactly forward and backward, at the poles too;
+- Fresnel reflection by a facet for a complex refractive index, and a
+  perfect mirror.
+
+All agree to 1e-13.  The mirrored phase matrix, and the mirror with V
+negated once more, miss by more than 1e-2.
+
+Before ARTS's scattering data moved to this geometry, the two were compared
+on a dense grid of directions including the poles, the principal plane and
+nearly forward and backward pairs.  Away from the poles they agree to
+rounding.  Near the poles the previous angle formulas had errors up to 7e-9,
+against a 50-digit reference that the vector geometry matches to 1e-15.  For
+pairs within 1e-6 rad of forward or backward scattering near the poles, the
+previous formulas set the phase matrix to the scattering matrix and dropped
+the rotation between the two meridional bases, up to 1e-2 in Q-U mixing in
+the case checked.
+
+## Reusing one solver
+
+`cpp.fast.vdisort-reuse-test` (`vdisort-reuse-test.cpp`) reuses one solver
+for several problems, as a thread does for many frequencies, and requires
+every radiance and flux to equal those of a fresh solver for the same
+problem bit for bit.  The update allocates nothing and resets only what is
+accumulated or written conditionally.  The problems change every input
+through the solver's accessors and cover each conditional path:
+
+- a layer without scattering: no scattered beam source, but emission;
+- an exactly conservative layer: the Jordan pair, and no emission;
+- a polarized beam, and then no beam;
+- a surface in the first Fourier mode only.
+
+Removing the reset of the beam terms of a layer without scattering makes the
+reused radiances miss by 0.14 of their scale.
+
+## The half-size eigenproblem and the real boundary system
+
+VDISORT diagonalizes a mirror-symmetric layer and Fourier mode through the
+half-size product problem (except in the cosine system of order zero), and
+solves the boundary system in real arithmetic (see
+`doc/arts/concept.disort.rst`).  Against the previous solver, which used the
+full eigenproblem and a complex boundary system everywhere, every comparison
+in this document is unchanged to its printed digits or at the rounding level:
+the radiances of the reference capture by at most 1.3e-14 of their maximum
+and the fluxes by 4e-16, and the RT3 deviations in their third or fourth
+digit at the 1e-10 level.  Rayleigh's V, which is zero, has round-off of
+1.8e-14 instead of 2.9e-15 of max I.
+
+`cpp.fast.vdisort-mirror-test` (`vdisort-mirror-test.cpp`) checks that an
+asymmetric medium takes the full problem.  A problem driven only by boundary
+radiance reads, in the half-size problem, nothing but the upward rows of the
+operator.  Changing the downward rows of the phase matrix by a relative 1e-9
+in every mode but the cosine system of order zero must therefore change the
+radiances, which it does by 7.9e-13 of their maximum: taking the half-size
+problem would have reproduced the symmetric result bit for bit, as a
+symmetry check that accepts everything shows.  The agreement to that level
+is also that of the half-size and full eigensolutions.

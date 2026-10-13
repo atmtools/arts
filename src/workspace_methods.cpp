@@ -2462,19 +2462,23 @@ The reflectance matrix is
 
   wsm_data["spectral_surf_reflFlatScalar"] = {
       .desc =
-          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+          R"--(Set the surface reflectance to a flat scalar reflectance
 
 We get :math:`r` from the *surf_field* parameter ``"flat scalar reflectance"``.
 
-The reflectance matrix is
+The reflectance is the same for vertical and horizontal polarization.
+A power reflectance carries no phase between the two, so the matrix is
+that of an isotropic mirror, :math:`R_v = -R_h = \sqrt{r}` in the
+convention of *spectral_surf_reflFlatRealFresnel*, which reverses
+circular polarization:
 
 .. math::
     \mathbf{R} = \left[
     \begin{array}{cccc}
             r&0&0&0\\
             0&r&0&0\\
-            0&0&r&0\\
-            0&0&0&r\\
+            0&0&-r&0\\
+            0&0&0&-r\\
     \end{array}\right]
 )--",
       .author = {"Richard Larsson"},
@@ -2512,6 +2516,11 @@ properties ``"wind speed"`` [m/s] and ``"salinity"`` [kg/kg] from
 *surf_field*.  Spatially varying fields and surface Jacobian targets for all
 three inputs are supported.  Kirchhoff-consistent emission is supplied by the
 closed-surface agenda used by *spectral_radSurfaceReflectance*.
+
+The model gives the power reflectances :math:`r_v` and :math:`r_h` but not
+the phase between the amplitudes, so the U and V diagonal elements are
+:math:`-\sqrt{r_v r_h}`, as for a loss-free Fresnel surface below the
+Brewster angle.
 )--",
       .author = {"The ARTS developers"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
@@ -2525,6 +2534,11 @@ The atlas selects the surface emissivity from the ray point's latitude and
 longitude and interpolates it in frequency and incidence angle.  Set
 ``max_distance`` to a positive angular distance in degrees to permit nearest
 land-cell lookup; the default requires the requested cell to exist.
+
+The model gives the power reflectances :math:`r_v` and :math:`r_h` but not
+the phase between the amplitudes, so the U and V diagonal elements are
+:math:`-\sqrt{r_v r_h}`, as for a loss-free Fresnel surface below the
+Brewster angle.
 )--",
       .author    = {"The ARTS developers"},
       .out       = {"spectral_surf_refl", "spectral_surf_refl_jac"},

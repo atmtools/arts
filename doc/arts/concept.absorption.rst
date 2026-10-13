@@ -27,7 +27,7 @@ In ARTS, the spectral radiance is represented by the Stokes vector, which is a 4
 
 where 
 :math:`I_I` is the total spectral radiance,
-:math:`I_Q` is the difference in spectral radiance between horizontal and vertical linear polarizations,
+:math:`I_Q` is the difference in spectral radiance between vertical and horizontal linear polarizations,
 :math:`I_U` is the difference in spectral radiance between plus 45° and minus 45° linear polarizations, and
 :math:`I_V` is the difference in spectral radiance between left and right circular polarizations.
 The unit of all of these is W sr :math:`^{-1}` m :math:`^{-2}` Hz :math:`^{-1}`.
@@ -38,6 +38,23 @@ Positive :math:`I_U` indicate 45° linear polarization and negative -45° polari
 Positive :math:`I_V` indicate left circular polarization and negative right circular polarization.
 
 This is the same definition as, e.g., :cite:t:`Mishchenko:02` pp. 22-24.
+The handedness of circular polarization is that of the rotation of the
+electric field seen by an observer looking in the direction of propagation,
+along the beam: counterclockwise is left and clockwise is right.  In the
+polarization basis of the ray (:doc:`concept.polarization`), with the field
+:math:`\vec E(t) = \Re\left[(E_v\hat v + E_h\hat h)e^{-i\omega t}\right]`,
+
+.. math::
+
+  I_V = 2\,\Im\left(E_vE_h^*\right),
+
+which is positive when the field rotates counterclockwise in that view.
+Optics texts that name the handedness as seen facing the source, or that use
+the time dependence :math:`e^{+i\omega t}`, swap the names.
+
+The reference directions of a ray, its polarization basis, are defined in
+:doc:`concept.polarization`, together with how scattering and surface
+reflection change them.
 
 .. tip::
 
@@ -128,12 +145,12 @@ with strict symmetries, and it has the form
 
 where
 :math:`K_A` describes the total power reduction,
-:math:`K_B` describes the difference in power reduction between horizontal and vertical linear polarizations,
+:math:`K_B` describes the difference in power reduction between vertical and horizontal linear polarizations,
 :math:`K_C` describes the difference in power reduction between plus 45° and minus 45° linear polarizations,
 :math:`K_D` describes the difference in power reduction between right and left circular polarizations,
 :math:`K_U` describes the phase delay between right and left circular polarizations,
 :math:`K_V` describes the phase delay between plus 45° and minus 45° linear polarizations, and
-:math:`K_W` describes the phase delay between horizontal and vertical linear polarizations.
+:math:`K_W` describes the phase delay between vertical and horizontal linear polarizations.
 The unit of all of these is m :math:`^{-1}`.
 
 In practice, the propagation matrix is a sum of multiple physical processes:

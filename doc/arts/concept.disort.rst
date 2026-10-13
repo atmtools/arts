@@ -513,12 +513,20 @@ The implementation solves the ordinary, generally non-symmetric problem
    \boldsymbol A^{am\ell}\boldsymbol G^{am\ell}
       =\boldsymbol G^{am\ell}\operatorname{diag}(\boldsymbol K^{am\ell})
 
-as a full :math:`D\times D` complex eigensystem.  There are two such
-eigensystems for each :math:`(m,r)`, one for each combined system; there is not
-one :math:`2D\times2D` system.  The input matrix is real, but general Mueller
-coupling makes it non-symmetric, so complex conjugate eigenpairs are retained.
-This differs from an explicitly real conjugate-pair basis, but reconstructs the
-same real physical field when those pairs cancel.
+as a full :math:`D\times D` eigensystem.  There are two such eigensystems for
+each :math:`(m,r)`, one for each combined system; there is not one
+:math:`2D\times2D` system.  The matrix is real, but general Mueller coupling
+makes it non-symmetric, so its eigenpairs are real or complex conjugate pairs.
+It is diagonalized in real arithmetic, which gives real roots exactly zero
+imaginary parts and returns each conjugate pair as the real and imaginary parts
+of one vector.  Both members of a pair are retained as complex columns; their
+contributions to the physical field are complex conjugates and sum to a real
+field.  Real arithmetic costs about a third of a complex eigensolution of the
+same matrix.  Without scattering, :math:`\omega_\ell=0` or a vanishing
+phase matrix in the Fourier order, the operator is
+:math:`\widehat{\boldsymbol M}^{-1}`: its eigenvalues are the inverse stream
+cosines and its eigenvectors the states themselves, so no eigensolution is
+needed.
 
 Eigenvalues are sorted lexicographically by real part and then imaginary part.
 The first :math:`D/2` columns are anchored at the layer top and the remaining
@@ -539,10 +547,67 @@ position rather than explicitly checking the sign.  When comparing with a
 formulation that writes attenuation as :math:`\exp(-k\tau)`, remember that the
 C++ propagation constant has the opposite sign.
 
-The full eigenproblem is intentionally retained instead of using the optional
-reduced polarized problem.  It is simpler to audit against the published
-equations and supports general Mueller coupling, but it makes VDISORT
-substantially more expensive than scalar DISORT.
+VDISORT half-size eigenproblem
+==============================
+
+A medium that is unchanged by reflection in the horizontal plane, such as
+randomly oriented particles with a plane of symmetry or azimuthally randomly
+oriented spheroids, plates and columns, has phase matrices with
+
+.. math::
+
+   \boldsymbol P^{am\ell}(-\mu_i,-\mu_j)
+      =\boldsymbol\Delta\boldsymbol P^{am\ell}(\mu_i,\mu_j)\boldsymbol\Delta,
+   \qquad
+   \boldsymbol P^{am\ell}(-\mu_i,\mu_j)
+      =\boldsymbol\Delta\boldsymbol P^{am\ell}(\mu_i,-\mu_j)\boldsymbol\Delta,
+
+with :math:`\boldsymbol\Delta=\operatorname{diag}(1,1,-1,-1)`: the reflection
+keeps :math:`\hat h` and reverses :math:`\hat v` of the meridional basis, which
+changes the signs of :math:`U` and :math:`V`.  With
+:math:`\boldsymbol\alpha` and :math:`\boldsymbol\beta` the upward rows of
+:math:`\boldsymbol A^{am\ell}`, its downward rows are then
+:math:`-\boldsymbol\Delta\boldsymbol\beta\boldsymbol\Delta` and
+:math:`-\boldsymbol\Delta\boldsymbol\alpha\boldsymbol\Delta`, and with
+:math:`\boldsymbol S=\operatorname{diag}(\boldsymbol I,\boldsymbol\Delta)` and
+:math:`\tilde{\boldsymbol\beta}=\boldsymbol\beta\boldsymbol\Delta`,
+
+.. math::
+
+   \boldsymbol S\boldsymbol A^{am\ell}\boldsymbol S
+      =\begin{pmatrix}\boldsymbol\alpha&\tilde{\boldsymbol\beta}\\
+                      -\tilde{\boldsymbol\beta}&-\boldsymbol\alpha\end{pmatrix},
+
+the structure of the scalar problem.  Its eigenvalues come in pairs
+:math:`\pm k`, and as in the scalar reduction, with
+:math:`\boldsymbol u=\boldsymbol x+\boldsymbol y` and
+:math:`\boldsymbol w=\boldsymbol x-\boldsymbol y` for an eigenvector
+:math:`(\boldsymbol x,\boldsymbol y)` of :math:`k`,
+
+.. math::
+
+   (\boldsymbol\alpha-\tilde{\boldsymbol\beta})
+   (\boldsymbol\alpha+\tilde{\boldsymbol\beta})\boldsymbol u=k^2\boldsymbol u,
+   \qquad
+   \boldsymbol w=(\boldsymbol\alpha+\tilde{\boldsymbol\beta})\boldsymbol u/k.
+
+The eigenvectors of :math:`\boldsymbol A^{am\ell}` are
+:math:`(\boldsymbol x,\boldsymbol\Delta\boldsymbol y)` for :math:`k` and
+:math:`(\boldsymbol y,\boldsymbol\Delta\boldsymbol x)` for :math:`-k`.  A
+squared eigenvalue may be complex, giving the four eigenvalues
+:math:`\pm k` and :math:`\pm\bar k`, or negative, giving the conjugate pair
+:math:`\pm i\sqrt{-k^2}`.  This is the reduction of the polarized
+discrete-ordinate problem of Siewert (2000, J. Quant. Spectrosc. Radiat.
+Transfer 64) used by VLIDORT (Spurr, 2006, J. Quant. Spectrosc. Radiat.
+Transfer 102); the formulation of Lin et al. (2022) keeps the full problem.
+
+VDISORT checks the symmetry for every layer and Fourier order, to
+:math:`10^{-12}` of the largest element of the phase matrix, and solves the
+full problem where it does not hold.  The cosine system of order zero always
+keeps the full problem: it holds the energy-conservation pair, whose small
+:math:`k` the squared eigenvalue :math:`k^2` gives with too little relative
+accuracy.  The half-size problem has an eighth of the floating-point work of
+the full one.
 
 The physical energy-conservation pair receives the same centered treatment as
 the scalar solver.  This pair can occur only in the cosine system at
@@ -601,10 +666,10 @@ Consequently :math:`F_0=X` and :math:`F_1=R+sX` at
 :math:`\kappa=0`.  Boundary assembly, gridded radiances, fluxes, and the
 arbitrary-angle formal integral all use these same columns.  The centered path
 is selected for :math:`\omega\in[1-10^{-8},1]`, or whenever the measured
-:math:`\kappa\leq10^{-4}`, matching scalar DISORT.  If the general complex
-eigensolver perturbs an unresolved real pair into slightly complex roots, only
-that pair is recomputed with the real eigensolver.  This fallback adds no
-eigensolve or allocation to the ordinary-albedo path.
+:math:`\kappa\leq10^{-4}`, matching scalar DISORT.  If rounding resolves the
+two nearly equal real roots as a slightly complex pair, the pair is taken
+instead from the nearest real roots of the same eigensolution, so no further
+eigensolve is needed.
 
 VDISORT particular-solution right-hand sides
 =============================================
@@ -793,7 +858,8 @@ that volume's optical depth separately.  Scalar DISORT multiplies the factor by
    \frac{|r_v|^2+|r_h|^2}{2},
 
 which is exactly the :math:`M_{00}` element used by VDISORT.  VDISORT alone
-constructs and rotates the remaining Mueller elements.  Thus the scalar path
+constructs and rotates the remaining Mueller elements, by the facet reflection
+of :ref:`Sec Polarization reflection`.  Thus the scalar path
 does not pay for a :math:`4\times4` Mueller matrix or its reference-frame
 rotations, while both paths retain identical optics, shadowing, and treatment
 of total internal reflection.
@@ -922,8 +988,23 @@ impose the reflecting bottom boundary.  The count is therefore
 
 matching the :math:`Ld` unknown modal constants.  Only adjacent layer blocks
 couple, so the matrix is stored as a band matrix.  Both implementations use
-upper and lower half-bandwidth :math:`3h-1`.  In VDISORT this entire system is
-complex and is assembled independently for every :math:`(a,m)`.
+upper and lower half-bandwidth :math:`3h-1`.  In VDISORT the system is
+assembled independently for every :math:`(a,m)`, and an order with no source,
+beam, boundary radiance or surface term has the zero solution.
+
+The modal columns of VDISORT are complex, but its operator and boundary values
+are real, so the modal constants of a conjugate pair of modes are conjugate as
+well: the solution with each pair's constants conjugated and exchanged solves
+the same system.  A pair therefore contributes
+
+.. math::
+
+   c\,\boldsymbol H+\bar c\,\bar{\boldsymbol H}
+      =2\Re(c)\,\Re\boldsymbol H-2\Im(c)\,\Im\boldsymbol H,
+
+and the system is solved in real arithmetic for the real and imaginary parts
+of one member of each pair, with the same size and bandwidth.  This is the
+real form that VLIDORT uses as well.
 
 The vector :math:`\boldsymbol d_m` is direct-beam reflection.  With no
 reflecting surface, :math:`\boldsymbol{\mathcal R}_m=0` and
@@ -1037,10 +1118,19 @@ gridded path which reuses angle-dependent work.  It is restricted to classical
 delta-M.  It is intentionally disabled for a non-classical removed peak,
 including delta-M-plus.
 
-VDISORT provides a fully Mueller-valued correction cache.  Its TMS operator is
-formed from the difference between original and transport Mueller phase
-matrices.  For normalized removed peak :math:`\mathbf R`, the IMS angular
-operator contains
+VDISORT provides a fully Mueller-valued correction cache.  Its TMS term is the
+difference between the single scattering of the beam with the original Mueller
+phase matrix and that which the transport solver carries.  The latter is the
+transport beam phase matrix into the output directions synthesised from its
+:math:`N_{\mathrm{Fourier}}` modes, the solver's own (or those given for user
+directions), not the full transport matrix.  The two differ for the polarized
+elements: they contain the rotation angles between the scattering plane and the
+meridional planes, which are not band-limited in azimuth even when the phase
+matrix's Legendre series is, so subtracting the full matrix would add their
+azimuthal truncation back as an error.  For :math:`M_{00}` the two agree.  The
+cache holds the original part, computed once; the transport part costs a sum of
+:math:`N_{\mathrm{Fourier}}` modes per direction and azimuth.  For normalized
+removed peak :math:`\mathbf R`, the IMS angular operator contains
 
 .. math::
 
@@ -1057,9 +1147,9 @@ different optical depths then reuses the cached operators.  The vector core
 exposes TMS and IMS separately at one depth or at all layer bottoms, as well as
 ``u_corr``, ``u_user_corr``, and ``gridded_u_corr`` combinations analogous to
 the scalar core.  The correction cache remains a separate argument because it
-depends on the original, transport, and removed physical Mueller phase
-functions, whereas the VDISORT transport object contains only the already
-transformed discrete-ordinate operators.
+depends on the original and removed physical Mueller phase functions, whereas
+the VDISORT transport object contains only the already transformed
+discrete-ordinate operators.
 
 Arbitrary-angle radiances
 *************************

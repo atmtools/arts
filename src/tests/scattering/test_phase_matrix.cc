@@ -813,14 +813,14 @@ bool test_backscatter_matrix_regrid_aro() {
 /** Forward and backward scattering in the laboratory frame.
  *
  * Exactly forward (Theta = 0) or backward (Theta = pi) the scattering plane
- * is undefined and rotation_coefficients() has dedicated branches.  The
- * reference is the general branch itself: approaching the exact direction
+ * is undefined and rotation_coefficients() takes the plane of the incident
+ * ray and its h.  The reference is the general geometry: approaching the exact direction
  * from several directions (along the azimuth from both sides, along the
  * zenith in the principal plane, and obliquely), with a physical scattering
  * matrix (F12 = F34 = 0, F22 = F33 forward, F22 = -F33 backward; constant in
  * Theta, so that only the rotations matter), Z must converge to F, and the
  * exact direction must give that limit.  In particular forward-scattered Q
- * stays Q: Z22 = F22.  The general branch is evaluated at Theta = 0.05 and
+ * stays Q: Z22 = F22.  The general geometry is evaluated at Theta = 0.05 and
  * 0.005 rad, and its distance from F must shrink at least like Theta (the
  * meridional planes of the two rays turn by O(Theta)).
  */
@@ -882,16 +882,13 @@ bool test_forward_backward_limit() {
 /** Rays at the poles (za = 0 or 180 deg) in the laboratory frame.
  *
  * At a pole the meridional basis of a ray is that of its azimuth, the
- * limit along its meridian, and rotation_coefficients() has dedicated
- * branches.  The reference is the limit along the meridian: moving one
+ * limit along its meridian.  The reference is that limit: moving one
  * pole ray at a time off its pole (za = 0 + e or 180 - e at the same
  * azimuth), Z must converge to the pole value, at least like e, for every
  * delta_aa (both sides of 180 deg).  One pole ray takes any F (F12, F34 !=
  * 0); two pole rays scatter exactly forward or backward and take a
  * physical F, for which the two meridional bases differ by delta_aa.  e is
- * 1 and 0.1 deg, above the 1e-6 rad at which a ray snaps to its pole and
- * the 1e-6 rad scattering angle below which a pair is exactly forward or
- * backward.
+ * 1 and 0.1 deg.
  */
 bool test_pole_limit() {
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {

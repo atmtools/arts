@@ -255,44 +255,28 @@ def test_depolarizing_surface_catalogue_combinations():
         plt.show()
 
 
+def _meridional_basis(mu, phi):
+    """The meridional basis (v, h) and direction of a ray, at the poles that of the azimuth phi."""
+    horizontal = np.sqrt(max(0.0, 1.0 - mu * mu))
+    direction = np.array([horizontal * np.cos(phi), horizontal * np.sin(phi), mu])
+    return direction, arts.rtepack.meridional_basis(
+        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
+    )
+
+
 def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
-    """Rayleigh first Mueller column in each outgoing local-meridian frame."""
+    """Rayleigh first Mueller column in each outgoing meridional basis."""
     mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
-    horizontal = np.sqrt(1.0 - mu_out**2)
-    outgoing = np.stack(
-        (
-            horizontal * np.cos(phi_out),
-            horizontal * np.sin(phi_out),
-            mu_out,
-        ),
-        axis=-1,
-    )
-    incident = np.array(
-        [
-            np.sqrt(1.0 - mu0**2) * np.cos(phi0),
-            np.sqrt(1.0 - mu0**2) * np.sin(phi0),
-            -mu0,
-        ]
-    )
-    cos_scattering = np.clip(outgoing @ incident, -1.0, 1.0)
-    polarized = 0.75 * (1.0 - cos_scattering**2)
-
-    # The local horizontal axis is k_out x z and the local vertical axis is
-    # horizontal x k_out.  Rayleigh polarization is perpendicular to the
-    # scattering plane spanned by the incident and outgoing rays.
-    local_horizontal = np.stack(
-        (np.sin(phi_out), -np.cos(phi_out), np.zeros_like(phi_out)), axis=-1
-    )
-    local_vertical = np.cross(local_horizontal, outgoing)
-    perpendicular = np.cross(incident, outgoing)
-    perpendicular /= np.linalg.norm(perpendicular, axis=-1)[..., None]
-    vertical_component = np.sum(perpendicular * local_vertical, axis=-1)
-    horizontal_component = np.sum(perpendicular * local_horizontal, axis=-1)
-
+    incident, incident_basis = _meridional_basis(-mu0, phi0)
     stokes = np.zeros(mu_out.shape + (4,))
-    stokes[..., 0] = 0.75 * (1.0 + cos_scattering**2)
-    stokes[..., 1] = polarized * (vertical_component**2 - horizontal_component**2)
-    stokes[..., 2] = 2.0 * polarized * vertical_component * horizontal_component
+    for index in np.ndindex(mu_out.shape):
+        outgoing, outgoing_basis = _meridional_basis(mu_out[index], phi_out[index])
+        phase = _rayleigh_phase_matrix(np.clip(outgoing @ incident, -1.0, 1.0))
+        compact = arts.CompactPlanarMuelmat(
+            phase[0, 0], phase[0, 1], phase[1, 1], phase[2, 2], phase[2, 3], phase[3, 3]
+        )
+        lab = arts.rtepack.lab_frame_phase_matrix(compact, incident_basis, outgoing_basis)
+        stokes[index] = np.array(lab)[:, 0]
     return stokes
 
 

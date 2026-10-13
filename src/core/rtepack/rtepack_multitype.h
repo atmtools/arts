@@ -1,6 +1,7 @@
 #pragma once
 
 #include "configtypes.h"
+#include "rtepack_jones_matrix.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_spectral_matrix.h"
@@ -289,8 +290,37 @@ Matrix to_matrix(const propmat &v);
 //! Transform a Stokes (absorption) vector to a vector of shape (4)
 Vector to_vector(const stokvec &v);
 
+//! The Mueller matrix of a Jones matrix
+/* The Stokes vectors of polarization_basis: I = |E_v|^2 + |E_h|^2,
+   Q = |E_v|^2 - |E_h|^2, U = 2 Re(E_v E_h*) and V = 2 Im(E_v E_h*), so for
+   J = [a, b; c, d] each element follows from E_v' = a E_v + b E_h and
+   E_h' = c E_v + d E_h. */
+constexpr muelmat to_muelmat(const jones &J) {
+  const Complex a = J[0, 0], b = J[0, 1], c = J[1, 0], d = J[1, 1];
+  const Numeric aa = std::norm(a), bb = std::norm(b), cc = std::norm(c), dd = std::norm(d);
+  const Complex ab = a * std::conj(b), cd = c * std::conj(d), ac = a * std::conj(c), bd = b * std::conj(d),
+                ad = a * std::conj(d), bc = b * std::conj(c);
+
+  return {0.5 * (aa + bb + cc + dd),
+          0.5 * (aa - bb + cc - dd),
+          std::real(ab + cd),
+          -std::imag(ab + cd),
+          0.5 * (aa + bb - cc - dd),
+          0.5 * (aa - bb - cc + dd),
+          std::real(ab - cd),
+          -std::imag(ab - cd),
+          std::real(ac + bd),
+          std::real(ac - bd),
+          std::real(ad + bc),
+          -std::imag(ad - bc),
+          std::imag(ac + bd),
+          std::imag(ac - bd),
+          std::imag(ad + bc),
+          std::real(ad - bc)};
+}
+
 //! Transform a propmat to a stokvec
-stokvec to_stokvec(const propmat &a);
+constexpr stokvec to_stokvec(const propmat &a) { return {a[0], a[1], a[2], a[3]}; }
 
 //! Transform a matpack type to a stokvec
 stokvec to_stokvec(const ConstVectorView &a);
@@ -302,7 +332,24 @@ propmat to_propmat(const ConstMatrixView &a);
 muelmat to_muelmat(const ConstMatrixView &a);
 
 //! get the real part of a specmat matrix
-muelmat real(const specmat &A);
+constexpr muelmat real(const specmat &A) {
+  return muelmat{std::real(A.data[0]),
+                 std::real(A.data[1]),
+                 std::real(A.data[2]),
+                 std::real(A.data[3]),
+                 std::real(A.data[4]),
+                 std::real(A.data[5]),
+                 std::real(A.data[6]),
+                 std::real(A.data[7]),
+                 std::real(A.data[8]),
+                 std::real(A.data[9]),
+                 std::real(A.data[10]),
+                 std::real(A.data[11]),
+                 std::real(A.data[12]),
+                 std::real(A.data[13]),
+                 std::real(A.data[14]),
+                 std::real(A.data[15])};
+}
 
 specmat frechet_sqrt(const propmat &X, const propmat &E);
 }  // namespace rtepack

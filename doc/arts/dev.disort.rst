@@ -20,8 +20,8 @@ factorization:
    * - Layer transport matrix :math:`\boldsymbol A`
      - Implicit in ``D_pos``, ``D_neg``, ``apb``, and ``amb``; only the
        :math:`N\times N` reduced product ``sqr`` is diagonalized
-     - Local :math:`4N_q\times4N_q` real ``A_real`` is copied to a complex
-       matrix and diagonalized
+     - The :math:`4N_q\times4N_q` real ``transport`` is diagonalized in real
+       arithmetic, and each conjugate pair is expanded to two complex columns
    * - Propagation constants :math:`\boldsymbol K`
      - ``K_collect[m, layer, eigen]`` with negative half followed by its
        positive partners
@@ -32,7 +32,8 @@ factorization:
    * - Modal constants :math:`\boldsymbol c_\ell`
      - The band-solve ``RHS`` is overwritten by the constants and copied to
        ``C_collect[m, layer, eigen]``
-     - The complex band-solve ``rhs`` is copied into ``GC_collect``
+     - The real band-solve ``rhs`` holds the real and imaginary parts of one
+       member of each conjugate pair, from which ``GC_collect`` is rebuilt
    * - ``GC_collect``
      - Caches :math:`G_{qe}c_e` for ordinary exponential evaluation; the
        conservative pair is evaluated from ``C_collect`` and its coupled
@@ -92,9 +93,46 @@ or comparing the cores:
 
 * **Update cost.**  Constructing or updating either solver performs the
   eigendecompositions and global boundary solves.  Evaluation at cached
-  quadrature points is much cheaper.  VDISORT intentionally contains no
+  quadrature points is much cheaper.  VDISORT's update allocates nothing:
+  its scratch (the transport operator, the eigensolution, the right-hand
+  sides, the banded boundary system and the surface terms) is sized by the
+  constructor and reused.  Only what is accumulated or written
+  conditionally is reset: the transport operator and the band system before
+  each mode, the conservative-pair flags, the right-hand side of the exact
+  conservative pair, the source recursion, the surface terms of modes
+  without a surface, and the beam and source terms of modes and layers
+  without them.  For many frequencies, give each thread one solver from the
+  size-only constructor, set its inputs and update it.
+* **What an update saves.**  A layer and Fourier mode without scattering
+  (single-scattering albedo or phase matrix zero) is not diagonalized
+  numerically, since its eigenvectors are the states themselves.  A
+  mirror-symmetric one is diagonalized through the half-size product problem
+  (``mirror_symmetric`` and ``half_size_eigensolution``), except in the cosine
+  system of order zero, and ``conjugate_partner`` records the conjugate of
+  each complex mode.  The boundary system is real (``dgbsv`` instead of
+  ``zgbsv``).  At 16 streams, 16 Fourier modes and 50 layers an update takes
+  0.30 s instead of 0.99 s with every layer scattering, and 0.15 s instead
+  of 0.43 s with 40 clear layers.  A Fourier
+  mode that nothing drives (no source, beam, boundary radiance or surface
+  term) has the zero solution and is neither assembled nor solved.  Each
+  mode's exponential at a layer's top and bottom is computed once per
+  assembly, not once per state.  The source polynomial of a layer shares
+  one LU decomposition among all its degrees.  The gridded radiances and
+  fluxes are then combinations of the cached layer-bottom fields.  The
+  skipped work, the cached exponentials and the shared LU decomposition change
+  no arithmetic (with the compiler's default contraction of multiplications
+  and additions they move results by about one ulp).  The half-size problem
+  and the real boundary system are exact reformulations that change results
+  at the rounding level: by at most 1.3e-14 of the largest radiance in the
+  test problems.  VDISORT intentionally contains no
   OpenMP parallel region in these core algorithms; ARTS normally parallelizes
-  independent frequencies outside the solver.
+  independent frequencies outside the solver.  The linear-algebra library may
+  itself be threaded.  With an OpenMP-threaded BLAS and no outer parallel
+  region, e.g. a single solve from Python or a C++ test, every small BLAS call
+  inside the eigensolutions wakes and parks the library's threads.  In the
+  polarized delta-M test this made the solves up to three times slower than
+  with one thread.  Inside an outer parallel region OpenMP does not nest by
+  default, so the library calls there run on one thread.
 * **Thread use.**  A fully constructed solver may be shared for read-only
   evaluation when each caller owns its scratch objects.  Updating the solver
   or sharing scratch storage concurrently is unsafe.
@@ -116,8 +154,15 @@ eigenpairs, a polarized direct beam, polarized absorption, vector internal
 sources, and a polarized reflecting boundary.  The comparisons with Evans'
 doubling-adding solvers RT4 and RT3 (:doc:`dev.rt4`, :doc:`dev.rt3`) cover
 reference-plane rotations, many-stream Mueller problems, all Fourier modes,
-U and V and the direct beam.  Genuinely polarized IMS/TMS corrections have no
-external reference.
+U and V, the direct beam, and the formal solution at user angles between the
+streams.  Polarized delta-M with the IMS and TMS corrections is checked
+against VDISORT itself without delta-M, on enough streams to carry the whole
+phase-matrix series.  That reference shares the transport solver, which the
+RT3 and RT4 comparisons validate, but not the scaling, the removed peak or the
+corrections.  A polarized beam, and the reflection of a beam by the polarized
+Cox-Munk surface, are checked against closed forms built from electric fields.
+The coverage document in the VDISORT test directory lists the measured
+agreement of every comparison.
 
 VDISORT inputs from ARTS data
 *****************************
@@ -200,9 +245,13 @@ the RT3 and RT4 builders and of the DISORT workspace methods:
     derived from the dipole Jones matrix in the meridional basis, for the
     diffuse and beam columns, including mu = +-1;
   * ARTS's laboratory-frame phase matrix of a polarizing Mie particle
-    against vector geometry;
-  * the coefficients of that particle against the Fourier modes of the
-    vector-geometry phase matrix;
+    against the phase matrix of the polarization geometry
+    (:ref:`Sec Polarization scattering`), with ``mu = cos(za)`` and
+    ``phi = -aa``.  Both are built from that geometry, which its own test
+    checks against electric fields, so this pins the direction convention
+    and the sign of F34;
+  * the coefficients of that particle against the Fourier modes of that
+    phase matrix;
   * the coefficients of Henyey-Greenstein scattering against the addition
     theorem;
   * the modes of gridded ARO data (Rayleigh scattering on a grid) against

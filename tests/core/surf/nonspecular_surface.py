@@ -42,8 +42,7 @@ assert abs(float(k_ref_n[2]) - 1.0) < 1e-12, "Normal incidence: reflected upward
 # Test 2: fresnel_reflectance_nonspecular at normal incidence
 #
 # At normal incidence with k_inc = (0, 0, -1) and k_out = (0, 0, 1) and
-# n_surface = (0, 0, 1), the Mueller matrix must equal fresnel_reflectance(Rv, Rh)
-# apart from sign conventions on U and V.
+# n_surface = (0, 0, 1), the Mueller matrix must equal fresnel_reflectance(Rv, Rh).
 # ---------------------------------------------------------------------------
 Rv = complex(0.9, 0.0)
 Rh = complex(0.6, 0.0)
@@ -154,5 +153,94 @@ for i in range(4):
         f"Convex sphere mirror: all patches geometrically blocked, "
         f"L[{i}]={float(L_mirror[i]):.6e} != J[{i}]={float(J[i]):.6e}"
     )
+
+# ---------------------------------------------------------------------------
+# Test 5: nonspecular_radiance_from_patches — local polarization bases
+#
+# The Stokes vectors are in the meridional bases of the local vertical at the
+# scatter point P.  On a spherical planet the same local scene at two
+# latitudes must therefore give the same polarization.  The scene: P 100 m
+# above the surface on a slope tilted 75 deg toward north, one patch on the
+# surface 0.0005 deg north of P (visible from the slope, and P above the
+# patch's horizon), a polarized source, and an outgoing direction off the
+# vertical plane of the patch.  Each patch is reflected by the facet that
+# turns its ray into the outgoing direction.  The polarization of the result, L / L_I, does not
+# depend on the patch's solid angle, which changes with latitude.
+# ---------------------------------------------------------------------------
+R_planet = 6371e3
+sphere = pyarts.arts.Vector2([R_planet, R_planet])
+delta = 5e-4
+source = np.array([1.0, 0.3, -0.2, 0.4])
+Rv5, Rh5 = complex(0.6, 0.1), complex(-0.7, 0.05)
+
+
+def enu_frame(lat_deg, lon_deg):
+    la, lo = np.deg2rad(lat_deg), np.deg2rad(lon_deg)
+    east = np.array([-np.sin(lo), np.cos(lo), 0.0])
+    north = np.array([-np.sin(la) * np.cos(lo), -np.sin(la) * np.sin(lo), np.cos(la)])
+    up = np.array([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)])
+    return east, north, up
+
+
+def to_ecef(frame, v):
+    return v[0] * frame[0] + v[1] * frame[1] + v[2] * frame[2]
+
+
+def to_enu(frame, v):
+    return np.array([v @ frame[0], v @ frame[1], v @ frame[2]])
+
+
+def local_scene(lat0):
+    lats = lat0 + delta * np.arange(-2, 3)
+    lons = delta * np.arange(-2, 3)
+    field = pyarts.arts.GeodeticField2(
+        name="h", grid_names=["Latitude", "Longitude"], grids=[lats, lons], data=np.zeros((5, 5)).tolist()
+    )
+    frame = enu_frame(lat0, 0.0)
+    tilt, zenith, azimuth = np.deg2rad(75.0), np.deg2rad(30.0), np.deg2rad(120.0)
+    n_enu = np.array([0.0, np.sin(tilt), np.cos(tilt)])
+    k_out_enu = np.array([np.sin(zenith) * np.sin(azimuth), np.sin(zenith) * np.cos(azimuth), np.cos(zenith)])
+    L = np.array(
+        rtepack.nonspecular_radiance_from_patches(
+            pyarts.arts.ArrayOfVector2([pyarts.arts.Vector2([lats[3], 0.0])]),
+            pyarts.arts.StokvecVector([pyarts.arts.Stokvec(source)]),
+            pyarts.arts.Stokvec([0.0, 0.0, 0.0, 0.0]),
+            Rv5,
+            Rh5,
+            pyarts.arts.Vector2([lat0, 0.0]),
+            100.0,
+            pyarts.arts.Vector3(to_ecef(frame, n_enu)),
+            pyarts.arts.Vector3(to_ecef(frame, k_out_enu)),
+            sphere,
+            field,
+        )
+    )
+    assert L[0] > 0.0, "the patch must be visible from the facet"
+
+    # The reflection by the facet that turns the patch's ray into k_out, with every
+    # direction in P's east-north-up frame, and with them in ECEF
+    pos_P = (R_planet + 100.0) * frame[2]
+    up_j = enu_frame(lats[3], 0.0)[2]
+    k_inc = pos_P - R_planet * up_j
+    k_inc /= np.linalg.norm(k_inc)
+    k_inc_enu = to_enu(frame, k_inc)
+    facet = (k_out_enu - k_inc_enu) / np.linalg.norm(k_out_enu - k_inc_enu)
+    local = np.array(
+        rtepack.fresnel_reflectance_nonspecular(Rv5, Rh5, k_inc_enu, k_out_enu, facet)
+    ) @ source
+    earth_axis = np.array(
+        rtepack.fresnel_reflectance_nonspecular(
+            Rv5, Rh5, k_inc, to_ecef(frame, k_out_enu), to_ecef(frame, facet)
+        )
+    ) @ source
+    return L / L[0], local / local[0], earth_axis / earth_axis[0]
+
+
+equator, equator_local, equator_axis = local_scene(0.0)
+midlat, midlat_local, midlat_axis = local_scene(50.0)
+assert np.abs(equator - midlat).max() < 1e-8, (equator, midlat)
+assert np.abs(equator - equator_local).max() < 1e-10 and np.abs(midlat - midlat_local).max() < 1e-10
+assert np.abs(midlat - midlat_axis).max() > 1e-2, "bases about the Earth's axis must give another answer"
+assert np.abs(equator[1:]).min() > 1e-2, equator
 
 print("All nonspecular_surface tests passed.")

@@ -106,11 +106,14 @@ surf_field:
   spectral_surf_refl.resize(nf);
   spectral_surf_refl_jac.resize(jac_targets.target_count(), nf);
 
-  spectral_surf_refl     = Muelmat{R};
+  // An isotropic mirror, Rv = -Rh = sqrt(R): a power reflectance has no phase between them
+  spectral_surf_refl     = rtepack::power_reflectance(R);
   spectral_surf_refl_jac = Muelmat{0.0};
 
   for (auto& target : jac_targets.surf) {
-    if (target.type == reflectance_target) { spectral_surf_refl_jac[target.target_pos] = Muelmat{1.0}; }
+    if (target.type == reflectance_target) {
+      spectral_surf_refl_jac[target.target_pos] = rtepack::power_reflectance(1.0);
+    }
   }
 }
 ARTS_METHOD_ERROR_CATCH

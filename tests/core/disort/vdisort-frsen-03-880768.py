@@ -277,28 +277,14 @@ def _local_basis(mu, phi):
             mu,
         ]
     )
-    horizontal = np.array([np.sin(phi), -np.cos(phi), 0.0])
-    vertical = np.cross(horizontal, direction)
-    return direction, vertical, horizontal
+    vertical, horizontal = arts.rtepack.meridional_basis(
+        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
+    )
+    return direction, np.array(vertical), np.array(horizontal)
 
 
 def _mueller_from_real_jones(jones):
-    stokes_coherencies = (
-        np.array([[0.5, 0.0], [0.0, 0.5]], dtype=complex),
-        np.array([[0.5, 0.0], [0.0, -0.5]], dtype=complex),
-        np.array([[0.0, 0.5], [0.5, 0.0]], dtype=complex),
-        np.array([[0.0, -0.5j], [0.5j, 0.0]], dtype=complex),
-    )
-    out = np.empty((4, 4))
-    for column, coherency in enumerate(stokes_coherencies):
-        scattered = jones @ coherency @ jones.T
-        out[:, column] = (
-            np.trace(scattered).real,
-            (scattered[0, 0] - scattered[1, 1]).real,
-            (scattered[0, 1] + scattered[1, 0]).real,
-            (-1j * (scattered[0, 1] - scattered[1, 0])).real,
-        )
-    return 1.5 * out
+    return 1.5 * np.array(arts.Muelmat(arts.Jones(np.asarray(jones, dtype=complex))))
 
 
 def test_figure_3_cox_munk_reflection():

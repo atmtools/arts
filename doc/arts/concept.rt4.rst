@@ -29,7 +29,7 @@ coordinate is the height :math:`h`.
 
 RT4 transports the leading :math:`n_s\le2` components of the ARTS Stokes
 vector, :math:`[I]` or :math:`[I,Q]`, with :math:`Q=I_v-I_h` in the
-meridional basis.
+meridional basis (:ref:`Sec Polarization basis`).
 
 Polarized radiative transfer
 ****************************

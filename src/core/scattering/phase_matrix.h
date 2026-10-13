@@ -75,6 +75,16 @@ template <typename Scalar> Scalar scattering_angle(Scalar aa_inc, Scalar za_inc,
  * coefficients C_1, * C_2, S_1, S_2 as defined in equation (4.16) in
  * "Scattering, Absorption, and Emission of Light by Small Particles."
  *
+ * The coefficients are those of rtepack::scattering_plane_rotation, so the
+ * phase matrix is rtepack::rotated(F, C_1, S_1, C_2, S_2).  With x = East,
+ * y = North and z = Up, the direction (za, aa) is
+ * k = (sin za sin aa, sin za cos aa, cos za), in the meridional basis
+ * rtepack::meridional_basis(k, h) of ARTS's propagation matrices; at a pole
+ * h = (cos aa, -sin aa, 0), the limit along the ray's meridian.  Only the
+ * side |aa_scat - aa_inc| <= 180 deg is computed: the phase matrix on the
+ * other side is the mirror image (rtepack::mirror) of that at 360 deg
+ * minus the azimuth difference, which the callers apply.
+ *
  * @param aa_inc The azimuth-angle component of the incoming angle in degree.
  * @param za_inc The zenith-angle component of the incoming angle in degree.
  * @param aa_scat The azimuth-angle component of the scattering angle in degree.
@@ -95,54 +105,17 @@ std::array<Scalar, 5> rotation_coefficients(Scalar aa_inc_d, Scalar za_inc_d, Sc
     theta = za_scat + za_inc;
     if (theta > pi_v<Scalar>) { theta = 2.0 * pi_v<Scalar> - theta; }
   }
-  const bool inc_pole  = small(za_inc) or equal(za_inc, pi_v<Scalar>);
-  const bool scat_pole = small(za_scat) or equal(za_scat, pi_v<Scalar>);
+  const Numeric delta_aa = std::abs(std::remainder(static_cast<Numeric>(aa_scat - aa_inc), Constant::two_pi));
+  const auto    ray      = [](Numeric za, Numeric aa) {
+    const Numeric s = std::sin(za);
+    return rtepack::meridional_basis(Vector3{s * std::sin(aa), s * std::cos(aa), std::cos(za)},
+                                     Vector3{std::cos(aa), -std::sin(aa), 0.0});
+  };
+  const auto [c_1, s_1, c_2, s_2] = rtepack::scattering_plane_rotation(ray(static_cast<Numeric>(za_inc), 0.0),
+                                                                       ray(static_cast<Numeric>(za_scat), delta_aa));
 
-  // Forward and backward scattering off the poles: the scattering plane is
-  // undefined and Z = F.  For a physical F (F12 = F34 = 0, and F22 = F33
-  // forward and F22 = -F33 backward) this is the limit of the general
-  // expressions below from every direction of approach.  Between the poles
-  // the two meridional bases still differ by the azimuths; that case is
-  // handled below.
-  if (not(inc_pole and scat_pole)) {
-    if (small(theta)) { return {theta, 1.0, 1.0, 0.0, 0.0}; }
-
-    if (equal(theta, pi_v<Scalar>)) { return {theta, 1.0, 1.0, 0.0, 0.0}; }
-  }
-
-  // At a pole the meridional basis is that of the ray's azimuth, i.e. the
-  // limit along its meridian.  The angles there are the limits of the
-  // general expressions, which take acos in [0, pi] and leave the side,
-  // aa_scat - aa_inc > pi, to rtepack::mirror.  Between the poles the
-  // incident basis is taken in the scattering plane (sigma_1 = 0); for a
-  // physical F the result does not depend on that choice.
-  const Scalar delta_aa = aa_scat - aa_inc;
-  Scalar       sigma_1, sigma_2;
-
-  if (scat_pole) {
-    sigma_1 = (inc_pole or small(za_scat)) ? 0.0 : pi_v<Scalar>;
-    sigma_2 = save_acos(small(za_scat) ? -cos(delta_aa) : cos(delta_aa));
-  } else if (small(za_inc)) {
-    sigma_1 = save_acos(-cos(delta_aa));
-    sigma_2 = 0.0;
-  } else if (equal(za_inc, pi_v<Scalar>)) {
-    sigma_1 = save_acos(cos(delta_aa));
-    sigma_2 = pi_v<Scalar>;
-  } else {
-    // cos(sigma) by the spherical law of cosines and sin(sigma) >= 0 by the law of sines, both times
-    // sin(theta) > 0.  Their angle, unlike acos of the cosine alone (which turns a rounding error d of the
-    // cosine into an error sqrt(2 d) of the angle), is accurate near 0 and pi, i.e. near the principal plane.
-    const Scalar sin_delta = std::abs(sin(delta_aa));
-    sigma_1 = std::atan2(sin(za_scat) * sin_delta, (cos(za_scat) - cos(za_inc) * cos_theta) / sin(za_inc));
-    sigma_2 = std::atan2(sin(za_inc) * sin_delta, (cos(za_inc) - cos(za_scat) * cos_theta) / sin(za_scat));
-  }
-
-  Scalar c_1 = cos(2.0 * sigma_1);
-  Scalar c_2 = cos(2.0 * sigma_2);
-  Scalar s_1 = sin(2.0 * sigma_1);
-  Scalar s_2 = sin(2.0 * sigma_2);
-
-  return {theta, c_1, c_2, s_1, s_2};
+  return {
+      theta, static_cast<Scalar>(c_1), static_cast<Scalar>(c_2), static_cast<Scalar>(s_1), static_cast<Scalar>(s_2)};
 }
 
 /** Number of stored phase matrix elements.

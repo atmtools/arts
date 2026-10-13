@@ -1,6 +1,8 @@
 add_library(rtepack STATIC
   rtepack_mueller_matrix.cc
+  rtepack_jones_matrix.cc
   rtepack_multitype.cc
+  rtepack_polarization.cc
   rtepack_propagation_matrix.cc
   rtepack_rtestep.cc
   rtepack_scattering.cc

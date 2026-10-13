@@ -48,8 +48,6 @@ Matrix to_matrix(const propmat &v) {
 
 Vector to_vector(const stokvec &v) { return {v.I(), v.Q(), v.U(), v.V()}; }
 
-stokvec to_stokvec(const propmat &a) { return {a[0], a[1], a[2], a[3]}; }
-
 stokvec to_stokvec(const ConstVectorView &a) {
   assert(a.size() == 4);
 
@@ -90,25 +88,6 @@ muelmat to_muelmat(const ConstMatrixView &a) {
           a[3, 1],
           a[3, 2],
           a[3, 3]};
-}
-
-muelmat real(const specmat &A) {
-  return muelmat{std::real(A.data[0]),
-                 std::real(A.data[1]),
-                 std::real(A.data[2]),
-                 std::real(A.data[3]),
-                 std::real(A.data[4]),
-                 std::real(A.data[5]),
-                 std::real(A.data[6]),
-                 std::real(A.data[7]),
-                 std::real(A.data[8]),
-                 std::real(A.data[9]),
-                 std::real(A.data[10]),
-                 std::real(A.data[11]),
-                 std::real(A.data[12]),
-                 std::real(A.data[13]),
-                 std::real(A.data[14]),
-                 std::real(A.data[15])};
 }
 
 specmat frechet_sqrt(const propmat &X, const propmat &E) {

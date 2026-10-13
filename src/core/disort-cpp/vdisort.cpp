@@ -210,7 +210,6 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
                                                    Vector                              user_mu,
                                                    Vector                              phi,
                                                    lab_phase_function                  original_phase,
-                                                   lab_phase_function                  transport_phase,
                                                    lab_phase_function                  removed_phase,
                                                    const Index                         intermediate_mu,
                                                    const Index                         intermediate_phi,
@@ -258,16 +257,16 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
   }
   scaled_tau_ = AscendingGrid{std::move(scaled_tau)};
 
+  // The original part of TMS; the transport part is the solver's (tms_source)
   tms_operator_.resize(nlayers, nphi, nuser);
   for (Index layer = 0; layer < nlayers; ++layer) {
     const Numeric transport_omega = omega_[layer] * (1.0 - fraction_[layer]) / scale_[layer];
     for (Index p = 0; p < nphi; ++p)
       for (Index u = 0; u < nuser; ++u) {
-        const Numeric beam_factor = user_mu_[u] > 0.0 ? mu0_ / (mu0_ + user_mu_[u]) : 1.0;
-        tms_operator_[layer, p, u] =
-            transport_omega * Constant::inv_pi * 0.25 * beam_factor *
-            (original_phase(layer, user_mu_[u], phi_[p], -mu0_, phi0_) / (1.0 - fraction_[layer]) -
-             transport_phase(layer, user_mu_[u], phi_[p], -mu0_, phi0_));
+        const Numeric beam_factor  = user_mu_[u] > 0.0 ? mu0_ / (mu0_ + user_mu_[u]) : 1.0;
+        tms_operator_[layer, p, u] = transport_omega * Constant::inv_pi * 0.25 * beam_factor *
+                                     original_phase(layer, user_mu_[u], phi_[p], -mu0_, phi0_) /
+                                     (1.0 - fraction_[layer]);
       }
   }
 
@@ -342,9 +341,55 @@ Numeric delta_m_correction_cache::scaled_tau(const Numeric physical_tau) const {
   return scaled_layer_top + scale_[layer] * (physical_tau - physical_layer_top);
 }
 
-void delta_m_correction_cache::TMS(rtepack::stokvec_vector& tms, const Numeric tau, const Index phi_index) const {
+void delta_m_correction_cache::check_transport_beam_phase(const beam_phase_matrix_data& transport_beam_phase) const {
+  if (transport_beam_phase.empty()) return;
+  ARTS_USER_ERROR_IF(transport_beam_phase.extent(0) != 2 or
+                         transport_beam_phase.extent(2) != static_cast<Index>(physical_tau_.size()) or
+                         transport_beam_phase.extent(3) != static_cast<Index>(user_mu_.size()),
+                     "The transport beam phase matrices of TMS must be [2, NFourier, {}, {}] (layers, correction "
+                     "directions), got {:B,}",
+                     physical_tau_.size(),
+                     user_mu_.size(),
+                     transport_beam_phase.shape());
+}
+
+/* The beam's single scattering as the solver carries it is the transport
+   phase matrix from the beam synthesised from its NFourier combined modes
+   at the azimuth phi, applied to the beam,
+     Z(mu, phi; -mu0, phi0) S_b = sum_m eps_m [C^m cos m(phi0 - phi) + S^m sin m(phi0 - phi)] S_b,
+   with C^m in the rows I, Q of the cosine system and U, V of the sine
+   system and S^m in the others (combine_beam_phase_matrices), times the
+   factor of the original part. */
+rtepack::stokvec delta_m_correction_cache::tms_source(const beam_phase_matrix_data& transport_beam_phase,
+                                                      const Index                   layer,
+                                                      const Index                   phi_index,
+                                                      const Index                   user) const {
+  rtepack::stokvec source = tms_operator_[layer, phi_index, user] * beam_;
+  if (transport_beam_phase.empty()) return source;
+
+  rtepack::muelmat Z{0.0};
+  for (Index m = 0; m < transport_beam_phase.extent(1); ++m) {
+    const Numeric eps = m == 0 ? 1.0 : 2.0;
+    const Numeric c   = eps * std::cos(static_cast<Numeric>(m) * (phi0_ - phi_[phi_index]));
+    const Numeric s   = eps * std::sin(static_cast<Numeric>(m) * (phi0_ - phi_[phi_index]));
+    const auto&   Bc  = transport_beam_phase[cosine_mode, m, layer, user];
+    const auto&   Bs  = transport_beam_phase[sine_mode, m, layer, user];
+    for (Index a = 0; a < stokes_dimension; ++a)
+      for (Index b = 0; b < stokes_dimension; ++b)
+        Z[a, b] += a < 2 ? Bc[a, b] * c + Bs[a, b] * s : Bs[a, b] * c + Bc[a, b] * s;
+  }
+  const Numeric transport_omega = omega_[layer] * (1.0 - fraction_[layer]) / scale_[layer];
+  const Numeric beam_factor     = user_mu_[user] > 0.0 ? mu0_ / (mu0_ + user_mu_[user]) : 1.0;
+  return source - (transport_omega * Constant::inv_pi * 0.25 * beam_factor) * (Z * beam_);
+}
+
+void delta_m_correction_cache::TMS(rtepack::stokvec_vector&      tms,
+                                   const Numeric                 tau,
+                                   const Index                   phi_index,
+                                   const beam_phase_matrix_data& transport_beam_phase) const {
   ARTS_TIME_REPORT
 
+  check_transport_beam_phase(transport_beam_phase);
   const Numeric transport_tau = scaled_tau(tau);
   ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
                      "Correction azimuth index {} is outside [0, {})",
@@ -361,23 +406,24 @@ void delta_m_correction_cache::TMS(rtepack::stokvec_vector& tms, const Numeric t
     if (mu > 0.0) {
       const Numeric at_observation = std::exp(-transport_tau / mu0_);
       const Numeric at_bottom  = std::exp((transport_tau - scaled_tau_[layer]) / abs_mu - scaled_tau_[layer] / mu0_);
-      tms[u]                  += (at_observation - at_bottom) * (tms_operator_[layer, phi_index, u] * beam_);
+      tms[u]                  += (at_observation - at_bottom) * tms_source(transport_beam_phase, layer, phi_index, u);
       for (Index l = layer + 1; l < static_cast<Index>(physical_tau_.size()); ++l) {
         const Numeric top = scaled_tau_[l - 1], bottom = scaled_tau_[l];
         const Numeric a  = std::exp((transport_tau - top) / abs_mu - top / mu0_);
         const Numeric b  = std::exp((transport_tau - bottom) / abs_mu - bottom / mu0_);
-        tms[u]          += (a - b) * (tms_operator_[l, phi_index, u] * beam_);
+        tms[u]          += (a - b) * tms_source(transport_beam_phase, l, phi_index, u);
       }
     } else {
       const Numeric at_observation = std::exp(-transport_tau / mu0_);
       const Numeric at_top         = std::exp((scaled_layer_top - transport_tau) / abs_mu - scaled_layer_top / mu0_);
       tms[u] += dc::downward_tms_kernel(abs_mu, mu0_, transport_tau - scaled_layer_top, at_observation, at_top) *
-                (tms_operator_[layer, phi_index, u] * beam_);
+                tms_source(transport_beam_phase, layer, phi_index, u);
       for (Index l = 0; l < layer; ++l) {
         const Numeric top = l == 0 ? 0.0 : scaled_tau_[l - 1], bottom = scaled_tau_[l];
-        const Numeric a = std::exp((bottom - transport_tau) / abs_mu - bottom / mu0_);
-        const Numeric b = std::exp((top - transport_tau) / abs_mu - top / mu0_);
-        tms[u] += dc::downward_tms_kernel(abs_mu, mu0_, bottom - top, a, b) * (tms_operator_[l, phi_index, u] * beam_);
+        const Numeric a  = std::exp((bottom - transport_tau) / abs_mu - bottom / mu0_);
+        const Numeric b  = std::exp((top - transport_tau) / abs_mu - top / mu0_);
+        tms[u]          += dc::downward_tms_kernel(abs_mu, mu0_, bottom - top, a, b) *
+                           tms_source(transport_beam_phase, l, phi_index, u);
       }
     }
   }
@@ -418,9 +464,11 @@ void delta_m_correction_cache::IMS(rtepack::stokvec_vector& ims,
   }
 }
 
-void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms) const {
+void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms,
+                                           const beam_phase_matrix_data& transport_beam_phase) const {
   ARTS_TIME_REPORT
 
+  check_transport_beam_phase(transport_beam_phase);
   const std::array<Index, 3> expected{
       static_cast<Index>(physical_tau_.size()), static_cast<Index>(phi_.size()), static_cast<Index>(user_mu_.size())};
   ARTS_USER_ERROR_IF(
@@ -453,7 +501,7 @@ void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms) co
           const Numeric at_bottom = beam_at_boundary[layer + 1];
           const Numeric at_top    = transport * beam_at_boundary[layer];
           downward = transport * downward + dc::downward_tms_kernel(abs_mu, mu0_, thickness, at_bottom, at_top) *
-                                                (tms_operator_[layer, p, user] * beam_);
+                                                tms_source(transport_beam_phase, layer, p, user);
           tms[layer, p, user] = downward;
         }
       } else {
@@ -463,7 +511,7 @@ void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms) co
           const Numeric transport = ray_transport[user, layer];
           const Numeric at_top    = beam_at_boundary[layer];
           const Numeric at_bottom = transport * beam_at_boundary[layer + 1];
-          upward                  = transport * upward + (at_top - at_bottom) * (tms_operator_[layer, p, user] * beam_);
+          upward = transport * upward + (at_top - at_bottom) * tms_source(transport_beam_phase, layer, p, user);
           tms[layer - 1, p, user] = upward;
         }
       }
@@ -497,11 +545,12 @@ void delta_m_correction_cache::gridded_IMS(rtepack::stokvec_tensor3_view ims, co
   }
 }
 
-rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric        tau,
-                                                           const Index          phi_index,
-                                                           const ims_convention convention) const {
+rtepack::stokvec_vector delta_m_correction_cache::evaluate(const Numeric                 tau,
+                                                           const Index                   phi_index,
+                                                           const beam_phase_matrix_data& transport_beam_phase,
+                                                           const ims_convention          convention) const {
   rtepack::stokvec_vector tms, ims;
-  TMS(tms, tau, phi_index);
+  TMS(tms, tau, phi_index, transport_beam_phase);
   IMS(ims, tau, phi_index, convention);
   for (Index user = 0; user < static_cast<Index>(tms.size()); ++user) tms[user] += ims[user];
   return tms;
@@ -738,6 +787,37 @@ main_data::main_data(
       W(N),
       half_range_barycentric_weights(N),
       scaled_source_poly_coeffs(NLayers, Nscoeffs),
+      transport(NState, NState),
+      transport_work(NState, NState),
+      real_eigenvectors(NState, NState),
+      eigenvalues_real(NState),
+      eigenvalues_imag(NState),
+      eigenvectors(NState, NState),
+      eigenvalues(NState),
+      eigen_order(static_cast<std::size_t>(NState)),
+      eigen_partner(static_cast<std::size_t>(NState)),
+      eigen_position(static_cast<std::size_t>(NState)),
+      half_sum(NHalfState, NHalfState),
+      half_difference(NHalfState, NHalfState),
+      half_product(NHalfState, NHalfState),
+      half_eigenvectors(NHalfState, NHalfState),
+      half_images(NHalfState, NHalfState),
+      half_eigenvalues_real(NHalfState),
+      half_eigenvalues_imag(NHalfState),
+      half_eigen_work(static_cast<std::size_t>(NHalfState)),
+      eigen_work(static_cast<std::size_t>(NState)),
+      solve_work(static_cast<std::size_t>(NState)),
+      state_rhs(NState),
+      state_next(NState),
+      boundary_lhs(3 * NHalfState - 1, 3 * NHalfState - 1, NLayers * NState, NLayers * NState),
+      boundary_rhs(NLayers * NState),
+      mode_exponential(NLayers, 2, NState),
+      surface_reflection(NHalfState, NHalfState),
+      direct_reflection(NHalfState),
+      brdf_streams(N, N),
+      brdf_beam(N, 1),
+      beam_mu(1),
+      layer_field(2 * NFourier, NState),
       G_collect(2, NFourier, NLayers, NState, NState),
       K_collect(2, NFourier, NLayers, NState),
       GC_collect(2, NFourier, NLayers, NState),
@@ -745,6 +825,7 @@ main_data::main_data(
       source_collect(2, NFourier, NLayers, NQuad, Nscoeffs),
       um(NLayers, 2, NFourier, NQuad),
       top_anchored(static_cast<std::size_t>(2 * NFourier * NLayers * NState), 0),
+      conjugate_partner(static_cast<std::size_t>(2 * NFourier * NLayers * NState), -1),
       conservative_pair_index(static_cast<std::size_t>(NLayers), std::array<Index, 2>{-1, -1}),
       conservative_pair_kappa(NLayers) {
   ARTS_USER_ERROR_IF(NQuad <= 0 or NQuad % 2 != 0, "NQuad must be a positive even number, got {}", NQuad);
@@ -892,52 +973,171 @@ void main_data::check_input_value() const {
 
 Index main_data::tau_index(const Numeric tau) const { return dc::layer_index(tau_arr, tau); }
 
+bool main_data::mirror_symmetric(const Index alpha, const Index m, const Index layer) const {
+  Numeric scale = 0.0, deviation = 0.0;
+  for (Index i = 0; i < N; ++i) {
+    for (Index j = 0; j < N; ++j) {
+      const rtepack::muelmat same     = rtepack::mirror(phase_matrix[alpha, m, layer, i, j]);
+      const rtepack::muelmat opposite = rtepack::mirror(phase_matrix[alpha, m, layer, i, N + j]);
+      for (Size n = 0; n < 16; ++n) {
+        deviation = std::max({deviation,
+                              std::abs(same.data[n] - phase_matrix[alpha, m, layer, N + i, N + j].data[n]),
+                              std::abs(opposite.data[n] - phase_matrix[alpha, m, layer, N + i, j].data[n])});
+        scale     = std::max({scale, std::abs(same.data[n]), std::abs(opposite.data[n])});
+      }
+    }
+  }
+  return deviation <= 1e-12 * scale;
+}
+
+/* With S = diag(1, Delta), Delta flipping U and V of each downward stream,
+   the mirror symmetry makes S A S = [alpha, beta~; -beta~, -alpha], where
+   alpha and beta are the upward rows of A and beta~ = beta Delta.  Its
+   eigenvalues come in pairs +-k, and with u = x + y and w = x - y for an
+   eigenvector [x; y] of k,
+     (alpha - beta~)(alpha + beta~) u = k^2 u,   w = (alpha + beta~) u / k.
+   The eigenvectors of A are [x; Delta y] for k and [y; Delta x] for -k. */
+bool main_data::half_size_eigensolution() {
+  for (Index r = 0; r < NHalfState; ++r) {
+    for (Index c = 0; c < NHalfState; ++c) {
+      const Numeric a       = transport[r, c];
+      const Numeric b       = c % stokes_dimension < 2 ? transport[r, NHalfState + c] : -transport[r, NHalfState + c];
+      half_sum[r, c]        = a + b;
+      half_difference[r, c] = a - b;
+    }
+  }
+  mult(half_product, half_difference, half_sum);
+  diagonalize_inplace(half_eigenvectors, half_eigenvalues_real, half_eigenvalues_imag, half_product, half_eigen_work);
+  for (Index j = 0; j < NHalfState; ++j)
+    if (half_eigenvalues_real[j] == 0.0 and half_eigenvalues_imag[j] == 0.0) return false;
+  mult(half_images, half_sum, half_eigenvectors);
+
+  const auto set_pair = [&](const Index e, const Complex k, const auto& u, const auto& image) {
+    // The eigenpair of k at e and that of -k at e + 1
+    eigenvalues[e]     = k;
+    eigenvalues[e + 1] = -k;
+    for (Index r = 0; r < NHalfState; ++r) {
+      const Complex w                     = image(r) / k;
+      const Complex x                     = 0.5 * (u(r) + w);
+      const Complex y                     = 0.5 * (u(r) - w);
+      const Numeric delta                 = r % stokes_dimension < 2 ? 1.0 : -1.0;
+      eigenvectors[r, e]                  = x;
+      eigenvectors[NHalfState + r, e]     = delta * y;
+      eigenvectors[r, e + 1]              = y;
+      eigenvectors[NHalfState + r, e + 1] = delta * x;
+    }
+  };
+  const auto set_conjugate = [&](const Index e, const Index from) {
+    eigenvalues[e] = std::conj(eigenvalues[from]);
+    for (Index r = 0; r < NState; ++r) eigenvectors[r, e] = std::conj(eigenvectors[r, from]);
+    eigen_partner[static_cast<std::size_t>(e)]    = from;
+    eigen_partner[static_cast<std::size_t>(from)] = e;
+  };
+
+  stdr::fill(eigen_partner, Index{-1});
+  for (Index j = 0; j < NHalfState; ++j) {
+    const Index e = 2 * j;
+    if (half_eigenvalues_imag[j] == 0.0) {
+      const Numeric lambda = half_eigenvalues_real[j];
+      const auto    u      = [&](const Index r) { return Complex{half_eigenvectors[r, j]}; };
+      const auto    image  = [&](const Index r) { return Complex{half_images[r, j]}; };
+      if (lambda > 0.0) {
+        set_pair(e, Complex{std::sqrt(lambda)}, u, image);
+      } else {
+        // k = i sqrt(-lambda), and -k is its conjugate
+        set_pair(e, Complex{0.0, std::sqrt(-lambda)}, u, image);
+        set_conjugate(e + 1, e);
+      }
+    } else {
+      // A conjugate pair of squared eigenvalues, the first with the positive imaginary part
+      const auto u     = [&](const Index r) { return Complex{half_eigenvectors[r, j], half_eigenvectors[r, j + 1]}; };
+      const auto image = [&](const Index r) { return Complex{half_images[r, j], half_images[r, j + 1]}; };
+      set_pair(e, std::sqrt(Complex{half_eigenvalues_real[j], half_eigenvalues_imag[j]}), u, image);
+      set_conjugate(e + 2, e);
+      set_conjugate(e + 3, e + 1);
+      ++j;
+    }
+  }
+  return true;
+}
+
 void main_data::diagonalize() {
   ARTS_TIME_REPORT
 
-  // The real, generally nonsymmetric 8N x 8N operator may have complex eigenpairs.
-  Matrix                       A_real(NState, NState);
-  ComplexMatrix                A(NState, NState);
-  ComplexMatrix                eigenvectors(NState, NState);
-  ComplexVector                eigenvalues(NState);
-  Vector                       rhs(NState);
-  std::vector<Index>           order(static_cast<std::size_t>(NState));
-  complex_diagonalize_workdata eigen_work(NState);
+  // The real, generally nonsymmetric 8N x 8N operator may have complex eigenpairs.  The real
+  // eigensolver returns a conjugate pair as the real and imaginary parts of its first vector.
   stdr::fill(conservative_pair_index, std::array<Index, 2>{-1, -1});
-  conservative_pair_kappa = 0.0;
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
       for (Index l = 0; l < NLayers; ++l) {
-        A_real = 0.0;
+        transport     = 0.0;
+        bool scatters = false;
         for (Index i = 0; i < NQuad; ++i) {
           for (Index so = 0; so < stokes_dimension; ++so) {
             const Index row = state_index(i, so);
             for (Index j = 0; j < NQuad; ++j) {
               const Numeric factor = -0.5 * omega_arr[l] * W[j % N] * inv_mu_arr[i];
               for (Index si = 0; si < stokes_dimension; ++si) {
-                A_real[row, state_index(j, si)] += factor * phase_matrix[alpha, m, l, i, j][so, si];
+                const Numeric phase                 = phase_matrix[alpha, m, l, i, j][so, si];
+                transport[row, state_index(j, si)] += factor * phase;
+                scatters                           |= phase != 0.0;
               }
             }
-            A_real[row, row] += inv_mu_arr[i];
+            transport[row, row] += inv_mu_arr[i];
+          }
+        }
+        scatters &= omega_arr[l] != 0.0;
+
+        if (not scatters) {
+          // Without scattering the operator is diag(1 / mu): its eigenvectors are the states themselves
+          stdr::fill(eigen_partner, Index{-1});
+          eigenvectors = 0.0;
+          for (Index e = 0; e < NState; ++e) {
+            eigenvalues[e]     = transport[e, e];
+            eigenvectors[e, e] = 1.0;
+          }
+        } else if (not(alpha == cosine_mode and m == 0) and mirror_symmetric(alpha, m, l) and
+                   half_size_eigensolution()) {
+          // The half-size problem gave the eigenpairs (the conservation pair, in the cosine system of order zero,
+          // keeps the full problem, as k^2 loses the relative accuracy of a small k)
+        } else {
+          stdr::fill(eigen_partner, Index{-1});
+          transport_work = transport;
+          diagonalize_inplace(real_eigenvectors, eigenvalues_real, eigenvalues_imag, transport_work, eigen_work);
+          for (Index e = 0; e < NState; ++e) {
+            if (eigenvalues_imag[e] == 0.0) {
+              eigenvalues[e] = eigenvalues_real[e];
+              for (Index s = 0; s < NState; ++s) eigenvectors[s, e] = real_eigenvectors[s, e];
+            } else {
+              eigenvalues[e]     = Complex{eigenvalues_real[e], eigenvalues_imag[e]};
+              eigenvalues[e + 1] = Complex{eigenvalues_real[e + 1], eigenvalues_imag[e + 1]};
+              for (Index s = 0; s < NState; ++s) {
+                eigenvectors[s, e]     = Complex{real_eigenvectors[s, e], real_eigenvectors[s, e + 1]};
+                eigenvectors[s, e + 1] = Complex{real_eigenvectors[s, e], -real_eigenvectors[s, e + 1]};
+              }
+              eigen_partner[static_cast<std::size_t>(e)]     = e + 1;
+              eigen_partner[static_cast<std::size_t>(e + 1)] = e;
+              ++e;
+            }
           }
         }
 
-        for (Index i = 0; i < NState; ++i)
-          for (Index j = 0; j < NState; ++j) A[i, j] = A_real[i, j];
-
-        ::diagonalize(eigenvectors, eigenvalues, A, eigen_work);
-
-        std::iota(order.begin(), order.end(), Index{0});
-        stdr::sort(order, [&](const Index a, const Index b) {
+        std::iota(eigen_order.begin(), eigen_order.end(), Index{0});
+        stdr::sort(eigen_order, [&](const Index a, const Index b) {
           if (eigenvalues[a].real() != eigenvalues[b].real()) return eigenvalues[a].real() < eigenvalues[b].real();
           return eigenvalues[a].imag() < eigenvalues[b].imag();
         });
-        check_eigenvalue_direction_split(eigenvalues, order, NHalfState, alpha, m, l);
+        check_eigenvalue_direction_split(eigenvalues, eigen_order, NHalfState, alpha, m, l);
 
+        for (Index e = 0; e < NState; ++e)
+          eigen_position[static_cast<std::size_t>(eigen_order[static_cast<std::size_t>(e)])] = e;
         for (Index e = 0; e < NState; ++e) {
-          const Index old                            = order[static_cast<std::size_t>(e)];
+          const Index old                            = eigen_order[static_cast<std::size_t>(e)];
+          const Index partner                        = eigen_partner[static_cast<std::size_t>(old)];
           K_collect[alpha, m, l, e]                  = eigenvalues[old];
           top_anchored[anchor_index(alpha, m, l, e)] = static_cast<unsigned char>(e < NHalfState);
+          conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, e))] =
+              partner < 0 ? -1 : eigen_position[static_cast<std::size_t>(partner)];
           for (Index s = 0; s < NState; ++s) G_collect[alpha, m, l, s, e] = eigenvectors[s, old];
         }
 
@@ -1000,8 +1200,8 @@ void main_data::diagonalize() {
             };
 
             if (omega_arr[l] != 1.0) {
-              // Near conservation, complex eigensolution roundoff can perturb
-              // two real roots into a slightly complex conjugate pair.
+              // Near conservation, eigensolution roundoff can perturb two
+              // real roots into a slightly complex conjugate pair.
               bool use_real_pair = measured_kappa <= std::numeric_limits<Numeric>::epsilon() * conservation_scale or
                                    std::max(std::abs(lambda_negative.imag()), std::abs(lambda_positive.imag())) >
                                        1.0e-8 * measured_kappa;
@@ -1032,28 +1232,28 @@ void main_data::diagonalize() {
               }
 
               if (use_real_pair) {
-                Matrix real_vectors(NState, NState);
-                Vector wr(NState), wi(NState);
-                ::diagonalize(real_vectors, wr, wi, A_real);
-
                 Index real_negative = -1;
                 Index real_positive = -1;
                 for (Index eigen = 0; eigen < NState; ++eigen) {
-                  if (wi[eigen] != 0.0) continue;
-                  if (wr[eigen] < 0.0 and (real_negative < 0 or std::abs(wr[eigen]) < std::abs(wr[real_negative])))
+                  if (eigenvalues_imag[eigen] != 0.0) continue;
+                  if (eigenvalues_real[eigen] < 0.0 and
+                      (real_negative < 0 or
+                       std::abs(eigenvalues_real[eigen]) < std::abs(eigenvalues_real[real_negative])))
                     real_negative = eigen;
-                  if (wr[eigen] > 0.0 and (real_positive < 0 or std::abs(wr[eigen]) < std::abs(wr[real_positive])))
+                  if (eigenvalues_real[eigen] > 0.0 and
+                      (real_positive < 0 or
+                       std::abs(eigenvalues_real[eigen]) < std::abs(eigenvalues_real[real_positive])))
                     real_positive = eigen;
                 }
                 ARTS_USER_ERROR_IF(real_negative < 0 or real_positive < 0,
                                    "VDISORT could not resolve the real conservative eigenpair in layer {}",
                                    l);
 
-                kappa                         = std::sqrt(std::abs(-wr[real_negative] * wr[real_positive]));
+                kappa = std::sqrt(std::abs(-eigenvalues_real[real_negative] * eigenvalues_real[real_positive]));
                 const auto real_normalization = [&](const Index eigen) {
                   Numeric value = 0.0;
                   for (Index stream = 0; stream < NQuad; ++stream)
-                    value += 0.5 * W[stream % N] * real_vectors[state_index(stream, 0), eigen];
+                    value += 0.5 * W[stream % N] * real_eigenvectors[state_index(stream, 0), eigen];
                   return value;
                 };
                 const Numeric negative_norm = real_normalization(real_negative);
@@ -1065,8 +1265,8 @@ void main_data::diagonalize() {
                                    negative_norm,
                                    positive_norm);
                 for (Index state = 0; state < NState; ++state) {
-                  const Numeric v_negative                = real_vectors[state, real_negative] / negative_norm;
-                  const Numeric v_positive                = real_vectors[state, real_positive] / positive_norm;
+                  const Numeric v_negative                = real_eigenvectors[state, real_negative] / negative_norm;
+                  const Numeric v_positive                = real_eigenvectors[state, real_positive] / positive_norm;
                   G_collect[alpha, m, l, state, negative] = 0.5 * (v_negative + v_positive);
                   G_collect[alpha, m, l, state, positive] = (v_positive - v_negative) / (2.0 * kappa);
                 }
@@ -1079,8 +1279,8 @@ void main_data::diagonalize() {
                 Complex ar        = 0.0;
                 Numeric row_scale = 0.0;
                 for (Index column = 0; column < NState; ++column) {
-                  const Complex term_x  = A_real[row, column] * G_collect[alpha, m, l, column, negative];
-                  const Complex term_r  = A_real[row, column] * G_collect[alpha, m, l, column, positive];
+                  const Complex term_x  = transport[row, column] * G_collect[alpha, m, l, column, negative];
+                  const Complex term_r  = transport[row, column] * G_collect[alpha, m, l, column, positive];
                   ax                   += term_x;
                   ar                   += term_r;
                   row_scale            += std::abs(term_x) + std::abs(term_r);
@@ -1097,9 +1297,9 @@ void main_data::diagonalize() {
             } else {
               // Exact conservation has a size-two Jordan block with A X = 0,
               // A R = X, and the gauge <R_I> = 0.
-              Matrix pair_work{A_real};
-              Vector pair_r(NState, 0.0);
-              for (Index stream = 0; stream < NQuad; ++stream) pair_r[state_index(stream, 0)] = 1.0;
+              transport_work = transport;
+              state_rhs      = 0.0;
+              for (Index stream = 0; stream < NQuad; ++stream) state_rhs[state_index(stream, 0)] = 1.0;
 
               Index constraint_stream = 0;
               for (Index stream = 1; stream < NQuad; ++stream)
@@ -1107,11 +1307,11 @@ void main_data::diagonalize() {
                     std::abs(W[constraint_stream % N] * mu_arr[constraint_stream]))
                   constraint_stream = stream;
               const Index constraint_row = state_index(constraint_stream, 0);
-              for (Index column = 0; column < NState; ++column) pair_work[constraint_row, column] = 0.0;
+              for (Index column = 0; column < NState; ++column) transport_work[constraint_row, column] = 0.0;
               for (Index stream = 0; stream < NQuad; ++stream)
-                pair_work[constraint_row, state_index(stream, 0)] = 0.5 * W[stream % N];
-              pair_r[constraint_row] = 0.0;
-              solve_inplace(pair_r, pair_work);
+                transport_work[constraint_row, state_index(stream, 0)] = 0.5 * W[stream % N];
+              state_rhs[constraint_row] = 0.0;
+              solve_inplace(state_rhs, transport_work, solve_work);
 
               Numeric residual = 0.0;
               Numeric scale    = 1.0;
@@ -1119,8 +1319,8 @@ void main_data::diagonalize() {
                 Numeric value     = -(row % stokes_dimension == 0 ? 1.0 : 0.0);
                 Numeric row_scale = std::abs(value);
                 for (Index column = 0; column < NState; ++column) {
-                  value     += A_real[row, column] * pair_r[column];
-                  row_scale += std::abs(A_real[row, column] * pair_r[column]);
+                  value     += transport[row, column] * state_rhs[column];
+                  row_scale += std::abs(transport[row, column] * state_rhs[column]);
                 }
                 residual = std::max(residual, std::abs(value));
                 scale    = std::max(scale, row_scale);
@@ -1133,9 +1333,19 @@ void main_data::diagonalize() {
 
               for (Index state = 0; state < NState; ++state) {
                 G_collect[alpha, m, l, state, negative] = state % stokes_dimension == 0 ? 1.0 : 0.0;
-                G_collect[alpha, m, l, state, positive] = pair_r[state];
+                G_collect[alpha, m, l, state, positive] = state_rhs[state];
               }
             }
+            // The pair is real now; a complex one can only have been its own conjugate
+            auto& negative_partner = conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, negative))];
+            auto& positive_partner = conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, positive))];
+            ARTS_USER_ERROR_IF((negative_partner >= 0 and negative_partner != positive) or
+                                   (positive_partner >= 0 and positive_partner != negative),
+                               "VDISORT conservative eigenpair in layer {} splits a conjugate pair",
+                               l);
+            negative_partner = -1;
+            positive_partner = -1;
+
             conservative_pair_index[static_cast<std::size_t>(l)] = {negative, positive};
             conservative_pair_kappa[l]                           = kappa;
             K_collect[alpha, m, l, negative]                     = -kappa;
@@ -1144,22 +1354,25 @@ void main_data::diagonalize() {
         }
 
         if (has_beam_source) {
-          const rtepack::stokvec& beam            = beam_stokes;
-          rhs                                     = 0.0;
-          bool          has_scattered_beam_source = false;
-          const Numeric epsilon                   = m == 0 ? 1.0 : 2.0;
+          const rtepack::stokvec& beam                      = beam_stokes;
+          bool                    has_scattered_beam_source = false;
+          const Numeric           epsilon                   = m == 0 ? 1.0 : 2.0;
           for (Index i = 0; i < NQuad; ++i) {
             const rtepack::stokvec scattered = beam_phase_matrix[alpha, m, l, i] * beam;
             for (Index so = 0; so < stokes_dimension; ++so) {
-              rhs[state_index(i, so)] = inv_mu_arr[i] * epsilon * omega_arr[l] * scattered[so] / (4.0 * Constant::pi);
-              has_scattered_beam_source |= rhs[state_index(i, so)] != 0.0;
+              state_rhs[state_index(i, so)] =
+                  inv_mu_arr[i] * epsilon * omega_arr[l] * scattered[so] / (4.0 * Constant::pi);
+              has_scattered_beam_source |= state_rhs[state_index(i, so)] != 0.0;
             }
           }
-          if (not has_scattered_beam_source) continue;
-          diagonal(A_real) += 1.0 / mu0;
-          solve_inplace(rhs, A_real);
+          if (not has_scattered_beam_source) {
+            B_collect[alpha, m, l] = rtepack::stokvec{};
+            continue;
+          }
+          diagonal(transport) += 1.0 / mu0;
+          solve_inplace(state_rhs, transport, solve_work);
           for (Index i = 0; i < NQuad; ++i)
-            for (Index s = 0; s < stokes_dimension; ++s) B_collect[alpha, m, l, i][s] = rhs[state_index(i, s)];
+            for (Index s = 0; s < stokes_dimension; ++s) B_collect[alpha, m, l, i][s] = state_rhs[state_index(i, s)];
         }
       }
     }
@@ -1177,11 +1390,11 @@ void main_data::set_scales() {
 
 void main_data::source_function() {
   ARTS_TIME_REPORT
-  source_collect = 0.0;
   if (not has_source_poly) return;
 
   // Transfer-equation emission is (1 - omega) B; the m=0 systems split
-  // [I,Q] and [U,V] according to paper Eq. (82).
+  // [I,Q] and [U,V] according to paper Eq. (82).  Only m = 0 has a source,
+  // so the other modes keep the zeros of the constructor.
   for (Index alpha = 0; alpha < 2; ++alpha) {
     const Index m = 0;
     for (Index l = 0; l < NLayers; ++l) {
@@ -1189,39 +1402,44 @@ void main_data::source_function() {
       for (Index p = 0; p < Nscoeffs; ++p) zero_emission &= scaled_source_poly_coeffs[l, p].is_zero();
       // Exact conservative scattering has zero absorption emission and a
       // singular transport matrix.
-      if (zero_emission) continue;
+      if (zero_emission) {
+        source_collect[alpha, m, l] = rtepack::stokvec{};
+        continue;
+      }
 
-      Matrix A(NState, NState, 0.0);
+      transport = 0.0;
       for (Index i = 0; i < NQuad; ++i) {
         for (Index so = 0; so < stokes_dimension; ++so) {
           const Index row = state_index(i, so);
           for (Index j = 0; j < NQuad; ++j) {
             const Numeric factor = -0.5 * omega_arr[l] * W[j % N] * inv_mu_arr[i];
             for (Index si = 0; si < stokes_dimension; ++si)
-              A[row, state_index(j, si)] += factor * phase_matrix[alpha, m, l, i, j][so, si];
+              transport[row, state_index(j, si)] += factor * phase_matrix[alpha, m, l, i, j][so, si];
           }
-          A[row, row] += inv_mu_arr[i];
+          transport[row, row] += inv_mu_arr[i];
         }
       }
 
-      Vector next(NState, 0.0);
+      // One LU decomposition serves every polynomial degree
+      transport_work = transport;
+      lu_decompose_inplace(transport_work, solve_work);
+      state_next = 0.0;
       for (Index p = Nscoeffs - 1; p >= 0; --p) {
-        Vector rhs(NState, 0.0);
         for (Index i = 0; i < NQuad; ++i) {
           for (Index s = 0; s < stokes_dimension; ++s) {
-            const bool    active = alpha == cosine_mode ? s < 2 : s >= 2;
-            const Numeric q      = active ? scaled_source_poly_coeffs[l, p][s] : 0.0;
-            rhs[state_index(i, s)] =
-                inv_mu_arr[i] * q + source_coordinate_scale[l] * static_cast<Numeric>(p + 1) * next[state_index(i, s)];
+            const bool    active         = alpha == cosine_mode ? s < 2 : s >= 2;
+            const Numeric q              = active ? scaled_source_poly_coeffs[l, p][s] : 0.0;
+            state_rhs[state_index(i, s)] = inv_mu_arr[i] * q + source_coordinate_scale[l] *
+                                                                   static_cast<Numeric>(p + 1) *
+                                                                   state_next[state_index(i, s)];
           }
         }
-        Matrix work{A};
-        solve_inplace(rhs, work);
+        lu_solve_inplace(state_rhs, transport_work, solve_work);
         for (Index i = 0; i < NQuad; ++i)
           for (Index s = 0; s < stokes_dimension; ++s) {
             const Index state                    = state_index(i, s);
-            source_collect[alpha, m, l, i, p][s] = rhs[state];
-            next[state]                          = rhs[state];
+            source_collect[alpha, m, l, i, p][s] = state_rhs[state];
+            state_next[state]                    = state_rhs[state];
           }
       }
     }
@@ -1235,59 +1453,54 @@ void main_data::transmission() {
 void main_data::solve_for_coefs() {
   ARTS_TIME_REPORT
 
-  const Index                  equation_count = NLayers * NState;
-  const Index                  bandwidth      = 3 * NHalfState - 1;
-  matpack::complex_band_matrix lhs(bandwidth, bandwidth, equation_count, equation_count);
-  ComplexVector                rhs(equation_count);
-  Matrix                       reflection(NHalfState, NHalfState);
-  Vector                       direct_reflection(NHalfState);
+  const Index equation_count = NLayers * NState;
 
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
-      lhs.zero();
-      rhs = 0.0;
-
       // Reflection couples all Stokes components.
-      reflection        = 0.0;
-      direct_reflection = 0.0;
       if (m < NBDRF) {
-        rtepack::muelmat_matrix raw(N, N, rtepack::muelmat{0.0});
-        brdf_fourier_modes[m](alpha, raw, mu_arr[Range{0, N}], mu_arr[Range{0, N}]);
+        brdf_fourier_modes[m](alpha, brdf_streams, mu_arr[Range{0, N}], mu_arr[Range{0, N}]);
         for (Index i = 0; i < N; ++i)
           for (Index so = 0; so < stokes_dimension; ++so)
             for (Index j = 0; j < N; ++j)
               for (Index si = 0; si < stokes_dimension; ++si)
-                reflection[state_index(i, so), state_index(j, si)] =
-                    Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * raw[i, j][so, si];
+                surface_reflection[state_index(i, so), state_index(j, si)] =
+                    Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * brdf_streams[i, j][so, si];
         // The specular part reflects each downward stream into the upward stream of the same cosine
         if (brdf_fourier_modes[m].specular.f) {
           for (Index i = 0; i < N; ++i) {
             const rtepack::muelmat R = brdf_fourier_modes[m].specular(mu_arr[i]);
             for (Index so = 0; so < stokes_dimension; ++so)
               for (Index si = 0; si < stokes_dimension; ++si)
-                reflection[state_index(i, so), state_index(i, si)] += R[so, si];
+                surface_reflection[state_index(i, so), state_index(i, si)] += R[so, si];
           }
         }
 
         if (has_beam_source) {
-          rtepack::muelmat_matrix beam_raw(N, 1, rtepack::muelmat{0.0});
-          const Vector            beam_mu{mu0};
-          brdf_fourier_modes[m].beam(alpha, beam_raw, mu_arr[Range{0, N}], beam_mu);
+          beam_mu[0] = mu0;
+          brdf_fourier_modes[m].beam(alpha, brdf_beam, mu_arr[Range{0, N}], beam_mu);
           const Numeric           attenuation = std::exp(-tau_arr.back() / mu0);
           const rtepack::stokvec& beam        = beam_stokes;
           for (Index i = 0; i < N; ++i) {
-            const rtepack::stokvec reflected = 0.5 * mu0 * attenuation * (beam_raw[i, 0] * beam);
+            const rtepack::stokvec reflected = 0.5 * mu0 * attenuation * (brdf_beam[i, 0] * beam);
             for (Index s = 0; s < stokes_dimension; ++s) direct_reflection[state_index(i, s)] = reflected[s];
           }
+        } else {
+          direct_reflection = 0.0;
         }
+      } else {
+        surface_reflection = 0.0;
+        direct_reflection  = 0.0;
       }
-      // Top boundary: prescribed downward diffuse Stokes field.
+      const Index   last   = NLayers - 1;
+      const Numeric bottom = tau_arr.back();
+
+      // The right-hand side.  Top boundary: prescribed downward diffuse Stokes field.
       for (Index i = 0; i < N; ++i) {
         for (Index s = 0; s < stokes_dimension; ++s) {
           const Index row   = state_index(i, s);
           const Index state = state_index(N + i, s);
-          rhs[row]          = boundary_down[alpha, m, i][s] - particular(alpha, m, 0, state, 0.0);
-          for (Index e = 0; e < NState; ++e) lhs[row, e] = homogeneous(alpha, m, 0, state, e, 0.0);
+          boundary_rhs[row] = boundary_down[alpha, m, i][s] - particular(alpha, m, 0, state, 0.0);
         }
       }
 
@@ -1295,64 +1508,140 @@ void main_data::solve_for_coefs() {
       for (Index l = 0; l < NLayers - 1; ++l) {
         const Numeric tau  = tau_arr[l];
         const Index   row0 = NHalfState + l * NState;
-        for (Index state = 0; state < NState; ++state) {
-          const Index row = row0 + state;
-          rhs[row]        = particular(alpha, m, l + 1, state, tau) - particular(alpha, m, l, state, tau);
-          for (Index e = 0; e < NState; ++e) {
-            lhs[row, l * NState + e]       = homogeneous(alpha, m, l, state, e, tau);
-            lhs[row, (l + 1) * NState + e] = -homogeneous(alpha, m, l + 1, state, e, tau);
-          }
-        }
+        for (Index state = 0; state < NState; ++state)
+          boundary_rhs[row0 + state] = particular(alpha, m, l + 1, state, tau) - particular(alpha, m, l, state, tau);
       }
 
       // Lower boundary, including the polarized BRDF of paper Eq. (124).
-      const Index   last = NLayers - 1;
-      const Numeric tau  = tau_arr.back();
+      for (Index i = 0; i < N; ++i) {
+        for (Index s = 0; s < stokes_dimension; ++s) {
+          const Index hrow      = state_index(i, s);
+          const Index pos_state = state_index(i, s);
+          Numeric     rhs_value =
+              boundary_up[alpha, m, i][s] + direct_reflection[hrow] - particular(alpha, m, last, pos_state, bottom);
+          for (Index j = 0; j < N; ++j)
+            for (Index si = 0; si < stokes_dimension; ++si) {
+              const Index hin        = state_index(j, si);
+              const Index neg_state  = state_index(N + j, si);
+              rhs_value             += surface_reflection[hrow, hin] * particular(alpha, m, last, neg_state, bottom);
+            }
+          boundary_rhs[equation_count - NHalfState + hrow] = rhs_value;
+        }
+      }
+
+      // Nothing drives this mode, so its solution is zero and there is no system to solve
+      if (stdr::all_of(boundary_rhs, [](const Numeric x) { return x == 0.0; })) {
+        GC_collect[alpha, m] = Complex{};
+        continue;
+      }
+
+      // Each mode's exponential at each layer's top (edge 0) and bottom (edge 1), as homogeneous() has it
+      for (Index l = 0; l < NLayers; ++l) {
+        for (Index e = 0; e < NState; ++e) {
+          const Numeric anchor      = top_anchored[anchor_index(alpha, m, l, e)] ? layer_top(l) : tau_arr[l];
+          mode_exponential[l, 0, e] = std::exp(K_collect[alpha, m, l, e] * (layer_top(l) - anchor));
+          mode_exponential[l, 1, e] = std::exp(K_collect[alpha, m, l, e] * (tau_arr[l] - anchor));
+        }
+      }
+      const auto mode = [&](const Index l, const Index state, const Index e, const Index edge) -> Complex {
+        const auto [negative, positive] = conservative_pair_index[static_cast<std::size_t>(l)];
+        if (alpha == cosine_mode and m == 0 and negative >= 0 and (e == negative or e == positive))
+          return homogeneous(alpha, m, l, state, e, edge == 0 ? layer_top(l) : tau_arr[l]);
+        return G_collect[alpha, m, l, state, e] * mode_exponential[l, edge, e];
+      };
+
+      /* The field is real, so the coefficients of a conjugate pair of modes are conjugate:
+         c H + c* H* = 2 Re(c) Re H - 2 Im(c) Im H.  The member with the positive imaginary
+         part represents the pair, its real part in its own column and its imaginary part in
+         the partner's, which is skipped. */
+      const auto partner = [&](const Index l, const Index e) {
+        return conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, e))];
+      };
+      const auto skipped = [&](const Index l, const Index e) {
+        return partner(l, e) >= 0 and K_collect[alpha, m, l, e].imag() < 0.0;
+      };
+      const auto set = [&](const Index row, const Index l, const Index e, const Complex value) {
+        const Index p = partner(l, e);
+        if (p < 0) {
+          boundary_lhs[row, l * NState + e] = value.real();
+        } else {
+          boundary_lhs[row, l * NState + e] = 2.0 * value.real();
+          boundary_lhs[row, l * NState + p] = -2.0 * value.imag();
+        }
+      };
+
+      // The band storage holds the previous LU factors
+      boundary_lhs.zero();
+      for (Index i = 0; i < N; ++i) {
+        for (Index s = 0; s < stokes_dimension; ++s) {
+          const Index row   = state_index(i, s);
+          const Index state = state_index(N + i, s);
+          for (Index e = 0; e < NState; ++e)
+            if (not skipped(0, e)) set(row, 0, e, mode(0, state, e, 0));
+        }
+      }
+      for (Index l = 0; l < NLayers - 1; ++l) {
+        const Index row0 = NHalfState + l * NState;
+        for (Index state = 0; state < NState; ++state) {
+          const Index row = row0 + state;
+          for (Index e = 0; e < NState; ++e) {
+            if (not skipped(l, e)) set(row, l, e, mode(l, state, e, 1));
+            if (not skipped(l + 1, e)) set(row, l + 1, e, -mode(l + 1, state, e, 0));
+          }
+        }
+      }
       for (Index i = 0; i < N; ++i) {
         for (Index s = 0; s < stokes_dimension; ++s) {
           const Index hrow      = state_index(i, s);
           const Index row       = equation_count - NHalfState + hrow;
           const Index pos_state = state_index(i, s);
-          Numeric     rhs_value =
-              boundary_up[alpha, m, i][s] + direct_reflection[hrow] - particular(alpha, m, last, pos_state, tau);
-          for (Index j = 0; j < N; ++j)
-            for (Index si = 0; si < stokes_dimension; ++si) {
-              const Index hin        = state_index(j, si);
-              const Index neg_state  = state_index(N + j, si);
-              rhs_value             += reflection[hrow, hin] * particular(alpha, m, last, neg_state, tau);
-            }
-          rhs[row] = rhs_value;
-
           for (Index e = 0; e < NState; ++e) {
-            Complex value = homogeneous(alpha, m, last, pos_state, e, tau);
+            if (skipped(last, e)) continue;
+            Complex value = mode(last, pos_state, e, 1);
             for (Index j = 0; j < N; ++j)
               for (Index si = 0; si < stokes_dimension; ++si)
-                value -=
-                    reflection[hrow, state_index(j, si)] * homogeneous(alpha, m, last, state_index(N + j, si), e, tau);
-            lhs[row, last * NState + e] = value;
+                value -= surface_reflection[hrow, state_index(j, si)] * mode(last, state_index(N + j, si), e, 1);
+            set(row, last, e, value);
           }
         }
       }
 
-      const int info = lhs.solve(rhs);
+      const int info = boundary_lhs.solve(boundary_rhs);
       ARTS_USER_ERROR_IF(
           info != 0, "VDISORT boundary solve failed for alpha={}, Fourier mode={} (LAPACK info={})", alpha, m, info);
-      for (Index l = 0; l < NLayers; ++l)
-        for (Index e = 0; e < NState; ++e) GC_collect[alpha, m, l, e] = rhs[l * NState + e];
+
+      // Back to the complex coefficients of every mode.  A partner anchored at the other layer edge (possible
+      // only for Re k = 0) gets the conjugate times its exponential between the two anchors.
+      for (Index l = 0; l < NLayers; ++l) {
+        for (Index e = 0; e < NState; ++e) {
+          const Index p = partner(l, e);
+          if (p < 0) {
+            GC_collect[alpha, m, l, e] = boundary_rhs[l * NState + e];
+          } else if (not skipped(l, e)) {
+            const Complex c            = {boundary_rhs[l * NState + e], boundary_rhs[l * NState + p]};
+            GC_collect[alpha, m, l, e] = c;
+            const Numeric anchor_e     = top_anchored[anchor_index(alpha, m, l, e)] ? layer_top(l) : tau_arr[l];
+            const Numeric anchor_p     = top_anchored[anchor_index(alpha, m, l, p)] ? layer_top(l) : tau_arr[l];
+            GC_collect[alpha, m, l, p] =
+                anchor_e == anchor_p
+                    ? std::conj(c)
+                    : std::conj(c) * std::exp(std::conj(K_collect[alpha, m, l, e]) * (anchor_p - anchor_e));
+          }
+        }
+      }
     }
   }
 }
 
 void main_data::rad_field() {
   // Both combined modes are retained; paper Eq. (78) reconstructs [I,Q,U,V].
-  Matrix field(2 * NFourier, NState);
   for (Index l = 0; l < NLayers; ++l) {
-    combined_field(field, tau_arr[l]);
+    combined_field(layer_field, tau_arr[l]);
     for (Index alpha = 0; alpha < 2; ++alpha)
       for (Index m = 0; m < NFourier; ++m)
         for (Index i = 0; i < NQuad; ++i)
           for (Index s = 0; s < stokes_dimension; ++s)
-            um[l, alpha, m, i][s] = field[alpha * NFourier + m, state_index(i, s)];
+            um[l, alpha, m, i][s] = layer_field[alpha * NFourier + m, state_index(i, s)];
   }
 }
 
@@ -1496,8 +1785,8 @@ void main_data::TMS(rtepack::stokvec_vector&        tms,
                     const Numeric                   physical_tau,
                     const Index                     phi_index,
                     const delta_m_correction_cache& correction) const {
-  check_correction_compatibility(correction, false);
-  correction.TMS(tms, physical_tau, phi_index);
+  check_correction_compatibility(correction, true);
+  correction.TMS(tms, physical_tau, phi_index, beam_phase_matrix);
 }
 
 void main_data::IMS(rtepack::stokvec_vector&        ims,
@@ -1510,8 +1799,8 @@ void main_data::IMS(rtepack::stokvec_vector&        ims,
 }
 
 void main_data::gridded_TMS(rtepack::stokvec_tensor3_view tms, const delta_m_correction_cache& correction) const {
-  check_correction_compatibility(correction, false);
-  correction.gridded_TMS(tms);
+  check_correction_compatibility(correction, true);
+  correction.gridded_TMS(tms, beam_phase_matrix);
 }
 
 void main_data::gridded_IMS(rtepack::stokvec_tensor3_view   ims,
@@ -1533,7 +1822,7 @@ void main_data::u_user_corr(user_u_data&                    data,
   ARTS_TIME_REPORT
 
   check_correction_compatibility(correction, false);
-  correction.TMS(tms, physical_tau, phi_index);
+  correction.TMS(tms, physical_tau, phi_index, user_beam_phase_matrix);
   correction.IMS(ims, physical_tau, phi_index, convention);
   u_user(data,
          correction.scaled_tau(physical_tau),
@@ -1899,7 +2188,7 @@ void main_data::u_corr(u_data&                         data,
   ARTS_TIME_REPORT
 
   check_correction_compatibility(correction, true);
-  correction.TMS(tms, physical_tau, phi_index);
+  correction.TMS(tms, physical_tau, phi_index, beam_phase_matrix);
   correction.IMS(ims, physical_tau, phi_index, convention);
   u(data, correction.scaled_tau(physical_tau), correction.phi()[phi_index]);
   for (Index stream = 0; stream < NQuad; ++stream) data.intensities[stream] += tms[stream] + ims[stream];
@@ -1974,7 +2263,7 @@ void main_data::gridded_u_corr(Tensor4View                     out,
   ARTS_TIME_REPORT
 
   check_correction_compatibility(correction, true);
-  correction.gridded_TMS(tms);
+  correction.gridded_TMS(tms, beam_phase_matrix);
   correction.gridded_IMS(ims, convention);
   gridded_u(out, correction.phi());
   for (Index layer = 0; layer < NLayers; ++layer)

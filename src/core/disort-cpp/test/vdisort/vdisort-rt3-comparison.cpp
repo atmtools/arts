@@ -94,7 +94,10 @@ namespace {
 constexpr Numeric pi  = Constant::pi;
 constexpr Numeric eps = std::numeric_limits<Numeric>::epsilon();
 
+using vdisort_test::fourier_modes;
 using vdisort_test::lab_frame;
+using vdisort_test::legendre_matrix;
+using vdisort_test::ordinary_modes;
 using vdisort_test::tro_elements;
 using vdisort_test::tro_matrix;
 
@@ -169,18 +172,6 @@ Index stripped_degree(const CompactPlanarMuelmatVector& coef) {
   return 0;
 }
 
-//! F(cos Theta) of a series (RT3's SUM_LEGENDRE)
-tro_matrix legendre_matrix(const CompactPlanarMuelmatVector& coef) {
-  return [coef](Numeric x) {
-    Vector p(isize(coef));
-    Legendre::legendre_polynomials(p, x);
-    CompactPlanarMuelmat sum{};
-    for (Index l = 0; l < isize(coef); l++) sum += coef[l] * p[l];
-    return tro_elements{
-        .F11 = sum.F11(), .F12 = sum.F12(), .F22 = sum.F22(), .F33 = sum.F33(), .F34 = sum.F34(), .F44 = sum.F44()};
-  };
-}
-
 //////////////////////////////////////////////////////////////////////////////
 // The problem
 //////////////////////////////////////////////////////////////////////////////
@@ -205,8 +196,9 @@ struct setup {
   Numeric                          sky{0.0};
   Numeric                          surface{0.0};
   Numeric                          albedo{0.0};
-  std::optional<Complex>           fresnel{};  // a Fresnel surface of this index instead of the Lambertian albedo
-  Numeric                          phi0{0.0};  // VDISORT's beam azimuth
+  std::optional<Complex>           fresnel{};   // a Fresnel surface of this index instead of the Lambertian albedo
+  Numeric                          phi0{0.0};   // VDISORT's beam azimuth
+  Vector                           extra_mu{};  // RT3's zero-weight extra angles, after its nmu nodes
 
   Index   nlay() const { return isize(height) - 1; }
   Index   nfourier() const { return aziorder + 1; }
@@ -261,6 +253,7 @@ rt3::problem rt3_problem(const setup& c) {
   p.layer_scattering_index = c.set_index;
   p.sky_temperature        = c.sky;
   p.surface_temperature    = c.surface;
+  p.extra_mu               = c.extra_mu;
   if (c.fresnel)
     p.ground = polradtran::fresnel_surface{.refractive_index = *c.fresnel};
   else
@@ -283,54 +276,13 @@ Index rt3_azimuth_samples(Index degree, Index aziorder) {
   return 2 * (Index{1} << e);
 }
 
-struct ordinary_modes {
-  rtepack::muelmat_tensor3 C;  // [m, out, in]
-  rtepack::muelmat_tensor3 S;
-};
-
-/* C^m and S^m on signed cosines (> 0 upward), by the trapezoid rule at the
-   nphi equidistant phi' = 2 pi k / nphi, k = 0 .. nphi - 1.  These are
-   RT3's samples, including phi' = 0 and pi, and RT3's FFT is the same
-   trapezoid rule; RT3 keeps the modes m < nphi / 2.  For a band-limited Z
-   (Rayleigh, or any series that is regular at Theta = 0 and pi) the
-   samples do not matter; Evans' Mie series is regular only to 1e-8, which
-   changes the coefficients by 3e-10 relative between sample sets (printed
-   by V0).
-   Rows and columns from nstokes on are zeroed before the transform: RT3
-   with nstokes < 4 transports the leading nstokes x nstokes block.
-   midpoints shifts the samples by half a step (for V0), and
-   azimuth_sign = -1 takes Z at -phi' (a deliberate mistake). */
-ordinary_modes fourier_modes(const tro_matrix& F,
-                             const Vector&     mu_out,
-                             const Vector&     mu_in,
-                             Index             nfourier,
-                             Index             nphi,
-                             Index             nstokes,
-                             bool              midpoints    = false,
-                             Numeric           azimuth_sign = 1.0) {
-  const Index    no = isize(mu_out), ni = isize(mu_in);
-  ordinary_modes r{.C = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0}),
-                   .S = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
-  const Index    nmode = std::min(nfourier, nphi / 2);
-  const auto     n     = static_cast<Numeric>(nphi);
-  for (Index io = 0; io < no; io++) {
-    for (Index ii = 0; ii < ni; ii++) {
-      for (Index k = 0; k < nphi; k++) {
-        const Numeric phi = (2 * pi * (static_cast<Numeric>(k) + (midpoints ? 0.5 : 0.0))) / n;
-        auto          Z   = lab_frame(F, mu_in[ii], azimuth_sign * phi, mu_out[io], 0.0);
-        for (Index a = 0; a < 4; a++)
-          for (Index b = 0; b < 4; b++)
-            if (a >= nstokes or b >= nstokes) Z[a, b] = 0.0;
-        for (Index m = 0; m < nmode; m++) {
-          r.C[m, io, ii] += (std::cos(static_cast<Numeric>(m) * phi) / n) * Z;
-          r.S[m, io, ii] += (std::sin(static_cast<Numeric>(m) * phi) / n) * Z;
-        }
-      }
-    }
-  }
-  return r;
-}
-
+/* VDISORT's Fourier coefficients are made at RT3's own azimuth samples
+   (fourier_modes of lab-frame.h with nphi = rt3_azimuth_samples), which
+   include phi' = 0 and pi; RT3's FFT is the same trapezoid rule, and RT3
+   keeps the modes m < nphi / 2.  For a band-limited Z (Rayleigh, or any
+   series that is regular at Theta = 0 and pi) the samples do not matter;
+   Evans' Mie series is regular only to 1e-8, which changes the
+   coefficients by 3e-10 relative between sample sets (printed by V0). */
 /* The combined beam operator.  The beam is a delta in azimuth at phi0, with
    the expansion (1 / 2 pi) sum_m eps_m cos m(phi0 - phi): cosine terms
    only, for every Stokes component of the beam.  Its source is
@@ -513,6 +465,54 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
                       N,
                       node));
   return v;
+}
+
+//! The user directions mu, then -mu (up first, as VDISORT's streams)
+Vector user_directions(const Vector& mu) {
+  const Index n = isize(mu);
+  Vector      user(2 * n);
+  for (Index i = 0; i < n; i++) {
+    user[i]     = mu[i];
+    user[n + i] = -mu[i];
+  }
+  return user;
+}
+
+struct user_phase {
+  vdisort::phase_matrix_data      diffuse;  // [2, NFourier, NLayers, NUser, NQuad]
+  vdisort::beam_phase_matrix_data beam;     // [2, NFourier, NLayers, NUser]
+};
+
+/* VDISORT's combined phase matrices from the streams and from the beam into
+   the user directions (signed, > 0 upward), as its formal solution at those
+   directions needs them, built as vdisort_solver builds those on the
+   streams. */
+user_phase user_phase_matrices(const setup& c, const Vector& user) {
+  const Index  N = c.nmu, NQuad = 2 * N, NL = c.nlay(), NF = c.nfourier(), ns = c.nstokes, nu = isize(user);
+  const Vector mu = signed_streams(N);
+
+  rtepack::muelmat_tensor4 Cd(NF, NL, nu, NQuad, rtepack::muelmat{0.0}), Sd = Cd;
+  rtepack::muelmat_tensor3 Cb(NF, NL, nu, rtepack::muelmat{0.0}), Sb        = Cb;
+  for (Index l = 0; l < NL; l++) {
+    const Index s = c.set_index[l];
+    if (s < 0) continue;
+    const auto  T    = transport_set(c.sets[s], c);
+    const auto  F    = legendre_matrix(T.legendre);
+    const Index nphi = rt3_azimuth_samples(isize(T.legendre) - 1, c.aziorder);
+    const auto  d    = fourier_modes(F, user, mu, NF, nphi, ns);
+    const auto  b    = fourier_modes(F, user, Vector{-c.mu0}, NF, nphi, ns);
+    for (Index m = 0; m < NF; m++) {
+      for (Index u = 0; u < nu; u++) {
+        for (Index j = 0; j < NQuad; j++) {
+          Cd[m, l, u, j] = d.C[m, u, j];
+          Sd[m, l, u, j] = d.S[m, u, j];
+        }
+        Cb[m, l, u] = b.C[m, u, 0];
+        Sb[m, l, u] = b.S[m, u, 0];
+      }
+    }
+  }
+  return {.diffuse = vdisort::combine_phase_matrices(Cd, Sd), .beam = vdisort::combine_beam_phase_matrices(Cb, Sb)};
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1243,6 +1243,65 @@ void test_delta_m() {
   require(dev < 1e-14, std::format("R9: RT3's delta-M algebra must recover the Mie series, got {:.1e}", dev));
   check("R9 R3 with a forward peak f = 1/4, RT3 delta-M", c);
 }
+
+/* R10: radiances between the streams.  RT3 takes them as extra angles of
+   weight zero, which receive scattering and reflection but scatter nothing
+   back; VDISORT evaluates its formal solution along them
+   (ungridded_u_user), with the phase matrices into those directions.  Both
+   on the same double-Gauss streams, for R2 (beam at mu0 = 0.2) and R3
+   (solar and thermal, three layers), at every level, both directions, the
+   test azimuths and every Stokes component.  The surface (Lambertian) and
+   the sky are isotropic, so VDISORT's boundary radiances along the user
+   directions, interpolated from the streams, are exact.  None of the
+   angles is a node, and all lie between the smallest and the largest. */
+deviation compare_user_angles(const setup& c, const rt3::result& r, const vdisort::main_data& v) {
+  const Index  N = c.nmu, NL = c.nlay(), n = isize(c.extra_mu);
+  const Vector psi = test_azimuths(), user = user_directions(c.extra_mu);
+  for (Index k = 0; k < n; k++) require(r.mu[N + k] == c.extra_mu[k], "RT3's extra angles must follow its nodes");
+
+  Vector levels(NL + 1, 0.0);
+  for (Index l = 0; l < NL; l++) levels[l + 1] = v.tau()[l];
+  Vector phi(isize(psi));
+  for (Index k = 0; k < isize(psi); k++) phi[k] = wrapped(c.phi0 + psi[k]);
+  const auto               phase = user_phase_matrices(c, user);
+  rtepack::stokvec_tensor3 out(NL + 1, isize(psi), 2 * n);
+  v.ungridded_u_user(out, AscendingGrid{std::move(levels)}, phi, user, phase.diffuse, phase.beam);
+
+  const auto up = rt3::azimuth_radiance(r.up, psi), down = rt3::azimuth_radiance(r.down, psi);
+  Numeric    scale = 0.0;
+  for (Index l = 0; l <= NL; l++)
+    for (Index k = 0; k < isize(psi); k++)
+      for (Index i = 0; i < n; i++)
+        scale = std::max({scale, std::abs(up[l, k, N + i, 0]), std::abs(down[l, k, N + i, 0])});
+
+  deviation d;
+  for (Index l = 0; l <= NL; l++)
+    for (Index k = 0; k < isize(psi); k++)
+      for (Index i = 0; i < n; i++)
+        for (Index s = 0; s < c.nstokes; s++)
+          d.stokes[s] = std::max({d.stokes[s],
+                                  std::abs(out[l, k, i][s] - up[l, k, N + i, s]) / scale,
+                                  std::abs(out[l, k, n + i][s] - down[l, k, N + i, s]) / scale});
+  return d;
+}
+
+void test_user_angles() {
+  for (auto c : {mie_layer(8), multilayer(8)}) {
+    c.extra_mu    = Vector{0.05, 0.13, 0.31, 0.5, 0.77, 0.93, 0.99};
+    const auto r  = rt3::solve(rt3_problem(c));
+    const auto v  = vdisort_solver(c);
+    const auto dd = rt3_doubling(c, c.max_delta_tau);
+    const auto d  = compare_user_angles(c, r, v);
+    report(std::format("R10 {} at {} angles between the streams", c.nlay() == 1 ? "R2" : "R3", isize(c.extra_mu)),
+           d,
+           direct_tolerance(c, dd),
+           std::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c)));
+    report("    RT3 Richardson-extrapolated to max_delta_tau = 0",
+           compare_user_angles(c, richardson(c), v),
+           richardson_tolerance(c));
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Evans' benchmark settings (E)
 //////////////////////////////////////////////////////////////////////////////
@@ -1365,36 +1424,10 @@ Index stream_of(const Vector& mu, Numeric m) {
 
 //! VDISORT at Evans' streams (user angles, formal solution) and fluxes, for a solved problem
 row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, const setup& c) {
-  const Index  N = c.nmu, NQuad = 2 * N, NL = c.nlay(), NF = c.nfourier(), ns = c.nstokes, n = isize(e.mu);
-  const Vector mu = signed_streams(N);
-  Vector       user(2 * n);  // up first, as VDISORT's streams
-  for (Index i = 0; i < n; i++) {
-    user[i]     = e.mu[i];
-    user[n + i] = -e.mu[i];
-  }
-
-  rtepack::muelmat_tensor4 Cd(NF, NL, 2 * n, NQuad, rtepack::muelmat{0.0}), Sd = Cd;
-  rtepack::muelmat_tensor3 Cb(NF, NL, 2 * n, rtepack::muelmat{0.0}), Sb        = Cb;
-  for (Index l = 0; l < NL; l++) {
-    const Index s = c.set_index[l];
-    if (s < 0) continue;
-    const auto  T    = transport_set(c.sets[s], c);
-    const auto  F    = legendre_matrix(T.legendre);
-    const Index nphi = rt3_azimuth_samples(isize(T.legendre) - 1, c.aziorder);
-    const auto  d    = fourier_modes(F, user, mu, NF, nphi, ns);
-    const auto  b    = fourier_modes(F, user, Vector{-c.mu0}, NF, nphi, ns);
-    for (Index m = 0; m < NF; m++) {
-      for (Index u = 0; u < 2 * n; u++) {
-        for (Index j = 0; j < NQuad; j++) {
-          Cd[m, l, u, j] = d.C[m, u, j];
-          Sd[m, l, u, j] = d.S[m, u, j];
-        }
-        Cb[m, l, u] = b.C[m, u, 0];
-        Sb[m, l, u] = b.S[m, u, 0];
-      }
-    }
-  }
-  Vector levels(NL + 1, 0.0);
+  const Index  NL = c.nlay(), n = isize(e.mu);
+  const Vector user  = user_directions(e.mu);
+  const auto   phase = user_phase_matrices(c, user);
+  Vector       levels(NL + 1, 0.0);
   for (Index l = 0; l < NL; l++) levels[l + 1] = v.tau()[l];
   const AscendingGrid tau{std::move(levels)};
   const Vector        psi{0.0, pi / 2, pi};  // the table's PHI = 0, 90, 180 deg
@@ -1402,8 +1435,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
   for (Index k = 0; k < 3; k++) phi[k] = wrapped(c.phi0 + psi[k]);
   // Every Evans angle in both directions: over a Fresnel surface the upward one reflects the downward one
   auto out = std::make_shared<rtepack::stokvec_tensor3>(NL + 1, 3, 2 * n);
-  v.ungridded_u_user(
-      *out, tau, phi, user, vdisort::combine_phase_matrices(Cd, Sd), vdisort::combine_beam_phase_matrices(Cb, Sb));
+  v.ungridded_u_user(*out, tau, phi, user, phase.diffuse, phase.beam);
 
   auto flux = std::make_shared<Matrix>(4, NL + 1);
   v.ungridded_flux((*flux)[0], (*flux)[1], (*flux)[2], (*flux)[3], tau);
@@ -1728,6 +1760,7 @@ int main() try {
   test_convergence();
   test_mistakes();
   test_delta_m();
+  test_user_angles();
   test_evans_settings();
   test_evans_rt4_settings();
   std::cout << "vdisort-rt3 comparison passed\n";

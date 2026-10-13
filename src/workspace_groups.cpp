@@ -458,7 +458,7 @@ The components of the Stokes vector are:
 
 #. :math:`I` - the total intensity of the light.
 
-#. :math:`Q` - the difference in intensity between horizontally and vertically polarized light.
+#. :math:`Q` - the difference in intensity between vertically and horizontally polarized light.
 
 #. :math:`U` - the difference in intensity between light polarized at +45 degrees and -45 degrees.
 

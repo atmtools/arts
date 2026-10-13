@@ -476,7 +476,8 @@ VDISORT as many Fourier modes as RT3 has.  For a layer with the set
     streams follow its upward ones, in the same order.
   * RT3 takes extra angles with every rule, so its extra angles can match
     VDISORT's user angles on identical quadrature streams.  The comparison
-    test does not compare user angles.
+    test compares them at seven angles between the streams, at every level
+    and azimuth, for the Mie and the multilayer cases.
 * **Optical depth.**  The cumulative ``(k + k_g) dz`` at the layer bottoms.
   RT3's level l is VDISORT's ``tau_l``, with ``tau_0 = 0``.
 * **Single-scattering albedo.**  ``omega = sigma / (k + k_g)``, and 0 for
@@ -488,8 +489,10 @@ VDISORT as many Fourier modes as RT3 has.  For a layer with the set
     ``C^m(mu_o, mu_i) = (1 / 2 pi) int Z(mu_o, 0; mu_i, phi') cos(m phi') dphi'``,
     and ``S^m`` with ``sin(m phi')``.
   * ``Z = L_out^T F(Theta) L_in`` is the laboratory-frame phase matrix of the
-    series in the meridional basis of `Conventions`_, from vector geometry.
-    The test's ``lab-frame.h`` builds it.
+    series in the meridional basis of `Conventions`_, from ARTS's
+    polarization geometry (:ref:`Sec Polarization scattering`), which its
+    own test checks against electric fields.  The test's ``lab-frame.h``
+    applies it.
   * Combine the coefficients into VDISORT's diffuse operator without omega,
     weights or ``epsilon_m``.
   * For an identical discrete problem, sample at RT3's own azimuths.  For a

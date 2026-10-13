@@ -272,7 +272,13 @@ outward surface normal.)")
            "k_out"_a,
            "n_surface"_a,
            R"(Return the Fresnel Mueller matrix for non-specular reflection with
-independent incident and outgoing directions.)");
+independent incident and outgoing directions.
+
+The vectors are in a local frame with z up, e.g. east-north-up, and each
+Stokes vector is in the meridional basis of its direction (see
+:func:`meridional_basis`, with h = x along +-z).  `n_surface` is the normal of
+the facet that reflects `k_inc` into `k_out`, along ``k_out - k_inc``; any other
+normal throws.)");
 
   rp.def("specular_reflected_direction",
          &rtepack::specular_reflected_direction,
@@ -291,6 +297,101 @@ Returns
 -------
 k_ref : ~pyarts3.arts.Vector3
   Unit propagation vector of the specularly reflected beam (away from surface)
+)");
+
+  rp.def("meridional_basis",
+         &rtepack::meridional_basis,
+         "k"_a,
+         "h_pole"_a,
+         R"(The meridional polarization basis of a ray.
+
+With z up, ``h = k x z / |k x z|`` and ``v = h x k``, so ``v x h = k`` and
+``v . z >= 0``.
+This is the basis of ARTS's propagation matrices and of VDISORT.  Along +-z,
+h = `h_pole`, the limit along the meridian with that h.
+
+The Stokes vector of a field ``E = E_v v + E_h h`` is
+``I = |E_v|^2 + |E_h|^2``, ``Q = |E_v|^2 - |E_h|^2``, ``U = 2 Re(E_v E_h*)``
+and ``V = 2 Im(E_v E_h*)``.
+
+Parameters
+----------
+k : ~pyarts3.arts.Vector3
+  Unit propagation direction
+h_pole : ~pyarts3.arts.Vector3
+  Horizontal unit vector, the h of a ray along +-z
+
+Returns
+-------
+basis : tuple of ~pyarts3.arts.Vector3
+  (v, h)
+)");
+
+  rp.def("basis_rotation",
+         &rtepack::basis_rotation,
+         "basis_from"_a,
+         "basis_to"_a,
+         R"(The Stokes rotation from one polarization basis of a ray to another.
+
+Throws unless both (v, h) bases belong to the same propagation direction
+v x h.
+
+Parameters
+----------
+basis_from : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the input Stokes vector
+basis_to : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the output Stokes vector
+
+Returns
+-------
+M : ~pyarts3.arts.Muelmat
+  The rotation of the Stokes vector
+)");
+
+  rp.def("scattering_plane_rotation",
+         &rtepack::scattering_plane_rotation,
+         "basis_in"_a,
+         "basis_out"_a,
+         R"(The rotations of a scattering-plane matrix to the bases of two rays.
+
+The scattering-plane basis of a ray along k is ``(N x k, N)`` with
+``N = k_in x k_out / |k_in x k_out|``.  Exactly forward or backward that of
+k_in and h_in is used.
+
+Parameters
+----------
+basis_in : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the incident ray
+basis_out : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the scattered ray
+
+Returns
+-------
+coefficients : ~pyarts3.arts.Vector4
+  [cos2psi_in, sin2psi_in, cos2psi_out, sin2psi_out]
+)");
+
+  rp.def("lab_frame_phase_matrix",
+         &rtepack::lab_frame_phase_matrix,
+         "F"_a,
+         "basis_in"_a,
+         "basis_out"_a,
+         R"(The phase matrix between two rays of a scattering-plane matrix.
+
+Parameters
+----------
+F : ~pyarts3.arts.CompactPlanarMuelmat
+  The scattering-plane matrix at cos(Theta) = k_in . k_out, Q = I_par - I_perp
+basis_in : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the incident ray
+basis_out : tuple of ~pyarts3.arts.Vector3
+  (v, h) of the scattered ray
+
+Returns
+-------
+Z : ~pyarts3.arts.Muelmat
+  The phase matrix from the Stokes vector of the incident ray to that of the scattered one
 )");
 
   rp.def(
@@ -327,6 +428,10 @@ Integrates the reflectance contribution from each visible patch j:
     L_out = J + (1/pi) sum_j  R(k_j, k_out) . L_j . cos(theta_P) . dOmega_j
 
 where dOmega_j is the solid angle of patch j as seen from the scatter point.
+Each patch is reflected into `k_out` by the facet whose normal bisects its ray
+and `k_out`, with the same `Rv` and `Rh` for every facet; `n_surface` decides
+which patches are visible and gives cos(theta_P).  The directions are in ECEF.  The Stokes vectors (sources, J and the result)
+are in the meridional bases of the local vertical at the scatter point.
 
 Parameters
 ----------

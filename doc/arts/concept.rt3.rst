@@ -52,7 +52,8 @@ RT3 transports the ARTS Stokes vector
    \boldsymbol I = [I,Q,U,V]^{\mathsf T},\qquad Q = I_v - I_h,
 
 in the meridional basis of each ray (the vertical polarization lies in the
-plane of the ray and the zenith), the same in both hemispheres.  The leading
+plane of the ray and the zenith), the same in both hemispheres
+(:ref:`Sec Polarization basis`).  The leading
 :math:`n_s` components are transported, :math:`n_s=1,\ldots,4`.
 
 The streams are :math:`N` quadrature nodes :math:`\mu_1,\ldots,\mu_N` in

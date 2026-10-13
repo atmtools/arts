@@ -37,3 +37,10 @@ Surface-boundary behavior
 Both agenda options return polarized specular reflectance.  Thermal emission
 is supplied by the closed-surface agenda, which applies Kirchhoff consistency.
 
+The models give the vertical and horizontal reflectances but not the phase
+between the two reflected amplitudes, which the U and V elements of the
+reflection need.  ARTS assumes the phase of a loss-free surface below the
+Brewster angle, as described in
+:ref:`Sec Polarization reflectance without phase`.  The flat scalar
+reflectance uses the same assumption.
+

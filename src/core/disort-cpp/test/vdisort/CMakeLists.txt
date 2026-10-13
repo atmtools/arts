@@ -38,3 +38,21 @@ add_executable(vdisort-arts-comparison vdisort-arts-comparison.cpp)
 target_link_libraries(vdisort-arts-comparison vdisort-cpp arts_rt3 arts_rt4 physics legendre path)
 add_test(NAME "cpp.fast.vdisort-arts-comparison" COMMAND vdisort-arts-comparison)
 add_dependencies(check-deps vdisort-arts-comparison)
+
+# Polarized delta-M with the TMS and IMS corrections against VDISORT without delta-M on many streams
+add_executable(vdisort-delta-m-test vdisort-delta-m-test.cpp)
+target_link_libraries(vdisort-delta-m-test vdisort-cpp legendre artstime)
+add_test(NAME "cpp.fast.vdisort-delta-m-test" COMMAND vdisort-delta-m-test)
+add_dependencies(check-deps vdisort-delta-m-test)
+
+# One solver reused for several problems against a fresh solver for each
+add_executable(vdisort-reuse-test vdisort-reuse-test.cpp)
+target_link_libraries(vdisort-reuse-test vdisort-cpp legendre artstime)
+add_test(NAME "cpp.fast.vdisort-reuse-test" COMMAND vdisort-reuse-test)
+add_dependencies(check-deps vdisort-reuse-test)
+
+# The half-size eigenproblem for mirror-symmetric media and the full one otherwise
+add_executable(vdisort-mirror-test vdisort-mirror-test.cpp)
+target_link_libraries(vdisort-mirror-test vdisort-cpp legendre artstime)
+add_test(NAME "cpp.fast.vdisort-mirror-test" COMMAND vdisort-mirror-test)
+add_dependencies(check-deps vdisort-mirror-test)

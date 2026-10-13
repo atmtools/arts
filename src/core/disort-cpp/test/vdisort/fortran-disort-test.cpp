@@ -348,15 +348,12 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) t
       make_scalar_model(test.depth, test.omega, test.beam, nquad, moments, user_mu, 1.0, Constant::pi, moments[nquad]);
   const Vector output_tau{0.0, test.depth};
 
-  Vector weighted_true(moments.size()), weighted_transport(model.transport_moments.size()),
-      weighted_removed(moments.size());
+  Vector weighted_true(moments.size()), weighted_removed(moments.size());
   for (Index degree = 0; degree < static_cast<Index>(moments.size()); ++degree) {
     weighted_true[degree]    = static_cast<Numeric>(2 * degree + 1) * moments[degree];
     const Numeric residue    = degree < nquad ? 1.0 : moments[degree] / model.delta_m_fraction;
     weighted_removed[degree] = static_cast<Numeric>(2 * degree + 1) * residue;
   }
-  for (Index degree = 0; degree < static_cast<Index>(model.transport_moments.size()); ++degree)
-    weighted_transport[degree] = static_cast<Numeric>(2 * degree + 1) * model.transport_moments[degree];
   const auto scalar_phase = [](const Vector coefficients) {
     return [coefficients](Index, Numeric out_mu, Numeric out_phi, Numeric in_mu, Numeric in_phi) {
       rtepack::muelmat result{0.0};
@@ -373,7 +370,6 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) t
                                                                Vector{user_mu},
                                                                Vector{0.0},
                                                                scalar_phase(weighted_true),
-                                                               scalar_phase(weighted_transport),
                                                                scalar_phase(weighted_removed),
                                                                48,
                                                                96);
@@ -1603,14 +1599,10 @@ void test_problem_15() try {
   const Numeric       scaled_bottom = problem_15_tau[0] + (problem_15_tau[1] - problem_15_tau[0]) * (1.0 - fraction[1]);
   const AscendingGrid scaled_tau{problem_15_tau[0], scaled_bottom};
 
-  Matrix weighted_original(2, moment_count), weighted_transport(2, problem_15_streams),
-      weighted_removed(2, moment_count, 0.0);
-  for (Index layer = 0; layer < 2; ++layer) {
+  Matrix weighted_original(2, moment_count), weighted_removed(2, moment_count, 0.0);
+  for (Index layer = 0; layer < 2; ++layer)
     for (Index degree = 0; degree < moment_count; ++degree)
       weighted_original[layer, degree] = static_cast<Numeric>(2 * degree + 1) * original[layer, degree];
-    for (Index degree = 0; degree < problem_15_streams; ++degree)
-      weighted_transport[layer, degree] = static_cast<Numeric>(2 * degree + 1) * transport[layer, degree];
-  }
   for (Index degree = 0; degree < moment_count; ++degree) {
     const Numeric residue       = degree < problem_15_streams ? 1.0 : original[1, degree] / fraction[1];
     weighted_removed[1, degree] = static_cast<Numeric>(2 * degree + 1) * residue;
@@ -1642,7 +1634,6 @@ void test_problem_15() try {
                                                      Vector{problem_15_user_mu},
                                                      Vector{problem_15_azimuth},
                                                      phase_callback(weighted_original),
-                                                     phase_callback(weighted_transport),
                                                      phase_callback(weighted_removed),
                                                      1,
                                                      1,
@@ -1661,7 +1652,7 @@ void test_problem_15() try {
         user, scaled_output_tau, problem_15_azimuth, problem_15_user_mu, model.user_phase, model.user_beam_phase);
     for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth) {
-        const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth);
+        const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth, model.user_beam_phase);
         for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
           auto       intensity = user[level, azimuth, angle] + corr[angle];
           const auto label     = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
@@ -1767,14 +1758,14 @@ void test_polarized_delta_m_correction() try {
                                                      Vector{user_mu},
                                                      Vector{0.0},
                                                      zero_phase,
-                                                     zero_phase,
                                                      constant_phase,
                                                      8,
                                                      16);
   rtepack::stokvec_vector                 tms, ims;
-  correction.TMS(tms, tau, 0);
+  // Zero original phase and no beam single scattering in the solver: TMS is 0
+  correction.TMS(tms, tau, 0, {});
   correction.IMS(ims, tau, 0);
-  const auto             actual       = correction.evaluate(tau, 0);
+  const auto             actual       = correction.evaluate(tau, 0, {});
   const Numeric          omega_f      = omega * fraction;
   const Numeric          scalar       = Constant::inv_pi * 0.25 * omega_f * omega_f / (1.0 - omega_f);
   const rtepack::muelmat ims_operator = 2.0 * removed - removed * removed;
@@ -1796,10 +1787,10 @@ void test_polarized_delta_m_correction() try {
                      2e-12);
 
   rtepack::stokvec_tensor3 gridded_tms(1, 1, 1), gridded_ims(1, 1, 1);
-  correction.gridded_TMS(gridded_tms);
+  correction.gridded_TMS(gridded_tms, {});
   correction.gridded_IMS(gridded_ims);
   rtepack::stokvec_vector bottom_tms, bottom_ims;
-  correction.TMS(bottom_tms, depth, 0);
+  correction.TMS(bottom_tms, depth, 0, {});
   correction.IMS(bottom_ims, depth, 0);
   for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
     expect_reference(std::format("Gridded polarized delta-M TMS Stokes {}", stokes),

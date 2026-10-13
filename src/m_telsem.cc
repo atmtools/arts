@@ -10,22 +10,6 @@ Numeric incidence_angle(const SurfacePoint&         surf_point,
   const auto normal = geodetic_los2ecef(ray_point.pos, surf_point.normal, ellipsoid).second;
   return Conversion::rad2deg(std::acos(std::clamp(std::abs(dot(los, normal)), Numeric{0}, Numeric{1})));
 }
-
-Muelmat reflectance(Numeric ev, Numeric eh) {
-  const Numeric rv         = std::clamp(1 - ev, Numeric{0}, Numeric{1});
-  const Numeric rh         = std::clamp(1 - eh, Numeric{0}, Numeric{1});
-  const Numeric mean       = 0.5 * (rv + rh);
-  const Numeric difference = 0.5 * (rv - rh);
-
-  Muelmat out{};
-  out[0, 0] = mean;
-  out[0, 1] = difference;
-  out[1, 0] = difference;
-  out[1, 1] = mean;
-  out[2, 2] = std::sqrt(rv * rh);
-  out[3, 3] = std::sqrt(rv * rh);
-  return out;
-}
 }  // namespace
 
 void telsem_atlasReadAscii(TelsemAtlas& telsem_atlas, const String& filename, const Index& month) {
@@ -54,7 +38,8 @@ void spectral_surf_reflTelsem(MuelmatVector&              spectral_surf_refl,
 
   for (Size iv = 0; iv < freq_grid.size(); ++iv) {
     const auto emissivity  = telsem_atlas.emissivity(lat, lon, angle, freq_grid[iv], max_distance);
-    spectral_surf_refl[iv] = reflectance(emissivity[0], emissivity[1]);
+    spectral_surf_refl[iv] = rtepack::power_reflectance(std::clamp(1 - emissivity[0], Numeric{0}, Numeric{1}),
+                                                        std::clamp(1 - emissivity[1], Numeric{0}, Numeric{1}));
   }
 }
 ARTS_METHOD_ERROR_CATCH

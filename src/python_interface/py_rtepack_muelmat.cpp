@@ -9,9 +9,66 @@
 
 namespace Python {
 void py_rtepack_muelmat(py::module_ &m) {
+  py::class_<Jones> jm(m, "Jones");
+  jm.doc() = R"(A Jones matrix.
+
+The linear map of the field of an incident ray to that of an outgoing ray,
+``[E_v', E_h'] = J [E_v, E_h]``, with each field in its ray's polarization basis
+(see :func:`~pyarts3.arts.rtepack.meridional_basis`).  Rows are the outgoing
+components and columns the incident ones.  ``Muelmat(J)`` is its Mueller
+matrix, and ``Jones(M)`` the Jones matrix of a non-depolarizing Mueller matrix.
+)";
+  jm.def(py::init<>(), "The identity")
+      .def(py::init<Complex, Complex, Complex, Complex>(), "vv"_a, "vh"_a, "hv"_a, "hh"_a, "The elements, row by row")
+      .def(
+          "__init__",
+          [](Jones *j, const py::ndarray<const Complex, py::shape<2, 2>, py::device::cpu> &a) {
+            new (j) Jones{a(0, 0), a(0, 1), a(1, 0), a(1, 1)};
+          },
+          "J"_a,
+          "From a 2 x 2 complex array")
+      .def(py::init<const Muelmat &>(),
+           "M"_a,
+           "The Jones matrix of a non-depolarizing Mueller matrix, up to a global phase that makes its largest "
+           "element real and positive.  Throws for a Mueller matrix of no Jones matrix.")
+      .def_static("diagonal",
+                  &Jones::diagonal,
+                  "v"_a,
+                  "h"_a,
+                  "Independent amplitudes of the vertical and horizontal components, e.g. Fresnel reflection")
+      .def_static("rotation",
+                  &Jones::rotation,
+                  "cos_psi"_a,
+                  "sin_psi"_a,
+                  "The change to the basis of the same ray turned by psi about its propagation direction")
+      .def(
+          "__mul__", [](const Jones &a, const Jones &b) { return a * b; }, "b"_a, "The composition: first b, then this")
+      .def(
+          "__array__",
+          [](Jones &x, py::object dtype, py::object copy)
+              -> std::variant<py::ndarray<py::numpy, Complex, py::shape<2, 2>, py::c_contig>, py::object> {
+            std::array<size_t, 2> shape = {2, 2};
+            auto                  np    = py::module_::import_("numpy");
+            auto                  w     = py::ndarray<py::numpy, Complex, py::shape<2, 2>, py::c_contig>(
+                x.data.data(), 2, shape.data(), py::cast(&x));
+
+            if (not dtype.is_none()) { return np.attr("asarray")(w, "dtype"_a = dtype, "copy"_a = copy); }
+
+            if (copy.is_none() or not py::bool_(copy)) { return w.cast(py::rv_policy::automatic_reference); }
+            return w.cast(py::rv_policy::copy);
+          },
+          "dtype"_a.none() = py::none(),
+          "copy"_a.none()  = py::none(),
+          "Returns a :class:`~numpy.ndarray` of the object.");
+
   py::class_<Muelmat> mm(m, "Muelmat");
   mm.def(py::init_implicit<Numeric>())
       .def(py::init_implicit<std::array<Numeric, 16>>())
+      .def(
+          "__init__",
+          [](Muelmat *x, const Jones &J) { new (x) Muelmat{rtepack::to_muelmat(J)}; },
+          "J"_a,
+          "The Mueller matrix of a :class:`~pyarts3.arts.Jones` matrix")
       .def("is_polarized", &Muelmat::is_polarized, "Check if the Mueller matrix represents a polarized state.")
       .def(
           "__array__",

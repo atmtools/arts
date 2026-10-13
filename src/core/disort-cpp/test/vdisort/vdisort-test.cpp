@@ -718,7 +718,6 @@ void test_delta_m_correction_api_overlap() try {
   removed[2, 2]               = 0.6;
   removed[3, 3]               = 0.5;
   const auto   original_phase = [removed](Index, Numeric, Numeric, Numeric, Numeric) { return removed; };
-  const auto   zero_phase     = [](Index, Numeric, Numeric, Numeric, Numeric) { return rtepack::muelmat{0.0}; };
   const Vector phi{0.0, 0.7};
   const vdisort::delta_m_correction_cache correction(AscendingGrid{physical_depth},
                                                      Vector{omega},
@@ -729,7 +728,6 @@ void test_delta_m_correction_api_overlap() try {
                                                      Vector{model.mu()},
                                                      Vector{phi},
                                                      original_phase,
-                                                     zero_phase,
                                                      original_phase,
                                                      8,
                                                      16);

@@ -11,22 +11,6 @@ Numeric incidence_angle(const SurfacePoint&         surf_point,
   return Conversion::rad2deg(std::acos(std::clamp(std::abs(dot(los, normal)), Numeric{0}, Numeric{1})));
 }
 
-Muelmat reflectance(Numeric ev, Numeric eh) {
-  const Numeric rv         = std::clamp(1 - ev, Numeric{0}, Numeric{1});
-  const Numeric rh         = std::clamp(1 - eh, Numeric{0}, Numeric{1});
-  const Numeric mean       = 0.5 * (rv + rh);
-  const Numeric difference = 0.5 * (rv - rh);
-
-  Muelmat out{};
-  out[0, 0] = mean;
-  out[0, 1] = difference;
-  out[1, 0] = difference;
-  out[1, 1] = mean;
-  out[2, 2] = std::sqrt(rv * rh);
-  out[3, 3] = std::sqrt(rv * rh);
-  return out;
-}
-
 Muelmat reflectance(const TessemNN& neth,
                     const TessemNN& netv,
                     Numeric         frequency,
@@ -38,7 +22,8 @@ Muelmat reflectance(const TessemNN& neth,
   const Vector eh = tessem_emissivity(neth, input);
   const Vector ev = tessem_emissivity(netv, input);
   ARTS_USER_ERROR_IF(eh.empty() or ev.empty(), "TESSEM neural networks must have at least one output")
-  return reflectance(ev[0], eh[0]);
+  return rtepack::power_reflectance(std::clamp(1 - ev[0], Numeric{0}, Numeric{1}),
+                                    std::clamp(1 - eh[0], Numeric{0}, Numeric{1}));
 }
 }  // namespace
 

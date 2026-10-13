@@ -2,6 +2,13 @@
 
 #include <configtypes.h>
 
+/* Here rather than in rtepack.h, so that the note appears once per build and not
+   for every file that includes rtepack. */
+#if __cplusplus > 202302L
+#warning \
+    "rtepack: C++26 makes <cmath> and <complex> constexpr (P1383).  These rtepack functions can then be constexpr in their headers: tran (its constructors and evaluations), exp, sqrt and logK of a propmat, level_emission (with planck), rayleigh_scattering, power_reflectance(rv, rh), specular_reflected_direction, fresnel_reflectance_specular, fresnel_reflectance_nonspecular, specular_radiance, nonspecular_radiance, meridional_basis, scattering_plane_rotation, lab_frame_phase_matrix and jones(const muelmat &)."
+#endif
+
 namespace rtepack {
 void forward_cumulative_transmission(Array<muelmat_vector> &Pi, const Array<muelmat_vector> &T) {
   const Size N = T.size();

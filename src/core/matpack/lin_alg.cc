@@ -872,27 +872,44 @@ Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) n
   return 0;
 }
 
-void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
+void lu_decompose_inplace(MatrixView A, solve_workdata& wo) {
   // Assert that A is quadratic.
   const Index n = A.nrows();
   assert((A.shape() == std::array{n, n}));
+
+  int n_int = static_cast<int>(n);
+  int info{};
+
+  // Compute LU decomposition using LAPACK dgetrf_.
+  lapack::dgetrf_(
+      &n_int, &n_int, const_cast<Numeric*>(inplace_transpose(A).data_handle()), &n_int, wo.ipiv.data(), &info);
+  check_lu_info(info, "DGETRF");
+}
+
+void lu_solve_inplace(VectorView X, ConstMatrixView LU, const solve_workdata& wo) {
+  const Index n = LU.nrows();
+  assert((LU.shape() == std::array{n, n}));
 
   char trans = 'N';
   int  n_int = static_cast<int>(n);
   int  info{};
   int  one = 1;
 
-  // Standard case: The arts matrix is not transposed, the leading
-  // dimension is the row stride of the matrix.
-  n_int = (int)n;
-
-  // Compute LU decomposition using LAPACK dgetrf_.
-  lapack::dgetrf_(
-      &n_int, &n_int, const_cast<Numeric*>(inplace_transpose(A).data_handle()), &n_int, wo.ipiv.data(), &info);
-  check_lu_info(info, "DGETRF");
-
-  lapack::dgetrs_(&trans, &n_int, &one, A.data_handle(), &n_int, wo.ipiv.data(), X.data_handle(), &n_int, &info);
+  lapack::dgetrs_(&trans,
+                  &n_int,
+                  &one,
+                  const_cast<Numeric*>(LU.data_handle()),
+                  &n_int,
+                  const_cast<int*>(wo.ipiv.data()),
+                  X.data_handle(),
+                  &n_int,
+                  &info);
   check_lu_solve_info(info, "DGETRS");
+}
+
+void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {
+  lu_decompose_inplace(A, wo);
+  lu_solve_inplace(X, A, wo);
 }
 
 void solve_inplace(VectorView X, MatrixView A) {
