@@ -41,6 +41,14 @@ Workspace methods
   radiation.  VDISORT's azimuth grid is the propagation azimuth too.
 * **The sun.**  The settings' solar zenith and azimuth angles are those of
   the line of sight toward the sun.
+* **Surface reflection.**  The surface methods (Lambertian, Hapke, Cox-Munk,
+  RPV, Ross-Li, and Fresnel for VDISORT, each also spectral) store the
+  surface's reflection between the streams, and its reflection of the sun's
+  beam at the sun's zenith angle.  Set the sun before the surface: a solver
+  with a beam refuses a surface computed for another sun.  A Fresnel surface
+  cannot reflect a beam, so VDISORT refuses it with a sun.  For radiances at
+  user directions, the low-level solvers also need the surface's reflection
+  into those directions, for the same sun.
 * **Surface emission.**  The upward boundary is the radiance beneath the
   surface: surface emission by temperature sets it to the Planck radiance
   of the surface temperature.  The solvers transmit it through the surface

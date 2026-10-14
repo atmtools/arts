@@ -799,9 +799,30 @@ Scalar DISORT applies the corresponding diffuse-reflection quadrature and
 direct-beam reflection in the lower boundary equation.  VDISORT generalizes
 each Fourier coefficient to a :math:`4\times4` Mueller operator and retains a
 cosine and sine operator for each mode.  The core applies the angular
-quadrature weights exactly once; callbacks must therefore return the Fourier
-BRDF or Mueller-BRDF coefficient itself, without a quadrature weight folded
-into it.
+quadrature weights exactly once; the surface therefore holds the Fourier BRDF
+or Mueller-BRDF coefficients themselves, without a quadrature weight folded
+into them.
+
+*The surface as data.*  The solver is given the surface already evaluated, as
+the coefficients on the directions it needs: the reflection from its downward
+streams into its upward streams for each retained mode, and the reflection of
+the direct beam into the same upward streams.  The beam reflection belongs to
+one beam cosine, which the surface records with it.  A solver with a beam
+refuses a surface evaluated for another beam cosine, or without one, since it
+would reflect the wrong sun; without a beam the beam reflection is unused.
+Radiances at user directions need the reflection into those directions as
+well, evaluated for the same modes, streams and beam, which the caller
+supplies with them.  A surface's shapes are fixed when it is created, and its
+data is replaced in place: the solver's surface is allocated once and
+overwritten for each frequency without reallocation.
+
+In the solver settings the surface is held this way for every frequency.  The
+setting methods evaluate a surface model on the streams, and its beam
+reflection at the sun's zenith angle, so the sun must be set before the
+surface.  A model with the same parameters at every frequency is evaluated
+once, and again only where the sun's zenith angle changes; a spectral model is
+evaluated for each frequency.  The azimuth integral samples the raw BRDF once
+per quadrature node and accumulates every Fourier mode from those samples.
 
 For positive outgoing and incident quadrature streams, VDISORT assembles the
 actual bottom reflection matrix as
@@ -865,14 +886,12 @@ does not pay for a :math:`4\times4` Mueller matrix or its reference-frame
 rotations, while both paths retain identical optics, shadowing, and treatment
 of total internal reflection.
 
-The two exact Lambertian *factories* remain deliberately separate thin
-adapters.  The common physical value is :math:`A/\pi`, but the solver callback
-normalizations differ: scalar DISORT stores :math:`R_0=A`, whereas VDISORT
-stores :math:`R^{c,0}_{00}=2A/\pi` before applying its boundary factor
-:math:`\pi`.  Sharing one returned callback would therefore either give one
-solver the wrong normalization or add a conversion on every evaluation.  The
-current conversion is performed once while constructing the modes and has no
-runtime cost.  Likewise, scalar Fourier projection evaluates one real cosine
+The two exact Lambertian surfaces remain deliberately separate.  The common
+physical value is :math:`A/\pi`, but the solvers' normalizations differ:
+scalar DISORT holds :math:`R_0=A`, whereas VDISORT holds
+:math:`R^{c,0}_{00}=2A/\pi` before applying its boundary factor :math:`\pi`.
+Each is evaluated directly in its solver's normalization, once, when the
+surface is evaluated, so there is no conversion at solve time.  Likewise, scalar Fourier projection evaluates one real cosine
 series using reflection symmetry; polarized projection must retain full-circle
 Mueller-valued cosine and sine series.  Reusing the polarized projector for
 scalar DISORT would do substantially more setup work without changing its
@@ -888,8 +907,9 @@ combination is simply
    \boldsymbol R^{am}_{\mathrm{mix}}
       =w_a\boldsymbol R^{am}_a+w_b\boldsymbol R^{am}_b.
 
-The same sum is applied to the direct-beam callbacks.  Missing higher modes
-are zero, so an azimuth-independent Lambertian operator can be mixed directly
+The same sum is applied to the direct-beam reflections, so both surfaces must
+be evaluated on the same directions and for the same beam cosine.  Missing
+higher modes are zero, so an azimuth-independent Lambertian operator can be mixed directly
 with a multi-mode surface.  Named factories provide Cox--Munk/Lambertian
 mixtures in both cores and ideal-Fresnel/Lambertian mixtures in VDISORT; the
 generic combiner permits other pairs and repeated composition.  The named

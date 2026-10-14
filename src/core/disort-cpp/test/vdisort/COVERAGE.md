@@ -130,10 +130,11 @@ sources:
 - 2 to 32 streams per hemisphere;
 - RT4 `nstokes = 1` against the I-only embedding;
 - the user-angle formal solution at off-node angles, for black, Lambertian
-  and Fresnel surfaces.  A Fresnel surface is the specular part
-  `BDRF::specular` = R(mu) of its modes, without a reflection kernel.  VDISORT
-  applies it between equal streams and, at an upward user angle mu, to the
-  downward user-angle radiance at -mu at the surface.  An upward user angle
+  and Fresnel surfaces, each given with its reflection into the user angles.
+  A Fresnel surface is a specular part R(mu), the same in every mode, without
+  a reflection kernel.  VDISORT applies it between equal streams and, at an
+  upward user angle mu, to the downward user-angle radiance at -mu at the
+  surface.  An upward user angle
   therefore needs its downward partner, and the test asserts that VDISORT
   refuses one without it.  The upward boundary is the surface's Planck
   radiance, constant in mu, so its interpolation to a user angle is exact,
@@ -383,7 +384,7 @@ VDISORT solve it from the Mie Legendre series that scatcnv converts for
 RT4:
 
 VDISORT is evaluated at Evans' angles by its formal solution; the upward
-radiance reflects the downward one at the same angle (`BDRF::specular`).
+radiance reflects the downward one at the same angle (the surface's specular part).
 
 | runtestr, every level, angle and direction | |
 |---|---|

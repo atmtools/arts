@@ -297,6 +297,15 @@ The settings and radiance types are in
 * The boundary conditions are in VDISORT's combined Fourier representation.
   An azimuth-independent Stokes vector [I, Q, U, V] is [I, Q, 0, 0] in the
   cosine system and [0, 0, U, V] in the sine system of mode 0.
+* The surface is held per frequency as data, as in DISORT: the Fourier
+  reflection between the streams, the reflection of the sun's beam with the
+  cosine it was evaluated at, and, for VDISORT, a specular part (Fresnel)
+  or none.  The setter methods evaluate a surface model once for constant
+  parameters, again where the sun's zenith angle changes, and per frequency
+  for spectral ones; the solver's surface is allocated once, from the number
+  of modes and whether there is a specular part, and the settings copy each
+  frequency into it in place.  A solver with a beam refuses a surface
+  evaluated for another beam cosine.
 * The sources follow DISORT's methods.  The layers' source is linear in
   optical depth, from the Planck function or the non-LTE source vector.
   Surface emission by temperature sets the upward boundary to the Planck
