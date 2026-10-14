@@ -279,6 +279,9 @@ class surface_reflection {
   [[nodiscard]] rtepack::muelmat_vector_const_view specular() const { return mirror; }
   [[nodiscard]] rtepack::muelmat_vector_view       specular() { return mirror; }
 
+  //! The specular part into direction i
+  [[nodiscard]] const rtepack::muelmat& specular(Index i) const { return mirror[i]; }
+
   /** Set the reflection in place, for the beam cosine beam_mu (NaN: none); the shapes must be this one's */
   void set(const rtepack::muelmat_tensor4_const_view& brdf,
            const rtepack::muelmat_tensor3_const_view& beam_brdf,

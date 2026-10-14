@@ -87,7 +87,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
-  for (Index ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
+  for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
     Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
     if (err > 1e-3) return false;
   }

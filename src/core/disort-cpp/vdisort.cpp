@@ -1546,7 +1546,7 @@ void main_data::solve_for_coefs() {
       }
       // The specular part reflects each downward stream into the upward stream of the same cosine, in every mode
       for (Index i = 0; i < static_cast<Index>(surface_refl.specular().size()); ++i) {
-        const rtepack::muelmat& R = surface_refl.specular()[i];
+        const rtepack::muelmat& R = surface_refl.specular(i);
         for (Index so = 0; so < stokes_dimension; ++so)
           for (Index si = 0; si < stokes_dimension; ++si)
             surface_operator[state_index(i, so), state_index(i, si)] += R[so, si];
@@ -2064,7 +2064,7 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
             rtepack::stokvec down;
             for (Index s = 0; s < stokes_dimension; ++s)
               down[s] = partner_modes[0, partner[iu], alpha * NFourier + m, s].real();
-            mode += user_surface.specular()[iu] * (down - beneath);
+            mode += user_surface.specular(iu) * (down - beneath);
           }
         }
         for (Index t = 0; t < ntau; ++t) {
