@@ -10,9 +10,9 @@
 
 #include <cstdint>
 #include <format>
-#include <map>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <variant>
 
 #include "flat_scalar.h"
@@ -49,11 +49,11 @@ using FlatScalarSurfaceScattererField = surface_scattering::FlatScalarSurfaceSca
  * Models are stored by name for later individual lookup, and their bulk
  * surface scattering properties are accumulated over the models with
  * per-model weights derived from the *SurfacePropertyTag* masks of the
- * SurfacePoint (iteration follows std::map key order).  See Weighting for
+ * SurfacePoint (iteration order is unspecified).  See Weighting for
  * how the masks become model weights.
  */
 struct MapOfSurfaceScatteringModel {
-  std::map<std::string, surface_scattering::SurfaceScatteringModel> models;
+  std::unordered_map<std::string, surface_scattering::SurfaceScatteringModel> models;
 
   /// Insert (or replace) a named model
   void add(const std::string& name,
