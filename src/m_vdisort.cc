@@ -142,7 +142,10 @@ void vdisort_spectral_rad_fieldApplyUnit(VDisortRadiance&                       
   StokvecVector spectral_rad(vdisort_spectral_rad_field.freq_grid.size());
   StokvecMatrix spectral_rad_jac(0, vdisort_spectral_rad_field.freq_grid.size());
 
-  const auto [nv, np, nz, nq] = vdisort_spectral_rad_field.data.shape();
+  const Index nv = vdisort_spectral_rad_field.data.nbooks();
+  const Index np = vdisort_spectral_rad_field.data.npages();
+  const Index nz = vdisort_spectral_rad_field.data.nrows();
+  const Index nq = vdisort_spectral_rad_field.data.ncols();
 
   std::string error{};
 
