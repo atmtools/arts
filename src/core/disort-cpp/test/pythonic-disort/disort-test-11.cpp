@@ -111,10 +111,8 @@ void check_test_11a_reference(const std::string_view   name,
   // integrate residuals of the resulting O(1e7) radiances, so their last
   // approximately six relative digits depend on eigensolver and math-library
   // roundoff.  The direct flux does not contain this cancellation.
-  require_close("delta-scaled source upward flux",
-                up,
-                Vector{-24332793.99191139, -27833453.06225019, -45865866.41348321},
-                1e-6);
+  require_close(
+      "delta-scaled source upward flux", up, Vector{-24332793.99191139, -27833453.06225019, -45865866.41348321}, 1e-6);
   require_close("delta-scaled source diffuse-downward flux",
                 down_diffuse,
                 Vector{-299160.6657109338, -2818892.9663727283, -34216146.08705735},
@@ -146,7 +144,7 @@ void test_11a_1layer() try {
   b_pos[0] = 1;
   // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
   const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
-  const Matrix                    s_poly_coeffs{
+  const Matrix                     s_poly_coeffs{
       Vector{172311.79936609 / (1 - omega_arr[0]), -102511.4417051 / (1 - omega_arr[0])}.reshape(tau_arr.size(), 2)};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
@@ -210,7 +208,7 @@ void test_11a_multilayer() try {
   b_pos[0] = 1;
   // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
   const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
-  Matrix                          s_poly_coeffs(tau_arr.size(), 2);
+  Matrix                           s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
   s_poly_coeffs /= 1 - omega_arr[0];
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};

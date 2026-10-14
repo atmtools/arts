@@ -169,8 +169,8 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
   // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), element by element; its phase integral is 4 pi
   Vector scaled(nleg);
   for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
-  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](Numeric                     theta,
-                                                                          matpack::data_t<Numeric, 3>& F) mutable {
+  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](Numeric                      theta,
+                                                                       matpack::data_t<Numeric, 3>& F) mutable {
     Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
     for (Index e = 0; e < 6; e++) {
       Numeric value = 0.0;

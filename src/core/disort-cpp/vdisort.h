@@ -269,15 +269,15 @@ class surface_reflection {
 
   //! [2, NBRDF, n_out, N]
   [[nodiscard]] rtepack::muelmat_tensor4_const_view brdf() const { return kernel; }
-  [[nodiscard]] rtepack::muelmat_tensor4_view brdf() { return kernel; }
+  [[nodiscard]] rtepack::muelmat_tensor4_view       brdf() { return kernel; }
 
   //! [2, NBRDF, n_out]
   [[nodiscard]] rtepack::muelmat_tensor3_const_view beam_brdf() const { return beam_kernel; }
-  [[nodiscard]] rtepack::muelmat_tensor3_view beam_brdf() { return beam_kernel; }
+  [[nodiscard]] rtepack::muelmat_tensor3_view       beam_brdf() { return beam_kernel; }
 
   //! [n_out] or [0]
   [[nodiscard]] rtepack::muelmat_vector_const_view specular() const { return mirror; }
-  [[nodiscard]] rtepack::muelmat_vector_view specular() { return mirror; }
+  [[nodiscard]] rtepack::muelmat_vector_view       specular() { return mirror; }
 
   /** Set the reflection in place, for the beam cosine beam_mu (NaN: none); the shapes must be this one's */
   void set(const rtepack::muelmat_tensor4_const_view& brdf,
@@ -388,34 +388,34 @@ class main_data {
   /* Scratch of update_all(), sized by the constructor and reused by every
      update.  What is accumulated or written only conditionally is reset
      where it is used; everything else is overwritten. */
-  Matrix                  transport{};              // [NState, NState], A of one Fourier mode and layer
-  Matrix                  transport_work{};         // [NState, NState], a copy for the destructive solves
-  Matrix                  real_eigenvectors{};      // [NState, NState], a conjugate pair as Re and Im columns
-  Vector                  eigenvalues_real{};       // [NState]
-  Vector                  eigenvalues_imag{};       // [NState]
-  ComplexMatrix           eigenvectors{};           // [NState, NState]
-  ComplexVector           eigenvalues{};            // [NState]
-  std::vector<Index>      eigen_order{};            // [NState]
-  std::vector<Index>      eigen_partner{};          // [NState], the conjugate partner before sorting, or -1
-  std::vector<Index>      eigen_position{};         // [NState], the sorted position of each eigenpair
-  Matrix                  half_sum{};               // [NHalfState, NHalfState], alpha + beta Delta
-  Matrix                  half_difference{};        // [NHalfState, NHalfState], alpha - beta Delta
-  Matrix                  half_product{};           // [NHalfState, NHalfState], their product
-  Matrix                  half_eigenvectors{};      // [NHalfState, NHalfState], a conjugate pair as Re and Im columns
-  Matrix                  half_images{};            // [NHalfState, NHalfState], half_sum times the eigenvectors
-  Vector                  half_eigenvalues_real{};  // [NHalfState]
-  Vector                  half_eigenvalues_imag{};  // [NHalfState]
-  diagonalize_workdata    half_eigen_work{};        // [NHalfState]
-  diagonalize_workdata    eigen_work{};             // [NState]
-  solve_workdata          solve_work{};             // [NState]
-  Vector                  state_rhs{};              // [NState], right-hand sides of the solves
-  Vector                  state_next{};             // [NState], the source polynomial's next coefficient
-  matpack::band_matrix    boundary_lhs{};           // [NLayers NState, NLayers NState], banded and real
-  Vector                  boundary_rhs{};           // [NLayers NState]
-  ComplexTensor3          mode_exponential{};       // [NLayers, 2, NState], at each layer's top and bottom
-  Matrix                  surface_operator{};       // [NHalfState, NHalfState], R of one mode with its quadrature weights
-  Vector                  direct_reflection{};      // [NHalfState]
-  Matrix                  layer_field{};            // [2 NFourier, NState]
+  Matrix               transport{};              // [NState, NState], A of one Fourier mode and layer
+  Matrix               transport_work{};         // [NState, NState], a copy for the destructive solves
+  Matrix               real_eigenvectors{};      // [NState, NState], a conjugate pair as Re and Im columns
+  Vector               eigenvalues_real{};       // [NState]
+  Vector               eigenvalues_imag{};       // [NState]
+  ComplexMatrix        eigenvectors{};           // [NState, NState]
+  ComplexVector        eigenvalues{};            // [NState]
+  std::vector<Index>   eigen_order{};            // [NState]
+  std::vector<Index>   eigen_partner{};          // [NState], the conjugate partner before sorting, or -1
+  std::vector<Index>   eigen_position{};         // [NState], the sorted position of each eigenpair
+  Matrix               half_sum{};               // [NHalfState, NHalfState], alpha + beta Delta
+  Matrix               half_difference{};        // [NHalfState, NHalfState], alpha - beta Delta
+  Matrix               half_product{};           // [NHalfState, NHalfState], their product
+  Matrix               half_eigenvectors{};      // [NHalfState, NHalfState], a conjugate pair as Re and Im columns
+  Matrix               half_images{};            // [NHalfState, NHalfState], half_sum times the eigenvectors
+  Vector               half_eigenvalues_real{};  // [NHalfState]
+  Vector               half_eigenvalues_imag{};  // [NHalfState]
+  diagonalize_workdata half_eigen_work{};        // [NHalfState]
+  diagonalize_workdata eigen_work{};             // [NState]
+  solve_workdata       solve_work{};             // [NState]
+  Vector               state_rhs{};              // [NState], right-hand sides of the solves
+  Vector               state_next{};             // [NState], the source polynomial's next coefficient
+  matpack::band_matrix boundary_lhs{};           // [NLayers NState, NLayers NState], banded and real
+  Vector               boundary_rhs{};           // [NLayers NState]
+  ComplexTensor3       mode_exponential{};       // [NLayers, 2, NState], at each layer's top and bottom
+  Matrix               surface_operator{};       // [NHalfState, NHalfState], R of one mode with its quadrature weights
+  Vector               direct_reflection{};      // [NHalfState]
+  Matrix               layer_field{};            // [2 NFourier, NState]
 
   // The homogeneous solution is complex (paper Sec. 3.3.1).
   ComplexTensor5                    G_collect{};                // [2, NFourier, NLayers, NState, NState]
@@ -480,21 +480,21 @@ class main_data {
    * Phase, boundary, beam, and source arrays use Mueller or Stokes blocks in
    * the combined cosine/sine representation documented for this class.
    */
-  main_data(Index                    NQuad,
-            Index                    NFourier,
-            AscendingGrid            tau_arr,
-            Vector                   omega_arr,
-            phase_matrix_data        phase_matrix,
-            rtepack::stokvec_tensor3 boundary_up,
-            rtepack::stokvec_tensor3 boundary_down,
-            rtepack::stokvec_matrix  source_poly_coeffs,
+  main_data(Index                     NQuad,
+            Index                     NFourier,
+            AscendingGrid             tau_arr,
+            Vector                    omega_arr,
+            phase_matrix_data         phase_matrix,
+            rtepack::stokvec_tensor3  boundary_up,
+            rtepack::stokvec_tensor3  boundary_down,
+            rtepack::stokvec_matrix   source_poly_coeffs,
             const surface_reflection& surface,
-            Numeric                  mu0,
-            rtepack::stokvec         beam_stokes,
-            Numeric                  phi0,
-            beam_phase_matrix_data   beam_phase_matrix        = {},
-            Vector                   source_coordinate_scale  = {},
-            Vector                   source_coordinate_offset = {});
+            Numeric                   mu0,
+            rtepack::stokvec          beam_stokes,
+            Numeric                   phi0,
+            beam_phase_matrix_data    beam_phase_matrix        = {},
+            Vector                    source_coordinate_scale  = {},
+            Vector                    source_coordinate_offset = {});
 
   /** Return the layer containing a physical optical depth. */
   [[nodiscard]] Index tau_index(Numeric tau) const;

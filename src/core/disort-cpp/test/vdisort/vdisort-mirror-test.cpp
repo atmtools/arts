@@ -92,19 +92,19 @@ Tensor4 radiance(vdisort::phase_matrix_data diffuse) {
   const AscendingGrid tau{Vector{0.3, 0.8, 1.6}};
   Vector              streams(NQ / 2), weights(NQ / 2);
   Legendre::PositiveDoubleGaussLegendre(streams, weights);
-  const auto          v = vdisort::main_data(NQ,
-                                             NF,
-                                             tau,
-                                             Vector{0.5, 0.95, 0.7},
-                                             std::move(diffuse),
-                                             boundary(1),
-                                             boundary(-1),
-                                             rtepack::stokvec_matrix(NL, 0),
-                                             vdisort::brdf::lambertian_fourier_modes(
-                                                 0.3, 1, streams, streams, std::numeric_limits<Numeric>::quiet_NaN()),
-                                             0.6,
-                                             rtepack::stokvec{0.0, 0.0, 0.0, 0.0},
-                                             0.3);
+  const auto v = vdisort::main_data(
+      NQ,
+      NF,
+      tau,
+      Vector{0.5, 0.95, 0.7},
+      std::move(diffuse),
+      boundary(1),
+      boundary(-1),
+      rtepack::stokvec_matrix(NL, 0),
+      vdisort::brdf::lambertian_fourier_modes(0.3, 1, streams, streams, std::numeric_limits<Numeric>::quiet_NaN()),
+      0.6,
+      rtepack::stokvec{0.0, 0.0, 0.0, 0.0},
+      0.3);
   const AscendingGrid levels{Vector{0.0, 0.15, 0.3, 0.8, 1.2, 1.6}};
   const Vector        phi{0.0, 0.7, 2.5};
   Tensor4             out(levels.size(), phi.size(), NQ, 4);

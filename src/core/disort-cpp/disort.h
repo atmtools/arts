@@ -74,10 +74,7 @@ class surface_reflection {
   surface_reflection() = default;
 
   /** Zero reflection of NBRDF modes from N streams into n_out directions, for the beam cosine beam_mu (NaN: none) */
-  surface_reflection(Index   NBRDF,
-                     Index   n_out,
-                     Index   N,
-                     Numeric beam_mu = std::numeric_limits<Numeric>::quiet_NaN());
+  surface_reflection(Index NBRDF, Index n_out, Index N, Numeric beam_mu = std::numeric_limits<Numeric>::quiet_NaN());
 
   /** The reflection brdf [NBRDF, n_out, N] and beam_brdf [NBRDF, n_out], for the beam cosine beam_mu (NaN: none) */
   surface_reflection(Tensor3 brdf, Matrix beam_brdf, Numeric beam_mu = std::numeric_limits<Numeric>::quiet_NaN());
@@ -99,11 +96,11 @@ class surface_reflection {
 
   //! [NBRDF, n_out, N]
   [[nodiscard]] ConstTensor3View brdf() const { return kernel; }
-  [[nodiscard]] Tensor3View brdf() { return kernel; }
+  [[nodiscard]] Tensor3View      brdf() { return kernel; }
 
   //! [NBRDF, n_out]
   [[nodiscard]] ConstMatrixView beam_brdf() const { return beam_kernel; }
-  [[nodiscard]] MatrixView beam_brdf() { return beam_kernel; }
+  [[nodiscard]] MatrixView      beam_brdf() { return beam_kernel; }
 
   /** Set the reflection in place, for the beam cosine beam_mu (NaN: none); the shapes must be this one's */
   void set(const ConstTensor3View& brdf, const ConstMatrixView& beam_brdf, Numeric beam_mu);
@@ -217,18 +214,18 @@ class main_data {
   bool  has_beam_source{false};
 
   //! User inputs
-  AscendingGrid     tau_arr{};             // [NLayers]
-  Vector            omega_arr{};           // [NLayers]
-  Vector            f_arr{};               // [NLayers]
-  Matrix            delta_m_peak{};        // [NLayers, NLeg]
-  Matrix            source_poly_coeffs{};  // [NLayers, Nscoeffs]
-  Matrix            Leg_coeffs_all{};      // [NLayers, NLeg_all]
-  Matrix            boundary_up{};         // [NFourier, N], beneath the surface, transmitted with 1 - R
-  Matrix            boundary_down{};       // [NFourier, N]
-  surface_reflection surface_refl{};      // [NBDRF, N, N] and [NBDRF, N] on the streams
-  Numeric           mu0{};
-  Numeric           I0{};
-  Numeric           phi0{};
+  AscendingGrid      tau_arr{};             // [NLayers]
+  Vector             omega_arr{};           // [NLayers]
+  Vector             f_arr{};               // [NLayers]
+  Matrix             delta_m_peak{};        // [NLayers, NLeg]
+  Matrix             source_poly_coeffs{};  // [NLayers, Nscoeffs]
+  Matrix             Leg_coeffs_all{};      // [NLayers, NLeg_all]
+  Matrix             boundary_up{};         // [NFourier, N], beneath the surface, transmitted with 1 - R
+  Matrix             boundary_down{};       // [NFourier, N]
+  surface_reflection surface_refl{};        // [NBDRF, N, N] and [NBDRF, N] on the streams
+  Numeric            mu0{};
+  Numeric            I0{};
+  Numeric            phi0{};
 
   //! Derived values
   Vector             scale_tau{};                   // [NLayers]
@@ -337,21 +334,21 @@ class main_data {
             const Index NBDRF);
 
   /** Construct and solve a scalar discrete-ordinate problem from complete inputs. */
-  main_data(const Index       NQuad,
-            const Index       NLeg,
-            const Index       NFourier,
-            AscendingGrid     tau_arr,
-            Vector            omega_arr,
-            Matrix            Leg_coeffs_all,
-            Matrix            boundary_up,
-            Matrix            boundary_down,
-            Vector            f_arr,
-            Matrix            source_poly_coeffs,
+  main_data(const Index               NQuad,
+            const Index               NLeg,
+            const Index               NFourier,
+            AscendingGrid             tau_arr,
+            Vector                    omega_arr,
+            Matrix                    Leg_coeffs_all,
+            Matrix                    boundary_up,
+            Matrix                    boundary_down,
+            Vector                    f_arr,
+            Matrix                    source_poly_coeffs,
             const surface_reflection& surface,
-            Numeric           mu0,
-            Numeric           I0,
-            Numeric           phi0,
-            Matrix            delta_m_peak = {});
+            Numeric                   mu0,
+            Numeric                   I0,
+            Numeric                   phi0,
+            Matrix                    delta_m_peak = {});
 
   /** Return the layer containing a physical optical depth.
     *
@@ -902,7 +899,6 @@ struct DisortSettings {
   /** Validate settings dimensions, grids, and physical input ranges. */
   void check() const;
 };
-
 
 template <> struct std::formatter<disort::main_data> {
   format_tags tags;

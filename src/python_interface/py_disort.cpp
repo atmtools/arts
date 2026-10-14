@@ -649,22 +649,22 @@ The relevant references are:
 )");
   x.def(
       "__init__",
-      [](disort::main_data*             n,
-         const AscendingGrid&           tau_arr,
-         const Vector&                  omega_arr,
-         const Index                    NQuad,
-         const Matrix&                  Leg_coeffs_all,
-         Numeric                        mu0,
-         Numeric                        I0,
-         Numeric                        phi0,
-         const std::optional<Index>     NLeg_,
-         const std::optional<Index>     NFourier_,
-         const std::optional<Matrix>&   b_pos,
-         const std::optional<Matrix>&   b_neg,
-         const std::optional<Vector>&   f_arr,
+      [](disort::main_data*                               n,
+         const AscendingGrid&                             tau_arr,
+         const Vector&                                    omega_arr,
+         const Index                                      NQuad,
+         const Matrix&                                    Leg_coeffs_all,
+         Numeric                                          mu0,
+         Numeric                                          I0,
+         Numeric                                          phi0,
+         const std::optional<Index>                       NLeg_,
+         const std::optional<Index>                       NFourier_,
+         const std::optional<Matrix>&                     b_pos,
+         const std::optional<Matrix>&                     b_neg,
+         const std::optional<Vector>&                     f_arr,
          const std::optional<disort::surface_reflection>& surface,
-         const std::optional<Matrix>&   s_poly_coeffs,
-         const std::optional<Matrix>&   delta_m_peak) {
+         const std::optional<Matrix>&                     s_poly_coeffs,
+         const std::optional<Matrix>&                     delta_m_peak) {
         const Index NFourier = NFourier_.value_or(NQuad);
         const Index NLeg     = NLeg_.value_or(NQuad);
         const Index NLayers  = tau_arr.size();
@@ -1015,22 +1015,23 @@ supplied as ``[B, 0, 0, 0]``.
       "solar_azimuth_angle", &VDisortSettings::solar_azimuth_angle, ".. :class:`~pyarts3.arts.Vector`");
   vdisort_settings.def_rw(
       "solar_zenith_angle", &VDisortSettings::solar_zenith_angle, ".. :class:`~pyarts3.arts.Vector`");
-  vdisort_settings.def_rw(
-      "solar_source", &VDisortSettings::solar_source, ".. :class:`~pyarts3.arts.StokvecVector`");
+  vdisort_settings.def_rw("solar_source", &VDisortSettings::solar_source, ".. :class:`~pyarts3.arts.StokvecVector`");
   vdisort_settings.def_rw("surface_brdf",
                           &VDisortSettings::surface_brdf,
                           "[nfreq, 2, nbrdf, N, N] combined Fourier modes of the surface BRDF between the streams\n\n"
                           ".. :class:`~pyarts3.arts.MuelmatTensor5`");
-  vdisort_settings.def_rw("surface_beam_brdf",
-                          &VDisortSettings::surface_beam_brdf,
-                          "[nfreq, 2, nbrdf, N] the same from the direct beam\n\n.. :class:`~pyarts3.arts.MuelmatTensor4`");
+  vdisort_settings.def_rw(
+      "surface_beam_brdf",
+      &VDisortSettings::surface_beam_brdf,
+      "[nfreq, 2, nbrdf, N] the same from the direct beam\n\n.. :class:`~pyarts3.arts.MuelmatTensor4`");
   vdisort_settings.def_rw("surface_beam_mu",
                           &VDisortSettings::surface_beam_mu,
                           "[nfreq] beam cosine of surface_beam_brdf, NaN where computed without a beam\n\n"
                           ".. :class:`~pyarts3.arts.Vector`");
-  vdisort_settings.def_rw("surface_specular",
-                          &VDisortSettings::surface_specular,
-                          "[nfreq, N] specular part on the streams, or [nfreq, 0]\n\n.. :class:`~pyarts3.arts.MuelmatMatrix`");
+  vdisort_settings.def_rw(
+      "surface_specular",
+      &VDisortSettings::surface_specular,
+      "[nfreq, N] specular part on the streams, or [nfreq, 0]\n\n.. :class:`~pyarts3.arts.MuelmatMatrix`");
   vdisort_settings.def_rw(
       "optical_thicknesses", &VDisortSettings::optical_thicknesses, ".. :class:`~pyarts3.arts.Matrix`");
   vdisort_settings.def_rw(

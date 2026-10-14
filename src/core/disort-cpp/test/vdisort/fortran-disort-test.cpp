@@ -1115,10 +1115,10 @@ problem_9_model make_problem_11_model(const bool subdivided) try {
           .user_phase      = std::move(user_phase),
           .user_beam_phase = std::move(user_beam_phase),
           .user_surface    = scalar_surface(lambert,
-                                         nmodes,
-                                         disort_test::reference::problem_11_user_mu,
-                                         upward_streams(nquad),
-                                         disort_test::reference::problem_11_beam_mu)};
+                                            nmodes,
+                                            disort_test::reference::problem_11_user_mu,
+                                            upward_streams(nquad),
+                                            disort_test::reference::problem_11_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_11_model:\n{}", e.what())); }
 
 void test_problem_11() try {
@@ -1261,10 +1261,10 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
           .delta_m_fraction    = delta_m_fraction,
           .optical_depth_scale = optical_depth_scale,
           .user_surface        = scalar_surface(lambert,
-                                         1,
-                                         disort_test::reference::problem_12_user_mu,
-                                         upward_streams(nquad),
-                                         disort_test::reference::problem_12_beam_mu)};
+                                                1,
+                                                disort_test::reference::problem_12_user_mu,
+                                                upward_streams(nquad),
+                                                disort_test::reference::problem_12_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_12_model:\n{}", e.what())); }
 
 void test_problem_12() try {
@@ -1482,24 +1482,25 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) try 
     user_beam_phase[vdisort::cosine_mode, 0, 0, user][0, 0] = 1.0;
   }
 
-  auto solver = vdisort_test::make_solver(nquad,
-                                          nmodes,
-                                          AscendingGrid{depth},
-                                          Vector{omega},
-                                          std::move(phase),
-                                          Tensor4(2, nmodes, n, nstokes, 0.0),
-                                          Tensor4(2, nmodes, n, nstokes, 0.0),
-                                          Tensor3(nlayers, 0, nstokes),
-                                          stream_surface(raw, nmodes, nquad, disort_test::reference::problem_14_beam_mu),
-                                          disort_test::reference::problem_14_beam_mu,
-                                          Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
-                                          0.0,
-                                          std::move(beam_phase));
+  auto solver =
+      vdisort_test::make_solver(nquad,
+                                nmodes,
+                                AscendingGrid{depth},
+                                Vector{omega},
+                                std::move(phase),
+                                Tensor4(2, nmodes, n, nstokes, 0.0),
+                                Tensor4(2, nmodes, n, nstokes, 0.0),
+                                Tensor3(nlayers, 0, nstokes),
+                                stream_surface(raw, nmodes, nquad, disort_test::reference::problem_14_beam_mu),
+                                disort_test::reference::problem_14_beam_mu,
+                                Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
+                                0.0,
+                                std::move(beam_phase));
   return {.solver          = std::move(solver),
           .user_phase      = std::move(user_phase),
           .user_beam_phase = std::move(user_beam_phase),
-          .user_surface    = scalar_surface(
-              raw, nmodes, user_mu, upward_streams(nquad), disort_test::reference::problem_14_beam_mu)};
+          .user_surface =
+              scalar_surface(raw, nmodes, user_mu, upward_streams(nquad), disort_test::reference::problem_14_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_14_model:\n{}", e.what())); }
 
 void update_scalar_brdf(problem_9_model&                 model,
@@ -1520,8 +1521,7 @@ void test_problem_14() try {
   for (Index case_index = 0; case_index < static_cast<Index>(problem_14.size()); ++case_index) {
     const auto& test = problem_14[case_index];
     const auto  raw  = problem_14_raw(test.type);
-    if (case_index != 0)
-      update_scalar_brdf(model, raw, problem_14_streams, problem_14_user_mu, problem_14_beam_mu);
+    if (case_index != 0) update_scalar_brdf(model, raw, problem_14_streams, problem_14_user_mu, problem_14_beam_mu);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle)
         expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
@@ -1616,7 +1616,7 @@ problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
   return {.solver          = std::move(solver),
           .user_phase      = std::move(user_phase),
           .user_beam_phase = std::move(user_beam_phase),
-          .user_surface    = scalar_surface(raw, nmodes, problem_15_user_mu, upward_streams(nquad), problem_15_beam_mu)};
+          .user_surface = scalar_surface(raw, nmodes, problem_15_user_mu, upward_streams(nquad), problem_15_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_15_model:\n{}", e.what())); }
 
 void test_problem_15() try {

@@ -54,18 +54,18 @@ void expect_close(const Numeric actual, const Numeric expected, const std::strin
                      actual - expected);
 }
 
-vdisort::main_data make_vdisort(const Index                nquad,
-                                AscendingGrid              tau,
-                                Vector                     omega,
-                                Tensor7                    phase,
-                                Tensor4                    up,
-                                Tensor4                    down,
-                                Tensor3                    source        = {},
-                                Vector                     beam          = Vector(4, 0.0),
-                                Tensor6                    beam_phase    = {},
-                                vdisort::surface_reflection surface      = {},
-                                Vector                     source_scale  = {},
-                                Vector                     source_offset = {}) try {
+vdisort::main_data make_vdisort(const Index                 nquad,
+                                AscendingGrid               tau,
+                                Vector                      omega,
+                                Tensor7                     phase,
+                                Tensor4                     up,
+                                Tensor4                     down,
+                                Tensor3                     source        = {},
+                                Vector                      beam          = Vector(4, 0.0),
+                                Tensor6                     beam_phase    = {},
+                                vdisort::surface_reflection surface       = {},
+                                Vector                      source_scale  = {},
+                                Vector                      source_offset = {}) try {
   if (source.size() == 0) source.resize(tau.size(), 0, 4);
   const Index nfourier = phase.shape()[1];
   return vdisort_test::make_solver(nquad,
@@ -464,8 +464,8 @@ void test_conservative_reflecting_source_limit() try {
   const Vector        omega{1.0 - 1e-6};
   Matrix              legendre(1, nquad + 1, 0.0);
   legendre[0, 0] = 1.0;
-  Matrix                    up(modes, nquad / 2, 0.0), down(modes, nquad / 2, 0.0);
-  Matrix                    source{Vector{1.0 / (1.0 - omega[0]), 0.0}.reshape(1, 2)};
+  Matrix                           up(modes, nquad / 2, 0.0), down(modes, nquad / 2, 0.0);
+  Matrix                           source{Vector{1.0 / (1.0 - omega[0]), 0.0}.reshape(1, 2)};
   const disort::surface_reflection brdf(Tensor3(1, nquad / 2, nquad / 2, 1.0), Matrix(1, nquad / 2, 0.0));
 
   disort::main_data scalar(
@@ -539,7 +539,7 @@ void test_polarized_brdf() try {
   down[vdisort::cosine_mode, 0, 0, 0] = 1.0;
   down[vdisort::cosine_mode, 0, 0, 1] = 0.2;
 
-  const Numeric reflectance = 0.3;
+  const Numeric               reflectance = 0.3;
   vdisort::surface_reflection brdf(1, n, n);
   for (Index alpha = 0; alpha < 2; ++alpha)
     for (Index i = 0; i < n; ++i)
@@ -851,8 +851,7 @@ void test_combined_surface_models() try {
   const auto        cox   = vdisort::brdf::cox_munk_fourier_modes(5.0, 1.34, true, 2, outgoing, incoming, beam_mu, 24);
   const auto        rough = vdisort::brdf::cox_munk_lambertian_fourier_modes(
       cox_fraction, lambertian_albedo, 5.0, 1.34, true, 2, outgoing, incoming, beam_mu, 24);
-  const auto lambert_beam =
-      vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 2, outgoing, incoming, beam_mu);
+  const auto lambert_beam = vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 2, outgoing, incoming, beam_mu);
   for (Index mode = 0; mode < 2; ++mode)
     for (Index alpha = 0; alpha < 2; ++alpha)
       for (Index i = 0; i < 2; ++i)
@@ -936,17 +935,16 @@ void test_delta_m_preprocessing() try {
 }
 
 void test_depolarizing_surface_catalogue() try {
-  constexpr Index modes    = 3;
-  constexpr Index nazimuth = 64;
-  constexpr Numeric beam_mu = 0.45;
+  constexpr Index   modes    = 3;
+  constexpr Index   nazimuth = 64;
+  constexpr Numeric beam_mu  = 0.45;
   const Vector      outgoing{0.2, 0.7};
   const Vector      incoming{0.3, 0.8};
 
   const auto compare = [&](const vdisort::brdf::ScalarRawFunction& raw,
                            const vdisort::surface_reflection&      named,
                            const std::string_view                  name) {
-    const auto generic =
-        vdisort::brdf::depolarizing_fourier_modes(raw, modes, outgoing, incoming, beam_mu, nazimuth);
+    const auto generic = vdisort::brdf::depolarizing_fourier_modes(raw, modes, outgoing, incoming, beam_mu, nazimuth);
     for (Index mode = 0; mode < modes; ++mode)
       for (Index alpha = 0; alpha < 2; ++alpha)
         for (Index out = 0; out < 2; ++out)

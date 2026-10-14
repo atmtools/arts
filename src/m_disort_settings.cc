@@ -607,9 +607,9 @@ void set_brdf_surface(DisortSettings&                  disort_settings,
 }
 
 //! Set the surface of each frequency iv to the BRDF raw(iv)
-void set_spectral_brdf_surface(DisortSettings&                                       disort_settings,
+void set_spectral_brdf_surface(DisortSettings&                                        disort_settings,
                                const std::function<disort::brdf::RawFunction(Index)>& raw,
-                               const Index azimuth_quadrature_points) {
+                               const Index                                            azimuth_quadrature_points) {
   const Vector mu = upward_streams(disort_settings);
   resize_surface(disort_settings, disort_settings.fourier_mode_dimension);
   for (Index iv = 0; iv < disort_settings.frequency_count(); iv++)
@@ -638,8 +638,10 @@ void disort_settingsSurfaceLambertian(DisortSettings&                           
   const Index nv     = disort_settings.frequency_count();
   const auto  albedo = std::visit(
       [nv](const auto& selected) {
-        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>) return Vector(nv, *selected);
-        else return Vector{*selected};
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>)
+          return Vector(nv, *selected);
+        else
+          return Vector{*selected};
       },
       value);
   check_spectral(disort_settings, albedo, "value");
@@ -694,11 +696,11 @@ void disort_settingsSurfaceCoxMunk(DisortSettings& disort_settings,
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
-  set_brdf_surface(disort_settings,
-                   disort::brdf::CoxMunk{.wind_speed       = wind_speed,
-                                         .refractive_index = refractive_index,
-                                         .shadowing        = static_cast<bool>(shadowing)},
-                   azimuth_quadrature_points);
+  set_brdf_surface(
+      disort_settings,
+      disort::brdf::CoxMunk{
+          .wind_speed = wind_speed, .refractive_index = refractive_index, .shadowing = static_cast<bool>(shadowing)},
+      azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceCoxMunkSpectral(DisortSettings& disort_settings,
@@ -728,10 +730,9 @@ void disort_settingsSurfaceRPV(DisortSettings& disort_settings,
                                const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  set_brdf_surface(
-      disort_settings,
-      disort::brdf::RPV{.rho0 = rho0, .kappa = kappa, .asymmetry = asymmetry, .hotspot = hotspot},
-      azimuth_quadrature_points);
+  set_brdf_surface(disort_settings,
+                   disort::brdf::RPV{.rho0 = rho0, .kappa = kappa, .asymmetry = asymmetry, .hotspot = hotspot},
+                   azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceRPVSpectral(DisortSettings& disort_settings,
@@ -1053,7 +1054,6 @@ Agenda disort_settings_agendaSetup(const settings_agenda_setup_layer_emission_ty
       break;
   }
 
-
   return std::move(agenda).finalize(false);
 }
 
@@ -1200,4 +1200,3 @@ alt_grid:          {:B,}
   }
 }
 ARTS_METHOD_ERROR_CATCH
-

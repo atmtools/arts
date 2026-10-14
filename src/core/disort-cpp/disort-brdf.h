@@ -57,11 +57,8 @@ struct RossLi {
  * Only mode zero is nonzero.  The additional zero modes let the result be
  * combined directly with azimuth-dependent surface models.
  */
-[[nodiscard]] surface_reflection lambertian_fourier_modes(Numeric                albedo,
-                                                          Index                  number_of_modes,
-                                                          const ConstVectorView& mu_out,
-                                                          const ConstVectorView& mu_in,
-                                                          Numeric                mu0);
+[[nodiscard]] surface_reflection lambertian_fourier_modes(
+    Numeric albedo, Index number_of_modes, const ConstVectorView& mu_out, const ConstVectorView& mu_in, Numeric mu0);
 
 /** The cosine Fourier modes of an azimuth-resolved scalar BRDF, as disort::main_data takes them.
  *
@@ -104,6 +101,6 @@ struct RossLi {
                                                                    const ConstVectorView& mu_out,
                                                                    const ConstVectorView& mu_in,
                                                                    Numeric                mu0,
-                                                                   Index                  azimuth_quadrature_points = 100);
+                                                                   Index azimuth_quadrature_points = 100);
 
 }  // namespace disort::brdf

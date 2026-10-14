@@ -420,10 +420,10 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   }
 
   rtepack::stokvec_tensor3 bottom(2, NF, N), top(2, NF, N);
-  bottom              = rtepack::stokvec{};
-  top                 = rtepack::stokvec{};
-  const Numeric Bsky  = c.sky > 0 ? planck(c.frequency, c.sky) : 0.0;
-  const Numeric Bs = c.surface > 0 ? planck(c.frequency, c.surface) : 0.0;
+  bottom             = rtepack::stokvec{};
+  top                = rtepack::stokvec{};
+  const Numeric Bsky = c.sky > 0 ? planck(c.frequency, c.sky) : 0.0;
+  const Numeric Bs   = c.surface > 0 ? planck(c.frequency, c.surface) : 0.0;
   // The surface's Planck radiance, which VDISORT transmits with 1 - R (Kirchhoff's emission): RT3's Fresnel
   // surface always emits, its Lambertian one with the thermal source
   const Numeric Bsurf = c.thermal or c.fresnel ? Bs : 0.0;
@@ -448,18 +448,18 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   Vector                 streams(N), weights(N);
   Legendre::PositiveDoubleGaussLegendre(streams, weights);
   vdisort::main_data v(NQuad,
-                           NF,
-                           AscendingGrid{std::move(tau)},
-                           std::move(omega),
-                           std::move(P),
-                           std::move(bottom),
-                           std::move(top),
-                           std::move(source),
-                           vdisort_surface(c, streams),
-                           c.mu0,
-                           beam_stokes,
-                           c.phi0,
-                           std::move(B));
+                       NF,
+                       AscendingGrid{std::move(tau)},
+                       std::move(omega),
+                       std::move(P),
+                       std::move(bottom),
+                       std::move(top),
+                       std::move(source),
+                       vdisort_surface(c, streams),
+                       c.mu0,
+                       beam_stokes,
+                       c.phi0,
+                       std::move(B));
 
   const auto q    = polradtran::get_quadrature(N, polradtran::quadrature_type::double_gauss);
   Numeric    node = 0.0;

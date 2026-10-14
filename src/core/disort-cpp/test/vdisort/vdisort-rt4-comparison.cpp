@@ -407,7 +407,7 @@ vdisort::surface_reflection vdisort_surface(const setup& c, const ConstVectorVie
   if (const auto* l = std::get_if<polradtran::lambertian_surface>(&c.g))
     return vdisort::brdf::lambertian_fourier_modes(l->albedo, 1, abs_mu_out, streams, no_beam);
 
-  const auto& rho = std::get<discrete_reflection>(c.g).rho;
+  const auto&                 rho = std::get<discrete_reflection>(c.g).rho;
   vdisort::surface_reflection out(1, nout, N);
   for (Index i = 0; i < nout; i++) {
     for (Index j = 0; j < N; j++) {

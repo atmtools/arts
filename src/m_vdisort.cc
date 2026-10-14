@@ -41,7 +41,8 @@ void vdisort_spectral_rad_fieldCalc(VDisortRadiance&       vdisort_spectral_rad_
       for (Index l = 0; l < np; l++)
         for (Index p = 0; p < nphi; p++)
           for (Index i = 0; i < nquad; i++)
-            vdisort_spectral_rad_field.data[iv, l, p, i] = Stokvec{u[l, p, i, 0], u[l, p, i, 1], u[l, p, i, 2], u[l, p, i, 3]};
+            vdisort_spectral_rad_field.data[iv, l, p, i] =
+                Stokvec{u[l, p, i, 0], u[l, p, i, 1], u[l, p, i, 2], u[l, p, i, 3]};
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

@@ -847,8 +847,8 @@ as the line of sight of a *ray_point*.
   };
 
   wsg_data["VDisortSettings"] = {
-      .file                     = "vdisort_settings.h",
-      .desc                     = R"(The settings required to run VDISORT, the polarized counterpart of *DisortSettings*.
+      .file           = "vdisort_settings.h",
+      .desc           = R"(The settings required to run VDISORT, the polarized counterpart of *DisortSettings*.
 
 #. *Index* Quadrature dimension
 #. *Index* Legendre order
@@ -869,13 +869,13 @@ as the line of sight of a *ray_point*.
 #. *StokvecTensor4* Positive boundary condition, combined cosine and sine Fourier modes
 #. *StokvecTensor4* Negative boundary condition, combined cosine and sine Fourier modes
 )",
-      .dim_size                 = {"{}.freq_grid.size()",
-                                   "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
-                                   "{}.quadrature_dimension",
-                                   "{}.legendre_polynomial_dimension",
-                                   "{}.fourier_mode_dimension"},
-      .invariant                = "{}.ok()",
-      .invariant_desc           = "agrees with its own frequency grid, level grid and dimensions.",
+      .dim_size       = {"{}.freq_grid.size()",
+                         "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                         "{}.quadrature_dimension",
+                         "{}.legendre_polynomial_dimension",
+                         "{}.fourier_mode_dimension"},
+      .invariant      = "{}.ok()",
+      .invariant_desc = "agrees with its own frequency grid, level grid and dimensions.",
       .invariant_needs_complete = true,
       .invariant_printables     = {"{}"},
   };

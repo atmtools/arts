@@ -357,10 +357,10 @@ Matrix problem_9_source(const disort_test::reference::general_multilayer_case& t
 void run_problem_9_case(const disort_test::reference::general_multilayer_case& test) {
   constexpr Index nquad = disort_test::reference::problem_9_streams;
   Matrix          up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
-  down[0] = test.top_isotropic;
-  const Vector                streams = upward_streams(nquad);
-  disort::surface_reflection  surface;
-  disort::surface_reflection  user_surface;
+  down[0]                            = test.top_isotropic;
+  const Vector               streams = upward_streams(nquad);
+  disort::surface_reflection surface;
+  disort::surface_reflection user_surface;
   if (test.thermal) {
     down[0] += band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
     up[0]    = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
@@ -437,23 +437,24 @@ void test_problem_10() {
   Matrix          up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
   down[0] =
       test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
-  up[0] = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  up[0]                = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   const Vector streams = upward_streams(nquad);
 
-  const disort::main_data dis(nquad,
-                              nquad,
-                              nquad,
-                              AscendingGrid{Vector(test.cumulative_tau)},
-                              test.single_scattering_albedo,
-                              problem_9_moments(test.phase, nquad),
-                              up,
-                              down,
-                              Vector(6, 0.0),
-                              problem_9_source(test),
-                              disort::brdf::lambertian_fourier_modes(test.surface_albedo, 1, streams, streams, test.beam_mu),
-                              test.beam_mu,
-                              test.beam,
-                              0.0);
+  const disort::main_data dis(
+      nquad,
+      nquad,
+      nquad,
+      AscendingGrid{Vector(test.cumulative_tau)},
+      test.single_scattering_albedo,
+      problem_9_moments(test.phase, nquad),
+      up,
+      down,
+      Vector(6, 0.0),
+      problem_9_source(test),
+      disort::brdf::lambertian_fourier_modes(test.surface_albedo, 1, streams, streams, test.beam_mu),
+      test.beam_mu,
+      test.beam,
+      0.0);
 
   disort::u_data      quadrature;
   disort::user_u_data formal;
@@ -463,15 +464,13 @@ void test_problem_10() {
   for (const Numeric phi : disort_test::reference::problem_10_azimuth)
     for (const Numeric tau : disort_test::reference::problem_10_output_tau) {
       dis.u(quadrature, tau, phi);
-      dis.u_user(formal,
-                 tau,
-                 phi,
-                 disort_test::reference::problem_10_user_mu,
-                 disort::brdf::lambertian_fourier_modes(test.surface_albedo,
-                                                        1,
-                                                        magnitudes(disort_test::reference::problem_10_user_mu),
-                                                        streams,
-                                                        test.beam_mu));
+      dis.u_user(
+          formal,
+          tau,
+          phi,
+          disort_test::reference::problem_10_user_mu,
+          disort::brdf::lambertian_fourier_modes(
+              test.surface_albedo, 1, magnitudes(disort_test::reference::problem_10_user_mu), streams, test.beam_mu));
       for (Index angle = 0; angle < nquad; ++angle)
         expect_reference(std::format("Problem 10 formal/quadrature [{}, {}, {}]", phi, tau, angle),
                          formal.intensities[angle],
@@ -503,7 +502,7 @@ disort::main_data problem_11_atmosphere(const bool subdivided) {
   Matrix          moments(layers, nquad + 1, 0.0);
   moments[joker, 0] = 1.0;
   Matrix down(nquad, nquad / 2, 0.0);
-  down[0] = disort_test::reference::problem_11_top_isotropic;
+  down[0]              = disort_test::reference::problem_11_top_isotropic;
   const Vector streams = upward_streams(nquad);
   return disort::main_data(nquad,
                            nquad,
@@ -537,8 +536,8 @@ disort::surface_reflection problem_11_user_surface() {
 
 void test_problem_11() {
   const auto          user_surface = problem_11_user_surface();
-  const auto          one_layer  = problem_11_atmosphere(false);
-  const auto          subdivided = problem_11_atmosphere(true);
+  const auto          one_layer    = problem_11_atmosphere(false);
+  const auto          subdivided   = problem_11_atmosphere(true);
   disort::user_u_data one_user, subdivided_user;
   disort::flux_data   one_flux, subdivided_flux;
 
@@ -603,8 +602,8 @@ disort::surface_reflection problem_12_user_surface() {
 
 void test_problem_12() {
   const auto          user_surface = problem_12_user_surface();
-  const auto          one_layer  = problem_12_atmosphere(false);
-  const auto          subdivided = problem_12_atmosphere(true);
+  const auto          one_layer    = problem_12_atmosphere(false);
+  const auto          subdivided   = problem_12_atmosphere(true);
   disort::user_u_data one_user, subdivided_user;
   disort::tms_data    one_tms, subdivided_tms;
   Vector              one_ims, subdivided_ims;
@@ -644,23 +643,23 @@ void test_problem_13_boundary_limits() {
   using namespace disort_test::reference;
   constexpr Numeric depth = 0.25;
   Matrix            moments(1, problem_13_streams + 1, 0.0);
-  moments[0, 0] = 1.0;
-  const Vector              streams = upward_streams(problem_13_streams);
-  const disort::main_data   absorbing(problem_13_streams,
-                                      problem_13_streams,
-                                      1,
-                                      AscendingGrid{depth},
-                                      Vector{0.0},
-                                      std::move(moments),
-                                      Matrix(1, problem_13_streams / 2, 0.0),
-                                      Matrix(1, problem_13_streams / 2, 0.0),
-                                      Vector{0.0},
-                                      Matrix(1, 0),
-                                      disort::brdf::lambertian_fourier_modes(
-                                          problem_13_surface_albedo, 1, streams, streams, problem_13_beam_mu),
-                                      problem_13_beam_mu,
-                                      problem_13_beam,
-                                      0.0);
+  moments[0, 0]                   = 1.0;
+  const Vector            streams = upward_streams(problem_13_streams);
+  const disort::main_data absorbing(
+      problem_13_streams,
+      problem_13_streams,
+      1,
+      AscendingGrid{depth},
+      Vector{0.0},
+      std::move(moments),
+      Matrix(1, problem_13_streams / 2, 0.0),
+      Matrix(1, problem_13_streams / 2, 0.0),
+      Vector{0.0},
+      Matrix(1, 0),
+      disort::brdf::lambertian_fourier_modes(problem_13_surface_albedo, 1, streams, streams, problem_13_beam_mu),
+      problem_13_beam_mu,
+      problem_13_beam,
+      0.0);
 
   const Numeric incident_flux       = problem_13_beam * problem_13_beam_mu;
   const Numeric bottom_beam         = incident_flux * std::exp(-depth / problem_13_beam_mu);
@@ -685,22 +684,22 @@ void test_problem_13() {
     for (Index layer = 0; layer < layers; ++layer)
       for (Index moment = 0; moment <= problem_13_streams; ++moment)
         moments[layer, moment] = std::pow(problem_13_asymmetry, moment);
-    const Vector              streams = upward_streams(problem_13_streams);
-    const disort::main_data   dis(problem_13_streams,
-                                  problem_13_streams,
-                                  1,
-                                  AscendingGrid{test.cumulative_tau},
-                                  test.single_scattering_albedo,
-                                  std::move(moments),
-                                  Matrix(1, problem_13_streams / 2, 0.0),
-                                  Matrix(1, problem_13_streams / 2, 0.0),
-                                  Vector(layers, std::pow(problem_13_asymmetry, problem_13_streams)),
-                                  Matrix(layers, 0),
-                                  disort::brdf::lambertian_fourier_modes(
-                                      problem_13_surface_albedo, 1, streams, streams, problem_13_beam_mu),
-                                  problem_13_beam_mu,
-                                  problem_13_beam,
-                                  0.0);
+    const Vector            streams = upward_streams(problem_13_streams);
+    const disort::main_data dis(
+        problem_13_streams,
+        problem_13_streams,
+        1,
+        AscendingGrid{test.cumulative_tau},
+        test.single_scattering_albedo,
+        std::move(moments),
+        Matrix(1, problem_13_streams / 2, 0.0),
+        Matrix(1, problem_13_streams / 2, 0.0),
+        Vector(layers, std::pow(problem_13_asymmetry, problem_13_streams)),
+        Matrix(layers, 0),
+        disort::brdf::lambertian_fourier_modes(problem_13_surface_albedo, 1, streams, streams, problem_13_beam_mu),
+        problem_13_beam_mu,
+        problem_13_beam,
+        0.0);
 
     disort::flux_data flux;
     const Numeric     incident_flux = problem_13_beam * problem_13_beam_mu;
@@ -741,8 +740,8 @@ void test_raw_brdfs_and_fourier_helper() {
     }
 
   constexpr Numeric cox_fraction = 0.02;
-  const auto        combined     = cox_munk_lambertian_fourier_modes(
-      cox_fraction, reflectance, 5.0, 1.34, true, 4, outgoing, incoming, beam_mu, 32);
+  const auto        combined =
+      cox_munk_lambertian_fourier_modes(cox_fraction, reflectance, 5.0, 1.34, true, 4, outgoing, incoming, beam_mu, 32);
   const auto cox     = fourier_modes(CoxMunk{5.0, 1.34, true}, 4, outgoing, incoming, beam_mu, 32);
   const auto lambert = lambertian_fourier_modes(reflectance, 4, outgoing, incoming, beam_mu);
   for (Index mode = 0; mode < 4; ++mode)
@@ -810,11 +809,11 @@ void test_problem_14() {
                                 problem_14_beam,
                                 0.0);
 
-    const auto user_surface = disort::brdf::fourier_modes(raw,
-                                                          problem_14_streams,
-                                                          magnitudes(problem_14_user_mu),
-                                                          upward_streams(problem_14_streams),
-                                                          problem_14_beam_mu);
+    const auto          user_surface = disort::brdf::fourier_modes(raw,
+                                                                   problem_14_streams,
+                                                                   magnitudes(problem_14_user_mu),
+                                                                   upward_streams(problem_14_streams),
+                                                                   problem_14_beam_mu);
     disort::user_u_data user;
     for (Index azimuth = 0; azimuth < 3; ++azimuth) {
       dis.u_user(user, 0.0, test.azimuth[azimuth], problem_14_user_mu, user_surface);
@@ -865,10 +864,10 @@ void test_problem_15() {
                                 0.0);
 
     const auto          user_surface = disort::brdf::fourier_modes(raw,
-                                                          problem_15_streams,
-                                                          magnitudes(problem_15_user_mu),
-                                                          upward_streams(problem_15_streams),
-                                                          problem_15_beam_mu);
+                                                                   problem_15_streams,
+                                                                   magnitudes(problem_15_user_mu),
+                                                                   upward_streams(problem_15_streams),
+                                                                   problem_15_beam_mu);
     disort::user_u_data user;
     disort::tms_data    tms;
     Vector              ims;

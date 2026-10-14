@@ -27,7 +27,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
     };
 
     WorkspaceMethodInternalMetaRecord r  = *stdr::find(wsm_meta, disort_name, &WorkspaceMethodInternalMetaRecord::name);
-    r.name                                = to_vdisort(r.name);
+    r.name                               = to_vdisort(r.name);
     r.desc                              += std::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
     for (auto& x : r.methods) x = to_vdisort(x);
     for (auto& x : r.out) x = to_vdisort(x);

@@ -37,7 +37,7 @@ void require(bool ok, const std::string& what) {
 }
 
 constexpr Index   NQ = 8, N = NQ / 2, NF = 4, NL = 3;
-constexpr Numeric B  = 3.7;  // any radiance: the cavity is linear in it
+constexpr Numeric B = 3.7;  // any radiance: the cavity is linear in it
 
 const Vector        omega{0.5, 0.95, 0.3};
 const AscendingGrid tau{0.2, 0.7, 1.5};
@@ -55,8 +55,8 @@ Vector upward_streams() {
 }
 
 //! A surface's reflection from the streams into the given upward directions
-template <typename surface_reflection>
-using surface_model = std::function<surface_reflection(const ConstVectorView& mu_out)>;
+template <typename surface_reflection> using surface_model =
+    std::function<surface_reflection(const ConstVectorView& mu_out)>;
 
 //! The largest |radiance / B - 1| of the I component and |Q|, |U|, |V| / B
 struct deviation {
@@ -98,8 +98,7 @@ disort::main_data disort_cavity(const disort::surface_reflection& surface, bool 
     for (Index i = 0; i < N; i++)
       for (Index j = 0; j < N; j++) up[0, i] -= 2.0 * D[i, j] * mu[j] * W[j] * B;
   }
-  return disort::main_data(
-      NQ, NQ, NF, tau, omega, legendre, up, down, Vector(NL, 0.0), source, surface, 0.5, 0.0, 0.0);
+  return disort::main_data(NQ, NQ, NF, tau, omega, legendre, up, down, Vector(NL, 0.0), source, surface, 0.5, 0.0, 0.0);
 }
 
 deviation disort_deviation(const disort::main_data& dis, const disort::surface_reflection& user_surface) {
@@ -119,7 +118,7 @@ deviation disort_deviation(const disort::main_data& dis, const disort::surface_r
 
 void test_disort() {
   using namespace disort::brdf;
-  const Vector mu = upward_streams();
+  const Vector mu  = upward_streams();
   const auto   raw = [&mu](const RawFunction& f) -> surface_model<disort::surface_reflection> {
     return [&mu, f](const ConstVectorView& out) { return fourier_modes(f, NF, out, mu, no_beam); };
   };
@@ -168,8 +167,8 @@ Vector streams() {
 
 //! The combined phase matrices into the directions mu_out from the streams, the same in every layer
 vdisort::phase_matrix_data phase_matrices(const Vector& mu_out) {
-  const auto modes = vdisort_test::fourier_modes(vdisort_test::legendre_matrix(rayleigh()), mu_out, streams(), NF, 64);
-  const Index              no    = static_cast<Index>(mu_out.size());
+  const auto  modes = vdisort_test::fourier_modes(vdisort_test::legendre_matrix(rayleigh()), mu_out, streams(), NF, 64);
+  const Index no    = static_cast<Index>(mu_out.size());
   rtepack::muelmat_tensor4 C(NF, NL, no, NQ), S(NF, NL, no, NQ);
   for (Index m = 0; m < NF; m++)
     for (Index l = 0; l < NL; l++)
@@ -208,7 +207,7 @@ vdisort::main_data vdisort_cavity(const vdisort::surface_reflection& surface, bo
 }
 
 deviation vdisort_deviation(const vdisort::main_data& v, const vdisort::surface_reflection& user_surface) {
-  deviation d;
+  deviation  d;
   const auto add = [&d](const rtepack::stokvec& s) {
     d.I         = std::max(d.I, std::abs(s.I() / B - 1.0));
     d.polarized = std::max({d.polarized, std::abs(s.Q() / B), std::abs(s.U() / B), std::abs(s.V() / B)});
@@ -231,7 +230,7 @@ deviation vdisort_deviation(const vdisort::main_data& v, const vdisort::surface_
 
 void test_vdisort() {
   using namespace vdisort::brdf;
-  const Vector mu = upward_streams();
+  const Vector                                                                               mu = upward_streams();
   const std::vector<std::pair<std::string_view, surface_model<vdisort::surface_reflection>>> surfaces{
       {"Lambertian A = 0.3",
        [&mu](const ConstVectorView& out) { return lambertian_fourier_modes(0.3, NF, out, mu, no_beam); }},

@@ -38,7 +38,8 @@ void check_boundary(const StokvecTensor4& limit, Index nv, const char* which) {
                      which,
                      nv,
                      limit.extent(0))
-  ARTS_USER_ERROR_IF(limit.extent(2) < 1, "Must have at least one fourier mode to use the {} boundary condition.", which)
+  ARTS_USER_ERROR_IF(
+      limit.extent(2) < 1, "Must have at least one fourier mode to use the {} boundary condition.", which)
 }
 }  // namespace
 
@@ -105,10 +106,8 @@ sun.spectrum.shape():                 {:B,} (must be [freq_grid.size(), 4])
                      sun.spectrum.shape())
 
   for (Size iv = 0; iv < nv; iv++) {
-    vdisort_settings.solar_source[iv] = sin2_alpha * Stokvec{sun.spectrum[iv, 0],
-                                                             sun.spectrum[iv, 1],
-                                                             sun.spectrum[iv, 2],
-                                                             sun.spectrum[iv, 3]};
+    vdisort_settings.solar_source[iv] =
+        sin2_alpha * Stokvec{sun.spectrum[iv, 0], sun.spectrum[iv, 1], sun.spectrum[iv, 2], sun.spectrum[iv, 3]};
   }
 
   vdisort_settings.solar_zenith_angle  = los[0];
@@ -152,7 +151,7 @@ void vdisort_settingsLayerThermalEmissionLinearInTau(VDisortSettings&       vdis
       const Numeric x0 = i == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, i - 1];
       const Numeric x1 = vdisort_settings.optical_thicknesses[iv, i];
 
-      const Numeric b                               = (y1 - y0) / (x1 - x0);
+      const Numeric b                              = (y1 - y0) / (x1 - x0);
       vdisort_settings.source_polynomial[iv, i, 0] = Stokvec{y0 - b * x0, 0.0, 0.0, 0.0};
       vdisort_settings.source_polynomial[iv, i, 1] = Stokvec{b, 0.0, 0.0, 0.0};
     }
@@ -194,7 +193,7 @@ void vdisort_settingsLayerNonThermalEmissionLinearInTau(VDisortSettings&        
       const Numeric x0 = i == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, i - 1];
       const Numeric x1 = vdisort_settings.optical_thicknesses[iv, i];
 
-      const Stokvec b                               = (1.0 / (x1 - x0)) * (y1 - y0);
+      const Stokvec b                              = (1.0 / (x1 - x0)) * (y1 - y0);
       vdisort_settings.source_polynomial[iv, i, 0] = y0 - x0 * b;
       vdisort_settings.source_polynomial[iv, i, 1] = b;
     }
@@ -321,8 +320,8 @@ void vdisort_settingsNoLegendre(VDisortSettings& vdisort_settings) {
   ARTS_USER_ERROR_IF(vdisort_settings.legendre_coefficients.nrows() < 1,
                      "Must have at least one Legendre mode to use the Legendre coefficients.")
 
-  vdisort_settings.legendre_coefficients                         = 0.0;
-  vdisort_settings.legendre_coefficients[joker, joker, 0, 0]     = 1.0;
+  vdisort_settings.legendre_coefficients                     = 0.0;
+  vdisort_settings.legendre_coefficients[joker, joker, 0, 0] = 1.0;
 }
 
 void vdisort_settingsLegendreCoefficientsFromPath(VDisortSettings&            vdisort_settings,
@@ -365,7 +364,7 @@ void vdisort_settingsLegendreCoefficientsFromPath(VDisortSettings&            vd
         for (Index e = 0; e < 6; e++) {
           const auto [r, k] = element[e];
           c[j, e]           = invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j][r, k].real(),
-                                                       spectral_phamat_spectral_path[i + 1][iv, j][r, k].real());
+                                                        spectral_phamat_spectral_path[i + 1][iv, j][r, k].real());
         }
       }
 
@@ -536,7 +535,7 @@ void set_brdf_surface(VDisortSettings&                  vdisort_settings,
 //! Set the surface of each frequency iv to the BPrDF raw(iv)
 void set_spectral_brdf_surface(VDisortSettings&                                        vdisort_settings,
                                const std::function<vdisort::brdf::RawFunction(Index)>& raw,
-                               const Index azimuth_quadrature_points) {
+                               const Index                                             azimuth_quadrature_points) {
   const Vector mu = upward_streams(vdisort_settings);
   resize_surface(vdisort_settings, vdisort_settings.fourier_mode_dimension, false);
   for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++)
@@ -565,8 +564,10 @@ void vdisort_settingsSurfaceLambertian(VDisortSettings&                         
   const Index nv     = vdisort_settings.frequency_count();
   const auto  albedo = std::visit(
       [nv](const auto& selected) {
-        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>) return Vector(nv, *selected);
-        else return Vector{*selected};
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>)
+          return Vector(nv, *selected);
+        else
+          return Vector{*selected};
       },
       value);
   check_spectral(vdisort_settings, albedo, "value");
@@ -589,11 +590,8 @@ void vdisort_settingsSurfaceFresnel(VDisortSettings& vdisort_settings,
   const Vector mu = upward_streams(vdisort_settings);
   const Index  NF = vdisort_settings.fourier_mode_dimension;
   resize_surface(vdisort_settings, NF, true);
-  const auto surface = vdisort::brdf::fresnel_fourier_modes(Complex{refractive_index_real, refractive_index_imag},
-                                                            NF,
-                                                            mu,
-                                                            mu,
-                                                            std::numeric_limits<Numeric>::quiet_NaN());
+  const auto surface = vdisort::brdf::fresnel_fourier_modes(
+      Complex{refractive_index_real, refractive_index_imag}, NF, mu, mu, std::numeric_limits<Numeric>::quiet_NaN());
   for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++) set_surface(vdisort_settings, iv, surface);
 }
 
@@ -779,19 +777,20 @@ void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&            
   const Size  N = vdisort_settings.layer_count();
   const Index F = vdisort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF((N + 1) != spectral_propmat_path.size() or (N + 1) != spectral_propmat_scat_path.size() or
-                         (N + 1) != spectral_absvec_scat_path.size(),
-                     R"(The number of levels of the paths must be one more than the number of layers in vdisort_settings.
+  ARTS_USER_ERROR_IF(
+      (N + 1) != spectral_propmat_path.size() or (N + 1) != spectral_propmat_scat_path.size() or
+          (N + 1) != spectral_absvec_scat_path.size(),
+      R"(The number of levels of the paths must be one more than the number of layers in vdisort_settings.
 
   vdisort_settings.layer_count():    {}
   spectral_propmat_path.size():      {}
   spectral_propmat_scat_path.size(): {}
   spectral_absvec_scat_path.size():  {}
 )",
-                     N,
-                     spectral_propmat_path.size(),
-                     spectral_propmat_scat_path.size(),
-                     spectral_absvec_scat_path.size());
+      N,
+      spectral_propmat_path.size(),
+      spectral_propmat_scat_path.size(),
+      spectral_absvec_scat_path.size());
 
   ARTS_USER_ERROR_IF(
       not all_same_shape({F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
@@ -806,8 +805,9 @@ void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&            
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext      = std::midpoint(spectral_propmat_path[i][iv][0], spectral_propmat_path[i + 1][iv][0]);
-      const Numeric abs_scat = std::midpoint(spectral_absvec_scat_path[i][iv][0], spectral_absvec_scat_path[i + 1][iv][0]);
+      const Numeric ext = std::midpoint(spectral_propmat_path[i][iv][0], spectral_propmat_path[i + 1][iv][0]);
+      const Numeric abs_scat =
+          std::midpoint(spectral_absvec_scat_path[i][iv][0], spectral_absvec_scat_path[i + 1][iv][0]);
       const Numeric ext_scat =
           std::midpoint(spectral_propmat_scat_path[i][iv][0], spectral_propmat_scat_path[i + 1][iv][0]);
 

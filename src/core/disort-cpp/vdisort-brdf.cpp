@@ -269,12 +269,8 @@ surface_reflection cox_munk_fourier_modes(const Numeric          wind_speed,
                                           const ConstVectorView& mu_in,
                                           const Numeric          mu0,
                                           const Index            azimuth_quadrature_points) {
-  return fourier_modes(CoxMunk{wind_speed, refractive_index, shadowing},
-                       number_of_modes,
-                       mu_out,
-                       mu_in,
-                       mu0,
-                       azimuth_quadrature_points);
+  return fourier_modes(
+      CoxMunk{wind_speed, refractive_index, shadowing}, number_of_modes, mu_out, mu_in, mu0, azimuth_quadrature_points);
 }
 
 surface_reflection fresnel_fourier_modes(const Complex          refractive_index,
@@ -312,9 +308,7 @@ surface_reflection combine_fourier_modes(const surface_reflection& first,
         second.beam_mu()));
 
   // The weighted sum of the specular parts, or none if no weighted component has one
-  const auto has = [](const surface_reflection& x, const Numeric weight) {
-    return weight != 0.0 and x.has_specular();
-  };
+  const auto has = [](const surface_reflection& x, const Numeric weight) { return weight != 0.0 and x.has_specular(); };
   const bool specular = has(first, first_weight) or has(second, second_weight);
 
   surface_reflection out(std::max(first.modes(), second.modes()), n_out, n_in, first.beam_mu(), specular);
@@ -363,17 +357,12 @@ surface_reflection cox_munk_lambertian_fourier_modes(const Numeric          cox_
                                                      const Numeric          mu0,
                                                      const Index            azimuth_quadrature_points) {
   disort_common::check_surface_fraction(cox_munk_fraction);
-  return combine_fourier_modes(cox_munk_fourier_modes(wind_speed,
-                                                      refractive_index,
-                                                      shadowing,
-                                                      number_of_modes,
-                                                      mu_out,
-                                                      mu_in,
-                                                      mu0,
-                                                      azimuth_quadrature_points),
-                               cox_munk_fraction,
-                               lambertian_fourier_modes(lambertian_albedo, number_of_modes, mu_out, mu_in, mu0),
-                               1.0 - cox_munk_fraction);
+  return combine_fourier_modes(
+      cox_munk_fourier_modes(
+          wind_speed, refractive_index, shadowing, number_of_modes, mu_out, mu_in, mu0, azimuth_quadrature_points),
+      cox_munk_fraction,
+      lambertian_fourier_modes(lambertian_albedo, number_of_modes, mu_out, mu_in, mu0),
+      1.0 - cox_munk_fraction);
 }
 
 }  // namespace vdisort::brdf

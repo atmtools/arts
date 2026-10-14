@@ -135,8 +135,8 @@ void reuse(vdisort::main_data& v, const problem& p) {
   v.downward_boundary()       = boundary(p, -1);
   v.source_poly()             = sources(p);
   v.surface(surface(p));
-  v.solar_zenith()            = p.mu0;
-  v.beam_azimuth()            = p.phi0;
+  v.solar_zenith() = p.mu0;
+  v.beam_azimuth() = p.phi0;
   v.set_beam_source(p.beam);
   v.update_all();
 }

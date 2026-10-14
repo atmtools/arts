@@ -48,11 +48,8 @@ struct Fresnel {
  * combined cosine mode zero is nonzero; additional zero modes are returned
  * for direct composition with azimuth-dependent models.
  */
-[[nodiscard]] surface_reflection lambertian_fourier_modes(Numeric                albedo,
-                                                          Index                  number_of_modes,
-                                                          const ConstVectorView& mu_out,
-                                                          const ConstVectorView& mu_in,
-                                                          Numeric                mu0);
+[[nodiscard]] surface_reflection lambertian_fourier_modes(
+    Numeric albedo, Index number_of_modes, const ConstVectorView& mu_out, const ConstVectorView& mu_in, Numeric mu0);
 
 /** The combined Fourier modes of an azimuth-resolved polarized BPrDF. */
 [[nodiscard]] surface_reflection fourier_modes(const RawFunction&     raw,

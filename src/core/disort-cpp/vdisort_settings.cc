@@ -113,7 +113,7 @@ ZenGriddedField1 vdisort_quadrature_weights(const vdisort::main_data& dis) {
   stdr::sort(mu);
   std::transform(mu.begin(), mu.end(), mu.begin(), [](const Numeric& m) { return 180.0 - Conversion::acosd(m); });
 
-  const Index N = dis.weights().size();
+  const Index      N = dis.weights().size();
   ZenGriddedField1 quadrature{
       .data_name = "VDISORT quadrature weights", .data = mu, .grid_names = {"Zenith grid"}, .grids = {std::move(mu)}};
   quadrature.data[Range(0, N)] = dis.weights();
@@ -137,7 +137,7 @@ vdisort::main_data& VDisortSettings::set(vdisort::main_data& dis, Index iv) cons
   dis.omega()        = single_scattering_albedo[iv];
 
   // The phase matrices of every layer on VDISORT's streams (and from the beam) from the Legendre moments
-  const bool beam = solar_source[iv].I() != 0.0;
+  const bool   beam = solar_source[iv].I() != 0.0;
   const Vector mu{dis.mu()};
   Vector       mu_in(NQ + (beam ? 1 : 0));
   mu_in[Range(0, NQ)] = mu;

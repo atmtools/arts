@@ -361,9 +361,7 @@ void surface_reflection::set(const ConstTensor3View& brdf, const ConstMatrixView
   beam_cosine = beam_mu;
 }
 
-void surface_reflection::set(const surface_reflection& other) {
-  set(other.brdf(), other.beam_brdf(), other.beam_mu());
-}
+void surface_reflection::set(const surface_reflection& other) { set(other.brdf(), other.beam_brdf(), other.beam_mu()); }
 
 namespace {
 //! Throw unless a surface reflects a beam of cosine mu0, or there is no beam or reflection
@@ -1294,21 +1292,21 @@ main_data::main_data(const Index NLayers_,
   dc::initialize_streams(mu_arr, inv_mu_arr, W);
 }
 
-main_data::main_data(const Index       NQuad_,
-                     const Index       NLeg_,
-                     const Index       NFourier_,
-                     AscendingGrid     tau_arr_,
-                     Vector            omega_arr_,
-                     Matrix            Leg_coeffs_all_,
-                     Matrix            boundary_up_,
-                     Matrix            boundary_down_,
-                     Vector            f_arr_,
-                     Matrix            source_poly_coeffs_,
+main_data::main_data(const Index               NQuad_,
+                     const Index               NLeg_,
+                     const Index               NFourier_,
+                     AscendingGrid             tau_arr_,
+                     Vector                    omega_arr_,
+                     Matrix                    Leg_coeffs_all_,
+                     Matrix                    boundary_up_,
+                     Matrix                    boundary_down_,
+                     Vector                    f_arr_,
+                     Matrix                    source_poly_coeffs_,
                      const surface_reflection& surface_,
-                     Numeric           mu0_,
-                     Numeric           I0_,
-                     Numeric           phi0_,
-                     Matrix            delta_m_peak_)
+                     Numeric                   mu0_,
+                     Numeric                   I0_,
+                     Numeric                   phi0_,
+                     Matrix                    delta_m_peak_)
     : NLayers(tau_arr_.size()),
       NQuad(NQuad_),
       NLeg(NLeg_),
@@ -2147,11 +2145,8 @@ coupling_result couple(main_data&    atmosphere,
 
     for (Size m = 0; m < nbrdfs; ++m) {
       const bool m_equals_0_bool = m == 0;
-      einsum<"ij", "", "ij", "j", "j">(R[m],
-                                       -(1 + m_equals_0_bool),
-                                       atmosphere.surface().brdf()[m],
-                                       atmosphere.mu()[rf(N)],
-                                       atmosphere.weights());
+      einsum<"ij", "", "ij", "j", "j">(
+          R[m], -(1 + m_equals_0_bool), atmosphere.surface().brdf()[m], atmosphere.mu()[rf(N)], atmosphere.weights());
       diagonal(R[m]) += 1.0;
     }
 
@@ -2234,8 +2229,7 @@ bool DisortSettings::ok() const {
       (surface_brdf.shape() !=
        std::array{nfreq, surface_brdf.npages(), quadrature_dimension / 2, quadrature_dimension / 2}) or
       (surface_beam_brdf.shape() != std::array{nfreq, surface_brdf.npages(), quadrature_dimension / 2}) or
-      (surface_beam_mu.shape() != std::array{nfreq}) or
-      (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
+      (surface_beam_mu.shape() != std::array{nfreq}) or (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
       (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
       (fractional_scattering.shape() != std::array{nfreq, nlay}) or
       (delta_m_peak_moments.shape() != std::array{nfreq, nlay, legendre_polynomial_dimension}) or

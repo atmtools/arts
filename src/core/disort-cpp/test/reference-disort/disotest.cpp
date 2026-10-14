@@ -97,17 +97,17 @@ Numeric beam_cosine(const Numeric beam, const Numeric mu0) {
   return beam == 0.0 ? std::numeric_limits<Numeric>::quiet_NaN() : mu0;
 }
 
-disort::main_data make_disort(const Index               NQuad,
-                              AscendingGrid             tau,
-                              Vector                    omega,
-                              Matrix                    legendre,
-                              const Numeric             mu0,
-                              const Numeric             I0,
-                              Matrix                    boundary_up   = {},
-                              Matrix                    boundary_down = {},
-                              Matrix                    source        = {},
-                              disort::surface_reflection surface      = {},
-                              Vector                    f             = {}) {
+disort::main_data make_disort(const Index                NQuad,
+                              AscendingGrid              tau,
+                              Vector                     omega,
+                              Matrix                     legendre,
+                              const Numeric              mu0,
+                              const Numeric              I0,
+                              Matrix                     boundary_up   = {},
+                              Matrix                     boundary_down = {},
+                              Matrix                     source        = {},
+                              disort::surface_reflection surface       = {},
+                              Vector                     f             = {}) {
   const Index nfourier = NQuad;
   const Index nlayers  = static_cast<Index>(tau.size());
   if (boundary_up.size() == 0) {
@@ -199,21 +199,19 @@ void disort_test06() {
                      test.interface_temperature[1], problem_6_wavenumber_low, problem_6_wavenumber_high)});
     }
 
-    auto dis = make_disort(nquad,
-                           tau,
-                           Vector{std::max(test.single_scattering_albedo, 1e-8)},
-                           henyey_greenstein(Vector{0.0}, nquad),
-                           test.beam_mu,
-                           test.beam,
-                           std::move(up),
-                           std::move(down),
-                           std::move(source),
-                           raw ? disort::brdf::fourier_modes(raw,
-                                                             nquad,
-                                                             upward_streams(nquad),
-                                                             upward_streams(nquad),
-                                                             beam_cosine(test.beam, test.beam_mu))
-                               : disort::surface_reflection{});
+    auto dis = make_disort(
+        nquad,
+        tau,
+        Vector{std::max(test.single_scattering_albedo, 1e-8)},
+        henyey_greenstein(Vector{0.0}, nquad),
+        test.beam_mu,
+        test.beam,
+        std::move(up),
+        std::move(down),
+        std::move(source),
+        raw ? disort::brdf::fourier_modes(
+                  raw, nquad, upward_streams(nquad), upward_streams(nquad), beam_cosine(test.beam, test.beam_mu))
+            : disort::surface_reflection{});
 
     disort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
@@ -377,10 +375,10 @@ void disort_test12() {
 void disort_test13() {
   constexpr Index nquad = 16;
   for (const bool multilayer : {false, true}) {
-    const AscendingGrid       tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
-    const Vector              omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
-    const Vector              g(tau.size(), 0.8);
-    const Vector              streams = upward_streams(nquad);
+    const AscendingGrid tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
+    const Vector        omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
+    const Vector        g(tau.size(), 0.8);
+    const Vector        streams = upward_streams(nquad);
     auto dis = make_disort(nquad,
                            tau,
                            omega,

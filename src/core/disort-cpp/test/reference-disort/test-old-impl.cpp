@@ -120,11 +120,11 @@ void newimpl(bool print_results = false) {
     return out;
   }();
 
-  const Matrix                    b_pos(NFourier, NQuad / 2, 0);
-  const Matrix                    b_neg(NFourier, NQuad / 2, 0);
-  const Vector                    f_arr(NLayers, 0);
+  const Matrix                     b_pos(NFourier, NQuad / 2, 0);
+  const Matrix                     b_neg(NFourier, NQuad / 2, 0);
+  const Vector                     f_arr(NLayers, 0);
   const disort::surface_reflection surface{};
-  const Matrix s_poly_coeffs(NLayers, 0);
+  const Matrix                     s_poly_coeffs(NLayers, 0);
 
   // DebugTime setup{"setup"};
   disort::main_data dis(
