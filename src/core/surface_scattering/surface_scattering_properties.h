@@ -2,6 +2,8 @@
 
 #include <matpack.h>
 
+#include <optional>
+
 #include "rtepack.h"
 
 namespace surface_scattering {
@@ -17,16 +19,20 @@ using EmissivityVector = MuelmatTensor3;
  * Holds the diffuse and specular BRDF matrices and the corresponding
  * emissivity tensors.  Multiple models can be accumulated via operator+=
  * and weighted via operator*=.
+ *
+ * A component that no contributing model physically provides (e.g. the
+ * diffuse pair of a purely specular model) stays std::nullopt; consumers
+ * must treat a missing component as a zero contribution.
  */
 struct SurfaceScatteringModelProperties {
   /// Diffuse BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
-  BRDFMatrix brdf_matrix_diffuse;
+  std::optional<BRDFMatrix> brdf_matrix_diffuse;
   /// Diffuse emissivity vector: dims [n_f, n_za_scat, n_aa_scat, 4, 4]
-  EmissivityVector emissivity_vector_diffuse;
+  std::optional<EmissivityVector> emissivity_vector_diffuse;
   /// Specular BRDF matrix: dims [n_f, n_za_inc, n_aa_inc, n_za_scat, n_aa_scat, 4, 4]
-  BRDFMatrix brdf_matrix_specular;
+  std::optional<BRDFMatrix> brdf_matrix_specular;
   /// Specular emissivity vector: dims [n_f, n_za_scat, n_aa_scat, 4, 4]
-  EmissivityVector emissivity_vector_specular;
+  std::optional<EmissivityVector> emissivity_vector_specular;
 
   SurfaceScatteringModelProperties& operator+=(
       const SurfaceScatteringModelProperties& other);

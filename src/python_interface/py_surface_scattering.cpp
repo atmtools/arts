@@ -21,17 +21,17 @@ void py_surface_scattering(py::module_& m) try {
       .def(py::init<>())
       .def_rw("brdf_matrix_diffuse",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_diffuse,
-              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
+              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`class-information`")
       .def_rw("emissivity_vector_diffuse",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
-              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
+              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`class-information`")
       .def_rw("brdf_matrix_specular",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
-              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
+              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`class-information`")
       .def_rw("emissivity_vector_specular",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
-              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\n.. :class:`class-information`")
-      .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).";
+              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`class-information`")
+      .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).\n\nComponents that no contributing model physically provides are None.";
 
   //
   // LambertianSurfaceScatterer
@@ -252,7 +252,7 @@ Stores the surface refractive index (medium 2) as a
 grid, plus the refractive index ``n1`` of the incident medium (default 1.0).
 At runtime the spectrum is linearly interpolated onto the simulation
 ``f_grid``.  The model fills the specular BRDF and the complementary
-emissivity; the diffuse tensors remain zero.
+emissivity; the diffuse tensors are None.
 )";
   }
 
@@ -340,7 +340,7 @@ on sorted (latitude [deg], longitude [deg], frequency [Hz]) grids, plus the
 refractive index ``n1`` of the incident medium (default 1.0).  At runtime the
 field is bilinearly interpolated in the geographic dimensions and linearly
 interpolated onto the simulation ``f_grid``.  The model fills the specular
-BRDF and the complementary emissivity; the diffuse tensors remain zero.
+BRDF and the complementary emissivity; the diffuse tensors are None.
 )";
   }
 
@@ -411,7 +411,7 @@ on an arbitrary sorted frequency grid.  At runtime the spectrum is linearly
 interpolated onto the simulation's ``f_grid``, so the stored spectral
 resolution is fully independent of the simulation grid.  The model fills the
 specular BRDF (``Muelmat{R}``) and emissivity (``Muelmat{1 - R}``); the
-diffuse tensors remain zero.
+diffuse tensors are None.
 )";
   }
 
@@ -483,7 +483,7 @@ on sorted (latitude [deg], longitude [deg], frequency [Hz]) grids.  At runtime
 the field is bilinearly interpolated in the geographic dimensions and linearly
 interpolated onto the simulation's ``f_grid``.  The model fills the specular
 BRDF (``Muelmat{R}``) and emissivity (``Muelmat{1 - R}``); the diffuse tensors
-remain zero.
+are None.
 )";
   }
 

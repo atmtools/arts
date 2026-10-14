@@ -4,7 +4,7 @@ Verifies:
 1. Construction and attribute access.
 2. Properties: brdf_matrix_specular = Muelmat{R} at [0,0] (all angles),
    all other elements 0; emissivity_vector_specular[0,0] = 1 - R; diffuse
-   tensors all zero.
+   tensors are None.
 3. Clamping: out-of-range stored R values are clamped to [0, 1].
 4. Field variant homogeneous == spectrum variant at an interior lat/lon.
 5. XML round-trip.
@@ -53,14 +53,12 @@ props = sc.get_surface_scattering_model_properties(
 
 brdf = np.array(props.brdf_matrix_specular)
 emiss = np.array(props.emissivity_vector_specular)
-brdf_d = np.array(props.brdf_matrix_diffuse)
-emiss_d = np.array(props.emissivity_vector_diffuse)
 
 assert brdf.shape == (len(f_grid), len(za_inc), len(aa_inc), len(za_scat), len(aa_scat), 4, 4)
 
-# Diffuse tensors must stay zero
-assert np.all(brdf_d == 0.0), "Diffuse BRDF must be zero for the flat-scalar model"
-assert np.all(emiss_d == 0.0), "Diffuse emissivity must be zero for the flat-scalar model"
+# Diffuse tensors must be missing for the purely specular model
+assert props.brdf_matrix_diffuse is None, "Diffuse BRDF must be None for the flat-scalar model"
+assert props.emissivity_vector_diffuse is None, "Diffuse emissivity must be None for the flat-scalar model"
 
 r_diag = np.diag([r_uniform] * 4)
 e_diag = np.diag([1.0 - r_uniform] * 4)

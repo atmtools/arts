@@ -104,15 +104,8 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
     ) const
 {
   if (models.empty()) {
-    const Index nf  = f_grid.size();
-    const Index nzs = za_scat_grid.size();
-    const Index nas = aa_scat_grid.size();
-    const Index nzi = za_inc_grid.size();
-    const Index nai = aa_inc_grid.size();
-    return {.brdf_matrix_diffuse=MuelmatTensor5(nf, nzi, nai, nzs, nas,rtepack::muelmat{0.0}),
-            .emissivity_vector_diffuse=MuelmatTensor3(nf, nzs, nas, rtepack::muelmat{0.0}),
-            .brdf_matrix_specular=MuelmatTensor5(nf, nzi, nai, nzs, nas,rtepack::muelmat{0.0}),
-            .emissivity_vector_specular=MuelmatTensor3(nf, nzs, nas, rtepack::muelmat{0.0})};
+    // No models at all: every component is missing (consumers read that as zero)
+    return surface_scattering::SurfaceScatteringModelProperties{};
   }
 
   const auto visitor = [&](const auto& model)
@@ -159,11 +152,7 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
         std::visit(visitor, model);
 
     model_props *= weights[i];
-    if (i == 0) {
-      bsp = model_props;
-    } else {
-      bsp += model_props;
-    }
+    bsp += model_props;
     i++;
   }
   return bsp;
@@ -172,19 +161,31 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
 surface_scattering::SurfaceScatteringModelProperties&
 surface_scattering::SurfaceScatteringModelProperties::operator+=(
     const surface_scattering::SurfaceScatteringModelProperties& other) {
-  brdf_matrix_diffuse += other.brdf_matrix_diffuse;
-  emissivity_vector_diffuse += other.emissivity_vector_diffuse;
-  brdf_matrix_specular += other.brdf_matrix_specular;
-  emissivity_vector_specular += other.emissivity_vector_specular;
+  // Null-aware accumulation: a missing component contributes nothing, and a
+  // component that only one side has is adopted as-is
+  const auto add = [](auto& self, const auto& rhs) {
+    if (rhs) {
+      if (self) {
+        *self += *rhs;
+      } else {
+        self = rhs;
+      }
+    }
+  };
+
+  add(brdf_matrix_diffuse, other.brdf_matrix_diffuse);
+  add(emissivity_vector_diffuse, other.emissivity_vector_diffuse);
+  add(brdf_matrix_specular, other.brdf_matrix_specular);
+  add(emissivity_vector_specular, other.emissivity_vector_specular);
   return *this;
 }
 
 surface_scattering::SurfaceScatteringModelProperties&
 surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar) {  
-  brdf_matrix_diffuse *= scalar;
-  emissivity_vector_diffuse *= scalar;
-  brdf_matrix_specular *= scalar;
-  emissivity_vector_specular *= scalar;
+  if (brdf_matrix_diffuse) *brdf_matrix_diffuse *= scalar;
+  if (emissivity_vector_diffuse) *emissivity_vector_diffuse *= scalar;
+  if (brdf_matrix_specular) *brdf_matrix_specular *= scalar;
+  if (emissivity_vector_specular) *emissivity_vector_specular *= scalar;
   return *this;
 }
 
