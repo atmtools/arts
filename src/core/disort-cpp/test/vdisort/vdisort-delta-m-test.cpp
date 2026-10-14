@@ -260,8 +260,6 @@ Vector4 deviation(const field& a, const field& b) {
   return d;
 }
 
-Numeric max_of(const Vector4& d) { return std::max({d[0], d[1], d[2], d[3]}); }
-
 std::string format(const Vector4& d) {
   return std::format("I {:9.3e}  Q {:9.3e}  U {:9.3e}  V {:9.3e}", d[0], d[1], d[2], d[3]);
 }

@@ -174,7 +174,7 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
     Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
     for (Index e = 0; e < 6; e++) {
       Numeric value = 0.0;
-      for (Index l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
+      for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
       F[0, 0, e] = value;
     }
   };

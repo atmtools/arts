@@ -116,7 +116,6 @@ stokvec nonspecular_radiance_from_patches(std::span<const Vector2>  coords,
   const Vector3 north{-sin_lat * cos_lon, -sin_lat * sin_lon, cos_lat};
   const Vector3 up{cos_lat * cos_lon, cos_lat * sin_lon, sin_lat};
   const auto    local       = [&](const Vector3& v) { return Vector3{dot(v, east), dot(v, north), dot(v, up)}; };
-  const Vector3 n_local     = local(n_surface);
   const Vector3 k_out_local = local(k_out);
 
   stokvec result = J;
