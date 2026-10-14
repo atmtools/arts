@@ -447,19 +447,10 @@ vdisort::main_data vdisort_solver(const setup& c,
   bottom = rtepack::stokvec{};
   top    = rtepack::stokvec{};
   std::vector<vdisort::BDRF> brdf;
+  // The surface's Planck radiance: VDISORT transmits it with 1 - R, the Kirchhoff emission RT4 is given
   for (Index i = 0; i < N; i++) {
-    top[vdisort::cosine_mode, 0, i] = {planck(frequency, c.sky), 0.0, 0.0, 0.0};
-    Vector2 e{};
-    if (const auto* d = std::get_if<discrete_reflection>(&c.g)) {
-      e = discrete_emission(*d, c.s, i, Bs);
-    } else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g)) {
-      // rtepack::fresnel_reflectance, independent of RT4's Fresnel code
-      const auto F = vdisort::brdf::Fresnel{f->refractive_index}(c.s.mu[i]);
-      e            = {(1 - F[0, 0]) * Bs, -F[1, 0] * Bs};
-    } else {
-      e = {(1 - std::get<polradtran::lambertian_surface>(c.g).albedo) * Bs, 0.0};
-    }
-    bottom[vdisort::cosine_mode, 0, i] = {e[0], ns > 1 ? e[1] : 0.0, 0.0, 0.0};
+    top[vdisort::cosine_mode, 0, i]    = {planck(frequency, c.sky), 0.0, 0.0, 0.0};
+    bottom[vdisort::cosine_mode, 0, i] = {Bs, 0.0, 0.0, 0.0};
   }
   if (const auto* d = std::get_if<discrete_reflection>(&c.g))
     brdf.push_back(discrete_bdrf(*d, surface_mistake));
@@ -530,8 +521,9 @@ field vdisort_streams(const vdisort::main_data& v, Index nstokes) {
 
 //! VDISORT's user-angle formal solution at the setup's extra angles, at every level, both directions
 /* VDISORT at the extra angles by its user-angle formal solution, up and down or (upward = false) down only.
-   With exact_boundary the boundary radiances where the user rays start are given (the Kirchhoff emission of a
-   Lambertian or Fresnel surface, the sky); otherwise VDISORT interpolates them from the streams. */
+   With exact_boundary the boundary radiances where the user rays start are given (the Planck radiance beneath
+   the surface, which VDISORT transmits with 1 - R, and the sky); otherwise VDISORT interpolates them from the
+   streams. */
 field vdisort_extra_angles(const vdisort::main_data& v,
                            const setup&              c,
                            bool                      upward         = true,
@@ -566,15 +558,7 @@ field vdisort_extra_angles(const vdisort::main_data& v,
     boundary.resize(2, 1, 2 * ne - first);
     boundary = rtepack::stokvec{};
     for (Index u = 0; u < 2 * ne - first; u++) {
-      if (user_mu[u] < 0.0) {
-        boundary[vdisort::cosine_mode, 0, u] = {Bsky, 0.0, 0.0, 0.0};
-      } else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g)) {
-        const auto R                         = vdisort::brdf::Fresnel{f->refractive_index}(user_mu[u]);
-        boundary[vdisort::cosine_mode, 0, u] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
-      } else {
-        boundary[vdisort::cosine_mode, 0, u] = {
-            (1 - std::get<polradtran::lambertian_surface>(c.g).albedo) * Bs, 0.0, 0.0, 0.0};
-      }
+      boundary[vdisort::cosine_mode, 0, u] = {user_mu[u] < 0.0 ? Bsky : Bs, 0.0, 0.0, 0.0};
     }
   }
   rtepack::stokvec_tensor3 out(NL + 1, 1, 2 * ne - first);
@@ -1074,66 +1058,21 @@ void test_extra_angles() {
 
   /* The Fresnel surface.  VDISORT reflects the downward user-angle radiance
      at -mu into mu (BDRF::specular), so it needs both directions; without
-     the downward partner it must refuse an upward user angle.  The surface
-     emission at a user angle is interpolated from the streams (barycentric
-     in mu, disort_common::barycentric_interpolate), so VDISORT's upward
-     radiance carries the interpolation error d(mu) = interpolated - exact
-     emission [(1 - R11) B_s, -R21 B_s], attenuated by exp(-(tau_s - tau) / mu).
-     With that term removed, every level must agree with RT4 to its doubling
-     error: the reflection R(mu) I_down(mu) is then exact. */
-  const auto c = extra_angle_setup(polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}});
-  const auto x = run(c);
+     the downward partner it must refuse an upward user angle.  The upward
+     boundary is the surface's Planck radiance, the same at every cosine, so
+     its interpolation to a user angle is exact, and VDISORT transmits it
+     with 1 - R(mu) at the user angle itself: the Kirchhoff emission is exact
+     there, and every level must agree with RT4 to its doubling error. */
+  const auto  c   = extra_angle_setup(polradtran::fresnel_surface{.refractive_index = Complex{3.0, 0.2}});
+  const auto  x   = run(c);
+  const auto  tol = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
+  const Index N = c.s.nmu, L = c.nlay();
   check("Extra-angle setup, Fresnel 3+0.2i: quadrature streams", c, x.r, x.f, 0);
-  const auto    vu  = vdisort_extra_angles(x.v, c);
-  const auto    tol = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
-  const Index   N = c.s.nmu, L = c.nlay(), ne = c.s.total() - N;
-  const Numeric Bs = planck(frequency, c.surface);
-  report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, downward", compare(x.r, vu, N, directions::down_only), tol);
+  report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1 (user angles)",
+         compare(x.r, vdisort_extra_angles(x.v, c), N),
+         tol);
 
-  const Vector nodes{x.v.mu()[Range(0, N)]};
-  Vector       weights(N), emission_i(N), emission_q(N);
-  disort_common::barycentric_weights(weights, nodes);
-  const vdisort::brdf::Fresnel fresnel{.refractive_index = Complex{3.0, 0.2}};
-  for (Index i = 0; i < N; i++) {
-    const auto R  = fresnel(nodes[i]);
-    emission_i[i] = (1 - R[0, 0]) * Bs;
-    emission_q[i] = -R[1, 0] * Bs;
-  }
-  Numeric scale = 0.0, raw = 0.0, corrected = 0.0, interpolation = 0.0;
-  for (Index l = 0; l <= L; l++)
-    for (Index e = 0; e < ne; e++)
-      scale = std::max({scale, std::abs(x.r.up[l, N + e, 0]), std::abs(x.r.down[l, N + e, 0])});
-  for (Index e = 0; e < ne; e++) {
-    const Numeric mu  = c.s.mu[N + e];
-    const auto    R   = fresnel(mu);
-    const Numeric d_i = disort_common::barycentric_interpolate(nodes, weights, emission_i, mu) - (1 - R[0, 0]) * Bs;
-    const Numeric d_q = disort_common::barycentric_interpolate(nodes, weights, emission_q, mu) + R[1, 0] * Bs;
-    interpolation     = std::max({interpolation, std::abs(d_i) / Bs, std::abs(d_q) / Bs});
-    for (Index l = 0; l <= L; l++) {
-      const Numeric tau = l == 0 ? 0.0 : x.v.tau()[l - 1];
-      const Numeric att = std::exp(-(x.v.tau()[L - 1] - tau) / mu);
-      for (Index st = 0; st < std::min<Index>(c.nstokes, 2); st++) {
-        const Numeric diff = vu.up[l, e, st] - x.r.up[l, N + e, st];
-        raw                = std::max(raw, std::abs(diff) / scale);
-        corrected          = std::max(corrected, std::abs(diff - (st == 0 ? d_i : d_q) * att) / scale);
-      }
-    }
-  }
-  std::cout << std::format(
-      "{:<66} I, Q {:9.3e} after removing the emission interpolation ({:.1e} of B_s; {:.1e} of max I before); "
-      "tolerance {:.1e}\n",
-      "Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, upward",
-      corrected,
-      interpolation,
-      raw,
-      tol);
-  require(corrected <= tol,
-          std::format("VDISORT's upward user-angle radiance over a Fresnel surface must be RT4's up to its emission "
-                      "interpolation, to {:.1e}; got {:.2e}",
-                      tol,
-                      corrected));
-
-  // With the exact boundary radiances given there is no interpolation: VDISORT is RT4 at every level
+  // Given at the user angles, the boundary radiances are those interpolated: VDISORT is RT4 at every level
   const auto exact = vdisort_extra_angles(x.v, c, true, true);
   report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, exact boundaries given", compare(x.r, exact, N), tol);
 

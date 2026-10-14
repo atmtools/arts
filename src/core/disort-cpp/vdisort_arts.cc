@@ -328,22 +328,19 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
   top                  = rtepack::stokvec{};
   const Numeric B_sky  = planck(frequency, sky_temperature);
   const Numeric B_surf = settings.thermal ? planck(frequency, surface_temperature) : 0.0;
-  for (Index i = 0; i < N; i++) top[cosine_mode, 0, i] = {B_sky, 0.0, 0.0, 0.0};
+  // The surface's Planck radiance; VDISORT transmits it with 1 - R, Kirchhoff's emission
+  for (Index i = 0; i < N; i++) {
+    top[cosine_mode, 0, i]    = {B_sky, 0.0, 0.0, 0.0};
+    bottom[cosine_mode, 0, i] = {B_surf, 0.0, 0.0, 0.0};
+  }
 
   std::vector<BDRF> brdf = std::visit(
       [&](const auto& g) {
         using T = std::remove_cvref_t<decltype(g)>;
         if constexpr (std::is_same_v<T, lambertian_surface>) {
-          for (Index i = 0; i < N; i++) bottom[cosine_mode, 0, i] = {(1.0 - g.albedo) * B_surf, 0.0, 0.0, 0.0};
           return brdf::lambertian_fourier_modes(g.albedo, NF);
         } else {
           static_assert(std::is_same_v<T, fresnel_surface>);
-          const brdf::Fresnel fresnel{.refractive_index = g.refractive_index};
-          for (Index i = 0; i < N; i++) {
-            const auto R              = fresnel(mu[i]);
-            bottom[cosine_mode, 0, i] = {
-                (1.0 - R[0, 0]) * B_surf, -R[1, 0] * B_surf, -R[2, 0] * B_surf, -R[3, 0] * B_surf};
-          }
           return brdf::fresnel_fourier_modes(g.refractive_index, NF);
         }
       },

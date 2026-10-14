@@ -566,6 +566,8 @@ void main_data::solve_for_coefs() {
         RHS[rf(N)]           += boundary_down[m];
         RHS[Range{n - N, N}] += boundary_up[m];
       }
+      // The surface transmits the radiance beneath it with 1 - R, Kirchhoff's emissivity for a Planck radiance
+      if (has_brdf) mult(RHS[Range{n - N, N}], R, boundary_up[m], -1.0, 1.0);
 
       if (has_brdf)
         mult(BDRF_LHS, R, G_collect[m, ln, rb(N)]);
@@ -636,13 +638,14 @@ void main_data::solve_for_coefs() {
       }
     }
 
-    // Upward field at the lower boundary, including diffuse and direct reflection.
+    // Upward field at the lower boundary, including diffuse and direct reflection, and the radiance beneath the
+    // surface transmitted with 1 - R.
     const Numeric bottom = scaled_tau_arr_with_0.back();
     for (Index i = 0; i < N; ++i) {
       const Index row = n - N + i;
       Numeric     rhs = boundary_up[m, i] - particular(m, ln, i, bottom);
       if (has_beam_source) rhs += mathscr_X_pos[i] * std::exp(-bottom / mu0);
-      for (Index j = 0; j < N; ++j) rhs += R[i, j] * particular(m, ln, N + j, bottom);
+      for (Index j = 0; j < N; ++j) rhs += R[i, j] * (particular(m, ln, N + j, bottom) - boundary_up[m, j]);
       RHS[row] = rhs;
 
       for (Index eigen = 0; eigen < NQuad; ++eigen) {
@@ -1459,11 +1462,13 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
         const Index bottom_layer = NLayers - 1;
         Numeric     bottom       = mode;
         if (m < NBDRF) {
+          // The reflection of the downward field, and the radiance beneath the surface transmitted with 1 - R
           const Vector outgoing{mu};
           Matrix       reflectivity(1, N);
           brdf_fourier_modes[m](reflectivity, outgoing, mu_arr[rb(N)]);
           for (Index j = 0; j < N; ++j) {
-            bottom += (1 + (m == 0)) * reflectivity[0, j] * mu_arr[j] * W[j] * um[bottom_layer, m, N + j];
+            bottom += (1 + (m == 0)) * reflectivity[0, j] * mu_arr[j] * W[j] *
+                      (um[bottom_layer, m, N + j] - boundary_up[m, j]);
           }
           if (has_beam_source) {
             Matrix       direct_reflectivity(1, 1);
@@ -2107,7 +2112,8 @@ coupling_result couple(main_data&    atmosphere,
     clamp(res, 0.0, std::numeric_limits<Numeric>::max());
     eatm_sum.noalias() = relaxation * atm_res + (1 - relaxation) * atm_up;
 
-    // The atmosphere-to-subsurface transmission factor is 1-R.
+    // The atmosphere-to-subsurface transmission factor is 1-R; the atmosphere applies the same to the subsurface
+    // radiance that it takes as its upward boundary.
     for (Size m = 0; m < nbrdfs; ++m) { eatm_sum.row(m) = ImR[m] * eatm_sum.row(m); }
 
     res = subsurface.layer_um(0);

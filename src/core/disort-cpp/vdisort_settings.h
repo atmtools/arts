@@ -83,7 +83,8 @@ struct VDisortSettings {
   // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension_full x 6
   Tensor4 legendre_coefficients{};
 
-  // freq_grid.size() x 2 (cosine, sine) x fourier_mode_dimension x quadrature_dimension / 2
+  // freq_grid.size() x 2 (cosine, sine) x fourier_mode_dimension x quadrature_dimension / 2, the radiance beneath the
+  // surface, which VDISORT transmits with 1 - R (Kirchhoff's emission for a Planck radiance)
   StokvecTensor4 upward_boundary_condition{};
 
   // freq_grid.size() x 2 (cosine, sine) x fourier_mode_dimension x quadrature_dimension / 2

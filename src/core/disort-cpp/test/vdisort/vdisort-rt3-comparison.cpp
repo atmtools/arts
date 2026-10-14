@@ -55,7 +55,8 @@
        are those of the propagation direction, and VDISORT's beam
        propagates toward phi0, RT3's toward 0;
      - the thermal source is c0 + c1 tau in global tau, the sky is
-       planck(T_sky), the surface emits (1 - A) planck(T_s), and
+       planck(T_sky), the upward boundary is planck(T_s), which VDISORT
+       transmits as (1 - A) planck(T_s), and
        brdf::lambertian_fourier_modes(A, NFourier).
    - With delta-M (R9), RT3 scales every set (GET_SCAT_SET) and VDISORT is
      given the scaled set, computed here with RT3's algebra.  That is not
@@ -411,17 +412,13 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   bottom              = rtepack::stokvec{};
   top                 = rtepack::stokvec{};
   const Numeric Bsky  = c.sky > 0 ? planck(c.frequency, c.sky) : 0.0;
-  const Numeric Bs    = c.surface > 0 ? planck(c.frequency, c.surface) : 0.0;
-  const Numeric Bsurf = c.thermal ? (1 - c.albedo) * Bs : 0.0;
+  const Numeric Bs = c.surface > 0 ? planck(c.frequency, c.surface) : 0.0;
+  // The surface's Planck radiance, which VDISORT transmits with 1 - R (Kirchhoff's emission): RT3's Fresnel
+  // surface always emits, its Lambertian one with the thermal source
+  const Numeric Bsurf = c.thermal or c.fresnel ? Bs : 0.0;
   for (Index i = 0; i < N; i++) {
-    top[vdisort::cosine_mode, 0, i] = {Bsky, 0.0, 0.0, 0.0};
-    if (c.fresnel) {
-      // Kirchhoff emission B ([1, 0, 0, 0] - R(mu)[:, 0]), always on, as RT3's Fresnel surface
-      const auto R                       = vdisort::brdf::Fresnel{.refractive_index = *c.fresnel}(mu[i]);
-      bottom[vdisort::cosine_mode, 0, i] = {(1 - R[0, 0]) * Bs, -R[1, 0] * Bs, -R[2, 0] * Bs, -R[3, 0] * Bs};
-    } else {
-      bottom[vdisort::cosine_mode, 0, i] = {Bsurf, 0.0, 0.0, 0.0};
-    }
+    top[vdisort::cosine_mode, 0, i]    = {Bsky, 0.0, 0.0, 0.0};
+    bottom[vdisort::cosine_mode, 0, i] = {Bsurf, 0.0, 0.0, 0.0};
   }
 
   // B(tau) = c0 + c1 tau in the global optical depth, linear within each layer

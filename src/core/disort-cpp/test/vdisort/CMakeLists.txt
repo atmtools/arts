@@ -56,3 +56,9 @@ add_executable(vdisort-mirror-test vdisort-mirror-test.cpp)
 target_link_libraries(vdisort-mirror-test vdisort-cpp legendre artstime)
 add_test(NAME "cpp.fast.vdisort-mirror-test" COMMAND vdisort-mirror-test)
 add_dependencies(check-deps vdisort-mirror-test)
+
+# Kirchhoff's law: an isothermal cavity over polarizing and depolarizing surfaces, in DISORT and VDISORT
+add_executable(vdisort-kirchhoff-test kirchhoff-test.cpp)
+target_link_libraries(vdisort-kirchhoff-test vdisort-cpp disort-cpp legendre artstime)
+add_test(NAME "cpp.fast.vdisort-kirchhoff-test" COMMAND vdisort-kirchhoff-test)
+add_dependencies(check-deps vdisort-kirchhoff-test)

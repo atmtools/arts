@@ -545,25 +545,6 @@ std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& ra
   return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, 100);
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_brdf_modes:\n{}", e.what())); }
 
-Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) try {
-  constexpr Index nmu      = 64;
-  constexpr Index nazimuth = 256;
-  Vector          mu(nmu), weight(nmu);
-  Legendre::PositiveDoubleGaussLegendre(mu, weight);
-  Numeric reflectance = 0.0;
-  for (Index j = 0; j < nmu; ++j) {
-    Numeric azimuth_average = 0.0;
-    for (Index k = 0; k < nazimuth; ++k)
-      azimuth_average +=
-          raw(outgoing_mu, mu[j], Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(nazimuth));
-    // DISOBRDF's BEMST convention integrates azimuth through x = phi / pi,
-    // without restoring the Jacobian pi.  Reproduce that convention here so
-    // the thermal boundary agrees with the original DISORT reference cases.
-    reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
-  }
-  return 1.0 - reflectance;
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in directional_emissivity:\n{}", e.what())); }
-
 vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) try {
   constexpr Index nquad   = 16;
   constexpr Index nstokes = vdisort::stokes_dimension;
@@ -593,19 +574,10 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
                                                                     disort_test::reference::problem_6_wavenumber_high);
   down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + test.top_emissivity * top_planck;
 
-  const Numeric bottom_planck = band_blackbody_radiance(test.bottom_temperature,
-                                                        disort_test::reference::problem_6_wavenumber_low,
-                                                        disort_test::reference::problem_6_wavenumber_high);
-  Vector        quadrature_mu(n), quadrature_weight(n);
-  Legendre::PositiveDoubleGaussLegendre(quadrature_mu, quadrature_weight);
-  for (Index i = 0; i < n; ++i) {
-    Numeric emissivity = 1.0;
-    if (test.surface == disort_test::reference::surface_type::lambertian)
-      emissivity = 1.0 - test.lambertian_albedo;
-    else if (test.surface == disort_test::reference::surface_type::hapke)
-      emissivity = directional_emissivity(raw, quadrature_mu[i]);
-    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_planck;
-  }
+  // The surface's Planck radiance; VDISORT applies its emissivity, as DISORT's BEMST
+  up[vdisort::cosine_mode, 0, joker, 0] = band_blackbody_radiance(test.bottom_temperature,
+                                                                  disort_test::reference::problem_6_wavenumber_low,
+                                                                  disort_test::reference::problem_6_wavenumber_high);
 
   Tensor3 source;
   if (test.interface_temperature.size() == 2) {
@@ -653,9 +625,8 @@ void test_problem_6() try {
                        flux.down_diffuse,
                        reference.diffuse_down[level],
                        1e-3);
-      // The active single-precision DISORT references retain their legacy
-      // non-Lambertian thermal-boundary integration.  The VDISORT scalar
-      // embedding agrees to below one percent for those mixed-source cases.
+      // VDISORT's emissivity comes from the streams, cDISORT's from a fine quadrature; with the Hapke hotspot,
+      // 6h's DFDT at the surface (a small difference of large terms) differs by 0.4%
       const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
       expect_reference(
           std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
@@ -705,16 +676,9 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
       band_blackbody_radiance(test.top_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
   down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + top_boundary_planck;
 
-  const Numeric bottom_boundary_planck =
+  // The surface's Planck radiance; VDISORT applies its emissivity, as DISORT's BEMST
+  up[vdisort::cosine_mode, 0, joker, 0] =
       band_blackbody_radiance(test.bottom_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
-  for (Index i = 0; i < n; ++i) {
-    Numeric emissivity = 1.0;
-    if (test.surface == disort_test::reference::surface_type::lambertian)
-      emissivity = 1.0 - test.lambertian_albedo;
-    else if (test.surface == disort_test::reference::surface_type::hapke)
-      emissivity = directional_emissivity(raw, quadrature_mu[i]);
-    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_boundary_planck;
-  }
 
   const Numeric atmosphere_top_planck =
       band_blackbody_radiance(test.atmosphere_top_temperature, test.wavenumber_low, test.wavenumber_high);
@@ -773,7 +737,7 @@ void test_problem_7() try {
         expect_small_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level]);
         expect_small_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level]);
       } else {
-        const Numeric tolerance = case_index == 4 ? 1e-2 : 2e-3;
+        constexpr Numeric tolerance = 2e-3;
         expect_reference(
             std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], tolerance);
         expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
@@ -932,7 +896,7 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
       test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
   const Numeric bottom_planck =
       band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
-  up[vdisort::cosine_mode, 0, joker, 0] = (1.0 - test.surface_albedo) * bottom_planck;
+  up[vdisort::cosine_mode, 0, joker, 0] = bottom_planck;
 
   std::vector<vdisort::BDRF> brdf;
   if (test.surface_albedo != 0.0) {

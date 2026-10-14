@@ -1512,7 +1512,8 @@ void main_data::solve_for_coefs() {
           boundary_rhs[row0 + state] = particular(alpha, m, l + 1, state, tau) - particular(alpha, m, l, state, tau);
       }
 
-      // Lower boundary, including the polarized BRDF of paper Eq. (124).
+      /* Lower boundary, including the polarized BRDF of paper Eq. (124), and the radiance beneath the surface
+         transmitted with 1 - R: for a Planck radiance B e_I, Kirchhoff's emission B (e_I - R e_I). */
       for (Index i = 0; i < N; ++i) {
         for (Index s = 0; s < stokes_dimension; ++s) {
           const Index hrow      = state_index(i, s);
@@ -1523,7 +1524,8 @@ void main_data::solve_for_coefs() {
             for (Index si = 0; si < stokes_dimension; ++si) {
               const Index hin        = state_index(j, si);
               const Index neg_state  = state_index(N + j, si);
-              rhs_value             += surface_reflection[hrow, hin] * particular(alpha, m, last, neg_state, bottom);
+              rhs_value             += surface_reflection[hrow, hin] *
+                           (particular(alpha, m, last, neg_state, bottom) - boundary_up[alpha, m, j][si]);
             }
           boundary_rhs[equation_count - NHalfState + hrow] = rhs_value;
         }
@@ -1960,10 +1962,12 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
         if (not downward and m < NBDRF) {
+          // The reflection of the downward field, and the radiance beneath the surface transmitted with 1 - R
+          const rtepack::stokvec beneath = mode;
           brdf_fourier_modes[m](alpha, raw, outgoing, mu_arr[Range{0, N}]);
           for (Index j = 0; j < N; ++j) {
-            mode +=
-                Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * (raw[0, j] * um[NLayers - 1, alpha, m, N + j]);
+            mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] *
+                    (raw[0, j] * (um[NLayers - 1, alpha, m, N + j] - boundary_up[alpha, m, j]));
           }
           if (has_beam_source) {
             brdf_fourier_modes[m].beam(alpha, beam_raw, outgoing, beam_direction);
@@ -1973,7 +1977,7 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
             rtepack::stokvec down;
             for (Index s = 0; s < stokes_dimension; ++s)
               down[s] = partner_modes[0, partner[iu], alpha * NFourier + m, s].real();
-            mode += brdf_fourier_modes[m].specular(abs_mu) * down;
+            mode += brdf_fourier_modes[m].specular(abs_mu) * (down - beneath);
           }
         }
         for (Index t = 0; t < ntau; ++t) {

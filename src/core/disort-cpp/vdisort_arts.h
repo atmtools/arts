@@ -115,12 +115,12 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
                                        const Vector&          mu_in,
                                        Index                  nfourier);
 
-//! A depolarizing Lambertian surface: vdisort::brdf::lambertian_fourier_modes, emission [(1 - A) B, 0, 0, 0]
+//! A depolarizing Lambertian surface: vdisort::brdf::lambertian_fourier_modes, emission (Kirchhoff) [(1 - A) B, 0, 0, 0]
 struct lambertian_surface {
   Numeric albedo{0.0};
 };
 
-/** A flat Fresnel surface under a medium of index 1: vdisort::brdf::fresnel_fourier_modes, emission
+/** A flat Fresnel surface under a medium of index 1: vdisort::brdf::fresnel_fourier_modes, emission (Kirchhoff)
  *  B ([1, 0, 0, 0] - R(mu)[:, 0]) with R the Fresnel reflection matrix of vdisort::brdf::Fresnel.
  *  The reflection is the specular part of the modes: at an upward user angle VDISORT reflects the downward
  *  user-angle radiance at the same angle, so user angles must come in up and down pairs. */
@@ -168,8 +168,9 @@ struct path_settings {
  * and every layer must have a positive optical thickness.  With thermal
  * set, the source is the Planck function at the level temperatures, linear
  * in optical depth within each layer ([c0, c1] in the global optical depth,
- * as disort_settingsLayerThermalEmissionLinearInTau), and the surface emits
- * at surface_temperature.  The sky is an isotropic unpolarized blackbody at
+ * as disort_settingsLayerThermalEmissionLinearInTau), and the upward boundary
+ * is the Planck radiance at surface_temperature, which VDISORT transmits
+ * through the surface with 1 - R (Kirchhoff's emission).  The sky is an isotropic unpolarized blackbody at
  * sky_temperature (0 K for none).  With beam_flux > 0 the beam has the
  * Stokes irradiance [beam_flux / beam_mu, 0, 0, 0] normal to it and the
  * beam phase matrices come from scattering_optics() with mu_in = {-beam_mu}.

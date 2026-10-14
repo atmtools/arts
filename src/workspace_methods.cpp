@@ -6171,7 +6171,13 @@ Sets both upper and lower bounds.
 
   wsm_data["disort_settingsSurfaceEmissionByTemperature"] = {
       .desc =
-          R"(Surface radiation into Disort is isotropic from surface temperature.
+          R"(Sets the upward boundary to the Planck radiance of the surface temperature.
+
+The upward boundary is the radiance beneath the surface.  The solver transmits
+it through the surface with one minus the surface reflection, which for the
+Planck radiance is Kirchhoff's emission: :math:`(1-A)B` for a Lambertian
+surface of albedo :math:`A`, and the polarized Fresnel emission for a flat
+surface in VDISORT.  The surface reflection may be set before or after this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},

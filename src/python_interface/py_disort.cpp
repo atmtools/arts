@@ -372,6 +372,13 @@ implementation, that we use the BandMatrix LAPACK solver for the left-hand
 side of the linear system, and that we use a pure real eigenvalue solver
 for the matrix decomposition that's been ported and optimized in C++.
 
+Unlike Pythonic-DISORT, ``b_pos`` is not added to the surface reflection: it
+is the radiance beneath the surface, which the surface transmits with
+``1 - R``, ``R`` the reflection of ``BDRF_Fourier_modes`` on the streams.  For
+a Planck radiance ``B(T)`` in mode 0 this is Kirchhoff's emission
+``(1 - albedo(mu)) B(T)``, as original DISORT's ``BTEMP``.  Without a surface
+``b_pos`` is the upward radiance itself.
+
 .. warning::
 
     The DISORT implementation is still being tested.  Initial results look
@@ -534,7 +541,12 @@ counterparts.  Stokes components are ordered ``[I, Q, U, V]``.
 ``phase_matrix`` has shape ``[2, NFourier, NLayers, NQuad, NQuad, 4, 4]``.
 The leading dimension contains the combined cosine and sine equations.
 ``b_pos`` and ``b_neg`` have shape ``[2, NFourier, NQuad/2, 4]`` and
-``s_poly_coeffs`` has shape ``[NLayers, Ncoeffs, 4]``.  Its coefficients are
+``s_poly_coeffs`` has shape ``[NLayers, Ncoeffs, 4]``.  ``b_pos`` is the
+radiance beneath the surface, which the surface transmits with ``1 - R``
+(``R`` the reflection of ``BDRF_Fourier_modes``, specular part included):
+for the Planck radiance ``[B, 0, 0, 0]`` in the cosine system of mode 0 this
+is Kirchhoff's polarized emission ``B ([1, 0, 0, 0] - R [1, 0, 0, 0])``.
+Without a surface ``b_pos`` is the upward radiance itself.  Its coefficients are
 the Stokes source function ``B = [B_I, B_Q, B_U, B_V]``; VDISORT applies the
 layer factor ``1 - omega`` internally.  An unpolarized source is therefore
 supplied as ``[B, 0, 0, 0]``.

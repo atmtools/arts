@@ -345,8 +345,7 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
   std::vector<disort::BDRF> brdf;
   if (test.thermal) {
     down[0] += band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
-    up[0]    = (1.0 - test.surface_albedo) *
-               band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+    up[0]    = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   }
   if (test.surface_albedo != 0.0)
     brdf.push_back(disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }});
@@ -407,8 +406,7 @@ void test_problem_10() {
   Matrix          up(nquad, nquad / 2, 0.0), down(nquad, nquad / 2, 0.0);
   down[0] =
       test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
-  up[0] = (1.0 - test.surface_albedo) *
-          band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  up[0] = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   std::vector<disort::BDRF> brdf{
       disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }}};
 

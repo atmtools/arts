@@ -259,6 +259,11 @@ the RT3 and RT4 builders and of the DISORT workspace methods:
   * the path builder against its inputs.
 * The same directory runs VDISORT, RT3 and RT4 on one ARTS atmosphere
   (see :doc:`dev.rt3` and :doc:`dev.rt4`).
+* The Kirchhoff test there checks both solvers in an isothermal cavity over
+  depolarizing and polarizing surfaces: the radiance must be the Planck
+  radiance, unpolarized, on every stream and at user angles, to rounding.
+  Giving the surface's emission as the upward boundary instead (the earlier
+  convention) must miss it.
 
 The VDISORT workspace layer
 ***************************
@@ -294,8 +299,9 @@ The settings and radiance types are in
   cosine system and [0, 0, U, V] in the sine system of mode 0.
 * The sources follow DISORT's methods.  The layers' source is linear in
   optical depth, from the Planck function or the non-LTE source vector.
-  Surface emission by temperature sets the upward boundary to B(T), and the
-  surface reflection methods set the reflection independently of it.  The
+  Surface emission by temperature sets the upward boundary to the Planck
+  radiance B(T), and the solver transmits it with 1 - R, Kirchhoff's
+  emission of whatever surface the reflection methods set.  The
   sky is the cosmic background, nothing, or the Stokes vector that the
   observer agenda gives at the top of the path.
 * The extinction is scalar, as in DISORT, so a polarized gas propagation

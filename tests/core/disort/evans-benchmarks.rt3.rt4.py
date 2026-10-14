@@ -334,15 +334,15 @@ def vdisort(case, nmu):
         top = tau[l]
     b_top = np.zeros((2, nf, nmu, 4))
     b_top[0, 0, :, 0] = planck5(lam, case["sky_t"])
+    # The ground's Planck radiance, which VDISORT transmits with 1 - R (Kirchhoff's emission); RT3's Fresnel
+    # ground always emits, its Lambertian one with the thermal source
     b_bottom = np.zeros((2, nf, nmu, 4))
     Bs = planck5(lam, case["ground_t"])
     if case["fresnel"] is not None:
-        for i in range(nmu):
-            R = np.asarray(A.vdisort.fresnel_reflection(pos[i], case["fresnel"]))
-            b_bottom[0, 0, i] = Bs * (np.array([1.0, 0, 0, 0]) - R[:, 0])
+        b_bottom[0, 0, :, 0] = Bs
         brdf = A.vdisort.fresnel_fourier_modes(case["fresnel"], nf)
     else:
-        b_bottom[0, 0, :, 0] = (1 - case["albedo"]) * Bs if case["thermal"] else 0.0
+        b_bottom[0, 0, :, 0] = Bs if case["thermal"] else 0.0
         brdf = A.vdisort.lambertian_fourier_modes(case["albedo"], nf)
 
     kwargs = {}

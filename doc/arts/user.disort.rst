@@ -41,7 +41,13 @@ Workspace methods
   radiation.  VDISORT's azimuth grid is the propagation azimuth too.
 * **The sun.**  The settings' solar zenith and azimuth angles are those of
   the line of sight toward the sun.
-* **Surface emission.**  Surface emission by temperature is the Planck
-  function of the surface temperature, whatever the surface reflects.
+* **Surface emission.**  The upward boundary is the radiance beneath the
+  surface: surface emission by temperature sets it to the Planck radiance
+  of the surface temperature.  The solvers transmit it through the surface
+  with one minus its reflection, which is Kirchhoff's emission: unpolarized
+  :math:`(1-A)B` over a Lambertian surface and the polarized Fresnel
+  emission over a flat one.  Set the surface reflection and the emission in
+  either order.  Without a surface the boundary is the upward radiance
+  itself.  See :doc:`concept.disort`.
 
 Implementation and validation details are in :doc:`dev.disort`.

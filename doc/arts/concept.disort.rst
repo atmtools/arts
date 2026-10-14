@@ -751,9 +751,10 @@ Validation of the scalar limit is described in :doc:`dev.disort`.
 Sources and boundary conditions
 *******************************
 
-Both solvers support prescribed upper and lower diffuse boundary fields, a
-direct beam, an internal source polynomial in every layer, and a reflecting
-lower boundary.  Only the zeroth Fourier mode contains an azimuth-independent
+Both solvers support a prescribed downward diffuse field at the top, the
+radiance beneath the lower boundary (see `Surface emission`_), a direct beam,
+an internal source polynomial in every layer, and a reflecting lower
+boundary.  Only the zeroth Fourier mode contains an azimuth-independent
 internal source.
 
 In both cores the polynomial represents a source radiance.  VDISORT takes the
@@ -907,10 +908,83 @@ upward beam, which the solver cannot represent, so an ideal Fresnel surface
 refuses a beam.  Mixing it with Lambertian reflection does not remove this
 limitation.  A Cox--Munk/Lambertian mixture supplies a
 finite-width polarized specular lobe and is therefore the beam-compatible
-choice.  Surface thermal emission is a separate boundary input: for a physical
-opaque surface it must be derived from the directional hemispherical
-reflectance of the complete mixture, rather than inferred from the mixture
-weights alone.
+choice.
+
+Surface emission
+****************
+
+The lower boundary input is not the emitted radiance but the radiance
+*beneath* the surface, and the surface transmits it into the atmosphere.  For
+an opaque surface at temperature :math:`T_s` this is the Planck radiance
+:math:`B(T_s)`, and the transmission is Kirchhoff's law.
+
+*Kirchhoff's law.*  With diffuse reflection :math:`\boldsymbol f`, specular
+reflection :math:`\boldsymbol R_s` and emission :math:`\boldsymbol E`, the
+upward Stokes radiance at the surface is
+
+.. math::
+
+   \boldsymbol I^\uparrow(\mu,\phi)
+     =\int_0^{2\pi}\!\!\int_0^1
+       \boldsymbol f(\mu,\phi;\mu',\phi')\,\boldsymbol I^\downarrow(\mu',\phi')
+       \,\mu'\,\mathrm d\mu'\,\mathrm d\phi'
+     +\boldsymbol R_s(\mu)\,\boldsymbol I^\downarrow(\mu,\phi)
+     +\boldsymbol E(\mu,\phi).
+
+In an isothermal enclosure the radiation is the isotropic, unpolarized
+blackbody field :math:`B\,\boldsymbol e_I`, :math:`\boldsymbol e_I=[1,0,0,0]^{\mathsf T}`,
+and the surface must return it unchanged.  Hence
+
+.. math::
+
+   \boldsymbol E=B(T_s)\,\boldsymbol\varepsilon,\qquad
+   \boldsymbol\varepsilon=\boldsymbol e_I-\boldsymbol\rho,\qquad
+   \boldsymbol\rho(\mu,\phi)=\Bigl[\int\!\!\int\boldsymbol f\,\mu'\,
+     \mathrm d\mu'\,\mathrm d\phi'+\boldsymbol R_s(\mu)\Bigr]\boldsymbol e_I .
+
+Emission depends only on the surface's own state, and the boundary equation is
+linear, so this holds in any radiation field.  :math:`\boldsymbol\rho` is the
+reflection of unit isotropic unpolarized light *into* the outgoing direction:
+the first column of the reflection integrated over incidence.  Its polarized
+part is opposite to the emission's (:math:`\varepsilon_Q=-\rho_Q`), so that
+reflection and emission add up to an unpolarized field.  A Lambertian surface
+of albedo :math:`A` gives :math:`\boldsymbol\varepsilon=(1-A)\boldsymbol e_I`,
+and a flat Fresnel surface gives
+:math:`\boldsymbol\varepsilon=\tfrac12[e_v+e_h,\,e_v-e_h,\,0,\,0]^{\mathsf T}`
+with :math:`e_p=1-R_p`.  For a surface without a preferred azimuth only the
+zeroth Fourier mode contributes; in VDISORT's combined form the emission
+enters the :math:`I` and :math:`Q` rows of the cosine system of mode zero.
+
+*On the streams.*  Both solvers apply the transmission themselves, with the
+reflection operator of the boundary equation,
+
+.. math::
+
+   \boldsymbol E_m=\bigl(\boldsymbol 1-\boldsymbol{\mathcal R}_m\bigr)\,
+     \boldsymbol b^\uparrow_m ,
+
+where :math:`\boldsymbol b^\uparrow_m` is the radiance beneath the surface and
+:math:`\boldsymbol{\mathcal R}_m` includes the specular part.  For
+:math:`\boldsymbol b^\uparrow_0=B\,\boldsymbol e_I` on every stream this is
+:math:`B\boldsymbol\varepsilon_i` with the emissivity computed by the solver's
+own quadrature,
+:math:`\boldsymbol\varepsilon_i=\boldsymbol e_I-\sum_j[\boldsymbol{\mathcal R}_0]_{ij}\boldsymbol e_I`.
+The discrete equations then satisfy detailed balance exactly: the bottom rows
+map :math:`B\boldsymbol e_I` on every downward stream to :math:`B\boldsymbol e_I`
+on every upward stream, so an isothermal atmosphere over any surface gives
+:math:`B\boldsymbol e_I` everywhere to rounding.  An emissivity from a finer,
+separate quadrature would not balance the stream reflection in this way.
+User directions use the same quadrature and are balanced too.  Without a
+surface, :math:`\boldsymbol b^\uparrow_m` is the upward radiance itself.
+
+*Coupled media.*  The same reading serves an interface between the
+atmosphere and a medium below: :math:`\boldsymbol b^\uparrow_m` is then that
+medium's upward radiance, and :math:`\boldsymbol 1-\boldsymbol{\mathcal R}_m`
+is the transmission complementary to the interface's reflection, the operator
+also applied to the atmosphere's radiance entering the medium.  It conserves
+flux for any incident field and reduces to Kirchhoff's law for the Planck
+radiance, but it is not the angular transmission of a refracting interface,
+which needs a model of its own.
 
 Global boundary-value matrix
 ****************************
@@ -972,7 +1046,8 @@ reflection operator, the unknown and equation ordering is
      \vdots\\
      \boldsymbol p_{L-1}(t_{L-1})
        -\boldsymbol p_{L-2}(t_{L-1})\\
-     \boldsymbol b^\uparrow_m+\boldsymbol d_m
+     (\boldsymbol 1-\boldsymbol{\mathcal R}_m)\boldsymbol b^\uparrow_m
+       +\boldsymbol d_m
        -\boldsymbol S_+\boldsymbol p_{L-1}(t_L)
        +\boldsymbol{\mathcal R}_m\boldsymbol S_-
           \boldsymbol p_{L-1}(t_L)
@@ -1179,8 +1254,9 @@ cache is part of the solver state.
 The diffuse top and bottom boundary fields are stored only at quadrature
 directions.  Their values at a new direction are therefore not uniquely
 defined by the core inputs.  The test-facing arbitrary-angle path uses stable
-half-range barycentric interpolation, which is exact for the constant boundary
-fields exercised by the reference suite.  General polarized user-angle use
+half-range barycentric interpolation, which is exact for constant boundary
+fields such as the Planck radiance beneath a surface; the surface's
+transmission of that radiance is then evaluated at the user direction itself.  General polarized user-angle use
 would require explicit directional boundary data or a boundary callback.
 
 The direction :math:`\mu=0` is excluded in both formal solutions because the

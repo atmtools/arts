@@ -506,9 +506,14 @@ inline const std::array problem_6{
                         .hapke_parameters         = {1.0, 0.06, 0.6}},
 };
 
-/** Active DISORT 4.0.99 reference fluxes for Problem 6.  These deliberately
- * follow the uncommented DATA statements in DISOTESTAUX.f; cDISORT still
- * prints the older thermal-emission values for cases 6e--6h. */
+/** Reference fluxes for Problem 6: the active DISORT 4.0.99 values (the
+ * uncommented DATA statements in DISOTESTAUX.f), except the upward fluxes
+ * and DFDT of the thermally emitting Hapke surface of cases 6e--6h, which
+ * are cDISORT's (disotest.c).  DISORT 4.0.99's values for these correspond
+ * to the surface emissivity 1 - rho/pi, rho the hemispherical reflectance of
+ * the same Hapke BRDF that reflects the beam in 6d (where the two sources
+ * agree), which violates Kirchhoff's law.  cDISORT's emissivity, 1 - rho, is
+ * the one DISORT's solvers derive from the BRDF. */
 struct flux_reference {
   Vector direct;
   Vector diffuse_down;
@@ -532,20 +537,20 @@ inline const std::array problem_6_flux{
                    .dfdt         = {200.936, 75.7187, 34.5317}},
     flux_reference{.direct       = {100.0, 36.7879, 13.5335},
                    .diffuse_down = {0.0, 0.0, 0.0},
-                   .up           = {94.4651, 190.616, 428.806},
-                   .dfdt         = {327.710, 353.897, 878.110}},
+                   .up           = {79.5458, 159.902, 356.410},
+                   .dfdt         = {307.079, 307.108, 717.467}},
     flux_reference{.direct       = {100.0, 36.7879, 13.5335},
                    .diffuse_down = {321.497, 142.493, 70.5305},
-                   .up           = {97.7110, 197.247, 441.139},
-                   .dfdt         = {975.154, 573.874, 1005.98}},
+                   .up           = {82.7917, 166.532, 371.743},
+                   .dfdt         = {954.523, 527.085, 845.341}},
     flux_reference{.direct       = {100.0, 36.7879, 13.5335},
                    .diffuse_down = {321.497, 304.775, 363.632},
-                   .up           = {350.211, 443.254, 513.521},
-                   .dfdt         = {601.025, 173.906, -7.36023}},
+                   .up           = {335.292, 412.540, 441.125},
+                   .dfdt         = {580.394, 127.117, -168.003}},
     flux_reference{.direct       = {100.0, 13.5335, 2.06115e-7},
                    .diffuse_down = {321.497, 255.455, 443.444},
-                   .up           = {237.351, 261.131, 528.258},
-                   .dfdt         = {423.780, 61.9842, 129.477}},
+                   .up           = {237.350, 261.130, 455.861},
+                   .dfdt         = {423.780, 61.9828, -31.1658}},
 };
 
 struct scattering_thermal_case {
@@ -644,7 +649,9 @@ inline const std::array problem_7{
                             .lambertian_albedo             = 0.0},
 };
 
-/** Active DISORT 4.0.99 reference fluxes for Problem 7. */
+/** Active DISORT 4.0.99 reference fluxes for Problem 7, except case 7e (a
+ * thermally emitting Hapke surface), whose diffuse-down and upward fluxes and
+ * DFDT are cDISORT's for the reason given at problem_6_flux. */
 inline const std::array problem_7_flux{
     flux_reference{
         .direct = {0.0, 0.0}, .diffuse_down = {0.0, 121.204}, .up = {86.2936, 0.0}, .dfdt = {-51.3731, -541.036}},
@@ -661,9 +668,9 @@ inline const std::array problem_7_flux{
                    .up           = {312.563, 268.126, 305.596},
                    .dfdt         = {-168.356, 101.251, 409.326}},
     flux_reference{.direct       = {100.0, 36.7879, 13.5335},
-                   .diffuse_down = {319.830, 354.468, 302.366},
-                   .up           = {440.940, 464.624, 623.842},
-                   .dfdt         = {-71.6977, 266.918, 750.170}},
+                   .diffuse_down = {319.830, 353.275, 299.002},
+                   .up           = {404.300, 407.843, 529.248},
+                   .dfdt         = {-99.8568, 217.387, 638.461}},
 };
 
 /** Solver-neutral inputs and DISORT 4.0.99 reference output for Problem 8. */

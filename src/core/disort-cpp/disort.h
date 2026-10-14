@@ -166,7 +166,7 @@ class main_data {
   Matrix            delta_m_peak{};        // [NLayers, NLeg]
   Matrix            source_poly_coeffs{};  // [NLayers, Nscoeffs]
   Matrix            Leg_coeffs_all{};      // [NLayers, NLeg_all]
-  Matrix            boundary_up{};         // [NFourier, N]
+  Matrix            boundary_up{};         // [NFourier, N], beneath the surface, transmitted with 1 - R
   Matrix            boundary_down{};       // [NFourier, N]
   std::vector<BDRF> brdf_fourier_modes{};  // [NBDRF]
   Numeric           mu0{};
@@ -661,10 +661,11 @@ class main_data {
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
   [[nodiscard]] auto&& all_legendre_coeffs() const { return Leg_coeffs_all; }
 
-  //! Positive Fourier coefficients of the beam source - NFourier x N
+  //! The radiance beneath the surface on the upward streams, Fourier modes - NFourier x N.  The surface transmits
+  //! it with 1 - R, which for a Planck radiance B(T) is Kirchhoff's emission (1 - albedo(mu)) B(T)
   [[nodiscard]] auto&& upward_boundary() const { return boundary_up; }
 
-  //! Negative Fourier coefficients of the beam source - NFourier x N
+  //! The radiance incident at the top on the downward streams, Fourier modes - NFourier x N
   [[nodiscard]] auto&& downward_boundary() const { return boundary_down; }
 
   //! Fourier modes of the BRDF - NBDRF
@@ -700,10 +701,11 @@ class main_data {
   //! Legendre coefficients of the scattering phase function (unweighted) - NLayers x NLeg_all
   [[nodiscard]] auto all_legendre_coeffs() { return MatrixView{Leg_coeffs_all}; }
 
-  //! Positive Fourier coefficients of the beam source - NFourier x N
+  //! The radiance beneath the surface on the upward streams, Fourier modes - NFourier x N.  The surface transmits
+  //! it with 1 - R, which for a Planck radiance B(T) is Kirchhoff's emission (1 - albedo(mu)) B(T)
   [[nodiscard]] auto upward_boundary() { return MatrixView{boundary_up}; }
 
-  //! Negative Fourier coefficients of the beam source - NFourier x N
+  //! The radiance incident at the top on the downward streams, Fourier modes - NFourier x N
   [[nodiscard]] auto downward_boundary() { return MatrixView{boundary_down}; }
 
   //! Fourier modes of the BRDF - NBDRF
@@ -725,7 +727,9 @@ class main_data {
   * field, and the subsurface upper boundary is updated from the atmosphere
   * bottom interface field. The exchanged quantities are the Fourier-mode
   * boundary arrays expected by main_data::positive_boundary and
-  * main_data::negative_boundary.
+  * main_data::negative_boundary.  The atmosphere's surface reflection R is
+  * the interface's: both directions cross it with 1 - R, the atmosphere's
+  * radiance here and the subsurface's in the atmosphere's solver.
   *
   * Both models must use the same quadrature and Fourier dimensions.
   *
@@ -784,7 +788,8 @@ struct DisortSettings {
   // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension_full <- last is unknown at construction, must be larger or equal to legendre_polynomial_dimension
   Tensor3 legendre_coefficients{};
 
-  // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2
+  // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2, the radiance beneath the surface, which
+  // DISORT transmits with 1 - R (Kirchhoff's emission for a Planck radiance)
   Tensor3 upward_boundary_condition{};
 
   // freq_grid.size() x fourier_mode_dimension x quadrature_dimension / 2.

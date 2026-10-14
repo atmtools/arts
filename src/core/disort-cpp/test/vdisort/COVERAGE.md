@@ -23,8 +23,8 @@ or the existing synthetic scalar-limit tests does not count as a port.
 | 3 | a–b | ported | Classical scalar delta-M preprocessing, physical/scaled optical-depth mapping, and arbitrary-angle TMS/IMS reproduce every corrected Henyey–Greenstein radiance and flux. Corrections affect only I; Q, U, and V are asserted to vanish. |
 | 4 | a–c | ported | Haze-L delta-M transport and arbitrary-angle TMS/IMS reproduce every radiance at all requested depths and azimuths, together with all fluxes. Q, U, and V remain zero. |
 | 5 | a–b | ported | All Cloud C.1 moments feed the 48-stream scalar delta-M transport and TMS/IMS correction path. Every original radiance and flux matches, including the strong forward aureole, and Q, U, and V remain zero. |
-| 6 | a–h | ported | All active direct, diffuse-down, upward, and `DFDT` flux references are asserted. The port covers the transparent limit, absorption, Lambertian and Hapke reflection, top/bottom emission, and linear atmospheric thermal sources; Q, U, and V remain zero. Cases 6f–h use a 1% tolerance for the original single-precision non-Lambertian thermal-boundary integration, while all other cases use 0.1%. No active radiance references exist for this problem. |
-| 7 | a–e | ported | All active direct, diffuse-down, upward, and `DFDT` fluxes are asserted for scattering plus linear atmospheric emission, beam and isotropic illumination, and black, perfectly reflecting Lambertian, and Hapke surfaces. Tiny case-7b fluxes use combined relative and absolute tolerances; the legacy Hapke case 7e uses 1%, and Q, U, and V remain zero. No active radiance references exist for this problem. |
+| 6 | a–h | ported | All active direct, diffuse-down, upward, and `DFDT` flux references are asserted. The port covers the transparent limit, absorption, Lambertian and Hapke reflection, top/bottom emission, and linear atmospheric thermal sources; Q, U, and V remain zero. The thermally emitting Hapke cases 6e–h are checked against cDISORT's references (see the scalar port's coverage); VDISORT derives the emissivity from its streams, cDISORT from a fine quadrature, so 6f–h use a 1% tolerance (6h's DFDT at the surface differs by 0.4%), while all other cases use 0.1%. No active radiance references exist for this problem. |
+| 7 | a–e | ported | All active direct, diffuse-down, upward, and `DFDT` fluxes are asserted for scattering plus linear atmospheric emission, beam and isotropic illumination, and black, perfectly reflecting Lambertian, and Hapke surfaces. Tiny case-7b fluxes use combined relative and absolute tolerances; the Hapke case 7e is checked against cDISORT's references at 0.2%, as the other cases, and Q, U, and V remain zero. No active radiance references exist for this problem. |
 | 8 | a–c | ported | Both inhomogeneous layers use the shared isotropic-scattering inputs. Direct, diffuse-down, and upward fluxes and all four arbitrary-angle radiances match at the top, exact layer interface, and bottom; Q, U, and V remain zero. This exercises multilayer continuity and formal integration across an interface. |
 | 9 | a–c | ported | Six distinct layers reproduce all direct, diffuse-down, and upward fluxes and all 100 stored arbitrary-angle radiances. Coverage progresses from isotropic scattering through an eighth-order phase function to layer-dependent Henyey–Greenstein scattering with beam, three azimuths, top/bottom and internal thermal emission, and a Lambertian surface. Q, U, and V remain zero. |
 | 10 | a–b | ported | The four-stream Problem 9c atmosphere is evaluated both through the arbitrary-angle formal solution at the rounded Gauss nodes and directly on the quadrature streams. Every Stokes component agrees, Q, U, and V vanish, and radiance evaluation leaves all combined flux results unchanged. |
@@ -135,11 +135,11 @@ sources:
   applies it between equal streams and, at an upward user angle mu, to the
   downward user-angle radiance at -mu at the surface.  An upward user angle
   therefore needs its downward partner, and the test asserts that VDISORT
-  refuses one without it.  The surface emission at a user angle is
-  interpolated from the streams (barycentric in mu).  The test reproduces
-  that interpolation exactly and removes it, after which the upward
-  user-angle radiances must agree with RT4 to its doubling error at every
-  level.
+  refuses one without it.  The upward boundary is the surface's Planck
+  radiance, constant in mu, so its interpolation to a user angle is exact,
+  and VDISORT transmits it with 1 - R(mu) at the user angle itself: the
+  upward user-angle radiances must agree with RT4 to its doubling error at
+  every level.
 
 **Not blind.** The test feeds VDISORT deliberately wrong inputs and asserts
 that each misses RT4 by more than 100 times the tolerance:
@@ -621,3 +621,28 @@ radiances, which it does by 7.9e-13 of their maximum: taking the half-size
 problem would have reproduced the symmetric result bit for bit, as a
 symmetry check that accepts everything shows.  The agreement to that level
 is also that of the half-size and full eigensolutions.
+
+## Surface emission by Kirchhoff's law
+
+Both solvers take the radiance beneath the surface as their upward boundary
+and transmit it with 1 - R, R the surface reflection on the streams with its
+specular part; for the Planck radiance this is Kirchhoff's emission (see
+`doc/arts/concept.disort.rst`).  `cpp.fast.vdisort-kirchhoff-test`
+(`kirchhoff-test.cpp`) puts an isothermal, scattering and emitting atmosphere
+between a sky and a surface at its temperature.  The radiance must be B e_I
+on every stream, depth and azimuth and at user angles in both hemispheres:
+
+- DISORT over Lambertian, Hapke, shadowed Cox-Munk, RPV and Ross-Li surfaces
+  and a Cox-Munk/Lambertian mixture, with Henyey-Greenstein scattering: 2.2e-15;
+- VDISORT over Lambertian, Fresnel (specular), polarized shadowed Cox-Munk,
+  Fresnel/Lambertian and depolarizing Hapke surfaces, with polarized Rayleigh
+  scattering: I to 6.7e-16 and Q, U, V to 1.1e-16 of B.
+
+Given the emission (1 - R) B as their boundary instead, the convention before,
+the solvers miss B by 0.21 (DISORT, Lambertian) and 0.20 (VDISORT, Fresnel).
+
+The Fortran references of the thermally emitting Hapke surface (problems 6e-h
+and 7e) are cDISORT's: DISORT 4.0.99's correspond to the emissivity
+1 - rho / pi, rho the hemispherical reflectance of the Hapke BRDF that reflects
+the beam in 6d, where the two agree.  Both solvers reproduce cDISORT's to
+4e-4, the difference of the stream and fine quadratures of the emissivity.

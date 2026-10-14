@@ -307,7 +307,7 @@ class main_data {
   Vector                   source_coordinate_scale{};   // [NLayers], x = offset + scale*tau
   Vector                   source_coordinate_offset{};  // [NLayers]
   phase_matrix_data        phase_matrix{};              // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
-  rtepack::stokvec_tensor3 boundary_up{};               // [2, NFourier, N]
+  rtepack::stokvec_tensor3 boundary_up{};               // [2, NFourier, N], beneath the surface, transmitted with 1 - R
   rtepack::stokvec_tensor3 boundary_down{};             // [2, NFourier, N]
   std::vector<BDRF>        brdf_fourier_modes{};        // [NBDRF]
   Numeric                  mu0{};
@@ -482,8 +482,9 @@ class main_data {
    *
    * user_boundary [2, NFourier, NUser], optional: the boundary radiance at
    * the start of each user ray, in the combined cosine/sine Fourier modes of
-   * boundary_up and boundary_down, i.e. the surface emission for an upward
-   * direction and the radiance incident at the top for a downward one.
+   * boundary_up and boundary_down, i.e. the radiance beneath the surface for
+   * an upward direction (which the surface transmits with 1 - R, as
+   * boundary_up) and the radiance incident at the top for a downward one.
    * Without it these are interpolated from the streams' boundary values
    * (barycentric in mu), which is exact only for boundaries that are
    * polynomials of low degree in mu.
@@ -615,9 +616,15 @@ class main_data {
   [[nodiscard]] const beam_phase_matrix_data& all_beam_phase_matrices() const { return beam_phase_matrix; }
   /** Return a writable view of all combined beam phase-matrix Fourier coefficients. */
   [[nodiscard]] rtepack::muelmat_tensor4_view all_beam_phase_matrices() { return beam_phase_matrix; }
-  /** Return the prescribed upward boundary Fourier coefficients. */
+  /** Return the radiance beneath the surface on the upward streams, combined Fourier coefficients.
+   *
+   * The surface transmits it with 1 - R, R the reflection of the BDRF modes
+   * (kernel and specular part) on the streams.  For a Planck radiance B(T) in
+   * the I component of the cosine system of mode 0 this is Kirchhoff's
+   * emission B(T) (e_I - R e_I); without a surface it is the radiance itself.
+   */
   [[nodiscard]] const rtepack::stokvec_tensor3& upward_boundary() const { return boundary_up; }
-  /** Return writable prescribed upward boundary Fourier coefficients. */
+  /** Return the writable radiance beneath the surface, see the const overload. */
   [[nodiscard]] rtepack::stokvec_tensor3_view upward_boundary() { return boundary_up; }
   /** Return the prescribed downward boundary Fourier coefficients. */
   [[nodiscard]] const rtepack::stokvec_tensor3& downward_boundary() const { return boundary_down; }
