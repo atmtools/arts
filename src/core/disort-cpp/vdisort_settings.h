@@ -18,9 +18,6 @@
  * become those of the six elements of the scattering-plane matrix of randomly
  * oriented particles.
  */
-using VDisortBDRF         = vdisort::BDRF;
-using MatrixOfVDisortBDRF = matpack::data_t<VDisortBDRF, 2>;
-
 /** The radiance field of VDISORT on the grids of DisortRadiance.
  *
  * data is [freq_grid, layer (alt_grid[1:]), azi_grid, zen_grid] Stokes
@@ -68,8 +65,20 @@ struct VDisortSettings {
   // freq_grid.size(), the Stokes irradiance of the beam on the horizontal plane
   StokvecVector solar_source{};
 
-  // freq_grid.size() x nbrdf
-  MatrixOfVDisortBDRF bidirectional_reflectance_distribution_functions{};
+  // freq_grid.size() x 2 (cosine, sine) x nbrdf x quadrature_dimension / 2 x quadrature_dimension / 2, the combined
+  // Fourier modes of the surface's BRDF between the streams (vdisort::surface_reflection)
+  MuelmatTensor5 surface_brdf{};
+
+  // freq_grid.size() x 2 (cosine, sine) x nbrdf x quadrature_dimension / 2, from the direct beam at the cosine
+  // surface_beam_mu
+  MuelmatTensor4 surface_beam_brdf{};
+
+  // freq_grid.size(), the beam cosine of surface_beam_brdf, NaN where it was computed without a beam
+  Vector surface_beam_mu{};
+
+  // freq_grid.size() x quadrature_dimension / 2, the specular part on the upward streams, or freq_grid.size() x 0
+  // for a surface without one
+  MuelmatMatrix surface_specular{};
 
   // freq_grid.size() x [alt_grid.size() - 1]
   Matrix optical_thicknesses{};
@@ -124,29 +133,6 @@ struct VDisortSettings {
 
 /** The zenith grid [deg] of the streams and their quadrature weights, as DISORT's gridded_weights() */
 [[nodiscard]] ZenGriddedField1 vdisort_quadrature_weights(const vdisort::main_data& dis);
-
-template <> struct std::formatter<VDisortBDRF> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const VDisortBDRF&, FmtContext& ctx) const {
-    return tags.format(ctx, "VDisortBDRF"sv);
-  }
-};
-
-template <> struct xml_io_stream<VDisortBDRF> {
-  static constexpr std::string_view type_name = "VDisortBDRF"sv;
-
-  static void write(std::ostream& os, const VDisortBDRF& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
-
-  static void read(std::istream& is, VDisortBDRF& x, bifstream* pbifs = nullptr);
-};
 
 template <> struct xml_io_stream_name<VDisortRadiance> {
   constexpr static std::string_view name = "VDisortRadiance"sv;
@@ -221,9 +207,15 @@ template <> struct std::formatter<VDisortSettings> {
                          v.solar_zenith_angle.shape(),
                          " - should be freq_grid.size().\nsolar_azimuth_angle.shape():                              "sv,
                          v.solar_azimuth_angle.shape(),
-                         " - should be freq_grid.size().\nbidirectional_reflectance_distribution_functions.shape(): "sv,
-                         v.bidirectional_reflectance_distribution_functions.shape(),
-                         " - should be freq_grid.size() x nbrdf.\noptical_thicknesses.shape():                              "sv,
+                         " - should be freq_grid.size().\nsurface_brdf.shape():                                     "sv,
+                         v.surface_brdf.shape(),
+                         " - should be freq_grid.size() x 2 x nbrdf x (quadrature_dimension / 2) x (quadrature_dimension / 2).\nsurface_beam_brdf.shape():                                "sv,
+                         v.surface_beam_brdf.shape(),
+                         " - should be freq_grid.size() x 2 x nbrdf x (quadrature_dimension / 2).\nsurface_beam_mu.shape():                                  "sv,
+                         v.surface_beam_mu.shape(),
+                         " - should be freq_grid.size().\nsurface_specular.shape():                                 "sv,
+                         v.surface_specular.shape(),
+                         " - should be freq_grid.size() x (quadrature_dimension / 2) or freq_grid.size() x 0.\noptical_thicknesses.shape():                              "sv,
                          v.optical_thicknesses.shape(),
                          " - should be freq_grid.size() x (alt_grid.size() - 1).\nsingle_scattering_albedo.shape():                         "sv,
                          v.single_scattering_albedo.shape(),
@@ -256,7 +248,13 @@ template <> struct std::formatter<VDisortSettings> {
                        sep,
                        v.solar_source,
                        sep,
-                       v.bidirectional_reflectance_distribution_functions,
+                       v.surface_brdf,
+                       sep,
+                       v.surface_beam_brdf,
+                       sep,
+                       v.surface_beam_mu,
+                       sep,
+                       v.surface_specular,
                        sep,
                        v.optical_thicknesses,
                        sep,

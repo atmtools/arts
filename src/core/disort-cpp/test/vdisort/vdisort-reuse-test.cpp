@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <format>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -99,6 +100,14 @@ rtepack::stokvec_tensor3 boundary(const problem& p, Numeric sign) {
   return b;
 }
 
+//! The Lambertian surface on the streams, for the problem's beam
+vdisort::surface_reflection surface(const problem& p) {
+  Vector streams(NQ / 2), weights(NQ / 2);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
+  const Numeric mu0 = p.beam.I() > 0.0 ? p.mu0 : std::numeric_limits<Numeric>::quiet_NaN();
+  return vdisort::brdf::lambertian_fourier_modes(p.albedo, 1, streams, streams, mu0);
+}
+
 vdisort::main_data fresh(const problem& p) {
   auto ph = phase_matrices(p.mu0);
   return vdisort::main_data(NQ,
@@ -109,7 +118,7 @@ vdisort::main_data fresh(const problem& p) {
                             boundary(p, 1),
                             boundary(p, -1),
                             sources(p),
-                            vdisort::brdf::lambertian_fourier_modes(p.albedo, 1),
+                            surface(p),
                             p.mu0,
                             p.beam,
                             p.phi0,
@@ -125,7 +134,7 @@ void reuse(vdisort::main_data& v, const problem& p) {
   v.upward_boundary()         = boundary(p, 1);
   v.downward_boundary()       = boundary(p, -1);
   v.source_poly()             = sources(p);
-  v.brdf_modes()[0]           = vdisort::brdf::lambertian_fourier_modes(p.albedo, 1)[0];
+  v.surface(surface(p));
   v.solar_zenith()            = p.mu0;
   v.beam_azimuth()            = p.phi0;
   v.set_beam_source(p.beam);

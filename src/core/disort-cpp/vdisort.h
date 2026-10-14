@@ -189,41 +189,104 @@ class delta_m_correction_cache {
   [[nodiscard]] const Vector& phi() const { return phi_; }
 };
 
-/** Polarized BRDF Fourier mode in the combined representation.
+/** A surface's reflection into upward directions, in VDISORT's combined representation.
  *
- * Each callback assigns every block of a Mueller-block matrix with shape
- * [n_out, n_in], which the solver reuses between calls.  Block
- * (i,j) maps the incident Stokes vector at mu_in[j] to the reflected Stokes
- * vector at mu_out[i].  Values are the reflection matrices R^m in Eq. (123),
- * before the pi*w*mu quadrature factor in Eq. (124).
+ * brdf [2, NBRDF, n_out, N]: the combined cosine (alpha = 0) and sine
+ *   (alpha = 1) Fourier modes R^{alpha,m}(mu_o, mu_j) of the polarized BRDF,
+ *   m < NBRDF, from the downward streams of cosine mu_j into the upward
+ *   directions of cosine mu_o; Mueller block (o, j) maps the incident Stokes
+ *   vector to the reflected one.  These are the reflection matrices R^m of
+ *   Lin et al. (2022), Eq. (123), before the pi w_j mu_j quadrature factor of
+ *   Eq. (124), which the solver applies.  Higher modes reflect nothing.
+ * beam_brdf [2, NBRDF, n_out]: the same from the direct beam, at the beam
+ *   cosine beam_mu; beam_mu is NaN when it was computed without a beam, and a
+ *   solver with a beam refuses a surface whose beam_mu is not its own.
+ * specular [n_out], or empty: the mirror part R(mu_o).  Radiance propagating
+ *   down at the cosine mu is reflected into the upward direction of the same
+ *   cosine and azimuth, I_up(mu) = R(mu) I_down(mu), in every Fourier mode and
+ *   both combined systems.  A delta distribution in direction has no kernel
+ *   on the streams, so the solver applies it itself: R(mu_i) between equal
+ *   streams, and at a user direction to the downward radiance in the partner
+ *   direction.  It cannot reflect the direct beam (its mirror image is an
+ *   upward beam), so a solver with a beam refuses it, and it is never for a
+ *   beam (beam_mu is NaN).
+ *
+ * The shapes, and whether there is a specular part, are those it is
+ * constructed with.  Its data is set in place, through the views or set(), so
+ * nothing is reallocated; beam_mu is set only with the beam reflection it
+ * belongs to.  A surface without modes or specular part reflects nothing,
+ * whatever its directions.
+ *
+ * On the solver's upward streams (n_out = N) it is main_data's surface, which
+ * the settings set for each frequency.  At user directions it is the
+ * reflection u_user() needs there: like() makes one for the modes, streams,
+ * beam and specular part of the solver's surface, or brdf:: evaluates a
+ * surface model there.
  */
-struct BDRF {
-  using func_t = CustomOperator<void, rtepack::muelmat_matrix_view, const ConstVectorView&, const ConstVectorView&>;
+class surface_reflection {
+  rtepack::muelmat_tensor4 kernel{};       // [2, NBRDF, n_out, N]
+  rtepack::muelmat_tensor3 beam_kernel{};  // [2, NBRDF, n_out]
+  rtepack::muelmat_vector  mirror{};       // [n_out] or [0]
+  Numeric                  beam_cosine{std::numeric_limits<Numeric>::quiet_NaN()};
 
-  func_t cosine;
-  func_t sine;
-  func_t beam_cosine;
-  func_t beam_sine;
+ public:
+  /** No reflection */
+  surface_reflection() = default;
 
-  /** The mirror (specular) part of this mode, or empty.  Radiance propagating down at the cosine mu is reflected
-   *  into the upward direction at mu and the same azimuth, I_up(mu) = R(mu) I_down(mu), in addition to the
-   *  reflection kernels above and in both combined systems; R is the same for every Fourier mode.  A delta
-   *  distribution in direction has no kernel on the streams, so the solver applies it itself: R(mu_i) between
-   *  equal streams, and at a user angle R(mu) times the downward user-angle radiance at the surface. */
-  using specular_t = CustomOperator<rtepack::muelmat, Numeric>;
-  specular_t specular{};
+  /** Zero reflection of NBRDF modes from N streams into n_out directions, for the beam cosine beam_mu (NaN: none),
+   * with a (zero) specular part if specular */
+  surface_reflection(Index   NBRDF,
+                     Index   n_out,
+                     Index   N,
+                     Numeric beam_mu  = std::numeric_limits<Numeric>::quiet_NaN(),
+                     bool    specular = false);
 
-  /** Evaluate one combined cosine or sine BRDF Fourier operator. */
-  void operator()(Index                        alpha,
-                  rtepack::muelmat_matrix_view out,
-                  const ConstVectorView&       mu_out,
-                  const ConstVectorView&       mu_in) const;
+  /** The reflection brdf [2, NBRDF, n_out, N] and beam_brdf [2, NBRDF, n_out], for the beam cosine beam_mu (NaN:
+   * none), and the specular part [n_out] or none */
+  surface_reflection(rtepack::muelmat_tensor4 brdf,
+                     rtepack::muelmat_tensor3 beam_brdf,
+                     Numeric                  beam_mu  = std::numeric_limits<Numeric>::quiet_NaN(),
+                     rtepack::muelmat_vector  specular = {});
 
-  /** Evaluate a mode specialized for a fixed physical incident beam. */
-  void beam(Index                        alpha,
-            rtepack::muelmat_matrix_view out,
-            const ConstVectorView&       mu_out,
-            const ConstVectorView&       mu_in) const;
+  /** Zero reflection of this one's modes from its streams into n_out directions, for its beam cosine, with a (zero)
+   * specular part if it has one */
+  [[nodiscard]] surface_reflection like(Index n_out) const;
+
+  /** The number of Fourier modes of the BRDF, NBRDF */
+  [[nodiscard]] Index modes() const { return kernel.extent(1); }
+
+  /** The number of upward directions reflected into, n_out */
+  [[nodiscard]] Index directions() const { return kernel.extent(2); }
+
+  /** The number of downward streams reflected from, N */
+  [[nodiscard]] Index streams() const { return kernel.extent(3); }
+
+  /** Whether there is a specular part */
+  [[nodiscard]] bool has_specular() const { return not mirror.empty(); }
+
+  /** The beam cosine of the beam reflection, NaN if computed without a beam */
+  [[nodiscard]] Numeric beam_mu() const { return beam_cosine; }
+
+  //! [2, NBRDF, n_out, N]
+  [[nodiscard]] rtepack::muelmat_tensor4_const_view brdf() const { return kernel; }
+  [[nodiscard]] rtepack::muelmat_tensor4_view brdf() { return kernel; }
+
+  //! [2, NBRDF, n_out]
+  [[nodiscard]] rtepack::muelmat_tensor3_const_view beam_brdf() const { return beam_kernel; }
+  [[nodiscard]] rtepack::muelmat_tensor3_view beam_brdf() { return beam_kernel; }
+
+  //! [n_out] or [0]
+  [[nodiscard]] rtepack::muelmat_vector_const_view specular() const { return mirror; }
+  [[nodiscard]] rtepack::muelmat_vector_view specular() { return mirror; }
+
+  /** Set the reflection in place, for the beam cosine beam_mu (NaN: none); the shapes must be this one's */
+  void set(const rtepack::muelmat_tensor4_const_view& brdf,
+           const rtepack::muelmat_tensor3_const_view& beam_brdf,
+           Numeric                                    beam_mu,
+           const rtepack::muelmat_vector_const_view&  specular);
+
+  /** Set the reflection in place from one of the same shapes */
+  void set(const surface_reflection& other);
 };
 
 /** Convert ordinary phase-matrix cosine/sine Fourier coefficients to the
@@ -309,7 +372,7 @@ class main_data {
   phase_matrix_data        phase_matrix{};              // [2, NFourier, NLayers, NQuad, NQuad] of 4x4 blocks
   rtepack::stokvec_tensor3 boundary_up{};               // [2, NFourier, N], beneath the surface, transmitted with 1 - R
   rtepack::stokvec_tensor3 boundary_down{};             // [2, NFourier, N]
-  std::vector<BDRF>        brdf_fourier_modes{};        // [NBDRF]
+  surface_reflection       surface_refl{};              // [2, NBDRF, N, N], [2, NBDRF, N] and [N] or [0]
   Numeric                  mu0{};
   rtepack::stokvec         beam_stokes{};  // irradiance Stokes vector S_b
   Numeric                  phi0{};
@@ -350,11 +413,8 @@ class main_data {
   matpack::band_matrix    boundary_lhs{};           // [NLayers NState, NLayers NState], banded and real
   Vector                  boundary_rhs{};           // [NLayers NState]
   ComplexTensor3          mode_exponential{};       // [NLayers, 2, NState], at each layer's top and bottom
-  Matrix                  surface_reflection{};     // [NHalfState, NHalfState]
+  Matrix                  surface_operator{};       // [NHalfState, NHalfState], R of one mode with its quadrature weights
   Vector                  direct_reflection{};      // [NHalfState]
-  rtepack::muelmat_matrix brdf_streams{};           // [N, N]
-  rtepack::muelmat_matrix brdf_beam{};              // [N, 1]
-  Vector                  beam_mu{};                // [1]
   Matrix                  layer_field{};            // [2 NFourier, NState]
 
   // The homogeneous solution is complex (paper Sec. 3.3.1).
@@ -387,7 +447,8 @@ class main_data {
                           const ConstVectorView&          user_mu,
                           const phase_matrix_data&        user_phase_matrix,
                           const beam_phase_matrix_data&   user_beam_phase_matrix,
-                          const rtepack::stokvec_tensor3& user_boundary) const;
+                          const rtepack::stokvec_tensor3& user_boundary,
+                          const surface_reflection&       user_surface) const;
   /** Whether a layer's combined phase matrix of one Fourier mode is mirror symmetric about the horizontal
    * plane, P(-mu, -mu') = D P(mu, mu') D and P(-mu, mu') = D P(mu, -mu') D with D = diag(1, 1, -1, -1),
    * to rounding. */
@@ -410,8 +471,9 @@ class main_data {
   /** Move-assign a solver and its cached solution data. */
   main_data& operator=(main_data&&) = default;
 
-  /** Allocate solver input and work arrays without computing a solution. */
-  main_data(Index NLayers, Index NQuad, Index NFourier, Index Nscoeffs, Index NBDRF);
+  /** Allocate solver input and work arrays without computing a solution; the surface has NBDRF modes and, if
+   * specular, a specular part. */
+  main_data(Index NLayers, Index NQuad, Index NFourier, Index Nscoeffs, Index NBDRF, bool specular = false);
 
   /** Construct and solve a polarized discrete-ordinate problem.
    *
@@ -426,7 +488,7 @@ class main_data {
             rtepack::stokvec_tensor3 boundary_up,
             rtepack::stokvec_tensor3 boundary_down,
             rtepack::stokvec_matrix  source_poly_coeffs,
-            std::vector<BDRF>        brdf_fourier_modes,
+            const surface_reflection& surface,
             Numeric                  mu0,
             rtepack::stokvec         beam_stokes,
             Numeric                  phi0,
@@ -474,11 +536,14 @@ class main_data {
    * ray.  This call is on demand and does not add work to u(), gridded_u(), or
    * the flux methods.
    *
-   * Over a surface with a specular part (BDRF::specular, e.g.
-   * brdf::fresnel_fourier_modes), the upward radiance at a user cosine mu
-   * reflects the downward radiance at -mu at the surface, so every upward
-   * user cosine must come with -mu (and its phase matrices); otherwise this
-   * throws.
+   * Over a reflecting surface the upward user directions need the surface's
+   * reflection into them, user_surface [2, NBDRF, NUser, N] (with the beam
+   * reflection for the solver's beam, and the specular part [NUser] if the
+   * surface has one); only the upward rows are read, so it may be evaluated
+   * at |mu| for all.  Otherwise this throws.  Over a surface with a specular
+   * part (e.g. brdf::fresnel_fourier_modes), the upward radiance at a user
+   * cosine mu reflects the downward radiance at -mu at the surface, so every
+   * upward user cosine must also come with -mu (and its phase matrices).
    *
    * user_boundary [2, NFourier, NUser], optional: the boundary radiance at
    * the start of each user ray, in the combined cosine/sine Fourier modes of
@@ -495,7 +560,8 @@ class main_data {
               const ConstVectorView&          user_mu,
               const phase_matrix_data&        user_phase_matrix,
               const beam_phase_matrix_data&   user_beam_phase_matrix = {},
-              const rtepack::stokvec_tensor3& user_boundary          = {}) const;
+              const rtepack::stokvec_tensor3& user_boundary          = {},
+              const surface_reflection&       user_surface           = {}) const;
 
   /** Evaluate and apply cached polarized IMS/TMS corrections at arbitrary user directions. */
   void u_user_corr(user_u_data&                    data,
@@ -506,6 +572,7 @@ class main_data {
                    const delta_m_correction_cache& correction,
                    const phase_matrix_data&        user_phase_matrix,
                    const beam_phase_matrix_data&   user_beam_phase_matrix = {},
+                   const surface_reflection&       user_surface           = {},
                    ims_convention                  convention             = ims_convention::disort) const;
 
   /** Radiance at arbitrary polar angles, optical depths, and azimuths.
@@ -514,8 +581,9 @@ class main_data {
    * User-direction phase projections are formed once per call and the
    * layerwise modal exponentials are integrated analytically.  This is the
    * bulk, test-facing counterpart of DISORT's TERPEV/TERPSO/USRINT path.
-   * Over a specular surface, upward user cosines need their downward
-   * partners, and user_boundary is optional, as for u_user().
+   * Over a reflecting surface, upward user cosines need the surface's
+   * reflection into them, and over a specular one their downward partners;
+   * user_boundary is optional; all as for u_user().
    */
   void ungridded_u_user(rtepack::stokvec_tensor3_view   out,
                         const AscendingGrid&            tau,
@@ -523,7 +591,8 @@ class main_data {
                         const ConstVectorView&          user_mu,
                         const phase_matrix_data&        user_phase_matrix,
                         const beam_phase_matrix_data&   user_beam_phase_matrix = {},
-                        const rtepack::stokvec_tensor3& user_boundary          = {}) const;
+                        const rtepack::stokvec_tensor3& user_boundary          = {},
+                        const surface_reflection&       user_surface           = {}) const;
 
   /** Evaluate the azimuth-independent quadrature-stream field at one depth. */
   void u0(u0_data& data, Numeric tau) const;
@@ -618,8 +687,8 @@ class main_data {
   [[nodiscard]] rtepack::muelmat_tensor4_view all_beam_phase_matrices() { return beam_phase_matrix; }
   /** Return the radiance beneath the surface on the upward streams, combined Fourier coefficients.
    *
-   * The surface transmits it with 1 - R, R the reflection of the BDRF modes
-   * (kernel and specular part) on the streams.  For a Planck radiance B(T) in
+   * The surface transmits it with 1 - R, R the surface's reflection on the
+   * streams (BRDF modes and specular part).  For a Planck radiance B(T) in
    * the I component of the cosine system of mode 0 this is Kirchhoff's
    * emission B(T) (e_I - R e_I); without a surface it is the radiance itself.
    */
@@ -634,10 +703,18 @@ class main_data {
   [[nodiscard]] const rtepack::stokvec_matrix& source_poly() const { return source_poly_coeffs; }
   /** Return writable Stokes source-function polynomial coefficients. */
   [[nodiscard]] rtepack::stokvec_matrix_view source_poly() { return source_poly_coeffs; }
-  /** Return the configured polarized BRDF Fourier modes. */
-  [[nodiscard]] std::span<const BDRF> brdf_modes() const { return brdf_fourier_modes; }
-  /** Return writable polarized BRDF Fourier modes. */
-  [[nodiscard]] std::span<BDRF> brdf_modes() { return brdf_fourier_modes; }
+  /** Return the surface's reflection on the streams. */
+  [[nodiscard]] const surface_reflection& surface() const { return surface_refl; }
+  /** Set the surface's reflection on the streams in place - [2, NBDRF, N, N], [2, NBDRF, N] and [N] or [0] as the
+   * solver's, for the beam cosine beam_mu. */
+  void surface(const rtepack::muelmat_tensor4_const_view& brdf,
+               const rtepack::muelmat_tensor3_const_view& beam_brdf,
+               Numeric                                    beam_mu,
+               const rtepack::muelmat_vector_const_view&  specular) {
+    surface_refl.set(brdf, beam_brdf, beam_mu, specular);
+  }
+  /** Set the surface's reflection on the streams in place from one of the solver's shapes. */
+  void surface(const surface_reflection& x) { surface_refl.set(x); }
   /** Return the incident beam irradiance Stokes vector. */
   [[nodiscard]] const rtepack::stokvec& beam_source() const { return beam_stokes; }
   /** Return a writable incident beam irradiance Stokes vector. */

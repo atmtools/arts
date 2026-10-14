@@ -324,21 +324,58 @@ void fluxes::resize(AscendingGrid f, DescendingGrid a) {
   return out;
 }
 
-void BDRF::operator()(MatrixView x, const ConstVectorView& a, const ConstVectorView& b) const {
-  ARTS_TIME_REPORT
-
-  assert(static_cast<Size>(x.nrows()) == a.size());
-  assert(static_cast<Size>(x.ncols()) == b.size());
-  f(x, a, b);
+surface_reflection::surface_reflection(const Index NBRDF, const Index n_out, const Index N, const Numeric beam_mu)
+    : kernel(NBRDF, n_out, N, 0.0), beam_kernel(NBRDF, n_out, 0.0), beam_cosine(beam_mu) {
+  dc::check_beam_cosine(beam_mu);
 }
 
-Matrix BDRF::operator()(const Vector& a, const Vector& b) const {
-  ARTS_TIME_REPORT
-
-  Matrix x(a.size(), b.size());
-  f(x, a, b);
-  return x;
+surface_reflection::surface_reflection(Tensor3 brdf, Matrix beam_brdf, const Numeric beam_mu)
+    : kernel(std::move(brdf)), beam_kernel(std::move(beam_brdf)), beam_cosine(beam_mu) {
+  ARTS_USER_ERROR_IF((beam_kernel.shape() != std::array{kernel.npages(), kernel.nrows()}),
+                     "The beam reflection has the shape {:B,}, expected [{}, {}] for the reflection of shape {:B,}",
+                     beam_kernel.shape(),
+                     kernel.npages(),
+                     kernel.nrows(),
+                     kernel.shape());
+  dc::check_beam_cosine(beam_mu);
 }
+
+surface_reflection surface_reflection::like(const Index n_out) const {
+  return {modes(), n_out, streams(), beam_cosine};
+}
+
+void surface_reflection::set(const ConstTensor3View& brdf, const ConstMatrixView& beam_brdf, const Numeric beam_mu) {
+  // Without modes there is nothing to set, whatever the directions
+  const bool black = brdf.npages() == 0 and beam_brdf.nrows() == 0 and modes() == 0;
+  ARTS_USER_ERROR_IF(not black and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape()),
+                     "The surface reflection has the shapes {:B,} and {:B,}, expected {:B,} and {:B,}",
+                     brdf.shape(),
+                     beam_brdf.shape(),
+                     kernel.shape(),
+                     beam_kernel.shape());
+  dc::check_beam_cosine(beam_mu);
+  if (not black) {
+    Tensor3View{kernel}     = brdf;
+    MatrixView{beam_kernel} = beam_brdf;
+  }
+  beam_cosine = beam_mu;
+}
+
+void surface_reflection::set(const surface_reflection& other) {
+  set(other.brdf(), other.beam_brdf(), other.beam_mu());
+}
+
+namespace {
+//! Throw unless a surface reflects a beam of cosine mu0, or there is no beam or reflection
+void check_beam_reflection(const surface_reflection& surface, const bool beam, const Numeric mu0) {
+  ARTS_USER_ERROR_IF(beam and surface.modes() > 0 and not(surface.beam_mu() == mu0),
+                     "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
+                     "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
+                     "the settings, set the surface after the sun.",
+                     surface.beam_mu(),
+                     mu0)
+}
+}  // namespace
 
 namespace {
 /** Return the positive-stream half-range [0, N). */
@@ -502,6 +539,8 @@ Numeric main_data::particular(const Index m, const Index layer, const Index stat
 void main_data::solve_for_coefs() {
   ARTS_TIME_REPORT
 
+  check_beam_reflection(surface_refl, has_beam_source, mu0);
+
   const Index ln = NLayers - 1;
 
   for (Index m = 0; m < NFourier; m++) {
@@ -511,10 +550,9 @@ void main_data::solve_for_coefs() {
     R             = 0.0;
     mathscr_X_pos = 0.0;
     if (has_brdf) {
-      brdf_fourier_modes[m](mathscr_D_neg, mu_arr[rf(N)], mu_arr[rb(N)]),
-          einsum<"ij", "", "ij", "j", "j">(R, 1 + m_equals_0, mathscr_D_neg, mu_arr[rf(N)], W);
+      einsum<"ij", "", "ij", "j", "j">(R, 1 + m_equals_0, surface_refl.brdf()[m], mu_arr[rf(N)], W);
       if (has_beam_source) {
-        brdf_fourier_modes[m](mathscr_X_pos.view_as(N, 1), mu_arr[rf(N)], ConstVectorView{-mu0});
+        mathscr_X_pos  = surface_refl.beam_brdf()[m];
         mathscr_X_pos *= mu0 * I0 / Constant::pi;
       }
     }
@@ -1016,9 +1054,6 @@ void main_data::check_input_size() const {
 
   ARTS_USER_ERROR_IF(
       (boundary_down.shape() != std::array{NFourier, N}), "{:B,} vs [{}, {}]", boundary_down.shape(), NFourier, N)
-
-  ARTS_USER_ERROR_IF(
-      brdf_fourier_modes.size() != static_cast<std::size_t>(NBDRF), "{} vs {}", brdf_fourier_modes.size(), NBDRF);
 }
 
 void main_data::check_input_value() const {
@@ -1197,7 +1232,7 @@ main_data::main_data(const Index NLayers_,
       Leg_coeffs_all(NLayers, NLeg_all),
       boundary_up(NFourier, N),
       boundary_down(NFourier, N),
-      brdf_fourier_modes(NBDRF),
+      surface_refl(NBDRF, N, N),
       // Derived data
       scale_tau(NLayers),
       scaled_omega_arr(NLayers),
@@ -1242,7 +1277,6 @@ main_data::main_data(const Index NLayers_,
       Gml(NQuad, NQuad),
       BDRF_LHS(N, NQuad),
       R(N, N),
-      mathscr_D_neg(N, N),
       D_pos(N, N),
       D_neg(N, N),
       apb(N, N),
@@ -1270,7 +1304,7 @@ main_data::main_data(const Index       NQuad_,
                      Matrix            boundary_down_,
                      Vector            f_arr_,
                      Matrix            source_poly_coeffs_,
-                     std::vector<BDRF> brdf_fourier_modes_,
+                     const surface_reflection& surface_,
                      Numeric           mu0_,
                      Numeric           I0_,
                      Numeric           phi0_,
@@ -1282,7 +1316,7 @@ main_data::main_data(const Index       NQuad_,
       N(NQuad / 2),
       Nscoeffs(source_poly_coeffs_.ncols()),
       NLeg_all(Leg_coeffs_all_.ncols()),
-      NBDRF(brdf_fourier_modes_.size()),
+      NBDRF(surface_.modes()),
       has_source_poly(Nscoeffs > 0),
       has_beam_source(I0_ > 0),
       // User data
@@ -1294,7 +1328,7 @@ main_data::main_data(const Index       NQuad_,
       Leg_coeffs_all(std::move(Leg_coeffs_all_)),
       boundary_up(std::move(boundary_up_)),
       boundary_down(std::move(boundary_down_)),
-      brdf_fourier_modes(std::move(brdf_fourier_modes_)),
+      surface_refl(NBDRF, N, N),
       mu0(mu0_),
       I0(I0_),
       phi0(phi0_),
@@ -1342,7 +1376,6 @@ main_data::main_data(const Index       NQuad_,
       Gml(NQuad, NQuad),
       BDRF_LHS(N, NQuad),
       R(N, N),
-      mathscr_D_neg(N, N),
       D_pos(N, N),
       D_neg(N, N),
       apb(N, N),
@@ -1360,6 +1393,7 @@ main_data::main_data(const Index       NQuad_,
   dc::initialize_streams(mu_arr, inv_mu_arr, W);
 
   if (delta_m_peak.empty()) delta_m_peak = Matrix(NLayers, NLeg, 1.0);
+  surface_refl.set(surface_);
 
   check_input_size();
   update_all(I0_);
@@ -1408,7 +1442,11 @@ void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   data.intensities *= I0_orig;
 }
 
-void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, const ConstVectorView& user_mu) const {
+void main_data::u_user(user_u_data&              data,
+                       const Numeric             tau,
+                       const Numeric             phi,
+                       const ConstVectorView&    user_mu,
+                       const surface_reflection& user_surface) const {
   ARTS_TIME_REPORT
 
   ARTS_USER_ERROR_IF(
@@ -1417,6 +1455,23 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
       stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }),
       "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
       user_mu);
+
+  // The surface reflects into the upward user directions, so it is needed there
+  if (NBDRF > 0 and stdr::any_of(user_mu, Cmp::gt(0.0))) {
+    const Index nuser = static_cast<Index>(user_mu.size());
+    ARTS_USER_ERROR_IF((user_surface.brdf().shape() != std::array{NBDRF, nuser, N}) or
+                           (user_surface.beam_brdf().shape() != std::array{NBDRF, nuser}),
+                       "The surface reflects into the upward user directions, so their reflection must be given: "
+                       "shapes [{}, {}, {}] and [{}, {}] are needed, got {:B,} and {:B,}",
+                       NBDRF,
+                       nuser,
+                       N,
+                       NBDRF,
+                       nuser,
+                       user_surface.brdf().shape(),
+                       user_surface.beam_brdf().shape());
+    check_beam_reflection(user_surface, has_beam_source, mu0);
+  }
 
   const Index   output_layer = tau_index(tau);
   const Numeric scaled_output =
@@ -1463,19 +1518,13 @@ void main_data::u_user(user_u_data& data, const Numeric tau, const Numeric phi, 
         Numeric     bottom       = mode;
         if (m < NBDRF) {
           // The reflection of the downward field, and the radiance beneath the surface transmitted with 1 - R
-          const Vector outgoing{mu};
-          Matrix       reflectivity(1, N);
-          brdf_fourier_modes[m](reflectivity, outgoing, mu_arr[rb(N)]);
           for (Index j = 0; j < N; ++j) {
-            bottom += (1 + (m == 0)) * reflectivity[0, j] * mu_arr[j] * W[j] *
+            bottom += (1 + (m == 0)) * user_surface.brdf()[m, static_cast<Index>(iu), j] * mu_arr[j] * W[j] *
                       (um[bottom_layer, m, N + j] - boundary_up[m, j]);
           }
           if (has_beam_source) {
-            Matrix       direct_reflectivity(1, 1);
-            const Vector beam_direction{-mu0};
-            brdf_fourier_modes[m](direct_reflectivity, outgoing, beam_direction);
-            bottom +=
-                direct_reflectivity[0, 0] * mu0 * I0 / Constant::pi * std::exp(-scaled_tau_arr_with_0.back() / mu0);
+            bottom += user_surface.beam_brdf()[m, static_cast<Index>(iu)] * mu0 * I0 / Constant::pi *
+                      std::exp(-scaled_tau_arr_with_0.back() / mu0);
           }
         }
         mode = bottom * std::exp(-(scaled_tau_arr_with_0.back() - scaled_output) / abs_mu);
@@ -1744,15 +1793,16 @@ void main_data::IMS(Vector&                ims,
   }
 }
 
-void main_data::u_user_corr(user_u_data&           data,
-                            Vector&                ims,
-                            tms_data&              tms,
-                            const Numeric          tau,
-                            const Numeric          phi,
-                            const ConstVectorView& user_mu) const {
+void main_data::u_user_corr(user_u_data&              data,
+                            Vector&                   ims,
+                            tms_data&                 tms,
+                            const Numeric             tau,
+                            const Numeric             phi,
+                            const ConstVectorView&    user_mu,
+                            const surface_reflection& user_surface) const {
   ARTS_TIME_REPORT
 
-  u_user(data, tau, phi, user_mu);
+  u_user(data, tau, phi, user_mu, user_surface);
   if (!has_beam_source) return;
 
   TMS(tms, tau, phi, user_mu);
@@ -2073,7 +2123,7 @@ coupling_result couple(main_data&    atmosphere,
   const Size  Nquad        = atmosphere.mu().size();
   const Size  N            = Nquad / 2;
   const Size  Nfourier     = atm_up.nrows();
-  const Size  nbrdfs       = atmosphere.brdf_modes().size();
+  const Size  nbrdfs       = atmosphere.surface().modes();
   const Range front        = rf(N);
   const Range back         = rb(N);
 
@@ -2094,13 +2144,14 @@ coupling_result couple(main_data&    atmosphere,
 
   const Tensor3 ImR = [nbrdfs, N, &atmosphere] -> Tensor3 {
     Tensor3 R(nbrdfs, N, N);
-    Matrix  mathscr_D_neg(N, N);
 
     for (Size m = 0; m < nbrdfs; ++m) {
       const bool m_equals_0_bool = m == 0;
-      atmosphere.brdf_modes()[m](mathscr_D_neg, atmosphere.mu()[rf(N)], atmosphere.mu()[rb(N)]),
-          einsum<"ij", "", "ij", "j", "j">(
-              R[m], -(1 + m_equals_0_bool), mathscr_D_neg, atmosphere.mu()[rf(N)], atmosphere.weights());
+      einsum<"ij", "", "ij", "j", "j">(R[m],
+                                       -(1 + m_equals_0_bool),
+                                       atmosphere.surface().brdf()[m],
+                                       atmosphere.mu()[rf(N)],
+                                       atmosphere.weights());
       diagonal(R[m]) += 1.0;
     }
 
@@ -2158,7 +2209,10 @@ void DisortSettings::resize(Index          quadrature_dimension_,
   solar_source.resize(nfreq);
   solar_zenith_angle.resize(nfreq);
   solar_azimuth_angle.resize(nfreq);
-  bidirectional_reflectance_distribution_functions.resize(nfreq, 0);
+  surface_brdf.resize(nfreq, 0, quadrature_dimension / 2, quadrature_dimension / 2);
+  surface_beam_brdf.resize(nfreq, 0, quadrature_dimension / 2);
+  surface_beam_mu.resize(nfreq);
+  surface_beam_mu = std::numeric_limits<Numeric>::quiet_NaN();
   optical_thicknesses.resize(nfreq, nlay);
   single_scattering_albedo.resize(nfreq, nlay);
   fractional_scattering.resize(nfreq, nlay);
@@ -2177,8 +2231,10 @@ bool DisortSettings::ok() const {
   return not(
       solar_source.shape() != std::array{nfreq} or solar_zenith_angle.shape() != std::array{nfreq} or
       solar_azimuth_angle.shape() != std::array{nfreq} or
-      (bidirectional_reflectance_distribution_functions.shape() !=
-       std::array{nfreq, bidirectional_reflectance_distribution_functions.ncols()}) or
+      (surface_brdf.shape() !=
+       std::array{nfreq, surface_brdf.npages(), quadrature_dimension / 2, quadrature_dimension / 2}) or
+      (surface_beam_brdf.shape() != std::array{nfreq, surface_brdf.npages(), quadrature_dimension / 2}) or
+      (surface_beam_mu.shape() != std::array{nfreq}) or
       (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
       (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
       (fractional_scattering.shape() != std::array{nfreq, nlay}) or
@@ -2211,16 +2267,14 @@ disort::main_data DisortSettings::init() const {
                            fourier_mode_dimension,
                            source_polynomial.ncols(),
                            legendre_coefficients.ncols(),
-                           bidirectional_reflectance_distribution_functions.ncols());
+                           surface_brdf.npages());
 }
 
 disort::main_data& DisortSettings::set(disort::main_data& dis, Index iv) const {
   using Conversion::cosd;
   using Conversion::deg2rad;
 
-  for (Index i = 0; i < bidirectional_reflectance_distribution_functions.ncols(); i++) {
-    dis.brdf_modes()[i] = bidirectional_reflectance_distribution_functions[iv, i];
-  }
+  dis.surface(surface_brdf[iv], surface_beam_brdf[iv], surface_beam_mu[iv]);
 
   dis.tau(optical_thicknesses[iv]);
   dis.solar_zenith()         = cosd(solar_zenith_angle[iv]);
@@ -2243,9 +2297,7 @@ disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv)
   using Conversion::cosd;
   using Conversion::deg2rad;
 
-  for (Index i = 0; i < bidirectional_reflectance_distribution_functions.ncols(); i++) {
-    dis.brdf_modes()[i] = bidirectional_reflectance_distribution_functions[iv, i];
-  }
+  dis.surface(surface_brdf[iv], surface_beam_brdf[iv], surface_beam_mu[iv]);
 
   dis.tau(optical_thicknesses[iv]);
   dis.solar_zenith()        = cosd(solar_zenith_angle[iv]);
@@ -2260,26 +2312,6 @@ disort::main_data& DisortSettings::set_cdisort(disort::main_data& dis, Index iv)
 }
 #endif
 
-void xml_io_stream<DisortBDRF>::read(std::istream& is, DisortBDRF& x, bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.f, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<DisortBDRF>::write(std::ostream& os, const DisortBDRF& x, bofstream* pbofs, std::string_view name) {
-  XMLTag tag(type_name, "name", name);
-  tag.write_to_stream(os);
-
-  xml_write_to_stream(os, x.f, pbofs);
-
-  tag.write_to_end_stream(os);
-}
-
 void xml_io_stream<DisortSettings>::read(std::istream& is_xml, DisortSettings& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is_xml);
@@ -2293,7 +2325,9 @@ void xml_io_stream<DisortSettings>::read(std::istream& is_xml, DisortSettings& v
   xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_source, pbifs);
-  xml_read_from_stream(is_xml, v.bidirectional_reflectance_distribution_functions, pbifs);
+  xml_read_from_stream(is_xml, v.surface_brdf, pbifs);
+  xml_read_from_stream(is_xml, v.surface_beam_brdf, pbifs);
+  xml_read_from_stream(is_xml, v.surface_beam_mu, pbifs);
   xml_read_from_stream(is_xml, v.optical_thicknesses, pbifs);
   xml_read_from_stream(is_xml, v.single_scattering_albedo, pbifs);
   xml_read_from_stream(is_xml, v.fractional_scattering, pbifs);
@@ -2325,7 +2359,9 @@ void xml_io_stream<DisortSettings>::write(std::ostream&         os_xml,
   xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solazi");
   xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solzen");
   xml_write_to_stream(os_xml, v.solar_source, pbofs, "solsrc");
-  xml_write_to_stream(os_xml, v.bidirectional_reflectance_distribution_functions, pbofs, "BRDF");
+  xml_write_to_stream(os_xml, v.surface_brdf, pbofs, "surface_brdf");
+  xml_write_to_stream(os_xml, v.surface_beam_brdf, pbofs, "surface_beam_brdf");
+  xml_write_to_stream(os_xml, v.surface_beam_mu, pbofs, "surface_beam_mu");
   xml_write_to_stream(os_xml, v.optical_thicknesses, pbofs, "Tau");
   xml_write_to_stream(os_xml, v.single_scattering_albedo, pbofs, "albedo");
   xml_write_to_stream(os_xml, v.fractional_scattering, pbofs, "fractional_scattering");

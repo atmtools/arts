@@ -19,7 +19,7 @@ void test_9a() try {
   const Index                     NFourier = NQuad;
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{0, 0, 0, 0, 0, 0};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(6, 0);
 
   const disort::main_data dis(NQuad,
@@ -32,7 +32,7 @@ void test_9a() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -138,7 +138,7 @@ void test_9b() try {
   const Index                     NFourier = NQuad;
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{0, 0, 0, 0, 0, 0};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(6, 0);
 
   const disort::main_data dis(NQuad,
@@ -151,7 +151,7 @@ void test_9b() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);

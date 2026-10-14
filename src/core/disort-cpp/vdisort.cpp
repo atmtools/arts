@@ -574,29 +574,96 @@ phase_matrix_fourier_coefficients phase_matrix_fourier_split(const rtepack::spec
   return out;
 }
 
-void BDRF::operator()(const Index                  alpha,
-                      rtepack::muelmat_matrix_view out,
-                      const ConstVectorView&       mu_out,
-                      const ConstVectorView&       mu_in) const {
-  ARTS_USER_ERROR_IF(alpha != cosine_mode and alpha != sine_mode,
-                     "The VDISORT BRDF mode must be 0 (cosine) or 1 (sine), got {}",
-                     alpha);
-  (alpha == cosine_mode ? cosine : sine)(out, mu_out, mu_in);
+namespace {
+//! Throw unless a beam cosine fits the specular part: a mirror cannot reflect a beam
+void check_specular_beam(const bool specular, const Numeric beam_mu) {
+  ARTS_USER_ERROR_IF(specular and not std::isnan(beam_mu),
+                     "A specular (mirror) surface part reflects the direct beam into the single mirror direction, an "
+                     "upward beam that VDISORT cannot represent, so a surface with one has no beam reflection (its "
+                     "beam cosine must be NaN, got {}); use a finite-width surface model such as Cox-Munk",
+                     beam_mu);
+}
+}  // namespace
+
+surface_reflection::surface_reflection(
+    const Index NBRDF, const Index n_out, const Index N, const Numeric beam_mu, const bool specular)
+    : kernel(2, NBRDF, n_out, N, rtepack::muelmat{0.0}),
+      beam_kernel(2, NBRDF, n_out, rtepack::muelmat{0.0}),
+      mirror(specular ? n_out : 0, rtepack::muelmat{0.0}),
+      beam_cosine(beam_mu) {
+  dc::check_beam_cosine(beam_mu);
+  check_specular_beam(specular, beam_mu);
 }
 
-void BDRF::beam(const Index                  alpha,
-                rtepack::muelmat_matrix_view out,
-                const ConstVectorView&       mu_out,
-                const ConstVectorView&       mu_in) const {
-  ARTS_USER_ERROR_IF(alpha != cosine_mode and alpha != sine_mode,
-                     "The VDISORT BRDF beam mode must be 0 (cosine) or 1 (sine), got {}",
-                     alpha);
-  const auto& specialized = alpha == cosine_mode ? beam_cosine : beam_sine;
-  if (specialized.f)
-    specialized(out, mu_out, mu_in);
-  else
-    (*this)(alpha, out, mu_out, mu_in);
+surface_reflection::surface_reflection(rtepack::muelmat_tensor4 brdf,
+                                       rtepack::muelmat_tensor3 beam_brdf,
+                                       const Numeric            beam_mu,
+                                       rtepack::muelmat_vector  specular)
+    : kernel(std::move(brdf)),
+      beam_kernel(std::move(beam_brdf)),
+      mirror(std::move(specular)),
+      beam_cosine(beam_mu) {
+  ARTS_USER_ERROR_IF(
+      (kernel.extent(0) != 2 or beam_kernel.shape() != std::array{Index{2}, modes(), directions()} or
+       (has_specular() and static_cast<Index>(mirror.size()) != directions())),
+      "The surface reflection has the shapes {:B,}, {:B,} and {:B,}; expected [2, NBRDF, n_out, N], [2, NBRDF, n_out] "
+      "and [n_out] or [0]",
+      kernel.shape(),
+      beam_kernel.shape(),
+      mirror.shape());
+  dc::check_beam_cosine(beam_mu);
+  check_specular_beam(has_specular(), beam_mu);
 }
+
+surface_reflection surface_reflection::like(const Index n_out) const {
+  return {modes(), n_out, streams(), beam_cosine, has_specular()};
+}
+
+void surface_reflection::set(const rtepack::muelmat_tensor4_const_view& brdf,
+                             const rtepack::muelmat_tensor3_const_view& beam_brdf,
+                             const Numeric                              beam_mu,
+                             const rtepack::muelmat_vector_const_view&  specular) {
+  // Without modes there is no kernel to set, whatever the directions
+  const bool no_kernel = brdf.extent(1) == 0 and beam_brdf.extent(1) == 0 and modes() == 0;
+  ARTS_USER_ERROR_IF(
+      (not no_kernel and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape())) or
+          specular.size() != mirror.size(),
+      "The surface reflection has the shapes {:B,}, {:B,} and {:B,}, expected {:B,}, {:B,} and {:B,}",
+      brdf.shape(),
+      beam_brdf.shape(),
+      specular.shape(),
+      kernel.shape(),
+      beam_kernel.shape(),
+      mirror.shape());
+  dc::check_beam_cosine(beam_mu);
+  check_specular_beam(has_specular(), beam_mu);
+  if (not no_kernel) {
+    rtepack::muelmat_tensor4_view{kernel}      = brdf;
+    rtepack::muelmat_tensor3_view{beam_kernel} = beam_brdf;
+  }
+  rtepack::muelmat_vector_view{mirror} = specular;
+  beam_cosine                          = beam_mu;
+}
+
+void surface_reflection::set(const surface_reflection& other) {
+  set(other.brdf(), other.beam_brdf(), other.beam_mu(), other.specular());
+}
+
+namespace {
+//! Throw unless a surface reflects a beam of cosine mu0, or there is no beam
+void check_beam_reflection(const surface_reflection& surface, const bool beam, const Numeric mu0) {
+  if (not beam) return;
+  ARTS_USER_ERROR_IF(surface.has_specular(),
+                     "A specular (mirror) surface reflects the direct beam into the single mirror direction, an "
+                     "upward beam that VDISORT cannot represent; use a finite-width surface model such as Cox-Munk");
+  ARTS_USER_ERROR_IF(surface.modes() > 0 and not(surface.beam_mu() == mu0),
+                     "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
+                     "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
+                     "the settings, set the surface after the sun.",
+                     surface.beam_mu(),
+                     mu0)
+}
+}  // namespace
 
 phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine, const rtepack::muelmat_tensor4& sine) {
   ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
@@ -760,8 +827,12 @@ delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical
           .source_coordinate_offset = std::move(coordinate_offset)};
 }
 
-main_data::main_data(
-    const Index NLayers_, const Index NQuad_, const Index NFourier_, const Index Nscoeffs_, const Index NBDRF_)
+main_data::main_data(const Index NLayers_,
+                     const Index NQuad_,
+                     const Index NFourier_,
+                     const Index Nscoeffs_,
+                     const Index NBDRF_,
+                     const bool  specular)
     : NLayers(NLayers_),
       NQuad(NQuad_),
       NFourier(NFourier_),
@@ -779,7 +850,7 @@ main_data::main_data(
       phase_matrix(2, NFourier, NLayers, NQuad, NQuad, rtepack::muelmat{0.0}),
       boundary_up(2, NFourier, N),
       boundary_down(2, NFourier, N),
-      brdf_fourier_modes(NBDRF),
+      surface_refl(NBDRF, N, N, std::numeric_limits<Numeric>::quiet_NaN(), specular),
       beam_stokes{},
       beam_phase_matrix(2, NFourier, NLayers, NQuad, rtepack::muelmat{0.0}),
       mu_arr(NQuad),
@@ -812,11 +883,8 @@ main_data::main_data(
       boundary_lhs(3 * NHalfState - 1, 3 * NHalfState - 1, NLayers * NState, NLayers * NState),
       boundary_rhs(NLayers * NState),
       mode_exponential(NLayers, 2, NState),
-      surface_reflection(NHalfState, NHalfState),
+      surface_operator(NHalfState, NHalfState),
       direct_reflection(NHalfState),
-      brdf_streams(N, N),
-      brdf_beam(N, 1),
-      beam_mu(1),
       layer_field(2 * NFourier, NState),
       G_collect(2, NFourier, NLayers, NState, NState),
       K_collect(2, NFourier, NLayers, NState),
@@ -841,7 +909,7 @@ main_data::main_data(Index                    NQuad_,
                      rtepack::stokvec_tensor3 boundary_up_,
                      rtepack::stokvec_tensor3 boundary_down_,
                      rtepack::stokvec_matrix  source_poly_coeffs_,
-                     std::vector<BDRF>        brdf_fourier_modes_,
+                     const surface_reflection& surface_,
                      Numeric                  mu0_,
                      rtepack::stokvec         beam_stokes_,
                      Numeric                  phi0_,
@@ -852,7 +920,8 @@ main_data::main_data(Index                    NQuad_,
                 NQuad_,
                 NFourier_,
                 source_poly_coeffs_.size() == 0 ? 0 : source_poly_coeffs_.shape()[1],
-                static_cast<Index>(brdf_fourier_modes_.size())) {
+                surface_.modes(),
+                surface_.has_specular()) {
   tau_arr            = std::move(tau_arr_);
   omega_arr          = std::move(omega_arr_);
   phase_matrix       = std::move(phase_matrix_);
@@ -861,7 +930,7 @@ main_data::main_data(Index                    NQuad_,
   source_poly_coeffs = std::move(source_poly_coeffs_);
   if (source_coordinate_scale_.size() != 0) source_coordinate_scale = std::move(source_coordinate_scale_);
   if (source_coordinate_offset_.size() != 0) source_coordinate_offset = std::move(source_coordinate_offset_);
-  brdf_fourier_modes = std::move(brdf_fourier_modes_);
+  surface_refl.set(surface_);
   mu0                = mu0_;
   beam_stokes        = std::move(beam_stokes_);
   phi0               = phi0_;
@@ -952,10 +1021,6 @@ void main_data::check_input_size() const {
                      NFourier,
                      NLayers,
                      NQuad);
-  ARTS_USER_ERROR_IF(static_cast<Index>(brdf_fourier_modes.size()) != NBDRF,
-                     "There are {} BRDF modes, expected {}",
-                     brdf_fourier_modes.size(),
-                     NBDRF);
 }
 
 void main_data::check_input_value() const {
@@ -1453,44 +1518,41 @@ void main_data::transmission() {
 void main_data::solve_for_coefs() {
   ARTS_TIME_REPORT
 
+  check_beam_reflection(surface_refl, has_beam_source, mu0);
+
   const Index equation_count = NLayers * NState;
 
   for (Index alpha = 0; alpha < 2; ++alpha) {
     for (Index m = 0; m < NFourier; ++m) {
       // Reflection couples all Stokes components.
       if (m < NBDRF) {
-        brdf_fourier_modes[m](alpha, brdf_streams, mu_arr[Range{0, N}], mu_arr[Range{0, N}]);
         for (Index i = 0; i < N; ++i)
           for (Index so = 0; so < stokes_dimension; ++so)
             for (Index j = 0; j < N; ++j)
               for (Index si = 0; si < stokes_dimension; ++si)
-                surface_reflection[state_index(i, so), state_index(j, si)] =
-                    Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * brdf_streams[i, j][so, si];
-        // The specular part reflects each downward stream into the upward stream of the same cosine
-        if (brdf_fourier_modes[m].specular.f) {
-          for (Index i = 0; i < N; ++i) {
-            const rtepack::muelmat R = brdf_fourier_modes[m].specular(mu_arr[i]);
-            for (Index so = 0; so < stokes_dimension; ++so)
-              for (Index si = 0; si < stokes_dimension; ++si)
-                surface_reflection[state_index(i, so), state_index(i, si)] += R[so, si];
-          }
-        }
+                surface_operator[state_index(i, so), state_index(j, si)] =
+                    Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] * surface_refl.brdf()[alpha, m, i, j][so, si];
 
         if (has_beam_source) {
-          beam_mu[0] = mu0;
-          brdf_fourier_modes[m].beam(alpha, brdf_beam, mu_arr[Range{0, N}], beam_mu);
           const Numeric           attenuation = std::exp(-tau_arr.back() / mu0);
           const rtepack::stokvec& beam        = beam_stokes;
           for (Index i = 0; i < N; ++i) {
-            const rtepack::stokvec reflected = 0.5 * mu0 * attenuation * (brdf_beam[i, 0] * beam);
+            const rtepack::stokvec reflected = 0.5 * mu0 * attenuation * (surface_refl.beam_brdf()[alpha, m, i] * beam);
             for (Index s = 0; s < stokes_dimension; ++s) direct_reflection[state_index(i, s)] = reflected[s];
           }
         } else {
           direct_reflection = 0.0;
         }
       } else {
-        surface_reflection = 0.0;
-        direct_reflection  = 0.0;
+        surface_operator  = 0.0;
+        direct_reflection = 0.0;
+      }
+      // The specular part reflects each downward stream into the upward stream of the same cosine, in every mode
+      for (Index i = 0; i < static_cast<Index>(surface_refl.specular().size()); ++i) {
+        const rtepack::muelmat& R = surface_refl.specular()[i];
+        for (Index so = 0; so < stokes_dimension; ++so)
+          for (Index si = 0; si < stokes_dimension; ++si)
+            surface_operator[state_index(i, so), state_index(i, si)] += R[so, si];
       }
       const Index   last   = NLayers - 1;
       const Numeric bottom = tau_arr.back();
@@ -1524,7 +1586,7 @@ void main_data::solve_for_coefs() {
             for (Index si = 0; si < stokes_dimension; ++si) {
               const Index hin        = state_index(j, si);
               const Index neg_state  = state_index(N + j, si);
-              rhs_value             += surface_reflection[hrow, hin] *
+              rhs_value             += surface_operator[hrow, hin] *
                            (particular(alpha, m, last, neg_state, bottom) - boundary_up[alpha, m, j][si]);
             }
           boundary_rhs[equation_count - NHalfState + hrow] = rhs_value;
@@ -1602,7 +1664,7 @@ void main_data::solve_for_coefs() {
             Complex value = mode(last, pos_state, e, 1);
             for (Index j = 0; j < N; ++j)
               for (Index si = 0; si < stokes_dimension; ++si)
-                value -= surface_reflection[hrow, state_index(j, si)] * mode(last, state_index(N + j, si), e, 1);
+                value -= surface_operator[hrow, state_index(j, si)] * mode(last, state_index(N + j, si), e, 1);
             set(row, last, e, value);
           }
         }
@@ -1741,10 +1803,17 @@ void main_data::u_user(user_u_data&                    data,
                        const ConstVectorView&          user_mu,
                        const phase_matrix_data&        user_phase_matrix,
                        const beam_phase_matrix_data&   user_beam_phase_matrix,
-                       const rtepack::stokvec_tensor3& user_boundary) const {
+                       const rtepack::stokvec_tensor3& user_boundary,
+                       const surface_reflection&       user_surface) const {
   rtepack::stokvec_tensor3 result(1, 1, user_mu.size());
-  ungridded_u_user(
-      result, AscendingGrid{tau}, Vector{phi}, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
+  ungridded_u_user(result,
+                   AscendingGrid{tau},
+                   Vector{phi},
+                   user_mu,
+                   user_phase_matrix,
+                   user_beam_phase_matrix,
+                   user_boundary,
+                   user_surface);
   data.intensities.resize(user_mu.size());
   for (Index user = 0; user < static_cast<Index>(user_mu.size()); ++user) data.intensities[user] = result[0, 0, user];
 }
@@ -1820,6 +1889,7 @@ void main_data::u_user_corr(user_u_data&                    data,
                             const delta_m_correction_cache& correction,
                             const phase_matrix_data&        user_phase_matrix,
                             const beam_phase_matrix_data&   user_beam_phase_matrix,
+                            const surface_reflection&       user_surface,
                             const ims_convention            convention) const {
   ARTS_TIME_REPORT
 
@@ -1831,7 +1901,9 @@ void main_data::u_user_corr(user_u_data&                    data,
          correction.phi()[phi_index],
          correction.user_mu(),
          user_phase_matrix,
-         user_beam_phase_matrix);
+         user_beam_phase_matrix,
+         {},
+         user_surface);
   for (Index user = 0; user < static_cast<Index>(data.intensities.size()); ++user)
     data.intensities[user] += tms[user] + ims[user];
 }
@@ -1841,7 +1913,8 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
                                    const ConstVectorView&          user_mu,
                                    const phase_matrix_data&        user_phase_matrix,
                                    const beam_phase_matrix_data&   user_beam_phase_matrix,
-                                   const rtepack::stokvec_tensor3& user_boundary) const {
+                                   const rtepack::stokvec_tensor3& user_boundary,
+                                   const surface_reflection&       user_surface) const {
   ARTS_TIME_REPORT
 
   const Index ntau  = static_cast<Index>(tau.size());
@@ -1876,11 +1949,31 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
                      NLayers,
                      nuser);
 
-  /* A specular surface part (BDRF::specular) reflects the downward radiance at the surface into the upward
-     direction of the same cosine.  So the upward boundary value of an upward user direction mu includes
-     R(mu) I_down(-mu) at the surface, from the user direction -mu, whose phase matrices only the caller has:
-     every upward user direction must come with its downward partner. */
-  const bool specular = stdr::any_of(brdf_fourier_modes, [](const BDRF& b) { return static_cast<bool>(b.specular.f); });
+  // The surface reflects into the upward user directions, so it is needed there
+  const bool specular = surface_refl.has_specular();
+  if ((NBDRF > 0 or specular) and stdr::any_of(user_mu, Cmp::gt(0.0))) {
+    ARTS_USER_ERROR_IF(
+        (user_surface.brdf().shape() != std::array<Index, 4>{2, NBDRF, nuser, N}) or
+            (user_surface.beam_brdf().shape() != std::array<Index, 3>{2, NBDRF, nuser}) or
+            (specular and static_cast<Index>(user_surface.specular().size()) != nuser),
+        "The surface reflects into the upward user directions, so their reflection must be given: shapes "
+        "[2, {}, {}, {}], [2, {}, {}] and [{}] (specular part) are needed, got {:B,}, {:B,} and {:B,}",
+        NBDRF,
+        nuser,
+        N,
+        NBDRF,
+        nuser,
+        specular ? nuser : 0,
+        user_surface.brdf().shape(),
+        user_surface.beam_brdf().shape(),
+        user_surface.specular().shape());
+    check_beam_reflection(user_surface, has_beam_source, mu0);
+  }
+
+  /* A specular surface part reflects the downward radiance at the surface into the upward direction of the same
+     cosine.  So the upward boundary value of an upward user direction mu includes R(mu) I_down(-mu) at the
+     surface, from the user direction -mu, whose phase matrices only the caller has: every upward user direction
+     must come with its downward partner. */
   std::vector<Index> partner(nuser, -1);  // the downward partner of an upward user direction, as an index of below
   ComplexTensor4     partner_modes;       // [1, partners, 2 NFourier, Stokes] at the surface
   if (specular) {
@@ -1928,7 +2021,8 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
                          partner_mu,
                          partner_phase,
                          partner_beam,
-                         partner_boundary);
+                         partner_boundary,
+                         surface_reflection{});
     }
   }
 
@@ -1941,17 +2035,12 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
   modes.resize(ntau, nuser, 2 * NFourier, stokes_dimension);
   modes = Complex{0.0};
 
-  rtepack::muelmat_matrix raw(1, N);
-  rtepack::muelmat_matrix beam_raw(1, 1);
-  Vector                  outgoing(1);
-  const Vector            beam_direction{mu0};
-  const Numeric           atmosphere_bottom = tau_arr.back();
+  const Numeric atmosphere_bottom = tau_arr.back();
 
   for (Index iu = 0; iu < nuser; ++iu) {
     const Numeric mu       = user_mu[iu];
     const Numeric abs_mu   = std::abs(mu);
     const bool    downward = mu < 0.0;
-    outgoing[0]            = abs_mu;
 
     for (Index alpha = 0; alpha < 2; ++alpha) {
       for (Index m = 0; m < NFourier; ++m) {
@@ -1961,23 +2050,22 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
                                     : user_boundary[alpha, m, iu];
 
         const Numeric boundary_tau = downward ? 0.0 : tau_arr.back();
-        if (not downward and m < NBDRF) {
+        if (not downward and (m < NBDRF or specular)) {
           // The reflection of the downward field, and the radiance beneath the surface transmitted with 1 - R
           const rtepack::stokvec beneath = mode;
-          brdf_fourier_modes[m](alpha, raw, outgoing, mu_arr[Range{0, N}]);
-          for (Index j = 0; j < N; ++j) {
-            mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] *
-                    (raw[0, j] * (um[NLayers - 1, alpha, m, N + j] - boundary_up[alpha, m, j]));
+          if (m < NBDRF) {
+            for (Index j = 0; j < N; ++j) {
+              mode += Constant::pi * (m == 0 ? 1.0 : 0.5) * W[j] * mu_arr[j] *
+                      (user_surface.brdf()[alpha, m, iu, j] * (um[NLayers - 1, alpha, m, N + j] - boundary_up[alpha, m, j]));
+            }
+            if (has_beam_source)
+              mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (user_surface.beam_brdf()[alpha, m, iu] * beam_stokes);
           }
-          if (has_beam_source) {
-            brdf_fourier_modes[m].beam(alpha, beam_raw, outgoing, beam_direction);
-            mode += 0.5 * mu0 * std::exp(-atmosphere_bottom / mu0) * (beam_raw[0, 0] * beam_stokes);
-          }
-          if (brdf_fourier_modes[m].specular.f) {
+          if (specular) {
             rtepack::stokvec down;
             for (Index s = 0; s < stokes_dimension; ++s)
               down[s] = partner_modes[0, partner[iu], alpha * NFourier + m, s].real();
-            mode += brdf_fourier_modes[m].specular(abs_mu) * (down - beneath);
+            mode += user_surface.specular()[iu] * (down - beneath);
           }
         }
         for (Index t = 0; t < ntau; ++t) {
@@ -2119,7 +2207,8 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
                                  const ConstVectorView&          user_mu,
                                  const phase_matrix_data&        user_phase_matrix,
                                  const beam_phase_matrix_data&   user_beam_phase_matrix,
-                                 const rtepack::stokvec_tensor3& user_boundary) const {
+                                 const rtepack::stokvec_tensor3& user_boundary,
+                                 const surface_reflection&       user_surface) const {
   ARTS_TIME_REPORT
 
   const std::array<Index, 3> expected_shape{
@@ -2137,7 +2226,7 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
       phi);
 
   ComplexTensor4 modes;
-  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary);
+  user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary, user_surface);
   out = rtepack::stokvec{};
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
     for (Index iu = 0; iu < static_cast<Index>(user_mu.size()); ++iu) {

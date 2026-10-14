@@ -338,12 +338,15 @@ def vdisort(case, nmu):
     # ground always emits, its Lambertian one with the thermal source
     b_bottom = np.zeros((2, nf, nmu, 4))
     Bs = planck5(lam, case["ground_t"])
+    # The surface's reflection between the streams, and of the beam if there is one
+    streams = np.asarray(A.math.pdleggauss(nq)[0])
+    mu0 = case["mu0"] if case["flux"] > 0 else np.nan
     if case["fresnel"] is not None:
         b_bottom[0, 0, :, 0] = Bs
-        brdf = A.vdisort.fresnel_fourier_modes(case["fresnel"], nf)
+        surface = A.vdisort.fresnel_fourier_modes(case["fresnel"], nf, streams, streams, mu0)
     else:
         b_bottom[0, 0, :, 0] = Bs if case["thermal"] else 0.0
-        brdf = A.vdisort.lambertian_fourier_modes(case["albedo"], nf)
+        surface = A.vdisort.lambertian_fourier_modes(case["albedo"], nf, streams, streams, mu0)
 
     kwargs = {}
     if case["flux"] > 0:
@@ -359,7 +362,7 @@ def vdisort(case, nmu):
         phi0=0.0,
         b_pos=b_bottom,
         b_neg=b_top,
-        BDRF_Fourier_modes=brdf,
+        surface=surface,
         s_poly_coeffs=source,
         **kwargs,
     )

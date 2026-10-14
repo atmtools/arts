@@ -44,15 +44,72 @@ struct fluxes {
   [[nodiscard]] fluxes combine(const fluxes& other) const;
 };
 
-struct BDRF {
-  using func_t = CustomOperator<void, MatrixView, const ConstVectorView&, const ConstVectorView&>;
-  func_t f;
+/** A surface's reflection into upward directions, in DISORT's Fourier convention.
+ *
+ * brdf [NBRDF, n_out, N]: the Fourier modes R_m(mu_o, mu_j) of the BRDF (see
+ *   brdf::fourier_modes), m < NBRDF, from the downward streams of cosine mu_j
+ *   into the upward directions of cosine mu_o, without the solver's quadrature
+ *   factor (1 + delta_m0) W_j mu_j.  Higher modes reflect nothing.
+ * beam_brdf [NBRDF, n_out]: R_m(mu_o, mu0) from the direct beam, at the beam
+ *   cosine beam_mu; beam_mu is NaN when it was computed without a beam, and a
+ *   solver with a beam refuses a surface whose beam_mu is not its own.
+ *
+ * The shapes are those it is constructed with.  Its data is set in place,
+ * through the views or set(), so nothing is reallocated; beam_mu is set only
+ * with the beam reflection it belongs to.  A surface without modes reflects
+ * nothing, whatever its directions.
+ *
+ * On the solver's upward streams (n_out = N) it is main_data's surface, which
+ * the settings set for each frequency.  At user directions it is the
+ * reflection u_user() needs there: like() makes one for the modes, streams and
+ * beam of the solver's surface, or brdf:: evaluates a surface model there.
+ */
+class surface_reflection {
+  Tensor3 kernel{};       // [NBRDF, n_out, N]
+  Matrix  beam_kernel{};  // [NBRDF, n_out]
+  Numeric beam_cosine{std::numeric_limits<Numeric>::quiet_NaN()};
 
-  /** Evaluate the BRDF Fourier mode for outgoing cosines a and incoming cosines b. */
-  void operator()(MatrixView x, const ConstVectorView& a, const ConstVectorView& b) const;
+ public:
+  /** No reflection */
+  surface_reflection() = default;
 
-  /** Evaluate and return the BRDF Fourier-mode matrix. */
-  Matrix operator()(const Vector& a, const Vector& b) const;
+  /** Zero reflection of NBRDF modes from N streams into n_out directions, for the beam cosine beam_mu (NaN: none) */
+  surface_reflection(Index   NBRDF,
+                     Index   n_out,
+                     Index   N,
+                     Numeric beam_mu = std::numeric_limits<Numeric>::quiet_NaN());
+
+  /** The reflection brdf [NBRDF, n_out, N] and beam_brdf [NBRDF, n_out], for the beam cosine beam_mu (NaN: none) */
+  surface_reflection(Tensor3 brdf, Matrix beam_brdf, Numeric beam_mu = std::numeric_limits<Numeric>::quiet_NaN());
+
+  /** Zero reflection of this one's modes from its streams into n_out directions, for its beam cosine */
+  [[nodiscard]] surface_reflection like(Index n_out) const;
+
+  /** The number of Fourier modes, NBRDF */
+  [[nodiscard]] Index modes() const { return kernel.npages(); }
+
+  /** The number of upward directions reflected into, n_out */
+  [[nodiscard]] Index directions() const { return kernel.nrows(); }
+
+  /** The number of downward streams reflected from, N */
+  [[nodiscard]] Index streams() const { return kernel.ncols(); }
+
+  /** The beam cosine of the beam reflection, NaN if computed without a beam */
+  [[nodiscard]] Numeric beam_mu() const { return beam_cosine; }
+
+  //! [NBRDF, n_out, N]
+  [[nodiscard]] ConstTensor3View brdf() const { return kernel; }
+  [[nodiscard]] Tensor3View brdf() { return kernel; }
+
+  //! [NBRDF, n_out]
+  [[nodiscard]] ConstMatrixView beam_brdf() const { return beam_kernel; }
+  [[nodiscard]] MatrixView beam_brdf() { return beam_kernel; }
+
+  /** Set the reflection in place, for the beam cosine beam_mu (NaN: none); the shapes must be this one's */
+  void set(const ConstTensor3View& brdf, const ConstMatrixView& beam_brdf, Numeric beam_mu);
+
+  /** Set the reflection in place from one of the same shapes */
+  void set(const surface_reflection& other);
 };
 
 /** A delta-M removed forward peak represented by its total fraction and
@@ -168,7 +225,7 @@ class main_data {
   Matrix            Leg_coeffs_all{};      // [NLayers, NLeg_all]
   Matrix            boundary_up{};         // [NFourier, N], beneath the surface, transmitted with 1 - R
   Matrix            boundary_down{};       // [NFourier, N]
-  std::vector<BDRF> brdf_fourier_modes{};  // [NBDRF]
+  surface_reflection surface_refl{};      // [NBDRF, N, N] and [NBDRF, N] on the streams
   Numeric           mu0{};
   Numeric           I0{};
   Numeric           phi0{};
@@ -219,7 +276,6 @@ class main_data {
   Matrix Gml{};                         // [NQuad, NQuad]
   Matrix BDRF_LHS{};                    // [N, NQuad]
   Matrix R{};                           // [N, N]
-  Matrix mathscr_D_neg{};               // [N, N]
   Matrix D_pos{};                       // [N, N]
   Matrix D_neg{};                       // [N, N]
   Matrix apb{};                         // [N, N]
@@ -291,7 +347,7 @@ class main_data {
             Matrix            boundary_down,
             Vector            f_arr,
             Matrix            source_poly_coeffs,
-            std::vector<BDRF> brdf_fourier_modes,
+            const surface_reflection& surface,
             Numeric           mu0,
             Numeric           I0,
             Numeric           phi0,
@@ -364,12 +420,26 @@ class main_data {
    * Reconstructs the angular source from the discrete-ordinate solution and
    * formally integrates it along each ray, following DISORT's TERPEV,
    * TERPSO, and USRINT path.
+   *
+   * user_surface [NBDRF, NUser, N]: the surface's reflection into the user
+   * directions (only the upward ones are read, so it may be evaluated at
+   * |mu| for all).  It is required, with the beam's cosine, for an upward
+   * user direction over a reflecting surface; otherwise this throws.
    */
-  void u_user(user_u_data& data, Numeric tau, Numeric phi, const ConstVectorView& user_mu) const;
+  void u_user(user_u_data&              data,
+              Numeric                   tau,
+              Numeric                   phi,
+              const ConstVectorView&    user_mu,
+              const surface_reflection& user_surface = {}) const;
 
-  /** Corrected radiance at arbitrary nonzero polar-angle cosines. */
-  void u_user_corr(
-      user_u_data& data, Vector& ims, tms_data& tms, Numeric tau, Numeric phi, const ConstVectorView& user_mu) const;
+  /** Corrected radiance at arbitrary nonzero polar-angle cosines; user_surface as for u_user(). */
+  void u_user_corr(user_u_data&              data,
+                   Vector&                   ims,
+                   tms_data&                 tms,
+                   Numeric                   tau,
+                   Numeric                   phi,
+                   const ConstVectorView&    user_mu,
+                   const surface_reflection& user_surface = {}) const;
 
   /** Spectral radiance at a given tau, only for the 0th Fourier mode
     *
@@ -560,7 +630,7 @@ class main_data {
     * - boundary_down 
     * - tau_arr 
     * - scaled_tau_arr_with_0 
-    * - brdf_fourier_modes 
+    * - surface_refl
     * - mu0 
     * - I0 
     *
@@ -668,8 +738,8 @@ class main_data {
   //! The radiance incident at the top on the downward streams, Fourier modes - NFourier x N
   [[nodiscard]] auto&& downward_boundary() const { return boundary_down; }
 
-  //! Fourier modes of the BRDF - NBDRF
-  [[nodiscard]] auto&& brdf_modes() const { return brdf_fourier_modes; }
+  //! The surface's reflection on the streams
+  [[nodiscard]] const surface_reflection& surface() const { return surface_refl; }
 
   //! The cosine of the beam source zenith angle
   [[nodiscard]] auto&& solar_zenith() const { return mu0; }
@@ -708,8 +778,13 @@ class main_data {
   //! The radiance incident at the top on the downward streams, Fourier modes - NFourier x N
   [[nodiscard]] auto downward_boundary() { return MatrixView{boundary_down}; }
 
-  //! Fourier modes of the BRDF - NBDRF
-  [[nodiscard]] auto brdf_modes() { return std::span{brdf_fourier_modes}; }
+  //! Set the surface's reflection on the streams in place - [NBDRF, N, N] and [NBDRF, N], for the beam cosine beam_mu
+  void surface(const ConstTensor3View& brdf, const ConstMatrixView& beam_brdf, Numeric beam_mu) {
+    surface_refl.set(brdf, beam_brdf, beam_mu);
+  }
+
+  //! Set the surface's reflection on the streams in place from one of the solver's shapes
+  void surface(const surface_reflection& x) { surface_refl.set(x); }
 
   //! The cosine of the beam source zenith angle
   [[nodiscard]] Numeric& solar_zenith() { return mu0; }
@@ -746,9 +821,6 @@ class main_data {
                                      Numeric    relaxation     = 1.0);
 }  // namespace disort
 
-using DisortBDRF         = disort::BDRF;
-using MatrixOfDisortBDRF = matpack::data_t<DisortBDRF, 2>;
-
 struct DisortSettings {
   Index quadrature_dimension{0};
   Index legendre_polynomial_dimension{0};
@@ -767,8 +839,15 @@ struct DisortSettings {
   // freq_grid.size()
   Vector solar_source{};
 
-  // freq_grid.size() x nbrdf
-  MatrixOfDisortBDRF bidirectional_reflectance_distribution_functions{};
+  // freq_grid.size() x nbrdf x quadrature_dimension / 2 x quadrature_dimension / 2, the Fourier modes of the
+  // surface's BRDF between the streams (disort::surface_reflection)
+  Tensor4 surface_brdf{};
+
+  // freq_grid.size() x nbrdf x quadrature_dimension / 2, from the direct beam at the cosine surface_beam_mu
+  Tensor3 surface_beam_brdf{};
+
+  // freq_grid.size(), the beam cosine of surface_beam_brdf, NaN where it was computed without a beam
+  Vector surface_beam_mu{};
 
   // freq_grid.size() x [alt_grid.size() - 1]
   Matrix optical_thicknesses{};
@@ -824,23 +903,6 @@ struct DisortSettings {
   void check() const;
 };
 
-template <> struct std::formatter<DisortBDRF> {
-  format_tags tags;
-
-  /** Return the mutable nested formatter used by generic formatting helpers. */
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  /** Return the read-only nested formatter used by generic formatting helpers. */
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  /** Parse ARTS format tags for a BRDF callback. */
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-  /** Format the opaque BRDF callback representation. */
-  template <class FmtContext> FmtContext::iterator format(const DisortBDRF&, FmtContext& ctx) const {
-    return tags.format(ctx, "BDRF"sv);
-  }
-};
 
 template <> struct std::formatter<disort::main_data> {
   format_tags tags;
@@ -907,8 +969,8 @@ template <> struct std::formatter<disort::main_data> {
                        "boundary_down: "sv,
                        v.boundary_down,
                        sep,
-                       "brdf_fourier_modes: "sv,
-                       // v.brdf_fourier_modes,
+                       "surface_refl.brdf: "sv,
+                       v.surface_refl.brdf(),
                        sep,
                        "mu0: "sv,
                        v.mu0,
@@ -1012,9 +1074,6 @@ template <> struct std::formatter<disort::main_data> {
                        "R: "sv,
                        v.R,
                        sep,
-                       "mathscr_D_neg: "sv,
-                       v.mathscr_D_neg,
-                       sep,
                        "D_pos: "sv,
                        v.D_pos,
                        sep,
@@ -1078,7 +1137,7 @@ nsrc:                          )-x-"sv,
           v.source_polynomial.ncols(),
           R"-x-(
 nbrdf:                         )-x-"sv,
-          v.bidirectional_reflectance_distribution_functions.ncols(),
+          v.surface_brdf.npages(),
           R"-x-(
 
 solar_source.shape():                                     )-x-"sv,
@@ -1090,9 +1149,15 @@ solar_zenith_angle.shape():                               )-x-"sv,
 solar_azimuth_angle.shape():                              )-x-"sv,
           v.solar_azimuth_angle.shape(),
           R"-x-( - should be freq_grid.size().
-bidirectional_reflectance_distribution_functions.shape(): )-x-"sv,
-          v.bidirectional_reflectance_distribution_functions.shape(),
-          R"-x-( - should be freq_grid.size() x nbrdf.
+surface_brdf.shape():                                     )-x-"sv,
+          v.surface_brdf.shape(),
+          R"-x-( - should be freq_grid.size() x nbrdf x (quadrature_dimension / 2) x (quadrature_dimension / 2).
+surface_beam_brdf.shape():                                )-x-"sv,
+          v.surface_beam_brdf.shape(),
+          R"-x-( - should be freq_grid.size() x nbrdf x (quadrature_dimension / 2).
+surface_beam_mu.shape():                                  )-x-"sv,
+          v.surface_beam_mu.shape(),
+          R"-x-( - should be freq_grid.size().
 optical_thicknesses.shape():                              )-x-"sv,
           v.optical_thicknesses.shape(),
           R"-x-( - should be freq_grid.size() x [alt_grid.size() - 1].
@@ -1138,7 +1203,7 @@ nsrc:                          )-x-"sv,
                        v.source_polynomial.ncols(),
                        R"-x-(
 nbrdf:                         )-x-"sv,
-                       v.bidirectional_reflectance_distribution_functions.ncols(),
+                       v.surface_brdf.npages(),
                        R"-x-(
 
 solar_source:
@@ -1153,9 +1218,17 @@ solar_azimuth_angle:
 )-x-"sv,
                        v.solar_azimuth_angle,
                        R"-x-(
-bidirectional_reflectance_distribution_functions:
+surface_brdf:
 )-x-"sv,
-                       v.bidirectional_reflectance_distribution_functions,
+                       v.surface_brdf,
+                       R"-x-(
+surface_beam_brdf:
+)-x-"sv,
+                       v.surface_beam_brdf,
+                       R"-x-(
+surface_beam_mu:
+)-x-"sv,
+                       v.surface_beam_mu,
                        R"-x-(
 optical_thicknesses:
 )-x-"sv,
@@ -1189,16 +1262,6 @@ downward_boundary_condition:
 )-x-"sv,
                        v.downward_boundary_condition);
   }
-};
-
-template <> struct xml_io_stream<DisortBDRF> {
-  static constexpr std::string_view type_name = "DisortBDRF"sv;
-
-  /** Write the serializable representation of a DISORT BRDF callback. */
-  static void write(std::ostream& os, const DisortBDRF& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
-
-  /** Read a DISORT BRDF callback representation. */
-  static void read(std::istream& is, DisortBDRF& x, bifstream* pbifs = nullptr);
 };
 
 template <> struct xml_io_stream<DisortSettings> {

@@ -207,7 +207,10 @@ def test_beam_reflection_by_cox_munk():
     nquad, nfourier = 16, 24
     wind, n_index = 7.0, complex(1.5, 0.3)
     mu0, phi0, depth = 0.6, 0.4, 1e-12
-    modes = vd.cox_munk_fourier_modes(wind, n_index, True, nfourier, azimuth_quadrature_points=2000)
+    streams = np.asarray(arts.math.pdleggauss(nquad)[0])
+    modes = vd.cox_munk_fourier_modes(
+        wind, n_index, True, nfourier, streams, streams, mu0, azimuth_quadrature_points=2000
+    )
     phi_out = np.array([0.0, 0.4, 1.2, 2.5, np.pi, 4.0, 5.5])
     n = nquad // 2
 
@@ -223,7 +226,7 @@ def test_beam_reflection_by_cox_munk():
             mu0=mu0,
             beam_stokes=stokes,
             phi0=phi0,
-            BDRF_Fourier_modes=modes,
+            surface=modes,
         )
         mu = np.asarray(model.mu)[:n]
         u = np.asarray(model.u(tau=np.array([0.0]), phi=phi_out))[0, :, :n]

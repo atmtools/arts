@@ -1639,7 +1639,6 @@ int main() {
   dis.all_legendre_coeffs() = Matrix(N, 1, 1.0);
   dis.upward_boundary()     = 0.0;
   dis.downward_boundary()   = 0.0;
-  dis.brdf_modes()[0] = disort::BDRF{[](MatrixView x, const ConstVectorView&, const ConstVectorView&) { x = 0.0; }};
 
   Tensor3 disort_intensities(nv, N, NQuad);
 

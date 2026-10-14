@@ -405,11 +405,6 @@ to produce another *Numeric*.
 )--",
   };
 
-  wsg_data["MatrixOfDisortBDRF"] = {
-      .file = "disort.h",
-      .desc = "A 2 dimensional array of *DisortBDRF*\n",
-  };
-
   wsg_data["LinemixingSingleEcsData"] = {
       .file = "lbl.h",
       .desc =
@@ -473,26 +468,6 @@ Both the data and the grid may be named.  The grids are not sorted.
       .invariant            = "{}.ok()",
       .invariant_desc       = "has grids whose sizes are the shape of its data.",
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
-  };
-
-  wsg_data["DisortBDRF"] = {
-      .file = "disort.h",
-      .desc = "A bidirectional reflectance function\n",
-  };
-
-  wsg_data["VDisortBDRF"] = {
-      .file = "vdisort_settings.h",
-      .desc = R"(A polarized bidirectional reflectance function of VDISORT, one Fourier mode.
-
-Its reflection kernels are Mueller matrices in VDISORT's combined cosine and
-sine representation, and it may have a specular part (an ideal Fresnel
-surface).
-)",
-  };
-
-  wsg_data["MatrixOfVDisortBDRF"] = {
-      .file = "vdisort_settings.h",
-      .desc = "A 2 dimensional array of *VDisortBDRF*\n",
   };
 
   wsg_data["AbsorptionLookupTable"] = {

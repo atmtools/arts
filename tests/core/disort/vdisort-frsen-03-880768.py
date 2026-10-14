@@ -121,10 +121,10 @@ def test_polarized_lambertian_depolarizes():
     boundary_down[COSINE, 0, :, :2] = incident[:2]
     boundary_down[SINE, 0, :, 2:] = incident[2:]
 
-    def lambertian(mu_out, mu_in):
-        blocks = np.zeros((len(mu_out), 4, len(mu_in), 4))
-        blocks[:, 0, :, 0] = rho / np.pi
-        return blocks.reshape(4 * len(mu_out), 4 * len(mu_in))
+    # The surface as data: rho / pi from I into I between all streams, in the cosine mode 0
+    brdf = np.zeros((2, 1, npositive, npositive, 4, 4))
+    brdf[COSINE, 0, :, :, 0, 0] = rho / np.pi
+    lambertian = arts.vdisort.SurfaceReflection(brdf, np.zeros((2, 1, npositive, 4, 4)))
 
     model = arts.cppvdisort(
         tau_arr=np.array([depth]),
@@ -135,7 +135,7 @@ def test_polarized_lambertian_depolarizes():
         beam_stokes=np.zeros(4),
         phi0=0.0,
         b_neg=boundary_down,
-        BDRF_Fourier_modes=[arts.VDisortBDRF(lambertian)],
+        surface=lambertian,
     )
 
     field = np.asarray(model.u(np.array([depth]), np.array([0.0, 1.1, 2.7])))[0]
@@ -293,11 +293,15 @@ def test_figure_3_cox_munk_reflection():
     nfourier = 24
     mu0 = np.cos(np.deg2rad(30.0))
     phase = _empty_phase(nfourier, 1, nquad)
+    streams = np.asarray(arts.math.pdleggauss(nquad)[0])
     modes = arts.vdisort.cox_munk_fourier_modes(
         wind_speed=5.0,
         refractive_index=1.34,
         shadowing=True,
         number_of_modes=nfourier,
+        mu_out=streams,
+        mu_in=streams,
+        mu0=mu0,
         azimuth_quadrature_points=64,
     )
     model = arts.cppvdisort(
@@ -309,7 +313,7 @@ def test_figure_3_cox_munk_reflection():
         mu0=mu0,
         beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
         phi0=0.0,
-        BDRF_Fourier_modes=modes,
+        surface=modes,
     )
 
     # The upward streams with polar angles from 2 to 82 degrees

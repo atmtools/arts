@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <numeric>
 #include <string_view>
@@ -334,14 +335,17 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
     bottom[cosine_mode, 0, i] = {B_surf, 0.0, 0.0, 0.0};
   }
 
-  std::vector<BDRF> brdf = std::visit(
+  // The surface's reflection on the streams, and of the beam if there is one
+  const ConstVectorView streams = mu[Range(0, N)];
+  const Numeric         mu0     = beam ? settings.beam_mu : std::numeric_limits<Numeric>::quiet_NaN();
+  surface_reflection    surface = std::visit(
       [&](const auto& g) {
         using T = std::remove_cvref_t<decltype(g)>;
         if constexpr (std::is_same_v<T, lambertian_surface>) {
-          return brdf::lambertian_fourier_modes(g.albedo, NF);
+          return brdf::lambertian_fourier_modes(g.albedo, NF, streams, streams, mu0);
         } else {
           static_assert(std::is_same_v<T, fresnel_surface>);
-          return brdf::fresnel_fourier_modes(g.refractive_index, NF);
+          return brdf::fresnel_fourier_modes(g.refractive_index, NF, streams, streams, mu0);
         }
       },
       ground);
@@ -355,7 +359,7 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
                    std::move(bottom),
                    std::move(top),
                    std::move(source),
-                   std::move(brdf),
+                   std::move(surface),
                    settings.beam_mu,
                    beam_stokes,
                    settings.beam_azimuth,

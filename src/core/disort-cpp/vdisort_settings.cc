@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 
 #include "vdisort_arts.h"
@@ -43,7 +44,11 @@ void VDisortSettings::resize(Index          quadrature_dimension_,
   solar_source.resize(nfreq);
   solar_zenith_angle.resize(nfreq);
   solar_azimuth_angle.resize(nfreq);
-  bidirectional_reflectance_distribution_functions.resize(nfreq, 0);
+  surface_brdf.resize(nfreq, 2, 0, quadrature_dimension / 2, quadrature_dimension / 2);
+  surface_beam_brdf.resize(nfreq, 2, 0, quadrature_dimension / 2);
+  surface_beam_mu.resize(nfreq);
+  surface_beam_mu = std::numeric_limits<Numeric>::quiet_NaN();
+  surface_specular.resize(nfreq, 0);
   optical_thicknesses.resize(nfreq, nlay);
   single_scattering_albedo.resize(nfreq, nlay);
   source_polynomial.resize(nfreq, nlay, 0);
@@ -60,8 +65,10 @@ bool VDisortSettings::ok() const {
   return not(
       solar_source.shape() != std::array{nfreq} or solar_zenith_angle.shape() != std::array{nfreq} or
       solar_azimuth_angle.shape() != std::array{nfreq} or
-      (bidirectional_reflectance_distribution_functions.shape() !=
-       std::array{nfreq, bidirectional_reflectance_distribution_functions.ncols()}) or
+      (surface_brdf.shape() != std::array{nfreq, Index{2}, surface_brdf.extent(2), N, N}) or
+      (surface_beam_brdf.shape() != std::array{nfreq, Index{2}, surface_brdf.extent(2), N}) or
+      (surface_beam_mu.shape() != std::array{nfreq}) or
+      (surface_specular.shape() != std::array{nfreq, N} and surface_specular.shape() != std::array{nfreq, Index{0}}) or
       (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
       (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
       (source_polynomial.shape() != std::array{nfreq, nlay, source_polynomial.ncols()}) or
@@ -90,7 +97,8 @@ vdisort::main_data VDisortSettings::init() const {
                             quadrature_dimension,
                             fourier_mode_dimension,
                             source_polynomial.ncols(),
-                            bidirectional_reflectance_distribution_functions.ncols());
+                            surface_brdf.extent(2),
+                            surface_specular.ncols() > 0);
 }
 
 Numeric vdisort_azimuth(Numeric aa) {
@@ -121,9 +129,7 @@ vdisort::main_data& VDisortSettings::set(vdisort::main_data& dis, Index iv) cons
   const Index NF   = fourier_mode_dimension;
   const Index L    = legendre_polynomial_dimension;
 
-  for (Index i = 0; i < bidirectional_reflectance_distribution_functions.ncols(); i++) {
-    dis.brdf_modes()[i] = bidirectional_reflectance_distribution_functions[iv, i];
-  }
+  dis.surface(surface_brdf[iv], surface_beam_brdf[iv], surface_beam_mu[iv], surface_specular[iv]);
 
   dis.tau(optical_thicknesses[iv]);
   dis.solar_zenith() = cosd(solar_zenith_angle[iv]);
@@ -168,34 +174,6 @@ vdisort::main_data& VDisortSettings::set(vdisort::main_data& dis, Index iv) cons
   return dis;
 }
 
-void xml_io_stream<VDisortBDRF>::read(std::istream& is, VDisortBDRF& x, bifstream* pbifs) {
-  XMLTag tag;
-  tag.read_from_stream(is);
-  tag.check_name(type_name);
-
-  xml_read_from_stream(is, x.cosine, pbifs);
-  xml_read_from_stream(is, x.sine, pbifs);
-  xml_read_from_stream(is, x.beam_cosine, pbifs);
-  xml_read_from_stream(is, x.beam_sine, pbifs);
-  xml_read_from_stream(is, x.specular, pbifs);
-
-  tag.read_from_stream(is);
-  tag.check_end_name(type_name);
-}
-
-void xml_io_stream<VDisortBDRF>::write(std::ostream& os, const VDisortBDRF& x, bofstream* pbofs, std::string_view name) {
-  XMLTag tag(type_name, "name", name);
-  tag.write_to_stream(os);
-
-  xml_write_to_stream(os, x.cosine, pbofs);
-  xml_write_to_stream(os, x.sine, pbofs);
-  xml_write_to_stream(os, x.beam_cosine, pbofs);
-  xml_write_to_stream(os, x.beam_sine, pbofs);
-  xml_write_to_stream(os, x.specular, pbofs);
-
-  tag.write_to_end_stream(os);
-}
-
 void xml_io_stream<VDisortSettings>::read(std::istream& is_xml, VDisortSettings& v, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is_xml);
@@ -209,7 +187,10 @@ void xml_io_stream<VDisortSettings>::read(std::istream& is_xml, VDisortSettings&
   xml_read_from_stream(is_xml, v.solar_azimuth_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_zenith_angle, pbifs);
   xml_read_from_stream(is_xml, v.solar_source, pbifs);
-  xml_read_from_stream(is_xml, v.bidirectional_reflectance_distribution_functions, pbifs);
+  xml_read_from_stream(is_xml, v.surface_brdf, pbifs);
+  xml_read_from_stream(is_xml, v.surface_beam_brdf, pbifs);
+  xml_read_from_stream(is_xml, v.surface_beam_mu, pbifs);
+  xml_read_from_stream(is_xml, v.surface_specular, pbifs);
   xml_read_from_stream(is_xml, v.optical_thicknesses, pbifs);
   xml_read_from_stream(is_xml, v.single_scattering_albedo, pbifs);
   xml_read_from_stream(is_xml, v.source_polynomial, pbifs);
@@ -236,10 +217,10 @@ void xml_io_stream<VDisortSettings>::write(std::ostream&          os_xml,
   xml_write_to_stream(os_xml, v.solar_azimuth_angle, pbofs, "solar_azimuth_angle");
   xml_write_to_stream(os_xml, v.solar_zenith_angle, pbofs, "solar_zenith_angle");
   xml_write_to_stream(os_xml, v.solar_source, pbofs, "solar_source");
-  xml_write_to_stream(os_xml,
-                      v.bidirectional_reflectance_distribution_functions,
-                      pbofs,
-                      "bidirectional_reflectance_distribution_functions");
+  xml_write_to_stream(os_xml, v.surface_brdf, pbofs, "surface_brdf");
+  xml_write_to_stream(os_xml, v.surface_beam_brdf, pbofs, "surface_beam_brdf");
+  xml_write_to_stream(os_xml, v.surface_beam_mu, pbofs, "surface_beam_mu");
+  xml_write_to_stream(os_xml, v.surface_specular, pbofs, "surface_specular");
   xml_write_to_stream(os_xml, v.optical_thicknesses, pbofs, "optical_thicknesses");
   xml_write_to_stream(os_xml, v.single_scattering_albedo, pbofs, "single_scattering_albedo");
   xml_write_to_stream(os_xml, v.source_polynomial, pbofs, "source_polynomial");

@@ -134,8 +134,8 @@ void setup_cdisort_for_frequency(disort_state&            ds,
   ds.wvnmlo             -= ds.wvnmlo * 1e-7;
 
   // set surface albedo
-  if (dis.brdf_modes().size() > 0)
-    ds.bc.albedo = dis.brdf_modes()[0]({0}, {0})[0, 0];
+  if (dis.surface().modes() > 0)
+    ds.bc.albedo = dis.surface().brdf()[0, 0, 0];
   else
     ds.bc.albedo = 0.0;
 

@@ -803,7 +803,9 @@ corresponds to ``alt_grid[1:]``; the top boundary is omitted.
 #. *Vector* Solar azimuth angles
 #. *Vector* Solar zenith angles
 #. *Vector* Solar source
-#. *MatrixOfDisortBDRF* Bi-directional reflectance distribution functions
+#. *Tensor4* The Fourier modes of the surface's bidirectional reflectance distribution function between the streams
+#. *Tensor3* The same from the direct beam
+#. *Vector* The beam cosine of the beam's reflection, NaN where it was computed without a beam
 #. *Matrix* Optical thicknesses
 #. *Matrix* Single scattering albedos
 #. *Matrix* Fractional scattering
@@ -856,7 +858,10 @@ as the line of sight of a *ray_point*.
 #. *Vector* Solar azimuth angles, of the line of sight toward the sun
 #. *Vector* Solar zenith angles, of the line of sight toward the sun
 #. *StokvecVector* Solar source
-#. *MatrixOfVDisortBDRF* Bi-directional reflectance distribution functions
+#. MuelmatTensor5 The combined Fourier modes of the surface's bidirectional reflectance distribution function between the streams
+#. MuelmatTensor4 The same from the direct beam
+#. *Vector* The beam cosine of the beam's reflection, NaN where it was computed without a beam
+#. *MuelmatMatrix* The specular part on the streams, or none
 #. *Matrix* Optical thicknesses
 #. *Matrix* Single scattering albedos
 #. *StokvecTensor3* Source function polynomial

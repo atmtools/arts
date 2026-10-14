@@ -161,13 +161,14 @@ class SpectralAtmosphericFlux:
             ray_point=self.ws.ray_path[0]
         )
         self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
+        # The surface reflects the sun, so the sun is set first
+        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
         self.ws.disort_settingsSurfaceLambertian(
             value=self.visible_surf_reflectivity
         )
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
         self.ws.spectral_flux_components_profileDisortCalc()
 
         # Shape is f x 3 x np, we want 3 x f x np

@@ -346,6 +346,17 @@ Vector signed_streams(Index nmu) {
   return mu;
 }
 
+//! The setup's surface, its reflection from VDISORT's streams into the directions |mu_out|, for the beam if any
+vdisort::surface_reflection vdisort_surface(const setup& c, const ConstVectorView& mu_out) {
+  const Index N = c.nmu, nout = isize(mu_out);
+  Vector      streams(N), weights(N), abs_mu_out(nout);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
+  for (Index i = 0; i < nout; i++) abs_mu_out[i] = std::abs(mu_out[i]);
+  const Numeric mu0 = c.direct_flux > 0 ? c.mu0 : std::numeric_limits<Numeric>::quiet_NaN();
+  return c.fresnel ? vdisort::brdf::fresnel_fourier_modes(*c.fresnel, c.nfourier(), abs_mu_out, streams, mu0)
+                   : vdisort::brdf::lambertian_fourier_modes(c.albedo, c.nfourier(), abs_mu_out, streams, mu0);
+}
+
 vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   const Index  N = c.nmu, NQuad = 2 * N, NL = c.nlay(), NF = c.nfourier(), ns = c.nstokes;
   const Vector mu = signed_streams(N);
@@ -434,7 +445,9 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
   }
 
   const rtepack::stokvec beam_stokes{c.direct_flux > 0 ? c.direct_flux / c.mu0 : 0.0, 0.0, 0.0, 0.0};
-  vdisort::main_data     v(NQuad,
+  Vector                 streams(N), weights(N);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
+  vdisort::main_data v(NQuad,
                            NF,
                            AscendingGrid{std::move(tau)},
                            std::move(omega),
@@ -442,8 +455,7 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
                            std::move(bottom),
                            std::move(top),
                            std::move(source),
-                           c.fresnel ? vdisort::brdf::fresnel_fourier_modes(*c.fresnel, NF)
-                                     : vdisort::brdf::lambertian_fourier_modes(c.albedo, NF),
+                           vdisort_surface(c, streams),
                            c.mu0,
                            beam_stokes,
                            c.phi0,
@@ -1262,7 +1274,8 @@ deviation compare_user_angles(const setup& c, const rt3::result& r, const vdisor
   for (Index k = 0; k < isize(psi); k++) phi[k] = wrapped(c.phi0 + psi[k]);
   const auto               phase = user_phase_matrices(c, user);
   rtepack::stokvec_tensor3 out(NL + 1, isize(psi), 2 * n);
-  v.ungridded_u_user(out, AscendingGrid{std::move(levels)}, phi, user, phase.diffuse, phase.beam);
+  v.ungridded_u_user(
+      out, AscendingGrid{std::move(levels)}, phi, user, phase.diffuse, phase.beam, {}, vdisort_surface(c, user));
 
   const auto up = rt3::azimuth_radiance(r.up, psi), down = rt3::azimuth_radiance(r.down, psi);
   Numeric    scale = 0.0;
@@ -1432,7 +1445,7 @@ row_solution vdisort_at_table(const vdisort::main_data& v, const evans_case& e, 
   for (Index k = 0; k < 3; k++) phi[k] = wrapped(c.phi0 + psi[k]);
   // Every Evans angle in both directions: over a Fresnel surface the upward one reflects the downward one
   auto out = std::make_shared<rtepack::stokvec_tensor3>(NL + 1, 3, 2 * n);
-  v.ungridded_u_user(*out, tau, phi, user, phase.diffuse, phase.beam);
+  v.ungridded_u_user(*out, tau, phi, user, phase.diffuse, phase.beam, {}, vdisort_surface(c, user));
 
   auto flux = std::make_shared<Matrix>(4, NL + 1);
   v.ungridded_flux((*flux)[0], (*flux)[1], (*flux)[2], (*flux)[3], tau);

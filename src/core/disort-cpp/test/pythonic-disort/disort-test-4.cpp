@@ -29,7 +29,7 @@ void test_4a() try {
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Matrix                    b_neg(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{Leg_coeffs_all[0, NQuad]};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
@@ -42,7 +42,7 @@ void test_4a() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -223,7 +223,7 @@ void test_4b() try {
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Matrix                    b_neg(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{Leg_coeffs_all[0, NQuad]};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
@@ -236,7 +236,7 @@ void test_4b() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -417,7 +417,7 @@ void test_4c() try {
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Matrix                    b_neg(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{Leg_coeffs_all[0, NQuad]};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
@@ -430,7 +430,7 @@ void test_4c() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);

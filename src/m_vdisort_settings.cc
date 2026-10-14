@@ -1,5 +1,6 @@
 #include <array_algo.h>
 #include <arts_omp.h>
+#include <disort-brdf.h>
 #include <legendre.h>
 #include <matpack.h>
 #include <path_point.h>
@@ -11,7 +12,12 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <concepts>
+#include <functional>
+#include <limits>
 #include <numeric>
+#include <string_view>
+#include <type_traits>
 #include <utility>
 
 /* The VDISORT counterparts of the DISORT settings methods (m_disort_settings.cc), one for one.  They take the
@@ -448,56 +454,130 @@ Frequency grid index: {}
 // VDISORT BRDF / BDRF
 ////////////////////////////////////////////////////////////////////////////////
 
+/* The surface is held as its reflection between the streams for each frequency, and its reflection of the sun's
+   beam at the sun's zenith angle, so the sun must be set first.  A surface with the same parameters at every
+   frequency is evaluated once, and again only where the sun's zenith angle changes. */
+
 namespace {
-template <typename T> Numeric spectral_brdf_parameter(const T& value, const Index iv, const Index frequency_count) {
-  if constexpr (std::same_as<T, Numeric>) {
-    return value;
-  } else {
-    ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != frequency_count,
-                       "Spectral BRDF parameter must have one value per frequency: expected {}, got {}",
-                       frequency_count,
-                       value.size());
-    return value[iv];
-  }
+//! The cosines of the upward streams
+Vector upward_streams(const VDisortSettings& vdisort_settings) {
+  const Index N = vdisort_settings.quadrature_dimension / 2;
+  Vector      mu(2 * N), inv_mu(2 * N), W(N);
+  disort_common::initialize_streams(mu, inv_mu, W);
+  return Vector{mu[Range(0, N)]};
 }
 
-//! Sets the BRDF of every frequency from the modes that make_modes(iv, nv, number_of_modes) gives
-template <typename ModeFactory>
-void vdisort_settingsSurfaceModes(VDisortSettings& vdisort_settings, ModeFactory&& make_modes) {
+//! The cosine of the sun's zenith angle of frequency iv, or NaN for a sun below the horizon
+Numeric sun_cosine(const VDisortSettings& vdisort_settings, const Index iv) {
+  const Numeric mu0 = Conversion::cosd(vdisort_settings.solar_zenith_angle[iv]);
+  return mu0 > 0.0 ? mu0 : std::numeric_limits<Numeric>::quiet_NaN();
+}
+
+//! Size the surface for NBRDF Fourier modes, with a specular part if specular
+void resize_surface(VDisortSettings& vdisort_settings, const Index NBRDF, const bool specular) {
   const Index nv = vdisort_settings.frequency_count();
-  const Index NF = vdisort_settings.fourier_mode_dimension;
-  vdisort_settings.bidirectional_reflectance_distribution_functions.resize(nv, NF);
-  for (Index iv = 0; iv < nv; ++iv) {
-    const std::vector<VDisortBDRF> modes = make_modes(iv, nv, NF);
-    ARTS_USER_ERROR_IF(std::ssize(modes) != NF, "Expected {} BRDF Fourier modes, got {}", NF, modes.size());
-    for (Index mode = 0; mode < NF; ++mode)
-      vdisort_settings.bidirectional_reflectance_distribution_functions[iv, mode] = modes[mode];
+  const Index N  = vdisort_settings.quadrature_dimension / 2;
+  ARTS_USER_ERROR_IF(vdisort_settings.solar_zenith_angle.size() != static_cast<Size>(nv),
+                     "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
+                     "first; it has {} values",
+                     nv,
+                     vdisort_settings.solar_zenith_angle.size());
+  vdisort_settings.surface_brdf.resize(nv, 2, NBRDF, N, N);
+  vdisort_settings.surface_beam_brdf.resize(nv, 2, NBRDF, N);
+  vdisort_settings.surface_beam_mu.resize(nv);
+  vdisort_settings.surface_specular.resize(nv, specular ? N : 0);
+}
+
+//! Set the surface of frequency iv
+void set_surface(VDisortSettings& vdisort_settings, const Index iv, const vdisort::surface_reflection& surface) {
+  vdisort_settings.surface_brdf[iv]      = surface.brdf();
+  vdisort_settings.surface_beam_brdf[iv] = surface.beam_brdf();
+  vdisort_settings.surface_beam_mu[iv]   = surface.beam_mu();
+  vdisort_settings.surface_specular[iv]  = surface.specular();
+}
+
+//! Throw unless a spectral parameter has one value per frequency
+void check_spectral(const VDisortSettings& vdisort_settings, const Vector& value, const std::string_view name) {
+  ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != vdisort_settings.frequency_count(),
+                     "Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
+                     name,
+                     vdisort_settings.frequency_count(),
+                     value.size());
+}
+
+//! A scalar BRDF as a fully depolarizing BPrDF
+vdisort::brdf::RawFunction depolarizing(const disort::brdf::RawFunction& scalar) {
+  return [scalar](const Numeric outgoing_mu, const Numeric incoming_mu, const Numeric relative_azimuth) {
+    rtepack::muelmat result{0.0};
+    result[0, 0] = scalar(outgoing_mu, incoming_mu, relative_azimuth);
+    return result;
+  };
+}
+
+//! Set the surface of every frequency to the BPrDF raw
+void set_brdf_surface(VDisortSettings&                  vdisort_settings,
+                      const vdisort::brdf::RawFunction& raw,
+                      const Index                       azimuth_quadrature_points) {
+  const Vector mu = upward_streams(vdisort_settings);
+  resize_surface(vdisort_settings, vdisort_settings.fourier_mode_dimension, false);
+  vdisort::surface_reflection surface;
+  for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++) {
+    if (iv == 0 or vdisort_settings.solar_zenith_angle[iv] != vdisort_settings.solar_zenith_angle[iv - 1])
+      surface = vdisort::brdf::fourier_modes(raw,
+                                             vdisort_settings.fourier_mode_dimension,
+                                             mu,
+                                             mu,
+                                             sun_cosine(vdisort_settings, iv),
+                                             azimuth_quadrature_points);
+    set_surface(vdisort_settings, iv, surface);
   }
 }
 
-void check_azimuth_points(Index azimuth_quadrature_points) {
-  ARTS_USER_ERROR_IF(
-      azimuth_quadrature_points < 1, "azimuth_quadrature_points must be positive, got {}", azimuth_quadrature_points);
+//! Set the surface of each frequency iv to the BPrDF raw(iv)
+void set_spectral_brdf_surface(VDisortSettings&                                        vdisort_settings,
+                               const std::function<vdisort::brdf::RawFunction(Index)>& raw,
+                               const Index azimuth_quadrature_points) {
+  const Vector mu = upward_streams(vdisort_settings);
+  resize_surface(vdisort_settings, vdisort_settings.fourier_mode_dimension, false);
+  for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++)
+    set_surface(vdisort_settings,
+                iv,
+                vdisort::brdf::fourier_modes(raw(iv),
+                                             vdisort_settings.fourier_mode_dimension,
+                                             mu,
+                                             mu,
+                                             sun_cosine(vdisort_settings, iv),
+                                             azimuth_quadrature_points));
 }
 }  // namespace
 
 void vdisort_settingsNoSurfaceScattering(VDisortSettings& vdisort_settings) {
   ARTS_TIME_REPORT
 
-  vdisort_settings.bidirectional_reflectance_distribution_functions.resize(vdisort_settings.frequency_count(), 0);
+  resize_surface(vdisort_settings, 0, false);
+  vdisort_settings.surface_beam_mu = std::numeric_limits<Numeric>::quiet_NaN();
 }
 
 void vdisort_settingsSurfaceLambertian(VDisortSettings&                           vdisort_settings,
                                        const Generic<const Numeric, const Vector> value) {
   ARTS_TIME_REPORT
 
-  std::visit(
-      [&](const auto& selected) {
-        vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-          return vdisort::brdf::lambertian_fourier_modes(spectral_brdf_parameter(*selected, iv, nv), NF);
-        });
+  const Index nv     = vdisort_settings.frequency_count();
+  const auto  albedo = std::visit(
+      [nv](const auto& selected) {
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>) return Vector(nv, *selected);
+        else return Vector{*selected};
       },
       value);
+  check_spectral(vdisort_settings, albedo, "value");
+
+  const Vector mu = upward_streams(vdisort_settings);
+  const Index  NF = vdisort_settings.fourier_mode_dimension;
+  resize_surface(vdisort_settings, NF, false);
+  for (Index iv = 0; iv < nv; iv++)
+    set_surface(vdisort_settings,
+                iv,
+                vdisort::brdf::lambertian_fourier_modes(albedo[iv], NF, mu, mu, sun_cosine(vdisort_settings, iv)));
 }
 
 void vdisort_settingsSurfaceFresnel(VDisortSettings& vdisort_settings,
@@ -505,9 +585,16 @@ void vdisort_settingsSurfaceFresnel(VDisortSettings& vdisort_settings,
                                     const Numeric&   refractive_index_imag) {
   ARTS_TIME_REPORT
 
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index, Index, Index NF) {
-    return vdisort::brdf::fresnel_fourier_modes(Complex{refractive_index_real, refractive_index_imag}, NF);
-  });
+  // A mirror cannot reflect the beam (see vdisort::surface_reflection), so it has no beam reflection
+  const Vector mu = upward_streams(vdisort_settings);
+  const Index  NF = vdisort_settings.fourier_mode_dimension;
+  resize_surface(vdisort_settings, NF, true);
+  const auto surface = vdisort::brdf::fresnel_fourier_modes(Complex{refractive_index_real, refractive_index_imag},
+                                                            NF,
+                                                            mu,
+                                                            mu,
+                                                            std::numeric_limits<Numeric>::quiet_NaN());
+  for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++) set_surface(vdisort_settings, iv, surface);
 }
 
 void vdisort_settingsSurfaceFresnelSpectral(VDisortSettings& vdisort_settings,
@@ -515,83 +602,22 @@ void vdisort_settingsSurfaceFresnelSpectral(VDisortSettings& vdisort_settings,
                                             const Vector&    refractive_index_imag) {
   ARTS_TIME_REPORT
 
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-    return vdisort::brdf::fresnel_fourier_modes(Complex{spectral_brdf_parameter(refractive_index_real, iv, nv),
-                                                        spectral_brdf_parameter(refractive_index_imag, iv, nv)},
-                                                NF);
-  });
-}
+  check_spectral(vdisort_settings, refractive_index_real, "refractive_index_real");
+  check_spectral(vdisort_settings, refractive_index_imag, "refractive_index_imag");
 
-namespace {
-template <typename A, typename W, typename S>
-void vdisort_settingsSurfaceHapkeImpl(VDisortSettings& vdisort_settings,
-                                      const A&         opposition_amplitude,
-                                      const W&         opposition_width,
-                                      const S&         single_scattering_albedo,
-                                      const Index&     azimuth_quadrature_points) {
-  check_azimuth_points(azimuth_quadrature_points);
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-    return vdisort::brdf::hapke_fourier_modes(spectral_brdf_parameter(opposition_amplitude, iv, nv),
-                                              spectral_brdf_parameter(opposition_width, iv, nv),
-                                              spectral_brdf_parameter(single_scattering_albedo, iv, nv),
-                                              NF,
-                                              azimuth_quadrature_points);
-  });
+  // A mirror cannot reflect the beam (see vdisort::surface_reflection), so it has no beam reflection
+  const Vector mu = upward_streams(vdisort_settings);
+  const Index  NF = vdisort_settings.fourier_mode_dimension;
+  resize_surface(vdisort_settings, NF, true);
+  for (Index iv = 0; iv < vdisort_settings.frequency_count(); iv++)
+    set_surface(vdisort_settings,
+                iv,
+                vdisort::brdf::fresnel_fourier_modes(Complex{refractive_index_real[iv], refractive_index_imag[iv]},
+                                                     NF,
+                                                     mu,
+                                                     mu,
+                                                     std::numeric_limits<Numeric>::quiet_NaN()));
 }
-
-template <typename RefractiveIndex>
-void vdisort_settingsSurfaceCoxMunkImpl(VDisortSettings&       vdisort_settings,
-                                        const Numeric&         wind_speed,
-                                        const RefractiveIndex& refractive_index,
-                                        const Index&           shadowing,
-                                        const Index&           azimuth_quadrature_points) {
-  ARTS_USER_ERROR_IF(shadowing != 0 && shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
-  check_azimuth_points(azimuth_quadrature_points);
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-    return vdisort::brdf::cox_munk_fourier_modes(wind_speed,
-                                                 Complex{spectral_brdf_parameter(refractive_index, iv, nv), 0.0},
-                                                 static_cast<bool>(shadowing),
-                                                 NF,
-                                                 azimuth_quadrature_points);
-  });
-}
-
-template <typename Rho0, typename Kappa, typename Asymmetry, typename Hotspot>
-void vdisort_settingsSurfaceRPVImpl(VDisortSettings& vdisort_settings,
-                                    const Rho0&      rho0,
-                                    const Kappa&     kappa,
-                                    const Asymmetry& asymmetry,
-                                    const Hotspot&   hotspot,
-                                    const Index&     azimuth_quadrature_points) {
-  check_azimuth_points(azimuth_quadrature_points);
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-    return vdisort::brdf::rpv_fourier_modes(spectral_brdf_parameter(rho0, iv, nv),
-                                            spectral_brdf_parameter(kappa, iv, nv),
-                                            spectral_brdf_parameter(asymmetry, iv, nv),
-                                            spectral_brdf_parameter(hotspot, iv, nv),
-                                            NF,
-                                            azimuth_quadrature_points);
-  });
-}
-
-template <typename Isotropic, typename Volumetric, typename Geometric>
-void vdisort_settingsSurfaceRossLiImpl(VDisortSettings&  vdisort_settings,
-                                       const Isotropic&  isotropic,
-                                       const Volumetric& volumetric,
-                                       const Geometric&  geometric,
-                                       const Numeric&    hotspot_angle,
-                                       const Index&      azimuth_quadrature_points) {
-  check_azimuth_points(azimuth_quadrature_points);
-  vdisort_settingsSurfaceModes(vdisort_settings, [&](Index iv, Index nv, Index NF) {
-    return vdisort::brdf::ross_li_fourier_modes(spectral_brdf_parameter(isotropic, iv, nv),
-                                                spectral_brdf_parameter(volumetric, iv, nv),
-                                                spectral_brdf_parameter(geometric, iv, nv),
-                                                Conversion::deg2rad(hotspot_angle),
-                                                NF,
-                                                azimuth_quadrature_points);
-  });
-}
-}  // namespace
 
 void vdisort_settingsSurfaceHapke(VDisortSettings& vdisort_settings,
                                   const Numeric&   opposition_amplitude,
@@ -599,8 +625,12 @@ void vdisort_settingsSurfaceHapke(VDisortSettings& vdisort_settings,
                                   const Numeric&   single_scattering_albedo,
                                   const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceHapkeImpl(
-      vdisort_settings, opposition_amplitude, opposition_width, single_scattering_albedo, azimuth_quadrature_points);
+
+  set_brdf_surface(vdisort_settings,
+                   depolarizing(disort::brdf::Hapke{.opposition_amplitude     = opposition_amplitude,
+                                                    .opposition_width         = opposition_width,
+                                                    .single_scattering_albedo = single_scattering_albedo}),
+                   azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceHapkeSpectral(VDisortSettings& vdisort_settings,
@@ -609,8 +639,18 @@ void vdisort_settingsSurfaceHapkeSpectral(VDisortSettings& vdisort_settings,
                                           const Vector&    single_scattering_albedo,
                                           const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceHapkeImpl(
-      vdisort_settings, opposition_amplitude, opposition_width, single_scattering_albedo, azimuth_quadrature_points);
+
+  check_spectral(vdisort_settings, opposition_amplitude, "opposition_amplitude");
+  check_spectral(vdisort_settings, opposition_width, "opposition_width");
+  check_spectral(vdisort_settings, single_scattering_albedo, "single_scattering_albedo");
+  set_spectral_brdf_surface(
+      vdisort_settings,
+      [&](const Index iv) {
+        return depolarizing(disort::brdf::Hapke{.opposition_amplitude     = opposition_amplitude[iv],
+                                                .opposition_width         = opposition_width[iv],
+                                                .single_scattering_albedo = single_scattering_albedo[iv]});
+      },
+      azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceCoxMunk(VDisortSettings& vdisort_settings,
@@ -619,8 +659,13 @@ void vdisort_settingsSurfaceCoxMunk(VDisortSettings& vdisort_settings,
                                     const Index&     shadowing,
                                     const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceCoxMunkImpl(
-      vdisort_settings, wind_speed, refractive_index, shadowing, azimuth_quadrature_points);
+
+  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  set_brdf_surface(vdisort_settings,
+                   vdisort::brdf::CoxMunk{.wind_speed       = wind_speed,
+                                          .refractive_index = Complex{refractive_index, 0.0},
+                                          .shadowing        = static_cast<bool>(shadowing)},
+                   azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceCoxMunkSpectral(VDisortSettings& vdisort_settings,
@@ -629,8 +674,17 @@ void vdisort_settingsSurfaceCoxMunkSpectral(VDisortSettings& vdisort_settings,
                                             const Index&     shadowing,
                                             const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceCoxMunkImpl(
-      vdisort_settings, wind_speed, refractive_index, shadowing, azimuth_quadrature_points);
+
+  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  check_spectral(vdisort_settings, refractive_index, "refractive_index");
+  set_spectral_brdf_surface(
+      vdisort_settings,
+      [&](const Index iv) -> vdisort::brdf::RawFunction {
+        return vdisort::brdf::CoxMunk{.wind_speed       = wind_speed,
+                                      .refractive_index = Complex{refractive_index[iv], 0.0},
+                                      .shadowing        = static_cast<bool>(shadowing)};
+      },
+      azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceRPV(VDisortSettings& vdisort_settings,
@@ -640,7 +694,11 @@ void vdisort_settingsSurfaceRPV(VDisortSettings& vdisort_settings,
                                 const Numeric&   hotspot,
                                 const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceRPVImpl(vdisort_settings, rho0, kappa, asymmetry, hotspot, azimuth_quadrature_points);
+
+  set_brdf_surface(
+      vdisort_settings,
+      depolarizing(disort::brdf::RPV{.rho0 = rho0, .kappa = kappa, .asymmetry = asymmetry, .hotspot = hotspot}),
+      azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceRPVSpectral(VDisortSettings& vdisort_settings,
@@ -650,7 +708,18 @@ void vdisort_settingsSurfaceRPVSpectral(VDisortSettings& vdisort_settings,
                                         const Vector&    hotspot,
                                         const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceRPVImpl(vdisort_settings, rho0, kappa, asymmetry, hotspot, azimuth_quadrature_points);
+
+  check_spectral(vdisort_settings, rho0, "rho0");
+  check_spectral(vdisort_settings, kappa, "kappa");
+  check_spectral(vdisort_settings, asymmetry, "asymmetry");
+  check_spectral(vdisort_settings, hotspot, "hotspot");
+  set_spectral_brdf_surface(
+      vdisort_settings,
+      [&](const Index iv) {
+        return depolarizing(disort::brdf::RPV{
+            .rho0 = rho0[iv], .kappa = kappa[iv], .asymmetry = asymmetry[iv], .hotspot = hotspot[iv]});
+      },
+      azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceRossLi(VDisortSettings& vdisort_settings,
@@ -660,8 +729,13 @@ void vdisort_settingsSurfaceRossLi(VDisortSettings& vdisort_settings,
                                    const Numeric&   hotspot_angle,
                                    const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceRossLiImpl(
-      vdisort_settings, isotropic, volumetric, geometric, hotspot_angle, azimuth_quadrature_points);
+
+  set_brdf_surface(vdisort_settings,
+                   depolarizing(disort::brdf::RossLi{.isotropic     = isotropic,
+                                                     .volumetric    = volumetric,
+                                                     .geometric     = geometric,
+                                                     .hotspot_angle = Conversion::deg2rad(hotspot_angle)}),
+                   azimuth_quadrature_points);
 }
 
 void vdisort_settingsSurfaceRossLiSpectral(VDisortSettings& vdisort_settings,
@@ -671,8 +745,19 @@ void vdisort_settingsSurfaceRossLiSpectral(VDisortSettings& vdisort_settings,
                                            const Numeric&   hotspot_angle,
                                            const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  vdisort_settingsSurfaceRossLiImpl(
-      vdisort_settings, isotropic, volumetric, geometric, hotspot_angle, azimuth_quadrature_points);
+
+  check_spectral(vdisort_settings, isotropic, "isotropic");
+  check_spectral(vdisort_settings, volumetric, "volumetric");
+  check_spectral(vdisort_settings, geometric, "geometric");
+  set_spectral_brdf_surface(
+      vdisort_settings,
+      [&](const Index iv) {
+        return depolarizing(disort::brdf::RossLi{.isotropic     = isotropic[iv],
+                                                 .volumetric    = volumetric[iv],
+                                                 .geometric     = geometric[iv],
+                                                 .hotspot_angle = Conversion::deg2rad(hotspot_angle)});
+      },
+      azimuth_quadrature_points);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -799,6 +884,15 @@ Use "ScatteringSpecies" or "None".
     case None:                               agenda.add("vdisort_settingsNoSpaceEmission"); break;
     case CosmicMicrowaveBackgroundRadiation: agenda.add("vdisort_settingsCosmicMicrowaveBackgroundRadiation"); break;
   }
+  // The sun before the surface: the surface's reflection of the direct beam is computed for the sun's direction
+  switch (to<settings_agenda_setup_sun_type>(sun_setting)) {
+    using enum settings_agenda_setup_sun_type;
+    case None: agenda.add("vdisort_settingsNoSun"); break;
+    case Sun:
+      agenda.add("ray_pointHighestFromPath");
+      agenda.add("vdisort_settingsSetSun");
+      break;
+  }
   switch (to<settings_agenda_setup_surface_type>(surf_setting)) {
     using enum settings_agenda_setup_surface_type;
     case None:
@@ -818,14 +912,6 @@ Use "ScatteringSpecies" or "None".
     case Lambertian:
       agenda.add("vdisort_settingsNoSurfaceEmission");
       agenda.add("vdisort_settingsSurfaceLambertian", SetWsv{"value", surf_lambertian_value});
-      break;
-  }
-  switch (to<settings_agenda_setup_sun_type>(sun_setting)) {
-    using enum settings_agenda_setup_sun_type;
-    case None: agenda.add("vdisort_settingsNoSun"); break;
-    case Sun:
-      agenda.add("ray_pointHighestFromPath");
-      agenda.add("vdisort_settingsSetSun");
       break;
   }
   vdisort_settings_agenda = std::move(agenda).finalize(false);

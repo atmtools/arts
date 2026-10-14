@@ -6245,6 +6245,8 @@ must include moments through degree
 
   wsm_data["disort_settingsSurfaceLambertian"] = {
       .desc      = R"(Sets the surface to Lambertian.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6261,6 +6263,8 @@ must include moments through degree
 
 The raw physical BRDF is converted to the Fourier convention used by
 *DisortSettings*.  All parameters are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author   = {"Richard Larsson"},
       .out      = {"disort_settings"},
@@ -6279,6 +6283,8 @@ The raw physical BRDF is converted to the Fourier convention used by
       .desc     = R"(Sets a spectrally varying Hapke surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author   = {"Richard Larsson"},
       .out      = {"disort_settings"},
@@ -6297,6 +6303,8 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
       .desc      = R"(Sets a Cox-Munk ocean surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6316,6 +6324,8 @@ All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
 
 The refractive-index vector must have one value per frequency.  Wind speed and
 shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6334,6 +6344,8 @@ shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
       .desc      = R"(Sets an RPV surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6353,6 +6365,8 @@ All parameters are frequency independent.
       .desc      = R"(Sets a spectrally varying RPV surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6372,6 +6386,8 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
       .desc      = R"(Sets a Ross-Li surface BRDF and computes its DISORT cosine Fourier modes.
 
 All kernel weights and the hot-spot angle are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6392,6 +6408,8 @@ All kernel weights and the hot-spot angle are frequency independent.
 
 Each kernel-weight vector must have one value per frequency.  The hot-spot
 angle is frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},

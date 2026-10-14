@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <format>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 
@@ -89,6 +90,8 @@ rtepack::stokvec_tensor3 boundary(Numeric sign) {
 
 Tensor4 radiance(vdisort::phase_matrix_data diffuse) {
   const AscendingGrid tau{Vector{0.3, 0.8, 1.6}};
+  Vector              streams(NQ / 2), weights(NQ / 2);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
   const auto          v = vdisort::main_data(NQ,
                                              NF,
                                              tau,
@@ -97,7 +100,8 @@ Tensor4 radiance(vdisort::phase_matrix_data diffuse) {
                                              boundary(1),
                                              boundary(-1),
                                              rtepack::stokvec_matrix(NL, 0),
-                                             vdisort::brdf::lambertian_fourier_modes(0.3, 1),
+                                             vdisort::brdf::lambertian_fourier_modes(
+                                                 0.3, 1, streams, streams, std::numeric_limits<Numeric>::quiet_NaN()),
                                              0.6,
                                              rtepack::stokvec{0.0, 0.0, 0.0, 0.0},
                                              0.3);

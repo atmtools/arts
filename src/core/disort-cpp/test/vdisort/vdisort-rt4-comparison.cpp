@@ -41,6 +41,7 @@
 
    The tolerances are derived above direct_tolerance() below. */
 #include <arts_constants.h>
+#include <legendre.h>
 #include <physics_funcs.h>
 #include <rt4.h>
 #include <vdisort-brdf.h>
@@ -387,32 +388,37 @@ void set_vdisort_phase(
     for (Index t = 2; t < 4; t++) sine[s, t] = scale * z[s, t];
 }
 
-/* A custom VDISORT surface from rho, optionally deliberately transposed
-   (stream or Stokes).  rho is a smooth function, so the callback evaluates
-   it at whatever cosines VDISORT passes.  At the nodes this is what matching
-   them would give (as fresnel_fourier_modes does), and it also defines the
+/* The setup's VDISORT surface, its reflection from the streams into the
+   directions |mu_out| (there is no beam).  A custom surface rho is optionally
+   deliberately transposed (stream or Stokes); it is a smooth function, so it
+   is evaluated at the cosines given.  At the nodes this is what matching them
+   would give (as fresnel_fourier_modes does), and it also defines the
    reflection into off-node user angles.  The sine (U, V) system is not
-   excited, so its callback is zero. */
-vdisort::BDRF discrete_bdrf(const discrete_reflection& d, mistake m) {
-  const auto cosine =
-      [rho = d.rho, m](rtepack::muelmat_matrix_view out, const ConstVectorView& mu_out, const ConstVectorView& mu_in) {
-        out = rtepack::muelmat{0.0};
-        for (Index i = 0; i < out.nrows(); i++) {
-          for (Index j = 0; j < out.ncols(); j++) {
-            const Numeric x = std::abs(mu_out[i]), y = std::abs(mu_in[j]);
-            const auto    r = m == mistake::stream_transpose ? rho(y, x) : rho(x, y);
-            for (Index s = 0; s < 2; s++)
-              for (Index t = 0; t < 2; t++) out[i, j][s, t] = m == mistake::stokes_transpose ? r[t, s] : r[s, t];
-          }
-        }
-      };
-  const auto zero = [](rtepack::muelmat_matrix_view out, const ConstVectorView&, const ConstVectorView&) {
-    out = rtepack::muelmat{0.0};
-  };
-  return {.cosine      = vdisort::BDRF::func_t{cosine},
-          .sine        = vdisort::BDRF::func_t{zero},
-          .beam_cosine = vdisort::BDRF::func_t{zero},
-          .beam_sine   = vdisort::BDRF::func_t{zero}};
+   excited, so its part is zero. */
+vdisort::surface_reflection vdisort_surface(const setup& c, const ConstVectorView& mu_out, mistake m = mistake::none) {
+  const Index N = c.s.nmu, nout = static_cast<Index>(mu_out.size());
+  Vector      streams(N), weights(N), abs_mu_out(nout);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
+  for (Index i = 0; i < nout; i++) abs_mu_out[i] = std::abs(mu_out[i]);
+  constexpr Numeric no_beam = std::numeric_limits<Numeric>::quiet_NaN();
+
+  if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g))
+    return vdisort::brdf::fresnel_fourier_modes(f->refractive_index, 1, abs_mu_out, streams, no_beam);
+  if (const auto* l = std::get_if<polradtran::lambertian_surface>(&c.g))
+    return vdisort::brdf::lambertian_fourier_modes(l->albedo, 1, abs_mu_out, streams, no_beam);
+
+  const auto& rho = std::get<discrete_reflection>(c.g).rho;
+  vdisort::surface_reflection out(1, nout, N);
+  for (Index i = 0; i < nout; i++) {
+    for (Index j = 0; j < N; j++) {
+      const Numeric x = abs_mu_out[i], y = streams[j];
+      const auto    r = m == mistake::stream_transpose ? rho(y, x) : rho(x, y);
+      for (Index s = 0; s < 2; s++)
+        for (Index t = 0; t < 2; t++)
+          out.brdf()[vdisort::cosine_mode, 0, i, j][s, t] = m == mistake::stokes_transpose ? r[t, s] : r[s, t];
+    }
+  }
+  return out;
 }
 
 vdisort::main_data vdisort_solver(const setup& c,
@@ -446,18 +452,13 @@ vdisort::main_data vdisort_solver(const setup& c,
   rtepack::stokvec_tensor3 bottom(2, 1, N), top(2, 1, N);
   bottom = rtepack::stokvec{};
   top    = rtepack::stokvec{};
-  std::vector<vdisort::BDRF> brdf;
   // The surface's Planck radiance: VDISORT transmits it with 1 - R, the Kirchhoff emission RT4 is given
   for (Index i = 0; i < N; i++) {
     top[vdisort::cosine_mode, 0, i]    = {planck(frequency, c.sky), 0.0, 0.0, 0.0};
     bottom[vdisort::cosine_mode, 0, i] = {Bs, 0.0, 0.0, 0.0};
   }
-  if (const auto* d = std::get_if<discrete_reflection>(&c.g))
-    brdf.push_back(discrete_bdrf(*d, surface_mistake));
-  else if (const auto* f = std::get_if<polradtran::fresnel_surface>(&c.g))
-    brdf = vdisort::brdf::fresnel_fourier_modes(f->refractive_index, 1);
-  else
-    brdf = vdisort::brdf::lambertian_fourier_modes(std::get<polradtran::lambertian_surface>(c.g).albedo, 1);
+  Vector streams(N), weights(N);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
 
   // B(tau) = c0 + c1 tau in the global optical depth, linear within each layer
   rtepack::stokvec_matrix source(NL, 2);
@@ -478,7 +479,7 @@ vdisort::main_data vdisort_solver(const setup& c,
                        std::move(bottom),
                        std::move(top),
                        std::move(source),
-                       std::move(brdf),
+                       vdisort_surface(c, streams, surface_mistake),
                        0.5,
                        rtepack::stokvec{},
                        0.0);
@@ -562,7 +563,7 @@ field vdisort_extra_angles(const vdisort::main_data& v,
     }
   }
   rtepack::stokvec_tensor3 out(NL + 1, 1, 2 * ne - first);
-  v.ungridded_u_user(out, tau, Vector{0.0}, user_mu, user_phase, {}, boundary);
+  v.ungridded_u_user(out, tau, Vector{0.0}, user_mu, user_phase, {}, boundary, vdisort_surface(c, user_mu));
 
   field f{.up = Tensor3(NL + 1, ne, c.nstokes, 0.0), .down = Tensor3(NL + 1, ne, c.nstokes, 0.0)};
   for (Index l = 0; l <= NL; l++) {
@@ -1057,7 +1058,7 @@ void test_extra_angles() {
   }
 
   /* The Fresnel surface.  VDISORT reflects the downward user-angle radiance
-     at -mu into mu (BDRF::specular), so it needs both directions; without
+     at -mu into mu (its specular part), so it needs both directions; without
      the downward partner it must refuse an upward user angle.  The upward
      boundary is the surface's Planck radiance, the same at every cosine, so
      its interpolation to a user angle is exact, and VDISORT transmits it
@@ -1076,15 +1077,19 @@ void test_extra_angles() {
   const auto exact = vdisort_extra_angles(x.v, c, true, true);
   report("Extra-angle setup, Fresnel 3+0.2i: mu = 0.35, 1, exact boundaries given", compare(x.r, exact, N), tol);
 
-  // Without the downward partner an upward user angle must be refused
+  // Without the downward partner an upward user angle must be refused, even with its reflection given
   bool refused = false;
   try {
     rtepack::stokvec_tensor3 out(1, 1, 1);
+    const Vector             upward{c.s.mu[N]};
     x.v.ungridded_u_user(out,
                          AscendingGrid{Vector{0.0}},
                          Vector{0.0},
-                         Vector{c.s.mu[N]},
-                         vdisort::phase_matrix_data(2, 1, L, 1, 2 * N, rtepack::muelmat{0.0}));
+                         upward,
+                         vdisort::phase_matrix_data(2, 1, L, 1, 2 * N, rtepack::muelmat{0.0}),
+                         {},
+                         {},
+                         vdisort_surface(c, upward));
   } catch (const std::exception&) { refused = true; }
   std::cout << std::format("{:<66} {}\n",
                            "Extra-angle setup, Fresnel 3+0.2i: upward without its downward partner",

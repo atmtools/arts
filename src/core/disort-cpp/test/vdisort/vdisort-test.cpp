@@ -1,10 +1,12 @@
 #include <arts_constants.h>
+#include <legendre.h>
 #include <rtepack_multitype.h>
 #include <vdisort-brdf.h>
 #include <vdisort.h>
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 #include "disort-brdf.h"
 #include "disort.h"
@@ -61,7 +63,7 @@ vdisort::main_data make_vdisort(const Index                nquad,
                                 Tensor3                    source        = {},
                                 Vector                     beam          = Vector(4, 0.0),
                                 Tensor6                    beam_phase    = {},
-                                std::vector<vdisort::BDRF> brdf          = {},
+                                vdisort::surface_reflection surface      = {},
                                 Vector                     source_scale  = {},
                                 Vector                     source_offset = {}) try {
   if (source.size() == 0) source.resize(tau.size(), 0, 4);
@@ -74,7 +76,7 @@ vdisort::main_data make_vdisort(const Index                nquad,
                                    std::move(up),
                                    std::move(down),
                                    std::move(source),
-                                   std::move(brdf),
+                                   std::move(surface),
                                    std::nextafter(0.5, 1.0),  // FIXME: should be 0.5
                                    std::move(beam),
                                    0.0,
@@ -464,7 +466,7 @@ void test_conservative_reflecting_source_limit() try {
   legendre[0, 0] = 1.0;
   Matrix                    up(modes, nquad / 2, 0.0), down(modes, nquad / 2, 0.0);
   Matrix                    source{Vector{1.0 / (1.0 - omega[0]), 0.0}.reshape(1, 2)};
-  std::vector<disort::BDRF> brdf{disort::BDRF{[](auto value, auto&, auto&) { value = 1.0; }}};
+  const disort::surface_reflection brdf(Tensor3(1, nquad / 2, nquad / 2, 1.0), Matrix(1, nquad / 2, 0.0));
 
   disort::main_data scalar(
       nquad, nquad, modes, tau, omega, legendre, up, down, Vector(1, 0.0), source, brdf, 0.5, 0.0, 0.0);
@@ -474,13 +476,10 @@ void test_conservative_reflecting_source_limit() try {
   Tensor3 vector_source(1, 2, 4, 0.0);
   vector_source[0, 0, 0] = source[0, 0];
   vector_source[0, 1, 0] = source[0, 1];
-  const auto reflection  = [](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
-    value = rtepack::muelmat{0.0};
-    for (Index i = 0; i < value.nrows(); ++i)
-      for (Index j = 0; j < value.ncols(); ++j) value[i, j][0, 0] = 2.0 * Constant::inv_pi;
-  };
-  std::vector<vdisort::BDRF> vector_brdf{
-      {.cosine = {reflection}, .sine = {reflection}, .beam_cosine = {}, .beam_sine = {}}};
+  vdisort::surface_reflection vector_brdf(1, nquad / 2, nquad / 2);
+  for (Index alpha = 0; alpha < 2; ++alpha)
+    for (Index i = 0; i < nquad / 2; ++i)
+      for (Index j = 0; j < nquad / 2; ++j) vector_brdf.brdf()[alpha, 0, i, j][0, 0] = 2.0 * Constant::inv_pi;
   auto vector = make_vdisort(nquad,
                              tau,
                              omega,
@@ -541,13 +540,10 @@ void test_polarized_brdf() try {
   down[vdisort::cosine_mode, 0, 0, 1] = 0.2;
 
   const Numeric reflectance = 0.3;
-  const auto    callback    = [reflectance](rtepack::muelmat_matrix_view value, const auto&, const auto&) {
-    value              = rtepack::muelmat{0.0};
-    const Index blocks = std::min(value.nrows(), value.ncols());
-    for (Index i = 0; i < blocks; ++i)
-      for (Index s = 0; s < 4; ++s) value[i, i][s, s] = reflectance;
-  };
-  std::vector<vdisort::BDRF> brdf{{.cosine = {callback}, .sine = {callback}, .beam_cosine = {}, .beam_sine = {}}};
+  vdisort::surface_reflection brdf(1, n, n);
+  for (Index alpha = 0; alpha < 2; ++alpha)
+    for (Index i = 0; i < n; ++i)
+      for (Index s = 0; s < 4; ++s) brdf.brdf()[alpha, 0, i, i][s, s] = reflectance;
 
   const Numeric    depth = 0.2;
   auto             model = make_vdisort(nquad,
@@ -814,72 +810,58 @@ void test_spectral_phase_matrix_split() try {
 void test_combined_surface_models() try {
   constexpr Numeric lambertian_albedo = 0.8;
   constexpr Numeric fresnel_fraction  = 0.02;
+  constexpr Numeric no_beam           = std::numeric_limits<Numeric>::quiet_NaN();
   const Vector      outgoing{0.2, 0.7};
   const Vector      incoming{0.2, 0.7};
 
-  const auto lambert = vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 3);
-  for (Index mode = 0; mode < 3; ++mode) {
-    rtepack::muelmat_matrix value(2, 2, rtepack::muelmat{0.0});
-    lambert[mode](vdisort::cosine_mode, value, outgoing, incoming);
-    for (Index i = 0; i < value.nrows(); ++i)
-      for (Index j = 0; j < value.ncols(); ++j)
+  const auto lambert = vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 3, outgoing, incoming, no_beam);
+  for (Index mode = 0; mode < 3; ++mode)
+    for (Index i = 0; i < 2; ++i)
+      for (Index j = 0; j < 2; ++j)
         for (Index so = 0; so < vdisort::stokes_dimension; ++so)
           for (Index si = 0; si < vdisort::stokes_dimension; ++si)
-            expect_close(value[i, j][so, si],
+            expect_close(lambert.brdf()[vdisort::cosine_mode, mode, i, j][so, si],
                          mode == 0 and so == 0 and si == 0 ? 2.0 * lambertian_albedo * Constant::inv_pi : 0.0,
                          "depolarizing Lambertian mode");
-  }
+  ARTS_USER_ERROR_IF(lambert.has_specular(), "A Lambertian surface has no specular part");
 
-  const auto fresnel  = vdisort::brdf::fresnel_fourier_modes(1.5, 3);
-  const auto combined = vdisort::brdf::fresnel_lambertian_fourier_modes(fresnel_fraction, lambertian_albedo, 1.5, 3);
-  for (Index mode = 0; mode < 3; ++mode) {
-    for (Index alpha = 0; alpha < 2; ++alpha) {
-      rtepack::muelmat_matrix actual(2, 2, rtepack::muelmat{0.0});
-      rtepack::muelmat_matrix specular(2, 2, rtepack::muelmat{0.0});
-      rtepack::muelmat_matrix diffuse(2, 2, rtepack::muelmat{0.0});
-      combined[mode](alpha, actual, outgoing, incoming);
-      fresnel[mode](alpha, specular, outgoing, incoming);
-      lambert[mode](alpha, diffuse, outgoing, incoming);
-      for (Index i = 0; i < actual.nrows(); ++i)
-        for (Index j = 0; j < actual.ncols(); ++j)
+  const auto fresnel  = vdisort::brdf::fresnel_fourier_modes(1.5, 3, outgoing, incoming, no_beam);
+  const auto combined = vdisort::brdf::fresnel_lambertian_fourier_modes(
+      fresnel_fraction, lambertian_albedo, 1.5, 3, outgoing, incoming, no_beam);
+  for (Index mode = 0; mode < 3; ++mode)
+    for (Index alpha = 0; alpha < 2; ++alpha)
+      for (Index i = 0; i < 2; ++i)
+        for (Index j = 0; j < 2; ++j)
           for (Index so = 0; so < vdisort::stokes_dimension; ++so)
             for (Index si = 0; si < vdisort::stokes_dimension; ++si)
-              expect_close(actual[i, j][so, si],
-                           fresnel_fraction * specular[i, j][so, si] + (1.0 - fresnel_fraction) * diffuse[i, j][so, si],
+              expect_close(combined.brdf()[alpha, mode, i, j][so, si],
+                           fresnel_fraction * fresnel.brdf()[alpha, mode, i, j][so, si] +
+                               (1.0 - fresnel_fraction) * lambert.brdf()[alpha, mode, i, j][so, si],
                            "Fresnel/Lambertian mixture");
-    }
-    // The Fresnel part is specular: the weighted Fresnel matrix, and no kernel
-    for (const Numeric mu : {0.2, 0.7}) {
-      const auto R = combined[mode].specular(mu);
-      const auto F = vdisort::brdf::Fresnel{Complex{1.5, 0.0}}(mu);
-      for (Index so = 0; so < vdisort::stokes_dimension; ++so)
-        for (Index si = 0; si < vdisort::stokes_dimension; ++si)
-          expect_close(R[so, si], fresnel_fraction * F[so, si], "Fresnel/Lambertian specular part");
-    }
-    ARTS_USER_ERROR_IF(static_cast<bool>(lambert[mode].specular.f), "A Lambertian surface has no specular part");
+  // The Fresnel part is specular: the weighted Fresnel matrix, and no kernel
+  for (Index i = 0; i < 2; ++i) {
+    const auto F = vdisort::brdf::Fresnel{Complex{1.5, 0.0}}(outgoing[i]);
+    for (Index so = 0; so < vdisort::stokes_dimension; ++so)
+      for (Index si = 0; si < vdisort::stokes_dimension; ++si)
+        expect_close(combined.specular()[i][so, si], fresnel_fraction * F[so, si], "Fresnel/Lambertian specular part");
   }
 
   constexpr Numeric cox_fraction = 0.35;
-  const Vector      beam_mu{0.4};
-  const auto        cox = vdisort::brdf::cox_munk_fourier_modes(5.0, 1.34, true, 2, 24);
-  const auto        rough =
-      vdisort::brdf::cox_munk_lambertian_fourier_modes(cox_fraction, lambertian_albedo, 5.0, 1.34, true, 2, 24);
-  for (Index mode = 0; mode < 2; ++mode) {
-    for (Index alpha = 0; alpha < 2; ++alpha) {
-      rtepack::muelmat_matrix actual(2, 1, rtepack::muelmat{0.0});
-      rtepack::muelmat_matrix specular(2, 1, rtepack::muelmat{0.0});
-      rtepack::muelmat_matrix diffuse(2, 1, rtepack::muelmat{0.0});
-      rough[mode].beam(alpha, actual, outgoing, beam_mu);
-      cox[mode].beam(alpha, specular, outgoing, beam_mu);
-      lambert[mode].beam(alpha, diffuse, outgoing, beam_mu);
-      for (Index i = 0; i < actual.nrows(); ++i)
+  constexpr Numeric beam_mu      = 0.4;
+  const auto        cox   = vdisort::brdf::cox_munk_fourier_modes(5.0, 1.34, true, 2, outgoing, incoming, beam_mu, 24);
+  const auto        rough = vdisort::brdf::cox_munk_lambertian_fourier_modes(
+      cox_fraction, lambertian_albedo, 5.0, 1.34, true, 2, outgoing, incoming, beam_mu, 24);
+  const auto lambert_beam =
+      vdisort::brdf::lambertian_fourier_modes(lambertian_albedo, 2, outgoing, incoming, beam_mu);
+  for (Index mode = 0; mode < 2; ++mode)
+    for (Index alpha = 0; alpha < 2; ++alpha)
+      for (Index i = 0; i < 2; ++i)
         for (Index so = 0; so < vdisort::stokes_dimension; ++so)
           for (Index si = 0; si < vdisort::stokes_dimension; ++si)
-            expect_close(actual[i, 0][so, si],
-                         cox_fraction * specular[i, 0][so, si] + (1.0 - cox_fraction) * diffuse[i, 0][so, si],
+            expect_close(rough.beam_brdf()[alpha, mode, i][so, si],
+                         cox_fraction * cox.beam_brdf()[alpha, mode, i][so, si] +
+                             (1.0 - cox_fraction) * lambert_beam.beam_brdf()[alpha, mode, i][so, si],
                          "Cox-Munk/Lambertian beam mixture");
-    }
-  }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-combined-surface-models:\n{}", e.what()));
 }
@@ -956,42 +938,48 @@ void test_delta_m_preprocessing() try {
 void test_depolarizing_surface_catalogue() try {
   constexpr Index modes    = 3;
   constexpr Index nazimuth = 64;
-  const Vector    outgoing{0.2, 0.7};
-  const Vector    incoming{0.3, 0.8};
+  constexpr Numeric beam_mu = 0.45;
+  const Vector      outgoing{0.2, 0.7};
+  const Vector      incoming{0.3, 0.8};
 
   const auto compare = [&](const vdisort::brdf::ScalarRawFunction& raw,
-                           const std::vector<vdisort::BDRF>&       named,
+                           const vdisort::surface_reflection&      named,
                            const std::string_view                  name) {
-    const auto generic = vdisort::brdf::depolarizing_fourier_modes(raw, modes, nazimuth);
-    for (Index mode = 0; mode < modes; ++mode) {
-      for (Index alpha = 0; alpha < 2; ++alpha) {
-        rtepack::muelmat_matrix actual(outgoing.size(), incoming.size(), rtepack::muelmat{0.0});
-        rtepack::muelmat_matrix expected(outgoing.size(), incoming.size(), rtepack::muelmat{0.0});
-        named[mode](alpha, actual, outgoing, incoming);
-        generic[mode](alpha, expected, outgoing, incoming);
-        for (Index out = 0; out < actual.nrows(); ++out)
-          for (Index in = 0; in < actual.ncols(); ++in)
-            for (Index row = 0; row < vdisort::stokes_dimension; ++row)
-              for (Index column = 0; column < vdisort::stokes_dimension; ++column)
-                expect_close(actual[out, in][row, column], expected[out, in][row, column], name);
-      }
-    }
+    const auto generic =
+        vdisort::brdf::depolarizing_fourier_modes(raw, modes, outgoing, incoming, beam_mu, nazimuth);
+    for (Index mode = 0; mode < modes; ++mode)
+      for (Index alpha = 0; alpha < 2; ++alpha)
+        for (Index out = 0; out < 2; ++out)
+          for (Index row = 0; row < vdisort::stokes_dimension; ++row)
+            for (Index column = 0; column < vdisort::stokes_dimension; ++column) {
+              for (Index in = 0; in < 2; ++in)
+                expect_close(named.brdf()[alpha, mode, out, in][row, column],
+                             generic.brdf()[alpha, mode, out, in][row, column],
+                             name);
+              expect_close(named.beam_brdf()[alpha, mode, out][row, column],
+                           generic.beam_brdf()[alpha, mode, out][row, column],
+                           name);
+            }
   };
 
   const disort::brdf::Hapke hapke;
   expect_close(hapke(0.4, 0.7, 0.3), disort_common::hapke_brdf(0.4, 0.7, 0.3, 1.0, 0.06, 0.6), "shared Hapke kernel");
-  compare(hapke, vdisort::brdf::hapke_fourier_modes(1.0, 0.06, 0.6, modes, nazimuth), "depolarizing Hapke embedding");
+  compare(hapke,
+          vdisort::brdf::hapke_fourier_modes(1.0, 0.06, 0.6, modes, outgoing, incoming, beam_mu, nazimuth),
+          "depolarizing Hapke embedding");
   const disort::brdf::RPV rpv;
   expect_close(
       rpv(0.4, 0.7, 0.3), disort_common::rpv_brdf(0.4, 0.7, 0.3, 0.027, 0.647, -0.169, 0.1), "shared RPV kernel");
-  compare(
-      rpv, vdisort::brdf::rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, modes, nazimuth), "depolarizing RPV embedding");
+  compare(rpv,
+          vdisort::brdf::rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, modes, outgoing, incoming, beam_mu, nazimuth),
+          "depolarizing RPV embedding");
   const disort::brdf::RossLi ross_li;
   expect_close(ross_li(0.4, 0.7, 0.3),
                disort_common::ross_li_brdf(0.4, 0.7, 0.3, 0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0),
                "shared Ross-Li kernel");
   compare(ross_li,
-          vdisort::brdf::ross_li_fourier_modes(0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0, modes, nazimuth),
+          vdisort::brdf::ross_li_fourier_modes(
+              0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0, modes, outgoing, incoming, beam_mu, nazimuth),
           "depolarizing Ross-Li embedding");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-depolarizing-surface-catalogue:\n{}", e.what()));
@@ -1034,6 +1022,8 @@ void test_specular_reflection_both_systems() try {
   constexpr Index   nquad = 8, n = nquad / 2, modes = 2;
   constexpr Numeric depth = 0.3;
   const Complex     index{1.5, 0.3};
+  Vector            streams(n), weights(n);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
   for (const Index system : {vdisort::cosine_mode, vdisort::sine_mode}) {
     Tensor7 phase(2, modes, 1, nquad, nquad, 4, 4, 0.0);
     Tensor4 up(2, modes, n, 4, 0.0), down(2, modes, n, 4, 0.0);
@@ -1053,7 +1043,8 @@ void test_specular_reflection_both_systems() try {
                                       {},
                                       Vector(4, 0.0),
                                       {},
-                                      vdisort::brdf::fresnel_fourier_modes(index, modes));
+                                      vdisort::brdf::fresnel_fourier_modes(
+                                          index, modes, streams, streams, std::numeric_limits<Numeric>::quiet_NaN()));
     const Vector phi{0.0, 0.7, 2.1, 4.0};
     Tensor4      u(1, phi.size(), nquad, 4);
     model.ungridded_u(u, AscendingGrid{0.0}, phi);

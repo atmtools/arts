@@ -18,7 +18,7 @@ void test_5a() try {
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Matrix                    b_neg(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{Leg_coeffs_all[0, NQuad]};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
@@ -31,7 +31,7 @@ void test_5a() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -266,7 +266,7 @@ void test_5b() try {
   const Matrix                    b_pos(NQuad, NQuad / 2, 0);
   const Matrix                    b_neg(NQuad, NQuad / 2, 0);
   const Vector                    f_arr{Leg_coeffs_all[0, NQuad]};
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
+  const disort::surface_reflection surface{};  // no reflection
   const Matrix                    s_poly_coeffs(1, 0);
 
   const disort::main_data dis(NQuad,
@@ -279,7 +279,7 @@ void test_5b() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -550,7 +550,8 @@ void test_5BDRF() try {
   const Numeric                   mu0  = 1;
   const Numeric                   I0   = Constant::pi;
   const Numeric                   phi0 = 0;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
+  // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
+  const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
 
   // Optional (unused)
   const Index  NLeg     = NQuad;
@@ -570,7 +571,7 @@ void test_5BDRF() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);

@@ -144,7 +144,8 @@ void test_11a_1layer() try {
   b_neg[0] = 1;
   Matrix b_pos(NQuad, NQuad / 2, 0);
   b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
+  // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
+  const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
   const Matrix                    s_poly_coeffs{
       Vector{172311.79936609 / (1 - omega_arr[0]), -102511.4417051 / (1 - omega_arr[0])}.reshape(tau_arr.size(), 2)};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
@@ -163,7 +164,7 @@ void test_11a_1layer() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -207,7 +208,8 @@ void test_11a_multilayer() try {
   b_neg[0] = 1;
   Matrix b_pos(NQuad, NQuad / 2, 0);
   b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
+  // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
+  const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
   Matrix                          s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
   s_poly_coeffs /= 1 - omega_arr[0];
@@ -227,7 +229,7 @@ void test_11a_multilayer() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
