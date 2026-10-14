@@ -95,7 +95,7 @@ geometric line-of-sight.
 
 Parameters
 ----------
-ws : ~pyarts3.arts.Workspace
+ws : ~pyarts3.workspace.Workspace
   The workspace
 sun : ~pyarts3.arts.Sun
   The sun
