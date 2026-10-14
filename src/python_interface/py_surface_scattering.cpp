@@ -21,16 +21,16 @@ void py_surface_scattering(py::module_& m) try {
       .def(py::init<>())
       .def_rw("brdf_matrix_diffuse",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_diffuse,
-              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`class-information`")
+              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
       .def_rw("emissivity_vector_diffuse",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
-              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`class-information`")
+              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
       .def_rw("brdf_matrix_specular",
               &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
-              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`class-information`")
+              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
       .def_rw("emissivity_vector_specular",
               &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
-              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`class-information`")
+              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
       .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).\n\nComponents that no contributing model physically provides are None.";
 
   //
@@ -67,7 +67,7 @@ they are clamped when the BRDF is computed.
       .def_rw(
           "interp_extrapolation",
           &LambertianSurfaceScatterer::interp_extrapolation,
-          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`class-information`")
+          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScatterer& self,
@@ -136,7 +136,7 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
       .def_rw(
           "interp_extrapolation",
           &LambertianSurfaceScattererField::interp_extrapolation,
-          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`class-information`")
+          "Interpolation and extrapolation method for the frequency dimension\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "get_surface_scattering_model_properties",
           [](const LambertianSurfaceScattererField& self,
@@ -216,11 +216,11 @@ Must be positive.
         .def_rw(
             "n1",
             &FresnelSurfaceScatterer::n1,
-            "Refractive index of medium 1 (the medium the radiation propagates in)\n\n.. :class:`class-information`")
+            "Refractive index of medium 1 (the medium the radiation propagates in)\n\n.. :class:`float`")
         .def_rw(
             "interp_extrapolation",
             &FresnelSurfaceScatterer::interp_extrapolation,
-            "Interpolation and extrapolation method for frequency\n\n.. :class:`class-information`")
+            "Interpolation and extrapolation method for frequency\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
         .def(
             "get_surface_scattering_model_properties",
             [](const FresnelSurfaceScatterer& self,
@@ -304,11 +304,11 @@ ascending.  Values must be positive.
         .def_rw(
             "n1",
             &FresnelSurfaceScattererField::n1,
-            "Refractive index of medium 1 (the medium the radiation propagates in)\n\n.. :class:`class-information`")
+            "Refractive index of medium 1 (the medium the radiation propagates in)\n\n.. :class:`float`")
         .def_rw(
             "interp_extrapolation",
             &FresnelSurfaceScattererField::interp_extrapolation,
-            "Interpolation and extrapolation method for latitude, longitude, and frequency dimensions\n\n.. :class:`class-information`")
+            "Interpolation and extrapolation method for latitude, longitude, and frequency dimensions\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
         .def(
             "get_surface_scattering_model_properties",
             [](const FresnelSurfaceScattererField& self,
@@ -379,7 +379,7 @@ they are clamped when the BRDF is computed.
         .def_rw(
             "interp_extrapolation",
             &FlatScalarSurfaceScatterer::interp_extrapolation,
-            "Interpolation and extrapolation method for frequency\n\n.. :class:`class-information`")
+            "Interpolation and extrapolation method for frequency\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
         .def(
             "get_surface_scattering_model_properties",
             [](const FlatScalarSurfaceScatterer& self,
@@ -451,7 +451,7 @@ Values should lie in [0, 1]; they are clamped when the BRDF is computed.
         .def_rw(
             "interp_extrapolation",
             &FlatScalarSurfaceScattererField::interp_extrapolation,
-            "Interpolation and extrapolation method for latitude, longitude, and frequency dimensions\n\n.. :class:`class-information`")
+            "Interpolation and extrapolation method for latitude, longitude, and frequency dimensions\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
         .def(
             "get_surface_scattering_model_properties",
             [](const FlatScalarSurfaceScattererField& self,
@@ -568,7 +568,7 @@ are None.
       .def_rw(
           "weighting_option",
           &MapOfSurfaceScatteringModel::weighting_option,
-          "Weighting option for combining multiple models: Maximum or Average\n\n.. :class:`class-information`");
+          "Weighting option for combining multiple models: Maximum or Average\n\n.. :class:`~pyarts3.arts.MapOfSurfaceScatteringModel.Weighting`");
   generic_interface(mossm);
   mossm.doc() = "Named map of surface scattering models";
 
