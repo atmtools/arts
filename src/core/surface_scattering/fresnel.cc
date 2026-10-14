@@ -135,16 +135,6 @@ FresnelSurfaceScatterer::get_surface_scattering_model_properties(
                                      za_scat_grid.size(),
                                      aa_scat_grid.size(),
                                      rtepack::muelmat{0.0});
-  MuelmatTensor5 brdf_diffuse(f_grid.size(),
-                              za_inc_grid.size(),
-                              aa_inc_grid.size(),
-                              za_scat_grid.size(),
-                              aa_scat_grid.size(),
-                              rtepack::muelmat{0.0});
-  MuelmatTensor3 emissivity_diffuse(f_grid.size(),
-                                    za_scat_grid.size(),
-                                    aa_scat_grid.size(),
-                                    rtepack::muelmat{0.0});
 
   fresnel_tensors(
       n1,
@@ -159,9 +149,8 @@ FresnelSurfaceScatterer::get_surface_scattering_model_properties(
       brdf_specular,
       emissivity_specular);
 
+  // Purely specular model: the diffuse components stay missing (std::nullopt)
   return SurfaceScatteringModelProperties{
-      .brdf_matrix_diffuse        = std::move(brdf_diffuse),
-      .emissivity_vector_diffuse  = std::move(emissivity_diffuse),
       .brdf_matrix_specular       = std::move(brdf_specular),
       .emissivity_vector_specular = std::move(emissivity_specular),
   };
@@ -240,16 +229,6 @@ FresnelSurfaceScattererField::get_surface_scattering_model_properties(
                                      za_scat_grid.size(),
                                      aa_scat_grid.size(),
                                      rtepack::muelmat{0.0});
-  MuelmatTensor5 brdf_diffuse(f_grid.size(),
-                              za_inc_grid.size(),
-                              aa_inc_grid.size(),
-                              za_scat_grid.size(),
-                              aa_scat_grid.size(),
-                              rtepack::muelmat{0.0});
-  MuelmatTensor3 emissivity_diffuse(f_grid.size(),
-                                    za_scat_grid.size(),
-                                    aa_scat_grid.size(),
-                                    rtepack::muelmat{0.0});
 
   fresnel_tensors(
       n1,
@@ -264,9 +243,8 @@ FresnelSurfaceScattererField::get_surface_scattering_model_properties(
       brdf_specular,
       emissivity_specular);
 
+  // Purely specular model: the diffuse components stay missing (std::nullopt)
   return SurfaceScatteringModelProperties{
-      .brdf_matrix_diffuse        = std::move(brdf_diffuse),
-      .emissivity_vector_diffuse  = std::move(emissivity_diffuse),
       .brdf_matrix_specular       = std::move(brdf_specular),
       .emissivity_vector_specular = std::move(emissivity_specular),
   };

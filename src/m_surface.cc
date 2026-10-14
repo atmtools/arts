@@ -384,47 +384,56 @@ void spectral_radSurfaceScatteringDiffuse(
   // integrate over the incoming directions to get the scattered upward radiation
   // The frequency axis is the parallel axis: each frequency accumulates independently,
   // and the BRDF is loaded once per (frequency, direction) and shared between the
-  // radiance and the jacobian accumulation
-  for (Size i_za  = 0; i_za < zen_grid.size(); i_za ++) {
-    for (Size i_aa = 0; i_aa < az_grid.size(); i_aa ++) {
-      const Numeric w = zen_grid_weights[i_za] * az_grid_weights[i_aa];
+  // radiance and the jacobian accumulation.  A missing diffuse BRDF means no
+  // diffuse scattering at all: the scattered term stays zero.
+  if (surface_props.brdf_matrix_diffuse) {
+    const surface_scattering::BRDFMatrix& brdf = *surface_props.brdf_matrix_diffuse;
+    for (Size i_za  = 0; i_za < zen_grid.size(); i_za ++) {
+      for (Size i_aa = 0; i_aa < az_grid.size(); i_aa ++) {
+        const Numeric w = zen_grid_weights[i_za] * az_grid_weights[i_aa];
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-      for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
-        const Muelmat R = surface_props.brdf_matrix_diffuse[i_f, i_za, i_aa, 0, 0];
+        for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+          const Muelmat R = brdf[i_f, i_za, i_aa, 0, 0];
 
-        spectral_rad_scattered[i_f] += R * spectral_rad_incoming[i_za, i_aa, i_f] * w;
+          spectral_rad_scattered[i_f] += R * spectral_rad_incoming[i_za, i_aa, i_f] * w;
 
-        //Calculate scattered upward radiation jacobian 
-        //For now, there is no jacobian for the surface scattering model!!!
-        for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
-          spectral_rad_scattered_jac[i_jac, i_f] +=
-              R * spectral_rad_incoming_jac[i_za, i_aa, i_jac, i_f] * w;
+          //Calculate scattered upward radiation jacobian 
+          //For now, there is no jacobian for the surface scattering model!!!
+          for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+            spectral_rad_scattered_jac[i_jac, i_f] +=
+                R * spectral_rad_incoming_jac[i_za, i_aa, i_jac, i_f] * w;
+          }
         }
       }
     }
   }
 
-  // Calculate upward emission
-  for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
-    spectral_rad_surface[i_f] = surface_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_surface[i_f];
-  }
+  // A missing diffuse emissivity means zero emissivity: the subsurface
+  // emission and its jacobian contribute nothing and are skipped entirely
+  if (surface_props.emissivity_vector_diffuse) {
+    const surface_scattering::EmissivityVector& emiss = *surface_props.emissivity_vector_diffuse;
 
-  //Calculate jacobian for subsurface emission
-  //For now, there is no jacobian for the surface scattering model!!!
-  StokvecMatrix spectral_rad_jac_subsurface(jac_targets.x_size(), freq_grid.size());
-  for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+    // Calculate upward emission
     for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
-      spectral_rad_jac_subsurface[i_jac, i_f] = surface_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+      spectral_rad_surface[i_f] = emiss[i_f, 0, 0] * spectral_rad_surface[i_f];
     }
+
+    //Calculate jacobian for subsurface emission
+    //For now, there is no jacobian for the surface scattering model!!!
+    StokvecMatrix spectral_rad_jac_subsurface(jac_targets.x_size(), freq_grid.size());
+    for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+      for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+        spectral_rad_jac_subsurface[i_jac, i_f] = emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+      }
+    }
+
+    spectral_rad += spectral_rad_surface;
+    spectral_rad_jac += spectral_rad_jac_subsurface;
   }
-
-
 
   spectral_rad += spectral_rad_scattered;
-  spectral_rad += spectral_rad_surface;
   spectral_rad_jac += spectral_rad_scattered_jac;
-  spectral_rad_jac += spectral_rad_jac_subsurface;
 
 }
 ARTS_METHOD_ERROR_CATCH
@@ -529,44 +538,54 @@ void spectral_radSurfaceScatteringSpecular(
   }
 
   // Calculate reflected radiation (no angular integration: single direction)
+  // A missing specular BRDF means no specular reflection: the term stays zero
   StokvecVector spectral_rad_reflected(nf);
   spectral_rad_reflected = 0.0;
   StokvecMatrix spectral_rad_reflected_jac(nq, nf);
   spectral_rad_reflected_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
 
   // For now, there is no jacobian for the surface scattering model!!!
+  if (surface_props.brdf_matrix_specular) {
+    const surface_scattering::BRDFMatrix& brdf = *surface_props.brdf_matrix_specular;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size i_f = 0; i_f < nf; i_f++) {
-    spectral_rad_reflected[i_f] +=
-        surface_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
-  }
-#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-  for (Size i_jac = 0; i_jac < nq; i_jac++) {
     for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad_reflected_jac[i_jac, i_f] =
-          surface_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+      spectral_rad_reflected[i_f] += brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
     }
-  }
-
-  // Calculate upward emission with the specular emissivity
-  // For now, there is no jacobian for the surface scattering model!!!
-#pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size i_f = 0; i_f < nf; i_f++) {
-    spectral_rad_surface[i_f] = surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_surface[i_f];
-  }
-  StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
 #pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-  for (Size i_jac = 0; i_jac < nq; i_jac++) {
-    for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad_jac_subsurface[i_jac, i_f] =
-          surface_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_reflected_jac[i_jac, i_f] =
+            brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+      }
     }
   }
 
   spectral_rad += spectral_rad_reflected;
-  spectral_rad += spectral_rad_surface;
   spectral_rad_jac += spectral_rad_reflected_jac;
-  spectral_rad_jac += spectral_rad_jac_subsurface;
+
+  // A missing specular emissivity means zero emissivity: the subsurface
+  // emission and its jacobian contribute nothing and are skipped entirely
+  if (surface_props.emissivity_vector_specular) {
+    const surface_scattering::EmissivityVector& emiss = *surface_props.emissivity_vector_specular;
+
+    // Calculate upward emission with the specular emissivity
+    // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_surface[i_f] = emiss[i_f, 0, 0] * spectral_rad_surface[i_f];
+    }
+    StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_jac_subsurface[i_jac, i_f] =
+            emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+      }
+    }
+
+    spectral_rad += spectral_rad_surface;
+    spectral_rad_jac += spectral_rad_jac_subsurface;
+  }
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -673,15 +692,19 @@ void spectral_radSurfaceScatteringSpecularDirect(
     // No quadrature weights: the beam radiance is delta-weighted; radiance is
     // conserved by specular reflection so BRDF * I_in is the exact normalisation
     // For now, there is no jacobian for the surface scattering model!!!
+    // A missing specular BRDF means no specular scattering for this beam
+    if (sun_props.brdf_matrix_specular) {
+      const surface_scattering::BRDFMatrix& brdf = *sun_props.brdf_matrix_specular;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-    for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad_scattered[i_f] += sun_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
-    }
-#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-    for (Size i_jac = 0; i_jac < nq; i_jac++) {
       for (Size i_f = 0; i_f < nf; i_f++) {
-        spectral_rad_scattered_jac[i_jac, i_f] +=
-            sun_props.brdf_matrix_specular[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        spectral_rad_scattered[i_f] += brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_scattered_jac[i_jac, i_f] +=
+              brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        }
       }
     }
   }
@@ -716,17 +739,21 @@ void spectral_radSurfaceScatteringSpecularDirect(
                                        subsurf_field,
                                        spectral_rad_closed_surface_agenda);
 
-    // Calculate upward emission with the specular emissivity
+    // Calculate upward emission with the specular emissivity.  A missing
+    // specular emissivity means zero emissivity: nothing to add
     // For now, there is no jacobian for the surface scattering model!!!
+    if (emission_props.emissivity_vector_specular) {
+      const surface_scattering::EmissivityVector& emiss = *emission_props.emissivity_vector_specular;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-    for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad[i_f] += emission_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_surface[i_f];
-    }
-#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-    for (Size i_jac = 0; i_jac < nq; i_jac++) {
       for (Size i_f = 0; i_f < nf; i_f++) {
-        spectral_rad_jac[i_jac, i_f] +=
-            emission_props.emissivity_vector_specular[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        spectral_rad[i_f] += emiss[i_f, 0, 0] * spectral_rad_surface[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_jac[i_jac, i_f] +=
+              emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        }
       }
     }
   }
@@ -835,16 +862,20 @@ void spectral_radSurfaceScatteringDiffuseDirect(
     // No quadrature weights: the beam radiance is delta-weighted, but the
     // projected-area factor cos(theta_inc) at the actual surface normal still
     // applies.  For now, there is no jacobian for the surface scattering model!!!
+    // A missing diffuse BRDF means no diffuse scattering for this beam
+    if (sun_props.brdf_matrix_diffuse) {
+      const surface_scattering::BRDFMatrix& brdf = *sun_props.brdf_matrix_diffuse;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-    for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad_scattered[i_f] +=
-          cos_inc * sun_props.brdf_matrix_diffuse[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
-    }
-#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-    for (Size i_jac = 0; i_jac < nq; i_jac++) {
       for (Size i_f = 0; i_f < nf; i_f++) {
-        spectral_rad_scattered_jac[i_jac, i_f] +=
-            cos_inc * sun_props.brdf_matrix_diffuse[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        spectral_rad_scattered[i_f] +=
+            cos_inc * brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_scattered_jac[i_jac, i_f] +=
+              cos_inc * brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        }
       }
     }
   }
@@ -879,17 +910,21 @@ void spectral_radSurfaceScatteringDiffuseDirect(
                                        subsurf_field,
                                        spectral_rad_closed_surface_agenda);
 
-    // Calculate upward emission with the diffuse emissivity
+    // Calculate upward emission with the diffuse emissivity.  A missing
+    // diffuse emissivity means zero emissivity: nothing to add
     // For now, there is no jacobian for the surface scattering model!!!
+    if (emission_props.emissivity_vector_diffuse) {
+      const surface_scattering::EmissivityVector& emiss = *emission_props.emissivity_vector_diffuse;
 #pragma omp parallel for if (not arts_omp_in_parallel())
-    for (Size i_f = 0; i_f < nf; i_f++) {
-      spectral_rad[i_f] += emission_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_surface[i_f];
-    }
-#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
-    for (Size i_jac = 0; i_jac < nq; i_jac++) {
       for (Size i_f = 0; i_f < nf; i_f++) {
-        spectral_rad_jac[i_jac, i_f] +=
-            emission_props.emissivity_vector_diffuse[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        spectral_rad[i_f] += emiss[i_f, 0, 0] * spectral_rad_surface[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_jac[i_jac, i_f] +=
+              emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        }
       }
     }
   }

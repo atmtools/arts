@@ -28,11 +28,6 @@ SurfaceScatteringModelProperties lambertian_properties(
   MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
   MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
-  // Lambertian scattering has no specular component; keep the tensors sized
-  // (but zero) so consumers can index them uniformly
-  MuelmatTensor5 brdf_specular(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
-  MuelmatTensor3 emissivity_specular(nf, nzs, nas, rtepack::muelmat{0.0});
-
   // NOTE: Default construction of Muelmat gives the *identity* matrix — only
   // zero-initialize here, the [0,0] element is set per frequency below.  With
   // the identity default the Q/U/V channels silently carried reflectance 1.
@@ -55,11 +50,11 @@ SurfaceScatteringModelProperties lambertian_properties(
         emissivity[f, zs, as] = isotropic_emissivity;
   }
 
+  // Lambertian scattering has no specular component; those stay missing
+  // (std::nullopt) so consumers read them as zero
   return SurfaceScatteringModelProperties{
       .brdf_matrix_diffuse       = std::move(brdf),
       .emissivity_vector_diffuse = std::move(emissivity),
-      .brdf_matrix_specular      = std::move(brdf_specular),
-      .emissivity_vector_specular = std::move(emissivity_specular),
   };
 }
 

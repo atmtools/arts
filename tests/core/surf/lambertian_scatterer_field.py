@@ -195,8 +195,6 @@ for sc, label in [(sc_t6, "LambertianSurfaceScatterer"),
 
     brdf_t6  = np.array(props_t6.brdf_matrix_diffuse)
     emiss_t6 = np.array(props_t6.emissivity_vector_diffuse)
-    brdf_sp  = np.array(props_t6.brdf_matrix_specular)
-    emiss_sp = np.array(props_t6.emissivity_vector_specular)
 
     r_eff = r_test if sc is sc_t6 else r_uniform  # sc_field is the uniform 0.3 field
 
@@ -211,8 +209,8 @@ for sc, label in [(sc_t6, "LambertianSurfaceScatterer"),
     assert np.allclose(emiss_t6, expected_emiss, atol=1e-12), (
         f"{label}: diffuse emissivity not diag(1-r,0,0,0), max off-diag = "
         f"{np.max(np.abs(emiss_t6 - expected_emiss)):.2e}")
-    assert np.all(brdf_sp == 0.0), f"{label}: specular BRDF must be zero"
-    assert np.all(emiss_sp == 0.0), f"{label}: specular emissivity must be zero"
+    assert props_t6.brdf_matrix_specular is None, f"{label}: specular BRDF must be None"
+    assert props_t6.emissivity_vector_specular is None, f"{label}: specular emissivity must be None"
 print("Test 6 passed: full Mueller structure diag(r,0,0,0) / diag(1-r,0,0,0)")
 
 

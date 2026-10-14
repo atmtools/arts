@@ -4,7 +4,7 @@ Verifies:
 1. Construction and attribute access (n1 default 1.0).
 2. Known values: n1=1, n2=1.333, za_inc=[0, 30] — compare the BRDF specular
    muelmat against the closed-form Fresnel coefficients recomputed here, and
-   the complementary (I4 - M) emissivity.  Diffuse tensors stay zero.
+   the complementary (I4 - M) emissivity.  Diffuse tensors are None.
 3. Grazing incidence (za=90): Rv = Rh = -1 => BRDF = 1, emissivity = 0.
 4. Field variant homogeneous == spectrum variant at an interior lat/lon.
 5. Total internal reflection: n1=2, n2=1, za_inc=60 => Rv = Rh = 1.
@@ -97,14 +97,12 @@ props = sc.get_surface_scattering_model_properties(
 
 brdf = np.array(props.brdf_matrix_specular)
 emiss = np.array(props.emissivity_vector_specular)
-brdf_d = np.array(props.brdf_matrix_diffuse)
-emiss_d = np.array(props.emissivity_vector_diffuse)
 
 assert brdf.shape == (len(f_grid), len(za_inc), len(aa_inc), len(za_scat), len(aa_scat), 4, 4)
 assert emiss.shape == (len(f_grid), len(za_scat), len(aa_scat), 4, 4)
 
-assert np.all(brdf_d == 0.0), "Diffuse BRDF must be zero for the Fresnel model"
-assert np.all(emiss_d == 0.0), "Diffuse emissivity must be zero for the Fresnel model"
+assert props.brdf_matrix_diffuse is None, "Diffuse BRDF must be None for the Fresnel model"
+assert props.emissivity_vector_diffuse is None, "Diffuse emissivity must be None for the Fresnel model"
 
 n1 = 1.0
 for fi in range(len(f_grid)):
