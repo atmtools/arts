@@ -151,6 +151,8 @@ FresnelSurfaceScatterer::get_surface_scattering_model_properties(
 
   // Purely specular model: the diffuse components stay missing (std::nullopt)
   return SurfaceScatteringModelProperties{
+      .brdf_matrix_diffuse        = std::nullopt,
+      .emissivity_vector_diffuse  = std::nullopt,
       .brdf_matrix_specular       = std::move(brdf_specular),
       .emissivity_vector_specular = std::move(emissivity_specular),
   };
@@ -245,6 +247,8 @@ FresnelSurfaceScattererField::get_surface_scattering_model_properties(
 
   // Purely specular model: the diffuse components stay missing (std::nullopt)
   return SurfaceScatteringModelProperties{
+      .brdf_matrix_diffuse        = std::nullopt,
+      .emissivity_vector_diffuse  = std::nullopt,
       .brdf_matrix_specular       = std::move(brdf_specular),
       .emissivity_vector_specular = std::move(emissivity_specular),
   };

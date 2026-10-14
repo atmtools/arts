@@ -53,8 +53,10 @@ SurfaceScatteringModelProperties lambertian_properties(
   // Lambertian scattering has no specular component; those stay missing
   // (std::nullopt) so consumers read them as zero
   return SurfaceScatteringModelProperties{
-      .brdf_matrix_diffuse       = std::move(brdf),
-      .emissivity_vector_diffuse = std::move(emissivity),
+      .brdf_matrix_diffuse        = std::move(brdf),
+      .emissivity_vector_diffuse  = std::move(emissivity),
+      .brdf_matrix_specular       = std::nullopt,
+      .emissivity_vector_specular = std::nullopt,
   };
 }
 
