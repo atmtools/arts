@@ -73,7 +73,7 @@ inline Vector extrap_query_grid(const Vector&                    f_grid,
 
   if (extrap == InterpolationExtrapolation::Nearest) {
     Vector query(f_grid.size());
-    for (Index i = 0; i < f_grid.size(); ++i) query[i] = std::clamp(f_grid[i], gmin, gmax);
+    for (size_t i = 0; i < f_grid.size(); ++i) query[i] = std::clamp(f_grid[i], gmin, gmax);
     return query;
   }
 
@@ -90,7 +90,7 @@ inline void extrap_postprocess(Vector& data,
                                InterpolationExtrapolation       extrap) {
   if (extrap != InterpolationExtrapolation::Zero) return;
 
-  for (Index i = 0; i < data.size(); ++i) {
+  for (size_t i = 0; i < data.size(); ++i) {
     if (f_grid[i] < gmin or f_grid[i] > gmax) data[i] = 0.0;
   }
 }
