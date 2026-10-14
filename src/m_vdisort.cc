@@ -54,13 +54,13 @@ void vdisort_spectral_rad_fieldCalc(VDisortRadiance&       vdisort_spectral_rad_
 }
 ARTS_METHOD_ERROR_CATCH
 
-void vdisort_spectral_flux_fieldCalc(SpectralFluxField&     spectral_flux_field,
-                                     const VDisortSettings& vdisort_settings) try {
+void spectral_flux_components_profileVDisortCalc(FluxComponentsProfile& spectral_flux_components_profile,
+                                                 const VDisortSettings& vdisort_settings) try {
   ARTS_TIME_REPORT
 
   const Index nv = vdisort_settings.frequency_count();
 
-  spectral_flux_field.resize(vdisort_settings.freq_grid, vdisort_settings.alt_grid);
+  spectral_flux_components_profile.resize(vdisort_settings.freq_grid, vdisort_settings.alt_grid);
 
   vdisort::main_data dis = vdisort_settings.init();
 
@@ -71,10 +71,10 @@ void vdisort_spectral_flux_fieldCalc(SpectralFluxField&     spectral_flux_field,
     try {
       vdisort_settings.set(dis, iv);
 
-      dis.gridded_flux(spectral_flux_field.up[iv],
-                       spectral_flux_field.down_diffuse[iv],
-                       spectral_flux_field.down_direct[iv],
-                       spectral_flux_field.dfdt[iv]);
+      dis.gridded_flux(spectral_flux_components_profile.up[iv],
+                       spectral_flux_components_profile.down_diffuse[iv],
+                       spectral_flux_components_profile.down_direct[iv],
+                       spectral_flux_components_profile.dfdt[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

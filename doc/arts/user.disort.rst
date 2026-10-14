@@ -32,9 +32,9 @@ Workspace methods
   coupled calculations are DISORT's only, and Fresnel surfaces are VDISORT's
   only.
 * **Shared variables and options.**  Both solvers use the same quadrature,
-  Legendre and Fourier dimensions, write the same quadrature and spectral
-  flux field, and take the same named setup options.  VDISORT refuses the
-  delta-M-plus scattering option.
+  Legendre and Fourier dimensions, write the same quadrature and profiles of
+  the flux components, and take the same named setup options.  VDISORT
+  refuses the delta-M-plus scattering option.
 * **Directions are propagation directions.**  The radiance fields are
   indexed by the direction in which the radiation propagates, as is the line
   of sight of a ray path point: a zenith angle below 90 degrees is upwelling

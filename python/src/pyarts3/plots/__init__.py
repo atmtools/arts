@@ -38,6 +38,7 @@ from . import AziGrid
 from . import CIARecord
 from . import CIARecords
 from . import DisortRadiance
+from . import FluxComponentsProfile
 from . import GeodeticField2
 from . import GriddedField2
 from . import LatGrid
@@ -51,7 +52,6 @@ from . import RT3Result
 from . import RT4Result
 from . import SortedGriddedField1
 from . import SortedGriddedField2
-from . import SpectralFluxField
 from . import StokvecMatrix
 from . import StokvecVector
 from . import SubsurfaceField

@@ -68,8 +68,8 @@ def test_delta_m_plus_solver_initialization():
     assert np.shape(ws.disort_settings.delta_m_peak_moments) == (1, 1, 2)
     assert np.shape(ws.disort_settings.legendre_coefficients) == (1, 1, 4)
 
-    ws.disort_spectral_flux_fieldCalc()
-    flux = ws.spectral_flux_field
+    ws.spectral_flux_components_profileDisortCalc()
+    flux = ws.spectral_flux_components_profile
     assert np.all(np.isfinite(np.asarray(flux.up)))
     assert np.all(np.isfinite(np.asarray(flux.down_diffuse)))
     assert np.all(np.isfinite(np.asarray(flux.down_direct)))

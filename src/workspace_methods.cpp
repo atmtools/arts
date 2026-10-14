@@ -6504,19 +6504,20 @@ CDisort is only included for testing and comparisons with our own disort impleme
   };
 #endif
 
-  wsm_data["disort_spectral_flux_fieldCalc"] = {
+  wsm_data["spectral_flux_components_profileDisortCalc"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_flux_field"},
+      .out    = {"spectral_flux_components_profile"},
       .in     = {"disort_settings"},
   };
-  wsm_data["vdisort_spectral_flux_fieldCalc"] = vdisort_method("disort_spectral_flux_fieldCalc");
+  wsm_data["spectral_flux_components_profileVDisortCalc"] =
+      vdisort_method("spectral_flux_components_profileDisortCalc");
 
-  wsm_data["disort_spectral_flux_fieldCoupledCalc"] = {
+  wsm_data["spectral_flux_components_profileDisortCoupledCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral flux.
 
-This effectively executed *disort_spectral_flux_fieldCalc* for both atmospheric
+This effectively executed *spectral_flux_components_profileDisortCalc* for both atmospheric
 and subsurface calculations based on their settings.  It then couples the two
 fields by setting the lower boundary of the atmospheric field to the upper boundary
 of the subsurface field, and vice versa (in a relaxed linear interpolation way).
@@ -6524,7 +6525,7 @@ The coupling is iterated until the change in the coupled boundary is below some
 relative tolerance or a maximum number of iterations is reached.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_flux_field"},
+      .out       = {"spectral_flux_components_profile"},
       .in        = {"atm_disort_settings", "subsurf_disort_settings"},
       .gin       = {"tolerance", "max_iterations", "relaxation"},
       .gin_type  = {"Numeric", "Index", "Numeric"},
@@ -6755,7 +6756,7 @@ Neither polarization nor wind calculations are possible with this method.
           R"(Use *alt_grid* to create a coupled atmospheric and subsurface *DisortSettings*.
 
 The surface elevation at the input *lat* and *lon* must be within the *alt_grid* range.
-When used to compute *disort_spectral_rad_field* or *spectral_flux_field*, their
+When used to compute *disort_spectral_rad_field* or *spectral_flux_components_profile*, their
 respective internal altitude grids will contain the surface elevation as a grid point.
 )",
       .author         = {"Richard Larsson"},

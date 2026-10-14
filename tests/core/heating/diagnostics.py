@@ -145,8 +145,8 @@ def test_workspace_dfdt():
     s.legendre_coefficients = np.ones((2, 2, 1))
     s.solar_source = [2.0, 3.0]
     s.solar_zenith_angle = [60.0, 60.0]
-    ws.disort_spectral_flux_fieldCalc()
-    flux = ws.spectral_flux_field
+    ws.spectral_flux_components_profileDisortCalc()
+    flux = ws.spectral_flux_components_profile
     # Gridded output is at optical_thicknesses, not midpoints.
     expected = np.array([2.0, 3.0])[:, None] * np.exp(
         -np.asarray(s.optical_thicknesses) / 0.5

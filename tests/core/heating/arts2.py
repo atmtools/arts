@@ -81,7 +81,7 @@ Explicit adaptations
   DISORT propagation cosines are mapped to ARTS viewing zenith angles.
 * Original reference fluxes are at every atmospheric level, including TOA.
   Tests explicitly request all optical-depth boundaries from ``solver.flux``.
-  Workspace ``SpectralFluxField`` instead omits TOA and evaluates at each layer's
+  Workspace ``FluxComponentsProfile`` instead omits TOA and evaluates at each layer's
   lower boundary. Its DFDT is **not** a heating rate in K/s.
 * The old interior pressure stencil was a secant over neighboring levels,
   not a general nonuniform three-point derivative. Its lower boundary mixed
@@ -548,7 +548,7 @@ def test_disort(vector):
         slope = np.where(np.diff(tau) > 1e-4, np.diff(b) / np.diff(tau), 0.0)
         source = np.c_[b[:-1] - slope * tau[:-1], slope]
         dis = solver(tau, source, b[-1], arts.physics.planck(f, 2.72548), vector)
-        # Request ALL levels explicitly: SpectralFluxField's gridded output omits TOA.
+        # Request ALL levels explicitly: FluxComponentsProfile's gridded output omits TOA.
         fluxes.append(np.asarray(dis.flux(tau))[:, ::-1].copy())
     up, diffuse, direct, _ = hr.integrate_spectral(fluxes, data["frequency"])
     for simple, suffix in [(False, ""), (True, "_simple")]:

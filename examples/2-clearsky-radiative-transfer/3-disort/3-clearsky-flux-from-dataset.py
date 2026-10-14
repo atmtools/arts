@@ -76,10 +76,10 @@ ws.disort_settings_agendaSetup(
     surf_lambertian_value=surf_reflectivity * np.ones_like(ws.freq_grid),
 )
 
-ws.disort_spectral_flux_fieldFromAgenda()
+ws.spectral_flux_components_profileDisortFromAgenda()
 
 f, s = pyarts.plot(
-    ws.spectral_flux_field,
+    ws.spectral_flux_components_profile,
     select='down_diffuse',
 )
 s.set_xlabel("Kaysers [cm$^{-1}$]")

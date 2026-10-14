@@ -266,9 +266,9 @@ The VDISORT workspace layer
 VDISORT has DISORT's workspace layer, method for method.
 
 * What the two solvers share has one solver-neutral name: the quadrature,
-  Legendre and Fourier dimensions, the quadrature and the spectral flux
-  field with its group.  The named setup options are shared too, and a
-  solver refuses an option that it does not support.
+  Legendre and Fourier dimensions, the quadrature and the profiles of the
+  flux components with their group.  The named setup options are shared
+  too, and a solver refuses an option that it does not support.
 * The settings, the radiance field, the agendas and the methods are each
   solver's own, with ``vdisort`` in place of ``disort`` in their names and
   ``VDisort`` in place of ``Disort`` in the groups.

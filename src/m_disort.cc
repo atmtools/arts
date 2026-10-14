@@ -50,12 +50,13 @@ void disort_spectral_rad_fieldCalc(DisortRadiance&       disort_spectral_rad_fie
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_spectral_flux_fieldCalc(SpectralFluxField& spectral_flux_field, const DisortSettings& disort_settings) try {
+void spectral_flux_components_profileDisortCalc(FluxComponentsProfile& spectral_flux_components_profile,
+                                                const DisortSettings&  disort_settings) try {
   ARTS_TIME_REPORT
 
   const Index nv = disort_settings.frequency_count();
 
-  spectral_flux_field.resize(disort_settings.freq_grid, disort_settings.alt_grid);
+  spectral_flux_components_profile.resize(disort_settings.freq_grid, disort_settings.alt_grid);
 
   disort::main_data dis = disort_settings.init();
 
@@ -66,10 +67,10 @@ void disort_spectral_flux_fieldCalc(SpectralFluxField& spectral_flux_field, cons
     try {
       disort_settings.set(dis, iv);
 
-      dis.gridded_flux(spectral_flux_field.up[iv],
-                       spectral_flux_field.down_diffuse[iv],
-                       spectral_flux_field.down_direct[iv],
-                       spectral_flux_field.dfdt[iv]);
+      dis.gridded_flux(spectral_flux_components_profile.up[iv],
+                       spectral_flux_components_profile.down_diffuse[iv],
+                       spectral_flux_components_profile.down_direct[iv],
+                       spectral_flux_components_profile.dfdt[iv]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -140,17 +141,17 @@ void disort_spectral_rad_fieldCoupledCalc(DisortRadiance&       disort_spectral_
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_spectral_flux_fieldCoupledCalc(SpectralFluxField&    spectral_flux_field,
-                                           const DisortSettings& atm_disort_settings,
-                                           const DisortSettings& subsurf_disort_settings,
-                                           const Numeric&        tolerance,
-                                           const Index&          max_iterations,
-                                           const Numeric&        relaxation) try {
+void spectral_flux_components_profileDisortCoupledCalc(FluxComponentsProfile& spectral_flux_components_profile,
+                                                       const DisortSettings&  atm_disort_settings,
+                                                       const DisortSettings&  subsurf_disort_settings,
+                                                       const Numeric&         tolerance,
+                                                       const Index&           max_iterations,
+                                                       const Numeric&         relaxation) try {
   ARTS_TIME_REPORT
 
   const Index nv = atm_disort_settings.frequency_count();
 
-  SpectralFluxField disort_atm_spectral_flux_field, disort_subsurf_spectral_flux_field;
+  FluxComponentsProfile disort_atm_spectral_flux_field, disort_subsurf_spectral_flux_field;
   disort_atm_spectral_flux_field.resize(atm_disort_settings.freq_grid, atm_disort_settings.alt_grid);
 
   disort_subsurf_spectral_flux_field.resize(subsurf_disort_settings.freq_grid, subsurf_disort_settings.alt_grid);
@@ -193,7 +194,7 @@ void disort_spectral_flux_fieldCoupledCalc(SpectralFluxField&    spectral_flux_f
 
   ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
 
-  spectral_flux_field = disort_atm_spectral_flux_field.combine(disort_subsurf_spectral_flux_field);
+  spectral_flux_components_profile = disort_atm_spectral_flux_field.combine(disort_subsurf_spectral_flux_field);
 }
 ARTS_METHOD_ERROR_CATCH
 

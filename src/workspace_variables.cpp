@@ -1181,10 +1181,10 @@ Size is *quadrature_dimension*, as the zenith grid of the radiance fields.
       .type = "Index",
   };
 
-  wsv_data["spectral_flux_field"] = {
-      .desc = R"(The spectral flux field of DISORT or VDISORT.
+  wsv_data["spectral_flux_components_profile"] = {
+      .desc = R"(The profiles of the spectral flux components of DISORT or VDISORT.
 )",
-      .type = "SpectralFluxField",
+      .type = "FluxComponentsProfile",
       .dims = {"NFREQ", "NLAYER"},
   };
 

@@ -13,7 +13,7 @@
 /** The workspace types of VDISORT, the polarized counterparts of those of DISORT (disort.h).
  *
  * They mirror DisortSettings and DisortRadiance member for member, and the
- * fluxes are the SpectralFluxField of disort.h.  Where DISORT holds a scalar,
+ * fluxes are the FluxComponentsProfile of disort.h.  Where DISORT holds a scalar,
  * VDISORT holds a Stokes vector, and the phase function's Legendre moments
  * become those of the six elements of the scattering-plane matrix of randomly
  * oriented particles.

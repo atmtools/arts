@@ -690,24 +690,24 @@ supplied as ``[B, 0, 0, 0]``.
   disort_settings.def_rw(
       "downward_boundary_condition", &DisortSettings::downward_boundary_condition, ".. :class:`~pyarts3.arts.Tensor3`");
 
-  py::class_<SpectralFluxField> df(m, "SpectralFluxField");
+  py::class_<FluxComponentsProfile> df(m, "FluxComponentsProfile");
   generic_interface(df);
   df.def_rw("freq_grid",
-            &SpectralFluxField::freq_grid,
+            &FluxComponentsProfile::freq_grid,
             "Frequency grid of the fluxes\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
   df.def_rw("alt_grid",
-            &SpectralFluxField::alt_grid,
+            &FluxComponentsProfile::alt_grid,
             "Altitude grid of the fluxes (level values)\n\n.. :class:`~pyarts3.arts.DescendingGrid`");
-  df.def_rw("up", &SpectralFluxField::up, "Upwelling flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
+  df.def_rw("up", &FluxComponentsProfile::up, "Upwelling flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw("down_diffuse",
-            &SpectralFluxField::down_diffuse,
+            &FluxComponentsProfile::down_diffuse,
             "Downward diffuse flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw("down_direct",
-            &SpectralFluxField::down_direct,
+            &FluxComponentsProfile::down_direct,
             "Downward direct flux (layer values)\n\n.. :class:`~pyarts3.arts.Matrix`");
   df.def_rw(
       "dfdt",
-      &SpectralFluxField::dfdt,
+      &FluxComponentsProfile::dfdt,
       "Derivative of net upward flux with respect to downward optical depth [W/(m^2 Hz)], "
       "at each layer's lower boundary (alt_grid[1:]), using that layer's optical properties. "
       "Not a temperature tendency. See pyarts3.recipe.heating_rates.from_disort.\n\n.. :class:`~pyarts3.arts.Matrix`");

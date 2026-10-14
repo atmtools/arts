@@ -1209,17 +1209,17 @@ template <> struct xml_io_stream<DisortSettings> {
   static void read(std::istream& is, DisortSettings& x, bifstream* pbifs = nullptr);
 };
 
-using SpectralFluxField = disort::fluxes;
+using FluxComponentsProfile = disort::fluxes;
 
-template <> struct xml_io_stream_name<SpectralFluxField> {
-  constexpr static std::string_view name = "SpectralFluxField"sv;
+template <> struct xml_io_stream_name<FluxComponentsProfile> {
+  constexpr static std::string_view name = "FluxComponentsProfile"sv;
 };
 
-template <> struct xml_io_stream_aggregate<SpectralFluxField> {
+template <> struct xml_io_stream_aggregate<FluxComponentsProfile> {
   constexpr static bool value = true;
 };
 
-template <> struct std::formatter<SpectralFluxField> {
+template <> struct std::formatter<FluxComponentsProfile> {
   format_tags tags;
 
   /** Return the mutable nested formatter used by generic formatting helpers. */
@@ -1235,7 +1235,7 @@ template <> struct std::formatter<SpectralFluxField> {
   }
 
   /** Format flux dimensions or complete gridded flux values. */
-  template <class FmtContext> FmtContext::iterator format(const SpectralFluxField& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const FluxComponentsProfile& v, FmtContext& ctx) const {
     if (tags.short_str) {
       return tags.format(ctx,
                          "freq_grid.shape:    "sv,

@@ -168,13 +168,13 @@ class SpectralAtmosphericFlux:
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
         self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
-        self.ws.disort_spectral_flux_fieldCalc()
+        self.ws.spectral_flux_components_profileDisortCalc()
 
         # Shape is f x 3 x np, we want 3 x f x np
 
         return (
-            Flux(self.ws.spectral_flux_field.up, self.ws.spectral_flux_field.down_diffuse,
-                 self.ws.spectral_flux_field.down_direct),
+            Flux(self.ws.spectral_flux_components_profile.up, self.ws.spectral_flux_components_profile.down_diffuse,
+                 self.ws.spectral_flux_components_profile.down_direct),
             np.array(
                 [
                     0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])

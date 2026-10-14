@@ -750,9 +750,9 @@ and returns any associated data.
 )",
   };
 
-  wsg_data["SpectralFluxField"] = {
+  wsg_data["FluxComponentsProfile"] = {
       .file     = "disort.h",
-      .desc     = R"(The spectral flux field of DISORT and VDISORT.
+      .desc     = R"(The profiles of the flux components of DISORT and VDISORT.
 
 #. *AscendingGrid* frequency grid
 #. *DescendingGrid* level altitude grid
