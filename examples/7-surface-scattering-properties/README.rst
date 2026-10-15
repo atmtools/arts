@@ -17,4 +17,7 @@ here:
   lookup table and the sky lit up by first-order solar Rayleigh scattering;
 * ``3-surface-scattering-checkerboard-atm-lut-ir.py`` moves the same scene to
   the thermal infrared -- no sun, two window wavenumbers, emissivity from
-  Kirchhoff's law, and a latitudinal surface temperature pattern.
+  Kirchhoff's law, and a latitudinal surface temperature pattern;
+* ``4-surface-scattering-checkerboard-camera.py`` photographs the solar scene
+  through a thin-lens camera at a single 550 nm band -- one exposure of the
+  whole day-lit disk of the checkerboard instead of a scan of Dirac shots.
