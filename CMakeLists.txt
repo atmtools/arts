@@ -280,6 +280,13 @@ include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS/LAPACK support #########
+# Apple's Accelerate BLAS/LAPACK is not thread-safe: concurrent dgeev calls
+# silently corrupt the eigenvectors, which makes parallel VDISORT eigensolves
+# race.  On macOS, have FindBLAS/FindLAPACK pick the plain libblas/liblapack of
+# the environment (OpenBLAS in the conda environments) instead of Accelerate.
+if (APPLE AND NOT BLA_VENDOR)
+  set (BLA_VENDOR Generic)
+endif ()
 find_package (LAPACK REQUIRED)
 
 # The optional Fortran T-matrix solver enables Fortran only after LAPACK is
