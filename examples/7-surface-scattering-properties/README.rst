@@ -16,6 +16,5 @@ here:
   through a tropical clearsky atmosphere, with the absorption taken from a
   lookup table and the sky lit up by first-order solar Rayleigh scattering;
 * ``3-surface-scattering-checkerboard-atm-lut-ir.py`` moves the same scene to
-  the thermal infrared -- no sun, two window wavenumbers around the ozone
-  9.6 micron band, emissivity from Kirchhoff's law, and a latitudinal surface
-  temperature pattern.
+  the thermal infrared -- no sun, two window wavenumbers, emissivity from
+  Kirchhoff's law, and a latitudinal surface temperature pattern.
