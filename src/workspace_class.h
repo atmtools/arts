@@ -12,9 +12,16 @@ const std::unordered_map<std::string, Wsv>& global_wsv_defaults();
 struct Workspace {
   std::unordered_map<std::string, Wsv> wsv;
 
-  Workspace(WorkspaceInitialization how_to_initialize = WorkspaceInitialization::FromGlobalDefaults)
-      : wsv{WorkspaceInitialization::FromGlobalDefaults == how_to_initialize ? global_wsv_defaults()
-                                                                             : std::unordered_map<std::string, Wsv>{}} {
+  Workspace(WorkspaceInitialization how_to_initialize = WorkspaceInitialization::FromGlobalDefaults) {
+    if (WorkspaceInitialization::FromGlobalDefaults == how_to_initialize) {
+      // Deep-copy the defaults -- a plain copy of the Wsv map would share the
+      // underlying value objects between all workspaces and with the global
+      // defaults, so that methods writing to their `out` variables would
+      // silently corrupt every other workspace (see deepcopy() below).
+      for (const auto& [name, def] : global_wsv_defaults()) {
+        wsv.emplace(name, def.copied());
+      }
+    }
   }
 
   //! Returns a shared pointer to the workspace variable with the given name.
