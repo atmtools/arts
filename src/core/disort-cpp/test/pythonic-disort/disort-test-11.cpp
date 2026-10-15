@@ -92,18 +92,23 @@ void check_test_11a_reference(const std::string_view   name,
   const Tensor3 u  = compute_u(dis, taus, phis, true);
   const Matrix  u0 = compute_u0(dis, taus);
 
-  require_scalar_close(std::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.856452063);
-  require_scalar_close(std::format("{} u[0,0,7]", name), u[0, 0, 7], -9729770.523956602);
-  require_scalar_close(std::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.580526929);
-  require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252730.532491753);
-  require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972940.78886143);
-  require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.502881967);
+  // All radiances here are O(1e6-1e7) because the source is amplified by
+  // 1 / (1 - omega) = 1e6.  Their last relative digits therefore depend on
+  // eigensolver and math-library roundoff: MSVC was observed to deviate from
+  // the PythonicDISORT 1.8 reference by 5.3e-8 (vs 8e-10 with clang), just
+  // above the default tolerance, so these checks use 1e-7.
+  require_scalar_close(std::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.856452063, 1e-7);
+  require_scalar_close(std::format("{} u[0,0,7]", name), u[0, 0, 7], -9729770.523956602, 1e-7);
+  require_scalar_close(std::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.580526929, 1e-7);
+  require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252730.532491753, 1e-7);
+  require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972940.78886143, 1e-7);
+  require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.502881967, 1e-7);
   // This comparatively small outgoing value is the residual of source terms
   // amplified by 1 / (1 - omega) = 1e6.  Eigensolver and math-library
   // roundoff therefore loses about two additional relative digits here.
   require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.492504802656, 5e-6);
-  require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275993.25714884);
-  require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972940.767176796);
+  require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275993.25714884, 1e-7);
+  require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972940.767176796, 1e-7);
 
   const auto [up, down_diffuse, down_direct, dfdt] = compute_flux(dis, taus);
   static_cast<void>(dfdt);
