@@ -84,6 +84,24 @@ void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo);
 //! As above but allocates WO
 void solve_inplace(VectorView X, MatrixView A);
 
+/*! The LU decomposition of solve_inplace, for many right-hand sides.
+  *
+  * @param[in,out] A   On input the matrix, on output its LU factors (in LAPACK's layout)
+  * @param[out]    wo  The pivots, used by lu_solve_inplace
+  * @throws If the matrix is singular according to Lapack info
+  */
+void lu_decompose_inplace(MatrixView A, solve_workdata& wo);
+
+/*! Solves A X = B inplace with the factors of lu_decompose_inplace.
+  *
+  * lu_decompose_inplace followed by this is solve_inplace.
+  *
+  * @param[in,out] X   As equation, on input it is B on output is is X
+  * @param[in]     LU  The factors from lu_decompose_inplace
+  * @param[in]     wo  The pivots from lu_decompose_inplace
+  */
+void lu_solve_inplace(VectorView X, ConstMatrixView LU, const solve_workdata& wo);
+
 struct inv_workdata {
   std::size_t          N{};
   std::vector<int>     ipiv{};

@@ -513,12 +513,20 @@ The implementation solves the ordinary, generally non-symmetric problem
    \boldsymbol A^{am\ell}\boldsymbol G^{am\ell}
       =\boldsymbol G^{am\ell}\operatorname{diag}(\boldsymbol K^{am\ell})
 
-as a full :math:`D\times D` complex eigensystem.  There are two such
-eigensystems for each :math:`(m,r)`, one for each combined system; there is not
-one :math:`2D\times2D` system.  The input matrix is real, but general Mueller
-coupling makes it non-symmetric, so complex conjugate eigenpairs are retained.
-This differs from an explicitly real conjugate-pair basis, but reconstructs the
-same real physical field when those pairs cancel.
+as a full :math:`D\times D` eigensystem.  There are two such eigensystems for
+each :math:`(m,r)`, one for each combined system; there is not one
+:math:`2D\times2D` system.  The matrix is real, but general Mueller coupling
+makes it non-symmetric, so its eigenpairs are real or complex conjugate pairs.
+It is diagonalized in real arithmetic, which gives real roots exactly zero
+imaginary parts and returns each conjugate pair as the real and imaginary parts
+of one vector.  Both members of a pair are retained as complex columns; their
+contributions to the physical field are complex conjugates and sum to a real
+field.  Real arithmetic costs about a third of a complex eigensolution of the
+same matrix.  Without scattering, :math:`\omega_\ell=0` or a vanishing
+phase matrix in the Fourier order, the operator is
+:math:`\widehat{\boldsymbol M}^{-1}`: its eigenvalues are the inverse stream
+cosines and its eigenvectors the states themselves, so no eigensolution is
+needed.
 
 Eigenvalues are sorted lexicographically by real part and then imaginary part.
 The first :math:`D/2` columns are anchored at the layer top and the remaining
@@ -539,10 +547,67 @@ position rather than explicitly checking the sign.  When comparing with a
 formulation that writes attenuation as :math:`\exp(-k\tau)`, remember that the
 C++ propagation constant has the opposite sign.
 
-The full eigenproblem is intentionally retained instead of using the optional
-reduced polarized problem.  It is simpler to audit against the published
-equations and supports general Mueller coupling, but it makes VDISORT
-substantially more expensive than scalar DISORT.
+VDISORT half-size eigenproblem
+==============================
+
+A medium that is unchanged by reflection in the horizontal plane, such as
+randomly oriented particles with a plane of symmetry or azimuthally randomly
+oriented spheroids, plates and columns, has phase matrices with
+
+.. math::
+
+   \boldsymbol P^{am\ell}(-\mu_i,-\mu_j)
+      =\boldsymbol\Delta\boldsymbol P^{am\ell}(\mu_i,\mu_j)\boldsymbol\Delta,
+   \qquad
+   \boldsymbol P^{am\ell}(-\mu_i,\mu_j)
+      =\boldsymbol\Delta\boldsymbol P^{am\ell}(\mu_i,-\mu_j)\boldsymbol\Delta,
+
+with :math:`\boldsymbol\Delta=\operatorname{diag}(1,1,-1,-1)`: the reflection
+keeps :math:`\hat h` and reverses :math:`\hat v` of the meridional basis, which
+changes the signs of :math:`U` and :math:`V`.  With
+:math:`\boldsymbol\alpha` and :math:`\boldsymbol\beta` the upward rows of
+:math:`\boldsymbol A^{am\ell}`, its downward rows are then
+:math:`-\boldsymbol\Delta\boldsymbol\beta\boldsymbol\Delta` and
+:math:`-\boldsymbol\Delta\boldsymbol\alpha\boldsymbol\Delta`, and with
+:math:`\boldsymbol S=\operatorname{diag}(\boldsymbol I,\boldsymbol\Delta)` and
+:math:`\tilde{\boldsymbol\beta}=\boldsymbol\beta\boldsymbol\Delta`,
+
+.. math::
+
+   \boldsymbol S\boldsymbol A^{am\ell}\boldsymbol S
+      =\begin{pmatrix}\boldsymbol\alpha&\tilde{\boldsymbol\beta}\\
+                      -\tilde{\boldsymbol\beta}&-\boldsymbol\alpha\end{pmatrix},
+
+the structure of the scalar problem.  Its eigenvalues come in pairs
+:math:`\pm k`, and as in the scalar reduction, with
+:math:`\boldsymbol u=\boldsymbol x+\boldsymbol y` and
+:math:`\boldsymbol w=\boldsymbol x-\boldsymbol y` for an eigenvector
+:math:`(\boldsymbol x,\boldsymbol y)` of :math:`k`,
+
+.. math::
+
+   (\boldsymbol\alpha-\tilde{\boldsymbol\beta})
+   (\boldsymbol\alpha+\tilde{\boldsymbol\beta})\boldsymbol u=k^2\boldsymbol u,
+   \qquad
+   \boldsymbol w=(\boldsymbol\alpha+\tilde{\boldsymbol\beta})\boldsymbol u/k.
+
+The eigenvectors of :math:`\boldsymbol A^{am\ell}` are
+:math:`(\boldsymbol x,\boldsymbol\Delta\boldsymbol y)` for :math:`k` and
+:math:`(\boldsymbol y,\boldsymbol\Delta\boldsymbol x)` for :math:`-k`.  A
+squared eigenvalue may be complex, giving the four eigenvalues
+:math:`\pm k` and :math:`\pm\bar k`, or negative, giving the conjugate pair
+:math:`\pm i\sqrt{-k^2}`.  This is the reduction of the polarized
+discrete-ordinate problem of Siewert (2000, J. Quant. Spectrosc. Radiat.
+Transfer 64) used by VLIDORT (Spurr, 2006, J. Quant. Spectrosc. Radiat.
+Transfer 102); the formulation of Lin et al. (2022) keeps the full problem.
+
+VDISORT checks the symmetry for every layer and Fourier order, to
+:math:`10^{-12}` of the largest element of the phase matrix, and solves the
+full problem where it does not hold.  The cosine system of order zero always
+keeps the full problem: it holds the energy-conservation pair, whose small
+:math:`k` the squared eigenvalue :math:`k^2` gives with too little relative
+accuracy.  The half-size problem has an eighth of the floating-point work of
+the full one.
 
 The physical energy-conservation pair receives the same centered treatment as
 the scalar solver.  This pair can occur only in the cosine system at
@@ -601,10 +666,10 @@ Consequently :math:`F_0=X` and :math:`F_1=R+sX` at
 :math:`\kappa=0`.  Boundary assembly, gridded radiances, fluxes, and the
 arbitrary-angle formal integral all use these same columns.  The centered path
 is selected for :math:`\omega\in[1-10^{-8},1]`, or whenever the measured
-:math:`\kappa\leq10^{-4}`, matching scalar DISORT.  If the general complex
-eigensolver perturbs an unresolved real pair into slightly complex roots, only
-that pair is recomputed with the real eigensolver.  This fallback adds no
-eigensolve or allocation to the ordinary-albedo path.
+:math:`\kappa\leq10^{-4}`, matching scalar DISORT.  If rounding resolves the
+two nearly equal real roots as a slightly complex pair, the pair is taken
+instead from the nearest real roots of the same eigensolution, so no further
+eigensolve is needed.
 
 VDISORT particular-solution right-hand sides
 =============================================
@@ -686,9 +751,10 @@ Validation of the scalar limit is described in :doc:`dev.disort`.
 Sources and boundary conditions
 *******************************
 
-Both solvers support prescribed upper and lower diffuse boundary fields, a
-direct beam, an internal source polynomial in every layer, and a reflecting
-lower boundary.  Only the zeroth Fourier mode contains an azimuth-independent
+Both solvers support a prescribed downward diffuse field at the top, the
+radiance beneath the lower boundary (see `Surface emission`_), a direct beam,
+an internal source polynomial in every layer, and a reflecting lower
+boundary.  Only the zeroth Fourier mode contains an azimuth-independent
 internal source.
 
 In both cores the polynomial represents a source radiance.  VDISORT takes the
@@ -733,9 +799,30 @@ Scalar DISORT applies the corresponding diffuse-reflection quadrature and
 direct-beam reflection in the lower boundary equation.  VDISORT generalizes
 each Fourier coefficient to a :math:`4\times4` Mueller operator and retains a
 cosine and sine operator for each mode.  The core applies the angular
-quadrature weights exactly once; callbacks must therefore return the Fourier
-BRDF or Mueller-BRDF coefficient itself, without a quadrature weight folded
-into it.
+quadrature weights exactly once; the surface therefore holds the Fourier BRDF
+or Mueller-BRDF coefficients themselves, without a quadrature weight folded
+into them.
+
+*The surface as data.*  The solver is given the surface already evaluated, as
+the coefficients on the directions it needs: the reflection from its downward
+streams into its upward streams for each retained mode, and the reflection of
+the direct beam into the same upward streams.  The beam reflection belongs to
+one beam cosine, which the surface records with it.  A solver with a beam
+refuses a surface evaluated for another beam cosine, or without one, since it
+would reflect the wrong sun; without a beam the beam reflection is unused.
+Radiances at user directions need the reflection into those directions as
+well, evaluated for the same modes, streams and beam, which the caller
+supplies with them.  A surface's shapes are fixed when it is created, and its
+data is replaced in place: the solver's surface is allocated once and
+overwritten for each frequency without reallocation.
+
+In the solver settings the surface is held this way for every frequency.  The
+setting methods evaluate a surface model on the streams, and its beam
+reflection at the sun's zenith angle, so the sun must be set before the
+surface.  A model with the same parameters at every frequency is evaluated
+once, and again only where the sun's zenith angle changes; a spectral model is
+evaluated for each frequency.  The azimuth integral samples the raw BRDF once
+per quadrature node and accumulates every Fourier mode from those samples.
 
 For positive outgoing and incident quadrature streams, VDISORT assembles the
 actual bottom reflection matrix as
@@ -793,19 +880,18 @@ that volume's optical depth separately.  Scalar DISORT multiplies the factor by
    \frac{|r_v|^2+|r_h|^2}{2},
 
 which is exactly the :math:`M_{00}` element used by VDISORT.  VDISORT alone
-constructs and rotates the remaining Mueller elements.  Thus the scalar path
+constructs and rotates the remaining Mueller elements, by the facet reflection
+of :ref:`Sec Polarization reflection`.  Thus the scalar path
 does not pay for a :math:`4\times4` Mueller matrix or its reference-frame
 rotations, while both paths retain identical optics, shadowing, and treatment
 of total internal reflection.
 
-The two exact Lambertian *factories* remain deliberately separate thin
-adapters.  The common physical value is :math:`A/\pi`, but the solver callback
-normalizations differ: scalar DISORT stores :math:`R_0=A`, whereas VDISORT
-stores :math:`R^{c,0}_{00}=2A/\pi` before applying its boundary factor
-:math:`\pi`.  Sharing one returned callback would therefore either give one
-solver the wrong normalization or add a conversion on every evaluation.  The
-current conversion is performed once while constructing the modes and has no
-runtime cost.  Likewise, scalar Fourier projection evaluates one real cosine
+The two exact Lambertian surfaces remain deliberately separate.  The common
+physical value is :math:`A/\pi`, but the solvers' normalizations differ:
+scalar DISORT holds :math:`R_0=A`, whereas VDISORT holds
+:math:`R^{c,0}_{00}=2A/\pi` before applying its boundary factor :math:`\pi`.
+Each is evaluated directly in its solver's normalization, once, when the
+surface is evaluated, so there is no conversion at solve time.  Likewise, scalar Fourier projection evaluates one real cosine
 series using reflection symmetry; polarized projection must retain full-circle
 Mueller-valued cosine and sine series.  Reusing the polarized projector for
 scalar DISORT would do substantially more setup work without changing its
@@ -821,23 +907,104 @@ combination is simply
    \boldsymbol R^{am}_{\mathrm{mix}}
       =w_a\boldsymbol R^{am}_a+w_b\boldsymbol R^{am}_b.
 
-The same sum is applied to the direct-beam callbacks.  Missing higher modes
-are zero, so an azimuth-independent Lambertian operator can be mixed directly
+The same sum is applied to the direct-beam reflections, so both surfaces must
+be evaluated on the same directions and for the same beam cosine.  Missing
+higher modes are zero, so an azimuth-independent Lambertian operator can be mixed directly
 with a multi-mode surface.  Named factories provide Cox--Munk/Lambertian
 mixtures in both cores and ideal-Fresnel/Lambertian mixtures in VDISORT; the
 generic combiner permits other pairs and repeated composition.  The named
 factories use complementary fractions, whereas the generic weights need not
 sum to one.
 
-An ideal Fresnel surface is a directional delta distribution.  Its diffuse
-operator is exact on matching native quadrature directions, but its reflected
-direct beam generally lies off that grid.  Mixing it with Lambertian reflection
-does not remove this limitation.  A Cox--Munk/Lambertian mixture supplies a
+An ideal Fresnel surface is a directional delta distribution, so VDISORT
+represents it by a specular part rather than a reflection kernel: the Fresnel
+matrix :math:`\boldsymbol R(\mu)`, the same in every Fourier mode, reflects
+downward radiance at :math:`-\mu` into the upward direction :math:`\mu`.  The
+solver applies it between equal quadrature streams and, at an upward user
+direction, to the downward radiance in the partner direction :math:`-\mu`,
+which the caller must therefore also request.  Mixing sums the specular parts
+with the same weights as the kernels.  The reflected direct beam would be an
+upward beam, which the solver cannot represent, so an ideal Fresnel surface
+refuses a beam.  Mixing it with Lambertian reflection does not remove this
+limitation.  A Cox--Munk/Lambertian mixture supplies a
 finite-width polarized specular lobe and is therefore the beam-compatible
-choice.  Surface thermal emission is a separate boundary input: for a physical
-opaque surface it must be derived from the directional hemispherical
-reflectance of the complete mixture, rather than inferred from the mixture
-weights alone.
+choice.
+
+Surface emission
+****************
+
+The lower boundary input is not the emitted radiance but the radiance
+*beneath* the surface, and the surface transmits it into the atmosphere.  For
+an opaque surface at temperature :math:`T_s` this is the Planck radiance
+:math:`B(T_s)`, and the transmission is Kirchhoff's law.
+
+*Kirchhoff's law.*  With diffuse reflection :math:`\boldsymbol f`, specular
+reflection :math:`\boldsymbol R_s` and emission :math:`\boldsymbol E`, the
+upward Stokes radiance at the surface is
+
+.. math::
+
+   \boldsymbol I^\uparrow(\mu,\phi)
+     =\int_0^{2\pi}\!\!\int_0^1
+       \boldsymbol f(\mu,\phi;\mu',\phi')\,\boldsymbol I^\downarrow(\mu',\phi')
+       \,\mu'\,\mathrm d\mu'\,\mathrm d\phi'
+     +\boldsymbol R_s(\mu)\,\boldsymbol I^\downarrow(\mu,\phi)
+     +\boldsymbol E(\mu,\phi).
+
+In an isothermal enclosure the radiation is the isotropic, unpolarized
+blackbody field :math:`B\,\boldsymbol e_I`, :math:`\boldsymbol e_I=[1,0,0,0]^{\mathsf T}`,
+and the surface must return it unchanged.  Hence
+
+.. math::
+
+   \boldsymbol E=B(T_s)\,\boldsymbol\varepsilon,\qquad
+   \boldsymbol\varepsilon=\boldsymbol e_I-\boldsymbol\rho,\qquad
+   \boldsymbol\rho(\mu,\phi)=\Bigl[\int\!\!\int\boldsymbol f\,\mu'\,
+     \mathrm d\mu'\,\mathrm d\phi'+\boldsymbol R_s(\mu)\Bigr]\boldsymbol e_I .
+
+Emission depends only on the surface's own state, and the boundary equation is
+linear, so this holds in any radiation field.  :math:`\boldsymbol\rho` is the
+reflection of unit isotropic unpolarized light *into* the outgoing direction:
+the first column of the reflection integrated over incidence.  Its polarized
+part is opposite to the emission's (:math:`\varepsilon_Q=-\rho_Q`), so that
+reflection and emission add up to an unpolarized field.  A Lambertian surface
+of albedo :math:`A` gives :math:`\boldsymbol\varepsilon=(1-A)\boldsymbol e_I`,
+and a flat Fresnel surface gives
+:math:`\boldsymbol\varepsilon=\tfrac12[e_v+e_h,\,e_v-e_h,\,0,\,0]^{\mathsf T}`
+with :math:`e_p=1-R_p`.  For a surface without a preferred azimuth only the
+zeroth Fourier mode contributes; in VDISORT's combined form the emission
+enters the :math:`I` and :math:`Q` rows of the cosine system of mode zero.
+
+*On the streams.*  Both solvers apply the transmission themselves, with the
+reflection operator of the boundary equation,
+
+.. math::
+
+   \boldsymbol E_m=\bigl(\boldsymbol 1-\boldsymbol{\mathcal R}_m\bigr)\,
+     \boldsymbol b^\uparrow_m ,
+
+where :math:`\boldsymbol b^\uparrow_m` is the radiance beneath the surface and
+:math:`\boldsymbol{\mathcal R}_m` includes the specular part.  For
+:math:`\boldsymbol b^\uparrow_0=B\,\boldsymbol e_I` on every stream this is
+:math:`B\boldsymbol\varepsilon_i` with the emissivity computed by the solver's
+own quadrature,
+:math:`\boldsymbol\varepsilon_i=\boldsymbol e_I-\sum_j[\boldsymbol{\mathcal R}_0]_{ij}\boldsymbol e_I`.
+The discrete equations then satisfy detailed balance exactly: the bottom rows
+map :math:`B\boldsymbol e_I` on every downward stream to :math:`B\boldsymbol e_I`
+on every upward stream, so an isothermal atmosphere over any surface gives
+:math:`B\boldsymbol e_I` everywhere to rounding.  An emissivity from a finer,
+separate quadrature would not balance the stream reflection in this way.
+User directions use the same quadrature and are balanced too.  Without a
+surface, :math:`\boldsymbol b^\uparrow_m` is the upward radiance itself.
+
+*Coupled media.*  The same reading serves an interface between the
+atmosphere and a medium below: :math:`\boldsymbol b^\uparrow_m` is then that
+medium's upward radiance, and :math:`\boldsymbol 1-\boldsymbol{\mathcal R}_m`
+is the transmission complementary to the interface's reflection, the operator
+also applied to the atmosphere's radiance entering the medium.  It conserves
+flux for any incident field and reduces to Kirchhoff's law for the Planck
+radiance, but it is not the angular transmission of a refracting interface,
+which needs a model of its own.
 
 Global boundary-value matrix
 ****************************
@@ -899,7 +1066,8 @@ reflection operator, the unknown and equation ordering is
      \vdots\\
      \boldsymbol p_{L-1}(t_{L-1})
        -\boldsymbol p_{L-2}(t_{L-1})\\
-     \boldsymbol b^\uparrow_m+\boldsymbol d_m
+     (\boldsymbol 1-\boldsymbol{\mathcal R}_m)\boldsymbol b^\uparrow_m
+       +\boldsymbol d_m
        -\boldsymbol S_+\boldsymbol p_{L-1}(t_L)
        +\boldsymbol{\mathcal R}_m\boldsymbol S_-
           \boldsymbol p_{L-1}(t_L)
@@ -915,8 +1083,23 @@ impose the reflecting bottom boundary.  The count is therefore
 
 matching the :math:`Ld` unknown modal constants.  Only adjacent layer blocks
 couple, so the matrix is stored as a band matrix.  Both implementations use
-upper and lower half-bandwidth :math:`3h-1`.  In VDISORT this entire system is
-complex and is assembled independently for every :math:`(a,m)`.
+upper and lower half-bandwidth :math:`3h-1`.  In VDISORT the system is
+assembled independently for every :math:`(a,m)`, and an order with no source,
+beam, boundary radiance or surface term has the zero solution.
+
+The modal columns of VDISORT are complex, but its operator and boundary values
+are real, so the modal constants of a conjugate pair of modes are conjugate as
+well: the solution with each pair's constants conjugated and exchanged solves
+the same system.  A pair therefore contributes
+
+.. math::
+
+   c\,\boldsymbol H+\bar c\,\bar{\boldsymbol H}
+      =2\Re(c)\,\Re\boldsymbol H-2\Im(c)\,\Im\boldsymbol H,
+
+and the system is solved in real arithmetic for the real and imaginary parts
+of one member of each pair, with the same size and bandwidth.  This is the
+real form that VLIDORT uses as well.
 
 The vector :math:`\boldsymbol d_m` is direct-beam reflection.  With no
 reflecting surface, :math:`\boldsymbol{\mathcal R}_m=0` and
@@ -1030,10 +1213,19 @@ gridded path which reuses angle-dependent work.  It is restricted to classical
 delta-M.  It is intentionally disabled for a non-classical removed peak,
 including delta-M-plus.
 
-VDISORT provides a fully Mueller-valued correction cache.  Its TMS operator is
-formed from the difference between original and transport Mueller phase
-matrices.  For normalized removed peak :math:`\mathbf R`, the IMS angular
-operator contains
+VDISORT provides a fully Mueller-valued correction cache.  Its TMS term is the
+difference between the single scattering of the beam with the original Mueller
+phase matrix and that which the transport solver carries.  The latter is the
+transport beam phase matrix into the output directions synthesised from its
+:math:`N_{\mathrm{Fourier}}` modes, the solver's own (or those given for user
+directions), not the full transport matrix.  The two differ for the polarized
+elements: they contain the rotation angles between the scattering plane and the
+meridional planes, which are not band-limited in azimuth even when the phase
+matrix's Legendre series is, so subtracting the full matrix would add their
+azimuthal truncation back as an error.  For :math:`M_{00}` the two agree.  The
+cache holds the original part, computed once; the transport part costs a sum of
+:math:`N_{\mathrm{Fourier}}` modes per direction and azimuth.  For normalized
+removed peak :math:`\mathbf R`, the IMS angular operator contains
 
 .. math::
 
@@ -1050,9 +1242,9 @@ different optical depths then reuses the cached operators.  The vector core
 exposes TMS and IMS separately at one depth or at all layer bottoms, as well as
 ``u_corr``, ``u_user_corr``, and ``gridded_u_corr`` combinations analogous to
 the scalar core.  The correction cache remains a separate argument because it
-depends on the original, transport, and removed physical Mueller phase
-functions, whereas the VDISORT transport object contains only the already
-transformed discrete-ordinate operators.
+depends on the original and removed physical Mueller phase functions, whereas
+the VDISORT transport object contains only the already transformed
+discrete-ordinate operators.
 
 Arbitrary-angle radiances
 *************************
@@ -1082,8 +1274,9 @@ cache is part of the solver state.
 The diffuse top and bottom boundary fields are stored only at quadrature
 directions.  Their values at a new direction are therefore not uniquely
 defined by the core inputs.  The test-facing arbitrary-angle path uses stable
-half-range barycentric interpolation, which is exact for the constant boundary
-fields exercised by the reference suite.  General polarized user-angle use
+half-range barycentric interpolation, which is exact for constant boundary
+fields such as the Planck radiance beneath a surface; the surface's
+transmission of that radiance is then evaluated at the user direction itself.  General polarized user-angle use
 would require explicit directional boundary data or a boundary callback.
 
 The direction :math:`\mu=0` is excluded in both formal solutions because the

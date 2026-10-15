@@ -409,7 +409,11 @@ ArrayOfIndex SHT::get_m_indices() {
 
 FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
   auto result = FejerGrid(n_za);
-  if (radians) { result.angles *= Conversion::deg2rad(1.0); }
+  if (radians) {
+    Vector angles  = result.angles.vec();
+    angles        *= Conversion::deg2rad(1.0);
+    result.angles  = std::move(angles);
+  }
   return result;
 };
 

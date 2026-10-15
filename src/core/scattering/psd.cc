@@ -515,4 +515,24 @@ Vector BinnedPSD::evaluate(const AtmPoint& point,
 PSDData BinnedPSD::evaluate_with_derivatives(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
   return {.values = evaluate(point, sizes, a, b), .derivatives = {}};
 }
+
+Vector size_bin_widths(const Vector& sizes) {
+  const Size n = sizes.size();
+  ARTS_USER_ERROR_IF(n < 2,
+                     "A particle size distribution given as a density per unit size needs at least two particle sizes "
+                     "to weight them, got {}",
+                     n)
+  for (Size i = 0; i + 1 < n; ++i)
+    ARTS_USER_ERROR_IF(not(sizes[i] < sizes[i + 1]),
+                       "The particle sizes must ascend strictly to be weighted, but size {} is {} and size {} is {}",
+                       i,
+                       sizes[i],
+                       i + 1,
+                       sizes[i + 1])
+  Vector w(n);
+  w[0]     = sizes[1] - sizes[0];
+  w[n - 1] = sizes[n - 1] - sizes[n - 2];
+  for (Size i = 1; i + 1 < n; ++i) w[i] = 0.5 * (sizes[i + 1] - sizes[i - 1]);
+  return w;
+}
 }  // namespace scattering

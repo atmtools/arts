@@ -1,6 +1,8 @@
 #include <disort-brdf.h>
 #include <legendre.h>
 
+#include <limits>
+
 #include "../reference-data.h"
 #include "../test-helpers.h"
 
@@ -57,23 +59,6 @@ Numeric band_blackbody_radiance(const Numeric temperature,
   return blackbody_radiance(temperature) * integral / (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 }
 
-Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) {
-  constexpr Index nmu      = 64;
-  constexpr Index nazimuth = 256;
-  Vector          mu(nmu), weight(nmu);
-  Legendre::PositiveDoubleGaussLegendre(mu, weight);
-  Numeric reflectance = 0.0;
-  for (Index j = 0; j < nmu; ++j) {
-    Numeric azimuth_average = 0.0;
-    for (Index k = 0; k < nazimuth; ++k)
-      azimuth_average +=
-          raw(outgoing_mu, mu[j], Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(nazimuth));
-    // DISOTESTAUX's BEMST convention integrates azimuth through x = phi / pi.
-    reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
-  }
-  return 1.0 - reflectance;
-}
-
 Matrix henyey_greenstein(const Vector& g, const Index nmom) {
   Matrix out(g.size(), nmom + 1, 1.0);
   for (Index l = 1; l <= nmom; ++l) {
@@ -100,17 +85,29 @@ Matrix linear_polynomial(const AscendingGrid& tau, const Vector& values) {
   return out;
 }
 
-disort::main_data make_disort(const Index               NQuad,
-                              AscendingGrid             tau,
-                              Vector                    omega,
-                              Matrix                    legendre,
-                              const Numeric             mu0,
-                              const Numeric             I0,
-                              Matrix                    boundary_up   = {},
-                              Matrix                    boundary_down = {},
-                              Matrix                    source        = {},
-                              std::vector<disort::BDRF> brdf          = {},
-                              Vector                    f             = {}) {
+//! The cosines of the upward streams of nquad streams
+Vector upward_streams(const Index nquad) {
+  Vector mu(nquad / 2), weights(nquad / 2);
+  Legendre::PositiveDoubleGaussLegendre(mu, weights);
+  return mu;
+}
+
+//! The beam cosine a surface reflects: mu0 with a beam, NaN without
+Numeric beam_cosine(const Numeric beam, const Numeric mu0) {
+  return beam == 0.0 ? std::numeric_limits<Numeric>::quiet_NaN() : mu0;
+}
+
+disort::main_data make_disort(const Index                NQuad,
+                              AscendingGrid              tau,
+                              Vector                     omega,
+                              Matrix                     legendre,
+                              const Numeric              mu0,
+                              const Numeric              I0,
+                              Matrix                     boundary_up   = {},
+                              Matrix                     boundary_down = {},
+                              Matrix                     source        = {},
+                              disort::surface_reflection surface       = {},
+                              Vector                     f             = {}) {
   const Index nfourier = NQuad;
   const Index nlayers  = static_cast<Index>(tau.size());
   if (boundary_up.size() == 0) {
@@ -137,7 +134,7 @@ disort::main_data make_disort(const Index               NQuad,
                            std::move(boundary_down),
                            std::move(f),
                            std::move(source),
-                           std::move(brdf),
+                           std::move(surface),
                            mu0,
                            I0,
                            0);
@@ -189,18 +186,8 @@ void disort_test06() {
         band_blackbody_radiance(test.top_temperature, problem_6_wavenumber_low, problem_6_wavenumber_high);
     down[0] = test.top_isotropic + test.top_emissivity * top_planck;
 
-    const Numeric bottom_planck =
-        band_blackbody_radiance(test.bottom_temperature, problem_6_wavenumber_low, problem_6_wavenumber_high);
-    Vector surface_mu(nquad / 2), surface_weight(nquad / 2);
-    Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
-    for (Index stream = 0; stream < nquad / 2; ++stream) {
-      Numeric emissivity = 1.0;
-      if (test.surface == surface_type::lambertian)
-        emissivity = 1.0 - test.lambertian_albedo;
-      else if (test.surface == surface_type::hapke)
-        emissivity = directional_emissivity(raw, surface_mu[stream]);
-      up[0, stream] = emissivity * bottom_planck;
-    }
+    // The surface's Planck radiance; DISORT applies its emissivity, as DISORT's BEMST
+    up[0] = band_blackbody_radiance(test.bottom_temperature, problem_6_wavenumber_low, problem_6_wavenumber_high);
 
     Matrix source;
     if (test.interface_temperature.size() == 2) {
@@ -212,16 +199,19 @@ void disort_test06() {
                      test.interface_temperature[1], problem_6_wavenumber_low, problem_6_wavenumber_high)});
     }
 
-    auto dis = make_disort(nquad,
-                           tau,
-                           Vector{std::max(test.single_scattering_albedo, 1e-8)},
-                           henyey_greenstein(Vector{0.0}, nquad),
-                           test.beam_mu,
-                           test.beam,
-                           std::move(up),
-                           std::move(down),
-                           std::move(source),
-                           raw ? disort::brdf::fourier_modes(raw, nquad) : std::vector<disort::BDRF>{});
+    auto dis = make_disort(
+        nquad,
+        tau,
+        Vector{std::max(test.single_scattering_albedo, 1e-8)},
+        henyey_greenstein(Vector{0.0}, nquad),
+        test.beam_mu,
+        test.beam,
+        std::move(up),
+        std::move(down),
+        std::move(source),
+        raw ? disort::brdf::fourier_modes(
+                  raw, nquad, upward_streams(nquad), upward_streams(nquad), beam_cosine(test.beam, test.beam_mu))
+            : disort::surface_reflection{});
 
     disort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
@@ -233,6 +223,8 @@ void disort_test06() {
                        flux.down_diffuse,
                        reference.diffuse_down[level],
                        1e-3);
+      // The solver's emissivity comes from the streams, cDISORT's from a fine quadrature; with the Hapke
+      // hotspot, 6h's DFDT at the surface (a small difference of large terms) differs by 0.4%
       const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
       expect_reference(
           std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
@@ -255,18 +247,18 @@ void disort_test07() {
     down[0] =
         c.top_isotropic + band_blackbody_radiance(c.top_boundary_temperature, c.wavenumber_low, c.wavenumber_high);
 
+    // The surface's Planck radiance; DISORT applies its emissivity, as DISORT's BEMST
     disort::brdf::RawFunction raw;
-    if (c.surface != disort_test::reference::surface_type::hapke) up[0] = (1.0 - c.lambertian_albedo) * bottom_planck;
+    up[0] = bottom_planck;
     if (c.surface == disort_test::reference::surface_type::lambertian) {
       raw = [albedo = c.lambertian_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
     } else if (c.surface == disort_test::reference::surface_type::hapke) {
       raw = disort::brdf::Hapke{};
-      Vector surface_mu(c.streams / 2), surface_weight(c.streams / 2);
-      Legendre::PositiveDoubleGaussLegendre(surface_mu, surface_weight);
-      for (Index i = 0; i < c.streams / 2; ++i) up[0, i] = directional_emissivity(raw, surface_mu[i]) * bottom_planck;
     }
 
-    auto brdf = raw ? disort::brdf::fourier_modes(raw, c.streams) : std::vector<disort::BDRF>{};
+    const Vector streams = upward_streams(c.streams);
+    auto         surface = raw ? disort::brdf::fourier_modes(raw, c.streams, streams, streams, beam_cosine(c.beam, 0.5))
+                               : disort::surface_reflection{};
 
     auto dis = make_disort(
         c.streams,
@@ -281,7 +273,7 @@ void disort_test07() {
             tau,
             Vector{band_blackbody_radiance(c.atmosphere_top_temperature, c.wavenumber_low, c.wavenumber_high),
                    band_blackbody_radiance(c.atmosphere_bottom_temperature, c.wavenumber_low, c.wavenumber_high)}),
-        std::move(brdf));
+        std::move(surface));
     const Vector      output_tau = case_index < 2 ? Vector{0.0, c.optical_depth} : Vector{0.0, 0.5, 1.0};
     disort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
@@ -294,7 +286,7 @@ void disort_test07() {
         expect_small_reference(std::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level]);
         expect_small_reference(std::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level]);
       } else {
-        const Numeric tolerance = case_index == 4 ? 1e-2 : 2e-3;
+        constexpr Numeric tolerance = 2e-3;
         expect_reference(
             std::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level], tolerance);
         expect_reference(std::format("{} diffuse-down flux [{}]", c.name, level),
@@ -313,26 +305,25 @@ disort::main_data problem10(const Index nquad) {
   const auto&         test = disort_test::reference::problem_9[2];
   const AscendingGrid tau{Vector(test.cumulative_tau)};
   Matrix              up(nquad, nquad / 2, 0), down(nquad, nquad / 2, 0);
-  up[0] = (1.0 - test.surface_albedo) *
-          band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
+  up[0] = band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
   down[0] =
       test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
   Vector source_radiance(test.interface_temperature.size());
   for (Size i = 0; i < test.interface_temperature.size(); ++i)
     source_radiance[i] =
         band_blackbody_radiance(test.interface_temperature[i], test.wavenumber_low, test.wavenumber_high);
-  std::vector<disort::BDRF> brdf{
-      disort::BDRF{[albedo = test.surface_albedo](auto value, auto&, auto&) { value = albedo; }}};
+  const Numeric mu0     = nquad == 2 ? 0.500001 : 0.5;
+  const Vector  streams = upward_streams(nquad);
   return make_disort(nquad,
                      tau,
                      test.single_scattering_albedo,
                      henyey_greenstein(disort_test::reference::problem_9c_asymmetry, nquad),
-                     nquad == 2 ? 0.500001 : 0.5,
+                     mu0,
                      Constant::pi,
                      up,
                      down,
                      linear_polynomial(tau, source_radiance),
-                     std::move(brdf));
+                     disort::brdf::lambertian_fourier_modes(test.surface_albedo, 1, streams, streams, mu0));
 }
 
 void disort_test09c() {
@@ -384,11 +375,10 @@ void disort_test12() {
 void disort_test13() {
   constexpr Index nquad = 16;
   for (const bool multilayer : {false, true}) {
-    const AscendingGrid       tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
-    const Vector              omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
-    const Vector              g(tau.size(), 0.8);
-    std::vector<disort::BDRF> brdf{
-        disort::BDRF{[](auto value, auto&, auto&) { value = disort_test::reference::problem_13_surface_albedo; }}};
+    const AscendingGrid tau   = multilayer ? AscendingGrid{0.5, 1.0} : AscendingGrid{1.0};
+    const Vector        omega = multilayer ? Vector{0.99, 0.50} : Vector{0.99};
+    const Vector        g(tau.size(), 0.8);
+    const Vector        streams = upward_streams(nquad);
     auto dis = make_disort(nquad,
                            tau,
                            omega,
@@ -398,7 +388,8 @@ void disort_test13() {
                            {},
                            {},
                            {},
-                           std::move(brdf),
+                           disort::brdf::lambertian_fourier_modes(
+                               disort_test::reference::problem_13_surface_albedo, 1, streams, streams, 0.5),
                            Vector(tau.size(), std::pow(0.8, nquad)));
     if (multilayer) {
       run_case("test_13c (special-boundary equivalent)", dis, Vector{0.0, 1.0});

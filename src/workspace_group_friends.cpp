@@ -405,11 +405,6 @@ to produce another *Numeric*.
 )--",
   };
 
-  wsg_data["MatrixOfDisortBDRF"] = {
-      .file = "disort.h",
-      .desc = "A 2 dimensional array of *DisortBDRF*\n",
-  };
-
   wsg_data["LinemixingSingleEcsData"] = {
       .file = "lbl.h",
       .desc =
@@ -473,11 +468,6 @@ Both the data and the grid may be named.  The grids are not sorted.
       .invariant            = "{}.ok()",
       .invariant_desc       = "has grids whose sizes are the shape of its data.",
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
-  };
-
-  wsg_data["DisortBDRF"] = {
-      .file = "disort.h",
-      .desc = "A bidirectional reflectance function\n",
   };
 
   wsg_data["AbsorptionLookupTable"] = {

@@ -1153,38 +1153,38 @@ Dimensions: *ray_path* x *suns* x *sun_path*
       .type = "ArrayOfArrayOfArrayOfPropagationPathPoint",
   };
 
-  //! Disort
+  //! DISORT and VDISORT: the shared dimensions and fluxes, then the settings and radiance field of each
 
-  wsv_data["disort_fourier_mode_dimension"] = {
-      .desc = R"(The number of Fourier modes for Disort.
+  wsv_data["fourier_mode_dimension"] = {
+      .desc = R"(The number of azimuthal Fourier modes of DISORT and VDISORT.
 )",
       .type = "Index",
   };
 
-  wsv_data["disort_legendre_polynomial_dimension"] = {
-      .desc = R"(The number of input Legendre polynimials for Disort.
+  wsv_data["legendre_polynomial_dimension"] = {
+      .desc = R"(The number of Legendre polynomials of the phase function or matrix of DISORT and VDISORT.
 )",
       .type = "Index",
   };
 
-  wsv_data["disort_quadrature"] = {
-      .desc = R"(The quadrature angles for Disort with accompying weights.
+  wsv_data["quadrature"] = {
+      .desc = R"(The quadrature zenith angles of DISORT and VDISORT with their weights.
 
-Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_rad_field*.
+Size is *quadrature_dimension*, as the zenith grid of the radiance fields.
 )",
       .type = "ZenGriddedField1",
   };
 
-  wsv_data["disort_quadrature_dimension"] = {
-      .desc = R"(The quadrature size for Disort.
+  wsv_data["quadrature_dimension"] = {
+      .desc = R"(The number of quadrature angles of DISORT and VDISORT, both hemispheres together.
 )",
       .type = "Index",
   };
 
-  wsv_data["disort_spectral_flux_field"] = {
-      .desc = R"(The spectral flux field from Disort.
+  wsv_data["spectral_flux_components_profile"] = {
+      .desc = R"(The profiles of the spectral flux components of DISORT or VDISORT.
 )",
-      .type = "DisortFlux",
+      .type = "FluxComponentsProfile",
       .dims = {"NFREQ", "NLAYER"},
   };
 
@@ -1215,6 +1215,22 @@ Size is *disort_quadrature_dimension* or zenith angle grid of *disort_spectral_r
 )",
       .type = "DisortSettings",
       .dims = {"NFREQ", "", "NQUADRATURE", "", "NFOURIER"},
+  };
+
+  //! VDISORT, the polarized counterparts of the Disort settings and radiance field
+
+  wsv_data["vdisort_spectral_rad_field"] = {
+      .desc = R"(The spectral radiance field from VDISORT, Stokes vectors.
+)",
+      .type = "VDisortRadiance",
+      .dims = {"NFREQ", "NLAYER", "NAZIMUTH", "NZENITH"},
+  };
+
+  wsv_data["vdisort_settings"] = {
+      .desc = R"(Contains the full settings of spectral VDISORT calculations.
+)",
+      .type = "VDisortSettings",
+      .dims = {"NFREQ", "NLAYER", "NQUADRATURE", "NDISORT_LEGENDRE", "NFOURIER"},
   };
 
   //! Geodetic coordinates (altitude, latitude and longitude)

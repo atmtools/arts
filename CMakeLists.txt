@@ -66,9 +66,6 @@ option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
 option (ENABLE_CDISORT "Turn on cdisort" ON)
 option (ENABLE_TMATRIX "Build the original T-matrix solver" OFF)
 option (ENABLE_TMATRIX_QUAD "Use extended-precision T-matrix internals" OFF)
-if(ENABLE_TMATRIX)
-  enable_language(Fortran)
-endif()
 option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" ON)
 option (ENABLE_EXAMPLE_PLOTS "Generate plots for examples in sphinx docs" OFF)
 option (DISABLE_SHTNS "Turn off SHTns" OFF)
@@ -169,6 +166,7 @@ include (CheckFunctionExists)
 
 include (ArtsTestcases)
 include (ArtsTestdata)
+include (ArtsBundledLicenses)
 
 set (DATA_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/arts)
 
@@ -283,6 +281,16 @@ set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS/LAPACK support #########
 find_package (LAPACK REQUIRED)
+
+# The optional Fortran T-matrix solver enables Fortran only after LAPACK is
+# found.  With Fortran enabled, FindBLAS prefers MKL's GNU Fortran interface
+# and threading layers (mkl_gf_lp64, mkl_gnu_thread) over those of a C/C++
+# build, and the multi-threaded zgbsv of mkl_gnu_thread (MKL 2026.1) crashes
+# for the band widths VDISORT uses.  This keeps the BLAS/LAPACK choice
+# independent of ENABLE_TMATRIX.
+if(ENABLE_TMATRIX)
+  enable_language(Fortran)
+endif()
 
 ########## OpenMP support #########
 if (NOT NO_OPENMP AND NOT CMAKE_GENERATOR STREQUAL "Xcode")

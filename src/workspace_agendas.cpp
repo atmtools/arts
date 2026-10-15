@@ -291,9 +291,9 @@ scenarios.  The output of this Agenda is just that setting.
                                         .output         = {"disort_settings"},
                                         .input          = {"freq_grid",
                                                            "ray_path",
-                                                           "disort_quadrature_dimension",
-                                                           "disort_fourier_mode_dimension",
-                                                           "disort_legendre_polynomial_dimension"},
+                                                           "quadrature_dimension",
+                                                           "fourier_mode_dimension",
+                                                           "legendre_polynomial_dimension"},
                                         .named_operator = "DisortSettingsAgendaOperator"};
 
   wsa_data["atm_disort_settings_agenda"] = {
@@ -336,11 +336,48 @@ as a boundary condition to subsurface radiance calculation.
                        "atm_field",
                        "surf_field",
                        "subsurf_field",
-                       "disort_quadrature_dimension",
-                       "disort_fourier_mode_dimension",
-                       "disort_legendre_polynomial_dimension",
+                       "quadrature_dimension",
+                       "fourier_mode_dimension",
+                       "legendre_polynomial_dimension",
                        "disort_settings_agenda"},
       .enum_options = {"Standard" /*, "Disort"*/},
+      .enum_default = "Standard"};
+
+  wsa_data["vdisort_settings_agenda"] = {.desc           = R"--(An agenda for setting up VDISORT.
+
+See *vdisort_settings_agendaSetup* for prepared agenda settings.
+
+This is the polarized counterpart of *disort_settings_agenda*.  The only intent
+of this Agenda is to simplify the setup of VDISORT for different scenarios.  The
+output of this Agenda is just that setting.
+)--",
+                                         .output         = {"vdisort_settings"},
+                                         .input          = {"freq_grid",
+                                                            "ray_path",
+                                                            "quadrature_dimension",
+                                                            "fourier_mode_dimension",
+                                                            "legendre_polynomial_dimension"},
+                                         .named_operator = "VDisortSettingsAgendaOperator"};
+
+  wsa_data["vdisort_settings_downwelling_wrapper_agenda"] = {
+      .desc         = R"--(An wrapper agenda for calling *vdisort_settings_agenda*.
+
+The polarized counterpart of *disort_settings_downwelling_wrapper_agenda*.
+A call to *vdisort_settings_agenda* is made, and then a follow-up calculation
+of the down-welling radiation is done to set the boundary condition at the top
+of the tau-range covered by the ray path.
+)--",
+      .output       = {"vdisort_settings"},
+      .input        = {"freq_grid",
+                       "ray_path",
+                       "atm_field",
+                       "surf_field",
+                       "subsurf_field",
+                       "quadrature_dimension",
+                       "fourier_mode_dimension",
+                       "legendre_polynomial_dimension",
+                       "vdisort_settings_agenda"},
+      .enum_options = {"Standard"},
       .enum_default = "Standard"};
 
   // Add information about all automatically generated code

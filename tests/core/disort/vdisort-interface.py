@@ -51,45 +51,44 @@ def test_combined_surface_models():
     number_of_modes = 3
 
     lambertian = arts.vdisort.lambertian_fourier_modes(
-        lambertian_albedo, number_of_modes
+        lambertian_albedo, number_of_modes, mu, mu
     )
-    fresnel = arts.vdisort.fresnel_fourier_modes(1.5, number_of_modes)
+    fresnel = arts.vdisort.fresnel_fourier_modes(1.5, number_of_modes, mu, mu)
     generic = arts.vdisort.combine_fourier_modes(
         fresnel, fresnel_fraction, lambertian, 1.0 - fresnel_fraction
     )
     named = arts.vdisort.fresnel_lambertian_fourier_modes(
-        fresnel_fraction, lambertian_albedo, 1.5, number_of_modes
+        fresnel_fraction, lambertian_albedo, 1.5, number_of_modes, mu, mu
     )
 
-    for mode in range(number_of_modes):
-        for alpha in (arts.vdisort.cosine_mode, arts.vdisort.sine_mode):
-            expected = fresnel_fraction * np.asarray(fresnel[mode](alpha, mu, mu))
-            expected += (1.0 - fresnel_fraction) * np.asarray(
-                lambertian[mode](alpha, mu, mu)
-            )
-            np.testing.assert_allclose(generic[mode](alpha, mu, mu), expected)
-            np.testing.assert_allclose(named[mode](alpha, mu, mu), expected)
+    # The kernels mix, and the specular part is the Fresnel one, weighted
+    expected = fresnel_fraction * np.asarray(fresnel.brdf)
+    expected += (1.0 - fresnel_fraction) * np.asarray(lambertian.brdf)
+    for mixture in (generic, named):
+        np.testing.assert_allclose(mixture.brdf, expected)
+        np.testing.assert_allclose(
+            mixture.specular, fresnel_fraction * np.asarray(fresnel.specular)
+        )
+    assert not lambertian.has_specular
 
-    first_lambertian = np.asarray(
-        lambertian[0](arts.vdisort.cosine_mode, mu, mu)
-    ).reshape(2, 4, 2, 4)
+    first_lambertian = np.asarray(lambertian.brdf)[arts.vdisort.cosine_mode, 0]
     np.testing.assert_allclose(
-        first_lambertian[:, 0, :, 0], 2.0 * lambertian_albedo / np.pi
+        first_lambertian[:, :, 0, 0], 2.0 * lambertian_albedo / np.pi
     )
-    first_lambertian[:, 0, :, 0] = 0.0
+    first_lambertian[:, :, 0, 0] = 0.0
     np.testing.assert_allclose(first_lambertian, 0.0)
 
     rough = arts.vdisort.cox_munk_lambertian_fourier_modes(
-        0.35, lambertian_albedo, 5.0, 1.34, True, 2, 24
+        0.35, lambertian_albedo, 5.0, 1.34, True, 2, mu, mu, azimuth_quadrature_points=24
     )
-    assert len(rough) == 2
-    assert np.isfinite(rough[0](arts.vdisort.cosine_mode, mu, mu)).all()
+    assert rough.modes == 2
+    assert np.isfinite(rough.brdf).all()
 
     scalar = arts.disort.cox_munk_lambertian_fourier_modes(
-        0.35, lambertian_albedo, 5.0, 1.34, True, 2, 24
+        0.35, lambertian_albedo, 5.0, 1.34, True, 2, mu, mu, azimuth_quadrature_points=24
     )
-    assert len(scalar) == 2
-    assert np.isfinite(scalar[0](mu, mu)).all()
+    assert scalar.modes == 2
+    assert np.isfinite(scalar.brdf).all()
 
     absorbing = np.asarray(arts.vdisort.fresnel_reflection(0.5, 1.5 + 0.1j))
     assert np.isfinite(absorbing).all()
@@ -133,21 +132,23 @@ def test_delta_m_preprocessing():
 
 
 def test_depolarizing_surface_catalogue():
-    models = (
-        arts.vdisort.hapke_fourier_modes(1.0, 0.06, 0.6, 2, 32),
-        arts.vdisort.rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, 2, 32),
-        arts.vdisort.ross_li_fourier_modes(0.091, 0.02, 0.01, np.deg2rad(1.5), 2, 32),
-    )
     mu = np.array([0.2, 0.7])
-    stokes_mask = np.ones((8, 8), dtype=bool)
-    stokes_mask[0::4, 0::4] = False
+    models = (
+        arts.vdisort.hapke_fourier_modes(1.0, 0.06, 0.6, 2, mu, mu, azimuth_quadrature_points=32),
+        arts.vdisort.rpv_fourier_modes(
+            0.027, 0.647, -0.169, 0.1, 2, mu, mu, azimuth_quadrature_points=32
+        ),
+        arts.vdisort.ross_li_fourier_modes(
+            0.091, 0.02, 0.01, np.deg2rad(1.5), 2, mu, mu, azimuth_quadrature_points=32
+        ),
+    )
     for model in models:
-        assert len(model) == 2
-        for mode in model:
-            for alpha in (arts.vdisort.cosine_mode, arts.vdisort.sine_mode):
-                matrix = np.asarray(mode(alpha, mu, mu))
-                assert np.isfinite(matrix).all()
-                np.testing.assert_allclose(matrix[stokes_mask], 0.0, atol=1e-14)
+        assert model.modes == 2
+        brdf = np.asarray(model.brdf)
+        assert np.isfinite(brdf).all()
+        # Fully depolarizing: only the I-to-I element of every Mueller block
+        brdf[..., 0, 0] = 0.0
+        np.testing.assert_allclose(brdf, 0.0, atol=1e-14)
 
 
 def test_depolarizing_surface_catalogue_combinations():
@@ -158,21 +159,24 @@ def test_depolarizing_surface_catalogue_combinations():
     specular_fraction = 0.2
     refractive_index = 1.5
 
-    nodes, _ = np.polynomial.legendre.leggauss(npositive)
-    mu = 0.5 * (nodes + 1.0)
+    mu = np.asarray(arts.math.pdleggauss(nquad)[0])  # VDISORT's upward streams
     viewing_angle = np.rad2deg(np.arccos(mu))
     phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
     boundary_down = np.zeros((2, 1, npositive, 4))
     boundary_down[arts.vdisort.cosine_mode, 0, :, 0] = 1.0
 
     surfaces = {
-        "Hapke": arts.vdisort.hapke_fourier_modes(1.0, 0.06, 0.6, 1, 48),
-        "RPV": arts.vdisort.rpv_fourier_modes(0.027, 0.647, -0.169, 0.1, 1, 48),
+        "Hapke": arts.vdisort.hapke_fourier_modes(
+            1.0, 0.06, 0.6, 1, mu, mu, azimuth_quadrature_points=48
+        ),
+        "RPV": arts.vdisort.rpv_fourier_modes(
+            0.027, 0.647, -0.169, 0.1, 1, mu, mu, azimuth_quadrature_points=48
+        ),
         "Ross-Li": arts.vdisort.ross_li_fourier_modes(
-            0.091, 0.02, 0.01, np.deg2rad(1.5), 1, 48
+            0.091, 0.02, 0.01, np.deg2rad(1.5), 1, mu, mu, azimuth_quadrature_points=48
         ),
     }
-    fresnel = arts.vdisort.fresnel_fourier_modes(refractive_index, 1)
+    fresnel = arts.vdisort.fresnel_fourier_modes(refractive_index, 1, mu, mu)
 
     def reflected_stokes(modes):
         model = arts.cppvdisort(
@@ -184,7 +188,7 @@ def test_depolarizing_surface_catalogue_combinations():
             beam_stokes=np.zeros(4),
             phi0=0.0,
             b_neg=boundary_down,
-            BDRF_Fourier_modes=modes,
+            surface=modes,
         )
         return np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
 
@@ -255,44 +259,28 @@ def test_depolarizing_surface_catalogue_combinations():
         plt.show()
 
 
+def _meridional_basis(mu, phi):
+    """The meridional basis (v, h) and direction of a ray, at the poles that of the azimuth phi."""
+    horizontal = np.sqrt(max(0.0, 1.0 - mu * mu))
+    direction = np.array([horizontal * np.cos(phi), horizontal * np.sin(phi), mu])
+    return direction, arts.rtepack.meridional_basis(
+        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
+    )
+
+
 def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
-    """Rayleigh first Mueller column in each outgoing local-meridian frame."""
+    """Rayleigh first Mueller column in each outgoing meridional basis."""
     mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
-    horizontal = np.sqrt(1.0 - mu_out**2)
-    outgoing = np.stack(
-        (
-            horizontal * np.cos(phi_out),
-            horizontal * np.sin(phi_out),
-            mu_out,
-        ),
-        axis=-1,
-    )
-    incident = np.array(
-        [
-            np.sqrt(1.0 - mu0**2) * np.cos(phi0),
-            np.sqrt(1.0 - mu0**2) * np.sin(phi0),
-            -mu0,
-        ]
-    )
-    cos_scattering = np.clip(outgoing @ incident, -1.0, 1.0)
-    polarized = 0.75 * (1.0 - cos_scattering**2)
-
-    # The local horizontal axis is k_out x z and the local vertical axis is
-    # horizontal x k_out.  Rayleigh polarization is perpendicular to the
-    # scattering plane spanned by the incident and outgoing rays.
-    local_horizontal = np.stack(
-        (np.sin(phi_out), -np.cos(phi_out), np.zeros_like(phi_out)), axis=-1
-    )
-    local_vertical = np.cross(local_horizontal, outgoing)
-    perpendicular = np.cross(incident, outgoing)
-    perpendicular /= np.linalg.norm(perpendicular, axis=-1)[..., None]
-    vertical_component = np.sum(perpendicular * local_vertical, axis=-1)
-    horizontal_component = np.sum(perpendicular * local_horizontal, axis=-1)
-
+    incident, incident_basis = _meridional_basis(-mu0, phi0)
     stokes = np.zeros(mu_out.shape + (4,))
-    stokes[..., 0] = 0.75 * (1.0 + cos_scattering**2)
-    stokes[..., 1] = polarized * (vertical_component**2 - horizontal_component**2)
-    stokes[..., 2] = 2.0 * polarized * vertical_component * horizontal_component
+    for index in np.ndindex(mu_out.shape):
+        outgoing, outgoing_basis = _meridional_basis(mu_out[index], phi_out[index])
+        phase = _rayleigh_phase_matrix(np.clip(outgoing @ incident, -1.0, 1.0))
+        compact = arts.CompactPlanarMuelmat(
+            phase[0, 0], phase[0, 1], phase[1, 1], phase[2, 2], phase[2, 3], phase[3, 3]
+        )
+        lab = arts.rtepack.lab_frame_phase_matrix(compact, incident_basis, outgoing_basis)
+        stokes[index] = np.array(lab)[:, 0]
     return stokes
 
 
@@ -339,17 +327,41 @@ def test_phase_helpers():
     assert combined_beam.shape == (2, 1, 1, 2, 4, 4)
 
 
-def test_bdrf():
-    def cosine(mu_out, mu_in):
-        return np.ones((4 * len(mu_out), 4 * len(mu_in)))
+def test_surface_reflection():
+    """A surface reflection has the shapes it is constructed with; its data is set in place."""
+    surface = arts.vdisort.SurfaceReflection(2, 3, 4, 0.5)
+    assert (surface.modes, surface.directions, surface.streams) == (2, 3, 4)
+    assert surface.beam_mu == 0.5 and not surface.has_specular
+    np.testing.assert_array_equal(surface.brdf, np.zeros((2, 2, 3, 4, 4, 4)))
 
-    bdrf = arts.VDisortBDRF(cosine)
-    mu_out = np.array([0.2, 0.8])
-    mu_in = np.array([0.4])
-    assert np.asarray(bdrf(arts.vdisort.cosine_mode, mu_out, mu_in)).shape == (8, 4)
-    np.testing.assert_array_equal(
-        bdrf(arts.vdisort.sine_mode, mu_out, mu_in), np.zeros((8, 4))
-    )
+    brdf = np.ones((2, 2, 3, 4, 4, 4))
+    beam_brdf = np.full((2, 2, 3, 4, 4), 2.0)
+    surface.set(brdf, beam_brdf, 0.6)
+    np.testing.assert_array_equal(surface.brdf, brdf)
+    np.testing.assert_array_equal(surface.beam_brdf, beam_brdf)
+    assert surface.beam_mu == 0.6
+
+    # The reflection into other directions for the same modes, streams and beam
+    user = surface.like(5)
+    assert (user.modes, user.directions, user.streams, user.beam_mu) == (2, 5, 4, 0.6)
+    np.testing.assert_array_equal(user.brdf, np.zeros((2, 2, 5, 4, 4, 4)))
+
+    from_data = arts.vdisort.SurfaceReflection(brdf, beam_brdf, 0.6)
+    np.testing.assert_array_equal(from_data.brdf, brdf)
+
+    # Other shapes are refused, and a specular part cannot reflect a beam
+    for refused in (
+        lambda: surface.set(np.ones((2, 2, 3, 3, 4, 4)), beam_brdf, 0.6),
+        lambda: surface.set(brdf, beam_brdf, 1.5),
+        lambda: arts.vdisort.SurfaceReflection(1, 2, 2, 0.5, True),
+    ):
+        try:
+            refused()
+        except RuntimeError:
+            pass
+        else:
+            raise AssertionError("A surface reflection accepted invalid data")
+    np.testing.assert_array_equal(surface.brdf, brdf)
 
 
 def test_absorbing_stokes_field():
@@ -403,8 +415,7 @@ def test_fresnel_brewster_angle():
 
     # VDISORT uses a Gauss-Legendre rule mapped from [-1, 1] to [0, 1]
     # independently in each hemisphere.
-    nodes, _ = np.polynomial.legendre.leggauss(npositive)
-    mu = 0.5 * (nodes + 1.0)
+    mu = np.asarray(arts.math.pdleggauss(nquad)[0])
 
     phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
     boundary_down = np.zeros((2, 1, npositive, 4))
@@ -422,7 +433,7 @@ def test_fresnel_brewster_angle():
         beam_stokes=np.zeros(4),
         phi0=0.0,
         b_neg=boundary_down,
-        BDRF_Fourier_modes=arts.vdisort.fresnel_fourier_modes(refractive_index, 1),
+        surface=arts.vdisort.fresnel_fourier_modes(refractive_index, 1, mu, mu),
     )
 
     stokes = np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
@@ -524,8 +535,7 @@ def test_fresnel_lambertian_depolarization():
     npositive = nquad // 2
     depth = 1.0e-8
 
-    nodes, _ = np.polynomial.legendre.leggauss(npositive)
-    mu = 0.5 * (nodes + 1.0)
+    mu = np.asarray(arts.math.pdleggauss(nquad)[0])  # VDISORT's upward streams
     quadrature_angle = np.arccos(mu)
     phase = np.zeros((2, 1, 1, nquad, nquad, 4, 4))
     boundary_down = np.zeros((2, 1, npositive, 4))
@@ -541,15 +551,15 @@ def test_fresnel_lambertian_depolarization():
             beam_stokes=np.zeros(4),
             phi0=0.0,
             b_neg=boundary_down,
-            BDRF_Fourier_modes=modes,
+            surface=modes,
         )
         return np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
 
     pure_fresnel = reflected_stokes(
-        arts.vdisort.fresnel_fourier_modes(refractive_index, 1)
+        arts.vdisort.fresnel_fourier_modes(refractive_index, 1, mu, mu)
     )
     pure_lambertian = reflected_stokes(
-        arts.vdisort.lambertian_fourier_modes(lambertian_albedo, 1)
+        arts.vdisort.lambertian_fourier_modes(lambertian_albedo, 1, mu, mu)
     )
 
     reflected = {}
@@ -558,7 +568,7 @@ def test_fresnel_lambertian_depolarization():
     for fraction in fresnel_fractions:
         value = reflected_stokes(
             arts.vdisort.fresnel_lambertian_fourier_modes(
-                fraction, lambertian_albedo, refractive_index, 1
+                fraction, lambertian_albedo, refractive_index, 1, mu, mu
             )
         )
         expected = fraction * pure_fresnel + (1.0 - fraction) * pure_lambertian
@@ -654,7 +664,7 @@ def test_fresnel_lambertian_depolarization():
 def test_optically_thin_rayleigh_atmosphere():
     """Recover the analytical single-Rayleigh-scattering Stokes field."""
     depth = 1.0e-8
-    nquad = 4
+    nquad = 160
     nfourier = 1
 
     # A vertical beam makes the Rayleigh field axisymmetric.  Diffuse
@@ -684,25 +694,12 @@ def test_optically_thin_rayleigh_atmosphere():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    # Positive mu observes the upward field at the top of the atmosphere.  For
-    # a downward vertical beam, cos(scattering angle) = -mu.  The smallest mu
-    # samples 90 degrees to within 0.006 degrees while remaining a valid ray.
-    mu = np.geomspace(1.0e-4, 1.0, 80)
+    # The upward streams observe the upward field at the top of the
+    # atmosphere.  For a downward vertical beam, cos(scattering angle) = -mu.
+    # The smallest of the 80 streams samples 90 degrees to within 0.02 degrees.
+    mu = np.asarray(model.mu)[: nquad // 2]
     rayleigh = _rayleigh_phase_matrix(-mu)
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, :2, :2] = rayleigh[:, :2, :2]
-    user_beam_phase[arts.vdisort.sine_mode, 0, 0, :, 2:, 2:] = rayleigh[:, 2:, 2:]
-
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0]),
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, 0]
+    stokes = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
     # Along an upward ray at the top boundary, the attenuated direct-beam
     # source integrates to [1-exp(-depth*(1+1/mu))]/(1+mu).
@@ -715,7 +712,7 @@ def test_optically_thin_rayleigh_atmosphere():
     np.testing.assert_allclose(
         linear_polarization, expected_polarization, rtol=2.0e-8, atol=2.0e-12
     )
-    assert linear_polarization[0] > 1.0 - 3.0e-8
+    assert linear_polarization[np.argmin(mu)] > 1.0 - 3.0 * mu.min() ** 2
     np.testing.assert_allclose(stokes[:, 2:], 0.0, atol=2.0e-15)
 
     if "ARTS_HEADLESS" not in os.environ:
@@ -793,19 +790,12 @@ def test_nonprincipal_plane_rayleigh_polarization():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    user_mu = np.array([0.4])
+    # The upward stream closest to mu = 0.4, at the top
+    upward = np.asarray(model.mu)[: nquad // 2]
+    stream = int(np.argmin(np.abs(upward - 0.4)))
+    user_mu = upward[stream : stream + 1]
     phi = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
-    user_phase = np.zeros((2, nfourier, 1, 1, nquad, 4, 4))
-    user_beam_phase = _rayleigh_beam_fourier(user_mu, mu0, phi0, nfourier)
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=phi,
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, :, 0]
+    stokes = np.asarray(model.u(tau=np.array([0.0]), phi=phi))[0, :, stream]
 
     expected_phase = _rayleigh_stokes_column(user_mu[0], phi, mu0, phi0)
     ray_integral = -np.expm1(-depth * (1.0 / mu0 + 1.0 / user_mu[0])) / (
@@ -869,8 +859,12 @@ def test_nonprincipal_plane_rayleigh_polarization():
 
 def test_optically_thin_sun_halo():
     """Transport a prescribed 22-degree halo through a thin atmosphere."""
-    depth = 1.0e-8
-    nquad = 4
+    # Without diffuse scattering the single-scattering formula below is exact
+    # at any depth.  The stream solution subtracts exp(-tau/mu) from
+    # exp(-tau/mu0) with mu0 = 1, so depth 1e-3 rather than 1e-8 keeps its
+    # cancellation (eps / (depth (1/mu - 1))) below the tolerance.
+    depth = 1.0e-3
+    nquad = 256
     nfourier = 1
 
     # Normalize the prescribed phase function to unit spherical mean.  It is
@@ -903,22 +897,17 @@ def test_optically_thin_sun_halo():
         beam_phase_matrix=quadrature_beam_phase,
     )
 
-    scattering_angle = np.deg2rad(np.linspace(1.0, 45.0, 177))
-    mu = -np.cos(scattering_angle)
+    # The downward streams at the bottom with scattering angles from 1 to 45
+    # degrees, in ascending scattering angle
+    downward = np.asarray(model.mu)[nquad // 2 :]
+    streams = np.flatnonzero(
+        (-downward <= np.cos(np.deg2rad(1.0))) & (-downward >= np.cos(np.deg2rad(45.0)))
+    )
+    streams = streams[np.argsort(np.arccos(-downward[streams]))]
+    mu = downward[streams]
+    scattering_angle = np.arccos(-mu)
     halo_phase = _sun_halo_profile(scattering_angle) / phase_normalization
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    user_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = halo_phase
-
-    stokes = np.asarray(
-        model.u_user(
-            tau=np.array([depth]),
-            phi=np.array([0.0]),
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0, 0]
+    stokes = np.asarray(model.u(tau=np.array([depth]), phi=np.array([0.0])))[0, 0, nquad // 2 + streams]
 
     abs_mu = np.abs(mu)
     slant_difference = depth * (1.0 / abs_mu - 1.0)
@@ -929,9 +918,11 @@ def test_optically_thin_sun_halo():
     )
     np.testing.assert_allclose(stokes[:, 1:], 0.0, atol=2.0e-15)
 
+    # The brightest stream is the one closest to 22 degrees
     peak = np.argmax(stokes[:, 0])
     peak_angle = scattering_angle[peak]
-    assert abs(peak_angle - np.deg2rad(22.0)) <= np.deg2rad(0.25)
+    spacing = np.max(np.abs(np.diff(scattering_angle[max(peak - 1, 0) : peak + 2])))
+    assert abs(peak_angle - np.deg2rad(22.0)) <= 0.5 * spacing + 1e-12
     assert stokes[peak, 0] > 40.0 * stokes[0, 0]
     assert stokes[peak, 0] > 25.0 * stokes[-1, 0]
 
@@ -987,7 +978,7 @@ if __name__ == "__main__":
     test_depolarizing_surface_catalogue()
     test_depolarizing_surface_catalogue_combinations()
     test_phase_helpers()
-    test_bdrf()
+    test_surface_reflection()
     test_absorbing_stokes_field()
     test_fresnel_brewster_angle()
     test_fresnel_lambertian_depolarization()

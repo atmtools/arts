@@ -3,6 +3,7 @@
 #include <matpack.h>
 
 #include "rtepack_mueller_matrix.h"
+#include "rtepack_multitype.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -11,10 +12,12 @@ namespace rtepack {
  * The order is explicit because polarized outgoing and return transmissions
  * need neither be equal nor commute.
  */
-stokvec radar_return(const muelmat &return_transmission,
-                     const muelmat &backscatter,
-                     const muelmat &outgoing_transmission,
-                     const stokvec &transmitted);
+constexpr stokvec radar_return(const muelmat &return_transmission,
+                               const muelmat &backscatter,
+                               const muelmat &outgoing_transmission,
+                               const stokvec &transmitted) {
+  return return_transmission * (backscatter * (outgoing_transmission * transmitted));
+}
 
 /** Directional derivative of radar_return.
  *
@@ -22,13 +25,19 @@ stokvec radar_return(const muelmat &return_transmission,
  * ``Tr * Z * Tf * transmitted``.  Derivatives of the transmitted Stokes
  * vector are deliberately outside this atmospheric-optics helper.
  */
-stokvec radar_return_derivative(const muelmat &return_transmission,
-                                const muelmat &return_transmission_derivative,
-                                const muelmat &backscatter,
-                                const muelmat &backscatter_derivative,
-                                const muelmat &outgoing_transmission,
-                                const muelmat &outgoing_transmission_derivative,
-                                const stokvec &transmitted);
+constexpr stokvec radar_return_derivative(const muelmat &return_transmission,
+                                          const muelmat &return_transmission_derivative,
+                                          const muelmat &backscatter,
+                                          const muelmat &backscatter_derivative,
+                                          const muelmat &outgoing_transmission,
+                                          const muelmat &outgoing_transmission_derivative,
+                                          const stokvec &transmitted) {
+  const stokvec outgoing             = outgoing_transmission * transmitted;
+  const stokvec outgoing_derivative  = outgoing_transmission_derivative * transmitted;
+  const stokvec scattered            = backscatter * outgoing;
+  const stokvec scattered_derivative = backscatter_derivative * outgoing + backscatter * outgoing_derivative;
+  return return_transmission_derivative * scattered + return_transmission * scattered_derivative;
+}
 
 Array<muelmat_vector> bulk_backscatter(const ConstTensor5View &Pe, const ConstMatrixView &pnd);
 

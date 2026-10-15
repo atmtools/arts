@@ -154,8 +154,11 @@ struct log_transform {
   static Numeric inverse(Numeric x) noexcept;
 };
 
-//! [-180, 180) cycler
+//! [-180, 180) cycler, the range of LonGrid
 using loncross = cycler<-180.0, 180.0>;
+
+//! [0, 360) cycler, the range of AziGrid
+using azicross = cycler<0.0, 360.0>;
 
 /******************************************************************
  * Knowledge about the order of the interpolation is very important

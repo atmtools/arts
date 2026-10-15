@@ -442,9 +442,10 @@ Numeric intersection_latitude(
   // No solution if outside of latitude cone and looking away or
   // looking at zenith or nadir
 
-  if ((lat <= 0 && pos[1] > lat && fabs(los[1]) <= 90) ||  // lat on SH
-      (lat >= 0 && pos[1] < lat && fabs(los[1]) >= 90) ||  // lat on NH
-      (los[0] == 0) || (los[0] == 180)) {                  // zenith/nadir
+  const Numeric azimuth = cycled_azimuth(los);
+  if ((lat <= 0 && pos[1] > lat && (azimuth <= 90 || azimuth >= 270)) ||  // lat on SH
+      (lat >= 0 && pos[1] < lat && azimuth >= 90 && azimuth <= 270) ||    // lat on NH
+      (los[0] == 0) || (los[0] == 180)) {                                 // zenith/nadir
     return -1;
     // Solution simple if lat = 0 (-z/dz)
   }
@@ -456,7 +457,7 @@ Numeric intersection_latitude(
   }
 
   if (lat > POLELATZZZ) {
-    if (los[1] != 0) return -1;
+    if (azimuth != 0) return -1;
 
     if (fabs(decef[0]) > fabs(decef[1])) return -ecef[0] / decef[0];
 
@@ -466,7 +467,7 @@ Numeric intersection_latitude(
   }
 
   if (-lat > POLELATZZZ) {
-    if (fabs(los[1]) != 180) return -1;
+    if (azimuth != 180) return -1;
     if (fabs(decef[0]) > fabs(decef[1])) return -ecef[0] / decef[0];
 
     return -ecef[1] / decef[1];
@@ -540,9 +541,9 @@ Numeric intersection_longitude(Vector3 ecef, Vector3 decef, Vector3 pos, Vector2
   if ((pos[2] == lon) || fabs(pos[1]) > POLELATZZZ) return 0;
   // No solution if looking straight N or S, or azimuth in wrong direction
 
-  if ((los[1] == 0) || (fabs(los[1]) == 180) || (pos[2] > lon && los[1] > 0) || (pos[2] < lon && los[1] < 0)) {
+  const Numeric azimuth = cycled_azimuth(los);
+  if ((azimuth == 0) || (azimuth == 180) || (pos[2] > lon && azimuth < 180) || (pos[2] < lon && azimuth > 180))
     return -1;
-  }
 
   const Numeric tanlon = tan(DEG2RAD * lon);
   return (ecef[1] - ecef[0] * tanlon) / (decef[0] * tanlon - decef[1]);
@@ -583,6 +584,8 @@ Vector2 reverse_los(Vector2 los) {
     los_new[1] = los[1] - 180;
   return los_new;
 }
+
+Numeric cycled_azimuth(Vector2 los) { return lagrange_interp::azicross::cycle(los[1]); }
 
 Vector3 geodetic2geocentric(Vector3 pos, Vector2 ell) { return ecef2geocentric(geodetic2ecef(pos, ell)); }
 

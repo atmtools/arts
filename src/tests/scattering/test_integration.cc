@@ -4,6 +4,8 @@
  *
  * @author Simon Pfreundschuh, 2023
  */
+#include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <numbers>
 
@@ -32,6 +34,57 @@ bool test_gauss_legendre() {
   error = max_error(weights, weights_ref);
   if (error > 1e-6) return false;
 
+  return true;
+}
+
+/** Gauss-Legendre with n nodes integrates x^(2k) over [-1, 1] to 2 / (2k + 1)
+ * for 2k <= 2n - 1.  The highest powers weigh the outermost nodes, where
+ * an inexact rule has its largest weight errors.
+ */
+bool test_gauss_legendre_exactness() {
+  for (Index n : {64, 1024}) {
+    scattering::GaussLegendreQuadrature quad(n);
+    const Vector&                       nodes   = quad.get_nodes();
+    const Vector&                       weights = quad.get_weights();
+    for (Index k = 0; 2 * k <= 2 * n - 1; ++k) {
+      Numeric sum = 0.0;
+      for (Index i = 0; i < n; ++i) sum += weights[i] * std::pow(nodes[i], 2 * k);
+      const Numeric ref = 2.0 / static_cast<Numeric>(2 * k + 1);
+      if (std::abs(sum - ref) > 1e-11 * ref) {
+        std::cout << std::setprecision(17) << "n = " << n << ", x^" << 2 * k << ": " << sum << " != " << ref << '\n';
+        return false;
+      }
+    }
+    for (Index i = 1; i < n; ++i) {
+      if (not(nodes[i - 1] < nodes[i])) return false;
+    }
+  }
+  return true;
+}
+
+/** Double Gauss with n nodes integrates x^j over [0, 1] and [-1, 0] to
+ * 1 / (j + 1) and (-1)^j / (j + 1) for j <= n - 1.
+ */
+bool test_double_gauss_exactness() {
+  for (Index n : {64, 1024}) {
+    scattering::DoubleGaussQuadrature quad(n);
+    const Vector&                     nodes   = quad.get_nodes();
+    const Vector&                     weights = quad.get_weights();
+    for (Index j = 0; j <= n - 1; ++j) {
+      Numeric lower = 0.0, upper = 0.0;
+      for (Index i = 0; i < n / 2; ++i) lower += weights[i] * std::pow(nodes[i], j);
+      for (Index i = n / 2; i < n; ++i) upper += weights[i] * std::pow(nodes[i], j);
+      const Numeric ref = 1.0 / static_cast<Numeric>(j + 1);
+      if (std::abs(upper - ref) > 1e-11 * ref or std::abs(lower - (j % 2 ? -ref : ref)) > 1e-11 * ref) {
+        std::cout << std::setprecision(17) << "n = " << n << ", x^" << j << ": " << lower << ", " << upper << " != +-"
+                  << ref << '\n';
+        return false;
+      }
+    }
+    for (Index i = 1; i < n; ++i) {
+      if (not(nodes[i - 1] < nodes[i])) return false;
+    }
+  }
   return true;
 }
 
@@ -105,6 +158,22 @@ bool test_fejer_quadrature() {
   return true;
 }
 
+/** An irregular grid must be strictly ascending in [0, 180] deg */
+bool test_irregular_grid_rules() {
+  const auto rejected = [](const Vector& angles) {
+    try {
+      scattering::IrregularZenithAngleGrid grid(angles);
+    } catch (const std::exception&) { return true; }
+    return false;
+  };
+  if (rejected(Vector{0.0, 90.0, 180.0})) return false;
+  if (not rejected(Vector{180.0, 90.0, 0.0})) return false;
+  if (not rejected(Vector{0.0, 90.0, 90.0})) return false;
+  if (not rejected(Vector{-1.0, 90.0})) return false;
+  if (not rejected(Vector{90.0, 180.5})) return false;
+  return true;
+}
+
 bool test_zenith_angle_integration() {
   scattering::GaussLegendreGrid grid{2};
   auto                          nodes = grid.get_angle_cosines();
@@ -154,6 +223,24 @@ int main(int /*argc*/, const char** /*argv*/) {
     return 1;
   }
 
+  std::cout << "Testing Gauss-Legendre exactness: ";
+  passed &= test_gauss_legendre_exactness();
+  if (passed) {
+    std::cout << "PASSED" << '\n';
+  } else {
+    std::cout << "FAILED" << '\n';
+    return 1;
+  }
+
+  std::cout << "Testing double Gauss-Legendre exactness: ";
+  passed &= test_double_gauss_exactness();
+  if (passed) {
+    std::cout << "PASSED" << '\n';
+  } else {
+    std::cout << "FAILED" << '\n';
+    return 1;
+  }
+
   std::cout << "Testing double Gauss-Legendre quadrature: ";
   passed &= test_double_gauss();
   if (passed) {
@@ -183,6 +270,15 @@ int main(int /*argc*/, const char** /*argv*/) {
 
   std::cout << "Testing Fejer quadrature: ";
   passed &= test_fejer_quadrature();
+  if (passed) {
+    std::cout << "PASSED" << '\n';
+  } else {
+    std::cout << "FAILED" << '\n';
+    return 1;
+  }
+
+  std::cout << "Testing irregular zenith-angle grid rules: ";
+  passed &= test_irregular_grid_rules();
   if (passed) {
     std::cout << "PASSED" << '\n';
   } else {

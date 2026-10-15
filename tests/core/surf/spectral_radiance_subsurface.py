@@ -44,9 +44,9 @@ zas = np.linspace(0, 180, 30)
 data = []
 for za in zas:
     ws.ray_point.los[0] = za
-    ws.spectral_radSubsurfaceDisortEmission(disort_fourier_mode_dimension=1,
-                                                 disort_legendre_polynomial_dimension=1,
-                                                 disort_quadrature_dimension=NQUAD,
+    ws.spectral_radSubsurfaceDisortEmission(fourier_mode_dimension=1,
+                                                 legendre_polynomial_dimension=1,
+                                                 quadrature_dimension=NQUAD,
                                                  depth_profile=z)
     ws.spectral_radApplyForwardUnit()
 

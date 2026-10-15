@@ -201,6 +201,20 @@
 #include "cdisort.h"
 #include "locate.h"
 
+/// FIXES
+
+#ifndef DBL_EPSILON
+#define DBL_EPSILON std::numeric_limits<double>::epsilon()
+#endif
+
+#ifndef DBL_MAX
+#define DBL_MAX std::numeric_limits<double>::max()
+#endif
+
+#ifndef DBL_MIN
+#define DBL_MIN std::numeric_limits<double>::min()
+#endif
+
 /*============================= c_disort() ==============================*/
 
 /*-------------------------------------------------------------------------------*

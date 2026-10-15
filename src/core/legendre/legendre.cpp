@@ -236,6 +236,17 @@ Numeric legendre(Index n, Numeric x) {
   return legendre_p(static_cast<int>(n), x);
 }
 
+void legendre_polynomials(VectorView p, Numeric x) {
+  using boost::math::legendre_next;
+
+  ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
+
+  const Index n = p.size();
+  if (n > 0) p[0] = 1.0;
+  if (n > 1) p[1] = x;
+  for (Index l = 1; l + 1 < n; l++) p[l + 1] = legendre_next(static_cast<unsigned>(l), x, p[l], p[l - 1]);
+}
+
 Numeric factorial(Index i) { return boost::math::factorial<Numeric>(static_cast<unsigned>(i)); }
 
 //! port of boost tgamma_ratio_imp

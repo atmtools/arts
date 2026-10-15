@@ -1,5 +1,7 @@
 #include <arts_constants.h>
+#include <disort-brdf.h>
 #include <disort.h>
+#include <legendre.h>
 
 #include <iomanip>
 #include <iostream>
@@ -118,15 +120,15 @@ void newimpl(bool print_results = false) {
     return out;
   }();
 
-  const Matrix                    b_pos(NFourier, NQuad / 2, 0);
-  const Matrix                    b_neg(NFourier, NQuad / 2, 0);
-  const Vector                    f_arr(NLayers, 0);
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{};
-  const Matrix                    s_poly_coeffs(NLayers, 0);
+  const Matrix                     b_pos(NFourier, NQuad / 2, 0);
+  const Matrix                     b_neg(NFourier, NQuad / 2, 0);
+  const Vector                     f_arr(NLayers, 0);
+  const disort::surface_reflection surface{};
+  const Matrix                     s_poly_coeffs(NLayers, 0);
 
   // DebugTime setup{"setup"};
   disort::main_data dis(
-      NQuad, 3, 3, tau, omega, Leg_coeffs_all, b_pos, b_neg, f_arr, s_poly_coeffs, BDRF_Fourier_modes, mu0, I0, phi0);
+      NQuad, 3, 3, tau, omega, Leg_coeffs_all, b_pos, b_neg, f_arr, s_poly_coeffs, surface, mu0, I0, phi0);
 
   if (print_results) {
     std::cout << "cpp-disort out:\n";
@@ -185,8 +187,10 @@ void test_flat() try {
   b_neg[0] = 1;
   Matrix b_pos(NQuad_, NQuad_ / 2, 0);
   b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
-  Matrix                          s_poly_coeffs(tau_arr.size(), 2);
+  Vector streams(NQuad_ / 2), weights(NQuad_ / 2);
+  Legendre::PositiveDoubleGaussLegendre(streams, weights);
+  const auto surface = disort::brdf::lambertian_fourier_modes(1.0, 1, streams, streams, mu0);
+  Matrix     s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad_]};
 
@@ -204,7 +208,7 @@ void test_flat() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);

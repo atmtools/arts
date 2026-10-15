@@ -13,8 +13,10 @@
 #include <algorithm>
 #include <concepts>
 #include <exception>
+#include <functional>
 #include <numeric>
 #include <ranges>
+#include <string_view>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -536,182 +538,120 @@ ray_path: {:B,}
 // Disort BRDF / BDRF
 ////////////////////////////////////////////////////////////////////////////////
 
+/* The surface is held as its reflection between the streams for each frequency, and its reflection of the sun's
+   beam at the sun's zenith angle, so the sun must be set first.  A surface with the same parameters at every
+   frequency is evaluated once, and again only where the sun's zenith angle changes. */
+
 namespace {
-template <typename T> Numeric spectral_brdf_parameter(const T& value, const Index iv, const Index frequency_count) {
-  if constexpr (std::same_as<T, Numeric>) {
-    return value;
-  } else {
-    ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != frequency_count,
-                       "Spectral BRDF parameter must have one value per frequency: expected {}, got {}",
-                       frequency_count,
-                       value.size());
-    return value[iv];
+//! The cosines of the upward streams
+Vector upward_streams(const DisortSettings& disort_settings) {
+  const Index N = disort_settings.quadrature_dimension / 2;
+  Vector      mu(2 * N), inv_mu(2 * N), W(N);
+  disort_common::initialize_streams(mu, inv_mu, W);
+  return Vector{mu[Range(0, N)]};
+}
+
+//! The cosine of the sun's zenith angle of frequency iv, or NaN for a sun below the horizon
+Numeric sun_cosine(const DisortSettings& disort_settings, const Index iv) {
+  const Numeric mu0 = Conversion::cosd(disort_settings.solar_zenith_angle[iv]);
+  return mu0 > 0.0 ? mu0 : std::numeric_limits<Numeric>::quiet_NaN();
+}
+
+//! Size the surface for NBRDF Fourier modes
+void resize_surface(DisortSettings& disort_settings, const Index NBRDF) {
+  const Index nv = disort_settings.frequency_count();
+  const Index N  = disort_settings.quadrature_dimension / 2;
+  ARTS_USER_ERROR_IF(disort_settings.solar_zenith_angle.size() != static_cast<Size>(nv),
+                     "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
+                     "first; it has {} values",
+                     nv,
+                     disort_settings.solar_zenith_angle.size());
+  disort_settings.surface_brdf.resize(nv, NBRDF, N, N);
+  disort_settings.surface_beam_brdf.resize(nv, NBRDF, N);
+  disort_settings.surface_beam_mu.resize(nv);
+}
+
+//! Set the surface of frequency iv
+void set_surface(DisortSettings& disort_settings, const Index iv, const disort::surface_reflection& surface) {
+  disort_settings.surface_brdf[iv]      = surface.brdf();
+  disort_settings.surface_beam_brdf[iv] = surface.beam_brdf();
+  disort_settings.surface_beam_mu[iv]   = surface.beam_mu();
+}
+
+//! Throw unless a spectral parameter has one value per frequency
+void check_spectral(const DisortSettings& disort_settings, const Vector& value, const std::string_view name) {
+  ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != disort_settings.frequency_count(),
+                     "Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
+                     name,
+                     disort_settings.frequency_count(),
+                     value.size());
+}
+
+//! Set the surface of every frequency to the BRDF raw
+void set_brdf_surface(DisortSettings&                  disort_settings,
+                      const disort::brdf::RawFunction& raw,
+                      const Index                      azimuth_quadrature_points) {
+  const Vector mu = upward_streams(disort_settings);
+  resize_surface(disort_settings, disort_settings.fourier_mode_dimension);
+  disort::surface_reflection surface;
+  for (Index iv = 0; iv < disort_settings.frequency_count(); iv++) {
+    if (iv == 0 or disort_settings.solar_zenith_angle[iv] != disort_settings.solar_zenith_angle[iv - 1])
+      surface = disort::brdf::fourier_modes(raw,
+                                            disort_settings.fourier_mode_dimension,
+                                            mu,
+                                            mu,
+                                            sun_cosine(disort_settings, iv),
+                                            azimuth_quadrature_points);
+    set_surface(disort_settings, iv, surface);
   }
 }
 
-template <typename RawFactory> void disort_settingsSurfaceRawBRDF(DisortSettings& disort_settings,
-                                                                  RawFactory&&    raw_factory,
-                                                                  const Index     azimuth_quadrature_points) {
-  ARTS_USER_ERROR_IF(
-      azimuth_quadrature_points < 1, "azimuth_quadrature_points must be positive, got {}", azimuth_quadrature_points);
-
-  const Index frequency_count = disort_settings.frequency_count();
-  disort_settings.bidirectional_reflectance_distribution_functions.resize(frequency_count,
-                                                                          disort_settings.fourier_mode_dimension);
-  for (Index iv = 0; iv < frequency_count; ++iv) {
-    const auto modes = disort::brdf::fourier_modes(
-        raw_factory(iv, frequency_count), disort_settings.fourier_mode_dimension, azimuth_quadrature_points);
-    for (Index mode = 0; mode < std::ssize(modes); ++mode)
-      disort_settings.bidirectional_reflectance_distribution_functions[iv, mode] = modes[mode];
-  }
-}
-
-void disort_settingsSurfaceRawBRDF(DisortSettings&           disort_settings,
-                                   disort::brdf::RawFunction raw,
-                                   const Index               azimuth_quadrature_points) {
-  ARTS_USER_ERROR_IF(
-      azimuth_quadrature_points < 1, "azimuth_quadrature_points must be positive, got {}", azimuth_quadrature_points);
-  const auto modes =
-      disort::brdf::fourier_modes(std::move(raw), disort_settings.fourier_mode_dimension, azimuth_quadrature_points);
-  disort_settings.bidirectional_reflectance_distribution_functions.resize(disort_settings.frequency_count(),
-                                                                          modes.size());
-  for (Index iv = 0; iv < disort_settings.frequency_count(); ++iv)
-    for (Index mode = 0; mode < std::ssize(modes); ++mode)
-      disort_settings.bidirectional_reflectance_distribution_functions[iv, mode] = modes[mode];
-}
-
-template <typename OppositionAmplitude, typename OppositionWidth, typename SingleScatteringAlbedo>
-void disort_settingsSurfaceHapkeImpl(DisortSettings&               disort_settings,
-                                     const OppositionAmplitude&    opposition_amplitude,
-                                     const OppositionWidth&        opposition_width,
-                                     const SingleScatteringAlbedo& single_scattering_albedo,
-                                     const Index&                  azimuth_quadrature_points) {
-  if constexpr (std::same_as<OppositionAmplitude, Numeric> && std::same_as<OppositionWidth, Numeric> &&
-                std::same_as<SingleScatteringAlbedo, Numeric>) {
-    disort_settingsSurfaceRawBRDF(
-        disort_settings,
-        disort::brdf::RawFunction{disort::brdf::Hapke{.opposition_amplitude     = opposition_amplitude,
-                                                      .opposition_width         = opposition_width,
-                                                      .single_scattering_albedo = single_scattering_albedo}},
-        azimuth_quadrature_points);
-    return;
-  }
-  disort_settingsSurfaceRawBRDF(
-      disort_settings,
-      [&](const Index iv, const Index nv) -> disort::brdf::RawFunction {
-        return disort::brdf::Hapke{
-            .opposition_amplitude     = spectral_brdf_parameter(opposition_amplitude, iv, nv),
-            .opposition_width         = spectral_brdf_parameter(opposition_width, iv, nv),
-            .single_scattering_albedo = spectral_brdf_parameter(single_scattering_albedo, iv, nv)};
-      },
-      azimuth_quadrature_points);
-}
-
-template <typename RefractiveIndex> void disort_settingsSurfaceCoxMunkImpl(DisortSettings&        disort_settings,
-                                                                           const Numeric&         wind_speed,
-                                                                           const RefractiveIndex& refractive_index,
-                                                                           const Index&           shadowing,
-                                                                           const Index& azimuth_quadrature_points) {
-  ARTS_USER_ERROR_IF(shadowing != 0 && shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
-  if constexpr (std::same_as<RefractiveIndex, Numeric>) {
-    disort_settingsSurfaceRawBRDF(
-        disort_settings,
-        disort::brdf::RawFunction{disort::brdf::CoxMunk{
-            .wind_speed = wind_speed, .refractive_index = refractive_index, .shadowing = static_cast<bool>(shadowing)}},
-        azimuth_quadrature_points);
-    return;
-  }
-  disort_settingsSurfaceRawBRDF(
-      disort_settings,
-      [&](const Index iv, const Index nv) -> disort::brdf::RawFunction {
-        return disort::brdf::CoxMunk{.wind_speed       = wind_speed,
-                                     .refractive_index = spectral_brdf_parameter(refractive_index, iv, nv),
-                                     .shadowing        = static_cast<bool>(shadowing)};
-      },
-      azimuth_quadrature_points);
-}
-
-template <typename Rho0, typename Kappa, typename Asymmetry, typename Hotspot>
-void disort_settingsSurfaceRPVImpl(DisortSettings&  disort_settings,
-                                   const Rho0&      rho0,
-                                   const Kappa&     kappa,
-                                   const Asymmetry& asymmetry,
-                                   const Hotspot&   hotspot,
-                                   const Index&     azimuth_quadrature_points) {
-  if constexpr (std::same_as<Rho0, Numeric> && std::same_as<Kappa, Numeric> && std::same_as<Asymmetry, Numeric> &&
-                std::same_as<Hotspot, Numeric>) {
-    disort_settingsSurfaceRawBRDF(disort_settings,
-                                  disort::brdf::RawFunction{disort::brdf::RPV{
-                                      .rho0 = rho0, .kappa = kappa, .asymmetry = asymmetry, .hotspot = hotspot}},
-                                  azimuth_quadrature_points);
-    return;
-  }
-  disort_settingsSurfaceRawBRDF(
-      disort_settings,
-      [&](const Index iv, const Index nv) -> disort::brdf::RawFunction {
-        return disort::brdf::RPV{.rho0      = spectral_brdf_parameter(rho0, iv, nv),
-                                 .kappa     = spectral_brdf_parameter(kappa, iv, nv),
-                                 .asymmetry = spectral_brdf_parameter(asymmetry, iv, nv),
-                                 .hotspot   = spectral_brdf_parameter(hotspot, iv, nv)};
-      },
-      azimuth_quadrature_points);
-}
-
-template <typename Isotropic, typename Volumetric, typename Geometric>
-void disort_settingsSurfaceRossLiImpl(DisortSettings&   disort_settings,
-                                      const Isotropic&  isotropic,
-                                      const Volumetric& volumetric,
-                                      const Geometric&  geometric,
-                                      const Numeric&    hotspot_angle,
-                                      const Index&      azimuth_quadrature_points) {
-  if constexpr (std::same_as<Isotropic, Numeric> && std::same_as<Volumetric, Numeric> &&
-                std::same_as<Geometric, Numeric>) {
-    disort_settingsSurfaceRawBRDF(
-        disort_settings,
-        disort::brdf::RawFunction{disort::brdf::RossLi{.isotropic     = isotropic,
-                                                       .volumetric    = volumetric,
-                                                       .geometric     = geometric,
-                                                       .hotspot_angle = Conversion::deg2rad(hotspot_angle)}},
-        azimuth_quadrature_points);
-    return;
-  }
-  disort_settingsSurfaceRawBRDF(
-      disort_settings,
-      [&](const Index iv, const Index nv) -> disort::brdf::RawFunction {
-        return disort::brdf::RossLi{.isotropic     = spectral_brdf_parameter(isotropic, iv, nv),
-                                    .volumetric    = spectral_brdf_parameter(volumetric, iv, nv),
-                                    .geometric     = spectral_brdf_parameter(geometric, iv, nv),
-                                    .hotspot_angle = Conversion::deg2rad(hotspot_angle)};
-      },
-      azimuth_quadrature_points);
+//! Set the surface of each frequency iv to the BRDF raw(iv)
+void set_spectral_brdf_surface(DisortSettings&                                        disort_settings,
+                               const std::function<disort::brdf::RawFunction(Index)>& raw,
+                               const Index                                            azimuth_quadrature_points) {
+  const Vector mu = upward_streams(disort_settings);
+  resize_surface(disort_settings, disort_settings.fourier_mode_dimension);
+  for (Index iv = 0; iv < disort_settings.frequency_count(); iv++)
+    set_surface(disort_settings,
+                iv,
+                disort::brdf::fourier_modes(raw(iv),
+                                            disort_settings.fourier_mode_dimension,
+                                            mu,
+                                            mu,
+                                            sun_cosine(disort_settings, iv),
+                                            azimuth_quadrature_points));
 }
 }  // namespace
 
 void disort_settingsNoSurfaceScattering(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  disort_settings.bidirectional_reflectance_distribution_functions.resize(disort_settings.frequency_count(), 0);
+  resize_surface(disort_settings, 0);
+  disort_settings.surface_beam_mu = std::numeric_limits<Numeric>::quiet_NaN();
 }
 
-static void disort_settingsSurfaceLambertianImpl(DisortSettings& disort_settings, const Vector& vec) {
+void disort_settingsSurfaceLambertian(DisortSettings&                            disort_settings,
+                                      const Generic<const Numeric, const Vector> value) {
   ARTS_TIME_REPORT
 
-  disort_settings.bidirectional_reflectance_distribution_functions.resize(disort_settings.frequency_count(), 1);
+  const Index nv     = disort_settings.frequency_count();
+  const auto  albedo = std::visit(
+      [nv](const auto& selected) {
+        if constexpr (std::same_as<std::remove_cvref_t<decltype(*selected)>, Numeric>)
+          return Vector(nv, *selected);
+        else
+          return Vector{*selected};
+      },
+      value);
+  check_spectral(disort_settings, albedo, "value");
 
-  for (Index iv = 0; iv < disort_settings.frequency_count(); iv++) {
-    disort_settings.bidirectional_reflectance_distribution_functions[iv, 0] =
-        DisortBDRF{[value = vec[iv]](MatrixView x, const ConstVectorView&, const ConstVectorView&) { x = value; }};
-  }
-}
-
-static void disort_settingsSurfaceLambertianImpl(DisortSettings& disort_settings, const Numeric& value) {
-  ARTS_TIME_REPORT
-
-  disort_settings.bidirectional_reflectance_distribution_functions.resize(disort_settings.frequency_count(), 1);
-
-  const auto f = DisortBDRF{[value](MatrixView x, const ConstVectorView&, const ConstVectorView&) { x = value; }};
-
-  disort_settings.bidirectional_reflectance_distribution_functions = f;
+  const Vector mu = upward_streams(disort_settings);
+  resize_surface(disort_settings, 1);
+  for (Index iv = 0; iv < nv; iv++)
+    set_surface(disort_settings,
+                iv,
+                disort::brdf::lambertian_fourier_modes(albedo[iv], 1, mu, mu, sun_cosine(disort_settings, iv)));
 }
 
 void disort_settingsSurfaceHapke(DisortSettings& disort_settings,
@@ -721,8 +661,11 @@ void disort_settingsSurfaceHapke(DisortSettings& disort_settings,
                                  const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceHapkeImpl(
-      disort_settings, opposition_amplitude, opposition_width, single_scattering_albedo, azimuth_quadrature_points);
+  set_brdf_surface(disort_settings,
+                   disort::brdf::Hapke{.opposition_amplitude     = opposition_amplitude,
+                                       .opposition_width         = opposition_width,
+                                       .single_scattering_albedo = single_scattering_albedo},
+                   azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceHapkeSpectral(DisortSettings& disort_settings,
@@ -732,8 +675,17 @@ void disort_settingsSurfaceHapkeSpectral(DisortSettings& disort_settings,
                                          const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceHapkeImpl(
-      disort_settings, opposition_amplitude, opposition_width, single_scattering_albedo, azimuth_quadrature_points);
+  check_spectral(disort_settings, opposition_amplitude, "opposition_amplitude");
+  check_spectral(disort_settings, opposition_width, "opposition_width");
+  check_spectral(disort_settings, single_scattering_albedo, "single_scattering_albedo");
+  set_spectral_brdf_surface(
+      disort_settings,
+      [&](const Index iv) -> disort::brdf::RawFunction {
+        return disort::brdf::Hapke{.opposition_amplitude     = opposition_amplitude[iv],
+                                   .opposition_width         = opposition_width[iv],
+                                   .single_scattering_albedo = single_scattering_albedo[iv]};
+      },
+      azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceCoxMunk(DisortSettings& disort_settings,
@@ -743,8 +695,12 @@ void disort_settingsSurfaceCoxMunk(DisortSettings& disort_settings,
                                    const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceCoxMunkImpl(
-      disort_settings, wind_speed, refractive_index, shadowing, azimuth_quadrature_points);
+  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  set_brdf_surface(
+      disort_settings,
+      disort::brdf::CoxMunk{
+          .wind_speed = wind_speed, .refractive_index = refractive_index, .shadowing = static_cast<bool>(shadowing)},
+      azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceCoxMunkSpectral(DisortSettings& disort_settings,
@@ -754,8 +710,16 @@ void disort_settingsSurfaceCoxMunkSpectral(DisortSettings& disort_settings,
                                            const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceCoxMunkImpl(
-      disort_settings, wind_speed, refractive_index, shadowing, azimuth_quadrature_points);
+  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  check_spectral(disort_settings, refractive_index, "refractive_index");
+  set_spectral_brdf_surface(
+      disort_settings,
+      [&](const Index iv) -> disort::brdf::RawFunction {
+        return disort::brdf::CoxMunk{.wind_speed       = wind_speed,
+                                     .refractive_index = refractive_index[iv],
+                                     .shadowing        = static_cast<bool>(shadowing)};
+      },
+      azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceRPV(DisortSettings& disort_settings,
@@ -766,7 +730,9 @@ void disort_settingsSurfaceRPV(DisortSettings& disort_settings,
                                const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceRPVImpl(disort_settings, rho0, kappa, asymmetry, hotspot, azimuth_quadrature_points);
+  set_brdf_surface(disort_settings,
+                   disort::brdf::RPV{.rho0 = rho0, .kappa = kappa, .asymmetry = asymmetry, .hotspot = hotspot},
+                   azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceRPVSpectral(DisortSettings& disort_settings,
@@ -777,7 +743,17 @@ void disort_settingsSurfaceRPVSpectral(DisortSettings& disort_settings,
                                        const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceRPVImpl(disort_settings, rho0, kappa, asymmetry, hotspot, azimuth_quadrature_points);
+  check_spectral(disort_settings, rho0, "rho0");
+  check_spectral(disort_settings, kappa, "kappa");
+  check_spectral(disort_settings, asymmetry, "asymmetry");
+  check_spectral(disort_settings, hotspot, "hotspot");
+  set_spectral_brdf_surface(
+      disort_settings,
+      [&](const Index iv) -> disort::brdf::RawFunction {
+        return disort::brdf::RPV{
+            .rho0 = rho0[iv], .kappa = kappa[iv], .asymmetry = asymmetry[iv], .hotspot = hotspot[iv]};
+      },
+      azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceRossLi(DisortSettings& disort_settings,
@@ -788,8 +764,12 @@ void disort_settingsSurfaceRossLi(DisortSettings& disort_settings,
                                   const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  disort_settingsSurfaceRossLiImpl(
-      disort_settings, isotropic, volumetric, geometric, hotspot_angle, azimuth_quadrature_points);
+  set_brdf_surface(disort_settings,
+                   disort::brdf::RossLi{.isotropic     = isotropic,
+                                        .volumetric    = volumetric,
+                                        .geometric     = geometric,
+                                        .hotspot_angle = Conversion::deg2rad(hotspot_angle)},
+                   azimuth_quadrature_points);
 }
 
 void disort_settingsSurfaceRossLiSpectral(DisortSettings& disort_settings,
@@ -799,8 +779,19 @@ void disort_settingsSurfaceRossLiSpectral(DisortSettings& disort_settings,
                                           const Numeric&  hotspot_angle,
                                           const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
-  disort_settingsSurfaceRossLiImpl(
-      disort_settings, isotropic, volumetric, geometric, hotspot_angle, azimuth_quadrature_points);
+
+  check_spectral(disort_settings, isotropic, "isotropic");
+  check_spectral(disort_settings, volumetric, "volumetric");
+  check_spectral(disort_settings, geometric, "geometric");
+  set_spectral_brdf_surface(
+      disort_settings,
+      [&](const Index iv) -> disort::brdf::RawFunction {
+        return disort::brdf::RossLi{.isotropic     = isotropic[iv],
+                                    .volumetric    = volumetric[iv],
+                                    .geometric     = geometric[iv],
+                                    .hotspot_angle = Conversion::deg2rad(hotspot_angle)};
+      },
+      azimuth_quadrature_points);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -968,13 +959,13 @@ void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             d
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emission_type& layer_emission_setting,
-                                   const disort_settings_agenda_setup_scattering_type&     scattering_setting,
-                                   const disort_settings_agenda_setup_space_type&          space_setting,
-                                   const disort_settings_agenda_setup_sun_type&            sun_setting,
-                                   const disort_settings_agenda_setup_surface_type&        surf_setting,
-                                   const Vector&                                           surf_lambertian_value,
-                                   const Numeric&                                          min_optical_depth) {
+Agenda disort_settings_agendaSetup(const settings_agenda_setup_layer_emission_type& layer_emission_setting,
+                                   const settings_agenda_setup_scattering_type&     scattering_setting,
+                                   const settings_agenda_setup_space_type&          space_setting,
+                                   const settings_agenda_setup_sun_type&            sun_setting,
+                                   const settings_agenda_setup_surface_type&        surf_setting,
+                                   const Vector&                                    surf_lambertian_value,
+                                   const Numeric&                                   min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -989,7 +980,7 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
   agenda.add("disort_settingsInit");
 
   switch (scattering_setting) {
-    using enum disort_settings_agenda_setup_scattering_type;
+    using enum settings_agenda_setup_scattering_type;
     case ScatteringSpecies:
       agenda.add("legendre_degreeFromDisortSettings");
       agenda.add("spectral_propmat_scat_pathFromSpectralAgenda");
@@ -1020,20 +1011,29 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
 
   // Since we have the optical thickness, we can set the thermal emission
   switch (layer_emission_setting) {
-    using enum disort_settings_agenda_setup_layer_emission_type;
+    using enum settings_agenda_setup_layer_emission_type;
     case LinearInTau:       agenda.add("disort_settingsLayerThermalEmissionLinearInTau"); break;
     case LinearInTauNonLTE: agenda.add("disort_settingsLayerNonThermalEmissionLinearInTau"); break;
     case None:              agenda.add("disort_settingsNoLayerThermalEmission"); break;
   }
 
   switch (space_setting) {
-    using enum disort_settings_agenda_setup_space_type;
+    using enum settings_agenda_setup_space_type;
     case None:                               agenda.add("disort_settingsNoSpaceEmission"); break;
     case CosmicMicrowaveBackgroundRadiation: agenda.add("disort_settingsCosmicMicrowaveBackgroundRadiation"); break;
   }
 
+  // The sun before the surface: the surface's reflection of the direct beam is computed for the sun's direction
+  switch (sun_setting) {
+    using enum settings_agenda_setup_sun_type;
+    case None: agenda.add("disort_settingsNoSun"); break;
+    case Sun:
+      agenda.add("ray_pointHighestFromPath");
+      agenda.add("disort_settingsSetSun");
+      break;
+  }
   switch (surf_setting) {
-    using enum disort_settings_agenda_setup_surface_type;
+    using enum settings_agenda_setup_surface_type;
     case None:
       agenda.add("disort_settingsNoSurfaceEmission");
       agenda.add("disort_settingsNoSurfaceScattering");
@@ -1054,20 +1054,11 @@ Agenda disort_settings_agendaSetup(const disort_settings_agenda_setup_layer_emis
       break;
   }
 
-  switch (sun_setting) {
-    using enum disort_settings_agenda_setup_sun_type;
-    case None: agenda.add("disort_settingsNoSun"); break;
-    case Sun:
-      agenda.add("ray_pointHighestFromPath");
-      agenda.add("disort_settingsSetSun");
-      break;
-  }
-
   return std::move(agenda).finalize(false);
 }
 
-Agenda disort_settings_agendaSubsurfaceSetup(const disort_settings_agenda_setup_sun_type& sun_setting,
-                                             const Numeric&                               min_optical_depth) {
+Agenda disort_settings_agendaSubsurfaceSetup(const settings_agenda_setup_sun_type& sun_setting,
+                                             const Numeric&                        min_optical_depth) {
   ARTS_TIME_REPORT
 
   AgendaCreator agenda("disort_settings_agenda");
@@ -1085,7 +1076,7 @@ Agenda disort_settings_agendaSubsurfaceSetup(const disort_settings_agenda_setup_
   agenda.add("disort_settingsNoLegendre");
 
   switch (sun_setting) {
-    using enum disort_settings_agenda_setup_sun_type;
+    using enum settings_agenda_setup_sun_type;
     case None: agenda.add("disort_settingsNoSun"); break;
     case Sun:
       agenda.add("ray_pointHighestFromPath");
@@ -1108,11 +1099,11 @@ void disort_settings_agendaSetup(Agenda&        disort_settings_agenda,
   ARTS_TIME_REPORT
 
   disort_settings_agenda =
-      disort_settings_agendaSetup(to<disort_settings_agenda_setup_layer_emission_type>(layer_emission_setting),
-                                  to<disort_settings_agenda_setup_scattering_type>(scattering_setting),
-                                  to<disort_settings_agenda_setup_space_type>(space_setting),
-                                  to<disort_settings_agenda_setup_sun_type>(sun_setting),
-                                  to<disort_settings_agenda_setup_surface_type>(surf_setting),
+      disort_settings_agendaSetup(to<settings_agenda_setup_layer_emission_type>(layer_emission_setting),
+                                  to<settings_agenda_setup_scattering_type>(scattering_setting),
+                                  to<settings_agenda_setup_space_type>(space_setting),
+                                  to<settings_agenda_setup_sun_type>(sun_setting),
+                                  to<settings_agenda_setup_surface_type>(surf_setting),
                                   surf_lambertian_value,
                                   min_optical_depth);
 }
@@ -1123,7 +1114,7 @@ void disort_settings_agendaSubsurfaceSetup(Agenda&        disort_settings_agenda
   ARTS_TIME_REPORT
 
   disort_settings_agenda =
-      disort_settings_agendaSubsurfaceSetup(to<disort_settings_agenda_setup_sun_type>(sun_setting), min_optical_depth);
+      disort_settings_agendaSubsurfaceSetup(to<settings_agenda_setup_sun_type>(sun_setting), min_optical_depth);
 }
 
 void CoupledAtmosphereAndSubsurfaceDisortSettings(const Workspace&     ws,
@@ -1136,9 +1127,9 @@ void CoupledAtmosphereAndSubsurfaceDisortSettings(const Workspace&     ws,
                                                   const AscendingGrid& alt_grid,
                                                   const Numeric&       lat,
                                                   const Numeric&       lon,
-                                                  const Index&         disort_quadrature_dimension,
-                                                  const Index&         disort_fourier_mode_dimension,
-                                                  const Index&         disort_legendre_polynomial_dimension) try {
+                                                  const Index&         quadrature_dimension,
+                                                  const Index&         fourier_mode_dimension,
+                                                  const Index&         legendre_polynomial_dimension) try {
   ARTS_TIME_REPORT
 
   const Numeric surf_elev = surf_field.single_value(SurfaceKey::h, lat, lon);
@@ -1187,9 +1178,9 @@ alt_grid:          {:B,}
                                           subsurf_disort_settings,
                                           freq_grid,
                                           subsurf_ray_path,
-                                          disort_quadrature_dimension,
-                                          disort_fourier_mode_dimension,
-                                          disort_legendre_polynomial_dimension,
+                                          quadrature_dimension,
+                                          fourier_mode_dimension,
+                                          legendre_polynomial_dimension,
                                           subsurf_disort_settings_agenda);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in subsurface disort settings agenda:\n" + std::string(e.what()));
@@ -1200,17 +1191,12 @@ alt_grid:          {:B,}
                                       atm_disort_settings,
                                       freq_grid,
                                       atm_ray_path,
-                                      disort_quadrature_dimension,
-                                      disort_fourier_mode_dimension,
-                                      disort_legendre_polynomial_dimension,
+                                      quadrature_dimension,
+                                      fourier_mode_dimension,
+                                      legendre_polynomial_dimension,
                                       atm_disort_settings_agenda);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in atmospheric disort settings agenda:\n" + std::string(e.what()));
   }
 }
 ARTS_METHOD_ERROR_CATCH
-
-void disort_settingsSurfaceLambertian(DisortSettings&                            disort_settings,
-                                      const Generic<const Numeric, const Vector> value) {
-  std::visit([&](const auto& selected) { disort_settingsSurfaceLambertianImpl(disort_settings, *selected); }, value);
-}

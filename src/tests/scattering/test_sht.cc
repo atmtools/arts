@@ -126,10 +126,10 @@ bool test_grids() try {
   auto sht = sht::provider.get_instance(64, 64);
 
   auto    lat_grid  = sht->get_zenith_angle_grid();
-  Numeric max_angle = max<Vector>(lat_grid.angles);
+  Numeric max_angle = max<Vector>(lat_grid.angles.vec());
   if (max_angle < 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
   lat_grid  = sht->get_zenith_angle_grid(true);
-  max_angle = max<Vector>(lat_grid.angles);
+  max_angle = max<Vector>(lat_grid.angles.vec());
   if (max_angle > 2.0 * scattering::sht::pi_v<Numeric>) { return false; }
 
   auto lon_grid = sht->get_azimuth_angle_grid();

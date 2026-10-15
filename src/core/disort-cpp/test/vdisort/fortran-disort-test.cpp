@@ -8,6 +8,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 
 #include "../reference-data.h"
 #include "test-adapter.h"
@@ -50,6 +51,7 @@ struct scalar_vdisort_model {
   Numeric                         beam_intensity{};
   Numeric                         delta_m_fraction{};
   Numeric                         optical_depth_scale{1.0};
+  vdisort::surface_reflection     user_surface{};
 };
 
 Numeric scalar_phase_mode(const ConstVectorView& moments,
@@ -130,7 +132,7 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
                                           std::move(up),
                                           std::move(down),
                                           Tensor3(nlayers, 0, nstokes),
-                                          {},
+                                          vdisort::surface_reflection{},
                                           mu0,
                                           has_beam ? Vector{beam_intensity, 0.0, 0.0, 0.0} : Vector(4, 0.0),
                                           phi0,
@@ -348,15 +350,12 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) t
       make_scalar_model(test.depth, test.omega, test.beam, nquad, moments, user_mu, 1.0, Constant::pi, moments[nquad]);
   const Vector output_tau{0.0, test.depth};
 
-  Vector weighted_true(moments.size()), weighted_transport(model.transport_moments.size()),
-      weighted_removed(moments.size());
+  Vector weighted_true(moments.size()), weighted_removed(moments.size());
   for (Index degree = 0; degree < static_cast<Index>(moments.size()); ++degree) {
     weighted_true[degree]    = static_cast<Numeric>(2 * degree + 1) * moments[degree];
     const Numeric residue    = degree < nquad ? 1.0 : moments[degree] / model.delta_m_fraction;
     weighted_removed[degree] = static_cast<Numeric>(2 * degree + 1) * residue;
   }
-  for (Index degree = 0; degree < static_cast<Index>(model.transport_moments.size()); ++degree)
-    weighted_transport[degree] = static_cast<Numeric>(2 * degree + 1) * model.transport_moments[degree];
   const auto scalar_phase = [](const Vector coefficients) {
     return [coefficients](Index, Numeric out_mu, Numeric out_phi, Numeric in_mu, Numeric in_phi) {
       rtepack::muelmat result{0.0};
@@ -373,7 +372,6 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) t
                                                                Vector{user_mu},
                                                                Vector{0.0},
                                                                scalar_phase(weighted_true),
-                                                               scalar_phase(weighted_transport),
                                                                scalar_phase(weighted_removed),
                                                                48,
                                                                96);
@@ -545,28 +543,38 @@ Numeric band_blackbody_radiance(const Numeric temperature,
   throw std::runtime_error(std::format("Error in band_blackbody_radiance:\n{}", e.what()));
 }
 
-std::vector<vdisort::BDRF> scalar_brdf_modes(const disort::brdf::RawFunction& raw, const Index number_of_modes) try {
-  return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, 100);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_brdf_modes:\n{}", e.what())); }
+//! The cosines of the upward streams of nquad streams
+Vector upward_streams(const Index nquad) {
+  Vector mu(nquad / 2), weights(nquad / 2);
+  Legendre::PositiveDoubleGaussLegendre(mu, weights);
+  return mu;
+}
 
-Numeric directional_emissivity(const disort::brdf::RawFunction& raw, const Numeric outgoing_mu) try {
-  constexpr Index nmu      = 64;
-  constexpr Index nazimuth = 256;
-  Vector          mu(nmu), weight(nmu);
-  Legendre::PositiveDoubleGaussLegendre(mu, weight);
-  Numeric reflectance = 0.0;
-  for (Index j = 0; j < nmu; ++j) {
-    Numeric azimuth_average = 0.0;
-    for (Index k = 0; k < nazimuth; ++k)
-      azimuth_average +=
-          raw(outgoing_mu, mu[j], Constant::two_pi * (static_cast<Numeric>(k) + 0.5) / static_cast<Numeric>(nazimuth));
-    // DISOBRDF's BEMST convention integrates azimuth through x = phi / pi,
-    // without restoring the Jacobian pi.  Reproduce that convention here so
-    // the thermal boundary agrees with the original DISORT reference cases.
-    reflectance += 2.0 * weight[j] * mu[j] * azimuth_average / nazimuth;
-  }
-  return 1.0 - reflectance;
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in directional_emissivity:\n{}", e.what())); }
+//! The beam cosine a surface reflects: mu0 with a beam, NaN without
+Numeric beam_cosine(const Numeric beam, const Numeric mu0) {
+  return beam == 0.0 ? std::numeric_limits<Numeric>::quiet_NaN() : mu0;
+}
+
+//! A scalar BRDF's reflection from the downward streams into the directions |mu_out|, for the beam cosine mu0
+vdisort::surface_reflection scalar_surface(const disort::brdf::RawFunction& raw,
+                                           const Index                      number_of_modes,
+                                           const ConstVectorView&           mu_out,
+                                           const ConstVectorView&           streams,
+                                           const Numeric                    mu0) try {
+  Vector abs_mu_out{mu_out};
+  stdr::transform(abs_mu_out, abs_mu_out.begin(), [](const Numeric mu) { return std::abs(mu); });
+  return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, abs_mu_out, streams, mu0, 100);
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_surface:\n{}", e.what())); }
+
+//! A scalar BRDF's reflection between nquad streams, for the beam cosine mu0; none without a BRDF
+vdisort::surface_reflection stream_surface(const disort::brdf::RawFunction& raw,
+                                           const Index                      number_of_modes,
+                                           const Index                      nquad,
+                                           const Numeric                    mu0) try {
+  if (not raw) return {};
+  const Vector streams = upward_streams(nquad);
+  return scalar_surface(raw, number_of_modes, streams, streams, mu0);
+} catch (std::exception& e) { throw std::runtime_error(std::format("Error in stream_surface:\n{}", e.what())); }
 
 vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) try {
   constexpr Index nquad   = 16;
@@ -585,8 +593,7 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
     nmodes = nquad;
   }
 
-  std::vector<vdisort::BDRF> brdf;
-  if (raw) brdf = scalar_brdf_modes(raw, nmodes);
+  auto surface = stream_surface(raw, nmodes, nquad, beam_cosine(test.beam, test.beam_mu));
 
   Tensor7 phase(2, nmodes, 1, nquad, nquad, nstokes, nstokes, 0.0);
   phase[vdisort::cosine_mode, 0, 0, joker, joker, 0, 0] = 1.0;
@@ -597,19 +604,10 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
                                                                     disort_test::reference::problem_6_wavenumber_high);
   down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + test.top_emissivity * top_planck;
 
-  const Numeric bottom_planck = band_blackbody_radiance(test.bottom_temperature,
-                                                        disort_test::reference::problem_6_wavenumber_low,
-                                                        disort_test::reference::problem_6_wavenumber_high);
-  Vector        quadrature_mu(n), quadrature_weight(n);
-  Legendre::PositiveDoubleGaussLegendre(quadrature_mu, quadrature_weight);
-  for (Index i = 0; i < n; ++i) {
-    Numeric emissivity = 1.0;
-    if (test.surface == disort_test::reference::surface_type::lambertian)
-      emissivity = 1.0 - test.lambertian_albedo;
-    else if (test.surface == disort_test::reference::surface_type::hapke)
-      emissivity = directional_emissivity(raw, quadrature_mu[i]);
-    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_planck;
-  }
+  // The surface's Planck radiance; VDISORT applies its emissivity, as DISORT's BEMST
+  up[vdisort::cosine_mode, 0, joker, 0] = band_blackbody_radiance(test.bottom_temperature,
+                                                                  disort_test::reference::problem_6_wavenumber_low,
+                                                                  disort_test::reference::problem_6_wavenumber_high);
 
   Tensor3 source;
   if (test.interface_temperature.size() == 2) {
@@ -635,7 +633,7 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
                                    std::move(up),
                                    std::move(down),
                                    std::move(source),
-                                   std::move(brdf),
+                                   std::move(surface),
                                    test.beam_mu,
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0);
@@ -657,9 +655,8 @@ void test_problem_6() try {
                        flux.down_diffuse,
                        reference.diffuse_down[level],
                        1e-3);
-      // The active single-precision DISORT references retain their legacy
-      // non-Lambertian thermal-boundary integration.  The VDISORT scalar
-      // embedding agrees to below one percent for those mixed-source cases.
+      // VDISORT's emissivity comes from the streams, cDISORT's from a fine quadrature; with the Hapke hotspot,
+      // 6h's DFDT at the surface (a small difference of large terms) differs by 0.4%
       const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
       expect_reference(
           std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
@@ -701,24 +698,16 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
   } else if (test.surface == disort_test::reference::surface_type::hapke) {
     raw = disort::brdf::Hapke{.opposition_amplitude = 1.0, .opposition_width = 0.06, .single_scattering_albedo = 0.6};
   }
-  std::vector<vdisort::BDRF> brdf;
-  if (raw) brdf = scalar_brdf_modes(raw, nmodes);
+  auto surface = stream_surface(raw, nmodes, nquad, beam_cosine(test.beam, mu0));
 
   Tensor4       up(2, nmodes, n, nstokes, 0.0), down(2, nmodes, n, nstokes, 0.0);
   const Numeric top_boundary_planck =
       band_blackbody_radiance(test.top_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
   down[vdisort::cosine_mode, 0, joker, 0] = test.top_isotropic + top_boundary_planck;
 
-  const Numeric bottom_boundary_planck =
+  // The surface's Planck radiance; VDISORT applies its emissivity, as DISORT's BEMST
+  up[vdisort::cosine_mode, 0, joker, 0] =
       band_blackbody_radiance(test.bottom_boundary_temperature, test.wavenumber_low, test.wavenumber_high);
-  for (Index i = 0; i < n; ++i) {
-    Numeric emissivity = 1.0;
-    if (test.surface == disort_test::reference::surface_type::lambertian)
-      emissivity = 1.0 - test.lambertian_albedo;
-    else if (test.surface == disort_test::reference::surface_type::hapke)
-      emissivity = directional_emissivity(raw, quadrature_mu[i]);
-    up[vdisort::cosine_mode, 0, i, 0] = emissivity * bottom_boundary_planck;
-  }
 
   const Numeric atmosphere_top_planck =
       band_blackbody_radiance(test.atmosphere_top_temperature, test.wavenumber_low, test.wavenumber_high);
@@ -736,7 +725,7 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
                                    std::move(up),
                                    std::move(down),
                                    std::move(source),
-                                   std::move(brdf),
+                                   std::move(surface),
                                    mu0,
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0,
@@ -777,7 +766,7 @@ void test_problem_7() try {
         expect_small_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level]);
         expect_small_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level]);
       } else {
-        const Numeric tolerance = case_index == 4 ? 1e-2 : 2e-3;
+        constexpr Numeric tolerance = 2e-3;
         expect_reference(
             std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], tolerance);
         expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
@@ -824,7 +813,7 @@ problem_8_model make_problem_8_model(const disort_test::reference::layered_isotr
                                           std::move(up),
                                           std::move(down),
                                           Tensor3(nlayers, 0, nstokes),
-                                          {},
+                                          vdisort::surface_reflection{},
                                           0.5,
                                           Vector(4, 0.0),
                                           0.0);
@@ -867,6 +856,7 @@ struct problem_9_model {
   vdisort::main_data              solver;
   vdisort::phase_matrix_data      user_phase;
   vdisort::beam_phase_matrix_data user_beam_phase;
+  vdisort::surface_reflection     user_surface{};
 };
 
 Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& test, const Index nquad) try {
@@ -936,15 +926,15 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
       test.top_isotropic + band_blackbody_radiance(test.top_temperature, test.wavenumber_low, test.wavenumber_high);
   const Numeric bottom_planck =
       band_blackbody_radiance(test.bottom_temperature, test.wavenumber_low, test.wavenumber_high);
-  up[vdisort::cosine_mode, 0, joker, 0] = (1.0 - test.surface_albedo) * bottom_planck;
+  up[vdisort::cosine_mode, 0, joker, 0] = bottom_planck;
 
-  std::vector<vdisort::BDRF> brdf;
-  if (test.surface_albedo != 0.0) {
-    const disort::brdf::RawFunction lambert = [albedo = test.surface_albedo](Numeric, Numeric, Numeric) {
-      return albedo * Constant::inv_pi;
-    };
-    brdf = scalar_brdf_modes(lambert, 1);
-  }
+  disort::brdf::RawFunction lambert;
+  if (test.surface_albedo != 0.0)
+    lambert = [albedo = test.surface_albedo](Numeric, Numeric, Numeric) { return albedo * Constant::inv_pi; };
+  const Numeric               surface_mu0 = beam_cosine(test.beam, test.beam_mu);
+  vdisort::surface_reflection surface     = stream_surface(lambert, 1, nquad, surface_mu0);
+  vdisort::surface_reflection user_surface;
+  if (lambert) user_surface = scalar_surface(lambert, 1, user_mu, upward_streams(nquad), surface_mu0);
 
   Tensor3 source;
   if (test.interface_temperature.empty()) {
@@ -974,13 +964,15 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
                                           std::move(up),
                                           std::move(down),
                                           std::move(source),
-                                          std::move(brdf),
+                                          std::move(surface),
                                           test.beam_mu,
                                           Vector{test.beam, 0.0, 0.0, 0.0},
                                           0.0,
                                           std::move(beam_phase));
-  return {
-      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+  return {.solver          = std::move(solver),
+          .user_phase      = std::move(user_phase),
+          .user_beam_phase = std::move(user_beam_phase),
+          .user_surface    = std::move(user_surface)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_9_model:\n{}", e.what())); }
 
 void test_problem_9() try {
@@ -995,7 +987,9 @@ void test_problem_9() try {
                                   test.azimuth,
                                   disort_test::reference::problem_9_user_mu,
                                   model.user_phase,
-                                  model.user_beam_phase);
+                                  model.user_beam_phase,
+                                  {},
+                                  model.user_surface);
     vdisort::flux_data flux_data;
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
       for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
@@ -1039,8 +1033,14 @@ void test_problem_10() try {
     const auto flux_before = model.solver.flux(flux_data, tau);
     for (const Numeric phi : disort_test::reference::problem_10_azimuth) {
       model.solver.u(quadrature, tau, phi);
-      model.solver.u_user(
-          user, tau, phi, disort_test::reference::problem_10_user_mu, model.user_phase, model.user_beam_phase);
+      model.solver.u_user(user,
+                          tau,
+                          phi,
+                          disort_test::reference::problem_10_user_mu,
+                          model.user_phase,
+                          model.user_beam_phase,
+                          {},
+                          model.user_surface);
 
       for (Index angle = 0; angle < disort_test::reference::problem_10_streams; ++angle) {
         const auto    label   = std::format("Problem 10 radiance [tau={}, phi={}, angle={}]", tau, phi, angle);
@@ -1106,13 +1106,19 @@ problem_9_model make_problem_11_model(const bool subdivided) try {
       std::move(up),
       std::move(down),
       Tensor3(nlayers, 0, nstokes),
-      scalar_brdf_modes(lambert, nmodes),
+      stream_surface(lambert, nmodes, nquad, disort_test::reference::problem_11_beam_mu),
       disort_test::reference::problem_11_beam_mu,
       Vector{disort_test::reference::problem_11_beam / disort_test::reference::problem_11_beam_mu, 0.0, 0.0, 0.0},
       0.0,
       std::move(beam_phase));
-  return {
-      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+  return {.solver          = std::move(solver),
+          .user_phase      = std::move(user_phase),
+          .user_beam_phase = std::move(user_beam_phase),
+          .user_surface    = scalar_surface(lambert,
+                                            nmodes,
+                                            disort_test::reference::problem_11_user_mu,
+                                            upward_streams(nquad),
+                                            disort_test::reference::problem_11_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_11_model:\n{}", e.what())); }
 
 void test_problem_11() try {
@@ -1127,13 +1133,17 @@ void test_problem_11() try {
                               phi,
                               disort_test::reference::problem_11_user_mu,
                               one_layer.user_phase,
-                              one_layer.user_beam_phase);
+                              one_layer.user_beam_phase,
+                              {},
+                              one_layer.user_surface);
       subdivided.solver.u_user(subdivided_user,
                                tau,
                                phi,
                                disort_test::reference::problem_11_user_mu,
                                subdivided.user_phase,
-                               subdivided.user_beam_phase);
+                               subdivided.user_beam_phase,
+                               {},
+                               subdivided.user_surface);
       for (Index angle = 0; angle < static_cast<Index>(one_user.intensities.size()); ++angle) {
         const auto label = std::format("Problem 11 radiance [phi={}, tau={}, angle={}]", phi, tau, angle);
         expect_unpolarized(label, one_user.intensities[angle]);
@@ -1233,7 +1243,7 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
       std::move(up),
       std::move(down),
       Tensor3(nlayers, 0, nstokes),
-      scalar_brdf_modes(lambert, 1),
+      stream_surface(lambert, 1, nquad, disort_test::reference::problem_12_beam_mu),
       disort_test::reference::problem_12_beam_mu,
       Vector{disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu, 0.0, 0.0, 0.0},
       0.0,
@@ -1249,7 +1259,12 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
           .phi0                = 0.0,
           .beam_intensity      = disort_test::reference::problem_12_beam / disort_test::reference::problem_12_beam_mu,
           .delta_m_fraction    = delta_m_fraction,
-          .optical_depth_scale = optical_depth_scale};
+          .optical_depth_scale = optical_depth_scale,
+          .user_surface        = scalar_surface(lambert,
+                                                1,
+                                                disort_test::reference::problem_12_user_mu,
+                                                upward_streams(nquad),
+                                                disort_test::reference::problem_12_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_12_model:\n{}", e.what())); }
 
 void test_problem_12() try {
@@ -1266,13 +1281,17 @@ void test_problem_12() try {
                             disort_test::reference::problem_12_azimuth,
                             user_mu,
                             one_layer.user_phase,
-                            one_layer.user_beam_phase);
+                            one_layer.user_beam_phase,
+                            {},
+                            one_layer.user_surface);
     subdivided.solver.u_user(subdivided_user,
                              scaled_tau,
                              disort_test::reference::problem_12_azimuth,
                              user_mu,
                              subdivided.user_phase,
-                             subdivided.user_beam_phase);
+                             subdivided.user_beam_phase,
+                             {},
+                             subdivided.user_surface);
     const Vector one_correction =
         scalar_delta_m_correction(one_layer, physical_tau, disort_test::reference::problem_12_azimuth, user_mu);
     const Vector subdivided_correction =
@@ -1361,7 +1380,7 @@ vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_tr
                                    std::move(up),
                                    std::move(down),
                                    Tensor3(nlayers, 0, nstokes),
-                                   scalar_brdf_modes(lambert, 1),
+                                   stream_surface(lambert, 1, nquad, disort_test::reference::problem_13_beam_mu),
                                    disort_test::reference::problem_13_beam_mu,
                                    Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
                                    0.0,
@@ -1386,7 +1405,7 @@ void test_problem_13_boundary_limits() try {
                                              Tensor4(2, nmodes, n, nstokes, 0.0),
                                              Tensor4(2, nmodes, n, nstokes, 0.0),
                                              Tensor3(1, 0, nstokes),
-                                             scalar_brdf_modes(lambert, 1),
+                                             stream_surface(lambert, 1, nquad, problem_13_beam_mu),
                                              problem_13_beam_mu,
                                              Vector{problem_13_beam, 0.0, 0.0, 0.0},
                                              0.0,
@@ -1463,26 +1482,35 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) try 
     user_beam_phase[vdisort::cosine_mode, 0, 0, user][0, 0] = 1.0;
   }
 
-  auto solver = vdisort_test::make_solver(nquad,
-                                          nmodes,
-                                          AscendingGrid{depth},
-                                          Vector{omega},
-                                          std::move(phase),
-                                          Tensor4(2, nmodes, n, nstokes, 0.0),
-                                          Tensor4(2, nmodes, n, nstokes, 0.0),
-                                          Tensor3(nlayers, 0, nstokes),
-                                          scalar_brdf_modes(raw, nmodes),
-                                          disort_test::reference::problem_14_beam_mu,
-                                          Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
-                                          0.0,
-                                          std::move(beam_phase));
-  return {
-      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+  auto solver =
+      vdisort_test::make_solver(nquad,
+                                nmodes,
+                                AscendingGrid{depth},
+                                Vector{omega},
+                                std::move(phase),
+                                Tensor4(2, nmodes, n, nstokes, 0.0),
+                                Tensor4(2, nmodes, n, nstokes, 0.0),
+                                Tensor3(nlayers, 0, nstokes),
+                                stream_surface(raw, nmodes, nquad, disort_test::reference::problem_14_beam_mu),
+                                disort_test::reference::problem_14_beam_mu,
+                                Vector{disort_test::reference::problem_14_beam, 0.0, 0.0, 0.0},
+                                0.0,
+                                std::move(beam_phase));
+  return {.solver          = std::move(solver),
+          .user_phase      = std::move(user_phase),
+          .user_beam_phase = std::move(user_beam_phase),
+          .user_surface =
+              scalar_surface(raw, nmodes, user_mu, upward_streams(nquad), disort_test::reference::problem_14_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_14_model:\n{}", e.what())); }
 
-void update_scalar_brdf(problem_9_model& model, const disort::brdf::RawFunction& raw, const Index nmodes) try {
-  const auto modes = scalar_brdf_modes(raw, nmodes);
-  stdr::copy(modes, model.solver.brdf_modes().begin());
+void update_scalar_brdf(problem_9_model&                 model,
+                        const disort::brdf::RawFunction& raw,
+                        const Index                      nmodes,
+                        const ConstVectorView&           user_mu,
+                        const Numeric                    mu0) try {
+  const Vector streams = upward_streams(model.solver.mu().size());
+  model.solver.surface(scalar_surface(raw, nmodes, streams, streams, mu0));
+  model.user_surface = scalar_surface(raw, nmodes, user_mu, streams, mu0);
   model.solver.solve_for_coefs();
   model.solver.rad_field();
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in update_scalar_brdf:\n{}", e.what())); }
@@ -1493,7 +1521,7 @@ void test_problem_14() try {
   for (Index case_index = 0; case_index < static_cast<Index>(problem_14.size()); ++case_index) {
     const auto& test = problem_14[case_index];
     const auto  raw  = problem_14_raw(test.type);
-    if (case_index != 0) update_scalar_brdf(model, raw, problem_14_streams);
+    if (case_index != 0) update_scalar_brdf(model, raw, problem_14_streams, problem_14_user_mu, problem_14_beam_mu);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle)
         expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
@@ -1503,7 +1531,8 @@ void test_problem_14() try {
 
     const AscendingGrid      tau{0.0};
     rtepack::stokvec_tensor3 user(tau.size(), test.azimuth.size(), problem_14_user_mu.size());
-    model.solver.ungridded_u_user(user, tau, test.azimuth, problem_14_user_mu, model.user_phase, model.user_beam_phase);
+    model.solver.ungridded_u_user(
+        user, tau, test.azimuth, problem_14_user_mu, model.user_phase, model.user_beam_phase, {}, model.user_surface);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle) {
         const auto label = std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
@@ -1579,13 +1608,15 @@ problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
                                           Tensor4(2, nmodes, n, nstokes, 0.0),
                                           Tensor4(2, nmodes, n, nstokes, 0.0),
                                           Tensor3(nlayers, 0, nstokes),
-                                          scalar_brdf_modes(raw, nmodes),
+                                          stream_surface(raw, nmodes, nquad, problem_15_beam_mu),
                                           problem_15_beam_mu,
                                           Vector{problem_15_beam, 0.0, 0.0, 0.0},
                                           0.0,
                                           std::move(beam_phase));
-  return {
-      .solver = std::move(solver), .user_phase = std::move(user_phase), .user_beam_phase = std::move(user_beam_phase)};
+  return {.solver          = std::move(solver),
+          .user_phase      = std::move(user_phase),
+          .user_beam_phase = std::move(user_beam_phase),
+          .user_surface = scalar_surface(raw, nmodes, problem_15_user_mu, upward_streams(nquad), problem_15_beam_mu)};
 } catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_15_model:\n{}", e.what())); }
 
 void test_problem_15() try {
@@ -1603,14 +1634,10 @@ void test_problem_15() try {
   const Numeric       scaled_bottom = problem_15_tau[0] + (problem_15_tau[1] - problem_15_tau[0]) * (1.0 - fraction[1]);
   const AscendingGrid scaled_tau{problem_15_tau[0], scaled_bottom};
 
-  Matrix weighted_original(2, moment_count), weighted_transport(2, problem_15_streams),
-      weighted_removed(2, moment_count, 0.0);
-  for (Index layer = 0; layer < 2; ++layer) {
+  Matrix weighted_original(2, moment_count), weighted_removed(2, moment_count, 0.0);
+  for (Index layer = 0; layer < 2; ++layer)
     for (Index degree = 0; degree < moment_count; ++degree)
       weighted_original[layer, degree] = static_cast<Numeric>(2 * degree + 1) * original[layer, degree];
-    for (Index degree = 0; degree < problem_15_streams; ++degree)
-      weighted_transport[layer, degree] = static_cast<Numeric>(2 * degree + 1) * transport[layer, degree];
-  }
   for (Index degree = 0; degree < moment_count; ++degree) {
     const Numeric residue       = degree < problem_15_streams ? 1.0 : original[1, degree] / fraction[1];
     weighted_removed[1, degree] = static_cast<Numeric>(2 * degree + 1) * residue;
@@ -1642,7 +1669,6 @@ void test_problem_15() try {
                                                      Vector{problem_15_user_mu},
                                                      Vector{problem_15_azimuth},
                                                      phase_callback(weighted_original),
-                                                     phase_callback(weighted_transport),
                                                      phase_callback(weighted_removed),
                                                      1,
                                                      1,
@@ -1654,14 +1680,21 @@ void test_problem_15() try {
   auto model = make_problem_15_model(problem_15_raw(problem_15.front().type), transport, scaled_tau);
   for (Index case_index = 0; case_index < static_cast<Index>(problem_15.size()); ++case_index) {
     const auto& test = problem_15[case_index];
-    if (case_index != 0) update_scalar_brdf(model, problem_15_raw(test.type), problem_15_streams);
+    if (case_index != 0)
+      update_scalar_brdf(model, problem_15_raw(test.type), problem_15_streams, problem_15_user_mu, problem_15_beam_mu);
     const AscendingGrid scaled_output_tau(problem_15_output_tau.begin(), problem_15_output_tau.end(), scaled_depth);
     rtepack::stokvec_tensor3 user(scaled_output_tau.size(), problem_15_azimuth.size(), problem_15_user_mu.size());
-    model.solver.ungridded_u_user(
-        user, scaled_output_tau, problem_15_azimuth, problem_15_user_mu, model.user_phase, model.user_beam_phase);
+    model.solver.ungridded_u_user(user,
+                                  scaled_output_tau,
+                                  problem_15_azimuth,
+                                  problem_15_user_mu,
+                                  model.user_phase,
+                                  model.user_beam_phase,
+                                  {},
+                                  model.user_surface);
     for (Index level = 0; level < static_cast<Index>(problem_15_output_tau.size()); ++level) {
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_15_azimuth.size()); ++azimuth) {
-        const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth);
+        const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth, model.user_beam_phase);
         for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
           auto       intensity = user[level, azimuth, angle] + corr[angle];
           const auto label     = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
@@ -1767,14 +1800,14 @@ void test_polarized_delta_m_correction() try {
                                                      Vector{user_mu},
                                                      Vector{0.0},
                                                      zero_phase,
-                                                     zero_phase,
                                                      constant_phase,
                                                      8,
                                                      16);
   rtepack::stokvec_vector                 tms, ims;
-  correction.TMS(tms, tau, 0);
+  // Zero original phase and no beam single scattering in the solver: TMS is 0
+  correction.TMS(tms, tau, 0, {});
   correction.IMS(ims, tau, 0);
-  const auto             actual       = correction.evaluate(tau, 0);
+  const auto             actual       = correction.evaluate(tau, 0, {});
   const Numeric          omega_f      = omega * fraction;
   const Numeric          scalar       = Constant::inv_pi * 0.25 * omega_f * omega_f / (1.0 - omega_f);
   const rtepack::muelmat ims_operator = 2.0 * removed - removed * removed;
@@ -1796,10 +1829,10 @@ void test_polarized_delta_m_correction() try {
                      2e-12);
 
   rtepack::stokvec_tensor3 gridded_tms(1, 1, 1), gridded_ims(1, 1, 1);
-  correction.gridded_TMS(gridded_tms);
+  correction.gridded_TMS(gridded_tms, {});
   correction.gridded_IMS(gridded_ims);
   rtepack::stokvec_vector bottom_tms, bottom_ims;
-  correction.TMS(bottom_tms, depth, 0);
+  correction.TMS(bottom_tms, depth, 0, {});
   correction.IMS(bottom_ims, depth, 0);
   for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
     expect_reference(std::format("Gridded polarized delta-M TMS Stokes {}", stokes),

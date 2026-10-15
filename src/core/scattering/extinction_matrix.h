@@ -250,6 +250,13 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
 
   ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> to_spectral() const;
 
+  //! The same data, as the extinction matrix of azimuthal Fourier-mode optics (it has no azimuth dependence)
+  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Fourier> to_fourier() const {
+    ExtinctionMatrixData<Scalar, Format::ARO, Representation::Fourier> emd_new{t_grid_, f_grid_, za_inc_grid_};
+    reinterpret_cast<matpack::data_t<Scalar, 4>&>(emd_new) = reinterpret_cast<const matpack::data_t<Scalar, 4>&>(*this);
+    return emd_new;
+  }
+
   ExtinctionMatrixData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     auto                 coeffs_this = get_const_coeff_vector_view();

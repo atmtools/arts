@@ -49,6 +49,10 @@ void singleton_regridding() {
   std::fill_n(spectral.data_handle(), spectral.size(), Complex{6.0, 7.0});
   constant(spectral.regrid(grids), Complex{6.0, 7.0});
 #endif
+  // The Fourier modes are interpolated in temperature and frequency only
+  PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier> fourier(t, f, za, scat, 2);
+  std::fill_n(fourier.data_handle(), fourier.size(), 6.0);
+  constant(fourier.regrid(ScatteringDataGrids(grids.t_grid, grids.f_grid)), 6.0);
 }
 
 void monodisperse_cutoff() {
@@ -136,8 +140,9 @@ void surface_polarization() {
   const auto    physical = [](const Muelmat& r) {
     const Numeric rv = r[0, 0] + r[0, 1];
     const Numeric rh = r[0, 0] - r[0, 1];
-    close(r[2, 2], std::sqrt(rv * rh), "U reflection must use amplitude product");
-    close(r[3, 3], std::sqrt(rv * rh), "V reflection must use amplitude product");
+    // Without the phase between the amplitudes, that of a loss-free Fresnel surface below the Brewster angle
+    close(r[2, 2], -std::sqrt(rv * rh), "U reflection must use minus the amplitude product");
+    close(r[3, 3], -std::sqrt(rv * rh), "V reflection must use minus the amplitude product");
     const Stokvec reflected = r * Stokvec{1.0, 0.0, 1.0, 0.0};
     check(reflected.I() + 1e-14 >= std::hypot(reflected.Q(), reflected.U(), reflected.V()),
           "Surface must preserve physical Stokes vectors");

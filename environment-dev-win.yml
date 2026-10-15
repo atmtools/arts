@@ -16,7 +16,12 @@ dependencies:
         - netcdf4
         - ninja
         - numpy>=2
-        - openblas
+        # 0.3.34 win-64 builds corrupt their stack in the DGEMM kernel on AMD
+        # Zen 4/5 CPUs that expose AVX-512 (OpenMathLib/OpenBLAS#6013, fixed
+        # upstream by OpenMathLib/OpenBLAS#6014, but not yet in a conda-forge
+        # build: conda-forge/openblas-feedstock#196).  It shows up as random
+        # segfaults in large LAPACK/BLAS calls, e.g. in the VDISORT tests.
+        - openblas<0.3.34
         - pip
         - pkg-config
         - python-build

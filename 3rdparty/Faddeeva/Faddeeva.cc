@@ -169,6 +169,10 @@ using namespace std;
 #define Inf numeric_limits<double>::infinity()
 #define NaN numeric_limits<double>::quiet_NaN()
 
+#ifndef DBL_EPSILON
+#define DBL_EPSILON std::numeric_limits<double>::epsilon()
+#endif
+
 typedef complex<double> cmplx;
 
 // Use C-like complex syntax, since the C syntax is more restrictive

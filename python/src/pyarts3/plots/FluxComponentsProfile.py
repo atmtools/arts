@@ -1,4 +1,4 @@
-""" Plotting routine for DisortFlux """
+""" Plotting routine for FluxComponentsProfile """
 
 import numpy
 import matplotlib
@@ -10,14 +10,14 @@ __all__ = [
 ]
 
 
-def plot(data: pyarts.arts.DisortFlux,
+def plot(data: pyarts.arts.FluxComponentsProfile,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          freq_idx: int | None = None,
          select: list | str = ['up', 'down_diffuse', 'down_direct'],
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
-    """Plot DISORT flux results.
+    """Plot the fluxes of DISORT or VDISORT.
 
     .. rubric:: Example (mock data)
 
@@ -27,19 +27,19 @@ def plot(data: pyarts.arts.DisortFlux,
         import pyarts3 as pyarts
         import numpy as np
 
-        flux = pyarts.arts.DisortFlux()
+        flux = pyarts.arts.FluxComponentsProfile()
         flux.freq_grid = pyarts.arts.AscendingGrid(np.linspace(1e9, 1e12, 50))
         flux.alt_grid = pyarts.arts.DescendingGrid(np.linspace(80e3, 0, 41))
         alts_layers = 0.5 * (flux.alt_grid[:-1] + flux.alt_grid[1:])
         flux.up = pyarts.arts.Matrix(np.outer(np.linspace(10, 100, 50), np.exp(-alts_layers/20e3)))
         flux.down_diffuse = pyarts.arts.Matrix(np.outer(np.linspace(50, 150, 50), np.exp(-alts_layers/15e3)))
         flux.down_direct = pyarts.arts.Matrix(np.outer(np.linspace(200, 300, 50),  np.exp(-alts_layers/10e3)))
-        fig, ax = pyarts.plots.DisortFlux.plot(flux)
+        fig, ax = pyarts.plots.FluxComponentsProfile.plot(flux)
 
     Parameters
     ----------
-    data : ~pyarts3.arts.DisortFlux
-        A DisortFlux object containing flux results
+    data : ~pyarts3.arts.FluxComponentsProfile
+        A FluxComponentsProfile object containing flux results
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional

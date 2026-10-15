@@ -60,9 +60,9 @@ class AtmosphericFlux:
 
         self.ws = pyarts.Workspace()
 
-        self.ws.disort_quadrature_dimension = NQuad
-        self.ws.disort_fourier_mode_dimension = 1
-        self.ws.disort_legendre_polynomial_dimension = 1
+        self.ws.quadrature_dimension = NQuad
+        self.ws.fourier_mode_dimension = 1
+        self.ws.legendre_polynomial_dimension = 1
 
         self.ws.abs_speciesSet(species=species)
 
@@ -170,14 +170,14 @@ class AtmosphericFlux:
             surf_lambertian_value=self.visible_surf_reflectivity *
             np.ones_like(self.visf)
         )
-        self.ws.disort_spectral_flux_fieldFromAgenda()
+        self.ws.spectral_flux_components_profileDisortFromAgenda()
 
         self.SOLAR = Flux("solar",
                           np.einsum("i,ik->k", self.visw,
-                                    self.ws.disort_spectral_flux_field.up),
+                                    self.ws.spectral_flux_components_profile.up),
                           np.einsum("i,ik->k", self.visw,
-                                    self.ws.disort_spectral_flux_field.down_diffuse),
-                          np.einsum("i,ik->k", self.visw, self.ws.disort_spectral_flux_field.down_direct))
+                                    self.ws.spectral_flux_components_profile.down_diffuse),
+                          np.einsum("i,ik->k", self.visw, self.ws.spectral_flux_components_profile.down_direct))
 
         # IR
         self.ws.freq_grid = self.ir_f
@@ -190,14 +190,14 @@ class AtmosphericFlux:
             surf_lambertian_value=self.thermal_surf_reflectivity *
             np.ones_like(self.visf)
         )
-        self.ws.disort_spectral_flux_fieldFromAgenda()
+        self.ws.spectral_flux_components_profileDisortFromAgenda()
 
         self.THERMAL = Flux("thermal",
                             np.einsum("i,ik->k", self.ir_w,
-                                      self.ws.disort_spectral_flux_field.up),
+                                      self.ws.spectral_flux_components_profile.up),
                             np.einsum("i,ik->k", self.ir_w,
-                                      self.ws.disort_spectral_flux_field.down_diffuse),
-                            np.einsum("i,ik->k", self.ir_w, self.ws.disort_spectral_flux_field.down_direct))
+                                      self.ws.spectral_flux_components_profile.down_diffuse),
+                            np.einsum("i,ik->k", self.ir_w, self.ws.spectral_flux_components_profile.down_direct))
 
         return (
             self.SOLAR,

@@ -60,9 +60,9 @@ ws.sunFromGrid(
     lon=solar_longitude,
 )
 
-ws.disort_quadrature_dimension = NQuad
-ws.disort_fourier_mode_dimension = 1
-ws.disort_legendre_polynomial_dimension = 1
+ws.quadrature_dimension = NQuad
+ws.fourier_mode_dimension = 1
+ws.legendre_polynomial_dimension = 1
 
 ws.ray_pathGeometricDownlooking(
     lat=atm_latitude,
@@ -76,10 +76,10 @@ ws.disort_settings_agendaSetup(
     surf_lambertian_value=surf_reflectivity * np.ones_like(ws.freq_grid),
 )
 
-ws.disort_spectral_flux_fieldFromAgenda()
+ws.spectral_flux_components_profileDisortFromAgenda()
 
 f, s = pyarts.plot(
-    ws.disort_spectral_flux_field,
+    ws.spectral_flux_components_profile,
     select='down_diffuse',
 )
 s.set_xlabel("Kaysers [cm$^{-1}$]")

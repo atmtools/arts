@@ -99,6 +99,13 @@ Numeric legendre_sum(const ConstVectorView& s, const Numeric& x);
   */
 Numeric legendre(Index n, Numeric x);
 
+/** Computes P_0(x), P_1(x), ..., P_{p.size() - 1}(x)
+  * 
+  * @param[out] p The polynomials
+  * @param[in] x The value, in [-1, 1]
+  */
+void legendre_polynomials(VectorView p, Numeric x);
+
 /** Computes n!
   * 
   * @param[in] n The index

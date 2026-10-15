@@ -75,13 +75,12 @@ specular = _to_array(
 )
 fresnel = _expected_fresnel_matrix(Rv, Rh)
 
-print("Specular Fresnel rows (computed):\n", specular)
-print("Specular Fresnel rows (expected with UV flip):\n", fresnel)
-assert np.allclose(specular[0], fresnel[0], rtol=1e-12, atol=1e-15)
-assert np.allclose(specular[1], fresnel[1], rtol=1e-12, atol=1e-15)
-assert np.allclose(specular[2], -fresnel[2], rtol=1e-12, atol=1e-15)
-assert np.allclose(specular[3], -fresnel[3], rtol=1e-12, atol=1e-15)
-results["specular_uv_flip"] = specular
+# On a flat surface the planes of incidence and the meridional planes coincide, so the
+# reflection between the meridional bases of the two rays is the Fresnel matrix itself
+print("Specular Fresnel Mueller (computed):\n", specular)
+print("Specular Fresnel Mueller (expected):\n", fresnel)
+assert np.allclose(specular, fresnel, rtol=1e-12, atol=1e-15)
+results["specular_flat"] = specular
 
 Rv = 0.2 + 0.4j
 Rh = -0.3 + 0.1j

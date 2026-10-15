@@ -29,6 +29,48 @@ equation to ARTS without turning a concept page into an API tutorial.
 
 Register pages in ``users.rst``, ``devs.rst``, or ``concepts.rst`` accordingly.
 
+Describing the current code
+===========================
+
+Documentation describes what the code does now.  It is not a change log:
+
+* Do not add notes such as "has since been ported", "now supports", "was
+  fixed", "used to", or "reconnected".  The git history and the commit
+  messages record changes.
+* When a change makes a statement false, rewrite or delete that statement in
+  the same change, wherever it is.
+
+This matters most for the two ARTS 2 status pages, which list only what is
+absent from ARTS 3:
+
+* :doc:`dev.arts2missing` lists ARTS 2 capabilities that ARTS 3 lacks.
+* :doc:`dev.arts2notintended` lists ARTS 2 features that ARTS 3 deliberately
+  does not port.
+
+Anything that exists in ARTS 3 belongs on neither page, however it was ported.
+When a change provides a listed capability, delete its entry in that change.
+
+Developer pages that cannot drift
+=================================
+
+No test reads the documentation, so anything a page copies from the code goes
+stale without anyone noticing.  A developer page describes the design: the
+paradigms, the conventions, and where to look.  The code is the reference for
+the details.
+
+* Do not copy signatures, structure fields, default values, argument lists or
+  enumerators into a page.  Describe what the interface holds, for example
+  what a problem description contains and what a result returns, and name the
+  header or Python module that documents it.
+* Do not quote measured values, such as the agreement with a reference, case
+  counts or timings.  State what is compared with what, and where the
+  reference comes from.  The tests enforce the tolerances and print the
+  measured values.
+* Do not paste examples that nothing runs.  Point to the tests that use the
+  interface: they run with every build and serve as the usage examples.
+* Conventions are the paradigm and belong on the page: Stokes bases, signs,
+  hemispheres, normalisations, units, and what each array index means.
+
 Examples folder
 ===============
 

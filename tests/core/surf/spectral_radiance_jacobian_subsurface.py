@@ -43,9 +43,9 @@ ws.jac_targetsFinalize()
 ws.ray_point.pos = [0, 0, 0]
 ws.ray_point.los = [0, 0]
 
-ws.spectral_radSubsurfaceDisortEmissionWithJacobian(disort_fourier_mode_dimension=1,
-                                                         disort_legendre_polynomial_dimension=1,
-                                                         disort_quadrature_dimension=NQUAD,
+ws.spectral_radSubsurfaceDisortEmissionWithJacobian(fourier_mode_dimension=1,
+                                                         legendre_polynomial_dimension=1,
+                                                         quadrature_dimension=NQUAD,
                                                          depth_profile=z)
 ws.spectral_radApplyUnit()
 

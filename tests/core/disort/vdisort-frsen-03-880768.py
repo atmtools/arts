@@ -44,8 +44,7 @@ def test_layered_single_scattering_recurrence():
     omega = np.array([0.35, 0.82])
     phase_value = np.array([0.7, 1.6])
     mu0 = 0.73
-    user_mu = np.linspace(0.05, 0.95, 61)
-    nquad = 4
+    nquad = 64
 
     phase = _empty_phase(1, 2, nquad)
     beam_phase = np.zeros((2, 1, 2, nquad, 4, 4))
@@ -61,18 +60,10 @@ def test_layered_single_scattering_recurrence():
         beam_phase_matrix=beam_phase,
     )
 
-    user_phase = np.zeros((2, 1, 2, len(user_mu), nquad, 4, 4))
-    user_beam = np.zeros((2, 1, 2, len(user_mu), 4, 4))
-    user_beam[COSINE, 0, :, :, 0, 0] = phase_value[:, None]
-    result = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0]),
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam,
-        )
-    )[0, 0]
+    # The upward streams at the top; without diffuse scattering the stream
+    # solution is the exact single-scattering radiance
+    user_mu = np.asarray(model.mu)[: nquad // 2]
+    result = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
     expected = np.zeros_like(user_mu)
     tops = np.concatenate(([0.0], interfaces[:-1]))
@@ -130,10 +121,10 @@ def test_polarized_lambertian_depolarizes():
     boundary_down[COSINE, 0, :, :2] = incident[:2]
     boundary_down[SINE, 0, :, 2:] = incident[2:]
 
-    def lambertian(mu_out, mu_in):
-        blocks = np.zeros((len(mu_out), 4, len(mu_in), 4))
-        blocks[:, 0, :, 0] = rho / np.pi
-        return blocks.reshape(4 * len(mu_out), 4 * len(mu_in))
+    # The surface as data: rho / pi from I into I between all streams, in the cosine mode 0
+    brdf = np.zeros((2, 1, npositive, npositive, 4, 4))
+    brdf[COSINE, 0, :, :, 0, 0] = rho / np.pi
+    lambertian = arts.vdisort.SurfaceReflection(brdf, np.zeros((2, 1, npositive, 4, 4)))
 
     model = arts.cppvdisort(
         tau_arr=np.array([depth]),
@@ -144,7 +135,7 @@ def test_polarized_lambertian_depolarizes():
         beam_stokes=np.zeros(4),
         phi0=0.0,
         b_neg=boundary_down,
-        BDRF_Fourier_modes=[arts.VDisortBDRF(lambertian)],
+        surface=lambertian,
     )
 
     field = np.asarray(model.u(np.array([depth]), np.array([0.0, 1.1, 2.7])))[0]
@@ -286,41 +277,31 @@ def _local_basis(mu, phi):
             mu,
         ]
     )
-    horizontal = np.array([np.sin(phi), -np.cos(phi), 0.0])
-    vertical = np.cross(horizontal, direction)
-    return direction, vertical, horizontal
+    vertical, horizontal = arts.rtepack.meridional_basis(
+        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
+    )
+    return direction, np.array(vertical), np.array(horizontal)
 
 
 def _mueller_from_real_jones(jones):
-    stokes_coherencies = (
-        np.array([[0.5, 0.0], [0.0, 0.5]], dtype=complex),
-        np.array([[0.5, 0.0], [0.0, -0.5]], dtype=complex),
-        np.array([[0.0, 0.5], [0.5, 0.0]], dtype=complex),
-        np.array([[0.0, -0.5j], [0.5j, 0.0]], dtype=complex),
-    )
-    out = np.empty((4, 4))
-    for column, coherency in enumerate(stokes_coherencies):
-        scattered = jones @ coherency @ jones.T
-        out[:, column] = (
-            np.trace(scattered).real,
-            (scattered[0, 0] - scattered[1, 1]).real,
-            (scattered[0, 1] + scattered[1, 0]).real,
-            (-1j * (scattered[0, 1] - scattered[1, 0])).real,
-        )
-    return 1.5 * out
+    return 1.5 * np.array(arts.Muelmat(arts.Jones(np.asarray(jones, dtype=complex))))
 
 
 def test_figure_3_cox_munk_reflection():
     """Reproduce paper Figure 3 from its analytic 5 m/s ocean BPrDF."""
-    nquad = 2
+    nquad = 96
     nfourier = 24
     mu0 = np.cos(np.deg2rad(30.0))
     phase = _empty_phase(nfourier, 1, nquad)
+    streams = np.asarray(arts.math.pdleggauss(nquad)[0])
     modes = arts.vdisort.cox_munk_fourier_modes(
         wind_speed=5.0,
         refractive_index=1.34,
         shadowing=True,
         number_of_modes=nfourier,
+        mu_out=streams,
+        mu_in=streams,
+        mu0=mu0,
         azimuth_quadrature_points=64,
     )
     model = arts.cppvdisort(
@@ -332,23 +313,16 @@ def test_figure_3_cox_munk_reflection():
         mu0=mu0,
         beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
         phi0=0.0,
-        BDRF_Fourier_modes=modes,
+        surface=modes,
     )
 
-    polar_angle = np.deg2rad(np.linspace(2.0, 82.0, 41))
-    mu = np.cos(polar_angle)
+    # The upward streams with polar angles from 2 to 82 degrees
+    upward = np.asarray(model.mu)[: nquad // 2]
+    streams = np.flatnonzero((upward <= np.cos(np.deg2rad(2.0))) & (upward >= np.cos(np.deg2rad(82.0))))
+    mu = upward[streams]
+    polar_angle = np.arccos(mu)
     azimuth = np.deg2rad(np.array([0.0, 45.0, 90.0, 135.0, 180.0]))
-    user_phase = np.zeros((2, nfourier, 1, len(mu), nquad, 4, 4))
-    user_beam_phase = np.zeros((2, nfourier, 1, len(mu), 4, 4))
-    reflected = np.asarray(
-        model.u_user(
-            tau=np.array([1.0e-10]),
-            phi=azimuth,
-            mu=mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam_phase,
-        )
-    )[0]
+    reflected = np.asarray(model.u(tau=np.array([1.0e-10]), phi=azimuth))[0][:, streams]
     analytic = np.array(
         [
             [
@@ -481,18 +455,9 @@ def test_multiple_scattering_rayleigh_principal_plane():
         phi0=0.0,
         beam_phase_matrix=beam,
     )
-    user_mu = np.linspace(0.05, 0.95, 37)
-    user_phase = _rayleigh_fourier(user_mu, quadrature_mu, nfourier)
-    user_beam = _rayleigh_beam_fourier(user_mu, mu0, nfourier)
-    field = np.asarray(
-        model.u_user(
-            tau=np.array([0.0]),
-            phi=np.array([0.0, np.pi]),
-            mu=user_mu,
-            phase_matrix=user_phase,
-            beam_phase_matrix=user_beam,
-        )
-    )[0]
+    # The upward streams at the top, in the forward and backward principal plane
+    user_mu = np.asarray(model.mu)[: nquad // 2]
+    field = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0, np.pi])))[0][:, : nquad // 2]
 
     assert np.all(np.isfinite(field))
     assert np.max(np.abs(field[..., 1])) > 1.0e-5

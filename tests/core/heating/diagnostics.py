@@ -1,4 +1,12 @@
-"""Physics and array-contract checks independent of the ARTS2 adapters."""
+"""Physics and array-contract checks independent of the ARTS2 adapters.
+
+This file independently checks the supported formulas with a quadratic
+flux on nonuniform pressure levels (both orderings and both boundaries),
+isotropic hemispheres, frequency integration, analytic beam heating and
+thermal cooling in both solvers, workspace DFDT sampling locations, spectral
+extinction weighting, and invalid inputs. This separates preserved historical
+behavior from the public scientific interface.
+"""
 
 import numpy as np
 from pyarts3 import arts, Workspace
@@ -128,17 +136,17 @@ def test_workspace_dfdt():
     ws.disort_settingsInit(
         freq_grid=[1e11, 2e11],
         ray_path=points,
-        disort_quadrature_dimension=6,
-        disort_legendre_polynomial_dimension=1,
-        disort_fourier_mode_dimension=1,
+        quadrature_dimension=6,
+        legendre_polynomial_dimension=1,
+        fourier_mode_dimension=1,
     )
     s = ws.disort_settings
     s.optical_thicknesses = [[0.2, 0.6], [0.4, 1.2]]
     s.legendre_coefficients = np.ones((2, 2, 1))
     s.solar_source = [2.0, 3.0]
     s.solar_zenith_angle = [60.0, 60.0]
-    ws.disort_spectral_flux_fieldCalc()
-    flux = ws.disort_spectral_flux_field
+    ws.spectral_flux_components_profileDisortCalc()
+    flux = ws.spectral_flux_components_profile
     # Gridded output is at optical_thicknesses, not midpoints.
     expected = np.array([2.0, 3.0])[:, None] * np.exp(
         -np.asarray(s.optical_thicknesses) / 0.5

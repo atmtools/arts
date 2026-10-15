@@ -1,0 +1,86 @@
+#
+# A test of rt4 using a scattering file for horizontally oriented ice columns
+# at 340 GHz computed with the Discrete Dipole Approximation.
+# The file cl340d14.dda is for a gamma size distribution (median of third 
+# power of diameter of 400 microns, and shape factor alpha of 1.0) made from 
+# 13 discrete sizes ranging from 30 microns to 2.0 mm.  The ice mass 
+# content of this simulated cirrus cloud is 0.01 g/m^3.
+# 
+rm -f testc.lay testc.out testc.out.check
+#
+#   Output the layer file for a tropical atmosphere at 340 GHz with the
+#   cirrus cloud from 14 to 17 km.
+cat >testc.lay <<EOF
+  20.00   206.71     .000101  '            '
+  19.00   202.75     .000151  '            '
+  18.00   198.78     .000229  '            '
+  17.00   194.81     .000328  'cl340d14.dda'
+  16.00   197.02     .000428  'cl340d14.dda'
+  15.00   203.67     .000536  'cl340d14.dda'
+  14.00   210.32     .000666  '            '
+  13.00   216.98     .000822  '            '
+  12.00   223.64     .001009  '            '
+  11.00   230.30     .005379  '            '
+  10.00   236.96     .022021  '            '
+   9.00   243.63     .058592  '            '
+   8.00   250.29     .123550  '            '
+   7.00   256.96     .230833  '            '
+   6.00   263.63     .420108  '            '
+   5.00   270.31     .745290  '            '
+   4.00   276.98    1.290244  '            '
+   3.00   283.65    1.994524  '            '
+   2.00   287.68    3.002706  '            '
+   1.00   293.66    4.707541  '            '
+    .00   299.65     .000000  '            '
+EOF
+#
+#   Run rt4 for a land surface with emissivity 0.95.
+rt4 <<EOF >/dev/null
+2
+8
+L
+testc.lay
+300
+L
+0.05
+0.0
+880
+T
+VH
+1
+1
+testc.out
+EOF
+#
+#   Compare output with results below
+cat >testc.out.check <<EOF
+C  NUMMU=  8  NUMAZI=  1  AZIORDER=  0  NSTOKES=2
+C  LAYER_FILE=testc.lay                       
+C  SRC_CODE=2   QUAD_TYPE=LOBATTO         
+C  GROUND_TEMP=  300.00   GROUND_TYPE=LAMBERTIAN      
+C  GROUND_ALBEDO=  .05000   SKY_TEMP=     .00
+C  WAVELENGTH= .880000E+03
+C  UNITS=KELVINS - EBB               OUTPUT_POLARIZATION=VH
+C    Z       MU    FLUX/RADIANCE (V,H)
+  20.000 -2.00000  254.09  248.35
+  20.000  2.00000     .00     .00
+  20.000 -1.00000  258.99  258.99
+  20.000  -.96957  258.95  258.41
+  20.000  -.89920  258.69  256.98
+  20.000  -.79201  257.85  254.51
+  20.000  -.65239  255.88  250.55
+  20.000  -.48606  251.87  244.02
+  20.000  -.29983  243.35  231.36
+  20.000  -.10133  214.51  191.63
+  20.000   .10133     .00     .00
+  20.000   .29983     .00     .00
+  20.000   .48606     .00     .00
+  20.000   .65239     .00     .00
+  20.000   .79201     .00     .00
+  20.000   .89920     .00     .00
+  20.000   .96957     .00     .00
+  20.000  1.00000     .00     .00
+EOF
+#
+echo "Differences in output listed below:"
+diff testc.out.check testc.out

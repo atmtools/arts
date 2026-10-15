@@ -9,6 +9,9 @@ endif()
 if(ENABLE_ARTS_LGPL)
   message(FATAL_ERROR "T-matrix is unavailable in ENABLE_ARTS_LGPL builds")
 endif()
+# Mishchenko's licence permits use in not-for-profit research and has no
+# SPDX identifier.
+arts_add_bundled_license(tmatrix SPDX LicenseRef-Mishchenko-T-matrix FILES License.txt)
 include(FortranCInterface)
 FortranCInterface_VERIFY(CXX)
 FortranCInterface_HEADER(${CMAKE_CURRENT_BINARY_DIR}/tmatrix_fortran.h

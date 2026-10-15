@@ -96,6 +96,9 @@ void check_surface_weight(Numeric weight);
 /** Validate a finite surface-mixture fraction in [0, 1]. */
 void check_surface_fraction(Numeric fraction);
 
+/** Validate the beam cosine of a surface's beam reflection: in (0, 1], or NaN without a beam. */
+void check_beam_cosine(Numeric mu0);
+
 /** Compute dielectric Fresnel amplitudes, including total internal reflection. */
 [[nodiscard]] fresnel_amplitudes dielectric_fresnel_amplitudes(Numeric incident_mu, Complex refractive_index);
 

@@ -16,6 +16,24 @@ namespace {
 std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   std::vector<WorkspaceMethodInternalMetaRecord> wsm_meta;
 
+  /* The VDISORT counterpart of a DISORT meta method: the same record with the VDISORT methods and variables in
+     place of the DISORT ones, disort_ becoming vdisort_ and Disort becoming VDisort.  Add one after each DISORT meta
+     method that VDISORT also has. */
+  const auto vdisort_meta_method = [&wsm_meta](const std::string& disort_name) {
+    const auto to_vdisort = [](std::string x) {
+      if (x.starts_with("disort_")) return "v" + x;
+      if (const auto i = x.find("Disort"); i != std::string::npos) x.insert(i, "V");
+      return x;
+    };
+
+    WorkspaceMethodInternalMetaRecord r  = *stdr::find(wsm_meta, disort_name, &WorkspaceMethodInternalMetaRecord::name);
+    r.name                               = to_vdisort(r.name);
+    r.desc                              += std::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
+    for (auto& x : r.methods) x = to_vdisort(x);
+    for (auto& x : r.out) x = to_vdisort(x);
+    return r;
+  };
+
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "measurement_sensorSimple",
       .desc    = R"(Creates a single simple Dirac-opening sensor
@@ -58,15 +76,15 @@ channel is independent.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldCoupledProfiles",
-      .desc    = R"(Use Disort for calculations of spectral flux field.
+      .name    = "spectral_flux_components_profileDisortCoupledFromAtmosphere",
+      .desc    = R"(Use Disort for calculations of the profiles of the spectral flux components.
 
 The subsurface and atmosphere is computed separately before being coupled
 at each frequency.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings", "disort_spectral_flux_fieldCoupledCalc"},
-      .out     = {"disort_spectral_flux_field"},
+      .methods = {"CoupledAtmosphereAndSubsurfaceDisortSettings", "spectral_flux_components_profileDisortCoupledCalc"},
+      .out     = {"spectral_flux_components_profile"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -82,19 +100,20 @@ at each frequency.
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "disort_spectral_flux_fieldFromAgenda",
-      .desc    = R"(Use Disort for calculations of spectral flux field.
+      .name    = "spectral_flux_components_profileDisortFromAgenda",
+      .desc    = R"(Use Disort for calculations of the profiles of the spectral flux components.
 
 The agenda is used to setup Disort, i.e., to compute the *disort_settings*
 that governs how the solver is run.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"disort_settings_agendaExecute", "disort_spectral_flux_fieldCalc"},
-      .out     = {"disort_spectral_flux_field"},
+      .methods = {"disort_settings_agendaExecute", "spectral_flux_components_profileDisortCalc"},
+      .out     = {"spectral_flux_components_profile"},
   });
+  wsm_meta.push_back(vdisort_meta_method("spectral_flux_components_profileDisortFromAgenda"));
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name = "disort_spectral_flux_fieldProfile",
+      .name = "spectral_flux_components_profileDisortFromAtmosphere",
       .desc =
           R"(Extract a 1D path through the atmosphere and calculate spectral flux using Disort.
 
@@ -102,9 +121,10 @@ This wrapper helps setting up a downlooking ray path through the atmosphere to f
 basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"ray_pathGeometricDownlooking", "disort_spectral_flux_fieldFromAgenda"},
-      .out     = {"disort_spectral_flux_field", "ray_path"},
+      .methods = {"ray_pathGeometricDownlooking", "spectral_flux_components_profileDisortFromAgenda"},
+      .out     = {"spectral_flux_components_profile", "ray_path"},
   });
+  wsm_meta.push_back(vdisort_meta_method("spectral_flux_components_profileDisortFromAtmosphere"));
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_rad_fieldFromAgenda",
@@ -116,8 +136,9 @@ that governs how the solver is run.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"disort_settings_agendaExecute", "disort_spectral_rad_fieldCalc"},
-      .out     = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out     = {"disort_spectral_rad_field", "quadrature"},
   });
+  wsm_meta.push_back(vdisort_meta_method("disort_spectral_rad_fieldFromAgenda"));
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_rad_fieldProfile",
@@ -129,8 +150,9 @@ basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathGeometricDownlooking", "disort_spectral_rad_fieldFromAgenda"},
-      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
+      .out     = {"disort_spectral_rad_field", "quadrature", "ray_path"},
   });
+  wsm_meta.push_back(vdisort_meta_method("disort_spectral_rad_fieldProfile"));
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name = "disort_spectral_rad_fieldDepthProfile",
@@ -142,8 +164,9 @@ basis for the agenda to setup the Disort calculations.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pathFromPointAndDepth", "disort_spectral_rad_fieldFromAgenda"},
-      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
+      .out     = {"disort_spectral_rad_field", "quadrature", "ray_path"},
   });
+  wsm_meta.push_back(vdisort_meta_method("disort_spectral_rad_fieldDepthProfile"));
 
 #ifdef ENABLE_CDISORT
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -154,7 +177,7 @@ basis for the agenda to setup the Disort calculations.
                   "atm_pathFromPath",
                   "freq_grid_pathFromPath",
                   "disort_spectral_rad_fieldCalcCdisort"},
-      .out     = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out     = {"disort_spectral_rad_field", "quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -162,7 +185,7 @@ basis for the agenda to setup the Disort calculations.
       .desc    = "Extract a 1D path through the atmospheric field and calculate spectral radiance using Disort",
       .author  = {"Oliver Lemke"},
       .methods = {"ray_pathGeometricDownlooking", "disort_spectral_rad_fieldFromAgendaCdisort"},
-      .out     = {"disort_spectral_rad_field", "disort_quadrature", "ray_path"},
+      .out     = {"disort_spectral_rad_field", "quadrature", "ray_path"},
   });
 #endif
 
@@ -309,7 +332,7 @@ Common use case (requires having set the ENV variables, as described in the docu
                   "disort_settings_downwelling_wrapper_agendaExecute",
                   "disort_spectral_rad_fieldCalc",
                   "spectral_radFromDisort"},
-      .out     = {"spectral_rad", "disort_settings", "ray_path", "disort_spectral_rad_field", "disort_quadrature"},
+      .out     = {"spectral_rad", "disort_settings", "ray_path", "disort_spectral_rad_field", "quadrature"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

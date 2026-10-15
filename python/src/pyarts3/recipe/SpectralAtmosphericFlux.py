@@ -59,9 +59,9 @@ class SpectralAtmosphericFlux:
 
         self.ws = pyarts.Workspace()
 
-        self.ws.disort_quadrature_dimension = NQuad
-        self.ws.disort_fourier_mode_dimension = 1
-        self.ws.disort_legendre_polynomial_dimension = 1
+        self.ws.quadrature_dimension = NQuad
+        self.ws.fourier_mode_dimension = 1
+        self.ws.legendre_polynomial_dimension = 1
 
         self.ws.abs_speciesSet(species=species)
 
@@ -161,20 +161,21 @@ class SpectralAtmosphericFlux:
             ray_point=self.ws.ray_path[0]
         )
         self.ws.disort_settingsCosmicMicrowaveBackgroundRadiation()
+        # The surface reflects the sun, so the sun is set first
+        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
         self.ws.disort_settingsSurfaceLambertian(
             value=self.visible_surf_reflectivity
         )
         self.ws.disort_settingsNoSingleScatteringAlbedo()
         self.ws.disort_settingsNoFractionalScattering()
         self.ws.disort_settingsNoLegendre()
-        self.ws.disort_settingsSetSun(ray_point=self.ws.ray_path[-1])
-        self.ws.disort_spectral_flux_fieldCalc()
+        self.ws.spectral_flux_components_profileDisortCalc()
 
         # Shape is f x 3 x np, we want 3 x f x np
 
         return (
-            Flux(self.ws.disort_spectral_flux_field.up, self.ws.disort_spectral_flux_field.down_diffuse,
-                 self.ws.disort_spectral_flux_field.down_direct),
+            Flux(self.ws.spectral_flux_components_profile.up, self.ws.spectral_flux_components_profile.down_diffuse,
+                 self.ws.spectral_flux_components_profile.down_direct),
             np.array(
                 [
                     0.5 * (self.ws.ray_path[i].pos[0] + self.ws.ray_path[i + 1].pos[0])

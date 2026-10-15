@@ -134,8 +134,8 @@ void setup_cdisort_for_frequency(disort_state&            ds,
   ds.wvnmlo             -= ds.wvnmlo * 1e-7;
 
   // set surface albedo
-  if (dis.brdf_modes().size() > 0)
-    ds.bc.albedo = dis.brdf_modes()[0]({0}, {0})[0, 0];
+  if (dis.surface().modes() > 0)
+    ds.bc.albedo = dis.surface().brdf()[0, 0, 0];
   else
     ds.bc.albedo = 0.0;
 
@@ -191,7 +191,7 @@ void run_cdisort(Tensor3View disort_spectral_rad_field, disort_state& ds, disort
 }  // namespace
 
 void disort_spectral_rad_fieldCalcCdisort(DisortRadiance&                    disort_spectral_rad_field,
-                                          ZenGriddedField1&                  disort_quadrature,
+                                          ZenGriddedField1&                  quadrature,
                                           const DisortSettings&              disort_settings,
                                           const ArrayOfAtmPoint&             atm_path,
                                           const ArrayOfAscendingGrid&        freq_grid_path,
@@ -206,13 +206,12 @@ void disort_spectral_rad_fieldCalcCdisort(DisortRadiance&                    dis
 
   disort::main_data dis = disort_settings.init();
 
-  disort_quadrature = dis.gridded_weights();
+  quadrature = dis.gridded_weights();
 
   const Numeric surf_temperature =
       surf_field.single_value(SurfaceKey::t, ray_path.back().latitude(), ray_path.back().longitude());
 
-  disort_spectral_rad_field.resize(
-      disort_settings.freq_grid, disort_settings.alt_grid, phis, disort_quadrature.grid<0>());
+  disort_spectral_rad_field.resize(disort_settings.freq_grid, disort_settings.alt_grid, phis, quadrature.grid<0>());
 
   disort_state ds;
   setup_cdisort(ds, phis, disort_settings, dis, surf_temperature);

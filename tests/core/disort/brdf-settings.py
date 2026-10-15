@@ -3,8 +3,10 @@
 """Smoke tests for the workspace-level scalar DISORT BRDF methods.
 
 The numerical BRDF and Fourier reconstruction tests live in the C++ DISORT
-test suite.  ``MatrixOfDisortBDRF`` is intentionally opaque in Python, so this
-test verifies that ARTS users can configure every model through a workspace.
+test suite.  This test verifies that ARTS users can configure every model
+through a workspace: the settings hold the surface's reflection between the
+streams, and of the sun's beam at the sun's zenith angle, which must therefore
+be set first.
 """
 
 import numpy as np
@@ -13,13 +15,29 @@ from pyarts3 import arts
 from pyarts3.workspace import Workspace
 
 
+NQUAD = 8
+NFOURIER = 32
+ZENITH = 60.0
+
+
 def configure(method, **kwargs):
     ws = Workspace()
     settings = arts.DisortSettings()
     settings.freq_grid = np.array([1.0, 2.0])
-    settings.fourier_mode_dimension = 32
+    settings.quadrature_dimension = NQUAD
+    settings.fourier_mode_dimension = NFOURIER
+    # The surface reflects the sun, so the sun is set first
+    settings.solar_zenith_angle = np.full(2, ZENITH)
     ws.disort_settings = settings
     getattr(ws, method)(azimuth_quadrature_points=128, **kwargs)
+
+    settings = ws.disort_settings
+    n = NQUAD // 2
+    assert np.asarray(settings.surface_brdf).shape == (2, NFOURIER, n, n)
+    assert np.asarray(settings.surface_beam_brdf).shape == (2, NFOURIER, n)
+    assert np.isfinite(settings.surface_brdf).all()
+    np.testing.assert_allclose(settings.surface_beam_mu, np.cos(np.deg2rad(ZENITH)))
+    assert np.asarray(settings.surface_beam_brdf).any()
     return ws
 
 
@@ -65,6 +83,20 @@ def test_spectral_length_check():
         raise AssertionError("A mismatched spectral BRDF parameter was accepted")
 
 
+def test_sun_required():
+    ws = Workspace()
+    settings = arts.DisortSettings()
+    settings.freq_grid = np.array([1.0, 2.0])
+    ws.disort_settings = settings
+    try:
+        ws.disort_settingsSurfaceHapke()
+    except RuntimeError as error:
+        assert "solar zenith angle must be set" in str(error)
+    else:
+        raise AssertionError("A surface was set without the sun")
+
+
 if __name__ == "__main__":
     test_models()
     test_spectral_length_check()
+    test_sun_required()

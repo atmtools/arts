@@ -23,6 +23,12 @@ configure_file(
   COPYONLY
 )
 
+# The licence notices of the bundled code compiled into this build go into
+# the package as licenses/<name>/<file> with the index licenses/THIRD_PARTY.txt
+# (cmake/modules/ArtsBundledLicenses.cmake, doc/arts/dev.licenses.rst).
+arts_write_bundled_licenses(${CMAKE_CURRENT_BINARY_DIR}/licenses ARTS_PYTHON_LICENSE)
+message(STATUS "Python package licence: ${ARTS_PYTHON_LICENSE}")
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/pyproject.toml.in
   ${CMAKE_CURRENT_BINARY_DIR}/pyproject.toml

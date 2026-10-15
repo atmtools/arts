@@ -135,6 +135,12 @@ void check_surface_fraction(const Numeric fraction) {
     throw std::domain_error("Surface-mixture fraction must be finite and in [0, 1]");
 }
 
+void check_beam_cosine(const Numeric mu0) {
+  ARTS_USER_ERROR_IF(not std::isnan(mu0) and not(mu0 > 0.0 and mu0 <= 1.0),
+                     "The beam cosine of a surface's beam reflection must be in (0, 1], or NaN without a beam, got {}",
+                     mu0);
+}
+
 fresnel_amplitudes dielectric_fresnel_amplitudes(const Numeric incident_mu, const Complex refractive_index) {
   const Numeric mu = checked_surface_mu(incident_mu);
   if (not std::isfinite(refractive_index.real()) or not std::isfinite(refractive_index.imag()) or

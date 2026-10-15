@@ -34,22 +34,18 @@ struct ScatteringTroSpectralVector {
   [[nodiscard]] gridded_t to_lab_frame(std::shared_ptr<const Vector>                      za_inc_grid,
                                        std::shared_ptr<const Vector>                      delta_aa_grid,
                                        std::shared_ptr<const scattering::ZenithAngleGrid> za_scat_grid_new) const;
-
-  template <scattering::Format format> [[nodiscard]]
-  scattering::BulkScatteringProperties<format, scattering::Representation::Spectral> to_spectral() const {
-    return to_general().to_spectral();
-  }
-
-  template <scattering::Format format> [[nodiscard]]
-  scattering::BulkScatteringProperties<format, scattering::Representation::Spectral> to_spectral(Index degree,
-                                                                                                 Index order) const {
-    return to_general().to_spectral(degree, order);
-  };
 };
 
 using ScatteringGeneralSpectralTROFunc =
     CustomOperator<ScatteringTroSpectralVector, const AtmPoint&, const Vector&, Index>;
 
+/** A scattering species given by a user's function of its TRO Legendre series
+ *
+ * f(atm_point, f_grid, degree) must give the bulk Legendre series to degree
+ * at f_grid (see ScatteringTroSpectralVector), with the extinction and
+ * absorption at f_grid; get_bulk_scattering_properties_tro_spectral throws
+ * if it gives anything else.
+ */
 struct ScatteringGeneralSpectralTRO {
   ScatteringGeneralSpectralTROFunc f{};
 

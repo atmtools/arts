@@ -81,6 +81,10 @@ void require_scalar_close(const std::string_view name,
                      tolerance);
 }
 
+/* The references are PythonicDISORT 1.8's with b_pos = 0.  PythonicDISORT adds b_pos to the surface reflection,
+   whereas DISORT here transmits the radiance beneath the surface with 1 - R (Kirchhoff), which is zero for this
+   perfectly reflecting surface: the b_pos = 1 of the inputs does not reach the atmosphere.  With b_pos = 1,
+   PythonicDISORT 1.8 differs by up to 1e-7 of the radiances. */
 void check_test_11a_reference(const std::string_view   name,
                               const disort::main_data& dis,
                               const Vector&            taus,
@@ -88,18 +92,23 @@ void check_test_11a_reference(const std::string_view   name,
   const Tensor3 u  = compute_u(dis, taus, phis, true);
   const Matrix  u0 = compute_u0(dis, taus);
 
-  require_scalar_close(std::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.4893682143);
-  require_scalar_close(std::format("{} u[0,0,7]", name), u[0, 0, 7], -9729769.265097402);
-  require_scalar_close(std::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.1121911793);
-  require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252729.563810989);
-  require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972939.78056413);
-  require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.1380472905);
+  // All radiances here are O(1e6-1e7) because the source is amplified by
+  // 1 / (1 - omega) = 1e6.  Their last relative digits therefore depend on
+  // eigensolver and math-library roundoff: MSVC was observed to deviate from
+  // the PythonicDISORT 1.8 reference by 5.3e-8 (vs 8e-10 with clang), just
+  // above the default tolerance, so these checks use 1e-7.
+  require_scalar_close(std::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.856452063, 1e-7);
+  require_scalar_close(std::format("{} u[0,0,7]", name), u[0, 0, 7], -9729770.523956602, 1e-7);
+  require_scalar_close(std::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.580526929, 1e-7);
+  require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252730.532491753, 1e-7);
+  require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972940.78886143, 1e-7);
+  require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.502881967, 1e-7);
   // This comparatively small outgoing value is the residual of source terms
   // amplified by 1 / (1 - omega) = 1e6.  Eigensolver and math-library
   // roundoff therefore loses about two additional relative digits here.
-  require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.47086339454, 5e-6);
-  require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275991.914094502);
-  require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972939.758737655);
+  require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.492504802656, 5e-6);
+  require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275993.25714884, 1e-7);
+  require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972940.767176796, 1e-7);
 
   const auto [up, down_diffuse, down_direct, dfdt] = compute_flux(dis, taus);
   static_cast<void>(dfdt);
@@ -107,13 +116,11 @@ void check_test_11a_reference(const std::string_view   name,
   // integrate residuals of the resulting O(1e7) radiances, so their last
   // approximately six relative digits depend on eigensolver and math-library
   // roundoff.  The direct flux does not contain this cancellation.
-  require_close("delta-scaled source upward flux",
-                up,
-                Vector{-24332790.748160336, -27833449.381811786, -45865859.33752958},
-                1e-6);
+  require_close(
+      "delta-scaled source upward flux", up, Vector{-24332793.99191139, -27833453.06225019, -45865866.41348321}, 1e-6);
   require_close("delta-scaled source diffuse-downward flux",
                 down_diffuse,
-                Vector{-299160.5808801778, -2818892.4624789366, -34216142.156027764},
+                Vector{-299160.6657109338, -2818892.9663727283, -34216146.08705735},
                 1e-6);
   require_close("delta-scaled source direct-downward flux",
                 down_direct,
@@ -140,8 +147,9 @@ void test_11a_1layer() try {
   b_neg[0] = 1;
   Matrix b_pos(NQuad, NQuad / 2, 0);
   b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
-  const Matrix                    s_poly_coeffs{
+  // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
+  const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
+  const Matrix                     s_poly_coeffs{
       Vector{172311.79936609 / (1 - omega_arr[0]), -102511.4417051 / (1 - omega_arr[0])}.reshape(tau_arr.size(), 2)};
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
 
@@ -159,7 +167,7 @@ void test_11a_1layer() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);
@@ -203,8 +211,9 @@ void test_11a_multilayer() try {
   b_neg[0] = 1;
   Matrix b_pos(NQuad, NQuad / 2, 0);
   b_pos[0] = 1;
-  const std::vector<disort::BDRF> BDRF_Fourier_modes{disort::BDRF{[](auto c, auto&, auto&) { c = 1; }}};
-  Matrix                          s_poly_coeffs(tau_arr.size(), 2);
+  // A surface whose single Fourier mode reflects with R_0 = 1 (white Lambertian), also from the beam
+  const disort::surface_reflection surface(Tensor3(1, NQuad / 2, NQuad / 2, 1.0), Matrix(1, NQuad / 2, 1.0), mu0);
+  Matrix                           s_poly_coeffs(tau_arr.size(), 2);
   for (auto&& v : s_poly_coeffs) v = std::array{172311.79936609, -102511.4417051};
   s_poly_coeffs /= 1 - omega_arr[0];
   const Vector f_arr{Leg_coeffs_all[joker, NQuad]};
@@ -223,7 +232,7 @@ void test_11a_multilayer() try {
                               b_neg,
                               f_arr,
                               s_poly_coeffs,
-                              BDRF_Fourier_modes,
+                              surface,
                               mu0,
                               I0,
                               phi0);

@@ -458,7 +458,7 @@ The components of the Stokes vector are:
 
 #. :math:`I` - the total intensity of the light.
 
-#. :math:`Q` - the difference in intensity between horizontally and vertically polarized light.
+#. :math:`Q` - the difference in intensity between vertically and horizontally polarized light.
 
 #. :math:`U` - the difference in intensity between light polarized at +45 degrees and -45 degrees.
 
@@ -750,9 +750,9 @@ and returns any associated data.
 )",
   };
 
-  wsg_data["DisortFlux"] = {
+  wsg_data["FluxComponentsProfile"] = {
       .file     = "disort.h",
-      .desc     = R"(The flux result variable for Disort.
+      .desc     = R"(The profiles of the flux components of DISORT and VDISORT.
 
 #. *AscendingGrid* frequency grid
 #. *DescendingGrid* level altitude grid
@@ -761,9 +761,9 @@ and returns any associated data.
 #. *Matrix* direct downwelling flux
 #. *Matrix* derivative of net upward flux with respect to downward optical depth (DFDT)
 
-The matrices have shape (frequency, layer) and are evaluated at the
-lower boundary of each layer, corresponding to ``alt_grid[1:]``.  The top
-boundary is omitted.  Flux and DFDT are in W/(m^2 Hz); DFDT is not a
+The fluxes are those of I.  The matrices have shape (frequency, layer) and are
+evaluated at the lower boundary of each layer, corresponding to ``alt_grid[1:]``.
+The top boundary is omitted.  Flux and DFDT are in W/(m^2 Hz); DFDT is not a
 temperature tendency.  Multiply DFDT by physical extinction [1/m], divide
 by density [kg/m^3] and mass specific heat capacity [J/(kg K)], and integrate
 over frequency to obtain heating in K/s.  The Python recipe
@@ -803,7 +803,9 @@ corresponds to ``alt_grid[1:]``; the top boundary is omitted.
 #. *Vector* Solar azimuth angles
 #. *Vector* Solar zenith angles
 #. *Vector* Solar source
-#. *MatrixOfDisortBDRF* Bi-directional reflectance distribution functions
+#. *Tensor4* The Fourier modes of the surface's bidirectional reflectance distribution function between the streams
+#. *Tensor3* The same from the direct beam
+#. *Vector* The beam cosine of the beam's reflection, NaN where it was computed without a beam
 #. *Matrix* Optical thicknesses
 #. *Matrix* Single scattering albedos
 #. *Matrix* Fractional scattering
@@ -819,6 +821,61 @@ corresponds to ``alt_grid[1:]``; the top boundary is omitted.
                                    "{}.fourier_mode_dimension"},
       .invariant                = "{}.ok()",
       .invariant_desc           = "agrees with its own frequency grid, level grid and dimensions.",
+      .invariant_needs_complete = true,
+      .invariant_printables     = {"{}"},
+  };
+
+  wsg_data["VDisortRadiance"] = {
+      .file     = "vdisort_settings.h",
+      .desc     = R"(The radiance result variable for VDISORT, as *DisortRadiance* with Stokes vectors.
+
+#. *AscendingGrid* frequency grid
+#. *DescendingGrid* level altitude grid
+#. *AziGrid* azimuth grid
+#. *ZenGrid* zenith grid
+#. *StokvecTensor4* radiance data
+
+The data have shape (frequency, layer, azimuth, zenith). The layer axis
+corresponds to ``alt_grid[1:]``; the top boundary is omitted.  The zenith
+and azimuth grids are those of the propagation direction of the radiation,
+as the line of sight of a *ray_point*.
+)",
+      .dim_size = {"{}.freq_grid.size()",
+                   "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                   "{}.azi_grid.size()",
+                   "{}.zen_grid.size()"},
+  };
+
+  wsg_data["VDisortSettings"] = {
+      .file           = "vdisort_settings.h",
+      .desc           = R"(The settings required to run VDISORT, the polarized counterpart of *DisortSettings*.
+
+#. *Index* Quadrature dimension
+#. *Index* Legendre order
+#. *Index* Fourier order
+#. *AscendingGrid* The frequency grid
+#. *DescendingGrid* The level altitude grid
+#. *Vector* Solar azimuth angles, of the line of sight toward the sun
+#. *Vector* Solar zenith angles, of the line of sight toward the sun
+#. *StokvecVector* Solar source
+#. MuelmatTensor5 The combined Fourier modes of the surface's bidirectional reflectance distribution function between the streams
+#. MuelmatTensor4 The same from the direct beam
+#. *Vector* The beam cosine of the beam's reflection, NaN where it was computed without a beam
+#. *MuelmatMatrix* The specular part on the streams, or none
+#. *Matrix* Optical thicknesses
+#. *Matrix* Single scattering albedos
+#. *StokvecTensor3* Source function polynomial
+#. *Tensor4* Legendre moments of the six scattering-plane matrix elements [F11, F12, F22, F33, F34, F44]
+#. *StokvecTensor4* Positive boundary condition, combined cosine and sine Fourier modes
+#. *StokvecTensor4* Negative boundary condition, combined cosine and sine Fourier modes
+)",
+      .dim_size       = {"{}.freq_grid.size()",
+                         "(std::max<Size>({}.alt_grid.size(), 1) - 1)",
+                         "{}.quadrature_dimension",
+                         "{}.legendre_polynomial_dimension",
+                         "{}.fourier_mode_dimension"},
+      .invariant      = "{}.ok()",
+      .invariant_desc = "agrees with its own frequency grid, level grid and dimensions.",
       .invariant_needs_complete = true,
       .invariant_printables     = {"{}"},
   };

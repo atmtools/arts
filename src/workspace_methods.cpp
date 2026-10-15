@@ -295,6 +295,18 @@ void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_dat
 std::unordered_map<std::string, WorkspaceMethodInternalRecord> internal_workspace_methods_create() try {
   UniqueMap<std::string, WorkspaceMethodInternalRecord> wsm_data;
 
+  /* The VDISORT counterpart of a DISORT method: the same record with the vdisort_ variables in place of the disort_
+     ones.  Add one after each DISORT method that VDISORT also has. */
+  const auto vdisort_method = [&wsm_data](const std::string& disort_name) {
+    WorkspaceMethodInternalRecord r  = wsm_data.at(disort_name);
+    r.desc                          += std::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
+    for (auto& x : r.out)
+      if (x.starts_with("disort_")) x = "v" + x;
+    for (auto& x : r.in)
+      if (x.starts_with("disort_")) x = "v" + x;
+    return r;
+  };
+
   wsm_data["Ignore"] = {
       .desc      = R"--(Ignore a workspace variable.
 
@@ -1760,6 +1772,7 @@ Method is purely for convenience and composition.
       .out    = {"legendre_degree"},
       .in     = {"disort_settings"},
   };
+  wsm_data["legendre_degreeFromVDisortSettings"] = vdisort_method("legendre_degreeFromDisortSettings");
 
   wsm_data["legendre_degreeFromDisortSettingsDeltaMPlus"] = {
       .desc   = R"--(Sets *legendre_degree* for DISORT delta-M-plus input.
@@ -2462,19 +2475,23 @@ The reflectance matrix is
 
   wsm_data["spectral_surf_reflFlatScalar"] = {
       .desc =
-          R"--(Set the surface reflectance to the flat real Fresnel reflectance
+          R"--(Set the surface reflectance to a flat scalar reflectance
 
 We get :math:`r` from the *surf_field* parameter ``"flat scalar reflectance"``.
 
-The reflectance matrix is
+The reflectance is the same for vertical and horizontal polarization.
+A power reflectance carries no phase between the two, so the matrix is
+that of an isotropic mirror, :math:`R_v = -R_h = \sqrt{r}` in the
+convention of *spectral_surf_reflFlatRealFresnel*, which reverses
+circular polarization:
 
 .. math::
     \mathbf{R} = \left[
     \begin{array}{cccc}
             r&0&0&0\\
             0&r&0&0\\
-            0&0&r&0\\
-            0&0&0&r\\
+            0&0&-r&0\\
+            0&0&0&-r\\
     \end{array}\right]
 )--",
       .author = {"Richard Larsson"},
@@ -2512,6 +2529,11 @@ properties ``"wind speed"`` [m/s] and ``"salinity"`` [kg/kg] from
 *surf_field*.  Spatially varying fields and surface Jacobian targets for all
 three inputs are supported.  Kirchhoff-consistent emission is supplied by the
 closed-surface agenda used by *spectral_radSurfaceReflectance*.
+
+The model gives the power reflectances :math:`r_v` and :math:`r_h` but not
+the phase between the amplitudes, so the U and V diagonal elements are
+:math:`-\sqrt{r_v r_h}`, as for a loss-free Fresnel surface below the
+Brewster angle.
 )--",
       .author = {"The ARTS developers"},
       .out    = {"spectral_surf_refl", "spectral_surf_refl_jac"},
@@ -2525,6 +2547,11 @@ The atlas selects the surface emissivity from the ray point's latitude and
 longitude and interpolates it in frequency and incidence angle.  Set
 ``max_distance`` to a positive angular distance in degrees to permit nearest
 land-cell lookup; the default requires the requested cell to exist.
+
+The model gives the power reflectances :math:`r_v` and :math:`r_h` but not
+the phase between the amplitudes, so the U and V diagonal elements are
+:math:`-\sqrt{r_v r_h}`, as for a loss-free Fresnel surface below the
+Brewster angle.
 )--",
       .author    = {"The ARTS developers"},
       .out       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
@@ -5897,6 +5924,15 @@ Supply observations with *oemSetMeasurement* before calling this method.
       .gin_desc       = {"The polarization state to select.  The dot-product of this and *spectral_rad* is used."},
       .pass_workspace = true,
   };
+  {
+    // VDISORT takes the full Stokes vector of the downwelling radiance, so it has no polarization selection
+    auto vdisort = vdisort_method("disort_settingsDownwellingObserver");
+    vdisort.gin.clear();
+    vdisort.gin_type.clear();
+    vdisort.gin_value.clear();
+    vdisort.gin_desc.clear();
+    wsm_data["vdisort_settingsDownwellingObserver"] = std::move(vdisort);
+  }
 
   {
     const auto& other                                            = wsm_data.at("ray_pathFromPointAndDepth");
@@ -5917,9 +5953,9 @@ The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
                            "subsurf_field",
                            "jac_targets",
                            "ray_point",
-                           "disort_quadrature_dimension",
-                           "disort_fourier_mode_dimension",
-                           "disort_legendre_polynomial_dimension",
+                           "quadrature_dimension",
+                           "fourier_mode_dimension",
+                           "legendre_polynomial_dimension",
                            "disort_settings_agenda",
                            "disort_settings_downwelling_wrapper_agenda"},
         .gin            = {other.gin[0]},
@@ -5942,6 +5978,7 @@ The method wraps calling *spectral_radSubsurfaceDisortEmission* by perturbing
       .gin_desc =
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
+  wsm_data["vdisort_settingsOpticalThicknessFromPath"] = vdisort_method("disort_settingsOpticalThicknessFromPath");
 
   {
     auto& this_ = wsm_data["disort_settingsSubsurfaceScalarAbsorption"];
@@ -5986,6 +6023,7 @@ A description of the options is given below.
              other.gin_desc[0]},
     };
   }
+  wsm_data["vdisort_settings_agendaSetup"] = vdisort_method("disort_settings_agendaSetup");
 
   {
     const auto& other                                 = wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");
@@ -6012,6 +6050,8 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "spectral_phamat_spectral_path"},
   };
+  wsm_data["vdisort_settingsLegendreCoefficientsFromPath"] =
+      vdisort_method("disort_settingsLegendreCoefficientsFromPath");
 
   wsm_data["disort_settingsSingleScatteringAlbedoFromPath"] = {
       .desc   = R"(Sets the single scattering albedo from the path-variable.
@@ -6020,6 +6060,8 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "spectral_propmat_path", "spectral_propmat_scat_path", "spectral_absvec_scat_path"},
   };
+  wsm_data["vdisort_settingsSingleScatteringAlbedoFromPath"] =
+      vdisort_method("disort_settingsSingleScatteringAlbedoFromPath");
 
   wsm_data["disort_settingsNoSun"] = {
       .desc   = R"(Turns off solar radiation in Disort calculations.
@@ -6028,6 +6070,7 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoSun"] = vdisort_method("disort_settingsNoSun");
 
   wsm_data["disort_settingsSetSun"] = {
       .desc =
@@ -6037,6 +6080,7 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "freq_grid", "surf_field", "sun", "ray_point"},
   };
+  wsm_data["vdisort_settingsSetSun"] = vdisort_method("disort_settingsSetSun");
 
   wsm_data["disort_settingsNoLayerThermalEmission"] = {
       .desc   = R"(Turns off source radiation in Disort calculations.
@@ -6045,6 +6089,7 @@ A description of the options is given below.
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoLayerThermalEmission"] = vdisort_method("disort_settingsNoLayerThermalEmission");
 
   wsm_data["disort_settingsLayerThermalEmissionLinearInTau"] = {
       .desc =
@@ -6056,6 +6101,8 @@ Note that you must have set the optical thickness before calling this.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "atm_path", "freq_grid"},
   };
+  wsm_data["vdisort_settingsLayerThermalEmissionLinearInTau"] =
+      vdisort_method("disort_settingsLayerThermalEmissionLinearInTau");
 
   wsm_data["disort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
       .desc =
@@ -6078,6 +6125,8 @@ This is WIP and should not be used.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "spectral_nlte_srcvec_path", "freq_grid"},
   };
+  wsm_data["vdisort_settingsLayerNonThermalEmissionLinearInTau"] =
+      vdisort_method("disort_settingsLayerNonThermalEmissionLinearInTau");
 
   wsm_data["disort_settingsNoSpaceEmission"] = {
       .desc =
@@ -6087,6 +6136,7 @@ This is WIP and should not be used.
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoSpaceEmission"] = vdisort_method("disort_settingsNoSpaceEmission");
 
   wsm_data["disort_settingsCosmicMicrowaveBackgroundRadiation"] = {
       .desc =
@@ -6096,6 +6146,8 @@ This is WIP and should not be used.
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "freq_grid"},
   };
+  wsm_data["vdisort_settingsCosmicMicrowaveBackgroundRadiation"] =
+      vdisort_method("disort_settingsCosmicMicrowaveBackgroundRadiation");
 
   wsm_data["disort_settingsSubsurfaceEmissionByTemperature"] = {
       .desc =
@@ -6115,15 +6167,24 @@ Sets both upper and lower bounds.
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoSurfaceEmission"] = vdisort_method("disort_settingsNoSurfaceEmission");
 
   wsm_data["disort_settingsSurfaceEmissionByTemperature"] = {
       .desc =
-          R"(Surface radiation into Disort is isotropic from surface temperature.
+          R"(Sets the upward boundary to the Planck radiance of the surface temperature.
+
+The upward boundary is the radiance beneath the surface.  The solver transmits
+it through the surface with one minus the surface reflection, which for the
+Planck radiance is Kirchhoff's emission: :math:`(1-A)B` for a Lambertian
+surface of albedo :math:`A`, and the polarized Fresnel emission for a flat
+surface in VDISORT.  The surface reflection may be set before or after this.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
       .in     = {"disort_settings", "freq_grid", "ray_point", "surf_field"},
   };
+  wsm_data["vdisort_settingsSurfaceEmissionByTemperature"] =
+      vdisort_method("disort_settingsSurfaceEmissionByTemperature");
 
   wsm_data["disort_settingsNoLegendre"] = {
       .desc   = R"(Turns off Legendre coefficients in Disort calculations.
@@ -6132,6 +6193,7 @@ Sets both upper and lower bounds.
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoLegendre"] = vdisort_method("disort_settingsNoLegendre");
 
   wsm_data["disort_settingsNoFractionalScattering"] = {
       .desc   = R"(Turns off fractional scattering in Disort calculations.
@@ -6162,6 +6224,7 @@ must include moments through degree
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoSingleScatteringAlbedo"] = vdisort_method("disort_settingsNoSingleScatteringAlbedo");
 
   wsm_data["disort_settingsSubsurfaceScalarSingleScatteringAlbedo"] = {
       .desc   = R"(Turns off single albedo scattering in Disort calculations.
@@ -6178,9 +6241,12 @@ must include moments through degree
       .out    = {"disort_settings"},
       .in     = {"disort_settings"},
   };
+  wsm_data["vdisort_settingsNoSurfaceScattering"] = vdisort_method("disort_settingsNoSurfaceScattering");
 
   wsm_data["disort_settingsSurfaceLambertian"] = {
       .desc      = R"(Sets the surface to Lambertian.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6190,12 +6256,15 @@ must include moments through degree
       .gin_value = {std::nullopt},
       .gin_desc  = {"The value of the BDRF in all directions (Numeric for constant, Vector for spectral)"},
   };
+  wsm_data["vdisort_settingsSurfaceLambertian"] = vdisort_method("disort_settingsSurfaceLambertian");
 
   wsm_data["disort_settingsSurfaceHapke"] = {
       .desc     = R"(Sets a Hapke surface BRDF and computes its DISORT cosine Fourier modes.
 
 The raw physical BRDF is converted to the Fourier convention used by
 *DisortSettings*.  All parameters are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author   = {"Richard Larsson"},
       .out      = {"disort_settings"},
@@ -6208,11 +6277,14 @@ The raw physical BRDF is converted to the Fourier convention used by
                     "Surface-particle single-scattering albedo",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceHapke"] = vdisort_method("disort_settingsSurfaceHapke");
 
   wsm_data["disort_settingsSurfaceHapkeSpectral"] = {
       .desc     = R"(Sets a spectrally varying Hapke surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author   = {"Richard Larsson"},
       .out      = {"disort_settings"},
@@ -6225,11 +6297,14 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
                     "Spectral surface-particle single-scattering albedo",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceHapkeSpectral"] = vdisort_method("disort_settingsSurfaceHapkeSpectral");
 
   wsm_data["disort_settingsSurfaceCoxMunk"] = {
       .desc      = R"(Sets a Cox-Munk ocean surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6242,12 +6317,15 @@ All parameters are frequency independent.  Set ``shadowing`` to 0 or 1.
                     "Whether to apply Cox-Munk facet shadowing (0 or 1)",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceCoxMunk"] = vdisort_method("disort_settingsSurfaceCoxMunk");
 
   wsm_data["disort_settingsSurfaceCoxMunkSpectral"] = {
       .desc      = R"(Sets a Cox-Munk ocean BRDF with a spectrally varying refractive index.
 
 The refractive-index vector must have one value per frequency.  Wind speed and
 shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6260,11 +6338,14 @@ shadowing are frequency independent.  Set ``shadowing`` to 0 or 1.
                     "Whether to apply Cox-Munk facet shadowing (0 or 1)",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceCoxMunkSpectral"] = vdisort_method("disort_settingsSurfaceCoxMunkSpectral");
 
   wsm_data["disort_settingsSurfaceRPV"] = {
       .desc      = R"(Sets an RPV surface BRDF and computes its DISORT cosine Fourier modes.
 
 All parameters are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6278,11 +6359,14 @@ All parameters are frequency independent.
                     "Hot-spot strength",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceRPV"] = vdisort_method("disort_settingsSurfaceRPV");
 
   wsm_data["disort_settingsSurfaceRPVSpectral"] = {
       .desc      = R"(Sets a spectrally varying RPV surface BRDF.
 
 Each parameter vector must have one value per frequency in *DisortSettings*.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6296,11 +6380,14 @@ Each parameter vector must have one value per frequency in *DisortSettings*.
                     "Spectral hot-spot strength",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceRPVSpectral"] = vdisort_method("disort_settingsSurfaceRPVSpectral");
 
   wsm_data["disort_settingsSurfaceRossLi"] = {
       .desc      = R"(Sets a Ross-Li surface BRDF and computes its DISORT cosine Fourier modes.
 
 All kernel weights and the hot-spot angle are frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6314,12 +6401,15 @@ All kernel weights and the hot-spot angle are frequency independent.
                     "Hot-spot angular width in degrees",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceRossLi"] = vdisort_method("disort_settingsSurfaceRossLi");
 
   wsm_data["disort_settingsSurfaceRossLiSpectral"] = {
       .desc      = R"(Sets a Ross-Li surface BRDF with spectrally varying kernel weights.
 
 Each kernel-weight vector must have one value per frequency.  The hot-spot
 angle is frequency independent.
+
+The surface reflects the sun's beam at the sun's zenith angle, so set the sun first.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"disort_settings"},
@@ -6333,18 +6423,50 @@ angle is frequency independent.
                     "Hot-spot angular width in degrees",
                     "Number of azimuth quadrature points used for each Fourier coefficient"},
   };
+  wsm_data["vdisort_settingsSurfaceRossLiSpectral"] = vdisort_method("disort_settingsSurfaceRossLiSpectral");
+
+  wsm_data["vdisort_settingsSurfaceFresnel"] = {
+      .desc      = R"(Sets the surface to an ideal flat Fresnel surface.
+
+The surface reflects specularly with the Fresnel reflection matrix of a medium of
+the given complex refractive index under a medium of index 1.  It has no
+counterpart in Disort.  A direct beam cannot be reflected by it (its mirror
+image is an upward beam), so it is refused with *vdisort_settingsSetSun*.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings"},
+      .gin       = {"refractive_index_real", "refractive_index_imag"},
+      .gin_type  = {"Numeric", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.0}},
+      .gin_desc  = {"Real part of the refractive index of the surface",
+                    "Imaginary part of the refractive index of the surface"},
+  };
+
+  wsm_data["vdisort_settingsSurfaceFresnelSpectral"] = {
+      .desc      = R"(Sets the surface to an ideal flat Fresnel surface with a spectral refractive index.
+
+As *vdisort_settingsSurfaceFresnel*, with one refractive index per frequency.
+)",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings"},
+      .gin       = {"refractive_index_real", "refractive_index_imag"},
+      .gin_type  = {"Vector", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt},
+      .gin_desc  = {"Real part of the refractive index of the surface, one per frequency",
+                    "Imaginary part of the refractive index of the surface, one per frequency"},
+  };
 
   wsm_data["disort_settingsInit"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"freq_grid",
-                 "ray_path",
-                 "disort_quadrature_dimension",
-                 "disort_legendre_polynomial_dimension",
-                 "disort_fourier_mode_dimension"},
+      .in =
+          {"freq_grid", "ray_path", "quadrature_dimension", "legendre_polynomial_dimension", "fourier_mode_dimension"},
   };
+  wsm_data["vdisort_settingsInit"] = vdisort_method("disort_settingsInit");
 
   wsm_data["disort_spectral_rad_fieldApplyUnit"] = {
       .desc   = R"(Convert units of the Disort spectral radiance field.
@@ -6353,18 +6475,20 @@ angle is frequency independent.
       .out    = {"disort_spectral_rad_field"},
       .in     = {"disort_spectral_rad_field", "ray_point", "spectral_rad_transform_operator"},
   };
+  wsm_data["vdisort_spectral_rad_fieldApplyUnit"] = vdisort_method("disort_spectral_rad_fieldApplyUnit");
 
   wsm_data["disort_spectral_rad_fieldCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral radiance.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out       = {"disort_spectral_rad_field", "quadrature"},
       .in        = {"disort_settings"},
       .gin       = {"azi_grid"},
       .gin_type  = {"AziGrid"},
       .gin_value = {AziGrid{{0.0}}},
       .gin_desc  = {"The azimuthal angles"},
   };
+  wsm_data["vdisort_spectral_rad_fieldCalc"] = vdisort_method("disort_spectral_rad_fieldCalc");
 
   wsm_data["disort_spectral_rad_fieldCoupledCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral radiance.
@@ -6377,7 +6501,7 @@ The coupling is iterated until the change in the coupled boundary is below some
 relative tolerance or a maximum number of iterations is reached.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out       = {"disort_spectral_rad_field", "quadrature"},
       .in        = {"atm_disort_settings", "subsurf_disort_settings"},
       .gin       = {"azi_grid", "tolerance", "max_iterations", "relaxation"},
       .gin_type  = {"AziGrid", "Numeric", "Index", "Numeric"},
@@ -6395,7 +6519,7 @@ relative tolerance or a maximum number of iterations is reached.
 CDisort is only included for testing and comparisons with our own disort implementation.
 )",
       .author    = {"Oliver Lemke"},
-      .out       = {"disort_spectral_rad_field", "disort_quadrature"},
+      .out       = {"disort_spectral_rad_field", "quadrature"},
       .in        = {"disort_settings", "atm_path", "freq_grid_path", "ray_path", "surf_field"},
       .gin       = {"azi_grid"},
       .gin_type  = {"AziGrid"},
@@ -6404,18 +6528,20 @@ CDisort is only included for testing and comparisons with our own disort impleme
   };
 #endif
 
-  wsm_data["disort_spectral_flux_fieldCalc"] = {
+  wsm_data["spectral_flux_components_profileDisortCalc"] = {
       .desc   = R"(Perform Disort calculations for spectral flux.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"disort_spectral_flux_field"},
+      .out    = {"spectral_flux_components_profile"},
       .in     = {"disort_settings"},
   };
+  wsm_data["spectral_flux_components_profileVDisortCalc"] =
+      vdisort_method("spectral_flux_components_profileDisortCalc");
 
-  wsm_data["disort_spectral_flux_fieldCoupledCalc"] = {
+  wsm_data["spectral_flux_components_profileDisortCoupledCalc"] = {
       .desc      = R"(Perform Disort calculations for spectral flux.
 
-This effectively executed *disort_spectral_flux_fieldCalc* for both atmospheric
+This effectively executed *spectral_flux_components_profileDisortCalc* for both atmospheric
 and subsurface calculations based on their settings.  It then couples the two
 fields by setting the lower boundary of the atmospheric field to the upper boundary
 of the subsurface field, and vice versa (in a relaxed linear interpolation way).
@@ -6423,7 +6549,7 @@ The coupling is iterated until the change in the coupled boundary is below some
 relative tolerance or a maximum number of iterations is reached.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"disort_spectral_flux_field"},
+      .out       = {"spectral_flux_components_profile"},
       .in        = {"atm_disort_settings", "subsurf_disort_settings"},
       .gin       = {"tolerance", "max_iterations", "relaxation"},
       .gin_type  = {"Numeric", "Index", "Numeric"},
@@ -6441,6 +6567,7 @@ relative tolerance or a maximum number of iterations is reached.
       .out    = {"spectral_rad"},
       .in     = {"disort_spectral_rad_field", "ray_point"},
   };
+  wsm_data["spectral_radFromVDisort"] = vdisort_method("spectral_radFromDisort");
 
   wsm_data["oemInit"] = {
       .desc   = R"(Start an empty OEM setup and reset *jac_targets*.
@@ -6653,7 +6780,7 @@ Neither polarization nor wind calculations are possible with this method.
           R"(Use *alt_grid* to create a coupled atmospheric and subsurface *DisortSettings*.
 
 The surface elevation at the input *lat* and *lon* must be within the *alt_grid* range.
-When used to compute *disort_spectral_rad_field* or *disort_spectral_flux_field*, their
+When used to compute *disort_spectral_rad_field* or *spectral_flux_components_profile*, their
 respective internal altitude grids will contain the surface elevation as a grid point.
 )",
       .author         = {"Richard Larsson"},
@@ -6665,9 +6792,9 @@ respective internal altitude grids will contain the surface elevation as a grid 
                          "alt_grid",
                          "lat",
                          "lon",
-                         "disort_quadrature_dimension",
-                         "disort_fourier_mode_dimension",
-                         "disort_legendre_polynomial_dimension"},
+                         "quadrature_dimension",
+                         "fourier_mode_dimension",
+                         "legendre_polynomial_dimension"},
       .pass_workspace = true,
   };
 

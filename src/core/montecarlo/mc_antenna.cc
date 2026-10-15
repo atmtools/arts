@@ -15,6 +15,7 @@
 #include <arts_conversions.h>
 
 #include <cfloat>
+#include <limits>
 
 Matrix33 rotmat_enu(const Vector2& prop_los) {
   using Conversion::cosd, Conversion::sind;
@@ -158,7 +159,7 @@ std::pair<Vector2, Matrix33> MCAntenna::draw_los(RandomNumberGenerator<>& rng,
 
       // Horizontal polarization basis
       // If drawn los is at zenith or nadir, assume same azimuth as boresight
-      if ((1.0 - std::abs(R_los[2, 2])) < DBL_EPSILON) {
+      if ((1.0 - std::abs(R_los[2, 2])) < std::numeric_limits<Numeric>::epsilon()) {
         // H is aligned with H of bs, use row not column because tranpose
         R_los[joker, 1]    = R_ant2enu[1, joker];
         sampled_rte_los[1] = bore_sight_los[1];

@@ -1,0 +1,134 @@
+#include "radutil4.h"
+
+#include <debug.h>
+#include <physics_funcs.h>
+#include <radutil.h>
+#include <rtepack.h>
+
+#include <array>
+#include <type_traits>
+#include <variant>
+
+namespace polradtran::rt4 {
+void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, Tensor5View trans, Tensor3View source) {
+  const Index nummu   = reflect.extent(1);
+  const Index nstokes = ground_reflec.extent(0);
+  ARTS_USER_ERROR_IF(ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or
+                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
+                     "SPECULAR_SURFACE needs a square ground_reflec [nstokes, nstokes], reflect and trans [2, nummu, "
+                     "nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,}, {:B,} and {:B,}",
+                     ground_reflec.shape(),
+                     reflect.shape(),
+                     trans.shape(),
+                     source.shape());
+
+  reflect = 0.0;
+  source  = 0.0;
+  for (Index h = 0; h < 2; h++) identity(trans[h].view_as(nummu * nstokes, nummu * nstokes));
+
+  // REFLECT(S1, J, S2, J, 2) = GROUND_REFLEC(S2, S1) = R(S1, S2)
+  for (Index j = 0; j < nummu; j++) reflect[1, j, joker, j, joker] = transpose(ground_reflec);
+}
+
+void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
+  const Index nstokes = ground_reflec.extent(0);
+  ARTS_USER_ERROR_IF(
+      nstokes > 4 or ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or radiance.extent(1) != nstokes,
+      "SPECULAR_RADIANCE needs a square ground_reflec [nstokes, nstokes], nstokes <= 4, and radiance "
+      "[nummu, nstokes]; got {:B,} and {:B,}",
+      ground_reflec.shape(),
+      radiance.shape());
+  ARTS_USER_ERROR_IF(
+      not(ground_temp >= 0.0), "SPECULAR_RADIANCE needs a ground temperature >= 0 K, got {} K", ground_temp);
+
+  // Thermal radiation going up: (1 - R) B
+  const Range stokes{0, nstokes};
+  Muelmat     r{0.0};
+  r.view()[stokes, stokes] = ground_reflec;
+  const Stokvec e          = (Muelmat::id() - r) * Stokvec{planck(frequency, ground_temp)};
+
+  radiance = 0.0;
+  for (Index s = 0; s < nstokes; s++) radiance[joker, s] = e[s];
+}
+
+void ground_surface(const surface&  ground,
+                    ConstVectorView mu_values,
+                    ConstVectorView quad_weights,
+                    Numeric         frequency,
+                    Numeric         ground_temp,
+                    Tensor4View     surf_reflect,
+                    MatrixView      gnd_radiance) {
+  const Index nummu   = mu_values.extent(0);
+  const Index nstokes = gnd_radiance.extent(1);
+  ARTS_USER_ERROR_IF(quad_weights.extent(0) != nummu or
+                         surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}) or
+                         gnd_radiance.shape() != (std::array<Index, 2>{nummu, nstokes}),
+                     "The ground with {} mu_values needs quad_weights [nummu], surf_reflect [nummu, nstokes, nummu, "
+                     "nstokes] and gnd_radiance [nummu, nstokes]; got {}, {:B,} and {:B,}",
+                     nummu,
+                     quad_weights.extent(0),
+                     surf_reflect.shape(),
+                     gnd_radiance.shape());
+  ARTS_USER_ERROR_IF(not(frequency > 0.0), "The ground needs a positive frequency, got {} Hz", frequency);
+
+  // The ground routines make the whole surface layer, of which
+  // SURF_REFLECT is REFLECT(..., 2)
+  Tensor5 reflect(2, nummu, nstokes, nummu, nstokes), trans(2, nummu, nstokes, nummu, nstokes);
+  Tensor3 source(2, nummu, nstokes);
+
+  std::visit(
+      [&](const auto& g) {
+        using T = std::remove_cvref_t<decltype(g)>;
+        if constexpr (std::is_same_v<T, lambertian_surface>) {
+          // For a Lambertian surface
+          lambert_surface_layer(0, mu_values, quad_weights, g.albedo, reflect, trans, source);
+          // The radiance from the ground is thermal and reflected direct
+          // (RT4 has the azimuth mode 0 and the thermal source alone)
+          lambert_radiance(0, 2, g.albedo, ground_temp, frequency, 0.0, gnd_radiance);
+          surf_reflect = reflect[1];
+        } else if constexpr (std::is_same_v<T, fresnel_surface>) {
+          // For a Fresnel surface
+          fresnel_surface_layer(mu_values, g.refractive_index, reflect, trans, source);
+          // The radiance from the ground is thermal
+          fresnel_radiance(0, mu_values, g.refractive_index, ground_temp, frequency, gnd_radiance);
+          surf_reflect = reflect[1];
+        } else if constexpr (std::is_same_v<T, specular_surface>) {
+          // For a Specular surface
+          ARTS_USER_ERROR_IF(g.reflectivity.shape() != (std::array<Index, 2>{nstokes, nstokes}),
+                             "specular_surface reflectivity must be [{}, {}] (nstokes = {}), got {:B,}",
+                             nstokes,
+                             nstokes,
+                             nstokes,
+                             g.reflectivity.shape());
+          specular_surface_layer(g.reflectivity, reflect, trans, source);
+          // The radiance from the ground is thermal and reflected direct
+          specular_radiance(g.reflectivity, ground_temp, frequency, gnd_radiance);
+          surf_reflect = reflect[1];
+        } else {
+          // The reflection and emission given: SURF_REFLECT(out s, out mu,
+          // in s, in mu) is [in mu, in s, out mu, out s]
+          static_assert(std::is_same_v<T, discrete_surface>);
+          ARTS_USER_ERROR_IF(g.reflection.shape() != (std::array<Index, 4>{nummu, nummu, nstokes, nstokes}) or
+                                 g.emission.shape() != (std::array<Index, 2>{nummu, nstokes}),
+                             "discrete_surface must have reflection [{}, {}, {}, {}] and emission [{}, {}] "
+                             "(nmu_total = {}, nstokes = {}); got {:B,} and {:B,}",
+                             nummu,
+                             nummu,
+                             nstokes,
+                             nstokes,
+                             nummu,
+                             nstokes,
+                             nummu,
+                             nstokes,
+                             g.reflection.shape(),
+                             g.emission.shape());
+          gnd_radiance = g.emission;
+          for (Index io = 0; io < nummu; io++)
+            for (Index ii = 0; ii < nummu; ii++) surf_reflect[ii, joker, io, joker] = transpose(g.reflection[io, ii]);
+        }
+      },
+      ground);
+}
+}  // namespace polradtran::rt4
