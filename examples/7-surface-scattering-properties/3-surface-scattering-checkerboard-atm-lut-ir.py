@@ -24,12 +24,12 @@ path, no scattering source -- so no hand-written agendas are needed.
 The emissivity spectra mirror the reflectivity trend of the solar example: the
 red cells emit strongly at 895 /cm (emissivity 0.99) and weakly at 1145 /cm
 (0.90), the blue cells exactly the other way (0.90 / 0.99).  The absorbing
-species are H2O, O3 and CO2, and the line window covers both bands, so the
-9.6 micron ozone band at about 1043 /cm sits right between the measurements.
-That is what separates the two bands: 895 /cm is a clean window that sees all
-the way down to the surface, while 1145 /cm couples to the ozone layer and
-sees further up the colder atmosphere -- the cell-to-cell emissivity contrast
-is strong at the first band and damped at the second.
+species are H2O and CO2, and the line window covers both bands.  H2O fills
+the window with lines while CO2 is essentially transparent here.  The window
+is not perfectly flat: 895 /cm is the cleaner of the two, seeing all the way
+down to the surface, while at 1145 /cm the H2O line absorption adds just
+enough opacity further up the path to damp the cell-to-cell emissivity
+contrast.
 
 The surface temperature is no longer uniform either.  It falls quadratically
 from 300 K at the equator to 250 K at the poles, and the red cells carry a
@@ -42,9 +42,7 @@ live in one narrow band, so no log scale is needed to see the structure --
 and each plot comes in two units: the spectral radiance itself, and the
 Planck brightness temperature at the band frequency, the natural radiance
 unit for a sounder.  The brightness temperature makes the physics directly
-readable: the surface cells glow near their own 250-310 K at 895 /cm, while
-the 1145 /cm panel sits systematically colder because it couples to the
-ozone layer.
+readable: the surface cells glow near their own 250-310 K at both bands.
 
 The example ends by pinning the spectra and the scan to reference arrays and
 by checking the physical ordering -- red brighter than blue at both bands, the
@@ -96,11 +94,10 @@ BLUE_PROBE = (22.5, 22.5)
 RED_PROBE = (22.5, 67.5)
 
 # Absorbing species and the line-selection window covering the two measurement
-# bands (26.81 and 34.31 THz) with a margin on each side.  O3 is what makes
-# the window inhomogeneous: its 9.6 micron band at ~1043 /cm falls between the
-# two bands, H2O fills the window with lines, and CO2 is essentially
-# transparent here (its 15 micron band at 667 /cm sits below the window).
-ABS_SPECIES = ["H2O-161", "O3-666", "CO2-626"]
+# bands (26.81 and 34.31 THz) with a margin on each side.  H2O fills the
+# window with lines, and CO2 is essentially transparent here (its 15 micron
+# band at 667 /cm sits below the window).
+ABS_SPECIES = ["H2O-161", "CO2-626"]
 BAND_FMIN = 26.0e12
 BAND_FMAX = 35.5e12
 
@@ -323,8 +320,7 @@ fig_scan.colorbar(mesh, ax=ax_scan.tolist(), pad=0.015,
 fig_scan.suptitle("Nadir radiance through the atmosphere at 800 km, thermal IR")
 
 # The same scan as Planck brightness temperature per band.  The surface cells
-# glow near their own 250-310 K, and the 1145 /cm panel, coupled to the ozone
-# layer, sits systematically colder than the clean 895 /cm window.
+# glow near their own 250-310 K in both panels.
 tb_scan = np.stack([radiance_to_tb(scan[:, :, k], wn2hz(w))
                     for k, w in enumerate(BAND_WAVENUMBERS_CM)], axis=2)
 fig_tb_scan, ax_tb_scan = plt.subplots(1, 2, figsize=(9.0, 4.0), sharex=True, sharey=True,
@@ -349,8 +345,6 @@ for label, _, color, spectrum in PROBES:
     for w, v in zip(BAND_WAVENUMBERS_CM, spectrum):
         ax_spectra.annotate(f"{v:.2e}", (w, v), textcoords="offset points", xytext=(0, 10),
                             ha="center", fontsize=7, color=color)
-ax_spectra.annotate("O$_3$ band between the bands", (1020.0, 1.2e-12), ha="center",
-                    fontsize=7, color="0.45", rotation=90)
 ax_spectra.set_xlabel("Wavenumber [1/cm]")
 ax_spectra.set_ylabel("Radiance [W m$^{-2}$ sr$^{-1}$ Hz$^{-1}$]")
 ax_spectra.set_xlim(850.0, 1190.0)
@@ -379,48 +373,48 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% References
 
-ref_blue = [3.393952690350506e-12, 2.280326647232757e-12]
-ref_red = [4.2966292192347805e-12, 2.489274689068086e-12]
+ref_blue = [3.3939671404629362e-12, 2.2874201680400115e-12]
+ref_red = [4.296656221330156e-12, 2.4970628777471427e-12]
 ref_scan = [
     [
-        [2.956539281431157e-12, 1.5873750304833577e-12],
-        [2.278554643811394e-12, 1.4079441284107198e-12],
-        [2.9565392814311566e-12, 1.5873750304833573e-12],
-        [2.278554643811394e-12, 1.4079441284107194e-12],
-        [2.9565392814311566e-12, 1.5873750304833575e-12],
-        [2.2785546438113934e-12, 1.4079441284107194e-12],
-        [2.956539281431157e-12, 1.5873750304833577e-12],
-        [2.2785546438113942e-12, 1.4079441284107198e-12],
+        [2.9565508015612602e-12, 1.590901036710245e-12],
+        [2.2785562078082483e-12, 1.4109149583754738e-12],
+        [2.95655080156126e-12, 1.5909010367102447e-12],
+        [2.2785562078082483e-12, 1.4109149583754736e-12],
+        [2.95655080156126e-12, 1.5909010367102449e-12],
+        [2.278556207808248e-12, 1.4109149583754736e-12],
+        [2.9565508015612602e-12, 1.5909010367102449e-12],
+        [2.2785562078082483e-12, 1.4109149583754738e-12],
     ],
     [
-        [3.393952690350506e-12, 2.280326647232757e-12],
-        [4.2966292192347805e-12, 2.4892746890680863e-12],
-        [3.393952690350506e-12, 2.2803266472327573e-12],
-        [4.29662921923478e-12, 2.489274689068086e-12],
-        [3.393952690350506e-12, 2.280326647232757e-12],
-        [4.2966292192347805e-12, 2.489274689068086e-12],
-        [3.3939526903505064e-12, 2.2803266472327577e-12],
-        [4.2966292192347805e-12, 2.489274689068086e-12],
+        [3.3939671404629362e-12, 2.2874201680400115e-12],
+        [4.296656221330156e-12, 2.4970628777471427e-12],
+        [3.393967140462936e-12, 2.2874201680400115e-12],
+        [4.296656221330155e-12, 2.4970628777471414e-12],
+        [3.3939671404629362e-12, 2.287420168040011e-12],
+        [4.296656221330156e-12, 2.4970628777471414e-12],
+        [3.3939671404629362e-12, 2.2874201680400123e-12],
+        [4.296656221330156e-12, 2.4970628777471414e-12],
     ],
     [
-        [4.2966292192347805e-12, 2.4892746890680887e-12],
-        [3.393952690350506e-12, 2.280326647232757e-12],
-        [4.2966292192347805e-12, 2.489274689068086e-12],
-        [3.393952690350506e-12, 2.280326647232756e-12],
-        [4.2966292192347805e-12, 2.489274689068085e-12],
-        [3.393952690350506e-12, 2.2803266472327573e-12],
-        [4.2966292192347805e-12, 2.489274689068086e-12],
-        [3.3939526903505052e-12, 2.280326647232758e-12],
+        [4.296656221330156e-12, 2.4970628777471447e-12],
+        [3.3939671404629362e-12, 2.2874201680400115e-12],
+        [4.296656221330156e-12, 2.4970628777471414e-12],
+        [3.393967140462936e-12, 2.287420168040011e-12],
+        [4.296656221330156e-12, 2.497062877747141e-12],
+        [3.3939671404629362e-12, 2.2874201680400115e-12],
+        [4.296656221330156e-12, 2.4970628777471414e-12],
+        [3.393967140462935e-12, 2.2874201680400127e-12],
     ],
     [
-        [2.2785546438113942e-12, 1.4079441284107198e-12],
-        [2.9565392814311566e-12, 1.587375030483356e-12],
-        [2.2785546438113934e-12, 1.4079441284107194e-12],
-        [2.9565392814311566e-12, 1.5873750304833575e-12],
-        [2.278554643811394e-12, 1.4079441284107194e-12],
-        [2.9565392814311566e-12, 1.5873750304833567e-12],
-        [2.2785546438113934e-12, 1.4079441284107194e-12],
-        [2.956539281431157e-12, 1.5873750304833577e-12],
+        [2.2785562078082483e-12, 1.4109149583754738e-12],
+        [2.95655080156126e-12, 1.5909010367102437e-12],
+        [2.278556207808248e-12, 1.4109149583754736e-12],
+        [2.95655080156126e-12, 1.5909010367102449e-12],
+        [2.2785562078082483e-12, 1.4109149583754736e-12],
+        [2.95655080156126e-12, 1.590901036710244e-12],
+        [2.278556207808248e-12, 1.4109149583754736e-12],
+        [2.9565508015612602e-12, 1.590901036710245e-12],
     ],
 ]
 
@@ -436,16 +430,17 @@ assert np.allclose(scan, ref_scan, rtol=1e-8, atol=1e-30), \
 # The physics the plots show, pinned as inequalities so that a regression that
 # breaks them fails even before the reference arrays are compared.  The red
 # cells are warmer (+10 K) and emit better at 895 /cm, so they are brighter at
-# both bands; at 1145 /cm the ozone band damps the surface contrast, so the
-# red/blue ratio must be smaller there than at the clean 895 /cm window.  And
-# the quadratic temperature profile must make the equatorial rows of the scan
-# brighter than the polar ones -- each row averages 4 red and 4 blue cells, so
-# the checkerboard and its temperature offset wash out of the row means.
+# both bands; at 1145 /cm the H2O line absorption damps the surface contrast,
+# so the red/blue ratio must be smaller there than at the clean 895 /cm window.
+# And the quadratic temperature profile must make the equatorial rows of the
+# scan brighter than the polar ones -- each row averages 4 red and 4 blue
+# cells, so the checkerboard and its temperature offset wash out of the row
+# means.
 for k in range(len(BAND_WAVENUMBERS_CM)):
     assert red_spectrum[k] > blue_spectrum[k], \
         f"Red not brighter than blue at {BAND_WAVENUMBERS_CM[k]} /cm"
 assert red_spectrum[0] / blue_spectrum[0] > red_spectrum[1] / blue_spectrum[1], \
-    "Red/blue contrast not damped at 1145 /cm by the ozone band"
+    "Red/blue contrast not damped at 1145 /cm by the H2O line absorption"
 
 row_means = scan.mean(axis=(1, 2))
 assert row_means[1] > row_means[0], "22.5 N row not brighter than 67.5 N row"
