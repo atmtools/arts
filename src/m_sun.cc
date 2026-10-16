@@ -426,10 +426,7 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
         ARTS_USER_ERROR_IF(not bulk.phase_matrix, "The scattering species returned no phase matrix")
 
         for (Size iv = 0; iv < nf; ++iv) {
-          const auto flat = (*bulk.phase_matrix)[0, iv, 0, 0, 0, joker];
-          Muelmat    phase{0.0};
-          for (Index i = 0; i < 4; ++i)
-            for (Index j = 0; j < 4; ++j) phase[i, j] = flat[4 * i + j];
+          const Muelmat& phase            = (*bulk.phase_matrix)[0, iv, 0, 0, 0];
           spectral_rad_scat_path[ip][iv] += phase * radiance_to_irradiance * spectral_rad[iv];
         }
       }

@@ -128,10 +128,8 @@ constexpr std::array<std::array<Numeric, 4>, 12> evans_table3{{
    n(r).  The phase matrices are on the nodes of a Gauss-Legendre rule, whose
    projection gives each particle's Legendre series exactly. */
 void test_mietest() {
-  using Gridded =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded  = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
   constexpr Numeric wavelength = 0.951e-6, reff = 0.2, veff = 0.07;
   constexpr Index   nr = 120, nang = 96, degree = 13;
   const Numeric     frequency = Constant::speed_of_light / wavelength;
@@ -168,7 +166,7 @@ void test_mietest() {
     const auto    gridded = std::get<Gridded>(ParticleHabit::sphere(t_grid, f_grid, diameter, za, index, 1000.0)[0]);
 
     // a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), the rule exact for these data
-    scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> series(
+    scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> series(
         gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), degree);
     Vector p(degree + 1);
     for (Index j = 0; j < nang; j++) {
@@ -176,7 +174,7 @@ void test_mietest() {
       for (Index l = 0; l <= degree; l++) {
         const Numeric f =
             2.0 * Constant::pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi)) * wa[j] * p[l];
-        for (Index k = 0; k < 6; k++) series[0, 0, l, k] += f * (*gridded.phase_matrix)[0, 0, j, k];
+        series[0, 0, l] += f * (*gridded.phase_matrix)[0, 0, j];
       }
     }
     const Spectral spectral(gridded.properties,
@@ -329,10 +327,11 @@ void test_path() {
   ArrayOfScatteringSpecies mismatched;
   mismatched.add(
       ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{[](const AtmPoint&, const Vector& f, Index degree) {
-        ScatteringTroSpectralVector v{.phase_matrix      = SpecmatMatrix(f.size(), degree + 1, Specmat{0.0}),
-                                      .extinction_matrix = PropmatVector(f.size(), Propmat{1e-4}),
-                                      .absorption_vector = StokvecVector(f.size(), Stokvec{})};
-        for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0][0, 0] = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
+        ScatteringTroSpectralVector v{
+            .phase_matrix      = CompactPlanarMuelmatMatrix(f.size(), degree + 1, CompactPlanarMuelmat{}),
+            .extinction_matrix = PropmatVector(f.size(), Propmat{1e-4}),
+            .absorption_vector = StokvecVector(f.size(), Stokvec{})};
+        for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0].F11() = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
         return v;
       }}});
   require_error([&] { (void)rt3::scattering_optics(mismatched, d.atm_path[0], 89e9, 0, 1e-6); },

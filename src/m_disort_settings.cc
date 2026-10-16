@@ -828,8 +828,8 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(DisortSettings&      
 // Disort Scattering Species Interface
 ////////////////////////////////////////////////////////////////////////////////
 
-void disort_settingsLegendreCoefficientsFromPath(DisortSettings&             disort_settings,
-                                                 const ArrayOfSpecmatMatrix& spectral_phamat_spectral_path) try {
+void disort_settingsLegendreCoefficientsFromPath(
+    DisortSettings& disort_settings, const ArrayOfCompactPlanarMuelmatMatrix& spectral_phamat_spectral_path) try {
   ARTS_TIME_REPORT
 
   const Size  N = disort_settings.layer_count();
@@ -861,8 +861,8 @@ void disort_settingsLegendreCoefficientsFromPath(DisortSettings&             dis
     for (Index iv = 0; iv < F; iv++) {
       for (Index j = 0; j < L; j++) {
         disort_settings.legendre_coefficients[iv, i, j] =
-            invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j][0, 0].real(),
-                                      spectral_phamat_spectral_path[i + 1][iv, j][0, 0].real());
+            invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j].F11(),
+                                      spectral_phamat_spectral_path[i + 1][iv, j].F11());
       }
     }
   }

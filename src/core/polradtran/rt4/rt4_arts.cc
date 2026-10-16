@@ -83,14 +83,14 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
     }
   }
 
-  // The azimuthal mean C_0 [t, f, za_inc, za_scat, m = 0, cosine, 4 * row + col]
+  // The azimuthal mean C_0 [t, f, za_inc, za_scat, m = 0, cosine]
+  const Range stokes{0, ns};
   for (Index ho = 0; ho < 2; ho++) {
     for (Index hi = 0; hi < 2; hi++) {
       for (Index io = 0; io < n; io++) {
         for (Index ii = 0; ii < n; ii++) {
           const Index out = stream[ho * n + io], in = stream[hi * n + ii];
-          for (Index so = 0; so < ns; so++)
-            for (Index si = 0; si < ns; si++) o.phase[ho, hi, io, ii, so, si] = pha[0, 0, in, out, 0, 0, 4 * so + si];
+          o.phase[ho, hi, io, ii, joker, joker] = pha[0, 0, in, out, 0, 0].view()[stokes, stokes];
         }
       }
     }

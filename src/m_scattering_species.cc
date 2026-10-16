@@ -14,11 +14,11 @@ void legendre_degreeFromDisortSettingsDeltaMPlus(Index& legendre_degree, const D
 
 void scat_speciesInit(ArrayOfScatteringSpecies& scattering_species) { scattering_species = ArrayOfScatteringSpecies{}; }
 
-void spectral_propmat_scatSpectralInit(PropmatVector&       spectral_propmat_scat,
-                                       StokvecVector&       spectral_absvec_scat,
-                                       SpecmatMatrix&       spectral_phamat_spectral,
-                                       const AscendingGrid& freq_grid,
-                                       const Index&         legendre_degree) {
+void spectral_propmat_scatSpectralInit(PropmatVector&              spectral_propmat_scat,
+                                       StokvecVector&              spectral_absvec_scat,
+                                       CompactPlanarMuelmatMatrix& spectral_phamat_spectral,
+                                       const AscendingGrid&        freq_grid,
+                                       const Index&                legendre_degree) {
   ARTS_USER_ERROR_IF(legendre_degree < 0, "The legendre_degree must be non-negative, is {}", legendre_degree)
 
   spectral_propmat_scat.resize(freq_grid.size());
@@ -27,12 +27,12 @@ void spectral_propmat_scatSpectralInit(PropmatVector&       spectral_propmat_sca
 
   spectral_propmat_scat    = Propmat{0.0};
   spectral_absvec_scat     = Stokvec{0.0};
-  spectral_phamat_spectral = Specmat{Complex{0.0}};
+  spectral_phamat_spectral = CompactPlanarMuelmat{};
 }
 
 void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(PropmatVector&                  spectral_propmat_scat,
                                                           StokvecVector&                  spectral_absvec_scat,
-                                                          SpecmatMatrix&                  spectral_phamat_spectral,
+                                                          CompactPlanarMuelmatMatrix&     spectral_phamat_spectral,
                                                           const AscendingGrid&            freq_grid,
                                                           const AtmPoint&                 atm_point,
                                                           const ArrayOfScatteringSpecies& scattering_species) try {
@@ -117,13 +117,13 @@ void spectral_rad_srcvec_pathCorrectScattering(SourceVector&               spect
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&            ws,
-                                                  ArrayOfPropmatVector&       spectral_propmat_scat_path,
-                                                  ArrayOfStokvecVector&       spectral_absvec_scat_path,
-                                                  ArrayOfSpecmatMatrix&       spectral_phamat_spectral_path,
-                                                  const ArrayOfAscendingGrid& freq_grid_path,
-                                                  const ArrayOfAtmPoint&      atm_path,
-                                                  const Index&                legendre_degree,
+void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&                   ws,
+                                                  ArrayOfPropmatVector&              spectral_propmat_scat_path,
+                                                  ArrayOfStokvecVector&              spectral_absvec_scat_path,
+                                                  ArrayOfCompactPlanarMuelmatMatrix& spectral_phamat_spectral_path,
+                                                  const ArrayOfAscendingGrid&        freq_grid_path,
+                                                  const ArrayOfAtmPoint&             atm_path,
+                                                  const Index&                       legendre_degree,
                                                   const Agenda& spectral_propmat_scat_spectral_agenda) try {
   const Size N = freq_grid_path.size();
 

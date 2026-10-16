@@ -136,8 +136,8 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
     const Numeric scale = (m == 0 ? 1.0 : 0.5) * 4.0 * Constant::pi / sigma;
     for (Index o = 0; o < no; o++) {
       for (Index i = 0; i < ni; i++) {
-        out.cosine[m, o, i] = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 0]};
-        out.sine[m, o, i]   = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 1]};
+        out.cosine[m, o, i] = scale * pha[0, 0, inc[i], sca[o], m, 0];
+        out.sine[m, o, i]   = scale * pha[0, 0, inc[i], sca[o], m, 1];
       }
     }
   }
@@ -169,18 +169,18 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
   // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), element by element; its phase integral is 4 pi
   Vector scaled(nleg);
   for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
-  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](Numeric                      theta,
-                                                                       matpack::data_t<Numeric, 3>& F) mutable {
+  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](
+                                     Numeric theta, rtepack::compact_planar_muelmat_matrix& F) mutable {
     Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
     for (Index e = 0; e < 6; e++) {
       Numeric value = 0.0;
       for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
-      F[0, 0, e] = value;
+      F[0, 0].data[e] = value;
     }
   };
 
   const auto one   = std::make_shared<const Vector>(Vector{0.0});
-  const auto modes = scattering::tro_lab_frame_fourier_modes<Numeric>(
+  const auto modes = scattering::tro_lab_frame_fourier_modes(
       one,
       one,
       std::make_shared<const Vector>(za_inc),
@@ -195,8 +195,8 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
     const Numeric scale = m == 0 ? 1.0 : 0.5;
     for (Index o = 0; o < no; o++) {
       for (Index i = 0; i < ni; i++) {
-        out.cosine[m, o, i] = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 0]};
-        out.sine[m, o, i]   = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 1]};
+        out.cosine[m, o, i] = scale * modes[0, 0, inc[i], sca[o], m, 0];
+        out.sine[m, o, i]   = scale * modes[0, 0, inc[i], sca[o], m, 1];
       }
     }
   }

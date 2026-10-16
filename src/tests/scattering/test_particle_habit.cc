@@ -15,7 +15,7 @@
 // xml_read_from_file(meta_path, legacy_meta);
 
 // auto habit = scattering::ParticleHabit::from_legacy_tro(legacy_data, legacy_meta);
-// using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+// using SSD = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
 
 // for (Index ind = 0; ind < habit.size(); ++ind) {
 

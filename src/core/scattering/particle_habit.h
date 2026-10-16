@@ -10,18 +10,16 @@
 
 namespace scattering {
 
-using ParticleData = std::variant<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>,
-                                  SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>,
-                                  SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>,
-                                  SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>>;
+using ParticleData = std::variant<SingleScatteringData<Format::TRO, Representation::Gridded>,
+                                  SingleScatteringData<Format::TRO, Representation::Spectral>,
+                                  SingleScatteringData<Format::ARO, Representation::Gridded>,
+                                  SingleScatteringData<Format::ARO, Representation::Spectral>>;
 
 using ScatteringData = std::vector<ParticleData>;
 
 template <Format format, Representation repr>
-auto ssd_to_tro_spectral(const ScatteringDataGrids&                         new_grids,
-                         Index                                              l,
-                         const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::TRO, Representation::Spectral> {
+auto ssd_to_tro_spectral(const ScatteringDataGrids& new_grids, Index l, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::TRO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
     ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
   } else {
@@ -30,8 +28,8 @@ auto ssd_to_tro_spectral(const ScatteringDataGrids&                         new_
 };
 
 template <Format format, Representation repr>
-auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::TRO, Representation::Gridded> {
+auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::TRO, Representation::Gridded> {
   if constexpr (format == Format::ARO) {
     ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
   } else {
@@ -47,8 +45,8 @@ auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
 };
 
 template <Format format, Representation repr>
-auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Gridded> {
+auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Gridded> {
   if constexpr (format == Format::ARO) {
     if constexpr (repr == Representation::Gridded) {
       return ssd.regrid(new_grids);
@@ -64,9 +62,11 @@ auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
   }
 };
 
-template <Format format, Representation repr> auto ssd_to_aro_spectral(
-    const ScatteringDataGrids& new_grids, Index l, Index m, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Spectral> {
+template <Format format, Representation repr> auto ssd_to_aro_spectral(const ScatteringDataGrids& new_grids,
+                                                                       Index                      l,
+                                                                       Index                      m,
+                                                                       const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
     return ssd.to_spectral(l, m).regrid(new_grids);
   } else {
@@ -87,11 +87,10 @@ template <Format format, Representation repr> auto ssd_to_aro_spectral(
  * scattering-angle nodes, too coarsely for the modes; they must be converted
  * to a Legendre series first.
  */
-template <Format format, Representation repr>
-auto ssd_to_aro_fourier(const ScatteringDataGrids&                         new_grids,
-                        Index                                              max_mode,
-                        const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> {
+template <Format format, Representation repr> auto ssd_to_aro_fourier(const ScatteringDataGrids& new_grids,
+                                                                      Index                      max_mode,
+                                                                      const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Fourier> {
   if constexpr (format == Format::ARO and repr == Representation::Gridded) {
     return ssd.to_fourier(max_mode).regrid(new_grids);
   } else if constexpr (format == Format::ARO and repr == Representation::Spectral) {
@@ -199,15 +198,14 @@ class ParticleHabit {
    * each particle.
    */
   template <Format format, Representation representation>
-  ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_) {
+  ParticleHabit(std::vector<SingleScatteringData<format, representation>> scattering_data_) {
     if (scattering_data_.size() > 0) {
       for (Size ind = 0; ind < scattering_data_.size(); ++ind) { scattering_data.push_back(scattering_data_[ind]); }
     }
   }
 
   template <Format format, Representation representation>
-  ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_,
-                ScatteringDataGrids                                                grids_)
+  ParticleHabit(std::vector<SingleScatteringData<format, representation>> scattering_data_, ScatteringDataGrids grids_)
       : grids(grids_) {
     if (scattering_data_.size() > 0) {
       scattering_data.resize(scattering_data_.size(), scattering_data_[0]);
@@ -217,8 +215,7 @@ class ParticleHabit {
     }
   }
 
-  template <Format format, Representation repr>
-  void append_particle(const SingleScatteringData<Numeric, format, repr>& ssd) {
+  template <Format format, Representation repr> void append_particle(const SingleScatteringData<format, repr>& ssd) {
     if (grids.has_value()) {
       scattering_data.push_back(ssd.regrid(grids));
     } else {

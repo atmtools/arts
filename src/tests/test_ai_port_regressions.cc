@@ -30,29 +30,29 @@ void singleton_regridding() {
     for (const auto& x : data | by_elem)
       check(std::abs(x - expected) < 1e-12, "Singleton interpolation must preserve constant coefficients");
   };
-  AbsorptionVectorData<Numeric, Format::ARO, Representation::Gridded> absorption(t, f, za);
+  AbsorptionVectorData<Format::ARO, Representation::Gridded> absorption(t, f, za);
   std::fill_n(absorption.data_handle(), absorption.size(), 2.0);
   constant(absorption.regrid(grids), 2.0);
-  ExtinctionMatrixData<Numeric, Format::ARO, Representation::Gridded> extinction(t, f, za);
+  ExtinctionMatrixData<Format::ARO, Representation::Gridded> extinction(t, f, za);
   std::fill_n(extinction.data_handle(), extinction.size(), 3.0);
   constant(extinction.regrid(grids), 3.0);
-  BackscatterMatrixData<Numeric, Format::ARO> backscatter(t, f, za);
-  std::fill_n(backscatter.data_handle(), backscatter.size(), 4.0);
-  constant(backscatter.regrid(grids), 4.0);
-  PhaseMatrixData<Numeric, Format::ARO, Representation::Gridded> phase(t, f, za, aa, scat);
-  std::fill_n(phase.data_handle(), phase.size(), 5.0);
-  constant(phase.regrid(grids), 5.0);
+  BackscatterMatrixData<Format::ARO> backscatter(t, f, za);
+  rtepack::elements(backscatter) = 4.0;
+  constant(rtepack::elements(backscatter.regrid(grids)), 4.0);
+  PhaseMatrixData<Format::ARO, Representation::Gridded> phase(t, f, za, aa, scat);
+  rtepack::elements(phase) = 5.0;
+  constant(rtepack::elements(phase.regrid(grids)), 5.0);
 #ifndef ARTS_NO_SHTNS
   // Only spectral regridding needs SHTNS; retain the gridded checks above
   // and the remaining regressions in builds without that optional backend.
-  PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral> spectral(t, f, za, sht::provider.get_instance(1, 1));
+  PhaseMatrixData<Format::ARO, Representation::Spectral> spectral(t, f, za, sht::provider.get_instance(1, 1));
   std::fill_n(spectral.data_handle(), spectral.size(), Complex{6.0, 7.0});
   constant(spectral.regrid(grids), Complex{6.0, 7.0});
 #endif
   // The Fourier modes are interpolated in temperature and frequency only
-  PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier> fourier(t, f, za, scat, 2);
-  std::fill_n(fourier.data_handle(), fourier.size(), 6.0);
-  constant(fourier.regrid(ScatteringDataGrids(grids.t_grid, grids.f_grid)), 6.0);
+  PhaseMatrixData<Format::ARO, Representation::Fourier> fourier(t, f, za, scat, 2);
+  rtepack::elements(fourier) = 6.0;
+  constant(rtepack::elements(fourier.regrid(ScatteringDataGrids(grids.t_grid, grids.f_grid))), 6.0);
 }
 
 void monodisperse_cutoff() {

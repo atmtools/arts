@@ -71,7 +71,7 @@ std::tuple<Vector, Numeric, Numeric> ParticleHabit::get_size_mass_info(SizeParam
 }
 
 ParticleHabit ParticleHabit::to_tro_spectral(const Vector& t_grid, const Vector& f_grid, Index l) {
-  std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>> new_scat_data{};
+  std::vector<SingleScatteringData<Format::TRO, Representation::Spectral>> new_scat_data{};
   auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid), std::make_shared<Vector>(f_grid));
   auto transform = [&new_grids, &l](const auto& ssd) { return ssd_to_tro_spectral(new_grids, l, ssd); };
   for (size_t p_ind = 0; p_ind < scattering_data.size(); ++p_ind) {
@@ -88,7 +88,7 @@ ParticleHabit ParticleHabit::to_tro_gridded(const Vector&          t_grid,
                                        std::make_shared<const ZenithAngleGrid>(za_scat_grid));
 
   auto transform = [&new_grids](const auto& ssd) { return ssd_to_tro_gridded(new_grids, ssd); };
-  std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> new_scattering_data;
+  std::vector<SingleScatteringData<Format::TRO, Representation::Gridded>> new_scattering_data;
   new_scattering_data.reserve(scattering_data.size());
   for (const ParticleData& pd : scattering_data) { new_scattering_data.push_back(std::visit(transform, pd)); }
   return ParticleHabit(new_scattering_data, new_grids);
@@ -98,8 +98,8 @@ std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_repor
                                                                                   const Vector&        t_grid,
                                                                                   const Vector&        f_grid,
                                                                                   Index                l) {
-  using Spectral = SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>;
-  using Gridded  = SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>;
+  using Spectral = SingleScatteringData<Format::TRO, Representation::Spectral>;
+  using Gridded  = SingleScatteringData<Format::TRO, Representation::Gridded>;
   auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid), std::make_shared<Vector>(f_grid));
   std::vector<Spectral>       new_scat_data;
   std::vector<LegendreReport> reports;
@@ -127,7 +127,7 @@ ParticleHabit ParticleHabit::to_aro_spectral(
                                           std::make_shared<const Vector>(aa_scat_grid),
                                           std::make_shared<const ZenithAngleGrid>(za_scat_grid));
   auto transform    = [&new_grids, &l, &m](const auto& ssd) { return ssd_to_aro_spectral(new_grids, l, m, ssd); };
-  std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>> new_scattering_data;
+  std::vector<SingleScatteringData<Format::ARO, Representation::Spectral>> new_scattering_data;
   new_scattering_data.reserve(scattering_data.size());
   for (const ParticleData& pd : scattering_data) { new_scattering_data.push_back(std::visit(transform, pd)); }
   return ParticleHabit(new_scattering_data, new_grids);
@@ -141,7 +141,7 @@ ParticleHabit ParticleHabit::to_aro_gridded(
                                        std::make_shared<const Vector>(za_scat_grid),
                                        std::make_shared<const ZenithAngleGrid>(za_scat_grid));
   auto transform = [&new_grids](const auto& ssd) { return ssd_to_aro_gridded(new_grids, ssd); };
-  std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>> new_scattering_data;
+  std::vector<SingleScatteringData<Format::ARO, Representation::Gridded>> new_scattering_data;
   new_scattering_data.reserve(scattering_data.size());
   for (const ParticleData& pd : scattering_data) { new_scattering_data.push_back(std::visit(transform, pd)); }
   return ParticleHabit(new_scattering_data, new_grids);
@@ -163,11 +163,10 @@ Vector ParticleHabit::get_sizes(SizeParameter param) const {
 
 ParticleHabit ParticleHabit::from_legacy_tro(std::vector<::SingleScatteringData> ssd_,
                                              std::vector<::ScatteringMetaData>   meta_) {
-  std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> ssd;
+  std::vector<SingleScatteringData<Format::TRO, Representation::Gridded>> ssd;
   ssd.reserve(ssd_.size());
   for (auto ind = 0; ind < Index(ssd_.size()); ++ind) {
-    ssd.push_back(
-        SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>::from_legacy_tro(ssd_[ind], meta_[ind]));
+    ssd.push_back(SingleScatteringData<Format::TRO, Representation::Gridded>::from_legacy_tro(ssd_[ind], meta_[ind]));
   }
   return ParticleHabit(ssd);
 }
@@ -176,11 +175,11 @@ ParticleHabit ParticleHabit::from_legacy_aro(std::vector<::SingleScatteringData>
                                              std::vector<::ScatteringMetaData>   meta_) {
   ARTS_USER_ERROR_IF(ssd_.size() != meta_.size(), "Scattering data and metadata sizes differ.")
   ARTS_USER_ERROR_IF(ssd_.empty(), "Cannot construct an empty particle habit.")
-  std::vector<SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>> converted;
+  std::vector<SingleScatteringData<Format::ARO, Representation::Gridded>> converted;
   converted.reserve(ssd_.size());
   for (Index ind = 0; ind < static_cast<Index>(ssd_.size()); ++ind) {
     converted.push_back(
-        SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>::from_legacy_aro(ssd_[ind], meta_[ind]));
+        SingleScatteringData<Format::ARO, Representation::Gridded>::from_legacy_aro(ssd_[ind], meta_[ind]));
   }
   Vector signed_delta_aa(2 * ssd_[0].aa_grid.size() - 1);
   for (Size i = 1; i < ssd_[0].aa_grid.size(); ++i) {
@@ -203,10 +202,10 @@ ParticleHabit ParticleHabit::sphere(const StridedVectorView& t_grid,
                                     const ZenithAngleGrid&   za_scat_grid,
                                     const ComplexMatrix&     refractive_index,
                                     Numeric                  density) {
-  std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> ssd;
+  std::vector<SingleScatteringData<Format::TRO, Representation::Gridded>> ssd;
   ssd.reserve(diameters.size());
   for (auto diameter : diameters)
-    ssd.push_back(SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>::sphere(
+    ssd.push_back(SingleScatteringData<Format::TRO, Representation::Gridded>::sphere(
         t_grid, f_grid, diameter, za_scat_grid, refractive_index, density));
   return ParticleHabit(ssd);
 }
@@ -215,10 +214,10 @@ ParticleHabit ParticleHabit::liquid_sphere(const StridedVectorView& t_grid,
                                            const StridedVectorView& f_grid,
                                            const StridedVectorView& diameters,
                                            const ZenithAngleGrid&   za_scat_grid) {
-  std::vector<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>> ssd;
+  std::vector<SingleScatteringData<Format::TRO, Representation::Gridded>> ssd;
   ssd.reserve(diameters.size());
   for (auto ind = 0; ind < Index(diameters.size()); ++ind) {
-    ssd.push_back(SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>::liquid_sphere(
+    ssd.push_back(SingleScatteringData<Format::TRO, Representation::Gridded>::liquid_sphere(
         t_grid, f_grid, diameters[ind], za_scat_grid));
   }
   return ParticleHabit(ssd);

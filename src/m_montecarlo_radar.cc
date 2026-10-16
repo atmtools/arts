@@ -90,9 +90,9 @@ OpticalPoint optical_point(const Workspace&                ws,
   ARTS_USER_ERROR_IF(not bulk_outgoing.phase_matrix.has_value(),
                      "MCRadar requires phase matrices from all scattering species")
 
-  const auto phase               = bulk_outgoing.phase_matrix->get_const_coeff_vector_view();
-  const auto outgoing_extinction = bulk_outgoing.extinction_matrix.get_const_coeff_vector_view();
-  const auto return_extinction   = bulk_return.extinction_matrix.get_const_coeff_vector_view();
+  const auto& phase               = *bulk_outgoing.phase_matrix;
+  const auto  outgoing_extinction = bulk_outgoing.extinction_matrix.get_const_coeff_vector_view();
+  const auto  return_extinction   = bulk_return.extinction_matrix.get_const_coeff_vector_view();
 
   OpticalPoint out;
   const auto&  outgoing    = outgoing_extinction[0, 0, 0];

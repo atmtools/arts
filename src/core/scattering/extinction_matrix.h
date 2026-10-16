@@ -28,25 +28,24 @@ constexpr Index get_n_mat_elems(Format format) {
 
 }  // namespace extinction
 
-template <std::floating_point Scalar, Format format, Representation representation> class ExtinctionMatrixData;
+template <Format format, Representation representation> class ExtinctionMatrixData;
 
-template <std::floating_point Scalar, Representation repr> class ExtinctionMatrixData<Scalar, Format::TRO, repr>
-    : public matpack::data_t<Scalar, 3> {
+template <Representation repr> class ExtinctionMatrixData<Format::TRO, repr> : public matpack::data_t<Numeric, 3> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::data_t<Scalar, 3>::resize;
-  using matpack::data_t<Scalar, 3>::reshape;
+  using matpack::data_t<Numeric, 3>::resize;
+  using matpack::data_t<Numeric, 3>::reshape;
 
  public:
   /// Spectral transform of this extinction matrix.
-  using ExtinctionMatrixDataSpectral = ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral>;
-  using ExtinctionMatrixDataLabFrame = ExtinctionMatrixData<Scalar, Format::ARO, Representation::Gridded>;
+  using ExtinctionMatrixDataSpectral = ExtinctionMatrixData<Format::TRO, Representation::Spectral>;
+  using ExtinctionMatrixDataLabFrame = ExtinctionMatrixData<Format::ARO, Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs = extinction::get_n_mat_elems(Format::TRO);
-  using CoeffVector                      = matpack::cdata_t<Scalar, n_stokes_coeffs>;
+  using CoeffVector                      = matpack::cdata_t<Numeric, n_stokes_coeffs>;
 
-  using matpack::data_t<Scalar, 3>::operator[];
+  using matpack::data_t<Numeric, 3>::operator[];
 
   ExtinctionMatrixData() = default;
   /** Create a new ExtinctionMatrixData container.
@@ -61,22 +60,22 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
    * data is defined.
    */
   ExtinctionMatrixData(std::shared_ptr<const Vector> t_grid, std::shared_ptr<const Vector> f_grid)
-      : matpack::data_t<Scalar, 3>(t_grid->size(), f_grid->size(), n_stokes_coeffs),
+      : matpack::data_t<Numeric, 3>(t_grid->size(), f_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid) {
-    matpack::data_t<Scalar, 3>::operator=(0.0);
+    matpack::data_t<Numeric, 3>::operator=(0.0);
   }
 
-  ExtinctionMatrixData& operator=(const matpack::data_t<Scalar, 3>& data) {
+  ExtinctionMatrixData& operator=(const matpack::data_t<Numeric, 3>& data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided backscatter coefficient data do not match temperature grid.");
     ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
                        "Provided backscatter coefficient data do not match frequency grid.");
     ARTS_USER_ERROR_IF(data.shape()[2] != n_stokes_coeffs,
                        "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template data_t<Scalar, 3>::operator=(data);
+    this->template data_t<Numeric, 3>::operator=(data);
     return *this;
   }
 
@@ -93,28 +92,23 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @return A new extinction matrix data object containing only data required
-   * for the requested stokes dimensions.
+   * @return A copy: TRO extinction holds K11 only.
    */
-  ExtinctionMatrixData<Scalar, Format::TRO, repr> extract_stokes_coeffs() const {
-    ExtinctionMatrixData<Scalar, Format::TRO, repr> result(t_grid_, f_grid_);
-    result = this->operator()(joker, joker, result.n_stokes_coeffs);
-    return result;
-  }
+  ExtinctionMatrixData<Format::TRO, repr> extract_stokes_coeffs() const { return *this; }
 
-  ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral> to_spectral() const {
-    ExtinctionMatrixData<Scalar, Format::TRO, Representation::Spectral> emd_new{t_grid_, f_grid_};
-    reinterpret_cast<matpack::data_t<Scalar, 3>&>(emd_new) = *this;
+  ExtinctionMatrixData<Format::TRO, Representation::Spectral> to_spectral() const {
+    ExtinctionMatrixData<Format::TRO, Representation::Spectral> emd_new{t_grid_, f_grid_};
+    reinterpret_cast<matpack::data_t<Numeric, 3>&>(emd_new) = *this;
     return emd_new;
   }
 
-  ExtinctionMatrixData<Scalar, Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
-    ExtinctionMatrixData<Scalar, Format::ARO, repr> em_new{t_grid_, f_grid_, za_inc_grid};
-    auto                                            coeffs = em_new.get_coeff_vector_view();
+  ExtinctionMatrixData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
+    ExtinctionMatrixData<Format::ARO, repr> em_new{t_grid_, f_grid_, za_inc_grid};
+    auto                                    coeffs = em_new.get_coeff_vector_view();
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
         for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
-          coeffs[t_ind, f_ind, za_inc_ind] = typename ExtinctionMatrixData<Scalar, Format::ARO, repr>::CoeffVector{
+          coeffs[t_ind, f_ind, za_inc_ind] = typename ExtinctionMatrixData<Format::ARO, repr>::CoeffVector{
               this->operator[](t_ind, f_ind, 0), 0.0, 0.0};
         }
       }
@@ -153,8 +147,8 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
     return regrid(grids, weights);
   }
 
-  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> to_gridded() const {
-    auto new_ext = ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
+  ExtinctionMatrixData<Format::TRO, Representation::Gridded> to_gridded() const {
+    auto new_ext = ExtinctionMatrixData<Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
     new_ext      = *this;
     return new_ext;
   }
@@ -171,21 +165,20 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
   std::shared_ptr<const Vector> f_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr> class ExtinctionMatrixData<Scalar, Format::ARO, repr>
-    : public matpack::data_t<Scalar, 4> {
+template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr> : public matpack::data_t<Numeric, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::data_t<Scalar, 4>::resize;
-  using matpack::data_t<Scalar, 4>::reshape;
+  using matpack::data_t<Numeric, 4>::resize;
+  using matpack::data_t<Numeric, 4>::reshape;
 
  public:
   /// Spectral transform of this extinction matrix.
-  using ExtinctionMatrixDataSpectral = ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral>;
-  using ExtinctionMatrixDataLabFrame = ExtinctionMatrixData<Scalar, Format::ARO, Representation::Gridded>;
+  using ExtinctionMatrixDataSpectral = ExtinctionMatrixData<Format::ARO, Representation::Spectral>;
+  using ExtinctionMatrixDataLabFrame = ExtinctionMatrixData<Format::ARO, Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs = extinction::get_n_mat_elems(Format::ARO);
-  using CoeffVector                      = matpack::cdata_t<Scalar, n_stokes_coeffs>;
+  using CoeffVector                      = matpack::cdata_t<Numeric, n_stokes_coeffs>;
 
   ExtinctionMatrixData() {};
   /** Create a new ExtinctionMatrixData container.
@@ -202,17 +195,17 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
   ExtinctionMatrixData(std::shared_ptr<const Vector> t_grid,
                        std::shared_ptr<const Vector> f_grid,
                        std::shared_ptr<const Vector> za_inc_grid)
-      : matpack::data_t<Scalar, 4>(t_grid->size(), f_grid->size(), za_inc_grid->size(), n_stokes_coeffs),
+      : matpack::data_t<Numeric, 4>(t_grid->size(), f_grid->size(), za_inc_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid),
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid) {
-    matpack::data_t<Scalar, 4>::operator=(0.0);
+    matpack::data_t<Numeric, 4>::operator=(0.0);
   }
 
-  ExtinctionMatrixData& operator=(const matpack::data_t<Scalar, 4>& data) {
+  ExtinctionMatrixData& operator=(const matpack::data_t<Numeric, 4>& data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided backscatter coefficient data do not match temperature grid.");
     ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
@@ -221,7 +214,7 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
                        "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
     ARTS_USER_ERROR_IF(data.shape()[3] != n_stokes_coeffs,
                        "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template data_t<Scalar, 4>::operator=(data);
+    this->template data_t<Numeric, 4>::operator=(data);
     return *this;
   }
 
@@ -242,18 +235,19 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
    * @return A new extinction matrix data object containing only data required
    * for the requested stokes dimensions.
    */
-  PhaseMatrixData<Scalar, Format::TRO, Representation::Spectral> extract_stokes_coeffs() const {
-    ExtinctionMatrixData<Scalar, Format::ARO, repr> result(t_grid_, f_grid_, za_inc_grid_);
+  PhaseMatrixData<Format::TRO, Representation::Spectral> extract_stokes_coeffs() const {
+    ExtinctionMatrixData<Format::ARO, repr> result(t_grid_, f_grid_, za_inc_grid_);
     result = this->operator[](joker, joker, joker, result.n_stokes_coeffs);
     return result;
   }
 
-  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> to_spectral() const;
+  ExtinctionMatrixData<Format::ARO, Representation::Spectral> to_spectral() const;
 
   //! The same data, as the extinction matrix of azimuthal Fourier-mode optics (it has no azimuth dependence)
-  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Fourier> to_fourier() const {
-    ExtinctionMatrixData<Scalar, Format::ARO, Representation::Fourier> emd_new{t_grid_, f_grid_, za_inc_grid_};
-    reinterpret_cast<matpack::data_t<Scalar, 4>&>(emd_new) = reinterpret_cast<const matpack::data_t<Scalar, 4>&>(*this);
+  ExtinctionMatrixData<Format::ARO, Representation::Fourier> to_fourier() const {
+    ExtinctionMatrixData<Format::ARO, Representation::Fourier> emd_new{t_grid_, f_grid_, za_inc_grid_};
+    reinterpret_cast<matpack::data_t<Numeric, 4>&>(emd_new) =
+        reinterpret_cast<const matpack::data_t<Numeric, 4>&>(*this);
     return emd_new;
   }
 
@@ -297,8 +291,8 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
     return regrid(grids, weights);
   }
 
-  ExtinctionMatrixData<Numeric, Format::ARO, Representation::Gridded> to_gridded() const {
-    auto new_ext = ExtinctionMatrixData<Numeric, Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
+  ExtinctionMatrixData<Format::ARO, Representation::Gridded> to_gridded() const {
+    auto new_ext = ExtinctionMatrixData<Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
     new_ext      = *this;
     return new_ext;
   }
@@ -320,11 +314,11 @@ template <std::floating_point Scalar, Representation repr> class ExtinctionMatri
   std::shared_ptr<const Vector> za_inc_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr>
-ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral>
-ExtinctionMatrixData<Scalar, Format::ARO, repr>::to_spectral() const {
-  ExtinctionMatrixData<Scalar, Format::ARO, Representation::Spectral> emd_new{t_grid_, f_grid_, za_inc_grid_};
-  emd_new = reinterpret_cast<const matpack::data_t<Scalar, 4>&>(*this);
+template <Representation repr>
+ExtinctionMatrixData<Format::ARO, Representation::Spectral> ExtinctionMatrixData<Format::ARO, repr>::to_spectral()
+    const {
+  ExtinctionMatrixData<Format::ARO, Representation::Spectral> emd_new{t_grid_, f_grid_, za_inc_grid_};
+  emd_new = reinterpret_cast<const matpack::data_t<Numeric, 4>&>(*this);
   return emd_new;
 }
 

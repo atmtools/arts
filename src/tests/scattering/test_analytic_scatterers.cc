@@ -83,13 +83,13 @@ bool test_henyey_greenstein_frequencies() {
       const Numeric p = scattering * henyey_greenstein(g, c);
       for (auto [is, ref] :
            {std::pair{0, p}, std::pair{2, p}, std::pair{3, p * hg_ratio(c)}, std::pair{5, p * hg_ratio(c)}}) {
-        if (not close(pm[0, iv, i, is], ref, 1e-12)) {
-          std::cout << "f = " << f_grid[iv] << " Hz, F" << is << ": " << pm[0, iv, i, is] << " != " << ref << '\n';
+        if (not close(pm[0, iv, i].data[is], ref, 1e-12)) {
+          std::cout << "f = " << f_grid[iv] << " Hz, F" << is << ": " << pm[0, iv, i].data[is] << " != " << ref << '\n';
           return false;
         }
       }
-      if (pm[0, iv, i, 1] != 0.0 or pm[0, iv, i, 4] != 0.0) return false;
-      integral += 2.0 * Constant::pi * w[n - 1 - i] * pm[0, iv, i, 0];
+      if (pm[0, iv, i].F12() != 0.0 or pm[0, iv, i].F34() != 0.0) return false;
+      integral += 2.0 * Constant::pi * w[n - 1 - i] * pm[0, iv, i].F11();
     }
     if (not close(integral, scattering, 1e-12)) {
       std::cout << "f = " << f_grid[iv] << " Hz: the phase function integrates to " << integral << ", not "
@@ -111,7 +111,7 @@ bool check_lab_frame(const BulkScatteringProperties<Format::ARO, Representation:
     for (Size k = 0; k < delta_aa.size(); k++) {
       for (Size j = 0; j < za_scat.size(); j++) {
         const auto [f11, f12, f44] = f(cos_scattering_angle(za_inc[i], delta_aa[k], za_scat[j]));
-        const auto z               = [&](Index row, Index col) { return pm[0, 0, i, k, j, 4 * row + col]; };
+        const auto z               = [&](Index row, Index col) { return pm[0, 0, i, k, j][row, col]; };
         const bool ok              = close(z(0, 0), scale * f11, 1e-12) and close(z(3, 3), scale * f44, 1e-12) and
                                      close(std::hypot(z(0, 1), z(0, 2)), scale * std::abs(f12), 1e-12) and
                                      close(std::hypot(z(1, 0), z(2, 0)), scale * std::abs(f12), 1e-12);
@@ -169,7 +169,7 @@ bool test_henyey_greenstein_spectral() {
     Numeric                p_prev = 0.0, p_k = 1.0;  // P_{k-1}(c), P_k(c)
     for (Index k = 0; k <= degree; k++) {
       const Numeric y = std::sqrt((2.0 * static_cast<Numeric>(k) + 1.0) / (4.0 * Constant::pi)) * p_k;
-      for (Index i = 0; i < 4; i++) sum[i] += pm[0, k][i, i].real() * y;
+      for (Index i = 0; i < 4; i++) sum[i] += pm[0, k].expand()[i, i] * y;
       const Numeric p_next = ((2.0 * static_cast<Numeric>(k) + 1.0) * c * p_k - static_cast<Numeric>(k) * p_prev) /
                              static_cast<Numeric>(k + 1);
       p_prev               = p_k;
@@ -208,7 +208,7 @@ bool test_henyey_greenstein_backscatter() {
         Vector{delta_aa},
         std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{za})));
     Vector z(16);
-    for (Index e = 0; e < 16; e++) z[e] = (*bulk.phase_matrix)[0, 0, 0, 0, 0, e];
+    for (Index e = 0; e < 16; e++) z[e] = (*bulk.phase_matrix)[0, 0, 0, 0, 0].data[e];
     return z;
   };
 

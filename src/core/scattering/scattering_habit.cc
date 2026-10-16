@@ -67,25 +67,20 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   Index n_freqs = grids.f_grid->size();
   Index n_angs  = grid_size(*grids.za_scat_grid);
 
-  Tensor4 phase_matrix(n_freqs, n_angs, 4, 4);
-  Tensor3 extinction_matrix(n_freqs, 4, 4);
-  Matrix  absorption_vector(n_freqs, 4);
+  CompactPlanarMuelmatMatrix phase_matrix(n_freqs, n_angs, CompactPlanarMuelmat{});
+  Tensor3                    extinction_matrix(n_freqs, 4, 4);
+  Matrix                     absorption_vector(n_freqs, 4);
 
   for (Index part_ind = 0; part_ind < n_particles; ++part_ind) {
     try {
-      auto ssd =
-          std::get<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>>(particle_habit[part_ind]);
+      auto ssd = std::get<SingleScatteringData<Format::TRO, Representation::Gridded>>(particle_habit[part_ind]);
       for (Index f_ind = 0; f_ind < n_freqs; ++f_ind) {
-        // The scattering matrices at the two temperatures, weighted and expanded to the scattering-plane 4 x 4
+        // The scattering matrices at the two temperatures, weighted
         const std::array<std::pair<Numeric, Index>, 2> nodes{
             {{pnd[part_ind] * interp.fd[1], interp.idx}, {pnd[part_ind] * interp.fd[0], interp.idx + 1}}};
         for (Index ang_ind = 0; ang_ind < n_angs; ++ang_ind) {
-          for (const auto& [w, it] : nodes) {
-            const auto Z =
-                (w * rtepack::compact_planar_muelmat{ssd.phase_matrix.value()[it, f_ind, ang_ind, joker]}).expand();
-            for (Index i = 0; i < 4; ++i)
-              for (Index j = 0; j < 4; ++j) phase_matrix[f_ind, ang_ind, i, j] += Z[i, j];
-          }
+          for (const auto& [w, it] : nodes)
+            phase_matrix[f_ind, ang_ind] += w * ssd.phase_matrix.value()[it, f_ind, ang_ind];
         }
         // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
         for (const auto& [w, it] : nodes) {
@@ -109,29 +104,20 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   // Otherwise perform frequency interpolation.
   ArrayOfGridPos interp_weights;
   gridpos(interp_weights, *grids.f_grid, f_grid);
-  Tensor4 phase_matrix_new(n_freqs_new, n_angs, 4, 4);
-  Tensor3 extinction_matrix_new(n_freqs_new, 4, 4);
-  Matrix  absorption_vector_new(n_freqs_new, 4);
+  CompactPlanarMuelmatMatrix phase_matrix_new(n_freqs_new, n_angs, CompactPlanarMuelmat{});
+  Tensor3                    extinction_matrix_new(n_freqs_new, 4, 4);
+  Matrix                     absorption_vector_new(n_freqs_new, 4);
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     auto weights = interp_weights[f_ind];
     for (Index za_scat_ind = 0; za_scat_ind < n_angs; ++za_scat_ind) {
-      phase_matrix_new[f_ind, za_scat_ind, 0, 0] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 0, 0];
-      phase_matrix_new[f_ind, za_scat_ind, 0, 0] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 0, 0];
-      phase_matrix_new[f_ind, za_scat_ind, 0, 1] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 0, 1];
-      phase_matrix_new[f_ind, za_scat_ind, 0, 1] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 0, 1];
-      phase_matrix_new[f_ind, za_scat_ind, 1, 0] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 1, 0];
-      phase_matrix_new[f_ind, za_scat_ind, 1, 0] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 1, 0];
-      phase_matrix_new[f_ind, za_scat_ind, 1, 1] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 1, 1];
-      phase_matrix_new[f_ind, za_scat_ind, 1, 1] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 1, 1];
-      phase_matrix_new[f_ind, za_scat_ind, 2, 2] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 2, 2];
-      phase_matrix_new[f_ind, za_scat_ind, 2, 2] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 2, 2];
-      phase_matrix_new[f_ind, za_scat_ind, 2, 3] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 2, 3];
-      phase_matrix_new[f_ind, za_scat_ind, 2, 3] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 2, 3];
-      phase_matrix_new[f_ind, za_scat_ind, 3, 2] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 3, 2];
-      phase_matrix_new[f_ind, za_scat_ind, 3, 2] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 3, 2];
-      phase_matrix_new[f_ind, za_scat_ind, 3, 3] += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind, 3, 3];
-      phase_matrix_new[f_ind, za_scat_ind, 3, 3] += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind, 3, 3];
+      auto&       F  = phase_matrix_new[f_ind, za_scat_ind];
+      const auto& F0 = phase_matrix[weights.idx, za_scat_ind];
+      const auto& F1 = phase_matrix[weights.idx + 1, za_scat_ind];
+      for (Index i = 0; i < 6; ++i) {
+        F.data[i] += weights.fd[1] * F0.data[i];
+        F.data[i] += weights.fd[0] * F1.data[i];
+      }
     }
 
     for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
@@ -160,7 +146,7 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint&     
   for (Index i = 0; i < particle_habit.size(); ++i) {
     auto data = std::visit([&grids](const auto& ssd) { return ssd_to_tro_gridded(grids, ssd); }, particle_habit[i]);
     if (pnd[i] == 0.0) {
-      if (data.phase_matrix) std::fill_n(data.phase_matrix->data_handle(), data.phase_matrix->size(), Numeric{0.0});
+      if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
       std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
       std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
     } else {
@@ -203,7 +189,7 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded_derivative(const Atm
     auto data = std::visit([&grids](const auto& ssd) { return ssd_to_tro_gridded(grids, ssd); }, particle_habit[i]);
     const Numeric weight = derivative ? (*derivative)[i] : 0.0;
     if (weight == 0.0) {
-      if (data.phase_matrix) std::fill_n(data.phase_matrix->data_handle(), data.phase_matrix->size(), Numeric{0.0});
+      if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
       std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
       std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
     } else {
@@ -294,7 +280,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded(const AtmPoint&     
                                    std::make_shared<Vector>(za_inc_grid),
                                    std::make_shared<Vector>(delta_aa_grid),
                                    std::move(za_scat_grid));
-  using SSD  = SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>;
+  using SSD  = SingleScatteringData<Format::ARO, Representation::Gridded>;
   std::optional<BulkScatteringProperties<Format::ARO, Representation::Gridded>> result;
   for (Index i = 0; i < particle_habit.size(); ++i) {
     SSD data = std::visit([&grids](const auto& ssd) { return ssd_to_aro_gridded(grids, ssd); }, particle_habit[i]);
@@ -302,7 +288,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded(const AtmPoint&     
       // A laboratory-frame conversion can contain an indeterminate 0*NaN at
       // angular-coordinate poles.  An absent particle population is exactly
       // zero regardless of its single-particle coordinate representation.
-      if (data.phase_matrix) std::fill_n(data.phase_matrix->data_handle(), data.phase_matrix->size(), Numeric{0.0});
+      if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
       std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
       std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
     } else {
@@ -351,7 +337,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
     auto data = std::visit([&grids](const auto& ssd) { return ssd_to_aro_gridded(grids, ssd); }, particle_habit[i]);
     const Numeric weight = derivative ? (*derivative)[i] : 0.0;
     if (weight == 0.0) {
-      if (data.phase_matrix) std::fill_n(data.phase_matrix->data_handle(), data.phase_matrix->size(), Numeric{0.0});
+      if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
       std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
       std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
     } else {
@@ -429,13 +415,13 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
 namespace {
 /** Why particle i of a habit has no Legendre series, for the error message */
 std::string_view no_legendre_series(const ParticleData& data) {
-  if (std::holds_alternative<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>>(data))
+  if (std::holds_alternative<SingleScatteringData<Format::TRO, Representation::Gridded>>(data))
     return "it holds gridded TRO data; convert the habit with ParticleHabit.to_tro_spectral (or "
            "to_tro_spectral_with_report, which also reports how well the series represents the data)";
   return "it holds ARO data, whose phase matrix depends on more than the scattering angle";
 }
 
-using TroSpectralSSD = SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>;
+using TroSpectralSSD = SingleScatteringData<Format::TRO, Representation::Spectral>;
 
 /** The TRO Legendre series of particle i at the temperature and frequencies of grids, checked */
 TroSpectralSSD tro_series(const ParticleData& data, Index i, Index degree, const ScatteringDataGrids& grids) {
@@ -463,20 +449,14 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
       ScatteringDataGrids(std::make_shared<Vector>(Vector{point.temperature}), std::make_shared<Vector>(f_grid));
 
   const Index                 nf = f_grid.size();
-  ScatteringTroSpectralVector out{.phase_matrix      = SpecmatMatrix(nf, degree + 1, Specmat{0.0}),
+  ScatteringTroSpectralVector out{.phase_matrix = CompactPlanarMuelmatMatrix(nf, degree + 1, CompactPlanarMuelmat{}),
                                   .extinction_matrix = PropmatVector(nf, Propmat{}),
                                   .absorption_vector = StokvecVector(nf, Stokvec{})};
   for (Index i = 0; i < particle_habit.size(); ++i) {
     const auto ssd = tro_series(particle_habit[i], i, degree, grids);
     if (pnd[i] == 0.0) continue;
     for (Index iv = 0; iv < nf; ++iv) {
-      for (Index l = 0; l <= degree; ++l) {
-        // The scattering-plane Mueller matrix of each (real) coefficient
-        const auto coeffs = (*ssd.phase_matrix)[0, iv, l, joker];
-        const auto F      = pnd[i] * rtepack::compact_planar_muelmat{
-                                         coeffs | std::views::transform([](const Complex& x) { return x.real(); })};
-        (*out.phase_matrix)[iv, l] += Specmat{F.expand().data};
-      }
+      for (Index l = 0; l <= degree; ++l) { (*out.phase_matrix)[iv, l] += pnd[i] * (*ssd.phase_matrix)[0, iv, l]; }
       out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv, 0];
       out.absorption_vector[iv][0]  += pnd[i] * ssd.absorption_vector[0, iv, 0];
     }
@@ -526,7 +506,7 @@ ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& poin
       if (local.phase_matrix->get_degree() > tro->phase_matrix->get_degree()) std::swap(*tro, local);
       for (Size iv = 0; iv < f_ptr->size(); ++iv)
         for (Index l = 0; l <= local.phase_matrix->get_degree(); ++l)
-          for (Index e = 0; e < 6; ++e) (*tro->phase_matrix)[0, iv, l, e] += (*local.phase_matrix)[0, iv, l, e];
+          (*tro->phase_matrix)[0, iv, l] += (*local.phase_matrix)[0, iv, l];
       tro->extinction_matrix += local.extinction_matrix;
       tro->absorption_vector += local.absorption_vector;
     } else {
@@ -546,9 +526,9 @@ ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& poin
   }
   if (not result) {
     // Every particle is absent: zero optics on the requested grids
-    Bulk zero{PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc, za_scat, max_mode),
-              ExtinctionMatrixData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc),
-              AbsorptionVectorData<Numeric, Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc)};
+    Bulk zero{PhaseMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc, za_scat, max_mode),
+              ExtinctionMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc),
+              AbsorptionVectorData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc)};
     return zero;
   }
   return std::move(*result);

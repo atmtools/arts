@@ -74,19 +74,19 @@ void test_tro_backscatter_expansion() {
   const auto f_grid  = std::make_shared<const Vector>(Vector{100e9});
   const auto za_grid = std::make_shared<const Vector>(Vector{45.0, 90.0});
 
-  scattering::BackscatterMatrixData<Numeric, scattering::Format::TRO> compact(t_grid, f_grid);
-  for (Index i = 0; i < 6; ++i) compact[0, 0, i] = static_cast<Numeric>(i + 1);
-  const auto expected = rtepack::compact_planar_muelmat{compact[0, 0, joker]}.expand();
+  scattering::BackscatterMatrixData<scattering::Format::TRO> compact(t_grid, f_grid);
+  compact[0, 0]       = rtepack::compact_planar_muelmat{1.0, 2.0, 3.0, 4.0, 5.0, 6.0};
+  const auto expected = compact[0, 0].expand();
 
-  scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>    backscatter(compact, za_grid);
-  scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO> forwardscatter(compact, za_grid);
+  scattering::BackscatterMatrixData<scattering::Format::ARO>    backscatter(compact, za_grid);
+  scattering::ForwardscatterMatrixData<scattering::Format::ARO> forwardscatter(compact, za_grid);
   for (Index za = 0; za < 2; ++za) {
     for (Index i = 0; i < 4; ++i) {
       for (Index j = 0; j < 4; ++j) {
         const Numeric value = expected[i, j];
-        require(backscatter[0, 0, za, 4 * i + j] == value,
+        require(backscatter[0, 0, za][i, j] == value,
                 "TRO backscatter matrices must expand their six stored Mueller elements");
-        require(forwardscatter[0, 0, za, 4 * i + j] == value,
+        require(forwardscatter[0, 0, za][i, j] == value,
                 "TRO forwardscatter matrices must expand their six stored Mueller elements");
       }
     }
@@ -223,7 +223,7 @@ void test_rayleigh() {
 constexpr Numeric mie_frequency = Constant::speed_of_light / 0.951e-6;
 constexpr Index   mie_nodes     = 2000;
 
-using TroSeries = scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+using TroSeries = scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral>;
 
 //! The degree of the particle's Legendre series, converged to rounding for size parameter 1.65
 constexpr Index mie_degree = 40;
@@ -253,18 +253,16 @@ mie_case mie() {
   c.atm[prop] = 1e9;
 
   // a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
-  using Gridded =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded       = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral      = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
   const auto& gridded = std::get<Gridded>(habit[0]);
   c.series            = TroSeries(gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), mie_degree);
   Vector p(mie_degree + 1);
   for (Index i = 0; i < mie_nodes; i++) {
     Legendre::legendre_polynomials(p, x[i]);
     for (Index l = 0; l <= mie_degree; l++) {
-      const Numeric f = 2 * pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4 * pi)) * w[i] * p[l];
-      for (Index k = 0; k < 6; k++) c.series[0, 0, l, k] += f * (*gridded.phase_matrix)[0, 0, i, k];
+      const Numeric f    = 2 * pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4 * pi)) * w[i] * p[l];
+      c.series[0, 0, l] += f * (*gridded.phase_matrix)[0, 0, i];
     }
   }
   const Spectral spectral(gridded.properties,
@@ -301,10 +299,7 @@ rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_
       Vector{za_in},
       Vector{delta_aa},
       std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{za_out})));
-  rtepack::muelmat Z{0.0};
-  for (Index i = 0; i < 4; i++)
-    for (Index j = 0; j < 4; j++) Z[i, j] = (*bulk.phase_matrix)[0, 0, 0, 0, 0, 4 * i + j];
-  return Z;
+  return (*bulk.phase_matrix)[0, 0, 0, 0, 0];
 }
 
 //! The scattering matrix of the species at cos(Theta), via its TRO data at that exact angle
@@ -315,13 +310,9 @@ vdisort_test::tro_matrix tro_of(const mie_case& c, Numeric sign34 = 1.0) {
         Vector{mie_frequency},
         std::make_shared<scattering::ZenithAngleGrid>(
             scattering::IrregularZenithAngleGrid(Vector{Conversion::rad2deg(std::acos(cos_theta))})));
-    const auto& p = *bulk.phase_matrix;
-    return vdisort_test::tro_elements{.F11 = p[0, 0, 0, 0],
-                                      .F12 = p[0, 0, 0, 1],
-                                      .F22 = p[0, 0, 0, 2],
-                                      .F33 = p[0, 0, 0, 3],
-                                      .F34 = sign34 * p[0, 0, 0, 4],
-                                      .F44 = p[0, 0, 0, 5]};
+    const auto& p = (*bulk.phase_matrix)[0, 0, 0];
+    return vdisort_test::tro_elements{
+        .F11 = p.F11(), .F12 = p.F12(), .F22 = p.F22(), .F33 = p.F33(), .F34 = sign34 * p.F34(), .F44 = p.F44()};
   };
 }
 
@@ -417,7 +408,7 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
   const auto      f = vdisort::scattering_optics(c.spectral_species, c.atm, mie_frequency, mu, mu_in, NF, 1e-9);
 
   // sigma = 2 pi int F11 dx = sqrt(4 pi) a_0 of the series
-  const Numeric sigma = 1e9 * std::sqrt(4 * pi) * c.series[0, 0, 0, 0].real();
+  const Numeric sigma = 1e9 * std::sqrt(4 * pi) * c.series[0, 0, 0].F11();
 
   // Incidence at phi_k and scattering at 0, the convention of scattering_optics; 512 midpoints resolve the
   // modes of the series to rounding
@@ -595,7 +586,7 @@ void test_forward_peaked_hg() {
 
 //! V5: ARO particle data in VDISORT
 void test_aro_data() {
-  using ARO = scattering::SingleScatteringData<Numeric, scattering::Format::ARO, scattering::Representation::Gridded>;
+  using ARO      = scattering::SingleScatteringData<scattering::Format::ARO, scattering::Representation::Gridded>;
   const auto gas = rayleigh_species();
   const auto atm = air(9e4, 270.0);
   Vector     mu(4), inv(4), w(2);
@@ -627,9 +618,9 @@ void test_aro_data() {
                     pm,
                     bulk.extinction_matrix,
                     bulk.absorption_vector,
-                    scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>(
+                    scattering::BackscatterMatrixData<scattering::Format::ARO>(
                         pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()),
-                    scattering::ForwardscatterMatrixData<Numeric, scattering::Format::ARO>(
+                    scattering::ForwardscatterMatrixData<scattering::Format::ARO>(
                         pm.get_t_grid(), pm.get_f_grid(), pm.get_za_inc_grid()));
     const auto  prop = ScatteringSpeciesProperty{"aro", ParticulateProperty::NumberDensity};
     ArrayOfScatteringSpecies species;

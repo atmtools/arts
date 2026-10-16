@@ -27,23 +27,22 @@ constexpr Index get_n_mat_elems(Format format) {
 
 }  // namespace absorption
 
-template <std::floating_point Scalar, Format format, Representation representation> class AbsorptionVectorData;
+template <Format format, Representation representation> class AbsorptionVectorData;
 
-template <std::floating_point Scalar, Representation repr> class AbsorptionVectorData<Scalar, Format::TRO, repr>
-    : public matpack::data_t<Scalar, 3> {
+template <Representation repr> class AbsorptionVectorData<Format::TRO, repr> : public matpack::data_t<Numeric, 3> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::data_t<Scalar, 3>::resize;
-  using matpack::data_t<Scalar, 3>::reshape;
+  using matpack::data_t<Numeric, 3>::resize;
+  using matpack::data_t<Numeric, 3>::reshape;
 
  public:
-  using AbsorptionVectorDataLabFrame = AbsorptionVectorData<Scalar, Format::ARO, Representation::Gridded>;
+  using AbsorptionVectorDataLabFrame = AbsorptionVectorData<Format::ARO, Representation::Gridded>;
 
   constexpr static Index n_stokes_coeffs = absorption::get_n_mat_elems(Format::TRO);
-  using CoeffVector                      = matpack::cdata_t<Scalar, n_stokes_coeffs>;
+  using CoeffVector                      = matpack::cdata_t<Numeric, n_stokes_coeffs>;
 
-  using matpack::data_t<Scalar, 3>::operator[];
+  using matpack::data_t<Numeric, 3>::operator[];
 
   AbsorptionVectorData() {};
 
@@ -59,22 +58,22 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
    * data is defined.
    */
   AbsorptionVectorData(std::shared_ptr<const Vector> t_grid, std::shared_ptr<const Vector> f_grid)
-      : matpack::data_t<Scalar, 3>(t_grid->size(), f_grid->size(), n_stokes_coeffs),
+      : matpack::data_t<Numeric, 3>(t_grid->size(), f_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid) {
-    matpack::data_t<Scalar, 3>::operator=(0.0);
+    matpack::data_t<Numeric, 3>::operator=(0.0);
   }
 
-  AbsorptionVectorData& operator=(const matpack::data_t<Scalar, 3>& data) {
+  AbsorptionVectorData& operator=(const matpack::data_t<Numeric, 3>& data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided backscatter coefficient data do not match temperature grid.");
     ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
                        "Provided backscatter coefficient data do not match frequency grid.");
     ARTS_USER_ERROR_IF(data.shape()[2] != n_stokes_coeffs,
                        "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template data_t<Scalar, 3>::operator=(data);
+    this->template data_t<Numeric, 3>::operator=(data);
     return *this;
   }
 
@@ -89,23 +88,23 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
                                                 std::array<Index, 2>{this->extent(0), this->extent(1)})};
   }
 
-  AbsorptionVectorData<Scalar, Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
-    AbsorptionVectorData<Scalar, Format::ARO, repr> av_new{t_grid_, f_grid_, za_inc_grid};
-    auto                                            coeffs = av_new.get_coeff_vector_view();
+  AbsorptionVectorData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
+    AbsorptionVectorData<Format::ARO, repr> av_new{t_grid_, f_grid_, za_inc_grid};
+    auto                                    coeffs = av_new.get_coeff_vector_view();
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
         for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid->size(); ++za_inc_ind) {
-          coeffs[t_ind, f_ind, za_inc_ind] = typename AbsorptionVectorData<Scalar, Format::ARO, repr>::CoeffVector{
-              this->operator[](t_ind, f_ind, 0), 0.0};
+          coeffs[t_ind, f_ind, za_inc_ind] =
+              typename AbsorptionVectorData<Format::ARO, repr>::CoeffVector{this->operator[](t_ind, f_ind, 0), 0.0};
         }
       }
     }
     return av_new;
   }
 
-  AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> to_spectral() const {
-    AbsorptionVectorData<Scalar, Format::TRO, Representation::Spectral> avd_new(t_grid_, f_grid_);
-    reinterpret_cast<matpack::data_t<Scalar, 3>&>(avd_new) = *this;
+  AbsorptionVectorData<Format::TRO, Representation::Spectral> to_spectral() const {
+    AbsorptionVectorData<Format::TRO, Representation::Spectral> avd_new(t_grid_, f_grid_);
+    reinterpret_cast<matpack::data_t<Numeric, 3>&>(avd_new) = *this;
     return avd_new;
   }
 
@@ -140,8 +139,8 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
     return regrid(grids, weights);
   }
 
-  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> to_gridded() const {
-    auto abs_new = AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
+  AbsorptionVectorData<Format::TRO, Representation::Gridded> to_gridded() const {
+    auto abs_new = AbsorptionVectorData<Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
     abs_new      = *this;
     return abs_new;
   }
@@ -158,17 +157,16 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
   std::shared_ptr<const Vector> f_grid_;
 };
 
-template <std::floating_point Scalar, Representation repr> class AbsorptionVectorData<Scalar, Format::ARO, repr>
-    : public matpack::data_t<Scalar, 4> {
+template <Representation repr> class AbsorptionVectorData<Format::ARO, repr> : public matpack::data_t<Numeric, 4> {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::data_t<Scalar, 4>::resize;
-  using matpack::data_t<Scalar, 4>::reshape;
+  using matpack::data_t<Numeric, 4>::resize;
+  using matpack::data_t<Numeric, 4>::reshape;
 
  public:
   constexpr static Index n_stokes_coeffs = absorption::get_n_mat_elems(Format::ARO);
-  using CoeffVector                      = matpack::cdata_t<Scalar, n_stokes_coeffs>;
+  using CoeffVector                      = matpack::cdata_t<Numeric, n_stokes_coeffs>;
 
   AbsorptionVectorData() {};
   /** Create a new AbsorptionVectorData container.
@@ -185,17 +183,17 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
   AbsorptionVectorData(std::shared_ptr<const Vector> t_grid,
                        std::shared_ptr<const Vector> f_grid,
                        std::shared_ptr<const Vector> za_inc_grid)
-      : matpack::data_t<Scalar, 4>(t_grid->size(), f_grid->size(), za_inc_grid->size(), n_stokes_coeffs),
+      : matpack::data_t<Numeric, 4>(t_grid->size(), f_grid->size(), za_inc_grid->size(), n_stokes_coeffs),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
         f_grid_(f_grid),
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid) {
-    matpack::data_t<Scalar, 4>::operator=(0.0);
+    matpack::data_t<Numeric, 4>::operator=(0.0);
   }
 
-  AbsorptionVectorData& operator=(const matpack::data_t<Scalar, 4>& data) {
+  AbsorptionVectorData& operator=(const matpack::data_t<Numeric, 4>& data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided backscatter coefficient data do not match temperature grid.");
     ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
@@ -204,7 +202,7 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
                        "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
     ARTS_USER_ERROR_IF(data.shape()[3] != n_stokes_coeffs,
                        "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template data_t<Scalar, 4>::operator=(data);
+    this->template data_t<Numeric, 4>::operator=(data);
     return *this;
   }
 
@@ -220,16 +218,16 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
         std::array<Index, 3>{this->extent(0), this->extent(1), this->extent(2)})};
   }
 
-  AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> to_spectral() const {
-    AbsorptionVectorData<Scalar, Format::ARO, Representation::Spectral> avd_new(t_grid_, f_grid_, za_inc_grid_);
-    reinterpret_cast<matpack::data_t<Scalar, 4>&>(avd_new) = *this;
+  AbsorptionVectorData<Format::ARO, Representation::Spectral> to_spectral() const {
+    AbsorptionVectorData<Format::ARO, Representation::Spectral> avd_new(t_grid_, f_grid_, za_inc_grid_);
+    reinterpret_cast<matpack::data_t<Numeric, 4>&>(avd_new) = *this;
     return avd_new;
   }
 
   //! The same data, as the absorption vector of azimuthal Fourier-mode optics (it has no azimuth dependence)
-  AbsorptionVectorData<Scalar, Format::ARO, Representation::Fourier> to_fourier() const {
-    AbsorptionVectorData<Scalar, Format::ARO, Representation::Fourier> avd_new(t_grid_, f_grid_, za_inc_grid_);
-    reinterpret_cast<matpack::data_t<Scalar, 4>&>(avd_new) = *this;
+  AbsorptionVectorData<Format::ARO, Representation::Fourier> to_fourier() const {
+    AbsorptionVectorData<Format::ARO, Representation::Fourier> avd_new(t_grid_, f_grid_, za_inc_grid_);
+    reinterpret_cast<matpack::data_t<Numeric, 4>&>(avd_new) = *this;
     return avd_new;
   }
 
@@ -273,8 +271,8 @@ template <std::floating_point Scalar, Representation repr> class AbsorptionVecto
     return regrid(grids, weights);
   }
 
-  AbsorptionVectorData<Numeric, Format::ARO, Representation::Gridded> to_gridded() const {
-    auto abs_new = AbsorptionVectorData<Numeric, Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
+  AbsorptionVectorData<Format::ARO, Representation::Gridded> to_gridded() const {
+    auto abs_new = AbsorptionVectorData<Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
     abs_new      = *this;
     return abs_new;
   }

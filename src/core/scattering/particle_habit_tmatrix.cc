@@ -45,13 +45,13 @@ ParticleHabit ParticleHabit::tmatrix(const Vector&        t_grid,
   Vector za(angles);
   for (int i = 0; i < angles; ++i) za[i] = 180.0 * i / (angles - 1);
   auto angular_grid = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(za));
-  using SSD         = SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>;
+  using SSD         = SingleScatteringData<Format::TRO, Representation::Gridded>;
   std::vector<SSD> particles;
   particles.reserve(diameters.size());
   for (Numeric diameter : diameters) {
-    PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>      phase(temperatures, frequencies, angular_grid);
-    ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction(temperatures, frequencies);
-    AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption(temperatures, frequencies);
+    PhaseMatrixData<Format::TRO, Representation::Gridded>      phase(temperatures, frequencies, angular_grid);
+    ExtinctionMatrixData<Format::TRO, Representation::Gridded> extinction(temperatures, frequencies);
+    AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption(temperatures, frequencies);
     for (Size it = 0; it < t_grid.size(); ++it) {
       for (Size jf = 0; jf < f_grid.size(); ++jf) {
         const Complex m = refractive_index[it, jf];
@@ -70,14 +70,8 @@ ParticleHabit ParticleHabit::tmatrix(const Vector&        t_grid,
         absorption[it, jf, 0] = optical.extinction - optical.scattering;
         const Numeric factor  = optical.scattering / (4 * Constant::pi);
         for (int ia = 0; ia < angles; ++ia) {
-          const Muelmat& f = optical.phase[ia];
-          // Native TRO compact order: F11,F12,F22,F33,F34,F44.
-          phase[it, jf, ia, 0] = factor * f[0, 0];
-          phase[it, jf, ia, 1] = factor * f[0, 1];
-          phase[it, jf, ia, 2] = factor * f[1, 1];
-          phase[it, jf, ia, 3] = factor * f[2, 2];
-          phase[it, jf, ia, 4] = factor * f[2, 3];
-          phase[it, jf, ia, 5] = factor * f[3, 3];
+          const Muelmat& f  = optical.phase[ia];
+          phase[it, jf, ia] = factor * CompactPlanarMuelmat{f[0, 0], f[0, 1], f[1, 1], f[2, 2], f[2, 3], f[3, 3]};
         }
       }
     }

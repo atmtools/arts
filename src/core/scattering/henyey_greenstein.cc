@@ -59,11 +59,11 @@ Vector times_cos(const Vector& a) {
 
 /** Extinction, absorption and scattering coefficient per frequency, or their derivatives */
 struct Coefficients {
-  std::shared_ptr<const Vector>                                       t_grid;
-  std::shared_ptr<const Vector>                                       f_grid;
-  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction;
-  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption;
-  Vector                                                              scattering;
+  std::shared_ptr<const Vector>                              t_grid;
+  std::shared_ptr<const Vector>                              f_grid;
+  ExtinctionMatrixData<Format::TRO, Representation::Gridded> extinction;
+  AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption;
+  Vector                                                     scattering;
 
   explicit Coefficients(const Vector& f)
       : t_grid(std::make_shared<const Vector>(Vector{0.0})),
@@ -108,16 +108,14 @@ Coefficients coefficient_derivatives(const ExtSSACallback& ext_ssa_callback,
 BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(Coefficients                     c,
                                                                            Numeric                          g,
                                                                            std::shared_ptr<ZenithAngleGrid> za_grid) {
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase{c.t_grid, c.f_grid, za_grid};
-  const auto                                                     angles = grid_vector(*za_grid);
+  PhaseMatrixData<Format::TRO, Representation::Gridded> phase{c.t_grid, c.f_grid, za_grid};
+  const auto                                            angles = grid_vector(*za_grid);
   for (Size iv = 0; iv < c.f_grid->size(); ++iv) {
     for (Size ia = 0; ia < angles.size(); ++ia) {
       const Numeric theta = Conversion::deg2rad(angles[ia]);
       const Numeric p     = c.scattering[iv] * phase_function(g, theta);
-      phase[0, iv, ia, 0] = p;
-      phase[0, iv, ia, 2] = p;
-      phase[0, iv, ia, 3] = p * polarization_ratio(std::cos(theta));
-      phase[0, iv, ia, 5] = p * polarization_ratio(std::cos(theta));
+      const Numeric pf    = p * polarization_ratio(std::cos(theta));
+      phase[0, iv, ia]    = rtepack::compact_planar_muelmat{p, 0.0, p, pf, 0.0, pf};
     }
   }
   return {std::move(phase), std::move(c.extinction), std::move(c.absorption)};
@@ -125,17 +123,12 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(Coeff
 
 /** The scattering matrix at scattering angle theta [rad] as tro_lab_frame takes it, from the closed form */
 auto scattering_matrix(const Coefficients& c, Numeric g) {
-  return [&c, g](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+  return [&c, g](Numeric theta, rtepack::compact_planar_muelmat_matrix& scattering_matrix) {
     const Numeric p = phase_function(g, theta);
     const Numeric f = polarization_ratio(std::cos(theta));
     for (Size iv = 0; iv < c.f_grid->size(); ++iv) {
-      const Numeric z             = c.scattering[iv] * p;
-      scattering_matrix[0, iv, 0] = z;
-      scattering_matrix[0, iv, 1] = 0.0;
-      scattering_matrix[0, iv, 2] = z;
-      scattering_matrix[0, iv, 3] = z * f;
-      scattering_matrix[0, iv, 4] = 0.0;
-      scattering_matrix[0, iv, 5] = z * f;
+      const Numeric z          = c.scattering[iv] * p;
+      scattering_matrix[0, iv] = rtepack::compact_planar_muelmat{z, 0.0, z, z * f, 0.0, z * f};
     }
   };
 }
@@ -148,12 +141,12 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
     const Vector&                    delta_aa_grid,
     std::shared_ptr<ZenithAngleGrid> za_scat_grid) {
   auto za_inc = std::make_shared<const Vector>(za_inc_grid);
-  auto phase  = tro_lab_frame<Numeric>(c.t_grid,
-                                       c.f_grid,
-                                       za_inc,
-                                       std::make_shared<const Vector>(delta_aa_grid),
-                                       std::move(za_scat_grid),
-                                       scattering_matrix(c, g));
+  auto phase  = tro_lab_frame(c.t_grid,
+                              c.f_grid,
+                              za_inc,
+                              std::make_shared<const Vector>(delta_aa_grid),
+                              std::move(za_scat_grid),
+                              scattering_matrix(c, g));
   return {.phase_matrix      = std::move(phase),
           .extinction_matrix = c.extinction.to_lab_frame(za_inc),
           .absorption_vector = c.absorption.to_lab_frame(za_inc)};
@@ -181,9 +174,9 @@ ScatteringTroSpectralVector HenyeyGreensteinScatterer::get_bulk_scattering_prope
   auto t_grid     = std::make_shared<Vector>(Vector{0.0});
   auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
-  SpecmatMatrix pm(f_grid.size(), l + 1, Specmat(0.0));
-  PropmatVector emd(f_grid.size());
-  StokvecVector av(f_grid.size());
+  CompactPlanarMuelmatMatrix pm(f_grid.size(), l + 1, CompactPlanarMuelmat{});
+  PropmatVector              emd(f_grid.size());
+  StokvecVector              av(f_grid.size());
 
   // The coefficients of p and of p f on Y_k0 = sqrt((2 k + 1) / 4 pi) P_k(cos(Theta)), from
   // p = sum_k sqrt((2 k + 1) / 4 pi) g^k Y_k0 to degree l + 3, which the cos^3 term of f needs
@@ -199,10 +192,10 @@ ScatteringTroSpectralVector HenyeyGreensteinScatterer::get_bulk_scattering_prope
     const auto scattering_xsec   = extinction * ssa;
 
     for (Index ind = 0; ind <= l; ++ind) {
-      pm[f_ind, ind][0, 0] = f[ind] * scattering_xsec;
-      pm[f_ind, ind][1, 1] = f[ind] * scattering_xsec;
-      pm[f_ind, ind][2, 2] = f_pol[ind] * scattering_xsec;
-      pm[f_ind, ind][3, 3] = f_pol[ind] * scattering_xsec;
+      pm[f_ind, ind].F11() = f[ind] * scattering_xsec;
+      pm[f_ind, ind].F22() = f[ind] * scattering_xsec;
+      pm[f_ind, ind].F33() = f_pol[ind] * scattering_xsec;
+      pm[f_ind, ind].F44() = f_pol[ind] * scattering_xsec;
     }
 
     emd[f_ind].A() = extinction;
@@ -260,14 +253,14 @@ HenyeyGreensteinScatterer::get_bulk_scattering_properties_aro_fourier(const AtmP
   auto       za_inc = std::make_shared<const Vector>(za_inc_grid);
   Matrix     integral(1, f_grid.size());  // p integrates to 1, so the phase integral is the scattering coefficient
   integral[0, joker] = c.scattering;
-  auto phase         = tro_lab_frame_fourier_modes<Numeric>(
-      c.t_grid,
-      c.f_grid,
-      za_inc,
-      std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
-      max_mode,
-      integral,
-      scattering_matrix(c, g));
+  auto phase =
+      tro_lab_frame_fourier_modes(c.t_grid,
+                                  c.f_grid,
+                                  za_inc,
+                                  std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
+                                  max_mode,
+                                  integral,
+                                  scattering_matrix(c, g));
   return {.phase_matrix      = std::move(phase),
           .extinction_matrix = c.extinction.to_lab_frame(za_inc).to_fourier(),
           .absorption_vector = c.absorption.to_lab_frame(za_inc).to_fourier()};

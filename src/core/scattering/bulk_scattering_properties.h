@@ -9,11 +9,11 @@
 
 namespace scattering {
 
-template <Format format, Representation repr> using PhaseMatrix = PhaseMatrixData<Numeric, format, repr>;
+template <Format format, Representation repr> using PhaseMatrix = PhaseMatrixData<format, repr>;
 
-template <Format format, Representation repr> using ExtinctionMatrix = ExtinctionMatrixData<Numeric, format, repr>;
+template <Format format, Representation repr> using ExtinctionMatrix = ExtinctionMatrixData<format, repr>;
 
-template <Format format, Representation repr> using AbsorptionVector = AbsorptionVectorData<Numeric, format, repr>;
+template <Format format, Representation repr> using AbsorptionVector = AbsorptionVectorData<format, repr>;
 
 template <Format format, Representation repr> struct BulkScatteringProperties {
   std::optional<PhaseMatrix<format, repr>> phase_matrix;
@@ -80,7 +80,7 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
 //////////////////////////////////////////////////////////////////////////////
 
 struct BulkScatteringPropertiesTROGridded {
-  using PhaseMatrixVector      = Tensor4;
+  using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
   using ExtinctionMatrixVector = Tensor3;
   using AbsorptionVectorVector = Matrix;
 
@@ -100,7 +100,7 @@ struct BulkScatteringPropertiesTROGridded {
 //////////////////////////////////////////////////////////////////////////////
 
 struct BulkScatteringPropertiesTROSpectral {
-  using PhaseMatrixVector      = ComplexTensor4;
+  using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
   using ExtinctionMatrixVector = Tensor3;
   using AbsorptionVectorVector = Matrix;
 

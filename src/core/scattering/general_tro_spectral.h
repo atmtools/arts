@@ -6,27 +6,33 @@
 
 #include "bulk_scattering_properties.h"
 
+/** The bulk Legendre series of totally randomly oriented scatterers, as solvers take it
+ *
+ * phase_matrix [f, l] holds, for every frequency, the coefficient a_l on the
+ * orthonormal Y_l0 of each element of the scattering-plane phase matrix (see
+ * tro_legendre.h): a compact_planar_muelmat per degree l.
+ */
 struct ScatteringTroSpectralVector {
   using general_t = scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral>;
   using gridded_t = scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>;
 
-  std::optional<SpecmatMatrix> phase_matrix;
-  PropmatVector                extinction_matrix;
-  StokvecVector                absorption_vector;
+  std::optional<CompactPlanarMuelmatMatrix> phase_matrix;
+  PropmatVector                             extinction_matrix;
+  StokvecVector                             absorption_vector;
 
   ScatteringTroSpectralVector& operator+=(const ScatteringTroSpectralVector& other);
 
   [[nodiscard]]
-  static scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> to_general(
-      const SpecmatMatrix&, const std::shared_ptr<Vector>& f);
+  static scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const CompactPlanarMuelmatMatrix&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
-  static scattering::ExtinctionMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-  to_general(const PropmatVector&, const std::shared_ptr<Vector>& f);
+  static scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const PropmatVector&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
-  static scattering::AbsorptionVectorData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-  to_general(const StokvecVector&, const std::shared_ptr<Vector>&);
+  static scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const StokvecVector&, const std::shared_ptr<Vector>&);
 
   [[nodiscard]]
   general_t to_general(const std::shared_ptr<Vector>& f = nullptr) const;

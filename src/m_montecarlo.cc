@@ -238,11 +238,7 @@ Muelmat phase_weight(const ArrayOfScatteringSpecies& species,
   const auto bulk = species.get_bulk_scattering_properties_aro_gridded(
       atm, AscendingGrid{frequency}, Vector{incoming[0]}, Vector{delta_aa}, za);
   ARTS_USER_ERROR_IF(not bulk.phase_matrix, "MCGeneral failed to transform the phase matrix to the laboratory frame")
-  const auto flat = (*bulk.phase_matrix)[0, 0, 0, 0, 0, joker];
-  Muelmat    out{0.0};
-  for (Index i = 0; i < 4; ++i)
-    for (Index j = 0; j < 4; ++j) out[i, j] = flat[4 * i + j];
-  return (4.0 * Constant::pi / scattering_coefficient) * out;
+  return (4.0 * Constant::pi / scattering_coefficient) * (*bulk.phase_matrix)[0, 0, 0, 0, 0];
 }
 
 }  // namespace

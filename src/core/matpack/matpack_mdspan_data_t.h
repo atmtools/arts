@@ -375,6 +375,7 @@ using Tensor4 = matpack::data_t<Numeric, 4>;
 using Tensor5 = matpack::data_t<Numeric, 5>;
 using Tensor6 = matpack::data_t<Numeric, 6>;
 using Tensor7 = matpack::data_t<Numeric, 7>;
+using Tensor8 = matpack::data_t<Numeric, 8>;
 
 using ComplexVector  = matpack::data_t<Complex, 1>;
 using ComplexMatrix  = matpack::data_t<Complex, 2>;

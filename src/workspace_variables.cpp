@@ -473,8 +473,11 @@ The units are *spectral_rad_jac* per meter.
   wsv_data["spectral_phamat_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
+
+Each element is the coefficient on the orthonormal Y_l0 of the scattering-plane phase matrix
+[F11, F12, F22, F33, F34, F44] at one frequency and Legendre degree.
 )--",
-      .type = "SpecmatMatrix",
+      .type = "CompactPlanarMuelmatMatrix",
       .dims = {"NFREQ", "NLEGENDRE"},
   };
 
@@ -482,7 +485,7 @@ The units are *spectral_rad_jac* per meter.
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles along the propagation path using spectral representation
 )--",
-      .type       = "ArrayOfSpecmatMatrix",
+      .type       = "ArrayOfCompactPlanarMuelmatMatrix",
       .dims       = {"NPATH"},
       .inner_dims = {"NFREQ", "NLEGENDRE"},
   };

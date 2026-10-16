@@ -44,7 +44,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, f_grid);
 
   auto pm     = bulk_props.phase_matrix.value();
-  using SSD   = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using SSD   = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
   //pm_ref += 0.5 * std::get<SSD>(particle_habit[0]).phase_matrix.value()[2];
   auto em_ref = std::get<SSD>(particle_habit[0]).extinction_matrix;
@@ -61,7 +61,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Ensure relative errors are small.
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
-      Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
+      Numeric err = max_rel_error(pm[f_ind, ang_ind].expand(), pm_ref[1, f_ind, ang_ind].expand());
       if (err > 1e-3) return false;
     }
 
@@ -88,7 +88,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Ensure relative errors are small.
   Index f_ind = 1;
   for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
-    Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
+    Numeric err = max_rel_error(pm[f_ind, ang_ind].expand(), pm_ref[1, f_ind, ang_ind].expand());
     if (err > 1e-3) return false;
   }
 
@@ -143,7 +143,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, l);
 
   auto pm   = bulk_props.phase_matrix.value();
-  using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using SSD = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
 
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
   auto em_ref = std::get<SSD>(particle_habit[0]).extinction_matrix;
@@ -159,7 +159,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     for (Index coeff_ind = 0; coeff_ind < l; ++coeff_ind) {
-      Numeric err = max_rel_error(pm[f_ind, coeff_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, coeff_ind]));
+      Numeric err = max_rel_error(pm[f_ind, coeff_ind].expand(), pm_ref[1, f_ind, coeff_ind].expand());
       if (err > 1e-3) return false;
     }
 
@@ -182,7 +182,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Ensure relative errors are small.
   Index f_ind = 1;
   for (Index coeff_ind = 0; coeff_ind < l; ++coeff_ind) {
-    Numeric err = max_rel_error(pm[f_ind, coeff_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, coeff_ind]));
+    Numeric err = max_rel_error(pm[f_ind, coeff_ind].expand(), pm_ref[1, f_ind, coeff_ind].expand());
     if (err > 1e-3) return false;
   }
 

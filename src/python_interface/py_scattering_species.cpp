@@ -18,11 +18,10 @@
 
 namespace Python {
 
-template <typename Scalar> [[nodiscard]]
-auto bind_phase_matrix_data_tro_gridded(py::module_& m, const std::string& class_name) {
-  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::TRO, scattering::Representation::Gridded>;
+[[nodiscard]] static auto bind_phase_matrix_data_tro_gridded(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Gridded>;
 
-  py::class_<PMD, matpack::data_t<Scalar, 4>> s(m, class_name.c_str());
+  py::class_<PMD, CompactPlanarMuelmatTensor3> s(m, class_name.c_str());
   s.def(
        "__init__",
        [](PMD*                          self,
@@ -77,10 +76,9 @@ resolves it.)")
   return s;
 }
 
-template <typename Scalar> [[nodiscard]]
-auto bind_phase_matrix_data_tro_spectral(py::module_& m, const std::string& class_name) {
-  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::TRO, scattering::Representation::Spectral>;
-  py::class_<PMD, matpack::data_t<std::complex<Scalar>, 4>> s(m, class_name.c_str());
+[[nodiscard]] static auto bind_phase_matrix_data_tro_spectral(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral>;
+  py::class_<PMD, CompactPlanarMuelmatTensor3> s(m, class_name.c_str());
   s.def(py::init<>())
       //   .def(py::init<std::shared_ptr<const Vector>,
       //                 std::shared_ptr<const Vector>,
@@ -127,11 +125,10 @@ auto bind_phase_matrix_data_tro_spectral(py::module_& m, const std::string& clas
   return s;
 }
 
-template <typename Scalar> [[nodiscard]]
-auto bind_phase_matrix_data_aro_gridded(py::module_& m, const std::string& class_name) {
-  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Gridded>;
+[[nodiscard]] static auto bind_phase_matrix_data_aro_gridded(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<scattering::Format::ARO, scattering::Representation::Gridded>;
 
-  py::class_<PMD, matpack::data_t<Scalar, 6>> s(m, class_name.c_str());
+  py::class_<PMD, MuelmatTensor5> s(m, class_name.c_str());
   s.def(py::init<>())
       .def("to_fourier",
            &PMD::to_fourier,
@@ -140,11 +137,10 @@ auto bind_phase_matrix_data_aro_gridded(py::module_& m, const std::string& class
   return s;
 }
 
-template <typename Scalar> [[nodiscard]]
-auto bind_phase_matrix_data_aro_fourier(py::module_& m, const std::string& class_name) {
-  using PMD = scattering::PhaseMatrixData<Scalar, scattering::Format::ARO, scattering::Representation::Fourier>;
+[[nodiscard]] static auto bind_phase_matrix_data_aro_fourier(py::module_& m, const std::string& class_name) {
+  using PMD = scattering::PhaseMatrixData<scattering::Format::ARO, scattering::Representation::Fourier>;
 
-  py::class_<PMD, matpack::data_t<Scalar, 7>> s(m, class_name.c_str());
+  py::class_<PMD, MuelmatTensor6> s(m, class_name.c_str());
   s.def(py::init<>())
       .def("get_t_grid", &PMD::get_t_grid, "Temperature grid")
       .def("get_f_grid", &PMD::get_f_grid, "Frequency grid")
@@ -165,15 +161,15 @@ auto bind_phase_matrix_data_aro_fourier(py::module_& m, const std::string& class
       .def("to_fourier", &PMD::to_fourier, "max_mode"_a, "The modes truncated to a lower highest mode");
   s.doc() = R"(Azimuthal Fourier modes of a laboratory-frame phase matrix
 
-Data [t, f, za_inc, za_scat, m, 2, 16]: Z(Delta) = sum_m C_m cos(m Delta) + S_m sin(m Delta),
-with C at index 0 and S at index 1 of the sixth axis, and the 4 x 4 matrix row-major.)";
+Mueller matrices [t, f, za_inc, za_scat, m, 2]: Z(Delta) = sum_m C_m cos(m Delta) + S_m sin(m Delta),
+with C at index 0 and S at index 1 of the sixth axis; as an array [t, f, za_inc, za_scat, m, 2, 4, 4].)";
   return s;
 }
 
-template <typename Scalar, scattering::Representation repr> [[nodiscard]]
+template <scattering::Representation repr> [[nodiscard]]
 auto bind_absorption_vector_data_tro(py::module_& m, const std::string& name) {
-  using AVD = scattering::AbsorptionVectorData<Scalar, scattering::Format::TRO, repr>;
-  py::class_<AVD, matpack::data_t<Scalar, 3>> s(m, name.c_str());
+  using AVD = scattering::AbsorptionVectorData<scattering::Format::TRO, repr>;
+  py::class_<AVD, Tensor3> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(), "t_grid"_a, "f_grid"_a);
   //   .def("get_coeff_vector_view",
@@ -182,10 +178,10 @@ auto bind_absorption_vector_data_tro(py::module_& m, const std::string& name) {
   return s;
 }
 
-template <typename Scalar, scattering::Representation repr> [[nodiscard]]
+template <scattering::Representation repr> [[nodiscard]]
 auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
-  using AVD = scattering::AbsorptionVectorData<Scalar, scattering::Format::ARO, repr>;
-  py::class_<AVD, matpack::data_t<Scalar, 4>> s(m, name.c_str());
+  using AVD = scattering::AbsorptionVectorData<scattering::Format::ARO, repr>;
+  py::class_<AVD, Tensor4> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(),
            "t_grid"_a,
@@ -202,10 +198,10 @@ auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
   return s;
 }
 
-template <typename Scalar, scattering::Representation repr> [[nodiscard]]
+template <scattering::Representation repr> [[nodiscard]]
 auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
-  using EMD = scattering::ExtinctionMatrixData<Scalar, scattering::Format::TRO, repr>;
-  py::class_<EMD, matpack::data_t<Scalar, 3>> s(m, name.c_str());
+  using EMD = scattering::ExtinctionMatrixData<scattering::Format::TRO, repr>;
+  py::class_<EMD, Tensor3> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(), "t_grid"_a, "f_grid"_a);
   //   .def("get_coeff_vector_view",
@@ -219,10 +215,10 @@ auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
   return s;
 }
 
-template <typename Scalar, scattering::Representation repr> [[nodiscard]]
+template <scattering::Representation repr> [[nodiscard]]
 auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
-  using EMD = scattering::ExtinctionMatrixData<Scalar, scattering::Format::ARO, repr>;
-  py::class_<EMD, matpack::data_t<Scalar, 4>> s(m, name.c_str());
+  using EMD = scattering::ExtinctionMatrixData<scattering::Format::ARO, repr>;
+  py::class_<EMD, Tensor4> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(),
            "t_grid"_a,
@@ -239,27 +235,27 @@ auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
   return s;
 }
 
-template <typename Scalar, scattering::Format format, scattering::Representation repr> [[nodiscard]]
+template <scattering::Format format, scattering::Representation repr> [[nodiscard]]
 auto bind_single_scattering_data(py::module_& m, const std::string& name) {
-  using SSDClass = scattering::SingleScatteringData<Scalar, format, repr>;
+  using SSDClass = scattering::SingleScatteringData<format, repr>;
 
   py::class_<SSDClass> s(m, name.c_str());
-  //   s.def(py::init<scattering::PhaseMatrixData<Scalar, format, repr>,
-  //                  scattering::ExtinctionMatrixData<Scalar, format, repr>,
-  //                  scattering::AbsorptionVectorData<Scalar, format, repr>,
-  //                  scattering::BackscatterMatrixData<Scalar, format>,
-  //                  scattering::ForwardscatterMatrixData<Scalar, format>>(),
+  //   s.def(py::init<scattering::PhaseMatrixData<format, repr>,
+  //                  scattering::ExtinctionMatrixData<format, repr>,
+  //                  scattering::AbsorptionVectorData<format, repr>,
+  //                  scattering::BackscatterMatrixData<format>,
+  //                  scattering::ForwardscatterMatrixData<format>>(),
   //         "phase_matrix"_a,
   //         "extinction_matrix"_a,
   //         "absorption_vector"_a,
   //         "backscatter_matrix"_a,
   //         "forwardscatter_matrix"_a)
   //   s.def(py::init<scattering::ParticleProperties,
-  //                 scattering::PhaseMatrixData<Scalar, format, repr>,
-  //                 scattering::ExtinctionMatrixData<Scalar, format, repr>,
-  //                 scattering::AbsorptionVectorData<Scalar, format, repr>,
-  //                 scattering::BackscatterMatrixData<Scalar, format>,
-  //                 scattering::ForwardscatterMatrixData<Scalar, format>>(),
+  //                 scattering::PhaseMatrixData<format, repr>,
+  //                 scattering::ExtinctionMatrixData<format, repr>,
+  //                 scattering::AbsorptionVectorData<format, repr>,
+  //                 scattering::BackscatterMatrixData<format>,
+  //                 scattering::ForwardscatterMatrixData<format>>(),
   //        "properties"_a,
   //        "phase_matrix"_a,
   //        "extinction_matrix"_a,
@@ -320,7 +316,7 @@ void py_scattering_species(py::module_& m) try {
               "Absorption vector\n\n.. :class:`object`");
   stsv.def_static(
       "to_gridded",
-      [](const SpecmatMatrix& phase_matrix, const std::shared_ptr<Vector>& f) {
+      [](const CompactPlanarMuelmatMatrix& phase_matrix, const std::shared_ptr<Vector>& f) {
         if (f) { return ScatteringTroSpectralVector::to_general(phase_matrix, f).to_gridded(); }
 
         const Index nf = phase_matrix.nrows();
@@ -586,10 +582,13 @@ void py_scattering_species(py::module_& m) try {
 
   generic_interface(aoss);
 
-  bind_phase_matrix_data_tro_gridded<double>(m, "PhaseMatrixDataTROGridded4").doc()   = "Phase matrix data";
-  bind_phase_matrix_data_tro_spectral<double>(m, "PhaseMatrixDataTROSpectral4").doc() = "Phase matrix data";
-  bind_phase_matrix_data_aro_gridded<double>(m, "PhaseMatrixDataAROGridded4").doc()   = "Phase matrix data";
-  (void)bind_phase_matrix_data_aro_fourier<double>(m, "PhaseMatrixDataAROFourier4");
+  bind_phase_matrix_data_tro_gridded(m, "PhaseMatrixDataTROGridded4").doc() =
+      "Scattering-plane phase matrices [t, f, za_scat] of totally randomly oriented particles";
+  bind_phase_matrix_data_tro_spectral(m, "PhaseMatrixDataTROSpectral4").doc() =
+      "The Legendre series [t, f, l] of the scattering-plane phase matrix of totally randomly oriented particles";
+  bind_phase_matrix_data_aro_gridded(m, "PhaseMatrixDataAROGridded4").doc() =
+      "Laboratory-frame phase matrices [t, f, za_inc, delta_aa, za_scat] of azimuthally randomly oriented particles";
+  (void)bind_phase_matrix_data_aro_fourier(m, "PhaseMatrixDataAROFourier4");
 
   py::class_<scattering::LegendreReport>(m, "LegendreReport")
       .def_ro("reconstruction_error",
@@ -612,34 +611,31 @@ void py_scattering_species(py::module_& m) try {
               ":class:`Matrix`")
       .doc() = "How well a Legendre series represents gridded TRO scattering data";
 
-  bind_absorption_vector_data_tro<double, scattering::Representation::Gridded>(m, "AbsorptionVectorDataGriddedTRO4")
-      .doc() = "Absorption vector data";
-  bind_absorption_vector_data_tro<double, scattering::Representation::Spectral>(m, "AbsorptionVectorDataSpectralTRO4")
-      .doc() = "Absorption vector data";
-  bind_absorption_vector_data_aro<double, scattering::Representation::Gridded>(m, "AbsorptionVectorDataGriddedARO4")
-      .doc() = "Absorption vector data";
-  bind_absorption_vector_data_aro<double, scattering::Representation::Spectral>(m, "AbsorptionVectorDataSpectralARO4")
-      .doc() = "Absorption vector data";
+  bind_absorption_vector_data_tro<scattering::Representation::Gridded>(m, "AbsorptionVectorDataGriddedTRO4").doc() =
+      "Absorption vector data";
+  bind_absorption_vector_data_tro<scattering::Representation::Spectral>(m, "AbsorptionVectorDataSpectralTRO4").doc() =
+      "Absorption vector data";
+  bind_absorption_vector_data_aro<scattering::Representation::Gridded>(m, "AbsorptionVectorDataGriddedARO4").doc() =
+      "Absorption vector data";
+  bind_absorption_vector_data_aro<scattering::Representation::Spectral>(m, "AbsorptionVectorDataSpectralARO4").doc() =
+      "Absorption vector data";
 
-  bind_extinction_matrix_data_tro<double, scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedTRO4")
-      .doc() = "Extinction matrix data";
-  bind_extinction_matrix_data_tro<double, scattering::Representation::Spectral>(m, "ExtinctionMatrixDataSpectralTRO4")
-      .doc() = "Extinction matrix data";
-  bind_extinction_matrix_data_aro<double, scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedARO4")
-      .doc() = "Extinction matrix data";
-  bind_extinction_matrix_data_aro<double, scattering::Representation::Spectral>(m, "ExtinctionMatrixDataSpectralARO4")
-      .doc() = "Extinction matrix data";
+  bind_extinction_matrix_data_tro<scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedTRO4").doc() =
+      "Extinction matrix data";
+  bind_extinction_matrix_data_tro<scattering::Representation::Spectral>(m, "ExtinctionMatrixDataSpectralTRO4").doc() =
+      "Extinction matrix data";
+  bind_extinction_matrix_data_aro<scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedARO4").doc() =
+      "Extinction matrix data";
+  bind_extinction_matrix_data_aro<scattering::Representation::Spectral>(m, "ExtinctionMatrixDataSpectralARO4").doc() =
+      "Extinction matrix data";
 
   // ForwardscatterMatrixData is an alias of BackscatterMatrixData. Bind each
   // format once so both existing SSD endpoint properties are usable in Python.
-  py::class_<scattering::BackscatterMatrixData<Numeric, scattering::Format::TRO>, Tensor3>(m,
-                                                                                           "BackscatterMatrixDataTRO")
-      .doc() =
-      "Forward or backward TRO scattering data, with axes temperature, frequency, compact Mueller coefficient.";
-  py::class_<scattering::BackscatterMatrixData<Numeric, scattering::Format::ARO>, Tensor4>(m,
-                                                                                           "BackscatterMatrixDataARO")
-      .doc() =
-      "Forward or backward ARO scattering data, with axes temperature, frequency, incident zenith, Mueller coefficient.";
+  py::class_<scattering::BackscatterMatrixData<scattering::Format::TRO>, CompactPlanarMuelmatMatrix>(
+      m, "BackscatterMatrixDataTRO")
+      .doc() = "Forward or backward TRO scattering matrices [temperature, frequency].";
+  py::class_<scattering::BackscatterMatrixData<scattering::Format::ARO>, MuelmatTensor3>(m, "BackscatterMatrixDataARO")
+      .doc() = "Forward or backward ARO Mueller matrices [temperature, frequency, incident zenith].";
 
   py::class_<scattering::ParticleProperties>(m, "ParticleProperties")
       .def(py::init<>())
@@ -653,17 +649,17 @@ void py_scattering_species(py::module_& m) try {
       .def_rw("d_max", &scattering::ParticleProperties::d_max, "Max diameter\n\n.. :class:`float`")
       .doc() = "Particle properties";
 
-  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Gridded>(
+  bind_single_scattering_data<scattering::Format::TRO, scattering::Representation::Gridded>(
       m, "SingleScatteringDataTROGridded4")
       .doc() = "Single scattering data";
 
-  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Gridded>(
+  bind_single_scattering_data<scattering::Format::ARO, scattering::Representation::Gridded>(
       m, "SingleScatteringDataAROGridded1")
       .doc() = "Single scattering data";
-  bind_single_scattering_data<double, scattering::Format::TRO, scattering::Representation::Spectral>(
+  bind_single_scattering_data<scattering::Format::TRO, scattering::Representation::Spectral>(
       m, "SingleScatteringDataTROSpectral4")
       .doc() = "Single scattering data";
-  bind_single_scattering_data<double, scattering::Format::ARO, scattering::Representation::Spectral>(
+  bind_single_scattering_data<scattering::Format::ARO, scattering::Representation::Spectral>(
       m, "SingleScatteringDataAROSpectral1")
       .doc() = "Single scattering data";
 

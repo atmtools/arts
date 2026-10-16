@@ -39,12 +39,8 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   // c_l = a_l sqrt((2 l + 1) / 4 pi); each a_l is the scattering-plane Mueller matrix
   CompactPlanarMuelmatVector c(degree + 1);
-  for (Index l = 0; l <= degree; l++) {
-    const auto&   a = (*bulk.phase_matrix)[0, l];
-    const Numeric y = std::sqrt(static_cast<Numeric>(2 * l + 1) / (4.0 * Constant::pi));
-    c[l]            = y * CompactPlanarMuelmat{
-                              a[0, 0].real(), a[0, 1].real(), a[1, 1].real(), a[2, 2].real(), a[2, 3].real(), a[3, 3].real()};
-  }
+  for (Index l = 0; l <= degree; l++)
+    c[l] = std::sqrt(static_cast<Numeric>(2 * l + 1) / (4.0 * Constant::pi)) * (*bulk.phase_matrix)[0, l];
 
   // The scattering coefficient implied by the phase matrix, 2 pi int F11 dx
   const Numeric phase_integral = 4.0 * Constant::pi * c[0].F11();

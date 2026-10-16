@@ -324,8 +324,8 @@ void vdisort_settingsNoLegendre(VDisortSettings& vdisort_settings) {
   vdisort_settings.legendre_coefficients[joker, joker, 0, 0] = 1.0;
 }
 
-void vdisort_settingsLegendreCoefficientsFromPath(VDisortSettings&            vdisort_settings,
-                                                  const ArrayOfSpecmatMatrix& spectral_phamat_spectral_path) try {
+void vdisort_settingsLegendreCoefficientsFromPath(
+    VDisortSettings& vdisort_settings, const ArrayOfCompactPlanarMuelmatMatrix& spectral_phamat_spectral_path) try {
   ARTS_TIME_REPORT
 
   const Size  N = vdisort_settings.layer_count();
@@ -349,10 +349,6 @@ void vdisort_settingsLegendreCoefficientsFromPath(VDisortSettings&            vd
 
   vdisort_settings.legendre_coefficients.resize(F, N, L, 6);
 
-  // The six elements of the scattering-plane matrix [F11, F12, F22, F33, F34, F44] in the Mueller matrix of
-  // each coefficient on Y_l0
-  constexpr std::array<std::pair<Index, Index>, 6> element{{{0, 0}, {0, 1}, {1, 1}, {2, 2}, {2, 3}, {3, 3}}};
-
   Vector invfac(L);
   for (Index j = 0; j < L; j++) { invfac[j] = 1.0 / std::sqrt(2 * j + 1); }
 
@@ -361,10 +357,10 @@ void vdisort_settingsLegendreCoefficientsFromPath(VDisortSettings&            vd
     for (Index iv = 0; iv < F; iv++) {
       auto c = vdisort_settings.legendre_coefficients[iv, i];
       for (Index j = 0; j < L; j++) {
+        // The six elements [F11, F12, F22, F33, F34, F44] of each coefficient on Y_l0
         for (Index e = 0; e < 6; e++) {
-          const auto [r, k] = element[e];
-          c[j, e]           = invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j][r, k].real(),
-                                                        spectral_phamat_spectral_path[i + 1][iv, j][r, k].real());
+          c[j, e] = invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j].data[e],
+                                              spectral_phamat_spectral_path[i + 1][iv, j].data[e]);
         }
       }
 
