@@ -61,6 +61,8 @@ add_custom_target(pyarts
   ALL
   DEPENDS pyarts_cpp pyarts_cpp_stub pyarts_copy_python_source_files 
   COMMENT "Updating ARTS Python package")
+add_dependencies(check-deps pyarts)
+
 add_custom_target(pyarts-package
   ALL
   COMMAND ${Python_EXECUTABLE} -m build
