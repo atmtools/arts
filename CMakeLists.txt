@@ -340,6 +340,14 @@ endif ()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  # auto_isotopologues.h resolves each of its 340 species names at compile
+  # time with a linear constexpr scan over 2x120 string_views, about 1.09M
+  # steps for the whole array -- just past the default -fconstexpr-steps of
+  # 1048576.  GCC's equivalent -fconstexpr-ops-limit default (33.5M) and
+  # MSVC's /constexpr:steps default (100M) already cover it, so only Clang
+  # needs the headroom.  The margin is deliberately modest, a runaway
+  # constexpr loop still stops quickly.
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconstexpr-steps=4000000")
 endif ()
 
 ########### Warning flags ##########
