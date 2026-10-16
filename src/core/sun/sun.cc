@@ -20,6 +20,8 @@
 #include <physics_funcs.h>
 #include <xml_io_base.h>
 
+#include <algorithm>
+
 /*===========================================================================
   === The functions
   ===========================================================================*/
@@ -113,6 +115,26 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw, const Vector& 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a) {
   for (auto& x : a) os << x << '\n';
   return os;
+}
+
+bool Sun::bad_position() const {
+  return not(std::abs(latitude) <= 90 and std::abs(longitude) <= 360 and distance > 0 and radius >= 0);
+}
+
+void Sun::require_placeable() const {
+  ARTS_USER_ERROR_IF(bad_position(),
+                     "The sun cannot be placed in the sky of the planet:"
+                     " latitude {} deg, longitude {} deg, distance {} m, radius {} m.\n"
+                     "The latitude must be within [-90, 90] deg, the longitude within [-360, 360] deg,"
+                     " the distance positive and the radius non-negative.",
+                     latitude,
+                     longitude,
+                     distance,
+                     radius)
+}
+
+bool bad_suns(const ArrayOfSun& suns) {
+  return std::any_of(suns.begin(), suns.end(), [](const auto& sun) { return sun.bad_position(); });
 }
 
 /*! 
