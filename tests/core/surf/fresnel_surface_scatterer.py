@@ -45,7 +45,9 @@ spec = arts.SortedGriddedField1(
 def fresnel_amplitudes(n1, n2, za_deg):
     """Closed-form complex Fresnel amplitude coefficients (theta in degrees).
 
-    Mirrors physics_funcs.cc pair overload, including the TIR guard.
+    Mirrors the physics_funcs.cc pair overload.  The TIR branch is the exact
+    limit |Rv| = |Rh| = 1; the C++ reaches it only within a few ulp, via its
+    complex sqrt and division, so never bit-exactly.
     """
     th = math.radians(za_deg)
     sin2 = n1 * math.sin(th) / n2
@@ -189,10 +191,13 @@ props_t = sc_tir.get_surface_scattering_model_properties(
 brdf_t = np.array(props_t.brdf_matrix_specular)
 emiss_t = np.array(props_t.emissivity_vector_specular)
 # TIR => Rv = Rh = 1 => BRDF = identity muelmat (all-ones on the diagonal),
-# emissivity = 0
-assert float(brdf_t[0, 0, 0, 0, 0, 0, 0]) == 1.0
-assert float(brdf_t[0, 0, 0, 0, 0, 1, 0]) == 0.0
-assert abs(float(emiss_t[0, 0, 0, 0, 0])) < 1e-12
+# emissivity = 0.
+assert abs(float(brdf_t[0, 0, 0, 0, 0, 0, 0]) - 1.0) < 1e-12, (
+    "TIR BRDF[0,0] must be 1")
+assert abs(float(brdf_t[0, 0, 0, 0, 0, 1, 0])) < 1e-12, (
+    "TIR BRDF must not couple I and Q")
+assert abs(float(emiss_t[0, 0, 0, 0, 0])) < 1e-12, (
+    "TIR emissivity must be 0")
 print("Test 5 passed: total internal reflection")
 
 # ---------------------------------------------------------------------------
