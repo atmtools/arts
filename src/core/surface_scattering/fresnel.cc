@@ -19,9 +19,11 @@ Numeric za_fold(Numeric za) { return za <= 90.0 ? za : 180.0 - za; }
 //! Compute the Fresnel (specular) BRDF and complementary emissivity from a
 //! per-frequency real refractive-index pair (n1 constant, n2 varying).
 //!
-//! Uses the *pair* overload of fresnel() (physics_funcs.h) which carries the
-//! total-internal-reflection guard (|n1 sinθ1 / n2| > 1 -> {1,1}); the
-//! out-parameter overload lacks that guard.
+//! Uses the *pair* overload of fresnel() (physics_funcs.h).  Beyond the
+//! critical angle its complex sqrt makes both amplitudes unimodular, so total
+//! internal reflection gives a reflectance of 1 only up to a few ulp -- never
+//! bit-exactly, and with a libm-dependent residual.  Do not test it for exact
+//! equality.
 //!
 //! The BRDF matrix at a frequency depends only on the incoming zenith angle
 //! (degrees); the emissivity tensor (no incidence axis) is the energy
