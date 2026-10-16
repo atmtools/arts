@@ -28,6 +28,15 @@ std::set<SpeciesIsotopologueInfo> read_split_species(const std::filesystem::path
   return species_set;
 }
 
+/* The species of each entry is spelled as a "_spec" literal, not as
+ * SpeciesEnum::<name>.  The literal costs a linear constexpr scan over the
+ * 240 enum strings, which is why CMakeLists.txt raises Clang's
+ * -fconstexpr-steps.  The enumerator form looks cheaper, but it makes GCC
+ * 16.2.0 crash with an internal compiler error, a segfault deep in the
+ * recursive garbage-collector marking of gt_ggc_mx_lang_tree_node, while it
+ * compiles src/python_interface/py_predefined.cpp -- the heaviest binding TU
+ * in the build.  Reproduced on three independent Linux builders, see
+ * olemke/arts Actions run 38897484091. */
 void write_header(std::ostream& os, const std::set<SpeciesIsotopologueInfo>& data) {
   std::print(os,
              R"(#pragma once
