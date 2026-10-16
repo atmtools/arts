@@ -194,12 +194,13 @@ auto PhaseMatrixData<Format::ARO, Representation::Gridded>::to_spectral(std::sha
 
   PhaseMatrixDataSpectral result(t_grid_, f_grid_, za_inc_grid_, sht);
   const auto              elements = rtepack::elements(*this);
+  auto                    coeffs   = rtepack::elements(result);
 
   for (Index i_t = 0; i_t < n_temps_; ++i_t) {
     for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
       for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
         for (Index i_s = 0; i_s < 16; ++i_s) {
-          result[i_t, i_f, i_za_inc, joker, i_s] = sht->transform(elements[i_t, i_f, i_za_inc, joker, joker, i_s]);
+          coeffs[i_t, i_f, i_za_inc, joker, i_s] = sht->transform(elements[i_t, i_f, i_za_inc, joker, joker, i_s]);
         }
       }
     }
@@ -288,12 +289,13 @@ PhaseMatrixData<Format::ARO, Representation::Spectral>::to_fourier(std::shared_p
                                                                    Index max_mode) const {
   PhaseMatrixData<Format::ARO, Representation::Fourier> out(t_grid_, f_grid_, za_inc_grid_, za_scat_grid, max_mode);
   const Vector                                          za{grid_vector(*za_scat_grid)};
-  const Index                                           N = 2 * (sht_->get_m_max() + max_mode) + 2;
+  const Index                                           N        = 2 * (sht_->get_m_max() + max_mode) + 2;
+  const auto                                            elements = rtepack::elements(*this);
   for (Index i_t = 0; i_t < n_temps_; ++i_t) {
     for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
       for (Index i_i = 0; i_i < n_za_inc_; ++i_i) {
-        for (Index e = 0; e < n_stokes_coeffs; ++e) {
-          const auto coeffs = this->operator[](i_t, i_f, i_i, joker, e);
+        for (Index e = 0; e < 16; ++e) {
+          const auto coeffs = elements[i_t, i_f, i_i, joker, e];
           for (Size i_s = 0; i_s < za.size(); ++i_s) {
             const Numeric theta = Conversion::deg2rad(za[i_s]);
             for (Index k = 0; k < N; ++k) {

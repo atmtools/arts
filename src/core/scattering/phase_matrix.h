@@ -123,21 +123,6 @@ inline std::array<Numeric, 5> rotation_coefficients(Numeric aa_inc_d,
           static_cast<Numeric>(s_2)};
 }
 
-/** Number of stored phase matrix elements.
- *
- * Returns the number of phase matrix elements that are required for
- * a phase matrix in a given format and stokes dimension.
- *
- * @param format The phase matrix data format.
- * @return The number of elements that are required to be stored.
- */
-constexpr Index get_n_mat_elems(Format format) {
-  // Compact format used for phase matrix data in TRO format.
-  if (format == Format::TRO) { return 6; }
-  // All matrix elements stored for data in other formats.
-  return 16;
-}
-
 }  // namespace detail
 
 /// The grid over which the scattering data is defined.
@@ -1304,21 +1289,24 @@ PhaseMatrixData<Format::ARO, Representation::Gridded> tro_lab_frame(std::shared_
   return result;
 }
 
-template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
-    : public matpack::data_t<std::complex<Numeric>, 5> {
+/** The spherical-harmonic transform of the laboratory-frame phase matrix of an azimuthally randomly oriented scatterer
+ *
+ * The coefficients [t, f, za_inc, nlm] of the SHT over the scattering
+ * directions, a specmat per coefficient: the complex coefficients of the 16
+ * elements of the Mueller matrix.
+ */
+template <> class PhaseMatrixData<Format::ARO, Representation::Spectral> : public rtepack::specmat_tensor4 {
  private:
   // Hiding resize and reshape functions to avoid inconsistencies.
   // between grids and data.
-  using matpack::data_t<std::complex<Numeric>, 5>::resize;
-  using matpack::data_t<std::complex<Numeric>, 5>::reshape;
+  using rtepack::specmat_tensor4::reshape;
+  using rtepack::specmat_tensor4::resize;
 
  public:
   /// Spectral transform of this phase matrix.
   using PhaseMatrixDataGridded = PhaseMatrixData<Format::ARO, Representation::Gridded>;
-
-  /// The number of stokes coefficients.
-  static constexpr Index n_stokes_coeffs = detail::get_n_mat_elems(Format::ARO);
-  using CoeffVector                      = matpack::cdata_t<std::complex<Numeric>, n_stokes_coeffs>;
+  /// The tensor type used to store the phase matrix data.
+  using TensorType = rtepack::specmat_tensor4;
 
   PhaseMatrixData()                                   = default;
   PhaseMatrixData(const PhaseMatrixData &)            = default;
@@ -1345,8 +1333,8 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
                   std::shared_ptr<const Vector> f_grid,
                   std::shared_ptr<const Vector> za_inc_grid,
                   std::shared_ptr<SHT>          sht)
-      : matpack::data_t<std::complex<Numeric>, 5>(
-            t_grid->size(), f_grid->size(), za_inc_grid->size(), sht->get_n_spectral_coeffs(), n_stokes_coeffs),
+      : TensorType(
+            t_grid->size(), f_grid->size(), za_inc_grid->size(), sht->get_n_spectral_coeffs(), rtepack::specmat{0.0}),
         n_temps_(t_grid->size()),
         t_grid_(t_grid),
         n_freqs_(f_grid->size()),
@@ -1354,11 +1342,9 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
         n_za_inc_(za_inc_grid->size()),
         za_inc_grid_(za_inc_grid),
         n_spectral_coeffs_(sht->get_n_spectral_coeffs()),
-        sht_(sht) {
-    matpack::data_t<std::complex<Numeric>, 5>::operator=(0.0);
-  }
+        sht_(sht) {}
 
-  PhaseMatrixData &operator=(const matpack::data_t<std::complex<Numeric>, 5> &data) {
+  PhaseMatrixData &operator=(const TensorType &data) {
     ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
                        "Provided backscatter coefficient data do not match temperature grid.");
     ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
@@ -1367,22 +1353,8 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
                        "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
     ARTS_USER_ERROR_IF(data.shape()[3] != n_spectral_coeffs_,
                        "Provided backscatter coefficient data do not match expected number of SHT coefficients.");
-    ARTS_USER_ERROR_IF(data.shape()[4] != n_stokes_coeffs,
-                       "Provided backscatter coefficient data do not match expected number of stokes coefficients.");
-    this->template data_t<std::complex<Numeric>, 5>::operator=(data);
+    TensorType::operator=(data);
     return *this;
-  }
-
-  constexpr matpack::view_t<CoeffVector, 4> get_coeff_vector_view() {
-    return matpack::view_t<CoeffVector, 4>{matpack::mdview_t<CoeffVector, 4>(
-        reinterpret_cast<CoeffVector *>(this->data_handle()),
-        std::array<Index, 4>{this->extent(0), this->extent(1), this->extent(2), this->extent(3)})};
-  }
-
-  constexpr matpack::view_t<const CoeffVector, 4> get_const_coeff_vector_view() const {
-    return matpack::view_t<const CoeffVector, 4>{matpack::mdview_t<const CoeffVector, 4>(
-        reinterpret_cast<const CoeffVector *>(this->data_handle()),
-        std::array<Index, 4>{this->extent(0), this->extent(1), this->extent(2), this->extent(3)})};
   }
 
   std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
@@ -1411,13 +1383,13 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
   PhaseMatrixDataGridded to_gridded() const {
     PhaseMatrixDataGridded result(t_grid_, f_grid_, za_inc_grid_, sht_->get_aa_grid_ptr(), sht_->get_za_grid_ptr());
     auto                   elements = rtepack::elements(result);
+    const auto             coeffs   = rtepack::elements(*this);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            elements[i_t, i_f, i_za_inc, joker, joker, i_s] =
-                sht_->synthesize(this->operator[](i_t, i_f, i_za_inc, joker, i_s));
+          for (Index i_s = 0; i_s < 16; ++i_s) {
+            elements[i_t, i_f, i_za_inc, joker, joker, i_s] = sht_->synthesize(coeffs[i_t, i_f, i_za_inc, joker, i_s]);
           }
         }
       }
@@ -1432,15 +1404,17 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
   PhaseMatrixData to_spectral(Index l_new, Index m_new) const {
     auto            sht_new = sht::provider.get_instance_lm(l_new, m_new);
     PhaseMatrixData pm_new(t_grid_, f_grid_, za_inc_grid_, sht_new);
+    auto            coeffs_new = rtepack::elements(pm_new);
+    const auto      coeffs     = rtepack::elements(*this);
     for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
       for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
         for (Size za_inc_ind = 0; za_inc_ind < za_inc_grid_->size(); ++za_inc_ind) {
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            pm_new[t_ind, f_ind, za_inc_ind, joker, i_s] =
+          for (Index i_s = 0; i_s < 16; ++i_s) {
+            coeffs_new[t_ind, f_ind, za_inc_ind, joker, i_s] =
                 sht::add_coeffs(*sht_new,
-                                pm_new[t_ind, f_ind, za_inc_ind, joker, i_s],
+                                coeffs_new[t_ind, f_ind, za_inc_ind, joker, i_s],
                                 *sht_,
-                                (*this)[t_ind, f_ind, za_inc_ind, joker, i_s]);
+                                coeffs[t_ind, f_ind, za_inc_ind, joker, i_s]);
           }
         }
       }
@@ -1450,14 +1424,15 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
 
   BackscatterMatrixData<Format::ARO> extract_backscatter_matrix() const {
     BackscatterMatrixData<Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
+    const auto                         elements = rtepack::elements(*this);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
           auto    za_inc  = (*za_inc_grid_)[i_za_inc];
           Numeric za_scat = 180.0 - za_inc;
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            auto coeffs = this->operator[](i_t, i_f, i_za_inc, joker, i_s);
+          for (Index i_s = 0; i_s < 16; ++i_s) {
+            auto coeffs = elements[i_t, i_f, i_za_inc, joker, i_s];
             result[i_t, i_f, i_za_inc].data[i_s] =
                 sht_->evaluate(coeffs, Conversion::deg2rad(180.0), Conversion::deg2rad(za_scat));
           }
@@ -1469,13 +1444,14 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
 
   ForwardscatterMatrixData<Format::ARO> extract_forwardscatter_matrix() {
     BackscatterMatrixData<Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
+    const auto                         elements = rtepack::elements(*this);
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
           auto za_inc = (*za_inc_grid_)[i_za_inc];
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            auto coeffs = this->operator[](i_t, i_f, i_za_inc, joker, i_s);
+          for (Index i_s = 0; i_s < 16; ++i_s) {
+            auto coeffs = elements[i_t, i_f, i_za_inc, joker, i_s];
             result[i_t, i_f, i_za_inc].data[i_s] =
                 sht_->evaluate(coeffs, Conversion::deg2rad(0.0), Conversion::deg2rad(za_inc));
           }
@@ -1496,8 +1472,9 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
         for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-          for (Index i_s = 0; i_s < n_stokes_coeffs; ++i_s) {
-            results[i_t, i_f, i_za_inc].data[i_s] = this->operator[](i_t, i_f, i_za_inc, 0, i_s).real() * factor;
+          const rtepack::specmat &a_0 = this->operator[](i_t, i_f, i_za_inc, 0);
+          for (Index i_s = 0; i_s < 16; ++i_s) {
+            results[i_t, i_f, i_za_inc].data[i_s] = a_0.data[i_s].real() * factor;
           }
         }
       }
@@ -1507,29 +1484,14 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
 
   /** Extract single scattering data for given stokes dimension.
    *
-   * @return A new phase matrix data object containing only data required
-   * for the requested stokes dimensions.
+   * @return A copy: ARO data hold all sixteen elements.
    */
-  PhaseMatrixData<Format::ARO, Representation::Spectral> extract_stokes_coeffs() const {
-    PhaseMatrixData<Format::ARO, Representation::Spectral> result(t_grid_, f_grid_, za_inc_grid_, sht_);
-    for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-      for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-          for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-            for (Index i_s = 0; i_s < result.n_stokes_coeffs; ++i_s) {
-              result[i_t, i_f, i_za_inc, i_sht, i_s] = this->operator[](i_t, i_f, i_za_inc, i_sht, i_s);
-            }
-          }
-        }
-      }
-    }
-    return result;
-  }
+  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
   PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const {
-    PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
-    auto            coeffs_this = get_const_coeff_vector_view();
-    auto            coeffs_res  = result.get_coeff_vector_view();
+    PhaseMatrixData   result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
+    const TensorType &coeffs_this = *this;
+    TensorType       &coeffs_res  = result;
 
     for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
       GridPos     gp_t    = weights.t_grid_weights[i_t];
@@ -1548,7 +1510,7 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral>
           Numeric     w_za_inc_r   = gp_za_inc.fd[0];
 
           for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-            coeffs_res[i_t, i_f, i_za_inc, i_sht] = CoeffVector{};
+            coeffs_res[i_t, i_f, i_za_inc, i_sht] = rtepack::specmat{0.0};
           }
 
           if (w_t_l > 0.0) {

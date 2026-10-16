@@ -461,6 +461,7 @@ bool test_phase_matrix_aro() {
   // Test conversion between spectral and gridded format.
   //
   auto          phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
+  const auto    coeffs                = rtepack::elements(phase_matrix_spectral);
   ComplexVector coeffs_ref(phase_matrix_spectral.extent(3));
   for (Index i_t = 0; i_t < phase_matrix_spectral.extent(0); ++i_t) {
     for (Index i_f = 0; i_f < phase_matrix_spectral.extent(1); ++i_f) {
@@ -469,9 +470,9 @@ bool test_phase_matrix_aro() {
       coeffs_ref                             = std::complex<Numeric>(0.0, 0.0);
       coeffs_ref[sht->get_coeff_index(l, m)] = std::complex<Numeric>(1.0, 0.0);
       for (Index i_za_inc = 0; i_za_inc < phase_matrix_spectral.extent(2); ++i_za_inc) {
-        for (Index i_s = 0; i_s < phase_matrix_spectral.extent(4); ++i_s) {
-          Numeric err = max_error<ComplexVector>(
-              coeffs_ref, static_cast<ComplexVector>(phase_matrix_spectral[i_t, i_f, i_za_inc, joker, i_s]));
+        for (Index i_s = 0; i_s < 16; ++i_s) {
+          Numeric err =
+              max_error<ComplexVector>(coeffs_ref, static_cast<ComplexVector>(coeffs[i_t, i_f, i_za_inc, joker, i_s]));
           if (err > 1e-6) return false;
         }
       }
@@ -702,9 +703,12 @@ bool test_phase_matrix_regrid_aro() {
 
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<0>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
@@ -717,9 +721,12 @@ bool test_phase_matrix_regrid_aro() {
   err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<1>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along za_inc axis.
@@ -732,9 +739,12 @@ bool test_phase_matrix_regrid_aro() {
   err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<2>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along aa_scat axis.

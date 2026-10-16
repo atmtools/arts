@@ -46,8 +46,8 @@ void singleton_regridding() {
   // Only spectral regridding needs SHTNS; retain the gridded checks above
   // and the remaining regressions in builds without that optional backend.
   PhaseMatrixData<Format::ARO, Representation::Spectral> spectral(t, f, za, sht::provider.get_instance(1, 1));
-  std::fill_n(spectral.data_handle(), spectral.size(), Complex{6.0, 7.0});
-  constant(spectral.regrid(grids), Complex{6.0, 7.0});
+  rtepack::elements(spectral) = Complex{6.0, 7.0};
+  constant(rtepack::elements(spectral.regrid(grids)), Complex{6.0, 7.0});
 #endif
   // The Fourier modes are interpolated in temperature and frequency only
   PhaseMatrixData<Format::ARO, Representation::Fourier> fourier(t, f, za, scat, 2);

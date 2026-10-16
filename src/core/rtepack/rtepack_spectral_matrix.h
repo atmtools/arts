@@ -233,6 +233,10 @@ using specmat_matrix_const_view = matpack::view_t<const specmat, 2>;
 using specmat_tensor3            = matpack::data_t<specmat, 3>;
 using specmat_tensor3_view       = matpack::view_t<specmat, 3>;
 using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
+
+using specmat_tensor4            = matpack::data_t<specmat, 4>;
+using specmat_tensor4_view       = matpack::view_t<specmat, 4>;
+using specmat_tensor4_const_view = matpack::view_t<const specmat, 4>;
 }  // namespace rtepack
 
 template <> struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};
