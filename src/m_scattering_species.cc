@@ -78,9 +78,11 @@ Supporting variable sizes:
       freq_grid.size(),
       scattering_species.species.size())
 
-  spectral_propmat_scat    += extinction_matrix;
+  for (Size iv = 0; iv < freq_grid.size(); iv++) {
+    spectral_propmat_scat[iv] += extinction_matrix[iv].expand();
+    spectral_absvec_scat[iv]  += absorption_vector[iv].expand();
+  }
   spectral_phamat_spectral += phase_matrix;
-  spectral_absvec_scat     += absorption_vector;
 }
 ARTS_METHOD_ERROR_CATCH
 

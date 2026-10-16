@@ -134,7 +134,7 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get
   const auto angles = grid_vector(*za_scat_grid);
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const Numeric coefficient_per_m = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    extinction[0, iv, 0]            = coefficient_per_m;
+    extinction[0, iv].A()           = coefficient_per_m;
     for (Size ia = 0; ia < angles.size(); ++ia) {
       const auto normalized = normalized_phase_matrix(phase_matrix, Conversion::deg2rad(angles[ia]));
       phase[0, iv, ia]      = coefficient_per_m * normalized / (4.0 * Constant::pi);
@@ -162,8 +162,8 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
   ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be non-negative, is {}", degree)
 
   CompactPlanarMuelmatMatrix phase(f_grid.size(), degree + 1, CompactPlanarMuelmat{});
-  PropmatVector              extinction(f_grid.size());
-  StokvecVector              absorption(f_grid.size());
+  CompactPlanarPropmatVector extinction(f_grid.size());
+  CompactPlanarStokvecVector absorption(f_grid.size());
 
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const Numeric k    = scattering_coefficient(coefficient, f_grid[iv], atm_point);
@@ -221,8 +221,8 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
   AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
   Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 
   // The lab-frame phase matrix at the exact scattering angle of every direction pair
@@ -280,8 +280,8 @@ BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get
   AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
   Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 
   const auto closed_form = [&](Numeric theta, rtepack::compact_planar_muelmat_matrix& scattering_matrix) {
@@ -290,7 +290,7 @@ BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get
   };
   // F11 / scale integrates to 4 pi, so the phase integral is the scattering coefficient
   Matrix integral(1, f_grid.size());
-  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv, 0];
+  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv].A();
   auto phase =
       tro_lab_frame_fourier_modes(t_grid_ptr,
                                   f_grid_ptr,

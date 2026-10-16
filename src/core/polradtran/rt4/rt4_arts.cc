@@ -76,10 +76,10 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
     for (Index i = 0; i < n; i++) {
       const Index d = stream[h * n + i];
       for (Index s = 0; s < ns; s++) {
-        o.extinction[h, i, s, s] = ext[0, 0, d, 0];
-        o.absorption[h, i, s]    = abs[0, 0, d, s];
+        o.extinction[h, i, s, s] = ext[0, 0, d].A();
+        o.absorption[h, i, s]    = abs[0, 0, d].data[s];
       }
-      if (ns > 1) o.extinction[h, i, 0, 1] = o.extinction[h, i, 1, 0] = ext[0, 0, d, 1];
+      if (ns > 1) o.extinction[h, i, 0, 1] = o.extinction[h, i, 1, 0] = ext[0, 0, d].B();
     }
   }
 

@@ -128,7 +128,7 @@ k = 2 * np.pi * 100e9 / C
 contrast = (m * m - 1) / (m * m + 2)
 csca = 8 * np.pi / 3 * k**4 * r**6 * abs(contrast) ** 2
 cabs = 4 * np.pi * k * r**3 * contrast.imag
-np.testing.assert_allclose(np.asarray(ray.absorption_vector).item(), cabs, rtol=1e-4)
+np.testing.assert_allclose(np.asarray(ray.absorption_vector)[0, 0, 0], cabs, rtol=1e-4)
 mu = np.cos(np.linspace(0, np.pi, 181))
 expected = csca / (4 * np.pi) * 0.75 * (1 + mu * mu)
 np.testing.assert_allclose(

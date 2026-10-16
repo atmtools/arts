@@ -66,16 +66,13 @@ bool test_calculate_bulk_properties_tro_gridded() {
     }
 
     // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
-    const Numeric k11 = em_ref[1, f_ind, 0], a1 = av_ref[1, f_ind, 0];
-    for (Index i = 0; i < 4; ++i) {
-      for (Index j = 0; j < 4; ++j) {
-        const Numeric k = bulk_props.extinction_matrix[f_ind, i, j];
-        if (i == j ? std::abs((k - k11) / k11) > 1e-3 : k != 0.0) return false;
-      }
-    }
-    if (std::abs((bulk_props.absorption_vector[f_ind, 0] - a1) / a1) > 1e-3) return false;
-    for (Index i = 1; i < 4; ++i)
-      if (bulk_props.absorption_vector[f_ind, i] != 0.0) return false;
+    const Numeric k11 = em_ref[1, f_ind].A(), a1 = av_ref[1, f_ind].I();
+    const Propmat K = bulk_props.extinction_matrix[f_ind].expand();
+    if (std::abs((K.A() - k11) / k11) > 1e-3) return false;
+    if (K.B() != 0.0 or K.C() != 0.0 or K.D() != 0.0 or K.U() != 0.0 or K.V() != 0.0 or K.W() != 0.0) return false;
+    const Stokvec a = bulk_props.absorption_vector[f_ind].expand();
+    if (std::abs((a.I() - a1) / a1) > 1e-3) return false;
+    if (a.Q() != 0.0 or a.U() != 0.0 or a.V() != 0.0) return false;
   }
   return true;
 
@@ -92,13 +89,12 @@ bool test_calculate_bulk_properties_tro_gridded() {
     if (err > 1e-3) return false;
   }
 
-  for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-    Numeric ref      = em_ref[1, f_ind, stokes_ind];
-    Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind, stokes_ind, stokes_ind] - ref) / ref);
-    if (rel_diff > 1e-3) return false;
-  }
+  const Numeric ref      = em_ref[1, f_ind].A();
+  const Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].A() - ref) / ref);
+  if (rel_diff > 1e-3) return false;
 
-  Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
+  const Numeric a1  = av_ref[1, f_ind].I();
+  const Numeric err = std::abs((bulk_props.absorption_vector[f_ind].I() - a1) / a1);
   if (err > 1e-3) return false;
   return true;
 }
@@ -164,11 +160,11 @@ bool test_calculate_bulk_properties_tro_spectral() {
     }
 
     // TRO extinction and absorption have K11 and a1 only
-    const auto& K = bulk_props.extinction_matrix[f_ind];
-    if (std::abs((K.A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]) > 1e-3) return false;
+    const Propmat K = bulk_props.extinction_matrix[f_ind].expand();
+    if (std::abs((K.A() - em_ref[1, f_ind].A()) / em_ref[1, f_ind].A()) > 1e-3) return false;
     if (K.B() != 0.0 or K.C() != 0.0 or K.D() != 0.0 or K.U() != 0.0 or K.V() != 0.0 or K.W() != 0.0) return false;
-    const auto& a = bulk_props.absorption_vector[f_ind];
-    if (std::abs((a[0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3) return false;
+    const Stokvec a = bulk_props.absorption_vector[f_ind].expand();
+    if (std::abs((a[0] - av_ref[1, f_ind].I()) / av_ref[1, f_ind].I()) > 1e-3) return false;
     if (a[1] != 0.0 or a[2] != 0.0 or a[3] != 0.0) return false;
   }
   return true;
@@ -186,7 +182,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
     if (err > 1e-3) return false;
   }
 
-  if (std::abs((bulk_props.absorption_vector[f_ind][0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3)
+  if (std::abs((bulk_props.absorption_vector[f_ind].I() - av_ref[1, f_ind].I()) / av_ref[1, f_ind].I()) > 1e-3)
     return false;
   return true;
 }

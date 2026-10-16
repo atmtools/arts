@@ -64,11 +64,8 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
     auto za_grid     = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{za}));
     const auto bulk  = scattering_species.get_bulk_scattering_properties_aro_gridded(
         atm, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
-    particle_ext.A() = bulk.extinction_matrix[0, 0, 0, 0];
-    particle_ext.B() = bulk.extinction_matrix[0, 0, 0, 1];
-    particle_ext.W() = bulk.extinction_matrix[0, 0, 0, 2];
-    particle_abs.I() = bulk.absorption_vector[0, 0, 0, 0];
-    particle_abs.Q() = bulk.absorption_vector[0, 0, 0, 1];
+    particle_ext = bulk.extinction_matrix[0, 0, 0].expand();
+    particle_abs = bulk.absorption_vector[0, 0, 0].expand();
   }
 
   const Stokvec absorption = Stokvec{gas[0].A(), gas[0].B(), gas[0].C(), gas[0].D()} + particle_abs;

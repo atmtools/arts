@@ -77,9 +77,9 @@ Coefficients coefficients(const ExtSSACallback& ext_ssa_callback, const AtmPoint
   Coefficients out(f_grid);
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const auto [extinction, ssa] = ext_ssa_callback(f_grid[iv], atm_point);
-    out.extinction[0, iv, 0]     = extinction;
+    out.extinction[0, iv].A()    = extinction;
     out.scattering[iv]           = extinction * ssa;
-    out.absorption[0, iv, 0]     = extinction - out.scattering[iv];
+    out.absorption[0, iv].I()    = extinction - out.scattering[iv];
   }
   return out;
 }
@@ -98,8 +98,8 @@ Coefficients coefficient_derivatives(const ExtSSACallback& ext_ssa_callback,
   Coefficients out(f_grid);
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const auto [extinction, ssa] = ext_ssa_callback(f_grid[iv], atm_point);
-    out.extinction[0, iv, 0]     = d_ext ? 1.0 : 0.0;
-    out.absorption[0, iv, 0]     = d_ext ? 1.0 - ssa : (d_ssa ? -extinction : 0.0);
+    out.extinction[0, iv].A()    = d_ext ? 1.0 : 0.0;
+    out.absorption[0, iv].I()    = d_ext ? 1.0 - ssa : (d_ssa ? -extinction : 0.0);
     out.scattering[iv]           = d_ext ? ssa : (d_ssa ? extinction : 0.0);
   }
   return out;
@@ -175,8 +175,8 @@ ScatteringTroSpectralVector HenyeyGreensteinScatterer::get_bulk_scattering_prope
   auto f_grid_ptr = std::make_shared<Vector>(f_grid);
 
   CompactPlanarMuelmatMatrix pm(f_grid.size(), l + 1, CompactPlanarMuelmat{});
-  PropmatVector              emd(f_grid.size());
-  StokvecVector              av(f_grid.size());
+  CompactPlanarPropmatVector emd(f_grid.size());
+  CompactPlanarStokvecVector av(f_grid.size());
 
   // The coefficients of p and of p f on Y_k0 = sqrt((2 k + 1) / 4 pi) P_k(cos(Theta)), from
   // p = sum_k sqrt((2 k + 1) / 4 pi) g^k Y_k0 to degree l + 3, which the cos^3 term of f needs

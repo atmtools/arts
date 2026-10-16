@@ -24,8 +24,8 @@ bool test_constant_isotropic() {
                                      scattering::IsotropicGasScattering{}};
   auto bulk = gas.get_bulk_scattering_properties_tro_gridded(point, frequencies, std::move(angles));
 
-  if (not close(bulk.extinction_matrix[0, 0, 0], expected)) return false;
-  if (bulk.absorption_vector[0, 0, 0] != 0.0) return false;
+  if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
+  if (bulk.absorption_vector[0, 0].I() != 0.0) return false;
   for (Index ia = 0; ia < 3; ++ia) {
     for (Index is = 0; is < 6; ++is) {
       const Numeric normalized = (is == 0 or is == 2 or is == 3 or is == 5) ? 1.0 : 0.0;
@@ -53,7 +53,7 @@ bool test_air_simple_rayleigh() {
       inv_wavelength_sq * (4.6547659e-2 + inv_wavelength_sq * (4.5055995e-4 + inv_wavelength_sq * 2.3229848e-5));
   const Numeric expected =
       1e-32 * polynomial / Math::pow4(wavelength_um) * number_density(point.pressure, point.temperature);
-  if (not close(bulk.extinction_matrix[0, 0, 0], expected)) return false;
+  if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
 
   const Numeric scale = expected / (4.0 * Constant::pi);
   const Vector  at_90 = calc_rayleighPhaMat(Constant::pi / 2.0);

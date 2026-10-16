@@ -2,6 +2,8 @@
 
 #include "array.h"
 #include "rtepack_compact_planar_mueller_matrix.h"
+#include "rtepack_compact_planar_propagation_matrix.h"
+#include "rtepack_compact_planar_stokes_vector.h"
 #include "rtepack_jones_matrix.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
@@ -26,6 +28,28 @@ using CompactPlanarMuelmatTensor3          = rtepack::compact_planar_muelmat_ten
 using CompactPlanarMuelmatTensor3View      = rtepack::compact_planar_muelmat_tensor3_view;
 using CompactPlanarMuelmatConstTensor3View = rtepack::compact_planar_muelmat_tensor3_const_view;
 using ArrayOfCompactPlanarMuelmatMatrix    = Array<CompactPlanarMuelmatMatrix>;
+
+using CompactPlanarPropmat                 = rtepack::compact_planar_propmat;
+using CompactPlanarPropmatVector           = rtepack::compact_planar_propmat_vector;
+using CompactPlanarPropmatVectorView       = rtepack::compact_planar_propmat_vector_view;
+using CompactPlanarPropmatConstVectorView  = rtepack::compact_planar_propmat_vector_const_view;
+using CompactPlanarPropmatMatrix           = rtepack::compact_planar_propmat_matrix;
+using CompactPlanarPropmatMatrixView       = rtepack::compact_planar_propmat_matrix_view;
+using CompactPlanarPropmatConstMatrixView  = rtepack::compact_planar_propmat_matrix_const_view;
+using CompactPlanarPropmatTensor3          = rtepack::compact_planar_propmat_tensor3;
+using CompactPlanarPropmatTensor3View      = rtepack::compact_planar_propmat_tensor3_view;
+using CompactPlanarPropmatConstTensor3View = rtepack::compact_planar_propmat_tensor3_const_view;
+
+using CompactPlanarStokvec                 = rtepack::compact_planar_stokvec;
+using CompactPlanarStokvecVector           = rtepack::compact_planar_stokvec_vector;
+using CompactPlanarStokvecVectorView       = rtepack::compact_planar_stokvec_vector_view;
+using CompactPlanarStokvecConstVectorView  = rtepack::compact_planar_stokvec_vector_const_view;
+using CompactPlanarStokvecMatrix           = rtepack::compact_planar_stokvec_matrix;
+using CompactPlanarStokvecMatrixView       = rtepack::compact_planar_stokvec_matrix_view;
+using CompactPlanarStokvecConstMatrixView  = rtepack::compact_planar_stokvec_matrix_const_view;
+using CompactPlanarStokvecTensor3          = rtepack::compact_planar_stokvec_tensor3;
+using CompactPlanarStokvecTensor3View      = rtepack::compact_planar_stokvec_tensor3_view;
+using CompactPlanarStokvecConstTensor3View = rtepack::compact_planar_stokvec_tensor3_const_view;
 
 using Propmat                     = rtepack::propmat;
 using PropmatVector               = rtepack::propmat_vector;

@@ -31,11 +31,11 @@ void singleton_regridding() {
       check(std::abs(x - expected) < 1e-12, "Singleton interpolation must preserve constant coefficients");
   };
   AbsorptionVectorData<Format::ARO, Representation::Gridded> absorption(t, f, za);
-  std::fill_n(absorption.data_handle(), absorption.size(), 2.0);
-  constant(absorption.regrid(grids), 2.0);
+  rtepack::elements(absorption) = 2.0;
+  constant(rtepack::elements(absorption.regrid(grids)), 2.0);
   ExtinctionMatrixData<Format::ARO, Representation::Gridded> extinction(t, f, za);
-  std::fill_n(extinction.data_handle(), extinction.size(), 3.0);
-  constant(extinction.regrid(grids), 3.0);
+  rtepack::elements(extinction) = 3.0;
+  constant(rtepack::elements(extinction.regrid(grids)), 3.0);
   BackscatterMatrixData<Format::ARO> backscatter(t, f, za);
   rtepack::elements(backscatter) = 4.0;
   constant(rtepack::elements(backscatter.regrid(grids)), 4.0);

@@ -329,8 +329,8 @@ void test_path() {
       ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{[](const AtmPoint&, const Vector& f, Index degree) {
         ScatteringTroSpectralVector v{
             .phase_matrix      = CompactPlanarMuelmatMatrix(f.size(), degree + 1, CompactPlanarMuelmat{}),
-            .extinction_matrix = PropmatVector(f.size(), Propmat{1e-4}),
-            .absorption_vector = StokvecVector(f.size(), Stokvec{})};
+            .extinction_matrix = CompactPlanarPropmatVector(f.size(), CompactPlanarPropmat{1e-4}),
+            .absorption_vector = CompactPlanarStokvecVector(f.size(), CompactPlanarStokvec{})};
         for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0].F11() = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
         return v;
       }}});

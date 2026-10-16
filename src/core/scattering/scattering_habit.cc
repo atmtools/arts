@@ -68,8 +68,8 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   Index n_angs  = grid_size(*grids.za_scat_grid);
 
   CompactPlanarMuelmatMatrix phase_matrix(n_freqs, n_angs, CompactPlanarMuelmat{});
-  Tensor3                    extinction_matrix(n_freqs, 4, 4);
-  Matrix                     absorption_vector(n_freqs, 4);
+  CompactPlanarPropmatVector extinction_matrix(n_freqs, CompactPlanarPropmat{});
+  CompactPlanarStokvecVector absorption_vector(n_freqs, CompactPlanarStokvec{});
 
   for (Index part_ind = 0; part_ind < n_particles; ++part_ind) {
     try {
@@ -84,9 +84,8 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
         }
         // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
         for (const auto& [w, it] : nodes) {
-          for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind)
-            extinction_matrix[f_ind, stokes_ind, stokes_ind] += w * ssd.extinction_matrix[it, f_ind, 0];
-          absorption_vector[f_ind, 0] += w * ssd.absorption_vector[it, f_ind, 0];
+          extinction_matrix[f_ind].A() += w * ssd.extinction_matrix[it, f_ind].A();
+          absorption_vector[f_ind].I() += w * ssd.absorption_vector[it, f_ind].I();
         }
       }
     } catch (const std::bad_variant_access& e) {
@@ -105,8 +104,8 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   ArrayOfGridPos interp_weights;
   gridpos(interp_weights, *grids.f_grid, f_grid);
   CompactPlanarMuelmatMatrix phase_matrix_new(n_freqs_new, n_angs, CompactPlanarMuelmat{});
-  Tensor3                    extinction_matrix_new(n_freqs_new, 4, 4);
-  Matrix                     absorption_vector_new(n_freqs_new, 4);
+  CompactPlanarPropmatVector extinction_matrix_new(n_freqs_new, CompactPlanarPropmat{});
+  CompactPlanarStokvecVector absorption_vector_new(n_freqs_new, CompactPlanarStokvec{});
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     auto weights = interp_weights[f_ind];
@@ -120,14 +119,10 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
       }
     }
 
-    for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-      extinction_matrix_new[f_ind, stokes_ind, stokes_ind] +=
-          weights.fd[1] * extinction_matrix[weights.idx, stokes_ind, stokes_ind];
-      extinction_matrix_new[f_ind, stokes_ind, stokes_ind] +=
-          weights.fd[0] * extinction_matrix[weights.idx + 1, stokes_ind, stokes_ind];
-      absorption_vector_new[f_ind, stokes_ind] += weights.fd[1] * absorption_vector[weights.idx, stokes_ind];
-      absorption_vector_new[f_ind, stokes_ind] += weights.fd[0] * absorption_vector[weights.idx + 1, stokes_ind];
-    }
+    extinction_matrix_new[f_ind].A() += weights.fd[1] * extinction_matrix[weights.idx].A();
+    extinction_matrix_new[f_ind].A() += weights.fd[0] * extinction_matrix[weights.idx + 1].A();
+    absorption_vector_new[f_ind].I() += weights.fd[1] * absorption_vector[weights.idx].I();
+    absorption_vector_new[f_ind].I() += weights.fd[0] * absorption_vector[weights.idx + 1].I();
   }
   return BulkScatteringPropertiesTROGridded(phase_matrix_new, extinction_matrix_new, absorption_vector_new);
 }
@@ -147,8 +142,8 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint&     
     auto data = std::visit([&grids](const auto& ssd) { return ssd_to_tro_gridded(grids, ssd); }, particle_habit[i]);
     if (pnd[i] == 0.0) {
       if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
-      std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
-      std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
+      rtepack::elements(data.extinction_matrix) = 0.0;
+      rtepack::elements(data.absorption_vector) = 0.0;
     } else {
       if (data.phase_matrix) *data.phase_matrix *= pnd[i];
       data.extinction_matrix *= pnd[i];
@@ -190,8 +185,8 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded_derivative(const Atm
     const Numeric weight = derivative ? (*derivative)[i] : 0.0;
     if (weight == 0.0) {
       if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
-      std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
-      std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
+      rtepack::elements(data.extinction_matrix) = 0.0;
+      rtepack::elements(data.absorption_vector) = 0.0;
     } else {
       if (data.phase_matrix) *data.phase_matrix *= weight;
       data.extinction_matrix *= weight;
@@ -289,8 +284,8 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded(const AtmPoint&     
       // angular-coordinate poles.  An absent particle population is exactly
       // zero regardless of its single-particle coordinate representation.
       if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
-      std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
-      std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
+      rtepack::elements(data.extinction_matrix) = 0.0;
+      rtepack::elements(data.absorption_vector) = 0.0;
     } else {
       if (data.phase_matrix) *data.phase_matrix *= pnd[i];
       data.extinction_matrix *= pnd[i];
@@ -338,8 +333,8 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
     const Numeric weight = derivative ? (*derivative)[i] : 0.0;
     if (weight == 0.0) {
       if (data.phase_matrix) rtepack::elements(*data.phase_matrix) = 0.0;
-      std::fill_n(data.extinction_matrix.data_handle(), data.extinction_matrix.size(), Numeric{0.0});
-      std::fill_n(data.absorption_vector.data_handle(), data.absorption_vector.size(), Numeric{0.0});
+      rtepack::elements(data.extinction_matrix) = 0.0;
+      rtepack::elements(data.absorption_vector) = 0.0;
     } else {
       if (data.phase_matrix) *data.phase_matrix *= weight;
       data.extinction_matrix *= weight;
@@ -450,15 +445,15 @@ ScatteringTroSpectralVector ScatteringHabit::get_bulk_scattering_properties_tro_
 
   const Index                 nf = f_grid.size();
   ScatteringTroSpectralVector out{.phase_matrix = CompactPlanarMuelmatMatrix(nf, degree + 1, CompactPlanarMuelmat{}),
-                                  .extinction_matrix = PropmatVector(nf, Propmat{}),
-                                  .absorption_vector = StokvecVector(nf, Stokvec{})};
+                                  .extinction_matrix = CompactPlanarPropmatVector(nf, CompactPlanarPropmat{}),
+                                  .absorption_vector = CompactPlanarStokvecVector(nf, CompactPlanarStokvec{})};
   for (Index i = 0; i < particle_habit.size(); ++i) {
     const auto ssd = tro_series(particle_habit[i], i, degree, grids);
     if (pnd[i] == 0.0) continue;
     for (Index iv = 0; iv < nf; ++iv) {
       for (Index l = 0; l <= degree; ++l) { (*out.phase_matrix)[iv, l] += pnd[i] * (*ssd.phase_matrix)[0, iv, l]; }
-      out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv, 0];
-      out.absorption_vector[iv][0]  += pnd[i] * ssd.absorption_vector[0, iv, 0];
+      out.extinction_matrix[iv].A() += pnd[i] * ssd.extinction_matrix[0, iv].A();
+      out.absorption_vector[iv].I() += pnd[i] * ssd.absorption_vector[0, iv].I();
     }
   }
   return out;

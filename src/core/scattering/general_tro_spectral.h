@@ -10,15 +10,16 @@
  *
  * phase_matrix [f, l] holds, for every frequency, the coefficient a_l on the
  * orthonormal Y_l0 of each element of the scattering-plane phase matrix (see
- * tro_legendre.h): a compact_planar_muelmat per degree l.
+ * tro_legendre.h): a compact_planar_muelmat per degree l.  extinction_matrix
+ * [f] and absorption_vector [f] hold K11 as A and a1 as I.
  */
 struct ScatteringTroSpectralVector {
   using general_t = scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral>;
   using gridded_t = scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>;
 
   std::optional<CompactPlanarMuelmatMatrix> phase_matrix;
-  PropmatVector                             extinction_matrix;
-  StokvecVector                             absorption_vector;
+  CompactPlanarPropmatVector                extinction_matrix;
+  CompactPlanarStokvecVector                absorption_vector;
 
   ScatteringTroSpectralVector& operator+=(const ScatteringTroSpectralVector& other);
 
@@ -28,11 +29,11 @@ struct ScatteringTroSpectralVector {
 
   [[nodiscard]]
   static scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
-      const PropmatVector&, const std::shared_ptr<Vector>& f);
+      const CompactPlanarPropmatVector&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
   static scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
-      const StokvecVector&, const std::shared_ptr<Vector>&);
+      const CompactPlanarStokvecVector&, const std::shared_ptr<Vector>&);
 
   [[nodiscard]]
   general_t to_general(const std::shared_ptr<Vector>& f = nullptr) const;

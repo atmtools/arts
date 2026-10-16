@@ -74,8 +74,8 @@ bool test_henyey_greenstein_frequencies() {
   const auto& pm = *bulk.phase_matrix;
   for (Index iv = 0; iv < 3; iv++) {
     const Numeric scattering = ext(f_grid[iv]) * ssa(f_grid[iv]);
-    if (not close(bulk.extinction_matrix[0, iv, 0], ext(f_grid[iv]), 1e-14)) return false;
-    if (not close(bulk.absorption_vector[0, iv, 0], ext(f_grid[iv]) - scattering, 1e-14)) return false;
+    if (not close(bulk.extinction_matrix[0, iv].A(), ext(f_grid[iv]), 1e-14)) return false;
+    if (not close(bulk.absorption_vector[0, iv].I(), ext(f_grid[iv]) - scattering, 1e-14)) return false;
 
     Numeric integral = 0.0;
     for (Index i = 0; i < n; i++) {
@@ -143,8 +143,8 @@ bool test_henyey_greenstein_lab_frame() {
   const auto bulk = hg.get_bulk_scattering_properties_aro_gridded(point, Vector{1e9}, za_inc, delta_aa, za_scat_grid());
   if (not check_lab_frame(bulk, 2e-3 * 0.7, f, "HG")) return false;
   for (Size i = 0; i < za_inc.size(); i++) {
-    if (not close(bulk.extinction_matrix[0, 0, i, 0], 2e-3, 1e-14)) return false;
-    if (not close(bulk.absorption_vector[0, 0, i, 0], 2e-3 * 0.3, 1e-14)) return false;
+    if (not close(bulk.extinction_matrix[0, 0, i].A(), 2e-3, 1e-14)) return false;
+    if (not close(bulk.absorption_vector[0, 0, i].I(), 2e-3 * 0.3, 1e-14)) return false;
   }
 
   const auto d_ext = hg.get_bulk_scattering_properties_aro_gridded_derivative(
@@ -235,7 +235,7 @@ bool test_rayleigh_lab_frame() {
 
   const auto bulk =
       gas.get_bulk_scattering_properties_aro_gridded(point, Vector{6e14}, za_inc, delta_aa, za_scat_grid());
-  const Numeric k = bulk.extinction_matrix[0, 0, 0, 0];
+  const Numeric k = bulk.extinction_matrix[0, 0, 0].A();
   if (not check_lab_frame(bulk, k / (4.0 * Constant::pi), rayleigh, "Rayleigh")) return false;
 
   const auto d_p = gas.get_bulk_scattering_properties_aro_gridded_derivative(

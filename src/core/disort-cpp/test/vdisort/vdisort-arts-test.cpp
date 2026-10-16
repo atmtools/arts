@@ -612,8 +612,8 @@ void test_aro_data() {
         streams,
         delta,
         std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
-    bulk.extinction_matrix[0, 0, 1, 0] *= 1.0 + extinction_change;
-    const auto& pm                      = *bulk.phase_matrix;
+    bulk.extinction_matrix[0, 0, 1].A() *= 1.0 + extinction_change;
+    const auto& pm                       = *bulk.phase_matrix;
     ARO         ssd(scattering::ParticleProperties{.name = "rayleigh", .mass = 1e-12, .d_veq = 1e-6, .d_max = 1e-6},
                     pm,
                     bulk.extinction_matrix,

@@ -35,7 +35,7 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const auto bulk =
       scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
   const Numeric extinction = bulk.extinction_matrix[0].A();
-  const Numeric scattering = extinction - bulk.absorption_vector[0][0];
+  const Numeric scattering = extinction - bulk.absorption_vector[0].I();
 
   // c_l = a_l sqrt((2 l + 1) / 4 pi); each a_l is the scattering-plane Mueller matrix
   CompactPlanarMuelmatVector c(degree + 1);

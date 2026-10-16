@@ -95,8 +95,8 @@ template <Format format, Representation repr> struct SingleScatteringData {
             rtepack::compact_planar_muelmat{optical[requested_angles.size(), joker]};
         backscatter_matrix[temp_ind, freq_ind] =
             rtepack::compact_planar_muelmat{optical[requested_angles.size() + 1, joker]};
-        extinction_matrix[temp_ind, freq_ind] = sphere.get_extinction_coeff();
-        absorption_vector[temp_ind, freq_ind] = sphere.get_absorption_coeff();
+        extinction_matrix[temp_ind, freq_ind].A() = sphere.get_extinction_coeff();
+        absorption_vector[temp_ind, freq_ind].I() = sphere.get_absorption_coeff();
       }
     }
 
@@ -131,12 +131,8 @@ template <Format format, Representation repr> struct SingleScatteringData {
           phase_matrix[i_t, i_f, i_za_scat] =
               rtepack::compact_planar_muelmat{ssd.pha_mat_data[i_f, i_t, i_za_scat, 0, 0, 0, Range{0, 6}]};
         }
-        for (Index i_s = 0; i_s < absorption_vector.n_stokes_coeffs; ++i_s) {
-          absorption_vector[i_t, i_f, i_s] = ssd.abs_vec_data[i_f, i_t, 0, 0, i_s];
-        }
-        for (Index i_s = 0; i_s < extinction_matrix.n_stokes_coeffs; ++i_s) {
-          extinction_matrix[i_t, i_f, i_s] = ssd.ext_mat_data[i_f, i_t, 0, 0, i_s];
-        }
+        absorption_vector[i_t, i_f].I() = ssd.abs_vec_data[i_f, i_t, 0, 0, 0];
+        extinction_matrix[i_t, i_f].A() = ssd.ext_mat_data[i_f, i_t, 0, 0, 0];
       }
     }
 
@@ -191,12 +187,10 @@ template <Format format, Representation repr> struct SingleScatteringData {
               }
             }
           }
-          for (Size i_s = 0; i_s < extinction_matrix.n_stokes_coeffs; ++i_s) {
-            extinction_matrix[i_t, i_f, i_za_inc, i_s] = ssd.ext_mat_data[i_f, i_t, i_za_inc, 0, i_s];
-          }
-          for (Size i_s = 0; i_s < absorption_vector.n_stokes_coeffs; ++i_s) {
-            absorption_vector[i_t, i_f, i_za_inc, i_s] = ssd.abs_vec_data[i_f, i_t, i_za_inc, 0, i_s];
-          }
+          extinction_matrix[i_t, i_f, i_za_inc] =
+              rtepack::compact_planar_propmat{ssd.ext_mat_data[i_f, i_t, i_za_inc, 0, Range{0, 3}]};
+          absorption_vector[i_t, i_f, i_za_inc] =
+              rtepack::compact_planar_stokvec{ssd.abs_vec_data[i_f, i_t, i_za_inc, 0, Range{0, 2}]};
         }
       }
     }
@@ -442,7 +436,7 @@ inline std::pair<SingleScatteringData<Format::TRO, Representation::Spectral>, Le
   const auto integral = spectral.phase_matrix->integrate_phase_matrix();
   for (Index i_t = 0; i_t < integral.extent(0); ++i_t) {
     for (Index i_f = 0; i_f < integral.extent(1); ++i_f) {
-      const Numeric k11 = ssd.extinction_matrix[i_t, i_f, 0], a1 = ssd.absorption_vector[i_t, i_f, 0];
+      const Numeric k11 = ssd.extinction_matrix[i_t, i_f].A(), a1 = ssd.absorption_vector[i_t, i_f].I();
       report.normalisation_error[i_t, i_f] = (integral[i_t, i_f].F11() - (k11 - a1)) / k11;
     }
   }

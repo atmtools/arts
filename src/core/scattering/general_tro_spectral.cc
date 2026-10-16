@@ -62,8 +62,8 @@ ScatteringTroSpectralVector::to_general(const CompactPlanarMuelmatMatrix& phase_
 }
 
 scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral>
-ScatteringTroSpectralVector::to_general(const PropmatVector&           extinction_matrix,
-                                        const std::shared_ptr<Vector>& f_grid_ptr) {
+ScatteringTroSpectralVector::to_general(const CompactPlanarPropmatVector& extinction_matrix,
+                                        const std::shared_ptr<Vector>&    f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
   ARTS_USER_ERROR_IF(extinction_matrix.size() != f_grid_ptr->size(),
@@ -74,16 +74,14 @@ ScatteringTroSpectralVector::to_general(const PropmatVector&           extinctio
   scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> emd{t_grid,
                                                                                                       f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < emd.nrows(); ++f_ind) {
-    for (Index i = 0; i < emd.ncols(); i++) { emd[0, f_ind, i] = extinction_matrix[f_ind][i]; }
-  }
+  emd[0, joker] = extinction_matrix;
 
   return emd;
 }
 
 scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral>
-ScatteringTroSpectralVector::to_general(const StokvecVector&           absorption_vector,
-                                        const std::shared_ptr<Vector>& f_grid_ptr) {
+ScatteringTroSpectralVector::to_general(const CompactPlanarStokvecVector& absorption_vector,
+                                        const std::shared_ptr<Vector>&    f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
   ARTS_USER_ERROR_IF(absorption_vector.size() != f_grid_ptr->size(),
@@ -94,9 +92,8 @@ ScatteringTroSpectralVector::to_general(const StokvecVector&           absorptio
   scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral> av{t_grid,
                                                                                                      f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < av.nrows(); ++f_ind) {
-    for (Index i = 0; i < av.ncols(); i++) { av[0, f_ind, i] = absorption_vector[f_ind][i]; }
-  }
+  av[0, joker] = absorption_vector;
+
   return av;
 }
 

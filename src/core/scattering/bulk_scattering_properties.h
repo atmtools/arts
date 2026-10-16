@@ -81,8 +81,8 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
 
 struct BulkScatteringPropertiesTROGridded {
   using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
-  using ExtinctionMatrixVector = Tensor3;
-  using AbsorptionVectorVector = Matrix;
+  using ExtinctionMatrixVector = CompactPlanarPropmatVector;
+  using AbsorptionVectorVector = CompactPlanarStokvecVector;
 
   std::optional<PhaseMatrixVector> phase_matrix;
   ExtinctionMatrixVector           extinction_matrix;
@@ -101,8 +101,8 @@ struct BulkScatteringPropertiesTROGridded {
 
 struct BulkScatteringPropertiesTROSpectral {
   using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
-  using ExtinctionMatrixVector = Tensor3;
-  using AbsorptionVectorVector = Matrix;
+  using ExtinctionMatrixVector = CompactPlanarPropmatVector;
+  using AbsorptionVectorVector = CompactPlanarStokvecVector;
 
   std::optional<PhaseMatrixVector> phase_matrix;
   ExtinctionMatrixVector           extinction_matrix;

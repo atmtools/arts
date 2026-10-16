@@ -11,7 +11,7 @@ bool test_absorption_vector_tro() {
   auto f_grid = std::make_shared<Vector>(Vector{1e9, 10e9, 100e9});
 
   AbsorptionVector absorption_vector{t_grid, f_grid};
-  absorption_vector = random_tensor<Tensor3>(absorption_vector.shape());
+  rtepack::elements(absorption_vector) = random_tensor<Tensor3>(rtepack::elements(absorption_vector).shape());
 
   auto t_grid_new = std::make_shared<Vector>(Vector{210.0});
   auto f_grid_new = std::make_shared<Vector>(Vector{1e9});
@@ -20,24 +20,30 @@ bool test_absorption_vector_tro() {
   auto weights = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
 
   auto    absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  Numeric err                      = std::abs(absorption_vector[0, 0, 0] - absorption_vector_interp[0, 0, 0]);
+  Numeric err                      = std::abs(absorption_vector[0, 0].I() - absorption_vector_interp[0, 0].I());
   if (err > 1e-10) { return false; }
 
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 3>&>(absorption_vector));
+  {
+    auto values = rtepack::elements(absorption_vector);
+    fill_along_axis<0>(values);
+  }
   (*t_grid_new)[0]         = 1.2345;
   (*f_grid_new)[0]         = 1.2346;
   grids                    = scattering::ScatteringDataGrids{t_grid_new, f_grid_new, nullptr};
   weights                  = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0] - 1.2345);
+  err                      = std::abs(absorption_vector_interp[0, 0].I() - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 3>&>(absorption_vector));
+  {
+    auto values = rtepack::elements(absorption_vector);
+    fill_along_axis<1>(values);
+  }
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0] - 1.2346);
+  err                      = std::abs(absorption_vector_interp[0, 0].I() - 1.2346);
   if (err > 1e-10) { return false; }
 
   return true;
@@ -52,7 +58,7 @@ bool test_absorption_vector_aro() {
   auto za_inc_grid = std::make_shared<Vector>(matpack::uniform_grid(0.0, 10.0, 19));
 
   AbsorptionVector absorption_vector{t_grid, f_grid, za_inc_grid};
-  absorption_vector = random_tensor<Tensor4>(absorption_vector.shape());
+  rtepack::elements(absorption_vector) = random_tensor<Tensor4>(rtepack::elements(absorption_vector).shape());
 
   auto t_grid_new      = std::make_shared<Vector>(Vector{210.0});
   auto f_grid_new      = std::make_shared<Vector>(Vector{1e9});
@@ -62,37 +68,46 @@ bool test_absorption_vector_aro() {
   auto weights = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid, nullptr, nullptr, grids);
 
   auto    absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  Numeric err                      = std::abs(absorption_vector[0, 0, 0, 0] - absorption_vector_interp[0, 0, 0, 0]);
+  Numeric err                      = std::abs(absorption_vector[0, 0, 0].I() - absorption_vector_interp[0, 0, 0].I());
   if (err > 1e-10) { return false; }
 
   fill_along_axis<0>(*t_grid);
   fill_along_axis<0>(*f_grid);
   fill_along_axis<0>(*za_inc_grid);
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(absorption_vector));
+  {
+    auto values = rtepack::elements(absorption_vector);
+    fill_along_axis<0>(values);
+  }
   (*t_grid_new)[0]         = 1.2345;
   (*f_grid_new)[0]         = 1.2346;
   (*za_inc_grid_new)[0]    = 1.2347;
   grids                    = scattering::ScatteringDataGrids{t_grid_new, f_grid_new, za_inc_grid_new, nullptr, nullptr};
   weights                  = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid, nullptr, nullptr, grids);
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2345);
+  err                      = std::abs(absorption_vector_interp[0, 0, 0].I() - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(absorption_vector));
+  {
+    auto values = rtepack::elements(absorption_vector);
+    fill_along_axis<1>(values);
+  }
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2346);
+  err                      = std::abs(absorption_vector_interp[0, 0, 0].I() - 1.2346);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(absorption_vector));
+  {
+    auto values = rtepack::elements(absorption_vector);
+    fill_along_axis<2>(values);
+  }
   absorption_vector_interp = absorption_vector.regrid(grids, weights);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2347);
+  err                      = std::abs(absorption_vector_interp[0, 0, 0].I() - 1.2347);
   if (err > 1e-10) { return false; }
 
   // Exercise the convenience overload as well: it must treat za_inc_grid as
   // the incident zenith-angle grid when it calculates its own weights.
   absorption_vector_interp = absorption_vector.regrid(grids);
-  err                      = std::abs(absorption_vector_interp[0, 0, 0, 0] - 1.2347);
+  err                      = std::abs(absorption_vector_interp[0, 0, 0].I() - 1.2347);
   if (err > 1e-10) { return false; }
 
   return true;

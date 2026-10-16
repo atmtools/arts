@@ -66,8 +66,8 @@ ParticleHabit ParticleHabit::tmatrix(const Vector&        t_grid,
                                                   accuracy,
                                                   1.0,
                                                   shape);
-        extinction[it, jf, 0] = optical.extinction;
-        absorption[it, jf, 0] = optical.extinction - optical.scattering;
+        extinction[it, jf].A() = optical.extinction;
+        absorption[it, jf].I() = optical.extinction - optical.scattering;
         const Numeric factor  = optical.scattering / (4 * Constant::pi);
         for (int ia = 0; ia < angles; ++ia) {
           const Muelmat& f  = optical.phase[ia];

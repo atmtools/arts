@@ -169,27 +169,21 @@ with C at index 0 and S at index 1 of the sixth axis; as an array [t, f, za_inc,
 template <scattering::Representation repr> [[nodiscard]]
 auto bind_absorption_vector_data_tro(py::module_& m, const std::string& name) {
   using AVD = scattering::AbsorptionVectorData<scattering::Format::TRO, repr>;
-  py::class_<AVD, Tensor3> s(m, name.c_str());
+  py::class_<AVD, CompactPlanarStokvecMatrix> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(), "t_grid"_a, "f_grid"_a);
-  //   .def("get_coeff_vector_view",
-  //        &AVD::get_coeff_vector_view,
-  //        "Get coefficient vector view");
   return s;
 }
 
 template <scattering::Representation repr> [[nodiscard]]
 auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
   using AVD = scattering::AbsorptionVectorData<scattering::Format::ARO, repr>;
-  py::class_<AVD, Tensor4> s(m, name.c_str());
+  py::class_<AVD, CompactPlanarStokvecTensor3> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a);
-  //   .def("get_coeff_vector_view",
-  //        &AVD::get_coeff_vector_view,
-  //        "Get coefficient vector view")
   //   .def("regrid",
   //        &AVD::regrid,
   //        "grids"_a,
@@ -201,12 +195,9 @@ auto bind_absorption_vector_data_aro(py::module_& m, const std::string& name) {
 template <scattering::Representation repr> [[nodiscard]]
 auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
   using EMD = scattering::ExtinctionMatrixData<scattering::Format::TRO, repr>;
-  py::class_<EMD, Tensor3> s(m, name.c_str());
+  py::class_<EMD, CompactPlanarPropmatMatrix> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(), "t_grid"_a, "f_grid"_a);
-  //   .def("get_coeff_vector_view",
-  //        &EMD::get_coeff_vector_view,
-  //        "Get coefficient vector view")
   //   .def("regrid",
   //        &EMD::regrid,
   //        "grids"_a,
@@ -218,15 +209,12 @@ auto bind_extinction_matrix_data_tro(py::module_& m, const std::string& name) {
 template <scattering::Representation repr> [[nodiscard]]
 auto bind_extinction_matrix_data_aro(py::module_& m, const std::string& name) {
   using EMD = scattering::ExtinctionMatrixData<scattering::Format::ARO, repr>;
-  py::class_<EMD, Tensor4> s(m, name.c_str());
+  py::class_<EMD, CompactPlanarPropmatTensor3> s(m, name.c_str());
   s.def(py::init<>())
       .def(py::init<std::shared_ptr<const Vector>, std::shared_ptr<const Vector>, std::shared_ptr<const Vector>>(),
            "t_grid"_a,
            "f_grid"_a,
            "za_inc_grid"_a);
-  //   .def("get_coeff_vector_view",
-  //        &EMD::get_coeff_vector_view,
-  //        "Get coefficient vector view")
   //   .def("regrid",
   //        &EMD::regrid,
   //        "grids"_a,
@@ -310,10 +298,10 @@ void py_scattering_species(py::module_& m) try {
   stsv.def_rw("phase_matrix", &ScatteringTroSpectralVector::phase_matrix, "Phase matrix\n\n.. :class:`object`")
       .def_rw("extinction_matrix",
               &ScatteringTroSpectralVector::extinction_matrix,
-              "Extinction matrix\n\n.. :class:`object`")
+              "Extinction matrices [f], K11 as A\n\n.. :class:`~pyarts3.arts.CompactPlanarPropmatVector`")
       .def_rw("absorption_vector",
               &ScatteringTroSpectralVector::absorption_vector,
-              "Absorption vector\n\n.. :class:`object`");
+              "Absorption vectors [f], a1 as I\n\n.. :class:`~pyarts3.arts.CompactPlanarStokvecVector`");
   stsv.def_static(
       "to_gridded",
       [](const CompactPlanarMuelmatMatrix& phase_matrix, const std::shared_ptr<Vector>& f) {
@@ -619,6 +607,8 @@ void py_scattering_species(py::module_& m) try {
       "Absorption vector data";
   bind_absorption_vector_data_aro<scattering::Representation::Spectral>(m, "AbsorptionVectorDataSpectralARO4").doc() =
       "Absorption vector data";
+  bind_absorption_vector_data_aro<scattering::Representation::Fourier>(m, "AbsorptionVectorDataFourierARO4").doc() =
+      "Absorption vector data";
 
   bind_extinction_matrix_data_tro<scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedTRO4").doc() =
       "Extinction matrix data";
@@ -627,6 +617,8 @@ void py_scattering_species(py::module_& m) try {
   bind_extinction_matrix_data_aro<scattering::Representation::Gridded>(m, "ExtinctionMatrixDataGriddedARO4").doc() =
       "Extinction matrix data";
   bind_extinction_matrix_data_aro<scattering::Representation::Spectral>(m, "ExtinctionMatrixDataSpectralARO4").doc() =
+      "Extinction matrix data";
+  bind_extinction_matrix_data_aro<scattering::Representation::Fourier>(m, "ExtinctionMatrixDataFourierARO4").doc() =
       "Extinction matrix data";
 
   // ForwardscatterMatrixData is an alias of BackscatterMatrixData. Bind each
