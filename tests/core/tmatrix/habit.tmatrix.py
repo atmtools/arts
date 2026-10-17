@@ -67,8 +67,15 @@ for it in range(2):
         np.testing.assert_allclose(
             absorption[it, jf, 0], direct.extinction - direct.scattering, rtol=1e-12
         )
-np.testing.assert_allclose(ssd.backscatter_matrix, evaluate(phase, [180.0])[:, :, 0], rtol=1e-12)
-np.testing.assert_allclose(ssd.forwardscatter_matrix, evaluate(phase, [0.0])[:, :, 0], rtol=1e-12)
+# The endpoint matrices are the series at 180 and 0 degrees, where |P_l| = 1.  ARTS and numpy sum its L + 1 terms
+# in their own order: the difference is the rounding of both sums, at most (L + 1) ulp each of the sum of the terms'
+# magnitudes.  F12 and F34 vanish there, so they are that rounding alone.
+degrees = np.arange(phase.shape[-2])
+terms = np.einsum("...lk,l->...k", np.abs(phase), np.sqrt((2 * degrees + 1) / (4 * np.pi)))
+rounding = 2 * (degrees.size + 1) * np.finfo(float).eps * terms
+for endpoint, angle in [(ssd.backscatter_matrix, 180.0), (ssd.forwardscatter_matrix, 0.0)]:
+    difference = np.abs(np.asarray(endpoint) - evaluate(phase, [angle])[:, :, 0])
+    assert np.all(difference <= rounding), (angle, difference / rounding)
 
 # Material density changes mass, not the optical response for a supplied index.
 heavy = make(density=2 * RHO)
