@@ -253,25 +253,25 @@ template <std::floating_point Scalar> class MieSphere {
   }
 
   /// The scattering coefficient.
-  Scalar get_scattering_coeff() { return q_sca_ * std::numbers::pi_v<Scalar> * pow(r_, 2); }
+  Scalar get_scattering_coeff() { return q_sca_ * std::numbers::pi_v<Scalar> * Math::pow2(r_); }
 
   /// The scattering efficiency.
   Scalar get_scattering_eff() { return q_sca_; }
 
   /// The back-scattering coefficient.
-  Scalar get_backscattering_coeff() { return q_back_ * std::numbers::pi_v<Scalar> * pow(r_, 2); }
+  Scalar get_backscattering_coeff() { return q_back_ * std::numbers::pi_v<Scalar> * Math::pow2(r_); }
 
   /// The back-scattering efficiency.
   Scalar get_backscattering_eff() { return q_back_; }
 
   /// The extinction coefficient.
-  Scalar get_extinction_coeff() { return q_ext_ * std::numbers::pi_v<Scalar> * pow(r_, 2); }
+  Scalar get_extinction_coeff() { return q_ext_ * std::numbers::pi_v<Scalar> * Math::pow2(r_); }
 
   /// The extinction efficiency.
   Scalar get_extinction_eff() { return q_ext_; }
 
   /// The extinction coefficient.
-  Scalar get_absorption_coeff() { return (q_ext_ - q_sca_) * std::numbers::pi_v<Scalar> * pow(r_, 2); }
+  Scalar get_absorption_coeff() { return (q_ext_ - q_sca_) * std::numbers::pi_v<Scalar> * Math::pow2(r_); }
 
   /// The extinction efficiency.
   Scalar get_absorption_eff() { return q_ext_ - q_sca_; }
@@ -281,20 +281,23 @@ template <std::floating_point Scalar> class MieSphere {
     Scalar            k = std::numbers::pi_v<Scalar> * 2.0 / lambda_;
     VectorGen<Scalar> results(s_1_.size());
     for (Index i = 0; i < results.size(); ++i) {
-      results[i] = 0.5 * (std::pow(std::abs(s_1_[i]), 2) + std::pow(std::abs(s_2_[i]), 2)) / (k * k);
+      results[i] = 0.5 * (std::norm(s_1_[i]) + std::norm(s_2_[i])) / (k * k);
     }
     return results;
   }
 
   /** Returns compact representation of scattering matrix
      *
-     * The resulting matrix contains the four elements S_11, S_12, S_33, S_34 of
-     * the scattering matrix for each angle for which the scattering coefficients have
-     * been calculated.
+     * The resulting matrix contains the elements F11, F12, F22, F33, F34, F44 of
+     * the scattering matrix, as differential cross sections, for each angle for
+     * which the scattering coefficients have been calculated.
      *
-     * This method implements Eq. 4.77 from [1].
+     * The elements are those of Eq. 4.77 from [1] in ARTS's Stokes convention
+     * (concept.polarization): F is the Mueller matrix of the Jones matrix
+     * diag(S_2, S_1) of the scattering-plane bases, so F34 = -Im(S_2 S_1*), the
+     * negative of S_34 in [1], whose U has the other sign.
      *
-     * @return A matrix holding the four scattering matrix elements along its columns
+     * @return A matrix holding the six scattering matrix elements along its columns
      * for all requested scattering angles.
      */
   MatrixGen<Scalar> get_scattering_matrix_compact() {
@@ -306,10 +309,10 @@ template <std::floating_point Scalar> class MieSphere {
     VectorGen<Scalar> s34(n_angles);
 
     for (Index i = 0; i < n_angles; ++i) {
-      s11[i] = 0.5 * (std::pow(std::abs(s_1_[i]), 2) + std::pow(std::abs(s_2_[i]), 2));
-      s12[i] = 0.5 * (std::pow(std::abs(s_2_[i]), 2) - std::pow(std::abs(s_1_[i]), 2));
+      s11[i] = 0.5 * (std::norm(s_1_[i]) + std::norm(s_2_[i]));
+      s12[i] = 0.5 * (std::norm(s_2_[i]) - std::norm(s_1_[i]));
       s33[i] = 0.5 * std::real(s_1_[i] * std::conj(s_2_[i]) + s_2_[i] * std::conj(s_1_[i]));
-      s34[i] = -0.5 * std::imag(s_1_[i] * std::conj(s_2_[i]) - s_2_[i] * std::conj(s_1_[i]));
+      s34[i] = 0.5 * std::imag(s_1_[i] * std::conj(s_2_[i]) - s_2_[i] * std::conj(s_1_[i]));
     }
 
     MatrixGen<Scalar> result{theta_.size(), 6};
@@ -331,7 +334,7 @@ template <std::floating_point Scalar> class MieSphere {
      */
   void calculate_mie_parameters() {
     std::complex<Numeric> rho         = x_ * n_;
-    size_t                n_steps_x   = static_cast<size_t>(x_ + 4.0 * pow(x_, 1.0 / 3.0) + 2);
+    size_t                n_steps_x   = static_cast<size_t>(x_ + 4.0 * std::cbrt(x_) + 2);
     size_t                n_steps_rho = static_cast<size_t>(abs(rho));
     size_t                n_steps_D   = std::max(n_steps_x, n_steps_rho) + 15;
 
@@ -375,9 +378,9 @@ template <std::floating_point Scalar> class MieSphere {
       // Scattering parameters
       Numeric n2p1       = 2.0 * step_f + 1.0;
       Numeric n2p1_nnp1  = n2p1 / (step_f * (step_f + 1.0));
-      q_sca_            += n2p1 * (pow(abs(a_n), 2) + pow(abs(b_n), 2));
+      q_sca_            += n2p1 * (std::norm(a_n) + std::norm(b_n));
       q_ext_            += n2p1 * (a_n.real() + b_n.real());
-      q_back_acc        += n2p1 * std::pow(-1, step + 1) * (a_n - b_n);
+      q_back_acc        += n2p1 * (step % 2 == 0 ? -1.0 : 1.0) * (a_n - b_n);
       g_sca_            += (n2p1_nnp1 * (a_n.real() * b_n.real() + a_n.imag() * b_n.imag()));
       if (step > 0) {
         g_sca_ +=
@@ -407,7 +410,7 @@ template <std::floating_point Scalar> class MieSphere {
 
     g_sca_  *= 2.0 / q_sca_;
     q_sca_  *= 2.0 / (x_ * x_);
-    q_back_  = pow(abs(q_back_acc), 2) / (x_ * x_);
+    q_back_  = std::norm(q_back_acc) / (x_ * x_);
     q_ext_  *= 2.0 / (x_ * x_);
   }
 

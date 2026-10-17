@@ -4,9 +4,11 @@
 
 namespace rtepack {
 polarization_basis meridional_basis(const Vector3& k, const Vector3& h_pole) {
+  // k x z = (k_y, -k_x, 0) gives the meridian to rounding, except along +-z, where it is 0 / 0 and, within the
+  // rounding of k, resolves none
   Vector3       h      = cross(k, Vector3{0.0, 0.0, 1.0});
   const Numeric norm_h = hypot(h);
-  if (norm_h < 1e-12) {
+  if (not(norm_h > detail::parallel)) {
     h = h_pole;
   } else {
     h /= norm_h;
@@ -15,10 +17,15 @@ polarization_basis meridional_basis(const Vector3& k, const Vector3& h_pole) {
 }
 
 Vector4 scattering_plane_rotation(const polarization_basis& in, const polarization_basis& out) {
+  // The rounding of the cross product, about epsilon / |N| in direction, also tilts N out of the plane across k_in,
+  // which would shorten the basis vectors of the scattering plane.  Projected back across k_in, the rounding only
+  // turns the plane, which reaches the phase matrix through the part of F that depends on the plane alone, vanishing
+  // towards forward and backward; so N gives the plane until the rays are parallel in double precision.
   const Vector3 k_in = cross(in.first, in.second), k_out = cross(out.first, out.second);
-  Vector3       N      = cross(k_in, k_out);
-  const Numeric norm_N = hypot(N);
-  if (norm_N < 1e-12) {
+  Vector3       N       = cross(k_in, k_out);
+  N                    -= dot(N, k_in) * k_in;
+  const Numeric norm_N  = hypot(N);
+  if (not(norm_N > detail::parallel)) {
     N = in.second;
   } else {
     N /= norm_N;

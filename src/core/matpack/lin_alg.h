@@ -102,6 +102,18 @@ void lu_decompose_inplace(MatrixView A, solve_workdata& wo);
   */
 void lu_solve_inplace(VectorView X, ConstMatrixView LU, const solve_workdata& wo);
 
+/*! B = B A^{-1} in place, every row of B a right-hand side.
+  *
+  * The row-major A and B are A^T and B^T to LAPACK, so the LU solve of
+  * A^T X^T = B^T needs no copies and leaves X = B A^{-1} in B.
+  *
+  * @param[in,out] B   On input B, on output B A^{-1}; as many columns as A
+  * @param[in,out] A   The square matrix, destroyed (the LU factors of A^T)
+  * @param[in,out] wo  The pivots, resized to A
+  * @throws If A is singular according to Lapack info
+  */
+void right_solve_inplace(ComplexMatrixView B, ComplexMatrixView A, solve_workdata& wo);
+
 struct inv_workdata {
   std::size_t          N{};
   std::vector<int>     ipiv{};

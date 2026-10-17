@@ -963,6 +963,51 @@ Lastly, the unit option of course just retains the current state [W / m :math:`^
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "TMatrixSizeDistribution",
+      .desc =
+          R"(The size distributions of the T-matrix solver's random-orientation average.
+
+They are those of the original solver, with the parameters a, b and gamma.
+See :doc:`concept.tmatrix` for the definitions.
+)",
+      .values_and_desc = {Value{"modified_gamma", "The modified gamma distribution"},
+                          Value{"lognormal", "The log-normal distribution"},
+                          Value{"power_law", "The power law of Hansen and Travis (1974)"},
+                          Value{"gamma", "The gamma distribution"},
+                          Value{"modified_power_law", "The modified power law"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "ParticleShape",
+      .desc =
+          R"(Rotationally symmetric particle shapes, as used by the T-matrix solver.
+
+An aspect ratio, and for Chebyshev particles a degree, complete the shape.
+See :doc:`concept.tmatrix` for the definitions.
+)",
+      .values_and_desc = {Value{"spheroid", "A spheroid; the aspect ratio is its horizontal-to-rotational axis ratio"},
+                          Value{"cylinder", "A finite circular cylinder; the aspect ratio is its diameter-to-length ratio"},
+                          Value{"chebyshev",
+                                "A Chebyshev particle r_0 (1 + e cos(n theta)) of degree n >= 1; the aspect ratio is "
+                                "its deformation e, |e| < 1"},
+                          Value{"generalized_chebyshev",
+                                "A generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)), e.g. a "
+                                "distorted water drop; its coefficients c_0, ..., c_N are given, and the aspect "
+                                "ratio is not used"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name = "EquivalentRadius",
+      .desc =
+          R"(The sphere whose radius gives the size of a nonspherical particle, as used by the T-matrix solver.
+
+See :doc:`concept.tmatrix` for the conversion.
+)",
+      .values_and_desc = {Value{"volume", "The radius of the sphere of the same volume"},
+                          Value{"surface_area", "The radius of the sphere of the same surface area"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "ParticulateProperty",
       .desc =
           R"(Numerical properties used to numerically represent particle populations.

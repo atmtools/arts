@@ -27,10 +27,9 @@
  * (Q = I_v - I_h, U = 2 Re(E_v E_h*)) with mu = cos(za) and RT3's azimuth
  * phi = -aa, element by element (tested in cpp.fast.vdisort-arts-test).
  * ARTS's azimuth runs clockwise seen from above, RT3's counterclockwise.  For
- * the same physical sphere, ARTS's Mie code gives F12 and F33 equal to, and
- * F34 of the opposite sign of, the Legendre series of Evans and Stephens
- * (1991) (runmietest; tested in cpp.fast.rt3-arts-test), so V computed by RT3
- * from ARTS data is -1 times V in the convention of that paper.
+ * the same physical sphere, ARTS's Mie code gives F12, F33 and F34 equal to
+ * the Legendre series of Evans and Stephens (1991) (runmietest; tested in
+ * cpp.fast.rt3-arts-test), whose Stokes convention is ARTS's.
  *
  * Units: extinction and scattering per metre, with problem::height in
  * metres.

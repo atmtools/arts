@@ -1102,15 +1102,14 @@ void test_kirchhoff(Index nstokes, Index nmu, Index aziorder, Index nlay) {
       }
     }
   }
-  const Numeric tau = (sigma + kabs + 5e-5) * 1000.0;
-  const Numeric tol =
-      16 * std::exp2(std::floor(std::log2(tau / p.max_delta_tau)) + 1) * std::numeric_limits<Numeric>::epsilon();
-  const auto name = std::format("isothermal Kirchhoff, nstokes {}, nmu {}, aziorder {}, {} layers, {} sets",
-                                nstokes,
-                                nmu,
-                                aziorder,
-                                nlay,
-                                p.scattering_sets.size());
+  const Numeric tau  = (sigma + kabs + 5e-5) * 1000.0;
+  const Numeric tol  = std::ldexp(16 * std::numeric_limits<Numeric>::epsilon(), std::ilogb(tau / p.max_delta_tau) + 1);
+  const auto    name = std::format("isothermal Kirchhoff, nstokes {}, nmu {}, aziorder {}, {} layers, {} sets",
+                                   nstokes,
+                                   nmu,
+                                   aziorder,
+                                   nlay,
+                                   p.scattering_sets.size());
   std::cout << std::format("{:<84} I - B {:.2e}, Q, U, V {:.2e} of B (tolerance {:.1e})\n", name, dI, dP, tol);
   require(dI <= tol and dP <= tol, name + ": not I = B, Q = U = V = 0");
 }
@@ -1151,8 +1150,7 @@ void test_extra_angles(const rt3::problem& base) {
     std::cout << std::format("{:<84} {:.2e} and {:.2e} of max I\n", name, dnodes / scale, dextra / scale);
     // Rounding, amplified by 2^n for the n doublings of the scattering layer
     const Numeric tau = p.scattering_sets[0].extinction * std::abs(p.height[1] - p.height[2]);
-    const Numeric tol =
-        16 * std::exp2(std::floor(std::log2(tau / p.max_delta_tau)) + 1) * std::numeric_limits<Numeric>::epsilon();
+    const Numeric tol = std::ldexp(16 * std::numeric_limits<Numeric>::epsilon(), std::ilogb(tau / p.max_delta_tau) + 1);
     require(dnodes <= tol * scale and dextra <= tol * scale, name + ": changed by the extra angles");
   }
 }

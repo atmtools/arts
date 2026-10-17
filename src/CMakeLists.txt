@@ -201,10 +201,6 @@ if(ENABLE_FASTEM)
   target_link_libraries(artsworkspace PUBLIC fastem)
 endif(ENABLE_FASTEM)
 
-if(ENABLE_TMATRIX)
-  target_link_libraries(artsworkspace PUBLIC tmatrix)
-endif(ENABLE_TMATRIX)
-
 if(ENABLE_CDISORT)
   target_link_libraries(artsworkspace PUBLIC cdisort)
 endif()

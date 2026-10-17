@@ -268,12 +268,12 @@ rt3::problem rt3_problem(const setup& c) {
 
 /* RT3's number of azimuth samples of the phase matrix for a series summed
    to degree L (SCATTERING and DIRECT_SCATTERING in radscat3.f), with the
-   same floating-point expression:
-     aziorder > 0: 2 * 2^int(ln(L + 4) / ln(2) + 1),
+   same binary exponent:
+     aziorder > 0: 2 * 2^(ilogb(L + 4) + 1),
      aziorder = 0: 2 int((L + 1) / 2) + 4. */
 Index rt3_azimuth_samples(Index degree, Index aziorder) {
   if (aziorder == 0) return 2 * ((degree + 1) / 2) + 4;
-  const auto e = static_cast<int>(std::log(static_cast<Numeric>(degree + 4)) / std::log(2.0) + 1.0);
+  const auto e = std::ilogb(static_cast<Numeric>(degree + 4)) + 1;
   return 2 * (Index{1} << e);
 }
 
@@ -628,7 +628,7 @@ Vector3 polarization(const rt3::result& r) {
    tau is the (delta-M scaled) particle plus gas extinction times the
    thickness. */
 Numeric doublings(Numeric tau, Numeric max_delta_tau) {
-  const Numeric F = std::log(std::max(tau, 1e-7) / max_delta_tau) / std::log(2.0);
+  const Numeric F = std::log2(std::max(tau, 1e-7) / max_delta_tau);
   return F > 0 ? std::floor(F) + 1 : 0.0;
 }
 
@@ -647,7 +647,7 @@ doubling rt3_doubling(const setup& c, Numeric max_delta_tau) {
     const Numeric tau = (s.extinction + c.gas[l]) * c.dz(l);
     const Numeric n   = doublings(tau, max_delta_tau);
     d.any             = true;
-    d.delta           = std::max(d.delta, tau / std::exp2(n));
+    d.delta           = std::max(d.delta, std::ldexp(tau, -static_cast<int>(n)));
     d.n               = std::max(d.n, n);
   }
   return d;
@@ -686,14 +686,14 @@ Numeric error_scale(const setup& c, Numeric delta) { return c.direct_flux > 0 ? 
 std::string_view error_scale_name(const setup& c) { return c.direct_flux > 0 ? "delta / mu0" : "delta"; }
 
 Numeric direct_tolerance(const setup& c, const doubling& d) {
-  return d.any ? direct_factor * error_scale(c, d.delta) + std::exp2(d.n) * eps : 1e-12;
+  return d.any ? direct_factor * error_scale(c, d.delta) + std::ldexp(eps, static_cast<int>(d.n)) : 1e-12;
 }
 
 Numeric richardson_tolerance(const setup& c) {
   const auto    coarse = rt3_doubling(c, richardson_max_delta_tau);
   const auto    fine   = rt3_doubling(c, richardson_max_delta_tau / 2);
   const Numeric mu_min = polradtran::get_quadrature(c.nmu, polradtran::quadrature_type::double_gauss).mu[0];
-  return coarse.delta * coarse.delta / mu_min + 3 * std::exp2(fine.n) * eps;
+  return coarse.delta * coarse.delta / mu_min + 3 * std::ldexp(eps, static_cast<int>(fine.n));
 }
 
 //! RT3 extrapolated to max_delta_tau = 0 from richardson_max_delta_tau and half of it

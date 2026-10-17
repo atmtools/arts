@@ -99,7 +99,9 @@ resolves it.)")
 
       .def("get_degree", &PMD::get_degree, "The highest Legendre degree")
       .def(
-          "to_gridded", [](const PMD& obj) { return obj.to_gridded(); }, "The series at the 2 degree + 2 Fejer nodes")
+          "to_gridded",
+          [](const PMD& obj) { return obj.to_gridded(); },
+          "The series at the 2 degree + 2 Gauss-Legendre nodes")
       .def(
           "to_gridded",
           [](const PMD& obj, scattering::ZenithAngleGrid za_scat_grid) {
@@ -677,21 +679,68 @@ void py_scattering_species(py::module_& m) try {
                   "refractive_index"_a,
                   "density"_a,
                   "aspect_ratio"_a,
-                  "shape"_a    = -1,
-                  "angles"_a   = 181,
-                  "accuracy"_a = 0.001,
+                  "shape"_a              = ParticleShape::spheroid,
+                  "degree"_a             = 0,
+                  "coefficients"_a       = ArrayOfVector{},
+                  "accuracy"_a           = 0.001,
+                  "surface_quadrature"_a = 2,
                   R"(Generate an in-memory, totally randomly oriented particle habit.
+
+The particles hold spectral TRO data: the exact Legendre series of their
+scattering matrices.  habit.to_tro_gridded evaluates them on any grid exactly.
 
 Temperatures are in K, frequencies in Hz, volume-equivalent diameters in m,
 and material density in kg/m^3. Grids must be positive and strictly increasing.
 refractive_index is a complex matrix with shape (temperature, frequency),
-using a nonnegative imaginary part. shape=-1 is a spheroid (horizontal to
-rotational axis ratio); shape=-2 is a cylinder (diameter to length ratio).
-The angle grid contains angles equally spaced from 0 to 180 degrees.
+using a nonnegative imaginary part. shape is a :class:`~pyarts3.arts.ParticleShape`:
+a spheroid (aspect_ratio is the horizontal to rotational axis ratio), a
+cylinder (diameter to length ratio), a Chebyshev particle
+r_0 (1 + aspect_ratio cos(degree theta)) (aspect_ratio is the deformation, of
+magnitude below 1, and degree at least 1; degree is 0 for the other shapes),
+or a generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)),
+whose coefficients c_0, ..., c_N give the shape (aspect_ratio is unused).
+aspect_ratio has one element for all diameters or one per diameter, and so
+do the coefficients, which the other shapes must leave empty.
+The maximum dimension is the largest distance between two surface points.
+accuracy is the T-matrix's convergence accuracy and surface_quadrature its
+number of surface quadrature points per degree, which highly aspherical
+particles may need more of (see tmatrix.random).
 
 Each diameter represents one particle size; combine the resulting habit with
 an ARTS PSD using ScatteringHabit. No external scattering files are needed.
 See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
+)",
+                  py::call_guard<py::gil_scoped_release>())
+      .def_static("tmatrix_aro",
+                  &ParticleHabit::tmatrix_aro,
+                  "t_grid"_a,
+                  "f_grid"_a,
+                  "diameters"_a,
+                  "refractive_index"_a,
+                  "density"_a,
+                  "aspect_ratio"_a,
+                  "za_inc_grid"_a,
+                  "delta_aa_grid"_a,
+                  "za_scat_grid"_a,
+                  "tilt_angles"_a,
+                  "tilt_weights"_a,
+                  "shape"_a              = ParticleShape::spheroid,
+                  "degree"_a             = 0,
+                  "coefficients"_a       = ArrayOfVector{},
+                  "accuracy"_a           = 0.001,
+                  "surface_quadrature"_a = 2,
+                  R"(Generate an in-memory, azimuthally randomly oriented particle habit.
+
+The particles hold gridded ARO data on za_inc_grid, delta_aa_grid and
+za_scat_grid, in degrees and strictly increasing: the zenith angles of the
+incident and scattered propagation directions and the scattered minus the
+incident azimuth.  The
+particle's symmetry axis is tilted from the vertical by tilt_angles, in
+degrees, with tilt_weights, which need not be normalized, and takes every
+azimuth alike.  The average over the azimuth and the absorption vector's
+integral over the incident directions are exact for the truncated T-matrix.
+
+The other arguments are those of tmatrix.
 )",
                   py::call_guard<py::gil_scoped_release>())
       .def_static(

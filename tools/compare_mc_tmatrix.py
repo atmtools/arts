@@ -59,7 +59,7 @@ def main():
     saved = pa.xml.load(str(args.output))
     for name in ['pha_mat_data', 'ext_mat_data', 'abs_vec_data']:
         np.testing.assert_array_equal(np.asarray(getattr(ssd, name)), np.asarray(getattr(saved, name)))
-    report = dict(seconds=seconds, orders=orders, extended_precision=A.tmatrix.extended_precision(),
+    report = dict(seconds=seconds, orders=orders,
                   legacy_numerics=args.legacy_numerics, quadrature=args.quadrature,
                   comparison=compare(saved, pa.xml.load(str(args.reference))))
     args.output.with_suffix('.json').write_text(json.dumps(report, indent=2) + '\n')

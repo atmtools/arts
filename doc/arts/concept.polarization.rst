@@ -40,7 +40,10 @@ seen from above, is
 
 For a ray along :math:`\pm\hat z` the cross product vanishes.  Its basis is
 then the limit along its meridian, the same :math:`\hat h` as above, so it is
-fixed by the ray's azimuth.
+fixed by the ray's azimuth.  A unit vector accurate to rounding is along
+:math:`\pm\hat z` in double precision when the cross product is within that
+rounding, :math:`16\epsilon`; any other ray has the :math:`\hat h` of its own
+meridian, to rounding.
 
 With the field :math:`\vec E = E_v\hat v + E_h\hat h`, the Stokes vector in
 this basis is
@@ -173,11 +176,29 @@ scattering matrix, with :math:`F_{12}=F_{34}=0` and :math:`F_{22}=\pm F_{33}`
 at :math:`\Theta=0` and :math:`\pi`, :math:`\mathbf Z` does not depend on that
 choice.  The rotations are taken from the bases themselves also for nearly
 forward and backward pairs, since near the zenith and the nadir the bases of
-nearly parallel rays can differ by a large rotation.
+nearly parallel rays can differ by a large rotation.  There the rounding of
+the cross product turns :math:`\hat N` by about
+:math:`\epsilon/|\hat k_\mathrm{in}\times\hat k_\mathrm{out}|`.  Projected
+back across :math:`\hat k_\mathrm{in}`, it only turns the plane, which
+reaches :math:`\mathbf Z` through :math:`F_{12}`, :math:`F_{34}` and
+:math:`F_{22}\mp F_{33}` alone, and these vanish towards :math:`\Theta=0`
+and :math:`\pi`.  The plane of the two rays is therefore used until they are
+parallel in double precision, with the cross product within its own rounding,
+:math:`16\epsilon` for bases accurate to rounding.  A forward or backward
+pair built from angles is parallel only to that rounding.
 
 The phase matrices on the streams of the polarized solvers, and the
 laboratory-frame phase matrices of ARTS's randomly oriented scattering data,
 are built this way.
+
+Bohren and Huffman, and Mishchenko, define :math:`U` with the other sign and
+:math:`I`, :math:`Q` and :math:`V` as above.  Their matrices are ARTS's after
+:math:`\mathbf D\mathbf M\mathbf D` with :math:`\mathbf D=\mathrm{diag}(1,1,-1,1)`,
+which changes the sign of :math:`F_{34}`, and of the :math:`U` rows and columns
+of a phase matrix.  The scattering matrix of a sphere with the amplitudes
+:math:`S_1` (perpendicular) and :math:`S_2` (parallel) of Bohren and Huffman is
+the Mueller matrix of :math:`\mathrm{diag}(S_2,S_1)`, with
+:math:`F_{34}=-\Im(S_2S_1^*)`, the series of :cite:t:`Evans1991` as well.
 
 .. _Sec Polarization reflection:
 

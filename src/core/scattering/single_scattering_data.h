@@ -393,6 +393,21 @@ template <Format format, Representation repr> struct SingleScatteringData {
                                                                  forwardscatter_matrix);
   }
 
+  /** The series at the scattering angles of a grid, exactly
+   *
+   * @param za_scat_grid The scattering angles
+   */
+  SingleScatteringData<format, Representation::Gridded> to_gridded(std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
+      const requires(format == Format::TRO and repr == Representation::Spectral) {
+    auto new_phase_matrix = phase_matrix.transform([&](const auto &pm) { return pm.to_gridded(za_scat_grid); });
+    return SingleScatteringData<format, Representation::Gridded>(properties,
+                                                                 new_phase_matrix,
+                                                                 extinction_matrix.to_gridded(),
+                                                                 absorption_vector.to_gridded(),
+                                                                 backscatter_matrix,
+                                                                 forwardscatter_matrix);
+  }
+
   SingleScatteringData<Format::ARO, Representation::Gridded> to_lab_frame(const ScatteringDataGrids &grids) const {
     if constexpr (format == Format::ARO) { return regrid(grids); }
     // Interpolate the compact TRO quantities before expanding them.  The
@@ -400,13 +415,18 @@ template <Format format, Representation repr> struct SingleScatteringData {
     // work and degenerate singleton-grid interpolation at zenith/nadir.
     const ScatteringDataGrids tf_grids(grids.t_grid, grids.f_grid);
     auto                      new_pm  = phase_matrix.transform([&](const auto &pm) {
-      // TRO's zenith grid is a scattering-angle grid, not the laboratory
-      // output-zenith grid.  Preserve it while interpolating T/f.
-      const ScatteringDataGrids tro_grids(grids.t_grid, grids.f_grid, pm.get_za_scat_grid());
-      return pm.regrid(tro_grids).to_lab_frame(grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid);
+      if constexpr (repr == Representation::Spectral) {
+        // The series at the exact scattering angle of every direction pair
+        return pm.regrid(tf_grids).to_lab_frame(grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid);
+      } else {
+        // TRO's zenith grid is a scattering-angle grid, not the laboratory
+        // output-zenith grid.  Preserve it while interpolating T/f.
+        const ScatteringDataGrids tro_grids(grids.t_grid, grids.f_grid, pm.get_za_scat_grid());
+        return pm.regrid(tro_grids).to_lab_frame(grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid);
+      }
     });
-    auto                      new_em  = extinction_matrix.regrid(tf_grids).to_lab_frame(grids.za_inc_grid);
-    auto                      new_av  = absorption_vector.regrid(tf_grids).to_lab_frame(grids.za_inc_grid);
+    auto                      new_em  = extinction_matrix.regrid(tf_grids).to_gridded().to_lab_frame(grids.za_inc_grid);
+    auto                      new_av  = absorption_vector.regrid(tf_grids).to_gridded().to_lab_frame(grids.za_inc_grid);
     auto                      new_bsm = BackscatterMatrixData<Format::ARO>(backscatter_matrix, grids.za_inc_grid);
     auto                      new_fsm = ForwardscatterMatrixData<Format::ARO>(forwardscatter_matrix, grids.za_inc_grid);
     return SingleScatteringData<Format::ARO, Representation::Gridded>(

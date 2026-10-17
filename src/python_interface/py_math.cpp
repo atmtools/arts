@@ -272,11 +272,12 @@ Can only be accessed at indices
 ``(i, j)``, where ``0 <= i < N`` and ``0 <= j <= i``.
 )";
 
-  math.def("schmidt_legendre_polynomial",
-           &Legendre::schmidt,
-           "theta"_a,
-           "nmax"_a,
-           R"(Computes the Positive Gauss-Legendre quadrature
+  math.def(
+      "schmidt_legendre_polynomial",
+      static_cast<std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> (*)(Numeric, Index)>(&Legendre::schmidt),
+      "theta"_a,
+      "nmax"_a,
+      R"(Computes the Positive Gauss-Legendre quadrature
 
 Parameters
 ----------

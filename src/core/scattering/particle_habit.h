@@ -1,5 +1,7 @@
 #pragma once
 
+#include <enumsParticleShape.h>
+
 #include <iostream>
 #include <optional>
 #include <variant>
@@ -38,6 +40,9 @@ auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
       // directly aliases its matpack storage; bulk PSD scaling would then
       // modify the particle habit and make later evaluations stateful.
       return ssd.regrid(new_grids);
+    } else if constexpr (repr == Representation::Spectral) {
+      // The series at the new scattering angles exactly, then temperature and frequency
+      return ssd.to_gridded(new_grids.za_scat_grid).regrid(new_grids);
     } else {
       return ssd.to_gridded().regrid(new_grids);
     }
@@ -54,7 +59,7 @@ auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
       return ssd.to_gridded().regrid(new_grids);
     }
   } else {
-    if constexpr (repr == Representation::Gridded) {
+    if constexpr (repr == Representation::Gridded or repr == Representation::Spectral) {
       return ssd.to_lab_frame(new_grids);
     } else {
       return ssd.to_gridded().to_lab_frame(new_grids);
@@ -70,7 +75,7 @@ template <Format format, Representation repr> auto ssd_to_aro_spectral(const Sca
   if constexpr (format == Format::ARO) {
     return ssd.to_spectral(l, m).regrid(new_grids);
   } else {
-    if constexpr (repr == Representation::Gridded) {
+    if constexpr (repr == Representation::Gridded or repr == Representation::Spectral) {
       return ssd.to_lab_frame(new_grids).to_spectral(l, m);
     } else {
       return ssd.to_gridded().to_lab_frame(new_grids).to_spectral(l, m);
@@ -142,17 +147,40 @@ class ScatteringHabit;
  */
 class ParticleHabit {
  public:
-  //! Generate native TRO data at individual volume-equivalent diameters.
-  //! SI inputs; refractive_index has shape (temperature, frequency).
+  //! Generate native spectral TRO data, the exact Legendre series of the T-matrix, at individual
+  //! volume-equivalent diameters.  SI inputs; refractive_index has shape (temperature, frequency).
+  //! aspect_ratio has one element for all diameters or one per diameter; coefficients, of generalized
+  //! Chebyshev particles only, likewise, and none for the other shapes.
   static ParticleHabit tmatrix(const Vector&        t_grid,
                                const Vector&        f_grid,
                                const Vector&        diameters,
                                const ComplexMatrix& refractive_index,
                                Numeric              density,
-                               Numeric              aspect_ratio,
-                               int                  shape    = -1,
-                               int                  angles   = 181,
-                               Numeric              accuracy = 0.001);
+                               const Vector&        aspect_ratio,
+                               ParticleShape        shape              = ParticleShape::spheroid,
+                               Index                degree             = 0,
+                               const ArrayOfVector& coefficients       = {},
+                               Numeric              accuracy           = 0.001,
+                               Index                surface_quadrature = 2);
+
+  //! Generate gridded ARO data of the T-matrix, for the tilt distribution tilt_angles [deg] with tilt_weights and
+  //! random azimuth, on the given grids [deg].  The other inputs are those of tmatrix().
+  static ParticleHabit tmatrix_aro(const Vector&          t_grid,
+                                   const Vector&          f_grid,
+                                   const Vector&          diameters,
+                                   const ComplexMatrix&   refractive_index,
+                                   Numeric                density,
+                                   const Vector&          aspect_ratio,
+                                   const Vector&          za_inc_grid,
+                                   const Vector&          delta_aa_grid,
+                                   const ZenithAngleGrid& za_scat_grid,
+                                   const Vector&          tilt_angles,
+                                   const Vector&          tilt_weights,
+                                   ParticleShape          shape              = ParticleShape::spheroid,
+                                   Index                  degree             = 0,
+                                   const ArrayOfVector&   coefficients       = {},
+                                   Numeric                accuracy           = 0.001,
+                                   Index                  surface_quadrature = 2);
 
   static ParticleHabit sphere(const StridedVectorView& t_grid,
                               const StridedVectorView& f_grid,

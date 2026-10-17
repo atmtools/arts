@@ -408,10 +408,10 @@ void internal_radiance(ConstTensor3View upreflect,
 }
 
 sublayer initial_sublayer(Numeric zdiff, Numeric extinction, Numeric max_delta_tau) {
-  const Numeric f           = std::log(std::max(extinction * zdiff, 1.0e-7) / max_delta_tau) / std::log(2.0);
+  const Numeric f           = std::log2(std::max(extinction * zdiff, 1.0e-7) / max_delta_tau);
   Index         num_doubles = 0;
   if (f > 0.0) num_doubles = static_cast<Index>(f) + 1;
-  const Numeric num_sub_layers = std::pow(2.0, num_doubles);
+  const Numeric num_sub_layers = std::ldexp(1.0, static_cast<int>(num_doubles));
   return {.num_doubles = num_doubles, .num_sub_layers = num_sub_layers, .delta_z = zdiff / num_sub_layers};
 }
 

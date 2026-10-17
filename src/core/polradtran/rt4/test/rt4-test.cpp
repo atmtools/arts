@@ -558,13 +558,13 @@ void test_kirchhoff(bool reciprocal, Index nmu_quad = 8, Index nlay = 2) {
   // The doubling is exact for this fixed point, so only round-off remains;
   // it grows with the number of sublayers 2^n, n = int(log2(tau / max_delta_tau)) + 1.
   const Numeric tau     = (sigma + kabs + atm.gas[0]) * atm.dz(0);
-  const Numeric n_doubl = std::floor(std::log2(tau / p.max_delta_tau)) + 1;
+  const int     n_doubl = std::ilogb(tau / p.max_delta_tau) + 1;
   report(std::format("(d) isothermal Kirchhoff, {} + gas + Fresnel 3+0.2i, nmu {} + 1, {} layers",
                      reciprocal ? "Rayleigh" : "non-reciprocal Rayleigh",
                      nmu_quad,
                      nlay),
          d,
-         std::exp2(n_doubl) * std::numeric_limits<Numeric>::epsilon());
+         std::ldexp(std::numeric_limits<Numeric>::epsilon(), n_doubl));
 }
 
 void expect_throw(std::string_view what, const std::function<void()>& f) {

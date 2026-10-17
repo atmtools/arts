@@ -45,9 +45,13 @@ A reflection exists only for the facet whose normal is along k_out - k_inc.
   const polarization_basis in  = meridional_basis(k_inc, x);
   const polarization_basis out = meridional_basis(k_out, x);
 
-  Vector3       s      = cross(k_inc, n_surface);
-  const Numeric norm_s = hypot(s);
-  if (norm_s < 1e-12) {
+  // As N of scattering_plane_rotation: projected back across k_inc, the rounding of s only turns the plane of
+  // incidence, which reaches the reflection through its part that depends on the plane alone, vanishing towards
+  // normal incidence; so s gives the plane until k_inc and the normal are parallel in double precision
+  Vector3 s             = cross(k_inc, n_surface);
+  s                    -= dot(s, k_inc) * k_inc;
+  const Numeric norm_s  = hypot(s);
+  if (not(norm_s > detail::parallel)) {
     s = in.second;
   } else {
     s /= norm_s;

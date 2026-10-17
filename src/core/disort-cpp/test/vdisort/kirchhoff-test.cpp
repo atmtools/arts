@@ -86,7 +86,7 @@ void report_miss(std::string_view what, deviation d, Numeric least) {
 disort::main_data disort_cavity(const disort::surface_reflection& surface, bool emission_as_boundary) {
   Matrix legendre(NL, NQ);
   for (Index l = 0; l < NL; l++)
-    for (Index k = 0; k < NQ; k++) legendre[l, k] = std::pow(0.5, static_cast<Numeric>(k));
+    for (Index k = 0; k < NQ; k++) legendre[l, k] = std::ldexp(1.0, -static_cast<int>(k));
   Matrix source(NL, 1, B), up(NF, N, 0.0), down(NF, N, 0.0);
   down[0] = B;
   up[0]   = B;

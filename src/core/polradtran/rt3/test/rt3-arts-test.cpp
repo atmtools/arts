@@ -14,13 +14,13 @@
      and Siewert 1989), printed with 8 decimals.  ARTS's Mie code
      (ParticleHabit::sphere) for that population, integrated over the
      Hansen and Travis (1974) gamma distribution
-     n(r) ~ r^((1 - 3 b) / b) exp(-r / (a b)), must reproduce F11, F12 and
-     F33 (and F22 = F11, F44 = F33) to half a unit in the 8th decimal.  F34
-     comes out with the opposite sign: for the same physical sphere ARTS's
-     F34 is -1 times Evans'.  The Mie data are on the nodes of a 96-point
+     n(r) ~ r^((1 - 3 b) / b) exp(-r / (a b)), must reproduce F11, F12, F33
+     and F34 (and F22 = F11, F44 = F33) to half a unit in the 8th decimal.
+     ARTS's Stokes convention is that of Evans and Stephens, so the same
+     physical sphere has the same F34; this pins its sign against a reference
+     external to ARTS.  The Mie data are on the nodes of a 96-point
      Gauss-Legendre rule in cos(Theta), so their Legendre series follows
-     from that rule exactly; the particles hold those series.  This pins the relative sign of F34 against a
-     reference external to ARTS; see rt3_arts.h for what it implies for V.
+     from that rule exactly; the particles hold those series.
    - B3: the path builder must reproduce the path data it is given and the
      scattering-weighted layer mean of the level series. */
 #include <arts_constants.h>
@@ -190,7 +190,7 @@ void test_mietest() {
 
   const auto s = rt3::scattering_optics(species, atm, frequency, degree, 1e-10);
 
-  Numeric same = 0.0, f34_opposite = 0.0, f34_same = 0.0, spheres = 0.0, tail = 0.0;
+  Numeric same = 0.0, f34_same = 0.0, f34_opposite = 0.0, spheres = 0.0, tail = 0.0;
   for (Index l = 0; l <= degree; l++) {
     const bool                  tabulated = l < static_cast<Index>(evans_table3.size());
     const CompactPlanarMuelmat& c         = s.legendre[l];
@@ -205,22 +205,22 @@ void test_mietest() {
   constexpr Numeric tol = 6e-9;  // half a unit in the 8th decimal, plus 1e-9 for the radius quadrature
   std::cout << std::format(
       "B2 runmietest (Evans and Stephens 1991, Table 3) from ARTS's Mie code: max |F11, F12, F33 - Evans| {:.2e}, "
-      "max |F34 + Evans| {:.2e} (tolerance {:.0e}); max |F34 - Evans| {:.2e}; F22 = F11, F44 = F33 to {:.0e}; "
+      "max |F34 - Evans| {:.2e} (tolerance {:.0e}); max |F34 + Evans| {:.2e}; F22 = F11, F44 = F33 to {:.0e}; "
       "degrees 12-13 {:.0e}; albedo {:.15f}\n",
       same,
-      f34_opposite,
-      tol,
       f34_same,
+      tol,
+      f34_opposite,
       spheres,
       tail,
       s.scattering / s.extinction);
-  require(same <= tol and f34_opposite <= tol and spheres == 0.0,
-          std::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12 and "
-                      "F33, and minus Table 3 in F34, to {:.0e}; got {:.2e} and {:.2e}",
+  require(same <= tol and f34_same <= tol and spheres == 0.0,
+          std::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12, "
+                      "F33 and F34 to {:.0e}; got {:.2e} and {:.2e}",
                       tol,
                       same,
-                      f34_opposite));
-  require(f34_same > 1e4 * tol, "B2: the F34 comparison must be able to tell the two signs apart");
+                      f34_same));
+  require(f34_opposite > 1e4 * tol, "B2: the F34 comparison must be able to tell the two signs apart");
 }
 
 struct path_data {

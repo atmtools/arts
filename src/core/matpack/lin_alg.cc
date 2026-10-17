@@ -11,6 +11,8 @@
 
 #include "lin_alg.h"
 
+#include "math_funcs.h"
+
 /*===========================================================================
   === External declarations
   ===========================================================================*/
@@ -681,15 +683,18 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
 
   A_norm_inf = norm_inf(A);
 
-  // This formular is derived in the book by Golub and Van Loan.
-  j = 1 + floor(1. / log(2.) * log(A_norm_inf));
+  // This formular is derived in the book by Golub and Van Loan: j = 1 + floor(log2(|A|)), the binary exponent of
+  // |A| = m 2^j with 1/2 <= m < 1
+  int binary_exponent = 0;
+  std::frexp(A_norm_inf, &binary_exponent);
+  j = binary_exponent;
 
   if (j < 0) j = 0.;
   auto j_index = (Index)(j);
 
   // Scale matrix
   F  = A;
-  F /= nonstd::pow(2.0, j);
+  F /= std::ldexp(1.0, static_cast<int>(j_index));
 
   /* The higher q the more accurate is the computation,
      see user guide for accuracy */
@@ -706,10 +711,10 @@ void matrix_exp(MatrixView F, ConstMatrixView A, const Index& q) {
     mult(B, F, X);  // X = F * X
     X   = B;
     cX  = X;
-    cX *= c;                     // cX = X*c
-    N  += cX;                    // N = N + X*c
-    cX *= nonstd::pow(-1, k_n);  // cX = (-1)^k*c*X
-    D  += cX;                    // D = D + (-1)^k*c*X
+    cX *= c;                                              // cX = X*c
+    N  += cX;                                             // N = N + X*c
+    cX *= static_cast<Numeric>(pow_negative_one(k + 1));  // cX = (-1)^k*c*X, k = k_n
+    D  += cX;                                             // D = D + (-1)^k*c*X
   }
 
   /*Solve the equation system DF=N for F using LU decomposition,
@@ -905,6 +910,23 @@ void lu_solve_inplace(VectorView X, ConstMatrixView LU, const solve_workdata& wo
                   &n_int,
                   &info);
   check_lu_solve_info(info, "DGETRS");
+}
+
+void right_solve_inplace(ComplexMatrixView B, ComplexMatrixView A, solve_workdata& wo) {
+  const Index n = A.nrows();
+  ARTS_USER_ERROR_IF(A.ncols() != n or B.ncols() != n,
+                     "The right division B A^-1 needs a square A and B with as many columns, got {:B,} and {:B,}",
+                     A.shape(),
+                     B.shape());
+  if (n == 0 or B.nrows() == 0) return;
+  wo.resize(n);
+
+  int n_int = complex_lapack_size(n), nrhs = complex_lapack_size(B.nrows()), info = 0;
+  lapack::zgetrf_(&n_int, &n_int, A.data_handle(), &n_int, wo.ipiv.data(), &info);
+  check_lu_info(info, "ZGETRF");
+  char trans = 'N';
+  lapack::zgetrs_(&trans, &n_int, &nrhs, A.data_handle(), &n_int, wo.ipiv.data(), B.data_handle(), &n_int, &info);
+  check_lu_solve_info(info, "ZGETRS");
 }
 
 void solve_inplace(VectorView X, MatrixView A, solve_workdata& wo) {

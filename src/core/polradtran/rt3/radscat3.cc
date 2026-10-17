@@ -249,8 +249,7 @@ void scattering(ConstVectorView                     mu_values,
                      nstokes,
                      scatbuf.shape());
 
-  Index numpts =
-      2 * (Index{1} << static_cast<Index>(std::log(static_cast<Numeric>(numlegendre + 4)) / std::log(2.0) + 1.0));
+  Index numpts = 2 * (Index{1} << (std::ilogb(static_cast<Numeric>(numlegendre + 4)) + 1));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
 
   // SCAT_MATRIX(4, 4, NUMPTS+1) and BASIS_MATRIX(4, 4, 2*AZIORDER+1).
@@ -308,8 +307,7 @@ void direct_scattering(ConstVectorView                     mu_values,
   ARTS_USER_ERROR_IF(
       not(direct_mu >= -1.0 and direct_mu <= 1.0), "DIRECT_SCATTERING needs direct_mu in [-1, 1], got {}", direct_mu);
 
-  Index numpts =
-      2 * (Index{1} << static_cast<Index>(std::log(static_cast<Numeric>(numlegendre + 4)) / std::log(2.0) + 1.0));
+  Index numpts = 2 * (Index{1} << (std::ilogb(static_cast<Numeric>(numlegendre + 4)) + 1));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
 
   // SCAT_MATRIX(4, 4, NUMPTS) and BASIS_MATRIX(4, 4, 2*AZIORDER+1)
