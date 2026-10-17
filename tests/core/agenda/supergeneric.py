@@ -13,8 +13,8 @@ ws = pyarts.Workspace()
 def rejects(call):
     try:
         call()
-    except (RuntimeError, TypeError, ValueError) as error:
-        return str(error)
+    except (RuntimeError, TypeError, ValueError):
+        return
     raise AssertionError("Invalid generic argument accepted")
 
 
