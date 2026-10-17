@@ -568,6 +568,20 @@ class Orders {
     ComplexMatrix     T(size, size);
     ComplexMatrixView Q{matpack::mdview_t<Complex, 2>{storage.data_handle(), std::array{size, size}}};
     q_matrices(Q, T, m);
+    // A Q or Rg Q that is not finite, such as of Bessel functions that overflow inside a strongly absorbing particle,
+    // has no T-matrix, and what LAPACK makes of it differs between implementations
+    const auto finite = [size](const ComplexMatrixView& M) {
+      for (Index a = 0; a < size; ++a)
+        for (Index b = 0; b < size; ++b)
+          if (not(std::isfinite(M[a, b].real()) and std::isfinite(M[a, b].imag()))) return false;
+      return true;
+    };
+    ARTS_USER_ERROR_IF(not(finite(Q) and finite(T)),
+                       "The T-matrix does not converge: its Q matrices of order {} are not finite at {} degrees and {} "
+                       "surface nodes",
+                       m,
+                       surface.nmax,
+                       nodes)
     T *= -1.0;
     right_solve_inplace(T, Q, pivots);
     return T;
