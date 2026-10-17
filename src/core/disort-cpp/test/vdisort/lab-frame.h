@@ -23,13 +23,9 @@
 #include <functional>
 
 namespace vdisort_test {
-//! The scattering matrix in the scattering-plane basis (e_par, e_perp), Q = I_par - I_perp
-struct tro_elements {
-  Numeric F11{}, F12{}, F22{}, F33{}, F34{}, F44{};
-};
-
-//! F as a function of cos(Theta)
-using tro_matrix = std::function<tro_elements(Numeric)>;
+//! The scattering matrix in the scattering-plane basis (e_par, e_perp), Q = I_par - I_perp, as a function of
+//! cos(Theta)
+using tro_matrix = std::function<CompactPlanarMuelmat(Numeric)>;
 
 inline Vector3 direction(Numeric cos_theta, Numeric phi) {
   const Numeric st = std::sqrt(std::max(0.0, 1 - cos_theta * cos_theta));
@@ -51,9 +47,8 @@ inline rtepack::polarization_basis basis(Numeric cos_theta, Numeric phi) {
    (F12 = F34 = 0 and |F22| = |F33| there) Z does not depend on the choice
    of plane. */
 inline rtepack::muelmat lab_frame(const tro_matrix& F, Numeric ci, Numeric phii, Numeric co, Numeric phio) {
-  const auto f = F(std::clamp(dot(direction(ci, phii), direction(co, phio)), -1.0, 1.0));
   return rtepack::lab_frame_phase_matrix(
-      rtepack::compact_planar_muelmat{f.F11, f.F12, f.F22, f.F33, f.F34, f.F44}, basis(ci, phii), basis(co, phio));
+      F(std::clamp(dot(direction(ci, phii), direction(co, phio)), -1.0, 1.0)), basis(ci, phii), basis(co, phio));
 }
 
 //! F(cos Theta) of a Legendre series of scattering-plane matrices, F = sum_l c_l P_l(cos Theta)
@@ -72,8 +67,7 @@ inline tro_matrix legendre_matrix(const CompactPlanarMuelmatVector& coef) {
       }
       sum += coef[l] * p;
     }
-    return tro_elements{
-        .F11 = sum.F11(), .F12 = sum.F12(), .F22 = sum.F22(), .F33 = sum.F33(), .F34 = sum.F34(), .F44 = sum.F44()};
+    return sum;
   };
 }
 

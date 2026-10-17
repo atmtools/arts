@@ -63,8 +63,7 @@ PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(std::shared_ptr<const Vect
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       auto scat_data =
           scattering::MieSphere<Numeric>::Liquid((*f_grid)[i_f], (*t_grid)[i_t], 1e-3, grid_vector(*za_scat_grid));
-      auto scat_matrix                                        = scat_data.get_scattering_matrix_compact();
-      rtepack::elements(phase_matrix)[i_t, i_f, joker, joker] = scat_matrix;
+      phase_matrix[i_t, i_f, joker] = scat_data.get_scattering_matrix_compact();
     }
   }
   return phase_matrix;
@@ -294,33 +293,27 @@ bool test_phase_matrix_regrid_tro() {
   weights                     = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
 
-  Vector phase_matrix_ref(6);
-  phase_matrix_ref = 0.0;
-  for (Index i_t = 0; i_t < 2; ++i_t) {
-    for (Index i_f = 0; i_f < 2; ++i_f) {
-      for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat) {
-        for (Index e = 0; e < 6; ++e) phase_matrix_ref[e] += 0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat].data[e];
-      }
-    }
-  }
-  err = max_error(phase_matrix_ref, rtepack::elements(phase_matrix_gridded_interp)[0, 0, 0, joker]);
+  CompactPlanarMuelmatVector phase_matrix_ref(1, CompactPlanarMuelmat{});
+  for (Index i_t = 0; i_t < 2; ++i_t)
+    for (Index i_f = 0; i_f < 2; ++i_f)
+      for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat)
+        phase_matrix_ref[0] += 0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat];
+  err = max_error(rtepack::elements(phase_matrix_ref)[0, joker],
+                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, 0, joker]);
   if (err > 1e-15) { return false; }
 
   //
   // Do the same in spectral space.
   //
 
-  auto   phase_matrix_interp = phase_matrix_spectral.regrid(grids, weights).to_gridded();
-  Matrix phase_matrix_spectral_ref(grid_size(*za_scat_grid), 6);
-  phase_matrix_spectral_ref = 0.0;
-  for (Index i_t = 0; i_t < 2; ++i_t) {
-    for (Index i_f = 0; i_f < 2; ++i_f) {
-      const auto values = rtepack::elements(phase_matrix_gridded)[i_t, i_f, joker, joker];
-      for (Index i = 0; i < values.extent(0); ++i)
-        for (Index e = 0; e < 6; ++e) phase_matrix_spectral_ref[i, e] += 0.25 * values[i, e];
-    }
-  }
-  err = max_error(phase_matrix_spectral_ref, rtepack::elements(phase_matrix_interp)[0, 0, joker, joker]);
+  auto                       phase_matrix_interp = phase_matrix_spectral.regrid(grids, weights).to_gridded();
+  CompactPlanarMuelmatVector phase_matrix_spectral_ref(grid_size(*za_scat_grid), CompactPlanarMuelmat{});
+  for (Index i_t = 0; i_t < 2; ++i_t)
+    for (Index i_f = 0; i_f < 2; ++i_f)
+      for (Size i = 0; i < phase_matrix_spectral_ref.size(); ++i)
+        phase_matrix_spectral_ref[i] += 0.25 * phase_matrix_gridded[i_t, i_f, i];
+  err = max_error(rtepack::elements(phase_matrix_spectral_ref),
+                  rtepack::elements(phase_matrix_interp)[0, 0, joker, joker]);
   if (err > 1e-10) { return false; }
 
   //

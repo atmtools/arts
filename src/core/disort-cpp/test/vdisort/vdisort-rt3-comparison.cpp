@@ -99,7 +99,6 @@ using vdisort_test::fourier_modes;
 using vdisort_test::lab_frame;
 using vdisort_test::legendre_matrix;
 using vdisort_test::ordinary_modes;
-using vdisort_test::tro_elements;
 using vdisort_test::tro_matrix;
 
 Index isize(const auto& v) { return static_cast<Index>(v.size()); }

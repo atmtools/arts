@@ -40,7 +40,7 @@ rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Nu
 }
 }  // namespace
 
-Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
+CompactPlanarMuelmat calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
   using Constant::pi;
 
   ARTS_USER_ERROR_IF(theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
@@ -50,8 +50,7 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarizati
                      "The depolarization factor must be in [0, 1), is {}",
                      depolarization_factor);
 
-  const auto f = rayleigh_scattering_matrix(theta_rad, depolarization_factor);
-  return Vector{f[0], f[1], f[2], f[3], f[4], f[5]};
+  return rayleigh_scattering_matrix(theta_rad, depolarization_factor);
 }
 
 namespace scattering {

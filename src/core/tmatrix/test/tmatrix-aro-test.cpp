@@ -85,9 +85,8 @@ void sphere(Numeric r, Complex m, Numeric tilt) {
   const auto    aro      = tmatrix::azimuthally_random(
       r, lambda, tmatrix::Shape{}, m.real(), m.imag(), za, daa, za, {tilt}, {1.0}, accuracy);
   const auto                     reference = tro_reference([&](Numeric theta) {
-    scattering::MieSphere<Numeric> mie(lambda, r, m, Vector{Conversion::rad2deg(theta)});
-    const auto                     F = mie.get_scattering_matrix_compact();
-    return rtepack::compact_planar_muelmat{F[0, 0], F[0, 1], F[0, 2], F[0, 3], F[0, 4], F[0, 5]};
+    return scattering::MieSphere<Numeric>(lambda, r, m, Vector{Conversion::rad2deg(theta)})
+        .get_scattering_matrix_compact()[0];
   });
   scattering::MieSphere<Numeric> mie(lambda, r, m, Vector{0.0});
   const Numeric                  phase = distance(aro.phase, reference) / largest(reference);

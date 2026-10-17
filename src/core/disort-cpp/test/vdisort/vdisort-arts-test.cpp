@@ -279,15 +279,9 @@ mie_case mie() {
 //! The scattering matrix of the particle's Legendre series at cos(Theta), times its number density
 vdisort_test::tro_matrix series_of(const mie_case& c) {
   return [&c](Numeric cos_theta) {
-    const Matrix  f = scattering::tro_legendre::evaluate(c.series.coefficients(0, 0),
-                                                         Vector{Conversion::rad2deg(std::acos(cos_theta))});
     const Numeric n = 1e9;
-    return vdisort_test::tro_elements{.F11 = n * f[0, 0],
-                                      .F12 = n * f[0, 1],
-                                      .F22 = n * f[0, 2],
-                                      .F33 = n * f[0, 3],
-                                      .F34 = n * f[0, 4],
-                                      .F44 = n * f[0, 5]};
+    return n * scattering::tro_legendre::evaluate(c.series.coefficients(0, 0),
+                                                  Vector{Conversion::rad2deg(std::acos(cos_theta))})[0];
   };
 }
 
@@ -310,9 +304,9 @@ vdisort_test::tro_matrix tro_of(const mie_case& c, Numeric sign34 = 1.0) {
         Vector{mie_frequency},
         std::make_shared<scattering::ZenithAngleGrid>(
             scattering::IrregularZenithAngleGrid(Vector{Conversion::rad2deg(std::acos(cos_theta))})));
-    const auto& p = (*bulk.phase_matrix)[0, 0, 0];
-    return vdisort_test::tro_elements{
-        .F11 = p.F11(), .F12 = p.F12(), .F22 = p.F22(), .F33 = p.F33(), .F34 = sign34 * p.F34(), .F44 = p.F44()};
+    CompactPlanarMuelmat F  = (*bulk.phase_matrix)[0, 0, 0];
+    F.F34()                *= sign34;
+    return F;
   };
 }
 
@@ -355,8 +349,8 @@ void test_lab_frame(const mie_case& c) {
       "    mu = cos(za), phi = -aa, same F:   max |dZ| / max |Z| {:.1e} (tolerance 1e-10)\n"
       "    phi = +aa (other azimuth sense):   max |dZ| / max |Z| {:.1e}\n"
       "    F34 negated:                       max |dZ| / max |Z| {:.1e}\n",
-      ref.F12 / ref.F11,
-      ref.F34 / ref.F11,
+      ref.F12() / ref.F11(),
+      ref.F34() / ref.F11(),
       right,
       sense,
       flipped);

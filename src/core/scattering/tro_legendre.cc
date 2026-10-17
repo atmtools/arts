@@ -31,7 +31,7 @@ const std::pair<Vector, Vector>& gauss_legendre(std::map<Index, std::pair<Vector
 }
 }  // namespace
 
-Matrix project(const ConstVectorView& angles, const ConstMatrixView& values, Index degree) {
+Matrix project(const ConstVectorView& angles, const StridedConstMatrixView& values, Index degree) {
   const Index n = static_cast<Index>(angles.size()), k = values.ncols();
   ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
   ARTS_USER_ERROR_IF(n < 1, "A Legendre projection needs at least one scattering angle")
@@ -91,7 +91,7 @@ Matrix project(const ConstVectorView& angles, const ConstMatrixView& values, Ind
   return b;
 }
 
-Matrix evaluate(const ConstMatrixView& coefficients, const ConstVectorView& angles) {
+Matrix evaluate(const StridedConstMatrixView& coefficients, const ConstVectorView& angles) {
   const Index L = coefficients.nrows() - 1, k = coefficients.ncols();
   ARTS_USER_ERROR_IF(L < 0, "A Legendre series needs at least one coefficient")
   Matrix out(angles.size(), k, 0.0);
@@ -109,35 +109,56 @@ Matrix evaluate(const ConstMatrixView& coefficients, const ConstVectorView& angl
   return out;
 }
 
-report assess(const ConstMatrixView& coefficients, const ConstVectorView& angles, const ConstMatrixView& values) {
-  ARTS_USER_ERROR_IF(coefficients.ncols() != 6 or values.ncols() != 6,
-                     "A TRO report needs the six elements [F11, F12, F22, F33, F34, F44]")
-  const Index       L   = coefficients.nrows() - 1;
+CompactPlanarMuelmatVector project(const ConstVectorView&                     angles,
+                                   const CompactPlanarMuelmatConstVectorView& values,
+                                   Index                                      degree) {
+  const Matrix               a = project(angles, rtepack::elements(values), degree);
+  CompactPlanarMuelmatVector out(a.nrows());
+  rtepack::elements(out) = a;
+  return out;
+}
+
+CompactPlanarMuelmatVector evaluate(const CompactPlanarMuelmatConstVectorView& coefficients,
+                                    const ConstVectorView&                     angles) {
+  const Matrix               f = evaluate(rtepack::elements(coefficients), angles);
+  CompactPlanarMuelmatVector out(f.nrows());
+  rtepack::elements(out) = f;
+  return out;
+}
+
+report assess(const CompactPlanarMuelmatConstVectorView& coefficients,
+              const ConstVectorView&                     angles,
+              const CompactPlanarMuelmatConstVectorView& values) {
+  ARTS_USER_ERROR_IF(coefficients.empty(), "A Legendre series needs at least one coefficient")
+  ARTS_USER_ERROR_IF(values.size() != angles.size(),
+                     "The gridded data have {} scattering angles, but the scattering-angle grid has {}",
+                     values.size(),
+                     angles.size())
+  const Index       L   = coefficients.size() - 1;
   constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 
   report  out;
   Numeric scale = 0.0;
-  for (Index i = 0; i < values.nrows(); i++) scale = std::max(scale, std::abs(values[i, 0]));
+  for (const auto& F : values) scale = std::max(scale, std::abs(F.F11()));
   const Numeric inv_scale = scale > 0.0 ? 1.0 / scale : nan;
 
-  const Matrix series = evaluate(coefficients, angles);
-  for (Index i = 0; i < values.nrows(); i++)
+  const auto series = evaluate(coefficients, angles);
+  for (Size i = 0; i < values.size(); i++)
     for (Index j = 0; j < 6; j++)
-      out.reconstruction_error[j] =
-          std::max(out.reconstruction_error[j], std::abs(series[i, j] - values[i, j]) * inv_scale);
+      out.reconstruction_error.data[j] =
+          std::max(out.reconstruction_error.data[j], std::abs(series[i].data[j] - values[i].data[j]) * inv_scale);
 
-  const Numeric a0 = coefficients[0, 0];
-  for (Index j = 0; j < 6; j++) out.tail[j] = a0 != 0.0 ? std::abs(coefficients[L, j] / a0) : nan;
-  out.asymmetry = (L >= 1 and a0 != 0.0) ? coefficients[1, 0] / (std::numbers::sqrt3 * a0) : nan;
+  const Numeric a0 = coefficients[0].F11();
+  for (Index j = 0; j < 6; j++) out.tail.data[j] = a0 != 0.0 ? std::abs(coefficients[L].data[j] / a0) : nan;
+  out.asymmetry = (L >= 1 and a0 != 0.0) ? coefficients[1].F11() / (std::numbers::sqrt3 * a0) : nan;
 
   // The series between and beyond the nodes, on a uniform grid fine enough to resolve degree L
   const Index nfine = 8 * (L + 1) + 1;
   Vector      fine(nfine + angles.size());
   for (Index i = 0; i < nfine; i++) fine[i] = 180.0 * static_cast<Numeric>(i) / static_cast<Numeric>(nfine - 1);
   for (Size i = 0; i < angles.size(); i++) fine[nfine + i] = angles[i];
-  const Matrix fine_series = evaluate(coefficients, fine);
-  Numeric      lowest      = std::numeric_limits<Numeric>::infinity();
-  for (Size i = 0; i < fine.size(); i++) lowest = std::min(lowest, fine_series[i, 0]);
+  Numeric lowest = std::numeric_limits<Numeric>::infinity();
+  for (const auto& F : evaluate(coefficients, fine)) lowest = std::min(lowest, F.F11());
   out.min_f11 = lowest * inv_scale;
   return out;
 }
@@ -145,16 +166,16 @@ report assess(const ConstMatrixView& coefficients, const ConstVectorView& angles
 
 namespace scattering {
 LegendreReport::LegendreReport(Index n_temps, Index n_freqs)
-    : reconstruction_error(n_temps, n_freqs, 6, 0.0),
-      tail(n_temps, n_freqs, 6, 0.0),
+    : reconstruction_error(n_temps, n_freqs, CompactPlanarMuelmat{}),
+      tail(n_temps, n_freqs, CompactPlanarMuelmat{}),
       min_f11(n_temps, n_freqs, 0.0),
       asymmetry(n_temps, n_freqs, 0.0),
       normalisation_error(n_temps, n_freqs, std::numeric_limits<Numeric>::quiet_NaN()) {}
 
 void LegendreReport::set(Index i_t, Index i_f, const tro_legendre::report& r) {
-  reconstruction_error[i_t, i_f, joker] = r.reconstruction_error;
-  tail[i_t, i_f, joker]                 = r.tail;
-  min_f11[i_t, i_f]                     = r.min_f11;
-  asymmetry[i_t, i_f]                   = r.asymmetry;
+  reconstruction_error[i_t, i_f] = r.reconstruction_error;
+  tail[i_t, i_f]                 = r.tail;
+  min_f11[i_t, i_f]              = r.min_f11;
+  asymmetry[i_t, i_f]            = r.asymmetry;
 }
 }  // namespace scattering

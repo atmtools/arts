@@ -1040,7 +1040,8 @@ supplied as ``[B, 0, 0, 0]``.
       "source_polynomial", &VDisortSettings::source_polynomial, ".. :class:`~pyarts3.arts.StokvecTensor3`");
   vdisort_settings.def_rw("legendre_coefficients",
                           &VDisortSettings::legendre_coefficients,
-                          "Legendre moments of [F11, F12, F22, F33, F34, F44]\n\n.. :class:`~pyarts3.arts.Tensor4`");
+                          "Legendre moments of the scattering-plane matrices [freq, layer, degree]\n\n.. "
+                          ":class:`~pyarts3.arts.CompactPlanarMuelmatTensor3`");
   vdisort_settings.def_rw("upward_boundary_condition",
                           &VDisortSettings::upward_boundary_condition,
                           ".. :class:`~pyarts3.arts.StokvecTensor4`");

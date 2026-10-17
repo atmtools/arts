@@ -539,10 +539,8 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        const rtepack::compact_planar_muelmat &F0 = this->operator[](i_t, i_f, interp.idx);
-        const rtepack::compact_planar_muelmat &F1 = this->operator[](i_t, i_f, interp.idx + 1);
-        for (Index i_s = 0; i_s < 6; ++i_s)
-          result[i_t, i_f].data[i_s] = (interp.fd[1] * F0.data[i_s] + interp.fd[0] * F1.data[i_s]);
+        result[i_t, i_f] =
+            interp.fd[1] * (*this)[i_t, i_f, interp.idx] + interp.fd[0] * (*this)[i_t, i_f, interp.idx + 1];
       }
     }
     return result;
@@ -555,10 +553,8 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        const rtepack::compact_planar_muelmat &F0 = this->operator[](i_t, i_f, interp.idx);
-        const rtepack::compact_planar_muelmat &F1 = this->operator[](i_t, i_f, interp.idx + 1);
-        for (Index i_s = 0; i_s < 6; ++i_s)
-          result[i_t, i_f].data[i_s] = (interp.fd[1] * F0.data[i_s] + interp.fd[0] * F1.data[i_s]);
+        result[i_t, i_f] =
+            interp.fd[1] * (*this)[i_t, i_f, interp.idx] + interp.fd[0] * (*this)[i_t, i_f, interp.idx + 1];
       }
     }
     return result;
@@ -717,11 +713,9 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
   std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
   Index                         get_degree() const { return degree_; }
 
-  /** The coefficients [degree + 1, 6] at one temperature and frequency */
-  Matrix coefficients(Index i_t, Index i_f) const {
-    Matrix out(degree_ + 1, 6);
-    out = rtepack::elements(*this)[i_t, i_f, joker, joker];
-    return out;
+  /** The coefficients [degree + 1] at one temperature and frequency */
+  CompactPlanarMuelmatVector coefficients(Index i_t, Index i_f) const {
+    return CompactPlanarMuelmatVector{(*this)[i_t, i_f, joker]};
   }
 
   /** The series at the scattering angles of a grid, exactly
@@ -733,7 +727,7 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
     const Vector           angles{grid_vector(*za_scat_grid)};
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        rtepack::elements(result)[i_t, i_f, joker, joker] = tro_legendre::evaluate(coefficients(i_t, i_f), angles);
+        result[i_t, i_f, joker] = tro_legendre::evaluate((*this)[i_t, i_f, joker], angles);
       }
     }
     return result;
@@ -768,11 +762,9 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
       for (Index l = 0; l <= degree_; ++l) p[l] *= norm[l];
       for (Index i_t = 0; i_t < n_temps_; ++i_t) {
         for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-          for (Index i_s = 0; i_s < 6; ++i_s) {
-            Numeric value = 0.0;
-            for (Index l = 0; l <= degree_; ++l) value += this->operator[](i_t, i_f, l).data[i_s] * p[l];
-            scattering_matrix[i_t, i_f].data[i_s] = value;
-          }
+          rtepack::compact_planar_muelmat value{};
+          for (Index l = 0; l <= degree_; ++l) value += (*this)[i_t, i_f, l] * p[l];
+          scattering_matrix[i_t, i_f] = value;
         }
       }
     };
@@ -879,8 +871,7 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
     const Vector                       angles{angle};
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        const Matrix value = tro_legendre::evaluate(coefficients(i_t, i_f), angles);
-        result[i_t, i_f]   = rtepack::compact_planar_muelmat{value[0, joker]};
+        result[i_t, i_f] = tro_legendre::evaluate((*this)[i_t, i_f, joker], angles)[0];
       }
     }
     return result;

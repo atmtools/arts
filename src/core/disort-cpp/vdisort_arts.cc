@@ -144,18 +144,16 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   return out;
 }
 
-fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
-                                       const Vector&          mu_out,
-                                       const Vector&          mu_in,
-                                       Index                  nfourier) {
+fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView& moments,
+                                       const Vector&                              mu_out,
+                                       const Vector&                              mu_in,
+                                       Index                                      nfourier) {
   const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
-  const Index nleg = moments.nrows();
+  const Index nleg = moments.size();
   check_cosines(mu_out, "mu_out");
   check_cosines(mu_in, "mu_in");
   ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
-  ARTS_USER_ERROR_IF(nleg < 1 or moments.ncols() != 6,
-                     "The Legendre moments must be [nleg >= 1, 6] (F11, F12, F22, F33, F34, F44), got {:B,}",
-                     moments.shape());
+  ARTS_USER_ERROR_IF(nleg < 1, "The Legendre moments need at least one degree");
   ARTS_USER_ERROR_IF(no == 0 or ni == 0, "The Fourier coefficients need at least one mu_out and one mu_in");
 
   fourier_optics out{.extinction = 0.0,
@@ -166,17 +164,15 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
   const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
   const auto [za_scat, sca] = zenith_angle_grid(mu_out);
 
-  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), element by element; its phase integral is 4 pi
+  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta); its phase integral is 4 pi
   Vector scaled(nleg);
   for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
   const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](
                                      Numeric theta, rtepack::compact_planar_muelmat_matrix& F) mutable {
     Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
-    for (Index e = 0; e < 6; e++) {
-      Numeric value = 0.0;
-      for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
-      F[0, 0].data[e] = value;
-    }
+    rtepack::compact_planar_muelmat value{};
+    for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l] * p[l];
+    F[0, 0] = value;
   };
 
   const auto one   = std::make_shared<const Vector>(Vector{0.0});

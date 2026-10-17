@@ -107,13 +107,9 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     auto weights = interp_weights[f_ind];
     for (Index za_scat_ind = 0; za_scat_ind < n_angs; ++za_scat_ind) {
-      auto&       F  = phase_matrix_new[f_ind, za_scat_ind];
-      const auto& F0 = phase_matrix[weights.idx, za_scat_ind];
-      const auto& F1 = phase_matrix[weights.idx + 1, za_scat_ind];
-      for (Index i = 0; i < 6; ++i) {
-        F.data[i] += weights.fd[1] * F0.data[i];
-        F.data[i] += weights.fd[0] * F1.data[i];
-      }
+      auto& F  = phase_matrix_new[f_ind, za_scat_ind];
+      F       += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind];
+      F       += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind];
     }
 
     extinction_matrix_new[f_ind].A() += weights.fd[1] * extinction_matrix[weights.idx].A();

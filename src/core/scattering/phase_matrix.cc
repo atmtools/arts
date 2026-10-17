@@ -90,14 +90,9 @@ auto PhaseMatrixData<Format::TRO, Representation::Gridded>::to_spectral(Index de
                      order)
   PhaseMatrixDataSpectral result(t_grid_, f_grid_, degree);
   const Vector            angles{grid_vector(*za_scat_grid_)};
-  const auto              elements = rtepack::elements(*this);
-  Matrix                  values(n_za_scat_, 6);
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      values                                            = elements[i_t, i_f, joker, joker];
-      rtepack::elements(result)[i_t, i_f, joker, joker] = tro_legendre::project(angles, values, degree);
-    }
-  }
+  for (Index i_t = 0; i_t < n_temps_; ++i_t)
+    for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+      result[i_t, i_f, joker] = tro_legendre::project(angles, (*this)[i_t, i_f, joker], degree);
   return result;
 }
 
@@ -112,15 +107,9 @@ LegendreReport PhaseMatrixData<Format::TRO, Representation::Gridded>::legendre_r
                      n_freqs_)
   LegendreReport report(n_temps_, n_freqs_);
   const Vector   angles{grid_vector(*za_scat_grid_)};
-  const auto     elements = rtepack::elements(*this), coefficients = rtepack::elements(spectral);
-  Matrix         values(n_za_scat_, 6), coeff(spectral.extent(2), 6);
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      values = elements[i_t, i_f, joker, joker];
-      coeff  = coefficients[i_t, i_f, joker, joker];
-      report.set(i_t, i_f, tro_legendre::assess(coeff, angles, values));
-    }
-  }
+  for (Index i_t = 0; i_t < n_temps_; ++i_t)
+    for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+      report.set(i_t, i_f, tro_legendre::assess(spectral[i_t, i_f, joker], angles, (*this)[i_t, i_f, joker]));
   return report;
 }
 
@@ -153,14 +142,10 @@ auto PhaseMatrixData<Format::TRO, Representation::Gridded>::to_lab_frame(
 
     for (Index i_t = 0; i_t < n_temps_; ++i_t) {
       for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-        const rtepack::compact_planar_muelmat &F0 = this->operator[](i_t, i_f, angle0);
-        const rtepack::compact_planar_muelmat &F1 = this->operator[](i_t, i_f, angle1);
-        for (Index i_s = 0; i_s < 6; ++i_s) {
-          Numeric value = 0.0;
-          if (weight0 > 0.0) value += weight0 * F0.data[i_s];
-          if (weight1 > 0.0) value += weight1 * F1.data[i_s];
-          scattering_matrix[i_t, i_f].data[i_s] = value;
-        }
+        rtepack::compact_planar_muelmat value{};
+        if (weight0 > 0.0) value += weight0 * (*this)[i_t, i_f, angle0];
+        if (weight1 > 0.0) value += weight1 * (*this)[i_t, i_f, angle1];
+        scattering_matrix[i_t, i_f] = value;
       }
     }
   };

@@ -56,9 +56,9 @@ bool test_air_simple_rayleigh() {
   if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
 
   const Numeric scale = expected / (4.0 * Constant::pi);
-  const Vector  at_90 = calc_rayleighPhaMat(Constant::pi / 2.0);
+  const auto    at_90 = scale * calc_rayleighPhaMat(Constant::pi / 2.0);
   for (Index is = 0; is < 6; ++is) {
-    if (not close((*bulk.phase_matrix)[0, 0, 1].data[is], scale * at_90[is], 1e-9)) return false;
+    if (not close((*bulk.phase_matrix)[0, 0, 1].data[is], at_90.data[is], 1e-9)) return false;
   }
 
   // The species must also provide the spectral TRO representation consumed by

@@ -317,11 +317,12 @@ void vdisort_settingsDownwellingObserver(const Workspace&                   ws,
 void vdisort_settingsNoLegendre(VDisortSettings& vdisort_settings) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(vdisort_settings.legendre_coefficients.nrows() < 1,
+  ARTS_USER_ERROR_IF(vdisort_settings.legendre_coefficients.ncols() < 1,
                      "Must have at least one Legendre mode to use the Legendre coefficients.")
 
-  vdisort_settings.legendre_coefficients                     = 0.0;
-  vdisort_settings.legendre_coefficients[joker, joker, 0, 0] = 1.0;
+  // F11 = 1 at degree 0: isotropic, unpolarized scattering
+  vdisort_settings.legendre_coefficients                  = CompactPlanarMuelmat{};
+  vdisort_settings.legendre_coefficients[joker, joker, 0] = CompactPlanarMuelmat{1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 }
 
 void vdisort_settingsLegendreCoefficientsFromPath(
@@ -347,7 +348,7 @@ void vdisort_settingsLegendreCoefficientsFromPath(
       "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
       std::array{F, L});
 
-  vdisort_settings.legendre_coefficients.resize(F, N, L, 6);
+  vdisort_settings.legendre_coefficients.resize(F, N, L);
 
   Vector invfac(L);
   for (Index j = 0; j < L; j++) { invfac[j] = 1.0 / std::sqrt(2 * j + 1); }
@@ -356,20 +357,18 @@ void vdisort_settingsLegendreCoefficientsFromPath(
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
       auto c = vdisort_settings.legendre_coefficients[iv, i];
-      for (Index j = 0; j < L; j++) {
-        // The six elements [F11, F12, F22, F33, F34, F44] of each coefficient on Y_l0
-        for (Index e = 0; e < 6; e++) {
-          c[j, e] = invfac[j] * std::midpoint(spectral_phamat_spectral_path[i][iv, j].data[e],
-                                              spectral_phamat_spectral_path[i + 1][iv, j].data[e]);
-        }
-      }
+      // The coefficient on Y_l0 of the layer, the mean of its two levels; for finite values 0.5 (a + b) is
+      // std::midpoint(a, b)
+      for (Index j = 0; j < L; j++)
+        c[j] =
+            invfac[j] * (0.5 * (spectral_phamat_spectral_path[i][iv, j] + spectral_phamat_spectral_path[i + 1][iv, j]));
 
       // VDISORT wants the first F11 value to be 1.0, so we normalize, as for DISORT
-      if (std::isnormal(c[0, 0])) {
-        c /= Numeric{c[0, 0]};
+      if (const Numeric f11 = c[0].F11(); std::isnormal(f11)) {
+        for (auto& F : c) F /= f11;
       } else {
-        c       = 0.0;
-        c[0, 0] = 1.0;
+        c          = CompactPlanarMuelmat{};
+        c[0].F11() = 1.0;
       }
     }
   }

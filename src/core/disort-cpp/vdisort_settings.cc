@@ -52,7 +52,7 @@ void VDisortSettings::resize(Index          quadrature_dimension_,
   optical_thicknesses.resize(nfreq, nlay);
   single_scattering_albedo.resize(nfreq, nlay);
   source_polynomial.resize(nfreq, nlay, 0);
-  legendre_coefficients.resize(nfreq, nlay, legendre_polynomial_dimension, 6);
+  legendre_coefficients.resize(nfreq, nlay, legendre_polynomial_dimension);
   upward_boundary_condition.resize(nfreq, 2, fourier_mode_dimension, quadrature_dimension / 2);
   downward_boundary_condition.resize(nfreq, 2, fourier_mode_dimension, quadrature_dimension / 2);
 }
@@ -72,10 +72,10 @@ bool VDisortSettings::ok() const {
       (optical_thicknesses.shape() != std::array{nfreq, nlay}) or
       (single_scattering_albedo.shape() != std::array{nfreq, nlay}) or
       (source_polynomial.shape() != std::array{nfreq, nlay, source_polynomial.ncols()}) or
-      (legendre_coefficients.shape() != std::array{nfreq, nlay, legendre_coefficients.nrows(), Index{6}}) or
+      (legendre_coefficients.shape() != std::array{nfreq, nlay, legendre_coefficients.ncols()}) or
       (upward_boundary_condition.shape() != std::array{nfreq, Index{2}, fourier_mode_dimension, N}) or
       (downward_boundary_condition.shape() != std::array{nfreq, Index{2}, fourier_mode_dimension, N}) or
-      legendre_polynomial_dimension > legendre_coefficients.nrows());
+      legendre_polynomial_dimension > legendre_coefficients.ncols());
 }
 
 void VDisortSettings::check() const {
@@ -88,7 +88,7 @@ Also note that the reduced Legendre polynomial dimension is {}.  It must be at m
 )-x-",
                      *this,
                      legendre_polynomial_dimension,
-                     legendre_coefficients.nrows());
+                     legendre_coefficients.ncols());
 }
 
 vdisort::main_data VDisortSettings::init() const {

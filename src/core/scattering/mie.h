@@ -33,6 +33,7 @@
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
 #include <matpack.h>
+#include <rtepack.h>
 
 #include <complex>
 #include <numbers>
@@ -297,10 +298,9 @@ template <std::floating_point Scalar> class MieSphere {
      * diag(S_2, S_1) of the scattering-plane bases, so F34 = -Im(S_2 S_1*), the
      * negative of S_34 in [1], whose U has the other sign.
      *
-     * @return A matrix holding the six scattering matrix elements along its columns
-     * for all requested scattering angles.
+     * @return The scattering matrix at every requested scattering angle
      */
-  MatrixGen<Scalar> get_scattering_matrix_compact() {
+  CompactPlanarMuelmatVector get_scattering_matrix_compact() requires(std::same_as<Scalar, Numeric>) {
     Scalar            k        = std::numbers::pi_v<Scalar> * 2.0 / lambda_;
     Index             n_angles = s_1_.size();
     VectorGen<Scalar> s11(n_angles);
@@ -315,14 +315,9 @@ template <std::floating_point Scalar> class MieSphere {
       s34[i] = 0.5 * std::imag(s_1_[i] * std::conj(s_2_[i]) - s_2_[i] * std::conj(s_1_[i]));
     }
 
-    MatrixGen<Scalar> result{theta_.size(), 6};
-    result[joker, 0]  = s11;
-    result[joker, 1]  = s12;
-    result[joker, 2]  = s11;
-    result[joker, 3]  = s33;
-    result[joker, 4]  = s34;
-    result[joker, 5]  = s33;
-    result           /= (k * k);
+    CompactPlanarMuelmatVector result(theta_.size());
+    for (Size i = 0; i < theta_.size(); ++i)
+      result[i] = CompactPlanarMuelmat{s11[i], s12[i], s11[i], s33[i], s34[i], s33[i]} / (k * k);
     return result;
   }
 

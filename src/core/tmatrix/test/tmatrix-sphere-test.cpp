@@ -57,14 +57,15 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
   require(relative(t.scattering, mie.get_scattering_coeff()) <= accuracy, name + ": scattering");
 
   Numeric f11max = 0.0;
-  for (Index i = 0; i < angles; ++i) f11max = std::max(f11max, F[i, 0]);
+  for (Index i = 0; i < angles; ++i) f11max = std::max(f11max, F[i].F11());
   const Numeric tol_random = accuracy * f11max;
 
   // F11, F12, F22, F33, F34, F44 of the T-matrix and of Mie
   Numeric       worst = 0.0;
   const Numeric scale = t.scattering / (4.0 * pi);
   for (Index i = 0; i < angles; ++i)
-    for (Index e = 0; e < 6; ++e) worst = std::max(worst, std::abs(t.phase[i][e] * scale - F[i, e]) / tol_random);
+    for (Index e = 0; e < 6; ++e)
+      worst = std::max(worst, std::abs(t.phase[i].data[e] * scale - F[i].data[e]) / tol_random);
   require(worst <= 1.0,
           std::format("{}: random-orientation scattering matrix at {:.2f} of its tolerance", name, worst));
 
@@ -118,8 +119,7 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
   require(relative(fixed[0].scattering, mie.get_scattering_coeff()) <= accuracy, name + ": fixed scattering");
   Numeric worst_fixed = 0.0;
   for (Index i = 0; i < 4; ++i) {
-    const rtepack::compact_planar_muelmat F_mie{Ff[i, 0], Ff[i, 1], Ff[i, 2], Ff[i, 3], Ff[i, 4], Ff[i, 5]};
-    const Muelmat                         Z = rtepack::lab_frame_phase_matrix(F_mie, basis_in[i], basis_out[i]);
+    const Muelmat Z = rtepack::lab_frame_phase_matrix(Ff[i], basis_in[i], basis_out[i]);
     for (Index a = 0; a < 4; ++a)
       for (Index b = 0; b < 4; ++b)
         worst_fixed = std::max(worst_fixed, std::abs(fixed[i].phase[a, b] - Z[a, b]) / (accuracy * f11max));

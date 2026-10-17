@@ -89,12 +89,9 @@ template <Format format, Representation repr> struct SingleScatteringData {
         auto    sphere = MieSphere<Numeric>(
             Constant::speed_of_light / freq, diameter / 2.0, refractive_index[temp_ind, freq_ind], angles);
         auto optical = sphere.get_scattering_matrix_compact();
-        for (Index ia = 0; ia < requested_angles.ncols(); ++ia)
-          phase_matrix[temp_ind, freq_ind, ia] = rtepack::compact_planar_muelmat{optical[ia, joker]};
-        forwardscatter_matrix[temp_ind, freq_ind] =
-            rtepack::compact_planar_muelmat{optical[requested_angles.size(), joker]};
-        backscatter_matrix[temp_ind, freq_ind] =
-            rtepack::compact_planar_muelmat{optical[requested_angles.size() + 1, joker]};
+        for (Index ia = 0; ia < requested_angles.ncols(); ++ia) phase_matrix[temp_ind, freq_ind, ia] = optical[ia];
+        forwardscatter_matrix[temp_ind, freq_ind] = optical[requested_angles.size()];
+        backscatter_matrix[temp_ind, freq_ind]    = optical[requested_angles.size() + 1];
         extinction_matrix[temp_ind, freq_ind].A() = sphere.get_extinction_coeff();
         absorption_vector[temp_ind, freq_ind].I() = sphere.get_absorption_coeff();
       }

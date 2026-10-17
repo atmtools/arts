@@ -76,25 +76,25 @@ void test_hg_convergence() {
   const Index   L        = 16;
   Numeric       previous = 0.0;
   for (const Index n : {181, 721}) {
-    Vector angles(n);
-    Matrix values(n, 6, 0.0);
+    Vector                     angles(n);
+    CompactPlanarMuelmatVector values(n, CompactPlanarMuelmat{});
     for (Index i = 0; i < n; i++) {
       angles[i]       = 180.0 * static_cast<Numeric>(i) / static_cast<Numeric>(n - 1);
       const Numeric x = std::cos(Conversion::deg2rad(angles[i]));
-      values[i, 0]    = (1.0 - g * g) / (4.0 * Constant::pi * std::pow(1.0 + g * g - 2.0 * g * x, 1.5));
+      values[i].F11() = (1.0 - g * g) / (4.0 * Constant::pi * std::pow(1.0 + g * g - 2.0 * g * x, 1.5));
     }
-    const Matrix a = tro_legendre::project(angles, values, L);
-    Numeric      e = 0.0;
-    for (Index l = 0; l <= L; l++) e = std::max(e, std::abs(a[l, 0] - ylm0_norm(l) * std::pow(g, l)));
+    const auto a = tro_legendre::project(angles, values, L);
+    Numeric    e = 0.0;
+    for (Index l = 0; l <= L; l++) e = std::max(e, std::abs(a[l].F11() - ylm0_norm(l) * std::pow(g, l)));
     if (n == 721) check(e < previous / 10.0, "projection of gridded HG converges at second order");
     previous = e;
 
     if (n == 721) {
       const auto r = tro_legendre::assess(a, angles, values);
       check(std::abs(r.asymmetry - g) < 1e-5, "the report's asymmetry parameter");
-      check(std::abs(r.tail[0] - std::pow(g, L) * ylm0_norm(L) / ylm0_norm(0)) < 1e-5, "the report's tail");
-      check(r.reconstruction_error[0] > 1e-4, "the report sees the truncation of a forward-peaked function");
-      check(r.reconstruction_error[1] == 0.0, "the report of an element that is zero");
+      check(std::abs(r.tail.F11() - std::pow(g, L) * ylm0_norm(L) / ylm0_norm(0)) < 1e-5, "the report's tail");
+      check(r.reconstruction_error.F11() > 1e-4, "the report sees the truncation of a forward-peaked function");
+      check(r.reconstruction_error.F12() == 0.0, "the report of an element that is zero");
     }
   }
 }
