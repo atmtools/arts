@@ -12,13 +12,42 @@ namespace tmatrix {
 //! Whether the optional T-matrix solver is built (ENABLE_TMATRIX).
 bool available();
 
-/** The radius is that of the equivalent sphere of the same volume or the same surface area.
+/** The shape of a rotationally symmetric particle (concept.tmatrix, Particle shapes)
  *
- * Shapes: a spheroid with aspect_ratio its horizontal-to-rotational axis ratio, a cylinder
- * with aspect_ratio its diameter-to-length ratio, or a Chebyshev particle
- * r_0 (1 + aspect_ratio cos(degree theta)) with |aspect_ratio| < 1 and degree >= 1.  The
- * degree is 0 for the other shapes.
+ * Built by the constructor of its kind, which takes exactly that shape's parameters and validates them.  The default
+ * is a sphere.  The radius of the functions below is that of the equivalent sphere of the same volume or the same
+ * surface area.
  */
+class Shape {
+  ParticleShape kind_{ParticleShape::spheroid};
+  Numeric       parameter_{1.0};
+  Index         degree_{0};
+  Vector        coefficients_{};
+
+  Shape(ParticleShape kind, Numeric parameter, Index degree, Vector coefficients);
+
+ public:
+  Shape() = default;
+
+  //! A spheroid of the horizontal-to-rotational axis ratio aspect_ratio, finite and positive
+  static Shape spheroid(Numeric aspect_ratio);
+  //! A finite circular cylinder of the diameter-to-length ratio, finite and positive
+  static Shape cylinder(Numeric diameter_to_length);
+  //! A Chebyshev particle r_0 (1 + deformation cos(degree theta)), with degree >= 1 and |deformation| < 1
+  static Shape chebyshev(Index degree, Numeric deformation);
+  //! A generalized Chebyshev particle r_0 (1 + c_0 + sum_{n >= 1} c_n cos(n theta)) of the coefficients c_0, ..., c_N,
+  //! finite with 1 + c_0 > sum_{n >= 1} |c_n|
+  static Shape generalized_chebyshev(Vector coefficients);
+
+  [[nodiscard]] ParticleShape kind() const { return kind_; }
+  //! The aspect ratio of a spheroid, the diameter-to-length ratio of a cylinder, the deformation of a Chebyshev
+  //! particle; 1 for a generalized Chebyshev particle
+  [[nodiscard]] Numeric parameter() const { return parameter_; }
+  //! The degree of a Chebyshev particle, 0 for the other shapes
+  [[nodiscard]] Index degree() const { return degree_; }
+  //! The coefficients of a generalized Chebyshev particle, none for the other shapes
+  [[nodiscard]] const Vector& coefficients() const { return coefficients_; }
+};
 
 //! A fixed-orientation geometry, in degrees: the zenith and azimuth angles of the incident and the scattered
 //! direction in the laboratory frame, and the Euler angles alpha and beta of the particle's symmetry axis.
@@ -27,8 +56,7 @@ struct Geometry {
 };
 
 //! The largest distance between two points of the surface, for the volume-equivalent radius.
-Numeric maximum_dimension(
-    Numeric radius, Numeric aspect_ratio, ParticleShape shape, Index degree = 0, const Vector& coefficients = {});
+Numeric maximum_dimension(Numeric radius, const Shape& shape);
 
 //! Owning results.
 struct FixedResult {
@@ -44,7 +72,7 @@ struct FixedResult {
 //! Amplitude has that length unit; phase and cross sections its square.
 FixedResult fixed(Numeric          radius,
                   Numeric          wavelength,
-                  Numeric          aspect_ratio,
+                  const Shape&     shape,
                   Numeric          refractive_real,
                   Numeric          refractive_imag,
                   Numeric          theta_incident,
@@ -55,9 +83,6 @@ FixedResult fixed(Numeric          radius,
                   Numeric          beta,
                   Numeric          accuracy           = 0.001,
                   EquivalentRadius equivalent_radius  = EquivalentRadius::volume,
-                  ParticleShape    shape              = ParticleShape::spheroid,
-                  Index            degree             = 0,
-                  const Vector&    coefficients       = {},
                   Index            surface_quadrature = 2);
 
 //! Compute once, then evaluate each geometry.
@@ -65,29 +90,23 @@ FixedResult fixed(Numeric          radius,
 void fixed_batch(std::span<FixedResult>    results,
                  Numeric                   radius,
                  Numeric                   wavelength,
-                 Numeric                   aspect_ratio,
+                 const Shape&              shape,
                  Numeric                   refractive_real,
                  Numeric                   refractive_imag,
                  std::span<const Geometry> geometries,
                  Numeric                   accuracy           = 0.001,
                  EquivalentRadius          equivalent_radius  = EquivalentRadius::volume,
-                 ParticleShape             shape              = ParticleShape::spheroid,
-                 Index                     degree             = 0,
-                 const Vector&             coefficients       = {},
                  Index                     surface_quadrature = 2);
 
 //! Allocating convenience overload; delegates to the caller-owned span overload.
 std::vector<FixedResult> fixed_batch(Numeric                   radius,
                                      Numeric                   wavelength,
-                                     Numeric                   aspect_ratio,
+                                     const Shape&              shape,
                                      Numeric                   refractive_real,
                                      Numeric                   refractive_imag,
                                      std::span<const Geometry> geometries,
                                      Numeric                   accuracy           = 0.001,
                                      EquivalentRadius          equivalent_radius  = EquivalentRadius::volume,
-                                     ParticleShape             shape              = ParticleShape::spheroid,
-                                     Index                     degree             = 0,
-                                     const Vector&             coefficients       = {},
                                      Index                     surface_quadrature = 2);
 
 struct RandomResult {
@@ -106,15 +125,12 @@ struct RandomResult {
 //! angles is the number of equally spaced scattering angles of phase, 0 for none.
 RandomResult random(Numeric                 radius,
                     Numeric                 wavelength,
-                    Numeric                 aspect_ratio,
+                    const Shape&            shape,
                     Numeric                 refractive_real,
                     Numeric                 refractive_imag,
                     Index                   angles             = 0,
                     Numeric                 accuracy           = 0.001,
                     EquivalentRadius        equivalent_radius  = EquivalentRadius::volume,
-                    ParticleShape           shape              = ParticleShape::spheroid,
-                    Index                   degree             = 0,
-                    const Vector&           coefficients       = {},
                     TMatrixSizeDistribution distribution       = TMatrixSizeDistribution::gamma,
                     Numeric                 b                  = 0.1,
                     Numeric                 gamma              = 1,
@@ -142,7 +158,7 @@ struct AzimuthallyRandomResult {
  */
 AzimuthallyRandomResult azimuthally_random(Numeric          radius,
                                            Numeric          wavelength,
-                                           Numeric          aspect_ratio,
+                                           const Shape&     shape,
                                            Numeric          refractive_real,
                                            Numeric          refractive_imag,
                                            const Vector&    za_inc,
@@ -152,8 +168,5 @@ AzimuthallyRandomResult azimuthally_random(Numeric          radius,
                                            const Vector&    tilt_weights,
                                            Numeric          accuracy           = 0.001,
                                            EquivalentRadius equivalent_radius  = EquivalentRadius::volume,
-                                           ParticleShape    shape              = ParticleShape::spheroid,
-                                           Index            degree             = 0,
-                                           const Vector&    coefficients       = {},
                                            Index            surface_quadrature = 2);
 }  // namespace tmatrix

@@ -55,6 +55,11 @@ class Shapes {
           std::format("coefficients has {} elements for {} diameters; it must have 0, 1 or one per diameter",
                       coefficients.size(),
                       diameters));
+    if (shape != ParticleShape::generalized_chebyshev and not coefficients.empty())
+      throw std::invalid_argument("coefficients are only for generalized Chebyshev particles");
+    if (shape != ParticleShape::chebyshev and degree != 0)
+      throw std::invalid_argument(
+          std::format("degree is {}; it is only for Chebyshev particles and must be 0 for the others", degree));
   }
 
   [[nodiscard]] Numeric aspect(Size i) const { return aspect_ratio[aspect_ratio.size() == 1 ? 0 : i]; }
@@ -64,10 +69,20 @@ class Shapes {
     return coefficients[coefficients.size() == 1 ? 0 : i];
   }
 
-  //! The maximum over the volume-equivalent diameter of diameter i; checks the shape as the solver does
-  [[nodiscard]] Numeric dmax_ratio(Size i) const {
-    return ::tmatrix::maximum_dimension(1.0, aspect(i), shape, degree, coefficient(i)) / 2;
+  //! The shape of diameter i: aspect_ratio is the spheroid's aspect ratio, the cylinder's diameter-to-length ratio
+  //! or the Chebyshev deformation, and the coefficients are the generalized Chebyshev particle's
+  [[nodiscard]] ::tmatrix::Shape at(Size i) const {
+    switch (shape) {
+      case ParticleShape::spheroid:              return ::tmatrix::Shape::spheroid(aspect(i));
+      case ParticleShape::cylinder:              return ::tmatrix::Shape::cylinder(aspect(i));
+      case ParticleShape::chebyshev:             return ::tmatrix::Shape::chebyshev(degree, aspect(i));
+      case ParticleShape::generalized_chebyshev: return ::tmatrix::Shape::generalized_chebyshev(coefficient(i));
+    }
+    throw std::invalid_argument("shape must be a ParticleShape");
   }
+
+  //! The maximum over the volume-equivalent diameter of diameter i; checks the shape
+  [[nodiscard]] Numeric dmax_ratio(Size i) const { return ::tmatrix::maximum_dimension(1.0, at(i)) / 2; }
 
   [[nodiscard]] const char* name() const {
     switch (shape) {
@@ -160,15 +175,12 @@ ParticleHabit ParticleHabit::tmatrix(const Vector&        t_grid,
         // No gridded phase is needed: the series is the data.
         const auto optical      = ::tmatrix::random(diameter / 2,
                                                     Constant::speed_of_light / f_grid[jf],
-                                                    shapes.aspect(i),
+                                                    shapes.at(i),
                                                     m.real(),
                                                     m.imag(),
                                                     0,
                                                     accuracy,
                                                     EquivalentRadius::volume,
-                                                    shape,
-                                                    degree,
-                                                    shapes.coefficient(i),
                                                     TMatrixSizeDistribution::gamma,
                                                     0.1,
                                                     1.0,
@@ -201,12 +213,12 @@ ParticleHabit ParticleHabit::tmatrix_aro(const Vector&          t_grid,
                                          const Vector&          diameters,
                                          const ComplexMatrix&   refractive_index,
                                          Numeric                density,
-                                         const Vector&          aspect_ratio,
                                          const Vector&          za_inc_grid,
                                          const Vector&          delta_aa_grid,
                                          const ZenithAngleGrid& za_scat_grid,
                                          const Vector&          tilt_angles,
                                          const Vector&          tilt_weights,
+                                         const Vector&          aspect_ratio,
                                          ParticleShape          shape,
                                          Index                  degree,
                                          const ArrayOfVector&   coefficients,
@@ -238,7 +250,7 @@ ParticleHabit ParticleHabit::tmatrix_aro(const Vector&          t_grid,
         // The tilts and the ranges of the angles are checked by the first call
         const auto optical = ::tmatrix::azimuthally_random(diameter / 2,
                                                            Constant::speed_of_light / f_grid[jf],
-                                                           shapes.aspect(i),
+                                                           shapes.at(i),
                                                            m.real(),
                                                            m.imag(),
                                                            za_inc_grid,
@@ -248,9 +260,6 @@ ParticleHabit ParticleHabit::tmatrix_aro(const Vector&          t_grid,
                                                            tilt_weights,
                                                            accuracy,
                                                            EquivalentRadius::volume,
-                                                           shape,
-                                                           degree,
-                                                           shapes.coefficient(i),
                                                            surface_quadrature);
         for (Size k = 0; k < za_inc_grid.size(); ++k) {
           extinction[it, jf, k] = optical.extinction[k];

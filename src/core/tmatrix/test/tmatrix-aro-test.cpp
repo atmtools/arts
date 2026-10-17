@@ -82,8 +82,8 @@ Numeric distance(const MuelmatTensor3& Z, const MuelmatTensor3& R) {
 //! 1. A sphere of any tilt against Mie
 void sphere(Numeric r, Complex m, Numeric tilt) {
   const Numeric accuracy = 1e-6;
-  const auto    aro =
-      tmatrix::azimuthally_random(r, lambda, 1.0, m.real(), m.imag(), za, daa, za, {tilt}, {1.0}, accuracy);
+  const auto    aro      = tmatrix::azimuthally_random(
+      r, lambda, tmatrix::Shape{}, m.real(), m.imag(), za, daa, za, {tilt}, {1.0}, accuracy);
   const auto                     reference = tro_reference([&](Numeric theta) {
     scattering::MieSphere<Numeric> mie(lambda, r, m, Vector{Conversion::rad2deg(theta)});
     const auto                     F = mie.get_scattering_matrix_compact();
@@ -107,47 +107,19 @@ void sphere(Numeric r, Complex m, Numeric tilt) {
 }
 
 //! 2. A uniform tilt distribution against random orientation
-void uniform(Numeric r, Numeric eps, ParticleShape shape, Index degree, const Vector& coefficients) {
+void uniform(Numeric r, const tmatrix::Shape& shape) {
   const Numeric accuracy = 1e-6;
   const Complex m{1.5, 0.02};
-  const auto    tro = tmatrix::random(
-      r, lambda, eps, m.real(), m.imag(), 0, accuracy, EquivalentRadius::volume, shape, degree, coefficients);
-  const auto fixed = tmatrix::fixed(r,
-                                    lambda,
-                                    eps,
-                                    m.real(),
-                                    m.imag(),
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    0,
-                                    accuracy,
-                                    EquivalentRadius::volume,
-                                    shape,
-                                    degree,
-                                    coefficients);
+  const auto    tro = tmatrix::random(r, lambda, shape, m.real(), m.imag(), 0, accuracy, EquivalentRadius::volume);
+  const auto    fixed =
+      tmatrix::fixed(r, lambda, shape, m.real(), m.imag(), 0, 0, 0, 0, 0, 0, accuracy, EquivalentRadius::volume);
   // Gauss-Legendre in cos(beta), with nodes to spare for products of four Wigner functions of degree nmax
   const Index nodes = 4 * fixed.order + 4;
   Vector      x(nodes), w(nodes), tilts(nodes);
   Legendre::GaussLegendre(x, w);
   for (Index k = 0; k < nodes; ++k) tilts[k] = Conversion::rad2deg(std::acos(x[k]));
-  const auto aro = tmatrix::azimuthally_random(r,
-                                               lambda,
-                                               eps,
-                                               m.real(),
-                                               m.imag(),
-                                               za,
-                                               daa,
-                                               za,
-                                               tilts,
-                                               w,
-                                               accuracy,
-                                               EquivalentRadius::volume,
-                                               shape,
-                                               degree,
-                                               coefficients);
+  const auto aro = tmatrix::azimuthally_random(
+      r, lambda, shape, m.real(), m.imag(), za, daa, za, tilts, w, accuracy, EquivalentRadius::volume);
 
   // The Legendre series of the differential cross section, sum_l a_l sqrt((2 l + 1) / 4 pi) P_l(cos(theta))
   const auto    reference = tro_reference([&](Numeric theta) {
@@ -177,8 +149,9 @@ void uniform(Numeric r, Numeric eps, ParticleShape shape, Index degree, const Ve
                              std::abs(K.W()) / K.A(),
                              std::abs(a.Q()) / K.A()});
   }
-  std::println("uniform tilt {} {} eps={}: phase {:.1e}, cross sections {:.1e}", shape, degree, eps, phase, cross);
-  require(phase <= accuracy and cross <= accuracy, std::format("uniform tilt {} {} eps={}", shape, degree, eps));
+  const auto name = std::format("uniform tilt {} {} {}", shape.kind(), shape.degree(), shape.parameter());
+  std::println("{}: phase {:.1e}, cross sections {:.1e}", name, phase, cross);
+  require(phase <= accuracy and cross <= accuracy, name);
 }
 
 //! The extinction (A, B, W) of a forward amplitude by the coherent transmission, (lambda / 2) [M(I - iS) - M(I + iS)]
@@ -190,11 +163,11 @@ rtepack::compact_planar_propmat transmission_extinction(const Jones& S) {
 
 //! 3 and 4. The averages over alpha, the absorption integral and the extinction against fixed_batch
 void exact(Numeric tilt, Numeric r, Numeric accuracy) {
-  const Numeric eps = 1.7;
+  const auto    shape = tmatrix::Shape::spheroid(1.7);
   const Complex m{1.5, 0.05};
   const Vector  za_inc{20, 90, 160}, delta{-120, 0, 75}, za_scat{0, 70, 180};
-  const auto    aro =
-      tmatrix::azimuthally_random(r, lambda, eps, m.real(), m.imag(), za_inc, delta, za_scat, {tilt}, {1.0}, accuracy);
+  const auto    aro = tmatrix::azimuthally_random(
+      r, lambda, shape, m.real(), m.imag(), za_inc, delta, za_scat, {tilt}, {1.0}, accuracy);
   const Index nmax = aro.order;
   // Twice the nodes of each average and integral
   const Index M = 8 * nmax + 2, n_theta = 2 * nmax + 2, n_phi = 4 * nmax + 2;
@@ -232,9 +205,9 @@ void exact(Numeric tilt, Numeric r, Numeric accuracy) {
                                      .alpha           = alpha(j),
                                      .beta            = tilt});
     }
-  const auto phase   = tmatrix::fixed_batch(r, lambda, eps, m.real(), m.imag(), phase_geometries, accuracy);
-  const auto forward = tmatrix::fixed_batch(r, lambda, eps, m.real(), m.imag(), forward_geometries, accuracy);
-  const auto nodes   = tmatrix::fixed_batch(r, lambda, eps, m.real(), m.imag(), node_geometries, accuracy);
+  const auto phase   = tmatrix::fixed_batch(r, lambda, shape, m.real(), m.imag(), phase_geometries, accuracy);
+  const auto forward = tmatrix::fixed_batch(r, lambda, shape, m.real(), m.imag(), forward_geometries, accuracy);
+  const auto nodes   = tmatrix::fixed_batch(r, lambda, shape, m.real(), m.imag(), node_geometries, accuracy);
 
   // The references, and the moduli of their terms, the scale of their rounding
   const Size     ni = za_inc.size(), na = delta.size(), ns = za_scat.size(), per = n_theta * n_phi;
@@ -300,8 +273,8 @@ void exact(Numeric tilt, Numeric r, Numeric accuracy) {
 //! 5. Mirror symmetry of the azimuthal average, and no absorption without loss
 void symmetry() {
   const Numeric r = 1.6, eps = 0.6, accuracy = 1e-6;
-  const auto    aro =
-      tmatrix::azimuthally_random(r, lambda, eps, 1.5, 0.0, za, daa, za, {35.0, 80.0}, {0.3, 0.7}, accuracy);
+  const auto    aro = tmatrix::azimuthally_random(
+      r, lambda, tmatrix::Shape::spheroid(eps), 1.5, 0.0, za, daa, za, {35.0, 80.0}, {0.3, 0.7}, accuracy);
   Numeric mirror = 0.0, absorption = 0.0;
   for (Size i = 0; i < za.size(); ++i) {
     for (Size a = 0; a < daa.size(); ++a)
@@ -323,14 +296,12 @@ int main() try {
   make_wigner_ready(250, 20000000, 6);
   for (Numeric tilt : {0.0, 30.0, 90.0}) sphere(1.2, {1.33, 0.01}, tilt);
   sphere(2.5, {1.78, 0.05}, 45.0);
-  uniform(1.5, 1.6, ParticleShape::spheroid, 0, {});
-  uniform(1.5, 0.12, ParticleShape::chebyshev, 3, {});
+  uniform(1.5, tmatrix::Shape::spheroid(1.6));
+  uniform(1.5, tmatrix::Shape::chebyshev(3, 0.12));
   // The coefficients of the original's DROP routine, as test data of a generalized Chebyshev particle
   uniform(1.5,
-          1.0,
-          ParticleShape::generalized_chebyshev,
-          0,
-          Vector{-0.0481, 0.0359, -0.1263, 0.0244, 0.0091, -0.0099, 0.0015, 0.0025, -0.0016, -0.0002, 0.0010});
+          tmatrix::Shape::generalized_chebyshev(
+              Vector{-0.0481, 0.0359, -0.1263, 0.0244, 0.0091, -0.0099, 0.0015, 0.0025, -0.0016, -0.0002, 0.0010}));
   for (Numeric tilt : {0.0, 90.0}) exact(tilt, 1.8, 1e-3);
   exact(40.0, 3.0, 1e-2);
   symmetry();

@@ -33,7 +33,10 @@ void compare(ParticleShape shape, Index degree, Numeric eps, Numeric tolerance) 
       .shape = shape, .aspect_ratio = eps, .radius = 1.0, .wavelength = 1.0, .refractive_index = 1.0, .degree = degree};
   const Numeric numeric = tmatrix::solver::maximum_dimension(p);
   // A Chebyshev particle of deformation 0 is a sphere
-  const Numeric closed = shape == ParticleShape::chebyshev ? 2.0 : tmatrix::maximum_dimension(1.0, eps, shape);
+  const Numeric closed = shape == ParticleShape::chebyshev ? 2.0
+                         : shape == ParticleShape::spheroid
+                             ? tmatrix::maximum_dimension(1.0, tmatrix::Shape::spheroid(eps))
+                             : tmatrix::maximum_dimension(1.0, tmatrix::Shape::cylinder(eps));
   const Numeric error  = std::abs(numeric / closed - 1.0);
   std::println("{} {} eps={}: maximum dimension {:.15f}, relative error {:.1e}", shape, degree, eps, numeric, error);
   if (error > tolerance) {

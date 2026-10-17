@@ -15,9 +15,13 @@ Structure
 definition and assembles the results.  ``tmatrix_solver.h`` holds the solver,
 one function per section of :ref:`Sec T-matrix equations`, which states every
 equation solved.  The code names the section it implements, and keeps the
-symbols of the equations.  A shape is the ``ParticleShape`` option with, for
-Chebyshev particles, a degree, and for generalized Chebyshev particles the
-user's coefficients, which the solver holds normalized to the volume.
+symbols of the equations.  The interface's ``Shape`` is made by the constructor
+of its kind, which takes that shape's parameters and checks them; the solver
+holds it as the ``ParticleShape`` option with its parameter, the degree of a
+Chebyshev particle, and the coefficients of a generalized Chebyshev particle
+normalized to the volume.  The habit factories take the ``ParticleShape``
+option and per-diameter lists, which ARTS reads from XML, and make the
+``Shape`` of each diameter.
 
 The amplitude matrix is assembled from three parts: the particle frame of an
 orientation, the angular functions of a direction, and the contraction of the

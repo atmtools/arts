@@ -14,7 +14,7 @@ DAA = np.array([-120.0, 0.0, 45.0])
 PARTICLE = dict(
     radius=1.5,
     wavelength=2 * np.pi,
-    aspect_ratio=1.6,
+    shape=TM.Shape.spheroid(1.6),
     refractive_real=1.5,
     refractive_imag=0.02,
 )

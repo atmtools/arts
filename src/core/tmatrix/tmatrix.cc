@@ -15,39 +15,12 @@ void require(bool valid, const char* message) {
   if (!valid) throw std::invalid_argument(message);
 }
 void positive(double x, const char* name) { require(std::isfinite(x) && x > 0, name); }
-void check_shape(double aspect, ParticleShape shape, Index degree, const Vector& coefficients) {
+void check_available() {
   if (!available()) throw std::runtime_error("T-matrix requires ENABLE_TMATRIX=ON");
-  require(good_enum(shape), "shape must be a ParticleShape");
-  require(shape == ParticleShape::generalized_chebyshev or coefficients.empty(),
-          "coefficients are only for generalized Chebyshev particles");
-  if (shape == ParticleShape::generalized_chebyshev) {
-    require(degree == 0, "degree must be 0 for generalized Chebyshev particles, whose coefficients give the shape");
-    require(not coefficients.empty(), "a generalized Chebyshev particle needs its coefficients c_0, ..., c_N");
-    // 1 + c_0 > sum_{n >= 1} |c_n| keeps the radius positive
-    Numeric margin = 1.0 + coefficients[0];
-    for (Size n = 1; n < coefficients.size(); ++n) margin -= std::abs(coefficients[n]);
-    require(std::isfinite(margin) && margin > 0,
-            "the generalized Chebyshev coefficients must be finite with 1 + c_0 > sum_{n >= 1} |c_n|");
-  } else if (shape == ParticleShape::chebyshev) {
-    require(degree >= 1, "a Chebyshev particle needs a degree of at least 1");
-    require(std::isfinite(aspect) && std::abs(aspect) < 1,
-            "aspect_ratio, the Chebyshev deformation, must be finite with magnitude below 1");
-  } else {
-    require(degree == 0, "degree must be 0 for spheroids and cylinders");
-    positive(aspect, "aspect_ratio must be finite and positive");
-  }
 }
-void check(double           radius,
-           double           wavelength,
-           double           aspect,
-           double           real,
-           double           imag,
-           double           accuracy,
-           EquivalentRadius equivalent_radius,
-           ParticleShape    shape,
-           Index            degree,
-           const Vector&    coefficients) {
-  check_shape(aspect, shape, degree, coefficients);
+void check(
+    double radius, double wavelength, double real, double imag, double accuracy, EquivalentRadius equivalent_radius) {
+  check_available();
   positive(radius, "radius must be finite and positive");
   positive(wavelength, "wavelength must be finite and positive");
   positive(real, "refractive_real must be finite and positive");
@@ -64,22 +37,16 @@ Numeric radius_factor(const solver::Particle& particle, EquivalentRadius equival
 }
 
 //! The particle of a given volume-equivalent radius
-solver::Particle particle(Numeric       radius,
-                          Numeric       wavelength,
-                          Numeric       aspect_ratio,
-                          Numeric       refractive_real,
-                          Numeric       refractive_imag,
-                          ParticleShape shape,
-                          Index         degree,
-                          const Vector& coefficients) {
-  return {.shape            = shape,
-          .aspect_ratio     = aspect_ratio,
+solver::Particle particle(
+    Numeric radius, Numeric wavelength, const Shape& shape, Numeric refractive_real, Numeric refractive_imag) {
+  return {.shape            = shape.kind(),
+          .aspect_ratio     = shape.parameter(),
           .radius           = radius,
           .wavelength       = wavelength,
           .refractive_index = Complex{refractive_real, refractive_imag},
-          .degree           = degree,
-          .coefficients     = shape == ParticleShape::generalized_chebyshev
-                                  ? solver::volume_normalized_coefficients(coefficients)
+          .degree           = shape.degree(),
+          .coefficients     = shape.kind() == ParticleShape::generalized_chebyshev
+                                  ? solver::volume_normalized_coefficients(shape.coefficients())
                                   : Vector{}};
 }
 
@@ -94,20 +61,59 @@ bool available() {
 #endif
 }
 
-Numeric maximum_dimension(
-    Numeric radius, Numeric aspect_ratio, ParticleShape shape, Index degree, const Vector& coefficients) {
-  check_shape(aspect_ratio, shape, degree, coefficients);
+Shape::Shape(ParticleShape kind, Numeric parameter, Index degree, Vector coefficients)
+    : kind_(kind), parameter_(parameter), degree_(degree), coefficients_(std::move(coefficients)) {}
+
+Shape Shape::spheroid(Numeric aspect_ratio) {
+  if (not(std::isfinite(aspect_ratio) and aspect_ratio > 0))
+    throw std::invalid_argument(
+        std::format("The spheroid's aspect ratio is {}; it must be finite and positive", aspect_ratio));
+  return {ParticleShape::spheroid, aspect_ratio, 0, {}};
+}
+
+Shape Shape::cylinder(Numeric diameter_to_length) {
+  if (not(std::isfinite(diameter_to_length) and diameter_to_length > 0))
+    throw std::invalid_argument(std::format(
+        "The cylinder's diameter-to-length ratio is {}; it must be finite and positive", diameter_to_length));
+  return {ParticleShape::cylinder, diameter_to_length, 0, {}};
+}
+
+Shape Shape::chebyshev(Index degree, Numeric deformation) {
+  if (degree < 1) throw std::invalid_argument(std::format("The Chebyshev degree is {}; it must be at least 1", degree));
+  if (not(std::isfinite(deformation) and std::abs(deformation) < 1))
+    throw std::invalid_argument(
+        std::format("The Chebyshev deformation is {}; it must be finite with magnitude below 1", deformation));
+  return {ParticleShape::chebyshev, deformation, degree, {}};
+}
+
+Shape Shape::generalized_chebyshev(Vector coefficients) {
+  if (coefficients.empty())
+    throw std::invalid_argument("A generalized Chebyshev particle needs its coefficients c_0, ..., c_N");
+  // 1 + c_0 > sum_{n >= 1} |c_n| keeps the radius positive
+  Numeric margin = 1.0 + coefficients[0];
+  for (Size n = 1; n < coefficients.size(); ++n) margin -= std::abs(coefficients[n]);
+  if (not(std::isfinite(margin) and margin > 0))
+    throw std::invalid_argument(std::format(
+        "1 + c_0 - sum_{{n >= 1}} |c_n| of the generalized Chebyshev coefficients is {}; it must be finite and "
+        "positive",
+        margin));
+  return {ParticleShape::generalized_chebyshev, 1.0, 0, std::move(coefficients)};
+}
+
+Numeric maximum_dimension(Numeric radius, const Shape& shape) {
+  check_available();
   positive(radius, "radius must be finite and positive");
-  if (shape == ParticleShape::spheroid) {
-    const Numeric c = std::cbrt(aspect_ratio);
+  const Numeric eps = shape.parameter();
+  if (shape.kind() == ParticleShape::spheroid) {
+    const Numeric c = std::cbrt(eps);
     return 2 * radius * std::max(c, 1.0 / (c * c));
   }
-  if (shape == ParticleShape::cylinder) {
-    const Numeric length = 2 * radius * std::cbrt(2.0 / (3.0 * aspect_ratio * aspect_ratio));
-    return std::hypot(length, aspect_ratio * length);
+  if (shape.kind() == ParticleShape::cylinder) {
+    const Numeric length = 2 * radius * std::cbrt(2.0 / (3.0 * eps * eps));
+    return std::hypot(length, eps * length);
   }
 #ifdef ARTS_HAS_TMATRIX
-  return solver::maximum_dimension(particle(radius, 1.0, aspect_ratio, 1.0, 0.0, shape, degree, coefficients));
+  return solver::maximum_dimension(particle(radius, 1.0, shape, 1.0, 0.0));
 #else
   return 0;
 #endif
@@ -115,7 +121,7 @@ Numeric maximum_dimension(
 
 FixedResult fixed(Numeric          radius,
                   Numeric          wavelength,
-                  Numeric          aspect_ratio,
+                  const Shape&     shape,
                   Numeric          refractive_real,
                   Numeric          refractive_imag,
                   Numeric          theta_incident,
@@ -126,9 +132,6 @@ FixedResult fixed(Numeric          radius,
                   Numeric          beta,
                   Numeric          accuracy,
                   EquivalentRadius equivalent_radius,
-                  ParticleShape    shape,
-                  Index            degree,
-                  const Vector&    coefficients,
                   Index            surface_quadrature) {
   const Geometry geometry{.theta_incident  = theta_incident,
                           .theta_scattered = theta_scattered,
@@ -140,15 +143,12 @@ FixedResult fixed(Numeric          radius,
   fixed_batch(std::span{&result, 1},
               radius,
               wavelength,
-              aspect_ratio,
+              shape,
               refractive_real,
               refractive_imag,
               std::span{&geometry, 1},
               accuracy,
               equivalent_radius,
-              shape,
-              degree,
-              coefficients,
               surface_quadrature);
   return result;
 }
@@ -156,26 +156,14 @@ FixedResult fixed(Numeric          radius,
 void fixed_batch(std::span<FixedResult>    results,
                  Numeric                   radius,
                  Numeric                   wavelength,
-                 Numeric                   aspect_ratio,
+                 const Shape&              shape,
                  Numeric                   refractive_real,
                  Numeric                   refractive_imag,
                  std::span<const Geometry> geometries,
                  Numeric                   accuracy,
                  EquivalentRadius          equivalent_radius,
-                 ParticleShape             shape,
-                 Index                     degree,
-                 const Vector&             coefficients,
                  Index                     surface_quadrature) {
-  check(radius,
-        wavelength,
-        aspect_ratio,
-        refractive_real,
-        refractive_imag,
-        accuracy,
-        equivalent_radius,
-        shape,
-        degree,
-        coefficients);
+  check(radius, wavelength, refractive_real, refractive_imag, accuracy, equivalent_radius);
   require(surface_quadrature >= 1, "surface_quadrature must be at least 1");
   require(results.size() == geometries.size(), "results must have one element per geometry");
   for (const Geometry& g : geometries) {
@@ -187,8 +175,7 @@ void fixed_batch(std::span<FixedResult>    results,
   }
   if (geometries.empty()) return;
 #ifdef ARTS_HAS_TMATRIX
-  auto shaped =
-      particle(radius, wavelength, aspect_ratio, refractive_real, refractive_imag, shape, degree, coefficients);
+  auto shaped                          = particle(radius, wavelength, shape, refractive_real, refractive_imag);
   shaped.radius                       *= radius_factor(shaped, equivalent_radius, accuracy);
   const auto T                         = solver::solve(shaped, accuracy, surface_quadrature, false);
   const auto [extinction, scattering]  = solver::cross_sections(T, wavelength, false);
@@ -209,44 +196,35 @@ void fixed_batch(std::span<FixedResult>    results,
 
 std::vector<FixedResult> fixed_batch(Numeric                   radius,
                                      Numeric                   wavelength,
-                                     Numeric                   aspect_ratio,
+                                     const Shape&              shape,
                                      Numeric                   refractive_real,
                                      Numeric                   refractive_imag,
                                      std::span<const Geometry> geometries,
                                      Numeric                   accuracy,
                                      EquivalentRadius          equivalent_radius,
-                                     ParticleShape             shape,
-                                     Index                     degree,
-                                     const Vector&             coefficients,
                                      Index                     surface_quadrature) {
   std::vector<FixedResult> results(geometries.size());
   fixed_batch(results,
               radius,
               wavelength,
-              aspect_ratio,
+              shape,
               refractive_real,
               refractive_imag,
               geometries,
               accuracy,
               equivalent_radius,
-              shape,
-              degree,
-              coefficients,
               surface_quadrature);
   return results;
 }
 
 RandomResult random(Numeric                 radius,
                     Numeric                 wavelength,
-                    Numeric                 aspect_ratio,
+                    const Shape&            shape,
                     Numeric                 refractive_real,
                     Numeric                 refractive_imag,
                     Index                   angles,
                     Numeric                 accuracy,
                     EquivalentRadius        equivalent_radius,
-                    ParticleShape           shape,
-                    Index                   degree,
-                    const Vector&           coefficients,
                     TMatrixSizeDistribution distribution,
                     Numeric                 b,
                     Numeric                 gamma,
@@ -254,16 +232,7 @@ RandomResult random(Numeric                 radius,
                     Index                   surface_quadrature,
                     Numeric                 lower_radius_ratio,
                     Numeric                 upper_radius_ratio) {
-  check(radius,
-        wavelength,
-        aspect_ratio,
-        refractive_real,
-        refractive_imag,
-        accuracy,
-        equivalent_radius,
-        shape,
-        degree,
-        coefficients);
+  check(radius, wavelength, refractive_real, refractive_imag, accuracy, equivalent_radius);
   require(angles == 0 || angles >= 2, "angles must be 0 or at least 2");
   using Distribution = TMatrixSizeDistribution;
   require(good_enum(distribution), "distribution must be a TMatrixSizeDistribution");
@@ -287,19 +256,17 @@ RandomResult random(Numeric                 radius,
   RandomResult out;
 #ifdef ARTS_HAS_TMATRIX
   // N_k = size_quadrature + 2 Gauss-Legendre nodes, one for size_quadrature = -1 (Size distributions)
-  const auto mean = solver::average(
-      particle(radius, wavelength, aspect_ratio, refractive_real, refractive_imag, shape, degree, coefficients),
-      radius_factor(
-          particle(1.0, 1.0, aspect_ratio, 1.0, 0.0, shape, degree, coefficients), equivalent_radius, accuracy),
-      {.kind        = distribution,
-       .a           = radius,
-       .b           = b,
-       .gamma       = gamma,
-       .lower_ratio = lower_radius_ratio,
-       .upper_ratio = upper_radius_ratio,
-       .nodes       = std::max<Index>(size_quadrature + 2, 1)},
-      accuracy,
-      surface_quadrature);
+  const auto  mean = solver::average(particle(radius, wavelength, shape, refractive_real, refractive_imag),
+                                     radius_factor(particle(1.0, 1.0, shape, 1.0, 0.0), equivalent_radius, accuracy),
+                                     {.kind        = distribution,
+                                      .a           = radius,
+                                      .b           = b,
+                                      .gamma       = gamma,
+                                      .lower_ratio = lower_radius_ratio,
+                                      .upper_ratio = upper_radius_ratio,
+                                      .nodes       = std::max<Index>(size_quadrature + 2, 1)},
+                                     accuracy,
+                                     surface_quadrature);
   const auto& sum  = mean.expansion;
   const auto& sums = mean.cross_sections;
 
@@ -317,7 +284,7 @@ RandomResult random(Numeric                 radius,
 }
 AzimuthallyRandomResult azimuthally_random(Numeric          radius,
                                            Numeric          wavelength,
-                                           Numeric          aspect_ratio,
+                                           const Shape&     shape,
                                            Numeric          refractive_real,
                                            Numeric          refractive_imag,
                                            const Vector&    za_inc,
@@ -327,20 +294,8 @@ AzimuthallyRandomResult azimuthally_random(Numeric          radius,
                                            const Vector&    tilt_weights,
                                            Numeric          accuracy,
                                            EquivalentRadius equivalent_radius,
-                                           ParticleShape    shape,
-                                           Index            degree,
-                                           const Vector&    coefficients,
                                            Index            surface_quadrature) {
-  check(radius,
-        wavelength,
-        aspect_ratio,
-        refractive_real,
-        refractive_imag,
-        accuracy,
-        equivalent_radius,
-        shape,
-        degree,
-        coefficients);
+  check(radius, wavelength, refractive_real, refractive_imag, accuracy, equivalent_radius);
   require(surface_quadrature >= 1, "surface_quadrature must be at least 1");
   require(not za_inc.empty() and not delta_aa.empty() and not za_scat.empty(), "the angle grids must not be empty");
   for (const Vector* grid : {&za_inc, &za_scat})
@@ -363,8 +318,7 @@ AzimuthallyRandomResult azimuthally_random(Numeric          radius,
 
   AzimuthallyRandomResult out;
 #ifdef ARTS_HAS_TMATRIX
-  auto shaped =
-      particle(radius, wavelength, aspect_ratio, refractive_real, refractive_imag, shape, degree, coefficients);
+  auto shaped    = particle(radius, wavelength, shape, refractive_real, refractive_imag);
   shaped.radius *= radius_factor(shaped, equivalent_radius, accuracy);
   const auto T   = solver::solve(shaped, accuracy, surface_quadrature, false);
   Vector     weights{tilt_weights};

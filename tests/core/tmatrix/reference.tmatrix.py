@@ -33,7 +33,7 @@ def fixed(radius=10.0, wavelength=2 * np.pi, **kw):
     args = dict(
         radius=radius,
         wavelength=wavelength,
-        aspect_ratio=0.5,
+        shape=TM.Shape.spheroid(0.5),
         refractive_real=1.5,
         refractive_imag=0.02,
         theta_incident=56.0 + MOVED,
@@ -53,7 +53,7 @@ def random(radius=1.0, quadrature=5):
         radius=radius,
         wavelength=0.5,
         angles=19,
-        aspect_ratio=2.0,
+        shape=TM.Shape.spheroid(2.0),
         refractive_real=1.53,
         refractive_imag=0.008,
         equivalent_radius="surface_area",
@@ -69,7 +69,7 @@ def random(radius=1.0, quadrature=5):
 def small_random():
     # Ownership and thread checks do not need the expensive reference size
     # distribution. Keep a nonspherical, absorbing particle in these checks.
-    return TM.random(radius=0.1, wavelength=1.0, aspect_ratio=2.0,
+    return TM.random(radius=0.1, wavelength=1.0, shape=TM.Shape.spheroid(2.0),
                      refractive_real=1.5, refractive_imag=0.01)
 
 
@@ -106,7 +106,7 @@ def test_fixed():
     small_random()
     np.testing.assert_array_equal(result.amplitude, saved)
     # The shape is used: the cylinder of the same aspect ratio scatters differently
-    cylinder = fixed(shape="cylinder")
+    cylinder = fixed(shape=TM.Shape.cylinder(0.5))
     assert not np.allclose(cylinder.amplitude, saved)
     np.testing.assert_array_equal(result.amplitude, saved)
     return saved
@@ -150,7 +150,7 @@ def test_random():
         radius=0.5e-6,
         wavelength=0.5e-6,
         angles=19,
-        aspect_ratio=2.0,
+        shape=TM.Shape.spheroid(2.0),
         refractive_real=1.53,
         refractive_imag=0.008,
         equivalent_radius="surface_area",
@@ -171,9 +171,6 @@ def test_errors_and_threads():
     for kwargs in [
         {"radius": -1},
         {"accuracy": float("nan")},
-        {"shape": "chebyshev"},
-        {"shape": "chebyshev", "degree": 2, "aspect_ratio": 1.5},
-        {"degree": 2},
         {"beta": 181},
         {"phi_incident": -1},
     ]:
@@ -183,6 +180,24 @@ def test_errors_and_threads():
             pass
         else:
             raise AssertionError(f"invalid input accepted: {kwargs}")
+    # A shape is made by the constructor of its kind, which checks its parameters
+    for make in [
+        lambda: TM.Shape.spheroid(-1.0),
+        lambda: TM.Shape.cylinder(float("nan")),
+        lambda: TM.Shape.chebyshev(0, 0.1),
+        lambda: TM.Shape.chebyshev(2, 1.5),
+        lambda: TM.Shape.generalized_chebyshev([]),
+        lambda: TM.Shape.generalized_chebyshev([0.0, 1.0]),
+    ]:
+        try:
+            make()
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("an invalid shape was accepted")
+    shape = TM.Shape.chebyshev(3, -0.15)
+    assert shape.kind == pa.arts.ParticleShape("chebyshev") and shape.degree == 3 and shape.parameter == -0.15
+    assert TM.Shape().kind == pa.arts.ParticleShape("spheroid") and TM.Shape().parameter == 1.0
     # A strongly absorbing particle overflows the Bessel functions inside it at once
     try:
         fixed(radius=1.0, refractive_imag=1e3)
@@ -192,13 +207,13 @@ def test_errors_and_threads():
         raise AssertionError("a T-matrix that is not finite did not produce a Python exception")
     # (r2 - r1) / ln(r2 / r1) = a has a root r1 in (0, a] for every b > 0: here r1 is about 3e-9 a.
     # One size node is the middle of [r1, r2 = 2 a (1 + b) - r1], a (1 + b).
-    wide = TM.random(radius=0.05, wavelength=1.0, aspect_ratio=2.0, refractive_real=1.5,
+    wide = TM.random(radius=0.05, wavelength=1.0, shape=TM.Shape.spheroid(2.0), refractive_real=1.5,
                      refractive_imag=0.01, distribution="power_law", b=10.0)
     np.testing.assert_allclose(wide.effective_radius, 0.05 * 11, rtol=1e-14)
     assert np.isfinite(wide.extinction) and np.isfinite(wide.scattering)
     # but not one that double precision resolves once 1 + 2 b rounds to 1
     try:
-        TM.random(radius=0.05, wavelength=1.0, aspect_ratio=2.0, refractive_real=1.5,
+        TM.random(radius=0.05, wavelength=1.0, shape=TM.Shape.spheroid(2.0), refractive_real=1.5,
                   refractive_imag=0.01, distribution="power_law", b=1e-17)
     except RuntimeError as e:
         assert "power law" in str(e)
@@ -206,10 +221,10 @@ def test_errors_and_threads():
         raise AssertionError("power law without radii did not produce a Python exception")
     # r1 is about 2 a (1 + b) exp(-2 (1 + b)): 1e-260 a at b = 300, where y / x overflows,
     # and below the subnormal range at b = 400
-    TM.random(radius=1e-4, wavelength=1.0, aspect_ratio=2.0, refractive_real=1.5,
+    TM.random(radius=1e-4, wavelength=1.0, shape=TM.Shape.spheroid(2.0), refractive_real=1.5,
               refractive_imag=0.01, distribution="power_law", b=300.0)
     try:
-        TM.random(radius=1e-4, wavelength=1.0, aspect_ratio=2.0, refractive_real=1.5,
+        TM.random(radius=1e-4, wavelength=1.0, shape=TM.Shape.spheroid(2.0), refractive_real=1.5,
                   refractive_imag=0.01, distribution="power_law", b=400.0)
     except RuntimeError as e:
         assert "not resolvable" in str(e)
@@ -235,7 +250,7 @@ def test_errors_and_threads():
 
 
 def test_fixed_batch():
-    args = (100e-6, 299792458 / 230e9, 1.5, 1.78, .003)
+    args = (100e-6, 299792458 / 230e9, TM.Shape.spheroid(1.5), 1.78, .003)
     geometries = [TM.Geometry(theta_incident=0., theta_scattered=90., phi_scattered=30.),
                   TM.Geometry(theta_incident=56., theta_scattered=65., phi_incident=114.,
                               phi_scattered=128., alpha=145., beta=52.),

@@ -149,14 +149,15 @@ class ParticleHabit {
  public:
   //! Generate native spectral TRO data, the exact Legendre series of the T-matrix, at individual
   //! volume-equivalent diameters.  SI inputs; refractive_index has shape (temperature, frequency).
-  //! aspect_ratio has one element for all diameters or one per diameter; coefficients, of generalized
-  //! Chebyshev particles only, likewise, and none for the other shapes.
+  //! aspect_ratio is the spheroid's aspect ratio, the cylinder's diameter-to-length ratio or the Chebyshev
+  //! deformation, unused for generalized Chebyshev particles, with one element for all diameters or one per diameter;
+  //! coefficients, of generalized Chebyshev particles only, likewise, and none for the other shapes.
   static ParticleHabit tmatrix(const Vector&        t_grid,
                                const Vector&        f_grid,
                                const Vector&        diameters,
                                const ComplexMatrix& refractive_index,
                                Numeric              density,
-                               const Vector&        aspect_ratio,
+                               const Vector&        aspect_ratio       = Vector{1.0},
                                ParticleShape        shape              = ParticleShape::spheroid,
                                Index                degree             = 0,
                                const ArrayOfVector& coefficients       = {},
@@ -170,12 +171,12 @@ class ParticleHabit {
                                    const Vector&          diameters,
                                    const ComplexMatrix&   refractive_index,
                                    Numeric                density,
-                                   const Vector&          aspect_ratio,
                                    const Vector&          za_inc_grid,
                                    const Vector&          delta_aa_grid,
                                    const ZenithAngleGrid& za_scat_grid,
                                    const Vector&          tilt_angles,
                                    const Vector&          tilt_weights,
+                                   const Vector&          aspect_ratio       = Vector{1.0},
                                    ParticleShape          shape              = ParticleShape::spheroid,
                                    Index                  degree             = 0,
                                    const ArrayOfVector&   coefficients       = {},

@@ -50,7 +50,7 @@ np.testing.assert_allclose(ssd.properties.d_max, D * 1.5 ** (1 / 3))
 for it in range(2):
     for jf in range(2):
         direct = A.tmatrix.random(
-            D / 2, C / F[jf], 1.5, M[it, jf].real, M[it, jf].imag, angles=NANGLE
+            D / 2, C / F[jf], A.tmatrix.Shape.spheroid(1.5), M[it, jf].real, M[it, jf].imag, angles=NANGLE
         )
         series = np.asarray(direct.legendre) * direct.scattering / (4 * np.pi)
         n = series.shape[0]
@@ -106,7 +106,7 @@ for particle, single in [(pair[0], make()[0]), (pair[1], make(diameters=[2 * D],
 
 # A generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)), whose coefficients are test data
 DROP = [-0.0481, 0.0359, -0.1263, 0.0244, 0.0091, -0.0099, 0.0015, 0.0025, -0.0016, -0.0002, 0.0010]
-drop = make(shape="generalized_chebyshev", aspect_ratio=[1.0], coefficients=[DROP])
+drop = make(shape="generalized_chebyshev", coefficients=[DROP])
 assert drop[0].properties.name == "T-matrix generalized Chebyshev particle"
 # Its maximum dimension against a direct grid search, at the volume-equivalent diameter D; the volume over 4 pi / 3
 # integrates the polynomial a(cos(theta))^3 exactly
@@ -117,7 +117,7 @@ rho, z = r * np.sin(theta), r * np.cos(theta)
 grid = np.sqrt(np.max((rho[:, None] + rho[None, :]) ** 2 + (z[:, None] - z[None, :]) ** 2))
 assert grid <= drop[0].properties.d_max <= grid * (1 + 1e-6)
 direct = A.tmatrix.random(
-    D / 2, C / F[0], 1.0, M[0, 0].real, M[0, 0].imag, shape="generalized_chebyshev", coefficients=DROP
+    D / 2, C / F[0], A.tmatrix.Shape.generalized_chebyshev(DROP), M[0, 0].real, M[0, 0].imag
 )
 np.testing.assert_allclose(np.array(drop[0].extinction_matrix)[0, 0, 0], direct.extinction, rtol=1e-15)
 
@@ -250,7 +250,7 @@ for particle, diameter, aspect in zip(aro, [D, 2 * D], [1.5, 0.5]):
             direct = A.tmatrix.azimuthally_random(
                 diameter / 2,
                 C / F[jf],
-                aspect,
+                A.tmatrix.Shape.spheroid(aspect),
                 M[it, jf].real,
                 M[it, jf].imag,
                 ZA_INC,

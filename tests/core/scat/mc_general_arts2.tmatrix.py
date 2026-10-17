@@ -72,8 +72,8 @@ def generate(legacy_numerics=False, quadrature=10):
             radius, unit = 100., 1e-6
         for ti, _ in enumerate(TEMPERATURES):
             m = REFRACTIVE_INDEX[fi, ti]
-            results = A.tmatrix.fixed_batch(radius, wavelength, 1.5, m.real, m.imag,
-                                            geometries, accuracy=.001, shape="spheroid")
+            results = A.tmatrix.fixed_batch(radius, wavelength, A.tmatrix.Shape.spheroid(1.5), m.real, m.imag,
+                                            geometries, accuracy=.001)
             orders.append(int(results[0].order))
             phase[fi, ti] = (np.array([D @ np.asarray(r.phase) @ D
                              for r in results[:nphase]]) * unit**2).reshape(nz, nz, nz, 1, 16)

@@ -31,8 +31,7 @@ class ScatteringHabit {
                   Numeric              mass_size_rel_b_ = -1.0);
 
   BulkScatteringPropertiesTROGridded get_bulk_scattering_properties_tro_gridded(const AtmPoint&,
-                                                                                const Vector& f_grid,
-                                                                                const Numeric f_tol = 1e-3) const;
+                                                                                const Vector& f_grid) const;
 
   BulkScatteringProperties<Format::TRO, Representation::Gridded> get_bulk_scattering_properties_tro_gridded(
       const AtmPoint& point, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;

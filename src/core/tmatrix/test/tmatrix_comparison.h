@@ -125,6 +125,18 @@ struct Particle {
                 shape.coefficients.empty() ? Vector{} : solver::volume_normalized_coefficients(shape.coefficients)};
   }
 
+  //! The interface's shape, of the Fortran's EPS: the spheroid's aspect ratio, the cylinder's diameter-to-length
+  //! ratio or the Chebyshev deformation
+  [[nodiscard]] tmatrix::Shape interface_shape() const {
+    switch (shape.shape) {
+      case ParticleShape::spheroid:              return tmatrix::Shape::spheroid(aspect_ratio);
+      case ParticleShape::cylinder:              return tmatrix::Shape::cylinder(aspect_ratio);
+      case ParticleShape::chebyshev:             return tmatrix::Shape::chebyshev(shape.degree, aspect_ratio);
+      case ParticleShape::generalized_chebyshev: return tmatrix::Shape::generalized_chebyshev(shape.coefficients);
+    }
+    throw std::invalid_argument("shape must be a ParticleShape");
+  }
+
   //! The volume-equivalent over the given equivalent radius, as tmatrix.h selects it
   [[nodiscard]] Numeric factor() const {
     return equivalent == EquivalentRadius::surface_area ? solver::volume_to_surface_radius(solver_particle(), accuracy)
@@ -166,15 +178,12 @@ inline FixedPort fixed_port(const Particle& c, std::span<const Geometry> geometr
   fixed_batch(out.results,
               c.radius,
               c.wavelength,
-              c.aspect_ratio,
+              c.interface_shape(),
               c.refractive_index.real(),
               c.refractive_index.imag(),
               geometries,
               c.accuracy,
               c.equivalent,
-              c.shape.shape,
-              c.shape.degree,
-              c.shape.coefficients,
               c.surface_quadrature);
 
   solver::Particle p = c.solver_particle();
@@ -238,15 +247,12 @@ inline RandomPort random_port(const Particle& c, const Distribution& d, Index an
   RandomPort out;
   out.result = tmatrix::random(c.radius,
                                c.wavelength,
-                               c.aspect_ratio,
+                               c.interface_shape(),
                                c.refractive_index.real(),
                                c.refractive_index.imag(),
                                angles,
                                c.accuracy,
                                c.equivalent,
-                               c.shape.shape,
-                               c.shape.degree,
-                               c.shape.coefficients,
                                d.kind,
                                d.b,
                                d.gamma,

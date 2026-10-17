@@ -678,7 +678,7 @@ void py_scattering_species(py::module_& m) try {
                   "diameters"_a,
                   "refractive_index"_a,
                   "density"_a,
-                  "aspect_ratio"_a,
+                  "aspect_ratio"_a       = Vector{1.0},
                   "shape"_a              = ParticleShape::spheroid,
                   "degree"_a             = 0,
                   "coefficients"_a       = ArrayOfVector{},
@@ -699,8 +699,8 @@ r_0 (1 + aspect_ratio cos(degree theta)) (aspect_ratio is the deformation, of
 magnitude below 1, and degree at least 1; degree is 0 for the other shapes),
 or a generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)),
 whose coefficients c_0, ..., c_N give the shape (aspect_ratio is unused).
-aspect_ratio has one element for all diameters or one per diameter, and so
-do the coefficients, which the other shapes must leave empty.
+aspect_ratio, 1 by default, has one element for all diameters or one per
+diameter, and so do the coefficients, which the other shapes must leave empty.
 The maximum dimension is the largest distance between two surface points.
 accuracy is the T-matrix's convergence accuracy and surface_quadrature its
 number of surface quadrature points per degree, which highly aspherical
@@ -718,12 +718,12 @@ See :doc:`user.tmatrix` for usage and :doc:`dev.tmatrix` for build requirements.
                   "diameters"_a,
                   "refractive_index"_a,
                   "density"_a,
-                  "aspect_ratio"_a,
                   "za_inc_grid"_a,
                   "delta_aa_grid"_a,
                   "za_scat_grid"_a,
                   "tilt_angles"_a,
                   "tilt_weights"_a,
+                  "aspect_ratio"_a       = Vector{1.0},
                   "shape"_a              = ParticleShape::spheroid,
                   "degree"_a             = 0,
                   "coefficients"_a       = ArrayOfVector{},

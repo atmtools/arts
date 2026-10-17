@@ -28,18 +28,19 @@ Metres give SI outputs.  ``equivalent_radius`` is an
 :class:`~pyarts3.arts.EquivalentRadius`: the radius is that of the sphere of
 the same volume (``"volume"``, the default) or of the same surface area
 (``"surface_area"``).
-``shape`` is a :class:`~pyarts3.arts.ParticleShape`.  ``"spheroid"`` has
-``aspect_ratio`` its horizontal/rotational axis ratio; ``"cylinder"`` its
-diameter/length ratio.  ``"chebyshev"`` is a Chebyshev particle
-:math:`r_0(1+\varepsilon\cos n\theta)` of ``degree`` :math:`n\ge1`, with
-``aspect_ratio`` the deformation :math:`\varepsilon`, :math:`|\varepsilon|<1`.
-``degree`` is 0 for the other shapes.  Odd degrees are not mirror symmetric
-about the equatorial plane; even degrees are.  ``"generalized_chebyshev"`` is
-the particle :math:`r_0(1+c_0+\sum_{n\ge1}c_n\cos n\theta)` of the
-``coefficients`` :math:`c_0,\ldots,c_N`, such as of a raindrop's shape, with
-:math:`1+c_0>\sum_{n\ge1}|c_n|`; its ``degree`` is 0 and ``aspect_ratio`` is
-unused.  It is mirror symmetric without odd coefficients.  The other shapes
-take no coefficients.
+``shape`` is a ``tmatrix.Shape``, made by the constructor of its kind, which
+takes exactly that shape's parameters and checks them; ``Shape()`` is a sphere.
+``Shape.spheroid(aspect_ratio)`` is a spheroid of the horizontal-to-rotational
+axis ratio, ``Shape.cylinder(diameter_to_length)`` a finite circular cylinder,
+and ``Shape.chebyshev(degree, deformation)`` the Chebyshev particle
+:math:`r_0(1+\varepsilon\cos n\theta)` of degree :math:`n\ge1` and
+deformation :math:`|\varepsilon|<1`; odd degrees are not mirror symmetric
+about the equatorial plane, even degrees are.
+``Shape.generalized_chebyshev(coefficients)`` is the particle
+:math:`r_0(1+c_0+\sum_{n\ge1}c_n\cos n\theta)` of the coefficients
+:math:`c_0,\ldots,c_N`, such as of a raindrop's shape, with
+:math:`1+c_0>\sum_{n\ge1}|c_n|`; it is mirror symmetric without odd
+coefficients.
 
 The fixed result contains the amplitude matrix as a :class:`~pyarts3.arts.Jones`
 matrix between ARTS's meridional bases of the two rays (length), its Mueller
@@ -98,10 +99,13 @@ Using particles as scattering species
 Supply temperature and frequency grids, volume-equivalent diameters in metres,
 a complex refractive-index matrix with axes (temperature, frequency), and
 material density in kg/m³.  The refractive index uses a nonnegative imaginary
-part.  Shape and aspect-ratio conventions match the direct T-matrix interface.
-``aspect_ratio`` has one element for all diameters or one per diameter, and so
-do the ``coefficients`` of a generalized Chebyshev particle, an
-:class:`~pyarts3.arts.ArrayOfVector` that the other shapes leave empty.
+part.  ``shape`` is a :class:`~pyarts3.arts.ParticleShape`.  ``aspect_ratio``
+is the spheroid's aspect ratio, the cylinder's diameter-to-length ratio or the
+Chebyshev deformation, of the ``degree`` of a Chebyshev particle, and is unused
+for a generalized Chebyshev particle; it is 1 by default and has one element for
+all diameters or one per diameter.  So do the ``coefficients`` of a generalized
+Chebyshev particle, an :class:`~pyarts3.arts.ArrayOfVector` that the other
+shapes leave empty.
 Each particle's maximum dimension is the largest distance between two points of
 its surface: closed forms for spheroids and cylinders, and a numerical maximum
 for (generalized) Chebyshev particles.

@@ -47,13 +47,10 @@ Numeric max_relative_difference(const Vector& v1, const Vector& v2) {
  *
  * @param point: The AtmPoint for which to calculate the bulk properties.
  * @param f_grid: The frequencies for which to calculate the bulk scattering properties.
- * @param f_tol: Maximum relative difference between frequency vectors to trigger re-interpolation of
- *     along the frequency grid.
  * @return A struct containing the calculated bulk-scattering properties.
  */
-BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint& point,
-                                                                                               const Vector&   f_grid,
-                                                                                               const Numeric) const {
+BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properties_tro_gridded(
+    const AtmPoint& point, const Vector& f_grid) const {
   const auto  pnd         = number_densities(point);
   const Index n_particles = pnd.size();
 

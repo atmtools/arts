@@ -91,13 +91,51 @@ physical definitions, and :doc:`dev.tmatrix` for build and implementation detail
           &tmatrix::RandomResult::legendre,
           "The same scattering matrix as its exact Legendre series: the coefficients a_l, l = 0..l_max, on Y_l0 = sqrt((2 l + 1) / 4 pi) P_l(cos(Theta)) of each element, as TRO spectral data hold them.\n\n.. :class:`~pyarts3.arts.CompactPlanarMuelmatVector`")
       .doc() = "Random form results of T-matrix evaluation for one distribution";
+  py::class_<tmatrix::Shape>(tm, "Shape")
+      .def(py::init<>(), "A sphere.")
+      .def_static("spheroid",
+                  &tmatrix::Shape::spheroid,
+                  "aspect_ratio"_a,
+                  "A spheroid of the horizontal-to-rotational axis ratio aspect_ratio, finite and positive.")
+      .def_static("cylinder",
+                  &tmatrix::Shape::cylinder,
+                  "diameter_to_length"_a,
+                  "A finite circular cylinder of the diameter-to-length ratio, finite and positive.")
+      .def_static("chebyshev",
+                  &tmatrix::Shape::chebyshev,
+                  "degree"_a,
+                  "deformation"_a,
+                  "A Chebyshev particle r_0 (1 + deformation cos(degree theta)), with degree at least 1 and a "
+                  "deformation of magnitude below 1.")
+      .def_static("generalized_chebyshev",
+                  &tmatrix::Shape::generalized_chebyshev,
+                  "coefficients"_a,
+                  "A generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)) of the coefficients c_0, "
+                  "..., c_N, such as a distorted water drop, with 1 + c_0 > sum_{n >= 1} |c_n|.")
+      .def_prop_ro("kind", &tmatrix::Shape::kind, "The kind of shape.\n\n.. :class:`~pyarts3.arts.ParticleShape`")
+      .def_prop_ro("parameter",
+                   &tmatrix::Shape::parameter,
+                   "The aspect ratio of a spheroid, the diameter-to-length ratio of a cylinder, the deformation of a "
+                   "Chebyshev particle; 1 for a generalized Chebyshev particle.\n\n.. :class:`float`")
+      .def_prop_ro(
+          "degree", &tmatrix::Shape::degree, "The degree of a Chebyshev particle, 0 otherwise.\n\n.. :class:`int`")
+      .def_prop_ro("coefficients",
+                   &tmatrix::Shape::coefficients,
+                   "The coefficients of a generalized Chebyshev particle, none otherwise.\n\n.. "
+                   ":class:`~pyarts3.arts.Vector`")
+      .doc() = R"(The shape of a rotationally symmetric particle.
+
+Made by the constructor of its kind, spheroid, cylinder, chebyshev or
+generalized_chebyshev, which takes exactly that shape's parameters and checks
+them (see :doc:`concept.tmatrix`).  Shape() is a sphere.
+)";
   tm.def(
       "fixed",
       &tmatrix::fixed,
-      "Compute a T-matrix and evaluate one geometry. equivalent_radius is an EquivalentRadius: the radius is that of the sphere of the same volume or of the same surface area. shape is a ParticleShape: a spheroid, a cylinder, or a Chebyshev particle r_0 (1 + aspect_ratio cos(degree theta)). aspect_ratio is horizontal/rotational axis for spheroids, diameter/length for cylinders, and the deformation, of magnitude below 1, for Chebyshev particles. degree is at least 1 for Chebyshev particles and 0 for the other shapes. coefficients, c_0, ..., c_N of r_0 (1 + c_0 + sum_n c_n cos(n theta)), are the shape of a generalized Chebyshev particle, e.g. a distorted water drop, and are empty for the other shapes; its aspect_ratio is not used. alpha and beta specify the particle Euler angles. surface_quadrature is the number of surface quadrature points per degree, which highly aspherical particles may need more of. The convergence fails, with an error, once the T-matrix is no longer finite.",
+      "Compute a T-matrix and evaluate one geometry. shape is a Shape. equivalent_radius is an EquivalentRadius: the radius is that of the sphere of the same volume or of the same surface area. alpha and beta specify the particle Euler angles. surface_quadrature is the number of surface quadrature points per degree, which highly aspherical particles may need more of. The convergence fails, with an error, once the T-matrix is no longer finite.",
       "radius"_a,
       "wavelength"_a,
-      "aspect_ratio"_a,
+      "shape"_a,
       "refractive_real"_a,
       "refractive_imag"_a,
       "theta_incident"_a,
@@ -108,36 +146,27 @@ physical definitions, and :doc:`dev.tmatrix` for build and implementation detail
       "beta"_a,
       "accuracy"_a           = 0.001,
       "equivalent_radius"_a  = EquivalentRadius::volume,
-      "shape"_a              = ParticleShape::spheroid,
-      "degree"_a             = 0,
-      "coefficients"_a       = Vector{},
       "surface_quadrature"_a = 2,
       py::call_guard<py::gil_scoped_release>());
   tm.def(
       "fixed_batch",
       [](Numeric                               radius,
          Numeric                               wavelength,
-         Numeric                               aspect_ratio,
+         const tmatrix::Shape&                 shape,
          Numeric                               refractive_real,
          Numeric                               refractive_imag,
          const std::vector<tmatrix::Geometry>& geometries,
          Numeric                               accuracy,
          EquivalentRadius                      equivalent_radius,
-         ParticleShape                         shape,
-         Index                                 degree,
-         const Vector&                         coefficients,
          Index                                 surface_quadrature) {
         return tmatrix::fixed_batch(radius,
                                     wavelength,
-                                    aspect_ratio,
+                                    shape,
                                     refractive_real,
                                     refractive_imag,
                                     geometries,
                                     accuracy,
                                     equivalent_radius,
-                                    shape,
-                                    degree,
-                                    coefficients,
                                     surface_quadrature);
       },
       R"(Compute one T-matrix and evaluate multiple geometries.
@@ -148,15 +177,12 @@ serves all geometries; results own their data.
 )",
       "radius"_a,
       "wavelength"_a,
-      "aspect_ratio"_a,
+      "shape"_a,
       "refractive_real"_a,
       "refractive_imag"_a,
       "geometries"_a,
       "accuracy"_a           = 0.001,
       "equivalent_radius"_a  = EquivalentRadius::volume,
-      "shape"_a              = ParticleShape::spheroid,
-      "degree"_a             = 0,
-      "coefficients"_a       = Vector{},
       "surface_quadrature"_a = 2,
       py::call_guard<py::gil_scoped_release>());
   py::class_<tmatrix::AzimuthallyRandomResult>(tm, "AzimuthallyRandomResult")
@@ -189,7 +215,7 @@ truncated T-matrix.  The other arguments match fixed().
 )",
          "radius"_a,
          "wavelength"_a,
-         "aspect_ratio"_a,
+         "shape"_a,
          "refractive_real"_a,
          "refractive_imag"_a,
          "za_inc"_a,
@@ -199,9 +225,6 @@ truncated T-matrix.  The other arguments match fixed().
          "tilt_weights"_a,
          "accuracy"_a           = 0.001,
          "equivalent_radius"_a  = EquivalentRadius::volume,
-         "shape"_a              = ParticleShape::spheroid,
-         "degree"_a             = 0,
-         "coefficients"_a       = Vector{},
          "surface_quadrature"_a = 2,
          py::call_guard<py::gil_scoped_release>());
   tm.def("random",
@@ -221,15 +244,12 @@ initialized (WignerInit).
 )",
          "radius"_a,
          "wavelength"_a,
-         "aspect_ratio"_a,
+         "shape"_a,
          "refractive_real"_a,
          "refractive_imag"_a,
          "angles"_a             = 0,
          "accuracy"_a           = 0.001,
          "equivalent_radius"_a  = EquivalentRadius::volume,
-         "shape"_a              = ParticleShape::spheroid,
-         "degree"_a             = 0,
-         "coefficients"_a       = Vector{},
          "distribution"_a       = TMatrixSizeDistribution::gamma,
          "b"_a                  = 0.1,
          "gamma"_a              = 1.,

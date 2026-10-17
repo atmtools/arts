@@ -41,14 +41,14 @@ void require(bool ok, const std::string& what) {
 Numeric relative(Numeric a, Numeric b) { return std::abs(a - b) / std::abs(b); }
 
 void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
-  const Numeric     aspect = shape == ParticleShape::chebyshev ? 0.0 : 1.0;
-  const std::string name   = std::format("sphere r={} m=({}, {}) {} {}", r, m.real(), m.imag(), shape, degree);
+  const auto sphere =
+      shape == ParticleShape::chebyshev ? tmatrix::Shape::chebyshev(degree, 0.0) : tmatrix::Shape::spheroid(1.0);
+  const std::string name = std::format("sphere r={} m=({}, {}) {} {}", r, m.real(), m.imag(), shape, degree);
 
   // Random orientation: the six elements of F C_sca / (4 pi) at the scattering angles
   constexpr Index angles = 37;
-  const auto      t =
-      tmatrix::random(r, lambda, aspect, m.real(), m.imag(), angles, accuracy, EquivalentRadius::volume, shape, degree);
-  Vector theta(angles);
+  const auto t = tmatrix::random(r, lambda, sphere, m.real(), m.imag(), angles, accuracy, EquivalentRadius::volume);
+  Vector     theta(angles);
   for (Index i = 0; i < angles; ++i) theta[i] = 180.0 * static_cast<Numeric>(i) / (angles - 1);
   scattering::MieSphere<Numeric> mie(lambda, r, m, theta);
   const auto                     F = mie.get_scattering_matrix_compact();
@@ -113,8 +113,7 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
   }
   scattering::MieSphere<Numeric> mie_fixed(lambda, r, m, scattering_angle);
   const auto                     Ff = mie_fixed.get_scattering_matrix_compact();
-  const auto                     fixed =
-      tmatrix::fixed_batch(r, lambda, aspect, m.real(), m.imag(), g, accuracy, EquivalentRadius::volume, shape, degree);
+  const auto fixed = tmatrix::fixed_batch(r, lambda, sphere, m.real(), m.imag(), g, accuracy, EquivalentRadius::volume);
   require(relative(fixed[0].extinction, mie.get_extinction_coeff()) <= accuracy, name + ": fixed extinction");
   require(relative(fixed[0].scattering, mie.get_scattering_coeff()) <= accuracy, name + ": fixed scattering");
   Numeric worst_fixed = 0.0;
