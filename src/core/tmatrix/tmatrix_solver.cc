@@ -1314,9 +1314,9 @@ SizeQuadrature size_quadrature(const SizeDistribution& sd) {
       case modified_gamma:
         q.weight[i] *= std::pow(r, sd.a) * std::exp(-sd.a / sd.gamma * std::pow(r / sd.b, sd.gamma));
         break;
-      case lognormal:          q.weight[i] *= std::exp(-Math::pow2(std::log(r / sd.a)) * 0.5 / sd.b) / r; break;
-      case power_law:          q.weight[i] /= r * r * r; break;
-      case gamma:              q.weight[i] *= std::pow(r, (1.0 - 3.0 * sd.b) / sd.b) * std::exp(-r / (sd.a * sd.b)); break;
+      case lognormal: q.weight[i] *= std::exp(-Math::pow2(std::log(r / sd.a)) * 0.5 / sd.b) / r; break;
+      case power_law: q.weight[i] /= r * r * r; break;
+      case gamma:     q.weight[i] *= std::pow(r, (1.0 - 3.0 * sd.b) / sd.b) * std::exp(-r / (sd.a * sd.b)); break;
       case modified_power_law: q.weight[i] *= r > r1 ? std::pow(r / r1, sd.b) : 1.0; break;
     }
   }

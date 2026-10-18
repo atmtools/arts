@@ -37,9 +37,7 @@ ArrayOfString split(const String& x, const String& delim) {
 
 void trim(String& x) {
   while (not x.empty() and nonstd::isspace(x.back())) x.pop_back();
-  x.erase(x.begin(), stdr::find_if_not(x, [](unsigned char c) {
-            return nonstd::isspace(c);
-          }));
+  x.erase(x.begin(), stdr::find_if_not(x, [](unsigned char c) { return nonstd::isspace(c); }));
 }
 
 String comma(bool& first, const String& spaces) {

@@ -93,7 +93,7 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(c5);
   vector_interface(c5);
 
-  auto d3 = py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfSpecmatMatrix");
+  auto d3  = py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfSpecmatMatrix");
   d3.doc() = "Array of :class:`~pyarts3.arts.SpecmatMatrix; shape [nf, np, nq] if defined";
   generic_interface(d3);
   vector_interface(d3);

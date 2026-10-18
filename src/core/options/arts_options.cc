@@ -986,7 +986,8 @@ An aspect ratio, and for Chebyshev particles a degree, complete the shape.
 See :doc:`concept.tmatrix` for the definitions.
 )",
       .values_and_desc = {Value{"spheroid", "A spheroid; the aspect ratio is its horizontal-to-rotational axis ratio"},
-                          Value{"cylinder", "A finite circular cylinder; the aspect ratio is its diameter-to-length ratio"},
+                          Value{"cylinder",
+                                "A finite circular cylinder; the aspect ratio is its diameter-to-length ratio"},
                           Value{"chebyshev",
                                 "A Chebyshev particle r_0 (1 + e cos(n theta)) of degree n >= 1; the aspect ratio is "
                                 "its deformation e, |e| < 1"},
