@@ -102,18 +102,10 @@ def setup_workspace_base(freq_grid, suns=None):
     return ws
 
 
-def create_surface_models(freq_grid, reflectivity):
-    """Create MapOfSurfaceScatteringModel with FlatScalarSurfaceScatterer."""
-    refl_data = np.full(len(freq_grid), reflectivity)
-
-    refl_field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=refl_data.tolist()
-    )
-
-    scatterer = arts.FlatScalarSurfaceScatterer(refl_field)
+def create_surface_models(reflectivity):
+    """Create MapOfSurfaceScatteringModel with a constant-reflectivity
+    FlatScalarSurfaceScatterer."""
+    scatterer = arts.FlatScalarSurfaceScatterer(reflectivity)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("flat_scalar", scatterer)
@@ -121,18 +113,10 @@ def create_surface_models(freq_grid, reflectivity):
     return surface_models
 
 
-def create_lambertian_models(freq_grid, reflectivity):
-    """Create MapOfSurfaceScatteringModel with LambertianSurfaceScatterer."""
-    refl_data = np.full(len(freq_grid), reflectivity)
-
-    refl_field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=refl_data.tolist()
-    )
-
-    scatterer = arts.LambertianSurfaceScatterer(refl_field)
+def create_lambertian_models(reflectivity):
+    """Create MapOfSurfaceScatteringModel with a constant-reflectivity
+    LambertianSurfaceScatterer."""
+    scatterer = arts.LambertianSurfaceScatterer(reflectivity)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("lambertian", scatterer)
@@ -140,18 +124,10 @@ def create_lambertian_models(freq_grid, reflectivity):
     return surface_models
 
 
-def create_fresnel_models(freq_grid, n2):
-    """Create MapOfSurfaceScatteringModel with FresnelSurfaceScatterer (n1 = 1)."""
-    n_data = np.full(len(freq_grid), n2)
-
-    n_field = arts.SortedGriddedField1(
-        name="refractive index",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=n_data.tolist()
-    )
-
-    scatterer = arts.FresnelSurfaceScatterer(n_field)
+def create_fresnel_models(n2):
+    """Create MapOfSurfaceScatteringModel with a FresnelSurfaceScatterer of
+    constant refractive index n2 (n1 = 1)."""
+    scatterer = arts.FresnelSurfaceScatterer(n2)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("fresnel", scatterer)
@@ -196,7 +172,7 @@ def run_specular_direct(freq_grid, reflectivity, suns=None, tag_key="flat_scalar
     if tilt_deg is not None:
         set_tilted_surface(ws, tilt_deg)
     add_surface_mask(ws, tag_key)
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
+    ws.surface_models = create_surface_models(reflectivity=reflectivity)
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
     return rad_array(ws, len(freq_grid))
@@ -239,7 +215,7 @@ def test_specular_direct_zero_with_diffuse_model():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_lambertian_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_lambertian_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
@@ -408,7 +384,7 @@ def test_specular_direct_fresnel():
 
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "fresnel")
-    ws.surface_models = create_fresnel_models(freq_grid, n2)
+    ws.surface_models = create_fresnel_models(n2)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()
@@ -439,7 +415,7 @@ def test_specular_direct_jacobian():
     x_size = ws.jac_targets.x_size()
 
     add_surface_mask(ws, "flat_scalar")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecularDirect()

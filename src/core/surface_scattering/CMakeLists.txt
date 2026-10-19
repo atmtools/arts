@@ -3,6 +3,7 @@ add_library(surface_scattering STATIC
     flat_scalar.cc
     fresnel.cc
     surface_scattering_model.cc
+    surface_spectral_field.cc
 )
 
 target_include_directories(surface_scattering PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")

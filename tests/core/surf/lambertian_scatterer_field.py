@@ -1,13 +1,18 @@
-"""Tests for LambertianSurfaceScattererField.
+"""Tests for LambertianSurfaceScatterer with a spatially gridded reflectivity.
+
+The reflectivity is a SpectralGeodeticField3 over (frequency [Hz], latitude [deg],
+longitude [deg]).
 
 Verifies:
 1. Construction and attribute access.
-2. At a homogeneous field (same reflectivity everywhere), the spatial variant
-   produces identical results to LambertianSurfaceScatterer at any lat/lon.
+2. At a homogeneous field (same reflectivity everywhere), the gridded
+   reflectivity produces identical results to a constant reflectivity at any
+   lat/lon.
 3. Spatial interpolation: reflectivity varies linearly across latitude; the
    result at the midpoint matches the average of the two endpoint values.
 4. XML round-trip: write and re-read the object, then verify BRDF is unchanged.
-5. MapOfSurfaceScatteringModel accepts the new type.
+5. MapOfSurfaceScatteringModel accepts the gridded model.
+6. Full 4x4 Mueller structure for constant and gridded reflectivity.
 """
 
 import numpy as np
@@ -27,42 +32,46 @@ za_scat   = arts.Vector([0.0, 90.0])
 aa_scat   = arts.Vector([0.0])
 surf_pt   = arts.SurfacePoint()
 
+# Field grids: frequency [Hz], latitude [deg], longitude [deg]
+f_field   = [1e10, 1e12]
+lat_field = [-90.0, 90.0]
+lon_field = [-180.0, 179.0]
+
+
+def geodetic_field(data):
+    """SpectralGeodeticField3 on the (frequency, latitude, longitude) field grids."""
+    g = arts.SpectralGeodeticField3()
+    g.grids = (arts.AscendingGrid(f_field), arts.LatGrid(lat_field),
+               arts.LonGrid(lon_field))
+    g.data = np.array(data, dtype=float)
+    return g
+
+
 # ---------------------------------------------------------------------------
 # Test 1: Basic construction and attribute access
 # ---------------------------------------------------------------------------
-field3 = arts.SortedGriddedField3(
-    name="reflectivity",
-    grid_names=["Latitude", "Longitude", "Frequency"],
-    grids=[[-90.0, 90.0], [-180.0, 180.0], [1e10, 1e12]],
-    data=np.full((2, 2, 2), 0.5).tolist(),
-)
-scf = arts.LambertianSurfaceScattererField(field3)
-assert scf.reflectivity_field.gridnames[0] == "Latitude", "Grid name mismatch"
+field3 = geodetic_field(np.full((2, 2, 2), 0.5))
+scf = arts.LambertianSurfaceScatterer(field3)
+assert scf.reflectivity.data_type == "SpectralGeodeticField3", "Data type mismatch"
+stored = scf.reflectivity.data
+assert np.array_equal(np.array(stored.grids[0]), f_field), "Frequency grid mismatch"
+assert np.array_equal(np.array(stored.grids[1]), lat_field), "Latitude grid mismatch"
+assert np.array_equal(np.array(stored.grids[2]), lon_field), "Longitude grid mismatch"
+assert np.array_equal(np.array(stored.data), np.full((2, 2, 2), 0.5)), "Data mismatch"
 print("Test 1 passed: construction and attribute access")
 
 
 # ---------------------------------------------------------------------------
-# Test 2: Homogeneous field equals uniform LambertianSurfaceScatterer
+# Test 2: Homogeneous field equals a constant reflectivity
 # ---------------------------------------------------------------------------
 r_uniform = 0.3
 
-spec1d = arts.SortedGriddedField1(
-    name="spectrum",
-    grid_names=["Frequency"],
-    grids=[[1e10, 1e12]],
-    data=[r_uniform, r_uniform],
-)
-sc1 = arts.LambertianSurfaceScatterer(spec1d)
+sc1 = arts.LambertianSurfaceScatterer(r_uniform)
 
-field3_uniform = arts.SortedGriddedField3(
-    name="reflectivity",
-    grid_names=["Latitude", "Longitude", "Frequency"],
-    grids=[[-90.0, 90.0], [-180.0, 180.0], [1e10, 1e12]],
-    data=np.full((2, 2, 2), r_uniform).tolist(),
-)
-sc_field = arts.LambertianSurfaceScattererField(field3_uniform)
+field3_uniform = geodetic_field(np.full((2, 2, 2), r_uniform))
+sc_field = arts.LambertianSurfaceScatterer(field3_uniform)
 
-# Use lat=30, lon=45 (an interior point — should extrapolate uniformly)
+# Use lat=30, lon=45 (an interior point of the field grids)
 props1 = sc1.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 props_f = sc_field.get_surface_scattering_model_properties(
@@ -78,7 +87,7 @@ assert np.allclose(brdf1, brdf_f, atol=1e-12), (
     f"max diff = {np.max(np.abs(brdf1 - brdf_f)):.2e}")
 assert np.allclose(emiss1, emiss_f, atol=1e-12), (
     f"Emissivity mismatch:\n max diff = {np.max(np.abs(emiss1 - emiss_f)):.2e}")
-print("Test 2 passed: homogeneous field equals uniform scatterer")
+print("Test 2 passed: homogeneous field equals constant reflectivity")
 
 
 # ---------------------------------------------------------------------------
@@ -90,17 +99,12 @@ print("Test 2 passed: homogeneous field equals uniform scatterer")
 # ---------------------------------------------------------------------------
 r_south = 0.2
 r_north = 0.8
-data_lin = np.zeros((2, 2, 2))
-data_lin[0, :, :] = r_south   # lat = -90
-data_lin[1, :, :] = r_north   # lat = +90
+data_lin = np.zeros((2, 2, 2))  # (frequency, latitude, longitude)
+data_lin[:, 0, :] = r_south   # lat = -90
+data_lin[:, 1, :] = r_north   # lat = +90
 
-field3_lin = arts.SortedGriddedField3(
-    name="reflectivity",
-    grid_names=["Latitude", "Longitude", "Frequency"],
-    grids=[[-90.0, 90.0], [-180.0, 180.0], [1e10, 1e12]],
-    data=data_lin.tolist(),
-)
-sc_lin = arts.LambertianSurfaceScattererField(field3_lin)
+field3_lin = geodetic_field(data_lin)
+sc_lin = arts.LambertianSurfaceScatterer(field3_lin)
 
 # At lat=0, expected r = 0.5 everywhere
 expected_brdf = 0.5
@@ -138,8 +142,9 @@ with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
     fname = f.name
 try:
     sc_field.savexml(fname)
-    sc_reload = arts.LambertianSurfaceScattererField()
+    sc_reload = arts.LambertianSurfaceScatterer()
     sc_reload.readxml(fname)
+    assert sc_reload.reflectivity.data_type == "SpectralGeodeticField3"
 
     props_orig   = sc_field.get_surface_scattering_model_properties(
         surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
@@ -157,7 +162,7 @@ finally:
 
 
 # ---------------------------------------------------------------------------
-# Test 5: MapOfSurfaceScatteringModel accepts LambertianSurfaceScattererField
+# Test 5: MapOfSurfaceScatteringModel accepts the gridded model
 # ---------------------------------------------------------------------------
 mosm = arts.MapOfSurfaceScatteringModel()
 mosm.add("albedo_field", sc_field)
@@ -167,7 +172,7 @@ bulk = mosm.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 brdf_bulk = np.array(bulk.brdf_matrix_diffuse)
 assert not np.all(brdf_bulk == 0.0), "Bulk BRDF should be non-zero"
-print("Test 5 passed: MapOfSurfaceScatteringModel accepts new type")
+print("Test 5 passed: MapOfSurfaceScatteringModel accepts the gridded model")
 
 
 # ---------------------------------------------------------------------------
@@ -177,19 +182,15 @@ print("Test 5 passed: MapOfSurfaceScatteringModel accepts new type")
 # Q/U/V channels.
 # ---------------------------------------------------------------------------
 r_test = 0.5
-spec1d_t6 = arts.SortedGriddedField1(
-    name="spectrum", grid_names=["Frequency"], grids=[[1e10, 1e12]],
-    data=[r_test, r_test],
-)
-sc_t6 = arts.LambertianSurfaceScatterer(spec1d_t6)
+sc_t6 = arts.LambertianSurfaceScatterer(r_test)
 
 za_inc_t6  = arts.Vector([0.0, 45.0, 90.0])
 aa_inc_t6  = arts.Vector([0.0, 180.0])
 za_scat_t6 = arts.Vector([30.0, 90.0])
 aa_scat_t6 = arts.Vector([-90.0, 90.0])
 
-for sc, label in [(sc_t6, "LambertianSurfaceScatterer"),
-                  (sc_field, "LambertianSurfaceScattererField")]:
+for sc, label in [(sc_t6, "constant reflectivity"),
+                  (sc_field, "gridded reflectivity")]:
     props_t6 = sc.get_surface_scattering_model_properties(
         surf_pt, 30.0, 45.0, f_grid, za_inc_t6, aa_inc_t6, za_scat_t6, aa_scat_t6)
 
@@ -214,4 +215,4 @@ for sc, label in [(sc_t6, "LambertianSurfaceScatterer"),
 print("Test 6 passed: full Mueller structure diag(r,0,0,0) / diag(1-r,0,0,0)")
 
 
-print("\nAll LambertianSurfaceScattererField tests passed.")
+print("\nAll gridded-reflectivity LambertianSurfaceScatterer tests passed.")

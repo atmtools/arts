@@ -38,7 +38,7 @@ Using the framework requires three things:
     "named lookup" [ label = "surface_models[name]" shape = "ellipse" ];
     "weighting" [ label = "surface_models.weighting_option" shape = "ellipse" ];
     "masks" [ label = "surf_field[SurfacePropertyTag(name)]" shape = "ellipse" ];
-    "model classes" [ label = "Lambertian / Fresnel / FlatScalar (…Field)" ];
+    "model classes" [ label = "Lambertian / Fresnel / FlatScalar" ];
     "raw weight" [ label = "mask value at the hit point" ];
     "agenda" [ label = "spectral_rad_surface_agenda" style = "filled" ];
     "models" -> "named lookup" [ arrowhead = "none" ];
@@ -52,8 +52,9 @@ Using the framework requires three things:
 The scattering models
 *********************
 
-There are three model families, each with a spatially uniform variant and a
-spatial ``…Field`` twin:
+There are three model families.  Each model class holds its data in a single
+:class:`~pyarts3.arts.SurfaceSpectralData` member, which may vary with
+frequency, latitude, and longitude (see `Spectral and spatial data`_):
 
 .. list-table::
    :header-rows: 1
@@ -63,30 +64,57 @@ spatial ``…Field`` twin:
      - Data
    * - :class:`~pyarts3.arts.LambertianSurfaceScatterer`
      - Diffuse, isotropic; reflectivity :math:`r(\nu)`
-     - ``reflectivity_spectrum`` on a :class:`~pyarts3.arts.SortedGriddedField1` (Hz)
-   * - :class:`~pyarts3.arts.LambertianSurfaceScattererField`
-     - Same, spatially varying
-     - ``reflectivity_field`` on a :class:`~pyarts3.arts.SortedGriddedField3` (lat [deg], lon [deg], freq [Hz])
+     - ``reflectivity``
    * - :class:`~pyarts3.arts.FresnelSurfaceScatterer`
      - Specular; real refractive index :math:`n_2(\nu)` under medium :math:`n_1`
-     - ``refractive_index_spectrum`` (:class:`~pyarts3.arts.SortedGriddedField1`), ``n1``
-   * - :class:`~pyarts3.arts.FresnelSurfaceScattererField`
-     - Same, spatially varying
-     - ``refractive_index_field`` (:class:`~pyarts3.arts.SortedGriddedField3`), ``n1``
+     - ``refractive_index``, and ``n1`` (a :class:`float`, default 1.0)
    * - :class:`~pyarts3.arts.FlatScalarSurfaceScatterer`
      - Specular; angle-independent reflectance :math:`R(\nu)`
-     - ``reflectivity_spectrum`` (:class:`~pyarts3.arts.SortedGriddedField1`)
-   * - :class:`~pyarts3.arts.FlatScalarSurfaceScattererField`
-     - Same, spatially varying
-     - ``reflectivity_field`` (:class:`~pyarts3.arts.SortedGriddedField3`)
+     - ``reflectivity``
 
-All data grids must be sorted ascending; the frequency grid is in Hz and is
-interpolated onto the simulation ``freq_grid`` at run time.  Each model has an
-``interp_extrapolation`` attribute (:class:`~pyarts3.arts.InterpolationExtrapolation`)
-controlling what happens outside the stored frequency grid: ``Nearest`` (the
-default, edge values), ``Linear`` (unlimited linear extrapolation), ``Zero``,
-or ``None`` (outside the grid is a user error).  Reflectivity-like values are
-expected in [0, 1] and are clamped; refractive indices must stay positive.
+At run time the data is evaluated at the surface hit point for every frequency
+of the simulation ``freq_grid``.  Reflectivity-like values are expected in
+[0, 1] and are clamped; refractive indices and ``n1`` must stay positive.
+
+Spectral and spatial data
+*************************
+
+A :class:`~pyarts3.arts.SurfaceSpectralData` is data over frequency [Hz],
+latitude [deg], and longitude [deg], in that order.  It is implicitly
+constructible from three kinds of data:
+
+:class:`float`
+  Constant at all frequencies and everywhere on the surface.
+
+:class:`~pyarts3.arts.SpectralGeodeticField3`
+  Gridded data with the grids ``(frequency, latitude, longitude)`` —
+  *frequency first* — and data of shape ``(nfreq, nlat, nlon)``.  The data is
+  interpolated linearly in all three dimensions.  The latitude grid must lie in
+  [-90, 90] and the longitude grid in [-180, 180); 180 itself is not allowed.
+  Single-point latitude and longitude grids make the data constant in space,
+  which is how a plain spectrum is stored.
+
+A function ``f(frq, lat, lon) -> float``
+  A :class:`~pyarts3.arts.NumericTernaryOperator`, evaluated at every
+  frequency and hit point.
+
+A :class:`~pyarts3.arts.SurfaceSpectralData` can be called as
+``data(frq, lat, lon)`` to inspect the value a model will see.
+
+Outside the grids of a :class:`~pyarts3.arts.SpectralGeodeticField3`, the
+extrapolation is set per dimension and side by the attributes ``frq_low``,
+``frq_upp``, ``lat_low``, ``lat_upp``, ``lon_low``, and ``lon_upp``
+(:class:`~pyarts3.arts.InterpolationExtrapolation`): ``None`` (outside the grid
+is a user error), ``Zero``, ``Nearest`` (the edge value), or ``Linear``
+(unlimited linear extrapolation).  ``set_extrapolation(mode)`` sets all six at
+once.  The defaults follow from the data when it is constructed:
+
+- a dimension with a single grid point is ``Nearest``, so the data is constant
+  along it;
+- a dimension with several grid points is ``None``, so a query outside the
+  stored range raises a ``Limit breached`` error.
+
+Constant and functional data are defined everywhere and never extrapolate.
 
 .. tip::
 
@@ -103,17 +131,11 @@ Building models and registering them
   import pyarts3 as pa
   arts = pa.arts
 
-  freq = np.linspace(10e9, 100e9, 4)
-
   # A diffuse Lambertian surface with 30% reflectivity
-  spec = arts.SortedGriddedField1(grids=[freq.tolist()],
-                                  data=np.full(len(freq), 0.3).tolist())
-  lambert = arts.LambertianSurfaceScatterer(spec)
+  lambert = arts.LambertianSurfaceScatterer(0.3)
 
   # A specular water-like surface
-  n2 = arts.SortedGriddedField1(grids=[freq.tolist()],
-                                data=np.full(len(freq), 2.7).tolist())
-  water = arts.FresnelSurfaceScatterer(n2, 1.0)
+  water = arts.FresnelSurfaceScatterer(2.7, 1.0)
 
   ws.surface_models = arts.MapOfSurfaceScatteringModel()
   ws.surface_models.add("land", lambert)
@@ -122,11 +144,6 @@ Building models and registering them
 The map behaves like a :class:`dict`: ``ws.surface_models["land"]``,
 ``ws.surface_models["land"] = …``, ``"land" in ws.surface_models``,
 ``len(…)``, and iteration over ``(name, model)`` pairs all work.
-
-The spatial ``…Field`` twins take a :class:`~pyarts3.arts.SortedGriddedField3`
-with grids (latitude [deg], longitude [deg], frequency [Hz]); longitude is
-treated as cyclic, so the longitude grid must span at most one cycle in
-[-180, 180).
 
 Surface masks and weighting
 ***************************
@@ -297,6 +314,6 @@ Gotchas
    - **``max_stepsize`` dividing ``toa`` exactly** (default 1000 m) can land a
      geometric path point a few 1e-10 m above the TOA, which the atmospheric
      field rejects.  Nudge either value if you hit this.
-   - **XML round-trip gaps**: ``weighting_option`` is not serialised, and the
-     1-D ``LambertianSurfaceScatterer`` does not serialise its
-     ``interp_extrapolation``.  Re-set them after loading from XML.
+   - **XML round-trip gaps**: ``weighting_option`` is not serialised; re-set
+     it after loading from XML.  Model data given as a Python function cannot
+     be written to XML.

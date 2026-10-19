@@ -64,18 +64,10 @@ def setup_workspace_base(freq_grid):
     return ws
 
 
-def create_surface_models(freq_grid, reflectivity):
-    """Create MapOfSurfaceScatteringModel with LambertianSurfaceScatterer."""
-    refl_data = np.full(len(freq_grid), reflectivity)
-
-    refl_field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=refl_data.tolist()
-    )
-
-    scatterer = arts.LambertianSurfaceScatterer(refl_field)
+def create_surface_models(reflectivity):
+    """Create MapOfSurfaceScatteringModel with a constant-reflectivity
+    LambertianSurfaceScatterer."""
+    scatterer = arts.LambertianSurfaceScatterer(reflectivity)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("lambertian", scatterer)
@@ -97,7 +89,7 @@ def test_spectral_rad_surface_scattering_specular_basic():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
@@ -124,7 +116,7 @@ def test_spectral_rad_surface_scattering_specular_zero_with_diffuse_model():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
@@ -151,7 +143,7 @@ def test_spectral_rad_surface_scattering_specular_jacobian():
     x_size = ws.jac_targets.x_size()
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
@@ -181,7 +173,7 @@ def test_spectral_rad_surface_scattering_specular_unusable_sun():
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     unusable_suns = [make_sun(100.0, 0.0),
                      make_sun(0.0, 400.0),
@@ -223,16 +215,11 @@ def fresnel_R(theta_deg, n1, n2):
     return 0.5 * (rv + rh), 0.5 * (rv - rh)
 
 
-def create_fresnel_models(freq_grid, n2):
-    """MapOfSurfaceScatteringModel with a flat-spectrum FresnelSurfaceScatterer."""
-    spectrum = arts.SortedGriddedField1(
-        name="refractive_index",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), n2).tolist(),
-    )
+def create_fresnel_models(n2):
+    """MapOfSurfaceScatteringModel with a FresnelSurfaceScatterer of constant
+    refractive index n2 (n1 = 1)."""
     surface_models = arts.MapOfSurfaceScatteringModel()
-    surface_models.add("fresnel", arts.FresnelSurfaceScatterer(spectrum))
+    surface_models.add("fresnel", arts.FresnelSurfaceScatterer(n2))
     return surface_models
 
 
@@ -260,7 +247,7 @@ def test_spectral_rad_surface_scattering_specular_fresnel_mirror():
         ws.spectral_rad_jacEmpty()
 
     ws.surf_field[arts.SurfacePropertyTag("fresnel")] = 1.0
-    ws.surface_models = create_fresnel_models(freq_grid, n2)
+    ws.surface_models = create_fresnel_models(n2)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringSpecular()
@@ -311,7 +298,7 @@ def test_spectral_rad_surface_scattering_specular_mirror_azimuth():
             ws.spectral_rad_jacEmpty()
 
         ws.surf_field[arts.SurfacePropertyTag("fresnel")] = 1.0
-        ws.surface_models = create_fresnel_models(freq_grid, 2.0)
+        ws.surface_models = create_fresnel_models(2.0)
         ws.suns = [sun]
 
         ws.spectral_radSurfaceScatteringInit()

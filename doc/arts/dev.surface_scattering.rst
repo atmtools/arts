@@ -17,11 +17,13 @@ Where the code lives
 
    * - Concern
      - File(s)
-   * - Model bodies and spectral/spatial interpolation
+   * - Model bodies
      - ``src/core/surface_scattering/{lambertian,fresnel,flat_scalar}.{h,cc}``
-   * - Shared helpers (longitude-grid validation, cyclic longitude
-       interpolation, frequency ``interp_extrapolation`` modes)
-     - ``src/core/surface_scattering/scattering_internal.h``
+   * - Model data over (frequency, latitude, longitude),
+       ``SurfaceSpectralData``
+     - ``src/core/surface_scattering/surface_spectral_field.{h,cc}``
+   * - Field interpolation and per-dimension extrapolation
+     - ``src/core/functional/functional_field_interp.h``
    * - Variant type, named map, weighting, blending
      - ``src/core/surface_scattering/surface_scattering_model.{h,cc}``
    * - Output tensor types
@@ -34,7 +36,8 @@ Where the code lives
      - ``src/workspace_agendas.cpp``
    * - Predefined option → method chains and gin presets
      - ``src/workspace_agenda_creator.cpp``
-   * - Python bindings (all six models + the map)
+   * - Python bindings (the three models, ``SurfaceSpectralData``, and the
+       map)
      - ``src/python_interface/py_surface_scattering.cpp``
    * - Tests
      - ``tests/core/surf/`` (collected by ``collect_test_subdir()``)
@@ -112,12 +115,12 @@ Adding a new scattering model
 
 1. Write the struct under ``src/core/surface_scattering/` with the member
    above, returning the tensor pair of your family at the requested shapes.
-   Reuse the helpers in ``scattering_internal.h`` for the frequency
-   ``interp_extrapolation`` modes and cyclic longitude interpolation.  Add the
+   Hold spectrally or spatially varying inputs as ``SurfaceSpectralData``
+   members and evaluate them with their ``at(f_grid, lat, lon)``.  Add the
    source to ``CMakeLists.txt``.
 2. Append the type to the ``SurfaceScatteringModel`` ``std::variant`` in
    ``surface_scattering_model.h`` and add a global ``using`` alias (mirroring
-   the existing six).
+   the existing three).
 3. Add a ``std::formatter`` specialisation — without it the model is invisible
    to Python ``print`` — and an ``xml_io_stream`` specialisation with a unique
    ``type_name``.  The variant XML machinery requires default-constructibility
@@ -205,9 +208,6 @@ Known serialization gaps
 
 - ``MapOfSurfaceScatteringModel`` XML I/O writes only the models;
   ``weighting_option`` is not serialised.
-- The 1-D ``LambertianSurfaceScatterer`` writes only its reflectivity spectrum;
-  ``interp_extrapolation`` is not serialised (the ``…Field`` twins and the
-  Fresnel/FlatScalar variants serialise theirs).
 
-Both are candidate fixes rather than intended behavior — extend the
-corresponding ``xml_io_stream`` specialisations if you depend on them.
+This is a candidate fix rather than intended behavior — extend the
+corresponding ``xml_io_stream`` specialisation if you depend on it.

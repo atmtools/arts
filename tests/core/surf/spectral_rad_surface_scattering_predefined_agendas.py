@@ -48,7 +48,7 @@ def build_workspace(freq_grid, option, suns, with_jac=False):
     ws = setup_workspace_base(freq_grid, suns=suns)
     add_surface_mask(ws, "lambertian")
     add_surface_mask(ws, "flat_scalar")
-    ws.surface_models = blended_models(freq_grid, 0.5, 0.3)
+    ws.surface_models = blended_models(0.5, 0.3)
 
     if with_jac:
         ws.measurement_sensorInit()

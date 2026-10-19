@@ -2,6 +2,8 @@
 
 #include <xml.h>
 
+#include <concepts>
+#include <limits>
 #include <stdexcept>
 
 #include "lagrange_interp.h"
@@ -11,19 +13,26 @@
 #include "xml_io_stream_matpack_mdspan.h"
 
 namespace matpack {
-enum class lim : bool { excl, incl };
+//! A limit of a ranged grid is excluded, included, or infinite (no limit)
+enum class lim : char { excl, incl, inf };
 
 template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl> class ranged_grid_t
-    : public grid_t < std::conditional_t<ll_<ul_, ascending_t, descending_t>> {
-  static_assert(ll_ != ul_, "Lower and upper limits cannot be equal");
+    : public grid_t<std::conditional_t<ll_ <= ul_, ascending_t, descending_t>> {
+  static_assert(ll_ != ul_ or il_ == lim::inf or iu_ == lim::inf, "Lower and upper limits cannot be equal");
 
-  static constexpr bool    ascending     = ll_ < ul_;
-  static constexpr bool    include_lower = il_ == lim::incl;
-  static constexpr bool    include_upper = iu_ == lim::incl;
-  static constexpr Numeric lower_limit   = ascending ? ll_ : ul_;
-  static constexpr Numeric upper_limit   = ascending ? ul_ : ll_;
+  static constexpr bool ascending = ll_ <= ul_;
 
-  using sorter_t = grid_t < std::conditional_t<ll_<ul_, ascending_t, descending_t>>;
+  static consteval Numeric limit(Index x, lim l, bool upper) {
+    if (l == lim::inf) return upper ? std::numeric_limits<Numeric>::infinity() : -std::numeric_limits<Numeric>::infinity();
+    return static_cast<Numeric>(x);
+  }
+
+  static constexpr bool    include_lower = (ascending ? il_ : iu_) != lim::excl;
+  static constexpr bool    include_upper = (ascending ? iu_ : il_) != lim::excl;
+  static constexpr Numeric lower_limit   = ascending ? limit(ll_, il_, false) : limit(ul_, iu_, false);
+  static constexpr Numeric upper_limit   = ascending ? limit(ul_, iu_, true) : limit(ll_, il_, true);
+
+  using sorter_t = grid_t<std::conditional_t<ascending, ascending_t, descending_t>>;
 
   sorter_t&       grid() noexcept { return *this; }
   const sorter_t& grid() const noexcept { return *this; }
@@ -81,6 +90,32 @@ template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl> class 
     return *this;
   }
 
+  //! The grid is already sorted, so only its range is checked
+  template <std::derived_from<sorter_t> G> constexpr ranged_grid_t(const G& g) {
+    assert_ranged(g.vec());
+    grid() = static_cast<const sorter_t&>(g);
+  }
+
+  //! The grid is already sorted, so only its range is checked
+  template <std::derived_from<sorter_t> G> constexpr ranged_grid_t(G&& g) {
+    assert_ranged(g.vec());
+    grid() = static_cast<sorter_t&&>(g);
+  }
+
+  //! The grid is already sorted, so only its range is checked
+  template <std::derived_from<sorter_t> G> constexpr ranged_grid_t& operator=(const G& g) {
+    assert_ranged(g.vec());
+    grid() = static_cast<const sorter_t&>(g);
+    return *this;
+  }
+
+  //! The grid is already sorted, so only its range is checked
+  template <std::derived_from<sorter_t> G> constexpr ranged_grid_t& operator=(G&& g) {
+    assert_ranged(g.vec());
+    grid() = static_cast<sorter_t&&>(g);
+    return *this;
+  }
+
   template <Size N, lagrange_interp::grid_transformer transform> [[nodiscard]] auto lag(Numeric x) const {
     return lagrange_interp::lag_t<N, transform>{*this, x, lag_sorting_t{}};
   }
@@ -117,6 +152,12 @@ using ZenGrid = matpack::ranged_grid_t<0, 180>;
 //! Guaranteed [0, 360)
 using AziGrid = matpack::ranged_grid_t<0, 360, matpack::lim::incl, matpack::lim::excl>;
 
+//! Altitude, unbounded
+using AltGrid = matpack::ranged_grid_t<0, 0, matpack::lim::inf, matpack::lim::inf>;
+
+//! Frequency, guaranteed (0, inf]
+using FreqGrid = matpack::ranged_grid_t<0, 0, matpack::lim::excl, matpack::lim::inf>;
+
 template <> struct xml_io_stream_name<LonGrid> {
   static constexpr std::string_view name = "LonGrid"sv;
 };
@@ -131,6 +172,14 @@ template <> struct xml_io_stream_name<ZenGrid> {
 
 template <> struct xml_io_stream_name<AziGrid> {
   static constexpr std::string_view name = "AziGrid"sv;
+};
+
+template <> struct xml_io_stream_name<AltGrid> {
+  static constexpr std::string_view name = "AltGrid"sv;
+};
+
+template <> struct xml_io_stream_name<FreqGrid> {
+  static constexpr std::string_view name = "FreqGrid"sv;
 };
 
 template <Index lower_limit, Index upper_limit, matpack::lim include_lower, matpack::lim include_upper>

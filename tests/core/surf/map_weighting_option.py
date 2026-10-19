@@ -28,13 +28,7 @@ aa_scat = arts.Vector([0.0])
 
 def lambertian(reflectivity):
     """Build a LambertianSurfaceScatterer with a constant reflectivity."""
-    spectrum = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[[1e11, 3e11]],
-        data=[reflectivity, reflectivity],
-    )
-    return arts.LambertianSurfaceScatterer(spectrum)
+    return arts.LambertianSurfaceScatterer(reflectivity)
 
 
 def brdf_element(brdf_matrix):

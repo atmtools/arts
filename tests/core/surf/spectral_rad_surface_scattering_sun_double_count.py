@@ -121,29 +121,19 @@ def setup_workspace_base(freq_grid, suns=None):
     return ws
 
 
-def flat_scalar_models(freq_grid, reflectivity):
-    """MapOfSurfaceScatteringModel with a specular-only FlatScalar model."""
-    field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), reflectivity).tolist(),
-    )
+def flat_scalar_models(reflectivity):
+    """MapOfSurfaceScatteringModel with a specular-only FlatScalar model of
+    constant reflectivity."""
     models = arts.MapOfSurfaceScatteringModel()
-    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(field))
+    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(reflectivity))
     return models
 
 
-def lambertian_models(freq_grid, reflectivity):
-    """MapOfSurfaceScatteringModel with a diffuse-only Lambertian model."""
-    field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), reflectivity).tolist(),
-    )
+def lambertian_models(reflectivity):
+    """MapOfSurfaceScatteringModel with a diffuse-only Lambertian model of
+    constant reflectivity."""
     models = arts.MapOfSurfaceScatteringModel()
-    models.add("lambertian", arts.LambertianSurfaceScatterer(field))
+    models.add("lambertian", arts.LambertianSurfaceScatterer(reflectivity))
     return models
 
 
@@ -198,13 +188,13 @@ def test_specular_gate_closed_form():
     nf = len(freq_grid)
     R = 0.5
 
-    rad_in = run_method(freq_grid, "Specular", flat_scalar_models(freq_grid, R), "flat_scalar", 0)
+    rad_in = run_method(freq_grid, "Specular", flat_scalar_models(R), "flat_scalar", 0)
     expected_in = np.array([R * planck(f, T_CMB) + (1.0 - R) * planck(f, T_SURF) for f in freq_grid])
     assert np.allclose(rad_in[:, 0], expected_in, rtol=1e-7, atol=0.0), (
         f"exclude_suns=0 must keep the mirror-direction radiation:\n  got      = {rad_in[:, 0]}\n  expected = {expected_in}"
     )
 
-    rad_out = run_method(freq_grid, "Specular", flat_scalar_models(freq_grid, R), "flat_scalar", 1)
+    rad_out = run_method(freq_grid, "Specular", flat_scalar_models(R), "flat_scalar", 1)
     expected_out = np.array([(1.0 - R) * planck(f, T_SURF) for f in freq_grid])
     assert np.allclose(rad_out[:, 0], expected_out, rtol=1e-7, atol=0.0), (
         f"exclude_suns=1 must drop the reflected term and keep the emission:\n  got      = {rad_out[:, 0]}\n  expected = {expected_out}"
@@ -226,7 +216,7 @@ def test_specular_gate_no_emission():
     """
     freq_grid = [10e9, 100e9, 183e9]
 
-    rad = run_method(freq_grid, "Specular", flat_scalar_models(freq_grid, 1.0), "flat_scalar", 1)
+    rad = run_method(freq_grid, "Specular", flat_scalar_models(1.0), "flat_scalar", 1)
     assert np.all(rad == 0.0), f"Gated pure reflector must be exactly zero:\n{rad}"
 
     print("Test 2 passed: gated pure specular reflector is exactly zero")
@@ -243,7 +233,7 @@ def test_specular_full_chain_dedup():
     Before the fix this assertion measured exactly 2 * I_CMB.
     """
     freq_grid = [10e9, 100e9, 183e9]
-    models = flat_scalar_models(freq_grid, 1.0)
+    models = flat_scalar_models(1.0)
 
     rad_full, _ = run_option(freq_grid, "SurfaceScatteringModel", models, "flat_scalar")
     rad_direct, _ = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", models, "flat_scalar")
@@ -271,13 +261,13 @@ def test_diffuse_gate_closed_form():
     freq_grid = [10e9, 100e9, 183e9]
     r = 0.5
 
-    rad_in = run_method(freq_grid, "Diffuse", lambertian_models(freq_grid, r), "lambertian", 0)
+    rad_in = run_method(freq_grid, "Diffuse", lambertian_models(r), "lambertian", 0)
     expected_in = np.array([r * planck(f, T_CMB) + (1.0 - r) * planck(f, T_SURF) for f in freq_grid])
     assert np.allclose(rad_in[:, 0], expected_in, rtol=1e-7, atol=0.0), (
         f"exclude_suns=0 must keep the sun-containing quadrature cell:\n  got      = {rad_in[:, 0]}\n  expected = {expected_in}"
     )
 
-    rad_out = run_method(freq_grid, "Diffuse", lambertian_models(freq_grid, r), "lambertian", 1)
+    rad_out = run_method(freq_grid, "Diffuse", lambertian_models(r), "lambertian", 1)
     expected_out = np.array([(1.0 - r) * planck(f, T_SURF) for f in freq_grid])
     assert np.allclose(rad_out[:, 0], expected_out, rtol=1e-7, atol=0.0), (
         f"exclude_suns=1 must drop the sun cell and keep the emission:\n  got      = {rad_out[:, 0]}\n  expected = {expected_out}"
@@ -297,7 +287,7 @@ def test_diffuse_full_chain_dedup():
     Before the fix this assertion measured exactly 2 * I_CMB.
     """
     freq_grid = [10e9, 100e9, 183e9]
-    models = lambertian_models(freq_grid, 1.0)
+    models = lambertian_models(1.0)
 
     rad_full, _ = run_option(freq_grid, "SurfaceScatteringModel", models, "lambertian")
     rad_direct, _ = run_option(freq_grid, "SurfaceScatteringModelDirectOnly", models, "lambertian")
@@ -330,8 +320,8 @@ def test_no_gate_effect_when_sun_not_hit():
     suns = [make_sun(45.0, 0.0)]
     r = 0.5
 
-    for tag_key, models in [("flat_scalar", flat_scalar_models(freq_grid, r)),
-                            ("lambertian", lambertian_models(freq_grid, r))]:
+    for tag_key, models in [("flat_scalar", flat_scalar_models(r)),
+                            ("lambertian", lambertian_models(r))]:
         method = "Specular" if tag_key == "flat_scalar" else "Diffuse"
         rad_off = run_method(freq_grid, method, models, tag_key, 0, suns=suns)
         rad_on = run_method(freq_grid, method, models, tag_key, 1, suns=suns)
@@ -367,8 +357,8 @@ def test_jacobian_zero_with_pure_reflectors():
     freq_grid = [10e9, 100e9, 183e9]
     nf = len(freq_grid)
 
-    for tag_key, models in [("flat_scalar", flat_scalar_models(freq_grid, 1.0)),
-                            ("lambertian", lambertian_models(freq_grid, 1.0))]:
+    for tag_key, models in [("flat_scalar", flat_scalar_models(1.0)),
+                            ("lambertian", lambertian_models(1.0))]:
         ws = setup_workspace_base(freq_grid)
         ws.measurement_sensorInit()
         ws.jac_targetsAddSurface(target="t")

@@ -5,7 +5,7 @@
 #include <configtypes.h>
 #include <debug.h>
 #include <enumsFieldComponent.h>
-#include <functional_atm_field_interp.h>
+#include <functional_field_interp.h>
 #include <hitran_species.h>
 #include <isotopologues.h>
 #include <matpack.h>
@@ -13,15 +13,10 @@
 
 #include <algorithm>
 #include <exception>
-#include <limits>
-#include <optional>
 #include <stdexcept>
-#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include "lagrange_interp.h"
 
 bool AtmPoint::zero_wind() const noexcept { return stdr::all_of(wind, Cmp::eq<0>()); }
 
@@ -52,31 +47,11 @@ bool Atm::is_temperature(const Atm::KeyVal &key) {
 }
 
 void Atm::Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<GeodeticField3>(data)) {
-    auto &field = std::get<GeodeticField3>(data);
-
-    if (field.grid<0>().size() == 1) {
-      alt_upp = InterpolationExtrapolation::Nearest;
-      alt_low = InterpolationExtrapolation::Nearest;
-    }
-
-    if (field.grid<1>().size() == 1) {
-      lat_upp = InterpolationExtrapolation::Nearest;
-      lat_low = InterpolationExtrapolation::Nearest;
-    }
-
-    if (field.grid<2>().size() == 1) {
-      lon_upp = InterpolationExtrapolation::Nearest;
-      lon_low = InterpolationExtrapolation::Nearest;
-    }
-  } else {
-    alt_upp = InterpolationExtrapolation::Nearest;
-    alt_low = InterpolationExtrapolation::Nearest;
-    lat_upp = InterpolationExtrapolation::Nearest;
-    lat_low = InterpolationExtrapolation::Nearest;
-    lon_upp = InterpolationExtrapolation::Nearest;
-    lon_low = InterpolationExtrapolation::Nearest;
-  }
+  using enum InterpolationExtrapolation;
+  const auto [alt, lat, lon] = field_interp::single_point_dims(data);
+  if (alt) alt_low = alt_upp = Nearest;
+  if (lat) lat_low = lat_upp = Nearest;
+  if (lon) lon_low = lon_upp = Nearest;
 }
 
 AtmKey to_wind(const String &x) {
@@ -332,181 +307,6 @@ String Data::data_type() const {
   ARTS_USER_ERROR("Cannot understand data type; is this a new type")
 }
 
-namespace {
-struct Limits {
-  Numeric alt_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric alt_upp{std::numeric_limits<Numeric>::max()};
-  Numeric lat_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric lat_upp{std::numeric_limits<Numeric>::max()};
-  Numeric lon_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric lon_upp{std::numeric_limits<Numeric>::max()};
-};
-
-struct ComputeLimit {
-  InterpolationExtrapolation type{InterpolationExtrapolation::Linear};
-  Numeric                    alt, lat, lon;
-};
-
-Limits find_limits(const Numeric &) { return {}; }
-
-Limits find_limits(const FunctionalData &) { return {}; }
-
-Limits find_limits(const GeodeticField3 &gf3) {
-  return {.alt_low = gf3.grid<0>().front(),
-          .alt_upp = gf3.grid<0>().back(),
-          .lat_low = gf3.grid<1>().front(),
-          .lat_upp = gf3.grid<1>().back(),
-          .lon_low = gf3.grid<2>().front(),
-          .lon_upp = gf3.grid<2>().back()};
-}
-
-template <Index poly_alt, Index poly_lat, Index poly_lon> struct interp_helper {
-  using AltLag = lagrange_interp::lag_t<poly_alt>;
-  using LatLag = lagrange_interp::lag_t<poly_lat>;
-  using LonLag = lagrange_interp::lag_t<poly_lon, lagrange_interp::loncross>;
-
-  Array<AltLag> lags_alt;
-  Array<LatLag> lags_lat;
-  Array<LonLag> lags_lon;
-
-  constexpr interp_helper(const Vector &alt_grid,
-                          const Vector &lat_grid,
-                          const Vector &lon_grid,
-                          const Vector &alt,
-                          const Vector &lat,
-                          const Vector &lon)
-      : lags_alt(lagrange_interp::make_lags<poly_alt>(alt_grid, alt, -1, "Altitude")),
-        lags_lat(lagrange_interp::make_lags<poly_lat>(lat_grid, lat, -1, "Latitude")),
-        lags_lon(lagrange_interp::make_lags<poly_lon, lagrange_interp::loncross>(lon_grid, lon, -1, "Longitude")) {}
-
-  Vector operator()(const Tensor3 &data) const { return flat_interp(data, lags_alt, lags_lat, lags_lon); }
-};
-
-template <Index poly_alt, Index poly_lat, Index poly_lon>
-interp_helper<poly_alt, poly_lat, poly_lon> tvec_interpgrid(const Vector &alt_grid,
-                                                            const Vector &lat_grid,
-                                                            const Vector &lon_grid,
-                                                            const Vector &alt,
-                                                            const Vector &lat,
-                                                            const Vector &lon) {
-  using Interpolater = interp_helper<poly_alt, poly_lat, poly_lon>;
-  return Interpolater(alt_grid, lat_grid, lon_grid, alt, lat, lon);
-}
-
-template <Index poly_alt, Index poly_lat, Index poly_lon>
-Array<std::array<std::pair<Index, Numeric>, 8>> tvec_interpgrid_weights(const Vector &alt_grid,
-                                                                        const Vector &lat_grid,
-                                                                        const Vector &lon_grid,
-                                                                        const Vector &alt,
-                                                                        const Vector &lat,
-                                                                        const Vector &lon) {
-  const auto interpolater = tvec_interpgrid<poly_alt, poly_lat, poly_lon>(alt_grid, lat_grid, lon_grid, alt, lat, lon);
-
-  constexpr auto                                  v0 = std::pair<Index, Numeric>{0, 0.};
-  constexpr std::array                            v{v0, v0, v0, v0, v0, v0, v0, v0};
-  Array<std::array<std::pair<Index, Numeric>, 8>> out(alt.size(), v);
-
-  const Size n = lat_grid.size();
-  const Size m = lon_grid.size();
-
-  for (Size i = 0; i < alt.size(); i++) {
-    const Size alt0 = interpolater.lags_alt[i].pos * m * n;
-    const Size lat0 = interpolater.lags_lat[i].pos * m;
-    const Size lon0 = interpolater.lags_lon[i].pos;
-
-    Size j = 0;
-    for (Size idx0 = 0; idx0 < 1 + poly_alt; idx0++) {
-      for (Size idx1 = 0; idx1 < 1 + poly_lat; idx1++) {
-        for (Size idx2 = 0; idx2 < 1 + poly_lon; idx2++) {
-          out[i][j].first = alt0 + lat0 + lon0 + idx0 * n * m + idx1 * m + idx2;
-          out[i][j].second =
-              interpolater.lags_alt[i].lx[idx0] * interpolater.lags_lat[i].lx[idx1] * interpolater.lags_lon[i].lx[idx2];
-          ++j;
-        }
-      }
-    }
-  }
-
-  return out;
-}
-
-template <Index poly_alt, Index poly_lat, Index poly_lon> Vector tvec_interp(const Tensor3 &v,
-                                                                             const Vector  &alt_grid,
-                                                                             const Vector  &lat_grid,
-                                                                             const Vector  &lon_grid,
-                                                                             const Vector  &alt,
-                                                                             const Vector  &lat,
-                                                                             const Vector  &lon) {
-  const auto interpolater = tvec_interpgrid<poly_alt, poly_lat, poly_lon>(alt_grid, lat_grid, lon_grid, alt, lat, lon);
-  return interpolater(v);
-}
-
-constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a, InterpolationExtrapolation b) {
-  using enum InterpolationExtrapolation;
-  switch (a) {
-    case None: return None;
-    case Zero: {
-      switch (b) {
-        case None:    return None;
-        case Zero:    return Zero;
-        case Nearest: return Zero;
-        case Linear:  return Zero;
-      }
-      std::unreachable();
-    }
-    case Nearest: {
-      switch (b) {
-        case None:    return None;
-        case Zero:    return Zero;
-        case Nearest: return Nearest;
-        case Linear:  return Nearest;
-      }
-      std::unreachable();
-    }
-    case Linear: return b;
-  }
-
-  std::unreachable();
-}
-
-constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
-                                             InterpolationExtrapolation b,
-                                             InterpolationExtrapolation c) {
-  return combine(combine(a, b), c);
-}
-
-void select(InterpolationExtrapolation  lowt,
-            InterpolationExtrapolation  uppt,
-            Numeric                     lowv,
-            Numeric                     uppv,
-            Numeric                     v,
-            Numeric                    &outv,
-            InterpolationExtrapolation &outt) {
-  if (v < lowv) {
-    outt = lowt;
-    if (outt == InterpolationExtrapolation::Nearest) v = lowv;
-  } else if (uppv < v) {
-    outt = uppt;
-    if (outt == InterpolationExtrapolation::Nearest) v = uppv;
-  }
-
-  outv = v;
-}
-
-ComputeLimit find_limit(const Data &data, const Limits &lim, Numeric alt, Numeric lat, Numeric lon) {
-  ComputeLimit               out;
-  InterpolationExtrapolation a{InterpolationExtrapolation::Linear}, b{InterpolationExtrapolation::Linear},
-      c{InterpolationExtrapolation::Linear};
-
-  select(data.alt_low, data.alt_upp, lim.alt_low, lim.alt_upp, alt, out.alt, a);
-  select(data.lat_low, data.lat_upp, lim.lat_low, lim.lat_upp, lat, out.lat, b);
-  select(data.lon_low, data.lon_upp, lim.lon_low, lim.lon_upp, lon, out.lon, c);
-  out.type = combine(a, b, c);
-
-  return out;
-}
-}  // namespace
-
 bool Point::is_lte() const noexcept { return nlte.empty(); }
 
 namespace {
@@ -607,72 +407,28 @@ Numeric &Point::operator[](const KeyVal &k) {
   return std::visit([this](auto &key) -> Numeric & { return const_cast<Point *>(this)->operator[](key); }, k);
 }
 
-ConstVectorView Data::flat_view() const {
-  return std::visit(
-      [](auto &X) -> ConstVectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField3>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return ConstVectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return ternary::get_xc(X.f);
-        std::unreachable();
-      },
-      data);
-}
-
-VectorView Data::flat_view() {
-  return std::visit(
-      [](auto &X) -> VectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField3>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return VectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return ternary::get_xm(X.f);
-        std::unreachable();
-      },
-      data);
-}
-
 namespace {
-std::vector<std::pair<Index, Numeric>> flat_weight_(const GeodeticField3 &data, Numeric alt, Numeric lat, Numeric lon) {
-  return interp::flat_weight(data, alt, lat, lon);
-}
-
-std::vector<std::pair<Index, Numeric>> flat_weight_(Numeric, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v1{0, 1.0};
-  return {v1};
-}
-
-std::vector<std::pair<Index, Numeric>> flat_weight_(const FunctionalData &f, Numeric alt, Numeric lat, Numeric lon) {
-  return ternary::get_w(f.f, alt, lat, lon);
+std::array<field_interp::extrapolation, 3> extrapolation(const Data &d) {
+  return {{{d.alt_low, d.alt_upp}, {d.lat_low, d.lat_upp}, {d.lon_low, d.lon_upp}}};
 }
 }  // namespace
+
+ConstVectorView Data::flat_view() const { return field_interp::flat_view(data); }
+
+VectorView Data::flat_view() { return field_interp::flat_view(data); }
 
 //! Flat weights for the positions in an atmosphere
 std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Numeric alt,
                                                          const Numeric lat,
                                                          const Numeric lon) const {
-  return std::visit([&](auto &v) { return flat_weight_(v, alt, lat, lon); }, data);
+  return field_interp::flat_weight(data, {alt, lat, lon});
 }
 
 std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Vector3 pos) const {
   return flat_weight(pos[0], pos[1], pos[2]);
 }
 
-bool Data::ok() const {
-  if (std::holds_alternative<GeodeticField3>(data)) {
-    auto &v = *std::get_if<GeodeticField3>(&data);
-    return v.ok() and lagrange_interp::loncross::cycle(v.grid<2>().front()) == v.grid<2>().front() and
-           lagrange_interp::loncross::cycle(v.grid<2>().back()) == v.grid<2>().back() and v.grid<1>().front() >= -90 and
-           v.grid<1>().back() <= 90;
-  }
-
-  return true;
-}
+bool Data::ok() const { return field_interp::ok(data); }
 
 void Data::regrid(const AscendingGrid &alt, const LatGrid &lat, const LonGrid &lon) {
   GeodeticField3 new_data{.data_name  = "regridded_data",
@@ -748,49 +504,8 @@ bool operator==(const QuantumLevelIdentifier &key, const AtmKeyVal &keyval) { re
 bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) { return cmp(keyval, key); }
 
 namespace Atm {
-namespace interp {
-namespace {
-struct PositionalNumeric {
-  const FieldData &data;
-  const Numeric    alt;
-  const Numeric    lat;
-  const Numeric    lon;
-  const bool       log;
-
-  operator Numeric() const {
-    if (log) {
-      return std::visit([&](auto &d) { return get<lagrange_interp::log_transform>(d, alt, lat, lon); }, data);
-    }
-
-    return std::visit([&](auto &d) { return get<lagrange_interp::value_identity>(d, alt, lat, lon); }, data);
-  }
-};
-
-std::optional<Numeric> get_optional_limit(
-    const Data &data, const Numeric alt, const Numeric lat, const Numeric lon, const bool log_interpolation) {
-  const auto lim =
-      Atm::find_limit(data, std::visit([](auto &d) { return Atm::find_limits(d); }, data.data), alt, lat, lon);
-
-  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
-                     "Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
-                     lim.alt,
-                     lim.lat,
-                     lim.lon)
-
-  if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
-
-  if (lim.type == InterpolationExtrapolation::Nearest)
-    return PositionalNumeric{
-        .data = data.data, .alt = lim.alt, .lat = lim.lat, .lon = lim.lon, .log = log_interpolation};
-
-  return std::nullopt;
-}
-}  // namespace
-}  // namespace interp
-
 Numeric Data::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
-  return interp::get_optional_limit(*this, alt, lat, lon, log_interpolation)
-      .value_or(interp::PositionalNumeric{.data = data, .alt = alt, .lat = lat, .lon = lon, .log = log_interpolation});
+  return field_interp::at(data, extrapolation(*this), {alt, lat, lon}, log_interpolation);
 }
 
 Numeric Data::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }

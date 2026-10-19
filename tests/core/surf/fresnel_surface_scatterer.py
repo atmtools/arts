@@ -1,4 +1,4 @@
-"""Tests for FresnelSurfaceScatterer and FresnelSurfaceScattererField.
+"""Tests for FresnelSurfaceScatterer.
 
 Verifies:
 1. Construction and attribute access (n1 default 1.0).
@@ -6,10 +6,11 @@ Verifies:
    muelmat against the closed-form Fresnel coefficients recomputed here, and
    the complementary (I4 - M) emissivity.  Diffuse tensors are None.
 3. Grazing incidence (za=90): Rv = Rh = -1 => BRDF = 1, emissivity = 0.
-4. Field variant homogeneous == spectrum variant at an interior lat/lon.
+4. A homogeneous (frequency, latitude, longitude) SpectralGeodeticField3 refractive
+   index equals a constant refractive index at an interior lat/lon.
 5. Total internal reflection: n1=2, n2=1, za_inc=60 => Rv = Rh = 1.
 6. XML round-trip.
-7. MapOfSurfaceScatteringModel accepts the new types.
+7. MapOfSurfaceScatteringModel accepts the type.
 """
 
 import cmath
@@ -32,14 +33,16 @@ za_scat = arts.Vector([0.0, 90.0])
 aa_scat = arts.Vector([0.0])
 surf_pt = arts.SurfacePoint()
 
-# Stored spectrum (frequency) and simulation f_grid
+# Constant refractive index of the surface
 n2_water = 1.333
-spec = arts.SortedGriddedField1(
-    name="n2",
-    grid_names=["Frequency"],
-    grids=[[1e10, 1e12]],
-    data=[n2_water, n2_water],
-)
+
+
+def geodetic_field(freqs, lats, lons, data):
+    """SpectralGeodeticField3 over (frequency [Hz], latitude [deg], longitude [deg])."""
+    g = arts.SpectralGeodeticField3()
+    g.grids = (arts.AscendingGrid(freqs), arts.LatGrid(lats), arts.LonGrid(lons))
+    g.data = np.array(data, dtype=float).reshape(len(freqs), len(lats), len(lons))
+    return g
 
 
 def fresnel_amplitudes(n1, n2, za_deg):
@@ -83,11 +86,12 @@ def mun_fresnel_reflectance(Rv, Rh):
 # ---------------------------------------------------------------------------
 # Test 1: Construction and attribute access
 # ---------------------------------------------------------------------------
-sc = arts.FresnelSurfaceScatterer(spec, 1.0)
+sc = arts.FresnelSurfaceScatterer(n2_water, 1.0)
 assert sc.n1 == 1.0, "n1 mismatch"
-assert np.array_equal(np.array(sc.refractive_index_spectrum.data), [n2_water, n2_water])
+assert sc.refractive_index.data_type == "Numeric"
+assert sc.refractive_index.data == n2_water
 
-sc_def = arts.FresnelSurfaceScatterer(spec)
+sc_def = arts.FresnelSurfaceScatterer(n2_water)
 assert sc_def.n1 == 1.0, "n1 default must be 1.0"
 print("Test 1 passed: construction and attribute access")
 
@@ -137,7 +141,7 @@ print("Test 2 passed: known values match the closed form")
 # Test 3: Grazing incidence — Rv = Rh = -1 => total reflection, emittance 0
 # ---------------------------------------------------------------------------
 za_graze = arts.Vector([90.0])
-scg = arts.FresnelSurfaceScatterer(spec)
+scg = arts.FresnelSurfaceScatterer(n2_water)
 props_g = scg.get_surface_scattering_model_properties(
     surf_pt, 0.0, 0.0, arts.Vector([2e11]), za_graze, aa_inc,
     za_graze, aa_scat)
@@ -151,16 +155,13 @@ assert abs(float(emiss_g[0, 0, 0, 0, 0])) < 1e-12, (
 print("Test 3 passed: grazing incidence gives total reflection")
 
 # ---------------------------------------------------------------------------
-# Test 4: Field variant homogeneous == spectrum variant
+# Test 4: Homogeneous field refractive index == constant refractive index
 # ---------------------------------------------------------------------------
-field3 = arts.SortedGriddedField3(
-    name="n2",
-    grid_names=["Latitude", "Longitude", "Frequency"],
-    grids=[[-90.0, 90.0], [-180.0, 180.0], [1e10, 1e12]],
-    data=np.full((2, 2, 2), n2_water).tolist(),
-)
-scf = arts.FresnelSurfaceScattererField(field3, 1.0)
+field3 = geodetic_field([1e10, 1e12], [-90.0, 90.0], [-180.0, 179.0],
+                        np.full((2, 2, 2), n2_water))
+scf = arts.FresnelSurfaceScatterer(field3, 1.0)
 assert scf.n1 == 1.0
+assert scf.refractive_index.data_type == "SpectralGeodeticField3"
 
 props1 = sc.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
@@ -169,21 +170,15 @@ props_f = scf.get_surface_scattering_model_properties(
 
 assert np.allclose(np.array(props1.brdf_matrix_specular),
                    np.array(props_f.brdf_matrix_specular), atol=1e-12), (
-    "Field variant must equal the spectrum variant for a homogeneous field")
+    "A homogeneous field must equal the constant refractive index")
 assert np.allclose(np.array(props1.emissivity_vector_specular),
                    np.array(props_f.emissivity_vector_specular), atol=1e-12)
-print("Test 4 passed: homogeneous field equals spectrum variant")
+print("Test 4 passed: homogeneous field equals constant refractive index")
 
 # ---------------------------------------------------------------------------
 # Test 5: Total internal reflection (n1 = 2, n2 = 1, za_inc = 60)
 # ---------------------------------------------------------------------------
-spec_tir = arts.SortedGriddedField1(
-    name="n2",
-    grid_names=["Frequency"],
-    grids=[[1e10, 1e12]],
-    data=[1.0, 1.0],
-)
-sc_tir = arts.FresnelSurfaceScatterer(spec_tir, 2.0)
+sc_tir = arts.FresnelSurfaceScatterer(1.0, 2.0)
 assert sc_tir.n1 == 2.0
 za60 = arts.Vector([60.0])
 props_t = sc_tir.get_surface_scattering_model_properties(
@@ -207,9 +202,10 @@ with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
     fname = f.name
 try:
     scf.savexml(fname)
-    sc_reload = arts.FresnelSurfaceScattererField()
+    sc_reload = arts.FresnelSurfaceScatterer()
     sc_reload.readxml(fname)
     assert sc_reload.n1 == scf.n1
+    assert sc_reload.refractive_index.data_type == "SpectralGeodeticField3"
     props_r = sc_reload.get_surface_scattering_model_properties(
         surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
     assert np.allclose(np.array(props_f.brdf_matrix_specular),
@@ -220,7 +216,7 @@ finally:
     os.unlink(fname)
 
 # ---------------------------------------------------------------------------
-# Test 7: MapOfSurfaceScatteringModel accepts the new types
+# Test 7: MapOfSurfaceScatteringModel accepts the type
 # ---------------------------------------------------------------------------
 mosm = arts.MapOfSurfaceScatteringModel()
 mosm.add("fresnel", sc)
@@ -230,7 +226,7 @@ bulk = mosm.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 brdf_bulk = np.array(bulk.brdf_matrix_specular)
 assert not np.all(brdf_bulk == 0.0), "Bulk specular BRDF should be non-zero"
-print("Test 7 passed: MapOfSurfaceScatteringModel accepts new types")
+print("Test 7 passed: MapOfSurfaceScatteringModel accepts the type")
 
 # ---------------------------------------------------------------------------
 # Test 8: za > 90 must fold onto 180 - za (regression test for the raw-angle

@@ -105,7 +105,8 @@ using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
 using SortedGriddedField2 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
 using GeodeticField2      = matpack::gridded_data_t<Numeric, LatGrid, LonGrid>;
 using SortedGriddedField3 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
-using GeodeticField3      = matpack::gridded_data_t<Numeric, AscendingGrid, LatGrid, LonGrid>;
+using GeodeticField3         = matpack::gridded_data_t<Numeric, AltGrid, LatGrid, LonGrid>;
+using SpectralGeodeticField3 = matpack::gridded_data_t<Numeric, FreqGrid, LatGrid, LonGrid>;
 using SortedGriddedField4 =
     matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid, AscendingGrid>;
 using SortedGriddedField5 =

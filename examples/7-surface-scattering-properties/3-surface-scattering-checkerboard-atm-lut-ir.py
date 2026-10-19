@@ -140,11 +140,11 @@ def emissivity_spectrum(values):
     The Lambertian model is built from the reflectivity and implements
     Kirchhoff's law, emissivity = 1 - r, so the emissivity is passed as 1 - r.
     """
-    return arts.SortedGriddedField1(
+    return arts.SpectralGeodeticField3(
         name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[wn2hz(BAND_WAVENUMBERS_CM)],
-        data=1.0 - np.asarray(values, dtype=float),
+        grid_names=["Frequency", "Latitude", "Longitude"],
+        grids=(wn2hz(BAND_WAVENUMBERS_CM), [0.0], [0.0]),
+        data=1.0 - np.asarray(values, dtype=float).reshape(-1, 1, 1),
     )
 
 

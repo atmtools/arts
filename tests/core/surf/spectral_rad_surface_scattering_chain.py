@@ -100,42 +100,26 @@ def setup_workspace_base(freq_grid, suns=None):
     return ws
 
 
-def lambertian_models(freq_grid, reflectivity):
-    """MapOfSurfaceScatteringModel with a diffuse-only Lambertian model."""
-    field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), reflectivity).tolist(),
-    )
+def lambertian_models(reflectivity):
+    """MapOfSurfaceScatteringModel with a diffuse-only Lambertian model of
+    constant reflectivity."""
     models = arts.MapOfSurfaceScatteringModel()
-    models.add("lambertian", arts.LambertianSurfaceScatterer(field))
+    models.add("lambertian", arts.LambertianSurfaceScatterer(reflectivity))
     return models
 
 
-def flat_scalar_models(freq_grid, reflectivity):
-    """MapOfSurfaceScatteringModel with a specular-only flat-scalar model."""
-    field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), reflectivity).tolist(),
-    )
+def flat_scalar_models(reflectivity):
+    """MapOfSurfaceScatteringModel with a specular-only flat-scalar model of
+    constant reflectivity."""
     models = arts.MapOfSurfaceScatteringModel()
-    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(field))
+    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(reflectivity))
     return models
 
 
-def blended_models(freq_grid, r_diffuse, r_specular):
+def blended_models(r_diffuse, r_specular):
     """Diffuse and specular models present at the same surface point."""
-    models = lambertian_models(freq_grid, r_diffuse)
-    field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=np.full(len(freq_grid), r_specular).tolist(),
-    )
-    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(field))
+    models = lambertian_models(r_diffuse)
+    models.add("flat_scalar", arts.FlatScalarSurfaceScatterer(r_specular))
     return models
 
 
@@ -186,7 +170,7 @@ def test_methods_require_init():
     for name in ["Diffuse", "Specular", "DiffuseDirect", "SpecularDirect"]:
         ws = setup_workspace_base(freq_grid, suns=[make_sun(0.0, 0.0)])
         add_surface_mask(ws, "lambertian")
-        ws.surface_models = lambertian_models(freq_grid, 0.5)
+        ws.surface_models = lambertian_models(0.5)
 
         try:
             getattr(ws, f"spectral_radSurfaceScattering{name}")()
@@ -211,7 +195,7 @@ def test_chain_diffuse_plus_specular():
         ws = setup_workspace_base(freq_grid)
         add_surface_mask(ws, "lambertian")
         add_surface_mask(ws, "flat_scalar")
-        ws.surface_models = blended_models(freq_grid, 0.5, 0.3)
+        ws.surface_models = blended_models(0.5, 0.3)
         return ws
 
     ws = build()
@@ -251,7 +235,7 @@ def test_chain_diffuse_plus_specular_jacobian():
         ws.jac_targetsFinalize()
         add_surface_mask(ws, "lambertian")
         add_surface_mask(ws, "flat_scalar")
-        ws.surface_models = blended_models(freq_grid, 0.5, 0.3)
+        ws.surface_models = blended_models(0.5, 0.3)
         return ws
 
     ws = build()
@@ -291,7 +275,7 @@ def test_chain_diffuse_plus_diffuse_direct():
     def build():
         ws = setup_workspace_base(freq_grid, suns=suns)
         add_surface_mask(ws, "lambertian")
-        ws.surface_models = lambertian_models(freq_grid, 0.5)
+        ws.surface_models = lambertian_models(0.5)
         return ws
 
     ws = build()
@@ -329,7 +313,7 @@ def test_chain_specular_on_diffuse_only_model():
     def build():
         ws = setup_workspace_base(freq_grid, suns=suns)
         add_surface_mask(ws, "lambertian")
-        ws.surface_models = lambertian_models(freq_grid, 0.5)
+        ws.surface_models = lambertian_models(0.5)
         return ws
 
     ws = build()
@@ -369,7 +353,7 @@ def test_chain_diffuse_direct_exclude_suns():
     def build():
         ws = setup_workspace_base(freq_grid, suns=suns)
         add_surface_mask(ws, "lambertian")
-        ws.surface_models = lambertian_models(freq_grid, r)
+        ws.surface_models = lambertian_models(r)
         return ws
 
     ws = build()

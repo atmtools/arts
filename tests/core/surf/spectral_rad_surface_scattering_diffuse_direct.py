@@ -115,18 +115,10 @@ def setup_workspace_base(freq_grid, suns=None):
     return ws
 
 
-def create_surface_models(freq_grid, reflectivity):
-    """Create MapOfSurfaceScatteringModel with LambertianSurfaceScatterer."""
-    refl_data = np.full(len(freq_grid), reflectivity)
-
-    refl_field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=refl_data.tolist()
-    )
-
-    scatterer = arts.LambertianSurfaceScatterer(refl_field)
+def create_surface_models(reflectivity):
+    """Create MapOfSurfaceScatteringModel with a constant-reflectivity
+    LambertianSurfaceScatterer."""
+    scatterer = arts.LambertianSurfaceScatterer(reflectivity)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("lambertian", scatterer)
@@ -147,7 +139,7 @@ def run_direct(freq_grid, reflectivity, suns=None):
     """Run the direct method for a given Lambertian reflectivity and sun list."""
     ws = setup_workspace_base(freq_grid, suns=suns)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=reflectivity)
+    ws.surface_models = create_surface_models(reflectivity=reflectivity)
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
     return rad_array(ws, len(freq_grid))
@@ -162,7 +154,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_basic():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
@@ -186,7 +178,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_absorbing():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+    ws.surface_models = create_surface_models(reflectivity=0.0)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
@@ -333,7 +325,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_jacobian():
     x_size = ws.jac_targets.x_size()
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuseDirect()
@@ -361,7 +353,7 @@ def test_spectral_rad_surface_scattering_diffuse_direct_agrees_with_diffuse():
 
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     # Direct method -- take the internally estimated LOS from the sun for the
     # matching diffuse quadrature direction

@@ -1,4 +1,4 @@
-"""Tests for FlatScalarSurfaceScatterer and FlatScalarSurfaceScattererField.
+"""Tests for FlatScalarSurfaceScatterer.
 
 Verifies:
 1. Construction and attribute access.
@@ -6,9 +6,10 @@ Verifies:
    all other elements 0; emissivity_vector_specular[0,0] = 1 - R; diffuse
    tensors are None.
 3. Clamping: out-of-range stored R values are clamped to [0, 1].
-4. Field variant homogeneous == spectrum variant at an interior lat/lon.
+4. A homogeneous (frequency, latitude, longitude) SpectralGeodeticField3 reflectivity
+   equals a constant reflectivity at an interior lat/lon.
 5. XML round-trip.
-6. MapOfSurfaceScatteringModel accepts the new types.
+6. MapOfSurfaceScatteringModel accepts the type.
 """
 
 import os
@@ -30,19 +31,22 @@ aa_scat = arts.Vector([0.0])
 surf_pt = arts.SurfacePoint()
 
 r_uniform = 0.3
-spec = arts.SortedGriddedField1(
-    name="reflectivity",
-    grid_names=["Frequency"],
-    grids=[[1e10, 1e12]],
-    data=[r_uniform, r_uniform],
-)
+
+
+def geodetic_field(freqs, lats, lons, data):
+    """SpectralGeodeticField3 over (frequency [Hz], latitude [deg], longitude [deg])."""
+    g = arts.SpectralGeodeticField3()
+    g.grids = (arts.AscendingGrid(freqs), arts.LatGrid(lats), arts.LonGrid(lons))
+    g.data = np.array(data, dtype=float).reshape(len(freqs), len(lats), len(lons))
+    return g
 
 
 # ---------------------------------------------------------------------------
 # Test 1: Construction and attribute access
 # ---------------------------------------------------------------------------
-sc = arts.FlatScalarSurfaceScatterer(spec)
-assert np.array_equal(np.array(sc.reflectivity_spectrum.data), [r_uniform, r_uniform])
+sc = arts.FlatScalarSurfaceScatterer(r_uniform)
+assert sc.reflectivity.data_type == "Numeric"
+assert sc.reflectivity.data == r_uniform
 print("Test 1 passed: construction and attribute access")
 
 # ---------------------------------------------------------------------------
@@ -86,12 +90,7 @@ print("Test 2 passed: flat-scalar BRDF/emissivity values")
 # ---------------------------------------------------------------------------
 # Test 3: Clamping of out-of-range reflectivity
 # ---------------------------------------------------------------------------
-spec_clamp = arts.SortedGriddedField1(
-    name="reflectivity",
-    grid_names=["Frequency"],
-    grids=[[1e10, 1e12]],
-    data=[-1.0, 2.0],
-)
+spec_clamp = geodetic_field([1e10, 1e12], [0.0], [0.0], [-1.0, 2.0])
 sc_c = arts.FlatScalarSurfaceScatterer(spec_clamp)
 props_c = sc_c.get_surface_scattering_model_properties(
     surf_pt, 0.0, 0.0, arts.Vector([1e10, 1e12]), za_inc, aa_inc, za_scat, aa_scat)
@@ -104,15 +103,12 @@ assert float(emiss_c[1, 0, 0, 0, 0]) == 0.0
 print("Test 3 passed: clamping of out-of-range values")
 
 # ---------------------------------------------------------------------------
-# Test 4: Field variant homogeneous == spectrum variant
+# Test 4: Homogeneous field reflectivity == constant reflectivity
 # ---------------------------------------------------------------------------
-field3 = arts.SortedGriddedField3(
-    name="reflectivity",
-    grid_names=["Latitude", "Longitude", "Frequency"],
-    grids=[[-90.0, 90.0], [-180.0, 180.0], [1e10, 1e12]],
-    data=np.full((2, 2, 2), r_uniform).tolist(),
-)
-scf = arts.FlatScalarSurfaceScattererField(field3)
+field3 = geodetic_field([1e10, 1e12], [-90.0, 90.0], [-180.0, 179.0],
+                        np.full((2, 2, 2), r_uniform))
+scf = arts.FlatScalarSurfaceScatterer(field3)
+assert scf.reflectivity.data_type == "SpectralGeodeticField3"
 
 props1 = sc.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
@@ -122,7 +118,7 @@ assert np.allclose(np.array(props1.brdf_matrix_specular),
                    np.array(props_f.brdf_matrix_specular), atol=1e-12)
 assert np.allclose(np.array(props1.emissivity_vector_specular),
                    np.array(props_f.emissivity_vector_specular), atol=1e-12)
-print("Test 4 passed: homogeneous field equals spectrum variant")
+print("Test 4 passed: homogeneous field equals constant reflectivity")
 
 # ---------------------------------------------------------------------------
 # Test 5: XML round-trip
@@ -131,8 +127,9 @@ with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
     fname = f.name
 try:
     scf.savexml(fname)
-    sc_reload = arts.FlatScalarSurfaceScattererField()
+    sc_reload = arts.FlatScalarSurfaceScatterer()
     sc_reload.readxml(fname)
+    assert sc_reload.reflectivity.data_type == "SpectralGeodeticField3"
     props_r = sc_reload.get_surface_scattering_model_properties(
         surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
     assert np.allclose(np.array(props_f.brdf_matrix_specular),
@@ -142,7 +139,7 @@ finally:
     os.unlink(fname)
 
 # ---------------------------------------------------------------------------
-# Test 6: MapOfSurfaceScatteringModel accepts the new types
+# Test 6: MapOfSurfaceScatteringModel accepts the type
 # ---------------------------------------------------------------------------
 mosm = arts.MapOfSurfaceScatteringModel()
 mosm.add("flat_scalar", sc)
@@ -152,6 +149,6 @@ bulk = mosm.get_surface_scattering_model_properties(
     surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
 brdf_bulk = np.array(bulk.brdf_matrix_specular)
 assert not np.all(brdf_bulk == 0.0), "Bulk specular BRDF should be non-zero"
-print("Test 6 passed: MapOfSurfaceScatteringModel accepts new types")
+print("Test 6 passed: MapOfSurfaceScatteringModel accepts the type")
 
 print("\nAll FlatScalarSurfaceScatterer tests passed.")

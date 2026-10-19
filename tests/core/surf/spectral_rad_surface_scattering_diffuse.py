@@ -108,21 +108,10 @@ def set_cmb_incoming_agenda(ws):
         ws.spectral_rad_jacEmpty()
 
 
-def create_surface_models(freq_grid, reflectivity):
-    """Create MapOfSurfaceScatteringModel with LambertianSurfaceScatterer."""
-    if np.isscalar(reflectivity):
-        refl_data = np.full(len(freq_grid), reflectivity)
-    else:
-        refl_data = reflectivity
-
-    refl_field = arts.SortedGriddedField1(
-        name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[freq_grid],
-        data=refl_data.tolist(),
-    )
-
-    scatterer = arts.LambertianSurfaceScatterer(refl_field)
+def create_surface_models(reflectivity):
+    """Create MapOfSurfaceScatteringModel with a constant-reflectivity
+    LambertianSurfaceScatterer."""
+    scatterer = arts.LambertianSurfaceScatterer(reflectivity)
 
     surface_models = arts.MapOfSurfaceScatteringModel()
     surface_models.add("lambertian", scatterer)
@@ -197,7 +186,7 @@ def test_spectral_rad_surface_scattering_diffuse_basic():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
@@ -225,7 +214,7 @@ def test_spectral_rad_surface_scattering_diffuse_closed_form():
 
     set_cmb_incoming_agenda(ws)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws.surface_models = create_surface_models(reflectivity=1.0)
 
     frac = visible_weight_fraction(ws)
     assert np.isclose(frac, 1.0, rtol=1e-12, atol=0.0), \
@@ -259,7 +248,7 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
     ws1 = setup_workspace_base(freq_grid)
     set_cmb_incoming_agenda(ws1)
     add_surface_mask(ws1, "lambertian")
-    ws1.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws1.surface_models = create_surface_models(reflectivity=1.0)
     ws1.spectral_radSurfaceScatteringInit()
     ws1.spectral_radSurfaceScatteringDiffuse()
     rad_flat = rad_array(ws1, len(freq_grid))
@@ -268,7 +257,7 @@ def test_spectral_rad_surface_scattering_diffuse_tilted_subhorizon():
     set_tilted_surface(ws2)
     set_cmb_incoming_agenda(ws2)
     add_surface_mask(ws2, "lambertian")
-    ws2.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws2.surface_models = create_surface_models(reflectivity=1.0)
     ws2.spectral_radSurfaceScatteringInit()
     ws2.spectral_radSurfaceScatteringDiffuse()
     rad_diffuse = rad_array(ws2, len(freq_grid))
@@ -298,7 +287,7 @@ def test_spectral_rad_surface_scattering_diffuse_absorbing():
     ws = setup_workspace_base(freq_grid)
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+    ws.surface_models = create_surface_models(reflectivity=0.0)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
@@ -333,14 +322,14 @@ def test_spectral_rad_surface_scattering_diffuse_reflector():
 
     ws1 = setup_workspace_base(freq_grid)
     add_surface_mask(ws1, "lambertian")
-    ws1.surface_models = create_surface_models(freq_grid, reflectivity=0.0)
+    ws1.surface_models = create_surface_models(reflectivity=0.0)
     ws1.spectral_radSurfaceScatteringInit()
     ws1.spectral_radSurfaceScatteringDiffuse()
     rad_absorbing = rad_array(ws1, len(freq_grid))
 
     ws2 = setup_workspace_base(freq_grid)
     add_surface_mask(ws2, "lambertian")
-    ws2.surface_models = create_surface_models(freq_grid, reflectivity=1.0)
+    ws2.surface_models = create_surface_models(reflectivity=1.0)
     ws2.spectral_radSurfaceScatteringInit()
     ws2.spectral_radSurfaceScatteringDiffuse()
     rad_reflector = rad_array(ws2, len(freq_grid))
@@ -370,7 +359,7 @@ def test_spectral_rad_surface_scattering_diffuse_jacobian():
     x_size = ws.jac_targets.x_size()
 
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.spectral_radSurfaceScatteringInit()
     ws.spectral_radSurfaceScatteringDiffuse()
@@ -399,7 +388,7 @@ def test_spectral_rad_surface_scattering_diffuse_unusable_sun():
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     unusable_suns = [make_sun(100.0, 0.0),
                      make_sun(0.0, 400.0),
@@ -430,7 +419,7 @@ def test_spectral_rad_surface_scattering_diffuse_weight_mismatch():
     freq_grid = [10e9, 100e9, 183e9]
     ws = setup_workspace_base(freq_grid)
     add_surface_mask(ws, "lambertian")
-    ws.surface_models = create_surface_models(freq_grid, reflectivity=0.5)
+    ws.surface_models = create_surface_models(reflectivity=0.5)
 
     ws.zen_grid = arts.ZenGrid([0.0, 45.0])
     ws.az_grid = arts.AziGrid([0.0])

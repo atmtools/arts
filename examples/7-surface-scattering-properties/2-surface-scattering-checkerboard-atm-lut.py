@@ -132,11 +132,11 @@ def nm2hz(wavelength_nm):
 
 def reflectivity_spectrum(values):
     """Reflectivity spectrum on its own ascending frequency grid"""
-    return arts.SortedGriddedField1(
+    return arts.SpectralGeodeticField3(
         name="reflectivity",
-        grid_names=["Frequency"],
-        grids=[nm2hz(REFLECTIVITY_WAVELENGTHS_NM)],
-        data=np.asarray(values, dtype=float),
+        grid_names=["Frequency", "Latitude", "Longitude"],
+        grids=(nm2hz(REFLECTIVITY_WAVELENGTHS_NM), [0.0], [0.0]),
+        data=np.asarray(values, dtype=float).reshape(-1, 1, 1),
     )
 
 
