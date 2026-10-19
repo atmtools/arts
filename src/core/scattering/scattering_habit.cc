@@ -142,7 +142,9 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded(const AtmPoint&     
       data.extinction_matrix *= pnd[i];
       data.absorption_vector *= pnd[i];
     }
-    Bulk bulk{std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)};
+    Bulk bulk{.phase_matrix      = std::move(data.phase_matrix),
+              .extinction_matrix = std::move(data.extinction_matrix),
+              .absorption_vector = std::move(data.absorption_vector)};
     if (result) {
       *result += bulk;
     } else {
@@ -185,7 +187,9 @@ ScatteringHabit::get_bulk_scattering_properties_tro_gridded_derivative(const Atm
       data.extinction_matrix *= weight;
       data.absorption_vector *= weight;
     }
-    Bulk bulk{std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)};
+    Bulk bulk{.phase_matrix      = std::move(data.phase_matrix),
+              .extinction_matrix = std::move(data.extinction_matrix),
+              .absorption_vector = std::move(data.absorption_vector)};
 
     if (target == AtmKeyVal{AtmKey::t} and pnd.values[i] != 0.0) {
       Bulk temperature_derivative = std::visit(
@@ -285,7 +289,9 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded(const AtmPoint&     
       data.absorption_vector *= pnd[i];
     }
     BulkScatteringProperties<Format::ARO, Representation::Gridded> bulk{
-        std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)};
+        .phase_matrix      = std::move(data.phase_matrix),
+        .extinction_matrix = std::move(data.extinction_matrix),
+        .absorption_vector = std::move(data.absorption_vector)};
     if (result) {
       *result += bulk;
     } else {
@@ -333,7 +339,9 @@ ScatteringHabit::get_bulk_scattering_properties_aro_gridded_derivative(const Atm
       data.extinction_matrix *= weight;
       data.absorption_vector *= weight;
     }
-    Bulk bulk{std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)};
+    Bulk bulk{.phase_matrix      = std::move(data.phase_matrix),
+              .extinction_matrix = std::move(data.extinction_matrix),
+              .absorption_vector = std::move(data.absorption_vector)};
 
     if (target == AtmKeyVal{AtmKey::t} and pnd.values[i] != 0.0) {
       Bulk temperature_derivative = std::visit(
@@ -510,13 +518,16 @@ ScatteringHabit::get_bulk_scattering_properties_aro_fourier(const AtmPoint& poin
   }
   if (tro) {
     auto data = tro->to_lab_frame_fourier_modes(grids, max_mode);
-    add(Bulk{std::move(data.phase_matrix), std::move(data.extinction_matrix), std::move(data.absorption_vector)});
+    add(Bulk{.phase_matrix      = std::move(data.phase_matrix),
+             .extinction_matrix = std::move(data.extinction_matrix),
+             .absorption_vector = std::move(data.absorption_vector)});
   }
   if (not result) {
     // Every particle is absent: zero optics on the requested grids
-    Bulk zero{PhaseMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc, za_scat, max_mode),
-              ExtinctionMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc),
-              AbsorptionVectorData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc)};
+    Bulk zero{
+        .phase_matrix = PhaseMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc, za_scat, max_mode),
+        .extinction_matrix = ExtinctionMatrixData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc),
+        .absorption_vector = AbsorptionVectorData<Format::ARO, Representation::Fourier>(t_grid, f_ptr, za_inc)};
     return zero;
   }
   return std::move(*result);

@@ -12,7 +12,9 @@ BulkScatteringPropertiesTROGridded BulkScatteringPropertiesTROGridded::operator+
   new_extinction_matrix      += other.extinction_matrix;
   auto new_absorption_vector  = absorption_vector;
   new_absorption_vector      += other.absorption_vector;
-  return BulkScatteringPropertiesTROGridded(new_phase_matrix, new_extinction_matrix, new_absorption_vector);
+  return BulkScatteringPropertiesTROGridded{.phase_matrix      = new_phase_matrix,
+                                            .extinction_matrix = new_extinction_matrix,
+                                            .absorption_vector = new_absorption_vector};
 }
 
 BulkScatteringPropertiesTROGridded& BulkScatteringPropertiesTROGridded::operator+=(
@@ -41,7 +43,9 @@ BulkScatteringPropertiesTROSpectral BulkScatteringPropertiesTROSpectral::operato
   new_extinction_matrix      += other.extinction_matrix;
   auto new_absorption_vector  = absorption_vector;
   new_absorption_vector      += other.absorption_vector;
-  return BulkScatteringPropertiesTROSpectral(new_phase_matrix, new_extinction_matrix, new_absorption_vector);
+  return BulkScatteringPropertiesTROSpectral{.phase_matrix      = new_phase_matrix,
+                                             .extinction_matrix = new_extinction_matrix,
+                                             .absorption_vector = new_absorption_vector};
 }
 
 BulkScatteringPropertiesTROSpectral& BulkScatteringPropertiesTROSpectral::operator+=(

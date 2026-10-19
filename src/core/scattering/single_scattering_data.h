@@ -85,9 +85,9 @@ template <Format format, Representation repr> struct SingleScatteringData {
     angles[requested_angles.size() + 1] = 180;
     for (size_t temp_ind = 0; temp_ind < t_grid_ptr->size(); ++temp_ind) {
       for (size_t freq_ind = 0; freq_ind < f_grid_ptr->size(); ++freq_ind) {
-        Numeric freq   = f_grid_ptr->operator[](freq_ind);
-        auto    sphere = MieSphere<Numeric>(
-            Constant::speed_of_light / freq, diameter / 2.0, refractive_index[temp_ind, freq_ind], angles);
+        Numeric freq = f_grid_ptr->operator[](freq_ind);
+        auto    sphere =
+            MieSphere(Constant::speed_of_light / freq, diameter / 2.0, refractive_index[temp_ind, freq_ind], angles);
         auto optical = sphere.get_scattering_matrix_compact();
         for (Index ia = 0; ia < requested_angles.ncols(); ++ia) phase_matrix[temp_ind, freq_ind, ia] = optical[ia];
         forwardscatter_matrix[temp_ind, freq_ind] = optical[requested_angles.size()];
@@ -138,8 +138,12 @@ template <Format format, Representation repr> struct SingleScatteringData {
     auto forwardscatter_matrix =
         ForwardscatterMatrixData<Format::TRO>{t_grid, f_grid};  // = phase_matrix.extract_forwardscatter_matrix();
 
-    auto properties = ParticleProperties{
-        smd.description, smd.source, smd.refr_index, smd.mass, smd.diameter_volume_equ, smd.diameter_max};
+    auto properties = ParticleProperties{.name             = smd.description,
+                                         .source           = smd.source,
+                                         .refractive_index = smd.refr_index,
+                                         .mass             = smd.mass,
+                                         .d_veq            = smd.diameter_volume_equ,
+                                         .d_max            = smd.diameter_max};
 
     return SingleScatteringData<Format::TRO, Representation::Gridded>(
         properties, phase_matrix, extinction_matrix, absorption_vector, backscatter_matrix, forwardscatter_matrix);
@@ -192,8 +196,12 @@ template <Format format, Representation repr> struct SingleScatteringData {
       }
     }
 
-    auto properties = ParticleProperties{
-        smd.description, smd.source, smd.refr_index, smd.mass, smd.diameter_volume_equ, smd.diameter_max};
+    auto properties            = ParticleProperties{.name             = smd.description,
+                                                    .source           = smd.source,
+                                                    .refractive_index = smd.refr_index,
+                                                    .mass             = smd.mass,
+                                                    .d_veq            = smd.diameter_volume_equ,
+                                                    .d_max            = smd.diameter_max};
     auto backscatter_matrix    = phase_matrix.extract_backscatter_matrix();
     auto forwardscatter_matrix = phase_matrix.extract_forwardscatter_matrix();
     return SingleScatteringData<Format::ARO, Representation::Gridded>(
@@ -256,12 +264,12 @@ template <Format format, Representation repr> struct SingleScatteringData {
                        AbsorptionVectorData<format, repr>           absorption_vector_,
                        BackscatterMatrixData<format>                backscatter_matrix_,
                        ForwardscatterMatrixData<format>             forwardscatter_matrix_)
-      : properties(properties_),
-        phase_matrix(phase_matrix_),
-        extinction_matrix(extinction_matrix_),
-        absorption_vector(absorption_vector_),
-        backscatter_matrix(backscatter_matrix_),
-        forwardscatter_matrix(forwardscatter_matrix_) {}
+      : properties(std::move(properties_)),
+        phase_matrix(std::move(phase_matrix_)),
+        extinction_matrix(std::move(extinction_matrix_)),
+        absorption_vector(std::move(absorption_vector_)),
+        backscatter_matrix(std::move(backscatter_matrix_)),
+        forwardscatter_matrix(std::move(forwardscatter_matrix_)) {}
 
   SingleScatteringData()                                        = default;
   SingleScatteringData(const SingleScatteringData &)            = default;
@@ -273,12 +281,12 @@ template <Format format, Representation repr> struct SingleScatteringData {
 
   static constexpr Representation get_representation() noexcept { return repr; }
 
-  std::optional<Numeric> get_mass() const {
+  [[nodiscard]] std::optional<Numeric> get_mass() const {
     auto extract_size = [](const ParticleProperties &part_props) { return part_props.mass; };
     return properties.transform(extract_size);
   }
 
-  std::optional<Numeric> get_size(SizeParameter param) const {
+  [[nodiscard]] std::optional<Numeric> get_size(SizeParameter param) const {
     auto extract_size = [&param](const ParticleProperties &part_props) {
       switch (param) {
         using enum SizeParameter;
@@ -291,7 +299,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
     return properties.transform(extract_size);
   }
 
-  SingleScatteringData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const {
+  [[nodiscard]] SingleScatteringData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const {
     return SingleScatteringData(properties,
                                 phase_matrix.transform([&grids](const auto &pm) { return pm.regrid(grids); }),
                                 extinction_matrix.regrid(grids, weights),
@@ -300,7 +308,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
                                 forwardscatter_matrix.regrid(grids, weights));
   }
 
-  SingleScatteringData regrid(const ScatteringDataGrids &grids) const {
+  [[nodiscard]] SingleScatteringData regrid(const ScatteringDataGrids &grids) const {
     return SingleScatteringData(properties,
                                 phase_matrix.transform([&grids](const auto &pm) { return pm.regrid(grids); }),
                                 extinction_matrix.regrid(grids),
@@ -315,7 +323,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
    * See PhaseMatrixData::to_spectral of the format.  The extinction matrix,
    * absorption vector and back- and forward-scatter matrices are unchanged.
    */
-  SingleScatteringData<format, Representation::Spectral> to_spectral(Index l, Index m = 0) const {
+  [[nodiscard]] SingleScatteringData<format, Representation::Spectral> to_spectral(Index l, Index m = 0) const {
     ARTS_USER_ERROR_IF((format == Format::TRO) && (m > 0),
                        "Order of SHT representation must be 0 for scattering data in TRO format");
     auto new_phase_matrix = phase_matrix.transform([&l, &m](const auto &pm) { return pm.to_spectral(l, m); });
@@ -332,7 +340,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
    * The temperatures and frequencies are those of grids, interpolated; the
    * incidence and scattering zenith angles are those of grids, exactly.
    */
-  SingleScatteringData<Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
+  [[nodiscard]] SingleScatteringData<Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
       const ScatteringDataGrids &grids, Index max_mode) const
       requires(format == Format::TRO and repr == Representation::Spectral) {
     ARTS_USER_ERROR_IF(not grids.za_inc_grid or not grids.za_scat_grid,
@@ -353,7 +361,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
    *
    * See PhaseMatrixData<ARO, Gridded>::to_fourier.
    */
-  SingleScatteringData<Format::ARO, Representation::Fourier> to_fourier(Index max_mode) const
+  [[nodiscard]] SingleScatteringData<Format::ARO, Representation::Fourier> to_fourier(Index max_mode) const
       requires(format == Format::ARO and repr == Representation::Gridded) {
     return SingleScatteringData<Format::ARO, Representation::Fourier>(
         properties,
@@ -368,7 +376,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
    *
    * See PhaseMatrixData<ARO, Spectral>::to_fourier.
    */
-  SingleScatteringData<Format::ARO, Representation::Fourier> to_fourier(
+  [[nodiscard]] SingleScatteringData<Format::ARO, Representation::Fourier> to_fourier(
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid, Index max_mode) const
       requires(format == Format::ARO and repr == Representation::Spectral) {
     return SingleScatteringData<Format::ARO, Representation::Fourier>(
@@ -380,7 +388,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
         forwardscatter_matrix);
   }
 
-  SingleScatteringData<format, Representation::Gridded> to_gridded() const {
+  [[nodiscard]] SingleScatteringData<format, Representation::Gridded> to_gridded() const {
     auto new_phase_matrix = phase_matrix.transform([](const auto &pm) { return pm.to_gridded(); });
     return SingleScatteringData<format, Representation::Gridded>(properties,
                                                                  new_phase_matrix,
@@ -394,8 +402,9 @@ template <Format format, Representation repr> struct SingleScatteringData {
    *
    * @param za_scat_grid The scattering angles
    */
-  SingleScatteringData<format, Representation::Gridded> to_gridded(std::shared_ptr<const ZenithAngleGrid> za_scat_grid)
-      const requires(format == Format::TRO and repr == Representation::Spectral) {
+  [[nodiscard]] SingleScatteringData<format, Representation::Gridded> to_gridded(
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid) const
+      requires(format == Format::TRO and repr == Representation::Spectral) {
     auto new_phase_matrix = phase_matrix.transform([&](const auto &pm) { return pm.to_gridded(za_scat_grid); });
     return SingleScatteringData<format, Representation::Gridded>(properties,
                                                                  new_phase_matrix,
@@ -405,7 +414,8 @@ template <Format format, Representation repr> struct SingleScatteringData {
                                                                  forwardscatter_matrix);
   }
 
-  SingleScatteringData<Format::ARO, Representation::Gridded> to_lab_frame(const ScatteringDataGrids &grids) const {
+  [[nodiscard]] SingleScatteringData<Format::ARO, Representation::Gridded> to_lab_frame(
+      const ScatteringDataGrids &grids) const {
     if constexpr (format == Format::ARO) { return regrid(grids); }
     // Interpolate the compact TRO quantities before expanding them.  The
     // laboratory-frame grids are then already exact, avoiding both redundant

@@ -57,7 +57,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded_derivative(
 
 ScatteringTroSpectralVector ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, Index degree) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor = [&](const auto& spec) -> ScatteringTroSpectralVector {
     if constexpr (requires { spec.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree); }) {
@@ -81,7 +81,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded(
     const Vector&                                za_inc_grid,
     const Vector&                                delta_aa_grid,
     std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded> {
@@ -137,7 +137,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded_derivative(
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>
 ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
     const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
-  if (species.size() == 0) return {std::nullopt, {}, {}};
+  if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral> {

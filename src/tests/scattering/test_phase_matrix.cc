@@ -62,7 +62,7 @@ PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(std::shared_ptr<const Vect
   for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       auto scat_data =
-          scattering::MieSphere<Numeric>::Liquid((*f_grid)[i_f], (*t_grid)[i_t], 1e-3, grid_vector(*za_scat_grid));
+          scattering::MieSphere::Liquid((*f_grid)[i_f], (*t_grid)[i_t], 1e-3, grid_vector(*za_scat_grid));
       phase_matrix[i_t, i_f, joker] = scat_data.get_scattering_matrix_compact();
     }
   }

@@ -72,11 +72,10 @@ std::tuple<Vector, Numeric, Numeric> ParticleHabit::get_size_mass_info(SizeParam
 
 ParticleHabit ParticleHabit::to_tro_spectral(const Vector& t_grid, const Vector& f_grid, Index l) {
   std::vector<SingleScatteringData<Format::TRO, Representation::Spectral>> new_scat_data{};
+  new_scat_data.reserve(scattering_data.size());
   auto new_grids = ScatteringDataGrids(std::make_shared<Vector>(t_grid), std::make_shared<Vector>(f_grid));
   auto transform = [&new_grids, &l](const auto& ssd) { return ssd_to_tro_spectral(new_grids, l, ssd); };
-  for (size_t p_ind = 0; p_ind < scattering_data.size(); ++p_ind) {
-    new_scat_data.push_back(std::visit(transform, scattering_data[p_ind]));
-  }
+  for (auto& p_ind : scattering_data) { new_scat_data.push_back(std::visit(transform, p_ind)); }
   return ParticleHabit(new_scat_data, new_grids);
 }
 

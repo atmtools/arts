@@ -8,6 +8,8 @@
   (get_bulk_scattering_properties_aro_fourier) evaluate to the gridded
   laboratory-frame phase matrix at any azimuth, exactly for Rayleigh
   scattering, whose modes above m = 2 vanish.
+- A user's function of the Legendre series gives the Fourier modes of its
+  series to the degree set on the species, and refuses without one.
 """
 
 import numpy as np
@@ -89,3 +91,19 @@ try:
     raise AssertionError("a user function giving the wrong degree must fail")
 except RuntimeError:
     pass
+
+# The Fourier modes of a user's function are those of its series to the degree set on the species; the Rayleigh
+# phase matrix is a polynomial of degree 2 in cos(Theta), so its series to degree 2 is the matrix itself
+try:
+    good.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
+    raise AssertionError("the Fourier modes of a user function need the degree of its series")
+except RuntimeError:
+    pass
+user_species = A.ArrayOfScatteringSpecies()
+user_species.add(A.ScatteringGeneralSpectralTRO(lambda atm, f, l: rayleigh.get_bulk_scattering_properties_tro_spectral(atm, f, l), 2))
+user_modes = user_species.get_bulk_scattering_properties_aro_fourier(point, [FREQ], za_inc, za_scat, 4)
+reference = np.asarray(modes.phase_matrix)
+difference = np.abs(np.asarray(user_modes.phase_matrix) - reference).max()
+assert difference < 1e-12 * np.abs(reference).max(), difference
+assert np.array_equal(np.asarray(user_modes.extinction_matrix), np.asarray(modes.extinction_matrix))
+assert np.array_equal(np.asarray(user_modes.absorption_vector), np.asarray(modes.absorption_vector))

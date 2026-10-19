@@ -1,6 +1,6 @@
 # The T-matrix of a sphere against the independent Mie solver of the scattering module
 add_executable(tmatrix-sphere-test tmatrix-sphere-test.cpp)
-target_link_libraries(tmatrix-sphere-test arts_tmatrix physics)
+target_link_libraries(tmatrix-sphere-test arts_tmatrix scattering physics)
 target_include_directories(tmatrix-sphere-test PRIVATE ${PROJECT_SOURCE_DIR}/src/core/scattering)
 add_test(NAME "cpp.fast.tmatrix-sphere-test" COMMAND tmatrix-sphere-test)
 add_dependencies(check-deps tmatrix-sphere-test)

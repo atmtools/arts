@@ -118,7 +118,9 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(Coeff
       phase[0, iv, ia]    = rtepack::compact_planar_muelmat{p, 0.0, p, pf, 0.0, pf};
     }
   }
-  return {std::move(phase), std::move(c.extinction), std::move(c.absorption)};
+  return {.phase_matrix      = std::move(phase),
+          .extinction_matrix = std::move(c.extinction),
+          .absorption_vector = std::move(c.absorption)};
 }
 
 /** The scattering matrix at scattering angle theta [rad] as tro_lab_frame takes it, from the closed form */

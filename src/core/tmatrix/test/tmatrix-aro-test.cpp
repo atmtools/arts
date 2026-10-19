@@ -85,10 +85,10 @@ void sphere(Numeric r, Complex m, Numeric tilt) {
   const auto    aro      = tmatrix::azimuthally_random(
       r, lambda, tmatrix::Shape{}, m.real(), m.imag(), za, daa, za, {tilt}, {1.0}, accuracy);
   const auto                     reference = tro_reference([&](Numeric theta) {
-    return scattering::MieSphere<Numeric>(lambda, r, m, Vector{Conversion::rad2deg(theta)})
+    return scattering::MieSphere(lambda, r, m, Vector{Conversion::rad2deg(theta)})
         .get_scattering_matrix_compact()[0];
   });
-  scattering::MieSphere<Numeric> mie(lambda, r, m, Vector{0.0});
+  scattering::MieSphere mie(lambda, r, m, Vector{0.0});
   const Numeric                  phase = distance(aro.phase, reference) / largest(reference);
   Numeric                        cross = 0.0;
   for (Size i = 0; i < za.size(); ++i) {

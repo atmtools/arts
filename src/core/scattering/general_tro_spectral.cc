@@ -30,6 +30,27 @@ ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_pr
   return out;
 }
 
+scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
+ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
+                                                                         const Vector&   f_grid,
+                                                                         const Vector&   za_inc_grid,
+                                                                         const Vector&   za_scat_grid,
+                                                                         Index           max_mode) const {
+  ARTS_USER_ERROR_IF(degree < 0,
+                     "The azimuthal Fourier modes of a user's scattering function need the degree of its Legendre "
+                     "series; set degree (>= 0) on the ScatteringGeneralSpectralTRO, it is {}",
+                     degree)
+
+  const auto bulk = get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree)
+                        .to_general(std::make_shared<Vector>(f_grid));
+  const auto za_inc  = std::make_shared<const Vector>(za_inc_grid);
+  const auto za_scat = std::make_shared<const scattering::ZenithAngleGrid>(
+      scattering::IrregularZenithAngleGrid(za_scat_grid));
+  return {.phase_matrix      = bulk.phase_matrix->to_lab_frame_fourier_modes(za_inc, za_scat, max_mode),
+          .extinction_matrix = bulk.extinction_matrix.to_gridded().to_lab_frame(za_inc).to_fourier(),
+          .absorption_vector = bulk.absorption_vector.to_gridded().to_lab_frame(za_inc).to_fourier()};
+}
+
 ScatteringTroSpectralVector& ScatteringTroSpectralVector::operator+=(const ScatteringTroSpectralVector& other) {
   if (phase_matrix.has_value() and other.phase_matrix.has_value()) {
     phase_matrix.value() += other.phase_matrix.value();
@@ -128,6 +149,7 @@ void xml_io_stream<ScatteringGeneralSpectralTRO>::write(std::ostream&           
   tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.f, pbofs);
+  xml_write_to_stream(os, x.degree, pbofs);
 
   tag.write_to_end_stream(os);
 }
@@ -140,6 +162,7 @@ void xml_io_stream<ScatteringGeneralSpectralTRO>::read(std::istream&            
   tag.check_name(type_name);
 
   xml_read_from_stream(is, x.f, pbifs);
+  xml_read_from_stream(is, x.degree, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

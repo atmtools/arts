@@ -32,7 +32,7 @@ template <Representation repr> class AbsorptionVectorData<Format::TRO, repr>
 
   using TensorType::operator[];
 
-  AbsorptionVectorData() {};
+  AbsorptionVectorData() = default;
 
   /** Create a new AbsorptionVectorData container.
    *
@@ -61,7 +61,7 @@ template <Representation repr> class AbsorptionVectorData<Format::TRO, repr>
     return *this;
   }
 
-  AbsorptionVectorData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
+  [[nodiscard]] AbsorptionVectorData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
     AbsorptionVectorData<Format::ARO, repr> av_new{t_grid_, f_grid_, za_inc_grid};
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
@@ -73,13 +73,13 @@ template <Representation repr> class AbsorptionVectorData<Format::TRO, repr>
     return av_new;
   }
 
-  AbsorptionVectorData<Format::TRO, Representation::Spectral> to_spectral() const {
+  [[nodiscard]] AbsorptionVectorData<Format::TRO, Representation::Spectral> to_spectral() const {
     AbsorptionVectorData<Format::TRO, Representation::Spectral> avd_new(t_grid_, f_grid_);
     avd_new = *this;
     return avd_new;
   }
 
-  AbsorptionVectorData regrid(const ScatteringDataGrids grids, const RegridWeights weights) const {
+  [[nodiscard]] AbsorptionVectorData regrid(const ScatteringDataGrids grids, const RegridWeights weights) const {
     AbsorptionVectorData result(grids.t_grid, grids.f_grid);
     const TensorType&    coeffs_this = *this;
     TensorType&          coeffs_res  = result;
@@ -105,12 +105,12 @@ template <Representation repr> class AbsorptionVectorData<Format::TRO, repr>
     return result;
   }
 
-  AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
+  [[nodiscard]] AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
     return regrid(grids, weights);
   }
 
-  AbsorptionVectorData<Format::TRO, Representation::Gridded> to_gridded() const {
+  [[nodiscard]] AbsorptionVectorData<Format::TRO, Representation::Gridded> to_gridded() const {
     auto abs_new = AbsorptionVectorData<Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
     abs_new      = *this;
     return abs_new;
@@ -145,7 +145,7 @@ template <Representation repr> class AbsorptionVectorData<Format::ARO, repr>
   /// The tensor type used to store the absorption vector data.
   using TensorType = rtepack::compact_planar_stokvec_tensor3;
 
-  AbsorptionVectorData() {};
+  AbsorptionVectorData() = default;
   /** Create a new AbsorptionVectorData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -179,20 +179,20 @@ template <Representation repr> class AbsorptionVectorData<Format::ARO, repr>
     return *this;
   }
 
-  AbsorptionVectorData<Format::ARO, Representation::Spectral> to_spectral() const {
+  [[nodiscard]] AbsorptionVectorData<Format::ARO, Representation::Spectral> to_spectral() const {
     AbsorptionVectorData<Format::ARO, Representation::Spectral> avd_new(t_grid_, f_grid_, za_inc_grid_);
     avd_new = *this;
     return avd_new;
   }
 
   //! The same data, as the absorption vector of azimuthal Fourier-mode optics (it has no azimuth dependence)
-  AbsorptionVectorData<Format::ARO, Representation::Fourier> to_fourier() const {
+  [[nodiscard]] AbsorptionVectorData<Format::ARO, Representation::Fourier> to_fourier() const {
     AbsorptionVectorData<Format::ARO, Representation::Fourier> avd_new(t_grid_, f_grid_, za_inc_grid_);
     avd_new = *this;
     return avd_new;
   }
 
-  AbsorptionVectorData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
+  [[nodiscard]] AbsorptionVectorData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
     AbsorptionVectorData result(grids.t_grid, grids.f_grid, std::make_shared<Vector>(grid_vector(*grids.za_inc_grid)));
     const TensorType&    coeffs_this = *this;
     TensorType&          coeffs_res  = result;
@@ -227,12 +227,12 @@ template <Representation repr> class AbsorptionVectorData<Format::ARO, repr>
     return result;
   }
 
-  AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
+  [[nodiscard]] AbsorptionVectorData regrid(const ScatteringDataGrids& grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, za_inc_grid_, nullptr, nullptr, grids);
     return regrid(grids, weights);
   }
 
-  AbsorptionVectorData<Format::ARO, Representation::Gridded> to_gridded() const {
+  [[nodiscard]] AbsorptionVectorData<Format::ARO, Representation::Gridded> to_gridded() const {
     auto abs_new = AbsorptionVectorData<Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
     abs_new      = *this;
     return abs_new;

@@ -66,15 +66,15 @@ template <Representation repr> class ExtinctionMatrixData<Format::TRO, repr>
    *
    * @return A copy: TRO extinction holds K11 only.
    */
-  ExtinctionMatrixData<Format::TRO, repr> extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] ExtinctionMatrixData<Format::TRO, repr> extract_stokes_coeffs() const { return *this; }
 
-  ExtinctionMatrixData<Format::TRO, Representation::Spectral> to_spectral() const {
+  [[nodiscard]] ExtinctionMatrixData<Format::TRO, Representation::Spectral> to_spectral() const {
     ExtinctionMatrixData<Format::TRO, Representation::Spectral> emd_new{t_grid_, f_grid_};
     emd_new = *this;
     return emd_new;
   }
 
-  ExtinctionMatrixData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
+  [[nodiscard]] ExtinctionMatrixData<Format::ARO, repr> to_lab_frame(std::shared_ptr<const Vector> za_inc_grid) const {
     ExtinctionMatrixData<Format::ARO, repr> em_new{t_grid_, f_grid_, za_inc_grid};
     for (Size t_ind = 0; t_ind < t_grid_->size(); ++t_ind) {
       for (Size f_ind = 0; f_ind < f_grid_->size(); ++f_ind) {
@@ -86,7 +86,7 @@ template <Representation repr> class ExtinctionMatrixData<Format::TRO, repr>
     return em_new;
   }
 
-  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
+  [[nodiscard]] ExtinctionMatrixData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid);
     const TensorType&    coeffs_this = *this;
     TensorType&          coeffs_res  = result;
@@ -112,12 +112,12 @@ template <Representation repr> class ExtinctionMatrixData<Format::TRO, repr>
     return result;
   }
 
-  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
+  [[nodiscard]] ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, nullptr, nullptr, nullptr, grids);
     return regrid(grids, weights);
   }
 
-  ExtinctionMatrixData<Format::TRO, Representation::Gridded> to_gridded() const {
+  [[nodiscard]] ExtinctionMatrixData<Format::TRO, Representation::Gridded> to_gridded() const {
     auto new_ext = ExtinctionMatrixData<Format::TRO, Representation::Gridded>(t_grid_, f_grid_);
     new_ext      = *this;
     return new_ext;
@@ -155,7 +155,7 @@ template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr>
   /// The tensor type used to store the extinction matrix data.
   using TensorType = rtepack::compact_planar_propmat_tensor3;
 
-  ExtinctionMatrixData() {};
+  ExtinctionMatrixData() = default;
   /** Create a new ExtinctionMatrixData container.
    *
    * Creates a container to hold extinction matrix data for the
@@ -193,18 +193,18 @@ template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr>
    *
    * @return A copy: ARO extinction holds K11, K12 and K34 only.
    */
-  ExtinctionMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] ExtinctionMatrixData extract_stokes_coeffs() const { return *this; }
 
-  ExtinctionMatrixData<Format::ARO, Representation::Spectral> to_spectral() const;
+  [[nodiscard]] ExtinctionMatrixData<Format::ARO, Representation::Spectral> to_spectral() const;
 
   //! The same data, as the extinction matrix of azimuthal Fourier-mode optics (it has no azimuth dependence)
-  ExtinctionMatrixData<Format::ARO, Representation::Fourier> to_fourier() const {
+  [[nodiscard]] ExtinctionMatrixData<Format::ARO, Representation::Fourier> to_fourier() const {
     ExtinctionMatrixData<Format::ARO, Representation::Fourier> emd_new{t_grid_, f_grid_, za_inc_grid_};
     emd_new = *this;
     return emd_new;
   }
 
-  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
+  [[nodiscard]] ExtinctionMatrixData regrid(const ScatteringDataGrids& grids, const RegridWeights& weights) const {
     ExtinctionMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
     const TensorType&    coeffs_this = *this;
     TensorType&          coeffs_res  = result;
@@ -239,12 +239,12 @@ template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr>
     return result;
   }
 
-  ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
+  [[nodiscard]] ExtinctionMatrixData regrid(const ScatteringDataGrids& grids) const {
     auto weights = calc_regrid_weights(t_grid_, f_grid_, nullptr, za_inc_grid_, nullptr, nullptr, grids);
     return regrid(grids, weights);
   }
 
-  ExtinctionMatrixData<Format::ARO, Representation::Gridded> to_gridded() const {
+  [[nodiscard]] ExtinctionMatrixData<Format::ARO, Representation::Gridded> to_gridded() const {
     auto new_ext = ExtinctionMatrixData<Format::ARO, Representation::Gridded>(t_grid_, f_grid_, za_inc_grid_);
     new_ext      = *this;
     return new_ext;
@@ -267,9 +267,8 @@ template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr>
   std::shared_ptr<const Vector> za_inc_grid_;
 };
 
-template <Representation repr>
-ExtinctionMatrixData<Format::ARO, Representation::Spectral> ExtinctionMatrixData<Format::ARO, repr>::to_spectral()
-    const {
+template <Representation repr> [[nodiscard]] ExtinctionMatrixData<Format::ARO, Representation::Spectral>
+ExtinctionMatrixData<Format::ARO, repr>::to_spectral() const {
   ExtinctionMatrixData<Format::ARO, Representation::Spectral> emd_new{t_grid_, f_grid_, za_inc_grid_};
   emd_new = *this;
   return emd_new;

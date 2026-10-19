@@ -20,7 +20,7 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
   ExtinctionMatrix<format, repr>           extinction_matrix;
   AbsorptionVector<format, repr>           absorption_vector;
 
-  BulkScatteringProperties<Format::ARO, Representation::Gridded> to_lab_frame(
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> to_lab_frame(
       std::shared_ptr<const Vector>          za_inc_grid,
       std::shared_ptr<const Vector>          delta_aa_grid,
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) {
@@ -41,14 +41,14 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
     }
   }
 
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral() {
+  [[nodiscard]] BulkScatteringProperties<format, Representation::Spectral> to_spectral() {
     return BulkScatteringProperties<format, Representation::Spectral>{
         phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(); }),
         extinction_matrix,
         absorption_vector};
   }
 
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index degree, Index order) {
+  [[nodiscard]] BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index degree, Index order) {
     return BulkScatteringProperties<format, Representation::Spectral>{
         phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(degree, order); }),
         extinction_matrix.to_spectral(),
@@ -88,7 +88,7 @@ struct BulkScatteringPropertiesTROGridded {
   ExtinctionMatrixVector           extinction_matrix;
   AbsorptionVectorVector           absorption_vector;
 
-  BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded& other) const;
+  [[nodiscard]] BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded& other) const;
 
   BulkScatteringPropertiesTROGridded& operator+=(const BulkScatteringPropertiesTROGridded& other);
 
@@ -108,7 +108,7 @@ struct BulkScatteringPropertiesTROSpectral {
   ExtinctionMatrixVector           extinction_matrix;
   AbsorptionVectorVector           absorption_vector;
 
-  BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral& other) const;
+  [[nodiscard]] BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral& other) const;
 
   BulkScatteringPropertiesTROSpectral& operator+=(const BulkScatteringPropertiesTROSpectral& other);
 

@@ -322,12 +322,30 @@ void py_scattering_species(py::module_& m) try {
   py::class_<ScatteringGeneralSpectralTRO> sgstro(m, "ScatteringGeneralSpectralTRO");
   sgstro.def(py::init<>());
   sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc>());
-  sgstro.def(py::init_implicit<ScatteringGeneralSpectralTROFunc::func_t>());
+  sgstro.def("__init__", [](ScatteringGeneralSpectralTRO* self, ScatteringGeneralSpectralTROFunc::func_t f) {
+    new (self) ScatteringGeneralSpectralTRO{.f = ScatteringGeneralSpectralTROFunc{std::move(f)}};
+  });
+  py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t, ScatteringGeneralSpectralTRO>();
+  sgstro.def(py::init<ScatteringGeneralSpectralTROFunc, Index>(), "f"_a, "degree"_a);
   sgstro.def_rw("f",
                 &ScatteringGeneralSpectralTRO::f,
-                "Frequency grid\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
+                "The bulk Legendre series as a function of the atmospheric point, the frequency grid and the "
+                "degree\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
+  sgstro.def_rw("degree",
+                &ScatteringGeneralSpectralTRO::degree,
+                "The degree of the series when the caller does not choose it, as for the azimuthal Fourier modes; "
+                "unset while negative\n\n.. :class:`int`");
+  sgstro.def("get_bulk_scattering_properties_aro_fourier",
+             &ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_aro_fourier,
+             "atm_point"_a,
+             "f_grid"_a,
+             "za_inc_grid"_a,
+             "za_scat_grid"_a,
+             "max_mode"_a,
+             "The azimuthal Fourier modes to max_mode of the laboratory-frame bulk phase matrix of the series to "
+             "degree, at exactly the given zenith angles [deg]");
   sgstro.doc() = "Scattering general spectral TRO";
-  str_interface(stsv);
+  str_interface(sgstro);
 
   //
   // ScatSpeciesProperty

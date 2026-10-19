@@ -50,7 +50,7 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
   const auto t = tmatrix::random(r, lambda, sphere, m.real(), m.imag(), angles, accuracy, EquivalentRadius::volume);
   Vector     theta(angles);
   for (Index i = 0; i < angles; ++i) theta[i] = 180.0 * static_cast<Numeric>(i) / (angles - 1);
-  scattering::MieSphere<Numeric> mie(lambda, r, m, theta);
+  scattering::MieSphere mie(lambda, r, m, theta);
   const auto                     F = mie.get_scattering_matrix_compact();
 
   require(relative(t.extinction, mie.get_extinction_coeff()) <= accuracy, name + ": extinction");
@@ -112,7 +112,7 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
     const Numeric cos   = k_in[0] * k_out[0] + k_in[1] * k_out[1] + k_in[2] * k_out[2];
     scattering_angle[i] = std::acos(std::clamp(cos, -1.0, 1.0)) / d;
   }
-  scattering::MieSphere<Numeric> mie_fixed(lambda, r, m, scattering_angle);
+  scattering::MieSphere mie_fixed(lambda, r, m, scattering_angle);
   const auto                     Ff = mie_fixed.get_scattering_matrix_compact();
   const auto fixed = tmatrix::fixed_batch(r, lambda, sphere, m.real(), m.imag(), g, accuracy, EquivalentRadius::volume);
   require(relative(fixed[0].extinction, mie.get_extinction_coeff()) <= accuracy, name + ": fixed extinction");
