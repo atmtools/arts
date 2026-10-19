@@ -12,7 +12,6 @@ add_library(matpack STATIC
   matpack_mdspan_helpers_band_matrix.cc
   matpack_mdspan_helpers_eigen.cc
   matpack_mdspan_view_t.cc
-  interpolation.cc
   minimize.cc
   lagrange_interp.cc
   matpack_mdspan_algorithm.cc

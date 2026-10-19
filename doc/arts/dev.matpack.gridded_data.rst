@@ -48,8 +48,7 @@ Interpolation
 =============
 
 To understand how to use the interpolation methods of the gridded data class, you should first read and understand how
-non-linear interpolation works in ARTS.  This is available at :doc:`dev.matpack.interpolation`.  The section of interest
-is the one on higher order interpolation.
+interpolation works in ARTS.  This is available at :doc:`dev.matpack.interpolation`.
 
 Rather than go through the exact details, here are a couple of code examples to show how to use the interpolation methods.
 
