@@ -83,13 +83,14 @@ struct ScatteringDataGrids {
   std::shared_ptr<const ZenithAngleGrid> za_scat_grid;
 };
 
+//! The linear Lagrange weights of the new grids on the data's grids (see linear_lags), per axis
 struct RegridWeights {
-  ArrayOfGridPos t_grid_weights;
-  ArrayOfGridPos f_grid_weights;
-  ArrayOfGridPos aa_inc_grid_weights;
-  ArrayOfGridPos za_inc_grid_weights;
-  ArrayOfGridPos aa_scat_grid_weights;
-  ArrayOfGridPos za_scat_grid_weights;
+  std::vector<lagrange_interp::lag_t<1>> t_lags;
+  std::vector<lagrange_interp::lag_t<1>> f_lags;
+  std::vector<lagrange_interp::lag_t<1>> aa_inc_lags;
+  std::vector<lagrange_interp::lag_t<1>> za_inc_lags;
+  std::vector<lagrange_interp::lag_t<1>> aa_scat_lags;
+  std::vector<lagrange_interp::lag_t<1>> za_scat_lags;
 };
 
 RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
@@ -99,6 +100,9 @@ RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
                                   std::shared_ptr<const Vector>          aa_scat_grid,
                                   std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
                                   ScatteringDataGrids                    new_grids);
+
+//! out = field at the lags of each of its axes
+void regrid_with(auto &out, const auto &field, const auto &...lags) { lagrange_interp::reinterp(out, field, lags...); }
 
 template <Format format> class BackscatterMatrixData;
 
@@ -127,9 +131,9 @@ template <> class BackscatterMatrixData<Format::TRO> : public rtepack::compact_p
 
   [[nodiscard]] BackscatterMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
 
-  BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const;
 
-  BackscatterMatrixData to_gridded() const { return *this; }
+  [[nodiscard]] BackscatterMatrixData to_gridded() const { return *this; }
 
  protected:
   /// The size of the temperature grid.
@@ -165,11 +169,11 @@ template <> class BackscatterMatrixData<Format::ARO> : public rtepack::muelmat_t
 
   BackscatterMatrixData &operator=(const TensorType &data);
 
-  BackscatterMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] BackscatterMatrixData extract_stokes_coeffs() const { return *this; }
 
-  BackscatterMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
+  [[nodiscard]] BackscatterMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
 
-  BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] BackscatterMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   /// The size of the temperature grid.
@@ -353,9 +357,9 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
 
   PhaseMatrixData &operator=(const TensorType &data);
 
-  std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
-  std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
-  std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
+  [[nodiscard]] std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
 
   /** The Legendre series of this phase matrix to the given degree.
    *
@@ -367,7 +371,7 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
    * @param degree The highest Legendre degree, >= 0
    * @param order Must be 0: a TRO phase matrix depends on the scattering angle only
    */
-  PhaseMatrixDataSpectral to_spectral(Index degree, Index order = 0) const;
+  [[nodiscard]] PhaseMatrixDataSpectral to_spectral(Index degree, Index order = 0) const;
 
   /** How well a Legendre series represents this phase matrix, for every temperature and frequency.
    *
@@ -375,16 +379,16 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
    *
    * @param spectral A series on the same temperature and frequency grids, e.g. to_spectral(degree)
    */
-  LegendreReport legendre_report(const PhaseMatrixDataSpectral &spectral) const;
+  [[nodiscard]] LegendreReport legendre_report(const PhaseMatrixDataSpectral &spectral) const;
 
   /** The phase matrix in the laboratory frame.
    *
    * The scattering matrix is interpolated linearly in scattering angle, and
    * held constant outside the range of the scattering-angle grid.
    */
-  PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector>          za_inc_grid,
-                                       std::shared_ptr<const Vector>          delta_aa_grid,
-                                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const;
+  [[nodiscard]] PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector>          za_inc_grid,
+                                                     std::shared_ptr<const Vector>          delta_aa_grid,
+                                                     std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const;
 
   BackscatterMatrixData<Format::TRO> extract_backscatter_matrix();
 
@@ -401,11 +405,11 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
    *
    * @return A copy: TRO data hold all six elements.
    */
-  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   /// The size of the temperature grid.
@@ -467,14 +471,14 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
         f_grid_(f_grid),
         degree_(degree) {}
 
-  PhaseMatrixData &operator=(const TensorType &data);
+  [[nodiscard]] PhaseMatrixData &operator=(const TensorType &data);
 
-  std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
-  std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
-  Index                         get_degree() const { return degree_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
+  [[nodiscard]] Index                         get_degree() const { return degree_; }
 
   /** The coefficients [degree + 1] at one temperature and frequency */
-  CompactPlanarMuelmatVector coefficients(Index i_t, Index i_f) const {
+  [[nodiscard]] CompactPlanarMuelmatVector coefficients(Index i_t, Index i_f) const {
     return CompactPlanarMuelmatVector{(*this)[i_t, i_f, joker]};
   }
 
@@ -482,46 +486,46 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
    *
    * @param za_scat_grid The scattering angles [deg]
    */
-  PhaseMatrixDataGridded to_gridded(std::shared_ptr<const ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] PhaseMatrixDataGridded to_gridded(std::shared_ptr<const ZenithAngleGrid> za_scat_grid) const;
 
   /** The series at the 2 degree + 2 Gauss-Legendre nodes, exactly */
-  PhaseMatrixDataGridded to_gridded() const {
+  [[nodiscard]] PhaseMatrixDataGridded to_gridded() const {
     return to_gridded(std::make_shared<const ZenithAngleGrid>(GaussLegendreGrid(2 * degree_ + 2)));
   }
 
   /** The laboratory-frame phase matrix, the series evaluated at the exact scattering angle of every direction pair */
-  PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector>          za_inc_grid,
-                                       std::shared_ptr<const Vector>          delta_aa_grid,
-                                       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const;
+  [[nodiscard]] PhaseMatrixDataLabFrame to_lab_frame(std::shared_ptr<const Vector>          za_inc_grid,
+                                                     std::shared_ptr<const Vector>          delta_aa_grid,
+                                                     std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix of the series
    *
    * See tro_lab_frame_fourier_modes; the series is evaluated exactly at every scattering angle.
    */
-  PhaseMatrixData<Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
+  [[nodiscard]] PhaseMatrixData<Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
       std::shared_ptr<const Vector>          za_inc_grid,
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
       Index                                  max_mode) const;
 
   /** The scattering matrix as tro_lab_frame and tro_lab_frame_fourier_modes take it, from the series */
-  ScatteringMatrixFunction scattering_matrix_function() const;
+  [[nodiscard]] ScatteringMatrixFunction scattering_matrix_function() const;
 
-  BackscatterMatrixData<Format::TRO> extract_backscatter_matrix() const { return extract_at(180.0); }
+  [[nodiscard]] BackscatterMatrixData<Format::TRO> extract_backscatter_matrix() const { return extract_at(180.0); }
 
-  ForwardscatterMatrixData<Format::TRO> extract_forwardscatter_matrix() const { return extract_at(0.0); }
+  [[nodiscard]] ForwardscatterMatrixData<Format::TRO> extract_forwardscatter_matrix() const { return extract_at(0.0); }
 
   /** Calculate scattering-angle integral.
    *
    * Integrates the phase matrix over the scattering angles: 2 pi int F dcos(Theta) = sqrt(4 pi) a_0.
    * @return The integral of the phase matrix [t, f]
    */
-  rtepack::compact_planar_muelmat_matrix integrate_phase_matrix() const;
+  [[nodiscard]] rtepack::compact_planar_muelmat_matrix integrate_phase_matrix() const;
 
   /** Extract single scattering data for given stokes dimension.
    *
    * @return A copy: TRO data hold all six elements.
    */
-  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
   /** The series truncated to a lower degree.
    *
@@ -529,22 +533,22 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Spectral>
    * series does not tell its higher coefficients
    * @param order Must be 0
    */
-  PhaseMatrixData to_spectral(Index degree, Index order = 0) const;
+  [[nodiscard]] PhaseMatrixData to_spectral(Index degree, Index order = 0) const;
 
   /** Interpolate the coefficients linearly in temperature and frequency.
    *
    * The angular dependence is the series and needs no interpolation; the
    * zenith-angle grids of grids are not used.
    */
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const;
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   static Index checked_degree(Index degree);
 
   /** The series at one scattering angle [deg] */
-  BackscatterMatrixData<Format::TRO> extract_at(Numeric angle) const;
+  [[nodiscard]] BackscatterMatrixData<Format::TRO> extract_at(Numeric angle) const;
 
   /// The size of the temperature grid.
   Index n_temps_;
@@ -629,11 +633,11 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Gridded> : public
         n_za_scat_(grid_size(*za_scat_grid)),
         za_scat_grid_(za_scat_grid) {}
 
-  std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
-  std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
-  std::shared_ptr<const Vector>          get_za_inc_grid() const { return za_inc_grid_; }
-  std::shared_ptr<const Vector>          get_delta_aa_grid() const { return delta_aa_grid_; }
-  std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_za_inc_grid() const { return za_inc_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_delta_aa_grid() const { return delta_aa_grid_; }
+  [[nodiscard]] std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
 
   PhaseMatrixData &operator=(const TensorType &data);
 
@@ -641,11 +645,11 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Gridded> : public
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const;
+  [[nodiscard]] PhaseMatrixDataSpectral to_spectral(std::shared_ptr<SHT> sht) const;
 
-  PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const;
+  [[nodiscard]] PhaseMatrixDataSpectral to_spectral(Index degree, Index order) const;
 
-  PhaseMatrixDataSpectral to_spectral() const;
+  [[nodiscard]] PhaseMatrixDataSpectral to_spectral() const;
 
   /** The azimuthal Fourier modes of this phase matrix, m = 0..max_mode.
    *
@@ -659,7 +663,7 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Gridded> : public
    *
    * @param max_mode The highest mode, >= 0
    */
-  PhaseMatrixDataFourier to_fourier(Index max_mode) const;
+  [[nodiscard]] PhaseMatrixDataFourier to_fourier(Index max_mode) const;
 
   BackscatterMatrixData<Format::ARO> extract_backscatter_matrix();
 
@@ -669,11 +673,11 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Gridded> : public
    *
    * @return A copy: ARO data hold all sixteen elements.
    */
-  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   /// The size of the temperature grid.
@@ -759,10 +763,10 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral> : publi
 
   PhaseMatrixData &operator=(const TensorType &data);
 
-  std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
-  std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
-  std::shared_ptr<const Vector> get_za_inc_grid() const { return za_inc_grid_; }
-  std::shared_ptr<SHT>          get_sht() const { return sht_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_t_grid() const { return t_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_f_grid() const { return f_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector> get_za_inc_grid() const { return za_inc_grid_; }
+  [[nodiscard]] std::shared_ptr<SHT>          get_sht() const { return sht_; }
 
   /** The azimuthal Fourier modes m = 0..max_mode at the scattering zenith angles of a grid, exactly
    *
@@ -775,22 +779,22 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral> : publi
    * @param za_scat_grid The scattering zenith angles [deg]
    * @param max_mode The highest mode, >= 0
    */
-  PhaseMatrixData<Format::ARO, Representation::Fourier> to_fourier(std::shared_ptr<const ZenithAngleGrid> za_scat_grid,
-                                                                   Index max_mode) const;
+  [[nodiscard]] PhaseMatrixData<Format::ARO, Representation::Fourier> to_fourier(
+      std::shared_ptr<const ZenithAngleGrid> za_scat_grid, Index max_mode) const;
 
   /** Transform phase matrix to gridded format.
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixDataGridded to_gridded() const;
+  [[nodiscard]] PhaseMatrixDataGridded to_gridded() const;
 
   /** Transform phase matixr to spectral format.
    *
    * @param Pointer to the SHT to use for the transformation.
    */
-  PhaseMatrixData to_spectral(Index l_new, Index m_new) const;
+  [[nodiscard]] PhaseMatrixData to_spectral(Index l_new, Index m_new) const;
 
-  BackscatterMatrixData<Format::ARO> extract_backscatter_matrix() const;
+  [[nodiscard]] BackscatterMatrixData<Format::ARO> extract_backscatter_matrix() const;
 
   ForwardscatterMatrixData<Format::ARO> extract_forwardscatter_matrix();
 
@@ -799,17 +803,17 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Spectral> : publi
    * sqrt(4 pi) times the l = 0 coefficient on the orthonormal Y_00; a
    * degree-0 SHT holds the value itself as its coefficient.
    */
-  rtepack::muelmat_tensor3 integrate_phase_matrix() const;
+  [[nodiscard]] rtepack::muelmat_tensor3 integrate_phase_matrix() const;
 
   /** Extract single scattering data for given stokes dimension.
    *
    * @return A copy: ARO data hold all sixteen elements.
    */
-  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights weights) const;
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   /// The size of the temperature grid.
@@ -890,14 +894,14 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Fourier> : public
 
   PhaseMatrixData &operator=(const rtepack::muelmat_tensor6 &data);
 
-  std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
-  std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
-  std::shared_ptr<const Vector>          get_za_inc_grid() const { return za_inc_grid_; }
-  std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
-  Index                                  get_max_mode() const { return max_mode_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_t_grid() const { return t_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_f_grid() const { return f_grid_; }
+  [[nodiscard]] std::shared_ptr<const Vector>          get_za_inc_grid() const { return za_inc_grid_; }
+  [[nodiscard]] std::shared_ptr<const ZenithAngleGrid> get_za_scat_grid() const { return za_scat_grid_; }
+  [[nodiscard]] Index                                  get_max_mode() const { return max_mode_; }
 
   //! The phase integral int Z11 dOmega [t, f, za_inc] (see the class)
-  const Tensor3 &get_phase_integral() const { return phase_integral_; }
+  [[nodiscard]] const Tensor3 &get_phase_integral() const { return phase_integral_; }
 
   void set_phase_integral(Tensor3 phase_integral);
 
@@ -906,10 +910,10 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Fourier> : public
   PhaseMatrixData &operator*=(Numeric x);
 
   /** The phase matrix at the azimuth differences [deg] of a grid, the series evaluated exactly */
-  PhaseMatrixDataGridded to_gridded(std::shared_ptr<const Vector> delta_aa_grid) const;
+  [[nodiscard]] PhaseMatrixDataGridded to_gridded(std::shared_ptr<const Vector> delta_aa_grid) const;
 
   /** The phase matrix at 2 max_mode + 3 azimuth differences over [-180, 180] deg, which resolve the modes */
-  PhaseMatrixDataGridded to_gridded() const {
+  [[nodiscard]] PhaseMatrixDataGridded to_gridded() const {
     return to_gridded(std::make_shared<const Vector>(nlinspace(-180.0, 180.0, 2 * max_mode_ + 3)));
   }
 
@@ -917,9 +921,9 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Fourier> : public
    *
    * @param max_mode At most this data's highest mode: truncated modes do not tell the higher ones
    */
-  PhaseMatrixData to_fourier(Index max_mode) const;
+  [[nodiscard]] PhaseMatrixData to_fourier(Index max_mode) const;
 
-  PhaseMatrixData extract_stokes_coeffs() const { return *this; }
+  [[nodiscard]] PhaseMatrixData extract_stokes_coeffs() const { return *this; }
 
   /** Interpolate the modes linearly in temperature and frequency, and select zenith angles.
    *
@@ -927,9 +931,9 @@ template <> class PhaseMatrixData<Format::ARO, Representation::Fourier> : public
    * scattering zenith angle of grids (when given) must be one of this data's,
    * whose modes and phase integral are then taken as they are.
    */
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids, const RegridWeights &weights) const;
 
-  PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
+  [[nodiscard]] PhaseMatrixData regrid(const ScatteringDataGrids &grids) const;
 
  protected:
   static Index checked_mode(Index max_mode);

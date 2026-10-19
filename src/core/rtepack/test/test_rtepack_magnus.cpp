@@ -639,8 +639,8 @@ bool test_scalar_linprop_stability() {
   const rtepack::tran tr{k, k, 1.0};
   const Muelmat       t      = tr();
   const Muelmat       l      = tr.linsrc_linprop(t, k, k, 1.0);
-  const Numeric       dstart = tr.linsrc_linprop_deriv(l, t, k, k, dk, Muelmat{}, 1.0, 0.0, true)[0, 0];
-  const Numeric       dend   = tr.linsrc_linprop_deriv(l, t, k, k, dk, Muelmat{}, 1.0, 0.0, false)[0, 0];
+  const Numeric       dstart = tr.linsrc_linprop_deriv(l, t, k, k, dk, Muelmat::id(), 1.0, 0.0, true)[0, 0];
+  const Numeric       dend   = tr.linsrc_linprop_deriv(l, t, k, k, dk, Muelmat::id(), 1.0, 0.0, false)[0, 0];
   if (std::abs(dstart - (-0.08030139707139419)) > 2e-14 or std::abs(dend - (-0.18393972058572117)) > 2e-14) {
     std::cerr << "Scalar linprop endpoint derivatives are discontinuous at zero gradient: " << dstart << ", " << dend
               << '\n';
@@ -654,7 +654,7 @@ bool test_scalar_linprop_stability() {
   const Muelmat       zero_t = zero_tr();
   const Muelmat       zero_l = zero_tr.linsrc_linprop(zero_t, start, end, 0.0);
   const Numeric       zero_dr =
-      zero_tr.linsrc_linprop_deriv(zero_l, zero_t, start, end, Propmat{}, Muelmat{}, 0.0, 1.0, true)[0, 0];
+      zero_tr.linsrc_linprop_deriv(zero_l, zero_t, start, end, Propmat{}, Muelmat::id(), 0.0, 1.0, true)[0, 0];
   if (zero_l[0, 0] != 1.0 or std::abs(zero_dr - (-2.0)) > 2e-14) {
     std::cerr << "Scalar linprop has an incorrect zero-length limit\n";
     return false;

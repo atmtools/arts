@@ -10,6 +10,7 @@
   scattering, whose modes above m = 2 vanish.
 - A user's function of the Legendre series gives the Fourier modes of its
   series to the degree set on the species, and refuses without one.
+- Beyond its temperature grid a habit extrapolates linearly.
 """
 
 import numpy as np
@@ -107,3 +108,26 @@ difference = np.abs(np.asarray(user_modes.phase_matrix) - reference).max()
 assert difference < 1e-12 * np.abs(reference).max(), difference
 assert np.array_equal(np.asarray(user_modes.extinction_matrix), np.asarray(modes.extinction_matrix))
 assert np.array_equal(np.asarray(user_modes.absorption_vector), np.asarray(modes.absorption_vector))
+
+
+# Beyond its temperature grid a habit extrapolates linearly.  The regrids once dropped the negative weight there,
+# which gave 1.6 times the end value at these temperatures.
+two_temperatures = A.ParticleHabit.liquid_sphere(
+    [250.0, 300.0], [FREQ], [1e-3], A.IrregularZenithAngleGrid(np.linspace(0.0, 180.0, 181))
+)
+two_series, _ = two_temperatures.to_tro_spectral_with_report([250.0, 300.0], [FREQ], 8)
+two_species = A.ScatteringHabit(two_series, A.MonodispersePSD(drops), 1.0, 3.0)
+
+
+def extinction(temperature):
+    p = A.AtmPoint()
+    p.temperature = temperature
+    p.pressure = 1e5
+    p[drops] = 1.0
+    return np.asarray(two_species.get_bulk_scattering_properties_tro_spectral(p, [FREQ], 8).extinction_matrix)[0, 0]
+
+
+k250, k300 = extinction(250.0), extinction(300.0)
+for temperature in [220.0, 330.0]:
+    linear = k250 + (temperature - 250.0) / 50.0 * (k300 - k250)
+    assert abs(extinction(temperature) - linear) <= 1e-12 * abs(linear), (temperature, extinction(temperature), linear)

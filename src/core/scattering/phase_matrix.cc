@@ -100,38 +100,13 @@ RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
   if (!f_grid) { ARTS_USER_ERROR("The old f_grid must be provided for calculating regridding weights."); }
   if (!new_grids.f_grid) { ARTS_USER_ERROR("The new f_grid must be provided for calculating regridding weights."); }
 
-  const auto positions = [](ArrayOfGridPos &out, const Vector &old_grid, const Vector &new_grid) {
-    if (old_grid.size() == 1) {
-      stdr::fill(out, GridPos{.idx = 0, .fd = {0.0, 1.0}});
-    } else {
-      gridpos(out, old_grid, new_grid, 1e99);
-    }
-  };
-
-  res.t_grid_weights = ArrayOfGridPos(new_grids.t_grid->size());
-  positions(res.t_grid_weights, *t_grid, *new_grids.t_grid);
-  res.f_grid_weights = ArrayOfGridPos(new_grids.f_grid->size());
-  positions(res.f_grid_weights, *f_grid, *new_grids.f_grid);
-
-  if ((aa_inc_grid) && (new_grids.aa_inc_grid)) {
-    res.aa_inc_grid_weights = ArrayOfGridPos(new_grids.aa_inc_grid->size());
-    positions(res.aa_inc_grid_weights, *aa_inc_grid, *new_grids.aa_inc_grid);
-  }
-  if ((za_inc_grid) && (new_grids.za_inc_grid)) {
-    res.za_inc_grid_weights = ArrayOfGridPos(new_grids.za_inc_grid->size());
-    positions(res.za_inc_grid_weights, *za_inc_grid, *new_grids.za_inc_grid);
-  }
-  if ((aa_scat_grid) && (new_grids.aa_scat_grid)) {
-    res.aa_scat_grid_weights = ArrayOfGridPos(new_grids.aa_scat_grid->size());
-    positions(res.aa_scat_grid_weights, *aa_scat_grid, *new_grids.aa_scat_grid);
-  }
-  if ((za_scat_grid) && (new_grids.za_scat_grid)) {
-    res.za_scat_grid_weights =
-        ArrayOfGridPos(std::visit([](const auto &grd) { return grd.angles.size(); }, *new_grids.za_scat_grid));
-    positions(res.za_scat_grid_weights,
-              std::visit([](const auto &grd) { return grd.angles.vec(); }, *za_scat_grid),
-              std::visit([](const auto &grd) { return grd.angles.vec(); }, *new_grids.za_scat_grid));
-  }
+  res.t_lags = linear_lags(*t_grid, *new_grids.t_grid);
+  res.f_lags = linear_lags(*f_grid, *new_grids.f_grid);
+  if (aa_inc_grid and new_grids.aa_inc_grid) res.aa_inc_lags = linear_lags(*aa_inc_grid, *new_grids.aa_inc_grid);
+  if (za_inc_grid and new_grids.za_inc_grid) res.za_inc_lags = linear_lags(*za_inc_grid, *new_grids.za_inc_grid);
+  if (aa_scat_grid and new_grids.aa_scat_grid) res.aa_scat_lags = linear_lags(*aa_scat_grid, *new_grids.aa_scat_grid);
+  if (za_scat_grid and new_grids.za_scat_grid)
+    res.za_scat_lags = linear_lags(Vector{grid_vector(*za_scat_grid)}, Vector{grid_vector(*new_grids.za_scat_grid)});
   return res;
 }
 
@@ -146,24 +121,8 @@ BackscatterMatrixData<Format::TRO> &BackscatterMatrixData<Format::TRO>::operator
 BackscatterMatrixData<Format::TRO> BackscatterMatrixData<Format::TRO>::regrid(const ScatteringDataGrids &grids,
                                                                               const RegridWeights &weights) const {
   BackscatterMatrixData result(grids.t_grid, grids.f_grid);
-  const TensorType     &coeffs_this = *this;
-  TensorType           &coeffs_res  = result;
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    GridPos    gp_t  = weights.t_grid_weights[i_t];
-    Numeric    w_t_l = gp_t.fd[1];
-    Numeric    w_t_r = gp_t.fd[0];
-    const auto i_t_l = std::clamp<Index>(gp_t.idx, 0, n_temps_ - 1);
-    const auto i_t_r = std::min(i_t_l + 1, n_temps_ - 1);
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      GridPos    gp_f      = weights.f_grid_weights[i_f];
-      Numeric    w_f_l     = gp_f.fd[1];
-      Numeric    w_f_r     = gp_f.fd[0];
-      const auto i_f_l     = std::clamp<Index>(gp_f.idx, 0, n_freqs_ - 1);
-      const auto i_f_r     = std::min(i_f_l + 1, n_freqs_ - 1);
-      coeffs_res[i_t, i_f] = (w_t_l * w_f_l * coeffs_this[i_t_l, i_f_l] + w_t_l * w_f_r * coeffs_this[i_t_l, i_f_r] +
-                              w_t_r * w_f_l * coeffs_this[i_t_r, i_f_l] + w_t_r * w_f_r * coeffs_this[i_t_r, i_f_r]);
-    }
-  }
+  regrid_with(
+      static_cast<TensorType &>(result), static_cast<const TensorType &>(*this), weights.t_lags, weights.f_lags);
   return result;
 }
 
@@ -192,35 +151,11 @@ BackscatterMatrixData<Format::ARO> &BackscatterMatrixData<Format::ARO>::operator
 BackscatterMatrixData<Format::ARO> BackscatterMatrixData<Format::ARO>::regrid(const ScatteringDataGrids &grids,
                                                                               const RegridWeights &weights) const {
   BackscatterMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid);
-  const TensorType     &coeffs_this = *this;
-  TensorType           &coeffs_res  = result;
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    GridPos     gp_t    = weights.t_grid_weights[i_t];
-    const Index t_upper = std::min<Index>(gp_t.idx + 1, coeffs_this.extent(0) - 1);
-    Numeric     w_t_l   = gp_t.fd[1];
-    Numeric     w_t_r   = gp_t.fd[0];
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      GridPos     gp_f    = weights.f_grid_weights[i_f];
-      const Index f_upper = std::min<Index>(gp_f.idx + 1, coeffs_this.extent(1) - 1);
-      Numeric     w_f_l   = gp_f.fd[1];
-      Numeric     w_f_r   = gp_f.fd[0];
-      for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size(); ++i_za_inc) {
-        GridPos     gp_za_inc          = weights.za_inc_grid_weights[i_za_inc];
-        const Index za_inc_upper       = std::min<Index>(gp_za_inc.idx + 1, coeffs_this.extent(2) - 1);
-        Numeric     w_za_inc_l         = gp_za_inc.fd[1];
-        Numeric     w_za_inc_r         = gp_za_inc.fd[0];
-        coeffs_res[i_t, i_f, i_za_inc] = (w_t_l * w_f_l * w_za_inc_l * coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx] +
-                                          w_t_l * w_f_l * w_za_inc_r * coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper] +
-                                          w_t_l * w_f_r * w_za_inc_l * coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx] +
-                                          w_t_l * w_f_r * w_za_inc_r * coeffs_this[gp_t.idx, f_upper, za_inc_upper] +
-
-                                          w_t_r * w_f_l * w_za_inc_l * coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx] +
-                                          w_t_r * w_f_l * w_za_inc_r * coeffs_this[t_upper, gp_f.idx, za_inc_upper] +
-                                          w_t_r * w_f_r * w_za_inc_l * coeffs_this[t_upper, f_upper, gp_za_inc.idx] +
-                                          w_t_r * w_f_r * w_za_inc_r * coeffs_this[t_upper, f_upper, za_inc_upper]);
-      }
-    }
-  }
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              weights.za_inc_lags);
   return result;
 }
 
@@ -242,30 +177,21 @@ PhaseMatrixData<Format::TRO, Representation::Gridded> &PhaseMatrixData<Format::T
 
 BackscatterMatrixData<Format::TRO> PhaseMatrixData<Format::TRO, Representation::Gridded>::extract_backscatter_matrix() {
   BackscatterMatrixData<Format::TRO> result(t_grid_, f_grid_);
-  GridPos                            interp = find_interp_weights(grid_vector(*za_scat_grid_), 180.0);
-  //gridpos(interp, grid_vector(*za_scat_grid_), 180.0);
-
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      result[i_t, i_f] =
-          interp.fd[1] * (*this)[i_t, i_f, interp.idx] + interp.fd[0] * (*this)[i_t, i_f, interp.idx + 1];
-    }
-  }
+  // A grid that stops short of 180 deg gives its last value
+  const auto lag = clamped_lag(Vector{grid_vector(*za_scat_grid_)}, 180.0);
+  for (Index i_t = 0; i_t < n_temps_; ++i_t)
+    for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+      result[i_t, i_f] = lagrange_interp::interp((*this)[i_t, i_f, joker], lag);
   return result;
 }
 
 ForwardscatterMatrixData<Format::TRO>
 PhaseMatrixData<Format::TRO, Representation::Gridded>::extract_forwardscatter_matrix() {
   ForwardscatterMatrixData<Format::TRO> result(t_grid_, f_grid_);
-  GridPos                               interp;
-  gridpos(interp, grid_vector(*za_scat_grid_), 0.0, 1e99);
-
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      result[i_t, i_f] =
-          interp.fd[1] * (*this)[i_t, i_f, interp.idx] + interp.fd[0] * (*this)[i_t, i_f, interp.idx + 1];
-    }
-  }
+  const auto                            lag = linear_lag(Vector{grid_vector(*za_scat_grid_)}, 0.0);
+  for (Index i_t = 0; i_t < n_temps_; ++i_t)
+    for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+      result[i_t, i_f] = lagrange_interp::interp((*this)[i_t, i_f, joker], lag);
   return result;
 }
 
@@ -281,53 +207,12 @@ rtepack::compact_planar_muelmat_matrix PhaseMatrixData<Format::TRO, Representati
 
 PhaseMatrixData<Format::TRO, Representation::Gridded> PhaseMatrixData<Format::TRO, Representation::Gridded>::regrid(
     const ScatteringDataGrids &grids, const RegridWeights &weights) const {
-  PhaseMatrixData   result(grids.t_grid, grids.f_grid, grids.za_scat_grid);
-  const TensorType &coeffs_this = *this;
-  TensorType       &coeffs_res  = result;
-  for (Index i_t = 0; i_t < static_cast<Index>(weights.t_grid_weights.size()); ++i_t) {
-    GridPos     gp_t  = weights.t_grid_weights[i_t];
-    Numeric     w_t_l = gp_t.fd[1];
-    Numeric     w_t_r = gp_t.fd[0];
-    const Index it0   = std::clamp<Index>(gp_t.idx, 0, n_temps_ - 1);
-    const Index it1   = std::min(it0 + 1, n_temps_ - 1);
-    for (Index i_f = 0; i_f < static_cast<Index>(weights.f_grid_weights.size()); ++i_f) {
-      GridPos     gp_f  = weights.f_grid_weights[i_f];
-      Numeric     w_f_l = gp_f.fd[1];
-      Numeric     w_f_r = gp_f.fd[0];
-      const Index if0   = std::clamp<Index>(gp_f.idx, 0, n_freqs_ - 1);
-      const Index if1   = std::min(if0 + 1, n_freqs_ - 1);
-      for (Index i_za_scat = 0; i_za_scat < static_cast<Index>(weights.za_scat_grid_weights.size()); ++i_za_scat) {
-        GridPos     gp_za_scat  = weights.za_scat_grid_weights[i_za_scat];
-        Numeric     w_za_scat_l = gp_za_scat.fd[1];
-        Numeric     w_za_scat_r = gp_za_scat.fd[0];
-        const Index iza0        = std::clamp<Index>(gp_za_scat.idx, 0, n_za_scat_ - 1);
-        const Index iza1        = std::min(iza0 + 1, n_za_scat_ - 1);
-
-        coeffs_res[i_t, i_f, i_za_scat] = rtepack::compact_planar_muelmat{};
-
-        if (w_t_l > 0.0) {
-          if (w_f_l > 0.0) {
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_l * w_f_l * w_za_scat_l * coeffs_this[it0, if0, iza0];
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_l * w_f_l * w_za_scat_r * coeffs_this[it0, if0, iza1];
-          }
-          if (w_f_r > 0.0) {
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_l * w_f_r * w_za_scat_l * coeffs_this[it0, if1, iza0];
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_l * w_f_r * w_za_scat_r * coeffs_this[it0, if1, iza1];
-          }
-        }
-        if (w_t_r > 0.0) {
-          if (w_f_l > 0.0) {
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_r * w_f_l * w_za_scat_l * coeffs_this[it1, if0, iza0];
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_r * w_f_l * w_za_scat_r * coeffs_this[it1, if0, iza1];
-          }
-          if (w_f_r > 0.0) {
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_r * w_f_r * w_za_scat_l * coeffs_this[it1, if1, iza0];
-            coeffs_res[i_t, i_f, i_za_scat] += w_t_r * w_f_r * w_za_scat_r * coeffs_this[it1, if1, iza1];
-          }
-        }
-      }
-    }
-  }
+  PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_scat_grid);
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              weights.za_scat_lags);
   return result;
 }
 
@@ -478,33 +363,12 @@ PhaseMatrixData<Format::TRO, Representation::Spectral>::to_spectral(Index degree
 
 PhaseMatrixData<Format::TRO, Representation::Spectral> PhaseMatrixData<Format::TRO, Representation::Spectral>::regrid(
     const ScatteringDataGrids &grids, const RegridWeights weights) const {
-  PhaseMatrixData   result(grids.t_grid, grids.f_grid, degree_);
-  const TensorType &coeffs_this = *this;
-  TensorType       &coeffs_res  = result;
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    GridPos     gp_t    = weights.t_grid_weights[i_t];
-    const Index t_upper = std::min<Index>(gp_t.idx + 1, coeffs_this.extent(0) - 1);
-    Numeric     w_t_l   = gp_t.fd[1];
-    Numeric     w_t_r   = gp_t.fd[0];
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      GridPos     gp_f    = weights.f_grid_weights[i_f];
-      const Index f_upper = std::min<Index>(gp_f.idx + 1, coeffs_this.extent(1) - 1);
-      Numeric     w_f_l   = gp_f.fd[1];
-      Numeric     w_f_r   = gp_f.fd[0];
-
-      for (Index l = 0; l <= degree_; ++l) {
-        coeffs_res[i_t, i_f, l] = rtepack::compact_planar_muelmat{};
-        if (w_t_l > 0.0) {
-          if (w_f_l > 0.0) coeffs_res[i_t, i_f, l] += w_t_l * w_f_l * coeffs_this[gp_t.idx, gp_f.idx, l];
-          if (w_f_r > 0.0) coeffs_res[i_t, i_f, l] += w_t_l * w_f_r * coeffs_this[gp_t.idx, f_upper, l];
-        }
-        if (w_t_r > 0.0) {
-          if (w_f_l > 0.0) coeffs_res[i_t, i_f, l] += w_t_r * w_f_l * coeffs_this[t_upper, gp_f.idx, l];
-          if (w_f_r > 0.0) coeffs_res[i_t, i_f, l] += w_t_r * w_f_r * coeffs_this[t_upper, f_upper, l];
-        }
-      }
-    }
-  }
+  PhaseMatrixData result(grids.t_grid, grids.f_grid, degree_);
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              identity_lags(degree_ + 1));
   return result;
 }
 
@@ -569,24 +433,14 @@ PhaseMatrixData<Format::ARO, Representation::Gridded> &PhaseMatrixData<Format::A
 
 BackscatterMatrixData<Format::ARO> PhaseMatrixData<Format::ARO, Representation::Gridded>::extract_backscatter_matrix() {
   BackscatterMatrixData<Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
-  GridPos                            za_scat_interp, delta_aa_interp;
-  gridpos(delta_aa_interp, *delta_aa_grid_, 180.0, 1e99);
-  Vector     weights(4);
-  const auto elements = rtepack::elements(*this);
-
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-        auto za_inc = (*za_inc_grid_)[i_za_inc];
-        gridpos(za_scat_interp, grid_vector(*za_scat_grid_), 180.0 - za_inc, 1e99);
-        interpweights(weights, delta_aa_interp, za_scat_interp);
-
-        for (Index i_s = 0; i_s < 16; ++i_s) {
-          auto mat                             = elements[i_t, i_f, i_za_inc, joker, joker, i_s];
-          result[i_t, i_f, i_za_inc].data[i_s] = interp(weights, mat, delta_aa_interp, za_scat_interp);
-        }
-      }
-    }
+  const Vector                       za_scat{grid_vector(*za_scat_grid_)};
+  const auto                         aa = linear_lag(*delta_aa_grid_, 180.0);
+  for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+    const auto za = linear_lag(za_scat, 180.0 - (*za_inc_grid_)[i_za_inc]);
+    const auto w  = lagrange_interp::interpweights(aa, za);
+    for (Index i_t = 0; i_t < n_temps_; ++i_t)
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+        result[i_t, i_f, i_za_inc] = lagrange_interp::interp((*this)[i_t, i_f, i_za_inc, joker, joker], w, aa, za);
   }
   return result;
 }
@@ -594,179 +448,28 @@ BackscatterMatrixData<Format::ARO> PhaseMatrixData<Format::ARO, Representation::
 ForwardscatterMatrixData<Format::ARO>
 PhaseMatrixData<Format::ARO, Representation::Gridded>::extract_forwardscatter_matrix() {
   BackscatterMatrixData<Format::ARO> result(t_grid_, f_grid_, za_inc_grid_);
-  GridPos                            za_scat_interp, delta_aa_interp;
-  gridpos(delta_aa_interp, *delta_aa_grid_, 0.0, 1e99);
-  Vector     weights(4);
-  const auto elements = rtepack::elements(*this);
-
-  for (Index i_t = 0; i_t < n_temps_; ++i_t) {
-    for (Index i_f = 0; i_f < n_freqs_; ++i_f) {
-      for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
-        auto za_inc = (*za_inc_grid_)[i_za_inc];
-        gridpos(za_scat_interp, grid_vector(*za_scat_grid_), za_inc, 1e99);
-        interpweights(weights, delta_aa_interp, za_scat_interp);
-
-        for (Index i_s = 0; i_s < 16; ++i_s) {
-          auto mat                             = elements[i_t, i_f, i_za_inc, joker, joker, i_s];
-          result[i_t, i_f, i_za_inc].data[i_s] = interp(weights, mat, delta_aa_interp, za_scat_interp);
-        }
-      }
-    }
+  const Vector                       za_scat{grid_vector(*za_scat_grid_)};
+  const auto                         aa = linear_lag(*delta_aa_grid_, 0.0);
+  for (Index i_za_inc = 0; i_za_inc < n_za_inc_; ++i_za_inc) {
+    const auto za = linear_lag(za_scat, (*za_inc_grid_)[i_za_inc]);
+    const auto w  = lagrange_interp::interpweights(aa, za);
+    for (Index i_t = 0; i_t < n_temps_; ++i_t)
+      for (Index i_f = 0; i_f < n_freqs_; ++i_f)
+        result[i_t, i_f, i_za_inc] = lagrange_interp::interp((*this)[i_t, i_f, i_za_inc, joker, joker], w, aa, za);
   }
   return result;
 }
 
 PhaseMatrixData<Format::ARO, Representation::Gridded> PhaseMatrixData<Format::ARO, Representation::Gridded>::regrid(
     const ScatteringDataGrids &grids, const RegridWeights &weights) const {
-  PhaseMatrixData   result(grids.t_grid, grids.f_grid, grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid);
-  const TensorType &coeffs_this = *this;
-  TensorType       &coeffs_res  = result;
-
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    GridPos     gp_t    = weights.t_grid_weights[i_t];
-    const Index t_upper = std::min<Index>(gp_t.idx + 1, coeffs_this.extent(0) - 1);
-    Numeric     w_t_l   = gp_t.fd[1];
-    Numeric     w_t_r   = gp_t.fd[0];
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      GridPos     gp_f    = weights.f_grid_weights[i_f];
-      const Index f_upper = std::min<Index>(gp_f.idx + 1, coeffs_this.extent(1) - 1);
-      Numeric     w_f_l   = gp_f.fd[1];
-      Numeric     w_f_r   = gp_f.fd[0];
-      for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size(); ++i_za_inc) {
-        GridPos     gp_za_inc    = weights.za_inc_grid_weights[i_za_inc];
-        const Index za_inc_upper = std::min<Index>(gp_za_inc.idx + 1, coeffs_this.extent(2) - 1);
-        Numeric     w_za_inc_l   = gp_za_inc.fd[1];
-        Numeric     w_za_inc_r   = gp_za_inc.fd[0];
-        for (Size i_aa_scat = 0; i_aa_scat < weights.aa_scat_grid_weights.size(); ++i_aa_scat) {
-          GridPos     gp_aa_scat    = weights.aa_scat_grid_weights[i_aa_scat];
-          const Index aa_scat_upper = std::min<Index>(gp_aa_scat.idx + 1, coeffs_this.extent(3) - 1);
-          Numeric     w_aa_scat_l   = gp_aa_scat.fd[1];
-          Numeric     w_aa_scat_r   = gp_aa_scat.fd[0];
-          for (Size i_za_scat = 0; i_za_scat < weights.za_scat_grid_weights.size(); ++i_za_scat) {
-            GridPos     gp_za_scat    = weights.za_scat_grid_weights[i_za_scat];
-            const Index za_scat_upper = std::min<Index>(gp_za_scat.idx + 1, coeffs_this.extent(4) - 1);
-            Numeric     w_za_scat_l   = gp_za_scat.fd[1];
-            Numeric     w_za_scat_r   = gp_za_scat.fd[0];
-
-            coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] = rtepack::muelmat{0.0};
-
-            if (w_t_l > 0.0) {
-              if (w_f_l > 0.0) {
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_l * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_l * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_l * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_l * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, aa_scat_upper, za_scat_upper];
-
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_r * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_r * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_r * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_l * w_za_inc_r * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, aa_scat_upper, za_scat_upper];
-              }
-              if (w_f_r > 0.0) {
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_l * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_l * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_l * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_l * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, aa_scat_upper, za_scat_upper];
-
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_r * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[gp_t.idx, f_upper, za_inc_upper, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_r * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[gp_t.idx, f_upper, za_inc_upper, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_r * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[gp_t.idx, f_upper, za_inc_upper, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_l * w_f_r * w_za_inc_r * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[gp_t.idx, f_upper, za_inc_upper, aa_scat_upper, za_scat_upper];
-              }
-            }
-            if (w_t_r > 0.0) {
-              if (w_f_l > 0.0) {
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_l * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_l * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_l * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_l * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, aa_scat_upper, za_scat_upper];
-
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_r * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[t_upper, gp_f.idx, za_inc_upper, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_r * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[t_upper, gp_f.idx, za_inc_upper, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_r * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[t_upper, gp_f.idx, za_inc_upper, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_l * w_za_inc_r * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[t_upper, gp_f.idx, za_inc_upper, aa_scat_upper, za_scat_upper];
-              }
-              if (w_f_r > 0.0) {
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_l * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[t_upper, f_upper, gp_za_inc.idx, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_l * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[t_upper, f_upper, gp_za_inc.idx, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_l * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[t_upper, f_upper, gp_za_inc.idx, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_l * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[t_upper, f_upper, gp_za_inc.idx, aa_scat_upper, za_scat_upper];
-
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_r * w_aa_scat_l * w_za_scat_l *
-                    coeffs_this[t_upper, f_upper, za_inc_upper, gp_aa_scat.idx, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_r * w_aa_scat_l * w_za_scat_r *
-                    coeffs_this[t_upper, f_upper, za_inc_upper, gp_aa_scat.idx, za_scat_upper];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_r * w_aa_scat_r * w_za_scat_l *
-                    coeffs_this[t_upper, f_upper, za_inc_upper, aa_scat_upper, gp_za_scat.idx];
-                coeffs_res[i_t, i_f, i_za_inc, i_aa_scat, i_za_scat] +=
-                    w_t_r * w_f_r * w_za_inc_r * w_aa_scat_r * w_za_scat_r *
-                    coeffs_this[t_upper, f_upper, za_inc_upper, aa_scat_upper, za_scat_upper];
-              }
-            }
-          }
-        }
-      }
-    }
-  }
+  PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, grids.aa_scat_grid, grids.za_scat_grid);
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              weights.za_inc_lags,
+              weights.aa_scat_lags,
+              weights.za_scat_lags);
   return result;
 }
 
@@ -1015,69 +718,13 @@ rtepack::muelmat_tensor3 PhaseMatrixData<Format::ARO, Representation::Spectral>:
 
 PhaseMatrixData<Format::ARO, Representation::Spectral> PhaseMatrixData<Format::ARO, Representation::Spectral>::regrid(
     const ScatteringDataGrids &grids, const RegridWeights weights) const {
-  PhaseMatrixData   result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
-  const TensorType &coeffs_this = *this;
-  TensorType       &coeffs_res  = result;
-
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    GridPos     gp_t    = weights.t_grid_weights[i_t];
-    const Index t_upper = std::min<Index>(gp_t.idx + 1, coeffs_this.extent(0) - 1);
-    Numeric     w_t_l   = gp_t.fd[1];
-    Numeric     w_t_r   = gp_t.fd[0];
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      GridPos     gp_f    = weights.f_grid_weights[i_f];
-      const Index f_upper = std::min<Index>(gp_f.idx + 1, coeffs_this.extent(1) - 1);
-      Numeric     w_f_l   = gp_f.fd[1];
-      Numeric     w_f_r   = gp_f.fd[0];
-      for (Size i_za_inc = 0; i_za_inc < weights.za_inc_grid_weights.size(); ++i_za_inc) {
-        GridPos     gp_za_inc    = weights.za_inc_grid_weights[i_za_inc];
-        const Index za_inc_upper = std::min<Index>(gp_za_inc.idx + 1, coeffs_this.extent(2) - 1);
-        Numeric     w_za_inc_l   = gp_za_inc.fd[1];
-        Numeric     w_za_inc_r   = gp_za_inc.fd[0];
-
-        for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-          coeffs_res[i_t, i_f, i_za_inc, i_sht] = rtepack::specmat{0.0};
-        }
-
-        if (w_t_l > 0.0) {
-          if (w_f_l > 0.0) {
-            for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_l * w_f_l * w_za_inc_l * coeffs_this[gp_t.idx, gp_f.idx, gp_za_inc.idx, i_sht];
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_l * w_f_l * w_za_inc_r * coeffs_this[gp_t.idx, gp_f.idx, za_inc_upper, i_sht];
-            }
-          }
-          if (w_f_r > 0.0) {
-            for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_l * w_f_r * w_za_inc_l * coeffs_this[gp_t.idx, f_upper, gp_za_inc.idx, i_sht];
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_l * w_f_r * w_za_inc_r * coeffs_this[gp_t.idx, f_upper, za_inc_upper, i_sht];
-            }
-          }
-        }
-        if (w_t_r > 0.0) {
-          if (w_f_l > 0.0) {
-            for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_r * w_f_l * w_za_inc_l * coeffs_this[t_upper, gp_f.idx, gp_za_inc.idx, i_sht];
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_r * w_f_l * w_za_inc_r * coeffs_this[t_upper, gp_f.idx, za_inc_upper, i_sht];
-            }
-          }
-          if (w_f_r > 0.0) {
-            for (Index i_sht = 0; i_sht < n_spectral_coeffs_; ++i_sht) {
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_r * w_f_r * w_za_inc_l * coeffs_this[t_upper, f_upper, gp_za_inc.idx, i_sht];
-              coeffs_res[i_t, i_f, i_za_inc, i_sht] +=
-                  w_t_r * w_f_r * w_za_inc_r * coeffs_this[t_upper, f_upper, za_inc_upper, i_sht];
-            }
-          }
-        }
-      }
-    }
-  }
+  PhaseMatrixData result(grids.t_grid, grids.f_grid, grids.za_inc_grid, sht_);
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              weights.za_inc_lags,
+              identity_lags(n_spectral_coeffs_));
   return result;
 }
 
@@ -1201,36 +848,20 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> PhaseMatrixData<Format::AR
 
 PhaseMatrixData<Format::ARO, Representation::Fourier> PhaseMatrixData<Format::ARO, Representation::Fourier>::regrid(
     const ScatteringDataGrids &grids, const RegridWeights &weights) const {
-  auto            new_inc  = grids.za_inc_grid ? grids.za_inc_grid : za_inc_grid_;
-  auto            new_scat = grids.za_scat_grid ? grids.za_scat_grid : za_scat_grid_;
-  const auto      inc      = node_indices(*new_inc, *za_inc_grid_, "incidence");
-  const auto      scat     = node_indices(grid_vector(*new_scat), grid_vector(*za_scat_grid_), "scattering");
+  auto       new_inc  = grids.za_inc_grid ? grids.za_inc_grid : za_inc_grid_;
+  auto       new_scat = grids.za_scat_grid ? grids.za_scat_grid : za_scat_grid_;
+  const auto inc      = selection_lags(node_indices(*new_inc, *za_inc_grid_, "incidence"));
+  const auto scat     = selection_lags(node_indices(grid_vector(*new_scat), grid_vector(*za_scat_grid_), "scattering"));
   PhaseMatrixData result(grids.t_grid, grids.f_grid, new_inc, new_scat, max_mode_);
-  const Index     nt = this->extent(0), nf = this->extent(1);
-  for (Size i_t = 0; i_t < weights.t_grid_weights.size(); ++i_t) {
-    const GridPos gp_t = weights.t_grid_weights[i_t];
-    const Index   t0 = std::clamp<Index>(gp_t.idx, 0, nt - 1), t1 = std::min<Index>(t0 + 1, nt - 1);
-    for (Size i_f = 0; i_f < weights.f_grid_weights.size(); ++i_f) {
-      const GridPos gp_f = weights.f_grid_weights[i_f];
-      const Index   f0 = std::clamp<Index>(gp_f.idx, 0, nf - 1), f1 = std::min<Index>(f0 + 1, nf - 1);
-      const std::array<std::tuple<Numeric, Index, Index>, 4> corners{{{gp_t.fd[1] * gp_f.fd[1], t0, f0},
-                                                                      {gp_t.fd[1] * gp_f.fd[0], t0, f1},
-                                                                      {gp_t.fd[0] * gp_f.fd[1], t1, f0},
-                                                                      {gp_t.fd[0] * gp_f.fd[0], t1, f1}}};
-      for (const auto &[w, it, jf] : corners) {
-        if (w == 0.0) continue;
-        for (Size i_i = 0; i_i < inc.size(); ++i_i) {
-          result.phase_integral_[i_t, i_f, i_i] += w * phase_integral_[it, jf, inc[i_i]];
-          for (Size i_s = 0; i_s < scat.size(); ++i_s) {
-            auto       out = result[i_t, i_f, i_i, i_s];
-            const auto in  = this->operator[](it, jf, inc[i_i], scat[i_s]);
-            for (auto [o, x] : std::views::zip(out | by_elem, in | by_elem))
-              for (auto [oe, xe] : std::views::zip(o.data, x.data)) oe += w * xe;
-          }
-        }
-      }
-    }
-  }
+  regrid_with(static_cast<TensorType &>(result),
+              static_cast<const TensorType &>(*this),
+              weights.t_lags,
+              weights.f_lags,
+              inc,
+              scat,
+              identity_lags(max_mode_ + 1),
+              identity_lags(2));
+  regrid_with(result.phase_integral_, phase_integral_, weights.t_lags, weights.f_lags, inc);
   return result;
 }
 

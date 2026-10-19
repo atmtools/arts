@@ -864,10 +864,16 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field, const FlagTs&... 
 
   const std::array<Index, N> n{static_cast<Index>(lags.size())...};
 
-  // The term is its own expression, so that it is not contracted with the sum
+  // The term is its own expression, so that it is not contracted with the sum.  A value of compound type, such as a
+  // Mueller matrix, is multiplied once, by the product of its weights, not once per weight
   nested_for(n, [&](auto... i) {
-    const auto term  = (transform::forward(field[lags.indx[i]...]) * ... * lags.data[i]);
-    out             += term;
+    if constexpr (std::is_arithmetic_v<T>) {
+      const auto term  = (transform::forward(field[lags.indx[i]...]) * ... * lags.data[i]);
+      out             += term;
+    } else {
+      const auto term  = transform::forward(field[lags.indx[i]...]) * (... * lags.data[i]);
+      out             += term;
+    }
   });
 
   return transform::inverse(out);

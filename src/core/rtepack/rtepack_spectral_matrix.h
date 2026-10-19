@@ -13,7 +13,8 @@ struct specmat final : ComplexMatrix44 {
   explicit constexpr specmat(Complex tau) noexcept
       : ComplexMatrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr specmat() : specmat(1.0) {}
+  //! Zero, as every rtepack type; the identity is id()
+  constexpr specmat() : specmat(0.0) {}
 
   constexpr specmat(Complex m00,
                     Complex m01,

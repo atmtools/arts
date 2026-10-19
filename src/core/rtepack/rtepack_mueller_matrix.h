@@ -14,7 +14,8 @@ namespace rtepack {
 struct muelmat final : Matrix44 {
   explicit constexpr muelmat(Numeric tau) noexcept : Matrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr muelmat() : muelmat(1.0) {}
+  //! Zero, as every rtepack type; the identity is id()
+  constexpr muelmat() : muelmat(0.0) {}
 
   constexpr muelmat(Numeric m00,
                     Numeric m01,

@@ -1,7 +1,6 @@
 #include "scattering_habit.h"
 
 #include "configtypes.h"
-#include "interpolation.h"
 
 namespace scattering {
 
@@ -58,8 +57,9 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
     ARTS_USER_ERROR("Particle habit must be brought on a shared grid before buld properties can be computed.")
   }
 
-  auto    grids  = particle_habit.grids.value();
-  GridPos interp = find_interp_weights(*grids.t_grid, point[AtmKey::t]);
+  auto grids = particle_habit.grids.value();
+  // Beyond the temperature grid, the value at its nearest end
+  const auto t_lag = clamped_lag(*grids.t_grid, point[AtmKey::t]);
 
   Index n_freqs = grids.f_grid->size();
   Index n_angs  = grid_size(*grids.za_scat_grid);
@@ -74,7 +74,7 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
       for (Index f_ind = 0; f_ind < n_freqs; ++f_ind) {
         // The scattering matrices at the two temperatures, weighted
         const std::array<std::pair<Numeric, Index>, 2> nodes{
-            {{pnd[part_ind] * interp.fd[1], interp.idx}, {pnd[part_ind] * interp.fd[0], interp.idx + 1}}};
+            {{pnd[part_ind] * t_lag.data[0], t_lag.indx[0]}, {pnd[part_ind] * t_lag.data[1], t_lag.indx[1]}}};
         for (Index ang_ind = 0; ang_ind < n_angs; ++ang_ind) {
           for (const auto& [w, it] : nodes)
             phase_matrix[f_ind, ang_ind] += w * ssd.phase_matrix.value()[it, f_ind, ang_ind];
@@ -98,24 +98,23 @@ BulkScatteringPropertiesTROGridded ScatteringHabit::get_bulk_scattering_properti
   Index n_freqs_new = f_grid.size();
 
   // Otherwise perform frequency interpolation.
-  ArrayOfGridPos interp_weights;
-  gridpos(interp_weights, *grids.f_grid, f_grid);
+  const auto                 f_lags = linear_lags(*grids.f_grid, f_grid);
   CompactPlanarMuelmatMatrix phase_matrix_new(n_freqs_new, n_angs, CompactPlanarMuelmat{});
   CompactPlanarPropmatVector extinction_matrix_new(n_freqs_new, CompactPlanarPropmat{});
   CompactPlanarStokvecVector absorption_vector_new(n_freqs_new, CompactPlanarStokvec{});
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
-    auto weights = interp_weights[f_ind];
+    const auto& lag = f_lags[f_ind];
     for (Index za_scat_ind = 0; za_scat_ind < n_angs; ++za_scat_ind) {
       auto& F  = phase_matrix_new[f_ind, za_scat_ind];
-      F       += weights.fd[1] * phase_matrix[weights.idx, za_scat_ind];
-      F       += weights.fd[0] * phase_matrix[weights.idx + 1, za_scat_ind];
+      F       += lag.data[0] * phase_matrix[lag.indx[0], za_scat_ind];
+      F       += lag.data[1] * phase_matrix[lag.indx[1], za_scat_ind];
     }
 
-    extinction_matrix_new[f_ind].A() += weights.fd[1] * extinction_matrix[weights.idx].A();
-    extinction_matrix_new[f_ind].A() += weights.fd[0] * extinction_matrix[weights.idx + 1].A();
-    absorption_vector_new[f_ind].I() += weights.fd[1] * absorption_vector[weights.idx].I();
-    absorption_vector_new[f_ind].I() += weights.fd[0] * absorption_vector[weights.idx + 1].I();
+    extinction_matrix_new[f_ind].A() += lag.data[0] * extinction_matrix[lag.indx[0]].A();
+    extinction_matrix_new[f_ind].A() += lag.data[1] * extinction_matrix[lag.indx[1]].A();
+    absorption_vector_new[f_ind].I() += lag.data[0] * absorption_vector[lag.indx[0]].I();
+    absorption_vector_new[f_ind].I() += lag.data[1] * absorption_vector[lag.indx[1]].I();
   }
   return BulkScatteringPropertiesTROGridded(phase_matrix_new, extinction_matrix_new, absorption_vector_new);
 }

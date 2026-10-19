@@ -59,7 +59,7 @@ void test_dexpm() {
   const PropmatVector dk(1, gen(0.0, true));
   const Vector        dr{0};
   Muelmat             t{};
-  MuelmatVector       dt(1, Muelmat{});
+  MuelmatVector       dt(1, Muelmat::id());
 
   const Numeric       x = 1e-9;
   const PropmatVector dk2{};

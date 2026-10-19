@@ -15,7 +15,6 @@
 
 #include <arts_conversions.h>
 #include <debug.h>
-#include <interpolation.h>
 #include <lagrange_interp.h>
 #include <physics_funcs.h>
 #include <xml_io_base.h>
@@ -79,16 +78,14 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw, const Vector& 
       data_f_grid, f_grid_active, 0.5, 1, "Frequency grid for sun spectrum");
 
   {
-    // Find frequency grid positions:
-    ArrayOfGridPos f_gp(f_grid_active.size());
-    gridpos(f_gp, data_f_grid_active, f_grid_active, 0);
-
-    Matrix itw(f_gp.size(), 2);
-    interpweights(itw, f_gp);
-
-    for (int i = 0; i < 4; i++) {
-      interp(int_data[Range(i_fstart, f_extent), i], itw, sun_spectrum_raw.data[active_range, i], f_gp);
-    }
+    // The frequencies are inside the active data, as checked above, so the lags need no limit of their own
+    const auto lags = lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
+        std::span<const Numeric>{data_f_grid_active.data_handle(), data_f_grid_active.size()},
+        std::span<const Numeric>{f_grid_active.data_handle(), f_grid_active.size()},
+        0.0,
+        "Frequency grid for sun spectrum");
+    for (int i = 0; i < 4; i++)
+      lagrange_interp::reinterp(int_data[Range(i_fstart, f_extent), i], sun_spectrum_raw.data[active_range, i], lags);
   }
 
   // Padding
