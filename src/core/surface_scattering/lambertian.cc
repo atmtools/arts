@@ -1,8 +1,10 @@
 #include "lambertian.h"
-#include "rtepack.h"
 
 #include <xml_io_base.h>
+
 #include <algorithm>
+
+#include "rtepack.h"
 
 namespace surface_scattering {
 
@@ -19,8 +21,7 @@ namespace {
  * @param nas     Number of scattering azimuth angles.
  */
 SurfaceScatteringModelProperties lambertian_properties(
-    const auto& r_data,
-    Index nf, Index nzi, Index nai, Index nzs, Index nas) {
+    const auto& r_data, Index nf, Index nzi, Index nai, Index nzs, Index nas) {
   MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
   MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
@@ -31,19 +32,17 @@ SurfaceScatteringModelProperties lambertian_properties(
   Muelmat isotropic_emissivity{0.0};
 
   for (Index f = 0; f < nf; ++f) {
-    const Numeric r        = std::clamp(r_data[f], Numeric{0}, Numeric{1});
+    const Numeric r = std::clamp(r_data[f], Numeric{0}, Numeric{1});
 
-    isotropic_brdf[0, 0] = r;
-    isotropic_emissivity[0,0] = 1.0 - r;
+    isotropic_brdf[0, 0]       = r;
+    isotropic_emissivity[0, 0] = 1.0 - r;
 
     for (Index zi = 0; zi < nzi; ++zi)
       for (Index ai = 0; ai < nai; ++ai)
         for (Index zs = 0; zs < nzs; ++zs)
-          for (Index as = 0; as < nas; ++as)
-            brdf[f, zi, ai, zs, as] = isotropic_brdf;
+          for (Index as = 0; as < nas; ++as) brdf[f, zi, ai, zs, as] = isotropic_brdf;
     for (Index zs = 0; zs < nzs; ++zs)
-      for (Index as = 0; as < nas; ++as)
-        emissivity[f, zs, as] = isotropic_emissivity;
+      for (Index as = 0; as < nas; ++as) emissivity[f, zs, as] = isotropic_emissivity;
   }
 
   // Lambertian scattering has no specular component; those stay missing
@@ -58,14 +57,12 @@ SurfaceScatteringModelProperties lambertian_properties(
 
 }  // namespace
 
-LambertianSurfaceScatterer::LambertianSurfaceScatterer(Data reflectivity_)
-    : reflectivity(std::move(reflectivity_)) {}
+LambertianSurfaceScatterer::LambertianSurfaceScatterer(Data reflectivity_) : reflectivity(std::move(reflectivity_)) {}
 
-SurfaceScatteringModelProperties
-LambertianSurfaceScatterer::get_surface_scattering_model_properties(
+SurfaceScatteringModelProperties LambertianSurfaceScatterer::get_surface_scattering_model_properties(
     const SurfacePoint& /*surf_point*/,
-    Numeric lat,
-    Numeric lon,
+    Numeric       lat,
+    Numeric       lon,
     const Vector& f_grid,
     const Vector& za_inc_grid,
     const Vector& aa_inc_grid,
@@ -79,18 +76,17 @@ LambertianSurfaceScatterer::get_surface_scattering_model_properties(
                                aa_scat_grid.size());
 }
 
-std::ostream& operator<<(std::ostream& os,
-                         [[maybe_unused]] const LambertianSurfaceScatterer& s) {
+std::ostream& operator<<(std::ostream& os, [[maybe_unused]] const LambertianSurfaceScatterer& s) {
   return os << "LambertianSurfaceScatterer";
 }
 
 }  // namespace surface_scattering
 
 void xml_io_stream<surface_scattering::LambertianSurfaceScatterer>::write(
-    std::ostream& os,
+    std::ostream&                                         os,
     const surface_scattering::LambertianSurfaceScatterer& x,
-    bofstream* pbofs,
-    std::string_view name) {
+    bofstream*                                            pbofs,
+    std::string_view                                      name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -100,9 +96,7 @@ void xml_io_stream<surface_scattering::LambertianSurfaceScatterer>::write(
 }
 
 void xml_io_stream<surface_scattering::LambertianSurfaceScatterer>::read(
-    std::istream& is,
-    surface_scattering::LambertianSurfaceScatterer& x,
-    bifstream* pbifs) {
+    std::istream& is, surface_scattering::LambertianSurfaceScatterer& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

@@ -1,8 +1,9 @@
 #include "fresnel.h"
-#include "rtepack.h"
 
 #include <physics_funcs.h>
 #include <xml_io_base.h>
+
+#include "rtepack.h"
 
 namespace {
 
@@ -23,15 +24,15 @@ Numeric za_fold(Numeric za) { return za <= 90.0 ? za : 180.0 - za; }
 //! The BRDF matrix at a frequency depends only on the incoming zenith angle
 //! (degrees); the emissivity tensor (no incidence axis) is the energy
 //! complement I4 - M evaluated at each scattering zenith angle.
-void fresnel_tensors(const Numeric n1,
-                     const auto& n2_data,
-                     const Vector& za_inc_grid,
-                     const Vector& za_scat_grid,
-                     Index nf,
-                     Index nzi,
-                     Index nai,
-                     Index nzs,
-                     Index nas,
+void fresnel_tensors(const Numeric   n1,
+                     const auto&     n2_data,
+                     const Vector&   za_inc_grid,
+                     const Vector&   za_scat_grid,
+                     Index           nf,
+                     Index           nzi,
+                     Index           nai,
+                     Index           nzs,
+                     Index           nas,
                      MuelmatTensor5& brdf_specular,
                      MuelmatTensor3& emissivity_specular) {
   for (Index f = 0; f < nf; ++f) {
@@ -44,24 +45,22 @@ void fresnel_tensors(const Numeric n1,
       // za > 90 raw inverts the reflectance (R -> 1/R) and blows up near the
       // conjugate Brewster angle.
       const Numeric za_eff = za_fold(za_inc_grid[zi]);
-      const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_eff);
-      const Muelmat M     = rtepack::fresnel_reflectance(Rv, Rh);
+      const auto [Rv, Rh]  = fresnel(Complex{n1}, Complex{n2}, za_eff);
+      const Muelmat M      = rtepack::fresnel_reflectance(Rv, Rh);
 
       for (Index ai = 0; ai < nai; ++ai)
         for (Index zs = 0; zs < nzs; ++zs)
-          for (Index as = 0; as < nas; ++as)
-            brdf_specular[f, zi, ai, zs, as] = M;
+          for (Index as = 0; as < nas; ++as) brdf_specular[f, zi, ai, zs, as] = M;
     }
 
     for (Index zs = 0; zs < nzs; ++zs) {
       for (Index as = 0; as < nas; ++as) {
         const Numeric za_eff = za_fold(za_scat_grid[zs]);
-        const auto [Rv, Rh] = fresnel(Complex{n1}, Complex{n2}, za_eff);
-        const Muelmat M     = rtepack::fresnel_reflectance(Rv, Rh);
-        Muelmat E{};
+        const auto [Rv, Rh]  = fresnel(Complex{n1}, Complex{n2}, za_eff);
+        const Muelmat M      = rtepack::fresnel_reflectance(Rv, Rh);
+        Muelmat       E{};
         for (Index r = 0; r < 4; ++r)
-          for (Index c = 0; c < 4; ++c)
-            E[r, c] = (r == c ? 1.0 : 0.0) - M[r, c];
+          for (Index c = 0; c < 4; ++c) E[r, c] = (r == c ? 1.0 : 0.0) - M[r, c];
         emissivity_specular[f, zs, as] = E;
       }
     }
@@ -73,9 +72,7 @@ void fresnel_tensors(const Numeric n1,
 using namespace surface_scattering;
 
 void FresnelSurfaceScatterer::check_n1() const {
-  ARTS_USER_ERROR_IF(
-      not (n1 > 0.0),
-      "FresnelSurfaceScatterer n1 must be positive, but is {}.", n1);
+  ARTS_USER_ERROR_IF(not(n1 > 0.0), "FresnelSurfaceScatterer n1 must be positive, but is {}.", n1);
 }
 
 FresnelSurfaceScatterer::FresnelSurfaceScatterer(Data refractive_index_, Numeric n1_)
@@ -83,11 +80,10 @@ FresnelSurfaceScatterer::FresnelSurfaceScatterer(Data refractive_index_, Numeric
   check_n1();
 }
 
-SurfaceScatteringModelProperties
-FresnelSurfaceScatterer::get_surface_scattering_model_properties(
+SurfaceScatteringModelProperties FresnelSurfaceScatterer::get_surface_scattering_model_properties(
     const SurfacePoint& /*surf_point*/,
-    Numeric lat,
-    Numeric lon,
+    Numeric       lat,
+    Numeric       lon,
     const Vector& f_grid,
     const Vector& za_inc_grid,
     const Vector& aa_inc_grid,
@@ -99,35 +95,25 @@ FresnelSurfaceScatterer::get_surface_scattering_model_properties(
 
   const Size nf_size = f_grid.size();
   for (Index f = 0; f < Index(nf_size); ++f) {
-    ARTS_USER_ERROR_IF(not (n2_data[f] > 0.0),
-                       "Refractive index must be positive, but {} (f={}).",
-                       n2_data[f],
-                       f_grid[f]);
+    ARTS_USER_ERROR_IF(
+        not(n2_data[f] > 0.0), "Refractive index must be positive, but {} (f={}).", n2_data[f], f_grid[f]);
   }
 
-  MuelmatTensor5 brdf_specular(nf_size,
-                               za_inc_grid.size(),
-                               aa_inc_grid.size(),
-                               za_scat_grid.size(),
-                               aa_scat_grid.size(),
-                               rtepack::muelmat{0.0});
-  MuelmatTensor3 emissivity_specular(f_grid.size(),
-                                     za_scat_grid.size(),
-                                     aa_scat_grid.size(),
-                                     rtepack::muelmat{0.0});
+  MuelmatTensor5 brdf_specular(
+      nf_size, za_inc_grid.size(), aa_inc_grid.size(), za_scat_grid.size(), aa_scat_grid.size(), rtepack::muelmat{0.0});
+  MuelmatTensor3 emissivity_specular(f_grid.size(), za_scat_grid.size(), aa_scat_grid.size(), rtepack::muelmat{0.0});
 
-  fresnel_tensors(
-      n1,
-      n2_data,
-      za_inc_grid,
-      za_scat_grid,
-      f_grid.size(),
-      za_inc_grid.size(),
-      aa_inc_grid.size(),
-      za_scat_grid.size(),
-      aa_scat_grid.size(),
-      brdf_specular,
-      emissivity_specular);
+  fresnel_tensors(n1,
+                  n2_data,
+                  za_inc_grid,
+                  za_scat_grid,
+                  f_grid.size(),
+                  za_inc_grid.size(),
+                  aa_inc_grid.size(),
+                  za_scat_grid.size(),
+                  aa_scat_grid.size(),
+                  brdf_specular,
+                  emissivity_specular);
 
   // Purely specular model: the diffuse components stay missing (std::nullopt)
   return SurfaceScatteringModelProperties{
@@ -142,11 +128,10 @@ std::ostream& operator<<(std::ostream& os, [[maybe_unused]] const FresnelSurface
   return os << std::format("FresnelSurfaceScatterer n1={}", s.n1);
 }
 
-void xml_io_stream<FresnelSurfaceScatterer>::write(
-    std::ostream& os,
-    const FresnelSurfaceScatterer& x,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<FresnelSurfaceScatterer>::write(std::ostream&                  os,
+                                                   const FresnelSurfaceScatterer& x,
+                                                   bofstream*                     pbofs,
+                                                   std::string_view               name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
 
@@ -156,10 +141,7 @@ void xml_io_stream<FresnelSurfaceScatterer>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<FresnelSurfaceScatterer>::read(
-    std::istream& is,
-    FresnelSurfaceScatterer& x,
-    bifstream* pbifs) {
+void xml_io_stream<FresnelSurfaceScatterer>::read(std::istream& is, FresnelSurfaceScatterer& x, bifstream* pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);

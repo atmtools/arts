@@ -149,8 +149,8 @@ is warranted.
   };
 
   wsa_data["spectral_rad_incoming_agenda"] = {
-    .desc =
-        R"--(Computes spectral radiance as seen from the input position.
+      .desc =
+          R"--(Computes spectral radiance as seen from the input position.
 
 The intent of this agenda is to provide the spectral radiance as seen from a
 position and line of sights. The main intent is to provide the spectral radiance
@@ -161,18 +161,11 @@ additionally require *suns*, the scattering propmat agendas, and the background
 agendas; ``ClearskyRayleighScatteringOnly`` omits thermal emission entirely.
 
 )--",
-    .output       = {"spectral_rad", "spectral_rad_jac"},
-    .input        = {"freq_grid",
-                     "jac_targets",
-                     "obs_pos",
-                     "obs_los",
-                     "atm_field",
-                     "surf_field",
-                     "subsurf_field"},
-    .enum_options = {"Emission", "ClearskyRayleighScattering", "ClearskyRayleighScatteringOnly"},
-    .enum_default = "Emission",
-    };
-
+      .output       = {"spectral_rad", "spectral_rad_jac"},
+      .input        = {"freq_grid", "jac_targets", "obs_pos", "obs_los", "atm_field", "surf_field", "subsurf_field"},
+      .enum_options = {"Emission", "ClearskyRayleighScattering", "ClearskyRayleighScatteringOnly"},
+      .enum_default = "Emission",
+  };
 
   wsa_data["single_rad_space_agenda"] = {
       .desc =

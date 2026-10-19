@@ -23,7 +23,8 @@ template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl> class 
   static constexpr bool ascending = ll_ <= ul_;
 
   static consteval Numeric limit(Index x, lim l, bool upper) {
-    if (l == lim::inf) return upper ? std::numeric_limits<Numeric>::infinity() : -std::numeric_limits<Numeric>::infinity();
+    if (l == lim::inf)
+      return upper ? std::numeric_limits<Numeric>::infinity() : -std::numeric_limits<Numeric>::infinity();
     return static_cast<Numeric>(x);
   }
 

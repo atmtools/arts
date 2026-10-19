@@ -34,12 +34,9 @@ struct SurfaceScatteringModelProperties {
   /// Specular emissivity vector: dims [n_f, n_za_scat, n_aa_scat, 4, 4]
   std::optional<EmissivityVector> emissivity_vector_specular;
 
-  SurfaceScatteringModelProperties& operator+=(
-      const SurfaceScatteringModelProperties& other);
+  SurfaceScatteringModelProperties& operator+=(const SurfaceScatteringModelProperties& other);
 
-  SurfaceScatteringModelProperties& operator*=(Numeric scalar);    
-
+  SurfaceScatteringModelProperties& operator*=(Numeric scalar);
 };
 
 }  // namespace surface_scattering
-

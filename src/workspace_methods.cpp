@@ -2355,10 +2355,10 @@ surface scattering methods, for example a diffuse and a specular one, into a sin
 
 Sizes: *spectral_rad* is (*freq_grid*), *spectral_rad_jac* is (*jac_targets*, *freq_grid*).
 )--",
-      .author         = {"Manfred Brath"},
-      .out            = {"spectral_rad", "spectral_rad_jac"},
-      .in             = {"freq_grid", "jac_targets"},
-   };
+      .author = {"Manfred Brath"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
+      .in     = {"freq_grid", "jac_targets"},
+  };
 
   wsm_data["spectral_radSurfaceScatteringDiffuse"] = {
       .desc =
@@ -2428,7 +2428,7 @@ without a ``…Direct`` method needs.
                          "when a Direct method is chained in the same "
                          "*spectral_rad_surface_agenda*, 0 otherwise."},
       .pass_workspace = true,
-   };
+  };
 
   wsm_data["spectral_radSurfaceScatteringSpecular"] = {
       .desc =
@@ -2551,20 +2551,20 @@ same as in *surface_models*.
                          "ray_path_observer_agenda",
                          "spectral_rad_incoming_agenda",
                          "spectral_rad_closed_surface_agenda"},
-       .gin            = {"angle_cut", "refinement", "include_emission"},
-       .gin_type       = {"Numeric", "Index", "Index"},
-       .gin_value      = {Numeric{0.0}, Index{1}, Index{1}},
-       .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
-                          "The refinement of the sun-path search algorithm (twice the power of this is the resolution)",
-                          "If 1 (default), the sub-surface emission multiplied by the diffuse emissivity is added "
-                          "to *spectral_rad*.  Set to 0 when *spectral_radSurfaceScatteringDiffuse* is chained in "
-                          "the same *spectral_rad_surface_agenda* -- that method already adds the diffuse emission, "
-                          "and adding it here as well double counts it."},
-       .pass_workspace = true,
-   };
+      .gin            = {"angle_cut", "refinement", "include_emission"},
+      .gin_type       = {"Numeric", "Index", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{1}, Index{1}},
+      .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                         "The refinement of the sun-path search algorithm (twice the power of this is the resolution)",
+                         "If 1 (default), the sub-surface emission multiplied by the diffuse emissivity is added "
+                         "to *spectral_rad*.  Set to 0 when *spectral_radSurfaceScatteringDiffuse* is chained in "
+                         "the same *spectral_rad_surface_agenda* -- that method already adds the diffuse emission, "
+                         "and adding it here as well double counts it."},
+      .pass_workspace = true,
+  };
 
   wsm_data["spectral_radSurfaceScatteringSpecularDirect"] = {
-      .desc = R"--(Add sub-surface emission plus direct (collimated) incoming beam
+      .desc           = R"--(Add sub-surface emission plus direct (collimated) incoming beam
 radiation specularly reflected by the surface to *spectral_rad*.
 
 The input path point must be close to the surface.
@@ -2635,7 +2635,7 @@ same as in *surface_models*.
       .pass_workspace = true,
   };
 
-   wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
+  wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
       .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
 
 This is done via perturbation based on the input delta values to the sensor

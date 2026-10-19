@@ -39,30 +39,29 @@ struct FresnelSurfaceScatterer {
   FresnelSurfaceScatterer() = default;
   explicit FresnelSurfaceScatterer(Data refractive_index_, Numeric n1_ = 1.0);
 
-  FresnelSurfaceScatterer(const FresnelSurfaceScatterer&)            = default;
-  FresnelSurfaceScatterer(FresnelSurfaceScatterer&&) noexcept        = default;
-  FresnelSurfaceScatterer& operator=(const FresnelSurfaceScatterer&) = default;
+  FresnelSurfaceScatterer(const FresnelSurfaceScatterer&)                = default;
+  FresnelSurfaceScatterer(FresnelSurfaceScatterer&&) noexcept            = default;
+  FresnelSurfaceScatterer& operator=(const FresnelSurfaceScatterer&)     = default;
   FresnelSurfaceScatterer& operator=(FresnelSurfaceScatterer&&) noexcept = default;
 
   void check_n1() const;
 
-  [[nodiscard]] SurfaceScatteringModelProperties
-  get_surface_scattering_model_properties(const SurfacePoint& surf_point,
-                                          Numeric lat,
-                                          Numeric lon,
-                                          const Vector& f_grid,
-                                          const Vector& za_inc_grid,
-                                          const Vector& aa_inc_grid,
-                                          const Vector& za_scat_grid,
-                                          const Vector& aa_scat_grid) const;
+  [[nodiscard]] SurfaceScatteringModelProperties get_surface_scattering_model_properties(
+      const SurfacePoint& surf_point,
+      Numeric             lat,
+      Numeric             lon,
+      const Vector&       f_grid,
+      const Vector&       za_inc_grid,
+      const Vector&       aa_inc_grid,
+      const Vector&       za_scat_grid,
+      const Vector&       aa_scat_grid) const;
 
   friend std::ostream& operator<<(std::ostream& os, const FresnelSurfaceScatterer& s);
 };
 
 }  // namespace surface_scattering
 
-template <>
-struct std::formatter<surface_scattering::FresnelSurfaceScatterer> {
+template <> struct std::formatter<surface_scattering::FresnelSurfaceScatterer> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -73,25 +72,19 @@ struct std::formatter<surface_scattering::FresnelSurfaceScatterer> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const surface_scattering::FresnelSurfaceScatterer& v,
-                              FmtContext& ctx) const {
-    if (tags.names) {
-      return tags.format(ctx, "FresnelSurfaceScatterer"sv);
-    }
+  FmtContext::iterator format(const surface_scattering::FresnelSurfaceScatterer& v, FmtContext& ctx) const {
+    if (tags.names) { return tags.format(ctx, "FresnelSurfaceScatterer"sv); }
     return tags.format(ctx, "FresnelSurfaceScatterer"sv, ": "sv, v.n1, ", "sv, v.refractive_index);
   }
 };
 
-template <>
-struct xml_io_stream<surface_scattering::FresnelSurfaceScatterer> {
+template <> struct xml_io_stream<surface_scattering::FresnelSurfaceScatterer> {
   static constexpr std::string_view type_name = "FresnelSurfaceScatterer";
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                                      os,
                     const surface_scattering::FresnelSurfaceScatterer& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                                         pbofs = nullptr,
+                    std::string_view                                   name  = ""sv);
 
-  static void read(std::istream& is,
-                   surface_scattering::FresnelSurfaceScatterer& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, surface_scattering::FresnelSurfaceScatterer& x, bifstream* pbifs = nullptr);
 };

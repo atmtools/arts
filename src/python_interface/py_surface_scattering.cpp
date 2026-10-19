@@ -45,22 +45,26 @@ void py_surface_scattering(py::module_& m) try {
   //
   // SurfaceScatteringModelProperties
   //
-  py::class_<surface_scattering::SurfaceScatteringModelProperties>(
-      m, "SurfaceScatteringModelProperties")
+  py::class_<surface_scattering::SurfaceScatteringModelProperties>(m, "SurfaceScatteringModelProperties")
       .def(py::init<>())
-      .def_rw("brdf_matrix_diffuse",
-              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_diffuse,
-              "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
-      .def_rw("emissivity_vector_diffuse",
-              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
-              "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
-      .def_rw("brdf_matrix_specular",
-              &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
-              "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
-      .def_rw("emissivity_vector_specular",
-              &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
-              "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
-      .doc() = "Bulk surface scattering properties (BRDF matrix + emissivity vector).\n\nComponents that no contributing model physically provides are None.";
+      .def_rw(
+          "brdf_matrix_diffuse",
+          &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_diffuse,
+          "Diffuse BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
+      .def_rw(
+          "emissivity_vector_diffuse",
+          &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_diffuse,
+          "Diffuse emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a diffuse component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
+      .def_rw(
+          "brdf_matrix_specular",
+          &surface_scattering::SurfaceScatteringModelProperties::brdf_matrix_specular,
+          "Specular BRDF Mueller matrix: dims [nf, nza_inc, naa_inc, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor5 | None`")
+      .def_rw(
+          "emissivity_vector_specular",
+          &surface_scattering::SurfaceScatteringModelProperties::emissivity_vector_specular,
+          "Specular emissivity vector: dims [nf, nza_scat, naa_scat, 4, 4]\n\nNone if no model provides a specular component.\n\n.. :class:`~pyarts3.arts.MuelmatTensor3 | None`")
+      .doc() =
+      "Bulk surface scattering properties (BRDF matrix + emissivity vector).\n\nComponents that no contributing model physically provides are None.";
 
   //
   // SurfaceSpectralData
@@ -94,7 +98,7 @@ void py_surface_scattering(py::module_& m) try {
               "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
       .def(
           "set_extrapolation",
-          [](SurfaceSpectralData &self, InterpolationExtrapolation x) {
+          [](SurfaceSpectralData& self, InterpolationExtrapolation x) {
             self.frq_upp = x;
             self.frq_low = x;
             self.lat_upp = x;
@@ -106,14 +110,14 @@ void py_surface_scattering(py::module_& m) try {
           "Set the extrapolation for all dimensions")
       .def(
           "__call__",
-          [](const SurfaceSpectralData &d, Numeric frq, Numeric lat, Numeric lon) { return d.at(frq, lat, lon); },
+          [](const SurfaceSpectralData& d, Numeric frq, Numeric lat, Numeric lon) { return d.at(frq, lat, lon); },
           "frq"_a,
           "lat"_a,
           "lon"_a,
           "Get a point of data at the frequency and position")
       .def(
           "ws",
-          [](const SurfaceSpectralData &d, Numeric frq, Numeric lat, Numeric lon) {
+          [](const SurfaceSpectralData& d, Numeric frq, Numeric lat, Numeric lon) {
             return d.flat_weights(frq, lat, lon);
           },
           "frq"_a,
@@ -136,8 +140,8 @@ extrapolation outside each grid is set per dimension.
   //
   py::class_<LambertianSurfaceScatterer> lss(m, "LambertianSurfaceScatterer");
   lss.def(py::init<SurfaceSpectralData>(),
-           "reflectivity"_a,
-           R"(Create a Lambertian surface scatterer.
+          "reflectivity"_a,
+          R"(Create a Lambertian surface scatterer.
 
 Parameters
 ----------
@@ -164,9 +168,9 @@ independent of the simulation.
   //
   py::class_<FresnelSurfaceScatterer> fss(m, "FresnelSurfaceScatterer");
   fss.def(py::init<SurfaceSpectralData, Numeric>(),
-           "refractive_index"_a,
-           "n1"_a = 1.0,
-           R"(Create a Fresnel surface scatterer.
+          "refractive_index"_a,
+          "n1"_a = 1.0,
+          R"(Create a Fresnel surface scatterer.
 
 Parameters
 ----------
@@ -176,9 +180,10 @@ refractive_index : SurfaceSpectralData
 n1 : float
     Refractive index of the medium the radiation propagates in (must be > 0).
 )")
-      .def_rw("refractive_index",
-              &FresnelSurfaceScatterer::refractive_index,
-              "Surface (medium 2) refractive index over frequency, latitude, and longitude\n\n.. :class:`~pyarts3.arts.SurfaceSpectralData`")
+      .def_rw(
+          "refractive_index",
+          &FresnelSurfaceScatterer::refractive_index,
+          "Surface (medium 2) refractive index over frequency, latitude, and longitude\n\n.. :class:`~pyarts3.arts.SurfaceSpectralData`")
       .def_rw("n1",
               &FresnelSurfaceScatterer::n1,
               "Refractive index of the medium the radiation propagates in\n\n.. :class:`~pyarts3.arts.Numeric`");
@@ -199,8 +204,8 @@ tensors are None.
   //
   py::class_<FlatScalarSurfaceScatterer> fsc(m, "FlatScalarSurfaceScatterer");
   fsc.def(py::init<SurfaceSpectralData>(),
-           "reflectivity"_a,
-           R"(Create a flat-scalar surface scatterer.
+          "reflectivity"_a,
+          R"(Create a flat-scalar surface scatterer.
 
 Parameters
 ----------
@@ -209,9 +214,10 @@ reflectivity : SurfaceSpectralData
     [deg].  Values are expected in [0, 1]; values outside this range are
     clamped at runtime.
 )")
-      .def_rw("reflectivity",
-              &FlatScalarSurfaceScatterer::reflectivity,
-              "Scalar reflectivity over frequency, latitude, and longitude\n\n.. :class:`~pyarts3.arts.SurfaceSpectralData`");
+      .def_rw(
+          "reflectivity",
+          &FlatScalarSurfaceScatterer::reflectivity,
+          "Scalar reflectivity over frequency, latitude, and longitude\n\n.. :class:`~pyarts3.arts.SurfaceSpectralData`");
   model_interface(fsc, "Compute bulk surface scattering properties for this flat-scalar model");
   generic_interface(fsc);
   fsc.doc() = R"(Flat-scalar (specular) surface scattering model.
@@ -229,65 +235,52 @@ position.  The model fills the specular BRDF (``Muelmat{R}``) and emissivity
   mossm.def(py::init<>())
       .def(
           "add",
-          [](MapOfSurfaceScatteringModel& self,
-             const std::string& name,
-             const surface_scattering::SurfaceScatteringModel& model) {
-            self.add(name, model);
-          },
+          [](MapOfSurfaceScatteringModel&                      self,
+             const std::string&                                name,
+             const surface_scattering::SurfaceScatteringModel& model) { self.add(name, model); },
           "name"_a,
           "model"_a,
           "Insert or replace a named surface scattering model")
       .def(
           "__getitem__",
-          [](const MapOfSurfaceScatteringModel& self, const std::string& name)
-              -> const surface_scattering::SurfaceScatteringModel& {
+          [](const MapOfSurfaceScatteringModel& self,
+             const std::string&                 name) -> const surface_scattering::SurfaceScatteringModel& {
             auto it = self.models.find(name);
-            if (it == self.models.end())
-              throw py::key_error(name.c_str());
+            if (it == self.models.end()) throw py::key_error(name.c_str());
             return it->second;
           },
           py::rv_policy::reference_internal,
           "name"_a)
       .def(
           "__setitem__",
-          [](MapOfSurfaceScatteringModel& self,
-             const std::string& name,
-             const surface_scattering::SurfaceScatteringModel& model) {
-            self.models[name] = model;
-          },
+          [](MapOfSurfaceScatteringModel&                      self,
+             const std::string&                                name,
+             const surface_scattering::SurfaceScatteringModel& model) { self.models[name] = model; },
           "name"_a,
           "model"_a)
       .def(
           "__contains__",
-          [](const MapOfSurfaceScatteringModel& self, const std::string& name) {
-            return self.models.contains(name);
-          },
+          [](const MapOfSurfaceScatteringModel& self, const std::string& name) { return self.models.contains(name); },
           "name"_a)
-      .def(
-          "__len__",
-          [](const MapOfSurfaceScatteringModel& self) {
-            return self.models.size();
-          })
+      .def("__len__", [](const MapOfSurfaceScatteringModel& self) { return self.models.size(); })
       .def(
           "__iter__",
           [](const MapOfSurfaceScatteringModel& self) {
-            return py::make_iterator(py::type<MapOfSurfaceScatteringModel>(),
-                                     "mossm-iterator",
-                                     self.models.begin(),
-                                     self.models.end());
+            return py::make_iterator(
+                py::type<MapOfSurfaceScatteringModel>(), "mossm-iterator", self.models.begin(), self.models.end());
           },
           py::rv_policy::reference_internal)
       .def(
           "get_surface_scattering_model_properties",
           [](const MapOfSurfaceScatteringModel& self,
-             const SurfacePoint& surf_point,
-             Numeric lat,
-             Numeric lon,
-             const Vector& f_grid,
-             const Vector& za_inc_grid,
-             const Vector& aa_inc_grid,
-             const Vector& za_scat_grid,
-             const Vector& aa_scat_grid) {
+             const SurfacePoint&                surf_point,
+             Numeric                            lat,
+             Numeric                            lon,
+             const Vector&                      f_grid,
+             const Vector&                      za_inc_grid,
+             const Vector&                      aa_inc_grid,
+             const Vector&                      za_scat_grid,
+             const Vector&                      aa_scat_grid) {
             return self.get_surface_scattering_model_properties(
                 surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
           },
@@ -309,17 +302,18 @@ position.  The model fills the specular BRDF (``Muelmat{R}``) and emissivity
 
   // Weighting enum for combining multiple models
   py::enum_<MapOfSurfaceScatteringModel::Weighting>(mossm, "Weighting")
-      .value("Maximum", MapOfSurfaceScatteringModel::Weighting::Maximum,
+      .value("Maximum",
+             MapOfSurfaceScatteringModel::Weighting::Maximum,
              "Winner takes all: the model(s) with the largest surface mask value at the\n"
              "point get weight 1 (split equally on ties), all others 0.  All-zero masks\n"
              "give every model weight 1/N.")
-      .value("Average", MapOfSurfaceScatteringModel::Weighting::Average,
+      .value("Average",
+             MapOfSurfaceScatteringModel::Weighting::Average,
              "Mask-weighted average: model weights are the surface mask values normalized\n"
              "to sum 1.  All-zero masks give all-zero weights (no scattering).");
 
 } catch (std::exception& e) {
-  throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize surface scattering:\n{}", e.what()));
+  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize surface scattering:\n{}", e.what()));
 }
 
 }  // namespace Python

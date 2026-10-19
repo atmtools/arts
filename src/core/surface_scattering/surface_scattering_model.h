@@ -33,7 +33,7 @@ using SurfaceScatteringModel = surface_scattering::SurfaceScatteringModel;
 /// Pull LambertianSurfaceScatterer into the global namespace (mirrors
 /// the pattern for HenyeyGreensteinScatterer in scattering_species.h)
 using LambertianSurfaceScatterer = surface_scattering::LambertianSurfaceScatterer;
-using FresnelSurfaceScatterer = surface_scattering::FresnelSurfaceScatterer;
+using FresnelSurfaceScatterer    = surface_scattering::FresnelSurfaceScatterer;
 using FlatScalarSurfaceScatterer = surface_scattering::FlatScalarSurfaceScatterer;
 
 /** Named map of surface scattering models.
@@ -48,24 +48,23 @@ struct MapOfSurfaceScatteringModel {
   std::unordered_map<std::string, surface_scattering::SurfaceScatteringModel> models;
 
   /// Insert (or replace) a named model
-  void add(const std::string& name,
-           const surface_scattering::SurfaceScatteringModel& model);
+  void add(const std::string& name, const surface_scattering::SurfaceScatteringModel& model);
 
   /// Accumulate bulk surface scattering properties from all stored models
-  [[nodiscard]] surface_scattering::SurfaceScatteringModelProperties
-  get_surface_scattering_model_properties(const SurfacePoint& surf_point,
-                                         Numeric lat,
-                                         Numeric lon,
-                                         const Vector& f_grid,
-                                         const Vector& za_inc_grid,
-                                         const Vector& aa_inc_grid,
-                                         const Vector& za_scat_grid,
-                                         const Vector& aa_scat_grid) const;
+  [[nodiscard]] surface_scattering::SurfaceScatteringModelProperties get_surface_scattering_model_properties(
+      const SurfacePoint& surf_point,
+      Numeric             lat,
+      Numeric             lon,
+      const Vector&       f_grid,
+      const Vector&       za_inc_grid,
+      const Vector&       aa_inc_grid,
+      const Vector&       za_scat_grid,
+      const Vector&       aa_scat_grid) const;
 
   // Weighting options for combining multiple models.  The raw per-model
   // weights are the SurfacePoint mask values under the model's name key
   // (missing key -> 0); masks must be non-negative.
-  enum class Weighting : std::uint8_t  {
+  enum class Weighting : std::uint8_t {
     /// Winner takes all: the model(s) with the largest mask value get weight
     /// 1 (split equally on ties), all others 0.  All-zero masks give every
     /// model weight 1/N.
@@ -76,29 +75,23 @@ struct MapOfSurfaceScatteringModel {
   };
   Weighting weighting_option = Weighting::Maximum;
 
-private:
+ private:
   [[nodiscard]] Vector maximum_weighting(const SurfacePoint& surf_point) const;
   [[nodiscard]] Vector average_weighting(const SurfacePoint& surf_point) const;
   [[nodiscard]] Vector get_raw_weighting(const SurfacePoint& surf_point) const;
-
-
 };
 
-template <>
-struct std::formatter<MapOfSurfaceScatteringModel> {
+template <> struct std::formatter<MapOfSurfaceScatteringModel> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
   [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
 
-  constexpr std::format_parse_context::iterator parse(
-      std::format_parse_context& ctx) {
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const MapOfSurfaceScatteringModel& v,
-                              FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const MapOfSurfaceScatteringModel& v, FmtContext& ctx) const {
     const std::string_view sep = tags.sep();
     tags.add_if_bracket(ctx, "{");
     bool first = true;
@@ -113,28 +106,22 @@ struct std::formatter<MapOfSurfaceScatteringModel> {
 };
 
 //! XML type name for the SurfaceScatteringModel variant
-template <>
-struct xml_io_stream_name<SurfaceScatteringModel> {
+template <> struct xml_io_stream_name<SurfaceScatteringModel> {
   static constexpr std::string_view name = "SurfaceScatteringModel"sv;
 };
 
 //! XML type name for MapOfSurfaceScatteringModel
-template <>
-struct xml_io_stream_name<MapOfSurfaceScatteringModel> {
+template <> struct xml_io_stream_name<MapOfSurfaceScatteringModel> {
   static constexpr std::string_view name = "MapOfSurfaceScatteringModel"sv;
 };
 
-template <>
-struct xml_io_stream<MapOfSurfaceScatteringModel> {
+template <> struct xml_io_stream<MapOfSurfaceScatteringModel> {
   static constexpr std::string_view type_name = "MapOfSurfaceScatteringModel";
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                      os,
                     const MapOfSurfaceScatteringModel& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                         pbofs = nullptr,
+                    std::string_view                   name  = ""sv);
 
-  static void read(std::istream& is,
-                   MapOfSurfaceScatteringModel& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, MapOfSurfaceScatteringModel& x, bifstream* pbifs = nullptr);
 };
-

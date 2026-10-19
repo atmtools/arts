@@ -7,18 +7,17 @@
 #include <algorithm>
 #include <iostream>
 #include <numeric>
+
 #include "rtepack.h"
 
-void MapOfSurfaceScatteringModel::add(
-    const std::string& name,
-    const surface_scattering::SurfaceScatteringModel& model) {
+void MapOfSurfaceScatteringModel::add(const std::string&                                name,
+                                      const surface_scattering::SurfaceScatteringModel& model) {
   models[name] = model;
 }
 
-Vector MapOfSurfaceScatteringModel::get_raw_weighting(
-    const SurfacePoint& surf_point) const {
+Vector MapOfSurfaceScatteringModel::get_raw_weighting(const SurfacePoint& surf_point) const {
   const Index N_models = models.size();
-  Vector weights(N_models, 0.);
+  Vector      weights(N_models, 0.);
   //loop over MapOfSurfaceScatteringModel
   Index i = 0;
   for (const auto& [key, model] : models) {
@@ -49,8 +48,7 @@ Vector MapOfSurfaceScatteringModel::get_raw_weighting(
   return weights;
 }
 
-Vector MapOfSurfaceScatteringModel::maximum_weighting(
-    const SurfacePoint& surf_point) const {
+Vector MapOfSurfaceScatteringModel::maximum_weighting(const SurfacePoint& surf_point) const {
   Vector weights = get_raw_weighting(surf_point);
   // Winner takes all: every weight below the maximum mask value becomes 0,
   // the maximum one(s) become 1
@@ -67,70 +65,50 @@ Vector MapOfSurfaceScatteringModel::maximum_weighting(
   // equally; all-zero masks leave every model at 1/N
   Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
   if (sum_weights > 1) {
-    for (auto& w : weights) {
-      w /= sum_weights;
-    }
+    for (auto& w : weights) { w /= sum_weights; }
   }
 
   return weights;
 }
 
-Vector MapOfSurfaceScatteringModel::average_weighting(
-    const SurfacePoint& surf_point) const {
+Vector MapOfSurfaceScatteringModel::average_weighting(const SurfacePoint& surf_point) const {
   Vector weights = get_raw_weighting(surf_point);
   // Mask-weighted average: normalize the raw masks to sum 1; an all-zero
   // mask leaves all weights at 0 (no scattering at this point)
   Numeric sum_weights = std::accumulate(weights.begin(), weights.end(), 0.);
 
   if (sum_weights > 0) {
-    for (auto& w : weights) {
-      w /= sum_weights;
-    }
+    for (auto& w : weights) { w /= sum_weights; }
   }
 
   return weights;
 }
 
 surface_scattering::SurfaceScatteringModelProperties
-MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
-    const SurfacePoint& surf_point,
-    Numeric lat,
-    Numeric lon,
-    const Vector& f_grid,
-    const Vector& za_inc_grid,
-    const Vector& aa_inc_grid,
-    const Vector& za_scat_grid,
-    const Vector& aa_scat_grid
-    ) const
-{
+MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(const SurfacePoint& surf_point,
+                                                                     Numeric             lat,
+                                                                     Numeric             lon,
+                                                                     const Vector&       f_grid,
+                                                                     const Vector&       za_inc_grid,
+                                                                     const Vector&       aa_inc_grid,
+                                                                     const Vector&       za_scat_grid,
+                                                                     const Vector&       aa_scat_grid) const {
   if (models.empty()) {
     // No models at all: every component is missing (consumers read that as zero)
     return surface_scattering::SurfaceScatteringModelProperties{};
   }
 
-  const auto visitor = [&](const auto& model)
-      -> surface_scattering::SurfaceScatteringModelProperties {
-    static_assert(requires {
-                    model.get_surface_scattering_model_properties(surf_point,
-                                                                  lat,
-                                                                  lon,
-                                                                  f_grid,
-                                                                  za_inc_grid,
-                                                                  aa_inc_grid,
-                                                                  za_scat_grid,
-                                                                  aa_scat_grid);
-                  },
-                  "Every surface scattering model variant member must implement "
-                  "get_surface_scattering_model_properties");
+  const auto visitor = [&](const auto& model) -> surface_scattering::SurfaceScatteringModelProperties {
+    static_assert(
+        requires {
+          model.get_surface_scattering_model_properties(
+              surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
+        },
+        "Every surface scattering model variant member must implement "
+        "get_surface_scattering_model_properties");
 
-    return model.get_surface_scattering_model_properties(surf_point,
-                                                         lat,
-                                                         lon,
-                                                         f_grid,
-                                                         za_inc_grid,
-                                                         aa_inc_grid,
-                                                         za_scat_grid,
-                                                         aa_scat_grid);
+    return model.get_surface_scattering_model_properties(
+        surf_point, lat, lon, f_grid, za_inc_grid, aa_inc_grid, za_scat_grid, aa_scat_grid);
   };
 
   // Now we need the weighting according to weighting_option
@@ -146,20 +124,18 @@ MapOfSurfaceScatteringModel::get_surface_scattering_model_properties(
 
   //Now we have to sum if we have more than one model, but we have to weight the models according to the weights
   surface_scattering::SurfaceScatteringModelProperties bsp;
-  Index i = 0;
+  Index                                                i = 0;
   for (const auto& [key, model] : models) {
-    surface_scattering::SurfaceScatteringModelProperties model_props =
-        std::visit(visitor, model);
+    surface_scattering::SurfaceScatteringModelProperties model_props = std::visit(visitor, model);
 
     model_props *= weights[i];
-    bsp += model_props;
+    bsp         += model_props;
     i++;
   }
   return bsp;
 }
 
-surface_scattering::SurfaceScatteringModelProperties&
-surface_scattering::SurfaceScatteringModelProperties::operator+=(
+surface_scattering::SurfaceScatteringModelProperties& surface_scattering::SurfaceScatteringModelProperties::operator+=(
     const surface_scattering::SurfaceScatteringModelProperties& other) {
   // Null-aware accumulation: a missing component contributes nothing, and a
   // component that only one side has is adopted as-is
@@ -180,8 +156,8 @@ surface_scattering::SurfaceScatteringModelProperties::operator+=(
   return *this;
 }
 
-surface_scattering::SurfaceScatteringModelProperties&
-surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar) {  
+surface_scattering::SurfaceScatteringModelProperties& surface_scattering::SurfaceScatteringModelProperties::operator*=(
+    Numeric scalar) {
   if (brdf_matrix_diffuse) *brdf_matrix_diffuse *= scalar;
   if (emissivity_vector_diffuse) *emissivity_vector_diffuse *= scalar;
   if (brdf_matrix_specular) *brdf_matrix_specular *= scalar;
@@ -189,11 +165,10 @@ surface_scattering::SurfaceScatteringModelProperties::operator*=(Numeric scalar)
   return *this;
 }
 
-void xml_io_stream<MapOfSurfaceScatteringModel>::write(
-    std::ostream& os,
-    const MapOfSurfaceScatteringModel& x,
-    bofstream* pbofs,
-    std::string_view name) {
+void xml_io_stream<MapOfSurfaceScatteringModel>::write(std::ostream&                      os,
+                                                       const MapOfSurfaceScatteringModel& x,
+                                                       bofstream*                         pbofs,
+                                                       std::string_view                   name) {
   XMLTag tag(type_name, "name", name, "nelem", x.models.size());
   tag.write_to_stream(os);
 
@@ -207,10 +182,9 @@ void xml_io_stream<MapOfSurfaceScatteringModel>::write(
   tag.write_to_end_stream(os);
 }
 
-void xml_io_stream<MapOfSurfaceScatteringModel>::read(
-    std::istream& is,
-    MapOfSurfaceScatteringModel& x,
-    bifstream* pbifs) {
+void xml_io_stream<MapOfSurfaceScatteringModel>::read(std::istream&                is,
+                                                      MapOfSurfaceScatteringModel& x,
+                                                      bifstream*                   pbifs) {
   XMLTag tag;
   tag.read_from_stream(is);
   tag.check_name(type_name);
@@ -222,8 +196,7 @@ void xml_io_stream<MapOfSurfaceScatteringModel>::read(
   for (Size i = 0; i < nelem; ++i) {
     String key;
     xml_read_from_stream(is, key, pbifs);
-    surface_scattering::SurfaceScatteringModel model{
-        surface_scattering::LambertianSurfaceScatterer{}};
+    surface_scattering::SurfaceScatteringModel model{surface_scattering::LambertianSurfaceScatterer{}};
     xml_read_from_stream(is, model, pbifs);
     x.models[key] = std::move(model);
   }
@@ -231,4 +204,3 @@ void xml_io_stream<MapOfSurfaceScatteringModel>::read(
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
-

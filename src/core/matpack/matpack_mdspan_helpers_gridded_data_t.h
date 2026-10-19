@@ -100,11 +100,11 @@ using GriddedField4 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, V
 using GriddedField5 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector>;
 using GriddedField6 = matpack::gridded_data_t<Numeric, Vector, Vector, Vector, Vector, Vector, Vector>;
 
-using ZenGriddedField1    = matpack::gridded_data_t<Numeric, ZenGrid>;
-using SortedGriddedField1 = matpack::gridded_data_t<Numeric, AscendingGrid>;
-using SortedGriddedField2 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
-using GeodeticField2      = matpack::gridded_data_t<Numeric, LatGrid, LonGrid>;
-using SortedGriddedField3 = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
+using ZenGriddedField1       = matpack::gridded_data_t<Numeric, ZenGrid>;
+using SortedGriddedField1    = matpack::gridded_data_t<Numeric, AscendingGrid>;
+using SortedGriddedField2    = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid>;
+using GeodeticField2         = matpack::gridded_data_t<Numeric, LatGrid, LonGrid>;
+using SortedGriddedField3    = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, AscendingGrid>;
 using GeodeticField3         = matpack::gridded_data_t<Numeric, AltGrid, LatGrid, LonGrid>;
 using SpectralGeodeticField3 = matpack::gridded_data_t<Numeric, FreqGrid, LatGrid, LonGrid>;
 using SortedGriddedField4 =

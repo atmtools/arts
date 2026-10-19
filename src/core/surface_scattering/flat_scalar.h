@@ -28,28 +28,27 @@ struct FlatScalarSurfaceScatterer {
   FlatScalarSurfaceScatterer() = default;
   explicit FlatScalarSurfaceScatterer(Data reflectivity_);
 
-  FlatScalarSurfaceScatterer(const FlatScalarSurfaceScatterer&)            = default;
-  FlatScalarSurfaceScatterer(FlatScalarSurfaceScatterer&&) noexcept        = default;
-  FlatScalarSurfaceScatterer& operator=(const FlatScalarSurfaceScatterer&) = default;
+  FlatScalarSurfaceScatterer(const FlatScalarSurfaceScatterer&)                = default;
+  FlatScalarSurfaceScatterer(FlatScalarSurfaceScatterer&&) noexcept            = default;
+  FlatScalarSurfaceScatterer& operator=(const FlatScalarSurfaceScatterer&)     = default;
   FlatScalarSurfaceScatterer& operator=(FlatScalarSurfaceScatterer&&) noexcept = default;
 
-  [[nodiscard]] SurfaceScatteringModelProperties
-  get_surface_scattering_model_properties(const SurfacePoint& surf_point,
-                                          Numeric lat,
-                                          Numeric lon,
-                                          const Vector& f_grid,
-                                          const Vector& za_inc_grid,
-                                          const Vector& aa_inc_grid,
-                                          const Vector& za_scat_grid,
-                                          const Vector& aa_scat_grid) const;
+  [[nodiscard]] SurfaceScatteringModelProperties get_surface_scattering_model_properties(
+      const SurfacePoint& surf_point,
+      Numeric             lat,
+      Numeric             lon,
+      const Vector&       f_grid,
+      const Vector&       za_inc_grid,
+      const Vector&       aa_inc_grid,
+      const Vector&       za_scat_grid,
+      const Vector&       aa_scat_grid) const;
 
   friend std::ostream& operator<<(std::ostream& os, const FlatScalarSurfaceScatterer& s);
 };
 
 }  // namespace surface_scattering
 
-template <>
-struct std::formatter<surface_scattering::FlatScalarSurfaceScatterer> {
+template <> struct std::formatter<surface_scattering::FlatScalarSurfaceScatterer> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -60,25 +59,19 @@ struct std::formatter<surface_scattering::FlatScalarSurfaceScatterer> {
   }
 
   template <class FmtContext>
-  FmtContext::iterator format(const surface_scattering::FlatScalarSurfaceScatterer& v,
-                              FmtContext& ctx) const {
-    if (tags.names) {
-      return tags.format(ctx, "FlatScalarSurfaceScatterer"sv);
-    }
+  FmtContext::iterator format(const surface_scattering::FlatScalarSurfaceScatterer& v, FmtContext& ctx) const {
+    if (tags.names) { return tags.format(ctx, "FlatScalarSurfaceScatterer"sv); }
     return tags.format(ctx, "FlatScalarSurfaceScatterer"sv, ": "sv, v.reflectivity);
   }
 };
 
-template <>
-struct xml_io_stream<surface_scattering::FlatScalarSurfaceScatterer> {
+template <> struct xml_io_stream<surface_scattering::FlatScalarSurfaceScatterer> {
   static constexpr std::string_view type_name = "FlatScalarSurfaceScatterer";
 
-  static void write(std::ostream& os,
+  static void write(std::ostream&                                         os,
                     const surface_scattering::FlatScalarSurfaceScatterer& x,
-                    bofstream* pbofs      = nullptr,
-                    std::string_view name = ""sv);
+                    bofstream*                                            pbofs = nullptr,
+                    std::string_view                                      name  = ""sv);
 
-  static void read(std::istream& is,
-                   surface_scattering::FlatScalarSurfaceScatterer& x,
-                   bifstream* pbifs = nullptr);
+  static void read(std::istream& is, surface_scattering::FlatScalarSurfaceScatterer& x, bifstream* pbifs = nullptr);
 };

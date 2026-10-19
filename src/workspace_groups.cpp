@@ -149,8 +149,8 @@ They will generally throw an error if you lack the data.
   };
 
   wsg_data["Sun"] = {
-      .file = "sun.h",
-      .desc = R"-x-(A single sun.
+      .file      = "sun.h",
+      .desc      = R"-x-(A single sun.
           
 Each sun is described by a struct with its spectrum, radius
 distance from center of planet to center of sun,
@@ -160,8 +160,8 @@ longitude in the sky of the planet and the type.
 The latitude and the longitude are the geodetic position of the sun
 relative to the centre of the planet, not a line of sight as seen from
 some point on the surface.)-x-",
-      .invariant            = "not {}.bad_position()",
-      .invariant_desc       =
+      .invariant = "not {}.bad_position()",
+      .invariant_desc =
           "has a position that can be placed in the sky of the planet, with a latitude within [-90, 90] deg, a "
           "longitude within [-360, 360] deg, a positive distance and a non-negative radius.",
       .invariant_printables = {"{}.latitude", "{}.longitude", "{}.distance", "{}.radius"},

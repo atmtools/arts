@@ -1,9 +1,8 @@
+#include <array_algo.h>
+#include <arts_omp.h>
 #include <workspace.h>
 
 #include <ranges>
-
-#include <array_algo.h>
-#include <arts_omp.h>
 
 #include "matpack_mdspan_helpers_check.h"
 #include "matpack_mdspan_helpers_grid_t.h"

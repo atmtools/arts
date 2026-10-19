@@ -1,13 +1,13 @@
 #include <nanobind/stl/bind_vector.h>
 #include <nanobind/stl/variant.h>
 #include <python_interface.h>
+#include <sun_methods.h>
 
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 #include "mystring.h"
 #include "rtepack.h"
 #include "sun.h"
-#include <sun_methods.h>
 
 namespace Python {
 void py_star(py::module_& m) try {
@@ -46,7 +46,7 @@ void py_star(py::module_& m) try {
   generic_interface(a1);
   vector_interface(a1);
 
-  auto sun = m.def_submodule("sun");
+  auto sun  = m.def_submodule("sun");
   sun.doc() = "Contains helper functions to deal with suns";
 
   sun.def("geometric_los",
@@ -84,7 +84,7 @@ los : ~pyarts3.arts.Vector2
           "surf_field"_a,
           "ray_path_observer_agenda"_a,
           py::kw_only(),
-          "angle_cut"_a = 0.0,
+          "angle_cut"_a  = 0.0,
           "refinement"_a = 1,
           R"(Refraction-aware line-of-sight from an observer towards a sun
 
