@@ -192,6 +192,13 @@
       }
     },
     {
+      "name": "tsan-clang-conda",
+      "inherits": "reldeb-clang-conda",
+      "cacheVariables": {
+        "ENABLE_TSAN": "ON"
+      }
+    },
+    {
       "name": "doc-gcc-conda",
       "inherits": "default-gcc-conda",
       "cacheVariables": {

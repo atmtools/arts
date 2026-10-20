@@ -57,6 +57,7 @@ endif()
 include(CMakeDependentOption)
 option (ENABLE_ARTS_LGPL "Make the code LGPL compatible" OFF)
 option (ENABLE_ASAN "Turn on address sanitizer" OFF)
+option (ENABLE_TSAN "Turn on thread sanitizer" OFF)
 option (ENABLE_CCACHE "Turn on CCACHE" ON)
 option (ENABLE_CXX26 "Turn on C++26 (use is risky, there are known issues)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
@@ -279,6 +280,13 @@ include (FindZLIB)
 set (ENABLE_ZLIB ${ZLIB_FOUND} REQUIRED)
 
 ########## BLAS/LAPACK support #########
+# Apple's Accelerate BLAS/LAPACK is not thread-safe: concurrent dgeev calls
+# silently corrupt the eigenvectors, which makes parallel VDISORT eigensolves
+# race.  On macOS, have FindBLAS/FindLAPACK pick the plain libblas/liblapack of
+# the environment (OpenBLAS in the conda environments) instead of Accelerate.
+if (APPLE AND NOT BLA_VENDOR)
+  set (BLA_VENDOR Generic)
+endif ()
 find_package (LAPACK REQUIRED)
 
 ########## OpenMP support #########
@@ -329,6 +337,14 @@ endif ()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+  # auto_isotopologues.h resolves each of its 340 species names at compile
+  # time with a linear constexpr scan over 2x120 string_views, about 1.09M
+  # steps for the whole array -- just past the default -fconstexpr-steps of
+  # 1048576.  GCC's equivalent -fconstexpr-ops-limit default (33.5M) and
+  # MSVC's /constexpr:steps default (100M) already cover it, so only Clang
+  # needs the headroom.  The margin is deliberately modest, a runaway
+  # constexpr loop still stops quickly.
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconstexpr-steps=4000000")
 endif ()
 
 ########### Warning flags ##########
@@ -377,8 +393,51 @@ if (WERROR)
   ARTS_ADD_COMPILER_FLAG (Werror)
 endif (WERROR)
 
+########### Sanitizers ##########
+# Compiler-rt names its sanitizer runtimes after the target architecture
+# (e.g. libclang_rt.asan-x86_64.so), so resolve the name here.  The runtime
+# has to be preloaded when the instrumented pyarts extension is loaded into
+# a Python interpreter (see SANITIZER_PRELOAD_ENV below).
+function (arts_sanitizer_runtime OUT_VAR NAME)
+  if (NOT CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    return ()
+  endif ()
+  if (APPLE)
+    set (RUNTIME_NAME "${NAME}_osx_dynamic.dylib")
+  elseif (UNIX)
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+      set (RUNTIME_ARCH "aarch64")
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64|AMD64)$")
+      set (RUNTIME_ARCH "x86_64")
+    elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv7l|armv8l|armhf)$")
+      set (RUNTIME_ARCH "armhf")
+    else ()
+      message (FATAL_ERROR "No sanitizer runtime name known for architecture ${CMAKE_SYSTEM_PROCESSOR}")
+    endif ()
+    set (RUNTIME_NAME "${NAME}-${RUNTIME_ARCH}.so")
+  else ()
+    return ()
+  endif ()
+  execute_process (
+    COMMAND "${CMAKE_CXX_COMPILER}" "-print-file-name=${RUNTIME_NAME}"
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    OUTPUT_VARIABLE RUNTIME)
+  if (RUNTIME STREQUAL RUNTIME_NAME)
+    # -print-file-name echoes the name back when the runtime is not installed
+    message (WARNING "Sanitizer runtime ${RUNTIME_NAME} not found; you have to preload it manually when running Python scripts")
+    set (RUNTIME "")
+  endif ()
+  set (${OUT_VAR} "${RUNTIME}" PARENT_SCOPE)
+endfunction ()
+
+set (SANITIZER_PRELOAD_ENV "")
+set (SANITIZER_PRELOAD_LIB "")
+
+if (ENABLE_ASAN AND ENABLE_TSAN)
+  message (FATAL_ERROR "The address and thread sanitizers cannot be enabled at the same time")
+endif ()
+
 ########### Address sanitizer ##########
-set (ASAN_PRELOAD_ENV "")
 if (ENABLE_ASAN)
   if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     # MSVC AddressSanitizer (x86/x64, Windows 10+); the runtime is linked
@@ -404,28 +463,42 @@ if (ENABLE_ASAN)
   elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
-    if (APPLE)
-      execute_process(
-        COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan_osx_dynamic.dylib
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
-      set(ASAN_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB};")
-    elseif (UNIX)
-      execute_process(
-        COMMAND "${CMAKE_CXX_COMPILER}" -print-file-name=libclang_rt.asan-x86_64.so
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        OUTPUT_VARIABLE ASAN_PRELOAD_LIB)
-      set(ASAN_PRELOAD_ENV "LD_PRELOAD=${ASAN_PRELOAD_LIB};")
-    endif()
+    arts_sanitizer_runtime (SANITIZER_PRELOAD_LIB "libclang_rt.asan")
+    if (SANITIZER_PRELOAD_LIB)
+      if (APPLE)
+        set (SANITIZER_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${SANITIZER_PRELOAD_LIB};")
+      elseif (UNIX)
+        set (SANITIZER_PRELOAD_ENV "LD_PRELOAD=${SANITIZER_PRELOAD_LIB};")
+      endif ()
+    endif ()
   else()
     message(FATAL_ERROR "Address sanitizer is only supported with Clang or MSVC")
   endif()
   set(ENABLE_PYARTS_STUBS off)
 endif()
 
+########### Thread sanitizer ##########
+if (ENABLE_TSAN)
+  if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=thread -fno-omit-frame-pointer")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=thread -fno-omit-frame-pointer")
+    arts_sanitizer_runtime (SANITIZER_PRELOAD_LIB "libclang_rt.tsan")
+    if (SANITIZER_PRELOAD_LIB)
+      if (APPLE)
+        set (SANITIZER_PRELOAD_ENV "DYLD_INSERT_LIBRARIES=${SANITIZER_PRELOAD_LIB};")
+      elseif (UNIX)
+        set (SANITIZER_PRELOAD_ENV "LD_PRELOAD=${SANITIZER_PRELOAD_LIB};")
+      endif ()
+    endif ()
+  else()
+    message(FATAL_ERROR "Thread sanitizer is only supported with Clang")
+  endif()
+  set(ENABLE_PYARTS_STUBS off)
+endif()
+
 set(ARTS_PYTHON_INTERPRETER
     ${CMAKE_COMMAND} -E env
-    ${ASAN_PRELOAD_ENV}
+    ${SANITIZER_PRELOAD_ENV}
     "PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/python/src"
     --
     ${Python_EXECUTABLE})
@@ -570,17 +643,21 @@ if (CMAKE_BUILD_TYPE STREQUAL "Release" AND RELEASE_O2)
   message(STATUS "Optimization level set to O2 instead of O3 in Release mode")
 endif ()
 
-if (ENABLE_ASAN)
-  message(STATUS "!!! Address sanitizer is enabled")
+if (ENABLE_ASAN OR ENABLE_TSAN)
+  if (ENABLE_ASAN)
+    message(STATUS "!!! Address sanitizer is enabled")
+  else()
+    message(STATUS "!!! Thread sanitizer is enabled")
+  endif()
   if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
     message(STATUS "!!! Make sure clang_rt.asan_dynamic-x86_64.dll is on PATH when you run ARTS,")
     message(STATUS "!!! for example by running from a Visual Studio Developer Command Prompt")
-  else()
+  elseif (SANITIZER_PRELOAD_LIB)
     message(STATUS "!!! When you manually execute ARTS python scripts, you need to prepend the following to the command line:")
     if (APPLE)
-      message(STATUS "!!! DYLD_INSERT_LIBRARIES=${ASAN_PRELOAD_LIB} python ...")
+      message(STATUS "!!! DYLD_INSERT_LIBRARIES=${SANITIZER_PRELOAD_LIB} python ...")
     elseif (UNIX)
-      message(STATUS "!!! LD_PRELOAD=${ASAN_PRELOAD_LIB} python ...")
+      message(STATUS "!!! LD_PRELOAD=${SANITIZER_PRELOAD_LIB} python ...")
     endif()
   endif()
 endif()
