@@ -6,91 +6,63 @@
 
 #include <chrono>
 #include <cmath>
+#include <optional>
 
 #include "artstime.h"
 #include "hpy_arts.h"
 #include "hpy_vector.h"
 
 namespace Python {
-//! A Python datetime.datetime, where naive ones are in UTC and aware ones keep their offset from UTC
-struct DateTime {
-  Time time;
-};
-}  // namespace Python
+namespace {
+//! The time as a datetime.datetime in its timezone
+py::object to_datetime(const Time& t) {
+  using namespace std::chrono;
 
-namespace nanobind::detail {
-template <> struct type_caster<Python::DateTime> {
-  NB_TYPE_CASTER(Python::DateTime, const_name("datetime.datetime"))
+  const year_month_day                   date = t.date();
+  const hh_mm_ss<Time::InternalTimeStep> tod  = t.time_of_day();
 
-  bool from_python(handle src, uint32_t, cleanup_list* cleanup) noexcept try {
-    using namespace std::chrono;
+  const py::module_ datetime = py::module_::import_("datetime");
+  const py::object  tz = datetime.attr("timezone")(datetime.attr("timedelta")("minutes"_a = t.utc_offset.count()));
 
-    if (not isinstance(src, module_::import_("datetime").attr("datetime"))) return false;
+  return datetime.attr("datetime")(static_cast<int>(date.year()),
+                                   static_cast<unsigned>(date.month()),
+                                   static_cast<unsigned>(date.day()),
+                                   tod.hours().count(),
+                                   tod.minutes().count(),
+                                   tod.seconds().count(),
+                                   duration_cast<microseconds>(tod.subseconds()).count(),
+                                   "tzinfo"_a = tz);
+}
 
-    int yy, mon, dd, hh, mm, ss, us;
-    if (unpack_datetime(src.ptr(), &yy, &mon, &dd, &hh, &mm, &ss, &us, cleanup) <= 0) {
-      PyErr_Clear();
-      return false;
-    }
+//! The time of a datetime.datetime, in UTC if it has no timezone, or nothing if it is not a datetime.datetime
+std::optional<Time> from_datetime(const py::handle& dt) {
+  using namespace std::chrono;
 
-    minutes      offset{0};
-    const object utc_offset = src.attr("utcoffset")();
-    if (not utc_offset.is_none()) {
-      const double sec = cast<double>(utc_offset.attr("total_seconds")());
-      if (std::fmod(sec, 60.0) != 0.0) return false;
-      offset = minutes{static_cast<int>(sec / 60.0)};
-    }
+  if (not py::isinstance(dt, py::module_::import_("datetime").attr("datetime"))) return std::nullopt;
 
-    value = Python::DateTime{
-        Time{year{yy} / mon / dd,
-             duration_cast<Time::InternalTimeStep>(hours{hh} + minutes{mm} + seconds{ss} + microseconds{us}),
-             offset}};
-    return true;
-  } catch (...) {
-    PyErr_Clear();
-    return false;
+  const auto field = [&dt](const char* name) { return py::cast<int>(dt.attr(name)); };
+
+  minutes offset{0};
+  if (const py::object utc_offset = dt.attr("utcoffset")(); not utc_offset.is_none()) {
+    const Numeric sec = py::cast<Numeric>(utc_offset.attr("total_seconds")());
+    ARTS_USER_ERROR_IF(
+        std::fmod(sec, 60.0) != 0.0, "The offset from UTC of the datetime must be whole minutes, it is {} s", sec)
+    offset = minutes{static_cast<int>(sec / 60.0)};
   }
 
-  static handle from_cpp(const Python::DateTime& x, rv_policy, cleanup_list*) noexcept try {
-    using namespace std::chrono;
+  return Time{year{field("year")} / field("month") / field("day"),
+              duration_cast<Time::InternalTimeStep>(hours{field("hour")} + minutes{field("minute")} +
+                                                    seconds{field("second")} + microseconds{field("microsecond")}),
+              offset};
+}
+}  // namespace
 
-    const year_month_day                   date = x.time.date();
-    const hh_mm_ss<Time::InternalTimeStep> tod  = x.time.time_of_day();
-
-    const module_ datetime = module_::import_("datetime");
-    const object tz = datetime.attr("timezone")(datetime.attr("timedelta")(arg("minutes") = x.time.utc_offset.count()));
-
-    return datetime
-        .attr("datetime")(static_cast<int>(date.year()),
-                          static_cast<unsigned>(date.month()),
-                          static_cast<unsigned>(date.day()),
-                          tod.hours().count(),
-                          tod.minutes().count(),
-                          tod.seconds().count(),
-                          duration_cast<microseconds>(tod.subseconds()).count(),
-                          arg("tzinfo") = tz)
-        .release();
-  } catch (python_error& e) {
-    e.restore();
-    return handle();
-  } catch (const std::exception& e) {
-    PyErr_SetString(PyExc_RuntimeError, e.what());
-    return handle();
-  }
-};
-}  // namespace nanobind::detail
-
-namespace Python {
 void py_time(py::module_& m) try {
   py::class_<Time> time(m, "Time");
 
   generic_interface(time);
 
   time.def(
-          "__init__",
-          [](Time* t, const DateTime& dt) { new (t) Time{dt.time}; },
-          "From :class:`datetime.datetime`, in UTC if it has no timezone")
-      .def(
           "__init__",
           [](Time* t, Numeric x) {
             new (t) Time{};
@@ -101,10 +73,23 @@ void py_time(py::module_& m) try {
           py::init<std::string>(),
           "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\", optionally with fractional seconds and an offset from UTC, "
           "e.g., \"2000-01-01 12:00:00.5+09:00\".  Times without an offset are UTC")
+      .def(
+          "__init__",
+          [](Time* t, const py::object& dt) {
+            const std::optional<Time> x = from_datetime(dt);
+            if (not x) throw py::next_overload();
+            new (t) Time{*x};
+          },
+          "dt"_a,
+          "From :class:`datetime.datetime`, in UTC if it has no timezone")
       .def_prop_rw(
           "time",
-          [](const Time& t) { return DateTime{t}; },
-          [](Time& t, const DateTime& dt) { t = dt.time; },
+          [](const Time& t) { return to_datetime(t); },
+          [](Time& t, const py::object& dt) {
+            const std::optional<Time> x = from_datetime(dt);
+            if (not x) throw py::type_error("The time must be a datetime.datetime");
+            t = *x;
+          },
           "The time with its timezone\n\n.. :class:`~datetime.datetime`")
       .def_rw("utc_offset", &Time::utc_offset, "The timezone as an offset from UTC\n\n.. :class:`~datetime.timedelta`")
       .def_prop_rw(
@@ -113,7 +98,6 @@ void py_time(py::module_& m) try {
           [](Time& t, Numeric n) { return t.Seconds(n); },
           "Time from Unix start\n\n.. :class:`float`");
 
-  py::implicitly_convertible<DateTime, Time>();
   py::implicitly_convertible<std::string, Time>();
   py::implicitly_convertible<Numeric, Time>();
 
@@ -121,9 +105,8 @@ void py_time(py::module_& m) try {
                 .def_prop_ro(
                     "as_datetime",
                     [](const ArrayOfTime& in) {
-                      std::vector<DateTime> out;
-                      out.reserve(in.size());
-                      for (auto& t : in) out.push_back(DateTime{t});
+                      py::list out;
+                      for (auto& t : in) out.append(to_datetime(t));
                       return out;
                     },
                     "Convert to time lists\n\n.. :class:`list[~datetime.datetime]`");
