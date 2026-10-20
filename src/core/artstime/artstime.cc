@@ -15,73 +15,47 @@
 #include <charconv>
 #include <chrono>
 #include <cstdlib>
-#include <ctime>
-#include <iomanip>
+#include <format>
 #include <istream>
 #include <ostream>
 #include <print>
 
 Time::Time() : time(std::chrono::system_clock::now()) {}
 
-Time::Time(std::time_t t) : time(std::chrono::system_clock::from_time_t(t)) {}
+Time::Time(std::chrono::year_month_day date, InternalTimeStep time_of_day, std::chrono::minutes offset)
+    : time(std::chrono::sys_days{date} + time_of_day - offset), utc_offset(offset) {}
 
-Time::Time(std::tm t) : Time(std::mktime(&t)) {}
-
-// Conversions
-std::time_t Time::toTimeT() const { return std::chrono::system_clock::to_time_t(time); }
-
-std::tm Time::toStruct() const {
-  std::time_t x = toTimeT();
-  std::tm     y;
-#ifdef _MSC_VER
-  errno_t err = localtime_s(&y, &x);
-  ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
-#else
-  tm* z = localtime_r(&x, &y);
-  ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
-#endif
-  return y;
+std::chrono::year_month_day Time::date() const {
+  return std::chrono::year_month_day{std::chrono::floor<std::chrono::days>(time + utc_offset)};
 }
 
-std::tm Time::toGMTStruct() const {
-  std::time_t x = toTimeT();
-  std::tm     y;
-#ifdef _MSC_VER
-  errno_t err = gmtime_s(&y, &x);
-  ARTS_USER_ERROR_IF(err != 0, "Cannot construct time struct")
-#else
-  tm* z = gmtime_r(&x, &y);
-  ARTS_USER_ERROR_IF(not z, "Cannot construct time struct")
-#endif
-  return y;
+std::chrono::hh_mm_ss<Time::InternalTimeStep> Time::time_of_day() const {
+  const auto local = time + utc_offset;
+  return std::chrono::hh_mm_ss<InternalTimeStep>{local - std::chrono::floor<std::chrono::days>(local)};
 }
 
-TimeStep Time::seconds_into_day() const {
-  std::tm x = toStruct();
-  return TimeStep(x.tm_hour * 3600 + x.tm_min * 60 + x.tm_sec + PartOfSecond());
+String Time::str() const {
+  String out = std::format("{:%F %T}", time + utc_offset);
+
+  if (utc_offset != std::chrono::minutes{0}) {
+    const auto offset  = std::chrono::abs(utc_offset).count();
+    out               += std::format("{}{:02}:{:02}", utc_offset.count() < 0 ? '-' : '+', offset / 60, offset % 60);
+  }
+
+  return out;
 }
+
+TimeStep Time::seconds_into_day() const { return TimeStep{time_of_day().to_duration()}; }
 
 Time::InternalTimeStep Time::EpochTime() const { return time.time_since_epoch(); }
 
 // Operations
 Time::InternalTimeStep Time::operator-(const Time& t) const noexcept { return time - t.time; }
 
-bool Time::operator<(const Time& t) const noexcept { return time < t.time; }
-
-bool Time::operator==(const Time& t) const noexcept { return time == t.time; }
-
-bool Time::operator!=(const Time& t) const noexcept { return not this->operator==(t); }
-
-bool Time::operator<=(const Time& t) const noexcept { return this->operator<(t) or this->operator==(t); }
-
-bool Time::operator>(const Time& t) const noexcept { return not this->operator<=(t); }
-
-bool Time::operator>=(const Time& t) const noexcept { return this->operator>(t) or this->operator==(t); }
-
 // helpers
 Numeric Time::Seconds() const { return std::chrono::duration_cast<TimeStep>(time.time_since_epoch()).count(); }
 
-void    Time::Seconds(Numeric x) { operator+=(TimeStep(x - Seconds())); }
+void    Time::Seconds(Numeric x) { time = decltype(time){std::chrono::round<InternalTimeStep>(TimeStep(x))}; }
 Numeric Time::PartOfSecond() const { return std::fmod(Seconds(), 1.0); }
 
 // Conversion
@@ -141,68 +115,80 @@ ArrayOfIndex time_steps(const ArrayOfTime& times, const TimeStep& DT) {
   return time_steps;
 }
 
-std::ostream& operator<<(std::ostream& os, const Time& t) {
-  // FIXME: C++20 has much better calendar handling (BUT NOT YET...)
-  std::tm x = t.toStruct();
+std::ostream& operator<<(std::ostream& os, const Time& t) { return os << t.str(); }
 
-  // Deal with seconds
-  std::array<char, 2 + 1 + 9 + 100> sec;
-  Numeric                           seconds = Numeric(x.tm_sec) + t.PartOfSecond();
-  snprintf(sec.data(), sec.size(), "%.9lf", seconds);
+namespace {
+template <typename T> T parse_number(std::string_view s, std::string_view what, std::string_view text) {
+  T x{};
 
-  // Print based on std::tm specs
-  return os << 1900 + x.tm_year << '-' << std::setfill('0') << std::setw(2) << 1 + x.tm_mon << '-' << std::setfill('0')
-            << std::setw(2) << x.tm_mday << ' ' << std::setfill('0') << std::setw(2) << x.tm_hour << ':'
-            << std::setfill('0') << std::setw(2) << x.tm_min << ':' << std::setfill('0') << std::setw(12) << sec.data()
-            << std::setfill(' ') << std::setw(0);
+  const auto [ptr, ec] = [&]() {
+    if constexpr (std::floating_point<T>)
+      return fast_float::from_chars(s.data(), s.data() + s.size(), x);
+    else
+      return std::from_chars(s.data(), s.data() + s.size(), x);
+  }();
+
+  ARTS_USER_ERROR_IF(ec != std::errc{} or ptr != s.data() + s.size() or s.empty(),
+                     "Cannot read the {} from \"{}\" in the time \"{}\"",
+                     what,
+                     s,
+                     text)
+
+  return x;
 }
+}  // namespace
 
 std::istream& operator>>(std::istream& is, Time& t) {
-  String ymd, hms;
-  is >> ymd >> hms;
+  using namespace std::chrono;
 
-  const auto YMD = split(ymd, "-");
-  const auto HMS = split(hms, ":");
+  String ymd_str, hms_str;
+  is >> ymd_str >> hms_str;
 
-  ARTS_USER_ERROR_IF(YMD.size() not_eq 3 or HMS.size() not_eq 3,
-                     "Time stream must look like \"year-month-day hour:min:seconds\"\n"
-                     "\"year-month-day\"   looks like: \"{}\"\n"
-                     "\"hour:min:seconds\" looks like: \"{}\"",
-                     ymd,
-                     hms);
+  const String text = ymd_str + ' ' + hms_str;
 
-  // FIXME: C++20 has much better calendar (BUT NOT YET...)
-  int  year{}, month{}, day{};
-  auto res_year = std::from_chars(YMD[0].c_str(), YMD[0].c_str() + YMD[0].size(), year);
-  auto res_mon  = std::from_chars(YMD[1].c_str(), YMD[1].c_str() + YMD[1].size(), month);
-  auto res_day  = std::from_chars(YMD[2].c_str(), YMD[2].c_str() + YMD[2].size(), day);
+  const auto YMD = split(ymd_str, "-");
+  ARTS_USER_ERROR_IF(YMD.size() != 3,
+                     R"(The time "{}" is not "YYYY-MM-DD hh:mm:ss", optionally with fractional seconds and an offset
+from UTC, e.g., "2000-01-01 12:00:00.5+09:00".  Times without an offset are UTC.)",
+                     text)
 
-  ARTS_USER_ERROR_IF(
-      std::make_error_code(res_year.ec) or std::make_error_code(res_mon.ec) or std::make_error_code(res_day.ec),
-      "Cannot understand time point for year-month-day: \"{}\"",
-      ymd)
-  ARTS_USER_ERROR_IF(year < 1900, "We cannot yet support times before the year 1900")
+  // The offset from UTC, "Z", "+hh:mm" or "-hh:mm", at the end of the time of day
+  std::string_view hms_view{hms_str};
+  minutes          offset{0};
+  if (hms_view.ends_with('Z')) {
+    hms_view.remove_suffix(1);
+  } else if (const auto i = hms_view.find_first_of("+-"); i != std::string_view::npos) {
+    const std::string_view off = hms_view.substr(i + 1);
+    const auto             c   = off.find(':');
+    ARTS_USER_ERROR_IF(
+        c == std::string_view::npos, "The offset from UTC must be \"+hh:mm\" or \"-hh:mm\" in \"{}\"", text)
 
-  int     hour{}, minute{};
-  Numeric sec{};
-  auto    res_hour = std::from_chars(HMS[0].c_str(), HMS[0].c_str() + HMS[0].size(), hour);
-  auto    res_min  = std::from_chars(HMS[1].c_str(), HMS[1].c_str() + HMS[1].size(), minute);
-  auto    res_sec  = fast_float::from_chars(HMS[2].c_str(), HMS[2].c_str() + HMS[2].size(), sec);
+    offset = hours{parse_number<int>(off.substr(0, c), "offset hours", text)} +
+             minutes{parse_number<int>(off.substr(c + 1), "offset minutes", text)};
+    if (hms_view[i] == '-') offset = -offset;
+    hms_view = hms_view.substr(0, i);
+  }
 
-  ARTS_USER_ERROR_IF(
-      std::make_error_code(res_hour.ec) or std::make_error_code(res_min.ec) or std::make_error_code(res_sec.ec),
-      "Cannot understand time point for hour:minute:second in: \"{}\"",
-      hms)
+  const auto HMS = split(String{hms_view}, ":");
+  ARTS_USER_ERROR_IF(HMS.size() != 3,
+                     R"(The time "{}" is not "YYYY-MM-DD hh:mm:ss", optionally with fractional seconds and an offset
+from UTC, e.g., "2000-01-01 12:00:00.5+09:00".  Times without an offset are UTC.)",
+                     text)
 
-  std::tm tm_struct{};
-  tm_struct.tm_year  = year - 1900;
-  tm_struct.tm_mon   = month - 1;
-  tm_struct.tm_mday  = day;
-  tm_struct.tm_hour  = hour;
-  tm_struct.tm_hour  = hour;
-  tm_struct.tm_min   = minute;
-  tm_struct.tm_isdst = -1;
-  t                  = Time{tm_struct} + TimeStep{sec};
+  const year_month_day date{year{parse_number<int>(YMD[0], "year", text)},
+                            month{parse_number<unsigned>(YMD[1], "month", text)},
+                            day{parse_number<unsigned>(YMD[2], "day", text)}};
+  const int            hour   = parse_number<int>(HMS[0], "hour", text);
+  const int            minute = parse_number<int>(HMS[1], "minute", text);
+  const Numeric        second = parse_number<Numeric>(HMS[2], "second", text);
+
+  ARTS_USER_ERROR_IF(not date.ok(), "The date of the time \"{}\" does not exist", text)
+  ARTS_USER_ERROR_IF(hour < 0 or hour > 23 or minute < 0 or minute > 59 or second < 0 or second >= 60,
+                     "The time of day of the time \"{}\" is not within 00:00:00 to 23:59:59",
+                     text)
+  ARTS_USER_ERROR_IF(abs(offset) >= days{1}, "The offset from UTC of the time \"{}\" is not less than a day", text)
+
+  t = Time{date, hours{hour} + minutes{minute} + round<Time::InternalTimeStep>(TimeStep{second}), offset};
 
   return is;
 }

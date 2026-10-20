@@ -9,4 +9,5 @@
 #include "matpack_mdspan_helpers_ranged_grid_t.h"
 #include "matpack_mdspan_helpers_reduce.h"
 #include "matpack_mdspan_helpers_transform.h"
+#include "matpack_mdspan_helpers_triangular.h"
 #include "matpack_mdspan_helpers_vector.h"

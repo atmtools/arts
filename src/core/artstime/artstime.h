@@ -4,43 +4,53 @@
 #include <xml.h>
 
 #include <chrono>
-#include <ctime>
 #include <string_view>
 
 /** A duration of time, 1 full tick should be 1 second */
 using TimeStep = std::chrono::duration<Numeric>;
 
-/** Class to handle time in ARTS */
+/** A point in time, and the timezone that its calendar date and time of day is in
+ *
+ * The timezone is a fixed offset from UTC, by default UTC itself.  Times are
+ * read and printed as "YYYY-MM-DD hh:mm:ss", optionally with fractional
+ * seconds and the offset, e.g., "2000-01-01 12:00:00.5+09:00".  Times without
+ * an offset are UTC.  Times compare as points in time, whatever their timezones.
+ */
 struct Time {
   std::chrono::time_point<std::chrono::system_clock> time;
   using InternalTimeStep = decltype(time)::duration;
 
-  // Version will be updated when C++20 datetime is available... Version 1 will still assume local time at that time
-  [[nodiscard]] static constexpr Index Version() noexcept { return 1; }
+  //! The timezone as an offset from UTC
+  std::chrono::minutes utc_offset{0};
+
+  [[nodiscard]] static constexpr Index Version() noexcept { return 2; }
 
   // Construction
   Time();
-  explicit Time(std::time_t t);
-  explicit Time(std::tm t);
   explicit Time(const String& t);
 
-  // Conversions
-  [[nodiscard]] std::time_t toTimeT() const;
-  [[nodiscard]] std::tm     toStruct() const;
-  [[nodiscard]] std::tm     toGMTStruct() const;
+  //! The time at a calendar date and time of day in the timezone utc_offset
+  Time(std::chrono::year_month_day date, InternalTimeStep time_of_day, std::chrono::minutes utc_offset = {});
+
+  //! The calendar date in the timezone of the time
+  [[nodiscard]] std::chrono::year_month_day date() const;
+
+  //! The time of day in the timezone of the time
+  [[nodiscard]] std::chrono::hh_mm_ss<InternalTimeStep> time_of_day() const;
+
+  //! The date and time in the timezone of the time, with its offset unless UTC, e.g., "2000-01-01 12:00:00.000000+09:00"
+  [[nodiscard]] String str() const;
 
   [[nodiscard]] TimeStep seconds_into_day() const;
 
   [[nodiscard]] InternalTimeStep EpochTime() const;
 
   // Operations
-  InternalTimeStep                        operator-(const Time& t) const noexcept;
-  bool                                    operator<(const Time& t) const noexcept;
-  bool                                    operator==(const Time& t) const noexcept;
-  bool                                    operator!=(const Time& t) const noexcept;
-  bool                                    operator<=(const Time& t) const noexcept;
-  bool                                    operator>(const Time& t) const noexcept;
-  bool                                    operator>=(const Time& t) const noexcept;
+  InternalTimeStep operator-(const Time& t) const noexcept;
+
+  [[nodiscard]] bool operator==(const Time& t) const noexcept { return time == t.time; }
+  [[nodiscard]] auto operator<=>(const Time& t) const noexcept { return time <=> t.time; }
+
   template <typename T, typename R> Time& operator+=(const std::chrono::duration<T, R>& dt) {
     time += std::chrono::duration_cast<InternalTimeStep>(dt);
     return *this;
@@ -169,7 +179,7 @@ template <> struct std::formatter<Time> {
 
   template <class FmtContext> FmtContext::iterator format(const Time& v, FmtContext& ctx) const {
     const std::string_view quote = tags.quote();
-    return tags.format(ctx, quote, v.time, quote);
+    return tags.format(ctx, quote, v.str(), quote);
   }
 };
 

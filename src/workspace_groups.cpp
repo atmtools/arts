@@ -460,6 +460,11 @@ They will generally throw an error if you lack the data.
   wsg_data["Time"] = {
       .file = "artstime.h",
       .desc = R"(Represents a time stamp
+
+A time is a point in time and the timezone it is shown in, as an offset from UTC.
+It is read and printed as ``"YYYY-MM-DD hh:mm:ss"``, optionally with fractional
+seconds and the offset, e.g., ``"2000-01-01 12:00:00.5+09:00"``.  Times without an
+offset are UTC.  Times compare as points in time, whatever their timezones.
 )",
   };
 
