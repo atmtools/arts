@@ -68,7 +68,8 @@ def edit(value, parent=None):
             qdt_result.time().hour(),
             qdt_result.time().minute(),
             qdt_result.time().second(),
-            qdt_result.time().msec() * 1000  # Convert milliseconds to microseconds
+            qdt_result.time().msec() * 1000,  # Convert milliseconds to microseconds
+            tzinfo=dt.tzinfo,
         )
         
         # Create new Time from datetime

@@ -239,13 +239,14 @@ w : list[float]
     The weights
 )");
 
-  py::class_<Legendre::SchmidtMatrix> sm(math, "SchmidtMatrix");
-  generic_interface(sm);
-  sm.def(py::init<Size>(), "N"_a, "Default Schmidt matrix")
+  py::class_<TriangularMatrix> tm(math, "TriangularMatrix");
+  generic_interface(tm);
+  tm.def(py::init<Index>(), "N"_a, "A N x N lower triangular matrix of zeros")
+      .def_prop_ro("N", &TriangularMatrix::nrows, "The number of rows, and columns\n\n.. :class:`int`")
       .def(
           "__getitem__",
-          [](const Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx) {
-            if (idx.first < 0 or idx.second < 0 or static_cast<Size>(idx.first) >= self.N or idx.second >= idx.first)
+          [](const TriangularMatrix& self, std::pair<Index, Index> idx) {
+            if (idx.first < 0 or idx.second < 0 or idx.first >= self.nrows() or idx.second > idx.first)
               throw std::out_of_range(
                   "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
 
@@ -255,8 +256,8 @@ w : list[float]
           R"(Get the value at the given index pair)")
       .def(
           "__setitem__",
-          [](Legendre::SchmidtMatrix& self, std::pair<Index, Index> idx, Numeric value) {
-            if (idx.first < 0 or idx.second < 0 or static_cast<Size>(idx.first) >= self.N or idx.second >= idx.first)
+          [](TriangularMatrix& self, std::pair<Index, Index> idx, Numeric value) {
+            if (idx.first < 0 or idx.second < 0 or idx.first >= self.nrows() or idx.second > idx.first)
               throw std::out_of_range(
                   "Index out of range.  Valid range is [0, N) for first index and [0, first index] for second index");
 
@@ -264,17 +265,16 @@ w : list[float]
           },
           "idx"_a,
           "value"_a,
-          R"(Get the value at the given index pair)")
-      .doc() = R"(Special matrix for the Schmidt polynomials
+          R"(Set the value at the given index pair)")
+      .doc() = R"(A lower triangular N-by-N-matrix
 
-This is a lower triangular N-by-N-matrix missing the 0, 0 entry.
 Can only be accessed at indices
 ``(i, j)``, where ``0 <= i < N`` and ``0 <= j <= i``.
 )";
 
   math.def(
       "schmidt_legendre_polynomial",
-      static_cast<std::pair<Legendre::SchmidtMatrix, Legendre::SchmidtMatrix> (*)(Numeric, Index)>(&Legendre::schmidt),
+      static_cast<std::pair<TriangularMatrix, TriangularMatrix> (*)(Numeric, Index)>(&Legendre::schmidt),
       "theta"_a,
       "nmax"_a,
       R"(Computes the Positive Gauss-Legendre quadrature
@@ -288,9 +288,9 @@ nmax : int
 
 Returns
 -------
-Pnm : ~pyarts3.arts.math.SchmidtMatrix
+Pnm : ~pyarts3.arts.math.TriangularMatrix
     The Polynominal matrix (nmax+1 x nmax+1).
-dPnm : ~pyarts3.arts.math.SchmidtMatrix
+dPnm : ~pyarts3.arts.math.TriangularMatrix
     The Polynominal matrix derivative (nmax+1 x nmax+1).
 )");
 } catch (std::exception& e) {

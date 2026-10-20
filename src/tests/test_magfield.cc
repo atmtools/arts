@@ -38,18 +38,22 @@ int main() {
   auto hstream = std::stringstream(hstr);
   auto gstream = std::stringstream(gstr);
 
-  Matrix g(14, 14), h(14, 14);
+  TriangularMatrix g(14), h(14);
   for (Index i = 0; i < 14; i++) {
     for (Index j = 0; j < 14; j++) {
-      gstream >> g[i, j];
-      hstream >> h[i, j];
+      Numeric gij, hij;
+      gstream >> gij;
+      hstream >> hij;
+      if (j <= i) {
+        g[i, j] = gij;
+        h[i, j] = hij;
+      }
     }
   }
 
   for (Numeric lat = -90.0; lat <= 90.0; lat += 2.5) {
     for (Numeric lon = 0.0; lon <= 360.0; lon += 2.5) {
-      const auto [Bu, Bv, Bw] = Legendre::schmidt_fieldcalc(
-          Legendre::SchmidtMatrix{g}, Legendre::SchmidtMatrix{h}, 6371.2e3, {6371.2e3, lat, lon});
+      const auto [Bu, Bv, Bw] = Legendre::schmidt_fieldcalc(g, h, 6371.2e3, {6371.2e3, lat, lon});
       std::cout << lat << ' ' << lon << ' ' << Bu << ' ' << Bv << ' ' << Bw << ' ' << std::hypot(Bu, Bv, Bw) << '\n';
     }
   }

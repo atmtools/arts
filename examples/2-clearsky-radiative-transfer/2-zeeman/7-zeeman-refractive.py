@@ -32,7 +32,7 @@ ws.surf_field[pyarts.arts.SurfaceKey("t")] = 295.0
 ws.atm_fieldRead(
     toa=120e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.atm_fieldIGRF()
+ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 
 # %% Checks and settings
 
@@ -85,12 +85,12 @@ if "ARTS_HEADLESS" not in os.environ:
 
 # %% Tests
 
-assert np.allclose(geometric.flatten()[::21], [1.25486103e+02, -5.56777144e-04, -2.63816009e-03,  6.12431001e-01,
-                                               1.38429184e+02,  1.04834522e-01, -2.21549573e-02, -5.18205673e-01,
-                                               1.29365186e+02, -4.48679095e-04])
+assert np.allclose(geometric.flatten()[::21], [1.25485848e+02, -6.01567897e-04, -2.41577985e-03,  6.08670834e-01,
+                                               1.38412669e+02,  1.10187275e-01, -2.02820836e-02, -5.14978283e-01,
+                                               1.29364509e+02, -4.84799820e-04])
 
-assert np.allclose(refractive.flatten()[::21], [1.25552512e+02, -5.61580828e-04, -2.61219720e-03,  6.11932940e-01,
-                                                1.38488011e+02,  1.04448633e-01, -2.18946938e-02, -5.19985291e-01,
-                                                1.29439037e+02, -4.53301859e-04])
+assert np.allclose(refractive.flatten()[::21], [1.25552247e+02, -6.06767990e-04, -2.39196372e-03,  6.08157968e-01,
+                                                1.38470374e+02,  1.09854048e-01, -2.00409572e-02, -5.16739003e-01,
+                                                1.29438345e+02, -4.89801105e-04])
 
 assert not np.allclose(geometric, refractive)

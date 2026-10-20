@@ -11,7 +11,9 @@
 #include "artstime.h"
 
 void test01() {
-  auto x = ArrayOfTime(40000, Time(4));
+  Time start;
+  start.Seconds(4);
+  auto x = ArrayOfTime(40000, start);
 
   // Set the steps 0.5 seconds appard
   for (Size i = 0; i < x.size(); i++) x[i] += TimeStep(0.001 * Numeric(i));

@@ -16,5 +16,6 @@ xsec/O3-XFIT.xml.bin
 hitran/
 isotopologues/
 jpl/
+mag-field/
 partition-functions/
 species/

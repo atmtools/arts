@@ -692,8 +692,9 @@ These are named:
 
 The IGRF model is a model of the Earth's magnetic field. It is based on
 spherical harmonics and is only valid for a limited time period.
-
-The IGRF model is available via :cite:t:`Alken2021`.
+The coefficients are compiled from ``mag-field/igrf.txt`` in arts-cat-data.
+The first and the last valid decimal year, where 2001.0 is the start of 2001,
+are ``pyarts3.arts.igrf_valid_range``.  Other times are an error.
 
 .. note::
     The IGRF model is added as a functional object to the atmospheric field.
@@ -714,17 +715,14 @@ The IGRF model is available via :cite:t:`Alken2021`.
 
   wsm_data["atm_fieldSchmidthFieldFromIGRF"] = {
       .desc =
-          R"--(For forward calculations, this should be similar to *atm_fieldIGRF*.
+          R"--(For forward calculations, this gives the same magnetic field as *atm_fieldIGRF*.
 
-What it does different is that it is 1) not a direct computations matching the IGRF field,
-instead averaging the Legendre coefficient matrices.
-
-What it does very different is that it supports retrievals
+What it does different is that it supports retrievals
 of the magnetic field Legendre coefficients.
 
 This is very much a WIP and not well tested.
 
-The IGRF model is available via :cite:t:`Alken2021`.
+The IGRF coefficients and their valid times are the same as for *atm_fieldIGRF*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
