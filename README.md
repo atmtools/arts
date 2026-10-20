@@ -272,8 +272,10 @@ When you manually execute ARTS python scripts, you need to prepend the following
 ```
 # macOS
 DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.asan_osx_dynamic.dylib) python ...
-# Linux
+# Linux (x86_64)
 LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-x86_64.so) python ...
+# Linux (aarch64)
+LD_PRELOAD=$(clang -print-file-name=libclang_rt.asan-aarch64.so) python ...
 ```
 
 On Windows the MSVC AddressSanitizer runtime is loaded from
@@ -284,6 +286,36 @@ Visual Studio Developer Command Prompt (or with the MSVC `bin\Hostx64\x64`
 directory on `PATH`). Note that MSVC AddressSanitizer requires the Visual
 Studio **C++ AddressSanitizer** component and is only available for the x86 and
 x64 architectures.
+
+Thread sanitizer
+----------------
+
+ARTS can be built with thread sanitizer (TSAN) support. This detects data
+races and is enabled by using the following preset:
+
+```
+# Clang (Linux/macOS)
+cmake --preset=tsan-clang-conda
+```
+
+TSAN is only useful for multithreaded code, so OpenMP stays enabled. If the
+OpenMP runtime produces false positives or crashes, rebuild with
+`-DNO_OPENMP=1` (at the cost of not testing the OpenMP threading itself).
+Alternatively, build and use Archer, which makes TSAN understand the OpenMP
+runtime's synchronization and eliminates those false positives without giving
+up OpenMP; see [HOWTO-ARCHER.md](HOWTO-ARCHER.md), which also contains a prompt
+for having an LLM perform the setup.
+
+When you manually execute ARTS python scripts, you need to prepend the following to the command line:
+
+```
+# macOS
+DYLD_INSERT_LIBRARIES=$(clang -print-file-name=libclang_rt.tsan_osx_dynamic.dylib) python ...
+# Linux (x86_64)
+LD_PRELOAD=$(clang -print-file-name=libclang_rt.tsan-x86_64.so) python ...
+# Linux (aarch64)
+LD_PRELOAD=$(clang -print-file-name=libclang_rt.tsan-aarch64.so) python ...
+```
 
 Linux perf profiling
 --------------------
