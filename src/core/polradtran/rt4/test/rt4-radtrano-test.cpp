@@ -274,7 +274,7 @@ Numeric doubling_amplification(const inputs& in) {
     if (set < 1) continue;
     const Numeric extinct = in.extinct_matrix[set - 1, 0, 0, 0, 0] + std::max(in.gas_extinct[l], 0.0);
     const Numeric f = std::log2(std::max(extinct * std::abs(in.height[l] - in.height[l + 1]), 1e-7) / in.max_delta_tau);
-    if (f > 0.0) amp = std::max(amp, std::pow(2.0, std::floor(f) + 1.0));
+    if (f > 0.0) amp = std::max(amp, std::ldexp(1.0, static_cast<int>(f) + 1));
   }
   return amp;
 }

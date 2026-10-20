@@ -1,6 +1,7 @@
 #pragma once
 
 #include <matpack.h>
+#include <rtepack.h>
 
 /** Conversions between gridded and Legendre (spectral) scattering matrices of totally randomly oriented particles.
  *
@@ -27,7 +28,12 @@ namespace scattering::tro_legendre {
  * @param degree The highest degree, >= 0
  * @return [degree + 1, n]
  */
-Matrix project(const ConstVectorView& angles, const ConstMatrixView& values, Index degree);
+Matrix project(const ConstVectorView& angles, const StridedConstMatrixView& values, Index degree);
+
+//! project() of TRO scattering matrices [angles.size()], each element its own function: coefficients [degree + 1]
+CompactPlanarMuelmatVector project(const ConstVectorView&                     angles,
+                                   const CompactPlanarMuelmatConstVectorView& values,
+                                   Index                                      degree);
 
 /** The series sum_l a_l Y_l0 at the scattering angles [deg]
  *
@@ -35,7 +41,11 @@ Matrix project(const ConstVectorView& angles, const ConstMatrixView& values, Ind
  * @param angles The scattering angles [deg], in [0, 180]
  * @return [angles.size(), n]
  */
-Matrix evaluate(const ConstMatrixView& coefficients, const ConstVectorView& angles);
+Matrix evaluate(const StridedConstMatrixView& coefficients, const ConstVectorView& angles);
+
+//! evaluate() of the coefficients [degree + 1] of TRO scattering matrices: the matrices [angles.size()]
+CompactPlanarMuelmatVector evaluate(const CompactPlanarMuelmatConstVectorView& coefficients,
+                                    const ConstVectorView&                     angles);
 
 /** How well a truncated series represents gridded data, for one set of six TRO elements
  *
@@ -43,17 +53,19 @@ Matrix evaluate(const ConstMatrixView& coefficients, const ConstVectorView& angl
  */
 struct report {
   //! max over the nodes of |series - data| per element, relative
-  Vector reconstruction_error = Vector(6, 0.0);
+  CompactPlanarMuelmat reconstruction_error{};
   //! |a_degree| per element relative to |a_0| of F11: how far the series is from converged
-  Vector tail = Vector(6, 0.0);
+  CompactPlanarMuelmat tail{};
   //! The smallest F11 of the series on a fine grid, relative; negative values are truncation ringing
   Numeric min_f11{0.0};
   //! The asymmetry parameter <cos(Theta)> of the series, a_1 / (sqrt(3) a_0) of F11
   Numeric asymmetry{0.0};
 };
 
-/** The report on coefficients [degree + 1, 6] of gridded data [angles.size(), 6] at angles [deg] */
-report assess(const ConstMatrixView& coefficients, const ConstVectorView& angles, const ConstMatrixView& values);
+/** The report on the coefficients [degree + 1] of gridded data [angles.size()] at angles [deg] */
+report assess(const CompactPlanarMuelmatConstVectorView& coefficients,
+              const ConstVectorView&                     angles,
+              const CompactPlanarMuelmatConstVectorView& values);
 }  // namespace scattering::tro_legendre
 
 namespace scattering {
@@ -63,10 +75,10 @@ namespace scattering {
  * and frequency.
  */
 struct LegendreReport {
-  //! [t, f, 6], max over the nodes of |series - data| per element
-  Tensor3 reconstruction_error;
-  //! [t, f, 6], |a_degree| per element relative to |a_0| of F11
-  Tensor3 tail;
+  //! [t, f], max over the nodes of |series - data| per element
+  CompactPlanarMuelmatMatrix reconstruction_error;
+  //! [t, f], |a_degree| per element relative to |a_0| of F11
+  CompactPlanarMuelmatMatrix tail;
   //! [t, f], the smallest F11 of the series on a fine grid; negative values are truncation ringing
   Matrix min_f11;
   //! [t, f], the asymmetry parameter of the series

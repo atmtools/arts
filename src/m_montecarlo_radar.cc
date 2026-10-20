@@ -90,17 +90,13 @@ OpticalPoint optical_point(const Workspace&                ws,
   ARTS_USER_ERROR_IF(not bulk_outgoing.phase_matrix.has_value(),
                      "MCRadar requires phase matrices from all scattering species")
 
-  const auto phase               = bulk_outgoing.phase_matrix->get_const_coeff_vector_view();
-  const auto outgoing_extinction = bulk_outgoing.extinction_matrix.get_const_coeff_vector_view();
-  const auto return_extinction   = bulk_return.extinction_matrix.get_const_coeff_vector_view();
+  const auto& phase = *bulk_outgoing.phase_matrix;
 
   OpticalPoint out;
-  const auto&  outgoing    = outgoing_extinction[0, 0, 0];
-  const auto&  returning   = return_extinction[0, 0, 0];
   out.outgoing_extinction  = gas_outgoing[0];
-  out.outgoing_extinction += Propmat{outgoing[0], outgoing[1], 0.0, 0.0, 0.0, 0.0, outgoing[2]};
+  out.outgoing_extinction += bulk_outgoing.extinction_matrix[0, 0, 0].expand();
   out.return_extinction    = gas_return[0];
-  out.return_extinction   += Propmat{returning[0], returning[1], 0.0, 0.0, 0.0, 0.0, returning[2]};
+  out.return_extinction   += bulk_return.extinction_matrix[0, 0, 0].expand();
   out.backscatter          = phase[0, 0, 0, 0, 0];
   return out;
 }

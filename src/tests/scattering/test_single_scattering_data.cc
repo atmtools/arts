@@ -18,8 +18,7 @@
 //   xml_read_from_file(meta_path, legacy_meta);
 
 //   using SingleScatteringData =
-//       scattering::SingleScatteringData<Numeric,
-//                                        scattering::Format::TRO,
+//       scattering::SingleScatteringData<//                                        scattering::Format::TRO,
 //                                        scattering::Representation::Gridded>;
 //   auto ssd = SingleScatteringData::from_legacy_tro(legacy_data, legacy_meta);
 

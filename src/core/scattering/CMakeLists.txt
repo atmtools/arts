@@ -14,6 +14,7 @@ add_library(scattering STATIC
    bulk_scattering_properties.cc
    optproperties.cc
    gas_scattering.cc
+   mie.cc
    tro_legendre.cc
 )
 

@@ -42,8 +42,8 @@ struct VDisortRadiance {
  *
  * The phase matrix is given by the Legendre moments of the six elements
  * [F11, F12, F22, F33, F34, F44] of the scattering-plane matrix of randomly
- * oriented particles: element e is sum_l (2 l + 1) legendre_coefficients[f,
- * layer, l, e] P_l(cos Theta), normalised so that the F11 moment of degree 0
+ * oriented particles: the matrix is sum_l (2 l + 1) legendre_coefficients[f,
+ * layer, l] P_l(cos Theta), normalised so that the F11 moment of degree 0
  * is 1 (DISORT's moments are those of F11).  VDISORT's Fourier coefficients
  * on its streams are made from them for each frequency in set().
  */
@@ -89,8 +89,8 @@ struct VDisortSettings {
   // freq_grid.size() x [alt_grid.size() - 1] x nsrc
   StokvecTensor3 source_polynomial{};
 
-  // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension_full x 6
-  Tensor4 legendre_coefficients{};
+  // freq_grid.size() x [alt_grid.size() - 1] x legendre_polynomial_dimension_full
+  CompactPlanarMuelmatTensor3 legendre_coefficients{};
 
   // freq_grid.size() x 2 (cosine, sine) x fourier_mode_dimension x quadrature_dimension / 2, the radiance beneath the
   // surface, which VDISORT transmits with 1 - R (Kirchhoff's emission for a Planck radiance)

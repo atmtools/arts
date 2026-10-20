@@ -798,8 +798,8 @@ void calculate(PropmatVectorView               pm_,
         const Numeric f = f_grid[i], r = Constant::h * f / (Constant::k * atm.temperature);
         const Numeric e = std::expm1(-r);
         switch (*key) {
-          case AtmKey::t:      dscale[target.target_pos, i] = -scale * N * f * (r * (e + 1) - e) / atm.temperature; break;
-          case AtmKey::p:      dscale[target.target_pos, i] = -scale * f * e / (Constant::k * atm.temperature); break;
+          case AtmKey::t: dscale[target.target_pos, i] = -scale * N * f * (r * (e + 1) - e) / atm.temperature; break;
+          case AtmKey::p: dscale[target.target_pos, i] = -scale * f * e / (Constant::k * atm.temperature); break;
           case AtmKey::wind_u:
           case AtmKey::wind_v:
           case AtmKey::wind_w: dscale[target.target_pos, i] = scale * N * (r * (e + 1) - e); break;

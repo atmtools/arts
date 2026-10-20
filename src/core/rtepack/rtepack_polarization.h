@@ -3,6 +3,7 @@
 #include <debug.h>
 #include <matpack.h>
 
+#include <limits>
 #include <utility>
 
 #include "rtepack_compact_planar_mueller_matrix.h"
@@ -19,6 +20,15 @@ namespace rtepack {
 using polarization_basis = std::pair<Vector3, Vector3>;
 
 namespace detail {
+/** The largest cross product of two parallel directions
+ *
+ *  Unit vectors accurate to rounding, and the bases computed from them, give
+ *  cross products accurate to a few epsilon, which this bounds.  At or below
+ *  it a cross product resolves no direction, and the two are parallel in
+ *  double precision.
+ */
+constexpr Numeric parallel = 16 * std::numeric_limits<Numeric>::epsilon();
+
 //! {cos 2 psi, sin 2 psi} of the rotation from one basis of a ray to another, cos psi = v_to . v_from and sin psi = v_to . h_from
 constexpr std::pair<Numeric, Numeric> rotation_angle(const polarization_basis& from, const polarization_basis& to) {
   const Numeric c = dot(to.first, from.first), s = dot(to.first, from.second);
@@ -31,9 +41,10 @@ constexpr std::pair<Numeric, Numeric> rotation_angle(const polarization_basis& f
  *  With z up, h = k x z / |k x z| and v = h x k.  v lies in the plane of k
  *  and z with v . z >= 0, the "projected up" direction of the Zeeman
  *  angles, so this is the basis of ARTS's propagation matrices and of
- *  VDISORT, RT3 and RT4.  Along +-z (|k x z| < 1e-12) the plane is that of
- *  the horizontal unit vector h_pole: h = h_pole, the limit along the
- *  meridian with that h.
+ *  VDISORT, RT3 and RT4.  Along +-z (|k x z| at most detail::parallel) the
+ *  plane is that of the horizontal unit vector h_pole: h = h_pole, the limit
+ *  along the meridian with that h.  Any other ray has the h of its own
+ *  meridian, to rounding.
  *
  *  @param k      Unit propagation direction
  *  @param h_pole Horizontal unit vector, the h of a ray along +-z
@@ -73,9 +84,12 @@ constexpr muelmat basis_rotation(const polarization_basis& from, const polarizat
  *
  *  i.e. basis_rotation from in to the scattering plane, F, and
  *  basis_rotation from the scattering plane to out.  Exactly forward or
- *  backward (|k_in x k_out| < 1e-12) the scattering plane is undefined, and
- *  that of k_in and h_in is used.  A regular F there (F12 = F34 = 0 and
- *  F22 = +-F33) gives the same phase matrix for every plane.
+ *  backward (|k_in x k_out| at most detail::parallel) the scattering plane
+ *  is undefined, and that of k_in and h_in is used.  A regular F there
+ *  (F12 = F34 = 0 and F22 = +-F33) gives the same phase matrix for every
+ *  plane.  Near them the cross product gives the plane to about
+ *  epsilon / |k_in x k_out|, which reaches the phase matrix only through the
+ *  part of F that depends on the plane, vanishing there for a physical F.
  *
  *  @param in  The polarization basis of the incident ray
  *  @param out The polarization basis of the scattered ray

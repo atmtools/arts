@@ -30,15 +30,19 @@ class ScatteringHabit {
                   Numeric              mass_size_rel_a_ = -1.0,
                   Numeric              mass_size_rel_b_ = -1.0);
 
-  BulkScatteringPropertiesTROGridded get_bulk_scattering_properties_tro_gridded(const AtmPoint&,
-                                                                                const Vector& f_grid,
-                                                                                const Numeric f_tol = 1e-3) const;
+  [[nodiscard]] BulkScatteringPropertiesTROGridded get_bulk_scattering_properties_tro_gridded(
+      const AtmPoint&, const Vector& f_grid) const;
 
-  BulkScatteringProperties<Format::TRO, Representation::Gridded> get_bulk_scattering_properties_tro_gridded(
-      const AtmPoint& point, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
+  get_bulk_scattering_properties_tro_gridded(const AtmPoint&                  point,
+                                             const Vector&                    f_grid,
+                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  BulkScatteringProperties<Format::TRO, Representation::Gridded> get_bulk_scattering_properties_tro_gridded_derivative(
-      const AtmPoint&, const Vector&, std::shared_ptr<ZenithAngleGrid>, const AtmKeyVal&) const;
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
+  get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoint&,
+                                                        const Vector&,
+                                                        std::shared_ptr<ZenithAngleGrid>,
+                                                        const AtmKeyVal&) const;
 
   /** The bulk Legendre series to degree at f_grid, summed over the particles
    *
@@ -47,9 +51,9 @@ class ScatteringHabit {
    * coefficient is the scattering-plane Mueller matrix on Y_l0 (see
    * tro_legendre.h).
    */
-  ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
-                                                                          const Vector& f_grid,
-                                                                          const Index   degree) const;
+  [[nodiscard]] ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
+                                                                                        const Vector& f_grid,
+                                                                                        const Index   degree) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame bulk phase matrix at the zenith angles [deg]
    *
@@ -58,23 +62,27 @@ class ScatteringHabit {
    * zenith grids.  Gridded TRO data must be converted to a Legendre series
    * first.
    */
-  BulkScatteringProperties<Format::ARO, Representation::Fourier> get_bulk_scattering_properties_aro_fourier(
-      const AtmPoint&,
-      const Vector& f_grid,
-      const Vector& za_inc_grid,
-      const Vector& za_scat_grid,
-      Index         max_mode) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier>
+  get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
+                                             const Vector& f_grid,
+                                             const Vector& za_inc_grid,
+                                             const Vector& za_scat_grid,
+                                             Index         max_mode) const;
 
-  BulkScatteringProperties<Format::ARO, Representation::Gridded> get_bulk_scattering_properties_aro_gridded(
-      const AtmPoint&                  point,
-      const Vector&                    f_grid,
-      const Vector&                    za_inc_grid,
-      const Vector&                    delta_aa_grid,
-      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
+  get_bulk_scattering_properties_aro_gridded(const AtmPoint&                  point,
+                                             const Vector&                    f_grid,
+                                             const Vector&                    za_inc_grid,
+                                             const Vector&                    delta_aa_grid,
+                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  BulkScatteringProperties<Format::ARO, Representation::Gridded> get_bulk_scattering_properties_aro_gridded_derivative(
-      const AtmPoint&, const Vector&, const Vector&, const Vector&, std::shared_ptr<ZenithAngleGrid>, const AtmKeyVal&)
-      const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
+  get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoint&,
+                                                        const Vector&,
+                                                        const Vector&,
+                                                        const Vector&,
+                                                        std::shared_ptr<ZenithAngleGrid>,
+                                                        const AtmKeyVal&) const;
 
   //  BulkScatteringProperties<Format::TRO, Representation::Gridded>
   //  get_bulk_scattering_properties_tro_spectral(
@@ -84,8 +92,8 @@ class ScatteringHabit {
 
  private:
   //! The number density [m^-3] each particle stands for at point (see scattering::number_densities)
-  Vector  number_densities(const AtmPoint& point) const;
-  PSDData number_densities_with_derivatives(const AtmPoint& point) const;
+  [[nodiscard]] Vector  number_densities(const AtmPoint& point) const;
+  [[nodiscard]] PSDData number_densities_with_derivatives(const AtmPoint& point) const;
 
   ParticleHabit particle_habit;
   Numeric       mass_size_rel_a, mass_size_rel_b;

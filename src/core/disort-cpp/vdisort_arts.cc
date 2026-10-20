@@ -83,8 +83,8 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const auto& abs      = lab.absorption_vector;
   const auto& integral = pha.get_phase_integral();
 
-  out.extinction      = ext[0, 0, 0, 0];
-  out.scattering      = out.extinction - abs[0, 0, 0, 0];
+  out.extinction      = ext[0, 0, 0].A();
+  out.scattering      = out.extinction - abs[0, 0, 0].I();
   const Numeric sigma = integral[0, 0, 0];
 
   // VDISORT's optical depth and albedo are scalars: the particles' extinction must not depend on the direction
@@ -98,9 +98,9 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                        "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
                        za_inc[j])
     if (not check) continue;
-    const Numeric dk   = std::abs(ext[0, 0, j, 0] - out.extinction),
-                  dpol = std::max(std::abs(ext[0, 0, j, 1]), std::abs(ext[0, 0, j, 2]));
-    const Numeric da = std::abs(abs[0, 0, j, 0] - abs[0, 0, 0, 0]), da2 = std::abs(abs[0, 0, j, 1]);
+    const Numeric dk   = std::abs(ext[0, 0, j].A() - out.extinction),
+                  dpol = std::max(std::abs(ext[0, 0, j].B()), std::abs(ext[0, 0, j].W()));
+    const Numeric da = std::abs(abs[0, 0, j].I() - abs[0, 0, 0].I()), da2 = std::abs(abs[0, 0, j].Q());
     const Numeric ds = std::abs(integral[0, 0, j] - sigma);
     ARTS_USER_ERROR_IF(not(std::max({dk, dpol, da, da2, ds}) <= tol),
                        "VDISORT's optical depth and single-scattering albedo are scalars, but at the incidence zenith "
@@ -136,26 +136,24 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
     const Numeric scale = (m == 0 ? 1.0 : 0.5) * 4.0 * Constant::pi / sigma;
     for (Index o = 0; o < no; o++) {
       for (Index i = 0; i < ni; i++) {
-        out.cosine[m, o, i] = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 0]};
-        out.sine[m, o, i]   = scale * rtepack::muelmat{pha[0, 0, inc[i], sca[o], m, 1]};
+        out.cosine[m, o, i] = scale * pha[0, 0, inc[i], sca[o], m, 0];
+        out.sine[m, o, i]   = scale * pha[0, 0, inc[i], sca[o], m, 1];
       }
     }
   }
   return out;
 }
 
-fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
-                                       const Vector&          mu_out,
-                                       const Vector&          mu_in,
-                                       Index                  nfourier) {
+fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView& moments,
+                                       const Vector&                              mu_out,
+                                       const Vector&                              mu_in,
+                                       Index                                      nfourier) {
   const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
-  const Index nleg = moments.nrows();
+  const Index nleg = moments.size();
   check_cosines(mu_out, "mu_out");
   check_cosines(mu_in, "mu_in");
   ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
-  ARTS_USER_ERROR_IF(nleg < 1 or moments.ncols() != 6,
-                     "The Legendre moments must be [nleg >= 1, 6] (F11, F12, F22, F33, F34, F44), got {:B,}",
-                     moments.shape());
+  ARTS_USER_ERROR_IF(nleg < 1, "The Legendre moments need at least one degree");
   ARTS_USER_ERROR_IF(no == 0 or ni == 0, "The Fourier coefficients need at least one mu_out and one mu_in");
 
   fourier_optics out{.extinction = 0.0,
@@ -166,21 +164,19 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
   const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
   const auto [za_scat, sca] = zenith_angle_grid(mu_out);
 
-  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta), element by element; its phase integral is 4 pi
+  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta); its phase integral is 4 pi
   Vector scaled(nleg);
   for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
-  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](Numeric                      theta,
-                                                                       matpack::data_t<Numeric, 3>& F) mutable {
+  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](
+                                     Numeric theta, rtepack::compact_planar_muelmat_matrix& F) mutable {
     Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
-    for (Index e = 0; e < 6; e++) {
-      Numeric value = 0.0;
-      for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l, e] * p[l];
-      F[0, 0, e] = value;
-    }
+    rtepack::compact_planar_muelmat value{};
+    for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l] * p[l];
+    F[0, 0] = value;
   };
 
   const auto one   = std::make_shared<const Vector>(Vector{0.0});
-  const auto modes = scattering::tro_lab_frame_fourier_modes<Numeric>(
+  const auto modes = scattering::tro_lab_frame_fourier_modes(
       one,
       one,
       std::make_shared<const Vector>(za_inc),
@@ -195,8 +191,8 @@ fourier_optics legendre_fourier_optics(const ConstMatrixView& moments,
     const Numeric scale = m == 0 ? 1.0 : 0.5;
     for (Index o = 0; o < no; o++) {
       for (Index i = 0; i < ni; i++) {
-        out.cosine[m, o, i] = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 0]};
-        out.sine[m, o, i]   = scale * rtepack::muelmat{modes[0, 0, inc[i], sca[o], m, 1]};
+        out.cosine[m, o, i] = scale * modes[0, 0, inc[i], sca[o], m, 0];
+        out.sine[m, o, i]   = scale * modes[0, 0, inc[i], sca[o], m, 1];
       }
     }
   }

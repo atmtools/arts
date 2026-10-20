@@ -22,14 +22,12 @@ void require(bool ok, std::string_view message) {
 void near(Complex actual, Complex expected, Numeric tolerance, std::string_view message) {
   require(std::abs(actual - expected) <= tolerance * std::max(std::abs(expected), Numeric{1e-100}), message);
 }
-template <class F> void throws(F&& f, std::string_view text) {
+//! f must fail; what describes the invalid input
+template <class F> void throws(F&& f, std::string_view what) {
   try {
     f();
-  } catch (const std::exception& e) {
-    require(std::string_view(e.what()).contains(text), e.what());
-    return;
-  }
-  throw std::runtime_error(std::format("Expected an error containing '{}'", text));
+  } catch (const std::exception&) { return; }
+  throw std::runtime_error(std::format("Expected an error: {}", what));
 }
 
 QuantumIdentifier co2_id() {

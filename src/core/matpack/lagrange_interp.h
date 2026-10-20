@@ -494,7 +494,7 @@ template <Index N, grid_transformer transform = grid_identity> struct lag_t {
   template <grid_order grid> constexpr lag_t(indx_t pos, std::span<const Numeric> xi, Numeric x, grid)
       : indx(std::move(pos)) {
     if constexpr (runtime) data.resize(indx.size());
-    set_weights<transform, N + 1, grid>(data, indx, xi, x);
+    set_weights<transform, runtime ? std::dynamic_extent : static_cast<Size>(N + 1), grid>(data, indx, xi, x);
   }
 
   [[nodiscard]] constexpr Index size() const requires(runtime) { return data.size(); }
@@ -650,19 +650,21 @@ constexpr auto make_lags(std::span<const Numeric>         xi,
   const order_t order = check_limit<transform, Extent>(xi, xn, extrapolation_limit, N, info);
 
   if constexpr (has_dynamic_extent) {
-    std::vector<FlagT> lags;
-    lags.reserve(xn.size());
+    std::vector<FlagT> lags(xn.size());
 
     std::visit(
         [&]<typename grid>(const grid& ord) {
-          if (not xn.empty()) lags.emplace_back(xi, xn.front(), ord);
+          if (xn.empty()) return;
 
+          // The running position stays local: carried through the lags themselves, every point would wait on the
+          // store and reload of the previous point's position.  Its address must not escape either (as into
+          // emplace_back's reference parameters), or it is kept in memory all the same.
+          lags[0]   = FlagT{xi, xn.front(), ord};
+          auto indx = lags[0].indx;
           for (Size i = 1; i < xn.size(); ++i) {
             const Numeric x = xn[i];
-            auto&         f = lags.emplace_back(lags[i - 1]);
-
-            update_pos<transform, N + 1, grid>(f.indx, xi, x);
-            set_weights<transform, N + 1, grid>(f.data, f.indx, xi, x);
+            update_pos<transform, N + 1, grid>(indx, xi, x);
+            lags[i] = FlagT{indx, xi, x, ord};
           }
         },
         order);
@@ -674,15 +676,13 @@ constexpr auto make_lags(std::span<const Numeric>         xi,
     if constexpr (Extent > 0) {
       std::visit(
           [&]<typename grid>(const grid& ord) {
-            if (not xn.empty()) lags[0] = FlagT{xi, xn.front(), ord};
-
+            // The running position stays local, as above
+            lags[0]   = FlagT{xi, xn.front(), ord};
+            auto indx = lags[0].indx;
             for (Size i = 1; i < xn.size(); ++i) {
               const Numeric x = xn[i];
-              auto&         f = lags[i];
-              f.indx          = lags[i - 1].indx;
-
-              update_pos<transform, N + 1, grid>(f.indx, xi, x);
-              set_weights<transform, N + 1, grid>(f.data, f.indx, xi, x);
+              update_pos<transform, N + 1, grid>(indx, xi, x);
+              lags[i] = FlagT{indx, xi, x, ord};
             }
           },
           order);
@@ -728,19 +728,19 @@ constexpr auto make_lags(std::span<const Numeric>         xi,
   const order_t order = check_limit<transform, Extent>(xi, xn, extrapolation_limit, polyorder, info);
 
   if constexpr (dynamic_extent) {
-    std::vector<FlagT> lags;
-    lags.reserve(xn.size());
+    std::vector<FlagT> lags(xn.size());
 
     std::visit(
         [&]<typename grid>(const grid& ord) {
-          if (not xn.empty()) lags.emplace_back(xi, xn.front(), polyorder, ord);
+          if (xn.empty()) return;
 
+          // The running position stays local, as for the fixed order
+          lags[0]   = FlagT{xi, xn.front(), polyorder, ord};
+          auto indx = lags[0].indx;
           for (Size i = 1; i < xn.size(); ++i) {
             const Numeric x = xn[i];
-            auto&         f = lags.emplace_back(lags[i - 1]);
-
-            update_pos<transform, std::dynamic_extent, grid>(f.indx, xi, x);
-            set_weights<transform, std::dynamic_extent, grid>(f.data, f.indx, xi, x);
+            update_pos<transform, std::dynamic_extent, grid>(indx, xi, x);
+            lags[i] = FlagT{indx, xi, x, ord};
           }
         },
         order);
@@ -752,15 +752,13 @@ constexpr auto make_lags(std::span<const Numeric>         xi,
     if constexpr (Extent > 0) {
       std::visit(
           [&]<typename grid>(const grid& ord) {
-            if (not xn.empty()) lags[0] = FlagT{xi, xn.front(), polyorder, ord};
-
+            // The running position stays local, and every lag gets weights of its own size
+            lags[0]   = FlagT{xi, xn.front(), polyorder, ord};
+            auto indx = lags[0].indx;
             for (Size i = 1; i < xn.size(); ++i) {
               const Numeric x = xn[i];
-              auto&         f = lags[i];
-              f.indx          = lags[i - 1].indx;
-
-              update_pos<transform, std::dynamic_extent, grid>(f.indx, xi, x);
-              set_weights<transform, std::dynamic_extent, grid>(f.data, f.indx, xi, x);
+              update_pos<transform, std::dynamic_extent, grid>(indx, xi, x);
+              lags[i] = FlagT{indx, xi, x, ord};
             }
           },
           order);
@@ -800,16 +798,20 @@ constexpr auto make_lags(const Orig&                   xi,
  ******************************************************************/
 
 namespace {
-//! Does not support 0-size.  Return early if size is 0.
-template <typename Indx, Size N> constexpr void inc(std::array<Indx, N>& s, const std::array<Indx, N>& n) {
-  s.back()++;
-  for (Size i = s.size() - 1; i > 0; --i) {
-    if (s[i] == n[i]) {
-      s[i] = 0;
-      ++s[i - 1];
-    } else {
-      break;
-    }
+/*! Calls f(i...) for every index tuple below the extents n, the last index fastest
+ *
+ * As plain nested loops, which the compiler unrolls when the extents are known
+ * at compile time, as those of a lag_t of fixed order are.  An odometer over
+ * the tuple (the last index incremented, with carries) visits the same tuples
+ * in the same order, but stays one rolled loop with the carries in it: about
+ * four times the instructions per tuple.
+ */
+template <Size D = 0, Size N, typename F, typename... Is>
+constexpr void nested_for(const std::array<Index, N>& n, F&& f, Is... i) {
+  if constexpr (D == N) {
+    f(i...);
+  } else {
+    for (Index j = 0; j < n[D]; ++j) nested_for<D + 1>(n, f, i..., j);
   }
 }
 
@@ -841,11 +843,14 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field,
 
   T out{};
 
-  const std::array<Index, N> n{itw.shape()};
+  const std::array<Index, N> n{static_cast<Index>(lags.size())...};
+  assert(itw.shape() == n);
 
-  for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    out += std::apply([&](auto&&... i) { return transform::forward(field[lags.indx[i]...]) * itw[i...]; }, s);
-  }
+  // The term is its own expression, so that it is not contracted with the sum
+  nested_for(n, [&](auto... i) {
+    const auto term  = transform::forward(field[lags.indx[i]...]) * itw[i...];
+    out             += term;
+  });
 
   return transform::inverse(out);
 }
@@ -857,12 +862,19 @@ constexpr auto interp(const matpack::ranked_md<N> auto& field, const FlagTs&... 
 
   T out{};
 
-  const std::array<Index, N> n{lags.size()...};
+  const std::array<Index, N> n{static_cast<Index>(lags.size())...};
 
-  for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    out +=
-        std::apply([&](auto&&... i) { return (transform::forward(field[lags.indx[i]...]) * ... * lags.data[i]); }, s);
-  }
+  // The term is its own expression, so that it is not contracted with the sum.  A value of compound type, such as a
+  // Mueller matrix, is multiplied once, by the product of its weights, not once per weight
+  nested_for(n, [&](auto... i) {
+    if constexpr (std::is_arithmetic_v<T>) {
+      const auto term  = (transform::forward(field[lags.indx[i]...]) * ... * lags.data[i]);
+      out             += term;
+    } else {
+      const auto term  = transform::forward(field[lags.indx[i]...]) * (... * lags.data[i]);
+      out             += term;
+    }
+  });
 
   return transform::inverse(out);
 }
@@ -892,10 +904,7 @@ constexpr void reinterp(matpack::mut_ranked_md<N> auto&&      out,
   if (out.empty()) return;
 
   const std::array<Index, N> n{out.shape()};
-
-  for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { out[i...] = interp<transform>(field, itw[i...], lags[i]...); }, s);
-  }
+  nested_for(n, [&](auto... i) { out[i...] = interp<transform>(field, itw[i...], lags[i]...); });
 }
 
 //! Reuse output.
@@ -906,9 +915,7 @@ constexpr void reinterp(matpack::mut_ranked_md<N> auto&&  out,
   if (out.empty()) return;
 
   const std::array<Index, N> n{out.shape()};
-  for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { out[i...] = interp<transform>(field, lags[i]...); }, s);
-  }
+  nested_for(n, [&](auto... i) { out[i...] = interp<transform>(field, lags[i]...); });
 }
 
 //! Reuse interpolation weights.
@@ -1033,10 +1040,9 @@ constexpr auto flat_interp(const matpack::ranked_md<N> auto& field, const FlagTs
 //! Reuse memory for interp.
 template <lagrange_type... FlagTs, Size N = sizeof...(FlagTs)>
 constexpr void interpweights(matpack::mut_ranked_md<N> auto&& itw, const FlagTs&... lags) {
-  const std::array<Index, N> n{itw.shape()};
-  for (std::array<Index, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { itw[i...] = (... * lags.data[i]); }, s);
-  }
+  const std::array<Index, N> n{static_cast<Index>(lags.size())...};
+  assert(itw.shape() == n);
+  nested_for(n, [&](auto... i) { itw[i...] = (... * lags.data[i]); });
 }
 
 //! Reuse memory for flat_interp.
@@ -1051,10 +1057,12 @@ template <lagrange_type_list... FlagTs, Size N = sizeof...(FlagTs)>
 constexpr void reinterpweights(matpack::mut_ranked_md<2 * N> auto&& itw, const FlagTs&... lags) {
   if (itw.empty()) return;
 
-  const std::array<Size, N> n{lags.size()...};
-  for (std::array<Size, N> s{}; s.front() < n.front(); inc(s, n)) {
-    std::apply([&](auto&&... i) { interpweights(itw[i...], lags[i]...); }, s);
-  }
+  // Every weight indexed in full: a sub-view of itw per point would cost more than the point's weights
+  const std::array<Index, N> n{static_cast<Index>(lags.size())...};
+  nested_for(n, [&](auto... i) {
+    const std::array<Index, N> m{static_cast<Index>(lags[i].size())...};
+    nested_for(m, [&](auto... j) { itw[i..., j...] = (... * lags[i].data[j]); });
+  });
 }
 
 //! Direct for interp.

@@ -2,31 +2,55 @@
 
 namespace scattering {
 
-GridPos find_interp_weights(StridedConstVectorView grid, Numeric x_new) {
-  // Ensure the input vector is sorted
-  if (grid.empty() || grid.size() == 1) {
-    throw std::invalid_argument("Input vector must have at least two sorted elements.");
+namespace {
+std::span<const Numeric> as_span(const Vector& x) { return {x.data_handle(), x.size()}; }
+
+//! All the weight on the one point of a one-point grid
+lagrange_interp::lag_t<1> one_point_lag() {
+  lagrange_interp::lag_t<1> lag;
+  lag.indx = {0, 0};
+  lag.data = {1.0, 0.0};
+  return lag;
+}
+}  // namespace
+
+lagrange_interp::lag_t<1> linear_lag(const Vector& grid, Numeric x) {
+  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.size() == 1) return one_point_lag();
+  if (grid[0] < grid[1]) return lagrange_interp::lag_t<1>(as_span(grid), x, lagrange_interp::ascending_grid_t{});
+  return lagrange_interp::lag_t<1>(as_span(grid), x, lagrange_interp::descending_grid_t{});
+}
+
+std::vector<lagrange_interp::lag_t<1>> linear_lags(const Vector& grid, const Vector& new_grid) {
+  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.size() == 1) return std::vector<lagrange_interp::lag_t<1>>(new_grid.size(), one_point_lag());
+  // An extrapolation limit of 0 checks nothing: the weights extrapolate linearly beyond the ends, without limit
+  return lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
+      as_span(grid), as_span(new_grid), 0.0, "scattering data grid");
+}
+
+lagrange_interp::lag_t<1> clamped_lag(const Vector& grid, Numeric x) {
+  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  const auto [low, upp] = std::minmax(grid.front(), grid.back());
+  return linear_lag(grid, std::clamp(x, low, upp));
+}
+
+std::vector<lagrange_interp::lag_t<0>> identity_lags(Index n) {
+  std::vector<lagrange_interp::lag_t<0>> out(n);
+  for (Index i = 0; i < n; ++i) {
+    out[i].indx = {i};
+    out[i].data = {1.0};
   }
+  return out;
+}
 
-  // Handle boundary cases
-  if (x_new <= grid.front()) {
-    return GridPos(0, {{0.0, 1.0}});  // Entire weight to the first point
+std::vector<lagrange_interp::lag_t<0>> selection_lags(const std::vector<Index>& indices) {
+  std::vector<lagrange_interp::lag_t<0>> out(indices.size());
+  for (Size i = 0; i < indices.size(); ++i) {
+    out[i].indx = {indices[i]};
+    out[i].data = {1.0};
   }
-  if (x_new >= grid.back()) {
-    return GridPos(grid.size() - 2, {{1.0, 0.0}});  // Entire weight to the last point
-  }
-
-  // Find the interval using std::lower_bound
-  auto   it    = std::lower_bound(grid.begin(), grid.end(), x_new);
-  size_t index = std::distance(grid.begin(), it);
-
-  if (*it == x_new) { return GridPos(index, {{0.0, 1.0}}); }
-
-  Numeric x0 = grid[index - 1];
-  Numeric x1 = grid[index];
-
-  Numeric t = (x_new - x0) / (x1 - x0);
-  return GridPos(index - 1, {{t, 1.0 - t}});
+  return out;
 }
 
 /**! Find bin index for a given value.

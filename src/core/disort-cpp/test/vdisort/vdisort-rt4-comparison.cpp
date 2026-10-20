@@ -169,29 +169,18 @@ rtepack::muelmat constructed(Numeric mo, Numeric mi) {
 }
 
 using vdisort_test::lab_frame;
-using vdisort_test::tro_elements;
 using vdisort_test::tro_matrix;
 
-tro_elements rayleigh_scattering_matrix(Numeric c) {
-  return {.F11 = 0.75 * (1 + c * c),
-          .F12 = -0.75 * (1 - c * c),
-          .F22 = 0.75 * (1 + c * c),
-          .F33 = 1.5 * c,
-          .F34 = 0.0,
-          .F44 = 1.5 * c};
+CompactPlanarMuelmat rayleigh_scattering_matrix(Numeric c) {
+  return {0.75 * (1 + c * c), -0.75 * (1 - c * c), 0.75 * (1 + c * c), 1.5 * c, 0.0, 1.5 * c};
 }
 
 //! Henyey-Greenstein g = 0.7 for F11 = F22, with a Rayleigh-like polarisation, F12 = -0.8 F11 sin^2 / (1 + cos^2)
-tro_elements polarized_henyey_greenstein(Numeric c) {
+CompactPlanarMuelmat polarized_henyey_greenstein(Numeric c) {
   constexpr Numeric g   = 0.7;
   const Numeric     F11 = (1 - g * g) / std::pow(1 + g * g - 2 * g * c, 1.5);
   const Numeric     r   = 1 + c * c;
-  return {.F11 = F11,
-          .F12 = -0.8 * F11 * (1 - c * c) / r,
-          .F22 = F11,
-          .F33 = 2 * c * F11 / r,
-          .F34 = 0.0,
-          .F44 = 2 * c * F11 / r};
+  return {F11, -0.8 * F11 * (1 - c * c) / r, F11, 2 * c * F11 / r, 0.0, 2 * c * F11 / r};
 }
 
 /* Zbar by the periodic trapezoid rule in Delta-phi, at the nphi midpoints
@@ -645,7 +634,7 @@ doubling rt4_doubling(const setup& c, Numeric max_delta_tau) {
     const Numeric tau = (c.kp(l) + c.gas[l]) * c.dz(l);
     const Numeric n   = doublings(tau, max_delta_tau);
     d.any             = true;
-    d.delta           = std::max(d.delta, tau / std::exp2(n));
+    d.delta           = std::max(d.delta, std::ldexp(tau, -static_cast<int>(n)));
     d.n               = std::max(d.n, n);
   }
   return d;
@@ -670,12 +659,14 @@ doubling rt4_doubling(const setup& c, Numeric max_delta_tau) {
 constexpr Numeric eps                      = std::numeric_limits<Numeric>::epsilon();
 constexpr Numeric richardson_max_delta_tau = 1e-5;
 
-Numeric direct_tolerance(const doubling& d) { return d.any ? 10 * d.delta + std::exp2(d.n) * eps : 1e-12; }
+Numeric direct_tolerance(const doubling& d) {
+  return d.any ? 10 * d.delta + std::ldexp(eps, static_cast<int>(d.n)) : 1e-12;
+}
 
 Numeric richardson_tolerance(const setup& c) {
   const auto coarse = rt4_doubling(c, richardson_max_delta_tau);
   const auto fine   = rt4_doubling(c, richardson_max_delta_tau / 2);
-  return 50 * coarse.delta * coarse.delta + 3 * std::exp2(fine.n) * eps;
+  return 50 * coarse.delta * coarse.delta + 3 * std::ldexp(eps, static_cast<int>(fine.n));
 }
 
 //! RT4 extrapolated to max_delta_tau = 0 from richardson_max_delta_tau and half of it

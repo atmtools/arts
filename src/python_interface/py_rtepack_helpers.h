@@ -71,6 +71,12 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
         "x"_a);
     py::implicitly_convertible<matpack::data_t<U, M>, matpack::data_t<T, M>>();
   }
+
+  // From the matpack tensor of all the elements, which must be a Python type
+  static_assert(rank <= (std::same_as<U, Complex> ? 5 : 8),
+                "The matpack tensor of all the elements of this rtepack array has no Python type; implement it "
+                "(py_matpack.cpp binds Tensor3 to Tensor8, py_matpack_complex.cpp ComplexTensor3 to ComplexTensor5) "
+                "before binding the array");
   c.def(
       "__init__",
       [](matpack::data_t<T, M> *y, const matpack::data_t<U, M + sizeof...(N)> &x) {
@@ -97,7 +103,7 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
         auto outview = y->view_as(y->size());
         auto inview  = x.view_as(y->size(), sz);
         for (Size i = 0; i < y->size(); i++) {
-          for (Size j = 0; j < sz; j++) { outview[i][j] = inview[i, j]; }
+          for (Size j = 0; j < sz; j++) { outview[i].data[j] = inview[i, j]; }
         }
       },
       "x"_a);

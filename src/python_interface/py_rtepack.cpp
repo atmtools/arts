@@ -93,9 +93,15 @@ void py_rtepack(py::module_ &m) try {
   generic_interface(c5);
   vector_interface(c5);
 
-  auto d3 = py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfSpecmatMatrix");
+  auto d3  = py::bind_vector<ArrayOfSpecmatMatrix, py::rv_policy::reference_internal>(m, "ArrayOfSpecmatMatrix");
+  d3.doc() = "Array of :class:`~pyarts3.arts.SpecmatMatrix`; shape [nf, np, nq] if defined";
   generic_interface(d3);
   vector_interface(d3);
+
+  auto e1 = py::bind_vector<ArrayOfCompactPlanarMuelmatMatrix, py::rv_policy::reference_internal>(
+      m, "ArrayOfCompactPlanarMuelmatMatrix");
+  generic_interface(e1);
+  vector_interface(e1);
 
   auto rtepack  = m.def_submodule("rtepack");
   rtepack.doc() = "Interface to some of the core RTE functionality";

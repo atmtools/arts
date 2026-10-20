@@ -23,7 +23,7 @@
 #ifndef gas_scattering_h
 #define gas_scattering_h
 
-Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor = 0.0);
+CompactPlanarMuelmat calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor = 0.0);
 
 namespace scattering {
 

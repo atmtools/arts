@@ -7,6 +7,7 @@
    code under test.  Random pure states span the Stokes space, so M S = S'
    for several of them tests all of M. */
 
+#include <arts_constants.h>
 #include <rtepack.h>
 
 #include <algorithm>
@@ -16,6 +17,7 @@
 #include <format>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <random>
 #include <stdexcept>
 #include <string>
@@ -99,6 +101,63 @@ void test_meridional_basis() {
   }
 }
 
+//! Off the pole by theta, a ray built from its angles has the h of its own meridian, (sin phi, -cos phi, 0), to
+//! rounding, whatever h_pole, once |k x z| = sin(theta) exceeds the rounding of a unit vector (detail::parallel).
+//! At or below it, the ray is along +-z in double precision and h = h_pole.
+void test_meridional_basis_near_pole() {
+  constexpr Numeric eps = std::numeric_limits<Numeric>::epsilon();
+  const Vector3     x{1, 0, 0};
+  const auto        ray = [](Numeric polar, Numeric phi) {
+    return Vector3{std::sin(polar) * std::cos(phi), std::sin(polar) * std::sin(phi), std::cos(polar)};
+  };
+  for (const Numeric phi : {0.4, 2.0, 4.5}) {
+    const Vector3 meridian{std::sin(phi), -std::cos(phi), 0};
+    for (int k = 1; k <= 14; k++) {
+      const Numeric theta = std::pow(10.0, -k);
+      for (const Numeric polar : {theta, Constant::pi - theta}) {
+        const auto [v, h] = rtepack::meridional_basis(ray(polar, phi), x);
+        require(hypot(h - meridian) <= 4 * eps,
+                std::format("a ray {} rad off the pole at azimuth {} has h {}, not its meridian's", theta, phi, h));
+      }
+    }
+    for (const Numeric polar : {0.0, 1e-16, 1e-300, Constant::pi}) {
+      const auto [v, h] = rtepack::meridional_basis(ray(polar, phi), x);
+      require(h == x, std::format("a ray at {} rad, along +-z in double precision, has h {}, not h_pole", polar, h));
+    }
+  }
+}
+
+//! Near forward and backward, the scattering plane is that of the two rays, resolved to the rounding of their cross
+//! product, about epsilon / sin(Theta), down to Theta = 1e-14 (45 epsilon, above detail::parallel); only rays parallel
+//! in double precision take that of k_in and h_in
+void test_scattering_plane_near_forward() {
+  constexpr Numeric        eps = std::numeric_limits<Numeric>::epsilon();
+  const Vector3            x{1, 0, 0};
+  const Vector3            k_in = direction(0.3, 1.1);
+  const polarization_basis in   = rtepack::meridional_basis(k_in, x);
+  // k_out turns about the axis a, perpendicular to k_in and 0.7 rad from h_in, so that N is along a
+  const Vector3 a = std::cos(0.7) * in.second + std::sin(0.7) * in.first;
+  for (const Numeric side : {1.0, -1.0}) {
+    for (int k = 1; k <= 14; k++) {
+      const Numeric            Theta = std::pow(10.0, -k);
+      const Vector3            k_out = side * (std::cos(Theta) * k_in + std::sin(Theta) * cross(a, k_in));
+      const polarization_basis out   = rtepack::meridional_basis(k_out, x);
+      const Vector3            N     = side * a;
+      const auto [c_in, s_in]        = rtepack::detail::rotation_angle(in, {cross(N, k_in), N});
+      const auto [c_out, s_out]      = rtepack::detail::rotation_angle({cross(N, k_out), N}, out);
+      const auto    got              = rtepack::scattering_plane_rotation(in, out);
+      const Numeric error            = std::max(
+          {std::abs(got[0] - c_in), std::abs(got[1] - s_in), std::abs(got[2] - c_out), std::abs(got[3] - s_out)});
+      require(error <= 16 * eps / std::sin(Theta),
+              std::format("{} {} rad from {}: the scattering plane is off by {}",
+                          side > 0 ? "forward" : "backward",
+                          Theta,
+                          side > 0 ? "forward" : "backward",
+                          error));
+    }
+  }
+}
+
 //! Two bases of the same ray see the same field
 void test_basis_rotation() {
   const Vector3 x{1, 0, 0};
@@ -157,6 +216,29 @@ void test_jones() {
     Numeric                product = 0.0;
     for (const Numeric e : MK.data) product = std::max(product, std::abs(e));
     require(product < tol * 10, std::format("Jones product {}: {}", trial, product));
+
+    // The inverse undoes J, the determinant multiplies, and the sum and difference are those of the maps, each to
+    // the rounding of its terms
+    constexpr Numeric eps     = std::numeric_limits<Numeric>::epsilon();
+    const auto        modulus = [](const rtepack::jones& A) {
+      Numeric s = 0.0;
+      for (const Complex& z : A.data) s += std::abs(z);
+      return s;
+    };
+    const rtepack::jones Ji = rtepack::inv(J), I = Ji * J, D = (J + K) - K, N = J - J, Z = J + -J;
+    Numeric              identity = 0.0, difference = 0.0;
+    for (Index i = 0; i < 2; i++)
+      for (Index j = 0; j < 2; j++) {
+        identity   = std::max(identity, std::abs(I[i, j] - (i == j ? 1.0 : 0.0)));
+        difference = std::max(difference, std::abs(D[i, j] - J[i, j]));
+      }
+    require(identity <= 8 * eps * modulus(J) * modulus(Ji), std::format("Jones inverse {}: {}", trial, identity));
+    require(std::abs(rtepack::det(J * K) - rtepack::det(J) * rtepack::det(K)) <=
+                8 * eps * modulus(J) * modulus(J) * modulus(K) * modulus(K),
+            std::format("Jones determinant {}", trial));
+    require(difference <= 4 * eps * (modulus(J) + modulus(K)), std::format("Jones sum {}: {}", trial, difference));
+    require(modulus(N) == 0.0 and modulus(Z) == 0.0, std::format("Jones difference {}", trial));
+    require(rtepack::trace(J) == J[0, 0] + J[1, 1], std::format("Jones trace {}", trial));
   }
 
   // The basis rotation and the diagonal Jones matrices
@@ -301,6 +383,8 @@ void test_facet_reflection() {
 
 int main() try {
   test_meridional_basis();
+  test_meridional_basis_near_pole();
+  test_scattering_plane_near_forward();
   test_basis_rotation();
   test_jones();
   test_lab_frame_phase_matrix();

@@ -58,19 +58,20 @@ constexpr Numeric longitude_clamp(Numeric lon) {
 #pragma GCC diagnostic ignored "-Wconversion"
 #endif
 
-std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index nmax) {
+void schmidt(MatrixView P, MatrixView dP, const Numeric theta) {
+  const Index N = P.nrows();
   ARTS_USER_ERROR_IF(theta < 0 or theta > Constant::pi, "Theta={} must be in [0, pi]", theta)
-  ARTS_USER_ERROR_IF(nmax <= 0, "nmax={} must be > 0", nmax)
-
-  const Index N = 1 + nmax;
+  ARTS_USER_ERROR_IF(N <= 1, "nmax={} must be > 0", N - 1)
+  ARTS_USER_ERROR_IF(P.ncols() != N or dP.shape() != P.shape(),
+                     "The Schmidt matrices must be (nmax+1) x (nmax+1), got {:B,} and {:B,}",
+                     P.shape(),
+                     dP.shape())
 
   const Numeric ct = std::cos(theta);
   const Numeric st = std::sin(theta);
-  Matrix        P(N, N, 0);
-  Matrix        dP(N, N, 0);
-  Matrix        S(N, N, 0);
-  S[0, 0] = 1.0;
-  P[0, 0] = 1.0;
+  P                = 0;
+  dP               = 0;
+  P[0, 0]          = 1.0;
 
   for (Index n = 1; n < N; ++n) {
     for (Index m = 0; m < n + 1; ++m) {
@@ -89,18 +90,28 @@ std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index
           dP[n, m] = ct * dP[n - 1, m] - st * P[n - 1, m] - Knm * dP[n - 2, m];
         }
       }
-
-      // compute Schmidt normalization
-      if (m == 0)
-        S[n, 0] = S[n - 1, 0] * (2. * n - 1) / n;
-      else
-        S[n, m] = S[n, m - 1] * std::sqrt((n - m + 1) * (int(m == 1) + 1.) / (n + m));
     }
   }
 
-  P  *= S;
-  dP *= S;
+  // The Schmidt normalization S of degree n, order by order: S[0, 0] = 1
+  Numeric S0 = 1.0;
+  for (Index n = 1; n < N; ++n) {
+    S0         = S0 * (2. * n - 1) / n;
+    Numeric S  = S0;
+    P[n, 0]   *= S;
+    dP[n, 0]  *= S;
+    for (Index m = 1; m < n + 1; ++m) {
+      S         = S * std::sqrt((n - m + 1) * (m == 1 ? 2.0 : 1.0) / (n + m));
+      P[n, m]  *= S;
+      dP[n, m] *= S;
+    }
+  }
+}
 
+std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index nmax) {
+  ARTS_USER_ERROR_IF(nmax <= 0, "nmax={} must be > 0", nmax)
+  Matrix P(nmax + 1, nmax + 1), dP(nmax + 1, nmax + 1);
+  schmidt(P, dP, theta);
   return {SchmidtMatrix{P}, SchmidtMatrix{dP}};
 }
 

@@ -64,11 +64,8 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
     auto za_grid     = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{za}));
     const auto bulk  = scattering_species.get_bulk_scattering_properties_aro_gridded(
         atm, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
-    particle_ext.A() = bulk.extinction_matrix[0, 0, 0, 0];
-    particle_ext.B() = bulk.extinction_matrix[0, 0, 0, 1];
-    particle_ext.W() = bulk.extinction_matrix[0, 0, 0, 2];
-    particle_abs.I() = bulk.absorption_vector[0, 0, 0, 0];
-    particle_abs.Q() = bulk.absorption_vector[0, 0, 0, 1];
+    particle_ext = bulk.extinction_matrix[0, 0, 0].expand();
+    particle_abs = bulk.absorption_vector[0, 0, 0].expand();
   }
 
   const Stokvec absorption = Stokvec{gas[0].A(), gas[0].B(), gas[0].C(), gas[0].D()} + particle_abs;
@@ -238,11 +235,7 @@ Muelmat phase_weight(const ArrayOfScatteringSpecies& species,
   const auto bulk = species.get_bulk_scattering_properties_aro_gridded(
       atm, AscendingGrid{frequency}, Vector{incoming[0]}, Vector{delta_aa}, za);
   ARTS_USER_ERROR_IF(not bulk.phase_matrix, "MCGeneral failed to transform the phase matrix to the laboratory frame")
-  const auto flat = (*bulk.phase_matrix)[0, 0, 0, 0, 0, joker];
-  Muelmat    out{0.0};
-  for (Index i = 0; i < 4; ++i)
-    for (Index j = 0; j < 4; ++j) out[i, j] = flat[4 * i + j];
-  return (4.0 * Constant::pi / scattering_coefficient) * out;
+  return (4.0 * Constant::pi / scattering_coefficient) * (*bulk.phase_matrix)[0, 0, 0, 0, 0];
 }
 
 }  // namespace

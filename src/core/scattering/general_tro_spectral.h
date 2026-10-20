@@ -6,27 +6,34 @@
 
 #include "bulk_scattering_properties.h"
 
+/** The bulk Legendre series of totally randomly oriented scatterers, as solvers take it
+ *
+ * phase_matrix [f, l] holds, for every frequency, the coefficient a_l on the
+ * orthonormal Y_l0 of each element of the scattering-plane phase matrix (see
+ * tro_legendre.h): a compact_planar_muelmat per degree l.  extinction_matrix
+ * [f] and absorption_vector [f] hold K11 as A and a1 as I.
+ */
 struct ScatteringTroSpectralVector {
   using general_t = scattering::BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Spectral>;
   using gridded_t = scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>;
 
-  std::optional<SpecmatMatrix> phase_matrix;
-  PropmatVector                extinction_matrix;
-  StokvecVector                absorption_vector;
+  std::optional<CompactPlanarMuelmatMatrix> phase_matrix;
+  CompactPlanarPropmatVector                extinction_matrix;
+  CompactPlanarStokvecVector                absorption_vector;
 
   ScatteringTroSpectralVector& operator+=(const ScatteringTroSpectralVector& other);
 
   [[nodiscard]]
-  static scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> to_general(
-      const SpecmatMatrix&, const std::shared_ptr<Vector>& f);
+  static scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const CompactPlanarMuelmatMatrix&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
-  static scattering::ExtinctionMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-  to_general(const PropmatVector&, const std::shared_ptr<Vector>& f);
+  static scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const CompactPlanarPropmatVector&, const std::shared_ptr<Vector>& f);
 
   [[nodiscard]]
-  static scattering::AbsorptionVectorData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-  to_general(const StokvecVector&, const std::shared_ptr<Vector>&);
+  static scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral> to_general(
+      const CompactPlanarStokvecVector&, const std::shared_ptr<Vector>&);
 
   [[nodiscard]]
   general_t to_general(const std::shared_ptr<Vector>& f = nullptr) const;
@@ -45,14 +52,31 @@ using ScatteringGeneralSpectralTROFunc =
  * at f_grid (see ScatteringTroSpectralVector), with the extinction and
  * absorption at f_grid; get_bulk_scattering_properties_tro_spectral throws
  * if it gives anything else.
+ *
+ * degree is where the series is truncated when the caller does not choose
+ * it, as for the azimuthal Fourier modes; it is unset while negative.
  */
 struct ScatteringGeneralSpectralTRO {
   ScatteringGeneralSpectralTROFunc f{};
+  Index                            degree{-1};
 
   [[nodiscard]]
   ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
                                                                           const Vector&   f_grid,
                                                                           Index           degree) const;
+
+  /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix of the series to degree
+   *
+   * See PhaseMatrixData<TRO, Spectral>::to_lab_frame_fourier_modes; the
+   * series is evaluated exactly at the given zenith angles [deg].
+   */
+  [[nodiscard]]
+  scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
+  get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
+                                             const Vector&   f_grid,
+                                             const Vector&   za_inc_grid,
+                                             const Vector&   za_scat_grid,
+                                             Index           max_mode) const;
 };
 
 template <> struct std::formatter<ScatteringTroSpectralVector> {

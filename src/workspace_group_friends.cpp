@@ -637,6 +637,24 @@ like a 5-dimensional array with the last two dimensions of size 4.
       .desc = "A single Mueller 4x4 matrix.\n",
   };
 
+  wsg_data["CompactPlanarMuelmat"] = {
+      .file = "rtepack.h",
+      .desc = R"(The phase matrix of randomly oriented particles with a plane of symmetry, in compact form.
+
+In the scattering-plane basis it is
+
+.. math::
+    \mathbf{F} = \left[ \begin {array} {rrrr}
+    F_{11} & F_{12} & 0 & 0 \\
+    F_{12} & F_{22} & 0 & 0 \\
+    0 & 0 & F_{33} & F_{34} \\
+    0 & 0 &-F_{34} & F_{44}
+    \end {array} \right]
+
+and only its six independent elements :math:`[F_{11}, F_{12}, F_{22}, F_{33}, F_{34}, F_{44}]` are stored.
+)",
+  };
+
   wsg_data["GriddedField1"] = {
       .file = "matpack.h",
       .desc =

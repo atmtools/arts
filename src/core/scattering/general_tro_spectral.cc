@@ -30,6 +30,27 @@ ScatteringTroSpectralVector ScatteringGeneralSpectralTRO::get_bulk_scattering_pr
   return out;
 }
 
+scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
+ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
+                                                                         const Vector&   f_grid,
+                                                                         const Vector&   za_inc_grid,
+                                                                         const Vector&   za_scat_grid,
+                                                                         Index           max_mode) const {
+  ARTS_USER_ERROR_IF(degree < 0,
+                     "The azimuthal Fourier modes of a user's scattering function need the degree of its Legendre "
+                     "series; set degree (>= 0) on the ScatteringGeneralSpectralTRO, it is {}",
+                     degree)
+
+  const auto bulk = get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree)
+                        .to_general(std::make_shared<Vector>(f_grid));
+  const auto za_inc  = std::make_shared<const Vector>(za_inc_grid);
+  const auto za_scat = std::make_shared<const scattering::ZenithAngleGrid>(
+      scattering::IrregularZenithAngleGrid(za_scat_grid));
+  return {.phase_matrix      = bulk.phase_matrix->to_lab_frame_fourier_modes(za_inc, za_scat, max_mode),
+          .extinction_matrix = bulk.extinction_matrix.to_gridded().to_lab_frame(za_inc).to_fourier(),
+          .absorption_vector = bulk.absorption_vector.to_gridded().to_lab_frame(za_inc).to_fourier()};
+}
+
 ScatteringTroSpectralVector& ScatteringTroSpectralVector::operator+=(const ScatteringTroSpectralVector& other) {
   if (phase_matrix.has_value() and other.phase_matrix.has_value()) {
     phase_matrix.value() += other.phase_matrix.value();
@@ -41,8 +62,9 @@ ScatteringTroSpectralVector& ScatteringTroSpectralVector::operator+=(const Scatt
   return *this;
 }
 
-scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-ScatteringTroSpectralVector::to_general(const SpecmatMatrix& phase_matrix, const std::shared_ptr<Vector>& f_grid_ptr) {
+scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral>
+ScatteringTroSpectralVector::to_general(const CompactPlanarMuelmatMatrix& phase_matrix,
+                                        const std::shared_ptr<Vector>&    f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
   ARTS_USER_ERROR_IF(static_cast<Size>(phase_matrix.nrows()) != f_grid_ptr->size(),
@@ -53,27 +75,16 @@ ScatteringTroSpectralVector::to_general(const SpecmatMatrix& phase_matrix, const
   const Index l = phase_matrix.ncols() - 1;
   ARTS_USER_ERROR_IF(l < 0, "Legendre degree must be non-negative, is {}", l);
 
-  scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> pm{
-      t_grid, f_grid_ptr, l};
+  scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> pm{t_grid, f_grid_ptr, l};
 
-  for (Index f_ind = 0; f_ind < phase_matrix.nrows(); ++f_ind) {
-    for (Index ind = 0; ind < phase_matrix.ncols(); ++ind) {
-      const auto& x        = phase_matrix[f_ind, ind];
-      pm[0, f_ind, ind, 0] = x[0, 0];
-      pm[0, f_ind, ind, 1] = x[0, 1];
-      pm[0, f_ind, ind, 2] = x[1, 1];
-      pm[0, f_ind, ind, 3] = x[2, 2];
-      pm[0, f_ind, ind, 4] = x[2, 3];
-      pm[0, f_ind, ind, 5] = x[3, 3];
-    }
-  }
+  pm[0, joker, joker] = phase_matrix;
 
   return pm;
 }
 
-scattering::ExtinctionMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-ScatteringTroSpectralVector::to_general(const PropmatVector&           extinction_matrix,
-                                        const std::shared_ptr<Vector>& f_grid_ptr) {
+scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral>
+ScatteringTroSpectralVector::to_general(const CompactPlanarPropmatVector& extinction_matrix,
+                                        const std::shared_ptr<Vector>&    f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
   ARTS_USER_ERROR_IF(extinction_matrix.size() != f_grid_ptr->size(),
@@ -81,19 +92,17 @@ ScatteringTroSpectralVector::to_general(const PropmatVector&           extinctio
 
   const auto t_grid = std::make_shared<Vector>(Vector{0.0});
 
-  scattering::ExtinctionMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> emd{
-      t_grid, f_grid_ptr};
+  scattering::ExtinctionMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> emd{t_grid,
+                                                                                                      f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < emd.nrows(); ++f_ind) {
-    for (Index i = 0; i < emd.ncols(); i++) { emd[0, f_ind, i] = extinction_matrix[f_ind][i]; }
-  }
+  emd[0, joker] = extinction_matrix;
 
   return emd;
 }
 
-scattering::AbsorptionVectorData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>
-ScatteringTroSpectralVector::to_general(const StokvecVector&           absorption_vector,
-                                        const std::shared_ptr<Vector>& f_grid_ptr) {
+scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral>
+ScatteringTroSpectralVector::to_general(const CompactPlanarStokvecVector& absorption_vector,
+                                        const std::shared_ptr<Vector>&    f_grid_ptr) {
   ARTS_USER_ERROR_IF(not f_grid_ptr, "f grid must be provided")
 
   ARTS_USER_ERROR_IF(absorption_vector.size() != f_grid_ptr->size(),
@@ -101,12 +110,11 @@ ScatteringTroSpectralVector::to_general(const StokvecVector&           absorptio
 
   const auto t_grid = std::make_shared<Vector>(Vector{0.0});
 
-  scattering::AbsorptionVectorData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> av{
-      t_grid, f_grid_ptr};
+  scattering::AbsorptionVectorData<scattering::Format::TRO, scattering::Representation::Spectral> av{t_grid,
+                                                                                                     f_grid_ptr};
 
-  for (Index f_ind = 0; f_ind < av.nrows(); ++f_ind) {
-    for (Index i = 0; i < av.ncols(); i++) { av[0, f_ind, i] = absorption_vector[f_ind][i]; }
-  }
+  av[0, joker] = absorption_vector;
+
   return av;
 }
 
@@ -141,6 +149,7 @@ void xml_io_stream<ScatteringGeneralSpectralTRO>::write(std::ostream&           
   tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.f, pbofs);
+  xml_write_to_stream(os, x.degree, pbofs);
 
   tag.write_to_end_stream(os);
 }
@@ -153,6 +162,7 @@ void xml_io_stream<ScatteringGeneralSpectralTRO>::read(std::istream&            
   tag.check_name(type_name);
 
   xml_read_from_stream(is, x.f, pbifs);
+  xml_read_from_stream(is, x.degree, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

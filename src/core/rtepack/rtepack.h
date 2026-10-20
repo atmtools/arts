@@ -2,6 +2,8 @@
 
 #include "array.h"
 #include "rtepack_compact_planar_mueller_matrix.h"
+#include "rtepack_compact_planar_propagation_matrix.h"
+#include "rtepack_compact_planar_stokes_vector.h"
 #include "rtepack_jones_matrix.h"
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_multitype.h"
@@ -15,13 +17,39 @@
 #include "rtepack_surface.h"
 #include "rtepack_transmission.h"
 
-using CompactPlanarMuelmat                = rtepack::compact_planar_muelmat;
-using CompactPlanarMuelmatVector          = rtepack::compact_planar_muelmat_vector;
-using CompactPlanarMuelmatVectorView      = rtepack::compact_planar_muelmat_vector_view;
-using CompactPlanarMuelmatConstVectorView = rtepack::compact_planar_muelmat_vector_const_view;
-using CompactPlanarMuelmatMatrix          = rtepack::compact_planar_muelmat_matrix;
-using CompactPlanarMuelmatMatrixView      = rtepack::compact_planar_muelmat_matrix_view;
-using CompactPlanarMuelmatConstMatrixView = rtepack::compact_planar_muelmat_matrix_const_view;
+using CompactPlanarMuelmat                 = rtepack::compact_planar_muelmat;
+using CompactPlanarMuelmatVector           = rtepack::compact_planar_muelmat_vector;
+using CompactPlanarMuelmatVectorView       = rtepack::compact_planar_muelmat_vector_view;
+using CompactPlanarMuelmatConstVectorView  = rtepack::compact_planar_muelmat_vector_const_view;
+using CompactPlanarMuelmatMatrix           = rtepack::compact_planar_muelmat_matrix;
+using CompactPlanarMuelmatMatrixView       = rtepack::compact_planar_muelmat_matrix_view;
+using CompactPlanarMuelmatConstMatrixView  = rtepack::compact_planar_muelmat_matrix_const_view;
+using CompactPlanarMuelmatTensor3          = rtepack::compact_planar_muelmat_tensor3;
+using CompactPlanarMuelmatTensor3View      = rtepack::compact_planar_muelmat_tensor3_view;
+using CompactPlanarMuelmatConstTensor3View = rtepack::compact_planar_muelmat_tensor3_const_view;
+using ArrayOfCompactPlanarMuelmatMatrix    = Array<CompactPlanarMuelmatMatrix>;
+
+using CompactPlanarPropmat                 = rtepack::compact_planar_propmat;
+using CompactPlanarPropmatVector           = rtepack::compact_planar_propmat_vector;
+using CompactPlanarPropmatVectorView       = rtepack::compact_planar_propmat_vector_view;
+using CompactPlanarPropmatConstVectorView  = rtepack::compact_planar_propmat_vector_const_view;
+using CompactPlanarPropmatMatrix           = rtepack::compact_planar_propmat_matrix;
+using CompactPlanarPropmatMatrixView       = rtepack::compact_planar_propmat_matrix_view;
+using CompactPlanarPropmatConstMatrixView  = rtepack::compact_planar_propmat_matrix_const_view;
+using CompactPlanarPropmatTensor3          = rtepack::compact_planar_propmat_tensor3;
+using CompactPlanarPropmatTensor3View      = rtepack::compact_planar_propmat_tensor3_view;
+using CompactPlanarPropmatConstTensor3View = rtepack::compact_planar_propmat_tensor3_const_view;
+
+using CompactPlanarStokvec                 = rtepack::compact_planar_stokvec;
+using CompactPlanarStokvecVector           = rtepack::compact_planar_stokvec_vector;
+using CompactPlanarStokvecVectorView       = rtepack::compact_planar_stokvec_vector_view;
+using CompactPlanarStokvecConstVectorView  = rtepack::compact_planar_stokvec_vector_const_view;
+using CompactPlanarStokvecMatrix           = rtepack::compact_planar_stokvec_matrix;
+using CompactPlanarStokvecMatrixView       = rtepack::compact_planar_stokvec_matrix_view;
+using CompactPlanarStokvecConstMatrixView  = rtepack::compact_planar_stokvec_matrix_const_view;
+using CompactPlanarStokvecTensor3          = rtepack::compact_planar_stokvec_tensor3;
+using CompactPlanarStokvecTensor3View      = rtepack::compact_planar_stokvec_tensor3_view;
+using CompactPlanarStokvecConstTensor3View = rtepack::compact_planar_stokvec_tensor3_const_view;
 
 using Propmat                     = rtepack::propmat;
 using PropmatVector               = rtepack::propmat_vector;
@@ -77,6 +105,9 @@ using MuelmatConstTensor4View     = rtepack::muelmat_tensor4_const_view;
 using MuelmatTensor5              = rtepack::muelmat_tensor5;
 using MuelmatTensor5View          = rtepack::muelmat_tensor5_view;
 using MuelmatConstTensor5View     = rtepack::muelmat_tensor5_const_view;
+using MuelmatTensor6              = rtepack::muelmat_tensor6;
+using MuelmatTensor6View          = rtepack::muelmat_tensor6_view;
+using MuelmatConstTensor6View     = rtepack::muelmat_tensor6_const_view;
 using ArrayOfMuelmatVector        = Array<MuelmatVector>;
 using ArrayOfMuelmatMatrix        = Array<MuelmatMatrix>;
 using ArrayOfMuelmatTensor3       = Array<MuelmatTensor3>;

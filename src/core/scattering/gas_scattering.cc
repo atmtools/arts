@@ -40,7 +40,7 @@ rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Nu
 }
 }  // namespace
 
-Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
+CompactPlanarMuelmat calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
   using Constant::pi;
 
   ARTS_USER_ERROR_IF(theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
@@ -50,8 +50,7 @@ Vector calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarizati
                      "The depolarization factor must be in [0, 1), is {}",
                      depolarization_factor);
 
-  const auto f = rayleigh_scattering_matrix(theta_rad, depolarization_factor);
-  return Vector{f[0], f[1], f[2], f[3], f[4], f[5]};
+  return rayleigh_scattering_matrix(theta_rad, depolarization_factor);
 }
 
 namespace scattering {
@@ -125,21 +124,19 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get
     const AtmPoint& atm_point, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
   ARTS_USER_ERROR_IF(not za_scat_grid, "A scattering zenith-angle grid is required")
 
-  auto                                                           t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
-  auto                                                           f_grid_ptr = std::make_shared<Vector>(f_grid);
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase{t_grid_ptr, f_grid_ptr, za_scat_grid};
-  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
-  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
+  PhaseMatrixData<Format::TRO, Representation::Gridded>      phase{t_grid_ptr, f_grid_ptr, za_scat_grid};
+  ExtinctionMatrixData<Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
 
   const auto angles = grid_vector(*za_scat_grid);
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const Numeric coefficient_per_m = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    extinction[0, iv, 0]            = coefficient_per_m;
+    extinction[0, iv].A()           = coefficient_per_m;
     for (Size ia = 0; ia < angles.size(); ++ia) {
       const auto normalized = normalized_phase_matrix(phase_matrix, Conversion::deg2rad(angles[ia]));
-      for (Index is = 0; is < 6; ++is) {
-        phase[0, iv, ia, is] = coefficient_per_m * normalized[is] / (4.0 * Constant::pi);
-      }
+      phase[0, iv, ia]      = coefficient_per_m * normalized / (4.0 * Constant::pi);
     }
   }
 
@@ -163,9 +160,9 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
                                                                                       Index           degree) const {
   ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be non-negative, is {}", degree)
 
-  SpecmatMatrix phase(f_grid.size(), degree + 1, Specmat{0.0});
-  PropmatVector extinction(f_grid.size());
-  StokvecVector absorption(f_grid.size());
+  CompactPlanarMuelmatMatrix phase(f_grid.size(), degree + 1, CompactPlanarMuelmat{});
+  CompactPlanarPropmatVector extinction(f_grid.size());
+  CompactPlanarStokvecVector absorption(f_grid.size());
 
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
     const Numeric k    = scattering_coefficient(coefficient, f_grid[iv], atm_point);
@@ -176,9 +173,7 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
         [&](const auto& model) {
           using Model = std::remove_cvref_t<decltype(model)>;
           // Each coefficient is the scattering-plane Mueller matrix of the degree
-          const auto set = [&](Index l, const rtepack::compact_planar_muelmat& F) {
-            phase[iv, l] = Specmat{F.expand().data};
-          };
+          const auto set = [&](Index l, const rtepack::compact_planar_muelmat& F) { phase[iv, l] = F; };
           if constexpr (std::is_same_v<Model, IsotropicGasScattering>) {
             set(0, {amp, 0.0, amp, amp, 0.0, amp});
           } else {
@@ -218,30 +213,28 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
     std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
   ARTS_USER_ERROR_IF(not za_scat_grid, "A scattering zenith-angle grid is required")
 
-  auto t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
-  auto f_grid_ptr = std::make_shared<Vector>(f_grid);
-  auto za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
-  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
-  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
-  Vector                                                              scale(f_grid.size());
+  auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
+  auto                                                       za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
+  ExtinctionMatrixData<Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 
   // The lab-frame phase matrix at the exact scattering angle of every direction pair
-  const auto closed_form = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+  const auto closed_form = [&](Numeric theta, rtepack::compact_planar_muelmat_matrix& scattering_matrix) {
     const auto normalized = normalized_phase_matrix(phase_matrix, theta);
-    for (Size iv = 0; iv < f_grid.size(); ++iv) {
-      for (Index is = 0; is < 6; ++is) scattering_matrix[0, iv, is] = scale[iv] * normalized[is];
-    }
+    for (Size iv = 0; iv < f_grid.size(); ++iv) scattering_matrix[0, iv] = scale[iv] * normalized;
   };
-  auto phase = tro_lab_frame<Numeric>(t_grid_ptr,
-                                      f_grid_ptr,
-                                      za_inc_ptr,
-                                      std::make_shared<Vector>(delta_aa_grid),
-                                      std::move(za_scat_grid),
-                                      closed_form);
+  auto phase = tro_lab_frame(t_grid_ptr,
+                             f_grid_ptr,
+                             za_inc_ptr,
+                             std::make_shared<Vector>(delta_aa_grid),
+                             std::move(za_scat_grid),
+                             closed_form);
 
   return {.phase_matrix      = std::move(phase),
           .extinction_matrix = extinction.to_lab_frame(za_inc_ptr),
@@ -279,34 +272,32 @@ BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get
     const Vector&   za_inc_grid,
     const Vector&   za_scat_grid,
     Index           max_mode) const {
-  auto t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
-  auto f_grid_ptr = std::make_shared<Vector>(f_grid);
-  auto za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
-  ExtinctionMatrixData<Numeric, Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
-  AbsorptionVectorData<Numeric, Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
-  Vector                                                              scale(f_grid.size());
+  auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
+  auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
+  auto                                                       za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
+  ExtinctionMatrixData<Format::TRO, Representation::Gridded> extinction{t_grid_ptr, f_grid_ptr};
+  AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
+  Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv, 0] = scattering_coefficient(coefficient, f_grid[iv], atm_point);
-    scale[iv]            = extinction[0, iv, 0] / (4.0 * Constant::pi);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 
-  const auto closed_form = [&](Numeric theta, matpack::data_t<Numeric, 3>& scattering_matrix) {
+  const auto closed_form = [&](Numeric theta, rtepack::compact_planar_muelmat_matrix& scattering_matrix) {
     const auto normalized = normalized_phase_matrix(phase_matrix, theta);
-    for (Size iv = 0; iv < f_grid.size(); ++iv) {
-      for (Index is = 0; is < 6; ++is) scattering_matrix[0, iv, is] = scale[iv] * normalized[is];
-    }
+    for (Size iv = 0; iv < f_grid.size(); ++iv) scattering_matrix[0, iv] = scale[iv] * normalized;
   };
   // F11 / scale integrates to 4 pi, so the phase integral is the scattering coefficient
   Matrix integral(1, f_grid.size());
-  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv, 0];
-  auto phase = tro_lab_frame_fourier_modes<Numeric>(
-      t_grid_ptr,
-      f_grid_ptr,
-      za_inc_ptr,
-      std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
-      max_mode,
-      integral,
-      closed_form);
+  for (Size iv = 0; iv < f_grid.size(); ++iv) integral[0, iv] = extinction[0, iv].A();
+  auto phase =
+      tro_lab_frame_fourier_modes(t_grid_ptr,
+                                  f_grid_ptr,
+                                  za_inc_ptr,
+                                  std::make_shared<const ZenithAngleGrid>(IrregularZenithAngleGrid(za_scat_grid)),
+                                  max_mode,
+                                  integral,
+                                  closed_form);
 
   return {.phase_matrix      = std::move(phase),
           .extinction_matrix = extinction.to_lab_frame(za_inc_ptr).to_fourier(),

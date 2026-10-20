@@ -44,7 +44,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, f_grid);
 
   auto pm     = bulk_props.phase_matrix.value();
-  using SSD   = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
+  using SSD   = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
   //pm_ref += 0.5 * std::get<SSD>(particle_habit[0]).phase_matrix.value()[2];
   auto em_ref = std::get<SSD>(particle_habit[0]).extinction_matrix;
@@ -61,21 +61,18 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Ensure relative errors are small.
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
-      Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
+      Numeric err = max_rel_error(pm[f_ind, ang_ind].expand(), pm_ref[1, f_ind, ang_ind].expand());
       if (err > 1e-3) return false;
     }
 
     // TRO extinction is K11 times the identity, and TRO absorption [a1, 0, 0, 0]
-    const Numeric k11 = em_ref[1, f_ind, 0], a1 = av_ref[1, f_ind, 0];
-    for (Index i = 0; i < 4; ++i) {
-      for (Index j = 0; j < 4; ++j) {
-        const Numeric k = bulk_props.extinction_matrix[f_ind, i, j];
-        if (i == j ? std::abs((k - k11) / k11) > 1e-3 : k != 0.0) return false;
-      }
-    }
-    if (std::abs((bulk_props.absorption_vector[f_ind, 0] - a1) / a1) > 1e-3) return false;
-    for (Index i = 1; i < 4; ++i)
-      if (bulk_props.absorption_vector[f_ind, i] != 0.0) return false;
+    const Numeric k11 = em_ref[1, f_ind].A(), a1 = av_ref[1, f_ind].I();
+    const Propmat K = bulk_props.extinction_matrix[f_ind].expand();
+    if (std::abs((K.A() - k11) / k11) > 1e-3) return false;
+    if (K.B() != 0.0 or K.C() != 0.0 or K.D() != 0.0 or K.U() != 0.0 or K.V() != 0.0 or K.W() != 0.0) return false;
+    const Stokvec a = bulk_props.absorption_vector[f_ind].expand();
+    if (std::abs((a.I() - a1) / a1) > 1e-3) return false;
+    if (a.Q() != 0.0 or a.U() != 0.0 or a.V() != 0.0) return false;
   }
   return true;
 
@@ -88,17 +85,16 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Ensure relative errors are small.
   Index f_ind = 1;
   for (Size ang_ind = 0; ang_ind < za_scat_grid.size(); ++ang_ind) {
-    Numeric err = max_rel_error(pm[f_ind, ang_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, ang_ind]));
+    Numeric err = max_rel_error(pm[f_ind, ang_ind].expand(), pm_ref[1, f_ind, ang_ind].expand());
     if (err > 1e-3) return false;
   }
 
-  for (Index stokes_ind = 0; stokes_ind < 4; ++stokes_ind) {
-    Numeric ref      = em_ref[1, f_ind, stokes_ind];
-    Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind, stokes_ind, stokes_ind] - ref) / ref);
-    if (rel_diff > 1e-3) return false;
-  }
+  const Numeric ref      = em_ref[1, f_ind].A();
+  const Numeric rel_diff = std::abs((bulk_props.extinction_matrix[f_ind].A() - ref) / ref);
+  if (rel_diff > 1e-3) return false;
 
-  Numeric err = max_rel_error(bulk_props.absorption_vector[f_ind], av_ref[1, f_ind]);
+  const Numeric a1  = av_ref[1, f_ind].I();
+  const Numeric err = std::abs((bulk_props.absorption_vector[f_ind].I() - a1) / a1);
   if (err > 1e-3) return false;
   return true;
 }
@@ -143,7 +139,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, l);
 
   auto pm   = bulk_props.phase_matrix.value();
-  using SSD = scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using SSD = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
 
   auto pm_ref = std::get<SSD>(particle_habit[0]).phase_matrix.value();
   auto em_ref = std::get<SSD>(particle_habit[0]).extinction_matrix;
@@ -159,16 +155,16 @@ bool test_calculate_bulk_properties_tro_spectral() {
 
   for (Size f_ind = 0; f_ind < f_grid.size(); ++f_ind) {
     for (Index coeff_ind = 0; coeff_ind < l; ++coeff_ind) {
-      Numeric err = max_rel_error(pm[f_ind, coeff_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, coeff_ind]));
+      Numeric err = max_rel_error(pm[f_ind, coeff_ind].expand(), pm_ref[1, f_ind, coeff_ind].expand());
       if (err > 1e-3) return false;
     }
 
     // TRO extinction and absorption have K11 and a1 only
-    const auto& K = bulk_props.extinction_matrix[f_ind];
-    if (std::abs((K.A() - em_ref[1, f_ind, 0]) / em_ref[1, f_ind, 0]) > 1e-3) return false;
+    const Propmat K = bulk_props.extinction_matrix[f_ind].expand();
+    if (std::abs((K.A() - em_ref[1, f_ind].A()) / em_ref[1, f_ind].A()) > 1e-3) return false;
     if (K.B() != 0.0 or K.C() != 0.0 or K.D() != 0.0 or K.U() != 0.0 or K.V() != 0.0 or K.W() != 0.0) return false;
-    const auto& a = bulk_props.absorption_vector[f_ind];
-    if (std::abs((a[0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3) return false;
+    const Stokvec a = bulk_props.absorption_vector[f_ind].expand();
+    if (std::abs((a[0] - av_ref[1, f_ind].I()) / av_ref[1, f_ind].I()) > 1e-3) return false;
     if (a[1] != 0.0 or a[2] != 0.0 or a[3] != 0.0) return false;
   }
   return true;
@@ -182,11 +178,11 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Ensure relative errors are small.
   Index f_ind = 1;
   for (Index coeff_ind = 0; coeff_ind < l; ++coeff_ind) {
-    Numeric err = max_rel_error(pm[f_ind, coeff_ind], scattering::expand_phase_matrix(pm_ref[1, f_ind, coeff_ind]));
+    Numeric err = max_rel_error(pm[f_ind, coeff_ind].expand(), pm_ref[1, f_ind, coeff_ind].expand());
     if (err > 1e-3) return false;
   }
 
-  if (std::abs((bulk_props.absorption_vector[f_ind][0] - av_ref[1, f_ind, 0]) / av_ref[1, f_ind, 0]) > 1e-3)
+  if (std::abs((bulk_props.absorption_vector[f_ind].I() - av_ref[1, f_ind].I()) / av_ref[1, f_ind].I()) > 1e-3)
     return false;
   return true;
 }

@@ -1,7 +1,9 @@
 #ifndef nonstd_h
 #define nonstd_h
 
+#include <cassert>
 #include <cmath>
+#include <concepts>
 
 /*! For std functions that are changed somehow */
 namespace nonstd {
@@ -14,15 +16,22 @@ namespace nonstd {
  */
 template <class T> constexpr T abs(T x) noexcept { return x < 0 ? -x : x; }
 
-/*! pow(x, v) returns x^v not using std::pow but using exp(v * log(x))
- * 
- * Reason to re-implement: factor 4 faster
- * 
- * @param[in] x Any positive real value type
+/*! pow(x, v) returns x^v as exp(v log(x)), for x >= 0
+ *
+ * Reason to re-implement: factor 4 faster.  Its relative error is about eps |v log(x)|, against 1 ulp for
+ * std::pow, so it serves critical code where the last digits do not matter.
+ *
+ * x < 0 is outside its domain: debug builds assert, other builds give NaN, as std::pow does for non-integer v.
+ * Integer powers belong to the fixed forms (Math::pow2, Math::pow3, Math::pow4, pow_negative_one, std::ldexp), so
+ * integral arguments do not compile.
+ *
+ * @param[in] x A nonnegative floating-point value
+ * @param[in] v A floating-point exponent
  * @return x^v
  */
-template <typename T, typename U> constexpr auto pow(const T& x, const U& v) {
-  return std::signbit(x) ? -std::exp(v * std::log(abs(x))) : std::exp(v * std::log(x));
+template <std::floating_point T, std::floating_point U> constexpr auto pow(T x, U v) {
+  assert(not(x < 0));
+  return std::exp(v * std::log(x));
 }
 
 /*! Checks if the given character in 0123456789.

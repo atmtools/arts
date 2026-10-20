@@ -14,13 +14,13 @@
      and Siewert 1989), printed with 8 decimals.  ARTS's Mie code
      (ParticleHabit::sphere) for that population, integrated over the
      Hansen and Travis (1974) gamma distribution
-     n(r) ~ r^((1 - 3 b) / b) exp(-r / (a b)), must reproduce F11, F12 and
-     F33 (and F22 = F11, F44 = F33) to half a unit in the 8th decimal.  F34
-     comes out with the opposite sign: for the same physical sphere ARTS's
-     F34 is -1 times Evans'.  The Mie data are on the nodes of a 96-point
+     n(r) ~ r^((1 - 3 b) / b) exp(-r / (a b)), must reproduce F11, F12, F33
+     and F34 (and F22 = F11, F44 = F33) to half a unit in the 8th decimal.
+     ARTS's Stokes convention is that of Evans and Stephens, so the same
+     physical sphere has the same F34; this pins its sign against a reference
+     external to ARTS.  The Mie data are on the nodes of a 96-point
      Gauss-Legendre rule in cos(Theta), so their Legendre series follows
-     from that rule exactly; the particles hold those series.  This pins the relative sign of F34 against a
-     reference external to ARTS; see rt3_arts.h for what it implies for V.
+     from that rule exactly; the particles hold those series.
    - B3: the path builder must reproduce the path data it is given and the
      scattering-weighted layer mean of the level series. */
 #include <arts_constants.h>
@@ -128,10 +128,8 @@ constexpr std::array<std::array<Numeric, 4>, 12> evans_table3{{
    n(r).  The phase matrices are on the nodes of a Gauss-Legendre rule, whose
    projection gives each particle's Legendre series exactly. */
 void test_mietest() {
-  using Gridded =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded  = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
   constexpr Numeric wavelength = 0.951e-6, reff = 0.2, veff = 0.07;
   constexpr Index   nr = 120, nang = 96, degree = 13;
   const Numeric     frequency = Constant::speed_of_light / wavelength;
@@ -168,7 +166,7 @@ void test_mietest() {
     const auto    gridded = std::get<Gridded>(ParticleHabit::sphere(t_grid, f_grid, diameter, za, index, 1000.0)[0]);
 
     // a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), the rule exact for these data
-    scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> series(
+    scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> series(
         gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), degree);
     Vector p(degree + 1);
     for (Index j = 0; j < nang; j++) {
@@ -176,7 +174,7 @@ void test_mietest() {
       for (Index l = 0; l <= degree; l++) {
         const Numeric f =
             2.0 * Constant::pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi)) * wa[j] * p[l];
-        for (Index k = 0; k < 6; k++) series[0, 0, l, k] += f * (*gridded.phase_matrix)[0, 0, j, k];
+        series[0, 0, l] += f * (*gridded.phase_matrix)[0, 0, j];
       }
     }
     const Spectral spectral(gridded.properties,
@@ -192,7 +190,7 @@ void test_mietest() {
 
   const auto s = rt3::scattering_optics(species, atm, frequency, degree, 1e-10);
 
-  Numeric same = 0.0, f34_opposite = 0.0, f34_same = 0.0, spheres = 0.0, tail = 0.0;
+  Numeric same = 0.0, f34_same = 0.0, f34_opposite = 0.0, spheres = 0.0, tail = 0.0;
   for (Index l = 0; l <= degree; l++) {
     const bool                  tabulated = l < static_cast<Index>(evans_table3.size());
     const CompactPlanarMuelmat& c         = s.legendre[l];
@@ -207,22 +205,22 @@ void test_mietest() {
   constexpr Numeric tol = 6e-9;  // half a unit in the 8th decimal, plus 1e-9 for the radius quadrature
   std::cout << std::format(
       "B2 runmietest (Evans and Stephens 1991, Table 3) from ARTS's Mie code: max |F11, F12, F33 - Evans| {:.2e}, "
-      "max |F34 + Evans| {:.2e} (tolerance {:.0e}); max |F34 - Evans| {:.2e}; F22 = F11, F44 = F33 to {:.0e}; "
+      "max |F34 - Evans| {:.2e} (tolerance {:.0e}); max |F34 + Evans| {:.2e}; F22 = F11, F44 = F33 to {:.0e}; "
       "degrees 12-13 {:.0e}; albedo {:.15f}\n",
       same,
-      f34_opposite,
-      tol,
       f34_same,
+      tol,
+      f34_opposite,
       spheres,
       tail,
       s.scattering / s.extinction);
-  require(same <= tol and f34_opposite <= tol and spheres == 0.0,
-          std::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12 and "
-                      "F33, and minus Table 3 in F34, to {:.0e}; got {:.2e} and {:.2e}",
+  require(same <= tol and f34_same <= tol and spheres == 0.0,
+          std::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12, "
+                      "F33 and F34 to {:.0e}; got {:.2e} and {:.2e}",
                       tol,
                       same,
-                      f34_opposite));
-  require(f34_same > 1e4 * tol, "B2: the F34 comparison must be able to tell the two signs apart");
+                      f34_same));
+  require(f34_opposite > 1e4 * tol, "B2: the F34 comparison must be able to tell the two signs apart");
 }
 
 struct path_data {
@@ -329,10 +327,11 @@ void test_path() {
   ArrayOfScatteringSpecies mismatched;
   mismatched.add(
       ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{[](const AtmPoint&, const Vector& f, Index degree) {
-        ScatteringTroSpectralVector v{.phase_matrix      = SpecmatMatrix(f.size(), degree + 1, Specmat{0.0}),
-                                      .extinction_matrix = PropmatVector(f.size(), Propmat{1e-4}),
-                                      .absorption_vector = StokvecVector(f.size(), Stokvec{})};
-        for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0][0, 0] = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
+        ScatteringTroSpectralVector v{
+            .phase_matrix      = CompactPlanarMuelmatMatrix(f.size(), degree + 1, CompactPlanarMuelmat{}),
+            .extinction_matrix = CompactPlanarPropmatVector(f.size(), CompactPlanarPropmat{1e-4}),
+            .absorption_vector = CompactPlanarStokvecVector(f.size(), CompactPlanarStokvec{})};
+        for (Size i = 0; i < f.size(); i++) (*v.phase_matrix)[i, 0].F11() = 0.75e-4 / std::sqrt(4.0 * Constant::pi);
         return v;
       }}});
   require_error([&] { (void)rt3::scattering_optics(mismatched, d.atm_path[0], 89e9, 0, 1e-6); },

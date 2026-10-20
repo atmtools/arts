@@ -31,6 +31,8 @@ void py_matpack(py::module_& m) try {
   py::class_<Tensor5> v5(m, "Tensor5");
   py::class_<Tensor6> v6(m, "Tensor6");
   py::class_<Tensor7> v7(m, "Tensor7");
+  py::class_<Tensor8> v8(m, "Tensor8");
+  v8.doc() = "An 8-dimensional tensor of :class:`float`";
 
   matpack_interface(v1);
   matpack_interface(v2);
@@ -39,6 +41,7 @@ void py_matpack(py::module_& m) try {
   matpack_interface(v5);
   matpack_interface(v6);
   matpack_interface(v7);
+  matpack_interface(v8);
   generic_interface(v1);
   generic_interface(v2);
   generic_interface(v3);
@@ -46,6 +49,7 @@ void py_matpack(py::module_& m) try {
   generic_interface(v5);
   generic_interface(v6);
   generic_interface(v7);
+  generic_interface(v8);
 
   auto a1 = py::bind_vector<ArrayOfVector, py::rv_policy::reference_internal>(m, "ArrayOfVector");
   generic_interface(a1);

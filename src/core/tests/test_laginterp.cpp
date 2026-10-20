@@ -1,5 +1,4 @@
 #include <configtypes.h>
-#include <interpolation.h>
 #include <lagrange_interp.h>
 #include <matpack.h>
 #include <matpack_mdspan_helpers_vector.h>
@@ -398,46 +397,6 @@ flat_interp: {:B,})",
   }
 }
 
-void test_old() {
-  test_timer_t test_fixed_time{"test_old"};
-
-  const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
-  const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
-
-  const Vector coords1{nlinspace(-180, 180, 300)};
-  const Vector coords2{nlinspace(180, -180, 300)};
-
-  const Matrix data = nlinspace(1, 2, grid1.size() * grid2.size()).reshape(grid1.size(), grid2.size());
-
-  ArrayOfGridPos grid1_pos;
-  ArrayOfGridPos grid2_pos;
-  Tensor3        itw;
-  Matrix         res;
-
-  {
-    test_timer_t timer("gridpos");
-
-    grid1_pos.resize(coords1.size());
-    grid2_pos.resize(coords2.size());
-    gridpos(grid1_pos, grid1, coords1, 1e99);
-    gridpos(grid2_pos, grid2, coords2, 1e99);
-  }
-
-  {
-    test_timer_t timer("itw");
-
-    itw.resize(coords1.size(), coords2.size(), 4);
-    interpweights(itw, grid1_pos, grid2_pos);
-  }
-
-  {
-    test_timer_t timer("res");
-
-    res.resize(coords1.size(), coords2.size());
-    interp(res, itw, data, grid1_pos, grid2_pos);
-  }
-}
-
 template <Size N> void test_variant_lag() {
   for (Size i = 1; i < 10; ++i) {
     Vector     grid = nlinspace(-100, 100, i);
@@ -486,8 +445,6 @@ int main() {
       test_runtime<lagrange_interp::loncross, lagrange_interp::grid_identity>(N);
       test_runtime<lagrange_interp::loncross, lagrange_interp::loncross>(N);
     }
-
-    test_old();
   }
 
   print_time_points();

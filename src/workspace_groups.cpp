@@ -523,11 +523,11 @@ The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarra
       .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
-  wsg_data["SpecmatMatrix"] = {
+  wsg_data["CompactPlanarMuelmatMatrix"] = {
       .file     = "rtepack.h",
-      .desc     = R"(A matrix of *Muelmat*.
+      .desc     = R"(A matrix of *CompactPlanarMuelmat*.
 
-The python mapping allows treating this as a 4-dimensional :class:`~numpy.ndarray` with size 4x4 as rows and columns.
+The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 6 as columns.
 )",
       .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
@@ -1151,7 +1151,7 @@ of this term multiplied by a negative distance.
                     "PropmatVector",
                     "StokvecVector",
                     "PropmatMatrix",
-                    "SpecmatMatrix",
+                    "CompactPlanarMuelmatMatrix",
                     "StokvecMatrix",
                     "ArrayOfPropmatVector",
                     "ArrayOfStokvecVector",

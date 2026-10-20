@@ -13,7 +13,8 @@ struct specmat final : ComplexMatrix44 {
   explicit constexpr specmat(Complex tau) noexcept
       : ComplexMatrix44{tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau, 0, 0, 0, 0, tau} {}
 
-  constexpr specmat() : specmat(1.0) {}
+  //! Zero, as every rtepack type; the identity is id()
+  constexpr specmat() : specmat(0.0) {}
 
   constexpr specmat(Complex m00,
                     Complex m01,
@@ -233,6 +234,10 @@ using specmat_matrix_const_view = matpack::view_t<const specmat, 2>;
 using specmat_tensor3            = matpack::data_t<specmat, 3>;
 using specmat_tensor3_view       = matpack::view_t<specmat, 3>;
 using specmat_tensor3_const_view = matpack::view_t<const specmat, 3>;
+
+using specmat_tensor4            = matpack::data_t<specmat, 4>;
+using specmat_tensor4_view       = matpack::view_t<specmat, 4>;
+using specmat_tensor4_const_view = matpack::view_t<const specmat, 4>;
 }  // namespace rtepack
 
 template <> struct std::formatter<rtepack::specmat> : std::formatter<ComplexMatrix44> {};

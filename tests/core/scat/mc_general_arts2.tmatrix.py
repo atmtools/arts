@@ -26,6 +26,10 @@ FREQUENCIES = [229e9, 231e9]
 TEMPERATURES = [214.0, 225.0]
 ANGLES = np.arange(0.0, 181.0, 10.0)
 C = 299792458.0
+# ARTS2 scattering data use Mishchenko's Stokes convention, whose U is the
+# negative of ARTS's.  The legacy layout below holds them that way: D Z D with
+# D = diag(1, 1, -1, 1) takes ARTS's phase matrices to ARTS2's.
+D = np.diag([1.0, 1.0, -1.0, 1.0])
 
 
 def generate(legacy_numerics=False, quadrature=10):
@@ -42,14 +46,15 @@ def generate(legacy_numerics=False, quadrature=10):
     weights = 2 * (np.pi / 2)**2 * w[:, None] * \
         w[None, :] * np.sin(np.deg2rad(theta))[:, None]
 
-    # Matrix rows: incident zenith, scattered zenith, incident azimuth,
-    # scattered azimuth, alpha, beta. Oblate symmetry axis stays vertical.
-    phase_geometries = [[i, s, 0, a, 0, 0]
+    # The oblate symmetry axis stays vertical, alpha = beta = 0, and the
+    # incident azimuth is 0.
+    G = A.tmatrix.Geometry
+    phase_geometries = [G(theta_incident=i, theta_scattered=s, phi_scattered=a)
                         for s in ANGLES for a in ANGLES for i in ANGLES]
-    forward_geometries = [[z, z, 0, 0, 0, 0] for z in ANGLES]
-    integral_geometries = [[i, s, 0, a, 0, 0]
+    forward_geometries = [G(theta_incident=z, theta_scattered=z) for z in ANGLES]
+    integral_geometries = [G(theta_incident=i, theta_scattered=s, phi_scattered=a)
                            for s in ANGLES for i in theta for a in theta]
-    geometries = np.array(phase_geometries + forward_geometries + integral_geometries)
+    geometries = phase_geometries + forward_geometries + integral_geometries
     nphase = len(phase_geometries)
     nz = len(ANGLES)
     phase = np.empty((2, 2, nz, nz, nz, 1, 16))
@@ -67,10 +72,10 @@ def generate(legacy_numerics=False, quadrature=10):
             radius, unit = 100., 1e-6
         for ti, _ in enumerate(TEMPERATURES):
             m = REFRACTIVE_INDEX[fi, ti]
-            results = A.tmatrix.fixed_batch(radius, wavelength, 1.5, m.real, m.imag,
-                                            geometries, accuracy=.001, shape=-1)
+            results = A.tmatrix.fixed_batch(radius, wavelength, A.tmatrix.Shape.spheroid(1.5), m.real, m.imag,
+                                            geometries, accuracy=.001)
             orders.append(int(results[0].order))
-            phase[fi, ti] = (np.array([np.asarray(r.phase)
+            phase[fi, ti] = (np.array([D @ np.asarray(r.phase) @ D
                              for r in results[:nphase]]) * unit**2).reshape(nz, nz, nz, 1, 16)
             # Optical theorem: directional extinction, not the orientation-
             # averaged scalar cross section returned by the T-matrix solve.
@@ -83,7 +88,7 @@ def generate(legacy_numerics=False, quadrature=10):
                 extinction[fi, ti, zi, 0] = np.asarray(k)[[0, 1, 6]]
             # Integrate column 0 at fixed outgoing direction, as in arts_scat;
             # subtract scattering out of thermal equilibrium from K[:,0].
-            z = np.array([np.asarray(r.phase) for r in results[nphase + nz:]]) * unit**2
+            z = np.array([D @ np.asarray(r.phase) @ D for r in results[nphase + nz:]]) * unit**2
             z = z.reshape(nz, quadrature, quadrature, 4, 4)
             scattering = np.einsum('ij,zijc->zc', weights, z[..., :, 0])
             for zi in range(nz):
@@ -95,8 +100,7 @@ def generate(legacy_numerics=False, quadrature=10):
     ssd.description = (
         "ARTS3 T-matrix MC particle: equal-volume radius 100 um, oblate spheroid "
         "aspect ratio 1.5, alpha=beta=0, accuracy=0.001, original REFICE material. "
-        f"Extended precision: {A.tmatrix.extended_precision()}; "
-        f"legacy numerics: {legacy_numerics}; absorption quadrature: {quadrature}. "
+        f"Legacy numerics: {legacy_numerics}; absorption quadrature: {quadrature}. "
         "Full angular grid evaluated directly."
     )
     ssd.f_grid, ssd.T_grid = FREQUENCIES, TEMPERATURES

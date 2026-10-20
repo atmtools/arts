@@ -76,21 +76,21 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
     for (Index i = 0; i < n; i++) {
       const Index d = stream[h * n + i];
       for (Index s = 0; s < ns; s++) {
-        o.extinction[h, i, s, s] = ext[0, 0, d, 0];
-        o.absorption[h, i, s]    = abs[0, 0, d, s];
+        o.extinction[h, i, s, s] = ext[0, 0, d].A();
+        o.absorption[h, i, s]    = abs[0, 0, d].data[s];
       }
-      if (ns > 1) o.extinction[h, i, 0, 1] = o.extinction[h, i, 1, 0] = ext[0, 0, d, 1];
+      if (ns > 1) o.extinction[h, i, 0, 1] = o.extinction[h, i, 1, 0] = ext[0, 0, d].B();
     }
   }
 
-  // The azimuthal mean C_0 [t, f, za_inc, za_scat, m = 0, cosine, 4 * row + col]
+  // The azimuthal mean C_0 [t, f, za_inc, za_scat, m = 0, cosine]
+  const Range stokes{0, ns};
   for (Index ho = 0; ho < 2; ho++) {
     for (Index hi = 0; hi < 2; hi++) {
       for (Index io = 0; io < n; io++) {
         for (Index ii = 0; ii < n; ii++) {
           const Index out = stream[ho * n + io], in = stream[hi * n + ii];
-          for (Index so = 0; so < ns; so++)
-            for (Index si = 0; si < ns; si++) o.phase[ho, hi, io, ii, so, si] = pha[0, 0, in, out, 0, 0, 4 * so + si];
+          o.phase[ho, hi, io, ii, joker, joker] = pha[0, 0, in, out, 0, 0].view()[stokes, stokes];
         }
       }
     }

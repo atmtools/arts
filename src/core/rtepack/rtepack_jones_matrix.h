@@ -54,6 +54,16 @@ struct jones final : matpack::cdata_t<Complex, 2, 2> {
     for (auto &x : data) x *= a;
     return *this;
   }
+
+  constexpr jones &operator+=(const jones &b) {
+    for (Size i = 0; i < data.size(); i++) data[i] += b.data[i];
+    return *this;
+  }
+
+  constexpr jones &operator-=(const jones &b) {
+    for (Size i = 0; i < data.size(); i++) data[i] -= b.data[i];
+    return *this;
+  }
 };
 
 //! The composition: first b, then a
@@ -66,4 +76,25 @@ constexpr jones operator*(const jones &a, const jones &b) {
 
 constexpr jones operator*(Complex a, jones b) { return b *= a; }
 constexpr jones operator*(jones a, Complex b) { return a *= b; }
+
+//! The sum of two maps between the same bases, e.g. of the fields of parallel paths
+constexpr jones operator+(jones a, const jones &b) { return a += b; }
+
+constexpr jones operator-(jones a, const jones &b) { return a -= b; }
+
+constexpr jones operator-(jones a) {
+  for (auto &x : a.data) x = -x;
+  return a;
+}
+
+//! J_vv + J_hh
+constexpr Complex trace(const jones &J) { return J[0, 0] + J[1, 1]; }
+
+constexpr Complex det(const jones &J) { return J[0, 0] * J[1, 1] - J[0, 1] * J[1, 0]; }
+
+//! The inverse map, of a J with det(J) != 0
+constexpr jones inv(const jones &J) {
+  const Complex d = 1.0 / det(J);
+  return {J[1, 1] * d, -J[0, 1] * d, -J[1, 0] * d, J[0, 0] * d};
+}
 }  // namespace rtepack

@@ -24,12 +24,14 @@ bool test_constant_isotropic() {
                                      scattering::IsotropicGasScattering{}};
   auto bulk = gas.get_bulk_scattering_properties_tro_gridded(point, frequencies, std::move(angles));
 
-  if (not close(bulk.extinction_matrix[0, 0, 0], expected)) return false;
-  if (bulk.absorption_vector[0, 0, 0] != 0.0) return false;
+  if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
+  if (bulk.absorption_vector[0, 0].I() != 0.0) return false;
   for (Index ia = 0; ia < 3; ++ia) {
     for (Index is = 0; is < 6; ++is) {
       const Numeric normalized = (is == 0 or is == 2 or is == 3 or is == 5) ? 1.0 : 0.0;
-      if (not close((*bulk.phase_matrix)[0, 0, ia, is], expected * normalized / (4.0 * Constant::pi))) { return false; }
+      if (not close((*bulk.phase_matrix)[0, 0, ia].data[is], expected * normalized / (4.0 * Constant::pi))) {
+        return false;
+      }
     }
   }
   return true;
@@ -51,12 +53,12 @@ bool test_air_simple_rayleigh() {
       inv_wavelength_sq * (4.6547659e-2 + inv_wavelength_sq * (4.5055995e-4 + inv_wavelength_sq * 2.3229848e-5));
   const Numeric expected =
       1e-32 * polynomial / Math::pow4(wavelength_um) * number_density(point.pressure, point.temperature);
-  if (not close(bulk.extinction_matrix[0, 0, 0], expected)) return false;
+  if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
 
   const Numeric scale = expected / (4.0 * Constant::pi);
-  const Vector  at_90 = calc_rayleighPhaMat(Constant::pi / 2.0);
+  const auto    at_90 = scale * calc_rayleighPhaMat(Constant::pi / 2.0);
   for (Index is = 0; is < 6; ++is) {
-    if (not close((*bulk.phase_matrix)[0, 0, 1, is], scale * at_90[is], 1e-9)) return false;
+    if (not close((*bulk.phase_matrix)[0, 0, 1].data[is], at_90.data[is], 1e-9)) return false;
   }
 
   // The species must also provide the spectral TRO representation consumed by
@@ -66,9 +68,9 @@ bool test_air_simple_rayleigh() {
   if (spectral.absorption_vector[0].I() != 0.0) return false;
   if (not spectral.phase_matrix or spectral.phase_matrix->ncols() != 3) return false;
   const Numeric amp = 0.5 * Constant::inv_sqrt_pi * expected;
-  if (not close((*spectral.phase_matrix)[0, 0][0, 0].real(), amp)) return false;
-  if (not close((*spectral.phase_matrix)[0, 1][2, 2].real(), 0.5 * std::sqrt(3.0) * amp)) return false;
-  if (not close((*spectral.phase_matrix)[0, 2][0, 0].real(), 0.5 * amp / std::sqrt(5.0))) return false;
+  if (not close((*spectral.phase_matrix)[0, 0].F11(), amp)) return false;
+  if (not close((*spectral.phase_matrix)[0, 1].F33(), 0.5 * std::sqrt(3.0) * amp)) return false;
+  if (not close((*spectral.phase_matrix)[0, 2].F11(), 0.5 * amp / std::sqrt(5.0))) return false;
 
   return true;
 }
@@ -93,15 +95,16 @@ bool test_rayleigh_sht_to_fourier() {
       std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)), M);
 
   Numeric scale = 0.0;
-  for (Numeric x : *exact.phase_matrix | by_elem) scale = std::max(scale, std::abs(x));
-  if (not(scale > 0.0) or modes[0, 0, 1, 2, 2, 0, 0] == 0.0) return false;  // a non-trivial comparison, m = 2 included
+  for (Numeric x : rtepack::elements(*exact.phase_matrix) | by_elem) scale = std::max(scale, std::abs(x));
+  if (not(scale > 0.0) or modes[0, 0, 1, 2, 2, 0][0, 0] == 0.0)
+    return false;  // a non-trivial comparison, m = 2 included
   for (Size i = 0; i < za_inc.size(); ++i) {
     if (not close(modes.get_phase_integral()[0, 0, i], exact.phase_matrix->get_phase_integral()[0, 0, i], 1e-12))
       return false;
     for (Size j = 0; j < za_scat.size(); ++j)
       for (Index m = 0; m <= M; ++m)
         for (Index cs = 0; cs < 2; ++cs)
-          if (std::abs(modes[0, 0, i, j, m, cs, 0] - (*exact.phase_matrix)[0, 0, i, j, m, cs, 0]) > 1e-12 * scale)
+          if (std::abs(modes[0, 0, i, j, m, cs][0, 0] - (*exact.phase_matrix)[0, 0, i, j, m, cs][0, 0]) > 1e-12 * scale)
             return false;
   }
   return true;

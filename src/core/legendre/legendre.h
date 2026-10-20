@@ -38,6 +38,14 @@ struct SchmidtMatrixView {
  */
 std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index nmax);
 
+/** As schmidt(theta, nmax), into caller-sized storage
+ *
+ * @param[out] P  The (nmax+1) x (nmax+1) main matrix, zero for m > n
+ * @param[out] dP The derivative, of the same shape
+ * @param[in] theta Colatitude in radians
+ */
+void schmidt(MatrixView P, MatrixView dP, const Numeric theta);
+
 /** Computes the spherical field
  * 
  * If latitude is beyond a limit, the longitude is set to zero

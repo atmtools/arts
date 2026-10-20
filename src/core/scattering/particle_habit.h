@@ -1,5 +1,7 @@
 #pragma once
 
+#include <enumsParticleShape.h>
+
 #include <iostream>
 #include <optional>
 #include <variant>
@@ -10,18 +12,16 @@
 
 namespace scattering {
 
-using ParticleData = std::variant<SingleScatteringData<Numeric, Format::TRO, Representation::Gridded>,
-                                  SingleScatteringData<Numeric, Format::TRO, Representation::Spectral>,
-                                  SingleScatteringData<Numeric, Format::ARO, Representation::Gridded>,
-                                  SingleScatteringData<Numeric, Format::ARO, Representation::Spectral>>;
+using ParticleData = std::variant<SingleScatteringData<Format::TRO, Representation::Gridded>,
+                                  SingleScatteringData<Format::TRO, Representation::Spectral>,
+                                  SingleScatteringData<Format::ARO, Representation::Gridded>,
+                                  SingleScatteringData<Format::ARO, Representation::Spectral>>;
 
 using ScatteringData = std::vector<ParticleData>;
 
 template <Format format, Representation repr>
-auto ssd_to_tro_spectral(const ScatteringDataGrids&                         new_grids,
-                         Index                                              l,
-                         const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::TRO, Representation::Spectral> {
+auto ssd_to_tro_spectral(const ScatteringDataGrids& new_grids, Index l, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::TRO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
     ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
   } else {
@@ -30,8 +30,8 @@ auto ssd_to_tro_spectral(const ScatteringDataGrids&                         new_
 };
 
 template <Format format, Representation repr>
-auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::TRO, Representation::Gridded> {
+auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::TRO, Representation::Gridded> {
   if constexpr (format == Format::ARO) {
     ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
   } else {
@@ -40,6 +40,9 @@ auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
       // directly aliases its matpack storage; bulk PSD scaling would then
       // modify the particle habit and make later evaluations stateful.
       return ssd.regrid(new_grids);
+    } else if constexpr (repr == Representation::Spectral) {
+      // The series at the new scattering angles exactly, then temperature and frequency
+      return ssd.to_gridded(new_grids.za_scat_grid).regrid(new_grids);
     } else {
       return ssd.to_gridded().regrid(new_grids);
     }
@@ -47,8 +50,8 @@ auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
 };
 
 template <Format format, Representation repr>
-auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Gridded> {
+auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Gridded> {
   if constexpr (format == Format::ARO) {
     if constexpr (repr == Representation::Gridded) {
       return ssd.regrid(new_grids);
@@ -56,7 +59,7 @@ auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
       return ssd.to_gridded().regrid(new_grids);
     }
   } else {
-    if constexpr (repr == Representation::Gridded) {
+    if constexpr (repr == Representation::Gridded or repr == Representation::Spectral) {
       return ssd.to_lab_frame(new_grids);
     } else {
       return ssd.to_gridded().to_lab_frame(new_grids);
@@ -64,13 +67,15 @@ auto ssd_to_aro_gridded(const ScatteringDataGrids& new_grids, const SingleScatte
   }
 };
 
-template <Format format, Representation repr> auto ssd_to_aro_spectral(
-    const ScatteringDataGrids& new_grids, Index l, Index m, const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Spectral> {
+template <Format format, Representation repr> auto ssd_to_aro_spectral(const ScatteringDataGrids& new_grids,
+                                                                       Index                      l,
+                                                                       Index                      m,
+                                                                       const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
     return ssd.to_spectral(l, m).regrid(new_grids);
   } else {
-    if constexpr (repr == Representation::Gridded) {
+    if constexpr (repr == Representation::Gridded or repr == Representation::Spectral) {
       return ssd.to_lab_frame(new_grids).to_spectral(l, m);
     } else {
       return ssd.to_gridded().to_lab_frame(new_grids).to_spectral(l, m);
@@ -87,11 +92,10 @@ template <Format format, Representation repr> auto ssd_to_aro_spectral(
  * scattering-angle nodes, too coarsely for the modes; they must be converted
  * to a Legendre series first.
  */
-template <Format format, Representation repr>
-auto ssd_to_aro_fourier(const ScatteringDataGrids&                         new_grids,
-                        Index                                              max_mode,
-                        const SingleScatteringData<Numeric, format, repr>& ssd)
-    -> SingleScatteringData<Numeric, Format::ARO, Representation::Fourier> {
+template <Format format, Representation repr> auto ssd_to_aro_fourier(const ScatteringDataGrids& new_grids,
+                                                                      Index                      max_mode,
+                                                                      const SingleScatteringData<format, repr>& ssd)
+    -> SingleScatteringData<Format::ARO, Representation::Fourier> {
   if constexpr (format == Format::ARO and repr == Representation::Gridded) {
     return ssd.to_fourier(max_mode).regrid(new_grids);
   } else if constexpr (format == Format::ARO and repr == Representation::Spectral) {
@@ -143,17 +147,41 @@ class ScatteringHabit;
  */
 class ParticleHabit {
  public:
-  //! Generate native TRO data at individual volume-equivalent diameters.
-  //! SI inputs; refractive_index has shape (temperature, frequency).
+  //! Generate native spectral TRO data, the exact Legendre series of the T-matrix, at individual
+  //! volume-equivalent diameters.  SI inputs; refractive_index has shape (temperature, frequency).
+  //! aspect_ratio is the spheroid's aspect ratio, the cylinder's diameter-to-length ratio or the Chebyshev
+  //! deformation, unused for generalized Chebyshev particles, with one element for all diameters or one per diameter;
+  //! coefficients, of generalized Chebyshev particles only, likewise, and none for the other shapes.
   static ParticleHabit tmatrix(const Vector&        t_grid,
                                const Vector&        f_grid,
                                const Vector&        diameters,
                                const ComplexMatrix& refractive_index,
                                Numeric              density,
-                               Numeric              aspect_ratio,
-                               int                  shape    = -1,
-                               int                  angles   = 181,
-                               Numeric              accuracy = 0.001);
+                               const Vector&        aspect_ratio       = Vector{1.0},
+                               ParticleShape        shape              = ParticleShape::spheroid,
+                               Index                degree             = 0,
+                               const ArrayOfVector& coefficients       = {},
+                               Numeric              accuracy           = 0.001,
+                               Index                surface_quadrature = 2);
+
+  //! Generate gridded ARO data of the T-matrix, for the tilt distribution tilt_angles [deg] with tilt_weights and
+  //! random azimuth, on the given grids [deg].  The other inputs are those of tmatrix().
+  static ParticleHabit tmatrix_aro(const Vector&          t_grid,
+                                   const Vector&          f_grid,
+                                   const Vector&          diameters,
+                                   const ComplexMatrix&   refractive_index,
+                                   Numeric                density,
+                                   const Vector&          za_inc_grid,
+                                   const Vector&          delta_aa_grid,
+                                   const ZenithAngleGrid& za_scat_grid,
+                                   const Vector&          tilt_angles,
+                                   const Vector&          tilt_weights,
+                                   const Vector&          aspect_ratio       = Vector{1.0},
+                                   ParticleShape          shape              = ParticleShape::spheroid,
+                                   Index                  degree             = 0,
+                                   const ArrayOfVector&   coefficients       = {},
+                                   Numeric                accuracy           = 0.001,
+                                   Index                  surface_quadrature = 2);
 
   static ParticleHabit sphere(const StridedVectorView& t_grid,
                               const StridedVectorView& f_grid,
@@ -199,15 +227,14 @@ class ParticleHabit {
    * each particle.
    */
   template <Format format, Representation representation>
-  ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_) {
+  ParticleHabit(std::vector<SingleScatteringData<format, representation>> scattering_data_) {
     if (scattering_data_.size() > 0) {
       for (Size ind = 0; ind < scattering_data_.size(); ++ind) { scattering_data.push_back(scattering_data_[ind]); }
     }
   }
 
   template <Format format, Representation representation>
-  ParticleHabit(std::vector<SingleScatteringData<Numeric, format, representation>> scattering_data_,
-                ScatteringDataGrids                                                grids_)
+  ParticleHabit(std::vector<SingleScatteringData<format, representation>> scattering_data_, ScatteringDataGrids grids_)
       : grids(grids_) {
     if (scattering_data_.size() > 0) {
       scattering_data.resize(scattering_data_.size(), scattering_data_[0]);
@@ -217,8 +244,7 @@ class ParticleHabit {
     }
   }
 
-  template <Format format, Representation repr>
-  void append_particle(const SingleScatteringData<Numeric, format, repr>& ssd) {
+  template <Format format, Representation repr> void append_particle(const SingleScatteringData<format, repr>& ssd) {
     if (grids.has_value()) {
       scattering_data.push_back(ssd.regrid(grids));
     } else {

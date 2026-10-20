@@ -6,7 +6,6 @@
 #include <ranges>
 
 #include "arts_conversions.h"
-#include "interpolation.h"
 #include "matpack/matpack.h"
 #include "matpack/matpack_mdspan_helpers_eigen.h"
 #include "scattering/mie.h"
@@ -15,15 +14,15 @@
 
 using namespace scattering;
 
-using PhaseMatrixTROGridded = PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded>;
+using PhaseMatrixTROGridded = PhaseMatrixData<Format::TRO, Representation::Gridded>;
 
-using PhaseMatrixTROSpectral = PhaseMatrixData<Numeric, Format::TRO, Representation::Spectral>;
+using PhaseMatrixTROSpectral = PhaseMatrixData<Format::TRO, Representation::Spectral>;
 
-using PhaseMatrixAROGridded = PhaseMatrixData<Numeric, Format::ARO, Representation::Gridded>;
+using PhaseMatrixAROGridded = PhaseMatrixData<Format::ARO, Representation::Gridded>;
 
-using PhaseMatrixAROSpectral = PhaseMatrixData<Numeric, Format::ARO, Representation::Spectral>;
+using PhaseMatrixAROSpectral = PhaseMatrixData<Format::ARO, Representation::Spectral>;
 
-using PhaseMatrixAROFourier = PhaseMatrixData<Numeric, Format::ARO, Representation::Fourier>;
+using PhaseMatrixAROFourier = PhaseMatrixData<Format::ARO, Representation::Fourier>;
 
 /** Create a TRO phase matrix for testing
  *
@@ -41,8 +40,9 @@ PhaseMatrixTROGridded make_phase_matrix(std::shared_ptr<const Vector>          t
 
   for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
-      for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-        phase_matrix[i_t, Range(i_f, 1), joker, i_s] = evaluate_spherical_harmonic(i_f, 0, aa_grid, za_grid);
+      for (Index i_s = 0; i_s < 6; ++i_s) {
+        rtepack::elements(phase_matrix)[i_t, Range(i_f, 1), joker, i_s] =
+            evaluate_spherical_harmonic(i_f, 0, aa_grid, za_grid);
       }
     }
   }
@@ -60,12 +60,8 @@ PhaseMatrixTROGridded make_phase_matrix_liquid_sphere(std::shared_ptr<const Vect
 
   for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
-      auto scat_data =
-          scattering::MieSphere<Numeric>::Liquid((*f_grid)[i_f], (*t_grid)[i_t], 1e-3, grid_vector(*za_scat_grid));
-      auto scat_matrix = scat_data.get_scattering_matrix_compact();
-      for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-        phase_matrix[i_t, i_f, joker, i_s] = scat_matrix[joker, i_s];
-      }
+      auto scat_data = scattering::MieSphere::Liquid((*f_grid)[i_f], (*t_grid)[i_t], 1e-3, grid_vector(*za_scat_grid));
+      phase_matrix[i_t, i_f, joker] = scat_data.get_scattering_matrix_compact();
     }
   }
   return phase_matrix;
@@ -91,10 +87,11 @@ PhaseMatrixAROGridded make_phase_matrix(std::shared_ptr<const Vector>          t
   for (Size i_t = 0; i_t < t_grid->size(); ++i_t) {
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       for (Size i_za_inc = 0; i_za_inc < za_inc_grid->size(); ++i_za_inc) {
-        for (Index i_s = 0; i_s < phase_matrix.n_stokes_coeffs; ++i_s) {
-          Index l                                             = i_t;
-          Index m                                             = std::min(i_t, i_f);
-          phase_matrix[i_t, i_f, i_za_inc, joker, joker, i_s] = evaluate_spherical_harmonic(l, m, aa_grid, za_grid);
+        for (Index i_s = 0; i_s < 16; ++i_s) {
+          Index l = i_t;
+          Index m = std::min(i_t, i_f);
+          rtepack::elements(phase_matrix)[i_t, i_f, i_za_inc, joker, joker, i_s] =
+              evaluate_spherical_harmonic(l, m, aa_grid, za_grid);
         }
       }
     }
@@ -110,7 +107,7 @@ PhaseMatrixTROSpectral make_unit_series(std::shared_ptr<const Vector> t_grid, st
   PhaseMatrixTROSpectral series(t_grid, f_grid, 15);
   for (Size i_t = 0; i_t < t_grid->size(); ++i_t)
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f)
-      for (Index i_s = 0; i_s < series.n_stokes_coeffs; ++i_s) series[i_t, i_f, i_f, i_s] = 1.0;
+      series[i_t, i_f, i_f] = rtepack::compact_planar_muelmat{1.0, 1.0, 1.0, 1.0, 1.0, 1.0};
   return series;
 }
 
@@ -126,12 +123,12 @@ bool test_phase_matrix_tro() {
   //
   auto    phase_matrix_spectral  = make_unit_series(t_grid, f_grid);
   auto    phase_matrix_gridded_2 = phase_matrix_spectral.to_gridded(za_scat_grid);
-  Numeric err                    = max_error(phase_matrix_gridded, phase_matrix_gridded_2);
+  Numeric err = max_error(rtepack::elements(phase_matrix_gridded), rtepack::elements(phase_matrix_gridded_2));
   if (err > 1e-12) { return false; }
 
   auto fine      = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(nlinspace(0.0, 180.0, 3601)));
   auto projected = make_phase_matrix(t_grid, f_grid, fine).to_spectral(15);
-  err            = max_error<matpack::strided_view_t<const std::complex<Numeric>, 4>>(projected, phase_matrix_spectral);
+  err            = max_error(rtepack::elements(projected), rtepack::elements(phase_matrix_spectral));
   if (err > 1e-5) { return false; }
 
   //
@@ -152,10 +149,10 @@ bool test_phase_matrix_tro() {
     for (Size i_f = 0; i_f < f_grid->size(); ++i_f) {
       // Backward scattering direction. Only two independent elements.
       // Off-diagonal elements must be close to 0.
-      auto    pm_f        = phase_matrix_lab[i_t, i_f, 0, 0, 0, joker];
-      Numeric coeff_max_f = pm_f[0];
-      auto    pm_b        = phase_matrix_lab[i_t, i_f, 0, 1, 0, joker];
-      Numeric coeff_max_b = pm_b[0];
+      const auto& pm_f        = phase_matrix_lab[i_t, i_f, 0, 0, 0].data;
+      Numeric     coeff_max_f = pm_f[0];
+      const auto& pm_b        = phase_matrix_lab[i_t, i_f, 0, 1, 0].data;
+      Numeric     coeff_max_b = pm_b[0];
 
       // For the forward direction we have:
       // Z22 == Z33
@@ -189,33 +186,32 @@ bool test_phase_matrix_tro() {
 
   // Test extraction of backscatter matrix.
   auto backscatter_matrix = phase_matrix_liquid.extract_backscatter_matrix();
-  err = max_error<Tensor3>(backscatter_matrix, static_cast<Tensor3>(phase_matrix_liquid[joker, joker, 4, joker]));
+  err = max_error(rtepack::elements(backscatter_matrix), rtepack::elements(phase_matrix_liquid[joker, joker, 4]));
   if (err > 1e-15) return false;
 
   auto forwardscatter_matrix = phase_matrix_liquid.extract_forwardscatter_matrix();
-  err = max_error<Tensor3>(forwardscatter_matrix, static_cast<Tensor3>(phase_matrix_liquid[joker, joker, 0, joker]));
+  err = max_error(rtepack::elements(forwardscatter_matrix), rtepack::elements(phase_matrix_liquid[joker, joker, 0]));
   if (err > 1e-15) return false;
 
   // The back- and forward-scatter matrices of a series are the series at 180 and 0 deg
   const auto ends    = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector{0.0, 180.0}));
   const auto at_ends = phase_matrix_spectral.to_gridded(ends);
-  err                = max_error<Tensor3>(phase_matrix_spectral.extract_backscatter_matrix(),
-                                          static_cast<Tensor3>(at_ends[joker, joker, 1, joker]));
+  err                = max_error(rtepack::elements(phase_matrix_spectral.extract_backscatter_matrix()),
+                                 rtepack::elements(at_ends[joker, joker, 1]));
   if (err > 1e-14) return false;
-  err = max_error<Tensor3>(phase_matrix_spectral.extract_forwardscatter_matrix(),
-                           static_cast<Tensor3>(at_ends[joker, joker, 0, joker]));
+  err = max_error(rtepack::elements(phase_matrix_spectral.extract_forwardscatter_matrix()),
+                  rtepack::elements(at_ends[joker, joker, 0]));
   if (err > 1e-14) return false;
   auto phase_matrix_liquid_spectral = phase_matrix_spectral;
 
   // Test reduction of stokes elements.
   auto phase_matrix_liquid_1 = phase_matrix_liquid.extract_stokes_coeffs();
-  err                        = max_error<ConstTensor4View>(phase_matrix_liquid_1, phase_matrix_liquid);
+  err = max_error(rtepack::elements(phase_matrix_liquid_1), rtepack::elements(phase_matrix_liquid));
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
   auto phase_matrix_liquid_spectral_1 = phase_matrix_liquid_spectral.extract_stokes_coeffs();
-  err = max_error<matpack::strided_view_t<const std::complex<Numeric>, 4>>(phase_matrix_liquid_spectral_1,
-                                                                           phase_matrix_liquid_spectral);
+  err = max_error(rtepack::elements(phase_matrix_liquid_spectral_1), rtepack::elements(phase_matrix_liquid_spectral));
   // Extraction of stokes parameters should be exact.
   if (err > 0.0) return false;
 
@@ -230,9 +226,9 @@ bool test_phase_matrix_copy_const_tro() {
   auto                                   phase_matrix_spectral = make_unit_series(t_grid, f_grid);
 
   // A gridded copy of a series of degree 15 is the series at the 32 Gauss-Legendre nodes
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase_matrix_gridded_2(phase_matrix_gridded);
-  PhaseMatrixData<Numeric, Format::TRO, Representation::Gridded> phase_matrix_gridded_3(phase_matrix_spectral);
-  Numeric err = max_error(phase_matrix_gridded_2, phase_matrix_gridded_3);
+  PhaseMatrixData<Format::TRO, Representation::Gridded> phase_matrix_gridded_2(phase_matrix_gridded);
+  PhaseMatrixData<Format::TRO, Representation::Gridded> phase_matrix_gridded_3(phase_matrix_spectral);
+  Numeric err = max_error(rtepack::elements(phase_matrix_gridded_2), rtepack::elements(phase_matrix_gridded_3));
   if (err > 1e-12) { return false; }
 
   return true;
@@ -265,8 +261,8 @@ bool test_phase_matrix_regrid_tro() {
   auto                weights = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
 
   auto    phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  Numeric err = max_error(static_cast<MatrixView>(phase_matrix_gridded[0, 0, joker, joker]),
-                          static_cast<MatrixView>(phase_matrix_gridded_interp[0, 0, joker, joker]));
+  Numeric err                         = max_error(rtepack::elements(phase_matrix_gridded)[0, 0, joker, joker],
+                                                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, joker, joker]);
   if (err > 0.0) { return false; }
 
   //
@@ -278,8 +274,8 @@ bool test_phase_matrix_regrid_tro() {
   auto phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   phase_matrix_gridded_interp       = phase_matrix_spectral_interp.to_gridded();
 
-  err = max_error(static_cast<MatrixView>(phase_matrix_gridded[0, 0, joker, joker]),
-                  static_cast<MatrixView>(phase_matrix_gridded_interp[0, 0, joker, joker]));
+  err = max_error(rtepack::elements(phase_matrix_gridded)[0, 0, joker, joker],
+                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, joker, joker]);
   if (err > 1e-10) { return false; }
 
   //
@@ -295,35 +291,27 @@ bool test_phase_matrix_regrid_tro() {
   weights                     = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
 
-  Vector phase_matrix_ref(6);
-  phase_matrix_ref = 0.0;
-  for (Index i_t = 0; i_t < 2; ++i_t) {
-    for (Index i_f = 0; i_f < 2; ++i_f) {
-      for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat) {
-        phase_matrix_ref +=
-            static_cast<matpack::data_t<double, 1>>(0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat, joker]);
-      }
-    }
-  }
-  err = max_error(static_cast<VectorView>(phase_matrix_ref),
-                  static_cast<VectorView>(phase_matrix_gridded_interp[0, 0, 0, joker]));
+  CompactPlanarMuelmatVector phase_matrix_ref(1, CompactPlanarMuelmat{});
+  for (Index i_t = 0; i_t < 2; ++i_t)
+    for (Index i_f = 0; i_f < 2; ++i_f)
+      for (Index i_za_scat = 0; i_za_scat < 2; ++i_za_scat)
+        phase_matrix_ref[0] += 0.125 * phase_matrix_gridded[i_t, i_f, i_za_scat];
+  err = max_error(rtepack::elements(phase_matrix_ref)[0, joker],
+                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, 0, joker]);
   if (err > 1e-15) { return false; }
 
   //
   // Do the same in spectral space.
   //
 
-  auto   phase_matrix_interp = phase_matrix_spectral.regrid(grids, weights).to_gridded();
-  Matrix phase_matrix_spectral_ref(grid_size(*za_scat_grid), 6);
-  phase_matrix_spectral_ref = 0.0;
-  for (Index i_t = 0; i_t < 2; ++i_t) {
-    for (Index i_f = 0; i_f < 2; ++i_f) {
-      phase_matrix_spectral_ref +=
-          static_cast<matpack::data_t<double, 2>>(0.25 * phase_matrix_gridded[i_t, i_f, joker, joker]);
-    }
-  }
-  err = max_error(static_cast<MatrixView>(phase_matrix_spectral_ref),
-                  static_cast<MatrixView>(phase_matrix_interp[0, 0, joker, joker]));
+  auto                       phase_matrix_interp = phase_matrix_spectral.regrid(grids, weights).to_gridded();
+  CompactPlanarMuelmatVector phase_matrix_spectral_ref(grid_size(*za_scat_grid), CompactPlanarMuelmat{});
+  for (Index i_t = 0; i_t < 2; ++i_t)
+    for (Index i_f = 0; i_f < 2; ++i_f)
+      for (Size i = 0; i < phase_matrix_spectral_ref.size(); ++i)
+        phase_matrix_spectral_ref[i] += 0.25 * phase_matrix_gridded[i_t, i_f, i];
+  err = max_error(rtepack::elements(phase_matrix_spectral_ref),
+                  rtepack::elements(phase_matrix_interp)[0, 0, joker, joker]);
   if (err > 1e-10) { return false; }
 
   //
@@ -337,7 +325,10 @@ bool test_phase_matrix_regrid_tro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<0>(values);
+  }
 
   (*t_grid_new)[0]            = 1.2345;
   (*f_grid_new)[0]            = 1.2345;
@@ -345,31 +336,43 @@ bool test_phase_matrix_regrid_tro() {
   grids                       = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights                     = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid_inc, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 4>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<0>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<1>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 4>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<1>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along za-scat-axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<2>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
   return true;
@@ -395,8 +398,8 @@ bool test_backscatter_matrix_regrid_tro() {
   auto                weights = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, za_scat_grid, grids);
 
   auto    backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  Numeric err                       = max_error(static_cast<VectorView>(backscatter_matrix[0, 0, joker]),
-                                                static_cast<VectorView>(backscatter_matrix_interp[0, 0, joker]));
+  Numeric err                       = max_error(rtepack::elements(backscatter_matrix)[0, 0, joker],
+                                                rtepack::elements(backscatter_matrix_interp)[0, 0, joker]);
   if (err > 0.0) { return false; }
 
   //
@@ -408,7 +411,10 @@ bool test_backscatter_matrix_regrid_tro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 3>&>(backscatter_matrix));
+  {
+    auto values = rtepack::elements(backscatter_matrix);
+    fill_along_axis<0>(values);
+  }
 
   (*t_grid_new)[0]          = 1.2345;
   (*f_grid_new)[0]          = 1.2345;
@@ -416,13 +422,16 @@ bool test_backscatter_matrix_regrid_tro() {
   grids                     = ScatteringDataGrids{t_grid_new, f_grid_new, za_scat_grid_new};
   weights                   = calc_regrid_weights(t_grid, f_grid, nullptr, nullptr, nullptr, nullptr, grids);
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err                       = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
+  err                       = std::abs(backscatter_matrix_interp[0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 3>&>(backscatter_matrix));
+  {
+    auto values = rtepack::elements(backscatter_matrix);
+    fill_along_axis<1>(values);
+  }
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err                       = std::abs(backscatter_matrix_interp[0, 0, 0] - 1.2345);
+  err                       = std::abs(backscatter_matrix_interp[0, 0].F11() - 1.2345);
   if (err > 1e-10) { return false; }
   return true;
 }
@@ -443,6 +452,7 @@ bool test_phase_matrix_aro() {
   // Test conversion between spectral and gridded format.
   //
   auto          phase_matrix_spectral = phase_matrix_gridded.to_spectral(sht);
+  const auto    coeffs                = rtepack::elements(phase_matrix_spectral);
   ComplexVector coeffs_ref(phase_matrix_spectral.extent(3));
   for (Index i_t = 0; i_t < phase_matrix_spectral.extent(0); ++i_t) {
     for (Index i_f = 0; i_f < phase_matrix_spectral.extent(1); ++i_f) {
@@ -451,29 +461,29 @@ bool test_phase_matrix_aro() {
       coeffs_ref                             = std::complex<Numeric>(0.0, 0.0);
       coeffs_ref[sht->get_coeff_index(l, m)] = std::complex<Numeric>(1.0, 0.0);
       for (Index i_za_inc = 0; i_za_inc < phase_matrix_spectral.extent(2); ++i_za_inc) {
-        for (Index i_s = 0; i_s < phase_matrix_spectral.extent(4); ++i_s) {
-          Numeric err = max_error<ComplexVector>(
-              coeffs_ref, static_cast<ComplexVector>(phase_matrix_spectral[i_t, i_f, i_za_inc, joker, i_s]));
+        for (Index i_s = 0; i_s < 16; ++i_s) {
+          Numeric err =
+              max_error<ComplexVector>(coeffs_ref, static_cast<ComplexVector>(coeffs[i_t, i_f, i_za_inc, joker, i_s]));
           if (err > 1e-6) return false;
         }
       }
     }
   }
   auto    phase_matrix_gridded_2 = phase_matrix_spectral.to_gridded();
-  Numeric err                    = max_error(phase_matrix_gridded, phase_matrix_gridded_2);
+  Numeric err = max_error(rtepack::elements(phase_matrix_gridded), rtepack::elements(phase_matrix_gridded_2));
   if (err > 1e-6) { return false; }
 
   auto backscatter_matrix   = phase_matrix_gridded.extract_backscatter_matrix();
   auto backscatter_matrix_2 = phase_matrix_spectral.extract_backscatter_matrix();
-  err                       = max_error<Tensor4>(backscatter_matrix, backscatter_matrix_2);
+  err                       = max_error(rtepack::elements(backscatter_matrix), rtepack::elements(backscatter_matrix_2));
   if (err > 1e-3) return false;
 
   auto forwardscatter_matrix   = phase_matrix_gridded.extract_forwardscatter_matrix();
   auto forwardscatter_matrix_2 = phase_matrix_spectral.extract_forwardscatter_matrix();
-  err                          = max_error<Tensor4>(forwardscatter_matrix, forwardscatter_matrix_2);
+  err = max_error(rtepack::elements(forwardscatter_matrix), rtepack::elements(forwardscatter_matrix_2));
   if (err > 1e-3) return false;
   auto phase_matrix_gridded_1 = phase_matrix_gridded.extract_stokes_coeffs();
-  err                         = max_error<Tensor6View>(phase_matrix_gridded_1, phase_matrix_gridded);
+  err = max_error(rtepack::elements(phase_matrix_gridded_1), rtepack::elements(phase_matrix_gridded));
   if (err > 0) return false;
 
   return true;
@@ -495,16 +505,14 @@ bool test_phase_matrix_aro_fourier() {
 
   auto                  two = std::make_shared<Vector>(Vector({-180.0, 180.0}));
   PhaseMatrixAROGridded linear(t_grid, f_grid, za_inc_grid, two, za_scat_grid);
-  for (Index e = 0; e < 16; ++e) {
-    linear[joker, joker, joker, 0, joker, e] = -std::numbers::pi;
-    linear[joker, joker, joker, 1, joker, e] = std::numbers::pi;
-  }
-  auto    modes = linear.to_fourier(M);
-  Numeric err   = 0.0;
+  rtepack::elements(linear)[joker, joker, joker, 0, joker, joker] = -std::numbers::pi;
+  rtepack::elements(linear)[joker, joker, joker, 1, joker, joker] = std::numbers::pi;
+  auto    modes                                                   = linear.to_fourier(M);
+  Numeric err                                                     = 0.0;
   for (Index m = 0; m <= M; ++m) {
     const Numeric S = m == 0 ? 0.0 : 2.0 * (m % 2 == 1 ? 1.0 : -1.0) / static_cast<Numeric>(m);
-    err             = std::max(err, std::abs(modes[1, 0, 1, 0, m, 0, 5]));
-    err             = std::max(err, std::abs(modes[1, 0, 1, 0, m, 1, 5] - S));
+    err             = std::max(err, std::abs(modes[1, 0, 1, 0, m, 0][1, 1]));
+    err             = std::max(err, std::abs(modes[1, 0, 1, 0, m, 1][1, 1] - S));
   }
   if (err > 1e-13) return false;
   // The scattering zenith angles 10 and 90 deg do not cover all directions: no phase integral
@@ -515,8 +523,8 @@ bool test_phase_matrix_aro_fourier() {
   auto                  full = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 60.0, 180.0})));
   PhaseMatrixAROGridded flat(t_grid, f_grid, za_inc_grid, two, full);
   for (Index i_s = 0; i_s < 3; ++i_s) {
-    flat[0, joker, joker, joker, i_s, 0] = 1.0;
-    flat[1, joker, joker, joker, i_s, 0] = Conversion::deg2rad(grid_vector(*full)[i_s]);
+    rtepack::elements(flat)[0, joker, joker, joker, i_s, 0] = 1.0;
+    rtepack::elements(flat)[1, joker, joker, joker, i_s, 0] = Conversion::deg2rad(grid_vector(*full)[i_s]);
   }
   const auto flat_modes = flat.to_fourier(M);
   if (std::abs(flat_modes.get_phase_integral()[0, 0, 1] - 4.0 * std::numbers::pi) > 1e-13) return false;
@@ -534,12 +542,12 @@ bool test_phase_matrix_aro_fourier() {
   // A series, evaluated finely and back
   PhaseMatrixAROFourier series(t_grid, f_grid, za_inc_grid, za_scat_grid, M);
   for (Index m = 0; m <= M; ++m) {
-    series[joker, joker, joker, joker, m, 0, joker] = 1.0 / (1.0 + static_cast<Numeric>(m));
-    if (m > 0) series[joker, joker, joker, joker, m, 1, joker] = 0.5 / static_cast<Numeric>(m);
+    series[joker, joker, joker, joker, m, 0] = rtepack::muelmat::constant(1.0 / (1.0 + static_cast<Numeric>(m)));
+    if (m > 0) series[joker, joker, joker, joker, m, 1] = rtepack::muelmat::constant(0.5 / static_cast<Numeric>(m));
   }
   auto fine = std::make_shared<Vector>(nlinspace(-180.0, 180.0, 3601));
   auto back = series.to_gridded(fine).to_fourier(M);
-  err       = max_error<matpack::strided_view_t<const Numeric, 7>>(back, series);
+  err       = max_error(rtepack::elements(back), rtepack::elements(series));
   if (err > 1e-4) return false;
 
   // Truncation, and its limit
@@ -565,41 +573,37 @@ bool test_tro_lab_frame_fourier_modes() {
   auto f_grid         = std::make_shared<Vector>(Vector({1e9, 2e9}));
   auto za_inc_grid    = std::make_shared<Vector>(Vector({0.0, 35.0, 120.0, 180.0}));
   auto za_scat_grid   = std::make_shared<ZenithAngleGrid>(IrregularZenithAngleGrid(Vector({0.0, 35.0, 77.0, 180.0})));
-  const auto rayleigh = [](Numeric theta, matpack::data_t<Numeric, 3>& F) {
+  const auto rayleigh = [](Numeric theta, rtepack::compact_planar_muelmat_matrix& F) {
     const Numeric c = std::cos(theta);
     for (Index i_f = 0; i_f < F.extent(1); ++i_f) {
       const Numeric s = 1.0 + static_cast<Numeric>(i_f);
-      F[0, i_f, 0]    = s * 0.75 * (1.0 + c * c);
-      F[0, i_f, 1]    = s * -0.75 * (1.0 - c * c);
-      F[0, i_f, 2]    = s * 0.75 * (1.0 + c * c);
-      F[0, i_f, 3]    = s * 1.5 * c;
-      F[0, i_f, 4]    = 0.0;
-      F[0, i_f, 5]    = s * 1.5 * c;
+      F[0, i_f]       = rtepack::compact_planar_muelmat{
+          s * 0.75 * (1.0 + c * c), s * -0.75 * (1.0 - c * c), s * 0.75 * (1.0 + c * c), s * 1.5 * c, 0.0, s * 1.5 * c};
     }
   };
   const Index M = 5;
   Matrix      integral(1, 2);  // 2 pi int F11 dcos(Theta) = 4 pi s
   integral[0, 0] = 4.0 * std::numbers::pi;
   integral[0, 1] = 8.0 * std::numbers::pi;
-  auto modes = tro_lab_frame_fourier_modes<Numeric>(t_grid, f_grid, za_inc_grid, za_scat_grid, M, integral, rayleigh);
+  auto modes     = tro_lab_frame_fourier_modes(t_grid, f_grid, za_inc_grid, za_scat_grid, M, integral, rayleigh);
   for (Index i = 0; i < 4; ++i)
     if (modes.get_phase_integral()[0, 0, i] != integral[0, 0] or modes.get_phase_integral()[0, 1, i] != integral[0, 1])
       return false;
   auto    delta = std::make_shared<Vector>(Vector({0.0, 13.0, 90.0, 179.0, 180.0, 181.0, 271.0, 359.0}));
-  auto    lab   = tro_lab_frame<Numeric>(t_grid, f_grid, za_inc_grid, delta, za_scat_grid, rayleigh);
-  Numeric err   = max_error<matpack::strided_view_t<const Numeric, 6>>(modes.to_gridded(delta), lab);
+  auto    lab   = tro_lab_frame(t_grid, f_grid, za_inc_grid, delta, za_scat_grid, rayleigh);
+  Numeric err   = max_error(rtepack::elements(modes.to_gridded(delta)), rtepack::elements(lab));
   if (err > 1e-12) return false;
   // Azimuth differences of any period: -90 and -1 deg are 270 and 359 deg
   auto negative = std::make_shared<Vector>(Vector({-90.0, -1.0}));
   auto positive = std::make_shared<Vector>(Vector({270.0, 359.0}));
-  err           = max_error<matpack::strided_view_t<const Numeric, 6>>(
-      tro_lab_frame<Numeric>(t_grid, f_grid, za_inc_grid, negative, za_scat_grid, rayleigh),
-      tro_lab_frame<Numeric>(t_grid, f_grid, za_inc_grid, positive, za_scat_grid, rayleigh));
+  err = max_error(rtepack::elements(tro_lab_frame(t_grid, f_grid, za_inc_grid, negative, za_scat_grid, rayleigh)),
+                  rtepack::elements(tro_lab_frame(t_grid, f_grid, za_inc_grid, positive, za_scat_grid, rayleigh)));
   if (err > 1e-12) return false;
 
   Numeric high = 0.0;
   for (Index m = 3; m <= M; ++m)
-    for (Numeric v : modes[joker, joker, joker, joker, m, joker, joker] | by_elem) high = std::max(high, std::abs(v));
+    for (Numeric v : rtepack::elements(modes[joker, joker, joker, joker, m, joker]) | by_elem)
+      high = std::max(high, std::abs(v));
   return high < 1e-13;
 }
 
@@ -641,8 +645,8 @@ bool test_phase_matrix_regrid_aro() {
                                                     grids);
 
   auto    phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  Numeric err = max_error(static_cast<VectorView>(phase_matrix_gridded[0, 0, 0, 0, 0, joker]),
-                          static_cast<VectorView>(phase_matrix_gridded_interp[0, 0, 0, 0, 0, joker]));
+  Numeric err                         = max_error(rtepack::elements(phase_matrix_gridded)[0, 0, 0, 0, 0, joker],
+                                                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, 0, 0, 0, joker]);
   if (err > 1e-10) { return false; }
 
   //
@@ -654,8 +658,8 @@ bool test_phase_matrix_regrid_aro() {
   auto phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
   phase_matrix_gridded_interp       = phase_matrix_spectral_interp.to_gridded();
 
-  err = max_error(static_cast<Tensor3View>(phase_matrix_gridded[0, 0, 0, joker, joker, joker]),
-                  static_cast<Tensor3View>(phase_matrix_gridded_interp[0, 0, 0, joker, joker, joker]));
+  err = max_error(rtepack::elements(phase_matrix_gridded)[0, 0, 0, joker, joker, joker],
+                  rtepack::elements(phase_matrix_gridded_interp)[0, 0, 0, joker, joker, joker]);
   if (err > 1e-10) { return false; }
 
   //
@@ -672,7 +676,10 @@ bool test_phase_matrix_regrid_aro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<0>(values);
+  }
 
   (*t_grid_new)[0]       = 1.2345;
   (*f_grid_new)[0]       = 1.2345;
@@ -683,49 +690,70 @@ bool test_phase_matrix_regrid_aro() {
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_inc_grid_new, aa_scat_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid_inc, aa_scat_grid_inc, za_scat_grid_inc, grids);
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
 
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<0>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<1>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<1>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along za_inc axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<2>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<std::complex<Numeric>, 5>&>(phase_matrix_spectral));
+  {
+    auto values = rtepack::elements(phase_matrix_spectral);
+    fill_along_axis<2>(values);
+  }
   phase_matrix_spectral_interp = phase_matrix_spectral.regrid(grids, weights);
-  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0, 0] - 1.2345);
+  err                          = std::abs(phase_matrix_spectral_interp[0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along aa_scat axis.
-  fill_along_axis<3>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<3>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along aa_scat axis.
-  fill_along_axis<4>(reinterpret_cast<matpack::data_t<Numeric, 6>&>(phase_matrix_gridded));
+  {
+    auto values = rtepack::elements(phase_matrix_gridded);
+    fill_along_axis<4>(values);
+  }
   phase_matrix_gridded_interp = phase_matrix_gridded.regrid(grids, weights);
-  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0, 0] - 1.2345);
+  err                         = std::abs(phase_matrix_gridded_interp[0, 0, 0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   return true;
@@ -761,8 +789,8 @@ bool test_backscatter_matrix_regrid_aro() {
                                                     grids);
 
   auto    backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  Numeric err                       = max_error(static_cast<VectorView>(backscatter_matrix[0, 0, 0, joker]),
-                                                static_cast<VectorView>(backscatter_matrix_interp[0, 0, 0, joker]));
+  Numeric err                       = max_error(rtepack::elements(backscatter_matrix)[0, 0, 0, joker],
+                                                rtepack::elements(backscatter_matrix_interp)[0, 0, 0, joker]);
   if (err > 1e-10) { return false; }
 
   //
@@ -779,7 +807,10 @@ bool test_backscatter_matrix_regrid_aro() {
 
   // Test interpolation along temperature axis.
 
-  fill_along_axis<0>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(backscatter_matrix));
+  {
+    auto values = rtepack::elements(backscatter_matrix);
+    fill_along_axis<0>(values);
+  }
 
   (*t_grid_new)[0]       = 1.2345;
   (*f_grid_new)[0]       = 1.2345;
@@ -790,21 +821,27 @@ bool test_backscatter_matrix_regrid_aro() {
   grids   = ScatteringDataGrids{t_grid_new, f_grid_new, za_inc_grid_new, aa_scat_grid_new, za_scat_grid_new};
   weights = calc_regrid_weights(t_grid, f_grid, nullptr, za_inc_grid_inc, aa_scat_grid_inc, za_scat_grid_inc, grids);
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err                       = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
+  err                       = std::abs(backscatter_matrix_interp[0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along f-axis.
 
-  fill_along_axis<1>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(backscatter_matrix));
+  {
+    auto values = rtepack::elements(backscatter_matrix);
+    fill_along_axis<1>(values);
+  }
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err                       = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
+  err                       = std::abs(backscatter_matrix_interp[0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   // Test interpolation along za_inc axis.
 
-  fill_along_axis<2>(reinterpret_cast<matpack::data_t<Numeric, 4>&>(backscatter_matrix));
+  {
+    auto values = rtepack::elements(backscatter_matrix);
+    fill_along_axis<2>(values);
+  }
   backscatter_matrix_interp = backscatter_matrix.regrid(grids, weights);
-  err                       = std::abs(backscatter_matrix_interp[0, 0, 0, 0] - 1.2345);
+  err                       = std::abs(backscatter_matrix_interp[0, 0, 0][0, 0] - 1.2345);
   if (err > 1e-10) { return false; }
 
   return true;
@@ -837,7 +874,7 @@ bool test_forward_backward_limit() {
     return F;
   };
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
-    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients(0.0, za_inc, delta_aa, za_scat);
     const rtepack::muelmat Z               = rtepack::rotated(rtepack::compact_planar_muelmat{f}, c_1, s_1, c_2, s_2);
     return Matrix{(delta_aa > 180.0 ? rtepack::mirror(Z) : Z).view()};
   };
@@ -892,7 +929,7 @@ bool test_forward_backward_limit() {
  */
 bool test_pole_limit() {
   const auto lab = [](const Vector& f, Numeric za_inc, Numeric delta_aa, Numeric za_scat) {
-    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients<Numeric>(0.0, za_inc, delta_aa, za_scat);
+    const auto [theta, c_1, c_2, s_1, s_2] = detail::rotation_coefficients(0.0, za_inc, delta_aa, za_scat);
     const rtepack::muelmat Z               = rtepack::rotated(rtepack::compact_planar_muelmat{f}, c_1, s_1, c_2, s_2);
     return Vector{(delta_aa > 180.0 ? rtepack::mirror(Z) : Z).view_as(16)};
   };

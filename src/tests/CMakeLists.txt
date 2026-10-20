@@ -154,6 +154,11 @@ target_link_libraries(test_linalg_info PRIVATE matpack)
 add_test(NAME "cpp.fast.test_linalg_info" COMMAND test_linalg_info)
 add_dependencies(check-deps test_linalg_info)
 
+add_executable(test_nonstd test_nonstd.cc)
+target_link_libraries(test_nonstd PRIVATE matpack)
+add_test(NAME "cpp.fast.test_nonstd" COMMAND test_nonstd)
+add_dependencies(check-deps test_nonstd)
+
 # #######################################################################################
 add_executable(run_partfun run_partfun.cc)
 target_link_libraries(run_partfun PRIVATE artsworkspace)

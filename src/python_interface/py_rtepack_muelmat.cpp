@@ -142,6 +142,11 @@ matrix, and ``Jones(M)`` the Jones matrix of a non-depolarizing Mueller matrix.
   rtepack_array<Muelmat, 5, 4, 4>(mt5);
   generic_interface(mt5);
 
+  py::class_<MuelmatTensor6> mt6(m, "MuelmatTensor6");
+  mt6.doc() = "A 6-tensor of :class:`~pyarts3.arts.Muelmat`";
+  rtepack_array<Muelmat, 6, 4, 4>(mt6);
+  generic_interface(mt6);
+
   py::class_<CompactPlanarMuelmat> cpm(m, "CompactPlanarMuelmat");
   cpm.def(py::init<Numeric, Numeric, Numeric, Numeric, Numeric, Numeric>(),
           "F11"_a,
@@ -185,13 +190,19 @@ matrix, and ``Jones(M)`` the Jones matrix of a non-depolarizing Mueller matrix.
   }
   common_ndarray(cpm);
   generic_interface(cpm);
-  cpm.doc() = R"(The phase matrix of randomly oriented particles with a plane of symmetry in the scattering-plane basis,
-[[F11, F12, 0, 0], [F12, F22, 0, 0], [0, 0, F33, F34], [0, 0, -F34, F44]], by its six elements
-[F11, F12, F22, F33, F34, F44].)";
 
   py::class_<CompactPlanarMuelmatVector> vcpm(m, "CompactPlanarMuelmatVector");
   rtepack_array<CompactPlanarMuelmat, 1, 6>(vcpm);
   generic_interface(vcpm);
   vcpm.doc() = "A vector of :class:`~pyarts3.arts.CompactPlanarMuelmat`; as an array [n, 6]";
+
+  py::class_<CompactPlanarMuelmatMatrix> mcpm(m, "CompactPlanarMuelmatMatrix");
+  rtepack_array<CompactPlanarMuelmat, 2, 6>(mcpm);
+  generic_interface(mcpm);
+
+  py::class_<CompactPlanarMuelmatTensor3> tcpm(m, "CompactPlanarMuelmatTensor3");
+  rtepack_array<CompactPlanarMuelmat, 3, 6>(tcpm);
+  generic_interface(tcpm);
+  tcpm.doc() = "A 3-tensor of :class:`~pyarts3.arts.CompactPlanarMuelmat`; as an array [n, m, k, 6]";
 }
 }  // namespace Python

@@ -105,12 +105,10 @@ atmosphere make_atmosphere() {
       t_grid, f_grid, diameter, scattering::ZenithAngleGrid{scattering::IrregularZenithAngleGrid(angles)});
 
   // The Legendre series, a_l = 2 pi sqrt((2 l + 1) / 4 pi) sum_i w_i F(x_i) P_l(x_i), exact for data on the nodes
-  using Gridded =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Gridded>;
-  using Spectral =
-      scattering::SingleScatteringData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral>;
+  using Gridded       = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
+  using Spectral      = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
   const auto& gridded = std::get<Gridded>(habit[0]);
-  scattering::PhaseMatrixData<Numeric, scattering::Format::TRO, scattering::Representation::Spectral> series(
+  scattering::PhaseMatrixData<scattering::Format::TRO, scattering::Representation::Spectral> series(
       gridded.phase_matrix->get_t_grid(), gridded.phase_matrix->get_f_grid(), cloud_degree);
   Vector p(cloud_degree + 1);
   for (Index i = 0; i < native_angles; i++) {
@@ -119,8 +117,7 @@ atmosphere make_atmosphere() {
       // The Gauss-Legendre weights are symmetric, so w is that of the reversed x too
       const Numeric f =
           2.0 * Constant::pi * std::sqrt((2.0 * static_cast<Numeric>(l) + 1.0) / (4.0 * Constant::pi)) * w[i] * p[l];
-      for (Index it = 0; it < series.extent(0); it++)
-        for (Index k = 0; k < 6; k++) series[it, 0, l, k] += f * (*gridded.phase_matrix)[it, 0, i, k];
+      for (Index it = 0; it < series.extent(0); it++) series[it, 0, l] += f * (*gridded.phase_matrix)[it, 0, i];
     }
   }
   const Spectral spectral(gridded.properties,

@@ -130,12 +130,15 @@ constexpr muelmat rotated(
           F.F44()};
 }
 
-using compact_planar_muelmat_vector            = matpack::data_t<compact_planar_muelmat, 1>;
-using compact_planar_muelmat_vector_view       = matpack::view_t<compact_planar_muelmat, 1>;
-using compact_planar_muelmat_vector_const_view = matpack::view_t<const compact_planar_muelmat, 1>;
-using compact_planar_muelmat_matrix            = matpack::data_t<compact_planar_muelmat, 2>;
-using compact_planar_muelmat_matrix_view       = matpack::view_t<compact_planar_muelmat, 2>;
-using compact_planar_muelmat_matrix_const_view = matpack::view_t<const compact_planar_muelmat, 2>;
+using compact_planar_muelmat_vector             = matpack::data_t<compact_planar_muelmat, 1>;
+using compact_planar_muelmat_vector_view        = matpack::view_t<compact_planar_muelmat, 1>;
+using compact_planar_muelmat_vector_const_view  = matpack::view_t<const compact_planar_muelmat, 1>;
+using compact_planar_muelmat_matrix             = matpack::data_t<compact_planar_muelmat, 2>;
+using compact_planar_muelmat_matrix_view        = matpack::view_t<compact_planar_muelmat, 2>;
+using compact_planar_muelmat_matrix_const_view  = matpack::view_t<const compact_planar_muelmat, 2>;
+using compact_planar_muelmat_tensor3            = matpack::data_t<compact_planar_muelmat, 3>;
+using compact_planar_muelmat_tensor3_view       = matpack::view_t<compact_planar_muelmat, 3>;
+using compact_planar_muelmat_tensor3_const_view = matpack::view_t<const compact_planar_muelmat, 3>;
 }  // namespace rtepack
 
 template <> struct std::formatter<rtepack::compact_planar_muelmat> : std::formatter<Vector6> {};

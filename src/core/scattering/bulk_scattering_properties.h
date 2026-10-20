@@ -9,18 +9,18 @@
 
 namespace scattering {
 
-template <Format format, Representation repr> using PhaseMatrix = PhaseMatrixData<Numeric, format, repr>;
+template <Format format, Representation repr> using PhaseMatrix = PhaseMatrixData<format, repr>;
 
-template <Format format, Representation repr> using ExtinctionMatrix = ExtinctionMatrixData<Numeric, format, repr>;
+template <Format format, Representation repr> using ExtinctionMatrix = ExtinctionMatrixData<format, repr>;
 
-template <Format format, Representation repr> using AbsorptionVector = AbsorptionVectorData<Numeric, format, repr>;
+template <Format format, Representation repr> using AbsorptionVector = AbsorptionVectorData<format, repr>;
 
 template <Format format, Representation repr> struct BulkScatteringProperties {
   std::optional<PhaseMatrix<format, repr>> phase_matrix;
   ExtinctionMatrix<format, repr>           extinction_matrix;
   AbsorptionVector<format, repr>           absorption_vector;
 
-  BulkScatteringProperties<Format::ARO, Representation::Gridded> to_lab_frame(
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> to_lab_frame(
       std::shared_ptr<const Vector>          za_inc_grid,
       std::shared_ptr<const Vector>          delta_aa_grid,
       std::shared_ptr<const ZenithAngleGrid> za_scat_grid_new) {
@@ -41,14 +41,14 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
     }
   }
 
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral() {
+  [[nodiscard]] BulkScatteringProperties<format, Representation::Spectral> to_spectral() {
     return BulkScatteringProperties<format, Representation::Spectral>{
         phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(); }),
         extinction_matrix,
         absorption_vector};
   }
 
-  BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index degree, Index order) {
+  [[nodiscard]] BulkScatteringProperties<format, Representation::Spectral> to_spectral(Index degree, Index order) {
     return BulkScatteringProperties<format, Representation::Spectral>{
         phase_matrix.transform([&](const PhaseMatrix<format, repr>& pm) { return pm.to_spectral(degree, order); }),
         extinction_matrix.to_spectral(),
@@ -80,15 +80,15 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
 //////////////////////////////////////////////////////////////////////////////
 
 struct BulkScatteringPropertiesTROGridded {
-  using PhaseMatrixVector      = Tensor4;
-  using ExtinctionMatrixVector = Tensor3;
-  using AbsorptionVectorVector = Matrix;
+  using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
+  using ExtinctionMatrixVector = CompactPlanarPropmatVector;
+  using AbsorptionVectorVector = CompactPlanarStokvecVector;
 
   std::optional<PhaseMatrixVector> phase_matrix;
   ExtinctionMatrixVector           extinction_matrix;
   AbsorptionVectorVector           absorption_vector;
 
-  BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded& other) const;
+  [[nodiscard]] BulkScatteringPropertiesTROGridded operator+(const BulkScatteringPropertiesTROGridded& other) const;
 
   BulkScatteringPropertiesTROGridded& operator+=(const BulkScatteringPropertiesTROGridded& other);
 
@@ -100,15 +100,15 @@ struct BulkScatteringPropertiesTROGridded {
 //////////////////////////////////////////////////////////////////////////////
 
 struct BulkScatteringPropertiesTROSpectral {
-  using PhaseMatrixVector      = ComplexTensor4;
-  using ExtinctionMatrixVector = Tensor3;
-  using AbsorptionVectorVector = Matrix;
+  using PhaseMatrixVector      = CompactPlanarMuelmatMatrix;
+  using ExtinctionMatrixVector = CompactPlanarPropmatVector;
+  using AbsorptionVectorVector = CompactPlanarStokvecVector;
 
   std::optional<PhaseMatrixVector> phase_matrix;
   ExtinctionMatrixVector           extinction_matrix;
   AbsorptionVectorVector           absorption_vector;
 
-  BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral& other) const;
+  [[nodiscard]] BulkScatteringPropertiesTROSpectral operator+(const BulkScatteringPropertiesTROSpectral& other) const;
 
   BulkScatteringPropertiesTROSpectral& operator+=(const BulkScatteringPropertiesTROSpectral& other);
 

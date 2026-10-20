@@ -65,6 +65,7 @@ void py_rtepack_specmat(py::module_ &m) {
   py::implicitly_convertible<std::vector<Specmat>, SpecmatVector>();
 
   py::class_<SpecmatMatrix> mcmm(m, "SpecmatMatrix");
+  mcmm.doc() = "A matrix of :class:`~pyarts3.arts.Specmat`";
   rtepack_array<Specmat, 2, 4, 4>(mcmm);
   generic_interface(mcmm);
 

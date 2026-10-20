@@ -149,21 +149,15 @@ OpticalProfile optical_profile(const Workspace&                   ws,
     ARTS_USER_ERROR_IF(not bulk_outgoing.phase_matrix.has_value(),
                        "Radar single scattering requires phase matrices from all scattering species")
 
-    const auto& phase                      = *bulk_outgoing.phase_matrix;
-    const auto  phase_coeffs               = phase.get_const_coeff_vector_view();
-    const auto  outgoing_extinction_coeffs = bulk_outgoing.extinction_matrix.get_const_coeff_vector_view();
-    const auto  return_extinction_coeffs   = bulk_return.extinction_matrix.get_const_coeff_vector_view();
+    const auto& phase = *bulk_outgoing.phase_matrix;
     for (Size iv = 0; iv < nf; ++iv) {
-      const auto& outgoing             = outgoing_extinction_coeffs[0, iv, 0];
-      const auto& returning            = return_extinction_coeffs[0, iv, 0];
       out.gas_extinction[ip][iv]       = gas_outgoing[iv];
-      out.particle_extinction[ip][iv]  = Propmat{outgoing[0], outgoing[1], 0.0, 0.0, 0.0, 0.0, outgoing[2]};
+      out.particle_extinction[ip][iv]  = bulk_outgoing.extinction_matrix[0, iv, 0].expand();
       out.outgoing_extinction[ip][iv]  = gas_outgoing[iv];
       out.outgoing_extinction[ip][iv] += pext_scaling * out.particle_extinction[ip][iv];
       out.return_extinction[ip][iv]    = gas_return[iv];
-      out.return_extinction[ip][iv] +=
-          pext_scaling * Propmat{returning[0], returning[1], 0.0, 0.0, 0.0, 0.0, returning[2]};
-      out.backscatter[ip][iv] = phase_coeffs[0, iv, 0, 0, 0];
+      out.return_extinction[ip][iv]   += pext_scaling * bulk_return.extinction_matrix[0, iv, 0].expand();
+      out.backscatter[ip][iv]          = phase[0, iv, 0, 0, 0];
     }
     for (const auto& target : jac_targets.atm) {
       auto receive_za_jac =
@@ -175,19 +169,15 @@ OpticalProfile optical_profile(const Workspace&                   ws,
       const auto dbulk_return = scattering_species.get_bulk_scattering_properties_aro_gridded_derivative(
           atm_path[ip], frequency, Vector{receive_los[0]}, Vector{0.0}, transmit_za_jac, target.type);
       ARTS_USER_ERROR_IF(not dbulk_outgoing.phase_matrix, "Radar derivatives require scattering phase matrices")
-      const auto dphase_coeffs               = dbulk_outgoing.phase_matrix->get_const_coeff_vector_view();
-      const auto doutgoing_extinction_coeffs = dbulk_outgoing.extinction_matrix.get_const_coeff_vector_view();
-      const auto dreturn_extinction_coeffs   = dbulk_return.extinction_matrix.get_const_coeff_vector_view();
+      const auto& dphase = *dbulk_outgoing.phase_matrix;
       for (Size iv = 0; iv < nf; ++iv) {
         out.outgoing_extinction_jac[ip][target.target_pos, iv] = gas_outgoing_jac[target.target_pos, iv];
-        const auto& doutgoing                                  = doutgoing_extinction_coeffs[0, iv, 0];
-        const auto& dreturning                                 = dreturn_extinction_coeffs[0, iv, 0];
         out.outgoing_extinction_jac[ip][target.target_pos, iv] +=
-            pext_scaling * Propmat{doutgoing[0], doutgoing[1], 0.0, 0.0, 0.0, 0.0, doutgoing[2]};
+            pext_scaling * dbulk_outgoing.extinction_matrix[0, iv, 0].expand();
         out.return_extinction_jac[ip][target.target_pos, iv] = gas_return_jac[target.target_pos, iv];
         out.return_extinction_jac[ip][target.target_pos, iv] +=
-            pext_scaling * Propmat{dreturning[0], dreturning[1], 0.0, 0.0, 0.0, 0.0, dreturning[2]};
-        out.backscatter_jac[ip][target.target_pos, iv] = dphase_coeffs[0, iv, 0, 0, 0];
+            pext_scaling * dbulk_return.extinction_matrix[0, iv, 0].expand();
+        out.backscatter_jac[ip][target.target_pos, iv] = dphase[0, iv, 0, 0, 0];
       }
     }
   }
