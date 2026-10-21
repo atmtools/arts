@@ -82,13 +82,6 @@ A model fills only the pair of its own family and leaves the other pair
 The struct supports ``operator+=`` (accumulating across models) and
 ``operator*=`` (applying the blend weight).
 
-.. warning::
-
-   Default-constructed ``Muelmat`` is the *identity* matrix, not zero.  Tensor
-   fills must set all four channels explicitly — the Lambertian implementation
-   builds an all-zero ``Muelmat`` and writes only ``[0,0]`` for exactly this
-   reason.
-
 The map dispatches structurally, not by name
 ********************************************
 

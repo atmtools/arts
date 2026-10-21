@@ -25,9 +25,7 @@ SurfaceScatteringModelProperties lambertian_properties(
   MuelmatTensor5 brdf(nf, nzi, nai, nzs, nas, rtepack::muelmat{0.0});
   MuelmatTensor3 emissivity(nf, nzs, nas, rtepack::muelmat{0.0});
 
-  // NOTE: Default construction of Muelmat gives the *identity* matrix — only
-  // zero-initialize here, the [0,0] element is set per frequency below.  With
-  // the identity default the Q/U/V channels silently carried reflectance 1.
+  // Only the [0,0] element is non-zero; it is set per frequency below
   Muelmat isotropic_brdf{0.0};
   Muelmat isotropic_emissivity{0.0};
 

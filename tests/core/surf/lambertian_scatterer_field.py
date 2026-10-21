@@ -177,9 +177,8 @@ print("Test 5 passed: MapOfSurfaceScatteringModel accepts the gridded model")
 
 # ---------------------------------------------------------------------------
 # Test 6: Full 4x4 Mueller structure — all non-[0,0] elements must be zero.
-# Regression test for the muelmat identity-default bug: a default-constructed
-# Muelmat is the identity, which leaked reflectance/emissivity 1 into the
-# Q/U/V channels.
+# A Lambertian surface reflects and emits intensity only, so no reflectance or
+# emissivity may reach the Q/U/V channels.
 # ---------------------------------------------------------------------------
 r_test = 0.5
 sc_t6 = arts.LambertianSurfaceScatterer(r_test)
