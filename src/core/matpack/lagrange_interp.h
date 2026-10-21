@@ -217,11 +217,16 @@ constexpr void update_pos(std::span<Index, X> indx, std::span<const Numeric> xi,
       Numeric xl = xi.front(), xu = xi.back();
       if (x < xl or x >= xu) {
         if (N == 0) {
-          xu      = xu - (x < xl) * transform::cycle();
-          xl      = xl + (x >= xu) * transform::cycle();
+          // The point across the cycle from x is moved to its side of the gap
+          if (x < xl) {
+            xu -= transform::cycle();
+          } else {
+            xl += transform::cycle();
+          }
           indx[0] = (nonstd::abs(x - xl) > nonstd::abs(x - xu)) * (n - 1);
         } else {
-          for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
+          // As inside the grid, the point before x is at Of; across the gap that is the last point
+          for (Size i = 0; i < P; i++) indx[i] = (n - 1 - Of + i) % n;
         }
 
         return;
@@ -230,11 +235,16 @@ constexpr void update_pos(std::span<Index, X> indx, std::span<const Numeric> xi,
       Numeric xu = xi.front(), xl = xi.back();
       if (x < xl or x >= xu) {
         if (N == 0) {
-          xu      = xu - (x < xl) * transform::cycle();
-          xl      = xl + (x >= xu) * transform::cycle();
+          // The point across the cycle from x is moved to its side of the gap
+          if (x < xl) {
+            xu -= transform::cycle();
+          } else {
+            xl += transform::cycle();
+          }
           indx[0] = (nonstd::abs(x - xl) < nonstd::abs(x - xu)) * (n - 1);
         } else {
-          for (Size i = 0; i < P; i++) indx[i] = (n - Of + i) % n;
+          // As inside the grid, the point before x is at Of; across the gap that is the last point
+          for (Size i = 0; i < P; i++) indx[i] = (n - 1 - Of + i) % n;
         }
 
         return;
