@@ -47,7 +47,6 @@ extensions = [
     'sphinx_favicon',
     'sphinx_sitemap',
     'matplotlib.sphinxext.plot_directive',
-    'plot_source_code',
     'nbsphinx',
     'sphinx.ext.graphviz',
     'sphinxcontrib.bibtex',
