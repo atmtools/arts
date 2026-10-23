@@ -4,6 +4,7 @@
 *~
 .*.swp
 .DS_Store
+/.plan/
 .cache/
 .idea/
 .ipynb_checkpoints/

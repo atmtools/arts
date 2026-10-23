@@ -1,6 +1,13 @@
 #include <arts_omp.h>
 #include <geodetic.h>
+#include <sun.h>
+#include <sun_methods.h>
 #include <workspace.h>
+
+#include <algorithm>
+#include <cmath>
+
+#include "rtepack.h"
 
 namespace {
 Vector2 specular_losNormal(const Vector2& normal, const Vector2& los, const Vector3& pos, const Vector2& ell) {
@@ -13,6 +20,25 @@ Vector2 specular_losNormal(const Vector2& normal, const Vector2& los, const Vect
       fac * ecef_normal[0] - ecef_los[0], fac * ecef_normal[1] - ecef_los[1], fac * ecef_normal[2] - ecef_los[2]};
 
   return ecef2geodetic_los(ecef_pos, normalized(ecef_spec), ell).second;
+}
+
+void require_surface_scattering_init(const StokvecVector& spectral_rad,
+                                     const StokvecMatrix& spectral_rad_jac,
+                                     const Size           nf,
+                                     const Size           nq) {
+  ARTS_USER_ERROR_IF(spectral_rad.size() != nf or spectral_rad_jac.nrows() != static_cast<Index>(nq) or
+                         spectral_rad_jac.ncols() != static_cast<Index>(nf),
+                     R"--(spectral_rad and spectral_rad_jac not initialised for surface scattering.
+
+The *spectral_radSurfaceScattering* methods add to their outputs and require them to be
+sized and zeroed first by *spectral_radSurfaceScatteringInit*.
+
+Expected shapes ({}) and ({}, {}), got shapes {:B,} and {:B,}.)--",
+                     nf,
+                     nq,
+                     nf,
+                     spectral_rad.shape(),
+                     spectral_rad_jac.shape())
 }
 }  // namespace
 
@@ -205,5 +231,644 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
   for (Size i = 0; i < NF; i++) {
     spectral_rad[i] = rtepack::reflection(spectral_rad[i], spectral_surf_refl[i], spectral_rad_surface[i]);
   }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringInit(StokvecVector&         spectral_rad,
+                                       StokvecMatrix&         spectral_rad_jac,
+                                       const AscendingGrid&   freq_grid,
+                                       const JacobianTargets& jac_targets) try {
+  ARTS_TIME_REPORT
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  spectral_rad.resize(nf);
+  spectral_rad = 0.0;
+
+  spectral_rad_jac.resize(nq, nf);
+  spectral_rad_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringDiffuse(const Workspace&                   ws,
+                                          StokvecVector&                     spectral_rad,
+                                          StokvecMatrix&                     spectral_rad_jac,
+                                          const AscendingGrid&               freq_grid,
+                                          const AtmField&                    atm_field,
+                                          const SurfaceField&                surf_field,
+                                          const SubsurfaceField&             subsurf_field,
+                                          const MapOfSurfaceScatteringModel& surface_models,
+                                          const JacobianTargets&             jac_targets,
+                                          const PropagationPathPoint&        ray_point,
+                                          const ArrayOfSun&                  suns,
+                                          const ZenGrid&                     zen_grid,
+                                          const AziGrid&                     az_grid,
+                                          const Vector&                      zen_grid_weights,
+                                          const Vector&                      az_grid_weights,
+                                          const Agenda&                      spectral_rad_incoming_agenda,
+                                          const Agenda&                      spectral_rad_closed_surface_agenda,
+                                          const Index&                       exclude_suns) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
+
+  ARTS_USER_ERROR_IF(zen_grid_weights.size() != zen_grid.size(),
+                     "zen_grid_weights has {} entries but zen_grid has {} — the weights "
+                     "must be given per quadrature zenith angle.",
+                     zen_grid_weights.size(),
+                     zen_grid.size())
+  ARTS_USER_ERROR_IF(az_grid_weights.size() != az_grid.size(),
+                     "az_grid_weights has {} entries but az_grid has {} — the weights "
+                     "must be given per quadrature azimuth angle.",
+                     az_grid_weights.size(),
+                     az_grid.size())
+
+  const Vector       za_out     = {ray_point.los[0]};
+  const Vector       aa_out     = {ray_point.los[1]};
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // get the emissivity matrix and BRDF matrix, which are members of surface_props
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(
+          surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, zen_grid, az_grid, za_out, aa_out);
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  // The surface normal is stored with the outward direction at za = 180, so its
+  // ECEF image points inward; an incoming direction is visible when it opposes
+  // that inward vector, i.e. when the dot product with it is negative.  This is
+  // the same horizon visibility test as in spectral_radSurfaceScatteringDiffuseDirect,
+  // applied per quadrature direction: directions below the horizon defined by
+  // the actual surface normal contribute hard-zero (no error), emission remains.
+  const auto [__, ecef_normal] = geodetic_los2ecef(ray_point.pos, surf_point.normal, surf_field.ellipsoid);
+
+  // get the incoming radiation
+  StokvecTensor3 spectral_rad_incoming(zen_grid.size(), az_grid.size(), freq_grid.size());
+  StokvecTensor4 spectral_rad_incoming_jac(zen_grid.size(), az_grid.size(), jac_targets.x_size(), freq_grid.size());
+  for (Size j = 0; j < zen_grid.size(); j++) {
+    for (Size k = 0; k < az_grid.size(); k++) {
+      const Vector2 los_incoming = {zen_grid[j], az_grid[k]};
+
+      const auto [_, ecef_los_in] = geodetic_los2ecef(ray_point.pos, los_incoming, surf_field.ellipsoid);
+      if (dot(ecef_los_in, ecef_normal) >= 0.0) continue;  // Below the tilted horizon: zero contribution
+
+      // A quadrature direction that contains a sun carries the solar beam, which
+      // the *spectral_radSurfaceScattering*Direct methods add separately as a
+      // delta beam.  Counting it here as well double counts the sun and smears the
+      // disc over the whole cell, so drop the direction when the caller declares
+      // that the beams are handled elsewhere (the ARTS 2 iySurfaceLambertian
+      // suns_do gate).  The entry stays zero, so the accumulation loops are
+      // untouched; the trace is skipped, so this is also cheaper.
+      if (exclude_suns) {
+        bool sun_in_los = false;
+        for (const auto& sun : suns) {
+          if (hit_sun(sun, ray_point.pos, los_incoming, surf_field.ellipsoid).second) {
+            sun_in_los = true;
+            break;
+          }
+        }
+        if (sun_in_los) continue;
+      }
+
+      StokvecVector spectral_rad_incoming_temp;
+      StokvecMatrix spectral_rad_incoming_jac_temp;
+
+      spectral_rad_incoming_agendaExecute(ws,
+                                          spectral_rad_incoming_temp,
+                                          spectral_rad_incoming_jac_temp,
+                                          freq_grid,
+                                          jac_targets,
+                                          ray_point.pos,
+                                          los_incoming,
+                                          atm_field,
+                                          surf_field,
+                                          subsurf_field,
+                                          spectral_rad_incoming_agenda);
+
+      spectral_rad_incoming[j, k, joker]            = spectral_rad_incoming_temp;
+      spectral_rad_incoming_jac[j, k, joker, joker] = spectral_rad_incoming_jac_temp;
+    }
+  }
+
+  // Calculate scattered radiation
+  StokvecVector spectral_rad_scattered(freq_grid.size());
+  StokvecMatrix spectral_rad_scattered_jac(jac_targets.x_size(), freq_grid.size());
+
+  // integrate over the incoming directions to get the scattered upward radiation
+  // The frequency axis is the parallel axis: each frequency accumulates independently,
+  // and the BRDF is loaded once per (frequency, direction) and shared between the
+  // radiance and the jacobian accumulation.  A missing diffuse BRDF means no
+  // diffuse scattering at all: the scattered term stays zero.
+  if (surface_props.brdf_matrix_diffuse) {
+    const surface_scattering::BRDFMatrix& brdf = *surface_props.brdf_matrix_diffuse;
+    for (Size i_za = 0; i_za < zen_grid.size(); i_za++) {
+      for (Size i_aa = 0; i_aa < az_grid.size(); i_aa++) {
+        const Numeric w = zen_grid_weights[i_za] * az_grid_weights[i_aa];
+
+#pragma omp parallel for if (not arts_omp_in_parallel())
+        for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+          const Muelmat R = brdf[i_f, i_za, i_aa, 0, 0];
+
+          spectral_rad_scattered[i_f] += R * spectral_rad_incoming[i_za, i_aa, i_f] * w;
+
+          //Calculate scattered upward radiation jacobian
+          //For now, there is no jacobian for the surface scattering model!!!
+          for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+            spectral_rad_scattered_jac[i_jac, i_f] += R * spectral_rad_incoming_jac[i_za, i_aa, i_jac, i_f] * w;
+          }
+        }
+      }
+    }
+  }
+
+  // A missing diffuse emissivity means zero emissivity: the subsurface
+  // emission and its jacobian contribute nothing and are skipped entirely
+  if (surface_props.emissivity_vector_diffuse) {
+    const surface_scattering::EmissivityVector& emiss = *surface_props.emissivity_vector_diffuse;
+
+    // Calculate upward emission
+    for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+      spectral_rad_surface[i_f] = emiss[i_f, 0, 0] * spectral_rad_surface[i_f];
+    }
+
+    //Calculate jacobian for subsurface emission
+    //For now, there is no jacobian for the surface scattering model!!!
+    StokvecMatrix spectral_rad_jac_subsurface(jac_targets.x_size(), freq_grid.size());
+    for (Size i_jac = 0; i_jac < jac_targets.x_size(); i_jac++) {
+      for (Size i_f = 0; i_f < freq_grid.size(); i_f++) {
+        spectral_rad_jac_subsurface[i_jac, i_f] = emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+      }
+    }
+
+    spectral_rad     += spectral_rad_surface;
+    spectral_rad_jac += spectral_rad_jac_subsurface;
+  }
+
+  spectral_rad     += spectral_rad_scattered;
+  spectral_rad_jac += spectral_rad_scattered_jac;
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringSpecular(const Workspace&                   ws,
+                                           StokvecVector&                     spectral_rad,
+                                           StokvecMatrix&                     spectral_rad_jac,
+                                           const AscendingGrid&               freq_grid,
+                                           const AtmField&                    atm_field,
+                                           const SurfaceField&                surf_field,
+                                           const SubsurfaceField&             subsurf_field,
+                                           const MapOfSurfaceScatteringModel& surface_models,
+                                           const JacobianTargets&             jac_targets,
+                                           const PropagationPathPoint&        ray_point,
+                                           const ArrayOfSun&                  suns,
+                                           const Agenda&                      spectral_rad_incoming_agenda,
+                                           const Agenda&                      spectral_rad_closed_surface_agenda,
+                                           const Index&                       exclude_suns) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Incoming direction is the mirror reflection of the outgoing direction
+  // about the local surface normal (see spectral_radSurfaceReflectance)
+  const Vector2 los_in = specular_losNormal(surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
+
+  // Sun-beam exclusion, the same geometric disc test as the first gate of
+  // spectral_radSurfaceScatteringSpecularDirect.  When the caller chains that
+  // method, the sun in the mirror direction is added there as a delta beam;
+  // tracing it here as well counts it twice.  The emission term is unaffected.
+  bool sun_in_mirror = false;
+  if (exclude_suns) {
+    for (const auto& sun : suns) {
+      if (hit_sun(sun, ray_point.pos, los_in, surf_field.ellipsoid).second) {
+        sun_in_mirror = true;
+        break;
+      }
+    }
+  }
+
+  // get the emissivity vector and BRDF matrix at the exact (single)
+  // incident and outgoing directions
+  const Vector za_in{los_in[0]};
+  const Vector aa_in{los_in[1]};
+  const Vector za_out{ray_point.los[0]};
+  const Vector aa_out{ray_point.los[1]};
+
+  const surface_scattering::SurfaceScatteringModelProperties surface_props =
+      surface_models.get_surface_scattering_model_properties(
+          surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, za_in, aa_in, za_out, aa_out);
+
+  // get the subsurface emission
+  StokvecVector spectral_rad_surface;
+  StokvecMatrix spectral_rad_jac_surface;
+  spectral_rad_surface_agendaExecute(ws,
+                                     spectral_rad_surface,
+                                     spectral_rad_jac_surface,
+                                     freq_grid,
+                                     jac_targets,
+                                     ray_point,
+                                     surf_field,
+                                     subsurf_field,
+                                     spectral_rad_closed_surface_agenda);
+
+  // get the incoming radiation from the single specular direction, unless the
+  // direction is gated off by the sun-beam exclusion; the zero pair then keeps
+  // the reflected term zero without touching the accumulation loops
+  StokvecVector spectral_rad_incoming(nf);
+  spectral_rad_incoming = 0.0;
+  StokvecMatrix spectral_rad_incoming_jac(nq, nf);
+  spectral_rad_incoming_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  if (not sun_in_mirror) {
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        los_in,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+  }
+
+  // Calculate reflected radiation (no angular integration: single direction)
+  // A missing specular BRDF means no specular reflection: the term stays zero
+  StokvecVector spectral_rad_reflected(nf);
+  spectral_rad_reflected = 0.0;
+  StokvecMatrix spectral_rad_reflected_jac(nq, nf);
+  spectral_rad_reflected_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  // For now, there is no jacobian for the surface scattering model!!!
+  if (surface_props.brdf_matrix_specular) {
+    const surface_scattering::BRDFMatrix& brdf = *surface_props.brdf_matrix_specular;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+    for (Size i_f = 0; i_f < nf; i_f++) {
+      spectral_rad_reflected[i_f] += brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+    }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_reflected_jac[i_jac, i_f] = brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+      }
+    }
+  }
+
+  spectral_rad     += spectral_rad_reflected;
+  spectral_rad_jac += spectral_rad_reflected_jac;
+
+  // A missing specular emissivity means zero emissivity: the subsurface
+  // emission and its jacobian contribute nothing and are skipped entirely
+  if (surface_props.emissivity_vector_specular) {
+    const surface_scattering::EmissivityVector& emiss = *surface_props.emissivity_vector_specular;
+
+    // Calculate upward emission with the specular emissivity
+    // For now, there is no jacobian for the surface scattering model!!!
+#pragma omp parallel for if (not arts_omp_in_parallel())
+    for (Size i_f = 0; i_f < nf; i_f++) { spectral_rad_surface[i_f] = emiss[i_f, 0, 0] * spectral_rad_surface[i_f]; }
+    StokvecMatrix spectral_rad_jac_subsurface(nq, nf);
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+    for (Size i_jac = 0; i_jac < nq; i_jac++) {
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_jac_subsurface[i_jac, i_f] = emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+      }
+    }
+
+    spectral_rad     += spectral_rad_surface;
+    spectral_rad_jac += spectral_rad_jac_subsurface;
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringSpecularDirect(const Workspace&                   ws,
+                                                 StokvecVector&                     spectral_rad,
+                                                 StokvecMatrix&                     spectral_rad_jac,
+                                                 const AscendingGrid&               freq_grid,
+                                                 const AtmField&                    atm_field,
+                                                 const SurfaceField&                surf_field,
+                                                 const SubsurfaceField&             subsurf_field,
+                                                 const MapOfSurfaceScatteringModel& surface_models,
+                                                 const JacobianTargets&             jac_targets,
+                                                 const PropagationPathPoint&        ray_point,
+                                                 const ArrayOfSun&                  suns,
+                                                 const Agenda&                      ray_path_observer_agenda,
+                                                 const Agenda&                      spectral_rad_incoming_agenda,
+                                                 const Agenda&                      spectral_rad_closed_surface_agenda,
+                                                 const Numeric&                     angle_cut,
+                                                 const Index&                       refinement,
+                                                 const Index&                       include_emission) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Glint direction: the mirror reflection of the outgoing (ray) direction about
+  // the local surface normal.  It is stored as the looking direction towards the
+  // beam source that mirrors into the ray direction, i.e. directly comparable
+  // with sun_geometric_los and the obs_los of spectral_rad_incoming_agenda.
+  const Vector2 los_spec = specular_losNormal(surf_point.normal, ray_point.los, ray_point.pos, surf_field.ellipsoid);
+
+  // Single outgoing (ray) direction; the incoming directions are the sun beams
+  const Vector za_out{ray_point.los[0]};
+  const Vector aa_out{ray_point.los[1]};
+
+  // ECEF image of the glint direction, used for the refractive disc re-test
+  const auto [_, ecef_los_spec] = geodetic_los2ecef(ray_point.pos, los_spec, surf_field.ellipsoid);
+
+  StokvecVector spectral_rad_scattered(nf);
+  spectral_rad_scattered = 0.0;
+  StokvecMatrix spectral_rad_scattered_jac(nq, nf);
+  spectral_rad_scattered_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  // One delta-function beam per sun, contributions summed; no suns means no
+  // scattered term at all
+  for (const auto& sun : suns) {
+    // Solar disc test on the glint direction: the sun contributes only if the
+    // specular direction falls inside the disc, i.e. beta <= alpha with alpha
+    // the angular radius of the sun at the point.  This gate subsumes the
+    // horizon gate: a sun on the far side of the (possibly tilted) surface
+    // normal can never satisfy beta <= alpha.
+    const auto [beta, hit] = hit_sun(sun, ray_point.pos, los_spec, surf_field.ellipsoid);
+    if (not hit) continue;
+
+    // Refraction-aware beam direction via the observer agenda
+    const Vector2 los_in =
+        sun_refractive_los(ws, sun, ray_point.pos, surf_field, ray_path_observer_agenda, angle_cut, refinement);
+
+    // Disc re-test on the refracted LOS against the glint direction
+    const Numeric alpha          = std::asin(std::sqrt(sun.sin_alpha_squared(ray_point.pos, surf_field.ellipsoid)));
+    const auto [__, ecef_los_in] = geodetic_los2ecef(ray_point.pos, los_in, surf_field.ellipsoid);
+    const Numeric beta_ref       = std::acos(std::clamp(dot(ecef_los_spec, ecef_los_in), -1.0, 1.0));
+    if (beta_ref > alpha) continue;
+
+    const Vector za_in{los_in[0]};
+    const Vector aa_in{los_in[1]};
+
+    const surface_scattering::SurfaceScatteringModelProperties sun_props =
+        surface_models.get_surface_scattering_model_properties(
+            surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, za_in, aa_in, za_out, aa_out);
+
+    // get the incoming radiation from this single beam direction
+    StokvecVector spectral_rad_incoming;
+    StokvecMatrix spectral_rad_incoming_jac;
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        los_in,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+
+    // No quadrature weights: the beam radiance is delta-weighted; radiance is
+    // conserved by specular reflection so BRDF * I_in is the exact normalisation
+    // For now, there is no jacobian for the surface scattering model!!!
+    // A missing specular BRDF means no specular scattering for this beam
+    if (sun_props.brdf_matrix_specular) {
+      const surface_scattering::BRDFMatrix& brdf = *sun_props.brdf_matrix_specular;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_scattered[i_f] += brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_scattered_jac[i_jac, i_f] += brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        }
+      }
+    }
+  }
+
+  // Sub-surface emission with the specular emissivity.  The whole term is
+  // skipped when include_emission is 0: a chain that also runs
+  // spectral_radSurfaceScatteringSpecular already adds it exactly once there,
+  // and adding it here as well would double count it.
+  if (include_emission) {
+    // The specular emissivity depends only on the outgoing direction, so it is
+    // evaluated once here with a dummy incidence for the emission term
+    const auto emission_props = surface_models.get_surface_scattering_model_properties(
+        surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, Vector{0.0}, Vector{0.0}, za_out, aa_out);
+
+    // get the subsurface emission
+    StokvecVector spectral_rad_surface;
+    StokvecMatrix spectral_rad_jac_surface;
+    spectral_rad_surface_agendaExecute(ws,
+                                       spectral_rad_surface,
+                                       spectral_rad_jac_surface,
+                                       freq_grid,
+                                       jac_targets,
+                                       ray_point,
+                                       surf_field,
+                                       subsurf_field,
+                                       spectral_rad_closed_surface_agenda);
+
+    // Calculate upward emission with the specular emissivity.  A missing
+    // specular emissivity means zero emissivity: nothing to add
+    // For now, there is no jacobian for the surface scattering model!!!
+    if (emission_props.emissivity_vector_specular) {
+      const surface_scattering::EmissivityVector& emiss = *emission_props.emissivity_vector_specular;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+      for (Size i_f = 0; i_f < nf; i_f++) { spectral_rad[i_f] += emiss[i_f, 0, 0] * spectral_rad_surface[i_f]; }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_jac[i_jac, i_f] += emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        }
+      }
+    }
+  }
+
+  spectral_rad     += spectral_rad_scattered;
+  spectral_rad_jac += spectral_rad_scattered_jac;
+}
+ARTS_METHOD_ERROR_CATCH
+
+void spectral_radSurfaceScatteringDiffuseDirect(const Workspace&                   ws,
+                                                StokvecVector&                     spectral_rad,
+                                                StokvecMatrix&                     spectral_rad_jac,
+                                                const AscendingGrid&               freq_grid,
+                                                const AtmField&                    atm_field,
+                                                const SurfaceField&                surf_field,
+                                                const SubsurfaceField&             subsurf_field,
+                                                const MapOfSurfaceScatteringModel& surface_models,
+                                                const JacobianTargets&             jac_targets,
+                                                const PropagationPathPoint&        ray_point,
+                                                const ArrayOfSun&                  suns,
+                                                const Agenda&                      ray_path_observer_agenda,
+                                                const Agenda&                      spectral_rad_incoming_agenda,
+                                                const Agenda&                      spectral_rad_closed_surface_agenda,
+                                                const Numeric&                     angle_cut,
+                                                const Index&                       refinement,
+                                                const Index&                       include_emission) try {
+  ARTS_TIME_REPORT
+
+  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
+                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
+                     surf_field.ellipsoid)
+
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.x_size();
+
+  require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
+
+  const SurfacePoint surf_point = surf_field.at(ray_point.pos[1], ray_point.pos[2]);
+
+  // Single outgoing (ray) direction; the incoming directions are the sun beams
+  const Vector za_out{ray_point.los[0]};
+  const Vector aa_out{ray_point.los[1]};
+
+  // A beam is visible only above the horizon defined by the actual surface
+  // normal; below it the direct term is hard-zero (no error), emission remains.
+  // The surface normal is stored with the outward direction at za = 180, so its
+  // ECEF image points inward; a beam is visible when it opposes that inward
+  // vector.  The returned cosine is the projected-area factor cos(theta_inc)
+  // between the beam line-of-sight and the actual surface normal; it weights
+  // the scattered term because the diffuse BRDF is a dimensionless scattering
+  // kernel (see LambertianSurfaceScatterer) and the beam deposits irradiance
+  // proportional to that cosine.
+  const auto [__, ecef_normal] = geodetic_los2ecef(ray_point.pos, surf_point.normal, surf_field.ellipsoid);
+  const auto incidence_cos     = [&](const Vector2& los) {
+    const auto [_, ecef_los_in] = geodetic_los2ecef(ray_point.pos, los, surf_field.ellipsoid);
+    return -dot(ecef_los_in, ecef_normal);
+  };
+
+  StokvecVector spectral_rad_scattered(nf);
+  spectral_rad_scattered = 0.0;
+  StokvecMatrix spectral_rad_scattered_jac(nq, nf);
+  spectral_rad_scattered_jac = Stokvec{0.0, 0.0, 0.0, 0.0};
+
+  // One delta-function beam per sun, contributions summed; no suns means no
+  // scattered term at all
+  for (const auto& sun : suns) {
+    // Gate on the geometric LOS first to avoid the search for invisible suns
+    Vector2 los = sun_geometric_los(sun, ray_point.pos, surf_field);
+    if (incidence_cos(los) <= 0.0) continue;
+
+    // Refraction-aware beam direction via the observer agenda
+    los = sun_refractive_los(ws, sun, ray_point.pos, surf_field, ray_path_observer_agenda, angle_cut, refinement);
+    const Numeric cos_inc = incidence_cos(los);
+    if (cos_inc <= 0.0) continue;
+
+    const Vector za_in{los[0]};
+    const Vector aa_in{los[1]};
+
+    const surface_scattering::SurfaceScatteringModelProperties sun_props =
+        surface_models.get_surface_scattering_model_properties(
+            surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, za_in, aa_in, za_out, aa_out);
+
+    // get the incoming radiation from this single beam direction
+    StokvecVector spectral_rad_incoming;
+    StokvecMatrix spectral_rad_incoming_jac;
+    spectral_rad_incoming_agendaExecute(ws,
+                                        spectral_rad_incoming,
+                                        spectral_rad_incoming_jac,
+                                        freq_grid,
+                                        jac_targets,
+                                        ray_point.pos,
+                                        los,
+                                        atm_field,
+                                        surf_field,
+                                        subsurf_field,
+                                        spectral_rad_incoming_agenda);
+
+    // No quadrature weights: the beam radiance is delta-weighted, but the
+    // projected-area factor cos(theta_inc) at the actual surface normal still
+    // applies.  For now, there is no jacobian for the surface scattering model!!!
+    // A missing diffuse BRDF means no diffuse scattering for this beam
+    if (sun_props.brdf_matrix_diffuse) {
+      const surface_scattering::BRDFMatrix& brdf = *sun_props.brdf_matrix_diffuse;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+      for (Size i_f = 0; i_f < nf; i_f++) {
+        spectral_rad_scattered[i_f] += cos_inc * brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming[i_f];
+      }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_scattered_jac[i_jac, i_f] +=
+              cos_inc * brdf[i_f, 0, 0, 0, 0] * spectral_rad_incoming_jac[i_jac, i_f];
+        }
+      }
+    }
+  }
+
+  // Sub-surface emission with the diffuse emissivity.  The whole term is
+  // skipped when include_emission is 0: a chain that also runs
+  // spectral_radSurfaceScatteringDiffuse already adds it exactly once there,
+  // and adding it here as well would double count it.
+  if (include_emission) {
+    // The diffuse emissivity depends only on the outgoing direction, so it is
+    // evaluated once here with a dummy incidence for the emission term
+    const auto emission_props = surface_models.get_surface_scattering_model_properties(
+        surf_point, ray_point.pos[1], ray_point.pos[2], freq_grid, Vector{0.0}, Vector{0.0}, za_out, aa_out);
+
+    // get the subsurface emission
+    StokvecVector spectral_rad_surface;
+    StokvecMatrix spectral_rad_jac_surface;
+    spectral_rad_surface_agendaExecute(ws,
+                                       spectral_rad_surface,
+                                       spectral_rad_jac_surface,
+                                       freq_grid,
+                                       jac_targets,
+                                       ray_point,
+                                       surf_field,
+                                       subsurf_field,
+                                       spectral_rad_closed_surface_agenda);
+
+    // Calculate upward emission with the diffuse emissivity.  A missing
+    // diffuse emissivity means zero emissivity: nothing to add
+    // For now, there is no jacobian for the surface scattering model!!!
+    if (emission_props.emissivity_vector_diffuse) {
+      const surface_scattering::EmissivityVector& emiss = *emission_props.emissivity_vector_diffuse;
+#pragma omp parallel for if (not arts_omp_in_parallel())
+      for (Size i_f = 0; i_f < nf; i_f++) { spectral_rad[i_f] += emiss[i_f, 0, 0] * spectral_rad_surface[i_f]; }
+#pragma omp parallel for collapse(2) if (not arts_omp_in_parallel())
+      for (Size i_jac = 0; i_jac < nq; i_jac++) {
+        for (Size i_f = 0; i_f < nf; i_f++) {
+          spectral_rad_jac[i_jac, i_f] += emiss[i_f, 0, 0] * spectral_rad_jac_surface[i_jac, i_f];
+        }
+      }
+    }
+  }
+
+  spectral_rad     += spectral_rad_scattered;
+  spectral_rad_jac += spectral_rad_scattered_jac;
 }
 ARTS_METHOD_ERROR_CATCH

@@ -1,6 +1,6 @@
 #include "functional_atm_pressure_field.h"
 
-#include "functional_atm_field_interp.h"
+#include "functional_field_interp.h"
 
 namespace Atm {
 Numeric HydrostaticPressure::step(Numeric p, Numeric h, Numeric d) const {
@@ -48,11 +48,11 @@ std::pair<Size, Numeric> HydrostaticPressure::find_alt(Numeric al) const {
 }
 
 std::pair<Numeric, Numeric> HydrostaticPressure::level(Index alt_ind, Numeric la, Numeric lo) const {
-  const auto    latlag = interp::latlag(pre.grid<1>(), la);
-  const auto    lonlag = interp::lonlag(pre.grid<2>(), lo);
-  const auto    iw     = interp::interpweights(latlag, lonlag);
-  const Numeric p      = interp::get<lagrange_interp::log_transform>(pre, alt_ind, iw, latlag, lonlag);
-  const Numeric d      = interp::get<lagrange_interp::value_identity>(grad_p, alt_ind, iw, latlag, lonlag);
+  const auto    latlag = field_interp::lag(pre.grid<1>(), la);
+  const auto    lonlag = field_interp::lag(pre.grid<2>(), lo);
+  const auto    iw     = field_interp::interpweights(latlag, lonlag);
+  const Numeric p      = field_interp::interp<lagrange_interp::log_transform>(pre.data[alt_ind], iw, latlag, lonlag);
+  const Numeric d = field_interp::interp<lagrange_interp::value_identity>(grad_p.data[alt_ind], iw, latlag, lonlag);
   return {p, d};
 }
 

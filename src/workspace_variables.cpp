@@ -766,6 +766,13 @@ For more information, see :doc:`user.subsurf_field`.
       .dims = {"NDEPTH"},
   };
 
+  wsv_data["surface_models"] = {
+      .desc =
+          R"--(A Map of surface scattering models.
+)--",
+      .type = "MapOfSurfaceScatteringModel",
+  };
+
   //! Operators
 
   wsv_data["gravity_operator"] = {
@@ -1074,6 +1081,34 @@ Units: degrees
 )--",
       .type = "ZenGrid",
       .dims = {"NZENITH"},
+  };
+
+  wsv_data["az_grid"] = {
+      .desc = R"--(A single azimuth angle grid.
+
+Units: degrees
+
+.. note::
+    There is no global grid system in ARTS, so beware of the local
+    nature of all grids.
+)--",
+      .type = "AziGrid",
+  };
+
+  wsv_data["az_grid_weights"] = {
+      .desc = R"--(Azimut angle integration weights..
+
+Units: Unitless
+)--",
+      .type = "Vector",
+  };
+
+  wsv_data["zen_grid_weights"] = {
+      .desc = R"--(Zenith angle integration weights..
+
+Units: Unitless
+)--",
+      .type = "Vector",
   };
 
   //! Non-LTE

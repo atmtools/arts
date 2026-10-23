@@ -58,12 +58,16 @@ void sunFromGrid(Sun& sun,
                      radius)
 
   // init sun
-  sun.spectrum    = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);  // set spectrum
   sun.description = description;
   sun.radius      = radius;
   sun.distance    = distance;
   sun.latitude    = latitude;
   sun.longitude   = longitude;
+
+  // The position must be usable before the spectrum is interpolated
+  sun.require_placeable();
+
+  sun.spectrum = regrid_sun_spectrum(sun_spectrum_raw, f_grid, temperature);  // set spectrum
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
@@ -84,17 +88,20 @@ void sunBlackbody(Sun& sun,
                      distance,
                      radius)
 
-  // spectrum
-  sun.spectrum = Matrix(freq_grid.size(), 4, 0.);
-
-  planck(sun.spectrum[joker, 0], freq_grid, temperature);
-  sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
-
   sun.description = "Blackbody sun";
   sun.radius      = radius;
   sun.distance    = distance;
   sun.latitude    = latitude;
   sun.longitude   = longitude;
+
+  // The position must be usable before the spectrum is built
+  sun.require_placeable();
+
+  // spectrum
+  sun.spectrum = Matrix(freq_grid.size(), 4, 0.);
+
+  planck(sun.spectrum[joker, 0], freq_grid, temperature);
+  sun.spectrum *= pi;  // outgoing flux at the surface of the sun.
 }
 
 void sun_pathFromObserverAgenda(const Workspace&             ws,

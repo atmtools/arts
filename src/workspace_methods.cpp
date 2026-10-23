@@ -1373,6 +1373,19 @@ The output dimensions are:
                  "jac_targets"},
   };
 
+  wsm_data["spectral_rad_srcvec_pathZero"] = {
+      .desc =
+          R"--(Zero-size the source vector along the path without LTE emission.
+
+Sets *spectral_rad_srcvec_path* to the shape implied by *spectral_propmat_jac_path*
+with J = 0 and dJ = 0.  Use this instead of *spectral_rad_srcvec_pathFromPropmat*
+in scattering-only chains where thermal emission must not enter the source vector.
+)--",
+      .author = {"Manfred Brath"},
+      .out    = {"spectral_rad_srcvec_path"},
+      .in     = {"spectral_propmat_path", "spectral_propmat_jac_path", "freq_grid_path"},
+  };
+
   wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
       .desc   = R"--(Sets the data for MT CKD 4.0 Water model
 
@@ -2327,6 +2340,298 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
                          "spectral_rad_observer_agenda",
                          "spectral_rad_closed_surface_agenda",
                          "spectral_surf_refl_agenda"},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radSurfaceScatteringInit"] = {
+      .desc =
+          R"--(Zero and size *spectral_rad* and *spectral_rad_jac* for surface scattering methods.
+
+The ``spectral_radSurfaceScattering`` methods add their contribution to *spectral_rad*
+and *spectral_rad_jac*.  This method must therefore be called before the first of them,
+and only once per agenda execution.  It is what makes it possible to chain several
+surface scattering methods, for example a diffuse and a specular one, into a single
+*spectral_rad_surface_agenda*.
+
+Sizes: *spectral_rad* is (*freq_grid*), *spectral_rad_jac* is (*jac_targets*, *freq_grid*).
+)--",
+      .author = {"Manfred Brath"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
+      .in     = {"freq_grid", "jac_targets"},
+  };
+
+  wsm_data["spectral_radSurfaceScatteringDiffuse"] = {
+      .desc =
+          R"--(Add surface scattering and sub-surface emission to *spectral_rad*.
+
+The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
+
+This method adds the sub-surface emission multiplied by the diffuse emissivity to
+*spectral_rad*.  When chaining *spectral_radSurfaceScatteringDiffuseDirect* in the same
+agenda, set its ``include_emission`` to 0 -- otherwise the diffuse emission is added by
+both methods and counted twice.
+
+The incoming quadrature directions are checked against the horizon defined by
+the actual surface normal at the point: directions below that horizon
+contribute nothing to the scattered term, and directions above it that a flat
+horizon would hide are included.  The gating is the same as the beam visibility
+test of *spectral_radSurfaceScatteringDiffuseDirect*.  Extend *zen_grid* beyond 90
+degrees to capture directions made visible by the surface tilt.
+
+The weights ``zen_grid_weights`` and ``az_grid_weights`` are multiplied pairwise per
+direction and applied verbatim -- the method adds no angular geometry factors itself.
+The BRDFs are dimensionless scattering kernels (a physical Lambertian BRDF would be
+r/pi in [1/sr]), so for physical flux conservation the weights must carry the
+projected solid angle factor cos(za_in) dOmega; with pure sin(za) dza daa weights a
+uniform incoming radiance field reflects with effective reflectance 2*pi*r.
+
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks lives under the *SurfacePropertyTag* keys, which must be the same as in
+*surface_models*.
+
+If ``exclude_suns`` is 1, an incoming direction that falls inside the solar disc of a
+sun in *suns* is dropped from the integration (no trace, no contribution).  Use it
+when a ``…Direct`` method is chained in the same agenda: those methods add each sun
+once as a delta beam, and without the exclusion the sun would be counted twice.
+The default 0 keeps the sun inside the quadrature radiation, which is what a chain
+without a ``…Direct`` method needs.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "suns",
+                         "zen_grid",
+                         "az_grid",
+                         "zen_grid_weights",
+                         "az_grid_weights",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .gin            = {"exclude_suns"},
+      .gin_type       = {"Index"},
+      .gin_value      = {Index{0}},
+      .gin_desc       = {"If 1, incoming directions that hit a sun in *suns* are excluded "
+                         "from the integration, because the sun beams are added separately "
+                         "by the ``…Direct`` methods.  Set to 1 "
+                         "when a Direct method is chained in the same "
+                         "*spectral_rad_surface_agenda*, 0 otherwise."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radSurfaceScatteringSpecular"] = {
+      .desc =
+          R"--(Add specular surface scattering and sub-surface emission to *spectral_rad*.
+
+The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
+
+This method adds the sub-surface emission multiplied by the specular emissivity to
+*spectral_rad*.  When chaining *spectral_radSurfaceScatteringSpecularDirect* in the same
+agenda, set its ``include_emission`` to 0 -- otherwise the specular emission is added by
+both methods and counted twice.
+
+The direction of the incoming radiation is the mirror reflection of the
+outgoing (ray) direction about the local surface normal, so only a single
+incoming direction is traced. The specular BRDF and emissivity are evaluated
+at these exact directions; no angular quadrature is required.
+
+The *spectral_rad_closed_surface_agenda* should produce the surface emission,
+though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks live under the *SurfacePropertyTag* keys, which must be the
+same as in *surface_models*.
+
+If ``exclude_suns`` is 1, an incoming direction that falls inside the solar disc of a
+sun in *suns* is dropped from the integration (no trace, no contribution).  Use it
+when a ``…Direct`` method is chained in the same agenda: those methods add each sun
+once as a delta beam, and without the exclusion the sun would be counted twice.
+The default 0 keeps the sun inside the mirror-direction radiation, which is what a
+chain without a ``…Direct`` method needs.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "suns",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .gin            = {"exclude_suns"},
+      .gin_type       = {"Index"},
+      .gin_value      = {Index{0}},
+      .gin_desc       = {"If 1, incoming directions that hit a sun in *suns* are excluded "
+                         "from the integration, because the sun beams are added separately "
+                         "by the ``…Direct`` methods.  Set to 1 "
+                         "when a Direct method is chained in the same "
+                         "*spectral_rad_surface_agenda*, 0 otherwise."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radSurfaceScatteringDiffuseDirect"] = {
+      .desc =
+          R"--(Add sub-surface emission plus direct (collimated) incoming beam
+radiation scattered by a diffuse surface to *spectral_rad*.
+
+The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
+
+The sub-surface emission term is multiplied by the diffuse emissivity and added to
+*spectral_rad* unless ``include_emission`` is 0.  Every ``spectral_radSurfaceScattering``
+method adds its channel's emission term, so chaining *spectral_radSurfaceScatteringDiffuse*
+with this method without setting ``include_emission`` to 0 adds the diffuse emission
+twice.  The predefined *spectral_rad_surface_agenda* option ``SurfaceScatteringModel``
+sets it to 0 on the Direct methods for exactly this reason.
+
+The incoming radiation is one delta-function beam per sun in *suns*.  The beam
+direction is estimated internally at the surface point: first geometrically
+towards the sun, then refined to a refraction-aware line-of-sight using
+*ray_path_observer_agenda* (the same iterative sun-path search as
+*sun_pathFromObserverAgenda*, with ``just_hit = 1``).  The control parameters
+``angle_cut`` and ``refinement`` are passed to that search.  Only these single
+directions are traced and the diffuse BRDF and emissivity are evaluated at
+these exact directions; no angular quadrature is required.  This makes the
+method much cheaper than *spectral_radSurfaceScatteringDiffuse* for
+direct-radiation sources.
+
+With no suns in *suns* there is no scattered term at all, only the surface
+emission.  With multiple suns the scattered contributions of all visible suns
+are summed.
+
+The beam radiance is interpreted as a delta-weighted radiance: the scattered
+term of each sun is exactly BRDF * cos(theta_inc) * incoming radiance, where
+theta_inc is the angle between the beam and the actual surface normal.  This
+is equivalent to a single unit-weight quadrature point carrying the
+projected-area factor in *spectral_radSurfaceScatteringDiffuse*.
+
+If a sun is below the local surface horizon, i.e. on the opposite side of the
+surface normal at the point, it contributes nothing (no error); if all suns are
+below the horizon only the surface emission is returned.
+
+The *spectral_rad_incoming_agenda* produces the beam radiance along the
+estimated line-of-sight of each sun.  The *spectral_rad_closed_surface_agenda*
+should produce the surface emission, though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks live under the *SurfacePropertyTag* keys, which must be the
+same as in *surface_models*.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "suns",
+                         "ray_path_observer_agenda",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .gin            = {"angle_cut", "refinement", "include_emission"},
+      .gin_type       = {"Numeric", "Index", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{1}, Index{1}},
+      .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                         "The refinement of the sun-path search algorithm (twice the power of this is the resolution)",
+                         "If 1 (default), the sub-surface emission multiplied by the diffuse emissivity is added "
+                         "to *spectral_rad*.  Set to 0 when *spectral_radSurfaceScatteringDiffuse* is chained in "
+                         "the same *spectral_rad_surface_agenda* -- that method already adds the diffuse emission, "
+                         "and adding it here as well double counts it."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["spectral_radSurfaceScatteringSpecularDirect"] = {
+      .desc           = R"--(Add sub-surface emission plus direct (collimated) incoming beam
+radiation specularly reflected by the surface to *spectral_rad*.
+
+The input path point must be close to the surface.
+
+Run *spectral_radSurfaceScatteringInit* before this method.  The contribution is added
+to *spectral_rad* and *spectral_rad_jac*, so this method may be chained with the other
+``spectral_radSurfaceScattering`` methods inside one agenda.
+
+The sub-surface emission term is multiplied by the specular emissivity and added to
+*spectral_rad* unless ``include_emission`` is 0.  Every ``spectral_radSurfaceScattering``
+method adds its channel's emission term, so chaining *spectral_radSurfaceScatteringSpecular*
+with this method without setting ``include_emission`` to 0 adds the specular emission
+twice.  The predefined *spectral_rad_surface_agenda* option ``SurfaceScatteringModel``
+sets it to 0 on the Direct methods for exactly this reason.
+
+The incoming radiation is one delta-function beam per sun in *suns*.  The
+outgoing direction is the ray line-of-sight, and the specular direction is its
+mirror reflection about the local surface normal.  A sun contributes only if
+that specular direction falls inside the solar disc, i.e. if the angle ``beta``
+between the specular direction and the sun centre is not larger than the
+angular radius ``alpha`` of the sun as seen from the point
+(alpha = asin(sun.radius / distance)).  The test is applied geometrically
+first, and again on the refraction-aware beam line-of-sight obtained from
+*ray_path_observer_agenda* (the same iterative sun-path search as
+*sun_pathFromObserverAgenda*, with ``just_hit = 1``; control parameters
+``angle_cut`` and ``refinement``).
+
+Because the disc test uses the actual surface normal, it also gates the local
+horizon: a sun below the horizon of a flat or tilted surface contributes
+nothing (no error).  If no sun is in the specular direction only the surface
+emission is returned.
+
+Only these single directions are traced and the specular BRDF and emissivity
+are evaluated at these exact directions; no angular quadrature is required.
+The beam radiance is interpreted as a delta-weighted radiance: the scattered
+term of each sun is exactly BRDF * incoming radiance.
+
+The *spectral_rad_incoming_agenda* produces the beam radiance along the
+estimated line-of-sight of each sun.  The *spectral_rad_closed_surface_agenda*
+should produce the surface emission, though pure surface emission is fine.
+
+The surface field must contain at least one surface mask for a surface type.
+The surface masks live under the *SurfacePropertyTag* keys, which must be the
+same as in *surface_models*.
+)--",
+      .author         = {"Manfred Brath"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "surface_models",
+                         "jac_targets",
+                         "ray_point",
+                         "suns",
+                         "ray_path_observer_agenda",
+                         "spectral_rad_incoming_agenda",
+                         "spectral_rad_closed_surface_agenda"},
+      .gin            = {"angle_cut", "refinement", "include_emission"},
+      .gin_type       = {"Numeric", "Index", "Index"},
+      .gin_value      = {Numeric{0.0}, Index{1}, Index{1}},
+      .gin_desc       = {"The angle delta-cutoff in the iterative sun-path solver [0.0, ...]",
+                         "The refinement of the sun-path search algorithm (twice the power of this is the resolution)",
+                         "If 1 (default), the sub-surface emission multiplied by the specular emissivity is added "
+                         "to *spectral_rad*.  Set to 0 when *spectral_radSurfaceScatteringSpecular* is chained in "
+                         "the same *spectral_rad_surface_agenda* -- that method already adds the specular emission, "
+                         "and adding it here as well double counts it."},
       .pass_workspace = true,
   };
 

@@ -145,6 +145,31 @@ Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell) {
   return cart2geodeticlos(cart_from, cart_los, ell);
 }
 
+Vector2 sun_geometric_los(const Sun& sun, const Vector3 observer_pos, const SurfaceField& surf_field) {
+  sun.require_placeable();
+
+  const Vector3 sun_pos{{sun.distance - surf_field.single_value(SurfaceKey::h, observer_pos[1], observer_pos[2]),
+                         sun.latitude,
+                         sun.longitude}};
+
+  return geometric_los(observer_pos, sun_pos, surf_field.ellipsoid);
+}
+
+Vector2 sun_refractive_los(const Workspace&    ws,
+                           const Sun&          sun,
+                           const Vector3       observer_pos,
+                           const SurfaceField& surf_field,
+                           const Agenda&       ray_path_observer_agenda,
+                           const Numeric       angle_cut,
+                           const Index         refinement) {
+  ArrayOfPropagationPathPoint sun_path;
+  find_sun_path(
+      ws, sun_path, sun, ray_path_observer_agenda, surf_field, observer_pos, angle_cut, refinement, /*just_hit=*/true);
+  // The observer agenda stores the path from the observer outwards with the
+  // light propagation direction; mirror it back to the observer-pointing LOS
+  return path::mirror(sun_path.front().los);
+}
+
 namespace {
 Numeric zenith_horizon(const Workspace& ws,
                        const Vector3    observer_pos,
@@ -202,6 +227,7 @@ void find_sun_path(const Workspace&             ws,
   ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
                      "Surface field not properly set up - bad reference ellipsoid: {:B,}",
                      surf_field.ellipsoid)
+  sun.require_placeable();
 
   assert(angle_cut >= 0.0);
 

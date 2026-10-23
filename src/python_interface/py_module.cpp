@@ -38,6 +38,7 @@ void py_auto_options(py::module_& m);
 void py_hitran(py::module_& m);
 void py_atm(py::module_& m);
 void py_surf(py::module_& m);
+void py_surface_scattering(py::module_& m);
 void py_fwd(py::module_& m);
 void py_cia(py::module_& m);
 void py_operators(py::module_& m);
@@ -117,6 +118,7 @@ NB_MODULE(arts, m) try {
   py_agenda(m);
   py_atm(m);
   py_surf(m);
+  py_surface_scattering(m);
   py_fwd(m);
   py_cia(m);
   py_operators(m);

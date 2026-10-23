@@ -46,8 +46,8 @@ GeodeticField3 make_geodetic(const GriddedField3& gf) {
 
   const auto first = [](auto v) { return v.first; };
   out.grid<0>()    = AscendingGrid{alts.begin(), alts.end(), first};
-  out.grid<1>()    = Vector{AscendingGrid{lats.begin(), lats.end(), first}};
-  out.grid<2>()    = Vector{AscendingGrid{lons.begin(), lons.end(), first}};
+  out.grid<1>()    = AscendingGrid{lats.begin(), lats.end(), first};
+  out.grid<2>()    = AscendingGrid{lons.begin(), lons.end(), first};
 
   out.data.resize(alts.size(), lats.size(), lons.size());
 
@@ -94,8 +94,8 @@ GeodeticField2 make_geodetic(const GriddedField2& gf) {
   lons.erase(e2, lons.end());
 
   const auto first = [](auto v) { return v.first; };
-  out.grid<0>()    = Vector{AscendingGrid{lats.begin(), lats.end(), first}};
-  out.grid<1>()    = Vector{AscendingGrid{lons.begin(), lons.end(), first}};
+  out.grid<0>()    = AscendingGrid{lats.begin(), lats.end(), first};
+  out.grid<1>()    = AscendingGrid{lons.begin(), lons.end(), first};
 
   out.data.resize(lats.size(), lons.size());
 
