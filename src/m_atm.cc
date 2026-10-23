@@ -4,6 +4,7 @@
 #include <enumsIsoRatioOption.h>
 #include <enumsMissingFieldComponentError.h>
 #include <geodetic.h>
+#include <igrf.h>
 #include <workspace.h>
 #include <zconf.h>
 
@@ -514,9 +515,11 @@ void atm_fieldAppendAuto(const Workspace &ws,
 void atm_fieldIGRF(AtmField &atm_field, const Time &time) {
   ARTS_TIME_REPORT
 
-  const NumericTernaryOperator magu{.f = NumericTernary{Atm::IGRF13(time, FieldComponent::u)}};
-  const NumericTernaryOperator magv{.f = NumericTernary{Atm::IGRF13(time, FieldComponent::v)}};
-  const NumericTernaryOperator magw{.f = NumericTernary{Atm::IGRF13(time, FieldComponent::w)}};
+  std::ignore = IGRF::coefficients(time);  // Throws if the time is outside of the model
+
+  const NumericTernaryOperator magu{.f = NumericTernary{Atm::IGRF(time, FieldComponent::u)}};
+  const NumericTernaryOperator magv{.f = NumericTernary{Atm::IGRF(time, FieldComponent::v)}};
+  const NumericTernaryOperator magw{.f = NumericTernary{Atm::IGRF(time, FieldComponent::w)}};
 
   atm_field[AtmKey::mag_u] = magu;
   atm_field[AtmKey::mag_v] = magv;
@@ -526,9 +529,9 @@ void atm_fieldIGRF(AtmField &atm_field, const Time &time) {
 void atm_fieldSchmidthFieldFromIGRF(AtmField &atm_field, const Time &time) {
   ARTS_TIME_REPORT
 
-  const auto magu{Atm::IGRF13(time, FieldComponent::u)};
-  const auto magv{Atm::IGRF13(time, FieldComponent::v)};
-  const auto magw{Atm::IGRF13(time, FieldComponent::w)};
+  const auto magu{Atm::IGRF(time, FieldComponent::u)};
+  const auto magv{Atm::IGRF(time, FieldComponent::v)};
+  const auto magw{Atm::IGRF(time, FieldComponent::w)};
 
   atm_field[AtmKey::mag_u] = NumericTernaryOperator{.f = from(magu)};
   atm_field[AtmKey::mag_v] = NumericTernaryOperator{.f = from(magv)};

@@ -4,25 +4,6 @@
 #include <matpack.h>
 
 namespace Legendre {
-struct SchmidtMatrix {
-  Size   N;  // The size
-  Vector x;  // The values
-
-  SchmidtMatrix(Size N = 0);
-  SchmidtMatrix(const ConstMatrixView&);
-  Numeric& operator[](Index n, Index m);
-  Numeric  operator[](Index n, Index m) const;
-};
-
-struct SchmidtMatrixView {
-  Size            N;  // The size
-  ConstVectorView x;  // The values
-
-  SchmidtMatrixView(const SchmidtMatrix&);
-  SchmidtMatrixView(Size N, const ConstVectorView&);
-  Numeric operator[](Index n, Index m) const;
-};
-
 /** Returns the Schmidt normalized Lagrange polynominal and its derivative
  *
  * The derivative is undefined if theta is 0 or pi, so the function cannot
@@ -34,9 +15,9 @@ struct SchmidtMatrixView {
  *
  * @param[in] theta Colatitude in radians
  * @param[in] nmax Max number of n
- * @return The pair of (nmax+1) x (nmax+1) matrices, order: main and derivative
+ * @return The pair of (nmax+1) x (nmax+1) lower triangular matrices, order: main and derivative
  */
-std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index nmax);
+std::pair<TriangularMatrix, TriangularMatrix> schmidt(const Numeric theta, const Index nmax);
 
 /** As schmidt(theta, nmax), into caller-sized storage
  *
@@ -61,35 +42,40 @@ void schmidt(MatrixView P, MatrixView dP, const Numeric theta);
  * This function is taken from the implementation by Isabela de Oliveira Martins
  * at https://github.com/de-oliveira/IsabelaFunctions/blob/master/IsabelaFunctions/fieldmodel.py
  * (2021-05-06).
+ *
+ * The n = 0 coefficients, as there are no magnetic monopoles, and the h with
+ * m = 0 do not affect the field and are not used, so they may be NaN.  The
+ * m = 0 coefficients do not affect the longitudinal component.
  * 
- * @param[in] g A N x N matrix of g-coefficients
- * @param[in] h A N x N matrix of h-coefficients
+ * @param[in] g A N x N lower triangular matrix of g-coefficients
+ * @param[in] h A N x N lower triangular matrix of h-coefficients
  * @param[in] r0 The reference radius (spherical)
  * @param[in] pos The position [r, lat, lon] (spherical)
  * @return A spherical field {Br, Btheta, Bphi}
  */
-Vector3 schmidt_fieldcalc(const SchmidtMatrixView& g, const SchmidtMatrixView& h, const Numeric r0, const Vector3 pos);
+Vector3 schmidt_fieldcalc(const ConstTriangularMatrixView& g,
+                          const ConstTriangularMatrixView& h,
+                          const Numeric                    r0,
+                          const Vector3                    pos);
 
 /** The derivative of the schmidt_fieldcalc function wrt g and h
  *
- * The output is a 2 x 3 x N x N tensor, where the first index is
- * 0 for the g-coefficients and 1 for the h-coefficients,
- * the second index is 0 for the radial component, 1 for the
- * colatitudinal component, and 2 for the longitudinal component,
- * and the last two indices are the n and m indices of the
- * spherical harmonics.
+ * The output is 3 pairs of N x N lower triangular matrices.  The index of
+ * the array is 0 for the radial component, 1 for the colatitudinal component,
+ * and 2 for the longitudinal component.  The first of the pair is for the
+ * g-coefficients and the second for the h-coefficients.  The indices of the
+ * matrices are the n and m indices of the spherical harmonics.
  *
- * Only n = [1 N) and m = [0 n] are computed, the rest being NAN.
- * There are thus N * (N + 1) - 2 valid elements in the output.
+ * The n = 0 derivatives are zero, as schmidt_fieldcalc ignores those coefficients.
  *
- * @param[in] N The maximum order of the spherical harmonics
+ * @param[in] N The number of rows of the coefficient matrices, the maximum degree plus one
  * @param[in] r0 The reference radius (spherical)
  * @param[in] pos The position [r, lat, lon] (spherical)
- * @return The tensor of derivatives
+ * @return The derivatives
  */
-std::array<std::pair<SchmidtMatrix, SchmidtMatrix>, 3> dschmidt_fieldcalc(const Size    N,
-                                                                          const Numeric r0,
-                                                                          const Vector3 pos);
+std::array<std::pair<TriangularMatrix, TriangularMatrix>, 3> dschmidt_fieldcalc(const Size    N,
+                                                                                const Numeric r0,
+                                                                                const Vector3 pos);
 
 /** Computes sum (s[i] P_i(x)) for all s [first is for P_0, second is for P_1, ...]
   * 

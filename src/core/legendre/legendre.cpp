@@ -9,41 +9,6 @@
 #include "fastgl.h"
 
 namespace Legendre {
-SchmidtMatrix::SchmidtMatrix(Size N_) : N(N_), x(N * (N + 1) / 2 - 1, 0.0) {}
-
-Numeric& SchmidtMatrix::operator[](Index n, Index m) {
-  assert((n * (n + 1)) / 2 + m - 1 < static_cast<Index>(x.size()));
-  assert((n * (n + 1)) / 2 + m - 1 >= 0);
-  return x[(n * (n + 1)) / 2 + m - 1];
-}
-
-Numeric SchmidtMatrix::operator[](Index n, Index m) const {
-  assert((n * (n + 1)) / 2 + m - 1 < static_cast<Index>(x.size()));
-  assert((n * (n + 1)) / 2 + m - 1 >= 0);
-  return x[(n * (n + 1)) / 2 + m - 1];
-}
-
-SchmidtMatrix::SchmidtMatrix(const ConstMatrixView& M) : SchmidtMatrix(static_cast<Size>(M.ncols())) {
-  assert(M.ncols() == M.nrows());
-
-  for (Size n = 1; n < N; ++n) {
-    for (Size m = 0; m < n + 1; ++m) {
-      assert((n * (n + 1)) / 2 + m - 1 < x.size());
-      x[(n * (n + 1)) / 2 + m - 1] = M[n, m];
-    }
-  }
-}
-
-SchmidtMatrixView::SchmidtMatrixView(const SchmidtMatrix& sm) : N(sm.N), x(sm.x) {}
-
-SchmidtMatrixView::SchmidtMatrixView(Size N_, const ConstVectorView& v) : N(N_), x(v) {}
-
-Numeric SchmidtMatrixView::operator[](Index n, Index m) const {
-  assert((n * (n + 1)) / 2 + m - 1 < static_cast<Index>(x.size()));
-  assert((n * (n + 1)) / 2 + m - 1 >= 0);
-  return x[(n * (n + 1)) / 2 + m - 1];
-}
-
 namespace {
 //! Clamps the longitude in the range [-180, 180)
 constexpr Numeric longitude_clamp(Numeric lon) {
@@ -108,23 +73,34 @@ void schmidt(MatrixView P, MatrixView dP, const Numeric theta) {
   }
 }
 
-std::pair<SchmidtMatrix, SchmidtMatrix> schmidt(const Numeric theta, const Index nmax) {
+std::pair<TriangularMatrix, TriangularMatrix> schmidt(const Numeric theta, const Index nmax) {
   ARTS_USER_ERROR_IF(nmax <= 0, "nmax={} must be > 0", nmax)
-  Matrix P(nmax + 1, nmax + 1), dP(nmax + 1, nmax + 1);
+
+  const Index N = nmax + 1;
+  Matrix      P(N, N), dP(N, N);
   schmidt(P, dP, theta);
-  return {SchmidtMatrix{P}, SchmidtMatrix{dP}};
+
+  std::pair out{TriangularMatrix(N), TriangularMatrix(N)};
+  for (Index n = 0; n < N; n++) {
+    for (Index m = 0; m <= n; m++) {
+      out.first[n, m]  = P[n, m];
+      out.second[n, m] = dP[n, m];
+    }
+  }
+  return out;
 }
 
-std::array<std::pair<SchmidtMatrix, SchmidtMatrix>, 3> dschmidt_fieldcalc(const Size    N,
-                                                                          const Numeric r0,
-                                                                          const Vector3 pos) try {
+std::array<std::pair<TriangularMatrix, TriangularMatrix>, 3> dschmidt_fieldcalc(const Size    N,
+                                                                                const Numeric r0,
+                                                                                const Vector3 pos) try {
   const auto [r, lat, lon] = pos;
 
-  ARTS_USER_ERROR_IF(lat < -90 and lat > 90, "Latitude is {} should be in [-90, 90]", lat)
+  ARTS_USER_ERROR_IF(lat < -90 or lat > 90, "Latitude is {} should be in [-90, 90]", lat)
 
-  std::array<std::pair<SchmidtMatrix, SchmidtMatrix>, 3> dB{std::make_pair<SchmidtMatrix, SchmidtMatrix>(N, N),
-                                                            std::make_pair<SchmidtMatrix, SchmidtMatrix>(N, N),
-                                                            std::make_pair<SchmidtMatrix, SchmidtMatrix>(N, N)};
+  std::array<std::pair<TriangularMatrix, TriangularMatrix>, 3> dB{
+      std::pair{TriangularMatrix(N, 0), TriangularMatrix(N, 0)},
+      std::pair{TriangularMatrix(N, 0), TriangularMatrix(N, 0)},
+      std::pair{TriangularMatrix(N, 0), TriangularMatrix(N, 0)}};
 
   // Take care of boundary issues
   const auto    colat     = Conversion::deg2rad(90.0 - lat);
@@ -161,23 +137,30 @@ std::array<std::pair<SchmidtMatrix, SchmidtMatrix>, 3> dschmidt_fieldcalc(const 
 
   // Fix the phi component if sin_theta is not zero
   if (std::abs(sin_theta) > 1e-6) {
-    dB[2].first.x  /= sin_theta;
-    dB[2].second.x /= sin_theta;
+    dB[2].first.flat()  /= sin_theta;
+    dB[2].second.flat() /= sin_theta;
   } else {
-    dB[2].first.x  = 0.0;
-    dB[2].second.x = 0.0;
+    dB[2].first.flat()  = 0.0;
+    dB[2].second.flat() = 0.0;
   }
 
   return dB;
 }
 ARTS_METHOD_ERROR_CATCH
 
-Vector3 schmidt_fieldcalc(const SchmidtMatrixView& g, const SchmidtMatrixView& h, const Numeric r0, const Vector3 pos) {
+Vector3 schmidt_fieldcalc(const ConstTriangularMatrixView& g,
+                          const ConstTriangularMatrixView& h,
+                          const Numeric                    r0,
+                          const Vector3                    pos) {
   const auto [r, lat, lon] = pos;
 
-  ARTS_USER_ERROR_IF(lat < -90 and lat > 90, "Latitude is {} should be in [-90, 90]", lat)
+  ARTS_USER_ERROR_IF(lat < -90 or lat > 90, "Latitude is {} should be in [-90, 90]", lat)
+  ARTS_USER_ERROR_IF(g.extent(0) != h.extent(0),
+                     "The g-coefficients are {0} x {0} but the h-coefficients are {1} x {1}",
+                     g.extent(0),
+                     h.extent(0))
 
-  const Index N = h.N;
+  const Index N = h.extent(0);
 
   // Take care of boundary issues
   const auto    colat     = Conversion::deg2rad(90.0 - lat);
@@ -201,7 +184,12 @@ Vector3 schmidt_fieldcalc(const SchmidtMatrixView& g, const SchmidtMatrixView& h
   Numeric       ratn    = r_ratio * r_ratio;
   for (Index n = 1; n < N; ++n) {
     ratn *= r_ratio;
-    for (Index m = 0; m < n + 1; ++m) {
+
+    // The h with m = 0 do not affect the field, and the m = 0 terms not the longitudinal component
+    B[0] += g[n, 0] * P[n, 0] * (n + 1) * ratn;
+    B[1] -= g[n, 0] * dP[n, 0] * ratn;
+
+    for (Index m = 1; m < n + 1; ++m) {
       B[0] += (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * P[n, m] * (n + 1) * ratn;
       B[1] -= (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * dP[n, m] * ratn;
       B[2] += (g[n, m] * sinm[m] - h[n, m] * cosm[m]) * P[n, m] * m * ratn;
