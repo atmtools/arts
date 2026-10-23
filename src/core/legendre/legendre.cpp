@@ -184,7 +184,12 @@ Vector3 schmidt_fieldcalc(const ConstTriangularMatrixView& g,
   Numeric       ratn    = r_ratio * r_ratio;
   for (Index n = 1; n < N; ++n) {
     ratn *= r_ratio;
-    for (Index m = 0; m < n + 1; ++m) {
+
+    // The h with m = 0 do not affect the field, and the m = 0 terms not the longitudinal component
+    B[0] += g[n, 0] * P[n, 0] * (n + 1) * ratn;
+    B[1] -= g[n, 0] * dP[n, 0] * ratn;
+
+    for (Index m = 1; m < n + 1; ++m) {
       B[0] += (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * P[n, m] * (n + 1) * ratn;
       B[1] -= (g[n, m] * cosm[m] + h[n, m] * sinm[m]) * dP[n, m] * ratn;
       B[2] += (g[n, m] * sinm[m] - h[n, m] * cosm[m]) * P[n, m] * m * ratn;

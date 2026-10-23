@@ -20,3 +20,8 @@ add_executable(test_geodetic test_geodetic.cpp)
 target_link_libraries(test_geodetic PUBLIC geodesy matpack)
 add_test(NAME "cpp.fast.core.test_geodetic" COMMAND test_geodetic)
 add_dependencies(check-deps test_geodetic)
+
+add_executable(test_schmidt_legendre_jacobian test_schmidt_legendre_jacobian.cpp)
+target_link_libraries(test_schmidt_legendre_jacobian PUBLIC functional_numeric_ternary)
+add_test(NAME "cpp.fast.core.test_schmidt_legendre_jacobian" COMMAND test_schmidt_legendre_jacobian)
+add_dependencies(check-deps test_schmidt_legendre_jacobian)

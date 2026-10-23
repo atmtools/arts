@@ -332,14 +332,6 @@ The standard HAPI separator of comma (",") is presumed between fields.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name            = "TimeStepType",
-      .desc            = "Time step for the integration.  Is often accompanied by a value.\n",
-      .values_and_desc = {Value{"hour", "hours", "h", "Time step is in hours"},
-                          Value{"minute", "minutes", "min", "Time step is in minutes"},
-                          Value{"second", "seconds", "s", "Time step is in seconds"}},
-  });
-
-  opts.emplace_back(EnumeratedOption{
       .name            = "GridType",
       .desc            = R"(Type of Lagrange interpolation weights.
 )",

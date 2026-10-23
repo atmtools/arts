@@ -69,10 +69,10 @@ void py_time(py::module_& m) try {
             t->Seconds(x);
           },
           "From :class:`float` seconds from Unix time start")
-      .def(
-          py::init<std::string>(),
-          "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\", optionally with fractional seconds and an offset from UTC, "
-          "e.g., \"2000-01-01 12:00:00.5+09:00\".  Times without an offset are UTC")
+      .def(py::init<std::string>(),
+           "From :class:`str` of form \"YYYY-MM-DD hh:mm:ss\" or \"YYYY-MM-DDThh:mm:ss\", optionally with fractional "
+           "seconds and an offset from UTC, \"Z\", \"+hh:mm\" or \"-hh:mm\", e.g., \"2000-01-01T12:00:00.5+09:00\".  "
+           "Times without an offset are UTC")
       .def(
           "__init__",
           [](Time* t, const py::object& dt) {

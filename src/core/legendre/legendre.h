@@ -43,7 +43,9 @@ void schmidt(MatrixView P, MatrixView dP, const Numeric theta);
  * at https://github.com/de-oliveira/IsabelaFunctions/blob/master/IsabelaFunctions/fieldmodel.py
  * (2021-05-06).
  *
- * The n = 0 coefficients are ignored, as there are no magnetic monopoles.
+ * The n = 0 coefficients, as there are no magnetic monopoles, and the h with
+ * m = 0 do not affect the field and are not used, so they may be NaN.  The
+ * m = 0 coefficients do not affect the longitudinal component.
  * 
  * @param[in] g A N x N lower triangular matrix of g-coefficients
  * @param[in] h A N x N lower triangular matrix of h-coefficients
