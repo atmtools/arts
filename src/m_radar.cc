@@ -20,15 +20,14 @@
 namespace {
 
 Numeric liebe93_k2(const Numeric frequency, const Numeric temperature) {
-  ARTS_USER_ERROR_IF(
-      temperature < Constant::temperature_at_0c - 40.0 or temperature > Constant::temperature_at_0c + 100.0,
-      "Automatic radar k2 requires {} K <= ze_tref <= {} K; got {} K",
-      Constant::temperature_at_0c - 40.0,
-      Constant::temperature_at_0c + 100.0,
-      temperature)
-  ARTS_USER_ERROR_IF(frequency < 10e9 or frequency > 1000e9,
-                     "Automatic radar k2 uses Liebe-93 and requires 10 GHz <= frequency <= 1000 GHz; got {} Hz",
-                     frequency)
+  if (temperature < Constant::temperature_at_0c - 40.0 or temperature > Constant::temperature_at_0c + 100.0)
+    arts::user_error("Automatic radar k2 requires {} K <= ze_tref <= {} K; got {} K",
+                     Constant::temperature_at_0c - 40.0,
+                     Constant::temperature_at_0c + 100.0,
+                     temperature);
+  if (frequency < 10e9 or frequency > 1000e9)
+    arts::user_error("Automatic radar k2 uses Liebe-93 and requires 10 GHz <= frequency <= 1000 GHz; got {} Hz",
+                     frequency);
 
   const Numeric theta = 1.0 - 300.0 / temperature;
   const Numeric e0    = 77.66 - 103.3 * theta;
@@ -44,7 +43,7 @@ Numeric liebe93_k2(const Numeric frequency, const Numeric temperature) {
 
 Numeric ze_factor(const Numeric frequency, const Numeric ze_tref, const Numeric k2) {
   const Numeric dielectric = k2 < 0.0 ? liebe93_k2(frequency, ze_tref) : k2;
-  ARTS_USER_ERROR_IF(dielectric <= 0.0, "Radar k2 must be positive, or negative to request Liebe-93; got {}", k2)
+  if (dielectric <= 0.0) arts::user_error("Radar k2 must be positive, or negative to request Liebe-93; got {}", k2);
   const Numeric wavelength = Constant::speed_of_light / frequency;
   return 4e18 * std::pow(wavelength, 4) / (std::pow(Constant::pi, 4) * dielectric);
 }
@@ -146,8 +145,8 @@ OpticalProfile optical_profile(const Workspace&                   ws,
         std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{transmit_los[0]}));
     const auto bulk_return = scattering_species.get_bulk_scattering_properties_aro_gridded(
         atm_path[ip], frequency, Vector{receive_los[0]}, Vector{0.0}, transmit_za);
-    ARTS_USER_ERROR_IF(not bulk_outgoing.phase_matrix.has_value(),
-                       "Radar single scattering requires phase matrices from all scattering species")
+    if (not bulk_outgoing.phase_matrix.has_value())
+      arts::user_error("Radar single scattering requires phase matrices from all scattering species");
 
     const auto& phase = *bulk_outgoing.phase_matrix;
     for (Size iv = 0; iv < nf; ++iv) {
@@ -168,7 +167,7 @@ OpticalProfile optical_profile(const Workspace&                   ws,
           std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{transmit_los[0]}));
       const auto dbulk_return = scattering_species.get_bulk_scattering_properties_aro_gridded_derivative(
           atm_path[ip], frequency, Vector{receive_los[0]}, Vector{0.0}, transmit_za_jac, target.type);
-      ARTS_USER_ERROR_IF(not dbulk_outgoing.phase_matrix, "Radar derivatives require scattering phase matrices")
+      if (not dbulk_outgoing.phase_matrix) arts::user_error("Radar derivatives require scattering phase matrices");
       const auto& dphase = *dbulk_outgoing.phase_matrix;
       for (Size iv = 0; iv < nf; ++iv) {
         out.outgoing_extinction_jac[ip][target.target_pos, iv] = gas_outgoing_jac[target.target_pos, iv];
@@ -197,7 +196,7 @@ RadarRangeMode range_mode(const String& mode, const Matrix& limits) {
       for (Index j = 0; j < limits.ncols(); ++j) largest = std::max(largest, limits[i, j]);
     return largest > 1.0 ? RadarRangeMode::Altitude : RadarRangeMode::RoundTripTime;
   }
-  ARTS_USER_ERROR("Unknown radar range_mode \"{}\". Expected Altitude, Distance, RoundTripTime, or Legacy.", mode)
+  arts::user_error("Unknown radar range_mode \"{}\". Expected Altitude, Distance, RoundTripTime, or Legacy.", mode);
 }
 
 Vector range_coordinate(const ArrayOfPropagationPathPoint& ray_path,
@@ -229,7 +228,7 @@ Vector range_coordinate(const ArrayOfPropagationPathPoint& ray_path,
 }
 
 template <class T> std::optional<T> bin_average(const Vector& x, const std::vector<T>& y, Numeric lo, Numeric hi) {
-  ARTS_USER_ERROR_IF(x.size() != y.size(), "Internal radar range/profile size mismatch")
+  if (x.size() != y.size()) arts::user_error("Internal radar range/profile size mismatch");
   if (x.size() < 2) return std::nullopt;
 
   const bool    increasing = x.back() > x.front();
@@ -529,15 +528,14 @@ void measurement_sensorAddSimpleRadar(ArrayOfSensorObsel&    measurement_sensor,
                                       const Stokvec&         pol,
                                       const AscendingGrid&   range_bins) try {
   ARTS_TIME_REPORT
-  ARTS_USER_ERROR_IF(freq_grid.empty(), "Radar frequency grid cannot be empty")
-  ARTS_USER_ERROR_IF(range_bins.size() < 2, "Radar range_bins needs at least two edges")
+  if (freq_grid.empty()) arts::user_error("Radar frequency grid cannot be empty");
+  if (range_bins.size() < 2) arts::user_error("Radar range_bins needs at least two edges");
 
   const Size old_n = measurement_sensor.size();
-  ARTS_USER_ERROR_IF(radar_range_limits.nrows() != 0 and
-                         (radar_range_limits.ncols() != 2 or static_cast<Size>(radar_range_limits.nrows()) != old_n),
-                     "radar_range_limits must be empty or have shape [{}, 2], got {:B,}",
-                     old_n,
-                     radar_range_limits.shape())
+  if (radar_range_limits.nrows() != 0 and
+      (radar_range_limits.ncols() != 2 or static_cast<Size>(radar_range_limits.nrows()) != old_n))
+    arts::user_error(
+        "radar_range_limits must be empty or have shape [{}, 2], got {:B,}", old_n, radar_range_limits.shape());
 
   const Size nbins = range_bins.size() - 1;
   const Size nnew  = freq_grid.size() * nbins;
@@ -597,36 +595,31 @@ void measurement_vecFromRadarSingleScattering(const Workspace&                ws
                                               const ArrayOfString&            aux_vars) try {
   ARTS_TIME_REPORT
   const Size ny = measurement_sensor.size();
-  ARTS_USER_ERROR_IF(ny == 0, "measurement_sensor cannot be empty for a radar calculation")
-  ARTS_USER_ERROR_IF(radar_range_limits.nrows() != static_cast<Index>(ny) or radar_range_limits.ncols() != 2,
-                     "radar_range_limits must have shape [{}, 2], got {:B,}",
-                     ny,
-                     radar_range_limits.shape())
+  if (ny == 0) arts::user_error("measurement_sensor cannot be empty for a radar calculation");
+  if (radar_range_limits.nrows() != static_cast<Index>(ny) or radar_range_limits.ncols() != 2)
+    arts::user_error("radar_range_limits must have shape [{}, 2], got {:B,}", ny, radar_range_limits.shape());
   for (Size iy = 0; iy < ny; ++iy) {
     measurement_sensor[iy].check();
-    ARTS_USER_ERROR_IF(not(radar_range_limits[iy, 0] < radar_range_limits[iy, 1]),
-                       "Radar range limits in row {} are not strictly increasing: [{}, {}]",
+    if (not(radar_range_limits[iy, 0] < radar_range_limits[iy, 1]))
+      arts::user_error("Radar range limits in row {} are not strictly increasing: [{}, {}]",
                        iy,
                        radar_range_limits[iy, 0],
-                       radar_range_limits[iy, 1])
+                       radar_range_limits[iy, 1]);
   }
-  ARTS_USER_ERROR_IF(transmitted_stokes.I() != 1.0,
-                     "The transmitted Stokes I component must equal one, got {}",
-                     transmitted_stokes.I())
-  ARTS_USER_ERROR_IF(unit != "1" and unit != "Ze" and unit != "dBZe",
-                     "Radar unit must be \"1\", \"Ze\", or \"dBZe\"; got \"{}\"",
-                     unit)
-  ARTS_USER_ERROR_IF(
-      pext_scaling < 0.0 or pext_scaling > 2.0, "pext_scaling must be between 0 and 2; got {}", pext_scaling)
-  ARTS_USER_ERROR_IF(scattering_species.species.empty(), "Radar single scattering requires scattering species")
-  ARTS_USER_ERROR_IF(not jac_targets.surf.empty() or not jac_targets.subsurf.empty() or not jac_targets.line.empty() or
-                         not jac_targets.sensor.empty() or not jac_targets.error.empty(),
-                     "The radar forward model currently supports atmospheric Jacobian targets only")
+  if (transmitted_stokes.I() != 1.0)
+    arts::user_error("The transmitted Stokes I component must equal one, got {}", transmitted_stokes.I());
+  if (unit != "1" and unit != "Ze" and unit != "dBZe")
+    arts::user_error("Radar unit must be \"1\", \"Ze\", or \"dBZe\"; got \"{}\"", unit);
+  if (pext_scaling < 0.0 or pext_scaling > 2.0)
+    arts::user_error("pext_scaling must be between 0 and 2; got {}", pext_scaling);
+  if (scattering_species.species.empty()) arts::user_error("Radar single scattering requires scattering species");
+  if (not jac_targets.surf.empty() or not jac_targets.subsurf.empty() or not jac_targets.line.empty() or
+      not jac_targets.sensor.empty() or not jac_targets.error.empty())
+    arts::user_error("The radar forward model currently supports atmospheric Jacobian targets only");
   for (const auto& name : aux_vars) {
-    ARTS_USER_ERROR_IF(name != "Radiative background" and name != "Backscattering" and
-                           name != "Abs species extinction" and name != "Particle extinction",
-                       "Unknown radar auxiliary variable \"{}\"",
-                       name)
+    if (name != "Radiative background" and name != "Backscattering" and name != "Abs species extinction" and
+        name != "Particle extinction")
+      arts::user_error("Unknown radar auxiliary variable \"{}\"", name);
   }
 
   const RadarRangeMode            coordinate_mode = range_mode(range_mode_string, radar_range_limits);
@@ -705,20 +698,18 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
   ARTS_TIME_REPORT
   const Size ny = measurement_sensor.size();
   const Size nx = jac_targets.x_size();
-  ARTS_USER_ERROR_IF(radar_range_limits.nrows() != static_cast<Index>(ny) or radar_range_limits.ncols() != 2,
-                     "radar_range_limits must have shape [{}, 2], got {:B,}",
-                     ny,
-                     radar_range_limits.shape())
-  ARTS_USER_ERROR_IF(nx == 0 or jac_targets.atm.empty(),
-                     "Radar onion peeling requires at least one finalized atmospheric Jacobian target")
-  ARTS_USER_ERROR_IF(not jac_targets.surf.empty() or not jac_targets.subsurf.empty() or not jac_targets.line.empty() or
-                         not jac_targets.sensor.empty() or not jac_targets.error.empty(),
-                     "Radar onion peeling currently changes atmospheric state coordinates only")
-  ARTS_USER_ERROR_IF(state_min > state_max, "state_min ({}) exceeds state_max ({})", state_min, state_max)
-  ARTS_USER_ERROR_IF(max_step <= 0.0, "max_step must be positive, got {}", max_step)
-  ARTS_USER_ERROR_IF(tolerance <= 0.0, "tolerance must be positive, got {}", tolerance)
-  ARTS_USER_ERROR_IF(max_iterations < 1, "max_iterations must be positive, got {}", max_iterations)
-  ARTS_USER_ERROR_IF(max_sweeps < 1, "max_sweeps must be positive, got {}", max_sweeps)
+  if (radar_range_limits.nrows() != static_cast<Index>(ny) or radar_range_limits.ncols() != 2)
+    arts::user_error("radar_range_limits must have shape [{}, 2], got {:B,}", ny, radar_range_limits.shape());
+  if (nx == 0 or jac_targets.atm.empty())
+    arts::user_error("Radar onion peeling requires at least one finalized atmospheric Jacobian target");
+  if (not jac_targets.surf.empty() or not jac_targets.subsurf.empty() or not jac_targets.line.empty() or
+      not jac_targets.sensor.empty() or not jac_targets.error.empty())
+    arts::user_error("Radar onion peeling currently changes atmospheric state coordinates only");
+  if (state_min > state_max) arts::user_error("state_min ({}) exceeds state_max ({})", state_min, state_max);
+  if (max_step <= 0.0) arts::user_error("max_step must be positive, got {}", max_step);
+  if (tolerance <= 0.0) arts::user_error("tolerance must be positive, got {}", tolerance);
+  if (max_iterations < 1) arts::user_error("max_iterations must be positive, got {}", max_iterations);
+  if (max_sweeps < 1) arts::user_error("max_sweeps must be positive, got {}", max_sweeps);
 
   // The state is deliberately obtained and applied through the normal target
   // transformations.  The peeled profile is therefore an ordinary ARTS model
@@ -766,7 +757,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
     const Numeric center = std::midpoint(radar_range_limits[iy, 0], radar_range_limits[iy, 1]);
     if (coordinate_mode != RadarRangeMode::Altitude) return center;
     const auto& poslos = measurement_sensor[iy].poslos_grid();
-    ARTS_USER_ERROR_IF(poslos.empty(), "Radar observation {} has no position/LOS geometry", iy)
+    if (poslos.empty()) arts::user_error("Radar observation {} has no position/LOS geometry", iy);
     return std::abs(center - poslos.front().pos[0]);
   };
   stdr::stable_sort(order, [&](const Size a, const Size b) { return distance_key(a) < distance_key(b); });
@@ -799,10 +790,9 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
       }
 
       const Numeric derivative = measurement_jac[iy, ix_best];
-      ARTS_USER_ERROR_IF(not std::isfinite(derivative) or derivative == 0.0,
-                         "Radar onion peeling encountered a zero/non-finite derivative for gate {} and state {}",
-                         iy,
-                         ix_best)
+      if (not std::isfinite(derivative) or derivative == 0.0)
+        arts::user_error(
+            "Radar onion peeling encountered a zero/non-finite derivative for gate {} and state {}", iy, ix_best);
       Numeric step             = residual / derivative;
       step                     = std::clamp(step, -max_step, max_step);
       model_state_vec[ix_best] = std::clamp(model_state_vec[ix_best] + step, state_min, state_max);
@@ -813,12 +803,12 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
       const Numeric residual = measurement_vec[iy] - measurement_vec_fit[iy];
       converged = std::abs(residual) <= tolerance * std::max(Numeric{1e-30}, std::abs(measurement_vec[iy]));
     }
-    ARTS_USER_ERROR_IF(not converged,
-                       "Radar onion peeling did not converge for gate {} (observed {}, fitted {}) after {} iterations",
+    if (not converged)
+      arts::user_error("Radar onion peeling did not converge for gate {} (observed {}, fitted {}) after {} iterations",
                        iy,
                        measurement_vec[iy],
                        measurement_vec_fit[iy],
-                       max_iterations)
+                       max_iterations);
     peeled[ix_best] = true;
     gate_state.emplace_back(iy, ix_best);
   }
@@ -841,10 +831,9 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
         const Numeric residual = measurement_vec[iy] - measurement_vec_fit[iy];
         if (std::abs(residual) <= tolerance * std::max(Numeric{1e-30}, std::abs(measurement_vec[iy]))) break;
         const Numeric derivative = measurement_jac[iy, ix];
-        ARTS_USER_ERROR_IF(not std::isfinite(derivative) or derivative == 0.0,
-                           "Radar onion peeling encountered a zero/non-finite derivative for gate {} and state {}",
-                           iy,
-                           ix)
+        if (not std::isfinite(derivative) or derivative == 0.0)
+          arts::user_error(
+              "Radar onion peeling encountered a zero/non-finite derivative for gate {} and state {}", iy, ix);
         Numeric step        = std::clamp(residual / derivative, -max_step, max_step);
         model_state_vec[ix] = std::clamp(model_state_vec[ix] + step, state_min, state_max);
         for (const auto& target : jac_targets.atm) target.update_model(atm_field, model_state_vec);
@@ -853,8 +842,8 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
     }
     all_converged = fit_is_converged();
   }
-  ARTS_USER_ERROR_IF(
-      not all_converged, "Radar onion peeling did not produce a mutually consistent fit after {} sweeps", max_sweeps)
+  if (not all_converged)
+    arts::user_error("Radar onion peeling did not produce a mutually consistent fit after {} sweeps", max_sweeps);
 
   // Ensure the returned field, fit, and Jacobian all represent precisely the
   // returned state, ready for a subsequent OEM calculation.

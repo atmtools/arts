@@ -43,7 +43,7 @@ void band_data::sort(LineByLineVariable v) {
     case f0:     stdr::sort(lines, {}, &line::f0); break;
     case e0:     stdr::sort(lines, {}, &line::e0); break;
     case a:      stdr::sort(lines, {}, &line::a); break;
-    case unused: ARTS_USER_ERROR("Invalid operation");
+    case unused: arts::user_error("Invalid operation");
   }
 }
 
@@ -64,7 +64,7 @@ std::pair<Size, std::span<const line>> band_data::active_lines(Numeric f0, Numer
 }
 
 Rational band_data::max(QuantumNumberType x) const try {
-  ARTS_USER_ERROR_IF(lines.empty(), "Must have lines")
+  if (lines.empty()) arts::user_error("Must have lines");
 
   Rational out{maxr(lines.front().qn.at(x).upper, lines.front().qn.at(x).lower)};
   for (auto& line : lines | stdv::drop(1)) {
@@ -81,24 +81,25 @@ template <typename T> auto local_get_value(T& abs_bands, const line_key& type)
     -> std::conditional_t<std::is_const_v<T>, const Numeric&, Numeric&> {
   auto ptr = abs_bands.find(type.band);
 
-  ARTS_USER_ERROR_IF(ptr == abs_bands.end(), "No band with quantum identifier: {}", type.band);
+  if (ptr == abs_bands.end()) arts::user_error("No band with quantum identifier: {}", type.band);
 
   auto& band = ptr->second;
 
-  ARTS_USER_ERROR_IF(type.line >= band.lines.size(),
-                     "Line index out of range: {}"
-                     " band has {}"
-                     " absorption lines. Band: {}",
-                     type.line,
-                     band.lines.size(),
-                     type.band);
+  if (type.line >= band.lines.size())
+    arts::user_error(
+        "Line index out of range: {}"
+        " band has {}"
+        " absorption lines. Band: {}",
+        type.line,
+        band.lines.size(),
+        type.band);
   auto& line = band.lines[type.line];
 
   if (type.ls_var == LineShapeModelVariable::unused) {
     auto&      line_ls_data = line.ls.single_models;
     const auto ptr          = line_ls_data.find(type.spec);
-    ARTS_USER_ERROR_IF(ptr == line_ls_data.end(),
-                       R"(Missing data.
+    if (ptr == line_ls_data.end())
+      arts::user_error(R"(Missing data.
 Species: {}
 Line:    {}
 Band:    {}
@@ -109,8 +110,8 @@ Band:    {}
 
     auto& ls_data = ptr->second.data;
     auto  ls_ptr  = ls_data.find(type.ls_var);
-    ARTS_USER_ERROR_IF(ls_ptr == ls_data.end(),
-                       R"(Missing data.
+    if (ls_ptr == ls_data.end())
+      arts::user_error(R"(Missing data.
 Line Shape Model Variable: {}
 Species:                   {}
 Line:                      {}
@@ -128,7 +129,7 @@ Band:                      {}
     case LineByLineVariable::f0:     return line.f0;
     case LineByLineVariable::e0:     return line.e0;
     case LineByLineVariable::a:      return line.a;
-    case LineByLineVariable::unused: ARTS_USER_ERROR("Invalid operation");
+    case LineByLineVariable::unused: arts::user_error("Invalid operation");
   }
 
   std::unreachable();
@@ -192,8 +193,8 @@ void keep_hitran_s(std::unordered_map<QuantumIdentifier, band_data>& bands,
 
 std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands, const Numeric approx_percentile, const Numeric T0) {
-  ARTS_USER_ERROR_IF(approx_percentile < 0 or approx_percentile > 100,
-                     "Approximate percentile must be between 0 and 100");
+  if (approx_percentile < 0 or approx_percentile > 100)
+    arts::user_error("Approximate percentile must be between 0 and 100");
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
@@ -216,8 +217,8 @@ std::unordered_map<SpeciesEnum, Numeric> percentile_hitran_s(
     const std::unordered_map<QuantumIdentifier, band_data>& bands,
     const std::unordered_map<SpeciesEnum, Numeric>&         approx_percentile,
     const Numeric                                           T0) {
-  ARTS_USER_ERROR_IF(stdr::any_of(approx_percentile | stdv::values, [](auto i) { return i < 0 or i > 100; }),
-                     "Approximate percentile must be between 0 and 100");
+  if (stdr::any_of(approx_percentile | stdv::values, [](auto i) { return i < 0 or i > 100; }))
+    arts::user_error("Approximate percentile must be between 0 and 100");
 
   std::unordered_map<SpeciesEnum, std::vector<Numeric>> compute;
   for (auto& [key, data] : bands) {
@@ -349,7 +350,7 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream&         os,
                                           const AbsorptionBand& data,
                                           bofstream*            pbofs,
                                           std::string_view      name) {
-  ARTS_USER_ERROR_IF(pbofs not_eq nullptr, "No binary data")
+  if (pbofs not_eq nullptr) arts::user_error("No binary data");
 
   XMLTag tag(type_name,
              "name",
@@ -370,7 +371,7 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream&         os,
 }
 
 void xml_io_stream<AbsorptionBand>::read(std::istream& is, AbsorptionBand& data, bifstream* pbifs) try {
-  ARTS_USER_ERROR_IF(pbifs not_eq nullptr, "No binary data")
+  if (pbifs not_eq nullptr) arts::user_error("No binary data");
 
   String tag;
   Index  nelem;

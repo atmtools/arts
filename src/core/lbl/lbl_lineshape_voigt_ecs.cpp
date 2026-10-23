@@ -53,13 +53,13 @@ void ComputeData::core_calc_eqv() {
   // The carrier frequency is subtracted from Ws and dW in place; both are
   // rebuilt by every adapt() call and are not read again after this one.
   const Size n = pop.size(), m = vmrs.size(), nt = dW.npages();
-  ARTS_USER_ERROR_IF(dip.size() != n or Ws.npages() != static_cast<Index>(m) or Ws.nrows() != static_cast<Index>(n) or
-                         Ws.ncols() != static_cast<Index>(n),
-                     "Inconsistent ECS matrix and population dimensions")
-  ARTS_USER_ERROR_IF(nt and (m != 1 or dW.nrows() != static_cast<Index>(n) or dW.ncols() != static_cast<Index>(n) or
-                             dpop.nrows() != static_cast<Index>(nt) or dpop.ncols() != static_cast<Index>(n) or
-                             ddip.shape() != dpop.shape()),
-                     "Inconsistent ECS Jacobian dimensions")
+  if (dip.size() != n or Ws.npages() != static_cast<Index>(m) or Ws.nrows() != static_cast<Index>(n) or
+      Ws.ncols() != static_cast<Index>(n))
+    arts::user_error("Inconsistent ECS matrix and population dimensions");
+  if (nt and
+      (m != 1 or dW.nrows() != static_cast<Index>(n) or dW.ncols() != static_cast<Index>(n) or
+       dpop.nrows() != static_cast<Index>(nt) or dpop.ncols() != static_cast<Index>(n) or ddip.shape() != dpop.shape()))
+    arts::user_error("Inconsistent ECS Jacobian dimensions");
   eqv_strs.resize(m, n);
   eqv_vals.resize(m, n);
   V.resize(n, n);
@@ -91,7 +91,7 @@ void ComputeData::core_calc_eqv() {
       for (Size j = 0; j < n; ++j) row_sum += std::abs(W[i, j]);
       matrix_norm = std::max(matrix_norm, row_sum);
     }
-    ARTS_USER_ERROR_IF(not std::isfinite(matrix_norm), "ECS centered matrix norm overflowed")
+    if (not std::isfinite(matrix_norm)) arts::user_error("ECS centered matrix norm overflowed");
 
     bool changes_operator = false;
     if (nt) {
@@ -113,9 +113,8 @@ void ComputeData::core_calc_eqv() {
     eigenvector_rcond[k]            = solve(coefficients, V, rhs, 1e-12);
     const Numeric damping_tolerance = 64 * std::numeric_limits<Numeric>::epsilon() * matrix_norm;
     for (Size i = 0; i < n; ++i) {
-      ARTS_USER_ERROR_IF(eqv_val[i].imag() < -damping_tolerance,
-                         "ECS relaxation matrix has a negative damping eigenvalue: {} Hz",
-                         eqv_val[i])
+      if (eqv_val[i].imag() < -damping_tolerance)
+        arts::user_error("ECS relaxation matrix has a negative damping eigenvalue: {} Hz", eqv_val[i]);
       if (eqv_val[i].imag() < 0) {
         eqv_val[i].imag(0);
         for (Size t = 0; t < nt; ++t) deqv_vals[t, i].imag(0);
@@ -147,8 +146,8 @@ void ComputeData::core_calc_eqv() {
 }
 
 void ComputeData::core_calc(const ConstVectorView& f_grid) try {
-  ARTS_USER_ERROR_IF(dgd_fac.size() != static_cast<Size>(dW.npages()) or df.size() != dgd_fac.size(),
-                     "Inconsistent ECS profile Jacobian dimensions")
+  if (dgd_fac.size() != static_cast<Size>(dW.npages()) or df.size() != dgd_fac.size())
+    arts::user_error("Inconsistent ECS profile Jacobian dimensions");
   core_calc_eqv();
   const Size m = vmrs.size(), nf = f_grid.size(), nt = dW.npages();
   shape.resize(nf);
@@ -159,9 +158,8 @@ void ComputeData::core_calc(const ConstVectorView& f_grid) try {
     if (vmrs[k] == 0) continue;
     for (Size i = 0; i < eqv_strs[k].size(); ++i) {
       const Numeric gamd = gd_fac * eqv_vals[k, i].real();
-      ARTS_USER_ERROR_IF(not std::isfinite(gamd) or gamd <= 0,
-                         "ECS Gaussian 1/e half-width must be positive and finite, got {} Hz",
-                         gamd)
+      if (not std::isfinite(gamd) or gamd <= 0)
+        arts::user_error("ECS Gaussian 1/e half-width must be positive and finite, got {} Hz", gamd);
       const Numeric inv_gamd = 1 / gamd;
       for (Size iv = 0; iv < nf; ++iv) {
         const Complex z   = (eqv_vals[k, i] - f_grid[iv]) * inv_gamd;
@@ -183,15 +181,15 @@ namespace {
 void get_vmrs(VectorView vmrs, const line_shape::model::map_t& mod, const AtmPoint& atm) {
   std::transform(mod.begin(), mod.end(), vmrs.begin(), [&atm](const auto& m) {
     const Numeric x = m.first == SpeciesEnum::Bath or not atm.has(m.first) ? 0.0 : atm[m.first];
-    ARTS_USER_ERROR_IF(not std::isfinite(x) or x < 0, "Invalid ECS broadener VMR for {}: {}", m.first, x)
+    if (not std::isfinite(x) or x < 0) arts::user_error("Invalid ECS broadener VMR for {}: {}", m.first, x);
     return x;
   });
 
   const Numeric total = sum(vmrs);
-  ARTS_USER_ERROR_IF(not std::isfinite(total), "Non-finite total ECS broadener VMR")
+  if (not std::isfinite(total)) arts::user_error("Non-finite total ECS broadener VMR");
   const Size bath_spec = std::distance(mod.begin(), mod.find(SpeciesEnum::Bath));
   if (bath_spec != mod.size()) {
-    ARTS_USER_ERROR_IF(total > 1 + 1e-12, "ECS explicit broadener VMRs exceed unity: {}", total)
+    if (total > 1 + 1e-12) arts::user_error("ECS explicit broadener VMRs exceed unity: {}", total);
     vmrs[bath_spec] = std::max(Numeric{0}, 1 - total);
   } else if (total > 0) {
     vmrs /= total;
@@ -222,7 +220,7 @@ void get_dvmrs(MatrixView                      out,
       } else if (total > 0) {
         out[target.target_pos, i] = (Numeric(spec == *species) - fractions[i]) / total;
       } else {
-        ARTS_USER_ERROR("ECS VMR derivatives require a nonzero total broadener VMR when no Bath is present")
+        arts::user_error("ECS VMR derivatives require a nonzero total broadener VMR when no Bath is present");
       }
       ++i;
     }
@@ -309,7 +307,7 @@ Offdiagonal offdiagonal_kernel(LineByLineLineshape lineshape) {
   switch (lineshape) {
     case VP_ECS_MAKAROV:  return makarov::relaxation_matrix_offdiagonal;
     case VP_ECS_HARTMANN: return hartmann::relaxation_matrix_offdiagonal;
-    default:              ARTS_USER_ERROR("Unknown ECS line shape {}", lineshape)
+    default:              arts::user_error("Unknown ECS line shape {}", lineshape);
   }
 }
 
@@ -322,7 +320,7 @@ Numeric reduced_dipole(const QuantumIdentifier& qid, const band_data& bnd, const
       const auto& l = qid.state.at(QuantumNumberType::l2);
       return hartmann::reduced_dipole(J.upper, J.lower, l.upper, l.lower);
     }
-    default: ARTS_USER_ERROR("Unknown ECS line shape {}", bnd.lineshape)
+    default: arts::user_error("Unknown ECS line shape {}", bnd.lineshape);
   }
 }
 
@@ -342,7 +340,7 @@ Numeric closure_residual(ConstMatrixView W, ConstVectorView d) {
 }  // namespace
 
 void prepare_rotational_ladder(energy_data& energies, const int count, Numeric (*energy)(Rational)) {
-  ARTS_USER_ERROR_IF(count < 0 or energy == nullptr, "Invalid ECS reference-rotor preparation")
+  if (count < 0 or energy == nullptr) arts::user_error("Invalid ECS reference-rotor preparation");
   energies.rotational.resize(count);
   energies.rotational_minus_two.resize(count);
   for (Index L = 0; L < count; ++L) {
@@ -358,10 +356,9 @@ basis_data prepare_basis(const int                       count,
                          const SpeciesIsotope&           isot,
                          const SpeciesEnum               broadener,
                          const AtmPoint&                 atm) {
-  ARTS_USER_ERROR_IF(count < 0 or energies.rotational.size() < static_cast<Size>(count) or
-                         energies.rotational_minus_two.size() < static_cast<Size>(count),
-                     "Incomplete ECS reference-rotor energies for {}",
-                     isot)
+  if (count < 0 or energies.rotational.size() < static_cast<Size>(count) or
+      energies.rotational_minus_two.size() < static_cast<Size>(count))
+    arts::user_error("Incomplete ECS reference-rotor energies for {}", isot);
   basis_data    out{.Q = Vector(count, 0.0), .Omega = Vector(count)};
   const Numeric mass = broadener == SpeciesEnum::Bath ? atm.mean_mass() : atm.mean_mass(broadener);
   for (Index L = 0; L < count; ++L) {
@@ -374,11 +371,8 @@ basis_data prepare_basis(const int                       count,
     out.Q[L] = collision.Q(Rational{L}, atm.temperature, T0, energies.rotational[L]);
   }
   for (Index L = 0; L < count; ++L) {
-    ARTS_USER_ERROR_IF(not std::isfinite(out.Omega[L]) or out.Omega[L] <= 0 or not std::isfinite(out.Q[L]),
-                       "Invalid ECS basis rate or adiabaticity factor at L={} for {} and {}",
-                       L,
-                       isot,
-                       broadener)
+    if (not std::isfinite(out.Omega[L]) or out.Omega[L] <= 0 or not std::isfinite(out.Q[L]))
+      arts::user_error("Invalid ECS basis rate or adiabaticity factor at L={} for {} and {}", L, isot, broadener);
   }
   return out;
 }
@@ -387,12 +381,12 @@ void apply_sum_rule(
     MatrixView W, ConstVectorView dipr, ConstVectorView e0, Numeric T, Tensor3View dW, ConstVectorView dT) {
   const Size  n  = dipr.size();
   const Index nq = dW.npages();
-  ARTS_USER_ERROR_IF(W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n) or e0.size() != n,
-                     "Inconsistent ECS sum-rule dimensions")
-  ARTS_USER_ERROR_IF((nq != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
-                         (not dT.empty() and dT.size() != static_cast<Size>(nq)),
-                     "Inconsistent ECS sum-rule derivative dimensions")
-  ARTS_USER_ERROR_IF(not std::isfinite(T) or T <= 0, "ECS sum-rule correction requires positive finite temperature")
+  if (W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n) or e0.size() != n)
+    arts::user_error("Inconsistent ECS sum-rule dimensions");
+  if ((nq != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
+      (not dT.empty() and dT.size() != static_cast<Size>(nq)))
+    arts::user_error("Inconsistent ECS sum-rule derivative dimensions");
+  if (not std::isfinite(T) or T <= 0) arts::user_error("ECS sum-rule correction requires positive finite temperature");
 
   // The sequential correction retains the historical truncated-band closure.
   // In particular it cannot enforce the final row's sum rule. Overflow or
@@ -446,27 +440,26 @@ void apply_sum_rule(
 }
 
 void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd) try {
-  ARTS_USER_ERROR_IF(bnd.size() == 0, "Cannot use an empty ECS band")
+  if (bnd.size() == 0) arts::user_error("Cannot use an empty ECS band");
   const auto& models = bnd.front().ls.single_models;
-  ARTS_USER_ERROR_IF(models.empty(), "No broadening species in the ECS band")
+  if (models.empty()) arts::user_error("No broadening species in the ECS band");
 
   for (const auto& ln : bnd) {
-    ARTS_USER_ERROR_IF(
-        ln.ls.single_models.size() != models.size() or
-            not stdr::all_of(models | stdv::keys, [&](auto spec) { return ln.ls.single_models.contains(spec); }),
-        "All lines in an ECS band must have the same broadening species")
-    ARTS_USER_ERROR_IF(not std::isfinite(ln.ls.T0) or ln.ls.T0 <= 0 or ln.ls.T0 != bnd.front().ls.T0,
-                       "All lines in an ECS band must have the same positive reference temperature")
-    ARTS_USER_ERROR_IF(not std::isfinite(ln.f0) or ln.f0 <= 0 or not std::isfinite(ln.a) or ln.a < 0 or
-                           not std::isfinite(ln.gu) or ln.gu <= 0 or not std::isfinite(ln.e0),
-                       "Invalid ECS line frequency, Einstein A, statistical weight, or lower-state energy")
+    if (ln.ls.single_models.size() != models.size() or
+        not stdr::all_of(models | stdv::keys, [&](auto spec) { return ln.ls.single_models.contains(spec); }))
+      arts::user_error("All lines in an ECS band must have the same broadening species");
+    if (not std::isfinite(ln.ls.T0) or ln.ls.T0 <= 0 or ln.ls.T0 != bnd.front().ls.T0)
+      arts::user_error("All lines in an ECS band must have the same positive reference temperature");
+    if (not std::isfinite(ln.f0) or ln.f0 <= 0 or not std::isfinite(ln.a) or ln.a < 0 or not std::isfinite(ln.gu) or
+        ln.gu <= 0 or not std::isfinite(ln.e0))
+      arts::user_error("Invalid ECS line frequency, Einstein A, statistical weight, or lower-state energy");
   }
 
   using enum LineByLineLineshape;
   switch (bnd.lineshape) {
     case VP_ECS_MAKAROV:  makarov::validate_band(bnd_qid, bnd); break;
     case VP_ECS_HARTMANN: hartmann::validate_band(bnd_qid, bnd); break;
-    default:              ARTS_USER_ERROR("Unknown ECS line shape {}", bnd.lineshape)
+    default:              arts::user_error("Unknown ECS line shape {}", bnd.lineshape);
   }
 
   // The reduced dipoles are deliberately not evaluated here.  They need the
@@ -509,30 +502,27 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
                         const bool                      per_broadener,
                         const Jacobian::Targets&        targets) try {
   const Size n = bnd.size();
-  ARTS_USER_ERROR_IF(n == 0, "Cannot adapt an empty ECS band")
-  ARTS_USER_ERROR_IF(
-      not std::isfinite(atm.temperature) or atm.temperature <= 0 or not std::isfinite(atm.pressure) or atm.pressure < 0,
-      "ECS requires positive finite temperature and nonnegative finite pressure")
+  if (n == 0) arts::user_error("Cannot adapt an empty ECS band");
+  if (not std::isfinite(atm.temperature) or atm.temperature <= 0 or not std::isfinite(atm.pressure) or atm.pressure < 0)
+    arts::user_error("ECS requires positive finite temperature and nonnegative finite pressure");
   const auto& models          = bnd.front().ls.single_models;
   const Size  broadener_count = models.size();
-  ARTS_USER_ERROR_IF(broadener_count == 0, "No broadening species in the ECS band")
+  if (broadener_count == 0) arts::user_error("No broadening species in the ECS band");
   const Size m      = per_broadener ? broadener_count : 1;
   const auto kernel = offdiagonal_kernel(bnd.lineshape);
-  ARTS_USER_ERROR_IF(bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN and bnd_qid.isot != "CO2-626"_isot,
-                     "Hartmann ECS currently supports rotational energies only for CO2-626, got {}",
-                     bnd_qid.isot)
-  ARTS_USER_ERROR_IF(bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV and bnd_qid.isot != "O2-66"_isot,
-                     "Makarov ECS currently supports only the O2-66 microwave band, got {}",
-                     bnd_qid.isot)
+  if (bnd.lineshape == LineByLineLineshape::VP_ECS_HARTMANN and bnd_qid.isot != "CO2-626"_isot)
+    arts::user_error("Hartmann ECS currently supports rotational energies only for CO2-626, got {}", bnd_qid.isot);
+  if (bnd.lineshape == LineByLineLineshape::VP_ECS_MAKAROV and bnd_qid.isot != "O2-66"_isot)
+    arts::user_error("Makarov ECS currently supports only the O2-66 microwave band, got {}", bnd_qid.isot);
   // Everything about the band itself is catalogue data that cannot change
   // between atmospheric points.  *validate_band* covers it, and is run by
   // *abs_bandsCheckEcs* rather than here.
   if (presorted) {
-    ARTS_USER_ERROR_IF(sort.size() != n, "ECS presorting requires a previous adaptation of the same band size")
+    if (sort.size() != n) arts::user_error("ECS presorting requires a previous adaptation of the same band size");
     auto indices = sort;
     stdr::sort(indices);
     for (Size i = 0; i < n; ++i) {
-      ARTS_USER_ERROR_IF(indices[i] != static_cast<Index>(i), "Invalid ECS sorting permutation")
+      if (indices[i] != static_cast<Index>(i)) arts::user_error("Invalid ECS sorting permutation");
     }
   }
 
@@ -566,9 +556,9 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
   sum_rule_residual = 0;
 
   gd_fac = std::sqrt(Constant::doppler_broadening_const_squared * atm.temperature / bnd_qid.isot.mass);
-  ARTS_USER_ERROR_IF(not std::isfinite(gd_fac) or gd_fac <= 0, "Invalid ECS Doppler width factor")
+  if (not std::isfinite(gd_fac) or gd_fac <= 0) arts::user_error("Invalid ECS Doppler width factor");
   const Numeric QT = PartitionFunctions::Q(atm.temperature, bnd_qid.isot);
-  ARTS_USER_ERROR_IF(not std::isfinite(QT) or QT <= 0, "Invalid ECS partition function: {}", QT)
+  if (not std::isfinite(QT) or QT <= 0) arts::user_error("Invalid ECS partition function: {}", QT);
   for (Size i = 0; i < n; ++i) {
     const auto& ln = bnd.lines[i];
     pop[i]         = ln.gu * std::exp(-ln.e0 / (Constant::k * atm.temperature)) / QT;
@@ -595,7 +585,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
 
   const Numeric dQT = nt ? PartitionFunctions::dQdT(atm.temperature, bnd_qid.isot) : 0;
   for (const auto& target : targets.atm) {
-    ARTS_USER_ERROR_IF(target.target_pos >= nt, "Invalid ECS Jacobian target position")
+    if (target.target_pos >= nt) arts::user_error("Invalid ECS Jacobian target position");
     const auto* key = std::get_if<AtmKey>(&target.type);
     if (not key) continue;
     switch (*key) {
@@ -618,7 +608,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
     }
   }
   for (const auto& target : targets.line) {
-    ARTS_USER_ERROR_IF(target.target_pos >= nt, "Invalid ECS Jacobian target position")
+    if (target.target_pos >= nt) arts::user_error("Invalid ECS Jacobian target position");
     const auto& key = target.type;
     if (key.band != bnd_qid) continue;
     for (Size k = 0; k < n; ++k) {
@@ -631,7 +621,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
           break;
         case LineByLineVariable::e0: dpop[target.target_pos, k] = -pop[k] / (Constant::k * atm.temperature); break;
         case LineByLineVariable::a:
-          ARTS_USER_ERROR_IF(ln.a == 0, "ECS Einstein-A derivatives require a positive Einstein A")
+          if (ln.a == 0) arts::user_error("ECS Einstein-A derivatives require a positive Einstein A");
           ddip[target.target_pos, k] = dip[k] / (2 * ln.a);
           break;
         case LineByLineVariable::unused: break;
@@ -679,7 +669,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
       continue;
     }
     const auto data = rovib_data.find(spec);
-    ARTS_USER_ERROR_IF(data == rovib_data.end(), "No ECS collision data for species {}", spec)
+    if (data == rovib_data.end()) arts::user_error("No ECS collision data for species {}", spec);
     Wimag  = 0;
     dWimag = 0;
     for (Size k = 0; k < n; ++k) {
@@ -690,7 +680,7 @@ void ComputeData::adapt(const QuantumIdentifier&        bnd_qid,
       // A negative width is not detectable downstream: it stays finite and
       // turns the profile into gain.  Non-finite values are left to the
       // propagation-matrix check.
-      ARTS_USER_ERROR_IF(width < 0, "Negative ECS pressure width for species {}", spec)
+      if (width < 0) arts::user_error("Negative ECS pressure width for species {}", spec);
       Wimag[k, k]               = width;
       real_val(Ws[page, k, k]) += weight * shift;
       for (Size t = 0; t < nt; ++t) real_val(dW[t, k, k]) += dfractions[t, i] * shift;
@@ -768,18 +758,17 @@ void calculate(PropmatVectorView               pm_,
                const ZeemanPolarization        pol,
                const bool                      no_negative_absorption) try {
   if (pol != ZeemanPolarization::no) {
-    ARTS_USER_ERROR_IF(stdr::any_of(
-                           bnd, [](auto& zee) { return zee.on; }, &line::z),
-                       "Zeeman effect and ECS in combination is not yet possible.")
+    if (stdr::any_of(bnd, [](auto& zee) { return zee.on; }, &line::z))
+      arts::user_error("Zeeman effect and ECS in combination is not yet possible.");
     return;
   }
 
   PropmatVectorView     pm     = pm_[f_range];
   const ConstVectorView f_grid = f_grid_[f_range];
 
-  ARTS_USER_ERROR_IF(dpm_.nrows() != static_cast<Index>(jac_targets.target_count()) or
-                         dpm_.ncols() != static_cast<Index>(f_grid_.size()),
-                     "Inconsistent ECS propagation Jacobian dimensions")
+  if (dpm_.nrows() != static_cast<Index>(jac_targets.target_count()) or
+      dpm_.ncols() != static_cast<Index>(f_grid_.size()))
+    arts::user_error("Inconsistent ECS propagation Jacobian dimensions");
 
   if (bnd.size() == 0) return;
 
@@ -798,8 +787,8 @@ void calculate(PropmatVectorView               pm_,
         const Numeric f = f_grid[i], r = Constant::h * f / (Constant::k * atm.temperature);
         const Numeric e = std::expm1(-r);
         switch (*key) {
-          case AtmKey::t: dscale[target.target_pos, i] = -scale * N * f * (r * (e + 1) - e) / atm.temperature; break;
-          case AtmKey::p: dscale[target.target_pos, i] = -scale * f * e / (Constant::k * atm.temperature); break;
+          case AtmKey::t:      dscale[target.target_pos, i] = -scale * N * f * (r * (e + 1) - e) / atm.temperature; break;
+          case AtmKey::p:      dscale[target.target_pos, i] = -scale * f * e / (Constant::k * atm.temperature); break;
           case AtmKey::wind_u:
           case AtmKey::wind_v:
           case AtmKey::wind_w: dscale[target.target_pos, i] = scale * N * (r * (e + 1) - e); break;
@@ -839,13 +828,13 @@ void equivalent_values(ComplexTensor3View              eqv_str,
   const auto k = eqv_str.npages();
   const auto m = eqv_str.ncols();
 
-  ARTS_USER_ERROR_IF(eqv_str.shape() != eqv_val.shape(), "eqv_str and eqv_val must have the same shape.")
-  ARTS_USER_ERROR_IF(T.size() != static_cast<Size>(k), "T must have the same size as eqv_str pages.")
-  ARTS_USER_ERROR_IF(bnd.size() != static_cast<Size>(m), "bnd must have the same size as eqv_str cols.")
+  if (eqv_str.shape() != eqv_val.shape()) arts::user_error("eqv_str and eqv_val must have the same shape.");
+  if (T.size() != static_cast<Size>(k)) arts::user_error("T must have the same size as eqv_str pages.");
+  if (bnd.size() != static_cast<Size>(m)) arts::user_error("bnd must have the same size as eqv_str cols.");
 
   if (bnd.size() == 0) return;
-  ARTS_USER_ERROR_IF(eqv_str.nrows() != static_cast<Index>(bnd.front().ls.single_models.size()),
-                     "eqv_str rows must match the number of ECS broadening species")
+  if (eqv_str.nrows() != static_cast<Index>(bnd.front().ls.single_models.size()))
+    arts::user_error("eqv_str rows must match the number of ECS broadening species");
 
   com_data.adapt_multi(bnd_qid, bnd, rovib_data, atm, false);
 

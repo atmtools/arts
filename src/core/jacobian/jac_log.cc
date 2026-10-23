@@ -6,8 +6,8 @@
 #include "jacobian.h"
 
 Vector logfwd::operator()(ConstVectorView xx) const {
-  ARTS_USER_ERROR_IF(N != xx.size(),
-                     R"(Mismatch size.
+  if (N != xx.size())
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a logarithmic profile.
 
@@ -15,7 +15,7 @@ The original data has {} elements
 The incoming data has {} elements
 )",
                      N,
-                     xx.size())
+                     xx.size());
 
   constexpr auto log = [](Numeric v) { return std::log(v); };
 
@@ -33,8 +33,8 @@ Vector logfwd::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector logfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector loginv::operator()(ConstVectorView xx) const {
-  ARTS_USER_ERROR_IF(N != xx.size(),
-                     R"(Mismatch size.
+  if (N != xx.size())
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a relative profile.
 
@@ -42,7 +42,7 @@ The original data has {} elements
 The incoming data has {} elements
 )",
                      N,
-                     xx.size())
+                     xx.size());
 
   constexpr auto exp = [](Numeric v) { return std::exp(v); };
 
@@ -60,8 +60,8 @@ Vector loginv::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector loginv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix loginv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(N != static_cast<Size>(dyy.ncols()),
-                     R"(Mismatch size.
+  if (N != static_cast<Size>(dyy.ncols()))
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a relative profile.
 
@@ -69,7 +69,7 @@ The original data     has {} elements
 The incoming jacobian has {} elements
 )",
                      N,
-                     dyy.ncols())
+                     dyy.ncols());
   Matrix dy(dyy);
 
   for (Size i = 0; i < N; i++) {

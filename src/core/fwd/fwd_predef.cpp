@@ -12,7 +12,7 @@ full& full::operator=(const full&)     = default;
 full& full::operator=(full&&) noexcept = default;
 
 void full::adapt() try {
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   if (not data) { return; }
 

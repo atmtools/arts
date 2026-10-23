@@ -44,7 +44,7 @@ void lte::adapt() try {
 
   if (bands->empty()) { return; }
 
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   std::vector<voigt::lte::single_shape> shapes;
   std::vector<line_pos>                 shapes_pos;
@@ -91,7 +91,7 @@ void lte_mirror::adapt() {
 
   if (not bands) { return; }
 
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   std::vector<voigt::lte_mirror::single_shape> shapes;
   std::vector<line_pos>                        shapes_pos;
@@ -137,7 +137,7 @@ void nlte::adapt() {
 
   if (not bands) { return; }
 
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   std::vector<voigt::nlte::single_shape> shapes;
   std::vector<line_pos>                  shapes_pos;
@@ -282,12 +282,9 @@ void nlte::set(std::shared_ptr<AbsorptionBands> bands_, std::shared_ptr<AtmPoint
 line_storage::line_storage(std::shared_ptr<AtmPoint> atm_, std::shared_ptr<AbsorptionBands> bands_)
     : atm(std::move(atm_)), bands(std::move(bands_)) {
   for (auto& [qid, band] : *bands) {
-    ARTS_USER_ERROR_IF(band.lineshape != LineByLineLineshape::VP_LTE and
-                           band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
-                           band.lineshape != LineByLineLineshape::VP_LINE_NLTE,
-                       "Lineshape not supported \"{}\" for band: {}",
-                       band.lineshape,
-                       qid)
+    if (band.lineshape != LineByLineLineshape::VP_LTE and band.lineshape != LineByLineLineshape::VP_LTE_MIRROR and
+        band.lineshape != LineByLineLineshape::VP_LINE_NLTE)
+      arts::user_error("Lineshape not supported \"{}\" for band: {}", band.lineshape, qid);
   }
 
   lte[static_cast<Size>(ZeemanPolarization::sm)].set(bands, atm, ZeemanPolarization::sm);

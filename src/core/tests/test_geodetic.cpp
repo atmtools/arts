@@ -156,9 +156,10 @@ Vector3 ecef2geodetic_old(Vector3 ecef, Vector2 refellipsoid) {
         B0     = atan((ecef[2] / sq) * 1 / (1 - e2 * N / (N + pos[0])));
         ++num_iter;
       }
-      ARTS_USER_ERROR_IF(num_iter == max_ecef2geodetic_iter,
-                         "ECEF to geodetic conversion did not converge. "
-                         "Input may be too close to singular values.");
+      if (num_iter == max_ecef2geodetic_iter)
+        arts::user_error(
+            "ECEF to geodetic conversion did not converge. "
+            "Input may be too close to singular values.");
       pos[1] = RAD2DEG * B;
     }
   }

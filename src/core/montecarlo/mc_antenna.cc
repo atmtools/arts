@@ -110,7 +110,7 @@ Numeric MCAntenna::return_los(const Matrix33& R_return, const Matrix33& R_enu2an
 
       return 0.0;
 
-    default: ARTS_USER_ERROR("invalid Antenna type.")
+    default: arts::user_error("invalid Antenna type.");
   }
 }
 
@@ -174,7 +174,7 @@ std::pair<Vector2, Matrix33> MCAntenna::draw_los(RandomNumberGenerator<>& rng,
 
       break;
 
-    default: ARTS_USER_ERROR("invalid Antenna type.")
+    default: arts::user_error("invalid Antenna type.");
   }
 
   return result;

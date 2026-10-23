@@ -121,7 +121,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 [[nodiscard]] std::vector<SurfaceKeyVal> Point::keys() const {
@@ -147,50 +147,49 @@ Numeric numeric_interpolation(const GeodeticField2                              
                               Numeric                                                           lon,
                               std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lat_extrap,
                               std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lon_extrap) {
-  ARTS_USER_ERROR_IF(not data.ok(),
-                     "The surface field data shape {:B,} does not match its grid sizes {:B,}",
-                     data.data.shape(),
-                     data.shape())
+  if (not data.ok())
+    arts::user_error(
+        "The surface field data shape {:B,} does not match its grid sizes {:B,}", data.data.shape(), data.shape());
 
   const Vector &lats = data.grid<0>();
   const Vector &lons = data.grid<1>();
 
   if (lat < lats.front()) {
-    ARTS_USER_ERROR_IF(
-        lat_extrap.first == InterpolationExtrapolation::None,
-        "Latitude {} is below the first latitude {} of the surface field, and extrapolation is not allowed",
-        lat,
-        lats.front())
+    if (lat_extrap.first == InterpolationExtrapolation::None)
+      arts::user_error(
+          "Latitude {} is below the first latitude {} of the surface field, and extrapolation is not allowed",
+          lat,
+          lats.front());
     if (lat_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
     if (lat_extrap.first == InterpolationExtrapolation::Nearest) lat = lats.front();
   }
 
   if (lat > lats.back()) {
-    ARTS_USER_ERROR_IF(
-        lat_extrap.second == InterpolationExtrapolation::None,
-        "Latitude {} is above the last latitude {} of the surface field, and extrapolation is not allowed",
-        lat,
-        lats.back())
+    if (lat_extrap.second == InterpolationExtrapolation::None)
+      arts::user_error(
+          "Latitude {} is above the last latitude {} of the surface field, and extrapolation is not allowed",
+          lat,
+          lats.back());
     if (lat_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
     if (lat_extrap.second == InterpolationExtrapolation::Nearest) lat = lats.back();
   }
 
   if (lon < lons.front()) {
-    ARTS_USER_ERROR_IF(
-        lon_extrap.first == InterpolationExtrapolation::None,
-        "Longitude {} is below the first longitude {} of the surface field, and extrapolation is not allowed",
-        lon,
-        lons.front())
+    if (lon_extrap.first == InterpolationExtrapolation::None)
+      arts::user_error(
+          "Longitude {} is below the first longitude {} of the surface field, and extrapolation is not allowed",
+          lon,
+          lons.front());
     if (lon_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
     if (lon_extrap.first == InterpolationExtrapolation::Nearest) lon = lons.front();
   }
 
   if (lon > lons.back()) {
-    ARTS_USER_ERROR_IF(
-        lon_extrap.second == InterpolationExtrapolation::None,
-        "Longitude {} is above the last longitude {} of the surface field, and extrapolation is not allowed",
-        lon,
-        lons.back())
+    if (lon_extrap.second == InterpolationExtrapolation::None)
+      arts::user_error(
+          "Longitude {} is above the last longitude {} of the surface field, and extrapolation is not allowed",
+          lon,
+          lons.back());
     if (lon_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
     if (lon_extrap.second == InterpolationExtrapolation::Nearest) lon = lons.back();
   }
@@ -280,7 +279,7 @@ bool Field::contains(const KeyVal &key) const {
 }
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
-  ARTS_USER_ERROR_IF(bad_ellipsoid(), "Ellipsoid must have positive axes: {:B,}", ellipsoid)
+  if (bad_ellipsoid()) arts::user_error("Ellipsoid must have positive axes: {:B,}", ellipsoid);
 
   constexpr Vector2 up{180, 0};
 
@@ -342,7 +341,7 @@ Point Field::at(Numeric lat, Numeric lon) const {
 }
 
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
 
   const auto interp = interpolation_function(lat, lon);
 
@@ -353,7 +352,7 @@ namespace {
 constexpr std::pair<Numeric, Numeric> minmax(Numeric x) { return {x, x}; }
 
 std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
-  ARTS_USER_ERROR("Cannot extract minmax from functional data");
+  arts::user_error("Cannot extract minmax from functional data");
   return {std::numeric_limits<Numeric>::lowest(), std::numeric_limits<Numeric>::max()};
 }
 
@@ -361,12 +360,12 @@ std::pair<Numeric, Numeric> minmax(const GeodeticField2 &x) { return matpack::mi
 }  // namespace
 
 std::pair<Numeric, Numeric> Field::minmax_single_value(const KeyVal &key) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
   return std::visit([](auto &a) { return minmax(a); }, this->operator[](key).data);
 }
 
 bool Field::constant_value(const KeyVal &key) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }

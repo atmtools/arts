@@ -500,8 +500,8 @@ Equivalent (mostly) Python code:
     wsm.gin_desc.erase(wsm.gin_desc.begin() + idx0);
   }
 
-  ARTS_USER_ERROR_IF(preset_gin.size() != preset_gin_value.size(),
-                     "preset_gin and preset_gin_value must have the same size")
+  if (preset_gin.size() != preset_gin_value.size())
+    arts::user_error("preset_gin and preset_gin_value must have the same size");
   for (auto& preset : preset_gin) {
     for (auto ptr = stdr::find(wsm.gin, preset); ptr != wsm.gin.end(); ptr = stdr::adjacent_find(wsm.gin)) {
       const auto idx0 = std::distance(wsm.gin.begin(), ptr);

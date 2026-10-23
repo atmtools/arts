@@ -18,17 +18,17 @@ void lambert_surface_layer(Index           mode,
                            Tensor3View     source) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = source.extent(2);
-  ARTS_USER_ERROR_IF(quad_weights.extent(0) != nummu or
-                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-                     "LAMBERT_SURFACE with {} mu_values needs quad_weights [nummu], reflect and trans [2, nummu, "
-                     "nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {}, {:B,}, {:B,} and {:B,}",
-                     nummu,
-                     quad_weights.extent(0),
-                     reflect.shape(),
-                     trans.shape(),
-                     source.shape());
+  if (quad_weights.extent(0) != nummu or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "LAMBERT_SURFACE with {} mu_values needs quad_weights [nummu], reflect and trans [2, nummu, "
+        "nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {}, {:B,}, {:B,} and {:B,}",
+        nummu,
+        quad_weights.extent(0),
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
 
   reflect = 0.0;
   source  = 0.0;
@@ -45,15 +45,16 @@ void fresnel_surface_layer(
     ConstVectorView mu_values, Complex index, Tensor5View reflect, Tensor5View trans, Tensor3View source) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = source.extent(2);
-  ARTS_USER_ERROR_IF(nstokes > 4 or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-                     "FRESNEL_SURFACE with {} mu_values needs at most 4 Stokes components and reflect and trans "
-                     "[2, nummu, nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
-                     nummu,
-                     reflect.shape(),
-                     trans.shape(),
-                     source.shape());
+  if (nstokes > 4 or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "FRESNEL_SURFACE with {} mu_values needs at most 4 Stokes components and reflect and trans "
+        "[2, nummu, nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
+        nummu,
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
 
   reflect = 0.0;
   source  = 0.0;
@@ -72,17 +73,18 @@ void fresnel_surface_layer(
 void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, Tensor5View trans, Tensor3View source) {
   const Index nummu   = surf_reflect.extent(0);
   const Index nstokes = surf_reflect.extent(1);
-  ARTS_USER_ERROR_IF(surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}) or
-                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-                     "EXTERNAL_SURFACE needs surf_reflect [nummu, nstokes, nummu, nstokes], reflect and trans [2, "
-                     "nummu, nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,}, {:B,} and "
-                     "{:B,}",
-                     surf_reflect.shape(),
-                     reflect.shape(),
-                     trans.shape(),
-                     source.shape());
+  if (surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}) or
+      reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "EXTERNAL_SURFACE needs surf_reflect [nummu, nstokes, nummu, nstokes], reflect and trans [2, "
+        "nummu, nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,}, {:B,} and "
+        "{:B,}",
+        surf_reflect.shape(),
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
 
   reflect = 0.0;
   source  = 0.0;
@@ -93,12 +95,11 @@ void external_surface_layer(ConstTensor4View surf_reflect, Tensor5View reflect, 
 }
 
 void thermal_radiance(Index mode, Numeric temperature, Numeric albedo, Numeric frequency, Tensor3View radiance) {
-  ARTS_USER_ERROR_IF(radiance.extent(0) != 2 or radiance.extent(1) < 1 or radiance.extent(2) < 1,
-                     "THERMAL_RADIANCE needs radiance [2, nummu, nstokes], got {:B,}",
-                     radiance.shape());
-  ARTS_USER_ERROR_IF(
-      not(temperature >= 0.0), "THERMAL_RADIANCE needs a temperature of at least 0 K, got {} K", temperature);
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "THERMAL_RADIANCE needs a positive frequency, got {} Hz", frequency);
+  if (radiance.extent(0) != 2 or radiance.extent(1) < 1 or radiance.extent(2) < 1)
+    arts::user_error("THERMAL_RADIANCE needs radiance [2, nummu, nstokes], got {:B,}", radiance.shape());
+  if (not(temperature >= 0.0))
+    arts::user_error("THERMAL_RADIANCE needs a temperature of at least 0 K, got {} K", temperature);
+  if (not(frequency > 0.0)) arts::user_error("THERMAL_RADIANCE needs a positive frequency, got {} Hz", frequency);
 
   radiance = 0.0;
   if (mode == 0) radiance[joker, joker, 0] = (1.0 - albedo) * planck(frequency, temperature);
@@ -111,18 +112,16 @@ void lambert_radiance(Index      mode,
                       Numeric    frequency,
                       Numeric    direct_sfc_flux,
                       MatrixView radiance) {
-  ARTS_USER_ERROR_IF(radiance.extent(0) < 1 or radiance.extent(1) < 1,
-                     "LAMBERT_RADIANCE needs radiance [nummu, nstokes], got {:B,}",
-                     radiance.shape());
+  if (radiance.extent(0) < 1 or radiance.extent(1) < 1)
+    arts::user_error("LAMBERT_RADIANCE needs radiance [nummu, nstokes], got {:B,}", radiance.shape());
 
   radiance = 0.0;
   if (mode == 0) {
     // Thermal radiation going up
     if (src_code == 2 or src_code == 3) {
-      ARTS_USER_ERROR_IF(not(ground_temp >= 0.0),
-                         "LAMBERT_RADIANCE needs a ground temperature of at least 0 K, got {} K",
-                         ground_temp);
-      ARTS_USER_ERROR_IF(not(frequency > 0.0), "LAMBERT_RADIANCE needs a positive frequency, got {} Hz", frequency);
+      if (not(ground_temp >= 0.0))
+        arts::user_error("LAMBERT_RADIANCE needs a ground temperature of at least 0 K, got {} K", ground_temp);
+      if (not(frequency > 0.0)) arts::user_error("LAMBERT_RADIANCE needs a positive frequency, got {} Hz", frequency);
       radiance[joker, 0] = (1.0 - ground_albedo) * planck(frequency, ground_temp);
     }
 
@@ -135,17 +134,16 @@ void fresnel_radiance(
     Index mode, ConstVectorView mu_values, Complex index, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = radiance.extent(1);
-  ARTS_USER_ERROR_IF(nstokes > 4 or radiance.extent(0) != nummu,
-                     "FRESNEL_RADIANCE with {} mu_values needs radiance [nummu, nstokes <= 4]; got {:B,}",
-                     nummu,
-                     radiance.shape());
+  if (nstokes > 4 or radiance.extent(0) != nummu)
+    arts::user_error(
+        "FRESNEL_RADIANCE with {} mu_values needs radiance [nummu, nstokes <= 4]; got {:B,}", nummu, radiance.shape());
 
   // Thermal radiation going up: [(1 - R1) B, -R2 B, 0, 0]
   radiance = 0.0;
   if (mode == 0) {
-    ARTS_USER_ERROR_IF(
-        not(ground_temp >= 0.0), "FRESNEL_RADIANCE needs a ground temperature of at least 0 K, got {} K", ground_temp);
-    ARTS_USER_ERROR_IF(not(frequency > 0.0), "FRESNEL_RADIANCE needs a positive frequency, got {} Hz", frequency);
+    if (not(ground_temp >= 0.0))
+      arts::user_error("FRESNEL_RADIANCE needs a ground temperature of at least 0 K, got {} K", ground_temp);
+    if (not(frequency > 0.0)) arts::user_error("FRESNEL_RADIANCE needs a positive frequency, got {} Hz", frequency);
     const Range   stokes{0, nstokes};
     const Stokvec planck_ground{planck(frequency, ground_temp)};
     for (Index j = 0; j < nummu; j++) {

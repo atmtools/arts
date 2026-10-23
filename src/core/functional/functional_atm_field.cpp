@@ -28,11 +28,9 @@ ConstVectorView MagnitudeField::x() const { return magnitude.data.view_as(magnit
 VectorView MagnitudeField::x() { return magnitude.data.view_as(magnitude.data.size()); }
 
 std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt, Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF(magnitude.grids != theta.grids or magnitude.grids != phi.grids,
-                     "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}",
-                     magnitude.grids,
-                     theta.grids,
-                     phi.grids);
+  if (magnitude.grids != theta.grids or magnitude.grids != phi.grids)
+    arts::user_error(
+        "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}", magnitude.grids, theta.grids, phi.grids);
 
   std::vector<std::pair<Index, Numeric>> out = interp::flat_weight(magnitude, alt, lat, lon);
 

@@ -125,16 +125,17 @@ flux_down_direct_arts:
              flux_down_diffuse,
              flux_down_direct);
 
-  ARTS_USER_ERROR_IF(not is_good(u_arts, u), "Failed u in test {}", name);
-  ARTS_USER_ERROR_IF(not is_good(u0_arts, u0), "Failed u0 in test {}", name);
-  ARTS_USER_ERROR_IF(not is_good(flux_up_arts, flux_up), "Failed flux_up in test {}", name);
-  ARTS_USER_ERROR_IF(
-      not is_good(flux_down_diffuse_arts, flux_down_diffuse), "Failed flux_down_diffuse in test {}", name);
-  ARTS_USER_ERROR_IF(not is_good(flux_down_direct_arts, flux_down_direct), "Failed flux_down_direct in test {}", name);
+  if (not is_good(u_arts, u)) arts::user_error("Failed u in test {}", name);
+  if (not is_good(u0_arts, u0)) arts::user_error("Failed u0 in test {}", name);
+  if (not is_good(flux_up_arts, flux_up)) arts::user_error("Failed flux_up in test {}", name);
+  if (not is_good(flux_down_diffuse_arts, flux_down_diffuse))
+    arts::user_error("Failed flux_down_diffuse in test {}", name);
+  if (not is_good(flux_down_direct_arts, flux_down_direct))
+    arts::user_error("Failed flux_down_direct in test {}", name);
 };
 
 inline void flat_print(const auto& a, const auto& b) {
-  ARTS_USER_ERROR_IF(a.shape() != b.shape(), "Failed shape comparison");
+  if (a.shape() != b.shape()) arts::user_error("Failed shape comparison");
   const auto av = a.flat_view();
   const auto bv = b.flat_view();
 

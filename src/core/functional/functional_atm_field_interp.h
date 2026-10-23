@@ -30,10 +30,9 @@ Matrix  interpweights(const latlags&, const lonlags&);
 
 template <lagrange_interp::value_transformer transform>
 Numeric get(const GeodeticField3& f, const Numeric alt, const Numeric lat, const Numeric lon) {
-  ARTS_USER_ERROR_IF(not f.ok(),
-                     "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}",
-                     f.data.shape(),
-                     f.shape())
+  if (not f.ok())
+    arts::user_error(
+        "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}", f.data.shape(), f.shape());
   return std::visit(
       [&data = f.data](auto&& al, auto&& la, auto&& lo) {
         return lagrange_interp::interp<transform>(data, al, la, lo);
@@ -45,10 +44,9 @@ Numeric get(const GeodeticField3& f, const Numeric alt, const Numeric lat, const
 
 template <lagrange_interp::value_transformer transform>
 Numeric get(const GeodeticField3& f, const Tensor3& iw, const altlags& alt, const latlags& lat, const lonlags& lon) {
-  ARTS_USER_ERROR_IF(not f.ok(),
-                     "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}",
-                     f.data.shape(),
-                     f.shape())
+  if (not f.ok())
+    arts::user_error(
+        "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}", f.data.shape(), f.shape());
   return std::visit(
       [&data = f.data, &iw](auto&& al, auto&& la, auto&& lo) {
         return lagrange_interp::interp<transform>(data, iw, al, la, lo);
@@ -60,10 +58,9 @@ Numeric get(const GeodeticField3& f, const Tensor3& iw, const altlags& alt, cons
 
 template <lagrange_interp::value_transformer transform>
 Numeric get(const GeodeticField3& f, Index ialt, const Matrix& iw, const latlags& lat, const lonlags& lon) {
-  ARTS_USER_ERROR_IF(not f.ok(),
-                     "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}",
-                     f.data.shape(),
-                     f.shape())
+  if (not f.ok())
+    arts::user_error(
+        "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}", f.data.shape(), f.shape());
   return std::visit(
       [data = f.data[ialt], &iw](auto&& la, auto&& lo) { return lagrange_interp::interp<transform>(data, iw, la, lo); },
       lat,

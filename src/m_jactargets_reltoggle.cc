@@ -18,7 +18,7 @@ void jac_targetsToggleRelativeAtmTargetImpl(JacobianTargets& jac_targets, const 
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 
 void jac_targetsToggleRelativeSurfaceTargetImpl(JacobianTargets&     jac_targets,
@@ -38,7 +38,7 @@ void jac_targetsToggleRelativeSurfaceTargetImpl(JacobianTargets&     jac_targets
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 
 void jac_targetsToggleRelativeSubsurfaceTargetImpl(JacobianTargets&        jac_targets,
@@ -58,7 +58,7 @@ void jac_targetsToggleRelativeSubsurfaceTargetImpl(JacobianTargets&        jac_t
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 }  // namespace
 

@@ -30,26 +30,26 @@ void measurement_vecAddError(Vector&       measurement_vec,
                              const Matrix& measurement_jac_error) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(measurement_vec.shape() != measurement_vec_error.shape(),
-                     R"(Mismatched shapes:
+  if (measurement_vec.shape() != measurement_vec_error.shape())
+    arts::user_error(R"(Mismatched shapes:
 
 measurement_vec.shape()       : {:B,}
 measurement_vec_error.shape() : {:B,}
 )",
                      measurement_vec.shape(),
-                     measurement_vec_error.shape())
+                     measurement_vec_error.shape());
 
   measurement_vec += measurement_vec_error;
 
   if (not measurement_jac.empty()) {
-    ARTS_USER_ERROR_IF(measurement_jac.shape() != measurement_jac_error.shape(),
-                       R"(Mismatched shapes:
+    if (measurement_jac.shape() != measurement_jac_error.shape())
+      arts::user_error(R"(Mismatched shapes:
 
 measurement_jac.shape()       : {:B,}
 measurement_jac_error.shape() : {:B,}
 )",
                        measurement_jac.shape(),
-                       measurement_jac_error.shape())
+                       measurement_jac_error.shape());
 
     measurement_jac += measurement_jac_error;
   }
@@ -63,7 +63,7 @@ void jac_targetsAddErrorPolyFit(JacobianTargets&          jac_targets,
                                 const Index&              polyorder) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
+  if (polyorder < 0) arts::user_error("Polyorder must be non-negative: {}", polyorder);
 
   std::vector<std::pair<Size, const void*>> sensor_grid_ptrs;
   for (Size i = 0; i < measurement_sensor.size(); i++) {
@@ -71,11 +71,12 @@ void jac_targetsAddErrorPolyFit(JacobianTargets&          jac_targets,
     if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) { sensor_grid_ptrs.emplace_back(i, ptr); }
   }
 
-  ARTS_USER_ERROR_IF(sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem),
-                     "There are only {0} independent sensor frequency grids.  "
-                     "Cannot select index: {1}, please choose an index less than {0}.",
-                     sensor_grid_ptrs.size(),
-                     sensor_elem)
+  if (sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem))
+    arts::user_error(
+        "There are only {0} independent sensor frequency grids.  "
+        "Cannot select index: {1}, please choose an index less than {0}.",
+        sensor_grid_ptrs.size(),
+        sensor_elem);
 
   const Size y_start = sensor_grid_ptrs[sensor_elem].first;
   const Size y_size  = [&]() -> Size {
@@ -86,23 +87,23 @@ void jac_targetsAddErrorPolyFit(JacobianTargets&          jac_targets,
     return measurement_sensor.size();
   }() - y_start;
 
-  ARTS_USER_ERROR_IF(y_size <= static_cast<Size>(polyorder),
-                     R"(Not enough data points for the given polyorder.
+  if (y_size <= static_cast<Size>(polyorder))
+    arts::user_error(R"(Not enough data points for the given polyorder.
 
 Expected y-size: {}
 Poly-order:      {}
 )",
                      y_size,
-                     polyorder)
+                     polyorder);
 
-  ARTS_USER_ERROR_IF(y_size != static_cast<Size>(t.size()),
-                     R"(Not enough grid points for the given data size.
+  if (y_size != static_cast<Size>(t.size()))
+    arts::user_error(R"(Not enough grid points for the given data size.
 Expected y-size: {}
 Grid (size: {}): {:B,}
 )",
                      y_size,
                      t.size(),
-                     t)
+                     t);
 
   make_polyfit(
       jac_targets.emplace_back(ErrorKey{.y_start = y_start, .y_size = y_size}), static_cast<Size>(polyorder), t);

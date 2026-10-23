@@ -33,13 +33,11 @@ void set_mode_zero(StokvecTensor3View boundary, Index i, const Stokvec& s) {
 }
 
 void check_boundary(const StokvecTensor4& limit, Index nv, const char* which) {
-  ARTS_USER_ERROR_IF(nv != limit.extent(0),
-                     "Frequency grid size does not match the {} boundary condition size: {} vs {}",
-                     which,
-                     nv,
-                     limit.extent(0))
-  ARTS_USER_ERROR_IF(
-      limit.extent(2) < 1, "Must have at least one fourier mode to use the {} boundary condition.", which)
+  if (nv != limit.extent(0))
+    arts::user_error(
+        "Frequency grid size does not match the {} boundary condition size: {} vs {}", which, nv, limit.extent(0));
+  if (limit.extent(2) < 1)
+    arts::user_error("Must have at least one fourier mode to use the {} boundary condition.", which);
 }
 }  // namespace
 
@@ -55,8 +53,8 @@ void vdisort_settingsInit(VDisortSettings&                   vdisort_settings,
                           const Index&                       fourier_mode_dimension) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(quadrature_dimension % 2, "Quadrature dimension ({}) must be even", quadrature_dimension);
-  ARTS_USER_ERROR_IF(ray_path.size() < 2, "Must have at least one layer (two levels) to use the vdisort solver");
+  if (quadrature_dimension % 2) arts::user_error("Quadrature dimension ({}) must be even", quadrature_dimension);
+  if (ray_path.size() < 2) arts::user_error("Must have at least one layer (two levels) to use the vdisort solver");
 
   vdisort_settings.resize(quadrature_dimension,
                           legendre_polynomial_dimension,
@@ -93,9 +91,9 @@ void vdisort_settingsSetSun(VDisortSettings&            vdisort_settings,
 
   const Size nv = freq_grid.size();
 
-  ARTS_USER_ERROR_IF(vdisort_settings.solar_source.size() != nv or static_cast<Size>(sun.spectrum.nrows()) != nv or
-                         sun.spectrum.ncols() != 4,
-                     R"(Solar spectrum not agreeing with frequency grids:
+  if (vdisort_settings.solar_source.size() != nv or static_cast<Size>(sun.spectrum.nrows()) != nv or
+      sun.spectrum.ncols() != 4)
+    arts::user_error(R"(Solar spectrum not agreeing with frequency grids:
 
 freq_grid.size():                     {}
 vdisort_settings.solar_source.size(): {}
@@ -103,7 +101,7 @@ sun.spectrum.shape():                 {:B,} (must be [freq_grid.size(), 4])
 )",
                      nv,
                      vdisort_settings.solar_source.size(),
-                     sun.spectrum.shape())
+                     sun.spectrum.shape());
 
   for (Size iv = 0; iv < nv; iv++) {
     vdisort_settings.solar_source[iv] =
@@ -132,11 +130,8 @@ void vdisort_settingsLayerThermalEmissionLinearInTau(VDisortSettings&       vdis
   const Size nv = freq_grid.size();
   const Size N  = atm_path.size();
 
-  ARTS_USER_ERROR_IF(not same_shape({nv, N - 1}, vdisort_settings.optical_thicknesses),
-                     "Incorrect shape: [{}, {}] vs {:B,}",
-                     nv,
-                     N - 1,
-                     vdisort_settings.optical_thicknesses.shape());
+  if (not same_shape({nv, N - 1}, vdisort_settings.optical_thicknesses))
+    arts::user_error("Incorrect shape: [{}, {}] vs {:B,}", nv, N - 1, vdisort_settings.optical_thicknesses.shape());
 
   vdisort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -168,11 +163,8 @@ void vdisort_settingsLayerNonThermalEmissionLinearInTau(VDisortSettings&        
   const Size nv = freq_grid.size();
   const Size N  = atm_path.size();
 
-  ARTS_USER_ERROR_IF(not same_shape({nv, N - 1}, vdisort_settings.optical_thicknesses),
-                     "Incorrect shape: [{}, {}] vs {:B,}",
-                     nv,
-                     N - 1,
-                     vdisort_settings.optical_thicknesses.shape());
+  if (not same_shape({nv, N - 1}, vdisort_settings.optical_thicknesses))
+    arts::user_error("Incorrect shape: [{}, {}] vs {:B,}", nv, N - 1, vdisort_settings.optical_thicknesses.shape());
 
   vdisort_settings.source_polynomial.resize(nv, N - 1, 2);
 
@@ -271,7 +263,7 @@ void vdisort_settingsDownwellingObserver(const Workspace&                   ws,
   const Index N  = vdisort_settings.quadrature_dimension / 2;
 
   check_boundary(limit, nv, "downward");
-  ARTS_USER_ERROR_IF(limit.extent(3) != N, "Must have at least one quadrature dimension.")
+  if (limit.extent(3) != N) arts::user_error("Must have at least one quadrature dimension.");
 
   Vector mu(N);
   Vector W(N);
@@ -307,7 +299,7 @@ void vdisort_settingsDownwellingObserver(const Workspace&                   ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error)
+  if (not error.empty()) arts::user_error(error);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -317,8 +309,8 @@ void vdisort_settingsDownwellingObserver(const Workspace&                   ws,
 void vdisort_settingsNoLegendre(VDisortSettings& vdisort_settings) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(vdisort_settings.legendre_coefficients.ncols() < 1,
-                     "Must have at least one Legendre mode to use the Legendre coefficients.")
+  if (vdisort_settings.legendre_coefficients.ncols() < 1)
+    arts::user_error("Must have at least one Legendre mode to use the Legendre coefficients.");
 
   // F11 = 1 at degree 0: isotropic, unpolarized scattering
   vdisort_settings.legendre_coefficients                  = CompactPlanarMuelmat{};
@@ -333,20 +325,18 @@ void vdisort_settingsLegendreCoefficientsFromPath(
   const Index F = vdisort_settings.frequency_count();
   const Index L = spectral_phamat_spectral_path.front().ncols();
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_phamat_spectral_path.size(),
-      R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in vdisort_settings.
+  if ((N + 1) != spectral_phamat_spectral_path.size())
+    arts::user_error(
+        R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in vdisort_settings.
 
   vdisort_settings.layer_count() + 1:   {}
   spectral_phamat_spectral_path.size(): {}
 )",
-      N + 1,
-      spectral_phamat_spectral_path.size());
+        N + 1,
+        spectral_phamat_spectral_path.size());
 
-  ARTS_USER_ERROR_IF(
-      L < vdisort_settings.legendre_polynomial_dimension or not all_same_shape({F, L}, spectral_phamat_spectral_path),
-      "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
-      std::array{F, L});
+  if (L < vdisort_settings.legendre_polynomial_dimension or not all_same_shape({F, L}, spectral_phamat_spectral_path))
+    arts::user_error("The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not", std::array{F, L});
 
   vdisort_settings.legendre_coefficients.resize(F, N, L);
 
@@ -388,27 +378,25 @@ void vdisort_settingsOpticalThicknessFromPath(VDisortSettings&                  
   const Index N  = vdisort_settings.layer_count();
   const Index nv = vdisort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != static_cast<Size>(N + 1),
-                     "*ray_path* must have one more point than *vdisort_settings* has layers: {} vs {}",
-                     ray_path.size(),
-                     N)
+  if (ray_path.size() != static_cast<Size>(N + 1))
+    arts::user_error(
+        "*ray_path* must have one more point than *vdisort_settings* has layers: {} vs {}", ray_path.size(), N);
 
   if (N == 0) return;
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nv}, spectral_propmat_path),
-                     "Propagation matrices and frequency grids must have the same shape.")
+  if (not all_same_shape({nv}, spectral_propmat_path))
+    arts::user_error("Propagation matrices and frequency grids must have the same shape.");
 
   // VDISORT's extinction is scalar, as DISORT's
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(spectral_propmat_path,
-                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }),
-      "No implementation for polarized propagation matrices: VDISORT's optical thickness is scalar.");
+  if (stdr::any_of(spectral_propmat_path,
+                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }))
+    arts::user_error("No implementation for polarized propagation matrices: VDISORT's optical thickness is scalar.");
 
   Vector r(N);
   for (Index i = 0; i < N; i++) { r[i] = ray_path[i].altitude() - ray_path[i + 1].altitude(); }
 
-  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
-                     R"(Atmospheric layer thickness must be positive.
+  if (stdr::any_of(r, Cmp::le<0.0>()))
+    arts::user_error(R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
 
@@ -427,9 +415,8 @@ ray_path: {:B,}
       if (i > 0) {
         vdisort_settings.optical_thicknesses[iv, i] += vdisort_settings.optical_thicknesses[iv, i - 1];
 
-        ARTS_USER_ERROR_IF(
-            (vdisort_settings.optical_thicknesses[iv, i] <= vdisort_settings.optical_thicknesses[iv, i - 1]),
-            R"(
+        if ((vdisort_settings.optical_thicknesses[iv, i] <= vdisort_settings.optical_thicknesses[iv, i - 1]))
+          arts::user_error(R"(
 Not strictly increasing optical thicknesses between layers.
 
 Check *spectral_propmat_path* contain zeroes or negative values for A().
@@ -437,8 +424,8 @@ Check *spectral_propmat_path* contain zeroes or negative values for A().
 Value:                {}
 Frequency grid index: {}
 )",
-            vdisort_settings.optical_thicknesses[iv, i - 1],
-            iv);
+                           vdisort_settings.optical_thicknesses[iv, i - 1],
+                           iv);
       }
     }
   }
@@ -471,11 +458,12 @@ Numeric sun_cosine(const VDisortSettings& vdisort_settings, const Index iv) {
 void resize_surface(VDisortSettings& vdisort_settings, const Index NBRDF, const bool specular) {
   const Index nv = vdisort_settings.frequency_count();
   const Index N  = vdisort_settings.quadrature_dimension / 2;
-  ARTS_USER_ERROR_IF(vdisort_settings.solar_zenith_angle.size() != static_cast<Size>(nv),
-                     "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
-                     "first; it has {} values",
-                     nv,
-                     vdisort_settings.solar_zenith_angle.size());
+  if (vdisort_settings.solar_zenith_angle.size() != static_cast<Size>(nv))
+    arts::user_error(
+        "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
+        "first; it has {} values",
+        nv,
+        vdisort_settings.solar_zenith_angle.size());
   vdisort_settings.surface_brdf.resize(nv, 2, NBRDF, N, N);
   vdisort_settings.surface_beam_brdf.resize(nv, 2, NBRDF, N);
   vdisort_settings.surface_beam_mu.resize(nv);
@@ -492,8 +480,8 @@ void set_surface(VDisortSettings& vdisort_settings, const Index iv, const vdisor
 
 //! Throw unless a spectral parameter has one value per frequency
 void check_spectral(const VDisortSettings& vdisort_settings, const Vector& value, const std::string_view name) {
-  ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != vdisort_settings.frequency_count(),
-                     "Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
+  if (static_cast<Index>(value.size()) != vdisort_settings.frequency_count())
+    arts::user_error("Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
                      name,
                      vdisort_settings.frequency_count(),
                      value.size());
@@ -653,7 +641,7 @@ void vdisort_settingsSurfaceCoxMunk(VDisortSettings& vdisort_settings,
                                     const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  if (shadowing != 0 and shadowing != 1) arts::user_error("shadowing must be 0 or 1, got {}", shadowing);
   set_brdf_surface(vdisort_settings,
                    vdisort::brdf::CoxMunk{.wind_speed       = wind_speed,
                                           .refractive_index = Complex{refractive_index, 0.0},
@@ -668,7 +656,7 @@ void vdisort_settingsSurfaceCoxMunkSpectral(VDisortSettings& vdisort_settings,
                                             const Index&     azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  if (shadowing != 0 and shadowing != 1) arts::user_error("shadowing must be 0 or 1, got {}", shadowing);
   check_spectral(vdisort_settings, refractive_index, "refractive_index");
   set_spectral_brdf_surface(
       vdisort_settings,
@@ -772,28 +760,28 @@ void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&            
   const Size  N = vdisort_settings.layer_count();
   const Index F = vdisort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_propmat_path.size() or (N + 1) != spectral_propmat_scat_path.size() or
-          (N + 1) != spectral_absvec_scat_path.size(),
-      R"(The number of levels of the paths must be one more than the number of layers in vdisort_settings.
+  if ((N + 1) != spectral_propmat_path.size() or (N + 1) != spectral_propmat_scat_path.size() or
+      (N + 1) != spectral_absvec_scat_path.size())
+    arts::user_error(
+        R"(The number of levels of the paths must be one more than the number of layers in vdisort_settings.
 
   vdisort_settings.layer_count():    {}
   spectral_propmat_path.size():      {}
   spectral_propmat_scat_path.size(): {}
   spectral_absvec_scat_path.size():  {}
 )",
-      N,
-      spectral_propmat_path.size(),
-      spectral_propmat_scat_path.size(),
-      spectral_absvec_scat_path.size());
+        N,
+        spectral_propmat_path.size(),
+        spectral_propmat_scat_path.size(),
+        spectral_absvec_scat_path.size());
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
-      "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
-      std::array{F});
+  if (not all_same_shape({F}, spectral_absvec_scat_path, spectral_propmat_scat_path))
+    arts::user_error(
+        "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
+        std::array{F});
 
-  ARTS_USER_ERROR_IF(not same_shape({F, N}, vdisort_settings.single_scattering_albedo),
-                     R"(The shape of vdisort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
+  if (not same_shape({F, N}, vdisort_settings.single_scattering_albedo))
+    arts::user_error(R"(The shape of vdisort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
                      std::array{F, static_cast<Index>(N)},
                      vdisort_settings.single_scattering_albedo.shape());
 
@@ -819,7 +807,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void legendre_degreeFromVDisortSettings(Index& legendre_degree, const VDisortSettings& vdisort_settings) {
   legendre_degree = vdisort_settings.legendre_polynomial_dimension - 1;
-  ARTS_USER_ERROR_IF(legendre_degree < 0, "The legendre_degree must be non-negative, is {}", legendre_degree)
+  if (legendre_degree < 0) arts::user_error("The legendre_degree must be non-negative, is {}", legendre_degree);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -857,13 +845,13 @@ void vdisort_settings_agendaSetup(Agenda&        vdisort_settings_agenda,
       agenda.add("vdisort_settingsNoSingleScatteringAlbedo");
       break;
     case ScatteringSpeciesDeltaMPlus:
-      ARTS_USER_ERROR(R"(VDISORT has no delta-M-plus scaling.
+      arts::user_error(R"(VDISORT has no delta-M-plus scaling.
 
 scattering_setting: "{}"
 
 Use "ScatteringSpecies" or "None".
 )",
-                      scattering_setting);
+                       scattering_setting);
   }
   // We have both scattering and clearsky absorption, so we can set the optical thickness
   agenda.add("vdisort_settingsOpticalThicknessFromPath", SetWsv("min_optical_depth", min_optical_depth));

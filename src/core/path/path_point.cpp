@@ -54,7 +54,7 @@ Numeric find_crossing_with_surf_z(const Vector3       pos,
   if (pos[0] < z_max) {
     const Numeric z_surf = surf_altitude(surf_field, pos[1], pos[2]);
     if (pos[0] < z_surf - safe_search_accuracy)
-      ARTS_USER_ERROR(
+      arts::user_error(
           "The sensor is below the surface. Not allowed!\n"
           "The sensor altitude is at {} m\n"
           "The surface altitude is {} m\n"
@@ -147,7 +147,7 @@ Numeric find_crossing_with_surf_z(const Vector3       pos,
 PropagationPathPoint init(
     const Vector3& pos, const Vector2& los, const AtmField& atm_field, const SurfaceField& surf_field, bool as_sensor) {
   using enum PathPositionType;
-  ARTS_USER_ERROR_IF(pos[1] > 90 or pos[1] < -90, "Non-polar coordinate")
+  if (pos[1] > 90 or pos[1] < -90) arts::user_error("Non-polar coordinate");
 
   if (pos[0] > atm_field.top_of_atmosphere) {
     return PropagationPathPoint{
@@ -349,14 +349,15 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
   using enum PathPositionType;
 
   const auto [surf_h_min, surf_h_max] = minmax_surf_altitude(surf_field);
-  ARTS_USER_ERROR_IF(surf_h_max > atm_field.top_of_atmosphere,
-                     "The top of the atmosphere must be above the surface. "
-                     "This is not the case for the current surface and atmospheric fields. "
-                     "The maximum altitude of the surface is {}"
-                     " m, while the top of the atmosphere is at {}"
-                     " m. This is not allowed.",
-                     surf_h_max,
-                     atm_field.top_of_atmosphere);
+  if (surf_h_max > atm_field.top_of_atmosphere)
+    arts::user_error(
+        "The top of the atmosphere must be above the surface. "
+        "This is not the case for the current surface and atmospheric fields. "
+        "The maximum altitude of the surface is {}"
+        " m, while the top of the atmosphere is at {}"
+        " m. This is not allowed.",
+        surf_h_max,
+        atm_field.top_of_atmosphere);
 
   const auto looking_los = mirror(path.los);
   const auto x           = geodetic_los2ecef(path.pos, looking_los, surf_field.ellipsoid);
@@ -388,7 +389,7 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
   };
 
   switch (path.pos_type) {
-    case unknown: ARTS_USER_ERROR("Unknown start position");
+    case unknown: arts::user_error("Unknown start position");
     case space:   {
       if (not looking_down) return error(space);
 
@@ -435,7 +436,7 @@ Intersections pair_line_ellipsoid_intersect(const PropagationPathPoint& path,
               .second_is_valid = true};
     }
   }
-  ARTS_USER_ERROR("Invalid start position type");
+  arts::user_error("Invalid start position type");
 }
 
 bool not_looking_down(const Vector2 los) { return los[0] >= 90; }
@@ -446,9 +447,9 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(ArrayOfPropagationPathPoint&
                                                     const SurfaceField&          surf_field,
                                                     const Numeric                safe_search_accuracy,
                                                     const bool                   search_safe) {
-  ARTS_USER_ERROR_IF(path.size() == 0, "Must have at least one path point, please call some init() first")
-  ARTS_USER_ERROR_IF(path.back().los_type != PathPositionType::unknown,
-                     "Cannot set extremes for path that knows where it is looking")
+  if (path.size() == 0) arts::user_error("Must have at least one path point, please call some init() first");
+  if (path.back().los_type != PathPositionType::unknown)
+    arts::user_error("Cannot set extremes for path that knows where it is looking");
 
   if (not_looking_down(path.back().los) and atm_field.top_of_atmosphere <= path.back().pos[0]) {
     path.back().los_type = PathPositionType::space;
@@ -467,7 +468,7 @@ ArrayOfPropagationPathPoint& set_geometric_extremes(ArrayOfPropagationPathPoint&
 ArrayOfPropagationPathPoint& fill_geometric_stepwise(ArrayOfPropagationPathPoint& path,
                                                      const SurfaceField&          surf_field,
                                                      const Numeric                max_step) {
-  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
+  if (max_step <= 0) arts::user_error("Must move forward");
   if (path.size() == 0) return path;
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -494,7 +495,7 @@ ArrayOfPropagationPathPoint& fill_geometric_stepwise(ArrayOfPropagationPathPoint
 ArrayOfPropagationPathPoint& fill_geometric_by_half_steps(ArrayOfPropagationPathPoint& path,
                                                           const SurfaceField&          surf_field,
                                                           const Numeric                max_step) {
-  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
+  if (max_step <= 0) arts::user_error("Must move forward");
   if (path.size() == 0) return path;
 
   //! NOTE: grows path as it loops, so we cannot use iterators
@@ -649,14 +650,14 @@ PropagationPathPoint find_geometric_limb(const ArrayOfPropagationPathPoint& path
         return (p1.los[0] >= 90 and p2.los[0] < 90) or (p1.los[0] < 90 and p2.los[0] >= 90);
       });
 
-  ARTS_USER_ERROR_IF(pre_limb_point == path.end() or pre_limb_point == path.end() - 1,
-                     "Needs at least one point before limb point");
+  if (pre_limb_point == path.end() or pre_limb_point == path.end() - 1)
+    arts::user_error("Needs at least one point before limb point");
   const auto post_limb_point = pre_limb_point + 1;
 
   const auto    post_ecef = geodetic2ecef(post_limb_point->pos, surf_field.ellipsoid);
   const auto    pre_ecef  = geodetic2ecef(pre_limb_point->pos, surf_field.ellipsoid);
   const Numeric distance  = ecef_distance(pre_ecef, post_ecef);
-  ARTS_USER_ERROR_IF(distance == 0, "Distance between points is zero: {:B,} and {:B,}.", post_ecef, pre_ecef);
+  if (distance == 0) arts::user_error("Distance between points is zero: {:B,} and {:B,}.", post_ecef, pre_ecef);
 
   const Vector3 decef{(post_ecef[0] - pre_ecef[0]) / distance,
                       (post_ecef[1] - pre_ecef[1]) / distance,
@@ -739,7 +740,7 @@ ArrayOfPropagationPathPoint& keep_only_atm(ArrayOfPropagationPathPoint& path) {
 }
 
 Numeric geometric_tangent_zenith(const Vector3 pos, const Vector2& ell, const Numeric alt, const Numeric azimuth) {
-  ARTS_USER_ERROR_IF(alt >= pos[0], "Tangent altitude cannot be above the position")
+  if (alt >= pos[0]) arts::user_error("Tangent altitude cannot be above the position");
 
   const auto intersects = [pos, alt, azimuth, ell](const Numeric za) {
     const auto [ecef, decef] = geodetic_los2ecef(pos, mirror({za, azimuth}), ell);
@@ -800,7 +801,7 @@ PropagationPathPoint past_geometric(const PropagationPathPoint& this_geometric,
                                     const Numeric               max_step,
                                     const Numeric               safe_search_accuracy,
                                     const bool                  search_safe) {
-  ARTS_USER_ERROR_IF(max_step <= 0, "Must move forward")
+  if (max_step <= 0) arts::user_error("Must move forward");
 
   const auto [ecef, decef] =
       geodetic_los2ecef(this_geometric.pos, path::mirror(this_geometric.los), surf_field.ellipsoid);

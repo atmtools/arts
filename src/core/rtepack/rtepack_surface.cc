@@ -32,8 +32,8 @@ muelmat fresnel_reflectance_nonspecular(
      related by rotations alone.  At normal incidence the plane is undefined
      and any s across k_inc will do. */
   const Vector3 bisector = k_out - k_inc;
-  ARTS_USER_ERROR_IF(hypot(cross(n_surface, bisector)) > 1e-9 * hypot(bisector) or dot(n_surface, bisector) <= 0.0,
-                     R"(The surface normal {} does not bisect -k_inc = {} and k_out = {}.
+  if (hypot(cross(n_surface, bisector)) > 1e-9 * hypot(bisector) or dot(n_surface, bisector) <= 0.0)
+    arts::user_error(R"(The surface normal {} does not bisect -k_inc = {} and k_out = {}.
 
 A reflection exists only for the facet whose normal is along k_out - k_inc.
 )",

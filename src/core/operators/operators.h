@@ -21,7 +21,7 @@ template <typename R, typename... Args> struct CustomOperator {
 
   R operator()(Args... args) const {
     if (f) return f(args...);
-    ARTS_USER_ERROR("CustomOperator not set");
+    arts::user_error("CustomOperator not set");
   }
 };
 

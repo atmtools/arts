@@ -123,8 +123,8 @@ void Obsel::check() const {
 
   assert(poslos);
 
-  ARTS_USER_ERROR_IF((w.shape() != std::array{static_cast<Index>(poslos->size()), static_cast<Index>(f->size())}),
-                     R"(Weight matrix must have the same shape as the poslos times the frequency grids:
+  if ((w.shape() != std::array{static_cast<Index>(poslos->size()), static_cast<Index>(f->size())}))
+    arts::user_error(R"(Weight matrix must have the same shape as the poslos times the frequency grids:
   weight_matrix.shape() = {:B,}
   poslos->size()        = {}
   f->size()             = {}
@@ -156,26 +156,23 @@ bool Obsel::same_poslos(const std::shared_ptr<const PosLosVector>& other) const 
 bool Obsel::same_poslos(const PosLosVector& other) const { return poslos.get() == &other; }
 
 void Obsel::set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
-  ARTS_USER_ERROR_IF(not n, "Cannot set the frequency grid to an empty pointer");
-  ARTS_USER_ERROR_IF(
-      n->size() != f->size(), "Cannot replace the frequency grid of size {} by one of size {}", f->size(), n->size());
+  if (not n) arts::user_error("Cannot set the frequency grid to an empty pointer");
+  if (n->size() != f->size())
+    arts::user_error("Cannot replace the frequency grid of size {} by one of size {}", f->size(), n->size());
   f = std::move(n);
 }
 
 void Obsel::set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
-  ARTS_USER_ERROR_IF(not n, "Cannot set the position and line-of-sight vector to an empty pointer");
-  ARTS_USER_ERROR_IF(n->size() != poslos->size(),
-                     "Cannot replace the position and line-of-sight vector of size {} by one of size {}",
-                     poslos->size(),
-                     n->size());
+  if (not n) arts::user_error("Cannot set the position and line-of-sight vector to an empty pointer");
+  if (n->size() != poslos->size())
+    arts::user_error(
+        "Cannot replace the position and line-of-sight vector of size {} by one of size {}", poslos->size(), n->size());
   poslos = std::move(n);
 }
 
 void Obsel::set_weight_matrix(SparseStokvecMatrix n) {
-  ARTS_USER_ERROR_IF(n.shape() != w.shape(),
-                     "Cannot replace the weight matrix of shape {:B,} by one of shape {:B,}",
-                     w.shape(),
-                     n.shape());
+  if (n.shape() != w.shape())
+    arts::user_error("Cannot replace the weight matrix of shape {:B,} by one of shape {:B,}", w.shape(), n.shape());
   w = std::move(n);
 }
 
@@ -261,43 +258,33 @@ void Obsel::flat(VectorView x, const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;
     case freq:
-      ARTS_USER_ERROR_IF(
-          x.size() != f_grid().size(), "Bad size. x.size(): {}, f_grid().size(): {}", x.size(), f_grid().size())
+      if (x.size() != f_grid().size())
+        arts::user_error("Bad size. x.size(): {}, f_grid().size(): {}", x.size(), f_grid().size());
       x = f_grid();
       break;
     case zen:
-      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
-                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                         x.size(),
-                         poslos_grid().size())
+      if (x.size() != poslos_grid().size())
+        arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), poslos_grid().size());
       std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.los[0]; });
       break;
     case azi:
-      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
-                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                         x.size(),
-                         poslos_grid().size())
+      if (x.size() != poslos_grid().size())
+        arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), poslos_grid().size());
       std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.los[1]; });
       break;
     case alt:
-      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
-                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                         x.size(),
-                         poslos_grid().size())
+      if (x.size() != poslos_grid().size())
+        arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), poslos_grid().size());
       std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[0]; });
       break;
     case lat:
-      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
-                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                         x.size(),
-                         poslos_grid().size())
+      if (x.size() != poslos_grid().size())
+        arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), poslos_grid().size());
       std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[1]; });
       break;
     case lon:
-      ARTS_USER_ERROR_IF(x.size() != poslos_grid().size(),
-                         "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                         x.size(),
-                         poslos_grid().size())
+      if (x.size() != poslos_grid().size())
+        arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), poslos_grid().size());
       std::transform(poslos_grid().begin(), poslos_grid().end(), x.begin(), [](auto& poslos) { return poslos.pos[2]; });
       break;
   }
@@ -484,8 +471,8 @@ void collect_frequency_grids(std::span<SensorObsel> obsels) {
 
 namespace {
 void set_frq(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(
-      x.size() != v.f_grid().size(), "Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size())
+  if (x.size() != v.f_grid().size())
+    arts::user_error("Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size());
 
   const auto xs = std::make_shared<const AscendingGrid>(x.begin(), x.end(), [](auto& x) { return x; });
 
@@ -501,10 +488,8 @@ void set_frq(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVector
 
 template <bool pos, Index k>
 void set_poslos(const SensorObsel& v, ArrayOfSensorObsel& sensor, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                     x.size(),
-                     v.poslos_grid().size())
+  if (x.size() != v.poslos_grid().size())
+    arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), v.poslos_grid().size());
 
   SensorPosLosVector xsv = v.poslos_grid();
 

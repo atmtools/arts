@@ -22,11 +22,10 @@ namespace dc = disort_common;
 
 namespace disort {
 delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nleg) {
-  ARTS_USER_ERROR_IF(nleg < 1, "nleg must be positive, got {}", nleg);
-  ARTS_USER_ERROR_IF(phase_moments.ncols() < nleg + 2,
-                     "delta-M-plus requires phase moments through degree {}, got {} columns",
-                     nleg + 1,
-                     phase_moments.ncols());
+  if (nleg < 1) arts::user_error("nleg must be positive, got {}", nleg);
+  if (phase_moments.ncols() < nleg + 2)
+    arts::user_error(
+        "delta-M-plus requires phase moments through degree {}, got {} columns", nleg + 1, phase_moments.ncols());
 
   delta_m_scaling out{Vector(phase_moments.nrows()), Matrix(phase_moments.nrows(), nleg, 1.0)};
   const bool      use_classical_delta_m = stdr::any_of(
@@ -42,20 +41,14 @@ delta_m_scaling delta_m_plus(const ConstMatrixView phase_moments, const Index nl
       continue;
     }
 
-    ARTS_USER_ERROR_IF(pn <= 0.0 || pn1 <= 0.0 || pn == pn1,
-                       "Cannot derive delta-M-plus width from P_{}={} and P_{}={} in layer {}",
-                       nleg,
-                       pn,
-                       nleg + 1,
-                       pn1,
-                       layer);
+    if (pn <= 0.0 || pn1 <= 0.0 || pn == pn1)
+      arts::user_error(
+          "Cannot derive delta-M-plus width from P_{}={} and P_{}={} in layer {}", nleg, pn, nleg + 1, pn1, layer);
     const Numeric n = static_cast<Numeric>(nleg);
     const Numeric sigma_sq =
         (Math::pow2(n + 1.0) - Math::pow2(n)) / (std::log(Math::pow2(pn)) - std::log(Math::pow2(pn1)));
-    ARTS_USER_ERROR_IF(!(sigma_sq > 0.0) || !std::isfinite(sigma_sq),
-                       "Invalid delta-M-plus Gaussian width {} in layer {}",
-                       sigma_sq,
-                       layer);
+    if (!(sigma_sq > 0.0) || !std::isfinite(sigma_sq))
+      arts::user_error("Invalid delta-M-plus Gaussian width {} in layer {}", sigma_sq, layer);
 
     out.fraction[layer] = pn * std::exp(Math::pow2(n) / (2.0 * sigma_sq));
     for (Index degree = 0; degree < nleg; ++degree) {
@@ -107,7 +100,7 @@ std::pair<CoupledType, radiances> coupled_size(AscendingGrid         freq_grid,
   const bool zen_match  = zen_grid == zen_grid_second;
   const bool alt_match  = alt_grid == alt_grid_second;
 
-  ARTS_USER_ERROR_IF((azi_match + zen_match + freq_match + alt_match) != 3, "Cannot couple disort radiances");
+  if ((azi_match + zen_match + freq_match + alt_match) != 3) arts::user_error("Cannot couple disort radiances");
 
   std::pair<CoupledType, radiances> out;
 
@@ -179,7 +172,7 @@ std::pair<CoupledType, fluxes> coupled_size(AscendingGrid         freq_grid,
   const bool freq_match = freq_grid == freq_grid_second;
   const bool alt_match  = alt_grid == alt_grid_second;
 
-  ARTS_USER_ERROR_IF((freq_match + alt_match) != 1, "Cannot couple disort fluxes");
+  if ((freq_match + alt_match) != 1) arts::user_error("Cannot couple disort fluxes");
 
   std::pair<CoupledType, fluxes> out;
 
@@ -331,8 +324,8 @@ surface_reflection::surface_reflection(const Index NBRDF, const Index n_out, con
 
 surface_reflection::surface_reflection(Tensor3 brdf, Matrix beam_brdf, const Numeric beam_mu)
     : kernel(std::move(brdf)), beam_kernel(std::move(beam_brdf)), beam_cosine(beam_mu) {
-  ARTS_USER_ERROR_IF((beam_kernel.shape() != std::array{kernel.npages(), kernel.nrows()}),
-                     "The beam reflection has the shape {:B,}, expected [{}, {}] for the reflection of shape {:B,}",
+  if ((beam_kernel.shape() != std::array{kernel.npages(), kernel.nrows()}))
+    arts::user_error("The beam reflection has the shape {:B,}, expected [{}, {}] for the reflection of shape {:B,}",
                      beam_kernel.shape(),
                      kernel.npages(),
                      kernel.nrows(),
@@ -347,8 +340,8 @@ surface_reflection surface_reflection::like(const Index n_out) const {
 void surface_reflection::set(const ConstTensor3View& brdf, const ConstMatrixView& beam_brdf, const Numeric beam_mu) {
   // Without modes there is nothing to set, whatever the directions
   const bool black = brdf.npages() == 0 and beam_brdf.nrows() == 0 and modes() == 0;
-  ARTS_USER_ERROR_IF(not black and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape()),
-                     "The surface reflection has the shapes {:B,} and {:B,}, expected {:B,} and {:B,}",
+  if (not black and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape()))
+    arts::user_error("The surface reflection has the shapes {:B,} and {:B,}, expected {:B,} and {:B,}",
                      brdf.shape(),
                      beam_brdf.shape(),
                      kernel.shape(),
@@ -366,12 +359,13 @@ void surface_reflection::set(const surface_reflection& other) { set(other.brdf()
 namespace {
 //! Throw unless a surface reflects a beam of cosine mu0, or there is no beam or reflection
 void check_beam_reflection(const surface_reflection& surface, const bool beam, const Numeric mu0) {
-  ARTS_USER_ERROR_IF(beam and surface.modes() > 0 and not(surface.beam_mu() == mu0),
-                     "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
-                     "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
-                     "the settings, set the surface after the sun.",
-                     surface.beam_mu(),
-                     mu0)
+  if (beam and surface.modes() > 0 and not(surface.beam_mu() == mu0))
+    arts::user_error(
+        "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
+        "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
+        "the settings, set the surface after the sun.",
+        surface.beam_mu(),
+        mu0);
 }
 }  // namespace
 
@@ -1030,28 +1024,22 @@ void main_data::check_input_size() const {
 
   dc::check_layer_input_sizes(NLayers, tau_arr, omega_arr);
 
-  ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}),
-                     "{:B,} vs [{}, {}]",
-                     source_poly_coeffs.shape(),
-                     NLayers,
-                     Nscoeffs);
+  if ((source_poly_coeffs.shape() != std::array{NLayers, Nscoeffs}))
+    arts::user_error("{:B,} vs [{}, {}]", source_poly_coeffs.shape(), NLayers, Nscoeffs);
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(f_arr.size()) != NLayers, "{} vs {}", f_arr.size(), NLayers);
+  if (static_cast<Index>(f_arr.size()) != NLayers) arts::user_error("{} vs {}", f_arr.size(), NLayers);
 
-  ARTS_USER_ERROR_IF(
-      (delta_m_peak.shape() != std::array{NLayers, NLeg}), "{:B,} vs [{}, {}]", delta_m_peak.shape(), NLayers, NLeg);
+  if ((delta_m_peak.shape() != std::array{NLayers, NLeg}))
+    arts::user_error("{:B,} vs [{}, {}]", delta_m_peak.shape(), NLayers, NLeg);
 
-  ARTS_USER_ERROR_IF((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}),
-                     "{:B,} vs [{}, {}]",
-                     Leg_coeffs_all.shape(),
-                     NLayers,
-                     NLeg_all);
+  if ((Leg_coeffs_all.shape() != std::array{NLayers, NLeg_all}))
+    arts::user_error("{:B,} vs [{}, {}]", Leg_coeffs_all.shape(), NLayers, NLeg_all);
 
-  ARTS_USER_ERROR_IF(
-      (boundary_up.shape() != std::array{NFourier, N}), "{:B,} vs [{}, {}]", boundary_up.shape(), NFourier, N)
+  if ((boundary_up.shape() != std::array{NFourier, N}))
+    arts::user_error("{:B,} vs [{}, {}]", boundary_up.shape(), NFourier, N);
 
-  ARTS_USER_ERROR_IF(
-      (boundary_down.shape() != std::array{NFourier, N}), "{:B,} vs [{}, {}]", boundary_down.shape(), NFourier, N)
+  if ((boundary_down.shape() != std::array{NFourier, N}))
+    arts::user_error("{:B,} vs [{}, {}]", boundary_down.shape(), NFourier, N);
 }
 
 void main_data::check_input_value() const {
@@ -1059,23 +1047,19 @@ void main_data::check_input_value() const {
 
   dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, mu0, phi0, has_beam_source);
 
-  ARTS_USER_ERROR_IF(stdr::any_of(Leg_coeffs_all,
-                                  [](auto&& x) {
-                                    return x.size() == 0 or x[0] != 1 or
-                                           stdr::any_of(x, [](auto&& u) { return std::abs(u) > 1; });
-                                  }),
-                     "Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
+  if (stdr::any_of(Leg_coeffs_all, [](auto&& x) {
+        return x.size() == 0 or x[0] != 1 or stdr::any_of(x, [](auto&& u) { return std::abs(u) > 1; });
+      }))
+    arts::user_error("Leg_coeffs_all must have 1 in the first column and be [-1, 1] elsewhere, got {:B,}",
                      Leg_coeffs_all);
 
-  ARTS_USER_ERROR_IF(I0 < 0, "I0 must be non-negative, got {}", I0);
+  if (I0 < 0) arts::user_error("I0 must be non-negative, got {}", I0);
 
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(f_arr, [](auto&& x) { return x >= 1 or x < 0; }), "f_arr must be [0, 1), got {:B,}", f_arr);
+  if (stdr::any_of(f_arr, [](auto&& x) { return x >= 1 or x < 0; }))
+    arts::user_error("f_arr must be [0, 1), got {:B,}", f_arr);
 
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(delta_m_peak | by_elem, [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }),
-      "delta_m_peak moments must be finite and [0, 1], got {:B,}",
-      delta_m_peak);
+  if (stdr::any_of(delta_m_peak | by_elem, [](const Numeric x) { return !std::isfinite(x) || x < 0.0 || x > 1.0; }))
+    arts::user_error("delta_m_peak moments must be finite and [0, 1], got {:B,}", delta_m_peak);
 }
 
 void main_data::transmission() {
@@ -1405,7 +1389,7 @@ main_data::main_data(const Index               NQuad_,
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  if (tau < 0) arts::user_error("tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
 
@@ -1447,27 +1431,26 @@ void main_data::u_user(user_u_data&              data,
                        const surface_reflection& user_surface) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      tau < 0.0 || tau > tau_arr.back(), "Optical depth must be in [0, {}], got {}", tau_arr.back(), tau);
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }),
-      "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
-      user_mu);
+  if (tau < 0.0 || tau > tau_arr.back())
+    arts::user_error("Optical depth must be in [0, {}], got {}", tau_arr.back(), tau);
+  if (stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) || mu == 0.0 || std::abs(mu) > 1.0; }))
+    arts::user_error("User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}", user_mu);
 
   // The surface reflects into the upward user directions, so it is needed there
   if (NBDRF > 0 and stdr::any_of(user_mu, Cmp::gt(0.0))) {
     const Index nuser = static_cast<Index>(user_mu.size());
-    ARTS_USER_ERROR_IF((user_surface.brdf().shape() != std::array{NBDRF, nuser, N}) or
-                           (user_surface.beam_brdf().shape() != std::array{NBDRF, nuser}),
-                       "The surface reflects into the upward user directions, so their reflection must be given: "
-                       "shapes [{}, {}, {}] and [{}, {}] are needed, got {:B,} and {:B,}",
-                       NBDRF,
-                       nuser,
-                       N,
-                       NBDRF,
-                       nuser,
-                       user_surface.brdf().shape(),
-                       user_surface.beam_brdf().shape());
+    if ((user_surface.brdf().shape() != std::array{NBDRF, nuser, N}) or
+        (user_surface.beam_brdf().shape() != std::array{NBDRF, nuser}))
+      arts::user_error(
+          "The surface reflects into the upward user directions, so their reflection must be given: "
+          "shapes [{}, {}, {}] and [{}, {}] are needed, got {:B,} and {:B,}",
+          NBDRF,
+          nuser,
+          N,
+          NBDRF,
+          nuser,
+          user_surface.brdf().shape(),
+          user_surface.beam_brdf().shape());
     check_beam_reflection(user_surface, has_beam_source, mu0);
   }
 
@@ -1612,7 +1595,7 @@ void main_data::u_user(user_u_data&              data,
 void main_data::u0(u0_data& data, const Numeric tau) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  if (tau < 0) arts::user_error("tau ({}) must be positive", tau);
 
   const Index l = tau_index(tau);
 
@@ -1662,7 +1645,7 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi) const 
 void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi, const ConstVectorView& mu) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  if (tau < 0) arts::user_error("tau ({}) must be positive", tau);
   prepare_TMS(data, phi, mu);
   evaluate_TMS(data, tau, mu);
 }
@@ -1670,8 +1653,9 @@ void main_data::TMS(tms_data& data, const Numeric tau, const Numeric phi, const 
 void main_data::prepare_TMS(tms_data& data, const Numeric phi, const ConstVectorView& mu) const {
   check_classical_delta_m_correction();
 
-  for (const Numeric x : mu)
-    ARTS_USER_ERROR_IF(x == 0.0 || std::abs(x) > 1.0, "Polar-angle cosine ({}) must be nonzero and in [-1, 1]", x);
+  for (const Numeric x : mu) {
+    if (x == 0.0 || std::abs(x) > 1.0) arts::user_error("Polar-angle cosine ({}) must be nonzero and in [-1, 1]", x);
+  }
 
   // The upward beam factor is regular and remains in mathscr_B.  The
   // downward factor has a removable singularity at mu == mu0 and is folded
@@ -1694,9 +1678,10 @@ void main_data::prepare_TMS(tms_data& data, const Numeric phi, const ConstVector
 void main_data::check_classical_delta_m_correction() const {
   for (Index layer = 0; layer < NLayers; ++layer) {
     if (f_arr[layer] == 0.0) continue;
-    ARTS_USER_ERROR_IF(stdr::any_of(delta_m_peak[layer], [](const Numeric x) { return x != 1.0; }),
-                       "IMS/TMS corrections are unavailable for a non-classical delta-M removed peak; "
-                       "use u() or u_user() for delta-M-plus, matching DISORT 4.0.99");
+    if (stdr::any_of(delta_m_peak[layer], [](const Numeric x) { return x != 1.0; }))
+      arts::user_error(
+          "IMS/TMS corrections are unavailable for a non-classical delta-M removed peak; "
+          "use u() or u_user() for delta-M-plus, matching DISORT 4.0.99");
   }
 }
 
@@ -1751,7 +1736,7 @@ void main_data::IMS(Vector&                ims,
 
   check_classical_delta_m_correction();
 
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  if (tau < 0) arts::user_error("tau ({}) must be positive", tau);
 
   const Index   l         = tau_index(tau);
   const Numeric tau_top   = l == 0 ? 0.0 : tau_arr[l - 1];
@@ -1761,8 +1746,8 @@ void main_data::IMS(Vector&                ims,
   ims             = 0.0;
   const Index nmu = mu.size();
   for (Index i = 0; i < nmu; i++) {
-    ARTS_USER_ERROR_IF(
-        mu[i] == 0.0 || std::abs(mu[i]) > 1.0, "Polar-angle cosine ({}) must be nonzero and in [-1, 1]", mu[i]);
+    if (mu[i] == 0.0 || std::abs(mu[i]) > 1.0)
+      arts::user_error("Polar-angle cosine ({}) must be nonzero and in [-1, 1]", mu[i]);
     if (mu[i] > 0.0) continue;
     const Numeric abs_mu = -mu[i];
     const Numeric nu     = calculate_nu(mu[i], phi, -mu0, phi0);
@@ -1927,7 +1912,7 @@ void main_data::gridded_u_corr(
 flux_values main_data::flux(flux_data& data, const Numeric tau) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau < 0, "tau ({}) must be positive", tau);
+  if (tau < 0) arts::user_error("tau ({}) must be positive", tau);
   const Index   l                = tau_index(tau);
   const Numeric scaled_tau_arr_l = scaled_tau_arr_with_0[l + 1];
   const Numeric scaled_tau       = scaled_tau_arr_l - (tau_arr[l] - tau) * scale_tau[l];
@@ -2015,17 +2000,14 @@ void main_data::ungridded_flux(VectorView           flux_up,
                                const AscendingGrid& tau) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(flux_up.size() != tau.size() or flux_down_diffuse.size() != tau.size() or
-                         flux_down_direct.size() != tau.size() or flux_dfdt.size() != tau.size(),
-                     "All ungridded flux outputs must have the same size as tau ({})",
-                     tau.size());
+  if (flux_up.size() != tau.size() or flux_down_diffuse.size() != tau.size() or flux_down_direct.size() != tau.size() or
+      flux_dfdt.size() != tau.size())
+    arts::user_error("All ungridded flux outputs must have the same size as tau ({})", tau.size());
   if (tau.empty()) return;
 
-  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
-  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
-                     "the last tau ({}) must be less than the last layer ({})",
-                     tau.back(),
-                     tau_arr.back());
+  if (tau.front() < 0) arts::user_error("the first tau ({}) must be positive", tau.front());
+  if (tau.back() > tau_arr.back())
+    arts::user_error("the last tau ({}) must be less than the last layer ({})", tau.back(), tau_arr.back());
 
   Vector u0(NQuad);
 
@@ -2058,11 +2040,9 @@ void main_data::ungridded_flux(VectorView           flux_up,
 void main_data::ungridded_u(Tensor3View out, const AscendingGrid& tau, const Vector& phi) const {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(tau.front() < 0, "the first tau ({}) must be positive", tau.front());
-  ARTS_USER_ERROR_IF(tau.back() > tau_arr.back(),
-                     "the last tau ({}) must be less than the last layer ({})",
-                     tau.back(),
-                     tau_arr.back());
+  if (tau.front() < 0) arts::user_error("the first tau ({}) must be positive", tau.front());
+  if (tau.back() > tau_arr.back())
+    arts::user_error("the last tau ({}) must be less than the last layer ({})", tau.back(), tau_arr.back());
 
   Matrix um(NFourier, NQuad);
 
@@ -2111,9 +2091,9 @@ coupling_result couple(main_data&    atmosphere,
                        const Numeric tolerance,
                        const Index   max_iterations,
                        const Numeric relaxation) {
-  ARTS_USER_ERROR_IF(max_iterations < 1, "max_iterations must be at least 1, got {}", max_iterations);
-  ARTS_USER_ERROR_IF(tolerance < 0, "tolerance must be non-negative, got {}", tolerance);
-  ARTS_USER_ERROR_IF(relaxation <= 0 or relaxation > 1, "relaxation must be in (0, 1], got {}", relaxation);
+  if (max_iterations < 1) arts::user_error("max_iterations must be at least 1, got {}", max_iterations);
+  if (tolerance < 0) arts::user_error("tolerance must be non-negative, got {}", tolerance);
+  if (relaxation <= 0 or relaxation > 1) arts::user_error("relaxation must be in (0, 1], got {}", relaxation);
 
   MatrixView  atm_up       = atmosphere.upward_boundary();
   MatrixView  subsurf_down = subsurface.downward_boundary();
@@ -2125,12 +2105,11 @@ coupling_result couple(main_data&    atmosphere,
   const Range front        = rf(N);
   const Range back         = rb(N);
 
-  ARTS_USER_ERROR_IF(Nquad != subsurface.mu().size(),
-                     "The coupled models must use the same quadrature dimension, got {} vs {}",
-                     Nquad,
-                     subsurface.mu().size());
-  ARTS_USER_ERROR_IF(atm_up.shape() != subsurf_down.shape(),
-                     "The coupled models must use identical boundary dimensions, got {:B,} vs. {:B,}",
+  if (Nquad != subsurface.mu().size())
+    arts::user_error(
+        "The coupled models must use the same quadrature dimension, got {} vs {}", Nquad, subsurface.mu().size());
+  if (atm_up.shape() != subsurf_down.shape())
+    arts::user_error("The coupled models must use identical boundary dimensions, got {:B,} vs. {:B,}",
                      atm_up.shape(),
                      subsurf_down.shape());
 
@@ -2241,8 +2220,8 @@ bool DisortSettings::ok() const {
 }
 
 void DisortSettings::check() const {
-  ARTS_USER_ERROR_IF(not ok(),
-                     R"-x-(Input is of incorrect size.
+  if (not ok())
+    arts::user_error(R"-x-(Input is of incorrect size.
 
 {:Bs,}
 

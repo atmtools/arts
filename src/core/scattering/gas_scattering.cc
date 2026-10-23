@@ -43,12 +43,10 @@ rtepack::compact_planar_muelmat rayleigh_scattering_matrix(Numeric theta_rad, Nu
 CompactPlanarMuelmat calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric& depolarization_factor) {
   using Constant::pi;
 
-  ARTS_USER_ERROR_IF(theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi),
-                     "Error in calc_rayleighPhaMat: Scattering angle must be in the range [0, pi], is {}",
-                     theta_rad);
-  ARTS_USER_ERROR_IF(depolarization_factor < 0.0 or depolarization_factor >= 1.0,
-                     "The depolarization factor must be in [0, 1), is {}",
-                     depolarization_factor);
+  if (theta_rad != std::clamp<Numeric>(theta_rad, 0.0, pi))
+    arts::user_error("Error in calc_rayleighPhaMat: Scattering angle must be in the range [0, pi], is {}", theta_rad);
+  if (depolarization_factor < 0.0 or depolarization_factor >= 1.0)
+    arts::user_error("The depolarization factor must be in [0, 1), is {}", depolarization_factor);
 
   return rayleigh_scattering_matrix(theta_rad, depolarization_factor);
 }
@@ -103,26 +101,27 @@ Numeric AirSimpleGasScattering::operator()(Numeric frequency, const AtmPoint& at
   return air_simple_cross_section(frequency) * number_density(atm_point.pressure, atm_point.temperature);
 }
 
-ConstantGasScattering::ConstantGasScattering(Numeric cross_section_)
-    : cross_section(cross_section_){ARTS_USER_ERROR_IF(
-          cross_section < 0.0, "The gas-scattering cross-section must be non-negative, is {}", cross_section)}
+ConstantGasScattering::ConstantGasScattering(Numeric cross_section_) : cross_section(cross_section_) {
+  if (cross_section < 0.0)
+    arts::user_error("The gas-scattering cross-section must be non-negative, is {}", cross_section);
+}
 
-      Numeric ConstantGasScattering::operator()(Numeric, const AtmPoint& atm_point) const {
+Numeric ConstantGasScattering::operator()(Numeric, const AtmPoint& atm_point) const {
   return cross_section * number_density(atm_point.pressure, atm_point.temperature);
 }
 
 RayleighGasScattering::RayleighGasScattering(Numeric depolarization_factor_)
-    : depolarization_factor(depolarization_factor_){
-          ARTS_USER_ERROR_IF(depolarization_factor < 0.0 or depolarization_factor >= 1.0,
-                             "The depolarization factor must be in [0, 1), is {}",
-                             depolarization_factor)}
+    : depolarization_factor(depolarization_factor_) {
+  if (depolarization_factor < 0.0 or depolarization_factor >= 1.0)
+    arts::user_error("The depolarization factor must be in [0, 1), is {}", depolarization_factor);
+}
 
-      GasScatterer::GasScatterer(GasScatteringCoefficient coefficient_, GasScatteringPhaseMatrix phase_matrix_)
+GasScatterer::GasScatterer(GasScatteringCoefficient coefficient_, GasScatteringPhaseMatrix phase_matrix_)
     : coefficient(std::move(coefficient_)), phase_matrix(std::move(phase_matrix_)) {}
 
 BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get_bulk_scattering_properties_tro_gridded(
     const AtmPoint& atm_point, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
-  ARTS_USER_ERROR_IF(not za_scat_grid, "A scattering zenith-angle grid is required")
+  if (not za_scat_grid) arts::user_error("A scattering zenith-angle grid is required");
 
   auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
   auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
@@ -158,7 +157,7 @@ GasScatterer::get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoi
 ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
                                                                                       const Vector&   f_grid,
                                                                                       Index           degree) const {
-  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be non-negative, is {}", degree)
+  if (degree < 0) arts::user_error("The Legendre degree must be non-negative, is {}", degree);
 
   CompactPlanarMuelmatMatrix phase(f_grid.size(), degree + 1, CompactPlanarMuelmat{});
   CompactPlanarPropmatVector extinction(f_grid.size());
@@ -211,7 +210,7 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
     const Vector&                    za_inc_grid,
     const Vector&                    delta_aa_grid,
     std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
-  ARTS_USER_ERROR_IF(not za_scat_grid, "A scattering zenith-angle grid is required")
+  if (not za_scat_grid) arts::user_error("A scattering zenith-angle grid is required");
 
   auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
   auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
@@ -365,7 +364,7 @@ void xml_io_stream<scattering::ConstantGasScattering>::read(std::istream&       
   xml_read_from_stream(is, x.cross_section, pbifs);
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
-  ARTS_USER_ERROR_IF(x.cross_section < 0.0, "The gas-scattering cross-section must be non-negative")
+  if (x.cross_section < 0.0) arts::user_error("The gas-scattering cross-section must be non-negative");
 }
 
 void xml_io_stream<scattering::RayleighGasScattering>::write(std::ostream&                            os,
@@ -386,8 +385,8 @@ void xml_io_stream<scattering::RayleighGasScattering>::read(std::istream&       
   xml_read_from_stream(is, x.depolarization_factor, pbifs);
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
-  ARTS_USER_ERROR_IF(x.depolarization_factor < 0.0 or x.depolarization_factor >= 1.0,
-                     "The depolarization factor must be in [0, 1)")
+  if (x.depolarization_factor < 0.0 or x.depolarization_factor >= 1.0)
+    arts::user_error("The depolarization factor must be in [0, 1)");
 }
 
 void xml_io_stream<scattering::GasScatterer>::write(std::ostream&                   os,

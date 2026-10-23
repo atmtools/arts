@@ -672,7 +672,7 @@ class main_data {
   [[nodiscard]] const AscendingGrid& tau() const { return tau_arr; }
   /** Replace the physical layer-bottom optical depths, keeping their number. */
   template <matpack::exact_md<Numeric, 1> T> void tau(T&& x) {
-    ARTS_USER_ERROR_IF(static_cast<Index>(x.size()) != NLayers, "Invalid size for tau: {}", x.size());
+    if (static_cast<Index>(x.size()) != NLayers) arts::user_error("Invalid size for tau: {}", x.size());
     tau_arr = std::forward<T>(x);
   }
   /** Return physical single-scattering albedos. */

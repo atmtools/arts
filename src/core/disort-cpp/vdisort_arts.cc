@@ -39,9 +39,8 @@ std::pair<Vector, ArrayOfIndex> zenith_angle_grid(const Vector& mu) {
 }
 
 void check_cosines(const Vector& mu, std::string_view name) {
-  ARTS_USER_ERROR_IF(stdr::any_of(mu, [](Numeric x) { return not(std::abs(x) <= 1.0 and x != 0.0); }),
-                     "The direction cosines {} must be in [-1, 0) or (0, 1]",
-                     name);
+  if (stdr::any_of(mu, [](Numeric x) { return not(std::abs(x) <= 1.0 and x != 0.0); }))
+    arts::user_error("The direction cosines {} must be in [-1, 0) or (0, 1]", name);
 }
 }  // namespace
 
@@ -55,10 +54,10 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const Index no = static_cast<Index>(mu_out.size()), ni = static_cast<Index>(mu_in.size());
   check_cosines(mu_out, "mu_out");
   check_cosines(mu_in, "mu_in");
-  ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
-  ARTS_USER_ERROR_IF(
-      not(normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
+  if (nfourier < 1) arts::user_error("nfourier must be >= 1, got {}", nfourier);
+  if (not(normalisation_tolerance >= 0.0))
+    arts::user_error("normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
+  if (not(frequency > 0.0)) arts::user_error("frequency must be positive, got {} Hz", frequency);
 
   fourier_optics out{.extinction = 0.0,
                      .scattering = 0.0,
@@ -66,7 +65,7 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                      .sine       = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
   if (scattering_species.species.empty()) return out;
 
-  ARTS_USER_ERROR_IF(no == 0 or ni == 0, "VDISORT's scattering optics need at least one mu_out and one mu_in");
+  if (no == 0 or ni == 0) arts::user_error("VDISORT's scattering optics need at least one mu_out and one mu_in");
 
   // The azimuthal Fourier modes Z = sum_m C_m cos(m phi) + S_m sin(m phi) of ARTS's laboratory-frame phase
   // matrix at the propagation zenith angles, with the extinction, the absorption and the phase integral
@@ -75,9 +74,10 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const auto [za_scat, sca] = zenith_angle_grid(mu_out);
   const auto lab            = scattering_species.get_bulk_scattering_properties_aro_fourier(
       atm_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
-  ARTS_USER_ERROR_IF(not lab.phase_matrix.has_value(),
-                     "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
-                     "have none");
+  if (not lab.phase_matrix.has_value())
+    arts::user_error(
+        "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
+        "have none");
   const auto& pha      = *lab.phase_matrix;
   const auto& ext      = lab.extinction_matrix;
   const auto& abs      = lab.absorption_vector;
@@ -93,41 +93,44 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   const bool    check = not std::isinf(normalisation_tolerance);
   const Numeric tol   = normalisation_tolerance * out.extinction;
   for (Index j = 0; j < static_cast<Index>(za_inc.size()); j++) {
-    ARTS_USER_ERROR_IF(std::isnan(integral[0, 0, j]),
-                       "The scattering species do not give the phase integral int Z11 dOmega at the incidence zenith "
-                       "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
-                       za_inc[j])
+    if (std::isnan(integral[0, 0, j]))
+      arts::user_error(
+          "The scattering species do not give the phase integral int Z11 dOmega at the incidence zenith "
+          "angle {} deg (ARO data must cover all scattering zenith angles, [0, 180] deg)",
+          za_inc[j]);
     if (not check) continue;
     const Numeric dk   = std::abs(ext[0, 0, j].A() - out.extinction),
                   dpol = std::max(std::abs(ext[0, 0, j].B()), std::abs(ext[0, 0, j].W()));
     const Numeric da = std::abs(abs[0, 0, j].I() - abs[0, 0, 0].I()), da2 = std::abs(abs[0, 0, j].Q());
     const Numeric ds = std::abs(integral[0, 0, j] - sigma);
-    ARTS_USER_ERROR_IF(not(std::max({dk, dpol, da, da2, ds}) <= tol),
-                       "VDISORT's optical depth and single-scattering albedo are scalars, but at the incidence zenith "
-                       "angle {} deg the particles' K11 differs by {} per m, K12 or K34 is {} per m, a1 differs by {} "
-                       "per m, a2 is {} per m, or the phase integral differs by {} per m from those at {} deg, more "
-                       "than normalisation_tolerance times K11, {} * {} per m (azimuthally randomly oriented "
-                       "particles generally give such optics, which VDISORT cannot transport)",
-                       za_inc[j],
-                       dk,
-                       dpol,
-                       da,
-                       da2,
-                       ds,
-                       za_inc[0],
-                       normalisation_tolerance,
-                       out.extinction)
+    if (not(std::max({dk, dpol, da, da2, ds}) <= tol))
+      arts::user_error(
+          "VDISORT's optical depth and single-scattering albedo are scalars, but at the incidence zenith "
+          "angle {} deg the particles' K11 differs by {} per m, K12 or K34 is {} per m, a1 differs by {} "
+          "per m, a2 is {} per m, or the phase integral differs by {} per m from those at {} deg, more "
+          "than normalisation_tolerance times K11, {} * {} per m (azimuthally randomly oriented "
+          "particles generally give such optics, which VDISORT cannot transport)",
+          za_inc[j],
+          dk,
+          dpol,
+          da,
+          da2,
+          ds,
+          za_inc[0],
+          normalisation_tolerance,
+          out.extinction);
   }
 
-  ARTS_USER_ERROR_IF(check and not(std::abs(sigma - out.scattering) <= tol),
-                     "The scattering coefficient from the phase matrix, int Z11 dOmega = {} per m, and the "
-                     "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
-                     "extinction, {} * {} per m (VDISORT normalises the phase matrix and takes the albedo from the "
-                     "latter)",
-                     sigma,
-                     out.scattering,
-                     normalisation_tolerance,
-                     out.extinction);
+  if (check and not(std::abs(sigma - out.scattering) <= tol))
+    arts::user_error(
+        "The scattering coefficient from the phase matrix, int Z11 dOmega = {} per m, and the "
+        "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
+        "extinction, {} * {} per m (VDISORT normalises the phase matrix and takes the albedo from the "
+        "latter)",
+        sigma,
+        out.scattering,
+        normalisation_tolerance,
+        out.extinction);
   if (sigma == 0.0) return out;
 
   // VDISORT's coefficients are (1 / 2 pi) int P cos(m phi) dphi with P = 4 pi Z / sigma, i.e. C_0 and half of
@@ -152,9 +155,9 @@ fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView
   const Index nleg = moments.size();
   check_cosines(mu_out, "mu_out");
   check_cosines(mu_in, "mu_in");
-  ARTS_USER_ERROR_IF(nfourier < 1, "nfourier must be >= 1, got {}", nfourier);
-  ARTS_USER_ERROR_IF(nleg < 1, "The Legendre moments need at least one degree");
-  ARTS_USER_ERROR_IF(no == 0 or ni == 0, "The Fourier coefficients need at least one mu_out and one mu_in");
+  if (nfourier < 1) arts::user_error("nfourier must be >= 1, got {}", nfourier);
+  if (nleg < 1) arts::user_error("The Legendre moments need at least one degree");
+  if (no == 0 or ni == 0) arts::user_error("The Fourier coefficients need at least one mu_out and one mu_in");
 
   fourier_optics out{.extinction = 0.0,
                      .scattering = 0.0,
@@ -212,37 +215,35 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
   const Index nlev = static_cast<Index>(ray_path.size());
   const Index nf   = static_cast<Index>(freq_grid.size());
 
-  ARTS_USER_ERROR_IF(nlev < 2, "ray_path needs at least 2 points (1 layer), got {}", nlev);
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(atm_path.size()) != nlev or static_cast<Index>(spectral_propmat_path.size()) != nlev,
-      "ray_path, atm_path and spectral_propmat_path must have one entry per level; they have {}, {} "
-      "and {}",
-      nlev,
-      atm_path.size(),
-      spectral_propmat_path.size());
-  ARTS_USER_ERROR_IF(freq_index < 0 or freq_index >= nf,
-                     "freq_index must be in [0, {}) for a freq_grid of {} frequencies, got {}",
-                     nf,
-                     nf,
-                     freq_index);
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(spectral_propmat_path, [nf](const PropmatVector& v) { return static_cast<Index>(v.size()) != nf; }),
-      "Every spectral_propmat_path level must have freq_grid.size() = {} propagation matrices",
-      nf);
-  for (Index l = 0; l < nlev - 1; l++)
-    ARTS_USER_ERROR_IF(not(ray_path[l].altitude() > ray_path[l + 1].altitude()),
-                       "The ray_path altitudes must decrease strictly from the first point (top of the atmosphere) "
-                       "to the last (surface)");
-  ARTS_USER_ERROR_IF(stdr::any_of(spectral_propmat_path,
-                                  [freq_index](const PropmatVector& v) { return v[freq_index].is_polarized(); }),
-                     "VDISORT's gas extinction is scalar: the gas propagation matrices in spectral_propmat_path must "
-                     "not be polarized (only A may be non-zero) at frequency index {}",
-                     freq_index);
-  ARTS_USER_ERROR_IF(
-      settings.nquad < 2 or settings.nquad % 2 != 0, "nquad must be a positive even number, got {}", settings.nquad);
-  ARTS_USER_ERROR_IF(settings.nfourier < 1, "nfourier must be >= 1, got {}", settings.nfourier);
-  ARTS_USER_ERROR_IF(
-      not(settings.beam_flux >= 0.0), "beam_flux must be >= 0 (0 for no beam), got {}", settings.beam_flux);
+  if (nlev < 2) arts::user_error("ray_path needs at least 2 points (1 layer), got {}", nlev);
+  if (static_cast<Index>(atm_path.size()) != nlev or static_cast<Index>(spectral_propmat_path.size()) != nlev)
+    arts::user_error(
+        "ray_path, atm_path and spectral_propmat_path must have one entry per level; they have {}, {} "
+        "and {}",
+        nlev,
+        atm_path.size(),
+        spectral_propmat_path.size());
+  if (freq_index < 0 or freq_index >= nf)
+    arts::user_error("freq_index must be in [0, {}) for a freq_grid of {} frequencies, got {}", nf, nf, freq_index);
+  if (stdr::any_of(spectral_propmat_path, [nf](const PropmatVector& v) { return static_cast<Index>(v.size()) != nf; }))
+    arts::user_error("Every spectral_propmat_path level must have freq_grid.size() = {} propagation matrices", nf);
+  for (Index l = 0; l < nlev - 1; l++) {
+    if (not(ray_path[l].altitude() > ray_path[l + 1].altitude()))
+      arts::user_error(
+          "The ray_path altitudes must decrease strictly from the first point (top of the atmosphere) "
+          "to the last (surface)");
+  }
+  if (stdr::any_of(spectral_propmat_path,
+                   [freq_index](const PropmatVector& v) { return v[freq_index].is_polarized(); }))
+    arts::user_error(
+        "VDISORT's gas extinction is scalar: the gas propagation matrices in spectral_propmat_path must "
+        "not be polarized (only A may be non-zero) at frequency index {}",
+        freq_index);
+  if (settings.nquad < 2 or settings.nquad % 2 != 0)
+    arts::user_error("nquad must be a positive even number, got {}", settings.nquad);
+  if (settings.nfourier < 1) arts::user_error("nfourier must be >= 1, got {}", settings.nfourier);
+  if (not(settings.beam_flux >= 0.0))
+    arts::user_error("beam_flux must be >= 0 (0 for no beam), got {}", settings.beam_flux);
 
   const bool    beam      = settings.beam_flux > 0.0;
   const Index   nlay      = nlev - 1;
@@ -251,9 +252,8 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
   const Index   NF        = settings.nfourier;
   const Numeric frequency = freq_grid[freq_index];
 
-  ARTS_USER_ERROR_IF(beam and not(settings.beam_mu > 0.0 and settings.beam_mu <= 1.0),
-                     "beam_mu must be in (0, 1] with a beam, got {}",
-                     settings.beam_mu);
+  if (beam and not(settings.beam_mu > 0.0 and settings.beam_mu <= 1.0))
+    arts::user_error("beam_mu must be in (0, 1] with a beam, got {}", settings.beam_mu);
 
   // VDISORT's own streams: upward (mu > 0) first, then mu = -mu[i]
   Vector mu(NQ), inv_mu(NQ), W(N);
@@ -281,9 +281,10 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
         std::midpoint(spectral_propmat_path[l][freq_index].A(), spectral_propmat_path[l + 1][freq_index].A());
     const Numeric k  = gas + std::midpoint(a.extinction, b.extinction);
     const Numeric dz = ray_path[l].altitude() - ray_path[l + 1].altitude();
-    ARTS_USER_ERROR_IF(not(k * dz > 0.0),
-                       "VDISORT needs a positive optical thickness in every layer: the gas plus particle extinction "
-                       "must be positive along the whole path");
+    if (not(k * dz > 0.0))
+      arts::user_error(
+          "VDISORT needs a positive optical thickness in every layer: the gas plus particle extinction "
+          "must be positive along the whole path");
     t        += k * dz;
     tau[l]    = t;
     omega[l]  = std::midpoint(a.scattering, b.scattering) / k;

@@ -23,7 +23,7 @@ void jac_targetsToggleRelativeHumidityAtmTargetImpl(JacobianTargets&            
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 }  // namespace
 

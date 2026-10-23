@@ -26,7 +26,7 @@ void spectral_rad_operatorClearsky1D(const Workspace&          ws,
                                      const Index&              cia_robust) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
+  if (alt_grid.size() < 2) arts::user_error("Must have some type of path");
 
   using lines_t  = AbsorptionBands;
   using cia_t    = CIARecords;
@@ -80,10 +80,10 @@ void spectral_rad_fieldFromOperatorPlanarGeometric(GriddedSpectralField6&       
       .grid_names = {"Altitude", "Latitude", "Longitude", "Zenith angle", "Azimuth angle", "Frequency"},
       .grids      = {alt_grid, lat_grid, lon_grid, zen_grid, azi_grid, freq_grid}};
 
-  ARTS_USER_ERROR_IF(alt_grid.size() < 2, "Must have some type of path")
-  ARTS_USER_ERROR_IF(lat_grid.size() != 1, "Latitude must be scalar")
-  ARTS_USER_ERROR_IF(lon_grid.size() != 1, "Longitude must be scalar")
-  ARTS_USER_ERROR_IF(stdr::binary_search(zen_grid, 90.0), "Zenith angle must not be 90 degrees")
+  if (alt_grid.size() < 2) arts::user_error("Must have some type of path");
+  if (lat_grid.size() != 1) arts::user_error("Latitude must be scalar");
+  if (lon_grid.size() != 1) arts::user_error("Longitude must be scalar");
+  if (stdr::binary_search(zen_grid, 90.0)) arts::user_error("Zenith angle must not be 90 degrees");
   const Numeric alt_low  = alt_grid.front();
   const Numeric alt_high = alt_grid.back();
   const Numeric lat      = lat_grid[0];
@@ -225,7 +225,7 @@ void spectral_rad_fieldFromOperatorPath(const Workspace&                ws,
       }
     }
 
-    ARTS_USER_ERROR_IF(not errors.empty(), "{}", errors)
+    if (not errors.empty()) arts::user_error("{}", errors);
   }
 }
 

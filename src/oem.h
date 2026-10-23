@@ -608,12 +608,11 @@ class AgendaWrapper {
                                     derivative_targets,
                                     xi,
                                     *inversion_iterate_agenda_);
-    ARTS_USER_ERROR_IF(yi_.size() != m, "inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size())
+    if (yi_.size() != m)
+      arts::user_error("inversion_iterate_agenda must return {} measurements; got {}.", m, yi_.size());
     if (with_jacobian) {
-      ARTS_USER_ERROR_IF(jacobian.nrows() != m || jacobian.ncols() != n,
-                         "inversion_iterate_agenda must return an {} by {} Jacobian.",
-                         m,
-                         n)
+      if (jacobian.nrows() != m || jacobian.ncols() != n)
+        arts::user_error("inversion_iterate_agenda must return an {} by {} Jacobian.", m, n);
       jacobian_state_ = static_cast<const ::Vector &>(xi);
       jacobian_valid_ = true;
     }

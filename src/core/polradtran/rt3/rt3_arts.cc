@@ -25,10 +25,10 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
                                  Numeric                         frequency,
                                  Index                           degree,
                                  Numeric                         normalisation_tolerance) {
-  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree);
-  ARTS_USER_ERROR_IF(
-      not(normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
+  if (degree < 0) arts::user_error("The Legendre degree must be >= 0, got {}", degree);
+  if (not(normalisation_tolerance >= 0.0))
+    arts::user_error("normalisation_tolerance must be >= 0, got {}", normalisation_tolerance);
+  if (not(frequency > 0.0)) arts::user_error("frequency must be positive, got {} Hz", frequency);
 
   if (scattering_species.species.empty()) return no_scattering(degree);
 
@@ -44,16 +44,17 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   // The scattering coefficient implied by the phase matrix, 2 pi int F11 dx
   const Numeric phase_integral = 4.0 * Constant::pi * c[0].F11();
-  ARTS_USER_ERROR_IF(not std::isinf(normalisation_tolerance) and
-                         not(std::abs(phase_integral - scattering) <= normalisation_tolerance * extinction),
-                     "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
-                     "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
-                     "extinction, {} * {} per m (RT3 normalises the phase function and takes the albedo from the "
-                     "latter)",
-                     phase_integral,
-                     scattering,
-                     normalisation_tolerance,
-                     extinction);
+  if (not std::isinf(normalisation_tolerance) and
+      not(std::abs(phase_integral - scattering) <= normalisation_tolerance * extinction))
+    arts::user_error(
+        "The scattering coefficient from the phase matrix, 2 pi int F11 dcos(Theta) = {} per m, and the "
+        "extinction minus the absorption, {} per m, must agree to normalisation_tolerance times the "
+        "extinction, {} * {} per m (RT3 normalises the phase function and takes the albedo from the "
+        "latter)",
+        phase_integral,
+        scattering,
+        normalisation_tolerance,
+        extinction);
 
   if (phase_integral == 0.0) {
     auto s       = no_scattering(degree);

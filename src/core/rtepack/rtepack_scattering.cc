@@ -267,15 +267,16 @@ muelmat rayleigh_scattering(const Vector2 &los_in, const Vector2 &los_out, const
     pha[1, 0] = C2 * F12;
     pha[1, 1] = C1 * C2 * F22 - S1 * S2 * F33;
 
-    ARTS_USER_ERROR_IF(std::isnan(pha[0, 1]) || std::isnan(pha[1, 0]) || std::isnan(pha[1, 1]),
-                       "NaN value(s) detected in *phaCalc* (0/1,1). Could the "
-                       "input data contain NaNs? Please check with *scat_dataCheck*. If "
-                       "input data are OK  and you critically need the ongoing calculations, "
-                       "try to change the observation LOS slightly. If you can reproduce "
-                       "this error, please contact Patrick in order to help tracking down "
-                       "the reason to this problem. If you see this message occasionally "
-                       "when doing MC calculations, it should not be critical. This path "
-                       "sampling will be rejected and replaced with a new one.");
+    if (std::isnan(pha[0, 1]) || std::isnan(pha[1, 0]) || std::isnan(pha[1, 1]))
+      arts::user_error(
+          "NaN value(s) detected in *phaCalc* (0/1,1). Could the "
+          "input data contain NaNs? Please check with *scat_dataCheck*. If "
+          "input data are OK  and you critically need the ongoing calculations, "
+          "try to change the observation LOS slightly. If you can reproduce "
+          "this error, please contact Patrick in order to help tracking down "
+          "the reason to this problem. If you see this message occasionally "
+          "when doing MC calculations, it should not be critical. This path "
+          "sampling will be rejected and replaced with a new one.");
 
     /*CPD: For skokes_dim > 2 some of the transformation formula
             for each element have a different sign depending on whether or

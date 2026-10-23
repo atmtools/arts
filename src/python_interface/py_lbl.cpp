@@ -921,10 +921,11 @@ No collision calibration or temperature dependence is supplied by this class.)")
          Numeric                                     T,
          const Vector&                               widths) {
         const Size n = lines.size();
-        ARTS_USER_ERROR_IF(widths.size() != n, "NH3 widths must have one entry per line")
+        if (widths.size() != n) arts::user_error("NH3 widths must have one entry per line");
         Matrix W(n, n, 0.0);
         for (Size i = 0; i < n; ++i) {
-          ARTS_USER_ERROR_IF(not std::isfinite(widths[i]) or widths[i] < 0, "NH3 widths must be finite and nonnegative")
+          if (not std::isfinite(widths[i]) or widths[i] < 0)
+            arts::user_error("NH3 widths must be finite and nonnegative");
           W[i, i] = widths[i];
         }
         hadded::relaxation_matrix_offdiagonal(W, lines, basis, e0, Omega_line, T);
@@ -956,12 +957,14 @@ truncated-band sum-rule adjustment is applied. Initialize Wigner tables first.)"
          const Vector& dipole,
          Numeric       gd_fac) {
         const Size n = f0.size();
-        ARTS_USER_ERROR_IF(W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n) or
-                               population.size() != n or dipole.size() != n,
-                           "Inconsistent prepared relaxation-matrix profile dimensions")
-        ARTS_USER_ERROR_IF(not std::isfinite(gd_fac) or gd_fac <= 0, "Doppler width factor must be positive and finite")
-        for (Numeric f : frequency)
-          ARTS_USER_ERROR_IF(not std::isfinite(f) or f <= 0, "Frequencies must be positive and finite")
+        if (W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n) or population.size() != n or
+            dipole.size() != n)
+          arts::user_error("Inconsistent prepared relaxation-matrix profile dimensions");
+        if (not std::isfinite(gd_fac) or gd_fac <= 0)
+          arts::user_error("Doppler width factor must be positive and finite");
+        for (Numeric f : frequency) {
+          if (not std::isfinite(f) or f <= 0) arts::user_error("Frequencies must be positive and finite");
+        }
         AtmPoint atm;
         atm.temperature = 296;
         atm.pressure    = 0;
@@ -972,12 +975,12 @@ truncated-band sum-rule adjustment is applied. Initialize Wigner tables first.)"
         data.gd_fac = gd_fac;
         data.Ws.resize(1, n, n);
         for (Size i = 0; i < n; ++i) {
-          ARTS_USER_ERROR_IF(not std::isfinite(f0[i]) or f0[i] <= 0 or not std::isfinite(population[i]) or
-                                 population[i] < 0 or not std::isfinite(dipole[i]),
-                             "Invalid prepared frequency, population, or dipole")
-          ARTS_USER_ERROR_IF((W[i, i] < 0), "Diagonal relaxation widths must be nonnegative")
+          if (not std::isfinite(f0[i]) or f0[i] <= 0 or not std::isfinite(population[i]) or population[i] < 0 or
+              not std::isfinite(dipole[i]))
+            arts::user_error("Invalid prepared frequency, population, or dipole");
+          if ((W[i, i] < 0)) arts::user_error("Diagonal relaxation widths must be nonnegative");
           for (Size j = 0; j < n; ++j) {
-            ARTS_USER_ERROR_IF(not std::isfinite(W[i, j]), "Non-finite relaxation matrix")
+            if (not std::isfinite(W[i, j])) arts::user_error("Non-finite relaxation matrix");
             data.Ws[0, i, j] = Complex(i == j ? f0[i] : 0.0, W[i, j]);
           }
         }
@@ -1016,7 +1019,7 @@ No density, stimulated-emission, or abundance factor is applied here.)");
          const AtmPoint&          atm,
          const Vector&            T) {
         const auto N = band.size();
-        ARTS_USER_ERROR_IF(N == 0, "Cannot use an empty band in equivalent_lines")
+        if (N == 0) arts::user_error("Cannot use an empty band in equivalent_lines");
 
         const auto K = band.front().ls.single_models.size();
         const auto M = T.size();

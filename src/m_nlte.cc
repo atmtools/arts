@@ -62,9 +62,9 @@ void atm_profileFitNonLTE(const Workspace&                         ws,
 
   using namespace lbl::nlte;
 
-  ARTS_USER_ERROR_IF(convergence_limit <= 0 or iteration_limit <= 0,
-                     "Convergence limit and iteration limit must be positive")
-  ARTS_USER_ERROR_IF(levels.empty(), "Need energy levels")
+  if (convergence_limit <= 0 or iteration_limit <= 0)
+    arts::user_error("Convergence limit and iteration limit must be positive");
+  if (levels.empty()) arts::user_error("Need energy levels");
 
   const auto Aij = createAij(abs_bands);
   const auto Bij = createBij(abs_bands);

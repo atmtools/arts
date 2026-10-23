@@ -35,14 +35,14 @@ struct reader {
       T x{};
       if constexpr (std::same_as<T, double> or std::same_as<T, float>) {
         auto res = fast_float::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse {} from string \"{}\"", error_context, orig)
-        ARTS_USER_ERROR_IF(
-            res.ptr != sv.data() + sv.size(), "Failed to fully parse {} string \"{}\"", error_context, orig)
+        if (res.ec != std::errc{}) arts::user_error("Failed to parse {} from string \"{}\"", error_context, orig);
+        if (res.ptr != sv.data() + sv.size())
+          arts::user_error("Failed to fully parse {} string \"{}\"", error_context, orig);
       } else {
         auto res = std::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse {} from string \"{}\"", error_context, orig)
-        ARTS_USER_ERROR_IF(
-            res.ptr != sv.data() + sv.size(), "Failed to fully parse {} string \"{}\"", error_context, orig)
+        if (res.ec != std::errc{}) arts::user_error("Failed to parse {} from string \"{}\"", error_context, orig);
+        if (res.ptr != sv.data() + sv.size())
+          arts::user_error("Failed to fully parse {} string \"{}\"", error_context, orig);
       }
 
       return x;
@@ -50,7 +50,7 @@ struct reader {
   }
 
   constexpr void skip(Size n) {
-    ARTS_USER_ERROR_IF(it + n > end, "Unexpected end of string");
+    if (it + n > end) arts::user_error("Unexpected end of string");
     it += n;
   }
 
@@ -79,7 +79,7 @@ bool read_jpl_line(jpl_record& record, const std::string& linedata) try {
 
   return read_jpl_entry(record, data);
 } catch (std::exception& e) {
-  ARTS_USER_ERROR("Failed to read JPL line record:\n\n{}\n\n{}", linedata, indent(e.what()));
+  arts::user_error("Failed to read JPL line record:\n\n{}\n\n{}", linedata, indent(e.what()));
 }
 }  // namespace
 

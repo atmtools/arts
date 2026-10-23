@@ -21,21 +21,15 @@ void expect_reference(const std::string_view name,
                       const Numeric          actual,
                       const Numeric          expected,
                       const Numeric          tolerance = reference_tolerance) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)),
-                     "{}: expected {}, got {} (difference {})",
-                     name,
-                     expected,
-                     actual,
-                     actual - expected);
+  if (std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)))
+    arts::user_error("{}: expected {}, got {} (difference {})", name, expected, actual, actual - expected);
 }
 
 void expect_unpolarized(const std::string_view name, const rtepack::stokvec& value) {
-  for (Index s = 1; s < vdisort::stokes_dimension; ++s)
-    ARTS_USER_ERROR_IF(std::abs(value[s]) > polarization_tolerance,
-                       "{}: expected Stokes component {} to vanish, got {}",
-                       name,
-                       s,
-                       value[s]);
+  for (Index s = 1; s < vdisort::stokes_dimension; ++s) {
+    if (std::abs(value[s]) > polarization_tolerance)
+      arts::user_error("{}: expected Stokes component {} to vanish, got {}", name, s, value[s]);
+  }
 }
 
 struct scalar_vdisort_model {
@@ -82,10 +76,9 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
   const Numeric optical_depth_scale = 1.0 - physical_omega * delta_m_fraction;
   const Numeric transport_omega     = physical_omega * (1.0 - delta_m_fraction) / optical_depth_scale;
   Vector        transport_moments(std::min(nquad, static_cast<Index>(moments.size())));
-  ARTS_USER_ERROR_IF(removed_peak_moments != nullptr and removed_peak_moments->size() < transport_moments.size(),
-                     "The removed peak has {} moments, but {} are required",
-                     removed_peak_moments->size(),
-                     transport_moments.size());
+  if (removed_peak_moments != nullptr and removed_peak_moments->size() < transport_moments.size())
+    arts::user_error(
+        "The removed peak has {} moments, but {} are required", removed_peak_moments->size(), transport_moments.size());
   for (Index degree = 0; degree < static_cast<Index>(transport_moments.size()); ++degree) {
     const Numeric removed_moment = removed_peak_moments == nullptr ? 1.0 : (*removed_peak_moments)[degree];
     transport_moments[degree]    = (moments[degree] - delta_m_fraction * removed_moment) / (1.0 - delta_m_fraction);
@@ -737,12 +730,8 @@ void expect_small_reference(const std::string_view name,
                             const Numeric          expected,
                             const Numeric          relative_tolerance = 2e-3,
                             const Numeric          absolute_tolerance = 1e-10) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected),
-                     "{}: expected {}, got {} (difference {})",
-                     name,
-                     expected,
-                     actual,
-                     actual - expected);
+  if (std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected))
+    arts::user_error("{}: expected {}, got {} (difference {})", name, expected, actual, actual - expected);
 }
 
 void test_problem_7() try {
@@ -1844,9 +1833,8 @@ void test_polarized_delta_m_correction() try {
                      bottom_ims[0][stokes],
                      2e-12);
   }
-  ARTS_USER_ERROR_IF(std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0,
-                     "Polarized delta-M IMS failed to generate all polarized Stokes components: {}",
-                     actual[0]);
+  if (std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0)
+    arts::user_error("Polarized delta-M IMS failed to generate all polarized Stokes components: {}", actual[0]);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test_polarized_delta_m_correction:\n{}", e.what()));
 }

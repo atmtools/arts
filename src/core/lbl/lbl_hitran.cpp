@@ -32,12 +32,12 @@ struct reader {
       T x{};
       if constexpr (std::same_as<T, double> or std::same_as<T, float>) {
         auto res = fast_float::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse value from string \"{}\"", orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(), "Failed to fully parse string \"{}\"", orig)
+        if (res.ec != std::errc{}) arts::user_error("Failed to parse value from string \"{}\"", orig);
+        if (res.ptr != sv.data() + sv.size()) arts::user_error("Failed to fully parse string \"{}\"", orig);
       } else {
         auto res = std::from_chars(sv.data(), sv.data() + sv.size(), x);
-        ARTS_USER_ERROR_IF(res.ec != std::errc{}, "Failed to parse value from string \"{}\"", orig)
-        ARTS_USER_ERROR_IF(res.ptr != sv.data() + sv.size(), "Failed to fully parse string \"{}\"", orig)
+        if (res.ec != std::errc{}) arts::user_error("Failed to parse value from string \"{}\"", orig);
+        if (res.ptr != sv.data() + sv.size()) arts::user_error("Failed to fully parse string \"{}\"", orig);
       }
 
       return x;
@@ -45,7 +45,7 @@ struct reader {
   }
 
   constexpr void skip(Size n) {
-    ARTS_USER_ERROR_IF(it + n > end, "Unexpected end of string");
+    if (it + n > end) arts::user_error("Unexpected end of string");
     it += n;
   }
 
@@ -96,8 +96,8 @@ bool read_hitran_par_record(hitran_record&                           record,
   std::string_view qn_up, qn_lo;
 
   for (auto& fmt : format_order) {
-    ARTS_USER_ERROR_IF(
-        data.end_of_string(), "Reached end of line at state option {} out of {:B,}", fmt, format_order, linedata);
+    if (data.end_of_string())
+      arts::user_error("Reached end of line at state option {} out of {:B,}", fmt, format_order);
 
     switch (fmt) {
       using enum HitranFileFormatType;
@@ -114,8 +114,8 @@ bool read_hitran_par_record(hitran_record&                           record,
 
   if (not qn_up.empty() and not qn_lo.empty()) { record.qid.state = Quantum::from_hitran(qn_up, qn_lo); }
 
-  ARTS_USER_ERROR_IF(not data.end_of_string(),
-                     R"(Part of the line was not parsed: '{}'
+  if (not data.end_of_string())
+    arts::user_error(R"(Part of the line was not parsed: '{}'
 
 Note that your file formatter may be incorrect.  It reads and expects data in the order of: {:qB,}
 
@@ -128,7 +128,7 @@ Thank you!
 
   return true;
 } catch (std::exception& e) {
-  ARTS_USER_ERROR("Failed to read HITRAN line record:\n\n{}\n\n{}", linedata, indent(e.what()));
+  arts::user_error("Failed to read HITRAN line record:\n\n{}\n\n{}", linedata, indent(e.what()));
 }
 }  // namespace
 
@@ -185,11 +185,8 @@ line hitran_record::from(HitranLineStrengthOption ls, QuantumState&& local, bool
     case HitranLineStrengthOption::A: break;
   }
 
-  ARTS_USER_ERROR_IF(not std::isnormal(l.a) or not std::isnormal(l.gu),
-                     "Invalid Einstein coefficient {} or gu {} for full HITRAN RECORD: {}",
-                     l.a,
-                     l.gu,
-                     *this)
+  if (not std::isnormal(l.a) or not std::isnormal(l.gu))
+    arts::user_error("Invalid Einstein coefficient {} or gu {} for full HITRAN RECORD: {}", l.a, l.gu, *this);
 
   if (do_zeeman) {
     l.z = lbl::zeeman::GetAdvancedModel(qid);

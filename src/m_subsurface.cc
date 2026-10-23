@@ -142,5 +142,5 @@ void spectral_radSubsurfaceDisortEmissionWithJacobian(const Workspace&          
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "Error occurred in disort-spectral with jacobian:\n{}", error)
+  if (not error.empty()) arts::user_error("Error occurred in disort-spectral with jacobian:\n{}", error);
 }

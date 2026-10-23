@@ -15,14 +15,14 @@ lagrange_interp::lag_t<1> one_point_lag() {
 }  // namespace
 
 lagrange_interp::lag_t<1> linear_lag(const Vector& grid, Numeric x) {
-  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.empty()) arts::user_error("Cannot interpolate on an empty grid");
   if (grid.size() == 1) return one_point_lag();
   if (grid[0] < grid[1]) return lagrange_interp::lag_t<1>(as_span(grid), x, lagrange_interp::ascending_grid_t{});
   return lagrange_interp::lag_t<1>(as_span(grid), x, lagrange_interp::descending_grid_t{});
 }
 
 std::vector<lagrange_interp::lag_t<1>> linear_lags(const Vector& grid, const Vector& new_grid) {
-  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.empty()) arts::user_error("Cannot interpolate on an empty grid");
   if (grid.size() == 1) return std::vector<lagrange_interp::lag_t<1>>(new_grid.size(), one_point_lag());
   // An extrapolation limit of 0 checks nothing: the weights extrapolate linearly beyond the ends, without limit
   return lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
@@ -30,7 +30,7 @@ std::vector<lagrange_interp::lag_t<1>> linear_lags(const Vector& grid, const Vec
 }
 
 lagrange_interp::lag_t<1> clamped_lag(const Vector& grid, Numeric x) {
-  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.empty()) arts::user_error("Cannot interpolate on an empty grid");
   const auto [low, upp] = std::minmax(grid.front(), grid.back());
   return linear_lag(grid, std::clamp(x, low, upp));
 }

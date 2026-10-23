@@ -11,7 +11,7 @@
 
 namespace {
 void assert_close(Numeric actual, Numeric expected, Numeric tol, std::string_view name) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > tol, "{} mismatch: actual {} expected {}", name, actual, expected)
+  if (std::abs(actual - expected) > tol) arts::user_error("{} mismatch: actual {} expected {}", name, actual, expected);
 }
 
 void test_sensor_builder_returns_meta_per_geometry() try {
@@ -25,27 +25,27 @@ void test_sensor_builder_returns_meta_per_geometry() try {
 
   const auto [obsels, meta] = builder(pos, los, time, ell);
 
-  ARTS_USER_ERROR_IF(obsels.size() != 4, "Expected 4 obsels, got {}", obsels.size())
-  ARTS_USER_ERROR_IF(meta.size() != 2, "Expected 2 meta entries, got {}", meta.size())
-  ARTS_USER_ERROR_IF(meta[0].count() != 2 or meta[1].count() != 2,
-                     "Each meta block must describe one 2-channel geometry")
-  ARTS_USER_ERROR_IF(not meta[0].time or *meta[0].time != time[0], "First metadata time mismatch")
-  ARTS_USER_ERROR_IF(not meta[1].time or *meta[1].time != time[1], "Second metadata time mismatch")
+  if (obsels.size() != 4) arts::user_error("Expected 4 obsels, got {}", obsels.size());
+  if (meta.size() != 2) arts::user_error("Expected 2 meta entries, got {}", meta.size());
+  if (meta[0].count() != 2 or meta[1].count() != 2)
+    arts::user_error("Each meta block must describe one 2-channel geometry");
+  if (not meta[0].time or *meta[0].time != time[0]) arts::user_error("First metadata time mismatch");
+  if (not meta[1].time or *meta[1].time != time[1]) arts::user_error("Second metadata time mismatch");
 
   const auto& gf0 = std::get<SortedGriddedField1>(meta[0].data);
   const auto& gf1 = std::get<SortedGriddedField1>(meta[1].data);
 
-  ARTS_USER_ERROR_IF(gf0.gridname<0>() != "channel" or gf1.gridname<0>() != "channel",
-                     "Builder meta grid must be the channel axis")
+  if (gf0.gridname<0>() != "channel" or gf1.gridname<0>() != "channel")
+    arts::user_error("Builder meta grid must be the channel axis");
   assert_close(gf0.grid<0>()[0], 0.0, 0.0, "meta[0] channel index 0");
   assert_close(gf0.grid<0>()[1], 1.0, 0.0, "meta[0] channel index 1");
 
-  ARTS_USER_ERROR_IF(obsels[0].poslos_grid()[0].pos != pos[0], "First geometry position mismatch")
-  ARTS_USER_ERROR_IF(obsels[2].poslos_grid()[0].pos != pos[1], "Second geometry position mismatch")
-  ARTS_USER_ERROR_IF(not obsels[0].same_poslos(obsels[1]), "Obsels from the same geometry must share poslos")
-  ARTS_USER_ERROR_IF(not obsels[2].same_poslos(obsels[3]), "Obsels from the same geometry must share poslos")
-  ARTS_USER_ERROR_IF(not obsels[0].same_freqs(obsels[2]), "Obsels for the same channel must share frequencies")
-  ARTS_USER_ERROR_IF(not obsels[1].same_freqs(obsels[3]), "Obsels for the same channel must share frequencies")
+  if (obsels[0].poslos_grid()[0].pos != pos[0]) arts::user_error("First geometry position mismatch");
+  if (obsels[2].poslos_grid()[0].pos != pos[1]) arts::user_error("Second geometry position mismatch");
+  if (not obsels[0].same_poslos(obsels[1])) arts::user_error("Obsels from the same geometry must share poslos");
+  if (not obsels[2].same_poslos(obsels[3])) arts::user_error("Obsels from the same geometry must share poslos");
+  if (not obsels[0].same_freqs(obsels[2])) arts::user_error("Obsels for the same channel must share frequencies");
+  if (not obsels[1].same_freqs(obsels[3])) arts::user_error("Obsels for the same channel must share frequencies");
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_sensor_builder_returns_meta_per_geometry failed:\n{}", e.what()));
 }
@@ -62,7 +62,7 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() try {
     static_cast<void>(builder(pos, los, ell));
   } catch (const std::runtime_error&) { threw = true; }
 
-  ARTS_USER_ERROR_IF(not threw, "Builder must reject mismatching position and LOS counts")
+  if (not threw) arts::user_error("Builder must reject mismatching position and LOS counts");
 
   const std::array<Vector2, 1> matching_los{{{20.0, 30.0}}};
   const std::array<Time, 2>    mismatched_time{{Time{}, Time{}}};
@@ -70,7 +70,7 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() try {
   try {
     static_cast<void>(builder(pos, matching_los, mismatched_time, ell));
   } catch (const std::runtime_error&) { threw = true; }
-  ARTS_USER_ERROR_IF(not threw, "Builder must reject mismatching geometry and time counts")
+  if (not threw) arts::user_error("Builder must reject mismatching geometry and time counts");
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_sensor_builder_rejects_mismatched_geometry_counts failed:\n{}", e.what()));
 }
@@ -94,9 +94,9 @@ void test_unflatten_updates_shared_poslos_grids() try {
 
   unflatten(obsels, zeniths, obsels[0], SensorKeyType::zen);
 
-  ARTS_USER_ERROR_IF(obsels[0].poslos_grid_ptr() == original_poslos, "unflatten must replace the shared poslos grid")
-  ARTS_USER_ERROR_IF(not obsels[0].same_poslos(obsels[1]),
-                     "obsels sharing a geometry must still share it after unflatten")
+  if (obsels[0].poslos_grid_ptr() == original_poslos) arts::user_error("unflatten must replace the shared poslos grid");
+  if (not obsels[0].same_poslos(obsels[1]))
+    arts::user_error("obsels sharing a geometry must still share it after unflatten");
   assert_close(obsels[0].poslos_grid()[0].los[0], 15.0, 0.0, "updated zenith for first obsel");
   assert_close(obsels[1].poslos_grid()[0].los[0], 15.0, 0.0, "updated zenith for second obsel");
   assert_close(obsels[0].poslos_grid()[0].los[1], 40.0, 0.0, "azimuth must remain unchanged");
@@ -106,9 +106,9 @@ void test_unflatten_updates_shared_poslos_grids() try {
 
   unflatten(obsels, freqs, obsels[0], SensorKeyType::freq);
 
-  ARTS_USER_ERROR_IF(obsels[0].f_grid_ptr() == original_freq, "unflatten must replace the shared frequency grid")
-  ARTS_USER_ERROR_IF(not obsels[0].same_freqs(obsels[1]),
-                     "obsels sharing frequencies must still share them after unflatten")
+  if (obsels[0].f_grid_ptr() == original_freq) arts::user_error("unflatten must replace the shared frequency grid");
+  if (not obsels[0].same_freqs(obsels[1]))
+    arts::user_error("obsels sharing frequencies must still share them after unflatten");
   assert_close(obsels[0].f_grid()[0], 101.0, 0.0, "updated frequency for first obsel");
   assert_close(obsels[1].f_grid()[0], 101.0, 0.0, "updated frequency for second obsel");
 } catch (const std::exception& e) {

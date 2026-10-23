@@ -41,9 +41,9 @@ void spectral_propmatAddCIA(  // WS Output:
   if (f_grid.empty()) return;
 
   // Possible things that can go wrong in this code (excluding line parameters)
-  ARTS_USER_ERROR_IF(f_grid.front() < 0, "Negative frequency (at least one value).")
-  ARTS_USER_ERROR_IF(atm_point.temperature <= 0, "Non-positive temperature")
-  ARTS_USER_ERROR_IF(atm_point.pressure <= 0, "Non-positive pressure")
+  if (f_grid.front() < 0) arts::user_error("Negative frequency (at least one value).");
+  if (atm_point.temperature <= 0) arts::user_error("Non-positive temperature");
+  if (atm_point.pressure <= 0) arts::user_error("Non-positive pressure");
 
   // Jacobian overhead START
   const auto end = jac_targets.atm.end();
@@ -69,8 +69,8 @@ void spectral_propmatAddCIA(  // WS Output:
 
   Vector dxsec_temp_dF(do_wind_jac ? f_grid.size() : 0), dxsec_temp_dT(do_temp_jac ? f_grid.size() : 0);
 
-  ARTS_USER_ERROR_IF(do_wind_jac and !std::isnormal(df), "df must be >0 and not NaN or Inf: {}", df)
-  ARTS_USER_ERROR_IF(do_temp_jac and !std::isnormal(dt), "dt must be >0 and not NaN or Inf: {}", dt)
+  if (do_wind_jac and !std::isnormal(df)) arts::user_error("df must be >0 and not NaN or Inf: {}", df);
+  if (do_temp_jac and !std::isnormal(dt)) arts::user_error("dt must be >0 and not NaN or Inf: {}", dt);
   // Jacobian overhead END
 
   // Useful if there is no Jacobian to calculate
@@ -100,7 +100,7 @@ void spectral_propmatAddCIA(  // WS Output:
         this_cia.Extract(dxsec_temp_dT, f_grid, atm_point.temperature + dt, T_extrapolfac, ignore_errors);
       }
     } catch (const std::runtime_error& e) {
-      ARTS_USER_ERROR("Problem with CIA species {}:\n{}", species_pair, e.what())
+      arts::user_error("Problem with CIA species {}:\n{}", species_pair, e.what());
     }
 
     const Numeric nd     = number_density(atm_point.pressure, atm_point.temperature);
@@ -201,12 +201,13 @@ void abs_cia_dataReadFromCIA(  // WS Output:
       }
     }
 
-    ARTS_USER_ERROR_IF(!found,
-                       "No data file found for CIA species {}"
-                       "\n"
-                       "Looked in directories: {:B,}",
-                       cia_names[0],
-                       checked_dirs)
+    if (!found)
+      arts::user_error(
+          "No data file found for CIA species {}"
+          "\n"
+          "Looked in directories: {:B,}",
+          cia_names[0],
+          checked_dirs);
   }
 }
 
@@ -237,7 +238,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
     if (not abs_cia_data.contains(species_key)) { missing_tags.push_back(std::format("{}", species_key)); }
   }
 
-  ARTS_USER_ERROR_IF(missing_tags.size(), "The following CIA tag(s) are missing in input file: {:B,}", missing_tags);
+  if (missing_tags.size()) arts::user_error("The following CIA tag(s) are missing in input file: {:B,}", missing_tags);
 }
 
 void abs_cia_dataReadSpeciesSplitCatalog(CIARecords&              abs_cia_data,
@@ -277,7 +278,7 @@ void abs_cia_dataReadSpeciesSplitCatalog(CIARecords&              abs_cia_data,
     String filename = fil.string();
     if (not find_xml_file_existence(filename)) {
       if (ignore_missing) continue;
-      ARTS_USER_ERROR("File {} not found", filename);
+      arts::user_error("File {} not found", filename);
     }
 
     CIARecord record;

@@ -89,9 +89,10 @@ Coefficients coefficient_derivatives(const ExtSSACallback& ext_ssa_callback,
                                      const Vector&         f_grid,
                                      const AtmKeyVal&      target) {
   const auto* lookup = ext_ssa_callback.f.target<ExtinctionSSALookup>();
-  ARTS_USER_ERROR_IF(not lookup,
-                     "Analytical derivatives of a HenyeyGreensteinScatterer require its "
-                     "extinction/SSA atmospheric-field constructor, not an arbitrary callback")
+  if (not lookup)
+    arts::user_error(
+        "Analytical derivatives of a HenyeyGreensteinScatterer require its "
+        "extinction/SSA atmospheric-field constructor, not an arbitrary callback");
 
   const bool   d_ext = target == AtmKeyVal{lookup->extinction_field};
   const bool   d_ssa = target == AtmKeyVal{lookup->ssa_field};

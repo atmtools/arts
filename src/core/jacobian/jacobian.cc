@@ -148,8 +148,8 @@ void update_x(VectorView x, ConstVectorView y, Func&& transform_state, const Key
   if (transform_state) {
     const Vector x_from_y = transform_state(y, field);
 
-    ARTS_USER_ERROR_IF(x_from_y.size() not_eq x.size(),
-                       R"(Size mismatch in transformation for target {}.
+    if (x_from_y.size() not_eq x.size())
+      arts::user_error(R"(Size mismatch in transformation for target {}.
 
 Cannot set the model state vector from the transformation of the field.
 
@@ -160,12 +160,12 @@ The expected size of the target is    : {}.
                        type,
                        y.size(),
                        x_from_y.size(),
-                       x.size())
+                       x.size());
 
     x = x_from_y;
   } else {
-    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
-                       R"(Size mismatch in Jacobian target for {}.
+    if (y.size() not_eq x.size())
+      arts::user_error(R"(Size mismatch in Jacobian target for {}.
 
 Cannot set the model state vector from the field.
 
@@ -174,7 +174,7 @@ The expected size of the target is : {}.
 )",
                        type,
                        y.size(),
-                       x.size())
+                       x.size());
 
     x = y;
   }
@@ -184,8 +184,8 @@ template <typename Func, typename Key, typename Field>
 void update_dy(StridedMatrixView dy, ConstVectorView x, Func&& inverse_jacobian, const Key& type, const Field& y) {
   const Matrix dy_transformed = inverse_jacobian(Matrix{dy}, x, y);
 
-  ARTS_USER_ERROR_IF(dy_transformed.shape() != dy.shape(),
-                     R"(Size mismatch in Jacobian transformation for target {}.
+  if (dy_transformed.shape() != dy.shape())
+    arts::user_error(R"(Size mismatch in Jacobian transformation for target {}.
 
 Cannot transform the Jacobian matrix.
 
@@ -194,7 +194,7 @@ The size of the transformed target is : {:B,}.
 )",
                      type,
                      dy.shape(),
-                     dy_transformed.shape())
+                     dy_transformed.shape());
 
   dy = dy_transformed;
 }
@@ -204,8 +204,8 @@ void update_field(VectorView y, ConstVectorView x, Func&& inverse_state, const K
   if (inverse_state) {
     const Vector y_of_x = inverse_state(x, field);
 
-    ARTS_USER_ERROR_IF(y_of_x.size() != y.size(),
-                       R"(Size mismatch in inverse transformation for target {}.
+    if (y_of_x.size() != y.size())
+      arts::user_error(R"(Size mismatch in inverse transformation for target {}.
 
 Cannot set the field from the inverse transformation of the model state vector.
 
@@ -216,12 +216,12 @@ The expected size of the target is            : {}.
                        type,
                        y.size(),
                        y_of_x.size(),
-                       x.size())
+                       x.size());
 
     y = y_of_x;
   } else {
-    ARTS_USER_ERROR_IF(y.size() not_eq x.size(),
-                       R"(Size mismatch for target {}.
+    if (y.size() not_eq x.size())
+      arts::user_error(R"(Size mismatch for target {}.
 
 Cannot set the field from the model state vector.
 
@@ -230,7 +230,7 @@ The expected size of the target is : {}.
 )",
                        type,
                        y.size(),
-                       x.size())
+                       x.size());
 
     y = x;
   }
@@ -242,8 +242,8 @@ The expected size of the target is : {}.
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_model(VectorView y, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
-                     R"(Measurement Jacobian too small.
+  if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
+    arts::user_error(R"(Measurement Jacobian too small.
 
 Expected minimum shape: [{}, {}]
 Got shape:              [{}, {}]
@@ -251,7 +251,7 @@ Got shape:              [{}, {}]
                      type.y_start + type.y_size,
                      x_start + x_size,
                      y.size(),
-                     x.size())
+                     x.size());
 
   update_field(y[Range(type.y_start, type.y_size)],
                x[Range(x_start, x_size)],
@@ -261,37 +261,37 @@ Got shape:              [{}, {}]
 }
 
 void AtmTarget::update_model(AtmField& atm, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not atm.contains(type), "Atmosphere does not contain key value {}", type)
+  if (not atm.contains(type)) arts::user_error("Atmosphere does not contain key value {}", type);
 
   update_field(atm[type].flat_view(), x[Range(x_start, x_size)], inverse_state, type, atm);
 }
 
 void SurfaceTarget::update_model(SurfaceField& surf, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not surf.contains(type), "Surface does not contain key value {}", type)
+  if (not surf.contains(type)) arts::user_error("Surface does not contain key value {}", type);
 
   update_field(surf[type].flat_view(), x[Range(x_start, x_size)], inverse_state, type, surf);
 }
 
 void SubsurfaceTarget::update_model(SubsurfaceField& subsurf, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not subsurf.contains(type), "Subsurface does not contain key value {}", type)
+  if (not subsurf.contains(type)) arts::user_error("Subsurface does not contain key value {}", type);
 
   update_field(subsurf[type].flat_view(), x[Range(x_start, x_size)], inverse_state, type, subsurf);
 }
 
 void LineTarget::update_model(AbsorptionBands& bands, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   update_field(VectorView{type.get_value(bands)}, x[Range(x_start, x_size)], inverse_state, type, bands);
 }
 
 void SensorTarget::update_model(ArrayOfSensorObsel& sens, ConstVectorView x) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   ConstVectorView x_state = x[Range(x_start, x_size)];
 
@@ -301,8 +301,8 @@ void SensorTarget::update_model(ArrayOfSensorObsel& sens, ConstVectorView x) con
   if (inverse_state) {
     const Vector x_inverse = inverse_state(Vector{x_state}, sens);
 
-    ARTS_USER_ERROR_IF(x_inverse.size() not_eq N,
-                       R"(Size mismatch in inverse transformation for target {}.
+    if (x_inverse.size() not_eq N)
+      arts::user_error(R"(Size mismatch in inverse transformation for target {}.
 
 Cannot set the field from the inverse transformation of the model state vector.
 
@@ -313,11 +313,11 @@ The expected size of the target is            : {}.
                        type,
                        N,
                        x_inverse.size(),
-                       x_state.size())
+                       x_state.size());
     unflatten(sens, x_inverse, v, type.type);
   } else {
-    ARTS_USER_ERROR_IF(N not_eq x_state.size(),
-                       R"(Size mismatch for target {}.
+    if (N not_eq x_state.size())
+      arts::user_error(R"(Size mismatch for target {}.
 
 Cannot set the field from the model state vector.
 
@@ -326,7 +326,7 @@ The expected size of the target is : {}.
 )",
                        type,
                        N,
-                       x_state.size())
+                       x_state.size());
 
     unflatten(sens, x_state, v, type.type);
   }
@@ -337,8 +337,8 @@ The expected size of the target is : {}.
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size),
-                     R"(Measurement Jacobian too small.
+  if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
+    arts::user_error(R"(Measurement Jacobian too small.
 
 Expected minimum shape: [{}, {}]
 Got shape:              [{}, {}]
@@ -346,7 +346,7 @@ Got shape:              [{}, {}]
                      type.y_start + type.y_size,
                      x_start + x_size,
                      y.size(),
-                     x.size())
+                     x.size());
 
   update_x(x[Range(x_start, x_size)],
            y[Range(type.y_start, type.y_size)],
@@ -356,37 +356,37 @@ Got shape:              [{}, {}]
 }
 
 void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not atm.contains(type), "Atmosphere does not contain key value {}", type)
+  if (not atm.contains(type)) arts::user_error("Atmosphere does not contain key value {}", type);
 
   update_x(x[Range(x_start, x_size)], atm[type].flat_view(), transform_state, type, atm);
 }
 
 void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not surf.contains(type), "Surface does not contain key value {}", type)
+  if (not surf.contains(type)) arts::user_error("Surface does not contain key value {}", type);
 
   update_x(x[Range(x_start, x_size)], surf[type].flat_view(), transform_state, type, surf);
 }
 
 void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  ARTS_USER_ERROR_IF(not subsurf.contains(type), "Subsurface does not contain key value {}", type)
+  if (not subsurf.contains(type)) arts::user_error("Subsurface does not contain key value {}", type);
 
   update_x(x[Range(x_start, x_size)], subsurf[type].flat_view(), transform_state, type, subsurf);
 }
 
 void LineTarget::update_state(VectorView x, const AbsorptionBands& bands) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   update_x(x[Range(x_start, x_size)], ConstVectorView{type.get_value(bands)}, transform_state, type, bands);
 }
 
 void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) const {
-  ARTS_USER_ERROR_IF(x.size() < (x_start + x_size), "Model state vector is too small.")
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   const SensorObsel& v = sens.at(type.measurement_elem);
   const Size         N = v.flat_size(type.type);
@@ -410,16 +410,16 @@ void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) co
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_jac(MatrixView dy, ConstVectorView x, ConstVectorView y) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size) or
-                         static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size),
-                     R"(Measurement Jacobian too small.
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size) or
+      static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size))
+    arts::user_error(R"(Measurement Jacobian too small.
 
 Expected minimum shape: [{}, {}]
 Got shape:              {:B,}
 )",
                      type.y_start + type.y_size,
                      x_start + x_size,
-                     dy.shape())
+                     dy.shape());
 
   if (inverse_jacobian) {
     update_dy(dy[Range(type.y_start, type.y_size), Range(x_start, x_size)],
@@ -431,8 +431,8 @@ Got shape:              {:B,}
 }
 
 void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size),
-                     "Model state vector dimension of the Jacobian is too small.")
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
+    arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, atm);
@@ -440,8 +440,8 @@ void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm
 }
 
 void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceField& surf) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size),
-                     "Model state vector dimension of the Jacobian is too small.")
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
+    arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, surf);
@@ -449,8 +449,8 @@ void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceFi
 }
 
 void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SubsurfaceField& subsurf) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size),
-                     "Model state vector dimension of the Jacobian is too small.")
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
+    arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, subsurf);
@@ -458,8 +458,8 @@ void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const Subsur
 }
 
 void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBands& bands) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size),
-                     "Model state vector dimension of the Jacobian is too small.")
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
+    arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, bands);
@@ -467,8 +467,8 @@ void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBa
 }
 
 void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSensorObsel& sens) const {
-  ARTS_USER_ERROR_IF(static_cast<Size>(dy.ncols()) < (x_start + x_size),
-                     "Model state vector dimension of the Jacobian is too small.")
+  if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
+    arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, sens);
@@ -503,15 +503,13 @@ void Targets::finalize(const AtmField&        atm_field,
 
   for (Size i = 0; i < natm; i++) {
     AtmTarget& t = atm[i];
-    ARTS_USER_ERROR_IF(stdr::any_of(atm | stdv::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    if (stdr::any_of(atm | stdv::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type))
+      arts::user_error("Multiple targets of the same type: {}", t.type);
 
     if (t.overlap) {
       const auto f = stdr::find(atm, t.overlap_key, &AtmTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(atm.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(atm.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -523,15 +521,13 @@ void Targets::finalize(const AtmField&        atm_field,
 
   for (Size i = 0; i < nsurf; i++) {
     SurfaceTarget& t = surf[i];
-    ARTS_USER_ERROR_IF(stdr::any_of(surf | stdv::drop(i + 1), Cmp::eq(t.type), &SurfaceTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    if (stdr::any_of(surf | stdv::drop(i + 1), Cmp::eq(t.type), &SurfaceTarget::type))
+      arts::user_error("Multiple targets of the same type: {}", t.type);
 
     if (t.overlap) {
       const auto f = stdr::find(surf, t.overlap_key, &SurfaceTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(surf.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(surf.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -543,15 +539,13 @@ void Targets::finalize(const AtmField&        atm_field,
 
   for (Size i = 0; i < nsubsurf; i++) {
     SubsurfaceTarget& t = subsurf[i];
-    ARTS_USER_ERROR_IF(stdr::any_of(subsurf | stdv::drop(i + 1), Cmp::eq(t.type), &SubsurfaceTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    if (stdr::any_of(subsurf | stdv::drop(i + 1), Cmp::eq(t.type), &SubsurfaceTarget::type))
+      arts::user_error("Multiple targets of the same type: {}", t.type);
 
     if (t.overlap) {
       const auto f = stdr::find(subsurf, t.overlap_key, &SubsurfaceTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(subsurf.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(subsurf.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -563,15 +557,13 @@ void Targets::finalize(const AtmField&        atm_field,
 
   for (Size i = 0; i < nline; i++) {
     LineTarget& t = line[i];
-    ARTS_USER_ERROR_IF(stdr::any_of(line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
+    if (stdr::any_of(line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type))
+      arts::user_error("Multiple targets of the same type: {}", t.type);
 
     if (t.overlap) {
       const auto f = stdr::find(line, t.overlap_key, &LineTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(line.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(line.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -582,15 +574,13 @@ void Targets::finalize(const AtmField&        atm_field,
   }
 
   for (auto& elem : sensor) {
-    ARTS_USER_ERROR_IF(static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size(),
-                       "Bad sensor elements {}, out-of-bounds",
-                       elem);
+    if (static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size())
+      arts::user_error("Bad sensor elements {}, out-of-bounds", elem);
   }
 
   for (Size i = 0; i < nsensor; i++) {
     SensorTarget& t = sensor[i];
-    ARTS_USER_ERROR_IF(
-        stdr::any_of(
+    if (stdr::any_of(
             sensor | stdv::drop(i + 1),
             [&](const SensorKey& key) {
               if (t.type.type != key.type) return false;
@@ -611,16 +601,16 @@ void Targets::finalize(const AtmField&        atm_field,
 
               std::unreachable();
             },
-            &SensorTarget::type),
-        "Multiple targets of the same type for target: {} "
-        "- note that different sensor element targets may not share the same type, model, and relevant grids",
-        t.type)
+            &SensorTarget::type))
+      arts::user_error(
+          "Multiple targets of the same type for target: {} "
+          "- note that different sensor element targets may not share the same type, model, and relevant grids",
+          t.type);
 
     if (t.overlap) {
       const auto f = stdr::find(sensor, t.overlap_key, &SensorTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(sensor.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(sensor.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -635,9 +625,8 @@ void Targets::finalize(const AtmField&        atm_field,
 
     if (t.overlap) {
       const auto f = stdr::find(error, t.overlap_key, &ErrorTarget::type);
-      ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(error.begin(), f),
-                         "Overlap target {} not found prior in targets.",
-                         t.overlap_key)
+      if (static_cast<Index>(i) <= stdr::distance(error.begin(), f))
+        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
       t.x_start = f->x_start;
       t.x_size  = f->x_size;
     } else {
@@ -646,14 +635,14 @@ void Targets::finalize(const AtmField&        atm_field,
       last_size += t.x_size;
     }
 
-    ARTS_USER_ERROR_IF(t.type.y_start + t.type.y_size > measurement_sensor.size(),
-                       R"(An error target is out of bounds of the y-vector.
+    if (t.type.y_start + t.type.y_size > measurement_sensor.size())
+      arts::user_error(R"(An error target is out of bounds of the y-vector.
 
 The error target is defined to operator on the measurement_vec in the range {},
 but the measurement_vec will only have {} element by the measurement_sensor.
 )",
                        t.type,
-                       measurement_sensor.size())
+                       measurement_sensor.size());
   }
 
   finalized = true;

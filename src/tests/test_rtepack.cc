@@ -140,14 +140,13 @@ void test_compact_planar_muelmat() {
         return std::abs(a - b) <= 4 * std::numeric_limits<Numeric>::epsilon();
       };
       const bool products = close(LF[i, j], LF_[i, j]) and close(FL[i, j], FL_[i, j]) and close(FF[i, j], FF_[i, j]);
-      ARTS_USER_ERROR_IF(not layout, "compact_planar_muelmat expands wrongly at [{}, {}]", i, j)
-      ARTS_USER_ERROR_IF(
-          not products, "compact_planar_muelmat products must be those of the full matrix at [{}, {}]", i, j)
+      if (not layout) arts::user_error("compact_planar_muelmat expands wrongly at [{}, {}]", i, j);
+      if (not products)
+        arts::user_error("compact_planar_muelmat products must be those of the full matrix at [{}, {}]", i, j);
     }
   }
-  ARTS_USER_ERROR_IF(
-      f.F11() != 1.0 or f.F12() != -0.3 or f.F22() != 0.8 or f.F33() != 0.6 or f.F34() != 0.2 or f.F44() != 0.5,
-      "compact_planar_muelmat accessors are in the wrong order")
+  if (f.F11() != 1.0 or f.F12() != -0.3 or f.F22() != 0.8 or f.F33() != 0.6 or f.F34() != 0.2 or f.F44() != 0.5)
+    arts::user_error("compact_planar_muelmat accessors are in the wrong order");
   std::cout << "compact_planar_muelmat: layout, accessors and products OK\n";
 }
 
@@ -170,13 +169,11 @@ void test_rotated_and_mirror() {
       const auto close = [](Numeric a, Numeric b) {
         return std::abs(a - b) <= 4 * std::numeric_limits<Numeric>::epsilon();
       };
-      ARTS_USER_ERROR_IF(not close(Z[i, j], Z_[i, j]) or not close(Zf[i, j], Z_[i, j]),
-                         "rotated must be the product of the rotations and F at [{}, {}]",
-                         i,
-                         j)
-      ARTS_USER_ERROR_IF(
-          not close(R[i, j], R_[i, j]), "rotated must be the product of the rotations and A at [{}, {}]", i, j)
-      ARTS_USER_ERROR_IF((M[i, j] != M_[i, j]), "mirror must be D A D at [{}, {}]", i, j)
+      if (not close(Z[i, j], Z_[i, j]) or not close(Zf[i, j], Z_[i, j]))
+        arts::user_error("rotated must be the product of the rotations and F at [{}, {}]", i, j);
+      if (not close(R[i, j], R_[i, j]))
+        arts::user_error("rotated must be the product of the rotations and A at [{}, {}]", i, j);
+      if ((M[i, j] != M_[i, j])) arts::user_error("mirror must be D A D at [{}, {}]", i, j);
     }
   }
   std::cout << "rotated and mirror: the products OK\n";

@@ -54,23 +54,25 @@ constexpr SpeciesEnum spec(std::string_view part, std::string_view orig [[maybe_
 
 constexpr Index isot(SpeciesEnum species, std::string_view isot, std::string_view orig [[maybe_unused]]) {
   Index spec_ind = find_species_index(species, isot);
-  ARTS_USER_ERROR_IF(spec_ind < 0,
-                     "Bad isotopologue: \"{}"
-                     "\"\nValid options are:\n{}"
-                     "\nThe original tag reads \"{}\"",
-                     isot,
-                     species,
-                     orig)
+  if (spec_ind < 0)
+    arts::user_error(
+        "Bad isotopologue: \"{}"
+        "\"\nValid options are:\n{}"
+        "\nThe original tag reads \"{}\"",
+        isot,
+        species,
+        orig);
   return spec_ind;
 }
 
 constexpr void check(std::string_view text, std::string_view orig) {
-  ARTS_USER_ERROR_IF(text.size(),
-                     "Parsing error.  The text \"{}\""
-                     "\" remains to be parsed at end of a complete species tag\n"
-                     "The original tag reads \"{}\"",
-                     text,
-                     orig)
+  if (text.size())
+    arts::user_error(
+        "Parsing error.  The text \"{}\""
+        "\" remains to be parsed at end of a complete species tag\n"
+        "The original tag reads \"{}\"",
+        text,
+        orig);
 }
 }  // namespace
 

@@ -10,11 +10,11 @@
 
 void WriteBuiltinPartitionFunctionsXML(
     const String& fileformat, const String& dir, const Numeric& Tlow, const Numeric& Tupp, const Index& N) {
-  ARTS_USER_ERROR_IF(Tupp <= Tlow, "Need a range [low, high], has [{}, {}]", Tlow, Tupp)
-  ARTS_USER_ERROR_IF(N < 2, "Need a positive step counter 2 or larger, has: {}", N)
+  if (Tupp <= Tlow) arts::user_error("Need a range [low, high], has [{}, {}]", Tlow, Tupp);
+  if (N < 2) arts::user_error("Need a positive step counter 2 or larger, has: {}", N);
 
   const auto d = std::filesystem::path(dir.c_str());
-  ARTS_USER_ERROR_IF(not std::filesystem::is_directory(d), "dir: {} is not a directory", dir)
+  if (not std::filesystem::is_directory(d)) arts::user_error("dir: {} is not a directory", dir);
 
   const Vector T = [&] {
     Vector x;
