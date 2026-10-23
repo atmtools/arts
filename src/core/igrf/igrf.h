@@ -8,7 +8,7 @@ namespace IGRF {
 //! The reference radius of the IGRF model [m]
 inline constexpr Numeric r0 = 6371.2e3;
 
-//! The g or h coefficients [nT] of the IGRF model, the (n, m) coefficient is at [n, m]
+//! The g or h coefficients [nT] of the IGRF model, the (n, m) coefficient is at [n, m], NaN where it does not affect the field
 using Coefficients = Data::Coefficients;
 
 /** The decimal year of a time stamp, from its date and time in UTC

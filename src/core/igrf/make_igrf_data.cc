@@ -186,10 +186,13 @@ std::string literal(double x) {
   return out;
 }
 
-//! The coefficient of column i, with zeros for the n = 0 term and for h with m = 0
-double value(const IgrfFile& data, char type, int n, int m, std::size_t i) {
-  if (n == 0 or (type == 'h' and m == 0)) return 0.0;
-  return data.rows.at({type, n, m})[i];
+//! Whether the coefficient does not affect the field, as for n = 0 and for h with m = 0
+bool unused(char type, int n, int m) { return n == 0 or (type == 'h' and m == 0); }
+
+//! The coefficient of column i as a C++ literal, "nan" if it does not affect the field
+std::string coefficient(const IgrfFile& data, char type, int n, int m, std::size_t i) {
+  if (unused(type, n, m)) return "nan";
+  return literal(data.rows.at({type, n, m})[i]);
 }
 
 //! Writes g and h of column i as a pair of triangular matrices, one line per degree, followed by end
@@ -206,7 +209,7 @@ void write_pair(std::ostream&    os,
     std::println(os, "{}{}Coefficients{{{{", indent, type == 'g' ? "{" : " ");
     for (int n = 0; n <= data.nmax; n++) {
       std::print(os, "{}   ", indent);
-      for (int m = 0; m <= n; m++) std::print(os, " {:>{}},", literal(value(data, type, n, m, i)), width);
+      for (int m = 0; m <= n; m++) std::print(os, " {:>{}},", coefficient(data, type, n, m, i), width);
       std::println(os);
     }
     std::println(os, "{}  }}}}{}", indent, type == 'g' ? std::string{","} : std::format("}}{}", end));
@@ -218,12 +221,18 @@ void write_comments(std::ostream& os, const IgrfFile& data, std::string_view fil
   for (auto& comment : data.comments) std::println(os, "//{}", comment);
 }
 
-void write_header(std::ostream& os, const IgrfFile& data, std::string_view filename) {
+//! The values of the header, as C++ literals
+struct HeaderValues {
+  bool        available;
+  int         nmax;
+  std::size_t nepoch;
   std::string epochs;
-  for (const double epoch : data.epochs) epochs += std::format("{}{}", epochs.empty() ? "" : ", ", literal(epoch));
+  std::string sv_end;
+  std::string first;
+  std::string last;
+};
 
-  write_comments(os, data, filename);
-
+void write_header(std::ostream& os, const HeaderValues& v) {
   std::println(os,
                R"(
 #pragma once
@@ -232,9 +241,13 @@ void write_header(std::ostream& os, const IgrfFile& data, std::string_view filen
 #include <matpack.h>
 
 #include <array>
+#include <limits>
 #include <utility>
 
 namespace IGRF::Data {{
+//! Whether ARTS is compiled with the IGRF coefficients, which requires mag-field/igrf.txt in arts-cat-data
+inline constexpr bool available = {};
+
 //! The largest degree n
 inline constexpr Size nmax = {};
 
@@ -250,7 +263,7 @@ inline constexpr Numeric sv_end = {};
 //! The first and the last valid time of the coefficients [decimal year], where 2001.0 is the start of 2001
 inline constexpr std::pair<Numeric, Numeric> valid_range{{{}, {}}};
 
-//! The g or h coefficients, the (n, m) coefficient is at [n, m], zero for n = 0 and for h with m = 0
+//! The g or h coefficients, the (n, m) coefficient is at [n, m], NaN for n = 0 and for h with m = 0 as these do not affect the field
 using Coefficients = matpack::triangular_cdata_t<Numeric, nmax + 1>;
 
 //! The g and h coefficients [nT] of epoch i
@@ -259,12 +272,63 @@ using Coefficients = matpack::triangular_cdata_t<Numeric, nmax + 1>;
 //! The secular variation of g and h [nT/year], from the last epoch to sv_end
 [[nodiscard]] const std::pair<Coefficients, Coefficients>& secular_variation();
 }}  // namespace IGRF::Data)",
-               data.nmax,
-               data.epochs.size(),
-               epochs,
-               literal(data.sv_end),
-               literal(data.epochs.front()),
-               literal(data.sv_end));
+               v.available,
+               v.nmax,
+               v.nepoch,
+               v.epochs,
+               v.sv_end,
+               v.first,
+               v.last);
+}
+
+void write_header(std::ostream& os, const IgrfFile& data, std::string_view filename) {
+  std::string epochs;
+  for (const double epoch : data.epochs) epochs += std::format("{}{}", epochs.empty() ? "" : ", ", literal(epoch));
+
+  write_comments(os, data, filename);
+  write_header(os,
+               {.available = true,
+                .nmax      = data.nmax,
+                .nepoch    = data.epochs.size(),
+                .epochs    = epochs,
+                .sv_end    = literal(data.sv_end),
+                .first     = literal(data.epochs.front()),
+                .last      = literal(data.sv_end)});
+}
+
+//! Writes a header and source without coefficients, for when arts-cat-data has no mag-field/igrf.txt
+void write_unavailable(std::ostream& h, std::ostream& cpp) {
+  constexpr std::string_view comment =
+      "//! auto-generated file without IGRF coefficients, as arts-cat-data has no mag-field/igrf.txt";
+  constexpr std::string_view nan = "std::numeric_limits<Numeric>::quiet_NaN()";
+
+  std::println(h, "{}", comment);
+  write_header(h,
+               {.available = false,
+                .nmax      = 0,
+                .nepoch    = 0,
+                .epochs    = "",
+                .sv_end    = std::string{nan},
+                .first     = std::string{nan},
+                .last      = std::string{nan}});
+
+  std::println(cpp, "{}", comment);
+  std::println(cpp, R"(
+#include "auto_igrf_data.h"
+
+#include <stdexcept>
+
+namespace IGRF::Data {{
+namespace {{
+[[noreturn]] void unavailable() {{
+  throw std::runtime_error("ARTS was compiled without the IGRF coefficients, as arts-cat-data has no mag-field/igrf.txt");
+}}
+}}  // namespace
+
+const std::pair<Coefficients, Coefficients>& coefficients(Size) {{ unavailable(); }}
+
+const std::pair<Coefficients, Coefficients>& secular_variation() {{ unavailable(); }}
+}}  // namespace IGRF::Data)");
 }
 
 void write_source(std::ostream& os, const IgrfFile& data, std::string_view filename) {
@@ -274,9 +338,13 @@ void write_source(std::ostream& os, const IgrfFile& data, std::string_view filen
 #include "auto_igrf_data.h"
 
 #include <cassert>
+#include <limits>
 
 namespace IGRF::Data {{
 namespace {{
+//! The coefficients that do not affect the field
+constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
+
 constexpr std::array<std::pair<Coefficients, Coefficients>, nepoch> gh{{{{)");
 
   for (std::size_t i = 0; i < data.epochs.size(); i++) {
@@ -307,18 +375,23 @@ const std::pair<Coefficients, Coefficients>& secular_variation() {{ return dgh; 
 }  // namespace
 
 int main(int argc, char** argv) try {
-  if (argc != 2) {
-    std::println(stderr, "Usage: {} <igrf.txt>", argv[0]);
+  if (argc > 2) {
+    std::println(stderr, "Usage: {} [igrf.txt]", argv[0]);
     return EXIT_FAILURE;
+  }
+
+  std::ofstream h("auto_igrf_data.h", std::ios::out);
+  std::ofstream cpp("auto_igrf_data.cpp", std::ios::out);
+
+  if (argc == 1) {
+    write_unavailable(h, cpp);
+    return EXIT_SUCCESS;
   }
 
   const std::filesystem::path path = argv[1];
   const IgrfFile              data = read(path);
 
-  std::ofstream h("auto_igrf_data.h", std::ios::out);
   write_header(h, data, path.filename().string());
-
-  std::ofstream cpp("auto_igrf_data.cpp", std::ios::out);
   write_source(cpp, data, path.filename().string());
 
   return EXIT_SUCCESS;

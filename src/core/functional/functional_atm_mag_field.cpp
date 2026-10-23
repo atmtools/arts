@@ -8,7 +8,7 @@
 #include <legendre.h>
 #include <planet_data.h>
 
-#include <tuple>
+#include <limits>
 
 namespace Atm {
 Numeric IGRF::operator()(Numeric a, Numeric la, Numeric lo) const {
@@ -25,31 +25,65 @@ Numeric IGRF::operator()(Numeric a, Numeric la, Numeric lo) const {
   return NAN;
 }
 
+namespace {
+//! The number of coefficients that affect the field component, see SchmidthLegendre::gh
+Size ncoefficients(Size N, FieldComponent component) {
+  return component == FieldComponent::u ? N * (N - 1) : N * N - 1;
+}
+
+/** Calls f(i, n, m, is_h) for each coefficient that affects the field component
+ *
+ * i is the position of the coefficient in SchmidthLegendre::gh.  The east component
+ * does not depend on the m = 0 coefficients.
+ */
+template <typename F> void for_each_coefficient(Size N, FieldComponent component, F&& f) {
+  const Index m0 = component == FieldComponent::u ? 1 : 0;
+
+  Index i = 0;
+  for (Index n = 1; n < static_cast<Index>(N); n++) {
+    for (Index m = m0; m <= n; m++) {
+      f(i++, n, m, false);
+      if (m > 0) f(i++, n, m, true);
+    }
+  }
+}
+
+void check_size(const SchmidthLegendre& x) {
+  ARTS_USER_ERROR_IF(x.N == 0 or static_cast<Size>(x.gh.size()) != ncoefficients(x.N, x.component),
+                     "There must be {} coefficients of the {} component for N = {}, but there are {}",
+                     x.N == 0 ? 0 : ncoefficients(x.N, x.component),
+                     x.component,
+                     x.N,
+                     x.gh.size())
+}
+}  // namespace
+
 SchmidthLegendre from(const IGRF& x) {
   const auto [g, h] = ::IGRF::coefficients(x.time);
+  const Size N      = static_cast<Size>(g.nrows());
 
-  SchmidthLegendre result{.gh        = Matrix(2, g.flat().size()),
-                          .N         = static_cast<Size>(g.nrows()),
+  SchmidthLegendre result{.gh        = Vector(ncoefficients(N, x.component)),
+                          .N         = N,
                           .r0        = ::IGRF::r0,
                           .ell       = {Body::Earth::a, Body::Earth::b},
                           .component = x.component};
-  result.gh[0]  = g.flat();
-  result.gh[1]  = h.flat();
-  result.gh    *= 1e-9;  // Convert from nT to T
+
+  // Convert from nT to T
+  for_each_coefficient(
+      N, x.component, [&](Index i, Index n, Index m, bool is_h) { result.gh[i] = 1e-9 * (is_h ? h : g)[n, m]; });
+
   return result;
 }
 
-std::pair<ConstTriangularMatrixView, ConstTriangularMatrixView> SchmidthLegendre::coefficients() const {
-  ARTS_USER_ERROR_IF(
-      gh.nrows() != 2 or static_cast<Size>(gh.ncols()) != matpack::triangular_size(N),
-      "The coefficients must be 2 x {}, g and h of {} x {} lower triangular matrices, but they are {:B,}",
-      matpack::triangular_size(N),
-      N,
-      N,
-      gh.shape())
+std::pair<TriangularMatrix, TriangularMatrix> SchmidthLegendre::coefficients() const {
+  check_size(*this);
 
-  const Index n = static_cast<Index>(N);
-  return {ConstTriangularMatrixView{gh[0].data_handle(), n, n}, ConstTriangularMatrixView{gh[1].data_handle(), n, n}};
+  // The coefficients that do not affect the field component are NaN
+  constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
+  std::pair         out{TriangularMatrix(static_cast<Index>(N), nan), TriangularMatrix(static_cast<Index>(N), nan)};
+  for_each_coefficient(
+      N, component, [&](Index i, Index n, Index m, bool is_h) { (is_h ? out.second : out.first)[n, m] = gh[i]; });
+  return out;
 }
 
 Numeric SchmidthLegendre::operator()(Numeric a, Numeric la, Numeric lo) const {
@@ -72,14 +106,12 @@ Numeric SchmidthLegendre::operator()(Numeric a, Numeric la, Numeric lo) const {
   return NAN;  // Should never happen
 }
 
-ConstVectorView SchmidthLegendre::x() const { return gh.view_as(gh.size()); }
+ConstVectorView SchmidthLegendre::x() const { return gh; }
 
-VectorView SchmidthLegendre::x() { return gh.view_as(gh.size()); }
+VectorView SchmidthLegendre::x() { return gh; }
 
 std::vector<std::pair<Index, Numeric>> SchmidthLegendre::w(Numeric alt, Numeric lat, Numeric lon) const try {
-  using Legendre::dschmidt_fieldcalc;
-
-  std::ignore = coefficients();
+  check_size(*this);
 
   const Vector3 geoc = geodetic2geocentric({alt, lat, lon}, ell);
 
@@ -88,49 +120,25 @@ std::vector<std::pair<Index, Numeric>> SchmidthLegendre::w(Numeric alt, Numeric 
   const Numeric ca  = std::cos(ang);
   const Numeric sa  = std::sin(ang);
 
-  const Size n = gh.ncols();
+  const auto [dr, dth, dph] = Legendre::dschmidt_fieldcalc(N, r0, geoc);
 
-  const auto v{dschmidt_fieldcalc(N, r0, geoc)};
+  const auto derivative = [&](Index n, Index m, bool is_h) -> Numeric {
+    const TriangularMatrix& r  = is_h ? dr.second : dr.first;
+    const TriangularMatrix& th = is_h ? dth.second : dth.first;
+    const TriangularMatrix& ph = is_h ? dph.second : dph.first;
 
-  assert(v.size() == 3);
-  assert(v[0].first.flat().size() == n);
-  assert(v[1].first.flat().size() == n);
-  assert(v[2].first.flat().size() == n);
-  assert(v[0].second.flat().size() == n);
-  assert(v[1].second.flat().size() == n);
-  assert(v[2].second.flat().size() == n);
+    switch (component) {
+      case FieldComponent::u: return ph[n, m];
+      case FieldComponent::v: return -ca * th[n, m] - sa * r[n, m];
+      case FieldComponent::w: return -sa * th[n, m] + ca * r[n, m];
+    }
 
-  const auto dr  = std::pair{v[0].first.flat(), v[0].second.flat()};
-  const auto dth = std::pair{v[1].first.flat(), v[1].second.flat()};
-  const auto dph = std::pair{v[2].first.flat(), v[2].second.flat()};
+    return NAN;  // Should never happen
+  };
 
   std::vector<std::pair<Index, Numeric>> out(gh.size());
-  switch (component) {
-    case FieldComponent::u:
-      for (Size i = 0; i < n; i++) {
-        const Numeric dBdg = dph.first[i];
-        const Numeric dBdh = dph.second[i];
-        out[i]             = {i, dBdg};
-        out[i + n]         = {i + n, dBdh};
-      }
-      break;
-    case FieldComponent::v:
-      for (Size i = 0; i < n; i++) {
-        const Numeric dBdg = -ca * dth.first[i] - sa * dr.first[i];
-        const Numeric dBdh = -ca * dth.second[i] - sa * dr.second[i];
-        out[i]             = {i, dBdg};
-        out[i + n]         = {i + n, dBdh};
-      }
-      break;
-    case FieldComponent::w:
-      for (Size i = 0; i < n; i++) {
-        const Numeric dBdg = -sa * dth.first[i] + ca * dr.first[i];
-        const Numeric dBdh = -sa * dth.second[i] + ca * dr.second[i];
-        out[i]             = {i, dBdg};
-        out[i + n]         = {i + n, dBdh};
-      }
-  }
-
+  for_each_coefficient(
+      N, component, [&](Index i, Index n, Index m, bool is_h) { out[i] = {i, derivative(n, m, is_h)}; });
   return out;
 }
 ARTS_METHOD_ERROR_CATCH

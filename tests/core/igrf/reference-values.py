@@ -16,6 +16,11 @@ in arts-cat-data are updated to a new generation.
 
 import pyarts3 as pyarts
 
+assert pyarts.arts.igrf_valid_range is not None, (
+    "ARTS was compiled without the IGRF coefficients.  "
+    "Update arts-cat-data and compile ARTS again."
+)
+
 first, last = pyarts.arts.igrf_valid_range
 
 assert (first, last) == (1900.0, 2030.0), (

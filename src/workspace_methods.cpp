@@ -692,6 +692,7 @@ These are named:
 
 The IGRF model is a model of the Earth's magnetic field. It is based on
 spherical harmonics and is only valid for a limited time period.
+It is described by :cite:t:`Alken2021` and :cite:t:`Beggan2026`.
 The coefficients are compiled from ``mag-field/igrf.txt`` in arts-cat-data.
 The first and the last valid decimal year, where 2001.0 is the start of 2001,
 are ``pyarts3.arts.igrf_valid_range``.  Other times are an error.
@@ -722,7 +723,8 @@ of the magnetic field Legendre coefficients.
 
 This is very much a WIP and not well tested.
 
-The IGRF coefficients and their valid times are the same as for *atm_fieldIGRF*.
+The IGRF model, :cite:t:`Alken2021` and :cite:t:`Beggan2026`, and its valid times
+are the same as for *atm_fieldIGRF*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
