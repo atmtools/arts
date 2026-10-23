@@ -647,31 +647,31 @@ void test_view() {
   {
     Vector x{1, 2, 3, 4, 5, 6, 7, 8};
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0 and x[4] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0 and x[4] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0 and x[5] != 0)) arts::user_error("{:B}", x);
 
     VectorView v = x[Range(0, 3)];
     v            = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0 and x[4] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] == 0 and x[4] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] == 0 and x[3] != 0 and x[5] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(&x[2] != &v[2], "Pointing error (Vector and views)");
+    if (&x[2] != &v[2]) arts::user_error("Pointing error (Vector and views)");
   }
 
   {
     Vector x{1, 2, 3, 4, 5, 6, 7, 8};
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0 and x[4] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0 and x[4] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0 and x[5] != 0)) arts::user_error("{:B}", x);
 
     StridedVectorView v = x[StridedRange(0, 3, 2)];
     v                   = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0 and x[4] == 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0 and x[5] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] == 0 and x[4] == 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0 and x[5] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(&x[2] != &v[1], "Pointing error (Vector and strided views)");
+    if (&x[2] != &v[1]) arts::user_error("Pointing error (Vector and strided views)");
   }
 
   {
@@ -679,17 +679,17 @@ void test_view() {
     const Size           N = matpack::mdsize(exts);
     Tensor3              x = matpack::uniform_grid(1, N, 1.0).reshape(exts);
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
     Tensor3View v = x[Range(0, 3)];
     v             = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] == 0)) arts::user_error("{:B}", x);
+    if (not(x[1] == 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(), "Pointing error (Tensor3 and views)");
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(), "Pointing error (Tensor3 and views)");
+    if (x[2].base::data_handle() != v[2].base::data_handle()) arts::user_error("Pointing error (Tensor3 and views)");
+    if (x[2].base::data_handle() == x[1].base::data_handle()) arts::user_error("Pointing error (Tensor3 and views)");
   }
 
   {
@@ -697,19 +697,19 @@ void test_view() {
     const Size           N = matpack::mdsize(exts);
     Tensor3              x = matpack::uniform_grid(1, N, 1.0).reshape(exts);
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
     StridedTensor3View v = x[StridedRange(0, 3, 2)];
     v                    = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] == 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[1].base::data_handle(),
-                       "Pointing error (Tensor3 and strided views)");
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
-                       "Pointing error (Tensor3 and strided views)");
+    if (x[2].base::data_handle() != v[1].base::data_handle())
+      arts::user_error("Pointing error (Tensor3 and strided views)");
+    if (x[2].base::data_handle() == x[1].base::data_handle())
+      arts::user_error("Pointing error (Tensor3 and strided views)");
   }
 
   {
@@ -719,19 +719,19 @@ void test_view() {
     ComplexTensor3       x(xt.shape());
     stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
     ComplexTensor3View v = x[Range(0, 2)];
     v                    = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] == 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] == 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[2].base::data_handle(),
-                       "Pointing error (ComplexTensor3 and views)");
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
-                       "Pointing error (ComplexTensor3 and views)");
+    if (x[2].base::data_handle() != v[2].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 and views)");
+    if (x[2].base::data_handle() == x[1].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 and views)");
   }
 
   {
@@ -741,19 +741,19 @@ void test_view() {
     ComplexTensor3       x(xt.shape());
     stdr::transform(xt | by_elem, x.elem_begin(), [](auto a) { return Complex{a, a + 1.0}; });
 
-    ARTS_USER_ERROR_IF(not(x[0] != 0 and x[2] != 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] != 0 and x[2] != 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
     StridedComplexTensor3View v = x[StridedRange(0, 2, 2)];
     v                           = 0;
 
-    ARTS_USER_ERROR_IF(not(x[0] == 0 and x[2] == 0), "{:B}", x);
-    ARTS_USER_ERROR_IF(not(x[1] != 0 and x[3] != 0), "{:B}", x);
+    if (not(x[0] == 0 and x[2] == 0)) arts::user_error("{:B}", x);
+    if (not(x[1] != 0 and x[3] != 0)) arts::user_error("{:B}", x);
 
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() != v[1].base::data_handle(),
-                       "Pointing error (ComplexTensor3 and views)");
-    ARTS_USER_ERROR_IF(x[2].base::data_handle() == x[1].base::data_handle(),
-                       "Pointing error (ComplexTensor3 and views)");
+    if (x[2].base::data_handle() != v[1].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 and views)");
+    if (x[2].base::data_handle() == x[1].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 and views)");
   }
 
   {
@@ -763,24 +763,24 @@ void test_view() {
     StridedTensor3View xr{x.real()};
     StridedTensor3View xi{x.imag()};
 
-    ARTS_USER_ERROR_IF(not(xr[0] != 0 and xr[2] != 0), "real {:B}", x);
-    ARTS_USER_ERROR_IF(not(xr[1] != 0 and xr[3] != 0), "real {:B}", x);
-    ARTS_USER_ERROR_IF(not(xi[0] != 0 and xi[2] != 0), "imag {:B}", x);
-    ARTS_USER_ERROR_IF(not(xi[1] != 0 and xi[3] != 0), "imag {:B}", x);
+    if (not(xr[0] != 0 and xr[2] != 0)) arts::user_error("real {:B}", x);
+    if (not(xr[1] != 0 and xr[3] != 0)) arts::user_error("real {:B}", x);
+    if (not(xi[0] != 0 and xi[2] != 0)) arts::user_error("imag {:B}", x);
+    if (not(xi[1] != 0 and xi[3] != 0)) arts::user_error("imag {:B}", x);
 
     xr[StridedRange(0, 2, 2)] = 0;
     xi[StridedRange(1, 2, 2)] = 0;
 
-    ARTS_USER_ERROR_IF(not(xr[0] == 0 and xr[2] == 0), "real {:B}", x);
-    ARTS_USER_ERROR_IF(not(xr[1] != 0 and xr[3] != 0), "real {:B}", x);
-    ARTS_USER_ERROR_IF(not(xi[0] != 0 and xi[2] != 0), "imag {:B}", x);
-    ARTS_USER_ERROR_IF(not(xi[1] == 0 and xi[3] == 0), "imag {:B}", x);
+    if (not(xr[0] == 0 and xr[2] == 0)) arts::user_error("real {:B}", x);
+    if (not(xr[1] != 0 and xr[3] != 0)) arts::user_error("real {:B}", x);
+    if (not(xi[0] != 0 and xi[2] != 0)) arts::user_error("imag {:B}", x);
+    if (not(xi[1] == 0 and xi[3] == 0)) arts::user_error("imag {:B}", x);
 
-    ARTS_USER_ERROR_IF(xr[2].base::data_handle() != xr[StridedRange(0, 3, 2)][1].base::data_handle(),
-                       "Pointing error (ComplexTensor3 real views)");
+    if (xr[2].base::data_handle() != xr[StridedRange(0, 3, 2)][1].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 real views)");
 
-    ARTS_USER_ERROR_IF(xi[2].base::data_handle() != xi[StridedRange(0, 3, 2)][1].base::data_handle(),
-                       "Pointing error (ComplexTensor3 imag views)");
+    if (xi[2].base::data_handle() != xi[StridedRange(0, 3, 2)][1].base::data_handle())
+      arts::user_error("Pointing error (ComplexTensor3 imag views)");
   }
 
   for (Index RIJ = 0; RIJ < 5; RIJ++) {
@@ -807,8 +807,8 @@ void test_view() {
                 const bool i_zero = (j == IIJ and k == IIK);
 
                 Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                if ((x[i, j, k] != c))
+                  arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                    i,
                                    j,
                                    k,
@@ -846,8 +846,8 @@ void test_view() {
                 const bool i_zero = (i == III and k == IIK);
 
                 Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                if ((x[i, j, k] != c))
+                  arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                    i,
                                    j,
                                    k,
@@ -885,8 +885,8 @@ void test_view() {
                 const bool i_zero = (i == III and j == IIJ);
 
                 Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-                ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                                   "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+                if ((x[i, j, k] != c))
+                  arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                    i,
                                    j,
                                    k,
@@ -922,8 +922,8 @@ void test_view() {
             const bool i_zero = (i == III);
 
             Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+            if ((x[i, j, k] != c))
+              arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                i,
                                j,
                                k,
@@ -957,8 +957,8 @@ void test_view() {
             const bool i_zero = (j == IIJ);
 
             Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+            if ((x[i, j, k] != c))
+              arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                i,
                                j,
                                k,
@@ -992,8 +992,8 @@ void test_view() {
             const bool i_zero = (k == IIK);
 
             Complex c{r_zero ? 0 : y[i, j, k].real(), i_zero ? 0 : y[i, j, k].imag()};
-            ARTS_USER_ERROR_IF((x[i, j, k] != c),
-                               "Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
+            if ((x[i, j, k] != c))
+              arts::user_error("Failed at ({0}, {1}, {2}). x[i,j,k] != c. x[{0}, {1}, {2}] := {3}, c := {4}",
                                i,
                                j,
                                k,
@@ -1013,13 +1013,13 @@ void test_eigen() {
     std::vector<std::complex<Numeric>> copy = x;
     const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
 
     y = 2 * y;
 
-    ARTS_USER_ERROR_IF(not(y != test), "Error")
+    if (not(y != test)) arts::user_error("Error");
     for (auto& a : copy) a *= 2;
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
 
     ComplexMatrix SSS;
     SSS = 2 * y;
@@ -1030,7 +1030,7 @@ void test_eigen() {
     ComplexVectorView                  y{matpack::mdview_t<Complex, 1>{x.data(), std::array<Index, 1>{8}}};
 
     const std::complex<Numeric> z = dot(y, y);
-    ARTS_USER_ERROR_IF(z != std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0}), "{}", z)
+    if (z != std::transform_reduce(x.begin(), x.end(), x.begin(), std::complex<Numeric>{0})) arts::user_error("{}", z);
   }
 
   {
@@ -1039,13 +1039,13 @@ void test_eigen() {
     std::vector<std::complex<Numeric>> copy = x;
     const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
 
     y = 2 * y + y;
 
-    ARTS_USER_ERROR_IF(not(y != test), "Error")
+    if (not(y != test)) arts::user_error("Error");
     for (auto& a : copy) a = 2.0 * a + a;
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
   }
 
   {
@@ -1054,11 +1054,11 @@ void test_eigen() {
     std::vector<std::complex<Numeric>> copy = x;
     const ComplexMatrixView            test{matpack::mdview_t<Complex, 2>{copy.data(), std::array{Index{2}, Index{4}}}};
 
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
 
     y = 2 * y - y;
 
-    ARTS_USER_ERROR_IF(not(y == test), "Error")
+    if (not(y == test)) arts::user_error("Error");
   }
 }
 
@@ -1083,57 +1083,57 @@ void test_complex() {
   {
     Complex       x{0, 0};
     const Complex y{0, 0};
-    ARTS_USER_ERROR_IF(x != y, "{} {}", x, y)
-    ARTS_USER_ERROR_IF(not(real_val(x) == real_val(y)), "Error")
-    ARTS_USER_ERROR_IF(not(imag_val(x) == imag_val(y)), "Error")
+    if (x != y) arts::user_error("{} {}", x, y);
+    if (not(real_val(x) == real_val(y))) arts::user_error("Error");
+    if (not(imag_val(x) == imag_val(y))) arts::user_error("Error");
   }
 
   {
     Complex x{1, 1};
     x = 2 + x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    if (not(x == (Complex{3, 1}))) arts::user_error("Error");
     x = 2 - x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-1, -1})), "Error")
+    if (not(x == (Complex{-1, -1}))) arts::user_error("Error");
     x = 2 * x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-2, -2})), "Error")
+    if (not(x == (Complex{-2, -2}))) arts::user_error("Error");
     x = 2 / x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-0.5, 0.5})), "Error")
+    if (not(x == (Complex{-0.5, 0.5}))) arts::user_error("Error");
   }
 
   {
     Complex x{1, 1};
     x = x + 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    if (not(x == (Complex{3, 1}))) arts::user_error("Error");
     x = x - 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
+    if (not(x == (Complex{1, 1}))) arts::user_error("Error");
     x = x * 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{2, 2})), "Error")
+    if (not(x == (Complex{2, 2}))) arts::user_error("Error");
     x = x / 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
+    if (not(x == (Complex{1, 1}))) arts::user_error("Error");
   }
 
   {
     Complex x{1, 1};
     x = 2 + x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    if (not(x == (Complex{3, 1}))) arts::user_error("Error");
     x = 2 - x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-1, -1})), "Error")
+    if (not(x == (Complex{-1, -1}))) arts::user_error("Error");
     x = 2 * x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-2, -2})), "Error")
+    if (not(x == (Complex{-2, -2}))) arts::user_error("Error");
     x = 2 / x;
-    ARTS_USER_ERROR_IF(not(x == (Complex{-0.5, 0.5})), "Error")
+    if (not(x == (Complex{-0.5, 0.5}))) arts::user_error("Error");
   }
 
   {
     Complex x{1, 1};
     x = x + 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{3, 1})), "Error")
+    if (not(x == (Complex{3, 1}))) arts::user_error("Error");
     x = x - 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
+    if (not(x == (Complex{1, 1}))) arts::user_error("Error");
     x = x * 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{2, 2})), "Error")
+    if (not(x == (Complex{2, 2}))) arts::user_error("Error");
     x = x / 2;
-    ARTS_USER_ERROR_IF(not(x == (Complex{1, 1})), "Error")
+    if (not(x == (Complex{1, 1}))) arts::user_error("Error");
   }
 }
 
@@ -1141,17 +1141,17 @@ void test_math() {
   {
     Vector x{0, 1, 2, 3, 4};
 
-    ARTS_USER_ERROR_IF(not(max(x) == 4), "Error")
-    ARTS_USER_ERROR_IF(not(max(VectorView{x}) == 4), "Error")
-    ARTS_USER_ERROR_IF(not(max(ConstVectorView{x}) == 4), "Error")
-    ARTS_USER_ERROR_IF(not(max(StridedVectorView{x}) == 4), "Error")
-    ARTS_USER_ERROR_IF(not(max(StridedConstVectorView{x}) == 4), "Error")
+    if (not(max(x) == 4)) arts::user_error("Error");
+    if (not(max(VectorView{x}) == 4)) arts::user_error("Error");
+    if (not(max(ConstVectorView{x}) == 4)) arts::user_error("Error");
+    if (not(max(StridedVectorView{x}) == 4)) arts::user_error("Error");
+    if (not(max(StridedConstVectorView{x}) == 4)) arts::user_error("Error");
 
-    ARTS_USER_ERROR_IF(not(min(x) == 0), "min(x) == {}\n {:B,}", min(x), x)
-    ARTS_USER_ERROR_IF(not(min(VectorView{x}) == 0), "Error")
-    ARTS_USER_ERROR_IF(not(min(ConstVectorView{x}) == 0), "Error")
-    ARTS_USER_ERROR_IF(not(min(StridedVectorView{x}) == 0), "Error")
-    ARTS_USER_ERROR_IF(not(min(StridedConstVectorView{x}) == 0), "Error")
+    if (not(min(x) == 0)) arts::user_error("min(x) == {}\n {:B,}", min(x), x);
+    if (not(min(VectorView{x}) == 0)) arts::user_error("Error");
+    if (not(min(ConstVectorView{x}) == 0)) arts::user_error("Error");
+    if (not(min(StridedVectorView{x}) == 0)) arts::user_error("Error");
+    if (not(min(StridedConstVectorView{x}) == 0)) arts::user_error("Error");
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
     static_assert(std::random_access_iterator<decltype(VectorView{x}.elem_begin())>);
@@ -1180,9 +1180,9 @@ void test_math() {
 
   {
     Matrix x(3, 3, 0);
-    ARTS_USER_ERROR_IF(not(min(x) == 0), "Error")
-    ARTS_USER_ERROR_IF(not(min(MatrixView{x}) == 0), "Error")
-    ARTS_USER_ERROR_IF(not(min(ConstMatrixView{x}) == 0), "Error")
+    if (not(min(x) == 0)) arts::user_error("Error");
+    if (not(min(MatrixView{x}) == 0)) arts::user_error("Error");
+    if (not(min(ConstMatrixView{x}) == 0)) arts::user_error("Error");
 
     static_assert(std::random_access_iterator<decltype(x.elem_begin())>);
     static_assert(std::random_access_iterator<decltype(MatrixView{x}.elem_begin())>);
@@ -1219,7 +1219,7 @@ void test_mult() {
     Vector       x(4);
     Vector       eig_x{A * y};
     mult(x, A, y);
-    ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
+    if (eig_x not_eq x) arts::user_error("{} vs {}", eig_x, x);
   }
   {
     ComplexMatrix A(4, 4, 1);
@@ -1229,7 +1229,7 @@ void test_mult() {
 
     ComplexVector eig_x{A * y};
     mult(x, A, y);
-    ARTS_USER_ERROR_IF(eig_x not_eq x, "{} vs {}", eig_x, x)
+    if (eig_x not_eq x) arts::user_error("{} vs {}", eig_x, x);
   }
 }
 
@@ -1238,24 +1238,24 @@ void test_const_data() {
     constexpr matpack::cdata_t<Numeric, 3> x{1, 2, 3};
     Vector                                 y(x);
 
-    ARTS_USER_ERROR_IF(x != y, "Bad")
-    ARTS_USER_ERROR_IF((x[2] != y.back()), "Bad")
-    ARTS_USER_ERROR_IF((x[0] != y.front()), "Bad")
+    if (x != y) arts::user_error("Bad");
+    if ((x[2] != y.back())) arts::user_error("Bad");
+    if ((x[0] != y.front())) arts::user_error("Bad");
   }
   {
     constexpr matpack::cdata_t<Numeric, 3, 3> x{2, 3, 4};
     Matrix                                    y(x);
 
-    ARTS_USER_ERROR_IF(x != y, "Bad")
-    ARTS_USER_ERROR_IF((x[2, 2] != y[2, 2]), "Bad")
-    ARTS_USER_ERROR_IF((x[0, 0] != y[0, 0]), "Bad")
+    if (x != y) arts::user_error("Bad");
+    if ((x[2, 2] != y[2, 2])) arts::user_error("Bad");
+    if ((x[0, 0] != y[0, 0])) arts::user_error("Bad");
   }
 }
 
 void test_sorted_grid() {
   {
     const AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
-    ARTS_USER_ERROR_IF(x.size() != 8, "Should be working, just testing existence of size()");
+    if (x.size() != 8) arts::user_error("Should be working, just testing existence of size()");
   }
   {
     bool correctly_fails;
@@ -1263,7 +1263,7 @@ void test_sorted_grid() {
       const AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8, 8};
       correctly_fails = false;
     } catch (...) { correctly_fails = true; }
-    ARTS_USER_ERROR_IF(not correctly_fails, "Should not be able to initialize with non-ascending grid")
+    if (not correctly_fails) arts::user_error("Should not be able to initialize with non-ascending grid");
   }
 }
 
@@ -1273,13 +1273,13 @@ void test_lapack_vector_mult() {
   Vector y{0, 0, 0};
 
   mult(y, A, x);
-  ARTS_USER_ERROR_IF((y != Vector{14., 32., 50.}), "Bad values:\n", y);
+  if ((y != Vector{14., 32., 50.})) arts::user_error("Bad values:\n{}", y);
 
   mult(y, A, x, 0.5);
-  ARTS_USER_ERROR_IF((y != Vector{7., 16., 25.}), "Bad values:\n", y);
+  if ((y != Vector{7., 16., 25.})) arts::user_error("Bad values:\n{}", y);
 
   mult(y, A, x, 1.0, 1.0);
-  ARTS_USER_ERROR_IF((y != Vector{21., 48., 75.}), "Bad values:\n", y);
+  if ((y != Vector{21., 48., 75.})) arts::user_error("Bad values:\n{}", y);
 }
 
 void test_grid() {
@@ -1301,7 +1301,7 @@ void test_grid() {
     x       = std::move(xtmp);
     set_low = true;
   } catch (...) { set_low = false; }
-  ARTS_USER_ERROR_IF(set_low, "Should not be able to set low value");
+  if (set_low) arts::user_error("Should not be able to set low value");
   xtmp.pop_back();
   x = std::move(xtmp);
 
@@ -1312,7 +1312,7 @@ void test_grid() {
     x        = std::move(xtmp);
     set_same = true;
   } catch (...) { set_same = false; }
-  ARTS_USER_ERROR_IF(set_same, "Should not be able to set same value");
+  if (set_same) arts::user_error("Should not be able to set same value");
   xtmp.pop_back();
   x = std::move(xtmp);
 
@@ -1333,7 +1333,7 @@ void test_einsum() {
 
     einsum<"i", "ij", "j">(y0, A, x);
     mult(y1, A, x);
-    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+    if (y0 != y1) arts::user_error("{:B,} != {:B,}", y0, y1);
   }
 
   // mat-vec collaps
@@ -1345,7 +1345,7 @@ void test_einsum() {
       for (Size j = 0; j < m; j++) { y1[j] += A[i, j] * x[j]; }
     }
 
-    ARTS_USER_ERROR_IF(y0 != y1, "{:B,} != {:B,}", y0, y1);
+    if (y0 != y1) arts::user_error("{:B,} != {:B,}", y0, y1);
   }
 }
 
@@ -1383,7 +1383,7 @@ void test_sort() {
 
     matpack::sort(x);
     std::println("{:B,}", x);
-    ARTS_USER_ERROR_IF(not stdr::is_sorted(x), "Not sorted: {:B,}", x);
+    if (not stdr::is_sorted(x)) arts::user_error("Not sorted: {:B,}", x);
   }
 
   {
@@ -1395,7 +1395,7 @@ void test_sort() {
 
     for (Index i = 0; i < M; i++) {
       matpack::sort(x, {}, [i](VectorView a) { return a[i]; });
-      ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i]), "Not sorted at pivot {}\n{:B,}", i, x);
+      if (not stdr::is_sorted(x[joker, i])) arts::user_error("Not sorted at pivot {}\n{:B,}", i, x);
       std::println("{:B,}", x);
     }
   }
@@ -1410,7 +1410,7 @@ void test_sort() {
     for (Index i = 0; i < M; i++) {
       for (Index j = 0; j < M; j++) {
         matpack::sort(x, {}, [i, j](MatrixView a) { return a[i, j]; });
-        ARTS_USER_ERROR_IF(not stdr::is_sorted(x[joker, i, j]), "Not sorted at pivot {} {}\n{:B,}", i, j, x);
+        if (not stdr::is_sorted(x[joker, i, j])) arts::user_error("Not sorted at pivot {} {}\n{:B,}", i, j, x);
         std::println("{:B,} - pivot {} {}", x, i, j);
       }
     }

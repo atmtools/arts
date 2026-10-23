@@ -1323,8 +1323,8 @@ Vector4 tran::linsrcm1_diagonal(const muelmat &lambda) const noexcept {
 }
 
 muelmat tran::linsrc_deriv(const propmat &dk, const Numeric r, const Numeric dr) const {
-  ARTS_USER_ERROR_IF(r == 0.0 and dr != 0.0,
-                     "A nonzero layer-length derivative at r=0 requires the endpoint propagation matrices.");
+  if (r == 0.0 and dr != 0.0)
+    arts::user_error("A nonzero layer-length derivative at r=0 requires the endpoint propagation matrices.");
   const Numeric dr_r = r == 0.0 ? 0.0 : dr / r;
   return linsrc_deriv(dr_r * propmat{a, b, c, d, u, v, w} - 0.5 * r * dk);
 }
@@ -1937,8 +1937,8 @@ specmat sqrt(const propmat &pm) {
     const Complex Sy = sy + dy;
 
     if (S == 0.0) {
-      ARTS_USER_ERROR_IF(a == 0.0,
-                         "The principal square root is not defined for a nonzero nilpotent propagation matrix.");
+      if (a == 0.0)
+        arts::user_error("The principal square root is not defined for a nonzero nilpotent propagation matrix.");
 
       // sqrt(a I + N), with N^4=0.  This exact finite Taylor polynomial
       // handles the coalesced-eigenvalue case without divided differences.
@@ -2514,20 +2514,16 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
                                const TransmittanceOption              opt) {
   option = opt;
 
-  ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
-                     "K and dK must have the same size: K: {}, dK: {}, r: {}",
-                     K.size(),
-                     dK.size(),
-                     r.size());
+  if (not arr::same_size(K, dK))
+    arts::user_error("K and dK must have the same size: K: {}, dK: {}, r: {}", K.size(), dK.size(), r.size());
 
   constexpr Size nt = 2;
   const Size     np = K.size();
 
   if (np == 0) {
-    ARTS_USER_ERROR_IF(r.size() != 0 or dr.npages() != nt or dr.nrows() != 0,
-                       "Empty K requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}",
-                       r.shape(),
-                       dr.shape());
+    if (r.size() != 0 or dr.npages() != nt or dr.nrows() != 0)
+      arts::user_error(
+          "Empty K requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}", r.shape(), dr.shape());
     const Size nf = T.nrows();
     const Size nq = dr.ncols();
     T.resize(nf, 0);
@@ -2545,18 +2541,18 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   const bool has_linear_source = option == TransmittanceOption::linsrc or option == TransmittanceOption::linprop or
                                  option == TransmittanceOption::magop_linsrc;
 
-  ARTS_USER_ERROR_IF(
-      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
-          r.size() != np - 1,
-      "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: 2, np-1: {}, nq: {}",
-      dr.shape(),
-      r.shape(),
-      np - 1,
-      nq);
+  if (dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
+      r.size() != np - 1)
+    arts::user_error(
+        "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: 2, np-1: {}, nq: {}",
+        dr.shape(),
+        r.shape(),
+        np - 1,
+        nq);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nf}, K), "All propmats in K must have same size ({}).", nf);
+  if (not all_same_shape({nf}, K)) arts::user_error("All propmats in K must have same size ({}).", nf);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nq, nf}, dK), "All propmats in dK must have same shape ({}, {}).", nq, nf);
+  if (not all_same_shape({nq, nf}, dK)) arts::user_error("All propmats in dK must have same shape ({}, {}).", nq, nf);
 
   switch (option) {
     case TransmittanceOption::linsrc:
@@ -2613,17 +2609,13 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   constexpr Size nf = 1;
   const Size     np = K.size();
 
-  ARTS_USER_ERROR_IF(not arr::same_size(K, dK),
-                     "K and dK must have the same size: K: {}, dK: {}, r: {}",
-                     K.size(),
-                     dK.size(),
-                     r.size());
+  if (not arr::same_size(K, dK))
+    arts::user_error("K and dK must have the same size: K: {}, dK: {}, r: {}", K.size(), dK.size(), r.size());
 
   if (np == 0) {
-    ARTS_USER_ERROR_IF(r.size() != 0 or dr.npages() != nt or dr.nrows() != 0,
-                       "Empty K requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}",
-                       r.shape(),
-                       dr.shape());
+    if (r.size() != 0 or dr.npages() != nt or dr.nrows() != 0)
+      arts::user_error(
+          "Empty K requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}", r.shape(), dr.shape());
     const Size nq = dr.ncols();
     T.resize(nf, 0);
     T_diag_m1.resize(nf, 0);
@@ -2639,17 +2631,17 @@ void TransmittanceMatrix::init(const std::span<const propmat>        &K,
   const bool has_linear_source = option == TransmittanceOption::linsrc or option == TransmittanceOption::linprop or
                                  option == TransmittanceOption::magop_linsrc;
 
-  ARTS_USER_ERROR_IF(
-      dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
-          r.size() != np - 1,
-      "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: {}, np-1: {}, nq: {}",
-      dr.shape(),
-      r.shape(),
-      nt,
-      np - 1,
-      nq);
+  if (dr.npages() != nt or dr.nrows() != static_cast<Index>(np - 1) or dr.ncols() != static_cast<Index>(nq) or
+      r.size() != np - 1)
+    arts::user_error(
+        "dr and r must have compatible sizes. dr: (nt, np-1, nq)->{:B,}, r: (np-1)->{:B,}, nt: {}, np-1: {}, nq: {}",
+        dr.shape(),
+        r.shape(),
+        nt,
+        np - 1,
+        nq);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nq}, dK), "All propmats in dK must have same shape ({}).", nq);
+  if (not all_same_shape({nq}, dK)) arts::user_error("All propmats in dK must have same shape ({}).", nq);
 
   switch (option) {
     case TransmittanceOption::linsrc:
@@ -2692,9 +2684,8 @@ void TransmittanceMatrix::check(Size np, Size nq, Size nf, const std::string_vie
   switch (option) {
     case TransmittanceOption::magop:
     case TransmittanceOption::constant:
-      ARTS_USER_ERROR_IF(
-          not same_shape({nf, np}, T, P) or (T_diag_m1.size() != 0 and not same_shape({nf, np}, T_diag_m1)),
-          R"(Mismatched shapes in Transmittance in {6}:
+      if (not same_shape({nf, np}, T, P) or (T_diag_m1.size() != 0 and not same_shape({nf, np}, T_diag_m1)))
+        arts::user_error(R"(Mismatched shapes in Transmittance in {6}:
 
 T: {0:B,}
 T_diag_m1: {1:B,}
@@ -2702,35 +2693,33 @@ P: {2:B,} - optional on nq > 0, nq = {5}
 
 Expected shapes: ({3}, {4})
 )",
-          T.shape(),
-          T_diag_m1.shape(),
-          P.shape(),
-          nf,
-          np,
-          nq,
-          caller);
-
-      ARTS_USER_ERROR_IF(not same_shape({2, nf, np, nq}, dT),
-                         R"(Mismatched shapes in Transmittance in {5}:
-
-dT: {0:B,}
-
-Expected shape: (2, {2}, {3}, {4}
-)",
-                         dT.shape(),
-                         dL.shape(),
+                         T.shape(),
+                         T_diag_m1.shape(),
+                         P.shape(),
                          nf,
                          np,
                          nq,
-                         caller)
+                         caller);
+
+      if (not same_shape({2, nf, np, nq}, dT))
+        arts::user_error(R"(Mismatched shapes in Transmittance in {4}:
+
+dT: {0:B,}
+
+Expected shape: (2, {1}, {2}, {3})
+)",
+                         dT.shape(),
+                         nf,
+                         np,
+                         nq,
+                         caller);
       break;
     case TransmittanceOption::linsrc:
     case TransmittanceOption::linprop:
     case TransmittanceOption::magop_linsrc:
-      ARTS_USER_ERROR_IF(not same_shape({nf, np}, T, L, P) or
-                             (T_diag_m1.size() != 0 and not same_shape({nf, np}, T_diag_m1)) or
-                             (L_diag_m1.size() != 0 and not same_shape({nf, np}, L_diag_m1)),
-                         R"(Mismatched shapes in Transmittance in {8}:
+      if (not same_shape({nf, np}, T, L, P) or (T_diag_m1.size() != 0 and not same_shape({nf, np}, T_diag_m1)) or
+          (L_diag_m1.size() != 0 and not same_shape({nf, np}, L_diag_m1)))
+        arts::user_error(R"(Mismatched shapes in Transmittance in {8}:
 
 T: {0:B,}
 T_diag_m1: {1:B,}
@@ -2750,8 +2739,8 @@ Expected shapes: ({5}, {6})
                          nq,
                          caller);
 
-      ARTS_USER_ERROR_IF(not same_shape({2, nf, np, nq}, dT, dL),
-                         R"(Mismatched shapes in Transmittance in {5}:
+      if (not same_shape({2, nf, np, nq}, dT, dL))
+        arts::user_error(R"(Mismatched shapes in Transmittance in {5}:
 
 dT: {0:B,}
 dL: {1:B,}
@@ -2763,7 +2752,7 @@ Expected shape: (2, {2}, {3}, {4}
                          nf,
                          np,
                          nq,
-                         caller)
+                         caller);
       break;
   }
 }

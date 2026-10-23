@@ -27,11 +27,11 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   const Index ns = nstokes;
   const Index n  = static_cast<Index>(mu.size());
 
-  ARTS_USER_ERROR_IF(ns != 1 and ns != 2, "RT4 supports nstokes 1 ([I]) or 2 ([I, Q]), got {}", ns);
-  ARTS_USER_ERROR_IF(n < 1, "RT4 needs at least one stream per hemisphere, got an empty mu");
-  ARTS_USER_ERROR_IF(stdr::any_of(mu, [](Numeric x) { return not(x > 0.0 and x <= 1.0); }),
-                     "RT4 stream cosines mu must be in (0, 1]");
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "frequency must be positive, got {} Hz", frequency);
+  if (ns != 1 and ns != 2) arts::user_error("RT4 supports nstokes 1 ([I]) or 2 ([I, Q]), got {}", ns);
+  if (n < 1) arts::user_error("RT4 needs at least one stream per hemisphere, got an empty mu");
+  if (stdr::any_of(mu, [](Numeric x) { return not(x > 0.0 and x <= 1.0); }))
+    arts::user_error("RT4 stream cosines mu must be in (0, 1]");
+  if (not(frequency > 0.0)) arts::user_error("frequency must be positive, got {} Hz", frequency);
 
   layer_optics o{.extinction = Tensor4(2, n, ns, ns, 0.0),
                  .absorption = Tensor3(2, n, ns, 0.0),
@@ -54,23 +54,25 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
     za[j]                    = sorted[j].first;
     stream[sorted[j].second] = j;
   }
-  ARTS_USER_ERROR_IF(not ZenGrid::is_sorted(za), "RT4 stream cosines mu must be distinct");
+  if (not ZenGrid::is_sorted(za)) arts::user_error("RT4 stream cosines mu must be distinct");
 
   const auto bulk =
       scattering_species.get_bulk_scattering_properties_aro_fourier(atm_point, Vector{frequency}, za, za, 0);
-  ARTS_USER_ERROR_IF(not bulk.phase_matrix.has_value(),
-                     "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "
-                     "none");
+  if (not bulk.phase_matrix.has_value())
+    arts::user_error(
+        "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "
+        "none");
 
   const auto& ext = bulk.extinction_matrix;
   const auto& abs = bulk.absorption_vector;
   const auto& pha = *bulk.phase_matrix;
-  ARTS_USER_ERROR_IF(ext.extent(0) != 1 or abs.extent(0) != 1 or pha.extent(0) != 1,
-                     "The bulk scattering properties must be at a single temperature; they have {}, {} and {} "
-                     "temperatures for the extinction, absorption and phase matrix",
-                     ext.extent(0),
-                     abs.extent(0),
-                     pha.extent(0));
+  if (ext.extent(0) != 1 or abs.extent(0) != 1 or pha.extent(0) != 1)
+    arts::user_error(
+        "The bulk scattering properties must be at a single temperature; they have {}, {} and {} "
+        "temperatures for the extinction, absorption and phase matrix",
+        ext.extent(0),
+        abs.extent(0),
+        pha.extent(0));
 
   for (Index h = 0; h < 2; h++) {
     for (Index i = 0; i < n; i++) {

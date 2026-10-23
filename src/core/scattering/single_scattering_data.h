@@ -57,16 +57,21 @@ template <Format format, Representation repr> struct SingleScatteringData {
                                                                            const ZenithAngleGrid   &za_grid,
                                                                            const ComplexMatrix     &refractive_index,
                                                                            Numeric                  density) {
-    ARTS_USER_ERROR_IF(refractive_index.nrows() != t_grid.ncols() || refractive_index.ncols() != f_grid.ncols(),
-                       "Refractive-index shape must match temperature/frequency grids.")
-    ARTS_USER_ERROR_IF(!std::isfinite(diameter) || diameter <= 0 || !std::isfinite(density) || density <= 0,
-                       "Diameter and density must be finite and positive.")
-    for (auto t : t_grid) ARTS_USER_ERROR_IF(!std::isfinite(t) || t <= 0, "Temperatures must be finite and positive.")
-    for (auto f : f_grid) ARTS_USER_ERROR_IF(!std::isfinite(f) || f <= 0, "Frequencies must be finite and positive.")
+    if (refractive_index.nrows() != t_grid.ncols() || refractive_index.ncols() != f_grid.ncols())
+      arts::user_error("Refractive-index shape must match temperature/frequency grids.");
+    if (!std::isfinite(diameter) || diameter <= 0 || !std::isfinite(density) || density <= 0)
+      arts::user_error("Diameter and density must be finite and positive.");
+    for (auto t : t_grid) {
+      if (!std::isfinite(t) || t <= 0) arts::user_error("Temperatures must be finite and positive.");
+    }
+    for (auto f : f_grid) {
+      if (!std::isfinite(f) || f <= 0) arts::user_error("Frequencies must be finite and positive.");
+    }
     for (auto row : refractive_index)
-      for (auto m : row)
-        ARTS_USER_ERROR_IF(!std::isfinite(m.real()) || m.real() <= 0 || !std::isfinite(m.imag()) || m.imag() < 0,
-                           "Refractive index must have positive real and nonnegative imaginary parts.")
+      for (auto m : row) {
+        if (!std::isfinite(m.real()) || m.real() <= 0 || !std::isfinite(m.imag()) || m.imag() < 0)
+          arts::user_error("Refractive index must have positive real and nonnegative imaginary parts.");
+      }
     auto t_grid_ptr  = std::make_shared<Vector>(t_grid);
     auto f_grid_ptr  = std::make_shared<Vector>(f_grid);
     auto za_grid_ptr = std::make_shared<ZenithAngleGrid>(za_grid);
@@ -110,9 +115,10 @@ template <Format format, Representation repr> struct SingleScatteringData {
 
   static SingleScatteringData<Format::TRO, Representation::Gridded> from_legacy_tro(::SingleScatteringData ssd,
                                                                                     ::ScatteringMetaData   smd) {
-    ARTS_USER_ERROR_IF(ssd.ptype != PType::PTYPE_TOTAL_RND,
-                       "Converting legacy ARTS single scattering data to TRO format requires"
-                       " the input data to have PType::PTYPR_TOTAL_RND.");
+    if (ssd.ptype != PType::PTYPE_TOTAL_RND)
+      arts::user_error(
+          "Converting legacy ARTS single scattering data to TRO format requires"
+          " the input data to have PType::PTYPR_TOTAL_RND.");
 
     auto t_grid       = std::make_shared<Vector>(ssd.T_grid);
     auto f_grid       = std::make_shared<Vector>(ssd.f_grid);
@@ -151,16 +157,16 @@ template <Format format, Representation repr> struct SingleScatteringData {
 
   static SingleScatteringData<Format::ARO, Representation::Gridded> from_legacy_aro(::SingleScatteringData ssd,
                                                                                     ::ScatteringMetaData   smd) {
-    ARTS_USER_ERROR_IF(ssd.ptype != PType::PTYPE_AZIMUTH_RND,
-                       "Converting legacy scattering data to ARO format requires PType::PTYPE_AZIMUTH_RND.")
-    ARTS_USER_ERROR_IF(ssd.pha_mat_data.extent(5) != 1,
-                       "Legacy ARO conversion requires a singleton incident-azimuth dimension.")
+    if (ssd.ptype != PType::PTYPE_AZIMUTH_RND)
+      arts::user_error("Converting legacy scattering data to ARO format requires PType::PTYPE_AZIMUTH_RND.");
+    if (ssd.pha_mat_data.extent(5) != 1)
+      arts::user_error("Legacy ARO conversion requires a singleton incident-azimuth dimension.");
 
     auto t_grid      = std::make_shared<Vector>(ssd.T_grid);
     auto f_grid      = std::make_shared<Vector>(ssd.f_grid);
     auto za_inc_grid = std::make_shared<Vector>(ssd.za_grid);
-    ARTS_USER_ERROR_IF(ssd.aa_grid.empty() || ssd.aa_grid.front() != 0.0 || ssd.aa_grid.back() != 180.0,
-                       "Legacy ARO azimuth grid must span 0 to 180 degrees.")
+    if (ssd.aa_grid.empty() || ssd.aa_grid.front() != 0.0 || ssd.aa_grid.back() != 180.0)
+      arts::user_error("Legacy ARO azimuth grid must span 0 to 180 degrees.");
     Vector signed_delta_aa(2 * ssd.aa_grid.size() - 1);
     for (Size i = 1; i < ssd.aa_grid.size(); ++i) { signed_delta_aa[ssd.aa_grid.size() - 1 - i] = -ssd.aa_grid[i]; }
     for (Size i = 0; i < ssd.aa_grid.size(); ++i) { signed_delta_aa[ssd.aa_grid.size() - 1 + i] = ssd.aa_grid[i]; }
@@ -324,8 +330,8 @@ template <Format format, Representation repr> struct SingleScatteringData {
    * absorption vector and back- and forward-scatter matrices are unchanged.
    */
   [[nodiscard]] SingleScatteringData<format, Representation::Spectral> to_spectral(Index l, Index m = 0) const {
-    ARTS_USER_ERROR_IF((format == Format::TRO) && (m > 0),
-                       "Order of SHT representation must be 0 for scattering data in TRO format");
+    if ((format == Format::TRO) && (m > 0))
+      arts::user_error("Order of SHT representation must be 0 for scattering data in TRO format");
     auto new_phase_matrix = phase_matrix.transform([&l, &m](const auto &pm) { return pm.to_spectral(l, m); });
     return SingleScatteringData<format, Representation::Spectral>(properties,
                                                                   new_phase_matrix,
@@ -343,8 +349,8 @@ template <Format format, Representation repr> struct SingleScatteringData {
   [[nodiscard]] SingleScatteringData<Format::ARO, Representation::Fourier> to_lab_frame_fourier_modes(
       const ScatteringDataGrids &grids, Index max_mode) const
       requires(format == Format::TRO and repr == Representation::Spectral) {
-    ARTS_USER_ERROR_IF(not grids.za_inc_grid or not grids.za_scat_grid,
-                       "Laboratory-frame Fourier modes need incidence and scattering zenith-angle grids")
+    if (not grids.za_inc_grid or not grids.za_scat_grid)
+      arts::user_error("Laboratory-frame Fourier modes need incidence and scattering zenith-angle grids");
     const ScatteringDataGrids tf_grids(grids.t_grid, grids.f_grid);
     auto                      new_pm = phase_matrix.transform([&](const auto &pm) {
       return pm.regrid(tf_grids).to_lab_frame_fourier_modes(grids.za_inc_grid, grids.za_scat_grid, max_mode);
@@ -457,7 +463,7 @@ template <Format format, Representation repr> struct SingleScatteringData {
  */
 inline std::pair<SingleScatteringData<Format::TRO, Representation::Spectral>, LegendreReport> to_spectral_with_report(
     const SingleScatteringData<Format::TRO, Representation::Gridded> &ssd, Index degree) {
-  ARTS_USER_ERROR_IF(not ssd.phase_matrix, "Scattering data without a phase matrix have no Legendre series")
+  if (not ssd.phase_matrix) arts::user_error("Scattering data without a phase matrix have no Legendre series");
   auto       spectral = ssd.to_spectral(degree);
   auto       report   = ssd.phase_matrix->legendre_report(*spectral.phase_matrix);
   const auto integral = spectral.phase_matrix->integrate_phase_matrix();

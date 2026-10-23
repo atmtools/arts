@@ -332,13 +332,14 @@ void oxygen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoin
   if (vmr == 0.) { return; }
 
   // check if O2-VMR will cause an underflow due to division by zero:
-  ARTS_USER_ERROR_IF(vmr < VMRCalcLimit,
-                     "ERROR: MPM89 O2 full absorption model has detected a O2 volume mixing ratio of {}"
-                     " which is below the threshold of {}"
-                     ".\n"
-                     "Therefore no calculation is performed.\n",
-                     vmr,
-                     VMRCalcLimit)
+  if (vmr < VMRCalcLimit)
+    arts::user_error(
+        "ERROR: MPM89 O2 full absorption model has detected a O2 volume mixing ratio of {}"
+        " which is below the threshold of {}"
+        ".\n"
+        "Therefore no calculation is performed.\n",
+        vmr,
+        VMRCalcLimit);
 
   // relative inverse temperature [1]
   const Numeric theta = (300.0 / t);

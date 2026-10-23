@@ -1290,7 +1290,7 @@ void compute_derivative(PropmatVectorView      dpm,
 
   const Numeric isorat = atm[spec];
 
-  ARTS_USER_ERROR_IF(isorat == 0, "Does not support 0 for isotopologue ratios")
+  if (isorat == 0) arts::user_error("Does not support 0 for isotopologue ratios");
 
   for (Size i = 0; i < f_grid.size(); i++) {
     const auto dF  = com_data.scl[i] * com_data.shape[i] / isorat;
@@ -1662,7 +1662,7 @@ void compute_derivative(ComplexVectorView             dp,
 
   const Numeric isorat = atm[key];
 
-  ARTS_USER_ERROR_IF(isorat == 0, "Does not support 0 for isotopologue ratios")
+  if (isorat == 0) arts::user_error("Does not support 0 for isotopologue ratios");
 
   einsum<"i", "", "i">(dp, 1.0 / isorat, p);
 }

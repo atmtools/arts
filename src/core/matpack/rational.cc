@@ -72,7 +72,7 @@ std::istream& operator>>(std::istream& is, Rational& a) {
 Rational::Rational(const std::string_view s) {
   auto len = s.length();
 
-  ARTS_USER_ERROR_IF(0 == len, "Cannot create Rational from empty string");
+  if (0 == len) arts::user_error("Cannot create Rational from empty string");
 
   auto dot_pos   = s.find('.');
   auto slash_pos = s.find('/');
@@ -83,11 +83,11 @@ Rational::Rational(const std::string_view s) {
     const String b{s.substr(slash_pos + 1, len)};
     try {
       *this = Rational(std::stoi(a), std::stoi(b));
-    } catch (...) { ARTS_USER_ERROR("Cannot interpret either '{}' or '{}' as an integer (or neither)", a, b); }
+    } catch (...) { arts::user_error("Cannot interpret either '{}' or '{}' as an integer (or neither)", a, b); }
   } else {
     try {
       *this = Rational(std::stoi(std::string{s}));
-    } catch (...) { ARTS_USER_ERROR("Cannot interpret '{}' as an integer", s); }
+    } catch (...) { arts::user_error("Cannot interpret '{}' as an integer", s); }
   }
 }
 

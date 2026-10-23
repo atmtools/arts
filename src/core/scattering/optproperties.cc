@@ -8,7 +8,7 @@ std::string_view PTypeToString(const PType ptype) {
     case PTYPE_GENERAL:     return "general"sv; break;
     case PTYPE_TOTAL_RND:   return "totally_random"sv; break;
     case PTYPE_AZIMUTH_RND: return "azimuthally_random"sv; break;
-    default:                ARTS_USER_ERROR("Internal error: Cannot map PType enum value {} to String.", ptype) break;
+    default:                arts::user_error("Internal error: Cannot map PType enum value {} to String.", ptype); break;
   }
 
   return "unknown PType"sv;
@@ -22,12 +22,12 @@ PType PType2FromString(const std::string_view ptype_string) {
   else if (ptype_string == "horizontally_aligned"sv)
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR(
+    arts::user_error(
         "Unknown ptype: {}"
         "\n"
         "Valid types are: general, macroscopically_isotropic and "
         "horizontally_aligned.",
-        ptype_string)
+        ptype_string);
   }
 
   return ptype;
@@ -42,12 +42,12 @@ PType PTypeFromString(const std::string_view ptype_string) {
   else if (ptype_string == "azimuthally_random"sv)
     ptype = PTYPE_AZIMUTH_RND;
   else {
-    ARTS_USER_ERROR(
+    arts::user_error(
         "Unknown ptype: {}"
         "\n"
         "Valid types are: general, totally_random and "
         "azimuthally_random.",
-        ptype_string)
+        ptype_string);
   }
 
   return ptype;
@@ -84,29 +84,34 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
   assert(scat_data_single.ptype == PTYPE_GENERAL || scat_data_single.ptype == PTYPE_TOTAL_RND ||
          scat_data_single.ptype == PTYPE_AZIMUTH_RND);
 
-  ARTS_USER_ERROR_IF(scat_data_single.za_grid[0] != 0.,
-                     "The first value of the zenith angle grid in the single"
-                     " scattering properties data must be 0.")
+  if (scat_data_single.za_grid[0] != 0.)
+    arts::user_error(
+        "The first value of the zenith angle grid in the single"
+        " scattering properties data must be 0.");
 
-  ARTS_USER_ERROR_IF(last(scat_data_single.za_grid) != 180.,
-                     "The last value of the zenith angle grid in the single"
-                     " scattering properties data must be 180.")
+  if (last(scat_data_single.za_grid) != 180.)
+    arts::user_error(
+        "The last value of the zenith angle grid in the single"
+        " scattering properties data must be 180.");
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_GENERAL && scat_data_single.aa_grid[0] != -180.,
-                     "For ptype = \"general\" the first value"
-                     " of the azimuth angle grid in the single scattering"
-                     " properties data must be -180.")
+  if (scat_data_single.ptype == PTYPE_GENERAL && scat_data_single.aa_grid[0] != -180.)
+    arts::user_error(
+        "For ptype = \"general\" the first value"
+        " of the azimuth angle grid in the single scattering"
+        " properties data must be -180.");
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype == PTYPE_AZIMUTH_RND && scat_data_single.aa_grid[0] != 0.,
-                     "For ptype = \"azimuthally_random\""
-                     " the first value"
-                     " of the azimuth angle grid in the single scattering"
-                     " properties data must be 0.")
+  if (scat_data_single.ptype == PTYPE_AZIMUTH_RND && scat_data_single.aa_grid[0] != 0.)
+    arts::user_error(
+        "For ptype = \"azimuthally_random\""
+        " the first value"
+        " of the azimuth angle grid in the single scattering"
+        " properties data must be 0.");
 
-  ARTS_USER_ERROR_IF(scat_data_single.ptype != PTYPE_TOTAL_RND && last(scat_data_single.aa_grid) != 180.,
-                     "For ptypes = \"azimuthally_random\" and \"general\""
-                     " the last value of the azimuth angle grid in the single"
-                     " scattering properties data must be 180.")
+  if (scat_data_single.ptype != PTYPE_TOTAL_RND && last(scat_data_single.aa_grid) != 180.)
+    arts::user_error(
+        "For ptypes = \"azimuthally_random\" and \"general\""
+        " the last value of the azimuth angle grid in the single"
+        " scattering properties data must be 180.");
 
   std::ostringstream os_pha_mat;
   os_pha_mat << "pha_mat ";
@@ -118,15 +123,15 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
   switch (scat_data_single.ptype) {
     case PTYPE_GENERAL:
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         scat_data_single.aa_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         scat_data_single.aa_grid.size(),
-                                         16},
-                                        scat_data_single.pha_mat_data),
-                         R"(The shape of the pha_mat_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(),
+                          scat_data_single.T_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          scat_data_single.aa_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          scat_data_single.aa_grid.size(),
+                          16},
+                         scat_data_single.pha_mat_data))
+        arts::user_error(R"(The shape of the pha_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -141,13 +146,13 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          16,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         scat_data_single.aa_grid.size(),
-                                         7},
-                                        scat_data_single.ext_mat_data),
-                         R"(The shape of the ext_mat_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(),
+                          scat_data_single.T_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          scat_data_single.aa_grid.size(),
+                          7},
+                         scat_data_single.ext_mat_data))
+        arts::user_error(R"(The shape of the ext_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -160,13 +165,13 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          7,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         scat_data_single.aa_grid.size(),
-                                         4},
-                                        scat_data_single.abs_vec_data),
-                         R"(The shape of the abs_vec_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(),
+                          scat_data_single.T_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          scat_data_single.aa_grid.size(),
+                          4},
+                         scat_data_single.abs_vec_data))
+        arts::user_error(R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -183,15 +188,15 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
     case PTYPE_TOTAL_RND:
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         1,
-                                         1,
-                                         1,
-                                         6},
-                                        scat_data_single.pha_mat_data),
-                         R"(The shape of the pha_mat data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(),
+                          scat_data_single.T_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          1,
+                          1,
+                          1,
+                          6},
+                         scat_data_single.pha_mat_data))
+        arts::user_error(R"(The shape of the pha_mat data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -206,9 +211,9 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          6,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
-                                        scat_data_single.ext_mat_data),
-                         R"(The shape of the ext_mat_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
+                         scat_data_single.ext_mat_data))
+        arts::user_error(R"(The shape of the ext_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -221,9 +226,9 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          1,
                          scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
-                                        scat_data_single.abs_vec_data),
-                         R"(The shape of the abs_vec_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), 1, 1, 1},
+                         scat_data_single.abs_vec_data))
+        arts::user_error(R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -240,15 +245,15 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
 
     case PTYPE_AZIMUTH_RND:
 
-      ARTS_USER_ERROR_IF(not same_shape({scat_data_single.f_grid.size(),
-                                         scat_data_single.T_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         scat_data_single.aa_grid.size(),
-                                         scat_data_single.za_grid.size(),
-                                         1,
-                                         16},
-                                        scat_data_single.pha_mat_data),
-                         R"(The shape of the pha_mat_data is wrong: {}
+      if (not same_shape({scat_data_single.f_grid.size(),
+                          scat_data_single.T_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          scat_data_single.aa_grid.size(),
+                          scat_data_single.za_grid.size(),
+                          1,
+                          16},
+                         scat_data_single.pha_mat_data))
+        arts::user_error(R"(The shape of the pha_mat_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}, {}, {}]
   Got shape:     {:B,}
@@ -263,39 +268,37 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
                          16,
                          scat_data_single.pha_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(
-          not same_shape(
+      if (not same_shape(
               {scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), scat_data_single.za_grid.size(), 1, 3},
-              scat_data_single.ext_mat_data),
-          R"(The shape of the ext_mat_data data is wrong: {}
+              scat_data_single.ext_mat_data))
+        arts::user_error(R"(The shape of the ext_mat_data data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
 )",
-          os_ext_mat.str(),
-          scat_data_single.f_grid.size(),
-          scat_data_single.T_grid.size(),
-          scat_data_single.za_grid.size(),
-          1,
-          3,
-          scat_data_single.ext_mat_data.shape());
+                         os_ext_mat.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         3,
+                         scat_data_single.ext_mat_data.shape());
 
-      ARTS_USER_ERROR_IF(
-          not same_shape(
+      if (not same_shape(
               {scat_data_single.f_grid.size(), scat_data_single.T_grid.size(), scat_data_single.za_grid.size(), 1, 2},
-              scat_data_single.abs_vec_data),
-          R"(The shape of the abs_vec_data is wrong: {}
+              scat_data_single.abs_vec_data))
+        arts::user_error(R"(The shape of the abs_vec_data is wrong: {}
       
   Expected size: [{}, {}, {}, {}, {}]
   Got shape:     {:B,}
 )",
-          os_abs_vec.str(),
-          scat_data_single.f_grid.size(),
-          scat_data_single.T_grid.size(),
-          scat_data_single.za_grid.size(),
-          1,
-          2,
-          scat_data_single.abs_vec_data.shape());
+                         os_abs_vec.str(),
+                         scat_data_single.f_grid.size(),
+                         scat_data_single.T_grid.size(),
+                         scat_data_single.za_grid.size(),
+                         1,
+                         2,
+                         scat_data_single.abs_vec_data.shape());
 
       break;
   }
@@ -306,10 +309,11 @@ void chk_scat_data(const SingleScatteringData& scat_data_single) {
   // is non-zero for the corresponding temperature. This check is done in the
   // functions where the multiplication with the particle number density is
   // done.
-  ARTS_USER_ERROR_IF(scat_data_single.T_grid[0] < 0. || last(scat_data_single.T_grid) > 1001.,
-                     "The temperature values in the single scattering data"
-                     " are negative or very large. Check whether you use the "
-                     "right unit [Kelvin].")
+  if (scat_data_single.T_grid[0] < 0. || last(scat_data_single.T_grid) > 1001.)
+    arts::user_error(
+        "The temperature values in the single scattering data"
+        " are negative or very large. Check whether you use the "
+        "right unit [Kelvin].");
 }
 
 void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
@@ -317,14 +321,16 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   // 1) Is za_grid symmetric and includes 90deg?
   Index nza = ssd.za_grid.size();
   for (Index i = 0; i < nza / 2; i++) {
-    ARTS_USER_ERROR_IF(!is_same_within_epsilon(
-                           180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * std::numeric_limits<double>::epsilon()),
-                       "Zenith grid of azimuthally_random single scattering data\n"
-                       "is not symmetric with respect to 90degree.")
+    if (!is_same_within_epsilon(
+            180. - ssd.za_grid[nza - 1 - i], ssd.za_grid[i], 2 * std::numeric_limits<double>::epsilon()))
+      arts::user_error(
+          "Zenith grid of azimuthally_random single scattering data\n"
+          "is not symmetric with respect to 90degree.");
   }
-  ARTS_USER_ERROR_IF(!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * std::numeric_limits<double>::epsilon()),
-                     "Zenith grid of azimuthally_random single scattering data\n"
-                     "does not contain 90 degree grid point.")
+  if (!is_same_within_epsilon(ssd.za_grid[nza / 2], 90., 2 * std::numeric_limits<double>::epsilon()))
+    arts::user_error(
+        "Zenith grid of azimuthally_random single scattering data\n"
+        "does not contain 90 degree grid point.");
 
   // 2) Are data sizes correct?
   std::ostringstream os_pha_mat;
@@ -334,15 +340,15 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
   std::ostringstream os_abs_vec;
   os_abs_vec << "abs_vec ";
 
-  ARTS_USER_ERROR_IF(not same_shape({ssd.f_grid.size(),
-                                     ssd.T_grid.size(),
-                                     ssd.za_grid.size(),
-                                     ssd.aa_grid.size(),
-                                     ssd.za_grid.size() / 2 + 1,
-                                     1,
-                                     16},
-                                    ssd.pha_mat_data),
-                     "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
+  if (not same_shape({ssd.f_grid.size(),
+                      ssd.T_grid.size(),
+                      ssd.za_grid.size(),
+                      ssd.aa_grid.size(),
+                      ssd.za_grid.size() / 2 + 1,
+                      1,
+                      16},
+                     ssd.pha_mat_data))
+    arts::user_error("Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}, {6}, {7}] versus data shape {8:B,}",
                      os_pha_mat.str(),
                      ssd.f_grid.size(),
                      ssd.T_grid.size(),
@@ -353,27 +359,25 @@ void ConvertAzimuthallyRandomSingleScatteringData(SingleScatteringData& ssd) {
                      16,
                      ssd.pha_mat_data.shape());
 
-  ARTS_USER_ERROR_IF(
-      not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 3}, ssd.ext_mat_data),
-      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
-      os_ext_mat.str(),
-      ssd.f_grid.size(),
-      ssd.T_grid.size(),
-      ssd.za_grid.size() / 2 + 1,
-      1,
-      3,
-      ssd.ext_mat_data.shape());
+  if (not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 3}, ssd.ext_mat_data))
+    arts::user_error("Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+                     os_ext_mat.str(),
+                     ssd.f_grid.size(),
+                     ssd.T_grid.size(),
+                     ssd.za_grid.size() / 2 + 1,
+                     1,
+                     3,
+                     ssd.ext_mat_data.shape());
 
-  ARTS_USER_ERROR_IF(
-      not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 2}, ssd.abs_vec_data),
-      "Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
-      os_abs_vec.str(),
-      ssd.f_grid.size(),
-      ssd.T_grid.size(),
-      ssd.za_grid.size() / 2 + 1,
-      1,
-      2,
-      ssd.abs_vec_data.shape());
+  if (not same_shape({ssd.f_grid.size(), ssd.T_grid.size(), ssd.za_grid.size() / 2 + 1, 1, 2}, ssd.abs_vec_data))
+    arts::user_error("Error in {0}.\n\tGrid shape [{1}, {2}, {3}, {4}, {5}] versus data shape {6:B,}",
+                     os_abs_vec.str(),
+                     ssd.f_grid.size(),
+                     ssd.T_grid.size(),
+                     ssd.za_grid.size() / 2 + 1,
+                     1,
+                     2,
+                     ssd.abs_vec_data.shape());
 
   // Now that we are sure that za_grid is properly symmetric, we just need to
   // copy over the data (ie no interpolation).

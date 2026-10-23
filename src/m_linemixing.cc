@@ -9,13 +9,15 @@
 void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data, const Vector& vmrs, const ArrayOfSpeciesEnum& specs) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(vmrs.size() != specs.size() or vmrs.empty(), "Expected equally sized, nonempty vmrs and species");
+  if (vmrs.size() != specs.size() or vmrs.empty())
+    arts::user_error("Expected equally sized, nonempty vmrs and species");
   for (Size i = 0; i < vmrs.size(); ++i) {
-    ARTS_USER_ERROR_IF(not std::isfinite(vmrs[i]) or vmrs[i] < 0, "Invalid VMR for species {}: {}", specs[i], vmrs[i]);
-    ARTS_USER_ERROR_IF(specs[i] == SpeciesEnum::Bath, "The bath species cannot be an input to mean-air averaging");
+    if (not std::isfinite(vmrs[i]) or vmrs[i] < 0)
+      arts::user_error("Invalid VMR for species {}: {}", specs[i], vmrs[i]);
+    if (specs[i] == SpeciesEnum::Bath) arts::user_error("The bath species cannot be an input to mean-air averaging");
   }
   const Numeric total = sum(vmrs);
-  ARTS_USER_ERROR_IF(not std::isfinite(total) or std::abs(total - 1) > 1e-4, "Bad vmrs [sum far from 1]: {}", vmrs);
+  if (not std::isfinite(total) or std::abs(total - 1) > 1e-4) arts::user_error("Bad vmrs [sum far from 1]: {}", vmrs);
 
   // Keep the legacy coefficient-averaging approximation for catalogues with
   // bath widths. Exact partner mixing requires separate diagonal widths too.
@@ -24,19 +26,16 @@ void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data, const Vector& vmrs,
                       Numeric                       weight,
                       bool                          first) -> lbl::temperature::data {
     auto coefficients = source.X();
-    ARTS_USER_ERROR_IF(
-        coefficients.empty() or not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }),
-        "Mean-air averaging requires finite, nonempty temperature-model coefficients");
+    if (coefficients.empty() or not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }))
+      arts::user_error("Mean-air averaging requires finite, nonempty temperature-model coefficients");
     if (not first) {
-      ARTS_USER_ERROR_IF(source.Type() != accumulated.Type() or coefficients.size() != accumulated.X().size(),
-                         "Incompatible temperature models in mean-air averaging: {} and {}",
-                         source,
-                         accumulated);
+      if (source.Type() != accumulated.Type() or coefficients.size() != accumulated.X().size())
+        arts::user_error("Incompatible temperature models in mean-air averaging: {} and {}", source, accumulated);
     }
     coefficients *= weight;
     if (not first) coefficients += accumulated.X();
-    ARTS_USER_ERROR_IF(not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }),
-                       "Non-finite mean-air temperature-model coefficients");
+    if (not std::ranges::all_of(coefficients, [](Numeric x) { return std::isfinite(x); }))
+      arts::user_error("Non-finite mean-air temperature-model coefficients");
     return {source.Type(), coefficients};
   };
 
@@ -48,7 +47,8 @@ void abs_ecs_dataAddMeanAir(LinemixingEcsData& abs_ecs_data, const Vector& vmrs,
     for (Size i = 0; i < vmrs.size(); ++i) {
       if (vmrs[i] == 0) continue;
       const auto source = data.find(specs[i]);
-      ARTS_USER_ERROR_IF(source == data.end(), "Missing species {} in abs_ecs_data of isotopologue {}", specs[i], isot);
+      if (source == data.end())
+        arts::user_error("Missing species {} in abs_ecs_data of isotopologue {}", specs[i], isot);
       const auto&   partner    = source->second;
       const Numeric weight     = vmrs[i] / total;
       air.scaling              = add(partner.scaling, air.scaling, weight, first);

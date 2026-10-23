@@ -39,14 +39,16 @@ void test_0_az_at_180_za(Size n) {
     path::fill_geometric_stepwise(x, surf_field, 1e3);
     path::fix_updown_azimuth_to_first(x);
     path::keep_only_atm(x);
-    for (auto p : x)
-      ARTS_USER_ERROR_IF(p.los[1] != path::mirror(los)[1],
-                         "los[1] == {}"
-                         " for sensor pos = {}"
-                         " and sensor los = {}",
-                         p.los[1],
-                         pos,
-                         path::mirror(los));
+    for (auto p : x) {
+      if (p.los[1] != path::mirror(los)[1])
+        arts::user_error(
+            "los[1] == {}"
+            " for sensor pos = {}"
+            " and sensor los = {}",
+            p.los[1],
+            pos,
+            path::mirror(los));
+    }
   }
 }
 
@@ -72,15 +74,16 @@ void test_limb_finder(Size n) {
     path::fill_geometric_stepwise(x, surf_field, 10e3);
     path::keep_only_atm(x);
     const Numeric computed_tangent_altitude = path::find_geometric_limb(x, surf_field).pos[0];
-    ARTS_USER_ERROR_IF(nonstd::abs(tangent_altitude - computed_tangent_altitude) > 1.0,
-                       "More than 1 meter difference between set and estimated tangent altitude: {}"
-                       " vs {}"
-                       " for pos = {}"
-                       " and los = {}",
-                       tangent_altitude,
-                       computed_tangent_altitude,
-                       pos,
-                       los);
+    if (nonstd::abs(tangent_altitude - computed_tangent_altitude) > 1.0)
+      arts::user_error(
+          "More than 1 meter difference between set and estimated tangent altitude: {}"
+          " vs {}"
+          " for pos = {}"
+          " and los = {}",
+          tangent_altitude,
+          computed_tangent_altitude,
+          pos,
+          los);
   }
 }
 
@@ -103,10 +106,10 @@ void test_geometric_fill(Size n) {
       const bool any_nan  = nonstd::isnan(p.pos[0]) or nonstd::isnan(p.pos[1]) or nonstd::isnan(p.pos[2]) or
                             nonstd::isnan(p.los[0]) or nonstd::isnan(p.los[1]);
 
-      ARTS_USER_ERROR_IF(
-          not(toa or boa or at_alt or at_lat or at_lon or at_start) or any_nan,
-          "Bad path point: {}\nIt is not at the top of the atmosphere or at the surface or at one of the grid points; or it contains NaNs.",
-          p)
+      if (not(toa or boa or at_alt or at_lat or at_lon or at_start) or any_nan)
+        arts::user_error(
+            "Bad path point: {}\nIt is not at the top of the atmosphere or at the surface or at one of the grid points; or it contains NaNs.",
+            p);
     }
   };
 

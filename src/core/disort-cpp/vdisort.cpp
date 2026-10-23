@@ -151,12 +151,9 @@ void check_eigenvalue_direction_split(const ComplexVector&      eigenvalues,
                                       const Index               layer) {
   Numeric scale = 1.0;
   for (const Complex value : eigenvalues) {
-    ARTS_USER_ERROR_IF(not std::isfinite(value.real()) or not std::isfinite(value.imag()),
-                       "VDISORT eigensystem ({}, {}, {}) contains the non-finite eigenvalue {}",
-                       alpha,
-                       mode,
-                       layer,
-                       value);
+    if (not std::isfinite(value.real()) or not std::isfinite(value.imag()))
+      arts::user_error(
+          "VDISORT eigensystem ({}, {}, {}) contains the non-finite eigenvalue {}", alpha, mode, layer, value);
     scale = std::max(scale, std::abs(value));
   }
   constexpr Numeric relative_tolerance = 1.0e-10;
@@ -171,30 +168,32 @@ void check_eigenvalue_direction_split(const ComplexVector&      eigenvalues,
     else
       ++neutral;
   }
-  ARTS_USER_ERROR_IF(negative > half_state or positive > half_state,
-                     "VDISORT eigensystem ({}, {}, {}) cannot be split between the boundaries: "
-                     "{} negative, {} neutral, and {} positive modes for half-state size {} "
-                     "(neutral tolerance {})",
-                     alpha,
-                     mode,
-                     layer,
-                     negative,
-                     neutral,
-                     positive,
-                     half_state,
-                     tolerance);
+  if (negative > half_state or positive > half_state)
+    arts::user_error(
+        "VDISORT eigensystem ({}, {}, {}) cannot be split between the boundaries: "
+        "{} negative, {} neutral, and {} positive modes for half-state size {} "
+        "(neutral tolerance {})",
+        alpha,
+        mode,
+        layer,
+        negative,
+        neutral,
+        positive,
+        half_state,
+        tolerance);
 
   for (Index sorted = 0; sorted < 2 * half_state; ++sorted) {
     const Numeric real = eigenvalues[order[static_cast<std::size_t>(sorted)]].real();
-    ARTS_USER_ERROR_IF((sorted < half_state and real > tolerance) or (sorted >= half_state and real < -tolerance),
-                       "VDISORT eigenvalue {} at sorted position {} has the wrong propagation direction "
-                       "for eigensystem ({}, {}, {}); neutral tolerance is {}",
-                       eigenvalues[order[static_cast<std::size_t>(sorted)]],
-                       sorted,
-                       alpha,
-                       mode,
-                       layer,
-                       tolerance);
+    if ((sorted < half_state and real > tolerance) or (sorted >= half_state and real < -tolerance))
+      arts::user_error(
+          "VDISORT eigenvalue {} at sorted position {} has the wrong propagation direction "
+          "for eigensystem ({}, {}, {}); neutral tolerance is {}",
+          eigenvalues[order[static_cast<std::size_t>(sorted)]],
+          sorted,
+          alpha,
+          mode,
+          layer,
+          tolerance);
   }
 }
 
@@ -227,29 +226,23 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
   const Index nlayers = static_cast<Index>(physical_tau_.size());
   const Index nuser   = static_cast<Index>(user_mu_.size());
   const Index nphi    = static_cast<Index>(phi_.size());
-  ARTS_USER_ERROR_IF(omega_.size() != physical_tau_.size() or fraction_.size() != physical_tau_.size(),
-                     "Polarized delta-M arrays must all contain {} layers, got omega={} and fraction={}",
+  if (omega_.size() != physical_tau_.size() or fraction_.size() != physical_tau_.size())
+    arts::user_error("Polarized delta-M arrays must all contain {} layers, got omega={} and fraction={}",
                      nlayers,
                      omega_.size(),
                      fraction_.size());
-  ARTS_USER_ERROR_IF(mu0_ <= 0.0 or mu0_ > 1.0, "The delta-M beam cosine must be in (0, 1], got {}", mu0_);
-  ARTS_USER_ERROR_IF(intermediate_mu <= 0 or intermediate_phi <= 0,
-                     "IMS quadrature sizes must be positive, got {} x {}",
-                     intermediate_mu,
-                     intermediate_phi);
-  ARTS_USER_ERROR_IF(stdr::any_of(user_mu_, [](const Numeric mu) { return mu == 0.0 or std::abs(mu) > 1.0; }),
-                     "Delta-M user cosines must be nonzero and in [-1, 1], got {:B,}",
-                     user_mu_);
+  if (mu0_ <= 0.0 or mu0_ > 1.0) arts::user_error("The delta-M beam cosine must be in (0, 1], got {}", mu0_);
+  if (intermediate_mu <= 0 or intermediate_phi <= 0)
+    arts::user_error("IMS quadrature sizes must be positive, got {} x {}", intermediate_mu, intermediate_phi);
+  if (stdr::any_of(user_mu_, [](const Numeric mu) { return mu == 0.0 or std::abs(mu) > 1.0; }))
+    arts::user_error("Delta-M user cosines must be nonzero and in [-1, 1], got {:B,}", user_mu_);
 
   scale_.resize(nlayers);
   Vector  scaled_tau(nlayers);
   Numeric physical_top = 0.0, scaled_top = 0.0;
   for (Index layer = 0; layer < nlayers; ++layer) {
-    ARTS_USER_ERROR_IF(omega_[layer] < 0.0 or omega_[layer] > 1.0 or fraction_[layer] < 0.0 or fraction_[layer] >= 1.0,
-                       "Invalid delta-M omega/fraction in layer {}: {}, {}",
-                       layer,
-                       omega_[layer],
-                       fraction_[layer]);
+    if (omega_[layer] < 0.0 or omega_[layer] > 1.0 or fraction_[layer] < 0.0 or fraction_[layer] >= 1.0)
+      arts::user_error("Invalid delta-M omega/fraction in layer {}: {}, {}", layer, omega_[layer], fraction_[layer]);
     scale_[layer]      = 1.0 - omega_[layer] * fraction_[layer];
     scaled_top        += scale_[layer] * (physical_tau_[layer] - physical_top);
     scaled_tau[layer]  = scaled_top;
@@ -329,11 +322,9 @@ delta_m_correction_cache::delta_m_correction_cache(AscendingGrid                
 }
 
 Numeric delta_m_correction_cache::scaled_tau(const Numeric physical_tau) const {
-  ARTS_USER_ERROR_IF(physical_tau_.empty(), "Cannot evaluate an empty delta-M correction cache");
-  ARTS_USER_ERROR_IF(physical_tau < 0.0 or physical_tau > physical_tau_.back(),
-                     "Physical correction depth must be in [0, {}], got {}",
-                     physical_tau_.back(),
-                     physical_tau);
+  if (physical_tau_.empty()) arts::user_error("Cannot evaluate an empty delta-M correction cache");
+  if (physical_tau < 0.0 or physical_tau > physical_tau_.back())
+    arts::user_error("Physical correction depth must be in [0, {}], got {}", physical_tau_.back(), physical_tau);
   const Index layer = std::min<Index>(
       std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, physical_tau)), physical_tau_.size() - 1);
   const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
@@ -343,14 +334,15 @@ Numeric delta_m_correction_cache::scaled_tau(const Numeric physical_tau) const {
 
 void delta_m_correction_cache::check_transport_beam_phase(const beam_phase_matrix_data& transport_beam_phase) const {
   if (transport_beam_phase.empty()) return;
-  ARTS_USER_ERROR_IF(transport_beam_phase.extent(0) != 2 or
-                         transport_beam_phase.extent(2) != static_cast<Index>(physical_tau_.size()) or
-                         transport_beam_phase.extent(3) != static_cast<Index>(user_mu_.size()),
-                     "The transport beam phase matrices of TMS must be [2, NFourier, {}, {}] (layers, correction "
-                     "directions), got {:B,}",
-                     physical_tau_.size(),
-                     user_mu_.size(),
-                     transport_beam_phase.shape());
+  if (transport_beam_phase.extent(0) != 2 or
+      transport_beam_phase.extent(2) != static_cast<Index>(physical_tau_.size()) or
+      transport_beam_phase.extent(3) != static_cast<Index>(user_mu_.size()))
+    arts::user_error(
+        "The transport beam phase matrices of TMS must be [2, NFourier, {}, {}] (layers, correction "
+        "directions), got {:B,}",
+        physical_tau_.size(),
+        user_mu_.size(),
+        transport_beam_phase.shape());
 }
 
 /* The beam's single scattering as the solver carries it is the transport
@@ -391,10 +383,8 @@ void delta_m_correction_cache::TMS(rtepack::stokvec_vector&      tms,
 
   check_transport_beam_phase(transport_beam_phase);
   const Numeric transport_tau = scaled_tau(tau);
-  ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
-                     "Correction azimuth index {} is outside [0, {})",
-                     phi_index,
-                     phi_.size());
+  if (phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()))
+    arts::user_error("Correction azimuth index {} is outside [0, {})", phi_index, phi_.size());
   const Index   layer = std::min<Index>(std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, tau)),
                                         physical_tau_.size() - 1);
   const Numeric scaled_layer_top = layer == 0 ? 0.0 : scaled_tau_[layer - 1];
@@ -436,10 +426,8 @@ void delta_m_correction_cache::IMS(rtepack::stokvec_vector& ims,
   ARTS_TIME_REPORT
 
   static_cast<void>(scaled_tau(tau));
-  ARTS_USER_ERROR_IF(phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()),
-                     "Correction azimuth index {} is outside [0, {})",
-                     phi_index,
-                     phi_.size());
+  if (phi_index < 0 or phi_index >= static_cast<Index>(phi_.size()))
+    arts::user_error("Correction azimuth index {} is outside [0, {})", phi_index, phi_.size());
   const Index   layer = std::min<Index>(std::distance(physical_tau_.begin(), stdr::lower_bound(physical_tau_, tau)),
                                         physical_tau_.size() - 1);
   const Numeric physical_layer_top = layer == 0 ? 0.0 : physical_tau_[layer - 1];
@@ -471,8 +459,8 @@ void delta_m_correction_cache::gridded_TMS(rtepack::stokvec_tensor3_view tms,
   check_transport_beam_phase(transport_beam_phase);
   const std::array<Index, 3> expected{
       static_cast<Index>(physical_tau_.size()), static_cast<Index>(phi_.size()), static_cast<Index>(user_mu_.size())};
-  ARTS_USER_ERROR_IF(
-      tms.shape() != expected, "gridded_TMS output has shape {:B,}, expected {:B,}", tms.shape(), expected);
+  if (tms.shape() != expected)
+    arts::user_error("gridded_TMS output has shape {:B,}, expected {:B,}", tms.shape(), expected);
 
   tms = rtepack::stokvec{};
   Vector beam_at_boundary(expected[0] + 1);
@@ -523,8 +511,8 @@ void delta_m_correction_cache::gridded_IMS(rtepack::stokvec_tensor3_view ims, co
 
   const std::array<Index, 3> expected{
       static_cast<Index>(physical_tau_.size()), static_cast<Index>(phi_.size()), static_cast<Index>(user_mu_.size())};
-  ARTS_USER_ERROR_IF(
-      ims.shape() != expected, "gridded_IMS output has shape {:B,}, expected {:B,}", ims.shape(), expected);
+  if (ims.shape() != expected)
+    arts::user_error("gridded_IMS output has shape {:B,}, expected {:B,}", ims.shape(), expected);
 
   ims                      = rtepack::stokvec{};
   const Numeric beam_theta = std::acos(-mu0_);
@@ -577,11 +565,12 @@ phase_matrix_fourier_coefficients phase_matrix_fourier_split(const rtepack::spec
 namespace {
 //! Throw unless a beam cosine fits the specular part: a mirror cannot reflect a beam
 void check_specular_beam(const bool specular, const Numeric beam_mu) {
-  ARTS_USER_ERROR_IF(specular and not std::isnan(beam_mu),
-                     "A specular (mirror) surface part reflects the direct beam into the single mirror direction, an "
-                     "upward beam that VDISORT cannot represent, so a surface with one has no beam reflection (its "
-                     "beam cosine must be NaN, got {}); use a finite-width surface model such as Cox-Munk",
-                     beam_mu);
+  if (specular and not std::isnan(beam_mu))
+    arts::user_error(
+        "A specular (mirror) surface part reflects the direct beam into the single mirror direction, an "
+        "upward beam that VDISORT cannot represent, so a surface with one has no beam reflection (its "
+        "beam cosine must be NaN, got {}); use a finite-width surface model such as Cox-Munk",
+        beam_mu);
 }
 }  // namespace
 
@@ -600,14 +589,14 @@ surface_reflection::surface_reflection(rtepack::muelmat_tensor4 brdf,
                                        const Numeric            beam_mu,
                                        rtepack::muelmat_vector  specular)
     : kernel(std::move(brdf)), beam_kernel(std::move(beam_brdf)), mirror(std::move(specular)), beam_cosine(beam_mu) {
-  ARTS_USER_ERROR_IF(
-      (kernel.extent(0) != 2 or beam_kernel.shape() != std::array{Index{2}, modes(), directions()} or
-       (has_specular() and static_cast<Index>(mirror.size()) != directions())),
-      "The surface reflection has the shapes {:B,}, {:B,} and {:B,}; expected [2, NBRDF, n_out, N], [2, NBRDF, n_out] "
-      "and [n_out] or [0]",
-      kernel.shape(),
-      beam_kernel.shape(),
-      mirror.shape());
+  if ((kernel.extent(0) != 2 or beam_kernel.shape() != std::array{Index{2}, modes(), directions()} or
+       (has_specular() and static_cast<Index>(mirror.size()) != directions())))
+    arts::user_error(
+        "The surface reflection has the shapes {:B,}, {:B,} and {:B,}; expected [2, NBRDF, n_out, N], [2, NBRDF, n_out] "
+        "and [n_out] or [0]",
+        kernel.shape(),
+        beam_kernel.shape(),
+        mirror.shape());
   dc::check_beam_cosine(beam_mu);
   check_specular_beam(has_specular(), beam_mu);
 }
@@ -622,9 +611,9 @@ void surface_reflection::set(const rtepack::muelmat_tensor4_const_view& brdf,
                              const rtepack::muelmat_vector_const_view&  specular) {
   // Without modes there is no kernel to set, whatever the directions
   const bool no_kernel = brdf.extent(1) == 0 and beam_brdf.extent(1) == 0 and modes() == 0;
-  ARTS_USER_ERROR_IF((not no_kernel and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape())) or
-                         specular.size() != mirror.size(),
-                     "The surface reflection has the shapes {:B,}, {:B,} and {:B,}, expected {:B,}, {:B,} and {:B,}",
+  if ((not no_kernel and (brdf.shape() != kernel.shape() or beam_brdf.shape() != beam_kernel.shape())) or
+      specular.size() != mirror.size())
+    arts::user_error("The surface reflection has the shapes {:B,}, {:B,} and {:B,}, expected {:B,}, {:B,} and {:B,}",
                      brdf.shape(),
                      beam_brdf.shape(),
                      specular.shape(),
@@ -649,23 +638,24 @@ namespace {
 //! Throw unless a surface reflects a beam of cosine mu0, or there is no beam
 void check_beam_reflection(const surface_reflection& surface, const bool beam, const Numeric mu0) {
   if (not beam) return;
-  ARTS_USER_ERROR_IF(surface.has_specular(),
-                     "A specular (mirror) surface reflects the direct beam into the single mirror direction, an "
-                     "upward beam that VDISORT cannot represent; use a finite-width surface model such as Cox-Munk");
-  ARTS_USER_ERROR_IF(surface.modes() > 0 and not(surface.beam_mu() == mu0),
-                     "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
-                     "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
-                     "the settings, set the surface after the sun.",
-                     surface.beam_mu(),
-                     mu0)
+  if (surface.has_specular())
+    arts::user_error(
+        "A specular (mirror) surface reflects the direct beam into the single mirror direction, an "
+        "upward beam that VDISORT cannot represent; use a finite-width surface model such as Cox-Munk");
+  if (surface.modes() > 0 and not(surface.beam_mu() == mu0))
+    arts::user_error(
+        "The surface's reflection of the direct beam is for the beam cosine {} (NaN: computed without "
+        "a beam), but the beam has the cosine {}.  Compute the surface reflection with the beam: in "
+        "the settings, set the surface after the sun.",
+        surface.beam_mu(),
+        mu0);
 }
 }  // namespace
 
 phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine, const rtepack::muelmat_tensor4& sine) {
-  ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
-                     "Cosine and sine phase matrices have different shapes: {:B,} and {:B,}",
-                     cosine.shape(),
-                     sine.shape());
+  if (cosine.shape() != sine.shape())
+    arts::user_error(
+        "Cosine and sine phase matrices have different shapes: {:B,} and {:B,}", cosine.shape(), sine.shape());
   const auto [nfourier, nlayers, nout, nin] = cosine.shape();
   phase_matrix_data out(2, nfourier, nlayers, nout, nin, rtepack::muelmat{0.0});
   for (Index m = 0; m < nfourier; ++m)
@@ -679,10 +669,9 @@ phase_matrix_data combine_phase_matrices(const rtepack::muelmat_tensor4& cosine,
 
 beam_phase_matrix_data combine_beam_phase_matrices(const rtepack::muelmat_tensor3& cosine,
                                                    const rtepack::muelmat_tensor3& sine) {
-  ARTS_USER_ERROR_IF(cosine.shape() != sine.shape(),
-                     "Cosine and sine beam phase matrices have different shapes: {:B,} and {:B,}",
-                     cosine.shape(),
-                     sine.shape());
+  if (cosine.shape() != sine.shape())
+    arts::user_error(
+        "Cosine and sine beam phase matrices have different shapes: {:B,} and {:B,}", cosine.shape(), sine.shape());
   const auto [nfourier, nlayers, nout] = cosine.shape();
   beam_phase_matrix_data out(2, nfourier, nlayers, nout, rtepack::muelmat{0.0});
 
@@ -715,31 +704,31 @@ delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical
                                           const beam_phase_matrix_data& original_beam_phase_matrix,
                                           const beam_phase_matrix_data& removed_beam_phase_matrix) {
   const Index nlayers = static_cast<Index>(physical_tau.size());
-  ARTS_USER_ERROR_IF(nlayers == 0, "Polarized delta-M preprocessing requires at least one layer");
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(physical_omega.size()) != nlayers or static_cast<Index>(fraction.size()) != nlayers,
-      "Polarized delta-M arrays must contain {} layers, got omega={} and fraction={}",
-      nlayers,
-      physical_omega.size(),
-      fraction.size());
+  if (nlayers == 0) arts::user_error("Polarized delta-M preprocessing requires at least one layer");
+  if (static_cast<Index>(physical_omega.size()) != nlayers or static_cast<Index>(fraction.size()) != nlayers)
+    arts::user_error("Polarized delta-M arrays must contain {} layers, got omega={} and fraction={}",
+                     nlayers,
+                     physical_omega.size(),
+                     fraction.size());
 
   const auto phase_shape = original_phase_matrix.shape();
-  ARTS_USER_ERROR_IF(phase_shape[0] != 2 or phase_shape[2] != nlayers or phase_shape[3] != phase_shape[4],
-                     "Original polarized phase matrix has incompatible shape {:B,}; expected "
-                     "[2, NFourier, {}, NQuad, NQuad] Mueller blocks",
-                     phase_shape,
-                     nlayers);
-  ARTS_USER_ERROR_IF(removed_phase_matrix.shape() != phase_shape,
-                     "Original and removed polarized phase matrices have different shapes: {:B,} and {:B,}",
+  if (phase_shape[0] != 2 or phase_shape[2] != nlayers or phase_shape[3] != phase_shape[4])
+    arts::user_error(
+        "Original polarized phase matrix has incompatible shape {:B,}; expected "
+        "[2, NFourier, {}, NQuad, NQuad] Mueller blocks",
+        phase_shape,
+        nlayers);
+  if (removed_phase_matrix.shape() != phase_shape)
+    arts::user_error("Original and removed polarized phase matrices have different shapes: {:B,} and {:B,}",
                      phase_shape,
                      removed_phase_matrix.shape());
 
   const bool has_beam_phase = original_beam_phase_matrix.size() != 0 or removed_beam_phase_matrix.size() != 0;
   if (has_beam_phase) {
     const std::array expected_beam_shape{phase_shape[0], phase_shape[1], phase_shape[2], phase_shape[3]};
-    ARTS_USER_ERROR_IF(original_beam_phase_matrix.shape() != expected_beam_shape or
-                           removed_beam_phase_matrix.shape() != expected_beam_shape,
-                       "Original and removed beam phase matrices must both have shape {:B,}; got {:B,} and {:B,}",
+    if (original_beam_phase_matrix.shape() != expected_beam_shape or
+        removed_beam_phase_matrix.shape() != expected_beam_shape)
+      arts::user_error("Original and removed beam phase matrices must both have shape {:B,}; got {:B,} and {:B,}",
                        expected_beam_shape,
                        original_beam_phase_matrix.shape(),
                        removed_beam_phase_matrix.shape());
@@ -751,12 +740,8 @@ delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical
   for (Index layer = 0; layer < nlayers; ++layer) {
     const Numeric omega = physical_omega[layer];
     const Numeric f     = fraction[layer];
-    ARTS_USER_ERROR_IF(
-        not std::isfinite(omega) or omega < 0.0 or omega > 1.0 or not std::isfinite(f) or f < 0.0 or f >= 1.0,
-        "Invalid polarized delta-M omega/fraction in layer {}: {}, {}",
-        layer,
-        omega,
-        f);
+    if (not std::isfinite(omega) or omega < 0.0 or omega > 1.0 or not std::isfinite(f) or f < 0.0 or f >= 1.0)
+      arts::user_error("Invalid polarized delta-M omega/fraction in layer {}: {}, {}", layer, omega, f);
     const Numeric scale        = 1.0 - omega * f;
     const Numeric scaled_base  = scaled_top;
     scaled_top                += scale * (physical_tau[layer] - physical_top);
@@ -778,8 +763,8 @@ delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical
               for (Index column = 0; column < stokes_dimension; ++column) {
                 const Numeric original = original_phase_matrix[alpha, mode, layer, out, in][row, column];
                 const Numeric removed  = removed_phase_matrix[alpha, mode, layer, out, in][row, column];
-                ARTS_USER_ERROR_IF(not std::isfinite(original) or not std::isfinite(removed),
-                                   "Non-finite polarized delta-M phase value at [{}, {}, {}, {}, {}][{}, {}]",
+                if (not std::isfinite(original) or not std::isfinite(removed))
+                  arts::user_error("Non-finite polarized delta-M phase value at [{}, {}, {}, {}, {}][{}, {}]",
                                    alpha,
                                    mode,
                                    layer,
@@ -802,8 +787,8 @@ delta_m_transport_data delta_m_preprocess(const AscendingGrid&          physical
               for (Index column = 0; column < stokes_dimension; ++column) {
                 const Numeric original = original_beam_phase_matrix[alpha, mode, layer, out][row, column];
                 const Numeric removed  = removed_beam_phase_matrix[alpha, mode, layer, out][row, column];
-                ARTS_USER_ERROR_IF(not std::isfinite(original) or not std::isfinite(removed),
-                                   "Non-finite polarized delta-M beam phase value at [{}, {}, {}, {}][{}, {}]",
+                if (not std::isfinite(original) or not std::isfinite(removed))
+                  arts::user_error("Non-finite polarized delta-M beam phase value at [{}, {}, {}, {}][{}, {}]",
                                    alpha,
                                    mode,
                                    layer,
@@ -892,7 +877,7 @@ main_data::main_data(const Index NLayers_,
       conjugate_partner(static_cast<std::size_t>(2 * NFourier * NLayers * NState), -1),
       conservative_pair_index(static_cast<std::size_t>(NLayers), std::array<Index, 2>{-1, -1}),
       conservative_pair_kappa(NLayers) {
-  ARTS_USER_ERROR_IF(NQuad <= 0 or NQuad % 2 != 0, "NQuad must be a positive even number, got {}", NQuad);
+  if (NQuad <= 0 or NQuad % 2 != 0) arts::user_error("NQuad must be a positive even number, got {}", NQuad);
   dc::initialize_streams(mu_arr, inv_mu_arr, W);
   dc::barycentric_weights(half_range_barycentric_weights, mu_arr[Range{0, N}]);
 }
@@ -983,36 +968,32 @@ Numeric main_data::particular(
 
 void main_data::check_input_size() const {
   dc::check_layer_input_sizes(NLayers, tau_arr, omega_arr);
-  ARTS_USER_ERROR_IF((source_poly_coeffs.shape() != std::array<Index, 2>{NLayers, Nscoeffs}),
-                     "source_poly_coeffs has shape {:B,}, expected [{}, {}] Stokes blocks",
+  if ((source_poly_coeffs.shape() != std::array<Index, 2>{NLayers, Nscoeffs}))
+    arts::user_error("source_poly_coeffs has shape {:B,}, expected [{}, {}] Stokes blocks",
                      source_poly_coeffs.shape(),
                      NLayers,
                      Nscoeffs);
-  ARTS_USER_ERROR_IF(static_cast<Index>(source_coordinate_scale.size()) != NLayers or
-                         static_cast<Index>(source_coordinate_offset.size()) != NLayers,
-                     "Source-coordinate arrays have sizes {} and {}, expected {}",
+  if (static_cast<Index>(source_coordinate_scale.size()) != NLayers or
+      static_cast<Index>(source_coordinate_offset.size()) != NLayers)
+    arts::user_error("Source-coordinate arrays have sizes {} and {}, expected {}",
                      source_coordinate_scale.size(),
                      source_coordinate_offset.size(),
                      NLayers);
-  ARTS_USER_ERROR_IF((phase_matrix.shape() != std::array<Index, 5>{2, NFourier, NLayers, NQuad, NQuad}),
-                     "phase_matrix has shape {:B,}, expected [2, {}, {}, {}, {}] Mueller blocks",
+  if ((phase_matrix.shape() != std::array<Index, 5>{2, NFourier, NLayers, NQuad, NQuad}))
+    arts::user_error("phase_matrix has shape {:B,}, expected [2, {}, {}, {}, {}] Mueller blocks",
                      phase_matrix.shape(),
                      NFourier,
                      NLayers,
                      NQuad,
                      NQuad);
-  ARTS_USER_ERROR_IF((boundary_up.shape() != std::array<Index, 3>{2, NFourier, N}),
-                     "boundary_up has shape {:B,}, expected [2, {}, {}] Stokes blocks",
-                     boundary_up.shape(),
-                     NFourier,
-                     N);
-  ARTS_USER_ERROR_IF((boundary_down.shape() != std::array<Index, 3>{2, NFourier, N}),
-                     "boundary_down has shape {:B,}, expected [2, {}, {}] Stokes blocks",
-                     boundary_down.shape(),
-                     NFourier,
-                     N);
-  ARTS_USER_ERROR_IF((beam_phase_matrix.shape() != std::array<Index, 4>{2, NFourier, NLayers, NQuad}),
-                     "beam_phase_matrix has shape {:B,}, expected [2, {}, {}, {}] Mueller blocks",
+  if ((boundary_up.shape() != std::array<Index, 3>{2, NFourier, N}))
+    arts::user_error(
+        "boundary_up has shape {:B,}, expected [2, {}, {}] Stokes blocks", boundary_up.shape(), NFourier, N);
+  if ((boundary_down.shape() != std::array<Index, 3>{2, NFourier, N}))
+    arts::user_error(
+        "boundary_down has shape {:B,}, expected [2, {}, {}] Stokes blocks", boundary_down.shape(), NFourier, N);
+  if ((beam_phase_matrix.shape() != std::array<Index, 4>{2, NFourier, NLayers, NQuad}))
+    arts::user_error("beam_phase_matrix has shape {:B,}, expected [2, {}, {}, {}] Mueller blocks",
                      beam_phase_matrix.shape(),
                      NFourier,
                      NLayers,
@@ -1021,15 +1002,14 @@ void main_data::check_input_size() const {
 
 void main_data::check_input_value() const {
   dc::check_layer_input_values(tau_arr, omega_arr, mu_arr, mu0, phi0, has_beam_source);
-  ARTS_USER_ERROR_IF(NFourier <= 0, "VDISORT requires at least one Fourier mode");
-  ARTS_USER_ERROR_IF(beam_stokes[0] < 0.0, "The beam I component must be non-negative, got {}", beam_stokes[0]);
+  if (NFourier <= 0) arts::user_error("VDISORT requires at least one Fourier mode");
+  if (beam_stokes[0] < 0.0) arts::user_error("The beam I component must be non-negative, got {}", beam_stokes[0]);
   const Numeric polarized_norm = std::hypot(beam_stokes[1], beam_stokes[2], beam_stokes[3]);
-  ARTS_USER_ERROR_IF(polarized_norm > beam_stokes[0] * (1.0 + 1e-12),
-                     "The beam Stokes vector is non-physical: sqrt(Q^2+U^2+V^2)={} > I={}",
-                     polarized_norm,
-                     beam_stokes.I());
-  ARTS_USER_ERROR_IF(has_beam_source and mu0 == 0.0, "A direct beam requires mu0 > 0");
-  ARTS_USER_ERROR_IF(NBDRF > NFourier, "There are {} BRDF modes but only {} Fourier modes", NBDRF, NFourier);
+  if (polarized_norm > beam_stokes[0] * (1.0 + 1e-12))
+    arts::user_error(
+        "The beam Stokes vector is non-physical: sqrt(Q^2+U^2+V^2)={} > I={}", polarized_norm, beam_stokes.I());
+  if (has_beam_source and mu0 == 0.0) arts::user_error("A direct beam requires mu0 > 0");
+  if (NBDRF > NFourier) arts::user_error("There are {} BRDF modes but only {} Fourier modes", NBDRF, NFourier);
 }
 
 Index main_data::tau_index(const Numeric tau) const { return dc::layer_index(tau_arr, tau); }
@@ -1269,9 +1249,9 @@ void main_data::diagonalize() {
               if (not use_real_pair) {
                 const Complex negative_norm = normalization(negative);
                 const Complex positive_norm = normalization(positive);
-                ARTS_USER_ERROR_IF(std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
-                                       std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon(),
-                                   "VDISORT could not normalize the conservative eigenpair in layer {}: {} and {}",
+                if (std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
+                    std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon())
+                  arts::user_error("VDISORT could not normalize the conservative eigenpair in layer {}: {} and {}",
                                    l,
                                    negative_norm,
                                    positive_norm);
@@ -1306,9 +1286,8 @@ void main_data::diagonalize() {
                        std::abs(eigenvalues_real[eigen]) < std::abs(eigenvalues_real[real_positive])))
                     real_positive = eigen;
                 }
-                ARTS_USER_ERROR_IF(real_negative < 0 or real_positive < 0,
-                                   "VDISORT could not resolve the real conservative eigenpair in layer {}",
-                                   l);
+                if (real_negative < 0 or real_positive < 0)
+                  arts::user_error("VDISORT could not resolve the real conservative eigenpair in layer {}", l);
 
                 kappa = std::sqrt(std::abs(-eigenvalues_real[real_negative] * eigenvalues_real[real_positive]));
                 const auto real_normalization = [&](const Index eigen) {
@@ -1319,9 +1298,9 @@ void main_data::diagonalize() {
                 };
                 const Numeric negative_norm = real_normalization(real_negative);
                 const Numeric positive_norm = real_normalization(real_positive);
-                ARTS_USER_ERROR_IF(std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
-                                       std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon(),
-                                   "VDISORT could not normalize the real conservative eigenpair in layer {}: {} and {}",
+                if (std::abs(negative_norm) <= std::numeric_limits<Numeric>::epsilon() or
+                    std::abs(positive_norm) <= std::numeric_limits<Numeric>::epsilon())
+                  arts::user_error("VDISORT could not normalize the real conservative eigenpair in layer {}: {} and {}",
                                    l,
                                    negative_norm,
                                    positive_norm);
@@ -1351,8 +1330,8 @@ void main_data::diagonalize() {
                 pair_residual = std::max({pair_residual, std::abs(ax - expected_ax), std::abs(ar - expected_ar)});
                 pair_scale    = std::max(pair_scale, row_scale + std::abs(expected_ax) + std::abs(expected_ar));
               }
-              ARTS_USER_ERROR_IF(pair_residual > 1.0e-8 * pair_scale,
-                                 "VDISORT conservative eigenpair in layer {} has relative residual {}",
+              if (pair_residual > 1.0e-8 * pair_scale)
+                arts::user_error("VDISORT conservative eigenpair in layer {} has relative residual {}",
                                  l,
                                  pair_residual / pair_scale);
             } else {
@@ -1386,11 +1365,12 @@ void main_data::diagonalize() {
                 residual = std::max(residual, std::abs(value));
                 scale    = std::max(scale, row_scale);
               }
-              ARTS_USER_ERROR_IF(residual > 1.0e-8 * scale,
-                                 "VDISORT could not construct the exact conservative mode in layer {}: "
-                                 "relative residual {}",
-                                 l,
-                                 residual / scale);
+              if (residual > 1.0e-8 * scale)
+                arts::user_error(
+                    "VDISORT could not construct the exact conservative mode in layer {}: "
+                    "relative residual {}",
+                    l,
+                    residual / scale);
 
               for (Index state = 0; state < NState; ++state) {
                 G_collect[alpha, m, l, state, negative] = state % stokes_dimension == 0 ? 1.0 : 0.0;
@@ -1400,10 +1380,9 @@ void main_data::diagonalize() {
             // The pair is real now; a complex one can only have been its own conjugate
             auto& negative_partner = conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, negative))];
             auto& positive_partner = conjugate_partner[static_cast<std::size_t>(anchor_index(alpha, m, l, positive))];
-            ARTS_USER_ERROR_IF((negative_partner >= 0 and negative_partner != positive) or
-                                   (positive_partner >= 0 and positive_partner != negative),
-                               "VDISORT conservative eigenpair in layer {} splits a conjugate pair",
-                               l);
+            if ((negative_partner >= 0 and negative_partner != positive) or
+                (positive_partner >= 0 and positive_partner != negative))
+              arts::user_error("VDISORT conservative eigenpair in layer {} splits a conjugate pair", l);
             negative_partner = -1;
             positive_partner = -1;
 
@@ -1668,8 +1647,9 @@ void main_data::solve_for_coefs() {
       }
 
       const int info = boundary_lhs.solve(boundary_rhs);
-      ARTS_USER_ERROR_IF(
-          info != 0, "VDISORT boundary solve failed for alpha={}, Fourier mode={} (LAPACK info={})", alpha, m, info);
+      if (info != 0)
+        arts::user_error(
+            "VDISORT boundary solve failed for alpha={}, Fourier mode={} (LAPACK info={})", alpha, m, info);
 
       // Back to the complex coefficients of every mode.  A partner anchored at the other layer edge (possible
       // only for Re k = 0) gets the conjugate times its exponential between the two anchors.
@@ -1722,11 +1702,8 @@ void main_data::update_all() {
 
 void main_data::combined_field(MatrixView out, const Numeric tau) const {
   const Index layer = tau_index(tau);
-  ARTS_USER_ERROR_IF((out.shape() != std::array<Index, 2>{2 * NFourier, NState}),
-                     "Combined field has shape {:B,}, expected [{}, {}]",
-                     out.shape(),
-                     2 * NFourier,
-                     NState);
+  if ((out.shape() != std::array<Index, 2>{2 * NFourier, NState}))
+    arts::user_error("Combined field has shape {:B,}, expected [{}, {}]", out.shape(), 2 * NFourier, NState);
 
   // G_collect is contiguous in the innermost eigenmode index; centered pairs
   // occupy stored X and R columns.
@@ -1758,8 +1735,8 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
         const Numeric scale = 1.0 + std::abs(value.real());
         // Conservative scalar-limit eigenpairs may leave small imaginary
         // roundoff although the reconstructed physical field is real.
-        ARTS_USER_ERROR_IF(std::abs(value.imag()) > 2e-8 * scale,
-                           "VDISORT left an uncancelled imaginary radiance {} at alpha={}, m={}, state={}, tau={}",
+        if (std::abs(value.imag()) > 2e-8 * scale)
+          arts::user_error("VDISORT left an uncancelled imaginary radiance {} at alpha={}, m={}, state={}, tau={}",
                            value,
                            alpha,
                            m,
@@ -1772,8 +1749,8 @@ void main_data::combined_field(MatrixView out, const Numeric tau) const {
 }
 
 void main_data::u(u_data& data, const Numeric tau, const Numeric phi) const {
-  ARTS_USER_ERROR_IF(
-      !std::isfinite(phi) or phi < 0.0 or phi >= Constant::two_pi, "phi must be finite and in [0, 2*pi), got {}", phi);
+  if (!std::isfinite(phi) or phi < 0.0 or phi >= Constant::two_pi)
+    arts::user_error("phi must be finite and in [0, 2*pi), got {}", phi);
   Matrix combined(2 * NFourier, NState);
   combined_field(combined, tau);
 
@@ -1818,34 +1795,31 @@ void main_data::u_user(user_u_data&                    data,
 void main_data::check_correction_compatibility(const delta_m_correction_cache& correction,
                                                const bool                      quadrature_angles) const {
   const auto& correction_tau = correction.scaled_tau();
-  ARTS_USER_ERROR_IF(correction_tau.size() != tau_arr.size(),
-                     "The delta-M correction has {} scaled layers, but VDISORT has {}",
-                     correction_tau.size(),
-                     tau_arr.size());
+  if (correction_tau.size() != tau_arr.size())
+    arts::user_error(
+        "The delta-M correction has {} scaled layers, but VDISORT has {}", correction_tau.size(), tau_arr.size());
   for (Index layer = 0; layer < NLayers; ++layer) {
     const Numeric scale = std::max({1.0, std::abs(correction_tau[layer]), std::abs(tau_arr[layer])});
-    ARTS_USER_ERROR_IF(
-        std::abs(correction_tau[layer] - tau_arr[layer]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale,
-        "The delta-M correction scaled depth {} in layer {} differs from VDISORT depth {}",
-        correction_tau[layer],
-        layer,
-        tau_arr[layer]);
+    if (std::abs(correction_tau[layer] - tau_arr[layer]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale)
+      arts::user_error("The delta-M correction scaled depth {} in layer {} differs from VDISORT depth {}",
+                       correction_tau[layer],
+                       layer,
+                       tau_arr[layer]);
   }
 
   if (not quadrature_angles) return;
   const auto& correction_mu = correction.user_mu();
-  ARTS_USER_ERROR_IF(correction_mu.size() != mu_arr.size(),
-                     "The delta-M correction has {} directions, but VDISORT has {} quadrature streams",
+  if (correction_mu.size() != mu_arr.size())
+    arts::user_error("The delta-M correction has {} directions, but VDISORT has {} quadrature streams",
                      correction_mu.size(),
                      mu_arr.size());
   for (Index stream = 0; stream < NQuad; ++stream) {
     const Numeric scale = std::max({1.0, std::abs(correction_mu[stream]), std::abs(mu_arr[stream])});
-    ARTS_USER_ERROR_IF(
-        std::abs(correction_mu[stream] - mu_arr[stream]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale,
-        "The delta-M correction cosine {} at stream {} differs from VDISORT cosine {}",
-        correction_mu[stream],
-        stream,
-        mu_arr[stream]);
+    if (std::abs(correction_mu[stream] - mu_arr[stream]) > 32.0 * std::numeric_limits<Numeric>::epsilon() * scale)
+      arts::user_error("The delta-M correction cosine {} at stream {} differs from VDISORT cosine {}",
+                       correction_mu[stream],
+                       stream,
+                       mu_arr[stream]);
   }
 }
 
@@ -1916,31 +1890,27 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
 
   const Index ntau  = static_cast<Index>(tau.size());
   const Index nuser = static_cast<Index>(user_mu.size());
-  ARTS_USER_ERROR_IF(tau.empty(), "At least one optical depth is required for user-angle radiances");
-  ARTS_USER_ERROR_IF(tau.front() < 0.0 or tau.back() > tau_arr.back(),
-                     "User-angle optical depths must be in [0, {}], got {:B,}",
-                     tau_arr.back(),
-                     tau);
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }),
-      "User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}",
-      user_mu);
-  ARTS_USER_ERROR_IF(not user_boundary.empty() and user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}),
-                     "The user-direction boundary radiances have shape {:B,}, expected [2, {}, {}] Stokes vectors",
+  if (tau.empty()) arts::user_error("At least one optical depth is required for user-angle radiances");
+  if (tau.front() < 0.0 or tau.back() > tau_arr.back())
+    arts::user_error("User-angle optical depths must be in [0, {}], got {:B,}", tau_arr.back(), tau);
+  if (stdr::any_of(user_mu, [](const Numeric mu) { return !std::isfinite(mu) or mu == 0.0 or std::abs(mu) > 1.0; }))
+    arts::user_error("User polar-angle cosines must be finite, nonzero, and in [-1, 1], got {:B,}", user_mu);
+  if (not user_boundary.empty() and user_boundary.shape() != (std::array<Index, 3>{2, NFourier, nuser}))
+    arts::user_error("The user-direction boundary radiances have shape {:B,}, expected [2, {}, {}] Stokes vectors",
                      user_boundary.shape(),
                      NFourier,
                      nuser);
   const std::array<Index, 5> expected_phase_shape{2, NFourier, NLayers, nuser, NQuad};
   const std::array<Index, 4> expected_beam_shape{2, NFourier, NLayers, nuser};
-  ARTS_USER_ERROR_IF(user_phase_matrix.shape() != expected_phase_shape,
-                     "User phase matrices have shape {:B,}, expected [2, {}, {}, {}, {}] Mueller blocks",
+  if (user_phase_matrix.shape() != expected_phase_shape)
+    arts::user_error("User phase matrices have shape {:B,}, expected [2, {}, {}, {}, {}] Mueller blocks",
                      user_phase_matrix.shape(),
                      NFourier,
                      NLayers,
                      nuser,
                      NQuad);
-  ARTS_USER_ERROR_IF(has_beam_source and user_beam_phase_matrix.shape() != expected_beam_shape,
-                     "User beam phase matrices have shape {:B,}, expected [2, {}, {}, {}] Mueller blocks",
+  if (has_beam_source and user_beam_phase_matrix.shape() != expected_beam_shape)
+    arts::user_error("User beam phase matrices have shape {:B,}, expected [2, {}, {}, {}] Mueller blocks",
                      user_beam_phase_matrix.shape(),
                      NFourier,
                      NLayers,
@@ -1949,21 +1919,21 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
   // The surface reflects into the upward user directions, so it is needed there
   const bool specular = surface_refl.has_specular();
   if ((NBDRF > 0 or specular) and stdr::any_of(user_mu, Cmp::gt(0.0))) {
-    ARTS_USER_ERROR_IF(
-        (user_surface.brdf().shape() != std::array<Index, 4>{2, NBDRF, nuser, N}) or
-            (user_surface.beam_brdf().shape() != std::array<Index, 3>{2, NBDRF, nuser}) or
-            (specular and static_cast<Index>(user_surface.specular().size()) != nuser),
-        "The surface reflects into the upward user directions, so their reflection must be given: shapes "
-        "[2, {}, {}, {}], [2, {}, {}] and [{}] (specular part) are needed, got {:B,}, {:B,} and {:B,}",
-        NBDRF,
-        nuser,
-        N,
-        NBDRF,
-        nuser,
-        specular ? nuser : 0,
-        user_surface.brdf().shape(),
-        user_surface.beam_brdf().shape(),
-        user_surface.specular().shape());
+    if ((user_surface.brdf().shape() != std::array<Index, 4>{2, NBDRF, nuser, N}) or
+        (user_surface.beam_brdf().shape() != std::array<Index, 3>{2, NBDRF, nuser}) or
+        (specular and static_cast<Index>(user_surface.specular().size()) != nuser))
+      arts::user_error(
+          "The surface reflects into the upward user directions, so their reflection must be given: shapes "
+          "[2, {}, {}, {}], [2, {}, {}] and [{}] (specular part) are needed, got {:B,}, {:B,} and {:B,}",
+          NBDRF,
+          nuser,
+          N,
+          NBDRF,
+          nuser,
+          specular ? nuser : 0,
+          user_surface.brdf().shape(),
+          user_surface.beam_brdf().shape(),
+          user_surface.specular().shape());
     check_beam_reflection(user_surface, has_beam_source, mu0);
   }
 
@@ -1981,13 +1951,14 @@ void main_data::user_fourier_modes(ComplexTensor4&                 modes,
       for (Index id = 0; id < nuser; ++id)
         if (user_mu[id] < 0.0 and std::abs(user_mu[id] + user_mu[iu]) <= 64.0 * std::numeric_limits<Numeric>::epsilon())
           found = id;
-      ARTS_USER_ERROR_IF(found < 0,
-                         "The surface reflects specularly, so the upward radiance at the user cosine {} reflects the "
-                         "downward radiance at {} at the surface: include {} in the user cosines, with its phase "
-                         "matrices",
-                         user_mu[iu],
-                         -user_mu[iu],
-                         -user_mu[iu]);
+      if (found < 0)
+        arts::user_error(
+            "The surface reflects specularly, so the upward radiance at the user cosine {} reflects the "
+            "downward radiance at {} at the surface: include {} in the user cosines, with its phase "
+            "matrices",
+            user_mu[iu],
+            -user_mu[iu],
+            -user_mu[iu]);
       partner[iu] = static_cast<Index>(partners.size());
       partners.push_back(found);
     }
@@ -2212,17 +2183,15 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
 
   const std::array<Index, 3> expected_shape{
       static_cast<Index>(tau.size()), static_cast<Index>(phi.size()), static_cast<Index>(user_mu.size())};
-  ARTS_USER_ERROR_IF(out.shape() != expected_shape,
-                     "User-angle output has shape {:B,}, expected [{}, {}, {}] Stokes blocks",
+  if (out.shape() != expected_shape)
+    arts::user_error("User-angle output has shape {:B,}, expected [{}, {}, {}] Stokes blocks",
                      out.shape(),
                      tau.size(),
                      phi.size(),
                      user_mu.size());
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(
-          phi, [](const Numeric value) { return !std::isfinite(value) or value < 0.0 or value >= Constant::two_pi; }),
-      "User azimuths must be finite and in [0, 2*pi), got {:B,}",
-      phi);
+  if (stdr::any_of(
+          phi, [](const Numeric value) { return !std::isfinite(value) or value < 0.0 or value >= Constant::two_pi; }))
+    arts::user_error("User azimuths must be finite and in [0, 2*pi), got {:B,}", phi);
 
   ComplexTensor4 modes;
   user_fourier_modes(modes, tau, user_mu, user_phase_matrix, user_beam_phase_matrix, user_boundary, user_surface);
@@ -2234,15 +2203,16 @@ void main_data::ungridded_u_user(rtepack::stokvec_tensor3_view   out,
           for (Index stokes = 0; stokes < stokes_dimension; ++stokes) {
             const Complex value = modes[t, iu, alpha * NFourier + m, stokes];
             const Numeric scale = 1.0 + std::abs(value.real());
-            ARTS_USER_ERROR_IF(std::abs(value.imag()) > 2e-8 * scale,
-                               "VDISORT left an uncancelled imaginary user radiance {} at tau={}, user={}, "
-                               "alpha={}, m={}, stokes={}",
-                               value,
-                               tau[t],
-                               iu,
-                               alpha,
-                               m,
-                               stokes);
+            if (std::abs(value.imag()) > 2e-8 * scale)
+              arts::user_error(
+                  "VDISORT left an uncancelled imaginary user radiance {} at tau={}, user={}, "
+                  "alpha={}, m={}, stokes={}",
+                  value,
+                  tau[t],
+                  iu,
+                  alpha,
+                  m,
+                  stokes);
           }
 
         for (Index p = 0; p < static_cast<Index>(phi.size()); ++p) {
@@ -2309,21 +2279,16 @@ flux_values main_data::flux(flux_data& data, const Numeric tau) const {
 }
 
 void main_data::gridded_u(Tensor4View out, const Vector& phi) const {
-  ARTS_USER_ERROR_IF(
-      (out.shape() != std::array<Index, 4>{NLayers, static_cast<Index>(phi.size()), NQuad, stokes_dimension}),
-      "gridded_u output has shape {:B,}, expected [{}, {}, {}, 4]",
-      out.shape(),
-      NLayers,
-      phi.size(),
-      NQuad);
+  if ((out.shape() != std::array<Index, 4>{NLayers, static_cast<Index>(phi.size()), NQuad, stokes_dimension}))
+    arts::user_error(
+        "gridded_u output has shape {:B,}, expected [{}, {}, {}, 4]", out.shape(), NLayers, phi.size(), NQuad);
 
   const Index nphi = static_cast<Index>(phi.size());
   Matrix      cosine(nphi, NFourier);
   Matrix      sine(nphi, NFourier);
   for (Index p = 0; p < nphi; ++p) {
-    ARTS_USER_ERROR_IF(!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi,
-                       "phi must be finite and in [0, 2*pi), got {}",
-                       phi[p]);
+    if (!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi)
+      arts::user_error("phi must be finite and in [0, 2*pi), got {}", phi[p]);
     for (Index m = 0; m < NFourier; ++m) {
       const Numeric angle = static_cast<Numeric>(m) * (phi0 - phi[p]);
       cosine[p, m]        = std::cos(angle);
@@ -2366,10 +2331,9 @@ void main_data::gridded_u_corr(Tensor4View                     out,
 }
 
 void main_data::gridded_flux(VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt) const {
-  ARTS_USER_ERROR_IF(up.size() != static_cast<Size>(NLayers) or down_diffuse.size() != static_cast<Size>(NLayers) or
-                         down_direct.size() != static_cast<Size>(NLayers) or dfdt.size() != static_cast<Size>(NLayers),
-                     "All gridded flux outputs must have size {}",
-                     NLayers);
+  if (up.size() != static_cast<Size>(NLayers) or down_diffuse.size() != static_cast<Size>(NLayers) or
+      down_direct.size() != static_cast<Size>(NLayers) or dfdt.size() != static_cast<Size>(NLayers))
+    arts::user_error("All gridded flux outputs must have size {}", NLayers);
   for (Index l = 0; l < NLayers; ++l) {
     const auto diffuse =
         dc::integrate_diffuse(mu_arr[Range{0, N}], W, [&](const Index i) { return um[l, cosine_mode, 0, i].I(); });
@@ -2388,14 +2352,10 @@ void main_data::gridded_flux(VectorView up, VectorView down_diffuse, VectorView 
 }
 
 void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vector& phi) const {
-  ARTS_USER_ERROR_IF(
-      (out.shape() !=
-       std::array<Index, 4>{static_cast<Index>(tau.size()), static_cast<Index>(phi.size()), NQuad, stokes_dimension}),
-      "ungridded_u output has shape {:B,}, expected [{}, {}, {}, 4]",
-      out.shape(),
-      tau.size(),
-      phi.size(),
-      NQuad);
+  if ((out.shape() !=
+       std::array<Index, 4>{static_cast<Index>(tau.size()), static_cast<Index>(phi.size()), NQuad, stokes_dimension}))
+    arts::user_error(
+        "ungridded_u output has shape {:B,}, expected [{}, {}, {}, 4]", out.shape(), tau.size(), phi.size(), NQuad);
 
   const Index nphi = static_cast<Index>(phi.size());
   if (tau.empty() or nphi == 0) return;
@@ -2403,9 +2363,8 @@ void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vec
   Matrix cosine(nphi, NFourier);
   Matrix sine(nphi, NFourier);
   for (Index p = 0; p < nphi; ++p) {
-    ARTS_USER_ERROR_IF(!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi,
-                       "phi must be finite and in [0, 2*pi), got {}",
-                       phi[p]);
+    if (!std::isfinite(phi[p]) or phi[p] < 0.0 or phi[p] >= Constant::two_pi)
+      arts::user_error("phi must be finite and in [0, 2*pi), got {}", phi[p]);
     for (Index m = 0; m < NFourier; ++m) {
       const Numeric angle = static_cast<Numeric>(m) * (phi0 - phi[p]);
       cosine[p, m]        = std::cos(angle);
@@ -2435,10 +2394,9 @@ void main_data::ungridded_u(Tensor4View out, const AscendingGrid& tau, const Vec
 
 void main_data::ungridded_flux(
     VectorView up, VectorView down_diffuse, VectorView down_direct, VectorView dfdt, const AscendingGrid& tau) const {
-  ARTS_USER_ERROR_IF(up.size() != tau.size() or down_diffuse.size() != tau.size() or down_direct.size() != tau.size() or
-                         dfdt.size() != tau.size(),
-                     "All ungridded flux outputs must have the same size as tau ({})",
-                     tau.size());
+  if (up.size() != tau.size() or down_diffuse.size() != tau.size() or down_direct.size() != tau.size() or
+      dfdt.size() != tau.size())
+    arts::user_error("All ungridded flux outputs must have the same size as tau ({})", tau.size());
   Matrix combined(2 * NFourier, NState);
   for (Index t = 0; t < static_cast<Index>(tau.size()); ++t) {
     combined_field(combined, tau[t]);
@@ -2460,7 +2418,7 @@ void main_data::ungridded_flux(
 }
 
 rtepack::stokvec_tensor3_const_view main_data::layer_um(const Size layer) const {
-  ARTS_USER_ERROR_IF(layer >= static_cast<Size>(NLayers), "Layer {} is out of range [0, {})", layer, NLayers);
+  if (layer >= static_cast<Size>(NLayers)) arts::user_error("Layer {} is out of range [0, {})", layer, NLayers);
   return um[layer];
 }
 

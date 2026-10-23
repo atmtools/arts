@@ -758,7 +758,7 @@ void measurement_sensorFromPredefined(ArrayOfSensorObsel&     measurement_sensor
                                       const Vector&           channels) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(n < 1, "The number of samples must be positive, got {}.", n)
+  if (n < 1) arts::user_error("The number of samples must be positive, got {}.", n);
 
   const auto& definitions = predefined_sensor_channels(sensor_style);
 
@@ -770,14 +770,13 @@ void measurement_sensorFromPredefined(ArrayOfSensorObsel&     measurement_sensor
     selected.reserve(channels.size());
     for (const Numeric channel_value : channels) {
       const Index channel = static_cast<Index>(channel_value);
-      ARTS_USER_ERROR_IF(channel_value != static_cast<Numeric>(channel),
-                         "Channel selections must be integer-valued, got {}.",
-                         channel_value)
-      ARTS_USER_ERROR_IF(channel < 1 or channel > static_cast<Index>(definitions.size()),
-                         "Channel {} is outside the one-based range [1, {}] for {}.",
+      if (channel_value != static_cast<Numeric>(channel))
+        arts::user_error("Channel selections must be integer-valued, got {}.", channel_value);
+      if (channel < 1 or channel > static_cast<Index>(definitions.size()))
+        arts::user_error("Channel {} is outside the one-based range [1, {}] for {}.",
                          channel,
                          definitions.size(),
-                         toString(sensor_style))
+                         toString(sensor_style));
       selected.push_back(channel - 1);
     }
   }

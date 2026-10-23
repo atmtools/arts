@@ -21,7 +21,7 @@ Muelmat reflectance(const TessemNN& neth,
   const Vector input{frequency, angle, wind_speed, temperature, salinity};
   const Vector eh = tessem_emissivity(neth, input);
   const Vector ev = tessem_emissivity(netv, input);
-  ARTS_USER_ERROR_IF(eh.empty() or ev.empty(), "TESSEM neural networks must have at least one output")
+  if (eh.empty() or ev.empty()) arts::user_error("TESSEM neural networks must have at least one output");
   return rtepack::power_reflectance(std::clamp(1 - ev[0], Numeric{0}, Numeric{1}),
                                     std::clamp(1 - eh[0], Numeric{0}, Numeric{1}));
 }
@@ -46,9 +46,10 @@ void spectral_surf_reflTessem(MuelmatVector&              spectral_surf_refl,
   const SurfacePropertyTag wind_key{"wind speed"};
   const SurfacePropertyTag salinity_key{"salinity"};
 
-  ARTS_USER_ERROR_IF(not surf_field.contains(temperature_key), "TESSEM requires surface temperature")
-  ARTS_USER_ERROR_IF(not surf_field.contains(wind_key), "TESSEM requires surf_field property \"wind speed\" [m/s]")
-  ARTS_USER_ERROR_IF(not surf_field.contains(salinity_key), "TESSEM requires surf_field property \"salinity\" [kg/kg]")
+  if (not surf_field.contains(temperature_key)) arts::user_error("TESSEM requires surface temperature");
+  if (not surf_field.contains(wind_key)) arts::user_error("TESSEM requires surf_field property \"wind speed\" [m/s]");
+  if (not surf_field.contains(salinity_key))
+    arts::user_error("TESSEM requires surf_field property \"salinity\" [kg/kg]");
 
   const Numeric      lat         = ray_point.pos[1];
   const Numeric      lon         = ray_point.pos[2];
@@ -71,7 +72,7 @@ void spectral_surf_reflTessem(MuelmatVector&              spectral_surf_refl,
     const bool is_wind        = target.type == wind_key;
     const bool is_salinity    = target.type == salinity_key;
     if (not(is_temperature or is_wind or is_salinity)) continue;
-    ARTS_USER_ERROR_IF(target.d == 0, "TESSEM Jacobian perturbation must be nonzero for target {}", target.type)
+    if (target.d == 0) arts::user_error("TESSEM Jacobian perturbation must be nonzero for target {}", target.type);
 
     for (Size iv = 0; iv < freq_grid.size(); ++iv) {
       const Muelmat perturbed                       = reflectance(tessem_neth,

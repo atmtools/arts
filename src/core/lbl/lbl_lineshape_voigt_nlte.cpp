@@ -971,7 +971,7 @@ void calculate(PropmatVectorView        pm_,
                const AtmPoint&          atm,
                const ZeemanPolarization pol,
                const bool               no_negative_absorption) {
-  ARTS_USER_ERROR_IF(bnd.size() != 1, "Only for single lines per ID")
+  if (bnd.size() != 1) arts::user_error("Only for single lines per ID");
 
   if (stdr::all_of(com_data.npm, [](auto& n) { return n == 0; })) return;
 

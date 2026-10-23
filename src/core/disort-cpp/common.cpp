@@ -136,8 +136,8 @@ void check_surface_fraction(const Numeric fraction) {
 }
 
 void check_beam_cosine(const Numeric mu0) {
-  ARTS_USER_ERROR_IF(not std::isnan(mu0) and not(mu0 > 0.0 and mu0 <= 1.0),
-                     "The beam cosine of a surface's beam reflection must be in (0, 1], or NaN without a beam, got {}",
+  if (not std::isnan(mu0) and not(mu0 > 0.0 and mu0 <= 1.0))
+    arts::user_error("The beam cosine of a surface's beam reflection must be in (0, 1], or NaN without a beam, got {}",
                      mu0);
 }
 
@@ -223,8 +223,8 @@ void barycentric_weights(Vector& weights, const ConstVectorView& nodes) {
 }
 
 void initialize_streams(VectorView mu, VectorView inv_mu, VectorView weights) {
-  ARTS_USER_ERROR_IF(mu.size() != 2 * weights.size() or inv_mu.size() != mu.size(),
-                     "Double-Gauss arrays have sizes mu={}, inv_mu={}, weights={}; expected [2N, 2N, N]",
+  if (mu.size() != 2 * weights.size() or inv_mu.size() != mu.size())
+    arts::user_error("Double-Gauss arrays have sizes mu={}, inv_mu={}, weights={}; expected [2N, 2N, N]",
                      mu.size(),
                      inv_mu.size(),
                      weights.size());
@@ -235,11 +235,11 @@ void initialize_streams(VectorView mu, VectorView inv_mu, VectorView weights) {
 }
 
 void check_layer_input_sizes(const Index n_layers, const AscendingGrid& tau, const ConstVectorView& omega) {
-  ARTS_USER_ERROR_IF(n_layers <= 0, "A DISORT solver requires at least one layer");
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(tau.size()) != n_layers, "tau_arr has size {}, expected {}", tau.size(), n_layers);
-  ARTS_USER_ERROR_IF(
-      static_cast<Index>(omega.size()) != n_layers, "omega_arr has size {}, expected {}", omega.size(), n_layers);
+  if (n_layers <= 0) arts::user_error("A DISORT solver requires at least one layer");
+  if (static_cast<Index>(tau.size()) != n_layers)
+    arts::user_error("tau_arr has size {}, expected {}", tau.size(), n_layers);
+  if (static_cast<Index>(omega.size()) != n_layers)
+    arts::user_error("omega_arr has size {}, expected {}", omega.size(), n_layers);
 }
 
 void check_layer_input_values(const AscendingGrid&   tau,
@@ -248,20 +248,19 @@ void check_layer_input_values(const AscendingGrid&   tau,
                               const Numeric          mu0,
                               const Numeric          phi0,
                               const bool             has_beam_source) {
-  ARTS_USER_ERROR_IF(
-      tau.empty() or tau.front() <= 0.0, "tau_arr must be nonempty and strictly positive, got {:B,}", tau);
-  ARTS_USER_ERROR_IF(stdr::any_of(omega, [](const Numeric x) { return x < 0.0 or x > 1.0; }),
-                     "omega_arr must be in [0, 1], got {:B,}",
-                     omega);
-  ARTS_USER_ERROR_IF(has_beam_source and (mu0 <= 0.0 or mu0 > 1.0), "mu0 must be in (0, 1], got {}", mu0);
-  ARTS_USER_ERROR_IF(
-      has_beam_source and stdr::any_of(mu, Cmp::eq(mu0)), "mu0 must not be in mu.  mu0: {}, mu: {:B,}", mu0, mu);
-  ARTS_USER_ERROR_IF(phi0 < 0.0 or phi0 >= Constant::two_pi, "phi0 must be in [0, 2*pi), got {}", phi0);
+  if (tau.empty() or tau.front() <= 0.0)
+    arts::user_error("tau_arr must be nonempty and strictly positive, got {:B,}", tau);
+  if (stdr::any_of(omega, [](const Numeric x) { return x < 0.0 or x > 1.0; }))
+    arts::user_error("omega_arr must be in [0, 1], got {:B,}", omega);
+  if (has_beam_source and (mu0 <= 0.0 or mu0 > 1.0)) arts::user_error("mu0 must be in (0, 1], got {}", mu0);
+  if (has_beam_source and stdr::any_of(mu, Cmp::eq(mu0)))
+    arts::user_error("mu0 must not be in mu.  mu0: {}, mu: {:B,}", mu0, mu);
+  if (phi0 < 0.0 or phi0 >= Constant::two_pi) arts::user_error("phi0 must be in [0, 2*pi), got {}", phi0);
 }
 
 Index layer_index(const AscendingGrid& tau, const Numeric value) {
-  ARTS_USER_ERROR_IF(tau.empty(), "Cannot locate an optical depth in an empty layer grid");
-  ARTS_USER_ERROR_IF(value < 0.0 or value > tau.back(), "tau ({}) must be in [0, {}]", value, tau.back());
+  if (tau.empty()) arts::user_error("Cannot locate an optical depth in an empty layer grid");
+  if (value < 0.0 or value > tau.back()) arts::user_error("tau ({}) must be in [0, {}]", value, tau.back());
   const Index layer = std::distance(tau.begin(), stdr::lower_bound(tau, value));
   return std::min(layer, static_cast<Index>(tau.size()) - 1);
 }

@@ -87,8 +87,8 @@ OpticalPoint optical_point(const Workspace&                ws,
   const auto bulk_return = scattering_species.get_bulk_scattering_properties_aro_gridded(
       atm_point, freq_grid, Vector{receive_los[0]}, Vector{0.0}, transmit_za);
 
-  ARTS_USER_ERROR_IF(not bulk_outgoing.phase_matrix.has_value(),
-                     "MCRadar requires phase matrices from all scattering species")
+  if (not bulk_outgoing.phase_matrix.has_value())
+    arts::user_error("MCRadar requires phase matrices from all scattering species");
 
   const auto& phase = *bulk_outgoing.phase_matrix;
 
@@ -124,16 +124,15 @@ void MCRadar(const Workspace&                ws,
              const String&                   unit) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(frequency <= 0.0, "frequency must be positive")
-  ARTS_USER_ERROR_IF(range_bins.size() < 2, "range_bins must contain at least two edges")
-  ARTS_USER_ERROR_IF(range_bins.front() < 0.0, "range_bins cannot contain negative distances")
-  ARTS_USER_ERROR_IF(mc_max_iter <= 0, "mc_max_iter must be positive")
-  ARTS_USER_ERROR_IF(mc_max_scatorder != 1,
-                     "This first ARTS3 MCRadar implementation supports mc_max_scatorder=1; got {}",
-                     mc_max_scatorder)
-  ARTS_USER_ERROR_IF(scattering_species.species.empty(), "MCRadar requires at least one scattering species")
-  ARTS_USER_ERROR_IF(unit != "1" and unit != "Ze", "unit must be either \"1\" or \"Ze\"")
-  ARTS_USER_ERROR_IF(k2 <= 0.0, "k2 must be positive")
+  if (frequency <= 0.0) arts::user_error("frequency must be positive");
+  if (range_bins.size() < 2) arts::user_error("range_bins must contain at least two edges");
+  if (range_bins.front() < 0.0) arts::user_error("range_bins cannot contain negative distances");
+  if (mc_max_iter <= 0) arts::user_error("mc_max_iter must be positive");
+  if (mc_max_scatorder != 1)
+    arts::user_error("This first ARTS3 MCRadar implementation supports mc_max_scatorder=1; got {}", mc_max_scatorder);
+  if (scattering_species.species.empty()) arts::user_error("MCRadar requires at least one scattering species");
+  if (unit != "1" and unit != "Ze") arts::user_error(R"(unit must be either "1" or "Ze")");
+  if (k2 <= 0.0) arts::user_error("k2 must be positive");
 
   const Index nbins = static_cast<Index>(range_bins.size()) - 1;
   radar_signal.resize(nbins);

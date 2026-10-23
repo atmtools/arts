@@ -22,8 +22,8 @@ void spectral_rad_bkgAgendasAtEndOfPath(const Workspace&            ws,
 
   using enum PathPositionType;
   switch (ray_point.los_type) {
-    case atm:     ARTS_USER_ERROR("Undefined what to do with an atmospheric background") break;
-    case unknown: ARTS_USER_ERROR("Undefined background type"); break;
+    case atm:     arts::user_error("Undefined what to do with an atmospheric background"); break;
+    case unknown: arts::user_error("Undefined background type"); break;
     case space:
       spectral_rad_space_agendaExecute(
           ws, spectral_rad_bkg, spectral_rad_bkg_jac, freq_grid, jac_targets, ray_point, spectral_rad_space_agenda);
@@ -99,7 +99,7 @@ void spectral_radSurfaceBlackbody(StokvecVector&              spectral_rad,
 
   constexpr auto key = SurfaceKey::t;
 
-  ARTS_USER_ERROR_IF(not surf_field.contains(key), "Surface field does not contain temperature")
+  if (not surf_field.contains(key)) arts::user_error("Surface field does not contain temperature");
 
   const auto t = surf_field.single_value(key, ray_point.pos[1], ray_point.pos[2]);
   spectral_rad = from_temp(freq_grid, t);

@@ -58,7 +58,7 @@ template <Format format, Representation repr> struct BulkScatteringProperties {
   BulkScatteringProperties& operator+=(const BulkScatteringProperties& other) {
     if (phase_matrix.has_value()) {
       if (!other.phase_matrix.has_value()) {
-        ARTS_USER_ERROR("Phase matrix missing in calculation of bulk scattering properties.");
+        arts::user_error("Phase matrix missing in calculation of bulk scattering properties.");
       }
       *phase_matrix += *other.phase_matrix;
     }

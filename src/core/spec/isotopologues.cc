@@ -55,7 +55,7 @@ Numeric IsotopologueRatios::operator[](const Index spec_ind) const {
 
 Numeric IsotopologueRatios::operator[](const Isotope& ir) const {
   const Index spec_ind = find_species_index(ir);
-  ARTS_USER_ERROR_IF(spec_ind >= maxsize or spec_ind < 0, "Invalid species {}", ir.FullName())
+  if (spec_ind >= maxsize or spec_ind < 0) arts::user_error("Invalid species {}", ir.FullName());
   return data[spec_ind];
 }
 

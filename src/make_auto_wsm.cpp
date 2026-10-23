@@ -482,7 +482,7 @@ int main(int argc, char** argv) try {
   std::ofstream impl("auto_wsm.cpp");
   std::ofstream of("auto_wsmmeta.cpp");
 
-  ARTS_USER_ERROR_IF(const auto err = scan_for_errors(); not err.empty(), "{}", err)
+  if (const auto err = scan_for_errors(); not err.empty()) arts::user_error("{}", err);
 
   header(head);
   implementation(impl, num_methods);

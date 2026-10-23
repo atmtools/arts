@@ -71,9 +71,8 @@ void Workspace::overwrite(const std::string& name, const Wsv& data) try {
 bool Workspace::contains(const std::string& name) const { return wsv.contains(name); }
 
 bool Workspace::wsv_and_contains(const std::string& name) const {
-  ARTS_USER_ERROR_IF(stdr::none_of(workspace_variables() | stdv::keys, [&name](const auto& n) { return n == name; }),
-                     "Invalid workspace variable: \"{}\"",
-                     name)
+  if (stdr::none_of(workspace_variables() | stdv::keys, [&name](const auto& n) { return n == name; }))
+    arts::user_error("Invalid workspace variable: \"{}\"", name);
   return contains(name);
 }
 

@@ -25,12 +25,13 @@ void get_scat_set(bool                                delta_m,
                   Numeric&                            scatter) {
   const Index nlegin = static_cast<Index>(coefin.size()) - 1;
   const Index ncoef  = std::max(nlegin + 1, 2 * nummu);
-  ARTS_USER_ERROR_IF(nummu < 1 or nlegin < 0 or static_cast<Index>(coef.size()) < ncoef,
-                     "GET_SCAT_SET needs nummu >= 1, coefin [nlegin + 1] and coef [max(nlegin + 1, 2 nummu) or "
-                     "more]; got nummu {}, coefin [{}] and coef [{}]",
-                     nummu,
-                     coefin.size(),
-                     coef.size());
+  if (nummu < 1 or nlegin < 0 or static_cast<Index>(coef.size()) < ncoef)
+    arts::user_error(
+        "GET_SCAT_SET needs nummu >= 1, coefin [nlegin + 1] and coef [max(nlegin + 1, 2 nummu) or "
+        "more]; got nummu {}, coefin [{}] and coef [{}]",
+        nummu,
+        coefin.size(),
+        coef.size());
 
   // Copy the set where READ_SCAT_FILE read the file.  With delta_m the
   // scaling below reads coef up to l = 2 nummu even when nlegen + 1 is
@@ -45,13 +46,13 @@ void get_scat_set(bool                                delta_m,
     const Index m = 2 * nummu;
     Numeric     f = 0.0;
     if (m + 1 <= nlegen + 1) f = coef[m].F11() / static_cast<Numeric>(2 * m + 1);
-    ARTS_USER_ERROR_IF(
-        not(extinction > 0.0), "Delta-M scaling divides by the extinction, which must be positive, got {}", extinction);
-    ARTS_USER_ERROR_IF(
-        1.0 - f == 0.0, "Delta-M scaling divides by 1 - f, with f = coef[{}].F11() / {} = 1", m, 2 * m + 1);
+    if (not(extinction > 0.0))
+      arts::user_error("Delta-M scaling divides by the extinction, which must be positive, got {}", extinction);
+    if (1.0 - f == 0.0)
+      arts::user_error("Delta-M scaling divides by 1 - f, with f = coef[{}].F11() / {} = 1", m, 2 * m + 1);
     Numeric albedo = scatter / extinction;
-    ARTS_USER_ERROR_IF(
-        1.0 - albedo * f == 0.0, "Delta-M scaling divides by 1 - albedo f, with albedo {} and f {}", albedo, f);
+    if (1.0 - albedo * f == 0.0)
+      arts::user_error("Delta-M scaling divides by 1 - albedo f, with albedo {} and f {}", albedo, f);
     extinction = (1.0 - albedo * f) * extinction;
     albedo     = (1.0 - f) * albedo / (1.0 - albedo * f);
     scatter    = albedo * extinction;
@@ -65,10 +66,9 @@ CompactPlanarMuelmat sum_legendre(CompactPlanarMuelmatConstVectorView coef,
                                   Index                               nstokes,
                                   rt3_workdata&                       work) {
   const Index nlegen = static_cast<Index>(coef.size()) - 1;
-  ARTS_USER_ERROR_IF(nlegen < 0 or nstokes < 1 or nstokes > 4,
-                     "SUM_LEGENDRE needs coef [nlegen + 1] and 1 to 4 Stokes parameters; got [{}] and {}",
-                     coef.size(),
-                     nstokes);
+  if (nlegen < 0 or nstokes < 1 or nstokes > 4)
+    arts::user_error(
+        "SUM_LEGENDRE needs coef [nlegen + 1] and 1 to 4 Stokes parameters; got [{}] and {}", coef.size(), nstokes);
 
   // The Legendre polynomials P_0(x) to P_nlegen(x), for all the series
   Vector& p = work.legendre_p.resize(nlegen + 1);
@@ -117,12 +117,13 @@ void fourier_basis(
     Index order, fourier_direction direction, VectorView basis_vector, VectorView real_vector, fft_workdata& fft) {
   const Index numbasis = basis_vector.size();
   const Index numpts   = real_vector.size();
-  ARTS_USER_ERROR_IF(order < 0 or (numbasis != order + 1 and numbasis != 2 * order + 1) or numpts < 1,
-                     "FOURIER_BASIS needs basis_vector [order + 1 or 2 order + 1] and real_vector [numpts]; got order "
-                     "{}, {} and {}",
-                     order,
-                     numbasis,
-                     numpts);
+  if (order < 0 or (numbasis != order + 1 and numbasis != 2 * order + 1) or numpts < 1)
+    arts::user_error(
+        "FOURIER_BASIS needs basis_vector [order + 1 or 2 order + 1] and real_vector [numpts]; got order "
+        "{}, {} and {}",
+        order,
+        numbasis,
+        numpts);
 
   // REAL_VECTOR(2*I+1) and REAL_VECTOR(2*I+2), I = 1 to BASISLEN, hold the
   // cosine and sine terms of order I
@@ -178,12 +179,13 @@ void fourier_matrix(MuelmatConstVectorView real_matrix,
   const Index numpts   = real_matrix.size();
   const Index numazi   = basis_matrix.size();
   const Index aziorder = (numazi - 1) / 2;
-  ARTS_USER_ERROR_IF(numpts < 1 or nstokes < 1 or nstokes > 4 or numazi % 2 != 1,
-                     "FOURIER_MATRIX needs real_matrix [numpts], basis_matrix [2 aziorder + 1] and 1 to 4 Stokes "
-                     "parameters; got {}, {} and {}",
-                     numpts,
-                     numazi,
-                     nstokes);
+  if (numpts < 1 or nstokes < 1 or nstokes > 4 or numazi % 2 != 1)
+    arts::user_error(
+        "FOURIER_MATRIX needs real_matrix [numpts], basis_matrix [2 aziorder + 1] and 1 to 4 Stokes "
+        "parameters; got {}, {} and {}",
+        numpts,
+        numazi,
+        nstokes);
 
   // REAL_VECTOR and BASIS_VECTOR; FFT1DR transforms REAL_VECTOR in place
   Vector& real_vector  = work.real_vector.resize(numpts);
@@ -200,8 +202,8 @@ void fourier_matrix(MuelmatConstVectorView real_matrix,
 
 Muelmat combine_phase_modes(Index m, Numeric tmp, MuelmatConstVectorView basis_matrix) {
   const Index aziorder = (basis_matrix.size() - 1) / 2;
-  ARTS_USER_ERROR_IF(basis_matrix.size() % 2 != 1 or m < 0 or m > aziorder,
-                     "COMBINE_PHASE_MODES needs basis_matrix [2 aziorder + 1] and 0 <= m <= aziorder; got {} and m {}",
+  if (basis_matrix.size() % 2 != 1 or m < 0 or m > aziorder)
+    arts::user_error("COMBINE_PHASE_MODES needs basis_matrix [2 aziorder + 1] and 0 <= m <= aziorder; got {} and m {}",
                      basis_matrix.size(),
                      m);
 
@@ -238,16 +240,16 @@ void scattering(ConstVectorView                     mu_values,
   const Index nummu       = mu_values.size();
   const Index aziorder    = scatbuf.extent(0) - 1;
   const Index numlegendre = static_cast<Index>(legendre_coef.size()) - 1;
-  ARTS_USER_ERROR_IF(nummu < 1 or quad_weights.size() != mu_values.size() or numlegendre < 0 or nstokes < 1 or
-                         nstokes > 4 or aziorder < 0 or
-                         scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}),
-                     "SCATTERING needs mu_values and quad_weights [nummu], legendre_coef [numlegendre + 1], 1 to 4 "
-                     "Stokes parameters and scatbuf [aziorder + 1, 2, nummu, nummu]; got {}, {}, [{}], {} and {:B,}",
-                     mu_values.size(),
-                     quad_weights.size(),
-                     legendre_coef.size(),
-                     nstokes,
-                     scatbuf.shape());
+  if (nummu < 1 or quad_weights.size() != mu_values.size() or numlegendre < 0 or nstokes < 1 or nstokes > 4 or
+      aziorder < 0 or scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}))
+    arts::user_error(
+        "SCATTERING needs mu_values and quad_weights [nummu], legendre_coef [numlegendre + 1], 1 to 4 "
+        "Stokes parameters and scatbuf [aziorder + 1, 2, nummu, nummu]; got {}, {}, [{}], {} and {:B,}",
+        mu_values.size(),
+        quad_weights.size(),
+        legendre_coef.size(),
+        nstokes,
+        scatbuf.shape());
 
   Index numpts = 2 * (Index{1} << (std::ilogb(static_cast<Numeric>(numlegendre + 4)) + 1));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
@@ -296,16 +298,17 @@ void direct_scattering(ConstVectorView                     mu_values,
   const Index nummu       = mu_values.size();
   const Index aziorder    = directbuf.extent(0) - 1;
   const Index numlegendre = static_cast<Index>(legendre_coef.size()) - 1;
-  ARTS_USER_ERROR_IF(nummu < 1 or numlegendre < 0 or nstokes < 1 or nstokes > 4 or aziorder < 0 or
-                         directbuf.shape() != (std::array<Index, 3>{aziorder + 1, 2, nummu}),
-                     "DIRECT_SCATTERING needs mu_values [nummu], legendre_coef [numlegendre + 1], 1 to 4 Stokes "
-                     "parameters and directbuf [aziorder + 1, 2, nummu]; got {}, [{}], {} and {:B,}",
-                     mu_values.size(),
-                     legendre_coef.size(),
-                     nstokes,
-                     directbuf.shape());
-  ARTS_USER_ERROR_IF(
-      not(direct_mu >= -1.0 and direct_mu <= 1.0), "DIRECT_SCATTERING needs direct_mu in [-1, 1], got {}", direct_mu);
+  if (nummu < 1 or numlegendre < 0 or nstokes < 1 or nstokes > 4 or aziorder < 0 or
+      directbuf.shape() != (std::array<Index, 3>{aziorder + 1, 2, nummu}))
+    arts::user_error(
+        "DIRECT_SCATTERING needs mu_values [nummu], legendre_coef [numlegendre + 1], 1 to 4 Stokes "
+        "parameters and directbuf [aziorder + 1, 2, nummu]; got {}, [{}], {} and {:B,}",
+        mu_values.size(),
+        legendre_coef.size(),
+        nstokes,
+        directbuf.shape());
+  if (not(direct_mu >= -1.0 and direct_mu <= 1.0))
+    arts::user_error("DIRECT_SCATTERING needs direct_mu in [-1, 1], got {}", direct_mu);
 
   Index numpts = 2 * (Index{1} << (std::ilogb(static_cast<Numeric>(numlegendre + 4)) + 1));
   if (aziorder == 0) numpts = 2 * ((numlegendre + 1) / 2) + 4;
@@ -342,16 +345,17 @@ void get_scattering(Index mode, MuelmatConstTensor4View scatbuf, Tensor5View sca
   const Index aziorder = scatbuf.extent(0) - 1;
   const Index nummu    = scatbuf.extent(2);
   const Index nstokes  = scatter_matrix.extent(2);
-  ARTS_USER_ERROR_IF(aziorder < 0 or nummu < 1 or nstokes < 1 or nstokes > 4 or
-                         scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}) or
-                         scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}) or
-                         mode < 0 or mode > aziorder,
-                     "GET_SCATTERING needs scatbuf [aziorder + 1, 2, nummu, nummu], scatter_matrix "
-                     "[4, nummu, nstokes, nummu, nstokes] with 1 to 4 Stokes parameters and 0 <= mode <= aziorder; "
-                     "got {:B,}, {:B,} and mode {}",
-                     scatbuf.shape(),
-                     scatter_matrix.shape(),
-                     mode);
+  if (aziorder < 0 or nummu < 1 or nstokes < 1 or nstokes > 4 or
+      scatbuf.shape() != (std::array<Index, 4>{aziorder + 1, 2, nummu, nummu}) or
+      scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}) or mode < 0 or
+      mode > aziorder)
+    arts::user_error(
+        "GET_SCATTERING needs scatbuf [aziorder + 1, 2, nummu, nummu], scatter_matrix "
+        "[4, nummu, nstokes, nummu, nstokes] with 1 to 4 Stokes parameters and 0 <= mode <= aziorder; "
+        "got {:B,}, {:B,} and mode {}",
+        scatbuf.shape(),
+        scatter_matrix.shape(),
+        mode);
 
   // Read in the phase matrix for the azimuth mode: the leading nstokes x
   // nstokes of SCATBUF's matrix of (L, J1, J2), from Stokes parameter I1 to
@@ -370,11 +374,12 @@ void get_scattering(Index mode, MuelmatConstTensor4View scatbuf, Tensor5View sca
 void scatter_symmetry(Tensor5View scat) {
   const Index nummu   = scat.extent(1);
   const Index nstokes = scat.extent(2);
-  ARTS_USER_ERROR_IF(nummu < 1 or nstokes < 1 or nstokes > 4 or
-                         scat.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}),
-                     "SCATTER_SYMMETRY needs scat [4, nummu, nstokes, nummu, nstokes] with 1 to 4 Stokes "
-                     "parameters; got {:B,}",
-                     scat.shape());
+  if (nummu < 1 or nstokes < 1 or nstokes > 4 or
+      scat.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}))
+    arts::user_error(
+        "SCATTER_SYMMETRY needs scat [4, nummu, nstokes, nummu, nstokes] with 1 to 4 Stokes "
+        "parameters; got {:B,}",
+        scat.shape());
 
   // P-- is P++ and P-+ is P+-, with the off-diagonal 2 by 2 blocks negated
   scat[3] = scat[0];
@@ -391,12 +396,12 @@ void scatter_symmetry(Tensor5View scat) {
 void check_norm(ConstVectorView quad_weights, ConstTensor5View scatter_matrix) {
   const Index nummu   = quad_weights.size();
   const Index nstokes = scatter_matrix.extent(2);
-  ARTS_USER_ERROR_IF(
-      nummu < 1 or nstokes < 1 or scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}),
-      "CHECK_NORM needs quad_weights [nummu] and scatter_matrix [4, nummu, nstokes, nummu, nstokes]; "
-      "got {} and {:B,}",
-      quad_weights.size(),
-      scatter_matrix.shape());
+  if (nummu < 1 or nstokes < 1 or scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}))
+    arts::user_error(
+        "CHECK_NORM needs quad_weights [nummu] and scatter_matrix [4, nummu, nstokes, nummu, nstokes]; "
+        "got {} and {:B,}",
+        quad_weights.size(),
+        scatter_matrix.shape());
 
   // The largest deviation from 1, NaN if any is
   Numeric maxsum = 0.0;
@@ -411,25 +416,26 @@ void check_norm(ConstVectorView quad_weights, ConstTensor5View scatter_matrix) {
       }
     }
   }
-  ARTS_USER_ERROR_IF(not(maxsum <= 1.0e-7),
-                     "Phase function not normalized: its I-I term integrates to 1 within {}, more than 1e-7.  Either "
-                     "the first term of its Legendre series is not 1, or the series has too many terms for the "
-                     "number of quadrature angles.",
-                     maxsum);
+  if (not(maxsum <= 1.0e-7))
+    arts::user_error(
+        "Phase function not normalized: its I-I term integrates to 1 within {}, more than 1e-7.  Either "
+        "the first term of its Legendre series is not 1, or the series has too many terms for the "
+        "number of quadrature angles.",
+        maxsum);
 }
 
 void get_direct(Index mode, StokvecConstTensor3View directbuf, Tensor3View direct_vector) {
   const Index aziorder = directbuf.extent(0) - 1;
   const Index nummu    = directbuf.extent(2);
   const Index nstokes  = direct_vector.extent(2);
-  ARTS_USER_ERROR_IF(aziorder < 0 or directbuf.extent(1) != 2 or nstokes < 1 or nstokes > 4 or
-                         direct_vector.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or mode < 0 or
-                         mode > aziorder,
-                     "GET_DIRECT needs directbuf [aziorder + 1, 2, nummu], direct_vector [2, nummu, nstokes] with 1 "
-                     "to 4 Stokes parameters and 0 <= mode <= aziorder; got {:B,}, {:B,} and mode {}",
-                     directbuf.shape(),
-                     direct_vector.shape(),
-                     mode);
+  if (aziorder < 0 or directbuf.extent(1) != 2 or nstokes < 1 or nstokes > 4 or
+      direct_vector.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or mode < 0 or mode > aziorder)
+    arts::user_error(
+        "GET_DIRECT needs directbuf [aziorder + 1, 2, nummu], direct_vector [2, nummu, nstokes] with 1 "
+        "to 4 Stokes parameters and 0 <= mode <= aziorder; got {:B,}, {:B,} and mode {}",
+        directbuf.shape(),
+        direct_vector.shape(),
+        mode);
 
   // The leading nstokes Stokes parameters of each vector
   const Range stokes{0, nstokes};

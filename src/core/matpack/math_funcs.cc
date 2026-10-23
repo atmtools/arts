@@ -479,10 +479,11 @@ void mgd(VectorView psd, const Vector& x, const Numeric& n0, const Numeric& mu, 
         psd[ix]             = n0 * eterm;
       }
     } else {
-      ARTS_USER_ERROR_IF(mu > 10,
-                         "Given mu is {}\n"
-                         "Seems unreasonable. Have you mixed up the inputs?",
-                         mu)
+      if (mu > 10)
+        arts::user_error(
+            "Given mu is {}\n"
+            "Seems unreasonable. Have you mixed up the inputs?",
+            mu);
       // Gamma distribution
       for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = std::exp(-la * x[ix]);
@@ -493,14 +494,16 @@ void mgd(VectorView psd, const Vector& x, const Numeric& n0, const Numeric& mu, 
     }
   } else {
     // Complete MGD
-    ARTS_USER_ERROR_IF(mu > 10,
-                       "Given mu is {}\n"
-                       "Seems unreasonable. Have you mixed up the inputs?",
-                       mu)
-    ARTS_USER_ERROR_IF(ga > 10,
-                       "Given gamma is {}\n"
-                       "Seems unreasonable. Have you mixed up the inputs?",
-                       ga)
+    if (mu > 10)
+      arts::user_error(
+          "Given mu is {}\n"
+          "Seems unreasonable. Have you mixed up the inputs?",
+          mu);
+    if (ga > 10)
+      arts::user_error(
+          "Given gamma is {}\n"
+          "Seems unreasonable. Have you mixed up the inputs?",
+          ga);
     for (Size ix = 0; ix < nx; ix++) {
       const Numeric pterm = nonstd::pow(x[ix], ga);
       const Numeric eterm = std::exp(-la * pterm);
@@ -561,10 +564,11 @@ void mgd_with_derivatives(VectorView     psd,
         if (do_la_jac) { jac_data[2, ix] = -x[ix] * psd[ix]; }
       }
     } else {
-      ARTS_USER_ERROR_IF(mu > 10,
-                         "Given mu is {}\n"
-                         "Seems unreasonable. Have you mixed up the inputs?",
-                         mu)
+      if (mu > 10)
+        arts::user_error(
+            "Given mu is {}\n"
+            "Seems unreasonable. Have you mixed up the inputs?",
+            mu);
       // Gamma distribution
       for (Size ix = 0; ix < nx; ix++) {
         const Numeric eterm = std::exp(-la * x[ix]);
@@ -578,14 +582,16 @@ void mgd_with_derivatives(VectorView     psd,
     }
   } else {
     // Complete MGD
-    ARTS_USER_ERROR_IF(mu > 10,
-                       "Given mu is {}\n"
-                       "Seems unreasonable. Have you mixed up the inputs?",
-                       mu)
-    ARTS_USER_ERROR_IF(ga > 10,
-                       "Given gamma is {}\n"
-                       "Seems unreasonable. Have you mixed up the inputs?",
-                       ga)
+    if (mu > 10)
+      arts::user_error(
+          "Given mu is {}\n"
+          "Seems unreasonable. Have you mixed up the inputs?",
+          mu);
+    if (ga > 10)
+      arts::user_error(
+          "Given gamma is {}\n"
+          "Seems unreasonable. Have you mixed up the inputs?",
+          ga);
     for (Size ix = 0; ix < nx; ix++) {
       const Numeric pterm = nonstd::pow(x[ix], ga);
       const Numeric eterm = std::exp(-la * pterm);
@@ -639,7 +645,7 @@ Numeric mod_gamma_dist(Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeri
     return dN;
   }
 
-  ARTS_USER_ERROR(
+  arts::user_error(
       "At least one argument is zero or negative.\n"
       "Modified gamma distribution can not be calculated.\n"
       "x      = {}"
@@ -655,7 +661,7 @@ Numeric mod_gamma_dist(Numeric x, Numeric N0, Numeric Lambda, Numeric mu, Numeri
       N0,
       Lambda,
       mu,
-      gamma)
+      gamma);
 }
 
 //! unitl
@@ -812,7 +818,7 @@ void calculate_weights_linear(Vector& x, Vector& w, const Index nph) {
 }
 
 void calculate_int_weights_arbitrary_grid(Vector& w, const Vector& x) {
-  ARTS_USER_ERROR_IF(x.size() < 1, "Grid needs at least 2 points.");
+  if (x.size() < 1) arts::user_error("Grid needs at least 2 points.");
 
   Index N = x.size();
 

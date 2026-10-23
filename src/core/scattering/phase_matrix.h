@@ -330,7 +330,7 @@ template <> class PhaseMatrixData<Format::TRO, Representation::Gridded>
   template <Format format, Representation repr> PhaseMatrixData(const PhaseMatrixData<format, repr> &other) {
     // Other must be TRO particle
     if (format != Format::TRO) {
-      ARTS_USER_ERROR(
+      arts::user_error(
           "Phase matrix data in TRO format can only be constructed "
           " from data that is also in TRO format.");
     }

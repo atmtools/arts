@@ -1,5 +1,6 @@
 #include "subsurf_field.h"
 
+#include <debug.h>
 #include <enumsSubsurfaceKey.h>
 #include <lagrange_interp.h>
 
@@ -121,7 +122,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 namespace interp {
@@ -232,7 +233,9 @@ ComputeLimit find_limit(const Data &data, const Limits &lim, Numeric alt, Numeri
 }
 
 Numeric get(const GeodeticField3 &gf3, const Numeric alt, const Numeric lat, const Numeric lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
+  if (not gf3.ok())
+    arts::user_error(
+        "The subsurface field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
 
   using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
@@ -264,11 +267,11 @@ struct PositionalNumeric {
 std::optional<Numeric> get_optional_limit(const Data &data, const Numeric alt, const Numeric lat, const Numeric lon) {
   const auto lim = find_limit(data, std::visit([](auto &d) { return find_limits(d); }, data.data), alt, lat, lon);
 
-  ARTS_USER_ERROR_IF(lim.type == InterpolationExtrapolation::None,
-                     "Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
+  if (lim.type == InterpolationExtrapolation::None)
+    arts::user_error("Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
                      lim.alt,
                      lim.lat,
-                     lim.lon)
+                     lim.lon);
 
   if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
 
@@ -282,7 +285,9 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
                                                       const Numeric         alt,
                                                       const Numeric         lat,
                                                       const Numeric         lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
+  if (not gf3.ok())
+    arts::user_error(
+        "The subsurface field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
 
   const Index nalt = gf3.grid<0>().size();
   const Index nlat = gf3.grid<1>().size();
@@ -433,11 +438,12 @@ bool Field::contains(const KeyVal &key) const {
 }
 
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const try {
-  ARTS_USER_ERROR_IF(alt < bottom_depth,
-                     "Cannot get values below the deepest point of the subsurface, "
-                     "which is at: {} m.\nYour depth is: {} m.",
-                     bottom_depth,
-                     alt)
+  if (alt < bottom_depth)
+    arts::user_error(
+        "Cannot get values below the deepest point of the subsurface, "
+        "which is at: {} m.\nYour depth is: {} m.",
+        bottom_depth,
+        alt);
 
   Point out;
 

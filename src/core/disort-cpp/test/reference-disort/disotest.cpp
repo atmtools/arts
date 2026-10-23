@@ -13,13 +13,8 @@ void expect_reference(const std::string_view name,
                       const Numeric          expected,
                       const Numeric          relative_tolerance,
                       const Numeric          absolute_tolerance = 0.0) {
-  ARTS_USER_ERROR_IF(
-      std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::max(1.0, std::abs(expected)),
-      "{}: expected {}, got {} (difference {})",
-      name,
-      expected,
-      actual,
-      actual - expected);
+  if (std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::max(1.0, std::abs(expected)))
+    arts::user_error("{}: expected {}, got {} (difference {})", name, expected, actual, actual - expected);
 }
 
 void expect_small_reference(const std::string_view name,
@@ -27,12 +22,8 @@ void expect_small_reference(const std::string_view name,
                             const Numeric          expected,
                             const Numeric          relative_tolerance = 2e-3,
                             const Numeric          absolute_tolerance = 1e-10) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected),
-                     "{}: expected {}, got {} (difference {})",
-                     name,
-                     expected,
-                     actual,
-                     actual - expected);
+  if (std::abs(actual - expected) > absolute_tolerance + relative_tolerance * std::abs(expected))
+    arts::user_error("{}: expected {}, got {} (difference {})", name, expected, actual, actual - expected);
 }
 
 Numeric blackbody_radiance(const Numeric temperature) {
@@ -68,7 +59,7 @@ Matrix henyey_greenstein(const Vector& g, const Index nmom) {
 }
 
 Matrix linear_polynomial(const AscendingGrid& tau, const Vector& values) {
-  ARTS_USER_ERROR_IF(values.size() != tau.size() + 1, "A value is required at every layer interface");
+  if (values.size() != tau.size() + 1) arts::user_error("A value is required at every layer interface");
 
   Matrix  out(tau.size(), 2);
   Numeric tau0 = 0;
@@ -150,15 +141,14 @@ void run_case(const std::string_view   name,
     for (const Numeric phi : phis) {
       dis.u(u, tau, phi);
       for (const Numeric value : u.intensities) {
-        ARTS_USER_ERROR_IF(not std::isfinite(value), "{} produced a non-finite intensity", name);
+        if (not std::isfinite(value)) arts::user_error("{} produced a non-finite intensity", name);
       }
     }
 
     const auto values = dis.flux(flux, tau);
-    ARTS_USER_ERROR_IF(not(std::isfinite(values.up) and std::isfinite(values.down_diffuse) and
-                           std::isfinite(values.down_direct) and std::isfinite(values.dfdt)),
-                       "{} produced a non-finite flux",
-                       name);
+    if (not(std::isfinite(values.up) and std::isfinite(values.down_diffuse) and std::isfinite(values.down_direct) and
+            std::isfinite(values.dfdt)))
+      arts::user_error("{} produced a non-finite flux", name);
   }
   std::cout << std::format("{} completed\n", name);
 }
@@ -348,7 +338,7 @@ void disort_test10() {
   for (Size iphi = 0; iphi < phis.size(); ++iphi) {
     for (Size itau = 0; itau < taus.size(); ++itau) { bulk_in_pointwise_order[iphi, itau] = bulk[itau, iphi]; }
   }
-  ARTS_USER_ERROR_IF(not is_good(pointwise, bulk_in_pointwise_order), "Test 10 scalar and bulk angle paths differ");
+  if (not is_good(pointwise, bulk_in_pointwise_order)) arts::user_error("Test 10 scalar and bulk angle paths differ");
   run_case("test_10a (scalar angle path)", dis, taus, phis);
   std::cout << "test_10b (quadrature/bulk angle path) completed\n";
 }

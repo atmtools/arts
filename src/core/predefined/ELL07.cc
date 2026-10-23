@@ -91,20 +91,22 @@ void compute(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoi
   constexpr Numeric p19 = 3.528051e-18;
 
   // Check limits of suspended water droplet density ("vmr") [kg/m³]
-  ARTS_USER_ERROR_IF(((lwc < low_lim_den) || (lwc > high_lim_den)),
-                     "ERROR in ELL07WaterDropletAbs:\n"
-                     "Valid range is {}-{}"
-                     "kg/m3,\n"
-                     "but found a value = {}",
-                     low_lim_den,
-                     high_lim_den,
-                     lwc)
+  if (((lwc < low_lim_den) || (lwc > high_lim_den)))
+    arts::user_error(
+        "ERROR in ELL07WaterDropletAbs:\n"
+        "Valid range is {}-{}"
+        "kg/m3,\n"
+        "but found a value = {}",
+        low_lim_den,
+        high_lim_den,
+        lwc);
 
-  ARTS_USER_ERROR_IF(std::any_of(f_grid.begin(), f_grid.end(), gt(25e12)),
-                     "Liquid cloud absorption model ELL07 only valid at\n"
-                     "frequencies up to 25THz. Yours are above.")
+  if (std::any_of(f_grid.begin(), f_grid.end(), gt(25e12)))
+    arts::user_error(
+        "Liquid cloud absorption model ELL07 only valid at\n"
+        "frequencies up to 25THz. Yours are above.");
 
-  ARTS_USER_ERROR_IF(t < 210 or t > 373, "Only valid for temperatures 210-373 K, not for your value of {} K", t)
+  if (t < 210 or t > 373) arts::user_error("Only valid for temperatures 210-373 K, not for your value of {} K", t);
 
   // Temperature in celsius
   const Numeric t_cels = t - 273.15;

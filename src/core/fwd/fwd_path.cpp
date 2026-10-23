@@ -32,12 +32,12 @@ ARTS_METHOD_ERROR_CATCH
 constexpr void check_grid(const Numeric     x [[maybe_unused]],
                           const Vector&     x_grid [[maybe_unused]],
                           const char* const name [[maybe_unused]]) {
-  ARTS_USER_ERROR_IF(x_grid.size() == 0, "No grid of {}", name);
+  if (x_grid.size() == 0) arts::user_error("No grid of {}", name);
 
   if (x_grid.size() == 1) return;
 
-  ARTS_USER_ERROR_IF(x_grid.front() > x, "Below lower {} point; {} < {}", name, x, x_grid.front())
-  ARTS_USER_ERROR_IF(x_grid.back() < x, "Above upper {} point; {} > {}", name, x, x_grid.back());
+  if (x_grid.front() > x) arts::user_error("Below lower {} point; {} < {}", name, x, x_grid.front());
+  if (x_grid.back() < x) arts::user_error("Above upper {} point; {} > {}", name, x, x_grid.back());
 }
 
 constexpr path find_path(

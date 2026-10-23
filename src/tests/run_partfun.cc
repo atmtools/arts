@@ -9,7 +9,7 @@
 #include "partfun.h"
 
 int main(int argn, char** argv) try {
-  ARTS_USER_ERROR_IF(argn < 3, "USAGE: PROG SPEC1... SPECN T")
+  if (argn < 3) arts::user_error("USAGE: PROG SPEC1... SPECN T");
 
   const std::vector<std::string> specs{argv + 1, argv + argn - 1};
   const Numeric                  T = std::strtod(argv[argn - 1], nullptr);

@@ -53,7 +53,7 @@ Numeric wigner3j(
 
   if (errno == EDOM) {
     errno = 0;
-    ARTS_USER_ERROR("Bad state, perhaps you need to call WignerInit?")
+    arts::user_error("Bad state, perhaps you need to call WignerInit?");
   }
 
   return Numeric(g);
@@ -74,7 +74,7 @@ Numeric wigner6j(
 
   if (errno == EDOM) {
     errno = 0;
-    ARTS_USER_ERROR("Bad state, perhaps you need to call Wigner6Init?")
+    arts::user_error("Bad state, perhaps you need to call Wigner6Init?");
   }
 
   return Numeric(g);
@@ -333,7 +333,7 @@ std::ostream& operator<<(std::ostream& os, const WignerInformation& wi) {
 }
 
 void WignerInformation::initalize() {
-  ARTS_USER_ERROR_IF(init, "Must not be initialized.")
+  if (init) arts::user_error("Must not be initialized.");
 
   if (sixj) {
     make_wigner_ready(largest, fastest, 6);
@@ -370,9 +370,9 @@ WignerInformation::WignerInformation(int largest_symbol, int fastest_symbol, boo
     }
   }
 
-  ARTS_USER_ERROR_IF(largest_symbol < 0, "You must specify a non-negative integer for largest.");
-  ARTS_USER_ERROR_IF(fastest_symbol < 0, "You must specify a non-negative integer for fastest.");
-  ARTS_USER_ERROR_IF(not(three or six), "You must specify at least one of threej or sixj.");
+  if (largest_symbol < 0) arts::user_error("You must specify a non-negative integer for largest.");
+  if (fastest_symbol < 0) arts::user_error("You must specify a non-negative integer for fastest.");
+  if (not(three or six)) arts::user_error("You must specify at least one of threej or sixj.");
 
   largest = largest_symbol;
   fastest = fastest_symbol;
@@ -383,19 +383,21 @@ WignerInformation::WignerInformation(int largest_symbol, int fastest_symbol, boo
 }
 
 void WignerInformation::assert_valid_wigner3(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
+  if (not init) arts::user_error("Wigner library not initialized.  Run WignerInit first with appropriate sizes.");
 
-  ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
-                     "Wigner library not ready for Wigner 3j symbols with J = {}"
-                     "\nPlease initialize it properly.",
-                     J);
+  if (not(threej or is_wigner3_ready(J)))
+    arts::user_error(
+        "Wigner library not ready for Wigner 3j symbols with J = {}"
+        "\nPlease initialize it properly.",
+        J);
 }
 
 void WignerInformation::assert_valid_wigner6(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
+  if (not init) arts::user_error("Wigner library not initialized.  Run WignerInit first with appropriate sizes.");
 
-  ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
-                     "Wigner library not ready for Wigner 6j symbols with J = {}"
-                     "\nPlease initialize it properly.",
-                     J);
+  if (not(sixj or is_wigner6_ready(J)))
+    arts::user_error(
+        "Wigner library not ready for Wigner 6j symbols with J = {}"
+        "\nPlease initialize it properly.",
+        J);
 }

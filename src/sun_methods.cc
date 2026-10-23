@@ -180,7 +180,7 @@ std::pair<Numeric, bool> beta_angle(const Workspace&             ws,
     Vector2 horizon_los = observer_los;
     horizon_los[0]      = zenith_horizon(ws, observer_pos, observer_los[1], ray_path_observer_agenda, angle_cut);
     ray_path_observer_agendaExecute(ws, sun_path, observer_pos, horizon_los, ray_path_observer_agenda);
-    ARTS_USER_ERROR_IF(sun_path.back().los_type != PathPositionType::space, "Path above the horizon is not possible")
+    if (sun_path.back().los_type != PathPositionType::space) arts::user_error("Path above the horizon is not possible");
   }
 
   const auto [beta, hit] = hit_sun(sun, sun_path.back().pos, path::mirror(sun_path.back().los), surf_field.ellipsoid);
@@ -199,9 +199,8 @@ void find_sun_path(const Workspace&             ws,
                    const bool                   just_hit) {
   using Conversion::rad2deg;
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.bad_ellipsoid())
+    arts::user_error("Surface field not properly set up - bad reference ellipsoid: {:B,}", surf_field.ellipsoid);
 
   assert(angle_cut >= 0.0);
 

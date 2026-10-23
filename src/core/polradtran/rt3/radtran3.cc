@@ -54,72 +54,71 @@ void radtran(Numeric                             max_delta_tau,
   constexpr Numeric pi = Constant::pi, twopi = Constant::two_pi, zero = 0.0;
 
   // The Fortran trusts its declared extents; here they are checked
-  ARTS_USER_ERROR_IF(nstokes < 1 or nstokes > 4 or aziorder < 0 or nuummu >= nummu,
-                     "RADTRAN needs 1 to 4 Stokes parameters and aziorder >= 0 (up_rad's last extents) and at least "
-                     "one quadrature node (mu_values longer than extra_mu); got {} Stokes parameters, aziorder {}, "
-                     "{} mu_values and {} extra_mu",
-                     nstokes,
-                     aziorder,
-                     nummu,
-                     nuummu);
-  ARTS_USER_ERROR_IF(num_layers < 0, "RADTRAN needs at least one height");
-  ARTS_USER_ERROR_IF(temperatures.extent(0) != num_layers + 1 or gas_extinct.extent(0) != num_layers or
-                         static_cast<Index>(scatlayers.size()) != num_layers,
-                     "RADTRAN with {} heights needs as many temperatures and one gas_extinct and scatlayers value per "
-                     "layer; got {}, {} and {}",
-                     height.size(),
-                     temperatures.size(),
-                     gas_extinct.size(),
-                     scatlayers.size());
-  ARTS_USER_ERROR_IF(
-      scat_extinct.extent(0) != nsl or scat_scatter.extent(0) != nsl or static_cast<Index>(scat_nlegen.size()) != nsl,
-      "RADTRAN needs scat_extinct, scat_scatter and scat_nlegen [nsl] and scat_coef [nsl, ldcoef]; "
-      "got {}, {}, {} and {:B,}",
-      scat_extinct.size(),
-      scat_scatter.size(),
-      scat_nlegen.size(),
-      scat_coef.shape());
-  ARTS_USER_ERROR_IF(stdr::any_of(scat_nlegen, [ldcoef](Index l) { return l < 0 or l + 1 > ldcoef; }),
-                     "RADTRAN needs every SCAT_NLEGEN in [0, LDCOEF - 1] = [0, {}]",
-                     ldcoef - 1);
-  ARTS_USER_ERROR_IF(stdr::any_of(scatlayers, [nsl](Index s) { return s < 0 or s > nsl; }),
-                     "RADTRAN needs every SCATLAYERS in [0, NSL] = [0, {}]",
-                     nsl);
-  ARTS_USER_ERROR_IF(stdr::any_of(outlevels, [num_layers](Index l) { return l < 1 or l > num_layers + 1; }),
-                     "RADTRAN needs every OUTLEVELS in [1, NUM_LAYERS + 1] = [1, {}]",
-                     num_layers + 1);
-  ARTS_USER_ERROR_IF(src_code < 0 or src_code > 3, "RADTRAN needs SRC_CODE 0 to 3, got {}", src_code);
-  ARTS_USER_ERROR_IF(
-      up_rad.shape() != (std::array<Index, 4>{noutlevels, aziorder + 1, nummu, nstokes}) or
-          down_rad.shape() != up_rad.shape() or up_flux.shape() != (std::array<Index, 2>{noutlevels, nstokes}) or
-          down_flux.shape() != up_flux.shape(),
-      "RADTRAN needs up_rad and down_rad [noutlevels, aziorder + 1, nummu, nstokes] and up_flux and down_flux "
-      "[noutlevels, nstokes] (noutlevels = {}, nummu = {}); got {:B,}, {:B,}, {:B,} and {:B,}",
-      noutlevels,
-      nummu,
-      up_rad.shape(),
-      down_rad.shape(),
-      up_flux.shape(),
-      down_flux.shape());
-  ARTS_USER_ERROR_IF(
-      surf_reflect.shape() != (std::array<Index, 5>{aziorder + 1, nummu, nstokes, nummu, nstokes}) or
-          gnd_radiance.shape() != (std::array<Index, 3>{aziorder + 1, nummu, nstokes}) or
-          direct_reflect.shape() != gnd_radiance.shape(),
-      "RADTRAN needs surf_reflect [aziorder + 1, nummu, nstokes, nummu, nstokes] and gnd_radiance and "
-      "direct_reflect [aziorder + 1, nummu, nstokes] (aziorder = {}, nummu = {}, nstokes = {}); got {:B,}, {:B,} "
-      "and {:B,}",
-      aziorder,
-      nummu,
-      nstokes,
-      surf_reflect.shape(),
-      gnd_radiance.shape(),
-      direct_reflect.shape());
+  if (nstokes < 1 or nstokes > 4 or aziorder < 0 or nuummu >= nummu)
+    arts::user_error(
+        "RADTRAN needs 1 to 4 Stokes parameters and aziorder >= 0 (up_rad's last extents) and at least "
+        "one quadrature node (mu_values longer than extra_mu); got {} Stokes parameters, aziorder {}, "
+        "{} mu_values and {} extra_mu",
+        nstokes,
+        aziorder,
+        nummu,
+        nuummu);
+  if (num_layers < 0) arts::user_error("RADTRAN needs at least one height");
+  if (temperatures.extent(0) != num_layers + 1 or gas_extinct.extent(0) != num_layers or
+      static_cast<Index>(scatlayers.size()) != num_layers)
+    arts::user_error(
+        "RADTRAN with {} heights needs as many temperatures and one gas_extinct and scatlayers value per "
+        "layer; got {}, {} and {}",
+        height.size(),
+        temperatures.size(),
+        gas_extinct.size(),
+        scatlayers.size());
+  if (scat_extinct.extent(0) != nsl or scat_scatter.extent(0) != nsl or static_cast<Index>(scat_nlegen.size()) != nsl)
+    arts::user_error(
+        "RADTRAN needs scat_extinct, scat_scatter and scat_nlegen [nsl] and scat_coef [nsl, ldcoef]; "
+        "got {}, {}, {} and {:B,}",
+        scat_extinct.size(),
+        scat_scatter.size(),
+        scat_nlegen.size(),
+        scat_coef.shape());
+  if (stdr::any_of(scat_nlegen, [ldcoef](Index l) { return l < 0 or l + 1 > ldcoef; }))
+    arts::user_error("RADTRAN needs every SCAT_NLEGEN in [0, LDCOEF - 1] = [0, {}]", ldcoef - 1);
+  if (stdr::any_of(scatlayers, [nsl](Index s) { return s < 0 or s > nsl; }))
+    arts::user_error("RADTRAN needs every SCATLAYERS in [0, NSL] = [0, {}]", nsl);
+  if (stdr::any_of(outlevels, [num_layers](Index l) { return l < 1 or l > num_layers + 1; }))
+    arts::user_error("RADTRAN needs every OUTLEVELS in [1, NUM_LAYERS + 1] = [1, {}]", num_layers + 1);
+  if (src_code < 0 or src_code > 3) arts::user_error("RADTRAN needs SRC_CODE 0 to 3, got {}", src_code);
+  if (up_rad.shape() != (std::array<Index, 4>{noutlevels, aziorder + 1, nummu, nstokes}) or
+      down_rad.shape() != up_rad.shape() or up_flux.shape() != (std::array<Index, 2>{noutlevels, nstokes}) or
+      down_flux.shape() != up_flux.shape())
+    arts::user_error(
+        "RADTRAN needs up_rad and down_rad [noutlevels, aziorder + 1, nummu, nstokes] and up_flux and down_flux "
+        "[noutlevels, nstokes] (noutlevels = {}, nummu = {}); got {:B,}, {:B,}, {:B,} and {:B,}",
+        noutlevels,
+        nummu,
+        up_rad.shape(),
+        down_rad.shape(),
+        up_flux.shape(),
+        down_flux.shape());
+  if (surf_reflect.shape() != (std::array<Index, 5>{aziorder + 1, nummu, nstokes, nummu, nstokes}) or
+      gnd_radiance.shape() != (std::array<Index, 3>{aziorder + 1, nummu, nstokes}) or
+      direct_reflect.shape() != gnd_radiance.shape())
+    arts::user_error(
+        "RADTRAN needs surf_reflect [aziorder + 1, nummu, nstokes, nummu, nstokes] and gnd_radiance and "
+        "direct_reflect [aziorder + 1, nummu, nstokes] (aziorder = {}, nummu = {}, nstokes = {}); got {:B,}, {:B,} "
+        "and {:B,}",
+        aziorder,
+        nummu,
+        nstokes,
+        surf_reflect.shape(),
+        gnd_radiance.shape(),
+        direct_reflect.shape());
 
   const bool solar   = src_code == 1 or src_code == 3;
   const bool thermal = src_code == 2 or src_code == 3;
 
   // The radiances are in SI, W m-2 Hz-1 sr-1, at the frequency
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "RADTRAN needs a positive frequency, got {} Hz", frequency);
+  if (not(frequency > 0.0)) arts::user_error("RADTRAN needs a positive frequency, got {} Hz", frequency);
 
   const bool  symmetric = nstokes <= 2;
   const Index n         = nstokes * nummu;

@@ -28,11 +28,8 @@ int main() {
 
       const auto w = f.w(pos[0], pos[1], pos[2]);
 
-      ARTS_USER_ERROR_IF(w.size() != ncoef or static_cast<Size>(f.x().size()) != ncoef,
-                         "Expected {} derivatives and coefficients, got {} and {}",
-                         ncoef,
-                         w.size(),
-                         f.x().size())
+      if (w.size() != ncoef or static_cast<Size>(f.x().size()) != ncoef)
+        arts::user_error("Expected {} derivatives and coefficients, got {} and {}", ncoef, w.size(), f.x().size());
 
       Numeric max_w = 0.0, max_error = 0.0;
       for (const auto& [i, dfdx] : w) {
@@ -45,7 +42,7 @@ int main() {
         const Numeric fm = f(pos[0], pos[1], pos[2]);
         f.x()[i]         = x0;
 
-        ARTS_USER_ERROR_IF(dfdx == 0.0, "The derivative of coefficient {} is zero, so it should not be kept", i)
+        if (dfdx == 0.0) arts::user_error("The derivative of coefficient {} is zero, so it should not be kept", i);
 
         max_error = std::max(max_error, std::abs((fp - fm) / (2 * dx) - dfdx));
         max_w     = std::max(max_w, std::abs(dfdx));
@@ -58,7 +55,7 @@ int main() {
                    max_w,
                    max_error);
 
-      ARTS_USER_ERROR_IF(max_error > 1e-9 * max_w, "The derivatives do not match the finite differences")
+      if (max_error > 1e-9 * max_w) arts::user_error("The derivatives do not match the finite differences");
     }
   }
 

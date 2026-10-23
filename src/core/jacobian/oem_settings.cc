@@ -9,8 +9,8 @@
 #include <utility>
 
 void LevenbergMarquardtSettings::validate() const {
-  ARTS_USER_ERROR_IF(maximum_trials <= 0 or maximum_trials > std::numeric_limits<unsigned int>::max(),
-                     "LevenbergMarquardtSettings.maximum_trials must be positive and fit the solver index range.")
+  if (maximum_trials <= 0 or maximum_trials > std::numeric_limits<unsigned int>::max())
+    arts::user_error("LevenbergMarquardtSettings.maximum_trials must be positive and fit the solver index range.");
   const std::array<std::pair<std::string_view, Numeric>, 6> fields{{
       {"initial_damping", initial_damping},
       {"decrease_factor", decrease_factor},
@@ -20,29 +20,27 @@ void LevenbergMarquardtSettings::validate() const {
       {"convergence_damping_limit", convergence_damping_limit},
   }};
   for (const auto& [name, value] : fields) {
-    ARTS_USER_ERROR_IF(!std::isfinite(value) || value < 0,
-                       "LevenbergMarquardtSettings.{} must be finite and nonnegative; got {}.",
-                       name,
-                       value)
+    if (!std::isfinite(value) || value < 0)
+      arts::user_error("LevenbergMarquardtSettings.{} must be finite and nonnegative; got {}.", name, value);
   }
-  ARTS_USER_ERROR_IF(decrease_factor <= 1,
-                     "LevenbergMarquardtSettings.decrease_factor divides damping and must be > 1; got {}.",
-                     decrease_factor)
-  ARTS_USER_ERROR_IF(increase_factor <= 1,
-                     "LevenbergMarquardtSettings.increase_factor multiplies damping and must be > 1; got {}.",
-                     increase_factor)
-  ARTS_USER_ERROR_IF(
-      damping_threshold <= 0,
-      "LevenbergMarquardtSettings.damping_threshold must be > 0 so rejected undamped steps can restart; got {}.",
-      damping_threshold)
-  ARTS_USER_ERROR_IF(damping_threshold > maximum_damping,
-                     "LevenbergMarquardtSettings.damping_threshold ({}) must not exceed maximum_damping ({}).",
+  if (decrease_factor <= 1)
+    arts::user_error("LevenbergMarquardtSettings.decrease_factor divides damping and must be > 1; got {}.",
+                     decrease_factor);
+  if (increase_factor <= 1)
+    arts::user_error("LevenbergMarquardtSettings.increase_factor multiplies damping and must be > 1; got {}.",
+                     increase_factor);
+  if (damping_threshold <= 0)
+    arts::user_error(
+        "LevenbergMarquardtSettings.damping_threshold must be > 0 so rejected undamped steps can restart; got {}.",
+        damping_threshold);
+  if (damping_threshold > maximum_damping)
+    arts::user_error("LevenbergMarquardtSettings.damping_threshold ({}) must not exceed maximum_damping ({}).",
                      damping_threshold,
-                     maximum_damping)
-  ARTS_USER_ERROR_IF(initial_damping > maximum_damping,
-                     "LevenbergMarquardtSettings.initial_damping ({}) must not exceed maximum_damping ({}).",
+                     maximum_damping);
+  if (initial_damping > maximum_damping)
+    arts::user_error("LevenbergMarquardtSettings.initial_damping ({}) must not exceed maximum_damping ({}).",
                      initial_damping,
-                     maximum_damping)
+                     maximum_damping);
 }
 
 std::string LevenbergMarquardtSettings::repr() const {
@@ -87,19 +85,19 @@ std::string LevenbergMarquardtSettings::describe() const {
 }
 
 void OptimalEstimationSettings::validate() const {
-  ARTS_USER_ERROR_IF(not good_enum(method), "OptimalEstimationSettings.method is invalid.")
-  ARTS_USER_ERROR_IF(max_iter <= 0 or max_iter >= std::numeric_limits<unsigned int>::max(),
-                     "OptimalEstimationSettings.max_iter must be positive and below the solver index limit.")
-  ARTS_USER_ERROR_IF(not std::isfinite(stop_dx) or stop_dx <= 0,
-                     "OptimalEstimationSettings.stop_dx must be finite and positive.")
-  ARTS_USER_ERROR_IF(std::isnan(max_start_cost), "OptimalEstimationSettings.max_start_cost must not be NaN.")
-  ARTS_USER_ERROR_IF(not std::isfinite(cg_tolerance) or cg_tolerance <= 0,
-                     "OptimalEstimationSettings.cg_tolerance must be finite and positive.")
-  ARTS_USER_ERROR_IF(
-      cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max(),
-      "OptimalEstimationSettings.cg_max_iter must be zero (automatic) or positive and fit the solver index range.")
-  ARTS_USER_ERROR_IF(display_progress < 0 or display_progress > 1,
-                     "OptimalEstimationSettings.display_progress must be 0 or 1.")
+  if (not good_enum(method)) arts::user_error("OptimalEstimationSettings.method is invalid.");
+  if (max_iter <= 0 or max_iter >= std::numeric_limits<unsigned int>::max())
+    arts::user_error("OptimalEstimationSettings.max_iter must be positive and below the solver index limit.");
+  if (not std::isfinite(stop_dx) or stop_dx <= 0)
+    arts::user_error("OptimalEstimationSettings.stop_dx must be finite and positive.");
+  if (std::isnan(max_start_cost)) arts::user_error("OptimalEstimationSettings.max_start_cost must not be NaN.");
+  if (not std::isfinite(cg_tolerance) or cg_tolerance <= 0)
+    arts::user_error("OptimalEstimationSettings.cg_tolerance must be finite and positive.");
+  if (cg_max_iter < 0 or cg_max_iter > std::numeric_limits<int>::max())
+    arts::user_error(
+        "OptimalEstimationSettings.cg_max_iter must be zero (automatic) or positive and fit the solver index range.");
+  if (display_progress < 0 or display_progress > 1)
+    arts::user_error("OptimalEstimationSettings.display_progress must be 0 or 1.");
   lm.validate();
 }
 
@@ -136,10 +134,11 @@ void OptimalEstimationData::clear_auxiliary() {
 }
 
 void OptimalEstimationData::require_unchecked(std::string_view operation) const {
-  ARTS_USER_ERROR_IF(checked_,
-                     "Cannot {} on checked OptimalEstimationData. Call oem.uncheck() before replacing members, "
-                     "then oem.check() after editing. Reading members and editing their existing values are allowed.",
-                     operation)
+  if (checked_)
+    arts::user_error(
+        "Cannot {} on checked OptimalEstimationData. Call oem.uncheck() before replacing members, "
+        "then oem.check() after editing. Reading members and editing their existing values are allowed.",
+        operation);
 }
 
 void OptimalEstimationData::check(const JacobianTargets* targets) {
@@ -221,10 +220,10 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
     else if (targets->x_size() != n)
       error(std::format("jac_targets maps {} state elements but the prior contains {}.", targets->x_size(), n));
   }
-  ARTS_USER_ERROR_IF(
-      !errors.empty(),
-      "OptimalEstimationData check failed:{}\nCorrect these inputs and call check() again. The object remains unchecked.",
-      errors)
+  if (!errors.empty())
+    arts::user_error(
+        "OptimalEstimationData check failed:{}\nCorrect these inputs and call check() again. The object remains unchecked.",
+        errors);
   checked_ = true;
 }
 

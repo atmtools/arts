@@ -7,9 +7,10 @@ namespace {
 Numeric water_mass_density(const AtmPoint& atm_point) {
   constexpr SpeciesEnum water = "H2O"_spec;
 
-  ARTS_USER_ERROR_IF(not atm_point.has(water),
-                     "Cannot derive water mass density: the atmospheric point has no H2O VMR. "
-                     "Set H2O or provide water_mass_density explicitly.")
+  if (not atm_point.has(water))
+    arts::user_error(
+        "Cannot derive water mass density: the atmospheric point has no H2O VMR. "
+        "Set H2O or provide water_mass_density explicitly.");
 
   return atm_point.number_density(water) * atm_point.mean_mass(water) * Constant::m_u;
 }
@@ -28,12 +29,12 @@ void single_dispersionAddGasMicrowavesEarth(Numeric&        single_dispersion,
                                             const Numeric&  k3) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(atm_point.temperature <= 0.0,
-                     "Microwave gas refractivity requires a positive atmospheric temperature, got {} K",
-                     atm_point.temperature)
-  ARTS_USER_ERROR_IF(atm_point.pressure < 0.0,
-                     "Microwave gas refractivity requires a non-negative atmospheric pressure, got {} Pa",
-                     atm_point.pressure)
+  if (atm_point.temperature <= 0.0)
+    arts::user_error("Microwave gas refractivity requires a positive atmospheric temperature, got {} K",
+                     atm_point.temperature);
+  if (atm_point.pressure < 0.0)
+    arts::user_error("Microwave gas refractivity requires a non-negative atmospheric pressure, got {} Pa",
+                     atm_point.pressure);
 
   constexpr SpeciesEnum water          = "H2O"_spec;
   const Numeric         water_pressure = atm_point.has(water) ? atm_point.pressure * atm_point[water] : 0.0;
@@ -47,12 +48,12 @@ ARTS_METHOD_ERROR_CATCH
 void single_dispersionAddGasMicrowavesGeneral(Numeric& single_dispersion, const AtmPoint& atm_point) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(atm_point.temperature <= 0.0,
-                     "Microwave gas refractivity requires a positive atmospheric temperature, got {} K",
-                     atm_point.temperature)
-  ARTS_USER_ERROR_IF(atm_point.pressure < 0.0,
-                     "Microwave gas refractivity requires a non-negative atmospheric pressure, got {} Pa",
-                     atm_point.pressure)
+  if (atm_point.temperature <= 0.0)
+    arts::user_error("Microwave gas refractivity requires a positive atmospheric temperature, got {} K",
+                     atm_point.temperature);
+  if (atm_point.pressure < 0.0)
+    arts::user_error("Microwave gas refractivity requires a non-negative atmospheric pressure, got {} Pa",
+                     atm_point.pressure);
 
   Numeric refractivity = 0.0;
   Numeric vmr_sum      = 0.0;

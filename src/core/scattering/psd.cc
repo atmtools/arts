@@ -11,8 +11,8 @@ MonodispersePSD::MonodispersePSD(ScatteringSpeciesProperty number_density_, Nume
     : number_density(std::move(number_density_)), t_min(t_min_), t_max(t_max_) {}
 
 Vector MonodispersePSD::evaluate(const AtmPoint& point, const Vector& particle_sizes, Numeric, Numeric) const {
-  ARTS_USER_ERROR_IF(particle_sizes.size() != 1, "MonodispersePSD requires exactly one particle.")
-  ARTS_USER_ERROR_IF(not point.has(number_density), "The PSD requires {}.", number_density)
+  if (particle_sizes.size() != 1) arts::user_error("MonodispersePSD requires exactly one particle.");
+  if (not point.has(number_density)) arts::user_error("The PSD requires {}.", number_density);
   return Vector{point.temperature < t_min || point.temperature > t_max ? 0.0 : point[number_density]};
 }
 
@@ -26,7 +26,7 @@ PSDData MonodispersePSD::evaluate_with_derivatives(const AtmPoint& point,
 namespace {
 bool temperature_allowed(Numeric temperature, Numeric t_min, Numeric t_max, bool picky) {
   if (temperature >= t_min and temperature <= t_max) return true;
-  if (picky) { ARTS_USER_ERROR("PSD temperature {} K is outside [{}, {}] K.", temperature, t_min, t_max) }
+  if (picky) { arts::user_error("PSD temperature {} K is outside [{}, {}] K.", temperature, t_min, t_max); }
   return false;
 }
 
@@ -196,19 +196,19 @@ MGDMass::MGDMass(ScatteringSpeciesProperty mass_,
       t_min(t_min_),
       t_max(t_max_),
       picky(picky_) {
-  if (std::isnan(n0) == std::isnan(lambda)) { ARTS_USER_ERROR("Exactly one of n0 and lambda must be NaN.") }
+  if (std::isnan(n0) == std::isnan(lambda)) { arts::user_error("Exactly one of n0 and lambda must be NaN."); }
 }
 
 Vector MGDMass::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  ARTS_USER_ERROR_IF(not point.has(mass), "The PSD requires {}.", mass)
-  ARTS_USER_ERROR_IF(a <= 0.0 or b <= 0.0 or gamma <= 0.0, "Invalid modified-gamma or mass-size parameters.")
+  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+  if (a <= 0.0 or b <= 0.0 or gamma <= 0.0) arts::user_error("Invalid modified-gamma or mass-size parameters.");
   if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
 
   const Numeric content = std::abs(point[mass]);
   if (content == 0.0) return Vector(sizes.size(), 0.0);
   const Numeric sign  = point[mass] < 0.0 ? -1.0 : 1.0;
   const Numeric order = (mu + b + 1.0) / gamma;
-  ARTS_USER_ERROR_IF(order <= 0.0, "Modified-gamma mass moment requires mu + b + 1 > 0.")
+  if (order <= 0.0) arts::user_error("Modified-gamma mass moment requires mu + b + 1 > 0.");
 
   Numeric local_n0     = n0;
   Numeric local_lambda = lambda;
@@ -247,24 +247,24 @@ MGDTwoMoment::MGDTwoMoment(ScatteringSpeciesProperty mass_,
       picky(picky_) {}
 
 Vector MGDTwoMoment::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  ARTS_USER_ERROR_IF(
-      not point.has(mass) or not point.has(second_moment), "The PSD requires both {} and {}.", mass, second_moment)
-  ARTS_USER_ERROR_IF(a <= 0.0 or b <= 0.0 or gamma <= 0.0, "Invalid modified-gamma or mass-size parameters.")
+  if (not point.has(mass) or not point.has(second_moment))
+    arts::user_error("The PSD requires both {} and {}.", mass, second_moment);
+  if (a <= 0.0 or b <= 0.0 or gamma <= 0.0) arts::user_error("Invalid modified-gamma or mass-size parameters.");
   if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
 
   const Numeric content = std::abs(point[mass]);
   const Numeric second  = point[second_moment];
-  ARTS_USER_ERROR_IF(second <= 0.0, "The second PSD moment {} must be positive.", second_moment)
+  if (second <= 0.0) arts::user_error("The second PSD moment {} must be positive.", second_moment);
   if (content == 0.0) return Vector(sizes.size(), 0.0);
 
   const Numeric order = (mu + b + 1.0) / gamma;
-  ARTS_USER_ERROR_IF(order <= 0.0, "Modified-gamma mass moment requires mu + b + 1 > 0.")
+  if (order <= 0.0) arts::user_error("Modified-gamma mass moment requires mu + b + 1 > 0.");
   const Numeric g_order = std::tgamma(order);
   Numeric       lambda;
   if (type == MGDTwoMomentType::MassMeanSize) {
     lambda = std::pow(std::tgamma(order + 1.0 / gamma) / g_order, gamma) * std::pow(second, -gamma);
   } else {
-    ARTS_USER_ERROR_IF(mu + 1.0 <= 0.0, "Number-constrained PSD requires mu + 1 > 0.")
+    if (mu + 1.0 <= 0.0) arts::user_error("Number-constrained PSD requires mu + 1 > 0.");
     const Numeric exponent = gamma / b;
     lambda = std::pow(a * g_order / std::tgamma((mu + 1.0) / gamma), exponent) * std::pow(second / content, exponent);
   }
@@ -316,23 +316,23 @@ DelanoeEtAl14::DelanoeEtAl14(ScatteringSpeciesProperty mass_,
       picky(picky_) {}
 
 Vector DelanoeEtAl14::evaluate(const AtmPoint& point, const Vector& sizes, Numeric, Numeric) const {
-  ARTS_USER_ERROR_IF(not point.has(mass), "The PSD requires {}.", mass)
+  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
   if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
   const Numeric iwc = point[mass];
   if (iwc == 0.0) return Vector(sizes.size(), 0.0);
-  ARTS_USER_ERROR_IF(iwc < 0.0, "Delanoe14 requires non-negative ice mass density.")
+  if (iwc < 0.0) arts::user_error("Delanoe14 requires non-negative ice mass density.");
 
   const bool has_n0 = not intercept_parameter.species_name.empty() and point.has(intercept_parameter);
   const bool has_dm = not mean_size.species_name.empty() and point.has(mean_size);
   Numeric    n0     = has_n0 ? point[intercept_parameter] : delanoe_n0_from_temperature(point.temperature);
   Numeric    dm     = has_dm ? point[mean_size] : delanoe_dm_from_mass_n0(iwc, n0, rho);
   if (has_dm and not has_n0) n0 = delanoe_n0_from_mass_dm(iwc, dm, rho);
-  ARTS_USER_ERROR_IF(dm <= 0.0 or dm < dm_min, "Delanoe14 Dm={} m is below the allowed minimum {} m.", dm, dm_min)
+  if (dm <= 0.0 or dm < dm_min) arts::user_error("Delanoe14 Dm={} m is below the allowed minimum {} m.", dm, dm_min);
 
   Vector scaled  = sizes;
   scaled        *= 1.0 / dm;
   if (not scaled.empty() and scaled[0] <= std::numeric_limits<Numeric>::epsilon()) {
-    ARTS_USER_ERROR_IF(scaled.size() < 2, "Delanoe14 cannot evaluate a single zero-sized particle.")
+    if (scaled.size() < 2) arts::user_error("Delanoe14 cannot evaluate a single zero-sized particle.");
     scaled[0] = 0.1 * scaled[1];
   }
   Vector result(sizes.size());
@@ -369,12 +369,12 @@ FieldEtAl07::FieldEtAl07(ScatteringSpeciesProperty mass_,
       t_min_psd(t_min_psd_),
       t_max_psd(t_max_psd_),
       picky(picky_) {
-  if (regime != "TR" and regime != "ML") { ARTS_USER_ERROR("Field07 regime must be 'TR' or 'ML'.") }
+  if (regime != "TR" and regime != "ML") { arts::user_error("Field07 regime must be 'TR' or 'ML'."); }
 }
 
 Vector FieldEtAl07::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  ARTS_USER_ERROR_IF(not point.has(mass), "The PSD requires {}.", mass)
-  ARTS_USER_ERROR_IF(a <= 0.0 or b < 1.01 or b > 4.0, "Field07 received an invalid mass-size relationship.")
+  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+  if (a <= 0.0 or b < 1.01 or b > 4.0) arts::user_error("Field07 received an invalid mass-size relationship.");
   if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
   Numeric content = point[mass];
   if (std::abs(content) < 1e-15) return Vector(sizes.size(), 0.0);
@@ -430,9 +430,9 @@ McFarquharHeymsfield97::McFarquharHeymsfield97(ScatteringSpeciesProperty mass_,
       picky(picky_) {}
 
 Vector McFarquharHeymsfield97::evaluate(const AtmPoint& point, const Vector& sizes, Numeric a, Numeric b) const {
-  ARTS_USER_ERROR_IF(not point.has(mass), "The PSD requires {}.", mass)
-  ARTS_USER_ERROR_IF(b < 2.9 or b > 3.1 or a < 460.0 or a > 500.0,
-                     "MH97 requires an ice-sphere mass-size relationship near a=480, b=3.")
+  if (not point.has(mass)) arts::user_error("The PSD requires {}.", mass);
+  if (b < 2.9 or b > 3.1 or a < 460.0 or a > 500.0)
+    arts::user_error("MH97 requires an ice-sphere mass-size relationship near a=480, b=3.");
   if (not temperature_allowed(point.temperature, t_min, t_max, picky)) return Vector(sizes.size(), 0.0);
   Numeric iwc = point[mass];
   if (iwc == 0.0) return Vector(sizes.size(), 0.0);
@@ -483,9 +483,9 @@ PSDData McFarquharHeymsfield97::evaluate_with_derivatives(const AtmPoint& point,
 BinnedPSD::BinnedPSD(SizeParameter size_parameter_, Vector bins_, Vector counts_, Numeric t_min_, Numeric t_max_)
     : size_parameter(size_parameter_), bins(bins_), counts(counts_), t_min(t_min_), t_max(t_max_) {
   if (bins_.size() != (counts_.size() + 1)) {
-    ARTS_USER_ERROR("The bin vector must have exactly one element more than the counts vector.");
+    arts::user_error("The bin vector must have exactly one element more than the counts vector.");
   }
-  if (!std::is_sorted(bins.begin(), bins.end())) { ARTS_USER_ERROR("The bins vector must be strictly increasing."); }
+  if (!std::is_sorted(bins.begin(), bins.end())) { arts::user_error("The bins vector must be strictly increasing."); }
 }
 
 Vector BinnedPSD::evaluate(const AtmPoint& point,
@@ -518,17 +518,19 @@ PSDData BinnedPSD::evaluate_with_derivatives(const AtmPoint& point, const Vector
 
 Vector size_bin_widths(const Vector& sizes) {
   const Size n = sizes.size();
-  ARTS_USER_ERROR_IF(n < 2,
-                     "A particle size distribution given as a density per unit size needs at least two particle sizes "
-                     "to weight them, got {}",
-                     n)
-  for (Size i = 0; i + 1 < n; ++i)
-    ARTS_USER_ERROR_IF(not(sizes[i] < sizes[i + 1]),
-                       "The particle sizes must ascend strictly to be weighted, but size {} is {} and size {} is {}",
+  if (n < 2)
+    arts::user_error(
+        "A particle size distribution given as a density per unit size needs at least two particle sizes "
+        "to weight them, got {}",
+        n);
+  for (Size i = 0; i + 1 < n; ++i) {
+    if (not(sizes[i] < sizes[i + 1]))
+      arts::user_error("The particle sizes must ascend strictly to be weighted, but size {} is {} and size {} is {}",
                        i,
                        sizes[i],
                        i + 1,
-                       sizes[i + 1])
+                       sizes[i + 1]);
+  }
   Vector w(n);
   w[0]     = sizes[1] - sizes[0];
   w[n - 1] = sizes[n - 1] - sizes[n - 2];

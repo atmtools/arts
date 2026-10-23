@@ -3,7 +3,7 @@
 #include "workspace_class.h"
 
 void CallbackOperator::operator()(Workspace& ws_in) const try {
-  ARTS_USER_ERROR_IF(not callback.f, "No callback function set for operator:\n{}", *this);
+  if (not callback.f) arts::user_error("No callback function set for operator:\n{}", *this);
 
   Workspace ws(WorkspaceInitialization::Empty);
 

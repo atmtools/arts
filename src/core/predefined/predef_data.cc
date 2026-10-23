@@ -10,7 +10,7 @@
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {
 void WaterData::resize(const std::vector<std::size_t> &inds) {
-  ARTS_USER_ERROR_IF(inds.size() not_eq 1, "Expects only one size")
+  if (inds.size() not_eq 1) arts::user_error("MT_CKD 4.0 water data takes exactly one size, got {:B,}", inds);
   self_absco_ref.resize(inds.front());
   for_absco_ref.resize(inds.front());
   wavenumbers.resize(inds.front());
@@ -22,7 +22,7 @@ std::vector<std::size_t> WaterData::sizes() const { return {static_cast<std::siz
 
 namespace MT_CKD430 {
 void WaterData::resize(const std::vector<std::size_t> &inds) {
-  ARTS_USER_ERROR_IF(inds.size() not_eq 1, "Expects only one size")
+  if (inds.size() not_eq 1) arts::user_error("MT_CKD 4.3 water data takes exactly one size, got {:B,}", inds);
   self_absco_ref.resize(inds.front());
   for_absco_ref.resize(inds.front());
   for_closure_absco_ref.resize(inds.front());

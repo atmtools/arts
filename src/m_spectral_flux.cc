@@ -144,9 +144,9 @@ void spectral_flux_profileFromPathField(const Workspace&                        
   if (not error.empty()) throw std::runtime_error(error);
 
   for (Size i = 0; i < N; i++) {
-    ARTS_USER_ERROR_IF(spectral_rad_path_field[i].ncols() != static_cast<Index>(ray_path_field[i].size()) or
-                           spectral_rad_path_field[i].nrows() != static_cast<Index>(K),
-                       "Error in spectral_rad_path_field.  Expected shape: [{}, {}].  Got: {:B,}",
+    if (spectral_rad_path_field[i].ncols() != static_cast<Index>(ray_path_field[i].size()) or
+        spectral_rad_path_field[i].nrows() != static_cast<Index>(K))
+      arts::user_error("Error in spectral_rad_path_field.  Expected shape: [{}, {}].  Got: {:B,}",
                        K,
                        ray_path_field[i].size(),
                        spectral_rad_path_field[i].shape());
@@ -170,7 +170,7 @@ void spectral_flux_profileFromPathField(const Workspace&                        
       }
     }
 
-    ARTS_USER_ERROR_IF(zenith_angles.size() == 0, "No ray paths intersects altitude {} m", alt)
+    if (zenith_angles.size() == 0) arts::user_error("No ray paths intersects altitude {} m", alt);
 
     stdr::sort(zenith_angles, {}, &Zenith::angle);
 
@@ -221,9 +221,9 @@ void nlte_line_flux_profileIntegrate(QuantumIdentifierVectorMap& nlte_line_flux_
 
   nlte_line_flux_profile.clear();
   for (const auto& [key, band] : abs_bands) {
-    ARTS_USER_ERROR_IF(band.size() != 1, "Only one line per band is supported");
+    if (band.size() != 1) arts::user_error("Only one line per band is supported");
 
-    ARTS_USER_ERROR_IF(not is_voigt(band.lineshape), "Only one line per band is supported");
+    if (not is_voigt(band.lineshape)) arts::user_error("Only one line per band is supported");
 
     Matrix weighted_spectral_flux_profile(spectral_flux_profile.shape(), 0.0);
 
@@ -256,8 +256,8 @@ void spectral_flux_profileFromSpectralRadianceField(Matrix&                     
   const auto& za = spectral_rad_field.grid<3>();
   const auto& aa = spectral_rad_field.grid<4>();
 
-  ARTS_USER_ERROR_IF(not spectral_rad_field.ok(),
-                     R"(Spectral radiance field is not OK (shape is wrong):
+  if (not spectral_rad_field.ok())
+    arts::user_error(R"(Spectral radiance field is not OK (shape is wrong):
 
 spectral_rad_field.data.shape(): {:B,}
 Should be:                       [NALT, NLAT, NLON, NZA, NAA, NFRE]
@@ -276,10 +276,10 @@ NFRE: {}
                      NZA,
                      NAA,
                      NFRE);
-  ARTS_USER_ERROR_IF(NLAT != 1, "Only for one latitude point");
-  ARTS_USER_ERROR_IF(NLON != 1, "Only for one longitude point");
-  ARTS_USER_ERROR_IF(NZA < 2, "Must have more than one zenith angle.");
-  ARTS_USER_ERROR_IF(NAA != 1, "Only for one azimuth angle.")
+  if (NLAT != 1) arts::user_error("Only for one latitude point");
+  if (NLON != 1) arts::user_error("Only for one longitude point");
+  if (NZA < 2) arts::user_error("Must have more than one zenith angle.");
+  if (NAA != 1) arts::user_error("Only for one azimuth angle.");
 
   spectral_flux_profile.resize(NALT, NFRE);
   spectral_flux_profile = 0.0;

@@ -19,9 +19,9 @@ constexpr std::size_t nonexistentPartfun() noexcept {
 
 int main() try {
   const auto i = nonexistentPartfun();
-  ARTS_USER_ERROR_IF(i not_eq Species::Isotopologues.size(),
-                     "A species without partition functions have been found.  It is the species: {}",
-                     Species::Isotopologues[i].FullName())
+  if (i not_eq Species::Isotopologues.size())
+    arts::user_error("A species without partition functions have been found.  It is the species: {}",
+                     Species::Isotopologues[i].FullName());
   return EXIT_SUCCESS;
 } catch (std::runtime_error& e) {
   std::cerr << e.what() << '\n';

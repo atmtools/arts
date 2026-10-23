@@ -58,7 +58,7 @@ void RemoveNegativeXsec(Vector& xsec) {
 void XsecRecord::SetVersion(const Index version) {
   constexpr std::array<Index, 2> supported_versions = {2, mversion};
   if (stdr::none_of(supported_versions, Cmp::eq(version))) {
-    ARTS_USER_ERROR("Invalid version {}, only versions {:B,} supported", version, supported_versions)
+    arts::user_error("Invalid version {}, only versions {:B,} supported", version, supported_versions);
   }
 }
 
@@ -211,7 +211,7 @@ void xml_io_stream<XsecRecord>::read(std::istream& is_xml, XsecRecord& xd, bifst
 
   for (const auto& fitcoeffs : xd.FitCoeffs()) {
     const Index ncoeff = fitcoeffs.data.ncols();
-    ARTS_USER_ERROR_IF(ncoeff != 4, "Wrong number of coefficients, expected 4, found {}", ncoeff)
+    if (ncoeff != 4) arts::user_error("Wrong number of coefficients, expected 4, found {}", ncoeff);
   }
 
   tag.read_from_stream(is_xml);

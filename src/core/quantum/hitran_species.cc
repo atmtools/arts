@@ -62,7 +62,7 @@ QuantumIdentifier from_mol_iso(Index molnum, char isonum) {
     }
   }
 
-  ARTS_USER_ERROR(R"(
+  arts::user_error(R"(
 One of two things have happened:
 
     1.  The molecular number {0} and isotopologue character '{1}' do not correspond to any valid HITRAN species, or
@@ -74,8 +74,8 @@ If they are, ARTS must be recompiled with information to support the species.  P
 how to add a new species to ARTS.  If you do add a new species, please consider contributing the required information to the ARTS development
 team so that we can add it to the next release of ARTS and avoid this issue for other users in the future.  Thanks!
 )",
-                  molnum,
-                  isonum);
+                   molnum,
+                   isonum);
 }
 
 SpeciesIsotopologueRatios isotopologue_ratios_impl(const HitranMap& data) {
@@ -90,7 +90,7 @@ SpeciesIsotopologueRatios isotopologue_ratios_impl(const HitranMap& data) {
 QuantumIdentifier id_from_lookup(Index mol, char isochar) try {
   return from_mol_iso(mol, isochar);
 } catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error occurred while looking up species index {} {}:\n{}", mol, isochar, e.what());
+  arts::user_error("Error occurred while looking up species index {} {}:\n{}", mol, isochar, e.what());
 }
 
 Numeric ratio_from_lookup(Index mol, char isochar) { return molparam_map.at(mol).at(isochar).second; }
