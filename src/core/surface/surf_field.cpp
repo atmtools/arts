@@ -5,6 +5,7 @@
 #include <debug.h>
 #include <enumsSurfaceKey.h>
 #include <lagrange_interp.h>
+#include <mystring.h>
 
 #include <cmath>
 #include <exception>
@@ -146,31 +147,50 @@ Numeric numeric_interpolation(const GeodeticField2                              
                               Numeric                                                           lon,
                               std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lat_extrap,
                               std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lon_extrap) {
-  if (not data.ok()) throw std::runtime_error("bad field");
+  ARTS_USER_ERROR_IF(not data.ok(),
+                     "The surface field data shape {:B,} does not match its grid sizes {:B,}",
+                     data.data.shape(),
+                     data.shape())
 
   const Vector &lats = data.grid<0>();
   const Vector &lons = data.grid<1>();
 
   if (lat < lats.front()) {
-    ARTS_USER_ERROR_IF(lat_extrap.first == InterpolationExtrapolation::None, "No extrapolation allowed")
+    ARTS_USER_ERROR_IF(
+        lat_extrap.first == InterpolationExtrapolation::None,
+        "Latitude {} is below the first latitude {} of the surface field, and extrapolation is not allowed",
+        lat,
+        lats.front())
     if (lat_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
     if (lat_extrap.first == InterpolationExtrapolation::Nearest) lat = lats.front();
   }
 
   if (lat > lats.back()) {
-    ARTS_USER_ERROR_IF(lat_extrap.second == InterpolationExtrapolation::None, "No extrapolation allowed")
+    ARTS_USER_ERROR_IF(
+        lat_extrap.second == InterpolationExtrapolation::None,
+        "Latitude {} is above the last latitude {} of the surface field, and extrapolation is not allowed",
+        lat,
+        lats.back())
     if (lat_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
     if (lat_extrap.second == InterpolationExtrapolation::Nearest) lat = lats.back();
   }
 
   if (lon < lons.front()) {
-    ARTS_USER_ERROR_IF(lon_extrap.first == InterpolationExtrapolation::None, "No extrapolation allowed")
+    ARTS_USER_ERROR_IF(
+        lon_extrap.first == InterpolationExtrapolation::None,
+        "Longitude {} is below the first longitude {} of the surface field, and extrapolation is not allowed",
+        lon,
+        lons.front())
     if (lon_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
     if (lon_extrap.first == InterpolationExtrapolation::Nearest) lon = lons.front();
   }
 
   if (lon > lons.back()) {
-    ARTS_USER_ERROR_IF(lon_extrap.second == InterpolationExtrapolation::None, "No extrapolation allowed")
+    ARTS_USER_ERROR_IF(
+        lon_extrap.second == InterpolationExtrapolation::None,
+        "Longitude {} is above the last longitude {} of the surface field, and extrapolation is not allowed",
+        lon,
+        lons.back())
     if (lon_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
     if (lon_extrap.second == InterpolationExtrapolation::Nearest) lon = lons.back();
   }
@@ -288,10 +308,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   return from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
   throw std::runtime_error(
-      std::format("Cannot find a normal to the surface at position {} {}\nThe internal error reads: {}",
-                  lat,
-                  lon,
-                  std::string_view(e.what())));
+      std::format("Cannot find a normal to the surface at position {} {}\n{}", lat, lon, indent(e.what())));
 }
 
 Numeric Data::at(const Numeric lat, const Numeric lon) const { return interpolation_function(lat, lon)(*this); }

@@ -113,11 +113,20 @@ void extract1D(ArrayOfAtmPoint &atm_path,
   const Size n = atm_path.size();
 
   ARTS_USER_ERROR_IF(n < 1, "Empty path")
-  ARTS_USER_ERROR_IF(z_grid.size() != 1 and z_grid.size() != n, "Bad altitude grid")
-  ARTS_USER_ERROR_IF(lat_grid.size() != 1 and lat_grid.size() != n, "Bad latitude grid")
-  ARTS_USER_ERROR_IF(lon_grid.size() != 1 and lon_grid.size() != n, "Bad longitude grid")
+  ARTS_USER_ERROR_IF(z_grid.size() != 1 and z_grid.size() != n,
+                     "The altitude grid must have 1 or {} (the path size) points, got {}",
+                     n,
+                     z_grid.size())
+  ARTS_USER_ERROR_IF(lat_grid.size() != 1 and lat_grid.size() != n,
+                     "The latitude grid must have 1 or {} (the path size) points, got {}",
+                     n,
+                     lat_grid.size())
+  ARTS_USER_ERROR_IF(lon_grid.size() != 1 and lon_grid.size() != n,
+                     "The longitude grid must have 1 or {} (the path size) points, got {}",
+                     n,
+                     lon_grid.size())
 
-  const auto at = [](const Vector &x, const Size i) { return x.size() > 0 ? x[i] : x.front(); };
+  const auto at = [](const Vector &x, const Size i) { return x.size() > 1 ? x[i] : x.front(); };
 
   for (Size i = 0; i < n; i++) { atm_path[i] = atm_field.at(at(z_grid, i), at(lat_grid, i), at(lon_grid, i)); }
 }

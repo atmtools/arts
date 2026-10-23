@@ -94,7 +94,9 @@ constexpr Numeric XINT_FUN(const Numeric P, const std::array<Numeric, 4>& A) noe
 void check(const WaterData& data) {
   bool c = data.self_absco_ref.size() == 0 or data.for_absco_ref.size() == 0 or data.wavenumbers.size() == 0 or
            data.self_texp.size() == 0 or data.for_closure_absco_ref.size() == 0;
-  ARTS_USER_ERROR_IF(c, "No data")
+  ARTS_USER_ERROR_IF(c,
+                     "The MT_CKD 4.3 water data is empty.  Set it with abs_predef_dataAddWaterMTCKD430 or read it "
+                     "with abs_predef_dataReadSpeciesSplitCatalog.")
 }
 }  // namespace
 

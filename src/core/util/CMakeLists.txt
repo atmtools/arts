@@ -3,6 +3,7 @@ add_library(util STATIC
   arts_conversions.cpp
   debug.cpp
   format_tags.cpp
+  mystring.cpp
   planet_data.cpp
 )
 target_include_directories(util PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

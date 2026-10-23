@@ -383,7 +383,7 @@ WignerInformation::WignerInformation(int largest_symbol, int fastest_symbol, boo
 }
 
 void WignerInformation::assert_valid_wigner3(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
+  ARTS_USER_ERROR_IF(not init, "Wigner library not initialized.  Run WignerInit first with appropriate sizes.")
 
   ARTS_USER_ERROR_IF(not(threej or is_wigner3_ready(J)),
                      "Wigner library not ready for Wigner 3j symbols with J = {}"
@@ -392,7 +392,7 @@ void WignerInformation::assert_valid_wigner3(const Rational J) {
 }
 
 void WignerInformation::assert_valid_wigner6(const Rational J) {
-  ARTS_USER_ERROR_IF(not init, "Must not be initialized.")
+  ARTS_USER_ERROR_IF(not init, "Wigner library not initialized.  Run WignerInit first with appropriate sizes.")
 
   ARTS_USER_ERROR_IF(not(sixj or is_wigner6_ready(J)),
                      "Wigner library not ready for Wigner 6j symbols with J = {}"

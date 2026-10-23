@@ -50,7 +50,10 @@ std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
                                                    const Numeric         alt,
                                                    const Numeric         lat,
                                                    const Numeric         lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
+  ARTS_USER_ERROR_IF(not gf3.ok(),
+                     "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}",
+                     gf3.data.shape(),
+                     gf3.shape())
 
   const Index nalt = gf3.grid<0>().size();
   const Index nlat = gf3.grid<1>().size();

@@ -4,6 +4,9 @@
 #include <obsel.h>
 
 #include <algorithm>
+#include <format>
+#include <stdexcept>
+#include <string_view>
 #include <utility>
 
 namespace Jacobian {
@@ -17,7 +20,9 @@ void Targets::clear() {
 }
 
 Size Targets::x_size() const {
-  if (target_count() != 0 and not finalized) throw std::runtime_error("Not finalized.");
+  if (target_count() != 0 and not finalized) {
+    throw std::runtime_error("The Jacobian targets are not finalized.  Run jac_targetsFinalize first.");
+  }
 
   const auto sz = [](const auto& x) -> Size { return x.overlap ? 0 : x.x_size; };
 
@@ -38,37 +43,34 @@ bool Targets::empty() const { return target_count() == 0; }
 void Targets::throwing_check(Size xsize) const {
   const auto t_size = target_count();
 
-  if (xsize != x_size()) throw std::runtime_error("The size of the x-vector does not match the size of the targets.");
-
-  for (auto& a : atm) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
+  if (xsize != x_size()) {
+    throw std::runtime_error(
+        std::format("The x-vector has {} elements, but the Jacobian targets need {}", xsize, x_size()));
   }
 
-  for (auto& a : surf) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
-  }
+  const auto check = [xsize, t_size](const auto& targets, const std::string_view kind) {
+    for (auto& a : targets) {
+      if ((a.x_start + a.x_size) > xsize) {
+        throw std::runtime_error(
+            std::format("A {} Jacobian target covers the x-vector range [{}, {}), but the x-vector has {} elements",
+                        kind,
+                        a.x_start,
+                        a.x_start + a.x_size,
+                        xsize));
+      }
+      if (t_size <= a.target_pos) {
+        throw std::runtime_error(std::format(
+            "A {} Jacobian target has position {}, but there are only {} targets", kind, a.target_pos, t_size));
+      }
+    }
+  };
 
-  for (auto& a : subsurf) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
-  }
-
-  for (auto& a : line) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
-  }
-
-  for (auto& a : sensor) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
-  }
-
-  for (auto& a : error) {
-    if ((a.x_start + a.x_size) > xsize) throw std::runtime_error("x-vector out-of-bounds");
-    if (t_size <= a.target_pos) throw std::runtime_error("target-vector out-of-bounds.");
-  }
+  check(atm, "atmospheric");
+  check(surf, "surface");
+  check(subsurf, "subsurface");
+  check(line, "line");
+  check(sensor, "sensor");
+  check(error, "error");
 }
 
 std::vector<AtmTarget>::const_iterator Targets::find(const AtmKeyVal& t) const {

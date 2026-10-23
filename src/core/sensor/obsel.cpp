@@ -156,19 +156,26 @@ bool Obsel::same_poslos(const std::shared_ptr<const PosLosVector>& other) const 
 bool Obsel::same_poslos(const PosLosVector& other) const { return poslos.get() == &other; }
 
 void Obsel::set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n) {
-  ARTS_USER_ERROR_IF(not n, "Must exist");
-  ARTS_USER_ERROR_IF(n->size() != f->size(), "Mismatching size");
+  ARTS_USER_ERROR_IF(not n, "Cannot set the frequency grid to an empty pointer");
+  ARTS_USER_ERROR_IF(
+      n->size() != f->size(), "Cannot replace the frequency grid of size {} by one of size {}", f->size(), n->size());
   f = std::move(n);
 }
 
 void Obsel::set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n) {
-  ARTS_USER_ERROR_IF(not n, "Must exist");
-  ARTS_USER_ERROR_IF(n->size() != poslos->size(), "Mismatching size");
+  ARTS_USER_ERROR_IF(not n, "Cannot set the position and line-of-sight vector to an empty pointer");
+  ARTS_USER_ERROR_IF(n->size() != poslos->size(),
+                     "Cannot replace the position and line-of-sight vector of size {} by one of size {}",
+                     poslos->size(),
+                     n->size());
   poslos = std::move(n);
 }
 
 void Obsel::set_weight_matrix(SparseStokvecMatrix n) {
-  ARTS_USER_ERROR_IF(n.shape() != w.shape(), "Mismatching shape");
+  ARTS_USER_ERROR_IF(n.shape() != w.shape(),
+                     "Cannot replace the weight matrix of shape {:B,} by one of shape {:B,}",
+                     w.shape(),
+                     n.shape());
   w = std::move(n);
 }
 

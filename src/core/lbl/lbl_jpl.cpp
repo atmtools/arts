@@ -3,6 +3,7 @@
 #include <arts_conversions.h>
 #include <fast_float/fast_float.h>
 #include <jpl_species.h>
+#include <mystring.h>
 #include <partfun.h>
 #include <quantum.h>
 
@@ -78,7 +79,7 @@ bool read_jpl_line(jpl_record& record, const std::string& linedata) try {
 
   return read_jpl_entry(record, data);
 } catch (std::exception& e) {
-  ARTS_USER_ERROR("Internal error:\n\n{}\n\nFailed to read JPL line record:\n\n{}", e.what(), linedata);
+  ARTS_USER_ERROR("Failed to read JPL line record:\n\n{}\n\n{}", linedata, indent(e.what()));
 }
 }  // namespace
 

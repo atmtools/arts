@@ -12,7 +12,7 @@ namespace lbl::temperature {
 static_assert(LineShapeModelTypeSize == enumsize::LineShapeModelTypeSize, "Invalid number of models");
 
 data::data(LineShapeModelType type, Vector X) : t(type), x(std::move(X)) {
-  ARTS_USER_ERROR_IF(not good_enum(t), "Invalid model type")
+  ARTS_USER_ERROR_IF(not good_enum(t), "Invalid LineShapeModelType value {}", std::to_underlying(t))
   ARTS_USER_ERROR_IF(Size n = model_size(t); n != std::numeric_limits<Size>::max() and n != static_cast<Size>(x.size()),
                                              "Invalid number of parameters for model {}"
                                              "\nExpected {}"
@@ -47,7 +47,7 @@ Numeric& data::X(LineShapeModelCoefficient coeff) {
     case LineShapeModelCoefficient::X1:     ARTS_USER_ERROR_IF(x.size() < 2, "No X1 value in data."); return x[1];
     case LineShapeModelCoefficient::X2:     ARTS_USER_ERROR_IF(x.size() < 3, "No X2 value in data."); return x[2];
     case LineShapeModelCoefficient::X3:     ARTS_USER_ERROR_IF(x.size() < 4, "No X3 value in data."); return x[3];
-    case LineShapeModelCoefficient::unused: ARTS_USER_ERROR("Invalid state")
+    case LineShapeModelCoefficient::unused: ARTS_USER_ERROR("Use coefficient X0, X1, X2, or X3, not \"unused\"")
   }
   std::unreachable();
 }

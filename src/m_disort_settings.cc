@@ -497,7 +497,11 @@ void disort_settingsSubsurfaceScalarAbsorption(DisortSettings&                  
   const Index N = disort_settings.layer_count();
 
   ARTS_USER_ERROR_IF(ray_path.size() != subsurf_profile.size() or subsurf_profile.size() != static_cast<Size>(N + 1),
-                     "Wrong path size.")
+                     "ray_path and subsurf_profile must both have {} points (the number of DISORT layers plus one), "
+                     "got {} and {}",
+                     N + 1,
+                     ray_path.size(),
+                     subsurf_profile.size())
 
   if (N == 0) return;
 

@@ -84,15 +84,18 @@ SpeciesTag parse_tag(std::string_view text) {
   SpeciesTag             tag;
 
   // The first part is a species --- we do not know what to do with it yet
-  SpeciesEnum species = SpeciesEnum::Bath;  // Default value
+  const std::string_view species_key = next(text);
+  SpeciesEnum            species     = SpeciesEnum::Bath;  // Default value
   try {
-    species = spec(next(text), orig);
-  } catch (std::exception& e) {
-    throw std::runtime_error(
-        std::format("Error parsing species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
-                    orig,
-                    enumtyps::SpeciesEnumTypes,
-                    e.what()));
+    species = spec(species_key, orig);
+  } catch (std::exception&) {
+    throw std::runtime_error(std::format(
+        "Error parsing species in tag \"{}\".\n\n"
+        "Unknown species \"{}\".  Valid species are:\n{:Bq,}\n\n"
+        "Check the documentation for valid species, or add the species to arts-cat-data and recompile ARTS.",
+        orig,
+        species_key,
+        enumtyps::SpeciesEnumTypes));
   }
 
   // If there is no text remaining after the previous next(), then we are a
@@ -103,15 +106,18 @@ SpeciesTag parse_tag(std::string_view text) {
     check(text, orig);
   } else {
     if (const std::string_view tag_key = next(text); tag_key == "CIA") {
-      tag.spec_ind = isot(species, Isotope::Joker, orig);
+      tag.spec_ind                   = isot(species, Isotope::Joker, orig);
+      const std::string_view cia_key = next(text);
       try {
-        tag.cia_2nd_species = spec(next(text), orig);
-      } catch (std::exception& e) {
+        tag.cia_2nd_species = spec(cia_key, orig);
+      } catch (std::exception&) {
         throw std::runtime_error(std::format(
-            "Error parsing second species in tag \"{}\".\n\nValid SpeciesEnum are:\n{:Bq,}\n\nInternal error: {}",
+            "Error parsing second species in tag \"{}\".\n\n"
+            "Unknown species \"{}\".  Valid species are:\n{:Bq,}\n\n"
+            "Check the documentation for valid species, or add the species to arts-cat-data and recompile ARTS.",
             orig,
-            enumtyps::SpeciesEnumTypes,
-            e.what()));
+            cia_key,
+            enumtyps::SpeciesEnumTypes));
       }
       tag.type = SpeciesTagType::Cia;
       check(text, orig);
@@ -122,13 +128,16 @@ SpeciesTag parse_tag(std::string_view text) {
     } else {
       try {
         tag.spec_ind = isot(species, tag_key, orig);
-      } catch (std::exception& e) {
+      } catch (std::exception&) {
         throw std::runtime_error(std::format(
-            "Error parsing isotopologue in tag \"{}\".\n\nValid isotopologues of species {} are:\n{:Bq,}\n\nInternal error: {}",
+            "Error parsing isotopologue in tag \"{}\".\n\n"
+            "Species {} has no isotopologue \"{}\".  Valid isotopologues of species {} are:\n{:Bq,}\n\n"
+            "Check the documentation for valid isotopologues, or add the isotopologue to arts-cat-data and recompile ARTS.",
             orig,
             species,
-            isotopologues(species),
-            e.what()));
+            tag_key,
+            species,
+            isotopologues(species)));
       }
       tag.type = Isotopologues[tag.spec_ind].is_predefined() ? SpeciesTagType::Predefined : SpeciesTagType::Plain;
     }

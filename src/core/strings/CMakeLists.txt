@@ -1,5 +1,5 @@
 
-add_library(strings STATIC mystring.cpp string_extract.cpp)
+add_library(strings STATIC string_extract.cpp)
 
 target_include_directories(strings PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 target_include_directories(strings PUBLIC "${ARTS_SOURCE_DIR}/3rdparty/")

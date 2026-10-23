@@ -3,6 +3,7 @@
 #include <arts_conversions.h>
 #include <fast_float/fast_float.h>
 #include <hitran_species.h>
+#include <mystring.h>
 #include <partfun.h>
 #include <quantum.h>
 
@@ -127,7 +128,7 @@ Thank you!
 
   return true;
 } catch (std::exception& e) {
-  ARTS_USER_ERROR("Internal error:\n\n{}\n\nFailed to read HITRAN line record:\n\n{}", e.what(), linedata);
+  ARTS_USER_ERROR("Failed to read HITRAN line record:\n\n{}\n\n{}", linedata, indent(e.what()));
 }
 }  // namespace
 

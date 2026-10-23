@@ -25,7 +25,7 @@ def _CallbackOperator(func, ins, outs, fnstr="Undefined"):
                     setattr(ws, attr, val)
         except Exception as e:
             raise RuntimeError(
-                f"Raised internal error:\n{e}\n\n"
+                f"The callback raised an error:\n{e}\n\n"
                 "The original function (if known) reads:\n"
                 f"{fnstr}"
                 f"\n\nThe callback is:\nInput: {ins}\nOutput: {outs}"

@@ -320,9 +320,9 @@ std::string method_error(const std::string& name, const WorkspaceMethodInternalR
     }
   }
 
-  os << ")\n\nMethod reports the following error(s):\n{})-WSM-\", ";
+  os << ")\n\n{})-WSM-\", ";
   for (auto& a : arg) { os << std::format("{},\n           ", a); }
-  os << "std::string_view(e.what())));\n";
+  os << "indent(e.what(), \"    \")));\n";
   return os.str();
 }
 

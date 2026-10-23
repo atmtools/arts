@@ -71,7 +71,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
   ARTS_USER_ERROR_IF(n < 2, "Must have a frequency grid")
   ARTS_USER_ERROR_IF(n != stds.size(), "Must have a standard deviation for each frequency point")
   ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le<0.0>()), "Standard deviation must be positive.\nstds := {:B,}", stds)
-  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
+  ARTS_USER_ERROR_IF(nonzero == 0, "The polarization pol must have at least one non-zero Stokes component")
 
   measurement_sensor.resize(sz + n);
 
@@ -135,7 +135,7 @@ void measurement_sensorAddZenithResponse(ArrayOfSensorObsel&                    
 
   ARTS_USER_ERROR_IF(n_za != zen_weights.size(), "dzen_grid and zen_weights must have same size");
   const Size nonzero = pol.nonzero_components();
-  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
+  ARTS_USER_ERROR_IF(nonzero == 0, "The polarization pol must have at least one non-zero Stokes component")
 
   measurement_sensor.resize(sz + n_freq);
 
@@ -409,7 +409,8 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   ARTS_USER_ERROR_IF(focal_length <= 0, "focal_length must be positive, got {}", focal_length)
   ARTS_USER_ERROR_IF(aperture_diameter <= 0, "aperture_diameter must be positive, got {}", aperture_diameter)
   ARTS_USER_ERROR_IF(focus_distance <= 0, "focus_distance must be positive, got {}", focus_distance)
-  ARTS_USER_ERROR_IF(pol.nonzero_components() == 0, "pol is 0")
+  ARTS_USER_ERROR_IF(pol.nonzero_components() == 0,
+                     "The polarization pol must have at least one non-zero Stokes component")
 
   // Pixel pitch (distance between pixel centers)
   const Numeric pitch_h = ccd_h / static_cast<Numeric>(n_h);

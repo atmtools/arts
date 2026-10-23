@@ -1,5 +1,6 @@
 #include "subsurf_field.h"
 
+#include <debug.h>
 #include <enumsSubsurfaceKey.h>
 #include <lagrange_interp.h>
 
@@ -232,7 +233,10 @@ ComputeLimit find_limit(const Data &data, const Limits &lim, Numeric alt, Numeri
 }
 
 Numeric get(const GeodeticField3 &gf3, const Numeric alt, const Numeric lat, const Numeric lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
+  ARTS_USER_ERROR_IF(not gf3.ok(),
+                     "The subsurface field data shape {:B,} does not match its grid sizes {:B,}",
+                     gf3.data.shape(),
+                     gf3.shape())
 
   using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
@@ -282,7 +286,10 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
                                                       const Numeric         alt,
                                                       const Numeric         lat,
                                                       const Numeric         lon) {
-  if (not gf3.ok()) throw std::runtime_error("bad field");
+  ARTS_USER_ERROR_IF(not gf3.ok(),
+                     "The subsurface field data shape {:B,} does not match its grid sizes {:B,}",
+                     gf3.data.shape(),
+                     gf3.shape())
 
   const Index nalt = gf3.grid<0>().size();
   const Index nlat = gf3.grid<1>().size();
