@@ -77,6 +77,12 @@ add_executable(test_xml test_xml.cc)
 target_link_libraries(test_xml matpack xml_io)
 target_include_directories(test_xml PRIVATE ${ARTS_SOURCE_DIR}/src)
 
+# Function pointers registered for XML IO must round trip by their ID.
+add_executable(test_xml_functional test_xml_functional.cc)
+target_link_libraries(test_xml_functional PRIVATE matpack xml_io)
+add_dependencies(check-deps test_xml_functional)
+add_test(NAME "cpp.fast.xml_functional" COMMAND test_xml_functional)
+
 # ########## next testcase ###############
 add_executable(test_complex test_complex.cc)
 target_link_libraries(test_complex matpack)
