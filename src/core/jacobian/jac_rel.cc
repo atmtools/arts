@@ -22,12 +22,6 @@ The incoming data has {} elements
   return x;
 }
 
-Vector relfwd::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
-
-Vector relfwd::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
-
-Vector relfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
-
 Vector relinv::operator()(ConstVectorView xx) const {
   if (not sorig) arts::user_error("No original-vector provided for relinv.");
   const Vector& orig = *sorig;
@@ -44,12 +38,6 @@ The incoming data has {} elements
                      xx.size());
   return matpack::einsum<Vector, "i", "i", "i">(xx, orig);
 }
-
-Vector relinv::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
-
-Vector relinv::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
-
-Vector relinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix relinv::operator()(ConstMatrixView dyy) const {
   if (not sorig) arts::user_error("No original-vector provided for relinv.");
@@ -69,41 +57,4 @@ The incoming jacobian has {} elements
 
   // y = x * orig, so dy/dx = orig (ARTS2 used y / x, which is the same)
   return matpack::einsum<Matrix, "ij", "ij", "j">(dyy, orig);
-}
-
-Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const AtmField&) const { return this->operator()(dy); }
-
-Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const SurfaceField&) const {
-  return this->operator()(dy);
-}
-
-Matrix relinv::operator()(ConstMatrixView dy, ConstVectorView, const SubsurfaceField&) const {
-  return this->operator()(dy);
-}
-
-void make_relfit(Jacobian::AtmTarget& x, const AtmField& atm) {
-  auto         sorig = std::make_shared<Vector>(atm[x.type].flat_view());
-  const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
-}
-
-void make_relfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
-  auto         sorig = std::make_shared<Vector>(surf[x.type].flat_view());
-  const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
-}
-
-void make_relfit(Jacobian::SubsurfaceTarget& x, const SubsurfaceField& subsurf) {
-  auto         sorig = std::make_shared<const Vector>(subsurf[x.type].flat_view());
-  const relfwd rfwd{.sorig = sorig};
-  const relinv rinv{.sorig = sorig};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
 }
