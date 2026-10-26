@@ -444,6 +444,13 @@ void workspace_helpers() {
   rejects([&] { data.check(&unfinalized_targets); }, "explicit target revalidation");
   require(not data.checked(), "Failed validation invalidates checked status");
   rejects([&] { data.ensure_checked(unfinalized_targets); }, "unchecked target validation");
+
+  // A target appended to the lists, e.g., from Python, bypasses the finalized flag
+  JacobianTargets stale_targets;
+  stale_targets.atm.push_back(Jacobian::AtmTarget{.type = AtmKey::t});
+  stale_targets.finalized = true;
+  require(not stale_targets.is_finalized(), "Unpositioned targets count as finalized");
+  rejects([&] { data.check(&stale_targets); }, "unpositioned target validation");
 }
 
 // Same-executable comparison with the pre-refactor mult_inv implementation.

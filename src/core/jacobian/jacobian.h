@@ -298,6 +298,9 @@ struct Targets final {
     f(self.error);
   }
 
+  //! True if finalize has been called and no target has been added since
+  [[nodiscard]] bool is_finalized() const;
+
   [[nodiscard]] Size x_size() const;
 
   [[nodiscard]] Size target_count() const;

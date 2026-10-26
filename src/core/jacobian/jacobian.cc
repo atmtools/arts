@@ -17,23 +17,30 @@ void Targets::clear() {
   finalized = false;
 }
 
-Size Targets::x_size() const {
+bool Targets::is_finalized() const {
   bool all_positioned = true;
-  Size n              = 0;
 
-  for_each_list([&](const auto& targets) {
+  //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
+  for_each_list([&all_positioned](const auto& targets) {
     for (auto& t : targets) {
-      //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
       all_positioned = all_positioned and t.x_start != std::numeric_limits<Size>::max() and
                        t.x_size != std::numeric_limits<Size>::max();
-
-      if (not t.overlap) n += t.x_size;
     }
   });
 
-  ARTS_USER_ERROR_IF(target_count() != 0 and (not finalized or not all_positioned),
+  return finalized and all_positioned;
+}
+
+Size Targets::x_size() const {
+  ARTS_USER_ERROR_IF(target_count() != 0 and not is_finalized(),
                      "The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.")
 
+  Size n = 0;
+  for_each_list([&n](const auto& targets) {
+    for (auto& t : targets) {
+      if (not t.overlap) n += t.x_size;
+    }
+  });
   return n;
 }
 
