@@ -20,6 +20,7 @@
 #include "jac_logrel.h"
 #include "jac_polyfit.h"
 #include "jac_rel.h"
+#include "jac_rh.h"
 #include "jacobian_names.h"
 #include "xml_io_stream_functional.h"
 
@@ -710,12 +711,54 @@ template <> struct xml_io_stream<JacobianTargets> {
 
 template <> struct xml_io_stream_functional<Jacobian::atm_vec> {
   using func_t    = Vector (*)(ConstVectorView, const AtmField&);
-  using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd>;
+  using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd, logrelinv, rhfwd, rhinv>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
 
 template <> struct xml_io_stream_functional<Jacobian::atm_mat> {
   using func_t    = Matrix (*)(ConstMatrixView, ConstVectorView, const AtmField&);
+  using structs_t = std::variant<relinv, loginv, logrelinv, rhinv>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::surf_vec> {
+  using func_t    = Vector (*)(ConstVectorView, const SurfaceField&);
+  using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd, logrelinv>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::surf_mat> {
+  using func_t    = Matrix (*)(ConstMatrixView, ConstVectorView, const SurfaceField&);
   using structs_t = std::variant<relinv, loginv, logrelinv>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::subsurf_vec> {
+  using func_t    = Vector (*)(ConstVectorView, const SubsurfaceField&);
+  using structs_t = std::variant<relinv, relfwd, loginv, logfwd, logrelfwd, logrelinv>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::subsurf_mat> {
+  using func_t    = Matrix (*)(ConstMatrixView, ConstVectorView, const SubsurfaceField&);
+  using structs_t = std::variant<relinv, loginv, logrelinv>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::sensor_vec> {
+  using func_t    = Vector (*)(ConstVectorView, const ArrayOfSensorObsel&);
+  using structs_t = std::variant<polyfit_sensor_offset_t, polyinv_sensor_offset_t>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::error_vec> {
+  using func_t    = Vector (*)(ConstVectorView, ConstVectorView);
+  using structs_t = std::variant<polyfit_t, polyinv_t>;
+  static constexpr std::array<func_t*, 0> funcs{};
+};
+
+template <> struct xml_io_stream_functional<Jacobian::error_mat> {
+  using func_t    = Matrix (*)(ConstMatrixView, ConstVectorView, ConstVectorView);
+  using structs_t = std::variant<polyinv_t>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
