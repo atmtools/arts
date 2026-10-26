@@ -253,10 +253,10 @@ The expected size of the target is : {}.
 
 void ErrorTarget::update_model(VectorView y, ConstVectorView x) const {
   if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
-    arts::user_error(R"(Measurement Jacobian too small.
+    arts::user_error(R"(Measurement vector or model state vector too small.
 
-Expected minimum shape: [{}, {}]
-Got shape:              [{}, {}]
+Expected minimum sizes: [{}, {}]
+Got sizes:              [{}, {}]
 )",
                      type.y_start + type.y_size,
                      x_start + x_size,
@@ -352,10 +352,10 @@ void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
   if (overlap) return;
 
   if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
-    arts::user_error(R"(Measurement Jacobian too small.
+    arts::user_error(R"(Measurement vector or model state vector too small.
 
-Expected minimum shape: [{}, {}]
-Got shape:              [{}, {}]
+Expected minimum sizes: [{}, {}]
+Got sizes:              [{}, {}]
 )",
                      type.y_start + type.y_size,
                      x_start + x_size,

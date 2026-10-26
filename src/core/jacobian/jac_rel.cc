@@ -3,7 +3,7 @@
 #include "jacobian.h"
 
 Vector relfwd::operator()(ConstVectorView xx) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for relfwd.");
   const Vector& orig = *sorig;
 
   if (orig.size() != xx.size())
@@ -29,7 +29,7 @@ Vector relfwd::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector relfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector relinv::operator()(ConstVectorView xx) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for relinv.");
   const Vector& orig = *sorig;
 
   if (orig.size() != xx.size())
@@ -52,7 +52,7 @@ Vector relinv::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector relinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix relinv::operator()(ConstMatrixView dyy) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for relinv.");
   const Vector& orig = *sorig;
   const Size    N    = orig.size();
 
@@ -67,15 +67,7 @@ The incoming jacobian has {} elements
                      N,
                      dyy.ncols());
 
-  // Matrix dy(dyy);
-
-  // for (Size i = 0; i < N; i++) {
-  //   dy[joker, i] *= y[i] / x[i];  // ??? y-> e.g., real vmr, x-> the ratio
-  // }
-
-  // return dy;
-
-  // This is what I suspect is the truth, but ARTS2 does it as above
+  // y = x * orig, so dy/dx = orig (ARTS2 used y / x, which is the same)
   return matpack::einsum<Matrix, "ij", "ij", "j">(dyy, orig);
 }
 

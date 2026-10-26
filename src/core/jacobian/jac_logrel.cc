@@ -3,14 +3,14 @@
 #include "jacobian.h"
 
 Vector logrelfwd::operator()(ConstVectorView xx) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for logrelfwd.");
   const Vector& orig = *sorig;
 
   const Size N = orig.size();
   if (N != xx.size())
     arts::user_error(R"(Mismatch size.
 
-Cannot produce a relative profile.
+Cannot produce a log-relative profile.
 
 The original data has {} elements
 The incoming data has {} elements
@@ -30,14 +30,14 @@ Vector logrelfwd::operator()(ConstVectorView x, const SurfaceField&) const { ret
 Vector logrelfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector logrelinv::operator()(ConstVectorView xx) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for logrelinv.");
   const Vector& orig = *sorig;
 
   const Size N = orig.size();
   if (N != xx.size())
     arts::user_error(R"(Mismatch size.
 
-Cannot produce a relative profile.
+Cannot produce a log-relative profile.
 
 The original data has {} elements
 The incoming data has {} elements
@@ -57,7 +57,7 @@ Vector logrelinv::operator()(ConstVectorView x, const SurfaceField&) const { ret
 Vector logrelinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix logrelinv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
-  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
+  if (not sorig) arts::user_error("No original-vector provided for logrelinv.");
   const Vector& orig = *sorig;
 
   const Size N = orig.size();
@@ -65,7 +65,7 @@ Matrix logrelinv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
   if (N != static_cast<Size>(dyy.ncols()) or x.size() != N)
     arts::user_error(R"(Mismatch size.
 
-Cannot produce a relative profile.
+Cannot produce a log-relative profile.
 
 The original data     has {} elements
 The incoming jacobian has {} elements

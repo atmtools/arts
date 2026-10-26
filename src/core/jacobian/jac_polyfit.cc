@@ -29,7 +29,7 @@ void polyfit(VectorView param, const ConstVectorView x, const ConstVectorView y)
 }
 
 Vector polyfit_t::operator()(ConstVectorView y) const {
-  if (not st) arts::user_error("No t-vector provided for polyinv.");
+  if (not st) arts::user_error("No t-vector provided for polyfit.");
   const Vector& t = *st;
 
   if (y.size() != t.size())
@@ -45,7 +45,7 @@ Vector polyfit_t::operator()(ConstVectorView y) const {
 Vector polyfit_t::operator()(ConstVectorView y, ConstVectorView) const { return this->operator()(y); }
 
 Vector polyinv_t::operator()(ConstVectorView x, ConstVectorView y) const {
-  if (not st) arts::user_error("No t-vector provided for polyfit.");
+  if (not st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& t = *st;
 
   if (y.size() != t.size())
@@ -139,7 +139,7 @@ Vector rem_azi(const SensorObsel& v, const ConstVectorView x) { return rem_poslo
 }  // namespace
 
 Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorObsel& x) const {
-  if (not fit.st) arts::user_error("No t-vector provided for polyinv.");
+  if (not fit.st) arts::user_error("No t-vector provided for polyfit.");
   const Vector&      o = *fit.st;
   const SensorObsel& v = x.at(key.measurement_elem);
 
