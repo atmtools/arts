@@ -180,7 +180,6 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
       arts::user_error("Sensor element out of bounds");
 
     auto         &elem = measurement_sensor[target.type.measurement_elem];
-    auto          m    = spectral_rad_jac[target.target_pos];
     const Numeric d    = target.d;
 
     // Check that the Jacobian targets are represented by this frequency grid and this pos-los pair
@@ -190,6 +189,16 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
     if (iposlos == SensorObsel::dont_have) continue;
 
     find_any = true;
+
+    //! The model state is polynomial coefficients, so we need the derivative of the sensor grid w.r.t. them
+    const auto *poly = target.inverse_state.target<polyinv_sensor_offset_t>();
+    ARTS_USER_ERROR_IF(poly == nullptr, "Sensor target {} has no polynomial offset model", target.type)
+    const Matrix dgrid = poly->inv();
+    ARTS_USER_ERROR_IF(static_cast<Size>(dgrid.ncols()) != target.x_size,
+                       "Sensor target {} has {} model state elements but its polynomial offset model has {}",
+                       target.type,
+                       target.x_size,
+                       dgrid.ncols())
 
     using enum SensorKeyType;
     switch (target.type.type) {
@@ -201,7 +210,25 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
       case lon:  call(x, {pos[0], pos[1], pos[2] + d}, los, d); break;
     }
 
-    m += dsrad;
+    //! Monochromatic radiance only depends on its own frequency, so the shifted
+    //! grid gives the derivative w.r.t. each grid point independently
+    if (target.type.type == freq) {
+      ARTS_USER_ERROR_IF(static_cast<Size>(dgrid.nrows()) != dsrad.size(),
+                         "Sensor target {} has a polynomial offset model for {} frequencies but the grid has {}",
+                         target.type,
+                         dgrid.nrows(),
+                         dsrad.size())
+
+      for (Size k = 0; k < target.x_size; k++) {
+        auto m = spectral_rad_jac[target.x_start + k];
+        for (Size i = 0; i < dsrad.size(); i++) m[i] += dgrid[i, k] * dsrad[i];
+      }
+    } else {
+      for (Size k = 0; k < target.x_size; k++) {
+        auto m = spectral_rad_jac[target.x_start + k];
+        for (Size i = 0; i < dsrad.size(); i++) m[i] += dgrid[iposlos, k] * dsrad[i];
+      }
+    }
   }
 
   if (target_uses_frequency_grid and not find_any)

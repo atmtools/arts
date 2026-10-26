@@ -169,6 +169,6 @@ void make_polyoffset(Jacobian::SensorTarget& x, const Size polyorder, const Arra
   const polyinv_sensor_offset_t pinv{.inv = polyinv_t{.st = st, .polyorder = polyorder}, .key = x.type};
   x.x_size        = polyorder + 1;
   x.inverse_state = pinv;
-  // x.inverse_jacobian = pinv;  Not neccessary, actively bad
+  // No inverse_jacobian: spectral_rad_jacAddSensorJacobianPerturbations maps directly to the coefficients
   x.transform_state = pfit;
 }
