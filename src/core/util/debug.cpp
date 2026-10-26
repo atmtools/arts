@@ -2,6 +2,7 @@
 
 #include <mystring.h>
 
+#include <atomic>
 #include <exception>
 #include <format>
 #include <string>
@@ -30,18 +31,23 @@ std::runtime_error catch_errors(std::exception& e, const std::string_view contex
   return std::runtime_error(std::format("{}\n{}", context, indent(e.what())));
 }
 
-void user_error(const std::string_view msg, [[maybe_unused]] const src_location& location) {
+namespace {
+std::atomic<bool> show_cpp_error_location_ {
 #ifdef NDEBUG
-  throw std::runtime_error(std::string{msg});
+  false
 #else
-  throw std::runtime_error(std::format(
-      R"(User error found in:                                   
-                                                     
-{1}
-                                                     
-{0})",
-      msg,
-      location.get()));
+  true
 #endif
+};
+}  // namespace
+
+bool show_cpp_error_location() { return show_cpp_error_location_.load(std::memory_order_relaxed); }
+
+void show_cpp_error_location(bool show) { show_cpp_error_location_.store(show, std::memory_order_relaxed); }
+
+void user_error(const std::string_view msg, const src_location& location) {
+  if (not show_cpp_error_location()) throw std::runtime_error(std::string{msg});
+
+  throw std::runtime_error(std::format("ARTS C++ error location:\n{}\n{}", indent(location.get()), msg));
 }
 }  // namespace arts

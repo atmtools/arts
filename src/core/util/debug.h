@@ -100,6 +100,12 @@ template <typename... Args> struct located_format {
   }
 };
 
+//! Whether user errors report the C++ source location they were thrown from
+bool show_cpp_error_location();
+
+//! Sets whether user errors report the C++ source location they were thrown from
+void show_cpp_error_location(bool show);
+
 //! Throws a user error with the message
 [[noreturn]] void user_error(const std::string_view msg,
                              const src_location&    location = std::source_location::current());

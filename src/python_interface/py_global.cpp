@@ -303,6 +303,15 @@ Parameters
       .def_ro_static("arts_source_dir",
                      &global_data::arts_source_dir,
                      "The original ARTS source directory, if available\n\n.. :class:`str`")
+      .def_prop_rw_static(
+          "show_cpp_error_location",
+          [](py::handle) { return arts::show_cpp_error_location(); },
+          [](py::handle, bool show) { arts::show_cpp_error_location(show); },
+          R"(Whether user errors report the C++ source location they were thrown from
+
+The default is :class:`True` for debug builds and :class:`False` otherwise.
+
+.. :class:`bool`)")
       .def("__repr__",
            [](const global_data&) {
              return std::format(R"(Global state of ARTS:
