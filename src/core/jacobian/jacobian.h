@@ -429,7 +429,7 @@ template <> struct std::formatter<JacobianTargetType> {
   }
 };
 
-template <> struct std::formatter<Jacobian::AtmTarget> {
+template <Jacobian::target_type T> struct std::formatter<T> {
   format_tags tags;
 
   [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
@@ -439,7 +439,7 @@ template <> struct std::formatter<Jacobian::AtmTarget> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::AtmTarget& v, FmtContext& ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const T& v, FmtContext& ctx) const {
     if (tags.short_str) return tags.format(ctx, v.type);
 
     const std::string_view sep = tags.sep();
@@ -456,145 +456,6 @@ template <> struct std::formatter<Jacobian::AtmTarget> {
                        sep,
                        "x_size: "sv,
                        v.x_size);
-  }
-};
-
-template <> struct std::formatter<Jacobian::SurfaceTarget> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::SurfaceTarget& v, FmtContext& ctx) const {
-    if (tags.short_str) return tags.format(ctx, v.type);
-
-    const std::string_view sep = tags.sep();
-    return tags.format(ctx,
-                       v.type,
-                       ": "sv,
-                       v.d,
-                       sep,
-                       "target_pos: "sv,
-                       v.target_pos,
-                       sep,
-                       "x_start: "sv,
-                       v.x_start,
-                       sep,
-                       "x_size: "sv,
-                       v.x_size);
-  }
-};
-
-template <> struct std::formatter<Jacobian::SubsurfaceTarget> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::SubsurfaceTarget& v, FmtContext& ctx) const {
-    if (tags.short_str) return tags.format(ctx, v.type);
-
-    const std::string_view sep = tags.sep();
-    return tags.format(ctx,
-                       v.type,
-                       ": "sv,
-                       v.d,
-                       sep,
-                       "target_pos: "sv,
-                       v.target_pos,
-                       sep,
-                       "x_start: "sv,
-                       v.x_start,
-                       sep,
-                       "x_size: "sv,
-                       v.x_size);
-  }
-};
-
-template <> struct std::formatter<Jacobian::LineTarget> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::LineTarget& v, FmtContext& ctx) const {
-    if (tags.short_str) return tags.format(ctx, v.type);
-
-    const std::string_view sep = tags.sep();
-    return tags.format(ctx,
-                       v.type,
-                       ": "sv,
-                       v.d,
-                       sep,
-                       "target_pos: "sv,
-                       v.target_pos,
-                       sep,
-                       "x_start: "sv,
-                       v.x_start,
-                       sep,
-                       "x_size: "sv,
-                       v.x_size);
-  }
-};
-
-template <> struct std::formatter<Jacobian::SensorTarget> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::SensorTarget& v, FmtContext& ctx) const {
-    if (tags.short_str) return tags.format(ctx, v.type);
-
-    const std::string_view sep = tags.sep();
-    return tags.format(ctx,
-                       v.type,
-                       ": "sv,
-                       v.d,
-                       sep,
-                       "target_pos: "sv,
-                       v.target_pos,
-                       sep,
-                       "x_start: "sv,
-                       v.x_start,
-                       sep,
-                       "x_size: "sv,
-                       v.x_size);
-  }
-};
-
-template <> struct std::formatter<Jacobian::ErrorTarget> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const Jacobian::ErrorTarget& v, FmtContext& ctx) const {
-    if (tags.short_str) return tags.format(ctx, v.type);
-
-    const std::string_view sep = tags.sep();
-    return tags.format(
-        ctx, v.type, ": target_pos: "sv, v.target_pos, sep, "x_start: "sv, v.x_start, sep, "x_size: "sv, v.x_size);
   }
 };
 
