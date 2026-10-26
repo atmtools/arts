@@ -17,12 +17,22 @@ void Targets::clear() {
   line.clear();
   sensor.clear();
   error.clear();
+
+  finalized = false;
 }
 
 Size Targets::x_size() const {
-  if (target_count() != 0 and not finalized) {
-    throw std::runtime_error("The Jacobian targets are not finalized.  Run jac_targetsFinalize first.");
-  }
+  constexpr auto positioned = [](const auto& x) {
+    return x.x_start != std::numeric_limits<Size>::max() and x.x_size != std::numeric_limits<Size>::max();
+  };
+
+  //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
+  const bool all_positioned = stdr::all_of(atm, positioned) and stdr::all_of(surf, positioned) and
+                              stdr::all_of(subsurf, positioned) and stdr::all_of(line, positioned) and
+                              stdr::all_of(sensor, positioned) and stdr::all_of(error, positioned);
+
+  ARTS_USER_ERROR_IF(target_count() != 0 and (not finalized or not all_positioned),
+                     "The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.")
 
   const auto sz = [](const auto& x) -> Size { return x.overlap ? 0 : x.x_size; };
 
@@ -652,49 +662,53 @@ but the measurement_vec will only have {} element by the measurement_sensor.
 
 AtmTarget& Targets::emplace_back(AtmKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return atm.emplace_back(std::move(t), d, n);
 }
 
 SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return surf.emplace_back(std::move(t), d, n);
 }
 
 SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return subsurf.emplace_back(std::move(t), d, n);
 }
 
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return line.emplace_back(std::move(t), d, n);
 }
 
 SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return sensor.emplace_back(std::move(t), d, n);
 }
 
 ErrorTarget& Targets::emplace_back(ErrorKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return error.emplace_back(std::move(t), d, n);
 }
 
-AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) { return atm.emplace_back(t, d, target_count()); }
+AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) { return emplace_back(AtmKeyVal{t}, d); }
 
-SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) {
-  return surf.emplace_back(t, d, target_count());
-}
+SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) { return emplace_back(SurfaceKeyVal{t}, d); }
 
 SubsurfaceTarget& Targets::emplace_back(const SubsurfaceKeyVal& t, Numeric d) {
-  return subsurf.emplace_back(t, d, target_count());
+  return emplace_back(SubsurfaceKeyVal{t}, d);
 }
 
-LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) { return line.emplace_back(t, d, target_count()); }
+LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) { return emplace_back(LblLineKey{t}, d); }
 
-SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) { return sensor.emplace_back(t, d, target_count()); }
+SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) { return emplace_back(SensorKey{t}, d); }
 
-ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) { return error.emplace_back(t, d, target_count()); }
+ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) { return emplace_back(ErrorKey{t}, d); }
 }  // namespace Jacobian
 
 void xml_io_stream<JacobianTargetType>::write(std::ostream&             os,

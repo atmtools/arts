@@ -93,6 +93,8 @@ void jac_targetsAddOverlappingMagneticField(JacobianTargets& jac_targets) {
   const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size   N         = jac_targets.target_count();
 
+  jac_targets.finalized = false;
+
   // Must copy because emplace_back destroys the pointer
   auto copy        = *fptr;
   copy.overlap     = true;
@@ -139,6 +141,8 @@ void jac_targetsAddOverlappingWindField(JacobianTargets& jac_targets) {
 
   const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size   N         = jac_targets.target_count();
+
+  jac_targets.finalized = false;
 
   // Must copy because emplace_back destroys the pointer
   auto copy        = *fptr;
