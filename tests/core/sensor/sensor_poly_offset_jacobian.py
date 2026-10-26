@@ -68,20 +68,33 @@ assert J_both.shape[1] == nt + 1
 assert_close(J_both[:, nt], J_sensor[:, 0], 1e-6, "Sensor column misplaced")
 assert_close(J_both[:, :nt], J_t, 1e-6, "Sensor derivative leaked into temperature")
 
-# %% Polynomial order 1: f_i -> f_i + c0 + c1 * f_i
+# %% Polynomial order 1: f_i -> f_i + c0 + c1 * t_i, with t the grid mapped to [-1, 1]
 
 _, J_poly = jacobian(False, 1)
 assert J_poly.shape[1] == 2
 
 assert_close(J_poly[:, 0], J_sensor[:, 0], 1e-6, "Constant term changed")
 
-delta = D / line_f0
+t = (f - 0.5 * (f.max() + f.min())) / (0.5 * (f.max() - f.min()))
 set_sensor(f)
 ws.jac_targetsInit()
 ws.measurement_vecFromSensor()
 y0 = np.array(ws.measurement_vec)
-set_sensor(f + delta * f)
+set_sensor(f + D * t)
 ws.measurement_vecFromSensor()
 y1 = np.array(ws.measurement_vec)
 
-assert_close(J_poly[:, 1], (y1 - y0) / delta, 1e-3, "Linear term wrong")
+# The shifts here have both signs while the Jacobian uses forward differences,
+# so the two differ at second order
+assert_close(J_poly[:, 1], (y1 - y0) / D, 1e-2, "Linear term wrong")
+
+# %% The polynomial order must be less than the number of grid points
+
+set_sensor(f)
+ws.jac_targetsInit()
+try:
+    ws.jac_targetsAddSensorFrequencyPolyOffset(sensor_elem=0, d=D, polyorder=NF)
+except Exception:
+    pass
+else:
+    raise AssertionError("Accepted a polynomial order the grid cannot determine")

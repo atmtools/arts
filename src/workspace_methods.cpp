@@ -3147,10 +3147,12 @@ those with regards to a, b, etc..
 
 Order 0 means constant: :math:`f := f_0 + a`
 
-Order 1 means linear:   :math:`f := f_0 + a + b f_0`
+Order 1 means linear:   :math:`f := f_0 + a + b t`
 
-and so on.  The derivatives that are added to the *model_state_vec* are
-those with regards to a, b, etc..
+and so on, where :math:`t` is :math:`f_0` mapped to :math:`[-1, 1]` over the
+grid.  So all coefficients are frequency shifts, :math:`a` at the centre of
+the grid and :math:`a \pm b` at its edges.  The derivatives that are added
+to the *model_state_vec* are those with regards to a, b, etc..
 
 .. note::
 
