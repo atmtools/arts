@@ -278,15 +278,6 @@ template <target_type T> [[nodiscard]] bool has_transformation(const T& t) {
   return t.transform_state or t.inverse_state or t.inverse_jacobian;
 }
 
-template <typename U, typename T>
-concept target_comparable = target_type<T> and requires(T a, U b) {
-  a.type == b;
-  b == a.type;
-};
-
-template <typename U, typename... T>
-concept valid_target = (std::same_as<U, T> or ...);
-
 struct Targets final {
   std::vector<AtmTarget>        atm;
   std::vector<SurfaceTarget>    surf;
