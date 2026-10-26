@@ -8,6 +8,7 @@
 #include <surf.h>
 #include <xml.h>
 
+#include <algorithm>
 #include <boost/container_hash/hash.hpp>
 #include <concepts>
 #include <limits>
@@ -75,9 +76,6 @@ struct AtmTarget {
   void update_state(VectorView x, const AtmField& y) const;
   void update_jac(MatrixView dy, cv x, const AtmField& y) const;
 };
-
-[[nodiscard]] bool is_wind(const AtmTarget&);
-[[nodiscard]] bool is_mag(const AtmTarget&);
 
 /** The class that deals with Jacobian targets that are part of a SurfaceField object
  * 
@@ -268,6 +266,16 @@ concept target_type = requires(T a) {
   { a.x_size } -> std::same_as<Size&>;
   a.type;
 };
+
+//! True if the target shares its model state with other targets, either as an overlap or as the original
+template <target_type T> [[nodiscard]] bool overlaps(const std::vector<T>& targets, const T& t) {
+  return t.overlap or std::ranges::any_of(targets, [&t](const T& o) { return o.overlap and o.overlap_key == t.type; });
+}
+
+//! True if the target transforms between the field and the model state
+template <target_type T> [[nodiscard]] bool has_transformation(const T& t) {
+  return t.transform_state or t.inverse_state or t.inverse_jacobian;
+}
 
 template <typename U, typename T>
 concept target_comparable = target_type<T> and requires(T a, U b) {

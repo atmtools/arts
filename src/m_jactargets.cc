@@ -3,6 +3,35 @@
 
 #include "properties.h"
 
+namespace {
+//! Adds the components not already in jac_targets as targets overlapping the one that is
+void add_overlapping_components(JacobianTargets&            jac_targets,
+                                const std::array<AtmKey, 3> components,
+                                std::string_view            field) {
+  const auto orig = stdr::find_if(jac_targets.atm, [&components](const Jacobian::AtmTarget& t) {
+    return stdr::any_of(components, [&t](AtmKey k) { return t.type == k; });
+  });
+
+  ARTS_USER_ERROR_IF(orig == jac_targets.atm.end(), "Cannot find original {} for component", field)
+
+  ARTS_USER_ERROR_IF(Jacobian::has_transformation(*orig),
+                     "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                     orig->type)
+
+  const AtmKey  original = std::get<AtmKey>(orig->type);
+  const Numeric d        = orig->d;
+
+  jac_targets.finalized = false;
+
+  for (const AtmKey component : components) {
+    if (component == original) continue;
+
+    jac_targets.atm.push_back(Jacobian::AtmTarget{
+        .type = component, .d = d, .target_pos = jac_targets.target_count(), .overlap = true, .overlap_key = original});
+  }
+}
+}  // namespace
+
 void jac_targetsOff(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
@@ -86,39 +115,7 @@ void jac_targetsAddMagneticField(JacobianTargets& jac_targets, const String& com
 void jac_targetsAddOverlappingMagneticField(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_mag);
-
-  if (fptr == jac_targets.atm.end()) arts::user_error("Cannot find original magnetic field for component");
-
-  const AtmKey component = std::get<AtmKey>(fptr->type);
-  const Size   N         = jac_targets.target_count();
-
-  jac_targets.finalized = false;
-
-  // Must copy because emplace_back destroys the pointer
-  auto copy        = *fptr;
-  copy.overlap     = true;
-  copy.overlap_key = component;
-  copy.target_pos  = N;
-
-  jac_targets.atm.emplace_back(copy);
-  switch (component) {
-    using enum AtmKey;
-    case mag_u: jac_targets.atm.back().type = mag_v; break;
-    case mag_v:
-    case mag_w: jac_targets.atm.back().type = mag_u; break;
-    default:    throw std::out_of_range("Invalid state");
-  }
-
-  copy.target_pos = N + 1;
-  jac_targets.atm.emplace_back(std::move(copy));
-  switch (component) {
-    using enum AtmKey;
-    case mag_u:
-    case mag_v: jac_targets.atm.back().type = mag_w; break;
-    case mag_w: jac_targets.atm.back().type = mag_v; break;
-    default:    throw std::out_of_range("Invalid state");
-  }
+  add_overlapping_components(jac_targets, {AtmKey::mag_u, AtmKey::mag_v, AtmKey::mag_w}, "magnetic field");
 }
 
 void jac_targetsAddWindField(JacobianTargets& jac_targets, const String& component, const Numeric& d) {
@@ -135,39 +132,7 @@ void jac_targetsAddWindField(JacobianTargets& jac_targets, const String& compone
 void jac_targetsAddOverlappingWindField(JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_wind);
-
-  if (fptr == jac_targets.atm.end()) arts::user_error("Cannot find original wind field for component");
-
-  const AtmKey component = std::get<AtmKey>(fptr->type);
-  const Size   N         = jac_targets.target_count();
-
-  jac_targets.finalized = false;
-
-  // Must copy because emplace_back destroys the pointer
-  auto copy        = *fptr;
-  copy.overlap     = true;
-  copy.overlap_key = component;
-  copy.target_pos  = N;
-
-  jac_targets.atm.emplace_back(std::move(copy));
-  switch (component) {
-    using enum AtmKey;
-    case wind_u: jac_targets.atm.back().type = wind_v; break;
-    case wind_v:
-    case wind_w: jac_targets.atm.back().type = wind_u; break;
-    default:     throw std::out_of_range("Invalid state");
-  }
-
-  copy.target_pos = N + 1;
-  jac_targets.atm.emplace_back(std::move(copy));
-  switch (component) {
-    using enum AtmKey;
-    case wind_u:
-    case wind_v: jac_targets.atm.back().type = wind_w; break;
-    case wind_w: jac_targets.atm.back().type = wind_v; break;
-    default:     throw std::out_of_range("Invalid state");
-  }
+  add_overlapping_components(jac_targets, {AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w}, "wind field");
 }
 
 void jac_targetsAddSpeciesVMR(JacobianTargets& jac_targets, const SpeciesEnum& species, const Numeric& d) {

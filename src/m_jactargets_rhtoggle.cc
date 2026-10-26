@@ -18,6 +18,9 @@ void jac_targetsToggleRelativeHumidityAtmTargetImpl(JacobianTargets&            
         t.inverse_state    = {};
         t.transform_state  = {};
       } else {
+        ARTS_USER_ERROR_IF(Jacobian::overlaps(jac_targets.atm, t),
+                           "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                           key)
         make_rhfit(t, f, psat, nonnegative != 0);
       }
       return;

@@ -344,9 +344,13 @@ The expected size of the target is : {}.
 
 ////////////////////////////////////////////////////////////////////////
 /// Update the model state vector
+///
+/// Overlapping targets share the model state of their original target, which alone updates it
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
     arts::user_error(R"(Measurement Jacobian too small.
 
@@ -366,6 +370,8 @@ Got shape:              [{}, {}]
 }
 
 void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not atm.contains(type)) arts::user_error("Atmosphere does not contain key value {}", type);
@@ -374,6 +380,8 @@ void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
 }
 
 void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not surf.contains(type)) arts::user_error("Surface does not contain key value {}", type);
@@ -382,6 +390,8 @@ void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
 }
 
 void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not subsurf.contains(type)) arts::user_error("Subsurface does not contain key value {}", type);
@@ -390,12 +400,16 @@ void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf
 }
 
 void LineTarget::update_state(VectorView x, const AbsorptionBands& bands) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   update_x(x[Range(x_start, x_size)], ConstVectorView{type.get_value(bands)}, transform_state, type, bands);
 }
 
 void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   const SensorObsel& v = sens.at(type.measurement_elem);
@@ -417,9 +431,13 @@ void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) co
 
 ////////////////////////////////////////////////////////////////////////
 /// Update the Jacobian
+///
+/// Overlapping targets share the model state of their original target, which alone updates it
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_jac(MatrixView dy, ConstVectorView x, ConstVectorView y) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size) or
       static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size))
     arts::user_error(R"(Measurement Jacobian too small.
@@ -441,6 +459,8 @@ Got shape:              {:B,}
 }
 
 void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -450,6 +470,8 @@ void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm
 }
 
 void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceField& surf) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -459,6 +481,8 @@ void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceFi
 }
 
 void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SubsurfaceField& subsurf) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -468,6 +492,8 @@ void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const Subsur
 }
 
 void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBands& bands) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -477,24 +503,14 @@ void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBa
 }
 
 void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSensorObsel& sens) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
   if (inverse_jacobian) {
     update_dy(dy[joker, Range(x_start, x_size)], x[Range(x_start, x_size)], inverse_jacobian, type, sens);
   }
-}
-
-////////////////////////////////////////////////////////////////////////
-/// ...
-////////////////////////////////////////////////////////////////////////
-
-bool is_wind(const AtmTarget& t) {
-  return t.type == AtmKey::wind_u or t.type == AtmKey::wind_v or t.type == AtmKey::wind_w;
-}
-
-bool is_mag(const AtmTarget& t) {
-  return t.type == AtmKey::mag_u or t.type == AtmKey::mag_v or t.type == AtmKey::mag_w;
 }
 
 void Targets::finalize(const AtmField&        atm_field,
@@ -508,6 +524,34 @@ void Targets::finalize(const AtmField&        atm_field,
   const Size nline    = line.size();
   const Size nsensor  = sensor.size();
   const Size nerror   = error.size();
+
+  const auto check_untransformed = [](const auto& targets) {
+    for (auto& t : targets) {
+      ARTS_USER_ERROR_IF(overlaps(targets, t) and has_transformation(t),
+                         "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                         t.type)
+    }
+  };
+
+  check_untransformed(atm);
+  check_untransformed(surf);
+  check_untransformed(subsurf);
+  check_untransformed(line);
+  check_untransformed(sensor);
+  check_untransformed(error);
+
+  for (auto& t : atm) {
+    if (not overlaps(atm, t)) continue;
+
+    const auto* f = atm_field[t.type].get_if<AtmFunctionalData>();
+    ARTS_USER_ERROR_IF(f == nullptr or f->f.target<Atm::MagnitudeField>() == nullptr,
+                       R"(Overlapping target {} is not a magnitude field.
+
+Overlapping targets retrieve the magnitude of a vector field.  Call
+atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
+)",
+                       t.type)
+  }
 
   Size last_size = 0;
 

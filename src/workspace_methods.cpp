@@ -3227,6 +3227,9 @@ magnetic field derivative as a combination of the three magnetic field component
 
 To call this method, you first have added 1 component of the magnetic field
 derivative, and then you call this method to add the second and third component.
+
+The magnetic field must be a magnitude field, see *atm_fieldAbsoluteMagneticField*.  Overlapping
+targets cannot be transformed, e.g., to relative or logarithmic targets.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
@@ -3265,6 +3268,9 @@ wind speed derivative as a combination of the three wind field components.
 
 To call this method, you first have added 1 component of the wind field
 derivative, and then you call this method to add the second and third component.
+
+The wind field must be a magnitude field, see *atm_fieldAbsoluteWindField*.  Overlapping
+targets cannot be transformed, e.g., to relative or logarithmic targets.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},

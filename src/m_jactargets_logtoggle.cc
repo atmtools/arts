@@ -13,6 +13,9 @@ void jac_targetsToggleLogarithmicAtmTargetImpl(JacobianTargets& jac_targets, con
         t.inverse_state    = {};
         t.transform_state  = {};
       } else {
+        ARTS_USER_ERROR_IF(Jacobian::overlaps(jac_targets.atm, t),
+                           "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                           key)
         make_logfit(t, f);
       }
       return;
@@ -33,6 +36,9 @@ void jac_targetsToggleLogarithmicSurfaceTargetImpl(JacobianTargets&     jac_targ
         t.inverse_state    = {};
         t.transform_state  = {};
       } else {
+        ARTS_USER_ERROR_IF(Jacobian::overlaps(jac_targets.surf, t),
+                           "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                           key)
         make_logfit(t, f);
       }
       return;
@@ -53,6 +59,9 @@ void jac_targetsToggleLogarithmicSubsurfaceTargetImpl(JacobianTargets&        ja
         t.inverse_state    = {};
         t.transform_state  = {};
       } else {
+        ARTS_USER_ERROR_IF(Jacobian::overlaps(jac_targets.subsurf, t),
+                           "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                           key)
         make_logfit(t, f);
       }
       return;
