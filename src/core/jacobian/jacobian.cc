@@ -7,6 +7,7 @@
 #include <format>
 #include <stdexcept>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 namespace Jacobian {
@@ -513,10 +514,10 @@ void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSen
   }
 }
 
-void Targets::finalize(const AtmField&        atm_field,
-                       const SurfaceField&    surf_field,
-                       const SubsurfaceField& subsurf_field,
-                       const AbsorptionBands&,
+void Targets::finalize(const AtmField&           atm_field,
+                       const SurfaceField&       surf_field,
+                       const SubsurfaceField&    subsurf_field,
+                       const AbsorptionBands&    abs_bands,
                        const ArrayOfSensorObsel& measurement_sensor) {
   const Size natm     = atm.size();
   const Size nsurf    = surf.size();
@@ -614,6 +615,12 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
     if (stdr::any_of(line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type))
       arts::user_error("Multiple targets of the same type: {}", t.type);
 
+    try {
+      std::ignore = t.type.get_value(abs_bands);
+    } catch (const std::exception& e) {
+      throw std::runtime_error(std::format("Line target {} is not in abs_bands:\n{}", t.type, e.what()));
+    }
+
     if (t.overlap) {
       const auto f = stdr::find(line, t.overlap_key, &LineTarget::type);
       if (static_cast<Index>(i) <= stdr::distance(line.begin(), f))
@@ -676,6 +683,9 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
 
   for (Size i = 0; i < nerror; i++) {
     ErrorTarget& t = error[i];
+    ARTS_USER_ERROR_IF(stdr::any_of(error | stdv::drop(i + 1), Cmp::eq(t.type), &ErrorTarget::type),
+                       "Multiple targets of the same type: {}",
+                       t.type)
 
     if (t.overlap) {
       const auto f = stdr::find(error, t.overlap_key, &ErrorTarget::type);

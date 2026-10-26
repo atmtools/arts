@@ -114,7 +114,12 @@ dy.shape(): {:B,}
   for (auto& a : alt) {
     for (auto& la : lat) {
       for (auto& lo : lon) {
-        out[joker, i] *= psat(t.at(a, la, lo)) / p.at(a, la, lo);
+        //! The inverse state is clamped to zero for negative x, where the field no longer depends on x
+        if (self_fix and x[i] < 0.0) {
+          out[joker, i] = 0.0;
+        } else {
+          out[joker, i] *= psat(t.at(a, la, lo)) / p.at(a, la, lo);
+        }
         i++;
       }
     }
