@@ -29,7 +29,7 @@ void polyfit(VectorView param, const ConstVectorView x, const ConstVectorView y)
 }
 
 Vector polyfit_t::operator()(ConstVectorView y) const {
-  if (not st) arts::user_error("No t-vector provided for polyinv.");
+  if (not st) arts::user_error("No t-vector provided for polyfit.");
   const Vector& t = *st;
 
   if (y.size() != t.size())
@@ -45,7 +45,7 @@ Vector polyfit_t::operator()(ConstVectorView y) const {
 Vector polyfit_t::operator()(ConstVectorView y, ConstVectorView) const { return this->operator()(y); }
 
 Vector polyinv_t::operator()(ConstVectorView x, ConstVectorView y) const {
-  if (not st) arts::user_error("No t-vector provided for polyfit.");
+  if (not st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& t = *st;
 
   if (y.size() != t.size())
@@ -136,21 +136,43 @@ Vector rem_lon(const SensorObsel& v, const ConstVectorView x) { return rem_poslo
 Vector rem_zen(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<false, 0>(v, x); }
 
 Vector rem_azi(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<false, 1>(v, x); }
+
+//! The sensor grid mapped to [-1, 1], so the polynomial offset is well-conditioned and all its coefficients are shifts
+std::shared_ptr<const Vector> normalized_grid(const std::shared_ptr<const Vector>& grid) {
+  if (not grid or grid->size() == 0) arts::user_error("No sensor grid provided for the polynomial offset.");
+
+  const auto [lo, hi] = stdr::minmax(*grid);
+  const Numeric mid   = 0.5 * (hi + lo);
+  const Numeric half  = hi > lo ? 0.5 * (hi - lo) : 1.0;
+
+  auto t = std::make_shared<Vector>(*grid);
+  for (auto& v : *t) v = (v - mid) / half;
+  return t;
+}
 }  // namespace
 
+polyfit_t polyfit_sensor_offset_t::normalized() const {
+  return {.st = normalized_grid(fit.st), .polyorder = fit.polyorder};
+}
+
+polyinv_t polyinv_sensor_offset_t::normalized() const {
+  return {.st = normalized_grid(inv.st), .polyorder = inv.polyorder};
+}
+
 Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorObsel& x) const {
-  if (not fit.st) arts::user_error("No t-vector provided for polyinv.");
+  if (not fit.st) arts::user_error("No t-vector provided for polyfit.");
   const Vector&      o = *fit.st;
   const SensorObsel& v = x.at(key.measurement_elem);
+  const polyfit_t    f = normalized();
 
   switch (key.type) {
     using enum SensorKeyType;
-    case freq: return fit(rem_frq(v, o)); break;
-    case zen:  return fit(rem_zen(v, o)); break;
-    case azi:  return fit(rem_azi(v, o)); break;
-    case alt:  return fit(rem_alt(v, o)); break;
-    case lat:  return fit(rem_lat(v, o)); break;
-    case lon:  return fit(rem_lon(v, o)); break;
+    case freq: return f(rem_frq(v, o)); break;
+    case zen:  return f(rem_zen(v, o)); break;
+    case azi:  return f(rem_azi(v, o)); break;
+    case alt:  return f(rem_alt(v, o)); break;
+    case lat:  return f(rem_lat(v, o)); break;
+    case lon:  return f(rem_lon(v, o)); break;
   }
 
   std::unreachable();
@@ -160,15 +182,19 @@ Vector polyinv_sensor_offset_t::operator()(ConstVectorView x, const ArrayOfSenso
   if (not inv.st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& o = *inv.st;
 
-  return inv(x, o);
+  return normalized()(x, o);
 }
 
 void make_polyoffset(Jacobian::SensorTarget& x, const Size polyorder, const ArrayOfSensorObsel& sensor) {
-  auto                          st = std::make_shared<const Vector>(sensor[x.type.measurement_elem].flat(x.type.type));
+  auto st = std::make_shared<const Vector>(sensor[x.type.measurement_elem].flat(x.type.type));
+
+  if (polyorder >= st->size())
+    arts::user_error("A polynomial offset of order {} needs more than {} sensor grid points", polyorder, st->size());
+
   const polyfit_sensor_offset_t pfit{.fit = polyfit_t{.st = st, .polyorder = polyorder}, .key = x.type};
   const polyinv_sensor_offset_t pinv{.inv = polyinv_t{.st = st, .polyorder = polyorder}, .key = x.type};
   x.x_size        = polyorder + 1;
   x.inverse_state = pinv;
-  // x.inverse_jacobian = pinv;  Not neccessary, actively bad
+  // No inverse_jacobian: spectral_rad_jacAddSensorJacobianPerturbations maps directly to the coefficients
   x.transform_state = pfit;
 }

@@ -3147,10 +3147,12 @@ those with regards to a, b, etc..
 
 Order 0 means constant: :math:`f := f_0 + a`
 
-Order 1 means linear:   :math:`f := f_0 + a + b f_0`
+Order 1 means linear:   :math:`f := f_0 + a + b t`
 
-and so on.  The derivatives that are added to the *model_state_vec* are
-those with regards to a, b, etc..
+and so on, where :math:`t` is :math:`f_0` mapped to :math:`[-1, 1]` over the
+grid.  So all coefficients are frequency shifts, :math:`a` at the centre of
+the grid and :math:`a \pm b` at its edges.  The derivatives that are added
+to the *model_state_vec* are those with regards to a, b, etc..
 
 .. note::
 
@@ -3227,6 +3229,9 @@ magnetic field derivative as a combination of the three magnetic field component
 
 To call this method, you first have added 1 component of the magnetic field
 derivative, and then you call this method to add the second and third component.
+
+The magnetic field must be a magnitude field, see *atm_fieldAbsoluteMagneticField*.  Overlapping
+targets cannot be transformed, e.g., to relative or logarithmic targets.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
@@ -3265,6 +3270,9 @@ wind speed derivative as a combination of the three wind field components.
 
 To call this method, you first have added 1 component of the wind field
 derivative, and then you call this method to add the second and third component.
+
+The wind field must be a magnitude field, see *atm_fieldAbsoluteWindField*.  Overlapping
+targets cannot be transformed, e.g., to relative or logarithmic targets.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},

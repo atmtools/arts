@@ -13,28 +13,28 @@ struct logrelfwd {
   std::shared_ptr<const Vector> sorig;
 
   Vector operator()(ConstVectorView x) const;
-  Vector operator()(ConstVectorView x, const AtmField& y) const;
-  Vector operator()(ConstVectorView x, const SurfaceField& y) const;
-  Vector operator()(ConstVectorView x, const SubsurfaceField& y) const;
+  Vector operator()(ConstVectorView x, const Jacobian::transformable_field auto&) const { return (*this)(x); }
 };
 
 struct logrelinv {
   std::shared_ptr<const Vector> sorig;
 
   Vector operator()(ConstVectorView x) const;
-  Vector operator()(ConstVectorView x, const AtmField& y) const;
-  Vector operator()(ConstVectorView x, const SurfaceField& y) const;
-  Vector operator()(ConstVectorView x, const SubsurfaceField& y) const;
+  Vector operator()(ConstVectorView x, const Jacobian::transformable_field auto&) const { return (*this)(x); }
 
   Matrix operator()(ConstMatrixView dy, ConstVectorView x) const;
-  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const AtmField& y) const;
-  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const SurfaceField& y) const;
-  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const SubsurfaceField& y) const;
+  Matrix operator()(ConstMatrixView dy, ConstVectorView x, const Jacobian::transformable_field auto&) const {
+    return (*this)(dy, x);
+  }
 };
 
-void make_logrelfit(Jacobian::AtmTarget&, const AtmField&);
-void make_logrelfit(Jacobian::SurfaceTarget&, const SurfaceField&);
-void make_logrelfit(Jacobian::SubsurfaceTarget&, const SubsurfaceField&);
+//! Makes the target the logarithm of its value relative to the current values of its field
+template <typename Target> void make_logrelfit(Target& x, const Jacobian::transformable_field auto& field) {
+  const auto sorig   = std::make_shared<const Vector>(field[x.type].flat_view());
+  x.inverse_state    = logrelinv{.sorig = sorig};
+  x.inverse_jacobian = logrelinv{.sorig = sorig};
+  x.transform_state  = logrelfwd{.sorig = sorig};
+}
 
 template <> struct xml_io_stream_name<logrelfwd> {
   constexpr static std::string_view name = "logrelfwd";

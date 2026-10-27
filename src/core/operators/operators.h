@@ -7,6 +7,8 @@
 
 #include <functional>
 
+#include "operators_numeric_unary.h"
+
 #ifndef _MSC_VER
 #if defined(__clang__)
 #elif defined(__GNUC__)

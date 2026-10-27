@@ -1206,7 +1206,7 @@ void oemRestoreApriori(AbsorptionBands&             abs_bands,
                        ArrayOfSensorObsel&          measurement_sensor,
                        const OptimalEstimationData& data,
                        const JacobianTargets&       jac_targets) {
-  if (not jac_targets.finalized or data.model_state_vec_apriori.empty() or
+  if (not jac_targets.is_finalized() or data.model_state_vec_apriori.empty() or
       data.model_state_vec_apriori.size() != jac_targets.x_size())
     arts::user_error("Restoring the prior requires initialized OEM data and matching finalized targets.");
   UpdateModelStates(

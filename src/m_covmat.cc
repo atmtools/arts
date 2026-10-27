@@ -67,7 +67,7 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
                            const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -88,7 +88,7 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
                            const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -109,7 +109,7 @@ void model_state_covmatAdd(CovarianceMatrix&       model_state_covmat,
                            const BlockMatrix&      inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -130,7 +130,7 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
                            const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -151,7 +151,7 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
                            const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -172,7 +172,7 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
                            const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
 
-  if (not jac_targets.finalized) arts::user_error("Jacobian targets not finalized.");
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
 
   bool found = false;
 
@@ -257,7 +257,7 @@ void correlate_atmosphere(CovarianceMatrix&      covariance,
   if (not std::isfinite(correlation) or std::abs(correlation) >= 1)
     arts::user_error("correlation must be finite and strictly between -1 and 1.");
   if (key1 == key2) arts::user_error("Choose two distinct atmospheric targets.");
-  if (not targets.finalized) arts::user_error("Jacobian targets must be finalized.");
+  if (not targets.is_finalized()) arts::user_error("Jacobian targets must be finalized.");
   const auto find_target = [&](const AtmKeyVal& key) -> const Jacobian::AtmTarget& {
     const Jacobian::AtmTarget* result = nullptr;
     for (const auto& target : targets.atm) {

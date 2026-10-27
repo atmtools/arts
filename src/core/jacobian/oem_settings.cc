@@ -215,7 +215,7 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
     if (!measurement_basis_mat.is_finite()) error("measurement_basis_mat contains non-finite values.");
   }
   if (targets) {
-    if (!targets->finalized)
+    if (!targets->is_finalized())
       error("jac_targets must be finalized.");
     else if (targets->x_size() != n)
       error(std::format("jac_targets maps {} state elements but the prior contains {}.", targets->x_size(), n));

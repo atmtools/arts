@@ -1,9 +1,12 @@
+#pragma once
+
 #include <atm.h>
 #include <lbl.h>
 #include <obsel.h>
 #include <subsurf.h>
 #include <surf.h>
 
+#include <concepts>
 #include <functional>
 
 struct ErrorKey;
@@ -15,6 +18,11 @@ struct SubsurfaceTarget;
 struct LineTarget;
 struct SensorTarget;
 struct ErrorTarget;
+
+//! The fields whose targets can be relative or logarithmic
+template <typename T>
+concept transformable_field =
+    std::same_as<T, AtmField> or std::same_as<T, SurfaceField> or std::same_as<T, SubsurfaceField>;
 
 using cv          = ConstVectorView;
 using cm          = ConstMatrixView;

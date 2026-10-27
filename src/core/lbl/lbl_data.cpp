@@ -95,7 +95,7 @@ template <typename T> auto local_get_value(T& abs_bands, const line_key& type)
         type.band);
   auto& line = band.lines[type.line];
 
-  if (type.ls_var == LineShapeModelVariable::unused) {
+  if (type.ls_var != LineShapeModelVariable::unused) {
     auto&      line_ls_data = line.ls.single_models;
     const auto ptr          = line_ls_data.find(type.spec);
     if (ptr == line_ls_data.end())

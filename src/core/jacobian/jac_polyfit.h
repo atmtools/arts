@@ -21,6 +21,9 @@ struct polyfit_sensor_offset_t {
   polyfit_t fit;
   SensorKey key;
 
+  //! The fit over the sensor grid mapped to [-1, 1]
+  [[nodiscard]] polyfit_t normalized() const;
+
   Vector operator()(ConstVectorView y, const ArrayOfSensorObsel&) const;
 };
 
@@ -37,6 +40,9 @@ struct polyinv_t {
 struct polyinv_sensor_offset_t {
   polyinv_t inv;
   SensorKey key;
+
+  //! The inverse over the sensor grid mapped to [-1, 1]
+  [[nodiscard]] polyinv_t normalized() const;
 
   Vector operator()(ConstVectorView x, const ArrayOfSensorObsel& y) const;
 };

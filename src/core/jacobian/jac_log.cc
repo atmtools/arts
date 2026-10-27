@@ -26,17 +26,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector logfwd::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
-
-Vector logfwd::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
-
-Vector logfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
-
 Vector loginv::operator()(ConstVectorView xx) const {
   if (N != xx.size())
     arts::user_error(R"(Mismatch size.
 
-Cannot produce a relative profile.
+Cannot produce a logarithmic profile.
 
 The original data has {} elements
 The incoming data has {} elements
@@ -53,17 +47,11 @@ The incoming data has {} elements
   return x;
 }
 
-Vector loginv::operator()(ConstVectorView x, const AtmField&) const { return this->operator()(x); }
-
-Vector loginv::operator()(ConstVectorView x, const SurfaceField&) const { return this->operator()(x); }
-
-Vector loginv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
-
 Matrix loginv::operator()(ConstMatrixView dyy, ConstVectorView x) const {
   if (N != static_cast<Size>(dyy.ncols()))
     arts::user_error(R"(Mismatch size.
 
-Cannot produce a relative profile.
+Cannot produce a logarithmic profile.
 
 The original data     has {} elements
 The incoming jacobian has {} elements
@@ -78,40 +66,4 @@ The incoming jacobian has {} elements
   }
 
   return dy;
-}
-
-Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const AtmField&) const {
-  return this->operator()(dy, x);
-}
-
-Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const SurfaceField&) const {
-  return this->operator()(dy, x);
-}
-
-Matrix loginv::operator()(ConstMatrixView dy, ConstVectorView x, const SubsurfaceField&) const {
-  return this->operator()(dy, x);
-}
-
-void make_logfit(Jacobian::AtmTarget& x, const AtmField& atm) {
-  const logfwd rfwd{.N = atm[x.type].flat_view().size()};
-  const loginv rinv{.N = atm[x.type].flat_view().size()};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
-}
-
-void make_logfit(Jacobian::SurfaceTarget& x, const SurfaceField& surf) {
-  const logfwd rfwd{.N = surf[x.type].flat_view().size()};
-  const loginv rinv{.N = surf[x.type].flat_view().size()};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
-}
-
-void make_logfit(Jacobian::SubsurfaceTarget& x, const SubsurfaceField& subsurf) {
-  const logfwd rfwd{.N = subsurf[x.type].flat_view().size()};
-  const loginv rinv{.N = subsurf[x.type].flat_view().size()};
-  x.inverse_state    = rinv;
-  x.inverse_jacobian = rinv;
-  x.transform_state  = rfwd;
 }

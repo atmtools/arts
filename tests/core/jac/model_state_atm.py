@@ -99,22 +99,19 @@ ws.jac_targetsAddSpeciesIsotopologueRatio(species=isot)
 
 # %% Line center and Einstein and G0 and Y
 
-# FIXME: Make a better interface!
-# key = ws.abs_bands[0].key
-# ws.jac_targetsAddLineParameter(id=key, line_index=0, parameter="f0")
-# ws.jac_targetsAddLineParameter(id=key, line_index=0, parameter="a")
-# ws.jac_targetsAddLineParameter(
-#     id=key, line_index=0, parameter="G0", species="O2"
-# )
-# ws.jac_targetsAddLineParameter(
-#     id=key, line_index=0, parameter="Y", species="O2"
-# )
-# ws.jac_targetsAddLineParameter(
-#     id=key, line_index=0, parameter="G0", species="AIR"
-# )
-# ws.jac_targetsAddLineParameter(
-#     id=key, line_index=0, parameter="Y", species="AIR"
-# )
+ws.jac_targetsAddLineParameter(band=bandkey, line=0, parameter="f0")
+ws.jac_targetsAddLineParameter(band=bandkey, line=0, parameter="a")
+
+for species in ["O2", "AIR"]:
+    for parameter, coefficients in [("G0", ["X0", "X1"]), ("Y", ["X0", "X1", "X2", "X3"])]:
+        for coefficient in coefficients:
+            ws.jac_targetsAddLineShapeParameter(
+                band=bandkey,
+                line=0,
+                species=species,
+                parameter=parameter,
+                coefficient=coefficient,
+            )
 
 
 # %% Surface temperature and altitude
