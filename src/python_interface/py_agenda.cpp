@@ -37,10 +37,8 @@ std::filesystem::path correct_include_path(const std::filesystem::path& path_cop
     if (std::filesystem::is_regular_file(path = std::filesystem::path(prefix.c_str()) / path_copy)) break;
   }
 
-  ARTS_USER_ERROR_IF(not std::filesystem::is_regular_file(path),
-                     "Cannot find file: {}\nSearch path(s): {:B,}",
-                     path_copy.string(),
-                     parameters.includepath)
+  if (not std::filesystem::is_regular_file(path))
+    arts::user_error("Cannot find file: {}\nSearch path(s): {:B,}", path_copy.string(), parameters.includepath);
 
   // Must add the direcory to include paths as controlfiles know where they are
   std::filesystem::path dir_path = path;

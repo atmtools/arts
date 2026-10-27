@@ -23,7 +23,7 @@ template <Format format, Representation repr>
 auto ssd_to_tro_spectral(const ScatteringDataGrids& new_grids, Index l, const SingleScatteringData<format, repr>& ssd)
     -> SingleScatteringData<Format::TRO, Representation::Spectral> {
   if constexpr (format == Format::ARO) {
-    ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
+    arts::user_error("Cannot convert scattering data from ARO format to TRO format.");
   } else {
     return ssd.to_spectral(l, 0).regrid(new_grids);
   }
@@ -33,7 +33,7 @@ template <Format format, Representation repr>
 auto ssd_to_tro_gridded(const ScatteringDataGrids& new_grids, const SingleScatteringData<format, repr>& ssd)
     -> SingleScatteringData<Format::TRO, Representation::Gridded> {
   if constexpr (format == Format::ARO) {
-    ARTS_USER_ERROR("Cannot convert scattering data from ARO format to TRO format.");
+    arts::user_error("Cannot convert scattering data from ARO format to TRO format.");
   } else {
     if constexpr (repr == Representation::Gridded) {
       // Regrid also provides the required owning copy.  Returning ssd
@@ -99,12 +99,12 @@ template <Format format, Representation repr> auto ssd_to_aro_fourier(const Scat
   if constexpr (format == Format::ARO and repr == Representation::Gridded) {
     return ssd.to_fourier(max_mode).regrid(new_grids);
   } else if constexpr (format == Format::ARO and repr == Representation::Spectral) {
-    ARTS_USER_ERROR_IF(not new_grids.za_scat_grid, "Fourier modes of SHT data need scattering zenith angles")
+    if (not new_grids.za_scat_grid) arts::user_error("Fourier modes of SHT data need scattering zenith angles");
     return ssd.to_fourier(new_grids.za_scat_grid, max_mode).regrid(new_grids);
   } else if constexpr (format == Format::ARO) {
-    ARTS_USER_ERROR("No Fourier modes for this representation of ARO data");
+    arts::user_error("No Fourier modes for this representation of ARO data");
   } else if constexpr (repr == Representation::Gridded) {
-    ARTS_USER_ERROR(
+    arts::user_error(
         "Gridded TRO scattering data define the phase matrix only between their scattering angles, which does not "
         "give its azimuthal Fourier modes exactly; convert them to a Legendre series first (ParticleHabit.to_tro_spectral, "
         "with its report on the conversion)");

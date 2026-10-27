@@ -182,13 +182,14 @@ void oxygen(PropmatVector& propmat_clearsky, const Vector& f_grid, const AtmPoin
 
   constexpr Numeric VMRCalcLimit = 1.000e-25;
   // check if O2-VMR will cause an underflow due to division by zero:
-  ARTS_USER_ERROR_IF(oxygen_vmr < VMRCalcLimit,
-                     "ERROR: TRE05 O2 full absorption model has detected a O2 volume mixing ratio of {}"
-                     " which is below the threshold of {}"
-                     ".\n"
-                     "Therefore no calculation is performed.\n",
-                     oxygen_vmr,
-                     VMRCalcLimit)
+  if (oxygen_vmr < VMRCalcLimit)
+    arts::user_error(
+        "ERROR: TRE05 O2 full absorption model has detected a O2 volume mixing ratio of {}"
+        " which is below the threshold of {}"
+        ".\n"
+        "Therefore no calculation is performed.\n",
+        oxygen_vmr,
+        VMRCalcLimit);
   constexpr Numeric dB_km_to_1_m = (1.00000e-3 / (10.0 * Constant::log10_euler));
   constexpr Numeric Hz_to_GHz    = 1.000000e-9;  // [GHz/Hz]
   constexpr Numeric Pa_to_hPa    = 1.000000e-2;  // [Pa/hPa]

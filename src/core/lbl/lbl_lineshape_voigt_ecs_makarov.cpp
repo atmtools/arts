@@ -18,34 +18,30 @@ namespace lbl::voigt::ecs::makarov {
 
 namespace {
 void validate_rotational_pair(const Rational Ju, const Rational Jl, const Rational N) {
-  ARTS_USER_ERROR_IF(
-      N.denom != 1 or N <= 0 or iseven(N), "Makarov O2-66 ECS requires a positive odd integer N, got {}", N);
-  ARTS_USER_ERROR_IF(Ju.denom != 1 or Jl.denom != 1 or Ju < 0 or Jl < 0 or abs(Ju - N) > 1 or abs(Jl - N) > 1,
-                     "Makarov O2-66 ECS requires integer J >= 0 with |J-N| <= 1; got Ju={}, Jl={}, N={}",
-                     Ju,
-                     Jl,
-                     N);
-  ARTS_USER_ERROR_IF(abs(Ju - Jl) > 1 or (Ju == 0 and Jl == 0),
-                     "Makarov O2-66 ECS requires a rank-1 transition with |Ju-Jl| <= 1 and excludes J=0 to J=0; "
-                     "got Ju={}, Jl={}",
-                     Ju,
-                     Jl);
+  if (N.denom != 1 or N <= 0 or iseven(N))
+    arts::user_error("Makarov O2-66 ECS requires a positive odd integer N, got {}", N);
+  if (Ju.denom != 1 or Jl.denom != 1 or Ju < 0 or Jl < 0 or abs(Ju - N) > 1 or abs(Jl - N) > 1)
+    arts::user_error("Makarov O2-66 ECS requires integer J >= 0 with |J-N| <= 1; got Ju={}, Jl={}, N={}", Ju, Jl, N);
+  if (abs(Ju - Jl) > 1 or (Ju == 0 and Jl == 0))
+    arts::user_error(
+        "Makarov O2-66 ECS requires a rank-1 transition with |Ju-Jl| <= 1 and excludes J=0 to J=0; "
+        "got Ju={}, Jl={}",
+        Ju,
+        Jl);
 }
 
 void validate_band_id(const QuantumIdentifier& bnd_qid) {
-  ARTS_USER_ERROR_IF(bnd_qid.isot != "O2-66"_isot, "Makarov ECS currently supports only O2-66, got {}", bnd_qid.isot);
+  if (bnd_qid.isot != "O2-66"_isot) arts::user_error("Makarov ECS currently supports only O2-66, got {}", bnd_qid.isot);
   const auto& S = bnd_qid.state.at(QuantumNumberType::S);
-  ARTS_USER_ERROR_IF(S.upper != 1 or S.lower != 1,
-                     "Makarov O2-66 ECS requires electron spin S=1 in both states; got upper={}, lower={}",
-                     S.upper,
-                     S.lower);
+  if (S.upper != 1 or S.lower != 1)
+    arts::user_error(
+        "Makarov O2-66 ECS requires electron spin S=1 in both states; got upper={}, lower={}", S.upper, S.lower);
 }
 
 void validate_rotational_line(const rotational_line& ln) {
-  ARTS_USER_ERROR_IF(ln.Nu != ln.Nl,
-                     "Makarov O2-66 ECS implements microwave transitions with unchanged N; got upper={}, lower={}",
-                     ln.Nu,
-                     ln.Nl);
+  if (ln.Nu != ln.Nl)
+    arts::user_error(
+        "Makarov O2-66 ECS implements microwave transitions with unchanged N; got upper={}, lower={}", ln.Nu, ln.Nl);
   validate_rotational_pair(ln.Ju, ln.Jl, ln.Nu);
 }
 
@@ -134,7 +130,7 @@ void coupling_kernel(MatrixView                       W,
   }
   arts_wigner_thread_free();
 
-  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
+  if (errno == EDOM) arts::user_error("Cannot compute the wigner symbols");
 }
 }  // namespace
 
@@ -188,11 +184,12 @@ Numeric rotational_energy(const Rational N) {
 }
 
 Numeric level_energy(const Rational N, const Rational J) {
-  ARTS_USER_ERROR_IF(N.denom != 1 or N <= 0 or iseven(N) or J.denom != 1 or J < 0 or abs(J - N) > 1,
-                     "O2-66 level energies require positive odd integer N and integer J >= 0 with |J-N| <= 1; "
-                     "got N={}, J={}",
-                     N,
-                     J)
+  if (N.denom != 1 or N <= 0 or iseven(N) or J.denom != 1 or J < 0 or abs(J - N) > 1)
+    arts::user_error(
+        "O2-66 level energies require positive odd integer N and integer J >= 0 with |J-N| <= 1; "
+        "got N={}, J={}",
+        N,
+        J);
   return Conversion::mhz2joule(level_energy_mhz(N, J) - ground_energy_mhz);
 }
 
@@ -234,17 +231,16 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
                                    ConstVectorView                  dT,
                                    ConstMatrixView                  dQ,
                                    ConstMatrixView                  dOmega) try {
-  ARTS_USER_ERROR_IF((dW.npages() != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
-                         (not dT.empty() and dT.size() != static_cast<Size>(dW.npages())),
-                     "Inconsistent Makarov ECS derivative dimensions")
+  if ((dW.npages() != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
+      (not dT.empty() and dT.size() != static_cast<Size>(dW.npages())))
+    arts::user_error("Inconsistent Makarov ECS derivative dimensions");
   if (lines.empty()) return;
   validate_band_id(bnd_qid);
   const auto& e0 = energies.e0;
 
   const auto n = lines.size();
-  ARTS_USER_ERROR_IF(
-      e0.size() != n or dipr.size() != n or W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n),
-      "Inconsistent Makarov ECS kernel dimensions")
+  if (e0.size() != n or dipr.size() != n or W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n))
+    arts::user_error("Inconsistent Makarov ECS kernel dimensions");
 
   auto&          S  = bnd_qid.state.at(QuantumNumberType::S);
   const Rational Si = S.upper;
@@ -259,11 +255,10 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
   const std::array rats{maxJ, maxN, Si, Sf};
   const int        maxL  = wigner_init_size(rats);
   const auto       basis = prepare_basis(maxL, energies, rovib_data, T0, bnd_qid.isot, broadening_species, atm);
-  ARTS_USER_ERROR_IF(
-      (not dQ.empty() and (dQ.nrows() != dW.npages() or dQ.ncols() != static_cast<Index>(basis.Q.size()))) or
-          (not dOmega.empty() and
-           (dOmega.nrows() != dW.npages() or dOmega.ncols() != static_cast<Index>(basis.Omega.size()))),
-      "Inconsistent Makarov ECS basis derivative dimensions")
+  if ((not dQ.empty() and (dQ.nrows() != dW.npages() or dQ.ncols() != static_cast<Index>(basis.Q.size()))) or
+      (not dOmega.empty() and
+       (dOmega.nrows() != dW.npages() or dOmega.ncols() != static_cast<Index>(basis.Omega.size()))))
+    arts::user_error("Inconsistent Makarov ECS basis derivative dimensions");
 
   coupling_kernel(W, lines, Si, Sf, basis, e0, atm.temperature, maxL, dW, dT, dQ, dOmega);
 

@@ -93,12 +93,12 @@ Matrix regrid_sun_spectrum(const GriddedField2& sun_spectrum_raw, const Vector& 
   // Padding
   if (f_extent < nf) {
     if (temperature == -1) {
-      ARTS_USER_ERROR(
+      arts::user_error(
           "f_grid is (partially) outside the sun spectrum data"
           "Set temperature to zero to have a padding of "
           "0 or a fitting effective temperature"
           "For further information take a look at the "
-          "documentation for regrid_sun_spectrum")
+          "documentation for regrid_sun_spectrum");
     }
     if (temperature > 0) {
       for (int i = 0; i < i_fstart; i++) { int_data[i, 0] = planck(f_grid[i], temperature); }

@@ -46,7 +46,7 @@ void disort_spectral_rad_fieldCalc(DisortRadiance&       disort_spectral_rad_fie
   //! FIXME: It would be nice to remove this if the internal angles can be solved
   disort_spectral_rad_field.sort(dis.mu());
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in disort-spectral:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -77,7 +77,7 @@ void spectral_flux_components_profileDisortCalc(FluxComponentsProfile& spectral_
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in disort:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -131,7 +131,7 @@ void disort_spectral_rad_fieldCoupledCalc(DisortRadiance&       disort_spectral_
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in disort-spectral:\n{}", error);
 
   //! FIXME: It would be nice to remove this if the internal angles can be solved
   disort_atm_spectral_rad_field.sort(dis_atm.mu());
@@ -192,7 +192,7 @@ void spectral_flux_components_profileDisortCoupledCalc(FluxComponentsProfile& sp
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in disort:\n{}", error);
 
   spectral_flux_components_profile = disort_atm_spectral_flux_field.combine(disort_subsurf_spectral_flux_field);
 }
@@ -221,7 +221,7 @@ void spectral_radFromDisort(StokvecVector&              spectral_rad,
 
   if (nf == 0) return;
 
-  ARTS_USER_ERROR_IF(alt_grid.size() < 2, "DISORT altitude grid must have at least two points")
+  if (alt_grid.size() < 2) arts::user_error("DISORT altitude grid must have at least two points");
 
   const Numeric z     = ray_point.altitude();
   const bool    above = alt_grid.size() < 2 or z >= alt_grid[1];
@@ -283,6 +283,6 @@ void disort_spectral_rad_fieldApplyUnit(DisortRadiance&                         
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error)
+  if (not error.empty()) arts::user_error(error);
 }
 ARTS_METHOD_ERROR_CATCH

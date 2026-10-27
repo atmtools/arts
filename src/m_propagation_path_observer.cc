@@ -36,7 +36,7 @@ void ray_path_observersFieldProfilePseudo2D(const Workspace&             ws,
                                             const Index&                 ndown) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(nup < 2 or nlimb < 2 or ndown < 2, "Must have at least 2 observers per meta-direction.")
+  if (nup < 2 or nlimb < 2 or ndown < 2) arts::user_error("Must have at least 2 observers per meta-direction.");
 
   const Vector3 top_pos = {atm_field.top_of_atmosphere, lat, lon};
   const Vector3 bot_pos = {surf_field[SurfaceKey::h].at(lat, lon), lat, lon};
@@ -75,10 +75,8 @@ void ray_path_observersFromSensor(ArrayOfPropagationPathPoint& ray_path_observer
                                   const ArrayOfSensorObsel&    measurment_sensor,
                                   const Index&                 idx,
                                   const Stokvec&               pol) {
-  ARTS_USER_ERROR_IF(static_cast<Size>(idx) >= measurment_sensor.size(),
-                     "Sensor index out of bounds: {} not in [0, {})",
-                     idx,
-                     measurment_sensor.size())
+  if (static_cast<Size>(idx) >= measurment_sensor.size())
+    arts::user_error("Sensor index out of bounds: {} not in [0, {})", idx, measurment_sensor.size());
 
   const auto& obsel  = measurment_sensor[idx];
   const auto& poslos = obsel.poslos_grid();
@@ -106,7 +104,7 @@ void ray_path_observersFluxProfile(ArrayOfPropagationPathPoint& ray_path_observe
                                    const AtmKey&                atm_key) {
   ray_path_observers.clear();
 
-  ARTS_USER_ERROR_IF(n < 3 or (n % 2) == 0, "Must have at least 3 observers, and an uneven number of them.")
+  if (n < 3 or (n % 2) == 0) arts::user_error("Must have at least 3 observers, and an uneven number of them.");
 
   const auto& data = atm_field[atm_key].get<GeodeticField3>();
 
@@ -115,7 +113,7 @@ void ray_path_observersFluxProfile(ArrayOfPropagationPathPoint& ray_path_observe
   const auto&  lon   = data.grid<2>()[0];
   const Vector zas_g = nlinspace(0.0, 180.0, n + 2);
 
-  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(), "Data size does not match altitude grid size")
+  if (data.data.size() != alt_g.size()) arts::user_error("Data size does not match altitude grid size");
 
   ray_path_observers.reserve(n * alt_g.size() + 2);
   for (Index i = 0; i < n; i++) {
@@ -165,13 +163,13 @@ void ray_path_fieldFluxProfile(const Workspace&                    ws,
                                const Numeric&                      azimuth,
                                const Numeric&                      dzen,
                                const AtmKey&                       atm_key) try {
-  ARTS_USER_ERROR_IF(dzen <= 0.0, "Zenith angle step must be positive")
+  if (dzen <= 0.0) arts::user_error("Zenith angle step must be positive");
 
   ray_path_field.clear();
 
   const auto& data  = atm_field[atm_key].get<GeodeticField3>();
   const auto& alt_g = data.grid<0>();
-  ARTS_USER_ERROR_IF(data.data.size() != alt_g.size(), "Data size does not match altitude grid size")
+  if (data.data.size() != alt_g.size()) arts::user_error("Data size does not match altitude grid size");
   const auto& lat = data.grid<1>()[0];
   const auto& lon = data.grid<2>()[0];
 
@@ -243,7 +241,7 @@ void ray_path_fieldFromObserverAgenda(const Workspace&                    ws,
   ARTS_TIME_REPORT
 
   const Size N = ray_path_observers.size();
-  ARTS_USER_ERROR_IF(N == 0, "Must have at least one observer.")
+  if (N == 0) arts::user_error("Must have at least one observer.");
 
   ray_path_field.resize(N);
 

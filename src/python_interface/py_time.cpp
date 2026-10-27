@@ -45,8 +45,8 @@ std::optional<Time> from_datetime(const py::handle& dt) {
   minutes offset{0};
   if (const py::object utc_offset = dt.attr("utcoffset")(); not utc_offset.is_none()) {
     const Numeric sec = py::cast<Numeric>(utc_offset.attr("total_seconds")());
-    ARTS_USER_ERROR_IF(
-        std::fmod(sec, 60.0) != 0.0, "The offset from UTC of the datetime must be whole minutes, it is {} s", sec)
+    if (std::fmod(sec, 60.0) != 0.0)
+      arts::user_error("The offset from UTC of the datetime must be whole minutes, it is {} s", sec);
     offset = minutes{static_cast<int>(sec / 60.0)};
   }
 

@@ -105,7 +105,7 @@ spectral_rad::spectral_rad(AscendingGrid                               alt_,
           spectral_rad_surface.shape(),
           [](Numeric f, Vector2) { return Stokvec{planck(f, Constant::cosmic_microwave_background_temperature)}; }),
       ellipsoid(surf.ellipsoid) {
-  ARTS_USER_ERROR_IF(alt.size() == 0, "Must have a sized atmosphere")
+  if (alt.size() == 0) arts::user_error("Must have a sized atmosphere");
 
   if (arts_omp_in_parallel() or arts_omp_get_max_threads() == 1) {
     for (Size j = 0; j < lat.size(); j++) {
@@ -156,7 +156,7 @@ spectral_rad::spectral_rad(AscendingGrid                               alt_,
       }
     }
 
-    ARTS_USER_ERROR_IF(not errors.empty(), "{}", errors)
+    if (not errors.empty()) arts::user_error("{}", errors);
   }
 }
 

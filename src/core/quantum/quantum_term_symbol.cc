@@ -10,7 +10,7 @@ constexpr std::string_view select_molecular_lambda(Index lambda) {
     case 2: return R"(\Delta)";
     case 3: return R"(\Phi)";
   }
-  ARTS_USER_ERROR("Cannot translate lambda {} to symbolic value", lambda);
+  arts::user_error("Cannot translate lambda {} to symbolic value", lambda);
 }
 }  // namespace
 

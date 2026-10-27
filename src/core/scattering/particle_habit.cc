@@ -18,8 +18,8 @@ std::pair<Numeric, Numeric> derive_scat_species_a_and_b(const Vector&  sizes,
   Index        nsev = 0;
 
   for (Index i = 0; i < nse; i++) {
-    if (std::isnan(sizes[i])) ARTS_USER_ERROR("NaN found in selected size grid data.");
-    if (std::isnan(masses[i])) ARTS_USER_ERROR("NaN found among particle mass data.");
+    if (std::isnan(sizes[i])) arts::user_error("NaN found in selected size grid data.");
+    if (std::isnan(masses[i])) arts::user_error("NaN found among particle mass data.");
 
     if (sizes[i] >= fit_start && sizes[i] <= fit_end) {
       x_unsorted[nsev]  = sizes[i];
@@ -29,7 +29,7 @@ std::pair<Numeric, Numeric> derive_scat_species_a_and_b(const Vector&  sizes,
   }
 
   if (nsev < 2)
-    ARTS_USER_ERROR(
+    arts::user_error(
         "Less than two size points found in the range "
         "[fit_start, fit_end]. It is then not possible "
         "to determine the a and b parameters.");
@@ -62,7 +62,7 @@ std::tuple<Vector, Numeric, Numeric> ParticleHabit::get_size_mass_info(SizeParam
       masses[ind] = mass.value();
       sizes[ind]  = size.value();
     } else {
-      ARTS_USER_ERROR("Encountered particle without size information.");
+      arts::user_error("Encountered particle without size information.");
     }
   }
 
@@ -104,10 +104,11 @@ std::pair<ParticleHabit, std::vector<LegendreReport>> to_tro_spectral_with_repor
   std::vector<LegendreReport> reports;
   for (Index i = 0; i < habit.size(); ++i) {
     const auto* gridded = std::get_if<Gridded>(&habit[i]);
-    ARTS_USER_ERROR_IF(not gridded,
-                       "A report on the Legendre conversion needs gridded TRO data, but particle {} of the habit holds "
-                       "other data",
-                       i)
+    if (not gridded)
+      arts::user_error(
+          "A report on the Legendre conversion needs gridded TRO data, but particle {} of the habit holds "
+          "other data",
+          i);
     auto [spectral, report] = to_spectral_with_report(*gridded, l);
     new_scat_data.push_back(spectral.regrid(new_grids));
     reports.push_back(std::move(report));
@@ -154,7 +155,7 @@ Vector ParticleHabit::get_sizes(SizeParameter param) const {
     if (size.has_value()) {
       sizes[ind] = size.value();
     } else {
-      ARTS_USER_ERROR("Encountered particle without size information.");
+      arts::user_error("Encountered particle without size information.");
     }
   }
   return sizes;
@@ -172,8 +173,8 @@ ParticleHabit ParticleHabit::from_legacy_tro(std::vector<::SingleScatteringData>
 
 ParticleHabit ParticleHabit::from_legacy_aro(std::vector<::SingleScatteringData> ssd_,
                                              std::vector<::ScatteringMetaData>   meta_) {
-  ARTS_USER_ERROR_IF(ssd_.size() != meta_.size(), "Scattering data and metadata sizes differ.")
-  ARTS_USER_ERROR_IF(ssd_.empty(), "Cannot construct an empty particle habit.")
+  if (ssd_.size() != meta_.size()) arts::user_error("Scattering data and metadata sizes differ.");
+  if (ssd_.empty()) arts::user_error("Cannot construct an empty particle habit.");
   std::vector<SingleScatteringData<Format::ARO, Representation::Gridded>> converted;
   converted.reserve(ssd_.size());
   for (Index ind = 0; ind < static_cast<Index>(ssd_.size()); ++ind) {

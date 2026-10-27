@@ -18,7 +18,7 @@ void jac_targetsToggleLogarithmicAtmTargetImpl(JacobianTargets& jac_targets, con
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 
 void jac_targetsToggleLogarithmicSurfaceTargetImpl(JacobianTargets&     jac_targets,
@@ -38,7 +38,7 @@ void jac_targetsToggleLogarithmicSurfaceTargetImpl(JacobianTargets&     jac_targ
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 
 void jac_targetsToggleLogarithmicSubsurfaceTargetImpl(JacobianTargets&        jac_targets,
@@ -58,7 +58,7 @@ void jac_targetsToggleLogarithmicSubsurfaceTargetImpl(JacobianTargets&        ja
       return;
     }
   }
-  ARTS_USER_ERROR("Could not find target {}", key)
+  arts::user_error("Could not find target {}", key);
 }
 }  // namespace
 

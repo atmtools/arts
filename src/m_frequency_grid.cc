@@ -28,8 +28,8 @@ void wind_shift(VectorView                  freq_grid,
   const Numeric dp   = czaf * czap + szaf * szap * caa;
   const Numeric fac  = 1.0 - (f * dp) / c;
 
-  ARTS_USER_ERROR_IF(fac <= 0,
-                     R"(Negative frequency scaling factor: {}
+  if (fac <= 0)
+    arts::user_error(R"(Negative frequency scaling factor: {}
 
 atm_point.wind: {:B,}
 ray_point.los:  {:B,}

@@ -29,6 +29,6 @@ LineDataMod data_lookup(Index mol) try {
   const auto& info = info_from_lookup(mol);
   return LineDataMod{.qid = qid_from_data(info), .T0 = info.T0, .QT0 = info.QT0};
 } catch (const std::exception& e) {
-  ARTS_USER_ERROR("Error occurred while looking up species index {}:\n{}", mol, e.what());
+  arts::user_error("Error occurred while looking up species index {}:\n{}", mol, e.what());
 }
 }  // namespace Jpl

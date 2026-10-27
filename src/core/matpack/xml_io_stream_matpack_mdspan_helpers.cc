@@ -24,20 +24,20 @@ template <typename T, typename... Grids> void xml_read_from_stream_gf_old(std::i
       tag.get_attribute_value("name", name);
 
       if constexpr (std::same_as<U, Vector>) {
-        ARTS_USER_ERROR_IF(tag.name != "Vector", "Must be Vector, is {}", tag.name);
+        if (tag.name != "Vector") arts::user_error("Must be Vector, is {}", tag.name);
         old_xml_io_parse(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Vector"sv);
       } else if constexpr (std::same_as<U, ArrayOfString>) {
-        ARTS_USER_ERROR_IF(tag.name != "Array", "Must be Array, is {}", tag.name);
+        if (tag.name != "Array") arts::user_error("Must be Array, is {}", tag.name);
         String s;
         tag.get_attribute_value("type", s);
-        ARTS_USER_ERROR_IF(s != "String", "Must be Array<String>, is Array<{}>", s);
+        if (s != "String") arts::user_error("Must be Array<String>, is Array<{}>", s);
         xml_parse_from_stream(is_xml, grid, pbifs, tag);
         tag.read_from_stream(is_xml);
         tag.check_name("/Array"sv);
       } else {
-        ARTS_USER_ERROR("Unknown grid type: {}", tag.name);
+        arts::user_error("Unknown grid type: {}", tag.name);
       }
     };
 
@@ -95,7 +95,7 @@ template <typename T, typename... Grids> void xml_read_from_stream_gf_old(std::i
   } else if (version == 1) {
     ArrayOfString gridnames;
     xml_read_from_stream(is_xml, gridnames, pbifs);
-    ARTS_USER_ERROR_IF(gridnames.size() != gfield.grid_names.size(), "Bad number of grid names:\n{}", gridnames);
+    if (gridnames.size() != gfield.grid_names.size()) arts::user_error("Bad number of grid names:\n{}", gridnames);
     stdr::move(gridnames, gfield.grid_names.begin());
 
     xml_read_from_stream_recursive_old<0>(is_xml, gfield, pbifs, tag);
@@ -129,7 +129,7 @@ template <typename T, typename... Grids> void xml_read_from_stream_tmpl(std::ist
     xml_io_stream_gridded_field<T, Grids...>::parse(is_xml, gfield, pbifs, tag);
   }
 
-  ARTS_USER_ERROR_IF(not gfield.ok(), "Bad gridded field:\n{}", gfield);
+  if (not gfield.ok()) arts::user_error("Bad gridded field:\n{}", gfield);
 }
 }  // namespace
 

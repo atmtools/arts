@@ -51,11 +51,12 @@ void sunFromGrid(Sun& sun,
   ARTS_TIME_REPORT
 
   // some sanity checks
-  ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun ({} m) \n"
-                     " is smaller than the radius of the sun ({} m)",
-                     distance,
-                     radius)
+  if (distance < radius)
+    arts::user_error(
+        "The distance to the center of the sun ({} m) \n"
+        " is smaller than the radius of the sun ({} m)",
+        distance,
+        radius);
 
   // init sun
   sun.description = description;
@@ -82,11 +83,12 @@ void sunBlackbody(Sun& sun,
   ARTS_TIME_REPORT
 
   // some sanity checks
-  ARTS_USER_ERROR_IF(distance < radius,
-                     "The distance to the center of the sun ({} m) \n"
-                     " is smaller than the radius of the sun ({} m)",
-                     distance,
-                     radius)
+  if (distance < radius)
+    arts::user_error(
+        "The distance to the center of the sun ({} m) \n"
+        " is smaller than the radius of the sun ({} m)",
+        distance,
+        radius);
 
   sun.description = "Blackbody sun";
   sun.radius      = radius;
@@ -130,7 +132,7 @@ void ray_path_suns_pathFromPathObserver(const Workspace&                        
                                         const Index&                               just_hit) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(angle_cut < 0.0, "angle_cut must be positive")
+  if (angle_cut < 0.0) arts::user_error("angle_cut must be positive");
 
   const Size np    = ray_path.size();
   const Size nsuns = suns.size();
@@ -175,7 +177,7 @@ void ray_path_suns_pathFromPathObserver(const Workspace&                        
       }
     }
 
-    ARTS_USER_ERROR_IF(error.size(), "{}", error)
+    if (error.size()) arts::user_error("{}", error);
   }
 }
 
@@ -234,7 +236,7 @@ void spectral_propmat_scat_pathFromPath(const Workspace&            ws,
       }
     }
 
-    ARTS_USER_ERROR_IF(error.size(), "{}", error)
+    if (error.size()) arts::user_error("{}", error);
   }
 }
 
@@ -280,14 +282,14 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(const Workspace& ws,
                                                   const Index&               hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
+  if (jac_targets.x_size()) arts::user_error("Cannot have any Jacobian targets");
 
   const Size np = ray_path.size();
-  ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(), "Bad ray_path_suns_path: incorrect number of path points")
+  if (np != ray_path_suns_path.size()) arts::user_error("Bad ray_path_suns_path: incorrect number of path points");
 
   const Size nsuns = suns.size();
-  ARTS_USER_ERROR_IF(stdr::any_of(ray_path_suns_path, Cmp::ne(nsuns), &ArrayOfArrayOfPropagationPathPoint::size),
-                     "Bad ray_path_suns_path: incorrect number of suns")
+  if (stdr::any_of(ray_path_suns_path, Cmp::ne(nsuns), &ArrayOfArrayOfPropagationPathPoint::size))
+    arts::user_error("Bad ray_path_suns_path: incorrect number of suns");
 
   const Size nf = freq_grid.size();
 
@@ -352,7 +354,7 @@ void spectral_rad_scat_pathSunsFirstOrderRayleigh(const Workspace& ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "{}", error)
+  if (error.size()) arts::user_error("{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -371,15 +373,15 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
                                           const Index&               hse_derivative) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(jac_targets.x_size(), "Cannot have any Jacobian targets")
-  ARTS_USER_ERROR_IF(scattering_species.species.empty(), "No scattering species")
+  if (jac_targets.x_size()) arts::user_error("Cannot have any Jacobian targets");
+  if (scattering_species.species.empty()) arts::user_error("No scattering species");
 
   const Size np = ray_path.size();
-  ARTS_USER_ERROR_IF(np != ray_path_suns_path.size(), "Bad ray_path_suns_path: incorrect number of path points")
+  if (np != ray_path_suns_path.size()) arts::user_error("Bad ray_path_suns_path: incorrect number of path points");
 
   const Size nsuns = suns.size();
-  ARTS_USER_ERROR_IF(stdr::any_of(ray_path_suns_path, Cmp::ne(nsuns), &ArrayOfArrayOfPropagationPathPoint::size),
-                     "Bad ray_path_suns_path: incorrect number of suns")
+  if (stdr::any_of(ray_path_suns_path, Cmp::ne(nsuns), &ArrayOfArrayOfPropagationPathPoint::size))
+    arts::user_error("Bad ray_path_suns_path: incorrect number of suns");
 
   const Size nf = freq_grid.size();
   spectral_rad_scat_path.resize(np);
@@ -430,7 +432,7 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
             std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{outgoing[0]}));
         const auto bulk = scattering_species.get_bulk_scattering_properties_aro_gridded(
             atm_point, freq_grid, Vector{incoming[0]}, Vector{delta_aa}, std::move(za_scat_grid));
-        ARTS_USER_ERROR_IF(not bulk.phase_matrix, "The scattering species returned no phase matrix")
+        if (not bulk.phase_matrix) arts::user_error("The scattering species returned no phase matrix");
 
         for (Size iv = 0; iv < nf; ++iv) {
           const Muelmat& phase            = (*bulk.phase_matrix)[0, iv, 0, 0, 0];
@@ -443,6 +445,6 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "{}", error)
+  if (error.size()) arts::user_error("{}", error);
 }
 ARTS_METHOD_ERROR_CATCH

@@ -85,20 +85,20 @@ Numeric AtmPoint::number_density(const SpeciesIsotope &spec) const {
 }
 
 Numeric AtmPoint::operator[](SpeciesEnum x) const try { return specs.at(x); } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Species VMR not found: \"{}\"", toString<1>(x))
+  arts::user_error("Species VMR not found: \"{}\"", toString<1>(x));
 }
 
 Numeric AtmPoint::operator[](const SpeciesIsotope &x) const try { return isots.at(x); } catch (std::out_of_range &) {
-  ARTS_USER_ERROR("Isotopologue ratio not found: \"{}\"", x)
+  arts::user_error("Isotopologue ratio not found: \"{}\"", x);
 }
 
 Numeric AtmPoint::operator[](const QuantumLevelIdentifier &x) const try {
   return nlte.at(x);
-} catch (std::out_of_range &) { ARTS_USER_ERROR("QuantumLevelIdentifier not found: \"{}\"", x) }
+} catch (std::out_of_range &) { arts::user_error("QuantumLevelIdentifier not found: \"{}\"", x); }
 
 Numeric AtmPoint::operator[](const ScatteringSpeciesProperty &x) const try {
   return ssprops.at(x);
-} catch (std::out_of_range &) { ARTS_USER_ERROR("ScatteringSpeciesProperty not found: \"", x, '"') }
+} catch (std::out_of_range &) { arts::user_error("ScatteringSpeciesProperty not found: \"{}\"", x); }
 
 Numeric AtmPoint::operator[](AtmKey x) const {
   switch (x) {
@@ -232,7 +232,7 @@ Numeric Point::mean_mass(SpeciesEnum s) const {
     }
   }
 
-  ARTS_USER_ERROR_IF(ratio == 0, "Cannot find a ratio for the mean mass of species \"{}\"", toString<1>(s))
+  if (ratio == 0) arts::user_error("Cannot find a ratio for the mean mass of species \"{}\"", toString<1>(s));
 
   return mass / ratio;
 }
@@ -245,7 +245,7 @@ Numeric Point::mean_mass() const {
     if (this_vmr != 0.0) { mass += this_vmr * mean_mass(spec); }
   }
 
-  ARTS_USER_ERROR_IF(vmr == 0, "Cannot find a ratio for the mean mass of the atmosphere")
+  if (vmr == 0) arts::user_error("Cannot find a ratio for the mean mass of the atmosphere");
 
   return mass / vmr;
 }
@@ -304,7 +304,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 bool Point::is_lte() const noexcept { return nlte.empty(); }
@@ -452,7 +452,7 @@ void Data::regrid(const AscendingGrid &alt, const LatGrid &lat, const LonGrid &l
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "Error during regridding: {}", error)
+  if (not error.empty()) arts::user_error("Error during regridding: {}", error);
 
   data = std::move(new_data);
 }
@@ -504,6 +504,7 @@ bool operator==(const QuantumLevelIdentifier &key, const AtmKeyVal &keyval) { re
 bool operator==(const ScatteringSpeciesProperty &key, const AtmKeyVal &keyval) { return cmp(keyval, key); }
 
 namespace Atm {
+
 Numeric Data::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
   return field_interp::at(data, extrapolation(*this), {alt, lat, lon}, log_interpolation);
 }
@@ -519,11 +520,12 @@ Numeric point_at_error(const Data &data, const Numeric alt, const Numeric lat, c
 }  // namespace
 
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const try {
-  ARTS_USER_ERROR_IF(alt > top_of_atmosphere,
-                     "Cannot get values above the top of the atmosphere, which is at: {}"
-                     " m.\nYour max input altitude is: {} m.",
-                     top_of_atmosphere,
-                     alt)
+  if (alt > top_of_atmosphere)
+    arts::user_error(
+        "Cannot get values above the top of the atmosphere, which is at: {}"
+        " m.\nYour max input altitude is: {} m.",
+        top_of_atmosphere,
+        alt);
 
   Point out;
 
@@ -562,7 +564,7 @@ std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal &v) const {
 }
 
 bool Atm::pressure_is_increasing(const std::span<const Point> &atm) {
-  ARTS_USER_ERROR_IF(atm.size() < 2, "Must have at least two atmospheric points")
+  if (atm.size() < 2) arts::user_error("Must have at least two atmospheric points");
 
   const auto begin = atm.begin();
   const auto end   = atm.end();
@@ -571,11 +573,11 @@ bool Atm::pressure_is_increasing(const std::span<const Point> &atm) {
 
   if (pressure_increasing) {
     for (auto it = begin; it != end - 1; it = next(it)) {
-      ARTS_USER_ERROR_IF(it->pressure >= next(it)->pressure, "Pressure is not consistently increasing")
+      if (it->pressure >= next(it)->pressure) arts::user_error("Pressure is not consistently increasing");
     }
   } else {
     for (auto it = begin; it != end - 1; it = next(it)) {
-      ARTS_USER_ERROR_IF(not(it->pressure >= next(it)->pressure), "Pressure is not consistently decreasing")
+      if (not(it->pressure >= next(it)->pressure)) arts::user_error("Pressure is not consistently decreasing");
     }
   }
 
@@ -591,7 +593,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point>     &atm,
 
   const Size N = altitudes.size();
 
-  ARTS_USER_ERROR_IF(N != atm.size(), "Inconsistent altitude grid size: {} != {}", N, atm.size())
+  if (N != atm.size()) arts::user_error("Inconsistent altitude grid size: {} != {}", N, atm.size());
 
   GeodeticField3 gf3{};
   gf3.grid<0>()     = altitudes;
@@ -721,11 +723,10 @@ AtmField AtmField::gridded(const AscendingGrid &alt, const LatGrid &lat, const L
   const Index nlat = lat.size();
   const Index nlon = lon.size();
 
-  ARTS_USER_ERROR_IF(nalt * nlat * nlon == 0, "Must have a grid")
+  if (nalt * nlat * nlon == 0) arts::user_error("Must have a grid");
 
-  ARTS_USER_ERROR_IF(
-      alt.back() > top_of_atmosphere or lat.front() < -90 or lat.back() > 90 or lon.front() < -180 or lon.back() > 180,
-      R"(Error gridding the atmospheric field.
+  if (alt.back() > top_of_atmosphere or lat.front() < -90 or lat.back() > 90 or lon.front() < -180 or lon.back() > 180)
+    arts::user_error(R"(Error gridding the atmospheric field.
 
 Top of atmosphere: {}
 Altitude grid:     {:B,}
@@ -736,10 +737,10 @@ Altitude grid must be within the top of the atmosphere.
 Latitude must be within -90 to 90 degrees.
 Longitude must be within -180 to 180 degrees.
 )",
-      top_of_atmosphere,
-      alt,
-      lat,
-      lon)
+                     top_of_atmosphere,
+                     alt,
+                     lat,
+                     lon);
 
   GeodeticField3 gf3{
       .data_name  = "",
@@ -769,7 +770,7 @@ Longitude must be within -180 to 180 degrees.
       }
     }
 
-    ARTS_USER_ERROR_IF(not error.empty(), "Error for key {}:\n\n{}", key, error)
+    if (not error.empty()) arts::user_error("Error for key {}:\n\n{}", key, error);
 
     auto &val = out[key];
     val.data  = gf3;
@@ -794,8 +795,8 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   {
     const auto &key      = keys.front();
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(
-        not std::holds_alternative<GeodeticField3>(atm_data), "Data for key {} is not a GeodeticField3", key)
+    if (not std::holds_alternative<GeodeticField3>(atm_data))
+      arts::user_error("Data for key {} is not a GeodeticField3", key);
     const auto &gf3 = std::get<GeodeticField3>(atm_data);
 
     altitudes  = gf3.grid<0>();
@@ -809,12 +810,11 @@ Atm::Xarr::Xarr(const AtmField &atm, std::vector<Atm::Field::KeyVal> keys_)
   for (Size i = 1; i < keys.size(); i++) {
     const auto &key      = keys[i];
     const auto &atm_data = atm[key].data;
-    ARTS_USER_ERROR_IF(
-        not std::holds_alternative<GeodeticField3>(atm_data), "Data for key {} is not a GeodeticField3", key)
+    if (not std::holds_alternative<GeodeticField3>(atm_data))
+      arts::user_error("Data for key {} is not a GeodeticField3", key);
     const auto &gf3 = std::get<GeodeticField3>(atm_data);
-    ARTS_USER_ERROR_IF(
-        gf3.grid<0>() != altitudes.vec() or gf3.grid<1>() != latitudes.vec() or gf3.grid<2>() != longitudes.vec(),
-        R"(Grids for key {0} is not the same as the first key (first key: {1})
+    if (gf3.grid<0>() != altitudes.vec() or gf3.grid<1>() != latitudes.vec() or gf3.grid<2>() != longitudes.vec())
+      arts::user_error(R"(Grids for key {0} is not the same as the first key (first key: {1})
 
 Grids for {0}:
   Altitude:  {2:B,}
@@ -826,14 +826,14 @@ Grids for {1}:
   Latitude:  {6:B,}
   Longitude: {7:B,}
 )",
-        key,
-        keys.front(),
-        altitudes,
-        latitudes,
-        longitudes,
-        gf3.grid<0>(),
-        gf3.grid<1>(),
-        gf3.grid<2>())
+                       key,
+                       keys.front(),
+                       altitudes,
+                       latitudes,
+                       longitudes,
+                       gf3.grid<0>(),
+                       gf3.grid<1>(),
+                       gf3.grid<2>());
 
     data[i] = gf3.data;
   }

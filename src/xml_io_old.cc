@@ -29,7 +29,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
     if (is.eof()) return output;
 
     // Throw runtime_error if stream is bad:
-    ARTS_USER_ERROR_IF(!is, "Stream bad.");
+    if (!is) arts::user_error("Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -58,12 +58,11 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
     if (artsid.length() != 0) {
       // Set the species
       const auto& isotopologue = SpeciesIsotope::from_name(Species::update_isot_name(artsid));
-      ARTS_USER_ERROR_IF(
-          isotopologue.is_joker(),
-          "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
-          "Your input contains: ",
-          artsid,
-          ". which we cannot interpret as a plain species")
+      if (isotopologue.is_joker())
+        arts::user_error(
+            "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
+            "Your input contains: \"{}\", which we cannot interpret as a plain species",
+            artsid);
       output.quantumidentity = QuantumIdentifier{isotopologue};
 
       // Extract center frequency:
@@ -215,7 +214,7 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
     if (is.eof()) return output;
 
     // Throw runtime_error if stream is bad:
-    ARTS_USER_ERROR_IF(!is, "Stream bad.");
+    if (!is) arts::user_error("Stream bad.");
 
     // Read line from file into linebuffer:
     getline(is, line);
@@ -244,12 +243,11 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
     if (artsid.length() != 0) {
       // Set line ID
       const auto& isotopologue = SpeciesIsotope::from_name(Species::update_isot_name(artsid));
-      ARTS_USER_ERROR_IF(
-          isotopologue.is_joker(),
-          "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
-          "Your input contains: ",
-          artsid,
-          ". which we cannot interpret as a plain species")
+      if (isotopologue.is_joker())
+        arts::user_error(
+            "A line catalog species can only be of the form \"Plain\", meaning it\nhas the form SPECIES-ISONUM.\n"
+            "Your input contains: \"{}\", which we cannot interpret as a plain species",
+            artsid);
       output.quantumidentity = QuantumIdentifier{isotopologue};
 
       // Extract center frequency:
@@ -322,15 +320,15 @@ void xml_io_stream<ArrayOfArtscatMeta>::read(std::istream& is_xml, ArrayOfArtsca
   if (version == "ARTSCAT-3") {
     for (Index i = 0; i < nelem; ++i) {
       meta.emplace_back() = ReadFromArtscat3Stream(is_xml);
-      ARTS_USER_ERROR_IF(meta.back().bad, "Error reading line data from ARTSCAT-3.  Check the input file.");
+      if (meta.back().bad) arts::user_error("Error reading line data from ARTSCAT-3.  Check the input file.");
     }
   } else if (version == "ARTSCAT-4") {
     for (Index i = 0; i < nelem; ++i) {
       meta.emplace_back() = ReadFromArtscat4Stream(is_xml);
-      ARTS_USER_ERROR_IF(meta.back().bad, "Error reading line data from ARTSCAT-4.  Check the input file.");
+      if (meta.back().bad) arts::user_error("Error reading line data from ARTSCAT-4.  Check the input file.");
     }
   } else {
-    ARTS_USER_ERROR("Unknown version of ARTSCAT: {}, supported versions are ARTSCAT-3 and ARTSCAT-4", version);
+    arts::user_error("Unknown version of ARTSCAT: {}, supported versions are ARTSCAT-3 and ARTSCAT-4", version);
   }
 
   tag.read_from_stream(is_xml);

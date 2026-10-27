@@ -53,8 +53,8 @@ void spectral_surf_reflFlatRealFresnel(MuelmatVector&              spectral_surf
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag refraction_target{"scalar refractive index"};
 
-  ARTS_USER_ERROR_IF(not surf_field.contains(refraction_target),
-                     R"--(Missing key property tag for method.
+  if (not surf_field.contains(refraction_target))
+    arts::user_error(R"--(Missing key property tag for method.
 
 Tag "scalar refractive index" not in the surface field.
 
@@ -111,8 +111,8 @@ void spectral_surf_reflFlatScalar(MuelmatVector&              spectral_surf_refl
   //! NOTE: Feel free to change the name and style of this key, it is unique to this method
   const SurfacePropertyTag reflectance_target{"flat scalar reflectance"};
 
-  ARTS_USER_ERROR_IF(not surf_field.contains(reflectance_target),
-                     R"--(Missing key property tag for method.
+  if (not surf_field.contains(reflectance_target))
+    arts::user_error(R"--(Missing key property tag for method.
 
 Tag "flat scalar reflectance" not in the surface field.
 
@@ -127,7 +127,7 @@ surf_field:
   const Numeric      R          = surf_point[reflectance_target];
   const Size         nf         = freq_grid.size();
 
-  ARTS_USER_ERROR_IF(R < 0.0 or R > 1.0, "Flat scalar reflectance must be between 0 and 1, but is {}.", R)
+  if (R < 0.0 or R > 1.0) arts::user_error("Flat scalar reflectance must be between 0 and 1, but is {}.", R);
 
   spectral_surf_refl.resize(nf);
   spectral_surf_refl_jac.resize(jac_targets.target_count(), nf);

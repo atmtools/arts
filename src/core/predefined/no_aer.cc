@@ -7,7 +7,8 @@ when AER is disabled
 
 #include "predef.h"
 
-#define NOPE {ARTS_USER_ERROR("Compiled with -DENABLE_ARTS_LGPL=1")}
+#define NOPE \
+  { arts::user_error("Compiled with -DENABLE_ARTS_LGPL=1"); }
 
 namespace Absorption::PredefinedModel {
 namespace MT_CKD400 {

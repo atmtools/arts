@@ -20,20 +20,21 @@ void ground_surface(const surface&  ground,
   const Index nmode   = gnd_radiance.extent(0);
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = gnd_radiance.extent(2);
-  ARTS_USER_ERROR_IF(nmode < 1 or nstokes < 1 or nstokes > 4 or quad_weights.extent(0) != nummu or
-                         surf_reflect.shape() != (std::array<Index, 5>{nmode, nummu, nstokes, nummu, nstokes}) or
-                         gnd_radiance.shape() != (std::array<Index, 3>{nmode, nummu, nstokes}) or
-                         direct_reflect.shape() != gnd_radiance.shape(),
-                     "The ground with {} mu_values needs quad_weights [nummu], surf_reflect [aziorder + 1, nummu, "
-                     "nstokes, nummu, nstokes] and gnd_radiance and direct_reflect [aziorder + 1, nummu, nstokes] "
-                     "with 1 to 4 Stokes components; got {}, {:B,}, {:B,} and {:B,}",
-                     nummu,
-                     quad_weights.extent(0),
-                     surf_reflect.shape(),
-                     gnd_radiance.shape(),
-                     direct_reflect.shape());
-  ARTS_USER_ERROR_IF(src_code < 0 or src_code > 3, "The ground needs SRC_CODE 0 to 3, got {}", src_code);
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "The ground needs a positive frequency, got {} Hz", frequency);
+  if (nmode < 1 or nstokes < 1 or nstokes > 4 or quad_weights.extent(0) != nummu or
+      surf_reflect.shape() != (std::array<Index, 5>{nmode, nummu, nstokes, nummu, nstokes}) or
+      gnd_radiance.shape() != (std::array<Index, 3>{nmode, nummu, nstokes}) or
+      direct_reflect.shape() != gnd_radiance.shape())
+    arts::user_error(
+        "The ground with {} mu_values needs quad_weights [nummu], surf_reflect [aziorder + 1, nummu, "
+        "nstokes, nummu, nstokes] and gnd_radiance and direct_reflect [aziorder + 1, nummu, nstokes] "
+        "with 1 to 4 Stokes components; got {}, {:B,}, {:B,} and {:B,}",
+        nummu,
+        quad_weights.extent(0),
+        surf_reflect.shape(),
+        gnd_radiance.shape(),
+        direct_reflect.shape());
+  if (src_code < 0 or src_code > 3) arts::user_error("The ground needs SRC_CODE 0 to 3, got {}", src_code);
+  if (not(frequency > 0.0)) arts::user_error("The ground needs a positive frequency, got {} Hz", frequency);
 
   const bool solar   = src_code == 1 or src_code == 3;
   const bool thermal = src_code == 2 or src_code == 3;
@@ -60,9 +61,10 @@ void ground_surface(const surface&  ground,
           }
         } else {
           static_assert(std::is_same_v<T, fresnel_surface>);
-          ARTS_USER_ERROR_IF(solar,
-                             "RT3 cannot reflect the direct beam from a Fresnel ground (its reflection is specular); "
-                             "the solar source needs a Lambertian ground");
+          if (solar)
+            arts::user_error(
+                "RT3 cannot reflect the direct beam from a Fresnel ground (its reflection is specular); "
+                "the solar source needs a Lambertian ground");
           // For a Fresnel surface, the same in every mode
           fresnel_surface_layer(mu_values, g.refractive_index, reflect, trans, source);
           for (Index mode = 0; mode < nmode; mode++) {

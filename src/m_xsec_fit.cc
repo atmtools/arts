@@ -42,7 +42,7 @@ void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords&             abs_xfit_data
 
     if (not find_xml_file_existence(filename)) {
       if (ignore_missing) continue;
-      ARTS_USER_ERROR("File {} not found", filename);
+      arts::user_error("File {} not found", filename);
     }
 
     xml_read_from_file_base(filename, xsec_coeffs);

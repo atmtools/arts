@@ -101,7 +101,7 @@ constexpr matpack::cdata_t<Numeric, 4> rapport54_43 = {0.30, 0.60, 0.47, 0.35};
 
 void telsem_read_ascii(const String& filename, TelsemAtlas& atlas, Index month) {
   std::ifstream is(filename);
-  ARTS_USER_ERROR_IF(not is, "Cannot open TELSEM atlas file: {}", filename)
+  if (not is) arts::user_error("Cannot open TELSEM atlas file: {}", filename);
   telsem_read_ascii(is, atlas, month);
 }
 
@@ -114,7 +114,7 @@ void TelsemAtlas::read(std::istream& is) {
   name = "ssmi_mean_emis_climato";
   dlat = 0.25;
   is >> ndat;
-  ARTS_USER_ERROR_IF(is.fail() or ndat < 0, "Invalid TELSEM atlas record count")
+  if (is.fail() or ndat < 0) arts::user_error("Invalid TELSEM atlas record count");
   channel_emissivity.resize(ndat);
   channel_emissivity = Vector7{NAN, NAN, NAN, NAN, NAN, NAN, NAN};
   channel_emissivity_error.resize(ndat);
@@ -135,14 +135,14 @@ void TelsemAtlas::read(std::istream& is) {
   Index  ipos = -1;
   for (Index j = 0; j < ndat; j++) {
     is >> cellnum;
-    ARTS_USER_ERROR_IF(is.fail(), "Error reading cellnum.");
+    if (is.fail()) arts::user_error("Error reading cellnum.");
     for (Index nssmi = 0; nssmi < 2 * nchan; nssmi++) {
       is >> double_imanip() >> ssmi[nssmi];
-      ARTS_USER_ERROR_IF(is.fail(), "Error reading emissivity.");
+      if (is.fail()) arts::user_error("Error reading emissivity.");
     }
 
     is >> class1 >> class2;
-    ARTS_USER_ERROR_IF(is.fail(), "Error reading classes.");
+    if (is.fail()) arts::user_error("Error reading classes.");
     if (class1 > 0 && class2 > 0 && ipos < ndat) {
       ipos++;
       for (Index i = 0; i < nchan; i++) {
@@ -203,14 +203,13 @@ void TelsemAtlas::equare() {
 }
 
 void TelsemAtlas::rebuild_correspondence() {
-  ARTS_USER_ERROR_IF(firstcells.empty(), "TELSEM atlas grid has not been initialized")
+  if (firstcells.empty()) arts::user_error("TELSEM atlas grid has not been initialized");
   const Index last = static_cast<Index>(firstcells.size()) - 1;
   correspondence.resize(firstcells[last] + ncells[last] + 1);
   correspondence = -1;
   for (Index j = 0; j < ndat; j++) {
-    ARTS_USER_ERROR_IF(cellnums[j] < 1 or static_cast<Size>(cellnums[j]) >= correspondence.size(),
-                       "Invalid TELSEM atlas cell number {}",
-                       cellnums[j])
+    if (cellnums[j] < 1 or static_cast<Size>(cellnums[j]) >= correspondence.size())
+      arts::user_error("Invalid TELSEM atlas cell number {}", cellnums[j]);
     correspondence[cellnums[j]] = j;
   }
 }
@@ -220,9 +219,9 @@ bool TelsemAtlas::contains(Index cellnumber) const {
 }
 
 Index TelsemAtlas::calc_cellnum(Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF((lat < -90.0) || (lat > 90.0), "Latitude input must be within the range [-90.0, 90.0].");
+  if ((lat < -90.0) || (lat > 90.0)) arts::user_error("Latitude input must be within the range [-90.0, 90.0].");
 
-  ARTS_USER_ERROR_IF((lon < 0.0) || (lon > 360.0), "Longitude input must be within the range [0.0, 360.0].");
+  if ((lon < 0.0) || (lon > 360.0)) arts::user_error("Longitude input must be within the range [0.0, 360.0].");
 
   // Avoid corner cases that hit the outermost edge of the atlas cells.
   if (lat == 90.0) { lat -= 0.125; }
@@ -241,7 +240,7 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat, Numeric lon) const
   Index cellnum = calc_cellnum(lat, lon);
   if (contains(cellnum)) return cellnum;
 
-  ARTS_USER_ERROR_IF(cellnums.empty(), "Cannot find a neighbour in an empty TELSEM atlas")
+  if (cellnums.empty()) arts::user_error("Cannot find a neighbour in an empty TELSEM atlas");
 
   const Numeric lat1 = DEG2RAD * lat;
   Index         best = cellnums[0];
@@ -263,11 +262,10 @@ Index TelsemAtlas::calc_cellnum_nearest_neighbor(Numeric lat, Numeric lon) const
 }
 
 std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum) const {
-  ARTS_USER_ERROR_IF(firstcells.empty(), "TELSEM atlas grid has not been initialized")
+  if (firstcells.empty()) arts::user_error("TELSEM atlas grid has not been initialized");
   const Index last = static_cast<Index>(firstcells.size()) - 1;
-  ARTS_USER_ERROR_IF(cellnum < 1 or cellnum > firstcells[last] + ncells[last],
-                     "TELSEM cell number {} is outside the atlas grid",
-                     cellnum)
+  if (cellnum < 1 or cellnum > firstcells[last] + ncells[last])
+    arts::user_error("TELSEM cell number {} is outside the atlas grid", cellnum);
 
   Index index_lat = last;
   while (index_lat > 0 and cellnum <= firstcells[index_lat]) --index_lat;
@@ -279,32 +277,31 @@ std::pair<Numeric, Numeric> TelsemAtlas::get_coordinates(Index cellnum) const {
 }
 
 Vector3 TelsemAtlas::get_emis_v(Index cellnumber) const {
-  ARTS_USER_ERROR_IF(not contains(cellnumber), "The requested TELSEM cell is not in the atlas")
+  if (not contains(cellnumber)) arts::user_error("The requested TELSEM cell is not in the atlas");
   const Index ind = correspondence[cellnumber];
   return {channel_emissivity[ind][0], channel_emissivity[ind][3], channel_emissivity[ind][5]};
 }
 
 Vector3 TelsemAtlas::get_emis_h(Index cellnumber) const {
-  ARTS_USER_ERROR_IF(not contains(cellnumber), "The requested TELSEM cell is not in the atlas")
+  if (not contains(cellnumber)) arts::user_error("The requested TELSEM cell is not in the atlas");
   const Index ind = correspondence[cellnumber];
   return {channel_emissivity[ind][1], channel_emissivity[ind][4], channel_emissivity[ind][6]};
 }
 
 Vector2 TelsemAtlas::emissivity(
     Numeric lat, Numeric lon, Numeric incidence_angle, Numeric frequency, Numeric max_distance) const {
-  ARTS_USER_ERROR_IF(
-      frequency < 5e9 or frequency > 900e9, "TELSEM supports frequencies from 5 to 900 GHz, got {} Hz", frequency)
-  ARTS_USER_ERROR_IF(incidence_angle < 0 or incidence_angle > 90,
-                     "TELSEM incidence angle must be in [0, 90] degrees, got {}",
-                     incidence_angle)
+  if (frequency < 5e9 or frequency > 900e9)
+    arts::user_error("TELSEM supports frequencies from 5 to 900 GHz, got {} Hz", frequency);
+  if (incidence_angle < 0 or incidence_angle > 90)
+    arts::user_error("TELSEM incidence angle must be in [0, 90] degrees, got {}", incidence_angle);
 
   lon = std::fmod(lon, 360.0);
   if (lon < 0) lon += 360.0;
 
   Index cell = calc_cellnum(lat, lon);
   if (not contains(cell)) {
-    ARTS_USER_ERROR_IF(
-        max_distance <= 0, "The requested coordinate ({}, {}) is not represented by the TELSEM land atlas", lat, lon)
+    if (max_distance <= 0)
+      arts::user_error("The requested coordinate ({}, {}) is not represented by the TELSEM land atlas", lat, lon);
     cell                    = calc_cellnum_nearest_neighbor(lat, lon);
     const auto [nlat, nlon] = get_coordinates(cell);
     const Numeric dlon      = std::remainder(nlon - lon, 360.0);
@@ -313,17 +310,14 @@ Vector2 TelsemAtlas::emissivity(
                                  Numeric{-1},
                                  Numeric{1});
     const Numeric distance = std::acos(c) / DEG2RAD;
-    ARTS_USER_ERROR_IF(distance > max_distance,
-                       "Nearest TELSEM land cell is {} degrees away, exceeding max_distance={}",
-                       distance,
-                       max_distance)
+    if (distance > max_distance)
+      arts::user_error(
+          "Nearest TELSEM land cell is {} degrees away, exceeding max_distance={}", distance, max_distance);
   }
 
   const Index ind = correspondence[cell];
-  ARTS_USER_ERROR_IF(classes1[ind] < 1 or classes1[ind] > 10,
-                     "Invalid TELSEM incidence-angle class {} in cell {}",
-                     classes1[ind],
-                     cell)
+  if (classes1[ind] < 1 or classes1[ind] > 10)
+    arts::user_error("Invalid TELSEM incidence-angle class {} in cell {}", classes1[ind], cell);
   return emis_interp(incidence_angle,
                      std::min(frequency, Numeric{700e9}) * 1e-9,
                      classes1[ind],

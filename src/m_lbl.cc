@@ -82,7 +82,7 @@ void abs_bandsKeepID(AbsorptionBands& abs_bands, const QuantumIdentifier& id, co
     data                   = std::move(newb);
 
     if (line >= 0) {
-      ARTS_USER_ERROR_IF(static_cast<Size>(line) >= band.lines.size(), "Line index out of range: {}", line)
+      if (static_cast<Size>(line) >= band.lines.size()) arts::user_error("Line index out of range: {}", line);
       data.lines = {data.lines[line]};
     }
   } else {
@@ -141,10 +141,10 @@ void abs_bandsReadSpeciesSplitCatalog(AbsorptionBands&         abs_bands,
     }
   }
   if (file_errors.size() and read_errors.size())
-    ARTS_USER_ERROR("Files not found:\n{}\n\nReading errors:\n{}", file_errors, read_errors)
+    arts::user_error("Files not found:\n{}\n\nReading errors:\n{}", file_errors, read_errors);
 
-  if (file_errors.size()) ARTS_USER_ERROR("Files not found:\n{}", file_errors)
-  if (read_errors.size()) ARTS_USER_ERROR("{}", read_errors);
+  if (file_errors.size()) arts::user_error("Files not found:\n{}", file_errors);
+  if (read_errors.size()) arts::user_error("{}", read_errors);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -224,44 +224,46 @@ namespace {
                                          const StokvecMatrix& dsv,
                                          const AscendingGrid& f_grid) {
   for (Size i = 0; i < pm.size(); ++i)
-    for (Size j = 0; j < 7; ++j)
-      ARTS_USER_ERROR_IF(not std::isfinite(pm[i].data[j]),
-                         "Non-finite line-by-line propagation matrix at {} Hz, component {}: {}",
-                         f_grid[i],
-                         j,
-                         pm[i].data[j])
+    for (Size j = 0; j < 7; ++j) {
+      if (not std::isfinite(pm[i].data[j]))
+        arts::user_error(
+            "Non-finite line-by-line propagation matrix at {} Hz, component {}: {}", f_grid[i], j, pm[i].data[j]);
+    }
 
   for (Size i = 0; i < sv.size(); ++i)
-    for (Size j = 0; j < 4; ++j)
-      ARTS_USER_ERROR_IF(not std::isfinite(sv[i].data[j]),
-                         "Non-finite line-by-line source vector at {} Hz, component {}: {}",
-                         f_grid[i],
-                         j,
-                         sv[i].data[j])
+    for (Size j = 0; j < 4; ++j) {
+      if (not std::isfinite(sv[i].data[j]))
+        arts::user_error(
+            "Non-finite line-by-line source vector at {} Hz, component {}: {}", f_grid[i], j, sv[i].data[j]);
+    }
 
   for (Size t = 0; t < static_cast<Size>(dpm.nrows()); ++t)
     for (Size i = 0; i < static_cast<Size>(dpm.ncols()); ++i)
-      for (Size j = 0; j < 7; ++j)
-        ARTS_USER_ERROR_IF(not std::isfinite(dpm[t, i].data[j]),
-                           "Non-finite line-by-line propagation matrix derivative for "
-                           "Jacobian target {} at {} Hz, component {}: {}",
-                           t,
-                           f_grid[i],
-                           j,
-                           dpm[t, i].data[j])
+      for (Size j = 0; j < 7; ++j) {
+        if (not std::isfinite(dpm[t, i].data[j]))
+          arts::user_error(
+              "Non-finite line-by-line propagation matrix derivative for "
+              "Jacobian target {} at {} Hz, component {}: {}",
+              t,
+              f_grid[i],
+              j,
+              dpm[t, i].data[j]);
+      }
 
   for (Size t = 0; t < static_cast<Size>(dsv.nrows()); ++t)
     for (Size i = 0; i < static_cast<Size>(dsv.ncols()); ++i)
-      for (Size j = 0; j < 4; ++j)
-        ARTS_USER_ERROR_IF(not std::isfinite(dsv[t, i].data[j]),
-                           "Non-finite line-by-line source vector derivative for "
-                           "Jacobian target {} at {} Hz, component {}: {}",
-                           t,
-                           f_grid[i],
-                           j,
-                           dsv[t, i].data[j])
+      for (Size j = 0; j < 4; ++j) {
+        if (not std::isfinite(dsv[t, i].data[j]))
+          arts::user_error(
+              "Non-finite line-by-line source vector derivative for "
+              "Jacobian target {} at {} Hz, component {}: {}",
+              t,
+              f_grid[i],
+              j,
+              dsv[t, i].data[j]);
+      }
 
-  ARTS_USER_ERROR("Non-finite line-by-line result that no single entry accounts for")
+  arts::user_error("Non-finite line-by-line result that no single entry accounts for");
 }
 
 /** Detect a non-finite line-by-line result once, for the whole calculation.
@@ -406,13 +408,13 @@ ARTS_METHOD_ERROR_CATCH
 namespace {
 template <class Key, class T> const T& get_value(const Key& k, const std::unordered_map<Key, T>& m) {
   auto it = m.find(k);
-  ARTS_USER_ERROR_IF(it == m.end(), "Key not found: {}", k)
+  if (it == m.end()) arts::user_error("Key not found: {}", k);
   return it->second;
 }
 
 template <class Key, class T> T& get_value(const Key& k, std::unordered_map<Key, T>& m) {
   auto it = m.find(k);
-  ARTS_USER_ERROR_IF(it == m.end(), "Key not found: {}", k)
+  if (it == m.end()) arts::user_error("Key not found: {}", k);
   return it->second;
 }
 }  // namespace
@@ -429,9 +431,8 @@ void abs_bandsCheckEcs(const AbsorptionBands& abs_bands, const LinemixingEcsData
 
     try {
       lbl::voigt::ecs::validate_band(band_key, band);
-      ARTS_USER_ERROR_IF(not abs_ecs_data.contains(band_key.isot),
-                         "No ECS data for isotopologue {}; see e.g. *abs_ecs_dataAddMakarov2020*",
-                         band_key.isot)
+      if (not abs_ecs_data.contains(band_key.isot))
+        arts::user_error("No ECS data for isotopologue {}; see e.g. *abs_ecs_dataAddMakarov2020*", band_key.isot);
     } catch (std::exception& e) {
       throw std::runtime_error(std::format("Invalid ECS band {}:\n{}", band_key, e.what()));
     }
@@ -448,12 +449,12 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands&         abs_bands,
                                    const Index&             polynomial_fit_degree) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(temperatures.empty() or temperatures.front() <= 0.0, "Need a positive temperature grid")
+  if (temperatures.empty() or temperatures.front() <= 0.0) arts::user_error("Need a positive temperature grid");
 
-  ARTS_USER_ERROR_IF(rosenkranz_fit_order != 1 and rosenkranz_fit_order != 2,
-                     "Only 1 or 2 is supported for the ordered fit")
-  ARTS_USER_ERROR_IF(polynomial_fit_degree < 1 or polynomial_fit_degree > static_cast<Index>(temperatures.size()) - 1,
-                     "Polynomial degree must be between 1 and the number of temperatures - 1")
+  if (rosenkranz_fit_order != 1 and rosenkranz_fit_order != 2)
+    arts::user_error("Only 1 or 2 is supported for the ordered fit");
+  if (polynomial_fit_degree < 1 or polynomial_fit_degree > static_cast<Index>(temperatures.size()) - 1)
+    arts::user_error("Polynomial degree must be between 1 and the number of temperatures - 1");
 
   auto& band = get_value(band_key, abs_bands);
 
@@ -527,17 +528,17 @@ void abs_bandsLineMixingAdaptation(AbsorptionBands&         abs_bands,
 
       if (rosenkranz_fit_order >= 1) {
         auto yfit = polyfit(temperatures, eqv_str[joker, j, k].imag(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(not yfit, "Cannot fit y for line {} of band {}", k, band_key)
+        if (not yfit) arts::user_error("Cannot fit y for line {} of band {}", k, band_key);
         spec.data[Y] = {POLY, *yfit};
       }
 
       if (rosenkranz_fit_order >= 2) {
         auto gfit = polyfit(temperatures, eqv_str[joker, j, k].real(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(not gfit, "Cannot fit g for line {} of band {}", k, band_key)
+        if (not gfit) arts::user_error("Cannot fit g for line {} of band {}", k, band_key);
         spec.data[G] = {POLY, *gfit};
 
         auto dfit = polyfit(temperatures, eqv_val[joker, j, k].real(), polynomial_fit_degree);
-        ARTS_USER_ERROR_IF(not dfit, "Cannot fit dv for line {} of band {}", k, band_key)
+        if (not dfit) arts::user_error("Cannot fit dv for line {} of band {}", k, band_key);
         spec.data[DV] = {POLY, *dfit};
       }
     }
@@ -607,7 +608,7 @@ void abs_bandsReadSpeciesSplitARTSCAT(AbsorptionBands&         abs_bands,
     }
   }
 
-  ARTS_USER_ERROR_IF(not file_errors.empty(), "Files not found:\n{:B,}", file_errors)
+  if (not file_errors.empty()) arts::user_error("Files not found:\n{:B,}", file_errors);
 
   for (auto& am : meta) {
     for (auto& m : am) { abs_bands[std::move(m.quantumidentity)].emplace_back(std::move(m.data)); }

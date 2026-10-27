@@ -683,7 +683,7 @@ void xml_io_stream<QuantumLevel>::read(std::istream& is_xml, QuantumLevel& x, bi
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) { ARTS_USER_ERROR("Error reading QuantumLevel:\n{}", e.what()) }
+} catch (const std::exception& e) { arts::user_error("Error reading QuantumLevel:\n{}", e.what()); }
 
 void xml_io_stream<QuantumState>::parse(std::span<QuantumState> qns, std::istream& is_xml) {
   std::string str;
@@ -712,7 +712,7 @@ void xml_io_stream<QuantumState>::read(std::istream& is_xml, QuantumState& x, bi
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) { ARTS_USER_ERROR("Error reading QuantumState:\n{}", e.what()) }
+} catch (const std::exception& e) { arts::user_error("Error reading QuantumState:\n{}", e.what()); }
 
 void xml_io_stream<QuantumIdentifier>::write(std::ostream&            os_xml,
                                              const QuantumIdentifier& qns,
@@ -736,7 +736,7 @@ void xml_io_stream<QuantumIdentifier>::read(std::istream& is_xml, QuantumIdentif
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) { ARTS_USER_ERROR("Error reading QuantumIdentifier:\n{}", e.what()) }
+} catch (const std::exception& e) { arts::user_error("Error reading QuantumIdentifier:\n{}", e.what()); }
 
 void xml_io_stream<QuantumLevelIdentifier>::write(std::ostream&                 os_xml,
                                                   const QuantumLevelIdentifier& qns,
@@ -760,6 +760,6 @@ void xml_io_stream<QuantumLevelIdentifier>::read(std::istream& is_xml, QuantumLe
 
   tag.read_from_stream(is_xml);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) { ARTS_USER_ERROR("Error reading QuantumLevelIdentifier:\n{}", e.what()) }
+} catch (const std::exception& e) { arts::user_error("Error reading QuantumLevelIdentifier:\n{}", e.what()); }
 
 std::string to_educational_string(const QuantumIdentifier& q) { return Quantum::Helpers::molecular_term_symbol(q); }

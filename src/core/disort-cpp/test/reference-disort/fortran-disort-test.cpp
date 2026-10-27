@@ -16,12 +16,8 @@ void expect_reference(const std::string_view name,
                       const Numeric          actual,
                       const Numeric          expected,
                       const Numeric          tolerance = 7e-5) {
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)),
-                     "{}: expected {}, got {} (difference {})",
-                     name,
-                     expected,
-                     actual,
-                     actual - expected);
+  if (std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)))
+    arts::user_error("{}: expected {}, got {} (difference {})", name, expected, actual, actual - expected);
 }
 
 //! The cosines of the upward streams of nquad streams

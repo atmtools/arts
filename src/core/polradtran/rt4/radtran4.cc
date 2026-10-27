@@ -41,55 +41,59 @@ void radtrano(Numeric          max_delta_tau,
   constexpr Numeric zero = 0.0;
 
   // The Fortran trusts its declared extents; here they are checked
-  ARTS_USER_ERROR_IF(nstokes < 1 or nuummu >= nummu,
-                     "RADTRANO needs at least one Stokes parameter (up_rad's last extent) and one quadrature node "
-                     "(mu_values longer than extra_mu); got {} Stokes parameters, {} mu_values and {} extra_mu",
-                     nstokes,
-                     nummu,
-                     nuummu);
-  ARTS_USER_ERROR_IF(num_layers < 0, "RADTRANO needs at least one height");
-  ARTS_USER_ERROR_IF(temperatures.extent(0) != num_layers + 1 or gas_extinct.extent(0) != num_layers or
-                         scatlayers.extent(0) != num_layers,
-                     "RADTRANO with {} heights needs as many temperatures and one gas_extinct and scatlayers value "
-                     "per layer; got {}, {} and {}",
-                     height.size(),
-                     temperatures.size(),
-                     gas_extinct.size(),
-                     scatlayers.size());
-  ARTS_USER_ERROR_IF(extinct_matrix.shape() != (std::array<Index, 5>{nsl, 2, nummu, nstokes, nstokes}) or
-                         emis_vector.shape() != (std::array<Index, 4>{nsl, 2, nummu, nstokes}) or
-                         scatter_matrix.shape() != (std::array<Index, 6>{nsl, 4, nummu, nstokes, nummu, nstokes}),
-                     "RADTRANO needs extinct_matrix [nsl, 2, nummu, nstokes, nstokes], emis_vector "
-                     "[nsl, 2, nummu, nstokes] and scatter_matrix [nsl, 4, nummu, nstokes, nummu, nstokes]; got "
-                     "{:B,}, {:B,} and {:B,}",
-                     extinct_matrix.shape(),
-                     emis_vector.shape(),
-                     scatter_matrix.shape());
-  ARTS_USER_ERROR_IF(gnd_radiance.shape() != (std::array<Index, 2>{nummu, nstokes}) or mu_values.extent(0) != nummu or
-                         up_rad.shape() != (std::array<Index, 3>{num_layers + 1, nummu, nstokes}) or
-                         down_rad.shape() != (std::array<Index, 3>{num_layers + 1, nummu, nstokes}),
-                     "RADTRANO needs gnd_radiance [nummu, nstokes], mu_values [nummu] and up_rad and down_rad "
-                     "[num_layers + 1, nummu, nstokes]; got {:B,}, {}, {:B,} and {:B,}",
-                     gnd_radiance.shape(),
-                     mu_values.size(),
-                     up_rad.shape(),
-                     down_rad.shape());
-  ARTS_USER_ERROR_IF(surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}),
-                     "RADTRANO needs surf_reflect [nummu, nstokes, nummu, nstokes]; got {:B,}",
-                     surf_reflect.shape());
+  if (nstokes < 1 or nuummu >= nummu)
+    arts::user_error(
+        "RADTRANO needs at least one Stokes parameter (up_rad's last extent) and one quadrature node "
+        "(mu_values longer than extra_mu); got {} Stokes parameters, {} mu_values and {} extra_mu",
+        nstokes,
+        nummu,
+        nuummu);
+  if (num_layers < 0) arts::user_error("RADTRANO needs at least one height");
+  if (temperatures.extent(0) != num_layers + 1 or gas_extinct.extent(0) != num_layers or
+      scatlayers.extent(0) != num_layers)
+    arts::user_error(
+        "RADTRANO with {} heights needs as many temperatures and one gas_extinct and scatlayers value "
+        "per layer; got {}, {} and {}",
+        height.size(),
+        temperatures.size(),
+        gas_extinct.size(),
+        scatlayers.size());
+  if (extinct_matrix.shape() != (std::array<Index, 5>{nsl, 2, nummu, nstokes, nstokes}) or
+      emis_vector.shape() != (std::array<Index, 4>{nsl, 2, nummu, nstokes}) or
+      scatter_matrix.shape() != (std::array<Index, 6>{nsl, 4, nummu, nstokes, nummu, nstokes}))
+    arts::user_error(
+        "RADTRANO needs extinct_matrix [nsl, 2, nummu, nstokes, nstokes], emis_vector "
+        "[nsl, 2, nummu, nstokes] and scatter_matrix [nsl, 4, nummu, nstokes, nummu, nstokes]; got "
+        "{:B,}, {:B,} and {:B,}",
+        extinct_matrix.shape(),
+        emis_vector.shape(),
+        scatter_matrix.shape());
+  if (gnd_radiance.shape() != (std::array<Index, 2>{nummu, nstokes}) or mu_values.extent(0) != nummu or
+      up_rad.shape() != (std::array<Index, 3>{num_layers + 1, nummu, nstokes}) or
+      down_rad.shape() != (std::array<Index, 3>{num_layers + 1, nummu, nstokes}))
+    arts::user_error(
+        "RADTRANO needs gnd_radiance [nummu, nstokes], mu_values [nummu] and up_rad and down_rad "
+        "[num_layers + 1, nummu, nstokes]; got {:B,}, {}, {:B,} and {:B,}",
+        gnd_radiance.shape(),
+        mu_values.size(),
+        up_rad.shape(),
+        down_rad.shape());
+  if (surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}))
+    arts::user_error("RADTRANO needs surf_reflect [nummu, nstokes, nummu, nstokes]; got {:B,}", surf_reflect.shape());
 
   // The layers' Planck function is ARTS's planck(), which is negative
   // below 0 K; PLANCK_FUNCTION gave 0 there
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "RADTRANO needs a positive frequency, got {} Hz", frequency);
-  ARTS_USER_ERROR_IF(stdr::any_of(temperatures, [](Numeric t) { return not(t >= 0.0); }),
-                     "RADTRANO needs temperatures >= 0 K");
+  if (not(frequency > 0.0)) arts::user_error("RADTRANO needs a positive frequency, got {} Hz", frequency);
+  if (stdr::any_of(temperatures, [](Numeric t) { return not(t >= 0.0); }))
+    arts::user_error("RADTRANO needs temperatures >= 0 K");
 
   // this is dangerous to do, as we use nstokes also as array-size
   // determining parameter. resetting it will cause problems later on
   // shaping the arrays and correct value extraction. so, don't do
   // this. just check whether (and fail if) condition is not fulfilled.
   //   NSTOKES = MIN(NSTOKES,2)
-  ARTS_USER_ERROR_IF(nstokes > 2, "Number of Stokes parameters exceeded.  Maximum size : {}.  Yours is {}", 2, nstokes);
+  if (nstokes > 2)
+    arts::user_error("Number of Stokes parameters exceeded.  Maximum size : {}.  Yours is {}", 2, nstokes);
 
   const bool  symmetric = true;
   const Index n         = nstokes * nummu;
@@ -159,7 +163,7 @@ void radtrano(Numeric          max_delta_tau,
                        trans[layer].view_as(2, nummu, nstokes, nummu, nstokes),
                        source[layer].view_as(2, nummu, nstokes));
     } else {
-      ARTS_USER_ERROR_IF(tsl > nsl, "RADTRANO: scatlayers[{}] = {} but there are {} optics sets", layer, tsl, nsl);
+      if (tsl > nsl) arts::user_error("RADTRANO: scatlayers[{}] = {} but there are {} optics sets", layer, tsl, nsl);
 
       // Find initial thickness of sublayer and
       // the number of times to double

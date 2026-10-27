@@ -13,8 +13,8 @@ void ray_pathInit(ArrayOfPropagationPathPoint& ray_path,
                   const Index&                 as_sensor) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(any_nan(pos) or any_nan(los),
-                     R"(There are NAN in the pos or los vector:
+  if (any_nan(pos) or any_nan(los))
+    arts::user_error(R"(There are NAN in the pos or los vector:
 pos:      {:B,}
 los:      {:B,}
 )",
@@ -51,8 +51,8 @@ void ray_pathRemoveNonGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_pa
   ARTS_TIME_REPORT
 
   const auto& data = atm_field[atm_key];
-  ARTS_USER_ERROR_IF(
-      not std::holds_alternative<GeodeticField3>(data.data), "The data for key {} is not a GeodeticField3", atm_key);
+  if (not std::holds_alternative<GeodeticField3>(data.data))
+    arts::user_error("The data for key {} is not a GeodeticField3", atm_key);
   const auto& field = std::get<GeodeticField3>(data.data);
   const auto& alt   = field.grid<0>();
   const auto& lat   = field.grid<1>();
@@ -71,8 +71,8 @@ void ray_pathAddGeometricGridCrossings(ArrayOfPropagationPathPoint& ray_path,
   ARTS_TIME_REPORT
 
   const auto& data = atm_field[atm_key];
-  ARTS_USER_ERROR_IF(
-      not std::holds_alternative<GeodeticField3>(data.data), "The data for key {} is not a GeodeticField3", atm_key);
+  if (not std::holds_alternative<GeodeticField3>(data.data))
+    arts::user_error("The data for key {} is not a GeodeticField3", atm_key);
   const auto& field = std::get<GeodeticField3>(data.data);
   const auto& alt   = field.grid<0>();
   const auto& lat   = field.grid<1>();
@@ -88,9 +88,8 @@ void ray_pathAddGeometricAltitudeGridCrossings(ArrayOfPropagationPathPoint& ray_
 
   path::fill_geometric_altitude_crossings(ray_path, surf_field, alt_grid);
 
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(ray_path, Cmp::not_in_sorted(alt_grid), [](const PropagationPathPoint& p) { return p.altitude(); }),
-      "Failed to add only geometric altitude grid crossings");
+  if (stdr::any_of(ray_path, Cmp::not_in_sorted(alt_grid), [](const PropagationPathPoint& p) { return p.altitude(); }))
+    arts::user_error("Failed to add only geometric altitude grid crossings");
 }
 
 void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,
@@ -197,21 +196,21 @@ void ray_pathGeometric(ArrayOfPropagationPathPoint& ray_path,
 void ray_pointBackground(PropagationPathPoint& ray_point, const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
   ray_point = ray_path.back();
 }
 
 void ray_pointForeground(PropagationPathPoint& ray_point, const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
   ray_point = ray_path.front();
 }
 
 void ray_pointLowestFromPath(PropagationPathPoint& ray_point, const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
 
   ray_point = *stdr::min_element(ray_path, [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
     return a.altitude() < b.altitude();
@@ -221,7 +220,7 @@ void ray_pointLowestFromPath(PropagationPathPoint& ray_point, const ArrayOfPropa
 void ray_pointHighestFromPath(PropagationPathPoint& ray_point, const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.")
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
 
   ray_point = *stdr::max_element(ray_path, [](const PropagationPathPoint& a, const PropagationPathPoint& b) {
     return a.altitude() < b.altitude();
@@ -281,7 +280,7 @@ void ray_pointPastGeometric(PropagationPathPoint&              ray_point,
                             const Index&                       search_safe) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
 
   ray_point = past_geometric(ray_path.back(), atm_field, surf_field, max_stepsize, safe_search_accuracy, search_safe);
 }
@@ -298,7 +297,7 @@ void ray_pointPastRefractive(PropagationPathPoint&              ray_point,
 
   using Conversion::cosd, Conversion::acosd;
 
-  ARTS_USER_ERROR_IF(ray_path.size() == 0, "Empty propagation path.");
+  if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
 
   PropagationPathPoint future = ray_path.back();
   future.zenith()             = acosd((future.nreal / (1.0 + single_dispersion)) * cosd(future.zenith()));

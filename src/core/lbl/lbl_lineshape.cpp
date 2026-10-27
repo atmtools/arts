@@ -107,7 +107,7 @@ void calculate(PropmatVectorView        pm,
   const auto calc_voigt_ecs_linemixing =
       [&](const QuantumIdentifier& bnd_key, const band_data& bnd, const ZeemanPolarization pol) {
         auto it = abs_ecs_data.find(bnd_key.isot);
-        if (it == abs_ecs_data.end()) { ARTS_USER_ERROR("No ECS data for isotopologue {}", bnd_key.isot); }
+        if (it == abs_ecs_data.end()) { arts::user_error("No ECS data for isotopologue {}", bnd_key.isot); }
 
         voigt::ecs::calculate(pm,
                               dpm,

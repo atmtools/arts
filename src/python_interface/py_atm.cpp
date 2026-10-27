@@ -623,7 +623,7 @@ gridded_atm : AtmField
         for (Size i = 0; i < xarray.keys.size(); i++) {
           const std::string key = std::format("{}", xarray.keys[i]);
           const Tensor3     d{xarray.data[i]};
-          ARTS_USER_ERROR_IF(data.contains(key), "Duplicate key: {}", key)
+          if (data.contains(key)) arts::user_error("Duplicate key: {}", key);
           data[key.c_str()] = xa.attr("Variable")(dims, np.attr("array")(d));
         }
 

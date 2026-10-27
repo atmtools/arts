@@ -5,7 +5,7 @@
 
 void legendre_degreeFromDisortSettings(Index& legendre_degree, const DisortSettings& disort_settings) {
   legendre_degree = disort_settings.legendre_polynomial_dimension - 1;
-  ARTS_USER_ERROR_IF(legendre_degree < 0, "The legendre_degree must be non-negative, is {}", legendre_degree)
+  if (legendre_degree < 0) arts::user_error("The legendre_degree must be non-negative, is {}", legendre_degree);
 }
 
 void legendre_degreeFromDisortSettingsDeltaMPlus(Index& legendre_degree, const DisortSettings& disort_settings) {
@@ -19,7 +19,7 @@ void spectral_propmat_scatSpectralInit(PropmatVector&              spectral_prop
                                        CompactPlanarMuelmatMatrix& spectral_phamat_spectral,
                                        const AscendingGrid&        freq_grid,
                                        const Index&                legendre_degree) {
-  ARTS_USER_ERROR_IF(legendre_degree < 0, "The legendre_degree must be non-negative, is {}", legendre_degree)
+  if (legendre_degree < 0) arts::user_error("The legendre_degree must be non-negative, is {}", legendre_degree);
 
   spectral_propmat_scat.resize(freq_grid.size());
   spectral_absvec_scat.resize(freq_grid.size());
@@ -38,20 +38,19 @@ void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(PropmatVector&        
                                                           const ArrayOfScatteringSpecies& scattering_species) try {
   const Index L = spectral_phamat_spectral.ncols();
 
-  ARTS_USER_ERROR_IF(L < 1, "Need at least one Legendre coefficient")
-  ARTS_USER_ERROR_IF(scattering_species.species.empty(), "No scattering species")
+  if (L < 1) arts::user_error("Need at least one Legendre coefficient");
+  if (scattering_species.species.empty()) arts::user_error("No scattering species");
 
   const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
       scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, freq_grid, L - 1);
 
-  ARTS_USER_ERROR_IF(not phase_matrix_opt.has_value(), "No phase matrix")
+  if (not phase_matrix_opt.has_value()) arts::user_error("No phase matrix");
 
   const auto& phase_matrix = phase_matrix_opt.value();
 
-  ARTS_USER_ERROR_IF(
-      not same_shape(phase_matrix, spectral_phamat_spectral) or
-          not same_shape(extinction_matrix, absorption_vector, spectral_propmat_scat, spectral_absvec_scat),
-      R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
+  if (not same_shape(phase_matrix, spectral_phamat_spectral) or
+      not same_shape(extinction_matrix, absorption_vector, spectral_propmat_scat, spectral_absvec_scat))
+    arts::user_error(R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
 
 Phase matrix shape (must match):
   phase_matrix.shape(): [OUTPUT]    {0:B,}
@@ -69,14 +68,14 @@ Supporting variable sizes:
   freq_grid.size():          {6}
   scattering_species.size(): {7}
 )",
-      phase_matrix.shape(),
-      spectral_phamat_spectral.shape(),
-      extinction_matrix.shape(),
-      spectral_propmat_scat.shape(),
-      absorption_vector.shape(),
-      spectral_absvec_scat.shape(),
-      freq_grid.size(),
-      scattering_species.species.size())
+                     phase_matrix.shape(),
+                     spectral_phamat_spectral.shape(),
+                     extinction_matrix.shape(),
+                     spectral_propmat_scat.shape(),
+                     absorption_vector.shape(),
+                     spectral_absvec_scat.shape(),
+                     freq_grid.size(),
+                     scattering_species.species.size());
 
   for (Size iv = 0; iv < freq_grid.size(); iv++) {
     spectral_propmat_scat[iv] += extinction_matrix[iv].expand();

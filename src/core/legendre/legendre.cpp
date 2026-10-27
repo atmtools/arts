@@ -25,12 +25,10 @@ constexpr Numeric longitude_clamp(Numeric lon) {
 
 void schmidt(MatrixView P, MatrixView dP, const Numeric theta) {
   const Index N = P.nrows();
-  ARTS_USER_ERROR_IF(theta < 0 or theta > Constant::pi, "Theta={} must be in [0, pi]", theta)
-  ARTS_USER_ERROR_IF(N <= 1, "nmax={} must be > 0", N - 1)
-  ARTS_USER_ERROR_IF(P.ncols() != N or dP.shape() != P.shape(),
-                     "The Schmidt matrices must be (nmax+1) x (nmax+1), got {:B,} and {:B,}",
-                     P.shape(),
-                     dP.shape())
+  if (theta < 0 or theta > Constant::pi) arts::user_error("Theta={} must be in [0, pi]", theta);
+  if (N <= 1) arts::user_error("nmax={} must be > 0", N - 1);
+  if (P.ncols() != N or dP.shape() != P.shape())
+    arts::user_error("The Schmidt matrices must be (nmax+1) x (nmax+1), got {:B,} and {:B,}", P.shape(), dP.shape());
 
   const Numeric ct = std::cos(theta);
   const Numeric st = std::sin(theta);
@@ -74,7 +72,7 @@ void schmidt(MatrixView P, MatrixView dP, const Numeric theta) {
 }
 
 std::pair<TriangularMatrix, TriangularMatrix> schmidt(const Numeric theta, const Index nmax) {
-  ARTS_USER_ERROR_IF(nmax <= 0, "nmax={} must be > 0", nmax)
+  if (nmax <= 0) arts::user_error("nmax={} must be > 0", nmax);
 
   const Index N = nmax + 1;
   Matrix      P(N, N), dP(N, N);
@@ -95,7 +93,7 @@ std::array<std::pair<TriangularMatrix, TriangularMatrix>, 3> dschmidt_fieldcalc(
                                                                                 const Vector3 pos) try {
   const auto [r, lat, lon] = pos;
 
-  ARTS_USER_ERROR_IF(lat < -90 or lat > 90, "Latitude is {} should be in [-90, 90]", lat)
+  if (lat < -90 or lat > 90) arts::user_error("Latitude is {} should be in [-90, 90]", lat);
 
   std::array<std::pair<TriangularMatrix, TriangularMatrix>, 3> dB{
       std::pair{TriangularMatrix(N, 0), TriangularMatrix(N, 0)},
@@ -154,11 +152,9 @@ Vector3 schmidt_fieldcalc(const ConstTriangularMatrixView& g,
                           const Vector3                    pos) {
   const auto [r, lat, lon] = pos;
 
-  ARTS_USER_ERROR_IF(lat < -90 or lat > 90, "Latitude is {} should be in [-90, 90]", lat)
-  ARTS_USER_ERROR_IF(g.extent(0) != h.extent(0),
-                     "The g-coefficients are {0} x {0} but the h-coefficients are {1} x {1}",
-                     g.extent(0),
-                     h.extent(0))
+  if (lat < -90 or lat > 90) arts::user_error("Latitude is {} should be in [-90, 90]", lat);
+  if (g.extent(0) != h.extent(0))
+    arts::user_error("The g-coefficients are {0} x {0} but the h-coefficients are {1} x {1}", g.extent(0), h.extent(0));
 
   const Index N = h.extent(0);
 
@@ -212,7 +208,7 @@ Vector3 schmidt_fieldcalc(const ConstTriangularMatrixView& g,
 Numeric legendre_sum(const ConstVectorView& s, const Numeric& x) {
   using boost::math::legendre_next;
 
-  ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
+  if (x < -1 or x > 1) arts::user_error("x={} not in [-1, 1]", x);
 
   const Index n = s.size();
   if (n == 0) return 0.0;
@@ -238,7 +234,7 @@ Numeric legendre(Index n, Numeric x) {
 void legendre_polynomials(VectorView p, Numeric x) {
   using boost::math::legendre_next;
 
-  ARTS_USER_ERROR_IF(x < -1 or x > 1, "x={} not in [-1, 1]", x)
+  if (x < -1 or x > 1) arts::user_error("x={} not in [-1, 1]", x);
 
   const Index n = p.size();
   if (n > 0) p[0] = 1.0;

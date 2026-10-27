@@ -61,7 +61,9 @@ void xml_find_and_open_input_file(std::shared_ptr<std::istream>& ifs, const Stri
   \param filename filename
   \param varname variable name
 */
-void filename_xml(const String& filename) { ARTS_USER_ERROR_IF(filename == "", "Must have filename") }
+void filename_xml(const String& filename) {
+  if (filename == "") arts::user_error("Must have filename");
+}
 
 //! Gives the default filename, with file index, for the XML formats.
 /*!
@@ -72,7 +74,7 @@ void filename_xml(const String& filename) { ARTS_USER_ERROR_IF(filename == "", "
   \param[in]  digits     Width for padding with zeros
 */
 void filename_xml_with_index(String& filename, const Index& file_index, const Index&) {
-  ARTS_USER_ERROR_IF("" == filename, "Must have filename")
+  if ("" == filename) arts::user_error("Must have filename");
   filename = std::format("{}.{}.xml", filename, file_index);
 }
 

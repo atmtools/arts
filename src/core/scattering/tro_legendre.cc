@@ -33,23 +33,21 @@ const std::pair<Vector, Vector>& gauss_legendre(std::map<Index, std::pair<Vector
 
 Matrix project(const ConstVectorView& angles, const StridedConstMatrixView& values, Index degree) {
   const Index n = static_cast<Index>(angles.size()), k = values.ncols();
-  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
-  ARTS_USER_ERROR_IF(n < 1, "A Legendre projection needs at least one scattering angle")
-  ARTS_USER_ERROR_IF(values.nrows() != n,
-                     "The gridded data have {} scattering angles, but the scattering-angle grid has {}",
-                     values.nrows(),
-                     n)
-  ARTS_USER_ERROR_IF(not(angles[0] >= 0.0 and angles[n - 1] <= 180.0),
-                     "The scattering angles must be in [0, 180] deg, got [{}, {}]",
-                     angles[0],
-                     angles[n - 1])
-  for (Index i = 0; i + 1 < n; i++)
-    ARTS_USER_ERROR_IF(not(angles[i] < angles[i + 1]),
-                       "The scattering angles must ascend strictly, but angle {} is {} deg and angle {} is {} deg",
+  if (degree < 0) arts::user_error("The Legendre degree must be >= 0, got {}", degree);
+  if (n < 1) arts::user_error("A Legendre projection needs at least one scattering angle");
+  if (values.nrows() != n)
+    arts::user_error(
+        "The gridded data have {} scattering angles, but the scattering-angle grid has {}", values.nrows(), n);
+  if (not(angles[0] >= 0.0 and angles[n - 1] <= 180.0))
+    arts::user_error("The scattering angles must be in [0, 180] deg, got [{}, {}]", angles[0], angles[n - 1]);
+  for (Index i = 0; i + 1 < n; i++) {
+    if (not(angles[i] < angles[i + 1]))
+      arts::user_error("The scattering angles must ascend strictly, but angle {} is {} deg and angle {} is {} deg",
                        i,
                        angles[i],
                        i + 1,
-                       angles[i + 1])
+                       angles[i + 1]);
+  }
 
   // b[l, j] = int_{-1}^{1} F_j(x) P_l(x) dx
   Matrix b(degree + 1, k, 0.0);
@@ -93,13 +91,12 @@ Matrix project(const ConstVectorView& angles, const StridedConstMatrixView& valu
 
 Matrix evaluate(const StridedConstMatrixView& coefficients, const ConstVectorView& angles) {
   const Index L = coefficients.nrows() - 1, k = coefficients.ncols();
-  ARTS_USER_ERROR_IF(L < 0, "A Legendre series needs at least one coefficient")
+  if (L < 0) arts::user_error("A Legendre series needs at least one coefficient");
   Matrix out(angles.size(), k, 0.0);
   Vector p(L + 1);
   for (Size i = 0; i < angles.size(); i++) {
-    ARTS_USER_ERROR_IF(not(angles[i] >= 0.0 and angles[i] <= 180.0),
-                       "The scattering angles must be in [0, 180] deg, got {} deg",
-                       angles[i])
+    if (not(angles[i] >= 0.0 and angles[i] <= 180.0))
+      arts::user_error("The scattering angles must be in [0, 180] deg, got {} deg", angles[i]);
     Legendre::legendre_polynomials(p, std::clamp(std::cos(Conversion::deg2rad(angles[i])), -1.0, 1.0));
     for (Index l = 0; l <= L; l++) {
       const Numeric y = ylm0_norm(l) * p[l];
@@ -129,11 +126,11 @@ CompactPlanarMuelmatVector evaluate(const CompactPlanarMuelmatConstVectorView& c
 report assess(const CompactPlanarMuelmatConstVectorView& coefficients,
               const ConstVectorView&                     angles,
               const CompactPlanarMuelmatConstVectorView& values) {
-  ARTS_USER_ERROR_IF(coefficients.empty(), "A Legendre series needs at least one coefficient")
-  ARTS_USER_ERROR_IF(values.size() != angles.size(),
-                     "The gridded data have {} scattering angles, but the scattering-angle grid has {}",
+  if (coefficients.empty()) arts::user_error("A Legendre series needs at least one coefficient");
+  if (values.size() != angles.size())
+    arts::user_error("The gridded data have {} scattering angles, but the scattering-angle grid has {}",
                      values.size(),
-                     angles.size())
+                     angles.size());
   const Index       L   = coefficients.size() - 1;
   constexpr Numeric nan = std::numeric_limits<Numeric>::quiet_NaN();
 

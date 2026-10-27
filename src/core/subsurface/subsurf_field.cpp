@@ -1,5 +1,6 @@
 #include "subsurf_field.h"
 
+#include <debug.h>
 #include <enumsSubsurfaceKey.h>
 #include <functional_field_interp.h>
 
@@ -101,7 +102,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 namespace {
@@ -172,11 +173,12 @@ bool Field::contains(const KeyVal &key) const {
 }
 
 Point Field::at(const Numeric alt, const Numeric lat, const Numeric lon) const try {
-  ARTS_USER_ERROR_IF(alt < bottom_depth,
-                     "Cannot get values below the deepest point of the subsurface, "
-                     "which is at: {} m.\nYour depth is: {} m.",
-                     bottom_depth,
-                     alt)
+  if (alt < bottom_depth)
+    arts::user_error(
+        "Cannot get values below the deepest point of the subsurface, "
+        "which is at: {} m.\nYour depth is: {} m.",
+        bottom_depth,
+        alt);
 
   Point out;
 

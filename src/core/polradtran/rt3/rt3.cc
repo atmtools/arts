@@ -45,7 +45,7 @@ Index max_legendre_degree(Index nmu, quadrature_type type) {
     case quadrature_type::lobatto:      return std::max<Index>(4 * nmu - 5, 1);
     case quadrature_type::gauss:        return std::max<Index>(4 * nmu - 3, 1);
   }
-  ARTS_USER_ERROR("Unknown RT3 quadrature type {}", static_cast<int>(type));
+  arts::user_error("Unknown RT3 quadrature type {}", static_cast<int>(type));
 }
 
 result solve(const problem& p) {
@@ -58,37 +58,37 @@ result solve(const problem& p) {
   const Index nazi   = p.aziorder + 1;
   const bool  beam   = p.direct_flux > 0.0;
 
-  ARTS_USER_ERROR_IF(ns < 1 or ns > 4, "RT3 supports nstokes 1 to 4, got {}", ns);
-  ARTS_USER_ERROR_IF(nquad < 1, "RT3 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
-  ARTS_USER_ERROR_IF(stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }),
-                     "extra_mu values must be in (0, 1]");
-  ARTS_USER_ERROR_IF(p.aziorder < 0, "aziorder must be >= 0, got {}", p.aziorder);
-  ARTS_USER_ERROR_IF(nlay < 1, "height needs at least 2 interfaces (1 layer), got {}", p.height.size());
-  ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
-  ARTS_USER_ERROR_IF(not(p.frequency > 0.0), "frequency must be positive, got {} Hz", p.frequency);
-  ARTS_USER_ERROR_IF(not(p.direct_flux >= 0.0), "direct_flux must be >= 0 (0 for no beam), got {}", p.direct_flux);
-  ARTS_USER_ERROR_IF(beam and not(p.direct_mu > 0.0 and p.direct_mu <= 1.0),
-                     "direct_mu must be in (0, 1] with a direct beam, got {}",
-                     p.direct_mu);
-  ARTS_USER_ERROR_IF(beam and not std::holds_alternative<lambertian_surface>(p.ground),
-                     "RT3 supports a direct beam only over a Lambertian surface");
-  ARTS_USER_ERROR_IF(static_cast<Index>(p.temperature.size()) != nlay + 1 or
-                         static_cast<Index>(p.gas_extinction.size()) != nlay or
-                         static_cast<Index>(p.layer_scattering_index.size()) != nlay,
-                     "With {} heights (nlay = {}), temperature needs nlay + 1 values and gas_extinction and "
-                     "layer_scattering_index nlay values; got {}, {} and {}",
-                     p.height.size(),
-                     nlay,
-                     p.temperature.size(),
-                     p.gas_extinction.size(),
-                     p.layer_scattering_index.size());
-  ARTS_USER_ERROR_IF(p.thermal and stdr::any_of(p.temperature, [](Numeric t) { return not(t > 0.0); }),
-                     "temperature values must be positive with thermal emission (RT3's linear-in-tau source of a "
-                     "scattering layer degenerates to a constant when the Planck function at its top is 0)");
-  ARTS_USER_ERROR_IF(stdr::any_of(p.gas_extinction, [](Numeric k) { return not(k >= 0.0); }),
-                     "gas_extinction values must be non-negative (RT3 would silently clip them to 0)");
-  ARTS_USER_ERROR_IF(stdr::any_of(p.layer_scattering_index, [nsl](Index i) { return i >= nsl; }),
-                     "layer_scattering_index values must be < scattering_sets.size() = {} (negative means gas-only)",
+  if (ns < 1 or ns > 4) arts::user_error("RT3 supports nstokes 1 to 4, got {}", ns);
+  if (nquad < 1) arts::user_error("RT3 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
+  if (stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }))
+    arts::user_error("extra_mu values must be in (0, 1]");
+  if (p.aziorder < 0) arts::user_error("aziorder must be >= 0, got {}", p.aziorder);
+  if (nlay < 1) arts::user_error("height needs at least 2 interfaces (1 layer), got {}", p.height.size());
+  if (not(p.max_delta_tau > 0.0)) arts::user_error("max_delta_tau must be positive, got {}", p.max_delta_tau);
+  if (not(p.frequency > 0.0)) arts::user_error("frequency must be positive, got {} Hz", p.frequency);
+  if (not(p.direct_flux >= 0.0)) arts::user_error("direct_flux must be >= 0 (0 for no beam), got {}", p.direct_flux);
+  if (beam and not(p.direct_mu > 0.0 and p.direct_mu <= 1.0))
+    arts::user_error("direct_mu must be in (0, 1] with a direct beam, got {}", p.direct_mu);
+  if (beam and not std::holds_alternative<lambertian_surface>(p.ground))
+    arts::user_error("RT3 supports a direct beam only over a Lambertian surface");
+  if (static_cast<Index>(p.temperature.size()) != nlay + 1 or static_cast<Index>(p.gas_extinction.size()) != nlay or
+      static_cast<Index>(p.layer_scattering_index.size()) != nlay)
+    arts::user_error(
+        "With {} heights (nlay = {}), temperature needs nlay + 1 values and gas_extinction and "
+        "layer_scattering_index nlay values; got {}, {} and {}",
+        p.height.size(),
+        nlay,
+        p.temperature.size(),
+        p.gas_extinction.size(),
+        p.layer_scattering_index.size());
+  if (p.thermal and stdr::any_of(p.temperature, [](Numeric t) { return not(t > 0.0); }))
+    arts::user_error(
+        "temperature values must be positive with thermal emission (RT3's linear-in-tau source of a "
+        "scattering layer degenerates to a constant when the Planck function at its top is 0)");
+  if (stdr::any_of(p.gas_extinction, [](Numeric k) { return not(k >= 0.0); }))
+    arts::user_error("gas_extinction values must be non-negative (RT3 would silently clip them to 0)");
+  if (stdr::any_of(p.layer_scattering_index, [nsl](Index i) { return i >= nsl; }))
+    arts::user_error("layer_scattering_index values must be < scattering_sets.size() = {} (negative means gas-only)",
                      nsl);
 
   // The series as RT3 uses it: trailing zero rows dropped, delta-M scaled
@@ -98,13 +98,13 @@ result solve(const problem& p) {
   ArrayOfIndex degree(nsl);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& s = p.scattering_sets[iset];
-    ARTS_USER_ERROR_IF(s.legendre.size() < 1, "Scattering set {} must have a legendre series", iset);
+    if (s.legendre.size() < 1) arts::user_error("Scattering set {} must have a legendre series", iset);
     const Index nleg = stripped_degree(s.legendre);
     degree[iset]     = nleg;
     Numeric f        = 0.0;
     if (p.delta_m and mdm <= nleg) f = s.legendre[mdm].F11() / static_cast<Numeric>(2 * mdm + 1);
-    ARTS_USER_ERROR_IF(p.delta_m and 1.0 - f == 0.0,
-                       "Delta-M scaling of scattering set {} divides by 1 - f, with f = legendre[{}].F11() / {} = 1",
+    if (p.delta_m and 1.0 - f == 0.0)
+      arts::user_error("Delta-M scaling of scattering set {} divides by 1 - f, with f = legendre[{}].F11() / {} = 1",
                        iset,
                        mdm,
                        2 * mdm + 1);
@@ -116,37 +116,40 @@ result solve(const problem& p) {
     const Index rt3_degree = p.delta_m ? mdm - 1 : nleg;
 
     const Numeric c0 = scaled(0).F11();
-    ARTS_USER_ERROR_IF(not(std::abs(c0 - 1.0) <= normalisation_tolerance),
-                       "The phase function of scattering set {} must be normalised: legendre[0].F11(){} must be 1 "
-                       "to {}, got {} (RT3's CHECK_NORM would reject it)",
-                       iset,
-                       p.delta_m ? " after delta-M scaling" : "",
-                       normalisation_tolerance,
-                       c0);
+    if (not(std::abs(c0 - 1.0) <= normalisation_tolerance))
+      arts::user_error(
+          "The phase function of scattering set {} must be normalised: legendre[0].F11(){} must be 1 "
+          "to {}, got {} (RT3's CHECK_NORM would reject it)",
+          iset,
+          p.delta_m ? " after delta-M scaling" : "",
+          normalisation_tolerance,
+          c0);
 
     bool dropped = false;
     for (Index l = nleglim + 1; l <= rt3_degree; l++) dropped = dropped or nonzero(scaled(l));
-    ARTS_USER_ERROR_IF(dropped and p.delta_m,
-                       "RT3 would silently truncate the delta-M scaled Legendre series of scattering set {} from "
-                       "degree 2 * nmu_total - 1 = {} to {} (NLEGLIM of the {} quadrature with nmu = {}), dropping "
-                       "non-zero coefficients.  With delta_m this always happens for double_gauss (nmu >= 2) and for "
-                       "gauss with nmu or more extra angles; use gauss with fewer extra angles, lobatto, or no "
-                       "delta_m",
-                       iset,
-                       rt3_degree,
-                       nleglim,
-                       quad_name(p.quad),
-                       nquad);
-    ARTS_USER_ERROR_IF(dropped,
-                       "RT3 would silently truncate the Legendre series of scattering set {} from degree {} to {} "
-                       "(NLEGLIM of the {} quadrature with nmu = {}), dropping non-zero coefficients.  Use more "
-                       "quadrature nodes, a series of degree <= {}, or delta_m",
-                       iset,
-                       rt3_degree,
-                       nleglim,
-                       quad_name(p.quad),
-                       nquad,
-                       nleglim);
+    if (dropped and p.delta_m)
+      arts::user_error(
+          "RT3 would silently truncate the delta-M scaled Legendre series of scattering set {} from "
+          "degree 2 * nmu_total - 1 = {} to {} (NLEGLIM of the {} quadrature with nmu = {}), dropping "
+          "non-zero coefficients.  With delta_m this always happens for double_gauss (nmu >= 2) and for "
+          "gauss with nmu or more extra angles; use gauss with fewer extra angles, lobatto, or no "
+          "delta_m",
+          iset,
+          rt3_degree,
+          nleglim,
+          quad_name(p.quad),
+          nquad);
+    if (dropped)
+      arts::user_error(
+          "RT3 would silently truncate the Legendre series of scattering set {} from degree {} to {} "
+          "(NLEGLIM of the {} quadrature with nmu = {}), dropping non-zero coefficients.  Use more "
+          "quadrature nodes, a series of degree <= {}, or delta_m",
+          iset,
+          rt3_degree,
+          nleglim,
+          quad_name(p.quad),
+          nquad,
+          nleglim);
   }
 
   // RADTRAN arguments (radtran3.h).  A row-major [a, b, c] array is the
@@ -237,7 +240,7 @@ result solve(const problem& p) {
 
 Tensor4 azimuth_radiance(const Tensor4& coefficients, const Vector& phi) {
   const auto [nlev, nmode, nmu, ns] = coefficients.shape();
-  ARTS_USER_ERROR_IF(ns > 4, "coefficients must have at most 4 Stokes components, got {}", ns);
+  if (ns > 4) arts::user_error("coefficients must have at most 4 Stokes components, got {}", ns);
   const Index nphi = static_cast<Index>(phi.size());
 
   Tensor4 out(nlev, nphi, nmu, ns, 0.0);

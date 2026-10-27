@@ -402,13 +402,34 @@ template <Size N> void test_variant_lag() {
     Vector     grid = nlinspace(-100, 100, i);
     const auto lagt = lagrange_interp::variant_lag<lagrange_interp::grid_identity, N>(std::span{grid}, 1);
     Size       x    = std::visit([](auto v) { return v.PolyOrder; }, lagt);
-    ARTS_USER_ERROR_IF(x > N, "PolyOrder {} exceeds max lag size {}", x, N);
-    ARTS_USER_ERROR_IF(i > N and x != N,
-                       "PolyOrder {} not equal to max lag size {} for grid "
-                       "size {}",
-                       x,
-                       N,
-                       i);
+    if (x > N) arts::user_error("PolyOrder {} exceeds max lag size {}", x, N);
+    if (i > N and x != N)
+      arts::user_error(
+          "PolyOrder {} not equal to max lag size {} for grid "
+          "size {}",
+          x,
+          N,
+          i);
+  }
+}
+
+//! Linear interpolation across the cycle, between 90 deg and 180 = -180 deg
+void test_cyclic_wrap() {
+  using namespace lagrange_interp;
+
+  const Vector x{-180, -135, 45, 90, 135, 179};
+  const Vector y{1, 1.5, 6.5, 10, 5.5, 1.1};
+
+  const Vector grid{-180, -90, 0, 90};
+  const Vector data{1, 2, 3, 10};
+  const Vector reversed_grid{90, 0, -90, -180};
+  const Vector reversed_data{10, 3, 2, 1};
+
+  for (Size i = 0; i < x.size(); ++i) {
+    const Numeric a = interp(data, lag_t<1, loncross>(grid, x[i], ascending_grid_t{}));
+    const Numeric d = interp(reversed_data, lag_t<1, loncross>(reversed_grid, x[i], descending_grid_t{}));
+    if (not close(a, y[i]) or not close(d, y[i]))
+      arts::user_error("At {} deg: {} (ascending) and {} (descending), expected {}", x[i], a, d, y[i]);
   }
 }
 

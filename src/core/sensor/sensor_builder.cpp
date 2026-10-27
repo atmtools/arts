@@ -63,18 +63,18 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::operator()(std::sp
                                                                          std::span<const Vector2> los,
                                                                          std::span<const Time>    time,
                                                                          const Vector2&           ell) const {
-  ARTS_USER_ERROR_IF(channels.empty(), "Builder requires at least one channel")
-  ARTS_USER_ERROR_IF(not antenna, "Builder requires an antenna pattern")
-  ARTS_USER_ERROR_IF(pos.empty(), "Builder requires at least one sensor position")
-  ARTS_USER_ERROR_IF(los.empty(), "Builder requires at least one bore LOS")
-  ARTS_USER_ERROR_IF(pos.size() != los.size(),
-                     "Builder requires matching position and LOS counts. Got {} positions and {} LOS values.",
+  if (channels.empty()) arts::user_error("Builder requires at least one channel");
+  if (not antenna) arts::user_error("Builder requires an antenna pattern");
+  if (pos.empty()) arts::user_error("Builder requires at least one sensor position");
+  if (los.empty()) arts::user_error("Builder requires at least one bore LOS");
+  if (pos.size() != los.size())
+    arts::user_error("Builder requires matching position and LOS counts. Got {} positions and {} LOS values.",
                      pos.size(),
-                     los.size())
-  ARTS_USER_ERROR_IF(not time.empty() and time.size() != pos.size(),
-                     "Builder requires either no times or one time per geometry. Got {} times and {} geometries.",
+                     los.size());
+  if (not time.empty() and time.size() != pos.size())
+    arts::user_error("Builder requires either no times or one time per geometry. Got {} times and {} geometries.",
                      time.size(),
-                     pos.size())
+                     pos.size());
 
   std::vector<std::shared_ptr<const AscendingGrid>> freq_grids;
   freq_grids.reserve(channels.size());

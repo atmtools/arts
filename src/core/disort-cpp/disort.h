@@ -749,7 +749,7 @@ class main_data {
 
   //! Set the optical thicknesses grid - NLayers
   template <matpack::exact_md<Numeric, 1> T> void tau(T&& x) {
-    ARTS_USER_ERROR_IF(x.size() != tau_arr.size(), "Invalid size for tau: {}", x.size());
+    if (x.size() != tau_arr.size()) arts::user_error("Invalid size for tau: {}", x.size());
     tau_arr = std::forward<T>(x);
   }
 

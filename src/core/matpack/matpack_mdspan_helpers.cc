@@ -24,8 +24,8 @@ ComplexVector uniform_grid(Complex x0, Index N, Complex dx) {
 }
 
 void gaussian_grid(Vector &y, const Vector &x, const Numeric &x0, const Numeric &si, const Numeric &fwhm) {
-  ARTS_USER_ERROR_IF((si <= 0 && fwhm <= 0) || (si > 0 && fwhm > 0),
-                     "One of the GINs *si* and *fwhm* shall be >0, but just one.");
+  if ((si <= 0 && fwhm <= 0) || (si > 0 && fwhm > 0))
+    arts::user_error("One of the GINs *si* and *fwhm* shall be >0, but just one.");
 
   const Index n = x.size();
 

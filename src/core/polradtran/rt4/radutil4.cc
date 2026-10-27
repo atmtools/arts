@@ -13,16 +13,17 @@ namespace polradtran::rt4 {
 void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, Tensor5View trans, Tensor3View source) {
   const Index nummu   = reflect.extent(1);
   const Index nstokes = ground_reflec.extent(0);
-  ARTS_USER_ERROR_IF(ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or
-                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-                     "SPECULAR_SURFACE needs a square ground_reflec [nstokes, nstokes], reflect and trans [2, nummu, "
-                     "nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,}, {:B,} and {:B,}",
-                     ground_reflec.shape(),
-                     reflect.shape(),
-                     trans.shape(),
-                     source.shape());
+  if (ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or
+      reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "SPECULAR_SURFACE needs a square ground_reflec [nstokes, nstokes], reflect and trans [2, nummu, "
+        "nstokes, nummu, nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,}, {:B,} and {:B,}",
+        ground_reflec.shape(),
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
 
   reflect = 0.0;
   source  = 0.0;
@@ -34,14 +35,14 @@ void specular_surface_layer(ConstMatrixView ground_reflec, Tensor5View reflect, 
 
 void specular_radiance(ConstMatrixView ground_reflec, Numeric ground_temp, Numeric frequency, MatrixView radiance) {
   const Index nstokes = ground_reflec.extent(0);
-  ARTS_USER_ERROR_IF(
-      nstokes > 4 or ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or radiance.extent(1) != nstokes,
-      "SPECULAR_RADIANCE needs a square ground_reflec [nstokes, nstokes], nstokes <= 4, and radiance "
-      "[nummu, nstokes]; got {:B,} and {:B,}",
-      ground_reflec.shape(),
-      radiance.shape());
-  ARTS_USER_ERROR_IF(
-      not(ground_temp >= 0.0), "SPECULAR_RADIANCE needs a ground temperature >= 0 K, got {} K", ground_temp);
+  if (nstokes > 4 or ground_reflec.shape() != (std::array<Index, 2>{nstokes, nstokes}) or radiance.extent(1) != nstokes)
+    arts::user_error(
+        "SPECULAR_RADIANCE needs a square ground_reflec [nstokes, nstokes], nstokes <= 4, and radiance "
+        "[nummu, nstokes]; got {:B,} and {:B,}",
+        ground_reflec.shape(),
+        radiance.shape());
+  if (not(ground_temp >= 0.0))
+    arts::user_error("SPECULAR_RADIANCE needs a ground temperature >= 0 K, got {} K", ground_temp);
 
   // Thermal radiation going up: (1 - R) B
   const Range stokes{0, nstokes};
@@ -62,16 +63,17 @@ void ground_surface(const surface&  ground,
                     MatrixView      gnd_radiance) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = gnd_radiance.extent(1);
-  ARTS_USER_ERROR_IF(quad_weights.extent(0) != nummu or
-                         surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}) or
-                         gnd_radiance.shape() != (std::array<Index, 2>{nummu, nstokes}),
-                     "The ground with {} mu_values needs quad_weights [nummu], surf_reflect [nummu, nstokes, nummu, "
-                     "nstokes] and gnd_radiance [nummu, nstokes]; got {}, {:B,} and {:B,}",
-                     nummu,
-                     quad_weights.extent(0),
-                     surf_reflect.shape(),
-                     gnd_radiance.shape());
-  ARTS_USER_ERROR_IF(not(frequency > 0.0), "The ground needs a positive frequency, got {} Hz", frequency);
+  if (quad_weights.extent(0) != nummu or
+      surf_reflect.shape() != (std::array<Index, 4>{nummu, nstokes, nummu, nstokes}) or
+      gnd_radiance.shape() != (std::array<Index, 2>{nummu, nstokes}))
+    arts::user_error(
+        "The ground with {} mu_values needs quad_weights [nummu], surf_reflect [nummu, nstokes, nummu, "
+        "nstokes] and gnd_radiance [nummu, nstokes]; got {}, {:B,} and {:B,}",
+        nummu,
+        quad_weights.extent(0),
+        surf_reflect.shape(),
+        gnd_radiance.shape());
+  if (not(frequency > 0.0)) arts::user_error("The ground needs a positive frequency, got {} Hz", frequency);
 
   // The ground routines make the whole surface layer, of which
   // SURF_REFLECT is REFLECT(..., 2)
@@ -96,8 +98,8 @@ void ground_surface(const surface&  ground,
           surf_reflect = reflect[1];
         } else if constexpr (std::is_same_v<T, specular_surface>) {
           // For a Specular surface
-          ARTS_USER_ERROR_IF(g.reflectivity.shape() != (std::array<Index, 2>{nstokes, nstokes}),
-                             "specular_surface reflectivity must be [{}, {}] (nstokes = {}), got {:B,}",
+          if (g.reflectivity.shape() != (std::array<Index, 2>{nstokes, nstokes}))
+            arts::user_error("specular_surface reflectivity must be [{}, {}] (nstokes = {}), got {:B,}",
                              nstokes,
                              nstokes,
                              nstokes,
@@ -110,20 +112,21 @@ void ground_surface(const surface&  ground,
           // The reflection and emission given: SURF_REFLECT(out s, out mu,
           // in s, in mu) is [in mu, in s, out mu, out s]
           static_assert(std::is_same_v<T, discrete_surface>);
-          ARTS_USER_ERROR_IF(g.reflection.shape() != (std::array<Index, 4>{nummu, nummu, nstokes, nstokes}) or
-                                 g.emission.shape() != (std::array<Index, 2>{nummu, nstokes}),
-                             "discrete_surface must have reflection [{}, {}, {}, {}] and emission [{}, {}] "
-                             "(nmu_total = {}, nstokes = {}); got {:B,} and {:B,}",
-                             nummu,
-                             nummu,
-                             nstokes,
-                             nstokes,
-                             nummu,
-                             nstokes,
-                             nummu,
-                             nstokes,
-                             g.reflection.shape(),
-                             g.emission.shape());
+          if (g.reflection.shape() != (std::array<Index, 4>{nummu, nummu, nstokes, nstokes}) or
+              g.emission.shape() != (std::array<Index, 2>{nummu, nstokes}))
+            arts::user_error(
+                "discrete_surface must have reflection [{}, {}, {}, {}] and emission [{}, {}] "
+                "(nmu_total = {}, nstokes = {}); got {:B,} and {:B,}",
+                nummu,
+                nummu,
+                nstokes,
+                nstokes,
+                nummu,
+                nstokes,
+                nummu,
+                nstokes,
+                g.reflection.shape(),
+                g.emission.shape());
           gnd_radiance = g.emission;
           for (Index io = 0; io < nummu; io++)
             for (Index ii = 0; ii < nummu; ii++) surf_reflect[ii, joker, io, joker] = transpose(g.reflection[io, ii]);

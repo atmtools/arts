@@ -91,7 +91,7 @@ void zen_gridProfilePseudo2D(ZenGrid&             zen_grid,
                              const Index&         consider_limb) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(dzen <= 0.0 or dzen >= 180.0, "Delta zenith angle must be (0, 180). Given dzen: {}", dzen);
+  if (dzen <= 0.0 or dzen >= 180.0) arts::user_error("Delta zenith angle must be (0, 180). Given dzen: {}", dzen);
 
   LatGrid::assert_ranged(lat);
   LonGrid::assert_ranged(lon);
@@ -148,7 +148,7 @@ void spectral_rad_fieldProfilePseudo2D(const Workspace&       ws,
 
   constexpr Numeric minimal_r = 0.001;
 
-  ARTS_USER_ERROR_IF(zen_grid.empty(), "Need some zenith angles")
+  if (zen_grid.empty()) arts::user_error("Need some zenith angles");
 
   const Size NA = alt_grid.size();
   const Size NZ = zen_grid.size();
@@ -183,8 +183,8 @@ void spectral_rad_fieldProfilePseudo2D(const Workspace&       ws,
 
   const Vector zenith_limb = zenith_level_limb(alt_grid, ell, lat, lon, azi);
 
-  ARTS_USER_ERROR_IF(zen_grid.front() != 0.0 or zen_grid.back() != 180.0 or not stdr::contains(zen_grid, 90.0),
-                     "Zenith grid must contain 0, 90, 180, beyond this it is free-form")
+  if (zen_grid.front() != 0.0 or zen_grid.back() != 180.0 or not stdr::contains(zen_grid, 90.0))
+    arts::user_error("Zenith grid must contain 0, 90, 180, beyond this it is free-form");
 
   auto srad = spectral_rad_field.data.view_as(NA, NZ, NF);
 

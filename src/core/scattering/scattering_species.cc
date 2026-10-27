@@ -38,7 +38,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded_derivative(
     const Vector&                                f_grid,
     std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
     const AtmKeyVal&                             target) const {
-  ARTS_USER_ERROR_IF(species.empty(), "Cannot differentiate an empty scattering-species array")
+  if (species.empty()) arts::user_error("Cannot differentiate an empty scattering-species array");
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded> {
     if constexpr (requires {
@@ -115,7 +115,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded_derivative(
     const Vector&                                delta_aa_grid,
     std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
     const AtmKeyVal&                             target) const {
-  ARTS_USER_ERROR_IF(species.empty(), "Cannot differentiate an empty scattering-species array")
+  if (species.empty()) arts::user_error("Cannot differentiate an empty scattering-species array");
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded> {
     if constexpr (requires {

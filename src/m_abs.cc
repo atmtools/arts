@@ -104,7 +104,7 @@ void spectral_propmatInit(  //WS Output
   const Index nf = freq_grid.size();
   const Index nq = jac_targets.target_count();
 
-  ARTS_USER_ERROR_IF(not nf, "No frequencies");
+  if (not nf) arts::user_error("No frequencies");
 
   // Set size of spectral_propmat and reset its values
   spectral_propmat.resize(nf);

@@ -33,5 +33,8 @@ void trim(String& x);
 
 void replace(String& x, const String& from, const String& to);
 
+//! Prefix every line of text with indentation
+String indent(const StringView text, const StringView indentation = "  ");
+
 //! Helper function when commas and spaces are needed after some first element
 String comma(bool& first, const String& spaces = "");

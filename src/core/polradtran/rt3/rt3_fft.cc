@@ -14,9 +14,8 @@ void makephase(VectorView phase) {
   // another nmax MAKEPHASE writes past them (FFT1DR's MN is a power of two)
   const Index size = static_cast<Index>(phase.size());
   const Index nmax = size / 4;
-  ARTS_USER_ERROR_IF(nmax < 1 or (nmax & (nmax - 1)) != 0 or size != 4 * nmax,
-                     "MAKEPHASE needs phase [4 nmax] with nmax a power of two, got {} values",
-                     size);
+  if (nmax < 1 or (nmax & (nmax - 1)) != 0 or size != 4 * nmax)
+    arts::user_error("MAKEPHASE needs phase [4 nmax] with nmax a power of two, got {} values", size);
 
   // exp(+i pi k / n) from 0, exp(-i pi k / n) from 2 nmax
   for (const Numeric p : {pi, -pi}) {
@@ -37,14 +36,11 @@ void makephase(VectorView phase) {
 void fftc(VectorView data, ConstVectorView phase) {
   const Index size = static_cast<Index>(data.size());
   const Index n    = size / 2;
-  ARTS_USER_ERROR_IF(n < 1 or size != 2 * n or (n & (n - 1)) != 0,
-                     "FFTC transforms a power of two of complex values (2 n reals), got {} values",
-                     size);
-  ARTS_USER_ERROR_IF(static_cast<Index>(phase.size()) < 2 * n - 2,
-                     "FFTC of {} complex values needs a phase table of at least {} values, got {}",
-                     n,
-                     2 * n - 2,
-                     phase.size());
+  if (n < 1 or size != 2 * n or (n & (n - 1)) != 0)
+    arts::user_error("FFTC transforms a power of two of complex values (2 n reals), got {} values", size);
+  if (static_cast<Index>(phase.size()) < 2 * n - 2)
+    arts::user_error(
+        "FFTC of {} complex values needs a phase table of at least {} values, got {}", n, 2 * n - 2, phase.size());
 
   if (n <= 1) return;
 
@@ -98,14 +94,11 @@ void fftc(VectorView data, ConstVectorView phase) {
 void fixreal(VectorView data, Vector2& nyquist, fft_direction isign, ConstVectorView phase) {
   const Index size = static_cast<Index>(data.size());
   const Index n    = size / 2;
-  ARTS_USER_ERROR_IF(n < 1 or size != 2 * n or (n & (n - 1)) != 0,
-                     "FIXREAL works on a power of two of complex values (2 n reals), got {} values",
-                     size);
-  ARTS_USER_ERROR_IF(n > 1 and static_cast<Index>(phase.size()) < 3 * n,
-                     "FIXREAL of {} complex values needs a phase table of at least {} values, got {}",
-                     n,
-                     3 * n,
-                     phase.size());
+  if (n < 1 or size != 2 * n or (n & (n - 1)) != 0)
+    arts::user_error("FIXREAL works on a power of two of complex values (2 n reals), got {} values", size);
+  if (n > 1 and static_cast<Index>(phase.size()) < 3 * n)
+    arts::user_error(
+        "FIXREAL of {} complex values needs a phase table of at least {} values, got {}", n, 3 * n, phase.size());
 
   // The real parts of the pairs k and n - k, from k = 1, and the cosine of
   // the twiddle factor of k (PHASE(2*N+1) for k = 1), all 0-based.  The
@@ -160,7 +153,7 @@ void fixreal(VectorView data, Vector2& nyquist, fft_direction isign, ConstVector
 
 void fft1dr(VectorView data, fft_direction isign, fft_workdata& work) {
   const Index n = data.size();
-  ARTS_USER_ERROR_IF(n < 2 or (n & (n - 1)) != 0, "FFT1DR transforms a power of two of at least 2 values, got {}", n);
+  if (n < 2 or (n & (n - 1)) != 0) arts::user_error("FFT1DR transforms a power of two of at least 2 values, got {}", n);
 
   if (work.mn < n) {
     work.mn = n;

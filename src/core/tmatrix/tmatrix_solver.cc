@@ -267,13 +267,14 @@ Numeric volume_to_surface_radius(const Particle& particle, Numeric accuracy) {
             return std::pair{1.0 + eps * std::cos(n * theta), -eps * n * std::sin(n * theta)};
           },
           delta);
-      ARTS_USER_ERROR_IF(not(error <= delta * area),
-                         "The surface area of the Chebyshev particle of degree {} and deformation {} does not converge "
-                         "to the accuracy {}: its relative error estimate is {}",
-                         particle.degree,
-                         eps,
-                         accuracy,
-                         error / area)
+      if (not(error <= delta * area))
+        arts::user_error(
+            "The surface area of the Chebyshev particle of degree {} and deformation {} does not converge "
+            "to the accuracy {}: its relative error estimate is {}",
+            particle.degree,
+            eps,
+            accuracy,
+            error / area);
       return std::cbrt(chebyshev_volume(particle)) / std::sqrt(0.5 * area);
     }
     case ParticleShape::generalized_chebyshev: {
@@ -281,12 +282,13 @@ Numeric volume_to_surface_radius(const Particle& particle, Numeric accuracy) {
       const Numeric delta = 0.1 * accuracy;
       const auto [area, error] =
           surface_area([&particle](Numeric theta) { return generalized_shape(particle.coefficients, theta); }, delta);
-      ARTS_USER_ERROR_IF(not(error <= delta * area),
-                         "The surface area of the generalized Chebyshev particle of {} coefficients does not converge "
-                         "to the accuracy {}: its relative error estimate is {}",
-                         particle.coefficients.size(),
-                         accuracy,
-                         error / area)
+      if (not(error <= delta * area))
+        arts::user_error(
+            "The surface area of the generalized Chebyshev particle of {} coefficients does not converge "
+            "to the accuracy {}: its relative error estimate is {}",
+            particle.coefficients.size(),
+            accuracy,
+            error / area);
       return 1.0 / std::sqrt(0.5 * area);
     }
   }
@@ -576,12 +578,13 @@ class Orders {
           if (not(std::isfinite(M[a, b].real()) and std::isfinite(M[a, b].imag()))) return false;
       return true;
     };
-    ARTS_USER_ERROR_IF(not(finite(Q) and finite(T)),
-                       "The T-matrix does not converge: its Q matrices of order {} are not finite at {} degrees and {} "
-                       "surface nodes",
-                       m,
-                       surface.nmax,
-                       nodes)
+    if (not(finite(Q) and finite(T)))
+      arts::user_error(
+          "The T-matrix does not converge: its Q matrices of order {} are not finite at {} degrees and {} "
+          "surface nodes",
+          m,
+          surface.nmax,
+          nodes);
     T *= -1.0;
     right_solve_inplace(T, Q, pivots);
     return T;
@@ -602,11 +605,12 @@ Jones TMatrix::block(Index m, Index n, Index nn) const { return order_block(orde
 TMatrix solve(const Particle& particle, Numeric accuracy, Index nodes_per_degree, bool random) {
   // The relative changes of the sums are rounding below the machine epsilon (Truncation and convergence)
   const Numeric delta = 0.1 * accuracy;
-  ARTS_USER_ERROR_IF(not(delta >= std::numeric_limits<Numeric>::epsilon()),
-                     "The T-matrix cannot converge to the accuracy {}: its criterion, 0.1 accuracy, is below the "
-                     "double-precision epsilon {}",
-                     accuracy,
-                     std::numeric_limits<Numeric>::epsilon())
+  if (not(delta >= std::numeric_limits<Numeric>::epsilon()))
+    arts::user_error(
+        "The T-matrix cannot converge to the accuracy {}: its criterion, 0.1 accuracy, is below the "
+        "double-precision epsilon {}",
+        accuracy,
+        std::numeric_limits<Numeric>::epsilon());
   const Numeric xv    = 2.0 * pi * particle.radius / particle.wavelength;
   Index         nmax  = std::max<Index>(4, static_cast<Index>(xv + 4.05 * std::cbrt(xv)));
   Index         nodes = nodes_per_degree * nmax, n1 = 0;
@@ -618,12 +622,13 @@ TMatrix solve(const Particle& particle, Numeric accuracy, Index nodes_per_degree
     surface.emplace(particle, nmax, nodes);
     T0              = Orders(*surface).tmatrix(0);
     const auto sums = order0_sums(T0, nmax);
-    ARTS_USER_ERROR_IF(not std::isfinite(sums.first) or not std::isfinite(sums.second),
-                       "The T-matrix does not converge to the accuracy {}: it is not finite at {} degrees and {} "
-                       "quadrature nodes",
-                       accuracy,
-                       nmax,
-                       nodes)
+    if (not std::isfinite(sums.first) or not std::isfinite(sums.second))
+      arts::user_error(
+          "The T-matrix does not converge to the accuracy {}: it is not finite at {} degrees and {} "
+          "quadrature nodes",
+          accuracy,
+          nmax,
+          nodes);
     return sums;
   };
   // The larger relative change of the two sums
@@ -636,12 +641,13 @@ TMatrix solve(const Particle& particle, Numeric accuracy, Index nodes_per_degree
   // orientation fails as soon as that exceeds the Wigner tables of its expansion.
   std::pair<Numeric, Numeric> sums{0.0, 0.0};
   for (;; ++nmax) {
-    ARTS_USER_ERROR_IF(random and not is_wigner_ready(static_cast<int>(4 * (nmax / 2 + 1) + 1)),
-                       "The random-orientation T-matrix needs n_1 >= {} at {} degrees, which the Wigner tables do not "
-                       "cover: initialize larger ones (WignerInit) for 3j symbols with j1 + j2 + j3 up to {}",
-                       nmax / 2 + 1,
-                       nmax,
-                       4 * (nmax / 2 + 1))
+    if (random and not is_wigner_ready(static_cast<int>(4 * (nmax / 2 + 1) + 1)))
+      arts::user_error(
+          "The random-orientation T-matrix needs n_1 >= {} at {} degrees, which the Wigner tables do not "
+          "cover: initialize larger ones (WignerInit) for 3j symbols with j1 + j2 + j3 up to {}",
+          nmax / 2 + 1,
+          nmax,
+          4 * (nmax / 2 + 1));
     nodes               = nodes_per_degree * nmax;
     const auto previous = std::exchange(sums, order0());
     if (random) n1 = truncation_degree(T0, nmax, sums.first, sums.second, delta);
@@ -655,15 +661,16 @@ TMatrix solve(const Particle& particle, Numeric accuracy, Index nodes_per_degree
     const auto    previous = std::exchange(sums, order0());
     const Numeric current  = change(sums, previous);
     if (current <= delta) break;
-    ARTS_USER_ERROR_IF(current >= previous_change,
-                       "The T-matrix does not converge to the accuracy {}: at {} degrees, the relative change of its "
-                       "sums is {} at {} quadrature nodes and {} at {}",
-                       accuracy,
-                       nmax,
-                       previous_change,
-                       nodes - 1,
-                       current,
-                       nodes)
+    if (current >= previous_change)
+      arts::user_error(
+          "The T-matrix does not converge to the accuracy {}: at {} degrees, the relative change of its "
+          "sums is {} at {} quadrature nodes and {} at {}",
+          accuracy,
+          nmax,
+          previous_change,
+          nodes - 1,
+          current,
+          nodes);
     previous_change = current;
   }
 
@@ -1014,11 +1021,12 @@ Expansion expansion(const TMatrix& T, Numeric scattering, Numeric wavelength) {
   ComplexTensor3 D5(count, N, N, Complex{});
 
   // The symbols have j1 + j2 + j3 <= 4 n_1, so wigxjpf needs factorials up to 4 n_1 + 1
-  ARTS_USER_ERROR_IF(not is_wigner_ready(static_cast<int>(4 * N + 1)),
-                     "Initialize the Wigner tables (WignerInit) before random-orientation T-matrix calculations; "
-                     "n_1 = {} needs 3j symbols with j1 + j2 + j3 up to {}",
-                     N,
-                     4 * N)
+  if (not is_wigner_ready(static_cast<int>(4 * N + 1)))
+    arts::user_error(
+        "Initialize the Wigner tables (WignerInit) before random-orientation T-matrix calculations; "
+        "n_1 = {} needs 3j symbols with j1 + j2 + j3 up to {}",
+        N,
+        4 * N);
 
   // Each thread computes whole terms in the order of their sums, so the results do not depend on the threads.
   // The wigxjpf scratch and the per-thread sums are allocated once per thread, around its loops.
@@ -1162,7 +1170,7 @@ Expansion expansion(const TMatrix& T, Numeric scattering, Numeric wavelength) {
     for (Index l = 0; l <= lmax; ++l) sums(l, cg0, cg2);
     failed = failed or errno == EDOM;
   }
-  ARTS_USER_ERROR_IF(failed, "Cannot compute the Wigner symbols of the random-orientation T-matrix")
+  if (failed) arts::user_error("Cannot compute the Wigner symbols of the random-orientation T-matrix");
 
   const Numeric dk = wavelength * wavelength / (4.0 * pi * scattering);
   Expansion     out{.alpha1 = Vector(lmax + 1),
@@ -1260,10 +1268,11 @@ SizeQuadrature size_quadrature(const SizeDistribution& sd) {
       return (y - x) / (std::isfinite(q) ? std::log(q) : std::log(y) - std::log(x)) - sd.a;
     };
     const Numeric lo = 0.0, hi = sd.a, flo = -sd.a, fhi = f(hi);
-    ARTS_USER_ERROR_IF(not(fhi > 0.0),
-                       "The power law has no radii for the effective variance b = {}: (r_2 - r_1) / ln(r_2 / r_1) "
-                       "= a with r_2 = 2 a (1 + b) - r_1 has no root r_1 in (0, a] that double precision resolves",
-                       sd.b);
+    if (not(fhi > 0.0))
+      arts::user_error(
+          "The power law has no radii for the effective variance b = {}: (r_2 - r_1) / ln(r_2 / r_1) "
+          "= a with r_2 = 2 a (1 + b) - r_1 has no root r_1 in (0, a] that double precision resolves",
+          sd.b);
     // Boost's TOMS 748 at least halves the bracket in each pass of at most four evaluations, after two initial ones,
     // so the halvings from the largest double to the subnormal spacing bound the evaluations to any resolvable root
     using limits                        = std::numeric_limits<Numeric>;
@@ -1271,15 +1280,15 @@ SizeQuadrature size_quadrature(const SizeDistribution& sd) {
     std::uintmax_t           iterations = bound;
     const auto [r1lo, r1hi]             = boost::math::tools::toms748_solve(
         f, lo, hi, flo, fhi, boost::math::tools::eps_tolerance<Numeric>(), iterations);
-    ARTS_USER_ERROR_IF(
-        iterations >= bound,
-        "The power-law radius r_1 for the effective variance b = {} is not resolvable in double "
-        "precision: it is in [{}, {}] after the {} evaluations that resolve any root above the subnormal "
-        "range",
-        sd.b,
-        r1lo,
-        r1hi,
-        bound)
+    if (iterations >= bound)
+      arts::user_error(
+          "The power-law radius r_1 for the effective variance b = {} is not resolvable in double "
+          "precision: it is in [{}, {}] after the {} evaluations that resolve any root above the subnormal "
+          "range",
+          sd.b,
+          r1lo,
+          r1hi,
+          bound);
     r1 = 0.5 * (r1lo + r1hi);
     r2 = 2.0 * sd.a * (1.0 + sd.b) - r1;
   }
@@ -1314,9 +1323,9 @@ SizeQuadrature size_quadrature(const SizeDistribution& sd) {
       case modified_gamma:
         q.weight[i] *= std::pow(r, sd.a) * std::exp(-sd.a / sd.gamma * std::pow(r / sd.b, sd.gamma));
         break;
-      case lognormal: q.weight[i] *= std::exp(-Math::pow2(std::log(r / sd.a)) * 0.5 / sd.b) / r; break;
-      case power_law: q.weight[i] /= r * r * r; break;
-      case gamma:     q.weight[i] *= std::pow(r, (1.0 - 3.0 * sd.b) / sd.b) * std::exp(-r / (sd.a * sd.b)); break;
+      case lognormal:          q.weight[i] *= std::exp(-Math::pow2(std::log(r / sd.a)) * 0.5 / sd.b) / r; break;
+      case power_law:          q.weight[i] /= r * r * r; break;
+      case gamma:              q.weight[i] *= std::pow(r, (1.0 - 3.0 * sd.b) / sd.b) * std::exp(-r / (sd.a * sd.b)); break;
       case modified_power_law: q.weight[i] *= r > r1 ? std::pow(r / r1, sd.b) : 1.0; break;
     }
   }

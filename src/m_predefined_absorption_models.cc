@@ -50,7 +50,7 @@ void abs_predef_dataReadSpeciesSplitCatalog(PredefinedModelData&     abs_predef_
       if (name_missing) {
         abs_predef_data[spec.Isotopologue()].data = Absorption::PredefinedModel::ModelName{};
       } else {
-        ARTS_USER_ERROR_IF(not ignore_missing, "File {} not found", filename)
+        if (not ignore_missing) arts::user_error("File {} not found", filename);
       }
     }
   }
@@ -75,11 +75,11 @@ void abs_predef_dataAddWaterMTCKD400(PredefinedModelData& abs_predef_data,
 
   const auto sz = self_absco_ref.size();
 
-  ARTS_USER_ERROR_IF(sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size(),
-                     "Mismatching size, all vector inputs must be the same length")
-  ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
-  ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
-                     "The wavenumbers must be increasing in a regular manner")
+  if (sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size())
+    arts::user_error("Mismatching size, all vector inputs must be the same length");
+  if (sz < 4) arts::user_error("It makes no sense to have input shorter than 4");
+  if (not AscendingGrid::is_sorted(wavenumbers))
+    arts::user_error("The wavenumbers must be increasing in a regular manner");
 
   using Model = Absorption::PredefinedModel::MT_CKD400::WaterData;
   Model x;
@@ -112,12 +112,12 @@ void abs_predef_dataAddWaterMTCKD430(PredefinedModelData& abs_predef_data,
 
   const auto sz = self_absco_ref.size();
 
-  ARTS_USER_ERROR_IF(sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size() or
-                         sz not_eq for_closure_absco_ref.size(),
-                     "Mismatching size, all vector inputs must be the same length")
-  ARTS_USER_ERROR_IF(sz < 4, "It makes no sense to have input shorter than 4")
-  ARTS_USER_ERROR_IF(not AscendingGrid::is_sorted(wavenumbers),
-                     "The wavenumbers must be increasing in a regular manner")
+  if (sz not_eq for_absco_ref.size() or sz not_eq wavenumbers.size() or sz not_eq self_texp.size() or
+      sz not_eq for_closure_absco_ref.size())
+    arts::user_error("Mismatching size, all vector inputs must be the same length");
+  if (sz < 4) arts::user_error("It makes no sense to have input shorter than 4");
+  if (not AscendingGrid::is_sorted(wavenumbers))
+    arts::user_error("The wavenumbers must be increasing in a regular manner");
 
   using Model = Absorption::PredefinedModel::MT_CKD430::WaterData;
   Model x;

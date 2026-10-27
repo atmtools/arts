@@ -31,9 +31,9 @@ void disort_settingsInit(DisortSettings&                    disort_settings,
                          const Index&                       fourier_mode_dimension) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(quadrature_dimension % 2, "Quadrature dimension ({}) must be even", quadrature_dimension);
+  if (quadrature_dimension % 2) arts::user_error("Quadrature dimension ({}) must be even", quadrature_dimension);
 
-  ARTS_USER_ERROR_IF(ray_path.size() < 2, "Must have at least one layer (two levels) to use disort solver");
+  if (ray_path.size() < 2) arts::user_error("Must have at least one layer (two levels) to use disort solver");
 
   disort_settings.resize(quadrature_dimension,
                          legendre_polynomial_dimension,
@@ -70,8 +70,8 @@ void disort_settingsSetSun(DisortSettings&             disort_settings,
 
   const Size nv = freq_grid.size();
 
-  ARTS_USER_ERROR_IF(disort_settings.solar_source.size() != nv or static_cast<Size>(sun.spectrum.nrows()) != nv,
-                     R"(Solar spectrum not agreeing with frequency grids:
+  if (disort_settings.solar_source.size() != nv or static_cast<Size>(sun.spectrum.nrows()) != nv)
+    arts::user_error(R"(Solar spectrum not agreeing with frequency grids:
 
 freq_grid.size():                    {}
 disort_settings.solar_source.size(): {}
@@ -79,7 +79,7 @@ sun.spectrum.nrows():                {}
 )",
                      nv,
                      disort_settings.solar_source.size(),
-                     sun.spectrum.nrows())
+                     sun.spectrum.nrows());
 
   for (Size iv = 0; iv < nv; iv++) { disort_settings.solar_source[iv] = sun.spectrum[iv, 0] * sin2_alpha; }
 
@@ -108,11 +108,8 @@ template <typename T> void disort_settingsLayerThermalEmissionLinearInTauImpl(Di
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
-  ARTS_USER_ERROR_IF(not same_shape({nv, N - 1}, disort_settings.optical_thicknesses),
-                     "Incorrect shape: [{}, {}] vs {:B,}",
-                     nv,
-                     N - 1,
-                     disort_settings.optical_thicknesses.shape());
+  if (not same_shape({nv, N - 1}, disort_settings.optical_thicknesses))
+    arts::user_error("Incorrect shape: [{}, {}] vs {:B,}", nv, N - 1, disort_settings.optical_thicknesses.shape());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
@@ -160,11 +157,8 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(DisortSettings&          
 
   disort_settings.source_polynomial.resize(nv, N - 1, 2);
 
-  ARTS_USER_ERROR_IF(not same_shape({nv, N - 1}, disort_settings.optical_thicknesses),
-                     "Incorrect shape: [{}, {}] vs {:B,}",
-                     nv,
-                     N - 1,
-                     disort_settings.optical_thicknesses.shape());
+  if (not same_shape({nv, N - 1}, disort_settings.optical_thicknesses))
+    arts::user_error("Incorrect shape: [{}, {}] vs {:B,}", nv, N - 1, disort_settings.optical_thicknesses.shape());
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size iv = 0; iv < nv; iv++) {
@@ -219,12 +213,11 @@ void disort_settingsSurfaceEmissionByTemperature(DisortSettings&             dis
 
   auto& limit = disort_settings.upward_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(nv) != limit.npages(),
-                     "Frequency grid size does not match the upward boundary condition size: {} vs {}",
-                     nv,
-                     limit.npages())
+  if (static_cast<Index>(nv) != limit.npages())
+    arts::user_error(
+        "Frequency grid size does not match the upward boundary condition size: {} vs {}", nv, limit.npages());
 
-  ARTS_USER_ERROR_IF(limit.nrows() < 1, "Must have at least one fourier mode to use the upward boundary condition.")
+  if (limit.nrows() < 1) arts::user_error("Must have at least one fourier mode to use the upward boundary condition.");
 
   for (Size iv = 0; iv < nv; iv++) { limit[iv, 0, joker] = planck(freq_grid[iv], T); }
 }
@@ -241,12 +234,12 @@ void disort_settingsSubsurfaceDownwardEmissionBySurfaceTemperature(DisortSetting
 
   auto& limit = disort_settings.downward_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(nv) != limit.npages(),
-                     "Frequency grid size does not match the downward boundary condition size: {} vs {}",
-                     nv,
-                     limit.npages())
+  if (static_cast<Index>(nv) != limit.npages())
+    arts::user_error(
+        "Frequency grid size does not match the downward boundary condition size: {} vs {}", nv, limit.npages());
 
-  ARTS_USER_ERROR_IF(limit.nrows() < 1, "Must have at least one fourier mode to use the downward boundary condition.")
+  if (limit.nrows() < 1)
+    arts::user_error("Must have at least one fourier mode to use the downward boundary condition.");
 
   for (Size iv = 0; iv < nv; iv++) { limit[iv, 0, joker] = planck(freq_grid[iv], T); }
 }
@@ -260,14 +253,13 @@ void disort_settingsSubsurfaceEmissionByTemperature(DisortSettings&             
 
   auto& limit = disort_settings.upward_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(subsurf_profile.size() < 2, "Need at least two points")
+  if (subsurf_profile.size() < 2) arts::user_error("Need at least two points");
 
-  ARTS_USER_ERROR_IF(static_cast<Index>(nv) != limit.npages(),
-                     "Frequency grid size does not match the upward boundary condition size: {} vs {}",
-                     nv,
-                     limit.npages())
+  if (static_cast<Index>(nv) != limit.npages())
+    arts::user_error(
+        "Frequency grid size does not match the upward boundary condition size: {} vs {}", nv, limit.npages());
 
-  ARTS_USER_ERROR_IF(limit.nrows() < 1, "Must have at least one fourier mode to use the upward boundary condition.")
+  if (limit.nrows() < 1) arts::user_error("Must have at least one fourier mode to use the upward boundary condition.");
 
   const Numeric Tbot = subsurf_profile.back().temperature;
 
@@ -292,13 +284,13 @@ void disort_settingsCosmicMicrowaveBackgroundRadiation(DisortSettings&      diso
 
   disort_settings.downward_boundary_condition = 0.0;
 
-  ARTS_USER_ERROR_IF(nv != disort_settings.downward_boundary_condition.npages(),
-                     "Frequency grid size does not match the downward boundary condition size: {} vs {}",
+  if (nv != disort_settings.downward_boundary_condition.npages())
+    arts::user_error("Frequency grid size does not match the downward boundary condition size: {} vs {}",
                      nv,
-                     disort_settings.downward_boundary_condition.npages())
+                     disort_settings.downward_boundary_condition.npages());
 
-  ARTS_USER_ERROR_IF(disort_settings.downward_boundary_condition.nrows() < 1,
-                     "Must have at least one fourier mode to use the downward boundary condition.")
+  if (disort_settings.downward_boundary_condition.nrows() < 1)
+    arts::user_error("Must have at least one fourier mode to use the downward boundary condition.");
 
   for (Index iv = 0; iv < nv; iv++) {
     disort_settings.downward_boundary_condition[iv, 0, joker] =
@@ -324,14 +316,12 @@ void disort_settingsDownwellingObserver(const Workspace&                   ws,
   const Index nv = freq_grid.size();
   const Index N  = disort_settings.quadrature_dimension / 2;
 
-  ARTS_USER_ERROR_IF(nv != limit.npages(),
-                     "Frequency grid size does not match the boundary condition size: {} vs {}",
-                     nv,
-                     limit.npages())
+  if (nv != limit.npages())
+    arts::user_error("Frequency grid size does not match the boundary condition size: {} vs {}", nv, limit.npages());
 
-  ARTS_USER_ERROR_IF(limit.nrows() < 1, "Must have at least one fourier mode.")
+  if (limit.nrows() < 1) arts::user_error("Must have at least one fourier mode.");
 
-  ARTS_USER_ERROR_IF(limit.ncols() != N, "Must have at least one quadrature dimension.")
+  if (limit.ncols() != N) arts::user_error("Must have at least one quadrature dimension.");
 
   Vector mu(N);
   Vector W(N);
@@ -367,7 +357,7 @@ void disort_settingsDownwellingObserver(const Workspace&                   ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error)
+  if (not error.empty()) arts::user_error(error);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -377,8 +367,8 @@ void disort_settingsDownwellingObserver(const Workspace&                   ws,
 void disort_settingsNoLegendre(DisortSettings& disort_settings) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(disort_settings.legendre_coefficients.nrows() < 1,
-                     "Must have at least one Legendre mode to use the Legendre coefficients.")
+  if (disort_settings.legendre_coefficients.nrows() < 1)
+    arts::user_error("Must have at least one Legendre mode to use the Legendre coefficients.");
 
   disort_settings.legendre_coefficients                  = 0.0;
   disort_settings.legendre_coefficients[joker, joker, 0] = 1.0;
@@ -402,8 +392,8 @@ void disort_settingsDeltaMPlus(DisortSettings& disort_settings) {
   const Index N = disort_settings.layer_count();
   const Index L = disort_settings.legendre_polynomial_dimension;
 
-  ARTS_USER_ERROR_IF(disort_settings.legendre_coefficients.ncols() < L + 2,
-                     "Delta-M-plus requires phase moments through degree {}, got {} moments",
+  if (disort_settings.legendre_coefficients.ncols() < L + 2)
+    arts::user_error("Delta-M-plus requires phase moments through degree {}, got {} moments",
                      L + 1,
                      disort_settings.legendre_coefficients.ncols());
 
@@ -428,21 +418,19 @@ void disort_settingsOpticalThicknessFromPath(DisortSettings&                    
   const Index N  = disort_settings.layer_count();
   const Index nv = disort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != static_cast<Size>(N + 1),
-                     "*ray_path* must have one more point than *disort_settings* has layers: {} vs {}",
-                     ray_path.size(),
-                     N)
+  if (ray_path.size() != static_cast<Size>(N + 1))
+    arts::user_error(
+        "*ray_path* must have one more point than *disort_settings* has layers: {} vs {}", ray_path.size(), N);
 
   if (N == 0) return;
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nv}, spectral_propmat_path),
-                     "Propagation matrices and frequency grids must have the same shape.")
+  if (not all_same_shape({nv}, spectral_propmat_path))
+    arts::user_error("Propagation matrices and frequency grids must have the same shape.");
 
   // No polarization allowed
-  ARTS_USER_ERROR_IF(
-      stdr::any_of(spectral_propmat_path,
-                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }),
-      "No implementation for polarized propagation matrices.");
+  if (stdr::any_of(spectral_propmat_path,
+                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }))
+    arts::user_error("No implementation for polarized propagation matrices.");
 
   const Vector r = [n = N, &ray_path]() {
     Vector out(n);
@@ -451,8 +439,8 @@ void disort_settingsOpticalThicknessFromPath(DisortSettings&                    
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
-                     R"(Atmospheric layer thickness must be positive.
+  if (stdr::any_of(r, Cmp::le<0.0>()))
+    arts::user_error(R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
 
@@ -471,9 +459,8 @@ ray_path: {:B,}
       if (i > 0) {
         disort_settings.optical_thicknesses[iv, i] += disort_settings.optical_thicknesses[iv, i - 1];
 
-        ARTS_USER_ERROR_IF(
-            (disort_settings.optical_thicknesses[iv, i] <= disort_settings.optical_thicknesses[iv, i - 1]),
-            R"(
+        if ((disort_settings.optical_thicknesses[iv, i] <= disort_settings.optical_thicknesses[iv, i - 1]))
+          arts::user_error(R"(
 Not strictly increasing optical thicknesses between layers.
 
 Check *spectral_propmat_path* contain zeroes or negative values for A().
@@ -481,8 +468,8 @@ Check *spectral_propmat_path* contain zeroes or negative values for A().
 Value:                {}
 Frequency grid index: {}
 )",
-            disort_settings.optical_thicknesses[iv, i - 1],
-            iv);
+                           disort_settings.optical_thicknesses[iv, i - 1],
+                           iv);
       }
     }
   }
@@ -496,8 +483,13 @@ void disort_settingsSubsurfaceScalarAbsorption(DisortSettings&                  
 
   const Index N = disort_settings.layer_count();
 
-  ARTS_USER_ERROR_IF(ray_path.size() != subsurf_profile.size() or subsurf_profile.size() != static_cast<Size>(N + 1),
-                     "Wrong path size.")
+  if (ray_path.size() != subsurf_profile.size() or subsurf_profile.size() != static_cast<Size>(N + 1))
+    arts::user_error(
+        "ray_path and subsurf_profile must both have {} points (the number of DISORT layers plus one), "
+        "got {} and {}",
+        N + 1,
+        ray_path.size(),
+        subsurf_profile.size());
 
   if (N == 0) return;
 
@@ -508,8 +500,8 @@ void disort_settingsSubsurfaceScalarAbsorption(DisortSettings&                  
     return out;
   }();
 
-  ARTS_USER_ERROR_IF(stdr::any_of(r, Cmp::le<0.0>()),
-                     R"(Atmospheric layer thickness must be positive.
+  if (stdr::any_of(r, Cmp::le<0.0>()))
+    arts::user_error(R"(Atmospheric layer thickness must be positive.
 
 Values:   {:B,}
 
@@ -522,9 +514,8 @@ ray_path: {:B,}
 
   const SubsurfacePropertyTag absorption_tag{"scalar absorption"};
 
-  ARTS_USER_ERROR_IF(not stdr::all_of(subsurf_profile, Cmp::contains(absorption_tag)),
-                     R"(Missing '{}' in some or all of the subsurface profile)",
-                     absorption_tag);
+  if (not stdr::all_of(subsurf_profile, Cmp::contains(absorption_tag)))
+    arts::user_error(R"(Missing '{}' in some or all of the subsurface profile)", absorption_tag);
 
   for (Index i = 0; i < N; i++) {
     disort_settings.optical_thicknesses[joker, i] =
@@ -561,11 +552,12 @@ Numeric sun_cosine(const DisortSettings& disort_settings, const Index iv) {
 void resize_surface(DisortSettings& disort_settings, const Index NBRDF) {
   const Index nv = disort_settings.frequency_count();
   const Index N  = disort_settings.quadrature_dimension / 2;
-  ARTS_USER_ERROR_IF(disort_settings.solar_zenith_angle.size() != static_cast<Size>(nv),
-                     "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
-                     "first; it has {} values",
-                     nv,
-                     disort_settings.solar_zenith_angle.size());
+  if (disort_settings.solar_zenith_angle.size() != static_cast<Size>(nv))
+    arts::user_error(
+        "The surface reflects the sun, so the solar zenith angle must be set for all {} frequencies "
+        "first; it has {} values",
+        nv,
+        disort_settings.solar_zenith_angle.size());
   disort_settings.surface_brdf.resize(nv, NBRDF, N, N);
   disort_settings.surface_beam_brdf.resize(nv, NBRDF, N);
   disort_settings.surface_beam_mu.resize(nv);
@@ -580,8 +572,8 @@ void set_surface(DisortSettings& disort_settings, const Index iv, const disort::
 
 //! Throw unless a spectral parameter has one value per frequency
 void check_spectral(const DisortSettings& disort_settings, const Vector& value, const std::string_view name) {
-  ARTS_USER_ERROR_IF(static_cast<Index>(value.size()) != disort_settings.frequency_count(),
-                     "Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
+  if (static_cast<Index>(value.size()) != disort_settings.frequency_count())
+    arts::user_error("Spectral BRDF parameter {} must have one value per frequency: expected {}, got {}",
                      name,
                      disort_settings.frequency_count(),
                      value.size());
@@ -695,7 +687,7 @@ void disort_settingsSurfaceCoxMunk(DisortSettings& disort_settings,
                                    const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  if (shadowing != 0 and shadowing != 1) arts::user_error("shadowing must be 0 or 1, got {}", shadowing);
   set_brdf_surface(
       disort_settings,
       disort::brdf::CoxMunk{
@@ -710,7 +702,7 @@ void disort_settingsSurfaceCoxMunkSpectral(DisortSettings& disort_settings,
                                            const Index&    azimuth_quadrature_points) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(shadowing != 0 and shadowing != 1, "shadowing must be 0 or 1, got {}", shadowing);
+  if (shadowing != 0 and shadowing != 1) arts::user_error("shadowing must be 0 or 1, got {}", shadowing);
   check_spectral(disort_settings, refractive_index, "refractive_index");
   set_spectral_brdf_surface(
       disort_settings,
@@ -814,9 +806,8 @@ void disort_settingsSubsurfaceScalarSingleScatteringAlbedo(DisortSettings&      
 
   const SubsurfacePropertyTag ssa_tag{"scalar ssa"};
 
-  ARTS_USER_ERROR_IF(not stdr::all_of(subsurf_profile, Cmp::contains(ssa_tag)),
-                     R"(Missing '{}' in some or all of the subsurface profile)",
-                     ssa_tag);
+  if (not stdr::all_of(subsurf_profile, Cmp::contains(ssa_tag)))
+    arts::user_error(R"(Missing '{}' in some or all of the subsurface profile)", ssa_tag);
 
   for (Index i = 0; i < N; i++) {
     disort_settings.single_scattering_albedo[joker, i] =
@@ -836,20 +827,18 @@ void disort_settingsLegendreCoefficientsFromPath(
   const Index F = disort_settings.frequency_count();
   const Index L = spectral_phamat_spectral_path.front().ncols();
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_phamat_spectral_path.size(),
-      R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in disort_settings.
+  if ((N + 1) != spectral_phamat_spectral_path.size())
+    arts::user_error(
+        R"(The number of levels in spectral_phamat_spectral_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count() + 1:    {}
   spectral_phamat_spectral_path.size(): {}
 )",
-      N,
-      spectral_phamat_spectral_path.size());
+        N,
+        spectral_phamat_spectral_path.size());
 
-  ARTS_USER_ERROR_IF(
-      L < disort_settings.legendre_polynomial_dimension or not all_same_shape({F, L}, spectral_phamat_spectral_path),
-      "The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not",
-      std::array{F, L});
+  if (L < disort_settings.legendre_polynomial_dimension or not all_same_shape({F, L}, spectral_phamat_spectral_path))
+    arts::user_error("The shape of spectral_phamat_spectral_path must be {:B,}, at least one is not", std::array{F, L});
 
   disort_settings.legendre_coefficients.resize(F, N, L);
 
@@ -894,43 +883,43 @@ void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             d
   const Size  N = disort_settings.layer_count();
   const Index F = disort_settings.frequency_count();
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_propmat_path.size(),
-      R"(The number of levels in spectral_propmat_path must be one more than the number of layers in disort_settings.
+  if ((N + 1) != spectral_propmat_path.size())
+    arts::user_error(
+        R"(The number of levels in spectral_propmat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count(): {}
   spectral_propmat_path.size():  {}
 )",
-      N,
-      spectral_propmat_path.size());
+        N,
+        spectral_propmat_path.size());
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_propmat_scat_path.size(),
-      R"(The number of levels in spectral_propmat_scat_path must be one more than the number of layers in disort_settings.
+  if ((N + 1) != spectral_propmat_scat_path.size())
+    arts::user_error(
+        R"(The number of levels in spectral_propmat_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():     {}
   spectral_propmat_scat_path.size(): {}
 )",
-      N,
-      spectral_propmat_scat_path.size());
+        N,
+        spectral_propmat_scat_path.size());
 
-  ARTS_USER_ERROR_IF(
-      (N + 1) != spectral_absvec_scat_path.size(),
-      R"(The number of levels in spectral_absvec_scat_path must be one more than the number of layers in disort_settings.
+  if ((N + 1) != spectral_absvec_scat_path.size())
+    arts::user_error(
+        R"(The number of levels in spectral_absvec_scat_path must be one more than the number of layers in disort_settings.
 
   disort_settings.layer_count():    {}
   spectral_absvec_scat_path.size(): {}
 )",
-      N,
-      spectral_absvec_scat_path.size());
+        N,
+        spectral_absvec_scat_path.size());
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({F}, spectral_absvec_scat_path, spectral_propmat_scat_path),
-      "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
-      std::array{F});
+  if (not all_same_shape({F}, spectral_absvec_scat_path, spectral_propmat_scat_path))
+    arts::user_error(
+        "The shape of spectral_propmat_scat_path and spectral_absvec_scat_path must be {:B,}, at least one is not",
+        std::array{F});
 
-  ARTS_USER_ERROR_IF(not same_shape({F, N}, disort_settings.single_scattering_albedo),
-                     R"(The shape of disort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
+  if (not same_shape({F, N}, disort_settings.single_scattering_albedo))
+    arts::user_error(R"(The shape of disort_settings.single_scattering_albedo must be {:B,}, but is {:B,})",
                      std::array{F, static_cast<Index>(N)},
                      disort_settings.single_scattering_albedo.shape());
 
@@ -1134,8 +1123,8 @@ void CoupledAtmosphereAndSubsurfaceDisortSettings(const Workspace&     ws,
 
   const Numeric surf_elev = surf_field.single_value(SurfaceKey::h, lat, lon);
 
-  ARTS_USER_ERROR_IF(alt_grid.front() > surf_elev or alt_grid.back() < surf_elev,
-                     R"(Surface elevation out of bounds:
+  if (alt_grid.front() > surf_elev or alt_grid.back() < surf_elev)
+    arts::user_error(R"(Surface elevation out of bounds:
 
 surface elevation: {}
 alt_grid:          {:B,}

@@ -200,7 +200,7 @@ void disort_spectral_rad_fieldCalcCdisort(DisortRadiance&                    dis
                                           const AziGrid&                     phis) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(ray_path.empty(), "disort_spectral_rad_fieldCalcCdisort: ray_path is empty");
+  if (ray_path.empty()) arts::user_error("disort_spectral_rad_fieldCalcCdisort: ray_path is empty");
 
   const Index nv = disort_settings.frequency_count();
 
@@ -243,7 +243,7 @@ void disort_spectral_rad_fieldCalcCdisort(DisortRadiance&                    dis
   //! FIXME: It would be nice to remove this if the internal angles can be solved
   disort_spectral_rad_field.sort(dis.mu());
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in disort-spectral:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in disort-spectral:\n{}", error);
 }
 
 #endif  // ENABLE_CDISORT

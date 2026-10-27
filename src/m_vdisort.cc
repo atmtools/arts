@@ -51,7 +51,7 @@ void vdisort_spectral_rad_fieldCalc(VDisortRadiance&       vdisort_spectral_rad_
 
   vdisort_spectral_rad_field.sort(dis.mu());
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in vdisort-spectral:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in vdisort-spectral:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -82,7 +82,7 @@ void spectral_flux_components_profileVDisortCalc(FluxComponentsProfile& spectral
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "Error occurred in vdisort:\n{}", error);
+  if (error.size()) arts::user_error("Error occurred in vdisort:\n{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -105,7 +105,7 @@ void spectral_radFromVDisort(StokvecVector&              spectral_rad,
 
   if (nf == 0) return;
 
-  ARTS_USER_ERROR_IF(alt_grid.size() < 2, "VDISORT altitude grid must have at least two points")
+  if (alt_grid.size() < 2) arts::user_error("VDISORT altitude grid must have at least two points");
 
   const Numeric z     = ray_point.altitude();
   const bool    above = alt_grid.size() < 2 or z >= alt_grid[1];
@@ -169,6 +169,6 @@ void vdisort_spectral_rad_fieldApplyUnit(VDisortRadiance&                       
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error)
+  if (not error.empty()) arts::user_error(error);
 }
 ARTS_METHOD_ERROR_CATCH

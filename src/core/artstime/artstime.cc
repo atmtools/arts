@@ -66,11 +66,8 @@ template <typename T> T parse_number(std::string_view s, std::string_view what, 
       return std::from_chars(s.data(), s.data() + s.size(), x);
   }();
 
-  ARTS_USER_ERROR_IF(ec != std::errc{} or ptr != s.data() + s.size() or s.empty(),
-                     "Cannot read the {} from \"{}\" in the time \"{}\"",
-                     what,
-                     s,
-                     text)
+  if (ec != std::errc{} or ptr != s.data() + s.size() or s.empty())
+    arts::user_error("Cannot read the {} from \"{}\" in the time \"{}\"", what, s, text);
 
   return x;
 }
@@ -101,8 +98,8 @@ std::istream& operator>>(std::istream& is, Time& t) {
   } else if (const auto i = hms_view.find_first_of("+-"); i != std::string_view::npos) {
     const std::string_view off = hms_view.substr(i + 1);
     const auto             c   = off.find(':');
-    ARTS_USER_ERROR_IF(
-        c == std::string_view::npos, "The offset from UTC must be \"+hh:mm\" or \"-hh:mm\" in \"{}\"", text)
+    if (c == std::string_view::npos)
+      arts::user_error("The offset from UTC must be \"+hh:mm\" or \"-hh:mm\" in \"{}\"", text);
 
     offset = hours{parse_number<int>(off.substr(0, c), "offset hours", text)} +
              minutes{parse_number<int>(off.substr(c + 1), "offset minutes", text)};
@@ -112,11 +109,11 @@ std::istream& operator>>(std::istream& is, Time& t) {
 
   const auto YMD = split(ymd_str, "-");
   const auto HMS = split(String{hms_view}, ":");
-  ARTS_USER_ERROR_IF(YMD.size() != 3 or HMS.size() != 3,
-                     R"(The time "{}" is not "YYYY-MM-DD hh:mm:ss" or "YYYY-MM-DDThh:mm:ss", optionally with
+  if (YMD.size() != 3 or HMS.size() != 3)
+    arts::user_error(R"(The time "{}" is not "YYYY-MM-DD hh:mm:ss" or "YYYY-MM-DDThh:mm:ss", optionally with
 fractional seconds and an offset from UTC, "Z", "+hh:mm" or "-hh:mm", e.g., "2000-01-01T12:00:00.5+09:00".
 Times without an offset are UTC.)",
-                     text)
+                     text);
 
   const year_month_day date{year{parse_number<int>(YMD[0], "year", text)},
                             month{parse_number<unsigned>(YMD[1], "month", text)},
@@ -125,11 +122,10 @@ Times without an offset are UTC.)",
   const int            minute = parse_number<int>(HMS[1], "minute", text);
   const Numeric        second = parse_number<Numeric>(HMS[2], "second", text);
 
-  ARTS_USER_ERROR_IF(not date.ok(), "The date of the time \"{}\" does not exist", text)
-  ARTS_USER_ERROR_IF(hour < 0 or hour > 23 or minute < 0 or minute > 59 or second < 0 or second >= 60,
-                     "The time of day of the time \"{}\" is not within 00:00:00 to 23:59:59",
-                     text)
-  ARTS_USER_ERROR_IF(abs(offset) >= days{1}, "The offset from UTC of the time \"{}\" is not less than a day", text)
+  if (not date.ok()) arts::user_error("The date of the time \"{}\" does not exist", text);
+  if (hour < 0 or hour > 23 or minute < 0 or minute > 59 or second < 0 or second >= 60)
+    arts::user_error("The time of day of the time \"{}\" is not within 00:00:00 to 23:59:59", text);
+  if (abs(offset) >= days{1}) arts::user_error("The offset from UTC of the time \"{}\" is not less than a day", text);
 
   t = Time{date, hours{hour} + minutes{minute} + round<Time::InternalTimeStep>(TimeStep{second}), offset};
 

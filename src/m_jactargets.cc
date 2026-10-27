@@ -88,7 +88,7 @@ void jac_targetsAddOverlappingMagneticField(JacobianTargets& jac_targets) {
 
   const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_mag);
 
-  ARTS_USER_ERROR_IF(fptr == jac_targets.atm.end(), "Cannot find original magnetic field for component");
+  if (fptr == jac_targets.atm.end()) arts::user_error("Cannot find original magnetic field for component");
 
   const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size   N         = jac_targets.target_count();
@@ -135,7 +135,7 @@ void jac_targetsAddOverlappingWindField(JacobianTargets& jac_targets) {
 
   const auto fptr = stdr::find_if(jac_targets.atm, Jacobian::is_wind);
 
-  ARTS_USER_ERROR_IF(fptr == jac_targets.atm.end(), "Cannot find original wind field for component");
+  if (fptr == jac_targets.atm.end()) arts::user_error("Cannot find original wind field for component");
 
   const AtmKey component = std::get<AtmKey>(fptr->type);
   const Size   N         = jac_targets.target_count();
@@ -187,8 +187,8 @@ void jac_targetsAddLineParameter(JacobianTargets&          jac_targets,
                                  const Numeric&            d) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(line < 0, "Line index must be non-negative, got {}", line)
-  ARTS_USER_ERROR_IF(parameter == LineByLineVariable::unused, "A line parameter must be selected")
+  if (line < 0) arts::user_error("Line index must be non-negative, got {}", line);
+  if (parameter == LineByLineVariable::unused) arts::user_error("A line parameter must be selected");
 
   jac_targets.emplace_back(LblLineKey{.band = band, .line = static_cast<Size>(line), .var = parameter}, d);
 }
@@ -202,9 +202,9 @@ void jac_targetsAddLineShapeParameter(JacobianTargets&                 jac_targe
                                       const Numeric&                   d) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(line < 0, "Line index must be non-negative, got {}", line)
-  ARTS_USER_ERROR_IF(parameter == LineShapeModelVariable::unused, "A line-shape parameter must be selected")
-  ARTS_USER_ERROR_IF(coefficient == LineShapeModelCoefficient::unused, "A line-shape coefficient must be selected")
+  if (line < 0) arts::user_error("Line index must be non-negative, got {}", line);
+  if (parameter == LineShapeModelVariable::unused) arts::user_error("A line-shape parameter must be selected");
+  if (coefficient == LineShapeModelCoefficient::unused) arts::user_error("A line-shape coefficient must be selected");
 
   jac_targets.emplace_back(
       LblLineKey{
@@ -219,7 +219,7 @@ void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&          jac_targe
                                              const Index&              polyorder) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(polyorder < 0, "Polyorder must be non-negative: {}", polyorder)
+  if (polyorder < 0) arts::user_error("Polyorder must be non-negative: {}", polyorder);
 
   std::vector<std::pair<Index, const void*>> sensor_grid_ptrs;
   for (Size i = 0; i < measurement_sensor.size(); i++) {
@@ -227,11 +227,12 @@ void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&          jac_targe
     if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) { sensor_grid_ptrs.emplace_back(i, ptr); }
   }
 
-  ARTS_USER_ERROR_IF(sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem),
-                     "There are only {0} independent sensor frequency grids.  "
-                     "Cannot select index: {1}, please choose an index less than {0}.",
-                     sensor_grid_ptrs.size(),
-                     sensor_elem)
+  if (sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem))
+    arts::user_error(
+        "There are only {0} independent sensor frequency grids.  "
+        "Cannot select index: {1}, please choose an index less than {0}.",
+        sensor_grid_ptrs.size(),
+        sensor_elem);
 
   const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
 

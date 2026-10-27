@@ -46,7 +46,7 @@ Error message: {})",
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), error);
+  if (not error.empty()) arts::user_error(error);
 }
 
 ArrayOfAtmPoint forward_atm_path(const ArrayOfPropagationPathPoint &rad_path, const AtmField &atm) {
@@ -73,7 +73,7 @@ void forward_path_freq(AscendingGrid              &path_freq,
 
   const Numeric fac = 1.0 - dot_prod() / Constant::speed_of_light;
 
-  ARTS_USER_ERROR_IF(fac < 0 or nonstd::isnan(fac), "Bad frequency scaling factor: {}", fac)
+  if (fac < 0 or nonstd::isnan(fac)) arts::user_error("Bad frequency scaling factor: {}", fac);
 
   Vector tmp = std::move(path_freq).rvec();
   stdr::transform(main_freq, tmp.begin(), [fac](const auto &f) { return fac * f; });
@@ -112,12 +112,15 @@ void extract1D(ArrayOfAtmPoint &atm_path,
                const Vector    &lon_grid) {
   const Size n = atm_path.size();
 
-  ARTS_USER_ERROR_IF(n < 1, "Empty path")
-  ARTS_USER_ERROR_IF(z_grid.size() != 1 and z_grid.size() != n, "Bad altitude grid")
-  ARTS_USER_ERROR_IF(lat_grid.size() != 1 and lat_grid.size() != n, "Bad latitude grid")
-  ARTS_USER_ERROR_IF(lon_grid.size() != 1 and lon_grid.size() != n, "Bad longitude grid")
+  if (n < 1) arts::user_error("Empty path");
+  if (z_grid.size() != 1 and z_grid.size() != n)
+    arts::user_error("The altitude grid must have 1 or {} (the path size) points, got {}", n, z_grid.size());
+  if (lat_grid.size() != 1 and lat_grid.size() != n)
+    arts::user_error("The latitude grid must have 1 or {} (the path size) points, got {}", n, lat_grid.size());
+  if (lon_grid.size() != 1 and lon_grid.size() != n)
+    arts::user_error("The longitude grid must have 1 or {} (the path size) points, got {}", n, lon_grid.size());
 
-  const auto at = [](const Vector &x, const Size i) { return x.size() > 0 ? x[i] : x.front(); };
+  const auto at = [](const Vector &x, const Size i) { return x.size() > 1 ? x[i] : x.front(); };
 
   for (Size i = 0; i < n; i++) { atm_path[i] = atm_field.at(at(z_grid, i), at(lat_grid, i), at(lon_grid, i)); }
 }

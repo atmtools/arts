@@ -16,20 +16,20 @@ void initialize(Numeric          delta_z,
                 Tensor5View      trans) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = reflect.extent(4);
-  ARTS_USER_ERROR_IF(quad_weights.extent(0) != nummu or
-                         extinct_matrix.shape() != (std::array<Index, 4>{2, nummu, nstokes, nstokes}) or
-                         scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}) or
-                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}),
-                     "INITIALIZE with {} mu_values needs quad_weights [nummu], extinct_matrix [2, nummu, nstokes, "
-                     "nstokes], scatter_matrix [4, nummu, nstokes, nummu, nstokes] and reflect and trans [2, nummu, "
-                     "nstokes, nummu, nstokes]; got {}, {:B,}, {:B,}, {:B,} and {:B,}",
-                     nummu,
-                     quad_weights.extent(0),
-                     extinct_matrix.shape(),
-                     scatter_matrix.shape(),
-                     reflect.shape(),
-                     trans.shape());
+  if (quad_weights.extent(0) != nummu or extinct_matrix.shape() != (std::array<Index, 4>{2, nummu, nstokes, nstokes}) or
+      scatter_matrix.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}) or
+      reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}))
+    arts::user_error(
+        "INITIALIZE with {} mu_values needs quad_weights [nummu], extinct_matrix [2, nummu, nstokes, "
+        "nstokes], scatter_matrix [4, nummu, nstokes, nummu, nstokes] and reflect and trans [2, nummu, "
+        "nstokes, nummu, nstokes]; got {}, {:B,}, {:B,}, {:B,} and {:B,}",
+        nummu,
+        quad_weights.extent(0),
+        extinct_matrix.shape(),
+        scatter_matrix.shape(),
+        reflect.shape(),
+        trans.shape());
 
   const Numeric c = Constant::two_pi;
 
@@ -63,13 +63,14 @@ void initial_source(Numeric          delta_z,
                     Tensor3View      source) {
   const Index nummu   = mu_values.extent(0);
   const Index nstokes = source.extent(2);
-  ARTS_USER_ERROR_IF(emis_vector.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or
-                         source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-                     "INITIAL_SOURCE with {} mu_values needs emis_vector and source [2, nummu, nstokes]; got "
-                     "{:B,} and {:B,}",
-                     nummu,
-                     emis_vector.shape(),
-                     source.shape());
+  if (emis_vector.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or
+      source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "INITIAL_SOURCE with {} mu_values needs emis_vector and source [2, nummu, nstokes]; got "
+        "{:B,} and {:B,}",
+        nummu,
+        emis_vector.shape(),
+        source.shape());
 
   source = 0.0;
 

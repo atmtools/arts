@@ -120,7 +120,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 [[nodiscard]] std::vector<SurfaceKeyVal> Point::keys() const {
@@ -171,7 +171,7 @@ bool Field::contains(const KeyVal &key) const {
 }
 
 Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
-  ARTS_USER_ERROR_IF(bad_ellipsoid(), "Ellipsoid must have positive axes: {:B,}", ellipsoid)
+  if (bad_ellipsoid()) arts::user_error("Ellipsoid must have positive axes: {:B,}", ellipsoid);
 
   constexpr Vector2 up{180, 0};
 
@@ -198,10 +198,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   return from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
   throw std::runtime_error(
-      std::format("Cannot find a normal to the surface at position {} {}\nThe internal error reads: {}",
-                  lat,
-                  lon,
-                  std::string_view(e.what())));
+      std::format("Cannot find a normal to the surface at position {} {}\n{}", lat, lon, indent(e.what())));
 }
 
 Numeric Data::at(const Numeric lat, const Numeric lon) const {
@@ -237,7 +234,7 @@ Point Field::at(Numeric lat, Numeric lon) const {
 }
 
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
 
   return this->operator[](key).at(lat, lon);
 }
@@ -246,7 +243,7 @@ namespace {
 constexpr std::pair<Numeric, Numeric> minmax(Numeric x) { return {x, x}; }
 
 std::pair<Numeric, Numeric> minmax(const FunctionalData &) {
-  ARTS_USER_ERROR("Cannot extract minmax from functional data");
+  arts::user_error("Cannot extract minmax from functional data");
   return {std::numeric_limits<Numeric>::lowest(), std::numeric_limits<Numeric>::max()};
 }
 
@@ -254,12 +251,12 @@ std::pair<Numeric, Numeric> minmax(const GeodeticField2 &x) { return matpack::mi
 }  // namespace
 
 std::pair<Numeric, Numeric> Field::minmax_single_value(const KeyVal &key) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
   return std::visit([](auto &a) { return minmax(a); }, this->operator[](key).data);
 }
 
 bool Field::constant_value(const KeyVal &key) const {
-  ARTS_USER_ERROR_IF(not contains(key), "Surface field does not possess the key: {}", key)
+  if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
 
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }

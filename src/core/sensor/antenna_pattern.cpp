@@ -73,7 +73,7 @@ template <typename ZenGridT, typename AziGridT>
 }
 
 [[nodiscard]] AntennaPatternField make_gaussian_field(ZenGrid zen_grid, AziGrid azi_grid, Numeric std) {
-  ARTS_USER_ERROR_IF(std <= 0.0, "Gaussian antenna std must be positive")
+  if (std <= 0.0) arts::user_error("Gaussian antenna std must be positive");
 
   AntennaPatternField out{
       .data_name  = "gaussian"s,
@@ -135,7 +135,7 @@ Obsel GriddedAntennaPattern::operator()(const Channel& channel,
                                         const Vector3& pos,
                                         const Vector2& bore_los,
                                         const Vector2& ell) const {
-  ARTS_USER_ERROR_IF(not data.ok(), "GriddedAntennaPattern data shape does not match its grids")
+  if (not data.ok()) arts::user_error("GriddedAntennaPattern data shape does not match its grids");
 
   const auto& zen_grid        = data.grid<0>();
   const auto& azi_grid        = data.grid<1>();
@@ -168,7 +168,7 @@ std::shared_ptr<const AntennaPattern> GriddedAntennaPattern::clone() const {
 
 namespace {
 AziGrid make_azi_grid(Size size) {
-  ARTS_USER_ERROR_IF(size < 1, "Gaussian antenna azimuth size must be at least 1")
+  if (size < 1) arts::user_error("Gaussian antenna azimuth size must be at least 1");
 
   return Vector{nlinspace(0.0, 360.0, size + 1)[Range(0, size)]};
 }
@@ -198,14 +198,14 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
                                       const Vector3& pos,
                                       const Vector2& bore_los,
                                       const Vector2& ell) const {
-  ARTS_USER_ERROR_IF(aperture_diameter <= 0.0, "Gaussian Airy antenna aperture_diameter must be positive")
+  if (aperture_diameter <= 0.0) arts::user_error("Gaussian Airy antenna aperture_diameter must be positive");
 
   const auto& channel_weights = channel.weights();
   const auto  freq_grid       = std::make_shared<const AscendingGrid>(channel.freq_grid());
 
-  ARTS_USER_ERROR_IF(
-      freq_grid->front() <= 0.0,
-      "Gaussian Airy antenna requires strictly positive channel frequencies because sensor builder only provides the channel frequency grid")
+  if (freq_grid->front() <= 0.0)
+    arts::user_error(
+        "Gaussian Airy antenna requires strictly positive channel frequencies because sensor builder only provides the channel frequency grid");
 
   Matrix data(zen_grid.size(), azi_grid.size(), 1.0);
 
