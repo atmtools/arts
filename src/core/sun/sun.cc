@@ -119,15 +119,16 @@ bool Sun::bad_position() const {
 }
 
 void Sun::require_placeable() const {
-  ARTS_USER_ERROR_IF(bad_position(),
-                     "The sun cannot be placed in the sky of the planet:"
-                     " latitude {} deg, longitude {} deg, distance {} m, radius {} m.\n"
-                     "The latitude must be within [-90, 90] deg, the longitude within [-360, 360] deg,"
-                     " the distance positive and the radius non-negative.",
-                     latitude,
-                     longitude,
-                     distance,
-                     radius)
+  if (bad_position())
+    arts::user_error(
+        "The sun cannot be placed in the sky of the planet:"
+        " latitude {} deg, longitude {} deg, distance {} m, radius {} m.\n"
+        "The latitude must be within [-90, 90] deg, the longitude within [-360, 360] deg,"
+        " the distance positive and the radius non-negative.",
+        latitude,
+        longitude,
+        distance,
+        radius);
 }
 
 bool bad_suns(const ArrayOfSun& suns) {

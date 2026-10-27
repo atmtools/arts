@@ -43,13 +43,13 @@ struct Data {
 
   template <typename T> [[nodiscard]] T get() const {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    if (out == nullptr) arts::user_error("Does not contain correct type");
     return *out;
   }
 
   template <typename T> [[nodiscard]] T get() {
     auto *out = std::get_if<std::remove_cvref_t<T>>(&data);
-    ARTS_USER_ERROR_IF(out == nullptr, "Does not contain correct type")
+    if (out == nullptr) arts::user_error("Does not contain correct type");
     return *out;
   }
 

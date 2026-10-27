@@ -38,8 +38,8 @@ void spectral_rad_srcvec_pathZero(SourceVector&               spectral_rad_srcve
                                   const ArrayOfAscendingGrid& freq_grid_path) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(not arr::same_size(spectral_propmat_path, spectral_propmat_jac_path, freq_grid_path),
-                     "All input must have the same size.");
+  if (not arr::same_size(spectral_propmat_path, spectral_propmat_jac_path, freq_grid_path))
+    arts::user_error("All input must have the same size.");
 
   const Size np = spectral_propmat_jac_path.size();
 
@@ -55,14 +55,11 @@ void spectral_rad_srcvec_pathZero(SourceVector&               spectral_rad_srcve
   spectral_rad_srcvec_path.J.resize(nf, np);
   spectral_rad_srcvec_path.dJ.resize(nf, np, nq);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nq, nf}, spectral_propmat_jac_path),
-                     "All derivative parameters must have same shape ({}, {}).",
-                     nq,
-                     nf);
+  if (not all_same_shape({nq, nf}, spectral_propmat_jac_path))
+    arts::user_error("All derivative parameters must have same shape ({}, {}).", nq, nf);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({nf}, spectral_propmat_path, freq_grid_path),
-                     "All forward parameters must have same shape ({}).",
-                     nf);
+  if (not all_same_shape({nf}, spectral_propmat_path, freq_grid_path))
+    arts::user_error("All forward parameters must have same shape ({}).", nf);
 
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 0; i < np; i++) {

@@ -72,7 +72,7 @@ void fresnel_tensors(const Numeric   n1,
 using namespace surface_scattering;
 
 void FresnelSurfaceScatterer::check_n1() const {
-  ARTS_USER_ERROR_IF(not(n1 > 0.0), "FresnelSurfaceScatterer n1 must be positive, but is {}.", n1);
+  if (not(n1 > 0.0)) arts::user_error("FresnelSurfaceScatterer n1 must be positive, but is {}.", n1);
 }
 
 FresnelSurfaceScatterer::FresnelSurfaceScatterer(Data refractive_index_, Numeric n1_)
@@ -95,8 +95,8 @@ SurfaceScatteringModelProperties FresnelSurfaceScatterer::get_surface_scattering
 
   const Size nf_size = f_grid.size();
   for (Index f = 0; f < Index(nf_size); ++f) {
-    ARTS_USER_ERROR_IF(
-        not(n2_data[f] > 0.0), "Refractive index must be positive, but {} (f={}).", n2_data[f], f_grid[f]);
+    if (not(n2_data[f] > 0.0))
+      arts::user_error("Refractive index must be positive, but {} (f={}).", n2_data[f], f_grid[f]);
   }
 
   MuelmatTensor5 brdf_specular(

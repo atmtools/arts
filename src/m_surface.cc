@@ -26,9 +26,9 @@ void require_surface_scattering_init(const StokvecVector& spectral_rad,
                                      const StokvecMatrix& spectral_rad_jac,
                                      const Size           nf,
                                      const Size           nq) {
-  ARTS_USER_ERROR_IF(spectral_rad.size() != nf or spectral_rad_jac.nrows() != static_cast<Index>(nq) or
-                         spectral_rad_jac.ncols() != static_cast<Index>(nf),
-                     R"--(spectral_rad and spectral_rad_jac not initialised for surface scattering.
+  if (spectral_rad.size() != nf or spectral_rad_jac.nrows() != static_cast<Index>(nq) or
+      spectral_rad_jac.ncols() != static_cast<Index>(nf))
+    arts::user_error(R"--(spectral_rad and spectral_rad_jac not initialised for surface scattering.
 
 The *spectral_radSurfaceScattering* methods add to their outputs and require them to be
 sized and zeroed first by *spectral_radSurfaceScatteringInit*.
@@ -38,7 +38,7 @@ Expected shapes ({}) and ({}, {}), got shapes {:B,} and {:B,}.)--",
                      nq,
                      nf,
                      spectral_rad.shape(),
-                     spectral_rad_jac.shape())
+                     spectral_rad_jac.shape());
 }
 }  // namespace
 
@@ -271,25 +271,26 @@ void spectral_radSurfaceScatteringDiffuse(const Workspace&                   ws,
                                           const Index&                       exclude_suns) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.bad_ellipsoid())
+    arts::user_error("Surface field not properly set up - bad reference ellipsoid: {:B,}", surf_field.ellipsoid);
 
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
 
   require_surface_scattering_init(spectral_rad, spectral_rad_jac, nf, nq);
 
-  ARTS_USER_ERROR_IF(zen_grid_weights.size() != zen_grid.size(),
-                     "zen_grid_weights has {} entries but zen_grid has {} — the weights "
-                     "must be given per quadrature zenith angle.",
-                     zen_grid_weights.size(),
-                     zen_grid.size())
-  ARTS_USER_ERROR_IF(az_grid_weights.size() != az_grid.size(),
-                     "az_grid_weights has {} entries but az_grid has {} — the weights "
-                     "must be given per quadrature azimuth angle.",
-                     az_grid_weights.size(),
-                     az_grid.size())
+  if (zen_grid_weights.size() != zen_grid.size())
+    arts::user_error(
+        "zen_grid_weights has {} entries but zen_grid has {} — the weights "
+        "must be given per quadrature zenith angle.",
+        zen_grid_weights.size(),
+        zen_grid.size());
+  if (az_grid_weights.size() != az_grid.size())
+    arts::user_error(
+        "az_grid_weights has {} entries but az_grid has {} — the weights "
+        "must be given per quadrature azimuth angle.",
+        az_grid_weights.size(),
+        az_grid.size());
 
   const Vector       za_out     = {ray_point.los[0]};
   const Vector       aa_out     = {ray_point.los[1]};
@@ -444,9 +445,8 @@ void spectral_radSurfaceScatteringSpecular(const Workspace&                   ws
                                            const Index&                       exclude_suns) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.bad_ellipsoid())
+    arts::user_error("Surface field not properly set up - bad reference ellipsoid: {:B,}", surf_field.ellipsoid);
 
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
@@ -586,9 +586,8 @@ void spectral_radSurfaceScatteringSpecularDirect(const Workspace&               
                                                  const Index&                       include_emission) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.bad_ellipsoid())
+    arts::user_error("Surface field not properly set up - bad reference ellipsoid: {:B,}", surf_field.ellipsoid);
 
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();
@@ -740,9 +739,8 @@ void spectral_radSurfaceScatteringDiffuseDirect(const Workspace&                
                                                 const Index&                       include_emission) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.bad_ellipsoid(),
-                     "Surface field not properly set up - bad reference ellipsoid: {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.bad_ellipsoid())
+    arts::user_error("Surface field not properly set up - bad reference ellipsoid: {:B,}", surf_field.ellipsoid);
 
   const Size nf = freq_grid.size();
   const Size nq = jac_targets.x_size();

@@ -29,7 +29,7 @@ template <typename Grid> using lags_t =
     std::variant<lagrange_interp::lag_t<0, grid_transform<Grid>>, lagrange_interp::lag_t<1, grid_transform<Grid>>>;
 
 template <typename Grid> lags_t<Grid> lag(const Grid& grid, Numeric x) {
-  ARTS_USER_ERROR_IF(grid.empty(), "Cannot interpolate on an empty grid")
+  if (grid.empty()) arts::user_error("Cannot interpolate on an empty grid");
   if (grid.size() == 1) return grid.template lag<0, grid_transform<Grid>>(x);
   return grid.template lag<1, grid_transform<Grid>>(x);
 }
@@ -55,7 +55,9 @@ Numeric interp(const auto& data, const auto& iw, const Lags&... lags) requires(s
 template <lagrange_interp::value_transformer transform = lagrange_interp::value_identity, typename... Grids>
 Numeric interp(const matpack::gridded_data_t<Numeric, Grids...>& field,
                const std::array<Numeric, sizeof...(Grids)>&      pos) {
-  ARTS_USER_ERROR_IF(not field.ok(), "Bad field")
+  if (not field.ok())
+    arts::user_error(
+        "The field data shape {:B,} does not match its grid sizes {:B,}", field.data.shape(), field.shape());
 
   return [&]<Size... I>(std::index_sequence<I...>) {
     return std::visit([&data = field.data](const auto&... l) { return lagrange_interp::interp<transform>(data, l...); },
@@ -67,7 +69,9 @@ Numeric interp(const matpack::gridded_data_t<Numeric, Grids...>& field,
 template <typename... Grids>
 std::vector<std::pair<Index, Numeric>> flat_weight(const matpack::gridded_data_t<Numeric, Grids...>& field,
                                                    const std::array<Numeric, sizeof...(Grids)>&      pos) {
-  ARTS_USER_ERROR_IF(not field.ok(), "Bad field")
+  if (not field.ok())
+    arts::user_error(
+        "The field data shape {:B,} does not match its grid sizes {:B,}", field.data.shape(), field.shape());
 
   constexpr Size N     = sizeof...(Grids);
   const auto     shape = field.data.shape();
@@ -184,8 +188,8 @@ template <typename G, typename F, Size N = G::dim> Numeric at(const std::variant
       ((type = combine(type, limit(extrap[I], field->template grid<I>(), x[I]))), ...);
     }(std::make_index_sequence<N>{});
 
-    ARTS_USER_ERROR_IF(
-        type == None, "Limit breached.  Position {:B,} is out-of-bounds when no extrapolation is wanted", pos)
+    if (type == None)
+      arts::user_error("Limit breached.  Position {:B,} is out-of-bounds when no extrapolation is wanted", pos);
 
     if (type == Zero) return 0.0;
 

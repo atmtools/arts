@@ -37,11 +37,12 @@ Vector MapOfSurfaceScatteringModel::get_raw_weighting(const SurfacePoint& surf_p
   // mask as the winner)
   i = 0;
   for (const auto& [key, model] : models) {
-    ARTS_USER_ERROR_IF(weights[i] < 0.0,
-                       "Surface mask {} is negative ({}) at this point — "
-                       "surface masks must be non-negative.",
-                       key,
-                       weights[i]);
+    if (weights[i] < 0.0)
+      arts::user_error(
+          "Surface mask {} is negative ({}) at this point — "
+          "surface masks must be non-negative.",
+          key,
+          weights[i]);
     ++i;
   }
 

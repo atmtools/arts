@@ -50,7 +50,7 @@ String Data::data_type() const {
   if (std::holds_alternative<Numeric>(data)) return "Numeric";
   if (std::holds_alternative<FunctionalData>(data)) return "FunctionalData";
 
-  ARTS_USER_ERROR("Cannot understand data type; is this a new type")
+  arts::user_error("Cannot understand data type; is this a new type");
 }
 
 ConstVectorView Data::flat_view() const { return field_interp::flat_view(data); }
