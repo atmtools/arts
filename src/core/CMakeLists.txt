@@ -36,6 +36,8 @@ add_subdirectory(predefined)
 
 add_subdirectory(quantum)
 
+add_subdirectory(radar)
+
 add_subdirectory(rng)
 add_subdirectory(rtepack)
 
@@ -81,6 +83,7 @@ target_link_libraries(artscore INTERFACE
   physics
   predef
   quantum
+  radar
   rng
   rtepack
   sensor

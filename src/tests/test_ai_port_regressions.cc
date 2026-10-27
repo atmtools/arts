@@ -216,16 +216,19 @@ void radar_gates() {
   antenna.set_pencil_beam();
   const AscendingGrid bins{100.0, 200.0, 400.0};
   StokvecVector       signal, error;
+  Vector              time;
   const auto          run = [&](const Vector& altitudes) {
     MCRadar(ws,
             signal,
             error,
+            time,
             atmosphere,
             surface,
             species,
             antenna,
             path_agenda(altitudes),
             gas,
+            TransmittanceOption::constant,
             94e9,
             Vector3{1000.0, 0.0, 0.0},
             Vector2{180.0, 0.0},
@@ -235,7 +238,10 @@ void radar_gates() {
             1,
             1,
             0.93,
-            "1");
+            RadarUnit::unit,
+            RadarRangeMode::Distance,
+            273.15,
+            1.0);
     return signal;
   };
   // The coarse segment midpoint (500 m) is beyond the final gate (400 m).
@@ -248,6 +254,7 @@ void radar_gates() {
     close(coarse[i].I() / expected, 1.0, "Radar must integrate every overlapped gate");
     close(split[i].I() / coarse[i].I(), 1.0, "Gate splitting must preserve the homogeneous return");
     for (Numeric x : error[i]) close(x, 0.0, "Pencil beam is deterministic");
+    close(time[i] * Constant::speed_of_light / (2.0 * midpoint), 1.0, "Radar time must be the round trip to the gate");
   }
 }
 }  // namespace

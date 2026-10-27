@@ -108,6 +108,18 @@ assert np.allclose(aux[2, interior], 0.0)
 # polarization selector, matching old yRadar behavior.
 assert np.allclose(aux[3, interior], 0.0)  # pext_scaling is zero
 
+# The round-trip time of every gate of this vertical vacuum path.
+centres = 0.5 * (range_bins[1:] + range_bins[:-1])
+np.testing.assert_allclose(
+    ws.radar_time, 2.0 * (20e3 - centres) / A.constants.c, rtol=1e-12
+)
+
+# The Magnus operator differs only for non-commuting propagation matrices.
+ws.rte_option = "magop"
+ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
+np.testing.assert_allclose(ws.measurement_vec, native, rtol=1e-12, atol=1e-30)
+ws.rte_option = "linsrc"
+
 # Ze and dBZe conversions, including the old clipping convention.
 k2 = 0.93
 ws.measurement_vecFromRadarSingleScattering(**common, unit="Ze", k2=k2)

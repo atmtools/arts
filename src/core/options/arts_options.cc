@@ -200,6 +200,53 @@ runs out of damping without an acceptable step.  A starting cost above
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name            = "RadarUnit",
+      .desc            = R"(The unit of a simulated radar return.
+
+The native return is the gate-averaged, attenuated backscatter coefficient.
+The equivalent reflectivity factor is
+
+.. math::
+
+    Z_e = \frac{4 \cdot 10^{18} \lambda^4}{\pi^4 |K|^2} \beta,
+
+where :math:`\lambda` is the wavelength [m], :math:`|K|^2` is the reference
+dielectric factor, and :math:`\beta` is the native return.
+)",
+      .values_and_desc = {Value{"unit", "1", "Backscatter coefficient [1 / (m sr)]"},
+                          Value{"Ze", "ze", "Equivalent reflectivity factor [mm :math:`^{6}` / m :math:`^{3}`]"},
+                          Value{"dBZe", "dbze", "Equivalent reflectivity factor in decibels, :math:`10 \\log_{10} Z_e`"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name            = "RadarRangeMode",
+      .desc            = R"(The coordinate of radar range-gate limits.
+)",
+      .values_and_desc = {Value{"Altitude", "Altitude [m]"},
+                          Value{"Distance", "One-way geometric distance from the radar [m]"},
+                          Value{"RoundTripTime", "Round-trip time from the radar, including path group refractive indices [s]"},
+                          Value{"Legacy", "The ARTS2 rule: Altitude if the largest limit exceeds 1, otherwise RoundTripTime"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
+      .name            = "RadarAuxiliary",
+      .desc            = R"(Auxiliary quantities of a radar simulation.
+)",
+      .values_and_desc = {
+          Value{"RadiativeBackground",
+                "Radiative background",
+                "Type of the path end: 0 for space, 1 for the surface, and 2 otherwise"},
+          Value{"Backscattering", "backscattering", "Gate-averaged backscatter without attenuation, in the unit of the measurement"},
+          Value{"AbsSpeciesExtinction",
+                "Abs species extinction",
+                "Gate-averaged extinction by absorbing species [1 / m]"},
+          Value{"ParticleExtinction",
+                "Particle extinction",
+                "Gate-averaged particle extinction, after any extinction scaling [1 / m]"},
+      },
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "PredefinedSensor",
       .desc =
           R"(Code-defined satellite sensor channel configurations.
