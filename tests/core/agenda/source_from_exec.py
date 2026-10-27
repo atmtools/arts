@@ -13,7 +13,7 @@ import sys
 import tempfile
 
 import pyarts3 as pyarts
-from pyarts3.workspace.utility import _source_and_location
+from pyarts3.workspace.utility import source_and_location
 
 SOURCE = """
 import functools
@@ -106,7 +106,7 @@ def exec_with_argv(source, path):
 
 
 def without_fast_path(func):
-    """_source_and_location with the inspect lookup disabled."""
+    """source_and_location with the inspect lookup disabled."""
 
     def fails(*args, **kwargs):
         raise OSError("fast path disabled")
@@ -114,7 +114,7 @@ def without_fast_path(func):
     real_getsourcelines = inspect.getsourcelines
     inspect.getsourcelines = fails
     try:
-        return _source_and_location(func)
+        return source_and_location(func)
     finally:
         inspect.getsourcelines = real_getsourcelines
 
@@ -224,7 +224,7 @@ with tempfile.TemporaryDirectory() as directory:
 # for a decorator that moves the first line of the definition and for a wrapper
 # applied with functools.wraps.
 for local in (decorated_here, plain_here, wrapped_here):
-    fast = _source_and_location(local)
+    fast = source_and_location(local)
     slow = without_fast_path(local)
     assert fast[0] == slow[0]
     assert fast[2] == slow[2]

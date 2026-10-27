@@ -91,7 +91,7 @@ def _block_compiles_to(block, code, filename):
     return False
 
 
-def _source_and_location(func):
+def source_and_location(func):
     """Return the source, filename and first line number of a function.
 
     ``inspect`` can only find source code through :mod:`linecache`.  Code

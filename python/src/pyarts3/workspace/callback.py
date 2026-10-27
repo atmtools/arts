@@ -1,6 +1,6 @@
 from ast import parse, FunctionDef, Return, Name, Tuple, List, ClassDef
 import pyarts3.arts as cxx
-from pyarts3.workspace.utility import _source_and_location, unindent as unindent
+from pyarts3.workspace.utility import source_and_location, unindent as unindent
 
 
 _errvar = "Unknown Value"
@@ -78,7 +78,7 @@ def _find_return(body):
 def _callback_operator(func, inputs, outputs):
     """ Internal source code parser
     """
-    srccod = _source_and_location(func)[0]
+    srccod = source_and_location(func)[0]
     srccod = unindent(srccod)
     srcast = parse(srccod)
 

@@ -14,7 +14,7 @@ from ast import (
     Expression,
     unparse,
 )
-from pyarts3.workspace.utility import _source_and_location, unindent as unindent
+from pyarts3.workspace.utility import source_and_location, unindent as unindent
 from pyarts3.arts.globals import workspace_methods, workspace_variables
 from pyarts3.arts import Agenda, Method
 import pyarts3.arts as cxx
@@ -386,11 +386,11 @@ def _arts_agenda(f, ws, fix, source=None):
     """Internal source code parser
 
     ``source`` is the (source, filename, first line) triple returned by
-    :func:`_source_and_location`.  It is looked up when not already known to
+    :func:`source_and_location`.  It is looked up when not already known to
     the caller.
     """
     if source is None:
-        source = _source_and_location(f)
+        source = source_and_location(f)
 
     srccod, fn, ln = source
     srccod = unindent(srccod)
@@ -539,7 +539,7 @@ def in_parallel(func=None, *, ws=None):
     def execute(fn):
         if ws is None:
             raise ValueError("Workspace 'ws' must be provided to in_parallel")
-        source = _source_and_location(fn)
+        source = source_and_location(fn)
         agenda = _arts_agenda(fn, None, False, source)
         agenda._set_name(source[0])
         agenda.par_execute(ws)
