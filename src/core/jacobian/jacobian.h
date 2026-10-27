@@ -288,6 +288,16 @@ struct Targets final {
 
   bool finalized{false};
 
+  //! Calls f on each list of targets, in model state order
+  void for_each_list(this auto&& self, auto&& f) {
+    f(self.atm);
+    f(self.surf);
+    f(self.subsurf);
+    f(self.line);
+    f(self.sensor);
+    f(self.error);
+  }
+
   [[nodiscard]] Size x_size() const;
 
   [[nodiscard]] Size target_count() const;

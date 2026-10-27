@@ -12,35 +12,9 @@ void model_state_vecPerturbations(Vector& model_state_vec, const JacobianTargets
 
   model_state_vecInit(model_state_vec, jac_targets);
 
-  for (auto& target : jac_targets.atm) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
-
-  for (auto& target : jac_targets.surf) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
-
-  for (auto& target : jac_targets.subsurf) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
-
-  for (auto& target : jac_targets.line) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
-
-  for (auto& target : jac_targets.sensor) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
-
-  for (auto& target : jac_targets.error) {
-    const Range r(target.x_start, target.x_size);
-    model_state_vec[r] = target.d;
-  }
+  jac_targets.for_each_list([&model_state_vec](const auto& targets) {
+    for (auto& target : targets) model_state_vec[Range(target.x_start, target.x_size)] = target.d;
+  });
 }
 
 ////// Update the fields from the model state vector

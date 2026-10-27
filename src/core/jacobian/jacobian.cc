@@ -12,41 +12,35 @@
 
 namespace Jacobian {
 void Targets::clear() {
-  atm.clear();
-  surf.clear();
-  subsurf.clear();
-  line.clear();
-  sensor.clear();
-  error.clear();
+  for_each_list([](auto& targets) { targets.clear(); });
 
   finalized = false;
 }
 
 Size Targets::x_size() const {
-  constexpr auto positioned = [](const auto& x) {
-    return x.x_start != std::numeric_limits<Size>::max() and x.x_size != std::numeric_limits<Size>::max();
-  };
+  bool all_positioned = true;
+  Size n              = 0;
 
-  //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
-  const bool all_positioned = stdr::all_of(atm, positioned) and stdr::all_of(surf, positioned) and
-                              stdr::all_of(subsurf, positioned) and stdr::all_of(line, positioned) and
-                              stdr::all_of(sensor, positioned) and stdr::all_of(error, positioned);
+  for_each_list([&](const auto& targets) {
+    for (auto& t : targets) {
+      //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
+      all_positioned = all_positioned and t.x_start != std::numeric_limits<Size>::max() and
+                       t.x_size != std::numeric_limits<Size>::max();
+
+      if (not t.overlap) n += t.x_size;
+    }
+  });
 
   ARTS_USER_ERROR_IF(target_count() != 0 and (not finalized or not all_positioned),
                      "The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.")
 
-  const auto sz = [](const auto& x) -> Size { return x.overlap ? 0 : x.x_size; };
-
-  return std::transform_reduce(atm.begin(), atm.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(surf.begin(), surf.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(subsurf.begin(), subsurf.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(line.begin(), line.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(sensor.begin(), sensor.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(error.begin(), error.end(), Size{0}, std::plus<>{}, sz);
+  return n;
 }
 
 Size Targets::target_count() const {
-  return atm.size() + surf.size() + subsurf.size() + line.size() + sensor.size() + error.size();
+  Size n = 0;
+  for_each_list([&n](const auto& targets) { n += targets.size(); });
+  return n;
 }
 
 bool Targets::empty() const { return target_count() == 0; }
@@ -519,27 +513,13 @@ void Targets::finalize(const AtmField&           atm_field,
                        const SubsurfaceField&    subsurf_field,
                        const AbsorptionBands&    abs_bands,
                        const ArrayOfSensorObsel& measurement_sensor) {
-  const Size natm     = atm.size();
-  const Size nsurf    = surf.size();
-  const Size nsubsurf = subsurf.size();
-  const Size nline    = line.size();
-  const Size nsensor  = sensor.size();
-  const Size nerror   = error.size();
-
-  const auto check_untransformed = [](const auto& targets) {
+  for_each_list([](const auto& targets) {
     for (auto& t : targets) {
       ARTS_USER_ERROR_IF(overlaps(targets, t) and has_transformation(t),
                          "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
                          t.type)
     }
-  };
-
-  check_untransformed(atm);
-  check_untransformed(surf);
-  check_untransformed(subsurf);
-  check_untransformed(line);
-  check_untransformed(sensor);
-  check_untransformed(error);
+  });
 
   for (auto& t : atm) {
     if (not overlaps(atm, t)) continue;
@@ -554,159 +534,81 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
                        t.type)
   }
 
-  Size last_size = 0;
-
-  for (Size i = 0; i < natm; i++) {
-    AtmTarget& t = atm[i];
-    if (stdr::any_of(atm | stdv::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(atm, t.overlap_key, &AtmTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(atm.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = atm_field[t.type].flat_view().size();
-      last_size += t.x_size;
-    }
-  }
-
-  for (Size i = 0; i < nsurf; i++) {
-    SurfaceTarget& t = surf[i];
-    if (stdr::any_of(surf | stdv::drop(i + 1), Cmp::eq(t.type), &SurfaceTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(surf, t.overlap_key, &SurfaceTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(surf.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = surf_field[t.type].flat_view().size();
-      last_size += t.x_size;
-    }
-  }
-
-  for (Size i = 0; i < nsubsurf; i++) {
-    SubsurfaceTarget& t = subsurf[i];
-    if (stdr::any_of(subsurf | stdv::drop(i + 1), Cmp::eq(t.type), &SubsurfaceTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(subsurf, t.overlap_key, &SubsurfaceTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(subsurf.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = subsurf_field[t.type].flat_view().size();
-      last_size += t.x_size;
-    }
-  }
-
-  for (Size i = 0; i < nline; i++) {
-    LineTarget& t = line[i];
-    if (stdr::any_of(line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
+  for (auto& t : line) {
     try {
       std::ignore = t.type.get_value(abs_bands);
     } catch (const std::exception& e) {
       throw std::runtime_error(std::format("Line target {} is not in abs_bands:\n{}", t.type, e.what()));
     }
-
-    if (t.overlap) {
-      const auto f = stdr::find(line, t.overlap_key, &LineTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(line.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = 1;
-      last_size += t.x_size;
-    }
   }
 
-  for (auto& elem : sensor) {
-    if (static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size())
-      arts::user_error("Bad sensor elements {}, out-of-bounds", elem);
+  for (auto& t : sensor) {
+    ARTS_USER_ERROR_IF(static_cast<Size>(t.type.measurement_elem) >= measurement_sensor.size(),
+                       "Bad sensor elements {}, out-of-bounds",
+                       t)
   }
 
-  for (Size i = 0; i < nsensor; i++) {
-    SensorTarget& t = sensor[i];
-    if (stdr::any_of(
-            sensor | stdv::drop(i + 1),
-            [&](const SensorKey& key) {
-              if (t.type.type != key.type) return false;
+  //! Sensor targets on different sensor elements are the same if they share the relevant grid
+  const auto same = [&measurement_sensor]<typename T>(const T& a, const T& b) -> bool {
+    if constexpr (std::same_as<T, SensorTarget>) {
+      if (a.type.type != b.type.type) return false;
 
-              const Index elem1 = t.type.measurement_elem;
-              const Index elem2 = key.measurement_elem;
-
-              switch (key.type) {
-                using enum SensorKeyType;
-                case freq: return measurement_sensor[elem1].f_grid_ptr() == measurement_sensor[elem2].f_grid_ptr();
-                case zen:
-                case azi:
-                case alt:
-                case lat:
-                case lon:
-                  return measurement_sensor[elem1].poslos_grid_ptr() == measurement_sensor[elem2].poslos_grid_ptr();
-              }
-
-              std::unreachable();
-            },
-            &SensorTarget::type))
-      arts::user_error(
-          "Multiple targets of the same type for target: {} "
-          "- note that different sensor element targets may not share the same type, model, and relevant grids",
-          t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(sensor, t.overlap_key, &SensorTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(sensor.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
+      const SensorObsel& elem1 = measurement_sensor[a.type.measurement_elem];
+      const SensorObsel& elem2 = measurement_sensor[b.type.measurement_elem];
+      return a.type.type == SensorKeyType::freq ? elem1.f_grid_ptr() == elem2.f_grid_ptr()
+                                                : elem1.poslos_grid_ptr() == elem2.poslos_grid_ptr();
     } else {
-      t.x_start = last_size;
-      // t.x_size already known
-      last_size += t.x_size;
+      return a.type == b.type;
     }
-  }
+  };
 
-  for (Size i = 0; i < nerror; i++) {
-    ErrorTarget& t = error[i];
-    ARTS_USER_ERROR_IF(stdr::any_of(error | stdv::drop(i + 1), Cmp::eq(t.type), &ErrorTarget::type),
-                       "Multiple targets of the same type: {}",
-                       t.type)
-
-    if (t.overlap) {
-      const auto f = stdr::find(error, t.overlap_key, &ErrorTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(error.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start = last_size;
-      // t.x_size already known
-      last_size += t.x_size;
+  for_each_list([&same](const auto& targets) {
+    for (Size i = 0; i < targets.size(); i++) {
+      ARTS_USER_ERROR_IF(stdr::any_of(targets | stdv::drop(i + 1), [&](const auto& t) { return same(targets[i], t); }),
+                         "Multiple targets of the same type: {}",
+                         targets[i].type)
     }
+  });
 
-    if (t.type.y_start + t.type.y_size > measurement_sensor.size())
-      arts::user_error(R"(An error target is out of bounds of the y-vector.
+  Size last_size = 0;
+
+  const auto position = [&last_size](auto& targets, const auto& field_size) {
+    for (Size i = 0; i < targets.size(); i++) {
+      auto& t = targets[i];
+
+      if (t.overlap) {
+        const auto f = stdr::find(targets, t.overlap_key, &std::remove_cvref_t<decltype(t)>::type);
+        ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(targets.begin(), f),
+                           "Overlap target {} not found prior in targets.",
+                           t.overlap_key)
+        t.x_start = f->x_start;
+        t.x_size  = f->x_size;
+      } else {
+        t.x_start  = last_size;
+        t.x_size   = field_size(t);
+        last_size += t.x_size;
+      }
+    }
+  };
+
+  position(atm, [&](const AtmTarget& t) { return atm_field[t.type].flat_view().size(); });
+  position(surf, [&](const SurfaceTarget& t) { return surf_field[t.type].flat_view().size(); });
+  position(subsurf, [&](const SubsurfaceTarget& t) { return subsurf_field[t.type].flat_view().size(); });
+  position(line, [](const LineTarget&) -> Size { return 1; });
+
+  //! Sensor and error targets get their sizes from their polynomial models
+  position(sensor, [](const SensorTarget& t) { return t.x_size; });
+  position(error, [](const ErrorTarget& t) { return t.x_size; });
+
+  for (auto& t : error) {
+    ARTS_USER_ERROR_IF(t.type.y_start + t.type.y_size > measurement_sensor.size(),
+                       R"(An error target is out of bounds of the y-vector.
 
 The error target is defined to operator on the measurement_vec in the range {},
 but the measurement_vec will only have {} element by the measurement_sensor.
 )",
                        t.type,
-                       measurement_sensor.size());
+                       measurement_sensor.size())
   }
 
   finalized = true;
