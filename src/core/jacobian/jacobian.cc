@@ -18,17 +18,8 @@ void Targets::clear() {
 }
 
 bool Targets::is_finalized() const {
-  bool all_positioned = true;
-
   //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
-  for_each_list([&all_positioned](const auto& targets) {
-    for (auto& t : targets) {
-      all_positioned = all_positioned and t.x_start != std::numeric_limits<Size>::max() and
-                       t.x_size != std::numeric_limits<Size>::max();
-    }
-  });
-
-  return finalized and all_positioned;
+  return finalized and target_count() == finalized_count;
 }
 
 Size Targets::x_size() const {
@@ -615,7 +606,8 @@ but the measurement_vec will only have {} element by the measurement_sensor.
                        measurement_sensor.size());
   }
 
-  finalized = true;
+  finalized       = true;
+  finalized_count = target_count();
 
   throwing_check(last_size);
 }
@@ -715,6 +707,8 @@ void xml_io_stream<JacobianTargets>::read(std::istream& is, JacobianTargets& x, 
   xml_read_from_stream(is, x.line, pbifs);
   xml_read_from_stream(is, x.sensor, pbifs);
   xml_read_from_stream(is, x.error, pbifs);
+
+  x.finalized_count = x.target_count();
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

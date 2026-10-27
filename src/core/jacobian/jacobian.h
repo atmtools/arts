@@ -288,6 +288,9 @@ struct Targets final {
 
   bool finalized{false};
 
+  //! The number of targets when finalize was last called
+  Size finalized_count{0};
+
   //! Calls f on each list of targets, in model state order
   void for_each_list(this auto&& self, auto&& f) {
     f(self.atm);

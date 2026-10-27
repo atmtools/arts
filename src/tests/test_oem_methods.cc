@@ -144,7 +144,8 @@ struct Retrieval {
 
   void set_target_size(Size n) {
     targets.atm       = {Jacobian::AtmTarget{.type = AtmKey::t, .target_pos = 0, .x_start = 0, .x_size = n}};
-    targets.finalized = true;
+    targets.finalized       = true;
+    targets.finalized_count = targets.target_count();
   }
 
   void run(std::string_view method) {
