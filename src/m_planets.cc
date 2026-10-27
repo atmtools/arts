@@ -194,8 +194,8 @@ void surf_fieldInit(SurfaceField  &surf_field,
                     const Numeric &surf_elevation) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(r_equatorial <= 0 || r_polar <= 0,
-                     R"(Ellipsoid with a: {}, b: {} is invalid.
+  if (r_equatorial <= 0 || r_polar <= 0)
+    arts::user_error(R"(Ellipsoid with a: {}, b: {} is invalid.
 
 We do not support negative "a" or "b".
 
@@ -203,8 +203,8 @@ A planetary ellipsoid is defined by x^2/a^2 + y^2/a^2 + z^2/b^2 = 1 in ARTS.
 )",
                      r_equatorial,
                      r_polar);
-  ARTS_USER_ERROR_IF(std::abs(r_polar / r_equatorial - 1) > 0.5,
-                     R"(Ellipsoid with a: {}, b: {} is invalid.
+  if (std::abs(r_polar / r_equatorial - 1) > 0.5)
+    arts::user_error(R"(Ellipsoid with a: {}, b: {} is invalid.
 
 The ellipsoid is too flat.
 
@@ -240,10 +240,9 @@ void gravity_operatorCentralMass(NumericTernaryOperator &gravity_operator,
                                  const Numeric          &mass) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(surf_field.ellipsoid[0] <= 0, "Ellipsoid has bad semi-major axis {:B,}", surf_field.ellipsoid)
-  ARTS_USER_ERROR_IF(surf_field.ellipsoid[1] <= 0 or surf_field.ellipsoid[1] > surf_field.ellipsoid[0],
-                     "Ellipsoid has bad semi-minor axis {:B,}",
-                     surf_field.ellipsoid)
+  if (surf_field.ellipsoid[0] <= 0) arts::user_error("Ellipsoid has bad semi-major axis {:B,}", surf_field.ellipsoid);
+  if (surf_field.ellipsoid[1] <= 0 or surf_field.ellipsoid[1] > surf_field.ellipsoid[0])
+    arts::user_error("Ellipsoid has bad semi-minor axis {:B,}", surf_field.ellipsoid);
 
   gravity_operator = NumericTernaryOperator{EllipsoidGravity{
       .GM = Constant::G * mass,

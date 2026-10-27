@@ -3,11 +3,11 @@
 #include "jacobian.h"
 
 Vector relfwd::operator()(ConstVectorView xx) const {
-  ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
+  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
   const Vector& orig = *sorig;
 
-  ARTS_USER_ERROR_IF(orig.size() != xx.size(),
-                     R"(Mismatch size.
+  if (orig.size() != xx.size())
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a relative profile.
 
@@ -15,7 +15,7 @@ The original data has {} elements
 The incoming data has {} elements
 )",
                      orig.size(),
-                     xx.size())
+                     xx.size());
 
   Vector x{xx};
   x /= orig;
@@ -29,11 +29,11 @@ Vector relfwd::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector relfwd::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Vector relinv::operator()(ConstVectorView xx) const {
-  ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
+  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
   const Vector& orig = *sorig;
 
-  ARTS_USER_ERROR_IF(orig.size() != xx.size(),
-                     R"(Mismatch size.
+  if (orig.size() != xx.size())
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a relative profile.
 
@@ -41,7 +41,7 @@ The original data has {} elements
 The incoming data has {} elements
 )",
                      orig.size(),
-                     xx.size())
+                     xx.size());
   return matpack::einsum<Vector, "i", "i", "i">(xx, orig);
 }
 
@@ -52,12 +52,12 @@ Vector relinv::operator()(ConstVectorView x, const SurfaceField&) const { return
 Vector relinv::operator()(ConstVectorView x, const SubsurfaceField&) const { return this->operator()(x); }
 
 Matrix relinv::operator()(ConstMatrixView dyy) const {
-  ARTS_USER_ERROR_IF(not sorig, "No original-vector provided for polyinv.")
+  if (not sorig) arts::user_error("No original-vector provided for polyinv.");
   const Vector& orig = *sorig;
   const Size    N    = orig.size();
 
-  ARTS_USER_ERROR_IF(N != static_cast<Size>(dyy.ncols()),
-                     R"(Mismatch size.
+  if (N != static_cast<Size>(dyy.ncols()))
+    arts::user_error(R"(Mismatch size.
 
 Cannot produce a relative profile.
 
@@ -65,7 +65,7 @@ The original data     has {} elements
 The incoming jacobian has {} elements
 )",
                      N,
-                     dyy.ncols())
+                     dyy.ncols());
 
   // Matrix dy(dyy);
 

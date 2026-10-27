@@ -25,19 +25,20 @@ Numeric decimal_year(const Time& time) {
 std::pair<Coefficients, Coefficients> coefficients(const Time& time) {
   using Data::epochs, Data::nepoch, Data::valid_range;
 
-  ARTS_USER_ERROR_IF(not Data::available,
-                     "ARTS was compiled without the IGRF coefficients.\n"
-                     "Update arts-cat-data and compile ARTS again to use IGRF.")
+  if (not Data::available)
+    arts::user_error(
+        "ARTS was compiled without the IGRF coefficients.\n"
+        "Update arts-cat-data and compile ARTS again to use IGRF.");
 
   const Numeric year = decimal_year(time);
 
-  ARTS_USER_ERROR_IF(
-      year < valid_range.first or year > valid_range.second,
-      "The IGRF coefficients are valid from the decimal year {} to {}, but the time {} is the decimal year {}",
-      valid_range.first,
-      valid_range.second,
-      time,
-      year)
+  if (year < valid_range.first or year > valid_range.second)
+    arts::user_error(
+        "The IGRF coefficients are valid from the decimal year {} to {}, but the time {} is the decimal year {}",
+        valid_range.first,
+        valid_range.second,
+        time,
+        year);
 
   std::pair<Coefficients, Coefficients> out;
   auto& [g, h] = out;

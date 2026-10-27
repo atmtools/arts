@@ -15,6 +15,12 @@
 
 namespace {
 static const auto& wsms = workspace_methods();
+
+//! The argument name without its default-input and user-input prefixes
+std::string_view unprefixed(std::string_view arg) {
+  while (arg.size() > 1 and (arg.front() == internal_prefix or arg.front() == named_input_prefix)) arg.remove_prefix(1);
+  return arg;
+}
 }  // namespace
 
 Method::Method() : name("this-is-not-a-method") {}
@@ -157,19 +163,17 @@ void Method::operator()(Workspace& ws) const try {
 } catch (std::out_of_range&) {
   throw std::runtime_error(std::format("No method named \"{}\"", name));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(R"(Cannot execute method {}
+  throw std::runtime_error(
+      std::format(R"(Cannot execute method {}
         
 Method outputs: {:B,}
 Method inputs:  {:B,}
-(NOTE: "{}" and "{}" prefixes are used for default and user inputs, respectively)
 
 {})",
-                                       name,
-                                       inargs,
-                                       outargs,
-                                       internal_prefix,
-                                       named_input_prefix,
-                                       std::string_view(e.what())));
+                  name,
+                  outargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
+                  inargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
+                  std::string_view(e.what())));
 }
 
 void Method::add_defaults_to_agenda(Agenda& agenda) const {
@@ -192,10 +196,8 @@ std::string std::formatter<Wsv>::to_string(const Wsv& wsv) const { return wsv.vf
 
 namespace {
 std::string wsv_format(const std::string& x) {
-  const static auto& wsvs = workspace_variables();
-  std::string_view   n    = x;
-
-  while (n.size() > 1 and (n.front() == internal_prefix or n.front() == named_input_prefix)) n.remove_prefix(1);
+  const static auto&     wsvs = workspace_variables();
+  const std::string_view n    = unprefixed(x);
 
   std::string_view sep = wsvs.contains(std::string{n}) ? "*" : "";
 

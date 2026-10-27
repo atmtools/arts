@@ -76,9 +76,8 @@ std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(PropmatVector&
       Vector d_absorption;
 
       for (auto& jacobian_target : jac_targets.atm) {
-        ARTS_USER_ERROR_IF(not std::isnormal(jacobian_target.d),
-                           "The target {} is not good, it lacks a perturbation value.",
-                           jacobian_target);
+        if (not std::isnormal(jacobian_target.d))
+          arts::user_error("The target {} is not good, it lacks a perturbation value.", jacobian_target);
 
         if (is_wind(jacobian_target)) {
           const AscendingGrid freq_grid2(
@@ -201,8 +200,8 @@ void abs_lookup_dataPrecomputeAll(AbsorptionLookupTables&   abs_lookup_data,
   stdr::sort(lut_species);
 
   for (auto spec : water_affected_species) {
-    ARTS_USER_ERROR_IF(not stdr::binary_search(lut_species, spec),
-                       R"(Missing a species in the absorption bands that is marked as affected by water vapor.
+    if (not stdr::binary_search(lut_species, spec))
+      arts::user_error(R"(Missing a species in the absorption bands that is marked as affected by water vapor.
   Species:                                       {}
   Absorption band species:
     {:B,}
@@ -211,7 +210,7 @@ void abs_lookup_dataPrecomputeAll(AbsorptionLookupTables&   abs_lookup_data,
 )",
                        spec,
                        lut_species,
-                       water_affected_species)
+                       water_affected_species);
   }
 
   const auto f = std::make_shared<const AscendingGrid>(freq_grid);
@@ -246,8 +245,8 @@ void abs_lookup_dataFromProfiles(AbsorptionLookupTables&   abs_lookup_data,
 
   ArrayOfAtmPoint atm_profile(pressure_profile.size(), AtmPoint{to<IsoRatioOption>(isoratio_option)});
 
-  ARTS_USER_ERROR_IF(not same_shape(pressure_profile.vec(), temperature_profile),
-                     "Pressure and temperature profiles must agree in size.");
+  if (not same_shape(pressure_profile.vec(), temperature_profile))
+    arts::user_error("Pressure and temperature profiles must agree in size.");
 
   for (Size i = 0; i < pressure_profile.size(); i++) {
     atm_profile[i].pressure    = pressure_profile[i];
@@ -255,9 +254,8 @@ void abs_lookup_dataFromProfiles(AbsorptionLookupTables&   abs_lookup_data,
   }
 
   for (auto& [spec, prof] : vmr_profiles) {
-    ARTS_USER_ERROR_IF(not same_shape(pressure_profile.vec(), prof),
-                       "Pressure and VMR profiles must agree in size, fails for species {}",
-                       spec);
+    if (not same_shape(pressure_profile.vec(), prof))
+      arts::user_error("Pressure and VMR profiles must agree in size, fails for species {}", spec);
 
     for (Size i = 0; i < prof.size(); i++) { atm_profile[i][spec] = prof[i]; }
   }
@@ -287,21 +285,19 @@ void abs_lookup_dataSimpleWide(AbsorptionLookupTables&   abs_lookup_data,
                                const Index&              water_vmr_perturbation_steps) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      pressure_range[1] <= pressure_range[0], "Pressure range must be increasing, got {:B,}", pressure_range);
-  ARTS_USER_ERROR_IF(temperature_range[1] <= temperature_range[0],
-                     "Temperature range must be increasing, got {:B,}",
-                     temperature_range);
-  ARTS_USER_ERROR_IF(
-      water_vmr_range[1] <= water_vmr_range[0], "Water VMR range must be increasing, got {:B,}", water_vmr_range);
-  ARTS_USER_ERROR_IF(vmr_value <= 0.0, "VMR value must be positive, got {}", vmr_value);
-  ARTS_USER_ERROR_IF(atmospheric_steps < 2, "Must have at least two atmospheric levels, got {}", atmospheric_steps);
-  ARTS_USER_ERROR_IF(temperature_perturbation_steps < 0,
-                     "Must have zero or positive temperature perturbations steps, got {}",
+  if (pressure_range[1] <= pressure_range[0])
+    arts::user_error("Pressure range must be increasing, got {:B,}", pressure_range);
+  if (temperature_range[1] <= temperature_range[0])
+    arts::user_error("Temperature range must be increasing, got {:B,}", temperature_range);
+  if (water_vmr_range[1] <= water_vmr_range[0])
+    arts::user_error("Water VMR range must be increasing, got {:B,}", water_vmr_range);
+  if (vmr_value <= 0.0) arts::user_error("VMR value must be positive, got {}", vmr_value);
+  if (atmospheric_steps < 2) arts::user_error("Must have at least two atmospheric levels, got {}", atmospheric_steps);
+  if (temperature_perturbation_steps < 0)
+    arts::user_error("Must have zero or positive temperature perturbations steps, got {}",
                      temperature_perturbation_steps);
-  ARTS_USER_ERROR_IF(water_vmr_perturbation_steps < 0,
-                     "Must have zero or positive water VMR perturbations steps, got {}",
-                     water_vmr_perturbation_steps);
+  if (water_vmr_perturbation_steps < 0)
+    arts::user_error("Must have zero or positive water VMR perturbations steps, got {}", water_vmr_perturbation_steps);
 
   const Vector         temperature_profile(atmospheric_steps, mean(temperature_range));
   const DescendingGrid pressure_profile = nlogspace(pressure_range[1], pressure_range[0], atmospheric_steps);

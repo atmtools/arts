@@ -35,12 +35,12 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField&    
                                                              const Numeric&         normalizing_factor) {
   std::unordered_map<QuantumLevelIdentifier, AtmData> out;
 
-  ARTS_USER_ERROR_IF(not atm_field.contains(AtmKey::t), "Atmospheric field does not contain temperature data");
+  if (not atm_field.contains(AtmKey::t)) arts::user_error("Atmospheric field does not contain temperature data");
 
   const AtmData& t_data = atm_field[AtmKey::t];
 
   for (const auto& [key, band] : abs_bands) {
-    ARTS_USER_ERROR_IF(band.size() != 1, "Only for single-line bands");
+    if (band.size() != 1) arts::user_error("Only for single-line bands");
 
     const auto upp = key.upper();
     const auto low = key.lower();
@@ -249,12 +249,12 @@ std::unordered_map<QuantumIdentifier, UppLow> band_level_mapFromLevelKeys(
     const auto lower      = key.lower();
     const auto lower_find = stdr::find(level_keys, lower);
     ul.low                = std::distance(stdr::begin(level_keys), lower_find);
-    ARTS_USER_ERROR_IF(lower_find == stdr::end(level_keys), "Lower level {} not found in level keys", lower)
+    if (lower_find == stdr::end(level_keys)) arts::user_error("Lower level {} not found in level keys", lower);
 
     const auto upper      = key.upper();
     const auto upper_find = stdr::find(level_keys, upper);
     ul.upp                = std::distance(stdr::begin(level_keys), upper_find);
-    ARTS_USER_ERROR_IF(upper_find == stdr::end(level_keys), "Upper level {} not found in level keys", upper)
+    if (upper_find == stdr::end(level_keys)) arts::user_error("Upper level {} not found in level keys", upper);
   }
 
   return band_level_map;

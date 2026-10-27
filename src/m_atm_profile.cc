@@ -37,8 +37,8 @@ void atm_profileFromGrid(ArrayOfAtmPoint &atm_profile,
   alt_grid        = gf3.grid<0>();
 
   const Size N = gf3.data.size();
-  ARTS_USER_ERROR_IF(not gf3.ok() or N == 0, "Not a good field for key {}", key)
-  ARTS_USER_ERROR_IF(N != alt_grid.size(), "Not a profile key {}", key)
+  if (not gf3.ok() or N == 0) arts::user_error("Not a good field for key {}", key);
+  if (N != alt_grid.size()) arts::user_error("Not a profile key {}", key);
 
   latitude  = gf3.grid<1>()[0];
   longitude = gf3.grid<2>()[0];

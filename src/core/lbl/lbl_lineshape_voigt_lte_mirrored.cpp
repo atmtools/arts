@@ -1276,7 +1276,7 @@ void compute_derivative(PropmatVectorView      dpm,
 
   const Numeric isorat = atm[spec];
 
-  ARTS_USER_ERROR_IF(isorat == 0, "Does not support 0 for isotopologue ratios (may be added upon request)")
+  if (isorat == 0) arts::user_error("Does not support 0 for isotopologue ratios (may be added upon request)");
 
   for (Size i = 0; i < f_grid.size(); i++) {
     dpm[i] += zeeman::scale(com_data.npm, com_data.scl[i] * com_data.shape[i] / isorat);

@@ -3,7 +3,7 @@
 
 namespace {
 void require_close(const std::string_view name, const auto& a, const auto& b, const Numeric tolerance) {
-  ARTS_USER_ERROR_IF(a.shape() != b.shape(), "{}: shape mismatch {} vs {}", name, a.shape(), b.shape());
+  if (a.shape() != b.shape()) arts::user_error("{}: shape mismatch {} vs {}", name, a.shape(), b.shape());
 
   Numeric largest_error     = 0.0;
   Numeric largest_actual    = 0.0;
@@ -24,8 +24,8 @@ void require_close(const std::string_view name, const auto& a, const auto& b, co
       largest_index     = index;
     }
   }
-  ARTS_USER_ERROR_IF(largest_error > tolerance,
-                     "{}: largest scaled error is {} at flat index {}: actual {}, reference {}, tolerance {}",
+  if (largest_error > tolerance)
+    arts::user_error("{}: largest scaled error is {} at flat index {}: actual {}, reference {}, tolerance {}",
                      name,
                      largest_error,
                      largest_index,
@@ -61,9 +61,8 @@ disort::main_data identical_atmosphere(const AscendingGrid& tau_arr, const Numer
 }
 
 void require_finite(const std::string_view name, const auto& values) {
-  ARTS_USER_ERROR_IF(stdr::any_of(values | by_elem, [](const Numeric x) { return !std::isfinite(x); }),
-                     "{} contains a non-finite value",
-                     name);
+  if (stdr::any_of(values | by_elem, [](const Numeric x) { return !std::isfinite(x); }))
+    arts::user_error("{} contains a non-finite value", name);
 }
 
 void require_scalar_close(const std::string_view name,
@@ -72,8 +71,8 @@ void require_scalar_close(const std::string_view name,
                           const Numeric          tolerance = 5e-8) {
   const Numeric scale        = std::max({1.0, std::abs(actual), std::abs(expected)});
   const Numeric scaled_error = std::abs(actual - expected) / scale;
-  ARTS_USER_ERROR_IF(scaled_error > tolerance,
-                     "{}: {} differs from reference {} (scaled error {}, tolerance {})",
+  if (scaled_error > tolerance)
+    arts::user_error("{}: {} differs from reference {} (scaled error {}, tolerance {})",
                      name,
                      actual,
                      expected,

@@ -405,7 +405,7 @@ void spectral_radSinglePathEmissionFrequencyLoop(StokvecVector&                 
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "Error in spectral_radSinglePathEmissionFrequencyLoop: {:s}", error);
+  if (not error.empty()) arts::user_error("Error in spectral_radSinglePathEmissionFrequencyLoop: {:s}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -432,8 +432,8 @@ void single_radClearskyEmissionPropagation(const Workspace&             ws,
                                            const Index&                 N) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(N <= 0 or max_stepsize <= 0.0 or max_tau <= 0.0 or cutoff_tau <= 0.0,
-                     "Must be strictly positive: N = {}, max_stepsize = {}, max_tau = {}, cutoff_tau = {}",
+  if (N <= 0 or max_stepsize <= 0.0 or max_tau <= 0.0 or cutoff_tau <= 0.0)
+    arts::user_error("Must be strictly positive: N = {}, max_stepsize = {}, max_tau = {}, cutoff_tau = {}",
                      N,
                      max_stepsize,
                      max_tau,
@@ -654,7 +654,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(const Workspace& 
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if (not error.empty()) arts::user_error("{}", error);
 }
 ARTS_METHOD_ERROR_CATCH
 
@@ -672,12 +672,12 @@ void single_radFromVector(Stokvec&             single_rad,
                           const Index&         f) try {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      spectral_rad.ncols() < f or spectral_rad_jac.ncols() < f,
-      R"(Index f={} is out of bounds for spectral_rad with shape {:B,} and spectral_rad_jac with shape {:B,})",
-      f,
-      spectral_rad.shape(),
-      spectral_rad_jac.shape());
+  if (spectral_rad.ncols() < f or spectral_rad_jac.ncols() < f)
+    arts::user_error(
+        R"(Index f={} is out of bounds for spectral_rad with shape {:B,} and spectral_rad_jac with shape {:B,})",
+        f,
+        spectral_rad.shape(),
+        spectral_rad_jac.shape());
 
   single_rad = spectral_rad[f];
   single_rad_jac.resize(spectral_rad_jac.nrows());

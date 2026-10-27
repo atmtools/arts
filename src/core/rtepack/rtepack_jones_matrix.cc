@@ -46,8 +46,8 @@ jones::jones(const muelmat &M) : jones(Complex{}) {
     deviation = std::max(deviation, std::abs(back.data[n] - M.data[n]));
     scale     = std::max(scale, std::abs(M.data[n]));
   }
-  ARTS_USER_ERROR_IF(deviation > 1e-9 * scale,
-                     R"(The Mueller matrix is not that of a Jones matrix (it depolarizes):
+  if (deviation > 1e-9 * scale)
+    arts::user_error(R"(The Mueller matrix is not that of a Jones matrix (it depolarizes):
 
 {}
 

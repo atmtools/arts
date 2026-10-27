@@ -33,7 +33,7 @@ void full::adapt() try {
 
   if (ciarecords->empty()) { return; }
 
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   models.reserve(ciarecords->size());
   for (auto& [species_pair, data] : *ciarecords) {

@@ -38,18 +38,19 @@ void check_mirror_symmetry(const layer_optics& o, Index iset, Index nmu, Index n
     }
   }
 
-  ARTS_USER_ERROR_IF(not(k_ok and a_ok and zt_ok and zr_ok),
-                     "RT4 doubling is hard-coded for media that are mirror symmetric between the hemispheres "
-                     "(SYMMETRIC in radtran4.f), to {} relative to the largest magnitude of each quantity.  Optics "
-                     "set {} breaks this: "
-                     "extinction[down] == extinction[up]: {}, absorption[down] == absorption[up]: {}, "
-                     "phase[down, down] == phase[up, up]: {}, phase[down, up] == phase[up, down]: {}",
-                     rel,
-                     iset,
-                     k_ok,
-                     a_ok,
-                     zt_ok,
-                     zr_ok);
+  if (not(k_ok and a_ok and zt_ok and zr_ok))
+    arts::user_error(
+        "RT4 doubling is hard-coded for media that are mirror symmetric between the hemispheres "
+        "(SYMMETRIC in radtran4.f), to {} relative to the largest magnitude of each quantity.  Optics "
+        "set {} breaks this: "
+        "extinction[down] == extinction[up]: {}, absorption[down] == absorption[up]: {}, "
+        "phase[down, down] == phase[up, up]: {}, phase[down, up] == phase[up, down]: {}",
+        rel,
+        iset,
+        k_ok,
+        a_ok,
+        zt_ok,
+        zr_ok);
 }
 
 /* RT4 conserves energy only if every incident quadrature stream scatters
@@ -68,22 +69,22 @@ void check_normalisation(const layer_optics& o, Index iset, const quadrature& q,
       for (Index ho = 0; ho < 2; ho++)
         for (Index i = 0; i < nquad; i++) scattered += 2.0 * Constant::pi * q.weights[i] * o.phase[ho, h, i, j, 0, 0];
       const Numeric k11 = o.extinction[h, j, 0, 0], expected = k11 - o.absorption[h, j, 0];
-      ARTS_USER_ERROR_IF(
-          not(std::abs(scattered - expected) <= tolerance * std::abs(k11)),
-          "RT4 optics set {} does not conserve energy on the streams: the {} quadrature stream {} (mu = {}) "
-          "scatters 2 pi sum_i w_i phase[I, I] = {} into the quadrature streams, but K11 - a1 = {} - {} = {} (a "
-          "difference of {:.3e} of K11, above normalisation_tolerance = {:.1e}).  Sample the phase matrix more "
-          "finely or use more streams",
-          iset,
-          h == down ? "downward" : "upward",
-          j,
-          q.mu[j],
-          scattered,
-          k11,
-          o.absorption[h, j, 0],
-          expected,
-          std::abs(scattered - expected) / std::abs(k11),
-          tolerance);
+      if (not(std::abs(scattered - expected) <= tolerance * std::abs(k11)))
+        arts::user_error(
+            "RT4 optics set {} does not conserve energy on the streams: the {} quadrature stream {} (mu = {}) "
+            "scatters 2 pi sum_i w_i phase[I, I] = {} into the quadrature streams, but K11 - a1 = {} - {} = {} (a "
+            "difference of {:.3e} of K11, above normalisation_tolerance = {:.1e}).  Sample the phase matrix more "
+            "finely or use more streams",
+            iset,
+            h == down ? "downward" : "upward",
+            j,
+            q.mu[j],
+            scattered,
+            k11,
+            o.absorption[h, j, 0],
+            expected,
+            std::abs(scattered - expected) / std::abs(k11),
+            tolerance);
     }
   }
 }
@@ -97,57 +98,58 @@ result solve(const problem& p) {
   const Index nlay   = static_cast<Index>(p.height.size()) - 1;
   const Index nsl    = static_cast<Index>(p.optics.size());
 
-  ARTS_USER_ERROR_IF(ns != 1 and ns != 2, "RT4 supports nstokes 1 ([I]) or 2 ([I, Q]), got {}", ns);
-  ARTS_USER_ERROR_IF(nquad < 1, "RT4 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
-  ARTS_USER_ERROR_IF(stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }),
-                     "extra_mu values must be in (0, 1]");
-  ARTS_USER_ERROR_IF(nlay < 1, "height needs at least 2 interfaces (1 layer), got {}", p.height.size());
-  ARTS_USER_ERROR_IF(not(p.max_delta_tau > 0.0), "max_delta_tau must be positive, got {}", p.max_delta_tau);
-  ARTS_USER_ERROR_IF(
-      not(p.normalisation_tolerance >= 0.0), "normalisation_tolerance must be >= 0, got {}", p.normalisation_tolerance);
-  ARTS_USER_ERROR_IF(not(p.frequency > 0.0), "frequency must be positive, got {} Hz", p.frequency);
-  ARTS_USER_ERROR_IF(static_cast<Index>(p.temperature.size()) != nlay + 1 or
-                         static_cast<Index>(p.gas_extinction.size()) != nlay or
-                         static_cast<Index>(p.layer_optics_index.size()) != nlay,
-                     "With {} heights (nlay = {}), temperature needs nlay + 1 values and gas_extinction and "
-                     "layer_optics_index nlay values; got {}, {} and {}",
-                     p.height.size(),
-                     nlay,
-                     p.temperature.size(),
-                     p.gas_extinction.size(),
-                     p.layer_optics_index.size());
-  ARTS_USER_ERROR_IF(stdr::any_of(p.temperature, [](Numeric t) { return not(t > 0.0); }),
-                     "temperature values must be positive (RT4's linear-in-tau source of a scattering layer "
-                     "degenerates to a constant when the Planck function at its top is 0)");
-  ARTS_USER_ERROR_IF(stdr::any_of(p.gas_extinction, [](Numeric k) { return not(k >= 0.0); }),
-                     "gas_extinction values must be non-negative (RT4 would silently clip them to 0)");
-  ARTS_USER_ERROR_IF(stdr::any_of(p.layer_optics_index, [nsl](Index i) { return i >= nsl; }),
-                     "layer_optics_index values must be < optics.size() = {} (negative means gas-only)",
-                     nsl);
+  if (ns != 1 and ns != 2) arts::user_error("RT4 supports nstokes 1 ([I]) or 2 ([I, Q]), got {}", ns);
+  if (nquad < 1) arts::user_error("RT4 needs at least one quadrature node per hemisphere, got nmu = {}", nquad);
+  if (stdr::any_of(p.extra_mu, [](Numeric mu) { return not(mu > 0.0 and mu <= 1.0); }))
+    arts::user_error("extra_mu values must be in (0, 1]");
+  if (nlay < 1) arts::user_error("height needs at least 2 interfaces (1 layer), got {}", p.height.size());
+  if (not(p.max_delta_tau > 0.0)) arts::user_error("max_delta_tau must be positive, got {}", p.max_delta_tau);
+  if (not(p.normalisation_tolerance >= 0.0))
+    arts::user_error("normalisation_tolerance must be >= 0, got {}", p.normalisation_tolerance);
+  if (not(p.frequency > 0.0)) arts::user_error("frequency must be positive, got {} Hz", p.frequency);
+  if (static_cast<Index>(p.temperature.size()) != nlay + 1 or static_cast<Index>(p.gas_extinction.size()) != nlay or
+      static_cast<Index>(p.layer_optics_index.size()) != nlay)
+    arts::user_error(
+        "With {} heights (nlay = {}), temperature needs nlay + 1 values and gas_extinction and "
+        "layer_optics_index nlay values; got {}, {} and {}",
+        p.height.size(),
+        nlay,
+        p.temperature.size(),
+        p.gas_extinction.size(),
+        p.layer_optics_index.size());
+  if (stdr::any_of(p.temperature, [](Numeric t) { return not(t > 0.0); }))
+    arts::user_error(
+        "temperature values must be positive (RT4's linear-in-tau source of a scattering layer "
+        "degenerates to a constant when the Planck function at its top is 0)");
+  if (stdr::any_of(p.gas_extinction, [](Numeric k) { return not(k >= 0.0); }))
+    arts::user_error("gas_extinction values must be non-negative (RT4 would silently clip them to 0)");
+  if (stdr::any_of(p.layer_optics_index, [nsl](Index i) { return i >= nsl; }))
+    arts::user_error("layer_optics_index values must be < optics.size() = {} (negative means gas-only)", nsl);
 
   const auto quad_nodes = get_quadrature(nquad, p.quad);
   for (Index iset = 0; iset < nsl; iset++) {
     const auto& o = p.optics[iset];
-    ARTS_USER_ERROR_IF(o.extinction.shape() != (std::array<Index, 4>{2, nmu, ns, ns}) or
-                           o.absorption.shape() != (std::array<Index, 3>{2, nmu, ns}) or
-                           o.phase.shape() != (std::array<Index, 6>{2, 2, nmu, nmu, ns, ns}),
-                       "Optics set {} must have extinction [2, {}, {}, {}], absorption [2, {}, {}] and phase "
-                       "[2, 2, {}, {}, {}, {}] (nmu_total = {}, nstokes = {}); got {:B,}, {:B,} and {:B,}",
-                       iset,
-                       nmu,
-                       ns,
-                       ns,
-                       nmu,
-                       ns,
-                       nmu,
-                       nmu,
-                       ns,
-                       ns,
-                       nmu,
-                       ns,
-                       o.extinction.shape(),
-                       o.absorption.shape(),
-                       o.phase.shape());
+    if (o.extinction.shape() != (std::array<Index, 4>{2, nmu, ns, ns}) or
+        o.absorption.shape() != (std::array<Index, 3>{2, nmu, ns}) or
+        o.phase.shape() != (std::array<Index, 6>{2, 2, nmu, nmu, ns, ns}))
+      arts::user_error(
+          "Optics set {} must have extinction [2, {}, {}, {}], absorption [2, {}, {}] and phase "
+          "[2, 2, {}, {}, {}, {}] (nmu_total = {}, nstokes = {}); got {:B,}, {:B,} and {:B,}",
+          iset,
+          nmu,
+          ns,
+          ns,
+          nmu,
+          ns,
+          nmu,
+          nmu,
+          ns,
+          ns,
+          nmu,
+          ns,
+          o.extinction.shape(),
+          o.absorption.shape(),
+          o.phase.shape());
     check_mirror_symmetry(o, iset, nmu, ns);
     check_normalisation(o, iset, quad_nodes, nquad, p.normalisation_tolerance);
   }

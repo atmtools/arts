@@ -68,10 +68,10 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
   const Size sz      = measurement_sensor.size();
   const Size nonzero = pol.nonzero_components();
 
-  ARTS_USER_ERROR_IF(n < 2, "Must have a frequency grid")
-  ARTS_USER_ERROR_IF(n != stds.size(), "Must have a standard deviation for each frequency point")
-  ARTS_USER_ERROR_IF(stdr::any_of(stds, Cmp::le<0.0>()), "Standard deviation must be positive.\nstds := {:B,}", stds)
-  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
+  if (n < 2) arts::user_error("Must have a frequency grid");
+  if (n != stds.size()) arts::user_error("Must have a standard deviation for each frequency point");
+  if (stdr::any_of(stds, Cmp::le<0.0>())) arts::user_error("Standard deviation must be positive.\nstds := {:B,}", stds);
+  if (nonzero == 0) arts::user_error("The polarization pol must have at least one non-zero Stokes component");
 
   measurement_sensor.resize(sz + n);
 
@@ -95,7 +95,7 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "{}", error)
+  if (error.size()) arts::user_error(error);
 
   // Metadata: 1D sorted gridded field with frequency grid
   SortedGriddedField1 gf;
@@ -133,9 +133,9 @@ void measurement_sensorAddZenithResponse(ArrayOfSensorObsel&                    
   const Size n_za   = dzen_grid.size();
   const Size sz     = measurement_sensor.size();
 
-  ARTS_USER_ERROR_IF(n_za != zen_weights.size(), "dzen_grid and zen_weights must have same size");
+  if (n_za != zen_weights.size()) arts::user_error("dzen_grid and zen_weights must have same size");
   const Size nonzero = pol.nonzero_components();
-  ARTS_USER_ERROR_IF(nonzero == 0, "pol is 0")
+  if (nonzero == 0) arts::user_error("The polarization pol must have at least one non-zero Stokes component");
 
   measurement_sensor.resize(sz + n_freq);
 
@@ -156,7 +156,7 @@ void measurement_sensorAddZenithResponse(ArrayOfSensorObsel&                    
       if (error.empty()) error = e.what();
     }
   }
-  ARTS_USER_ERROR_IF(error.size(), "{}", error)
+  if (error.size()) arts::user_error(error);
 }
 }  // namespace
 
@@ -173,8 +173,8 @@ void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel&    measurement_sens
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  ARTS_USER_ERROR_IF(std_zen <= 0, "Standard deviation must be positive.");
-  ARTS_USER_ERROR_IF(dzen_grid.size() == 0, "dzen_grid cannot be empty.");
+  if (std_zen <= 0) arts::user_error("Standard deviation must be positive.");
+  if (dzen_grid.size() == 0) arts::user_error("dzen_grid cannot be empty.");
 
   Vector      zen_weights(dzen_grid.size());
   const gauss dist(0.0, std_zen);
@@ -253,8 +253,8 @@ void measurement_sensorAddRawSensorTmpl(ArrayOfSensorObsel&                     
   const Size NLAT = grids[idlat].size();
   const Size NLON = grids[idlon].size();
 
-  ARTS_USER_ERROR_IF(not raw_sensor.ok() or raw_sensor.data.size() != NF * NZA * NAA * NALT * NLAT * NLON,
-                     R"(The raw sensor weights data have an unexpected size or are not OK.
+  if (not raw_sensor.ok() or raw_sensor.data.size() != NF * NZA * NAA * NALT * NLAT * NLON)
+    arts::user_error(R"(The raw sensor weights data have an unexpected size or are not OK.
 
 The internal method wants to view the data as a 6-dimensional
 array of shape:  [{0:B}, {1:}, {2:}, {3:}, {4:}, {5:}]
@@ -285,8 +285,8 @@ following grid names: {7:B,}
   for (Size i = 0; i < grids.size(); i++) {
     if (not grids[i].exists()) continue;
 
-    ARTS_USER_ERROR_IF(lowest != -1 and static_cast<Index>(grids[i].i) <= lowest,
-                       R"(The raw sensor input grids must be sorted as follows:
+    if (lowest != -1 and static_cast<Index>(grids[i].i) <= lowest)
+      arts::user_error(R"(The raw sensor input grids must be sorted as follows:
 
 Frequency grid perturbance (named "dfreq"),
 Zenith angle perturbance   (named "dzen"),
@@ -401,15 +401,16 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   const Size n_pixels  = static_cast<Size>(n_h) * static_cast<Size>(n_w);
   const Size start_idx = measurement_sensor.size();
 
-  ARTS_USER_ERROR_IF(n_freq == 0, "freq_grid must not be empty")
-  ARTS_USER_ERROR_IF(n_h < 1, "n_h must be at least 1, got {}", n_h)
-  ARTS_USER_ERROR_IF(n_w < 1, "n_w must be at least 1, got {}", n_w)
-  ARTS_USER_ERROR_IF(ccd_h <= 0, "ccd_h must be positive, got {}", ccd_h)
-  ARTS_USER_ERROR_IF(ccd_w <= 0, "ccd_w must be positive, got {}", ccd_w)
-  ARTS_USER_ERROR_IF(focal_length <= 0, "focal_length must be positive, got {}", focal_length)
-  ARTS_USER_ERROR_IF(aperture_diameter <= 0, "aperture_diameter must be positive, got {}", aperture_diameter)
-  ARTS_USER_ERROR_IF(focus_distance <= 0, "focus_distance must be positive, got {}", focus_distance)
-  ARTS_USER_ERROR_IF(pol.nonzero_components() == 0, "pol is 0")
+  if (n_freq == 0) arts::user_error("freq_grid must not be empty");
+  if (n_h < 1) arts::user_error("n_h must be at least 1, got {}", n_h);
+  if (n_w < 1) arts::user_error("n_w must be at least 1, got {}", n_w);
+  if (ccd_h <= 0) arts::user_error("ccd_h must be positive, got {}", ccd_h);
+  if (ccd_w <= 0) arts::user_error("ccd_w must be positive, got {}", ccd_w);
+  if (focal_length <= 0) arts::user_error("focal_length must be positive, got {}", focal_length);
+  if (aperture_diameter <= 0) arts::user_error("aperture_diameter must be positive, got {}", aperture_diameter);
+  if (focus_distance <= 0) arts::user_error("focus_distance must be positive, got {}", focus_distance);
+  if (pol.nonzero_components() == 0)
+    arts::user_error("The polarization pol must have at least one non-zero Stokes component");
 
   // Pixel pitch (distance between pixel centers)
   const Numeric pitch_h = ccd_h / static_cast<Numeric>(n_h);
@@ -418,10 +419,8 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   // Thin-lens adjusted image distance for the given focus distance.
   // Thin lens equation: 1/f = 1/d_o + 1/d_i
   //   => d_i = f * d_o / (d_o - f)
-  ARTS_USER_ERROR_IF(focus_distance <= focal_length,
-                     "focus_distance ({}) must be greater than focal_length ({})",
-                     focus_distance,
-                     focal_length)
+  if (focus_distance <= focal_length)
+    arts::user_error("focus_distance ({}) must be greater than focal_length ({})", focus_distance, focal_length);
 
   const Numeric image_distance = focal_length * focus_distance / (focus_distance - focal_length);
 
@@ -517,7 +516,7 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
     }
   }
 
-  ARTS_USER_ERROR_IF(error.size(), "{}", error)
+  if (error.size()) arts::user_error("{}", error);
 
   // Build camera metadata: gridded_data_t<Numeric, AscendingGrid, AscendingGrid, Vector>
   // grid<0> = row angular offsets from boresight (degrees)
@@ -564,10 +563,8 @@ void measurement_sensor_metaFromMeasurementVec(ArrayOfSensorMetaInfo& measuremen
   Size total = 0;
   for (const auto& meta : measurement_sensor_meta) total += meta.count();
 
-  ARTS_USER_ERROR_IF(total != static_cast<Size>(measurement_vec.size()),
-                     "Total meta count ({}) does not match measurement_vec size ({})",
-                     total,
-                     measurement_vec.size())
+  if (total != static_cast<Size>(measurement_vec.size()))
+    arts::user_error("Total meta count ({}) does not match measurement_vec size ({})", total, measurement_vec.size());
 
   Size start = 0;
   for (auto& meta : measurement_sensor_meta) {

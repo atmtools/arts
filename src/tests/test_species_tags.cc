@@ -6,7 +6,7 @@
 #include <stdexcept>
 
 int main(int argc, char** argv) try {
-  ARTS_USER_ERROR_IF(argc not_eq 2, "Call as {} SPECIES_STRING", argv[0]);
+  if (argc not_eq 2) arts::user_error("Call as {} SPECIES_STRING", argv[0]);
 
   const SpeciesTag x(argv[1]);
   std::println("{} {} {}", x, x.Isotopologue(), x.type);

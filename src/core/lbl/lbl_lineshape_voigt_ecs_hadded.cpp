@@ -23,10 +23,8 @@ namespace {
 Numeric parity(Index n) { return n % 2 == 0 ? 1.0 : -1.0; }
 
 void validate_state(Index J, Index K) {
-  ARTS_USER_ERROR_IF(J < 0 or K < 0 or K > J or J > (std::numeric_limits<int>::max() - 1) / 24,
-                     "NH3 ECS requires integer 0 <= K <= J within the Wigner range; got J={}, K={}",
-                     J,
-                     K)
+  if (J < 0 or K < 0 or K > J or J > (std::numeric_limits<int>::max() - 1) / 24)
+    arts::user_error("NH3 ECS requires integer 0 <= K <= J within the Wigner range; got J={}, K={}", J, K);
 }
 
 void validate_line(const rotational_line& line) {
@@ -34,9 +32,10 @@ void validate_line(const rotational_line& line) {
   const auto& l = line.lower;
   validate_state(u.J, u.K);
   validate_state(l.J, l.K);
-  ARTS_USER_ERROR_IF(u.symmetry == l.symmetry or u.K != l.K or std::abs(u.J - l.J) > 1 or (u.J == l.J and u.K == 0),
-                     "NH3 ECS requires an allowed rank-1 parallel transition with equal K, "
-                     "opposite inversion symmetry, and no K=0 Q line")
+  if (u.symmetry == l.symmetry or u.K != l.K or std::abs(u.J - l.J) > 1 or (u.J == l.J and u.K == 0))
+    arts::user_error(
+        "NH3 ECS requires an allowed rank-1 parallel transition with equal K, "
+        "opposite inversion symmetry, and no K=0 Q line");
 }
 
 // A stable tie-break for equal lower-state energies, independent of matrix order.
@@ -54,18 +53,19 @@ Numeric tangent(ConstMatrixView values, Index q, Index i) { return values.empty(
 // Only the shapes are checked here.  A nonfinite tangent propagates into dW
 // and is reported once for the result rather than scanned for per element.
 void validate_derivatives(ConstMatrixView values, Index targets, Index inputs) {
-  ARTS_USER_ERROR_IF(not values.empty() and (values.nrows() != targets or values.ncols() != inputs),
-                     "Inconsistent NH3 ECS derivative dimensions")
+  if (not values.empty() and (values.nrows() != targets or values.ncols() != inputs))
+    arts::user_error("Inconsistent NH3 ECS derivative dimensions");
 }
 
 void validate_derivatives(ConstVectorView values, Index targets) {
-  ARTS_USER_ERROR_IF(not values.empty() and values.size() != static_cast<Size>(targets),
-                     "Inconsistent NH3 ECS derivative dimensions")
+  if (not values.empty() and values.size() != static_cast<Size>(targets))
+    arts::user_error("Inconsistent NH3 ECS derivative dimensions");
 }
 
-void validate_output(MatrixView W, Tensor3View dW, Index n){
-    ARTS_USER_ERROR_IF(W.nrows() != n or W.ncols() != n or (dW.npages() != 0 and (dW.nrows() != n or dW.ncols() != n)),
-                       "Inconsistent NH3 ECS matrix dimensions")}
+void validate_output(MatrixView W, Tensor3View dW, Index n) {
+  if (W.nrows() != n or W.ncols() != n or (dW.npages() != 0 and (dW.nrows() != n or dW.ncols() != n)))
+    arts::user_error("Inconsistent NH3 ECS matrix dimensions");
+}
 
 Numeric wig3(Index a, Index b, Index c, Index d, Index e, Index f) {
   return WIGNER3(static_cast<int>(2 * a),
@@ -173,17 +173,17 @@ void coupling_kernel(MatrixView                       W,
       }
     }
   }
-  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute NH3 ECS Wigner symbols")
+  if (errno == EDOM) arts::user_error("Cannot compute NH3 ECS Wigner symbols");
 }
 }  // namespace
 
 Numeric rotational_energy(Index J, Index K, Numeric B, Numeric C) {
   validate_state(J, K);
-  ARTS_USER_ERROR_IF(not std::isfinite(B) or B <= 0 or not std::isfinite(C) or C <= 0,
-                     "NH3 rotational constants must be positive and finite")
+  if (not std::isfinite(B) or B <= 0 or not std::isfinite(C) or C <= 0)
+    arts::user_error("NH3 rotational constants must be positive and finite");
   const Numeric j = Numeric(J), k = Numeric(K);
   const Numeric energy = B * (j * (j + 1) - k * k) + C * k * k;
-  ARTS_USER_ERROR_IF(not std::isfinite(energy), "NH3 rotational energy overflowed")
+  if (not std::isfinite(energy)) arts::user_error("NH3 rotational energy overflowed");
   return energy;
 }
 
@@ -203,16 +203,16 @@ void adiabatic_factors(VectorView      Omega,
                        ConstVectorView dduration) {
   const Index n  = static_cast<Index>(gap.size());
   const Index nq = dOmega.nrows();
-  ARTS_USER_ERROR_IF(Omega.size() != gap.size() or (nq != 0 and dOmega.ncols() != n),
-                     "Inconsistent NH3 adiabatic-factor dimensions")
-  ARTS_USER_ERROR_IF(not std::isfinite(duration) or duration < 0,
-                     "NH3 collision duration must be finite and nonnegative")
+  if (Omega.size() != gap.size() or (nq != 0 and dOmega.ncols() != n))
+    arts::user_error("Inconsistent NH3 adiabatic-factor dimensions");
+  if (not std::isfinite(duration) or duration < 0)
+    arts::user_error("NH3 collision duration must be finite and nonnegative");
   validate_derivatives(dgap, nq, n);
   validate_derivatives(dduration, nq);
   for (Index i = 0; i < n; ++i) {
     // A negative gap silently reverses the correction, so it is checked; an
     // overflow to a nonfinite factor shows up in the result instead.
-    ARTS_USER_ERROR_IF(gap[i] < 0, "NH3 adiabatic energy gaps must be nonnegative")
+    if (gap[i] < 0) arts::user_error("NH3 adiabatic energy gaps must be nonnegative");
     const Numeric x = duration * (gap[i] / Constant::h_bar);
     const Numeric a = 1 + x * x / 24;
     Omega[i]        = a * a;
@@ -236,10 +236,10 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
   const Index nc = static_cast<Index>(basis.channels.size());
   const Index nq = dW.npages();
   validate_output(W, dW, n);
-  ARTS_USER_ERROR_IF(e0.size() != lines.size() or Omega_line.size() != lines.size() or
-                         basis.Q.size() != basis.channels.size() or basis.Omega.size() != basis.channels.size(),
-                     "Inconsistent NH3 ECS input dimensions")
-  ARTS_USER_ERROR_IF(not std::isfinite(T) or T <= 0, "NH3 ECS requires positive finite temperature")
+  if (e0.size() != lines.size() or Omega_line.size() != lines.size() or basis.Q.size() != basis.channels.size() or
+      basis.Omega.size() != basis.channels.size())
+    arts::user_error("Inconsistent NH3 ECS input dimensions");
+  if (not std::isfinite(T) or T <= 0) arts::user_error("NH3 ECS requires positive finite temperature");
   validate_derivatives(derivatives.dT, nq);
   validate_derivatives(derivatives.de0, nq, n);
   validate_derivatives(derivatives.dQ, nq, nc);
@@ -249,10 +249,11 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
   for (Index i = 0; i < n; ++i) {
     validate_line(lines[i]);
     maxJ = std::max({maxJ, lines[i].upper.J, lines[i].lower.J});
-    ARTS_USER_ERROR_IF(Omega_line[i] < 1, "NH3 ECS requires Omega >= 1")
-    for (Index j = 0; j < i; ++j)
-      ARTS_USER_ERROR_IF(state_key(lines[i]) == state_key(lines[j]),
-                         "Duplicate rotational/inversion transition in NH3 parallel band")
+    if (Omega_line[i] < 1) arts::user_error("NH3 ECS requires Omega >= 1");
+    for (Index j = 0; j < i; ++j) {
+      if (state_key(lines[i]) == state_key(lines[j]))
+        arts::user_error("Duplicate rotational/inversion transition in NH3 parallel band");
+    }
   }
   channel_index channels;
   Vector        corrected_Q(nc);
@@ -260,14 +261,11 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
   Index         max_rank = 0;
   for (Index c = 0; c < nc; ++c) {
     const auto& [L, Mi, Mf] = basis.channels[c];
-    ARTS_USER_ERROR_IF(L < 0 or L > (std::numeric_limits<int>::max() - 1) / 12 or Mi < -L or Mi > L or Mf < -L or
-                           Mf > L or Mi % 3 != 0 or Mf % 3 != 0,
-                       "Invalid NH3 ECS channel (L,Mi,Mf)=({},{},{})",
-                       L,
-                       Mi,
-                       Mf)
-    ARTS_USER_ERROR_IF(not channels.emplace(std::array{L, Mi, Mf}, c).second, "Duplicate NH3 ECS channel")
-    ARTS_USER_ERROR_IF(basis.Omega[c] < 1, "NH3 ECS requires basis Omega >= 1")
+    if (L < 0 or L > (std::numeric_limits<int>::max() - 1) / 12 or Mi < -L or Mi > L or Mf < -L or Mf > L or
+        Mi % 3 != 0 or Mf % 3 != 0)
+      arts::user_error("Invalid NH3 ECS channel (L,Mi,Mf)=({},{},{})", L, Mi, Mf);
+    if (not channels.emplace(std::array{L, Mi, Mf}, c).second) arts::user_error("Duplicate NH3 ECS channel");
+    if (basis.Omega[c] < 1) arts::user_error("NH3 ECS requires basis Omega >= 1");
     max_rank       = std::max(max_rank, L);
     corrected_Q[c] = basis.Q[c] * basis.Omega[c];
     for (Index q = 0; q < nq; ++q) {
@@ -284,8 +282,8 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
   }
   if (n < 2 or nc == 0) return;
   const Index max_arg = std::max(maxJ, std::min(2 * maxJ, max_rank));
-  ARTS_USER_ERROR_IF(not is_wigner3_ready(Rational{max_arg}) or not is_wigner6_ready(Rational{max_arg}),
-                     "Initialize Wigner tables before calculating NH3 ECS")
+  if (not is_wigner3_ready(Rational{max_arg}) or not is_wigner6_ready(Rational{max_arg}))
+    arts::user_error("Initialize Wigner tables before calculating NH3 ECS");
   coupling_kernel(W,
                   lines,
                   channels,
@@ -303,7 +301,9 @@ void relaxation_matrix_offdiagonal(MatrixView                       W,
 void sum_rule_diagonal(MatrixView W, ConstVectorView dipr, Tensor3View dW) {
   const Index n = static_cast<Index>(dipr.size());
   validate_output(W, dW, n);
-  for (Numeric dipole : dipr) ARTS_USER_ERROR_IF(dipole == 0, "NH3 sum rule requires nonzero dipoles")
+  for (Numeric dipole : dipr) {
+    if (dipole == 0) arts::user_error("NH3 sum rule requires nonzero dipoles");
+  }
   for (Index i = 0; i < n; ++i) {
     Numeric width = 0;
     for (Index j = 0; j < n; ++j)

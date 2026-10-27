@@ -48,9 +48,8 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
                                  spectral_propmat_agenda);
 
   if (local_jac_target >= 0) {
-    ARTS_USER_ERROR_IF(static_cast<Size>(local_jac_target) >= jac_targets.target_count(),
-                       "Local Monte Carlo Jacobian target {} is out of bounds",
-                       local_jac_target)
+    if (static_cast<Size>(local_jac_target) >= jac_targets.target_count())
+      arts::user_error("Local Monte Carlo Jacobian target {} is out of bounds", local_jac_target);
     gas[0] += local_jac_step * gas_jac[local_jac_target, 0];
     src[0] += local_jac_step * src_jac[local_jac_target, 0];
   }
@@ -120,7 +119,7 @@ Stokvec boundary_radiance(const Workspace&            ws,
     spectral_rad_surface_agendaExecute(
         ws, value, jac, grid, JacobianTargets{}, point, surf_field, subsurf_field, spectral_rad_surface_agenda);
   } else {
-    ARTS_USER_ERROR("Monte Carlo path ended without reaching space or the surface")
+    arts::user_error("Monte Carlo path ended without reaching space or the surface");
   }
   return value[0];
 }
@@ -154,7 +153,7 @@ Collision next_collision(const Workspace&                ws,
                          Numeric                         local_jac_step) {
   ArrayOfPropagationPathPoint path;
   ray_path_observer_agendaExecute(ws, path, pos, los, ray_path_observer_agenda);
-  ARTS_USER_ERROR_IF(path.empty(), "The ray-path agenda returned an empty path")
+  if (path.empty()) arts::user_error("The ray-path agenda returned an empty path");
   if (path.size() == 1) return {.end = path.back()};
 
   const auto    atm         = forward_atm_path(path, atm_field);
@@ -234,7 +233,7 @@ Muelmat phase_weight(const ArrayOfScatteringSpecies& species,
   auto za = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{outgoing[0]}));
   const auto bulk = species.get_bulk_scattering_properties_aro_gridded(
       atm, AscendingGrid{frequency}, Vector{incoming[0]}, Vector{delta_aa}, za);
-  ARTS_USER_ERROR_IF(not bulk.phase_matrix, "MCGeneral failed to transform the phase matrix to the laboratory frame")
+  if (not bulk.phase_matrix) arts::user_error("MCGeneral failed to transform the phase matrix to the laboratory frame");
   return (4.0 * Constant::pi / scattering_coefficient) * (*bulk.phase_matrix)[0, 0, 0, 0, 0];
 }
 
@@ -266,10 +265,10 @@ void MCGeneral(const Workspace&                ws,
                const Index&                    local_jac_target,
                const Numeric&                  local_jac_step) try {
   ARTS_TIME_REPORT
-  ARTS_USER_ERROR_IF(frequency <= 0.0, "frequency must be positive")
-  ARTS_USER_ERROR_IF(mc_min_iter < 1 or mc_max_iter < mc_min_iter, "Require 1 <= mc_min_iter <= mc_max_iter")
-  ARTS_USER_ERROR_IF(mc_max_scatorder < 0, "mc_max_scatorder cannot be negative")
-  ARTS_USER_ERROR_IF(mc_std_err < 0.0 or mc_max_time < 0.0, "Stopping thresholds cannot be negative")
+  if (frequency <= 0.0) arts::user_error("frequency must be positive");
+  if (mc_min_iter < 1 or mc_max_iter < mc_min_iter) arts::user_error("Require 1 <= mc_min_iter <= mc_max_iter");
+  if (mc_max_scatorder < 0) arts::user_error("mc_max_scatorder cannot be negative");
+  if (mc_std_err < 0.0 or mc_max_time < 0.0) arts::user_error("Stopping thresholds cannot be negative");
 
   RandomNumberGenerator<> rng(mc_seed);
   rng.force_seed(mc_seed);
@@ -316,7 +315,7 @@ void MCGeneral(const Workspace&                ws,
       const Numeric scattering = std::max(0.0, extinction - collision.optics.absorption.I());
       if (scattering <= 0.0 or uniform() >= scattering / extinction) {
         const Numeric absorption = collision.optics.absorption.I();
-        ARTS_USER_ERROR_IF(absorption <= 0.0, "Invalid non-positive absorption collision probability")
+        if (absorption <= 0.0) arts::user_error("Invalid non-positive absorption collision probability");
         sample = weight * (collision.optics.emission / absorption);
         break;
       }
@@ -346,7 +345,7 @@ void MCGeneral(const Workspace&                ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(mc_iteration_count == 0, "MCGeneral produced no samples")
+  if (mc_iteration_count == 0) arts::user_error("MCGeneral produced no samples");
   const Numeric n = static_cast<Numeric>(mc_iteration_count);
   for (Index s = 0; s < 4; ++s) {
     mc_spectral_rad[s]     = sum[s] / n;
@@ -430,7 +429,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   ARTS_TIME_REPORT
 
   ray_path_observer_agendaExecute(ws, ray_path, obs_pos, obs_los, ray_path_observer_agenda);
-  ARTS_USER_ERROR_IF(ray_path.empty(), "The ray-path agenda returned an empty path")
+  if (ray_path.empty()) arts::user_error("The ray-path agenda returned an empty path");
 
   spectral_rad.resize(freq_grid.size());
   spectral_rad_jac.resize(jac_targets.x_size(), freq_grid.size());
@@ -481,7 +480,8 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   }
 
   const auto finite_difference = [&]<typename Target, typename Field>(const Target& target, const Field& field) {
-    ARTS_USER_ERROR_IF(target.d == 0.0, "Monte Carlo Jacobian perturbation must be nonzero for target {}", target.type)
+    if (target.d == 0.0)
+      arts::user_error("Monte Carlo Jacobian perturbation must be nonzero for target {}", target.type);
 
     Vector state(jac_targets.x_size(), 0.0);
     target.update_state(state, field);
@@ -511,11 +511,11 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   for (const auto& target : jac_targets.subsurf) finite_difference(target, subsurf_field);
 
   for (const auto& target : jac_targets.line) {
-    ARTS_USER_ERROR_IF(target.x_size != 1,
-                       "Monte Carlo spectroscopic target {} has {} state elements; expected one",
-                       target.type,
-                       target.x_size)
-    ARTS_USER_ERROR_IF(target.d == 0.0, "Monte Carlo Jacobian perturbation must be nonzero for target {}", target.type)
+    if (target.x_size != 1)
+      arts::user_error(
+          "Monte Carlo spectroscopic target {} has {} state elements; expected one", target.type, target.x_size);
+    if (target.d == 0.0)
+      arts::user_error("Monte Carlo Jacobian perturbation must be nonzero for target {}", target.type);
 
     for (Size i = 0; i < freq_grid.size(); ++i) {
       Stokvec value;

@@ -64,7 +64,7 @@ binio::Flags binio::detect_system_flags() {
 
 binio::binio() {
   if (!(system_flags & FloatIEEE)) {
-    ARTS_USER_ERROR(
+    arts::user_error(
         "IEEE floating-point numbers are not supported on "
         "this system.");
   }
@@ -157,7 +157,7 @@ binistream::Float binistream::readFloat(FType ft) {
   }
 
   // User tried to read a (yet) unsupported floating-point type. Bail out.
-  ARTS_USER_ERROR("Unsupported floating-point type");
+  arts::user_error("Unsupported floating-point type");
 }
 
 namespace {

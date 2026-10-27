@@ -7,13 +7,13 @@
 #include "jacobian.h"
 
 void polyfit(VectorView param, const ConstVectorView x, const ConstVectorView y) {
-  ARTS_USER_ERROR_IF(param.size() < 1, "Must have atleast one fit-parameter.")
+  if (param.size() < 1) arts::user_error("Must have atleast one fit-parameter.");
 
   using namespace Minimize;
   auto fit = polyfit(x, y, param.size() - 1);
 
-  ARTS_USER_ERROR_IF(not fit,
-                     R"(Could not fit polynomial:
+  if (not fit)
+    arts::user_error(R"(Could not fit polynomial:
 
   x:     {:B,},
   y:     {:B,},
@@ -21,21 +21,19 @@ void polyfit(VectorView param, const ConstVectorView x, const ConstVectorView y)
 )",
                      x,
                      y,
-                     param.size() - 1)
-  ARTS_USER_ERROR_IF(static_cast<Size>(fit->size()) != param.size(),
-                     "Bad size. fit.size(): {}, param.size(): {}",
-                     fit->size(),
-                     param.size())
+                     param.size() - 1);
+  if (static_cast<Size>(fit->size()) != param.size())
+    arts::user_error("Bad size. fit.size(): {}, param.size(): {}", fit->size(), param.size());
 
   param = *fit;
 }
 
 Vector polyfit_t::operator()(ConstVectorView y) const {
-  ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyinv.")
+  if (not st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& t = *st;
 
-  ARTS_USER_ERROR_IF(
-      y.size() != t.size(), "Mismatched y and t sizes. y.size() vs t.size(): {} vs {}", y.size(), t.size())
+  if (y.size() != t.size())
+    arts::user_error("Mismatched y and t sizes. y.size() vs t.size(): {} vs {}", y.size(), t.size());
 
   Vector p(polyorder + 1);
 
@@ -47,16 +45,14 @@ Vector polyfit_t::operator()(ConstVectorView y) const {
 Vector polyfit_t::operator()(ConstVectorView y, ConstVectorView) const { return this->operator()(y); }
 
 Vector polyinv_t::operator()(ConstVectorView x, ConstVectorView y) const {
-  ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyfit.")
+  if (not st) arts::user_error("No t-vector provided for polyfit.");
   const Vector& t = *st;
 
-  ARTS_USER_ERROR_IF(
-      y.size() != t.size(), "Mismatched y and t sizes. y.size() vs t.size(): {} vs {}", y.size(), t.size())
+  if (y.size() != t.size())
+    arts::user_error("Mismatched y and t sizes. y.size() vs t.size(): {} vs {}", y.size(), t.size());
 
-  ARTS_USER_ERROR_IF((polyorder + 1) != x.size(),
-                     "Mismatched polyorder and x sizes. polyorder + 1 vs x.size(): {} vs {}",
-                     polyorder + 1,
-                     x.size())
+  if ((polyorder + 1) != x.size())
+    arts::user_error("Mismatched polyorder and x sizes. polyorder + 1 vs x.size(): {} vs {}", polyorder + 1, x.size());
 
   Vector out{y};
 
@@ -73,7 +69,7 @@ Vector polyinv_t::operator()(ConstVectorView x, ConstVectorView y) const {
 }
 
 Matrix polyinv_t::operator()() const {
-  ARTS_USER_ERROR_IF(not st, "No t-vector provided for polyinv.")
+  if (not st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& t = *st;
 
   Matrix out(t.size(), polyorder + 1);
@@ -104,8 +100,8 @@ void make_polyfit(Jacobian::ErrorTarget& x, const Size polyorder, const Vector& 
 
 namespace {
 Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(
-      x.size() != v.f_grid().size(), "Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size())
+  if (x.size() != v.f_grid().size())
+    arts::user_error("Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size());
 
   const auto& fs = v.f_grid();
 
@@ -115,10 +111,8 @@ Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
 }
 
 template <bool pos, Index k> Vector rem_poslos(const SensorObsel& v, const ConstVectorView x) {
-  ARTS_USER_ERROR_IF(x.size() != v.poslos_grid().size(),
-                     "Bad size. x.size(): {}, poslos_grid().size(): {}",
-                     x.size(),
-                     v.poslos_grid().size())
+  if (x.size() != v.poslos_grid().size())
+    arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), v.poslos_grid().size());
 
   const SensorPosLosVector& xsv = v.poslos_grid();
 
@@ -145,7 +139,7 @@ Vector rem_azi(const SensorObsel& v, const ConstVectorView x) { return rem_poslo
 }  // namespace
 
 Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorObsel& x) const {
-  ARTS_USER_ERROR_IF(not fit.st, "No t-vector provided for polyinv.")
+  if (not fit.st) arts::user_error("No t-vector provided for polyinv.");
   const Vector&      o = *fit.st;
   const SensorObsel& v = x.at(key.measurement_elem);
 
@@ -163,7 +157,7 @@ Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorO
 }
 
 Vector polyinv_sensor_offset_t::operator()(ConstVectorView x, const ArrayOfSensorObsel&) const {
-  ARTS_USER_ERROR_IF(not inv.st, "No t-vector provided for polyinv.")
+  if (not inv.st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& o = *inv.st;
 
   return inv(x, o);

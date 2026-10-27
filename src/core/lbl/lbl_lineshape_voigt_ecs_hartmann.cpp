@@ -19,10 +19,8 @@ namespace lbl::voigt::ecs::hartmann {
 
 namespace {
 void validate_rotational_state(const Rational J, const Rational l) {
-  ARTS_USER_ERROR_IF(J.denom != 1 or l.denom != 1 or J < 0 or abs(l) > J,
-                     "Hartmann ECS requires integer J >= 0 and integer |l| <= J; got J={}, l={}",
-                     J,
-                     l);
+  if (J.denom != 1 or l.denom != 1 or J < 0 or abs(l) > J)
+    arts::user_error("Hartmann ECS requires integer J >= 0 and integer |l| <= J; got J={}, l={}", J, l);
 }
 
 Numeric wig3(
@@ -116,12 +114,12 @@ void coupling_kernel(MatrixView                       W,
   }
   arts_wigner_thread_free();
 
-  ARTS_USER_ERROR_IF(errno == EDOM, "Cannot compute the wigner symbols")
+  if (errno == EDOM) arts::user_error("Cannot compute the wigner symbols");
 }
 
 void validate_isotopologue(const SpeciesIsotope& isot) {
-  ARTS_USER_ERROR_IF(
-      isot != "CO2-626"_isot, "Hartmann ECS currently supports rotational energies only for CO2-626, got {}", isot)
+  if (isot != "CO2-626"_isot)
+    arts::user_error("Hartmann ECS currently supports rotational energies only for CO2-626, got {}", isot);
 }
 }  // namespace
 
@@ -156,11 +154,12 @@ void validate_band(const QuantumIdentifier& bnd_qid, const band_data& bnd) {
     const auto& Ji = bnd.lines[i].qn.at(QuantumNumberType::J);
     for (Size j = i + 1; j < bnd.size(); ++j) {
       const auto& Jj = bnd.lines[j].qn.at(QuantumNumberType::J);
-      ARTS_USER_ERROR_IF(Ji.upper == Jj.upper and Ji.lower == Jj.lower,
-                         "Hartmann ECS does not support distinct lines with the same rotational pair "
-                         "(J upper={}, J lower={}); an elastic L=0 collision model is required.",
-                         Ji.upper,
-                         Ji.lower)
+      if (Ji.upper == Jj.upper and Ji.lower == Jj.lower)
+        arts::user_error(
+            "Hartmann ECS does not support distinct lines with the same rotational pair "
+            "(J upper={}, J lower={}); an elastic L=0 collision model is required.",
+            Ji.upper,
+            Ji.lower);
     }
   }
 }
@@ -194,16 +193,15 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
                                    ConstVectorView                  dT,
                                    ConstMatrixView                  dQ,
                                    ConstMatrixView                  dOmega) {
-  ARTS_USER_ERROR_IF((dW.npages() != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
-                         (not dT.empty() and dT.size() != static_cast<Size>(dW.npages())),
-                     "Inconsistent Hartmann ECS derivative dimensions")
+  if ((dW.npages() != 0 and (dW.nrows() != W.nrows() or dW.ncols() != W.ncols())) or
+      (not dT.empty() and dT.size() != static_cast<Size>(dW.npages())))
+    arts::user_error("Inconsistent Hartmann ECS derivative dimensions");
   const Size n = lines.size();
   if (not n) return;
   validate_isotopologue(bnd_qid.isot);
   const auto& e0 = energies.e0;
-  ARTS_USER_ERROR_IF(
-      e0.size() != n or dipr.size() != n or W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n),
-      "Inconsistent Hartmann ECS kernel dimensions")
+  if (e0.size() != n or dipr.size() != n or W.nrows() != static_cast<Index>(n) or W.ncols() != static_cast<Index>(n))
+    arts::user_error("Inconsistent Hartmann ECS kernel dimensions");
 
   // These are constant for a band
   auto&    l2 = bnd_qid.state.at(QuantumNumberType::l2);
@@ -223,11 +221,10 @@ void relaxation_matrix_offdiagonal(MatrixView&                      W,
   const std::array rats{maxJ, li, lf};
   const int        maxL  = wigner_init_size(rats);
   const auto       basis = prepare_basis(maxL, energies, rovib_data, T0, bnd_qid.isot, broadening_species, atm);
-  ARTS_USER_ERROR_IF(
-      (not dQ.empty() and (dQ.nrows() != dW.npages() or dQ.ncols() != static_cast<Index>(basis.Q.size()))) or
-          (not dOmega.empty() and
-           (dOmega.nrows() != dW.npages() or dOmega.ncols() != static_cast<Index>(basis.Omega.size()))),
-      "Inconsistent Hartmann ECS basis derivative dimensions")
+  if ((not dQ.empty() and (dQ.nrows() != dW.npages() or dQ.ncols() != static_cast<Index>(basis.Q.size()))) or
+      (not dOmega.empty() and
+       (dOmega.nrows() != dW.npages() or dOmega.ncols() != static_cast<Index>(basis.Omega.size()))))
+    arts::user_error("Inconsistent Hartmann ECS basis derivative dimensions");
 
   coupling_kernel(W, lines, li, lf, swap_order, basis, e0, T, maxL, dW, dT, dQ, dOmega);
 

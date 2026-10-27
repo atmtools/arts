@@ -67,3 +67,12 @@ void replace(String& x, const String& from, const String& to) {
   const auto arr = split(x, from);
   join(x, arr, to);
 }
+
+String indent(const StringView text, const StringView indentation) {
+  String out{indentation};
+  for (const char c : text) {
+    out += c;
+    if (c == '\n') out += indentation;
+  }
+  return out;
+}

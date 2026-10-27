@@ -79,8 +79,8 @@ bool VDisortSettings::ok() const {
 }
 
 void VDisortSettings::check() const {
-  ARTS_USER_ERROR_IF(not ok(),
-                     R"-x-(Input is of incorrect size.
+  if (not ok())
+    arts::user_error(R"-x-(Input is of incorrect size.
 
 {:Bs,}
 

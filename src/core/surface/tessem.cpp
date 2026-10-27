@@ -22,7 +22,7 @@
 */
 void tessem_read_ascii(const String& filename, TessemNN& net) {
   std::ifstream is(filename);
-  ARTS_USER_ERROR_IF(not is, "Cannot open TESSEM neural-network file: {}", filename)
+  if (not is) arts::user_error("Cannot open TESSEM neural-network file: {}", filename);
   tessem_read_ascii(is, net);
 }
 
@@ -73,10 +73,8 @@ void tessem_read_ascii(std::istream& is, TessemNN& net) {
   \param[in] nx  Input data.
 */
 Vector tessem_emissivity(const TessemNN& net, ConstVectorView nx) {
-  ARTS_USER_ERROR_IF(nx.size() != static_cast<Size>(net.nb_inputs),
-                     "TESSEM requires {} inputs, but received {}.",
-                     net.nb_inputs,
-                     nx.size())
+  if (nx.size() != static_cast<Size>(net.nb_inputs))
+    arts::user_error("TESSEM requires {} inputs, but received {}.", net.nb_inputs, nx.size());
 
   Vector ny(net.nb_outputs);
 

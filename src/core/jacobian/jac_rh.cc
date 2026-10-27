@@ -13,8 +13,8 @@ Vector rhfwd::operator()(ConstVectorView x, const AtmField& atm) const try {
 
   const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
-  ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size(),
-                     R"(Mismatch expected size:
+  if ((alt.size() * lat.size() * lon.size()) != x.size())
+    arts::user_error(R"(Mismatch expected size:
 
 x must have the size of alt x lat x lon
 
@@ -26,7 +26,7 @@ lon.size(): {}
                      x.size(),
                      alt.size(),
                      lat.size(),
-                     lon.size())
+                     lon.size());
 
   Vector out{x};
 
@@ -52,8 +52,8 @@ Vector rhinv::operator()(ConstVectorView x, const AtmField& atm) const try {
 
   const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
-  ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size(),
-                     R"(Mismatch expected size:
+  if ((alt.size() * lat.size() * lon.size()) != x.size())
+    arts::user_error(R"(Mismatch expected size:
 
 x must have the size of alt x lat x lon
 
@@ -65,7 +65,7 @@ lon.size(): {}
                      x.size(),
                      alt.size(),
                      lat.size(),
-                     lon.size())
+                     lon.size());
 
   Vector out{x};
 
@@ -91,8 +91,8 @@ Matrix rhinv::operator()(ConstMatrixView dy, ConstVectorView x, const AtmField& 
 
   const auto& [alt, lat, lon] = atm[self_key].get<GeodeticField3>().grids;
 
-  ARTS_USER_ERROR_IF((alt.size() * lat.size() * lon.size()) != x.size() or static_cast<Size>(dy.ncols()) != x.size(),
-                     R"(Mismatch expected size:
+  if ((alt.size() * lat.size() * lon.size()) != x.size() or static_cast<Size>(dy.ncols()) != x.size())
+    arts::user_error(R"(Mismatch expected size:
 
 x must have the size of alt x lat x lon, the same as the column size of dy
 
@@ -106,7 +106,7 @@ dy.shape(): {:B,}
                      alt.size(),
                      lat.size(),
                      lon.size(),
-                     dy.shape())
+                     dy.shape());
 
   Matrix out{dy};
   Size   i = 0;

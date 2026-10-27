@@ -61,7 +61,8 @@ void spectral_rad_jacAddPathPropagation(StokvecMatrix                     &spect
 
   //! The derivative part from the atmosphere
   for (auto &atm_block : jac_targets.atm) {
-    ARTS_USER_ERROR_IF(not atm_field.contains(atm_block.type), "No {} in atm_field but in jac_targets", atm_block.type)
+    if (not atm_field.contains(atm_block.type))
+      arts::user_error("No {} in atm_field but in jac_targets", atm_block.type);
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
       const auto weights = data.flat_weight(ray_path[ip].pos);
@@ -175,8 +176,8 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
   bool find_any                   = false;
   bool target_uses_frequency_grid = false;
   for (auto &target : jac_targets.sensor) {
-    ARTS_USER_ERROR_IF(measurement_sensor.size() <= static_cast<Size>(target.type.measurement_elem),
-                       "Sensor element out of bounds");
+    if (measurement_sensor.size() <= static_cast<Size>(target.type.measurement_elem))
+      arts::user_error("Sensor element out of bounds");
 
     auto         &elem = measurement_sensor[target.type.measurement_elem];
     auto          m    = spectral_rad_jac[target.target_pos];
@@ -203,8 +204,8 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
     m += dsrad;
   }
 
-  ARTS_USER_ERROR_IF(target_uses_frequency_grid and not find_any,
-                     R"(No sensor element found for pos-los/frequency grid pair
+  if (target_uses_frequency_grid and not find_any)
+    arts::user_error(R"(No sensor element found for pos-los/frequency grid pair
 
   freq_grid: {:Bs,}
   pos:       {:B,}
@@ -264,7 +265,7 @@ void low_memory(const Workspace                         &ws,
                                           subsurf_field,
                                           spectral_rad_observer_agenda);
 
-      ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
+      if (ray_path.empty()) arts::user_error("No ray path found");
       spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
 
 #pragma omp critical
@@ -282,7 +283,7 @@ void low_memory(const Workspace                         &ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "Errors occurred:\n{:}", error);
+  if (not error.empty()) arts::user_error("Errors occurred:\n{:}", error);
 }
 
 void high_performance(const Workspace                         &ws,
@@ -341,7 +342,7 @@ void high_performance(const Workspace                         &ws,
                                           subsurf_field,
                                           spectral_rad_observer_agenda);
 
-      ARTS_USER_ERROR_IF(ray_path.empty(), "No ray path found");
+      if (ray_path.empty()) arts::user_error("No ray path found");
       spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, freq_grid, ray_path.front());
     } catch (const std::exception &e) {
 #pragma omp critical
@@ -349,7 +350,7 @@ void high_performance(const Workspace                         &ws,
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "Errors occurred:\n{:}", error);
+  if (not error.empty()) arts::user_error("Errors occurred:\n{:}", error);
 
 #pragma omp parallel for schedule(dynamic) if (arts_omp_parallel(-1, M > 1))
   for (Size iv = 0; iv < M; ++iv) {

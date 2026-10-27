@@ -54,10 +54,10 @@ template <Representation repr> class ExtinctionMatrixData<Format::TRO, repr>
         f_grid_(f_grid) {}
 
   ExtinctionMatrixData& operator=(const TensorType& data) {
-    ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                       "Provided backscatter coefficient data do not match temperature grid.");
-    ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
-                       "Provided backscatter coefficient data do not match frequency grid.");
+    if (data.shape()[0] != n_temps_)
+      arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+    if (data.shape()[1] != n_freqs_)
+      arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
     TensorType::operator=(data);
     return *this;
   }
@@ -160,12 +160,12 @@ template <Representation repr> class ExtinctionMatrixData<Format::ARO, repr>
         za_inc_grid_(za_inc_grid) {}
 
   ExtinctionMatrixData& operator=(const TensorType& data) {
-    ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                       "Provided backscatter coefficient data do not match temperature grid.");
-    ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_,
-                       "Provided backscatter coefficient data do not match frequency grid.");
-    ARTS_USER_ERROR_IF(data.shape()[2] != n_za_inc_,
-                       "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
+    if (data.shape()[0] != n_temps_)
+      arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+    if (data.shape()[1] != n_freqs_)
+      arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
+    if (data.shape()[2] != n_za_inc_)
+      arts::user_error("Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
     TensorType::operator=(data);
     return *this;
   }

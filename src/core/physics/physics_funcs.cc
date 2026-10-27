@@ -96,19 +96,22 @@ Numeric refractive_index_water_visible_nir_harvey98(const Numeric frequency,
   const Numeric wavelength = Conversion::freq2wavelen(frequency) * 1e6;
 
   if (check_validity) {
-    ARTS_USER_ERROR_IF(not(temperature > 261.15 and temperature < 773.15),
-                       "Harvey98 water refractive index is valid for 261.15 K < temperature < 773.15 K. "
-                       "Got {} K.",
-                       temperature)
-    ARTS_USER_ERROR_IF(not(density > 0.0 and density < 1060.0),
-                       "Harvey98 water refractive index is valid for 0 kg/m3 < density < 1060 kg/m3. "
-                       "Got {} kg/m3.",
-                       density)
-    ARTS_USER_ERROR_IF(not(wavelength > 0.2 and wavelength < 1.9),
-                       "Harvey98 water refractive index is valid for 0.2 micrometres < wavelength < "
-                       "1.9 micrometres. Got frequency {} Hz (wavelength {} micrometres).",
-                       frequency,
-                       wavelength)
+    if (not(temperature > 261.15 and temperature < 773.15))
+      arts::user_error(
+          "Harvey98 water refractive index is valid for 261.15 K < temperature < 773.15 K. "
+          "Got {} K.",
+          temperature);
+    if (not(density > 0.0 and density < 1060.0))
+      arts::user_error(
+          "Harvey98 water refractive index is valid for 0 kg/m3 < density < 1060 kg/m3. "
+          "Got {} kg/m3.",
+          density);
+    if (not(wavelength > 0.2 and wavelength < 1.9))
+      arts::user_error(
+          "Harvey98 water refractive index is valid for 0.2 micrometres < wavelength < "
+          "1.9 micrometres. Got frequency {} Hz (wavelength {} micrometres).",
+          frequency,
+          wavelength);
   }
 
   constexpr Numeric a0 = 0.244257733;
@@ -260,7 +263,7 @@ Numeric planck(const Numeric& f, const Numeric& t) {
  * @date   2015-12-15
  */
 void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF(b.size() not_eq f.size(), "Vector size mismatch: frequency dim is bad")
+  if (b.size() not_eq f.size()) arts::user_error("Vector size mismatch: frequency dim is bad");
   for (Size i = 0; i < f.size(); i++) b[i] = planck(f[i], t);
 }
 
@@ -322,7 +325,7 @@ Numeric dplanck_dt(const Numeric& f, const Numeric& t) {
  * @date   2019-10-11
  */
 void dplanck_dt(VectorView dbdt, const ConstVectorView& f, const Numeric& t) {
-  ARTS_USER_ERROR_IF(dbdt.size() not_eq f.size(), "Vector size mismatch: frequency dim is bad")
+  if (dbdt.size() not_eq f.size()) arts::user_error("Vector size mismatch: frequency dim is bad");
   for (Size i = 0; i < f.size(); i++) dbdt[i] = dplanck_dt(f[i], t);
 }
 

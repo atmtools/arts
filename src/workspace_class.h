@@ -18,9 +18,7 @@ struct Workspace {
       // underlying value objects between all workspaces and with the global
       // defaults, so that methods writing to their `out` variables would
       // silently corrupt every other workspace (see deepcopy() below).
-      for (const auto& [name, def] : global_wsv_defaults()) {
-        wsv.emplace(name, def.copied());
-      }
+      for (const auto& [name, def] : global_wsv_defaults()) { wsv.emplace(name, def.copied()); }
     }
   }
 

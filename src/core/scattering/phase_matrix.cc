@@ -95,10 +95,10 @@ RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
                                   ScatteringDataGrids                    new_grids) {
   RegridWeights res{};
 
-  if (!t_grid) { ARTS_USER_ERROR("The old t_grid must be provided for calculating regridding weights."); }
-  if (!new_grids.t_grid) { ARTS_USER_ERROR("The new t_grid must be provided for calculating regridding weights."); }
-  if (!f_grid) { ARTS_USER_ERROR("The old f_grid must be provided for calculating regridding weights."); }
-  if (!new_grids.f_grid) { ARTS_USER_ERROR("The new f_grid must be provided for calculating regridding weights."); }
+  if (!t_grid) { arts::user_error("The old t_grid must be provided for calculating regridding weights."); }
+  if (!new_grids.t_grid) { arts::user_error("The new t_grid must be provided for calculating regridding weights."); }
+  if (!f_grid) { arts::user_error("The old f_grid must be provided for calculating regridding weights."); }
+  if (!new_grids.f_grid) { arts::user_error("The new f_grid must be provided for calculating regridding weights."); }
 
   res.t_lags = linear_lags(*t_grid, *new_grids.t_grid);
   res.f_lags = linear_lags(*f_grid, *new_grids.f_grid);
@@ -111,9 +111,10 @@ RegridWeights calc_regrid_weights(std::shared_ptr<const Vector>          t_grid,
 }
 
 BackscatterMatrixData<Format::TRO> &BackscatterMatrixData<Format::TRO>::operator=(const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                     "Provided backscatter coefficient data do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided backscatter coefficient data do not match frequency grid.");
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_)
+    arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
   TensorType::operator=(data);
   return *this;
 }
@@ -139,11 +140,12 @@ BackscatterMatrixData<Format::ARO>::BackscatterMatrixData(const BackscatterMatri
 }
 
 BackscatterMatrixData<Format::ARO> &BackscatterMatrixData<Format::ARO>::operator=(const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                     "Provided backscatter coefficient data do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided backscatter coefficient data do not match frequency grid.");
-  ARTS_USER_ERROR_IF(data.shape()[2] != n_za_inc_,
-                     "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_)
+    arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
+  if (data.shape()[2] != n_za_inc_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
   TensorType::operator=(data);
   return *this;
 }
@@ -166,11 +168,12 @@ BackscatterMatrixData<Format::ARO> BackscatterMatrixData<Format::ARO>::regrid(co
 
 PhaseMatrixData<Format::TRO, Representation::Gridded> &PhaseMatrixData<Format::TRO, Representation::Gridded>::operator=(
     const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                     "Provided backscatter coefficient data do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided backscatter coefficient data do not match frequency grid.");
-  ARTS_USER_ERROR_IF(data.shape()[2] != n_za_scat_,
-                     "Provided backscatter coefficient data do not match expected number of scattering zenith angles.");
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_)
+    arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
+  if (data.shape()[2] != n_za_scat_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of scattering zenith angles.");
   TensorType::operator=(data);
   return *this;
 }
@@ -224,10 +227,11 @@ PhaseMatrixData<Format::TRO, Representation::Gridded> PhaseMatrixData<Format::TR
 
 auto PhaseMatrixData<Format::TRO, Representation::Gridded>::to_spectral(Index degree, Index order) const
     -> PhaseMatrixDataSpectral {
-  ARTS_USER_ERROR_IF(order != 0,
-                     "A TRO phase matrix depends on the scattering angle only, so its spectral form has order 0; "
-                     "got order {}",
-                     order)
+  if (order != 0)
+    arts::user_error(
+        "A TRO phase matrix depends on the scattering angle only, so its spectral form has order 0; "
+        "got order {}",
+        order);
   PhaseMatrixDataSpectral result(t_grid_, f_grid_, degree);
   const Vector            angles{grid_vector(*za_scat_grid_)};
   for (Index i_t = 0; i_t < n_temps_; ++i_t)
@@ -238,13 +242,14 @@ auto PhaseMatrixData<Format::TRO, Representation::Gridded>::to_spectral(Index de
 
 LegendreReport PhaseMatrixData<Format::TRO, Representation::Gridded>::legendre_report(
     const PhaseMatrixDataSpectral &spectral) const {
-  ARTS_USER_ERROR_IF(spectral.extent(0) != n_temps_ or spectral.extent(1) != n_freqs_,
-                     "The Legendre series has {} temperatures and {} frequencies, but the gridded phase matrix has "
-                     "{} and {}",
-                     spectral.extent(0),
-                     spectral.extent(1),
-                     n_temps_,
-                     n_freqs_)
+  if (spectral.extent(0) != n_temps_ or spectral.extent(1) != n_freqs_)
+    arts::user_error(
+        "The Legendre series has {} temperatures and {} frequencies, but the gridded phase matrix has "
+        "{} and {}",
+        spectral.extent(0),
+        spectral.extent(1),
+        n_temps_,
+        n_freqs_);
   LegendreReport report(n_temps_, n_freqs_);
   const Vector   angles{grid_vector(*za_scat_grid_)};
   for (Index i_t = 0; i_t < n_temps_; ++i_t)
@@ -294,11 +299,11 @@ auto PhaseMatrixData<Format::TRO, Representation::Gridded>::to_lab_frame(
 
 PhaseMatrixData<Format::TRO, Representation::Spectral> &
 PhaseMatrixData<Format::TRO, Representation::Spectral>::operator=(const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_, "Provided phase matrix coefficients do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided phase matrix coefficients do not match frequency grid.");
-  ARTS_USER_ERROR_IF(data.shape()[2] != degree_ + 1,
-                     "Provided phase matrix coefficients do not match the Legendre degree {}.",
-                     degree_);
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided phase matrix coefficients do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_) arts::user_error("Provided phase matrix coefficients do not match frequency grid.");
+  if (data.shape()[2] != degree_ + 1)
+    arts::user_error("Provided phase matrix coefficients do not match the Legendre degree {}.", degree_);
   TensorType::operator=(data);
   return *this;
 }
@@ -345,15 +350,17 @@ rtepack::compact_planar_muelmat_matrix PhaseMatrixData<Format::TRO, Representati
 
 PhaseMatrixData<Format::TRO, Representation::Spectral>
 PhaseMatrixData<Format::TRO, Representation::Spectral>::to_spectral(Index degree, Index order) const {
-  ARTS_USER_ERROR_IF(order != 0,
-                     "A TRO phase matrix depends on the scattering angle only, so its spectral form has order 0; "
-                     "got order {}",
-                     order)
-  ARTS_USER_ERROR_IF(degree > degree_,
-                     "The Legendre series has degree {}, so it cannot give the coefficients to degree {}; convert "
-                     "the gridded data to that degree instead",
-                     degree_,
-                     degree)
+  if (order != 0)
+    arts::user_error(
+        "A TRO phase matrix depends on the scattering angle only, so its spectral form has order 0; "
+        "got order {}",
+        order);
+  if (degree > degree_)
+    arts::user_error(
+        "The Legendre series has degree {}, so it cannot give the coefficients to degree {}; convert "
+        "the gridded data to that degree instead",
+        degree_,
+        degree);
   PhaseMatrixData out(t_grid_, f_grid_, degree);
   for (Index i_t = 0; i_t < n_temps_; ++i_t)
     for (Index i_f = 0; i_f < n_freqs_; ++i_f)
@@ -379,7 +386,7 @@ PhaseMatrixData<Format::TRO, Representation::Spectral> PhaseMatrixData<Format::T
 }
 
 Index PhaseMatrixData<Format::TRO, Representation::Spectral>::checked_degree(Index degree) {
-  ARTS_USER_ERROR_IF(degree < 0, "The Legendre degree must be >= 0, got {}", degree)
+  if (degree < 0) arts::user_error("The Legendre degree must be >= 0, got {}", degree);
   return degree;
 }
 
@@ -417,16 +424,17 @@ PhaseMatrixData<Format::TRO, Representation::Spectral>::to_lab_frame_fourier_mod
 
 PhaseMatrixData<Format::ARO, Representation::Gridded> &PhaseMatrixData<Format::ARO, Representation::Gridded>::operator=(
     const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                     "Provided backscatter coefficient data do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided backscatter coefficient data do not match frequency grid.");
-  ARTS_USER_ERROR_IF(data.shape()[2] != n_za_inc_,
-                     "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
-  ARTS_USER_ERROR_IF(
-      data.shape()[3] != n_delta_aa_,
-      "Provided backscatter coefficient data do not match expected number of scattering azimuth angles.");
-  ARTS_USER_ERROR_IF(data.shape()[4] != n_za_scat_,
-                     "Provided backscatter coefficient data do not match expected number of scattering zenith angles.");
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_)
+    arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
+  if (data.shape()[2] != n_za_inc_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
+  if (data.shape()[3] != n_delta_aa_)
+    arts::user_error(
+        "Provided backscatter coefficient data do not match expected number of scattering azimuth angles.");
+  if (data.shape()[4] != n_za_scat_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of scattering zenith angles.");
   TensorType::operator=(data);
   return *this;
 }
@@ -511,16 +519,17 @@ auto PhaseMatrixData<Format::ARO, Representation::Gridded>::to_spectral() const 
 }
 
 auto PhaseMatrixData<Format::ARO, Representation::Gridded>::to_fourier(Index max_mode) const -> PhaseMatrixDataFourier {
-  ARTS_USER_ERROR_IF(max_mode < 0, "The highest Fourier mode must be >= 0, got {}", max_mode)
-  ARTS_USER_ERROR_IF(
-      n_delta_aa_ < 2 or std::abs((*delta_aa_grid_)[n_delta_aa_ - 1] - (*delta_aa_grid_)[0] - 360.0) > 1e-9,
-      "Azimuthal Fourier modes need the ARO data over one full period of azimuth differences (the "
-      "last angle of the grid 360 deg above the first), but the grid spans [{}, {}] deg",
-      n_delta_aa_ > 0 ? (*delta_aa_grid_)[0] : 0.0,
-      n_delta_aa_ > 0 ? (*delta_aa_grid_)[n_delta_aa_ - 1] : 0.0)
-  for (Index k = 0; k + 1 < n_delta_aa_; ++k)
-    ARTS_USER_ERROR_IF(not((*delta_aa_grid_)[k] < (*delta_aa_grid_)[k + 1]),
-                       "The azimuth-difference grid must ascend strictly")
+  if (max_mode < 0) arts::user_error("The highest Fourier mode must be >= 0, got {}", max_mode);
+  if (n_delta_aa_ < 2 or std::abs((*delta_aa_grid_)[n_delta_aa_ - 1] - (*delta_aa_grid_)[0] - 360.0) > 1e-9)
+    arts::user_error(
+        "Azimuthal Fourier modes need the ARO data over one full period of azimuth differences (the "
+        "last angle of the grid 360 deg above the first), but the grid spans [{}, {}] deg",
+        n_delta_aa_ > 0 ? (*delta_aa_grid_)[0] : 0.0,
+        n_delta_aa_ > 0 ? (*delta_aa_grid_)[n_delta_aa_ - 1] : 0.0);
+  for (Index k = 0; k + 1 < n_delta_aa_; ++k) {
+    if (not((*delta_aa_grid_)[k] < (*delta_aa_grid_)[k + 1]))
+      arts::user_error("The azimuth-difference grid must ascend strictly");
+  }
 
   PhaseMatrixDataFourier result(t_grid_, f_grid_, za_inc_grid_, za_scat_grid_, max_mode);
   // w[k, m, cs]: the weight of node k in C_m (cs = 0) and S_m (cs = 1) of the piecewise-linear function
@@ -611,13 +620,14 @@ PhaseMatrixData<Format::ARO, Representation::Gridded> tro_lab_frame(std::shared_
 
 PhaseMatrixData<Format::ARO, Representation::Spectral> &
 PhaseMatrixData<Format::ARO, Representation::Spectral>::operator=(const TensorType &data) {
-  ARTS_USER_ERROR_IF(data.shape()[0] != n_temps_,
-                     "Provided backscatter coefficient data do not match temperature grid.");
-  ARTS_USER_ERROR_IF(data.shape()[1] != n_freqs_, "Provided backscatter coefficient data do not match frequency grid.");
-  ARTS_USER_ERROR_IF(data.shape()[2] != n_za_inc_,
-                     "Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
-  ARTS_USER_ERROR_IF(data.shape()[3] != n_spectral_coeffs_,
-                     "Provided backscatter coefficient data do not match expected number of SHT coefficients.");
+  if (data.shape()[0] != n_temps_)
+    arts::user_error("Provided backscatter coefficient data do not match temperature grid.");
+  if (data.shape()[1] != n_freqs_)
+    arts::user_error("Provided backscatter coefficient data do not match frequency grid.");
+  if (data.shape()[2] != n_za_inc_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of incoming zenith angles.");
+  if (data.shape()[3] != n_spectral_coeffs_)
+    arts::user_error("Provided backscatter coefficient data do not match expected number of SHT coefficients.");
   TensorType::operator=(data);
   return *this;
 }
@@ -773,28 +783,24 @@ PhaseMatrixData<Format::ARO, Representation::Spectral>::to_fourier(std::shared_p
 
 PhaseMatrixData<Format::ARO, Representation::Fourier> &PhaseMatrixData<Format::ARO, Representation::Fourier>::operator=(
     const rtepack::muelmat_tensor6 &data) {
-  ARTS_USER_ERROR_IF(data.shape() != this->shape(),
-                     "The Fourier modes have shape {:B,}, but these grids need {:B,}",
-                     data.shape(),
-                     this->shape())
+  if (data.shape() != this->shape())
+    arts::user_error("The Fourier modes have shape {:B,}, but these grids need {:B,}", data.shape(), this->shape());
   TensorType::operator=(data);
   return *this;
 }
 
 void PhaseMatrixData<Format::ARO, Representation::Fourier>::set_phase_integral(Tensor3 phase_integral) {
-  ARTS_USER_ERROR_IF(phase_integral.shape() != phase_integral_.shape(),
-                     "The phase integral has shape {:B,}, but these grids need {:B,}",
+  if (phase_integral.shape() != phase_integral_.shape())
+    arts::user_error("The phase integral has shape {:B,}, but these grids need {:B,}",
                      phase_integral.shape(),
-                     phase_integral_.shape())
+                     phase_integral_.shape());
   phase_integral_ = std::move(phase_integral);
 }
 
 PhaseMatrixData<Format::ARO, Representation::Fourier> &
 PhaseMatrixData<Format::ARO, Representation::Fourier>::operator+=(const PhaseMatrixData &other) {
-  ARTS_USER_ERROR_IF(other.shape() != this->shape(),
-                     "Cannot add Fourier modes of shape {:B,} to modes of shape {:B,}",
-                     other.shape(),
-                     this->shape())
+  if (other.shape() != this->shape())
+    arts::user_error("Cannot add Fourier modes of shape {:B,} to modes of shape {:B,}", other.shape(), this->shape());
   static_cast<TensorType &>(*this) += static_cast<const TensorType &>(other);
   phase_integral_                  += other.phase_integral_;
   return *this;
@@ -830,11 +836,12 @@ auto PhaseMatrixData<Format::ARO, Representation::Fourier>::to_gridded(
 
 PhaseMatrixData<Format::ARO, Representation::Fourier> PhaseMatrixData<Format::ARO, Representation::Fourier>::to_fourier(
     Index max_mode) const {
-  ARTS_USER_ERROR_IF(max_mode > max_mode_,
-                     "The Fourier modes go to m = {}, so they cannot give the modes to m = {}; convert the gridded "
-                     "data to that mode instead",
-                     max_mode_,
-                     max_mode)
+  if (max_mode > max_mode_)
+    arts::user_error(
+        "The Fourier modes go to m = {}, so they cannot give the modes to m = {}; convert the gridded "
+        "data to that mode instead",
+        max_mode_,
+        max_mode);
   PhaseMatrixData out(t_grid_, f_grid_, za_inc_grid_, za_scat_grid_, max_mode);
   const auto [nt, nf, ni, ns, nm, ncs] = out.shape();
   for (Index i_t = 0; i_t < nt; ++i_t)
@@ -872,7 +879,7 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> PhaseMatrixData<Format::AR
 }
 
 Index PhaseMatrixData<Format::ARO, Representation::Fourier>::checked_mode(Index max_mode) {
-  ARTS_USER_ERROR_IF(max_mode < 0, "The highest Fourier mode must be >= 0, got {}", max_mode)
+  if (max_mode < 0) arts::user_error("The highest Fourier mode must be >= 0, got {}", max_mode);
   return max_mode;
 }
 
@@ -881,12 +888,13 @@ std::vector<Index> PhaseMatrixData<Format::ARO, Representation::Fourier>::node_i
   std::vector<Index> out(wanted.size());
   for (Size i = 0; i < wanted.size(); ++i) {
     const auto it = stdr::find_if(nodes, [x = wanted[i]](Numeric y) { return std::abs(x - y) <= 1e-9; });
-    ARTS_USER_ERROR_IF(it == nodes.end(),
-                       "ARO Fourier modes are known on their own {} zenith angles only, {:B,} deg, which do not "
-                       "include {} deg; give the data on the wanted angles",
-                       kind,
-                       nodes,
-                       wanted[i])
+    if (it == nodes.end())
+      arts::user_error(
+          "ARO Fourier modes are known on their own {} zenith angles only, {:B,} deg, which do not "
+          "include {} deg; give the data on the wanted angles",
+          kind,
+          nodes,
+          wanted[i]);
     out[i] = static_cast<Index>(it - nodes.begin());
   }
   return out;
@@ -901,13 +909,14 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> tro_lab_frame_fourier_mode
     const ConstMatrixView                 &phase_integral,
     const ScatteringMatrixFunction        &scattering_matrix) {
   PhaseMatrixData<Format::ARO, Representation::Fourier> out(t_grid, f_grid, za_inc_grid, za_scat_grid, max_mode);
-  ARTS_USER_ERROR_IF(phase_integral.nrows() != static_cast<Index>(t_grid->size()) or
-                         phase_integral.ncols() != static_cast<Index>(f_grid->size()),
-                     "The phase integral has shape [{}, {}], but there are {} temperatures and {} frequencies",
+  if (phase_integral.nrows() != static_cast<Index>(t_grid->size()) or
+      phase_integral.ncols() != static_cast<Index>(f_grid->size()))
+    arts::user_error("The phase integral has shape [{}, {}], but there are {} temperatures and {} frequencies",
                      phase_integral.nrows(),
                      phase_integral.ncols(),
                      t_grid->size(),
-                     f_grid->size()) {
+                     f_grid->size());
+  {
     Tensor3 integral(t_grid->size(), f_grid->size(), za_inc_grid->size());
     for (Index i_t = 0; i_t < integral.extent(0); ++i_t)
       for (Index i_f = 0; i_f < integral.extent(1); ++i_f) integral[i_t, i_f, joker] = phase_integral[i_t, i_f];
@@ -915,10 +924,13 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> tro_lab_frame_fourier_mode
   }
 
   const Vector za_scat{grid_vector(*za_scat_grid)};
-  for (const Numeric za : *za_inc_grid)
-    ARTS_USER_ERROR_IF(not(za >= 0.0 and za <= 180.0), "Incidence zenith angles must be in [0, 180] deg, got {}", za)
-  for (const Numeric za : za_scat)
-    ARTS_USER_ERROR_IF(not(za >= 0.0 and za <= 180.0), "Scattering zenith angles must be in [0, 180] deg, got {}", za)
+  for (const Numeric za : *za_inc_grid) {
+    if (not(za >= 0.0 and za <= 180.0)) arts::user_error("Incidence zenith angles must be in [0, 180] deg, got {}", za);
+  }
+  for (const Numeric za : za_scat) {
+    if (not(za >= 0.0 and za <= 180.0))
+      arts::user_error("Scattering zenith angles must be in [0, 180] deg, got {}", za);
+  }
 
   constexpr Index   max_nodes = 4096;
   constexpr Numeric tolerance = 1e-13;
@@ -1015,15 +1027,16 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> tro_lab_frame_fourier_mode
             Numeric change = 0.0;
             for (Size j = 0; j < fine.size(); j++) change = std::max(change, std::abs(fine[j] - coarse[j]));
             if (change <= tolerance * scale) break;
-            ARTS_USER_ERROR_IF(2 * n > max_nodes,
-                               "The azimuthal Fourier modes of the laboratory-frame phase matrix at za_inc = {} deg "
-                               "and za_scat = {} deg did not converge with {} azimuths (they still change by {:.3e} "
-                               "of the largest phase-matrix element); the scattering matrix is too sharp in the "
-                               "scattering angle to resolve",
-                               (*za_inc_grid)[ii],
-                               za_scat[is],
-                               2 * n,
-                               change / scale)
+            if (2 * n > max_nodes)
+              arts::user_error(
+                  "The azimuthal Fourier modes of the laboratory-frame phase matrix at za_inc = {} deg "
+                  "and za_scat = {} deg did not converge with {} azimuths (they still change by {:.3e} "
+                  "of the largest phase-matrix element); the scattering matrix is too sharp in the "
+                  "scattering angle to resolve",
+                  (*za_inc_grid)[ii],
+                  za_scat[is],
+                  2 * n,
+                  change / scale);
             std::swap(coarse, fine);
           }
 
@@ -1040,7 +1053,7 @@ PhaseMatrixData<Format::ARO, Representation::Fourier> tro_lab_frame_fourier_mode
       }
     }
   }
-  ARTS_USER_ERROR_IF(not error.empty(), "{}", error)
+  if (not error.empty()) arts::user_error("{}", error);
   return out;
 }
 

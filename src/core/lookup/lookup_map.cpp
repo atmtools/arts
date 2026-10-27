@@ -41,7 +41,7 @@ table::table(const SpeciesEnum&                   species,
       w_pert(std::move(w_pert_)),
       water_atmref(atmref.size()),
       t_atmref(atmref.size()) {
-  ARTS_USER_ERROR_IF(not do_f(), "Frequency grid is not set.")
+  if (not do_f()) arts::user_error("Frequency grid is not set.");
 
   const bool do_water = do_w();
 
@@ -111,7 +111,7 @@ ARTS_METHOD_ERROR_CATCH
 std::array<lagrange_interp::lag_t<-1>, 1> table::pressure_lagrange(const Numeric& pressure,
                                                                    const Index    interpolation_order,
                                                                    const Numeric& extpolation_factor) const try {
-  ARTS_USER_ERROR_IF(not do_p(), "No pressure grid set.");
+  if (not do_p()) arts::user_error("No pressure grid set.");
   const std::array<Numeric, 1> plog_local = {std::log(pressure)};
   const Vector&                plog_v(*log_p_grid);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
@@ -122,7 +122,7 @@ ARTS_METHOD_ERROR_CATCH
 std::vector<lagrange_interp::lag_t<-1>> table::frequency_lagrange(const Vector&  freq_grid,
                                                                   const Index    interpolation_order,
                                                                   const Numeric& extpolation_factor) const try {
-  ARTS_USER_ERROR_IF(not do_f(), "No frequency grid set.");
+  if (not do_f()) arts::user_error("No frequency grid set.");
   const Vector& f_grid_v(*f_grid);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
       f_grid_v, freq_grid, interpolation_order, extpolation_factor, "Frequency");
@@ -134,7 +134,7 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::water_lagrange(
     const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
     const Index                                      interpolation_order,
     const Numeric&                                   extpolation_factor) const try {
-  ARTS_USER_ERROR_IF(not do_w(), "No water grid set.");
+  if (not do_w()) arts::user_error("No water grid set.");
   const std::array<Numeric, 1> x{water_vmr / interp(water_atmref, pressure_lagrange[0])};
   const Vector&                xi(*w_pert);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
@@ -147,7 +147,7 @@ std::array<lagrange_interp::lag_t<-1>, 1> table::temperature_lagrange(
     const std::array<lagrange_interp::lag_t<-1>, 1>& pressure_lagrange,
     const Index                                      interpolation_order,
     const Numeric&                                   extpolation_factor) const try {
-  ARTS_USER_ERROR_IF(not do_t(), "No temperature grid set.");
+  if (not do_t()) arts::user_error("No temperature grid set.");
   const std::array<Numeric, 1> x{temperature - interp(t_atmref, pressure_lagrange[0])};
   const Vector&                xi(*t_pert);
   return lagrange_interp::make_lags<lagrange_interp::grid_identity>(
@@ -197,8 +197,8 @@ void table::absorption(VectorView           absorption,
 ARTS_METHOD_ERROR_CATCH
 
 void table::check() const {
-  ARTS_USER_ERROR_IF(not do_f() or not do_p(),
-                     R"(Must have frequency and pressure grids.
+  if (not do_f() or not do_p())
+    arts::user_error(R"(Must have frequency and pressure grids.
   Frequency grid: {}
   Pressure grid:  {}
 )",
@@ -206,8 +206,8 @@ void table::check() const {
                      do_p());
 
   const auto [t_size, w_size, p_size, f_size] = grid_shape();
-  ARTS_USER_ERROR_IF((xsec.shape() != std::array{t_size, w_size, p_size, f_size}),
-                     R"(The shape of the absorption cross section table is incorrect.
+  if ((xsec.shape() != std::array{t_size, w_size, p_size, f_size}))
+    arts::user_error(R"(The shape of the absorption cross section table is incorrect.
 
   Found:    {4:B,},
   Expected: [{0}, {1}, {2}, {3}]
@@ -223,16 +223,16 @@ void table::check() const {
                      f_size,
                      xsec.shape());
 
-  ARTS_USER_ERROR_IF(water_atmref.size() != static_cast<Size>(p_size),
-                     R"(Bad size of water_atmref
+  if (water_atmref.size() != static_cast<Size>(p_size))
+    arts::user_error(R"(Bad size of water_atmref
   Expected: {}
   Has size: {}
 )",
                      p_size,
                      water_atmref.size());
 
-  ARTS_USER_ERROR_IF(t_atmref.size() != static_cast<Size>(p_size),
-                     R"(Bad size of t_atmref
+  if (t_atmref.size() != static_cast<Size>(p_size))
+    arts::user_error(R"(Bad size of t_atmref
   Expected: {}
   Has size: {}
 )",
@@ -245,20 +245,22 @@ void extend_atmosphere(ArrayOfAtmPoint&                 atm,
                        const Numeric                    new_max_pressure,
                        const Numeric                    new_min_pressure) {
   if (not std::isnan(new_max_pressure)) {
-    ARTS_USER_ERROR_IF(new_max_pressure <= atm.back().pressure,
-                       "The new maximum pressure must be greater than the "
-                       "current maximum pressure: {} <= {}",
-                       new_max_pressure,
-                       atm.back().pressure)
+    if (new_max_pressure <= atm.back().pressure)
+      arts::user_error(
+          "The new maximum pressure must be greater than the "
+          "current maximum pressure: {} <= {}",
+          new_max_pressure,
+          atm.back().pressure);
     Atm::extend_in_pressure(atm, new_max_pressure, extrapolation_type);
   }
 
   if (not std::isnan(new_min_pressure)) {
-    ARTS_USER_ERROR_IF(new_min_pressure >= atm.front().pressure,
-                       "The new minimum pressure must be smaller than the "
-                       "current minimum pressure: {} >= {}",
-                       new_min_pressure,
-                       atm.front().pressure)
+    if (new_min_pressure >= atm.front().pressure)
+      arts::user_error(
+          "The new minimum pressure must be smaller than the "
+          "current minimum pressure: {} >= {}",
+          new_min_pressure,
+          atm.front().pressure);
     Atm::extend_in_pressure(atm, new_min_pressure, extrapolation_type);
   }
 }

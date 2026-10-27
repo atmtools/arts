@@ -76,7 +76,7 @@ void WriteXML(  //WS Input:
     } catch (const std::exception& e) { errmsg = e.what(); }
   }
 
-  ARTS_USER_ERROR_IF(errmsg.length(), "{}", errmsg);
+  if (errmsg.length()) arts::user_error("{}", errmsg);
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */

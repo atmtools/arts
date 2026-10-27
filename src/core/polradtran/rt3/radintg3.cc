@@ -14,16 +14,16 @@ void initialize(Numeric          delta_z,
                 Tensor5View      trans) {
   const Index nummu   = mu_values.size();
   const Index nstokes = reflect.extent(4);
-  ARTS_USER_ERROR_IF(nummu < 1 or nstokes < 1 or
-                         reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-                         trans.shape() != reflect.shape() or
-                         phase_function.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}),
-                     "INITIALIZE with {} mu_values needs phase_function [4, nummu, nstokes, nummu, nstokes] and "
-                     "reflect and trans [2, nummu, nstokes, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
-                     nummu,
-                     phase_function.shape(),
-                     reflect.shape(),
-                     trans.shape());
+  if (nummu < 1 or nstokes < 1 or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != reflect.shape() or
+      phase_function.shape() != (std::array<Index, 5>{4, nummu, nstokes, nummu, nstokes}))
+    arts::user_error(
+        "INITIALIZE with {} mu_values needs phase_function [4, nummu, nstokes, nummu, nstokes] and "
+        "reflect and trans [2, nummu, nstokes, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
+        nummu,
+        phase_function.shape(),
+        reflect.shape(),
+        trans.shape());
 
   // The rows of angle j1, [l, joker, joker, j1, joker]:
   // REFLECT = f ALBEDO PHASE_FUNCTION(2 or 3) and
@@ -50,13 +50,14 @@ void initial_source(Numeric          delta_z,
                     Tensor3View      source) {
   const Index nummu   = mu_values.size();
   const Index nstokes = source.extent(2);
-  ARTS_USER_ERROR_IF(nummu < 1 or nstokes < 1 or source.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or
-                         source_vector.shape() != source.shape(),
-                     "INITIAL_SOURCE with {} mu_values needs source_vector and source [2, nummu, nstokes]; got "
-                     "{:B,} and {:B,}",
-                     nummu,
-                     source_vector.shape(),
-                     source.shape());
+  if (nummu < 1 or nstokes < 1 or source.shape() != (std::array<Index, 3>{2, nummu, nstokes}) or
+      source_vector.shape() != source.shape())
+    arts::user_error(
+        "INITIAL_SOURCE with {} mu_values needs source_vector and source [2, nummu, nstokes]; got "
+        "{:B,} and {:B,}",
+        nummu,
+        source_vector.shape(),
+        source.shape());
 
   for (Index j = 0; j < nummu; j++) {
     const Numeric tmp        = delta_z / mu_values[j];

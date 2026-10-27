@@ -12,14 +12,14 @@ const double_imanip& double_imanip::operator>>(double& x) const {
 
   // Read to the buffer
   is >> buf;
-  ARTS_USER_ERROR_IF(is.fail(), "Cannot read from stream")
+  if (is.fail()) arts::user_error("Cannot read from stream");
 
   // Actual conversion
   const auto res = fast_float::from_chars(buf.c_str(), buf.c_str() + buf.size(), x);
 
   // Error (only std::errc::invalid_argument possible)
-  ARTS_USER_ERROR_IF(res.ec == std::errc::invalid_argument,
-                     R"--(The argument:
+  if (res.ec == std::errc::invalid_argument)
+    arts::user_error(R"--(The argument:
 
 `{}`
 
@@ -27,7 +27,7 @@ is not convertible to a valid double.  At the very least it
 cannot be converted to one using the standard string-to-double
 routine
 )--",
-                     buf)
+                     buf);
 
   if (!is.eof() && is.tellg() != -1) {
     is.seekg(std::distance(buf.c_str(), res.ptr) - buf.size(), std::ios_base::cur);

@@ -22,23 +22,23 @@ void doubling_integration(Index       num_doubles,
                           MatrixView  t_source,
                           workdata&   work) {
   const Index n = reflect.extent(1);
-  ARTS_USER_ERROR_IF(
-      n < 1 or reflect.shape() != (std::array<Index, 3>{2, n, n}) or trans.shape() != reflect.shape() or
-          t_reflect.shape() != reflect.shape() or t_trans.shape() != reflect.shape() or
-          lin_source.shape() != (std::array<Index, 2>{2, n}) or t_source.shape() != lin_source.shape(),
-      "DOUBLING_INTEGRATION needs reflect, trans, t_reflect and t_trans [2, n, n] and lin_source and t_source "
-      "[2, n]; got {:B,}, {:B,}, {:B,}, {:B,}, {:B,} and {:B,}",
-      reflect.shape(),
-      trans.shape(),
-      t_reflect.shape(),
-      t_trans.shape(),
-      lin_source.shape(),
-      t_source.shape());
-  ARTS_USER_ERROR_IF(src_code < 0 or src_code > 3, "DOUBLING_INTEGRATION needs src_code 0 to 3, got {}", src_code);
+  if (n < 1 or reflect.shape() != (std::array<Index, 3>{2, n, n}) or trans.shape() != reflect.shape() or
+      t_reflect.shape() != reflect.shape() or t_trans.shape() != reflect.shape() or
+      lin_source.shape() != (std::array<Index, 2>{2, n}) or t_source.shape() != lin_source.shape())
+    arts::user_error(
+        "DOUBLING_INTEGRATION needs reflect, trans, t_reflect and t_trans [2, n, n] and lin_source and t_source "
+        "[2, n]; got {:B,}, {:B,}, {:B,}, {:B,}, {:B,} and {:B,}",
+        reflect.shape(),
+        trans.shape(),
+        t_reflect.shape(),
+        t_trans.shape(),
+        lin_source.shape(),
+        t_source.shape());
+  if (src_code < 0 or src_code > 3) arts::user_error("DOUBLING_INTEGRATION needs src_code 0 to 3, got {}", src_code);
   const bool solar   = src_code == 1 or src_code == 3;
   const bool thermal = src_code >= 2;
-  ARTS_USER_ERROR_IF(solar and exp_source.shape() != t_source.shape(),
-                     "DOUBLING_INTEGRATION with the solar source needs exp_source [2, n]; got {:B,}",
+  if (solar and exp_source.shape() != t_source.shape())
+    arts::user_error("DOUBLING_INTEGRATION with the solar source needs exp_source [2, n]; got {:B,}",
                      exp_source.shape());
 
   /* The plus (1) and minus (2) halves of REFLECT, TRANS, EXP_SOURCE (ep
@@ -57,8 +57,8 @@ void doubling_integration(Index       num_doubles,
   // and /RT3_SCRATCH2/), the vectors X and Y take as well, T_LIN, CONST and
   // T_CONST: the work data's.  T_EXP is t_source, which is written only
   // after the doubling.
-  ARTS_USER_ERROR_IF(
-      not work.scratch_sized(n), "DOUBLING_INTEGRATION needs a workdata sized for {} streams (workdata::resize)", n);
+  if (not work.scratch_sized(n))
+    arts::user_error("DOUBLING_INTEGRATION needs a workdata sized for {} streams (workdata::resize)", n);
   Matrix&       x       = work.x;
   Matrix&       y       = work.y;
   Matrix&       gamma   = work.gamma;
@@ -229,15 +229,15 @@ void nonscatter_layer(Index           mode,
                       Tensor3View     source) {
   const Index nummu   = mu_values.size();
   const Index nstokes = source.extent(2);
-  ARTS_USER_ERROR_IF(
-      nummu < 1 or nstokes < 1 or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
-          trans.shape() != reflect.shape() or source.shape() != (std::array<Index, 3>{2, nummu, nstokes}),
-      "NONSCATTER_LAYER with {} mu_values needs reflect and trans [2, nummu, nstokes, nummu, "
-      "nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
-      nummu,
-      reflect.shape(),
-      trans.shape(),
-      source.shape());
+  if (nummu < 1 or nstokes < 1 or reflect.shape() != (std::array<Index, 5>{2, nummu, nstokes, nummu, nstokes}) or
+      trans.shape() != reflect.shape() or source.shape() != (std::array<Index, 3>{2, nummu, nstokes}))
+    arts::user_error(
+        "NONSCATTER_LAYER with {} mu_values needs reflect and trans [2, nummu, nstokes, nummu, "
+        "nstokes] and source [2, nummu, nstokes]; got {:B,}, {:B,} and {:B,}",
+        nummu,
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
 
   reflect = 0.0;
 
@@ -271,14 +271,15 @@ void combine_layers(ConstTensor3View reflect1,
                     workdata&        work) {
   const Index n = reflect1.extent(1);
   for (auto shape :
-       {reflect1.shape(), trans1.shape(), reflect2.shape(), trans2.shape(), out_reflect.shape(), out_trans.shape()})
-    ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
-                       "COMBINE_LAYERS needs the reflections and transmissions [2, n, n] (n = {}); got {:B,}",
-                       n,
-                       shape);
-  for (auto shape : {source1.shape(), source2.shape(), out_source.shape()})
-    ARTS_USER_ERROR_IF(
-        shape != (std::array<Index, 2>{2, n}), "COMBINE_LAYERS needs the sources [2, n] (n = {}); got {:B,}", n, shape);
+       {reflect1.shape(), trans1.shape(), reflect2.shape(), trans2.shape(), out_reflect.shape(), out_trans.shape()}) {
+    if (shape != (std::array<Index, 3>{2, n, n}))
+      arts::user_error(
+          "COMBINE_LAYERS needs the reflections and transmissions [2, n, n] (n = {}); got {:B,}", n, shape);
+  }
+  for (auto shape : {source1.shape(), source2.shape(), out_source.shape()}) {
+    if (shape != (std::array<Index, 2>{2, n}))
+      arts::user_error("COMBINE_LAYERS needs the sources [2, n] (n = {}); got {:B,}", n, shape);
+  }
 
   /* The plus (1) and minus (2) halves of the layers.  A row-major matpack
      matrix holds the transpose of the Fortran matrix: MMULT's C = A B is
@@ -290,8 +291,8 @@ void combine_layers(ConstTensor3View reflect1,
   // X, Y and GAMMA (COMMON /SCRATCH1/ and /SCRATCH2/, RT3's /RT3_SCRATCH1/
   // and /RT3_SCRATCH2/), and the vectors X and Y take as well: the work
   // data's
-  ARTS_USER_ERROR_IF(
-      not work.scratch_sized(n), "COMBINE_LAYERS needs a workdata sized for {} streams (workdata::resize)", n);
+  if (not work.scratch_sized(n))
+    arts::user_error("COMBINE_LAYERS needs a workdata sized for {} streams (workdata::resize)", n);
   Matrix&       x     = work.x;
   Matrix&       y     = work.y;
   Matrix&       gamma = work.gamma;
@@ -354,18 +355,18 @@ void internal_radiance(ConstTensor3View upreflect,
                        VectorView       downrad,
                        workdata&        work) {
   const Index n = upreflect.extent(1);
-  for (auto shape : {upreflect.shape(), uptrans.shape(), downreflect.shape(), downtrans.shape()})
-    ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
-                       "INTERNAL_RADIANCE needs the reflections and transmissions [2, n, n] (n = {}); got {:B,}",
-                       n,
-                       shape);
-  for (auto shape : {upsource.shape(), downsource.shape()})
-    ARTS_USER_ERROR_IF(shape != (std::array<Index, 2>{2, n}),
-                       "INTERNAL_RADIANCE needs the sources [2, n] (n = {}); got {:B,}",
-                       n,
-                       shape);
-  for (Index size : {intoprad.extent(0), inbottomrad.extent(0), uprad.extent(0), downrad.extent(0)})
-    ARTS_USER_ERROR_IF(size != n, "INTERNAL_RADIANCE needs the radiances [n] (n = {}); got {}", n, size);
+  for (auto shape : {upreflect.shape(), uptrans.shape(), downreflect.shape(), downtrans.shape()}) {
+    if (shape != (std::array<Index, 3>{2, n, n}))
+      arts::user_error(
+          "INTERNAL_RADIANCE needs the reflections and transmissions [2, n, n] (n = {}); got {:B,}", n, shape);
+  }
+  for (auto shape : {upsource.shape(), downsource.shape()}) {
+    if (shape != (std::array<Index, 2>{2, n}))
+      arts::user_error("INTERNAL_RADIANCE needs the sources [2, n] (n = {}); got {:B,}", n, shape);
+  }
+  for (Index size : {intoprad.extent(0), inbottomrad.extent(0), uprad.extent(0), downrad.extent(0)}) {
+    if (size != n) arts::user_error("INTERNAL_RADIANCE needs the radiances [n] (n = {}); got {}", n, size);
+  }
 
   /* The plus side of the atmosphere above and the minus side of the one
      below.  A row-major matpack matrix holds the transpose of the Fortran
@@ -377,8 +378,8 @@ void internal_radiance(ConstTensor3View upreflect,
 
   // X (COMMON /SCRATCH1/, RT3's /RT3_SCRATCH1/), here the inverse, and the
   // vectors S and V: the work data's gamma, xv and yv
-  ARTS_USER_ERROR_IF(
-      not work.scratch_sized(n), "INTERNAL_RADIANCE needs a workdata sized for {} streams (workdata::resize)", n);
+  if (not work.scratch_sized(n))
+    arts::user_error("INTERNAL_RADIANCE needs a workdata sized for {} streams (workdata::resize)", n);
   Matrix&       x  = work.gamma;
   Vector&       s  = work.xv;
   Vector&       v  = work.yv;
@@ -426,31 +427,30 @@ void level_radiance(Index            level,
                     workdata&        work) {
   const Index num_layers = reflect.extent(0) - 1;
   const Index n          = reflect.extent(2);
-  ARTS_USER_ERROR_IF(num_layers < 0 or reflect.shape() != (std::array<Index, 4>{num_layers + 1, 2, n, n}) or
-                         trans.shape() != reflect.shape() or
-                         source.shape() != (std::array<Index, 3>{num_layers + 1, 2, n}),
-                     "The level radiance needs reflect and trans [num_layers + 1, 2, n, n] and source "
-                     "[num_layers + 1, 2, n]; got {:B,}, {:B,} and {:B,}",
-                     reflect.shape(),
-                     trans.shape(),
-                     source.shape());
-  ARTS_USER_ERROR_IF(level < 0 or level > num_layers,
-                     "The level radiance needs a level of 0 to num_layers = {} layers above it, got {}",
-                     num_layers,
-                     level);
+  if (num_layers < 0 or reflect.shape() != (std::array<Index, 4>{num_layers + 1, 2, n, n}) or
+      trans.shape() != reflect.shape() or source.shape() != (std::array<Index, 3>{num_layers + 1, 2, n}))
+    arts::user_error(
+        "The level radiance needs reflect and trans [num_layers + 1, 2, n, n] and source "
+        "[num_layers + 1, 2, n]; got {:B,}, {:B,} and {:B,}",
+        reflect.shape(),
+        trans.shape(),
+        source.shape());
+  if (level < 0 or level > num_layers)
+    arts::user_error(
+        "The level radiance needs a level of 0 to num_layers = {} layers above it, got {}", num_layers, level);
   for (auto shape : {work.reflect1.shape(),
                      work.upreflect.shape(),
                      work.downreflect.shape(),
                      work.trans1.shape(),
                      work.uptrans.shape(),
-                     work.downtrans.shape()})
-    ARTS_USER_ERROR_IF(shape != (std::array<Index, 3>{2, n, n}),
-                       "The level radiance needs a workdata sized for {} streams (workdata::resize)",
-                       n);
-  for (auto shape : {work.source1.shape(), work.upsource.shape(), work.downsource.shape()})
-    ARTS_USER_ERROR_IF(shape != (std::array<Index, 2>{2, n}),
-                       "The level radiance needs a workdata sized for {} streams (workdata::resize)",
-                       n);
+                     work.downtrans.shape()}) {
+    if (shape != (std::array<Index, 3>{2, n, n}))
+      arts::user_error("The level radiance needs a workdata sized for {} streams (workdata::resize)", n);
+  }
+  for (auto shape : {work.source1.shape(), work.upsource.shape(), work.downsource.shape()}) {
+    if (shape != (std::array<Index, 2>{2, n}))
+      arts::user_error("The level radiance needs a workdata sized for {} streams (workdata::resize)", n);
+  }
 
   Tensor3& reflect1    = work.reflect1;
   Tensor3& upreflect   = work.upreflect;

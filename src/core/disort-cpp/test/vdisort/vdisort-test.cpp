@@ -46,12 +46,8 @@ two_stream_solution analytic_two_stream(const Complex phase,
 
 void expect_close(const Numeric actual, const Numeric expected, const std::string_view what) {
   const Numeric scale = 1.0 + std::abs(expected);
-  ARTS_USER_ERROR_IF(std::abs(actual - expected) > tolerance * scale,
-                     "{}: expected {}, got {} (difference {})",
-                     what,
-                     expected,
-                     actual,
-                     actual - expected);
+  if (std::abs(actual - expected) > tolerance * scale)
+    arts::user_error("{}: expected {}, got {} (difference {})", what, expected, actual, actual - expected);
 }
 
 vdisort::main_data make_vdisort(const Index                 nquad,
@@ -163,7 +159,8 @@ void test_analytic_uv_two_stream() try {
     }
   }
   auto model = make_native_two_stream(depth, omega, std::move(phase), top, bottom);
-  ARTS_USER_ERROR_IF(not model.has_complex_eigensolutions(), "Analytic U/V case did not exercise complex eigenvalues");
+  if (not model.has_complex_eigensolutions())
+    arts::user_error("Analytic U/V case did not exercise complex eigenvalues");
 
   for (const Numeric tau : {0.0, 0.27, depth}) {
     const auto expected = analytic_two_stream(
@@ -580,15 +577,15 @@ void test_complex_uv_eigenmodes() try {
   down[vdisort::sine_mode, 0, 0, 2] = 0.2;
   up[vdisort::sine_mode, 0, 0, 3]   = 0.1;
   auto model = make_vdisort(nquad, AscendingGrid{0.4}, Vector{0.5}, std::move(phase), std::move(up), std::move(down));
-  ARTS_USER_ERROR_IF(not model.has_complex_eigensolutions(),
-                     "The U-V coupling test did not produce the expected complex eigenpairs");
+  if (not model.has_complex_eigensolutions())
+    arts::user_error("The U-V coupling test did not produce the expected complex eigenpairs");
 
   vdisort::u_data field;
   model.u(field, 0.2, 0.7);
   for (Index i = 0; i < nquad; ++i)
     for (Index s = 0; s < 4; ++s) {
       const Numeric value = field.intensities[i][s];
-      ARTS_USER_ERROR_IF(not std::isfinite(value), "Complex-eigenmode test produced {}", value);
+      if (not std::isfinite(value)) arts::user_error("Complex-eigenmode test produced {}", value);
     }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-complex-uv-eigenmodes:\n{}", e.what()));
@@ -653,9 +650,9 @@ void test_bulk_quadrature_equivalence() try {
                        "ungridded/pointwise polarized radiance");
     }
 
-  ARTS_USER_ERROR_IF(std::abs(ungridded[1, 1, 0, 2]) < 1e-12 or std::abs(ungridded[1, 1, 0, 3]) < 1e-12 or
-                         std::abs(ungridded[1, 0, 0, 0] - ungridded[1, 1, 0, 0]) < 1e-12,
-                     "Bulk equivalence model did not exercise U, V, and m>0 radiance");
+  if (std::abs(ungridded[1, 1, 0, 2]) < 1e-12 or std::abs(ungridded[1, 1, 0, 3]) < 1e-12 or
+      std::abs(ungridded[1, 0, 0, 0] - ungridded[1, 1, 0, 0]) < 1e-12)
+    arts::user_error("Bulk equivalence model did not exercise U, V, and m>0 radiance");
 
   Vector gridded_up(layers), gridded_down(layers), gridded_direct(layers), gridded_dfdt(layers);
   model.gridded_flux(gridded_up, gridded_down, gridded_direct, gridded_dfdt);
@@ -750,8 +747,8 @@ void test_delta_m_correction_api_overlap() try {
                 std::abs(quadrature.intensities[stream].U()) > 1e-12 or
                 std::abs(quadrature.intensities[stream].V()) > 1e-12;
   }
-  ARTS_USER_ERROR_IF(
-      not polarized, "The polarized correction API produced no Q, U, or V signal: {:B,}", quadrature.intensities);
+  if (not polarized)
+    arts::user_error("The polarized correction API produced no Q, U, or V signal: {:B,}", quadrature.intensities);
 
   vdisort::phase_matrix_data      user_phase(2, nfourier, 1, nquad, nquad, rtepack::muelmat{0.0});
   vdisort::beam_phase_matrix_data user_beam_phase(2, nfourier, 1, nquad, rtepack::muelmat{0.0});
@@ -799,8 +796,8 @@ void test_spectral_phase_matrix_split() try {
   rtepack::specmat_matrix spectral_result(2, 3, rtepack::specmat{Complex{0.0, 0.0}});
   spectral_result[1, 2][3, 1] = Complex{4.5, -0.75};
   const auto split            = vdisort::phase_matrix_fourier_split(spectral_result);
-  ARTS_USER_ERROR_IF((split.cosine.shape() != spectral_result.shape() or split.sine.shape() != spectral_result.shape()),
-                     "Splitting the phase matrix changed its shape");
+  if ((split.cosine.shape() != spectral_result.shape() or split.sine.shape() != spectral_result.shape()))
+    arts::user_error("Splitting the phase matrix changed its shape");
   expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
   expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");
 } catch (std::exception& e) {
@@ -823,7 +820,7 @@ void test_combined_surface_models() try {
             expect_close(lambert.brdf()[vdisort::cosine_mode, mode, i, j][so, si],
                          mode == 0 and so == 0 and si == 0 ? 2.0 * lambertian_albedo * Constant::inv_pi : 0.0,
                          "depolarizing Lambertian mode");
-  ARTS_USER_ERROR_IF(lambert.has_specular(), "A Lambertian surface has no specular part");
+  if (lambert.has_specular()) arts::user_error("A Lambertian surface has no specular part");
 
   const auto fresnel  = vdisort::brdf::fresnel_fourier_modes(1.5, 3, outgoing, incoming, no_beam);
   const auto combined = vdisort::brdf::fresnel_lambertian_fourier_modes(
@@ -881,8 +878,8 @@ void test_scalar_and_polarized_cox_munk_overlap() try {
           }
 
   const auto absorbing_fresnel = vdisort::brdf::Fresnel{Complex{1.5, 0.1}}(0.5);
-  ARTS_USER_ERROR_IF(std::abs(absorbing_fresnel[2, 3]) <= 1.0e-12,
-                     "A complex refractive index produced no Fresnel U/V phase coupling");
+  if (std::abs(absorbing_fresnel[2, 3]) <= 1.0e-12)
+    arts::user_error("A complex refractive index produced no Fresnel U/V phase coupling");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-scalar-and-polarized-cox-munk-overlap:\n{}", e.what()));
 }
@@ -994,7 +991,7 @@ void test_eigenvalue_direction_check() try {
     static_cast<void>(
         make_vdisort(nquad, AscendingGrid{1.0}, Vector{0.5}, std::move(phase), std::move(up), std::move(down)));
   } catch (const std::exception&) { return; }
-  ARTS_USER_ERROR("VDISORT accepted an eigenspectrum without a valid propagation-direction split");
+  arts::user_error("VDISORT accepted an eigenspectrum without a valid propagation-direction split");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-eigenvalue-direction-check:\n{}", e.what()));
 }
@@ -1052,7 +1049,7 @@ void test_specular_reflection_both_systems() try {
         }
       }
     }
-    ARTS_USER_ERROR_IF(not(largest > 0.01), "The reflected radiance must not vanish");
+    if (not(largest > 0.01)) arts::user_error("The reflected radiance must not vanish");
   }
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("Error in test-specular-reflection-both-systems:\n{}", e.what()));

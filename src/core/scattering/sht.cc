@@ -132,7 +132,7 @@ StridedConstComplexVectorView SHT::get_spectral_coeffs() const {
 
 ComplexVector SHT::transform(const StridedConstMatrixView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     ComplexVector result(1);
@@ -152,7 +152,7 @@ ComplexVector SHT::transform(const StridedConstMatrixView &view [[maybe_unused]]
 
 ComplexVector SHT::transform_cmplx(const StridedConstComplexMatrixView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     ComplexVector result(1);
@@ -172,7 +172,7 @@ ComplexVector SHT::transform_cmplx(const StridedConstComplexMatrixView &view [[m
 
 Matrix SHT::synthesize(const StridedConstComplexVectorView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     Matrix result(1, 1);
@@ -194,7 +194,7 @@ Matrix SHT::synthesize(const StridedConstComplexVectorView &view [[maybe_unused]
 
 ComplexMatrix SHT::synthesize_cmplx(const StridedConstComplexVectorView &view [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     ComplexMatrix result(1, 1);
@@ -216,7 +216,7 @@ Numeric SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]]
                       Numeric                              phi [[maybe_unused]],
                       Numeric                              theta [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) { return view[0].real(); }
   set_spectral_coeffs(view);
@@ -230,7 +230,7 @@ Numeric SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]]
 Vector SHT::evaluate(const StridedComplexVectorView &view [[maybe_unused]],
                      const StridedMatrixView        &points [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     Vector results(points.nrows());
@@ -255,7 +255,7 @@ Vector SHT::evaluate(const StridedComplexVectorView &view [[maybe_unused]],
 Vector SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
                      const Vector                        &thetas [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) {
     Vector results(view.size());
@@ -280,7 +280,7 @@ Vector SHT::evaluate(const StridedConstComplexVectorView &view [[maybe_unused]],
 struct FFTWDeleter {
   template <typename T> void operator()(T *t [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-    ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+    arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
     if (t) {
       shtns_mutex.lock();
@@ -294,7 +294,7 @@ struct FFTWDeleter {
 
 template <typename Numeric> FFTWArray<Numeric>::FFTWArray(Index n [[maybe_unused]]) : ptr_(nullptr) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (n > 0) {
     shtns_mutex.lock();
@@ -309,7 +309,7 @@ shtns_cfg ShtnsHandle::get(Index l_max [[maybe_unused]],
                            Index n_aa [[maybe_unused]],
                            Index n_za [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   std::array<Index, 4> config = {l_max, m_max, n_aa, n_za};
   if (config == current_config_) {
@@ -340,7 +340,7 @@ std::array<Index, 4> ShtnsHandle::current_config_ = {-1, -1, -1, -1};
 
 SHT::SHT(Index l_max, Index m_max, Index n_aa, Index n_za) : l_max_(l_max), m_max_(m_max), n_aa_(n_aa), n_za_(n_za) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (l_max == 0) {
     is_trivial_              = true;
@@ -373,7 +373,7 @@ SHT::SHT(Index l_max) : SHT(l_max, l_max) {}
 
 Vector SHT::get_cos_za_grid() {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) { return Vector(1, 0.0); }
   auto   shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
@@ -385,7 +385,7 @@ Vector SHT::get_cos_za_grid() {
 
 ArrayOfIndex SHT::get_l_indices() {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) { return {0}; }
   auto         shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
@@ -397,7 +397,7 @@ ArrayOfIndex SHT::get_l_indices() {
 
 ArrayOfIndex SHT::get_m_indices() {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
 #else
   if (is_trivial_) { return {0}; }
   auto         shtns = ShtnsHandle::get(l_max_, m_max_, n_aa_, n_za_);
@@ -423,7 +423,7 @@ FejerGrid SHT::get_zenith_angle_grid(Index n_za, bool radians) {
 
 std::shared_ptr<SHT> SHTProvider::get_instance(SHTParams params [[maybe_unused]]) {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with SHTNS or FFTW support.");
+  arts::user_error("Not compiled with SHTNS or FFTW support.");
   std::unreachable();
 #else
   if (sht_instances_.count(params) == 0) {

@@ -19,9 +19,10 @@ Size MetaInfo::count() const {
 void MetaInfo::check() const {
   std::visit(
       [](const auto& gf) {
-        ARTS_USER_ERROR_IF(not gf.ok(),
-                           "SensorMetaInfo gridded field shape mismatch: data shape "
-                           "does not match grid sizes");
+        if (not gf.ok())
+          arts::user_error(
+              "SensorMetaInfo gridded field shape mismatch: data shape "
+              "does not match grid sizes");
       },
       data);
 }

@@ -32,8 +32,8 @@ void two_level_linear_emission_step_by_step_full(stokvec_vector                 
 
   const Size nq = dJs.front().nrows();
 
-  ARTS_USER_ERROR_IF(not arr::same_size(Ts, Pi, dTs, Js, dJs),
-                     R"(
+  if (not arr::same_size(Ts, Pi, dTs, Js, dJs))
+    arts::user_error(R"(
   Mismatched number of levels ({}) in Ts:s, Pi:s, dTs:s, Js:s, and dJs:s:
   Ts  size: {}
   Pi  size: {}
@@ -48,18 +48,14 @@ void two_level_linear_emission_step_by_step_full(stokvec_vector                 
                      Js.size(),
                      dJs.size());
 
-  ARTS_USER_ERROR_IF(not all_same_shape(I0, Ts, Pi, Js),
-                     R"(Must have same number of frequency elements ({}) in all Ts:s, Pi:s, and Js:s)",
-                     nv);
+  if (not all_same_shape(I0, Ts, Pi, Js))
+    arts::user_error(R"(Must have same number of frequency elements ({}) in all Ts:s, Pi:s, and Js:s)", nv);
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({nq, nv}, dJs), R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
+  if (not all_same_shape({nq, nv}, dJs))
+    arts::user_error(R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({2, nq, nv}, dTs),
-                     R"(Must have same number of elements ({}, {}, {}) in all dTs:s)",
-                     2,
-                     nq,
-                     nv);
+  if (not all_same_shape({2, nq, nv}, dTs))
+    arts::user_error(R"(Must have same number of elements ({}, {}, {}) in all dTs:s)", 2, nq, nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -115,8 +111,8 @@ void two_level_linear_evolution_step_by_step_full(stokvec_vector                
 
   const Size nq = dJs.front().nrows();
 
-  ARTS_USER_ERROR_IF(not arr::same_size(Ts, Ls, Pi, dTs, dLs, Js, dJs),
-                     R"(
+  if (not arr::same_size(Ts, Ls, Pi, dTs, dLs, Js, dJs))
+    arts::user_error(R"(
   Mismatched number of levels ({}) in Ts:s, Ls:s, Pi:s, dTs:s, dLs:s, Js:s, and dJs:s:
   Ts  size: {}
   Ls  size: {}
@@ -135,18 +131,14 @@ void two_level_linear_evolution_step_by_step_full(stokvec_vector                
                      Js.size(),
                      dJs.size());
 
-  ARTS_USER_ERROR_IF(not all_same_shape(I0, Ts, Ls, Pi, Js),
-                     R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)",
-                     nv);
+  if (not all_same_shape(I0, Ts, Ls, Pi, Js))
+    arts::user_error(R"(Must have same number of frequency elements ({}) in all Ts:s, Ls:s, Pi:s, and Js:s)", nv);
 
-  ARTS_USER_ERROR_IF(
-      not all_same_shape({nq, nv}, dJs), R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
+  if (not all_same_shape({nq, nv}, dJs))
+    arts::user_error(R"(Must have same number of elements ({}, {}) in all dJs:s)", nq, nv);
 
-  ARTS_USER_ERROR_IF(not all_same_shape({2, nq, nv}, dTs, dLs),
-                     R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)",
-                     2,
-                     nq,
-                     nv);
+  if (not all_same_shape({2, nq, nv}, dTs, dLs))
+    arts::user_error(R"(Must have same number of elements ({}, {}, {}) in all dTs:s and dLs:s)", 2, nq, nv);
 
   for (auto &x : dI) {
     x.resize(nq, nv);
@@ -197,8 +189,8 @@ void two_level_linear_emission_step_by_step_full(std::vector<stokvec_vector>    
 
   const Size nv = Is.front().size();
 
-  ARTS_USER_ERROR_IF(not arr::same_size(Is, Ts, Js),
-                     R"(Not same sizes:
+  if (not arr::same_size(Is, Ts, Js))
+    arts::user_error(R"(Not same sizes:
 
 Is.size() = {},
 Ts.size() = {},
@@ -206,10 +198,10 @@ Js.size() = {}
 )",
                      Is.size(),
                      Ts.size(),
-                     Js.size())
+                     Js.size());
 
-  ARTS_USER_ERROR_IF(not arr::elemwise_same_size(Is, Ts, Js),
-                     "Not all elements have the same number of frequency elements")
+  if (not arr::elemwise_same_size(Is, Ts, Js))
+    arts::user_error("Not all elements have the same number of frequency elements");
 
   for (Size i = N - 2; i < N; i--) {
     stokvec_vector       &I0 = Is[i + 1];

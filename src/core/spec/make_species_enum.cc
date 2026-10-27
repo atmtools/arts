@@ -85,7 +85,7 @@ ArrayOfSpeciesIsotope isotopologues(SpeciesEnum spec) {{
                R"(    case SpeciesEnum::unused: break;
   }}
 
-  ARTS_USER_ERROR("Cannot understand: {{}}", spec)
+  arts::user_error("Cannot understand: {{}}", spec);
 }}
 }}  // namespace Species)");
 }
@@ -110,7 +110,7 @@ Numeric partfun_impl(Numeric T, const SpeciesIsotope& ir) {{
                R"(    case SpeciesEnum::unused: break;
   }}
 
-  ARTS_USER_ERROR("This is not a valid isotopologue: {{}}", ir)
+  arts::user_error("This is not a valid isotopologue: {{}}", ir);
 }}
 
 bool has_partfun(const SpeciesIsotope& ir) noexcept {{

@@ -22,8 +22,8 @@ struct spectral_rjbt_op {
                   StokvecMatrix&       diy,
                   const AscendingGrid& freqs,
                   const PropagationPathPoint&) const {
-    ARTS_USER_ERROR_IF(iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size(),
-                       R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
+    if (iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size())
+      arts::user_error(R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
 iy.size()        = {}
@@ -46,8 +46,8 @@ struct spectral_planck_op {
                   StokvecMatrix&       diy,
                   const AscendingGrid& freqs,
                   const PropagationPathPoint&) const {
-    ARTS_USER_ERROR_IF(iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size(),
-                       R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
+    if (iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size())
+      arts::user_error(R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
 iy.size()        = {}
@@ -80,8 +80,8 @@ struct spectral_W_m2_m_sr_op {
                   StokvecMatrix&              diy,
                   const AscendingGrid&        freqs,
                   const PropagationPathPoint& point) const {
-    ARTS_USER_ERROR_IF(iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size(),
-                       R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
+    if (iy.size() != freqs.size() or static_cast<Size>(diy.ncols()) != freqs.size())
+      arts::user_error(R"(Mismatch in size of spectral radiance, spectral radiance jacobian, and frequency grid
 
 freq_grid.size() = {}
 iy.size()        = {}
@@ -138,7 +138,7 @@ SpectralRadianceTransformOperator::Op from(SpectralRadianceUnitType x) {
     case SpectralRadianceUnitType::W_m2_m1_sr: return SpectralRadianceTransformOperator::Op{spectral_W_m2_m1_sr_op{}};
   }
 
-  ARTS_USER_ERROR("Unsupported SpectralRadianceUnitType: {}", x);
+  arts::user_error("Unsupported SpectralRadianceUnitType: {}", x);
   std::unreachable();
 }
 

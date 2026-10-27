@@ -108,7 +108,7 @@ std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_, const
     throw std::runtime_error(std::format("Could not read valid data from file: {}\nTried all groups in {}",
                                          filename,
                                          xml_io_stream<std::variant<T...>>::type_name));
-  } catch (std::exception &e) { ARTS_USER_ERROR("{}\n\n{}", e.what(), error); }
+  } catch (std::exception &e) { arts::user_error("{}\n\n{}", e.what(), error); }
 }
 
 template <typename T> void append_data(
@@ -155,7 +155,7 @@ template <typename T> void append_data(
     }
   }
 
-  ARTS_USER_ERROR_IF(not error.empty(), "{:n}", error)
+  if (not error.empty()) arts::user_error("{:n}", error);
 }
 
 void keysSpecies(std::unordered_map<SpeciesEnum, Index> &keys, const AbsorptionBands &abs_bands) {
@@ -254,33 +254,29 @@ void atm_fieldAppendBaseData(AtmField     &atm_field,
   if (atm_field.contains(p)) {
     atm_field[p].log_interpolation = pressure_log_interp;
   } else {
-    ARTS_USER_ERROR_IF(not static_cast<bool>(allow_missing_pressure),
-                       "Pressure is missing from the read atmospheric field at \"{}\"",
-                       basename)
+    if (not static_cast<bool>(allow_missing_pressure))
+      arts::user_error("Pressure is missing from the read atmospheric field at \"{}\"", basename);
   }
 
-  ARTS_USER_ERROR_IF(not atm_field.contains(t) and not static_cast<bool>(allow_missing_temperature),
-                     "Temperature is missing from the read atmospheric field at \"{}\"",
-                     basename)
+  if (not atm_field.contains(t) and not static_cast<bool>(allow_missing_temperature))
+    arts::user_error("Temperature is missing from the read atmospheric field at \"{}\"", basename);
 
   switch (to<MissingFieldComponentError>(deal_with_field_component)) {
     case MissingFieldComponentError::Throw:
       if (atm_field.contains(wind_u) or atm_field.contains(wind_v) or atm_field.contains(wind_w)) {
-        ARTS_USER_ERROR_IF(
-            not atm_field.contains(wind_u) or not atm_field.contains(wind_v) or not atm_field.contains(wind_w),
-            "Need all wind components, has [u: {}, v: {}, w: {}]",
-            atm_field.contains(wind_u),
-            atm_field.contains(wind_v),
-            atm_field.contains(wind_w));
+        if (not atm_field.contains(wind_u) or not atm_field.contains(wind_v) or not atm_field.contains(wind_w))
+          arts::user_error("Need all wind components, has [u: {}, v: {}, w: {}]",
+                           atm_field.contains(wind_u),
+                           atm_field.contains(wind_v),
+                           atm_field.contains(wind_w));
       }
 
       if (atm_field.contains(mag_u) or atm_field.contains(mag_v) or atm_field.contains(mag_w)) {
-        ARTS_USER_ERROR_IF(
-            not atm_field.contains(mag_u) or not atm_field.contains(mag_v) or not atm_field.contains(mag_w),
-            "Need all mag components, has [u: {}, v: {}, w: {}]",
-            atm_field.contains(mag_u),
-            atm_field.contains(mag_v),
-            atm_field.contains(mag_w));
+        if (not atm_field.contains(mag_u) or not atm_field.contains(mag_v) or not atm_field.contains(mag_w))
+          arts::user_error("Need all mag components, has [u: {}, v: {}, w: {}]",
+                           atm_field.contains(mag_u),
+                           atm_field.contains(mag_v),
+                           atm_field.contains(mag_w));
       }
       break;
     case MissingFieldComponentError::Zero:
@@ -540,15 +536,15 @@ void atm_fieldSchmidthFieldFromIGRF(AtmField &atm_field, const Time &time) {
 
 namespace {
 Atm::MagnitudeField to_magnitude_field(const GeodeticField3 &u, const GeodeticField3 &v, const GeodeticField3 &w) {
-  ARTS_USER_ERROR_IF(u.shape() != v.shape() or u.shape() != w.shape(),
-                     R"(The field components must have the same shape
+  if (u.shape() != v.shape() or u.shape() != w.shape())
+    arts::user_error(R"(The field components must have the same shape
 
 u.shape(): {:B,}
 v.shape(): {:B,}
 w.shape(): {:B,}                  )",
                      u.shape(),
                      v.shape(),
-                     w.shape())
+                     w.shape());
 
   Tensor3 Mag(u.data);
   Tensor3 Theta(u.data);
@@ -643,22 +639,23 @@ static void atm_fieldHydrostaticPressureImpl(AtmField                     &atm_f
   const Index nlat = lats.size();
   const Index nlon = lons.size();
 
-  ARTS_USER_ERROR_IF(nalt < 1 or nlat < 1 or nlon < 1, "Must have at least 1-sized alt, lat, and lon grids")
+  if (nalt < 1 or nlat < 1 or nlon < 1) arts::user_error("Must have at least 1-sized alt, lat, and lon grids");
 
-  ARTS_USER_ERROR_IF(p0.grid_names[0] not_eq "Latitude" or p0.grid_names[1] not_eq "Longitude" or not p0.ok(),
-                     "Bad gridded field, must have right size.\n"
-                     "Must also have \"Latitude\" as first grid and \"Longitude\" as second grid.\n"
-                     "Field:{}\n",
-                     p0)
+  if (p0.grid_names[0] not_eq "Latitude" or p0.grid_names[1] not_eq "Longitude" or not p0.ok())
+    arts::user_error(
+        "Bad gridded field, must have right size.\n"
+        "Must also have \"Latitude\" as first grid and \"Longitude\" as second grid.\n"
+        "Field:{}\n",
+        p0);
 
   const bool has_def_t = fixed_atm_temperature > 0;
   const bool has_def_r = fixed_specific_gas_constant > 0;
 
-  ARTS_USER_ERROR_IF(not has_def_t and not atm_field.contains(AtmKey::t),
-                     "atm_field lacks temperature and no default temperature given")
+  if (not has_def_t and not atm_field.contains(AtmKey::t))
+    arts::user_error("atm_field lacks temperature and no default temperature given");
 
-  ARTS_USER_ERROR_IF(not has_def_r and atm_field.nspec() == 0,
-                     "atm_field lacks species and no default specific gas constant given")
+  if (not has_def_r and atm_field.nspec() == 0)
+    arts::user_error("atm_field lacks species and no default specific gas constant given");
 
   const Tensor3 scale_factor = [&]() {
     Tensor3 scl(nalt, nlat, nlon);
@@ -698,15 +695,15 @@ static void atm_fieldHydrostaticPressureImpl(AtmField                     &atm_f
                                              const String                 &hydrostatic_option) {
   ARTS_TIME_REPORT
 
-  ARTS_USER_ERROR_IF(
-      not atm_field.contains(AtmKey::t),
-      "Must have a temperature field to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
+  if (not atm_field.contains(AtmKey::t))
+    arts::user_error(
+        "Must have a temperature field to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted");
 
   const auto &t = atm_field[AtmKey::t];
 
-  ARTS_USER_ERROR_IF(
-      not std::holds_alternative<GeodeticField3>(t.data),
-      "Temperature field must be a GeodeticField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted")
+  if (not std::holds_alternative<GeodeticField3>(t.data))
+    arts::user_error(
+        "Temperature field must be a GeodeticField3 to call this workspace method with a single Numeric reference pressure, so that latitude and longitude grids can be extracted");
 
   const auto          &t0 = std::get<GeodeticField3>(t.data);
   const GeodeticField2 p0_field{.data_name  = "Pressure",
@@ -727,7 +724,7 @@ void atm_fieldFromProfile(AtmField                         &atm_field,
                           const ArrayOfAtmPoint            &atm_profile,
                           const AscendingGrid              &alt_grid,
                           const InterpolationExtrapolation &altitude_extrapolation) {
-  ARTS_USER_ERROR_IF(alt_grid.empty(), "Empty altitude grid")
+  if (alt_grid.empty()) arts::user_error("Empty altitude grid");
 
   atm_field = Atm::atm_from_profile(atm_profile, alt_grid, altitude_extrapolation, alt_grid.back());
 }
@@ -735,7 +732,7 @@ void atm_fieldFromProfile(AtmField                         &atm_field,
 void atm_fieldWindIncludePlanetRotation(AtmField           &atm_field,
                                         const SurfaceField &surf_field,
                                         const Numeric      &planet_rotation_period) {
-  ARTS_USER_ERROR_IF(not atm_field.contains(AtmKey::wind_u), "AtmField must contain wind_u field")
+  if (not atm_field.contains(AtmKey::wind_u)) arts::user_error("AtmField must contain wind_u field");
 
   auto lat_corr = [k1 = 2 * Constant::pi / planet_rotation_period, ell = surf_field.ellipsoid](Numeric alt,
                                                                                                Numeric lat) {
@@ -765,7 +762,7 @@ void atm_fieldWindIncludePlanetRotation(AtmField           &atm_field,
           return f(alt, lat, lon) + lat_corr(alt, lat);
         }};
   } else {
-    ARTS_USER_ERROR("Unsupported data type for wind_u field when including planet rotation");
+    arts::user_error("Unsupported data type for wind_u field when including planet rotation");
   }
 }
 

@@ -439,7 +439,7 @@ void Agenda::change_default(const std::string_view name, Wsv value) {
     }
   }
 
-  ARTS_USER_ERROR(std::format(R"(Agenda "{}" does not have a default input "{}")", this->name, name));
+  arts::user_error(std::format(R"(Agenda "{}" does not have a default input "{}")", this->name, name));
 }
 
 void xml_io_stream<Agenda>::write(std::ostream& os, const Agenda& x, bofstream* pbofs, std::string_view name) {

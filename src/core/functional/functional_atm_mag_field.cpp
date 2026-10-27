@@ -49,12 +49,12 @@ template <typename F> void for_each_coefficient(Size N, FieldComponent component
 }
 
 void check_size(const SchmidthLegendre& x) {
-  ARTS_USER_ERROR_IF(x.N == 0 or static_cast<Size>(x.gh.size()) != ncoefficients(x.N, x.component),
-                     "There must be {} coefficients of the {} component for N = {}, but there are {}",
+  if (x.N == 0 or static_cast<Size>(x.gh.size()) != ncoefficients(x.N, x.component))
+    arts::user_error("There must be {} coefficients of the {} component for N = {}, but there are {}",
                      x.N == 0 ? 0 : ncoefficients(x.N, x.component),
                      x.component,
                      x.N,
-                     x.gh.size())
+                     x.gh.size());
 }
 }  // namespace
 

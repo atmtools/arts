@@ -25,7 +25,7 @@ void full::adapt() try {
 
   if (xsecrec->empty()) { return; }
 
-  ARTS_USER_ERROR_IF(not atm, "Must have an atmosphere")
+  if (not atm) arts::user_error("Must have an atmosphere");
 
   models.reserve(xsecrec->size());
   for (auto& [species, model] : *xsecrec) {

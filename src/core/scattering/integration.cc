@@ -17,7 +17,7 @@ StridedConstVectorView grid_vector(const ZenithAngleGrid &grid) {
 void GaussLegendreQuadrature::calculate_nodes_and_weights() { Legendre::GaussLegendre(nodes_, weights_); }
 
 DoubleGaussQuadrature::DoubleGaussQuadrature(Index degree) : degree_(degree), nodes_(degree), weights_(degree) {
-  ARTS_USER_ERROR_IF(degree % 2 != 0, "A double Gauss quadrature needs an even degree, got {}", degree);
+  if (degree % 2 != 0) arts::user_error("A double Gauss quadrature needs an even degree, got {}", degree);
   const Index half = degree / 2;
   Legendre::PositiveDoubleGaussLegendre(nodes_[Range(half, half)], weights_[Range(half, half)]);
   for (Index i = 0; i < half; ++i) {
@@ -80,13 +80,13 @@ void LobattoQuadrature::calculate_nodes_and_weights() {
 
 namespace {
 ZenGrid zenith_angles_grid(const Vector &zenith_angles) {
-  ARTS_USER_ERROR_IF(not ZenGrid::is_sorted(zenith_angles),
-                     "The zenith angles of an IrregularZenithAngleGrid must be strictly ascending")
-  ARTS_USER_ERROR_IF(not zenith_angles.empty() and
-                         (not ZenGrid::is_valid(zenith_angles.front()) or not ZenGrid::is_valid(zenith_angles.back())),
-                     "The zenith angles of an IrregularZenithAngleGrid must be in [0, 180] deg; they span [{}, {}] deg",
+  if (not ZenGrid::is_sorted(zenith_angles))
+    arts::user_error("The zenith angles of an IrregularZenithAngleGrid must be strictly ascending");
+  if (not zenith_angles.empty() and
+      (not ZenGrid::is_valid(zenith_angles.front()) or not ZenGrid::is_valid(zenith_angles.back())))
+    arts::user_error("The zenith angles of an IrregularZenithAngleGrid must be in [0, 180] deg; they span [{}, {}] deg",
                      zenith_angles.front(),
-                     zenith_angles.back())
+                     zenith_angles.back());
   return ZenGrid(zenith_angles);
 }
 }  // namespace
@@ -112,7 +112,7 @@ IrregularZenithAngleGrid::IrregularZenithAngleGrid(const Vector &zenith_angles)
 
 void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with FFTW support.");
+  arts::user_error("Not compiled with FFTW support.");
 #else
   Index                 n = degree_ - 1;
   fftw_plan             ifft;
@@ -138,7 +138,7 @@ void ClenshawCurtisQuadrature::calculate_nodes_and_weights() {
 
 void FejerQuadrature::calculate_nodes_and_weights() {
 #ifdef ARTS_NO_SHTNS
-  ARTS_USER_ERROR("Not compiled with FFTW support.");
+  arts::user_error("Not compiled with FFTW support.");
 #else
   const Index           n = degree_;
   fftw_plan             ifft;

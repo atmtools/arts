@@ -26,19 +26,19 @@ void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
                          const Size ip =
                              stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, ray_point.altitude()));
 
-                         ARTS_USER_ERROR_IF(ip == alt_grid.size(),
-                                            "Ray path point altitude {} is out of bounds of the altitude grid [{}, {}]",
+                         if (ip == alt_grid.size())
+                           arts::user_error("Ray path point altitude {} is out of bounds of the altitude grid [{}, {}]",
                                             ray_point.altitude(),
                                             alt_grid.front(),
-                                            alt_grid.back())
+                                            alt_grid.back());
 
-                         ARTS_USER_ERROR_IF(alt_grid[ip] != ray_point.altitude(),
-                                            R"(Ray path point altitude {} does not match any point in the altitude grid.
+                         if (alt_grid[ip] != ray_point.altitude())
+                           arts::user_error(R"(Ray path point altitude {} does not match any point in the altitude grid.
 
 Grid points: {:B,}
 )",
                                             ray_point.altitude(),
-                                            alt_grid)
+                                            alt_grid);
 
                          return ip;
                        })};
