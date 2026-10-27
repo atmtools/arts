@@ -12,11 +12,11 @@ void add_overlapping_components(JacobianTargets&            jac_targets,
     return stdr::any_of(components, [&t](AtmKey k) { return t.type == k; });
   });
 
-  ARTS_USER_ERROR_IF(orig == jac_targets.atm.end(), "Cannot find original {} for component", field)
+  if (orig == jac_targets.atm.end()) arts::user_error("Cannot find original {} for component", field);
 
-  ARTS_USER_ERROR_IF(Jacobian::has_transformation(*orig),
-                     "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
-                     orig->type)
+  if (Jacobian::has_transformation(*orig))
+    arts::user_error("Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                     orig->type);
 
   const AtmKey  original = std::get<AtmKey>(orig->type);
   const Numeric d        = orig->d;

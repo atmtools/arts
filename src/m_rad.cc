@@ -192,13 +192,13 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
 
     //! The model state is polynomial coefficients, so we need the derivative of the sensor grid w.r.t. them
     const auto *poly = target.inverse_state.target<polyinv_sensor_offset_t>();
-    ARTS_USER_ERROR_IF(poly == nullptr, "Sensor target {} has no polynomial offset model", target.type)
+    if (poly == nullptr) arts::user_error("Sensor target {} has no polynomial offset model", target.type);
     const Matrix dgrid = poly->normalized()();
-    ARTS_USER_ERROR_IF(static_cast<Size>(dgrid.ncols()) != target.x_size,
-                       "Sensor target {} has {} model state elements but its polynomial offset model has {}",
+    if (static_cast<Size>(dgrid.ncols()) != target.x_size)
+      arts::user_error("Sensor target {} has {} model state elements but its polynomial offset model has {}",
                        target.type,
                        target.x_size,
-                       dgrid.ncols())
+                       dgrid.ncols());
 
     using enum SensorKeyType;
     switch (target.type.type) {
@@ -213,11 +213,11 @@ void spectral_rad_jacAddSensorJacobianPerturbations(const Workspace          &ws
     //! Monochromatic radiance only depends on its own frequency, so the shifted
     //! grid gives the derivative w.r.t. each grid point independently
     if (target.type.type == freq) {
-      ARTS_USER_ERROR_IF(static_cast<Size>(dgrid.nrows()) != dsrad.size(),
-                         "Sensor target {} has a polynomial offset model for {} frequencies but the grid has {}",
+      if (static_cast<Size>(dgrid.nrows()) != dsrad.size())
+        arts::user_error("Sensor target {} has a polynomial offset model for {} frequencies but the grid has {}",
                          target.type,
                          dgrid.nrows(),
-                         dsrad.size())
+                         dsrad.size());
 
       for (Size k = 0; k < target.x_size; k++) {
         auto m = spectral_rad_jac[target.x_start + k];

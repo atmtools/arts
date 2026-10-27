@@ -13,16 +13,15 @@ void toggle(std::vector<T>& targets, const decltype(T::type)& key, const auto& m
   ARTS_TIME_REPORT
 
   const auto t = stdr::find(targets, key, &T::type);
-  ARTS_USER_ERROR_IF(t == targets.end(), "Could not find target {}", key)
+  if (t == targets.end()) arts::user_error("Could not find target {}", key);
 
   if (t->inverse_jacobian.template target<Inv>() != nullptr) {
     t->inverse_jacobian = {};
     t->inverse_state    = {};
     t->transform_state  = {};
   } else {
-    ARTS_USER_ERROR_IF(Jacobian::overlaps(targets, *t),
-                       "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
-                       key)
+    if (Jacobian::overlaps(targets, *t))
+      arts::user_error("Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is", key);
     make(*t);
   }
 }

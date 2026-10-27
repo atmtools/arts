@@ -32,8 +32,8 @@ bool Targets::is_finalized() const {
 }
 
 Size Targets::x_size() const {
-  ARTS_USER_ERROR_IF(target_count() != 0 and not is_finalized(),
-                     "The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.")
+  if (target_count() != 0 and not is_finalized())
+    arts::user_error("The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.");
 
   Size n = 0;
   for_each_list([&n](const auto& targets) {
@@ -522,9 +522,9 @@ void Targets::finalize(const AtmField&           atm_field,
                        const ArrayOfSensorObsel& measurement_sensor) {
   for_each_list([](const auto& targets) {
     for (auto& t : targets) {
-      ARTS_USER_ERROR_IF(overlaps(targets, t) and has_transformation(t),
-                         "Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
-                         t.type)
+      if (overlaps(targets, t) and has_transformation(t))
+        arts::user_error("Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                         t.type);
     }
   });
 
@@ -532,13 +532,13 @@ void Targets::finalize(const AtmField&           atm_field,
     if (not overlaps(atm, t)) continue;
 
     const auto* f = atm_field[t.type].get_if<AtmFunctionalData>();
-    ARTS_USER_ERROR_IF(f == nullptr or f->f.target<Atm::MagnitudeField>() == nullptr,
-                       R"(Overlapping target {} is not a magnitude field.
+    if (f == nullptr or f->f.target<Atm::MagnitudeField>() == nullptr)
+      arts::user_error(R"(Overlapping target {} is not a magnitude field.
 
 Overlapping targets retrieve the magnitude of a vector field.  Call
 atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
 )",
-                       t.type)
+                       t.type);
   }
 
   for (auto& t : line) {
@@ -550,9 +550,8 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   }
 
   for (auto& t : sensor) {
-    ARTS_USER_ERROR_IF(static_cast<Size>(t.type.measurement_elem) >= measurement_sensor.size(),
-                       "Bad sensor elements {}, out-of-bounds",
-                       t)
+    if (static_cast<Size>(t.type.measurement_elem) >= measurement_sensor.size())
+      arts::user_error("Bad sensor elements {}, out-of-bounds", t);
   }
 
   //! Sensor targets on different sensor elements are the same if they share the relevant grid
@@ -571,9 +570,8 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
 
   for_each_list([&same](const auto& targets) {
     for (Size i = 0; i < targets.size(); i++) {
-      ARTS_USER_ERROR_IF(stdr::any_of(targets | stdv::drop(i + 1), [&](const auto& t) { return same(targets[i], t); }),
-                         "Multiple targets of the same type: {}",
-                         targets[i].type)
+      if (stdr::any_of(targets | stdv::drop(i + 1), [&](const auto& t) { return same(targets[i], t); }))
+        arts::user_error("Multiple targets of the same type: {}", targets[i].type);
     }
   });
 
@@ -585,9 +583,8 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
 
       if (t.overlap) {
         const auto f = stdr::find(targets, t.overlap_key, &std::remove_cvref_t<decltype(t)>::type);
-        ARTS_USER_ERROR_IF(static_cast<Index>(i) <= stdr::distance(targets.begin(), f),
-                           "Overlap target {} not found prior in targets.",
-                           t.overlap_key)
+        if (static_cast<Index>(i) <= stdr::distance(targets.begin(), f))
+          arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
         t.x_start = f->x_start;
         t.x_size  = f->x_size;
       } else {
@@ -608,14 +605,14 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   position(error, [](const ErrorTarget& t) { return t.x_size; });
 
   for (auto& t : error) {
-    ARTS_USER_ERROR_IF(t.type.y_start + t.type.y_size > measurement_sensor.size(),
-                       R"(An error target is out of bounds of the y-vector.
+    if (t.type.y_start + t.type.y_size > measurement_sensor.size())
+      arts::user_error(R"(An error target is out of bounds of the y-vector.
 
 The error target is defined to operator on the measurement_vec in the range {},
 but the measurement_vec will only have {} element by the measurement_sensor.
 )",
                        t.type,
-                       measurement_sensor.size())
+                       measurement_sensor.size());
   }
 
   finalized = true;

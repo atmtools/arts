@@ -139,7 +139,7 @@ Vector rem_azi(const SensorObsel& v, const ConstVectorView x) { return rem_poslo
 
 //! The sensor grid mapped to [-1, 1], so the polynomial offset is well-conditioned and all its coefficients are shifts
 std::shared_ptr<const Vector> normalized_grid(const std::shared_ptr<const Vector>& grid) {
-  ARTS_USER_ERROR_IF(not grid or grid->size() == 0, "No sensor grid provided for the polynomial offset.")
+  if (not grid or grid->size() == 0) arts::user_error("No sensor grid provided for the polynomial offset.");
 
   const auto [lo, hi] = stdr::minmax(*grid);
   const Numeric mid   = 0.5 * (hi + lo);
@@ -188,10 +188,8 @@ Vector polyinv_sensor_offset_t::operator()(ConstVectorView x, const ArrayOfSenso
 void make_polyoffset(Jacobian::SensorTarget& x, const Size polyorder, const ArrayOfSensorObsel& sensor) {
   auto st = std::make_shared<const Vector>(sensor[x.type.measurement_elem].flat(x.type.type));
 
-  ARTS_USER_ERROR_IF(polyorder >= st->size(),
-                     "A polynomial offset of order {} needs more than {} sensor grid points",
-                     polyorder,
-                     st->size())
+  if (polyorder >= st->size())
+    arts::user_error("A polynomial offset of order {} needs more than {} sensor grid points", polyorder, st->size());
 
   const polyfit_sensor_offset_t pfit{.fit = polyfit_t{.st = st, .polyorder = polyorder}, .key = x.type};
   const polyinv_sensor_offset_t pinv{.inv = polyinv_t{.st = st, .polyorder = polyorder}, .key = x.type};
