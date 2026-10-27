@@ -7,35 +7,38 @@
 #include <format>
 #include <stdexcept>
 #include <string_view>
+#include <tuple>
 #include <utility>
 
 namespace Jacobian {
 void Targets::clear() {
-  atm.clear();
-  surf.clear();
-  subsurf.clear();
-  line.clear();
-  sensor.clear();
-  error.clear();
+  for_each_list([](auto& targets) { targets.clear(); });
+
+  finalized = false;
+}
+
+bool Targets::is_finalized() const {
+  //! Targets may be added without resetting the flag, e.g., by appending to the lists from Python
+  return finalized and target_count() == finalized_count;
 }
 
 Size Targets::x_size() const {
-  if (target_count() != 0 and not finalized) {
-    throw std::runtime_error("The Jacobian targets are not finalized.  Run jac_targetsFinalize first.");
-  }
+  if (target_count() != 0 and not is_finalized())
+    arts::user_error("The Jacobian targets are not finalized.  Call jac_targetsFinalize after adding targets.");
 
-  const auto sz = [](const auto& x) -> Size { return x.overlap ? 0 : x.x_size; };
-
-  return std::transform_reduce(atm.begin(), atm.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(surf.begin(), surf.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(subsurf.begin(), subsurf.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(line.begin(), line.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(sensor.begin(), sensor.end(), Size{0}, std::plus<>{}, sz) +
-         std::transform_reduce(error.begin(), error.end(), Size{0}, std::plus<>{}, sz);
+  Size n = 0;
+  for_each_list([&n](const auto& targets) {
+    for (auto& t : targets) {
+      if (not t.overlap) n += t.x_size;
+    }
+  });
+  return n;
 }
 
 Size Targets::target_count() const {
-  return atm.size() + surf.size() + subsurf.size() + line.size() + sensor.size() + error.size();
+  Size n = 0;
+  for_each_list([&n](const auto& targets) { n += targets.size(); });
+  return n;
 }
 
 bool Targets::empty() const { return target_count() == 0; }
@@ -243,10 +246,10 @@ The expected size of the target is : {}.
 
 void ErrorTarget::update_model(VectorView y, ConstVectorView x) const {
   if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
-    arts::user_error(R"(Measurement Jacobian too small.
+    arts::user_error(R"(Measurement vector or model state vector too small.
 
-Expected minimum shape: [{}, {}]
-Got shape:              [{}, {}]
+Expected minimum sizes: [{}, {}]
+Got sizes:              [{}, {}]
 )",
                      type.y_start + type.y_size,
                      x_start + x_size,
@@ -334,14 +337,18 @@ The expected size of the target is : {}.
 
 ////////////////////////////////////////////////////////////////////////
 /// Update the model state vector
+///
+/// Overlapping targets share the model state of their original target, which alone updates it
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_state(VectorView x, ConstVectorView y) const {
-  if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
-    arts::user_error(R"(Measurement Jacobian too small.
+  if (overlap) return;
 
-Expected minimum shape: [{}, {}]
-Got shape:              [{}, {}]
+  if (x.size() < (x_start + x_size) or y.size() < (type.y_start + type.y_size))
+    arts::user_error(R"(Measurement vector or model state vector too small.
+
+Expected minimum sizes: [{}, {}]
+Got sizes:              [{}, {}]
 )",
                      type.y_start + type.y_size,
                      x_start + x_size,
@@ -356,6 +363,8 @@ Got shape:              [{}, {}]
 }
 
 void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not atm.contains(type)) arts::user_error("Atmosphere does not contain key value {}", type);
@@ -364,6 +373,8 @@ void AtmTarget::update_state(VectorView x, const AtmField& atm) const {
 }
 
 void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not surf.contains(type)) arts::user_error("Surface does not contain key value {}", type);
@@ -372,6 +383,8 @@ void SurfaceTarget::update_state(VectorView x, const SurfaceField& surf) const {
 }
 
 void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   if (not subsurf.contains(type)) arts::user_error("Subsurface does not contain key value {}", type);
@@ -380,12 +393,16 @@ void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf
 }
 
 void LineTarget::update_state(VectorView x, const AbsorptionBands& bands) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   update_x(x[Range(x_start, x_size)], ConstVectorView{type.get_value(bands)}, transform_state, type, bands);
 }
 
 void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) const {
+  if (overlap) return;
+
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   const SensorObsel& v = sens.at(type.measurement_elem);
@@ -407,9 +424,13 @@ void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) co
 
 ////////////////////////////////////////////////////////////////////////
 /// Update the Jacobian
+///
+/// Overlapping targets share the model state of their original target, which alone updates it
 ////////////////////////////////////////////////////////////////////////
 
 void ErrorTarget::update_jac(MatrixView dy, ConstVectorView x, ConstVectorView y) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size) or
       static_cast<Size>(dy.nrows()) < (type.y_start + type.y_size))
     arts::user_error(R"(Measurement Jacobian too small.
@@ -431,6 +452,8 @@ Got shape:              {:B,}
 }
 
 void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -440,6 +463,8 @@ void AtmTarget::update_jac(MatrixView dy, ConstVectorView x, const AtmField& atm
 }
 
 void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceField& surf) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -449,6 +474,8 @@ void SurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SurfaceFi
 }
 
 void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const SubsurfaceField& subsurf) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -458,6 +485,8 @@ void SubsurfaceTarget::update_jac(MatrixView dy, ConstVectorView x, const Subsur
 }
 
 void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBands& bands) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -467,6 +496,8 @@ void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBa
 }
 
 void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSensorObsel& sens) const {
+  if (overlap) return;
+
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
     arts::user_error("Model state vector dimension of the Jacobian is too small.");
 
@@ -475,166 +506,96 @@ void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSen
   }
 }
 
-////////////////////////////////////////////////////////////////////////
-/// ...
-////////////////////////////////////////////////////////////////////////
-
-bool is_wind(const AtmTarget& t) {
-  return t.type == AtmKey::wind_u or t.type == AtmKey::wind_v or t.type == AtmKey::wind_w;
-}
-
-bool is_mag(const AtmTarget& t) {
-  return t.type == AtmKey::mag_u or t.type == AtmKey::mag_v or t.type == AtmKey::mag_w;
-}
-
-void Targets::finalize(const AtmField&        atm_field,
-                       const SurfaceField&    surf_field,
-                       const SubsurfaceField& subsurf_field,
-                       const AbsorptionBands&,
+void Targets::finalize(const AtmField&           atm_field,
+                       const SurfaceField&       surf_field,
+                       const SubsurfaceField&    subsurf_field,
+                       const AbsorptionBands&    abs_bands,
                        const ArrayOfSensorObsel& measurement_sensor) {
-  const Size natm     = atm.size();
-  const Size nsurf    = surf.size();
-  const Size nsubsurf = subsurf.size();
-  const Size nline    = line.size();
-  const Size nsensor  = sensor.size();
-  const Size nerror   = error.size();
+  for_each_list([](const auto& targets) {
+    for (auto& t : targets) {
+      if (overlaps(targets, t) and has_transformation(t))
+        arts::user_error("Overlapping targets cannot be transformed (e.g., to relative or logarithmic), but {} is",
+                         t.type);
+    }
+  });
+
+  for (auto& t : atm) {
+    if (not overlaps(atm, t)) continue;
+
+    const auto* f = atm_field[t.type].get_if<AtmFunctionalData>();
+    if (f == nullptr or f->f.target<Atm::MagnitudeField>() == nullptr)
+      arts::user_error(R"(Overlapping target {} is not a magnitude field.
+
+Overlapping targets retrieve the magnitude of a vector field.  Call
+atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
+)",
+                       t.type);
+  }
+
+  for (auto& t : line) {
+    try {
+      std::ignore = t.type.get_value(abs_bands);
+    } catch (const std::exception& e) {
+      throw std::runtime_error(std::format("Line target {} is not in abs_bands:\n{}", t.type, e.what()));
+    }
+  }
+
+  for (auto& t : sensor) {
+    if (static_cast<Size>(t.type.measurement_elem) >= measurement_sensor.size())
+      arts::user_error("Bad sensor elements {}, out-of-bounds", t);
+  }
+
+  //! Sensor targets on different sensor elements are the same if they share the relevant grid
+  const auto same = [&measurement_sensor]<typename T>(const T& a, const T& b) -> bool {
+    if constexpr (std::same_as<T, SensorTarget>) {
+      if (a.type.type != b.type.type) return false;
+
+      const SensorObsel& elem1 = measurement_sensor[a.type.measurement_elem];
+      const SensorObsel& elem2 = measurement_sensor[b.type.measurement_elem];
+      return a.type.type == SensorKeyType::freq ? elem1.f_grid_ptr() == elem2.f_grid_ptr()
+                                                : elem1.poslos_grid_ptr() == elem2.poslos_grid_ptr();
+    } else {
+      return a.type == b.type;
+    }
+  };
+
+  for_each_list([&same](const auto& targets) {
+    for (Size i = 0; i < targets.size(); i++) {
+      if (stdr::any_of(targets | stdv::drop(i + 1), [&](const auto& t) { return same(targets[i], t); }))
+        arts::user_error("Multiple targets of the same type: {}", targets[i].type);
+    }
+  });
 
   Size last_size = 0;
 
-  for (Size i = 0; i < natm; i++) {
-    AtmTarget& t = atm[i];
-    if (stdr::any_of(atm | stdv::drop(i + 1), Cmp::eq(t.type), &AtmTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
+  const auto position = [&last_size](auto& targets, const auto& field_size) {
+    for (Size i = 0; i < targets.size(); i++) {
+      auto& t = targets[i];
 
-    if (t.overlap) {
-      const auto f = stdr::find(atm, t.overlap_key, &AtmTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(atm.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = atm_field[t.type].flat_view().size();
-      last_size += t.x_size;
+      if (t.overlap) {
+        const auto f = stdr::find(targets, t.overlap_key, &std::remove_cvref_t<decltype(t)>::type);
+        if (static_cast<Index>(i) <= stdr::distance(targets.begin(), f))
+          arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
+        t.x_start = f->x_start;
+        t.x_size  = f->x_size;
+      } else {
+        t.x_start  = last_size;
+        t.x_size   = field_size(t);
+        last_size += t.x_size;
+      }
     }
-  }
+  };
 
-  for (Size i = 0; i < nsurf; i++) {
-    SurfaceTarget& t = surf[i];
-    if (stdr::any_of(surf | stdv::drop(i + 1), Cmp::eq(t.type), &SurfaceTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
+  position(atm, [&](const AtmTarget& t) { return atm_field[t.type].flat_view().size(); });
+  position(surf, [&](const SurfaceTarget& t) { return surf_field[t.type].flat_view().size(); });
+  position(subsurf, [&](const SubsurfaceTarget& t) { return subsurf_field[t.type].flat_view().size(); });
+  position(line, [](const LineTarget&) -> Size { return 1; });
 
-    if (t.overlap) {
-      const auto f = stdr::find(surf, t.overlap_key, &SurfaceTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(surf.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = surf_field[t.type].flat_view().size();
-      last_size += t.x_size;
-    }
-  }
+  //! Sensor and error targets get their sizes from their polynomial models
+  position(sensor, [](const SensorTarget& t) { return t.x_size; });
+  position(error, [](const ErrorTarget& t) { return t.x_size; });
 
-  for (Size i = 0; i < nsubsurf; i++) {
-    SubsurfaceTarget& t = subsurf[i];
-    if (stdr::any_of(subsurf | stdv::drop(i + 1), Cmp::eq(t.type), &SubsurfaceTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(subsurf, t.overlap_key, &SubsurfaceTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(subsurf.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = subsurf_field[t.type].flat_view().size();
-      last_size += t.x_size;
-    }
-  }
-
-  for (Size i = 0; i < nline; i++) {
-    LineTarget& t = line[i];
-    if (stdr::any_of(line | stdv::drop(i + 1), Cmp::eq(t.type), &LineTarget::type))
-      arts::user_error("Multiple targets of the same type: {}", t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(line, t.overlap_key, &LineTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(line.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start  = last_size;
-      t.x_size   = 1;
-      last_size += t.x_size;
-    }
-  }
-
-  for (auto& elem : sensor) {
-    if (static_cast<Size>(elem.type.measurement_elem) >= measurement_sensor.size())
-      arts::user_error("Bad sensor elements {}, out-of-bounds", elem);
-  }
-
-  for (Size i = 0; i < nsensor; i++) {
-    SensorTarget& t = sensor[i];
-    if (stdr::any_of(
-            sensor | stdv::drop(i + 1),
-            [&](const SensorKey& key) {
-              if (t.type.type != key.type) return false;
-
-              const Index elem1 = t.type.measurement_elem;
-              const Index elem2 = key.measurement_elem;
-
-              switch (key.type) {
-                using enum SensorKeyType;
-                case freq: return measurement_sensor[elem1].f_grid_ptr() == measurement_sensor[elem2].f_grid_ptr();
-                case zen:
-                case azi:
-                case alt:
-                case lat:
-                case lon:
-                  return measurement_sensor[elem1].poslos_grid_ptr() == measurement_sensor[elem2].poslos_grid_ptr();
-              }
-
-              std::unreachable();
-            },
-            &SensorTarget::type))
-      arts::user_error(
-          "Multiple targets of the same type for target: {} "
-          "- note that different sensor element targets may not share the same type, model, and relevant grids",
-          t.type);
-
-    if (t.overlap) {
-      const auto f = stdr::find(sensor, t.overlap_key, &SensorTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(sensor.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start = last_size;
-      // t.x_size already known
-      last_size += t.x_size;
-    }
-  }
-
-  for (Size i = 0; i < nerror; i++) {
-    ErrorTarget& t = error[i];
-
-    if (t.overlap) {
-      const auto f = stdr::find(error, t.overlap_key, &ErrorTarget::type);
-      if (static_cast<Index>(i) <= stdr::distance(error.begin(), f))
-        arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-      t.x_start = f->x_start;
-      t.x_size  = f->x_size;
-    } else {
-      t.x_start = last_size;
-      // t.x_size already known
-      last_size += t.x_size;
-    }
-
+  for (auto& t : error) {
     if (t.type.y_start + t.type.y_size > measurement_sensor.size())
       arts::user_error(R"(An error target is out of bounds of the y-vector.
 
@@ -645,56 +606,61 @@ but the measurement_vec will only have {} element by the measurement_sensor.
                        measurement_sensor.size());
   }
 
-  finalized = true;
+  finalized       = true;
+  finalized_count = target_count();
 
   throwing_check(last_size);
 }
 
 AtmTarget& Targets::emplace_back(AtmKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return atm.emplace_back(std::move(t), d, n);
 }
 
 SurfaceTarget& Targets::emplace_back(SurfaceKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return surf.emplace_back(std::move(t), d, n);
 }
 
 SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return subsurf.emplace_back(std::move(t), d, n);
 }
 
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return line.emplace_back(std::move(t), d, n);
 }
 
 SensorTarget& Targets::emplace_back(SensorKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return sensor.emplace_back(std::move(t), d, n);
 }
 
 ErrorTarget& Targets::emplace_back(ErrorKey&& t, Numeric d) {
   const auto n = target_count();
+  finalized    = false;
   return error.emplace_back(std::move(t), d, n);
 }
 
-AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) { return atm.emplace_back(t, d, target_count()); }
+AtmTarget& Targets::emplace_back(const AtmKeyVal& t, Numeric d) { return emplace_back(AtmKeyVal{t}, d); }
 
-SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) {
-  return surf.emplace_back(t, d, target_count());
-}
+SurfaceTarget& Targets::emplace_back(const SurfaceKeyVal& t, Numeric d) { return emplace_back(SurfaceKeyVal{t}, d); }
 
 SubsurfaceTarget& Targets::emplace_back(const SubsurfaceKeyVal& t, Numeric d) {
-  return subsurf.emplace_back(t, d, target_count());
+  return emplace_back(SubsurfaceKeyVal{t}, d);
 }
 
-LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) { return line.emplace_back(t, d, target_count()); }
+LineTarget& Targets::emplace_back(const LblLineKey& t, Numeric d) { return emplace_back(LblLineKey{t}, d); }
 
-SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) { return sensor.emplace_back(t, d, target_count()); }
+SensorTarget& Targets::emplace_back(const SensorKey& t, Numeric d) { return emplace_back(SensorKey{t}, d); }
 
-ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) { return error.emplace_back(t, d, target_count()); }
+ErrorTarget& Targets::emplace_back(const ErrorKey& t, Numeric d) { return emplace_back(ErrorKey{t}, d); }
 }  // namespace Jacobian
 
 void xml_io_stream<JacobianTargetType>::write(std::ostream&             os,
@@ -741,6 +707,8 @@ void xml_io_stream<JacobianTargets>::read(std::istream& is, JacobianTargets& x, 
   xml_read_from_stream(is, x.line, pbifs);
   xml_read_from_stream(is, x.sensor, pbifs);
   xml_read_from_stream(is, x.error, pbifs);
+
+  x.finalized_count = x.target_count();
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

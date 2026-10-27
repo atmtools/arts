@@ -79,7 +79,7 @@ std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(PropmatVector&
         if (not std::isnormal(jacobian_target.d))
           arts::user_error("The target {} is not good, it lacks a perturbation value.", jacobian_target);
 
-        if (is_wind(jacobian_target)) {
+        if (Atm::is_wind(jacobian_target.type)) {
           const AscendingGrid freq_grid2(
               freq_grid.begin(), freq_grid.end(), [d = jacobian_target.d](Numeric x) { return x + d; });
           d_absorption = _spectral_propmatAddLookup<not calc>(spectral_propmat,

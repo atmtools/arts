@@ -62,7 +62,7 @@ struct xml_io_stream<std::function<R(Ts...)>> {
       if (ptr != nullptr) {
         bool any = false;
         for (Size i = 0; i < func_helper_t::funcs.size(); i++) {
-          if (ptr == reinterpret_cast<const func_t*>(func_helper_t::funcs[i])) {
+          if (*ptr == *func_helper_t::funcs[i]) {
             xml_write_to_stream(os, i, pbofs, "ID");
             any = true;
             break;
