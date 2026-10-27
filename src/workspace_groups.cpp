@@ -113,6 +113,16 @@ does not change the global workspace while minimizing the number of variables th
       .desc = "Represents species of scattering particles in the atmosphere.",
   };
 
+  wsg_data["MapOfSurfaceScatteringModel"] = {
+      .file = "surface_scattering/surface_scattering_model.h",
+      .desc = R"(A named map of surface scattering models.
+
+Models are stored by string name for individual lookup and their bulk
+surface scattering properties are accumulated when
+``get_surface_scattering_model_properties`` is called.
+)",
+  };
+
   wsg_data["ScatteringSpeciesProperty"] = {
       .file = "scattering/properties.h",
       .desc = R"(Meta data for scattering species.
@@ -139,13 +149,32 @@ They will generally throw an error if you lack the data.
   };
 
   wsg_data["Sun"] = {
-      .file = "sun.h",
-      .desc = R"-x-(A single sun.
+      .file      = "sun.h",
+      .desc      = R"-x-(A single sun.
           
 Each sun is described by a struct with its spectrum, radius
 distance from center of planet to center of sun,
 temperature (if possible), latitude in the sky of the planet,
-longitude in the sky of the planet and the type)-x-",
+longitude in the sky of the planet and the type.
+
+The latitude and the longitude are the geodetic position of the sun
+relative to the centre of the planet, not a line of sight as seen from
+some point on the surface.)-x-",
+      .invariant = "not {}.bad_position()",
+      .invariant_desc =
+          "has a position that can be placed in the sky of the planet, with a latitude within [-90, 90] deg, a "
+          "longitude within [-360, 360] deg, a positive distance and a non-negative radius.",
+      .invariant_printables = {"{}.latitude", "{}.longitude", "{}.distance", "{}.radius"},
+  };
+
+  wsg_data["ArrayOfSun"] = {
+      .file     = "sun.h",
+      .desc     = "A list of *Sun*\n",
+      .dim_size = {"{}.size()"},
+      // Every sun of the list must be placeable in the sky of the planet
+      .invariant            = "not bad_suns({})",
+      .invariant_desc       = "has only suns with a position that can be placed in the sky of the planet.",
+      .invariant_printables = {"{}.size()"},
   };
 
   wsg_data["AtmField"] = {
@@ -1151,7 +1180,6 @@ of this term multiplied by a negative distance.
                     "SpeciesTag",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",
-                    "Sun",
                     "String",
                     "SubsurfacePoint",
                     "PropmatVector",

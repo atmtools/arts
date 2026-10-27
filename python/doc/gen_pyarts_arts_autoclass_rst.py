@@ -88,6 +88,78 @@ def typesof(v):
     return classes
 
 
+# Roots that Sphinx resolves through intersphinx rather than through our own
+# objects, so they are trusted without importing them here.
+external_roots = {
+    "builtins",
+    "collections",
+    "datetime",
+    "numpy",
+    "scipy",
+    "typing",
+}
+
+# Bare names that are valid in a type expression without being ARTS classes.
+builtin_names = {
+    "None",
+    "bool",
+    "bytearray",
+    "bytes",
+    "complex",
+    "dict",
+    "float",
+    "int",
+    "list",
+    "object",
+    "set",
+    "str",
+    "tuple",
+}
+
+
+def unresolved_type_names(types):
+    """Names of a type expression that Sphinx cannot turn into a link.
+
+    typesof() has already spelled every ARTS class out as ``pyarts3.arts.<name>``,
+    so a bare name that is left over is either a builtin or a mistake -- and any
+    mistake here is a Sphinx warning about an unresolvable reference later on.
+    """
+    bad = []
+    for token in re.findall(r"[A-Za-z_][\w.]*", types):
+        if "." in token:
+            if token.split(".")[0] in external_roots:
+                continue
+            obj = pyarts3
+            for part in token.split(".")[1:]:
+                obj = getattr(obj, part, None)
+                if obj is None:
+                    break
+            if isinstance(obj, type):
+                continue
+        elif token in builtin_names:
+            continue
+        elif isinstance(getattr(cxx, token, None), type):
+            continue
+        bad.append(token)
+    return bad
+
+
+def check_types(owner, name, types):
+    """Collect the type-info problems of one attribute as generator errors."""
+    if types is None:
+        global_errors.append(
+            f"{owner}.{name} lacks type-info -- end the docstring with a line of "
+            f"the form '.. :class:`<the type, spelled out>`'"
+        )
+        return "object"
+    for bad in unresolved_type_names(types):
+        global_errors.append(
+            f"{owner}.{name} has type-info that Sphinx cannot resolve: "
+            f"{bad} (in {types})"
+        )
+    return types
+
+
 def class_ref(t):
     """Reference target for a value's type.
 
@@ -237,7 +309,9 @@ def loop_over_class(cls, mod, pure_overview=False):
                 functions[name] = func(name, cls)
             elif isinstance(var, method_t):
                 methods[name] = func(name, cls)
-            elif not isinstance(var, enum_t):
+            else:
+                # Nested enums are types too; they get an autoclass block of
+                # their own on the parent page, further down.
                 values[name] = var
 
         short = short_doc(cls)
@@ -269,7 +343,8 @@ def loop_over_class(cls, mod, pure_overview=False):
                 str += f"      - {functions[n]['short']}\n"
 
             for n in attributes:
-                assert attributes[n]["types"] is not None, f"{cls.__name__}.{attributes[n]['name']} lacks type-info - add '.. :class:`class-information`' to a newline of the docstring"
+                attributes[n]["types"] = check_types(
+                    cls.__name__, n, attributes[n]["types"])
                 str += f"    * - {retypeof(attributes[n]["types"])}\n"
                 str += f"      - :attr:`~{mod}.{cls.__name__}.{n}`\n"
                 str += f"      - {attributes[n]['short']}\n"
@@ -314,9 +389,6 @@ def loop_over_class(cls, mod, pure_overview=False):
                     str += f"     :type: {attributes[n]['types']}\n"
                     str += f"\n"
                     str += f"{indent(attributes[n]['doc'], 5)}\n\n"
-                    if attributes[n]['types'] is None:
-                        global_errors.append(
-                            f"{cls.__name__}.{attributes[n]['name']} lacks type-info - add '.. :class:`class-information`' to a newline of the docstring")
                 str += "\n"
 
             if len(operators):
@@ -401,6 +473,37 @@ def loop_over_module(mod):
 data = loop_over_module(cxx)
 
 
+def all_page_names(data, out=None):
+    """Every RST page that will be written, to spot name clashes."""
+    if out is None:
+        out = set()
+    for name, sub in data["modules"].items():
+        out.add(name)
+        all_page_names(sub, out)
+    out.update(data["classes"])
+    out.update(data["functions"])
+    out.update(data["methods"])
+    return out
+
+
+pages = all_page_names(data)
+
+
+def module_page(name):
+    """The page of a module, kept apart from pages that differ only by case.
+
+    A class and a submodule that differ only in case would fight over a single
+    file on case-insensitive filesystems, and whichever is written second wins:
+    the module page, with the automodule directive that is the only source of
+    its py:mod target, is simply gone.  Sphinx takes the target from the
+    directive, not from the file name, so the module page can be renamed while
+    every :py:mod: reference to it keeps working.
+    """
+    if any(n != name and n.lower() == name.lower() for n in pages):
+        return f"{name}-module"
+    return name
+
+
 def create_func_rst(name, path, mod):
     try:
         with rst_output(f"{path}/{name}.rst") as f:
@@ -421,17 +524,24 @@ def create_class_rst(data, path, mod):
             f"Error in create_class_rst for data={data}, path={path}, mod={mod}:\n{e}")
 
 
-def create_rst(data, path, mod):
+def create_rst(data, path, mod, page=None):
     try:
-        with rst_output(f"{path}/{mod}.rst") as f:
+        if page is not None and page != mod:
+            # Drop the page this module claimed before its clash with a same-
+            # cased class was noticed.  On a case-insensitive filesystem that
+            # file is also where the class page would go, and it keeps its old
+            # name however often it is rewritten.
+            Path(f"{path}/{mod}.rst").unlink(missing_ok=True)
+
+        with rst_output(f"{path}/{page or mod}.rst") as f:
             f.write(f"{mod}\n{'='*len(mod)}\n\n")
 
             f.write(".. toctree::\n")
             f.write("  :hidden:\n\n")
 
             for name in data["modules"]:
-                f.write(f"  {name}\n")
-                create_rst(data["modules"][name], path, name)
+                f.write(f"  {module_page(name)}\n")
+                create_rst(data["modules"][name], path, name, module_page(name))
 
             for name in data["classes"]:
                 f.write(f"  {name}\n")
@@ -456,7 +566,7 @@ def create_rst(data, path, mod):
                 for name in data["modules"]:
                     f.write(f"  * - :py:mod:`~{name}`\n")
                     f.write(f"    - {data['modules'][name]['short']}\n")
-                    create_rst(data["modules"][name], path, name)
+                    create_rst(data["modules"][name], path, name, module_page(name))
 
             if len(data["classes"]):
                 f.write("\n.. rubric:: Classes\n\n")
@@ -516,13 +626,14 @@ def create_workspace_rst(path):
             attr = getattr(ws, name)
 
             if isinstance(attr, attr_t):
+                types = check_types("Workspace", name, typesof(attr))
                 with rst_output(
                     f"{path}/pyarts3.workspace.Workspace.{workspace_page(name)}.rst"
                 ) as f:
                     f.write(f"{name}\n{'='*len(name)}\n\n")
                     f.write(f".. currentmodule:: pyarts3.workspace\n\n")
                     f.write(f".. attribute:: Workspace.{name}\n")
-                    f.write(f"   :type: {typesof(attr)}\n\n")
+                    f.write(f"   :type: {types}\n\n")
                     f.write(f"{indent(doc(attr), 3)}\n")
             elif isinstance(attr, (method_t, FunctionType)):
                 with rst_output(
@@ -547,6 +658,6 @@ create_rst(data, sys.argv[1], "pyarts3.arts")
 create_workspace_rst(sys.argv[1])
 
 if len(global_errors) != 0:
-    print("\n".join(global_errors))
-    print(f"ERRORS FOUND: {len(global_errors)}")
+    print("\n".join(dict.fromkeys(global_errors)))
+    print(f"ERRORS FOUND: {len(set(global_errors))}")
     sys.exit(1)

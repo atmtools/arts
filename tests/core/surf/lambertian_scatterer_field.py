@@ -1,0 +1,217 @@
+"""Tests for LambertianSurfaceScatterer with a spatially gridded reflectivity.
+
+The reflectivity is a SpectralGeodeticField3 over (frequency [Hz], latitude [deg],
+longitude [deg]).
+
+Verifies:
+1. Construction and attribute access.
+2. At a homogeneous field (same reflectivity everywhere), the gridded
+   reflectivity produces identical results to a constant reflectivity at any
+   lat/lon.
+3. Spatial interpolation: reflectivity varies linearly across latitude; the
+   result at the midpoint matches the average of the two endpoint values.
+4. XML round-trip: write and re-read the object, then verify BRDF is unchanged.
+5. MapOfSurfaceScatteringModel accepts the gridded model.
+6. Full 4x4 Mueller structure for constant and gridded reflectivity.
+"""
+
+import numpy as np
+import pyarts3 as pyarts
+import tempfile
+import os
+
+arts = pyarts.arts
+
+# ---------------------------------------------------------------------------
+# Common grids
+# ---------------------------------------------------------------------------
+f_grid    = arts.Vector([1e11, 2e11, 3e11])
+za_inc    = arts.Vector([0.0, 90.0])
+aa_inc    = arts.Vector([0.0])
+za_scat   = arts.Vector([0.0, 90.0])
+aa_scat   = arts.Vector([0.0])
+surf_pt   = arts.SurfacePoint()
+
+# Field grids: frequency [Hz], latitude [deg], longitude [deg]
+f_field   = [1e10, 1e12]
+lat_field = [-90.0, 90.0]
+lon_field = [-180.0, 179.0]
+
+
+def geodetic_field(data):
+    """SpectralGeodeticField3 on the (frequency, latitude, longitude) field grids."""
+    g = arts.SpectralGeodeticField3()
+    g.grids = (arts.AscendingGrid(f_field), arts.LatGrid(lat_field),
+               arts.LonGrid(lon_field))
+    g.data = np.array(data, dtype=float)
+    return g
+
+
+# ---------------------------------------------------------------------------
+# Test 1: Basic construction and attribute access
+# ---------------------------------------------------------------------------
+field3 = geodetic_field(np.full((2, 2, 2), 0.5))
+scf = arts.LambertianSurfaceScatterer(field3)
+assert scf.reflectivity.data_type == "SpectralGeodeticField3", "Data type mismatch"
+stored = scf.reflectivity.data
+assert np.array_equal(np.array(stored.grids[0]), f_field), "Frequency grid mismatch"
+assert np.array_equal(np.array(stored.grids[1]), lat_field), "Latitude grid mismatch"
+assert np.array_equal(np.array(stored.grids[2]), lon_field), "Longitude grid mismatch"
+assert np.array_equal(np.array(stored.data), np.full((2, 2, 2), 0.5)), "Data mismatch"
+print("Test 1 passed: construction and attribute access")
+
+
+# ---------------------------------------------------------------------------
+# Test 2: Homogeneous field equals a constant reflectivity
+# ---------------------------------------------------------------------------
+r_uniform = 0.3
+
+sc1 = arts.LambertianSurfaceScatterer(r_uniform)
+
+field3_uniform = geodetic_field(np.full((2, 2, 2), r_uniform))
+sc_field = arts.LambertianSurfaceScatterer(field3_uniform)
+
+# Use lat=30, lon=45 (an interior point of the field grids)
+props1 = sc1.get_surface_scattering_model_properties(
+    surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+props_f = sc_field.get_surface_scattering_model_properties(
+    surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+
+brdf1  = np.array(props1.brdf_matrix_diffuse)
+brdf_f = np.array(props_f.brdf_matrix_diffuse)
+emiss1  = np.array(props1.emissivity_vector_diffuse)
+emiss_f = np.array(props_f.emissivity_vector_diffuse)
+
+assert np.allclose(brdf1, brdf_f, atol=1e-12), (
+    f"BRDF mismatch between uniform and homogeneous field:\n"
+    f"max diff = {np.max(np.abs(brdf1 - brdf_f)):.2e}")
+assert np.allclose(emiss1, emiss_f, atol=1e-12), (
+    f"Emissivity mismatch:\n max diff = {np.max(np.abs(emiss1 - emiss_f)):.2e}")
+print("Test 2 passed: homogeneous field equals constant reflectivity")
+
+
+# ---------------------------------------------------------------------------
+# Test 3: Linear spatial interpolation in latitude
+#
+# Build a field where reflectivity varies linearly from 0.2 (lat=-90) to
+# 0.8 (lat=+90), constant in longitude and frequency.  The midpoint (lat=0)
+# should give exactly 0.5.
+# ---------------------------------------------------------------------------
+r_south = 0.2
+r_north = 0.8
+data_lin = np.zeros((2, 2, 2))  # (frequency, latitude, longitude)
+data_lin[:, 0, :] = r_south   # lat = -90
+data_lin[:, 1, :] = r_north   # lat = +90
+
+field3_lin = geodetic_field(data_lin)
+sc_lin = arts.LambertianSurfaceScatterer(field3_lin)
+
+# At lat=0, expected r = 0.5 everywhere
+expected_brdf = 0.5
+expected_emiss = 0.5
+
+props_mid = sc_lin.get_surface_scattering_model_properties(
+    surf_pt, 0.0, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+brdf_mid  = np.array(props_mid.brdf_matrix_diffuse)
+emiss_mid = np.array(props_mid.emissivity_vector_diffuse)
+
+# Check BRDF [f, zi, ai, zs, as, 0, 0] = r
+for fi in range(len(f_grid)):
+    assert abs(float(brdf_mid[fi, 0, 0, 0, 0, 0, 0]) - expected_brdf) < 1e-12, (
+        f"BRDF at lat=0 f[{fi}]: {float(brdf_mid[fi,0,0,0,0,0,0]):.6e} != {expected_brdf:.6e}")
+    assert abs(float(emiss_mid[fi, 0, 0, 0, 0]) - expected_emiss) < 1e-12, (
+        f"Emissivity at lat=0 f[{fi}]: {float(emiss_mid[fi,0,0]):.6e} != {expected_emiss:.6e}")
+
+# Also check at lat=-90 (should give r_south) and lat=+90 (r_north)
+for lat_val, r_expected in [(-90.0, r_south), (90.0, r_north)]:
+    props_e = sc_lin.get_surface_scattering_model_properties(
+        surf_pt, lat_val, 0.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+    brdf_e  = np.array(props_e.brdf_matrix_diffuse)
+    for fi in range(len(f_grid)):
+        val = float(brdf_e[fi, 0, 0, 0, 0, 0, 0])
+        exp = r_expected
+        assert abs(val - exp) < 1e-12, (
+            f"BRDF at lat={lat_val}: {val:.6e} != {exp:.6e}")
+print("Test 3 passed: linear spatial interpolation")
+
+
+# ---------------------------------------------------------------------------
+# Test 4: XML round-trip
+# ---------------------------------------------------------------------------
+with tempfile.NamedTemporaryFile(suffix=".xml", delete=False) as f:
+    fname = f.name
+try:
+    sc_field.savexml(fname)
+    sc_reload = arts.LambertianSurfaceScatterer()
+    sc_reload.readxml(fname)
+    assert sc_reload.reflectivity.data_type == "SpectralGeodeticField3"
+
+    props_orig   = sc_field.get_surface_scattering_model_properties(
+        surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+    props_reload = sc_reload.get_surface_scattering_model_properties(
+        surf_pt, 30.0, 60.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+
+    brdf_orig   = np.array(props_orig.brdf_matrix_diffuse)
+    brdf_reload = np.array(props_reload.brdf_matrix_diffuse)
+    assert np.allclose(brdf_orig, brdf_reload, atol=1e-12), (
+        f"XML round-trip: BRDF mismatch, max diff = "
+        f"{np.max(np.abs(brdf_orig - brdf_reload)):.2e}")
+    print("Test 4 passed: XML round-trip")
+finally:
+    os.unlink(fname)
+
+
+# ---------------------------------------------------------------------------
+# Test 5: MapOfSurfaceScatteringModel accepts the gridded model
+# ---------------------------------------------------------------------------
+mosm = arts.MapOfSurfaceScatteringModel()
+mosm.add("albedo_field", sc_field)
+assert "albedo_field" in mosm, "Model not in map"
+
+bulk = mosm.get_surface_scattering_model_properties(
+    surf_pt, 30.0, 45.0, f_grid, za_inc, aa_inc, za_scat, aa_scat)
+brdf_bulk = np.array(bulk.brdf_matrix_diffuse)
+assert not np.all(brdf_bulk == 0.0), "Bulk BRDF should be non-zero"
+print("Test 5 passed: MapOfSurfaceScatteringModel accepts the gridded model")
+
+
+# ---------------------------------------------------------------------------
+# Test 6: Full 4x4 Mueller structure — all non-[0,0] elements must be zero.
+# A Lambertian surface reflects and emits intensity only, so no reflectance or
+# emissivity may reach the Q/U/V channels.
+# ---------------------------------------------------------------------------
+r_test = 0.5
+sc_t6 = arts.LambertianSurfaceScatterer(r_test)
+
+za_inc_t6  = arts.Vector([0.0, 45.0, 90.0])
+aa_inc_t6  = arts.Vector([0.0, 180.0])
+za_scat_t6 = arts.Vector([30.0, 90.0])
+aa_scat_t6 = arts.Vector([-90.0, 90.0])
+
+for sc, label in [(sc_t6, "constant reflectivity"),
+                  (sc_field, "gridded reflectivity")]:
+    props_t6 = sc.get_surface_scattering_model_properties(
+        surf_pt, 30.0, 45.0, f_grid, za_inc_t6, aa_inc_t6, za_scat_t6, aa_scat_t6)
+
+    brdf_t6  = np.array(props_t6.brdf_matrix_diffuse)
+    emiss_t6 = np.array(props_t6.emissivity_vector_diffuse)
+
+    r_eff = r_test if sc is sc_t6 else r_uniform  # sc_field is the uniform 0.3 field
+
+    expected_brdf  = np.zeros(brdf_t6.shape)
+    expected_brdf[..., 0, 0] = r_eff
+    expected_emiss = np.zeros(emiss_t6.shape)
+    expected_emiss[..., 0, 0] = 1.0 - r_eff
+
+    assert np.allclose(brdf_t6, expected_brdf, atol=1e-12), (
+        f"{label}: diffuse BRDF not diag(r,0,0,0), max off-diag = "
+        f"{np.max(np.abs(brdf_t6 - expected_brdf)):.2e}")
+    assert np.allclose(emiss_t6, expected_emiss, atol=1e-12), (
+        f"{label}: diffuse emissivity not diag(1-r,0,0,0), max off-diag = "
+        f"{np.max(np.abs(emiss_t6 - expected_emiss)):.2e}")
+    assert props_t6.brdf_matrix_specular is None, f"{label}: specular BRDF must be None"
+    assert props_t6.emissivity_vector_specular is None, f"{label}: specular emissivity must be None"
+print("Test 6 passed: full Mueller structure diag(r,0,0,0) / diag(1-r,0,0,0)")
+
+
+print("\nAll gridded-reflectivity LambertianSurfaceScatterer tests passed.")

@@ -4,8 +4,7 @@
 #include <arts_conversions.h>
 #include <debug.h>
 #include <enumsSurfaceKey.h>
-#include <lagrange_interp.h>
-#include <mystring.h>
+#include <functional_field_interp.h>
 
 #include <cmath>
 #include <exception>
@@ -142,115 +141,8 @@ Numeric Point::operator[](const SurfaceKeyVal &x) const {
 }
 
 namespace {
-Numeric numeric_interpolation(const GeodeticField2                                             &data,
-                              Numeric                                                           lat,
-                              Numeric                                                           lon,
-                              std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lat_extrap,
-                              std::pair<InterpolationExtrapolation, InterpolationExtrapolation> lon_extrap) {
-  if (not data.ok())
-    arts::user_error(
-        "The surface field data shape {:B,} does not match its grid sizes {:B,}", data.data.shape(), data.shape());
-
-  const Vector &lats = data.grid<0>();
-  const Vector &lons = data.grid<1>();
-
-  if (lat < lats.front()) {
-    if (lat_extrap.first == InterpolationExtrapolation::None)
-      arts::user_error(
-          "Latitude {} is below the first latitude {} of the surface field, and extrapolation is not allowed",
-          lat,
-          lats.front());
-    if (lat_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
-    if (lat_extrap.first == InterpolationExtrapolation::Nearest) lat = lats.front();
-  }
-
-  if (lat > lats.back()) {
-    if (lat_extrap.second == InterpolationExtrapolation::None)
-      arts::user_error(
-          "Latitude {} is above the last latitude {} of the surface field, and extrapolation is not allowed",
-          lat,
-          lats.back());
-    if (lat_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
-    if (lat_extrap.second == InterpolationExtrapolation::Nearest) lat = lats.back();
-  }
-
-  if (lon < lons.front()) {
-    if (lon_extrap.first == InterpolationExtrapolation::None)
-      arts::user_error(
-          "Longitude {} is below the first longitude {} of the surface field, and extrapolation is not allowed",
-          lon,
-          lons.front());
-    if (lon_extrap.first == InterpolationExtrapolation::Zero) return 0.0;
-    if (lon_extrap.first == InterpolationExtrapolation::Nearest) lon = lons.front();
-  }
-
-  if (lon > lons.back()) {
-    if (lon_extrap.second == InterpolationExtrapolation::None)
-      arts::user_error(
-          "Longitude {} is above the last longitude {} of the surface field, and extrapolation is not allowed",
-          lon,
-          lons.back());
-    if (lon_extrap.second == InterpolationExtrapolation::Zero) return 0.0;
-    if (lon_extrap.second == InterpolationExtrapolation::Nearest) lon = lons.back();
-  }
-
-  if (lats.size() == 1 and lons.size() == 1) { return data.data[0, 0]; }
-
-  if (lats.size() == 1) {
-    using LatLag = lagrange_interp::lag_t<0>;
-    using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
-
-    return interp(data.data,
-                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
-                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
-  }
-
-  if (lons.size() == 1) {
-    using LatLag = lagrange_interp::lag_t<1>;
-    using LonLag = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
-
-    return interp(data.data,
-                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
-                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
-  }
-
-  {
-    using LatLag = lagrange_interp::lag_t<1>;
-    using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
-
-    return interp(data.data,
-                  LatLag(lats, lat, lagrange_interp::ascending_grid_t{}),
-                  LonLag(lons, lon, lagrange_interp::ascending_grid_t{}));
-  }
-}
-
-Numeric numeric_interpolation(const FunctionalData &f,
-                              Numeric               lat,
-                              Numeric               lon,
-                              std::pair<InterpolationExtrapolation, InterpolationExtrapolation>,
-                              std::pair<InterpolationExtrapolation, InterpolationExtrapolation>) {
-  return f(lat, lon);
-}
-
-constexpr Numeric numeric_interpolation(Numeric x,
-                                        Numeric,
-                                        Numeric,
-                                        std::pair<InterpolationExtrapolation, InterpolationExtrapolation>,
-                                        std::pair<InterpolationExtrapolation, InterpolationExtrapolation>) {
-  return x;
-}
-
-auto interpolation_function(Numeric lat, Numeric lon) {
-  return [lat, lon](auto &data) {
-    const auto call = [lat,
-                       lon,
-                       lat_extrap = std::pair{data.lat_low, data.lat_upp},
-                       lon_extrap = std::pair{data.lon_low, data.lon_upp}](auto &&x) {
-      return numeric_interpolation(x, lat, lon, lat_extrap, lon_extrap);
-    };
-
-    return std::visit(call, data.data);
-  };
+std::array<field_interp::extrapolation, 2> extrapolation(const Data &d) {
+  return {{{d.lat_low, d.lat_upp}, {d.lon_low, d.lon_upp}}};
 }
 }  // namespace
 
@@ -289,12 +181,11 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
 
   if (std::holds_alternative<Numeric>(z.data)) { return up; }
 
-  alt = std::isnan(alt) ? interpolation_function(lat, lon)(z) : alt;
+  alt = std::isnan(alt) ? z.at(lat, lon) : alt;
 
   constexpr Numeric offset = 1e-3;
-  const Numeric     lat1 = (lat + offset > 90) ? (lat - offset) : (lat + offset), lon1 = lon,
-                    alt1 = interpolation_function(lat1, lon1)(z);
-  const Numeric     lat2 = lat, lon2 = lon + offset, alt2 = interpolation_function(lat2, lon2)(z);
+  const Numeric     lat1 = (lat + offset > 90) ? (lat - offset) : (lat + offset), lon1 = lon, alt1 = z.at(lat1, lon1);
+  const Numeric     lat2 = lat, lon2 = lon + offset, alt2 = z.at(lat2, lon2);
 
   const Vector3 xyz  = to_xyz(ellipsoid, {alt, lat, lon});
   const Vector3 xyz1 = to_xyz(ellipsoid, {alt1, lat1, lon1});
@@ -310,7 +201,9 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
       std::format("Cannot find a normal to the surface at position {} {}\n{}", lat, lon, indent(e.what())));
 }
 
-Numeric Data::at(const Numeric lat, const Numeric lon) const { return interpolation_function(lat, lon)(*this); }
+Numeric Data::at(const Numeric lat, const Numeric lon) const {
+  return field_interp::at(data, extrapolation(*this), {lat, lon});
+}
 
 Size Field::nprops() const { return props.size(); }
 Size Field::nother() const { return other.size(); }
@@ -343,9 +236,7 @@ Point Field::at(Numeric lat, Numeric lon) const {
 Numeric Field::single_value(const KeyVal &key, Numeric lat, Numeric lon) const {
   if (not contains(key)) arts::user_error("Surface field does not possess the key: {}", key);
 
-  const auto interp = interpolation_function(lat, lon);
-
-  return interp(this->operator[](key));
+  return this->operator[](key).at(lat, lon);
 }
 
 namespace {
@@ -370,125 +261,22 @@ bool Field::constant_value(const KeyVal &key) const {
   return std::holds_alternative<Numeric>(this->operator[](key).data);
 }
 
-[[nodiscard]] ConstVectorView Data::flat_view() const {
-  return std::visit(
-      [](auto &X) -> ConstVectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField2>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return ConstVectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return ConstVectorView{};
-        assert(false);
-      },
-      data);
+ConstVectorView Data::flat_view() const { return field_interp::flat_view(data); }
+
+VectorView Data::flat_view() { return field_interp::flat_view(data); }
+
+//! Flat weights for the positions on the surface
+std::vector<std::pair<Index, Numeric>> Data::flat_weights(const Numeric &lat, const Numeric &lon) const {
+  return field_interp::flat_weight(data, {lat, lon});
 }
 
-[[nodiscard]] VectorView Data::flat_view() {
-  return std::visit(
-      [](auto &X) -> VectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField2>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return VectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return VectorView{};
-        assert(false);
-      },
-      data);
-}
-
-namespace {
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const Numeric &, const Numeric &, const Numeric &) {
-  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  return {v1, v0, v0, v0};
-}
-
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &, const Numeric &, const Numeric &) {
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  return {v0, v0, v0, v0};
-}
-
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GeodeticField2 &v,
-                                                       const Numeric        &lat,
-                                                       const Numeric        &lon) {
-  using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
-  using LatLag = lagrange_interp::lag_t<1>;
-
-  const auto slon = v.shape()[1];
-  const bool d1   = v.shape()[0] == 1;
-  const bool d2   = slon == 1;
-
-  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-
-  if (d1 and d2) { return {v1, v0, v0, v0}; }
-
-  if (d1) {
-    const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
-    return {std::pair<Index, Numeric>{wlon.indx[0], wlon.data[0]},
-            std::pair<Index, Numeric>{wlon.indx[1], wlon.data[1]},
-            v0,
-            v0};
-  }
-
-  if (d2) {
-    const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
-    return {std::pair<Index, Numeric>{wlat.indx[0], wlat.data[0]},
-            std::pair<Index, Numeric>{wlat.indx[1], wlat.data[1]},
-            v0,
-            v0};
-  }
-
-  const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
-  const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
-  auto         sz = [slon](auto lat_pos, auto lon_pos) { return lat_pos * slon + lon_pos; };
-
-  return {std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[0]), wlat.data[0] * wlon.data[0]},
-          std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[1]), wlat.data[0] * wlon.data[1]},
-          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[0]), wlat.data[1] * wlon.data[0]},
-          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[1]), wlat.data[1] * wlon.data[1]}};
-}
-}  // namespace
-
-//! Flat weights for the positions in an atmosphere
-std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(const Numeric &lat, const Numeric &lon) const {
-  return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
-}
-
-bool Data::ok() const {
-  if (std::holds_alternative<GeodeticField2>(data)) {
-    auto &v = *std::get_if<GeodeticField2>(&data);
-    return v.ok() and lagrange_interp::loncross::cycle(v.grid<1>().front()) == v.grid<1>().front() and
-           lagrange_interp::loncross::cycle(v.grid<1>().back()) == v.grid<1>().back() and v.grid<0>().front() >= -90 and
-           v.grid<0>().back() <= 90;
-  }
-
-  return true;
-}
+bool Data::ok() const { return field_interp::ok(data); }
 
 void Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<GeodeticField2>(data)) {
-    auto &field = std::get<GeodeticField2>(data);
-
-    if (field.grid<0>().size() == 1) {
-      lat_upp = InterpolationExtrapolation::Nearest;
-      lat_low = InterpolationExtrapolation::Nearest;
-    }
-
-    if (field.grid<1>().size() == 1) {
-      lon_upp = InterpolationExtrapolation::Nearest;
-      lon_low = InterpolationExtrapolation::Nearest;
-    }
-  } else {
-    lat_upp = InterpolationExtrapolation::Nearest;
-    lat_low = InterpolationExtrapolation::Nearest;
-    lon_upp = InterpolationExtrapolation::Nearest;
-    lon_low = InterpolationExtrapolation::Nearest;
-  }
+  using enum InterpolationExtrapolation;
+  const auto [lat, lon] = field_interp::single_point_dims(data);
+  if (lat) lat_low = lat_upp = Nearest;
+  if (lon) lon_low = lon_upp = Nearest;
 }
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
