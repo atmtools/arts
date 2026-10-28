@@ -1,4 +1,5 @@
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/complex.h>
 #include <physics_funcs.h>
 
 #include "hpy_numpy.h"
@@ -49,6 +50,40 @@ Returns
 -------
 n : Numeric or numpy.ndarray
     Real refractive index.
+)--");
+
+  physics.def(
+      "permittivity_water_liebe93",
+      [](py::object frequency, py::object temperature, bool check_validity) {
+        return vectorize(
+            [check_validity](Numeric f, Numeric t) { return permittivity_water_liebe93(f, t, check_validity); },
+            frequency,
+            temperature);
+      },
+      "frequency"_a,
+      "temperature"_a,
+      "check_validity"_a = true,
+      R"--(Complex permittivity of liquid water in the microwave.
+
+Implements the double-Debye model of Liebe, Hufford and Manabe (1991), "A
+model for the complex permittivity of water at frequencies below 1 THz", as
+ARTS2 and Atmlab's eps_water_liebe93.m.  The imaginary part is positive.  The
+function broadcasts scalar and array inputs using NumPy rules.
+
+Parameters
+----------
+frequency : Numeric or numpy.ndarray
+    Frequency [Hz].
+temperature : Numeric or numpy.ndarray
+    Temperature [K].
+check_validity : bool, optional
+    Enforce the ranges 10 GHz <= frequency <= 1000 GHz and
+    233.15 K <= temperature <= 373.15 K.
+
+Returns
+-------
+eps : complex or numpy.ndarray
+    Complex relative permittivity.
 )--");
 
   physics.def(

@@ -2,34 +2,17 @@
 
 #include <arts_constants.h>
 #include <atm_path.h>
+#include <physics_funcs.h>
 
 #include <algorithm>
 #include <cmath>
-#include <complex>
 #include <memory>
 #include <utility>
 
 namespace radar {
 Numeric liebe93_k2(const Numeric frequency, const Numeric temperature) {
-  if (temperature < Constant::temperature_at_0c - 40.0 or temperature > Constant::temperature_at_0c + 100.0)
-    arts::user_error("Automatic radar k2 requires {} K <= ze_tref <= {} K; got {} K",
-                     Constant::temperature_at_0c - 40.0,
-                     Constant::temperature_at_0c + 100.0,
-                     temperature);
-  if (frequency < 10e9 or frequency > 1000e9)
-    arts::user_error("Automatic radar k2 uses Liebe-93 and requires 10 GHz <= frequency <= 1000 GHz; got {} Hz",
-                     frequency);
-
-  const Numeric theta = 1.0 - 300.0 / temperature;
-  const Numeric e0    = 77.66 - 103.3 * theta;
-  const Numeric e1    = 0.0671 * e0;
-  const Numeric f1    = 20.2 + 146.0 * theta + 316.0 * theta * theta;
-  const Numeric e2    = 3.52;
-  const Numeric f2    = 39.8 * f1;
-  const Complex ifGHz{0.0, frequency / 1e9};
-  const Complex n  = std::sqrt(e2 + (e1 - e2) / (1.0 - ifGHz / f2) + (e0 - e1) / (1.0 - ifGHz / f1));
-  const Complex n2 = n * n;
-  return std::norm((n2 - 1.0) / (n2 + 2.0));
+  const Complex permittivity = permittivity_water_liebe93(frequency, temperature);
+  return std::norm((permittivity - 1.0) / (permittivity + 2.0));
 }
 
 Numeric ze_factor(const Numeric frequency, const Numeric ze_tref, const Numeric k2) {
