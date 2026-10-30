@@ -6824,36 +6824,70 @@ Neither polarization nor wind calculations are possible with this method.
   };
 
   wsm_data["MCRadar"] = {
-      .desc   = R"--(Simulates active-radar returns using Monte Carlo antenna sampling.
+      .desc           = R"--(Simulates active-radar returns using Monte Carlo antenna sampling.
 
 This ARTS3-native implementation uses *AtmField*, *SurfaceField*,
-*ArrayOfScatteringSpecies*, and *ray_path_observer_agenda*.  Range-bin edges
-are one-way geometric distances in metres.  The outputs contain one
-*Stokvec* per range bin, and the error contains the component-wise standard
-error of the Monte Carlo mean.  The implementation currently supports single
-scattering (``mc_max_scatorder=1``); the argument is retained so higher orders
-can be added without changing the interface.
+*ArrayOfScatteringSpecies*, and *ray_path_observer_agenda*.  Every sampled
+antenna direction is solved with the same range gates, optical properties,
+and two-way rtepack transmission as *measurement_vecFromRadarSingleScattering*,
+so a pencil beam gives the same result.
+
+``range_bins`` are the gate edges in the coordinate of ``range_mode``.  The
+range includes the distance from the radar to the first path point, as for a
+radar outside the atmosphere.  Gates are averaged over their full width.
+
+The mean over the sampled directions is weighted by the antenna gain, so a
+uniformly filled beam returns the same value as a pencil beam.  The outputs
+contain one *Stokvec* per range bin, and the error contains the
+component-wise standard error of the weighted mean.  *radar_time* is the mean
+round-trip time of the part of each bin that the paths cover.  Bins that no
+path reaches are NaN.
+
+``unit`` may be ``"1"`` or ``"Ze"``.  A negative ``k2`` derives the
+liquid-water dielectric factor at ``ze_tref`` using the Liebe-93
+parameterization.  ``pext_scaling`` scales only particulate extinction, not
+particle backscatter.  *rte_option* selects the transmission of every layer,
+and of the part of a layer inside a gate.
+
+The implementation currently supports single scattering
+(``mc_max_scatorder=1``); the argument is retained so higher orders can be
+added without changing the interface.
 )--",
-      .author = {"Richard Larsson", "OpenAI Codex"},
-      .out    = {"radar_signal", "radar_error"},
-      .in     = {"atm_field",
-                 "surf_field",
-                 "scat_species",
-                 "mc_antenna",
-                 "ray_path_observer_agenda",
-                 "spectral_propmat_agenda"},
-      .gin    = {"frequency",
-                 "sensor_pos",
-                 "sensor_los",
-                 "mc_y_tx",
-                 "range_bins",
-                 "mc_seed",
-                 "mc_max_iter",
-                 "mc_max_scatorder",
-                 "k2",
-                 "unit"},
-      .gin_type =
-          {"Numeric", "Vector3", "Vector2", "Stokvec", "AscendingGrid", "Index", "Index", "Index", "Numeric", "String"},
+      .author         = {"Richard Larsson", "OpenAI Codex"},
+      .out            = {"radar_signal", "radar_error", "radar_time"},
+      .in             = {"atm_field",
+                         "surf_field",
+                         "scat_species",
+                         "mc_antenna",
+                         "ray_path_observer_agenda",
+                         "spectral_propmat_agenda",
+                         "rte_option"},
+      .gin            = {"frequency",
+                         "sensor_pos",
+                         "sensor_los",
+                         "mc_y_tx",
+                         "range_bins",
+                         "mc_seed",
+                         "mc_max_iter",
+                         "mc_max_scatorder",
+                         "k2",
+                         "unit",
+                         "range_mode",
+                         "ze_tref",
+                         "pext_scaling"},
+      .gin_type       = {"Numeric",
+                         "Vector3",
+                         "Vector2",
+                         "Stokvec",
+                         "AscendingGrid",
+                         "Index",
+                         "Index",
+                         "Index",
+                         "Numeric",
+                         "RadarUnit",
+                         "RadarRangeMode",
+                         "Numeric",
+                         "Numeric"},
       .gin_value      = {std::nullopt,
                          std::nullopt,
                          std::nullopt,
@@ -6863,17 +6897,23 @@ can be added without changing the interface.
                          Index{1000},
                          Index{1},
                          Numeric{0.93},
-                         String{"1"}},
+                         RadarUnit::unit,
+                         RadarRangeMode::Distance,
+                         Numeric{273.15},
+                         Numeric{1.0}},
       .gin_desc       = {"Radar frequency [Hz].",
                          "Sensor position [alt, lat, lon].",
                          "Sensor boresight [zenith, azimuth].",
                          "Transmitted Stokes vector.",
-                         "One-way range-bin edges [m].",
+                         "Range-bin edges in the coordinate of range_mode.",
                          "Random seed.",
                          "Number of sampled antenna rays.",
                          "Maximum scattering order (currently must be 1).",
-                         "Reference dielectric factor squared for Ze conversion.",
-                         "Output unit: '1' or 'Ze'."},
+                         "Reference dielectric factor squared; negative selects Liebe-93.",
+                         "Output unit: 1 or Ze.",
+                         "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
+                         "Liquid-water reference temperature [K] for automatic k2.",
+                         "Multiplicative factor for particulate extinction (0 to 2)."},
       .pass_workspace = true,
   };
 
@@ -6920,7 +6960,15 @@ frequency/polarization/range-bin arrangement.
 ``range_mode`` may be ``"Altitude"`` [m], ``"Distance"`` [m one way],
 ``"RoundTripTime"`` [s, including path group refractive indices], or
 ``"Legacy"`` (the ARTS2 rule: altitude if the largest edge exceeds 1,
-otherwise round-trip time).
+otherwise round-trip time).  Distance and round-trip time include the leg from
+the radar to the first path point, as for a radar outside the atmosphere.
+
+Every gate is integrated layer by layer.  The return at the midpoint of the
+overlap of a layer and a gate uses the transmission of *rte_option* from the
+layer edge, so the Magnus operator also applies to partial layers.  Gates are
+averaged over their full width, so the parts of a gate without any path
+contribute nothing.  Gates that no path reaches are NaN.  *radar_time* is the
+mean round-trip time of the covered part of each gate.
 
 The output unit may be ``"1"`` (backscatter coefficient, 1/(m sr)),
 ``"Ze"`` (mm6/m3), or ``"dBZe"``.  A negative ``k2`` derives the liquid-water
@@ -6936,13 +6984,16 @@ come from *spectral_propmat_agenda*, scattering derivatives come from
 *scat_species*, and their ordered two-way transmission product is propagated
 analytically through rtepack.  There is no production finite-difference loop.
 
-Allowed auxiliary quantities are ``"Radiative background"``,
-``"Backscattering"``, ``"Abs species extinction"``, and
-``"Particle extinction"``.  They are returned as rows of *radar_aux* in the
-requested order.
+The auxiliary quantities are listed by *RadarAuxiliary*.  They are returned
+as rows of *radar_aux* in the requested order.  Extinction and background are
+means over the covered part of each gate.  They and *radar_time* are weighted
+by the geometry of the sensor elements, not by their polarization.  The weight
+of a polarization selector is the larger of the absolute I and the length of
+(Q, U, V).  This is I for a physical receiver, and positive also for pure Q, U,
+and V selectors.
 )--",
       .author   = {"Patrick Eriksson", "OpenAI Codex"},
-      .out      = {"measurement_vec", "measurement_jac", "radar_aux"},
+      .out      = {"measurement_vec", "measurement_jac", "radar_aux", "radar_time"},
       .in       = {"measurement_sensor",
                    "radar_range_limits",
                    "jac_targets",
@@ -6950,17 +7001,25 @@ requested order.
                    "surf_field",
                    "scat_species",
                    "ray_path_observer_agenda",
-                   "spectral_propmat_agenda"},
+                   "spectral_propmat_agenda",
+                   "rte_option"},
       .gin      = {"transmitted_stokes", "range_mode", "unit", "ze_tref", "k2", "dbze_min", "pext_scaling", "aux_vars"},
-      .gin_type = {"Stokvec", "String", "String", "Numeric", "Numeric", "Numeric", "Numeric", "ArrayOfString"},
+      .gin_type = {"Stokvec",
+                   "RadarRangeMode",
+                   "RadarUnit",
+                   "Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "Numeric",
+                   "ArrayOfRadarAuxiliary"},
       .gin_value      = {Stokvec{1.0, 1.0, 0.0, 0.0},
-                         String{"Legacy"},
-                         String{"1"},
+                         RadarRangeMode::Legacy,
+                         RadarUnit::unit,
                          Numeric{273.15},
                          Numeric{-1.0},
                          Numeric{-99.0},
                          Numeric{1.0},
-                         ArrayOfString{}},
+                         ArrayOfRadarAuxiliary{}},
       .gin_desc       = {"Transmitted Stokes vector; its I component must equal one.",
                          "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
                          "Output unit: 1, Ze, or dBZe.",
@@ -7008,7 +7067,8 @@ and atmospheric state chosen by the caller.
                          "surf_field",
                          "scat_species",
                          "ray_path_observer_agenda",
-                         "spectral_propmat_agenda"},
+                         "spectral_propmat_agenda",
+                         "rte_option"},
       .gin            = {"transmitted_stokes",
                          "range_mode",
                          "unit",
@@ -7024,8 +7084,8 @@ and atmospheric state chosen by the caller.
                          "max_iterations",
                          "max_sweeps"},
       .gin_type       = {"Stokvec",
-                         "String",
-                         "String",
+                         "RadarRangeMode",
+                         "RadarUnit",
                          "Numeric",
                          "Numeric",
                          "Numeric",
@@ -7038,8 +7098,8 @@ and atmospheric state chosen by the caller.
                          "Index",
                          "Index"},
       .gin_value      = {Stokvec{1.0, 1.0, 0.0, 0.0},
-                         String{"Legacy"},
-                         String{"1"},
+                         RadarRangeMode::Legacy,
+                         RadarUnit::unit,
                          Numeric{273.15},
                          Numeric{-1.0},
                          Numeric{-99.0},

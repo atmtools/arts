@@ -240,6 +240,20 @@ void Obsel::sumup(VectorView out, const StokvecMatrixView& j, Index ip) const {
   }
 }
 
+void Obsel::geometry_weights(VectorView out, Index ip) const {
+  assert(out.size() == f->size());
+  assert(ip < static_cast<Index>(poslos->size()) and ip >= 0);
+
+  // w is a sparse sorted matrix of shape poslos->size() x f->size()
+  const SparseStokvec            v0{.irow = static_cast<Size>(ip), .icol = static_cast<Size>(0)};
+  const SparseStokvec            vn{.irow = static_cast<Size>(ip), .icol = std::numeric_limits<Size>::max()};
+  std::span<const SparseStokvec> span{stdr::lower_bound(w, v0), stdr::upper_bound(w, vn)};
+
+  out = 0.0;
+  for (const auto& ws : span)
+    out[ws.icol] = std::max(std::abs(ws.data.I()), std::hypot(ws.data.Q(), ws.data.U(), ws.data.V()));
+}
+
 Size Obsel::flat_size(const SensorKeyType& key) const {
   switch (key) {
     using enum SensorKeyType;

@@ -97,4 +97,20 @@ Numeric refractive_index_water_visible_nir_harvey98(Numeric frequency,
                                                     Numeric density,
                                                     bool    check_validity = true);
 
+/** Complex permittivity of liquid water in the microwave.
+ *
+ * Implements the double-Debye model of Liebe, Hufford and Manabe (1991), "A
+ * model for the complex permittivity of water at frequencies below 1 THz",
+ * as ARTS2's complex_n_water_liebe93 and Atmlab's eps_water_liebe93.m.  The
+ * relaxation-frequency coefficient is 146, not the 146.4 of epswater93.m.
+ * The imaginary part is positive.
+ *
+ * @param frequency Frequency [Hz].
+ * @param temperature Temperature [K].
+ * @param check_validity Enforce 10 GHz <= frequency <= 1000 GHz and
+ * 233.15 K <= temperature <= 373.15 K.
+ * @return Complex relative permittivity.
+ */
+Complex permittivity_water_liebe93(Numeric frequency, Numeric temperature, bool check_validity = true);
+
 #endif  // physics_h

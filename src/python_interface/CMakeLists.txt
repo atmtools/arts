@@ -184,6 +184,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_geodesy.cpp
     py_planets.cpp
     py_montecarlo.cpp
+    py_radar.cpp
     py_rng.cpp
     py_tmatrix.cpp
     py_polradtran.cpp

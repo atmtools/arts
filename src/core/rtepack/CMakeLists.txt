@@ -4,6 +4,7 @@ add_library(rtepack STATIC
   rtepack_multitype.cc
   rtepack_polarization.cc
   rtepack_propagation_matrix.cc
+  rtepack_radar.cc
   rtepack_rtestep.cc
   rtepack_scattering.cc
   rtepack_source.cc

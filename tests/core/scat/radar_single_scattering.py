@@ -108,6 +108,18 @@ assert np.allclose(aux[2, interior], 0.0)
 # polarization selector, matching old yRadar behavior.
 assert np.allclose(aux[3, interior], 0.0)  # pext_scaling is zero
 
+# The round-trip time of every gate of this vertical vacuum path.
+centres = 0.5 * (range_bins[1:] + range_bins[:-1])
+np.testing.assert_allclose(
+    ws.radar_time, 2.0 * (20e3 - centres) / A.constants.c, rtol=1e-12
+)
+
+# The Magnus operator differs only for non-commuting propagation matrices.
+ws.rte_option = "magop"
+ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
+np.testing.assert_allclose(ws.measurement_vec, native, rtol=1e-12, atol=1e-30)
+ws.rte_option = "linsrc"
+
 # Ze and dBZe conversions, including the old clipping convention.
 k2 = 0.93
 ws.measurement_vecFromRadarSingleScattering(**common, unit="Ze", k2=k2)
@@ -207,18 +219,11 @@ old.atm_field[number_density] = A.GriddedField3(
     grids=[fine_altitude, *old.atm_field["t"].data.grids[1:]],
 )
 
-# Same Liebe (1993) water model as Atmlab eps_water_liebe93.m. Its
-# relaxation-frequency coefficient is 146, not epswater93.m's 146.4.
-# Preserve the original frequency, temperatures, diameter and angular grid.
+# The droplet uses the same Liebe (1993) water model as ARTS2 and as the
+# automatic radar k2.  Preserve the original frequency, temperatures, diameter
+# and angular grid.
 temperatures = np.array([268.15, 273.15, 278.15])
-theta = 300.0 / temperatures - 1.0
-e0 = 77.66 + 103.3 * theta
-e1 = 0.0671 * e0
-g1 = 20.2 - 146.0 * theta + 316.0 * theta**2
-permittivity = e0 - 94.0 * (
-    (e0 - e1) / (94.0 + 1j * g1)
-    + (e1 - 3.52) / (94.0 + 1j * 39.8 * g1)
-)
+permittivity = A.physics.permittivity_water_liebe93(94e9, temperatures)
 habit = A.ParticleHabit.sphere(
     temperatures, [94e9], [50e-6],
     A.IrregularZenithAngleGrid(np.arange(181.0)),

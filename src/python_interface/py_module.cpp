@@ -55,6 +55,7 @@ void py_planets(py::module_& m);
 void py_auto_agenda_operators(py::module_& m);
 void py_rng(py::module_& m);
 void py_montecarlo(py::module_& m);
+void py_radar(py::module_& m);
 void py_tmatrix(py::module_& m);
 void py_polradtran(py::module_& m);
 void py_rt3(py::module_& m);
@@ -129,6 +130,7 @@ NB_MODULE(arts, m) try {
   py_auto_agenda_operators(m);
   py_rng(m);
   py_montecarlo(m);
+  py_radar(m);
   py_tmatrix(m);
   py_polradtran(m);
   py_rt3(m);

@@ -221,6 +221,16 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "StokvecVector",
   };
 
+  wsv_data["radar_time"] = {
+      .desc = R"--(Mean round-trip time of every radar range gate [s].
+
+The time includes the path group refractive indices and the leg from the
+radar to the first path point.  It is the mean over the part of the gate that
+the paths cover, and NaN for gates that no path reaches.
+)--",
+      .type = "Vector",
+  };
+
   wsv_data["radar_range_limits"] = {
       .desc = R"--(Range-gate limits for active-radar measurements.
 

@@ -16,3 +16,8 @@ add_executable(test_rtepack_polarization test_rtepack_polarization.cpp)
 target_link_libraries(test_rtepack_polarization PUBLIC rtepack)
 add_test(NAME "cpp.fast.test_rtepack_polarization" COMMAND test_rtepack_polarization)
 add_dependencies(check-deps test_rtepack_polarization)
+
+add_executable(test_rtepack_radar test_rtepack_radar.cpp)
+target_link_libraries(test_rtepack_radar PUBLIC rtepack)
+add_test(NAME "cpp.fast.test_rtepack_radar" COMMAND test_rtepack_radar)
+add_dependencies(check-deps test_rtepack_radar)

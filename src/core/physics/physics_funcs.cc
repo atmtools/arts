@@ -144,6 +144,26 @@ Numeric refractive_index_water_visible_nir_harvey98(const Numeric frequency,
   return std::sqrt((1.0 + 2.0 * lorentz_lorenz) / (1.0 - lorentz_lorenz));
 }
 
+Complex permittivity_water_liebe93(const Numeric frequency, const Numeric temperature, const bool check_validity) {
+  if (check_validity) {
+    if (not(temperature >= 233.15 and temperature <= 373.15))
+      arts::user_error("Liebe93 water permittivity is valid for 233.15 K <= temperature <= 373.15 K. Got {} K.",
+                       temperature);
+    if (not(frequency >= 10e9 and frequency <= 1000e9))
+      arts::user_error("Liebe93 water permittivity is valid for 10 GHz <= frequency <= 1000 GHz. Got {} Hz.",
+                       frequency);
+  }
+
+  const Numeric theta = 1.0 - 300.0 / temperature;
+  const Numeric e0    = 77.66 - 103.3 * theta;
+  const Numeric e1    = 0.0671 * e0;
+  const Numeric f1    = 20.2 + 146.0 * theta + 316.0 * theta * theta;
+  const Numeric e2    = 3.52;
+  const Numeric f2    = 39.8 * f1;
+  const Complex ifGHz{0.0, frequency / 1e9};
+  return e2 + (e1 - e2) / (1.0 - ifGHz / f2) + (e0 - e1) / (1.0 - ifGHz / f1);
+}
+
 /** fresnel
  *
  * Calculates complex AMPLITUDE reflection coeffcients for a specular

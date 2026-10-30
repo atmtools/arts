@@ -1114,6 +1114,12 @@ of this term multiplied by a negative distance.
       .invariant_printables = {"{}"},
   };
 
+  wsg_data["ArrayOfRadarAuxiliary"] = {
+      .file     = "radar.h",
+      .desc     = "A list of *RadarAuxiliary*\n",
+      .dim_size = {"{}.size()"},
+  };
+
   wsg_data["XsecRecords"] = {
       .file = "xsec_fit.h",
       .desc = R"--(A map from *SpeciesEnum* to *XsecRecord*
@@ -1139,6 +1145,8 @@ of this term multiplied by a negative distance.
                          "SurfaceKey",
                          "SubsurfaceKey",
                          "SpectralRadianceUnitType",
+                         "RadarUnit",
+                         "RadarRangeMode",
                      });
 
   agenda_operators(wsg_data);

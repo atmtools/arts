@@ -9,6 +9,7 @@
 #include "rtepack_multitype.h"
 #include "rtepack_polarization.h"
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_radar.h"
 #include "rtepack_rtestep.h"
 #include "rtepack_scattering.h"
 #include "rtepack_source.h"
