@@ -47,10 +47,11 @@ ws.spectral_propmatMemoryIntensiveAddVoigtLTE()
 assert np.allclose(ws.spectral_dispersion, d, rtol=1e-6, atol=0), (ws.spectral_dispersion, d)
 assert np.allclose(ws.spectral_dispersion_jac, dd, rtol=1e-6, atol=0)
 
-# Line-by-line wind derivatives are frequency derivatives, including that of 1 / f
+# Line-by-line wind derivatives are frequency derivatives, including that of 1 / f.
+# The line shape derivative is numerical, so allow 1e-3.  Ignoring 1 / f gives > 3e-2.
 df = 1e5
 d2, _ = spectral(df)
-assert np.allclose(dd[0], (d2 - d) / df, rtol=1e-4, atol=0), (dd[0], (d2 - d) / df)
+assert np.allclose(dd[0], (d2 - d) / df, rtol=1e-3, atol=0), (dd[0], (d2 - d) / df)
 
 # Single frequency points agree and accumulate onto what is already there
 ws.freq_wind_shift_jac = [0.0, 0.0, 0.0]
