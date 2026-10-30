@@ -61,6 +61,33 @@ constexpr Numeric number_density(Numeric p, Numeric t) noexcept { return p / (Co
  */
 constexpr Numeric dnumber_density_dt(Numeric p, Numeric t) noexcept { return -p / (Constant::k * Math::pow2(t)); }
 
+/** Dispersion from the imaginary part of a complex absorption coefficient
+ *
+ * The real part of the complex absorption coefficient, k, is the absorption
+ * coefficient, 4 pi f Im(n) / c.  Its imaginary part gives the refractivity,
+ * n - 1 = -c Im(k) / (4 pi f), where n is the complex refractive index.
+ *
+ * Use this also for derivatives of Im(k) with regards to anything but frequency.
+ *
+ * @param[in] f Frequency [Hz]
+ * @param[in] k_imag Imaginary part of the complex absorption coefficient [1/m]
+ * @return The refractivity, n - 1 [-]
+ */
+constexpr Numeric dispersion_from_imag_absorption(Numeric f, Numeric k_imag) noexcept {
+  return -Constant::c * k_imag / (4.0 * Constant::pi * f);
+}
+
+/** Frequency derivative of dispersion_from_imag_absorption
+ *
+ * @param[in] f Frequency [Hz]
+ * @param[in] k_imag Imaginary part of the complex absorption coefficient [1/m]
+ * @param[in] dk_imag_df Frequency derivative of k_imag [1/(m Hz)]
+ * @return The frequency derivative of the refractivity, n - 1 [1/Hz]
+ */
+constexpr Numeric ddispersion_from_imag_absorption_df(Numeric f, Numeric k_imag, Numeric dk_imag_df) noexcept {
+  return -Constant::c * (dk_imag_df - k_imag / f) / (4.0 * Constant::pi * f);
+}
+
 Numeric planck(const Numeric& f, const Numeric& t);
 
 void planck(StridedVectorView b, const ConstVectorView& f, const Numeric& t);
