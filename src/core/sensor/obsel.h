@@ -160,6 +160,20 @@ class Obsel {
   [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
   void                  sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
 
+  /** The geometric weight of each frequency at one poslos
+   *
+   * The weight of a polarization selector is the smallest total weight of
+   * physical receivers (|pol| <= I) whose signed sum gives it, that is
+   * max(|I|, sqrt(Q^2 + U^2 + V^2)).  This equals I for physical selectors,
+   * but is also positive for the pure Q, U, and V difference selectors, whose
+   * I weight is zero.  Use it to average scalar quantities over the sensor
+   * element independently of its polarization.
+   *
+   * @param out The weights [f_grid().size()]
+   * @param ip The poslos index
+   */
+  void geometry_weights(VectorView out, Index ip) const;
+
   [[nodiscard]] Size   flat_size(const SensorKeyType& key) const;
   void                 flat(VectorView x, const SensorKeyType& key) const;
   [[nodiscard]] Vector flat(const SensorKeyType& key) const;

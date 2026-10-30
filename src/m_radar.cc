@@ -119,6 +119,7 @@ RadarResult radar_forward(const Workspace&                       ws,
                         .time        = Vector(ny, 0.0)};
   std::vector<bool> covered(ny, false);
   Vector            scalar_weight_sum(ny, 0.0);
+  Vector            time_coverage(ny, 0.0);
 
   for (const auto& simulation : simulations) {
     if (simulation.samples.empty()) continue;
@@ -188,6 +189,7 @@ RadarResult radar_forward(const Workspace&                       ws,
         particle_extinction[joker, iv] = radar::gate_sum(samples, optics.particle_extinction[iv], ngate);
 
     StokvecVector bin(nf);
+    Vector        geometry(nf);
     for (Size ig = 0; ig < ngate; ++ig) {
       if (coverage[ig] == 0.0) continue;
 
@@ -198,10 +200,15 @@ RadarResult radar_forward(const Workspace&                       ws,
       for (Size iv = 0; iv < nf; ++iv) bin[iv] = factor[iv] * signal[ig, iv];
       out.measurement[iy] += obsel.sumup(bin, iposlos);
 
-      // Extinction, background and time are means over the covered part of the gate
-      const Numeric scalar_weight  = obsel.sumup(Stokvec{1.0, 0.0, 0.0, 0.0}, iposlos);
+      // Extinction, background and time are means over the covered part of the
+      // gate.  They are weighted by the geometry, not the polarization, of the
+      // sensor element.  The time is also weighted by the coverage of every
+      // path, as in MCRadar.
+      obsel.geometry_weights(geometry, iposlos);
+      const Numeric scalar_weight  = sum(geometry);
       scalar_weight_sum[iy]       += scalar_weight;
-      out.time[iy]                += scalar_weight * time[ig] / coverage[ig];
+      out.time[iy]                += scalar_weight * time[ig];
+      time_coverage[iy]           += scalar_weight * coverage[ig];
       for (Size ia = 0; ia < aux_vars.size(); ++ia) {
         switch (aux_vars[ia]) {
           case RadarAuxiliary::RadiativeBackground: out.auxiliary[ia, iy] += scalar_weight * background; break;
@@ -210,12 +217,10 @@ RadarResult radar_forward(const Workspace&                       ws,
             out.auxiliary[ia, iy] += obsel.sumup(bin, iposlos);
             break;
           case RadarAuxiliary::AbsSpeciesExtinction:
-            for (Size iv = 0; iv < nf; ++iv) bin[iv] = Stokvec{gas_extinction[ig, iv] / coverage[ig]};
-            out.auxiliary[ia, iy] += obsel.sumup(bin, iposlos);
+            out.auxiliary[ia, iy] += dot(geometry, gas_extinction[ig]) / coverage[ig];
             break;
           case RadarAuxiliary::ParticleExtinction:
-            for (Size iv = 0; iv < nf; ++iv) bin[iv] = Stokvec{particle_extinction[ig, iv] / coverage[ig]};
-            out.auxiliary[ia, iy] += obsel.sumup(bin, iposlos);
+            out.auxiliary[ia, iy] += dot(geometry, particle_extinction[ig]) / coverage[ig];
             break;
         }
       }
@@ -246,8 +251,9 @@ RadarResult radar_forward(const Workspace&                       ws,
       continue;
     }
 
+    out.time[iy] = time_coverage[iy] == 0.0 ? nan : out.time[iy] / time_coverage[iy];
+
     if (scalar_weight_sum[iy] == 0.0) continue;
-    out.time[iy] /= scalar_weight_sum[iy];
     for (Size ia = 0; ia < aux_vars.size(); ++ia)
       if (aux_vars[ia] != RadarAuxiliary::Backscattering) out.auxiliary[ia, iy] /= scalar_weight_sum[iy];
   }

@@ -256,6 +256,80 @@ void radar_gates() {
     for (Numeric x : error[i]) close(x, 0.0, "Pencil beam is deterministic");
     close(time[i] * Constant::speed_of_light / (2.0 * midpoint), 1.0, "Radar time must be the round trip to the gate");
   }
+
+  // One observation from two radar heights.  The lower path ends halfway
+  // through the gate at the surface, so the gate time must be weighted by
+  // the covered part of each path, as in MCRadar.
+  const Agenda observer_path = [] {
+    Agenda           agenda{"ray_path_observer_agenda"};
+    CallbackOperator cb;
+    cb.inputs   = {"obs_pos", "obs_los"};
+    cb.outputs  = {"ray_path"};
+    cb.callback = CallbackOperator::func_t{[](Workspace& local) {
+      const Numeric start = local.get<Vector3>("obs_pos")[0];
+      auto&         path  = local.get<ArrayOfPropagationPathPoint>("ray_path");
+      path.resize(11);
+      for (Size i = 0; i < path.size(); ++i) {
+        path[i].pos      = Vector3{start * (1.0 - static_cast<Numeric>(i) / 10.0), 0.0, 0.0};
+        path[i].los      = Vector2{0.0, 0.0};
+        path[i].pos_type = PathPositionType::atm;
+        path[i].los_type = PathPositionType::atm;
+      }
+    }};
+    agenda.add(Method{"test observer path", Wsv{cb}});
+    agenda.finalize(true);
+    return agenda;
+  }();
+  Matrix limits(1, 2);
+  limits[0, 0] = 950.0;
+  limits[0, 1] = 1050.0;
+  Vector     y, radar_time;
+  Matrix     jac, aux;
+  const auto simulate = [&](const Stokvec& selector) {
+    sensor::SparseStokvecMatrix weights(2, 1);
+    weights[0, 0] = selector;
+    weights[1, 0] = selector;
+    const ArrayOfSensorObsel sensor{SensorObsel(AscendingGrid{94e9},
+                                                SensorPosLosVector{{.pos = {1000.0, 0.0, 0.0}, .los = {180.0, 0.0}},
+                                                                   {.pos = {1050.0, 0.0, 0.0}, .los = {180.0, 0.0}}},
+                                                weights)};
+    measurement_vecFromRadarSingleScattering(ws,
+                                             y,
+                                             jac,
+                                             aux,
+                                             radar_time,
+                                             sensor,
+                                             limits,
+                                             JacobianTargets{},
+                                             atmosphere,
+                                             surface,
+                                             species,
+                                             observer_path,
+                                             gas,
+                                             TransmittanceOption::constant,
+                                             Stokvec{1.0, 1.0, 0.0, 0.0},
+                                             RadarRangeMode::Distance,
+                                             RadarUnit::unit,
+                                             273.15,
+                                             0.93,
+                                             -99.0,
+                                             1.0,
+                                             ArrayOfRadarAuxiliary{RadarAuxiliary::ParticleExtinction});
+  };
+  simulate(Stokvec{0.5, 0.5, 0.0, 0.0});
+  // Half of the gate at a mean of 975 m, and all of it at a mean of 1000 m
+  const Numeric distance = (0.5 * 975.0 + 1.0 * 1000.0) / 1.5;
+  close(radar_time[0] * Constant::speed_of_light / (2.0 * distance),
+        1.0,
+        "Radar time must be weighted by the coverage of every path");
+  close(aux[0, 0] / extinction, 1.0, "Particle extinction must be the mean over the gate");
+
+  // A pure Q selector has no I weight but the same geometry.  The time and
+  // the scalar auxiliary variables must not depend on the polarization.
+  const Numeric time_iv = radar_time[0];
+  simulate(Stokvec{0.0, 1.0, 0.0, 0.0});
+  close(radar_time[0] / time_iv, 1.0, "Radar time must not depend on the polarization selector");
+  close(aux[0, 0] / extinction, 1.0, "Particle extinction must not depend on the polarization selector");
 }
 }  // namespace
 

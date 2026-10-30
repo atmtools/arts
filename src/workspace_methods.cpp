@@ -6986,7 +6986,11 @@ analytically through rtepack.  There is no production finite-difference loop.
 
 The auxiliary quantities are listed by *RadarAuxiliary*.  They are returned
 as rows of *radar_aux* in the requested order.  Extinction and background are
-means over the covered part of each gate.
+means over the covered part of each gate.  They and *radar_time* are weighted
+by the geometry of the sensor elements, not by their polarization.  The weight
+of a polarization selector is the larger of the absolute I and the length of
+(Q, U, V).  This is I for a physical receiver, and positive also for pure Q, U,
+and V selectors.
 )--",
       .author   = {"Patrick Eriksson", "OpenAI Codex"},
       .out      = {"measurement_vec", "measurement_jac", "radar_aux", "radar_time"},
