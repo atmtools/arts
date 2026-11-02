@@ -81,5 +81,48 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
             "Sensor builder must reject mismatching position/LOS lengths")
 
 
+def test_sensor_builder_xml_round_trip():
+    sensor = pyarts.arts.sensor
+    gridded = sensor.AntennaPatternField()
+    gridded.grids = [pyarts.arts.ZenGrid([0.0, 0.5, 1.0]),
+                     pyarts.arts.AziGrid([0.0, 90.0, 180.0, 270.0])]
+    gridded.data = np.array([[1.0] * 4, [0.6, 0.5, 0.6, 0.5], [0.1] * 4])
+
+    antennas = [
+        sensor.PencilBeamAntenna(),
+        sensor.GaussianAntenna([0.0, 0.5, 1.0], 0.4, azi_grid_size=4),
+        sensor.GaussianAiryAntenna([0.0, 0.1, 0.2], 1.0, azi_grid_size=3),
+        sensor.GriddedAntennaPattern(gridded),
+    ]
+
+    vertical = sensor.BoxChannel(pyarts.arts.AscendingGrid([89e9, 89.5e9, 90e9]))
+    vertical.polarization.state = [1.0, 1.0, 0.0, 0.0]
+    channels = [vertical, sensor.DiracChannel(183e9)]
+
+    pos = [pyarts.arts.Vector3([800e3, 10.0, 20.0])]
+    los = [pyarts.arts.Vector2([150.0, 30.0])]
+    ell = pyarts.arts.planets.Earth.ellipsoid
+
+    for antenna in antennas:
+        name = type(antenna).__name__
+        builder = sensor.Builder(channels, antenna)
+        builder.preserve_common_frequency_grid = True
+        builder.savexml("sensor_builder.xml")
+        read = sensor.Builder.fromxml("sensor_builder.xml")
+
+        assert type(read.antenna) is type(builder.antenna), name
+        assert read.preserve_common_frequency_grid, name
+        assert len(read.channels) == len(channels), name
+
+        expected, _ = builder(pos, los, ell)
+        got, _ = read(pos, los, ell)
+        assert len(got) == len(expected), name
+        for g, e in zip(got, expected):
+            assert np.array_equal(g.f_grid, e.f_grid), name
+            assert np.array_equal(g.poslos, e.poslos), name
+            assert np.array_equal(g.weight_matrix.dense, e.weight_matrix.dense), name
+
+
 test_sensor_builder_from_sequences()
 test_sensor_builder_from_poslos_vector_and_length_guard()
+test_sensor_builder_xml_round_trip()

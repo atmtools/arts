@@ -54,15 +54,25 @@ struct GriddedAntennaPattern {
                                  const Vector2& ell) const;
 };
 
-struct GaussianAntenna final : GriddedAntennaPattern {
+//! A gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the boresight, sampled as GriddedAntennaPattern
+struct GaussianAntenna {
+  ZenGrid zen_grid;
+  AziGrid azi_grid;
+  Numeric std{};  // [deg]
+
   GaussianAntenna()                                  = default;
   GaussianAntenna(const GaussianAntenna&)            = default;
   GaussianAntenna& operator=(const GaussianAntenna&) = default;
   GaussianAntenna(GaussianAntenna&&)                 = default;
   GaussianAntenna& operator=(GaussianAntenna&&)      = default;
 
-  //! Gain exp(-(offset / std)^2 / 2) of the angular offset from the boresight [deg]
-  GaussianAntenna(ZenGrid grid, Numeric std, Size azi_grid_size = 2);
+  GaussianAntenna(ZenGrid zen_grid, Numeric std, Size azi_grid_size = 2);
+
+  [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Stokvec& response,
+                                 const Vector3& pos,
+                                 const Vector2& bore_los,
+                                 const Vector2& ell) const;
 };
 
 //! A Gaussian gain whose half width scales with wavelength over aperture diameter, sampled as GriddedAntennaPattern
@@ -96,9 +106,6 @@ struct GaussianAiryAntenna {
  *  normalized to sum to one, times the beam weight of each line of sight
  *  normalized to sum to one at each frequency, times the polarization response
  *  carried from the boresight to that line of sight.
- *
- *  GaussianAntenna comes before GriddedAntennaPattern, its base, so that a
- *  conversion that tries the alternatives in order keeps the derived type.
  */
 using AntennaPattern = std::variant<PencilBeamAntenna, GaussianAntenna, GaussianAiryAntenna, GriddedAntennaPattern>;
 
@@ -189,15 +196,36 @@ template <> struct xml_io_stream<sensor::PencilBeamAntenna> {
 
 // GaussianAntenna format tags and XML I/O
 
-template <> struct std::formatter<sensor::GaussianAntenna>
-    : format_tag_inherit<sensor::GriddedAntennaPattern, sensor::GaussianAntenna> {};
+template <> struct std::formatter<sensor::GaussianAntenna> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext> FmtContext::iterator format(const sensor::GaussianAntenna& v, FmtContext& ctx) const {
+    auto sep = tags.sep();
+    return tags.format(ctx, v.zen_grid, sep, v.azi_grid, sep, v.std);
+  }
+};
 
 template <> struct xml_io_stream_name<sensor::GaussianAntenna> {
   static constexpr std::string_view name = "SensorGaussianAntenna";
 };
 
-template <> struct xml_io_stream<sensor::GaussianAntenna>
-    : xml_io_stream_inherit<sensor::GriddedAntennaPattern, sensor::GaussianAntenna> {};
+template <> struct xml_io_stream<sensor::GaussianAntenna> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::GaussianAntenna>;
+
+  static void write(std::ostream&                  os,
+                    const sensor::GaussianAntenna& n,
+                    bofstream*                     pbofs = nullptr,
+                    std::string_view               name  = ""sv);
+
+  static void read(std::istream& is, sensor::GaussianAntenna& n, bifstream* pbifs = nullptr);
+};
 
 // GaussianAiryAntenna format tags and XML I/O
 

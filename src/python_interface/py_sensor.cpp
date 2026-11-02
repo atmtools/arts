@@ -425,7 +425,7 @@ See :meth:`SensorObsel.normalize` for details.
   antenna_calls(spp);
   generic_interface(spp);
 
-  auto sga  = py::class_<sensor::GaussianAntenna, sensor::GriddedAntennaPattern>(sen, "GaussianAntenna");
+  auto sga  = py::class_<sensor::GaussianAntenna>(sen, "GaussianAntenna");
   sga.doc() = "A Gaussian antenna response defined by angular offset from the bore LOS on a local zenith/azimuth grid.";
   sga.def(
       py::init<ZenGrid, Numeric, Size>(),
@@ -434,6 +434,16 @@ See :meth:`SensorObsel.normalize` for details.
       "azi_grid_size"_a = Size{2},
       "Construct a Gaussian antenna gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the bore LOS, "
       "sampled on the supplied zenith offsets and an azimuth grid of the provided size.");
+  sga.def_rw("std",
+             &sensor::GaussianAntenna::std,
+             "Standard deviation of the gain [deg].\n\n.. :class:`~pyarts3.arts.Numeric`");
+  sga.def_rw("zen_grid",
+             &sensor::GaussianAntenna::zen_grid,
+             "Local zenith grid of the antenna response.\n\n.. :class:`~pyarts3.arts.ZenGrid`");
+  sga.def_rw("azi_grid",
+             &sensor::GaussianAntenna::azi_grid,
+             "Local azimuth grid of the antenna response.\n\n.. :class:`~pyarts3.arts.AziGrid`");
+  antenna_calls(sga);
   generic_interface(sga);
 
   auto sgairy  = py::class_<sensor::GaussianAiryAntenna>(sen, "GaussianAiryAntenna");
@@ -665,9 +675,9 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
               "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.sensor.Channel]`")
       .def_rw("antenna",
               &sensor::Builder::antenna,
-              "Angular antenna response, one of :class:`~pyarts3.arts.sensor.PencilBeamAntenna`, "
-              ":class:`~pyarts3.arts.sensor.GaussianAntenna`, :class:`~pyarts3.arts.sensor.GaussianAiryAntenna`, "
-              "or :class:`~pyarts3.arts.sensor.GriddedAntennaPattern`.")
+              "Angular antenna response.\n\n"
+              ".. :class:`~pyarts3.arts.sensor.PencilBeamAntenna | ~pyarts3.arts.sensor.GaussianAntenna | "
+              "~pyarts3.arts.sensor.GaussianAiryAntenna | ~pyarts3.arts.sensor.GriddedAntennaPattern`")
       .def_rw("preserve_common_frequency_grid",
               &sensor::Builder::preserve_common_frequency_grid,
               "Whether the built obsels share one common frequency grid.\n\n.. :class:`bool`")

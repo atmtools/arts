@@ -49,14 +49,17 @@ Numeric gaussian_airy_expected_gain(Numeric zenith_deg, Numeric frequency, Numer
   return std::exp(-std::numbers::ln2 * ratio * ratio);
 }
 
-void test_gaussian_gain() try {
-  const sensor::GaussianAntenna ant{ZenGrid{{0.0, 1.0}}, 1.0, 2};
+void test_gaussian_rejects_nonpositive_std() try {
+  const sensor::GaussianAntenna ant{ZenGrid{{0.0, 1.0}}, 0.0, 2};
 
-  assert_close(ant.data[0, 0], 1.0, 1e-15, "gaussian gain at the boresight");
-  assert_close(ant.data[1, 0], std::exp(-0.5), 1e-15, "gaussian gain one std off the boresight");
-  assert_close(ant.data[1, 1], std::exp(-0.5), 1e-15, "gaussian gain is azimuthally symmetric");
+  bool threw = false;
+  try {
+    static_cast<void>(ant(sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell));
+  } catch (const std::runtime_error&) { threw = true; }
+
+  if (not threw) throw std::runtime_error("Gaussian antenna must reject a nonpositive std");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_gain failed:\n{}", e.what()));
+  throw std::runtime_error(std::format("test_gaussian_rejects_nonpositive_std failed:\n{}", e.what()));
 }
 
 void test_gaussian_airy_is_frequency_dependent() try {
@@ -261,7 +264,7 @@ void test_gaussian_airy_rejects_nonpositive_frequencies() try {
 }  // namespace
 
 int main() try {
-  test_gaussian_gain();
+  test_gaussian_rejects_nonpositive_std();
   test_gaussian_airy_is_frequency_dependent();
   test_cells_are_spherical_caps_and_bands();
   test_two_azimuths_split_the_band();

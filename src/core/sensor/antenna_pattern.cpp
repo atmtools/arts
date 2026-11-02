@@ -266,8 +266,16 @@ AziGrid make_azi_grid(Size size) {
 }
 }  // namespace
 
-GaussianAntenna::GaussianAntenna(ZenGrid zen_grid, Numeric std, Size azi_grid_size) {
-  data = make_gaussian_field(std::move(zen_grid), make_azi_grid(azi_grid_size), std);
+GaussianAntenna::GaussianAntenna(ZenGrid zen_grid, Numeric std, Size azi_grid_size)
+    : zen_grid(std::move(zen_grid)), azi_grid(make_azi_grid(azi_grid_size)), std(std) {}
+
+Obsel GaussianAntenna::operator()(const Channel& channel,
+                                  const Stokvec& response,
+                                  const Vector3& pos,
+                                  const Vector2& bore_los,
+                                  const Vector2& ell) const {
+  const GriddedAntennaPattern pattern{.data = make_gaussian_field(zen_grid, azi_grid, this->std)};
+  return pattern(channel, response, pos, bore_los, ell);
 }
 
 GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diameter, Size azi_grid_size)
@@ -355,6 +363,31 @@ void xml_io_stream<sensor::GriddedAntennaPattern>::read(std::istream&           
 
   tag.read_from_stream(is);
   tag.check_end_name(xml_io_stream_name_v<sensor::GriddedAntennaPattern>);
+}
+
+void xml_io_stream<sensor::GaussianAntenna>::write(std::ostream&                  os,
+                                                   const sensor::GaussianAntenna& n,
+                                                   bofstream*                     pbofs,
+                                                   std::string_view               name) {
+  XMLTag tag(xml_io_stream_name_v<sensor::GaussianAntenna>, "name", name);
+  tag.write_to_stream(os);
+  xml_write_to_stream(os, n.std, pbofs);
+  xml_write_to_stream(os, n.zen_grid, pbofs);
+  xml_write_to_stream(os, n.azi_grid, pbofs);
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<sensor::GaussianAntenna>::read(std::istream& is, sensor::GaussianAntenna& n, bifstream* pbifs) {
+  XMLTag tag{};
+  tag.read_from_stream(is);
+  tag.check_name(xml_io_stream_name_v<sensor::GaussianAntenna>);
+
+  xml_read_from_stream(is, n.std, pbifs);
+  xml_read_from_stream(is, n.zen_grid, pbifs);
+  xml_read_from_stream(is, n.azi_grid, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(xml_io_stream_name_v<sensor::GaussianAntenna>);
 }
 
 void xml_io_stream<sensor::GaussianAiryAntenna>::write(std::ostream&                      os,
