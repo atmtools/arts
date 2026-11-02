@@ -1,83 +1,24 @@
 """
-Build an AMSU-A-like microwave sensor from a simple channel sheet.
+Simulate an AMSU-A-like microwave sensor loaded from file.
 
-This is an example of how to set up simulations for a custom sensor.
+The sensor in amsu-a.xml holds the 15 channels: their pass bands and their
+polarization.  AMSU-A scans cross-track with a rotating reflector, so the
+polarization at nadir turns with the scan angle.
 """
 
-from dataclasses import dataclass
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pa
 
-
-@dataclass(frozen=True)
-class ChannelSpec:
-    """ A simple data structure to hold the channel specifications. """
-    number:        int
-    spec_text:     str
-    reference_hz:  float
-    bandwidth_hz:  float
-    polarization:  str
-    nedt_k:        float
-    lo_offsets_hz: tuple[float, ...] = ()
-
-
-
 # fmt: off
-CHANNELS = [
-    ChannelSpec(1, "$23.8$",                         23.8e9,          270e6, "Iv", 0.30),
-    ChannelSpec(2, "$31.4$",                         31.4e9,          180e6, "Iv", 0.30),
-    ChannelSpec(3, "$50.3$",                         50.3e9,          180e6, "Iv", 0.40),
-    ChannelSpec(4, "$52.8$",                         52.8e9,          400e6, "Iv", 0.25),
-    ChannelSpec(5, "$53.596 \\pm 0.115$",            53.596e9,        170e6, "Ih", 0.25, (115e6,)),
-    ChannelSpec(6, "$54.4$",                         54.4e9,          400e6, "Ih", 0.25),
-    ChannelSpec(7, "$54.94$",                        54.94e9,         400e6, "Iv", 0.25),
-    ChannelSpec(8, "$55.5$",                         55.5e9,          330e6, "Ih", 0.25),
-    ChannelSpec(9, "$f_0 = 57.290344$",              57.290344e9,     330e6, "Ih", 0.25),
-    ChannelSpec(10, "$f_0 \\pm 0.217$",              57.290344e9,      78e6, "Ih", 0.40, (217e6,)),
-    ChannelSpec(11, "$f_0 \\pm 0.3222 \\pm 0.048$",  57.290344e9,      36e6, "Ih", 0.40, (322.2e6, 48e6)),
-    ChannelSpec(12, "$f_0 \\pm 0.3222 \\pm 0.022$",  57.290344e9,      16e6, "Ih", 0.60, (322.2e6, 22e6)),
-    ChannelSpec(13, "$f_0 \\pm 0.3222 \\pm 0.01$",   57.290344e9,       8e6, "Ih", 0.80, (322.2e6, 10e6)),
-    ChannelSpec(14, "$f_0 \\pm 0.3222 \\pm 0.0045$", 57.290344e9,       3e6, "Ih", 1.20, (322.2e6, 4.5e6)),
-    ChannelSpec(15, "$89 \\pm 1$",                   89e9,           1000e6, "Iv", 0.50, (1000e6,)),
-]
-
-CHANNEL_COUNT       = len(CHANNELS)
-SAMPLES_PER_CHANNEL = 11
-POS                 = [817e3, 0.0, 0.0]
-HEADING             = -90.0  # Flying west
-SCAN_ANGLE          = 50.0   # Positive is to the right of the flight direction
-LOS                 = [180.0 - SCAN_ANGLE, HEADING + 90.0]
-ELL                 = pa.arts.planets.Earth.ellipsoid
+POS        = [817e3, 0.0, 0.0]
+HEADING    = -90.0  # Flying west
+SCAN_ANGLE = 50.0   # Positive is to the right of the flight direction
+LOS        = [180.0 - SCAN_ANGLE, HEADING + 90.0]
+ELL        = pa.arts.planets.Earth.ellipsoid
 # fmt: on
-
-
-def sensor_channels(channels, n):
-    """ Helper to turn the table above into channel responses """
-    out = []
-
-    for ch in channels:
-        # The range is [f_ref, 0], [f_ref, inf]
-        x = pa.arts.sensor.HeterodyneFrequencyRange(ch.reference_hz, [0, np.inf])
-
-        # Zero or more mixes, which add more ranges follow.
-        for lo in ch.lo_offsets_hz:
-            x.mix(lo)
-
-        # The channel response is a simple boxcar with the specified bandwidth.
-        m = pa.arts.sensor.BoxChannel(0, ch.bandwidth_hz / 2, n)
-        v = x.channel_response(m)
-
-        # AMSU-A scans cross-track with a rotating reflector, so the polarization
-        # at nadir turns with the scan angle.  The sign of the turn belongs to the
-        # instrument's optics and only matters when the observed U is not zero.
-        v.polarization = pa.arts.sensor.Polarization(ch.polarization, scan_rotation=1.0)
-
-        out.append(v)
-
-    return out
 
 
 def extract_channels(spectral_rad, measurement_sensor):
@@ -108,8 +49,8 @@ ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_
 # %% Use a geometric path.
 ws.ray_path_observer_agendaSetGeometric()
 
-# %% Simple sensor setup: channels with their polarization, and a cross-track scan geometry.
-sensor = pa.arts.sensor.Builder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
+# %% Load the sensor and place it in a cross-track scan geometry.
+sensor = pa.arts.sensor.Builder.fromxml("amsu-a.xml")
 ws.measurement_sensor, ws.measurement_sensor_meta = sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)
 
 # %% Collect on a single grid to help plotting and speed-up calculations - this sacrifices Jacobian flexibilities
@@ -126,15 +67,16 @@ ws.spectral_radApplyUnitFromSpectralRadiance()
 
 # %% Plotting
 ch = extract_channels(ws.spectral_rad, ws.measurement_sensor)
-colors = plt.get_cmap('tab20')(range(CHANNEL_COUNT))
+numbers = np.arange(1, len(ch) + 1)
+colors = plt.get_cmap('tab20')(range(len(ch)))
 fig_internal, ax_internal = plt.subplots(figsize=(6, 4))
-for i in range(CHANNEL_COUNT):
+for i in range(len(ch)):
     ax_internal.plot(ch[i][0]/1e9,
                      ch[i][1],
                      "o:",
                      markersize=2.5,
                      linewidth=1.1,
-                     label=f"Ch {CHANNELS[i].number}",
+                     label=f"Ch {numbers[i]}",
                      color=colors[i],
                      )
 
@@ -145,29 +87,12 @@ ax_internal.grid(True, alpha=0.3)
 ax_internal.legend(ncol=3, fontsize=8)
 
 fig_channels, ax_channels = plt.subplots(figsize=(6, 4))
-ax_channels.errorbar(
-    [spec.number for spec in CHANNELS],
-    ws.measurement_vec,
-    yerr=[spec.nedt_k for spec in CHANNELS],
-    fmt="o",
-    capsize=3,
-    linewidth=1.0,
-)
-ax_channels.set_xticks([spec.number for spec in CHANNELS])
+ax_channels.plot(numbers, ws.measurement_vec, "o")
+ax_channels.set_xticks(numbers)
 ax_channels.set_xlabel("AMSU-A channel number")
 ax_channels.set_ylabel("Channel brightness [K]")
 ax_channels.set_title("AMSU-A-like channelized measurements")
 ax_channels.grid(True, alpha=0.3)
-
-for x, spec, y in zip([spec.number for spec in CHANNELS], CHANNELS, ws.measurement_vec):
-    ax_channels.annotate(
-        spec.spec_text,
-        (x, y),
-        textcoords="offset points",
-        xytext=(4, -2.5),
-        ha="left",
-        fontsize=6,
-    )
 
 fig_internal.tight_layout()
 fig_channels.tight_layout()

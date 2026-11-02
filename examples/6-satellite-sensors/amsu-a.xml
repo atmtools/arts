@@ -1,0 +1,914 @@
+<?xml version="1.0"?>
+<arts version="3" format="ascii">
+<SensorBuilder>
+<Array nelem="15" type="SensorChannel">
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+2.38e+10 23813500000 2.3827e+10 23840500000 2.3854e+10 23867500000 2.3881e+10 23894500000 2.3908e+10 23921500000 2.3935e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+2.3665e+10 23678500000 2.3692e+10 23705500000 2.3719e+10 23732500000 2.3746e+10 23759500000 2.3773e+10 23786500000 2.38e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+3.14e+10 3.1409e+10 3.1418e+10 3.1427e+10 3.1436e+10 3.1445e+10 3.1454e+10 3.1463e+10 3.1472e+10 3.1481e+10 3.149e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+3.131e+10 3.1319e+10 3.1328e+10 3.1337e+10 3.1346e+10 3.1355e+10 3.1364e+10 3.1373e+10 3.1382e+10 3.1391e+10 3.14e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.03e+10 5.0309e+10 5.0318e+10 5.0327e+10 5.0336e+10 5.0345e+10 5.0354e+10 5.0363e+10 5.0372e+10 5.0381e+10 5.039e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.021e+10 5.0219e+10 5.0228e+10 5.0237e+10 5.0246e+10 5.0255e+10 5.0264e+10 5.0273e+10 5.0282e+10 5.0291e+10 5.03e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.28e+10 5.282e+10 5.284e+10 5.286e+10 5.288e+10 5.29e+10 5.292e+10 5.294e+10 5.296e+10 5.298e+10 5.3e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.26e+10 5.262e+10 5.264e+10 5.266e+10 5.268e+10 5.27e+10 5.272e+10 5.274e+10 5.276e+10 5.278e+10 5.28e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="4" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.3711e+10 53719500000 5.3728e+10 53736500000 5.3745e+10 53753500000 5.3762e+10 53770500000 5.3779e+10 53787500000 5.3796e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.3626e+10 53634500000 5.3643e+10 53651500000 5.366e+10 53668500000 5.3677e+10 53685500000 5.3694e+10 53702500000 5.3711e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.3396e+10 53404500000 5.3413e+10 53421500000 5.343e+10 53438500000 5.3447e+10 53455500000 5.3464e+10 53472500000 5.3481e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.3481e+10 53489500000 5.3498e+10 53506500000 5.3515e+10 53523500000 5.3532e+10 53540500000 5.3549e+10 53557500000 5.3566e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.44e+10 5.442e+10 5.444e+10 5.446e+10 5.448e+10 5.45e+10 5.452e+10 5.454e+10 5.456e+10 5.458e+10 5.46e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.42e+10 5.422e+10 5.424e+10 5.426e+10 5.428e+10 5.43e+10 5.432e+10 5.434e+10 5.436e+10 5.438e+10 5.44e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.494e+10 5.496e+10 5.498e+10 5.5e+10 5.502e+10 5.504e+10 5.506e+10 5.508e+10 5.51e+10 5.512e+10 5.514e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.474e+10 5.476e+10 5.478e+10 5.48e+10 5.482e+10 5.484e+10 5.486e+10 5.488e+10 5.49e+10 5.492e+10 5.494e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.55e+10 55516500000 5.5533e+10 55549500000 5.5566e+10 55582500000 5.5599e+10 55615500000 5.5632e+10 55648500000 5.5665e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+5.5335e+10 55351500000 5.5368e+10 55384500000 5.5401e+10 55417500000 5.5434e+10 55450500000 5.5467e+10 55483500000 5.55e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="2" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57290344000 57306844000 57323344000 57339844000 57356344000 57372844000 57389344000 57405844000 57422344000 57438844000 57455344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57125344000 57141844000 57158344000 57174844000 57191344000 57207844000 57224344000 57240844000 57257344000 57273844000 57290344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="4" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57507344000 57511244000 57515144000 57519044000 57522944000 57526844000 57530744000 57534644000 57538544000 57542444000 57546344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57468344000 57472244000 57476144000 57480044000 57483944000 57487844000 57491744000 57495644000 57499544000 57503444000 57507344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57034344000 57038244000 57042144000 57046044000 57049944000 57053844000 57057744000 57061644000 57065544000 57069444000 57073344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57073344000 57077244000 57081144000 57085044000 57088944000 57092844000 57096744000 57100644000 57104544000 57108444000 57112344000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="8" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57660544000 57662344000 57664144000 57665944000 57667744000 57669544000 57671344000 57673144000 57674944000 57676744000 57678544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57642544000 57644344000 57646144000 57647944000 57649744000 57651544000 57653344000 57655144000 57656944000 57658744000 57660544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57546544000 57548344000 57550144000 57551944000 57553744000 57555544000 57557344000 57559144000 57560944000 57562744000 57564544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57564544000 57566344000 57568144000 57569944000 57571744000 57573544000 57575344000 57577144000 57578944000 57580744000 57582544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56902144000 56903944000 56905744000 56907544000 56909344000 56911144000 56912944000 56914744000 56916544000 56918344000 56920144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56920144000 56921944000 56923744000 56925544000 56927344000 56929144000 56930944000 56932744000 56934544000 56936344000 56938144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57016144000 57017944000 57019744000 57021544000 57023344000 57025144000 57026944000 57028744000 57030544000 57032344000 57034144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56998144000 56999944000 57001744000 57003544000 57005344000 57007144000 57008944000 57010744000 57012544000 57014344000 57016144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="8" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57634544000 57635344000 57636144000 57636944000 57637744000 57638544000 57639344000 57640144000 57640944000 57641744000 57642544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57626544000 57627344000 57628144000 57628944000 57629744000 57630544000 57631344000 57632144000 57632944000 57633744000 57634544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57582544000 57583344000 57584144000 57584944000 57585744000 57586544000 57587344000 57588144000 57588944000 57589744000 57590544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57590544000 57591344000 57592144000 57592944000 57593744000 57594544000 57595344000 57596144000 57596944000 57597744000 57598544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56938144000 56938944000 56939744000 56940544000 56941344000 56942144000 56942944000 56943744000 56944544000 56945344000 56946144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56946144000 56946944000 56947744000 56948544000 56949344000 56950144000 56950944000 56951744000 56952544000 56953344000 56954144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56990144000 56990944000 56991744000 56992544000 56993344000 56994144000 56994944000 56995744000 56996544000 56997344000 56998144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56982144000 56982944000 56983744000 56984544000 56985344000 56986144000 56986944000 56987744000 56988544000 56989344000 56990144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="8" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57622544000 57622944000 57623344000 57623744000 57624144000 57624544000 57624944000 57625344000 57625744000 57626144000 57626544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57618544000 57618944000 57619344000 57619744000 57620144000 57620544000 57620944000 57621344000 57621744000 57622144000 57622544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57598544000 57598944000 57599344000 57599744000 57600144000 57600544000 57600944000 57601344000 57601744000 57602144000 57602544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57602544000 57602944000 57603344000 57603744000 57604144000 57604544000 57604944000 57605344000 57605744000 57606144000 57606544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56954144000 56954544000 56954944000 56955344000 56955744000 56956144000 56956544000 56956944000 56957344000 56957744000 56958144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56958144000 56958544000 56958944000 56959344000 56959744000 56960144000 56960544000 56960944000 56961344000 56961744000 56962144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56978144000 56978544000 56978944000 56979344000 56979744000 56980144000 56980544000 56980944000 56981344000 56981744000 56982144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56974144000 56974544000 56974944000 56975344000 56975744000 56976144000 56976544000 56976944000 56977344000 56977744000 56978144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="8" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57617044000 57617194000 57617344000 57617494000 57617644000 57617794000 57617944000 57618094000 57618244000 57618394000 57618544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57615544000 57615694000 57615844000 57615994000 57616144000 57616294000 57616444000 57616594000 57616744000 57616894000 57617044000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57606544000 57606694000 57606844000 57606994000 57607144000 57607294000 57607444000 57607594000 57607744000 57607894000 57608044000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+57608044000 57608194000 57608344000 57608494000 57608644000 57608794000 57608944000 57609094000 57609244000 57609394000 57609544000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56962144000 56962294000 56962444000 56962594000 56962744000 56962894000 56963044000 56963194000 56963344000 56963494000 56963644000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56963644000 56963794000 56963944000 56964094000 56964244000 56964394000 56964544000 56964694000 56964844000 56964994000 56965144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56972644000 56972794000 56972944000 56973094000 56973244000 56973394000 56973544000 56973694000 56973844000 56973994000 56974144000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+56971144000 56971294000 56971444000 56971594000 56971744000 56971894000 56972044000 56972194000 56972344000 56972494000 56972644000
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 -1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+<SensorChannel>
+<Array nelem="4" type="GriddedField">
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+9e+10 9.005e+10 9.01e+10 9.015e+10 9.02e+10 9.025e+10 9.03e+10 9.035e+10 9.04e+10 9.045e+10 9.05e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+8.95e+10 8.955e+10 8.96e+10 8.965e+10 8.97e+10 8.975e+10 8.98e+10 8.985e+10 8.99e+10 8.995e+10 9e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+8.75e+10 8.755e+10 8.76e+10 8.765e+10 8.77e+10 8.775e+10 8.78e+10 8.785e+10 8.79e+10 8.795e+10 8.8e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+<GriddedField version="2" N="1">
+<String name="Name of Data">
+"box"</String>
+<String>
+"frequency"</String>
+<Vector version="2" shape="11" rank="1" type="Numeric">
+8.8e+10 8.805e+10 8.81e+10 8.815e+10 8.82e+10 8.825e+10 8.83e+10 8.835e+10 8.84e+10 8.845e+10 8.85e+10
+</Vector>
+<Vector version="2" shape="11" rank="1" type="Numeric" name="Data">
+1 1 1 1 1 1 1 1 1 1 1
+</Vector>
+</GriddedField>
+</Array>
+<SensorPolarization>
+<Vector shape="4" rank="1" type="Numeric">
+1 1 0 0
+</Vector>
+<Numeric>
+1
+</Numeric>
+</SensorPolarization>
+</SensorChannel>
+</Array>
+<Variant type="SensorPencilBeamAntenna">
+<SensorPencilBeamAntenna>
+</SensorPencilBeamAntenna>
+</Variant>
+<Bool>
+0
+</Bool>
+</SensorBuilder>
+</arts>
