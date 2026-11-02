@@ -1,31 +1,69 @@
 #include "frequency_channel_selection.h"
 
+#include <math_funcs.h>
 #include <matpack.h>
 
 #include <algorithm>
 #include <boost/math/distributions/normal.hpp>
-#include <numeric>
+#include <limits>
 #include <ranges>
 #include <vector>
 
-#include "compare.h"
-
 namespace sensor {
-const AscendingGrid& Channel::freq_grid() const { return channel.grid<0>(); }
+namespace {
+constexpr Numeric frequency_eps = 64 * std::numeric_limits<Numeric>::epsilon();
 
-const Vector& Channel::weights() const { return channel.data; }
+bool is_close(Numeric a, Numeric b) {
+  return std::abs(a - b) <= frequency_eps * std::max({Numeric{1}, std::abs(a), std::abs(b)});
+}
 
-DiracChannel::DiracChannel(Numeric f)
-    : Channel{.channel = {
-                  .data_name = "dirac"s, .data = {1.0}, .grid_names = {"frequency"s}, .grids = {AscendingGrid{f}}}} {}
+SortedGriddedField1 make_piece(String name, AscendingGrid f, Vector response) {
+  return {
+      .data_name = std::move(name), .data = std::move(response), .grid_names = {"frequency"s}, .grids = {std::move(f)}};
+}
+}  // namespace
+
+SortedGriddedField1 Channel::quadrature() const {
+  std::vector<std::pair<Numeric, Numeric>> samples;
+
+  Vector weights;
+  for (const auto& piece : response) {
+    if (not piece.ok()) arts::user_error("A channel response piece must have as many values as frequencies");
+
+    const auto& f = piece.grid<0>();
+    if (f.size() == 1) {
+      samples.emplace_back(f[0], piece.data[0]);
+      continue;
+    }
+
+    calculate_int_weights_arbitrary_grid(weights, f);
+    for (Size i = 0; i < f.size(); i++) samples.emplace_back(f[i], weights[i] * piece.data[i]);
+  }
+
+  stdr::sort(samples, {}, &std::pair<Numeric, Numeric>::first);
+
+  std::vector<Numeric> f;
+  std::vector<Numeric> w;
+  for (const auto& [fi, wi] : samples) {
+    if (not f.empty() and is_close(f.back(), fi)) {
+      w.back() += wi;
+    } else {
+      f.push_back(fi);
+      w.push_back(wi);
+    }
+  }
+
+  return make_piece("quadrature", AscendingGrid{std::move(f)}, Vector{std::move(w)});
+}
+
+DiracChannel::DiracChannel(Numeric f) : Channel{.response = {make_piece("dirac", AscendingGrid{f}, Vector{1.0})}} {}
 
 DiracChannel::DiracChannel() : DiracChannel(0) {}
 
-BoxChannel::BoxChannel(AscendingGrid f)
-    : Channel{.channel = {.data_name  = "box"s,
-                          .data       = Vector(f.size(), 1.0 / static_cast<Numeric>(f.size())),
-                          .grid_names = {"frequency"s},
-                          .grids      = {std::move(f)}}} {}
+BoxChannel::BoxChannel(AscendingGrid f) : Channel{} {
+  Vector one(f.size(), 1.0);
+  response.push_back(make_piece("box", std::move(f), std::move(one)));
+}
 
 BoxChannel::BoxChannel(Numeric lower, Numeric upper, Size N) : BoxChannel{nlinspace(lower, upper, N)} {}
 
@@ -37,12 +75,12 @@ SortedGriddedField1 gauss(AscendingGrid&& f, Numeric f0, Numeric std) {
 
   Vector data{std::from_range, f | stdv::transform([dist = gauss(f0, std)](Numeric fi) { return pdf(dist, fi); })};
 
-  return {.data_name = "gaussian"s, .data = std::move(data), .grid_names = {"frequency"s}, .grids = {std::move(f)}};
+  return make_piece("gaussian", std::move(f), std::move(data));
 }
 }  // namespace
 
 GaussianChannel::GaussianChannel(AscendingGrid f, Numeric f0, Numeric std)
-    : Channel{.channel = gauss(std::move(f), f0, std)} {}
+    : Channel{.response = {gauss(std::move(f), f0, std)}} {}
 
 GaussianChannel::GaussianChannel(Numeric f0, Numeric std, Size N, Size M)
     : GaussianChannel(nlinspace(-static_cast<Numeric>(M) * std, static_cast<Numeric>(M) * std, N), f0, std) {}
@@ -57,75 +95,19 @@ static_assert(FrequencyChannelSelection<BoxChannel>);
 static_assert(FrequencyChannelSelection<DiracChannel>);
 static_assert(FrequencyChannelSelection<GaussianChannel>);
 
-void Spectrometer::sync_frequency_grids() {
-  std::vector<Numeric> f;
-  f.reserve(std::transform_reduce(
-      channels.begin(), channels.end(), Size{}, std::plus<>{}, [](const Channel& c) { return c.size(); }));
-
-  for (const auto& channel : channels) {
-    const auto& freqs = channel.freq_grid();
-    f.insert(f.end(), freqs.begin(), freqs.end());
-  }
-
-  stdr::sort(f);
-  f.erase(std::unique(f.begin(), f.end()), f.end());
-
-  const auto fs = AscendingGrid(std::move(f));
-  Vector     ws(fs.size(), 0);
-
-  for (Channel& channel : channels) {
-    const auto& ch_fs = channel.freq_grid();
-    const auto& ch_ws = channel.weights();
-    const Size  n     = ch_fs.size();
-
-    const auto fs_ptr_first = stdr::lower_bound(fs, ch_fs.front());
-    const Size OFFSET       = std::distance(fs.begin(), fs_ptr_first);
-    const auto ws_ptr_first = ws.begin() + OFFSET;
-
-    auto fs_ptr = fs_ptr_first;
-    auto ws_ptr = ws_ptr_first;
-    for (Size i = 0; i < n; i++) {
-      while (*fs_ptr < ch_fs[i]) {
-        ++fs_ptr;
-        ++ws_ptr;
-      }
-      *ws_ptr = ch_ws[i];
-    }
-
-    channel.channel.grid<0>() = fs;
-    channel.channel.data      = ws;
-
-    fs_ptr = fs_ptr_first;
-    ws_ptr = ws_ptr_first;
-    for (Size i = 0; i < n; i++) {
-      while (*fs_ptr < ch_fs[i]) {
-        ++fs_ptr;
-        ++ws_ptr;
-      }
-      *ws_ptr = 0.0;
-    }
-  }
-}
-
-bool Spectrometer::is_synced() const {
-  return channels.empty() or stdr::all_of(channels, Cmp::eq(channels.front().freq_grid()), &Channel::freq_grid);
-}
-
 Spectrometer::Spectrometer(const Channel& base_channel, const AscendingGrid& freq_offsets)
     : channels(freq_offsets.size(), base_channel) {
   for (Size i = 0; i < channels.size(); ++i) {
-    Vector f                       = channels[i].channel.grid<0>();
-    f                             += freq_offsets[i];
-    channels[i].channel.grid<0>()  = f;
+    for (auto& piece : channels[i].response) {
+      Vector f         = piece.grid<0>();
+      f               += freq_offsets[i];
+      piece.grid<0>()  = AscendingGrid{std::move(f)};
+    }
   }
-
-  sync_frequency_grids();
 }
 
 Spectrometer::Spectrometer(const AscendingGrid& freq_offsets)
-    : channels(std::from_range, freq_offsets | stdv::transform([](auto f) -> DiracChannel { return f; })) {
-  sync_frequency_grids();
-}
+    : channels(std::from_range, freq_offsets | stdv::transform([](auto f) -> Channel { return DiracChannel{f}; })) {}
 }  // namespace sensor
 
 void xml_io_stream<sensor::Spectrometer>::write(std::ostream&               os,

@@ -37,7 +37,7 @@ CHANNELS = [
     ChannelSpec(8, "$55.5$",                         55.5e9,          330e6, "Ih", 0.25),
     ChannelSpec(9, "$f_0 = 57.290344$",              57.290344e9,     330e6, "Ih", 0.25),
     ChannelSpec(10, "$f_0 \\pm 0.217$",              57.290344e9,      78e6, "Ih", 0.40, (217e6,)),
-    ChannelSpec(11, "$f_0 \\pm 0.3222 \\pm 0.048$",  57.290344e9,       6e6, "Ih", 0.40, (322.2e6, 48e6)),
+    ChannelSpec(11, "$f_0 \\pm 0.3222 \\pm 0.048$",  57.290344e9,      36e6, "Ih", 0.40, (322.2e6, 48e6)),
     ChannelSpec(12, "$f_0 \\pm 0.3222 \\pm 0.022$",  57.290344e9,      16e6, "Ih", 0.60, (322.2e6, 22e6)),
     ChannelSpec(13, "$f_0 \\pm 0.3222 \\pm 0.01$",   57.290344e9,       8e6, "Ih", 0.80, (322.2e6, 10e6)),
     ChannelSpec(14, "$f_0 \\pm 0.3222 \\pm 0.0045$", 57.290344e9,       3e6, "Ih", 1.20, (322.2e6, 4.5e6)),
@@ -47,7 +47,9 @@ CHANNELS = [
 CHANNEL_COUNT       = len(CHANNELS)
 SAMPLES_PER_CHANNEL = 11
 POS                 = [817e3, 0.0, 0.0]
-LOS                 = [130.0, 0.0]
+HEADING             = -90.0  # Flying west
+SCAN_ANGLE          = 50.0   # Positive is to the right of the flight direction
+LOS                 = [180.0 - SCAN_ANGLE, HEADING + 90.0]
 ELL                 = pa.arts.planets.Earth.ellipsoid
 # fmt: on
 
@@ -68,18 +70,23 @@ def sensor_channels(channels, n):
         m = pa.arts.sensor.BoxChannel(0, ch.bandwidth_hz / 2, n)
         v = x.channel_response(m)
 
+        # AMSU-A scans cross-track with a rotating reflector, so the polarization
+        # at nadir turns with the scan angle.  The sign of the turn belongs to the
+        # instrument's optics and only matters when the observed U is not zero.
+        v.polarization = pa.arts.sensor.Polarization(ch.polarization, scan_rotation=1.0)
+
         out.append(v)
 
     return out
 
 
 def extract_channels(spectral_rad, measurement_sensor):
-    """ Helper to extract internal simulation grid for channels """
+    """ Helper to extract internal simulation grid and Stokes I of the channels """
     out = []
 
     for ch in measurement_sensor:
-        v = np.where(ch.weight_matrix.dense.flatten())[0]
-        out.append([np.array([ch.f_grid[i//4] for i in v]), spectral_rad.flatten()[v]])
+        v = np.nonzero(np.asarray(ch.weight_matrix.dense)[0, :, 0])[0]
+        out.append([np.asarray(ch.f_grid)[v], np.asarray(spectral_rad)[v, 0]])
 
     return out
 
@@ -101,12 +108,9 @@ ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_
 # %% Use a geometric path.
 ws.ray_path_observer_agendaSetGeometric()
 
-# %% Simple sensor setup: position, line-of-sight, polarization, and channels.
+# %% Simple sensor setup: channels with their polarization, and a cross-track scan geometry.
 sensor = pa.arts.sensor.Builder(channels=sensor_channels(CHANNELS, SAMPLES_PER_CHANNEL))
-ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS, ELL)
-
-for i in range(len(ws.measurement_sensor)):
-    ws.measurement_sensor[i].normalize(CHANNELS[i].polarization)
+ws.measurement_sensor, ws.measurement_sensor_meta = sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)
 
 # %% Collect on a single grid to help plotting and speed-up calculations - this sacrifices Jacobian flexibilities
 ws.measurement_sensor.collect()
@@ -171,8 +175,9 @@ fig_channels.tight_layout()
 if "ARTS_HEADLESS" not in os.environ:
     plt.show()
 
-ref = [294.82020426974526, 297.1947623380882, 283.302312755353, 262.0990916297846, 244.54610199393989, 226.31688048929024, 216.13528849096693,
-       209.71768967552475, 210.24931675027358, 219.3006268679223, 229.9146206010939, 241.32757369987274, 252.48941437009185, 261.41619227415606, 292.22500426558753]
+ref = [294.8203165065995, 297.1947667477886, 283.30250470594353, 262.1501094031428, 244.5833750280594, 226.45647530368532, 216.194523783748,
+       209.69385112980513, 210.0837314485364, 219.26382030306507, 230.25211121603354, 241.29466862910792, 252.4615035571569, 261.42686128739854,
+       292.2250588989928]
 
 assert np.allclose(ws.measurement_vec, ref), \
     f"Mismatch to reference simulations.\nReference:   {ref}\nSimulations: {ws.measurement_vec:B,}"

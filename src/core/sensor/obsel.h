@@ -147,12 +147,14 @@ class Obsel {
 
   friend std::ostream& operator<<(std::ostream& os, const Obsel& obsel);
 
-  /** The weights are renormalized to the new value.
-   * 
-   * After calling this method, the sum of all weights dot-producted with the
-   * polarization will be equal to the new value.
+  /** The weights are scaled by one common factor.
    *
-   * @param pol The polarization that is sampled for the sum. The default is [1, 0, 0, 0].
+   * After calling this method, the I of the summed weights is the I of pol.
+   * When either has no I, the magnitudes of their summed Q, U, and V agree
+   * instead.  The polarization of the weights is not changed, so it is an
+   * error to ask for a polarized pol when the weights have no polarization.
+   *
+   * @param pol The summed weights to scale to. The default is [1, 0, 0, 0].
    */
   void normalize(Stokvec pol = {1., 0., 0., 0.});
 

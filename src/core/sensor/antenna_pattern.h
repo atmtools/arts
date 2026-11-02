@@ -6,15 +6,12 @@
 #include <xml.h>
 
 #include <concepts>
-#include <memory>
+#include <variant>
 
 #include "frequency_channel_selection.h"
 #include "obsel.h"
 
 namespace sensor {
-//! A 2D angular antenna pattern on local zenith and azimuth offsets.
-struct AntennaPattern;
-
 //! A 2D gridded antenna pattern on local zenith and azimuth offsets.
 struct GriddedAntennaPattern;
 
@@ -27,50 +24,34 @@ struct GaussianAntenna;
 //! A Gaussianized Airy antenna pattern with frequency-dependent width.
 struct GaussianAiryAntenna;
 
-struct AntennaPattern {
-  virtual ~AntennaPattern()                        = default;
-  AntennaPattern()                                 = default;
-  AntennaPattern(const AntennaPattern&)            = default;
-  AntennaPattern& operator=(const AntennaPattern&) = default;
-  AntennaPattern(AntennaPattern&&)                 = default;
-  AntennaPattern& operator=(AntennaPattern&&)      = default;
-
-  //! Builds one sensor obsel for a channel at a sensor position and bore LOS.
-  [[nodiscard]] virtual Obsel operator()(const Channel& channel,
-                                         const Vector3& pos,
-                                         const Vector2& bore_los,
-                                         const Vector2& ell) const = 0;
-
-  //! Creates an owning copy preserving the dynamic antenna type.
-  [[nodiscard]] virtual std::shared_ptr<const AntennaPattern> clone() const = 0;
-};
-
-struct PencilBeamAntenna final : AntennaPattern {
-  Stokvec weight{1.0, 0.0, 0.0, 0.0};
-
-  PencilBeamAntenna(Stokvec weight = {1.0, 0.0, 0.0, 0.0});
-
+struct PencilBeamAntenna {
   [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Stokvec& response,
                                  const Vector3& pos,
                                  const Vector2& bore_los,
-                                 const Vector2& ell) const override;
-
-  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
+                                 const Vector2& ell) const;
 };
 
-//! 2D gridded field of antenna weights on local zenith and azimuth offsets.
+//! 2D gridded field of antenna gain on local zenith and azimuth offsets.
 using AntennaPatternField = matpack::gridded_data_t<Numeric, ZenGrid, AziGrid>;
 
-struct GriddedAntennaPattern : AntennaPattern {
+/** An antenna gain sampled on rings of zenith offset around the boresight
+ *
+ *  Each sample stands for the cell of the sphere between the midpoints to
+ *  its neighbouring zenith and azimuth offsets, the outermost ring extending
+ *  as far beyond its offset as half the distance to its inner neighbour.
+ *  The beam weight of a sample is its gain times the solid angle of its cell.
+ *  The ring at zero zenith offset is one sample, the cap inside the first
+ *  midpoint, with the azimuthal mean of its gains.
+ */
+struct GriddedAntennaPattern {
   AntennaPatternField data;  // center at [0, 0]
-  Stokvec             weight{1.0, 0.0, 0.0, 0.0};
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Stokvec& response,
                                  const Vector3& pos,
                                  const Vector2& bore_los,
-                                 const Vector2& ell) const override;
-
-  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
+                                 const Vector2& ell) const;
 };
 
 struct GaussianAntenna final : GriddedAntennaPattern {
@@ -80,16 +61,15 @@ struct GaussianAntenna final : GriddedAntennaPattern {
   GaussianAntenna(GaussianAntenna&&)                 = default;
   GaussianAntenna& operator=(GaussianAntenna&&)      = default;
 
-  GaussianAntenna(ZenGrid grid, Numeric std, Size azi_grid_size = 2, Stokvec weight = {1.0, 0.0, 0.0, 0.0});
-
-  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
+  //! Gain exp(-(offset / std)^2 / 2) of the angular offset from the boresight [deg]
+  GaussianAntenna(ZenGrid grid, Numeric std, Size azi_grid_size = 2);
 };
 
-struct GaussianAiryAntenna final : AntennaPattern {
+//! A Gaussian gain whose half width scales with wavelength over aperture diameter, sampled as GriddedAntennaPattern
+struct GaussianAiryAntenna {
   ZenGrid zen_grid;
   AziGrid azi_grid;
   Numeric aperture_diameter;
-  Stokvec weight;
 
   GaussianAiryAntenna()                                      = default;
   GaussianAiryAntenna(const GaussianAiryAntenna&)            = default;
@@ -97,59 +77,50 @@ struct GaussianAiryAntenna final : AntennaPattern {
   GaussianAiryAntenna(GaussianAiryAntenna&&)                 = default;
   GaussianAiryAntenna& operator=(GaussianAiryAntenna&&)      = default;
 
-  GaussianAiryAntenna(ZenGrid zen_grid,
-                      Numeric aperture_diameter,
-                      Size    azi_grid_size = 2,
-                      Stokvec weight        = {1.0, 0.0, 0.0, 0.0});
+  GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diameter, Size azi_grid_size = 2);
 
   [[nodiscard]] Obsel operator()(const Channel& channel,
+                                 const Stokvec& response,
                                  const Vector3& pos,
                                  const Vector2& bore_los,
-                                 const Vector2& ell) const override;
+                                 const Vector2& ell) const;
 
-  [[nodiscard]] std::shared_ptr<const AntennaPattern> clone() const override;
-  [[nodiscard]] Numeric                               std(Numeric frequency) const;
+  [[nodiscard]] Numeric std(Numeric frequency) const;
 };
+
+/** Any antenna pattern
+ *
+ *  Each pattern builds one sensor obsel for a channel at a sensor position and
+ *  bore LOS, given the channel's polarization response at the boresight (see
+ *  Polarization::at).  The weights are the channel's integration weights
+ *  normalized to sum to one, times the beam weight of each line of sight
+ *  normalized to sum to one at each frequency, times the polarization response
+ *  carried from the boresight to that line of sight.
+ *
+ *  GaussianAntenna comes before GriddedAntennaPattern, its base, so that a
+ *  conversion that tries the alternatives in order keeps the derived type.
+ */
+using AntennaPattern = std::variant<PencilBeamAntenna, GaussianAntenna, GaussianAiryAntenna, GriddedAntennaPattern>;
+
+//! The obsel of a channel through an antenna pattern, see AntennaPattern
+[[nodiscard]] Obsel antenna_obsel(const AntennaPattern& antenna,
+                                  const Channel&        channel,
+                                  const Stokvec&        response,
+                                  const Vector3&        pos,
+                                  const Vector2&        bore_los,
+                                  const Vector2&        ell);
 
 //! Concept for types that can build a sensor obsel from channel geometry.
 template <typename T>
-concept AntennaPatternSelection = requires(
-    const T& antenna, const Channel& channel, const Vector3& pos, const Vector2& bore_los, const Vector2& ell) {
-  { antenna(channel, pos, bore_los, ell) } -> std::same_as<Obsel>;
+concept AntennaPatternSelection = requires(const T&       antenna,
+                                           const Channel& channel,
+                                           const Stokvec& response,
+                                           const Vector3& pos,
+                                           const Vector2& bore_los,
+                                           const Vector2& ell) {
+  { antenna(channel, response, pos, bore_los, ell) } -> std::same_as<Obsel>;
 };
 }  // namespace sensor
-
-// AntennaPattern format tags and XML I/O
-
-template <> struct std::formatter<sensor::AntennaPattern> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const sensor::AntennaPattern&, FmtContext& ctx) const {
-    return tags.format(ctx, "SensorAntennaPattern"sv);
-  }
-};
-
-template <> struct xml_io_stream_name<sensor::AntennaPattern> {
-  static constexpr std::string_view name = "SensorAntennaPattern";
-};
-
-template <> struct xml_io_stream<sensor::AntennaPattern> {
-  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::AntennaPattern>;
-
-  static void write(std::ostream&                 os,
-                    const sensor::AntennaPattern& n,
-                    bofstream*                    pbofs = nullptr,
-                    std::string_view              name  = ""sv);
-
-  static void read(std::istream& is, sensor::AntennaPattern& n, bifstream* pbifs = nullptr);
-};
 
 // GriddedAntennaPattern format tags and XML I/O
 
@@ -196,8 +167,8 @@ template <> struct std::formatter<sensor::PencilBeamAntenna> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext> FmtContext::iterator format(const sensor::PencilBeamAntenna& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.weight);
+  template <class FmtContext> FmtContext::iterator format(const sensor::PencilBeamAntenna&, FmtContext& ctx) const {
+    return tags.format(ctx, "SensorPencilBeamAntenna"sv);
   }
 };
 
@@ -242,7 +213,7 @@ template <> struct std::formatter<sensor::GaussianAiryAntenna> {
 
   template <class FmtContext> FmtContext::iterator format(const sensor::GaussianAiryAntenna& v, FmtContext& ctx) const {
     auto sep = tags.sep();
-    return tags.format(ctx, v.zen_grid, sep, v.azi_grid, sep, v.aperture_diameter, sep, v.weight);
+    return tags.format(ctx, v.zen_grid, sep, v.azi_grid, sep, v.aperture_diameter);
   }
 };
 

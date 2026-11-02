@@ -21,6 +21,8 @@ def number_respecting_sort(s):
 
 
 def title_to_heading(title):
+    # Build-setting tags (see ArtsTestcases.cmake) are not part of the title
+    title = re.sub(r"(\.(nolgpl|sht|tmatrix))+$", "", title)
     pos = title.rfind(".")
     if pos == -1:
         ret = title[0].upper() + title[1:]

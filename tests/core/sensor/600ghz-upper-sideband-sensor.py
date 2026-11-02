@@ -34,7 +34,6 @@ antenna = pyarts.arts.sensor.GaussianAiryAntenna(
     ZEN,
     APERTURE_DIAMETER,
     8,
-    "I",
 )
 print(f"antenna:      {time.time() - start_time:.2f} seconds")
 

@@ -4705,33 +4705,6 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .out    = {"measurement_sensor", "measurement_sensor_meta"},
   };
 
-  wsm_data["measurement_sensorFromPredefined"] = {
-      .desc =
-          R"--(Create a code-defined, predefined instrument using the ARTS3 sensor builder.
-
-The method replaces *measurement_sensor* and *measurement_sensor_meta*.  It
-constructs the selected heterodyne channels, applies their channel-specific
-polarizations, and uses a pencil-beam antenna at ``pos`` and ``los``.
-
-See *PredefinedSensor* for the available sensor styles and their descriptions.
-The optional ``channels`` list contains one-based instrument channel numbers.
-An empty list selects all channels.
-
-The integer ``n`` controls sampling for parametric channel definitions. Sensors
-with compiled tabulated responses use their fixed frequency grids instead.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .gin       = {"pos", "los", "sensor", "n", "channels"},
-      .gin_type  = {"Vector3", "Vector2", "PredefinedSensor", "Index", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{5}, Vector{}},
-      .gin_desc  = {"Observer position [altitude, latitude, longitude]",
-                    "Observer line of sight [zenith, azimuth]",
-                    "Code-defined sensor style; see *PredefinedSensor*",
-                    "Frequency samples per parametric baseband interval",
-                    "Optional one-based instrument channel selection"},
-  };
-
   wsm_data["measurement_sensorAddSimple"] = {
       .desc =
           R"--(Adds a sensor with a dirac channel opening around the frequency grid.

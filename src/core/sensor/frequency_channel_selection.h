@@ -4,36 +4,55 @@
 #include <matpack.h>
 #include <xml_io_stream.h>
 
+#include "sensor_polarization.h"
+
 namespace sensor {
 //! Free-form channel struct.  Others inherit from this.
 struct Channel;
 
-//! A channel that is even between a lower and upper frequency, with equal weights.
+//! A channel that responds evenly between a lower and upper frequency.
 struct BoxChannel;
 
 //! A channel with a single frequency and all weight on that frequency.
 struct DiracChannel;
 
-//! A channel with Gaussian weights centered at the center frequency with given standard deviation.
+//! A channel with Gaussian response centered at the center frequency with given standard deviation.
 struct GaussianChannel;
 
 //! Concept for selecting frequencies for a channel
 template <typename T>
 concept FrequencyChannelSelection = std::derived_from<T, Channel>;
 
+/** A receiver channel: its frequency response and its polarization response
+ *
+ *  The response is a sum of pieces.  Each piece is linear between its
+ *  frequencies and zero outside them, so the frequencies of a piece are both
+ *  where the response is defined and where the radiance is sampled: their
+ *  density is chosen with the channel.  A piece with a single frequency is a
+ *  delta function of that weight.  Pieces may overlap, and a response with a
+ *  gap, such as the two sidebands of a heterodyne channel, is two pieces.
+ *
+ *  The measurement is the integral of the response times the radiance over
+ *  the integral of the response.  quadrature() gives the integration weights
+ *  of that integral on the frequencies of the pieces: the trapezoid rule
+ *  within each piece, delta weights as they are, summed where pieces share a
+ *  frequency.
+ */
 struct Channel {
-  SortedGriddedField1 channel;
+  std::vector<SortedGriddedField1> response;
 
-  [[nodiscard]] const AscendingGrid& freq_grid() const;
-  [[nodiscard]] const Vector&        weights() const;
-  [[nodiscard]] Size                 size() const { return channel.data.size(); }
+  //! What the channel receives of the Stokes vector at the boresight
+  Polarization polarization{};
+
+  //! The integration weights of the response on the frequencies of its pieces, not normalized
+  [[nodiscard]] SortedGriddedField1 quadrature() const;
 };
 
 struct BoxChannel final : Channel {
   BoxChannel(Numeric lower, Numeric upper, Size N);  // [lower, upper]
   BoxChannel(Numeric hw, Size N);                    // [-hw, hw]
   BoxChannel(AscendingGrid f);                       // f
-  BoxChannel() = default;                            // [0, 0]
+  BoxChannel() = default;                            // no response
 };
 
 struct DiracChannel final : Channel {
@@ -46,37 +65,29 @@ struct GaussianChannel final : Channel {
   GaussianChannel(Numeric f0, Numeric std, Size N, Size M);   // f0 +- M*std
   GaussianChannel(AscendingGrid f, Numeric std);              // f, f0 = 0
   GaussianChannel(Numeric std, Size N, Size M);               // +-M*std, f0 = 0
-  GaussianChannel() = default;                                // f0 = 0, std = 0
-
-  [[nodiscard]] AscendingGrid center_grid() const;
+  GaussianChannel() = default;                                // no response
 };
 
+/** Channels that share a backend
+ *
+ *  A sensor built from a spectrometer puts all its channels on one common
+ *  frequency grid.
+ */
 struct Spectrometer {
   std::vector<Channel> channels;
 
- private:
-  void sync_frequency_grids();
-
- public:
-  [[nodiscard]] bool is_synced() const;
-
   /** Make a simple spectrometer
 
-  The spectrometer will have the same channel response for each position
-  but will be shifted by the frequencies in freq_offsets.
-
-  So if base_channel is f: [-1, 1], w: [0.5, 0.5], and freq_offset is [2, 3, 4],
-  the resulting channels will be [[1, 2], [2, 3], [3, 4]] with the weights [0.5, 0.5] for each channel.
-
-  But, since this is supposed to simulate a spectrometer, the true frequency grid of each channel
-  will be [1, 2, 3, 4] for all channels but the weights will be [0.5, 0.5, 0, 0], [0, 0.5, 0.5, 0], and
-  [0, 0, 0.5, 0.5] for each channel respectively.
+  Every channel is base_channel shifted by one of freq_offsets.  So if
+  base_channel responds on [-1, 1] and freq_offsets is [2, 3, 4], the channels
+  respond on [1, 3], [2, 4], and [3, 5].
 
   @param[in] base_channel The base channel
   @param[in] freq_offsets The frequency offsets for each channel
 */
   Spectrometer(const Channel& base_channel, const AscendingGrid& freq_offsets);
 
+  //! Dirac channels at freq_offsets
   Spectrometer(const AscendingGrid& freq_offsets);
 
   Spectrometer(std::vector<Channel> channels) : channels(std::move(channels)) {}

@@ -269,6 +269,6 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y);
  * @param[in]  residual (optional) Returns the residual if true
  * @return Squared residual or 0
  */
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual = true) noexcept;
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual = true);
 
 #endif  // linalg_h

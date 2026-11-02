@@ -59,11 +59,10 @@ MetMM instrument presets
 ------------------------
 
 The ARTS 2 MetMM framework defines ATMS, DEIMOS, HATPRO, ISMAR up and down,
-MARSS, MHS, MWHS-2, and SAPHIR.  The ARTS 3 predefined-sensor enumeration has
-none of them.  Decide which channel definitions to port, and port them
-individually as predefined sensors or ``pyarts3.arts.sensor.Builder`` setups
-with an end-to-end reference case each.  The MetMM framework itself is not
-intended for ARTS 3.
+MARSS, MHS, MWHS-2, and SAPHIR.  ARTS 3 has no instrument presets.  Decide
+which channel definitions to port, and port them individually as
+``pyarts3.arts.sensor.Builder`` setups with an end-to-end reference case each.
+The MetMM framework itself is not intended for ARTS 3.
 
 Raw calibration and time-series corrections
 -------------------------------------------

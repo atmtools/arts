@@ -6,6 +6,7 @@ add_library(sensor STATIC
   frequency_bandpass_filters.cpp
   frequency_channel_selection.cpp
   frequency_range_selection.cpp
+  sensor_polarization.cpp
 )
 
 target_link_libraries(sensor PUBLIC matpack rtepack arts_enum_options)

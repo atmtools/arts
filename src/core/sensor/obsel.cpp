@@ -180,21 +180,27 @@ void Obsel::normalize(Stokvec pol) {
   const Stokvec x = std::transform_reduce(
       w.begin(), w.end(), Stokvec{}, std::plus<>(), [](const SparseStokvec& e) { return e.data; });
 
-  if (x.I() != 0.0) pol.I() = std::abs(pol.I() / x.I());
+  if(pol.is_polarized() and not x.is_polarized()) arts::user_error(
+                     R"(The weights receive no polarization, so they cannot be normalized to the polarized {:B,}.
 
-  if (x.is_polarized()) {
-    const Numeric hyp = std::hypot(x.Q(), x.U(), x.V());
-    pol.Q()           = std::abs(pol.Q() / hyp);
-    pol.U()           = std::abs(pol.U() / hyp);
-    pol.V()           = std::abs(pol.V() / hyp);
+Normalization scales the weights and does not change their polarization.
+Set the polarization of a channel when building the sensor instead.
+)",
+                     pol);
+
+  const Numeric polarized_x   = std::hypot(x.Q(), x.U(), x.V());
+  const Numeric polarized_pol = std::hypot(pol.Q(), pol.U(), pol.V());
+
+  Numeric scale = 0.0;
+  if (x.I() != 0.0 and pol.I() != 0.0) {
+    scale = std::abs(pol.I() / x.I());
+  } else if (polarized_x != 0.0 and polarized_pol != 0.0) {
+    scale = polarized_pol / polarized_x;
+  } else {
+    arts::user_error("Cannot normalize the summed weights {:B,} to {:B,}", x, pol);
   }
 
-  for (auto& e : w) {
-    e.data.I() *= pol.I();
-    e.data.Q() *= pol.Q();
-    e.data.U() *= pol.U();
-    e.data.V() *= pol.V();
-  }
+  for (auto& e : w) e.data *= scale;
 }
 
 Numeric Obsel::sumup(const Stokvec& i, Index ip) const {

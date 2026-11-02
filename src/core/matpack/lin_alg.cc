@@ -849,7 +849,7 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   p[0] = s3 / Numeric(n) - p[1] * xm;
 }
 
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) noexcept {
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) {
   // Size of the problem
   const Index n = x.size();
   Matrix      AT, ATA(n, n);

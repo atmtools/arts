@@ -118,7 +118,7 @@ std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(PropmatVector&
         const Numeric d_inv = 1.0 / jacobian_target.d;
         for (Size i = 0; i < freq_grid.size(); i++) {
           if (no_negative_absorption == 0 or d_absorption[i] > 0.0) {
-            spectral_propmat_jac[jacobian_target.target_pos, i].A() = (d_absorption[i] - absorption[i]) * d_inv;
+            spectral_propmat_jac[jacobian_target.target_pos, i].A() += (d_absorption[i] - absorption[i]) * d_inv;
           }
         }
       }

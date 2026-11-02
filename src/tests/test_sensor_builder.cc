@@ -1,5 +1,7 @@
 #include <arts_constants.h>
 #include <arts_conversions.h>
+#include <frequency_bandpass_filters.h>
+#include <frequency_range_selection.h>
 #include <obsel.h>
 #include <planet_data.h>
 #include <sensor_builder.h>
@@ -15,8 +17,7 @@ void assert_close(Numeric actual, Numeric expected, Numeric tol, std::string_vie
 }
 
 void test_sensor_builder_returns_meta_per_geometry() try {
-  sensor::Builder builder({sensor::BoxChannel{AscendingGrid{100.0, 101.0}}, sensor::DiracChannel{200.0}},
-                          std::make_shared<const sensor::PencilBeamAntenna>());
+  sensor::Builder builder{.channels = {sensor::BoxChannel{AscendingGrid{100.0, 101.0}}, sensor::DiracChannel{200.0}}, .antenna = sensor::PencilBeamAntenna{}};
 
   const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -51,7 +52,7 @@ void test_sensor_builder_returns_meta_per_geometry() try {
 }
 
 void test_sensor_builder_rejects_mismatched_geometry_counts() try {
-  sensor::Builder builder({sensor::DiracChannel{}}, std::make_shared<const sensor::PencilBeamAntenna>());
+  sensor::Builder builder{.channels = {sensor::DiracChannel{}}, .antenna = sensor::PencilBeamAntenna{}};
 
   const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
@@ -114,12 +115,82 @@ void test_unflatten_updates_shared_poslos_grids() try {
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_unflatten_updates_shared_poslos_grids failed:\n{}", e.what()));
 }
+
+void test_sensor_builder_polarization_per_channel() try {
+  sensor::Channel vertical   = sensor::DiracChannel{100.0};
+  sensor::Channel horizontal = sensor::DiracChannel{200.0};
+  vertical.polarization      = {.state = {1.0, 1.0, 0.0, 0.0}};
+  horizontal.polarization    = {.state = {1.0, -1.0, 0.0, 0.0}};
+
+  const sensor::Builder builder{.channels = {vertical, horizontal}, .antenna = sensor::PencilBeamAntenna{}};
+
+  const std::array<Vector3, 1> pos{{{600e3, 10.0, 20.0}}};
+  const std::array<Vector2, 1> los{{{150.0, 40.0}}};
+  const auto [obsels, meta] = builder(pos, los, Vector2{Body::Earth::a, Body::Earth::b});
+
+  const Stokvec v = obsels[0].weight_matrix()[0, 0];
+  const Stokvec h = obsels[1].weight_matrix()[0, 0];
+  for (Size i = 0; i < 4; i++) {
+    assert_close(v[i], vertical.polarization.state[i], 0.0, "vertical channel weight");
+    assert_close(h[i], horizontal.polarization.state[i], 0.0, "horizontal channel weight");
+  }
+
+  // The heterodyne mapping keeps the polarization of the channel it maps
+  const sensor::HeterodyneFrequencyRange backend(50e9, Vector2{0.0, sensor::FrequencyRange::inf});
+  const auto mapped = sensor::make_bandpass_channels(backend, std::span<const sensor::Channel>{&horizontal, 1});
+  for (Size i = 0; i < 4; i++) {
+    assert_close(mapped.front().polarization.state[i], horizontal.polarization.state[i], 0.0, "mapped polarization");
+  }
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("test_sensor_builder_polarization_per_channel failed:\n{}", e.what()));
+}
+
+//! A cross-track scan: the boresight is in the plane across the flight direction, and the polarization turns with
+//! the signed scan angle; a bare line of sight cannot be built for such a channel because its side is unknown
+void test_sensor_builder_cross_track() try {
+  using Conversion::cosd, Conversion::sind;
+
+  sensor::Channel channel = sensor::DiracChannel{100e9};
+  channel.polarization    = {.state = {1.0, 1.0, 0.0, 0.0}, .scan_rotation = 1.0};
+
+  const sensor::Builder builder{.channels = {channel}, .antenna = sensor::PencilBeamAntenna{}};
+
+  const std::array<Vector3, 1> pos{{{800e3, 10.0, 20.0}}};
+  const std::array<Numeric, 1> heading{{30.0}};
+  const Vector                 scan{-20.0, 0.0, 20.0};
+  const Vector2                ell{Body::Earth::a, Body::Earth::b};
+
+  const auto [obsels, meta] = builder.cross_track(pos, heading, scan, {}, ell);
+  if (obsels.size() != 3 or meta.size() != 3) arts::user_error("Expected 3 obsels and meta blocks");
+
+  const std::array<Vector2, 3> expected_los{{{160.0, -60.0}, {180.0, 120.0}, {160.0, 120.0}}};
+  const std::array<Stokvec, 3> expected_weight{
+      {{1.0, cosd(40.0), -sind(40.0), 0.0}, {1.0, 1.0, 0.0, 0.0}, {1.0, cosd(40.0), sind(40.0), 0.0}}};
+  for (Size i = 0; i < 3; i++) {
+    const auto& los = obsels[i].poslos_grid()[0].los;
+    assert_close(los[0], expected_los[i][0], 1e-12, "cross-track zenith");
+    assert_close(los[1], expected_los[i][1], 1e-12, "cross-track azimuth");
+    const Stokvec w = obsels[i].weight_matrix()[0, 0];
+    for (Size k = 0; k < 4; k++) assert_close(w[k], expected_weight[i][k], 1e-14, "cross-track polarization");
+  }
+
+  bool threw = false;
+  try {
+    const std::array<Vector2, 1> los{{{160.0, 120.0}}};
+    static_cast<void>(builder(pos, los, ell));
+  } catch (const std::runtime_error&) { threw = true; }
+  if (not threw) arts::user_error("A scan-dependent polarization needs a scan geometry");
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("test_sensor_builder_cross_track failed:\n{}", e.what()));
+}
 }  // namespace
 
 int main() try {
   test_sensor_builder_returns_meta_per_geometry();
   test_sensor_builder_rejects_mismatched_geometry_counts();
   test_unflatten_updates_shared_poslos_grids();
+  test_sensor_builder_polarization_per_channel();
+  test_sensor_builder_cross_track();
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
   std::println(stderr, "test_sensor_builder failed:\n{}", e.what());
