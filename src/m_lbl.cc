@@ -12,6 +12,7 @@
 #include <minimize.h>
 #include <partfun.h>
 #include <path_point.h>
+#include <physics_funcs.h>
 #include <quantum.h>
 #include <rtepack.h>
 #include <sorting.h>
@@ -617,6 +618,13 @@ void abs_bandsReadSpeciesSplitARTSCAT(AbsorptionBands&         abs_bands,
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
+//! The line-by-line wind derivatives are frequency derivatives
+std::vector<bool> wind_targets(const JacobianTargets& jac_targets) {
+  std::vector<bool> wind(jac_targets.target_count(), false);
+  for (auto& atm_target : jac_targets.atm) wind[atm_target.target_pos] = Atm::is_wind(atm_target.type);
+  return wind;
+}
+
 void sumup_zeeman(PropmatVectorView        spectral_propmat,
                   PropmatMatrixView        spectral_propmat_jac,
                   VectorView               dispersion,
@@ -645,10 +653,11 @@ void sumup_zeeman(PropmatVectorView        spectral_propmat,
 
   for (Size i = 0; i < pm.size(); i++) {
     spectral_propmat[i] += scale(npm, pm[i]);
-    dispersion[i]       -= npm.A() * pm[i].imag();
+    dispersion[i]       += npm.A() * dispersion_from_imag_absorption(freq_grid[i], pm[i].imag());
 
     for (auto& atm_target : jac_targets.atm) {
-      const Size j = atm_target.target_pos;
+      const Size j    = atm_target.target_pos;
+      const bool wind = Atm::is_wind(atm_target.type);
 
       std::visit(
           [&, &x = spectral_propmat_jac[j, i], &y = dispersion_jac[j, i]]<typename T>(const T& type) {
@@ -667,7 +676,8 @@ void sumup_zeeman(PropmatVectorView        spectral_propmat,
               }
             }
             x += scale(npm, dpm[j, i]);
-            y -= npm.A() * dpm[j, i].imag();
+            y += npm.A() * (wind ? ddispersion_from_imag_absorption_df(freq_grid[i], pm[i].imag(), dpm[j, i].imag())
+                                 : dispersion_from_imag_absorption(freq_grid[i], dpm[j, i].imag()));
           },
           atm_target.type);
     }
@@ -706,12 +716,15 @@ void spectral_propmatAddVoigtLTE(PropmatVector&              spectral_propmat,
   bool has_zeeman = lbl::voigt::lte::calculate(
       pm, dpm, abs_bands, freq_grid, jac_targets, atm_point, no, species, no_negative_absorption);
 
+  const auto wind = wind_targets(jac_targets);
   for (Size i = 0; i < nf; i++) {
     spectral_propmat[i] += Propmat{pm[i].real()};
-    dispersion[i]       -= pm[i].imag();
+    dispersion[i]       += dispersion_from_imag_absorption(freq_grid[i], pm[i].imag());
     for (Size j = 0; j < nt; ++j) {
       spectral_propmat_jac[j, i] += Propmat{dpm[j, i].real()};
-      dispersion_jac[j, i]       -= dpm[j, i].imag();
+      dispersion_jac[j, i]       += wind[j]
+                                        ? ddispersion_from_imag_absorption_df(freq_grid[i], pm[i].imag(), dpm[j, i].imag())
+                                        : dispersion_from_imag_absorption(freq_grid[i], dpm[j, i].imag());
     }
   }
 
@@ -781,9 +794,13 @@ void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
 
   const Size nt = jac_targets.target_count();
 
-  single_dispersion = 0;
-  single_dispersion_jac.resize(nt);
-  single_dispersion_jac = 0;
+  if (single_propmat_jac.size() != nt or single_dispersion_jac.size() != nt)
+    arts::user_error(
+        "Expected {} Jacobian targets, got single_propmat_jac of size {} and single_dispersion_jac of size {}.  "
+        "Did you call single_propmatInit?",
+        nt,
+        single_propmat_jac.size(),
+        single_dispersion_jac.size());
 
   Complex       pm_(0.0);
   ComplexVector dpm_(nt, 0.0);
@@ -799,12 +816,14 @@ void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
   bool has_zeeman = lbl::voigt::lte::calculate(
       pm, dpm, abs_bands, freq_grid, jac_targets, atm_point, no, species, no_negative_absorption);
 
+  const auto wind = wind_targets(jac_targets);
   for (Size i = 0; i < pm.size(); i++) {
     spectral_propmat[i] += Propmat{pm[i].real()};
-    dispersion[i]       -= pm[i].imag();
+    dispersion[i]       += dispersion_from_imag_absorption(frequency, pm[i].imag());
     for (Size j = 0; j < nt; ++j) {
       spectral_propmat_jac[j, i] += Propmat{dpm[j, i].real()};
-      dispersion_jac[j, i]       -= dpm[j, i].imag();
+      dispersion_jac[j, i]       += wind[j] ? ddispersion_from_imag_absorption_df(frequency, pm[i].imag(), dpm[j, i].imag())
+                                            : dispersion_from_imag_absorption(frequency, dpm[j, i].imag());
     }
   }
 
@@ -854,6 +873,8 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
   //! FIXME: these should be part of workspace once things work?
   spectral_dispersion.resize(n);
   spectral_dispersion_jac.resize(m, n);
+  spectral_dispersion     = 0;
+  spectral_dispersion_jac = 0;
 
   const auto [df, it, ip] = [m, &jac_targets]() {
     std::vector<bool> v(m, false);
@@ -910,7 +931,7 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
       for (Size i = 0; i < n; i++) {
         auto v                  = res[i];
         spectral_propmat[i]    += lbl::zeeman::scale(npm, v[0]);
-        spectral_dispersion[i] -= npm.A() * v[0].imag();
+        spectral_dispersion[i] += npm.A() * dispersion_from_imag_absorption(f_grid[i], v[0].imag());
       }
 
       for (auto& atm_target : jac_targets.atm) {
@@ -943,7 +964,9 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
               for (Size i = 0; i < n; i++) {
                 auto v                         = res[i];
                 spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
-                spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
+                spectral_dispersion_jac[j, i] +=
+                    npm.A() * (df[j] ? ddispersion_from_imag_absorption_df(f_grid[i], v[0].imag(), v[j + 1].imag())
+                                     : dispersion_from_imag_absorption(f_grid[i], v[j + 1].imag()));
               }
             },
             atm_target.type);
@@ -954,7 +977,7 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
         for (Size i = 0; i < n; i++) {
           auto v                         = res[i];
           spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
-          spectral_dispersion_jac[j, i] -= npm.A() * v[j + 1].imag();
+          spectral_dispersion_jac[j, i] += npm.A() * dispersion_from_imag_absorption(f_grid[i], v[j + 1].imag());
         }
       }
     }

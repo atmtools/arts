@@ -2141,7 +2141,8 @@ but built on-the-fly, allowing per-frequency refraction.
       .gin_value = {Propmat{0, 0, 0, 0, 0, 0, 0}, Numeric{0.01}, Numeric{14.0}, Index{0}, Index{1}},
       .gin_desc =
           {"Delta of the dispersion in polarizized form.  "
-           "The dot-product of this and the propagation matrix is added to the internal *single_dispersion* variable.",
+           "The dot-product of this and the propagation matrix is treated as the imaginary part of an absorption coefficient, "
+           "so -c / (4 pi f) times it is added to the internal *single_dispersion* variable.",
            "The maximum optical thickness per step, min of local *Propmat* A divided by ``max_tau`` "
            "and *max_stepsize* is passed to *ray_point_back_propagation_agendaExecute*.  "
            "Note that this is an approximation that will fail for highly non-linear absorption profiles.  "
@@ -2611,8 +2612,8 @@ This is only for LTE lines in Voigt.
       .out       = {"spectral_propmat", "spectral_propmat_jac"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
-                    "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
+      .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
+                    "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
       .in        = {"spectral_propmat",
                     "spectral_propmat_jac",
                     "freq_grid",
@@ -2638,8 +2639,8 @@ This is only for LTE lines in Voigt.
       .out       = {"spectral_propmat", "spectral_propmat_jac"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"Dispersion vector - only the main component (i.e., -imag(A) of the *Propmat*)",
-                    "Dispersion Jacobian matrix - only the main component (i.e., -imag(A) of the *Propmat*)"},
+      .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
+                    "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
       .in        = {"spectral_propmat",
                     "spectral_propmat_jac",
                     "freq_grid",
@@ -4560,6 +4561,11 @@ to the refracted zenith angle, i.e.,
 .. math::
     
     \theta_{refracted} = \arcsin\left(\frac{n_{current}}{n_{next}}\sin(\theta_{current})\right)
+
+keeping the upward or downward direction of the ray.  If the argument of the arcsine
+is not less than 1, the ray is totally reflected and :math:`\theta_{refracted} = 180 - \theta_{current}`.
+
+The refractive index, :math:`n_{next}`, is 1 + *single_dispersion*.
 )--";
     this_.in.emplace_back("single_dispersion");
   }

@@ -89,8 +89,9 @@ assert np.allclose(geometric.flatten()[::21], [1.25485848e+02, -6.01567897e-04, 
                                                1.38412669e+02,  1.10187275e-01, -2.02820836e-02, -5.14978283e-01,
                                                1.29364509e+02, -4.84799820e-04])
 
-assert np.allclose(refractive.flatten()[::21], [1.25552247e+02, -6.06767990e-04, -2.39196372e-03,  6.08157968e-01,
-                                                1.38470374e+02,  1.09854048e-01, -2.00409572e-02, -5.16739003e-01,
-                                                1.29438345e+02, -4.89801105e-04])
+assert np.allclose(refractive.flatten()[::21], [1.25485844e+02, -6.01567599e-04, -2.41578138e-03,  6.08670881e-01,
+                                                1.38412666e+02,  1.10187297e-01, -2.02820987e-02, -5.14978187e-01,
+                                                1.29364505e+02, -4.84799527e-04])
 
-assert not np.allclose(geometric, refractive)
+# The line dispersion alone only changes the path slightly
+assert 0 < np.abs(geometric - refractive).max() < 1e-4

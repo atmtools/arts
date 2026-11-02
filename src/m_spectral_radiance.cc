@@ -508,7 +508,7 @@ void single_radClearskyEmissionPropagation(const Workspace&             ws,
                                  ray_point,
                                  atm_path.back(),
                                  single_propmat_agenda);
-    single_dispersion += dot(polarization, single_propmat_path.back());
+    single_dispersion += dispersion_from_imag_absorption(frequency, dot(polarization, single_propmat_path.back()));
 
     const Numeric A = single_propmat_path.back().A();
     if (A == 0.0) {

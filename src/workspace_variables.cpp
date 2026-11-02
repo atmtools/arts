@@ -1324,12 +1324,18 @@ Units: degrees
 
   wsv_data["single_dispersion"] = {
       .desc = R"--(A dispersion at a single *freq* point.
+
+This is the refractivity, n - 1, so that the real part of the refractive index is 1 + *single_dispersion*.
+
+Unit: dimensionless
 )--",
       .type = "Numeric",
   };
 
   wsv_data["single_dispersion_jac"] = {
       .desc = R"--(A dispersion Jacobian at a single *freq* point.
+
+See *single_dispersion*.
 )--",
       .type = "Vector",
       .dims = {"NTARGET"},

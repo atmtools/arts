@@ -295,12 +295,19 @@ void ray_pointPastRefractive(PropagationPathPoint&              ray_point,
                              const Index&                       search_safe) {
   ARTS_TIME_REPORT
 
-  using Conversion::cosd, Conversion::acosd;
+  using Conversion::sind, Conversion::asind;
 
   if (ray_path.size() == 0) arts::user_error("Empty propagation path.");
 
   PropagationPathPoint future = ray_path.back();
-  future.zenith()             = acosd((future.nreal / (1.0 + single_dispersion)) * cosd(future.zenith()));
+
+  // Snell's law with the zenith angle as the angle of incidence, keeping the upward/downward direction
+  const Numeric sinza = (future.nreal / (1.0 + single_dispersion)) * sind(future.zenith());
+  if (sinza >= 1.0) {
+    future.zenith() = 180.0 - future.zenith();  // Total internal reflection
+  } else {
+    future.zenith() = future.zenith() > 90.0 ? 180.0 - asind(sinza) : asind(sinza);
+  }
 
   future.nreal = 1 + single_dispersion;
 
