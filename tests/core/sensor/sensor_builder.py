@@ -11,7 +11,7 @@ def assert_close(name, got, expected, atol=1e-12):
 
 
 def test_sensor_builder_from_sequences():
-    builder = pyarts.arts.sensor.Builder(
+    builder = pyarts.arts.SensorBuilder(
         [
             pyarts.arts.sensor.BoxChannel(pyarts.arts.AscendingGrid([100.0, 101.0])),
             pyarts.arts.sensor.DiracChannel(200.0),
@@ -47,7 +47,7 @@ def test_sensor_builder_from_sequences():
 
 
 def test_sensor_builder_from_poslos_vector_and_length_guard():
-    builder = pyarts.arts.sensor.Builder(
+    builder = pyarts.arts.SensorBuilder(
         [pyarts.arts.sensor.DiracChannel()],
         pyarts.arts.sensor.PencilBeamAntenna(),
     )
@@ -105,10 +105,10 @@ def test_sensor_builder_xml_round_trip():
 
     for antenna in antennas:
         name = type(antenna).__name__
-        builder = sensor.Builder(channels, antenna)
+        builder = pyarts.arts.SensorBuilder(channels, antenna)
         builder.preserve_common_frequency_grid = True
         builder.savexml("sensor_builder.xml")
-        read = sensor.Builder.fromxml("sensor_builder.xml")
+        read = pyarts.arts.SensorBuilder.fromxml("sensor_builder.xml")
 
         assert type(read.antenna) is type(builder.antenna), name
         assert read.preserve_common_frequency_grid, name

@@ -3,7 +3,7 @@ microwave radiometer on NOAA-15 to -19, Aqua and MetOp-A to -C.  Channels 3
 to 14 sound temperature in the 50-58 GHz oxygen band, and channels 1, 2 and 15
 see the surface, water vapour and clouds at 23.8, 31.4 and 89 GHz.
 
-``amsu-a.xml`` holds a :class:`~pyarts3.arts.sensor.Builder` with
+``amsu-a.xml`` holds a :class:`~pyarts3.arts.SensorBuilder` with
 
 * the pass bands of each channel, idealised as boxcars around the nominal
   frequencies and local-oscillator offsets,

@@ -71,6 +71,8 @@ struct Builder {
 };
 }  // namespace sensor
 
+using SensorBuilder = sensor::Builder;
+
 template <> struct format_tag_aggregate<sensor::Builder> {
   constexpr static bool value = true;
 };

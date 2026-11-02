@@ -637,8 +637,7 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
           "Iterate over the spectrometer channels.");
   generic_interface(sspec);
 
-  auto ssb  = py::class_<sensor::Builder>(sen, "Builder");
-  ssb.doc() = "Combines channels and an antenna pattern into sensor obsels for paired position/LOS samples.";
+  auto ssb = py::class_<SensorBuilder>(m, "SensorBuilder");
   ssb.def(py::init<>(), "Construct an empty sensor builder.")
       .def(
           "__init__",

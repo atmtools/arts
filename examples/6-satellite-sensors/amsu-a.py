@@ -50,7 +50,7 @@ ws.atm_fieldRead(toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_
 ws.ray_path_observer_agendaSetGeometric()
 
 # %% Load the sensor and place it in a cross-track scan geometry.
-sensor = pa.arts.sensor.Builder.fromxml("amsu-a.xml")
+sensor = pa.arts.SensorBuilder.fromxml("amsu-a.xml")
 ws.measurement_sensor, ws.measurement_sensor_meta = sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)
 
 # %% Collect on a single grid to help plotting and speed-up calculations - this sacrifices Jacobian flexibilities

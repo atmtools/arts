@@ -86,7 +86,7 @@ polarization, and normalization workspace variables are not ported; ARTS 3
 describes a measurement with ``measurement_sensor``.  The
 instrument-specific controlfile frameworks built on those variables, such as
 MetMM with its dedicated grid and response methods, are not ported either.
-Port verified channel definitions as ``pyarts3.arts.sensor.Builder`` setups
+Port verified channel definitions as ``pyarts3.arts.SensorBuilder`` setups
 instead.
 
 Scattering-data layout
@@ -129,7 +129,7 @@ useful behavior is tested through the ARTS 3 interfaces:
   ``atm_fieldHydrostaticPressure`` and independent field interpolation.
 * ``jacobianAdjustAndTransform``: transformations of individual Jacobian
   targets and model-state mappings.
-* the MetMM instrument controlfiles: ``pyarts3.arts.sensor.Builder`` setups
+* the MetMM instrument controlfiles: ``pyarts3.arts.SensorBuilder`` setups
   and observation elements.
 
 Deciding where an ARTS 2 feature belongs

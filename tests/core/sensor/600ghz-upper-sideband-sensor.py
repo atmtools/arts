@@ -37,7 +37,7 @@ antenna = pyarts.arts.sensor.GaussianAiryAntenna(
 )
 print(f"antenna:      {time.time() - start_time:.2f} seconds")
 
-sensor = pyarts.arts.sensor.Builder(antenna, spectrometer, backend)
+sensor = pyarts.arts.SensorBuilder(antenna, spectrometer, backend)
 print(f"sensor:       {time.time() - start_time:.2f} seconds")
 
 ws = pyarts.Workspace()
