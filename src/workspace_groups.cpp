@@ -1071,16 +1071,6 @@ ray_point : PropagationPathPoint
 )--",
   };
 
-  wsg_data["SensorBuilder"] = {
-      .file = "sensor_builder.h",
-      .desc = R"--(An instrument: its channels and its antenna pattern.
-
-Each channel has a frequency response and a polarization response.  Placing
-the instrument at sensor positions and bore lines of sight gives the
-*measurement_sensor* and *measurement_sensor_meta* of those geometries.
-)--",
-  };
-
   wsg_data["Propmat"] = {
       .file = "rtepack.h",
       .desc = R"--(A single propagation matrix.
