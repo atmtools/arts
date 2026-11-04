@@ -50,6 +50,23 @@ Muelmat basis_change(const rtepack::polarization_basis& carried, const rtepack::
   return rtepack::stokes_rotation(c2 / norm, s2 / norm);
 }
 
+/** The change from the boresight's polarization basis to that of a line of sight
+ *
+ *  The basis is carried along the great circle from the boresight to the direction of the line of sight, the
+ *  shortest rotation between them, so it does not spin about the boresight.  Directions are unit vectors in the
+ *  local east-north-up frame.
+ */
+Muelmat carried_basis_change(const Vector3&                     bore,
+                             const rtepack::polarization_basis& bore_basis,
+                             const Vector3&                     direction,
+                             const Vector2&                     los) {
+  const Vector3 normal = cross(bore, direction);
+  const Numeric sine   = hypot(normal);
+  const Numeric angle  = Conversion::atan2d(sine, dot(bore, direction));
+  const auto    carry  = [&](const Vector3& v) { return sine > 0.0 ? turn(v, normal / sine, angle) : v; };
+  return basis_change({carry(bore_basis.first), carry(bore_basis.second)}, received_basis(los));
+}
+
 struct AntennaGeometrySample {
   PosLos poslos;
   //! The pattern's gain at the sample, its azimuthal mean at zero zenith offset
@@ -140,20 +157,15 @@ std::vector<Numeric> azimuth_fractions(const AziGrid& azi) {
       const Vector3 sample_ecef = turn(tilted_ecef, los_ecef, azi_grid[iazi]);
       const Vector2 los         = ecef2geodetic_los(pos_ecef, sample_ecef, ell).second;
 
-      // The antenna's field is carried along the great circle from the boresight to the sample, the shortest
-      // rotation between them; the tilt and turn that place the sample also spin it about the boresight
+      // The antenna's field is carried along the great circle from the boresight to the sample; the tilt and turn
+      // that place the sample would also spin it about the boresight
       const Vector3 sample = turn(turn(bore, tilt_axis, zen_grid[izen]), bore, azi_grid[iazi]);
-      const Vector3 normal = cross(bore, sample);
-      const Numeric sine   = hypot(normal);
-      const Numeric angle  = Conversion::atan2d(sine, dot(bore, sample));
-      const auto    carry  = [&](const Vector3& v) { return sine > 0.0 ? turn(v, normal / sine, angle) : v; };
-      const rtepack::polarization_basis carried{carry(bore_basis.first), carry(bore_basis.second)};
 
       out.push_back({.poslos               = {.pos = pos, .los = los},
                      .gain                 = gain[izen, iazi],
                      .solid_angle          = ring * azi_fraction[iazi],
                      .local_los            = {zen_grid[izen], azi_grid[iazi]},
-                     .basis_from_boresight = basis_change(carried, received_basis(los))});
+                     .basis_from_boresight = carried_basis_change(bore, bore_basis, sample, los)});
     }
   }
 
@@ -211,13 +223,30 @@ std::shared_ptr<const PosLosVector> make_poslos_grid(const std::vector<AntennaGe
   return std::make_shared<PosLosVector>(std::from_range,
                                         samples | stdv::transform([](const auto& s) { return s.poslos; }));
 }
+
+//! The obsels of an antenna that is a single beam: its one pixel
+ArrayOfSensorObsel one_pixel(Obsel&& obsel) {
+  ArrayOfSensorObsel out;
+  out.push_back(std::move(obsel));
+  return out;
+}
 }  // namespace
 
-Obsel PencilBeamAntenna::operator()(const Channel& channel,
-                                    const Stokvec& response,
-                                    const Vector3& pos,
-                                    const Vector2& bore_los,
-                                    const Vector2&) const {
+Size PixelGrid::size() const { return rows.size() * cols.size(); }
+
+PixelGrid PencilBeamAntenna::pixels() const { return {}; }
+
+PixelGrid GriddedAntennaPattern::pixels() const { return {}; }
+
+PixelGrid GaussianAntenna::pixels() const { return {}; }
+
+PixelGrid GaussianAiryAntenna::pixels() const { return {}; }
+
+ArrayOfSensorObsel PencilBeamAntenna::operator()(const Channel& channel,
+                                                 const Stokvec& response,
+                                                 const Vector3& pos,
+                                                 const Vector2& bore_los,
+                                                 const Vector2&) const {
   const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
 
   SparseStokvecMatrix weight_matrix(1, channel_weights.size());
@@ -226,14 +255,14 @@ Obsel PencilBeamAntenna::operator()(const Channel& channel,
     weight_matrix[0, ifreq] = channel_weights[ifreq] * response;
   }
 
-  return {freq_grid, make_single_poslos_grid(pos, bore_los), std::move(weight_matrix)};
+  return one_pixel({freq_grid, make_single_poslos_grid(pos, bore_los), std::move(weight_matrix)});
 }
 
-Obsel GriddedAntennaPattern::operator()(const Channel& channel,
-                                        const Stokvec& response,
-                                        const Vector3& pos,
-                                        const Vector2& bore_los,
-                                        const Vector2& ell) const {
+ArrayOfSensorObsel GriddedAntennaPattern::operator()(const Channel& channel,
+                                                     const Stokvec& response,
+                                                     const Vector3& pos,
+                                                     const Vector2& bore_los,
+                                                     const Vector2& ell) const {
   if (not data.ok()) arts::user_error("GriddedAntennaPattern data shape does not match its grids");
 
   const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
@@ -256,7 +285,7 @@ Obsel GriddedAntennaPattern::operator()(const Channel& channel,
     }
   }
 
-  return {freq_grid, make_poslos_grid(antenna_geom), std::move(weight_matrix)};
+  return one_pixel({freq_grid, make_poslos_grid(antenna_geom), std::move(weight_matrix)});
 }
 
 namespace {
@@ -270,11 +299,11 @@ AziGrid make_azi_grid(Size size) {
 GaussianAntenna::GaussianAntenna(ZenGrid zen_grid, Numeric std, Size azi_grid_size)
     : zen_grid(std::move(zen_grid)), azi_grid(make_azi_grid(azi_grid_size)), std(std) {}
 
-Obsel GaussianAntenna::operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const {
+ArrayOfSensorObsel GaussianAntenna::operator()(const Channel& channel,
+                                               const Stokvec& response,
+                                               const Vector3& pos,
+                                               const Vector2& bore_los,
+                                               const Vector2& ell) const {
   const GriddedAntennaPattern pattern{.data = make_gaussian_field(zen_grid, azi_grid, this->std)};
   return pattern(channel, response, pos, bore_los, ell);
 }
@@ -284,11 +313,11 @@ GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diam
 
 Numeric GaussianAiryAntenna::std(Numeric frequency) const { return gaussian_airy_std(frequency, aperture_diameter); }
 
-Obsel GaussianAiryAntenna::operator()(const Channel& channel,
-                                      const Stokvec& response,
-                                      const Vector3& pos,
-                                      const Vector2& bore_los,
-                                      const Vector2& ell) const {
+ArrayOfSensorObsel GaussianAiryAntenna::operator()(const Channel& channel,
+                                                   const Stokvec& response,
+                                                   const Vector3& pos,
+                                                   const Vector2& bore_los,
+                                                   const Vector2& ell) const {
   if (aperture_diameter <= 0.0) arts::user_error("Gaussian Airy antenna aperture_diameter must be positive");
 
   const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
@@ -323,15 +352,101 @@ Obsel GaussianAiryAntenna::operator()(const Channel& channel,
     }
   }
 
-  return {freq_grid, make_poslos_grid(antenna_geom), std::move(weight_matrix)};
+  return one_pixel({freq_grid, make_poslos_grid(antenna_geom), std::move(weight_matrix)});
 }
 
-Obsel antenna_obsel(const AntennaPattern& antenna,
-                    const Channel&        channel,
-                    const Stokvec&        response,
-                    const Vector3&        pos,
-                    const Vector2&        bore_los,
-                    const Vector2&        ell) {
+CameraAntenna CameraAntenna::thin_lens(Size        n_rows,
+                                       Size        n_cols,
+                                       Numeric     ccd_height,
+                                       Numeric     ccd_width,
+                                       Numeric     focal_length,
+                                       Numeric     focus_distance,
+                                       BeamPattern beam) {
+  if (n_rows < 1 or n_cols < 1)
+    arts::user_error("A camera needs at least one row and one column of pixels, got {} by {}", n_rows, n_cols);
+  if (ccd_height <= 0.0 or ccd_width <= 0.0)
+    arts::user_error("A camera needs a CCD of positive size, got {} by {} m", ccd_height, ccd_width);
+  if (focal_length <= 0.0) arts::user_error("A camera needs a positive focal length, got {} m", focal_length);
+  if (focus_distance <= focal_length)
+    arts::user_error("A camera must be focused beyond its focal length, got focus distance {} m and focal length {} m",
+                     focus_distance,
+                     focal_length);
+
+  // The thin-lens equation 1 / f = 1 / d_o + 1 / d_i gives the distance from the lens to the CCD
+  const Numeric image_distance = focal_length * focus_distance / (focus_distance - focal_length);
+
+  // The angle of each pixel centre seen from the lens, along one side of the CCD
+  const auto offsets = [image_distance](Size n, Numeric size) {
+    const Numeric pitch = size / static_cast<Numeric>(n);
+    Vector        out(n);
+    for (Size i = 0; i < n; ++i) {
+      const Numeric centre = (static_cast<Numeric>(i) - 0.5 * static_cast<Numeric>(n - 1)) * pitch;
+      out[i]               = Conversion::atan2d(centre, image_distance);
+    }
+    return AscendingGrid{std::move(out)};
+  };
+
+  return {.grid = {.rows = offsets(n_rows, ccd_height), .cols = offsets(n_cols, ccd_width)}, .beam = std::move(beam)};
+}
+
+PixelGrid CameraAntenna::pixels() const { return grid; }
+
+ArrayOfSensorObsel CameraAntenna::operator()(const Channel& channel,
+                                             const Stokvec& response,
+                                             const Vector3& pos,
+                                             const Vector2& bore_los,
+                                             const Vector2& ell) const {
+  using Conversion::cosd, Conversion::sind, Conversion::tand;
+
+  if (grid.rows.empty() or grid.cols.empty())
+    arts::user_error("A camera needs at least one row and one column of pixels, got {} by {}",
+                     grid.rows.size(),
+                     grid.cols.size());
+  for (const AscendingGrid* offsets : {&grid.rows, &grid.cols}) {
+    if (offsets->front() <= -90.0 or offsets->back() >= 90.0)
+      arts::user_error("A camera's pixel offsets must be within 90 degrees of the optical axis, got {:B,}", *offsets);
+  }
+
+  // In the local east-north-up frame: the optical axis, the directions of increasing zenith and azimuth there,
+  // and the polarization basis of the radiation it receives
+  const Numeric za         = bore_los[0];
+  const Numeric aa         = bore_los[1];
+  const Vector3 bore       = enu_direction(bore_los);
+  const Vector3 e_zen      = {cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)};
+  const Vector3 e_azi      = {cosd(aa), -sind(aa), 0.0};
+  const auto    bore_basis = received_basis(bore_los);
+
+  ArrayOfSensorObsel out;
+  out.reserve(grid.size());
+  for (const Numeric row : grid.rows) {
+    for (const Numeric col : grid.cols) {
+      // CCD coordinates: the lens inverts the image, so a positive column offset looks towards decreasing azimuth
+      Vector3 direction = bore + e_zen * tand(row) - e_azi * tand(col);
+      direction         = direction / hypot(direction);
+
+      const Vector2 los{Conversion::acosd(std::clamp(direction[2], -1.0, 1.0)),
+                        Conversion::atan2d(direction[0], direction[1])};
+
+      const Stokvec pixel_response = carried_basis_change(bore, bore_basis, direction, los) * response;
+
+      auto obsels = std::visit([&](const auto& b) { return b(channel, pixel_response, pos, los, ell); }, beam);
+      out.push_back(std::move(obsels.front()));
+    }
+  }
+
+  return out;
+}
+
+PixelGrid antenna_pixels(const AntennaPattern& antenna) {
+  return std::visit([](const auto& pattern) { return pattern.pixels(); }, antenna);
+}
+
+ArrayOfSensorObsel antenna_obsels(const AntennaPattern& antenna,
+                                  const Channel&        channel,
+                                  const Stokvec&        response,
+                                  const Vector3&        pos,
+                                  const Vector2&        bore_los,
+                                  const Vector2&        ell) {
   return std::visit([&](const auto& pattern) { return pattern(channel, response, pos, bore_los, ell); }, antenna);
 }
 
@@ -339,6 +454,7 @@ static_assert(AntennaPatternSelection<GriddedAntennaPattern>);
 static_assert(AntennaPatternSelection<PencilBeamAntenna>);
 static_assert(AntennaPatternSelection<GaussianAntenna>);
 static_assert(AntennaPatternSelection<GaussianAiryAntenna>);
+static_assert(AntennaPatternSelection<CameraAntenna>);
 }  // namespace sensor
 
 void xml_io_stream<sensor::GriddedAntennaPattern>::write(std::ostream&                        os,

@@ -20,7 +20,7 @@ What a builder holds
 A builder holds:
 
 - ``channels``: a list of :class:`~pyarts3.arts.sensor.Channel`, one
-  observation element per channel and geometry;
+  observation element per channel, pixel of the antenna and geometry;
 - ``antenna``: one antenna pattern, shared by all channels; and
 - ``preserve_common_frequency_grid``: whether all observation elements are put
   on one common frequency grid.
@@ -98,8 +98,16 @@ cross-polarization.
 Antenna patterns
 ****************
 
-``antenna`` holds one antenna pattern.  Each kind of pattern is its own class
-in ``pyarts3.arts.sensor``, and ``antenna`` accepts any of them.  The
+``antenna`` holds one antenna pattern.  An antenna pattern describes the layout
+of its pixels and the beam of each pixel, and gives one observation element per
+pixel for each channel.  The layout, its ``pixels``, is a
+:class:`~pyarts3.arts.sensor.PixelGrid`: rows and columns of angular offsets
+from the boresight, with the observation elements ordered by row and then by
+column.  A camera has a grid of pixels, and the other kinds are a single beam,
+one pixel at the boresight.
+
+Each kind of pattern is its own class in ``pyarts3.arts.sensor``, and
+``antenna`` accepts any of them.  The
 documentation of :attr:`~pyarts3.arts.SensorBuilder.antenna` lists the kinds
 that exist.  More kinds can be added, so code that depends on the kind should
 check the type of the pattern rather than assume one.  A saved builder records
@@ -120,6 +128,14 @@ The kinds are:
 - :class:`~pyarts3.arts.sensor.GriddedAntennaPattern`: any gain, given as an
   :class:`~pyarts3.arts.sensor.AntennaPatternField` on zenith and azimuth
   offsets from the boresight.
+- :class:`~pyarts3.arts.sensor.CameraAntenna`: a grid of pixels around the
+  optical axis, the boresight, each with the same beam, which is one of the
+  single-beam kinds above.  Its pixel grid is in CCD coordinates: rows towards
+  increasing zenith and, because the lens inverts the image, columns towards
+  decreasing azimuth.  A thin-lens camera is made from its CCD, focal length
+  and focus distance with
+  :meth:`~pyarts3.arts.sensor.CameraAntenna.thin_lens`.  Each pixel receives
+  the boresight polarization carried to it along the great circle.
 
 For all kinds that sample more than the boresight, each sample stands for a
 cell of the sphere around the boresight: the ring between the midpoints to its
@@ -131,7 +147,7 @@ its azimuths.  The weight of a line of sight is its gain times the solid angle
 of its cell, normalized to sum to one at each frequency.
 
 Each pattern can also be called with a channel and a geometry, which gives the
-observation element it makes, for inspection.
+observation elements of its pixels, for inspection.
 
 Placing the instrument
 **********************
@@ -139,7 +155,9 @@ Placing the instrument
 Calling the builder with positions, bore lines of sight and the reference
 ellipsoid pairs each position with its line of sight.  It returns
 ``(measurement_sensor, measurement_sensor_meta)``.  The observation elements are
-ordered by geometry and then by channel, with one metadata block per geometry.
+ordered by geometry, then by pixel of the antenna, then by channel, with one
+metadata block per geometry: its channels for an antenna with one pixel, and its
+rows by columns of pixels by channels for a camera.
 Times can be given, one per geometry, and are stored in the metadata.
 Positions and lines of sight are as in :class:`~pyarts3.arts.SensorPosLos`.
 
@@ -152,11 +170,11 @@ the flight direction, so the bore line of sight is
 :math:`[180 - |s|, \mathrm{heading} - 90]` for :math:`s < 0`.  Each channel's
 polarization is taken at :math:`s`.  The observation elements are ordered by
 position, then scan angle, then channel, with one metadata block per position
-and scan angle.
+and scan angle.  The antenna must have one pixel.
 
 A builder places a channel the same way at every geometry, so the observation
-elements of one channel share their frequency grid, and the elements at one
-geometry share their lines of sight.  With
+elements of one channel share their frequency grid, and the elements of one
+pixel at one geometry share their lines of sight.  With
 ``preserve_common_frequency_grid``, all elements share one frequency grid.
 Shared grids are simulated once, see :ref:`Sec Sensor description`.
 

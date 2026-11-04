@@ -28,8 +28,11 @@ struct Builder {
 
   /** Obsels for paired positions and bore lines of sight
    *
-   *  The scan side of a line of sight is not known here, so every channel
-   *  must have a polarization that does not depend on the scan
+   *  The obsels are ordered by geometry, then by pixel of the antenna, then
+   *  by channel, with one metadata block per geometry: its channels for an
+   *  antenna with one pixel, and its rows by columns of pixels by channels
+   *  otherwise.  The scan side of a line of sight is not known here, so every
+   *  channel must have a polarization that does not depend on the scan
    *  (scan_rotation == 0); use cross_track() otherwise.
    */
   [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(std::span<const Vector3> pos,
@@ -49,7 +52,7 @@ struct Builder {
    *  s >= 0 and [180 - |s|, heading - 90] for s < 0.  Each channel's
    *  polarization is taken at s, see Polarization::at.  The obsels are ordered
    *  by position, then scan angle, then channel, with one metadata block per
-   *  position and scan angle.
+   *  position and scan angle.  The antenna must have one pixel.
    *
    *  @param pos         Platform positions
    *  @param heading     Flight direction at each position

@@ -16,8 +16,8 @@ ch1 = pa.arts.sensor.BoxChannel(1e9, 1e12, 1001)
 ch1.polarization = "Iv"
 ch2 = pa.arts.sensor.BoxChannel(1e9, 1e12, 1001)
 
-obsel1 = ant1(ch1, POS, LOS, ELL)
-obsel2 = ant2(ch2, POS, LOS, ELL)
+obsel1 = ant1(ch1, POS, LOS, ELL)[0]
+obsel2 = ant2(ch2, POS, LOS, ELL)[0]
 
 poslos1 = np.asarray(obsel1.poslos)
 poslos2 = np.asarray(obsel2.poslos)

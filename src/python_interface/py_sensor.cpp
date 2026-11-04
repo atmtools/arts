@@ -28,9 +28,12 @@
 
 namespace Python {
 namespace {
-//! The obsel of a channel through the antenna pattern of the bound class c
+//! The layout and the obsels of a channel through the antenna pattern of the bound class c
 template <typename T, typename... Ts>
 void antenna_calls(py::class_<T, Ts...>& c) {
+  c.def_prop_ro("pixels",
+                &T::pixels,
+                "The layout of the pixels.\n\n.. :class:`~pyarts3.arts.sensor.PixelGrid`");
   c.def(
        "__call__",
        [](const T& self, const sensor::Channel& channel, const Vector3& pos, const Vector2& bore_los, const Vector2& ell) {
@@ -45,7 +48,7 @@ void antenna_calls(py::class_<T, Ts...>& c) {
        "pos"_a,
        "bore_los"_a,
        "ell"_a,
-       R"(Map the antenna pattern onto one observation element.
+       R"(Map the antenna pattern onto its observation elements, one per pixel by row and then column.
 
 The channel's polarization must not depend on the scan.)")
       .def(
@@ -61,7 +64,7 @@ The channel's polarization must not depend on the scan.)")
           "pos"_a,
           "bore_los"_a,
           "ell"_a,
-          R"(Map the antenna pattern onto one observation element.
+          R"(Map the antenna pattern onto its observation elements, one per pixel by row and then column.
 
 ``response`` is the channel's polarization response at the boresight, e.g. ``channel.polarization.at(scan_angle)``.)");
 }
@@ -396,6 +399,30 @@ See :meth:`SensorObsel.normalize` for details.
 
   auto sen = m.def_submodule("sensor", "Classes and functions to help create a sensor");
 
+  auto spg  = py::class_<sensor::PixelGrid>(sen, "PixelGrid");
+  spg.doc() = R"(The layout of an antenna's pixels.
+
+An antenna makes one observation element per pixel for each channel.  Its pixels form a grid of rows
+and columns, given by the angular offsets [deg] of their boresights from the antenna's boresight, and
+its elements are ordered by row and then by column.  A kind with more than one pixel defines the
+directions of its rows and columns.  An antenna that is a single beam has one pixel at no offset.)";
+  generic_interface(spg);
+  spg.def(
+         "__init__",
+         [](sensor::PixelGrid* self, const AscendingGrid& rows, const AscendingGrid& cols) {
+           new (self) sensor::PixelGrid{.rows = rows, .cols = cols};
+         },
+         "rows"_a,
+         "cols"_a,
+         "Construct a pixel grid from the angular offsets of its rows and columns [deg].")
+      .def_rw("rows",
+              &sensor::PixelGrid::rows,
+              "Angular offsets of the rows [deg].\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
+      .def_rw("cols",
+              &sensor::PixelGrid::cols,
+              "Angular offsets of the columns [deg].\n\n.. :class:`~pyarts3.arts.AscendingGrid`")
+      .def("__len__", &sensor::PixelGrid::size, "The number of pixels.");
+
   py::class_<sensor::AntennaPatternField> sapf(sen, "AntennaPatternField");
   sapf.doc() = "A 2D gridded antenna response on local zenith and azimuth offsets.";
   gridded_data_interface(sapf);
@@ -474,6 +501,48 @@ See :meth:`SensorObsel.normalize` for details.
   antenna_calls(sgairy);
   generic_interface(sgairy);
   static_assert(arts_xml_ioable<sensor::GaussianAiryAntenna>);
+
+  auto scam  = py::class_<sensor::CameraAntenna>(sen, "CameraAntenna");
+  scam.doc() = R"(A camera: a grid of pixels in CCD coordinates, each with the same beam.
+
+``grid`` holds the angular offsets [deg] of the pixels from the optical axis, the boresight, in CCD
+coordinates: rows towards increasing zenith and, because the lens inverts the image, columns towards
+decreasing azimuth.  A pixel at row offset ``r`` and column offset ``c`` looks along
+``g + tan(r) e_zen - tan(c) e_azi``, where ``g`` is the boresight and ``e_zen`` and ``e_azi`` point
+towards increasing zenith and azimuth there.  Each pixel's polarization response is the boresight
+response carried along the great circle to the pixel, and ``beam`` is centred on each pixel.)";
+  generic_interface(scam);
+  scam.def(
+          "__init__",
+          [](sensor::CameraAntenna* self, const sensor::PixelGrid& grid, const sensor::BeamPattern& beam) {
+            new (self) sensor::CameraAntenna{.grid = grid, .beam = beam};
+          },
+          "grid"_a,
+          "beam"_a = sensor::BeamPattern{sensor::PencilBeamAntenna{}},
+          "Construct a camera from its pixel grid and the beam of each pixel (defaults to pencil-beam).")
+      .def_static("thin_lens",
+                  &sensor::CameraAntenna::thin_lens,
+                  "n_rows"_a,
+                  "n_cols"_a,
+                  "ccd_height"_a,
+                  "ccd_width"_a,
+                  "focal_length"_a,
+                  "focus_distance"_a,
+                  "beam"_a = sensor::BeamPattern{sensor::PencilBeamAntenna{}},
+                  R"(A thin-lens camera.
+
+``n_rows`` by ``n_cols`` pixels on a CCD of ``ccd_height`` by ``ccd_width`` [m], behind a lens of
+``focal_length`` [m] focused at ``focus_distance`` [m].  The CCD sits at the image distance of the
+thin-lens equation, and each pixel's offset is the angle of its centre seen from the lens.)")
+      .def_rw("grid",
+              &sensor::CameraAntenna::grid,
+              "The pixels in CCD coordinates.\n\n.. :class:`~pyarts3.arts.sensor.PixelGrid`")
+      .def_rw("beam",
+              &sensor::CameraAntenna::beam,
+              "The beam of each pixel.\n\n"
+              ".. :class:`~pyarts3.arts.sensor.PencilBeamAntenna | ~pyarts3.arts.sensor.GaussianAntenna | "
+              "~pyarts3.arts.sensor.GaussianAiryAntenna | ~pyarts3.arts.sensor.GriddedAntennaPattern`");
+  antenna_calls(scam);
 
   auto spol  = py::class_<sensor::Polarization>(sen, "Polarization");
   spol.doc() = R"(The polarization response of a receiver channel.
@@ -675,9 +744,10 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
               "Spectrometer channels.\n\n.. :class:`list[~pyarts3.arts.sensor.Channel]`")
       .def_rw("antenna",
               &sensor::Builder::antenna,
-              "Angular antenna response.\n\n"
+              "Angular antenna response and pixel layout.\n\n"
               ".. :class:`~pyarts3.arts.sensor.PencilBeamAntenna | ~pyarts3.arts.sensor.GaussianAntenna | "
-              "~pyarts3.arts.sensor.GaussianAiryAntenna | ~pyarts3.arts.sensor.GriddedAntennaPattern`")
+              "~pyarts3.arts.sensor.GaussianAiryAntenna | ~pyarts3.arts.sensor.GriddedAntennaPattern | "
+              "~pyarts3.arts.sensor.CameraAntenna`")
       .def_rw("preserve_common_frequency_grid",
               &sensor::Builder::preserve_common_frequency_grid,
               "Whether the built obsels share one common frequency grid.\n\n.. :class:`bool`")
@@ -702,8 +772,8 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
           R"(Build sensor obsels and metadata from paired position and bore-LOS sequences.
 
 Each ``pos[i]`` is combined with ``los[i]``.  The returned obsels are ordered by
-geometry first and channel second, and the returned value is
-``(measurement_sensor, measurement_sensor_meta)``.)")
+geometry, then pixel of the antenna, then channel, with one metadata block per
+geometry, and the returned value is ``(measurement_sensor, measurement_sensor_meta)``.)")
       .def(
           "__call__",
           [](const sensor::Builder&      self,
@@ -767,7 +837,7 @@ the flight direction, so its bore line of sight is ``[180 - |s|, heading + 90]``
 :meth:`~pyarts3.arts.sensor.Polarization.at`.  ``time`` is empty or has one time per position.
 
 The obsels are ordered by position, then scan angle, then channel, with one metadata block
-per position and scan angle.)");
+per position and scan angle.  The antenna must have one pixel.)");
   generic_interface(ssb);
 
   auto shdfr = py::class_<sensor::HeterodyneFrequencyRange>(sen, "HeterodyneFrequencyRange");

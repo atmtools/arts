@@ -37,6 +37,7 @@ from . import AtmField
 from . import AziGrid
 from . import CIARecord
 from . import CIARecords
+from . import CameraAntenna
 from . import DisortRadiance
 from . import FluxComponentsProfile
 from . import GeodeticField2

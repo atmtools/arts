@@ -185,12 +185,66 @@ void test_sensor_builder_cross_track() try {
 }
 }  // namespace
 
+//! A camera gives one obsel per pixel and channel, by pixel and then channel, and an image of metadata per geometry
+void test_sensor_builder_with_camera() try {
+  const sensor::CameraAntenna camera{.grid = {.rows = AscendingGrid{-1.0, 1.0}, .cols = AscendingGrid{-1.0, 0.0, 1.0}}};
+  const sensor::Builder       builder{.channels = {sensor::BoxChannel{AscendingGrid{100.0, 101.0}}, sensor::DiracChannel{200.0}},
+                                      .antenna  = camera};
+
+  const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
+  const std::array<Vector2, 2> los{{{120.0, 30.0}, {140.0, 50.0}}};
+  const Vector2                ell{Body::Earth::a, Body::Earth::b};
+
+  const auto [obsels, meta] = builder(pos, los, ell);
+
+  constexpr Size npix = 6, nchan = 2;
+  if (obsels.size() != 2 * npix * nchan) arts::user_error("Expected {} obsels, got {}", 2 * npix * nchan, obsels.size());
+  if (meta.size() != 2) arts::user_error("Expected one meta block per geometry, got {}", meta.size());
+
+  for (Size g = 0; g < 2; g++) {
+    const auto& image = std::get<sensor::CameraGriddedField>(meta[g].data);
+    if (meta[g].count() != npix * nchan) arts::user_error("Meta block {} must count every pixel and channel", g);
+    if (image.grid<0>().size() != 2 or image.grid<1>().size() != 3 or image.grid<2>().size() != nchan)
+      arts::user_error("Meta block {} must be rows by columns by channels", g);
+    for (Size i = 0; i < 2; i++) assert_close(image.grid<0>()[i], camera.grid.rows[i], 0.0, "meta row offset");
+    for (Size j = 0; j < 3; j++) assert_close(image.grid<1>()[j], camera.grid.cols[j], 0.0, "meta column offset");
+    for (Size c = 0; c < nchan; c++) assert_close(image.grid<2>()[c], static_cast<Numeric>(c), 0.0, "meta channel");
+
+    const auto pixels = camera(sensor::DiracChannel{200.0}, Stokvec{1.0, 0.0, 0.0, 0.0}, pos[g], los[g], ell);
+    for (Size p = 0; p < npix; p++) {
+      const auto& box   = obsels[g * npix * nchan + p * nchan + 0];
+      const auto& dirac = obsels[g * npix * nchan + p * nchan + 1];
+
+      if (box.f_grid().size() != 2 or dirac.f_grid().size() != 1)
+        arts::user_error("Obsels of geometry {} pixel {} must be the box and then the Dirac channel", g, p);
+      if (box.poslos_grid_ptr() != dirac.poslos_grid_ptr())
+        arts::user_error("The channels of one pixel must share its lines of sight");
+      if (box.f_grid_ptr() != obsels[p * nchan].f_grid_ptr())
+        arts::user_error("A channel must have the same frequency grid at every pixel and geometry");
+
+      const auto& expected = pixels[p].poslos_grid()[0].los;
+      assert_close(box.poslos_grid()[0].los[0], expected[0], 1e-12, "pixel zenith");
+      assert_close(box.poslos_grid()[0].los[1], expected[1], 1e-12, "pixel azimuth");
+    }
+  }
+
+  bool threw = false;
+  try {
+    const std::array<Numeric, 1> heading{{0.0}};
+    static_cast<void>(builder.cross_track(std::span{pos}.first(1), heading, Vector{0.0}, {}, ell));
+  } catch (const std::runtime_error&) { threw = true; }
+  if (not threw) arts::user_error("A cross-track scan of a camera must be refused");
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("test_sensor_builder_with_camera failed:\n{}", e.what()));
+}
+
 int main() try {
   test_sensor_builder_returns_meta_per_geometry();
   test_sensor_builder_rejects_mismatched_geometry_counts();
   test_unflatten_updates_shared_poslos_grids();
   test_sensor_builder_polarization_per_channel();
   test_sensor_builder_cross_track();
+  test_sensor_builder_with_camera();
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
   std::println(stderr, "test_sensor_builder failed:\n{}", e.what());
