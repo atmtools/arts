@@ -305,6 +305,16 @@ inline constexpr Numeric G = gravitational_constant;
   */
 inline constexpr Numeric bessel_j_n1_k1_zero =
     3.831705970207512315614435886308160766564545274287801928762298989918839309519011470214112874757423126734;
+
+/** The argument x at which the Airy pattern (2 J1(x) / x)^2 is one half
+    From: mpmath
+    Reproduce by running the following python code:
+    import mpmath as mp
+    mp.mp.dps = 100
+    mp.findroot(lambda x: 2 * mp.besselj(1, x) / x - 1 / mp.sqrt(2), 1.6)
+  */
+inline constexpr Numeric airy_half_power_argument =
+    1.616339948310703178119139753683896309743121097215461023581143662177226437077766837572617334883834973;
 };  // namespace Constant
 
 #endif

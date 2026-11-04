@@ -75,7 +75,12 @@ struct GaussianAntenna {
                                  const Vector2& ell) const;
 };
 
-//! A Gaussian gain whose half width scales with wavelength over aperture diameter, sampled as GriddedAntennaPattern
+/** A Gaussian gain with the half-power width of the Airy pattern of a circular aperture, sampled as GriddedAntennaPattern
+ *
+ *  The Airy pattern (2 J1(x) / x)^2, x = pi D sin(offset) / wavelength, is that of a uniformly illuminated
+ *  aperture of diameter D [m].  Its half-power half width for small angles, Constant::airy_half_power_argument
+ *  / pi times wavelength over D [rad], is the half width at half maximum of the Gaussian at each frequency.
+ */
 struct GaussianAiryAntenna {
   ZenGrid zen_grid;
   AziGrid azi_grid;

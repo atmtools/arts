@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
-#include <numbers>
 #include <stdexcept>
 #include <string_view>
 
@@ -41,12 +40,10 @@ Numeric offset(const Vector2& a, const Vector2& b) {
   return Conversion::acosd(std::clamp(dot(enu(a), enu(b)), -1.0, 1.0));
 }
 
-Numeric gaussian_airy_expected_gain(Numeric zenith_deg, Numeric frequency, Numeric aperture_diameter) {
-  constexpr Numeric gaussian_airy_hwhm_factor = Constant::bessel_j_n1_k1_zero / Constant::pi;
-  const Numeric     wavelength                = Constant::speed_of_light / frequency;
-  const Numeric hwhm_deg = Conversion::rad2deg(gaussian_airy_hwhm_factor * wavelength / aperture_diameter);
-  const Numeric ratio    = zenith_deg / hwhm_deg;
-  return std::exp(-std::numbers::ln2 * ratio * ratio);
+//! The Airy pattern (2 J1(x) / x)^2 of a uniformly illuminated circular aperture
+Numeric airy_pattern(Numeric x) {
+  const Numeric a = 2.0 * std::cyl_bessel_j(1.0, x) / x;
+  return a * a;
 }
 
 void test_gaussian_rejects_nonpositive_std() try {
@@ -95,18 +92,38 @@ void test_cells_are_spherical_caps_and_bands() try {
   for (Size i = 1; i < 4; i++) {
     assert_close(gaussian_obsel.weight_matrix()[i, 0][0], band / total, 1e-12, "gaussian band sample");
   }
-
-  constexpr Numeric                 f = 100.0e9;
-  const sensor::GaussianAiryAntenna airy{ZenGrid{{0.0, 0.2}}, 1.0, 3};
-  const auto                        airy_obsel = airy(sensor::DiracChannel{f}, unpolarized, pos, {45.0, 30.0}, ell);
-
-  const Numeric airy_center = cap(0.1);
-  const Numeric airy_band   = (cap(0.3) - cap(0.1)) / 3.0 * gaussian_airy_expected_gain(0.2, f, 1.0);
-  const Numeric airy_total  = airy_center + 3.0 * airy_band;
-  assert_close(airy_obsel.weight_matrix()[0, 0][0], airy_center / airy_total, 1e-6, "airy boresight cap");
-  assert_close(airy_obsel.weight_matrix()[1, 0][0], airy_band / airy_total, 1e-6, "airy band sample");
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_cells_are_spherical_caps_and_bands failed:\n{}", e.what()));
+}
+
+/** The Gaussian Airy beam has the half-power width of the Airy pattern of its aperture
+ *
+ *  For small angles the Airy pattern of an aperture of diameter D is (2 J1(x) / x)^2 with x = pi D offset /
+ *  wavelength.  The standard library's Bessel function confirms the argument where it is one half, and a sample
+ *  at that offset must have half the gain of the boresight: its weight is that gain times the solid angle of its
+ *  cell, as for the Gaussian above.
+ */
+void test_gaussian_airy_half_power_width() try {
+  constexpr Numeric x = Constant::airy_half_power_argument;
+  assert_close(airy_pattern(x), 0.5, 1e-15, "Airy pattern at the half-power argument");
+
+  constexpr Numeric f          = 100.0e9;
+  constexpr Numeric D          = 0.1;
+  const Numeric     wavelength = Constant::speed_of_light / f;
+  const Numeric     half_power = Conversion::rad2deg(x * wavelength / (Constant::pi * D));
+
+  const sensor::GaussianAiryAntenna airy{ZenGrid{{0.0, half_power}}, D, 3};
+  const auto                        obsel = airy(sensor::DiracChannel{f}, unpolarized, pos, {45.0, 30.0}, ell);
+
+  const Numeric center = cap(0.5 * half_power);
+  const Numeric band   = (cap(1.5 * half_power) - cap(0.5 * half_power)) / 3.0 * 0.5;
+  const Numeric total  = center + 3.0 * band;
+  assert_close(obsel.weight_matrix()[0, 0][0], center / total, 1e-12, "airy boresight cap");
+  for (Size i = 1; i < 4; i++) {
+    assert_close(obsel.weight_matrix()[i, 0][0], band / total, 1e-12, "airy sample at the half-power offset");
+  }
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("test_gaussian_airy_half_power_width failed:\n{}", e.what()));
 }
 
 void test_two_azimuths_split_the_band() try {
@@ -267,6 +284,7 @@ int main() try {
   test_gaussian_rejects_nonpositive_std();
   test_gaussian_airy_is_frequency_dependent();
   test_cells_are_spherical_caps_and_bands();
+  test_gaussian_airy_half_power_width();
   test_two_azimuths_split_the_band();
   test_gaussian_second_moment();
   test_gaussian_airy_keeps_the_channel_weights();

@@ -13,7 +13,8 @@
 namespace sensor {
 
 namespace {
-constexpr Numeric gaussian_airy_hwhm_factor = Constant::bessel_j_n1_k1_zero / Constant::pi;
+//! The half-power half width of the Airy pattern of a circular aperture is this times wavelength over diameter [rad]
+constexpr Numeric gaussian_airy_hwhm_factor = Constant::airy_half_power_argument / Constant::pi;
 
 //! The unit vector of a line of sight in the local east-north-up frame
 Vector3 enu_direction(const Vector2& los) {

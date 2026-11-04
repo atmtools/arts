@@ -447,7 +447,8 @@ See :meth:`SensorObsel.normalize` for details.
   generic_interface(sga);
 
   auto sgairy  = py::class_<sensor::GaussianAiryAntenna>(sen, "GaussianAiryAntenna");
-  sgairy.doc() = "A Gaussianized Airy antenna whose width scales with wavelength and aperture diameter.";
+  sgairy.doc() = "A Gaussian antenna gain with the half-power width of the Airy pattern of a uniformly illuminated "
+                 "circular aperture, so its width scales with wavelength over aperture diameter.";
   sgairy.def(py::init<ZenGrid, Numeric, Size>(),
              "grid"_a,
              "aperture_diameter"_a,
