@@ -3,6 +3,8 @@
 #include <arts_conversions.h>
 #include <planet_data.h>
 
+#include <boost/math/special_functions/bessel.hpp>
+
 #include <algorithm>
 #include <cmath>
 #include <format>
@@ -42,7 +44,7 @@ Numeric offset(const Vector2& a, const Vector2& b) {
 
 //! The Airy pattern (2 J1(x) / x)^2 of a uniformly illuminated circular aperture
 Numeric airy_pattern(Numeric x) {
-  const Numeric a = 2.0 * std::cyl_bessel_j(1.0, x) / x;
+  const Numeric a = 2.0 * boost::math::cyl_bessel_j(1, x) / x;
   return a * a;
 }
 
@@ -212,7 +214,7 @@ void test_cells_are_spherical_caps_and_bands() try {
 /** The Gaussian Airy beam has the half-power width of the Airy pattern of its aperture
  *
  *  For small angles the Airy pattern of an aperture of diameter D is (2 J1(x) / x)^2 with x = pi D offset /
- *  wavelength.  The standard library's Bessel function confirms the argument where it is one half, and a sample
+ *  wavelength.  Boost's Bessel function confirms the argument where it is one half, and a sample
  *  at that offset must have half the gain of the boresight: its weight is that gain times the solid angle of its
  *  cell, as for the Gaussian above.
  */
