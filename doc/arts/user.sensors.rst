@@ -12,6 +12,8 @@ the sensor setup is :attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
 It is a list of sensor observation elements.
 Every sensor observation element (:class:`~pyarts3.arts.SensorObsel`) has a
 shared frequency grid and shared geometry.
+:ref:`Sec Sensor builder` describes how to make it from an instrument's
+channels and antenna pattern.
 
 Sensor observation elements
 ***************************

@@ -166,6 +166,4 @@ std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> Builder::cross_track(std::s
 
   return build(*this, geometries, ell);
 }
-
-static_assert(BuilderSelection<Builder>);
 }  // namespace sensor

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <concepts>
 #include <span>
 #include <utility>
 #include <vector>
@@ -11,14 +10,9 @@
 #include "sensor_meta_info.h"
 
 namespace sensor {
-//! Combines channels with an antenna pattern and bore geometries into obsels.
-struct Builder;
 struct FrequencyRange;
 
-//! Concept for selecting sensor builders.
-template <typename T>
-concept BuilderSelection = std::derived_from<T, Builder>;
-
+//! Combines channels with an antenna pattern and bore geometries into obsels.
 struct Builder {
   std::vector<Channel> channels;
   AntennaPattern       antenna{};

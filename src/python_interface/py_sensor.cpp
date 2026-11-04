@@ -457,7 +457,7 @@ See :meth:`SensorObsel.normalize` for details.
              " current builder path does not carry a separate reference frequency.");
   sgairy.def_rw("aperture_diameter",
                 &sensor::GaussianAiryAntenna::aperture_diameter,
-                "Aperture diameter in the same length units as the zenith grid.\n\n.. :class:`~pyarts3.arts.Numeric`");
+                "Aperture diameter [m].\n\n.. :class:`~pyarts3.arts.Numeric`");
   sgairy.def_rw("zen_grid",
                 &sensor::GaussianAiryAntenna::zen_grid,
                 "Local zenith grid of the antenna response.\n\n.. :class:`~pyarts3.arts.ZenGrid`");
