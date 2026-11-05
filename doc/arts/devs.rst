@@ -37,5 +37,6 @@ and how to use existing features.
    dev.heating
    dev.disort
    dev.surface_emissivity
+   dev.surface_scattering
    dev.radiative_transfer
    dev.oem

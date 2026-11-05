@@ -11,6 +11,7 @@ usage, and :doc:`devs` for build and implementation details.
    concept.absorption
    concept.radiative_transfer
    concept.polarization
+   concept.surface_scattering
    concept.tmatrix
    concept.disort
    concept.rt3

@@ -83,7 +83,7 @@ struct Point {
 using FunctionalData = NumericBinaryOperator;
 using FieldData      = std::variant<GeodeticField2, Numeric, FunctionalData>;
 
-//! Hold all atmospheric data
+//! Hold all surface data
 struct Data {
   FieldData                  data{FunctionalData{}};
   InterpolationExtrapolation lat_upp{InterpolationExtrapolation::None};
@@ -129,7 +129,7 @@ struct Data {
   [[nodiscard]] VectorView flat_view();
 
   //! Flat weights for the positions on the surface
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 4> flat_weights(const Numeric &lat, const Numeric &lon) const;
+  [[nodiscard]] std::vector<std::pair<Index, Numeric>> flat_weights(const Numeric &lat, const Numeric &lon) const;
 
   [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
 

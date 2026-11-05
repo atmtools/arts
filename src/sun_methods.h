@@ -82,3 +82,39 @@ std::pair<Numeric, bool> beta_angle(const Workspace&             ws,
                                     const Numeric&               angle_cut);
 
 Vector2 geometric_los(const Vector3 from, const Vector3 to, const Vector2 ell);
+
+/** Geometric line-of-sight from an observer towards a sun (no refraction).
+ *
+ * The sun is placed at geodetic position
+ * {sun.distance - surf_field.single_value(SurfaceKey::h, lat, lon),
+ *  sun.latitude, sun.longitude}
+ * relative to the observer's lat/lon, and the LOS is the straight-line
+ * direction from the observer to that point.
+ *
+ * @param[in] sun A sun object.
+ * @param[in] observer_pos Position of the observer [alt, lat, lon].
+ * @param[in] surf_field As WSV.
+ */
+Vector2 sun_geometric_los(const Sun& sun, const Vector3 observer_pos, const SurfaceField& surf_field);
+
+/** Refraction-aware line-of-sight from an observer towards a sun.
+ *
+ * Wraps find_sun_path with just_hit = true and returns the mirrored LOS of
+ * the first path point, i.e. the observer-pointing LOS of the best path found
+ * to the sun (the observer agenda stores the light propagation direction).
+ *
+ * @param[in] ws ARTS workspace.
+ * @param[in] sun A sun object.
+ * @param[in] observer_pos Position of the observer [alt, lat, lon].
+ * @param[in] surf_field As WSV.
+ * @param[in] ray_path_observer_agenda As WSV.
+ * @param[in] angle_cut Angular cutoff to return the path, see find_sun_path.
+ * @param[in] refinement Refinements of the resolution, see find_sun_path.
+ */
+Vector2 sun_refractive_los(const Workspace&    ws,
+                           const Sun&          sun,
+                           const Vector3       observer_pos,
+                           const SurfaceField& surf_field,
+                           const Agenda&       ray_path_observer_agenda,
+                           const Numeric       angle_cut,
+                           const Index         refinement);

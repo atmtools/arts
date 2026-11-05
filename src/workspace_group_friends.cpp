@@ -632,6 +632,15 @@ like a 5-dimensional array with the last two dimensions of size 4.
       .dim_size = {"{}.npages()", "{}.nrows()", "{}.ncols()"},
   };
 
+  wsg_data["MuelmatTensor5"] = {
+      .file = "rtepack.h",
+      .desc = R"(A *Tensor5* of *Muelmat*.
+
+When converted to a :class:`~numpy.ndarray` this will look
+like a 7-dimensional array with the last two dimensions of size 4.
+)",
+  };
+
   wsg_data["Muelmat"] = {
       .file = "rtepack.h",
       .desc = "A single Mueller 4x4 matrix.\n",
@@ -690,12 +699,51 @@ Both the data and the grid may be named.  The grids are not sorted.
       .desc                 = R"--(A 3-dimensional gridof *Numeric*.
 
 The grids are *alt_grid* x *lat_grid* x *lon_grid*.
-The types are *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
+The types are *AltGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
 )--",
       .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
       .invariant            = "{}.ok()",
       .invariant_desc       = "has grids whose sizes are the shape of its data.",
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["SpectralGeodeticField3"] = {
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 3-dimensional grid of *Numeric*.
+
+The grids are frequency x latitude x longitude.
+The types are *FreqGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
+)--",
+      .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["AltGrid"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* altitudes.
+
+The values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
+)--",
+      .dim_size = {"{}.size()"},
+  };
+
+  wsg_data["FreqGrid"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* frequencies that are guaranteed to be positive.
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
+)--",
+      .dim_size = {"{}.size()"},
   };
 
   wsg_data["JacobianTargetsDiagonalCovarianceMatrixMap"] = {

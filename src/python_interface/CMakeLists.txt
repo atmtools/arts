@@ -172,6 +172,7 @@ nanobind_add_module(pyarts_cpp NB_STATIC NB_DOMAIN ARTS ${NANOBIND_LTO} STABLE_A
     py_hitran.cpp
     py_atm.cpp
     py_surf.cpp
+    py_surface_scattering.cpp
     py_fwd.cpp
     py_cia.cpp
     py_operators.cpp

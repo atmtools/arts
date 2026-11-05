@@ -13,6 +13,11 @@ void py_griddedfield_extra(py::module_& m) {
   generic_interface(geo3);
   implicit_convert_gf<GriddedField3>(geo3);
 
+  py::class_<SpectralGeodeticField3> sgeo3(m, "SpectralGeodeticField3");
+  gridded_data_interface(sgeo3);
+  generic_interface(sgeo3);
+  implicit_convert_gf<GriddedField3>(sgeo3);
+
   py::class_<GeodeticField2> geo2(m, "GeodeticField2");
   gridded_data_interface(geo2);
   generic_interface(geo2);
