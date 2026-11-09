@@ -99,22 +99,24 @@ void make_polyfit(Jacobian::ErrorTarget& x, const Size polyorder, const Vector& 
 }
 
 namespace {
-Vector rem_frq(const SensorObsel& v, const ConstVectorView x) {
-  if (x.size() != v.f_grid().size())
-    arts::user_error("Bad size. x.size(): {}, f_grid().size(): {}", x.size(), v.f_grid().size());
+Vector rem_frq(const Sensor& v, const ConstVectorView x) {
+  if (x.size() != v.freq_grid.size())
+    arts::user_error(
+        R"(Sensor "{}": bad size. x.size(): {}, freq_grid.size(): {})", v.name(), x.size(), v.freq_grid.size());
 
-  const auto& fs = v.f_grid();
+  const auto& fs = v.freq_grid;
 
   Vector out(fs);
   out -= x;
   return out;
 }
 
-template <bool pos, Index k> Vector rem_poslos(const SensorObsel& v, const ConstVectorView x) {
-  if (x.size() != v.poslos_grid().size())
-    arts::user_error("Bad size. x.size(): {}, poslos_grid().size(): {}", x.size(), v.poslos_grid().size());
+template <bool pos, Index k> Vector rem_poslos(const Sensor& v, const ConstVectorView x) {
+  if (x.size() != v.geometry.size())
+    arts::user_error(
+        R"(Sensor "{}": bad size. x.size(): {}, geometry.size(): {})", v.name(), x.size(), v.geometry.size());
 
-  const SensorPosLosVector& xsv = v.poslos_grid();
+  const SensorPosLosVector& xsv = v.geometry;
 
   Vector out(xsv.size());
   std::transform(xsv.begin(), xsv.end(), x.begin(), out.begin(), [](auto poslos, Numeric val) {
@@ -127,15 +129,15 @@ template <bool pos, Index k> Vector rem_poslos(const SensorObsel& v, const Const
   return out;
 }
 
-Vector rem_alt(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<true, 0>(v, x); }
+Vector rem_alt(const Sensor& v, const ConstVectorView x) { return rem_poslos<true, 0>(v, x); }
 
-Vector rem_lat(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<true, 1>(v, x); }
+Vector rem_lat(const Sensor& v, const ConstVectorView x) { return rem_poslos<true, 1>(v, x); }
 
-Vector rem_lon(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<true, 2>(v, x); }
+Vector rem_lon(const Sensor& v, const ConstVectorView x) { return rem_poslos<true, 2>(v, x); }
 
-Vector rem_zen(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<false, 0>(v, x); }
+Vector rem_zen(const Sensor& v, const ConstVectorView x) { return rem_poslos<false, 0>(v, x); }
 
-Vector rem_azi(const SensorObsel& v, const ConstVectorView x) { return rem_poslos<false, 1>(v, x); }
+Vector rem_azi(const Sensor& v, const ConstVectorView x) { return rem_poslos<false, 1>(v, x); }
 
 //! The sensor grid mapped to [-1, 1], so the polynomial offset is well-conditioned and all its coefficients are shifts
 std::shared_ptr<const Vector> normalized_grid(const std::shared_ptr<const Vector>& grid) {
@@ -159,11 +161,11 @@ polyinv_t polyinv_sensor_offset_t::normalized() const {
   return {.st = normalized_grid(inv.st), .polyorder = inv.polyorder};
 }
 
-Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorObsel& x) const {
+Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensor& x) const {
   if (not fit.st) arts::user_error("No t-vector provided for polyfit.");
-  const Vector&      o = *fit.st;
-  const SensorObsel& v = x.at(key.measurement_elem);
-  const polyfit_t    f = normalized();
+  const Vector&   o = *fit.st;
+  const Sensor&   v = x.at(key.sensor_elem);
+  const polyfit_t f = normalized();
 
   switch (key.type) {
     using enum SensorKeyType;
@@ -178,23 +180,27 @@ Vector polyfit_sensor_offset_t::operator()(ConstVectorView, const ArrayOfSensorO
   std::unreachable();
 }
 
-Vector polyinv_sensor_offset_t::operator()(ConstVectorView x, const ArrayOfSensorObsel&) const {
+Vector polyinv_sensor_offset_t::operator()(ConstVectorView x, const ArrayOfSensor&) const {
   if (not inv.st) arts::user_error("No t-vector provided for polyinv.");
   const Vector& o = *inv.st;
 
   return normalized()(x, o);
 }
 
-void make_polyoffset(Jacobian::SensorTarget& x, const Size polyorder, const ArrayOfSensorObsel& sensor) {
-  auto st = std::make_shared<const Vector>(sensor[x.type.measurement_elem].flat(x.type.type));
+void make_polyoffset(Jacobian::SensorTarget& x, const Size polyorder, const ArrayOfSensor& sensor) {
+  const Sensor& v  = sensor.at(x.type.sensor_elem);
+  auto          st = std::make_shared<const Vector>(v.flat(x.type.type));
 
   if (polyorder >= st->size())
-    arts::user_error("A polynomial offset of order {} needs more than {} sensor grid points", polyorder, st->size());
+    arts::user_error(R"(Sensor "{}": a polynomial offset of order {} needs more than {} sensor grid points)",
+                     v.name(),
+                     polyorder,
+                     st->size());
 
   const polyfit_sensor_offset_t pfit{.fit = polyfit_t{.st = st, .polyorder = polyorder}, .key = x.type};
   const polyinv_sensor_offset_t pinv{.inv = polyinv_t{.st = st, .polyorder = polyorder}, .key = x.type};
   x.x_size        = polyorder + 1;
   x.inverse_state = pinv;
-  // No inverse_jacobian: spectral_rad_jacAddSensorJacobianPerturbations maps directly to the coefficients
+  // No inverse_jacobian: measurement_jacAddSensorJacobianPerturbations perturbs the coefficients directly
   x.transform_state = pfit;
 }

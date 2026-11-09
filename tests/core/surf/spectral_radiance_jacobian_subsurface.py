@@ -31,7 +31,7 @@ ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.abs_species = []
 ws.abs_bands = {}
 ws.spectral_propmat_agendaAuto()
-ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
+ws.spectral_rad_observer_agendaSet(option="Emission")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 

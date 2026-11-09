@@ -89,21 +89,20 @@ ws.measurement_sensorAddCamera(
     focus_distance=focus_distance,
 )
 
-print(f"Sensor elements: {len(ws.measurement_sensor)}")
+print(f"Sensor elements: {len(ws.measurement_sensor[0].elements)}")
 
 # 4. Run forward model
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.max_stepsize = 1000.0
 ws.ray_path_observer_agendaSetGeometric()
 
-n_total = len(ws.measurement_sensor)
+n_total = len(ws.measurement_sensor[0].elements)
 print(f"Running forward model for {n_total} sensor elements ({n_h}x{n_w} pixels x {len(ws.freq_grid)} freq)...")
 
 ws.measurement_vecFromSensor(kernel="High Performance")
 
-# 5. Fill meta from measurement_vec and extract the camera image
-ws.measurement_sensor_metaFromMeasurementVec()
-camera_gf = ws.measurement_sensor_meta[0].data
+# 5. Give measurement_vec the structure of the camera's meta and extract the image
+camera_gf = ws.measurement_sensor[0].reshape(ws.measurement_vec)
 
 # camera_gf.data is shaped (n_h, n_w, n_freq); grids give angular offsets
 image_data = np.array(camera_gf.data)[:, :, 0]

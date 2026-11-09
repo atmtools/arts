@@ -907,8 +907,5 @@
 <SensorPencilBeamAntenna>
 </SensorPencilBeamAntenna>
 </Variant>
-<Bool>
-0
-</Bool>
 </SensorBuilder>
 </arts>

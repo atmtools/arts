@@ -17,11 +17,11 @@ CCD_H, CCD_W = 0.03, 0.02
 FOCAL_LENGTH, FOCUS_DISTANCE = 0.05, 100.0
 
 
-def nonzero_sample(obsel):
-    """ The line of sight, frequency and Stokes I weight of an obsel with one nonzero weight """
-    weights = np.asarray(obsel.weight_matrix.dense)
+def nonzero_sample(sensor, i):
+    """ The line of sight, frequency and Stokes I weight of element i of a sensor, which has one nonzero weight """
+    weights = np.asarray(sensor.elements[i].dense)
     ip, jf = np.argwhere(weights[..., 0] != 0.0)[0]
-    return np.asarray(obsel.poslos)[ip, 3:], np.asarray(obsel.f_grid)[jf], weights[ip, jf, 0]
+    return np.asarray(sensor.geometry)[ip, 3:], np.asarray(sensor.freq_grid)[jf], weights[ip, jf, 0]
 
 
 for los in ([90.0, 0.0], [180.0, 0.0], [130.0, 40.0]):
@@ -38,24 +38,26 @@ for los in ([90.0, 0.0], [180.0, 0.0], [130.0, 40.0]):
                                    aperture_diameter=0.025,
                                    focus_distance=FOCUS_DISTANCE)
 
-    camera = pa.arts.sensor.CameraAntenna.thin_lens(N_H, N_W, CCD_H, CCD_W, FOCAL_LENGTH, FOCUS_DISTANCE)
-    builder = pa.arts.SensorBuilder([pa.arts.sensor.DiracChannel(f) for f in FREQ], camera)
-    obsels, meta = builder([pa.arts.Vector3(POS)], [pa.arts.Vector2(los)], ELL)
+    camera = pa.arts.sensors.CameraAntenna.thin_lens(N_H, N_W, CCD_H, CCD_W, FOCAL_LENGTH, FOCUS_DISTANCE)
+    builder = pa.arts.SensorBuilder([pa.arts.sensors.DiracChannel(f) for f in FREQ], camera)
+    sensor = builder([pa.arts.Vector3(POS)], [pa.arts.Vector2(los)], ELL)
+    added = ws.measurement_sensor[0]
 
-    assert len(obsels) == len(ws.measurement_sensor) == N_H * N_W * len(FREQ), f"element count for {los}"
-    for i, (got, expected) in enumerate(zip(obsels, ws.measurement_sensor)):
-        got_los, got_f, got_w = nonzero_sample(got)
-        exp_los, exp_f, exp_w = nonzero_sample(expected)
+    assert len(ws.measurement_sensor) == 1, f"one sensor for {los}"
+    assert len(sensor.elements) == len(added.elements) == N_H * N_W * len(FREQ), f"element count for {los}"
+    for i in range(len(sensor.elements)):
+        got_los, got_f, got_w = nonzero_sample(sensor, i)
+        exp_los, exp_f, exp_w = nonzero_sample(added, i)
         np.testing.assert_allclose(got_los, exp_los, atol=1e-10, rtol=0.0, err_msg=f"line of sight {i} at {los}")
         assert got_f == exp_f, f"frequency of element {i} at {los}"
         assert got_w == exp_w, f"weight of element {i} at {los}"
 
-    assert len(meta) == len(ws.measurement_sensor_meta) == 1, f"one image at {los}"
-    got_image = meta[0].data
-    exp_image = ws.measurement_sensor_meta[0].data
+    # The builder's image has the placement as its first axis
+    got_image = sensor.meta
+    exp_image = added.meta
     for k in (0, 1):
-        np.testing.assert_allclose(got_image.grids[k], exp_image.grids[k], atol=1e-12, rtol=0.0,
+        np.testing.assert_allclose(got_image.grids[k + 1], exp_image.grids[k], atol=1e-12, rtol=0.0,
                                    err_msg=f"pixel offsets {k} at {los}")
-    assert np.asarray(got_image.data).shape == np.asarray(exp_image.data).shape, f"image shape at {los}"
+    assert np.asarray(got_image.data).shape == (1, *np.asarray(exp_image.data).shape), f"image shape at {los}"
 
 pa.plots.plot(camera)

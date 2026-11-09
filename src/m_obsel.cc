@@ -1,71 +1,88 @@
 #include <arts_conversions.h>
 #include <arts_omp.h>
 #include <debug.h>
-#include <obsel.h>
 #include <rtepack.h>
-#include <sensor_meta_info.h>
+#include <sensor.h>
 #include <workspace.h>
 
 #include <boost/math/distributions/normal.hpp>
 #include <cmath>
-#include <memory>
+#include <format>
 #include <stdexcept>
 
-void measurement_sensorInit(ArrayOfSensorObsel& measurement_sensor, ArrayOfSensorMetaInfo& measurement_sensor_meta) {
-  ARTS_TIME_REPORT
+namespace {
+/** Appends the sensor that make makes for its name
+ *
+ *  The name is the given name, or "sensor-N" with N the position of the sensor
+ *  in the list if the given name is empty.  Errors while making the sensor
+ *  name it.
+ */
+template <typename Make> void append_sensor(ArrayOfSensor& measurement_sensor, const String& name, Make&& make) {
+  const String sensor_name = name.empty() ? std::format("sensor-{}", measurement_sensor.size() + 1) : name;
 
-  measurement_sensor      = {};
-  measurement_sensor_meta = {};
-}
-
-void measurement_sensorAddSimple(ArrayOfSensorObsel&    measurement_sensor,
-                                 ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                 const AscendingGrid&   freq_grid,
-                                 const Vector3&         pos,
-                                 const Vector2&         los,
-                                 const Stokvec&         pol) try {
-  ARTS_TIME_REPORT
-
-  const Index n  = freq_grid.size();
-  const Size  sz = measurement_sensor.size();
-
-  measurement_sensor.resize(sz + n);
-
-  auto f = std::make_shared<const AscendingGrid>(freq_grid);
-  auto p = std::make_shared<const SensorPosLosVector>(SensorPosLosVector{{.pos = pos, .los = los}});
-
-  StokvecMatrix w(1, n, Stokvec{0.0});
-  for (Index i = 0; i < n; i++) {
-    w[0, i]                    = pol;
-    measurement_sensor[i + sz] = {f, p, w};
-    w[0, i]                    = Stokvec{0.0};
+  Sensor sensor;
+  try {
+    sensor = make(sensor_name);
+  } catch (const std::exception& e) {
+    throw std::runtime_error(std::format("Sensor \"{}\":\n{}", sensor_name, e.what()));
   }
 
-  // Metadata: 1D sorted gridded field with frequency grid
+  sensor.check();
+  measurement_sensor.push_back(std::move(sensor));
+}
+
+//! The structure of the elements of a spectrometer, one per frequency, named as the sensor
+SortedGriddedField1 frequency_meta(const String& name, const AscendingGrid& freq_grid) {
   SortedGriddedField1 gf;
-  gf.data_name     = "ffts";
+  gf.data_name     = name;
   gf.gridname<0>() = "frequency";
   gf.grid<0>()     = freq_grid;
-  gf.data.resize(n);
+  gf.data.resize(freq_grid.size());
   gf.data = 0.0;
-  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+  return gf;
+}
+}  // namespace
+
+void measurement_sensorInit(ArrayOfSensor& measurement_sensor) {
+  ARTS_TIME_REPORT
+
+  measurement_sensor = {};
+}
+
+void measurement_sensorAddSimple(ArrayOfSensor&       measurement_sensor,
+                                 const AscendingGrid& freq_grid,
+                                 const Vector3&       pos,
+                                 const Vector2&       los,
+                                 const Stokvec&       pol,
+                                 const String&        name) try {
+  ARTS_TIME_REPORT
+
+  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+    const Size n = freq_grid.size();
+
+    Sensor sensor{.freq_grid = freq_grid,
+                  .geometry  = SensorPosLosVector{{.pos = pos, .los = los}},
+                  .elements  = std::vector<sensor::SparseStokvecMatrix>(n, sensor::SparseStokvecMatrix(1, n)),
+                  .meta      = frequency_meta(sensor_name, freq_grid)};
+
+    for (Size i = 0; i < n; i++) sensor.elements[i][0, i] = pol;
+
+    return sensor;
+  });
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sensor,
-                                         ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                         const AscendingGrid&   freq_grid,
-                                         const Vector&          stds,
-                                         const Vector3&         pos,
-                                         const Vector2&         los,
-                                         const Stokvec&         pol) try {
-  ARTS_TIME_REPORT
-
+namespace {
+Sensor gaussian_sensor(const String&        name,
+                       const AscendingGrid& freq_grid,
+                       const Vector&        stds,
+                       const Vector3&       pos,
+                       const Vector2&       los,
+                       const Stokvec&       pol) {
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
   const Size n       = freq_grid.size();
-  const Size sz      = measurement_sensor.size();
   const Size nonzero = pol.nonzero_components();
 
   if (n < 2) arts::user_error("Must have a frequency grid");
@@ -73,10 +90,10 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
   if (stdr::any_of(stds, Cmp::le<0.0>())) arts::user_error("Standard deviation must be positive.\nstds := {:B,}", stds);
   if (nonzero == 0) arts::user_error("The polarization pol must have at least one non-zero Stokes component");
 
-  measurement_sensor.resize(sz + n);
-
-  auto f = std::make_shared<const AscendingGrid>(freq_grid);
-  auto p = std::make_shared<const SensorPosLosVector>(SensorPosLosVector{{.pos = pos, .los = los}});
+  Sensor sensor{.freq_grid = freq_grid,
+                .geometry  = SensorPosLosVector{{.pos = pos, .los = los}},
+                .elements  = std::vector<sensor::SparseStokvecMatrix>(n),
+                .meta      = frequency_meta(name, freq_grid)};
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
@@ -87,8 +104,8 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
       const gauss dist(freq_grid[i], stds[i]);
       for (Size j = 0; j < n; j++) { w[0, j] *= pdf(dist, freq_grid[j]); }
 
-      measurement_sensor[i + sz] = {f, p, w};
-      measurement_sensor[i + sz].normalize(pol);
+      sensor.elements[i] = sensor::SparseStokvecMatrix(w);
+      sensor::normalize(sensor.elements[i], pol);
     } catch (std::runtime_error& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -97,51 +114,59 @@ void measurement_sensorAddVectorGaussian(ArrayOfSensorObsel&    measurement_sens
 
   if (error.size()) arts::user_error(error);
 
-  // Metadata: 1D sorted gridded field with frequency grid
-  SortedGriddedField1 gf;
-  gf.data_name     = "ffts";
-  gf.gridname<0>() = "frequency";
-  gf.grid<0>()     = freq_grid;
-  gf.data.resize(n);
-  gf.data = 0.0;
-  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+  return sensor;
+}
+}  // namespace
+
+void measurement_sensorAddVectorGaussian(ArrayOfSensor&       measurement_sensor,
+                                         const AscendingGrid& freq_grid,
+                                         const Vector&        stds,
+                                         const Vector3&       pos,
+                                         const Vector2&       los,
+                                         const Stokvec&       pol,
+                                         const String&        name) try {
+  ARTS_TIME_REPORT
+
+  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+    return gaussian_sensor(sensor_name, freq_grid, stds, pos, los, pol);
+  });
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorAddSimpleGaussian(ArrayOfSensorObsel&    measurement_sensor,
-                                         ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                         const AscendingGrid&   freq_grid,
-                                         const Numeric&         std,
-                                         const Vector3&         pos,
-                                         const Vector2&         los,
-                                         const Stokvec&         pol) {
+void measurement_sensorAddSimpleGaussian(ArrayOfSensor&       measurement_sensor,
+                                         const AscendingGrid& freq_grid,
+                                         const Numeric&       std,
+                                         const Vector3&       pos,
+                                         const Vector2&       los,
+                                         const Stokvec&       pol,
+                                         const String&        name) {
   ARTS_TIME_REPORT
 
   const Vector stds(freq_grid.size(), std);
-  measurement_sensorAddVectorGaussian(measurement_sensor, measurement_sensor_meta, freq_grid, stds, pos, los, pol);
+  measurement_sensorAddVectorGaussian(measurement_sensor, freq_grid, stds, pos, los, pol, name);
 }
 
 namespace {
-void measurement_sensorAddZenithResponse(ArrayOfSensorObsel&                         measurement_sensor,
-                                         const std::shared_ptr<const AscendingGrid>& f,
-                                         const Vector3&                              pos,
-                                         const Vector2&                              los,
-                                         const Stokvec&                              pol,
-                                         const AscendingGrid&                        dzen_grid,
-                                         const Vector&                               zen_weights) {
-  const Size n_freq = f->size();
+Sensor zenith_response_sensor(const String&        name,
+                              const AscendingGrid& freq_grid,
+                              const Vector3&       pos,
+                              const Vector2&       los,
+                              const Stokvec&       pol,
+                              const AscendingGrid& dzen_grid,
+                              const Vector&        zen_weights) {
+  const Size n_freq = freq_grid.size();
   const Size n_za   = dzen_grid.size();
-  const Size sz     = measurement_sensor.size();
 
   if (n_za != zen_weights.size()) arts::user_error("dzen_grid and zen_weights must have same size");
   const Size nonzero = pol.nonzero_components();
   if (nonzero == 0) arts::user_error("The polarization pol must have at least one non-zero Stokes component");
 
-  measurement_sensor.resize(sz + n_freq);
+  Sensor sensor{.freq_grid = freq_grid,
+                .geometry  = SensorPosLosVector(n_za),
+                .elements  = std::vector<sensor::SparseStokvecMatrix>(n_freq),
+                .meta      = frequency_meta(name, freq_grid)};
 
-  auto p_vec = SensorPosLosVector(n_za);
-  for (Size i = 0; i < n_za; ++i) { p_vec[i] = SensorPosLos(pos, los + Vector2{dzen_grid[i], 0.0}); }
-  auto p = std::make_shared<const SensorPosLosVector>(p_vec);
+  for (Size i = 0; i < n_za; ++i) { sensor.geometry[i] = SensorPosLos(pos, los + Vector2{dzen_grid[i], 0.0}); }
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel())
@@ -149,59 +174,53 @@ void measurement_sensorAddZenithResponse(ArrayOfSensorObsel&                    
     try {
       sensor::SparseStokvecMatrix w(n_za, n_freq);
       for (Size j = 0; j < n_za; j++) w[j, i] = zen_weights[j] * pol;
-      measurement_sensor[i + sz] = {f, p, std::move(w)};
-      measurement_sensor[i + sz].normalize(pol);
+      sensor::normalize(w, pol);
+      sensor.elements[i] = std::move(w);
     } catch (std::runtime_error& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
     }
   }
   if (error.size()) arts::user_error(error);
+
+  return sensor;
 }
 }  // namespace
 
-void measurement_sensorAddGaussianZenith(ArrayOfSensorObsel&    measurement_sensor,
-                                         ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                         const AscendingGrid&   freq_grid,
-                                         const Vector3&         pos,
-                                         const Vector2&         los,
-                                         const Stokvec&         pol,
-                                         const AscendingGrid&   dzen_grid,
-                                         const Numeric&         std_zen) try {
+void measurement_sensorAddGaussianZenith(ArrayOfSensor&       measurement_sensor,
+                                         const AscendingGrid& freq_grid,
+                                         const Vector3&       pos,
+                                         const Vector2&       los,
+                                         const Stokvec&       pol,
+                                         const AscendingGrid& dzen_grid,
+                                         const Numeric&       std_zen,
+                                         const String&        name) try {
   ARTS_TIME_REPORT
 
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  if (std_zen <= 0) arts::user_error("Standard deviation must be positive.");
-  if (dzen_grid.size() == 0) arts::user_error("dzen_grid cannot be empty.");
+  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+    if (std_zen <= 0) arts::user_error("Standard deviation must be positive.");
+    if (dzen_grid.size() == 0) arts::user_error("dzen_grid cannot be empty.");
 
-  Vector      zen_weights(dzen_grid.size());
-  const gauss dist(0.0, std_zen);
-  for (Size i = 0; i < dzen_grid.size(); ++i) { zen_weights[i] = pdf(dist, dzen_grid[i]); }
+    Vector      zen_weights(dzen_grid.size());
+    const gauss dist(0.0, std_zen);
+    for (Size i = 0; i < dzen_grid.size(); ++i) { zen_weights[i] = pdf(dist, dzen_grid[i]); }
 
-  measurement_sensorAddZenithResponse(
-      measurement_sensor, std::make_shared<const AscendingGrid>(freq_grid), pos, los, pol, dzen_grid, zen_weights);
-
-  // Metadata: 1D sorted gridded field with frequency grid
-  SortedGriddedField1 gf;
-  gf.data_name     = "ffts";
-  gf.gridname<0>() = "frequency";
-  gf.grid<0>()     = freq_grid;
-  gf.data.resize(freq_grid.size());
-  gf.data = 0.0;
-  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+    return zenith_response_sensor(sensor_name, freq_grid, pos, los, pol, dzen_grid, zen_weights);
+  });
 }
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
 template <typename T, typename... Grids>
-void measurement_sensorAddRawSensorTmpl(ArrayOfSensorObsel&                         measurement_sensor,
-                                        const AscendingGrid&                        freq_grid,
-                                        const Vector3&                              pos,
-                                        const Vector2&                              los,
-                                        const matpack::gridded_data_t<T, Grids...>& raw_sensor,
-                                        const bool                                  normalize)
+Sensor raw_sensor_sensor(const String&                               name,
+                         const AscendingGrid&                        freq_grid,
+                         const Vector3&                              pos,
+                         const Vector2&                              los,
+                         const matpack::gridded_data_t<T, Grids...>& raw_sensor,
+                         const bool                                  normalize)
     requires(sizeof...(Grids) <= 6 and (std::same_as<Grids, AscendingGrid> and ...) and
              (std::same_as<Numeric, T> or std::same_as<Stokvec, T>)) {
   constexpr Size idf   = 0;
@@ -307,33 +326,53 @@ Your sorting is not correct, and instead reads:
 
   auto view = raw_sensor.data.view_as(NF, NZA, NAA, NALT, NLAT, NLON);
 
-  Vector f_grid(NF);
-
-  SensorPosLosVector poslos_grid(NZA * NAA * NALT * NLAT * NLON);
-  auto               wposlos = poslos_grid.view_as(NZA, NAA, NALT, NLAT, NLON);
-
-  StokvecMatrix w(NZA * NAA * NALT * NLAT * NLON, NF, Stokvec{0, 0, 0, 0});
-  auto          wview = w.view_as(NZA, NAA, NALT, NLAT, NLON, NF);
-
-  measurement_sensor.reserve(measurement_sensor.size() + freq_grid.size());
-
+  // The perturbed frequencies of every frequency of the grid
+  std::vector<Numeric> all_freqs;
+  all_freqs.reserve(freq_grid.size() * NF);
   for (auto f : freq_grid) {
+    for (Size ifreq = 0; ifreq < NF; ifreq++) all_freqs.push_back(f + grids[idf].get(ifreq));
+  }
+  stdr::sort(all_freqs);
+  all_freqs.erase(std::unique(all_freqs.begin(), all_freqs.end()), all_freqs.end());
+
+  Sensor sensor{.freq_grid = AscendingGrid{std::move(all_freqs)},
+                .geometry  = SensorPosLosVector(NZA * NAA * NALT * NLAT * NLON),
+                .elements  = {},
+                .meta      = frequency_meta(name, freq_grid)};
+
+  auto wposlos = sensor.geometry.view_as(NZA, NAA, NALT, NLAT, NLON);
+  for (Size iza = 0; iza < NZA; iza++) {
+    for (Size iaa = 0; iaa < NAA; iaa++) {
+      for (Size ialt = 0; ialt < NALT; ialt++) {
+        for (Size ilat = 0; ilat < NLAT; ilat++) {
+          for (Size ilon = 0; ilon < NLON; ilon++) {
+            const Vector3 dpos{grids[idalt].get(ialt), grids[idlat].get(ilat), grids[idlon].get(ilon)};
+            const Vector2 dlos{grids[idza].get(iza), grids[idaa].get(iaa)};
+
+            wposlos[iza, iaa, ialt, ilat, ilon] = SensorPosLos(pos + dpos, los + dlos);
+          }
+        }
+      }
+    }
+  }
+
+  StokvecMatrix w(sensor.geometry.size(), sensor.freq_grid.size(), Stokvec{0, 0, 0, 0});
+  auto          wview = w.view_as(NZA, NAA, NALT, NLAT, NLON, sensor.freq_grid.size());
+
+  sensor.elements.reserve(freq_grid.size());
+  for (auto f : freq_grid) {
+    w = Stokvec{0, 0, 0, 0};
+
     for (Size ifreq = 0; ifreq < NF; ifreq++) {
-      f_grid[ifreq] = f + grids[idf].get(ifreq);
+      const auto iv = static_cast<Size>(
+          stdr::distance(sensor.freq_grid.begin(), stdr::lower_bound(sensor.freq_grid, f + grids[idf].get(ifreq))));
 
       for (Size iza = 0; iza < NZA; iza++) {
         for (Size iaa = 0; iaa < NAA; iaa++) {
           for (Size ialt = 0; ialt < NALT; ialt++) {
             for (Size ilat = 0; ilat < NLAT; ilat++) {
               for (Size ilon = 0; ilon < NLON; ilon++) {
-                if (ifreq == 0) {
-                  const Vector3 dpos{grids[idalt].get(ialt), grids[idlat].get(ilat), grids[idlon].get(ilon)};
-                  const Vector2 dlos{grids[idza].get(iza), grids[idaa].get(iaa)};
-
-                  wposlos[iza, iaa, ialt, ilat, ilon] = SensorPosLos(pos + dpos, los + dlos);
-                }
-
-                wview[iza, iaa, ialt, ilat, ilon, ifreq] = Stokvec{view[ifreq, iza, iaa, ialt, ilat, ilon]};
+                wview[iza, iaa, ialt, ilat, ilon, iv] = Stokvec{view[ifreq, iza, iaa, ialt, ilat, ilon]};
               }
             }
           }
@@ -341,14 +380,15 @@ Your sorting is not correct, and instead reads:
       }
     }
 
-    measurement_sensor.emplace_back(AscendingGrid{f_grid}, poslos_grid, w);
-    if (normalize) measurement_sensor.back().normalize();
+    sensor.elements.emplace_back(w);
+    if (normalize) sensor::normalize(sensor.elements.back());
   }
+
+  return sensor;
 }
 }  // namespace
 
-void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                             measurement_sensor,
-                                    ArrayOfSensorMetaInfo&                          measurement_sensor_meta,
+void measurement_sensorAddRawSensor(ArrayOfSensor&                                  measurement_sensor,
                                     const AscendingGrid&                            freq_grid,
                                     const Vector3&                                  pos,
                                     const Vector2&                                  los,
@@ -364,42 +404,35 @@ void measurement_sensorAddRawSensor(ArrayOfSensorObsel&                         
                                                   const StokvecSortedGriddedField4,
                                                   const StokvecSortedGriddedField5,
                                                   const StokvecSortedGriddedField6> raw_sensor,
-                                    const Index&                                    normalize) try {
+                                    const Index&                                    normalize,
+                                    const String&                                   name) try {
   ARTS_TIME_REPORT
-  std::visit(
-      [&](const auto& selected) {
-        measurement_sensorAddRawSensorTmpl(
-            measurement_sensor, freq_grid, pos, los, *selected, static_cast<bool>(normalize));
-      },
-      raw_sensor);
-  SortedGriddedField1 gf;
-  gf.data_name     = "raw";
-  gf.gridname<0>() = "frequency";
-  gf.grid<0>()     = freq_grid;
-  gf.data.resize(freq_grid.size());
-  gf.data = 0.0;
-  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+
+  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+    return std::visit(
+        [&](const auto& selected) {
+          return raw_sensor_sensor(sensor_name, freq_grid, pos, los, *selected, static_cast<bool>(normalize));
+        },
+        raw_sensor);
+  });
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
-                                 ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                 const AscendingGrid&   freq_grid,
-                                 const Vector3&         pos,
-                                 const Vector2&         los,
-                                 const Stokvec&         pol,
-                                 const Index&           n_h,
-                                 const Index&           n_w,
-                                 const Numeric&         ccd_h,
-                                 const Numeric&         ccd_w,
-                                 const Numeric&         focal_length,
-                                 const Numeric&         aperture_diameter,
-                                 const Numeric&         focus_distance) try {
-  ARTS_TIME_REPORT
-
-  const Size n_freq    = freq_grid.size();
-  const Size n_pixels  = static_cast<Size>(n_h) * static_cast<Size>(n_w);
-  const Size start_idx = measurement_sensor.size();
+namespace {
+Sensor camera_sensor(const String&        name,
+                     const AscendingGrid& freq_grid,
+                     const Vector3&       pos,
+                     const Vector2&       los,
+                     const Stokvec&       pol,
+                     const Index&         n_h,
+                     const Index&         n_w,
+                     const Numeric&       ccd_h,
+                     const Numeric&       ccd_w,
+                     const Numeric&       focal_length,
+                     const Numeric&       aperture_diameter,
+                     const Numeric&       focus_distance) {
+  const Size n_freq   = freq_grid.size();
+  const Size n_pixels = static_cast<Size>(n_h) * static_cast<Size>(n_w);
 
   if (n_freq == 0) arts::user_error("freq_grid must not be empty");
   if (n_h < 1) arts::user_error("n_h must be at least 1, got {}", n_h);
@@ -463,13 +496,6 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   const Numeric eay = cazi;
   // eaz = 0
 
-  // Shared frequency grid
-  auto f = std::make_shared<const AscendingGrid>(freq_grid);
-
-  // Build a SINGLE shared poslos_grid containing all pixel directions.
-  // collect_simulations() deduplicates by f_grid pointer and iterates
-  // the (shared) poslos_grid.  All camera obsels must share the same
-  // poslos_grid so that every pixel direction gets simulated.
   SensorPosLosVector all_poslos(n_pixels);
   for (Index ih = 0; ih < n_h; ++ih) {
     for (Index iw = 0; iw < n_w; ++iw) {
@@ -490,12 +516,11 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
       all_poslos[pix_idx] = {.pos = pos, .los = {zen, azi}};
     }
   }
-  auto p = std::make_shared<const SensorPosLosVector>(std::move(all_poslos));
 
-  // Build obsels.  Each pixel (ih,iw) at frequency ifreq has a sparse
+  // Each pixel (ih,iw) at frequency ifreq is an element with a sparse
   // weight matrix of shape (n_pixels, n_freq) with a single nonzero
   // entry at (pix_idx, ifreq).
-  measurement_sensor.resize(start_idx + n_pixels * n_freq);
+  std::vector<sensor::SparseStokvecMatrix> elements(n_pixels * n_freq);
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
@@ -506,8 +531,8 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
 
         for (Size ifreq = 0; ifreq < n_freq; ++ifreq) {
           sensor::SparseStokvecMatrix w(n_pixels, n_freq);
-          w[pix_idx, ifreq]                                        = pol;
-          measurement_sensor[start_idx + pix_idx * n_freq + ifreq] = {f, p, std::move(w)};
+          w[pix_idx, ifreq]                  = pol;
+          elements[pix_idx * n_freq + ifreq] = std::move(w);
         }
       } catch (std::runtime_error& e) {
 #pragma omp critical
@@ -523,7 +548,7 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   // grid<1> = col angular offsets from boresight (degrees)
   // grid<2> = frequency / color
   sensor::CameraGriddedField gf;
-  gf.data_name     = "camera";
+  gf.data_name     = name;
   gf.gridname<0>() = "row_offset_deg";
   gf.gridname<1>() = "col_offset_deg";
   gf.gridname<2>() = "frequency";
@@ -547,37 +572,34 @@ void measurement_sensorAddCamera(ArrayOfSensorObsel&    measurement_sensor,
   // Frequency / color grid
   gf.grid<2>() = Vector(freq_grid);
 
-  // Zero data — to be filled later by measurement_sensor_metaFromMeasurementVec
   gf.data.resize(n_h, n_w, n_freq);
   gf.data = 0.0;
 
-  measurement_sensor_meta.push_back(SensorMetaInfo{std::move(gf)});
+  return Sensor{.freq_grid = freq_grid,
+                .geometry  = std::move(all_poslos),
+                .elements  = std::move(elements),
+                .meta      = std::move(gf)};
 }
-ARTS_METHOD_ERROR_CATCH
+}  // namespace
 
-void measurement_sensor_metaFromMeasurementVec(ArrayOfSensorMetaInfo& measurement_sensor_meta,
-                                               const Vector&          measurement_vec) try {
+void measurement_sensorAddCamera(ArrayOfSensor&       measurement_sensor,
+                                 const AscendingGrid& freq_grid,
+                                 const Vector3&       pos,
+                                 const Vector2&       los,
+                                 const Stokvec&       pol,
+                                 const Index&         n_h,
+                                 const Index&         n_w,
+                                 const Numeric&       ccd_h,
+                                 const Numeric&       ccd_w,
+                                 const Numeric&       focal_length,
+                                 const Numeric&       aperture_diameter,
+                                 const Numeric&       focus_distance,
+                                 const String&        name) try {
   ARTS_TIME_REPORT
 
-  // Compute the total element count across all meta entries.
-  Size total = 0;
-  for (const auto& meta : measurement_sensor_meta) total += meta.count();
-
-  if (total != static_cast<Size>(measurement_vec.size()))
-    arts::user_error("Total meta count ({}) does not match measurement_vec size ({})", total, measurement_vec.size());
-
-  Size start = 0;
-  for (auto& meta : measurement_sensor_meta) {
-    const Size n = meta.count();
-
-    std::visit(
-        [&](auto& gf) {
-          // Flat copy: measurement_vec[start..start+n) -> gf.data elements
-          for (Size i = 0; i < n; ++i) gf.data.elem_at(static_cast<Index>(i)) = measurement_vec[start + i];
-        },
-        meta.data);
-
-    start += n;
-  }
+  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+    return camera_sensor(
+        sensor_name, freq_grid, pos, los, pol, n_h, n_w, ccd_h, ccd_w, focal_length, aperture_diameter, focus_distance);
+  });
 }
 ARTS_METHOD_ERROR_CATCH

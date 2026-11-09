@@ -82,7 +82,7 @@ def make_asymmetric_sideband_filter():
 
 
 def test_lowpass_then_lo_then_box_spectrometer():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     print("test_lowpass_then_lo_then_box_spectrometer")
     selector.lowpass(15.0)
     print("Apply lowpass keeping 0-15:", selector)
@@ -98,7 +98,7 @@ def test_lowpass_then_lo_then_box_spectrometer():
     )
 
     # The box maps to one piece, 16 - [2.6, 4.6], with the trapezoid weights of 5 equidistant points
-    channel = pyarts.arts.sensor.BoxChannel(2.6, 4.6, 5)
+    channel = pyarts.arts.sensors.BoxChannel(2.6, 4.6, 5)
     response = selector.channel_response(channel)
 
     assert len(response.response) == 1
@@ -115,7 +115,7 @@ def test_lowpass_then_lo_then_box_spectrometer():
 
 
 def test_default_positive_range_survives_mixes():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.mix(10.0)
 
     assert_close(
@@ -143,7 +143,7 @@ def test_default_positive_range_survives_mixes():
     )
 
     # One delta per path, each with the full weight: the response is the sum over the sidebands
-    response = selector.channel_response(pyarts.arts.sensor.DiracChannel(0.25))
+    response = selector.channel_response(pyarts.arts.sensors.DiracChannel(0.25))
     q = response.quadrature()
 
     assert_close(
@@ -159,7 +159,7 @@ def test_default_positive_range_survives_mixes():
 
 
 def test_bandpass_lo_bandpass_lo_chain():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(3.0)
     selector.bandpass(np.array([3.0, 7.0]))
@@ -175,7 +175,7 @@ def test_bandpass_lo_bandpass_lo_chain():
 
     # Two pieces, 9 + [0, 1] and 9 - [0, 1], each with trapezoid weights [1/4, 1/2, 1/4];
     # where they meet at 9 the weights add, as for one box over [8, 10]
-    channel = pyarts.arts.sensor.BoxChannel(0.0, 1.0, 3)
+    channel = pyarts.arts.sensors.BoxChannel(0.0, 1.0, 3)
     response = selector.channel_response(channel)
 
     assert len(response.response) == 2
@@ -185,7 +185,7 @@ def test_bandpass_lo_bandpass_lo_chain():
 
 
 def test_ideal_split_about_lo():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(10.0)
 
@@ -210,7 +210,7 @@ def test_ideal_split_about_lo():
 
 
 def test_weighted_split_about_lo():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.filter(make_triangular_filter())
     selector.mix(10.0)
 
@@ -233,7 +233,7 @@ def test_weighted_split_about_lo():
         np.array([0.6]),
     )
 
-    channel = pyarts.arts.sensor.DiracChannel(2.0)
+    channel = pyarts.arts.sensors.DiracChannel(2.0)
     q = selector.channel_response(channel).quadrature()
 
     assert_close(
@@ -251,12 +251,12 @@ def test_weighted_split_about_lo():
 def test_zero_frequency_receives_both_sidebands():
     # At zero intermediate frequency both sidebands are the LO itself.  The response is the sum over
     # the sidebands, so the LO has the weight of both: 2, as two deltas at any other frequency have
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.bandpass(np.array([5.0, 15.0]))
     selector.mix(10.0)
 
-    at_zero = selector.channel_response(pyarts.arts.sensor.DiracChannel(0.0)).quadrature()
-    off_zero = selector.channel_response(pyarts.arts.sensor.DiracChannel(1.0)).quadrature()
+    at_zero = selector.channel_response(pyarts.arts.sensors.DiracChannel(0.0)).quadrature()
+    off_zero = selector.channel_response(pyarts.arts.sensors.DiracChannel(1.0)).quadrature()
 
     assert_close("zero-frequency channel point", np.array(at_zero.grids[0]), np.array([10.0]))
     assert_close("zero-frequency channel weight", np.array(at_zero.data), np.array([2.0]))
@@ -265,7 +265,7 @@ def test_zero_frequency_receives_both_sidebands():
 
 
 def test_overlapping_sidebands_with_asymmetric_bandpass():
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.filter(make_asymmetric_sideband_filter())
     selector.mix(10.0)
 
@@ -293,9 +293,9 @@ def test_overlapping_sidebands_with_asymmetric_bandpass():
 
     responses = selector.channel_responses(
         [
-            pyarts.arts.sensor.DiracChannel(1.0),
-            pyarts.arts.sensor.DiracChannel(2.0),
-            pyarts.arts.sensor.DiracChannel(3.0),
+            pyarts.arts.sensors.DiracChannel(1.0),
+            pyarts.arts.sensors.DiracChannel(2.0),
+            pyarts.arts.sensors.DiracChannel(3.0),
         ]
     )
 
@@ -339,10 +339,10 @@ def test_sampling_density_does_not_weight_the_band():
     flat.data = pyarts.arts.Vector(np.ones(grid.size))
     flat.gridnames = ("frequency",)
 
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.filter(flat)
 
-    response = selector.channel_response(pyarts.arts.sensor.BoxChannel(0.0, 100.0, 3))
+    response = selector.channel_response(pyarts.arts.sensors.BoxChannel(0.0, 100.0, 3))
     assert_close("densely filtered box mean frequency", channel_mean_frequency(response), 50.0)
 
 
@@ -350,10 +350,10 @@ def test_single_sideband_region_is_not_double_weighted():
     # A box over intermediate frequencies [0, 50] with the LO at 30 sees [30, 80] in the upper
     # sideband and [0, 30] in the lower, where intermediate frequencies above 30 have no image.
     # The response is the sum over the sidebands, one over [0, 80], so f is measured as 40.
-    selector = pyarts.arts.sensor.HeterodyneFrequencyRange()
+    selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.mix(30.0)
 
-    response = selector.channel_response(pyarts.arts.sensor.BoxChannel(0.0, 50.0, 11))
+    response = selector.channel_response(pyarts.arts.sensors.BoxChannel(0.0, 50.0, 11))
     assert_close("partial lower sideband mean frequency", channel_mean_frequency(response), 40.0)
 
 

@@ -9,10 +9,11 @@ and turn them into scalar measurements.
 
 The main variable that describes 
 the sensor setup is :attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
-It is a list of sensor observation elements.
-Every sensor observation element (:class:`~pyarts3.arts.SensorObsel`) has a
-shared frequency grid and shared geometry.
-:ref:`Sec Sensor builder` describes how to make it from an instrument's
+It is a list of sensors (:class:`~pyarts3.arts.Sensor`).
+Every sensor has one frequency grid, one list of observation geometries, and
+a list of observation elements.  The elements of all the sensors, in order,
+are the elements of :attr:`~pyarts3.workspace.Workspace.measurement_vec`.
+:ref:`Sec Sensor builder` describes how to make a sensor from an instrument's
 channels and antenna pattern.
 
 Sensor observation elements
@@ -23,9 +24,9 @@ for its measurements (its observation geometry), a set of frequencies
 that it samples (its backend sampling),
 and a sensitivity to some atmospheric state of polarization.  
 A sensor consists of one or
-more sensor observation elements that share the same frequency grid.
-They might also share the same
-observation geometry, but they do not share the same weights.
+more sensor observation elements that share its frequency grid and its
+observation geometry, but not their weights.  The radiance is simulated once
+for each geometry of a sensor, over its whole frequency grid.
 
 A sensor observation element describes how the sensor samples a single
 scalar measurement.  The equation for a single scalar measurement is:
@@ -56,9 +57,24 @@ and frequency, respectively.
 
 .. note::
 
-    Sharing the frequency grid and observation geometry between sensor
-    observation elements is a way to speed up calculations.  It is also
-    a requirement for the backwards model of systematic errors to work.
+    Putting observation elements in one sensor, so that they share its
+    frequency grid and observation geometry, is a way to speed up calculations.
+    A sensor is also the unit of the systematic error and of the sensor
+    parameters of a retrieval, which act on its measurement elements, its
+    frequency grid, or its observation geometry.
+    :meth:`~pyarts3.arts.ArrayOfSensor.report` lists what simulating the
+    sensors is expected to cost.
+
+Every sensor also has a meta: a gridded field with one value per observation
+element, in the order of the elements, that describes how they are
+structured, for instance by frequency for a spectrometer or by row and column
+for a camera.  The name of the meta is the name of the sensor, which labels it
+in messages.  The methods that add a sensor take a name; without one, the
+sensor is named after its position in
+:attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
+:meth:`~pyarts3.arts.ArrayOfSensor.split` gives the part of a measurement
+vector of each sensor, and :meth:`~pyarts3.arts.Sensor.reshape` gives such a
+part the structure of the meta.
 
 Examples of sensor descriptions and corresponding observation elements in graph form:
 

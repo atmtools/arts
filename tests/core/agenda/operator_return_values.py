@@ -8,7 +8,7 @@ ws = pyarts.Workspace()
 for name, group in (
     ("atm_field", arts.AtmField),
     ("abs_bands", arts.AbsorptionBands),
-    ("measurement_sensor", arts.ArrayOfSensorObsel),
+    ("measurement_sensor", arts.ArrayOfSensor),
     ("surf_field", arts.SurfaceField),
     ("subsurf_field", arts.SubsurfaceField),
     ("jac_targets", arts.JacobianTargets),

@@ -20,18 +20,6 @@ LOS        = [180.0 - SCAN_ANGLE, HEADING + 90.0]
 ELL        = pa.arts.planets.Earth.ellipsoid
 # fmt: on
 
-
-def extract_channels(spectral_rad, measurement_sensor):
-    """ Helper to extract internal simulation grid and Stokes I of the channels """
-    out = []
-
-    for ch in measurement_sensor:
-        v = np.nonzero(np.asarray(ch.weight_matrix.dense)[0, :, 0])[0]
-        out.append([np.asarray(ch.f_grid)[v], np.asarray(spectral_rad)[v, 0]])
-
-    return out
-
-
 # %% Download data and set up workspace
 ws = pa.Workspace()
 pa.data.download()
@@ -51,43 +39,36 @@ ws.ray_path_observer_agendaSetGeometric()
 
 # %% Load the sensor and place it in a cross-track scan geometry.
 sensor = pa.arts.SensorBuilder.fromxml("amsu-a.xml")
-ws.measurement_sensor, ws.measurement_sensor_meta = sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)
-
-# %% Collect on a single grid to help plotting and speed-up calculations - this sacrifices Jacobian flexibilities
-ws.measurement_sensor.collect()
+ws.measurement_sensor = [sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)]
 
 # %% Compute the sensor response in Planck units
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.measurement_vecFromSensor(kernel="High Performance")
 
 # %% Compute the internal frequency grid response for plotting
-ws.freq_grid = ws.measurement_sensor[0].f_grid
+ws.freq_grid = ws.measurement_sensor[0].freq_grid
 ws.spectral_rad_observer_agendaExecute(obs_pos=POS, obs_los=LOS)
 ws.spectral_radApplyUnitFromSpectralRadiance()
 
 # %% Plotting
-ch = extract_channels(ws.spectral_rad, ws.measurement_sensor)
-numbers = np.arange(1, len(ch) + 1)
-colors = plt.get_cmap('tab20')(range(len(ch)))
+channels = ws.measurement_sensor[0].extract(ws.spectral_rad)
+numbers = np.arange(1, len(channels) + 1)
 fig_internal, ax_internal = plt.subplots(figsize=(6, 4))
-for i in range(len(ch)):
-    ax_internal.plot(ch[i][0]/1e9,
-                     ch[i][1],
-                     "o:",
-                     markersize=2.5,
-                     linewidth=1.1,
-                     label=f"Ch {numbers[i]}",
-                     color=colors[i],
-                     )
+ax_internal.plot(np.asarray(ws.freq_grid) / 1e9,
+                 np.asarray(ws.spectral_rad)[:, 0],
+                 "o:",
+                 markersize=2.5,
+                 linewidth=1.1,
+                 )
 
 ax_internal.set_xlabel("Frequency [GHz]")
 ax_internal.set_ylabel("Brightness temperature (internal grid) [K]")
 ax_internal.set_title("AMSU-A-like channels")
 ax_internal.grid(True, alpha=0.3)
-ax_internal.legend(ncol=3, fontsize=8)
 
 fig_channels, ax_channels = plt.subplots(figsize=(6, 4))
 ax_channels.plot(numbers, ws.measurement_vec, "o")
+ax_channels.plot(numbers, channels, "x")
 ax_channels.set_xticks(numbers)
 ax_channels.set_xlabel("AMSU-A channel number")
 ax_channels.set_ylabel("Channel brightness [K]")
@@ -106,3 +87,5 @@ ref = [294.8203165065995, 297.1947667477886, 283.30250470594353, 262.15010940314
 
 assert np.allclose(ws.measurement_vec, ref), \
     f"Mismatch to reference simulations.\nReference:   {ref}\nSimulations: {ws.measurement_vec:B,}"
+
+assert np.allclose(channels, ws.measurement_vec)

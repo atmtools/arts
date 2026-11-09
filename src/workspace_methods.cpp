@@ -2331,33 +2331,6 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
       .pass_workspace = true,
   };
 
-  wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
-      .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
-
-This is done via perturbation based on the input delta values to the sensor
-Jacobian targets and a callback to *spectral_rad_observer_agenda* with
-a modified *jac_targets*, making it safe to use this method inside
-*spectral_rad_observer_agenda*.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_rad_jac"},
-      .in =
-          {
-              "spectral_rad_jac",
-              "spectral_rad",
-              "measurement_sensor",
-              "freq_grid",
-              "jac_targets",
-              "obs_pos",
-              "obs_los",
-              "atm_field",
-              "surf_field",
-              "subsurf_field",
-              "spectral_rad_observer_agenda",
-          },
-      .pass_workspace = true,
-  };
-
   wsm_data["spectral_rad_jacEmpty"] = {
       .desc   = R"--(Set the radiation derivative to empty.
 
@@ -3121,14 +3094,7 @@ Order 1 means linear:   :math:`y = y_0 + a + b t`
 and so on.  The derivatives that are added to the *model_state_vec* are
 those with regards to a, b, etc..
 
-.. note::
-
-    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
-    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
-    to all the different *SensorObsel* that they add to the *measurement_sensor*.
-    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
-    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
-    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+The GIN ``sensor_elem`` is the index of the sensor in *measurement_sensor*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jac_targets"},
@@ -3137,7 +3103,7 @@ those with regards to a, b, etc..
       .gin_type  = {"Vector", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{0}},
       .gin_desc  = {"The grid of :math:`y`.  As :math:`t` above.",
-                    "The sensor element whose frequency grid to use",
+                    "The index of the sensor in *measurement_sensor*",
                     "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
   wsm_data["oemAddErrorPolyFit"] = jac2oem("jac_targetsAddErrorPolyFit");
@@ -3154,15 +3120,9 @@ and so on, where :math:`t` is :math:`f_0` mapped to :math:`[-1, 1]` over the
 grid.  So all coefficients are frequency shifts, :math:`a` at the centre of
 the grid and :math:`a \pm b` at its edges.  The derivatives that are added
 to the *model_state_vec* are those with regards to a, b, etc..
+*measurement_jacAddSensorJacobianPerturbations* computes them.
 
-.. note::
-
-    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
-    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
-    to all the different *SensorObsel* that they add to the *measurement_sensor*.
-    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
-    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
-    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+The GIN ``sensor_elem`` is the index of the sensor in *measurement_sensor*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jac_targets"},
@@ -3171,7 +3131,7 @@ to the *model_state_vec* are those with regards to a, b, etc..
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
       .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically",
-                    "The sensor element whose frequency grid to use",
+                    "The index of the sensor in *measurement_sensor*",
                     "The order of the polynomial fit"},
   };
   wsm_data["oemAddSensorFrequencyPolyOffset"] = jac2oem("jac_targetsAddSensorFrequencyPolyOffset");
@@ -4631,6 +4591,9 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
    calls to the *spectral_rad_observer_agenda*, consider switching to
    the "High Performance" kernel, which is :math:`O(N+M)` compared to
    the low-memory option :math:`O(N \times M)`.
+
+The derivatives with regards to the sensor targets of *jac_targets* are
+left as zero, see *measurement_jacAddSensorJacobianPerturbations*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_vec", "measurement_jac"},
@@ -4645,6 +4608,38 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .gin_type  = {"String"},
       .gin_value = {String{"Low Memory"}},
       .gin_desc  = {"The kernel to use for the spectral radiance calculations.  See type information for options."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["measurement_jacAddSensorJacobianPerturbations"] = {
+      .desc =
+          R"--(Adds the derivatives with regards to the sensor targets of *jac_targets* to *measurement_jac*.
+
+Each sensor target changes the frequency grid or the geometries of one sensor
+in *measurement_sensor* by a polynomial offset.  For each coefficient of the
+polynomial, that sensor is perturbed by the target's perturbation times the
+term of the coefficient and simulated again by *measurement_vecFromSensor*,
+without Jacobian targets.  Its change from *measurement_vec*, divided by the
+perturbation, is the derivative.
+
+*measurement_vec* must be the result of *measurement_vecFromSensor* for the
+same *measurement_sensor*, so call this method directly after it.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_jac"},
+      .in        = {"measurement_jac",
+                    "measurement_vec",
+                    "measurement_sensor",
+                    "jac_targets",
+                    "atm_field",
+                    "surf_field",
+                    "subsurf_field",
+                    "spectral_rad_transform_operator",
+                    "spectral_rad_observer_agenda"},
+      .gin       = {"kernel"},
+      .gin_type  = {"String"},
+      .gin_value = {String{"Low Memory"}},
+      .gin_desc  = {"The kernel of *measurement_vecFromSensor* for the perturbed sensors."},
       .pass_workspace = true,
   };
 
@@ -4699,10 +4694,10 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 
   wsm_data["measurement_sensorInit"] = {
       .desc =
-          R"--(Initialize *measurement_sensor* and *measurement_sensor_meta* to empty.
+          R"--(Initialize *measurement_sensor* to empty.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
+      .out    = {"measurement_sensor"},
   };
 
   wsm_data["measurement_sensorAddSimple"] = {
@@ -4712,14 +4707,16 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "pol"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "String"},
+      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   wsm_data["measurement_sensorAddGaussianZenith"] = {
@@ -4727,16 +4724,23 @@ All elements share position, line-of-sight, and frequency grid.
           R"--(Add a sensor to *measurement_sensor* that has a Gaussian zenith response.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "pol", "dzen_grid", "std_zen"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), std::nullopt, std::nullopt},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement",
-                    "The delta zenith grid for the Gaussian response",
-                    "The standard deviation for the Gaussian response"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "dzen_grid", "std_zen", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric", "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I),
+                    std::nullopt,
+                    std::nullopt,
+                    String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The delta zenith grid for the Gaussian response",
+           "The standard deviation for the Gaussian response",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   wsm_data["measurement_sensorAddSimpleGaussian"] = {
@@ -4751,15 +4755,17 @@ The I component's distribution is normalized to 1 or 0 by itself, while
 the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"std", "pos", "los", "pol"},
-      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc  = {"The standard deviations of the channels",
-                    "A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "freq_grid"},
+      .gin       = {"std", "pos", "los", "pol", "name"},
+      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec", "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), String{}},
+      .gin_desc =
+          {"The standard deviations of the channels",
+           "A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   {
@@ -4795,21 +4801,24 @@ The quoted strings must be used as the grid names of the gridded field.
     is that the order of the dimensions do not change from the one above.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "freq_grid"},
+      .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize", "name"},
       .gin_type  = {"Vector3",
                     "Vector2",
                     "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
                     "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6,"
                     "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
                     "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6",
-                    "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The sensor perturbation grid",
-                    "Whether or not to normalize the perturbation to 1.0 for each element"},
+                    "Index",
+                    "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}, String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The sensor perturbation grid",
+           "Whether or not to normalize the perturbation to 1.0 for each element",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   wsm_data["measurement_sensorAddCamera"] = {
@@ -4844,13 +4853,31 @@ A Dirac weight is assigned per pixel per frequency channel, yielding
 ``n_h x n_w x nfreq`` observation elements.  All observation elements share
 the same frequency grid and the same PosLos grid (one entry per pixel).
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin =
-          {"pos", "los", "pol", "n_h", "n_w", "ccd_h", "ccd_w", "focal_length", "aperture_diameter", "focus_distance"},
-      .gin_type =
-          {"Vector3", "Vector2", "Stokvec", "Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensor"},
+      .in        = {"measurement_sensor", "freq_grid"},
+      .gin       = {"pos",
+                    "los",
+                    "pol",
+                    "n_h",
+                    "n_w",
+                    "ccd_h",
+                    "ccd_w",
+                    "focal_length",
+                    "aperture_diameter",
+                    "focus_distance",
+                    "name"},
+      .gin_type  = {"Vector3",
+                    "Vector2",
+                    "Stokvec",
+                    "Index",
+                    "Index",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I),
@@ -4860,32 +4887,20 @@ the same frequency grid and the same PosLos grid (one entry per pixel).
                     std::nullopt,
                     std::nullopt,
                     std::nullopt,
-                    std::nullopt},
-      .gin_desc  = {"Observer position [alt, lat, lon]",
-                    "Central pixel line of sight [zenith, azimuth]",
-                    "Polarization Stokes weight per pixel",
-                    "Number of pixels along the CCD height (rows)",
-                    "Number of pixels along the CCD width (columns)",
-                    "Physical height of the CCD in meters",
-                    "Physical width of the CCD in meters",
-                    "Focal length of the lens in meters",
-                    "Diameter of the lens aperture in meters",
-                    "Distance to the in-focus plane in meters (must be > focal_length)"},
-  };
-
-  wsm_data["measurement_sensor_metaFromMeasurementVec"] = {
-      .desc =
-          R"--(Fill *measurement_sensor_meta* gridded field data from *measurement_vec*.
-
-Each element in *measurement_sensor_meta* describes a contiguous block of
-*measurement_vec*.  This method copies those slices into the data tensor
-of each gridded field, making the structured per-sensor data directly
-accessible.  The start index of each block is derived from the cumulative
-``count()`` of preceding elements.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor_meta"},
-      .in     = {"measurement_sensor_meta", "measurement_vec"},
+                    std::nullopt,
+                    String{}},
+      .gin_desc =
+          {"Observer position [alt, lat, lon]",
+           "Central pixel line of sight [zenith, azimuth]",
+           "Polarization Stokes weight per pixel",
+           "Number of pixels along the CCD height (rows)",
+           "Number of pixels along the CCD width (columns)",
+           "Physical height of the CCD in meters",
+           "Physical width of the CCD in meters",
+           "Focal length of the lens in meters",
+           "Diameter of the lens aperture in meters",
+           "Distance to the in-focus plane in meters (must be > focal_length)",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   wsm_data["sun_pathFromObserverAgenda"] = {
@@ -6903,22 +6918,24 @@ For every frequency in *freq_grid*, one observation element is appended for
 every interval in ``range_bins``.  The ordering is frequency first and range
 bin second, matching the ARTS2 ``yRadar`` convention.  All generated elements
 share their frequency and position/LOS grids.  The matching limits are
-appended to *radar_range_limits*, and *measurement_sensor_meta* receives one
-range grid per frequency.
+appended to *radar_range_limits*.  Each frequency is appended to
+*measurement_sensor* as its own sensor, with the range grid as its meta.
 
 The receiving polarization is a Stokes dot-product vector.  For example,
 ``[0.5, 0.5, 0, 0]`` is the old ARTS polarization index 5 (vertical linear).
 )--",
       .author    = {"Patrick Eriksson", "OpenAI Codex"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta", "radar_range_limits"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "radar_range_limits", "freq_grid"},
-      .gin       = {"pos", "los", "pol", "range_bins"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid"},
-      .gin_value = {std::nullopt, std::nullopt, Stokvec{0.5, 0.5, 0.0, 0.0}, std::nullopt},
-      .gin_desc  = {"Radar position [altitude, latitude, longitude].",
-                    "Radar viewing direction [zenith, azimuth].",
-                    "Receiving-polarization Stokes weights.",
-                    "Common range-bin edges."},
+      .out       = {"measurement_sensor", "radar_range_limits"},
+      .in        = {"measurement_sensor", "radar_range_limits", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "range_bins", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "String"},
+      .gin_value = {std::nullopt, std::nullopt, Stokvec{0.5, 0.5, 0.0, 0.0}, std::nullopt, String{}},
+      .gin_desc =
+          {"Radar position [altitude, latitude, longitude].",
+           "Radar viewing direction [zenith, azimuth].",
+           "Receiving-polarization Stokes weights.",
+           "Common range-bin edges.",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensor*"},
   };
 
   wsm_data["measurement_vecFromRadarSingleScattering"] = {

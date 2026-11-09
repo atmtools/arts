@@ -506,7 +506,7 @@ class AgendaWrapper {
                 const ::Vector        &initial_state,
                 AtmField              *atm_field,
                 AbsorptionBands       *abs_bands,
-                ArrayOfSensorObsel    *measurement_sensor,
+                ArrayOfSensor         *measurement_sensor,
                 SurfaceField          *surf_field,
                 SubsurfaceField       *subsurf_field,
                 const JacobianTargets *jac_targets,
@@ -624,7 +624,7 @@ class AgendaWrapper {
   const JacobianTargets *jacs;
   AtmField              *atm;
   AbsorptionBands       *absdata;
-  ArrayOfSensorObsel    *sensor;
+  ArrayOfSensor         *sensor;
   SurfaceField          *surf;
   SubsurfaceField       *subsurf;
   MatrixReference        jacobian_;

@@ -80,6 +80,7 @@ mod = ws.measurement_vec * 1.0
 def inversion_iterate_agenda(ws):
     ws.UpdateModelStates()
     ws.measurement_vecFromSensor()
+    ws.measurement_jacAddSensorJacobianPerturbations()
     ws.measurement_vec_fitFromMeasurement()
 
 

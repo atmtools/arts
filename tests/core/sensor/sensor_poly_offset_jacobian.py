@@ -46,6 +46,7 @@ def jacobian(with_t, polyorder=None):
         )
     ws.jac_targetsFinalize()
     ws.measurement_vecFromSensor()
+    ws.measurement_jacAddSensorJacobianPerturbations()
     return np.array(ws.measurement_vec), np.array(ws.measurement_jac)
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <matpack.h>
-#include <obsel.h>
+#include <sensor.h>
 
 #include <memory>
 
@@ -24,7 +24,7 @@ struct polyfit_sensor_offset_t {
   //! The fit over the sensor grid mapped to [-1, 1]
   [[nodiscard]] polyfit_t normalized() const;
 
-  Vector operator()(ConstVectorView y, const ArrayOfSensorObsel&) const;
+  Vector operator()(ConstVectorView y, const ArrayOfSensor&) const;
 };
 
 struct polyinv_t {
@@ -44,11 +44,11 @@ struct polyinv_sensor_offset_t {
   //! The inverse over the sensor grid mapped to [-1, 1]
   [[nodiscard]] polyinv_t normalized() const;
 
-  Vector operator()(ConstVectorView x, const ArrayOfSensorObsel& y) const;
+  Vector operator()(ConstVectorView x, const ArrayOfSensor& y) const;
 };
 
 void make_polyfit(Jacobian::ErrorTarget&, const Size, const Vector&);
-void make_polyoffset(Jacobian::SensorTarget&, const Size, const ArrayOfSensorObsel&);
+void make_polyoffset(Jacobian::SensorTarget&, const Size, const ArrayOfSensor&);
 
 template <> struct xml_io_stream_name<polyfit_t> {
   constexpr static std::string_view name = "polyfit_t";

@@ -44,7 +44,7 @@ averaged into a channel.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
-      .out     = {"measurement_sensor", "measurement_sensor_meta"},
+      .out     = {"measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -58,7 +58,7 @@ channel is the same.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit", "measurement_sensorAddSimpleGaussian"},
-      .out     = {"measurement_sensor", "measurement_sensor_meta"},
+      .out     = {"measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -72,7 +72,7 @@ channel is independent.
 )",
       .author  = {"Richard Larsson"},
       .methods = {"measurement_sensorInit", "measurement_sensorAddVectorGaussian"},
-      .out     = {"measurement_sensor", "measurement_sensor_meta"},
+      .out     = {"measurement_sensor"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

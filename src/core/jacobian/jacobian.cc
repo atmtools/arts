@@ -1,7 +1,7 @@
 #include "jacobian.h"
 
 #include <compare.h>
-#include <obsel.h>
+#include <sensor.h>
 
 #include <algorithm>
 #include <format>
@@ -293,19 +293,19 @@ void LineTarget::update_model(AbsorptionBands& bands, ConstVectorView x) const {
   update_field(VectorView{type.get_value(bands)}, x[Range(x_start, x_size)], inverse_state, type, bands);
 }
 
-void SensorTarget::update_model(ArrayOfSensorObsel& sens, ConstVectorView x) const {
+void SensorTarget::update_model(ArrayOfSensor& sens, ConstVectorView x) const {
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
   ConstVectorView x_state = x[Range(x_start, x_size)];
 
-  const SensorObsel& v = sens.at(type.measurement_elem);
-  const Size         N = v.flat_size(type.type);
+  Sensor&    v = sens.at(type.sensor_elem);
+  const Size N = v.flat_size(type.type);
 
   if (inverse_state) {
     const Vector x_inverse = inverse_state(Vector{x_state}, sens);
 
     if (x_inverse.size() not_eq N)
-      arts::user_error(R"(Size mismatch in inverse transformation for target {}.
+      arts::user_error(R"(Sensor "{}": size mismatch in inverse transformation for target {}.
 
 Cannot set the field from the inverse transformation of the model state vector.
 
@@ -313,25 +313,27 @@ The original size of the target is            : {}.
 The size of the inverse transformed target is : {}.
 The expected size of the target is            : {}.
 )",
+                       v.name(),
                        type,
                        N,
                        x_inverse.size(),
                        x_state.size());
-    unflatten(sens, x_inverse, v, type.type);
+    v.unflatten(x_inverse, type.type);
   } else {
     if (N not_eq x_state.size())
-      arts::user_error(R"(Size mismatch for target {}.
+      arts::user_error(R"(Sensor "{}": size mismatch for target {}.
 
 Cannot set the field from the model state vector.
 
 The size of the target is          : {}.
 The expected size of the target is : {}.
 )",
+                       v.name(),
                        type,
                        N,
                        x_state.size());
 
-    unflatten(sens, x_state, v, type.type);
+    v.unflatten(x_state, type.type);
   }
 }
 
@@ -400,13 +402,13 @@ void LineTarget::update_state(VectorView x, const AbsorptionBands& bands) const 
   update_x(x[Range(x_start, x_size)], ConstVectorView{type.get_value(bands)}, transform_state, type, bands);
 }
 
-void SensorTarget::update_state(VectorView x, const ArrayOfSensorObsel& sens) const {
+void SensorTarget::update_state(VectorView x, const ArrayOfSensor& sens) const {
   if (overlap) return;
 
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
-  const SensorObsel& v = sens.at(type.measurement_elem);
-  const Size         N = v.flat_size(type.type);
+  const Sensor& v = sens.at(type.sensor_elem);
+  const Size    N = v.flat_size(type.type);
 
   const auto call = [&](VectorView x_field) {
     v.flat(x_field, type.type);
@@ -495,7 +497,7 @@ void LineTarget::update_jac(MatrixView dy, ConstVectorView x, const AbsorptionBa
   }
 }
 
-void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSensorObsel& sens) const {
+void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSensor& sens) const {
   if (overlap) return;
 
   if (static_cast<Size>(dy.ncols()) < (x_start + x_size))
@@ -506,11 +508,11 @@ void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSen
   }
 }
 
-void Targets::finalize(const AtmField&           atm_field,
-                       const SurfaceField&       surf_field,
-                       const SubsurfaceField&    subsurf_field,
-                       const AbsorptionBands&    abs_bands,
-                       const ArrayOfSensorObsel& measurement_sensor) {
+void Targets::finalize(const AtmField&        atm_field,
+                       const SurfaceField&    surf_field,
+                       const SubsurfaceField& subsurf_field,
+                       const AbsorptionBands& abs_bands,
+                       const ArrayOfSensor&   measurement_sensor) {
   for_each_list([](const auto& targets) {
     for (auto& t : targets) {
       if (overlaps(targets, t) and has_transformation(t))
@@ -541,23 +543,11 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   }
 
   for (auto& t : sensor) {
-    if (static_cast<Size>(t.type.measurement_elem) >= measurement_sensor.size())
-      arts::user_error("Bad sensor elements {}, out-of-bounds", t);
+    if (t.type.sensor_elem < 0 or static_cast<Size>(t.type.sensor_elem) >= measurement_sensor.size())
+      arts::user_error("Bad sensor {}, out-of-bounds", t);
   }
 
-  //! Sensor targets on different sensor elements are the same if they share the relevant grid
-  const auto same = [&measurement_sensor]<typename T>(const T& a, const T& b) -> bool {
-    if constexpr (std::same_as<T, SensorTarget>) {
-      if (a.type.type != b.type.type) return false;
-
-      const SensorObsel& elem1 = measurement_sensor[a.type.measurement_elem];
-      const SensorObsel& elem2 = measurement_sensor[b.type.measurement_elem];
-      return a.type.type == SensorKeyType::freq ? elem1.f_grid_ptr() == elem2.f_grid_ptr()
-                                                : elem1.poslos_grid_ptr() == elem2.poslos_grid_ptr();
-    } else {
-      return a.type == b.type;
-    }
-  };
+  const auto same = []<typename T>(const T& a, const T& b) -> bool { return a.type == b.type; };
 
   for_each_list([&same](const auto& targets) {
     for (Size i = 0; i < targets.size(); i++) {
@@ -595,15 +585,16 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   position(sensor, [](const SensorTarget& t) { return t.x_size; });
   position(error, [](const ErrorTarget& t) { return t.x_size; });
 
+  const Size ny = measurement_size(measurement_sensor);
   for (auto& t : error) {
-    if (t.type.y_start + t.type.y_size > measurement_sensor.size())
+    if (t.type.y_start + t.type.y_size > ny)
       arts::user_error(R"(An error target is out of bounds of the y-vector.
 
 The error target is defined to operator on the measurement_vec in the range {},
 but the measurement_vec will only have {} element by the measurement_sensor.
 )",
                        t.type,
-                       measurement_sensor.size());
+                       ny);
   }
 
   finalized       = true;

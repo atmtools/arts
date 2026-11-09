@@ -72,15 +72,16 @@ void ray_path_observersFieldProfilePseudo2D(const Workspace&             ws,
 
 void ray_path_observersFromSensor(ArrayOfPropagationPathPoint& ray_path_observers,
                                   Vector&                      ray_path_observers_weights,
-                                  const ArrayOfSensorObsel&    measurment_sensor,
+                                  const ArrayOfSensor&         measurment_sensor,
                                   const Index&                 idx,
                                   const Stokvec&               pol) {
-  if (static_cast<Size>(idx) >= measurment_sensor.size())
-    arts::user_error("Sensor index out of bounds: {} not in [0, {})", idx, measurment_sensor.size());
+  if (idx < 0) arts::user_error("Sensor element index out of bounds: {}", idx);
 
-  const auto& obsel  = measurment_sensor[idx];
-  const auto& poslos = obsel.poslos_grid();
-  const Size  n      = poslos.size();
+  const auto [isensor, ie] = measurement_element(measurment_sensor, static_cast<Size>(idx));
+  const auto& sensor       = measurment_sensor[isensor];
+  const auto& weights      = sensor.elements[ie];
+  const auto& poslos       = sensor.geometry;
+  const Size  n            = poslos.size();
 
   ray_path_observers.clear();
   ray_path_observers_weights.clear();
@@ -88,10 +89,15 @@ void ray_path_observersFromSensor(ArrayOfPropagationPathPoint& ray_path_observer
   ray_path_observers.reserve(n);
   ray_path_observers_weights.reserve(n);
 
-  for (Size i = 0; i < n; i++) {
+  // The lines of sight that the element weights; the weights are sorted by line of sight
+  for (auto it = weights.begin(); it != weights.end();) {
+    const Size i = it->irow;
+
     const auto& pl = poslos[i];
     ray_path_observers.push_back({.pos = pl.pos, .los = pl.los});
-    ray_path_observers_weights.push_back(obsel.sumup(pol, i));
+    ray_path_observers_weights.push_back(sensor::sumup(weights, pol, i));
+
+    it = std::find_if(it, weights.end(), [i](const sensor::SparseStokvec& w) { return w.irow != i; });
   }
 
   ray_path_observers_weights /= sum(ray_path_observers_weights);

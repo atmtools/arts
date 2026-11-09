@@ -13,10 +13,10 @@ def assert_close(name, got, expected, atol=1e-12):
 def test_sensor_builder_from_sequences():
     builder = pyarts.arts.SensorBuilder(
         [
-            pyarts.arts.sensor.BoxChannel(pyarts.arts.AscendingGrid([100.0, 101.0])),
-            pyarts.arts.sensor.DiracChannel(200.0),
+            pyarts.arts.sensors.BoxChannel(pyarts.arts.AscendingGrid([100.0, 101.0])),
+            pyarts.arts.sensors.DiracChannel(200.0),
         ],
-        pyarts.arts.sensor.PencilBeamAntenna(),
+        pyarts.arts.sensors.PencilBeamAntenna(),
     )
 
     pos = [
@@ -28,28 +28,41 @@ def test_sensor_builder_from_sequences():
         pyarts.arts.Vector2([40.0, 50.0]),
     ]
 
-    obsels, meta = builder(pos, los, pyarts.arts.planets.Earth.ellipsoid)
+    sensor = builder(pos, los, pyarts.arts.planets.Earth.ellipsoid)
 
-    assert len(obsels) == 4
-    assert len(meta) == 2
-    assert meta[0].count == 2
-    assert meta[1].count == 2
-    assert_close("meta[0] channel grid", meta[0].data.grids[0], [0.0, 1.0])
-    assert_close("first pos", obsels[0].poslos[0][:3], pos[0])
-    assert_close("first los", obsels[0].poslos[0][3:], los[0])
-    assert_close("second geometry pos", obsels[2].poslos[0][:3], pos[1])
-    assert_close("second geometry los", obsels[2].poslos[0][3:], los[1])
-    assert_close("first channel grid", obsels[0].f_grid, [100.0, 101.0])
-    assert_close("second channel grid", obsels[1].f_grid, [200.0])
-    assert_close("first channel weights",
-                 obsels[0].weight_matrix.dense[0, 0],
-                 [0.5, 0.0, 0.0, 0.0])
+    # Without a name, the sensor is named after its channels; its name is that of its meta
+    assert sensor.name == "sensor-with-2-channels"
+    assert sensor.meta.dataname == sensor.name
+    assert builder(pos, los, pyarts.arts.planets.Earth.ellipsoid, name="radiometer").name == "radiometer"
+
+    # One sensor: the elements by placement and then channel, as its placement by channel meta
+    assert len(sensor.elements) == 4
+    assert np.shape(sensor.meta.data) == (2, 2)
+    assert_close("meta placement grid", sensor.meta.grids[0], [0.0, 1.0])
+    assert_close("meta channel grid", sensor.meta.grids[1], [0.0, 1.0])
+    assert_close("frequencies of both channels", sensor.freq_grid, [100.0, 101.0, 200.0])
+    assert_close("first pos", sensor.geometry[0][:3], pos[0])
+    assert_close("first los", sensor.geometry[0][3:], los[0])
+    assert_close("second placement pos", sensor.geometry[1][:3], pos[1])
+    assert_close("second placement los", sensor.geometry[1][3:], los[1])
+    assert_close("box channel weights at the first placement",
+                 sensor.elements[0].dense[0, :2],
+                 [[0.5, 0.0, 0.0, 0.0], [0.5, 0.0, 0.0, 0.0]])
+    assert_close("Dirac channel weights at the second placement",
+                 sensor.elements[3].dense[1, 2],
+                 [1.0, 0.0, 0.0, 0.0])
+
+    # Extracting a radiance of each geometry and frequency sums the weights of each element
+    spectral_rad = pyarts.arts.StokvecMatrix(np.arange(2 * 3 * 4, dtype=float).reshape(2, 3, 4))
+    i = np.asarray(spectral_rad)[..., 0]
+    assert_close("extracted elements", sensor.extract(spectral_rad),
+                 [0.5 * (i[0, 0] + i[0, 1]), i[0, 2], 0.5 * (i[1, 0] + i[1, 1]), i[1, 2]])
 
 
 def test_sensor_builder_from_poslos_vector_and_length_guard():
     builder = pyarts.arts.SensorBuilder(
-        [pyarts.arts.sensor.DiracChannel()],
-        pyarts.arts.sensor.PencilBeamAntenna(),
+        [pyarts.arts.sensors.DiracChannel()],
+        pyarts.arts.sensors.PencilBeamAntenna(),
     )
 
     poslos = pyarts.arts.SensorPosLosVector()
@@ -60,14 +73,12 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
         ]
     )
 
-    obsels, meta = builder(poslos, pyarts.arts.planets.Earth.ellipsoid)
+    sensor = builder(poslos, pyarts.arts.planets.Earth.ellipsoid)
 
-    assert len(obsels) == 2
-    assert len(meta) == 2
-    assert meta[0].count == 1
-    assert meta[1].count == 1
-    assert_close("poslos builder first los", obsels[0].poslos[0][3:], [20.0, 30.0])
-    assert_close("poslos builder second los", obsels[1].poslos[0][3:], [40.0, 50.0])
+    assert len(sensor.elements) == 2
+    assert np.shape(sensor.meta.data) == (2, 1)
+    assert_close("poslos builder first los", sensor.geometry[0][3:], [20.0, 30.0])
+    assert_close("poslos builder second los", sensor.geometry[1][3:], [40.0, 50.0])
 
     try:
         builder([pyarts.arts.Vector3([600e3, 10.0, 20.0])], [
@@ -82,24 +93,24 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
 
 
 def test_sensor_builder_xml_round_trip():
-    sensor = pyarts.arts.sensor
-    gridded = sensor.AntennaPatternField()
+    sensors = pyarts.arts.sensors
+    gridded = sensors.AntennaPatternField()
     gridded.grids = [pyarts.arts.ZenGrid([0.0, 0.5, 1.0]),
                      pyarts.arts.AziGrid([0.0, 90.0, 180.0, 270.0])]
     gridded.data = np.array([[1.0] * 4, [0.6, 0.5, 0.6, 0.5], [0.1] * 4])
 
     antennas = [
-        sensor.PencilBeamAntenna(),
-        sensor.GaussianAntenna([0.0, 0.5, 1.0], 0.4, azi_grid_size=4),
-        sensor.GaussianAiryAntenna([0.0, 0.1, 0.2], 1.0, azi_grid_size=3),
-        sensor.GriddedAntennaPattern(gridded),
-        sensor.CameraAntenna.thin_lens(2, 3, 0.01, 0.01, 0.05, 1e3,
-                                       beam=sensor.GaussianAntenna([0.0, 0.2], 0.1, azi_grid_size=3)),
+        sensors.PencilBeamAntenna(),
+        sensors.GaussianAntenna([0.0, 0.5, 1.0], 0.4, azi_grid_size=4),
+        sensors.GaussianAiryAntenna([0.0, 0.1, 0.2], 1.0, azi_grid_size=3),
+        sensors.GriddedAntennaPattern(gridded),
+        sensors.CameraAntenna.thin_lens(2, 3, 0.01, 0.01, 0.05, 1e3,
+                                        beam=sensors.GaussianAntenna([0.0, 0.2], 0.1, azi_grid_size=3)),
     ]
 
-    vertical = sensor.BoxChannel(pyarts.arts.AscendingGrid([89e9, 89.5e9, 90e9]))
+    vertical = sensors.BoxChannel(pyarts.arts.AscendingGrid([89e9, 89.5e9, 90e9]))
     vertical.polarization.state = [1.0, 1.0, 0.0, 0.0]
-    channels = [vertical, sensor.DiracChannel(183e9)]
+    channels = [vertical, sensors.DiracChannel(183e9)]
 
     pos = [pyarts.arts.Vector3([800e3, 10.0, 20.0])]
     los = [pyarts.arts.Vector2([150.0, 30.0])]
@@ -108,35 +119,44 @@ def test_sensor_builder_xml_round_trip():
     for antenna in antennas:
         name = type(antenna).__name__
         builder = pyarts.arts.SensorBuilder(channels, antenna)
-        builder.preserve_common_frequency_grid = True
         builder.savexml("sensor_builder.xml")
         read = pyarts.arts.SensorBuilder.fromxml("sensor_builder.xml")
 
         assert type(read.antenna) is type(builder.antenna), name
-        assert read.preserve_common_frequency_grid, name
         assert len(read.channels) == len(channels), name
 
-        expected, _ = builder(pos, los, ell)
-        got, _ = read(pos, los, ell)
-        assert len(got) == len(expected), name
-        for g, e in zip(got, expected):
-            assert np.array_equal(g.f_grid, e.f_grid), name
-            assert np.array_equal(g.poslos, e.poslos), name
-            assert np.array_equal(g.weight_matrix.dense, e.weight_matrix.dense), name
+        expected = builder(pos, los, ell)
+        got = read(pos, los, ell)
+        assert np.array_equal(got.freq_grid, expected.freq_grid), name
+        assert np.array_equal(got.geometry, expected.geometry), name
+        assert np.array_equal(got.meta.data, expected.meta.data), name
+        assert len(got.elements) == len(expected.elements), name
+        for g, e in zip(got.elements, expected.elements):
+            assert np.array_equal(g.dense, e.dense), name
+
+        # The sensor itself survives a round trip through a file
+        expected.savexml("sensor.xml")
+        again = pyarts.arts.Sensor.fromxml("sensor.xml")
+        assert np.array_equal(again.freq_grid, expected.freq_grid), name
+        assert np.array_equal(again.geometry, expected.geometry), name
+        assert type(again.meta) is type(expected.meta), name
+        assert np.array_equal(again.meta.grids[0], expected.meta.grids[0]), name
+        for g, e in zip(again.elements, expected.elements):
+            assert np.array_equal(g.dense, e.dense), name
 
 
 def test_sensor_builder_cross_track():
-    sensor = pyarts.arts.sensor
+    sensors = pyarts.arts.sensors
 
     # Vertical at nadir and turning with the scan, as behind a rotating reflector
-    turning = sensor.DiracChannel(89e9)
-    turning.polarization = sensor.Polarization([1.0, 1.0, 0.0, 0.0], scan_rotation=1.0)
+    turning = sensors.DiracChannel(89e9)
+    turning.polarization = sensors.Polarization([1.0, 1.0, 0.0, 0.0], scan_rotation=1.0)
 
     # Horizontal at any pointing
-    fixed = sensor.DiracChannel(183e9)
+    fixed = sensors.DiracChannel(183e9)
     fixed.polarization = "Ih"
 
-    builder = pyarts.arts.SensorBuilder([turning, fixed], sensor.PencilBeamAntenna())
+    builder = pyarts.arts.SensorBuilder([turning, fixed], sensors.PencilBeamAntenna())
 
     pos = [
         pyarts.arts.Vector3([817e3, 10.0, 20.0]),
@@ -146,7 +166,7 @@ def test_sensor_builder_cross_track():
     scan = [-20.0, 0.0, 50.0]
     ell = pyarts.arts.planets.Earth.ellipsoid
 
-    obsels, meta = builder.cross_track(pos, heading, scan, ell)
+    sensor = builder.cross_track(pos, heading, scan, ell)
 
     # [180 - |s|, heading - 90] to the left and [180 - |s|, heading + 90] to the right, azimuth in [-180, 180]
     expected_los = [
@@ -154,30 +174,31 @@ def test_sensor_builder_cross_track():
         [[160.0, 100.0], [180.0, -80.0], [130.0, -80.0]],
     ]
 
-    assert len(obsels) == len(pos) * len(scan) * 2
-    assert len(meta) == len(pos) * len(scan)
+    # Every position and scan angle is a placement, each with the two channels
+    assert len(sensor.elements) == len(pos) * len(scan) * 2
+    assert len(sensor.geometry) == len(pos) * len(scan)
+    assert np.shape(sensor.meta.data) == (len(pos) * len(scan), 2)
+    assert_close("frequencies", sensor.freq_grid, [89e9, 183e9])
 
     for ipos in range(len(pos)):
         for iscan, s in enumerate(scan):
-            igeom = ipos * len(scan) + iscan
+            iplace = ipos * len(scan) + iscan
             name = f"position {ipos}, scan angle {s}"
 
-            assert meta[igeom].count == 2, name
-            assert_close(f"{name} meta channel grid", meta[igeom].data.grids[0], [0.0, 1.0])
+            assert_close(f"{name} pos", sensor.geometry[iplace][:3], pos[ipos])
+            assert_close(f"{name} los", sensor.geometry[iplace][3:], expected_los[ipos][iscan])
 
             # The linear polarization turns by scan_rotation times the signed scan angle
             cos2s = np.cos(np.deg2rad(2.0 * s))
             sin2s = np.sin(np.deg2rad(2.0 * s))
-            expected_freq = [89e9, 183e9]
             expected_state = [[1.0, cos2s, sin2s, 0.0], [1.0, -1.0, 0.0, 0.0]]
 
             for ichan in range(2):
-                obsel = obsels[igeom * 2 + ichan]
+                weights = sensor.elements[iplace * 2 + ichan].dense
                 chan = f"{name}, channel {ichan}"
-                assert_close(f"{chan} freq", obsel.f_grid, [expected_freq[ichan]])
-                assert_close(f"{chan} pos", obsel.poslos[0][:3], pos[ipos])
-                assert_close(f"{chan} los", obsel.poslos[0][3:], expected_los[ipos][iscan])
-                assert_close(f"{chan} weights", obsel.weight_matrix.dense[0, 0], expected_state[ichan])
+                assert_close(f"{chan} weights", weights[iplace, ichan], expected_state[ichan])
+                assert_close(f"{chan} only its placement and frequency",
+                             np.count_nonzero(np.asarray(weights).any(axis=-1)), 1)
 
     try:
         builder(pos, [pyarts.arts.Vector2([160.0, 120.0])] * len(pos), ell)

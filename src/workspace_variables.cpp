@@ -1097,35 +1097,16 @@ Units: degrees
   //! Sensors
 
   wsv_data["measurement_sensor"] = {
-      .desc = R"(A list of sensor elements that fully describe one or more observing sensor(s).
+      .desc = R"(A list of sensors that fully describe the measurement.
 
-Size is number of elements of the sensor(s).  These should correspond to what the
-sensor actually measures, e.g., the number of channels in a spectrometer,
-separate elements as a function of polarization, time, etc.
-
-The frequency grid is shared between multiple sensor elements, so that the frequency grid
-identifies a sensor.  Two sensor elements are considered to be from the same sensor if they
-share the same frequency grid.  This is important for the inversion process,
-as it is used to determine how to compute the *measurement_jac* and *measurement_vec_error_covmat*.
-See *measurement_sensor_meta* for more information about how the sensor elements are structured.
-
-The size of this variable should be the same as *measurement_vec*.
+Each *Sensor* has one frequency grid and one list of geometries, at which the
+radiance is simulated, and a list of observation elements that weight that
+radiance into the values of the measurement.  The elements of the sensors, in
+order, are the elements of *measurement_vec*.  A sensor is the unit of the
+sensor parameters of the inversion process: a sensor Jacobian target changes
+the frequency grid or the geometries of one sensor.
 )",
-      .type = "ArrayOfSensorObsel",
-      .dims = {"NMEAS"},
-  };
-
-  wsv_data["measurement_sensor_meta"] = {
-      .desc = R"(Metadata describing each sensor's block in *measurement_vec*.
-
-Each element corresponds to one ``measurement_sensorAdd*`` call and
-describes how its contiguous block of *measurement_sensor* /
-*measurement_vec* entries maps to a structured gridded field.
-
-The start index of each block is not stored explicitly; it is the
-cumulative sum of ``count()`` from preceding elements.
-)",
-      .type = "ArrayOfSensorMetaInfo",
+      .type = "ArrayOfSensor",
   };
 
   //! Solar input

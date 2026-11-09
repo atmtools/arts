@@ -10,22 +10,22 @@ ELL = pa.arts.planets.Earth.ellipsoid
 zen_grid = np.geomspace(1, 3, NZA) - 1
 azi_grid = np.linspace(0, 360, NAZ + 1)[:-1]
 
-ant1 = pa.arts.sensor.GaussianAiryAntenna(zen_grid, 30e-2, NAZ)
-ant2 = pa.arts.sensor.GaussianAiryAntenna(zen_grid + 1e-3, 30e-2, NAZ)
-ch1 = pa.arts.sensor.BoxChannel(1e9, 1e12, 1001)
+ant1 = pa.arts.sensors.GaussianAiryAntenna(zen_grid, 30e-2, NAZ)
+ant2 = pa.arts.sensors.GaussianAiryAntenna(zen_grid + 1e-3, 30e-2, NAZ)
+ch1 = pa.arts.sensors.BoxChannel(1e9, 1e12, 1001)
 ch1.polarization = "Iv"
-ch2 = pa.arts.sensor.BoxChannel(1e9, 1e12, 1001)
+ch2 = pa.arts.sensors.BoxChannel(1e9, 1e12, 1001)
 
-obsel1 = ant1(ch1, POS, LOS, ELL)[0]
-obsel2 = ant2(ch2, POS, LOS, ELL)[0]
+sensor1 = ant1(ch1, POS, LOS, ELL)
+sensor2 = ant2(ch2, POS, LOS, ELL)
 
-poslos1 = np.asarray(obsel1.poslos)
-poslos2 = np.asarray(obsel2.poslos)
-weights1 = np.asarray(obsel1.weight_matrix.dense)
-weights2 = np.asarray(obsel2.weight_matrix.dense)
+poslos1 = np.asarray(sensor1.geometry)
+poslos2 = np.asarray(sensor2.geometry)
+weights1 = np.asarray(sensor1.elements[0].dense)
+weights2 = np.asarray(sensor2.elements[0].dense)
 
-pa.plots.plot(obsel1, point_spread=True)
-pa.plots.plot(obsel2, point_spread=True, frame='local', type='contour', levels=10)
+pa.plots.plot(sensor1, point_spread=True)
+pa.plots.plot(sensor2, point_spread=True, frame='local', type='contour', levels=10)
 
 assert np.allclose(weights1[..., 0].sum(), 1.0), \
     "Should receive unpolarized radiation with weight 1"

@@ -1,4 +1,4 @@
-""" Plotting routine for SensorObsel """
+""" Plotting routine for Sensor """
 
 import numpy
 import matplotlib
@@ -11,6 +11,15 @@ from .common import default_fig_ax, select_flat_ax
 __all__ = [
     'plot',
 ]
+
+
+class _Element:
+    """ One observation element of a sensor, with the grids it is weighted on """
+
+    def __init__(self, sensor: pyarts.arts.Sensor, element: int):
+        self.weight_matrix = sensor.elements[element]
+        self.poslos = sensor.geometry
+        self.f_grid = sensor.freq_grid
 
 
 def _line_plot_axes(fig, ax, nkeys):
@@ -69,7 +78,7 @@ def _local_los_from_enu(enu: np.ndarray, bore_los: np.ndarray) -> tuple[np.ndarr
     return zen, azi, local_horizontal, -local_vertical
 
 
-def _reference_los(data: pyarts.arts.SensorObsel, ifreq: int | None) -> np.ndarray:
+def _reference_los(data: _Element, ifreq: int | None) -> np.ndarray:
     weights = np.asarray(data.weight_matrix, dtype=float)
     iweights = weights[:, :, 0]
 
@@ -99,7 +108,7 @@ def _reference_los(data: pyarts.arts.SensorObsel, ifreq: int | None) -> np.ndarr
     return np.array([ref_zen, ref_azi], dtype=float)
 
 
-def _geometry_coordinates(data: pyarts.arts.SensorObsel,
+def _geometry_coordinates(data: _Element,
                           frame: str,
                           ifreq: int | None,
                           wrap_azimuth: bool) -> tuple[np.ndarray, np.ndarray, str, str, np.ndarray | None]:
@@ -128,7 +137,7 @@ def _geometry_coordinates(data: pyarts.arts.SensorObsel,
     return radial, theta, "Cross-track offset [deg]", "Along-track offset [deg]", np.stack((xdeg, ydeg), axis=-1)
 
 
-def _geometry_values(data: pyarts.arts.SensorObsel,
+def _geometry_values(data: _Element,
                      pol: pyarts.arts.Stokvec,
                      ifreq: int | None) -> tuple[np.ndarray, str]:
     if ifreq is None:
@@ -219,7 +228,7 @@ def _contour_levels(values: np.ndarray, levels: int | np.ndarray) -> np.ndarray 
     return np.linspace(vmin, vmax, nlevels)
 
 
-def _plot_geometry(data: pyarts.arts.SensorObsel,
+def _plot_geometry(data: _Element,
                    *,
                    fig: matplotlib.figure.Figure | None,
                    ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None,
@@ -294,8 +303,9 @@ def _plot_geometry(data: pyarts.arts.SensorObsel,
     return fig, ax
 
 
-def plot(data: pyarts.arts.SensorObsel,
+def plot(data: pyarts.arts.Sensor,
          *,
+         element: int | None = None,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          keys: str | list = "f",
@@ -308,16 +318,16 @@ def plot(data: pyarts.arts.SensorObsel,
          frame: str = "global",
          wrap_azimuth: bool = False,
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
-    """Plot a sensor observational element.
+    """Plot the observation elements of a sensor.
 
     By default, this follows the same line-plot convention as
-    :func:`~pyarts3.plots.ArrayOfSensorObsel.plot`: the selected quantity is reduced
-    over the non-plotted axis and drawn against either frequency or one sensor
-    geometry component.
+    :func:`~pyarts3.plots.ArrayOfSensor.plot`: the selected quantity of each
+    element, or of the one ``element``, is reduced over the non-plotted axis and
+    drawn against either frequency or one sensor geometry component.
 
-    Setting ``polar=True`` switches to a geometry view.  By default, geometry
-    plots use the stored ``SensorObsel.poslos`` zenith and azimuth values so
-    the plotted coordinates match the observation element directly.
+    Setting ``polar=True`` switches to a geometry view of one element.  By
+    default, geometry plots use the stored ``Sensor.geometry`` zenith and
+    azimuth values so the plotted coordinates match the sensor directly.
     Setting ``point_spread=True`` colors the geometry samples by their reduced
     weights, integrated over all frequencies unless ``ifreq`` selects one
     frequency column.  The geometry ``type`` selects whether those weighted
@@ -332,20 +342,23 @@ def plot(data: pyarts.arts.SensorObsel,
         import pyarts3 as pyarts
         import numpy as np
 
-        ant = pyarts.arts.sensor.GaussianAiryAntenna(np.linspace(0, 1, 11), 0.3, azi_grid_size=12)
-        ch = pyarts.arts.sensor.DiracChannel(100e9)
-        obsel = ant(ch, [1, 0, 0], [90, 0], pyarts.arts.planets.Earth.ellipsoid)[0]
+        ant = pyarts.arts.sensors.GaussianAiryAntenna(np.linspace(0, 1, 11), 0.3, azi_grid_size=12)
+        ch = pyarts.arts.sensors.DiracChannel(100e9)
+        sensor = ant(ch, [1, 0, 0], [90, 0], pyarts.arts.planets.Earth.ellipsoid)
 
-        pyarts.plots.SensorObsel.plot(obsel, polar=True, point_spread=True)
-        pyarts.plots.SensorObsel.plot(obsel, point_spread=True, wrap_azimuth=True)
-        pyarts.plots.SensorObsel.plot(obsel, point_spread=True, frame="local")
-        pyarts.plots.SensorObsel.plot(obsel, point_spread=True, frame="local", type="cloud")
-        pyarts.plots.SensorObsel.plot(obsel, point_spread=True, frame="local", type="contour")
+        pyarts.plots.Sensor.plot(sensor, polar=True, point_spread=True)
+        pyarts.plots.Sensor.plot(sensor, point_spread=True, wrap_azimuth=True)
+        pyarts.plots.Sensor.plot(sensor, point_spread=True, frame="local")
+        pyarts.plots.Sensor.plot(sensor, point_spread=True, frame="local", type="cloud")
+        pyarts.plots.Sensor.plot(sensor, point_spread=True, frame="local", type="contour")
 
     Parameters
     ----------
-    data : ~pyarts3.arts.SensorObsel
-        A single sensor observation element.
+    data : ~pyarts3.arts.Sensor
+        A sensor.
+    element : int | None, optional
+        The element to plot.  None plots every element in line plots, and is
+        only allowed for a sensor with one element in geometry plots.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
@@ -371,7 +384,7 @@ def plot(data: pyarts.arts.SensorObsel,
         If True, add a colorbar to point-spread plots. Defaults to True.
     frame : str, optional
         Geometry frame for ``polar`` and ``point_spread`` plots. ``"global"``
-        uses the stored zenith/azimuth coordinates from ``SensorObsel.poslos``,
+        uses the stored zenith/azimuth coordinates from ``Sensor.geometry``,
         while ``"local"`` uses a bore-centered frame inferred from the weighted
         LOS samples. Defaults to ``"global"``.
     wrap_azimuth : bool, optional
@@ -394,7 +407,12 @@ def plot(data: pyarts.arts.SensorObsel,
         _geometry_plot_type(point_spread, type)
 
     if polar or point_spread:
-        return _plot_geometry(data,
+        if element is None:
+            if len(data.elements) != 1:
+                raise ValueError("A geometry plot of a sensor with more than one element needs an element")
+            element = 0
+
+        return _plot_geometry(_Element(data, element),
                               fig=fig,
                               ax=ax,
                               pol=pol,
@@ -423,14 +441,18 @@ def plot(data: pyarts.arts.SensorObsel,
         pyarts.arts.SensorKeyType.azi: 4,
     }
 
+    elements = range(len(data.elements)) if element is None else [element]
+
     for isub, raw_key in enumerate(keys):
         key = pyarts.arts.SensorKeyType(raw_key)
         idx = key_map[key]
 
-        values = data.weight_matrix.reduce(pol,
-                                           along_poslos=idx is None,
-                                           along_freq=idx is not None)
-        x = data.f_grid if idx is None else data.poslos[:, idx]
-        select_flat_ax(ax, isub).plot(x, values, **kwargs)
+        for ielem in elements:
+            elem = _Element(data, ielem)
+            values = elem.weight_matrix.reduce(pol,
+                                               along_poslos=idx is None,
+                                               along_freq=idx is not None)
+            x = elem.f_grid if idx is None else elem.poslos[:, idx]
+            select_flat_ax(ax, isub).plot(x, values, **kwargs)
 
     return fig, ax

@@ -15,51 +15,20 @@ namespace sensor {
 ///   grid<2> = Vector         (color / frequency values)
 using CameraGriddedField = matpack::gridded_data_t<Numeric, AscendingGrid, AscendingGrid, Vector>;
 
-/// Metadata describing the mapping from a contiguous block of
-/// measurement_vec / measurement_sensor to a structured gridded field.
+/// Metadata describing the elements of a sensor as a structured gridded field.
 ///
-/// Each variant alternative corresponds to a different sensor type.
-/// The gridded field's data_name serves as a human-readable label (e.g.,
-/// "camera", "ffts").  Grids are set at sensor construction time; data is
-/// zeroed and filled later by measurement_sensor_metaFromMeasurementVec.
-///
-/// The start index into measurement_vec is not stored — it is derived from
-/// the cumulative count() of preceding elements in an ArrayOfSensorMetaInfo.
-struct MetaInfo {
-  using variant_t = std::variant<SortedGriddedField1, CameraGriddedField>;
+/// The row-major data of the gridded field has one value per element of the
+/// sensor, in the order of its elements.  Each variant alternative corresponds
+/// to a different sensor type.  The gridded field's data_name serves as a
+/// human-readable label (e.g., "camera", "ffts").  Grids are set at sensor
+/// construction time; data is zeroed.
+using MetaInfo = std::variant<SortedGriddedField1, SortedGriddedField2, CameraGriddedField, SortedGriddedField4>;
 
-  variant_t data{SortedGriddedField1{}};
-
-  /// Total number of scalar elements (product of all grid sizes).
-  [[nodiscard]] Size count() const;
-
-  /// Validate that data dimensions match grid sizes.
-  void check() const;
-};
-
+/// Total number of scalar elements (product of all grid sizes).
+[[nodiscard]] Size count(const MetaInfo& meta);
 }  // namespace sensor
 
-using SensorMetaInfo        = sensor::MetaInfo;
-using ArrayOfSensorMetaInfo = Array<SensorMetaInfo>;
-
-//
-// Formatter
-//
-
-template <> struct std::formatter<SensorMetaInfo> {
-  format_tags tags;
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const SensorMetaInfo& x, FmtContext& ctx) const {
-    return std::visit([this, &ctx](const auto& gf) { return tags.format(ctx, gf); }, x.data);
-  }
-};
+using SensorMetaInfo = sensor::MetaInfo;
 
 //
 // XML I/O

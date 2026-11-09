@@ -12,7 +12,7 @@ __all__ = [
 ]
 
 
-def plot(data: pyarts.arts.sensor.CameraAntenna,
+def plot(data: pyarts.arts.sensors.CameraAntenna,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
@@ -29,13 +29,13 @@ def plot(data: pyarts.arts.sensor.CameraAntenna,
 
         import pyarts3 as pyarts
 
-        camera = pyarts.arts.sensor.CameraAntenna.thin_lens(8, 12, 0.024, 0.036, 0.05, 1e3)
+        camera = pyarts.arts.sensors.CameraAntenna.thin_lens(8, 12, 0.024, 0.036, 0.05, 1e3)
 
         pyarts.plots.CameraAntenna.plot(camera)
 
     Parameters
     ----------
-    data : ~pyarts3.arts.sensor.CameraAntenna
+    data : ~pyarts3.arts.sensors.CameraAntenna
         The camera whose pixels to plot
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.

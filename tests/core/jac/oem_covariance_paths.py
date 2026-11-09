@@ -30,7 +30,7 @@ def workspace():
         ("surf_field", arts.SurfaceField),
         ("subsurf_field", arts.SubsurfaceField),
         ("abs_bands", arts.AbsorptionBands),
-        ("measurement_sensor", arts.ArrayOfSensorObsel),
+        ("measurement_sensor", arts.ArrayOfSensor),
     ):
         setattr(ws, name, group())
     ws.surf_field.ellipsoid = [1, 1]
@@ -50,7 +50,7 @@ def workspace():
 
     ws.measurement_jac = arts.Matrix()
     ws.model_state_vecFromData()
-    ws.measurement_sensor = arts.ArrayOfSensorObsel([arts.SensorObsel()] * len(OBSERVED))
+    ws.measurement_sensorSimple(freq_grid=np.arange(1.0, len(OBSERVED) + 1), pos=[0, 0, 0], los=[0, 0])
     ws.oemSetApriori()
     ws.oemSetMeasurement()
     ws.oemMeasurementCovmatConstant(value=1.)

@@ -29,7 +29,7 @@ def setup(sparse=False, third=False, *, covariance_only=True):
     ws.atm_field["H2O"] = field([0.012, 0.003, 0.0002])
     ws.atm_field["O2"] = field([0.2095, 0.2095, 0.2095])
     ws.abs_bands = arts.AbsorptionBands()
-    ws.measurement_sensor = arts.ArrayOfSensorObsel()
+    ws.measurement_sensor = arts.ArrayOfSensor()
 
     ws.oemInit()
 

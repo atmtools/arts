@@ -532,44 +532,20 @@ See *model_state_vec* and method involving it for more information.
 )--",
   };
 
-  wsg_data["SensorObsel"] = {
-      .file = "obsel.h",
-      .desc = R"(A single observation element.
+  wsg_data["Sensor"] = {
+      .file = "sensor.h",
+      .desc = R"(A sensor: observation elements on one frequency grid and one list of geometries.
 
-This should result in a single element in a *measurement_vec*.
+The radiance is simulated at every geometry over the whole frequency grid.
+Each observation element becomes one element of *measurement_vec*: its sparse
+Stokes weights of each geometry and frequency describe the channel response and
+the antenna response together, so the element is the sum of the weights times
+the simulated radiance.
 
-Expected use of this type is to generate the measurement vector
-of a sensor, where this observation element represent the readout
-from that sensor in a convenient unit (commonly Kelvin or 
-W sr :math:`^{-1}` m :math:`^{-2}` Hz :math:`^{-1}`, but not exclusively)
-
-It deals with averaging the frequency grid sampled by a sensor element
-and the transmission of the sensor system onto the sampling device, as
-well as the sampling device's polarization response.
-
-.. note::
-   Multiple *SensorObsel* can be used to represent a single sensor
-   with multiple channels, such as a sensor with multiple detectors
-   or a sensor with multiple frequency channels.  They then can conveniently
-   share much of their grids, but have different weighting functions
-   and/or different sampling devices.
-)",
-  };
-
-  wsg_data["SensorMetaInfo"] = {
-      .file = "sensor_meta_info.h",
-      .desc = R"(Metadata describing a sensor's mapping from measurement_vec to a gridded field.
-
-Wraps a variant of gridded field types, one per sensor kind:
-
-- Passive FFTS: *SortedGriddedField1* — 1D grid of frequencies.
-- Camera: ``CameraGriddedField`` — 2D pixel grid (angular offsets from boresight)
-  plus a color/frequency axis.
-
-Grids are set at sensor construction time.  Data is zeroed and later filled
-from *measurement_vec* by *measurement_sensor_metaFromMeasurementVec*.
-The start index into *measurement_vec* is not stored; it is derived from
-the cumulative ``count()`` of preceding elements in the array.
+The meta is a gridded field with one value per element, in the order of the
+elements, that describes how the elements are structured, e.g., by frequency
+for a spectrometer or by row and column for a camera.  The name is a label for
+messages and need not be unique.
 )",
   };
 
@@ -721,8 +697,8 @@ the user-interface for setting up retrieval targets can be simplified.
       .desc = R"--(An instrument: its channels and its antenna pattern.
 
 Each channel has a frequency response and a polarization response.  Placing
-the instrument at sensor positions and bore lines of sight gives the
-*measurement_sensor* and *measurement_sensor_meta* of those geometries.
+the instrument at sensor positions and bore lines of sight gives the *Sensor*
+of those geometries.
 )--",
   };
 

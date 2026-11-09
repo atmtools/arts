@@ -44,12 +44,12 @@ void jac_targetsInit(JacobianTargets& jac_targets) {
   jac_targetsOff(jac_targets);
 }
 
-void jac_targetsFinalize(JacobianTargets&          jac_targets,
-                         const AtmField&           atm_field,
-                         const SurfaceField&       surf_field,
-                         const SubsurfaceField&    subsurf_field,
-                         const AbsorptionBands&    abs_bands,
-                         const ArrayOfSensorObsel& measurement_sensor) {
+void jac_targetsFinalize(JacobianTargets&       jac_targets,
+                         const AtmField&        atm_field,
+                         const SurfaceField&    surf_field,
+                         const SubsurfaceField& subsurf_field,
+                         const AbsorptionBands& abs_bands,
+                         const ArrayOfSensor&   measurement_sensor) {
   ARTS_TIME_REPORT
 
   jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
@@ -181,32 +181,21 @@ void jac_targetsAddLineShapeParameter(JacobianTargets&                 jac_targe
       d);
 }
 
-void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&          jac_targets,
-                                             const ArrayOfSensorObsel& measurement_sensor,
-                                             const Numeric&            d,
-                                             const Index&              sensor_elem,
-                                             const Index&              polyorder) {
+void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&     jac_targets,
+                                             const ArrayOfSensor& measurement_sensor,
+                                             const Numeric&       d,
+                                             const Index&         sensor_elem,
+                                             const Index&         polyorder) {
   ARTS_TIME_REPORT
 
   if (polyorder < 0) arts::user_error("Polyorder must be non-negative: {}", polyorder);
 
-  std::vector<std::pair<Index, const void*>> sensor_grid_ptrs;
-  for (Size i = 0; i < measurement_sensor.size(); i++) {
-    const void* ptr = reinterpret_cast<const void*>(measurement_sensor[i].f_grid_ptr().get());
-    if (stdr::none_of(sensor_grid_ptrs | stdv::values, Cmp::eq(ptr))) { sensor_grid_ptrs.emplace_back(i, ptr); }
-  }
+  if (sensor_elem < 0 or measurement_sensor.size() <= static_cast<Size>(sensor_elem))
+    arts::user_error("There are only {0} sensors.  Cannot select index: {1}, please choose an index less than {0}.",
+                     measurement_sensor.size(),
+                     sensor_elem);
 
-  if (sensor_grid_ptrs.size() <= static_cast<Size>(sensor_elem))
-    arts::user_error(
-        "There are only {0} independent sensor frequency grids.  "
-        "Cannot select index: {1}, please choose an index less than {0}.",
-        sensor_grid_ptrs.size(),
-        sensor_elem);
-
-  const Index measurement_elem = sensor_grid_ptrs[sensor_elem].first;
-
-  make_polyoffset(
-      jac_targets.emplace_back(SensorKey{.type = SensorKeyType::freq, .measurement_elem = measurement_elem}, d),
-      static_cast<Size>(polyorder),
-      measurement_sensor);
+  make_polyoffset(jac_targets.emplace_back(SensorKey{.type = SensorKeyType::freq, .sensor_elem = sensor_elem}, d),
+                  static_cast<Size>(polyorder),
+                  measurement_sensor);
 }

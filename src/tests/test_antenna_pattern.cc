@@ -3,9 +3,8 @@
 #include <arts_conversions.h>
 #include <planet_data.h>
 
-#include <boost/math/special_functions/bessel.hpp>
-
 #include <algorithm>
+#include <boost/math/special_functions/bessel.hpp>
 #include <cmath>
 #include <format>
 #include <stdexcept>
@@ -48,7 +47,7 @@ Numeric airy_pattern(Numeric x) {
   return a * a;
 }
 
-//! Each current antenna kind is a single beam: one pixel at no offset, and one obsel per channel
+//! Each current antenna kind is a single beam: one pixel at no offset, and one element per channel
 void test_single_beams_have_one_pixel() try {
   sensor::GriddedAntennaPattern gridded;
   gridded.data = sensor::AntennaPatternField{
@@ -70,11 +69,13 @@ void test_single_beams_have_one_pixel() try {
     assert_close(pixels.rows[0], 0.0, 0.0, "pixel row offset");
     assert_close(pixels.cols[0], 0.0, 0.0, "pixel column offset");
 
-    const auto obsels =
-        sensor::antenna_obsels(antenna, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
-    if (obsels.size() != pixels.size())
-      throw std::runtime_error(std::format(
-          "Antenna {} must give one obsel per pixel, got {} for {}", antenna.index(), obsels.size(), pixels.size()));
+    const auto sensor =
+        sensor::antenna_sensor(antenna, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
+    if (sensor.elements.size() != pixels.size())
+      throw std::runtime_error(std::format("Antenna {} must give one element per pixel, got {} for {}",
+                                           antenna.index(),
+                                           sensor.elements.size(),
+                                           pixels.size()));
   }
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_single_beams_have_one_pixel failed:\n{}", e.what()));
@@ -93,10 +94,12 @@ void test_camera_pixel_directions() try {
   const Numeric     d_i = f * d_o / (d_o - f);
 
   const auto camera = sensor::CameraAntenna::thin_lens(n_rows, n_cols, ccd_h, ccd_w, f, d_o);
-  const auto obsels = camera(sensor::DiracChannel{100.0e9}, unpolarized, pos, {90.0, 0.0}, ell);
+  const auto sensor = camera(sensor::DiracChannel{100.0e9}, unpolarized, pos, {90.0, 0.0}, ell);
 
-  if (camera.pixels().size() != n_rows * n_cols or obsels.size() != n_rows * n_cols)
-    throw std::runtime_error(std::format("Expected {} pixels and obsels", n_rows * n_cols));
+  if (camera.pixels().size() != n_rows * n_cols or sensor.elements.size() != n_rows * n_cols)
+    throw std::runtime_error(std::format("Expected {} pixels and elements", n_rows * n_cols));
+  if (sensor.geometry.size() != n_rows * n_cols)
+    throw std::runtime_error("A pencil-beam pixel samples one line of sight");
 
   for (Size i = 0; i < n_rows; i++) {
     for (Size j = 0; j < n_cols; j++) {
@@ -104,9 +107,10 @@ void test_camera_pixel_directions() try {
       const Numeric dx = (static_cast<Numeric>(j) - 0.5 * (n_cols - 1)) * ccd_w / n_cols;
       const Numeric v  = std::hypot(dx, d_i, dy);
 
-      const auto& obsel = obsels[i * n_cols + j];
-      if (obsel.poslos_grid().size() != 1) throw std::runtime_error("A pencil-beam pixel samples one line of sight");
-      const Vector2 los = obsel.poslos_grid()[0].los;
+      const Size k = i * n_cols + j;
+      if (sensor.elements[k].size() != 1 or sensor.elements[k].vector().front().irow != k)
+        throw std::runtime_error(std::format("Pixel ({}, {}) must weight its own line of sight", i, j));
+      const Vector2 los = sensor.geometry[k].los;
       assert_close(los[0], Conversion::acosd(-dy / v), 1e-12, std::format("zenith of pixel ({}, {})", i, j));
       assert_close(los[1], Conversion::atan2d(-dx, d_i), 1e-12, std::format("azimuth of pixel ({}, {})", i, j));
       assert_close(camera.grid.rows[i], Conversion::atan2d(dy, d_i), 1e-12, "row offset");
@@ -121,12 +125,13 @@ void test_camera_pixel_directions() try {
 void test_camera_carries_polarization_at_nadir() try {
   using Conversion::cosd, Conversion::sind;
 
-  const sensor::CameraAntenna camera{.grid = {.rows = AscendingGrid{-0.5, 0.0, 0.5}, .cols = AscendingGrid{-0.5, 0.0, 0.5}}};
-  const auto obsels = camera(sensor::DiracChannel{100.0e9}, Stokvec{1.0, 1.0, 0.0, 0.0}, pos, {180.0, 0.0}, ell);
+  const sensor::CameraAntenna camera{
+      .grid = {.rows = AscendingGrid{-0.5, 0.0, 0.5}, .cols = AscendingGrid{-0.5, 0.0, 0.5}}};
+  const auto sensor = camera(sensor::DiracChannel{100.0e9}, Stokvec{1.0, 1.0, 0.0, 0.0}, pos, {180.0, 0.0}, ell);
 
-  for (const auto& obsel : obsels) {
-    const Stokvec w = obsel.weight_matrix()[0, 0];
-    const Numeric a = obsel.poslos_grid()[0].los[1];
+  for (Size k = 0; k < sensor.elements.size(); k++) {
+    const Stokvec w = sensor.elements[k][k, 0];
+    const Numeric a = sensor.geometry[k].los[1];
     assert_stokvec(w / w.I(),
                    {1.0, cosd(2.0 * a), sind(2.0 * a), 0.0},
                    1e-3,
@@ -145,16 +150,15 @@ void test_camera_pixels_have_the_beam() try {
   const auto centres = pencil(sensor::DiracChannel{100.0e9}, unpolarized, pos, {120.0, 30.0}, ell);
   const auto beams   = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, {120.0, 30.0}, ell);
 
-  for (Size p = 0; p < 2; p++) {
-    if (beams[p].poslos_grid().size() != 5)
-      throw std::runtime_error(std::format("Pixel {} must sample its beam's 5 lines of sight", p));
+  if (beams.geometry.size() != 10) throw std::runtime_error("Each pixel must sample its beam's 5 lines of sight");
 
-    // The zero zenith offset of the beam is the pixel's own line of sight
-    assert_close(beams[p].poslos_grid()[0].los[0], centres[p].poslos_grid()[0].los[0], 1e-12, "beam centre zenith");
-    assert_close(beams[p].poslos_grid()[0].los[1], centres[p].poslos_grid()[0].los[1], 1e-12, "beam centre azimuth");
+  for (Size p = 0; p < 2; p++) {
+    // The zero zenith offset of the beam is the pixel's own line of sight, followed by the rest of its beam
+    assert_close(beams.geometry[5 * p].los[0], centres.geometry[p].los[0], 1e-12, "beam centre zenith");
+    assert_close(beams.geometry[5 * p].los[1], centres.geometry[p].los[1], 1e-12, "beam centre azimuth");
 
     Numeric total = 0.0;
-    for (Size i = 0; i < 5; i++) total += beams[p].weight_matrix()[i, 0][0];
+    for (Size i = 0; i < 5; i++) total += beams.elements[p][5 * p + i, 0][0];
     assert_close(total, 1.0, 1e-12, "beam weights of a pixel");
   }
 } catch (const std::exception& e) {
@@ -178,10 +182,10 @@ void test_gaussian_airy_is_frequency_dependent() try {
   const sensor::GaussianAiryAntenna ant{ZenGrid{{0.0, 0.2}}, 1.0, 1};
   const sensor::BoxChannel          channel{AscendingGrid{100.0e9, 200.0e9}};
 
-  const auto obsel = ant(channel, unpolarized, pos, {45.0, 30.0}, ell).front();
+  const auto beam = ant(channel, unpolarized, pos, {45.0, 30.0}, ell);
 
-  const auto low_weight  = obsel.weight_matrix()[1, 0];
-  const auto high_weight = obsel.weight_matrix()[1, 1];
+  const auto low_weight  = beam.elements.front()[1, 0];
+  const auto high_weight = beam.elements.front()[1, 1];
 
   if (low_weight[0] <= high_weight[0])
     throw std::runtime_error("Higher frequency Gaussian Airy sample must be narrower");
@@ -193,19 +197,19 @@ void test_gaussian_airy_is_frequency_dependent() try {
 //! midpoint for the boresight, and an equal share of the band between the midpoints for each ring sample
 void test_cells_are_spherical_caps_and_bands() try {
   const sensor::GaussianAntenna gaussian{ZenGrid{{0.0, 1.0}}, 1.0, 3};
-  const auto gaussian_obsel = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell).front();
+  const auto gaussian_beam = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
 
-  if (gaussian_obsel.poslos_grid().size() != 4) {
+  if (gaussian_beam.geometry.size() != 4) {
     throw std::runtime_error(std::format("Expected zero-zenith azimuth collapse to leave 4 LOS samples, got {}",
-                                         gaussian_obsel.poslos_grid().size()));
+                                         gaussian_beam.geometry.size()));
   }
 
   const Numeric center = cap(0.5);
   const Numeric band   = (cap(1.5) - cap(0.5)) / 3.0 * std::exp(-0.5);
   const Numeric total  = center + 3.0 * band;
-  assert_close(gaussian_obsel.weight_matrix()[0, 0][0], center / total, 1e-12, "gaussian boresight cap");
+  assert_close(gaussian_beam.elements.front()[0, 0][0], center / total, 1e-12, "gaussian boresight cap");
   for (Size i = 1; i < 4; i++) {
-    assert_close(gaussian_obsel.weight_matrix()[i, 0][0], band / total, 1e-12, "gaussian band sample");
+    assert_close(gaussian_beam.elements.front()[i, 0][0], band / total, 1e-12, "gaussian band sample");
   }
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_cells_are_spherical_caps_and_bands failed:\n{}", e.what()));
@@ -228,14 +232,14 @@ void test_gaussian_airy_half_power_width() try {
   const Numeric     half_power = Conversion::rad2deg(x * wavelength / (Constant::pi * D));
 
   const sensor::GaussianAiryAntenna airy{ZenGrid{{0.0, half_power}}, D, 3};
-  const auto                        obsel = airy(sensor::DiracChannel{f}, unpolarized, pos, {45.0, 30.0}, ell).front();
+  const auto                        beam = airy(sensor::DiracChannel{f}, unpolarized, pos, {45.0, 30.0}, ell);
 
   const Numeric center = cap(0.5 * half_power);
   const Numeric band   = (cap(1.5 * half_power) - cap(0.5 * half_power)) / 3.0 * 0.5;
   const Numeric total  = center + 3.0 * band;
-  assert_close(obsel.weight_matrix()[0, 0][0], center / total, 1e-12, "airy boresight cap");
+  assert_close(beam.elements.front()[0, 0][0], center / total, 1e-12, "airy boresight cap");
   for (Size i = 1; i < 4; i++) {
-    assert_close(obsel.weight_matrix()[i, 0][0], band / total, 1e-12, "airy sample at the half-power offset");
+    assert_close(beam.elements.front()[i, 0][0], band / total, 1e-12, "airy sample at the half-power offset");
   }
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_gaussian_airy_half_power_width failed:\n{}", e.what()));
@@ -243,19 +247,19 @@ void test_gaussian_airy_half_power_width() try {
 
 void test_two_azimuths_split_the_band() try {
   const sensor::GaussianAntenna gaussian{ZenGrid{{0.0, 1.0}}, 1.0};
-  const auto                    obsel = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 0.0}, ell).front();
+  const auto                    beam = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 0.0}, ell);
 
-  if (obsel.poslos_grid().size() != 3) {
+  if (beam.geometry.size() != 3) {
     throw std::runtime_error(
-        std::format("Expected degenerate azimuth collapse to leave 3 LOS samples, got {}", obsel.poslos_grid().size()));
+        std::format("Expected degenerate azimuth collapse to leave 3 LOS samples, got {}", beam.geometry.size()));
   }
 
   const Numeric center = cap(0.5);
   const Numeric wing   = (cap(1.5) - cap(0.5)) / 2.0 * std::exp(-0.5);
   const Numeric total  = center + 2.0 * wing;
-  assert_close(obsel.weight_matrix()[0, 0][0], center / total, 1e-12, "gaussian center weight counted once");
-  assert_close(obsel.weight_matrix()[1, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 0");
-  assert_close(obsel.weight_matrix()[2, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 180");
+  assert_close(beam.elements.front()[0, 0][0], center / total, 1e-12, "gaussian center weight counted once");
+  assert_close(beam.elements.front()[1, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 0");
+  assert_close(beam.elements.front()[2, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 180");
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_two_azimuths_split_the_band failed:\n{}", e.what()));
 }
@@ -272,12 +276,12 @@ void test_gaussian_second_moment() try {
   const Vector2     bore{135.0, 20.0};
 
   const sensor::GaussianAntenna gaussian{ZenGrid{nlinspace(0.0, 2.0, 81)}, std, 72};
-  const auto                    obsel = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, bore, ell).front();
+  const auto                    beam = gaussian(sensor::DiracChannel{100.0e9}, unpolarized, pos, bore, ell);
 
   Numeric m2 = 0.0, total = 0.0;
-  for (Size i = 0; i < obsel.poslos_grid().size(); i++) {
-    const Numeric w  = obsel.weight_matrix()[i, 0][0];
-    const Numeric r  = offset(obsel.poslos_grid()[i].los, bore);
+  for (Size i = 0; i < beam.geometry.size(); i++) {
+    const Numeric w  = beam.elements.front()[i, 0][0];
+    const Numeric r  = offset(beam.geometry[i].los, bore);
     m2              += w * r * r;
     total           += w;
   }
@@ -298,13 +302,13 @@ void test_gaussian_airy_keeps_the_channel_weights() try {
   const sensor::GaussianAiryAntenna ant{ZenGrid{nlinspace(0.0, 3.0, 13)}, 0.3, 24};
   const sensor::BoxChannel          channel{50e9, 500e9, 10};
 
-  const auto obsel = ant(channel, unpolarized, pos, {135.0, 0.0}, ell).front();
+  const auto beam = ant(channel, unpolarized, pos, {135.0, 0.0}, ell);
 
-  for (Size j = 0; j < obsel.f_grid().size(); j++) {
+  for (Size j = 0; j < beam.freq_grid.size(); j++) {
     Numeric marginal = 0.0;
-    for (Size i = 0; i < obsel.poslos_grid().size(); i++) marginal += obsel.weight_matrix()[i, j][0];
-    const Numeric expected = (j == 0 or j + 1 == obsel.f_grid().size()) ? 1.0 / 18.0 : 1.0 / 9.0;
-    assert_close(marginal, expected, 1e-12, std::format("airy frequency marginal at {} Hz", obsel.f_grid()[j]));
+    for (Size i = 0; i < beam.geometry.size(); i++) marginal += beam.elements.front()[i, j][0];
+    const Numeric expected = (j == 0 or j + 1 == beam.freq_grid.size()) ? 1.0 / 18.0 : 1.0 / 9.0;
+    assert_close(marginal, expected, 1e-12, std::format("airy frequency marginal at {} Hz", beam.freq_grid[j]));
   }
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_gaussian_airy_keeps_the_channel_weights failed:\n{}", e.what()));
@@ -326,9 +330,7 @@ void test_scan_rotation() try {
 
   const sensor::Polarization fixed{.state = {1.0, 1.0, 0.0, 0.0}};
   assert_stokvec(fixed.at(30.0), {1.0, 1.0, 0.0, 0.0}, 0.0, "no scan rotation");
-} catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_scan_rotation failed:\n{}", e.what()));
-}
+} catch (const std::exception& e) { throw std::runtime_error(std::format("test_scan_rotation failed:\n{}", e.what())); }
 
 /** A nadir-looking antenna receives one field direction in all its lines of sight
  *
@@ -345,11 +347,11 @@ void test_polarization_is_carried_around_nadir() try {
   sensor::Channel               channel = sensor::DiracChannel{100.0e9};
   channel.polarization.state            = {1.0, 1.0, 0.0, 0.0};
 
-  const auto obsel = gaussian(channel, channel.polarization.state, pos, {180.0, 0.0}, ell).front();
+  const auto beam = gaussian(channel, channel.polarization.state, pos, {180.0, 0.0}, ell);
 
-  for (Size i = 0; i < obsel.poslos_grid().size(); i++) {
-    const Stokvec w = obsel.weight_matrix()[i, 0];
-    const Numeric a = obsel.poslos_grid()[i].los[1];
+  for (Size i = 0; i < beam.geometry.size(); i++) {
+    const Stokvec w = beam.elements.front()[i, 0];
+    const Numeric a = beam.geometry[i].los[1];
     assert_stokvec(w / w.I(),
                    {1.0, cosd(2.0 * a), sind(2.0 * a), 0.0},
                    1e-3,
@@ -363,18 +365,16 @@ void test_normalize_keeps_the_polarization() try {
   sensor::SparseStokvecMatrix weights(1, 2);
   weights[0, 0] = Stokvec{1.0, 0.6, 0.8, 0.0};
   weights[0, 1] = Stokvec{1.0, 0.6, 0.8, 0.0};
-  sensor::Obsel obsel{AscendingGrid{100e9, 101e9}, SensorPosLosVector(Size{1}, sensor::PosLos{.pos = pos, .los = Vector2{150.0, 0.0}}), weights};
 
-  obsel.normalize();
-  assert_stokvec(obsel.weight_matrix()[0, 0], {0.5, 0.3, 0.4, 0.0}, 1e-15, "normalized rotated linear weights");
+  sensor::normalize(weights);
+  assert_stokvec(weights[0, 0], {0.5, 0.3, 0.4, 0.0}, 1e-15, "normalized rotated linear weights");
 
-  sensor::SparseStokvecMatrix unpolarized(1, 1);
-  unpolarized[0, 0] = Stokvec{1.0, 0.0, 0.0, 0.0};
-  sensor::Obsel plain{AscendingGrid{100e9}, SensorPosLosVector(Size{1}, sensor::PosLos{.pos = pos, .los = Vector2{150.0, 0.0}}), unpolarized};
+  sensor::SparseStokvecMatrix plain(1, 1);
+  plain[0, 0] = unpolarized;
 
   bool threw = false;
   try {
-    plain.normalize(Stokvec{1.0, 1.0, 0.0, 0.0});
+    sensor::normalize(plain, Stokvec{1.0, 1.0, 0.0, 0.0});
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) throw std::runtime_error("Normalizing unpolarized weights to a polarization must throw");
 } catch (const std::exception& e) {

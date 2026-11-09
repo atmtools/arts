@@ -18,19 +18,19 @@ AZI = np.linspace(0.0, 360.0, 9)[:-1]
 if_offsets = pyarts.arts.AscendingGrid(np.linspace(IF_LOW, IF_HIGH, NCHANNELS))
 print(f"if_offsets:   {time.time() - start_time:.2f} seconds")
 
-spectrometer = pyarts.arts.sensor.Spectrometer(
-    pyarts.arts.sensor.DiracChannel(),
+spectrometer = pyarts.arts.sensors.Spectrometer(
+    pyarts.arts.sensors.DiracChannel(),
     if_offsets,
 )
 print(f"spectrometer: {time.time() - start_time:.2f} seconds")
 
-backend = pyarts.arts.sensor.HeterodyneFrequencyRange(
+backend = pyarts.arts.sensors.HeterodyneFrequencyRange(
     LO,
     np.array([LO + IF_LOW, LO + IF_HIGH]),
 )
 print(f"backend:      {time.time() - start_time:.2f} seconds")
 
-antenna = pyarts.arts.sensor.GaussianAiryAntenna(
+antenna = pyarts.arts.sensors.GaussianAiryAntenna(
     ZEN,
     APERTURE_DIAMETER,
     8,
@@ -42,13 +42,13 @@ print(f"sensor:       {time.time() - start_time:.2f} seconds")
 
 ws = pyarts.Workspace()
 
-ws.measurement_sensor, ws.measurement_sensor_meta = sensor(POS, LOS, pyarts.arts.planets.Earth.ellipsoid)
+ws.measurement_sensor = [sensor(POS, LOS, pyarts.arts.planets.Earth.ellipsoid)]
 
-assert len(ws.measurement_sensor.unique_freq_grids()) == 1
-assert len(ws.measurement_sensor[0].f_grid) == NCHANNELS
+assert len(ws.measurement_sensor) == 1
+assert len(ws.measurement_sensor[0].freq_grid) == NCHANNELS
 
 np.testing.assert_allclose(
-    np.asarray(ws.measurement_sensor[0].f_grid)[[0, -1]],
+    np.asarray(ws.measurement_sensor[0].freq_grid)[[0, -1]],
     np.array([LO + IF_LOW, LO + IF_HIGH]),
     atol=0.0,
     rtol=0.0,

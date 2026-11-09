@@ -164,14 +164,14 @@ void oemAddPressure(JacobianTargets&       jac_targets,
   oem.covmat_diagonal_blocks[JacobianTargetType{jac_targets.atm.back().type}] = {.first = matrix, .second = inverse};
 }
 
-void oemAddSensorFrequencyPolyOffset(JacobianTargets&          jac_targets,
-                                     OptimalEstimationData&    oem,
-                                     const ArrayOfSensorObsel& measurement_sensor,
-                                     const Numeric&            d,
-                                     const Index&              sensor_elem,
-                                     const Index&              polyorder,
-                                     const BlockMatrix&        matrix,
-                                     const BlockMatrix&        inverse) {
+void oemAddSensorFrequencyPolyOffset(JacobianTargets&       jac_targets,
+                                     OptimalEstimationData& oem,
+                                     const ArrayOfSensor&   measurement_sensor,
+                                     const Numeric&         d,
+                                     const Index&           sensor_elem,
+                                     const Index&           polyorder,
+                                     const BlockMatrix&     matrix,
+                                     const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
   oem.uncheck();
 
@@ -180,14 +180,14 @@ void oemAddSensorFrequencyPolyOffset(JacobianTargets&          jac_targets,
   oem.covmat_diagonal_blocks[keyk] = {.first = matrix, .second = inverse};
 }
 
-void oemAddErrorPolyFit(JacobianTargets&          jac_targets,
-                        OptimalEstimationData&    oem,
-                        const ArrayOfSensorObsel& measurement_sensor,
-                        const Vector&             t,
-                        const Index&              sensor_elem,
-                        const Index&              polyorder,
-                        const BlockMatrix&        matrix,
-                        const BlockMatrix&        inverse) {
+void oemAddErrorPolyFit(JacobianTargets&       jac_targets,
+                        OptimalEstimationData& oem,
+                        const ArrayOfSensor&   measurement_sensor,
+                        const Vector&          t,
+                        const Index&           sensor_elem,
+                        const Index&           polyorder,
+                        const BlockMatrix&     matrix,
+                        const BlockMatrix&     inverse) {
   ARTS_TIME_REPORT
   oem.uncheck();
 

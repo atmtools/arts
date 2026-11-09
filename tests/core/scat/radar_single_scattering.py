@@ -69,7 +69,7 @@ ws.atm_field[ssa] = A.GriddedField3(
 ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.0)]
 
 # ARTS2 polarization index 5 is [I,Q]/2 on receive and [I,Q] on transmit.
-# The helper creates one standard SensorObsel per range bin, so the radar
+# The helper creates one observation element per range bin, so the radar
 # result can be used directly as an OEM measurement vector.
 range_bins = np.arange(0.0, 20.001e3, 500.0)
 ws.freq_grid = [94e9]
@@ -167,7 +167,7 @@ ws.jac_targetsAddAtmosphere(target=extinction, d=step)
 ws.jac_targetsFinalize()
 ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
 jac = np.asarray(ws.measurement_jac).copy()
-assert jac.shape == (len(ws.measurement_sensor), altitude.size)
+assert jac.shape == (len(ws.measurement_vec), altitude.size)
 assert np.all(np.isfinite(jac))
 
 iz = int(np.argmin(np.abs(altitude - 10e3)))
@@ -336,7 +336,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 assert np.nanmax(old.measurement_vec) < particle_peak
 old_aux = np.asarray(old.radar_aux)
-assert old_aux.shape == (4, len(old.measurement_sensor))
+assert old_aux.shape == (4, sum(len(s.elements) for s in old.measurement_sensor))
 assert np.nanmax(old_aux[2]) > 0.0
 assert np.nanmax(old_aux[3]) > 0.0
 
@@ -352,7 +352,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 old_jac = np.asarray(old.measurement_jac).copy()
 nh2o = np.asarray(old.atm_field["H2O"].data.data).size
-assert old_jac.shape[0] == len(old.measurement_sensor)
+assert old_jac.shape[0] == sum(len(s.elements) for s in old.measurement_sensor)
 assert np.all(np.isfinite(old_jac))
 assert np.max(np.abs(old_jac[:, :nh2o])) > 0.0
 assert np.max(np.abs(old_jac[:, nh2o:])) > 0.0

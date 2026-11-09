@@ -18,7 +18,7 @@ def run_in_parallel(ws: pyarts.Workspace):
 
 
 assert ws.abs_species == ["H2O", "CO2"]
-assert len(ws.measurement_sensor.unique_freq_grids()) == 2
+assert len(ws.measurement_sensor) == 2
 
 assert len(run_in_parallel.par_tasks(ws)) == 3
 assert len(create_agenda.par_tasks(ws)) == 1

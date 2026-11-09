@@ -10,23 +10,14 @@ __all__ = [
 ]
 
 
-def plot(data: pyarts.arts.ArrayOfSensorObsel,
+def plot(data: pyarts.arts.ArrayOfSensor,
          *,
          fig: matplotlib.figure.Figure | None = None,
          ax: matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes] | None = None,
          keys: str | list = "f",
          pol: str | pyarts.arts.Stokvec = "I",
          **kwargs) -> tuple[matplotlib.figure.Figure, matplotlib.axes.Axes | list[matplotlib.axes.Axes] | numpy.ndarray[matplotlib.axes.Axes]]:
-    """Plot the sensor observational element array.
-
-    .. note::
-        Any option other than "f" will sort the sensor observational element array by the
-        corresponding key. The object lives via a pointer, so the original
-        data is modified in-place.
-
-        This should not massively affect any radiative transfer computations,
-        but it might result in different results down on the floating point
-        epsilon error level.
+    """Plot the observation elements of all the sensors.
 
     .. rubric:: Example
 
@@ -39,12 +30,12 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
         ws = pyarts.Workspace()
         ws.measurement_sensorSimpleGaussian(std = 10e6, pos = [100e3, 0, 0], los = [180.0, 0.0],
                                             freq_grid = np.linspace(-50e6, 50e6, 101))
-        pyarts.plots.ArrayOfSensorObsel.plot(ws.measurement_sensor)
+        pyarts.plots.ArrayOfSensor.plot(ws.measurement_sensor)
 
     Parameters
     ----------
-    data : ~pyarts3.arts.ArrayOfSensorObsel
-        A sensor observation element array.
+    data : ~pyarts3.arts.ArrayOfSensor
+        The sensors.
     fig : ~matplotlib.figure.Figure, optional
         The matplotlib figure to draw on. Defaults to None for new figure.
     ax : ~matplotlib.axes.Axes | list[~matplotlib.axes.Axes] | ~numpy.ndarray[~matplotlib.axes.Axes] | None, optional
@@ -87,13 +78,14 @@ def plot(data: pyarts.arts.ArrayOfSensorObsel,
         key = pyarts.arts.SensorKeyType(keys[isub])
 
         i = map[key]
-        for elem in data:
-            v = elem.weight_matrix.reduce(pol,
-                                          along_poslos=i is None,
-                                          along_freq=i is not None)
+        for sensor in data:
+            for weights in sensor.elements:
+                v = weights.reduce(pol,
+                                   along_poslos=i is None,
+                                   along_freq=i is not None)
 
-            x = elem.f_grid if i is None else elem.poslos[:, i]
+                x = sensor.freq_grid if i is None else sensor.geometry[:, i]
 
-            select_flat_ax(ax, isub).plot(x, v, **kwargs)
+                select_flat_ax(ax, isub).plot(x, v, **kwargs)
 
     return fig, ax

@@ -221,13 +221,13 @@ void oemMeasurementCovmatConstant(OptimalEstimationData& data, const Numeric& va
 // Retrieval code.  This wraps Jacobian and Covmat code.
 ////////////////////////////////////////////////////////////////////////////////
 
-void oemFinalizeDiagonal(OptimalEstimationData&    oem,
-                         JacobianTargets&          jac_targets,
-                         const AtmField&           atm_field,
-                         const SurfaceField&       surf_field,
-                         const SubsurfaceField&    subsurf_field,
-                         const AbsorptionBands&    abs_bands,
-                         const ArrayOfSensorObsel& measurement_sensor) {
+void oemFinalizeDiagonal(OptimalEstimationData& oem,
+                         JacobianTargets&       jac_targets,
+                         const AtmField&        atm_field,
+                         const SurfaceField&    surf_field,
+                         const SubsurfaceField& subsurf_field,
+                         const AbsorptionBands& abs_bands,
+                         const ArrayOfSensor&   measurement_sensor) {
   ARTS_TIME_REPORT
   oem.uncheck();
   CovarianceMatrix model_state_covmat;

@@ -372,7 +372,7 @@ The signature of the method is:
   void measurement_vecFromSensor(const Workspace& ws,
                                  Vector& measurement_vec,
                                  Matrix& measurement_jac,
-                                 const ArrayOfSensorObsel& measurement_sensor,
+                                 const ArrayOfSensor& measurement_sensor,
                                  const JacobianTargets& jac_targets,
                                  const AtmField& atm_field,
                                  const SurfaceField& surf_field,

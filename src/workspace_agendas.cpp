@@ -144,7 +144,7 @@ is warranted.
 )--",
       .output       = {"spectral_rad", "spectral_rad_jac", "ray_path"},
       .input        = {"freq_grid", "jac_targets", "obs_pos", "obs_los", "atm_field", "surf_field", "subsurf_field"},
-      .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "EmissionNoSensor", "MonteCarlo"},
+      .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "MonteCarlo"},
       .enum_default = "Emission",
   };
 

@@ -3,7 +3,7 @@
 #include <atm.h>
 #include <lbl.h>
 #include <matpack.h>
-#include <obsel.h>
+#include <sensor.h>
 #include <subsurf.h>
 #include <surf.h>
 #include <xml.h>
@@ -186,10 +186,10 @@ struct LineTarget {
   void update_jac(MatrixView dy, cv x, const AbsorptionBands& y) const;
 };
 
-/** The class that deals with Jacobian targets that are part of a ArrayOfSensorObsel object
+/** The class that deals with Jacobian targets that are part of a ArrayOfSensor object
  * 
  * The intent here is that the type should be able to match into any Key that can
- * be held by a SensorObsel object.  This includes things like sensor frequency grid,
+ * be held by a Sensor object.  This includes things like sensor frequency grid,
  * sensor position, and sensor line of sight.
  * 
  * As for all targets, we need to know where in a local vector the target is
@@ -201,8 +201,8 @@ struct LineTarget {
  * but can be overridden with advantage as they perform a lot of computations
  * that are not required when the type is known.
  * 
- * NOTE:  Several SensorObsel objects share grids.  By default, shared grids
- * are updated together.
+ * NOTE:  A target changes the frequency grid or the geometries of one sensor,
+ * which all of its elements share.
  */
 struct SensorTarget {
   SensorKey type;
@@ -220,9 +220,9 @@ struct SensorTarget {
   bool      overlap{false};
   SensorKey overlap_key{};
 
-  void update_model(ArrayOfSensorObsel& y, cv x) const;
-  void update_state(VectorView x, const ArrayOfSensorObsel& y) const;
-  void update_jac(MatrixView dy, cv x, const ArrayOfSensorObsel& y) const;
+  void update_model(ArrayOfSensor& y, cv x) const;
+  void update_state(VectorView x, const ArrayOfSensor& y) const;
+  void update_jac(MatrixView dy, cv x, const ArrayOfSensor& y) const;
 };
 
 /** The class that deals with Jacobian targets that are not part of any input object
@@ -311,11 +311,11 @@ struct Targets final {
   void throwing_check(Size xsize) const;
 
   //! Sets the sizes and x-positions of the targets.
-  void finalize(const AtmField&           atm_field,
-                const SurfaceField&       surf_field,
-                const SubsurfaceField&    subsurf_field,
-                const AbsorptionBands&    abs_bands,
-                const ArrayOfSensorObsel& measurement_sensor);
+  void finalize(const AtmField&        atm_field,
+                const SurfaceField&    surf_field,
+                const SubsurfaceField& subsurf_field,
+                const AbsorptionBands& abs_bands,
+                const ArrayOfSensor&   measurement_sensor);
 
   AtmTarget&        emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
   AtmTarget&        emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
@@ -614,7 +614,7 @@ template <> struct xml_io_stream_functional<Jacobian::subsurf_mat> {
 };
 
 template <> struct xml_io_stream_functional<Jacobian::sensor_vec> {
-  using func_t    = Vector (*)(ConstVectorView, const ArrayOfSensorObsel&);
+  using func_t    = Vector (*)(ConstVectorView, const ArrayOfSensor&);
   using structs_t = std::variant<polyfit_sensor_offset_t, polyinv_sensor_offset_t>;
   static constexpr std::array<func_t*, 0> funcs{};
 };

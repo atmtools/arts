@@ -69,7 +69,7 @@ struct Retrieval {
   Matrix&                       gain = data.measurement_gain_mat;
   AtmField                      atm;
   AbsorptionBands               bands;
-  ArrayOfSensorObsel            sensor;
+  ArrayOfSensor                 sensor;
   SurfaceField                  surf;
   SubsurfaceField               subsurf;
   OptimalEstimationDiagnostics& diagnostics = data.diagnostics;
@@ -143,7 +143,7 @@ struct Retrieval {
   }
 
   void set_target_size(Size n) {
-    targets.atm       = {Jacobian::AtmTarget{.type = AtmKey::t, .target_pos = 0, .x_start = 0, .x_size = n}};
+    targets.atm             = {Jacobian::AtmTarget{.type = AtmKey::t, .target_pos = 0, .x_start = 0, .x_size = n}};
     targets.finalized       = true;
     targets.finalized_count = targets.target_count();
   }

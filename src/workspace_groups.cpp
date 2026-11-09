@@ -1153,8 +1153,7 @@ of this term multiplied by a negative distance.
   add_arrays_of(wsg_data,
                 {
                     "AtmPoint",
-                    "SensorObsel",
-                    "SensorMetaInfo",
+                    "Sensor",
                     "SpeciesTag",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",
@@ -1176,7 +1175,7 @@ of this term multiplied by a negative distance.
                     "Vector3",
                     "AscendingGrid",
                 },
-                {"optproperties.h", "sensor_meta_info.h"});
+                {"optproperties.h"});
 
   return wsg_data;
 }

@@ -2,7 +2,7 @@
 
 #include <atm.h>
 #include <lbl.h>
-#include <obsel.h>
+#include <sensor.h>
 #include <subsurf.h>
 #include <surf.h>
 
@@ -34,8 +34,8 @@ using subsurf_vec = std::function<Vector(cv, const SubsurfaceField&)>;
 using subsurf_mat = std::function<Matrix(cm, cv, const SubsurfaceField&)>;
 using line_vec    = std::function<Vector(cv, const AbsorptionBands&)>;
 using line_mat    = std::function<Matrix(cm, cv, const AbsorptionBands&)>;
-using sensor_vec  = std::function<Vector(cv, const ArrayOfSensorObsel&)>;
-using sensor_mat  = std::function<Matrix(cm, cv, const ArrayOfSensorObsel&)>;
+using sensor_vec  = std::function<Vector(cv, const ArrayOfSensor&)>;
+using sensor_mat  = std::function<Matrix(cm, cv, const ArrayOfSensor&)>;
 using error_vec   = std::function<Vector(cv, cv)>;
 using error_mat   = std::function<Matrix(cm, cv, cv)>;
 }  // namespace Jacobian
