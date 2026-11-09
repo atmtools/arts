@@ -125,6 +125,81 @@ def test_sensor_builder_xml_round_trip():
             assert np.array_equal(g.weight_matrix.dense, e.weight_matrix.dense), name
 
 
+def test_sensor_builder_cross_track():
+    sensor = pyarts.arts.sensor
+
+    # Vertical at nadir and turning with the scan, as behind a rotating reflector
+    turning = sensor.DiracChannel(89e9)
+    turning.polarization = sensor.Polarization([1.0, 1.0, 0.0, 0.0], scan_rotation=1.0)
+
+    # Horizontal at any pointing
+    fixed = sensor.DiracChannel(183e9)
+    fixed.polarization = "Ih"
+
+    builder = pyarts.arts.SensorBuilder([turning, fixed], sensor.PencilBeamAntenna())
+
+    pos = [
+        pyarts.arts.Vector3([817e3, 10.0, 20.0]),
+        pyarts.arts.Vector3([817e3, 11.0, 21.0]),
+    ]
+    heading = [30.0, -170.0]
+    scan = [-20.0, 0.0, 50.0]
+    time = pyarts.arts.ArrayOfTime([pyarts.arts.Time("2001-01-01 00:00:00"),
+                                    pyarts.arts.Time("2001-01-01 00:00:08")])
+    ell = pyarts.arts.planets.Earth.ellipsoid
+
+    obsels, meta = builder.cross_track(pos, heading, scan, ell, time=time)
+
+    # [180 - |s|, heading - 90] to the left and [180 - |s|, heading + 90] to the right, azimuth in [-180, 180]
+    expected_los = [
+        [[160.0, -60.0], [180.0, 120.0], [130.0, 120.0]],
+        [[160.0, 100.0], [180.0, -80.0], [130.0, -80.0]],
+    ]
+
+    assert len(obsels) == len(pos) * len(scan) * 2
+    assert len(meta) == len(pos) * len(scan)
+
+    for ipos in range(len(pos)):
+        for iscan, s in enumerate(scan):
+            igeom = ipos * len(scan) + iscan
+            name = f"position {ipos}, scan angle {s}"
+
+            assert meta[igeom].count == 2, name
+            assert_close(f"{name} meta channel grid", meta[igeom].data.grids[0], [0.0, 1.0])
+            assert_close(f"{name} meta time", meta[igeom].time.sec, time[ipos].sec)
+
+            # The linear polarization turns by scan_rotation times the signed scan angle
+            cos2s = np.cos(np.deg2rad(2.0 * s))
+            sin2s = np.sin(np.deg2rad(2.0 * s))
+            expected_freq = [89e9, 183e9]
+            expected_state = [[1.0, cos2s, sin2s, 0.0], [1.0, -1.0, 0.0, 0.0]]
+
+            for ichan in range(2):
+                obsel = obsels[igeom * 2 + ichan]
+                chan = f"{name}, channel {ichan}"
+                assert_close(f"{chan} freq", obsel.f_grid, [expected_freq[ichan]])
+                assert_close(f"{chan} pos", obsel.poslos[0][:3], pos[ipos])
+                assert_close(f"{chan} los", obsel.poslos[0][3:], expected_los[ipos][iscan])
+                assert_close(f"{chan} weights", obsel.weight_matrix.dense[0, 0], expected_state[ichan])
+
+    try:
+        builder(pos, [pyarts.arts.Vector2([160.0, 120.0])] * len(pos), ell)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError(
+            "A channel that turns with the scan must not be placed at a bare line of sight")
+
+    try:
+        builder.cross_track(pos, heading[:1], scan, ell)
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError(
+            "Cross-track builder must reject mismatching position/heading lengths")
+
+
 test_sensor_builder_from_sequences()
 test_sensor_builder_from_poslos_vector_and_length_guard()
 test_sensor_builder_xml_round_trip()
+test_sensor_builder_cross_track()
