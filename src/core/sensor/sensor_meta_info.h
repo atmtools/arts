@@ -1,12 +1,10 @@
 #pragma once
 
-#include <artstime.h>
 #include <configtypes.h>
 #include <format_tags.h>
 #include <matpack.h>
 #include <xml.h>
 
-#include <optional>
 #include <variant>
 
 namespace sensor {
@@ -31,9 +29,6 @@ struct MetaInfo {
   using variant_t = std::variant<SortedGriddedField1, CameraGriddedField>;
 
   variant_t data{SortedGriddedField1{}};
-
-  /// Observation time for this measurement block, when supplied by the sensor builder.
-  std::optional<Time> time{};
 
   /// Total number of scalar elements (product of all grid sizes).
   [[nodiscard]] Size count() const;

@@ -158,7 +158,6 @@ ellipsoid pairs each position with its line of sight.  It returns
 ordered by geometry, then by pixel of the antenna, then by channel, with one
 metadata block per geometry: its channels for an antenna with one pixel, and its
 rows by columns of pixels by channels for a camera.
-Times can be given, one per geometry, and are stored in the metadata.
 Positions and lines of sight are as in :class:`~pyarts3.arts.SensorPosLos`.
 
 :meth:`~pyarts3.arts.SensorBuilder.cross_track` places a cross-track scanner.

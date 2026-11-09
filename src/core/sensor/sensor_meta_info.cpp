@@ -50,11 +50,9 @@ void xml_io_stream<SensorMetaInfo>::write(std::ostream&         os,
     type_tag = tag_camera;
 
   XMLTag tag{type_name, "name", name, "type", type_tag};
-  tag.add_attribute("has_time", static_cast<Index>(x.time.has_value()));
   tag.write_to_stream(os);
 
   std::visit([&](const auto& gf) { xml_write_to_stream(os, gf, pbofs); }, x.data);
-  if (x.time) xml_write_to_stream(os, *x.time, pbofs, "time");
 
   tag.write_to_end_stream(os);
 }
@@ -66,8 +64,6 @@ void xml_io_stream<SensorMetaInfo>::read(std::istream& is, SensorMetaInfo& x, bi
 
   String type_tag;
   tag.get_attribute_value("type", type_tag);
-  Index has_time = 0;
-  if (tag.has_attribute("has_time")) tag.get_attribute_value("has_time", has_time);
 
   if (type_tag == tag_sorted_gf1) {
     SortedGriddedField1 gf;
@@ -79,14 +75,6 @@ void xml_io_stream<SensorMetaInfo>::read(std::istream& is, SensorMetaInfo& x, bi
     x.data = std::move(gf);
   } else {
     throw std::runtime_error(std::format("Unknown SensorMetaInfo type: \"{}\"", type_tag));
-  }
-
-  if (has_time) {
-    Time time;
-    xml_read_from_stream(is, time, pbifs);
-    x.time = std::move(time);
-  } else {
-    x.time.reset();
   }
 
   tag.read_from_stream(is);

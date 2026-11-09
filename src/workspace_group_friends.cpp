@@ -570,10 +570,6 @@ Grids are set at sensor construction time.  Data is zeroed and later filled
 from *measurement_vec* by *measurement_sensor_metaFromMeasurementVec*.
 The start index into *measurement_vec* is not stored; it is derived from
 the cumulative ``count()`` of preceding elements in the array.
-
-Each metadata block can also carry its observation *Time*. Sensor builders
-create one block per geometry, allowing otherwise identical measurements to
-remain separated by acquisition time.
 )",
   };
 

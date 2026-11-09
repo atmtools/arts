@@ -38,10 +38,6 @@ struct Builder {
   [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(std::span<const Vector3> pos,
                                                                                 std::span<const Vector2> los,
                                                                                 const Vector2&           ell) const;
-  [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> operator()(std::span<const Vector3> pos,
-                                                                                std::span<const Vector2> los,
-                                                                                std::span<const Time>    time,
-                                                                                const Vector2&           ell) const;
 
   /** Obsels for cross-track scans
    *
@@ -57,13 +53,11 @@ struct Builder {
    *  @param pos         Platform positions
    *  @param heading     Flight direction at each position
    *  @param scan_angles Signed scan angles, the same for all positions
-   *  @param time        Empty or one time per position
    *  @param ell         Reference ellipsoid
    */
   [[nodiscard]] std::pair<ArrayOfSensorObsel, ArrayOfSensorMetaInfo> cross_track(std::span<const Vector3> pos,
                                                                                  std::span<const Numeric> heading,
                                                                                  const Vector&            scan_angles,
-                                                                                 std::span<const Time>    time,
                                                                                  const Vector2&           ell) const;
 };
 }  // namespace sensor

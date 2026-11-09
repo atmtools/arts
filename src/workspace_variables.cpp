@@ -1124,10 +1124,6 @@ describes how its contiguous block of *measurement_sensor* /
 
 The start index of each block is not stored explicitly; it is the
 cumulative sum of ``count()`` from preceding elements.
-
-An entry can carry the observation time of its block. This is used to retain
-the acquisition-time grouping independently of the flattened measurement
-vector ordering.
 )",
       .type = "ArrayOfSensorMetaInfo",
   };

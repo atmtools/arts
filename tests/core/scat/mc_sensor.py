@@ -1,4 +1,4 @@
-"""Monte Carlo integration with sensor weighting and time-tagged metadata."""
+"""Monte Carlo integration with sensor weighting and metadata."""
 
 import numpy as np
 import pyarts3 as pyarts
@@ -30,9 +30,7 @@ freq = A.AscendingGrid([220e9, 230e9])
 pos = [20e3, 0.0, 0.0]
 ws.measurement_sensorInit()
 ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[180.0, 0.0])
-ws.measurement_sensor_meta[-1].time = A.Time("2001-01-01 00:00:00")
 ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[0.0, 0.0])
-ws.measurement_sensor_meta[-1].time = A.Time("2001-01-01 00:01:00")
 
 surface_temperature_step = 0.5
 ws.jac_targetsAddSurface(target="t", d=surface_temperature_step)
@@ -50,7 +48,6 @@ expected_jac = [
 assert np.allclose(np.asarray(ws.measurement_jac)[:, 0], expected_jac)
 assert len(ws.measurement_sensor_meta) == 2
 assert all(meta.count == 2 for meta in ws.measurement_sensor_meta)
-assert ws.measurement_sensor_meta[0].time != ws.measurement_sensor_meta[1].time
 
 ws.measurement_sensor_metaFromMeasurementVec()
 assert np.allclose(np.asarray(ws.measurement_sensor_meta[0].data.data), expected_surface)

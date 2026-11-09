@@ -21,17 +21,14 @@ void test_sensor_builder_returns_meta_per_geometry() try {
 
   const std::array<Vector3, 2> pos{{{600e3, 10.0, 20.0}, {601e3, 11.0, 21.0}}};
   const std::array<Vector2, 2> los{{{20.0, 30.0}, {40.0, 50.0}}};
-  const std::array<Time, 2>    time{{Time{"2001-01-01 00:00:00"}, Time{"2001-01-01 00:01:00"}}};
   const Vector2                ell{Body::Earth::a, Body::Earth::b};
 
-  const auto [obsels, meta] = builder(pos, los, time, ell);
+  const auto [obsels, meta] = builder(pos, los, ell);
 
   if (obsels.size() != 4) arts::user_error("Expected 4 obsels, got {}", obsels.size());
   if (meta.size() != 2) arts::user_error("Expected 2 meta entries, got {}", meta.size());
   if (meta[0].count() != 2 or meta[1].count() != 2)
     arts::user_error("Each meta block must describe one 2-channel geometry");
-  if (not meta[0].time or *meta[0].time != time[0]) arts::user_error("First metadata time mismatch");
-  if (not meta[1].time or *meta[1].time != time[1]) arts::user_error("Second metadata time mismatch");
 
   const auto& gf0 = std::get<SortedGriddedField1>(meta[0].data);
   const auto& gf1 = std::get<SortedGriddedField1>(meta[1].data);
@@ -64,14 +61,6 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() try {
   } catch (const std::runtime_error&) { threw = true; }
 
   if (not threw) arts::user_error("Builder must reject mismatching position and LOS counts");
-
-  const std::array<Vector2, 1> matching_los{{{20.0, 30.0}}};
-  const std::array<Time, 2>    mismatched_time{{Time{}, Time{}}};
-  threw = false;
-  try {
-    static_cast<void>(builder(pos, matching_los, mismatched_time, ell));
-  } catch (const std::runtime_error&) { threw = true; }
-  if (not threw) arts::user_error("Builder must reject mismatching geometry and time counts");
 } catch (const std::exception& e) {
   throw std::runtime_error(std::format("test_sensor_builder_rejects_mismatched_geometry_counts failed:\n{}", e.what()));
 }
@@ -160,7 +149,7 @@ void test_sensor_builder_cross_track() try {
   const Vector                 scan{-20.0, 0.0, 20.0};
   const Vector2                ell{Body::Earth::a, Body::Earth::b};
 
-  const auto [obsels, meta] = builder.cross_track(pos, heading, scan, {}, ell);
+  const auto [obsels, meta] = builder.cross_track(pos, heading, scan, ell);
   if (obsels.size() != 3 or meta.size() != 3) arts::user_error("Expected 3 obsels and meta blocks");
 
   const std::array<Vector2, 3> expected_los{{{160.0, -60.0}, {180.0, 120.0}, {160.0, 120.0}}};
@@ -231,7 +220,7 @@ void test_sensor_builder_with_camera() try {
   bool threw = false;
   try {
     const std::array<Numeric, 1> heading{{0.0}};
-    static_cast<void>(builder.cross_track(std::span{pos}.first(1), heading, Vector{0.0}, {}, ell));
+    static_cast<void>(builder.cross_track(std::span{pos}.first(1), heading, Vector{0.0}, ell));
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) arts::user_error("A cross-track scan of a camera must be refused");
 } catch (const std::exception& e) {

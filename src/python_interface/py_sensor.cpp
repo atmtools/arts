@@ -384,10 +384,6 @@ See :meth:`SensorObsel.normalize` for details.
          "data",
          &SensorMetaInfo::data,
          "The variant gridded field data\n\n.. :class:`~pyarts3.arts.GriddedField1` or :class:`~pyarts3.arts.CameraGriddedField`")
-      .def_rw(
-          "time",
-          &SensorMetaInfo::time,
-          "Observation time for this measurement block, or None when unspecified.\n\n.. :class:`~pyarts3.arts.Time` or :class:`None`")
       .def_prop_ro("count",
                    &SensorMetaInfo::count,
                    "Total number of scalar elements (product of all grid sizes)\n\n.. :class:`int`");
@@ -776,22 +772,6 @@ geometry, then pixel of the antenna, then channel, with one metadata block per
 geometry, and the returned value is ``(measurement_sensor, measurement_sensor_meta)``.)")
       .def(
           "__call__",
-          [](const sensor::Builder&      self,
-             const std::vector<Vector3>& pos,
-             const std::vector<Vector2>& los,
-             const ArrayOfTime&          time,
-             const Vector2&              ell) { return self(pos, los, time, ell); },
-          "pos"_a,
-          "los"_a,
-          "time"_a,
-          "ell"_a,
-          R"(Build sensor obsels and metadata from time-tagged geometries.
-
-Each geometry produces one contiguous metadata block.  ``time[i]`` is stored
-with that block so measurements at otherwise identical geometries remain
-distinguishable by acquisition time.)")
-      .def(
-          "__call__",
           [](const sensor::Builder& self, const Vector3 pos, const Vector2 los, const Vector2 ell) {
             return self(std::span{&pos, 1}, std::span{&los, 1}, ell);
           },
@@ -821,20 +801,18 @@ distinguishable by acquisition time.)")
          const std::vector<Vector3>& pos,
          const std::vector<Numeric>& heading,
          const Vector&               scan_angles,
-         const Vector2&              ell,
-         const ArrayOfTime&          time) { return self.cross_track(pos, heading, scan_angles, time, ell); },
+         const Vector2&              ell) { return self.cross_track(pos, heading, scan_angles, ell); },
       "pos"_a,
       "heading"_a,
       "scan_angles"_a,
       "ell"_a,
-      "time"_a = ArrayOfTime{},
       R"(Build sensor obsels and metadata for cross-track scans.
 
 Every ``pos[i]`` scans all ``scan_angles`` [deg] across its flight direction ``heading[i]`` [deg,
 clockwise from north].  A scan angle is the nadir angle of the boresight, positive to the right of
 the flight direction, so its bore line of sight is ``[180 - |s|, heading + 90]`` for ``s >= 0`` and
 ``[180 - |s|, heading - 90]`` for ``s < 0``.  Each channel's polarization is taken at ``s``, see
-:meth:`~pyarts3.arts.sensor.Polarization.at`.  ``time`` is empty or has one time per position.
+:meth:`~pyarts3.arts.sensor.Polarization.at`.
 
 The obsels are ordered by position, then scan angle, then channel, with one metadata block
 per position and scan angle.  The antenna must have one pixel.)");

@@ -144,11 +144,9 @@ def test_sensor_builder_cross_track():
     ]
     heading = [30.0, -170.0]
     scan = [-20.0, 0.0, 50.0]
-    time = pyarts.arts.ArrayOfTime([pyarts.arts.Time("2001-01-01 00:00:00"),
-                                    pyarts.arts.Time("2001-01-01 00:00:08")])
     ell = pyarts.arts.planets.Earth.ellipsoid
 
-    obsels, meta = builder.cross_track(pos, heading, scan, ell, time=time)
+    obsels, meta = builder.cross_track(pos, heading, scan, ell)
 
     # [180 - |s|, heading - 90] to the left and [180 - |s|, heading + 90] to the right, azimuth in [-180, 180]
     expected_los = [
@@ -166,7 +164,6 @@ def test_sensor_builder_cross_track():
 
             assert meta[igeom].count == 2, name
             assert_close(f"{name} meta channel grid", meta[igeom].data.grids[0], [0.0, 1.0])
-            assert_close(f"{name} meta time", meta[igeom].time.sec, time[ipos].sec)
 
             # The linear polarization turns by scan_rotation times the signed scan angle
             cos2s = np.cos(np.deg2rad(2.0 * s))
