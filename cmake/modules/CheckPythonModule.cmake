@@ -6,7 +6,6 @@ macro (CHECK_PYTHON_MODULES)
   set(REQUIRED_MODULES
     build
     docutils
-    lark.parse_tree_builder
     matplotlib
     netCDF4
     numpy
@@ -18,7 +17,6 @@ macro (CHECK_PYTHON_MODULES)
   set(PYPI_NAMES
     python-build
     docutils
-    lark-parser
     matplotlib
     netCDF4
     numpy

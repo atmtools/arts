@@ -6,7 +6,6 @@ dependencies:
         - fast_float
         - fftw
         - ipykernel
-        - lark-parser
         - libboost-devel
         - libcxx
         - llvm-openmp < 21
