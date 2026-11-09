@@ -227,14 +227,14 @@ void oemFinalizeDiagonal(OptimalEstimationData& oem,
                          const SurfaceField&    surf_field,
                          const SubsurfaceField& subsurf_field,
                          const AbsorptionBands& abs_bands,
-                         const ArrayOfSensor&   measurement_sensor) {
+                         const ArrayOfSensor&   measurement_sensors) {
   ARTS_TIME_REPORT
   oem.uncheck();
   CovarianceMatrix model_state_covmat;
   if (oem.covmat_diagonal_blocks.empty())
     arts::user_error("No pending covariance blocks; add targets before finalizing.");
 
-  jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
+  jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensors);
 
   for (auto& key_data : oem.covmat_diagonal_blocks) {
     std::visit(

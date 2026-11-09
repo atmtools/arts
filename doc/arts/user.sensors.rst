@@ -8,7 +8,7 @@ Stokes vectors from one or several spectral raditive transfer simulations
 and turn them into scalar measurements.
 
 The main variable that describes 
-the sensor setup is :attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
+the sensor setup is :attr:`~pyarts3.workspace.Workspace.measurement_sensors`.
 It is a list of sensors (:class:`~pyarts3.arts.Sensor`).
 Every sensor has one frequency grid, one list of observation geometries, and
 a list of observation elements.  The elements of all the sensors, in order,
@@ -71,7 +71,7 @@ structured, for instance by frequency for a spectrometer or by row and column
 for a camera.  The name of the meta is the name of the sensor, which labels it
 in messages.  The methods that add a sensor take a name; without one, the
 sensor is named after its position in
-:attr:`~pyarts3.workspace.Workspace.measurement_sensor`.
+:attr:`~pyarts3.workspace.Workspace.measurement_sensors`.
 :meth:`~pyarts3.arts.ArrayOfSensor.split` gives the part of a measurement
 vector of each sensor, and :meth:`~pyarts3.arts.Sensor.reshape` gives such a
 part the structure of the meta.

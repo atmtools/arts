@@ -9,7 +9,7 @@ arts = pyarts.arts
 ws = pyarts.Workspace()
 ws.abs_bands = arts.AbsorptionBands()
 ws.subsurf_field = arts.SubsurfaceField()
-ws.measurement_sensor = arts.ArrayOfSensor()
+ws.measurement_sensors = arts.ArrayOfSensor()
 ws.surf_field.ellipsoid = [1., 1.]
 ws.atm_field[arts.AtmKey.t] = arts.GriddedField3(
     name="Temperature", data=np.array([1., 2.]).reshape(2, 1, 1),
@@ -34,7 +34,7 @@ else:
     raise AssertionError("Incomplete setup was finalized without validation")
 assert not ws.oem.checked
 # Pending covariance blocks and assembled covariances are owned by oem.
-ws.measurement_sensorSimple(freq_grid=[1.0, 2.0, 3.0], pos=[0, 0, 0], los=[0, 0])
+ws.measurement_sensorsSimple(freq_grid=[1.0, 2.0, 3.0], pos=[0, 0, 0], los=[0, 0])
 J = np.array([[1., 0.], [0., 1.], [1., 1.]])
 prior = np.array([1., 2.])
 y = J @ [3., 4.]

@@ -14,7 +14,7 @@ def check_kernel(option):
     ws.surf_field["t"] = 280.0
     ws.atm_fieldInit(toa=0.0)
     ws.abs_bands = arts.AbsorptionBands()
-    ws.measurement_sensorSimple(pos=[0, 0, 0], los=[180, 0])
+    ws.measurement_sensorsSimple(pos=[0, 0, 0], los=[180, 0])
     ws.spectral_rad_transform_operatorSet(option="1")
     ws.jac_targetsInit()
     ws.jac_targetsAddSurface(target="t")

@@ -47,7 +47,7 @@ def ops(ws, op):
 
 ws = pyarts.Workspace()
 
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 
 ws.jac_targetsInit()
 

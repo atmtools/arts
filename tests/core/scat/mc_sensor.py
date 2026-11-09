@@ -27,9 +27,9 @@ def spectral_rad_observer_agenda(ws):
 
 freq = A.AscendingGrid([220e9, 230e9])
 pos = [20e3, 0.0, 0.0]
-ws.measurement_sensorInit()
-ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[180.0, 0.0])
-ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[0.0, 0.0])
+ws.measurement_sensorsInit()
+ws.measurement_sensorsAddSimple(freq_grid=freq, pos=pos, los=[180.0, 0.0])
+ws.measurement_sensorsAddSimple(freq_grid=freq, pos=pos, los=[0.0, 0.0])
 
 surface_temperature_step = 0.5
 ws.jac_targetsAddSurface(target="t", d=surface_temperature_step)
@@ -45,12 +45,12 @@ expected_jac = [
     for f in freq
 ] + [0.0, 0.0]
 assert np.allclose(np.asarray(ws.measurement_jac)[:, 0], expected_jac)
-assert len(ws.measurement_sensor) == 2
-assert all(len(sensor.elements) == 2 for sensor in ws.measurement_sensor)
+assert len(ws.measurement_sensors) == 2
+assert all(len(sensor.elements) == 2 for sensor in ws.measurement_sensors)
 
-surface, space = ws.measurement_sensor.split(ws.measurement_vec)
-assert np.allclose(np.asarray(ws.measurement_sensor[0].reshape(surface).data), expected_surface)
-assert np.allclose(np.asarray(ws.measurement_sensor[1].reshape(space).data), expected_space)
+surface, space = ws.measurement_sensors.split(ws.measurement_vec)
+assert np.allclose(np.asarray(ws.measurement_sensors[0].reshape(surface).data), expected_surface)
+assert np.allclose(np.asarray(ws.measurement_sensors[1].reshape(space).data), expected_space)
 
 # A scattering-property target is perturbed through AtmField in model-state
 # space.  Common random numbers make repeating the stochastic Jacobian exactly

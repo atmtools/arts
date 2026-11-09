@@ -51,10 +51,10 @@ ws.atm_field[ssa] = field(np.full(altitude.size, 0.82))
 ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.15)]
 
 ws.freq_grid = [35e9]
-ws.measurement_sensorInit()
+ws.measurement_sensorsInit()
 ws.radar_range_limits = np.empty((0, 2))
 range_edges = np.arange(0.5e3, 11.501e3, 1e3)
-ws.measurement_sensorAddSimpleRadar(
+ws.measurement_sensorsAddSimpleRadar(
     pos=[12e3, 0.0, 0.0],
     los=[180.0, 0.0],
     pol=[0.5, 0.5, 0.0, 0.0],

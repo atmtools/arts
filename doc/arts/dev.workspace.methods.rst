@@ -356,7 +356,7 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
   )--",
         .author         = {"Richard Larsson"},
         .out            = {"measurement_vec", "measurement_jac"},
-        .in             = {"measurement_sensor",
+        .in             = {"measurement_sensors",
                            "jac_targets",
                            "atm_field",
                            "surf_field",
@@ -372,7 +372,7 @@ The signature of the method is:
   void measurement_vecFromSensor(const Workspace& ws,
                                  Vector& measurement_vec,
                                  Matrix& measurement_jac,
-                                 const ArrayOfSensor& measurement_sensor,
+                                 const ArrayOfSensor& measurement_sensors,
                                  const JacobianTargets& jac_targets,
                                  const AtmField& atm_field,
                                  const SurfaceField& surf_field,
@@ -393,7 +393,7 @@ Since :attr:`~pyarts3.workspace.Workspace.measurement_vec` and
 :attr:`~pyarts3.workspace.Workspace.measurement_jac` are in ``out`` but not in ``in``,
 it is expected that the method overwrite any existing values they might hold.
 
-The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensor`,
+The arguments :attr:`~pyarts3.workspace.Workspace.measurement_sensors`,
 :attr:`~pyarts3.workspace.Workspace.jac_targets`,
 :attr:`~pyarts3.workspace.Workspace.atm_field`,
 :attr:`~pyarts3.workspace.Workspace.surf_field`,

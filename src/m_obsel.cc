@@ -17,8 +17,8 @@ namespace {
  *  in the list if the given name is empty.  Errors while making the sensor
  *  name it.
  */
-template <typename Make> void append_sensor(ArrayOfSensor& measurement_sensor, const String& name, Make&& make) {
-  const String sensor_name = name.empty() ? std::format("sensor-{}", measurement_sensor.size() + 1) : name;
+template <typename Make> void append_sensor(ArrayOfSensor& measurement_sensors, const String& name, Make&& make) {
+  const String sensor_name = name.empty() ? std::format("sensor-{}", measurement_sensors.size() + 1) : name;
 
   Sensor sensor;
   try {
@@ -28,7 +28,7 @@ template <typename Make> void append_sensor(ArrayOfSensor& measurement_sensor, c
   }
 
   sensor.check();
-  measurement_sensor.push_back(std::move(sensor));
+  measurement_sensors.push_back(std::move(sensor));
 }
 
 //! The structure of the elements of a spectrometer, one per frequency, named as the sensor
@@ -43,21 +43,21 @@ SortedGriddedField1 frequency_meta(const String& name, const AscendingGrid& freq
 }
 }  // namespace
 
-void measurement_sensorInit(ArrayOfSensor& measurement_sensor) {
+void measurement_sensorsInit(ArrayOfSensor& measurement_sensors) {
   ARTS_TIME_REPORT
 
-  measurement_sensor = {};
+  measurement_sensors = {};
 }
 
-void measurement_sensorAddSimple(ArrayOfSensor&       measurement_sensor,
-                                 const AscendingGrid& freq_grid,
-                                 const Vector3&       pos,
-                                 const Vector2&       los,
-                                 const Stokvec&       pol,
-                                 const String&        name) try {
+void measurement_sensorsAddSimple(ArrayOfSensor&       measurement_sensors,
+                                  const AscendingGrid& freq_grid,
+                                  const Vector3&       pos,
+                                  const Vector2&       los,
+                                  const Stokvec&       pol,
+                                  const String&        name) try {
   ARTS_TIME_REPORT
 
-  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+  append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
     const Size n = freq_grid.size();
 
     Sensor sensor{.freq_grid = freq_grid,
@@ -118,32 +118,32 @@ Sensor gaussian_sensor(const String&        name,
 }
 }  // namespace
 
-void measurement_sensorAddVectorGaussian(ArrayOfSensor&       measurement_sensor,
-                                         const AscendingGrid& freq_grid,
-                                         const Vector&        stds,
-                                         const Vector3&       pos,
-                                         const Vector2&       los,
-                                         const Stokvec&       pol,
-                                         const String&        name) try {
+void measurement_sensorsAddVectorGaussian(ArrayOfSensor&       measurement_sensors,
+                                          const AscendingGrid& freq_grid,
+                                          const Vector&        stds,
+                                          const Vector3&       pos,
+                                          const Vector2&       los,
+                                          const Stokvec&       pol,
+                                          const String&        name) try {
   ARTS_TIME_REPORT
 
-  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+  append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
     return gaussian_sensor(sensor_name, freq_grid, stds, pos, los, pol);
   });
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_sensorAddSimpleGaussian(ArrayOfSensor&       measurement_sensor,
-                                         const AscendingGrid& freq_grid,
-                                         const Numeric&       std,
-                                         const Vector3&       pos,
-                                         const Vector2&       los,
-                                         const Stokvec&       pol,
-                                         const String&        name) {
+void measurement_sensorsAddSimpleGaussian(ArrayOfSensor&       measurement_sensors,
+                                          const AscendingGrid& freq_grid,
+                                          const Numeric&       std,
+                                          const Vector3&       pos,
+                                          const Vector2&       los,
+                                          const Stokvec&       pol,
+                                          const String&        name) {
   ARTS_TIME_REPORT
 
   const Vector stds(freq_grid.size(), std);
-  measurement_sensorAddVectorGaussian(measurement_sensor, freq_grid, stds, pos, los, pol, name);
+  measurement_sensorsAddVectorGaussian(measurement_sensors, freq_grid, stds, pos, los, pol, name);
 }
 
 namespace {
@@ -187,20 +187,20 @@ Sensor zenith_response_sensor(const String&        name,
 }
 }  // namespace
 
-void measurement_sensorAddGaussianZenith(ArrayOfSensor&       measurement_sensor,
-                                         const AscendingGrid& freq_grid,
-                                         const Vector3&       pos,
-                                         const Vector2&       los,
-                                         const Stokvec&       pol,
-                                         const AscendingGrid& dzen_grid,
-                                         const Numeric&       std_zen,
-                                         const String&        name) try {
+void measurement_sensorsAddGaussianZenith(ArrayOfSensor&       measurement_sensors,
+                                          const AscendingGrid& freq_grid,
+                                          const Vector3&       pos,
+                                          const Vector2&       los,
+                                          const Stokvec&       pol,
+                                          const AscendingGrid& dzen_grid,
+                                          const Numeric&       std_zen,
+                                          const String&        name) try {
   ARTS_TIME_REPORT
 
   using gauss = boost::math::normal_distribution<Numeric>;
   using boost::math::pdf;
 
-  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+  append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
     if (std_zen <= 0) arts::user_error("Standard deviation must be positive.");
     if (dzen_grid.size() == 0) arts::user_error("dzen_grid cannot be empty.");
 
@@ -388,27 +388,27 @@ Your sorting is not correct, and instead reads:
 }
 }  // namespace
 
-void measurement_sensorAddRawSensor(ArrayOfSensor&                                  measurement_sensor,
-                                    const AscendingGrid&                            freq_grid,
-                                    const Vector3&                                  pos,
-                                    const Vector2&                                  los,
-                                    const Generic<const SortedGriddedField1,
-                                                  const SortedGriddedField2,
-                                                  const SortedGriddedField3,
-                                                  const SortedGriddedField4,
-                                                  const SortedGriddedField5,
-                                                  const SortedGriddedField6,
-                                                  const StokvecSortedGriddedField1,
-                                                  const StokvecSortedGriddedField2,
-                                                  const StokvecSortedGriddedField3,
-                                                  const StokvecSortedGriddedField4,
-                                                  const StokvecSortedGriddedField5,
-                                                  const StokvecSortedGriddedField6> raw_sensor,
-                                    const Index&                                    normalize,
-                                    const String&                                   name) try {
+void measurement_sensorsAddRawSensor(ArrayOfSensor&                                  measurement_sensors,
+                                     const AscendingGrid&                            freq_grid,
+                                     const Vector3&                                  pos,
+                                     const Vector2&                                  los,
+                                     const Generic<const SortedGriddedField1,
+                                                   const SortedGriddedField2,
+                                                   const SortedGriddedField3,
+                                                   const SortedGriddedField4,
+                                                   const SortedGriddedField5,
+                                                   const SortedGriddedField6,
+                                                   const StokvecSortedGriddedField1,
+                                                   const StokvecSortedGriddedField2,
+                                                   const StokvecSortedGriddedField3,
+                                                   const StokvecSortedGriddedField4,
+                                                   const StokvecSortedGriddedField5,
+                                                   const StokvecSortedGriddedField6> raw_sensor,
+                                     const Index&                                    normalize,
+                                     const String&                                   name) try {
   ARTS_TIME_REPORT
 
-  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+  append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
     return std::visit(
         [&](const auto& selected) {
           return raw_sensor_sensor(sensor_name, freq_grid, pos, los, *selected, static_cast<bool>(normalize));
@@ -582,22 +582,22 @@ Sensor camera_sensor(const String&        name,
 }
 }  // namespace
 
-void measurement_sensorAddCamera(ArrayOfSensor&       measurement_sensor,
-                                 const AscendingGrid& freq_grid,
-                                 const Vector3&       pos,
-                                 const Vector2&       los,
-                                 const Stokvec&       pol,
-                                 const Index&         n_h,
-                                 const Index&         n_w,
-                                 const Numeric&       ccd_h,
-                                 const Numeric&       ccd_w,
-                                 const Numeric&       focal_length,
-                                 const Numeric&       aperture_diameter,
-                                 const Numeric&       focus_distance,
-                                 const String&        name) try {
+void measurement_sensorsAddCamera(ArrayOfSensor&       measurement_sensors,
+                                  const AscendingGrid& freq_grid,
+                                  const Vector3&       pos,
+                                  const Vector2&       los,
+                                  const Stokvec&       pol,
+                                  const Index&         n_h,
+                                  const Index&         n_w,
+                                  const Numeric&       ccd_h,
+                                  const Numeric&       ccd_w,
+                                  const Numeric&       focal_length,
+                                  const Numeric&       aperture_diameter,
+                                  const Numeric&       focus_distance,
+                                  const String&        name) try {
   ARTS_TIME_REPORT
 
-  append_sensor(measurement_sensor, name, [&](const String& sensor_name) {
+  append_sensor(measurement_sensors, name, [&](const String& sensor_name) {
     return camera_sensor(
         sensor_name, freq_grid, pos, los, pol, n_h, n_w, ccd_h, ccd_w, focal_length, aperture_diameter, focus_distance);
   });

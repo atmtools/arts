@@ -512,7 +512,7 @@ void Targets::finalize(const AtmField&        atm_field,
                        const SurfaceField&    surf_field,
                        const SubsurfaceField& subsurf_field,
                        const AbsorptionBands& abs_bands,
-                       const ArrayOfSensor&   measurement_sensor) {
+                       const ArrayOfSensor&   measurement_sensors) {
   for_each_list([](const auto& targets) {
     for (auto& t : targets) {
       if (overlaps(targets, t) and has_transformation(t))
@@ -543,7 +543,7 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   }
 
   for (auto& t : sensor) {
-    if (t.type.sensor_elem < 0 or static_cast<Size>(t.type.sensor_elem) >= measurement_sensor.size())
+    if (t.type.sensor_elem < 0 or static_cast<Size>(t.type.sensor_elem) >= measurement_sensors.size())
       arts::user_error("Bad sensor {}, out-of-bounds", t);
   }
 
@@ -585,13 +585,13 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   position(sensor, [](const SensorTarget& t) { return t.x_size; });
   position(error, [](const ErrorTarget& t) { return t.x_size; });
 
-  const Size ny = measurement_size(measurement_sensor);
+  const Size ny = measurement_size(measurement_sensors);
   for (auto& t : error) {
     if (t.type.y_start + t.type.y_size > ny)
       arts::user_error(R"(An error target is out of bounds of the y-vector.
 
 The error target is defined to operator on the measurement_vec in the range {},
-but the measurement_vec will only have {} element by the measurement_sensor.
+but the measurement_vec will only have {} element by the measurement_sensors.
 )",
                        t.type,
                        ny);

@@ -17,7 +17,7 @@ ws = pyarts.workspace.Workspace()
 ws.abs_bands = pyarts.arts.AbsorptionBands()
 ws.abs_speciesSet(species=["H2O", "O3", "CO2"])
 ws.water_equivalent_pressure_operatorMK05()
-ws.measurement_sensorSimpleGaussian(
+ws.measurement_sensorsSimpleGaussian(
     freq_grid=f, std=1, pos=[100e3, 0, 0], los=[180.0, 0.0], pol="I"
 )
 
@@ -85,7 +85,7 @@ def outputs(targets):
     ws.atm_fieldFromModelState(model_state_targets=targets)
     ws.surf_fieldFromModelState(model_state_targets=targets)
     ws.subsurf_fieldFromModelState(model_state_targets=targets)
-    ws.measurement_sensorFromModelState(model_state_targets=targets)
+    ws.measurement_sensorsFromModelState(model_state_targets=targets)
     x_back = model_state()
 
     x_err = x * 1.01
@@ -96,7 +96,7 @@ def outputs(targets):
     err = np.array(ws.measurement_vec_error)
     err_jac = np.array(ws.measurement_jac_error)
 
-    ws.measurement_sensorSimpleGaussian(
+    ws.measurement_sensorsSimpleGaussian(
         freq_grid=f, std=1, pos=[100e3, 0, 0], los=[180.0, 0.0], pol="I"
     )
 

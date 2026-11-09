@@ -150,7 +150,7 @@ void simulate(const Workspace                         &ws,
 void low_memory(const Workspace                         &ws,
                 Vector                                  &measurement_vec,
                 Matrix                                  &measurement_jac,
-                const ArrayOfSensor                     &measurement_sensor,
+                const ArrayOfSensor                     &measurement_sensors,
                 const JacobianTargets                   &jac_targets,
                 const AtmField                          &atm_field,
                 const SurfaceField                      &surf_field,
@@ -160,15 +160,15 @@ void low_memory(const Workspace                         &ws,
   ARTS_TIME_REPORT
 
   Size N = 0;
-  for (const auto &sensor : measurement_sensor) N += sensor.geometry.size();
+  for (const auto &sensor : measurement_sensors) N += sensor.geometry.size();
 
   std::string error{};
 
 #pragma omp parallel if (arts_omp_parallel(-1, N > 1))
   {
     Size start = 0;
-    for (Size isensor = 0; isensor < measurement_sensor.size(); isensor++) {
-      const auto &sensor = measurement_sensor[isensor];
+    for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+      const auto &sensor = measurement_sensors[isensor];
 
       //! Dynamic scheduling as some simulations may take much longer time than others
 #pragma omp for schedule(dynamic) nowait
@@ -216,7 +216,7 @@ void low_memory(const Workspace                         &ws,
 void high_performance(const Workspace                         &ws,
                       Vector                                  &measurement_vec,
                       Matrix                                  &measurement_jac,
-                      const ArrayOfSensor                     &measurement_sensor,
+                      const ArrayOfSensor                     &measurement_sensors,
                       const JacobianTargets                   &jac_targets,
                       const AtmField                          &atm_field,
                       const SurfaceField                      &surf_field,
@@ -229,18 +229,18 @@ void high_performance(const Workspace                         &ws,
   const Size J = jac_targets.x_size();
 
   //! The radiance of every geometry of every sensor
-  std::vector<std::vector<std::pair<StokvecVector, StokvecMatrix>>> cache(measurement_sensor.size());
+  std::vector<std::vector<std::pair<StokvecVector, StokvecMatrix>>> cache(measurement_sensors.size());
   Size                                                              N = 0;
-  for (Size isensor = 0; isensor < measurement_sensor.size(); isensor++) {
-    cache[isensor].resize(measurement_sensor[isensor].geometry.size());
-    N += measurement_sensor[isensor].geometry.size();
+  for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+    cache[isensor].resize(measurement_sensors[isensor].geometry.size());
+    N += measurement_sensors[isensor].geometry.size();
   }
 
   std::string error{};
 
 #pragma omp parallel if (arts_omp_parallel(-1, N > 1))
-  for (Size isensor = 0; isensor < measurement_sensor.size(); isensor++) {
-    const auto &sensor = measurement_sensor[isensor];
+  for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+    const auto &sensor = measurement_sensors[isensor];
 
     //! Dynamic scheduling as some simulations may take much longer time than others
 #pragma omp for schedule(dynamic) nowait
@@ -276,8 +276,8 @@ void high_performance(const Workspace                         &ws,
 #pragma omp parallel if (arts_omp_parallel(-1, M > 1))
   {
     Size start = 0;
-    for (Size isensor = 0; isensor < measurement_sensor.size(); isensor++) {
-      const auto &sensor = measurement_sensor[isensor];
+    for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+      const auto &sensor = measurement_sensors[isensor];
       const auto &data   = cache[isensor];
 
 #pragma omp for schedule(dynamic) nowait
@@ -307,7 +307,7 @@ void high_performance(const Workspace                         &ws,
 void measurement_vecFromSensor(const Workspace                         &ws,
                                Vector                                  &measurement_vec,
                                Matrix                                  &measurement_jac,
-                               const ArrayOfSensor                     &measurement_sensor,
+                               const ArrayOfSensor                     &measurement_sensors,
                                const JacobianTargets                   &jac_targets,
                                const AtmField                          &atm_field,
                                const SurfaceField                      &surf_field,
@@ -317,7 +317,7 @@ void measurement_vecFromSensor(const Workspace                         &ws,
                                const String                            &kernel) try {
   ARTS_TIME_REPORT
 
-  const Size ny = measurement_size(measurement_sensor);
+  const Size ny = measurement_size(measurement_sensors);
 
   measurement_vec.resize(ny);
   measurement_vec = 0.0;
@@ -327,7 +327,7 @@ void measurement_vecFromSensor(const Workspace                         &ws,
 
   if (ny == 0) return;
 
-  for (auto &sensor : measurement_sensor) sensor.check();
+  for (auto &sensor : measurement_sensors) sensor.check();
 
   switch (to<MeasurementVectorSumupKernel>(kernel)) {
     using enum MeasurementVectorSumupKernel;
@@ -335,7 +335,7 @@ void measurement_vecFromSensor(const Workspace                         &ws,
       low_memory(ws,
                  measurement_vec,
                  measurement_jac,
-                 measurement_sensor,
+                 measurement_sensors,
                  jac_targets,
                  atm_field,
                  surf_field,
@@ -347,7 +347,7 @@ void measurement_vecFromSensor(const Workspace                         &ws,
       high_performance(ws,
                        measurement_vec,
                        measurement_jac,
-                       measurement_sensor,
+                       measurement_sensors,
                        jac_targets,
                        atm_field,
                        surf_field,
@@ -362,7 +362,7 @@ ARTS_METHOD_ERROR_CATCH
 void measurement_jacAddSensorJacobianPerturbations(const Workspace                         &ws,
                                                    Matrix                                  &measurement_jac,
                                                    const Vector                            &measurement_vec,
-                                                   const ArrayOfSensor                     &measurement_sensor,
+                                                   const ArrayOfSensor                     &measurement_sensors,
                                                    const JacobianTargets                   &jac_targets,
                                                    const AtmField                          &atm_field,
                                                    const SurfaceField                      &surf_field,
@@ -372,20 +372,20 @@ void measurement_jacAddSensorJacobianPerturbations(const Workspace              
                                                    const String                            &kernel) try {
   ARTS_TIME_REPORT
 
-  const Size ny = measurement_size(measurement_sensor);
+  const Size ny = measurement_size(measurement_sensors);
   if (static_cast<Size>(measurement_vec.size()) != ny)
-    arts::user_error("measurement_vec has {} elements but measurement_sensor has {}", measurement_vec.size(), ny);
+    arts::user_error("measurement_vec has {} elements but measurement_sensors has {}", measurement_vec.size(), ny);
   if (measurement_jac.shape() != std::array{static_cast<Index>(ny), static_cast<Index>(jac_targets.x_size())})
     arts::user_error("measurement_jac must have shape [{}, {}], got {:B,}", ny, jac_targets.x_size(), measurement_jac.shape());
 
   const JacobianTargets no_targets{};
 
   for (const auto &target : jac_targets.sensor) {
-    if (target.type.sensor_elem < 0 or static_cast<Size>(target.type.sensor_elem) >= measurement_sensor.size())
+    if (target.type.sensor_elem < 0 or static_cast<Size>(target.type.sensor_elem) >= measurement_sensors.size())
       arts::user_error("Bad sensor {}, out-of-bounds", target);
 
     const Size    isensor = static_cast<Size>(target.type.sensor_elem);
-    const Sensor &sensor  = measurement_sensor[isensor];
+    const Sensor &sensor  = measurement_sensors[isensor];
 
     //! The derivative of the sensor grid with regards to the coefficients of the polynomial offset
     const auto *poly = target.inverse_state.target<polyinv_sensor_offset_t>();
@@ -402,7 +402,7 @@ void measurement_jacAddSensorJacobianPerturbations(const Workspace              
           grid.size(),
           target.x_size);
 
-    const Size    start = measurement_start(measurement_sensor, isensor);
+    const Size    start = measurement_start(measurement_sensors, isensor);
     const Numeric d     = target.d;
 
     for (Size k = 0; k < target.x_size; k++) {

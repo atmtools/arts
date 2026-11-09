@@ -7,7 +7,7 @@ A :class:`~pyarts3.arts.SensorBuilder` describes an instrument: its channels and
 its antenna pattern.  Placing it at sensor positions and bore lines of sight
 gives a :class:`~pyarts3.arts.Sensor`, as described in
 :ref:`Sec Sensor description`, to put in
-:attr:`~pyarts3.workspace.Workspace.measurement_sensor`.  The instrument is kept
+:attr:`~pyarts3.workspace.Workspace.measurement_sensors`.  The instrument is kept
 apart from where it looks, so the same builder serves any geometry, and it can
 be saved to and loaded from an ARTS XML file.
 

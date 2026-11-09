@@ -40,7 +40,7 @@ ws.rte_option = "lintau"
 
 pos = [0e3, 0, 0]
 los = [20.0, 0.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 RAT = 0.8
 fieldg = copy(ws.atm_field["H2O"])

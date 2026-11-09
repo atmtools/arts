@@ -29,7 +29,7 @@ def setup(sparse=False, third=False, *, covariance_only=True):
     ws.atm_field["H2O"] = field([0.012, 0.003, 0.0002])
     ws.atm_field["O2"] = field([0.2095, 0.2095, 0.2095])
     ws.abs_bands = arts.AbsorptionBands()
-    ws.measurement_sensor = arts.ArrayOfSensor()
+    ws.measurement_sensors = arts.ArrayOfSensor()
 
     ws.oemInit()
 
@@ -160,7 +160,7 @@ ws.ReadCatalogData()
 ws.spectral_propmat_agendaAuto()
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
-ws.measurement_sensorSimple(pos=[0.0, 0.0, 0.0], los=[0.0, 0.0])
+ws.measurement_sensorsSimple(pos=[0.0, 0.0, 0.0], los=[0.0, 0.0])
 ws.measurement_vecFromSensor()
 ws.model_state_vecFromData()
 ws.oemSetApriori()

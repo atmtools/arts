@@ -51,12 +51,12 @@ void abs_bandsFromModelState(AbsorptionBands&       abs_bands,
   for (auto& target : model_state_targets.line) { target.update_model(abs_bands, model_state_vec); }
 }
 
-void measurement_sensorFromModelState(ArrayOfSensor&         measurement_sensor,
-                                      const Vector&          model_state_vec,
-                                      const JacobianTargets& model_state_targets) {
+void measurement_sensorsFromModelState(ArrayOfSensor&         measurement_sensors,
+                                       const Vector&          model_state_vec,
+                                       const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : model_state_targets.sensor) { target.update_model(measurement_sensor, model_state_vec); }
+  for (auto& target : model_state_targets.sensor) { target.update_model(measurement_sensors, model_state_vec); }
 }
 
 ////// Update the model state vector from the fields
@@ -94,11 +94,11 @@ void model_state_vecFromBands(Vector&                model_state_vec,
 }
 
 void model_state_vecFromSensor(Vector&                model_state_vec,
-                               const ArrayOfSensor&   measurement_sensor,
+                               const ArrayOfSensor&   measurement_sensors,
                                const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.sensor) { target.update_state(model_state_vec, measurement_sensor); }
+  for (auto& target : jac_targets.sensor) { target.update_state(model_state_vec, measurement_sensors); }
 }
 
 ///// Update the measurement Jacobian from the model state vector

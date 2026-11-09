@@ -98,9 +98,9 @@ ws.MCRadar(**(kwargs | {"mc_max_iter": 1, "unit": "Ze"}))
 mc_pencil_ze = np.asarray(ws.radar_signal)[:, 0].copy()
 
 ws.freq_grid = [kwargs["frequency"]]
-ws.measurement_sensorInit()
+ws.measurement_sensorsInit()
 ws.radar_range_limits = np.empty((0, 2))
-ws.measurement_sensorAddSimpleRadar(
+ws.measurement_sensorsAddSimpleRadar(
     pos=kwargs["sensor_pos"],
     los=kwargs["sensor_los"],
     pol=[1.0, 0.0, 0.0, 0.0],

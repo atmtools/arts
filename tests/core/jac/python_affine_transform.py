@@ -26,7 +26,7 @@ def inverse_jacobian(jacobian, model_state, atm_field):
 
 
 ws = pyarts.Workspace()
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.abs_bands = {}
 ws.atm_fieldInit(toa=100e3)
 ws.surf_fieldEarth()

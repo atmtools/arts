@@ -37,7 +37,7 @@ ws.atm_fieldInit(toa=0.0)
 
 ws.jac_targetsInit()
 ws.jac_targetsAddSubsurface(target="t")
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.jac_targetsFinalize()
 
 ws.ray_point.pos = [0, 0, 0]

@@ -31,7 +31,7 @@ B1[2] += dx
 ws.atm_field["mag_w"] = B[2]
 ws.jac_targetsInit()
 ws.jac_targetsAddMagneticField(component="w")
-ws.jac_targetsFinalize(measurement_sensor=[])
+ws.jac_targetsFinalize(measurement_sensors=[])
 
 ws.atm_point.temperature = 250
 ws.atm_point.pressure = 1.0

@@ -167,7 +167,7 @@ def workspace(nonlinear=False):
         ("measurement_jac", arts.Matrix),
         ("atm_field", arts.AtmField),
         ("abs_bands", arts.AbsorptionBands),
-        ("measurement_sensor", arts.ArrayOfSensor),
+        ("measurement_sensors", arts.ArrayOfSensor),
         ("surf_field", arts.SurfaceField),
         ("subsurf_field", arts.SubsurfaceField),
         ("jac_targets", arts.JacobianTargets),

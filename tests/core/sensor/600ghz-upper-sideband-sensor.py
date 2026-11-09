@@ -42,13 +42,13 @@ print(f"sensor:       {time.time() - start_time:.2f} seconds")
 
 ws = pyarts.Workspace()
 
-ws.measurement_sensor = [sensor(POS, LOS, pyarts.arts.planets.Earth.ellipsoid)]
+ws.measurement_sensors = [sensor(POS, LOS, pyarts.arts.planets.Earth.ellipsoid)]
 
-assert len(ws.measurement_sensor) == 1
-assert len(ws.measurement_sensor[0].freq_grid) == NCHANNELS
+assert len(ws.measurement_sensors) == 1
+assert len(ws.measurement_sensors[0].freq_grid) == NCHANNELS
 
 np.testing.assert_allclose(
-    np.asarray(ws.measurement_sensor[0].freq_grid)[[0, -1]],
+    np.asarray(ws.measurement_sensors[0].freq_grid)[[0, -1]],
     np.array([LO + IF_LOW, LO + IF_HIGH]),
     atol=0.0,
     rtol=0.0,

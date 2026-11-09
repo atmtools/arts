@@ -39,19 +39,19 @@ ws.ray_path_observer_agendaSetGeometric()
 
 # %% Load the sensor and place it in a cross-track scan geometry.
 sensor = pa.arts.SensorBuilder.fromxml("amsu-a.xml")
-ws.measurement_sensor = [sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)]
+ws.measurement_sensors = [sensor.cross_track([POS], [HEADING], [SCAN_ANGLE], ELL)]
 
 # %% Compute the sensor response in Planck units
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.measurement_vecFromSensor(kernel="High Performance")
 
 # %% Compute the internal frequency grid response for plotting
-ws.freq_grid = ws.measurement_sensor[0].freq_grid
+ws.freq_grid = ws.measurement_sensors[0].freq_grid
 ws.spectral_rad_observer_agendaExecute(obs_pos=POS, obs_los=LOS)
 ws.spectral_radApplyUnitFromSpectralRadiance()
 
 # %% Plotting
-channels = ws.measurement_sensor[0].extract(ws.spectral_rad)
+channels = ws.measurement_sensors[0].extract(ws.spectral_rad)
 numbers = np.arange(1, len(channels) + 1)
 fig_internal, ax_internal = plt.subplots(figsize=(6, 4))
 ax_internal.plot(np.asarray(ws.freq_grid) / 1e9,

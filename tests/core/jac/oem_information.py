@@ -745,7 +745,7 @@ def test_workspace_state_labels():
     ws.surf_field = arts.SurfaceField()
     ws.surf_field.ellipsoid = [1, 1]
     ws.abs_bands = arts.AbsorptionBands()
-    ws.measurement_sensor = arts.ArrayOfSensor()
+    ws.measurement_sensors = arts.ArrayOfSensor()
     ws.subsurf_field = arts.SubsurfaceField()
     for key, count, value in (("t", 2, 280.), ("H2O", 3, .01)):
         ws.atm_field[key] = arts.GriddedField3(

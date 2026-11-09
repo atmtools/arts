@@ -30,7 +30,7 @@ ws.ray_path_observer_agendaSetGeometric()
 
 
 def set_sensor(freq_grid):
-    ws.measurement_sensorSimpleGaussian(
+    ws.measurement_sensorsSimpleGaussian(
         freq_grid=freq_grid, std=1, pos=pos, los=los, pol="I"
     )
 

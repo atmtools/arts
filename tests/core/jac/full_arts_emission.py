@@ -47,7 +47,7 @@ ws.atm_field[pyarts.arts.SpeciesEnum.O2] = grid
 
 # %% Jacobian
 
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.jac_targetsInit()
 ws.jac_targetsAddSpeciesVMR(species="O2")
 ws.jac_targetsFinalize()

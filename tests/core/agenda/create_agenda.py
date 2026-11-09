@@ -12,13 +12,13 @@ def create_agenda(ws: pyarts.Workspace):
 def run_in_parallel(ws: pyarts.Workspace):
     ws.abs_speciesSet(species=["H2O", "CO2"])
     ws.atm_pointInit()
-    ws.measurement_sensorInit()
-    ws.measurement_sensorAddSimple(freq_grid=[1, 2], pos=[3, 4, 5], los=[6, 7])
-    ws.measurement_sensorAddSimple(freq_grid=[1, 2], pos=[3, 4, 5], los=[6, 7])
+    ws.measurement_sensorsInit()
+    ws.measurement_sensorsAddSimple(freq_grid=[1, 2], pos=[3, 4, 5], los=[6, 7])
+    ws.measurement_sensorsAddSimple(freq_grid=[1, 2], pos=[3, 4, 5], los=[6, 7])
 
 
 assert ws.abs_species == ["H2O", "CO2"]
-assert len(ws.measurement_sensor) == 2
+assert len(ws.measurement_sensors) == 2
 
 assert len(run_in_parallel.par_tasks(ws)) == 3
 assert len(create_agenda.par_tasks(ws)) == 1

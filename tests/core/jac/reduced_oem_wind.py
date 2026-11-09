@@ -58,7 +58,7 @@ def run():
 
     ws.ray_pathGeometric(pos=pos, los=los(60e3), add_limb=1)
     np.testing.assert_allclose(min(p.pos[0] for p in ws.ray_path), 60e3, atol=1e-3, rtol=0)
-    ws.measurement_sensorSimple(pos=pos, los=los(60e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(60e3))
     ws.oemInit()
     ws.oemAddWindField(component="u", matrix=[[PRIOR_STD**2]])
     ws.jac_targetsFinalize()
@@ -84,10 +84,10 @@ def run():
 
     # Demonstrate why an instrument also viewing deeper layers has a wide band.
     ws.atm_field["wind_u"] = PRIOR_WIND
-    ws.measurement_sensorSimple(pos=pos, los=los(30e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(30e3))
     ws.measurement_vecFromSensor()
     deeper_spectrum = np.array(ws.measurement_vec)
-    ws.measurement_sensorSimple(pos=pos, los=los(60e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(60e3))
     ws.measurement_vec = observations
     ws.measurement_jac = jacobian
 

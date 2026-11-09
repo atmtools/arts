@@ -52,7 +52,7 @@ ws.fourier_mode_dimension = 1
 ws.legendre_polynomial_dimension = 1
 ws.quadrature_dimension = 10
 
-ws.measurement_sensorSimple(pos=pos, los=los, pol="RC")
+ws.measurement_sensorsSimple(pos=pos, los=los, pol="RC")
 
 ws.jac_targetsFinalize()
 

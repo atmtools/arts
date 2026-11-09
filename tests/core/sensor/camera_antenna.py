@@ -1,5 +1,5 @@
 """
-A sensor built from a thin-lens CameraAntenna looks where measurement_sensorAddCamera looks
+A sensor built from a thin-lens CameraAntenna looks where measurement_sensorsAddCamera looks
 
 Both describe the same pixels on the same CCD, so for every pixel and frequency the observation element of
 the builder must sample the same line of sight, at the same frequency, with the same weight, in the same
@@ -27,8 +27,8 @@ def nonzero_sample(sensor, i):
 for los in ([90.0, 0.0], [180.0, 0.0], [130.0, 40.0]):
     ws = pa.Workspace()
     ws.freq_grid = FREQ
-    ws.measurement_sensorInit()
-    ws.measurement_sensorAddCamera(pos=POS,
+    ws.measurement_sensorsInit()
+    ws.measurement_sensorsAddCamera(pos=POS,
                                    los=los,
                                    n_h=N_H,
                                    n_w=N_W,
@@ -41,9 +41,9 @@ for los in ([90.0, 0.0], [180.0, 0.0], [130.0, 40.0]):
     camera = pa.arts.sensors.CameraAntenna.thin_lens(N_H, N_W, CCD_H, CCD_W, FOCAL_LENGTH, FOCUS_DISTANCE)
     builder = pa.arts.SensorBuilder([pa.arts.sensors.DiracChannel(f) for f in FREQ], camera)
     sensor = builder([pa.arts.Vector3(POS)], [pa.arts.Vector2(los)], ELL)
-    added = ws.measurement_sensor[0]
+    added = ws.measurement_sensors[0]
 
-    assert len(ws.measurement_sensor) == 1, f"one sensor for {los}"
+    assert len(ws.measurement_sensors) == 1, f"one sensor for {los}"
     assert len(sensor.elements) == len(added.elements) == N_H * N_W * len(FREQ), f"element count for {los}"
     for i in range(len(sensor.elements)):
         got_los, got_f, got_w = nonzero_sample(sensor, i)

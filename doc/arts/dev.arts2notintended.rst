@@ -83,7 +83,7 @@ Sensor workspace variables and instrument frameworks
 
 The ARTS 2 global sensor position, line-of-sight, frequency-grid, response,
 polarization, and normalization workspace variables are not ported; ARTS 3
-describes a measurement with ``measurement_sensor``.  The
+describes a measurement with ``measurement_sensors``.  The
 instrument-specific controlfile frameworks built on those variables, such as
 MetMM with its dedicated grid and response methods, are not ported either.
 Port verified channel definitions as ``pyarts3.arts.SensorBuilder`` setups

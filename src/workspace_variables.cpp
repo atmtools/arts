@@ -234,7 +234,7 @@ the paths cover, and NaN for gates that no path reaches.
   wsv_data["radar_range_limits"] = {
       .desc = R"--(Range-gate limits for active-radar measurements.
 
-The matrix has one row per element of *measurement_sensor* and two columns
+The matrix has one row per element of *measurement_sensors* and two columns
 holding the lower and upper edge.  The coordinate represented by the limits is
 selected by the radar forward method (altitude, one-way distance, or
 round-trip time).
@@ -849,7 +849,7 @@ position in the target count, as well as the number of parameters
 it contributes to the *model_state_vec*.  It must know these
 things because it is able to map data between the *model_state_vec*
 and the actual model field, e.g., the *atm_field*, the *surf_field*,
-the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
+the *subsurf_field*, the *abs_bands*, the *measurement_sensors*, etc.
 )--",
       .type          = "JacobianTargets",
       .default_value = " ",
@@ -906,7 +906,7 @@ This is otherwise the same as *measurement_jac*.  See it for more details.
 
 This is the core variable describing the measured data, or the model of measured data.  It is the vector that is used in the inversion process to retrieve a model state vector.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 The notation in ARTS, for the purpose of *oemCalc*, is that
 
@@ -933,7 +933,7 @@ These are:
   wsv_data["measurement_vec_error"] = {
       .desc = R"(The error *measurement_vec*.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 See *measurement_vec* for more details.
 In that notation, this is :math:`\vec{y}_\epsilon`.
@@ -952,7 +952,7 @@ In that notation, this is :math:`\vec{y}_\epsilon`.
   wsv_data["measurement_vec_fit"] = {
       .desc          = R"(As *measurement_vec*, but fitted to the model.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 See *measurement_vec* for more details.
 In that notation, and in the notation of *oemCalc*,
@@ -1096,7 +1096,7 @@ Units: degrees
 
   //! Sensors
 
-  wsv_data["measurement_sensor"] = {
+  wsv_data["measurement_sensors"] = {
       .desc = R"(A list of sensors that fully describe the measurement.
 
 Each *Sensor* has one frequency grid and one list of geometries, at which the

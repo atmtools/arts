@@ -315,7 +315,7 @@ struct Targets final {
                 const SurfaceField&    surf_field,
                 const SubsurfaceField& subsurf_field,
                 const AbsorptionBands& abs_bands,
-                const ArrayOfSensor&   measurement_sensor);
+                const ArrayOfSensor&   measurement_sensors);
 
   AtmTarget&        emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
   AtmTarget&        emplace_back(const AtmKeyVal& t, Numeric d = 0.0);

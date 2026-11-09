@@ -76,8 +76,8 @@ ws.atm_fieldRead(
 pos = [moon_dist, 0.0, 0.0]    # altitude = Moon distance
 los = [180.0, 0.0]              # zenith=180 = looking straight down
 
-ws.measurement_sensorInit()
-ws.measurement_sensorAddCamera(
+ws.measurement_sensorsInit()
+ws.measurement_sensorsAddCamera(
     pos=pos,
     los=los,
     n_h=n_h,
@@ -89,20 +89,20 @@ ws.measurement_sensorAddCamera(
     focus_distance=focus_distance,
 )
 
-print(f"Sensor elements: {len(ws.measurement_sensor[0].elements)}")
+print(f"Sensor elements: {len(ws.measurement_sensors[0].elements)}")
 
 # 4. Run forward model
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.max_stepsize = 1000.0
 ws.ray_path_observer_agendaSetGeometric()
 
-n_total = len(ws.measurement_sensor[0].elements)
+n_total = len(ws.measurement_sensors[0].elements)
 print(f"Running forward model for {n_total} sensor elements ({n_h}x{n_w} pixels x {len(ws.freq_grid)} freq)...")
 
 ws.measurement_vecFromSensor(kernel="High Performance")
 
 # 5. Give measurement_vec the structure of the camera's meta and extract the image
-camera_gf = ws.measurement_sensor[0].reshape(ws.measurement_vec)
+camera_gf = ws.measurement_sensors[0].reshape(ws.measurement_vec)
 
 # camera_gf.data is shaped (n_h, n_w, n_freq); grids give angular offsets
 image_data = np.array(camera_gf.data)[:, :, 0]

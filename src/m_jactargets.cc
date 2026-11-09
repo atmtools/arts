@@ -49,10 +49,10 @@ void jac_targetsFinalize(JacobianTargets&       jac_targets,
                          const SurfaceField&    surf_field,
                          const SubsurfaceField& subsurf_field,
                          const AbsorptionBands& abs_bands,
-                         const ArrayOfSensor&   measurement_sensor) {
+                         const ArrayOfSensor&   measurement_sensors) {
   ARTS_TIME_REPORT
 
-  jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
+  jac_targets.finalize(atm_field, surf_field, subsurf_field, abs_bands, measurement_sensors);
 }
 
 void jac_targetsAddSubsurface(JacobianTargets&                                                jac_targets,
@@ -182,7 +182,7 @@ void jac_targetsAddLineShapeParameter(JacobianTargets&                 jac_targe
 }
 
 void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&     jac_targets,
-                                             const ArrayOfSensor& measurement_sensor,
+                                             const ArrayOfSensor& measurement_sensors,
                                              const Numeric&       d,
                                              const Index&         sensor_elem,
                                              const Index&         polyorder) {
@@ -190,12 +190,12 @@ void jac_targetsAddSensorFrequencyPolyOffset(JacobianTargets&     jac_targets,
 
   if (polyorder < 0) arts::user_error("Polyorder must be non-negative: {}", polyorder);
 
-  if (sensor_elem < 0 or measurement_sensor.size() <= static_cast<Size>(sensor_elem))
+  if (sensor_elem < 0 or measurement_sensors.size() <= static_cast<Size>(sensor_elem))
     arts::user_error("There are only {0} sensors.  Cannot select index: {1}, please choose an index less than {0}.",
-                     measurement_sensor.size(),
+                     measurement_sensors.size(),
                      sensor_elem);
 
   make_polyoffset(jac_targets.emplace_back(SensorKey{.type = SensorKeyType::freq, .sensor_elem = sensor_elem}, d),
                   static_cast<Size>(polyorder),
-                  measurement_sensor);
+                  measurement_sensors);
 }

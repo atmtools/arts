@@ -47,10 +47,10 @@ ws.ray_path_observer_agendaSetGeometric()
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
 
-ws.measurement_sensorSimpleGaussian(
+ws.measurement_sensorsSimpleGaussian(
     freq_grid=f, std=std, pos=pos, los=los, pol=pol1
 )
-ws.measurement_sensorAddSimpleGaussian(
+ws.measurement_sensorsAddSimpleGaussian(
     freq_grid=f, std=std, pos=pos, los=los, pol=pol2
 )
 
@@ -63,10 +63,10 @@ orig = ws.measurement_vec * 1.0
 
 DF1 = 1e5
 
-ws.measurement_sensorSimpleGaussian(
+ws.measurement_sensorsSimpleGaussian(
     freq_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
 )
-ws.measurement_sensorAddSimpleGaussian(
+ws.measurement_sensorsAddSimpleGaussian(
     freq_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
 )
 
@@ -103,19 +103,19 @@ for i in range(LIMIT):
     ws.oem.uncheck()
     ws.oem.model_state_vec = []
 
-    ws.measurement_sensorSimpleGaussian(
+    ws.measurement_sensorsSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol1
     )
-    ws.measurement_sensorAddSimpleGaussian(
+    ws.measurement_sensorsAddSimpleGaussian(
         freq_grid=f, std=std, pos=pos, los=los, pol=pol2
     )
     ws.measurement_vecFromSensor()
     ws.measurement_vec += np.random.normal(0, noise, 2 * NF)
 
-    ws.measurement_sensorSimpleGaussian(
+    ws.measurement_sensorsSimpleGaussian(
         freq_grid=f + DF1, std=std, pos=pos, los=los, pol=pol1
     )
-    ws.measurement_sensorAddSimpleGaussian(
+    ws.measurement_sensorsAddSimpleGaussian(
         freq_grid=f + 2 * DF1, std=std, pos=pos, los=los, pol=pol2
     )
 

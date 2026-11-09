@@ -19,7 +19,7 @@ ws.surf_fieldPlanet(option="Earth")
 ws.atm_fieldRead(
     toa=100e3, basename="planets/Earth/afgl/tropical/", missing_is_zero=1
 )
-ws.measurement_sensorSimpleGaussian(
+ws.measurement_sensorsSimpleGaussian(
     freq_grid=f, std=1, pos=[100e3, 0, 0], los=[180.0, 0.0], pol="I"
 )
 

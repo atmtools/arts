@@ -5,13 +5,13 @@
 
 void measurement_vec_errorFromModelState(Vector&                measurement_vec_error,
                                          Matrix&                measurement_jac_error,
-                                         const ArrayOfSensor&   measurement_sensor,
+                                         const ArrayOfSensor&   measurement_sensors,
                                          const JacobianTargets& model_state_targets,
                                          const JacobianTargets& jac_targets,
                                          const Vector&          model_state_vec) try {
   ARTS_TIME_REPORT
 
-  const Size ny = measurement_size(measurement_sensor);
+  const Size ny = measurement_size(measurement_sensors);
 
   measurement_vec_error.resize(ny);
   measurement_vec_error = 0.0;
@@ -59,7 +59,7 @@ measurement_jac_error.shape() : {:B,}
 ARTS_METHOD_ERROR_CATCH
 
 void jac_targetsAddErrorPolyFit(JacobianTargets&     jac_targets,
-                                const ArrayOfSensor& measurement_sensor,
+                                const ArrayOfSensor& measurement_sensors,
                                 const Vector&        t,
                                 const Index&         sensor_elem,
                                 const Index&         polyorder) {
@@ -67,13 +67,13 @@ void jac_targetsAddErrorPolyFit(JacobianTargets&     jac_targets,
 
   if (polyorder < 0) arts::user_error("Polyorder must be non-negative: {}", polyorder);
 
-  if (sensor_elem < 0 or measurement_sensor.size() <= static_cast<Size>(sensor_elem))
+  if (sensor_elem < 0 or measurement_sensors.size() <= static_cast<Size>(sensor_elem))
     arts::user_error("There are only {0} sensors.  Cannot select index: {1}, please choose an index less than {0}.",
-                     measurement_sensor.size(),
+                     measurement_sensors.size(),
                      sensor_elem);
 
-  const Sensor& sensor  = measurement_sensor[sensor_elem];
-  const Size    y_start = measurement_start(measurement_sensor, static_cast<Size>(sensor_elem));
+  const Sensor& sensor  = measurement_sensors[sensor_elem];
+  const Size    y_start = measurement_start(measurement_sensors, static_cast<Size>(sensor_elem));
   const Size    y_size  = sensor.elements.size();
 
   if (y_size <= static_cast<Size>(polyorder))

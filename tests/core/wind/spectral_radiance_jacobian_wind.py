@@ -58,7 +58,7 @@ wind = {uf: wind_u, vf: wind_v, wf: wind_w}
 
 pos = [110e3, 0, 0]
 los = [140.0, 30.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 for fc in [uf, vf, wf]:
     ws.oemInit()

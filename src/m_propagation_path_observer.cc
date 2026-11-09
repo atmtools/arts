@@ -72,13 +72,13 @@ void ray_path_observersFieldProfilePseudo2D(const Workspace&             ws,
 
 void ray_path_observersFromSensor(ArrayOfPropagationPathPoint& ray_path_observers,
                                   Vector&                      ray_path_observers_weights,
-                                  const ArrayOfSensor&         measurment_sensor,
+                                  const ArrayOfSensor&         measurement_sensors,
                                   const Index&                 idx,
                                   const Stokvec&               pol) {
   if (idx < 0) arts::user_error("Sensor element index out of bounds: {}", idx);
 
-  const auto [isensor, ie] = measurement_element(measurment_sensor, static_cast<Size>(idx));
-  const auto& sensor       = measurment_sensor[isensor];
+  const auto [isensor, ie] = measurement_element(measurement_sensors, static_cast<Size>(idx));
+  const auto& sensor       = measurement_sensors[isensor];
   const auto& weights      = sensor.elements[ie];
   const auto& poslos       = sensor.geometry;
   const Size  n            = poslos.size();

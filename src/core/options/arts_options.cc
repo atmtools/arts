@@ -449,7 +449,7 @@ values in relevant calculations.  Or it might simply disable a functionality.
 
 This is used when summing up *measurement_vec* and *measurement_jac*.
 
-Tthe observation elements in *measurement_sensor*.  The kernel choice is
+Tthe observation elements in *measurement_sensors*.  The kernel choice is
 just a trade-off between memory and performance.  The "low memory" option will
 never allocate more than one *StokvecVector* and *StokvecMatrix* per core.
 The "high performance" option will allocate as many *StokvecVector* and
@@ -457,7 +457,7 @@ The "high performance" option will allocate as many *StokvecVector* and
 
 The low memory computation time is :math:`O(MN)`, where :math:`M` is the number
 of frequency grids times the number of observation geometries, and :math:`N` is
-the number of observation elements in *measurement_sensor*.  It will only ever
+the number of observation elements in *measurement_sensors*.  It will only ever
 allocate memory proportional to :math:`N`.
 
 The high performance computation time is :math:`O(M+N)`.  It will allocate

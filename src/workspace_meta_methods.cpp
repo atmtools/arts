@@ -35,7 +35,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
   };
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "measurement_sensorSimple",
+      .name    = "measurement_sensorsSimple",
       .desc    = R"(Creates a single simple Dirac-opening sensor
 
 This means that the sensor has no bandwidth per channel, i.e., only one
@@ -43,12 +43,12 @@ frequency point is used to simulate the spectral radiance before being
 averaged into a channel.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit", "measurement_sensorAddSimple"},
-      .out     = {"measurement_sensor"},
+      .methods = {"measurement_sensorsInit", "measurement_sensorsAddSimple"},
+      .out     = {"measurement_sensors"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "measurement_sensorSimpleGaussian",
+      .name    = "measurement_sensorsSimpleGaussian",
       .desc    = R"(Creates a single simple Gaussian-opening sensor.
 
 This means that the sensor has a Gaussian bandwidth per channel.
@@ -57,12 +57,12 @@ radiance before being averaged into a channel.  The bandwidth of each
 channel is the same.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit", "measurement_sensorAddSimpleGaussian"},
-      .out     = {"measurement_sensor"},
+      .methods = {"measurement_sensorsInit", "measurement_sensorsAddSimpleGaussian"},
+      .out     = {"measurement_sensors"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
-      .name    = "measurement_sensorVectorGaussian",
+      .name    = "measurement_sensorsVectorGaussian",
       .desc    = R"(Creates a single simple Gaussian-opening sensor.
 
 This means that the sensor has a Gaussian bandwidth per channel.
@@ -71,8 +71,8 @@ radiance before being averaged into a channel.  The bandwidth of each
 channel is independent.
 )",
       .author  = {"Richard Larsson"},
-      .methods = {"measurement_sensorInit", "measurement_sensorAddVectorGaussian"},
-      .out     = {"measurement_sensor"},
+      .methods = {"measurement_sensorsInit", "measurement_sensorsAddVectorGaussian"},
+      .out     = {"measurement_sensors"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
@@ -351,8 +351,8 @@ Common use case (requires having set the ENV variables, as described in the docu
                   "surf_fieldFromModelState",
                   "subsurf_fieldFromModelState",
                   "atm_fieldFromModelState",
-                  "measurement_sensorFromModelState"},
-      .out     = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor"},
+                  "measurement_sensorsFromModelState"},
+      .out     = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors"},
   });
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{

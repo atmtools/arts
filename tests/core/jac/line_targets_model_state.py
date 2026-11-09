@@ -12,7 +12,7 @@ ws.abs_speciesSet(species=["O2-66"])
 ws.ReadCatalogData()
 ws.abs_bandsSelectFrequencyByLine(fmin=118e9, fmax=119e9)
 
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.subsurf_field = pyarts.arts.SubsurfaceField()
 ws.surf_fieldPlanet(option="Earth")
 ws.atm_fieldRead(

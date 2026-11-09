@@ -73,9 +73,9 @@ ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.0)]
 # result can be used directly as an OEM measurement vector.
 range_bins = np.arange(0.0, 20.001e3, 500.0)
 ws.freq_grid = [94e9]
-ws.measurement_sensorInit()
+ws.measurement_sensorsInit()
 ws.radar_range_limits = np.empty((0, 2))
-ws.measurement_sensorAddSimpleRadar(
+ws.measurement_sensorsAddSimpleRadar(
     pos=[20e3, 0.0, 0.0],
     los=[180.0, 0.0],
     pol=[0.5, 0.5, 0.0, 0.0],
@@ -262,9 +262,9 @@ old.ray_path_observer_agendaSetGeometric(
     max_step_option="step", add_crossings=1, remove_non_atm=1
 )
 old.freq_grid = [94e9]
-old.measurement_sensorInit()
+old.measurement_sensorsInit()
 old.radar_range_limits = np.empty((0, 2))
-old.measurement_sensorAddSimpleRadar(
+old.measurement_sensorsAddSimpleRadar(
     pos=[100e3, 0.0, 0.0],
     los=[180.0, 0.0],
     pol=[0.5, 0.5, 0.0, 0.0],
@@ -336,7 +336,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 assert np.nanmax(old.measurement_vec) < particle_peak
 old_aux = np.asarray(old.radar_aux)
-assert old_aux.shape == (4, sum(len(s.elements) for s in old.measurement_sensor))
+assert old_aux.shape == (4, sum(len(s.elements) for s in old.measurement_sensors))
 assert np.nanmax(old_aux[2]) > 0.0
 assert np.nanmax(old_aux[3]) > 0.0
 
@@ -352,7 +352,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 old_jac = np.asarray(old.measurement_jac).copy()
 nh2o = np.asarray(old.atm_field["H2O"].data.data).size
-assert old_jac.shape[0] == sum(len(s.elements) for s in old.measurement_sensor)
+assert old_jac.shape[0] == sum(len(s.elements) for s in old.measurement_sensors)
 assert np.all(np.isfinite(old_jac))
 assert np.max(np.abs(old_jac[:, :nh2o])) > 0.0
 assert np.max(np.abs(old_jac[:, nh2o:])) > 0.0
