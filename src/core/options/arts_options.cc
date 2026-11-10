@@ -517,12 +517,23 @@ of the partition function values.  The layout of the data is otherwise the same 
 with the first column being the temperature grid and the second column being
 the partition function values.  The first column must be in increasing order,
 and the difference between consecutive values must be constant.
+
+.. rubric:: LogInterp
+
+The layout of the data is the same as for the interp-type, but the logarithm of the
+partition function is interpolated linearly in the logarithm of the temperature.
+Between two grid points, the partition function is thus a power law of the temperature.
+This reproduces the rotational partition function of a rigid rotor, which goes as
+:math:`T` or :math:`T^{3/2}`, also on a coarse grid, such as the one of the JPL catalog.
+Outside the grid, the power law of the nearest pair of grid points is used.
+All temperatures and partition function values must be positive.
 )",
       .values_and_desc = {Value{"Interp", "Interpolate the data"},
                           Value{"Constant", "Use constant value"},
                           Value{"Coeff", "Use as polynomial coefficients"},
                           Value{"StaticInterp",
-                                "Interpolate the data, the temperature grid is known at compile time."}},
+                                "Interpolate the data, the temperature grid is known at compile time."},
+                          Value{"LogInterp", "Interpolate the logarithm of the data in the logarithm of temperature"}},
   });
 
   opts.emplace_back(EnumeratedOption{

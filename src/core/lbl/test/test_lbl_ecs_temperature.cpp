@@ -246,9 +246,15 @@ Request requested_derivatives(const Fixture& fixture, const AtmPoint& atm) {
       LineByLineVariable::a, "Einstein A", fixture.band.lines[1].a * 1e-4, [](Fixture& data, AtmPoint&, Numeric delta) {
         data.band.lines[1].a += delta;
       });
+  // The ratio only changes the profile through the mean mass of the species,
+  // about 1e-6 of the profile per 1e-4 of ratio.  At 1e4 Pa, the roundoff of
+  // the profile over a central step of 2e-4 is 1.5e-4 of the peak derivative,
+  // the size of the profile tolerance, so a 5e-4 step is used there.  Its
+  // matrix truncation error, which grows with the square of the step, is a
+  // quarter of the matrix tolerance at the 1e-3 step.
   atmosphere_target(fixture.id.isot,
                     "isotopologue ratio",
-                    atm.pressure < 1e3 ? 1e-4 : 2e-4,
+                    atm.pressure < 1e3 ? 1e-4 : 5e-4,
                     [isot = fixture.id.isot](Fixture&, AtmPoint& state, Numeric delta) { state[isot] += delta; });
   for (const auto species : {SpeciesEnum::Nitrogen, SpeciesEnum::Oxygen}) {
     for (const auto variable : {LineShapeModelVariable::G0, LineShapeModelVariable::D0}) {

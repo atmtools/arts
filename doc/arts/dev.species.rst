@@ -120,15 +120,31 @@ This is required if you want to read a JPL line list containing the
 isotopologue you want to add.
 
 Supported JPL isotopologues are defined in ``arts-cat-data/jpl/``.
-They must be named by the isotopologue the add support
-for, e.g., ``H2O-161.xml``, ``H2O-181.xml``, etc.
+They must be named by the six-digit JPL species tag they add support
+for, e.g., ``017002.xml``, ``018003.xml``, etc.
+Several tags may point to the same isotopologue, e.g., for
+entries of different vibrational states.
 
 The file format is a :class:`~pyarts3.arts.JplSpeciesInfo` XML file.
-The content of these files is the index identifier of the
-isotopologue in the JPL database,
-the full name of the isotopologue, the reference temperature of
-the line strengths in the JPL database, the JPL-defined isotopologue ratio,
-and a currently unused tag for whether the quantum number format is supported.
+The content of these files is the JPL species tag,
+the full name of the isotopologue, whether the quantum number
+format is supported (currently unused), the JPL partition function
+at the reference temperature, and the reference temperature of
+the line strengths in the JPL database.
+Both of the latter are given in the documentation of the JPL entry.
+
+The JPL partition function is used to compute the Einstein coefficient
+from the JPL intensity.  JPL degeneracies and partition functions often
+leave out factors that are common to all levels,
+such as nuclear spin statistics.
+The upper state degeneracy is therefore scaled by the ratio of the partition
+function of ARTS to that of JPL at the reference temperature, so that ARTS
+reproduces the JPL intensity at the reference temperature.
+At other temperatures, the line strengths follow
+the partition function of ARTS.
+An isotopologue that only exists in the JPL catalog should use the
+JPL partition function table as its partition function, with the
+``LogInterp`` type, so that its line strengths follow JPL at all temperatures.
 
 .. admonition:: FIXME
    :class: danger

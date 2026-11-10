@@ -271,6 +271,17 @@ so that reading routines can find the correct data files.
 )",
   };
 
+  wsg_data["JplSpeciesInfo"] = {
+      .file = "jpl_species_info.h",
+      .desc = R"(Information about the species of a JPL species tag
+
+This gives the isotopologue of the tag, the reference temperature
+of the intensities of the tag, and the partition function at that
+temperature.  The builtin information is defined in the ``jpl``
+directory of arts-cat-data.
+)",
+  };
+
   wsg_data["Range"] = {
       .file = "matpack.h",
       .desc =

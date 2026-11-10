@@ -391,10 +391,15 @@ void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void abs_bandsReadJPL(AbsorptionBands& abs_bands, const String& filename) try {
+void abs_bandsReadJPL(AbsorptionBands&             abs_bands,
+                      const String&                filename,
+                      const ArrayOfJplSpeciesInfo& jpl_species,
+                      const Index&                 parse_letters) try {
   ARTS_TIME_REPORT
 
-  const auto data = lbl::read_jpl_lines(open_input_file(filename));
+  const auto data = jpl_species.empty()
+                        ? lbl::read_jpl_lines(open_input_file(filename), Jpl::builtin_data(), parse_letters != 0)
+                        : lbl::read_jpl_lines(open_input_file(filename), Jpl::sorted_data(jpl_species), parse_letters != 0);
 
   abs_bands = {};
   for (auto& line : data) { abs_bands[line.jpl_id.qid].lines.emplace_back(line.from()); }

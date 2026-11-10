@@ -3417,14 +3417,28 @@ be computed from the line strength, or simply read from the Hitran data.
 The JPL file is assumed to have each line record
 filling up one line of text.
 
-The builtin JPL map is used to find species.  This set of species can
-be extended during compilation only.
+The species tag of each line record selects the isotopologue, the
+reference temperature of the intensity, and the partition function
+at that temperature.  If ``jpl_species`` is empty, the builtin JPL
+species information is used, which is defined at compilation.
+Otherwise, only ``jpl_species`` is used.  The latter allows reading
+files with other species tags than JPL's, or with intensities at
+another reference temperature, such as line lists in the JPL format
+whose intensities are at 296 K.
 
-This is still a WIP and most species are missing.  They will be added
-as we need them.
+The line strengths reproduce the intensities of the file at the
+reference temperature.  At other temperatures, they follow the
+partition function of the isotopologue in ARTS.
+
+Upper state degeneracies above 999 that are written with a letter
+for the hundreds, A = 10, so that A32 is 1032, are only read if
+``parse_letters`` is set.  An upper state degeneracy with an asterisk
+is read as unknown.  This changes the sign of both the Einstein
+coefficient and the upper state degeneracy, so the line strength is
+unchanged.
 
 Note also that quantum numbers are not yet supported in the JPL data,
-and thus all lines and bands will be unable to use features that 
+and thus all lines and bands will be unable to use features that
 relies on quantum numbers, such as line mixing, Zeeman parameters, etc.
 
 As JPL provides no pressure broadening data, a default 25 kHz/Pa
@@ -3434,10 +3448,12 @@ exponent of 0.75.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {},
-      .gin       = {"file"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Filename"},
+      .gin       = {"file", "jpl_species", "parse_letters"},
+      .gin_type  = {"String", "ArrayOfJplSpeciesInfo", "Index"},
+      .gin_value = {std::nullopt, ArrayOfJplSpeciesInfo{}, Index{0}},
+      .gin_desc  = {"Filename",
+                    "The JPL species information to use instead of the builtin one, if not empty",
+                    "Set to 1 to read upper state degeneracies with a letter for the hundreds, e.g., A32->1032"},
   };
 
   wsm_data["abs_bandsCheckEcs"] = {

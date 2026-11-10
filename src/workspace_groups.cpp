@@ -1177,6 +1177,8 @@ of this term multiplied by a negative distance.
                 },
                 {"optproperties.h"});
 
+  add_arrays_of(wsg_data, {"JplSpeciesInfo"}, {"jpl_species_info.h"});
+
   return wsg_data;
 }
 }  // namespace

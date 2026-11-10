@@ -5,6 +5,7 @@
 #include <species.h>
 #include <xml_io_base.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <exception>
 #include <filesystem>
@@ -147,6 +148,50 @@ inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
           .includes = {"<array>"}};
 }
 
+func_body make_cpp_string_log_interp(const Matrix& data) {
+  assert(data.size() > 3);
+  const auto Tv = data[joker, 0];
+  const auto q  = data[joker, 1];
+
+  for (Size i = 0; i < Tv.size(); i++) {
+    if (Tv[i] <= 0 or q[i] <= 0) throw std::runtime_error("Temperatures and partition functions must be positive");
+    if (i > 0 and Tv[i] <= Tv[i - 1]) throw std::runtime_error("Temperature grid must be increasing");
+  }
+
+  //! The exponent of the power law between each pair of grid points
+  Vector n(Tv.size() - 1);
+  for (Size i = 0; i < n.size(); i++) n[i] = std::log(q[i + 1] / q[i]) / std::log(Tv[i + 1] / Tv[i]);
+
+  return {.data     = std::format(
+              R"(
+inline constexpr std::array<Numeric, {0}> coef{{ {1:,} }};
+inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};
+inline constexpr std::array<Numeric, {3}> expo{{ {4:,} }};
+
+constexpr Size pos(Numeric T) noexcept {{
+  const Size i_low = std::distance(grid.cbegin(), std::lower_bound(grid.cbegin(), grid.cend(), T));
+  return std::min<Size>(i_low - (i_low > 0), Size{{{5}}});
+}}
+)",
+              q.size(),
+              q,
+              Tv,
+              n.size(),
+              n,
+              n.size() - 1),
+          .main     = R"(
+  const Size i = pos(T);
+
+  return coef[i] * std::pow(T / grid[i], expo[i]);
+)",
+          .deriv    = R"(
+  const Size i = pos(T);
+
+  return expo[i] * coef[i] * std::pow(T / grid[i], expo[i]) / T;
+)",
+          .includes = {"<algorithm>", "<array>", "<cmath>"}};
+}
+
 std::string make_call_signature(const std::string_view filename) {
   const Size N = filename.size();
   assert(N > 4);
@@ -243,6 +288,7 @@ std::string make_cpp_string(const std::string_view filename, const PartitionFunc
     case Coeff:        return make_cpp_string_impl(filename, make_cpp_string_coeff(data.data));
     case Constant:     return make_cpp_string_impl(filename, make_cpp_string_const(data.data));
     case StaticInterp: return make_cpp_string_impl(filename, make_cpp_string_static_interp(data.data));
+    case LogInterp:    return make_cpp_string_impl(filename, make_cpp_string_log_interp(data.data));
   }
 
   return {};

@@ -26,8 +26,16 @@ struct jpl_record {
 };
 using jpl_data = std::vector<jpl_record>;
 
-jpl_data read_jpl_lines(std::istream& file);
-jpl_data read_jpl_lines(std::istream&& file);
+/** Read JPL line records
+ *
+ * @param file The JPL catalog
+ * @param species The JPL species information, sorted by JPL species tag
+ * @param parse_letters Whether to read upper state degeneracies above 999 that are written
+ *                      with a letter for the hundreds (A = 10, so that A32 is 1032)
+ * @return The line records
+ */
+jpl_data read_jpl_lines(std::istream& file, std::span<const JplSpeciesInfo> species, bool parse_letters);
+jpl_data read_jpl_lines(std::istream&& file, std::span<const JplSpeciesInfo> species, bool parse_letters);
 }  // namespace lbl
 
 template <> struct std::formatter<lbl::jpl_record> {
