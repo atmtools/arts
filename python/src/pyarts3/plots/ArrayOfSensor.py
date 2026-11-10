@@ -3,7 +3,7 @@
 import numpy
 import matplotlib
 import pyarts3 as pyarts
-from .common import default_fig_ax, select_flat_ax
+from .common import default_fig_ax, select_flat_ax, nonzero_line
 
 __all__ = [
     'plot',
@@ -86,6 +86,6 @@ def plot(data: pyarts.arts.ArrayOfSensor,
 
                 x = sensor.freq_grid if i is None else sensor.geometry[:, i]
 
-                select_flat_ax(ax, isub).plot(x, v, **kwargs)
+                select_flat_ax(ax, isub).plot(*nonzero_line(x, v), **kwargs)
 
     return fig, ax

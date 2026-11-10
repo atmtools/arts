@@ -6,7 +6,7 @@ import matplotlib.tri as mtri
 import numpy as np
 import pyarts3 as pyarts
 
-from .common import default_fig_ax, select_flat_ax
+from .common import default_fig_ax, select_flat_ax, nonzero_line
 
 __all__ = [
     'plot',
@@ -453,6 +453,6 @@ def plot(data: pyarts.arts.Sensor,
                                                along_poslos=idx is None,
                                                along_freq=idx is not None)
             x = elem.f_grid if idx is None else elem.poslos[:, idx]
-            select_flat_ax(ax, isub).plot(x, values, **kwargs)
+            select_flat_ax(ax, isub).plot(*nonzero_line(x, values), **kwargs)
 
     return fig, ax

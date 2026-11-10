@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-__all__ = ["default_fig_ax", "select_flat_ax", "stream_radiance"]
+__all__ = ["default_fig_ax", "select_flat_ax", "nonzero_line", "stream_radiance"]
 
 
 def default_fig_ax(fig=None, ax=None, nrows=1, ncols=1, N=-1, fig_kwargs={}, ax_kwargs={}):
@@ -60,6 +60,38 @@ def select_flat_ax(ax, index):
         return ax[index]
     else:
         return ax.flatten()[index]
+
+
+def nonzero_line(x, y):
+    """Utility to keep only the non-zero parts of a line, each with a zero point on either side.
+
+    The parts are separated by NaN, so that they are drawn as one line
+    without connecting them.
+
+    Parameters
+    ----------
+    x : array_like
+        The x-values of the line.
+    y : array_like
+        The y-values of the line.
+
+    Returns
+    -------
+    x : ndarray
+        The x-values of the non-zero parts.
+    y : ndarray
+        The y-values of the non-zero parts.
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+
+    nonzero = np.flatnonzero(y)
+    keep = np.unique(np.clip(np.concatenate((nonzero - 1, nonzero, nonzero + 1)), 0, y.size - 1))
+    parts = np.split(keep, np.flatnonzero(np.diff(keep) > 1) + 1)
+
+    nan = np.array([np.nan])
+    return (np.concatenate([np.concatenate((x[p], nan)) for p in parts])[:-1],
+            np.concatenate([np.concatenate((y[p], nan)) for p in parts])[:-1])
 
 
 _STOKES = ["I", "Q", "U", "V"]
