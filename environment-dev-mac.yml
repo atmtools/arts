@@ -13,7 +13,6 @@ dependencies:
         - fftw
         - graphviz
         - ipykernel
-        - lark-parser
         - ld64
         - libboost-devel
         - libclang

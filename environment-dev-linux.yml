@@ -14,7 +14,6 @@ dependencies:
         - gmp
         - gxx
         - ipykernel
-        - lark-parser
         - libboost-devel
         - make
         - matplotlib<3.12

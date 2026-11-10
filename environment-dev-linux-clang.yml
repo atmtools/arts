@@ -16,7 +16,6 @@ dependencies:
         - gmp
         - gxx
         - ipykernel
-        - lark-parser
         - libboost-devel
         - libclang
         - libcxx
