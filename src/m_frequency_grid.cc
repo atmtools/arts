@@ -7,8 +7,10 @@ void wind_shift(VectorView                  freq_grid,
                 const PropagationPathPoint& ray_point) {
   constexpr Numeric c = Constant::speed_of_light;
 
+  // The line-of-sight of a path point is the direction of propagation, towards the observer.  Gas moving
+  // along it approaches the observer, so a line is seen at a higher frequency than in the frame of the gas
   const auto& [u, v, w] = atm_point.wind;
-  const auto [za, aa]   = path::mirror(ray_point.los);
+  const auto [za, aa]   = ray_point.los;
 
   const Numeric u2v2 = u * u + v * v;
   const Numeric w2   = w * w;
