@@ -8,7 +8,7 @@ dependencies:
         - gfortran
         - glew
         - glfw
-        - lark-parser
+        - lark
         - libclang
         - libcxx!=20.1.5
         - libmicrohttpd

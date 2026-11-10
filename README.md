@@ -33,7 +33,7 @@ Build Prerequisites (provided by Miniforge3):
 - Python3 (3.9, 3.10, 3.11, 3.12)
   - required modules:
     docutils
-    lark-parser
+    lark
     matplotlib
     netCDF4
     numpy

@@ -12,7 +12,7 @@ dependencies:
         - glfw
         - gmp
         - gxx
-        - lark-parser
+        - lark
         - libclang
         - libcxx
         - libmicrohttpd
