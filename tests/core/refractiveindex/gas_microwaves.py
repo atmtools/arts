@@ -58,6 +58,7 @@ assert np.isclose(ws.single_dispersion, 495.16e-6, rtol=0.0, atol=1e-15)
 # Missing O2, H2, He, and H2O remain valid.  The supplied supported VMRs are
 # normalized, so these deliberately need not sum to one.
 planet["N2"] = 0.1
+ws.atm_point = planet
 ws.single_propmat_agendaExecute()
 mixture_reference = (0.4 * 495.16e-6 + 0.1 * 293.81e-6) / 0.5
 assert np.isclose(ws.single_dispersion, mixture_reference, rtol=0.0, atol=1e-15)
