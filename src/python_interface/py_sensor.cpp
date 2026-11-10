@@ -345,7 +345,11 @@ See :meth:`~pyarts3.arts.ArrayOfSensor.split` for the part of each sensor.)")
           R"(One value per element: its weights times the spectral radiance, summed.
 
 ``spectral_rad`` is the spectral radiance at each frequency of :attr:`freq_grid`, for a
-sensor with one geometry.)");
+sensor with one geometry.)")
+      .def(
+          "cost_report",
+          [](const Sensor& self) { return cost_report({&self, 1}); },
+          "A table of what simulating the sensor is expected to cost.");
 
   auto a0 =
       py::bind_vector<Array<SensorPosLosVector>, py::rv_policy::reference_internal>(m, "ArrayOfSensorPosLosVector");
