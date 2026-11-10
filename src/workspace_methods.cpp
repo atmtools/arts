@@ -4609,7 +4609,9 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
    startup cost.  If your calculations are slow and requires multiple
    calls to the *spectral_rad_observer_agenda*, consider switching to
    the "High Performance" kernel, which is :math:`O(N+M)` compared to
-   the low-memory option :math:`O(N \times M)`.
+   the low-memory option :math:`O(N \times M)`.  The "Indexed" kernel
+   is also :math:`O(N+M)`, but does not keep the spectral radiance of
+   every geometry as the "High Performance" kernel does.
 
 The derivatives with regards to the sensor targets of *jac_targets* are
 left as zero, see *measurement_jacAddSensorJacobianPerturbations*.

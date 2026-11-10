@@ -447,9 +447,8 @@ values in relevant calculations.  Or it might simply disable a functionality.
       .desc =
           R"(The kernel to use for summing up the measurement vectors.
 
-This is used when summing up *measurement_vec* and *measurement_jac*.
-
-Tthe observation elements in *measurement_sensors*.  The kernel choice is
+This is used when summing up *measurement_vec* and *measurement_jac* from
+the observation elements in *measurement_sensors*.  The kernel choice is
 just a trade-off between memory and performance.  The "low memory" option will
 never allocate more than one *StokvecVector* and *StokvecMatrix* per core.
 The "high performance" option will allocate as many *StokvecVector* and
@@ -463,9 +462,20 @@ allocate memory proportional to :math:`N`.
 The high performance computation time is :math:`O(M+N)`.  It will allocate
 memory proportional to :math:`MN`.  You should generally use this option
 unless you run into memory constraints.
+
+The indexed option first lists, for each observation geometry, the observation
+elements that have weights there, and where those weights are.  Each core then
+sums only these elements after each of its simulations, so its computation time
+is also :math:`O(M+N)`.  The list takes memory proportional to the number of
+pairs of observation element and observation geometry with weights.  Each core
+also keeps one *StokvecVector* and *StokvecMatrix*, like the "low memory"
+option, and the contributions of its current geometry to the elements that have
+weights at more than one geometry.  Only adding these contributions to
+*measurement_vec* and *measurement_jac* is done one core at a time.
 )",
       .values_and_desc = {Value{"LowMem", "Low Memory", "Use the low memory kernel"},
-                          Value{"HighPerf", "High Performance", "Use the high performance kernel"}},
+                          Value{"HighPerf", "High Performance", "Use the high performance kernel"},
+                          Value{"Indexed", "Indexed", "Use the indexed kernel"}},
   });
 
   opts.emplace_back(EnumeratedOption{

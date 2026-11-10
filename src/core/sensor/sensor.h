@@ -8,6 +8,7 @@
 #include <boost/container_hash/hash.hpp>
 #include <span>
 #include <utility>
+#include <vector>
 
 #include "obsel.h"
 #include "sensor_meta_info.h"
@@ -57,6 +58,46 @@ struct Sensor {
 
   //! Sets the frequency grid or a coordinate of the geometries from x, the inverse of flat
   void unflatten(const ConstVectorView& x, const SensorKeyType& key);
+};
+
+//! The weights of one element at one geometry
+struct GeometryWeights {
+  //! The index of the element in the sensor
+  Size element;
+
+  //! The weights of the element at the geometry
+  std::span<const SparseStokvec> weights;
+};
+
+/** The elements of a sensor that have weights at each geometry
+ *
+ *  An element keeps its weights sorted by geometry and then by frequency, so
+ *  its weights at one geometry are contiguous.  The index lists these by
+ *  geometry instead: for each geometry, the elements that have weights there,
+ *  in increasing order, each with its weights there.  Only the pairs of element
+ *  and geometry that have weights are listed.
+ *
+ *  The weights are views of those of the sensor, so the index is only valid
+ *  while the sensor and its elements are neither changed nor destroyed.
+ */
+class GeometryIndex {
+  //! The entries of geometry ip are entries[starts[ip]] to entries[starts[ip + 1]]
+  std::vector<Size> starts{};
+
+  std::vector<GeometryWeights> entries{};
+
+  //! The number of geometries at which each element has weights
+  std::vector<Size> counts{};
+
+ public:
+  //! Throws if a weight is outside the geometries and frequencies of the sensor
+  explicit GeometryIndex(const Sensor& sensor);
+
+  //! The elements with weights at geometry ip, in increasing order
+  [[nodiscard]] std::span<const GeometryWeights> operator[](Size ip) const;
+
+  //! The number of geometries at which element ie has weights
+  [[nodiscard]] Size geometry_count(Size ie) const;
 };
 }  // namespace sensor
 

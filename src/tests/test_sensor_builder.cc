@@ -137,6 +137,77 @@ void test_measurement_elements() try {
   throw std::runtime_error(std::format("test_measurement_elements failed:\n{}", e.what()));
 }
 
+//! The index lists, for each geometry, the elements with weights there and where those weights are
+void test_geometry_index() try {
+  constexpr Size ngeom = 4, nfreq = 4;
+
+  //! Two placements of two geometries each, and two channels of two frequencies each; then an element
+  //! without weights, and one with weights at the first and last geometries only
+  const std::array<std::vector<std::pair<Size, Size>>, 6> weights{{
+      {{0, 0}, {0, 1}, {1, 0}, {1, 1}},
+      {{0, 2}, {0, 3}, {1, 2}, {1, 3}},
+      {{2, 0}, {2, 1}, {3, 0}, {3, 1}},
+      {{2, 2}, {2, 3}, {3, 2}, {3, 3}},
+      {},
+      {{0, 1}, {3, 2}},
+  }};
+
+  Sensor sensor{.freq_grid = AscendingGrid{1.0, 2.0, 3.0, 4.0}, .geometry = SensorPosLosVector(ngeom)};
+  for (const auto& w : weights) {
+    sensor::SparseStokvecMatrix& elem = sensor.elements.emplace_back(ngeom, nfreq);
+    for (const auto& [g, f] : w) elem[g, f] = Stokvec{1.0, 0.0, 0.0, 0.0};
+  }
+
+  struct Expected {
+    Size element, begin, end;
+  };
+  const std::array<std::vector<Expected>, ngeom> expected{{
+      {{0, 0, 2}, {1, 0, 2}, {5, 0, 1}},
+      {{0, 2, 4}, {1, 2, 4}},
+      {{2, 0, 2}, {3, 0, 2}},
+      {{2, 2, 4}, {3, 2, 4}, {5, 1, 2}},
+  }};
+  const std::array<Size, 6> expected_counts{2, 2, 2, 2, 0, 2};
+
+  const sensor::GeometryIndex index(sensor);
+
+  for (Size ip = 0; ip < ngeom; ip++) {
+    const auto got = index[ip];
+    if (got.size() != expected[ip].size())
+      arts::user_error("Geometry {} has {} elements, expected {}", ip, got.size(), expected[ip].size());
+
+    for (Size k = 0; k < got.size(); k++) {
+      const auto& [element, begin, end] = expected[ip][k];
+      const auto& all                   = sensor.elements[element].vector();
+      if (got[k].element != element or got[k].weights.data() != all.data() + begin or
+          got[k].weights.size() != end - begin)
+        arts::user_error("Entry {} of geometry {} must be the weights {} to {} of element {}", k, ip, begin, end, element);
+    }
+  }
+
+  for (Size ie = 0; ie < expected_counts.size(); ie++) {
+    if (index.geometry_count(ie) != expected_counts[ie])
+      arts::user_error("Element {} has weights at {} geometries, expected {}",
+                       ie,
+                       index.geometry_count(ie),
+                       expected_counts[ie]);
+  }
+
+  //! A weight outside the geometries or the frequencies of the sensor is refused
+  for (const auto& [g, f] : std::array<std::pair<Size, Size>, 2>{{{ngeom, 0}, {0, nfreq}}}) {
+    Sensor bad = sensor;
+    bad.elements[4][g, f] = Stokvec{1.0, 0.0, 0.0, 0.0};
+
+    bool threw = false;
+    try {
+      static_cast<void>(sensor::GeometryIndex(bad));
+    } catch (const std::runtime_error&) { threw = true; }
+    if (not threw) arts::user_error("A weight at geometry {} and frequency {} must be refused", g, f);
+  }
+} catch (const std::exception& e) {
+  throw std::runtime_error(std::format("test_geometry_index failed:\n{}", e.what()));
+}
+
 void test_sensor_builder_polarization_per_channel() try {
   sensor::Channel vertical   = sensor::DiracChannel{100.0};
   sensor::Channel horizontal = sensor::DiracChannel{200.0};
@@ -266,6 +337,7 @@ int main() try {
   test_sensor_builder_rejects_mismatched_geometry_counts();
   test_unflatten_updates_the_sensor();
   test_measurement_elements();
+  test_geometry_index();
   test_sensor_builder_polarization_per_channel();
   test_sensor_builder_cross_track();
   test_sensor_builder_with_camera();

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <format>
+#include <numeric>
 #include <ranges>
 #include <utility>
 
@@ -127,6 +128,54 @@ void Sensor::unflatten(const ConstVectorView& x, const SensorKeyType& key) {
   }
 
   for (Size i = 0; i < geometry.size(); i++) coordinate(geometry[i], key) = x[i];
+}
+
+GeometryIndex::GeometryIndex(const Sensor& sensor)
+    : starts(sensor.geometry.size() + 1, 0), counts(sensor.elements.size(), 0) {
+  const Size ngeom = sensor.geometry.size();
+  const Size nfreq = sensor.freq_grid.size();
+
+  //! Count the elements at each geometry: one for every run of an element's weights at one geometry
+  for (Size ie = 0; ie < sensor.elements.size(); ie++) {
+    const auto& w = sensor.elements[ie].vector();
+    for (Size i = 0; i < w.size(); i++) {
+      if (w[i].irow >= ngeom or w[i].icol >= nfreq)
+        arts::user_error(R"(Sensor "{}": every weight must be at one of its {} geometries and {} frequencies)",
+                         sensor.name(),
+                         ngeom,
+                         nfreq);
+
+      if (i == 0 or w[i].irow != w[i - 1].irow) {
+        starts[w[i].irow + 1]++;
+        counts[ie]++;
+      }
+    }
+  }
+
+  std::partial_sum(starts.begin(), starts.end(), starts.begin());
+
+  //! Place the runs, in increasing element order at each geometry
+  entries.resize(starts.back());
+  std::vector<Size> next(starts.begin(), starts.end() - 1);
+  for (Size ie = 0; ie < sensor.elements.size(); ie++) {
+    const std::span<const SparseStokvec> w{sensor.elements[ie].vector()};
+    for (Size i = 0; i < w.size();) {
+      Size n = 1;
+      while (i + n < w.size() and w[i + n].irow == w[i].irow) n++;
+      entries[next[w[i].irow]++] = {.element = ie, .weights = w.subspan(i, n)};
+      i += n;
+    }
+  }
+}
+
+std::span<const GeometryWeights> GeometryIndex::operator[](Size ip) const {
+  assert(ip + 1 < starts.size());
+  return std::span{entries}.subspan(starts[ip], starts[ip + 1] - starts[ip]);
+}
+
+Size GeometryIndex::geometry_count(Size ie) const {
+  assert(ie < counts.size());
+  return counts[ie];
 }
 }  // namespace sensor
 

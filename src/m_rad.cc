@@ -302,6 +302,112 @@ void high_performance(const Workspace                         &ws,
     }
   }
 }
+
+void indexed(const Workspace                         &ws,
+             Vector                                  &measurement_vec,
+             Matrix                                  &measurement_jac,
+             const ArrayOfSensor                     &measurement_sensors,
+             const JacobianTargets                   &jac_targets,
+             const AtmField                          &atm_field,
+             const SurfaceField                      &surf_field,
+             const SubsurfaceField                   &subsurf_field,
+             const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+             const Agenda                            &spectral_rad_observer_agenda) {
+  ARTS_TIME_REPORT
+
+  const Size J = jac_targets.x_size();
+
+  //! The elements of each sensor that have weights at each of its geometries
+  std::vector<sensor::GeometryIndex> indices;
+  indices.reserve(measurement_sensors.size());
+  Size N = 0;
+  for (const auto &sensor : measurement_sensors) {
+    indices.emplace_back(sensor);
+    N += sensor.geometry.size();
+  }
+
+  std::string error{};
+
+#pragma omp parallel if (arts_omp_parallel(-1, N > 1))
+  {
+    Size start = 0;
+    for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+      const auto &sensor = measurement_sensors[isensor];
+      const auto &index  = indices[isensor];
+
+      //! Dynamic scheduling as some simulations may take much longer time than others
+#pragma omp for schedule(dynamic) nowait
+      for (Size ip = 0; ip < sensor.geometry.size(); ip++) {
+        try {
+          StokvecVector spectral_rad;
+          StokvecMatrix spectral_rad_jac;
+
+          simulate(ws,
+                   spectral_rad,
+                   spectral_rad_jac,
+                   sensor,
+                   ip,
+                   jac_targets,
+                   atm_field,
+                   surf_field,
+                   subsurf_field,
+                   spectral_rad_transform_operator,
+                   spectral_rad_observer_agenda);
+
+          //! An element with weights at this geometry only is written by this thread only
+          Size nshared = 0;
+          for (const auto &[ie, weights] : index[ip]) {
+            if (index.geometry_count(ie) > 1) {
+              nshared++;
+              continue;
+            }
+
+            measurement_vec[start + ie] += sensor::sumup(weights, spectral_rad);
+            sensor::sumup(measurement_jac[start + ie], weights, spectral_rad_jac);
+          }
+
+          if (nshared == 0) continue;
+
+          //! The other elements are summed here, and only the adding to them is locked
+          Vector shared_vec(nshared, 0.0);
+          Matrix shared_jac(nshared, J, 0.0);
+          Size   ishared = 0;
+          for (const auto &[ie, weights] : index[ip]) {
+            if (index.geometry_count(ie) == 1) continue;
+
+            shared_vec[ishared] = sensor::sumup(weights, spectral_rad);
+            sensor::sumup(shared_jac[ishared], weights, spectral_rad_jac);
+            ishared++;
+          }
+
+#pragma omp critical
+          {
+            ishared = 0;
+            for (const auto &entry : index[ip]) {
+              if (index.geometry_count(entry.element) == 1) continue;
+
+              measurement_vec[start + entry.element] += shared_vec[ishared];
+              measurement_jac[start + entry.element] += shared_jac[ishared];
+              ishared++;
+            }
+          }
+        } catch (const std::exception &e) {
+#pragma omp critical
+          if (error.empty())
+            error = std::format(R"(Sensor "{}", geometry {}:
+{})",
+                                sensor.name(),
+                                ip,
+                                e.what());
+        }
+      }
+
+      start += sensor.elements.size();
+    }
+  }
+
+  if (not error.empty()) arts::user_error("Errors occurred:\n{:}", error);
+}
 }  // namespace
 
 void measurement_vecFromSensor(const Workspace                         &ws,
@@ -354,6 +460,18 @@ void measurement_vecFromSensor(const Workspace                         &ws,
                        subsurf_field,
                        spectral_rad_transform_operator,
                        spectral_rad_observer_agenda);
+      break;
+    case Indexed:
+      indexed(ws,
+              measurement_vec,
+              measurement_jac,
+              measurement_sensors,
+              jac_targets,
+              atm_field,
+              surf_field,
+              subsurf_field,
+              spectral_rad_transform_operator,
+              spectral_rad_observer_agenda);
       break;
   }
 }

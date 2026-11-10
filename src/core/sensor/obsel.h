@@ -114,6 +114,12 @@ void normalize(SparseStokvecMatrix& w, Stokvec pol = {1., 0., 0., 0.});
 //! Adds the weights of geometry ip dotted with each row of the spectral radiance Jacobian j to out
 void sumup(VectorView out, const SparseStokvecMatrix& w, const StokvecConstMatrixView& j, Size ip);
 
+//! The weights w, all of one geometry, dotted with the spectral radiance i, summed
+[[nodiscard]] Numeric sumup(std::span<const SparseStokvec> w, const StokvecConstVectorView& i);
+
+//! Adds the weights w, all of one geometry, dotted with each row of the spectral radiance Jacobian j to out
+void sumup(VectorView out, std::span<const SparseStokvec> w, const StokvecConstMatrixView& j);
+
 /** The weights placed in a larger matrix of nrows by ncols
  *
  *  Row i moves to row i + row_offset, and column j to column col_map[j], which

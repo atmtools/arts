@@ -132,5 +132,5 @@ def check_kernel(option):
     )
 
 
-for kernel in ("LowMemory", "HighPerformance"):
+for kernel in ("LowMemory", "HighPerformance", "Indexed"):
     check_kernel(kernel)

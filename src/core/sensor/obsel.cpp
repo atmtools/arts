@@ -156,21 +156,27 @@ Numeric sumup(const SparseStokvecMatrix& w, const Stokvec& i, Size ip) {
 Numeric sumup(const SparseStokvecMatrix& w, const StokvecConstVectorView& i, Size ip) {
   assert(static_cast<Index>(i.size()) == w.ncols());
 
+  return sumup(geometry_weights(w, ip), i);
+}
+
+void sumup(VectorView out, const SparseStokvecMatrix& w, const StokvecConstMatrixView& j, Size ip) {
+  sumup(out, geometry_weights(w, ip), j);
+}
+
+Numeric sumup(std::span<const SparseStokvec> w, const StokvecConstVectorView& i) {
   Numeric sum = 0.0;
-  for (const auto& ws : geometry_weights(w, ip)) {
+  for (const auto& ws : w) {
     assert(ws.icol < i.size());
     sum += dot(i[ws.icol], ws.data);
   }
   return sum;
 }
 
-void sumup(VectorView out, const SparseStokvecMatrix& w, const StokvecConstMatrixView& j, Size ip) {
+void sumup(VectorView out, std::span<const SparseStokvec> w, const StokvecConstMatrixView& j) {
   // j is a matrix of shape JACS x frequencies
-  const auto span = geometry_weights(w, ip);
-
   for (Index ij = 0; ij < j.nrows(); ij++) {
     auto jac = j[ij];
-    for (auto& ws : span) { out[ij] += dot(jac[ws.icol], ws.data); }
+    for (auto& ws : w) { out[ij] += dot(jac[ws.icol], ws.data); }
   }
 }
 

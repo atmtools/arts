@@ -187,6 +187,14 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
       agenda.add("measurement_vecAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
       break;
+    case Indexed:
+      agenda.add("measurement_vec_errorFromModelState");
+      agenda.add("measurement_vecFromSensor", SetWsv("kernel", "Indexed"s));
+      agenda.add("measurement_jacAddSensorJacobianPerturbations", SetWsv("kernel", "Indexed"s));
+      agenda.add("measurement_jacTransformations");
+      agenda.add("measurement_vecAddError");
+      agenda.add("measurement_vec_fitFromMeasurement");
+      break;
   }
 
   return std::move(agenda).finalize(true);
