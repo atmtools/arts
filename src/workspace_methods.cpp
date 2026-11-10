@@ -804,6 +804,9 @@ absorption line in the *abs_bands* variable.
 The top of the atmosphere is the last value of the altitude grid.
 
 All atmospheric points in the profile must contain the same set of parameters.
+
+The pressure is interpolated in logarithm, as by default when it is read
+by *atm_fieldAppendBaseData*, so it must be positive.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
