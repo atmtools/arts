@@ -460,10 +460,12 @@ the number of observation elements in *measurement_sensors*.  It will only ever
 allocate memory proportional to :math:`N`.
 
 The high performance computation time is :math:`O(M+N)`.  It will allocate
-memory proportional to :math:`MN`.  You should generally use this option
-unless you run into memory constraints.
+memory proportional to :math:`MN`.  It sums the observation elements in
+parallel after all simulations, so it is the fastest option when memory
+allows and the summing is heavy, such as for a single observation geometry
+with wide channels, or for many observation elements sharing each geometry.
 
-The indexed option first lists, for each observation geometry, the observation
+The indexed option is the default.  It first lists, for each observation geometry, the observation
 elements that have weights there, and where those weights are.  Each core then
 sums only these elements after each of its simulations, so its computation time
 is also :math:`O(M+N)`.  The list takes memory proportional to the number of

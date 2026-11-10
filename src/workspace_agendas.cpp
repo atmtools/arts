@@ -266,7 +266,7 @@ when it is empty, *measurement_jac* is empty.  Both target sets are read-only.
       .output       = {"measurement_vec_fit", "measurement_jac"},
       .input        = {"model_state_targets", "jac_targets"},
       .enum_options = {"LowMemory", "HighPerformance", "Indexed"},
-      .enum_default = "LowMemory",
+      .enum_default = "Indexed",
 
       // Returning an empty *measurement_jac* when *jac_targets* is empty is the point
       // of this agenda, so its outputs have no shape to verify

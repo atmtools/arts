@@ -4605,13 +4605,12 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 
 .. tip::
 
-   The default kernel is a low memory option.  It also has the lowest
-   startup cost.  If your calculations are slow and requires multiple
-   calls to the *spectral_rad_observer_agenda*, consider switching to
-   the "High Performance" kernel, which is :math:`O(N+M)` compared to
-   the low-memory option :math:`O(N \times M)`.  The "Indexed" kernel
-   is also :math:`O(N+M)`, but does not keep the spectral radiance of
-   every geometry as the "High Performance" kernel does.
+   The default "Indexed" kernel is :math:`O(N+M)`, and like the
+   "Low Memory" kernel it keeps the spectral radiance of one geometry
+   per core.  The "High Performance" kernel keeps that of every
+   geometry, and is faster when memory allows and the summing per
+   geometry is heavy, such as for a single geometry with wide channels.
+   The "Low Memory" kernel is :math:`O(N \times M)`.
 
 The derivatives with regards to the sensor targets of *jac_targets* are
 left as zero, see *measurement_jacAddSensorJacobianPerturbations*.
@@ -4627,7 +4626,7 @@ left as zero, see *measurement_jacAddSensorJacobianPerturbations*.
                     "spectral_rad_observer_agenda"},
       .gin       = {"kernel"},
       .gin_type  = {"String"},
-      .gin_value = {String{"Low Memory"}},
+      .gin_value = {String{"Indexed"}},
       .gin_desc  = {"The kernel to use for the spectral radiance calculations.  See type information for options."},
       .pass_workspace = true,
   };
@@ -4659,7 +4658,7 @@ same *measurement_sensors*, so call this method directly after it.
                          "spectral_rad_observer_agenda"},
       .gin            = {"kernel"},
       .gin_type       = {"String"},
-      .gin_value      = {String{"Low Memory"}},
+      .gin_value      = {String{"Indexed"}},
       .gin_desc       = {"The kernel of *measurement_vecFromSensor* for the perturbed sensors."},
       .pass_workspace = true,
   };
