@@ -148,7 +148,6 @@ add_library(artsworkspace STATIC
   m_montecarlo.cc
   m_montecarlo_radar.cc
   m_nlte.cc
-  m_obsel.cc
   m_oem.cc
   m_operators.cc
   m_partfun.cc
@@ -163,6 +162,7 @@ add_library(artsworkspace STATIC
   m_retrieval.cc
   m_rad.cc
   m_scattering_species.cc
+  m_sensor.cc
   m_spectral_flux.cc
   m_spectral_radiance.cc
   m_spectral_radiance_field.cc
