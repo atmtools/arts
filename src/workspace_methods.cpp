@@ -3825,7 +3825,7 @@ These only matter for polarized radiative transfer.
 
   wsm_data["ray_pathAddLimbPoint"] = {
       .desc =
-          R"--(Add the limb point to the ray path
+          R"--(Add the limb point to the ray path if the limb point exists and is not already in the ray path.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
@@ -4644,21 +4644,21 @@ perturbation, is the derivative.
 *measurement_vec* must be the result of *measurement_vecFromSensor* for the
 same *measurement_sensors*, so call this method directly after it.
 )--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_jac"},
-      .in        = {"measurement_jac",
-                    "measurement_vec",
-                    "measurement_sensors",
-                    "jac_targets",
-                    "atm_field",
-                    "surf_field",
-                    "subsurf_field",
-                    "spectral_rad_transform_operator",
-                    "spectral_rad_observer_agenda"},
-      .gin       = {"kernel"},
-      .gin_type  = {"String"},
-      .gin_value = {String{"Low Memory"}},
-      .gin_desc  = {"The kernel of *measurement_vecFromSensor* for the perturbed sensors."},
+      .author         = {"Richard Larsson"},
+      .out            = {"measurement_jac"},
+      .in             = {"measurement_jac",
+                         "measurement_vec",
+                         "measurement_sensors",
+                         "jac_targets",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "spectral_rad_transform_operator",
+                         "spectral_rad_observer_agenda"},
+      .gin            = {"kernel"},
+      .gin_type       = {"String"},
+      .gin_value      = {String{"Low Memory"}},
+      .gin_desc       = {"The kernel of *measurement_vecFromSensor* for the perturbed sensors."},
       .pass_workspace = true,
   };
 
