@@ -88,8 +88,28 @@ void ray_pathAddGeometricAltitudeGridCrossings(ArrayOfPropagationPathPoint& ray_
 
   path::fill_geometric_altitude_crossings(ray_path, surf_field, alt_grid);
 
-  if (stdr::any_of(ray_path, Cmp::not_in_sorted(alt_grid), [](const PropagationPathPoint& p) { return p.altitude(); }))
+  // Only points inside alt_grid must be crossings of it.  ray_pathRemoveOutsideAltitudeGrid removes those outside it
+  if (stdr::any_of(ray_path, [&alt_grid](const PropagationPathPoint& p) {
+        const Numeric alt = p.altitude();
+        return not alt_grid.empty() and alt >= alt_grid.front() and alt <= alt_grid.back() and
+               not stdr::binary_search(alt_grid, alt);
+      }))
     arts::user_error("Failed to add only geometric altitude grid crossings");
+}
+
+void ray_pathRemoveOutsideAltitudeGrid(ArrayOfPropagationPathPoint& ray_path, const AscendingGrid& alt_grid) {
+  ARTS_TIME_REPORT
+
+  const auto outside = [&alt_grid](const PropagationPathPoint& p) {
+    return alt_grid.empty() or p.altitude() < alt_grid.front() or p.altitude() > alt_grid.back();
+  };
+
+  // The last point is the background of the path, so it is kept if there is no point inside alt_grid
+  if (stdr::all_of(ray_path, outside)) {
+    if (not ray_path.empty()) ray_path.erase(ray_path.begin(), ray_path.end() - 1);
+  } else {
+    std::erase_if(ray_path, outside);
+  }
 }
 
 void ray_pathFillGeometricHalfStep(ArrayOfPropagationPathPoint& ray_path,

@@ -103,6 +103,17 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("spectral_radSetToBackground");
       agenda.add("spectral_radSinglePathEmissionFrequencyLoop");
       break;
+    case EmissionProfile2Path:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("ray_pointBackground");
+      agenda.add("spectral_rad_bkgAgendasAtEndOfPath");
+      agenda.add("Profile2Path");
+      agenda.add("spectral_tramat_pathFromPath");
+      agenda.add("spectral_rad_srcvec_pathFromPropmat");
+      agenda.add("spectral_radStepByStepEmission");
+      agenda.add("spectral_rad_jacFromBackground");
+      agenda.add("spectral_rad_jacAddPathPropagation");
+      break;
     case MonteCarlo: agenda.add("spectral_radMonteCarlo"); break;
   }
 
@@ -321,6 +332,7 @@ Agenda get_ray_path_observer_agenda(const std::string_view option) {
                  SetWsv("surf_search_accuracy", Numeric{0.1}),
                  SetWsv("surf_safe_search", Index{1}));
       agenda.add("ray_pathAddGeometricAltitudeGridCrossings");
+      agenda.add("ray_pathRemoveOutsideAltitudeGrid");
       break;
     case GeometricDefault: {
       Agenda out;

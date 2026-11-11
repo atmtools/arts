@@ -24,6 +24,8 @@ calculations that are happening deep in your ARTS method calls.
       .output       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
       .input        = {"freq_grid", "freq_wind_shift_jac", "jac_targets", "select_species", "ray_point", "atm_point"},
       .enum_options = {"Empty"},
+      .enum_desc =
+          {R"--(No absorption.  The propagation matrix, the non-LTE source vector, and their derivatives are all zero.)--"},
   };
 
   wsa_data["spectral_propmat_and_atm_path_agenda"] = {
@@ -43,6 +45,10 @@ based on spectral parameters.
                        "ray_path"},
       .input        = {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
       .enum_options = {"Default", "AdaptiveHalfPath", "Profile2Path"},
+      .enum_desc =
+          {R"--(The atmosphere of each point of *ray_path* is that of *atm_field*, and its frequencies are *freq_grid* shifted by the wind there.  *spectral_propmat_agenda* computes the propagation matrices of every point.  *ray_path* is kept as it is.)--",
+           R"--(As ``Default``, but points are added to *ray_path* where a step is optically too thick, see *spectral_propmat_pathAddAdaptiveHalfPath*.)--",
+           R"--(The path data are taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  *ray_path* is kept as it is.)--"},
       .enum_default = "Default",
   };
 
@@ -76,6 +82,8 @@ or planetary atmospheres and for visible/near-infrared water or steam.
       .output       = {"spectral_propmat_scat", "spectral_absvec_scat", "spectral_phamat_spectral"},
       .input        = {"freq_grid", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
+      .enum_desc =
+          {R"--(The scattering of *scat_species* as totally randomly oriented particles, see *spectral_propmat_scatAddSpectralScatteringSpeciesTRO*.)--"},
       .enum_default = "FromSpeciesTRO",
   };
 
@@ -86,6 +94,7 @@ or planetary atmospheres and for visible/near-infrared water or steam.
       .output       = {"spectral_propmat_scat"},
       .input        = {"freq_grid", "atm_point"},
       .enum_options = {"AirSimple"},
+      .enum_desc    = {R"--(Simple scattering by air, see *spectral_propmat_scatAirSimple*.)--"},
       .enum_default = "AirSimple",
   };
 
@@ -101,6 +110,9 @@ position and line of sight.
       .output       = {"ray_path"},
       .input        = {"obs_pos", "obs_los"},
       .enum_options = {"GeometricDefault", "GeometricProfile"},
+      .enum_desc =
+          {R"--(A geometric path, as *ray_path_observer_agendaSetGeometric* sets it with its default settings.)--",
+           R"--(A geometric path with points only where it crosses *alt_grid*, for methods that work on altitude profiles, such as *Profile2Path*.  The points outside *alt_grid*, such as an observer above it, are removed, see *ray_pathRemoveOutsideAltitudeGrid*.)--"},
       .enum_default = "GeometricDefault",
   };
 
@@ -128,6 +140,9 @@ at *PathPositionType* ``space`` or ``surface``.
       .output       = {"ray_point"},
       .input        = {"ray_path", "single_dispersion", "single_propmat", "max_stepsize"},
       .enum_options = {"GeometricStepwise", "RefractiveStepwise"},
+      .enum_desc =
+          {R"--(The previous point along a straight line, see *ray_pointPastGeometric*.)--",
+           R"--(The previous point along a line refracted by *single_dispersion*, see *ray_pointPastRefractive*.)--"},
       .enum_default = "GeometricStepwise",
   };
 
@@ -144,7 +159,12 @@ is warranted.
 )--",
       .output       = {"spectral_rad", "spectral_rad_jac", "ray_path"},
       .input        = {"freq_grid", "jac_targets", "obs_pos", "obs_los", "atm_field", "surf_field", "subsurf_field"},
-      .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "MonteCarlo"},
+      .enum_options = {"Emission", "EmissionAdaptiveHalfsteps", "EmissionProfile2Path", "MonteCarlo"},
+      .enum_desc =
+          {R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, see *spectral_radClearskyEmission*.  *spectral_propmat_and_atm_path_agenda* gives the path data.)--",
+           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with points added where a step is optically too thick, see *spectral_propmat_pathAddAdaptiveHalfPath*.  The radiance is computed one frequency at a time, see *spectral_radSinglePathEmissionFrequencyLoop*.)--",
+           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with the path data taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  Use it with ``ray_path_observer_agendaSet(option="GeometricProfile")``, which puts the points of the path on *alt_grid*.)--",
+           R"--(Passive Monte Carlo radiance for a pencil beam, see *spectral_radMonteCarlo*.)--"},
       .enum_default = "Emission",
   };
 
@@ -157,6 +177,7 @@ Otherwise same as *spectral_rad_space_agenda*.
       .output       = {"single_rad", "single_rad_jac"},
       .input        = {"freq", "jac_targets", "ray_point"},
       .enum_options = {"WrapGrid"},
+      .enum_desc    = {R"--(*spectral_rad_space_agenda* at the single frequency *freq*.)--"},
       .enum_default = "WrapGrid",
   };
 
@@ -171,11 +192,15 @@ The input path point should be as if it is looking at space.
       .output       = {"spectral_rad", "spectral_rad_jac"},
       .input        = {"freq_grid", "jac_targets", "ray_point"},
       .enum_options = {"UniformCosmicBackground", "SunOrCosmicBackground", "Transmission"},
+      .enum_desc =
+          {R"--(The cosmic microwave background, the same in all directions, see *spectral_radUniformCosmicBackground*.)--",
+           R"--(A sun if the ray hits one, otherwise the cosmic microwave background, see *spectral_radSunsOrCosmicBackground*.)--",
+           R"--(A unit background without Jacobian, for transmission calculations, see *spectral_radDefaultTransmission*.)--"},
       .enum_default = "UniformCosmicBackground",
   };
 
   wsa_data["spectral_rad_surface_agenda"] = {
-      .desc           = R"--(Computes spectral radiance as seen of the surface.
+      .desc         = R"--(Computes spectral radiance as seen of the surface.
 
 This agenda calculates the spectral radiance as seen of the surface.
 One common use-case us to provide a background spectral radiance.
@@ -186,9 +211,13 @@ Subsurface calculations are also supported through this agenda,
 but might require setting *spectral_rad_closed_surface_agenda*
 as well.
 )--",
-      .output         = {"spectral_rad", "spectral_rad_jac"},
-      .input          = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
-      .enum_options   = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .output       = {"spectral_rad", "spectral_rad_jac"},
+      .input        = {"freq_grid", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
+      .enum_options = {"Blackbody", "Transmission", "SurfaceReflectance"},
+      .enum_desc =
+          {R"--(Blackbody emission at the surface temperature, see *spectral_radSurfaceBlackbody*.)--",
+           R"--(A unit background without Jacobian, for transmission calculations, see *spectral_radDefaultTransmission*.)--",
+           R"--(Emission and reflection at the surface, see *spectral_radSurfaceReflectance*.)--"},
       .enum_default   = "Blackbody",
       .named_operator = "SpectralRadianceSurfaceAgendaOperator"};
 
@@ -210,6 +239,7 @@ that is being emitted.  That's the type of use case this agenda is made for and 
       .output         = wsa_data.at("spectral_rad_surface_agenda").output,
       .input          = wsa_data.at("spectral_rad_surface_agenda").input,
       .enum_options   = {"Blackbody"},
+      .enum_desc      = {R"--(Blackbody emission at the surface temperature, see *spectral_radSurfaceBlackbody*.)--"},
       .enum_default   = "Blackbody",
       .named_operator = wsa_data.at("spectral_rad_surface_agenda").named_operator};
 
@@ -222,6 +252,7 @@ Otherwise same as *spectral_rad_surface_agenda*.
       .output       = {"single_rad", "single_rad_jac"},
       .input        = {"freq", "jac_targets", "ray_point", "surf_field", "subsurf_field"},
       .enum_options = {"WrapGrid"},
+      .enum_desc    = {R"--(*spectral_rad_surface_agenda* at the single frequency *freq*.)--"},
       .enum_default = "WrapGrid",
   };
 
@@ -248,6 +279,8 @@ the derivative targets, or is empty for a value-only evaluation.
                        "jac_targets",
                        "model_state_vec"},
       .enum_options = {"Full"},
+      .enum_desc =
+          {R"--(Updates the model to *model_state_vec*, see *UpdateModelStates*, and simulates the measurement with *measurement_inversion_agenda*.)--"},
       .enum_default = "Full",
 
       // Wraps *measurement_inversion_agenda*, so it inherits the empty
@@ -266,6 +299,10 @@ when it is empty, *measurement_jac* is empty.  Both target sets are read-only.
       .output       = {"measurement_vec_fit", "measurement_jac"},
       .input        = {"model_state_targets", "jac_targets"},
       .enum_options = {"LowMemory", "HighPerformance", "Indexed"},
+      .enum_desc =
+          {R"--(The measurement is simulated with the ``"Low Memory"`` kernel of *MeasurementVectorSumupKernel*, which keeps the least in memory.)--",
+           R"--(The measurement is simulated with the ``"High Performance"`` kernel of *MeasurementVectorSumupKernel*, which keeps the spectral radiance of every geometry in memory to sum it faster.)--",
+           R"--(The measurement is simulated with the ``"Indexed"`` kernel of *MeasurementVectorSumupKernel*, which lists the weights of each geometry before the agenda calls.)--"},
       .enum_default = "Indexed",
 
       // Returning an empty *measurement_jac* when *jac_targets* is empty is the point
@@ -279,6 +316,11 @@ when it is empty, *measurement_jac* is empty.  Both target sets are read-only.
       .output       = {"spectral_surf_refl", "spectral_surf_refl_jac"},
       .input        = {"freq_grid", "surf_field", "ray_point", "jac_targets"},
       .enum_options = {"FlatScalar", "FlatRealFresnel", "Tessem", "Telsem"},
+      .enum_desc =
+          {R"--(A flat surface that reflects all polarizations alike, see *spectral_surf_reflFlatScalar*.)--",
+           R"--(A flat surface with the Fresnel reflectance of a real refractive index, see *spectral_surf_reflFlatRealFresnel*.)--",
+           R"--(Specular ocean reflectance from TESSEM2, see *spectral_surf_reflTessem*.)--",
+           R"--(Specular land reflectance from the TELSEM2 atlas, see *spectral_surf_reflTelsem*.)--"},
   };
 
   wsa_data["disort_settings_agenda"] = {.desc           = R"--(An agenda for setting up Disort.
@@ -341,6 +383,8 @@ as a boundary condition to subsurface radiance calculation.
                        "legendre_polynomial_dimension",
                        "disort_settings_agenda"},
       .enum_options = {"Standard" /*, "Disort"*/},
+      .enum_desc =
+          {R"--(*disort_settings_agenda* with the downwelling boundary condition from *spectral_rad_observer_agenda*, see *disort_settingsDownwellingObserver*.)--"},
       .enum_default = "Standard"};
 
   wsa_data["vdisort_settings_agenda"] = {.desc           = R"--(An agenda for setting up VDISORT.
@@ -378,10 +422,18 @@ of the tau-range covered by the ray path.
                        "legendre_polynomial_dimension",
                        "vdisort_settings_agenda"},
       .enum_options = {"Standard"},
+      .enum_desc =
+          {R"--(*vdisort_settings_agenda* with the downwelling boundary condition from *spectral_rad_observer_agenda*, see *vdisort_settingsDownwellingObserver*.)--"},
       .enum_default = "Standard"};
 
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
+    if (record.enum_desc.size() != record.enum_options.size())
+      throw std::runtime_error(std::format("Agenda {} has {} enum_options but {} enum_desc, it needs one per option",
+                                           name,
+                                           record.enum_options.size(),
+                                           record.enum_desc.size()));
+
     record.desc += std::format(R"(
 .. rubric:: Execution and customization
 

@@ -10,6 +10,15 @@ cover a path with wind, so Profile2Path throws unless f_extrapolfac allows
 the extrapolation.  A ray that misses the atmosphere has a path of one point,
 which needs no profile, and sees the background as with the default agenda.
 
+The EmissionProfile2Path option of spectral_rad_observer_agenda calls
+Profile2Path itself, in place of spectral_propmat_and_atm_path_agenda, so its
+radiances and Jacobians are those of the Emission option with Profile2Path to
+the bit.
+
+Profile2Path gives points outside alt_grid no propagation.  The
+GeometricProfile option of ray_path_observer_agenda removes them from the
+path, so an observer above alt_grid sees the same as with the default agenda.
+
 The propagation matrix and its temperature and frequency derivatives are
 also compared directly with spectral_propmat_agenda, at one position and many
 lines of sight.
@@ -17,6 +26,7 @@ lines of sight.
 Outside of ctest, that is without ARTS_HEADLESS, the differences are plotted.
 """
 
+import copy
 import os
 
 import numpy as np
@@ -158,6 +168,20 @@ if PLOT:
 
 assert rad_err < 1e-4, rad_err
 assert np.all(jac_err <= 1e-3 * jac_max), jac_err / jac_max
+
+# %% The EmissionProfile2Path option of spectral_rad_observer_agenda
+#
+# It calls Profile2Path itself, in place of spectral_propmat_and_atm_path_agenda, which is set to its default here so
+# that it cannot take part.  Otherwise it is the Emission option, so it gives the radiances and Jacobians to the bit.
+
+ws.spectral_propmat_and_atm_path_agendaSet(option="Default")
+ws.spectral_rad_observer_agendaSet(option="EmissionProfile2Path")
+rad_obs, jac_obs = spectra()
+ws.spectral_rad_observer_agendaSet(option="Emission")
+ws.spectral_propmat_and_atm_path_agendaSet(option="Profile2Path")
+
+assert np.array_equal(rad_obs, rad), "EmissionProfile2Path must give the radiances of Emission with Profile2Path"
+assert np.array_equal(jac_obs, jac), "EmissionProfile2Path must give the Jacobians of Emission with Profile2Path"
 
 # %% The propagation matrix at one position, against spectral_propmat_agenda at many lines of sight
 #
@@ -306,3 +330,44 @@ def spectral_propmat_and_atm_path_agenda(ws):
 
 rad, jac = spectra()
 assert np.all(np.isfinite(rad)) and np.all(np.isfinite(jac)), "An infinite f_extrapolfac extrapolates"
+
+# %% Observers outside alt_grid
+#
+# GeometricProfile puts the points of a path on the crossings of alt_grid and removes the points outside it, here the
+# observer at 600 km, so the profile need not reach the observer.  As above, the reference is the default path agenda
+# on the same paths.  A ray that misses the atmosphere keeps its one point.
+
+ws.alt_grid = np.linspace(0, 100e3, 51)
+ws.ray_path_observer_agendaSet(option="GeometricProfile")
+rad_ref, jac_ref = default_spectra()
+ws.ProfileFromAltitude()
+ws.spectral_rad_observer_agendaSet(option="EmissionProfile2Path")
+rad, jac = spectra()
+
+rad_err = np.abs(rad - rad_ref).max() / np.abs(rad_ref).max()
+jac_err = np.abs(jac - jac_ref).max(axis=(0, 2))
+jac_max = np.abs(jac_ref).max(axis=(0, 2))
+print(f"Observers outside alt_grid: radiance error {rad_err:.1e}")
+assert rad_err < 1e-4, rad_err
+assert np.all(jac_err <= 1e-3 * jac_max), jac_err / jac_max
+
+# Profile2Path gives a point outside alt_grid, here the observer, no propagation and the atmosphere of atm_pathFromPath
+ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=LOS[2])
+inside = [copy.copy(p) for p in ws.ray_path]  # Copies, as the points of ws.ray_path change with it
+assert inside[0].pos[0] == ws.alt_grid[-1], "GeometricProfile must remove the observer above alt_grid"
+ws.Profile2Path()
+propmat_inside = [np.array(k) for k in ws.spectral_propmat_path]
+
+ws.ray_pathInit(pos=POS, los=LOS[2])
+observer = copy.copy(ws.ray_path[0])
+ws.ray_path = [observer] + inside
+ws.Profile2Path()
+
+for path_variable in ["spectral_propmat_path", "spectral_propmat_jac_path", "spectral_nlte_srcvec_path", "spectral_nlte_srcvec_jac_path"]:
+    assert not np.any(np.array(getattr(ws, path_variable)[0])), f"{path_variable} must be zero outside alt_grid"
+for k, k_ref in zip(list(ws.spectral_propmat_path)[1:], propmat_inside, strict=True):
+    assert np.array_equal(np.array(k), k_ref), "A point outside alt_grid must not change the others"
+
+atm_path = pyarts.arts.ArrayOfAtmPoint()
+ws.atm_pathFromPath(atm_path=atm_path, ray_path=[observer])
+assert ws.atm_path[0].temperature == atm_path[0].temperature and ws.atm_path[0].pressure == atm_path[0].pressure

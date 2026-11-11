@@ -3775,7 +3775,9 @@ Points are added where the ray path crosses any of the three grids in pure geome
       .desc =
           R"--(Fill the path with with points that crosses the *alt_grid*
 
-Also checks that only crossings of the *alt_grid* are in *ray_path* upon exit.
+Also checks that every point of *ray_path* inside *alt_grid* is a crossing of it upon exit.
+Points outside *alt_grid*, such as an observer above it, are kept as they are.  See
+*ray_pathRemoveOutsideAltitudeGrid* to remove them.
 
 The intent is to use this only with methods that work on altitude profiles.
 )--",
@@ -3830,6 +3832,18 @@ These only matter for polarized radiative transfer.
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
       .in     = {"ray_path", "surf_field"},
+  };
+
+  wsm_data["ray_pathRemoveOutsideAltitudeGrid"] = {
+      .desc =
+          R"--(Remove the points of the ray path that are outside *alt_grid*.
+
+The last point of the path is its background.  It is kept if no point is inside *alt_grid*,
+so that a ray that misses the atmosphere keeps its one point.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "alt_grid"},
   };
 
   wsm_data["ray_pathRemoveNonAtm"] = {
@@ -6774,7 +6788,7 @@ Additional work is requires if proper coverage of the limb is required
       .desc =
           R"(Turns profile data into path data.
 
-Each point of *ray_path* must be at an altitude of *alt_grid*.  It takes
+Each point of *ray_path* inside *alt_grid* must be at one of its altitudes.  It takes
 the atmospheric point of that altitude from *atm_profile*, but with the
 wind of *atm_field* at its own position.  Its frequency grid is *freq_grid*
 shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
@@ -6804,10 +6818,18 @@ Only valid when local spectral properties are identical in all directions,
 and when the atmosphere, except for its wind, is the same at all latitudes
 and longitudes.  Polarization is not possible with this method.
 
-A path of fewer than two points has no layer to propagate through, so its
-propagation matrices, non-LTE source vectors and their derivatives are zero.
-Its point needs no altitude of *alt_grid*, so a ray that misses the
-atmosphere needs none either.
+The profile does not cover a point outside *alt_grid*, so its propagation
+matrices, non-LTE source vectors and their derivatives are zero.  Its
+atmospheric point and frequency grid are those of *atm_pathFromPath* and
+*freq_grid_pathFromPath*.  The same holds for a path of fewer than two points,
+which has no layer to propagate through.  Its point needs no altitude of
+*alt_grid*, so a ray that misses the atmosphere needs none either.
+
+.. note::
+    The transmission of a layer depends on the propagation matrices at both
+    of its ends, so a layer from a point outside *alt_grid* to a point inside
+    it still absorbs.  *ray_pathRemoveOutsideAltitudeGrid* removes the points
+    outside *alt_grid* from *ray_path*.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_propmat_path",

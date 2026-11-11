@@ -4,6 +4,7 @@
 #include <workspace.h>
 
 #include <algorithm>
+#include <limits>
 #include <ranges>
 
 namespace {
@@ -103,42 +104,33 @@ void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
 
   if (not(f_extrapolfac >= 0.0)) arts::user_error("f_extrapolfac must not be negative, it is {}", f_extrapolfac);
 
-  // A path of fewer than two points has no layer to propagate through, so nothing uses its propagation matrices
-  if (ray_path.size() < 2) {
-    atm_pathFromPath(atm_path, ray_path, atm_field);
-    freq_grid_pathFromPath(freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
-
-    const Size nq = jac_targets.target_count();
-    spectral_propmat_path.assign(ray_path.size(), PropmatVector(freq_grid.size()));
-    spectral_nlte_srcvec_path.assign(ray_path.size(), StokvecVector(freq_grid.size()));
-    spectral_propmat_jac_path.assign(ray_path.size(), PropmatMatrix(nq, freq_grid.size()));
-    spectral_nlte_srcvec_jac_path.assign(ray_path.size(), StokvecMatrix(nq, freq_grid.size()));
-    return;
-  }
+  // A path of fewer than two points has no layer to propagate through, so nothing uses its propagation matrices.
+  // The profile does not cover points outside alt_grid.  Neither has an altitude of the profile.
+  constexpr Size outside  = std::numeric_limits<Size>::max();
+  const bool     no_layer = ray_path.size() < 2;
 
   const std::vector<Size> ips{
       std::from_range, ray_path | stdv::transform([&](const PropagationPathPoint& ray_point) -> Size {
-                         const Size ip =
-                             stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, ray_point.altitude()));
+                         const Numeric alt = ray_point.altitude();
+                         if (no_layer or alt_grid.empty() or alt < alt_grid.front() or alt > alt_grid.back())
+                           return outside;
 
-                         if (ip == alt_grid.size())
-                           arts::user_error("Ray path point altitude {} is out of bounds of the altitude grid [{}, {}]",
-                                            ray_point.altitude(),
-                                            alt_grid.front(),
-                                            alt_grid.back());
+                         const Size ip = stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, alt));
 
-                         if (alt_grid[ip] != ray_point.altitude())
+                         if (alt_grid[ip] != alt)
                            arts::user_error(R"(Ray path point altitude {} does not match any point in the altitude grid.
 
 Grid points: {:B,}
 )",
-                                            ray_point.altitude(),
+                                            alt,
                                             alt_grid);
 
                          return ip;
                        })};
 
-  const Size n = ips.size();
+  const Size n  = ips.size();
+  const Size nf = freq_grid.size();
+  const Size nq = jac_targets.target_count();
 
   spectral_propmat_path.resize(n);
   spectral_propmat_jac_path.resize(n);
@@ -148,12 +140,36 @@ Grid points: {:B,}
   freq_grid_path.resize(n);
   freq_wind_shift_jac_path.resize(n);
 
+  // Points without an altitude of the profile have no propagation, and the atmosphere and frequencies of
+  // atm_pathFromPath and freq_grid_pathFromPath
+  const std::vector<Size> outside_points{
+      std::from_range, stdv::iota(Size{0}, n) | stdv::filter([&ips](Size i) { return ips[i] == outside; })};
+  const ArrayOfPropagationPathPoint outside_path{
+      std::from_range, outside_points | stdv::transform([&ray_path](Size i) { return ray_path[i]; })};
+  ArrayOfAtmPoint      outside_atm_path{};
+  ArrayOfAscendingGrid outside_freq_grid_path{};
+  ArrayOfVector3       outside_freq_wind_shift_jac_path{};
+  atm_pathFromPath(outside_atm_path, outside_path, atm_field);
+  freq_grid_pathFromPath(
+      outside_freq_grid_path, outside_freq_wind_shift_jac_path, freq_grid, outside_path, outside_atm_path);
+  for (Size k = 0; k < outside_points.size(); k++) {
+    const Size i                     = outside_points[k];
+    atm_path[i]                      = std::move(outside_atm_path[k]);
+    freq_grid_path[i]                = std::move(outside_freq_grid_path[k]);
+    freq_wind_shift_jac_path[i]      = outside_freq_wind_shift_jac_path[k];
+    spectral_propmat_path[i]         = PropmatVector(nf);
+    spectral_nlte_srcvec_path[i]     = StokvecVector(nf);
+    spectral_propmat_jac_path[i]     = PropmatMatrix(nq, nf);
+    spectral_nlte_srcvec_jac_path[i] = StokvecMatrix(nq, nf);
+  }
+
   String error{};
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size i = 0; i < n; i++) {
     try {
       const Size ip = ips[i];
+      if (ip == outside) continue;
 
       atm_path[i]      = atm_profile[ip];
       atm_path[i].wind = wind_at(atm_field, ray_path[i].pos);
@@ -167,7 +183,6 @@ Grid points: {:B,}
         spectral_nlte_srcvec_jac_path[i] = spectral_nlte_srcvec_jac_profile[ip];
       } else {
         const auto  lags = frequency_lags(freq_grid_profile, freq_grid_path[i], f_extrapolfac);
-        const Size  nf   = freq_grid.size();
         const auto& dk   = spectral_propmat_jac_profile[ip];
         const auto& ds   = spectral_nlte_srcvec_jac_profile[ip];
 

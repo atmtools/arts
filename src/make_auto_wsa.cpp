@@ -338,12 +338,14 @@ std::unordered_map<std::string, std::vector<std::pair<std::string, std::string>>
                name);
     if (ag.enum_options.empty()) continue;
 
-    for (auto& opt : ag.enum_options) {
-      std::print(os,
-                 R"(  tmp_{1}.emplace_back("{0}", get_{1}("{0}").sphinx_list());
-)",
-                 opt,
-                 name);
+    for (Size i = 0; i < ag.enum_options.size(); i++) {
+      std::print(
+          os,
+          R"-x-(  tmp_{1}.emplace_back("{0}", std::string{{R"--({2})--"}} + "\n\n" + get_{1}("{0}").sphinx_list());
+)-x-",
+          ag.enum_options[i],
+          name,
+          ag.enum_desc[i]);
     }
   }
 
