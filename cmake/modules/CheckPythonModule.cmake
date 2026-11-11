@@ -18,7 +18,7 @@ macro (CHECK_PYTHON_MODULES)
   set(PYPI_NAMES
     python-build
     docutils
-    lark-parser
+    lark
     matplotlib
     netCDF4
     numpy
