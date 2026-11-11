@@ -103,6 +103,19 @@ void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
 
   if (not(f_extrapolfac >= 0.0)) arts::user_error("f_extrapolfac must not be negative, it is {}", f_extrapolfac);
 
+  // A path of fewer than two points has no layer to propagate through, so nothing uses its propagation matrices
+  if (ray_path.size() < 2) {
+    atm_pathFromPath(atm_path, ray_path, atm_field);
+    freq_grid_pathFromPath(freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
+
+    const Size nq = jac_targets.target_count();
+    spectral_propmat_path.assign(ray_path.size(), PropmatVector(freq_grid.size()));
+    spectral_nlte_srcvec_path.assign(ray_path.size(), StokvecVector(freq_grid.size()));
+    spectral_propmat_jac_path.assign(ray_path.size(), PropmatMatrix(nq, freq_grid.size()));
+    spectral_nlte_srcvec_jac_path.assign(ray_path.size(), StokvecMatrix(nq, freq_grid.size()));
+    return;
+  }
+
   const std::vector<Size> ips{
       std::from_range, ray_path | stdv::transform([&](const PropagationPathPoint& ray_point) -> Size {
                          const Size ip =

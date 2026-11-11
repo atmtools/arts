@@ -7,7 +7,8 @@ radiances and Jacobians, those of the wind included, agree to within the
 interpolation error.  Without wind, nothing is interpolated, so the
 radiances are the same to the bit.  A profile computed without wind cannot
 cover a path with wind, so Profile2Path throws unless f_extrapolfac allows
-the extrapolation.
+the extrapolation.  A ray that misses the atmosphere has a path of one point,
+which needs no profile, and sees the background as with the default agenda.
 
 The propagation matrix and its temperature and frequency derivatives are
 also compared directly with spectral_propmat_agenda, at one position and many
@@ -25,7 +26,7 @@ PLOT = "ARTS_HEADLESS" not in os.environ
 if PLOT:
     import matplotlib.pyplot as plt
 
-    COLORS = ["#266CC1", "#eb6834", "#1baf7a"]  # Default and Profile2Path, or one per line of sight
+    COLORS = ["#266CC1", "#eb6834", "#1baf7a", "#eda100"]  # Default and Profile2Path, or one per line of sight
     DEFAULT = {"color": COLORS[0], "label": "Default"}
     PROFILE = {"color": COLORS[1], "ls": "--", "label": "Profile2Path"}
 
@@ -34,7 +35,7 @@ if PLOT:
 
 INF = float("inf")
 POS = [600e3, 0.0, 0.0]
-LOS = [[113.0, 30.0], [113.5, 60.0], [150.0, 200.0]]  # Limb at about 45 and 20 km, and down-looking
+LOS = [[113.0, 30.0], [113.5, 60.0], [150.0, 200.0], [0.0, 0.0]]  # Limb at about 45 and 20 km, down, and up past it all
 WIND = {"u": 100.0, "v": 50.0, "w": 5.0}
 
 ws = pyarts.workspace.Workspace()
@@ -85,12 +86,13 @@ def default_spectra():
 
 
 def profile():
-    """A profile at every altitude of the paths"""
+    """A profile at every altitude of the paths, of which a path of one point, which misses the atmosphere, has none"""
     ws.spectral_propmat_and_atm_path_agendaSet(option="Default")
     alts = []
     for los in LOS:
         ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=los)
-        alts.extend(p.pos[0] for p in ws.ray_path)
+        if len(ws.ray_path) > 1:
+            alts.extend(p.pos[0] for p in ws.ray_path)
     ws.alt_grid = np.unique(alts)
     ws.lat = 0.0
     ws.lon = 0.0

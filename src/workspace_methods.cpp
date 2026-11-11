@@ -6803,6 +6803,11 @@ extrapolate linearly to any frequency.
 Only valid when local spectral properties are identical in all directions,
 and when the atmosphere, except for its wind, is the same at all latitudes
 and longitudes.  Polarization is not possible with this method.
+
+A path of fewer than two points has no layer to propagate through, so its
+propagation matrices, non-LTE source vectors and their derivatives are zero.
+Its point needs no altitude of *alt_grid*, so a ray that misses the
+atmosphere needs none either.
 )",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_propmat_path",
