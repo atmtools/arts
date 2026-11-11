@@ -6774,25 +6774,59 @@ Additional work is requires if proper coverage of the limb is required
       .desc =
           R"(Turns profile data into path data.
 
-Only valid when local spectral properties are identical in all directions.
-Neither polarization nor wind calculations are possible with this method.
+Each point of *ray_path* must be at an altitude of *alt_grid*.  It takes
+the atmospheric point of that altitude from *atm_profile*, but with the
+wind of *atm_field* at its own position.  Its frequency grid is *freq_grid*
+shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
+the non-LTE source vectors and their derivatives of that altitude are
+interpolated linearly from *freq_grid_profile* to the shifted frequencies.
+The frequency derivatives of the wind targets are then turned into wind
+derivatives by *spectral_propmat_jacWindFix*.
+
+The input ``f_extrapolfac`` limits the extrapolation beyond *freq_grid_profile*.
+If *freq_grid_profile* is :math:`[f_0, f_1, \cdots, f_{n-1}, f_n]`, then
+this method throws an error if a shifted frequency :math:`f` is
+
+.. math::
+
+    f < f_0 - \Delta f_e \left(f_1 - f_0\right)
+
+or
+
+.. math::
+
+    f > f_n + \Delta f_e \left(f_n - f_{n-1}\right)
+
+where :math:`\Delta f_e` is ``f_extrapolfac``.  Set it to an infinite value to
+extrapolate linearly to any frequency.
+
+Only valid when local spectral properties are identical in all directions,
+and when the atmosphere, except for its wind, is the same at all latitudes
+and longitudes.  Polarization is not possible with this method.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "spectral_propmat_jac_path",
-                 "spectral_nlte_srcvec_jac_path",
-                 "atm_path",
-                 "freq_grid_path",
-                 "freq_wind_shift_jac_path"},
-      .in     = {"freq_grid",
-                 "alt_grid",
-                 "ray_path",
-                 "atm_profile",
-                 "spectral_propmat_profile",
-                 "spectral_propmat_jac_profile",
-                 "spectral_nlte_srcvec_profile",
-                 "spectral_nlte_srcvec_jac_profile"},
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat_path",
+                    "spectral_nlte_srcvec_path",
+                    "spectral_propmat_jac_path",
+                    "spectral_nlte_srcvec_jac_path",
+                    "atm_path",
+                    "freq_grid_path",
+                    "freq_wind_shift_jac_path"},
+      .in        = {"freq_grid",
+                    "freq_grid_profile",
+                    "alt_grid",
+                    "ray_path",
+                    "atm_field",
+                    "jac_targets",
+                    "atm_profile",
+                    "spectral_propmat_profile",
+                    "spectral_propmat_jac_profile",
+                    "spectral_nlte_srcvec_profile",
+                    "spectral_nlte_srcvec_jac_profile"},
+      .gin       = {"f_extrapolfac"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{0.5}},
+      .gin_desc  = {R"--(Frequency extrapolation factor (relative to grid spacing). :math:`\Delta f_e` in text above.)--"},
   };
 
   wsm_data["CoupledAtmosphereAndSubsurfaceDisortSettings"] = {
@@ -6820,13 +6854,34 @@ respective internal altitude grids will contain the surface elevation as a grid 
 
   wsm_data["ProfileFromAltitude"] = {
       .desc =
-          R"(Turns profile data into path data.
+          R"(Computes the propagation matrices of a profile, once per altitude of *alt_grid*.
+
+The atmosphere of the profile, *atm_profile*, is *atm_field* at *alt_grid*,
+*lat* and *lon*, but without wind.  The propagation matrices, the non-LTE
+source vectors and their derivatives are computed for it by
+*spectral_propmat_agenda* on *freq_grid_profile*.  *Profile2Path* turns them
+into path data, with the wind of *atm_field* at each point of the path.
+
+*freq_grid_profile* is *freq_grid* with points added beyond both ends, so that
+*Profile2Path* can shift *freq_grid* by the wind.  The largest shift is by the
+strongest wind of *atm_field* at the altitudes of the profile, as if it blew
+along the line of sight.  For a
+wind speed :math:`v`, the added points continue the spacing at either end of
+*freq_grid* until they cover :math:`f_0 \left(1 - v / c\right)` below its first
+frequency :math:`f_0` and :math:`f_n \left(1 + v / c\right)` above its last
+frequency :math:`f_n`.  Without wind, *freq_grid_profile* is *freq_grid*.
+
+The derivatives of the wind targets are kept as frequency derivatives, as they
+are before *spectral_propmat_jacWindFix* turns them into wind derivatives.  This
+undoes *spectral_propmat_jacWindFix*, so *spectral_propmat_agenda* must apply it,
+as it must to give wind derivatives at all.
 
 Only valid when local spectral properties are identical in all directions.
-Neither polarization nor wind calculations are possible with this method.
+Polarization is not possible with this method.
 )",
       .author         = {"Richard Larsson"},
       .out            = {"atm_profile",
+                         "freq_grid_profile",
                          "spectral_propmat_profile",
                          "spectral_propmat_jac_profile",
                          "spectral_nlte_srcvec_profile",
