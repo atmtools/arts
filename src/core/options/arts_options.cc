@@ -448,32 +448,100 @@ values in relevant calculations.  Or it might simply disable a functionality.
           R"(The kernel to use for summing up the measurement vectors.
 
 This is used when summing up *measurement_vec* and *measurement_jac* from
-the observation elements in *measurement_sensors*.  The kernel choice is
-just a trade-off between memory and performance.  The "low memory" option will
-never allocate more than one *StokvecVector* and *StokvecMatrix* per core.
-The "high performance" option will allocate as many *StokvecVector* and
-*StokvecMatrix* as needed for the full observation geometry.
+the observation elements in *measurement_sensors*.  Every kernel calls
+*spectral_rad_observer_agenda* once per geometry of each sensor, and gives the
+same result up to the rounding of the sums.  The kernels differ in what they
+keep in memory and in what they do besides the agenda calls.
 
-The low memory computation time is :math:`O(MN)`, where :math:`M` is the number
-of frequency grids times the number of observation geometries, and :math:`N` is
-the number of observation elements in *measurement_sensors*.  It will only ever
-allocate memory proportional to :math:`N`.
+The estimates below use, for each sensor in *measurement_sensors*:
 
-The high performance computation time is :math:`O(M+N)`.  It will allocate
-memory proportional to :math:`MN`.  It sums the observation elements in
-parallel after all simulations, so it is the fastest option when memory
-allows and the summing is heavy, such as for a single observation geometry
-with wide channels, or for many observation elements sharing each geometry.
+- :math:`G`: its geometries, the agenda calls it makes.
+- :math:`F`: its frequencies.
+- :math:`E`: its elements.
+- :math:`W`: its non-zero weights.
+- :math:`P`: its pairs of element and geometry where the element has weights.
+  At most :math:`W`; for an antenna, the elements times the geometries the
+  antenna samples per placement.
 
-The indexed option is the default.  It first lists, for each observation geometry, the observation
-elements that have weights there, and where those weights are.  Each core then
-sums only these elements after each of its simulations, so its computation time
-is also :math:`O(M+N)`.  The list takes memory proportional to the number of
-pairs of observation element and observation geometry with weights.  Each core
-also keeps one *StokvecVector* and *StokvecMatrix*, like the "low memory"
-option, and the contributions of its current geometry to the elements that have
-weights at more than one geometry.  Only adding these contributions to
-*measurement_vec* and *measurement_jac* is done one core at a time.
+The ``report()`` of *measurement_sensors* lists :math:`G`, :math:`F`,
+:math:`E`, and :math:`W` of each sensor.  :math:`J` is ``x_size()`` of
+*jac_targets*, the number of columns of *measurement_jac*.  :math:`C` is the
+number of cores used, at most the total number of geometries.  A number takes
+8 bytes, and a Stokes vector 32 bytes.
+
+All kernels keep *measurement_vec* and *measurement_jac*, :math:`8(J+1)` bytes
+per element of all sensors.  Each agenda call also uses the working memory of
+*spectral_rad_observer_agenda*, on every core that runs one, which comes on top
+of the estimates below.  It depends on the agenda, and often dominates.
+
+"Low Memory" keeps, on each core, the spectral radiance and its Jacobian of
+the geometry the core simulates: :math:`32(J+1)F` bytes per core.  Besides the
+agenda calls, it searches the weights of every element for every geometry,
+:math:`GE` searches per sensor, and it sums the weights, :math:`W(J+1)`
+products per sensor, one core at a time.  It uses the least memory, but its
+searches can dominate when a sensor has both many geometries and many
+elements, and the agenda calls are cheap.
+
+"High Performance" keeps the spectral radiance and its Jacobian of every
+geometry of every sensor: :math:`32(J+1)GF` bytes per sensor.  It sums the
+weights after all agenda calls, in parallel over the elements.  It is the
+fastest kernel when this memory is available and the summing is heavy, such as
+for a single geometry with wide channels, or for many elements sharing each
+geometry.
+
+"Indexed", the default, keeps what "Low Memory" keeps, :math:`32(J+1)F` bytes
+per core.  Before the agenda calls, it lists for each geometry the elements
+with weights there, and where those weights are.  The list of a sensor takes
+about :math:`24P + 8(G+E)` bytes, and building it reads each weight once.  Each
+core sums the elements of its geometry after its agenda call.  An element with
+weights at that geometry only is written directly.  For each of the other
+elements, the core keeps its contribution, :math:`8(J+1)` bytes, and adds it to
+*measurement_vec* and *measurement_jac* one core at a time: :math:`P(J+1)`
+additions per sensor.
+
+How the kernels grow with the number of cores :math:`C` follows from the
+above.  Let :math:`A` be the time of all agenda calls on one core, :math:`B`
+the time of the :math:`W(J+1)` products of summing the weights on one core,
+and :math:`S` the time of what a kernel does one core at a time.  Sums are over
+all sensors, :math:`F` in a per-core term is that of the sensor with the most
+frequencies, and :math:`E_g` is the most elements with weights at one
+geometry.
+
+- "Low Memory": memory :math:`32(J+1)FC` bytes, linear in :math:`C`.  Its
+  :math:`S` is its :math:`GE` searches and :math:`B`, so its time is about
+  :math:`\max((A + S)/C, S)`.  It stops gaining from more cores at about
+  :math:`C = A/S`.
+- "Indexed": memory :math:`(32F + 8E_g)(J+1)C` bytes plus its lists, linear in
+  :math:`C` and a little steeper than "Low Memory".  Its :math:`S` is its
+  :math:`P(J+1)` additions, so its time is about :math:`\max((A + B + S)/C,
+  S)`, plus reading every weight once for the lists.  It stops gaining at about
+  :math:`C = (A + B)/S`, later than "Low Memory", as its :math:`S` is smaller.
+- "High Performance": memory :math:`32(J+1)GF` bytes, constant in :math:`C`.
+  It has no :math:`S`, so its time is about :math:`(A + B)/C`, and it keeps
+  gaining from more cores.
+
+At most one core per geometry shares :math:`A`, and for "High Performance" at
+most one core per element shares :math:`B`.  With a single geometry in all of
+*measurement_sensors*, no kernel shares :math:`A` among the cores, though the
+methods of the agenda may use them themselves, and the time is about
+:math:`A + B` for "Low Memory" and "Indexed" and :math:`A + B/C` for "High
+Performance".  The working memory of the agenda grows by one agenda call per
+core for all kernels.  Memory bandwidth, which the cores share, is left out.
+
+For example, take an antenna that samples 381 geometries per placement, at 13
+placements, with 20 channels of 10 frequencies, so :math:`G = 4953`,
+:math:`F = 200`, :math:`E = 260`, and :math:`P = 260 \cdot 381 = 99060`.  With
+:math:`J = 500` and :math:`C = 16`:
+
+- *measurement_jac*: :math:`8 \cdot 500 \cdot 260` bytes, about 1 MB.
+- "Low Memory": :math:`16 \cdot 32 \cdot 501 \cdot 200` bytes, about 51 MB.
+- "High Performance": :math:`32 \cdot 501 \cdot 4953 \cdot 200` bytes, about 15.9 GB.
+- "Indexed": the 51 MB of "Low Memory", about 2.4 MB of list, and
+  :math:`16 \cdot 8 \cdot 501 \cdot 20` bytes, about 1.3 MB, of contributions,
+  as 20 elements have weights at each geometry.
+
+Each further core adds about 3.2 MB to "Low Memory", 3.3 MB to "Indexed", and
+nothing to "High Performance".
 )",
       .values_and_desc = {Value{"LowMem", "Low Memory", "Use the low memory kernel"},
                           Value{"HighPerf", "High Performance", "Use the high performance kernel"},

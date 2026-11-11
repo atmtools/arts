@@ -4605,12 +4605,10 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 
 .. tip::
 
-   The default "Indexed" kernel is :math:`O(N+M)`, and like the
-   "Low Memory" kernel it keeps the spectral radiance of one geometry
-   per core.  The "High Performance" kernel keeps that of every
-   geometry, and is faster when memory allows and the summing per
-   geometry is heavy, such as for a single geometry with wide channels.
-   The "Low Memory" kernel is :math:`O(N \times M)`.
+   The kernels trade memory for speed.  See *MeasurementVectorSumupKernel*
+   for estimates of the memory and the work of each kernel from the sizes
+   of *measurement_sensors* and *jac_targets*, and for how they grow with
+   the number of cores.
 
 The derivatives with regards to the sensor targets of *jac_targets* are
 left as zero, see *measurement_jacAddSensorJacobianPerturbations*.
