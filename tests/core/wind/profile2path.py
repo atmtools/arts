@@ -15,6 +15,9 @@ Profile2Path itself, in place of spectral_propmat_and_atm_path_agenda, so its
 radiances and Jacobians are those of the Emission option with Profile2Path to
 the bit.
 
+Profile2Path computes points between the altitudes of alt_grid, such as
+limb points, as the default path agenda does.
+
 Profile2Path gives points outside alt_grid no propagation.  The
 GeometricProfile option of ray_path_observer_agenda removes them from the
 path, so an observer above alt_grid sees the same as with the default agenda.
@@ -371,3 +374,34 @@ for k, k_ref in zip(list(ws.spectral_propmat_path)[1:], propmat_inside, strict=T
 atm_path = pyarts.arts.ArrayOfAtmPoint()
 ws.atm_pathFromPath(atm_path=atm_path, ray_path=[observer])
 assert ws.atm_path[0].temperature == atm_path[0].temperature and ws.atm_path[0].pressure == atm_path[0].pressure
+
+# %% Points between the altitudes of alt_grid
+#
+# The limb points of the default paths are between the altitudes of the crossings, and Profile2Path computes them as the
+# default path agenda does, so a profile at the altitudes of the crossings serves all paths.
+
+ws.ray_path_observer_agendaSetGeometric(max_step_option="None", add_crossings=1, add_limb=1)
+ws.spectral_rad_observer_agendaSet(option="Emission")
+rad_ref, jac_ref = default_spectra()
+crossings = np.asarray(ws.atm_field["t"].data.grids[0])
+ws.alt_grid = crossings[crossings <= ws.atm_field.top_of_atmosphere]
+ws.ProfileFromAltitude()
+ws.spectral_rad_observer_agendaSet(option="EmissionProfile2Path")
+rad, jac = spectra()
+
+rad_err = np.abs(rad - rad_ref).max() / np.abs(rad_ref).max()
+jac_err = np.abs(jac - jac_ref).max(axis=(0, 2))
+jac_max = np.abs(jac_ref).max(axis=(0, 2))
+print(f"Points between the altitudes of alt_grid: radiance error {rad_err:.1e}")
+assert rad_err < 1e-4, rad_err
+assert np.all(jac_err <= 1e-3 * jac_max), jac_err / jac_max
+
+ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=LOS[0])
+tangent = int(np.argmin([p.pos[0] for p in ws.ray_path]))
+assert ws.ray_path[tangent].pos[0] not in np.asarray(ws.alt_grid), "The limb point must be between the altitudes"
+ws.Profile2Path()
+propmat_tangent = np.array(ws.spectral_propmat_path[tangent])
+ws.atm_pathFromPath()
+ws.freq_grid_pathFromPath()
+ws.spectral_propmat_pathFromPath()
+assert np.array_equal(propmat_tangent, np.array(ws.spectral_propmat_path[tangent])), "The limb point must be computed"

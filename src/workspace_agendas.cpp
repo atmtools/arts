@@ -112,7 +112,7 @@ position and line of sight.
       .enum_options = {"GeometricDefault", "GeometricProfile"},
       .enum_desc =
           {R"--(A geometric path, as *ray_path_observer_agendaSetGeometric* sets it with its default settings.)--",
-           R"--(A geometric path with points only where it crosses *alt_grid*, for methods that work on altitude profiles, such as *Profile2Path*.  The points outside *alt_grid*, such as an observer above it, are removed, see *ray_pathRemoveOutsideAltitudeGrid*.)--"},
+           R"--(A geometric path with points only where it crosses *alt_grid*, for methods that work on altitude profiles, such as *Profile2Path*.  The points outside *alt_grid*, such as an observer above it, are removed, see *ray_pathRemoveOutsideAltitudeGrid*.  A limb path gets no tangent point, so the spacing of *alt_grid* limits its accuracy.)--"},
       .enum_default = "GeometricDefault",
   };
 
@@ -163,7 +163,7 @@ is warranted.
       .enum_desc =
           {R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, see *spectral_radClearskyEmission*.  *spectral_propmat_and_atm_path_agenda* gives the path data.)--",
            R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with points added where a step is optically too thick, see *spectral_propmat_pathAddAdaptiveHalfPath*.  The radiance is computed one frequency at a time, see *spectral_radSinglePathEmissionFrequencyLoop*.)--",
-           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with the path data taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  Use it with ``ray_path_observer_agendaSet(option="GeometricProfile")``, which puts the points of the path on *alt_grid*.)--",
+           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with the path data taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  Points of the path between the altitudes of *alt_grid*, such as the tangent points of limb paths, are computed by *spectral_propmat_agenda*.)--",
            R"--(Passive Monte Carlo radiance for a pencil beam, see *spectral_radMonteCarlo*.)--"},
       .enum_default = "Emission",
   };

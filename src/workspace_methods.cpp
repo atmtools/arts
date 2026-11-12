@@ -6788,9 +6788,9 @@ Additional work is requires if proper coverage of the limb is required
       .desc =
           R"(Turns profile data into path data.
 
-Each point of *ray_path* inside *alt_grid* must be at one of its altitudes.  It takes
-the atmospheric point of that altitude from *atm_profile*, but with the
-wind of *atm_field* at its own position.  Its frequency grid is *freq_grid*
+A point of *ray_path* at an altitude of *alt_grid* takes the atmospheric
+point of that altitude from *atm_profile*, but with the wind of *atm_field*
+at its own position.  Its frequency grid is *freq_grid*
 shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
 the non-LTE source vectors and their derivatives of that altitude are
 interpolated linearly from *freq_grid_profile* to the shifted frequencies.
@@ -6817,6 +6817,13 @@ extrapolate linearly to any frequency.
 Only valid when local spectral properties are identical in all directions,
 and when the atmosphere, except for its wind, is the same at all latitudes
 and longitudes.  Polarization is not possible with this method.
+
+A point inside *alt_grid* but between its altitudes, such as the tangent
+point of a limb path, is not in the profile.  Its atmospheric point,
+frequency grid, propagation matrices, non-LTE source vectors and their
+derivatives are those of *atm_pathFromPath*, *freq_grid_pathFromPath* and
+*spectral_propmat_pathFromPath*, as for the default path agenda, computed
+by *spectral_propmat_agenda*.
 
 The profile does not cover a point outside *alt_grid*, so its propagation
 matrices, non-LTE source vectors and their derivatives are zero.  Its
@@ -6849,11 +6856,14 @@ which has no layer to propagate through.  Its point needs no altitude of
                     "spectral_propmat_profile",
                     "spectral_propmat_jac_profile",
                     "spectral_nlte_srcvec_profile",
-                    "spectral_nlte_srcvec_jac_profile"},
+                    "spectral_nlte_srcvec_jac_profile",
+                    "spectral_propmat_agenda"},
       .gin       = {"f_extrapolfac"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.5}},
-      .gin_desc  = {R"--(Frequency extrapolation factor (relative to grid spacing). :math:`\Delta f_e` in text above.)--"},
+      .gin_desc =
+          {R"--(Frequency extrapolation factor (relative to grid spacing). :math:`\Delta f_e` in text above.)--"},
+      .pass_workspace = true,
   };
 
   wsm_data["CoupledAtmosphereAndSubsurfaceDisortSettings"] = {

@@ -81,7 +81,8 @@ Compute the profile with at least the wind speed of the path, or allow more extr
 }
 }  // namespace
 
-void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
+void Profile2Path(const Workspace&                   ws,
+                  ArrayOfPropmatVector&              spectral_propmat_path,
                   ArrayOfStokvecVector&              spectral_nlte_srcvec_path,
                   ArrayOfPropmatMatrix&              spectral_propmat_jac_path,
                   ArrayOfStokvecMatrix&              spectral_nlte_srcvec_jac_path,
@@ -99,34 +100,28 @@ void Profile2Path(ArrayOfPropmatVector&              spectral_propmat_path,
                   const ArrayOfPropmatMatrix&        spectral_propmat_jac_profile,
                   const ArrayOfStokvecVector&        spectral_nlte_srcvec_profile,
                   const ArrayOfStokvecMatrix&        spectral_nlte_srcvec_jac_profile,
+                  const Agenda&                      spectral_propmat_agenda,
                   const Numeric&                     f_extrapolfac) try {
   ARTS_TIME_REPORT
 
   if (not(f_extrapolfac >= 0.0)) arts::user_error("f_extrapolfac must not be negative, it is {}", f_extrapolfac);
 
   // A path of fewer than two points has no layer to propagate through, so nothing uses its propagation matrices.
-  // The profile does not cover points outside alt_grid.  Neither has an altitude of the profile.
+  // The profile does not cover points outside alt_grid.  Neither has propagation.  Points inside alt_grid but between
+  // its altitudes, such as the tangent point of a limb path, are not in the profile either, so they are computed.
   constexpr Size outside  = std::numeric_limits<Size>::max();
+  constexpr Size between  = outside - 1;
   const bool     no_layer = ray_path.size() < 2;
 
-  const std::vector<Size> ips{
-      std::from_range, ray_path | stdv::transform([&](const PropagationPathPoint& ray_point) -> Size {
-                         const Numeric alt = ray_point.altitude();
-                         if (no_layer or alt_grid.empty() or alt < alt_grid.front() or alt > alt_grid.back())
-                           return outside;
+  const std::vector<Size> ips{std::from_range,
+                              ray_path | stdv::transform([&](const PropagationPathPoint& ray_point) -> Size {
+                                const Numeric alt = ray_point.altitude();
+                                if (no_layer or alt_grid.empty() or alt < alt_grid.front() or alt > alt_grid.back())
+                                  return outside;
 
-                         const Size ip = stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, alt));
-
-                         if (alt_grid[ip] != alt)
-                           arts::user_error(R"(Ray path point altitude {} does not match any point in the altitude grid.
-
-Grid points: {:B,}
-)",
-                                            alt,
-                                            alt_grid);
-
-                         return ip;
-                       })};
+                                const Size ip = stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, alt));
+                                return alt_grid[ip] == alt ? ip : between;
+                              })};
 
   const Size n  = ips.size();
   const Size nf = freq_grid.size();
@@ -140,27 +135,55 @@ Grid points: {:B,}
   freq_grid_path.resize(n);
   freq_wind_shift_jac_path.resize(n);
 
-  // Points without an altitude of the profile have no propagation, and the atmosphere and frequencies of
-  // atm_pathFromPath and freq_grid_pathFromPath
-  const std::vector<Size> outside_points{
-      std::from_range, stdv::iota(Size{0}, n) | stdv::filter([&ips](Size i) { return ips[i] == outside; })};
-  const ArrayOfPropagationPathPoint outside_path{
-      std::from_range, outside_points | stdv::transform([&ray_path](Size i) { return ray_path[i]; })};
-  ArrayOfAtmPoint      outside_atm_path{};
-  ArrayOfAscendingGrid outside_freq_grid_path{};
-  ArrayOfVector3       outside_freq_wind_shift_jac_path{};
-  atm_pathFromPath(outside_atm_path, outside_path, atm_field);
-  freq_grid_pathFromPath(
-      outside_freq_grid_path, outside_freq_wind_shift_jac_path, freq_grid, outside_path, outside_atm_path);
-  for (Size k = 0; k < outside_points.size(); k++) {
-    const Size i                     = outside_points[k];
-    atm_path[i]                      = std::move(outside_atm_path[k]);
-    freq_grid_path[i]                = std::move(outside_freq_grid_path[k]);
-    freq_wind_shift_jac_path[i]      = outside_freq_wind_shift_jac_path[k];
-    spectral_propmat_path[i]         = PropmatVector(nf);
-    spectral_nlte_srcvec_path[i]     = StokvecVector(nf);
-    spectral_propmat_jac_path[i]     = PropmatMatrix(nq, nf);
-    spectral_nlte_srcvec_jac_path[i] = StokvecMatrix(nq, nf);
+  // Points that are not in the profile have the atmosphere and frequencies of atm_pathFromPath and
+  // freq_grid_pathFromPath.  Those between the altitudes of alt_grid have the propagation of spectral_propmat_pathFromPath,
+  // as for the default path agenda, and those without an altitude of the profile have none.
+  for (const Size kind : {outside, between}) {
+    const std::vector<Size> points{
+        std::from_range, stdv::iota(Size{0}, n) | stdv::filter([&ips, kind](Size i) { return ips[i] == kind; })};
+    if (points.empty()) continue;
+
+    const ArrayOfPropagationPathPoint path{std::from_range,
+                                           points | stdv::transform([&ray_path](Size i) { return ray_path[i]; })};
+    ArrayOfAtmPoint                   part_atm_path{};
+    ArrayOfAscendingGrid              part_freq_grid_path{};
+    ArrayOfVector3                    part_freq_wind_shift_jac_path{};
+    ArrayOfPropmatVector              part_spectral_propmat_path{};
+    ArrayOfStokvecVector              part_spectral_nlte_srcvec_path{};
+    ArrayOfPropmatMatrix              part_spectral_propmat_jac_path{};
+    ArrayOfStokvecMatrix              part_spectral_nlte_srcvec_jac_path{};
+
+    atm_pathFromPath(part_atm_path, path, atm_field);
+    freq_grid_pathFromPath(part_freq_grid_path, part_freq_wind_shift_jac_path, freq_grid, path, part_atm_path);
+    if (kind == between) {
+      spectral_propmat_pathFromPath(ws,
+                                    part_spectral_propmat_path,
+                                    part_spectral_nlte_srcvec_path,
+                                    part_spectral_propmat_jac_path,
+                                    part_spectral_nlte_srcvec_jac_path,
+                                    spectral_propmat_agenda,
+                                    part_freq_grid_path,
+                                    part_freq_wind_shift_jac_path,
+                                    jac_targets,
+                                    path,
+                                    part_atm_path);
+    } else {
+      part_spectral_propmat_path.assign(points.size(), PropmatVector(nf));
+      part_spectral_nlte_srcvec_path.assign(points.size(), StokvecVector(nf));
+      part_spectral_propmat_jac_path.assign(points.size(), PropmatMatrix(nq, nf));
+      part_spectral_nlte_srcvec_jac_path.assign(points.size(), StokvecMatrix(nq, nf));
+    }
+
+    for (Size k = 0; k < points.size(); k++) {
+      const Size i                     = points[k];
+      atm_path[i]                      = std::move(part_atm_path[k]);
+      freq_grid_path[i]                = std::move(part_freq_grid_path[k]);
+      freq_wind_shift_jac_path[i]      = part_freq_wind_shift_jac_path[k];
+      spectral_propmat_path[i]         = std::move(part_spectral_propmat_path[k]);
+      spectral_nlte_srcvec_path[i]     = std::move(part_spectral_nlte_srcvec_path[k]);
+      spectral_propmat_jac_path[i]     = std::move(part_spectral_propmat_jac_path[k]);
+      spectral_nlte_srcvec_jac_path[i] = std::move(part_spectral_nlte_srcvec_jac_path[k]);
+    }
   }
 
   String error{};
@@ -169,7 +192,7 @@ Grid points: {:B,}
   for (Size i = 0; i < n; i++) {
     try {
       const Size ip = ips[i];
-      if (ip == outside) continue;
+      if (ip == outside or ip == between) continue;
 
       atm_path[i]      = atm_profile[ip];
       atm_path[i].wind = wind_at(atm_field, ray_path[i].pos);
