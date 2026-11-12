@@ -5244,6 +5244,37 @@ This uses a step-by-step solver to propagate background radiation along the path
       .in     = {"spectral_tramat_path", "spectral_rad_srcvec_path", "spectral_rad_bkg"},
   };
 
+  wsm_data["spectral_radStepByStepEmissionFromPropmat"] = {
+      .desc      = R"--(Gets the spectral radiance from the propagation matrices along the path.
+
+The result is that of *spectral_tramat_pathFromPath*,
+*spectral_rad_srcvec_pathFromPropmat*, *spectral_radStepByStepEmission* and
+*spectral_rad_jacFromBackground* in turn.  This method computes the
+transmission and the source along the path for a few frequencies at a time
+instead, and keeps them for no more than those frequencies.  What it works on
+then fits in the cache of the processor, and it does not need the memory of
+*spectral_tramat_path* and *spectral_rad_srcvec_path* for all frequencies.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_rad", "spectral_rad_jac", "spectral_rad_jac_path"},
+      .in        = {"spectral_propmat_path",
+                    "spectral_nlte_srcvec_path",
+                    "spectral_propmat_jac_path",
+                    "spectral_nlte_srcvec_jac_path",
+                    "freq_grid_path",
+                    "ray_path",
+                    "atm_path",
+                    "surf_field",
+                    "jac_targets",
+                    "rte_option",
+                    "spectral_rad_bkg",
+                    "spectral_rad_bkg_jac"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
+  };
+
   wsm_data["spectral_radCumulativeTransmission"] = {
       .desc   = R"--(Gets the spectral radiance from the path transmission.
 

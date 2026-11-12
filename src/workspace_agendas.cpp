@@ -163,7 +163,7 @@ is warranted.
       .enum_desc =
           {R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, see *spectral_radClearskyEmission*.  *spectral_propmat_and_atm_path_agenda* gives the path data.)--",
            R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with points added where a step is optically too thick, see *spectral_propmat_pathAddAdaptiveHalfPath*.  The radiance is computed one frequency at a time, see *spectral_radSinglePathEmissionFrequencyLoop*.)--",
-           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with the path data taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  Points of the path between the altitudes of *alt_grid*, such as the tangent points of limb paths, are computed by *spectral_propmat_agenda*.)--",
+           R"--(Clear-sky emission along the path of *ray_path_observer_agenda*, with the path data taken from a profile computed beforehand by *ProfileFromAltitude*, see *Profile2Path*.  Points of the path between the altitudes of *alt_grid*, such as the tangent points of limb paths, are computed by *spectral_propmat_agenda*.  The radiance is computed a few frequencies at a time, see *spectral_radStepByStepEmissionFromPropmat*.)--",
            R"--(Passive Monte Carlo radiance for a pencil beam, see *spectral_radMonteCarlo*.)--"},
       .enum_default = "Emission",
   };

@@ -108,10 +108,7 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("ray_pointBackground");
       agenda.add("spectral_rad_bkgAgendasAtEndOfPath");
       agenda.add("Profile2Path");
-      agenda.add("spectral_tramat_pathFromPath");
-      agenda.add("spectral_rad_srcvec_pathFromPropmat");
-      agenda.add("spectral_radStepByStepEmission");
-      agenda.add("spectral_rad_jacFromBackground");
+      agenda.add("spectral_radStepByStepEmissionFromPropmat");
       agenda.add("spectral_rad_jacAddPathPropagation");
       break;
     case MonteCarlo: agenda.add("spectral_radMonteCarlo"); break;
