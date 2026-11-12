@@ -314,9 +314,8 @@ struct ComputeData {
   std::vector<single_shape> lines{};  //! Line shapes; save for reuse, assume moved from
   std::vector<line_pos>     pos{};    //! Save for reuse, size of line shapes
 
-  Size              filtered_line{std::numeric_limits<Size>::max()};  //! filter is for this and filtered_spec
-  SpeciesEnum       filtered_spec{SpeciesEnum::unused};               //! filter is for this and filtered_spec
-  std::vector<Size> filter;  //! Filter for line parameters; resized all the time but reserves size of line shapes
+  //! Positions in lines and pos of the line of a line target; reset by set_filter, reserves size of line shapes
+  std::vector<Size> filter;
 
   ComplexVector cut{};     //! Size of line shapes
   ComplexVector dz{};      //! Size of line shapes
@@ -394,6 +393,7 @@ struct ComputeData {
                       const ZeemanPolarization pol,
                       const SpeciesEnum        target_spec);
 
+  //! Sets filter to the positions of the line of the key for the current pos
   void set_filter(const line_key& key);
 
   //! Sets dshape and ds and dz and dcut and dshape

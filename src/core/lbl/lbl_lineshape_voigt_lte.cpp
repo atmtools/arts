@@ -357,13 +357,38 @@ void band_shape_helper(std::vector<single_shape>& lines,
       }
       break;
     case ByLine: {
-      auto [iline, active_lines] = bnd.active_lines(fmin, fmax);
-      for (auto& line : active_lines) { lines_push_back(lines, pos, spec, line, atm, pol, iline++); }
+      //! The lines of a band are not required to be sorted, so every line is checked
+      const Numeric flow = fmin - bnd.get_cutoff_frequency();
+      const Numeric fupp = fmax + bnd.get_cutoff_frequency();
+      for (Size iline = 0; iline < bnd.size(); iline++) {
+        const auto& line = bnd.lines[iline];
+        if (line.f0 >= flow and line.f0 <= fupp) lines_push_back(lines, pos, spec, line, atm, pol, iline);
+      }
     } break;
   }
 
   stdr::sort(stdv::zip(lines, pos), {}, [](const auto& x) { return std::get<0>(x).f0; });
 }
+
+namespace {
+/** The positions of the lines that are inside the cutoff range of a frequency
+ *
+ * A filter of lines holds positions in the full list of lines, so it
+ * cannot index the part of the list that frequency_spans() returns.
+ */
+struct cutoff_window {
+  Size first;
+  Size last;  //! One past the last position
+
+  cutoff_window(const std::span<const single_shape> lines, const Numeric f, const Numeric cutoff) {
+    const auto [start, count] = find_offset_and_count_of_frequency_range(lines, f, cutoff);
+    first                     = static_cast<Size>(start);
+    last                      = first + static_cast<Size>(count);
+  }
+
+  [[nodiscard]] constexpr bool contains(const Size i) const { return i >= first and i < last; }
+};
+}  // namespace
 
 band_shape::band_shape(std::vector<single_shape>&& ls, const Numeric cut) : lines(std::move(ls)), cutoff(cut) {}
 
@@ -594,11 +619,13 @@ Complex band_shape::df0(const ConstComplexVectorView& cut,
                         const ConstVectorView         dz_df0_fac,
                         const Numeric                 f,
                         const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds, dz, dzf] = frequency_spans(cutoff, f, lines, cut, ds_df0, dz_df0, dz_df0_fac);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].df0(ds[i], dz[i], dzf[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].df0(ds_df0[i], dz_df0[i], dz_df0_fac[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -615,11 +642,13 @@ Complex band_shape::da(const ConstComplexVectorView& cut,
                        const ConstComplexVectorView  ds_da,
                        const Numeric                 f,
                        const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_da);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].da(ds[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].da(ds_da[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -632,11 +661,13 @@ Complex band_shape::de0(const ConstComplexVectorView& cut,
                         const ConstComplexVectorView  ds_de0,
                         const Numeric                 f,
                         const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_de0);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].de0(ds[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].de0(ds_de0[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -653,11 +684,13 @@ Complex band_shape::dDV(const ConstComplexVectorView& cut,
                         const ConstVectorView         dz_dDV_fac,
                         const Numeric                 f,
                         const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds, dz, dzf] = frequency_spans(cutoff, f, lines, cut, ds_dDV, dz_dDV, dz_dDV_fac);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].dDV(ds[i], dz[i], dzf[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].dDV(ds_dDV[i], dz_dDV[i], dz_dDV_fac[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -676,11 +709,13 @@ Complex band_shape::dD0(const ConstComplexVectorView& cut,
                         const ConstVectorView         dz_dD0_fac,
                         const Numeric                 f,
                         const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds, dz, dzf] = frequency_spans(cutoff, f, lines, cut, ds_dD0, dz_dD0, dz_dD0_fac);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].dD0(ds[i], dz[i], dzf[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].dD0(ds_dD0[i], dz_dD0[i], dz_dD0_fac[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -697,11 +732,13 @@ Complex band_shape::dG0(const ConstComplexVectorView& cut,
                         const ConstComplexVectorView  dz_dG0,
                         const Numeric                 f,
                         const std::vector<Size>&      filter) const {
-  const auto [s, cs, dz] = frequency_spans(cutoff, f, lines, cut, dz_dG0);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].dG0(dz[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].dG0(dz_dG0[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -716,11 +753,13 @@ Complex band_shape::dY(const ConstComplexVectorView& cut,
                        const ConstComplexVectorView  ds_dY,
                        const Numeric                 f,
                        const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_dY);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].dY(ds[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].dY(ds_dY[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -733,11 +772,13 @@ Complex band_shape::dG(const ConstComplexVectorView& cut,
                        const ConstComplexVectorView  ds_dG,
                        const Numeric                 f,
                        const std::vector<Size>&      filter) const {
-  const auto [s, cs, ds] = frequency_spans(cutoff, f, lines, cut, ds_dG);
+  const cutoff_window window(lines, f, cutoff);
 
-  Complex out{};  //! Fixme, use zip in C++ 23...
+  Complex out{};
 
-  for (Size i : filter) { out += s[i].dG(ds[i], f) - cs[i]; }
+  for (Size i : filter) {
+    if (window.contains(i)) out += lines[i].dG(ds_dG[i], f) - cut[i];
+  }
 
   return out;
 }
@@ -987,10 +1028,7 @@ void ComputeData::dVMR_core_calc(const SpeciesIsotope&    spec,
 }
 
 void ComputeData::set_filter(const line_key& key) {
-  if (key.line == filtered_line and key.spec == filtered_spec) return;
-
-  filtered_spec = key.spec;
-  filtered_line = key.line;
+  //! pos changes with the band and the polarization, so a filter cannot be kept between calls
   filter.resize(0);
 
   for (Size i = 0; i < pos.size(); i++) {
@@ -1148,7 +1186,7 @@ void ComputeData::dY_core_calc(const SpeciesIsotope&    spec,
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
-    shp.dY(dcut, dz, filter);
+    shp.dY(dcut, ds, filter);
     for (Size i = 0; i < f_grid.size(); i++) { dshape[i] = shp.dY(dcut, ds, f_grid[i], filter); }
   } else {
     for (Size i = 0; i < f_grid.size(); i++) { dshape[i] = shp.dY(ds, f_grid[i], filter); }
@@ -1174,7 +1212,7 @@ void ComputeData::dG_core_calc(const SpeciesIsotope&    spec,
   }
 
   if (bnd.cutoff.type != LineByLineCutoffType::None) {
-    shp.dG(dcut, dz, filter);
+    shp.dG(dcut, ds, filter);
     for (Size i = 0; i < f_grid.size(); i++) { dshape[i] = shp.dG(dcut, ds, f_grid[i], filter); }
   } else {
     for (Size i = 0; i < f_grid.size(); i++) { dshape[i] = shp.dG(ds, f_grid[i], filter); }
@@ -1765,16 +1803,23 @@ bool calculate_shape(ComplexVectorView        pm_,
       ComplexMatrixView dcut = dcutoffs.view_as(nt, 1);
 
       for (Size il = 0; il < bnd.lines.size(); il++) {
-        const Numeric         l = bnd.lines[il].f0 - bnd.cutoff.value;
-        const Numeric         u = bnd.lines[il].f0 + bnd.cutoff.value;
+        //! The cutoff range is around the pressure-shifted line center, as for the other line-by-line methods
+        const Numeric         f0 = line_center_calc(bnd.lines[il], atm);
+        const Numeric         l  = f0 - bnd.cutoff.value;
+        const Numeric         u  = f0 + bnd.cutoff.value;
         const ConstVectorView freq{u};
         const auto            in = sorted_range(f_grid, l, u);
-        has_pol                  = kernel(pm[in], dpm[joker, in], il, f_grid[in]) or has_pol;
-        has_pol                  = kernel(cut, dcut, il, freq) or has_pol;
-      }
 
-      pm -= cutoff;
-      for (Size i = 0; i < nt; i++) dpm[i] -= dcutoffs[i];
+        //! The value at the upper cutoff frequency is removed only where the line itself contributes
+        cutoff   = 0.0;
+        dcutoffs = 0.0;
+
+        has_pol = kernel(pm[in], dpm[joker, in], il, f_grid[in]) or has_pol;
+        has_pol = kernel(cut, dcut, il, freq) or has_pol;
+
+        pm[in] -= cutoff;
+        for (Size i = 0; i < nt; i++) dpm[i, in] -= dcutoffs[i];
+      }
     } break;
   }
 

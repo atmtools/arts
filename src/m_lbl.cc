@@ -686,6 +686,12 @@ void sumup_zeeman(PropmatVectorView        spectral_propmat,
           },
           atm_target.type);
     }
+
+    for (auto& line_target : jac_targets.line) {
+      const Size j                = line_target.target_pos;
+      spectral_propmat_jac[j, i] += scale(npm, dpm[j, i]);
+      dispersion_jac[j, i]       -= npm.A() * dpm[j, i].imag();
+    }
   }
 }
 }  // namespace
