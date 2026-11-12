@@ -388,6 +388,116 @@ Sensor GaussianAntenna::operator()(std::span<const Channel> channels,
   return pattern(channels, responses, pos, bore_los, ell);
 }
 
+PixelGrid GaussianRectangularAntenna::pixels() const { return {}; }
+
+namespace {
+//! The offsets [deg] bounding the cell of each offset: midpoints, the outermost as far beyond as half their spacing
+std::vector<Vector2> cell_bounds(const AscendingGrid& x) {
+  const Size           n = x.size();
+  std::vector<Vector2> out(n);
+  for (Size i = 0; i < n; i++) {
+    out[i][0] = i == 0 ? x[0] - 0.5 * (x[1] - x[0]) : 0.5 * (x[i - 1] + x[i]);
+    out[i][1] = i + 1 == n ? x[i] + 0.5 * (x[i] - x[i - 1]) : 0.5 * (x[i] + x[i + 1]);
+  }
+  return out;
+}
+
+//! The signed solid angle [sr] of the rectangle from the origin to (u, v) on the tangent plane at unit distance
+Numeric gnomonic_solid_angle(Numeric u, Numeric v) { return std::atan(u * v / std::sqrt(1.0 + u * u + v * v)); }
+}  // namespace
+
+Sensor GaussianRectangularAntenna::operator()(std::span<const Channel> channels,
+                                              std::span<const Stokvec> responses,
+                                              const Vector3&           pos,
+                                              const Vector2&           bore_los,
+                                              const Vector2&) const {
+  using Conversion::cosd, Conversion::sind, Conversion::tand;
+
+  if (this->std <= 0.0) arts::user_error("Gaussian rectangular antenna std must be positive, got {} deg", this->std);
+  for (const AscendingGrid* offsets : {&zen_offsets, &azi_offsets}) {
+    if (offsets->size() < 2)
+      arts::user_error("A Gaussian rectangular antenna needs at least two offsets in each direction, got {:B,}",
+                       *offsets);
+  }
+
+  const auto zen_cells = cell_bounds(zen_offsets);
+  const auto azi_cells = cell_bounds(azi_offsets);
+  for (const auto* cells : {&zen_cells, &azi_cells}) {
+    if (cells->front()[0] <= -90.0 or cells->back()[1] >= 90.0)
+      arts::user_error(
+          "The cells of a Gaussian rectangular antenna must be within 90 degrees of the boresight, got {:B,} deg",
+          *cells);
+  }
+
+  auto q = channel_quadratures(channels, responses);
+
+  // In the local east-north-up frame: the boresight, the directions of increasing zenith and azimuth there, and
+  // the polarization basis of the radiation it receives
+  const Numeric za         = bore_los[0];
+  const Numeric aa         = bore_los[1];
+  const Vector3 bore       = enu_direction(bore_los);
+  const Vector3 e_zen      = {cosd(za) * sind(aa), cosd(za) * cosd(aa), -sind(za)};
+  const Vector3 e_azi      = {cosd(aa), -sind(aa), 0.0};
+  const auto    bore_basis = received_basis(bore_los);
+
+  // The line of sight, beam weight and polarization basis of each sample, by zenith offset and then azimuth offset
+  const Size           nlos = zen_offsets.size() * azi_offsets.size();
+  PosLosVector         geometry(nlos);
+  Vector               beam(nlos);
+  std::vector<Muelmat> basis(nlos);
+  for (Size iz = 0; iz < zen_offsets.size(); ++iz) {
+    const Numeric u0 = tand(zen_cells[iz][0]);
+    const Numeric u1 = tand(zen_cells[iz][1]);
+    for (Size ia = 0; ia < azi_offsets.size(); ++ia) {
+      const Size    i  = iz * azi_offsets.size() + ia;
+      const Numeric v0 = tand(azi_cells[ia][0]);
+      const Numeric v1 = tand(azi_cells[ia][1]);
+
+      Vector3 direction = bore + e_zen * tand(zen_offsets[iz]) + e_azi * tand(azi_offsets[ia]);
+      direction         = direction / hypot(direction);
+
+      const Vector2 los{Conversion::acosd(std::clamp(direction[2], -1.0, 1.0)),
+                        Conversion::atan2d(direction[0], direction[1])};
+      const Numeric offset      = Conversion::acosd(std::clamp(dot(bore, direction), -1.0, 1.0));
+      const Numeric solid_angle = gnomonic_solid_angle(u1, v1) - gnomonic_solid_angle(u0, v1) -
+                                  gnomonic_solid_angle(u1, v0) + gnomonic_solid_angle(u0, v0);
+
+      geometry[i] = {.pos = pos, .los = los};
+      beam[i]     = std::exp(-0.5 * Math::pow2(offset / this->std)) * solid_angle;
+      basis[i]    = carried_basis_change(bore, bore_basis, direction, los);
+    }
+  }
+
+  const Numeric beam_total = sum(beam);
+  if (beam_total == 0.0) arts::user_error("The Gaussian rectangular antenna has no gain on its grid");
+  beam /= beam_total;
+  const auto nbeam = static_cast<Size>(stdr::count_if(beam, [](Numeric b) { return b != 0.0; }));
+
+  std::vector<SparseStokvecMatrix> elements;
+  elements.reserve(channels.size());
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    const auto& channel_weights = q.channels[ichan].weights;
+    const auto& columns         = q.columns[ichan];
+    const auto  nfreq = static_cast<Size>(stdr::count_if(channel_weights, [](Numeric w) { return w != 0.0; }));
+
+    // In order of line of sight and then frequency, which keeps the weights sorted
+    auto& weight_matrix = elements.emplace_back();
+    weight_matrix.resize(nlos, q.freq_grid.size(), nbeam * nfreq);
+    auto weight = weight_matrix.begin();
+    for (Size i = 0; i < nlos; ++i) {
+      if (beam[i] == 0.0) continue;
+
+      const Stokvec sample_response = basis[i] * responses[ichan];
+      for (Size j = 0; j < channel_weights.size(); j++) {
+        if (channel_weights[j] == 0.0) continue;
+        *weight++ = {.irow = i, .icol = columns[j], .data = channel_weights[j] * beam[i] * sample_response};
+      }
+    }
+  }
+
+  return one_pixel(std::move(q.freq_grid), std::move(geometry), std::move(elements));
+}
+
 GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diameter, Size azi_grid_size)
     : zen_grid(std::move(zen_grid)), azi_grid(make_azi_grid(azi_grid_size)), aperture_diameter(aperture_diameter) {}
 
@@ -595,6 +705,7 @@ static_assert(AntennaPatternSelection<PencilBeamAntenna>);
 static_assert(AntennaPatternSelection<GaussianAntenna>);
 static_assert(AntennaPatternSelection<GaussianAiryAntenna>);
 static_assert(AntennaPatternSelection<CameraAntenna>);
+static_assert(AntennaPatternSelection<GaussianRectangularAntenna>);
 }  // namespace sensor
 
 void xml_io_stream<sensor::GriddedAntennaPattern>::write(std::ostream&                        os,
@@ -645,6 +756,33 @@ void xml_io_stream<sensor::GaussianAntenna>::read(std::istream& is, sensor::Gaus
 
   tag.read_from_stream(is);
   tag.check_end_name(xml_io_stream_name_v<sensor::GaussianAntenna>);
+}
+
+void xml_io_stream<sensor::GaussianRectangularAntenna>::write(std::ostream&                             os,
+                                                              const sensor::GaussianRectangularAntenna& n,
+                                                              bofstream*                                pbofs,
+                                                              std::string_view                          name) {
+  XMLTag tag(xml_io_stream_name_v<sensor::GaussianRectangularAntenna>, "name", name);
+  tag.write_to_stream(os);
+  xml_write_to_stream(os, n.std, pbofs);
+  xml_write_to_stream(os, n.zen_offsets, pbofs);
+  xml_write_to_stream(os, n.azi_offsets, pbofs);
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<sensor::GaussianRectangularAntenna>::read(std::istream&                       is,
+                                                             sensor::GaussianRectangularAntenna& n,
+                                                             bifstream*                          pbifs) {
+  XMLTag tag{};
+  tag.read_from_stream(is);
+  tag.check_name(xml_io_stream_name_v<sensor::GaussianRectangularAntenna>);
+
+  xml_read_from_stream(is, n.std, pbifs);
+  xml_read_from_stream(is, n.zen_offsets, pbifs);
+  xml_read_from_stream(is, n.azi_offsets, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(xml_io_stream_name_v<sensor::GaussianRectangularAntenna>);
 }
 
 void xml_io_stream<sensor::GaussianAiryAntenna>::write(std::ostream&                      os,

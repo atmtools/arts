@@ -469,6 +469,39 @@ directions of its rows and columns.  An antenna that is a single beam has one pi
   antenna_calls(sga);
   generic_interface(sga);
 
+  auto sgrect  = py::class_<sensor::GaussianRectangularAntenna>(sen, "GaussianRectangularAntenna");
+  sgrect.doc() = R"(A Gaussian antenna gain of the angular offset from the bore LOS, sampled on a rectangular grid.
+
+The samples are at all pairs of angular offsets towards increasing zenith angle
+and towards increasing azimuth at the bore LOS.  Each sample's beam weight is its
+gain times the solid angle of its cell, so the grid can be fine in one direction
+only, such as across a limb.)";
+  sgrect.def(
+      "__init__",
+      [](sensor::GaussianRectangularAntenna* self,
+         AscendingGrid                       zen_offsets,
+         AscendingGrid                       azi_offsets,
+         Numeric                             std) {
+        new (self) sensor::GaussianRectangularAntenna{
+            .zen_offsets = std::move(zen_offsets), .azi_offsets = std::move(azi_offsets), .std = std};
+      },
+      "zen_offsets"_a,
+      "azi_offsets"_a,
+      "std"_a,
+      "Construct a Gaussian antenna gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the bore LOS, "
+      "sampled at all pairs of the offsets [deg] towards increasing zenith and azimuth.");
+  sgrect.def_rw("std",
+                &sensor::GaussianRectangularAntenna::std,
+                "Standard deviation of the gain [deg].\n\n.. :class:`~pyarts3.arts.Numeric`");
+  sgrect.def_rw("zen_offsets",
+                &sensor::GaussianRectangularAntenna::zen_offsets,
+                "Angular offsets [deg] of the samples towards increasing zenith.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  sgrect.def_rw("azi_offsets",
+                &sensor::GaussianRectangularAntenna::azi_offsets,
+                "Angular offsets [deg] of the samples towards increasing azimuth.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  antenna_calls(sgrect);
+  generic_interface(sgrect);
+
   auto sgairy = py::class_<sensor::GaussianAiryAntenna>(sen, "GaussianAiryAntenna");
   sgairy.doc() =
       "A Gaussian antenna gain with the half-power width of the Airy pattern of a uniformly illuminated "
@@ -538,7 +571,8 @@ thin-lens equation, and each pixel's offset is the angle of its centre seen from
               &sensor::CameraAntenna::beam,
               "The beam of each pixel.\n\n"
               ".. :class:`~pyarts3.arts.sensors.PencilBeamAntenna | ~pyarts3.arts.sensors.GaussianAntenna | "
-              "~pyarts3.arts.sensors.GaussianAiryAntenna | ~pyarts3.arts.sensors.GriddedAntennaPattern`");
+              "~pyarts3.arts.sensors.GaussianAiryAntenna | ~pyarts3.arts.sensors.GriddedAntennaPattern | "
+              "~pyarts3.arts.sensors.GaussianRectangularAntenna`");
   antenna_calls(scam);
 
   auto spol  = py::class_<sensor::Polarization>(sen, "Polarization");
@@ -743,7 +777,7 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
               "Angular antenna response and pixel layout.\n\n"
               ".. :class:`~pyarts3.arts.sensors.PencilBeamAntenna | ~pyarts3.arts.sensors.GaussianAntenna | "
               "~pyarts3.arts.sensors.GaussianAiryAntenna | ~pyarts3.arts.sensors.GriddedAntennaPattern | "
-              "~pyarts3.arts.sensors.CameraAntenna`")
+              "~pyarts3.arts.sensors.CameraAntenna | ~pyarts3.arts.sensors.GaussianRectangularAntenna`")
       .def(
           "__call__",
           [](const sensor::Builder&      self,

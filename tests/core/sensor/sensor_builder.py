@@ -106,6 +106,7 @@ def test_sensor_builder_xml_round_trip():
         sensors.GriddedAntennaPattern(gridded),
         sensors.CameraAntenna.thin_lens(2, 3, 0.01, 0.01, 0.05, 1e3,
                                         beam=sensors.GaussianAntenna([0.0, 0.2], 0.1, azi_grid_size=3)),
+        sensors.GaussianRectangularAntenna([-0.3, -0.1, 0.0, 0.2], [-0.2, 0.0, 0.2], 0.15),
     ]
 
     vertical = sensors.BoxChannel(pyarts.arts.AscendingGrid([89e9, 89.5e9, 90e9]))

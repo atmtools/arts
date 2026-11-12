@@ -42,6 +42,9 @@ struct GaussianAntenna;
 //! A Gaussianized Airy antenna pattern with frequency-dependent width.
 struct GaussianAiryAntenna;
 
+//! A 2D Gaussian antenna pattern on a rectangular grid of angular offsets.
+struct GaussianRectangularAntenna;
+
 //! A camera: a grid of pixels, each with the same beam.
 struct CameraAntenna;
 
@@ -105,6 +108,34 @@ struct GaussianAntenna {
                                   const Vector2&           ell) const;
 };
 
+/** A gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the boresight, sampled on a rectangular grid
+ *
+ *  The samples are at all pairs of the angular offsets zen_offsets [deg]
+ *  towards increasing zenith angle and azi_offsets [deg] towards increasing
+ *  azimuth at the boresight, by zenith offset and then azimuth offset.  A pair
+ *  (z, a) looks along the boresight plus tan(z) and tan(a) times the unit
+ *  vectors of increasing zenith and azimuth there.  Each sample stands for the
+ *  cell between the midpoints to its neighbouring offsets, the outermost cells
+ *  extending as far beyond their offsets as half the distance to their inner
+ *  neighbours, and its beam weight is its gain times the solid angle of its
+ *  cell.  Unlike the rings of GaussianAntenna, the grid can be fine in one
+ *  direction only, such as across a limb.
+ */
+struct GaussianRectangularAntenna {
+  AscendingGrid zen_offsets{};
+  AscendingGrid azi_offsets{};
+  Numeric       std{};  // [deg]
+
+  //! One pixel at the boresight
+  [[nodiscard]] PixelGrid pixels() const;
+
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
+};
+
 /** A Gaussian gain with the half-power width of the Airy pattern of a circular aperture, sampled as GriddedAntennaPattern
  *
  *  The Airy pattern (2 J1(x) / x)^2, x = pi D sin(offset) / wavelength, is that of a uniformly illuminated
@@ -137,7 +168,8 @@ struct GaussianAiryAntenna {
 };
 
 //! The kinds of antenna pattern that are a single beam
-using BeamPattern = std::variant<PencilBeamAntenna, GaussianAntenna, GaussianAiryAntenna, GriddedAntennaPattern>;
+using BeamPattern = std::
+    variant<PencilBeamAntenna, GaussianAntenna, GaussianAiryAntenna, GriddedAntennaPattern, GaussianRectangularAntenna>;
 
 /** A camera: a grid of pixels in CCD coordinates, each with the same beam
  *
@@ -192,8 +224,12 @@ struct CameraAntenna {
  *  to that line of sight.  The kinds in BeamPattern are a single beam, one
  *  pixel at the boresight; a CameraAntenna has a grid of pixels.
  */
-using AntennaPattern =
-    std::variant<PencilBeamAntenna, GaussianAntenna, GaussianAiryAntenna, GriddedAntennaPattern, CameraAntenna>;
+using AntennaPattern = std::variant<PencilBeamAntenna,
+                                    GaussianAntenna,
+                                    GaussianAiryAntenna,
+                                    GriddedAntennaPattern,
+                                    CameraAntenna,
+                                    GaussianRectangularAntenna>;
 
 //! The layout of the pixels of an antenna pattern, see PixelGrid
 [[nodiscard]] PixelGrid antenna_pixels(const AntennaPattern& antenna);
@@ -335,6 +371,40 @@ template <> struct xml_io_stream<sensor::GaussianAntenna> {
                     std::string_view               name  = ""sv);
 
   static void read(std::istream& is, sensor::GaussianAntenna& n, bifstream* pbifs = nullptr);
+};
+
+// GaussianRectangularAntenna format tags and XML I/O
+
+template <> struct std::formatter<sensor::GaussianRectangularAntenna> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext>
+  FmtContext::iterator format(const sensor::GaussianRectangularAntenna& v, FmtContext& ctx) const {
+    auto sep = tags.sep();
+    return tags.format(ctx, v.zen_offsets, sep, v.azi_offsets, sep, v.std);
+  }
+};
+
+template <> struct xml_io_stream_name<sensor::GaussianRectangularAntenna> {
+  static constexpr std::string_view name = "SensorGaussianRectangularAntenna";
+};
+
+template <> struct xml_io_stream<sensor::GaussianRectangularAntenna> {
+  static constexpr std::string_view type_name = xml_io_stream_name_v<sensor::GaussianRectangularAntenna>;
+
+  static void write(std::ostream&                             os,
+                    const sensor::GaussianRectangularAntenna& n,
+                    bofstream*                                pbofs = nullptr,
+                    std::string_view                          name  = ""sv);
+
+  static void read(std::istream& is, sensor::GaussianRectangularAntenna& n, bifstream* pbifs = nullptr);
 };
 
 // GaussianAiryAntenna format tags and XML I/O
