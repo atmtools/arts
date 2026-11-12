@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <format>
+#include <numeric>
 #include <optional>
 
 namespace sensor {
@@ -82,8 +83,9 @@ Sensor build(const Builder&                   builder,
   const PixelGrid pixels  = antenna_pixels(builder.antenna);
   const Size      npixels = pixels.size();
 
-  // The sensor of each channel at each placement, one element per pixel
-  std::vector<std::vector<Sensor>> placed(placements.size());
+  // The sensor of all channels at each placement, one element per pixel and channel
+  std::vector<Sensor> placed;
+  placed.reserve(placements.size());
   for (Size iplace = 0; iplace < placements.size(); ++iplace) {
     const auto& placement = placements[iplace];
 
@@ -94,7 +96,8 @@ Sensor build(const Builder&                   builder,
           pixels.rows.size(),
           pixels.cols.size());
 
-    placed[iplace].reserve(channels.size());
+    std::vector<Stokvec> responses;
+    responses.reserve(channels.size());
     for (Size ichan = 0; ichan < channels.size(); ++ichan) {
       const auto& polarization = channels[ichan].polarization;
       if (polarization.scan_rotation != 0.0 and not placement.scan_angle)
@@ -106,59 +109,42 @@ but the side of the scan of a bare line of sight is not known.  Build the sensor
             ichan,
             polarization.scan_rotation);
 
-      const Stokvec response = polarization.at(placement.scan_angle.value_or(0.0));
+      responses.push_back(polarization.at(placement.scan_angle.value_or(0.0)));
+    }
 
-      auto& sensor = placed[iplace].emplace_back([&] {
-        try {
-          return antenna_sensor(builder.antenna, channels[ichan], response, placement.pos, placement.los, ell);
-        } catch (const std::exception& e) {
-          throw std::runtime_error(std::format(R"(Sensor "{}", channel {}, placement {}:
+    auto& sensor = placed.emplace_back([&] {
+      try {
+        return antenna_sensor(builder.antenna, channels, responses, placement.pos, placement.los, ell);
+      } catch (const std::exception& e) {
+        throw std::runtime_error(std::format(R"(Sensor "{}", placement {}:
 {})",
-                                               name,
-                                               ichan,
-                                               iplace,
-                                               e.what()));
-        }
-      }());
-      if (sensor.elements.size() != npixels)
-        arts::user_error(
-            R"(Sensor "{}": the antenna gave {} elements for its {} pixels)", name, sensor.elements.size(), npixels);
-    }
+                                             name,
+                                             iplace,
+                                             e.what()));
+      }
+    }());
+    if (sensor.elements.size() != npixels * channels.size())
+      arts::user_error(R"(Sensor "{}": the antenna gave {} elements for its {} pixels and {} channels)",
+                       name,
+                       sensor.elements.size(),
+                       npixels,
+                       channels.size());
   }
 
-  // The frequencies of all channels, and where each channel's frequencies are among them
-  std::vector<Numeric> all_freqs;
-  for (const auto& sensor : placed.front()) all_freqs.append_range(sensor.freq_grid);
-  stdr::sort(all_freqs);
-  all_freqs.erase(std::unique(all_freqs.begin(), all_freqs.end()), all_freqs.end());
-  AscendingGrid freq_grid{std::move(all_freqs)};
+  // Every placement samples the frequencies of all channels
+  const Size        nfreq = placed.front().freq_grid.size();
+  std::vector<Size> same_freqs(nfreq);
+  std::iota(same_freqs.begin(), same_freqs.end(), Size{0});
 
-  std::vector<std::vector<Size>> freq_maps(channels.size());
-  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
-    for (const Numeric f : placed.front()[ichan].freq_grid) {
-      freq_maps[ichan].push_back(static_cast<Size>(stdr::distance(freq_grid.begin(), stdr::lower_bound(freq_grid, f))));
-    }
-  }
-
-  // The lines of sight of each placement, which the antenna samples the same for every channel
+  // The lines of sight of each placement follow those of the placements before it
   std::vector<Size> geometry_offsets(placements.size());
   Size              ngeom = 0;
   for (Size iplace = 0; iplace < placements.size(); ++iplace) {
-    const auto& geometry = placed[iplace].front().geometry;
-    for (Size ichan = 1; ichan < channels.size(); ++ichan) {
-      if (not stdr::equal(placed[iplace][ichan].geometry, geometry))
-        arts::user_error(
-            R"(Sensor "{}": the antenna samples other lines of sight for channel {} than for channel 0 at placement {})",
-            name,
-            ichan,
-            iplace);
-    }
-
     geometry_offsets[iplace]  = ngeom;
-    ngeom                    += geometry.size();
+    ngeom                    += placed[iplace].geometry.size();
   }
 
-  Sensor out{.freq_grid = std::move(freq_grid),
+  Sensor out{.freq_grid = std::move(placed.front().freq_grid),
              .geometry  = PosLosVector(ngeom),
              .elements  = {},
              .meta      = make_meta_info(name, pixels, placements.size(), channels.size())};
@@ -166,17 +152,11 @@ but the side of the scan of a bare line of sight is not known.  Build the sensor
   // By placement, then by pixel and then by channel, as the meta
   out.elements.reserve(placements.size() * npixels * channels.size());
   for (Size iplace = 0; iplace < placements.size(); ++iplace) {
-    const auto& geometry = placed[iplace].front().geometry;
+    const auto& geometry = placed[iplace].geometry;
     for (Size i = 0; i < geometry.size(); ++i) out.geometry[geometry_offsets[iplace] + i] = geometry[i];
 
-    for (Size ipix = 0; ipix < npixels; ++ipix) {
-      for (Size ichan = 0; ichan < channels.size(); ++ichan) {
-        out.elements.push_back(embed(placed[iplace][ichan].elements[ipix],
-                                     ngeom,
-                                     out.freq_grid.size(),
-                                     geometry_offsets[iplace],
-                                     freq_maps[ichan]));
-      }
+    for (auto& element : placed[iplace].elements) {
+      out.elements.push_back(embed(std::move(element), ngeom, nfreq, geometry_offsets[iplace], same_freqs));
     }
   }
 

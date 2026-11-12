@@ -4853,7 +4853,28 @@ The quoted strings must be used as the grid names of the gridded field.
            "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddCamera"] = {
+  wsm_data["measurement_sensorsAddSensorBuilder"] = {
+      .desc =
+          R"--(Adds the sensor that a *SensorBuilder* builds at one position and bore line of sight.
+
+The antenna of the builder samples its lines of sight around the bore line of
+sight on the ellipsoid of *surf_field*.  The elements are ordered by pixel of
+the antenna and then by channel, as the meta of the sensor.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "surf_field"},
+      .gin       = {"pos", "los", "sensor_builder", "name"},
+      .gin_type  = {"Vector3", "Vector2", "SensorBuilder", "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A bore line of sight [zenith, azimuth]",
+           "The channels and the antenna of the sensor",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
+  };
+
+  wsm_data["measurement_sensorsAddCamera"] = {
       .desc =
           R"--(Adds a simple thin-lens camera model to the measurement sensor.
 

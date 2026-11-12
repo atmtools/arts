@@ -6,6 +6,7 @@
 #include <xml.h>
 
 #include <concepts>
+#include <span>
 #include <variant>
 
 #include "frequency_channel_selection.h"
@@ -48,11 +49,11 @@ struct PencilBeamAntenna {
   //! One pixel at the boresight
   [[nodiscard]] PixelGrid pixels() const;
 
-  [[nodiscard]] Sensor operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const;
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
 };
 
 //! 2D gridded field of antenna gain on local zenith and azimuth offsets.
@@ -73,11 +74,11 @@ struct GriddedAntennaPattern {
   //! One pixel at the boresight
   [[nodiscard]] PixelGrid pixels() const;
 
-  [[nodiscard]] Sensor operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const;
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
 };
 
 //! A gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the boresight, sampled as GriddedAntennaPattern
@@ -97,11 +98,11 @@ struct GaussianAntenna {
   //! One pixel at the boresight
   [[nodiscard]] PixelGrid pixels() const;
 
-  [[nodiscard]] Sensor operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const;
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
 };
 
 /** A Gaussian gain with the half-power width of the Airy pattern of a circular aperture, sampled as GriddedAntennaPattern
@@ -126,11 +127,11 @@ struct GaussianAiryAntenna {
   //! One pixel at the boresight
   [[nodiscard]] PixelGrid pixels() const;
 
-  [[nodiscard]] Sensor operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const;
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
 
   [[nodiscard]] Numeric std(Numeric frequency) const;
 };
@@ -169,20 +170,22 @@ struct CameraAntenna {
 
   [[nodiscard]] PixelGrid pixels() const;
 
-  [[nodiscard]] Sensor operator()(const Channel& channel,
-                                  const Stokvec& response,
-                                  const Vector3& pos,
-                                  const Vector2& bore_los,
-                                  const Vector2& ell) const;
+  [[nodiscard]] Sensor operator()(std::span<const Channel> channels,
+                                  std::span<const Stokvec> responses,
+                                  const Vector3&           pos,
+                                  const Vector2&           bore_los,
+                                  const Vector2&           ell) const;
 };
 
 /** Any antenna pattern
  *
  *  An antenna pattern describes the layout of its pixels, see PixelGrid, and
- *  the beam of each pixel.  For a channel at a sensor position and bore LOS,
- *  given the channel's polarization response at the boresight (see
- *  Polarization::at), it builds a sensor with one element per pixel, on the
- *  channel's frequencies and every line of sight its beams sample.  The weights
+ *  the beam of each pixel.  For channels at a sensor position and bore LOS,
+ *  given each channel's polarization response at the boresight (see
+ *  Polarization::at), it builds a sensor with one element per pixel and
+ *  channel, by pixel and then channel, on the frequencies of all channels and
+ *  every line of sight its beams sample.  The lines of sight do not depend on
+ *  the channel, so the antenna is laid out once for all channels.  The weights
  *  of an element are the channel's integration weights normalized to sum to
  *  one, times the beam weight of each line of sight normalized to sum to one at
  *  each frequency, times the polarization response carried from the boresight
@@ -195,7 +198,15 @@ using AntennaPattern =
 //! The layout of the pixels of an antenna pattern, see PixelGrid
 [[nodiscard]] PixelGrid antenna_pixels(const AntennaPattern& antenna);
 
-//! The sensor of a channel through an antenna pattern, one element per pixel by row and then column, see AntennaPattern
+//! The sensor of channels through an antenna pattern, one element per pixel and channel, see AntennaPattern
+[[nodiscard]] Sensor antenna_sensor(const AntennaPattern&    antenna,
+                                    std::span<const Channel> channels,
+                                    std::span<const Stokvec> responses,
+                                    const Vector3&           pos,
+                                    const Vector2&           bore_los,
+                                    const Vector2&           ell);
+
+//! The sensor of one channel through an antenna pattern, one element per pixel by row and then column
 [[nodiscard]] Sensor antenna_sensor(const AntennaPattern& antenna,
                                     const Channel&        channel,
                                     const Stokvec&        response,
@@ -203,16 +214,16 @@ using AntennaPattern =
                                     const Vector2&        bore_los,
                                     const Vector2&        ell);
 
-//! Concept for antenna patterns: the layout of their pixels, and a sensor with one element per pixel for a channel
+//! Concept for antenna patterns: the layout of their pixels, and a sensor with one element per pixel and channel
 template <typename T>
-concept AntennaPatternSelection = requires(const T&       antenna,
-                                           const Channel& channel,
-                                           const Stokvec& response,
-                                           const Vector3& pos,
-                                           const Vector2& bore_los,
-                                           const Vector2& ell) {
+concept AntennaPatternSelection = requires(const T&                 antenna,
+                                           std::span<const Channel> channels,
+                                           std::span<const Stokvec> responses,
+                                           const Vector3&           pos,
+                                           const Vector2&           bore_los,
+                                           const Vector2&           ell) {
   { antenna.pixels() } -> std::same_as<PixelGrid>;
-  { antenna(channel, response, pos, bore_los, ell) } -> std::same_as<Sensor>;
+  { antenna(channels, responses, pos, bore_los, ell) } -> std::same_as<Sensor>;
 };
 }  // namespace sensor
 

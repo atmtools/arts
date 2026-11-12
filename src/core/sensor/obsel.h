@@ -91,6 +91,9 @@ class SparseStokvecMatrix {
   [[nodiscard]] std::vector<SparseStokvec>::const_iterator end() const;
 
   explicit operator StokvecMatrix() const;
+
+  friend SparseStokvecMatrix embed(
+      SparseStokvecMatrix&& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
 };
 
 /** The weights are scaled by one common factor.
@@ -127,6 +130,10 @@ void sumup(VectorView out, std::span<const SparseStokvec> w, const StokvecConstM
  */
 [[nodiscard]] SparseStokvecMatrix embed(
     const SparseStokvecMatrix& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
+
+//! As embed above, but reusing the memory of w
+[[nodiscard]] SparseStokvecMatrix embed(
+    SparseStokvecMatrix&& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
 }  // namespace sensor
 
 using SensorPosLos       = sensor::PosLos;

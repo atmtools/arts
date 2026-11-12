@@ -305,7 +305,8 @@ void test_sensor_builder_with_camera() try {
   for (Size c = 0; c < nchan; c++) assert_close(image.grid<3>()[c], static_cast<Numeric>(c), 0.0, "meta channel");
 
   for (Size g = 0; g < 2; g++) {
-    const Sensor pixels = camera(sensor::DiracChannel{200.0}, Stokvec{1.0, 0.0, 0.0, 0.0}, pos[g], los[g], ell);
+    const Sensor pixels =
+        sensor::antenna_sensor(camera, sensor::DiracChannel{200.0}, Stokvec{1.0, 0.0, 0.0, 0.0}, pos[g], los[g], ell);
     for (Size p = 0; p < npix; p++) {
       const auto [box_rows, box_cols]     = rows_and_cols(sensor.elements[g * npix * nchan + p * nchan + 0]);
       const auto [dirac_rows, dirac_cols] = rows_and_cols(sensor.elements[g * npix * nchan + p * nchan + 1]);

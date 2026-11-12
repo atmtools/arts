@@ -219,21 +219,71 @@ PosLosVector make_poslos_grid(const std::vector<AntennaGeometrySample>& samples)
   return PosLosVector(std::from_range, samples | stdv::transform([](const auto& s) { return s.poslos; }));
 }
 
-//! The channel index of the one channel of an antenna's sensor
-AscendingGrid one_channel() { return AscendingGrid{Vector{0.0}}; }
+//! The channels on the frequencies of them all
+struct ChannelQuadratures {
+  //! The frequencies of all channels
+  AscendingGrid freq_grid;
 
-//! The sensor of an antenna that is a single beam: its one pixel, as one element
-Sensor one_pixel(AscendingGrid freq_grid, PosLosVector geometry, SparseStokvecMatrix weights) {
+  //! The quadrature of each channel, see normalized_quadrature
+  std::vector<ChannelQuadrature> channels;
+
+  //! The column of each frequency of each channel in freq_grid
+  std::vector<std::vector<Size>> columns;
+};
+
+ChannelQuadratures channel_quadratures(std::span<const Channel> channels, std::span<const Stokvec> responses) {
+  if (channels.empty()) arts::user_error("An antenna needs at least one channel");
+  if (channels.size() != responses.size())
+    arts::user_error("An antenna needs a response per channel, got {} channels and {} responses",
+                     channels.size(),
+                     responses.size());
+
+  ChannelQuadratures out;
+  out.channels.reserve(channels.size());
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    try {
+      out.channels.push_back(normalized_quadrature(channels[ichan]));
+    } catch (const std::exception& e) {
+      throw std::runtime_error(std::format("Channel {}:\n{}", ichan, e.what()));
+    }
+  }
+
+  std::vector<Numeric> all_freqs;
+  for (const auto& channel : out.channels) all_freqs.append_range(channel.freq_grid);
+  stdr::sort(all_freqs);
+  all_freqs.erase(std::unique(all_freqs.begin(), all_freqs.end()), all_freqs.end());
+  out.freq_grid = AscendingGrid{std::move(all_freqs)};
+
+  out.columns.resize(out.channels.size());
+  for (Size ichan = 0; ichan < out.channels.size(); ++ichan) {
+    for (const Numeric f : out.channels[ichan].freq_grid) {
+      out.columns[ichan].push_back(
+          static_cast<Size>(stdr::distance(out.freq_grid.begin(), stdr::lower_bound(out.freq_grid, f))));
+    }
+  }
+
+  return out;
+}
+
+//! The channel axis of an antenna's sensor: the indices of its channels
+AscendingGrid channel_axis(Size nchannels) {
+  Vector out(nchannels);
+  for (Size i = 0; i < nchannels; ++i) out[i] = static_cast<Numeric>(i);
+  return AscendingGrid{std::move(out)};
+}
+
+//! The sensor of an antenna that is a single beam: its one pixel, as one element per channel
+Sensor one_pixel(AscendingGrid freq_grid, PosLosVector geometry, std::vector<SparseStokvecMatrix> elements) {
   SortedGriddedField1 meta;
   meta.data_name     = "antenna";
   meta.gridname<0>() = "channel";
-  meta.grid<0>()     = one_channel();
-  meta.data.resize(1);
+  meta.grid<0>()     = channel_axis(elements.size());
+  meta.data.resize(elements.size());
   meta.data = 0.0;
 
   return {.freq_grid = std::move(freq_grid),
           .geometry  = std::move(geometry),
-          .elements  = {std::move(weights)},
+          .elements  = std::move(elements),
           .meta      = std::move(meta)};
 }
 }  // namespace
@@ -248,31 +298,38 @@ PixelGrid GaussianAntenna::pixels() const { return {}; }
 
 PixelGrid GaussianAiryAntenna::pixels() const { return {}; }
 
-Sensor PencilBeamAntenna::operator()(const Channel& channel,
-                                     const Stokvec& response,
-                                     const Vector3& pos,
-                                     const Vector2& bore_los,
+Sensor PencilBeamAntenna::operator()(std::span<const Channel> channels,
+                                     std::span<const Stokvec> responses,
+                                     const Vector3&           pos,
+                                     const Vector2&           bore_los,
                                      const Vector2&) const {
-  const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
+  auto q = channel_quadratures(channels, responses);
 
-  SparseStokvecMatrix weight_matrix(1, channel_weights.size());
-  for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
-    if (channel_weights[ifreq] == 0.0) continue;
-    weight_matrix[0, ifreq] = channel_weights[ifreq] * response;
+  std::vector<SparseStokvecMatrix> elements;
+  elements.reserve(channels.size());
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    const auto& channel_weights = q.channels[ichan].weights;
+    const auto& columns         = q.columns[ichan];
+
+    auto& weight_matrix = elements.emplace_back(1, q.freq_grid.size());
+    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+      if (channel_weights[ifreq] == 0.0) continue;
+      weight_matrix[0, columns[ifreq]] = channel_weights[ifreq] * responses[ichan];
+    }
   }
 
   return one_pixel(
-      std::move(freq_grid), PosLosVector(1, PosLos{.pos = pos, .los = bore_los}), std::move(weight_matrix));
+      std::move(q.freq_grid), PosLosVector(1, PosLos{.pos = pos, .los = bore_los}), std::move(elements));
 }
 
-Sensor GriddedAntennaPattern::operator()(const Channel& channel,
-                                         const Stokvec& response,
-                                         const Vector3& pos,
-                                         const Vector2& bore_los,
-                                         const Vector2& ell) const {
+Sensor GriddedAntennaPattern::operator()(std::span<const Channel> channels,
+                                         std::span<const Stokvec> responses,
+                                         const Vector3&           pos,
+                                         const Vector2&           bore_los,
+                                         const Vector2&           ell) const {
   if (not data.ok()) arts::user_error("GriddedAntennaPattern data shape does not match its grids");
 
-  const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
+  auto q = channel_quadratures(channels, responses);
 
   const auto antenna_geom = make_antenna_geometry_layout(data.data, data.grid<0>(), data.grid<1>(), pos, bore_los, ell);
 
@@ -280,19 +337,35 @@ Sensor GriddedAntennaPattern::operator()(const Channel& channel,
   for (const auto& sample : antenna_geom) beam_total += sample.gain * sample.solid_angle;
   if (beam_total == 0.0) arts::user_error("The antenna pattern has no gain on its grid");
 
-  SparseStokvecMatrix weight_matrix(antenna_geom.size(), channel_weights.size());
+  Vector beam(antenna_geom.size());
   for (Size i = 0; i < antenna_geom.size(); ++i) {
-    const Numeric beam = antenna_geom[i].gain * antenna_geom[i].solid_angle / beam_total;
-    if (beam == 0.0) continue;
+    beam[i] = antenna_geom[i].gain * antenna_geom[i].solid_angle / beam_total;
+  }
+  const auto nbeam = static_cast<Size>(stdr::count_if(beam, [](Numeric b) { return b != 0.0; }));
 
-    const Stokvec sample_response = antenna_geom[i].basis_from_boresight * response;
-    for (Size j = 0; j < channel_weights.size(); j++) {
-      if (channel_weights[j] == 0.0) continue;
-      weight_matrix[i, j] = channel_weights[j] * beam * sample_response;
+  std::vector<SparseStokvecMatrix> elements;
+  elements.reserve(channels.size());
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    const auto& channel_weights = q.channels[ichan].weights;
+    const auto& columns         = q.columns[ichan];
+    const auto  nfreq = static_cast<Size>(stdr::count_if(channel_weights, [](Numeric w) { return w != 0.0; }));
+
+    // In order of line of sight and then frequency, which keeps the weights sorted
+    auto& weight_matrix = elements.emplace_back();
+    weight_matrix.resize(antenna_geom.size(), q.freq_grid.size(), nbeam * nfreq);
+    auto weight = weight_matrix.begin();
+    for (Size i = 0; i < antenna_geom.size(); ++i) {
+      if (beam[i] == 0.0) continue;
+
+      const Stokvec sample_response = antenna_geom[i].basis_from_boresight * responses[ichan];
+      for (Size j = 0; j < channel_weights.size(); j++) {
+        if (channel_weights[j] == 0.0) continue;
+        *weight++ = {.irow = i, .icol = columns[j], .data = channel_weights[j] * beam[i] * sample_response};
+      }
     }
   }
 
-  return one_pixel(std::move(freq_grid), make_poslos_grid(antenna_geom), std::move(weight_matrix));
+  return one_pixel(std::move(q.freq_grid), make_poslos_grid(antenna_geom), std::move(elements));
 }
 
 namespace {
@@ -306,13 +379,13 @@ AziGrid make_azi_grid(Size size) {
 GaussianAntenna::GaussianAntenna(ZenGrid zen_grid, Numeric std, Size azi_grid_size)
     : zen_grid(std::move(zen_grid)), azi_grid(make_azi_grid(azi_grid_size)), std(std) {}
 
-Sensor GaussianAntenna::operator()(const Channel& channel,
-                                   const Stokvec& response,
-                                   const Vector3& pos,
-                                   const Vector2& bore_los,
-                                   const Vector2& ell) const {
+Sensor GaussianAntenna::operator()(std::span<const Channel> channels,
+                                   std::span<const Stokvec> responses,
+                                   const Vector3&           pos,
+                                   const Vector2&           bore_los,
+                                   const Vector2&           ell) const {
   const GriddedAntennaPattern pattern{.data = make_gaussian_field(zen_grid, azi_grid, this->std)};
-  return pattern(channel, response, pos, bore_los, ell);
+  return pattern(channels, responses, pos, bore_los, ell);
 }
 
 GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diameter, Size azi_grid_size)
@@ -320,46 +393,63 @@ GaussianAiryAntenna::GaussianAiryAntenna(ZenGrid zen_grid, Numeric aperture_diam
 
 Numeric GaussianAiryAntenna::std(Numeric frequency) const { return gaussian_airy_std(frequency, aperture_diameter); }
 
-Sensor GaussianAiryAntenna::operator()(const Channel& channel,
-                                       const Stokvec& response,
-                                       const Vector3& pos,
-                                       const Vector2& bore_los,
-                                       const Vector2& ell) const {
+Sensor GaussianAiryAntenna::operator()(std::span<const Channel> channels,
+                                       std::span<const Stokvec> responses,
+                                       const Vector3&           pos,
+                                       const Vector2&           bore_los,
+                                       const Vector2&           ell) const {
   if (aperture_diameter <= 0.0) arts::user_error("Gaussian Airy antenna aperture_diameter must be positive");
 
-  const auto [freq_grid, channel_weights] = normalized_quadrature(channel);
-
-  if (freq_grid.front() <= 0.0)
-    arts::user_error(
-        "Gaussian Airy antenna requires strictly positive channel frequencies because sensor builder only provides the channel frequency grid");
+  auto q = channel_quadratures(channels, responses);
 
   const auto antenna_geom = make_antenna_geometry_layout(
       Matrix(zen_grid.size(), azi_grid.size(), 1.0), zen_grid, azi_grid, pos, bore_los, ell);
 
-  // The beam at each frequency, normalized over the lines of sight
-  Matrix beam(channel_weights.size(), antenna_geom.size(), 0.0);
-  for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
-    if (channel_weights[ifreq] == 0.0) continue;
+  std::vector<SparseStokvecMatrix> elements;
+  elements.reserve(channels.size());
+  for (Size ichan = 0; ichan < channels.size(); ++ichan) {
+    const auto& [freq_grid, channel_weights] = q.channels[ichan];
+    const auto& columns                      = q.columns[ichan];
 
-    const Numeric airy_std = std(freq_grid[ifreq]);
-    for (Size ipos = 0; ipos < antenna_geom.size(); ++ipos) {
-      beam[ifreq, ipos] =
-          gaussian_airy_response(antenna_geom[ipos].local_los[0], airy_std) * antenna_geom[ipos].solid_angle;
+    if (freq_grid.front() <= 0.0)
+      arts::user_error(
+          "Gaussian Airy antenna requires strictly positive channel frequencies because sensor builder only provides the channel frequency grid, channel {} has {} Hz",
+          ichan,
+          freq_grid.front());
+
+    // The beam at each frequency, normalized over the lines of sight, as it widens with the wavelength
+    Matrix beam(channel_weights.size(), antenna_geom.size(), 0.0);
+    for (Size ifreq = 0; ifreq < channel_weights.size(); ++ifreq) {
+      if (channel_weights[ifreq] == 0.0) continue;
+
+      const Numeric airy_std = std(freq_grid[ifreq]);
+      for (Size ipos = 0; ipos < antenna_geom.size(); ++ipos) {
+        beam[ifreq, ipos] =
+            gaussian_airy_response(antenna_geom[ipos].local_los[0], airy_std) * antenna_geom[ipos].solid_angle;
+      }
+
+      beam[ifreq] /= sum(beam[ifreq]);
     }
 
-    beam[ifreq] /= sum(beam[ifreq]);
-  }
+    Size count = 0;
+    for (Size i = 0; i < antenna_geom.size(); ++i) {
+      for (Size j = 0; j < channel_weights.size(); j++) count += channel_weights[j] != 0.0 and beam[j, i] != 0.0;
+    }
 
-  SparseStokvecMatrix weight_matrix(antenna_geom.size(), channel_weights.size());
-  for (Size i = 0; i < antenna_geom.size(); ++i) {
-    const Stokvec sample_response = antenna_geom[i].basis_from_boresight * response;
-    for (Size j = 0; j < channel_weights.size(); j++) {
-      if (channel_weights[j] == 0.0 or beam[j, i] == 0.0) continue;
-      weight_matrix[i, j] = channel_weights[j] * beam[j, i] * sample_response;
+    // In order of line of sight and then frequency, which keeps the weights sorted
+    auto& weight_matrix = elements.emplace_back();
+    weight_matrix.resize(antenna_geom.size(), q.freq_grid.size(), count);
+    auto weight = weight_matrix.begin();
+    for (Size i = 0; i < antenna_geom.size(); ++i) {
+      const Stokvec sample_response = antenna_geom[i].basis_from_boresight * responses[ichan];
+      for (Size j = 0; j < channel_weights.size(); j++) {
+        if (channel_weights[j] == 0.0 or beam[j, i] == 0.0) continue;
+        *weight++ = {.irow = i, .icol = columns[j], .data = channel_weights[j] * beam[j, i] * sample_response};
+      }
     }
   }
 
-  return one_pixel(std::move(freq_grid), make_poslos_grid(antenna_geom), std::move(weight_matrix));
+  return one_pixel(std::move(q.freq_grid), make_poslos_grid(antenna_geom), std::move(elements));
 }
 
 CameraAntenna CameraAntenna::thin_lens(Size        n_rows,
@@ -398,11 +488,11 @@ CameraAntenna CameraAntenna::thin_lens(Size        n_rows,
 
 PixelGrid CameraAntenna::pixels() const { return grid; }
 
-Sensor CameraAntenna::operator()(const Channel& channel,
-                                 const Stokvec& response,
-                                 const Vector3& pos,
-                                 const Vector2& bore_los,
-                                 const Vector2& ell) const {
+Sensor CameraAntenna::operator()(std::span<const Channel> channels,
+                                 std::span<const Stokvec> responses,
+                                 const Vector3&           pos,
+                                 const Vector2&           bore_los,
+                                 const Vector2&           ell) const {
   using Conversion::cosd, Conversion::sind, Conversion::tand;
 
   if (grid.rows.empty() or grid.cols.empty())
@@ -434,13 +524,17 @@ Sensor CameraAntenna::operator()(const Channel& channel,
       const Vector2 los{Conversion::acosd(std::clamp(direction[2], -1.0, 1.0)),
                         Conversion::atan2d(direction[0], direction[1])};
 
-      const Stokvec pixel_response = carried_basis_change(bore, bore_basis, direction, los) * response;
+      const Muelmat        basis = carried_basis_change(bore, bore_basis, direction, los);
+      std::vector<Stokvec> pixel_responses(std::from_range, responses | stdv::transform([&basis](const Stokvec& r) {
+                                             return basis * r;
+                                           }));
 
-      pixels.push_back(std::visit([&](const auto& b) { return b(channel, pixel_response, pos, los, ell); }, beam));
+      pixels.push_back(
+          std::visit([&](const auto& b) { return b(channels, pixel_responses, pos, los, ell); }, beam));
     }
   }
 
-  // Every pixel samples the channel's frequencies; its lines of sight follow those of the pixels before it
+  // Every pixel samples the frequencies of all channels; its lines of sight follow those of the pixels before it
   Size ngeom = 0;
   for (const auto& p : pixels) ngeom += p.geometry.size();
 
@@ -455,17 +549,19 @@ Sensor CameraAntenna::operator()(const Channel& channel,
   meta.gridname<2>() = "channel";
   meta.grid<0>()     = grid.rows;
   meta.grid<1>()     = grid.cols;
-  meta.grid<2>()     = one_channel();
-  meta.data.resize(grid.rows.size(), grid.cols.size(), 1);
+  meta.grid<2>()     = channel_axis(channels.size());
+  meta.data.resize(grid.rows.size(), grid.cols.size(), channels.size());
   meta.data = 0.0;
 
   Sensor out{.freq_grid = freq_grid, .geometry = PosLosVector(ngeom), .elements = {}, .meta = std::move(meta)};
-  out.elements.reserve(pixels.size());
+  out.elements.reserve(pixels.size() * channels.size());
 
   Size offset = 0;
-  for (const auto& p : pixels) {
+  for (auto& p : pixels) {
     for (Size i = 0; i < p.geometry.size(); i++) out.geometry[offset + i] = p.geometry[i];
-    out.elements.push_back(embed(p.elements.front(), ngeom, freq_grid.size(), offset, same_freqs));
+    for (auto& element : p.elements) {
+      out.elements.push_back(embed(std::move(element), ngeom, freq_grid.size(), offset, same_freqs));
+    }
     offset += p.geometry.size();
   }
 
@@ -476,13 +572,22 @@ PixelGrid antenna_pixels(const AntennaPattern& antenna) {
   return std::visit([](const auto& pattern) { return pattern.pixels(); }, antenna);
 }
 
+Sensor antenna_sensor(const AntennaPattern&    antenna,
+                      std::span<const Channel> channels,
+                      std::span<const Stokvec> responses,
+                      const Vector3&           pos,
+                      const Vector2&           bore_los,
+                      const Vector2&           ell) {
+  return std::visit([&](const auto& pattern) { return pattern(channels, responses, pos, bore_los, ell); }, antenna);
+}
+
 Sensor antenna_sensor(const AntennaPattern& antenna,
                       const Channel&        channel,
                       const Stokvec&        response,
                       const Vector3&        pos,
                       const Vector2&        bore_los,
                       const Vector2&        ell) {
-  return std::visit([&](const auto& pattern) { return pattern(channel, response, pos, bore_los, ell); }, antenna);
+  return antenna_sensor(antenna, std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell);
 }
 
 static_assert(AntennaPatternSelection<GriddedAntennaPattern>);

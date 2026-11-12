@@ -395,6 +395,16 @@ original TELSEM atlas file.
 )--",
   };
 
+  wsg_data["SensorBuilder"] = {
+      .file = "sensor_builder.h",
+      .desc = R"--(An instrument: its channels and its antenna pattern.
+
+Each channel has a frequency response and a polarization response.  Placing
+the instrument at sensor positions and bore lines of sight gives the *Sensor*
+of those geometries.
+)--",
+  };
+
   wsg_data["SubsurfaceField"] = {
       .file = "subsurf.h",
       .desc =

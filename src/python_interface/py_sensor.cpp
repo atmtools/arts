@@ -43,7 +43,7 @@ template <typename T, typename... Ts> void antenna_calls(py::class_<T, Ts...>& c
                "The channel's polarization turns with the scan, so it needs a scan angle: "
                "pass the response at the boresight, or use the sensor builder with a scan geometry");
          }
-         return self(channel, channel.polarization.state, pos, bore_los, ell);
+         return self(std::span{&channel, 1}, std::span{&channel.polarization.state, 1}, pos, bore_los, ell);
        },
        "channel"_a,
        "pos"_a,
@@ -59,7 +59,7 @@ The channel's polarization must not depend on the scan.)")
              const Stokvec&         response,
              const Vector3&         pos,
              const Vector2&         bore_los,
-             const Vector2&         ell) { return self(channel, response, pos, bore_los, ell); },
+             const Vector2&         ell) { return self(std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell); },
           "channel"_a,
           "response"_a,
           "pos"_a,

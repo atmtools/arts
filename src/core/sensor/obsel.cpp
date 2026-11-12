@@ -200,6 +200,26 @@ SparseStokvecMatrix embed(
   return out;
 }
 
+SparseStokvecMatrix embed(
+    SparseStokvecMatrix&& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map) {
+  if (static_cast<Size>(w.nrows()) + row_offset > nrows or static_cast<Size>(w.ncols()) != col_map.size())
+    arts::user_error("Cannot place weights of shape {:B,} at row {} of a {} by {} matrix with {} column indices",
+                     w.shape(),
+                     row_offset,
+                     nrows,
+                     ncols,
+                     col_map.size());
+
+  SparseStokvecMatrix out(nrows, ncols);
+  out.sparse_data = std::move(w.sparse_data);
+  for (auto& v : out.sparse_data) {
+    v.irow += row_offset;
+    v.icol  = col_map[v.icol];
+  }
+  w = SparseStokvecMatrix{};
+  return out;
+}
+
 }  // namespace sensor
 
 void xml_io_stream<SensorPosLos>::write(std::ostream&       os,
