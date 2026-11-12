@@ -460,10 +460,10 @@ String get_dirname(const std::string_view path) {
 
 //! Return list of files in directory.
 /**
- Returns list of all files in the given path.
+ Returns the names of all files in the given path, without the path.
 
- \param[out] files    List of files
  \param[in]  dirname  Parent directory of path
+ \return List of files
 
  \author Oliver Lemke
  */
@@ -471,8 +471,8 @@ ArrayOfString list_directory(const std::string_view dirname) {
   if (!std::filesystem::is_directory(dirname)) arts::user_error("Error accessing directory: {}", dirname);
 
   ArrayOfString files{};
-  for (const auto& filename : std::filesystem::directory_iterator{dirname}) {
-    files.push_back(filename.path().string());
+  for (const auto& entry : std::filesystem::directory_iterator{dirname}) {
+    files.push_back(entry.path().filename().string());
   }
 
   return files;
