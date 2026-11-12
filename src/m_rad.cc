@@ -116,8 +116,24 @@ void spectral_radApplyForwardUnit(StokvecVector                           &spect
 ARTS_METHOD_ERROR_CATCH
 
 namespace {
-//! The radiance and its Jacobian of geometry ip of a sensor, in the unit of the transform
+/** Whether the local workspace of an agenda can be kept from one call to the next
+ *
+ * An agenda copies the variables that it both reads from the calling workspace
+ * and modifies.  A kept local workspace would start the next call from the
+ * values that the previous call left in them, so only an agenda without such
+ * variables keeps it.
+ */
+bool keep_local_workspace(const Agenda &agenda) { return agenda.get_copy().empty(); }
+
+/** The radiance and its Jacobian of geometry ip of a sensor, in the unit of the transform
+ *
+ * lws is the local workspace of spectral_rad_observer_agenda, or nullptr for a
+ * new one.  A thread that keeps it from one geometry to the next lets the
+ * variables that the agenda computes keep their memory, instead of allocating
+ * them anew for every geometry, see keep_local_workspace.
+ */
 void simulate(const Workspace                         &ws,
+              Workspace                               *lws,
               StokvecVector                           &spectral_rad,
               StokvecMatrix                           &spectral_rad_jac,
               const Sensor                            &sensor,
@@ -130,18 +146,20 @@ void simulate(const Workspace                         &ws,
               const Agenda                            &spectral_rad_observer_agenda) {
   ArrayOfPropagationPathPoint ray_path;
 
-  spectral_rad_observer_agendaExecute(ws,
-                                      spectral_rad,
-                                      spectral_rad_jac,
-                                      ray_path,
-                                      sensor.freq_grid,
-                                      jac_targets,
-                                      sensor.geometry[ip].pos,
-                                      sensor.geometry[ip].los,
-                                      atm_field,
-                                      surf_field,
-                                      subsurf_field,
-                                      spectral_rad_observer_agenda);
+  Workspace used = spectral_rad_observer_agendaExecute(ws,
+                                                       spectral_rad,
+                                                       spectral_rad_jac,
+                                                       ray_path,
+                                                       sensor.freq_grid,
+                                                       jac_targets,
+                                                       sensor.geometry[ip].pos,
+                                                       sensor.geometry[ip].los,
+                                                       atm_field,
+                                                       surf_field,
+                                                       subsurf_field,
+                                                       spectral_rad_observer_agenda,
+                                                       lws);
+  if (lws) *lws = std::move(used);
 
   if (ray_path.empty()) arts::user_error("No ray path found");
   spectral_rad_transform_operator(spectral_rad, spectral_rad_jac, sensor.freq_grid, ray_path.front());
@@ -166,7 +184,9 @@ void low_memory(const Workspace                         &ws,
 
 #pragma omp parallel if (arts_omp_parallel(-1, N > 1))
   {
-    Size start = 0;
+    Workspace  lws{WorkspaceInitialization::Empty};
+    Workspace *local = keep_local_workspace(spectral_rad_observer_agenda) ? &lws : nullptr;
+    Size       start = 0;
     for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
       const auto &sensor = measurement_sensors[isensor];
 
@@ -178,6 +198,7 @@ void low_memory(const Workspace                         &ws,
           StokvecMatrix spectral_rad_jac;
 
           simulate(ws,
+                   local,
                    spectral_rad,
                    spectral_rad_jac,
                    sensor,
@@ -239,34 +260,39 @@ void high_performance(const Workspace                         &ws,
   std::string error{};
 
 #pragma omp parallel if (arts_omp_parallel(-1, N > 1))
-  for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
-    const auto &sensor = measurement_sensors[isensor];
+  {
+    Workspace  lws{WorkspaceInitialization::Empty};
+    Workspace *local = keep_local_workspace(spectral_rad_observer_agenda) ? &lws : nullptr;
+    for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
+      const auto &sensor = measurement_sensors[isensor];
 
-    //! Dynamic scheduling as some simulations may take much longer time than others
+      //! Dynamic scheduling as some simulations may take much longer time than others
 #pragma omp for schedule(dynamic) nowait
-    for (Size ip = 0; ip < sensor.geometry.size(); ip++) {
-      try {
-        auto &[spectral_rad, spectral_rad_jac] = cache[isensor][ip];
+      for (Size ip = 0; ip < sensor.geometry.size(); ip++) {
+        try {
+          auto &[spectral_rad, spectral_rad_jac] = cache[isensor][ip];
 
-        simulate(ws,
-                 spectral_rad,
-                 spectral_rad_jac,
-                 sensor,
-                 ip,
-                 jac_targets,
-                 atm_field,
-                 surf_field,
-                 subsurf_field,
-                 spectral_rad_transform_operator,
-                 spectral_rad_observer_agenda);
-      } catch (const std::exception &e) {
+          simulate(ws,
+                   local,
+                   spectral_rad,
+                   spectral_rad_jac,
+                   sensor,
+                   ip,
+                   jac_targets,
+                   atm_field,
+                   surf_field,
+                   subsurf_field,
+                   spectral_rad_transform_operator,
+                   spectral_rad_observer_agenda);
+        } catch (const std::exception &e) {
 #pragma omp critical
-        if (error.empty())
-          error = std::format(R"(Sensor "{}", geometry {}:
+          if (error.empty())
+            error = std::format(R"(Sensor "{}", geometry {}:
 {})",
-                              sensor.name(),
-                              ip,
-                              e.what());
+                                sensor.name(),
+                                ip,
+                                e.what());
+        }
       }
     }
   }
@@ -330,7 +356,9 @@ void indexed(const Workspace                         &ws,
 
 #pragma omp parallel if (arts_omp_parallel(-1, N > 1))
   {
-    Size start = 0;
+    Workspace  lws{WorkspaceInitialization::Empty};
+    Workspace *local = keep_local_workspace(spectral_rad_observer_agenda) ? &lws : nullptr;
+    Size       start = 0;
     for (Size isensor = 0; isensor < measurement_sensors.size(); isensor++) {
       const auto &sensor = measurement_sensors[isensor];
       const auto &index  = indices[isensor];
@@ -343,6 +371,7 @@ void indexed(const Workspace                         &ws,
           StokvecMatrix spectral_rad_jac;
 
           simulate(ws,
+                   local,
                    spectral_rad,
                    spectral_rad_jac,
                    sensor,
