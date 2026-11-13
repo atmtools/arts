@@ -1,5 +1,5 @@
 from pyarts3 import Workspace
-from pyarts3.arts import PropmatVector, PropmatMatrix, PropagationPathPoint, StokvecVector, StokvecMatrix, AtmPoint
+from pyarts3.arts import PropmatVector, SpectralPropmat, PropagationPathPoint, AtmPoint
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -22,13 +22,7 @@ while N >= 2:
 
     ws.freq_grid = [100e9]
 
-    ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
-
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in k]
-
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in k]
-
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in k]
+    ws.spectral_propmat_path = [SpectralPropmat(PropmatVector([x])) for x in k]
 
     ws.ray_path = [PropagationPathPoint() for _ in k]
 
@@ -108,13 +102,7 @@ while N >= 2:
 
     ws.freq_grid = [100e9]
 
-    ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
-
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in range(N)]
-
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in range(N)]
-
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in range(N)]
+    ws.spectral_propmat_path = [SpectralPropmat(PropmatVector([x])) for x in k]
 
     ws.ray_path = [PropagationPathPoint() for _ in range(N)]
 
@@ -195,13 +183,7 @@ while N >= 2:
 
     ws.freq_grid = [100e9]
 
-    ws.spectral_propmat_path = [PropmatVector([x]) for x in k]
-
-    ws.spectral_propmat_jac_path = [PropmatMatrix(np.zeros((0, 1))) for _ in k]
-
-    ws.spectral_nlte_srcvec_path = [StokvecVector([0.0]) for _ in k]
-
-    ws.spectral_nlte_srcvec_jac_path = [StokvecMatrix(np.zeros((0, 1))) for _ in k]
+    ws.spectral_propmat_path = [SpectralPropmat(PropmatVector([x])) for x in k]
 
     ws.ray_path = [PropagationPathPoint() for _ in k]
 

@@ -145,11 +145,10 @@ void disort_settingsSubsurfaceLayerThermalEmissionLinearInTau(DisortSettings&   
   disort_settingsLayerThermalEmissionLinearInTauImpl(disort_settings, subsurf_profile, freq_grid);
 }
 
-void disort_settingsLayerNonThermalEmissionLinearInTau(DisortSettings&             disort_settings,
-                                                       const ArrayOfAtmPoint&      atm_path,
-                                                       const ArrayOfPropmatVector& spectral_propmat_path,
-                                                       const ArrayOfStokvecVector& spectral_nlte_srcvec_path,
-                                                       const AscendingGrid&        freq_grid) {
+void disort_settingsLayerNonThermalEmissionLinearInTau(DisortSettings&               disort_settings,
+                                                       const ArrayOfAtmPoint&        atm_path,
+                                                       const ArrayOfSpectralPropmat& spectral_propmat_path,
+                                                       const AscendingGrid&          freq_grid) {
   ARTS_TIME_REPORT
 
   const Size nv = freq_grid.size();
@@ -168,11 +167,11 @@ void disort_settingsLayerNonThermalEmissionLinearInTau(DisortSettings&          
       const Numeric& t0 = atm_path[i + 0].temperature;
       const Numeric& t1 = atm_path[i + 1].temperature;
 
-      const Muelmat invK0 = inv(spectral_propmat_path[i + 0][iv]);
-      const Muelmat invK1 = inv(spectral_propmat_path[i + 1][iv]);
+      const Muelmat invK0 = inv(spectral_propmat_path[i + 0].K[iv]);
+      const Muelmat invK1 = inv(spectral_propmat_path[i + 1].K[iv]);
 
-      const Stokvec& S0 = spectral_nlte_srcvec_path[i + 0][iv];
-      const Stokvec& S1 = spectral_nlte_srcvec_path[i + 1][iv];
+      const Stokvec& S0 = spectral_propmat_path[i + 0].nlte[iv];
+      const Stokvec& S1 = spectral_propmat_path[i + 1].nlte[iv];
 
       Numeric y0 = planck(f, t0) + (invK0 * S0).I();
       Numeric y1 = planck(f, t1) + (invK1 * S1).I();
@@ -411,7 +410,7 @@ void disort_settingsDeltaMPlus(DisortSettings& disort_settings) {
 
 void disort_settingsOpticalThicknessFromPath(DisortSettings&                    disort_settings,
                                              const ArrayOfPropagationPathPoint& ray_path,
-                                             const ArrayOfPropmatVector&        spectral_propmat_path,
+                                             const ArrayOfSpectralPropmat&      spectral_propmat_path,
                                              const Numeric&                     min_optical_depth) {
   ARTS_TIME_REPORT
 
@@ -424,12 +423,14 @@ void disort_settingsOpticalThicknessFromPath(DisortSettings&                    
 
   if (N == 0) return;
 
-  if (not all_same_shape({nv}, spectral_propmat_path))
+  if (stdr::any_of(spectral_propmat_path,
+                   [nv](const SpectralPropmat& pm) { return static_cast<Index>(pm.K.size()) != nv; }))
     arts::user_error("Propagation matrices and frequency grids must have the same shape.");
 
   // No polarization allowed
-  if (stdr::any_of(spectral_propmat_path,
-                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }))
+  if (stdr::any_of(spectral_propmat_path, [](const SpectralPropmat& pm) {
+        return stdr::any_of(pm.K, Cmp::eq<true>(), &Propmat::is_polarized);
+      }))
     arts::user_error("No implementation for polarized propagation matrices.");
 
   const Vector r = [n = N, &ray_path]() {
@@ -454,7 +455,7 @@ ray_path: {:B,}
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
       disort_settings.optical_thicknesses[iv, i] =
-          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1][iv].A(), spectral_propmat_path[i + 0][iv].A()),
+          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1].K[iv].A(), spectral_propmat_path[i + 0].K[iv].A()),
                    min_optical_depth);
       if (i > 0) {
         disort_settings.optical_thicknesses[iv, i] += disort_settings.optical_thicknesses[iv, i - 1];
@@ -874,10 +875,10 @@ void disort_settingsLegendreCoefficientsFromPath(
 }
 ARTS_METHOD_ERROR_CATCH
 
-void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             disort_settings,
-                                                   const ArrayOfPropmatVector& spectral_propmat_path,
-                                                   const ArrayOfPropmatVector& spectral_propmat_scat_path,
-                                                   const ArrayOfStokvecVector& spectral_absvec_scat_path) try {
+void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&               disort_settings,
+                                                   const ArrayOfSpectralPropmat& spectral_propmat_path,
+                                                   const ArrayOfPropmatVector&   spectral_propmat_scat_path,
+                                                   const ArrayOfStokvecVector&   spectral_absvec_scat_path) try {
   ARTS_TIME_REPORT
 
   const Size  N = disort_settings.layer_count();
@@ -926,11 +927,11 @@ void disort_settingsSingleScatteringAlbedoFromPath(DisortSettings&             d
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext_upper      = spectral_propmat_path[i][iv][0];
+      const Numeric ext_upper      = spectral_propmat_path[i].K[iv][0];
       const Numeric abs_scat_upper = spectral_absvec_scat_path[i][iv][0];
       const Numeric ext_scat_upper = spectral_propmat_scat_path[i][iv][0];
 
-      const Numeric ext_lower      = spectral_propmat_path[i + 1][iv][0];
+      const Numeric ext_lower      = spectral_propmat_path[i + 1].K[iv][0];
       const Numeric abs_scat_lower = spectral_absvec_scat_path[i + 1][iv][0];
       const Numeric ext_scat_lower = spectral_propmat_scat_path[i + 1][iv][0];
 

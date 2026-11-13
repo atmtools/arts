@@ -259,14 +259,8 @@ This is the extraction of the text in the ``workspace_methods.cpp`` file:
     See :doc:`concept.absorption.lbl` for details.
     )--",
         .author    = {"Richard Larsson"},
-        .out       = {"spectral_propmat",
-                      "spectral_nlte_srcvec",
-                      "spectral_propmat_jac",
-                      "spectral_nlte_srcvec_jac"},
+        .out       = {"spectral_propmat"},
         .in        = {"spectral_propmat",
-                      "spectral_nlte_srcvec",
-                      "spectral_propmat_jac",
-                      "spectral_nlte_srcvec_jac",
                       "freq_grid",
                       "jac_targets",
                       "select_species",
@@ -285,10 +279,7 @@ The signature of the method is:
 
 .. code-block:: c++
 
-  void spectral_propmatAddLines(PropmatVector& spectral_propmat,
-                                StokvecVector& spectral_nlte_srcvec,
-                                PropmatMatrix& spectral_propmat_jac,
-                                StokvecMatrix& spectral_nlte_srcvec_jac,
+  void spectral_propmatAddLines(SpectralPropmat& spectral_propmat,
                                 const AscendingGrid& freq_grid,
                                 const JacobianTargets& jac_targets,
                                 const SpeciesEnum& select_species,
@@ -300,13 +291,10 @@ The signature of the method is:
 
 The signature of the method returns ``void``.  This is the same for all ARTS methods.
 
-The first four arguments of the method are references to
+The first argument of the method is a reference to
 :attr:`~pyarts3.workspace.Workspace.spectral_propmat`.
-:attr:`~pyarts3.workspace.Workspace.spectral_nlte_srcvec`,
-:attr:`~pyarts3.workspace.Workspace.spectral_propmat_jac`, and
-:attr:`~pyarts3.workspace.Workspace.spectral_nlte_srcvec_jac`
-are both output (``out``) and input (``in``).  The method is expected to modify the existing values
-of these workspace variables instead of creating new ones.
+It is both output (``out``) and input (``in``).  The method is expected to modify the existing value
+of this workspace variable instead of creating a new one.
 
 The arguments
 :attr:`~pyarts3.workspace.Workspace.freq_grid`,

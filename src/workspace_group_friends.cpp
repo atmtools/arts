@@ -11,6 +11,15 @@ namespace {
 std::unordered_map<std::string, WorkspaceGroupRecord> group_friends_internal() {
   UniqueMap<std::string, WorkspaceGroupRecord> wsg_data;
 
+  wsg_data["PropmatMatrix"] = {
+      .file     = "rtepack.h",
+      .desc     = R"(A matrix of *Propmat*.
+
+The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 7 as columns.
+)",
+      .dim_size = {"{}.nrows()", "{}.ncols()"},
+  };
+
   wsg_data["Block"] = {
       .file = "covariance_matrix.h",
       .desc =
@@ -736,6 +745,12 @@ the user-interface for setting up retrieval targets can be simplified.
                     "GriddedField1",
                     "ArrayOfMuelmatMatrix",
                     "ArrayOfMuelmatVector",
+                    "PropmatMatrix",
+                    "StokvecMatrix",
+                    "ArrayOfPropmatVector",
+                    "ArrayOfStokvecVector",
+                    "ArrayOfPropmatMatrix",
+                    "ArrayOfStokvecMatrix",
                     "ArrayOfVector",
                     "GriddedField1Named",
                     "Matrix",

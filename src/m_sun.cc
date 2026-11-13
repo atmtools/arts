@@ -233,21 +233,21 @@ void spectral_propmat_scat_pathFromPath(const Workspace&            ws,
   }
 }
 
-void spectral_rad_srcvec_pathAddScattering(SourceVector&               spectral_rad_srcvec_path,
-                                           const ArrayOfStokvecVector& spectral_rad_scat_path,
-                                           const ArrayOfPropmatVector& spectral_propmat_path) {
+void spectral_rad_srcvec_pathAddScattering(SourceVector&                 spectral_rad_srcvec_path,
+                                           const ArrayOfStokvecVector&   spectral_rad_scat_path,
+                                           const ArrayOfSpectralPropmat& spectral_propmat_path) {
   ARTS_TIME_REPORT
 
   const Size np = spectral_propmat_path.size();
 
   if (np == 0) return;
 
-  const Size nf = spectral_propmat_path.front().size();
+  const Size nf = spectral_propmat_path.front().K.size();
 
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     for (Size iv = 0; iv < nf; iv++) {
-      spectral_rad_srcvec_path.J[iv, ip] += inv(spectral_propmat_path[ip][iv]) * spectral_rad_scat_path[ip][iv];
+      spectral_rad_srcvec_path.J[iv, ip] += inv(spectral_propmat_path[ip].K[iv]) * spectral_rad_scat_path[ip][iv];
     }
   }
 }

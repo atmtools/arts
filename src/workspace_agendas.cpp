@@ -21,7 +21,7 @@ calculations that are happening deep in your ARTS method calls.
     Use *spectral_propmat_agendaAuto* after having defined
     your absorption data to create this agenda.  It covers most use-cases.
 )--",
-      .output       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .output       = {"spectral_propmat"},
       .input        = {"freq_grid", "freq_wind_shift_jac", "jac_targets", "select_species", "ray_point", "atm_point"},
       .enum_options = {"Empty"},
       .enum_desc =
@@ -35,14 +35,7 @@ calculations that are happening deep in your ARTS method calls.
 The main use of this agenda is to allow adapting the path points
 based on spectral parameters.
 )--",
-      .output       = {"spectral_propmat_path",
-                       "spectral_nlte_srcvec_path",
-                       "spectral_propmat_jac_path",
-                       "spectral_nlte_srcvec_jac_path",
-                       "freq_grid_path",
-                       "freq_wind_shift_jac_path",
-                       "atm_path",
-                       "ray_path"},
+      .output       = {"spectral_propmat_path", "freq_grid_path", "freq_wind_shift_jac_path", "atm_path", "ray_path"},
       .input        = {"ray_path", "jac_targets", "freq_grid", "atm_field", "surf_field"},
       .enum_options = {"Default", "AdaptiveHalfPath", "Profile2Path"},
       .enum_desc =

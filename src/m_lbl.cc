@@ -294,10 +294,7 @@ void check_finite_lines(const PropmatVector& pm,
 }
 }  // namespace
 
-void spectral_propmatAddLines(PropmatVector&              pm,
-                              StokvecVector&              sv,
-                              PropmatMatrix&              dpm,
-                              StokvecMatrix&              dsv,
+void spectral_propmatAddLines(SpectralPropmat&            spectral_propmat,
                               const AscendingGrid&        f_grid,
                               const JacobianTargets&      jac_targets,
                               const SpeciesEnum&          species,
@@ -307,6 +304,13 @@ void spectral_propmatAddLines(PropmatVector&              pm,
                               const PropagationPathPoint& path_point,
                               const Index&                no_negative_absorption) try {
   ARTS_TIME_REPORT
+
+  PropmatVector& pm  = spectral_propmat.K;
+  PropmatMatrix& dpm = spectral_propmat.dK;
+  StokvecVector& sv  = spectral_propmat.nlte;
+  StokvecMatrix& dsv = spectral_propmat.dnlte;
+
+  if (lbl::adds_nlte(abs_bands, species)) spectral_propmat.nlte_on = true;
 
   const Size n = arts_omp_get_max_threads();
   if (n == 1 or static_cast<Size>(arts_omp_in_parallel()) or n > f_grid.size()) {
@@ -696,8 +700,7 @@ void sumup_zeeman(PropmatVectorView        spectral_propmat,
 }
 }  // namespace
 
-void spectral_propmatAddVoigtLTE(PropmatVector&              spectral_propmat,
-                                 PropmatMatrix&              spectral_propmat_jac,
+void spectral_propmatAddVoigtLTE(SpectralPropmat&            spectral_propmat_,
                                  Vector&                     dispersion,
                                  Matrix&                     dispersion_jac,
                                  const AscendingGrid&        freq_grid,
@@ -708,6 +711,9 @@ void spectral_propmatAddVoigtLTE(PropmatVector&              spectral_propmat,
                                  const PropagationPathPoint& path_point,
                                  const Index&                no_negative_absorption) try {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   using enum ZeemanPolarization;
 
@@ -862,8 +868,7 @@ void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spectral_propmat,
-                                                PropmatMatrix&              spectral_propmat_jac,
+void spectral_propmatMemoryIntensiveAddVoigtLTE(SpectralPropmat&            spectral_propmat_,
                                                 Vector&                     spectral_dispersion,
                                                 Matrix&                     spectral_dispersion_jac,
                                                 const AscendingGrid&        f_grid,
@@ -874,6 +879,9 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(PropmatVector&              spec
                                                 const PropagationPathPoint& path_point,
                                                 const Index&                no_negative_absorption_) try {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   using namespace lbl::voigt::lte;
 

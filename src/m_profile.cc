@@ -82,10 +82,7 @@ Compute the profile with at least the wind speed of the path, or allow more extr
 }  // namespace
 
 void Profile2Path(const Workspace&                   ws,
-                  ArrayOfPropmatVector&              spectral_propmat_path,
-                  ArrayOfStokvecVector&              spectral_nlte_srcvec_path,
-                  ArrayOfPropmatMatrix&              spectral_propmat_jac_path,
-                  ArrayOfStokvecMatrix&              spectral_nlte_srcvec_jac_path,
+                  ArrayOfSpectralPropmat&            spectral_propmat_path,
                   ArrayOfAtmPoint&                   atm_path,
                   ArrayOfAscendingGrid&              freq_grid_path,
                   ArrayOfVector3&                    freq_wind_shift_jac_path,
@@ -96,10 +93,7 @@ void Profile2Path(const Workspace&                   ws,
                   const AtmField&                    atm_field,
                   const JacobianTargets&             jac_targets,
                   const ArrayOfAtmPoint&             atm_profile,
-                  const ArrayOfPropmatVector&        spectral_propmat_profile,
-                  const ArrayOfPropmatMatrix&        spectral_propmat_jac_profile,
-                  const ArrayOfStokvecVector&        spectral_nlte_srcvec_profile,
-                  const ArrayOfStokvecMatrix&        spectral_nlte_srcvec_jac_profile,
+                  const ArrayOfSpectralPropmat&      spectral_propmat_profile,
                   const Agenda&                      spectral_propmat_agenda,
                   const Numeric&                     f_extrapolfac) try {
   ARTS_TIME_REPORT
@@ -128,9 +122,6 @@ void Profile2Path(const Workspace&                   ws,
   const Size nq = jac_targets.target_count();
 
   spectral_propmat_path.resize(n);
-  spectral_propmat_jac_path.resize(n);
-  spectral_nlte_srcvec_path.resize(n);
-  spectral_nlte_srcvec_jac_path.resize(n);
   atm_path.resize(n);
   freq_grid_path.resize(n);
   freq_wind_shift_jac_path.resize(n);
@@ -148,19 +139,13 @@ void Profile2Path(const Workspace&                   ws,
     ArrayOfAtmPoint                   part_atm_path{};
     ArrayOfAscendingGrid              part_freq_grid_path{};
     ArrayOfVector3                    part_freq_wind_shift_jac_path{};
-    ArrayOfPropmatVector              part_spectral_propmat_path{};
-    ArrayOfStokvecVector              part_spectral_nlte_srcvec_path{};
-    ArrayOfPropmatMatrix              part_spectral_propmat_jac_path{};
-    ArrayOfStokvecMatrix              part_spectral_nlte_srcvec_jac_path{};
+    ArrayOfSpectralPropmat            part_spectral_propmat_path{};
 
     atm_pathFromPath(part_atm_path, path, atm_field);
     freq_grid_pathFromPath(part_freq_grid_path, part_freq_wind_shift_jac_path, freq_grid, path, part_atm_path);
     if (kind == between) {
       spectral_propmat_pathFromPath(ws,
                                     part_spectral_propmat_path,
-                                    part_spectral_nlte_srcvec_path,
-                                    part_spectral_propmat_jac_path,
-                                    part_spectral_nlte_srcvec_jac_path,
                                     spectral_propmat_agenda,
                                     part_freq_grid_path,
                                     part_freq_wind_shift_jac_path,
@@ -168,10 +153,8 @@ void Profile2Path(const Workspace&                   ws,
                                     path,
                                     part_atm_path);
     } else {
-      part_spectral_propmat_path.assign(points.size(), PropmatVector(nf));
-      part_spectral_nlte_srcvec_path.assign(points.size(), StokvecVector(nf));
-      part_spectral_propmat_jac_path.assign(points.size(), PropmatMatrix(nq, nf));
-      part_spectral_nlte_srcvec_jac_path.assign(points.size(), StokvecMatrix(nq, nf));
+      part_spectral_propmat_path.resize(points.size());
+      for (auto& part : part_spectral_propmat_path) part.init(nf, nq);
     }
 
     for (Size k = 0; k < points.size(); k++) {
@@ -180,9 +163,6 @@ void Profile2Path(const Workspace&                   ws,
       freq_grid_path[i]                = std::move(part_freq_grid_path[k]);
       freq_wind_shift_jac_path[i]      = part_freq_wind_shift_jac_path[k];
       spectral_propmat_path[i]         = std::move(part_spectral_propmat_path[k]);
-      spectral_nlte_srcvec_path[i]     = std::move(part_spectral_nlte_srcvec_path[k]);
-      spectral_propmat_jac_path[i]     = std::move(part_spectral_propmat_jac_path[k]);
-      spectral_nlte_srcvec_jac_path[i] = std::move(part_spectral_nlte_srcvec_jac_path[k]);
     }
   }
 
@@ -199,35 +179,36 @@ void Profile2Path(const Workspace&                   ws,
 
       freq_gridWindShift(freq_grid_path[i] = freq_grid, freq_wind_shift_jac_path[i], atm_path[i], ray_path[i]);
 
+      const SpectralPropmat& profile = spectral_propmat_profile[ip];
+      SpectralPropmat&       point   = spectral_propmat_path[i];
+
       if (stdr::equal(freq_grid_path[i], freq_grid_profile)) {
-        spectral_propmat_path[i]         = spectral_propmat_profile[ip];
-        spectral_propmat_jac_path[i]     = spectral_propmat_jac_profile[ip];
-        spectral_nlte_srcvec_path[i]     = spectral_nlte_srcvec_profile[ip];
-        spectral_nlte_srcvec_jac_path[i] = spectral_nlte_srcvec_jac_profile[ip];
+        point = profile;
       } else {
-        const auto  lags = frequency_lags(freq_grid_profile, freq_grid_path[i], f_extrapolfac);
-        const auto& dk   = spectral_propmat_jac_profile[ip];
-        const auto& ds   = spectral_nlte_srcvec_jac_profile[ip];
+        const auto lags = frequency_lags(freq_grid_profile, freq_grid_path[i], f_extrapolfac);
 
-        spectral_propmat_path[i].resize(nf);
-        spectral_nlte_srcvec_path[i].resize(nf);
-        spectral_propmat_jac_path[i].resize(dk.nrows(), nf);
-        spectral_nlte_srcvec_jac_path[i].resize(ds.nrows(), nf);
+        point.K.resize(nf);
+        point.nlte.resize(nf);
+        point.dK.resize(profile.dK.nrows(), nf);
+        point.dnlte.resize(profile.dnlte.nrows(), nf);
+        point.nlte_on = profile.nlte_on;
 
-        lagrange_interp::reinterp(spectral_propmat_path[i], spectral_propmat_profile[ip], lags);
-        lagrange_interp::reinterp(spectral_nlte_srcvec_path[i], spectral_nlte_srcvec_profile[ip], lags);
-        for (Index it = 0; it < dk.nrows(); it++)
-          lagrange_interp::reinterp(spectral_propmat_jac_path[i][it], dk[it], lags);
-        for (Index it = 0; it < ds.nrows(); it++)
-          lagrange_interp::reinterp(spectral_nlte_srcvec_jac_path[i][it], ds[it], lags);
+        lagrange_interp::reinterp(point.K, profile.K, lags);
+        for (Index it = 0; it < profile.dK.nrows(); it++) lagrange_interp::reinterp(point.dK[it], profile.dK[it], lags);
+
+        // Without a non-LTE source, there are only zeros to interpolate
+        if (profile.nlte_on) {
+          lagrange_interp::reinterp(point.nlte, profile.nlte, lags);
+          for (Index it = 0; it < profile.dnlte.nrows(); it++)
+            lagrange_interp::reinterp(point.dnlte[it], profile.dnlte[it], lags);
+        } else {
+          point.nlte  = Stokvec{0.0};
+          point.dnlte = Stokvec{0.0};
+        }
       }
 
       // The profile keeps the frequency derivatives of the wind targets, so turn them into wind derivatives here
-      spectral_propmat_jacWindFix(spectral_propmat_jac_path[i],
-                                  spectral_nlte_srcvec_jac_path[i],
-                                  freq_grid_path[i],
-                                  jac_targets,
-                                  freq_wind_shift_jac_path[i]);
+      spectral_propmatWindFix(point, freq_grid_path[i], jac_targets, freq_wind_shift_jac_path[i]);
     } catch (const std::exception& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();
@@ -241,10 +222,7 @@ ARTS_METHOD_ERROR_CATCH
 void ProfileFromAltitude(const Workspace&       ws,
                          ArrayOfAtmPoint&       atm_profile,
                          AscendingGrid&         freq_grid_profile,
-                         ArrayOfPropmatVector&  spectral_propmat_profile,
-                         ArrayOfPropmatMatrix&  spectral_propmat_jac_profile,
-                         ArrayOfStokvecVector&  spectral_nlte_srcvec_profile,
-                         ArrayOfStokvecMatrix&  spectral_nlte_srcvec_jac_profile,
+                         ArrayOfSpectralPropmat& spectral_propmat_profile,
                          const Agenda&          spectral_propmat_agenda,
                          const JacobianTargets& jac_targets,
                          const AscendingGrid&   alt_grid,
@@ -277,15 +255,12 @@ void ProfileFromAltitude(const Workspace&       ws,
   // The profile is of a still atmosphere, Profile2Path takes the wind of each path point from atm_field
   for (AtmPoint& atm_point : atm_profile) atm_point.wind = {0.0, 0.0, 0.0};
 
-  // The propagation matrices are computed without wind.  With a wind shift Jacobian of one, spectral_propmat_jacWindFix
+  // The propagation matrices are computed without wind.  With a wind shift Jacobian of one, spectral_propmatWindFix
   // multiplies the frequency derivatives of the wind targets by the frequency, which is undone below to keep them
   const ArrayOfAscendingGrid freq_grid_path(ray_path.size(), freq_grid_profile);
   const ArrayOfVector3       freq_wind_shift_jac_path(ray_path.size(), Vector3{1.0, 1.0, 1.0});
   spectral_propmat_pathFromPath(ws,
                                 spectral_propmat_profile,
-                                spectral_nlte_srcvec_profile,
-                                spectral_propmat_jac_profile,
-                                spectral_nlte_srcvec_jac_profile,
                                 spectral_propmat_agenda,
                                 freq_grid_path,
                                 freq_wind_shift_jac_path,
@@ -304,8 +279,8 @@ void ProfileFromAltitude(const Workspace&       ws,
     const Size it = ptr->target_pos;
     for (Size ip = 0; ip < ray_path.size(); ip++) {
       for (Size iv = 0; iv < freq_grid_profile.size(); iv++) {
-        spectral_propmat_jac_profile[ip][it, iv]     /= freq_grid_profile[iv];
-        spectral_nlte_srcvec_jac_profile[ip][it, iv] /= freq_grid_profile[iv];
+        spectral_propmat_profile[ip].dK[it, iv]    /= freq_grid_profile[iv];
+        spectral_propmat_profile[ip].dnlte[it, iv] /= freq_grid_profile[iv];
       }
     }
   }

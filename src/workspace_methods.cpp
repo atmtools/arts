@@ -1133,10 +1133,7 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *freq_grid_path* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path"},
+      .out            = {"spectral_propmat_path"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1161,18 +1158,8 @@ albeit at least 3 points are added if any point is added.
 Note that the input 
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path",
-                         "freq_grid_path",
-                         "freq_wind_shift_jac_path",
-                         "ray_path",
-                         "atm_path"},
+      .out            = {"spectral_propmat_path", "freq_grid_path", "freq_wind_shift_jac_path", "ray_path", "atm_path"},
       .in             = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
                          "ray_path",
@@ -1208,7 +1195,7 @@ Note that the input
 
 The derivative transformation for wind parameters is also returned.
 
-See *spectral_propmat_jacWindFix* for use of the wind shift data.
+See *spectral_propmatWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
@@ -1224,18 +1211,9 @@ The outer dimension of the output arrays are the size of the species selection l
 are as per *spectral_propmat_pathFromPath*.
 )--",
       .author         = {"Richard Larsson"},
-      .gout           = {"spectral_propmat_path_species_split",
-                         "spectral_nlte_srcvec_path_species_split",
-                         "spectral_propmat_jac_path_species_split",
-                         "spectral_nlte_srcvec_jac_path_species_split"},
-      .gout_type      = {"ArrayOfArrayOfPropmatVector",
-                         "ArrayOfArrayOfStokvecVector",
-                         "ArrayOfArrayOfPropmatMatrix",
-                         "ArrayOfArrayOfStokvecMatrix"},
-      .gout_desc      = {R"--(Propagation matrix for selected species)--",
-                         R"--(Non-LTE source vector for selected species)--",
-                         R"--(Jacobian of propagation matrix for selected species)--",
-                         R"--(Jacobian of non-LTE source vector for selected species)--"},
+      .gout           = {"spectral_propmat_path_species_split"},
+      .gout_type      = {"ArrayOfArrayOfSpectralPropmat"},
+      .gout_desc      = {R"--(The propagation along the path for each selected species)--"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1336,7 +1314,7 @@ where:
     - *spectral_propmat_path*
     - The propagation matrix along the path.
   * - :math:`\vec{S}`
-    - *spectral_nlte_srcvec_path*
+    - *spectral_propmat_path* ``nlte``
     - The non-LTE source vector along the path.
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
     - *spectral_rad_srcvec_path* dJ
@@ -1346,10 +1324,10 @@ where:
     - ``None`` - this is computed locally
     - The Jacobian of the Planck function with respect to the *jac_targets*.  Only tempertature is supported.
   * - :math:`\frac{\partial \mathbf{K}}{\partial x}`
-    - *spectral_propmat_jac_path*
+    - *spectral_propmat_path* ``dK``
     - The Jacobian of the propagation matrix with respect to the *jac_targets*.
   * - :math:`\frac{\partial \vec{S}}{\partial x}`
-    - *spectral_nlte_srcvec_jac_path*
+    - *spectral_propmat_path* ``dnlte``
     - The Jacobian of the non-LTE source vector with respect to the *jac_targets*.
   * - :math:`x`
     - *jac_targets*
@@ -1367,13 +1345,7 @@ The output dimensions are:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_srcvec_path"},
-      .in     = {"spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "spectral_propmat_jac_path",
-                 "spectral_nlte_srcvec_jac_path",
-                 "freq_grid_path",
-                 "atm_path",
-                 "jac_targets"},
+      .in     = {"spectral_propmat_path", "freq_grid_path", "atm_path", "jac_targets"},
   };
 
   wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
@@ -1504,14 +1476,8 @@ thus not fail.
     want to debug your results, but not if you want to use them.
 )--",
       .author    = {"Stefan Buehler, Oliver Lemke"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "select_species",
-                    "jac_targets",
-                    "freq_grid",
-                    "atm_point",
-                    "abs_cia_data"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "select_species", "jac_targets", "freq_grid", "atm_point", "abs_cia_data"},
       .gin       = {"T_extrapolfac", "ignore_errors"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.5}, Index{0}},
@@ -1537,14 +1503,8 @@ i.e., does not overwrite the propagation matrix *spectral_propmat*,
 but adds further contributions.
 )--",
       .author = {"Patrick Eriksson"},
-      .out    = {"spectral_propmat", "spectral_propmat_jac"},
-      .in     = {"spectral_propmat",
-                 "spectral_propmat_jac",
-                 "freq_grid",
-                 "select_species",
-                 "jac_targets",
-                 "atm_point",
-                 "ray_point"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "freq_grid", "select_species", "jac_targets", "atm_point", "ray_point"},
   };
 
   wsm_data["spectral_propmatAddPredefined"] = {
@@ -1721,14 +1681,8 @@ Available models
     - :cite:t:`Ellison2007`
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat", "spectral_propmat_jac"},
-      .in     = {"spectral_propmat",
-                 "spectral_propmat_jac",
-                 "abs_predef_data",
-                 "select_species",
-                 "jac_targets",
-                 "freq_grid",
-                 "atm_point"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "abs_predef_data", "select_species", "jac_targets", "freq_grid", "atm_point"},
   };
 
   wsm_data["spectral_propmatAddXsecFit"] = {
@@ -1739,14 +1693,8 @@ This broadens the cross section data from *abs_xfit_data* and
 interpolates it onto the current *freq_grid*.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "select_species",
-                    "jac_targets",
-                    "freq_grid",
-                    "atm_point",
-                    "abs_xfit_data"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "select_species", "jac_targets", "freq_grid", "atm_point", "abs_xfit_data"},
       .gin       = {"force_p", "force_t"},
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {Numeric{-1}, Numeric{-1}},
@@ -1835,12 +1783,12 @@ This method must be used inside *spectral_propmat_scat_agenda* and then be calle
 
   wsm_data["spectral_propmatInit"] = {
       .desc =
-          R"--(Initialize *spectral_propmat*, *spectral_nlte_srcvec*, and their derivatives to zeroes.
+          R"--(Initialize *spectral_propmat* to zeroes on *freq_grid* for *jac_targets*, without a non-LTE source.
 
 This method must be used inside *spectral_propmat_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
-      .out    = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .out    = {"spectral_propmat"},
       .in     = {"jac_targets", "freq_grid"},
   };
 
@@ -2269,9 +2217,6 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "freq_grid_path",
                     "atm_path",
                     "spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
                     "surf_field",
                     "atm_field"},
       .gin       = {"hse_derivative"},
@@ -2539,7 +2484,7 @@ Brewster angle.
       .gin_desc  = {"Maximum nearest-atlas-cell distance [degrees], or a negative value to disable nearest lookup."},
   };
 
-  wsm_data["spectral_propmat_jacWindFix"] = {
+  wsm_data["spectral_propmatWindFix"] = {
       .desc   = R"--(Fix for the wind field derivative.
 
 The *spectral_propmat_agenda* will set the wind derivatives to 
@@ -2549,8 +2494,8 @@ meaning no *oemCalc* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
-      .in     = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac", "freq_grid", "jac_targets", "freq_wind_shift_jac"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "freq_grid", "jac_targets", "freq_wind_shift_jac"},
   };
 
   wsm_data["spectral_propmatAddLines"] = {
@@ -2559,11 +2504,8 @@ matrix to be calculated will work.
 See :doc:`concept.absorption.lbl` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .out       = {"spectral_propmat"},
       .in        = {"spectral_propmat",
-                    "spectral_nlte_srcvec",
-                    "spectral_propmat_jac",
-                    "spectral_nlte_srcvec_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2585,13 +2527,12 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .out       = {"spectral_propmat"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
       .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
                     "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
       .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2612,13 +2553,12 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .out       = {"spectral_propmat"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
       .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
                     "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
       .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2818,14 +2758,8 @@ This is only for LTE lines in Voigt.
 See :doc:`concept.absorption.lookup` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "freq_grid",
-                    "jac_targets",
-                    "select_species",
-                    "abs_lookup_data",
-                    "atm_point"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "freq_grid", "jac_targets", "select_species", "abs_lookup_data", "atm_point"},
       .gin       = {"no_negative_absorption",
                     "p_interp_order",
                     "t_interp_order",
@@ -5242,13 +5176,7 @@ the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_tramat_path"},
-      .in        = {"spectral_propmat_path",
-                    "spectral_propmat_jac_path",
-                    "ray_path",
-                    "atm_path",
-                    "surf_field",
-                    "jac_targets",
-                    "rte_option"},
+      .in        = {"spectral_propmat_path", "ray_path", "atm_path", "surf_field", "jac_targets", "rte_option"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -5279,9 +5207,6 @@ then fits in the cache of the processor, and it does not need the memory of
       .author    = {"Richard Larsson"},
       .out       = {"spectral_rad", "spectral_rad_jac", "spectral_rad_jac_path"},
       .in        = {"spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
                     "freq_grid_path",
                     "ray_path",
                     "atm_path",
@@ -6209,7 +6134,7 @@ This is WIP and should not be used.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "spectral_nlte_srcvec_path", "freq_grid"},
+      .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "freq_grid"},
   };
   wsm_data["vdisort_settingsLayerNonThermalEmissionLinearInTau"] =
       vdisort_method("disort_settingsLayerNonThermalEmissionLinearInTau");
@@ -6847,7 +6772,7 @@ shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
 the non-LTE source vectors and their derivatives of that altitude are
 interpolated linearly from *freq_grid_profile* to the shifted frequencies.
 The frequency derivatives of the wind targets are then turned into wind
-derivatives by *spectral_propmat_jacWindFix*.
+derivatives by *spectral_propmatWindFix*.
 
 The input ``f_extrapolfac`` limits the extrapolation beyond *freq_grid_profile*.
 If *freq_grid_profile* is :math:`[f_0, f_1, \cdots, f_{n-1}, f_n]`, then
@@ -6891,13 +6816,7 @@ which has no layer to propagate through.  Its point needs no altitude of
     outside *alt_grid* from *ray_path*.
 )",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
-                    "atm_path",
-                    "freq_grid_path",
-                    "freq_wind_shift_jac_path"},
+      .out       = {"spectral_propmat_path", "atm_path", "freq_grid_path", "freq_wind_shift_jac_path"},
       .in        = {"freq_grid",
                     "freq_grid_profile",
                     "alt_grid",
@@ -6906,9 +6825,6 @@ which has no layer to propagate through.  Its point needs no altitude of
                     "jac_targets",
                     "atm_profile",
                     "spectral_propmat_profile",
-                    "spectral_propmat_jac_profile",
-                    "spectral_nlte_srcvec_profile",
-                    "spectral_nlte_srcvec_jac_profile",
                     "spectral_propmat_agenda"},
       .gin       = {"f_extrapolfac"},
       .gin_type  = {"Numeric"},
@@ -6961,20 +6877,15 @@ frequency :math:`f_0` and :math:`f_n \left(1 + v / c\right)` above its last
 frequency :math:`f_n`.  Without wind, *freq_grid_profile* is *freq_grid*.
 
 The derivatives of the wind targets are kept as frequency derivatives, as they
-are before *spectral_propmat_jacWindFix* turns them into wind derivatives.  This
-undoes *spectral_propmat_jacWindFix*, so *spectral_propmat_agenda* must apply it,
+are before *spectral_propmatWindFix* turns them into wind derivatives.  This
+undoes *spectral_propmatWindFix*, so *spectral_propmat_agenda* must apply it,
 as it must to give wind derivatives at all.
 
 Only valid when local spectral properties are identical in all directions.
 Polarization is not possible with this method.
 )",
       .author         = {"Richard Larsson"},
-      .out            = {"atm_profile",
-                         "freq_grid_profile",
-                         "spectral_propmat_profile",
-                         "spectral_propmat_jac_profile",
-                         "spectral_nlte_srcvec_profile",
-                         "spectral_nlte_srcvec_jac_profile"},
+      .out            = {"atm_profile", "freq_grid_profile", "spectral_propmat_profile"},
       .in             = {"spectral_propmat_agenda", "jac_targets", "alt_grid", "atm_field", "freq_grid", "lat", "lon"},
       .pass_workspace = true,
   };

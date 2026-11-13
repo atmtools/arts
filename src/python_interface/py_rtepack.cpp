@@ -1,6 +1,7 @@
 #include <debug.h>
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/bind_vector.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/vector.h>
 #include <python_interface.h>
@@ -168,6 +169,78 @@ void py_rtepack(py::module_ &m) try {
   srcvec.def_rw("dJ",
                 &SourceVector::dJ,
                 "The derivatives of the source vectors; shape [nf, np, nq]\n\n.. :class:`~pyarts3.arts.StokvecTensor3");
+
+  auto specpm = py::class_<SpectralPropmat>(m, "SpectralPropmat");
+  generic_interface(specpm);
+  specpm.def_rw(
+      "K", &SpectralPropmat::K, "The propagation matrix; shape [nf]\n\n.. :class:`~pyarts3.arts.PropmatVector`");
+  specpm.def_rw("dK",
+                &SpectralPropmat::dK,
+                "The derivatives of the propagation matrix; shape [nq, nf]\n\n.. :class:`~pyarts3.arts.PropmatMatrix`");
+  specpm.def_rw(
+      "nlte", &SpectralPropmat::nlte, "The non-LTE source; shape [nf]\n\n.. :class:`~pyarts3.arts.StokvecVector`");
+  specpm.def_rw("dnlte",
+                &SpectralPropmat::dnlte,
+                "The derivatives of the non-LTE source; shape [nq, nf]\n\n.. :class:`~pyarts3.arts.StokvecMatrix`");
+  specpm.def_rw("nlte_on",
+                &SpectralPropmat::nlte_on,
+                "Whether there is a non-LTE source.  Set it when writing to nlte or dnlte\n\n.. :class:`bool`");
+  specpm.def(
+      "__init__",
+      [](SpectralPropmat             *self,
+         const PropmatVector         &K,
+         std::optional<PropmatMatrix> dK,
+         std::optional<StokvecVector> nlte,
+         std::optional<StokvecMatrix> dnlte) {
+        const Size  nf = K.size();
+        const Index nq = dK ? dK->nrows() : dnlte ? dnlte->nrows() : 0;
+
+        new (self) SpectralPropmat{};
+        self->init(nf, nq);
+        self->nlte_on = nlte.has_value() or dnlte.has_value();
+        self->K       = K;
+        if (dK) self->dK = std::move(*dK);
+        if (nlte) self->nlte = std::move(*nlte);
+        if (dnlte) self->dnlte = std::move(*dnlte);
+
+        if (not self->ok())
+          throw std::invalid_argument(
+              "K and nlte must have the same number of frequencies, and dK and dnlte one row per Jacobian target and one "
+              "column per frequency");
+      },
+      "K"_a,
+      "dK"_a    = std::optional<PropmatMatrix>{},
+      "nlte"_a  = std::optional<StokvecVector>{},
+      "dnlte"_a = std::optional<StokvecMatrix>{},
+      R"--(The propagation with the propagation matrix K.
+
+What is not given is zero.  There is a non-LTE source if nlte or dnlte is given.
+
+Parameters
+----------
+K : PropmatVector
+    The propagation matrix, one per frequency.
+dK : PropmatMatrix, optional
+    The derivatives of the propagation matrix, one row per Jacobian target and one column per frequency.
+nlte : StokvecVector, optional
+    The non-LTE source, one per frequency.
+dnlte : StokvecMatrix, optional
+    The derivatives of the non-LTE source, shaped as dK.
+)--");
+  specpm.def("init",
+             &SpectralPropmat::init,
+             "nf"_a,
+             "nq"_a,
+             "Sizes all to nf frequencies and nq Jacobian targets and sets them to zero, without a non-LTE source");
+
+  auto aspecpm =
+      py::bind_vector<ArrayOfSpectralPropmat, py::rv_policy::reference_internal>(m, "ArrayOfSpectralPropmat");
+  generic_interface(aspecpm);
+  vector_interface(aspecpm);
+  auto aaspecpm = py::bind_vector<ArrayOfArrayOfSpectralPropmat, py::rv_policy::reference_internal>(
+      m, "ArrayOfArrayOfSpectralPropmat");
+  generic_interface(aaspecpm);
+  vector_interface(aaspecpm);
 
   auto rp  = m.def_submodule("rtepack");
   rp.doc() = "Module for RTEPACK functionality";

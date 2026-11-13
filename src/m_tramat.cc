@@ -1,8 +1,7 @@
 #include <workspace.h>
 
 void spectral_tramat_pathFromPath(TransmittanceMatrix&               spectral_tramat_path,
-                                  const ArrayOfPropmatVector&        spectral_propmat_path,
-                                  const ArrayOfPropmatMatrix&        spectral_propmat_jac_path,
+                                  const ArrayOfSpectralPropmat&      spectral_propmat_path,
                                   const ArrayOfPropagationPathPoint& ray_path,
                                   const ArrayOfAtmPoint&             atm_path,
                                   const SurfaceField&                surf_field,
@@ -21,6 +20,6 @@ void spectral_tramat_pathFromPath(TransmittanceMatrix&               spectral_tr
     }
   }
 
-  spectral_tramat_path.init(spectral_propmat_path, spectral_propmat_jac_path, r, dr, rte_option);
+  spectral_tramat_path.init(spectral_propmat_path, r, dr, rte_option);
 }
 ARTS_METHOD_ERROR_CATCH

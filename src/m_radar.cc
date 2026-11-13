@@ -150,13 +150,9 @@ RadarResult radar_forward(const Workspace&                       ws,
                                     PropmatMatrix&              propmat_jac,
                                     const PropagationPathPoint& point,
                                     const AtmPoint&             atm_point) {
-      StokvecVector srcvec;
-      StokvecMatrix srcvec_jac;
+      SpectralPropmat spectral_propmat;
       spectral_propmat_agendaExecute(ws,
-                                     propmat,
-                                     srcvec,
-                                     propmat_jac,
-                                     srcvec_jac,
+                                     spectral_propmat,
                                      frequency,
                                      Vector3{0.0, 0.0, 0.0},
                                      jac_targets,
@@ -164,6 +160,8 @@ RadarResult radar_forward(const Workspace&                       ws,
                                      point,
                                      atm_point,
                                      spectral_propmat_agenda);
+      propmat     = spectral_propmat.K;
+      propmat_jac = spectral_propmat.dK;
     };
     const radar::Optics optics = radar::optics(
         ray_path, simulation.np, atm_field, frequency, scattering_species, jac_targets, settings.pext_scaling, gas);

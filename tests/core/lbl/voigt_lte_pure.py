@@ -40,22 +40,21 @@ ws.spectral_propmatInit()
 ws.spectral_propmatAddVoigtLTE()
 
 d = ws.spectral_dispersion * 1.0
-pm = ws.spectral_propmat * 1.0
-dpm = ws.spectral_propmat_jac * 1.0
+pm = ws.spectral_propmat.K * 1.0
+dpm = ws.spectral_propmat.dK * 1.0
 dd = ws.spectral_dispersion_jac * 1.0
 f = ws.freq_grid * 1.0
 ws.freq_grid = f + 10
 ws.spectral_propmatInit()
 ws.spectral_propmatAddVoigtLTE()
 d2 = ws.spectral_dispersion * 1.0
-pm2 = ws.spectral_propmat * 1.0
+pm2 = ws.spectral_propmat.K * 1.0
 dpm2 = (pm2 - pm) / 10
 ws.freq_grid = f
 
 # %% Standard code
 
-ws.spectral_propmat = []
-ws.spectral_propmat_jac = [[]]
+ws.spectral_propmat = pyarts.arts.SpectralPropmat()
 ws.spectral_propmatInit()
 ws.spectral_propmatAddLines()
 
@@ -64,7 +63,7 @@ if "ARTS_HEADLESS" not in os.environ:
     fig, ax = plt.subplots(3, 1, figsize=(8, 12))
     ax[0].plot(ws.freq_grid/1e9, d)
     ax[1].plot(ws.freq_grid/1e9, pm)
-    ax[2].plot(ws.freq_grid/1e9, ws.spectral_propmat)
+    ax[2].plot(ws.freq_grid/1e9, ws.spectral_propmat.K)
 
     for i in range(dd.shape[0]):
         fig, ax = plt.subplots(
@@ -73,8 +72,8 @@ if "ARTS_HEADLESS" not in os.environ:
         ax[1].plot(ws.freq_grid/1e9, dpm[i])
         if "Wind" in x[i]:
             ax[3].plot(ws.freq_grid/1e9, dpm2)
-        ax[2].plot(ws.freq_grid/1e9, ws.spectral_propmat_jac[i])
+        ax[2].plot(ws.freq_grid/1e9, ws.spectral_propmat.dK[i])
         ax[0].set_title(f"Jacobian for {x[i]}")
 
-assert np.allclose(pm, ws.spectral_propmat)
-# assert np.allclose(dpm, ws.spectral_propmat_jac)  # Disabled due zero-crossings
+assert np.allclose(pm, ws.spectral_propmat.K)
+# assert np.allclose(dpm, ws.spectral_propmat.dK)  # Disabled due zero-crossings

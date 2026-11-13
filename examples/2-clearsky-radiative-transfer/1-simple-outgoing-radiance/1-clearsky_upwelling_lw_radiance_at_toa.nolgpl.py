@@ -88,7 +88,7 @@ ws.spectral_propmat_pathFromPath()
 # Absorption coefficient [1/m] at every path point and frequency.
 K = np.array(
     [
-        [ws.spectral_propmat_path[ip][f][0] for f in range(nf)]
+        [ws.spectral_propmat_path[ip].K[f][0] for f in range(nf)]
         for ip in range(len(ws.ray_path))
     ]
 )  # shape [np, nf]

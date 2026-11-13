@@ -127,8 +127,7 @@ std::conditional_t<calc, Vector, void> _spectral_propmatAddLookup(PropmatVector&
 }
 }  // namespace
 
-void spectral_propmatAddLookup(PropmatVector&                spectral_propmat,
-                               PropmatMatrix&                spectral_propmat_jac,
+void spectral_propmatAddLookup(SpectralPropmat&              spectral_propmat_,
                                const AscendingGrid&          freq_grid,
                                const JacobianTargets&        jac_targets,
                                const SpeciesEnum&            spectral_propmat_select_species,
@@ -141,6 +140,9 @@ void spectral_propmatAddLookup(PropmatVector&                spectral_propmat,
                                const Index&                  f_interp_order,
                                const Numeric&                extpolfac) try {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   _spectral_propmatAddLookup<false>(spectral_propmat,
                                     spectral_propmat_jac,

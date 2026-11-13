@@ -420,77 +420,6 @@ The order is
       .dims = {"NALT", "NFREQ"},
   };
 
-  wsv_data["spectral_nlte_srcvec"] = {
-      .desc =
-          R"--(The part of the source vector that is due to non-LTE.
-
-This is closely related to *spectral_propmat*.
-
-Given the level source term:
-
-.. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
-
-this variable holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
-column of :math:`\mathbf{K}`, which is from the *spectral_propmat* variable.
-:math:`B` is the Planck function.  The ellipsis denotes other terms that can
-come from more sources, such as scattering and/or transmitting equipment.
-
-The unit is in *spectral_rad* per meter.
-)--",
-      .type = "StokvecVector",
-      .dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_nlte_srcvec* with regards to *jac_targets*.
-
-The units are *spectral_rad_jac* per meter.
-)--",
-      .type = "StokvecMatrix",
-      .dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac_path"] = {
-      .desc       = R"--(Additional non-LTE derivative along the propagation path
-)--",
-      .type       = "ArrayOfStokvecMatrix",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac_profile"] = {
-      .desc       = R"--(Additional non-LTE derivative in a propagation profile, on *freq_grid_profile*
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfStokvecMatrix",
-      .dims       = {"NALT"},
-      .inner_dims = {"NTARGET", "NFREQ_PROFILE"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_path"] = {
-      .desc       = R"--(Additional non-LTE along the propagation path
-)--",
-      .type       = "ArrayOfStokvecVector",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_profile"] = {
-      .desc       = R"--(Additional non-LTE in a propagation profile, on *freq_grid_profile*
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfStokvecVector",
-      .dims       = {"NALT"},
-      .inner_dims = {"NFREQ_PROFILE"},
-  };
-
   wsv_data["spectral_phamat_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
@@ -513,69 +442,53 @@ Each element is the coefficient on the orthonormal Y_l0 of the scattering-plane 
 
   wsv_data["spectral_propmat"] = {
       .desc =
-          R"--(This contains the fully polarized propagation matrix for the current path point.
+          R"--(The propagation of the current path point: the propagation matrix, the non-LTE source and their derivatives.
 
-The propagation matrix can be used to computed the transmission matrix as:
+The propagation matrix, ``K``, is fully polarized.  It can be used to compute the transmission matrix as:
 
 .. math:: \mathbf{T} = \exp\left(-\mathbf{K} r\right),
 
 where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distance
-over which it is considered constant.
+over which it is considered constant.  The unit is [1 / m].
 
-The unit is [1 / m].
+The non-LTE source, ``nlte``, is the part of the source vector that is due to non-LTE.
+Given the level source term:
+
+.. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
+
+it holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
+column of :math:`\mathbf{K}` and :math:`B` is the Planck function.  The ellipsis
+denotes other terms that can come from more sources, such as scattering and/or
+transmitting equipment.  The unit is in *spectral_rad* per meter.
+
+The derivatives, ``dK`` and ``dnlte``, are the partial derivatives of the two with
+regards to *jac_targets*.  Their units are those above per unit of the target.
+
+There is a non-LTE source only if ``nlte_on`` is true, see *SpectralPropmat*.
 )--",
-      .type = "PropmatVector",
-      .dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
-
-The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
-)--",
-      .type = "PropmatMatrix",
-      .dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac_path"] = {
-      .desc       = R"--(Propagation derivative matrices along the propagation path
-)--",
-      .type       = "ArrayOfPropmatMatrix",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac_profile"] = {
-      .desc       = R"--(Propagation derivative matrices in a propagation profile, on *freq_grid_profile*
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfPropmatMatrix",
-      .dims       = {"NALT"},
-      .inner_dims = {"NTARGET", "NFREQ_PROFILE"},
+      .type = "SpectralPropmat",
+      .dims = {"NFREQ", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_path"] = {
-      .desc       = R"--(Propagation matrices along the propagation path
+      .desc       = R"--(The propagation along the propagation path, as *spectral_propmat* for each point
 )--",
-      .type       = "ArrayOfPropmatVector",
+      .type       = "ArrayOfSpectralPropmat",
       .dims       = {"NPATH"},
-      .inner_dims = {"NFREQ"},
+      .inner_dims = {"NFREQ", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_profile"] = {
-      .desc       = R"--(Propagation matrices in a propagation profile, on *freq_grid_profile*
+      .desc =
+          R"--(The propagation in a propagation profile, as *spectral_propmat* for each altitude, on *freq_grid_profile*
 
 .. note::
     Polarization is considered but if the profile is polarized,
     using it in anyways will yield invalid results.
 )--",
-      .type       = "ArrayOfPropmatVector",
+      .type       = "ArrayOfSpectralPropmat",
       .dims       = {"NALT"},
-      .inner_dims = {"NFREQ_PROFILE"},
+      .inner_dims = {"NFREQ_PROFILE", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_scat"] = {
@@ -1341,7 +1254,7 @@ See *spectral_propmat* for more information.
       .desc =
           R"--(A non-LTE source vector Jacobian at a single *freq* point.
 
-See *spectral_propmat_jac* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "StokvecVector",
       .dims = {"NTARGET"},
@@ -1359,7 +1272,7 @@ See *spectral_propmat* for more information.
       .desc =
           R"--(A propagation matrix Jacobian at a single *freq* point.
 
-See *spectral_propmat_jac* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "PropmatVector",
       .dims = {"NTARGET"},

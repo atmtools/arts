@@ -85,33 +85,35 @@ Supporting variable sizes:
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmat_pathAddScattering(ArrayOfPropmatVector&       spectral_propmat_path,
+void spectral_propmat_pathAddScattering(ArrayOfSpectralPropmat&     spectral_propmat_path,
                                         const ArrayOfPropmatVector& spectral_propmat_scat_path) try {
   const Size N = spectral_propmat_path.size();
 
   if (N == 0) return;
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
-  for (Size i = 0; i < spectral_propmat_path.size(); i++) { spectral_propmat_path[i] += spectral_propmat_scat_path[i]; }
+  for (Size i = 0; i < spectral_propmat_path.size(); i++) {
+    spectral_propmat_path[i].K += spectral_propmat_scat_path[i];
+  }
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_rad_srcvec_pathCorrectScattering(SourceVector&               spectral_rad_srcvec_path,
-                                               const ArrayOfPropmatVector& spectral_propmat_path,
-                                               const ArrayOfPropmatVector& spectral_propmat_scat_path,
-                                               const ArrayOfStokvecVector& spectral_absvec_scat_path,
-                                               const ArrayOfAscendingGrid& freq_grid_path,
-                                               const ArrayOfAtmPoint&      atm_path) try {
+void spectral_rad_srcvec_pathCorrectScattering(SourceVector&                 spectral_rad_srcvec_path,
+                                               const ArrayOfSpectralPropmat& spectral_propmat_path,
+                                               const ArrayOfPropmatVector&   spectral_propmat_scat_path,
+                                               const ArrayOfStokvecVector&   spectral_absvec_scat_path,
+                                               const ArrayOfAscendingGrid&   freq_grid_path,
+                                               const ArrayOfAtmPoint&        atm_path) try {
   const Size np = spectral_propmat_path.size();
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ++ip) {
-    const Size nf = spectral_propmat_path[ip].size();
+    const Size nf = spectral_propmat_path[ip].K.size();
     for (Size iv = 0; iv < nf; ++iv) {
-      if (spectral_propmat_path[ip][iv].is_rotational()) continue;
+      if (spectral_propmat_path[ip].K[iv].is_rotational()) continue;
       const Stokvec nonabsorbing =
           rtepack::absvec(spectral_propmat_scat_path[ip][iv]) - spectral_absvec_scat_path[ip][iv];
-      spectral_rad_srcvec_path.J[iv, ip] -= inv(spectral_propmat_path[ip][iv]) *
+      spectral_rad_srcvec_path.J[iv, ip] -= inv(spectral_propmat_path[ip].K[iv]) *
                                             (planck(freq_grid_path[ip][iv], atm_path[ip].temperature) * nonabsorbing);
     }
   }

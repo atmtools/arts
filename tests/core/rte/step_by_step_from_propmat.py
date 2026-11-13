@@ -9,6 +9,9 @@ thin to thick, non-LTE sources, three Jacobian targets and a frequency grid
 shifted differently at each point.  The frequencies are not a whole number of
 blocks.  Every transmittance option is tested, with and without the
 hypsometric derivatives.
+
+A point without a non-LTE source has nlte_on false, and its source is then
+left out.  That must give the same to the bit as sources of zero that are used.
 """
 
 import numpy as np
@@ -48,10 +51,7 @@ dS = rng.uniform(-1, 1, (NP, NQ, NF, 4)) * A[:, None, :, None] * 1e-12
 f = np.linspace(100e9, 101e9, NF)
 T = rng.uniform(150, 300, NP)
 
-ws.spectral_propmat_path = [pyarts.arts.PropmatVector(K[i]) for i in range(NP)]
-ws.spectral_propmat_jac_path = [pyarts.arts.PropmatMatrix(dK[i]) for i in range(NP)]
-ws.spectral_nlte_srcvec_path = [pyarts.arts.StokvecVector(S[i]) for i in range(NP)]
-ws.spectral_nlte_srcvec_jac_path = [pyarts.arts.StokvecMatrix(dS[i]) for i in range(NP)]
+ws.spectral_propmat_path = [pyarts.arts.SpectralPropmat(K[i], dK[i], S[i], dS[i]) for i in range(NP)]
 ws.freq_grid_path = [pyarts.arts.AscendingGrid(f * (1 + rng.uniform(-1e-5, 1e-5))) for _ in range(NP)]
 ws.ray_path = [pyarts.arts.PropagationPathPoint() for _ in range(NP)]
 ws.atm_path = [pyarts.arts.AtmPoint() for _ in range(NP)]
@@ -88,3 +88,24 @@ for option in ["constant", "linsrc", "linprop", "magop", "magop_linsrc"]:
 
         errors = [worst(n, r) for n, r in zip(new, ref)]
         assert max(errors) < 1e-14, f"{option}, hse_derivative {hse}: relative errors {errors}"
+
+# Sources of zero, used with nlte_on true and left out with nlte_on false
+zero_S, zero_dS = np.zeros((NF, 4)), np.zeros((NQ, NF, 4))
+
+for option in ["constant", "linsrc", "linprop", "magop", "magop_linsrc"]:
+    ws.rte_option = option
+    results = {}
+    for nlte_on in [True, False]:
+        ws.spectral_propmat_path = [pyarts.arts.SpectralPropmat(K[i], dK[i], zero_S, zero_dS) for i in range(NP)]
+        for point in ws.spectral_propmat_path:
+            point.nlte_on = nlte_on
+
+        ws.spectral_rad_srcvec_pathFromPropmat()
+        ws.spectral_radStepByStepEmissionFromPropmat()
+        results[nlte_on] = [np.array(ws.spectral_rad_srcvec_path.J, copy=True), np.array(ws.spectral_rad_srcvec_path.dJ, copy=True),
+                            np.array(ws.spectral_rad, copy=True), np.array(ws.spectral_rad_jac, copy=True),
+                            np.array(ws.spectral_rad_jac_path, copy=True)]
+
+    assert all(np.abs(x).max() > 0 for x in results[True]), f"{option}: a result is all zero"
+    for name, used, left_out in zip(["source", "source derivative", "radiance", "Jacobian", "path Jacobian"], results[True], results[False]):
+        assert np.array_equal(used, left_out), f"{option}: the {name} differs when the non-LTE source is left out"

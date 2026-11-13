@@ -56,16 +56,13 @@ void level_nlte(stokvec_vector_view              J,
   }
 }
 
-void SourceVector::init(const std::span<const propmat_vector> &K,
-                        const std::span<const propmat_matrix> &dK,
-                        const std::span<const stokvec_vector> &nlte,
-                        const std::span<const stokvec_matrix> &dnlte,
-                        const std::span<const AscendingGrid>  &freq_grid,
-                        const std::span<const Numeric>        &ts,
-                        const Size                            &it) {
-  if (not arr::same_size(K, dK, nlte, dnlte, freq_grid, ts)) arts::user_error("All input must have the same size.");
+void SourceVector::init(const std::span<const SpectralPropmat> &pm,
+                        const std::span<const AscendingGrid>   &freq_grid,
+                        const std::span<const Numeric>         &ts,
+                        const Size                             &it) {
+  if (not arr::same_size(pm, freq_grid, ts)) arts::user_error("All input must have the same size.");
 
-  const Size np = dK.size();
+  const Size np = pm.size();
 
   if (np == 0) {
     J.resize(J.nrows(), 0);
@@ -73,33 +70,46 @@ void SourceVector::init(const std::span<const propmat_vector> &K,
     return;
   }
 
-  const Size nq = dK.front().nrows();
-  const Size nf = dK.front().ncols();
+  const Size nf = pm.front().K.size();
+  const Size nq = pm.front().dK.nrows();
 
   J.resize(nf, np);
   dJ.resize(nf, np, nq);
 
-  if (not all_same_shape({nq, nf}, dK, dnlte))
-    arts::user_error("All derivative parameters must have same shape ({}, {}).", nq, nf);
+  //! The non-LTE source is used only where it is on, so it needs its shape only there
+  if (stdr::any_of(pm, [nf, nq](const SpectralPropmat &x) {
+        const std::array shape{static_cast<Index>(nq), static_cast<Index>(nf)};
+        return x.K.size() != nf or x.dK.shape() != shape or
+               (x.nlte_on and (x.nlte.size() != nf or x.dnlte.shape() != shape));
+      }))
+    arts::user_error("All points must have {} frequencies and {} derivatives.", nf, nq);
 
-  if (not all_same_shape({nf}, K, nlte, freq_grid))
-    arts::user_error("All forward parameters must have same shape ({}).", nf);
+  if (not all_same_shape({nf}, freq_grid)) arts::user_error("All frequency grids must have the size {}.", nf);
 
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 0; i < np; i++) {
     for (Size j = 0; j < nf; j++) {
-      if (K[i][j].is_rotational()) {
+      const auto &[K, dK, nlte, dnlte, nlte_on] = pm[i];
+
+      if (K[j].is_rotational()) {
         J[j, i]  = stokvec{0.0};
         dJ[j, i] = stokvec{0.0};
+      } else if (not nlte_on) {
+        //! Without a non-LTE source, the source is the Planck function, which needs no inverse of K
+        J[j, i] = stokvec{planck(freq_grid[i][j], ts[i])};
+
+        for (Size k = 0; k < nq; k++) {
+          dJ[j, i, k] = stokvec{it == k ? dplanck_dt(freq_grid[i][j], ts[i]) : 0, 0, 0, 0};
+        }
       } else {
         const auto b    = planck(freq_grid[i][j], ts[i]);
-        const auto invK = inv(K[i][j]);
-        const auto n    = invK * nlte[i][j];
+        const auto invK = inv(K[j]);
+        const auto n    = invK * nlte[j];
         J[j, i]         = stokvec{b} + n;
 
         for (Size k = 0; k < nq; k++) {
-          dJ[j, i, k] = stokvec{it == k ? dplanck_dt(freq_grid[i][j], ts[i]) : 0, 0, 0, 0} -
-                        invK * (dK[i][k, j] * n - dnlte[i][k, j]);
+          dJ[j, i, k] =
+              stokvec{it == k ? dplanck_dt(freq_grid[i][j], ts[i]) : 0, 0, 0, 0} - invK * (dK[k, j] * n - dnlte[k, j]);
         }
       }
     }

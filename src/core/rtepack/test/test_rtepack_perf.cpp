@@ -113,15 +113,27 @@ Numeric test_sqrt(const PropmatVector& K) {
   return sum;
 }
 
+//! A path with the propagation matrices K and their derivatives dK, without a non-LTE source
+ArrayOfSpectralPropmat as_path(const std::vector<PropmatVector>& K, const std::vector<PropmatMatrix>& dK) {
+  ArrayOfSpectralPropmat pm(K.size());
+  for (Size i = 0; i < K.size(); i++) {
+    pm[i].K  = K[i];
+    pm[i].dK = dK[i];
+  }
+  return pm;
+}
+
 Numeric test_transmittance_matrix_init_constant(const std::vector<PropmatVector>& K,
                                                 const std::vector<PropmatMatrix>& dK,
                                                 const Vector&                     r,
                                                 const Tensor3&                    dr) {
+  const ArrayOfSpectralPropmat pm = as_path(K, dK);
+
   ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_constant; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
-  tm.init(K, dK, r, dr, TransmittanceOption::constant);
+  tm.init(pm, r, dr, TransmittanceOption::constant);
   sum += tm.T[0, 0][0, 0];
 
   return sum;
@@ -131,11 +143,13 @@ Numeric test_transmittance_matrix_init_linsrc(const std::vector<PropmatVector>& 
                                               const std::vector<PropmatMatrix>& dK,
                                               const Vector&                     r,
                                               const Tensor3&                    dr) {
+  const ArrayOfSpectralPropmat pm = as_path(K, dK);
+
   ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linsrc; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
-  tm.init(K, dK, r, dr, TransmittanceOption::linsrc);
+  tm.init(pm, r, dr, TransmittanceOption::linsrc);
   sum += tm.T[0, 0][0, 0];
 
   return sum;
@@ -145,11 +159,13 @@ Numeric test_transmittance_matrix_init_linprop(const std::vector<PropmatVector>&
                                                const std::vector<PropmatMatrix>& dK,
                                                const Vector&                     r,
                                                const Tensor3&                    dr) {
+  const ArrayOfSpectralPropmat pm = as_path(K, dK);
+
   ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linprop; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
-  tm.init(K, dK, r, dr, TransmittanceOption::linprop);
+  tm.init(pm, r, dr, TransmittanceOption::linprop);
   sum += tm.T[0, 0][0, 0];
 
   return sum;

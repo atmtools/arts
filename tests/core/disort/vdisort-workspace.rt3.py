@@ -163,7 +163,7 @@ ws.atm_pathFromPath()
 ws.freq_grid_pathFromPath()
 ws.spectral_propmat_pathFromPath()
 temperature = np.array([p.temperature for p in ws.atm_path])
-absorption = np.array([[pm[iv][0] for iv in range(len(FREQ))] for pm in ws.spectral_propmat_path])
+absorption = np.array([[pm.K[iv][0] for iv in range(len(FREQ))] for pm in ws.spectral_propmat_path])
 assert (absorption[:2] == 0).all() and (absorption[2:] > 0).all(), "the top layer must be empty and no other"
 
 for iv, f in enumerate(FREQ):
@@ -295,7 +295,7 @@ def against_rt3(name, ws, aziorder, azimuths, ground, thermal, minimum):
         sky = np.asarray(s.downward_boundary_condition)[iv, 0, 0, 0, 0]
         sky_temperature = h * f / k / np.log1p(2 * h * f**3 / (c**2 * sky)) if sky > 0 else 0.0
         problem = A.rt3.problem_from_path(
-            ws.ray_path, ws.atm_path, ws.spectral_propmat_path, ws.freq_grid, iv, ws.scat_species,
+            ws.ray_path, ws.atm_path, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv, ws.scat_species,
             settings, ground, T_SURF, sky_temperature,
         )  # fmt: skip
         problem.thermal = thermal

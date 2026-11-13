@@ -5,6 +5,7 @@
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"
 #include "rtepack_spectral_matrix.h"
+#include "rtepack_spectral_propmat.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -24,10 +25,9 @@ struct TransmittanceMatrix {
   stokvec_matrix T_diag_m1{};
   stokvec_matrix L_diag_m1{};
 
-  void init(const std::span<const propmat_vector> &K,
-            const std::span<const propmat_matrix> &dK,
-            const ConstVectorView                 &r,
-            const ConstTensor3View                &dr,
+  void init(const std::span<const SpectralPropmat> &pm,
+            const ConstVectorView                  &r,
+            const ConstTensor3View                 &dr,
             const TransmittanceOption);
 
   void init(const std::span<const propmat>        &K,
@@ -50,30 +50,15 @@ struct TransmittanceMatrix {
   [[nodiscard]] std::array<Size, 3> shape() const noexcept;
 
  private:
-  void constant(const std::span<const propmat_vector> &K,
-                const std::span<const propmat_matrix> &dK,
-                const ConstVectorView                 &r,
-                const ConstTensor3View                &dr);
+  void constant(const std::span<const SpectralPropmat> &pm, const ConstVectorView &r, const ConstTensor3View &dr);
 
-  void linsrc(const std::span<const propmat_vector> &K,
-              const std::span<const propmat_matrix> &dK,
-              const ConstVectorView                 &r,
-              const ConstTensor3View                &dr);
+  void linsrc(const std::span<const SpectralPropmat> &pm, const ConstVectorView &r, const ConstTensor3View &dr);
 
-  void linprop(const std::span<const propmat_vector> &K,
-               const std::span<const propmat_matrix> &dK,
-               const ConstVectorView                 &r,
-               const ConstTensor3View                &dr);
+  void linprop(const std::span<const SpectralPropmat> &pm, const ConstVectorView &r, const ConstTensor3View &dr);
 
-  void magop(const std::span<const propmat_vector> &K,
-             const std::span<const propmat_matrix> &dK,
-             const ConstVectorView                 &r,
-             const ConstTensor3View                &dr);
+  void magop(const std::span<const SpectralPropmat> &pm, const ConstVectorView &r, const ConstTensor3View &dr);
 
-  void magop_linsrc(const std::span<const propmat_vector> &K,
-                    const std::span<const propmat_matrix> &dK,
-                    const ConstVectorView                 &r,
-                    const ConstTensor3View                &dr);
+  void magop_linsrc(const std::span<const SpectralPropmat> &pm, const ConstVectorView &r, const ConstTensor3View &dr);
 
   void constant(const std::span<const propmat>        &K,
                 const std::span<const propmat_vector> &dK,

@@ -44,8 +44,8 @@ ws.ray_point.pos = [90e3, 0, 0]
 ws.spectral_propmatInit()
 ws.spectral_propmatAddLines()
 
-x0 = ws.spectral_propmat * 1.0
-dd = ws.spectral_propmat_jac[0] * 1.0
+x0 = ws.spectral_propmat.K * 1.0
+dd = ws.spectral_propmat.dK[0] * 1.0
 
 ws.spectral_propmatInit()
 ws.spectral_propmatAddLines()
@@ -55,7 +55,7 @@ ws.atm_point.mag = B1
 ws.spectral_propmatInit()
 ws.spectral_propmatAddLines()
 
-x1 = ws.spectral_propmat * 1.0
+x1 = ws.spectral_propmat.K * 1.0
 d = (x1 - x0) / dx
 
 assert np.allclose(d, dd, rtol=1e-3)

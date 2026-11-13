@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rtepack_propagation_matrix.h"
+#include "rtepack_spectral_propmat.h"
 #include "rtepack_stokes_vector.h"
 
 namespace rtepack {
@@ -18,14 +19,15 @@ struct SourceVector {
   stokvec_matrix  J{};
   stokvec_tensor3 dJ{};
 
-  //! Spectral frequency initialization with NLTE and without Scattering
-  void init(const std::span<const propmat_vector> &K,
-            const std::span<const propmat_matrix> &dK,
-            const std::span<const stokvec_vector> &nlte,
-            const std::span<const stokvec_matrix> &dnlte,
-            const std::span<const AscendingGrid>  &freq_grid,
-            const std::span<const Numeric>        &ts,
-            const Size                            &it);
+  /** Spectral frequency initialization with NLTE and without Scattering
+   *
+   * A point without a non-LTE source has the Planck function as its source,
+   * and the inverse of its propagation matrix is not computed.
+   */
+  void init(const std::span<const SpectralPropmat> &pm,
+            const std::span<const AscendingGrid>   &freq_grid,
+            const std::span<const Numeric>         &ts,
+            const Size                             &it);
 
   //! Single frequency initialization with NLTE and without Scattering
   void init(const std::span<const propmat>        &K,

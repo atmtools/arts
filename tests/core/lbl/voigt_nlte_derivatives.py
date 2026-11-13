@@ -162,8 +162,8 @@ def calculate(ws):
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines(no_negative_absorption=False)
     return (
-        np.array(ws.spectral_propmat),
-        np.array(ws.spectral_nlte_srcvec),
+        np.array(ws.spectral_propmat.K),
+        np.array(ws.spectral_propmat.nlte),
     )
 
 
@@ -185,8 +185,8 @@ def check(
     add_target(ws)
     calculate(ws)
     analytic = (
-        np.array(ws.spectral_propmat_jac)[0],
-        np.array(ws.spectral_nlte_srcvec_jac)[0],
+        np.array(ws.spectral_propmat.dK)[0],
+        np.array(ws.spectral_propmat.dnlte)[0],
     )
 
     original = get_value(ws)

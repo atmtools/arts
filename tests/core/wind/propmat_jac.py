@@ -57,11 +57,11 @@ for i in range(3):
     ws.freq_gridWindShift()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
-    ws.spectral_propmat_jacWindFix()
+    ws.spectral_propmatWindFix()
 
     # Keep analytical derivative and value
-    x0 = ws.spectral_propmat * 1.0
-    dd = ws.spectral_propmat_jac[0] * 1.0
+    x0 = ws.spectral_propmat.K * 1.0
+    dd = ws.spectral_propmat.dK[0] * 1.0
 
     # Modify the wind field and calculate perturbed value
     ws.atm_point.wind[i] += dx
@@ -69,10 +69,10 @@ for i in range(3):
     ws.freq_gridWindShift()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
-    ws.spectral_propmat_jacWindFix()
+    ws.spectral_propmatWindFix()
 
     # Keep perturbed value and calculate perturbed derivative
-    x1 = ws.spectral_propmat * 1.0
+    x1 = ws.spectral_propmat.K * 1.0
     d = (x1 - x0) / dx
 
     # Plot and compare the ratio between pertrubed and analytical derivatives

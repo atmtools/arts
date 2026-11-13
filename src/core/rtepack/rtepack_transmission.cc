@@ -2252,10 +2252,9 @@ void TransmittanceMatrix::magop_linsrc(const std::span<const propmat>        &K,
   }
 }
 
-void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
-                                   const std::span<const propmat_matrix> &dK,
-                                   const ConstVectorView                 &r,
-                                   const ConstTensor3View                &dr) {
+void TransmittanceMatrix::constant(const std::span<const SpectralPropmat> &pm,
+                                   const ConstVectorView                  &r,
+                                   const ConstTensor3View                 &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -2268,24 +2267,23 @@ void TransmittanceMatrix::constant(const std::span<const propmat_vector> &K,
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 1; i < np; i++) {
     for (Size iv = 0; iv < nf; ++iv) {
-      const tran         tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
-      const propmat      kavg = avg(K[i - 1][iv], K[i][iv]);
+      const tran         tran_state{pm[i - 1].K[iv], pm[i].K[iv], r[i - 1]};
+      const propmat      kavg = avg(pm[i - 1].K[iv], pm[i].K[iv]);
       diagonal_remainder t_diag_m1;
       T[iv, i] = tran_state(t_diag_m1);
       set_diagonal_remainder(T_diag_m1, iv, i, t_diag_m1);
 
       for (Size j = 0; j < nq; j++) {
-        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * dK[i - 1][j, iv] - dr0[i - 1, j] * kavg);
-        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * dK[i][j, iv] - dr1[i - 1, j] * kavg);
+        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * pm[i - 1].dK[j, iv] - dr0[i - 1, j] * kavg);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * pm[i].dK[j, iv] - dr1[i - 1, j] * kavg);
       }
     }
   }
 }
 
-void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
-                                 const std::span<const propmat_matrix> &dK,
-                                 const ConstVectorView                 &r,
-                                 const ConstTensor3View                &dr) {
+void TransmittanceMatrix::linsrc(const std::span<const SpectralPropmat> &pm,
+                                 const ConstVectorView                  &r,
+                                 const ConstTensor3View                 &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -2300,29 +2298,28 @@ void TransmittanceMatrix::linsrc(const std::span<const propmat_vector> &K,
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 1; i < np; i++) {
     for (Size iv = 0; iv < nf; ++iv) {
-      const tran         tran_state{K[i - 1][iv], K[i][iv], r[i - 1]};
+      const tran         tran_state{pm[i - 1].K[iv], pm[i].K[iv], r[i - 1]};
       diagonal_remainder t_diag_m1;
       T[iv, i] = tran_state(t_diag_m1);
       set_diagonal_remainder(T_diag_m1, iv, i, t_diag_m1);
       diagonal_remainder l_diag_m1;
       L[iv, i] = tran_state.linsrc(l_diag_m1);
       set_diagonal_remainder(L_diag_m1, iv, i, l_diag_m1);
-      const propmat kavg = avg(K[i - 1][iv], K[i][iv]);
+      const propmat kavg = avg(pm[i - 1].K[iv], pm[i].K[iv]);
 
       for (Size j = 0; j < nq; j++) {
-        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * dK[i - 1][j, iv] - dr0[i - 1, j] * kavg);
-        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * dK[i][j, iv] - dr1[i - 1, j] * kavg);
-        dL0[iv, i - 1, j] = tran_state.linsrc_deriv(-0.5 * r[i - 1] * dK[i - 1][j, iv] - dr0[i - 1, j] * kavg);
-        dL1[iv, i, j]     = tran_state.linsrc_deriv(-0.5 * r[i - 1] * dK[i][j, iv] - dr1[i - 1, j] * kavg);
+        dT0[iv, i - 1, j] = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * pm[i - 1].dK[j, iv] - dr0[i - 1, j] * kavg);
+        dT1[iv, i, j]     = tran_state.deriv(T[iv, i], -0.5 * r[i - 1] * pm[i].dK[j, iv] - dr1[i - 1, j] * kavg);
+        dL0[iv, i - 1, j] = tran_state.linsrc_deriv(-0.5 * r[i - 1] * pm[i - 1].dK[j, iv] - dr0[i - 1, j] * kavg);
+        dL1[iv, i, j]     = tran_state.linsrc_deriv(-0.5 * r[i - 1] * pm[i].dK[j, iv] - dr1[i - 1, j] * kavg);
       }
     }
   }
 }
 
-void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
-                                  const std::span<const propmat_matrix> &dK,
-                                  const ConstVectorView                 &r,
-                                  const ConstTensor3View                &dr) {
+void TransmittanceMatrix::linprop(const std::span<const SpectralPropmat> &pm,
+                                  const ConstVectorView                  &r,
+                                  const ConstTensor3View                 &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -2337,8 +2334,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 1; i < np; i++) {
     for (Size iv = 0; iv < nf; ++iv) {
-      const propmat     &start = K[i][iv];
-      const propmat     &end   = K[i - 1][iv];
+      const propmat     &start = pm[i].K[iv];
+      const propmat     &end   = pm[i - 1].K[iv];
       const Numeric      ri    = r[i - 1];
       const tran         tran_state{start, end, ri};
       diagonal_remainder t_diag_m1;
@@ -2375,8 +2372,8 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
       for (Size j = 0; j < nq; j++) {
         const Numeric  dr_end   = dr0[i - 1, j];
         const Numeric  dr_start = dr1[i - 1, j];
-        const propmat &dk_end   = dK[i - 1][j, iv];
-        const propmat &dk_start = dK[i][j, iv];
+        const propmat &dk_end   = pm[i - 1].dK[j, iv];
+        const propmat &dk_start = pm[i].dK[j, iv];
         dT0[iv, i - 1, j]       = tran_state.deriv(T[iv, i], -0.5 * ri * dk_end - dr_end * kavg);
         dT1[iv, i, j]           = tran_state.deriv(T[iv, i], -0.5 * ri * dk_start - dr_start * kavg);
 
@@ -2432,10 +2429,9 @@ void TransmittanceMatrix::linprop(const std::span<const propmat_vector> &K,
   }
 }
 
-void TransmittanceMatrix::magop(const std::span<const propmat_vector> &K,
-                                const std::span<const propmat_matrix> &dK,
-                                const ConstVectorView                 &r,
-                                const ConstTensor3View                &dr) {
+void TransmittanceMatrix::magop(const std::span<const SpectralPropmat> &pm,
+                                const ConstVectorView                  &r,
+                                const ConstTensor3View                 &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -2448,25 +2444,25 @@ void TransmittanceMatrix::magop(const std::span<const propmat_vector> &K,
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 1; i < np; i++) {
     for (Size iv = 0; iv < nf; ++iv) {
-      const propmat     &start = K[i][iv];
-      const propmat     &end   = K[i - 1][iv];
+      const propmat     &start = pm[i].K[iv];
+      const propmat     &end   = pm[i - 1].K[iv];
       const tran         tr{start, end, r[i - 1], MagnusOperator::magnus};
       diagonal_remainder t_diag_m1;
       T[iv, i] = tr(t_diag_m1);
       set_diagonal_remainder(T_diag_m1, iv, i, t_diag_m1);
 
       for (Size iq = 0; iq < nq; iq++) {
-        dT0[iv, i - 1, iq] = tr.magnus_deriv(T[iv, i], start, end, dK[i - 1][iq, iv], r[i - 1], dr0[i - 1, iq], false);
-        dT1[iv, i, iq]     = tr.magnus_deriv(T[iv, i], start, end, dK[i][iq, iv], r[i - 1], dr1[i - 1, iq], true);
+        dT0[iv, i - 1, iq] =
+            tr.magnus_deriv(T[iv, i], start, end, pm[i - 1].dK[iq, iv], r[i - 1], dr0[i - 1, iq], false);
+        dT1[iv, i, iq] = tr.magnus_deriv(T[iv, i], start, end, pm[i].dK[iq, iv], r[i - 1], dr1[i - 1, iq], true);
       }
     }
   }
 }
 
-void TransmittanceMatrix::magop_linsrc(const std::span<const propmat_vector> &K,
-                                       const std::span<const propmat_matrix> &dK,
-                                       const ConstVectorView                 &r,
-                                       const ConstTensor3View                &dr) {
+void TransmittanceMatrix::magop_linsrc(const std::span<const SpectralPropmat> &pm,
+                                       const ConstVectorView                  &r,
+                                       const ConstTensor3View                 &dr) {
   const Size nf = dT.npages();
   const Size np = dT.nrows();
   const Size nq = dT.ncols();
@@ -2481,8 +2477,8 @@ void TransmittanceMatrix::magop_linsrc(const std::span<const propmat_vector> &K,
 #pragma omp parallel for collapse(2) if (!arts_omp_in_parallel())
   for (Size i = 1; i < np; ++i) {
     for (Size iv = 0; iv < nf; ++iv) {
-      const propmat     &start = K[i][iv];
-      const propmat     &end   = K[i - 1][iv];
+      const propmat     &start = pm[i].K[iv];
+      const propmat     &end   = pm[i - 1].K[iv];
       const Numeric      ri    = r[i - 1];
       const tran         tr{start, end, ri, MagnusOperator::magnus};
       diagonal_remainder t_diag_m1;
@@ -2496,34 +2492,30 @@ void TransmittanceMatrix::magop_linsrc(const std::span<const propmat_vector> &K,
       set_diagonal_remainder(L_diag_m1, iv, i, l_diag_m1);
 
       for (Size iq = 0; iq < nq; ++iq) {
-        dT0[iv, i - 1, iq] = tr.magnus_deriv(T[iv, i], start, end, dK[i - 1][iq, iv], ri, dr0[i - 1, iq], false);
-        dT1[iv, i, iq]     = tr.magnus_deriv(T[iv, i], start, end, dK[i][iq, iv], ri, dr1[i - 1, iq], true);
+        dT0[iv, i - 1, iq] = tr.magnus_deriv(T[iv, i], start, end, pm[i - 1].dK[iq, iv], ri, dr0[i - 1, iq], false);
+        dT1[iv, i, iq]     = tr.magnus_deriv(T[iv, i], start, end, pm[i].dK[iq, iv], ri, dr1[i - 1, iq], true);
         dL0[iv, i - 1, iq] = augmented_magnus_source_deriv(
-            tr, *base_phi, *base_q_m1, start, end, dK[i - 1][iq, iv], ri, dr0[i - 1, iq], false);
+            tr, *base_phi, *base_q_m1, start, end, pm[i - 1].dK[iq, iv], ri, dr0[i - 1, iq], false);
         dL1[iv, i, iq] = augmented_magnus_source_deriv(
-            tr, *base_phi, *base_q_m1, start, end, dK[i][iq, iv], ri, dr1[i - 1, iq], true);
+            tr, *base_phi, *base_q_m1, start, end, pm[i].dK[iq, iv], ri, dr1[i - 1, iq], true);
       }
     }
   }
 }
 
-void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
-                               const std::span<const propmat_matrix> &dK,
-                               const ConstVectorView                 &r,
-                               const ConstTensor3View                &dr,
-                               const TransmittanceOption              opt) {
+void TransmittanceMatrix::init(const std::span<const SpectralPropmat> &pm,
+                               const ConstVectorView                  &r,
+                               const ConstTensor3View                 &dr,
+                               const TransmittanceOption               opt) {
   option = opt;
 
-  if (not arr::same_size(K, dK))
-    arts::user_error("K and dK must have the same size: K: {}, dK: {}, r: {}", K.size(), dK.size(), r.size());
-
   constexpr Size nt = 2;
-  const Size     np = K.size();
+  const Size     np = pm.size();
 
   if (np == 0) {
     if (r.size() != 0 or dr.npages() != nt or dr.nrows() != 0)
       arts::user_error(
-          "Empty K requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}", r.shape(), dr.shape());
+          "An empty path requires empty r and dr shape (2, 0, nq), got r: {:B,}, dr: {:B,}", r.shape(), dr.shape());
     const Size nf = T.nrows();
     const Size nq = dr.ncols();
     T.resize(nf, 0);
@@ -2536,8 +2528,8 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
     return;
   }
 
-  const Size nf                = K.front().size();
-  const Size nq                = dK.front().nrows();
+  const Size nf                = pm.front().K.size();
+  const Size nq                = pm.front().dK.nrows();
   const bool has_linear_source = option == TransmittanceOption::linsrc or option == TransmittanceOption::linprop or
                                  option == TransmittanceOption::magop_linsrc;
 
@@ -2550,9 +2542,10 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
         np - 1,
         nq);
 
-  if (not all_same_shape({nf}, K)) arts::user_error("All propmats in K must have same size ({}).", nf);
-
-  if (not all_same_shape({nq, nf}, dK)) arts::user_error("All propmats in dK must have same shape ({}, {}).", nq, nf);
+  if (stdr::any_of(pm, [nf, nq](const SpectralPropmat &x) {
+        return x.K.size() != nf or x.dK.shape() != std::array{static_cast<Index>(nq), static_cast<Index>(nf)};
+      }))
+    arts::user_error("All points must have {} frequencies in K and the shape ({}, {}) in dK.", nf, nq, nf);
 
   switch (option) {
     case TransmittanceOption::linsrc:
@@ -2585,11 +2578,11 @@ void TransmittanceMatrix::init(const std::span<const propmat_vector> &K,
   }
 
   switch (option) {
-    case TransmittanceOption::constant:     constant(K, dK, r, dr); break;
-    case TransmittanceOption::linsrc:       linsrc(K, dK, r, dr); break;
-    case TransmittanceOption::linprop:      linprop(K, dK, r, dr); break;
-    case TransmittanceOption::magop:        magop(K, dK, r, dr); break;
-    case TransmittanceOption::magop_linsrc: magop_linsrc(K, dK, r, dr); break;
+    case TransmittanceOption::constant:     constant(pm, r, dr); break;
+    case TransmittanceOption::linsrc:       linsrc(pm, r, dr); break;
+    case TransmittanceOption::linprop:      linprop(pm, r, dr); break;
+    case TransmittanceOption::magop:        magop(pm, r, dr); break;
+    case TransmittanceOption::magop_linsrc: magop_linsrc(pm, r, dr); break;
   }
 
   for (Size i = 0; i < nf; i++) {

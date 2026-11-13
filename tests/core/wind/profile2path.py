@@ -240,8 +240,8 @@ for i, los in enumerate(ANGLES):
         ray_point=ws.ray_path[i],
         atm_point=atm_path[i],
     )
-    k_ref, dk_ref = np.array(ws.spectral_propmat), np.array(ws.spectral_propmat_jac)
-    k, dk = np.array(ws.spectral_propmat_path[i]), np.array(ws.spectral_propmat_jac_path[i])
+    k_ref, dk_ref = np.array(ws.spectral_propmat.K), np.array(ws.spectral_propmat.dK)
+    k, dk = np.array(ws.spectral_propmat_path[i].K), np.array(ws.spectral_propmat_path[i].dK)
 
     errors.append(
         [relative_error(k, k_ref), relative_error(dk[row_t], dk_ref[row_t]), relative_error(dk[rows_wind], dk_ref[rows_wind])]
@@ -359,17 +359,17 @@ ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=LOS[2])
 inside = [copy.copy(p) for p in ws.ray_path]  # Copies, as the points of ws.ray_path change with it
 assert inside[0].pos[0] == ws.alt_grid[-1], "GeometricProfile must remove the observer above alt_grid"
 ws.Profile2Path()
-propmat_inside = [np.array(k) for k in ws.spectral_propmat_path]
+propmat_inside = [np.array(k.K) for k in ws.spectral_propmat_path]
 
 ws.ray_pathInit(pos=POS, los=LOS[2])
 observer = copy.copy(ws.ray_path[0])
 ws.ray_path = [observer] + inside
 ws.Profile2Path()
 
-for path_variable in ["spectral_propmat_path", "spectral_propmat_jac_path", "spectral_nlte_srcvec_path", "spectral_nlte_srcvec_jac_path"]:
-    assert not np.any(np.array(getattr(ws, path_variable)[0])), f"{path_variable} must be zero outside alt_grid"
+for member in ["K", "dK", "nlte", "dnlte"]:
+    assert not np.any(np.array(getattr(ws.spectral_propmat_path[0], member))), f"{member} must be zero outside alt_grid"
 for k, k_ref in zip(list(ws.spectral_propmat_path)[1:], propmat_inside, strict=True):
-    assert np.array_equal(np.array(k), k_ref), "A point outside alt_grid must not change the others"
+    assert np.array_equal(np.array(k.K), k_ref), "A point outside alt_grid must not change the others"
 
 atm_path = pyarts.arts.ArrayOfAtmPoint()
 ws.atm_pathFromPath(atm_path=atm_path, ray_path=[observer])
@@ -400,8 +400,8 @@ ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=LOS[0])
 tangent = int(np.argmin([p.pos[0] for p in ws.ray_path]))
 assert ws.ray_path[tangent].pos[0] not in np.asarray(ws.alt_grid), "The limb point must be between the altitudes"
 ws.Profile2Path()
-propmat_tangent = np.array(ws.spectral_propmat_path[tangent])
+propmat_tangent = np.array(ws.spectral_propmat_path[tangent].K)
 ws.atm_pathFromPath()
 ws.freq_grid_pathFromPath()
 ws.spectral_propmat_pathFromPath()
-assert np.array_equal(propmat_tangent, np.array(ws.spectral_propmat_path[tangent])), "The limb point must be computed"
+assert np.array_equal(propmat_tangent, np.array(ws.spectral_propmat_path[tangent].K)), "The limb point must be computed"

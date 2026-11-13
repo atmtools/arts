@@ -101,12 +101,14 @@ void freqWindShift(Numeric&                    frequency,
   wind_shift(VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_point);
 }
 
-void spectral_propmat_jacWindFix(PropmatMatrix&         spectral_propmat_jac,
-                                 StokvecMatrix&         source_vector_nonlte_jacobian,
+void spectral_propmatWindFix(SpectralPropmat&       spectral_propmat,
                                  const AscendingGrid&   freq_grid,
                                  const JacobianTargets& jac_targets,
                                  const Vector3&         freq_wind_shift_jac) {
   ARTS_TIME_REPORT
+
+  PropmatMatrix& spectral_propmat_jac          = spectral_propmat.dK;
+  StokvecMatrix& source_vector_nonlte_jacobian = spectral_propmat.dnlte;
 
   using enum AtmKey;
 

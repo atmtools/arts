@@ -93,7 +93,9 @@ void source_correction() {
   source.J = Stokvec{0.0};
   const ArrayOfAscendingGrid frequencies{AscendingGrid{94e9}, AscendingGrid{94e9}};
   const ArrayOfAtmPoint      atmosphere{AtmPoint{0.0, 250.0}, AtmPoint{1e5, 250.0}};
-  const ArrayOfPropmatVector total{PropmatVector{Propmat{}}, PropmatVector{Propmat{2.0}}};
+  ArrayOfSpectralPropmat     total(2);
+  total[0].K = PropmatVector{Propmat{}};
+  total[1].K = PropmatVector{Propmat{2.0}};
   const ArrayOfPropmatVector scattering{PropmatVector{Propmat{}}, PropmatVector{Propmat{1.0}}};
   const ArrayOfStokvecVector absorption{StokvecVector{Stokvec{}}, StokvecVector{Stokvec{0.5}}};
   spectral_rad_srcvec_pathCorrectScattering(source, total, scattering, absorption, frequencies, atmosphere);
@@ -179,13 +181,9 @@ void radar_gates() {
   const auto gas    = [] {
     Agenda           agenda{"spectral_propmat_agenda"};
     CallbackOperator cb;
-    cb.outputs  = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"};
-    cb.callback = CallbackOperator::func_t{[](Workspace& local) {
-      local.get<PropmatVector>("spectral_propmat")     = PropmatVector{Propmat{0.0}};
-      local.get<StokvecVector>("spectral_nlte_srcvec") = StokvecVector{Stokvec{0.0}};
-      local.get<PropmatMatrix>("spectral_propmat_jac").resize(0, 1);
-      local.get<StokvecMatrix>("spectral_nlte_srcvec_jac").resize(0, 1);
-    }};
+    cb.outputs = {"spectral_propmat"};
+    cb.callback =
+        CallbackOperator::func_t{[](Workspace& local) { local.get<SpectralPropmat>("spectral_propmat").init(1, 0); }};
     agenda.add(Method{"test gas", Wsv{cb}});
     agenda.finalize(true);
     return agenda;

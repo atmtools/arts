@@ -1050,26 +1050,14 @@ No density, stimulated-emission, or abundance factor is applied here.)");
          const LinemixingEcsData&    abs_ecs_data,
          const Index&                no_negative_absorption,
          const py::kwargs&) {
-        PropmatVector   spectral_propmat(f.size());
-        StokvecVector   nlte_vector(f.size());
-        PropmatMatrix   spectral_propmat_jac(0, f.size());
-        StokvecMatrix   nlte_matrix(0, f.size());
+        SpectralPropmat spectral_propmat;
+        spectral_propmat.init(f.size(), 0);
         JacobianTargets jac_targets{};
 
-        spectral_propmatAddLines(spectral_propmat,
-                                 nlte_vector,
-                                 spectral_propmat_jac,
-                                 nlte_matrix,
-                                 f,
-                                 jac_targets,
-                                 spec,
-                                 self,
-                                 abs_ecs_data,
-                                 atm,
-                                 path_point,
-                                 no_negative_absorption);
+        spectral_propmatAddLines(
+            spectral_propmat, f, jac_targets, spec, self, abs_ecs_data, atm, path_point, no_negative_absorption);
 
-        return spectral_propmat;
+        return std::move(spectral_propmat.K);
       },
       "f"_a,
       "atm"_a,

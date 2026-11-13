@@ -153,11 +153,10 @@ void vdisort_settingsLayerThermalEmissionLinearInTau(VDisortSettings&       vdis
   }
 }
 
-void vdisort_settingsLayerNonThermalEmissionLinearInTau(VDisortSettings&            vdisort_settings,
-                                                        const ArrayOfAtmPoint&      atm_path,
-                                                        const ArrayOfPropmatVector& spectral_propmat_path,
-                                                        const ArrayOfStokvecVector& spectral_nlte_srcvec_path,
-                                                        const AscendingGrid&        freq_grid) {
+void vdisort_settingsLayerNonThermalEmissionLinearInTau(VDisortSettings&              vdisort_settings,
+                                                        const ArrayOfAtmPoint&        atm_path,
+                                                        const ArrayOfSpectralPropmat& spectral_propmat_path,
+                                                        const AscendingGrid&          freq_grid) {
   ARTS_TIME_REPORT
 
   const Size nv = freq_grid.size();
@@ -174,9 +173,9 @@ void vdisort_settingsLayerNonThermalEmissionLinearInTau(VDisortSettings&        
 
     for (Size i = 0; i < N - 1; i++) {
       Stokvec y0 = Stokvec{planck(f, atm_path[i + 0].temperature), 0.0, 0.0, 0.0} +
-                   inv(spectral_propmat_path[i + 0][iv]) * spectral_nlte_srcvec_path[i + 0][iv];
+                   inv(spectral_propmat_path[i + 0].K[iv]) * spectral_propmat_path[i + 0].nlte[iv];
       Stokvec y1 = Stokvec{planck(f, atm_path[i + 1].temperature), 0.0, 0.0, 0.0} +
-                   inv(spectral_propmat_path[i + 1][iv]) * spectral_nlte_srcvec_path[i + 1][iv];
+                   inv(spectral_propmat_path[i + 1].K[iv]) * spectral_propmat_path[i + 1].nlte[iv];
 
       // Numerically, these may be slightly downward even though they can mathematically only be exactly 0.
       if (y0[0] < 0) y0[0] = 0.0;
@@ -371,7 +370,7 @@ ARTS_METHOD_ERROR_CATCH
 
 void vdisort_settingsOpticalThicknessFromPath(VDisortSettings&                   vdisort_settings,
                                               const ArrayOfPropagationPathPoint& ray_path,
-                                              const ArrayOfPropmatVector&        spectral_propmat_path,
+                                              const ArrayOfSpectralPropmat&      spectral_propmat_path,
                                               const Numeric&                     min_optical_depth) {
   ARTS_TIME_REPORT
 
@@ -384,12 +383,14 @@ void vdisort_settingsOpticalThicknessFromPath(VDisortSettings&                  
 
   if (N == 0) return;
 
-  if (not all_same_shape({nv}, spectral_propmat_path))
+  if (stdr::any_of(spectral_propmat_path,
+                   [nv](const SpectralPropmat& pm) { return static_cast<Index>(pm.K.size()) != nv; }))
     arts::user_error("Propagation matrices and frequency grids must have the same shape.");
 
   // VDISORT's extinction is scalar, as DISORT's
-  if (stdr::any_of(spectral_propmat_path,
-                   [](const PropmatVector& pms) { return stdr::any_of(pms, Cmp::eq<true>(), &Propmat::is_polarized); }))
+  if (stdr::any_of(spectral_propmat_path, [](const SpectralPropmat& pm) {
+        return stdr::any_of(pm.K, Cmp::eq<true>(), &Propmat::is_polarized);
+      }))
     arts::user_error("No implementation for polarized propagation matrices: VDISORT's optical thickness is scalar.");
 
   Vector r(N);
@@ -410,7 +411,7 @@ ray_path: {:B,}
   for (Index iv = 0; iv < nv; iv++) {
     for (Index i = 0; i < N; i++) {
       vdisort_settings.optical_thicknesses[iv, i] =
-          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1][iv].A(), spectral_propmat_path[i + 0][iv].A()),
+          std::max(r[i] * std::midpoint(spectral_propmat_path[i + 1].K[iv].A(), spectral_propmat_path[i + 0].K[iv].A()),
                    min_optical_depth);
       if (i > 0) {
         vdisort_settings.optical_thicknesses[iv, i] += vdisort_settings.optical_thicknesses[iv, i - 1];
@@ -751,10 +752,10 @@ void vdisort_settingsNoSingleScatteringAlbedo(VDisortSettings& vdisort_settings)
   vdisort_settings.single_scattering_albedo = 0.0;
 }
 
-void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&            vdisort_settings,
-                                                    const ArrayOfPropmatVector& spectral_propmat_path,
-                                                    const ArrayOfPropmatVector& spectral_propmat_scat_path,
-                                                    const ArrayOfStokvecVector& spectral_absvec_scat_path) try {
+void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&              vdisort_settings,
+                                                    const ArrayOfSpectralPropmat& spectral_propmat_path,
+                                                    const ArrayOfPropmatVector&   spectral_propmat_scat_path,
+                                                    const ArrayOfStokvecVector&   spectral_absvec_scat_path) try {
   ARTS_TIME_REPORT
 
   const Size  N = vdisort_settings.layer_count();
@@ -788,7 +789,7 @@ void vdisort_settingsSingleScatteringAlbedoFromPath(VDisortSettings&            
 #pragma omp parallel for if (not arts_omp_in_parallel()) collapse(2)
   for (Size i = 0; i < N; i++) {
     for (Index iv = 0; iv < F; iv++) {
-      const Numeric ext = std::midpoint(spectral_propmat_path[i][iv][0], spectral_propmat_path[i + 1][iv][0]);
+      const Numeric ext = std::midpoint(spectral_propmat_path[i].K[iv][0], spectral_propmat_path[i + 1].K[iv][0]);
       const Numeric abs_scat =
           std::midpoint(spectral_absvec_scat_path[i][iv][0], spectral_absvec_scat_path[i + 1][iv][0]);
       const Numeric ext_scat =

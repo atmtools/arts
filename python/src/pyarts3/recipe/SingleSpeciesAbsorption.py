@@ -57,4 +57,4 @@ class SingleSpeciesAbsorption:
             atm_point=atm_point,
         )
 
-        return 1.0 * self.ws.spectral_propmat[:, 0]
+        return 1.0 * self.ws.spectral_propmat.K[:, 0]

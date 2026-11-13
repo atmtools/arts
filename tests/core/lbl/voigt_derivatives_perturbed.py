@@ -102,7 +102,7 @@ def workspace(lineshape="VP_LTE", zeeman=False, cutoff=False):
 def calculate(ws, implementation):
     ws.spectral_propmatInit()
     getattr(ws, implementation)(no_negative_absorption=False)
-    return np.array(ws.spectral_propmat)
+    return np.array(ws.spectral_propmat.K)
 
 
 def check(
@@ -121,7 +121,7 @@ def check(
     ws.jac_targetsInit()
     add_target(ws)
     calculate(ws, implementation)
-    analytic = np.array(ws.spectral_propmat_jac)[0]
+    analytic = np.array(ws.spectral_propmat.dK)[0]
 
     original = get_value(ws)
     set_value(ws, original + step)
@@ -320,7 +320,7 @@ mixed.jac_targetsAddLineParameter(band=band(mixed), line=0, parameter="f0")
 mixed.jac_targetsAddPressure()
 mixed.jac_targetsAddWindField(component="u")
 calculate(mixed, "spectral_propmatMemoryIntensiveAddVoigtLTE")
-mixed_jac = np.array(mixed.spectral_propmat_jac)
+mixed_jac = np.array(mixed.spectral_propmat.dK)
 for position, add_target in enumerate(
     (
         lambda ws: ws.jac_targetsAddLineParameter(
@@ -336,7 +336,7 @@ for position, add_target in enumerate(
     calculate(single, "spectral_propmatMemoryIntensiveAddVoigtLTE")
     np.testing.assert_allclose(
         mixed_jac[position],
-        single.spectral_propmat_jac[0],
+        single.spectral_propmat.dK[0],
         err_msg=f"mixed target position {position}",
     )
 

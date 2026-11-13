@@ -19,7 +19,7 @@ def calc(ws, lineshape=None):
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
     print(f"Time to calculate spectral propmat: {round(1000*(time.time() - time_start), 3)} ms for lineshape {lineshape}")
-    return 1.0 * ws.spectral_propmat[:, 0]
+    return 1.0 * ws.spectral_propmat.K[:, 0]
 
 print("ECS CO2 tests")
 
