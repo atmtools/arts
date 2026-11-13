@@ -6,6 +6,7 @@
 #include <rtepack.h>
 
 #include <limits>
+#include <optional>
 #include <utility>
 
 /** Implements Zeeman modeling */
@@ -204,6 +205,49 @@ constexpr Numeric SimpleGCaseA(
   return GS * T1 + GL * T2;
 }
 
+/** Hyperfine-resolved Zeeman model of a 2Pi molecule in a Hund's case (a) basis
+ *
+ * The hyperfine Hamiltonian follows Gerry et al. (1989), the Zeeman
+ * Hamiltonian Carrington et al. (1967), with the rotational Zeeman part
+ * from Brown et al. (2003).  The molecule has one nucleus with spin.
+ * Only F is a good quantum number, so both Hamiltonians are set up per F
+ * and parity block, the hyperfine Hamiltonian is diagonalized, and the
+ * g-factor of a level is the expectation value of the Zeeman Hamiltonian
+ * in its eigenvector.
+ *
+ * The molecular constants share one frequency unit, any unit, since only
+ * their ratios enter the g-factor.
+ */
+struct hund_a_hyperfine {
+  Rational I;            //!< Nuclear spin
+  Numeric  A, A_D;       //!< Spin-orbit constant and its centrifugal distortion
+  Numeric  B, D;         //!< Rotational constant and its centrifugal distortion
+  Numeric  gamma;        //!< Spin-rotation constant
+  Numeric  p, q;         //!< Lambda-doubling constants
+  Numeric  a, b_F, c, d; //!< Magnetic hyperfine constants
+  Numeric  c_I;          //!< Nuclear spin-rotation constant
+  Numeric  eQq0, eQq2;   //!< Electric quadrupole constants
+  Numeric  gL, gS;       //!< Orbital and spin g-factors
+  Numeric  gR, gI;       //!< Rotational and nuclear g-factors
+
+  /** The g-factor of a hyperfine level
+   *
+   * The level is the eigenstate of the F and parity block whose
+   * expectation value of J rounds to J and whose expectation value
+   * of |Omega| is above 1 for |Omega| = 3/2, and at most 1 for
+   * |Omega| = 1/2.
+   *
+   * @param[in] F The F quantum number of the level
+   * @param[in] J The J quantum number of the level
+   * @param[in] Omega The |Omega| quantum number of the level, 1/2 or 3/2
+   * @param[in] e True for an e level, false for an f level
+   *
+   * @return The g-factor of the level, for splitting in M_F, or nothing
+   * if the quantum numbers do not identify exactly one eigenstate
+   */
+  [[nodiscard]] std::optional<Numeric> g(Rational F, Rational J, Rational Omega, bool e) const;
+};
+
 /** Main storage for Zeeman splitting coefficients
  * 
  * The splitting data has an upper (gu) and lower (gl)
@@ -240,12 +284,12 @@ struct model {
    * Will first attempt advanced initialization from
    * specialized functions for special species.  If
    * this fails, will attempt simple initialization
-   * from pure Hund-cases.  If this fails, will throw
-   * a runtime_error.
+   * from pure Hund-cases.  If this fails, the model is empty.
+   * Throws if the advanced model applies but cannot be computed.
    * 
    * @param[in] qid Transition type quantum id
    */
-  explicit model(const QuantumIdentifier &qid) noexcept;
+  explicit model(const QuantumIdentifier &qid);
 
   /** Returns true if the Model represents no Zeeman effect */
   [[nodiscard]] constexpr bool empty() const noexcept { return 0.0 == mdata.gu and mdata.gl == 0.0; }
@@ -285,12 +329,11 @@ struct model {
 
   /** Gives the strength of one subline of a given polarization
    * 
-   * The user has to ensure that Ju and Jl is a valid transition
+   * The sublevels are those of F if the state has F, else of J.
    * 
    * The user has to ensure n is less than the number of elements
    * 
-   * @param[in] Ju J of the upper state
-   * @param[in] Jl J of the upper state
+   * @param[in] qn The quantum numbers of the local state
    * @param[in] type The polarization type
    * @param[in] n The position
    * 
@@ -322,12 +365,11 @@ struct model {
 
   /** Gives the splitting of one subline of a given polarization
    * 
-   * The user has to ensure that Ju and Jl is a valid transition
+   * The sublevels are those of F if the state has F, else of J.
    * 
    * The user has to ensure n is less than the number of elements
    * 
-   * @param[in] Ju J of the upper state
-   * @param[in] Jl J of the upper state
+   * @param[in] qn The quantum numbers of the local state
    * @param[in] type The polarization type
    * @param[in] n The position
    * 
@@ -336,6 +378,8 @@ struct model {
   [[nodiscard]] Numeric Splitting(const QuantumState &qn, ZeemanPolarization type, Index n) const noexcept;
 
   /** Gives the number of lines for a given polarization type
+   * 
+   * The sublevels are those of F if the state has F, else of J.
    * 
    * @param[in] qn The quantum numbers of the local state
    * @param[in] type The polarization type
@@ -368,9 +412,10 @@ data GetSimpleModel(const QuantumIdentifier &qid);
  * 
  * @param[in] qid Transition type quantum id
  * 
- * @return Zeeman model data
+ * @return Zeeman model data, or nothing if the model
+ * applies to qid but cannot be computed for it
  */
-data GetAdvancedModel(const QuantumIdentifier &qid);
+std::optional<data> GetAdvancedModel(const QuantumIdentifier &qid);
 
 struct magnetic_angles {
   Numeric u, v, w, sa, ca, sz, cz, H, uct, duct;

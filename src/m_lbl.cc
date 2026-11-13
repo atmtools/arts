@@ -364,7 +364,7 @@ void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
                          const Vector2&       frequency_range,
                          const ArrayOfString& file_formatter,
                          const String&        line_strength_option,
-                         const Index&         compute_zeeman_parameters) try {
+                         const String&        zeeman_option) try {
   ARTS_TIME_REPORT
 
   using namespace Quantum;
@@ -380,7 +380,7 @@ void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
 
   const auto selection = to<HitranLineStrengthOption>(line_strength_option);
 
-  const bool do_zeeman = static_cast<bool>(compute_zeeman_parameters);
+  const auto zeeman = to<HitranZeemanOption>(zeeman_option);
 
   const auto data = lbl::read_hitran_par(open_input_file(filename), format_order, frequency_range);
 
@@ -388,7 +388,7 @@ void abs_bandsReadHITRAN(AbsorptionBands&     abs_bands,
   for (auto& line : data) {
     auto [mapped_band, _] = abs_bands_tmp.try_emplace(global_state(global_types, line.qid), default_band);
 
-    mapped_band->second.lines.emplace_back(line.from(selection, local_state(local_types, line.qid), do_zeeman));
+    mapped_band->second.lines.emplace_back(line.from(selection, local_state(local_types, line.qid), zeeman));
   }
 
   abs_bands = std::move(abs_bands_tmp);

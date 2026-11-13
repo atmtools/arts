@@ -1,6 +1,7 @@
 #pragma once
 
 #include <enumsHitranLineStrengthOption.h>
+#include <enumsHitranZeemanOption.h>
 #include <matpack.h>
 #include <quantum.h>
 
@@ -20,7 +21,13 @@ struct hitran_record {
   Numeric           g_upp;
   Numeric           g_low;
 
-  [[nodiscard]] line from(HitranLineStrengthOption ls, QuantumState&& local, bool do_zeeman) const;
+  /** Convert to an absorption line
+   *
+   * @param[in] ls Whether the line strength or the Einstein coefficient is used
+   * @param[in] local The local quantum numbers of the line
+   * @param[in] zeeman How the Zeeman g-factors are set
+   */
+  [[nodiscard]] line from(HitranLineStrengthOption ls, QuantumState&& local, HitranZeemanOption zeeman) const;
 };
 using hitran_data = std::vector<hitran_record>;
 

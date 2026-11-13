@@ -161,7 +161,7 @@ hitran_data read_hitran_par(std::istream&&                           file,
   return read_hitran_par(file, format_order, frequency_range);
 }
 
-line hitran_record::from(HitranLineStrengthOption ls, QuantumState&& local, bool do_zeeman) const {
+line hitran_record::from(HitranLineStrengthOption ls, QuantumState&& local, HitranZeemanOption zeeman) const {
   using enum LineShapeModelVariable;
   using enum LineShapeModelType;
 
@@ -188,10 +188,18 @@ line hitran_record::from(HitranLineStrengthOption ls, QuantumState&& local, bool
   if (not std::isnormal(l.a) or not std::isnormal(l.gu))
     arts::user_error("Invalid Einstein coefficient {} or gu {} for full HITRAN RECORD: {}", l.a, l.gu, *this);
 
-  if (do_zeeman) {
-    l.z = lbl::zeeman::GetAdvancedModel(qid);
-  } else {
-    l.z = {};
+  switch (zeeman) {
+    case HitranZeemanOption::None: l.z = {}; break;
+    case HitranZeemanOption::Compute:
+    case HitranZeemanOption::ComputeOrZero:
+      if (const auto z = lbl::zeeman::GetAdvancedModel(qid)) {
+        l.z = *z;
+      } else if (zeeman == HitranZeemanOption::Compute) {
+        arts::user_error("Cannot compute the Zeeman g-factors of {}", qid);
+      } else {
+        l.z = {};
+      }
+      break;
   }
   l.z.on = false;
 

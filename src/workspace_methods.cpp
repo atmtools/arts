@@ -3332,19 +3332,23 @@ be computed from the line strength, or simply read from the Hitran data.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {},
-      .gin       = {"file", "frequency_range", "file_formatter", "line_strength_option", "compute_zeeman_parameters"},
-      .gin_type  = {"String", "Vector2", "ArrayOfString", "String", "Index"},
+      .gin       = {"file",
+                    "frequency_range",
+                    "file_formatter",
+                    "line_strength_option",
+                    "zeeman_option"},
+      .gin_type  = {"String", "Vector2", "ArrayOfString", "String", "String"},
       .gin_value = {std::nullopt,
                     Vector2{-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
                     ArrayOfString{"par"},
                     String{"S"},
-                    Index{1}},
+                    String{"Compute"}},
       .gin_desc =
           {"Filename",
            "Frequency range selection",
            "The order of file format types.  See *HitranFileFormatType* for valid options",
            "Whether the Hitran line strength or the Hitran Einstein coefficient is used, the latter has historically been less reliable",
-           "Compute the Zeeman parameters from the HITRAN data (will not activate Zeeman calculations, this must be done manually afterwards)"},
+           "How the Zeeman g-factors are set.  See *HitranZeemanOption* for valid options.  This does not turn on the Zeeman effect"},
   };
 
   wsm_data["abs_bandsReadJPL"] = {

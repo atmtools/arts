@@ -13,6 +13,7 @@
 
 #include <arts_constexpr_math.h>
 #include <arts_conversions.h>
+#include <debug.h>
 #include <double_imanip.h>
 #include <wigner_functions.h>
 
@@ -97,6 +98,123 @@ constexpr Numeric closed_shell_trilinear(Rational k, Rational j, Numeric gperp, 
   using Math::pow2;
   return gperp + (gperp + gpara) * (pow2(k) / (j * (j + 1)));
 }
+
+/** Hyperfine-resolved g-factors of a transition in the vibrational ground state of the X 2Pi state
+ *
+ * Returns no Zeeman effect if the quantum numbers are not there, and
+ * nothing if a level cannot be computed.
+ */
+std::optional<lbl::zeeman::data> hund_a_hyperfine_ground_state(const QuantumIdentifier&               qid,
+                                                               const lbl::zeeman::hund_a_hyperfine& c) {
+  const auto& s = qid.state;
+  if (not(s.contains(F) and s.contains(J) and s.contains(Omega) and s.contains(kronigParity) and s.contains(v) and
+          s.contains(ElecStateLabel)))
+    return lbl::zeeman::data{};
+
+  const auto& el = s.at(ElecStateLabel);
+  const auto& vib = s.at(v);
+  if (el.upper.get<String>() != "X" or el.lower.get<String>() != "X" or vib.upper.get<Rational>() != 0 or
+      vib.lower.get<Rational>() != 0)
+    return lbl::zeeman::data{};
+
+  const String ef_upper = s.at(kronigParity).upper.get<String>();
+  const String ef_lower = s.at(kronigParity).lower.get<String>();
+  if ((ef_upper != "e" and ef_upper != "f") or (ef_lower != "e" and ef_lower != "f")) return lbl::zeeman::data{};
+
+  const auto gu = c.g(s.at(F).upper, s.at(J).upper, s.at(Omega).upper, ef_upper == "e");
+  const auto gl = c.g(s.at(F).lower, s.at(J).lower, s.at(Omega).lower, ef_lower == "e");
+  if (not gu or not gl) return std::nullopt;
+  return lbl::zeeman::data{.gu = *gu, .gl = *gl};
+}
+
+/** Molecular constants of the X 2Pi, v = 0 state for the hyperfine-resolved Zeeman model, in MHz
+ *
+ * For ClO, B, D, and A_D are fitted with this Hamiltonian to the hyperfine-resolved
+ * X 2Pi, v = 0 lines with F <= 40 of the HITRAN-derived ARTS catalogue.  The fitted
+ * 35ClO B agrees with B of the JPL catalogue entry (tag 51002) to 0.1 MHz.
+ */
+constexpr lbl::zeeman::hund_a_hyperfine oh_61{.I     = Rational{1, 2},
+                                              .A     = -4168639.13,
+                                              .A_D   = 0.0,
+                                              .B     = 555660.97,
+                                              .D     = 0.0,
+                                              .gamma = -3547.88,
+                                              .p     = 7053.09846,
+                                              .q     = -1159.99165,
+                                              .a     = 86.1116,
+                                              .b_F   = -116.8007,
+                                              .c     = 130.641,
+                                              .d     = 56.6838,
+                                              .c_I   = 0.0,
+                                              .eQq0  = 0.0,
+                                              .eQq2  = 0.0,
+                                              .gL    = 1.00107,
+                                              .gS    = 2.00152,
+                                              .gR    = -6.33e-4,
+                                              .gI    = 3.041686064246413e-3};
+
+constexpr lbl::zeeman::hund_a_hyperfine no_46{.I     = Rational{1},
+                                              .A     = 3691813.855,
+                                              .A_D   = 0.0,
+                                              .B     = 50848.13072,
+                                              .D     = 0.0,
+                                              .gamma = -193.9879,
+                                              .p     = 350.405,
+                                              .q     = 2.822100,
+                                              .a     = 84.20378,
+                                              .b_F   = 22.3792,
+                                              .c     = -58.8820,
+                                              .d     = 112.59718,
+                                              .c_I   = 0.0,
+                                              .eQq0  = -1.85671,
+                                              .eQq2  = 23.31147,
+                                              .gL    = 0.999906,
+                                              .gS    = 2.002095,
+                                              .gR    = -1.459e-4,
+                                              .gI    = 2.1984e-4};
+
+constexpr lbl::zeeman::hund_a_hyperfine clo_56{.I     = Rational{3, 2},
+                                               .A     = -9.652049325295119e+06,
+                                               .A_D   = 28.8391,
+                                               .B     = 18601.6831,
+                                               .D     = 0.040681,
+                                               .gamma = -296.0,
+                                               .p     = 678.522,
+                                               .q     = -0.9879,
+                                               .a     = 137.4799,
+                                               .b_F   = 110.8400,
+                                               .c     = -285.5700,
+                                               .d     = 262.0575,
+                                               .c_I   = 16.12e-3,
+                                               .eQq0  = -87.691,
+                                               .eQq2  = -117.71,
+                                               .gL    = 1.0,
+                                               .gS    = 2.0023,
+                                               .gR    = 0.0,
+                                               .gI    = 8.952137949363668e-04};
+
+constexpr lbl::zeeman::hund_a_hyperfine clo_76{.I     = Rational{3, 2},
+                                               .A     = -9.652049325295118e6,
+                                               .A_D   = 28.3588,
+                                               .B     = 18287.0624,
+                                               .D     = 0.039047,
+                                               .gamma = -2.909803921568628e+02,
+                                               .p     = 6.557041934059752e+02,
+                                               .q     = -0.922573637652412,
+                                               .a     = 1.144375047566763e+02,
+                                               .b_F   = 92.262600039933133,
+                                               .c     = -2.377068810303474e+02,
+                                               .d     = 2.181352066940164e+02,
+                                               .c_I   = 0.013190650803003,
+                                               .eQq0  = -69.023840829191428,
+                                               .eQq2  = -92.652567583949576,
+                                               .gL    = 1.0,
+                                               .gS    = 2.0023,
+                                               .gR    = 0.0,
+                                               .gI    = 7.451709880227781e-04};
+
+//! The angular momentum of the Zeeman sublevels: F if the line resolves hyperfine structure, else J
+const Quantum::UpperLower& zeeman_momentum(const QuantumState& qn) { return qn.contains(F) ? qn.at(F) : qn.at(J); }
 }  // namespace
 
 namespace lbl::zeeman {
@@ -106,7 +224,7 @@ data GetSimpleModel(const QuantumIdentifier& qid) {
   return ::SimpleG(qid.state, GS, GL);
 }
 
-data GetAdvancedModel(const QuantumIdentifier& qid) {
+std::optional<data> GetAdvancedModel(const QuantumIdentifier& qid) {
   if (qid.isot == "O2-66"_isot) {
     if (qid.state.contains(J) and qid.state.contains(N) and qid.state.contains(v)) {
       if (qid.state.at(v).lower.get<Rational>() == 0 and qid.state.at(v).upper.get<Rational>() == 0) {
@@ -132,7 +250,7 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
 
         Numeric gu = ::case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         Numeric gl = ::case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return {.gu = gu, .gl = gl};
+        return data{.gu = gu, .gl = gl};
       }
     }
   } else if (qid.isot == "O2-68"_isot) {
@@ -160,14 +278,14 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
 
         Numeric gu = ::case_b_g_coefficient_o2(JU, NU, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
         Numeric gl = ::case_b_g_coefficient_o2(JL, NL, GS, GR, GLE, B, D, H, gB, gD, gH, lB, lD, lH);
-        return {.gu = gu, .gl = gl};
+        return data{.gu = gu, .gl = gl};
       }
     }
   } else if (qid.isot == "CO-26"_isot) {
     // Flygare and Benson 1971
     constexpr Numeric gperp = -0.2689 / Constant::mass_ratio_electrons_per_proton;
 
-    return {.gu = gperp, .gl = gperp};
+    return data{.gu = gperp, .gl = gperp};
   } else if (qid.isot == "OCS-622"_isot) {
     // Flygare and Benson 1971
     constexpr Numeric gperp = -.02889 / Constant::mass_ratio_electrons_per_proton;
@@ -180,8 +298,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       const Rational JL = j.lower;
       const Rational KL = Ka.lower;
 
-      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return data{.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+                  .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.isot == "OCS-624"_isot) {
     // Flygare and Benson 1971
@@ -196,8 +314,8 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       const Rational JL = j.lower;
       const Rational KL = Ka.lower;
 
-      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return data{.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+                  .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
   } else if (qid.isot == "CO2-626"_isot) {
     // Flygare and Benson 1971
@@ -212,17 +330,28 @@ data GetAdvancedModel(const QuantumIdentifier& qid) {
       const Rational JL = j.lower;
       const Rational KL = Ka.lower;
 
-      return {.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
-              .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
+      return data{.gu = ::closed_shell_trilinear(KU, JU, gperp, gpara),
+                  .gl = ::closed_shell_trilinear(KL, JL, gperp, gpara)};
     }
+  } else if (qid.isot == "OH-61"_isot) {
+    return ::hund_a_hyperfine_ground_state(qid, ::oh_61);
+  } else if (qid.isot == "NO-46"_isot) {
+    return ::hund_a_hyperfine_ground_state(qid, ::no_46);
+  } else if (qid.isot == "ClO-56"_isot) {
+    return ::hund_a_hyperfine_ground_state(qid, ::clo_56);
+  } else if (qid.isot == "ClO-76"_isot) {
+    return ::hund_a_hyperfine_ground_state(qid, ::clo_76);
   }
 
   // Set to zero otherwise as we practically say "there's no Zeeman effect" then
-  return {.gu = 0, .gl = 0};
+  return data{.gu = 0, .gl = 0};
 }
 
-model::model(const QuantumIdentifier& qid) noexcept {
-  model m = GetAdvancedModel(qid);
+model::model(const QuantumIdentifier& qid) {
+  const std::optional<data> advanced = GetAdvancedModel(qid);
+  if (not advanced) arts::user_error("Cannot compute the Zeeman g-factors of {}", qid);
+
+  model m = *advanced;
   if (m.empty()) m = GetSimpleModel(qid);
   *this = m;
 }
@@ -245,7 +374,7 @@ Numeric model::Strength(Rational Ju, Rational Jl, ZeemanPolarization type, Index
 Numeric model::Strength(const QuantumState& qn, ZeemanPolarization type, Index n) const {
   if (type == ZeemanPolarization::no) return 1.0;
 
-  const auto& j = qn.at(J);
+  const auto& j = ::zeeman_momentum(qn);
 
   return Strength(j.upper, j.lower, type, n);
 }
@@ -253,7 +382,7 @@ Numeric model::Strength(const QuantumState& qn, ZeemanPolarization type, Index n
 Numeric model::Splitting(const QuantumState& qn, ZeemanPolarization type, Index n) const noexcept {
   if (type == ZeemanPolarization::no) return 0.0;
 
-  const auto& j = qn.at(J);
+  const auto& j = ::zeeman_momentum(qn);
   return Splitting(j.upper, j.lower, type, n);
 }
 
@@ -261,7 +390,7 @@ Index model::size(const QuantumState& qn, ZeemanPolarization type) const noexcep
   if (on) {
     if (type == ZeemanPolarization::no) return 0;
 
-    const auto& j = qn.at(J);
+    const auto& j = ::zeeman_momentum(qn);
 
     return zeeman::size(j.upper, j.lower, type);
   }

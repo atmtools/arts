@@ -184,6 +184,14 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
 // Same as diagonalize but inplace manilpulation of input with destructive consqeuences
 void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView A, diagonalize_workdata& wo);
 
+/** Eigendecomposition A = P diag(W) P^T of a real symmetric matrix
+ *
+ * The eigenvalues are in ascending order and the orthonormal eigenvectors
+ * are the columns of P.  A must be symmetric.  Throws on invalid dimensions
+ * or LAPACK failure.
+ */
+void diagonalize_symmetric(MatrixView P, VectorView W, ConstMatrixView A);
+
 /** Complex eigendecomposition A*P=P*diag(W), with right eigenvectors in the
  * columns of P. Supports strided views and preserves A unless it aliases an
  * output. Throws on invalid dimensions or LAPACK failure; outputs are

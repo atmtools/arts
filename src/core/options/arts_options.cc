@@ -358,6 +358,18 @@ if good cases, so we have provide this selection mechanism to make them match.
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "HitranZeemanOption",
+      .desc =
+          R"(The way the Zeeman g-factors are set when reading Hitran data.
+
+Reading the g-factors does not turn on the Zeeman effect.
+)",
+      .values_and_desc = {Value{"None", "No g-factors, they are all 0"},
+                          Value{"Compute", "Compute the g-factors, throw if they cannot be computed for a line"},
+                          Value{"ComputeOrZero", "Compute the g-factors, set them to 0 if they cannot be computed for a line"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "HitranFileFormatType",
       .desc =
           R"(A file format used to generate an entry in a Hitran-format file.
