@@ -77,19 +77,17 @@ Numeric case_b_g_coefficient_o2(Rational J,
   using std::atan2, std::cos, std::sin;
 
   if (J == 0) return 0;
+  if (J == N) return (GS + GR) / (J * (J + 1)) - GR;
 
-  auto nom = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) * (2 * sqrtr(J * J + J) / (2 * J + 1));
-
+  auto nom   = (lB + lD * (J * J + J + 1) + lH * pow2(J * J + J + 1)) * (2 * sqrtr(J * J + J) / (2 * J + 1));
   auto denom = B * J * (J - 1) - D * pow2(J * (J - 1)) + H * pow3(J * (J - 1)) +
                (gB + gD * J * (J - 1) + gH * pow2(J * (J - 1))) * (J - 1) +
                (lB + lD * J * (J - 1) + lH * pow2(J * (J - 1))) * (2. / 3. - 2 * J / (2 * J + 1)) -
                (B * (J + 2) * (J + 1) - D * pow2((J + 2) * (J + 1)) + H * pow3((J + 2) * (J + 1)) -
                 (gB + gD * (J + 2) * (J + 1) + gH * pow2((J + 2) * (J + 1))) * (J + 2) +
                 (lB + lD * (J + 2) * (J + 1) + lH * pow2((J + 2) * (J + 1))) * (2. / 3. - 2 * (J + 1) / (2 * J + 1)));
+  auto phi   = atan2(2 * nom, denom) / 2;
 
-  auto phi = atan2(2 * nom, denom) / 2;
-
-  if (J == N) return (GS + GR) / (J * (J + 1)) - GR;
   if (J < N)
     return (GS + GR) * (pow2(cos(phi)) / J - pow2(sin(phi)) / (J + 1)) + 2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;
   return (GS + GR) * (pow2(sin(phi)) / J - pow2(cos(phi)) / (J + 1)) - 2 * GLE * cos(2 * phi) / (2 * J + 1) - GR;

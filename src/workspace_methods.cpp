@@ -6796,11 +6796,14 @@ and when the atmosphere, except for its wind, is the same at all latitudes
 and longitudes.  Polarization is not possible with this method.
 
 A point inside *alt_grid* but between its altitudes, such as the tangent
-point of a limb path, is not in the profile.  Its atmospheric point,
-frequency grid, propagation matrices, non-LTE source vectors and their
-derivatives are those of *atm_pathFromPath*, *freq_grid_pathFromPath* and
-*spectral_propmat_pathFromPath*, as for the default path agenda, computed
-by *spectral_propmat_agenda*.
+point of a limb path, is not in the profile.  Its atmospheric point and
+frequency grid are those of *atm_pathFromPath* and *freq_grid_pathFromPath*.
+Its propagation matrices, non-LTE source vectors and their derivatives are
+those of the two altitudes of *alt_grid* around it, each interpolated to its
+frequencies as above, and then interpolated linearly in altitude.  The error
+of this falls with the spacing of *alt_grid*, which can be finer than the grid
+of *atm_field* as long as it contains the altitudes of the other points of
+the path.
 
 The profile does not cover a point outside *alt_grid*, so its propagation
 matrices, non-LTE source vectors and their derivatives are zero.  Its
@@ -6824,14 +6827,12 @@ which has no layer to propagate through.  Its point needs no altitude of
                     "atm_field",
                     "jac_targets",
                     "atm_profile",
-                    "spectral_propmat_profile",
-                    "spectral_propmat_agenda"},
+                    "spectral_propmat_profile"},
       .gin       = {"f_extrapolfac"},
       .gin_type  = {"Numeric"},
       .gin_value = {Numeric{0.5}},
       .gin_desc =
           {R"--(Frequency extrapolation factor (relative to grid spacing). :math:`\Delta f_e` in text above.)--"},
-      .pass_workspace = true,
   };
 
   wsm_data["CoupledAtmosphereAndSubsurfaceDisortSettings"] = {

@@ -15,8 +15,9 @@ Profile2Path itself, in place of spectral_propmat_and_atm_path_agenda, so its
 radiances and Jacobians are those of the Emission option with Profile2Path to
 the bit.
 
-Profile2Path computes points between the altitudes of alt_grid, such as
-limb points, as the default path agenda does.
+Profile2Path interpolates points between the altitudes of alt_grid, such as
+limb points, linearly in altitude from the profile, so their radiances agree
+with the default path agenda to within that interpolation.
 
 Profile2Path gives points outside alt_grid no propagation.  The
 GeometricProfile option of ray_path_observer_agenda removes them from the
@@ -377,8 +378,8 @@ assert ws.atm_path[0].temperature == atm_path[0].temperature and ws.atm_path[0].
 
 # %% Points between the altitudes of alt_grid
 #
-# The limb points of the default paths are between the altitudes of the crossings, and Profile2Path computes them as the
-# default path agenda does, so a profile at the altitudes of the crossings serves all paths.
+# The limb points of the default paths are between the altitudes of the crossings.  Profile2Path interpolates them in
+# altitude from the profile, so a profile at the altitudes of the crossings serves all paths.
 
 ws.ray_path_observer_agendaSetGeometric(max_step_option="None", add_crossings=1, add_limb=1)
 ws.spectral_rad_observer_agendaSet(option="Emission")
@@ -400,8 +401,20 @@ ws.ray_path_observer_agendaExecute(obs_pos=POS, obs_los=LOS[0])
 tangent = int(np.argmin([p.pos[0] for p in ws.ray_path]))
 assert ws.ray_path[tangent].pos[0] not in np.asarray(ws.alt_grid), "The limb point must be between the altitudes"
 ws.Profile2Path()
-propmat_tangent = np.array(ws.spectral_propmat_path[tangent].K)
-ws.atm_pathFromPath()
-ws.freq_grid_pathFromPath()
-ws.spectral_propmat_pathFromPath()
-assert np.array_equal(propmat_tangent, np.array(ws.spectral_propmat_path[tangent].K)), "The limb point must be computed"
+
+# The profile at the altitudes below and above the limb point, each linearly to its frequencies, then linearly in altitude
+z = ws.ray_path[tangent].pos[0]
+alts = np.asarray(ws.alt_grid)
+upper = int(np.searchsorted(alts, z))
+t = (z - alts[upper - 1]) / (alts[upper] - alts[upper - 1])
+f_profile, f_tangent = np.asarray(ws.freq_grid_profile), np.asarray(ws.freq_grid_path[tangent])
+
+
+def at_tangent(level):
+    k = np.asarray(ws.spectral_propmat_profile[level].K)
+    return np.column_stack([np.interp(f_tangent, f_profile, k[:, c]) for c in range(k.shape[1])])
+
+
+expected = (1 - t) * at_tangent(upper - 1) + t * at_tangent(upper)
+assert np.allclose(np.array(ws.spectral_propmat_path[tangent].K), expected, rtol=1e-12, atol=0), \
+    "The limb point must be interpolated in altitude from the profile"

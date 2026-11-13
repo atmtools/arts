@@ -82,10 +82,58 @@ Compute the profile with at least the wind speed of the path, or allow more extr
   return lagrange_interp::make_lags<1, lagrange_interp::grid_identity>(
       freq_grid_profile.vec(), freq_grid.vec(), 0.0, "Frequency");
 }
+
+//! A level of the profile as a point of the path, on the frequencies freq_grid of the point
+void to_path_frequencies(SpectralPropmat&       point,
+                         const SpectralPropmat& profile,
+                         const AscendingGrid&   freq_grid_profile,
+                         const AscendingGrid&   freq_grid,
+                         const Numeric          f_extrapolfac) {
+  if (stdr::equal(freq_grid, freq_grid_profile)) {
+    point = profile;
+    return;
+  }
+
+  const Size nf   = freq_grid.size();
+  const auto lags = frequency_lags(freq_grid_profile, freq_grid, f_extrapolfac);
+
+  point.K.resize(nf);
+  point.nlte.resize(nf);
+  point.dK.resize(profile.dK.nrows(), nf);
+  point.dnlte.resize(profile.dnlte.nrows(), nf);
+  point.nlte_on = profile.nlte_on;
+
+  lagrange_interp::reinterp(point.K, profile.K, lags);
+  for (Index it = 0; it < profile.dK.nrows(); it++) lagrange_interp::reinterp(point.dK[it], profile.dK[it], lags);
+
+  // Without a non-LTE source, there are only zeros to interpolate
+  if (profile.nlte_on) {
+    lagrange_interp::reinterp(point.nlte, profile.nlte, lags);
+    for (Index it = 0; it < profile.dnlte.nrows(); it++)
+      lagrange_interp::reinterp(point.dnlte[it], profile.dnlte[it], lags);
+  } else {
+    point.nlte  = Stokvec{0.0};
+    point.dnlte = Stokvec{0.0};
+  }
+}
+
+//! point as (1 - t) of itself and t of above, with a non-LTE source if either has one
+void blend(SpectralPropmat& point, const SpectralPropmat& above, const Numeric t) {
+  const auto mix = [t](auto& a, const auto& b) {
+    std::transform(a.elem_begin(), a.elem_end(), b.elem_begin(), a.elem_begin(), [t](const auto& x, const auto& y) {
+      return (1.0 - t) * x + t * y;
+    });
+  };
+
+  mix(point.K, above.K);
+  mix(point.dK, above.dK);
+  mix(point.nlte, above.nlte);
+  mix(point.dnlte, above.dnlte);
+  point.nlte_on = point.nlte_on or above.nlte_on;
+}
 }  // namespace
 
-void Profile2Path(const Workspace&                   ws,
-                  ArrayOfSpectralPropmat&            spectral_propmat_path,
+void Profile2Path(ArrayOfSpectralPropmat&            spectral_propmat_path,
                   ArrayOfAtmPoint&                   atm_path,
                   ArrayOfAscendingGrid&              freq_grid_path,
                   ArrayOfVector3&                    freq_wind_shift_jac_path,
@@ -97,7 +145,6 @@ void Profile2Path(const Workspace&                   ws,
                   const JacobianTargets&             jac_targets,
                   const ArrayOfAtmPoint&             atm_profile,
                   const ArrayOfSpectralPropmat&      spectral_propmat_profile,
-                  const Agenda&                      spectral_propmat_agenda,
                   const Numeric&                     f_extrapolfac) try {
   ARTS_TIME_REPORT
 
@@ -105,7 +152,7 @@ void Profile2Path(const Workspace&                   ws,
 
   // A path of fewer than two points has no layer to propagate through, so nothing uses its propagation matrices.
   // The profile does not cover points outside alt_grid.  Neither has propagation.  Points inside alt_grid but between
-  // its altitudes, such as the tangent point of a limb path, are not in the profile either, so they are computed.
+  // its altitudes, such as the tangent point of a limb path, are interpolated between the altitudes around them.
   constexpr Size outside  = std::numeric_limits<Size>::max();
   constexpr Size between  = outside - 1;
   const bool     no_layer = ray_path.size() < 2;
@@ -129,9 +176,9 @@ void Profile2Path(const Workspace&                   ws,
   freq_grid_path.resize(n);
   freq_wind_shift_jac_path.resize(n);
 
-  // Points that are not in the profile have the atmosphere and frequencies of atm_pathFromPath and
-  // freq_grid_pathFromPath.  Those between the altitudes of alt_grid have the propagation of spectral_propmat_pathFromPath,
-  // as for the default path agenda, and those without an altitude of the profile have none.
+  // Points that are not at an altitude of alt_grid have the atmosphere and frequencies of atm_pathFromPath and
+  // freq_grid_pathFromPath.  Those outside alt_grid have no propagation, and those between its altitudes have theirs
+  // from the profile, below.
   for (const Size kind : {outside, between}) {
     const std::vector<Size> points{
         std::from_range, stdv::iota(Size{0}, n) | stdv::filter([&ips, kind](Size i) { return ips[i] == kind; })};
@@ -146,17 +193,8 @@ void Profile2Path(const Workspace&                   ws,
 
     atm_pathFromPath(part_atm_path, path, atm_field);
     freq_grid_pathFromPath(part_freq_grid_path, part_freq_wind_shift_jac_path, freq_grid, path, part_atm_path);
-    if (kind == between) {
-      spectral_propmat_pathFromPath(ws,
-                                    part_spectral_propmat_path,
-                                    spectral_propmat_agenda,
-                                    part_freq_grid_path,
-                                    part_freq_wind_shift_jac_path,
-                                    jac_targets,
-                                    path,
-                                    part_atm_path);
-    } else {
-      part_spectral_propmat_path.resize(points.size());
+    part_spectral_propmat_path.resize(points.size());
+    if (kind == outside) {
       for (auto& part : part_spectral_propmat_path) part.init(nf, nq);
     }
 
@@ -175,39 +213,28 @@ void Profile2Path(const Workspace&                   ws,
   for (Size i = 0; i < n; i++) {
     try {
       const Size ip = ips[i];
-      if (ip == outside or ip == between) continue;
+      if (ip == outside) continue;
 
-      atm_path[i]      = atm_profile[ip];
-      atm_path[i].wind = wind_at(atm_field, ray_path[i].pos);
+      // A point at an altitude of the profile has the atmosphere of the profile, but with its own wind
+      if (ip != between) {
+        atm_path[i]      = atm_profile[ip];
+        atm_path[i].wind = wind_at(atm_field, ray_path[i].pos);
 
-      freq_gridWindShift(freq_grid_path[i] = freq_grid, freq_wind_shift_jac_path[i], atm_path[i], ray_path[i]);
+        freq_gridWindShift(freq_grid_path[i] = freq_grid, freq_wind_shift_jac_path[i], atm_path[i], ray_path[i]);
+      }
 
-      const SpectralPropmat& profile = spectral_propmat_profile[ip];
-      SpectralPropmat&       point   = spectral_propmat_path[i];
+      // A point between two altitudes of the profile has their propagation, linearly in its altitude
+      const Numeric alt   = ray_path[i].altitude();
+      const Size    upper = ip == between ? stdr::distance(alt_grid.begin(), stdr::lower_bound(alt_grid, alt)) : ip;
+      const Size    lower = ip == between ? upper - 1 : ip;
+      const Numeric t     = ip == between ? (alt - alt_grid[lower]) / (alt_grid[upper] - alt_grid[lower]) : 0.0;
 
-      if (stdr::equal(freq_grid_path[i], freq_grid_profile)) {
-        point = profile;
-      } else {
-        const auto lags = frequency_lags(freq_grid_profile, freq_grid_path[i], f_extrapolfac);
-
-        point.K.resize(nf);
-        point.nlte.resize(nf);
-        point.dK.resize(profile.dK.nrows(), nf);
-        point.dnlte.resize(profile.dnlte.nrows(), nf);
-        point.nlte_on = profile.nlte_on;
-
-        lagrange_interp::reinterp(point.K, profile.K, lags);
-        for (Index it = 0; it < profile.dK.nrows(); it++) lagrange_interp::reinterp(point.dK[it], profile.dK[it], lags);
-
-        // Without a non-LTE source, there are only zeros to interpolate
-        if (profile.nlte_on) {
-          lagrange_interp::reinterp(point.nlte, profile.nlte, lags);
-          for (Index it = 0; it < profile.dnlte.nrows(); it++)
-            lagrange_interp::reinterp(point.dnlte[it], profile.dnlte[it], lags);
-        } else {
-          point.nlte  = Stokvec{0.0};
-          point.dnlte = Stokvec{0.0};
-        }
+      SpectralPropmat& point = spectral_propmat_path[i];
+      to_path_frequencies(point, spectral_propmat_profile[lower], freq_grid_profile, freq_grid_path[i], f_extrapolfac);
+      if (ip == between) {
+        SpectralPropmat above;
+        to_path_frequencies(above, spectral_propmat_profile[upper], freq_grid_profile, freq_grid_path[i], f_extrapolfac);
+        blend(point, above, t);
       }
 
       // The profile keeps the frequency derivatives of the wind targets, so turn them into wind derivatives here
