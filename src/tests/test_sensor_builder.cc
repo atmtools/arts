@@ -167,7 +167,7 @@ void test_geometry_index() try {
       {{2, 0, 2}, {3, 0, 2}},
       {{2, 2, 4}, {3, 2, 4}, {5, 1, 2}},
   }};
-  const std::array<Size, 6> expected_counts{2, 2, 2, 2, 0, 2};
+  const std::array<Size, 6>                      expected_counts{2, 2, 2, 2, 0, 2};
 
   const sensor::GeometryIndex index(sensor);
 
@@ -181,21 +181,20 @@ void test_geometry_index() try {
       const auto& all                   = sensor.elements[element].vector();
       if (got[k].element != element or got[k].weights.data() != all.data() + begin or
           got[k].weights.size() != end - begin)
-        arts::user_error("Entry {} of geometry {} must be the weights {} to {} of element {}", k, ip, begin, end, element);
+        arts::user_error(
+            "Entry {} of geometry {} must be the weights {} to {} of element {}", k, ip, begin, end, element);
     }
   }
 
   for (Size ie = 0; ie < expected_counts.size(); ie++) {
     if (index.geometry_count(ie) != expected_counts[ie])
-      arts::user_error("Element {} has weights at {} geometries, expected {}",
-                       ie,
-                       index.geometry_count(ie),
-                       expected_counts[ie]);
+      arts::user_error(
+          "Element {} has weights at {} geometries, expected {}", ie, index.geometry_count(ie), expected_counts[ie]);
   }
 
   //! A weight outside the geometries or the frequencies of the sensor is refused
   for (const auto& [g, f] : std::array<std::pair<Size, Size>, 2>{{{ngeom, 0}, {0, nfreq}}}) {
-    Sensor bad = sensor;
+    Sensor bad            = sensor;
     bad.elements[4][g, f] = Stokvec{1.0, 0.0, 0.0, 0.0};
 
     bool threw = false;

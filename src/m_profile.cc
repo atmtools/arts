@@ -29,10 +29,12 @@ AscendingGrid wind_extended(const AscendingGrid& freq_grid, const Numeric max_wi
   const Size    n    = freq_grid.size();
   const Numeric beta = max_wind_speed / Constant::c;
 
-  if (not(beta < 1.0)) arts::user_error("The wind speed of the profile, {} m/s, is not below the speed of light", max_wind_speed);
+  if (not(beta < 1.0))
+    arts::user_error("The wind speed of the profile, {} m/s, is not below the speed of light", max_wind_speed);
   if (n == 0 or beta == 0.0) return freq_grid;
   if (freq_grid.front() <= 0.0)
-    arts::user_error("The frequencies must be positive to be shifted by the wind, but the first is {} Hz", freq_grid.front());
+    arts::user_error("The frequencies must be positive to be shifted by the wind, but the first is {} Hz",
+                     freq_grid.front());
 
   const Numeric f_low   = freq_grid.front() * (1.0 - beta);
   const Numeric f_high  = freq_grid.back() * (1.0 + beta);
@@ -61,7 +63,8 @@ auto frequency_lags(const AscendingGrid& freq_grid_profile,
         n);
 
   const Numeric f_min = freq_grid_profile[0] - f_extrapolfac * (freq_grid_profile[1] - freq_grid_profile[0]);
-  const Numeric f_max = freq_grid_profile[n - 1] + f_extrapolfac * (freq_grid_profile[n - 1] - freq_grid_profile[n - 2]);
+  const Numeric f_max =
+      freq_grid_profile[n - 1] + f_extrapolfac * (freq_grid_profile[n - 1] - freq_grid_profile[n - 2]);
   if (freq_grid.front() < f_min or freq_grid.back() > f_max)
     arts::user_error(R"(The wind shifts the frequencies of a path point to [{}, {}] Hz.
 This is beyond [{}, {}] Hz, the extrapolation that f_extrapolfac {} allows from *freq_grid_profile*, [{}, {}] Hz.
@@ -158,11 +161,11 @@ void Profile2Path(const Workspace&                   ws,
     }
 
     for (Size k = 0; k < points.size(); k++) {
-      const Size i                     = points[k];
-      atm_path[i]                      = std::move(part_atm_path[k]);
-      freq_grid_path[i]                = std::move(part_freq_grid_path[k]);
-      freq_wind_shift_jac_path[i]      = part_freq_wind_shift_jac_path[k];
-      spectral_propmat_path[i]         = std::move(part_spectral_propmat_path[k]);
+      const Size i                = points[k];
+      atm_path[i]                 = std::move(part_atm_path[k]);
+      freq_grid_path[i]           = std::move(part_freq_grid_path[k]);
+      freq_wind_shift_jac_path[i] = part_freq_wind_shift_jac_path[k];
+      spectral_propmat_path[i]    = std::move(part_spectral_propmat_path[k]);
     }
   }
 
@@ -219,17 +222,17 @@ void Profile2Path(const Workspace&                   ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void ProfileFromAltitude(const Workspace&       ws,
-                         ArrayOfAtmPoint&       atm_profile,
-                         AscendingGrid&         freq_grid_profile,
+void ProfileFromAltitude(const Workspace&        ws,
+                         ArrayOfAtmPoint&        atm_profile,
+                         AscendingGrid&          freq_grid_profile,
                          ArrayOfSpectralPropmat& spectral_propmat_profile,
-                         const Agenda&          spectral_propmat_agenda,
-                         const JacobianTargets& jac_targets,
-                         const AscendingGrid&   alt_grid,
-                         const AtmField&        atm_field,
-                         const AscendingGrid&   freq_grid,
-                         const Numeric&         lat,
-                         const Numeric&         lon) try {
+                         const Agenda&           spectral_propmat_agenda,
+                         const JacobianTargets&  jac_targets,
+                         const AscendingGrid&    alt_grid,
+                         const AtmField&         atm_field,
+                         const AscendingGrid&    freq_grid,
+                         const Numeric&          lat,
+                         const Numeric&          lon) try {
   ARTS_TIME_REPORT
 
   const ArrayOfPropagationPathPoint ray_path{std::from_range,
@@ -244,12 +247,10 @@ void ProfileFromAltitude(const Workspace&       ws,
   atm_pathFromPath(atm_profile, ray_path, atm_field);
 
   // The largest shift is by the strongest wind of the profile, as if it blew along the line of sight
-  const Numeric max_wind_speed =
-      stdr::fold_left(atm_profile | stdv::transform([](const AtmPoint& p) {
-                        return std::hypot(p.wind[0], p.wind[1], p.wind[2]);
-                      }),
-                      0.0,
-                      [](Numeric a, Numeric b) { return std::max(a, b); });
+  const Numeric max_wind_speed = stdr::fold_left(
+      atm_profile | stdv::transform([](const AtmPoint& p) { return std::hypot(p.wind[0], p.wind[1], p.wind[2]); }),
+      0.0,
+      [](Numeric a, Numeric b) { return std::max(a, b); });
   freq_grid_profile = wind_extended(freq_grid, max_wind_speed);
 
   // The profile is of a still atmosphere, Profile2Path takes the wind of each path point from atm_field
@@ -273,8 +274,9 @@ void ProfileFromAltitude(const Workspace&       ws,
     if (ptr == jac_targets.atm.end()) continue;
 
     if (freq_grid_profile.front() <= 0.0)
-      arts::user_error("The frequency derivatives of the wind targets need positive frequencies, but the first is {} Hz",
-                       freq_grid_profile.front());
+      arts::user_error(
+          "The frequency derivatives of the wind targets need positive frequencies, but the first is {} Hz",
+          freq_grid_profile.front());
 
     const Size it = ptr->target_pos;
     for (Size ip = 0; ip < ray_path.size(); ip++) {

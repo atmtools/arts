@@ -162,7 +162,7 @@ func_body make_cpp_string_log_interp(const Matrix& data) {
   Vector n(Tv.size() - 1);
   for (Size i = 0; i < n.size(); i++) n[i] = std::log(q[i + 1] / q[i]) / std::log(Tv[i + 1] / Tv[i]);
 
-  return {.data     = std::format(
+  return {.data = std::format(
               R"(
 inline constexpr std::array<Numeric, {0}> coef{{ {1:,} }};
 inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};

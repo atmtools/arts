@@ -506,24 +506,26 @@ void measurement_vecFromSensor(const Workspace                         &ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void measurement_jacAddSensorJacobianPerturbations(const Workspace                         &ws,
-                                                   Matrix                                  &measurement_jac,
-                                                   const Vector                            &measurement_vec,
-                                                   const ArrayOfSensor                     &measurement_sensors,
-                                                   const JacobianTargets                   &jac_targets,
-                                                   const AtmField                          &atm_field,
-                                                   const SurfaceField                      &surf_field,
-                                                   const SubsurfaceField                   &subsurf_field,
-                                                   const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
-                                                   const Agenda                            &spectral_rad_observer_agenda,
-                                                   const String                            &kernel) try {
+void measurement_jacAddSensorJacobianPerturbations(
+    const Workspace                         &ws,
+    Matrix                                  &measurement_jac,
+    const Vector                            &measurement_vec,
+    const ArrayOfSensor                     &measurement_sensors,
+    const JacobianTargets                   &jac_targets,
+    const AtmField                          &atm_field,
+    const SurfaceField                      &surf_field,
+    const SubsurfaceField                   &subsurf_field,
+    const SpectralRadianceTransformOperator &spectral_rad_transform_operator,
+    const Agenda                            &spectral_rad_observer_agenda,
+    const String                            &kernel) try {
   ARTS_TIME_REPORT
 
   const Size ny = measurement_size(measurement_sensors);
   if (static_cast<Size>(measurement_vec.size()) != ny)
     arts::user_error("measurement_vec has {} elements but measurement_sensors has {}", measurement_vec.size(), ny);
   if (measurement_jac.shape() != std::array{static_cast<Index>(ny), static_cast<Index>(jac_targets.x_size())})
-    arts::user_error("measurement_jac must have shape [{}, {}], got {:B,}", ny, jac_targets.x_size(), measurement_jac.shape());
+    arts::user_error(
+        "measurement_jac must have shape [{}, {}], got {:B,}", ny, jac_targets.x_size(), measurement_jac.shape());
 
   const JacobianTargets no_targets{};
 

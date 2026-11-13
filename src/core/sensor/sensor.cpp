@@ -162,8 +162,8 @@ GeometryIndex::GeometryIndex(const Sensor& sensor)
     for (Size i = 0; i < w.size();) {
       Size n = 1;
       while (i + n < w.size() and w[i + n].irow == w[i].irow) n++;
-      entries[next[w[i].irow]++] = {.element = ie, .weights = w.subspan(i, n)};
-      i += n;
+      entries[next[w[i].irow]++]  = {.element = ie, .weights = w.subspan(i, n)};
+      i                          += n;
     }
   }
 }

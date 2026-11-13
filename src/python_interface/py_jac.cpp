@@ -14,7 +14,8 @@ void py_jac(py::module_& m) try {
   py::class_<SensorKey>(m, "SensorKey")
       .def(py::init<>(), "Create a sensor Jacobian key.")
       .def_rw("type", &SensorKey::type, "Sensor quantity.\n\n.. :class:`~pyarts3.arts.SensorKeyType`")
-      .def_rw("sensor_elem", &SensorKey::sensor_elem, "Index of the sensor in *measurement_sensors*.\n\n.. :class:`int`")
+      .def_rw(
+          "sensor_elem", &SensorKey::sensor_elem, "Index of the sensor in *measurement_sensors*.\n\n.. :class:`int`")
       .doc() = "Identifies a sensor quantity and its sensor.";
 
   py::class_<ErrorKey> errkey(m, "ErrorKey");

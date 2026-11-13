@@ -102,9 +102,9 @@ void freqWindShift(Numeric&                    frequency,
 }
 
 void spectral_propmatWindFix(SpectralPropmat&       spectral_propmat,
-                                 const AscendingGrid&   freq_grid,
-                                 const JacobianTargets& jac_targets,
-                                 const Vector3&         freq_wind_shift_jac) {
+                             const AscendingGrid&   freq_grid,
+                             const JacobianTargets& jac_targets,
+                             const Vector3&         freq_wind_shift_jac) {
   ARTS_TIME_REPORT
 
   PropmatMatrix& spectral_propmat_jac          = spectral_propmat.dK;

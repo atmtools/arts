@@ -234,18 +234,15 @@ struct ChannelQuadratures {
 ChannelQuadratures channel_quadratures(std::span<const Channel> channels, std::span<const Stokvec> responses) {
   if (channels.empty()) arts::user_error("An antenna needs at least one channel");
   if (channels.size() != responses.size())
-    arts::user_error("An antenna needs a response per channel, got {} channels and {} responses",
-                     channels.size(),
-                     responses.size());
+    arts::user_error(
+        "An antenna needs a response per channel, got {} channels and {} responses", channels.size(), responses.size());
 
   ChannelQuadratures out;
   out.channels.reserve(channels.size());
   for (Size ichan = 0; ichan < channels.size(); ++ichan) {
     try {
       out.channels.push_back(normalized_quadrature(channels[ichan]));
-    } catch (const std::exception& e) {
-      throw std::runtime_error(std::format("Channel {}:\n{}", ichan, e.what()));
-    }
+    } catch (const std::exception& e) { throw std::runtime_error(std::format("Channel {}:\n{}", ichan, e.what())); }
   }
 
   std::vector<Numeric> all_freqs;
@@ -318,8 +315,7 @@ Sensor PencilBeamAntenna::operator()(std::span<const Channel> channels,
     }
   }
 
-  return one_pixel(
-      std::move(q.freq_grid), PosLosVector(1, PosLos{.pos = pos, .los = bore_los}), std::move(elements));
+  return one_pixel(std::move(q.freq_grid), PosLosVector(1, PosLos{.pos = pos, .los = bore_los}), std::move(elements));
 }
 
 Sensor GriddedAntennaPattern::operator()(std::span<const Channel> channels,
@@ -470,8 +466,8 @@ Sensor GaussianRectangularAntenna::operator()(std::span<const Channel> channels,
 
   const Numeric beam_total = sum(beam);
   if (beam_total == 0.0) arts::user_error("The Gaussian rectangular antenna has no gain on its grid");
-  beam /= beam_total;
-  const auto nbeam = static_cast<Size>(stdr::count_if(beam, [](Numeric b) { return b != 0.0; }));
+  beam             /= beam_total;
+  const auto nbeam  = static_cast<Size>(stdr::count_if(beam, [](Numeric b) { return b != 0.0; }));
 
   std::vector<SparseStokvecMatrix> elements;
   elements.reserve(channels.size());
@@ -635,12 +631,10 @@ Sensor CameraAntenna::operator()(std::span<const Channel> channels,
                         Conversion::atan2d(direction[0], direction[1])};
 
       const Muelmat        basis = carried_basis_change(bore, bore_basis, direction, los);
-      std::vector<Stokvec> pixel_responses(std::from_range, responses | stdv::transform([&basis](const Stokvec& r) {
-                                             return basis * r;
-                                           }));
+      std::vector<Stokvec> pixel_responses(
+          std::from_range, responses | stdv::transform([&basis](const Stokvec& r) { return basis * r; }));
 
-      pixels.push_back(
-          std::visit([&](const auto& b) { return b(channels, pixel_responses, pos, los, ell); }, beam));
+      pixels.push_back(std::visit([&](const auto& b) { return b(channels, pixel_responses, pos, los, ell); }, beam));
     }
   }
 

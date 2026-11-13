@@ -59,7 +59,7 @@ The channel's polarization must not depend on the scan.)")
              const Stokvec&         response,
              const Vector3&         pos,
              const Vector2&         bore_los,
-             const Vector2&         ell) { return self(std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell); },
+             const Vector2& ell) { return self(std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell); },
           "channel"_a,
           "response"_a,
           "pos"_a,
@@ -478,10 +478,7 @@ gain times the solid angle of its cell, so the grid can be fine in one direction
 only, such as across a limb.)";
   sgrect.def(
       "__init__",
-      [](sensor::GaussianRectangularAntenna* self,
-         AscendingGrid                       zen_offsets,
-         AscendingGrid                       azi_offsets,
-         Numeric                             std) {
+      [](sensor::GaussianRectangularAntenna* self, AscendingGrid zen_offsets, AscendingGrid azi_offsets, Numeric std) {
         new (self) sensor::GaussianRectangularAntenna{
             .zen_offsets = std::move(zen_offsets), .azi_offsets = std::move(azi_offsets), .std = std};
       },
@@ -493,12 +490,14 @@ only, such as across a limb.)";
   sgrect.def_rw("std",
                 &sensor::GaussianRectangularAntenna::std,
                 "Standard deviation of the gain [deg].\n\n.. :class:`~pyarts3.arts.Numeric`");
-  sgrect.def_rw("zen_offsets",
-                &sensor::GaussianRectangularAntenna::zen_offsets,
-                "Angular offsets [deg] of the samples towards increasing zenith.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
-  sgrect.def_rw("azi_offsets",
-                &sensor::GaussianRectangularAntenna::azi_offsets,
-                "Angular offsets [deg] of the samples towards increasing azimuth.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  sgrect.def_rw(
+      "zen_offsets",
+      &sensor::GaussianRectangularAntenna::zen_offsets,
+      "Angular offsets [deg] of the samples towards increasing zenith.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
+  sgrect.def_rw(
+      "azi_offsets",
+      &sensor::GaussianRectangularAntenna::azi_offsets,
+      "Angular offsets [deg] of the samples towards increasing azimuth.\n\n.. :class:`~pyarts3.arts.AscendingGrid`");
   antenna_calls(sgrect);
   generic_interface(sgrect);
 

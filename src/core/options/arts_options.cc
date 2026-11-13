@@ -611,8 +611,7 @@ All temperatures and partition function values must be positive.
       .values_and_desc = {Value{"Interp", "Interpolate the data"},
                           Value{"Constant", "Use constant value"},
                           Value{"Coeff", "Use as polynomial coefficients"},
-                          Value{"StaticInterp",
-                                "Interpolate the data, the temperature grid is known at compile time."},
+                          Value{"StaticInterp", "Interpolate the data, the temperature grid is known at compile time."},
                           Value{"LogInterp", "Interpolate the logarithm of the data in the logarithm of temperature"}},
   });
 

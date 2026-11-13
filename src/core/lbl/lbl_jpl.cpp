@@ -89,10 +89,7 @@ struct reader {
   [[nodiscard]] constexpr std::string_view remaining_string() const { return {it, end}; }
 };
 
-bool read_jpl_entry(jpl_record&                     record,
-                    reader&                         data,
-                    std::span<const JplSpeciesInfo> species,
-                    bool                            parse_letters) {
+bool read_jpl_entry(jpl_record& record, reader& data, std::span<const JplSpeciesInfo> species, bool parse_letters) {
   using namespace Conversion;
 
   record.f0 = data.read_next<Numeric>(13, "Central Frequency"sv) * 1e6;   // MHz to Hz

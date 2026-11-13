@@ -94,8 +94,8 @@ void spectral_radStepByStepEmissionFromPropmat(StokvecVector&                   
   //! The path variables of a block, and its transmission and source along the path
   ArrayOfSpectralPropmat pm(np);
   ArrayOfAscendingGrid   freq(np);
-  TransmittanceMatrix  tramat;
-  SourceVector         srcvec;
+  TransmittanceMatrix    tramat;
+  SourceVector           srcvec;
 
   for (Size f0 = 0; f0 < nf; f0 += block) {
     const Range fs{f0, std::min(block, nf - f0)};
@@ -125,8 +125,11 @@ void spectral_radStepByStepEmissionFromPropmat(StokvecVector&                   
       for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
         const auto b = spectral_rad_bkg_jac[i, fs];
         auto       s = spectral_rad_jac[i, fs];
-        std::transform(
-            background_transmittance.begin(), background_transmittance.end(), b.begin(), s.begin(), std::multiplies<>());
+        std::transform(background_transmittance.begin(),
+                       background_transmittance.end(),
+                       b.begin(),
+                       s.begin(),
+                       std::multiplies<>());
       }
     }
   }

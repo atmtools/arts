@@ -174,8 +174,7 @@ void test_gaussian_rejects_nonpositive_std() try {
 
   bool threw = false;
   try {
-    static_cast<void>(
-        sensor::antenna_sensor(ant, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell));
+    static_cast<void>(sensor::antenna_sensor(ant, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell));
   } catch (const std::runtime_error&) { threw = true; }
 
   if (not threw) throw std::runtime_error("Gaussian antenna must reject a nonpositive std");
@@ -202,7 +201,7 @@ void test_gaussian_airy_is_frequency_dependent() try {
 //! midpoint for the boresight, and an equal share of the band between the midpoints for each ring sample
 void test_cells_are_spherical_caps_and_bands() try {
   const sensor::GaussianAntenna gaussian{ZenGrid{{0.0, 1.0}}, 1.0, 3};
-  const auto gaussian_beam =
+  const auto                    gaussian_beam =
       sensor::antenna_sensor(gaussian, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
 
   if (gaussian_beam.geometry.size() != 4) {
@@ -253,8 +252,7 @@ void test_gaussian_airy_half_power_width() try {
 
 void test_two_azimuths_split_the_band() try {
   const sensor::GaussianAntenna gaussian{ZenGrid{{0.0, 1.0}}, 1.0};
-  const auto beam =
-      sensor::antenna_sensor(gaussian, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 0.0}, ell);
+  const auto beam = sensor::antenna_sensor(gaussian, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 0.0}, ell);
 
   if (beam.geometry.size() != 3) {
     throw std::runtime_error(
