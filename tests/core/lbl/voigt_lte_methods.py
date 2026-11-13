@@ -61,7 +61,7 @@ def set_cutoff(ws, value):
 def propmat(ws, method):
     ws.spectral_propmatInit()
     getattr(ws, method)(no_negative_absorption=False)
-    return np.array(ws.spectral_propmat)
+    return np.array(ws.spectral_propmat.K)
 
 
 def relative_error(value, expected):
@@ -193,7 +193,7 @@ def check_derivative(name, method, make_workspace, add_target, get, set_value, t
     ws = make_workspace()
     add_target(ws)
     propmat(ws, method)
-    analytic = np.array(ws.spectral_propmat_jac)[0]
+    analytic = np.array(ws.spectral_propmat.dK)[0]
 
     original = get(ws)
     step = 1e-4 * abs(original)
