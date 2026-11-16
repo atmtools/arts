@@ -428,6 +428,28 @@ M : ~pyarts3.arts.Muelmat
   The rotation of the Stokes vector
 )");
 
+  rp.def("stokes_rotation",
+         &rtepack::stokes_rotation,
+         "cos2psi"_a,
+         "sin2psi"_a,
+         R"(The rotation of the Stokes reference plane by psi.
+
+.. math::
+    Q' = \cos(2\psi) Q + \sin(2\psi) U, \quad U' = -\sin(2\psi) Q + \cos(2\psi) U
+
+Parameters
+----------
+cos2psi : float
+  :math:`\cos(2\psi)`
+sin2psi : float
+  :math:`\sin(2\psi)`
+
+Returns
+-------
+M : ~pyarts3.arts.Muelmat
+  The rotation of the Stokes vector
+)");
+
   rp.def("scattering_plane_rotation",
          &rtepack::scattering_plane_rotation,
          "basis_in"_a,
