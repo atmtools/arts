@@ -181,6 +181,14 @@ def test_sensor_builder_cross_track():
     assert np.shape(sensor.meta.data) == (len(pos) * len(scan), 2)
     assert_close("frequencies", sensor.freq_grid, [89e9, 183e9])
 
+    # The linear polarization turns by scan_rotation times the signed scan angle:
+    # [1, cos 2s, sin 2s, 0] for the scan angles s
+    turned = [
+        [1.0, 0.766044443118978, -0.6427876096865393, 0.0],
+        [1.0, 1.0, 0.0, 0.0],
+        [1.0, -0.1736481776669303, 0.984807753012208, 0.0],
+    ]
+
     for ipos in range(len(pos)):
         for iscan, s in enumerate(scan):
             iplace = ipos * len(scan) + iscan
@@ -189,10 +197,7 @@ def test_sensor_builder_cross_track():
             assert_close(f"{name} pos", sensor.geometry[iplace][:3], pos[ipos])
             assert_close(f"{name} los", sensor.geometry[iplace][3:], expected_los[ipos][iscan])
 
-            # The linear polarization turns by scan_rotation times the signed scan angle
-            cos2s = np.cos(np.deg2rad(2.0 * s))
-            sin2s = np.sin(np.deg2rad(2.0 * s))
-            expected_state = [[1.0, cos2s, sin2s, 0.0], [1.0, -1.0, 0.0, 0.0]]
+            expected_state = [turned[iscan], [1.0, -1.0, 0.0, 0.0]]
 
             for ichan in range(2):
                 weights = sensor.elements[iplace * 2 + ichan].dense

@@ -41,7 +41,7 @@ POLRADTRAN = Path(__file__).resolve().parents[3] / "3rdparty" / "polradtran"
 HEADLESS = "ARTS_HEADLESS" in os.environ
 
 # Exact SI radiation constants in Evans' units: 2 h c^2 [W m-2 sr-1 um^4], h c / k [um K]
-H, C, K = 6.62607015e-34, 299792458.0, 1.380649e-23
+H, C, K = A.constants.h, A.constants.c, A.constants.k
 C1, C2 = 2 * H * C * C * 1e24, H * C / K * 1e6
 
 
@@ -228,63 +228,34 @@ def read_case(name):
 
 
 ###############################################################################
-# Phase matrices from a Legendre series, by vector geometry
+# Evans' Legendre series as an ARTS scattering species
 ###############################################################################
 
 
-def _direction(mu, phi):
-    s = np.sqrt(np.maximum(0.0, 1.0 - mu * mu))
-    return np.stack(np.broadcast_arrays(s * np.cos(phi), s * np.sin(phi), mu), -1)
+#: Any atmospheric point: the species of an Evans series does not depend on it
+ATM = A.AtmPoint()
 
 
-def _rotation(normal, mu, phi):
-    """The Stokes rotation from the meridional basis of (mu, phi) to the scattering plane of normal."""
-    mu, phi = np.broadcast_arrays(mu, phi)
-    s = np.sqrt(np.maximum(0.0, 1.0 - mu * mu))
-    ev = np.stack([mu * np.cos(phi), mu * np.sin(phi), -s], -1)
-    eh = np.stack([-np.sin(phi), np.cos(phi), np.zeros_like(phi)], -1)
-    par = np.cross(normal, _direction(mu, phi))
-    c, d = np.sum(par * ev, -1), np.sum(par * eh, -1)
-    L = np.zeros(c.shape + (4, 4))
-    L[..., 0, 0] = L[..., 3, 3] = 1.0
-    L[..., 1, 1] = L[..., 2, 2] = c * c - d * d
-    L[..., 1, 2] = 2 * c * d
-    L[..., 2, 1] = -2 * c * d
-    return L
+def species(ext, sca, coef):
+    """An RT3 scattering file as an ARTS scattering species, for the optics of VDISORT and RT4.
 
-
-def lab_frame(coef, mu_in, phi_in, mu_out):
-    """Z(mu_out, 0 <- mu_in, phi_in) of the series coef (F11, F12, F33, F34, F22, F44), normalised to 1 over 4 pi."""
-    mu_in, phi_in, mu_out = np.broadcast_arrays(mu_in, phi_in, mu_out)
-    ki, ko = _direction(mu_in, phi_in), _direction(mu_out, 0.0 * mu_out)
-    normal = np.cross(ki, ko)
-    norm = np.linalg.norm(normal, axis=-1)
-    fallback = np.stack([-np.sin(phi_in), np.cos(phi_in), np.zeros_like(phi_in)], -1)
-    normal = np.where((norm < 1e-12)[..., None], fallback, normal / np.maximum(norm, 1e-300)[..., None])
-    x = np.clip(np.sum(ki * ko, -1), -1.0, 1.0)
-    f = [np.polynomial.legendre.legval(x, coef[:, k]) for k in range(6)]
-    F = np.zeros(x.shape + (4, 4))
-    F[..., 0, 0], F[..., 0, 1], F[..., 1, 0], F[..., 1, 1] = f[0], f[1], f[1], f[4]
-    F[..., 2, 2], F[..., 2, 3], F[..., 3, 2], F[..., 3, 3] = f[2], f[3], -f[3], f[5]
-    Lo = _rotation(normal, mu_out, 0.0 * mu_out)
-    Li = _rotation(normal, mu_in, phi_in)
-    return np.swapaxes(Lo, -1, -2) @ F @ Li
-
-
-def fourier_modes(coef, mu_out, mu_in, nfourier, nstokes, nphi=32):
-    """Ordinary C^m, S^m [m, out, in, 4, 4] = (1 / 2 pi) int Z(mu_out, 0; mu_in, phi) {cos, sin}(m phi) dphi.
-
-    The trapezoid rule on nphi samples is exact for a series of degree L and m < nfourier if L + m < nphi
-    (here at most 13 + 8)."""
+    Evans' series F = sum_l c_l P_l, with c_0 = 1 for F11, is ARTS's series on the orthonormal
+    Y_l0 = sqrt((2 l + 1) / 4 pi) P_l for the scattering coefficient sca: a_l = sca c_l / sqrt(4 pi (2 l + 1))."""
     degree = coef.shape[0] - 1
-    assert degree + nfourier - 1 < nphi, "too few azimuth samples for an exact transform"
-    phi = 2 * np.pi * np.arange(nphi) / nphi
-    Z = lab_frame(coef, mu_in[None, :, None], phi[None, None, :], mu_out[:, None, None])  # [out, in, phi, 4, 4]
-    Z[..., nstokes:, :] = 0.0
-    Z[..., :, nstokes:] = 0.0
-    m = np.arange(nfourier)[:, None]
-    cos, sin = np.cos(m * phi) / nphi, np.sin(m * phi) / nphi
-    return np.einsum("mk,oikab->moiab", cos, Z), np.einsum("mk,oikab->moiab", sin, Z)
+    a = sca * coef[:, RTEPACK_ORDER] / np.sqrt(4 * np.pi * (2 * np.arange(degree + 1) + 1))[:, None]
+
+    def bulk(atm, f, n):
+        phase = np.zeros((len(f), n + 1, 6))
+        phase[:, : min(n, degree) + 1] = a[: n + 1]
+        return A.ScatteringTroSpectralVector(
+            phase_matrix=A.CompactPlanarMuelmatMatrix(phase),
+            extinction_matrix=A.CompactPlanarPropmatVector(np.tile([ext, 0.0, 0.0], (len(f), 1))),
+            absorption_vector=A.CompactPlanarStokvecVector(np.tile([ext - sca, 0.0], (len(f), 1))),
+        )
+
+    out = A.ArrayOfScatteringSpecies()
+    out.add(A.ScatteringGeneralSpectralTRO(bulk, degree))
+    return out
 
 
 ###############################################################################
@@ -317,13 +288,21 @@ def vdisort(case, nmu):
     S = np.zeros_like(C)
     Cb = np.zeros((nf, nl, nq, 4, 4))
     Sb = np.zeros_like(Cb)
-    for l, (_, _, coef) in enumerate(lay):
-        if coef is None:
+    freq = A.constants.c / (lam * 1e-6)
+    for l, name in enumerate(case["files"]):
+        if not name:
             continue
-        C[:, l], S[:, l] = fourier_modes(coef, mu, mu, nf, case["nstokes"])
+        sp = species(*case["legendre"][name])
+        o = A.vdisort.scattering_optics(sp, ATM, freq, mu, mu, nf)
+        C[:, l], S[:, l] = o.cosine, o.sine
         if case["flux"] > 0:
-            c, s = fourier_modes(coef, mu, np.array([-case["mu0"]]), nf, case["nstokes"])
-            Cb[:, l], Sb[:, l] = c[:, :, 0], s[:, :, 0]
+            o = A.vdisort.scattering_optics(sp, ATM, freq, mu, [-case["mu0"]], nf)
+            Cb[:, l], Sb[:, l] = np.asarray(o.cosine)[:, :, 0], np.asarray(o.sine)[:, :, 0]
+    # Evans' number of Stokes components
+    ns = case["nstokes"]
+    for modes in (C, S, Cb, Sb):
+        modes[..., ns:, :] = 0.0
+        modes[..., :, ns:] = 0.0
 
     B = planck5(lam, case["temperature"]) if case["thermal"] else np.zeros(nl + 1)
     source = np.zeros((nl, 2, 4))
@@ -437,23 +416,6 @@ def rt3(case, nmu, quad, max_delta_tau=1e-7):
     return mus, value
 
 
-def rt4_optics_from_legendre(coef, ext, sca, mu, ns):
-    """RT4 optics on the streams mu of a randomly oriented series: the azimuthal mean of k_s Z / (4 pi)."""
-    signed = np.concatenate((-mu, mu))  # RT4 hemisphere 0 propagates down
-    c0, _ = fourier_modes(coef, signed, signed, 1, ns)
-    n = len(mu)
-    phase = np.zeros((2, 2, n, n, ns, ns))
-    for ho in range(2):
-        for hi in range(2):
-            phase[ho, hi] = sca / (4 * np.pi) * c0[0, ho * n : (ho + 1) * n, hi * n : (hi + 1) * n, :ns, :ns]
-    extinction = np.zeros((2, n, ns, ns))
-    for s in range(ns):
-        extinction[:, :, s, s] = ext
-    absorption = np.zeros((2, n, ns))
-    absorption[:, :, 0] = ext - sca
-    return extinction, absorption, phase
-
-
 def rt4(case):
     """ARTS's RT4 at Evans' settings: (level, mu) -> [I, Q] per um, with Evans' optics."""
     lam, ns = case["wavelength"], case["nstokes"]
@@ -468,12 +430,11 @@ def rt4(case):
             continue
         if name not in made:
             if name in case["legendre"]:
-                ext, sca, coef = case["legendre"][name]
-                o = rt4_optics_from_legendre(coef, ext, sca, mu, ns)
+                o = A.rt4.scattering_optics(species(*case["legendre"][name]), ATM, f, mu, ns)
             else:
-                o = read_rt4_scattering((POLRADTRAN / name).read_text(), ns)
+                o = A.rt4.LayerOptics(*read_rt4_scattering((POLRADTRAN / name).read_text(), ns))
             made[name] = len(optics)
-            optics.append(A.rt4.LayerOptics(*o))
+            optics.append(o)
         index.append(made[name])
     ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt4.Problem(

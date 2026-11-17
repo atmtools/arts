@@ -402,19 +402,16 @@ tangent = int(np.argmin([p.pos[0] for p in ws.ray_path]))
 assert ws.ray_path[tangent].pos[0] not in np.asarray(ws.alt_grid), "The limb point must be between the altitudes"
 ws.Profile2Path()
 
-# The profile at the altitudes below and above the limb point, each linearly to its frequencies, then linearly in altitude
-z = ws.ray_path[tangent].pos[0]
-alts = np.asarray(ws.alt_grid)
-upper = int(np.searchsorted(alts, z))
-t = (z - alts[upper - 1]) / (alts[upper] - alts[upper - 1])
-f_profile, f_tangent = np.asarray(ws.freq_grid_profile), np.asarray(ws.freq_grid_path[tangent])
-
-
-def at_tangent(level):
-    k = np.asarray(ws.spectral_propmat_profile[level].K)
-    return np.column_stack([np.interp(f_tangent, f_profile, k[:, c]) for c in range(k.shape[1])])
-
-
-expected = (1 - t) * at_tangent(upper - 1) + t * at_tangent(upper)
-assert np.allclose(np.array(ws.spectral_propmat_path[tangent].K), expected, rtol=1e-12, atol=0), \
+# The absorption at some frequencies of the limb point, from the profile at the altitudes below and above it, each
+# linearly to its frequencies, then linearly in altitude, as confirmed with independent code
+K = np.array(ws.spectral_propmat_path[tangent].K)
+expected = {
+    0: 0.00018546320027657473,
+    500: 0.0002873015272075589,
+    1000: 0.0003483304240434296,
+    1500: 0.00027932868281940455,
+    2000: 0.00017891787361823993,
+}
+assert np.allclose(K[list(expected), 0], list(expected.values()), rtol=1e-12, atol=0), \
     "The limb point must be interpolated in altitude from the profile"
+assert not np.any(K[:, 1:]), "The limb point must only absorb"

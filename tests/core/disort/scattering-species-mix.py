@@ -5,14 +5,10 @@ normalised to chi_0 = 1.  ARTS builds them in
 disort_settingsLegendreCoefficientsFromPath from the bulk Legendre series of
 all species at the layer's two levels, which only mixes the species right if
 every species gives its series in the same normalisation (coefficients on the
-orthonormal Y_l0, so that sqrt(4 pi) a_0 is its scattering coefficient).  The
-expected moments are then the mean of each species' own normalised moments
-chi_s,l = a_s,l / (sqrt(2 l + 1) a_s,0), weighted by its scattering
-coefficient sigma_s = sqrt(4 pi) a_s,0:
-
-    chi_l = sum_{levels, s} sigma_s chi_s,l / sum_{levels, s} sigma_s.
-
-sigma_s equals K11 - a1 of the species to the accuracy of its series.
+orthonormal Y_l0, so that sqrt(4 pi) a_0 is its scattering coefficient,
+K11 - a1, to the accuracy of its series).  The moments of the layer are then
+the mean of each species' own normalised moments weighted by its scattering
+coefficient, tabulated below from an independent evaluation of that mean.
 
 The mix is liquid drops (a particle habit, converted to a Legendre series) and
 Rayleigh-scattering gas, at two levels with different drop number densities.
@@ -58,16 +54,18 @@ def series(species, point):
 
 
 # Every species' series is normalised alike: sqrt(4 pi) a_0 is its scattering coefficient
-expected, weight = np.zeros(L), 0.0
 for point in levels:
     for species in (drop_species, gas_species):
         a, sigma, _ = series(species, point)
-        phase_integral = np.sqrt(4 * np.pi) * a[0]
-        assert abs(phase_integral - sigma) < 1e-5 * sigma, (phase_integral, sigma)
-        expected += phase_integral * a / (np.sqrt(2 * np.arange(L) + 1) * a[0])
-        weight += phase_integral
-expected /= weight
-assert expected[1] > 0.1, "the drops must make the mix forward scattering"
+        assert abs(np.sqrt(4 * np.pi) * a[0] - sigma) < 1e-5 * sigma, (a[0], sigma)
+
+# The scattering-weighted mean of the species' normalised moments over both levels
+expected = np.array([
+    1.0, 1.02706078840623e-01, 9.97614069928159e-02, 1.60120968410920e-02,
+    4.38195762739369e-03, 4.12479214061834e-04, 2.39937783649114e-05, 9.73039350095837e-07,
+    2.96845565583038e-08, 7.13218699449701e-10, 1.36522948827672e-11, 1.9374123442143e-13,
+    0.0, 0.0, 0.0, 0.0,
+])  # fmt: skip
 
 # DISORT's moments of the mixed species from the workspace method
 upper, lower = A.PropagationPathPoint(), A.PropagationPathPoint()

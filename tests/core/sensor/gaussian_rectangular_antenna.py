@@ -34,11 +34,6 @@ assert los.shape[0] == offsets.size**2
 assert np.isclose(weights[:, 0].sum(), 1.0, rtol=1e-14, atol=0)
 
 
-def direction(l):
-    za, aa = np.radians(l[..., 0]), np.radians(l[..., 1])
-    return np.stack([np.sin(za) * np.sin(aa), np.sin(za) * np.cos(aa), np.cos(za)], axis=-1)
-
-
 # The samples are by zenith offset and then azimuth offset; the middle azimuth offset is zero
 z, a = np.meshgrid(offsets, offsets, indexing="ij")
 z, a = z.ravel(), a.ravel()
@@ -46,10 +41,24 @@ axis = np.isclose(a, 0.0)
 assert np.allclose(los[axis, 0], bore[0] + z[axis], rtol=0, atol=1e-9)
 assert np.allclose(los[axis, 1], bore[1], rtol=0, atol=1e-9)
 
-# Every sample is at its angle from the boresight
-angle = np.degrees(np.arccos(np.clip(direction(los) @ direction(bore), -1, 1)))
-expected = np.degrees(np.arctan(np.hypot(np.tan(np.radians(z)), np.tan(np.radians(a)))))
-assert np.allclose(angle, expected, rtol=0, atol=1e-9)
+# Every sample is at its angle from the boresight: symmetric in the two offsets
+# and their signs, and the gnomonic atan(hypot(tan z, tan a)) [deg] at
+# (zenith index, azimuth index), offset = -0.3 + 0.003 index [deg]
+enu = np.array([pyarts.arts.geodetic.los2enu(l) for l in los])
+angle = np.degrees(np.arccos(np.clip(enu @ pyarts.arts.geodetic.los2enu(bore), -1, 1)))
+grid = angle.reshape(offsets.size, offsets.size)
+for mirrored in (grid[::-1], grid[:, ::-1], grid.T):
+    assert np.allclose(mirrored, grid, rtol=0, atol=1e-9)
+for (iz, ia), expected in {
+    (100, 100): 0.0,
+    (0, 100): 0.3,
+    (100, 0): 0.3,
+    (0, 0): 0.4242601916501841,
+    (50, 150): 0.21213154971527443,
+    (150, 170): 0.25806897720397415,
+    (200, 30): 0.3661944674574447,
+}.items():
+    assert np.isclose(grid[iz, ia], expected, rtol=0, atol=1e-9), (iz, ia, grid[iz, ia])
 
 # The second moment of the angle is that of a Gaussian of the angular offset, 2 std^2
 second_moment = np.sum(weights[:, 0] * angle**2)

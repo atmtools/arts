@@ -124,8 +124,8 @@ ws.rte_option = "linsrc"
 k2 = 0.93
 ws.measurement_vecFromRadarSingleScattering(**common, unit="Ze", k2=k2)
 ze = np.asarray(ws.measurement_vec).copy()
-wavelength = A.constants.c / ws.freq_grid[0]
-ze_factor = 4e18 * wavelength**4 / (np.pi**4 * k2)
+# The ratio of Ze to the native unit at 94 GHz and k2 = 0.93
+ze_factor = 4568240.390230553
 assert np.allclose(ze[interior], ze_factor * native[interior], rtol=2e-13)
 
 ws.measurement_vecFromRadarSingleScattering(
@@ -219,15 +219,20 @@ old.atm_field[number_density] = A.GriddedField3(
     grids=[fine_altitude, *old.atm_field["t"].data.grids[1:]],
 )
 
-# The droplet uses the same Liebe (1993) water model as ARTS2 and as the
-# automatic radar k2.  Preserve the original frequency, temperatures, diameter
-# and angular grid.
+# Refractive index of the Liebe (1993) water model, as Atmlab eps_water_liebe93.m,
+# at 94 GHz and the temperatures.  Its relaxation-frequency coefficient is 146,
+# not epswater93.m's 146.4.  Preserve the original frequency, temperatures,
+# diameter and angular grid.
 temperatures = np.array([268.15, 273.15, 278.15])
-permittivity = A.physics.permittivity_water_liebe93(94e9, temperatures)
+refractive_index = np.array([
+    [2.8187175235199935 + 1.2817648423646295j],
+    [2.912634187415942 + 1.4209001868972941j],
+    [3.019683217851814 + 1.564364171605902j],
+])
 habit = A.ParticleHabit.sphere(
     temperatures, [94e9], [50e-6],
     A.IrregularZenithAngleGrid(np.arange(181.0)),
-    np.sqrt(permittivity)[:, None], 1000.0,
+    refractive_index, 1000.0,
 )
 particle = habit[0]
 np.testing.assert_allclose(particle.properties.mass, 1000 * np.pi / 6 * (50e-6)**3)
@@ -238,7 +243,7 @@ np.testing.assert_array_equal(particle.forwardscatter_matrix, phase[:, :, 0, :])
 sparse = A.ParticleHabit.sphere(
     temperatures, [94e9], [50e-6],
     A.IrregularZenithAngleGrid([30.0, 90.0, 150.0]),
-    np.sqrt(permittivity)[:, None], 1000.0,
+    refractive_index, 1000.0,
 )[0]
 np.testing.assert_array_equal(sparse.backscatter_matrix, particle.backscatter_matrix)
 np.testing.assert_array_equal(sparse.forwardscatter_matrix, particle.forwardscatter_matrix)

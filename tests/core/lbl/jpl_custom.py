@@ -12,14 +12,21 @@ import tempfile
 import numpy as np
 import pyarts3 as pyarts
 
-c = pyarts.arts.constants.c
-h = pyarts.arts.constants.h
-k = pyarts.arts.constants.k
-
 # JPL 27002 HNC 1-0, and the JPL partition function of HNC at 300 K
 HNC = "   90663.5930  0.0090 -2.4372 2    0.0000  3 -27002 101 1           0           "
 Q300 = 138.311
 ISOT = "HNC-142"
+Q = pyarts.arts.SpeciesIsotope(ISOT).Q
+
+# The ARTS line strengths, line.s(T, Q(T)), that reproduce the JPL intensity of
+# the HNC record at 300 K and its JPL scaling to 150 K, confirmed with independent
+# code.  The ARTS partition function of HNC is the JPL table.
+S = {300.0: 7.827566789366163e-40, 150.0: 1.562226504962444e-39}
+
+# The JPL log intensity of the HNC record at 296 K, to the 4 decimals of the file,
+# and the ARTS line strength at 296 K that reproduces it
+LGINT296 = -2.4256
+S296 = 7.933040934457255e-40
 
 
 def record(lgint=None, gup=None, tag=None):
@@ -34,27 +41,8 @@ def record(lgint=None, gup=None, tag=None):
     return out
 
 
-def intensity(rec):
-    return 10 ** float(rec[21:29]) * 1e-12
-
-
-def arts_intensity(line, T):
-    Q = pyarts.arts.SpeciesIsotope(ISOT).Q(T)
-    f = line.f0
-    return line.s(T, Q) * f * -np.expm1(-h * f / (k * T)) * c**2 / (8 * np.pi)
-
-
-def scale(s, line, T, T0):
-    """The intensity s at T0 scaled to T with the partition function of ARTS"""
-    Q = pyarts.arts.SpeciesIsotope(ISOT).Q
-    return (
-        s
-        * Q(T0)
-        / Q(T)
-        * np.exp(-line.e0 / k * (1 / T - 1 / T0))
-        * np.expm1(-h * line.f0 / (k * T))
-        / np.expm1(-h * line.f0 / (k * T0))
-    )
+def strength(line, T):
+    return line.s(T, Q(T))
 
 
 def read(rec, **kwargs):
@@ -86,40 +74,34 @@ def info(tag, QT0=Q300, T0=300.0):
 wrong = record(tag=123456)
 assert fails(wrong)
 line = read(wrong, jpl_species=pyarts.arts.ArrayOfJplSpeciesInfo([info(123456)]))
-for T in [300.0, 150.0]:
-    assert np.isclose(
-        arts_intensity(line, T), scale(intensity(HNC), line, T, 300.0), rtol=1e-12, atol=0
-    )
+for T in S:
+    assert np.isclose(strength(line, T), S[T], rtol=1e-12, atol=0)
 
 # %% Only the custom information is used when it is given
 assert fails(HNC, jpl_species=pyarts.arts.ArrayOfJplSpeciesInfo([info(123456)]))
 
 # %% Intensities at 296 K reproduce the 300 K intensities
-line = read(HNC)
-lgint296 = np.log10(scale(intensity(HNC), line, 296.0, 300.0) * 1e12)
-rec296 = record(lgint=lgint296)
+rec296 = record(lgint=LGINT296)
 line296 = read(
     rec296,
-    jpl_species=pyarts.arts.ArrayOfJplSpeciesInfo(
-        [info(27002, pyarts.arts.SpeciesIsotope(ISOT).Q(296.0), 296.0)]
-    ),
+    jpl_species=pyarts.arts.ArrayOfJplSpeciesInfo([info(27002, Q(296.0), 296.0)]),
 )
-assert np.isclose(arts_intensity(line296, 296.0), intensity(rec296), rtol=1e-12, atol=0)
+assert np.isclose(strength(line296, 296.0), S296, rtol=1e-12, atol=0)
 # Only limited by the 4 decimals of the log intensity in the file
-assert np.isclose(arts_intensity(line296, 300.0), intensity(HNC), rtol=3e-4, atol=0)
+assert np.isclose(strength(line296, 300.0), S[300.0], rtol=3e-4, atol=0)
 
 # %% Degeneracies with a letter for the hundreds are only read when asked for
 lettered = record(gup="A32")
 assert fails(lettered)
 line = read(lettered, parse_letters=1)
-assert np.isclose(line.gu, 1032 * pyarts.arts.SpeciesIsotope(ISOT).Q(300.0) / Q300, rtol=1e-12)
-assert np.isclose(arts_intensity(line, 300.0), intensity(HNC), rtol=1e-12, atol=0)
+assert np.isclose(line.gu, 1032, rtol=1e-12)
+assert np.isclose(strength(line, 300.0), S[300.0], rtol=1e-12, atol=0)
 
 # %% A degeneracy with an asterisk is unknown, which keeps the line strength
 starred = record(gup="*32")
 line = read(starred)
 assert line.gu < 0 and line.a < 0
-assert np.isclose(arts_intensity(line, 300.0), intensity(HNC), rtol=1e-12, atol=0)
+assert np.isclose(strength(line, 300.0), S[300.0], rtol=1e-12, atol=0)
 
 # %% Custom information must be unique and positive
 assert fails(HNC, jpl_species=pyarts.arts.ArrayOfJplSpeciesInfo([info(27002), info(27002)]))

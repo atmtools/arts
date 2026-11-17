@@ -1,8 +1,9 @@
 """LM through workspace covariance methods: diagonal, mixed and correlated.
 
-The forward model is deliberately affine, so NumPy supplies an independent
-exact OEM solution. Dense/Sparse storage and supplied inverses must not change
-that solution. Changing correlations can, and the plots show that difference.
+The forward model is deliberately affine, so the converged LM state is the
+exact linear OEM solution, tabulated below for each pattern. Dense/Sparse
+storage and supplied inverses must not change that solution. Changing
+correlations can, and the plots show that difference.
 Run normally for plots; ARTS_HEADLESS suppresses them in the test suite.
 """
 
@@ -20,6 +21,37 @@ PATTERNS = {
     "Diagonal": (0., 0.),
     "Mixed": (0., .6),
     "Correlated": (.4, .6),
+}
+# The exact linear MAP and gain in standardized coordinates (Sa = I), to 12
+# decimals, of each pattern: x = (I + K^T Se^-1 K)^-1 K^T Se^-1 y.
+EXPECTED = {
+    "Diagonal": (
+        [0.941171708459, -0.388454324853, -0.0289045677, 0.379294550562],
+        [
+            [0.759143428093, -0.217575791669, -0.03099934523, 0.103175235126],
+            [0.097772334874, 0.759143428093, -0.272851564989, -0.03099934523],
+            [-0.03099934523, 0.103175235126, 0.759143428093, -0.217575791669],
+            [-0.272851564989, -0.03099934523, 0.097772334874, 0.759143428093],
+        ],
+    ),
+    "Mixed": (
+        [0.942772991361, -0.368139607258, -0.083412933314, 0.367060360229],
+        [
+            [0.760337375657, -0.215163295463, -0.046349704238, 0.110948599055],
+            [0.089439267864, 0.753600759851, -0.278447664431, 0.003444755166],
+            [-0.013910289711, 0.109933558152, 0.816613493659, -0.324399890781],
+            [-0.254857539289, -0.007684785304, -0.003383709074, 0.773863274485],
+        ],
+    ),
+    "Correlated": (
+        [1.018384900177, -0.422650131251, -0.09342461928, 0.348212311658],
+        [
+            [0.795279164573, -0.283781207597, -0.035028431878, 0.114654576711],
+            [0.024066364712, 0.761661883471, -0.267802609613, 0.01806903582],
+            [-0.024005080308, 0.11338431816, 0.817673765035, -0.322536886752],
+            [-0.259450597742, 0.013662336406, -0.008132708624, 0.771167362738],
+        ],
+    ),
 }
 
 
@@ -78,17 +110,14 @@ def measurement_covariance(ws, correlations, sparse, supplied_inverse):
     # Build two measurement covariance blocks through the owning workspace
     # helpers, varying storage and supplied inverses without editing caches.
     ws.oemMeasurementCovmatInit()
-    se = np.zeros((4, 4))
-    for i, rho in enumerate(correlations):
+    for rho in correlations:
         block = .25 * np.array([[1., rho], [rho, 1.]])
-        se[2*i:2*i+2, 2*i:2*i+2] = block
         storage = arts.Sparse if sparse else arts.Matrix
         options = {"inverse": storage(np.linalg.solve(
             block, np.eye(2)))} if supplied_inverse else {}
         ws.oemMeasurementCovmatAdd(
             matrix=storage(block), **options,
         )
-    return se
 
 
 def run():
@@ -98,14 +127,8 @@ def run():
         reference = None
         for sparse in (False, True):
             for supplied_inverse in (False, True):
-                se = measurement_covariance(ws, correlations, sparse, supplied_inverse)
-                # In standardized coordinates Sa=I. Solve the independent
-                # analytic normal equations; do not use an ARTS inverse/cache.
-                weighted_k = np.linalg.solve(se, K)
-                expected = np.linalg.solve(np.eye(4) + K.T @ weighted_k,
-                                           K.T @ np.linalg.solve(se, OBSERVED))
-                expected_gain = np.linalg.solve(np.eye(4) + K.T @ weighted_k,
-                                                weighted_k.T)
+                measurement_covariance(ws, correlations, sparse, supplied_inverse)
+                expected, expected_gain = map(np.array, EXPECTED[name])
                 # First call prepares Se; the second reuses it. Both start from
                 # the same deliberately perturbed state, not the previous fit.
                 for repeat in range(2):

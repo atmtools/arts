@@ -1,9 +1,14 @@
-"""RT4 through pyarts3.arts.rt4 against closed forms derived here.
+"""RT4 through pyarts3.arts.rt4 against references from outside RT4.
 
-Every reference is computed below with numpy only (Planck from the exact SI
-constants, Fresnel from Snell's law, the transfer equation integrated
-analytically along each stream).  No RT4 output and no ARTS physics function
-enters a reference.
+* The quadrature: Gauss-Legendre from numpy, Lobatto from a table checked
+  with mpmath.
+* Gas-only layers over a Fresnel surface: ARTS's linear-in-tau transmission
+  (rtepack.tran), Planck (physics.planck) and Fresnel reflection
+  (vdisort.fresnel_reflection).
+* A particle layer with lower-triangular K: a table of the exact solution.
+* Isothermal Kirchhoff with ARTS's Rayleigh phase matrix: I = B, Q = 0.
+
+No RT4 output enters a reference.
 """
 
 import numpy as np
@@ -12,66 +17,36 @@ from pyarts3 import arts
 rt4 = arts.rt4
 polradtran = arts.polradtran
 
-H = 6.62607015e-34
-C = 299792458.0
-K = 1.380649e-23
-
 FREQUENCY = 50e9
 DOWN, UP = rt4.down, rt4.up
 assert (DOWN, UP) == (0, 1)
 
+# Positive half of the 2 nmu-point Gauss-Lobatto rule on [-1, 1], (mu, weights)
+LOBATTO = {
+    1: ([1.0], [1.0]),
+    2: ([0.44721359549995794, 1.0], [0.83333333333333333, 0.16666666666666667]),
+    5: (
+        [0.16527895766638702, 0.4779249498104445, 0.73877386510550508, 0.91953390816645881, 1.0],
+        [0.32753976118389746, 0.29204268367968376, 0.22488934206312645, 0.13330599085107011, 0.022222222222222222],
+    ),
+    8: (
+        [0.10132627352194945, 0.29983046890076321, 0.48605942188713761, 0.65238870288249309,
+         0.79200829186181506, 0.89920053309347209, 0.96956804627021793, 1.0],
+        [0.20195830817822987, 0.19369002382520358, 0.17749191339170413, 0.15402698080716428,
+         0.1242553821325141, 0.089393697325930801, 0.050850361005919905, 0.0083333333333333333],
+    ),
+}  # fmt: skip
 
-def planck(f, t):
-    """B_nu(T) in W m-2 Hz-1 sr-1."""
-    return 2.0 * H * f**3 / C**2 / np.expm1(H * f / (K * t))
 
-
-def fresnel_vh(n, mu):
-    """|r_v|^2 and |r_h|^2 for a medium of index 1 above index n."""
-    cos_t = np.sqrt(1.0 - (1.0 - mu**2) / n**2 + 0j)
-    rv = (n * mu - cos_t) / (n * mu + cos_t)
-    rh = (mu - n * cos_t) / (mu + n * cos_t)
-    return np.abs(rv) ** 2, np.abs(rh) ** 2
-
-
-def own_quadrature(nmu, quad):
-    """The rules as documented, from numpy's Gauss-Legendre and Legendre roots."""
+def expected_quadrature(nmu, quad):
+    """The rules as documented: numpy's Gauss-Legendre, the Lobatto table."""
     if quad == polradtran.QuadratureType.double_gauss:
         x, w = np.polynomial.legendre.leggauss(nmu)
         return 0.5 * (x + 1.0), 0.5 * w
     if quad == polradtran.QuadratureType.gauss:
         x, w = np.polynomial.legendre.leggauss(2 * nmu)
         return x[nmu:], w[nmu:]
-    n = 2 * nmu  # Lobatto: +-1 and the roots of P'_{n-1}
-    p = np.polynomial.legendre.Legendre.basis(n - 1)
-    x = np.sort(np.concatenate([[-1.0, 1.0], p.deriv().roots().real]))
-    w = 2.0 / (n * (n - 1) * p(x) ** 2)
-    return x[nmu:], w[nmu:]
-
-
-def propagate(v0, length, k, kappa, a_i, a_q, b_start, b_end):
-    """Exact solution of dV/ds = -K V + a B(s) along a path of the given length.
-
-    K = [[k, 0], [kappa, k]], a = [a_i, a_q], B linear in s from b_start to
-    b_end.  With exp(-K u) = exp(-k u) (1 - kappa u N), N = [[0, 0], [1, 0]],
-    and E_n = int_0^L u^n exp(-k u) du:
-      I = I0 e^{-kL} + a_i (B_e E0 - g E1)
-      Q = e^{-kL} (Q0 - kappa L I0) + a_q (B_e E0 - g E1) - kappa a_i (B_e E1 - g E2)
-    with g = (B_e - B_s) / L.
-    """
-    x = k * length
-    ex = np.exp(-x)
-    e0 = -np.expm1(-x) / k
-    e1 = (1.0 - (1.0 + x) * ex) / k**2
-    e2 = (2.0 - (2.0 + 2.0 * x + x * x) * ex) / k**3
-    g = (b_end - b_start) / length
-    i = v0[0] * ex + a_i * (b_end * e0 - g * e1)
-    q = (
-        ex * (v0[1] - kappa * length * v0[0])
-        + a_q * (b_end * e0 - g * e1)
-        - kappa * a_i * (b_end * e1 - g * e2)
-    )
-    return np.array([i, q])
+    return np.array(LOBATTO[nmu])
 
 
 HEIGHT = np.array([3000.0, 2000.0, 1000.0, 0.0])
@@ -82,34 +57,37 @@ SURFACE = 290.0
 INDEX = 3.0 + 0.2j
 
 
-def references(mu, stream_optics, surface_n):
-    """Closed-form down and up [level, mu, 2] for the 3-layer atmosphere.
+def planck(t):
+    return arts.physics.planck(FREQUENCY, t)
 
-    stream_optics(l, i) gives (k, kappa, a_i, a_q) of layer l at stream i,
-    identical in both hemispheres.  The surface is Fresnel with index
-    surface_n: I_v and I_h each reflect specularly, so in (I, Q) the surface
-    returns (1 - R) [B_s, 0] + R [I_d, Q_d] with R = [[R1, R2], [R2, R1]].
+
+def gas_references(mu):
+    """Down and up [level, mu, 2] for the 3 gas-only layers over the Fresnel surface.
+
+    Each layer is ARTS's linear-in-tau step, I_end = T (I_start - J_start) +
+    L (J_start - J_end) + J_end with T and L of rtepack.tran and J = [B, 0].
+    The surface emits (1 - R) [B_s, 0] and reflects R [I_d, Q_d], R the
+    [I, Q] block of vdisort.fresnel_reflection.
     """
     nlay = len(GAS)
     dz = np.abs(np.diff(HEIGHT))
-    b = planck(FREQUENCY, TEMPERATURE)
-    bs = planck(FREQUENCY, SURFACE)
+    j = np.column_stack([planck(TEMPERATURE), np.zeros(nlay + 1)])
+
+    def step(i0, l, m, start, end):
+        t = arts.rtepack.tran(arts.Propmat(GAS[l]), arts.Propmat(GAS[l]), dz[l] / m)
+        T, L = np.asarray(t())[:2, :2], np.asarray(t.linsrc())[:2, :2]
+        return T @ (i0 - j[start]) + L @ (j[start] - j[end]) + j[end]
+
     down = np.zeros((nlay + 1, len(mu), 2))
     up = np.zeros((nlay + 1, len(mu), 2))
     for i, m in enumerate(mu):
-        down[0, i] = [planck(FREQUENCY, SKY), 0.0]
+        down[0, i] = [planck(SKY), 0.0]
         for l in range(nlay):
-            down[l + 1, i] = propagate(
-                down[l, i], dz[l] / m, *stream_optics(l, i), b[l], b[l + 1]
-            )
-        rv, rh = fresnel_vh(surface_n, m)
-        r1, r2 = 0.5 * (rv + rh), 0.5 * (rv - rh)
-        refl = np.array([[r1, r2], [r2, r1]])
-        up[nlay, i] = (np.array([1.0, 0.0]) - refl[:, 0]) * bs + refl @ down[nlay, i]
+            down[l + 1, i] = step(down[l, i], l, m, l, l + 1)
+        refl = np.asarray(arts.vdisort.fresnel_reflection(m, INDEX))[:2, :2]
+        up[nlay, i] = (np.array([1.0, 0.0]) - refl[:, 0]) * planck(SURFACE) + refl @ down[nlay, i]
         for l in reversed(range(nlay)):
-            up[l, i] = propagate(
-                up[l + 1, i], dz[l] / m, *stream_optics(l, i), b[l + 1], b[l]
-            )
+            up[l, i] = step(up[l + 1, i], l, m, l + 1, l)
     return down, up
 
 
@@ -141,18 +119,18 @@ def problem(**kw):
 
 
 def test_quadrature():
-    """RT4's rules equal numpy's, ascending, for each type."""
+    """RT4's rules equal numpy's Gauss-Legendre and the Lobatto table, ascending."""
     for quad in polradtran.QuadratureType:
         for nmu in (1, 2, 5, 8):
             q = polradtran.get_quadrature(nmu, quad)
-            mu, w = own_quadrature(nmu, quad)
+            mu, w = expected_quadrature(nmu, quad)
             np.testing.assert_allclose(
                 np.asarray(q.mu), mu, rtol=0, atol=1e-14, err_msg=str(quad)
             )
             np.testing.assert_allclose(
                 np.asarray(q.weights), w, rtol=0, atol=1e-14, err_msg=str(quad)
             )
-        print(f"quadrature {quad.name:13s} == numpy for nmu = 1, 2, 5, 8")
+        print(f"quadrature {quad.name:13s} == reference for nmu = 1, 2, 5, 8")
 
 
 def test_gas_fresnel():
@@ -160,12 +138,11 @@ def test_gas_fresnel():
 
     RT4 solves gas-only layers analytically, so only round-off remains.
     """
-    gas = lambda l, i: (GAS[l], 0.0, GAS[l], 0.0)
     for quad in polradtran.QuadratureType:
         p = problem(quad=quad)
         r = rt4.solve(p)
         mu = np.asarray(r.mu)
-        mu_q, w_q = own_quadrature(p.nmu, quad)
+        mu_q, w_q = expected_quadrature(p.nmu, quad)
         np.testing.assert_allclose(
             mu, np.concatenate([mu_q, [0.45, 1.0]]), rtol=0, atol=1e-14
         )
@@ -173,7 +150,7 @@ def test_gas_fresnel():
             np.asarray(r.weights), np.concatenate([w_q, [0.0, 0.0]]), rtol=0, atol=1e-14
         )
 
-        down, up = references(mu, gas, INDEX)
+        down, up = gas_references(mu)
         # Oblique emission from a warm dielectric is vertically polarized
         assert np.all(np.asarray(r.up)[-1, mu < 0.9, 1] > 0.0) and np.all(
             up[-1, mu < 0.9, 1] > 0.0
@@ -196,6 +173,9 @@ def test_layout():
     K11 = k + s.  Any hemisphere, stream or Stokes transpose of the numpy
     arrays changes the answer.  The doubling is first order in the initial
     sublayer, whose largest slant thickness is max_delta_tau / mu_min.
+
+    The reference is the exact solution of the transfer equation, tabulated
+    in units of B(SURFACE) on the 8 double-Gauss streams and the two extra ones.
     """
     p = problem(max_delta_tau=1e-7, layer_optics_index=[-1, 0, -1])
     q = polradtran.get_quadrature(p.nmu, p.quad)
@@ -227,30 +207,50 @@ def test_layout():
 
     r = rt4.solve(p)
 
-    def optics(l, i):
-        if l == 1:
-            return GAS[l] + kp[i], kappa[i], GAS[l] + a_i[i], a_q[i]
-        return GAS[l], 0.0, GAS[l], 0.0
-
-    down, up = references(mu, optics, INDEX)
+    unit = planck(SURFACE)
+    down = np.zeros((4, nmu, 2))
+    up = np.zeros((4, nmu, 2))
+    down[0, :, 0] = planck(SKY)
+    down[1:, :, 0] = unit * np.array([
+        [0.808327951, 0.501675448, 0.277190572, 0.177018956, 0.128306931,
+         0.102597682, 0.088790320, 0.082212476, 0.162831251, 0.080770376],
+        [0.910012128, 0.894147565, 0.818092644, 0.692668456, 0.585919243,
+         0.512440550, 0.467187994, 0.444078159, 0.665455856, 0.438872318],
+        [0.979937217, 0.968568018, 0.942236070, 0.877881060, 0.795249551,
+         0.723702821, 0.673806953, 0.646631964, 0.859245100, 0.640353327],
+    ])
+    down[2:, :, 1] = unit * np.array([
+        [-0.053967400, -0.048839283, -0.022604802, 0.003848349, 0.018881263,
+         0.026697383, 0.030699487, 0.032532238, 0.008174764, 0.032926507],
+        [0.000000000, -0.000357188, -0.002747075, 0.001130887, 0.008110601,
+         0.013860689, 0.017595789, 0.019532952, 0.002691075, 0.019970936],
+    ])
+    up[..., 0] = unit * np.array([
+        [0.771303854, 0.808140511, 0.839079722, 0.863775394, 0.878606859,
+         0.885117421, 0.887125664, 0.887424366, 0.868068560, 0.887415141],
+        [0.830295973, 0.844101013, 0.864905206, 0.884018649, 0.894686965,
+         0.898233072, 0.898373250, 0.897710828, 0.887255637, 0.897484786],
+        [0.916185971, 0.927411786, 0.941932550, 0.947937140, 0.943837948,
+         0.936019337, 0.928931322, 0.924554177, 0.947675112, 0.923491020],
+        [0.982455267, 0.982370324, 0.979660243, 0.964210611, 0.944629047,
+         0.928345324, 0.917064639, 0.910860612, 0.959692617, 0.909415676],
+    ])
+    up[..., 1] = unit * np.array([
+        [-0.000325071, -0.019252087, -0.031446592, -0.029912729, -0.023418950,
+         -0.019286350, -0.018759093, -0.019613032, -0.028530227, -0.019941128],
+        [-0.050038078, -0.051481634, -0.047933551, -0.038214402, -0.027730840,
+         -0.021988055, -0.020967967, -0.021719706, -0.035629941, -0.022038355],
+        [0.000000000, 0.000068069, 0.002319821, 0.009922881, 0.016241719,
+         0.014984427, 0.009307062, 0.004379691, 0.011878847, 0.003050901],
+        [0.001965771, 0.009307195, 0.019089065, 0.033767034, 0.037810288,
+         0.028861840, 0.016238091, 0.007294398, 0.036084752, 0.005030086],
+    ])  # fmt: skip
     dev = max_rel_dev(r, down, up)
     tol = p.max_delta_tau / mu[0]
     print(
         f"layout, lower-triangular K(mu) + forward phase   max rel dev I {dev[0]:.2e}, Q {dev[1]:.2e} (tol {tol:.1e})"
     )
     assert np.all(dev < tol), dev
-
-
-def rayleigh_m0(mo, mi):
-    """Azimuthal mean of the Rayleigh phase matrix, 4 pi normalised, (I, Q),
-    mo outgoing and mi incident mu (meridional basis, Q = I_v - I_h)."""
-    a, b = mo**2, mi**2
-    return np.array(
-        [
-            [3 / 8 * (3 - a - b + 3 * a * b), 3 / 8 * (1 - 3 * a) * (1 - b)],
-            [3 / 8 * (1 - a) * (1 - 3 * b), 9 / 8 * (1 - a) * (1 - b)],
-        ]
-    )
 
 
 def test_kirchhoff(reciprocal):
@@ -262,7 +262,9 @@ def test_kirchhoff(reciprocal):
     of Z that the reciprocal Rayleigh matrix is blind to.  Z_II stays
     reciprocal, so the medium conserves energy (rt4.solve checks it); a
     non-reciprocal Z_II could not obey Kirchhoff's law and energy
-    conservation with one absorption.  Only round-off remains, which grows with the
+    conservation with one absorption.  Z is rt4.scattering_optics's phase
+    matrix of ARTS's Rayleigh GasScatterer, scaled to the scattering
+    coefficient sigma.  Only round-off remains, which grows with the
     number of sublayers 2^n.
     """
     t = 260.0
@@ -282,26 +284,26 @@ def test_kirchhoff(reciprocal):
     w = np.concatenate([np.asarray(q.weights), [0.0]])
     nmu = len(mu)
 
-    z = np.zeros((nmu, nmu, 2, 2))
-    for i in range(nmu):
-        for j in range(nmu):
-            z[i, j] = sigma * rayleigh_m0(mu[i], mu[j]) / (4.0 * np.pi)
-            if not reciprocal:
-                z[i, j, 1, :] *= 1.0 + 0.3 * mu[i]
-    phase = np.broadcast_to(z, (2, 2) + z.shape).copy()
+    species = arts.ArrayOfScatteringSpecies()
+    species.add(arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0)))
+    atm = arts.AtmPoint()
+    atm.pressure, atm.temperature = 1e5, t
+    rayleigh = rt4.scattering_optics(species, atm, FREQUENCY, mu, 2)
+    phase = sigma / np.asarray(rayleigh.extinction)[0, 0, 0, 0] * np.asarray(rayleigh.phase)
+    if not reciprocal:
+        phase[..., 1, :] *= (1.0 + 0.3 * mu)[:, None, None]  # [h, h', i_out, i_in, s, s']
 
     ext = np.zeros((2, nmu, 2, 2))
     ext[:, :, 0, 0] = ext[:, :, 1, 1] = sigma + kabs
     absorption = np.zeros((2, nmu, 2))
     absorption[:, :, 0] = sigma + kabs
-    # both incoming hemispheres scatter into (h, j) identically
-    absorption -= 2.0 * np.pi * 2.0 * np.einsum("i,jis->js", w, z[..., 0])[None, :, :]
+    absorption -= 2.0 * np.pi * np.einsum("i,hgjis->hjs", w, phase[..., 0])
     if reciprocal:
         assert np.max(np.abs(absorption[..., 1])) < 1e-12 * sigma
     p.optics = [rt4.LayerOptics(ext, absorption, phase)]
 
     r = rt4.solve(p)
-    b = planck(FREQUENCY, t)
+    b = planck(t)
     out = np.stack([np.asarray(r.down), np.asarray(r.up)])
     dev_i = np.max(np.abs(out[..., 0] - b)) / b
     dev_q = np.max(np.abs(out[..., 1])) / b

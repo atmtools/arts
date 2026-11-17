@@ -3,7 +3,8 @@
 The references are independent of the method under test:
 
 1. A single line with a cutoff is zero outside its cutoff range, and inside it
-   the profile without cutoff less its value at the upper cutoff frequency.
+   the profile without cutoff less its value at the upper cutoff frequency, as
+   tabulated from independent code.
 2. The three methods implement the same model, so they give the same numbers
    for a band of many lines, whatever the order of the lines in the band.
 3. A derivative is the limit of a perturbation of the input.
@@ -18,8 +19,6 @@ METHODS = (
     "spectral_propmatMemoryIntensiveAddVoigtLTE",
 )
 
-H = 6.62607015e-34
-K = 1.380649e-23
 TEMPERATURE = 280.0
 
 
@@ -83,6 +82,17 @@ PRESSURE = 1e4
 SHIFT = 2e3  # Hz/Pa, the same for all broadening species
 OFFSETS = np.array([-3, -1.5, -0.9, -0.5, -0.02, 0, 0.02, 0.5, 0.9, 1.5, 3]) * 1e9
 
+# The absorption [1/m] of the line with cutoff at the offsets inside the cutoff range
+CUT = np.array([
+    2.2212605357095746e-06,
+    2.637707049357196e-05,
+    0.0003111860824983051,
+    0.0003153470174290892,
+    0.0003113946944913489,
+    2.682271223719598e-05,
+    2.2892683792862827e-06,
+])
+
 
 def single_line_workspace(freq_grid, cutoff):
     ws = workspace(freq_grid, 118.74e9, 118.76e9, PRESSURE)
@@ -95,20 +105,12 @@ def single_line_workspace(freq_grid, cutoff):
     return ws
 
 
-def frequency_factor(f):
-    return f * -np.expm1(-H * f / (K * TEMPERATURE))
-
-
 ws = single_line_workspace([1.0], False)
 center = ws.abs_bands[main_band(ws)].lines[0].f0 + SHIFT * PRESSURE
 grid = center + OFFSETS
 inside = np.abs(OFFSETS) <= CUTOFF
 
 for method in METHODS:
-    uncut = propmat(single_line_workspace(grid, False), method)[:, 0]
-    edge = propmat(single_line_workspace([center + CUTOFF], False), method)[0, 0]
-    expected = uncut - edge * frequency_factor(grid) / frequency_factor(center + CUTOFF)
-
     cut = propmat(single_line_workspace(grid, True), method)[:, 0]
 
     require(
@@ -116,8 +118,8 @@ for method in METHODS:
         f"{method}: a line must not contribute outside its cutoff range, got {cut[~inside]}",
     )
     require(
-        np.allclose(cut[inside], expected[inside], rtol=1e-9, atol=1e-12 * uncut.max()),
-        f"{method}: inside the cutoff range got {cut[inside]}, expected {expected[inside]}",
+        np.allclose(cut[inside], CUT, rtol=1e-12, atol=0),
+        f"{method}: inside the cutoff range got {cut[inside]}, expected {CUT}",
     )
 
 # %% 2. Many lines with a cutoff, also when the band is not sorted by frequency

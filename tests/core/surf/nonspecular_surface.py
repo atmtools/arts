@@ -55,7 +55,7 @@ M_spec    = rtepack.fresnel_reflectance_specular(Rv, Rh, k_in_n, n_s)
 M_plain   = rtepack.fresnel_reflectance(Rv, Rh)
 
 # [0,0] element is (|Rv|^2 + |Rh|^2) / 2 regardless of geometry
-expected_00 = 0.5 * (abs(Rv)**2 + abs(Rh)**2)
+expected_00 = 0.585
 assert abs(float(M_nonspec[0, 0]) - expected_00) < 1e-12, (
     f"M_nonspec[0,0]={float(M_nonspec[0,0]):.6e} != {expected_00:.6e}"
 )
@@ -67,7 +67,7 @@ assert abs(float(M_plain[0, 0]) - expected_00) < 1e-12, (
 )
 
 # [1,0] and [0,1] measure polarisation difference: (|Rv|^2 - |Rh|^2) / 2
-expected_10 = 0.5 * (abs(Rv)**2 - abs(Rh)**2)
+expected_10 = 0.225
 assert abs(float(M_plain[1, 0]) - expected_10) < 1e-12, (
     f"M_plain[1,0]={float(M_plain[1,0]):.6e} != {expected_10:.6e}"
 )
@@ -175,11 +175,11 @@ Rv5, Rh5 = complex(0.6, 0.1), complex(-0.7, 0.05)
 
 
 def enu_frame(lat_deg, lon_deg):
-    la, lo = np.deg2rad(lat_deg), np.deg2rad(lon_deg)
-    east = np.array([-np.sin(lo), np.cos(lo), 0.0])
-    north = np.array([-np.sin(la) * np.cos(lo), -np.sin(la) * np.sin(lo), np.cos(la)])
-    up = np.array([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)])
-    return east, north, up
+    """The ECEF directions of the east, north and up lines of sight"""
+    return [
+        np.array(pyarts.arts.geodetic.geodetic_los2ecef([0.0, lat_deg, lon_deg], los, sphere)[1])
+        for los in [[90.0, 90.0], [90.0, 0.0], [0.0, 0.0]]
+    ]
 
 
 def to_ecef(frame, v):
@@ -219,9 +219,8 @@ def local_scene(lat0):
 
     # The reflection by the facet that turns the patch's ray into k_out, with every
     # direction in P's east-north-up frame, and with them in ECEF
-    pos_P = (R_planet + 100.0) * frame[2]
-    up_j = enu_frame(lats[3], 0.0)[2]
-    k_inc = pos_P - R_planet * up_j
+    pos_P = np.array(pyarts.arts.geodetic.geodetic2ecef([100.0, lat0, 0.0], sphere))
+    k_inc = pos_P - np.array(pyarts.arts.geodetic.geodetic2ecef([0.0, lats[3], 0.0], sphere))
     k_inc /= np.linalg.norm(k_inc)
     k_inc_enu = to_enu(frame, k_inc)
     facet = (k_out_enu - k_inc_enu) / np.linalg.norm(k_out_enu - k_inc_enu)

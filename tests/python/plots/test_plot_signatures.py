@@ -6,18 +6,19 @@ All plot functions should have:
 """
 
 import ast
-import inspect
 from pathlib import Path
-import importlib.util
+
+import pyarts3.plots
 
 
 def get_plot_modules():
-    plots_dir = Path(__file__).parent.parent.parent / "src" / "pyarts3" / "plots"
-    
+    plots_dir = Path(pyarts3.plots.__file__).parent
+
     # Get all .py files except __init__.py
-    plot_files = [f for f in plots_dir.glob("*.py") 
+    plot_files = [f for f in plots_dir.glob("*.py")
                   if f.name != "__init__.py" and not f.name.startswith("test")]
-    
+
+    assert plot_files, f"No plot modules found in {plots_dir}"
     return plot_files
 
 

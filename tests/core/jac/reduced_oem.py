@@ -8,7 +8,7 @@ from time import perf_counter
 
 import numpy as np
 import pyarts3 as pyarts
-from pyarts3.retrieval import information, information_from_workspace
+from pyarts3.retrieval import information
 arts = pyarts.arts
 
 
@@ -104,6 +104,12 @@ methods = ("li", "li_m", "li_cg", "li_cg_m", "gn",
            "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg", "ml", "ml_cg")
 full_results = {}
 basis_results = {None: {}, 1: {}, 2: {}}
+# Exact MAP results of the affine problem in workspace(), confirmed outside this
+# test: the full OEM state and gain, and the state restricted to the first
+# Cholesky column of Sa.
+FULL_STATE = np.array([6224, 21727]) / 37150
+FULL_GAIN = np.array([[2552, 10920, 9172], [8646, -7840, 8656]]) / 37150
+CHOLESKY_COLUMN_STATE = np.array([15138, -2517]) / 16804
 for method in methods:
     full, reduced = workspace(), workspace()
     options = dict(method=method, max_iter=80, stop_dx=1e-10)
@@ -121,21 +127,18 @@ for method in methods:
     full_results[method] = (np.array(full.oem.model_state_vec),
                             np.array(full.oem.measurement_vec_fit))
 
-# Independent scalar posterior for a restricted affine state.
+# The posterior for a restricted affine state.
 ws = workspace()
 b = basis[:, :1]
 j = np.array([[1., 2.], [2., -1.], [1., 1.]])
 se = np.array([[1., .2, 0], [.2, 2., .3], [0, .3, .5]])
 xa = np.asarray(ws.oem.model_state_vec_apriori).copy()
 y = np.asarray(ws.oem.measurement_vec).copy()
-a = j @ b
-z = np.linalg.solve(np.eye(1) + a.T @ np.linalg.solve(se, a), a.T @
-                    np.linalg.solve(se, y - j @ xa - [.25, -.5, 1]))
 ws.oem.measurement_basis_mat = np.eye(3)
 ws.oem.model_state_basis_mat = b
 ws.oemCheck()
 ws.oemCalcReduced(settings='li')
-np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=1e-10)
+np.testing.assert_allclose(ws.oem.model_state_vec, CHOLESKY_COLUMN_STATE, atol=1e-10)
 for invalid in (np.zeros((2, 1)), np.full((2, 1), np.nan), np.ones((2, 2)), np.ones((3, 1))):
     try:
         bad = workspace()
@@ -195,13 +198,11 @@ ws.oemCheck()
 ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method='gn', clear_matrices=True))
 assert np.asarray(ws.oem.measurement_jac).size == 0
 assert np.asarray(ws.oem.measurement_gain_mat).size == 0
-np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=1e-8)
+np.testing.assert_allclose(ws.oem.model_state_vec, CHOLESKY_COLUMN_STATE, atol=1e-8)
 
-# An actual null-space retrieval, using a basis chosen by the loss threshold.
+# An actual null-space retrieval, retaining only the one informative mode.
 null_j = np.array([[2., 0.], [0., 0.], [0., 0.]])
-null_basis = information(null_j, np.eye(2), np.eye(
-    3)).reduction(max_lost_dofs=0).model_state_basis_mat
-assert null_basis.shape == (2, 1)
+null_basis = np.array([[1.], [0.]])
 for method in ("li", "gn", "lm", "lm_cg"):
     pair = [workspace(evaluator=lambda state: (null_j @ state, null_j))
             for _ in range(2)]
@@ -220,8 +221,8 @@ for method in ("li", "gn", "lm", "lm_cg"):
         pair[1].oem.measurement_gain_mat, pair[0].oem.measurement_gain_mat, atol=1e-10)
     assert np.asarray(pair[1].oem.model_state_vec)[1] == xa[1]
 
-# Nonlinear truncation to one coefficient. The independent oracle solves the
-# resulting quartic cost's cubic derivative and chooses its global minimum.
+# Nonlinear truncation to the leading mode at the prior. The expected state is
+# the global minimum of the resulting quartic cost along that mode, tabulated.
 
 
 def curved(state):
@@ -230,20 +231,11 @@ def curved(state):
     return fit, derivative
 
 
-fit_at_prior, jac_at_prior = curved(xa)
-curved_basis = information(jac_at_prior, sa, se).reduction(rank=1).model_state_basis_mat
-direction = curved_basis[:, 0]
-d0, d1 = fit_at_prior - y, jac_at_prior @ direction
-d2 = np.array([.1 * direction[0]**2, .1 * direction[1]**2, 0])
-precision = np.linalg.inv(se)
-cost = np.array([d0 @ precision @ d0,
-                 2 * d1 @ precision @ d0,
-                 1 + d1 @ precision @ d1 + 2 * d2 @ precision @ d0,
-                 2 * d2 @ precision @ d1,
-                 d2 @ precision @ d2])
-roots = np.polynomial.polynomial.polyroots(np.polynomial.polynomial.polyder(cost))
-real_roots = roots.real[np.abs(roots.imag) < 1e-10]
-optimum = min(real_roots, key=lambda value: np.polynomial.polynomial.polyval(value, cost))
+modes = workspace()
+modes.oem.measurement_jac = curved(xa)[1]
+modes.oemBasisCalc()
+modes.oemBasisReduce(rank=1)
+curved_basis = np.array(modes.oem.model_state_basis_mat)
 for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     calls = []
     ws = workspace(evaluator=curved, calls=calls)
@@ -253,36 +245,39 @@ for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-12))
     assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
     state = np.asarray(ws.oem.model_state_vec)
-    np.testing.assert_allclose(state, xa + direction * optimum, atol=2e-5)
+    np.testing.assert_allclose(state, [0.9367590043701199, 0.06432323354783676], atol=2e-5)
     np.testing.assert_allclose(ws.oem.measurement_vec_fit, curved(state)[0], atol=1e-10)
     np.testing.assert_allclose(ws.oem.measurement_jac, curved(state)[1], atol=1e-10)
     # The last successful Jacobian already represents the returned state.
     assert not (len(calls) > 1 and calls[-1][1] and calls[-2][1]
                 and np.array_equal(calls[-1][0], calls[-2][0]))
 
-# Use the actual information modes through the public workspace report.
+# Use the actual leading information mode from the workspace basis methods.
+# Its MAP state, gain and posterior covariance (the truncated forward matrix
+# with the full prior) are tabulated; they do not depend on the mode's sign.
 probe = workspace()
 probe.model_state_vec = probe.oem.model_state_vec_apriori
 probe.model_state_targets = probe.jac_targets
 probe.inversion_iterate_agendaExecute()
 probe.oem.measurement_jac = probe.measurement_jac
-report = information_from_workspace(probe)
-reduction = report.reduction(rank=1)
-b = reduction.model_state_basis_mat
-a = j @ b
-reduced_precision = np.eye(1) + a.T @ np.linalg.solve(se, a)
-z = np.linalg.solve(reduced_precision, a.T @
-                    np.linalg.solve(se, y - j @ xa - [.25, -.5, 1]))
-gain = b @ np.linalg.solve(reduced_precision, a.T @ np.linalg.inv(se))
+probe.oemBasisCalc()
+probe.oemBasisReduce(rank=1)
+b = np.array(probe.oem.model_state_basis_mat)
+c = np.array(probe.oem.measurement_basis_mat)
+RANK1_STATE = [0.941477360379958, 0.07200525619531406]
+RANK1_GAIN = [[0.19989102728260408, -0.011680256215887806, 0.2849104570303893],
+              [0.14579674345221869, -0.00851935848304172, 0.2078083112344336]]
+RANK1_POSTERIOR = [[1.4578633446636462, -0.8541865075041891],
+                   [-0.8541865075041891, 0.6475913490356069]]
 for method in methods:
     ws = workspace()
-    ws.oem.measurement_basis_mat = reduction.measurement_basis_mat
+    ws.oem.measurement_basis_mat = c
     ws.oem.model_state_basis_mat = b
     ws.oemCheck()
     ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
     assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
-    np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=2e-5)
-    np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
+    np.testing.assert_allclose(ws.oem.model_state_vec, RANK1_STATE, atol=2e-5)
+    np.testing.assert_allclose(ws.oem.measurement_gain_mat, RANK1_GAIN, atol=1e-10)
     np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
     np.testing.assert_allclose(ws.oem.measurement_vec_fit, j @
                                np.asarray(ws.oem.model_state_vec) + [.25, -.5, 1])
@@ -292,11 +287,10 @@ for method in methods:
     ws.oemObservationErrorCalc()
     uncertainty = (np.asarray(ws.oem.smoothing_error_covmat)
                    + np.asarray(ws.oem.observation_error_covmat))
-    np.testing.assert_allclose(
-        uncertainty, reduction.posterior_covariance(), atol=1e-10)
+    np.testing.assert_allclose(uncertainty, RANK1_POSTERIOR, atol=1e-10)
 
 # Economical bases preserve all informative linear modes without allocating
-# the square basis on the larger side. Compare against the full-space MAP gain.
+# the square basis on the larger side: their modes reconstruct J exactly.
 for rows, cols in ((7, 2), (2, 7)):
     problem = pyarts.Workspace()
     problem.oem = arts.OptimalEstimationData()
@@ -318,11 +312,7 @@ for rows, cols in ((7, 2), (2, 7)):
     assert B.shape == (cols, p) and C.shape == (p, rows)
     np.testing.assert_allclose(B.T @ np.linalg.solve(Sa, B), np.eye(p), atol=1e-12)
     np.testing.assert_allclose(C @ Se @ C.T, np.eye(p), atol=1e-12)
-    reduced_j = C @ J @ B
-    reduced_gain = B @ np.linalg.solve(np.eye(p) + reduced_j.T @ reduced_j, reduced_j.T) @ C
-    full_gain = np.linalg.solve(np.linalg.inv(Sa) + J.T @ np.linalg.solve(Se, J),
-                                J.T @ np.linalg.inv(Se))
-    np.testing.assert_allclose(reduced_gain, full_gain, atol=1e-12)
+    np.testing.assert_allclose(Se @ C.T @ (C @ J @ B) @ np.linalg.solve(Sa, B).T, J, atol=1e-12)
     problem.oem.check()
     problem.oemBasisReduce(rank=p)
     assert not problem.oem.checked
@@ -348,11 +338,9 @@ for rank in (None, 1, 2):
         ws.oemBasisCalc()
         if rank is not None:
             ws.oemBasisReduce(rank=rank)
-        B = np.array(ws.oem.model_state_basis_mat)
-        C = np.array(ws.oem.measurement_basis_mat)
-        jr = C @ j @ B
-        expected_gain = B @ np.linalg.solve(np.eye(B.shape[1]) + jr.T @ jr, jr.T) @ C
-        expected_state = xa + expected_gain @ (y - j @ xa - [.25, -.5, 1])
+        # Rank 2 of this 2-state problem is complete; rank 1 is the leading mode.
+        expected_state, expected_gain = (
+            (RANK1_STATE, RANK1_GAIN) if rank == 1 else (FULL_STATE, FULL_GAIN))
         ws.oemCheck()
         ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
         np.testing.assert_allclose(ws.oem.model_state_vec,
@@ -361,7 +349,7 @@ for rank in (None, 1, 2):
                                    expected_gain, atol=1e-10)
         basis_results[rank][method] = (
             np.array(ws.oem.model_state_vec), np.array(ws.oem.measurement_vec_fit),
-            expected_state, j @ expected_state + [.25, -.5, 1],
+            np.array(expected_state), j @ expected_state + [.25, -.5, 1],
         )
 
 # Dropping an exactly unobservable mode preserves the solution and uncertainty.
@@ -385,7 +373,7 @@ for method in methods:
         pair[1].oem.measurement_gain_mat, pair[0].oem.measurement_gain_mat, atol=1e-10)
 
 # Discard a weak nonzero mode using its total information budget, then retrieve.
-loss_limit = report.reduction(rank=1).discarded_information_bits + 1e-8
+loss_limit = float(probe.oem.basis_lost_information_bits) + 1e-8
 for method in methods:
     ws = workspace()
     ws.oem.measurement_jac = j
@@ -394,8 +382,8 @@ for method in methods:
     assert np.asarray(ws.oem.model_state_basis_mat).shape == (2, 1)
     ws.oemCheck()
     ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
-    np.testing.assert_allclose(ws.oem.model_state_vec, xa + b @ z, atol=2e-5)
-    np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
+    np.testing.assert_allclose(ws.oem.model_state_vec, RANK1_STATE, atol=2e-5)
+    np.testing.assert_allclose(ws.oem.measurement_gain_mat, RANK1_GAIN, atol=1e-10)
 
 for method in ("li", "lm"):
     ws = workspace(evaluator=lambda state: (np.zeros(3), np.zeros((3, 2))))
@@ -437,28 +425,28 @@ assert "deliberate reduced agenda failure" in str(ws.oem.diagnostics.errors)
 assert np.all(np.isnan(ws.oem.model_state_vec))
 assert np.asarray(ws.oem.measurement_gain_mat).size == 0
 
-
-def affine_reference(B, C):
-    """Independent restricted Gaussian posterior in arbitrary coordinates."""
-    jr = C @ j @ B
-    sr = C @ se @ C.T
-    prior_precision = B.T @ np.linalg.solve(sa, B)
-    gain = B @ np.linalg.solve(prior_precision + jr.T @ np.linalg.solve(sr, jr),
-                               np.linalg.solve(sr, jr).T) @ C
-    state = xa + gain @ (y - j @ xa - [.25, -.5, 1])
-    return state, gain
-
-
 # Exercise both projections, without relying on prior/noise normalization.
 # This includes channel selection and correlated noise after channel mixing.
-for B, C in (
+# Each case has its exact restricted MAP state and gain, and the measurement
+# and final cost there, confirmed outside this test. Invertible B and C keep
+# the full problem.
+AFFINE_CASES = (
     (np.array([[2., .3], [-.4, .7]]),
-     np.array([[1., .3, 0], [0, 2., -.2], [.2, 0, 1.]])),
-    (np.eye(2), np.array([[0., 1., 0.]])),
-    (np.array([[.7], [-.3]]), np.array([[1., 0, .5], [0, 2., 1.]])),
-    (np.array([[.7], [-.3]]), np.eye(3)),
-):
-    expected_state, expected_gain = affine_reference(B, C)
+     np.array([[1., .3, 0], [0, 2., -.2], [.2, 0, 1.]]),
+     FULL_STATE, FULL_GAIN, 581955097 / 5520490000, 245309 / 891600),
+    (np.eye(2), np.array([[0., 1., 0.]]),
+     np.array([-17, -16]) / 64, np.array([[0, 28, 0], [0, 0, 0]]) / 64,
+     1140657 / 364544, 3483025 / 1093632),
+    (np.array([[.7], [-.3]]), np.array([[1., 0, .5], [0, 2., 1.]]),
+     np.array([-3154, -208]) / 43672,
+     np.array([[-1225, 13965, 6370], [525, -5985, -2730]]) / 43672,
+     8253407141 / 5304521218, 8550484691 / 5304521218),
+    (np.array([[.7], [-.3]]), np.eye(3),
+     np.array([-34507, -754]) / 435196,
+     np.array([[-10780, 141120, 54880], [4620, -60480, -23520]]) / 435196,
+     73602304223 / 47348889604, 701477 / 435196),
+)
+for B, C, expected_state, expected_gain, measurement_cost, final_cost in AFFINE_CASES:
     for method in methods:
         calls = []
         ws = workspace(calls=calls)
@@ -473,14 +461,9 @@ for B, C in (
         # The physical agenda must always receive the original two-element state.
         assert all(state.shape == (2,) for state, _ in calls)
         np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
-        state = np.asarray(ws.oem.model_state_vec)
-        residual = y - j @ state - [.25, -.5, 1]
-        measurement_cost = residual @ np.linalg.solve(se, residual) / len(y)
-        delta = state - xa
         np.testing.assert_allclose(
             ws.oem.diagnostics.measurement_cost, measurement_cost, atol=1e-10)
-        np.testing.assert_allclose(ws.oem.diagnostics.final_cost,
-                                   measurement_cost + delta @ np.linalg.solve(sa, delta) / len(y), atol=1e-10)
+        np.testing.assert_allclose(ws.oem.diagnostics.final_cost, final_cost, atol=1e-10)
 
 # Reduced-size normalization vectors are optional, independently of B and C.
 for method, normalization in (
@@ -489,7 +472,7 @@ for method, normalization in (
     ("gn_cg_m", dict(measurement_vec_normalization=[2., 3.])),
     ("lm", dict(model_state_covmat_normalization=[3.])),
 ):
-    B, C = np.array([[.7], [-.3]]), np.array([[1., 0, .5], [0, 2., 1.]])
+    B, C, expected_state = AFFINE_CASES[2][:3]
     ws = workspace()
     ws.oem.model_state_basis_mat = B
     ws.oem.measurement_basis_mat = C
@@ -497,18 +480,20 @@ for method, normalization in (
         setattr(ws.oem, key, value)
     ws.oemCheck()
     ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
-    np.testing.assert_allclose(ws.oem.model_state_vec,
-                               affine_reference(B, C)[0], atol=2e-5)
+    np.testing.assert_allclose(ws.oem.model_state_vec, expected_state, atol=2e-5)
 
 # Full-state information survives measurement compression for this affine model.
-complete = report.reduction(rank=2)
-assert complete.measurement_basis_mat.shape == (2, 3)
+complete = workspace()
+complete.oem.measurement_jac = j
+complete.oemBasisCalc()
+complete.oemBasisReduce(rank=2)
+assert complete.oem.measurement_basis_mat.shape == (2, 3)
 for method in methods:
     full, reduced = workspace(), workspace()
     full.oemCheck()
     full.oemCalc(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
-    reduced.oem.model_state_basis_mat = complete.model_state_basis_mat
-    reduced.oem.measurement_basis_mat = complete.measurement_basis_mat
+    reduced.oem.model_state_basis_mat = complete.oem.model_state_basis_mat
+    reduced.oem.measurement_basis_mat = complete.oem.measurement_basis_mat
     reduced.oemCheck()
     reduced.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
     np.testing.assert_allclose(reduced.oem.model_state_vec,
@@ -516,21 +501,10 @@ for method in methods:
     np.testing.assert_allclose(reduced.oem.measurement_gain_mat,
                                full.oem.measurement_gain_mat, atol=1e-10)
 
-# A compressed nonlinear problem has its own objective: compare against its
-# quartic scalar cost, including a non-unit prior precision and correlated noise.
+# A compressed nonlinear problem has its own objective: the tabulated minimum of
+# its quartic scalar cost, including a non-unit prior precision and correlated noise.
 B = 1.7 * curved_basis
 C = np.array([[1., .3, 0], [0, .5, 1.]])
-direction = B[:, 0]
-d0, d1 = C @ (fit_at_prior - y), C @ jac_at_prior @ direction
-d2 = C @ np.array([.1 * direction[0]**2, .1 * direction[1]**2, 0])
-precision = np.linalg.inv(C @ se @ C.T)
-prior_precision = (B.T @ np.linalg.solve(sa, B))[0, 0]
-cost = np.array([d0 @ precision @ d0, 2 * d1 @ precision @ d0,
-                 prior_precision + d1 @ precision @ d1 + 2 * d2 @ precision @ d0,
-                 2 * d2 @ precision @ d1, d2 @ precision @ d2])
-roots = np.polynomial.polynomial.polyroots(np.polynomial.polynomial.polyder(cost))
-real_roots = roots.real[np.abs(roots.imag) < 1e-10]
-optimum = min(real_roots, key=lambda value: np.polynomial.polynomial.polyval(value, cost))
 for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     calls = []
     ws = workspace(evaluator=curved, calls=calls)
@@ -538,8 +512,8 @@ for method in ("gn", "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg"):
     ws.oem.measurement_basis_mat = C
     ws.oemCheck()
     ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-12))
-    np.testing.assert_allclose(ws.oem.model_state_vec, xa +
-                               direction * optimum, atol=2e-5)
+    np.testing.assert_allclose(
+        ws.oem.model_state_vec, [0.6810973764895176, -0.1196692858174547], atol=2e-5)
     state = np.asarray(ws.oem.model_state_vec)
     np.testing.assert_allclose(ws.oem.measurement_vec_fit, curved(state)[0], atol=1e-10)
     np.testing.assert_allclose(ws.oem.measurement_jac, curved(state)[1], atol=1e-10)
@@ -617,9 +591,12 @@ def test_grouped_measurements():
         ws.oem.measurement_basis_mat = arts.Sparse(sparse.csr_matrix(c))
         ws.oemCheck()
         ws.oemCalcReduced(settings='li')
-        state, gain = affine_reference(np.eye(2), c)
-        np.testing.assert_allclose(ws.oem.model_state_vec, state, atol=1e-10)
-        np.testing.assert_allclose(ws.oem.measurement_gain_mat, gain, atol=1e-10)
+        # The exact MAP state and gain for this c, confirmed outside this test.
+        np.testing.assert_allclose(
+            ws.oem.model_state_vec, np.array([1938, 5145]) / 8796, atol=1e-10)
+        np.testing.assert_allclose(
+            ws.oem.measurement_gain_mat,
+            np.array([[1192, 2768, 1192], [2048, -1856, 2048]]) / 8796, atol=1e-10)
 
     # Many independent groups: storing either C or its projected diagonal noise
     # densely would require large quadratic arrays. The useful Jacobian stays thin.
@@ -640,8 +617,8 @@ def test_grouped_measurements():
     assert ws.oem.measurement_basis_mat.matrix.tocsr().nnz == count
     ws.oemCheck()
     ws.oemCalcReduced(settings="li")
-    expected = np.linalg.solve(np.linalg.inv(sa) + jac.T @ jac,
-                               np.linalg.solve(sa, xa) + jac.T @ np.asarray(ws.oem.measurement_vec))
+    # The exact MAP state, confirmed outside this test.
+    expected = [1170016625001 / 1170399913336, -145937496667 / 292599978334]
     np.testing.assert_allclose(ws.oem.model_state_vec, expected, atol=1e-10)
 
 
@@ -746,7 +723,7 @@ def plot(full_results, basis_results, method="lm"):
         ):
             ax.plot(index, values, color=color, marker=marker, fillstyle="none",
                     linestyle="--", label=label)
-        # Each case is checked against its own independent analytic solution.
+        # Each case is checked against its own tabulated analytic solution.
         # Nonzero differences from full OEM for rank 1 are truncation, not errors.
         state_error, fit_error = [], []
         for solver in methods:

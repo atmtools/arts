@@ -120,7 +120,7 @@ agenda = arts.Agenda("inversion_iterate_agenda")
 agenda.add(arts.Method("linear_observation", callback))
 agenda.finalize(True)
 ws.inversion_iterate_agenda = agenda
-expected = prior + np.linalg.solve(.5 * np.eye(2) + J.T @ J, J.T @ (y - J @ prior))
+expected = np.array([19., 26.]) / 7  # The exact linear MAP of this problem
 # Data validation must run before covariance preparation,
 # forward evaluations or clearing diagnostics/results, for both entry points.
 ws.oem.uncheck()

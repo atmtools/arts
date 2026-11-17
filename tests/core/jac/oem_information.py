@@ -1,4 +1,4 @@
-"""Independent linear Gaussian references for the read-only OEM setup report."""
+"""Tabulated linear Gaussian references for the read-only OEM setup report."""
 
 import copy
 from pathlib import Path
@@ -16,6 +16,18 @@ SE = np.array([[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]])
 # Exact rational Gaussian elimination of (Sa^-1 + K^T Se^-1 K)^-1.
 # This oracle is independent of ARTS and the report's factorization/SVD.
 POSTERIOR = np.array([[5494, -1563], [-1563, 2551]], dtype=float) / 18575
+# Tabulated, confirmed outside this test: the singular values of the whitened
+# K, the degrees of freedom (exactly 33676/18575) and bits (log2(18575/89)/2),
+# and the lost DOFS/bits, B B^T and posterior when retaining the first mode.
+SINGULAR = [5.624886053223552, 2.322577179217027]
+MODE_VARIANCE_REDUCTION = [0.9693621285031302, 0.8436122994914862]
+DOFS = 33676 / 18575
+INFORMATION_BITS = 3.852670579673462
+RANK1_LOST = (0.8436122994914861, 1.3384005210223615)
+RANK1_OUTER = [[2.622483982597786, 1.9127903318931863],
+               [1.9127903318931863, 1.3951531746477]]
+RANK1_POSTERIOR = [[1.4578633446636462, -0.8541865075041891],
+                   [-0.8541865075041891, 0.6475913490356069]]
 
 
 def rejects(operation):
@@ -44,12 +56,8 @@ def check_reductions():
         np.testing.assert_allclose(
             c @ K @ b, np.diag(report.singular_values[:rank]), atol=1e-12)
     reduced = report.reduction(rank=1)
-    # Independent posterior for the truncated forward matrix, with the full prior.
-    b = reduced.model_state_basis_mat
-    projected_j = K @ b @ b.T @ np.linalg.inv(SA)
-    reference = np.linalg.inv(np.linalg.inv(SA) + projected_j.T @
-                              np.linalg.solve(SE, projected_j))
-    np.testing.assert_allclose(reduced.posterior_covariance(), reference, rtol=1e-12)
+    # The posterior for the truncated forward matrix, with the full prior.
+    np.testing.assert_allclose(reduced.posterior_covariance(), RANK1_POSTERIOR, rtol=1e-12)
     discarded = report.state_modes[:, 1:]
     prior_coordinates = np.linalg.solve(SA, discarded)
     np.testing.assert_allclose(
@@ -144,7 +152,8 @@ def assert_modes(report, jacobian, prior, error, posterior):
 
 
 def test_workspace_bases():
-    def check(jacobian, prior, noise, rank, *, prior_input=None, noise_input=None):
+    def check(jacobian, prior, noise, rank, expected_singular, lost=(0., 0.), *,
+              outer=None, prior_input=None, noise_input=None):
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
         ws.oem.measurement_jac = jacobian
@@ -177,27 +186,16 @@ def test_workspace_bases():
         np.testing.assert_allclose(
             b.T @ np.linalg.solve(prior, b), np.eye(rank), atol=1e-12)
         np.testing.assert_allclose(c @ noise @ c.T, np.eye(q), atol=1e-12)
-        report = information(jacobian, prior, noise)
+        np.testing.assert_allclose(singular, expected_singular, atol=1e-12)
         np.testing.assert_allclose(
-            singular, report.singular_values[:min(m, n)], atol=1e-12)
-        expected = report.reduction(rank=rank)
-        np.testing.assert_allclose(ws.oem.basis_lost_dofs,
-                                   expected.discarded_degrees_of_freedom, atol=1e-12)
-        np.testing.assert_allclose(
-            ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            (ws.oem.basis_lost_dofs, ws.oem.basis_lost_information_bits), lost, atol=1e-12)
         np.testing.assert_allclose(np.linalg.svd(c @ jacobian @ b, compute_uv=False),
-                                   report.singular_values[:q], atol=1e-12)
+                                   singular[:q], atol=1e-12)
         if rank == n:
             np.testing.assert_allclose(b @ b.T, prior, atol=1e-12)
-            jr = c @ jacobian @ b
-            gain = b @ np.linalg.solve(np.eye(rank) + jr.T @ jr, jr.T) @ c
-            reference = np.linalg.solve(np.linalg.inv(prior) + jacobian.T @ np.linalg.solve(noise, jacobian),
-                                        np.linalg.solve(noise, jacobian).T)
-            np.testing.assert_allclose(gain, reference, atol=1e-12)
-        elif np.count_nonzero(report.singular_values) == n:
+        if outer is not None:
             # Singular-vector signs are arbitrary, so compare subspaces.
-            np.testing.assert_allclose(
-                b @ b.T, expected.model_state_basis_mat @ expected.model_state_basis_mat.T, atol=1e-12)
+            np.testing.assert_allclose(b @ b.T, outer, atol=1e-12)
         assert covariance_snapshot(ws.oem.model_state_covmat) == before_prior
         assert covariance_snapshot(ws.oem.measurement_vec_error_covmat) == before_noise
         np.testing.assert_array_equal(ws.oem.measurement_jac, jacobian)
@@ -206,8 +204,8 @@ def test_workspace_bases():
         np.testing.assert_array_equal(ws.oem.basis_singular_values, singular)
         return ws
 
-    for rank in (1, 2):
-        check(K, SA, SE, rank)
+    check(K, SA, SE, 1, SINGULAR, RANK1_LOST, outer=RANK1_OUTER)
+    check(K, SA, SE, 2, SINGULAR)
     for storage in (arts.Matrix, arts.Sparse):
         # A connected prior with block IDs in reversed coordinate order.
         prior = arts.CovarianceMatrix()
@@ -219,11 +217,12 @@ def test_workspace_bases():
         noise = arts.CovarianceMatrix()
         noise.blocks = [arts.Block(arts.Range(
             0, 3), arts.Range(0, 3), (0, 0), storage(SE))]
-        check(K, SA, SE, 1, prior_input=prior, noise_input=noise)
-    check(np.array([[1., 0, 0]]), np.diag([4., 9., 16.]), np.array([[4.]]), 3)
-    check(np.zeros((3, 2)), SA, SE, 1)
-    check(np.eye(2), np.eye(2), np.eye(2), 2)  # repeated singular values
-    check(np.array([[2.]]), np.array([[4.]]), np.array([[9.]]), 1)
+        check(K, SA, SE, 1, SINGULAR, RANK1_LOST, outer=RANK1_OUTER,
+              prior_input=prior, noise_input=noise)
+    check(np.array([[1., 0, 0]]), np.diag([4., 9., 16.]), np.array([[4.]]), 3, [1.])
+    check(np.zeros((3, 2)), SA, SE, 1, [0., 0.])
+    check(np.eye(2), np.eye(2), np.eye(2), 2, [1., 1.])  # repeated singular values
+    check(np.array([[2.]]), np.array([[4.]]), np.array([[9.]]), 1, [4 / 3])
 
     mixed = arts.CovarianceMatrix()
     mixed.blocks = [
@@ -231,12 +230,14 @@ def test_workspace_bases():
         arts.Block(arts.Range(1, 2), arts.Range(1, 2),
                    (1, 1), arts.Matrix([[2., .3], [.3, .5]])),
     ]
-    check(K, SA, np.array([[1., 0, 0], [0, 2., .3], [0, .3, .5]]), 2, noise_input=mixed)
+    check(K, SA, np.array([[1., 0, 0], [0, 2., .3], [0, .3, .5]]), 2,
+          [5.628675907893611, 2.2309971275729334], noise_input=mixed)
     cached = pyarts.Workspace()
     cached.oem = arts.OptimalEstimationData()
     cached.oem.measurement_vec = np.zeros(3)
     cached.oemMeasurementCovmatConstant(value=.25)
-    check(K, SA, .25 * np.eye(3), 2, noise_input=cached.oem.measurement_vec_error_covmat)
+    check(K, SA, .25 * np.eye(3), 2, [10.91243870347394, 5.737480417650588],
+          noise_input=cached.oem.measurement_vec_error_covmat)
 
     # Diagonal noise uses a diagonal factor; the saved full basis is square.
     count = 100
@@ -256,7 +257,7 @@ def test_workspace_bases():
     np.testing.assert_allclose(c @ c.T, [[1.]], atol=1e-12)
 
     # Failure leaves the previously generated bases intact.
-    ws = check(K, SA, SE, 1)
+    ws = check(K, SA, SE, 1, SINGULAR, RANK1_LOST, outer=RANK1_OUTER)
     b, c = np.array(ws.oem.model_state_basis_mat), np.array(ws.oem.measurement_basis_mat)
     lost = (float(ws.oem.basis_lost_dofs), float(ws.oem.basis_lost_information_bits))
     for kwargs in ({"rank": 0}, {"rank": 3}, {"rank": -2},
@@ -286,7 +287,7 @@ test_workspace_bases()
 
 
 def test_workspace_mode_selection():
-    def select(jacobian, **options):
+    def select(jacobian, lost=(0., 0.), **options):
         m, n = jacobian.shape
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
@@ -300,23 +301,17 @@ def test_workspace_mode_selection():
         rank = b.shape[1]
         np.testing.assert_allclose(b.T @ b, np.eye(rank), atol=1e-12)
         np.testing.assert_allclose(c @ c.T, np.eye(min(rank, m)), atol=1e-12)
-        # Match the established report's loss-budget selection.
-        limits = {key: value for key, value in options.items()
-                  if key != "rank" and value != -1}
-        if not limits:
-            limits = {"max_lost_information_bits": 0}
-        expected = information(jacobian, np.eye(n), np.eye(m)).reduction(**limits)
-        assert rank == expected.rank, (options, rank, expected.rank)
-        np.testing.assert_allclose(ws.oem.basis_lost_dofs,
-                                   expected.discarded_degrees_of_freedom, atol=1e-12)
         np.testing.assert_allclose(
-            ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+            (ws.oem.basis_lost_dofs, ws.oem.basis_lost_information_bits), lost,
+            rtol=1e-12, atol=1e-15)
         return rank
 
     spectrum = np.diag([3., 1., .1, 0.])
     assert select(spectrum) == 3
-    assert select(spectrum, max_lost_dofs=.01) == 2
-    assert select(spectrum, max_lost_information_bits=.01) == 2
+    # The lost 0.1 mode: 1/101 DOFS and log2(1.01)/2 bits
+    lost = (1 / 101, 0.0071776464885350225)
+    assert select(spectrum, lost, max_lost_dofs=.01) == 2
+    assert select(spectrum, lost, max_lost_information_bits=.01) == 2
     assert select(spectrum, max_lost_dofs=.6, max_lost_information_bits=.001) == 3
     assert select(spectrum, max_lost_dofs=0, max_lost_information_bits=0) == 3
     assert select(spectrum, rank=-1, max_lost_dofs=-
@@ -326,12 +321,13 @@ def test_workspace_mode_selection():
 
     # Budgets apply to the SUM of discarded contributions, not each mode.
     broad = np.eye(100) / np.sqrt(99)
-    assert select(broad, max_lost_dofs=.100001) == 90
+    assert select(broad, (.1, 0.07249784847557539), max_lost_dofs=.100001) == 90
 
     # Never judge importance only relative to the strongest singular value.
     strong = np.diag([1e100, 1e-6, 0.])
     assert select(strong) == 2
-    assert select(strong, max_lost_information_bits=1e-11) == 1
+    assert select(strong, (9.99999999999e-13, 7.213475204441211e-13),
+                  max_lost_information_bits=1e-11) == 1
 
     # These redundant directions contain no individual zero entries. A small
     # budget also removes roundoff residuals in mathematically null modes.
@@ -367,7 +363,9 @@ test_workspace_mode_selection()
 
 
 def test_workspace_basis_reselection():
-    for jacobian, prior, noise in ((K, SA, SE), (K.T, SE, SA)):
+    for jacobian, prior, noise, rank1_lost in (
+            (K, SA, SE, RANK1_LOST),
+            (K.T, SE, SA, (0.6473951127932902, 0.7519378119580529))):
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
         ws.oem.measurement_jac = jacobian
@@ -378,7 +376,6 @@ def test_workspace_basis_reselection():
         c = np.array(ws.oem.measurement_basis_mat)
         singular = np.array(ws.oem.basis_singular_values)
         m, n = jacobian.shape
-        report = information(jacobian, prior, noise)
 
         # Selection uses only the saved decomposition, even if the current
         # Jacobian/covariances no longer form a valid setup for another SVD.
@@ -389,11 +386,9 @@ def test_workspace_basis_reselection():
             ws.oemBasisReduce(rank=rank)
             np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b[:, :rank])
             np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c[:min(rank, m), :])
-            expected = report.reduction(rank=rank)
             np.testing.assert_allclose(
-                ws.oem.basis_lost_dofs, expected.discarded_degrees_of_freedom, atol=1e-12)
-            np.testing.assert_allclose(
-                ws.oem.basis_lost_information_bits, expected.discarded_information_bits, atol=1e-12)
+                (ws.oem.basis_lost_dofs, ws.oem.basis_lost_information_bits),
+                (0., 0.) if rank == n else rank1_lost, atol=1e-12)
             np.testing.assert_array_equal(ws.oem.basis_singular_values, singular)
         rejects(lambda: ws.oemBasisReduce(rank=n))
         rejects(lambda: ws.oemBasisReduce(max_lost_information_bits=0))
@@ -511,21 +506,11 @@ def test_correlated_reference():
         1 - np.diag(POSTERIOR) / np.diag(SA),
         atol=1e-13,
     )
-    # Degrees of freedom is also trace(G K), independent of the SVD route.
-    gain = POSTERIOR @ K.T @ np.linalg.inv(SE)
+    np.testing.assert_allclose(report.singular_values, SINGULAR, rtol=1e-13)
+    np.testing.assert_allclose(report.degrees_of_freedom, DOFS, rtol=1e-12)
+    np.testing.assert_allclose(report.information_bits, INFORMATION_BITS, rtol=1e-12)
     np.testing.assert_allclose(
-        report.degrees_of_freedom, np.trace(gain @ K), rtol=1e-12
-    )
-    np.testing.assert_allclose(
-        report.information_bits,
-        0.5 * np.log2(np.linalg.det(SA) / np.linalg.det(POSTERIOR)),
-        rtol=1e-12,
-    )
-    np.testing.assert_allclose(
-        report.mode_variance_reduction,
-        report.singular_values**2 / (1 + report.singular_values**2),
-        rtol=1e-13,
-    )
+        report.mode_variance_reduction, MODE_VARIANCE_REDUCTION, rtol=1e-13)
     assert_modes(report, K, SA, SE, POSTERIOR)
     assert report.innovation_chi_square is None
     description = report.describe()
@@ -535,14 +520,15 @@ def test_correlated_reference():
 
 
 def test_scalar_and_null_modes():
-    for sensitivity, reduction in [(1.0, 0.5), (3.0, 0.9)]:
+    for sensitivity, reduction, posterior_std in [(1.0, 0.5, 1.4142135623730951),
+                                                  (3.0, 0.9, 0.6324555320336759)]:
         report = information([[sensitivity]], [[4.0]], [[4.0]])
         np.testing.assert_allclose(report.singular_values, [sensitivity])
         np.testing.assert_allclose(report.mode_variance_reduction, [reduction])
         np.testing.assert_allclose(report.variance_reduction, [reduction])
         np.testing.assert_allclose(report.degrees_of_freedom, reduction)
         np.testing.assert_allclose(
-            report.posterior_standard_deviation, [2 / np.sqrt(1 + sensitivity**2)]
+            report.posterior_standard_deviation, [posterior_std]
         )
 
     zero = information(np.zeros_like(K), SA, SE)
@@ -609,12 +595,11 @@ def test_units_and_permutations():
 def test_innovation():
     observation = np.array([2.0, -1.0, 1.5])
     prediction = K @ np.array([0.5, -0.25]) + np.array([0.25, -0.5, 1.0])
-    residual = observation - prediction
-    expected = residual @ np.linalg.solve(K @ SA @ K.T + SE, residual)
     report = information(
         K, SA, SE, measurement=observation, prior_prediction=prediction
     )
-    np.testing.assert_allclose(report.innovation_chi_square, expected, rtol=1e-12)
+    # The exact chi-square of the residual in K Sa K^T + Se.
+    np.testing.assert_allclose(report.innovation_chi_square, 245309 / 297200, rtol=1e-12)
     assert report.innovation_expected_mean == 3
     exact = information(K, SA, SE, measurement=prediction, prior_prediction=prediction)
     assert exact.innovation_chi_square == 0
@@ -647,7 +632,7 @@ def test_diagonal_and_memory_limit():
     )
 
     # A large diagonal measurement covariance must not create m by m arrays.
-    # The row sensitivities have a simple independent posterior reference.
+    # The tabulated posterior standard deviations of this simple problem.
     count = 10000
     jacobian = np.tile(np.eye(2), (count // 2, 1))
     report = information(
@@ -655,7 +640,7 @@ def test_diagonal_and_memory_limit():
     )
     np.testing.assert_allclose(
         report.posterior_standard_deviation,
-        1 / np.sqrt(np.array([0.25, 1 / 9]) + count / 2),
+        [0.014141782083598057, 0.014141978491509552],
         rtol=1e-12,
     )
     assert report.measurement_modes.shape == (count, 2)
@@ -669,7 +654,7 @@ def test_diagonal_and_memory_limit():
     # when squaring the signal/noise ratio would overflow double precision.
     strong = information([[1e200]], [1.0], [1.0])
     assert np.isfinite(strong.information_bits)
-    np.testing.assert_allclose(strong.information_bits, np.log2(1e200))
+    np.testing.assert_allclose(strong.information_bits, 664.3856189774725)
     np.testing.assert_allclose(
         strong.posterior_standard_deviation, [1e-200], atol=0, rtol=1e-12
     )
@@ -684,7 +669,7 @@ def test_diagonal_and_memory_limit():
     )
     weak = information([[1e-10]], [1.0], [1.0])
     np.testing.assert_allclose(
-        weak.information_bits, 0.5 * np.log1p(1e-20) / np.log(2), atol=0, rtol=1e-12
+        weak.information_bits, 7.213475204444817e-21, atol=0, rtol=1e-12
     )
 
 

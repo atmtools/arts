@@ -23,24 +23,15 @@ ws = workspace(earth)
 ws.single_propmat_agendaSetGasMicrowavesEarth()
 ws.single_propmat_agendaExecute()
 
-k1, k2, k3 = 77.6e-8, 70.4e-8, 3.739e-3
-e = earth.pressure * earth["H2O"]
-earth_reference = (
-    k1 * (earth.pressure - e) + (k2 + k3 / earth.temperature) * e
-) / earth.temperature
-assert np.isclose(ws.single_dispersion, earth_reference, rtol=0.0, atol=1e-15)
+# Reference values of the Earth model, confirmed with independent code.
+assert np.isclose(ws.single_dispersion, 2.999711111111111e-4, rtol=0.0, atol=1e-15)
 
 dry = pyarts.arts.AtmPoint()
 dry.pressure = earth.pressure
 dry.temperature = earth.temperature
 ws.atm_point = dry
 ws.single_propmat_agendaExecute()
-assert np.isclose(
-    ws.single_dispersion,
-    k1 * dry.pressure / dry.temperature,
-    rtol=0.0,
-    atol=1e-15,
-)
+assert np.isclose(ws.single_dispersion, 2.5866666666666665e-4, rtol=0.0, atol=1e-15)
 
 
 # General model: individual species are optional.  Supplying only CO2 at the
@@ -60,8 +51,7 @@ assert np.isclose(ws.single_dispersion, 495.16e-6, rtol=0.0, atol=1e-15)
 planet["N2"] = 0.1
 ws.atm_point = planet
 ws.single_propmat_agendaExecute()
-mixture_reference = (0.4 * 495.16e-6 + 0.1 * 293.81e-6) / 0.5
-assert np.isclose(ws.single_dispersion, mixture_reference, rtol=0.0, atol=1e-15)
+assert np.isclose(ws.single_dispersion, 454.89e-6, rtol=0.0, atol=1e-15)
 
 # With no supported species the general model contributes zero.
 empty = pyarts.arts.AtmPoint()

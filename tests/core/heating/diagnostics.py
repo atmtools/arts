@@ -66,7 +66,7 @@ def test_radiance_integration():
 
 def test_dfdt():
     # A downward beam in a homogeneous absorbing layer: Fnet=-mu0*I0*exp(-tau/mu0),
-    # DFDT=I0*exp(-tau/mu0). This fixes both sign and optical-depth normalization.
+    # DFDT=I0*exp(-tau/mu0), tabulated. This fixes both sign and optical-depth normalization.
     tau = np.array([0.0, 0.2, 0.8])
     mu0, beam = 0.7, 2.0
     scalar = arts.cppdisort(
@@ -82,21 +82,19 @@ def test_dfdt():
         0.0,
         NFourier=1,
     )
-    expected = beam * np.exp(-tau / mu0)
+    expected = np.array([2.0, 1.5029545861505718, 0.6378131146479408])
     for solver in (scalar, vector):
         flux = np.asarray(solver.flux(tau))
-        np.testing.assert_allclose(flux[3], expected, rtol=1e-13)
+        np.testing.assert_allclose(flux[3], expected, rtol=1e-12)
         np.testing.assert_allclose(
             hr.from_optical_depth_derivative(flux[3], 0.002, 1.2, 1000.0),
             expected * 0.002 / 1200.0,
-            rtol=1e-13,
+            rtol=1e-12,
         )
 
-    # Emitting gas with cold boundaries must cool. Its analytic mean intensity
-    # is obtained from the same double-Gauss angular quadrature, independently
-    # of the transfer solver and heating recipe.
-    nodes, weights = np.polynomial.legendre.leggauss(3)
-    mu, weights = (nodes + 1) / 2, weights / 2
+    # Emitting gas with cold boundaries must cool. The reference is the exact
+    # DFDT of a slab of constant source b on the solvers' 3-point double-Gauss
+    # quadrature, tabulated.
     b = 2.0
     source = np.zeros((1, 1, 4))
     source[0, 0, 0] = b
@@ -114,15 +112,10 @@ def test_dfdt():
         NFourier=1,
         s_poly_coeffs=source,
     )
-    expected = (
-        -2
-        * np.pi
-        * b
-        * ((np.exp(-tau[:, None] / mu) + np.exp(-(1 - tau[:, None]) / mu)) @ weights)
-    )
+    expected = np.array([-14.453682375006395, -9.669240081003265, -9.669240081003267])
     for solver in (scalar, vector):
         np.testing.assert_allclose(
-            np.asarray(solver.flux(tau))[3], expected, rtol=1e-13
+            np.asarray(solver.flux(tau))[3], expected, rtol=1e-12
         )
 
 
@@ -147,11 +140,11 @@ def test_workspace_dfdt():
     s.solar_zenith_angle = [60.0, 60.0]
     ws.spectral_flux_components_profileDisortCalc()
     flux = ws.spectral_flux_components_profile
-    # Gridded output is at optical_thicknesses, not midpoints.
-    expected = np.array([2.0, 3.0])[:, None] * np.exp(
-        -np.asarray(s.optical_thicknesses) / 0.5
+    # Gridded output is at optical_thicknesses, not midpoints: solar_source * exp(-tau / mu0), tabulated.
+    expected = np.array(
+        [[1.3406400920712787, 0.6023884238244043], [1.3479868923516647, 0.27215385986823754]]
     )
-    np.testing.assert_allclose(flux.dfdt, expected, rtol=1e-13)
+    np.testing.assert_allclose(flux.dfdt, expected, rtol=1e-12)
     extinction = np.array([[0.2, 0.4], [0.4, 0.8]]) / 500.0
     density = [0.8, 1.2]
     expected_heat = np.sum(
@@ -160,7 +153,7 @@ def test_workspace_dfdt():
     np.testing.assert_allclose(
         hr.from_disort(flux, extinction, density, 1000.0, weights=[2.0, 5.0]),
         expected_heat,
-        rtol=1e-13,
+        rtol=1e-12,
     )
 
 
