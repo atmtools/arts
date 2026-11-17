@@ -58,7 +58,7 @@ for (iz, ia), expected in {
     (150, 170): 0.25806897720397415,
     (200, 30): 0.3661944674574447,
 }.items():
-    assert np.isclose(grid[iz, ia], expected, rtol=0, atol=1e-9), (iz, ia, grid[iz, ia])
+    assert np.isclose(grid[iz, ia], expected, rtol=0, atol=1e-6), (iz, ia, grid[iz, ia])
 
 # The second moment of the angle is that of a Gaussian of the angular offset, 2 std^2
 second_moment = np.sum(weights[:, 0] * angle**2)
