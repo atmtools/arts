@@ -62,31 +62,30 @@ RadarRangeMode resolved_range_mode(const RadarRangeMode mode, const Matrix& limi
 
 //! A sensor geometry, its path, and the samples of the gates of all sensor elements that use it
 struct PreparedSimulation {
-  const Sensor* sensor{};
-  Size                        start{};
-  Size                        iposlos{};
-  ArrayOfPropagationPathPoint ray_path{};
-  radar::PathRange            range{};
-  std::vector<Size>           gates{};
+  const Sensor*                      sensor{};
+  Size                               start{};
+  Size                               iposlos{};
+  ArrayOfPropagationPathPoint        ray_path{};
+  radar::PathRange                   range{};
+  std::vector<Size>                  gates{};
   std::vector<rtepack::radar_sample> samples{};
-  Size np{};
+  Size                               np{};
 };
 
-std::vector<PreparedSimulation> prepare_simulations(const Workspace&          ws,
-                                                    const ArrayOfSensor&      sensors,
-                                                    const Matrix&             limits,
-                                                    const RadarRangeMode      range_mode,
-                                                    const SurfaceField&       surf_field,
-                                                    const Agenda&             ray_path_observer_agenda) {
+std::vector<PreparedSimulation> prepare_simulations(const Workspace&     ws,
+                                                    const ArrayOfSensor& sensors,
+                                                    const Matrix&        limits,
+                                                    const RadarRangeMode range_mode,
+                                                    const SurfaceField&  surf_field,
+                                                    const Agenda&        ray_path_observer_agenda) {
   std::vector<PreparedSimulation> out;
   for (Size is = 0; is < sensors.size(); ++is) {
     const auto& instrument = sensors[is];
-    const Size start = measurement_start(sensors, is);
+    const Size  start      = measurement_start(sensors, is);
     for (Size iposlos = 0; iposlos < instrument.geometry.size(); ++iposlos) {
-      const auto& poslos = instrument.geometry[iposlos];
+      const auto&        poslos = instrument.geometry[iposlos];
       PreparedSimulation simulation{.sensor = &instrument, .start = start, .iposlos = iposlos};
-      ray_path_observer_agendaExecute(
-          ws, simulation.ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
+      ray_path_observer_agendaExecute(ws, simulation.ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
       simulation.range = radar::path_range(simulation.ray_path, poslos.pos, surf_field.ellipsoid);
 
       const Vector coordinate = radar::range_coordinate(simulation.range, simulation.ray_path, range_mode);
@@ -106,8 +105,7 @@ void geometry_weights(VectorView out, const sensor::SparseStokvecMatrix& weights
   assert(out.size() == static_cast<Size>(weights.ncols()));
   out = 0.0;
   for (const auto& w : weights)
-    if (w.irow == iposlos)
-      out[w.icol] = std::max(std::abs(w.data.I()), std::hypot(w.data.Q(), w.data.U(), w.data.V()));
+    if (w.irow == iposlos) out[w.icol] = std::max(std::abs(w.data.I()), std::hypot(w.data.Q(), w.data.U(), w.data.V()));
 }
 
 struct RadarResult {
@@ -139,12 +137,12 @@ RadarResult radar_forward(const Workspace&                       ws,
     if (simulation.samples.empty()) continue;
 
     const auto& instrument = *simulation.sensor;
-    const auto& frequency = instrument.freq_grid;
-    const auto& ray_path  = simulation.ray_path;
-    const auto& samples   = simulation.samples;
-    const Size  nf        = frequency.size();
-    const Size  ngate     = simulation.gates.size();
-    const Size  iposlos   = simulation.iposlos;
+    const auto& frequency  = instrument.freq_grid;
+    const auto& ray_path   = simulation.ray_path;
+    const auto& samples    = simulation.samples;
+    const Size  nf         = frequency.size();
+    const Size  ngate      = simulation.gates.size();
+    const Size  iposlos    = simulation.iposlos;
 
     const radar::GasModel gas = [&](PropmatVector&              propmat,
                                     PropmatMatrix&              propmat_jac,
@@ -206,9 +204,9 @@ RadarResult radar_forward(const Workspace&                       ws,
     for (Size ig = 0; ig < ngate; ++ig) {
       if (coverage[ig] == 0.0) continue;
 
-      const Size  iy    = simulation.gates[ig];
+      const Size  iy      = simulation.gates[ig];
       const auto& weights = instrument.elements[iy - simulation.start];
-      covered[iy] = true;
+      covered[iy]         = true;
 
       for (Size iv = 0; iv < nf; ++iv) bin[iv] = factor[iv] * signal[ig, iv];
       out.measurement[iy] += ::sensor::sumup(weights, bin, iposlos);
@@ -242,15 +240,15 @@ RadarResult radar_forward(const Workspace&                       ws,
     for (const auto& target : jac_targets.atm) {
       const auto& field = atm_field[target.type];
       for (Size jp = 0; jp < simulation.np; ++jp) {
-        const auto weights = field.flat_weight(ray_path[jp].pos);
+        const auto state_weights = field.flat_weight(ray_path[jp].pos);
         for (Size ig = 0; ig < ngate; ++ig) {
           if (coverage[ig] == 0.0) continue;
 
           const Size iy = simulation.gates[ig];
           for (Size iv = 0; iv < nf; ++iv) bin[iv] = factor[iv] * signal_jac[ig, jp, target.target_pos, iv];
-          const auto& weights = instrument.elements[iy - simulation.start];
-          const Numeric local = ::sensor::sumup(weights, bin, iposlos);
-          for (const auto& [index, weight] : weights) out.jacobian[iy, target.x_start + index] += weight * local;
+          const auto&   element_weights = instrument.elements[iy - simulation.start];
+          const Numeric local           = ::sensor::sumup(element_weights, bin, iposlos);
+          for (const auto& [index, weight] : state_weights) out.jacobian[iy, target.x_start + index] += weight * local;
         }
       }
     }
@@ -307,14 +305,14 @@ void transform_jacobian(Matrix& jacobian, const JacobianTargets& jac_targets, co
 }
 }  // namespace
 
-void measurement_sensorAddSimpleRadar(ArrayOfSensor&       measurement_sensors,
-                                      Matrix&              radar_range_limits,
-                                      const AscendingGrid& freq_grid,
-                                      const Vector3&       pos,
-                                      const Vector2&       los,
-                                      const Stokvec&       pol,
-                                      const AscendingGrid& range_bins,
-                                      const String&        name) try {
+void measurement_sensorsAddSimpleRadar(ArrayOfSensor&       measurement_sensors,
+                                       Matrix&              radar_range_limits,
+                                       const AscendingGrid& freq_grid,
+                                       const Vector3&       pos,
+                                       const Vector2&       los,
+                                       const Stokvec&       pol,
+                                       const AscendingGrid& range_bins,
+                                       const String&        name) try {
   ARTS_TIME_REPORT
   if (freq_grid.empty()) arts::user_error("Radar frequency grid cannot be empty");
   if (range_bins.size() < 2) arts::user_error("Radar range_bins needs at least two edges");
@@ -352,11 +350,11 @@ void measurement_sensorAddSimpleRadar(ArrayOfSensor&       measurement_sensors,
     meta.data.resize(nbins);
     meta.data = 0.0;
 
-    Sensor& instrument = measurement_sensors.emplace_back(
-        Sensor{.freq_grid = AscendingGrid{freq_grid[iv]},
-               .geometry = SensorPosLosVector{SensorPosLos{.pos = pos, .los = los}},
-               .elements = std::vector<sensor::SparseStokvecMatrix>(nbins, weights),
-               .meta = std::move(meta)});
+    Sensor& instrument =
+        measurement_sensors.emplace_back(Sensor{.freq_grid = AscendingGrid{freq_grid[iv]},
+                                                .geometry  = SensorPosLosVector{SensorPosLos{.pos = pos, .los = los}},
+                                                .elements  = std::vector<sensor::SparseStokvecMatrix>(nbins, weights),
+                                                .meta      = std::move(meta)});
     instrument.check();
   }
   radar_range_limits = std::move(new_limits);
@@ -481,14 +479,14 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
     const auto simulations = prepare_simulations(
         ws, measurement_sensors, radar_range_limits, settings.range_mode, surf_field, ray_path_observer_agenda);
     RadarResult result  = radar_forward(ws,
-                                       measurement_sensors,
-                                       simulations,
-                                       atm_field,
-                                       scattering_species,
-                                       spectral_propmat_agenda,
-                                       settings,
+                                        measurement_sensors,
+                                        simulations,
+                                        atm_field,
+                                        scattering_species,
+                                        spectral_propmat_agenda,
+                                        settings,
                                         {},
-                                       jac_targets);
+                                        jac_targets);
     measurement_vec_fit = std::move(result.measurement);
     measurement_jac     = std::move(result.jacobian);
     transform_jacobian(measurement_jac, jac_targets, atm_field);
@@ -508,7 +506,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
     const Numeric center = std::midpoint(radar_range_limits[iy, 0], radar_range_limits[iy, 1]);
     if (settings.range_mode != RadarRangeMode::Altitude) return center;
     const auto [isensor, ielement] = measurement_element(measurement_sensors, iy);
-    const auto& instrument = measurement_sensors[isensor];
+    const auto& instrument         = measurement_sensors[isensor];
     (void)ielement;
     if (instrument.geometry.empty())
       arts::user_error("Sensor \"{}\": radar observation {} has no position/LOS geometry", instrument.name(), iy);

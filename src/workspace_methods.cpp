@@ -4653,7 +4653,7 @@ same *measurement_sensors*, so call this method directly after it.
       .size_constraints = false,
   };
 
-  wsm_data["measurement_sensorFromModelState"] = {
+  wsm_data["measurement_sensorsFromModelState"] = {
       .desc =
           R"--(Update *measurement_sensors* from *model_state_vec*.
 )--",
@@ -4662,7 +4662,7 @@ same *measurement_sensors*, so call this method directly after it.
       .in     = {"measurement_sensors", "model_state_vec", "model_state_targets"},
   };
 
-  wsm_data["measurement_sensorInit"] = {
+  wsm_data["measurement_sensorsInit"] = {
       .desc =
           R"--(Initialize *measurement_sensors* to empty.
 )--",
@@ -4670,7 +4670,7 @@ same *measurement_sensors*, so call this method directly after it.
       .out    = {"measurement_sensors"},
   };
 
-  wsm_data["measurement_sensorAddSimple"] = {
+  wsm_data["measurement_sensorsAddSimple"] = {
       .desc =
           R"--(Adds a sensor with a dirac channel opening around the frequency grid.
 
@@ -4689,7 +4689,7 @@ All elements share position, line-of-sight, and frequency grid.
            "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddGaussianZenith"] = {
+  wsm_data["measurement_sensorsAddGaussianZenith"] = {
       .desc =
           R"--(Add a sensor to *measurement_sensors* that has a Gaussian zenith response.
 )--",
@@ -4713,7 +4713,7 @@ All elements share position, line-of-sight, and frequency grid.
            "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddSimpleGaussian"] = {
+  wsm_data["measurement_sensorsAddSimpleGaussian"] = {
       .desc =
           R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
 
@@ -4739,12 +4739,12 @@ the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
   };
 
   {
-    auto& this_       = wsm_data["measurement_sensorAddVectorGaussian"];
-    this_             = wsm_data.at("measurement_sensorAddSimpleGaussian");
+    auto& this_       = wsm_data["measurement_sensorsAddVectorGaussian"];
+    this_             = wsm_data.at("measurement_sensorsAddSimpleGaussian");
     this_.gin_type[0] = "Vector";
   }
 
-  wsm_data["measurement_sensorAddRawSensor"] = {
+  wsm_data["measurement_sensorsAddRawSensor"] = {
       .desc =
           R"--(Adds sensor elements from a raw perturbation of the sensor
 
@@ -6989,7 +6989,7 @@ added without changing the interface.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_sensorAddSimpleRadar"] = {
+  wsm_data["measurement_sensorsAddSimpleRadar"] = {
       .desc      = R"--(Adds range-resolved pencil-beam radar observation elements.
 
 For every frequency in *freq_grid*, one observation element is appended for
@@ -7028,7 +7028,7 @@ not included.
 Each element of *measurement_sensors* is paired with the corresponding row of
 *radar_range_limits*.  This keeps *measurement_vec* and *measurement_jac* in
 the standard retrieval layout: one sensor observation element produces one
-measurement.  Use *measurement_sensorAddSimpleRadar* for the common
+measurement.  Use *measurement_sensorsAddSimpleRadar* for the common
 frequency/polarization/range-bin arrangement.
 
 ``range_mode`` may be ``"Altitude"`` [m], ``"Distance"`` [m one way],

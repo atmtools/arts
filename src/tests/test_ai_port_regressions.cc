@@ -287,16 +287,23 @@ void radar_gates() {
     sensor::SparseStokvecMatrix weights(2, 1);
     weights[0, 0] = selector;
     weights[1, 0] = selector;
-    const ArrayOfSensorObsel sensor{SensorObsel(AscendingGrid{94e9},
-                                                SensorPosLosVector{{.pos = {1000.0, 0.0, 0.0}, .los = {180.0, 0.0}},
-                                                                   {.pos = {1050.0, 0.0, 0.0}, .los = {180.0, 0.0}}},
-                                                weights)};
+    SortedGriddedField1 meta;
+    meta.data_name     = "radar-gate";
+    meta.gridname<0>() = "range";
+    meta.grid<0>()     = AscendingGrid{1000.0};
+    meta.data.resize(1);
+    meta.data          = 0.0;
+    const ArrayOfSensor sensors{Sensor{.freq_grid = AscendingGrid{94e9},
+                                       .geometry = SensorPosLosVector{{.pos = {1000.0, 0.0, 0.0}, .los = {180.0, 0.0}},
+                                                                      {.pos = {1050.0, 0.0, 0.0}, .los = {180.0, 0.0}}},
+                                       .elements = {weights},
+                                       .meta = std::move(meta)}};
     measurement_vecFromRadarSingleScattering(ws,
                                              y,
                                              jac,
                                              aux,
                                              radar_time,
-                                             sensor,
+                                             sensors,
                                              limits,
                                              JacobianTargets{},
                                              atmosphere,
