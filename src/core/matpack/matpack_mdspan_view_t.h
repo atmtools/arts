@@ -299,6 +299,9 @@ template <class T, Size N> struct view_t final : public mdview_t<T, N> {
 
 template <class T, Size N> inline constexpr bool stdr::enable_borrowed_range<matpack::view_t<T, N>> = true;
 
+//! Ranges iterate over the first dimension, so their size is extent(0), not the member size() element count
+template <class T, Size N> inline constexpr bool stdr::disable_sized_range<matpack::view_t<T, N>> = N > 1;
+
 std::string to_string(const matpack::view_t<const Numeric, 2>&, format_tags& tags, const std::span<const Size>);
 std::string to_string(const matpack::view_t<const Complex, 2>&, format_tags& tags, const std::span<const Size>);
 

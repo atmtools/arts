@@ -355,6 +355,9 @@ template <typename T, Size N> class [[nodiscard]] data_t {
 };
 }  // namespace matpack
 
+//! Ranges iterate over the first dimension, so their size is extent(0), not the member size() element count
+template <class T, Size N> inline constexpr bool stdr::disable_sized_range<matpack::data_t<T, N>> = N > 1;
+
 template <typename T, Size N> struct std::formatter<matpack::data_t<T, N>> {
   std::formatter<matpack::view_t<const T, N>> fmt;
 

@@ -379,6 +379,9 @@ template <typename T, Size N> struct std::formatter<matpack::strided_view_t<T, N
 
 template <class T, Size N> inline constexpr bool stdr::enable_borrowed_range<matpack::strided_view_t<T, N>> = true;
 
+//! Ranges iterate over the first dimension, so their size is extent(0), not the member size() element count
+template <class T, Size N> inline constexpr bool stdr::disable_sized_range<matpack::strided_view_t<T, N>> = N > 1;
+
 using StridedVectorView  = matpack::strided_view_t<Numeric, 1>;
 using StridedMatrixView  = matpack::strided_view_t<Numeric, 2>;
 using StridedTensor3View = matpack::strided_view_t<Numeric, 3>;
