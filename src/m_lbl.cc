@@ -1,7 +1,6 @@
 #include <arts_omp.h>
 #include <configtypes.h>
 #include <debug.h>
-#include <enumsAbsorptionBandSortingOption.h>
 #include <enumsLineByLineCutoffType.h>
 #include <isotopologues.h>
 #include <jacobian.h>

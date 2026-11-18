@@ -249,27 +249,6 @@ dielectric factor, and :math:`\beta` is the native return.
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name = "PredefinedSensor",
-      .desc =
-          R"(Code-defined satellite sensor channel configurations.
-
-Each option identifies a complete instrument channel set, including channel
-centers, mixer offsets, bandwidths, and polarization.  These definitions are
-compiled into ARTS and require no external sensor-response data files.
-)",
-      .values_and_desc =
-          {Value{"AMSUA", "AMSU-A", "The 15-channel Advanced Microwave Sounding Unit A instrument."},
-           Value{"AMSUB", "AMSU-B", "The 5-channel Advanced Microwave Sounding Unit B instrument."},
-           Value{"ICI", "IceCloudImager", "The 11-channel Ice Cloud Imager instrument."},
-           Value{"HIRS", "NOAA14HIRS", "The 19-channel NOAA-14 High-resolution Infrared Radiation Sounder."},
-           Value{"AVHRR", "NOAA19AVHRR", "The 3-channel NOAA-19 Advanced Very High Resolution Radiometer response."},
-           Value{"MVIRI", "MET2MVIRI", "The 3-channel Meteosat-2 Visible and Infrared Imager response."},
-           Value{"SEVIRI",
-                 "MET9SEVIRI",
-                 "The 12-channel Meteosat-9 Spinning Enhanced Visible and Infrared Imager response."}},
-  });
-
-  opts.emplace_back(EnumeratedOption{
       .name = "ray_path_observer_agendaSetGeometricMaxStep",
       .desc =
           R"(For use with *ray_path_observer_agendaSetGeometric*.  Determines how to densify the geometric path.
@@ -390,21 +369,6 @@ The standard HAPI separator of comma (",") is presumed between fields.
               Value{"statepp", "qnspp", "The lower state"},
               Value{"unknown", "X", "Skip this field"},
           },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name            = "GridType",
-      .desc            = R"(Type of Lagrange interpolation weights.
-)",
-      .values_and_desc = {Value{"Standard", "1-to-1 interpolation grid"},
-                          Value{"Cyclic", "Cyclic interpolation grid"},
-                          Value{"Log", "Natural logarithm interpolation grid"},
-                          Value{"Log10", "10-base logarithm interpolation grid"},
-                          Value{"Log2", "2-base logarithm interpolation grid"},
-                          Value{"SinDeg", "Sine in degrees interpolation grid, grid only defined [-90, 90]"},
-                          Value{"SinRad", "Sine in radians interpolation grid, grid only defined [-PI/2, PI/2]"},
-                          Value{"CosDeg", "Cosine in degrees interpolation grid, grid only defined [0, 180]"},
-                          Value{"CosRad", "Cosine in radians interpolation grid, grid only defined [0,  PI]"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -899,15 +863,6 @@ where:
 )",
       .values_and_desc = {Value{"HydrostaticEquation", "Piece-wise linearly decaying with altitude."},
                           Value{"HypsometricEquation", "Piece-wise exponentially decaying with altitude."}},
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name            = "AbsorptionBandSortingOption",
-      .desc            = R"(What kind of sorting should the bands be sorted by?
-)",
-      .values_and_desc = {Value{"IntegratedIntensity", "By the total absorption strength of the band."},
-                          Value{"FrontFrequency", "By the lowest frequency of the first line."},
-                          Value{"None", "Do not change the sorting."}},
   });
 
   opts.emplace_back(EnumeratedOption{
