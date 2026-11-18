@@ -257,10 +257,25 @@ void ProfileFromAltitude(const Workspace&        ws,
                          const JacobianTargets&  jac_targets,
                          const AscendingGrid&    alt_grid,
                          const AtmField&         atm_field,
+                         const SurfaceField&     surf_field,
                          const AscendingGrid&    freq_grid,
                          const Numeric&          lat,
                          const Numeric&          lon) try {
   ARTS_TIME_REPORT
+
+  // The profile replaces the atmosphere along paths that run from the surface to the top of the atmosphere
+  const Numeric surf_alt = surf_field.contains(SurfaceKey::h) ? surf_field.single_value(SurfaceKey::h, lat, lon) : 0.0;
+  if (alt_grid.empty())
+    arts::user_error("alt_grid must cover the surface at {} m and the top of the atmosphere at {} m, but it is empty",
+                     surf_alt,
+                     atm_field.top_of_atmosphere);
+  if (alt_grid.front() > surf_alt or alt_grid.back() < atm_field.top_of_atmosphere)
+    arts::user_error(
+        "alt_grid must cover the surface at {} m and the top of the atmosphere at {} m, but it covers {} m to {} m",
+        surf_alt,
+        atm_field.top_of_atmosphere,
+        alt_grid.front(),
+        alt_grid.back());
 
   const ArrayOfPropagationPathPoint ray_path{std::from_range,
                                              alt_grid | stdv::transform([lat, lon](const Numeric& alt) {

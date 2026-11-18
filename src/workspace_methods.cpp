@@ -6867,10 +6867,12 @@ respective internal altitude grids will contain the surface elevation as a grid 
           R"(Computes the propagation matrices of a profile, once per altitude of *alt_grid*.
 
 The atmosphere of the profile, *atm_profile*, is *atm_field* at *alt_grid*,
-*lat* and *lon*, but without wind.  The propagation matrices, the non-LTE
-source vectors and their derivatives are computed for it by
-*spectral_propmat_agenda* on *freq_grid_profile*.  *Profile2Path* turns them
-into path data, with the wind of *atm_field* at each point of the path.
+*lat* and *lon*, but without wind.  *alt_grid* must cover the atmosphere from
+the surface of *surf_field* at *lat* and *lon* to the top of *atm_field*.  The
+propagation matrices, the non-LTE source vectors and their derivatives are
+computed for it by *spectral_propmat_agenda* on *freq_grid_profile*.
+*Profile2Path* turns them into path data, with the wind of *atm_field* at each
+point of the path.
 
 *freq_grid_profile* is *freq_grid* with points added beyond both ends, so that
 *Profile2Path* can shift *freq_grid* by the wind.  The largest shift is by the
@@ -6891,7 +6893,14 @@ Polarization is not possible with this method.
 )",
       .author         = {"Richard Larsson"},
       .out            = {"atm_profile", "freq_grid_profile", "spectral_propmat_profile"},
-      .in             = {"spectral_propmat_agenda", "jac_targets", "alt_grid", "atm_field", "freq_grid", "lat", "lon"},
+      .in             = {"spectral_propmat_agenda",
+                         "jac_targets",
+                         "alt_grid",
+                         "atm_field",
+                         "surf_field",
+                         "freq_grid",
+                         "lat",
+                         "lon"},
       .pass_workspace = true,
   };
 
