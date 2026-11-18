@@ -1434,10 +1434,6 @@ See https://atmtools.github.io/arts-docs-master/pyarts3.arts.{0}.html for valid 
 
 namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
 
-std::ostream& operator<<(std::ostream &os, const {0} x);
-
-std::istream& operator>>(std::istream &is, {0}& x);
-
 template<> struct std::formatter<{0}> {{
   format_tags tags;
 
@@ -1519,26 +1515,13 @@ std::string EnumeratedOption::impl() const {
 
   out += std::format(
       R"(
-std::ostream &operator<<(std::ostream &os, const {0} x) {{
-  std::print(os, "{{}}", toString<{1}>(x));
-  return os;
-}}
-
-std::istream &operator>>(std::istream &is, {0}& x) {{
-  std::string s;
-  is >> s;
-  x = to<{0}>(s);
-  return is;
-}}
-
 std::string_view enumdocs<{0}>::str() noexcept {{
-  return R"-ENUMDOC-({2})-ENUMDOC-"sv;
+  return R"-ENUMDOC-({1})-ENUMDOC-"sv;
 }}
 
 static_assert(arts_formattable<{0}>, "Not good: {0}");
 )",
       name,
-      preferred_print,
       docs());
 
   return out;

@@ -20,7 +20,9 @@ void xml_io_stream<SpeciesIsotopologueInfo>::read(std::istream& is, SpeciesIsoto
     throw std::runtime_error(std::format("Expected opening tag <{}>, but got '{}'", type_name, val));
   }
 
-  is >> v.species >> v.code >> double_imanip{} >> v.mass >> v.default_ratio;
+  is >> val;
+  v.species = to<SpeciesEnum>(val);
+  is >> v.code >> double_imanip{} >> v.mass >> v.default_ratio;
   is >> v.degeneracy;
 
   if (v.code.empty()) { throw std::runtime_error("Cannot read SpeciesIsotopologueInfo with empty species or code."); }

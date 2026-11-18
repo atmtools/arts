@@ -1,5 +1,6 @@
 #include <cstddef>
 #include <iostream>
+#include <print>
 
 #include "isotopologues.h"
 
@@ -15,7 +16,7 @@ int main() {
     auto a = SpeciesEnum(i);
     auto b = toString<1>(a);
     auto c = to<SpeciesEnum>(b);
-    if (not good_enum(c) or c not_eq a) { std::cout << i << ' ' << a << ' ' << b << ' ' << c << '\n'; }
+    if (not good_enum(c) or c not_eq a) { std::println("{} {} {} {}", i, a, b, c); }
   }
 
   std::cout << "\n\nTest of order of Species fails for these pairs:\n";

@@ -140,11 +140,6 @@ add_executable(arts_qn arts_quantum_numbers.cc)
 target_link_libraries(arts_qn species xml_io quantum)
 
 # #######################################################################################
-# Test OpenMP
-add_executable(test_omp EXCLUDE_FROM_ALL test_omp.cc)
-target_link_libraries(test_omp PUBLIC artsworkspace)
-
-# #######################################################################################
 # Test Eigen
 add_executable(test_matpack_eigen test_matpack_eigen.cc)
 target_link_libraries(test_matpack_eigen PUBLIC matpack)

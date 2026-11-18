@@ -135,9 +135,10 @@ std::istream& operator>>(std::istream& is, Level& level) {
   is >> n;
 
   for (Size i = 0; i < n; i++) {
-    QuantumNumberType qn;
-    is >> qn;
-    auto [it, _] = level.emplace(qn, Value{qn});
+    std::string qnstr;
+    is >> qnstr;
+    const auto qn = to<QuantumNumberType>(qnstr);
+    auto [it, _]  = level.emplace(qn, Value{qn});
     is >> it->second;
   }
 
@@ -150,9 +151,10 @@ std::istream& operator>>(std::istream& is, State& state) {
   is >> n;
 
   for (Size i = 0; i < n; i++) {
-    QuantumNumberType qn;
-    is >> qn;
-    auto [it, _] = state.emplace(qn, UpperLower{.upper = Value(qn), .lower = Value(qn)});
+    std::string qnstr;
+    is >> qnstr;
+    const auto qn = to<QuantumNumberType>(qnstr);
+    auto [it, _]  = state.emplace(qn, UpperLower{.upper = Value(qn), .lower = Value(qn)});
     is >> it->second;
   }
 
