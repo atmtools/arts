@@ -19,6 +19,7 @@
 #include <format>
 #include <limits>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "lbl_lineshape_model.h"
@@ -171,6 +172,7 @@ struct LineByLineCutoff {
       case LineByLineCutoffType::None:   return true;
       case LineByLineCutoffType::ByLine: return value == other.value;
     }
+    std::unreachable();
   }
 
   constexpr bool operator!=(const LineByLineCutoff& other) const { return not(*this == other); }

@@ -565,8 +565,8 @@ CovarianceMatrix measurement_covariance_projection(const BlockMatrix& C, const C
         const auto r0 = block.get_row_range().offset, c0 = block.get_column_range().offset;
         const auto [i, j] = block.get_indices();
         for (const auto [row, col, value] : block.get_sparse() | by_elem) {
-          entries.emplace_back(r0 + row, c0 + col, value);
-          if (i != j) entries.emplace_back(c0 + col, r0 + row, value);
+          entries.emplace_back(static_cast<int>(r0 + row), static_cast<int>(c0 + col), value);
+          if (i != j) entries.emplace_back(static_cast<int>(c0 + col), static_cast<int>(r0 + row), value);
         }
       }
       Sparse matrix(m, m);
@@ -654,7 +654,7 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
       const Numeric sigma = std::sqrt((*diagonal)[i]);
       const Numeric value = (amplitude[i] / sigma / norm[group[i]]) / sigma;
       if (not std::isfinite(value)) arts::user_error("Measurement basis exceeds numerical range.");
-      entries.emplace_back(group[i], i, value);
+      entries.emplace_back(static_cast<int>(group[i]), static_cast<int>(i), value);
     }
     auto sparse = std::make_shared<Sparse>(q, m);
     sparse->matrix.setFromTriplets(entries.begin(), entries.end());
