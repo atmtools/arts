@@ -1,6 +1,7 @@
 #include "arts_options.h"
 
 #include <auto_species_enum_info.h>
+#include <enums-common-helper.h>
 #include <mystring.h>
 
 #include <algorithm>
@@ -8,6 +9,7 @@
 #include <format>
 #include <limits>
 #include <ranges>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -1419,23 +1421,54 @@ template <int i={0}> constexpr std::string_view toString({1} x)  requires(i >= 0
 }}
 
 template<> constexpr {1} to<{1}>(const std::string_view x) {{
-  using namespace enumstrs;
-  using namespace enumtyps;)",
+  switch (enumhash(x)) {{)",
       preferred_print,
       name,
       n - 1);
 
-  for (std::size_t i = 0; i < n - 1; i++) {
-    out += std::format(
-        R"(
-  if (const auto i = stdr::distance(stdr::begin({0}Names<{1}>),
-                                    stdr::find({0}Names<{1}>, x));
-                     i < {2})
-    return {0}Types[i];)",
-        name,
-        i,
-        m);
+  /* Emit one case per distinct key hash.  head() guarantees that a key
+   * maps to at most one enumerator; keys are visited in name-array
+   * order and inserted once, preserving the old first-match-wins scan
+   * order.  Keys sharing a hash are chained under a single case label;
+   * the full-string comparison decides, so collisions are harmless. */
+  {
+    std::vector<std::pair<std::string_view, std::string_view>> keys;
+    std::set<std::string_view>                             seen;
+    for (std::size_t i = 0; i < n - 1; i++) {
+      for (const auto& v : values_and_desc) {
+        if (seen.insert(v[i]).second) keys.emplace_back(v[i], v[0]);
+      }
+    }
+
+    std::vector<std::vector<std::size_t>> groups;
+    for (std::size_t k = 0; k < keys.size(); k++) {
+      const auto h = enumhash(keys[k].first);
+      auto       g = stdr::find_if(groups, [&](const auto& group) {
+        return enumhash(keys[group.front()].first) == h;
+      });
+      if (g == groups.end()) {
+        groups.push_back({k});
+      } else {
+        g->push_back(k);
+      }
+    }
+
+    for (const auto& group : groups) {
+      out += std::format(R"(
+    case enumhash("{0}"sv):)",
+                         keys[group.front()].first);
+      for (const auto k : group) {
+        out += std::format(R"(
+      if (x == "{0}"sv) return {1}::{2};)",
+                           keys[k].first,
+                           name,
+                           keys[k].second);
+      }
+      out += "\n      break;";
+    }
   }
+
+  out += "\n  }\n";
   out += std::format(
       R"(
   throw std::runtime_error(std::format(R"-x-(Bad input "{{}}"
