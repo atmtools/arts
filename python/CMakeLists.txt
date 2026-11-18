@@ -23,6 +23,12 @@ configure_file(
   COPYONLY
 )
 
+configure_file(
+  ${ARTS_SOURCE_DIR}/README.md
+  ${CMAKE_CURRENT_BINARY_DIR}/README.md
+  COPYONLY
+)
+
 # The licence notices of the bundled code compiled into this build go into
 # the package as licenses/<name>/<file> with the index licenses/THIRD_PARTY.txt
 # (cmake/modules/ArtsBundledLicenses.cmake, doc/arts/dev.licenses.rst).
