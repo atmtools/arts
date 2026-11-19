@@ -534,25 +534,6 @@ def arts_agenda(func=None, *, ws=None, fix=False):
         return _arts_agenda(func, ws, fix)
 
 
-def in_parallel(func=None, *, ws=None):
-    """
-    Parses the decorated function into an Agenda and executes it immediately
-    using the provided workspace.
-    """
-    def execute(fn):
-        if ws is None:
-            raise ValueError("Workspace 'ws' must be provided to in_parallel")
-        source = source_and_location(fn)
-        agenda = _arts_agenda(fn, None, False, source)
-        agenda._set_name(source[0])
-        agenda.par_execute(ws)
-        return agenda
-
-    if func is None:
-        return execute
-    return execute(func)
-
-
 def arts_method(code_string, workspace_name = 'ws', state=None):
     """
     Converts a string of ARTS workspace operations into an Agenda object.

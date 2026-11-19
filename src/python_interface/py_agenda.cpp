@@ -245,16 +245,6 @@ so Copy(a, out=b) will not even see the b variable.
           "ws"_a,
           "Executes the agenda on the provided workspace")
       .def(
-          "par_tasks",
-          [](Agenda& a, Workspace& ws) { return a.par_tasks(ws); },
-          "ws"_a,
-          "Returns a list of agendas to show their potential for parallel execution (used by par_execute)")
-      .def(
-          "par_execute",
-          [](Agenda& a, Workspace& ws) { a.par_execute(ws); },
-          "ws"_a,
-          "Executes the agenda on the provided workspace in parallel")
-      .def(
           "finalize",
           [](Agenda& a, bool fix) { a.finalize(fix); },
           "fix"_a = false,

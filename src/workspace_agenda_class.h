@@ -51,12 +51,6 @@ class Agenda {
   //! Executes the agenda without checks on the current workspace
   void execute(Workspace& ws) const;
 
-  //! Executes the agenda methods in parallel without checks
-  std::vector<Agenda> par_tasks(Workspace& ws) const;
-
-  //! Executes the agenda methods in parallel without checks
-  void par_execute(Workspace& ws) const;
-
   [[nodiscard]] bool is_checked() const { return checked; }
 
   [[nodiscard]] const std::string& get_name() const { return name; }
