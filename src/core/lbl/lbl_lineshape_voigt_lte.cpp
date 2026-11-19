@@ -18,6 +18,19 @@
 #include "lbl_zeeman.h"
 
 namespace lbl::voigt::lte {
+std::pair<Index, Index> find_offset_and_count_of_frequency_range(const std::span<const single_shape> lines,
+                                                                 Numeric                             f,
+                                                                 Numeric                             cutoff) {
+  if (cutoff < std::numeric_limits<Numeric>::infinity()) {
+    auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
+    auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
+
+    return {std::distance(lines.begin(), low), std::distance(low, upp)};
+  }
+
+  return {0, lines.size()};
+}
+
 namespace {
 Complex line_strength_calc(const Numeric inv_gd, const SpeciesIsotope& spec, const line& line, const AtmPoint& atm) {
   const auto    s = line.s(atm.temperature, PartitionFunctions::Q(atm.temperature, spec));
