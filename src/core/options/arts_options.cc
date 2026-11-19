@@ -217,7 +217,8 @@ dielectric factor, and :math:`\beta` is the native return.
 )",
       .values_and_desc = {Value{"unit", "1", "Backscatter coefficient [1 / (m sr)]"},
                           Value{"Ze", "ze", "Equivalent reflectivity factor [mm :math:`^{6}` / m :math:`^{3}`]"},
-                          Value{"dBZe", "dbze", "Equivalent reflectivity factor in decibels, :math:`10 \\log_{10} Z_e`"}},
+                          Value{
+                              "dBZe", "dbze", "Equivalent reflectivity factor in decibels, :math:`10 \\log_{10} Z_e`"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -226,26 +227,31 @@ dielectric factor, and :math:`\beta` is the native return.
 )",
       .values_and_desc = {Value{"Altitude", "Altitude [m]"},
                           Value{"Distance", "One-way geometric distance from the radar [m]"},
-                          Value{"RoundTripTime", "Round-trip time from the radar, including path group refractive indices [s]"},
-                          Value{"Legacy", "The ARTS2 rule: Altitude if the largest limit exceeds 1, otherwise RoundTripTime"}},
+                          Value{"RoundTripTime",
+                                "Round-trip time from the radar, including path group refractive indices [s]"},
+                          Value{"Legacy",
+                                "The ARTS2 rule: Altitude if the largest limit exceeds 1, otherwise RoundTripTime"}},
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name            = "RadarAuxiliary",
-      .desc            = R"(Auxiliary quantities of a radar simulation.
+      .name = "RadarAuxiliary",
+      .desc = R"(Auxiliary quantities of a radar simulation.
 )",
-      .values_and_desc = {
-          Value{"RadiativeBackground",
-                "Radiative background",
-                "Type of the path end: 0 for space, 1 for the surface, and 2 otherwise"},
-          Value{"Backscattering", "backscattering", "Gate-averaged backscatter without attenuation, in the unit of the measurement"},
-          Value{"AbsSpeciesExtinction",
-                "Abs species extinction",
-                "Gate-averaged extinction by absorbing species [1 / m]"},
-          Value{"ParticleExtinction",
-                "Particle extinction",
-                "Gate-averaged particle extinction, after any extinction scaling [1 / m]"},
-      },
+      .values_and_desc =
+          {
+              Value{"RadiativeBackground",
+                    "Radiative background",
+                    "Type of the path end: 0 for space, 1 for the surface, and 2 otherwise"},
+              Value{"Backscattering",
+                    "backscattering",
+                    "Gate-averaged backscatter without attenuation, in the unit of the measurement"},
+              Value{"AbsSpeciesExtinction",
+                    "Abs species extinction",
+                    "Gate-averaged extinction by absorbing species [1 / m]"},
+              Value{"ParticleExtinction",
+                    "Particle extinction",
+                    "Gate-averaged particle extinction, after any extinction scaling [1 / m]"},
+          },
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -347,7 +353,8 @@ Reading the g-factors does not turn on the Zeeman effect.
 )",
       .values_and_desc = {Value{"None", "No g-factors, they are all 0"},
                           Value{"Compute", "Compute the g-factors, throw if they cannot be computed for a line"},
-                          Value{"ComputeOrZero", "Compute the g-factors, set them to 0 if they cannot be computed for a line"}},
+                          Value{"ComputeOrZero",
+                                "Compute the g-factors, set them to 0 if they cannot be computed for a line"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -1388,7 +1395,7 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
    * the full-string comparison decides, so collisions are harmless. */
   {
     std::vector<std::pair<std::string_view, std::string_view>> keys;
-    std::set<std::string_view>                             seen;
+    std::set<std::string_view>                                 seen;
     for (std::size_t i = 0; i < n - 1; i++) {
       for (const auto& v : values_and_desc) {
         if (seen.insert(v[i]).second) keys.emplace_back(v[i], v[0]);
@@ -1398,9 +1405,7 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
     std::vector<std::vector<std::size_t>> groups;
     for (std::size_t k = 0; k < keys.size(); k++) {
       const auto h = enumhash(keys[k].first);
-      auto       g = stdr::find_if(groups, [&](const auto& group) {
-        return enumhash(keys[group.front()].first) == h;
-      });
+      auto       g = stdr::find_if(groups, [&](const auto& group) { return enumhash(keys[group.front()].first) == h; });
       if (g == groups.end()) {
         groups.push_back({k});
       } else {

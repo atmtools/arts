@@ -212,15 +212,8 @@ extern "C" void dgesvx_(char   *fact,
  */
 
 //! Eigenvalues and eigenvectors of a real symmetric matrix.
-extern "C" void dsyev_(char   *jobz,
-                       char   *uplo,
-                       int    *n,
-                       double *A,
-                       int    *lda,
-                       double *W,
-                       double *work,
-                       int    *lwork,
-                       int    *info);
+extern "C" void dsyev_(
+    char *jobz, char *uplo, int *n, double *A, int *lda, double *W, double *work, int *lwork, int *info);
 
 extern "C" void dgeev_(char   *jobvl,
                        char   *jobvr,

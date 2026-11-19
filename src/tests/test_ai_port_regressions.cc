@@ -292,12 +292,12 @@ void radar_gates() {
     meta.gridname<0>() = "range";
     meta.grid<0>()     = AscendingGrid{1000.0};
     meta.data.resize(1);
-    meta.data          = 0.0;
+    meta.data = 0.0;
     const ArrayOfSensor sensors{Sensor{.freq_grid = AscendingGrid{94e9},
                                        .geometry = SensorPosLosVector{{.pos = {1000.0, 0.0, 0.0}, .los = {180.0, 0.0}},
                                                                       {.pos = {1050.0, 0.0, 0.0}, .los = {180.0, 0.0}}},
                                        .elements = {weights},
-                                       .meta = std::move(meta)}};
+                                       .meta     = std::move(meta)}};
     measurement_vecFromRadarSingleScattering(ws,
                                              y,
                                              jac,

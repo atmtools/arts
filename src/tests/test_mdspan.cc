@@ -1441,7 +1441,7 @@ void test_range_size() {
 }
 }  // namespace
 
-#define EXECUTE_TEST(X)                                                     \
+#define EXECUTE_TEST(X)                                                       \
   std::cout << "#########################################################\n"; \
   std::cout << "Executing test: " #X << '\n';                                 \
   std::cout << "#########################################################\n"; \

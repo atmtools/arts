@@ -220,16 +220,16 @@ constexpr Numeric SimpleGCaseA(
  * their ratios enter the g-factor.
  */
 struct hund_a_hyperfine {
-  Rational I;            //!< Nuclear spin
-  Numeric  A, A_D;       //!< Spin-orbit constant and its centrifugal distortion
-  Numeric  B, D;         //!< Rotational constant and its centrifugal distortion
-  Numeric  gamma;        //!< Spin-rotation constant
-  Numeric  p, q;         //!< Lambda-doubling constants
-  Numeric  a, b_F, c, d; //!< Magnetic hyperfine constants
-  Numeric  c_I;          //!< Nuclear spin-rotation constant
-  Numeric  eQq0, eQq2;   //!< Electric quadrupole constants
-  Numeric  gL, gS;       //!< Orbital and spin g-factors
-  Numeric  gR, gI;       //!< Rotational and nuclear g-factors
+  Rational I;             //!< Nuclear spin
+  Numeric  A, A_D;        //!< Spin-orbit constant and its centrifugal distortion
+  Numeric  B, D;          //!< Rotational constant and its centrifugal distortion
+  Numeric  gamma;         //!< Spin-rotation constant
+  Numeric  p, q;          //!< Lambda-doubling constants
+  Numeric  a, b_F, c, d;  //!< Magnetic hyperfine constants
+  Numeric  c_I;           //!< Nuclear spin-rotation constant
+  Numeric  eQq0, eQq2;    //!< Electric quadrupole constants
+  Numeric  gL, gS;        //!< Orbital and spin g-factors
+  Numeric  gR, gI;        //!< Rotational and nuclear g-factors
 
   /** The g-factor of a hyperfine level
    *

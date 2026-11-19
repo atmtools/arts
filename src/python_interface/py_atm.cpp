@@ -79,12 +79,14 @@ void py_atm_functional(py::module_ &m) {
   mf.def_rw("magnitude",
             &Atm::MagnitudeField::magnitude,
             "The magnitude of the (u, v, w) field.\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
-      .def_rw("theta",
-              &Atm::MagnitudeField::theta,
-              "The geocentric latitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
-      .def_rw("phi",
-              &Atm::MagnitudeField::phi,
-              "The geocentric longitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw(
+          "theta",
+          &Atm::MagnitudeField::theta,
+          "The geocentric latitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw(
+          "phi",
+          &Atm::MagnitudeField::phi,
+          "The geocentric longitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
       .def_rw("component",
               &Atm::MagnitudeField::component,
               "The field component.\n\n.. :class:`~pyarts3.arts.FieldComponent`");
@@ -99,10 +101,13 @@ void py_atm_functional(py::module_ &m) {
          "alt"_a,
          "option"_a,
          "Pressure from the pressure at the lowest altitude and the inverse scale heights at the altitudes")
-      .def_rw("grad_p",
-              &Atm::HydrostaticPressure::grad_p,
-              "The inverse scale height, :math:`g / (R T)`, at the altitudes [1/m].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
-      .def_rw("pre", &Atm::HydrostaticPressure::pre, "The pressure at the altitudes [Pa].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw(
+          "grad_p",
+          &Atm::HydrostaticPressure::grad_p,
+          "The inverse scale height, :math:`g / (R T)`, at the altitudes [1/m].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw("pre",
+              &Atm::HydrostaticPressure::pre,
+              "The pressure at the altitudes [Pa].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
       .def_rw("option",
               &Atm::HydrostaticPressure::option,
               "The hydrostatic step.\n\n.. :class:`~pyarts3.arts.HydrostaticPressureOption`");

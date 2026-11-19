@@ -39,7 +39,7 @@ RadarRangeMode resolve(const RadarRangeMode mode, const Numeric largest_limit) {
 PathRange path_range(const ArrayOfPropagationPathPoint& path, const Vector3& radar_pos, const Vector2& ellipsoid) {
   const Size np = path.size();
   PathRange  out{
-       .layer = np > 1 ? path::distance(path, ellipsoid) : Vector{}, .distance = Vector(np), .time = Vector(np)};
+      .layer = np > 1 ? path::distance(path, ellipsoid) : Vector{}, .distance = Vector(np), .time = Vector(np)};
   if (np == 0) return out;
 
   out.distance[0] = path::distance(radar_pos, path.front().pos, ellipsoid);

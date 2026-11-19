@@ -30,7 +30,6 @@ template <> struct xml_io_stream_functional<std::function<Numeric(Numeric)>> {
 };
 
 //! The XML IO is defined in functional_numeric_unary.cpp, the only place it is instantiated
-template <>
-struct xml_io_stream<std::function<Numeric(Numeric)>>
+template <> struct xml_io_stream<std::function<Numeric(Numeric)>>
     : xml_io_stream_function_declaration<std::function<Numeric(Numeric)>> {};
 extern template struct xml_io_stream_function_declaration<std::function<Numeric(Numeric)>>;

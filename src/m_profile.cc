@@ -233,7 +233,8 @@ void Profile2Path(ArrayOfSpectralPropmat&            spectral_propmat_path,
       to_path_frequencies(point, spectral_propmat_profile[lower], freq_grid_profile, freq_grid_path[i], f_extrapolfac);
       if (ip == between) {
         SpectralPropmat above;
-        to_path_frequencies(above, spectral_propmat_profile[upper], freq_grid_profile, freq_grid_path[i], f_extrapolfac);
+        to_path_frequencies(
+            above, spectral_propmat_profile[upper], freq_grid_profile, freq_grid_path[i], f_extrapolfac);
         blend(point, above, t);
       }
 

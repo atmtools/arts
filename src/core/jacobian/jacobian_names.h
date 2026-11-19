@@ -5,7 +5,6 @@
 #include <sensor.h>
 #include <subsurf.h>
 #include <surf.h>
-
 #include <xml_io_stream_functional.h>
 
 #include <concepts>

@@ -171,9 +171,7 @@ binistream::Float binistream::readFloat(FType ft) {
 }
 
 namespace {
-void swap_endian(double *d) {
-  *d = std::bit_cast<double>(std::byteswap(std::bit_cast<std::uint64_t>(*d)));
-}
+void swap_endian(double *d) { *d = std::bit_cast<double>(std::byteswap(std::bit_cast<std::uint64_t>(*d))); }
 }  // namespace
 
 void binistream::readDoubleArray(double *d, unsigned long size) {

@@ -1,7 +1,7 @@
-#include <enumsHitranFileFormatType.h>
 #include "lbl_hitran.h"
 
 #include <arts_conversions.h>
+#include <enumsHitranFileFormatType.h>
 #include <fast_float/fast_float.h>
 #include <hitran_species.h>
 #include <mystring.h>

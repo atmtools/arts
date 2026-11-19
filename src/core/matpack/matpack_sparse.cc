@@ -23,8 +23,6 @@
 
 #include "matpack_sparse.h"
 
-#include "matpack_sparse_eigen.h"
-
 #include <double_imanip.h>
 #include <xml_io_base.h>
 
@@ -34,6 +32,8 @@
 #include <numeric>
 #include <ostream>
 #include <vector>
+
+#include "matpack_sparse_eigen.h"
 
 // Simple member Functions
 // ----------------
@@ -59,7 +59,7 @@ namespace {
 //! The position of column c in row r, and whether the element is stored there
 std::pair<Index, bool> find_element(std::span<const int> row_start, std::span<const int> col_index, Index r, Index c) {
   const auto first = col_index.begin() + row_start[r], last = col_index.begin() + row_start[r + 1];
-  const auto it    = std::lower_bound(first, last, static_cast<int>(c));
+  const auto it = std::lower_bound(first, last, static_cast<int>(c));
   return {it - col_index.begin(), it != last and *it == c};
 }
 }  // namespace
@@ -157,7 +157,8 @@ Sparse& Sparse::operator=(Sparse&& other) noexcept = default;
 */
 Sparse::Sparse(Index r, Index c) : nr(r), nc(c), row_start(r + 1, 0) {}
 
-Sparse::Sparse(Index r, Index c, std::vector<int> row_starts, std::vector<int> column_indices, std::vector<Numeric> values)
+Sparse::Sparse(
+    Index r, Index c, std::vector<int> row_starts, std::vector<int> column_indices, std::vector<Numeric> values)
     : nr(r), nc(c), row_start(std::move(row_starts)), col_index(std::move(column_indices)), vals(std::move(values)) {
   assert(static_cast<Index>(row_start.size()) == nr + 1);
   assert(row_start.front() == 0);
@@ -358,9 +359,8 @@ void Sparse::insert_elements(Index                  nelems,
   // As Eigen's setFromTriplets: replaces the elements, and sums duplicates in their order
   std::vector<Index> order(nelems);
   std::iota(order.begin(), order.end(), Index{0});
-  std::ranges::stable_sort(order, [&](Index a, Index b) {
-    return std::pair{rowind[a], colind[a]} < std::pair{rowind[b], colind[b]};
-  });
+  std::ranges::stable_sort(
+      order, [&](Index a, Index b) { return std::pair{rowind[a], colind[a]} < std::pair{rowind[b], colind[b]}; });
 
   row_start.assign(nr + 1, 0);
   col_index.clear();
@@ -672,7 +672,7 @@ void add(Sparse& A, const Sparse& B, const Sparse& C) {
 */
 void id_mat(Sparse& A) {
   assert(A.ncols() == A.nrows());
-  const Index n = A.nrows();
+  const Index      n = A.nrows();
   std::vector<int> starts(n + 1), cols(n);
   std::iota(starts.begin(), starts.end(), 0);
   std::iota(cols.begin(), cols.end(), 0);

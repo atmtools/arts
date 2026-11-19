@@ -104,14 +104,14 @@ constexpr Numeric closed_shell_trilinear(Rational k, Rational j, Numeric gperp, 
  * Returns no Zeeman effect if the quantum numbers are not there, and
  * nothing if a level cannot be computed.
  */
-std::optional<lbl::zeeman::data> hund_a_hyperfine_ground_state(const QuantumIdentifier&               qid,
+std::optional<lbl::zeeman::data> hund_a_hyperfine_ground_state(const QuantumIdentifier&             qid,
                                                                const lbl::zeeman::hund_a_hyperfine& c) {
   const auto& s = qid.state;
   if (not(s.contains(F) and s.contains(J) and s.contains(Omega) and s.contains(kronigParity) and s.contains(v) and
           s.contains(ElecStateLabel)))
     return lbl::zeeman::data{};
 
-  const auto& el = s.at(ElecStateLabel);
+  const auto& el  = s.at(ElecStateLabel);
   const auto& vib = s.at(v);
   if (el.upper.get<String>() != "X" or el.lower.get<String>() != "X" or vib.upper.get<Rational>() != 0 or
       vib.lower.get<Rational>() != 0)

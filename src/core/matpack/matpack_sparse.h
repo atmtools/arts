@@ -21,6 +21,9 @@
 #ifndef matpackII_h
 #define matpackII_h
 
+#include <xml.h>
+#include <xml_io_stream.h>
+
 #include <iosfwd>
 #include <optional>
 #include <ranges>
@@ -28,9 +31,6 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-
-#include <xml.h>
-#include <xml_io_stream.h>
 
 #include "array.h"
 #include "matpack_mdspan_data_t.h"
@@ -219,7 +219,7 @@ template <bool Const> class sparse_element_range : public std::ranges::view_inte
           nrows(value.nrows()) {
       skip_finished_rows();
     }
-    auto operator*() const { return std::tuple<Index, Index, reference>{row, cols[pos], vals[pos]}; }
+    auto      operator*() const { return std::tuple<Index, Index, reference>{row, cols[pos], vals[pos]}; }
     iterator& operator++() {
       ++pos;
       skip_finished_rows();
@@ -265,7 +265,6 @@ template <> struct std::formatter<Sparse> {
     return ctx.out();
   }
 };
-
 
 template <> struct xml_io_stream<Sparse> {
   static constexpr std::string_view type_name = "Sparse"sv;

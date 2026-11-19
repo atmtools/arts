@@ -19,9 +19,7 @@ namespace stdr = std::ranges;
  * the full string, so collisions cannot change the result. */
 constexpr std::uint32_t enumhash(const std::string_view s) noexcept {
   std::uint32_t h = 2166136261u;
-  for (const char c : s)
-    h = (h ^ static_cast<std::uint32_t>(static_cast<unsigned char>(c))) *
-        16777619u;
+  for (const char c : s) h = (h ^ static_cast<std::uint32_t>(static_cast<unsigned char>(c))) * 16777619u;
   return h;
 }
 

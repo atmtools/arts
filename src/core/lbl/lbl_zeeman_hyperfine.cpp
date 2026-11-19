@@ -73,7 +73,8 @@ struct hyperfine_hamiltonian {
     const Numeric lj = j * (j + 1);
     const Numeric W  = get_W(R, i, j);
 
-    return -(c.B - 2 * c.D * (x - 1) - 0.5 * c.gamma - c.b_F * R / (4 * lj) + ef * 0.5 * (j + 0.5) * (c.q + c.eQq2 * W)) *
+    return -(c.B - 2 * c.D * (x - 1) - 0.5 * c.gamma - c.b_F * R / (4 * lj) +
+             ef * 0.5 * (j + 0.5) * (c.q + c.eQq2 * W)) *
            sqrt(x - 1);
   }
 
@@ -96,7 +97,8 @@ struct hyperfine_hamiltonian {
     const Numeric T = get_T(R, i, j);
     const Numeric P = get_P(f, i, j);
 
-    return (c.b_F + ef * c.eQq2 * T * (j - 0.5)) * 0.5 * P * sqrt((2 * j - 3) * (2 * j + 1)) * (2 * j + 3) / (2 * j - 1);
+    return (c.b_F + ef * c.eQq2 * T * (j - 0.5)) * 0.5 * P * sqrt((2 * j - 3) * (2 * j + 1)) * (2 * j + 3) /
+           (2 * j - 1);
   }
 
   [[nodiscard]] Numeric minoneJ_om21(Numeric j, Numeric ef) const {
@@ -186,18 +188,18 @@ struct zeeman_hamiltonian {
   //! <J, o| H |J, o + 1>, Sigma of o is -1/2
   [[nodiscard]] Numeric off_om(Numeric j, Index o) const {
     const Numeric sig = signed_sigma[o], lam = signed_lambda[o], om = lam + sig;
-    const Numeric V   = get_Vzee(sig, 1);
-    const Numeric lf  = f * (f + 1);
-    const Numeric li  = i * (i + 1);
-    const Numeric lj  = j * (j + 1);
-    const Numeric U   = lf - li + lj;
+    const Numeric V  = get_Vzee(sig, 1);
+    const Numeric lf = f * (f + 1);
+    const Numeric li = i * (i + 1);
+    const Numeric lj = j * (j + 1);
+    const Numeric U  = lf - li + lj;
 
     return ge * sqrt((j - om) * (j + om + 1)) * V * U / (4 * lf * lj);
   }
 
   //! <J, o| H |J - 1, o + 1> if Sigma of o is -1/2, else <J, o| H |J - 1, o - 1>
   [[nodiscard]] Numeric minJ_off_om(Numeric j, Index o) const {
-    const Numeric sig  = signed_sigma[o], lam = signed_lambda[o], om = lam + sig;
+    const Numeric sig = signed_sigma[o], lam = signed_lambda[o], om = lam + sig;
     const Index   pm   = sig < 0 ? 1 : -1;
     const Numeric V    = get_Vzee(sig, pm);
     const Numeric P    = get_Pzee(f, i, j);

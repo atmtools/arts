@@ -284,8 +284,8 @@ template <any_cdata T> constexpr T normalized(T x) {
 }  // namespace matpack
 
 //! Ranges iterate over the first dimension, so their size is extent(0), not the member size() element count
-template <typename T, Size... dims>
-inline constexpr bool stdr::disable_sized_range<matpack::cdata_t<T, dims...>> = sizeof...(dims) > 1;
+template <typename T, Size... dims> inline constexpr bool stdr::disable_sized_range<matpack::cdata_t<T, dims...>> =
+    sizeof...(dims) > 1;
 
 template <typename T, Size... dims> struct std::formatter<matpack::cdata_t<T, dims...>> {
   std::formatter<matpack::view_t<const T, sizeof...(dims)>> fmt;

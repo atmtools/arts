@@ -12,10 +12,10 @@
 #include <vector>
 
 #include "covariance_matrix.h"
-#include "matpack_sparse_eigen.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
+#include "matpack_sparse_eigen.h"
 #include "nanobind/nanobind.h"
 #include "python_interface.h"
 

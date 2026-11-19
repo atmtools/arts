@@ -161,8 +161,8 @@ void MCRadar(const Workspace&                ws,
                                         squared_sum[ib][s] - 2.0 * mean * squared_weight_signal_sum[ib][s] +
                                             mean * mean * squared_weight_sum) /
                                (weight_sum * weight_sum);
-      radar_signal[ib][s] = factor * mean;
-      radar_error[ib][s]  = factor * std::sqrt(variance);
+      radar_signal[ib][s]    = factor * mean;
+      radar_error[ib][s]     = factor * std::sqrt(variance);
     }
   }
 }

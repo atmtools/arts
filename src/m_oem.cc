@@ -835,8 +835,7 @@ void oemBasisReduce(OptimalEstimationData& data,
           if constexpr (std::same_as<T, Matrix>)
             return std::make_shared<Matrix>((*matrix)[Range(0, rows), Range(0, cols)]);
           else {
-            return std::make_shared<Sparse>(
-                matpack::from_eigen(matpack::eigen_map(*matrix).topLeftCorner(rows, cols)));
+            return std::make_shared<Sparse>(matpack::from_eigen(matpack::eigen_map(*matrix).topLeftCorner(rows, cols)));
           }
         },
         basis.data);

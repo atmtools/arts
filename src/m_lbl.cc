@@ -747,9 +747,9 @@ void spectral_propmatAddVoigtLTE(SpectralPropmat&            spectral_propmat_,
     dispersion[i]       += dispersion_from_imag_absorption(freq_grid[i], pm[i].imag());
     for (Size j = 0; j < nt; ++j) {
       spectral_propmat_jac[j, i] += Propmat{dpm[j, i].real()};
-      dispersion_jac[j, i]       += wind[j]
-                                        ? ddispersion_from_imag_absorption_df(freq_grid[i], pm[i].imag(), dpm[j, i].imag())
-                                        : dispersion_from_imag_absorption(freq_grid[i], dpm[j, i].imag());
+      dispersion_jac[j, i] += wind[j]
+                                  ? ddispersion_from_imag_absorption_df(freq_grid[i], pm[i].imag(), dpm[j, i].imag())
+                                  : dispersion_from_imag_absorption(freq_grid[i], dpm[j, i].imag());
     }
   }
 
@@ -847,8 +847,8 @@ void single_propmatAddVoigtLTE(Propmat&                    single_propmat,
     dispersion[i]       += dispersion_from_imag_absorption(frequency, pm[i].imag());
     for (Size j = 0; j < nt; ++j) {
       spectral_propmat_jac[j, i] += Propmat{dpm[j, i].real()};
-      dispersion_jac[j, i]       += wind[j] ? ddispersion_from_imag_absorption_df(frequency, pm[i].imag(), dpm[j, i].imag())
-                                            : dispersion_from_imag_absorption(frequency, dpm[j, i].imag());
+      dispersion_jac[j, i] += wind[j] ? ddispersion_from_imag_absorption_df(frequency, pm[i].imag(), dpm[j, i].imag())
+                                      : dispersion_from_imag_absorption(frequency, dpm[j, i].imag());
     }
   }
 
@@ -989,8 +989,8 @@ void spectral_propmatMemoryIntensiveAddVoigtLTE(SpectralPropmat&            spec
               }
 
               for (Size i = 0; i < n; i++) {
-                auto v                         = res[i];
-                spectral_propmat_jac[j, i]    += lbl::zeeman::scale(npm, v[j + 1]);
+                auto v                      = res[i];
+                spectral_propmat_jac[j, i] += lbl::zeeman::scale(npm, v[j + 1]);
                 spectral_dispersion_jac[j, i] +=
                     npm.A() * (df[j] ? ddispersion_from_imag_absorption_df(f_grid[i], v[0].imag(), v[j + 1].imag())
                                      : dispersion_from_imag_absorption(f_grid[i], v[j + 1].imag()));
