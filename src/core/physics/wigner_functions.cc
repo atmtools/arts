@@ -9,6 +9,7 @@
 #include "wigner_functions.h"
 
 #include <debug.h>
+#include <math_funcs.h>
 #include <wigxjpf_config.h>
 
 #include <algorithm>
@@ -142,10 +143,6 @@ bool is_wigner6_ready(const Rational& J) {
   const int test = wigner6_size(J);  // nb. J can be half-valued
   return is_wigner_ready(test);
 }
-
-namespace {
-constexpr Index pow_negative_one(Index x) noexcept { return (x % 2) ? -1 : 1; }
-}  // namespace
 
 Numeric dwigner3j(Index M, Index J1, Index J2, Index J) {
   auto CJM = [](Index j, Index m) {
