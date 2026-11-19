@@ -7,7 +7,9 @@
 
 #include <functional>
 
-#include "operators_numeric_unary.h"
+// The XML structs of the operator functions must be seen wherever the operators are,
+// or a translation unit may instantiate their XML IO without them (an ODR violation)
+#include <functional.h>
 
 #ifndef _MSC_VER
 #if defined(__clang__)
