@@ -1,7 +1,11 @@
 #include "functional_numeric_ternary.h"
 
+#include <xml_io_stream_functional_definition.h>
+
 #include "functional_atm_field.h"
 #include "functional_atm_mag_field.h"
+
+template struct xml_io_stream_function_declaration<NumericTernary>;
 
 namespace ternary {
 namespace {

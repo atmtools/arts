@@ -131,8 +131,9 @@ struct xml_io_stream<std::function<R(Ts...)>> : xml_io_stream_function<std::func
 /** Declares the XML IO of a function type, to be defined in a single source file
  *
  * Use as the explicit specialization of xml_io_stream for the function type, next to
- * the declaration of the type, and define the IO in one source file with
- * xml_io_stream_function and an explicit instantiation of this class.  No other
+ * the declaration of the type, together with an explicit instantiation declaration
+ * (extern template) of this class, and define the IO in one source file with
+ * xml_io_stream_functional_definition.h and an explicit instantiation of this class.  No other
  * translation unit can then instantiate the IO of the type, with or without its structs,
  * and the structs need only be complete in that source file.
  */

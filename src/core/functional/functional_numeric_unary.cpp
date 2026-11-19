@@ -1,6 +1,7 @@
 #include "functional_numeric_unary.h"
 
 #include <arts_constants.h>
+#include <xml_io_stream_functional_definition.h>
 
 #include <cmath>
 
@@ -12,3 +13,5 @@ Numeric WaterEquivalentPressureMK05::operator()(Numeric t) const {
 
   return std::exp(9.550426 - 5723.265 / t + 3.53068 * std::log(t) - 0.00728332 * t);
 }
+
+template struct xml_io_stream_function_declaration<std::function<Numeric(Numeric)>>;

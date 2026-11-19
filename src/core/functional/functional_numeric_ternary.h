@@ -1,6 +1,7 @@
 #pragma once
 
 #include <xml.h>
+#include <xml_io_stream_functional.h>
 
 #include "functional_atm_field.h"
 #include "functional_atm_mag_field.h"
@@ -36,6 +37,10 @@ template <> struct xml_io_stream_functional<NumericTernary> {
                                  EllipsoidGravity>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
+
+//! The XML IO is defined in functional_numeric_ternary.cpp, the only place it is instantiated
+template <> struct xml_io_stream<NumericTernary> : xml_io_stream_function_declaration<NumericTernary> {};
+extern template struct xml_io_stream_function_declaration<NumericTernary>;
 
 template <> struct std::formatter<NumericTernary> {
   format_tags tags;

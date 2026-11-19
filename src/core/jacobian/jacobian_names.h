@@ -151,3 +151,16 @@ template <> struct xml_io_stream<Jacobian::sensor_vec> : xml_io_stream_function_
 template <> struct xml_io_stream<Jacobian::sensor_mat> : xml_io_stream_function_declaration<Jacobian::sensor_mat> {};
 template <> struct xml_io_stream<Jacobian::error_vec> : xml_io_stream_function_declaration<Jacobian::error_vec> {};
 template <> struct xml_io_stream<Jacobian::error_mat> : xml_io_stream_function_declaration<Jacobian::error_mat> {};
+
+extern template struct xml_io_stream_function_declaration<Jacobian::atm_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::atm_mat>;
+extern template struct xml_io_stream_function_declaration<Jacobian::surf_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::surf_mat>;
+extern template struct xml_io_stream_function_declaration<Jacobian::subsurf_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::subsurf_mat>;
+extern template struct xml_io_stream_function_declaration<Jacobian::line_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::line_mat>;
+extern template struct xml_io_stream_function_declaration<Jacobian::sensor_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::sensor_mat>;
+extern template struct xml_io_stream_function_declaration<Jacobian::error_vec>;
+extern template struct xml_io_stream_function_declaration<Jacobian::error_mat>;
