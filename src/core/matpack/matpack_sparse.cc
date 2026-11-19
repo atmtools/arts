@@ -50,6 +50,11 @@ Index Sparse::ncols() const { return nc; }
 //! Returns the number of nonzero elements.
 Index Sparse::nnz() const { return static_cast<Index>(vals.size()); }
 
+std::span<const int>     Sparse::row_starts() const { return row_start; }
+std::span<const int>     Sparse::column_indices() const { return col_index; }
+std::span<const Numeric> Sparse::values() const { return vals; }
+std::span<Numeric>       Sparse::values() { return vals; }
+
 namespace {
 //! The position of column c in row r, and whether the element is stored there
 std::pair<Index, bool> find_element(std::span<const int> row_start, std::span<const int> col_index, Index r, Index c) {

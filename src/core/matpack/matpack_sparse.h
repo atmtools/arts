@@ -124,14 +124,14 @@ struct Sparse {
   int*     get_row_start_pointer();
 
   //! The start of each row in column_indices() and values(), and their size last
-  [[nodiscard]] std::span<const int> row_starts() const { return row_start; }
+  [[nodiscard]] std::span<const int> row_starts() const;
 
   //! The ascending and unique columns of the elements of each row
-  [[nodiscard]] std::span<const int> column_indices() const { return col_index; }
+  [[nodiscard]] std::span<const int> column_indices() const;
 
   //! The values of the elements
-  [[nodiscard]] std::span<const Numeric> values() const { return vals; }
-  [[nodiscard]] std::span<Numeric>       values() { return vals; }
+  [[nodiscard]] std::span<const Numeric> values() const;
+  [[nodiscard]] std::span<Numeric>       values();
 
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
@@ -191,14 +191,20 @@ template <bool Const> class sparse_element_range : public std::ranges::view_inte
 
  public:
   explicit sparse_element_range(source_type& value) : source(&value) {}
+  // The storage is fetched once, so that iterating does not call the out-of-line accessors
   class iterator {
-    source_type* matrix{};
-    Index        row{};
-    Index        pos{};
+    using value_pointer = std::conditional_t<Const, const Numeric*, Numeric*>;
+    using reference     = std::conditional_t<Const, const Numeric&, Numeric&>;
+
+    const int*    starts{};
+    const int*    cols{};
+    value_pointer vals{};
+    Index         nrows{};
+    Index         row{};
+    Index         pos{};
 
     void skip_finished_rows() {
-      const auto starts = matrix->row_starts();
-      while (row < matrix->nrows() and pos >= starts[row + 1]) ++row;
+      while (row < nrows and pos >= starts[row + 1]) ++row;
     }
 
    public:
@@ -206,18 +212,21 @@ template <bool Const> class sparse_element_range : public std::ranges::view_inte
     using value_type       = std::tuple<Index, Index, Numeric>;
     using iterator_concept = std::input_iterator_tag;
     iterator()             = default;
-    explicit iterator(source_type& value) : matrix(&value) { skip_finished_rows(); }
-    auto operator*() const {
-      using reference = std::conditional_t<Const, const Numeric&, Numeric&>;
-      return std::tuple<Index, Index, reference>{row, matrix->column_indices()[pos], matrix->values()[pos]};
+    explicit iterator(source_type& value)
+        : starts(value.row_starts().data()),
+          cols(value.column_indices().data()),
+          vals(value.values().data()),
+          nrows(value.nrows()) {
+      skip_finished_rows();
     }
+    auto operator*() const { return std::tuple<Index, Index, reference>{row, cols[pos], vals[pos]}; }
     iterator& operator++() {
       ++pos;
       skip_finished_rows();
       return *this;
     }
     void operator++(int) { ++*this; }
-    bool operator==(std::default_sentinel_t) const { return matrix == nullptr or row >= matrix->nrows(); }
+    bool operator==(std::default_sentinel_t) const { return row >= nrows; }
   };
   iterator                begin() const { return iterator{*source}; }
   std::default_sentinel_t end() const { return {}; }
