@@ -150,21 +150,7 @@ Vector3 ecef2geodetic(Vector3 ecef, Vector2 refellipsoid) {
 std::pair<Vector3, Vector2> ecef2geodetic_los(Vector3 ecef, Vector3 decef, Vector2 refellipsoid) {
   Vector3 pos = ecef2geodetic(ecef, refellipsoid);
 
-  const Numeric latrad = DEG2RAD * pos[1];
-  const Numeric lonrad = DEG2RAD * pos[2];
-  const Numeric coslat = cos(latrad);
-  const Numeric sinlat = sin(latrad);
-  const Numeric coslon = cos(lonrad);
-  const Numeric sinlon = sin(lonrad);
-
-  // See
-  // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-  Vector3 enu;
-  enu[0] = -sinlon * decef[0] + coslon * decef[1];
-  enu[1] = -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] + coslat * decef[2];
-  enu[2] = coslat * coslon * decef[0] + coslat * sinlon * decef[1] + sinlat * decef[2];
-
-  Vector2 los = enu2los(enu);
+  Vector2 los = enu2los(ecef2enu(decef, pos[1], pos[2]));
 
   const Numeric zenith = los[0] * DEG2RAD;
 
@@ -362,22 +348,8 @@ std::pair<Vector3, Vector3> geodetic_los2ecef(Vector3 pos, Vector2 los, Vector2 
   }
 
   else {
-    const Numeric latrad = DEG2RAD * pos[1];
-    const Numeric lonrad = DEG2RAD * pos[2];
-    const Numeric coslat = cos(latrad);
-    const Numeric sinlat = sin(latrad);
-    const Numeric coslon = cos(lonrad);
-    const Numeric sinlon = sin(lonrad);
-
-    ecef = geodetic2ecef(pos, refellipsoid);
-
-    Vector3 enu = los2enu(los);
-
-    // See
-    // https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
-    decef[0] = -sinlon * enu[0] - sinlat * coslon * enu[1] + coslat * coslon * enu[2];
-    decef[1] = coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2];
-    decef[2] = coslat * enu[1] + sinlat * enu[2];
+    ecef  = geodetic2ecef(pos, refellipsoid);
+    decef = enu2ecef(los2enu(los), pos[1], pos[2]);
   }
 
   return {ecef, decef};
@@ -558,6 +530,31 @@ Vector3 los2enu(Vector2 los) {
   const Numeric aarad = DEG2RAD * los[1];
   const Numeric st    = sin(zarad);
   return {st * sin(aarad), st * cos(aarad), cos(zarad)};
+}
+
+// See https://en.wikipedia.org/wiki/Geographic_coordinate_conversion#From_ECEF_to_ENU
+Vector3 ecef2enu(Vector3 decef, Numeric lat, Numeric lon) {
+  const Numeric latrad = DEG2RAD * lat;
+  const Numeric lonrad = DEG2RAD * lon;
+  const Numeric coslat = cos(latrad);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslon = cos(lonrad);
+  const Numeric sinlon = sin(lonrad);
+  return {-sinlon * decef[0] + coslon * decef[1],
+          -sinlat * coslon * decef[0] - sinlat * sinlon * decef[1] + coslat * decef[2],
+          coslat * coslon * decef[0] + coslat * sinlon * decef[1] + sinlat * decef[2]};
+}
+
+Vector3 enu2ecef(Vector3 enu, Numeric lat, Numeric lon) {
+  const Numeric latrad = DEG2RAD * lat;
+  const Numeric lonrad = DEG2RAD * lon;
+  const Numeric coslat = cos(latrad);
+  const Numeric sinlat = sin(latrad);
+  const Numeric coslon = cos(lonrad);
+  const Numeric sinlon = sin(lonrad);
+  return {-sinlon * enu[0] - sinlat * coslon * enu[1] + coslat * coslon * enu[2],
+          coslon * enu[0] - sinlat * sinlon * enu[1] + coslat * sinlon * enu[2],
+          coslat * enu[1] + sinlat * enu[2]};
 }
 
 std::pair<Vector3, Vector2> poslos_at_distance(Vector3 ecef, Vector3 decef, Vector2 refellipsoid, Numeric l) {

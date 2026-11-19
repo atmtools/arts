@@ -35,51 +35,61 @@ ws.atm_fieldRead(
 
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.ray_path_observer_agendaSetGeometric()
-ws.rte_option = "constant"
 
 pos = [0e3, 0, 0]
 los = [20.0, 0.0]
 ws.measurement_sensorsSimple(pos=pos, los=los)
 
 RAT = 0.8
-fieldg = copy(ws.atm_field["H2O"])
+field = copy(ws.atm_field["H2O"])
+fieldg = copy(field)
 
 fieldg.data /= RAT
 
-ws.oemInit()
-ws.oemAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-14)
-ws.jac_targetsFinalize()
+results = {}
+for rte_option in ["constant", "lintau", "linprop", "magop", "magop_linsrc"]:
+    ws.rte_option = rte_option
+    ws.atm_field["H2O"] = copy(field)
 
-ws.measurement_vecFromSensor()
-transmat = np.array(ws.measurement_vec, copy=True)
+    ws.oemInit()
+    ws.oemAddSpeciesVMR(species="H2O", matrix=np.diag(np.ones((50))) * 1e-14)
+    ws.jac_targetsFinalize()
 
-ws.atm_field["H2O"] = fieldg
-ws.measurement_vecFromSensor()
-apriori = np.array(ws.measurement_vec, copy=True)
+    ws.measurement_vecFromSensor()
+    transmat = np.array(ws.measurement_vec, copy=True)
 
-ws.measurement_vec = transmat
+    ws.atm_field["H2O"] = copy(fieldg)
+    ws.measurement_vecFromSensor()
+    apriori = np.array(ws.measurement_vec, copy=True)
 
-ws.model_state_vecFromData()
-ws.oemSetApriori()
-ws.oemSetMeasurement()
-ws.oemMeasurementCovmatConstant(value=noise**2)
-ws.oemFinalizeDiagonal()
+    ws.measurement_vec = transmat
 
-ws.oemCalc(settings=pyarts.arts.OptimalEstimationSettings(method="lm", lm=[10, 2, 2, 100, 1, 99]))
-vmr_jacobian = np.array(ws.oem.measurement_vec_fit, copy=True)
+    ws.model_state_vecFromData()
+    ws.oemSetApriori()
+    ws.oemSetMeasurement()
+    ws.oemMeasurementCovmatConstant(value=noise**2)
+    ws.oemFinalizeDiagonal()
 
-np.testing.assert_array_less(
-    np.linalg.norm(transmat - vmr_jacobian),
-    np.linalg.norm(transmat - apriori) + DELTA,
-)
+    ws.oemCalc(settings=pyarts.arts.OptimalEstimationSettings(method="lm", lm=[10, 2, 2, 100, 1, 99]))
+    vmr_jacobian = np.array(ws.oem.measurement_vec_fit, copy=True)
+
+    np.testing.assert_array_less(
+        np.linalg.norm(transmat - vmr_jacobian),
+        np.linalg.norm(transmat - apriori) + DELTA,
+    )
+
+    results[rte_option] = transmat, apriori, vmr_jacobian
 
 if "ARTS_HEADLESS" not in os.environ:
     import matplotlib.pyplot as plt
 
-    plt.plot(ws.freq_grid / 1e9, transmat, label="transmission target")
-    plt.plot(ws.freq_grid / 1e9, apriori, label="apriori")
-    plt.plot(ws.freq_grid / 1e9, vmr_jacobian, label="VMR-Jacobian fit")
-    plt.xlabel("Frequency [GHz]")
-    plt.ylabel("Brightness temperature [K]")
-    plt.legend()
+    fig, axes = plt.subplots(1, len(results), figsize=(20, 4), sharey=True)
+    for ax, (rte_option, (transmat, apriori, vmr_jacobian)) in zip(axes, results.items()):
+        ax.plot(ws.freq_grid / 1e9, transmat, label="transmission target")
+        ax.plot(ws.freq_grid / 1e9, apriori, label="apriori")
+        ax.plot(ws.freq_grid / 1e9, vmr_jacobian, label="VMR-Jacobian fit")
+        ax.set_xlabel("Frequency [GHz]")
+        ax.set_title(rte_option)
+    axes[0].set_ylabel("Brightness temperature [K]")
+    axes[0].legend()
     plt.show()

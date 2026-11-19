@@ -114,12 +114,7 @@ stokvec nonspecular_radiance_from_patches(std::span<const Vector2>  coords,
 
   // The Stokes vectors are in the meridional bases of the local vertical at P, so the reflection
   // takes its directions in P's east-north-up frame, whose up is the ellipsoid normal
-  const Numeric sin_lat = std::sin(deg2rad(pos[0])), cos_lat = std::cos(deg2rad(pos[0]));
-  const Numeric sin_lon = std::sin(deg2rad(pos[1])), cos_lon = std::cos(deg2rad(pos[1]));
-  const Vector3 east{-sin_lon, cos_lon, 0.0};
-  const Vector3 north{-sin_lat * cos_lon, -sin_lat * sin_lon, cos_lat};
-  const Vector3 up{cos_lat * cos_lon, cos_lat * sin_lon, sin_lat};
-  const auto    local       = [&](const Vector3& v) { return Vector3{dot(v, east), dot(v, north), dot(v, up)}; };
+  const auto    local       = [&](const Vector3& v) { return ecef2enu(v, pos[0], pos[1]); };
   const Vector3 k_out_local = local(k_out);
 
   stokvec result = J;

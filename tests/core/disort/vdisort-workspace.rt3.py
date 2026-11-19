@@ -64,15 +64,6 @@ ATMOSPHERE = {
 }
 
 
-def profile(values):
-    field = A.GeodeticField3(
-        grids=[Z[::-1], [0.0], [0.0]],
-        grid_names=["altitude", "latitude", "longitude"],
-        data=np.asarray(values, dtype=float)[::-1].reshape(len(Z), 1, 1),
-    )
-    return field
-
-
 def workspace(species, gas=True, fields={}):
     """A workspace with the atmosphere (fields replace its profiles) and a path down through its levels."""
     ws = pa.Workspace()
@@ -83,13 +74,13 @@ def workspace(species, gas=True, fields={}):
     ws.spectral_propmat_agendaAuto()
     ws.surf_fieldPlanet(option="Earth")
     ws.surf_field[A.SurfaceKey("t")] = T_SURF
-    ws.atm_field.top_of_atmosphere = Z[0]
+    profile = [A.AtmPoint() for _ in Z]
     for key, values in {**ATMOSPHERE, **fields}.items():
         if isinstance(key, str) and key in ("H2O", "O2"):
             key = A.SpeciesEnum(key)
-        ws.atm_field[key] = profile(values)
-        ws.atm_field[key].alt_low = "Linear"
-        ws.atm_field[key].alt_upp = "Linear"
+        for point, value in zip(profile, values):
+            point[key] = value
+    ws.atm_fieldFromProfile(atm_profile=profile[::-1], alt_grid=Z[::-1], altitude_extrapolation="Linear")
     ws.scat_species = species
     ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
@@ -276,10 +267,8 @@ def henyey_greenstein():
 
 def mie_drops():
     """Liquid drops as a Legendre series, converted from gridded Mie data."""
-    x, _ = A.math.leggauss(4000)
-    angles = np.degrees(np.arccos(np.asarray(x)[::-1]))
     t_grid = [220.0, 250.0, 280.0, 310.0]
-    habit = A.ParticleHabit.liquid_sphere(t_grid, FREQ, [1.5e-3], A.IrregularZenithAngleGrid(angles))
+    habit = A.ParticleHabit.liquid_sphere(t_grid, FREQ, [1.5e-3], A.GaussLegendreGrid(4000))
     habit, reports = habit.to_tro_spectral_with_report(t_grid, FREQ, 64)
     for report in reports:
         assert np.abs(np.asarray(report.normalisation_error)).max() < 1e-7
@@ -303,11 +292,10 @@ def against_rt3(name, ws, aziorder, azimuths, ground, thermal, minimum):
         max_delta_tau=MAX_DELTA_TAU,
         normalisation_tolerance=1e-6,
     )
-    h, k, c = A.constants.h, A.constants.k, A.constants.c
     for iv, f in enumerate(FREQ):
-        # The sky temperature of the downward boundary, by inverting Planck's law
+        # The sky temperature of the downward boundary
         sky = np.asarray(s.downward_boundary_condition)[iv, 0, 0, 0, 0]
-        sky_temperature = h * f / k / np.log1p(2 * h * f**3 / (c**2 * sky)) if sky > 0 else 0.0
+        sky_temperature = A.physics.invplanck(sky, f) if sky > 0 else 0.0
         problem = A.rt3.problem_from_path(
             ws.ray_path, ws.atm_path, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv, ws.scat_species,
             settings, ground, T_SURF, sky_temperature,

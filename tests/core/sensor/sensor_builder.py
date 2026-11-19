@@ -94,10 +94,9 @@ def test_sensor_builder_from_poslos_vector_and_length_guard():
 
 def test_sensor_builder_xml_round_trip():
     sensors = pyarts.arts.sensors
-    gridded = sensors.AntennaPatternField()
-    gridded.grids = [pyarts.arts.ZenGrid([0.0, 0.5, 1.0]),
-                     pyarts.arts.AziGrid([0.0, 90.0, 180.0, 270.0])]
-    gridded.data = np.array([[1.0] * 4, [0.6, 0.5, 0.6, 0.5], [0.1] * 4])
+    gridded = sensors.AntennaPatternField(
+        data=np.array([[1.0] * 4, [0.6, 0.5, 0.6, 0.5], [0.1] * 4]),
+        grids=[[0.0, 0.5, 1.0], [0.0, 90.0, 180.0, 270.0]])
 
     antennas = [
         sensors.PencilBeamAntenna(),

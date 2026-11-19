@@ -6,7 +6,6 @@ import pyarts3 as pa
 A = pa.arts
 # Random orientation computes Clebsch-Gordan coefficients with the Wigner tables
 pa.Workspace().WignerInit()
-C = 299792458.0
 T = [260.0, 280.0]
 F = [100e9, 120e9]
 M = np.array([[1.5 + 0.01j, 1.6 + 0.02j], [1.55 + 0.015j, 1.65 + 0.025j]])
@@ -45,7 +44,7 @@ np.testing.assert_allclose(ssd.properties.d_max, 2.289428485106664e-05)
 for it in range(2):
     for jf in range(2):
         direct = A.tmatrix.random(
-            D / 2, C / F[jf], A.tmatrix.Shape.spheroid(1.5), M[it, jf].real, M[it, jf].imag, angles=NANGLE
+            D / 2, A.convert.freq2wavelen(F[jf]), A.tmatrix.Shape.spheroid(1.5), M[it, jf].real, M[it, jf].imag, angles=NANGLE
         )
         series = np.asarray(direct.legendre) * direct.scattering / (4 * np.pi)
         n = series.shape[0]
@@ -111,7 +110,7 @@ assert drop[0].properties.name == "T-matrix generalized Chebyshev particle"
 grid = 2.17370105873609e-05
 assert grid <= drop[0].properties.d_max <= grid * (1 + 1e-6)
 direct = A.tmatrix.random(
-    D / 2, C / F[0], A.tmatrix.Shape.generalized_chebyshev(DROP), M[0, 0].real, M[0, 0].imag
+    D / 2, A.convert.freq2wavelen(F[0]), A.tmatrix.Shape.generalized_chebyshev(DROP), M[0, 0].real, M[0, 0].imag
 )
 np.testing.assert_allclose(np.array(drop[0].extinction_matrix)[0, 0, 0], direct.extinction, rtol=1e-15)
 
@@ -241,7 +240,7 @@ for particle, diameter, aspect, d_max in zip(aro, [D, 2 * D], [1.5, 0.5], [2.289
         for jf in range(2):
             direct = A.tmatrix.azimuthally_random(
                 diameter / 2,
-                C / F[jf],
+                A.convert.freq2wavelen(F[jf]),
                 A.tmatrix.Shape.spheroid(aspect),
                 M[it, jf].real,
                 M[it, jf].imag,

@@ -19,8 +19,9 @@ def _fresnel_reflectances(mu, refractive_index):
 
 def _rayleigh_beam_phase_matrix(signed_mu, mu0, nfourier):
     """ARTS's Rayleigh Fourier modes from the beam at -mu0 into signed_mu, in VDISORT's combined layout."""
-    species = arts.ArrayOfScatteringSpecies()
-    species.add(arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0)))
+    species = arts.ArrayOfScatteringSpecies(
+        [arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0))]
+    )
     atm = arts.AtmPoint()
     atm.pressure = 8e4
     atm.temperature = 260.0
@@ -607,8 +608,7 @@ def test_optically_thin_rayleigh_atmosphere():
     # is second order in this optical depth and is outside the tested
     # single-scattering limit.
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
     model = arts.cppvdisort(
         tau_arr=np.array([depth]),
@@ -704,8 +704,7 @@ def test_nonprincipal_plane_rayleigh_polarization():
     phi0 = 0.0
 
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
 
     model = arts.cppvdisort(
@@ -805,8 +804,7 @@ def test_optically_thin_sun_halo():
 
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
     quadrature_beam_phase = np.zeros((2, nfourier, 1, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
     quadrature_scattering_angle = np.arccos(-signed_mu)
     quadrature_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = (

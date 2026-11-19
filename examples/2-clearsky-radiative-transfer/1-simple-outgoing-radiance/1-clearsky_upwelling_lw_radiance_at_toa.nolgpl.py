@@ -50,9 +50,7 @@ ws.ReadCatalogData()
 # a cutoff of 25 Kayser is necessary. We set it here for all species, because it
 # also speeds up the calculation.
 cutoff = pa.arts.convert.kaycm2freq(25)
-for band in ws.abs_bands:
-    ws.abs_bands[band].cutoff = "ByLine"
-    ws.abs_bands[band].cutoff_value = cutoff
+ws.abs_bandsSetCutoff(option="ByLine", value=cutoff)
 
 # Remove 90% of the lines to speed up the calculation
 ws.abs_bands.keep_hitran_s(approximate_percentile=90)

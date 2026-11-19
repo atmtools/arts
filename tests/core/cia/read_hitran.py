@@ -40,6 +40,6 @@ with tempfile.TemporaryDirectory() as catalog:
 
 (record,) = ws.abs_cia_data.values()
 (field,) = record.data
-assert np.allclose(field.grids[0], WAVENUMBERS * 100 * pyarts.arts.constants.c, rtol=1e-15, atol=0)
+assert np.allclose(field.grids[0], pyarts.arts.convert.kaycm2freq(WAVENUMBERS), rtol=1e-15, atol=0)
 assert np.array_equal(field.grids[1], TEMPERATURES)
 assert np.allclose(field.data, CROSS_SECTIONS.T * 1e-10, rtol=1e-15, atol=0)

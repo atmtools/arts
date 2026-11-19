@@ -4466,6 +4466,20 @@ See *SpeciesIsotope* for valid ``species``
                     "On or off"},
   };
 
+  wsm_data["abs_bandsSetCutoff"] = {
+      .desc      = R"--(Set the line-by-line cutoff of all bands
+
+See *LineByLineCutoffType* for valid ``option``.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
+      .gin       = {"option", "value"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {std::nullopt, std::numeric_limits<Numeric>::infinity()},
+      .gin_desc  = {"The type of cutoff", "The cutoff value [Hz], e.g., the distance from the line center for ByLine"},
+  };
+
   wsm_data["ray_pointPastGeometric"] = {
       .desc =
           R"--(Gets the previous geometric point along *ray_path*

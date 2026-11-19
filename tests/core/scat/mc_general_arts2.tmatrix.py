@@ -25,7 +25,6 @@ REFRACTIVE_INDEX = np.array([
 FREQUENCIES = [229e9, 231e9]
 TEMPERATURES = [214.0, 225.0]
 ANGLES = np.arange(0.0, 181.0, 10.0)
-C = 299792458.0
 # ARTS2 scattering data use Mishchenko's Stokes convention, whose U is the
 # negative of ARTS's.  The legacy layout below holds them that way: D Z D with
 # D = diag(1, 1, -1, 1) takes ARTS's phase matrices to ARTS2's.
@@ -55,7 +54,7 @@ def generate(quadrature=10):
     extinction = np.empty((2, 2, nz, 1, 3))
     absorption = np.empty((2, 2, nz, 1, 2))
     for fi, frequency in enumerate(FREQUENCIES):
-        wavelength = C / frequency
+        wavelength = A.convert.freq2wavelen(frequency)
         for ti, _ in enumerate(TEMPERATURES):
             m = REFRACTIVE_INDEX[fi, ti]
             results = A.tmatrix.fixed_batch(100e-6, wavelength, A.tmatrix.Shape.spheroid(1.5), m.real, m.imag,
@@ -267,13 +266,9 @@ def main():
         mc_max_scatorder=30,
     )
 
-    rjbt = A.SpectralRadianceTransformOperator("RJBT")
-
     def to_rj(stokes):
         """The Rayleigh-Jeans brightness temperature [K] of a Stokes vector"""
-        out = A.StokvecVector([stokes])
-        rjbt(out, A.StokvecMatrix(np.zeros((0, 1, 4))), A.AscendingGrid([common["frequency"]]), A.PropagationPathPoint())
-        return np.asarray(out)[0]
+        return A.physics.invrayjean(np.asarray(stokes), common["frequency"])
 
     def check(reference):
         ws.MCGeneral(**common)

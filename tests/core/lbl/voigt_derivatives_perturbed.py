@@ -84,14 +84,12 @@ def workspace(lineshape="VP_LTE", zeeman=False, cutoff=False):
     band = next(iter(ws.abs_bands))
     ws.abs_bands[band].lineshape = lineshape
     if cutoff:
-        ws.abs_bands[band].cutoff = "ByLine"
-        ws.abs_bands[band].cutoff_value = 1e9
-    line = ws.abs_bands[band].lines[0]
-    species = pyarts.arts.SpeciesEnum("O2")
-    species_model = line.ls.single_models[species]
+        ws.abs_bandsSetCutoff(option="ByLine", value=1e9)
+    species_model = ws.abs_bands[band].lines[0].ls.single_models[
+        pyarts.arts.SpeciesEnum("O2")
+    ]
     for parameter in ("D0", "G", "DV"):
         species_model[parameter] = pyarts.arts.TemperatureModel("T0", [0.0])
-    line.ls.single_models[species] = species_model
     if zeeman:
         ws.abs_bandsSetZeeman(species="O2-66", fmin=118.74e9, fmax=118.76e9)
         ws.WignerInit()
@@ -105,21 +103,44 @@ def calculate(ws, implementation):
     return np.array(ws.spectral_propmat.K)
 
 
+def target_value(ws):
+    """Getter and setter of the quantity of the only Jacobian target"""
+    if len(ws.jac_targets.line):
+        key = ws.jac_targets.line[0].type
+        return (
+            lambda ws: key.get_value(ws.abs_bands),
+            lambda ws, value: key.set_value(ws.abs_bands, value),
+        )
+    key = ws.jac_targets.atm[0].type
+    return (
+        lambda ws: ws.atm_point[key],
+        lambda ws, value: ws.atm_point.__setitem__(key, value),
+    )
+
+
+def frequency_value(ws):
+    """The wind derivative is the frequency derivative"""
+    return (
+        lambda ws: np.array(ws.freq_grid),
+        lambda ws, value: setattr(ws, "freq_grid", value),
+    )
+
+
 def check(
     name,
     implementation,
     add_target,
-    get_value,
-    set_value,
     step,
     lineshape="VP_LTE",
     tolerance=5e-3,
     zeeman=False,
     cutoff=False,
+    value=target_value,
 ):
     ws = workspace(lineshape, zeeman, cutoff)
     ws.jac_targetsInit()
     add_target(ws)
+    get_value, set_value = value(ws)
     calculate(ws, implementation)
     analytic = np.array(ws.spectral_propmat.dK)[0]
 
@@ -156,54 +177,41 @@ IMPLEMENTATIONS = (
 )
 
 ATMOSPHERIC_TARGETS = (
-    (
-        "temperature",
-        lambda ws: ws.jac_targetsAddTemperature(),
-        lambda ws: ws.atm_point.temperature,
-        lambda ws, value: setattr(ws.atm_point, "temperature", value),
-        1e-2,
-    ),
-    (
-        "pressure",
-        lambda ws: ws.jac_targetsAddPressure(),
-        lambda ws: ws.atm_point.pressure,
-        lambda ws, value: setattr(ws.atm_point, "pressure", value),
-        1.0,
-    ),
+    ("temperature", lambda ws: ws.jac_targetsAddTemperature(), 1e-2, {}),
+    ("pressure", lambda ws: ws.jac_targetsAddPressure(), 1.0, {}),
     (
         "absorber VMR",
         lambda ws: ws.jac_targetsAddSpeciesVMR(species="O2"),
-        lambda ws: ws.atm_point["O2"],
-        lambda ws, value: ws.atm_point.__setitem__("O2", value),
         1e-5,
+        {},
     ),
     (
         "isotopologue ratio",
         lambda ws: ws.jac_targetsAddSpeciesIsotopologueRatio(species="O2-66"),
-        lambda ws: ws.atm_point["O2-66"],
-        lambda ws, value: ws.atm_point.__setitem__("O2-66", value),
         1e-5,
+        {},
     ),
     (
         "frequency/wind",
         lambda ws: ws.jac_targetsAddWindField(component="u"),
-        lambda ws: np.array(ws.freq_grid),
-        lambda ws, value: setattr(ws, "freq_grid", value),
         10.0,
+        {"value": frequency_value},
     ),
 )
 
 for implementation in IMPLEMENTATIONS:
-    for target in ATMOSPHERIC_TARGETS:
-        check(target[0], implementation, *target[1:])
+    for name, add_target, step, options in ATMOSPHERIC_TARGETS:
+        check(name, implementation, add_target, step, **options)
 
 # The mirrored profile has its own implementation and must not regress separately.
-for target in ATMOSPHERIC_TARGETS:
+for name, add_target, step, options in ATMOSPHERIC_TARGETS:
     check(
-        target[0],
+        name,
         "spectral_propmatAddLines",
-        *target[1:],
+        add_target,
+        step,
         lineshape="VP_LTE_MIRROR",
+        **options,
     )
 
 # Pressure derivatives have separate cutoff paths in each implementation.
@@ -211,22 +219,16 @@ for implementation in IMPLEMENTATIONS:
     check(
         "pressure with line cutoff",
         implementation,
-        *ATMOSPHERIC_TARGETS[1][1:],
+        *ATMOSPHERIC_TARGETS[1][1:3],
         cutoff=True,
     )
 check(
     "pressure with line cutoff",
     "spectral_propmatAddLines",
-    *ATMOSPHERIC_TARGETS[1][1:],
+    *ATMOSPHERIC_TARGETS[1][1:3],
     lineshape="VP_LTE_MIRROR",
     cutoff=True,
 )
-
-
-def set_magnetic_component(ws, component, value):
-    mag = np.array(ws.atm_point.mag)
-    mag[component] = value
-    ws.atm_point.mag = mag
 
 
 for implementation in IMPLEMENTATIONS:
@@ -234,8 +236,6 @@ for implementation in IMPLEMENTATIONS:
         "magnetic field u",
         implementation,
         lambda ws: ws.jac_targetsAddMagneticField(component="u"),
-        lambda ws: ws.atm_point.mag[0],
-        lambda ws, value: set_magnetic_component(ws, 0, value),
         1e-8,
         tolerance=1e-1,
         zeeman=True,
@@ -245,8 +245,6 @@ check(
     "magnetic field u",
     "spectral_propmatAddLines",
     lambda ws: ws.jac_targetsAddMagneticField(component="u"),
-    lambda ws: ws.atm_point.mag[0],
-    lambda ws, value: set_magnetic_component(ws, 0, value),
     1e-8,
     lineshape="VP_LTE_MIRROR",
     tolerance=1e-1,
@@ -352,12 +350,6 @@ for parameter, step, tolerance in (
             lambda ws, parameter=parameter: ws.jac_targetsAddLineParameter(
                 band=band(ws), line=0, parameter=parameter
             ),
-            lambda ws, parameter=parameter: getattr(
-                ws.abs_bands[band(ws)].lines[0], parameter
-            ),
-            lambda ws, value, parameter=parameter: setattr(
-                ws.abs_bands[band(ws)].lines[0], parameter, value
-            ),
             step,
             tolerance=tolerance,
         )
@@ -367,33 +359,10 @@ for parameter, step, tolerance in (
         lambda ws, parameter=parameter: ws.jac_targetsAddLineParameter(
             band=band(ws), line=0, parameter=parameter
         ),
-        lambda ws, parameter=parameter: getattr(
-            ws.abs_bands[band(ws)].lines[0], parameter
-        ),
-        lambda ws, value, parameter=parameter: setattr(
-            ws.abs_bands[band(ws)].lines[0], parameter, value
-        ),
         step,
         lineshape="VP_LTE_MIRROR",
         tolerance=tolerance,
     )
-
-
-def shape_model(ws, parameter, species="O2"):
-    line = ws.abs_bands[band(ws)].lines[0]
-    return line.ls.single_models[pyarts.arts.SpeciesEnum(species)][parameter]
-
-
-def set_shape_coefficient(ws, parameter, coefficient, value, species="O2"):
-    line = ws.abs_bands[band(ws)].lines[0]
-    species = pyarts.arts.SpeciesEnum(species)
-    species_model = line.ls.single_models[species]
-    model = species_model[parameter]
-    data = model.data
-    data[coefficient] = value
-    model.data = data
-    species_model[parameter] = model
-    line.ls.single_models[species] = species_model
 
 
 for parameter, coefficient, step, tolerance in (
@@ -414,12 +383,6 @@ for parameter, coefficient, step, tolerance in (
                 parameter=parameter,
                 coefficient=f"X{coefficient}",
             ),
-            lambda ws, parameter=parameter, coefficient=coefficient: shape_model(
-                ws, parameter
-            ).data[coefficient],
-            lambda ws, value, parameter=parameter, coefficient=coefficient: set_shape_coefficient(
-                ws, parameter, coefficient, value
-            ),
             step,
             tolerance=tolerance,
         )
@@ -432,12 +395,6 @@ for parameter, coefficient, step, tolerance in (
             species="O2",
             parameter=parameter,
             coefficient=f"X{coefficient}",
-        ),
-        lambda ws, parameter=parameter, coefficient=coefficient: shape_model(
-            ws, parameter
-        ).data[coefficient],
-        lambda ws, value, parameter=parameter, coefficient=coefficient: set_shape_coefficient(
-            ws, parameter, coefficient, value
         ),
         step,
         lineshape="VP_LTE_MIRROR",
@@ -456,8 +413,6 @@ for implementation in IMPLEMENTATIONS:
             parameter="G0",
             coefficient="X0",
         ),
-        lambda ws: shape_model(ws, "G0", "AIR").data[0],
-        lambda ws, value: set_shape_coefficient(ws, "G0", 0, value, "AIR"),
         1e-2,
     )
 
@@ -474,31 +429,27 @@ for coefficient in (1, 2, 3):
                 parameter="Y",
                 coefficient=f"X{coefficient}",
             ),
-            lambda ws, coefficient=coefficient: shape_model(ws, "Y").data[
-                coefficient
-            ],
-            lambda ws, value, coefficient=coefficient: set_shape_coefficient(
-                ws, "Y", coefficient, value
-            ),
             1e-12,
         )
 
 
 def add_normalized_optional_broadener_target(ws):
-    line = ws.abs_bands[band(ws)].lines[0]
-    models = line.ls.single_models
+    models = ws.abs_bands[band(ws)].lines[0].ls.single_models
     del models[pyarts.arts.SpeciesEnum("AIR")]
     co2 = pyarts.arts.LineShapeSpeciesModel(
         models[pyarts.arts.SpeciesEnum("O2")]
     )
-    g0 = co2["G0"]
-    data = g0.data
-    data[0] *= 1.1
-    g0.data = data
-    co2["G0"] = g0
+    co2["G0"]["X0"] *= 1.1
     models[pyarts.arts.SpeciesEnum("CO2")] = co2
-    line.ls.single_models = models
     ws.jac_targetsAddSpeciesVMR(species="CO2")
+
+
+def absent_co2_value(ws):
+    """CO2 is absent from AtmPoint, which means a VMR of zero"""
+    return (
+        lambda ws: 0.0,
+        lambda ws, value: ws.atm_point.__setitem__("CO2", value),
+    )
 
 
 # Without AIR/Bath, broadener mixing is normalized by the sum of the provided
@@ -508,10 +459,9 @@ for implementation in IMPLEMENTATIONS:
         "absent normalized broadener VMR",
         implementation,
         add_normalized_optional_broadener_target,
-        lambda ws: 0.0,
-        lambda ws, value: ws.atm_point.__setitem__("CO2", value),
         1e-6,
         tolerance=1e-2,
+        value=absent_co2_value,
     )
 
 if PLOT_FIGURES:

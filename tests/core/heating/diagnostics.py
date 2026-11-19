@@ -44,9 +44,9 @@ def test_pressure_derivative():
 
 
 def test_radiance_integration():
-    nodes, weights = np.polynomial.legendre.leggauss(3)
-    mu = np.r_[(nodes + 1) / 2, -(nodes + 1) / 2]
-    weights = np.tile(weights / 2, 2)
+    nodes, weights = arts.math.pdleggauss(6)
+    mu = np.r_[nodes, -np.asarray(nodes)]
+    weights = np.tile(weights, 2)
     zenith = np.rad2deg(np.arccos(mu))
     up, down = hr.flux_from_radiance(np.where(mu < 0, 3.0, 2.0), zenith, weights)
     np.testing.assert_allclose([up, down], np.pi * np.array([3.0, 2.0]), rtol=1e-14)

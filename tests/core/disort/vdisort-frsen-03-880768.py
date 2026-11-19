@@ -16,8 +16,7 @@ SINE = arts.vdisort.sine_mode
 
 
 def _double_gauss_mu(nquad):
-    nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive = 0.5 * (nodes + 1.0)
+    positive, _ = arts.math.pdleggauss(nquad)
     return np.concatenate((positive, -positive))
 
 
@@ -360,8 +359,9 @@ def test_figure_3_cox_munk_reflection():
 
 def _rayleigh_optics(mu_out, mu_in, nfourier):
     """ARTS's ordinary Fourier coefficients of Rayleigh scattering between signed cosines."""
-    species = arts.ArrayOfScatteringSpecies()
-    species.add(arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0)))
+    species = arts.ArrayOfScatteringSpecies(
+        [arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0))]
+    )
     atm = arts.AtmPoint()
     atm.pressure = 8e4
     atm.temperature = 260.0

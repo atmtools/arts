@@ -495,6 +495,7 @@ arr : :class:`scipy.sparse.csr_matrix`
 
   py::class_<CovarianceMatrix> covm(m, "CovarianceMatrix");
   generic_interface(covm);
+  covm.def(py::init<BlockMatrix>(), "matrix"_a, "A covariance matrix of a single square diagonal block");
   covm.def_prop_rw(
       "blocks",
       [](const CovarianceMatrix& x) { return x.get_blocks(); },

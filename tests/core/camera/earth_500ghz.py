@@ -55,9 +55,7 @@ ws.ReadCatalogData()
 
 # Apply frequency cutoff to speed up calculations
 cutoff = pa.arts.convert.kaycm2freq(25)
-for band in ws.abs_bands:
-    ws.abs_bands[band].cutoff = "ByLine"
-    ws.abs_bands[band].cutoff_value = cutoff
+ws.abs_bandsSetCutoff(option="ByLine", value=cutoff)
 
 # Automatically set up the methods to compute absorption coefficients
 ws.spectral_propmat_agendaAuto()
@@ -112,6 +110,26 @@ col_offsets = np.array(camera_gf.grids[1])  # col angular offsets (degrees)
 print(f"Camera image shape: {image_data.shape}")
 print(f"Row offset range: [{row_offsets[0]:.4f}, {row_offsets[-1]:.4f}] deg")
 print(f"Col offset range: [{col_offsets[0]:.4f}, {col_offsets[-1]:.4f}] deg")
+
+# Checks of the image
+row_grid, col_grid = np.meshgrid(row_offsets, col_offsets, indexing="ij")
+offset = np.hypot(row_grid, col_grid)
+space = offset > 1.05 * earth_angular_radius_deg
+disk = offset < 0.95 * earth_angular_radius_deg
+
+# Pixels missing the Earth see the cosmic background
+assert np.allclose(
+    image_data[space], pa.arts.constants.cosmic_microwave_background_temperature
+)
+
+# The Earth is warm but no warmer than its warmest emitter, and it is limb darkened
+assert np.all(image_data[disk] > 200.0)
+assert np.all(image_data[disk] < max(np.max(ws.atm_field["t"].data.data), 288.0))
+assert image_data[n_h // 2, n_w // 2] == image_data.max()
+
+# The image is mirror symmetric (not transpose symmetric, Earth is flattened)
+assert np.allclose(image_data, image_data[::-1, :], atol=1e-6)
+assert np.allclose(image_data, image_data[:, ::-1], atol=1e-6)
 
 # 6. Visualization
 col_grid, row_grid = np.meshgrid(col_offsets, row_offsets)

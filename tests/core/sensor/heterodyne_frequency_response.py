@@ -50,35 +50,29 @@ def inspect_case(name, selector, expected_global, expected_local, expected_affin
 
 
 def make_triangular_filter():
-    filt = pyarts.arts.SortedGriddedField1()
-    filt.grids = (pyarts.arts.AscendingGrid(np.array([5.0, 10.0, 15.0])),)
-    filt.data = pyarts.arts.Vector(np.array([0.0, 1.0, 0.0]))
-    filt.gridnames = ("frequency",)
-    filt.dataname = "triangular"
-    return filt
+    return pyarts.arts.SortedGriddedField1(
+        name="triangular",
+        data=[0.0, 1.0, 0.0],
+        grid_names=["frequency"],
+        grids=[[5.0, 10.0, 15.0]],
+    )
 
 
 def make_asymmetric_sideband_filter():
-    filt = pyarts.arts.SortedGriddedField1()
-    filt.grids = (
-        pyarts.arts.AscendingGrid(np.array([7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0])),
+    return pyarts.arts.SortedGriddedField1(
+        name="asymmetric_sidebands",
+        data=[
+            db_to_lin(-10.0),
+            db_to_lin(-10.0),
+            db_to_lin(-10.0),
+            db_to_lin(0.0),
+            db_to_lin(1.0),
+            db_to_lin(5.0),
+            db_to_lin(10.0),
+        ],
+        grid_names=["frequency"],
+        grids=[[7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0]],
     )
-    filt.data = pyarts.arts.Vector(
-        np.array(
-            [
-                db_to_lin(-10.0),
-                db_to_lin(-10.0),
-                db_to_lin(-10.0),
-                db_to_lin(0.0),
-                db_to_lin(1.0),
-                db_to_lin(5.0),
-                db_to_lin(10.0),
-            ]
-        )
-    )
-    filt.gridnames = ("frequency",)
-    filt.dataname = "asymmetric_sidebands"
-    return filt
 
 
 def test_lowpass_then_lo_then_box_spectrometer():
@@ -333,11 +327,9 @@ def channel_mean_frequency(channel):
 def test_sampling_density_does_not_weight_the_band():
     # A flat filter with frequencies only near the lower edge adds sampling points there.  The box
     # still responds evenly over [0, 100], so the radiance f is measured as 50 whatever the sampling.
-    flat = pyarts.arts.SortedGriddedField1()
     grid = np.concatenate([np.linspace(0.0, 10.0, 11), [100.0]])
-    flat.grids = (pyarts.arts.AscendingGrid(grid),)
-    flat.data = pyarts.arts.Vector(np.ones(grid.size))
-    flat.gridnames = ("frequency",)
+    flat = pyarts.arts.SortedGriddedField1(
+        data=np.ones(grid.size), grid_names=["frequency"], grids=[grid])
 
     selector = pyarts.arts.sensors.HeterodyneFrequencyRange()
     selector.filter(flat)

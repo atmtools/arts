@@ -135,13 +135,14 @@ print(f"  of the wind targets: {jac_err[-3:] / jac_max[-3:]}")
 
 if PLOT:
     offset = (f - line_f0) / 1e6
-    rj = pyarts.arts.constants.c**2 / (2 * pyarts.arts.constants.k * f**2)  # Radiance to Rayleigh-Jeans temperature
+    def rj(radiance):
+        return pyarts.arts.physics.invrayjean(radiance, f)
 
     fig, ax = plt.subplots(2, len(LOS), figsize=(13, 6), sharex=True, layout="constrained")
     for i, los in enumerate(LOS):
-        ax[0, i].plot(offset, rad_ref[i] * rj, **DEFAULT)
-        ax[0, i].plot(offset, rad[i] * rj, **PROFILE)
-        ax[1, i].plot(offset, (rad[i] - rad_ref[i]) * rj, color=COLORS[1])
+        ax[0, i].plot(offset, rj(rad_ref[i]), **DEFAULT)
+        ax[0, i].plot(offset, rj(rad[i]), **PROFILE)
+        ax[1, i].plot(offset, rj(rad[i] - rad_ref[i]), color=COLORS[1])
         ax[0, i].set_title(f"Line of sight {angles(los)}")
         ax[1, i].set_xlabel("Frequency - line centre [MHz]")
     ax[0, 0].set_ylabel("Brightness temperature (RJ) [K]")
@@ -156,8 +157,8 @@ if PLOT:
     for j, target in enumerate(targets):
         x = slice(target.x_start, target.x_start + target.x_size)
         for i, los in enumerate(LOS):
-            ref_sum = jac_ref[i][x].sum(axis=0) * rj
-            p2p_sum = jac[i][x].sum(axis=0) * rj
+            ref_sum = rj(jac_ref[i][x].sum(axis=0))
+            p2p_sum = rj(jac[i][x].sum(axis=0))
             ax[j, 0].plot(offset, ref_sum, color=COLORS[i], label=f"{angles(los)}, Default")
             ax[j, 0].plot(offset, p2p_sum, color=COLORS[i], ls="--", label=f"{angles(los)}, Profile2Path")
             ax[j, 1].plot(offset, p2p_sum - ref_sum, color=COLORS[i], label=angles(los))

@@ -86,14 +86,6 @@ ws.jac_targetsFinalize()
 
 model_statec_vector_targets = [vmrs, temps]
 
-# %% Retrieval agenda
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vecFromSensor()
-    ws.measurement_vec_fitFromMeasurement()
-
 # %% Conditional helper
 
 def condition(x, xas):

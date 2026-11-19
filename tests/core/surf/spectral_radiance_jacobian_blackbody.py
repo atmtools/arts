@@ -48,14 +48,6 @@ ws.ray_path_observer_agendaSetGeometric()
 ts = 295.0
 ws.surf_field["t"] = ts
 
-# %% Retrieval agenda
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vecFromSensor()
-    ws.measurement_vec_fitFromMeasurement()
-
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
 ws.measurement_sensorsSimple(pos=pos, los=los)

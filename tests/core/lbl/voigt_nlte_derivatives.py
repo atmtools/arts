@@ -123,9 +123,7 @@ def workspace(zeeman=False, cutoff=False):
     ws.ray_point = pyarts.arts.PropagationPathPoint()
     ws.ray_point.los = [180.0, 0.0]
     if cutoff:
-        for key in ws.abs_bands:
-            ws.abs_bands[key].cutoff = "ByLine"
-            ws.abs_bands[key].cutoff_value = 10e6
+        ws.abs_bandsSetCutoff(option="ByLine", value=10e6)
     if zeeman:
         ws.abs_bandsSetZeeman(
             species="H2O-161", fmin=556.92e9, fmax=556.952e9
@@ -167,11 +165,40 @@ def calculate(ws):
     )
 
 
+def target_value(ws):
+    """Getter and setter of the quantity of the only Jacobian target"""
+    if len(ws.jac_targets.line):
+        key = ws.jac_targets.line[0].type
+        return (
+            lambda ws: key.get_value(ws.abs_bands),
+            lambda ws, value: key.set_value(ws.abs_bands, value),
+        )
+    key = ws.jac_targets.atm[0].type
+    return (
+        lambda ws: ws.atm_point[key],
+        lambda ws, value: ws.atm_point.__setitem__(key, value),
+    )
+
+
+def frequency_value(ws):
+    """The wind derivative is the frequency derivative"""
+    return (
+        lambda ws: np.array(ws.freq_grid),
+        lambda ws, value: setattr(ws, "freq_grid", value),
+    )
+
+
+def absent_species_value(species):
+    """An absent species in AtmPoint has zero VMR"""
+    return lambda ws: (
+        lambda ws: 0.0,
+        lambda ws, value: ws.atm_point.__setitem__(species, value),
+    )
+
+
 def check(
     name,
     add_target,
-    get_value,
-    set_value,
     step,
     rtol=1e-3,
     atol=1e-14,
@@ -179,10 +206,12 @@ def check(
     cutoff=False,
     factory=workspace,
     expect_nonzero=True,
+    value=target_value,
 ):
     ws = factory(zeeman=zeeman, cutoff=cutoff)
     ws.jac_targetsInit()
     add_target(ws)
+    get_value, set_value = value(ws)
     calculate(ws)
     analytic = (
         np.array(ws.spectral_propmat.dK)[0],
@@ -224,26 +253,11 @@ def check(
     )
 
 
-check(
-    "temperature",
-    lambda ws: ws.jac_targetsAddTemperature(),
-    lambda ws: ws.atm_point.temperature,
-    lambda ws, value: setattr(ws.atm_point, "temperature", value),
-    1e-2,
-)
-check(
-    "pressure",
-    lambda ws: ws.jac_targetsAddPressure(),
-    lambda ws: ws.atm_point.pressure,
-    lambda ws, value: setattr(ws.atm_point, "pressure", value),
-    1e-1,
-    3e-2,
-)
+check("temperature", lambda ws: ws.jac_targetsAddTemperature(), 1e-2)
+check("pressure", lambda ws: ws.jac_targetsAddPressure(), 1e-1, 3e-2)
 check(
     "pressure with line cutoff",
     lambda ws: ws.jac_targetsAddPressure(),
-    lambda ws: ws.atm_point.pressure,
-    lambda ws, value: setattr(ws.atm_point, "pressure", value),
     1e-1,
     3e-2,
     cutoff=True,
@@ -251,35 +265,20 @@ check(
 check(
     "absorber VMR",
     lambda ws: ws.jac_targetsAddSpeciesVMR(species="H2O"),
-    lambda ws: ws.atm_point["H2O"],
-    lambda ws, value: ws.atm_point.__setitem__("H2O", value),
     1e-5,
 )
 check(
     "unrelated optional isotopologue ratio",
     lambda ws: ws.jac_targetsAddSpeciesIsotopologueRatio(species="H2O-181"),
-    lambda ws: 0.0,
-    lambda ws, value: ws.atm_point.__setitem__("H2O-181", value),
     1e-5,
     expect_nonzero=False,
 )
 
-
-def set_magnetic_component(ws, component, value):
-    mag = np.array(ws.atm_point.mag)
-    mag[component] = value
-    ws.atm_point.mag = mag
-
-
-for component, position in (("u", 0), ("v", 1), ("w", 2)):
+for component in ("u", "v", "w"):
     check(
         f"magnetic field {component}",
         lambda ws, component=component: ws.jac_targetsAddMagneticField(
             component=component
-        ),
-        lambda ws, position=position: ws.atm_point.mag[position],
-        lambda ws, value, position=position: set_magnetic_component(
-            ws, position, value
         ),
         1e-8,
         rtol=1e-1,
@@ -289,23 +288,19 @@ for component, position in (("u", 0), ("v", 1), ("w", 2)):
 check(
     "optional broadener VMR",
     lambda ws: ws.jac_targetsAddSpeciesVMR(species="CO2"),
-    lambda ws: 0.0,
-    lambda ws, value: ws.atm_point.__setitem__("CO2", value),
     1e-6,
+    value=absent_species_value("CO2"),
 )
 check(
     "frequency/wind",
     lambda ws: ws.jac_targetsAddWindField(component="u"),
-    lambda ws: np.array(ws.freq_grid),
-    lambda ws, value: setattr(ws, "freq_grid", value),
     10.0,
     5e-3,
+    value=frequency_value,
 )
 check(
     "isotopologue ratio",
     lambda ws: ws.jac_targetsAddSpeciesIsotopologueRatio(species="H2O-161"),
-    lambda ws: ws.atm_point["H2O-161"],
-    lambda ws, value: ws.atm_point.__setitem__("H2O-161", value),
     1e-5,
 )
 
@@ -313,8 +308,6 @@ for level in LEVELS[:2]:
     check(
         f"population {level}",
         lambda ws, level=level: ws.jac_targetsAddAtmosphere(target=level),
-        lambda ws, level=level: ws.atm_point[level],
-        lambda ws, value, level=level: ws.atm_point.__setitem__(level, value),
         1e-6,
     )
 
@@ -336,33 +329,10 @@ for parameter, step, tolerance in (
         lambda ws, parameter=parameter: ws.jac_targetsAddLineParameter(
             band=selected_band(ws), line=0, parameter=parameter
         ),
-        lambda ws, parameter=parameter: getattr(
-            ws.abs_bands[selected_band(ws)].lines[0], parameter
-        ),
-        lambda ws, value, parameter=parameter: setattr(
-            ws.abs_bands[selected_band(ws)].lines[0], parameter, value
-        ),
         step,
         tolerance,
         expect_nonzero=parameter != "e0",
     )
-
-
-def shape_model(ws, parameter):
-    line = ws.abs_bands[selected_band(ws)].lines[0]
-    return line.ls.single_models[pyarts.arts.SpeciesEnum("H2O")][parameter]
-
-
-def set_shape_coefficient(ws, parameter, value):
-    line = ws.abs_bands[selected_band(ws)].lines[0]
-    species = pyarts.arts.SpeciesEnum("H2O")
-    species_model = line.ls.single_models[species]
-    model = species_model[parameter]
-    data = model.data
-    data[0] = value
-    model.data = data
-    species_model[parameter] = model
-    line.ls.single_models[species] = species_model
 
 
 for parameter, step in (("G0", 1.0), ("D0", 1.0)):
@@ -374,10 +344,6 @@ for parameter, step in (("G0", 1.0), ("D0", 1.0)):
             species="H2O",
             parameter=parameter,
             coefficient="X0",
-        ),
-        lambda ws, parameter=parameter: shape_model(ws, parameter).data[0],
-        lambda ws, value, parameter=parameter: set_shape_coefficient(
-            ws, parameter, value
         ),
         step,
     )

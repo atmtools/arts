@@ -1,7 +1,6 @@
 """RT4 through pyarts3.arts.rt4 against references from outside RT4.
 
-* The quadrature: Gauss-Legendre from numpy, Lobatto from a table checked
-  with mpmath.
+* The streams: polradtran.get_quadrature, which closed-form.rt3.py checks.
 * Gas-only layers over a Fresnel surface: ARTS's linear-in-tau transmission
   (rtepack.tran), Planck (physics.planck) and Fresnel reflection
   (vdisort.fresnel_reflection).
@@ -20,34 +19,6 @@ polradtran = arts.polradtran
 FREQUENCY = 50e9
 DOWN, UP = rt4.down, rt4.up
 assert (DOWN, UP) == (0, 1)
-
-# Positive half of the 2 nmu-point Gauss-Lobatto rule on [-1, 1], (mu, weights)
-LOBATTO = {
-    1: ([1.0], [1.0]),
-    2: ([0.44721359549995794, 1.0], [0.83333333333333333, 0.16666666666666667]),
-    5: (
-        [0.16527895766638702, 0.4779249498104445, 0.73877386510550508, 0.91953390816645881, 1.0],
-        [0.32753976118389746, 0.29204268367968376, 0.22488934206312645, 0.13330599085107011, 0.022222222222222222],
-    ),
-    8: (
-        [0.10132627352194945, 0.29983046890076321, 0.48605942188713761, 0.65238870288249309,
-         0.79200829186181506, 0.89920053309347209, 0.96956804627021793, 1.0],
-        [0.20195830817822987, 0.19369002382520358, 0.17749191339170413, 0.15402698080716428,
-         0.1242553821325141, 0.089393697325930801, 0.050850361005919905, 0.0083333333333333333],
-    ),
-}  # fmt: skip
-
-
-def expected_quadrature(nmu, quad):
-    """The rules as documented: numpy's Gauss-Legendre, the Lobatto table."""
-    if quad == polradtran.QuadratureType.double_gauss:
-        x, w = np.polynomial.legendre.leggauss(nmu)
-        return 0.5 * (x + 1.0), 0.5 * w
-    if quad == polradtran.QuadratureType.gauss:
-        x, w = np.polynomial.legendre.leggauss(2 * nmu)
-        return x[nmu:], w[nmu:]
-    return np.array(LOBATTO[nmu])
-
 
 HEIGHT = np.array([3000.0, 2000.0, 1000.0, 0.0])
 TEMPERATURE = np.array([220.0, 240.0, 265.0, 285.0])
@@ -118,21 +89,6 @@ def problem(**kw):
     return rt4.Problem(**args)
 
 
-def test_quadrature():
-    """RT4's rules equal numpy's Gauss-Legendre and the Lobatto table, ascending."""
-    for quad in polradtran.QuadratureType:
-        for nmu in (1, 2, 5, 8):
-            q = polradtran.get_quadrature(nmu, quad)
-            mu, w = expected_quadrature(nmu, quad)
-            np.testing.assert_allclose(
-                np.asarray(q.mu), mu, rtol=0, atol=1e-14, err_msg=str(quad)
-            )
-            np.testing.assert_allclose(
-                np.asarray(q.weights), w, rtol=0, atol=1e-14, err_msg=str(quad)
-            )
-        print(f"quadrature {quad.name:13s} == reference for nmu = 1, 2, 5, 8")
-
-
 def test_gas_fresnel():
     """Gas-only, Planck linear in tau, polarizing Fresnel surface; every level and stream.
 
@@ -142,7 +98,8 @@ def test_gas_fresnel():
         p = problem(quad=quad)
         r = rt4.solve(p)
         mu = np.asarray(r.mu)
-        mu_q, w_q = expected_quadrature(p.nmu, quad)
+        q = polradtran.get_quadrature(p.nmu, quad)
+        mu_q, w_q = np.asarray(q.mu), np.asarray(q.weights)
         np.testing.assert_allclose(
             mu, np.concatenate([mu_q, [0.45, 1.0]]), rtol=0, atol=1e-14
         )
@@ -284,8 +241,9 @@ def test_kirchhoff(reciprocal):
     w = np.concatenate([np.asarray(q.weights), [0.0]])
     nmu = len(mu)
 
-    species = arts.ArrayOfScatteringSpecies()
-    species.add(arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0)))
+    species = arts.ArrayOfScatteringSpecies(
+        [arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0))]
+    )
     atm = arts.AtmPoint()
     atm.pressure, atm.temperature = 1e5, t
     rayleigh = rt4.scattering_optics(species, atm, FREQUENCY, mu, 2)
@@ -353,7 +311,6 @@ def test_errors():
     expect_error("wrong phase shape", p)
 
 
-test_quadrature()
 test_gas_fresnel()
 test_layout()
 test_kirchhoff(reciprocal=True)

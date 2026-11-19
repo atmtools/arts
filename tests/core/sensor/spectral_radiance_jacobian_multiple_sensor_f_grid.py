@@ -73,17 +73,6 @@ ws.measurement_sensorsAddSimpleGaussian(
 ws.measurement_vecFromSensor()
 mod = ws.measurement_vec * 1.0
 
-# %% Retrieval agenda
-
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vecFromSensor()
-    ws.measurement_jacAddSensorJacobianPerturbations()
-    ws.measurement_vec_fitFromMeasurement()
-
-
 # %% Set up the retrieval
 
 ws.oemInit()

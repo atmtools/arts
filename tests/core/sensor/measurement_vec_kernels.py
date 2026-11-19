@@ -45,14 +45,12 @@ def radiance_jac(poslos, freq, nx):
     return np.stack([(j + 1) * i - j * f for j in range(nx)]) if nx else np.zeros((0, *i.shape))
 
 
-def forward(local):
-    poslos = np.concatenate([np.array(local.get("obs_pos")), np.array(local.get("obs_los"))])[None]
-    freq = np.array(local.get("freq_grid"))
-    nx = local.get("jac_targets").x_size()
-    local.get("spectral_rad").value = arts.StokvecVector(radiance(poslos, freq)[0])
-    local.get("spectral_rad_jac").value = arts.StokvecMatrix(radiance_jac(poslos, freq, nx)[:, 0])
-    local.get("ray_path").clear()
-    local.get("ray_path").append(arts.PropagationPathPoint())
+def forward(freq_grid, targets, pos, los, atm, surf, subsurf):
+    poslos = np.concatenate([np.array(pos), np.array(los)])[None]
+    freq = np.array(freq_grid)
+    return (arts.StokvecVector(radiance(poslos, freq)[0]),
+            arts.StokvecMatrix(radiance_jac(poslos, freq, targets.x_size())[:, 0]),
+            arts.ArrayOfPropagationPathPoint([arts.PropagationPathPoint()]))
 
 
 def weights(sensor):
@@ -135,19 +133,7 @@ ws.abs_bands = arts.AbsorptionBands()
 ws.measurement_sensors = [antenna, pencil]
 ws.spectral_rad_transform_operatorSet(option="1")
 
-agenda = arts.Agenda("spectral_rad_observer_agenda")
-agenda.add(
-    arts.Method(
-        "analytical_radiance",
-        arts.CallbackOperator(
-            forward,
-            ["freq_grid", "jac_targets", "obs_pos", "obs_los"],
-            ["spectral_rad", "spectral_rad_jac", "ray_path"],
-        ),
-    )
-)
-agenda.finalize(True)
-ws.spectral_rad_observer_agenda = agenda
+ws.spectral_rad_observer_agendaSetOperator(f=forward)
 
 # Three targets, so that the Jacobian has rows to mix up
 ws.jac_targetsInit()

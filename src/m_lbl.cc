@@ -216,6 +216,14 @@ void abs_bandsSetZeeman(AbsorptionBands&      abs_bands,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void abs_bandsSetCutoff(AbsorptionBands& abs_bands, const String& option, const Numeric& value) try {
+  ARTS_TIME_REPORT
+
+  const lbl::LineByLineCutoff cutoff{.type = to<LineByLineCutoffType>(option), .value = value};
+  for (auto& band : abs_bands | stdv::values) band.cutoff = cutoff;
+}
+ARTS_METHOD_ERROR_CATCH
+
 namespace {
 //! Name the first non-finite entry of a finished line-by-line calculation.
 [[noreturn]] void report_nonfinite_lines(const PropmatVector& pm,

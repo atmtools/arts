@@ -9,97 +9,12 @@ from time import perf_counter
 import numpy as np
 import pyarts3 as pyarts
 from pyarts3.retrieval import information
+
+from oem_synthetic_helper import K, OFFSET, SA, SE, workspace
+
 arts = pyarts.arts
 
-
-def covariance(values):
-    matrix = arts.Matrix(values)
-    size = np.asarray(matrix).shape[0]
-    result = arts.CovarianceMatrix()
-    result.blocks = [
-        arts.Block(arts.Range(0, size), arts.Range(0, size), (0, 0), matrix)
-    ]
-    return result
-
-
-def workspace(nonlinear=False, *, calls=None, fail_at=None, evaluator=None):
-    ws = pyarts.Workspace()
-    ws.oem = arts.OptimalEstimationData()
-    for variable, group in (
-        ("model_state_vec", arts.Vector),
-        ("measurement_vec_fit", arts.Vector),
-        ("measurement_jac", arts.Matrix),
-        ("atm_field", arts.AtmField),
-        ("abs_bands", arts.AbsorptionBands),
-        ("measurement_sensors", arts.ArrayOfSensor),
-        ("surf_field", arts.SurfaceField),
-        ("subsurf_field", arts.SubsurfaceField),
-        ("jac_targets", arts.JacobianTargets),
-    ):
-        setattr(ws, variable, group())
-
-    # Only target dimensions are used by the synthetic forward model. Creating
-    # tiny temperature grids satisfies the public agenda's target-size checks.
-    size = 1 if nonlinear else 2
-    ws.surf_field.ellipsoid = [1, 1]
-    ws.atm_field[arts.AtmKey.t] = arts.GriddedField3(
-        name="Synthetic state metadata",
-        data=np.ones((size, 1, 1)),
-        grid_names=["Altitude", "Latitude", "Longitude"],
-        grids=[np.arange(size, dtype=float), [0], [0]],
-    )
-    ws.jac_targetsAddTemperature()
-    ws.jac_targetsFinalize()
-
-    if nonlinear:
-        ws.oem.model_state_vec = [0.1]
-        ws.oem.model_state_vec_apriori = [1]
-        ws.oem.measurement_vec = [4]
-        ws.oem.model_state_covmat = covariance([[4]])
-        ws.oem.measurement_vec_error_covmat = covariance([[0.25]])
-    else:
-        ws.oem.model_state_vec_apriori = [0.5, -0.25]
-        ws.oem.measurement_vec = [2, -1, 1.5]
-        ws.oem.model_state_covmat = covariance([[4, 1], [1, 2]])
-        ws.oem.measurement_vec_error_covmat = covariance(
-            [[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]]
-        )
-    jacobian = np.array([[1, 2], [2, -1], [1, 1]], dtype=float)
-
-    def forward(local):
-        state = np.asarray(local.get("model_state_vec"))
-        if calls is not None:
-            calls.append((state.copy(), local.get("jac_targets").x_size() != 0))
-        if fail_at is not None and fail_at(state):
-            raise RuntimeError("deliberate reduced agenda failure")
-        if nonlinear:
-            fit = np.array([state[0] ** 2])
-            derivative = np.array([[2 * state[0]]])
-        else:
-            fit = jacobian @ state + [0.25, -0.5, 1]
-            derivative = jacobian
-        if evaluator is not None:
-            fit, derivative = evaluator(state)
-        if not local.get("jac_targets").x_size():
-            derivative = np.empty((0, 0))
-        # Preserve the existing output objects shared with the outer workspace.
-        local.get("measurement_vec_fit").value = arts.Vector(fit)
-        local.get("measurement_jac").value = arts.Matrix(derivative)
-
-    callback = arts.CallbackOperator(
-        forward,
-        ["model_state_vec", "jac_targets"],
-        ["measurement_vec_fit", "measurement_jac"],
-    )
-    agenda = arts.Agenda("inversion_iterate_agenda")
-    agenda.add(arts.Method("synthetic_forward_model", callback))
-    agenda.finalize(True)
-    ws.inversion_iterate_agenda = agenda
-    return ws
-
-
-sa = np.array([[4., 1.], [1., 2.]])
-basis = np.linalg.cholesky(sa)
+basis = np.linalg.cholesky(SA)
 methods = ("li", "li_m", "li_cg", "li_cg_m", "gn",
            "gn_m", "gn_cg", "gn_cg_m", "lm", "lm_cg", "ml", "ml_cg")
 full_results = {}
@@ -130,8 +45,6 @@ for method in methods:
 # The posterior for a restricted affine state.
 ws = workspace()
 b = basis[:, :1]
-j = np.array([[1., 2.], [2., -1.], [1., 1.]])
-se = np.array([[1., .2, 0], [.2, 2., .3], [0, .3, .5]])
 xa = np.asarray(ws.oem.model_state_vec_apriori).copy()
 y = np.asarray(ws.oem.measurement_vec).copy()
 ws.oem.measurement_basis_mat = np.eye(3)
@@ -166,7 +79,7 @@ np.testing.assert_allclose(ws.oem.model_state_vec,
 # A single damped step verifies the projected LM damping, not just its limit.
 for method in ("lm", "lm_cg"):
     full, reduced = workspace(evaluator=lambda state: (
-        j @ state, j)), workspace(evaluator=lambda state: (j @ state, j))
+        K @ state, K)), workspace(evaluator=lambda state: (K @ state, K))
     B = np.array([[1.7, -.2], [.3, .8]])
     C = np.array([[1., .2, 0], [0, 2., .3], [.1, 0, 1.]])
     full.oemCheck()
@@ -207,8 +120,8 @@ for method in ("li", "gn", "lm", "lm_cg"):
     pair = [workspace(evaluator=lambda state: (null_j @ state, null_j))
             for _ in range(2)]
     for item in pair:
-        item.oem.model_state_covmat = covariance(np.eye(2))
-        item.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+        item.oem.model_state_covmat = arts.CovarianceMatrix(np.eye(2))
+        item.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(np.eye(3))
     pair[0].oemCheck()
     pair[0].oemCalc(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
     pair[1].oem.measurement_basis_mat = np.eye(3)
@@ -226,8 +139,8 @@ for method in ("li", "gn", "lm", "lm_cg"):
 
 
 def curved(state):
-    fit = j @ state + [.25 + .1 * state[0]**2, -.5 + .1 * state[1]**2, 1]
-    derivative = j + [[.2 * state[0], 0], [0, .2 * state[1]], [0, 0]]
+    fit = K @ state + [.25 + .1 * state[0]**2, -.5 + .1 * state[1]**2, 1]
+    derivative = K + [[.2 * state[0], 0], [0, .2 * state[1]], [0, 0]]
     return fit, derivative
 
 
@@ -278,9 +191,9 @@ for method in methods:
     assert ws.oem.diagnostics.status != arts.OptimalEstimationStatus.Error, ws.oem.diagnostics
     np.testing.assert_allclose(ws.oem.model_state_vec, RANK1_STATE, atol=2e-5)
     np.testing.assert_allclose(ws.oem.measurement_gain_mat, RANK1_GAIN, atol=1e-10)
-    np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
-    np.testing.assert_allclose(ws.oem.measurement_vec_fit, j @
-                               np.asarray(ws.oem.model_state_vec) + [.25, -.5, 1])
+    np.testing.assert_allclose(ws.oem.measurement_jac, K, atol=1e-12)
+    np.testing.assert_allclose(ws.oem.measurement_vec_fit, K @
+                               np.asarray(ws.oem.model_state_vec) + OFFSET)
     # Existing workspace error-covariance methods preserve omitted uncertainty.
     ws.oemAveragingKernelCalc()
     ws.oemSmoothingErrorCalc()
@@ -299,8 +212,8 @@ for rows, cols in ((7, 2), (2, 7)):
     Sa = np.diag(np.arange(1, cols + 1, dtype=float))
     Se = np.diag(np.arange(1, rows + 1, dtype=float))
     problem.oem.measurement_jac = J
-    problem.oem.model_state_covmat = covariance(Sa)
-    problem.oem.measurement_vec_error_covmat = covariance(Se)
+    problem.oem.model_state_covmat = arts.CovarianceMatrix(Sa)
+    problem.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(Se)
     problem.oem.measurement_vec = np.zeros(rows)
     problem.oem.model_state_vec_apriori = np.zeros(cols)
     problem.oem.check()
@@ -322,7 +235,7 @@ large = pyarts.Workspace()
 large.oem = arts.OptimalEstimationData()
 large.oem.measurement_vec = np.zeros(20000)
 large.oem.measurement_jac = np.ones((20000, 1))
-large.oem.model_state_covmat = covariance([[1.]])
+large.oem.model_state_covmat = arts.CovarianceMatrix([[1.]])
 large.oemMeasurementCovmatConstant(value=1.)
 large.oemBasisCalc(full_matrices=0)
 assert large.oem.measurement_basis_mat.shape == (1, 20000)
@@ -334,7 +247,7 @@ np.testing.assert_allclose(large.oem.basis_singular_values, [np.sqrt(20000.)])
 for rank in (None, 1, 2):
     for method in methods:
         ws = workspace()
-        ws.oem.measurement_jac = j
+        ws.oem.measurement_jac = K
         ws.oemBasisCalc()
         if rank is not None:
             ws.oemBasisReduce(rank=rank)
@@ -349,7 +262,7 @@ for rank in (None, 1, 2):
                                    expected_gain, atol=1e-10)
         basis_results[rank][method] = (
             np.array(ws.oem.model_state_vec), np.array(ws.oem.measurement_vec_fit),
-            np.array(expected_state), j @ expected_state + [.25, -.5, 1],
+            np.array(expected_state), K @ expected_state + OFFSET,
         )
 
 # Dropping an exactly unobservable mode preserves the solution and uncertainty.
@@ -357,8 +270,8 @@ for method in methods:
     pair = [workspace(evaluator=lambda state: (null_j @ state, null_j))
             for _ in range(2)]
     for item in pair:
-        item.oem.model_state_covmat = covariance(np.eye(2))
-        item.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+        item.oem.model_state_covmat = arts.CovarianceMatrix(np.eye(2))
+        item.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(np.eye(3))
     pair[0].oemCheck()
     pair[0].oemCalc(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
     pair[1].oem.measurement_jac = null_j
@@ -376,7 +289,7 @@ for method in methods:
 loss_limit = float(probe.oem.basis_lost_information_bits) + 1e-8
 for method in methods:
     ws = workspace()
-    ws.oem.measurement_jac = j
+    ws.oem.measurement_jac = K
     ws.oemBasisCalc()
     ws.oemBasisReduce(max_lost_information_bits=loss_limit)
     assert np.asarray(ws.oem.model_state_basis_mat).shape == (2, 1)
@@ -412,7 +325,7 @@ ws.oemCalcReduced(settings=arts.OptimalEstimationSettings(method='lm', max_start
 assert ws.oem.diagnostics.status == arts.OptimalEstimationStatus.StartCostLimit
 assert len(calls) == 1
 np.testing.assert_allclose(ws.oem.model_state_vec, xa)
-np.testing.assert_allclose(ws.oem.measurement_jac, j)
+np.testing.assert_allclose(ws.oem.measurement_jac, K)
 
 # LI's full-state restoration can fail after the solver itself succeeds.
 ws = workspace(fail_at=lambda state: not np.array_equal(state, xa))
@@ -460,7 +373,7 @@ for B, C, expected_state, expected_gain, measurement_cost, final_cost in AFFINE_
                                    expected_gain, atol=1e-10)
         # The physical agenda must always receive the original two-element state.
         assert all(state.shape == (2,) for state, _ in calls)
-        np.testing.assert_allclose(ws.oem.measurement_jac, j, atol=1e-12)
+        np.testing.assert_allclose(ws.oem.measurement_jac, K, atol=1e-12)
         np.testing.assert_allclose(
             ws.oem.diagnostics.measurement_cost, measurement_cost, atol=1e-10)
         np.testing.assert_allclose(ws.oem.diagnostics.final_cost, final_cost, atol=1e-10)
@@ -484,7 +397,7 @@ for method, normalization in (
 
 # Full-state information survives measurement compression for this affine model.
 complete = workspace()
-complete.oem.measurement_jac = j
+complete.oem.measurement_jac = K
 complete.oemBasisCalc()
 complete.oemBasisReduce(rank=2)
 assert complete.oem.measurement_basis_mat.shape == (2, 3)
@@ -554,12 +467,12 @@ def test_grouped_measurements():
 
     jac = np.array([[1., 2.], [2., -1.], [-2., -4.]])
     offset = np.array([.25, -.5, 1.])
-    for noise in (np.diag([1., 2., .5]), se):
+    for noise in (np.diag([1., 2., .5]), SE):
         for method in methods:
             pair = [workspace(evaluator=lambda x: (jac @ x + offset, jac))
                     for _ in range(2)]
             for item in pair:
-                item.oem.measurement_vec_error_covmat = covariance(noise)
+                item.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(noise)
             full, reduced = pair
             full.oemCheck()
             full.oemCalc(settings=arts.OptimalEstimationSettings(method=method, max_iter=80, stop_dx=1e-10))
@@ -582,9 +495,9 @@ def test_grouped_measurements():
         ws = workspace()
         ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
         ws.oem.measurement_vec_error_covmat.blocks = [
-            arts.Block(arts.Range(0, 1), arts.Range(0, 1), (0, 0), storage(se[:1, :1])),
-            arts.Block(arts.Range(1, 2), arts.Range(1, 2), (1, 1), storage(se[1:, 1:])),
-            arts.Block(arts.Range(0, 1), arts.Range(1, 2), (0, 1), storage(se[:1, 1:])),
+            arts.Block(arts.Range(0, 1), arts.Range(0, 1), (0, 0), storage(SE[:1, :1])),
+            arts.Block(arts.Range(1, 2), arts.Range(1, 2), (1, 1), storage(SE[1:, 1:])),
+            arts.Block(arts.Range(0, 1), arts.Range(1, 2), (0, 1), storage(SE[:1, 1:])),
         ]
         c = np.array([[.5, 0., .5], [0., 1., 0.]])
         ws.oem.model_state_basis_mat = np.eye(2)
@@ -608,10 +521,8 @@ def test_grouped_measurements():
     ws.oem.measurement_vec = jac @ [1., -.5]
     ws.oem.measurement_jac = jac
     ws.oem.model_state_basis_mat = np.eye(2)
-    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
-    ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
-        arts.Range(0, count), arts.Range(0, count), (0, 0),
-        arts.Sparse(sparse.eye(count, format="csr")))]
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(
+        arts.Sparse(sparse.eye(count, format="csr")))
     ws.oemMeasurementBasisCalc()
     assert ws.oem.measurement_basis_mat.shape == (count // 2, count)
     assert ws.oem.measurement_basis_mat.matrix.tocsr().nnz == count
@@ -628,7 +539,7 @@ test_grouped_measurements()
 def print_timings(method="lm", repeats=20):
     """Time complete workspace calls on the same small affine problem."""
     prepared = workspace()
-    prepared.oem.measurement_jac = j
+    prepared.oem.measurement_jac = K
     started = perf_counter()
     prepared.oemBasisCalc()
     basis_seconds = perf_counter() - started
@@ -773,10 +684,8 @@ for state_basis in (np.eye(2), np.diag([2., .5]),
                 for sparse in (False, True):
                     ws = workspace()
                     if diagonal_prior:
-                        ws.oem.model_state_covmat = arts.CovarianceMatrix()
-                        ws.oem.model_state_covmat.blocks = [arts.Block(
-                            arts.Range(0, 2), arts.Range(0, 2), (0, 0),
-                            arts.Sparse(scipy.sparse.diags([4., 2.]).tocsr()))]
+                        ws.oem.model_state_covmat = arts.CovarianceMatrix(
+                            arts.Sparse(scipy.sparse.diags([4., 2.]).tocsr()))
                     ws.oem.model_state_vec = np.asarray(
                         ws.oem.model_state_vec_apriori) + state_basis @ np.full(state_basis.shape[1], .1)
                     basis = arts.Sparse(scipy.sparse.csr_matrix(

@@ -42,9 +42,7 @@ ws.abs_species = v
 ws.ReadCatalogData(ignore_missing=True)
 ws.spectral_propmat_agendaAuto(T_extrapolfac=1e9)
 
-for band in ws.abs_bands:
-    ws.abs_bands[band].cutoff = cutoff[0]
-    ws.abs_bands[band].cutoff_value = cutoff[1]
+ws.abs_bandsSetCutoff(option=cutoff[0], value=cutoff[1])
 
 ws.abs_bands.keep_hitran_s(remove_lines_percentile)
 

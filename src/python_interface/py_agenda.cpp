@@ -56,15 +56,12 @@ void py_agenda(py::module_& m) try {
   cbd.def(
          "__init__",
          [](CallbackOperator*                      cb,
-            const std::function<void(Workspace&)>& f,
+            const std::function<void(Workspace*)>& f,
             const std::vector<std::string>&        i,
             const std::vector<std::string>&        o) {
-           new (cb) CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) {
-                                       py::gil_scoped_acquire gil{};
-                                       f(ws);
-                                     }),
-                                     i,
-                                     o);
+           // A pointer is passed to Python by reference, a Workspace& would be copied
+           new (cb) CallbackOperator(
+               CallbackOperator::func_t([f](Workspace& ws) { f(&ws); }), i, o);
          },
          "f"_a,
          "inputs"_a  = std::vector<std::string>{},

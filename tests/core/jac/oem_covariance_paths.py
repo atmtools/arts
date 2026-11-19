@@ -89,20 +89,12 @@ def workspace():
     ws.oemFinalizeDiagonal()
     prior = np.array(ws.oem.model_state_vec_apriori, copy=True)
 
-    def forward(local):
-        x = np.asarray(local.get("model_state_vec"))
-        fit = K @ ((x - prior) / SCALE)
-        jac = K / SCALE if local.get("jac_targets").x_size() else np.empty((0, 0))
-        local.get("measurement_vec_fit").value = arts.Vector(fit)
-        local.get("measurement_jac").value = arts.Matrix(jac)
+    def forward(atm, bands, sensors, surf, subsurf, state_targets, targets, state):
+        fit = K @ ((np.asarray(state) - prior) / SCALE)
+        jac = K / SCALE if targets.x_size() else np.empty((0, 0))
+        return atm, bands, sensors, surf, subsurf, arts.Vector(fit), arts.Matrix(jac)
 
-    agenda = arts.Agenda("inversion_iterate_agenda")
-    agenda.add(arts.Method("affine_measurements", arts.CallbackOperator(
-        forward, ["model_state_vec", "jac_targets"],
-        ["measurement_vec_fit", "measurement_jac"],
-    )))
-    agenda.finalize(True)
-    ws.inversion_iterate_agenda = agenda
+    ws.inversion_iterate_agendaSetOperator(f=forward)
     return ws, prior
 
 

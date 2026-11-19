@@ -200,6 +200,10 @@ void              add_inv(StridedMatrixView A, const Block &);
 class CovarianceMatrix {
  public:
   CovarianceMatrix();
+
+  //! A covariance matrix of the single diagonal block matrix, which must be square
+  explicit CovarianceMatrix(BlockMatrix matrix);
+
   CovarianceMatrix(const CovarianceMatrix &);
   CovarianceMatrix(CovarianceMatrix &&) noexcept;
   CovarianceMatrix &operator=(const CovarianceMatrix &);

@@ -98,7 +98,7 @@ for partner, fraction, cross_sections, half_width in [
     basis = lbl.hadded_basis_data(channels, Q, np.ones(len(channels)))
     W_per_amagat += fraction * np.asarray(lbl.hadded_relaxation_matrix_offdiagonal(
         quantum, basis, e0, np.ones(len(lines)), T,
-        np.full(len(lines), half_width * 100 * c),
+        np.full(len(lines), arts.convert.kaycm2freq(half_width)),
     ))
 
 # This population convention must satisfy detailed balance even across the
@@ -111,7 +111,7 @@ orthopara = np.array([q.K % 3 == 0 for q in quantum])
 assert np.all(W_per_amagat[orthopara[:, None] != orthopara[None, :]] == 0)
 
 wavenumber = np.linspace(925, 975, 6001)
-frequency = wavenumber * 100 * c
+frequency = arts.convert.kaycm2freq(wavenumber)
 
 # The no-mixing limit is a sum of Voigt profiles.  Its absorption [1/m] in the
 # far wings (925 and 975 cm^-1), near a line centre of each inversion subbranch

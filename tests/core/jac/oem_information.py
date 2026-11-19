@@ -9,10 +9,9 @@ import pyarts3 as pyarts
 
 from pyarts3.retrieval import information, information_from_workspace
 
+from oem_synthetic_helper import K, OFFSET, SA, SE, XA, Y
+
 arts = pyarts.arts
-K = np.array([[1, 2], [2, -1], [1, 1]], dtype=float)
-SA = np.array([[4, 1], [1, 2]], dtype=float)
-SE = np.array([[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]])
 # Exact rational Gaussian elimination of (Sa^-1 + K^T Se^-1 K)^-1.
 # This oracle is independent of ARTS and the report's factorization/SVD.
 POSTERIOR = np.array([[5494, -1563], [-1563, 2551]], dtype=float) / 18575
@@ -92,18 +91,6 @@ def check_reductions():
 check_reductions()
 
 
-def covariance(values):
-    values = np.asarray(values, dtype=float)
-    size = values.shape[0]
-    result = arts.CovarianceMatrix()
-    result.blocks = [
-        arts.Block(
-            arts.Range(0, size), arts.Range(0, size), (0, 0), arts.Matrix(values)
-        )
-    ]
-    return result
-
-
 def covariance_snapshot(value):
     # XML includes stored inverse blocks; the public blocks property alone
     # cannot detect a report silently creating or discarding the inverse cache.
@@ -157,9 +144,9 @@ def test_workspace_bases():
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
         ws.oem.measurement_jac = jacobian
-        ws.oem.model_state_covmat = covariance(
+        ws.oem.model_state_covmat = arts.CovarianceMatrix(
             prior) if prior_input is None else prior_input
-        ws.oem.measurement_vec_error_covmat = covariance(
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(
             noise) if noise_input is None else noise_input
         before_prior = covariance_snapshot(ws.oem.model_state_covmat)
         before_noise = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
@@ -214,9 +201,7 @@ def test_workspace_bases():
             arts.Block(arts.Range(0, 1), arts.Range(0, 1), (2, 2), storage([[4.]])),
             arts.Block(arts.Range(1, 1), arts.Range(0, 1), (0, 2), storage([[1.]])),
         ]
-        noise = arts.CovarianceMatrix()
-        noise.blocks = [arts.Block(arts.Range(
-            0, 3), arts.Range(0, 3), (0, 0), storage(SE))]
+        noise = arts.CovarianceMatrix(storage(SE))
         check(K, SA, SE, 1, SINGULAR, RANK1_LOST, outer=RANK1_OUTER,
               prior_input=prior, noise_input=noise)
     check(np.array([[1., 0, 0]]), np.diag([4., 9., 16.]), np.array([[4.]]), 3, [1.])
@@ -244,12 +229,10 @@ def test_workspace_bases():
     ws = pyarts.Workspace()
     ws.oem = arts.OptimalEstimationData()
     ws.oem.measurement_jac = np.tile(np.eye(2), (count // 2, 1))
-    ws.oem.model_state_covmat = covariance(SA)
-    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
+    ws.oem.model_state_covmat = arts.CovarianceMatrix(SA)
     from scipy import sparse
-    ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
-        arts.Range(0, count), arts.Range(0, count), (0, 0),
-        arts.Sparse(sparse.eye(count, format="csr")))]
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(
+        arts.Sparse(sparse.eye(count, format="csr")))
     ws.oemBasisCalc()
     assert np.asarray(ws.oem.measurement_basis_mat).shape == (count, count)
     ws.oemBasisReduce(rank=1)
@@ -275,8 +258,8 @@ def test_workspace_bases():
                                    (K, [[1., 2.], [2., 1.]], SE),
                                    (np.full((3, 2), np.nan), SA, SE)):
         ws.oem.measurement_jac = jacobian
-        ws.oem.model_state_covmat = covariance(prior)
-        ws.oem.measurement_vec_error_covmat = covariance(noise)
+        ws.oem.model_state_covmat = arts.CovarianceMatrix(prior)
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(noise)
         rejects(lambda: ws.oemBasisCalc())
         np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b)
         np.testing.assert_array_equal(ws.oem.measurement_basis_mat, c)
@@ -292,8 +275,8 @@ def test_workspace_mode_selection():
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
         ws.oem.measurement_jac = jacobian
-        ws.oem.model_state_covmat = covariance(np.eye(n))
-        ws.oem.measurement_vec_error_covmat = covariance(np.eye(m))
+        ws.oem.model_state_covmat = arts.CovarianceMatrix(np.eye(n))
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(np.eye(m))
         ws.oemBasisCalc()
         ws.oemBasisReduce(**options)
         b, c = np.asarray(ws.oem.model_state_basis_mat), np.asarray(
@@ -339,11 +322,9 @@ def test_workspace_mode_selection():
     ws.oem = arts.OptimalEstimationData()
     n = 200
     ws.oem.measurement_jac = np.r_[1., np.zeros(n - 1)].reshape(1, n)
-    ws.oem.model_state_covmat = arts.CovarianceMatrix()
-    ws.oem.model_state_covmat.blocks = [arts.Block(
-        arts.Range(0, n), arts.Range(0, n), (0, 0),
-        arts.Sparse(sparse.eye(n, format="csr")))]
-    ws.oem.measurement_vec_error_covmat = covariance([[1.]])
+    ws.oem.model_state_covmat = arts.CovarianceMatrix(
+        arts.Sparse(sparse.eye(n, format="csr")))
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix([[1.]])
     ws.oemBasisCalc()
     assert np.asarray(ws.oem.model_state_basis_mat).shape == (n, n)
     ws.oemBasisReduce()
@@ -369,8 +350,8 @@ def test_workspace_basis_reselection():
         ws = pyarts.Workspace()
         ws.oem = arts.OptimalEstimationData()
         ws.oem.measurement_jac = jacobian
-        ws.oem.model_state_covmat = covariance(prior)
-        ws.oem.measurement_vec_error_covmat = covariance(noise)
+        ws.oem.model_state_covmat = arts.CovarianceMatrix(prior)
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(noise)
         ws.oemBasisCalc()
         b = np.array(ws.oem.model_state_basis_mat)
         c = np.array(ws.oem.measurement_basis_mat)
@@ -380,8 +361,8 @@ def test_workspace_basis_reselection():
         # Selection uses only the saved decomposition, even if the current
         # Jacobian/covariances no longer form a valid setup for another SVD.
         ws.oem.measurement_jac = [[np.nan]]
-        ws.oem.model_state_covmat = covariance([[1.]])
-        ws.oem.measurement_vec_error_covmat = covariance([[1.]])
+        ws.oem.model_state_covmat = arts.CovarianceMatrix([[1.]])
+        ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix([[1.]])
         for rank in (n, 1, 1):
             ws.oemBasisReduce(rank=rank)
             np.testing.assert_array_equal(ws.oem.model_state_basis_mat, b[:, :rank])
@@ -437,9 +418,7 @@ def test_grouped_measurement_basis():
             ws.oem = arts.OptimalEstimationData()
             ws.oem.measurement_jac = jac
             ws.oem.model_state_basis_mat = [[2., 0.], [0., 3.]]
-            ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix()
-            ws.oem.measurement_vec_error_covmat.blocks = [arts.Block(
-                arts.Range(0, 6), arts.Range(0, 6), (0, 0), storage(noise))]
+            ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(storage(noise))
             before = covariance_snapshot(ws.oem.measurement_vec_error_covmat)
             ws.oemMeasurementBasisCalc()
             assert ws.oem.measurement_basis_mat.shape == (3, 6)
@@ -465,7 +444,7 @@ def test_grouped_measurement_basis():
 
     # Every row direction is distinct: preserve all channels with sparse identity.
     ws.oem.measurement_jac = [[1., 1.], [1., 2.], [1., 3.]]
-    ws.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(np.eye(3))
     ws.oemMeasurementBasisCalc()
     assert ws.oem.measurement_basis_mat.is_sparse
     np.testing.assert_array_equal(np.array(ws.oem.measurement_basis_mat), np.eye(3))
@@ -593,11 +572,8 @@ def test_units_and_permutations():
 
 
 def test_innovation():
-    observation = np.array([2.0, -1.0, 1.5])
-    prediction = K @ np.array([0.5, -0.25]) + np.array([0.25, -0.5, 1.0])
-    report = information(
-        K, SA, SE, measurement=observation, prior_prediction=prediction
-    )
+    prediction = K @ XA + OFFSET
+    report = information(K, SA, SE, measurement=Y, prior_prediction=prediction)
     # The exact chi-square of the residual in K Sa K^T + Se.
     np.testing.assert_allclose(report.innovation_chi_square, 245309 / 297200, rtol=1e-12)
     assert report.innovation_expected_mean == 3
@@ -615,7 +591,7 @@ def test_native_block_layout():
         arts.Block(arts.Range(1, 1), arts.Range(0, 1), (0, 2), arts.Matrix([[1.0]])),
     ]
     before = covariance_snapshot(prior)
-    report = information(K, prior, covariance(SE))
+    report = information(K, prior, arts.CovarianceMatrix(SE))
     np.testing.assert_allclose(
         report.posterior_standard_deviation, np.sqrt(np.diag(POSTERIOR))
     )
@@ -677,13 +653,13 @@ def test_read_only_workspace():
     ws = pyarts.Workspace()
     ws.oem = arts.OptimalEstimationData()
     ws.oem.measurement_jac = K
-    ws.oem.model_state_covmat = covariance(SA)
-    ws.oem.measurement_vec_error_covmat = covariance(SE)
+    ws.oem.model_state_covmat = arts.CovarianceMatrix(SA)
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(SE)
     ws.measurement_noise_scales = arts.Vector()
     ws.oemMeasurementCovmatNormalization()
     ws.measurement_noise_scales = ws.oem.measurement_vec_normalization
     np.testing.assert_allclose(ws.measurement_noise_scales, np.sqrt(np.diag(SE)))
-    ws.oem.measurement_vec = [2.0, -1.0, 1.5]
+    ws.oem.measurement_vec = Y
     # Deliberately does not represent F(xa). The wrapper must not assume it does.
     ws.oem.measurement_vec_fit = [99.0, 99.0, 99.0]
     before_jacobian = np.array(ws.oem.measurement_jac, copy=True)
@@ -743,7 +719,7 @@ def test_workspace_state_labels():
     ws.oemAddTemperature(matrix=np.eye(2))
     ws.jac_targetsFinalize()
     ws.measurement_jac = np.arange(15, dtype=float).reshape(3, 5) / 10
-    ws.oem.measurement_vec_error_covmat = covariance(np.eye(3))
+    ws.oem.measurement_vec_error_covmat = arts.CovarianceMatrix(np.eye(3))
     ws.measurement_vec = [0, 0, 0]
     ws.model_state_vecFromData()
     ws.oemSetApriori()
@@ -801,7 +777,7 @@ def test_validation():
         np.array([[1.0, np.inf], [np.inf, 1]]),
     ):
         rejects(lambda: information(K, invalid, SE))
-        rejects(lambda: information(K, covariance(invalid), SE))
+        rejects(lambda: information(K, arts.CovarianceMatrix(invalid), SE))
     for invalid in ([0.0, 1], [-1.0, 1], [np.nan, 1], [np.inf, 1]):
         rejects(lambda: information(K, invalid, SE))
     for jacobian, prior, error in (

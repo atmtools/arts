@@ -1,8 +1,5 @@
 """RT3 through pyarts3.arts.rt3 against references from outside RT3.
 
-* Evans' Mie benchmark: the scattering file and the expected output are read
-  from his original script 3rdparty/polradtran/runmietest (the output of
-  the original RT3 program, per micrometre).
 * The quadrature: Gauss-Legendre from numpy, Lobatto from a table checked
   with mpmath.
 * Single scattering by an optically thin Rayleigh layer: a table of the
@@ -77,108 +74,6 @@ def test_quadrature():
     assert rt3.max_legendre_degree(8, polradtran.QuadratureType.gauss) == 29
     assert rt3.max_legendre_degree(8, polradtran.QuadratureType.double_gauss) == 13
     assert rt3.max_legendre_degree(8, polradtran.QuadratureType.lobatto) == 27
-
-
-def print_half_unit(v):
-    """Half a unit in the 6th significant digit of an E13.6 value; 0 for a printed 0."""
-    v = np.abs(np.asarray(v))
-    with np.errstate(divide="ignore"):
-        e = np.floor(np.log10(np.where(v > 0, v, 1.0))) + 1.0
-    return np.where(v > 0, 0.5 * 10.0 ** (e - 6), 0.0)
-
-
-def real4_bound(c, phi_deg):
-    """Bound on the REAL*4 error of rt3.f's OUTPUT_FILE for sum_m c_m t(m phi).
-
-    PHI is REAL*4, M*PHI and the cosine are REAL*4, and so is the running
-    sum: per term |c_m| (m |phi_f - phi| + 2^-24 m phi + 2^-23), plus one
-    rounding of 2^-24 sum_m |c_m| per term.
-    """
-    eps = 2.0**-24
-    phi = np.radians(phi_deg)
-    phif = float(np.float32(np.pi) * np.float32(phi_deg) / np.float32(180.0))
-    m = np.arange(c.shape[0])
-    a = np.abs(c)
-    return np.sum(a * (m * abs(phif - phi) + eps * m * phi + 2 * eps)) + len(
-        m
-    ) * eps * np.sum(a)
-
-
-def test_mietest():
-    """Evans and Stephens (1991) Mie case: tau = 1, omega = 0.99, Lambertian
-    0.1, solar flux 0.2 pi on the horizontal at the zenith angle 78.46 deg,
-    G quadrature with 8 nodes, aziorder 8, nstokes 4."""
-    text = RUNMIETEST.read_text()
-    sca = heredoc(text, "mietest.sca").splitlines()
-    extinction, scattering = float(sca[0].split()[0]), float(sca[1].split()[0])
-    nleg = int(sca[3].split()[0])
-    legendre = from_rt3_file(
-        [[float(x) for x in line.split()[1:]] for line in sca[4 : 4 + nleg + 1]]
-    )
-    table = np.array(
-        [
-            [float(x) for x in line.split()]
-            for line in heredoc(text, "mietest.out.check").splitlines()
-            if not line.startswith("C")
-        ]
-    )  # Z, PHI, MU, I, Q, U, V
-
-    lam = 0.951
-    f = C / (lam * 1e-6)
-    per_um_to_per_hz = lam / f
-    p = rt3.Problem(
-        nstokes=4,
-        nmu=8,
-        quad=polradtran.QuadratureType.gauss,
-        aziorder=8,
-        direct_flux=0.628318531 * per_um_to_per_hz,
-        direct_mu=abs(
-            np.cos(0.017453292 * 78.46304097)
-        ),  # rt3.f USER_INPUT, truncated pi / 180
-        thermal=False,
-        frequency=f,
-        height=[1.0, 0.0],
-        temperature=[0.0, 0.0],
-        gas_extinction=[0.0],
-        scattering_sets=[rt3.ScatteringSet(extinction, scattering, legendre)],
-        layer_scattering_index=[0],
-        ground=polradtran.LambertianSurface(0.1),
-    )
-    r = rt3.solve(p)
-    mu = np.asarray(r.mu)
-    up = np.asarray(r.up) / per_um_to_per_hz
-    down = np.asarray(r.down) / per_um_to_per_hz
-    phis = np.unique(table[:, 1])
-    rad_up = np.asarray(rt3.azimuth_radiance(r.up, np.radians(phis))) / per_um_to_per_hz
-    rad_down = (
-        np.asarray(rt3.azimuth_radiance(r.down, np.radians(phis))) / per_um_to_per_hz
-    )
-
-    worst = 0.0
-    for z, phi, m, *ref in table:
-        level = 0 if z > 0.5 else 1
-        if abs(m) > 1.5:
-            flux = (
-                np.asarray(r.up_flux if m < 0 else r.down_flux)[level]
-                / per_um_to_per_hz
-            )
-            got, bound = flux, 2.0**-24 * np.abs(flux)
-        else:
-            i = int(np.argmin(np.abs(mu - abs(m))))
-            assert abs(mu[i] - abs(m)) <= 5.000001e-6
-            k = int(np.argmin(np.abs(phis - phi)))
-            got = (rad_up if m < 0 else rad_down)[level, k, i]
-            c = (up if m < 0 else down)[level, :, i]
-            bound = np.array([real4_bound(c[:, s], phi) for s in range(4)])
-        tol = print_half_unit(ref) + bound
-        dev = np.abs(got - ref)
-        # A printed 0 with a zero bound (e.g. U at phi = 0) must be exactly 0
-        ratio = np.divide(dev, tol, out=np.where(dev > 0, np.inf, 0.0), where=tol > 0)
-        worst = max(worst, float(np.max(ratio)))
-    print(
-        f"runmietest: {len(table)} rows, max |RT3 - table| / (print half-unit + REAL*4 bound) = {worst:.2f}"
-    )
-    assert worst <= 1.0, worst
 
 
 def test_single_scattering():
@@ -369,7 +264,6 @@ def test_errors():
 
 
 test_quadrature()
-test_mietest()
 test_single_scattering()
 test_gas_fresnel()
 test_errors()

@@ -58,21 +58,13 @@ ws.jac_targetsToggleRelativeSurfaceTarget(key=pyarts.arts.SurfaceKey("t"))
 ws.jac_targetsToggleRelativeSubsurfaceTarget(key=pyarts.arts.SubsurfaceKey("t"))
 
 
-def model_state():
-    ws.model_state_vecInit()
-    ws.model_state_vecFromAtmosphere()
-    ws.model_state_vecFromSurface()
-    ws.model_state_vecFromSubsurface()
-    ws.model_state_vecFromSensor()
-    return np.array(ws.model_state_vec)
-
-
 def outputs(targets):
     """Results that use every forward, inverse, and Jacobian transformation"""
     reset_fields()
     ws.jac_targets = targets
 
-    x = model_state()
+    ws.model_state_vecFromData()
+    x = np.array(ws.model_state_vec)
 
     ws.measurement_jac = np.ones((NF, x.size))
     ws.measurement_jacAtmosphereTransformation()
@@ -86,7 +78,8 @@ def outputs(targets):
     ws.surf_fieldFromModelState(model_state_targets=targets)
     ws.subsurf_fieldFromModelState(model_state_targets=targets)
     ws.measurement_sensorsFromModelState(model_state_targets=targets)
-    x_back = model_state()
+    ws.model_state_vecFromData()
+    x_back = np.array(ws.model_state_vec)
 
     x_err = x * 1.01
     err_target = targets.error[0]

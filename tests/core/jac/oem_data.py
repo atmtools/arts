@@ -106,20 +106,13 @@ assert len(ws.oem.measurement_vec_error_covmat.blocks) == 1
 
 evaluations = []
 
-def forward(local):
+def forward(atm, bands, sensors, surf, subsurf, state_targets, targets, state):
     evaluations.append(True)
-    x = np.asarray(local.get("model_state_vec"))
-    local.get("measurement_vec_fit").value = arts.Vector(J @ x)
-    local.get("measurement_jac").value = arts.Matrix(
-        J if local.get("jac_targets").x_size() else np.empty((0, 0)))
+    jac = J if targets.x_size() else np.empty((0, 0))
+    return atm, bands, sensors, surf, subsurf, arts.Vector(J @ np.asarray(state)), arts.Matrix(jac)
 
 
-callback = arts.CallbackOperator(forward, ["model_state_vec", "jac_targets"],
-                                 ["measurement_vec_fit", "measurement_jac"])
-agenda = arts.Agenda("inversion_iterate_agenda")
-agenda.add(arts.Method("linear_observation", callback))
-agenda.finalize(True)
-ws.inversion_iterate_agenda = agenda
+ws.inversion_iterate_agendaSetOperator(f=forward)
 expected = np.array([19., 26.]) / 7  # The exact linear MAP of this problem
 # Data validation must run before covariance preparation,
 # forward evaluations or clearing diagnostics/results, for both entry points.
