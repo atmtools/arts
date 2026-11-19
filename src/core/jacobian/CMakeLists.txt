@@ -7,6 +7,7 @@ add_library(jacobian STATIC
     jac_rel.cc
     jac_rh.cc
     jacobian.cc
+    jacobian_names.cc
     oem_settings.cc
     retrieval_target.cc
 )
