@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "atm.h"
-#include "enums.h"
+#include "enumsSizeParameter.h"
 #include "properties.h"
 #include "utils.h"
 

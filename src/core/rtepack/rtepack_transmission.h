@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsTransmittanceOption.h>
 
 #include "rtepack_mueller_matrix.h"
 #include "rtepack_propagation_matrix.h"

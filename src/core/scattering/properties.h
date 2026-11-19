@@ -2,7 +2,7 @@
 #define ARTS_CORE_SCATTERING_PROPERTIES_H_
 
 #include <array.h>
-#include <enums.h>
+#include <enumsParticulateProperty.h>
 #include <xml.h>
 
 #include <algorithm>

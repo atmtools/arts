@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsSpeciesEnum.h>
 #include <format_tags.h>
 #include <xml.h>
 

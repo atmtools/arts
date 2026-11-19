@@ -1,6 +1,7 @@
 #pragma once
 
 #include <arts_constants.h>
+#include <enumsZeemanPolarization.h>
 #include <matpack.h>
 #include <quantum.h>
 #include <rtepack.h>

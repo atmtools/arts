@@ -1,7 +1,6 @@
 #pragma once
 
 #include <array.h>
-#include <enums.h>
 #include <isotopologues.h>
 
 struct JplSpeciesInfo {

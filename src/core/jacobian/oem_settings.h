@@ -1,7 +1,8 @@
 #pragma once
 
 #include <covariance_matrix.h>
-#include <enums.h>
+#include <enumsOptimalEstimationMethod.h>
+#include <enumsOptimalEstimationStatus.h>
 #include <matpack.h>
 #include <retrieval_target.h>
 #include <xml_io_stream_aggregate.h>

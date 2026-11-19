@@ -1,5 +1,6 @@
 #pragma once
 
+#include <enumsHitranFileFormatType.h>
 #include <enumsHitranLineStrengthOption.h>
 #include <enumsHitranZeemanOption.h>
 #include <matpack.h>

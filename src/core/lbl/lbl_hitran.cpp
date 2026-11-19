@@ -1,3 +1,4 @@
+#include <enumsHitranFileFormatType.h>
 #include "lbl_hitran.h"
 
 #include <arts_conversions.h>
