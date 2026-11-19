@@ -20,6 +20,7 @@ Build configuration and implementation details are in :doc:`devs`.
    user.heating
    user.physical_grids
    user.surface_emissivity
+   user.surface_scattering
    user.disort
    user.radiative_transfer
 

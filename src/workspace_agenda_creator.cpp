@@ -118,6 +118,28 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
   return std::move(agenda).finalize(false);
 }
 
+Agenda get_spectral_rad_incoming_agenda(const std::string_view option) {
+  AgendaCreator agenda("spectral_rad_incoming_agenda");
+
+  using enum spectral_rad_incoming_agendaPredefined;
+  switch (to<spectral_rad_incoming_agendaPredefined>(option)) {
+    case Emission:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyEmission");
+      break;
+    case ClearskyRayleighScattering:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyRayleighScattering");
+      break;
+    case ClearskyRayleighScatteringOnly:
+      agenda.add("ray_path_observer_agendaExecute");
+      agenda.add("spectral_radClearskyRayleighScatteringOnly");
+      break;
+  }
+
+  return std::move(agenda).finalize(true);
+}
+
 Agenda get_spectral_rad_space_agenda(const std::string_view option) {
   AgendaCreator agenda("spectral_rad_space_agenda");
 
@@ -145,6 +167,25 @@ Agenda get_spectral_rad_surface_agenda(const std::string_view option) {
     case Blackbody:          agenda.add("spectral_radSurfaceBlackbody"); break;
     case Transmission:       agenda.add("spectral_radDefaultTransmission"); break;
     case SurfaceReflectance: agenda.add("spectral_radSurfaceReflectance"); break;
+    case SurfaceScatteringModel:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuse", SetWsv("exclude_suns", Index{1}));
+      agenda.add("spectral_radSurfaceScatteringSpecular", SetWsv("exclude_suns", Index{1}));
+      // The non-Direct methods above already add each channel's sub-surface
+      // emission once; the Direct methods must not add it again
+      agenda.add("spectral_radSurfaceScatteringDiffuseDirect", SetWsv("include_emission", Index{0}));
+      agenda.add("spectral_radSurfaceScatteringSpecularDirect", SetWsv("include_emission", Index{0}));
+      break;
+    case SurfaceScatteringModelDiffuseOnly:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuse");
+      agenda.add("spectral_radSurfaceScatteringSpecular");
+      break;
+    case SurfaceScatteringModelDirectOnly:
+      agenda.add("spectral_radSurfaceScatteringInit");
+      agenda.add("spectral_radSurfaceScatteringDiffuseDirect");
+      agenda.add("spectral_radSurfaceScatteringSpecularDirect");
+      break;
   }
 
   return std::move(agenda).finalize(true);

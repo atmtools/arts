@@ -2,7 +2,7 @@
 
 #include <debug.h>
 #include <enumsSubsurfaceKey.h>
-#include <lagrange_interp.h>
+#include <functional_field_interp.h>
 
 #include <utility>
 
@@ -66,31 +66,11 @@ Data &Data::operator=(const Data &)     = default;
 Data &Data::operator=(Data &&) noexcept = default;
 
 void Data::adjust_interpolation_extrapolation() {
-  if (std::holds_alternative<GeodeticField3>(data)) {
-    auto &field = std::get<GeodeticField3>(data);
-
-    if (field.grid<0>().size() == 1) {
-      alt_upp = InterpolationExtrapolation::Nearest;
-      alt_low = InterpolationExtrapolation::Nearest;
-    }
-
-    if (field.grid<1>().size() == 1) {
-      lat_upp = InterpolationExtrapolation::Nearest;
-      lat_low = InterpolationExtrapolation::Nearest;
-    }
-
-    if (field.grid<2>().size() == 1) {
-      lon_upp = InterpolationExtrapolation::Nearest;
-      lon_low = InterpolationExtrapolation::Nearest;
-    }
-  } else {
-    alt_upp = InterpolationExtrapolation::Nearest;
-    alt_low = InterpolationExtrapolation::Nearest;
-    lat_upp = InterpolationExtrapolation::Nearest;
-    lat_low = InterpolationExtrapolation::Nearest;
-    lon_upp = InterpolationExtrapolation::Nearest;
-    lon_low = InterpolationExtrapolation::Nearest;
-  }
+  using enum InterpolationExtrapolation;
+  const auto [alt, lat, lon] = field_interp::single_point_dims(data);
+  if (alt) alt_low = alt_upp = Nearest;
+  if (lat) lat_low = lat_upp = Nearest;
+  if (lon) lon_low = lon_upp = Nearest;
 }
 
 Data::Data(Numeric x) : data(x) { adjust_interpolation_extrapolation(); }
@@ -125,278 +105,33 @@ String Data::data_type() const {
   arts::user_error("Cannot understand data type; is this a new type");
 }
 
-namespace interp {
 namespace {
-using altlag1 = lagrange_interp::lag_t<1>;
-using altlag0 = lagrange_interp::lag_t<0>;
-
-using latlag1 = lagrange_interp::lag_t<1>;
-using latlag0 = lagrange_interp::lag_t<0>;
-
-using lonlag1 = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
-using lonlag0 = lagrange_interp::lag_t<0, lagrange_interp::loncross>;
-
-using altlags = std::variant<altlag0, altlag1>;
-using latlags = std::variant<latlag0, latlag1>;
-using lonlags = std::variant<lonlag0, lonlag1>;
-
-struct Limits {
-  Numeric alt_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric alt_upp{std::numeric_limits<Numeric>::max()};
-  Numeric lat_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric lat_upp{std::numeric_limits<Numeric>::max()};
-  Numeric lon_low{std::numeric_limits<Numeric>::lowest()};
-  Numeric lon_upp{std::numeric_limits<Numeric>::max()};
-};
-
-Limits find_limits(const Numeric &) { return {}; }
-
-Limits find_limits(const FunctionalData &) { return {}; }
-
-Limits find_limits(const GeodeticField3 &gf3) {
-  return {.alt_low = gf3.grid<0>().back(),
-          .alt_upp = gf3.grid<0>().front(),
-          .lat_low = gf3.grid<1>().front(),
-          .lat_upp = gf3.grid<1>().back(),
-          .lon_low = gf3.grid<2>().front(),
-          .lon_upp = gf3.grid<2>().back()};
-}
-
-struct ComputeLimit {
-  InterpolationExtrapolation type{InterpolationExtrapolation::Linear};
-  Numeric                    alt, lat, lon;
-};
-
-constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a, InterpolationExtrapolation b) {
-  using enum InterpolationExtrapolation;
-  switch (a) {
-    case None: return None;
-    case Zero: {
-      switch (b) {
-        case None:    return None;
-        case Zero:    return Zero;
-        case Nearest: return Zero;
-        case Linear:  return Zero;
-      }
-      std::unreachable();
-    }
-    case Nearest: {
-      switch (b) {
-        case None:    return None;
-        case Zero:    return Zero;
-        case Nearest: return Nearest;
-        case Linear:  return Nearest;
-      }
-      std::unreachable();
-    }
-    case Linear: return b;
-  }
-
-  std::unreachable();
-}
-
-constexpr InterpolationExtrapolation combine(InterpolationExtrapolation a,
-                                             InterpolationExtrapolation b,
-                                             InterpolationExtrapolation c) {
-  return combine(combine(a, b), c);
-}
-
-void select(InterpolationExtrapolation  lowt,
-            InterpolationExtrapolation  uppt,
-            Numeric                     lowv,
-            Numeric                     uppv,
-            Numeric                     v,
-            Numeric                    &outv,
-            InterpolationExtrapolation &outt) {
-  if (v < lowv) {
-    outt = lowt;
-    if (outt == InterpolationExtrapolation::Nearest) v = lowv;
-  } else if (uppv < v) {
-    outt = uppt;
-    if (outt == InterpolationExtrapolation::Nearest) v = uppv;
-  }
-
-  outv = v;
-}
-
-ComputeLimit find_limit(const Data &data, const Limits &lim, Numeric alt, Numeric lat, Numeric lon) {
-  ComputeLimit               out;
-  InterpolationExtrapolation a{InterpolationExtrapolation::Linear}, b{InterpolationExtrapolation::Linear},
-      c{InterpolationExtrapolation::Linear};
-
-  select(data.alt_low, data.alt_upp, lim.alt_low, lim.alt_upp, alt, out.alt, a);
-  select(data.lat_low, data.lat_upp, lim.lat_low, lim.lat_upp, lat, out.lat, b);
-  select(data.lon_low, data.lon_upp, lim.lon_low, lim.lon_upp, lon, out.lon, c);
-  out.type = combine(a, b, c);
-
-  return out;
-}
-
-Numeric get(const GeodeticField3 &gf3, const Numeric alt, const Numeric lat, const Numeric lon) {
-  if (not gf3.ok())
-    arts::user_error(
-        "The subsurface field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
-
-  using id = lagrange_interp::grid_identity;
-  using lc = lagrange_interp::loncross;
-
-  return std::visit(
-      [&data = gf3.data](auto &&al, auto &&la, auto &&lo) { return lagrange_interp::interp(data, al, la, lo); },
-      gf3.grid<0>().size() == 1 ? altlags{gf3.grid<0>().lag<0, id>(alt)} : altlags{gf3.grid<0>().lag<1, id>(alt)},
-      gf3.grid<1>().size() == 1 ? latlags{gf3.grid<1>().lag<0, id>(lat)} : latlags{gf3.grid<1>().lag<1, id>(lat)},
-      gf3.grid<2>().size() == 1 ? lonlags{gf3.grid<2>().lag<0, lc>(lon)} : lonlags{gf3.grid<2>().lag<1, lc>(lon)});
-}
-
-constexpr Numeric get(const Numeric num, const Numeric, const Numeric, const Numeric) { return num; }
-
-Numeric get(const FunctionalData &fd, const Numeric alt, const Numeric lat, const Numeric lon) {
-  return fd(alt, lat, lon);
-}
-
-struct PositionalNumeric {
-  const FieldData &data;
-  const Numeric    alt;
-  const Numeric    lat;
-  const Numeric    lon;
-
-  operator Numeric() const {
-    return std::visit([&](auto &d) { return get(d, alt, lat, lon); }, data);
-  }
-};
-
-std::optional<Numeric> get_optional_limit(const Data &data, const Numeric alt, const Numeric lat, const Numeric lon) {
-  const auto lim = find_limit(data, std::visit([](auto &d) { return find_limits(d); }, data.data), alt, lat, lon);
-
-  if (lim.type == InterpolationExtrapolation::None)
-    arts::user_error("Limit breached.  Position ({}, {}, {}) is out-of-bounds when no extrapolation is wanted",
-                     lim.alt,
-                     lim.lat,
-                     lim.lon);
-
-  if (lim.type == InterpolationExtrapolation::Zero) return 0.0;
-
-  if (lim.type == InterpolationExtrapolation::Nearest)
-    return PositionalNumeric{.data = data.data, .alt = lim.alt, .lat = lim.lat, .lon = lim.lon};
-
-  return std::nullopt;
-}
-
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
-                                                      const Numeric         alt,
-                                                      const Numeric         lat,
-                                                      const Numeric         lon) {
-  if (not gf3.ok())
-    arts::user_error(
-        "The subsurface field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
-
-  const Index nalt = gf3.grid<0>().size();
-  const Index nlat = gf3.grid<1>().size();
-  const Index nlon = gf3.grid<2>().size();
-
-  using id = lagrange_interp::grid_identity;
-  using lc = lagrange_interp::loncross;
-
-  return std::visit(
-      [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
-          const ALT &al, const LAT &la, const LON &lo) {
-        const auto                               x = interpweights(al, la, lo);
-        constexpr std::pair<Index, Numeric>      v0{0, 0.0};
-        std::array<std::pair<Index, Numeric>, 8> out{v0, v0, v0, v0, v0, v0, v0, v0};
-
-        Index m = 0;
-        for (Index i = 0; i < al.size(); i++) {
-          for (Index j = 0; j < la.size(); j++) {
-            for (Index k = 0; k < lo.size(); k++, ++m) {
-              out[m] = {{al.indx[i] * NN + la.indx[j] * N + lo.indx[k]}, x[i, j, k]};
-            }
-          }
-        }
-        return out;
-      },
-      nalt == 1 ? altlags{gf3.grid<0>().lag<0, id>(alt)} : altlags{gf3.grid<0>().lag<1, id>(alt)},
-      nlat == 1 ? latlags{gf3.grid<1>().lag<0, id>(lat)} : latlags{gf3.grid<1>().lag<1, id>(lat)},
-      nlon == 1 ? lonlags{gf3.grid<2>().lag<0, lc>(lon)} : lonlags{gf3.grid<2>().lag<1, lc>(lon)});
+std::array<field_interp::extrapolation, 3> extrapolation(const Data &d) {
+  return {{{d.alt_low, d.alt_upp}, {d.lat_low, d.lat_upp}, {d.lon_low, d.lon_upp}}};
 }
 }  // namespace
-}  // namespace interp
 
 Numeric Data::at(const Numeric alt, const Numeric lat, const Numeric lon) const {
-  return interp::get_optional_limit(*this, alt, lat, lon)
-      .value_or(interp::PositionalNumeric{.data = data, .alt = alt, .lat = lat, .lon = lon});
+  return field_interp::at(data, extrapolation(*this), {alt, lat, lon});
 }
 
 Numeric Data::at(const Vector3 pos) const { return at(pos[0], pos[1], pos[2]); }
 
-ConstVectorView Data::flat_view() const {
-  return std::visit(
-      [](auto &X) -> ConstVectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField3>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return ConstVectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return ConstVectorView{};
-        std::unreachable();
-      },
-      data);
+ConstVectorView Data::flat_view() const { return field_interp::flat_view(data); }
+
+VectorView Data::flat_view() { return field_interp::flat_view(data); }
+
+std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Numeric alt,
+                                                         const Numeric lat,
+                                                         const Numeric lon) const {
+  return field_interp::flat_weight(data, {alt, lat, lon});
 }
 
-VectorView Data::flat_view() {
-  return std::visit(
-      [](auto &X) -> VectorView {
-        using T = std::remove_cvref_t<decltype(X)>;
-        if constexpr (std::same_as<T, GeodeticField3>)
-          return X.data.view_as(X.data.size());
-        else if constexpr (std::same_as<T, Numeric>)
-          return VectorView{X};
-        else if constexpr (std::same_as<T, FunctionalData>)
-          return VectorView{};
-        std::unreachable();
-      },
-      data);
-}
-
-namespace {
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &data,
-                                                      Numeric               alt,
-                                                      Numeric               lat,
-                                                      Numeric               lon) {
-  return interp::flat_weight_(data, alt, lat, lon);
-}
-
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(Numeric, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v0{0, 0.0};
-  constexpr std::pair<Index, Numeric> v1{0, 1.0};
-  return {v1, v0, v0, v0, v0, v0, v0, v0};
-}
-
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const FunctionalData &, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v0{0, 0.0};
-  return {v0, v0, v0, v0, v0, v0, v0, v0};
-}
-}  // namespace
-
-std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(const Numeric alt,
-                                                           const Numeric lat,
-                                                           const Numeric lon) const {
-  return std::visit([&](auto &v) { return flat_weight_(v, alt, lat, lon); }, data);
-}
-
-std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(const Vector3 pos) const {
+std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Vector3 pos) const {
   return flat_weight(pos[0], pos[1], pos[2]);
 }
 
-bool Data::ok() const {
-  if (std::holds_alternative<GeodeticField3>(data)) {
-    auto &v = *std::get_if<GeodeticField3>(&data);
-    return v.ok() and lagrange_interp::loncross::cycle(v.grid<2>().front()) == v.grid<2>().front() and
-           lagrange_interp::loncross::cycle(v.grid<2>().back()) == v.grid<2>().back() and v.grid<1>().front() >= -90 and
-           v.grid<1>().back() <= 90;
-  }
-
-  return true;
-}
+bool Data::ok() const { return field_interp::ok(data); }
 
 Field::Field()                             = default;
 Field::Field(const Field &)                = default;

@@ -44,6 +44,18 @@ struct Sun {
 
   [[nodiscard]] Numeric sin_alpha_squared(Vector3 pos, Vector2 ell) const;
 
+  /*! Checks that the sun can be placed in the sky of the planet at all.
+
+    The position is the geodetic position relative to the centre of the planet,
+    so the latitude must be within [-90, 90] deg and the distance positive.  A
+    negative radius is equally unusable.  Returns true if the sun cannot be
+    used by any sun method. */
+  [[nodiscard]] bool bad_position() const;
+
+  /*! Checks that the sun can be placed in the sky of the planet, raising an
+    ARTS user error if it cannot.  See *Sun::bad_position*. */
+  void require_placeable() const;
+
   friend std::ostream& operator<<(std::ostream& os, const Sun& sun);
 };
 
@@ -51,6 +63,11 @@ struct Sun {
 using ArrayOfSun = Array<Sun>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSun& a);
+
+/*! Checks that every sun of the list can be placed in the sky of the planet.
+
+  Returns true if any sun has a bad position, see *Sun::bad_position*. */
+[[nodiscard]] bool bad_suns(const ArrayOfSun& suns);
 
 /** regrid_sun_spectrum
  *

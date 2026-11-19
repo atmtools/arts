@@ -130,7 +130,7 @@ void zen_gridProfilePseudo2D(ZenGrid&             zen_grid,
 
   auto [it, _] = stdr::unique(out);
   auto s       = out | stdv::take(stdr::distance(out.begin(), it));
-  zen_grid     = Vector{AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{})};
+  zen_grid     = AscendingGrid(stdr::begin(s), stdr::end(s), std::identity{});
 }
 
 void spectral_rad_fieldProfilePseudo2D(const Workspace&       ws,

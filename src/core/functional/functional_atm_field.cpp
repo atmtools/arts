@@ -4,14 +4,13 @@
 
 #include <utility>
 
-#include "functional_atm_field_interp.h"
-#include "lagrange_interp.h"
+#include "functional_field_interp.h"
 
 namespace Atm {
 Numeric MagnitudeField::operator()(Numeric alt, Numeric lat, Numeric lon) const {
-  const Numeric M = Atm::interp::get<lagrange_interp::value_identity>(magnitude, alt, lat, lon);
-  const Numeric T = Atm::interp::get<lagrange_interp::value_identity>(theta, alt, lat, lon);
-  const Numeric P = Atm::interp::get<lagrange_interp::value_identity>(phi, alt, lat, lon);
+  const Numeric M = field_interp::interp(magnitude, {alt, lat, lon});
+  const Numeric T = field_interp::interp(theta, {alt, lat, lon});
+  const Numeric P = field_interp::interp(phi, {alt, lat, lon});
 
   const Vector3 x = geocentric2ecef({M, T, P});
 
@@ -32,7 +31,7 @@ std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt, Numeric la
     arts::user_error(
         "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}", magnitude.grids, theta.grids, phi.grids);
 
-  std::vector<std::pair<Index, Numeric>> out = interp::flat_weight(magnitude, alt, lat, lon);
+  std::vector<std::pair<Index, Numeric>> out = field_interp::flat_weight(magnitude, {alt, lat, lon});
 
   switch (component) {
     case FieldComponent::u:

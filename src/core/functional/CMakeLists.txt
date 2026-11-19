@@ -1,6 +1,5 @@
 add_library(functional_numeric_ternary STATIC
   functional_gravity.cpp
-  functional_atm_field_interp.cpp
   functional_atm_mag_field.cpp
   functional_atm_pressure_field.cpp
   functional_numeric_ternary.cpp

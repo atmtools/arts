@@ -38,7 +38,7 @@ void py_atm(py::module_ &m) try {
             new (a) Atm::Data(GeodeticField3{.data_name  = v.data_name,
                                              .data       = v.data,
                                              .grid_names = v.grid_names,
-                                             .grids      = {v.grid<0>(), v.grid<1>().vec(), v.grid<2>().vec()}});
+                                             .grids      = {v.grid<0>(), v.grid<1>(), v.grid<2>()}});
           },
           "v"_a,
           "Initialize with a gridded field")
