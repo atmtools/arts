@@ -128,22 +128,46 @@ template <typename T, Size... dims> struct [[nodiscard]] cdata_t {
   }
 
   template <typename U> constexpr cdata_t& operator+=(U&& x) {
-    view() += std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] += x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a += b; }) {
+      for (T& a : data) a += x;
+    } else {
+      view() += std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator-=(U&& x) {
-    view() -= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] -= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a -= b; }) {
+      for (T& a : data) a -= x;
+    } else {
+      view() -= std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator*=(U&& x) {
-    view() *= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] *= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a *= b; }) {
+      for (T& a : data) a *= x;
+    } else {
+      view() *= std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator/=(U&& x) {
-    view() /= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] /= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a /= b; }) {
+      for (T& a : data) a /= x;
+    } else {
+      view() /= std::forward<U>(x);
+    }
     return *this;
   }
 

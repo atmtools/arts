@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "covariance_matrix.h"
+#include "matpack_sparse_eigen.h"
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 #include "hpy_vector.h"
@@ -24,10 +25,7 @@ void py_sparse(py::module_& m) try {
   generic_interface(sp);
   sp.def(
         "__init__",
-        [](Sparse* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
-          new (s) Sparse{};
-          s->matrix.swap(es);
-        },
+        [](Sparse* s, matpack::eigen_sparse es) { new (s) Sparse{matpack::from_eigen(std::move(es))}; },
         "From :class:`scipy.sparse.csr_matrix`")
       .def(
           "__getitem__",
@@ -47,7 +45,7 @@ void py_sparse(py::module_& m) try {
            })
       .def(
           "tocsr",
-          [](Sparse& sp) { return sp.matrix; },
+          [](Sparse& sp) { return matpack::eigen_sparse(matpack::eigen_map(sp)); },
           R"(Make a :class:`scipy.sparse.csr_matrix` from the sparse matrix
 
 Returns
@@ -55,7 +53,7 @@ Returns
 arr : :class:`scipy.sparse.csr_matrix`
     A sparse array
 )");
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, Sparse>();
+  py::implicitly_convertible<matpack::eigen_sparse, Sparse>();
 
   sp.def(
       "arcsin",
@@ -432,12 +430,12 @@ arr : :class:`scipy.sparse.csr_matrix`
   py::implicitly_convertible<py::tuple, BlockMatrix>();
   bm.def(
       "__init__",
-      [](BlockMatrix* s, Eigen::SparseMatrix<Numeric, Eigen::RowMajor> es) {
+      [](BlockMatrix* s, matpack::eigen_sparse es) {
         new (s) BlockMatrix{};
-        *s = py::cast<Sparse>(py::type<Sparse>()(es));
+        *s = matpack::from_eigen(std::move(es));
       },
       "From :class:`scipy.sparse.csr_matrix`");
-  py::implicitly_convertible<Eigen::SparseMatrix<Numeric, Eigen::RowMajor>, BlockMatrix>();
+  py::implicitly_convertible<matpack::eigen_sparse, BlockMatrix>();
   bm.def(
       "__init__",
       [](BlockMatrix* v, const py::ndarray<py::numpy, Numeric, py::ndim<2>, py::c_contig>& a) {

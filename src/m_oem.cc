@@ -22,6 +22,7 @@
 #include <config.h>
 #include <debug.h>
 #include <jacobian.h>
+#include <matpack_sparse_eigen.h>
 #include <oem_settings.h>
 #include <workspace.h>
 
@@ -533,9 +534,8 @@ BlockMatrix basis_precision(const BlockMatrix& basis, const BlockMatrix& weighte
   const Index r = basis.ncols();
   if (weighted.is_sparse()) {
     assert(basis.is_sparse());
-    auto out    = std::make_shared<Sparse>(r, r);
-    out->matrix = basis.sparse().matrix.transpose() * weighted.sparse().matrix;
-    return out;
+    return std::make_shared<Sparse>(
+        matpack::from_eigen(matpack::eigen_map(basis.sparse()).transpose() * matpack::eigen_map(weighted.sparse())));
   }
   auto out = std::make_shared<Matrix>(r, r);
   basis.multiply_right(transpose(*out), transpose(weighted.dense()));
@@ -569,15 +569,15 @@ CovarianceMatrix measurement_covariance_projection(const BlockMatrix& C, const C
           if (i != j) entries.emplace_back(static_cast<int>(c0 + col), static_cast<int>(r0 + row), value);
         }
       }
-      Sparse matrix(m, m);
-      matrix.matrix.setFromTriplets(entries.begin(), entries.end());
+      matpack::eigen_sparse matrix_eigen(m, m);
+      matrix_eigen.setFromTriplets(entries.begin(), entries.end());
+      const Sparse matrix = matpack::from_eigen(std::move(matrix_eigen));
       weighted.resize(q, m);
       mult(weighted, C.sparse(), matrix);
     }
     if (weighted.nrows() == q) {
-      auto sparse    = std::make_shared<Sparse>(q, q);
-      sparse->matrix = weighted.matrix * C.sparse().matrix.transpose();
-      values         = std::move(sparse);
+      values = std::make_shared<Sparse>(
+          matpack::from_eigen(matpack::eigen_map(weighted) * matpack::eigen_map(C.sparse()).transpose()));
     }
   }
   if (not values.not_null()) {
@@ -656,10 +656,10 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
       if (not std::isfinite(value)) arts::user_error("Measurement basis exceeds numerical range.");
       entries.emplace_back(static_cast<int>(group[i]), static_cast<int>(i), value);
     }
-    auto sparse = std::make_shared<Sparse>(q, m);
-    sparse->matrix.setFromTriplets(entries.begin(), entries.end());
+    matpack::eigen_sparse sparse(q, m);
+    sparse.setFromTriplets(entries.begin(), entries.end());
     data.uncheck();
-    measurement_basis_mat = std::move(sparse);
+    measurement_basis_mat = std::make_shared<Sparse>(matpack::from_eigen(std::move(sparse)));
   } else {
     // J = T R. C = T^T Se^-1 retains all state-dependent likelihood terms,
     // including information carried by noise correlations outside each group.
@@ -835,9 +835,8 @@ void oemBasisReduce(OptimalEstimationData& data,
           if constexpr (std::same_as<T, Matrix>)
             return std::make_shared<Matrix>((*matrix)[Range(0, rows), Range(0, cols)]);
           else {
-            auto out    = std::make_shared<Sparse>(rows, cols);
-            out->matrix = matrix->matrix.topLeftCorner(rows, cols);
-            return out;
+            return std::make_shared<Sparse>(
+                matpack::from_eigen(matpack::eigen_map(*matrix).topLeftCorner(rows, cols)));
           }
         },
         basis.data);
