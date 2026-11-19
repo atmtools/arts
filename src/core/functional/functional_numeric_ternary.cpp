@@ -1,6 +1,5 @@
 #include "functional_numeric_ternary.h"
 
-#include "functional_atm.h"
 #include "functional_atm_field.h"
 #include "functional_atm_mag_field.h"
 
@@ -64,7 +63,6 @@ template <Size I = 0> std::vector<std::pair<Index, Numeric>> get_w_tmpl(const Nu
 
 static_assert(jacable<Atm::SchmidthLegendre>);
 static_assert(jacable<Atm::MagnitudeField>);
-static_assert(jacable<Atm::External>);
 }  // namespace
 
 ConstVectorView get_xc(const NumericTernary& f) { return get_x_tmpl(f); }
@@ -76,8 +74,6 @@ std::vector<std::pair<Index, Numeric>> get_w(const NumericTernary& f, Numeric al
 }
 
 bool is_field_function(const NumericTernary& f) {
-  if (const auto& ptr = f.target<Atm::External>(); ptr != nullptr) return ptr->is_field_function;
-
   return f.target<Atm::SchmidthLegendre>() != nullptr || f.target<Atm::MagnitudeField>() != nullptr;
 }
 }  // namespace ternary

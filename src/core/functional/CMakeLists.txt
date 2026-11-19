@@ -5,7 +5,6 @@ add_library(functional_numeric_ternary STATIC
   functional_atm_pressure_field.cpp
   functional_numeric_ternary.cpp
   functional_atm_field.cpp
-  functional_atm.cpp
 )
 
 target_link_libraries(functional_numeric_ternary PUBLIC matpack geodesy arts_enum_options artstime igrf)

@@ -2,8 +2,9 @@
 
 #include <xml.h>
 
-#include "functional_atm.h"
 #include "functional_atm_field.h"
+#include "functional_atm_mag_field.h"
+#include "functional_atm_pressure_field.h"
 #include "functional_gravity.h"
 
 using NumericTernary = std::function<Numeric(Numeric, Numeric, Numeric)>;
@@ -32,7 +33,6 @@ template <> struct xml_io_stream_functional<NumericTernary> {
                                  Atm::SchmidthLegendre,
                                  Atm::HydrostaticPressure,
                                  Atm::MagnitudeField,
-                                 Atm::External,
                                  EllipsoidGravity>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
