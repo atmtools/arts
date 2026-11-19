@@ -1,9 +1,14 @@
 """
 Transformed Jacobian targets must survive an XML round trip, in ascii and
 binary, and behave exactly like the originals afterwards.
+
+Every transformation struct is written and read: relative, logarithmic,
+log-relative, and relative humidity for the atmosphere, the first three for the
+surface and the subsurface, and the polynomial fits of sensors and errors.
 """
 
 import os
+import re
 import tempfile
 
 import pyarts3 as pyarts
@@ -39,23 +44,27 @@ def reset_fields():
 
 reset_fields()
 
-ws.jac_targetsInit()
-ws.jac_targetsAddTemperature()
-ws.jac_targetsAddSpeciesVMR(species="H2O")
-ws.jac_targetsAddSpeciesVMR(species="O3")
-ws.jac_targetsAddSpeciesVMR(species="CO2")
-ws.jac_targetsAddSurface(target=pyarts.arts.SurfaceKey("t"))
-ws.jac_targetsAddSubsurface(target=pyarts.arts.SubsurfaceKey("t"))
-ws.jac_targetsAddSensorFrequencyPolyOffset(sensor_elem=0, d=1e3, polyorder=0)
-ws.jac_targetsAddErrorPolyFit(t=f - f[0], sensor_elem=0, polyorder=1)
-ws.jac_targetsFinalize()
 
-ws.jac_targetsToggleRelativeAtmTarget(key="t")
-ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
-ws.jac_targetsToggleLogarithmicAtmTarget(key="O3")
-ws.jac_targetsToggleLogRelAtmTarget(key="CO2")
-ws.jac_targetsToggleRelativeSurfaceTarget(key=pyarts.arts.SurfaceKey("t"))
-ws.jac_targetsToggleRelativeSubsurfaceTarget(key=pyarts.arts.SubsurfaceKey("t"))
+def targets(surface_toggle, subsurface_toggle):
+    """Targets with every atmospheric transformation and the given surface ones"""
+    ws.jac_targetsInit()
+    ws.jac_targetsAddTemperature()
+    ws.jac_targetsAddSpeciesVMR(species="H2O")
+    ws.jac_targetsAddSpeciesVMR(species="O3")
+    ws.jac_targetsAddSpeciesVMR(species="CO2")
+    ws.jac_targetsAddSurface(target=pyarts.arts.SurfaceKey("t"))
+    ws.jac_targetsAddSubsurface(target=pyarts.arts.SubsurfaceKey("t"))
+    ws.jac_targetsAddSensorFrequencyPolyOffset(sensor_elem=0, d=1e3, polyorder=0)
+    ws.jac_targetsAddErrorPolyFit(t=f - f[0], sensor_elem=0, polyorder=1)
+    ws.jac_targetsFinalize()
+
+    ws.jac_targetsToggleRelativeAtmTarget(key="t")
+    ws.jac_targetsToggleRelativeHumidityAtmTarget(key="H2O")
+    ws.jac_targetsToggleLogarithmicAtmTarget(key="O3")
+    ws.jac_targetsToggleLogRelAtmTarget(key="CO2")
+    getattr(ws, f"jac_targetsToggle{surface_toggle}SurfaceTarget")(key=pyarts.arts.SurfaceKey("t"))
+    getattr(ws, f"jac_targetsToggle{subsurface_toggle}SubsurfaceTarget")(key=pyarts.arts.SubsurfaceKey("t"))
+    return pyarts.arts.JacobianTargets(ws.jac_targets)
 
 
 def outputs(targets):
@@ -96,17 +105,26 @@ def outputs(targets):
     return {"x": x, "jac": jac, "x_back": x_back, "err": err, "err_jac": err_jac}
 
 
+STRUCTS = {
+    "relfwd", "relinv", "logfwd", "loginv", "logrelfwd", "logrelinv", "rhfwd", "rhinv",
+    "polyfit_t", "polyinv_t", "polyfit_sensor_offset_t", "polyinv_sensor_offset_t",
+}
+
+written = set()
 with tempfile.TemporaryDirectory() as tmp:
-    files = {
-        filetype: ws.jac_targets.savexml(os.path.join(tmp, f"targets_{filetype}.xml"), type=filetype)
-        for filetype in ("ascii", "binary")
-    }
+    for toggle in ("Relative", "Logarithmic", "LogRel"):
+        original = targets(toggle, toggle)
+        ref = outputs(original)
+        assert np.allclose(ref["x_back"], ref["x"] * 1.01), f"{toggle}: original targets are inconsistent"
 
-    ref = outputs(ws.jac_targets)
-    assert np.allclose(ref["x_back"], ref["x"] * 1.01), "Original targets are inconsistent"
+        for filetype in ("ascii", "binary"):
+            fn = original.savexml(os.path.join(tmp, f"targets_{toggle}_{filetype}.xml"), type=filetype)
+            if filetype == "ascii":
+                with open(fn, encoding="utf-8") as file:
+                    written |= set(re.findall(r'<Variant[^>]*type="(\w+)"', file.read()))
 
-    for filetype, fn in files.items():
-        res = outputs(pyarts.arts.JacobianTargets.fromxml(fn))
+            res = outputs(pyarts.arts.JacobianTargets.fromxml(fn))
+            for key in ref:
+                assert np.array_equal(res[key], ref[key]), f"{toggle}, {filetype}: {key} differs after reading"
 
-        for key in ref:
-            assert np.allclose(res[key], ref[key]), f"{filetype}: {key} differs after reading"
+assert STRUCTS <= written, f"Transformation structs never written: {sorted(STRUCTS - written)}"

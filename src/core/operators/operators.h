@@ -1,14 +1,5 @@
 #pragma once
 
-#include <debug.h>
-#include <matpack.h>
-#include <xml.h>
-#include <xml_io_stream.h>
-
-#include <functional>
-
-// The XML structs of the operator functions must be seen wherever the operators are,
-// or a translation unit may instantiate their XML IO without them (an ODR violation)
 #include <functional.h>
 
 #ifndef _MSC_VER
