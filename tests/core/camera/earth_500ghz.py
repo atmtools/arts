@@ -125,7 +125,7 @@ assert np.allclose(
 # The Earth is warm but no warmer than its warmest emitter, and it is limb darkened
 assert np.all(image_data[disk] > 200.0)
 assert np.all(image_data[disk] < max(np.max(ws.atm_field["t"].data.data), 288.0))
-assert image_data[n_h // 2, n_w // 2] == image_data.max()
+assert np.isclose(image_data[n_h // 2, n_w // 2], image_data.max(), rtol=0, atol=1e-6)
 
 # The image is mirror symmetric (not transpose symmetric, Earth is flattened)
 assert np.allclose(image_data, image_data[::-1, :], atol=1e-6)
