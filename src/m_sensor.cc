@@ -18,13 +18,13 @@ namespace {
  *  name it.
  */
 template <typename Make> void append_sensor(ArrayOfSensor& measurement_sensors, const String& name, Make&& make) {
-  const String sensor_name = name.empty() ? std::format("sensor-{}", measurement_sensors.size() + 1) : name;
+  const String sensor_name = name.empty() ? arts::format("sensor-{}", measurement_sensors.size() + 1) : name;
 
   Sensor sensor;
   try {
     sensor = make(sensor_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Sensor \"{}\":\n{}", sensor_name, e.what()));
+    throw std::runtime_error(arts::format("Sensor \"{}\":\n{}", sensor_name, e.what()));
   }
 
   sensor.check();

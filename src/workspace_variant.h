@@ -81,7 +81,7 @@ template <SortedWorkspaceGroupsUniformGenericConstness... Ts> struct Generic : s
            ...);
 
     if (not result) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "Unsupported generic type: {}.\n\nValid types are: {:qB,}",
           value.type_name(),
           std::array<std::string_view, sizeof...(Ts)>{WorkspaceGroupInfo<std::remove_const_t<Ts>>::name...}));

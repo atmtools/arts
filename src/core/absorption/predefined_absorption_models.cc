@@ -144,7 +144,7 @@ bool compute_selection(PropmatVector&                                   pm [[may
   }
   return false;
 } catch (std::bad_variant_access& e) {
-  throw std::runtime_error(std::format("Data for model {} is not of correct type", model));
+  throw std::runtime_error(arts::format("Data for model {} is not of correct type", model));
 } catch (std::exception&) { throw; }
 }  // namespace
 

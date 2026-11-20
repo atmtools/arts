@@ -44,7 +44,7 @@ void LevenbergMarquardtSettings::validate() const {
 }
 
 std::string LevenbergMarquardtSettings::repr() const {
-  return std::format(
+  return arts::format(
       "LevenbergMarquardtSettings(initial_damping={}, decrease_factor={}, increase_factor={}, "
       "maximum_damping={}, damping_threshold={}, convergence_damping_limit={}, maximum_trials={})",
       initial_damping,
@@ -58,7 +58,7 @@ std::string LevenbergMarquardtSettings::repr() const {
 
 std::string LevenbergMarquardtSettings::describe() const {
   validate();
-  return std::format(
+  return arts::format(
       "{}\n\n"
       "The first trial uses damping {}. Zero gives a Gauss-Newton step; increasing damping constrains the step.\n"
       "When damping is reduced, it is divided by {}. A reduction below {} switches it to zero.\n"
@@ -102,7 +102,7 @@ void OptimalEstimationSettings::validate() const {
 }
 
 std::string OptimalEstimationSettings::repr() const {
-  return std::format(
+  return arts::format(
       "OptimalEstimationSettings(method={}, max_iter={}, stop_dx={}, max_start_cost={}, "
       "cg_tolerance={}, cg_max_iter={}, lm={}, display_progress={}, clear_matrices={})",
       toString(method),
@@ -150,11 +150,11 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
   if (m == 0) error("measurement_vec must be nonempty.");
   const auto vector = [&](std::string_view name, const Vector& value, Size size, bool optional, bool positive = false) {
     if ((!optional or !value.empty()) and value.size() != size)
-      error(std::format("{} has {} elements; expected {}{}.", name, value.size(), size, optional ? " or empty" : ""));
+      error(arts::format("{} has {} elements; expected {}{}.", name, value.size(), size, optional ? " or empty" : ""));
     for (Size i = 0; i < value.size(); ++i)
       if (!std::isfinite(value[i]) or (positive and value[i] <= 0)) {
         error(
-            std::format("{}[{}] = {} must be finite{}.", name, i, value[i], positive ? " and strictly positive" : ""));
+            arts::format("{}[{}] = {} must be finite{}.", name, i, value[i], positive ? " and strictly positive" : ""));
         break;
       }
   };
@@ -167,11 +167,11 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
   const auto normalization = [&](std::string_view name, const Vector& value, Size full_size, Size reduced_size) {
     if (value.empty()) return;
     if (value.size() != full_size and value.size() != reduced_size)
-      error(std::format("{} has {} elements; expected {} (full space){} or empty.",
-                        name,
-                        value.size(),
-                        full_size,
-                        reduced_size ? std::format(" or {} (reduced space)", reduced_size) : ""));
+      error(arts::format("{} has {} elements; expected {} (full space){} or empty.",
+                         name,
+                         value.size(),
+                         full_size,
+                         reduced_size ? arts::format(" or {} (reduced space)", reduced_size) : ""));
     vector(name, value, value.size(), false, true);
   };
   normalization("model_state_covmat_normalization",
@@ -184,11 +184,11 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
                 measurement_basis_mat.not_null() ? measurement_basis_mat.nrows() : 0);
   if (!measurement_jac.empty()) {
     if (measurement_jac.nrows() != static_cast<Index>(m) or measurement_jac.ncols() != static_cast<Index>(n))
-      error(std::format("measurement_jac is {} by {}; expected {} by {} or empty.",
-                        measurement_jac.nrows(),
-                        measurement_jac.ncols(),
-                        m,
-                        n));
+      error(arts::format("measurement_jac is {} by {}; expected {} by {} or empty.",
+                         measurement_jac.nrows(),
+                         measurement_jac.ncols(),
+                         m,
+                         n));
     for (auto value : stdr::subrange(measurement_jac.elem_begin(), measurement_jac.elem_end()))
       if (!std::isfinite(value)) {
         error("measurement_jac contains a non-finite value.");
@@ -198,27 +198,27 @@ void OptimalEstimationData::check(const JacobianTargets* targets) {
   const auto covariance = [&](std::string_view name, const CovarianceMatrix& value, Size size) {
     try {
       value.validate(static_cast<Index>(size));
-    } catch (const std::exception& e) { error(std::format("{}: {}", name, e.what())); }
+    } catch (const std::exception& e) { error(arts::format("{}: {}", name, e.what())); }
   };
   covariance("model_state_covmat", model_state_covmat, n);
   covariance("measurement_vec_error_covmat", measurement_vec_error_covmat, m);
   if (model_state_basis_mat.not_null() and (model_state_basis_mat.nrows() != 0 or model_state_basis_mat.ncols() != 0)) {
     if (model_state_basis_mat.nrows() != static_cast<Index>(n) or model_state_basis_mat.ncols() <= 0 or
         model_state_basis_mat.ncols() > static_cast<Index>(n))
-      error(std::format("model_state_basis_mat must have {} rows and between 1 and {} columns.", n, n));
+      error(arts::format("model_state_basis_mat must have {} rows and between 1 and {} columns.", n, n));
     if (!model_state_basis_mat.is_finite()) error("model_state_basis_mat contains non-finite values.");
   }
   if (measurement_basis_mat.not_null() and (measurement_basis_mat.nrows() != 0 or measurement_basis_mat.ncols() != 0)) {
     if (measurement_basis_mat.ncols() != static_cast<Index>(m) or measurement_basis_mat.nrows() <= 0 or
         measurement_basis_mat.nrows() > static_cast<Index>(m))
-      error(std::format("measurement_basis_mat must have {} columns and between 1 and {} rows.", m, m));
+      error(arts::format("measurement_basis_mat must have {} columns and between 1 and {} rows.", m, m));
     if (!measurement_basis_mat.is_finite()) error("measurement_basis_mat contains non-finite values.");
   }
   if (targets) {
     if (!targets->is_finalized())
       error("jac_targets must be finalized.");
     else if (targets->x_size() != n)
-      error(std::format("jac_targets maps {} state elements but the prior contains {}.", targets->x_size(), n));
+      error(arts::format("jac_targets maps {} state elements but the prior contains {}.", targets->x_size(), n));
   }
   if (!errors.empty())
     arts::user_error(

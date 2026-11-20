@@ -44,7 +44,7 @@ struct script {
 
 inline script read_script(const std::filesystem::path& path) {
   std::ifstream in(path);
-  require(in.good(), std::format("Cannot read {}", path.string()));
+  require(in.good(), arts::format("Cannot read {}", path.string()));
   script s;
   s.name = path.filename().string();
   for (std::string line; std::getline(in, line);) {
@@ -66,7 +66,7 @@ inline script read_script(const std::filesystem::path& path) {
     }
   }
   require(not s.runs.empty() and not s.check.empty(),
-          std::format("{} has no program run or no .check output", path.string()));
+          arts::format("{} has no program run or no .check output", path.string()));
   return s;
 }
 
@@ -105,7 +105,7 @@ inline std::vector<row> read_output(const std::string& text) {
     std::vector<std::string> tokens;
     for (std::string t; is >> t;) tokens.push_back(t);
     const std::size_t first = phi ? 3 : 2;
-    require(tokens.size() > first and tokens.size() <= first + 4, std::format("Unexpected output line \"{}\"", line));
+    require(tokens.size() > first and tokens.size() <= first + 4, arts::format("Unexpected output line \"{}\"", line));
     row r{};
     r.z   = std::stod(tokens[0]);
     r.phi = phi ? std::stod(tokens[1]) : 0.0;
@@ -170,7 +170,7 @@ inline scattering_file read_scattering(const std::string& text) {
     int                   index;
     std::array<double, 6> c{};
     is >> index >> c[0] >> c[1] >> c[2] >> c[3] >> c[4] >> c[5];
-    require(not is.fail() and index == l, std::format("Bad scattering file line \"{}\"", lines[4 + l]));
+    require(not is.fail() and index == l, arts::format("Bad scattering file line \"{}\"", lines[4 + l]));
     s.legendre.push_back(c);
   }
   return s;
@@ -184,7 +184,7 @@ class answers {
  public:
   explicit answers(const run& x) : r(x) {}
   std::istringstream next() {
-    require(i < r.answers.size(), std::format("{}: too few answers", r.program));
+    require(i < r.answers.size(), arts::format("{}: too few answers", r.program));
     return std::istringstream(r.answers[i++]);
   }
   std::string first() {
@@ -219,7 +219,7 @@ struct rt3_settings {
 };
 
 inline rt3_settings read_rt3_settings(const script& s) {
-  require(s.solver().program == "rt3", std::format("{} does not run rt3", s.name));
+  require(s.solver().program == "rt3", arts::format("{} does not run rt3", s.name));
   answers      a(s.solver());
   rt3_settings p{};
   p.nstokes = a.value<int>();
@@ -268,7 +268,7 @@ struct rt4_settings {
 };
 
 inline rt4_settings read_rt4_settings(const script& s) {
-  require(s.solver().program == "rt4", std::format("{} does not run rt4", s.name));
+  require(s.solver().program == "rt4", arts::format("{} does not run rt4", s.name));
   answers      a(s.solver());
   rt4_settings p{};
   p.nstokes = a.value<int>();
@@ -299,7 +299,7 @@ inline std::string output_file(const script& s) {
     std::string        x;
     if (is >> x) return x;
   }
-  throw std::runtime_error(std::format("{}: no output file", s.name));
+  throw std::runtime_error(arts::format("{}: no output file", s.name));
 }
 
 //! Evans' 5-digit Planck function [W m-2 sr-1 um-1] (PLANCK_FUNCTION as in the tar)

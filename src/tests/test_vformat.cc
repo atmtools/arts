@@ -43,13 +43,13 @@ AbsorptionBand get_lbl_band_data() {
 
 AbsorptionBands get_abs_bands() { return {{get_quantum_identifier(), get_lbl_band_data()}}; }
 
-#define TEST_MACRO(x)                         \
-  void test_##x() {                           \
-    auto data = get_##x();                    \
-                                              \
-    std::println("NORMAL    {}", data);       \
-    std::println("FMT       {:B,qN}", data);  \
-    std::println("FMT-SHORT {:B,qNs}", data); \
+#define TEST_MACRO(x)                          \
+  void test_##x() {                            \
+    auto data = get_##x();                     \
+                                               \
+    arts::println("NORMAL    {}", data);       \
+    arts::println("FMT       {:B,qN}", data);  \
+    arts::println("FMT-SHORT {:B,qNs}", data); \
   }
 
 TEST_MACRO(lbl_line)
@@ -59,8 +59,8 @@ TEST_MACRO(abs_bands)
 
 #undef TEST_MACRO
 
-#define TEST_MACRO(x)                                                       \
-  std::println("-----------------------\n{}\n-----------------------", #x); \
+#define TEST_MACRO(x)                                                        \
+  arts::println("-----------------------\n{}\n-----------------------", #x); \
   test_##x();
 
 int main() {
@@ -68,5 +68,5 @@ int main() {
   TEST_MACRO(lbl_band_data)
   TEST_MACRO(quantum_identifier)
   TEST_MACRO(abs_bands)
-  std::println("-----------------------");
+  arts::println("-----------------------");
 }

@@ -27,10 +27,10 @@ void rtepack_array_from_ndarray(matpack::data_t<T, M> *y, const Array &x) {
   }
   if (x.size() != 0 and not valid_component_shape) {
     throw std::invalid_argument(
-        std::format("Trailing dimensions of input must match the underlying rtepack type. "
-                    "The shape is {:B,} and the required trailing shape is {:B,}",
-                    input_shape,
-                    component_shape));
+        arts::format("Trailing dimensions of input must match the underlying rtepack type. "
+                     "The shape is {:B,} and the required trailing shape is {:B,}",
+                     input_shape,
+                     component_shape));
   }
 
   std::array<Index, M> shape{};
@@ -89,10 +89,10 @@ template <typename T, Index M, size_t... N> void rtepack_array(py::class_<matpac
         }
         if (x.size() != 0 and not valid_component_shape) {
           throw std::invalid_argument(
-              std::format("Trailing dimensions of input must match the underlying rtepack type. "
-                          "The shape is {:B,} and the required trailing shape is {:B,}",
-                          x.shape(),
-                          component_shape));
+              arts::format("Trailing dimensions of input must match the underlying rtepack type. "
+                           "The shape is {:B,} and the required trailing shape is {:B,}",
+                           x.shape(),
+                           component_shape));
         }
 
         std::array<Index, M> shape{};

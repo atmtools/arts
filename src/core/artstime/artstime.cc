@@ -35,7 +35,7 @@ std::chrono::hh_mm_ss<Time::InternalTimeStep> Time::time_of_day() const {
 
 String Time::str() const {
   const auto offset = std::chrono::abs(utc_offset).count();
-  return std::format(
+  return arts::format(
       "{:%F %T}{}{:02}:{:02}", time + utc_offset, utc_offset.count() < 0 ? '-' : '+', offset / 60, offset % 60);
 }
 
@@ -144,13 +144,13 @@ std::ostream& operator<<(std::ostream& os, const ArrayOfArrayOfTime& a) {
 
 DebugTime::~DebugTime() {
 #pragma omp critical
-  std::print(stderr, "{}: {}\n", msg, Time{} - start);
+  arts::print(stderr, "{}: {}\n", msg, Time{} - start);
 }
 
 void xml_io_stream<Time>::write(std::ostream& os, const Time& x, bofstream*, std::string_view name) {
   XMLTag tag(type_name, "name", name, "version", x.Version());
   tag.write_to_stream(os);
-  std::println(os, "{:IO}", x);
+  arts::println(os, "{:IO}", x);
   tag.write_to_end_stream(os);
 }
 

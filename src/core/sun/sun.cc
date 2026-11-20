@@ -29,7 +29,7 @@ std::ostream& operator<<(std::ostream& os, const Sun& sun) {
   os << " Distance: " << sun.distance << "m \n";
   os << " Latitude: " << sun.latitude << "° \n";
   os << " Longitude: " << sun.longitude << "° \n";
-  os << std::format(" Spectrum [W/m2/Hz]: \n{}", sun.spectrum);
+  arts::print(os, " Spectrum [W/m2/Hz]: \n{}", sun.spectrum);
   return os;
 }
 

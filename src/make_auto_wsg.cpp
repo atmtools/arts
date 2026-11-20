@@ -68,10 +68,10 @@ void header(std::ostream& os) {
 
 )--";
 
-  for (const auto& [file, groups] : files()) { std::println(os, "#include <{0}>", file); }
+  for (const auto& [file, groups] : files()) { arts::println(os, "#include <{0}>", file); }
 
   os << "\ntemplate <typename T>\nconcept WorkspaceGroup = false";
-  for (const auto& group : groups()) { os << std::format("\n  || std::is_same_v<T, {0}>", group); }
+  for (const auto& group : groups()) { arts::print(os, "\n  || std::is_same_v<T, {0}>", group); }
   os << "\n;\n\n";
 
   os << "\ntemplate <typename T>\nconcept QualifiedWorkspaceGroup "
@@ -104,7 +104,8 @@ template <typename T> struct WorkspaceGroupInfo {
   std::size_t index = 0;
   for (auto& group : groups()) {
     try {
-      os << std::format(R"(
+      arts::print(os,
+                  R"(
 template <> struct WorkspaceGroupInfo<{0}> {{
   static constexpr std::string_view name = "{0}";
   static constexpr std::size_t index     = {2};
@@ -112,11 +113,13 @@ template <> struct WorkspaceGroupInfo<{0}> {{
   static std::string_view desc();
 }};
 )",
-                        group,
-                        data.at(group).value_type,
-                        index);
+                  group,
+                  data.at(group).value_type,
+                  index);
       index++;
-    } catch (...) { throw std::runtime_error(std::format("Error generating WorkspaceGroupInfo for group: {}", group)); }
+    } catch (...) {
+      throw std::runtime_error(arts::format("Error generating WorkspaceGroupInfo for group: {}", group));
+    }
   }
 
   os << "\n#include <workspace_variant.h>\n";
@@ -125,18 +128,20 @@ template <> struct WorkspaceGroupInfo<{0}> {{
 }
 
 void implement_docs(std::ostream& os) {
-  std::println(os, "#include \"auto_wsg.h\"\n");
+  arts::println(os, "#include \"auto_wsg.h\"\n");
 
   for (auto& group : groups()) {
     try {
-      std::println(os,
-                   R"(std::string_view WorkspaceGroupInfo<{0}>::desc() {{
+      arts::println(os,
+                    R"(std::string_view WorkspaceGroupInfo<{0}>::desc() {{
   return R"--({1})--"sv;
 }}
 )",
-                   group,
-                   data.at(group).desc);
-    } catch (...) { throw std::runtime_error(std::format("Error generating WorkspaceGroupInfo for group: {}", group)); }
+                    group,
+                    data.at(group).desc);
+    } catch (...) {
+      throw std::runtime_error(arts::format("Error generating WorkspaceGroupInfo for group: {}", group));
+    }
   }
 }
 
@@ -151,7 +156,8 @@ void auto_workspace(std::ostream& os) {
 )--";
 
   for (auto& group : groups()) {
-    os << std::format(R"(
+    arts::print(os,
+                R"(
 template<> std::shared_ptr<{0}> Workspace::share_or<{0}>(const std::string& name) {{
   if (auto ptr = wsv.find(name); ptr not_eq wsv.end()) {{
     return ptr->second.template share<{0}>();
@@ -168,12 +174,12 @@ template <> {0}& Workspace::get_or<{0}>(const std::string& name) {{
 template <> {0}& Workspace::get<{0}>(const std::string& name) const try {{
   return wsv.at(name).get<{0}>();
 }} catch (std::out_of_range&) {{
-  throw std::runtime_error(std::format("Cannot get workspace variable \"{{0}}\" - it is not yet set on the workspace", name));
+  throw std::runtime_error(arts::format("Cannot get workspace variable \"{{0}}\" - it is not yet set on the workspace", name));
 }} catch (std::exception& e) {{
-  throw std::runtime_error(std::format("Error getting workspace variable \"{{0}}\":\n{{1}}", name, std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Error getting workspace variable \"{{0}}\":\n{{1}}", name, std::string_view(e.what())));
 }}
 )",
-                      group);
+                group);
   }
 }
 
@@ -187,7 +193,7 @@ void agenda_operators() {
     try {
       return wsv.at(v).type;
     } catch (const std::out_of_range&) {
-      throw std::runtime_error(std::format("Workspace variable \"{}\" not found", v));
+      throw std::runtime_error(arts::format("Workspace variable \"{}\" not found", v));
     }
   };
 
@@ -205,11 +211,11 @@ void agenda_operators() {
   std::ofstream h("auto_agenda_operators.h");
   std::ofstream cpp("auto_agenda_operators.cpp");
 
-  std::print(h, R"(#pragma once
+  arts::print(h, R"(#pragma once
 
 )");
 
-  std::print(cpp, R"(#include "auto_wsg.h"
+  arts::print(cpp, R"(#include "auto_wsg.h"
 
 #include <workspace_agenda_creator.h>
 #include <time_report.h>
@@ -225,25 +231,25 @@ void agenda_operators() {
       const auto output_string = stdv::transform([&o = ag.output](const std::string& v) {
         // The operator returns an owning tuple. Transfer its outputs without
         // copying payloads that are immediately destroyed with the tuple.
-        return std::format("{0} = std::get<{1}>(std::move(_tup));\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
+        return arts::format("{0} = std::get<{1}>(std::move(_tup));\n ", v, stdr::distance(o.begin(), stdr::find(o, v)));
       });
 
       const std::string op = ag.named_operator.empty() ? std::string(name + "Operator") : ag.named_operator;
 
-      std::println(h,
-                   R"(
+      arts::println(h,
+                    R"(
 using {0}
    = CustomOperator<std::tuple<{1:,}>,
                     {2:,}>;
 )",
-                   op,
-                   ag.output | agenda_types,
-                   ag.input | cref_agenda_types);
+                    op,
+                    ag.output | agenda_types,
+                    ag.input | cref_agenda_types);
 
       const std::string spaces(5 + name.size() + 8 + 8, ' ');
 
-      std::print(cpp,
-                 R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {6}& {0}_operator) try {{
+      arts::print(cpp,
+                  R"(void {0}ExecuteOperator({1:,}{3}{2:,}, const {6}& {0}_operator) try {{
   ARTS_TIME_REPORT
   
   auto _tup = {0}_operator({4:,});
@@ -260,39 +266,40 @@ void {0}SetOperator(Agenda& {0}, const {6}& {0}_operator) {{
 }}
 
 )",
-                 name,
-                 ag.output | named_ref_agenda_types,
-                 ag.input | remove_output | named_cref_agenda_types,
-                 ag.output.empty() ? ""sv : ", "sv,
-                 ag.input,
-                 ag.output | output_string | to_strings,
-                 op);
+                  name,
+                  ag.output | named_ref_agenda_types,
+                  ag.input | remove_output | named_cref_agenda_types,
+                  ag.output.empty() ? ""sv : ", "sv,
+                  ag.input,
+                  ag.output | output_string | to_strings,
+                  op);
     } catch (std::exception& e) {
-      errors.push_back(std::format("Error generating agenda operator for agenda: \"{}\"\n  {}\n", name, e.what()));
+      errors.push_back(arts::format("Error generating agenda operator for agenda: \"{}\"\n  {}\n", name, e.what()));
     }
   }
 
   if (not errors.empty()) {
-    throw std::runtime_error(std::format("Error generating agenda operators:\n{}\n", std::format("  {:n}\n", errors)));
+    throw std::runtime_error(
+        arts::format("Error generating agenda operators:\n{}\n", arts::format("  {:n}\n", errors)));
   }
 }
 
 void wsv_implement_copied(std::ostream& os) {
-  std::println(os, "Wsv Wsv::copied() const {{\n  switch(index) {{");
+  arts::println(os, "Wsv Wsv::copied() const {{\n  switch(index) {{");
 
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os, R"(    case {1}: return Wsv {{ {0} {{ get_unsafe<{0}>() }} }}; break;)", grps[i], i);
+    arts::println(os, R"(    case {1}: return Wsv {{ {0} {{ get_unsafe<{0}>() }} }}; break;)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad copy\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad copy\");\n}}");
 }
 
 void wsv_implement_assign(std::ostream& os) {
-  std::println(os, R"(void Wsv::assign(const Wsv& x) const {{
+  arts::println(os, R"(void Wsv::assign(const Wsv& x) const {{
   if (not holds_same(x))
-    throw std::runtime_error(std::format(R"--(Cannot assign "{{}}" to "{{}}")--", x.type_name(), type_name()));
+    throw std::runtime_error(arts::format(R"--(Cannot assign "{{}}" to "{{}}")--", x.type_name(), type_name()));
   if (data == x.data) return;
 
   switch(index) {{)");
@@ -300,45 +307,45 @@ void wsv_implement_assign(std::ostream& os) {
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os, R"(    case {1}: get_unsafe<{0}>() = x.get_unsafe<{0}>(); return;)", grps[i], i);
+    arts::println(os, R"(    case {1}: get_unsafe<{0}>() = x.get_unsafe<{0}>(); return;)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad assign\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad assign\");\n}}");
 }
 
 void wsv_implement_from_named_type(std::ostream& os) {
-  std::println(os, "Wsv Wsv::from_named_type(const std::string_view x) {{");
+  arts::println(os, "Wsv Wsv::from_named_type(const std::string_view x) {{");
 
-  for (auto& group : groups()) { std::println(os, "  if (x == \"{0}\"sv) {{ return Wsv {{ {0}{{}} }}; }}", group); }
+  for (auto& group : groups()) { arts::println(os, "  if (x == \"{0}\"sv) {{ return Wsv {{ {0}{{}} }}; }}", group); }
 
-  std::println(os, "\n  throw std::runtime_error(std::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}\n");
+  arts::println(os, "\n  throw std::runtime_error(arts::format(R\"(Unknown Workspace Group: \"{{0}}\")\", x));\n}}\n");
 
-  std::println(os, R"(Wsv Wsv::from_index(Index x) {{
+  arts::println(os, R"(Wsv Wsv::from_index(Index x) {{
   switch (x) {{)");
 
   for (auto& group : groups()) {
-    std::println(os, "    case WorkspaceGroupInfo<{0}>::index: return Wsv {{ {0}{{}} }};", group);
+    arts::println(os, "    case WorkspaceGroupInfo<{0}>::index: return Wsv {{ {0}{{}} }};", group);
   }
 
-  std::println(os,
-               R"xyz(  }}
+  arts::println(os,
+                R"xyz(  }}
   
-  throw std::runtime_error(std::format("Unknown Workspace Group Index: {{0}}", x));
+  throw std::runtime_error(arts::format("Unknown Workspace Group Index: {{0}}", x));
 }})xyz");
 }
 
 void wsv_implement_type_name(std::ostream& os) {
-  std::println(os, "std::string_view Wsv::type_name() const {{\n  switch(index) {{");
+  arts::println(os, "std::string_view Wsv::type_name() const {{\n  switch(index) {{");
 
   auto grps = groups();
 
-  for (size_t i = 0; i < grps.size(); ++i) { std::println(os, R"(    case {1}: return "{0}"sv;)", grps[i], i); }
+  for (size_t i = 0; i < grps.size(); ++i) { arts::println(os, R"(    case {1}: return "{0}"sv;)", grps[i], i); }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad type_name\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad type_name\");\n}}");
 }
 
 void implement_valid_wsg(std::ostream& os) {
-  std::println(os, R"--(//! auto-generated by make_auto_wsg.cpp
+  arts::println(os, R"--(//! auto-generated by make_auto_wsg.cpp
 
 #include <algorithm>
 #include <array>
@@ -348,76 +355,76 @@ using namespace std::literals;
 
 bool valid_wsg(std::string_view x) {{
   constexpr static std::array val {{)--");
-  for (auto& group : groups()) { std::println(os, "    \"{0}\"sv,", group); }
+  for (auto& group : groups()) { arts::println(os, "    \"{0}\"sv,", group); }
 
-  std::println(os, R"--(  }};
+  arts::println(os, R"--(  }};
   return std::binary_search(val.begin(), val.end(), x);
 }})--");
 }
 
 void wsv_implement_vformat(std::ostream& os) {
-  std::println(os, "std::string Wsv::vformat(std::string_view fmt) const {{\n  switch(index) {{");
+  arts::println(os, "std::string Wsv::vformat(std::string_view fmt) const {{\n  switch(index) {{");
 
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(
-        os, R"(    case {1}: return std::vformat(fmt, std::make_format_args(get_unsafe<{0}>()));)", grps[i], i);
+    arts::println(
+        os, R"(    case {1}: return arts::vformat(fmt, std::make_format_args(get_unsafe<{0}>()));)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad vformat\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad vformat\");\n}}");
 }
 
 void wsv_implement_write_to_stream(std::ostream& os) {
-  std::println(
+  arts::println(
       os,
       "std::ostream& Wsv::write_to_stream(std::ostream& os, bofstream* pbofs, const std::string& s) const {{\n  switch(index) {{");
 
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os, R"(    case {1}: xml_write_to_stream(os, get_unsafe<{0}>(), pbofs, s); break;)", grps[i], i);
+    arts::println(os, R"(    case {1}: xml_write_to_stream(os, get_unsafe<{0}>(), pbofs, s); break;)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  return os;\n}}\n");
+  arts::println(os, "  }}\n\n  return os;\n}}\n");
 
-  std::println(
+  arts::println(
       os,
       "std::string Wsv::write_to_file(const std::string& fn, FileType ftype, bool clobber) const {{\n  switch(index) {{");
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os,
-                 R"(    case {1}: return xml_write_to_file(fn, get_unsafe<{0}>(), ftype, clobber ? 0 : 1); break;)",
-                 grps[i],
-                 i);
+    arts::println(os,
+                  R"(    case {1}: return xml_write_to_file(fn, get_unsafe<{0}>(), ftype, clobber ? 0 : 1); break;)",
+                  grps[i],
+                  i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad write_to_file\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad write_to_file\");\n}}");
 }
 
 void wsv_implement_read_from_stream(std::ostream& os) {
-  std::println(os, "std::istream& Wsv::read_from_stream(std::istream& is, bifstream* pbifs) {{\n  switch(index) {{");
+  arts::println(os, "std::istream& Wsv::read_from_stream(std::istream& is, bifstream* pbifs) {{\n  switch(index) {{");
 
   auto grps = groups();
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os, R"(    case {1}: xml_read_from_stream(is, get_unsafe<{0}>(), pbifs); break;)", grps[i], i);
+    arts::println(os, R"(    case {1}: xml_read_from_stream(is, get_unsafe<{0}>(), pbifs); break;)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  return is;\n}}\n");
+  arts::println(os, "  }}\n\n  return is;\n}}\n");
 
-  std::println(os, "std::string Wsv::read_from_file(const std::string& fn) {{\n  switch(index) {{");
+  arts::println(os, "std::string Wsv::read_from_file(const std::string& fn) {{\n  switch(index) {{");
 
   for (size_t i = 0; i < grps.size(); ++i) {
-    std::println(os, R"(    case {1}: return xml_read_from_file(fn, get_unsafe<{0}>());)", grps[i], i);
+    arts::println(os, R"(    case {1}: return xml_read_from_file(fn, get_unsafe<{0}>());)", grps[i], i);
   }
 
-  std::println(os, "  }}\n\n  throw std::logic_error(\"bad read_file\");\n}}");
+  arts::println(os, "  }}\n\n  throw std::logic_error(\"bad read_file\");\n}}");
 }
 
 void wsv_implement_includes(std::ostream& os) {
-  std::println(os,
-               R"-x-(//! auto-generated includes, edits do not persist
+  arts::println(os,
+                R"-x-(//! auto-generated includes, edits do not persist
 
 #include <cassert>
 #include <format>

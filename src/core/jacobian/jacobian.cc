@@ -48,21 +48,21 @@ void Targets::throwing_check(Size xsize) const {
 
   if (xsize != x_size()) {
     throw std::runtime_error(
-        std::format("The x-vector has {} elements, but the Jacobian targets need {}", xsize, x_size()));
+        arts::format("The x-vector has {} elements, but the Jacobian targets need {}", xsize, x_size()));
   }
 
   const auto check = [xsize, t_size](const auto& targets, const std::string_view kind) {
     for (auto& a : targets) {
       if ((a.x_start + a.x_size) > xsize) {
         throw std::runtime_error(
-            std::format("A {} Jacobian target covers the x-vector range [{}, {}), but the x-vector has {} elements",
-                        kind,
-                        a.x_start,
-                        a.x_start + a.x_size,
-                        xsize));
+            arts::format("A {} Jacobian target covers the x-vector range [{}, {}), but the x-vector has {} elements",
+                         kind,
+                         a.x_start,
+                         a.x_start + a.x_size,
+                         xsize));
       }
       if (t_size <= a.target_pos) {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(arts::format(
             "A {} Jacobian target has position {}, but there are only {} targets", kind, a.target_pos, t_size));
       }
     }
@@ -538,7 +538,7 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
     try {
       std::ignore = t.type.get_value(abs_bands);
     } catch (const std::exception& e) {
-      throw std::runtime_error(std::format("Line target {} is not in abs_bands:\n{}", t.type, e.what()));
+      throw std::runtime_error(arts::format("Line target {} is not in abs_bands:\n{}", t.type, e.what()));
     }
   }
 

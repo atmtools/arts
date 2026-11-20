@@ -11,7 +11,9 @@
 namespace {
 std::string& docstr(std::unordered_map<std::string, std::string>& map, const std::string& key) {
   const auto& orig = workspace_methods();
-  if (orig.find(key) == orig.end()) { throw std::runtime_error(std::format(R"(No method "{}" in ARTS methods)", key)); }
+  if (orig.find(key) == orig.end()) {
+    throw std::runtime_error(arts::format(R"(No method "{}" in ARTS methods)", key));
+  }
   return map[key];
 }
 
@@ -49,7 +51,7 @@ template <typename Setup> std::string get_agendaSetup_doc(const std::string& met
             } catch (std::exception&) { continue; }
 
             count++;
-            combinations += std::format(
+            combinations += arts::format(
                 R"(
 .. rubric:: ``{}({}="{}", {}="{}", {}="{}", {}="{}", {}="{}", {}=lambertian_reflection, min_optical_depth=min_optical_depth)``
 
@@ -74,7 +76,7 @@ template <typename Setup> std::string get_agendaSetup_doc(const std::string& met
     }
   }
 
-  return std::format(
+  return arts::format(
              R"(
 There are {0} possible combinations for calling the ``{1}`` method.
 
@@ -137,21 +139,21 @@ Below follows a complete list of all single species tags that can be set using t
      - :math:`g_i`)";
 
   for (auto& x : Species::Isotopologues | stdv::drop(1)) {
-    doc += std::format(R"(
+    doc += arts::format(R"(
    * - ``{}``
      - {}
      - {}
      - {})",
-                       x.FullName(),
-                       x.is_predefined() ? "Predefined Model"sv
-                       : x.is_normal()   ? "Normal Isotopologue"sv
-                                         : "All Isotopologues"sv,
-                       x.is_normal() ? std::format("{}", x.mass) : ""s,
-                       x.is_normal() ? std::format("{}", x.gi) : ""s);
+                        x.FullName(),
+                        x.is_predefined() ? "Predefined Model"sv
+                        : x.is_normal()   ? "Normal Isotopologue"sv
+                                          : "All Isotopologues"sv,
+                        x.is_normal() ? arts::format("{}", x.mass) : ""s,
+                        x.is_normal() ? arts::format("{}", x.gi) : ""s);
   }
 
   doc += "\n\nAnd in short: ";
-  for (auto& x : Species::Isotopologues | stdv::drop(1)) { doc += std::format("``{}``, ", x.FullName()); }
+  for (auto& x : Species::Isotopologues | stdv::drop(1)) { doc += arts::format("``{}``, ", x.FullName()); }
   doc += '\n';
 
   return doc;

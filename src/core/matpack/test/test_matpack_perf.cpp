@@ -19,7 +19,7 @@ Numeric dot_tensor(const ConstTensor7View& a, const ConstTensor7View& b) {
 }
 
 Numeric vector_matrix_mult(VectorView& x, const ConstMatrixView& A, const ConstVectorView& y) {
-  ARTS_NAMED_TIME_REPORT(std::format("vector_matrix_mult; {:B,} from {:B,} x {:B,}", x.shape(), A.shape(), y.shape()));
+  ARTS_NAMED_TIME_REPORT(arts::format("vector_matrix_mult; {:B,} from {:B,} x {:B,}", x.shape(), A.shape(), y.shape()));
 
   mult(x, A, y);
 
@@ -27,7 +27,7 @@ Numeric vector_matrix_mult(VectorView& x, const ConstMatrixView& A, const ConstV
 }
 
 Numeric matrix_matrix_mult(MatrixView& C, const ConstMatrixView& A, const ConstMatrixView& B) {
-  ARTS_NAMED_TIME_REPORT(std::format("matrix_matrix_mult; {:B,} from {:B,} x {:B,}", C.shape(), A.shape(), B.shape()));
+  ARTS_NAMED_TIME_REPORT(arts::format("matrix_matrix_mult; {:B,} from {:B,} x {:B,}", C.shape(), A.shape(), B.shape()));
 
   mult(C, A, B);
 
@@ -115,7 +115,7 @@ Numeric sort_tensor(Tensor7View& a) {
 }
 
 Numeric dot_sum(const ConstMatrixView& a) {
-  ARTS_NAMED_TIME_REPORT(std::format("dot_sum; {:B,}", a.shape()));
+  ARTS_NAMED_TIME_REPORT(arts::format("dot_sum; {:B,}", a.shape()));
 
   return std::transform_reduce(a.begin(), a.end(), Numeric{0}, std::plus<>{}, [](auto&& v) { return dot(v, v); });
 }
@@ -221,6 +221,6 @@ int main() {
     buf += dot_sum(A);
   }
 
-  std::println(std::cerr, "Prevent optimizing away: {}", buf);
+  arts::println(std::cerr, "Prevent optimizing away: {}", buf);
   arts::print_report();
 }

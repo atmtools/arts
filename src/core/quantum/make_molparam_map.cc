@@ -27,7 +27,7 @@ std::map<Index, std::map<char, std::pair<String, Numeric>>> from(const std::vect
 }  // namespace
 
 void write_header(std::ostream& os, const std::map<Index, std::map<char, std::pair<String, Numeric>>>& data) {
-  std::println(os, R"(#pragma once
+  arts::println(os, R"(#pragma once
 
 #include <map>
 #include <utility>
@@ -38,20 +38,20 @@ namespace Hitran {{
 inline std::map<Index, std::map<char, std::pair<Index, Numeric>>> molparam_map{{)");
 
   for (const auto& [mol, iso_map] : data) {
-    std::print(os, "    {{{}, {{", mol);
+    arts::print(os, "    {{{}, {{", mol);
     for (const auto& [isochar, pair] : iso_map) {
-      std::print(os, "{{'{}', {{\"{}\"_isot_index, {}}}}}, ", isochar, pair.first, pair.second);
+      arts::print(os, "{{'{}', {{\"{}\"_isot_index, {}}}}}, ", isochar, pair.first, pair.second);
     }
-    std::println(os, "}}}},");
+    arts::println(os, "}}}},");
   }
 
-  std::println(os, R"(}};
+  arts::println(os, R"(}};
 }}  // namespace Hitran)");
 }
 
 int main(int argc, char** argv) try {
   if (argc != 2) {
-    std::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
+    arts::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -64,6 +64,6 @@ int main(int argc, char** argv) try {
 
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in main: {}", e.what());
+  arts::println(stderr, "Error in main: {}", e.what());
   return EXIT_FAILURE;
 }

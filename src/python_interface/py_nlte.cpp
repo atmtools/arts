@@ -19,6 +19,6 @@ void py_nlte(py::module_& m) try {
       m, "QuantumIdentifierGriddedField1Map");
   generic_interface(gf1);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize nlte\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize nlte\n{}", e.what()));
 }
 }  // namespace Python

@@ -33,7 +33,7 @@ void forward_atm_path(ArrayOfAtmPoint &atm_path, const ArrayOfPropagationPathPoi
     } catch (const std::exception &e) {
 #pragma omp critical
       if (error.empty()) {
-        error = std::format(
+        error = arts::format(
             R"(Error extracting atmospheric point from path at index {}:
 pos: {:B,}
 los: {:B,}
@@ -96,7 +96,7 @@ void forward_path_freq(ArrayOfAscendingGrid              &path_freq,
         forward_path_freq(path_freq[ip], main_freq, rad_path[ip], atm_path[ip]);
       } catch (const std::exception &e) {
 #pragma omp critical
-        error = std::format("{}\n", std::string_view(e.what()));
+        error = arts::format("{}\n", std::string_view(e.what()));
       }
     }
 

@@ -54,7 +54,7 @@ inline int failures = 0;
 
 inline void require(bool ok, const std::string& what) {
   if (not ok) {
-    std::println("FAIL {}", what);
+    arts::println("FAIL {}", what);
     ++failures;
   }
 }
@@ -144,14 +144,14 @@ struct Particle {
   }
 
   [[nodiscard]] std::string describe() const {
-    return std::format("r={} eps={} m=({}, {}) {} {} {}",
-                       radius,
-                       aspect_ratio,
-                       refractive_index.real(),
-                       refractive_index.imag(),
-                       shape.shape,
-                       shape.degree,
-                       equivalent);
+    return arts::format("r={} eps={} m=({}, {}) {} {} {}",
+                        radius,
+                        aspect_ratio,
+                        refractive_index.real(),
+                        refractive_index.imag(),
+                        shape.shape,
+                        shape.degree,
+                        equivalent);
   }
 };
 
@@ -220,16 +220,16 @@ inline void compare(const std::string& name, const FixedPort& port, std::span<co
       for (Index b = 0; b < 4; ++b)
         worst_z = std::max(worst_z, std::abs(port.results[i].phase[a, b] - ref[i].phase[a, b]) / port.phase[i]);
   }
-  require(worst_s <= 1.0, std::format("{}: amplitude at {:.2f} of its tolerance", name, worst_s));
-  require(worst_z <= 1.0, std::format("{}: phase matrix at {:.2f} of its tolerance", name, worst_z));
-  std::println("{}: kappa {:.1e}, cross sections {:.3f}, amplitude {:.3f} and phase {:.3f} of their tolerances",
-               name,
-               port.kappa,
-               std::max(relative(port.results[0].extinction, ref[0].extinction),
-                        relative(port.results[0].scattering, ref[0].scattering)) /
-                   port.cross,
-               worst_s,
-               worst_z);
+  require(worst_s <= 1.0, arts::format("{}: amplitude at {:.2f} of its tolerance", name, worst_s));
+  require(worst_z <= 1.0, arts::format("{}: phase matrix at {:.2f} of its tolerance", name, worst_z));
+  arts::println("{}: kappa {:.1e}, cross sections {:.3f}, amplitude {:.3f} and phase {:.3f} of their tolerances",
+                name,
+                port.kappa,
+                std::max(relative(port.results[0].extinction, ref[0].extinction),
+                         relative(port.results[0].scattering, ref[0].scattering)) /
+                    port.cross,
+                worst_s,
+                worst_z);
 }
 
 /** The port in random orientation, and the bounds of its difference from a reference program
@@ -329,11 +329,11 @@ inline void compare(const std::string& name, const RandomPort& port, const Rando
   Numeric worst = 0.0;
   for (Size i = 0; i < std::min(r.phase.size(), ref.phase.size()); ++i)
     for (Index e = 0; e < 6; ++e) worst = std::max(worst, std::abs(r.phase[i][e] - ref.phase[i][e]) / port.matrix);
-  require(worst <= 1.0, std::format("{}: scattering matrix at {:.2f} of its tolerance", name, worst));
-  std::println("{}: cross sections {:.3f} and scattering matrix {:.3f} of their tolerances",
-               name,
-               std::max(relative(r.extinction, ref.extinction), relative(r.scattering, ref.scattering)) / port.cross,
-               worst);
+  require(worst <= 1.0, arts::format("{}: scattering matrix at {:.2f} of its tolerance", name, worst));
+  arts::println("{}: cross sections {:.3f} and scattering matrix {:.3f} of their tolerances",
+                name,
+                std::max(relative(r.extinction, ref.extinction), relative(r.scattering, ref.scattering)) / port.cross,
+                worst);
 }
 
 //! The Fortran's results in fixed orientation at the geometries it evaluates

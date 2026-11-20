@@ -232,7 +232,7 @@ void xml_io_stream<SensorPosLos>::write(std::ostream&       os,
   if (pbofs) {
     put({&x, 1}, pbofs);
   } else {
-    std::println(os, "{:IO}", x);
+    arts::println(os, "{:IO}", x);
   }
 
   tag.write_to_end_stream(os);
@@ -283,7 +283,7 @@ void xml_io_stream<sensor::SparseStokvec>::write(std::ostream&                os
   if (pbofs) {
     put({&x, 1}, pbofs);
   } else {
-    std::println(os, "{:IO}", x);
+    arts::println(os, "{:IO}", x);
   }
 
   tag.write_to_end_stream(os);

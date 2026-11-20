@@ -62,6 +62,6 @@ void py_griddedfield(py::module_& m) try {
   py_griddedfield_stokvec(m);
   py_griddedfield_extra(m);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize gridded field\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize gridded field\n{}", e.what()));
 }
 }  // namespace Python

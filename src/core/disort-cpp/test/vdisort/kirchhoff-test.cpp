@@ -64,19 +64,20 @@ struct deviation {
 };
 
 void report(std::string_view what, deviation d, Numeric tolerance) {
-  std::cout << std::format("{:<52} I {:9.2e}  Q, U, V {:9.2e}\n", what, d.I, d.polarized);
+  arts::println("{:<52} I {:9.2e}  Q, U, V {:9.2e}", what, d.I, d.polarized);
   require(d.I <= tolerance and d.polarized <= tolerance,
-          std::format("{}: an isothermal cavity must hold B e_I to {:.0e}, got {:.2e} in I and {:.2e} in Q, U, V",
-                      what,
-                      tolerance,
-                      d.I,
-                      d.polarized));
+          arts::format("{}: an isothermal cavity must hold B e_I to {:.0e}, got {:.2e} in I and {:.2e} in Q, U, V",
+                       what,
+                       tolerance,
+                       d.I,
+                       d.polarized));
 }
 
 void report_miss(std::string_view what, deviation d, Numeric least) {
-  std::cout << std::format("{:<52} I {:9.2e}  (negative control)\n", what, d.I);
-  require(d.I >= least,
-          std::format("{}: the emission as the boundary must miss B by at least {:.0e}, got {:.2e}", what, least, d.I));
+  arts::println("{:<52} I {:9.2e}  (negative control)", what, d.I);
+  require(
+      d.I >= least,
+      arts::format("{}: the emission as the boundary must miss B by at least {:.0e}, got {:.2e}", what, least, d.I));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -135,7 +136,7 @@ void test_disort() {
        }},
   };
   for (const auto& [name, surface] : surfaces)
-    report(std::format("DISORT, {}", name),
+    report(arts::format("DISORT, {}", name),
            disort_deviation(disort_cavity(surface(mu), false), surface(user_abs_mu)),
            1e-12);
 
@@ -248,7 +249,7 @@ void test_vdisort() {
        [&mu](const ConstVectorView& out) { return hapke_fourier_modes(1.0, 0.06, 0.6, NF, out, mu, no_beam, 100); }},
   };
   for (const auto& [name, surface] : surfaces)
-    report(std::format("VDISORT, {}", name),
+    report(arts::format("VDISORT, {}", name),
            vdisort_deviation(vdisort_cavity(surface(mu), false), surface(user_abs_mu)),
            1e-12);
 

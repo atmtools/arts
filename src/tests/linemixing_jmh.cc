@@ -134,20 +134,20 @@ int main() try {
         for (Index iRp = 0; iRp <= nraies; iRp++) {
           if (ji[iRp] > ji[iR]) continue;
           if (max(W[iRp, iR, joker]) == min(W[iRp, iR, joker])) continue;
-          std::print(fil,
-                     " {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E}   {}   {}   {}   {}\n",
-                     W[iRp, iR, 0],
-                     W[iRp, iR, 1],
-                     W[iRp, iR, 2],
-                     W[iRp, iR, 3],
-                     W[iRp, iR, 4],
-                     W[iRp, iR, 5],
-                     W[iRp, iR, 6],
-                     W[iRp, iR, 7],
-                     ji[iR],
-                     jf[iR],
-                     ji[iRp],
-                     jf[iRp]);
+          arts::print(fil,
+                      " {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E} {:.12E}   {}   {}   {}   {}\n",
+                      W[iRp, iR, 0],
+                      W[iRp, iR, 1],
+                      W[iRp, iR, 2],
+                      W[iRp, iR, 3],
+                      W[iRp, iR, 4],
+                      W[iRp, iR, 5],
+                      W[iRp, iR, 6],
+                      W[iRp, iR, 7],
+                      ji[iR],
+                      jf[iR],
+                      ji[iRp],
+                      jf[iRp]);
         }
       }
 

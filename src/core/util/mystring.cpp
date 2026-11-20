@@ -1,5 +1,6 @@
 #include "mystring.h"
 
+#include <format_tags.h>
 #include <nonstd.h>
 
 #include <algorithm>
@@ -45,7 +46,7 @@ String comma(bool& first, const String& spaces) {
     first = false;
     return "";
   }
-  return std::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
+  return arts::format("{}{}{}", ',', (spaces.size() ? '\n' : ' '), spaces);
 }
 
 void join(String& res, const std::span<const String>& list, const String& with) {
@@ -54,7 +55,7 @@ void join(String& res, const std::span<const String>& list, const String& with) 
   if (list.empty()) return;
 
   res = list.front();
-  for (auto& v : list.subspan(1)) res += std::format("{}{}", with, v);
+  for (auto& v : list.subspan(1)) res += arts::format("{}{}", with, v);
 }
 
 String join(const std::span<const String>& list, const String& with) {

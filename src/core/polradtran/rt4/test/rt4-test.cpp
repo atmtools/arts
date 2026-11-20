@@ -176,8 +176,8 @@ std::vector<iq> black_surface(const atmosphere& atm, Index nmu) {
 }
 
 void report(std::string_view name, deviation d, Numeric tol) {
-  std::cout << std::format("{:<72} max rel dev I {:9.3e}, Q {:9.3e} (tolerance {:.1e})\n", name, d.I, d.Q, tol);
-  require(d.max() <= tol, std::format("{}: deviation {:.3e} exceeds {:.1e}", name, d.max(), tol));
+  arts::println("{:<72} max rel dev I {:9.3e}, Q {:9.3e} (tolerance {:.1e})", name, d.I, d.Q, tol);
+  require(d.max() <= tol, arts::format("{}: deviation {:.3e} exceeds {:.1e}", name, d.max(), tol));
 }
 
 /** (g) RT4's quadratures against their defining exactness:
@@ -211,7 +211,7 @@ void test_quadrature() {
       worst = std::max(worst, std::abs(moment(L, 2 * k) - 1.0 / static_cast<Numeric>(2 * k + 1)));
     require(L.mu[n - 1] == 1.0, "Lobatto must include mu = 1");
   }
-  std::cout << std::format("{:<72} max moment error {:9.3e}\n", "(g) quadrature exactness D/G/L", worst);
+  arts::println("{:<72} max moment error {:9.3e}", "(g) quadrature exactness D/G/L", worst);
   require(worst < 1e-13, "quadrature moments are not exact");
 }
 
@@ -254,7 +254,7 @@ void test_gas_only() {
     const auto down = closed_form_down(atm, r.mu, gas);
     const auto up   = closed_form_up(atm, r.mu, black_surface(atm, r.mu.size()), gas);
     require(r.mu.size() == 9 and r.mu[8] == 1.0 and r.weights[8] == 0.0, "extra angle mu = 1 with weight 0");
-    report(std::format("(a) gas-only, black surface, nstokes {}", ns),
+    report(arts::format("(a) gas-only, black surface, nstokes {}", ns),
            combine(compare(r.up, up), compare(r.down, down)),
            1e-12);
   }
@@ -296,13 +296,13 @@ void test_doubling_convergence() {
     err.push_back(d.max());
     // The first-order initial layer has a slant thickness of at most
     // max_delta_tau / mu_min, which bounds the relative error.
-    report(std::format("(b) doubling, zero phase, max_delta_tau {:.0e}", mdt), d, mdt / mu_min);
+    report(arts::format("(b) doubling, zero phase, max_delta_tau {:.0e}", mdt), d, mdt / mu_min);
   }
   // The number of doublings is int(log2(tau / max_delta_tau)) + 1, so each
   // decade changes the sublayer thickness by a factor 8 or 16.
   for (std::size_t i = 0; i + 1 < err.size(); i++) {
     const Numeric ratio = err[i] / err[i + 1];
-    std::cout << std::format("    error ratio between successive max_delta_tau: {:.2f}\n", ratio);
+    arts::println("    error ratio between successive max_delta_tau: {:.2f}", ratio);
     require(ratio > 4.0 and ratio < 25.0, "doubling error is not first order in max_delta_tau");
   }
 }
@@ -401,7 +401,7 @@ void test_surfaces() {
       if (r.mu[i] < 0.9)
         require(r.up[atm.nlay(), i, 1] > 0.0 and sfc[i].Q > 0.0, "Fresnel surface emission must have Q > 0");
     const auto upr = closed_form_up(atm, r.mu, sfc, gas);
-    report(std::format("(c) Fresnel surface n = {}{:+}i", n.real(), n.imag()),
+    report(arts::format("(c) Fresnel surface n = {}{:+}i", n.real(), n.imag()),
            combine(compare(r.up, upr), compare(r.down, dn)),
            1e-12);
   }
@@ -453,7 +453,7 @@ void test_surfaces() {
     for (Index j = 0; j < p.nmu; j++) flux += qw.weights[j] * qw.mu[j] * dn[atm.nlay()][j].I;
     std::vector<iq> sfc(r.mu.size(), iq{.I = (1 - A) * Bs + 2 * A * flux, .Q = 0.0});
     const auto      upr = closed_form_up(atm, r.mu, sfc, gas);
-    report(std::format("(c) Lambertian A = 0.3 as {}", discrete ? "discrete_surface" : "lambertian_surface"),
+    report(arts::format("(c) Lambertian A = 0.3 as {}", discrete ? "discrete_surface" : "lambertian_surface"),
            combine(compare(r.up, upr), compare(r.down, dn)),
            1e-12);
   }
@@ -559,10 +559,10 @@ void test_kirchhoff(bool reciprocal, Index nmu_quad = 8, Index nlay = 2) {
   // it grows with the number of sublayers 2^n, n = int(log2(tau / max_delta_tau)) + 1.
   const Numeric tau     = (sigma + kabs + atm.gas[0]) * atm.dz(0);
   const int     n_doubl = std::ilogb(tau / p.max_delta_tau) + 1;
-  report(std::format("(d) isothermal Kirchhoff, {} + gas + Fresnel 3+0.2i, nmu {} + 1, {} layers",
-                     reciprocal ? "Rayleigh" : "non-reciprocal Rayleigh",
-                     nmu_quad,
-                     nlay),
+  report(arts::format("(d) isothermal Kirchhoff, {} + gas + Fresnel 3+0.2i, nmu {} + 1, {} layers",
+                      reciprocal ? "Rayleigh" : "non-reciprocal Rayleigh",
+                      nmu_quad,
+                      nlay),
          d,
          std::ldexp(std::numeric_limits<Numeric>::epsilon(), n_doubl));
 }
@@ -573,9 +573,9 @@ void expect_throw(std::string_view what, const std::function<void()>& f) {
     f();
   } catch (const std::exception& e) {
     threw = true;
-    std::cout << std::format("    {:<44} throws: {}\n", what, std::string_view{e.what()}.substr(0, 110));
+    arts::println("    {:<44} throws: {}", what, std::string_view{e.what()}.substr(0, 110));
   }
-  require(threw, std::format("{} did not throw", what));
+  require(threw, arts::format("{} did not throw", what));
 }
 
 /** (f) Error paths: inputs that RT4 must refuse. */

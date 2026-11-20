@@ -400,7 +400,7 @@ nd : float
       .def("__getitem__",
            [](AtmPoint &self, const AtmKeyVal &key) {
              if (self.contains(key)) return self[key];
-             throw py::key_error(std::format("{}", key).c_str());
+             throw py::key_error(arts::format("{}", key).c_str());
            })
       .def("__setitem__", [](AtmPoint &self, const AtmKeyVal &key, Numeric x) { self[key] = x; })
       .def("__contains__", [](const AtmPoint &self, const AtmKeyVal &x) { return self.contains(x); })
@@ -454,17 +454,17 @@ nd : float
           [](const AtmField &atm, const Vector &hv, const Vector &latv, const Vector &lonv) {
             const Size N = hv.size();
             if (latv.size() != lonv.size() or N != latv.size())
-              throw std::logic_error(std::format(R"(Not same size:
+              throw std::logic_error(arts::format(R"(Not same size:
   h:   {:B,} (size: {})
   lat: {:B,} (size: {})
   lon: {:B,} (size: {})
 )",
-                                                 hv,
-                                                 hv.size(),
-                                                 latv,
-                                                 latv.size(),
-                                                 lonv,
-                                                 lonv.size()));
+                                                  hv,
+                                                  hv.size(),
+                                                  latv,
+                                                  latv.size(),
+                                                  lonv,
+                                                  lonv.size()));
             ArrayOfAtmPoint out;
             out.reserve(N);
             for (Size i = 0; i < N; i++) out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
@@ -719,7 +719,7 @@ gridded_atm : AtmField
 
         py::dict data;
         for (Size i = 0; i < xarray.keys.size(); i++) {
-          const std::string key = std::format("{}", xarray.keys[i]);
+          const std::string key = arts::format("{}", xarray.keys[i]);
           const Tensor3     d{xarray.data[i]};
           if (data.contains(key)) arts::user_error("Duplicate key: {}", key);
           data[key.c_str()] = xa.attr("Variable")(dims, np.attr("array")(d));
@@ -752,9 +752,9 @@ dataset : xarray.Dataset
         std::unordered_map<std::string, Atm::FieldData> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = std::format("{}", key);
+          const std::string strkey = arts::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(std::format("Key \"{}\" us not unique", strkey));
+            throw std::runtime_error(arts::format("Key \"{}\" us not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -793,7 +793,7 @@ Return
           "__getitem__",
           [](AtmField &self, const AtmKeyVal &key) -> Atm::Data & {
             if (self.contains(key)) return self[key];
-            throw py::key_error(std::format("{}", key).c_str());
+            throw py::key_error(arts::format("{}", key).c_str());
           },
           py::rv_policy::reference_internal)
       .def("__setitem__", [](AtmField &self, const AtmKeyVal &key, const Atm::Data &x) { self[key] = x; })
@@ -837,24 +837,24 @@ Return
         for (const auto &[key, val] : kwargs) {
           try {
             gf3.data_name = py::str(key).c_str();
-          } catch (const py::cast_error &) { throw std::runtime_error(std::format("Key not a string?")); }
+          } catch (const py::cast_error &) { throw std::runtime_error(arts::format("Key not a string?")); }
 
           try {
             atm_key = py::cast<AtmKeyVal>(key);
           } catch (const py::cast_error &) {
-            throw std::runtime_error(std::format("Key \"{}\" must be an AtmKeyVal", gf3.data_name));
+            throw std::runtime_error(arts::format("Key \"{}\" must be an AtmKeyVal", gf3.data_name));
           }
 
           try {
             values = py::cast<Vector>(val);
             if (values.size() != z.size()) {
-              throw std::runtime_error(std::format(
+              throw std::runtime_error(arts::format(
                   "Value for key \"{}\" must have the same size as the altitude grid ({}).", atm_key, z.size()));
             }
             gf3.data[joker, 0, 0] = values;
             (*x)[atm_key]         = gf3;
           } catch (const py::cast_error &) {
-            throw std::runtime_error(std::format("Value for key \"{}\" must be a Vector.", atm_key));
+            throw std::runtime_error(arts::format("Value for key \"{}\" must be a Vector.", atm_key));
           }
         }
       },
@@ -969,9 +969,9 @@ Parameters
         std::unordered_map<std::string, Numeric> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = std::format("{}", key);
+          const std::string strkey = arts::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(std::format("Key \"{}\" is not unique", strkey));
+            throw std::runtime_error(arts::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -1057,7 +1057,7 @@ Parameters
 
           for (const AtmPoint &point : atm) {
             if (point.keys() != keys) {
-              throw std::runtime_error(std::format(
+              throw std::runtime_error(arts::format(
                   R"(Error for item of index {}.
 
 All atmospheric points must have the same keys.  Indexed item differs from first item in keys.
@@ -1185,9 +1185,9 @@ Parameters
         std::unordered_map<std::string, Vector> out;
 
         for (auto &[key, vec] : dict) {
-          const std::string strkey = std::format("{}", key);
+          const std::string strkey = arts::format("{}", key);
           if (unique and out.contains(strkey)) {
-            throw std::runtime_error(std::format("Key \"{}\" is not unique", strkey));
+            throw std::runtime_error(arts::format("Key \"{}\" is not unique", strkey));
           }
           out[strkey] = vec;
         }
@@ -1214,6 +1214,6 @@ Return
     A dictionary of atmospheric keys and corresponding data.  The keys are the atmospheric point keys and the values are the corresponding data.
 )");
 } catch (std::exception &e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize atm\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize atm\n{}", e.what()));
 }
 }  // namespace Python

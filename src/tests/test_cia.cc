@@ -23,17 +23,17 @@ void test01() {
   cia_data.grid<0>() = {1, 2, 3, 4, 5};
   cia_data.grid<1>() = {100, 200, 300};
 
-  std::cout << "cia_data:" << std::format("{}", cia_data) << '\n';
+  arts::println("cia_data:{}", cia_data);
 
   // Output frequencies and temperature:
   Vector f_out = matpack::uniform_grid(1, 9, 0.5);
-  std::cout << "f_out:" << std::format("{}", f_out) << '\n';
+  arts::println("f_out:{}", f_out);
   Numeric T_out = 150;
-  std::cout << "T_out:" << std::format("{}", T_out) << '\n';
+  arts::println("T_out:{}", T_out);
 
   Vector result(9);
   cia_interpolation(result, f_out, T_out, cia_data, 0.5, 0);
-  std::cout << "result:" << std::format("{}", result) << '\n';
+  arts::println("result:{}", result);
 }
 
 int main() {

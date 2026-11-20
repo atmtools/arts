@@ -51,7 +51,7 @@ std::istream& operator>>(std::istream& is, line& x) try {
   is >> double_imanip() >> x.f0 >> x.a >> x.e0 >> x.gu >> x.gl;
   return is >> x.z >> x.ls >> x.qn;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading line data:\n{}\n{:IO}", e.what(), x));
+  throw std::runtime_error(arts::format("Error reading line data:\n{}\n{:IO}", e.what(), x));
 }
 
 //! Gets all the lines between (f0-cutoff, f1+cutoff) and the offset from the front
@@ -73,7 +73,7 @@ Rational band_data::max(QuantumNumberType x) const try {
   }
   return out;
 } catch (std::out_of_range&) {
-  throw std::runtime_error(std::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
+  throw std::runtime_error(arts::format("Cannot find QuantumNumberType \"{}\" for at least on line", x));
 } catch (std::exception&) { throw; }
 
 namespace {
@@ -279,12 +279,12 @@ std::vector<LineByLineCutoff> get_cutoff_types_and_values(
 namespace {
 std::string to_educational_string_frequency(Numeric f0) {
   auto [unit, value] = Conversion::metric_prefix(f0);
-  return std::format("{:.2f}{}{}Hz", value, unit != ' ' ? " "sv : ""sv, unit);
+  return arts::format("{:.2f}{}{}Hz", value, unit != ' ' ? " "sv : ""sv, unit);
 }
 
 std::string to_educational_string_energy(Numeric e0) {
   auto [unit, value] = Conversion::metric_prefix(e0);
-  return std::format("{:.2f}{}{}J", value, unit != ' ' ? " "sv : ""sv, unit);
+  return arts::format("{:.2f}{}{}J", value, unit != ' ' ? " "sv : ""sv, unit);
 }
 }  // namespace
 
@@ -327,7 +327,7 @@ std::string std::formatter<lbl::band_data>::to_string(const lbl::band_data& v) c
                         "; Cutoff: "sv,
                         v.cutoff.type == LineByLineCutoffType::None
                             ? "<off>"s
-                            : std::format("{} at {}", v.cutoff.type, to_educational_string_frequency(v.cutoff.value)),
+                            : arts::format("{} at {}", v.cutoff.type, to_educational_string_frequency(v.cutoff.value)),
                         "; Lines: ["sv,
                         v.lines,
                         "]"sv);
@@ -365,7 +365,7 @@ void xml_io_stream<AbsorptionBand>::write(std::ostream&         os,
              static_cast<Index>(data.lines.size()));
   tag.write_to_stream(os);
 
-  for (auto& line : data) std::println(os, "{:IO}", line);
+  for (auto& line : data) arts::println(os, "{:IO}", line);
 
   tag.write_to_end_stream(os);
 }
@@ -398,7 +398,7 @@ void xml_io_stream<AbsorptionBand>::read(std::istream& is, AbsorptionBand& data,
   close_tag.read_from_stream(is);
   close_tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading AbsorptionBand:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading AbsorptionBand:\n{}", e.what()));
 }
 
 void xml_io_stream<LblLineKey>::write(std::ostream& os, const LblLineKey& x, bofstream* pbofs, std::string_view name) {
@@ -429,13 +429,13 @@ void xml_io_stream<LblLineKey>::read(std::istream& is, LblLineKey& x, bifstream*
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
-} catch (const std::exception& e) { throw std::runtime_error(std::format("Error reading LblLineKey:\n{}", e.what())); }
+} catch (const std::exception& e) { throw std::runtime_error(arts::format("Error reading LblLineKey:\n{}", e.what())); }
 
 template <> std::optional<std::string> to_helper_string<AbsorptionBands>(const AbsorptionBands& bands) {
   std::string out{};
 
   std::string_view x = ""sv;
-  for (auto& [qid, data] : bands) { out += std::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data); }
+  for (auto& [qid, data] : bands) { out += arts::format("{}{:h} --- {:h}", std::exchange(x, "\n"sv), qid, data); }
 
   return out;
 }

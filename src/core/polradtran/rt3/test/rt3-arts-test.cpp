@@ -50,7 +50,7 @@ void require_error(const std::function<void()>& f, const std::string& what) {
   try {
     f();
   } catch (const std::exception&) { threw = true; }
-  require(threw, std::format("Expected an error: {}", what));
+  require(threw, arts::format("Expected an error: {}", what));
 }
 
 constexpr Numeric cross_section = 1e-30;  // m^2
@@ -84,18 +84,18 @@ void test_rayleigh() {
     for (Index l = 0; l <= degree; l++)
       for (Index k = 0; k < 6; k++) d = std::max(d, std::abs(s.legendre[l].data[k] - (l < 3 ? ref[l].data[k] : 0.0)));
     const Numeric dk = std::max(std::abs(s.extinction - sigma), std::abs(s.scattering - sigma)) / sigma;
-    std::cout << std::format(
+    arts::println(
         "B1 Rayleigh GasScatterer, degree {}: max |legendre - closed form| {:.1e}; extinction and scattering "
-        "{:.1e}\n",
+        "{:.1e}",
         degree,
         d,
         dk);
     require(d < 1e-14 and dk < 1e-14,
-            std::format("B1: the Legendre series of ARTS's Rayleigh GasScatterer must be RT3's rayleigh.sca to "
-                        "round-off (degree {}), got {:.1e} and {:.1e}",
-                        degree,
-                        d,
-                        dk));
+            arts::format("B1: the Legendre series of ARTS's Rayleigh GasScatterer must be RT3's rayleigh.sca to "
+                         "round-off (degree {}), got {:.1e} and {:.1e}",
+                         degree,
+                         d,
+                         dk));
   }
 
   const auto z     = rt3::scattering_optics(ArrayOfScatteringSpecies{}, atm, 89e9, 4, 1e-3);
@@ -161,7 +161,7 @@ void test_mietest() {
   };
   for (Index i = 0; i < nr; i++) {
     const Numeric r    = 0.5 * (rmax - rmin) * x[i] + 0.5 * (rmax + rmin);
-    const auto    prop = ScatteringSpeciesProperty{std::format("mie{}", i), ParticulateProperty::NumberDensity};
+    const auto    prop = ScatteringSpeciesProperty{arts::format("mie{}", i), ParticulateProperty::NumberDensity};
     Vector        t_grid{280.0}, f_grid{frequency}, diameter{2e-6 * r};
     const auto    gridded = std::get<Gridded>(ParticleHabit::sphere(t_grid, f_grid, diameter, za, index, 1000.0)[0]);
 
@@ -203,10 +203,10 @@ void test_mietest() {
       for (const Numeric e : c.data) tail = std::max(tail, std::abs(e));
   }
   constexpr Numeric tol = 6e-9;  // half a unit in the 8th decimal, plus 1e-9 for the radius quadrature
-  std::cout << std::format(
+  arts::println(
       "B2 runmietest (Evans and Stephens 1991, Table 3) from ARTS's Mie code: max |F11, F12, F33 - Evans| {:.2e}, "
       "max |F34 - Evans| {:.2e} (tolerance {:.0e}); max |F34 + Evans| {:.2e}; F22 = F11, F44 = F33 to {:.0e}; "
-      "degrees 12-13 {:.0e}; albedo {:.15f}\n",
+      "degrees 12-13 {:.0e}; albedo {:.15f}",
       same,
       f34_same,
       tol,
@@ -215,11 +215,11 @@ void test_mietest() {
       tail,
       s.scattering / s.extinction);
   require(same <= tol and f34_same <= tol and spheres == 0.0,
-          std::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12, "
-                      "F33 and F34 to {:.0e}; got {:.2e} and {:.2e}",
-                      tol,
-                      same,
-                      f34_same));
+          arts::format("B2: ARTS's Mie series of the runmietest particles must equal Evans' Table 3 in F11, F12, "
+                       "F33 and F34 to {:.0e}; got {:.2e} and {:.2e}",
+                       tol,
+                       same,
+                       f34_same));
   require(f34_opposite > 1e4 * tol, "B2: the F34 comparison must be able to tell the two signs apart");
 }
 
@@ -300,7 +300,7 @@ void test_path() {
       for (Index k = 0; k < 6; k++) dev = std::max(dev, std::abs(t.legendre[i].data[k] - mean.data[k]));
     }
   }
-  require(dev < 1e-14, std::format("B3: path data and scattering-weighted layer means, deviation {:.1e}", dev));
+  require(dev < 1e-14, arts::format("B3: path data and scattering-weighted layer means, deviation {:.1e}", dev));
   require(mix > 0.1, "B3: the level series must differ for the layer mean to be a test");
 
   // With delta_m and gauss the automatic degree reaches 2 nmu_total
@@ -336,8 +336,7 @@ void test_path() {
       }}});
   require_error([&] { (void)rt3::scattering_optics(mismatched, d.atm_path[0], 89e9, 0, 1e-6); },
                 "a phase-function integral that misses the scattering coefficient");
-  std::cout << std::format("B3 path builder: path data and layer means to {:.1e}, delta-M degree, 3 error paths\n",
-                           dev);
+  arts::println("B3 path builder: path data and layer means to {:.1e}, delta-M degree, 3 error paths", dev);
 }
 }  // namespace
 

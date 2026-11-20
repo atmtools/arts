@@ -202,7 +202,7 @@ void test_4a() try {
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 
   compare("test_4a", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-4a:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-4a:\n{}", e.what())); }
 
 void test_4b() try {
   const AscendingGrid tau_arr{1};
@@ -396,7 +396,7 @@ void test_4b() try {
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 
   compare("test_4b", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-4b:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-4b:\n{}", e.what())); }
 
 void test_4c() try {
   const AscendingGrid tau_arr{1};
@@ -614,7 +614,7 @@ void test_4c() try {
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 
   compare("test_4c", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, true);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-4c:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-4c:\n{}", e.what())); }
 }  // namespace
 
 int main() try {

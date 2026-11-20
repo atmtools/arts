@@ -28,9 +28,9 @@ void py_cia(py::module_& m) try {
             auto dash_pos = s.find('-');
             if (dash_pos == std::string::npos) {
               throw std::runtime_error(
-                  std::format("Invalid SpeciesEnumPair string format: '{}'. "
-                              "Expected 'SpeciesA-SpeciesB'",
-                              s));
+                  arts::format("Invalid SpeciesEnumPair string format: '{}'. "
+                               "Expected 'SpeciesA-SpeciesB'",
+                               s));
             }
             std::string spec1_str = s.substr(0, dash_pos);
             std::string spec2_str = s.substr(dash_pos + 1);
@@ -210,6 +210,6 @@ spectral_propmat : PropmatVector
 
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize cia\n{}", e.what()));
 }
 }  // namespace Python

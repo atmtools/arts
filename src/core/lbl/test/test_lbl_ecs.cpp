@@ -27,7 +27,7 @@ template <class F> void throws(F&& f, std::string_view what) {
   try {
     f();
   } catch (const std::exception&) { return; }
-  throw std::runtime_error(std::format("Expected an error: {}", what));
+  throw std::runtime_error(arts::format("Expected an error: {}", what));
 }
 
 QuantumIdentifier co2_id() {

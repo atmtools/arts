@@ -242,7 +242,7 @@ ChannelQuadratures channel_quadratures(std::span<const Channel> channels, std::s
   for (Size ichan = 0; ichan < channels.size(); ++ichan) {
     try {
       out.channels.push_back(normalized_quadrature(channels[ichan]));
-    } catch (const std::exception& e) { throw std::runtime_error(std::format("Channel {}:\n{}", ichan, e.what())); }
+    } catch (const std::exception& e) { throw std::runtime_error(arts::format("Channel {}:\n{}", ichan, e.what())); }
   }
 
   std::vector<Numeric> all_freqs;

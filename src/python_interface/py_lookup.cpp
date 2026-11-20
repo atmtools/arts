@@ -106,6 +106,6 @@ spectral_propmat : PropmatVector
 
 )--");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize lookup\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize lookup\n{}", e.what()));
 }
 }  // namespace Python

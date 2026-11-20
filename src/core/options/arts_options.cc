@@ -628,7 +628,7 @@ parameters that are mapped to the species identifier.
   const auto& species = get_species_enum_info();
   for (const auto& info : species) {
     opts.back().values_and_desc.emplace_back(
-        Value{info.longname, info.shortname, std::format("A species short-named {}", info.shortname)});
+        Value{info.longname, info.shortname, arts::format("A species short-named {}", info.shortname)});
   }
   opts.back().values_and_desc.emplace_back(
       Value{"unused",
@@ -1310,13 +1310,13 @@ std::string EnumeratedOption::docs() const {
 
   const auto n = values_and_desc.front().size();
 
-  out += std::format("{}\n\nValid options:\n\n", desc);
+  out += arts::format("{}\n\nValid options:\n\n", desc);
   for (auto& v : values_and_desc) {
     if (v.empty()) { throw std::runtime_error("Empty value for enum class " + name); }
 
     std::string_view x = "- "sv;
-    for (auto& s : v | stdv::take(n - 1)) { out += std::format(R"({}``"{}"``)", std::exchange(x, " or "sv), s); }
-    out += std::format(":\n  {}\n", add_spaces(v.back(), 2));
+    for (auto& s : v | stdv::take(n - 1)) { out += arts::format(R"({}``"{}"``)", std::exchange(x, " or "sv), s); }
+    out += arts::format(":\n  {}\n", add_spaces(v.back(), 2));
   }
 
   return out;
@@ -1331,7 +1331,7 @@ std::string EnumeratedOption::tail() const {
   const auto n = values_and_desc.front().size();
 
   // Create good enum function
-  out += std::format(
+  out += arts::format(
       R"(
 template<> constexpr bool good_enum<{0}>({0} x) noexcept {{
     const auto v = static_cast<std::size_t>(x);
@@ -1348,7 +1348,7 @@ namespace enumtyps {{
       name,
       m);
 
-  for (const auto& v : values_and_desc) out += std::format("{}::{}, ", name, v[0]);
+  for (const auto& v : values_and_desc) out += arts::format("{}::{}, ", name, v[0]);
 
   out += R"(};
 }  // namespace enumtyps
@@ -1358,19 +1358,19 @@ namespace enumstrs {
 
   // Create enumstrs arrays
   for (std::size_t i = 0; i < n - 1; i++) {
-    out += std::format(
+    out += arts::format(
         R"(
   template <> struct enum_str_data<{}, {}> {{
     static constexpr std::array strs={{)",
         name,
         i);
 
-    for (const auto& v : values_and_desc) out += std::format(R"("{}"sv, )", v[i]);
+    for (const auto& v : values_and_desc) out += arts::format(R"("{}"sv, )", v[i]);
 
     out += "};\n  };\n";
   }
 
-  out += std::format(
+  out += arts::format(
       R"(
   template <int i={0}>
   inline constexpr auto {1}Names = enum_str_data<{1}, i>::strs;
@@ -1414,24 +1414,24 @@ template<> constexpr {1} to<{1}>(const std::string_view x) {{
     }
 
     for (const auto& group : groups) {
-      out += std::format(R"(
+      out += arts::format(R"(
     case enumhash("{0}"sv):)",
-                         keys[group.front()].first);
+                          keys[group.front()].first);
       for (const auto k : group) {
-        out += std::format(R"(
+        out += arts::format(R"(
       if (x == "{0}"sv) return {1}::{2};)",
-                           keys[k].first,
-                           name,
-                           keys[k].second);
+                            keys[k].first,
+                            name,
+                            keys[k].second);
       }
       out += "\n      break;";
     }
   }
 
   out += "\n  }\n";
-  out += std::format(
+  out += arts::format(
       R"(
-  throw std::runtime_error(std::format(R"-x-(Bad input "{{}}"
+  throw std::runtime_error(arts::format(R"-x-(Bad input "{{}}"
 
 See https://atmtools.github.io/arts-docs-master/pyarts3.arts.{0}.html for valid options.
 )-x-", x));
@@ -1500,14 +1500,14 @@ std::string EnumeratedOption::head() const {
 
   std::string out;
 
-  out += std::format("enum class {} : {} {{\n", name, sz());
+  out += arts::format("enum class {} : {} {{\n", name, sz());
 
   for (const auto& v : values_and_desc) {
     if (v.empty()) { throw std::runtime_error("Empty value for enum class " + name); }
 
     if (v.size() != n) { throw std::runtime_error("Mismatched value count for enum class " + name + " " + v.front()); }
 
-    out += std::format("{}, ", v[0]);
+    out += arts::format("{}, ", v[0]);
   }
 
   out += "};\n\n";
@@ -1518,7 +1518,7 @@ std::string EnumeratedOption::head() const {
 std::string EnumeratedOption::impl() const {
   std::string out;
 
-  out += std::format(
+  out += arts::format(
       R"(
 std::string_view enumdocs<{0}>::str() noexcept {{
   return R"-ENUMDOC-({1})-ENUMDOC-"sv;

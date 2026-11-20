@@ -145,9 +145,9 @@ void approach(const solver::Particle& p, const char* particle) {
         const Numeric residual = std::abs(S[base + i].S[r, c] - S[base].S[r, c] - delta * slope[e]);
         worst                  = std::max(worst, residual / (curvature[e] * delta * dr + 4.0 * rounding));
       }
-    std::println("{}, {}: residual at {:.3f} of its bound", particle, approaches[a].name, worst);
+    arts::println("{}, {}: residual at {:.3f} of its bound", particle, approaches[a].name, worst);
     if (not(worst <= 1.0)) {
-      std::println("FAIL {}, {}", particle, approaches[a].name);
+      arts::println("FAIL {}, {}", particle, approaches[a].name);
       ++failures;
     }
   }
@@ -167,8 +167,8 @@ int main() try {
   approach(particle(ParticleShape::spheroid, 0.5, 2.0, 0), "oblate spheroid");
   approach(particle(ParticleShape::cylinder, 2.0, 1.5, 0), "cylinder");
   approach(particle(ParticleShape::chebyshev, 0.1, 2.0, 3), "Chebyshev particle of degree 3");
-  if (failures) throw std::runtime_error(std::format("{} approaches failed", failures));
+  if (failures) throw std::runtime_error(arts::format("{} approaches failed", failures));
 } catch (const std::exception& e) {
-  std::println(stderr, "{}", e.what());
+  arts::println(stderr, "{}", e.what());
   return 1;
 }

@@ -38,7 +38,7 @@ String update_isot_name(const String& old_name) {
 const Isotope& Isotope::from_name(const std::string_view name) { return select(name); }
 
 String Isotope::FullName() const {
-  return is_joker() ? String{toString<1>(spec)} : std::format("{}-{}", toString<1>(spec), isotname);
+  return is_joker() ? String{toString<1>(spec)} : arts::format("{}-{}", toString<1>(spec), isotname);
 }
 
 std::ostream& operator<<(std::ostream& os, const Isotope& ir) { return os << ir.FullName(); }

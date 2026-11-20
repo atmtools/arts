@@ -41,7 +41,7 @@ template <class Compare> class grid_t {
   template <stdr::forward_range T> static constexpr void assert_sorted(const T& x)
       requires std::invocable<Compare, stdr::range_value_t<T>, stdr::range_value_t<T>> {
     if (not is_sorted(x)) {
-      throw std::runtime_error(std::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
+      throw std::runtime_error(arts::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), x));
     }
   }
 
@@ -153,11 +153,11 @@ template <class Compare> class grid_t {
 
     if (not is_sorted(other)) {
       throw std::runtime_error(
-          std::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), Vector{std::from_range, other}));
+          arts::format("Expected {} sort.  Input list:\n{:B,}", Compare::name(), Vector{std::from_range, other}));
     }
 
     if (not is_sorted(std::array{back(), *stdr::begin(other)})) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "Expected {} sort.  Input list:\n{:B,}\nNew value: {}", Compare::name(), x, Vector{std::from_range, other}));
     }
 
@@ -167,7 +167,7 @@ template <class Compare> class grid_t {
   void push_back(Numeric value) {
     if (not is_sorted(std::array{back(), value})) {
       throw std::runtime_error(
-          std::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}", Compare::name(), x, value));
+          arts::format("Expected {} sort.  Input list:\n{:B,}\nNew value: {}", Compare::name(), x, value));
     }
     x.push_back(value);
   }

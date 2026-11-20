@@ -107,11 +107,11 @@ template <> constexpr FileType to<FileType>(const std::string_view x) {
       if (x == "bin"sv) return FileType::binary;
       break;
   }
-  throw std::runtime_error(std::format(R"-x-(Bad input "{}"
+  throw std::runtime_error(arts::format(R"-x-(Bad input "{}"
 
 See https://atmtools.github.io/arts-docs-master/pyarts3.arts.FileType.html for valid options.
 )-x-",
-                                       x));
+                                        x));
 }
 
 namespace enumsize {

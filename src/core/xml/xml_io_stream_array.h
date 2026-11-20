@@ -32,7 +32,7 @@ template <arts_xml_ioable T> requires(std::is_default_constructible_v<T>) struct
         for (auto& v : n) inner::write(os, v, pbofs);
     } else {
       if constexpr (xml_io_parseable<T>)
-        std::println(os, "{:IO}", n);
+        arts::println(os, "{:IO}", n);
       else
         for (auto& v : n) inner::write(os, v, pbofs);
     }
@@ -70,7 +70,7 @@ template <arts_xml_ioable T> requires(std::is_default_constructible_v<T>) struct
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot extend {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot extend {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 
   static void append(std::istream& is, Array<T>& n, bifstream* pbifs = nullptr) try {
@@ -78,14 +78,14 @@ template <arts_xml_ioable T> requires(std::is_default_constructible_v<T>) struct
     xml_read_from_stream(is, x, pbifs);
     n.emplace_back(std::move(x));
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot append {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot append {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 
   static void read(std::istream& is, Array<T>& n, bifstream* pbifs = nullptr) try {
     n.clear();
     extend(is, n, pbifs);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot read {}<{}>:\n{}", type_name, inner::type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot read {}<{}>:\n{}", type_name, inner::type_name, e.what()));
   }
 };
 
@@ -109,7 +109,7 @@ template <arts_xml_ioable T, Size N> struct xml_io_stream<std::array<T, N>> {
         for (auto& v : n) inner::write(os, v, pbofs);
     } else {
       if constexpr (xml_io_parseable<T>)
-        std::println(os, "{:IO}", n);
+        arts::println(os, "{:IO}", n);
       else
         for (auto& v : n) inner::write(os, v, pbofs);
     }

@@ -94,16 +94,16 @@ char quad_letter(polradtran::quadrature_type type) {
 
 std::string describe(const case_spec& c) {
   constexpr const char* names[] = {"mixed", "thin", "thick", "shared"};
-  return std::format("nstokes {}, nmu {} + {}, quad '{}', ground '{}', {} layers {}, max_delta_tau {:.0e}{}",
-                     c.nstokes,
-                     c.nquad,
-                     c.nuummu,
-                     quad_letter(c.quad),
-                     c.ground,
-                     c.nlay,
-                     names[static_cast<int>(c.lay)],
-                     c.max_delta_tau,
-                     c.zero_kelvin_top ? ", 0 K top" : "");
+  return arts::format("nstokes {}, nmu {} + {}, quad '{}', ground '{}', {} layers {}, max_delta_tau {:.0e}{}",
+                      c.nstokes,
+                      c.nquad,
+                      c.nuummu,
+                      quad_letter(c.quad),
+                      c.ground,
+                      c.nlay,
+                      names[static_cast<int>(c.lay)],
+                      c.max_delta_tau,
+                      c.zero_kelvin_top ? ", 0 K top" : "");
 }
 
 //! Uniform in [0, 1) from the 53 high bits of the generator's output, the
@@ -359,7 +359,7 @@ int main() try {
       const auto [count, rel] = differ(values(a), b);
       worst                   = std::max(worst, rel);
       worst_of_tolerance      = std::max(worst_of_tolerance, rel / case_tolerance);
-      if (not(rel <= case_tolerance)) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
+      if (not(rel <= case_tolerance)) bad += arts::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
     };
     check("up_rad", cpp.up_rad, f77.up_rad);
     check("down_rad", cpp.down_rad, f77.down_rad);
@@ -368,13 +368,13 @@ int main() try {
     check("mu_values", cpp.mu_values, f77.mu_values);
     if (not bad.empty()) {
       failed++;
-      std::cout << std::format("Differs by more than {:.2e}: {}:{}\n", case_tolerance, describe(all[i]), bad);
+      arts::println("Differs by more than {:.2e}: {}:{}", case_tolerance, describe(all[i]), bad);
     }
   }
 
-  std::cout << std::format(
+  arts::println(
       "One workdata reused over all {} cases (of different sizes) against a fresh one per case: {} values "
-      "differ\n",
+      "differ",
       all.size(),
       reuse_differ);
   if (reuse_differ > 0) throw std::runtime_error("reusing a workdata changes the results");
@@ -392,9 +392,9 @@ int main() try {
     if (not refused) throw std::runtime_error("internal_radiance accepted a workdata for 8 streams with 2");
   }
 
-  std::cout << std::format(
+  arts::println(
       "C++ RADTRANO against the Fortran's outputs: {} of {} cases within {:.0e} plus the rounding amplified by "
-      "their doublings (largest relative difference {:.2e}, at most {:.2f} of a case's tolerance)\n",
+      "their doublings (largest relative difference {:.2e}, at most {:.2f} of a case's tolerance)",
       all.size() - failed,
       all.size(),
       tolerance,

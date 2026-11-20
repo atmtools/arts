@@ -138,7 +138,7 @@ ArtscatMeta ReadFromArtscat3Stream(std::istream& is) {
       output.data.a = output.data.compute_a(I0, isotopologue, output.data.ls.T0);
     }
   } catch (std::exception& e) {
-    throw std::runtime_error(std::format(R"(Cannot parse line: 
+    throw std::runtime_error(arts::format(R"(Cannot parse line: 
 
 {}
 
@@ -146,8 +146,8 @@ The error is:
 
 {}
 )",
-                                         line,
-                                         e.what()));
+                                          line,
+                                          e.what()));
   }
 
   // That's it!
@@ -281,7 +281,7 @@ ArtscatMeta ReadFromArtscat4Stream(std::istream& is) {
       output.data.a = output.data.compute_a(I0, isotopologue, T0);
     }
   } catch (std::exception& e) {
-    throw std::runtime_error(std::format(R"(Cannot parse line:
+    throw std::runtime_error(arts::format(R"(Cannot parse line:
 
 {}
 
@@ -289,8 +289,8 @@ The error is:
 
 {}
 )",
-                                         line,
-                                         e.what()));
+                                          line,
+                                          e.what()));
   }
 
   // That's it!

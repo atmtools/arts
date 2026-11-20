@@ -31,16 +31,16 @@ void py_sparse(py::module_& m) try {
           "__getitem__",
           [](Sparse& x, std::tuple<Index, Index> ind) -> Numeric& {
             const auto [r, c] = ind;
-            if (r < 0 or r >= x.nrows()) throw std::out_of_range(std::format("row {}", r));
-            if (c < 0 or c >= x.ncols()) throw std::out_of_range(std::format("col {}", c));
+            if (r < 0 or r >= x.nrows()) throw std::out_of_range(arts::format("row {}", r));
+            if (c < 0 or c >= x.ncols()) throw std::out_of_range(arts::format("col {}", c));
             return x.rw(r, c);
           },
           py::rv_policy::reference_internal)
       .def("__setitem__",
            [](Sparse& x, std::tuple<Index, Index> ind, Numeric y) {
              const auto [r, c] = ind;
-             if (r < 0 or r >= x.nrows()) throw std::out_of_range(std::format("row {}", r));
-             if (c < 0 or c >= x.ncols()) throw std::out_of_range(std::format("col {}", c));
+             if (r < 0 or r >= x.nrows()) throw std::out_of_range(arts::format("row {}", r));
+             if (c < 0 or c >= x.ncols()) throw std::out_of_range(arts::format("col {}", c));
              x.rw(r, c) = y;
            })
       .def(
@@ -524,6 +524,6 @@ matrices can be needed when an inverse is stored.
 Raises an error identifying the invalid block or coordinate. An inverse-only
 operator does not provide the physical covariance required by this check.)");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize sparse\n{}", e.what()));
 }
 }  // namespace Python

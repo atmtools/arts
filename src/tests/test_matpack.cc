@@ -34,14 +34,14 @@ int test1() {
 
   cout << "v.begin() = " << *v.begin() << "\n";
 
-  cout << "v = \n" << std::format("{}", v) << "\n";
+  arts::println("v = \n{}", v);
 
   fill_with_junk(v[StridedRange(1, 8, 2)][Range(2, v.size() - 2)]);
   //  fill_with_junk(v);
 
   Vector v2{v[Range(2, 4)]};
 
-  cout << "v2 = \n" << std::format("{}", v2) << "\n";
+  arts::println("v2 = \n{}", v2);
 
   for (Index i = 0; i < 1000; ++i) {
     Vector v3(1000);
@@ -52,19 +52,19 @@ int test1() {
 
   v2[Range(0, 2)] = 77;
 
-  cout << "v = \n" << std::format("{}", v) << "\n";
-  cout << "v2 = \n" << std::format("{}", v2) << "\n";
+  arts::println("v = \n{}", v);
+  arts::println("v2 = \n{}", v2);
   cout << "v2.size() = \n" << v2.size() << "\n";
 
   Vector v3;
   v3.resize(v2.size());
   v3 = v2;
 
-  cout << "\nv3 = \n" << std::format("{}", v3) << "\n";
+  arts::println("\nv3 = \n{}", v3);
   fill_with_junk((VectorView)v2);
-  cout << "\nv3 after junking v2 = \n" << std::format("{}", v3) << "\n";
+  arts::println("\nv3 after junking v2 = \n{}", v3);
   v3 *= 2;
-  cout << "\nv3 after *2 = \n" << std::format("{}", v3) << "\n";
+  arts::println("\nv3 after *2 = \n{}", v3);
 
   Matrix M(10, 15);
   {
@@ -73,34 +73,33 @@ int test1() {
       for (Index j = 0; j < M.ncols(); ++j) M[i, j] = ++n;
   }
 
-  cout << "\nM =\n" << std::format("{}", M) << "\n";
+  arts::println("\nM =\n{}", M);
 
-  cout << "\nM(Range(2,4),Range(2,4)) =\n" << std::format("{}", M[Range(2, 4), Range(2, 4)]) << "\n";
+  arts::println("\nM(Range(2,4),Range(2,4)) =\n{}", M[Range(2, 4), Range(2, 4)]);
 
-  cout << "\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n"
-       << std::format("{}", M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)]) << "\n";
+  arts::println("\nM(Range(2,4),Range(2,4))(Range(1,2),Range(1,2)) =\n{}",
+                M[Range(2, 4), Range(2, 4)][Range(1, 2), Range(1, 2)]);
 
-  cout << "\nM(1,joker) =\n" << std::format("{}", M[1, joker]) << "\n";
+  arts::println("\nM(1,joker) =\n{}", M[1, joker]);
 
   cout << "\nFilling M(1,Range(1,2)) with junk.\n";
   fill_with_junk(M[1, Range(1, 2)]);
 
-  cout << "\nM(Range(0,4),Range(0,4)) =\n" << std::format("{}", M[Range(0, 4), Range(0, 4)]) << "\n";
+  arts::println("\nM(Range(0,4),Range(0,4)) =\n{}", M[Range(0, 4), Range(0, 4)]);
 
   cout << "\nFilling M(Range(4,2,2),Range(6,3)) with junk.\n";
 
   StridedMatrixView s = M[StridedRange(4, 2, 2), Range(6, 3)];
   fill_with_junk(s);
 
-  cout << "\nM =\n" << std::format("{}", M) << "\n";
+  arts::println("\nM =\n{}", M);
 
   const Matrix C = M;
 
-  cout << "\nC(Range(3,4,2),Range(2,3,3)) =\n"
-       << std::format("{}", C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]) << "\n";
+  arts::println("\nC(Range(3,4,2),Range(2,3,3)) =\n{}", C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]);
 
-  cout << "\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n"
-       << std::format("{}", transpose(C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)])) << "\n";
+  arts::println("\nC(Range(3,4,2),Range(2,3,3)).transpose() =\n{}",
+                transpose(C[StridedRange(3, 4, 2), StridedRange(2, 3, 3)]));
 
   return 0;
 }
@@ -126,15 +125,15 @@ void test5() {
   b = 1;
   M = 2;
 
-  cout << "b = \n" << std::format("{}", b) << "\n";
-  cout << "M =\n" << std::format("{}", M) << "\n";
+  arts::println("b = \n{}", b);
+  arts::println("M =\n{}", M);
 
   mult(a, M, b);  // a = M*b
-  cout << "\na = M*b = \n" << std::format("{}", a) << "\n";
+  arts::println("\na = M*b = \n{}", a);
 
   mult(transpose(b.view_as(1, b.size())), transpose(a.view_as(1, a.size())),
        M);  // b^t = a^t * M
-  cout << "\nb^t = a^t * M = \n" << std::format("{}", transpose(b.view_as(1, b.size()))) << "\n";
+  arts::println("\nb^t = a^t * M = \n{}", transpose(b.view_as(1, b.size())));
 }
 
 void test6() {
@@ -176,7 +175,7 @@ void test9() {
   // Initialization of Matrix with view of other Matrix:
   Matrix A(4, 8);
   Matrix B(A[joker, Range(0, 3)]);
-  cout << "B = " << std::format("{}", B) << "\n";
+  arts::println("B = {}", B);
 }
 
 void test10() {
@@ -186,7 +185,7 @@ void test10() {
   // warning message.
   Vector v = matpack::uniform_grid(1, 8, 1);
   Matrix M(v.view_as(1, v.size()));
-  cout << "M = " << std::format("{}", M) << "\n";
+  arts::println("M = {}", M);
 }
 
 void test11() {
@@ -197,7 +196,7 @@ void test11() {
   Vector v = matpack::uniform_grid(1, 8, 1);
   Matrix M(v.size(), 1);
   M = v.view_as(1, v.size());
-  cout << "M = " << std::format("{}", M) << "\n";
+  arts::println("M = {}", M);
 }
 
 void test12() {
@@ -210,11 +209,11 @@ void test12() {
 
   Array<String> sb(sa), sc(sa.size());
 
-  cout << "sb = \n" << std::format("{}", sb) << "\n";
+  arts::println("sb = \n{}", sb);
 
   sc = sa;
 
-  cout << "sc = \n" << std::format("{}", sc) << "\n";
+  arts::println("sc = \n{}", sc);
 }
 
 void test13() {
@@ -224,7 +223,7 @@ void test13() {
                                                     // different conversion paths.
   Matrix M(v.view_as(1, v.size()));
   M += v.view_as(1, v.size());
-  cout << "M = \n" << std::format("{}", M) << "\n";
+  arts::println("M = \n{}", M);
 }
 
 void test14() {
@@ -232,9 +231,9 @@ void test14() {
   Array<String>  a{"Test"};
   Array<Index>   b{1, 2};
   Array<Numeric> c{1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0};
-  cout << "a = \n" << std::format("{}", a) << "\n";
-  cout << "b = \n" << std::format("{}", b) << "\n";
-  cout << "c = \n" << std::format("{}", c) << "\n";
+  arts::println("a = \n{}", a);
+  arts::println("b = \n{}", b);
+  arts::println("c = \n{}", c);
 }
 
 void test15() {
@@ -269,7 +268,7 @@ void test18() {
   // Test elementvise square of a vector:
   Vector a  = matpack::uniform_grid(1, 10, 1);
   a        *= a;
-  cout << "a *= a =\n" << std::format("{}", a) << "\n";
+  arts::println("a *= a =\n{}", a);
 }
 
 void test19() {
@@ -279,14 +278,14 @@ void test19() {
 
   Vector a = matpack::uniform_grid(1, 10, 1);
   Vector b = matpack::uniform_grid(5.3, 10, 0);
-  cout << "a =\n" << std::format("{}", a) << "\n";
-  cout << "b =\n" << std::format("{}", b) << "\n";
+  arts::println("a =\n{}", a);
+  arts::println("b =\n{}", b);
 }
 
 void test20() {
   // Test initialization list constructor:
   Vector a{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 }
 
 void test21() {
@@ -314,9 +313,9 @@ void test22() {
 void test23() {
   // Test constructors that fills with constant:
   Vector a(10, 3.5);
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
   Matrix b(10, 10, 4.5);
-  cout << "b =\n" << std::format("{}", b) << "\n";
+  arts::println("b =\n{}", b);
 }
 
 void test24() {
@@ -324,13 +323,13 @@ void test24() {
   Matrix a(5, 1, 2.5);
   Vector b  = matpack::uniform_grid(1, 5, 1);
   a        *= Matrix{b.view_as(1, b.size())};
-  cout << "a*=b =\n" << std::format("{}", a) << "\n";
+  arts::println("a*=b =\n{}", a);
   a /= MatrixView{b.view_as(1, b.size())};
-  cout << "a/=b =\n" << std::format("{}", a) << "\n";
+  arts::println("a/=b =\n{}", a);
   a += MatrixView{b.view_as(1, b.size())};
-  cout << "a+=b =\n" << std::format("{}", a) << "\n";
+  arts::println("a+=b =\n{}", a);
   a -= ConstMatrixView{b.view_as(1, b.size())};
-  cout << "a-=b =\n" << std::format("{}", a) << "\n";
+  arts::println("a-=b =\n{}", a);
 }
 
 void test25() {
@@ -342,7 +341,7 @@ void test25() {
 void test26() {
   cout << "Test filling constructor for Array:\n";
   Array<String> a(4, "Hello");
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 }
 
 void test27() {
@@ -350,14 +349,14 @@ void test27() {
   Array<Vector> a;
   a.push_back({1.0, 2.0});
   a.push_back(matpack::uniform_grid(1.0, 10, 1.0));
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 }
 
 void test28() {
   cout << "Test default constructor for Matrix:\n";
   Matrix a;
   Matrix b(a);
-  cout << "b =\n" << std::format("{}", b) << "\n";
+  arts::println("b =\n{}", b);
 }
 
 void test29() {
@@ -381,7 +380,7 @@ void test29() {
   a[2].resize(4, 5);
   a[2] = 5;
 
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 }
 
 void test30() {
@@ -390,19 +389,19 @@ void test30() {
   //  cout << "a(0,0) =\n" << a(0,0) << "\n";
   a.resize(2, 2);
   a = 1;
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 
   Matrix b(3, 0);
   //  cout << "b(0,0) =\n" << b(0,0) << "\n";
   b.resize(b.nrows(), b.ncols() + 3);
   b = 2;
-  cout << "b =\n" << std::format("{}", b) << "\n";
+  arts::println("b =\n{}", b);
 
   Matrix c(0, 3);
   //  cout << "c(0,0) =\n" << c(0,0) << "\n";
   c.resize(c.nrows() + 3, c.ncols());
   c = 3;
-  cout << "c =\n" << std::format("{}", c) << "\n";
+  arts::println("c =\n{}", c);
 }
 
 void test31() {
@@ -417,27 +416,27 @@ void test31() {
     for (Index j = 0; j < a.nrows(); ++j)
       for (Index k = 0; k < a.ncols(); ++k) a[i, j, k] = (Numeric)(++fill);
 
-  cout << "a =\n" << std::format("{}", a) << "\n";
+  arts::println("a =\n{}", a);
 
-  cout << "Taking out first row of first page:\n" << std::format("{}", a[0, 0, joker]) << "\n";
+  arts::println("Taking out first row of first page:\n{}", a[0, 0, joker]);
 
-  cout << "Taking out last column of second page:\n" << std::format("{}", a[1, joker, a.ncols() - 1]) << "\n";
+  arts::println("Taking out last column of second page:\n{}", a[1, joker, a.ncols() - 1]);
 
-  cout << "Taking out the first letter on every page:\n" << std::format("{}", a[joker, 0, 0]) << "\n";
+  arts::println("Taking out the first letter on every page:\n{}", a[joker, 0, 0]);
 
-  cout << "Taking out first page:\n" << std::format("{}", a[0, joker, joker]) << "\n";
+  arts::println("Taking out first page:\n{}", a[0, joker, joker]);
 
-  cout << "Taking out last row of all pages:\n" << std::format("{}", a[joker, a.nrows() - 1, joker]) << "\n";
+  arts::println("Taking out last row of all pages:\n{}", a[joker, a.nrows() - 1, joker]);
 
-  cout << "Taking out second column of all pages:\n" << std::format("{}", a[joker, joker, 1]) << "\n";
+  arts::println("Taking out second column of all pages:\n{}", a[joker, joker, 1]);
 
   a *= 2;
 
-  cout << "After element-vise multiplication with 2:\n" << std::format("{}", a) << "\n";
+  arts::println("After element-vise multiplication with 2:\n{}", a);
 
   stdr::transform(a | by_elem, a.elem_begin(), [](auto z) { return std::sqrt(z); });
 
-  cout << "After taking the square-root:\n" << std::format("{}", a) << "\n";
+  arts::println("After taking the square-root:\n{}", a);
 
   Index s = 200;
   cout << "Let's allocate a large tensor, " << (Numeric)(s * s * s * 8) / 1024. / 1024. << " MB...\n";
@@ -471,13 +470,13 @@ void test32() {
       X[j, k] = 1;
       A[j, k] = (Numeric)(j + k);
     }
-  cout << "A:\n" << std::format("{}", A) << "\n";
-  cout << "X:\n" << std::format("{}", X) << "\n";
+  arts::println("A:\n{}", A);
+  arts::println("X:\n{}", X);
 
   mult(B, A, X);
-  cout << "B = A*X:\n" << std::format("{}", B) << "\n";
+  arts::println("B = A*X:\n{}", B);
   mult(X, A, X);
-  cout << "X = A*X:\n" << std::format("{}", X) << "\n";
+  arts::println("X = A*X:\n{}", X);
 
   cout << "This is not the same, and should not be, because you\n"
        << "are not allowed to use the same matrix as input and output\n"
@@ -491,7 +490,7 @@ void test33() {
     cout << "1. Make a scalar look like a vector:\n";
     Numeric    a = 3.1415;  // Just any number here.
     VectorView av(a);
-    cout << "a, viewed as a vector: " << std::format("{}", av) << "\n";
+    arts::println("a, viewed as a vector: {}", av);
     cout << "Describe a: " << "DEPR"
          << "\n";  // FIXME: Removed describe for Numeric
     av[0] += 1;
@@ -504,37 +503,36 @@ void test33() {
          << "This is an exception, because the new dimension is added at the end.\n";
     Vector     a{1, 2, 3, 4, 5};
     MatrixView am{a.view_as(1, a.size())};
-    cout << "a, viewed as a matrix:\n" << std::format("{}", am) << "\n";
-    cout << "Trasnpose view:\n" << std::format("{}", transpose(am)) << "\n";
+    arts::println("a, viewed as a matrix:\n{}", am);
+    arts::println("Trasnpose view:\n{}", transpose(am));
 
     cout << "\n3. Make a matrix look like a tensor3:\n";
     Tensor3View at3 = Tensor3View{am.view_as(am.nrows(), am.ncols(), 1)};
-    cout << "at3 = \n" << std::format("{}", at3) << "\n";
+    arts::println("at3 = \n{}", at3);
     at3[0, 2, 0] += 1;
-    cout << "a after Increasing element at3(0,2,0) by 1: \n" << std::format("{}", a) << "\n\n";
+    arts::println("a after Increasing element at3(0,2,0) by 1: \n{}\n", a);
 
     Tensor4View at4 = Tensor4View{at3.view_as(at3.npages(), at3.nrows(), at3.ncols(), 1)};
-    cout << "at4 = \n" << std::format("{}", at4) << "\n";
+    arts::println("at4 = \n{}", at4);
 
     Tensor5View at5 = Tensor5View{at4.view_as(at4.nbooks(), at4.npages(), at4.nrows(), at4.ncols(), 1)};
-    cout << "at5 = \n" << std::format("{}", at5) << "\n";
+    arts::println("at5 = \n{}", at5);
 
     Tensor6View at6 = Tensor6View{at5.view_as(at5.nshelves(), at5.nbooks(), at5.npages(), at5.nrows(), at5.ncols(), 1)};
-    cout << "at6 = \n" << std::format("{}", at6) << "\n";
+    arts::println("at6 = \n{}", at6);
 
     Tensor7View at7 = Tensor7View{
         at6.view_as(at6.nvitrines(), at6.nshelves(), at6.nbooks(), at6.npages(), at6.nrows(), at6.ncols(), 1)};
-    cout << "at7 = \n" << std::format("{}", at7) << "\n";
+    arts::println("at7 = \n{}", at7);
 
     at7[0, 0, 0, 0, 0, 2, 0] -= 1;
 
-    cout << "After subtracting 1 from at7(0,0,0,0,0,2,0)\n"
-         << "a = " << std::format("{}", a) << "\n";
+    arts::println("After subtracting 1 from at7(0,0,0,0,0,2,0)\na = {}", a);
 
     cout << "\nAll in one go:\n";
     Numeric     b   = 3.1415;  // Just any number here.
     Tensor7View bt7 = Tensor7View{VectorView{b}.view_as(1, 1, 1, 1, 1, 1, 1)};
-    cout << "bt7:\n" << std::format("{}", bt7) << "\n";
+    arts::println("bt7:\n{}", bt7);
   }
 }
 
@@ -544,25 +542,25 @@ void test35() {
   Vector b;
 
   b = a;
-  cout << "b = " << std::format("{}", b) << "\n";
+  arts::println("b = {}", b);
 
   Vector          aa = matpack::uniform_grid(1, 5, 1);
   ConstVectorView c  = aa;
   b                  = c;
-  cout << "b = " << std::format("{}", b) << "\n";
+  arts::println("b = {}", b);
 
   Vector     aaa = matpack::uniform_grid(1, 6, 1);
   VectorView d   = aaa;
   b              = d;
-  cout << "b = " << std::format("{}", b) << "\n";
+  arts::println("b = {}", b);
 }
 
 void test36() {
   cout << "Test using naked joker on Vector.\n";
   Vector     a = matpack::uniform_grid(1, 4, 1);
   VectorView b = a[joker];
-  cout << "a = " << std::format("{}", a) << "\n";
-  cout << "b = " << std::format("{}", b) << "\n";
+  arts::println("a = {}", a);
+  arts::println("b = {}", b);
 }
 
 void test37(const Index& i) {
@@ -576,8 +574,8 @@ void test37(const Index& i) {
   //  cout.setf(ios_base::scientific,ios_base::floatfield);
   v1 *= v1;
   v2 *= v2;
-  cout << std::format("{}", v1) << '\n';
-  cout << std::format("{}", v2) << '\n';
+  arts::println("{}", v1);
+  arts::println("{}", v2);
 }
 
 void test38() {
@@ -586,7 +584,7 @@ void test38() {
 
   a[4] = 5.;
 
-  cout << std::format("{}", v) << '\n';
+  arts::println("{}", v);
   cout << '\n' << "========================" << '\n' << '\n';
 
   Matrix         m(5, 5, 0.);
@@ -594,7 +592,7 @@ void test38() {
 
   b[4] = 5.;
 
-  cout << std::format("{}", m) << '\n';
+  arts::println("{}", m);
   cout << '\n' << "========================" << '\n' << '\n';
 
   Tensor3        t3(5, 6, 7, 0.);
@@ -602,7 +600,7 @@ void test38() {
 
   c[6] = 5.;
 
-  cout << std::format("{}", t3) << '\n';
+  arts::println("{}", t3);
 }
 
 void test39() {
@@ -614,7 +612,7 @@ void test39() {
   // implicitly creates a one element vector out of the "2", then
   // tries to do a scalar product with v1.
 
-  cout << std::format("{}", v2) << '\n';
+  arts::println("{}", v2);
 }
 
 void test40() {
@@ -622,7 +620,7 @@ void test40() {
 
   v = 5;
 
-  cout << std::format("{}", v) << '\n';
+  arts::println("{}", v);
 }
 
 void test41() {
@@ -630,8 +628,8 @@ void test41() {
 
   ConstVectorView vv = v1[Range(0, 5)];
 
-  cout << "Vector:     " << std::format("{}", v1) << '\n';
-  cout << "VectorView: " << std::format("{}", vv) << '\n';
+  arts::println("Vector:     {}", v1);
+  arts::println("VectorView: {}", vv);
 
   try {
     //vv = 2;  FIXME: No more runtime errors for simple types
@@ -640,8 +638,8 @@ void test41() {
     exit(EXIT_FAILURE);
   }
 
-  cout << "VectorView: " << std::format("{}", vv) << '\n';
-  cout << "Vector:     " << std::format("{}", v1) << '\n';
+  arts::println("VectorView: {}", vv);
+  arts::println("Vector:     {}", v1);
 }
 
 // Test behaviour of VectorView::operator MatrixView, for which I have fixed
@@ -650,10 +648,10 @@ void test41() {
 void test42() {
   cout << "test42\n";
   Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
-  cout << "x: " << std::format("{}", x) << '\n';
+  arts::println("x: {}", x);
 
   StridedVectorView y = x[StridedRange(2, 4, 2)];
-  cout << "y: " << std::format("{}", y) << '\n';
+  arts::println("y: {}", y);
 }
 
 void test46() {
@@ -1001,12 +999,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A(3, 3, 1);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 2 (y = A * x; NOT STRIDED):\n";
@@ -1014,12 +1007,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A = build_test_matrix(3, 3);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 3 (y = A * x; NOT STRIDED):\n";
@@ -1027,12 +1015,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2});
     Matrix A = build_test_matrix(3, 2);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 4 (y = A * x; STRIDED):\n";
@@ -1040,12 +1023,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A(3, 3, 1);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 5 (y = A * x; STRIDED):\n";
@@ -1053,12 +1031,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2, 3});
     Matrix A = build_test_matrix(3, 3);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 6 (y = A * x; STRIDED):\n";
@@ -1066,12 +1039,7 @@ void test_mult() {
     Vector x(std::vector<Numeric>{1, 2});
     Matrix A = build_test_matrix(3, 2);
     mult(y, A, x);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "x (in):\n"
-              << std::format("{}", x) << '\n'
-              << "y (out):\n"
-              << std::format("{}", y) << '\n';
+    arts::println("A (in):\n{}\nx (in):\n{}\ny (out):\n{}", A, x, y);
   }
   {
     std::cout << "TEST 7 (C = A * B; NON STRIDED):\n";
@@ -1079,12 +1047,7 @@ void test_mult() {
     Matrix B(3, 3, 1);
     Matrix A(3, 3, 1);
     mult(C, A, B);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "B (in):\n"
-              << std::format("{}", B) << '\n'
-              << "C (out):\n"
-              << std::format("{}", C) << '\n';
+    arts::println("A (in):\n{}\nB (in):\n{}\nC (out):\n{}", A, B, C);
   }
   {
     std::cout << "TEST 8 (C = A * B; NON STRIDED):\n";
@@ -1092,12 +1055,7 @@ void test_mult() {
     Matrix A(3, 2, 1);
     Matrix B(2, 4, 1);
     mult(C, A, B);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "B (in):\n"
-              << std::format("{}", B) << '\n'
-              << "C (out):\n"
-              << std::format("{}", C) << '\n';
+    arts::println("A (in):\n{}\nB (in):\n{}\nC (out):\n{}", A, B, C);
   }
   {
     std::cout << "TEST 9 (C = A * B; NON STRIDED):\n";
@@ -1105,12 +1063,7 @@ void test_mult() {
     Matrix A = build_test_matrix(3, 2);
     Matrix B = build_test_matrix(2, 4);
     mult(C, A, B);
-    std::cout << "A (in):\n"
-              << std::format("{}", A) << '\n'
-              << "B (in):\n"
-              << std::format("{}", B) << '\n'
-              << "C (out):\n"
-              << std::format("{}", C) << '\n';
+    arts::println("A (in):\n{}\nB (in):\n{}\nC (out):\n{}", A, B, C);
   }
   std::cout << "#/MULT TEST ######################################\n";
 }

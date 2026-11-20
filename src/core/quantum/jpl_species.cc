@@ -16,7 +16,7 @@ const JplSpeciesInfo& info_from_lookup(Index mol, std::span<const JplSpeciesInfo
   auto it = stdr::lower_bound(data, mol, {}, &JplSpeciesInfo::id);
 
   if (it == data.end() or it->id != mol) {
-    throw std::runtime_error(std::format("No species found in JPL data with ID {}", mol));
+    throw std::runtime_error(arts::format("No species found in JPL data with ID {}", mol));
   }
 
   return *it;

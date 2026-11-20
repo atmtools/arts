@@ -104,7 +104,7 @@ Method::Method(const std::string&                                  n,
         }
       }
 
-      if (not any) { throw std::runtime_error(std::format("No named argument \"{}\"", key)); }
+      if (not any) { throw std::runtime_error(arts::format("No named argument \"{}\"", key)); }
     }
   }
 
@@ -119,20 +119,20 @@ Method::Method(const std::string&                                  n,
   // Check that all non-defaulted GINS are set
   for (std::size_t i = 0; i < nargin; i++) {
     if (inargs[i].starts_with(internal_prefix) and not wsms.at(n).defs.contains(inargs[i])) {
-      throw std::runtime_error(std::format("Missing required generic input argument \"{}\"",
-                                           std::string_view(inargs[i].begin() + 1, inargs[i].end())));
+      throw std::runtime_error(arts::format("Missing required generic input argument \"{}\"",
+                                            std::string_view(inargs[i].begin() + 1, inargs[i].end())));
     }
   }
 } catch (std::out_of_range&) {
-  throw std::runtime_error(std::format("No method named \"{}\"", n));
+  throw std::runtime_error(arts::format("No method named \"{}\"", n));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Cannot construct method \"{}\"\n{}", n, e.what()));
+  throw std::runtime_error(arts::format("Cannot construct method \"{}\"\n{}", n, e.what()));
 }
 
 Method::Method(std::string n, const Wsv& wsv, bool overwrite)
     : name(std::move(n)), setval(wsv), overwrite_setval(overwrite) {
   if (not setval) {
-    throw std::runtime_error(std::format("Cannot set workspace variable \"{}\" to empty value", name));
+    throw std::runtime_error(arts::format("Cannot set workspace variable \"{}\" to empty value", name));
   }
 
   if (wsv.holds<CallbackOperator>()) {
@@ -161,19 +161,19 @@ void Method::operator()(Workspace& ws) const try {
     wsms.at(name).func(ws, outargs, inargs);
   }
 } catch (std::out_of_range&) {
-  throw std::runtime_error(std::format("No method named \"{}\"", name));
+  throw std::runtime_error(arts::format("No method named \"{}\"", name));
 } catch (std::exception& e) {
   throw std::runtime_error(
-      std::format(R"(Cannot execute method {}
+      arts::format(R"(Cannot execute method {}
         
 Method outputs: {:B,}
 Method inputs:  {:B,}
 
 {})",
-                  name,
-                  outargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
-                  inargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
-                  std::string_view(e.what())));
+                   name,
+                   outargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
+                   inargs | stdv::transform(unprefixed) | std::ranges::to<std::vector<std::string>>(),
+                   std::string_view(e.what())));
 }
 
 void Method::add_defaults_to_agenda(Agenda& agenda) const {
@@ -201,7 +201,7 @@ std::string wsv_format(const std::string& x) {
 
   std::string_view sep = wsvs.contains(std::string{n}) ? "*" : "";
 
-  return std::format("{0}{1}{0}", sep, n);
+  return arts::format("{0}{1}{0}", sep, n);
 }
 }  // namespace
 
@@ -231,11 +231,11 @@ std::string Method::sphinx_list_item() const {
     const bool has_str  = setval->holds<String>();
     const bool is_basic = setval->holds<Numeric>() or setval->holds<Index>();
 
-    const std::string formatted = has_str    ? std::format("\"{}\"", setval->get<String>())
+    const std::string formatted = has_str    ? arts::format("\"{}\"", setval->get<String>())
                                   : is_basic ? setval->vformat("{}"sv)
                                              : setval->vformat("{:sqNB,}"sv);
 
-    return std::format("{} = {}", wsv_format(std::string{name}), formatted);
+    return arts::format("{} = {}", wsv_format(std::string{name}), formatted);
   }
 
   std::vector<SetvalHelper>    setvals;
@@ -253,7 +253,7 @@ std::string Method::sphinx_list_item() const {
     }
   }
 
-  return std::format("*{}*{}", name, setvals);
+  return arts::format("*{}*{}", name, setvals);
 }
 
 void Method::change_default(Wsv value) {

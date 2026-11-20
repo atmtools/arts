@@ -45,6 +45,6 @@ void py_star(py::module_& m) try {
   generic_interface(a1);
   vector_interface(a1);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize star\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize star\n{}", e.what()));
 }
 }  // namespace Python

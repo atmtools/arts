@@ -22,61 +22,62 @@ namespace {
 void scan_wsmr_for_errors(ArrayOfString& errors, const std::string& name, const WorkspaceMethodInternalRecord& wsmr) {
   const auto& wsv = internal_workspace_variables();
 
-  if (wsmr.desc.size() == 0) { errors.push_back(std::format("No description for \"{}\"", name)); }
+  if (wsmr.desc.size() == 0) { errors.push_back(arts::format("No description for \"{}\"", name)); }
 
   if (not wsmr.desc.empty() and wsmr.desc.back() not_eq '\n') {
-    errors.push_back(std::format("Description for \"{}\" ends without a newline", name));
+    errors.push_back(arts::format("Description for \"{}\" ends without a newline", name));
   }
 
-  if (wsmr.author.size() == 0) { errors.push_back(std::format("No authors for \"{}\"", name)); }
+  if (wsmr.author.size() == 0) { errors.push_back(arts::format("No authors for \"{}\"", name)); }
 
   if (wsmr.gout.size() not_eq wsmr.gout_type.size() or wsmr.gout.size() not_eq wsmr.gout_desc.size()) {
-    errors.push_back(std::format("Mismatch sizes of gout ({}), gout_type ({}), gout_des ({}), for \"{}\"",
-                                 wsmr.gout.size(),
-                                 wsmr.gout_type.size(),
-                                 wsmr.gout_desc.size(),
-                                 name));
+    errors.push_back(arts::format("Mismatch sizes of gout ({}), gout_type ({}), gout_des ({}), for \"{}\"",
+                                  wsmr.gout.size(),
+                                  wsmr.gout_type.size(),
+                                  wsmr.gout_desc.size(),
+                                  name));
   }
 
   for (auto& type : wsmr.gout_type) {
-    if (not valid_wsg(type)) { errors.push_back(std::format(R"(Invalid gout_type for "{}": "{}")", name, type)); }
+    if (not valid_wsg(type)) { errors.push_back(arts::format(R"(Invalid gout_type for "{}": "{}")", name, type)); }
   }
 
   for (auto& gvar : wsmr.gout) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      errors.push_back(std::format(R"(Invalid gout for "{}": "{}" - it is already a WSV)", name, gvar));
+      errors.push_back(arts::format(R"(Invalid gout for "{}": "{}" - it is already a WSV)", name, gvar));
     }
   }
 
   if (wsmr.gin.size() not_eq wsmr.gin_type.size() or wsmr.gin.size() not_eq wsmr.gin_value.size() or
       wsmr.gin.size() not_eq wsmr.gin_desc.size()) {
-    errors.push_back(std::format("Mismatch sizes of gin ({}), gin_type ({}), gin_value ({}), gin_desc ({}), for \"{}\"",
-                                 wsmr.gin.size(),
-                                 wsmr.gin_type.size(),
-                                 wsmr.gin_value.size(),
-                                 wsmr.gin_desc.size(),
-                                 name));
+    errors.push_back(
+        arts::format("Mismatch sizes of gin ({}), gin_type ({}), gin_value ({}), gin_desc ({}), for \"{}\"",
+                     wsmr.gin.size(),
+                     wsmr.gin_type.size(),
+                     wsmr.gin_value.size(),
+                     wsmr.gin_desc.size(),
+                     name));
   }
 
   for (auto& type : wsmr.gin_type) {
-    if (not valid_wsg(type)) { errors.push_back(std::format(R"(Invalid gin_type for "{}": "{}")", '"', name, type)); }
+    if (not valid_wsg(type)) { errors.push_back(arts::format(R"(Invalid gin_type for "{}": "{}")", '"', name, type)); }
   }
 
   for (auto& gvar : wsmr.gin) {
     if (wsv.find(gvar) not_eq wsv.end()) {
-      errors.push_back(std::format(R"(Invalid gin for "{}": "{}" - it is already a WSV)", name, gvar));
+      errors.push_back(arts::format(R"(Invalid gin for "{}": "{}" - it is already a WSV)", name, gvar));
     }
   }
 
   for (auto& var : wsmr.out) {
     if (wsv.find(var) == wsv.end()) {
-      errors.push_back(std::format(R"(Invalid out for "{}": "{}" - it is not a WSV)", name, var));
+      errors.push_back(arts::format(R"(Invalid out for "{}": "{}" - it is not a WSV)", name, var));
     }
   }
 
   for (auto& var : wsmr.in) {
     if (wsv.find(var) == wsv.end()) {
-      errors.push_back(std::format(R"(Invalid in for "{}": "{}" - it is not a WSV)", name, var));
+      errors.push_back(arts::format(R"(Invalid in for "{}": "{}" - it is not a WSV)", name, var));
     }
   }
 }
@@ -164,37 +165,37 @@ std::string error_signature(const std::string& name, const WorkspaceMethodIntern
   std::string other_sep = ",\n" + spaces;
 
   for (auto& wsv : wsmr.out) {
-    out += std::format("{}{}{} : {}",
-                       std::exchange(sep, other_sep),
-                       wsv,
-                       std::string(type_spaces - wsv.size(), ' '),
-                       wsvs.at(wsv).type);
+    out += arts::format("{}{}{} : {}",
+                        std::exchange(sep, other_sep),
+                        wsv,
+                        std::string(type_spaces - wsv.size(), ' '),
+                        wsvs.at(wsv).type);
   }
 
   for (auto& wsv : wsmr.in) {
     if (stdr::any_of(wsmr.out, Cmp::eq(wsv))) continue;
-    out += std::format("{}{}{} : {}",
-                       std::exchange(sep, other_sep),
-                       wsv,
-                       std::string(type_spaces - wsv.size(), ' '),
-                       wsvs.at(wsv).type);
+    out += arts::format("{}{}{} : {}",
+                        std::exchange(sep, other_sep),
+                        wsv,
+                        std::string(type_spaces - wsv.size(), ' '),
+                        wsvs.at(wsv).type);
   }
 
   for (std::size_t i = 0; i < wsmr.gout.size(); i++) {
-    out += std::format("{}{}{} : {}",
-                       std::exchange(sep, other_sep),
-                       wsmr.gout[i],
-                       std::string(type_spaces - wsmr.gout[i].size(), ' '),
-                       wsmr.gout_type[i]);
+    out += arts::format("{}{}{} : {}",
+                        std::exchange(sep, other_sep),
+                        wsmr.gout[i],
+                        std::string(type_spaces - wsmr.gout[i].size(), ' '),
+                        wsmr.gout_type[i]);
   }
 
   for (std::size_t i = 0; i < wsmr.gin.size(); i++) {
     if (stdr::any_of(wsmr.gout, Cmp::eq(wsmr.gin[i]))) continue;
-    out += std::format("{}{}{} : {}",
-                       std::exchange(sep, other_sep),
-                       wsmr.gin[i],
-                       std::string(type_spaces - wsmr.gin[i].size(), ' '),
-                       wsmr.gin_type[i]);
+    out += arts::format("{}{}{} : {}",
+                        std::exchange(sep, other_sep),
+                        wsmr.gin[i],
+                        std::string(type_spaces - wsmr.gin[i].size(), ' '),
+                        wsmr.gin_type[i]);
   }
 
   return out + ')';
@@ -275,7 +276,7 @@ void call_function(std::ostream& os, const std::string& name, const WorkspaceMet
     os << size_check_code(method_output_size_checks(wsmr), "      ");
 
     os << "    } catch (std::exception& e) {\n"
-          "      throw std::runtime_error(std::format(R\"-x-(Error in agenda call to specific method\n\n"
+          "      throw std::runtime_error(arts::format(R\"-x-(Error in agenda call to specific method\n\n"
        << error_signature(name, wsmr)
        << "\n\n{})-x-\", e.what()));\n"
           "    }\n  }\n";
@@ -331,7 +332,7 @@ void implementation(std::ostream& os, const int n) try {
 
   std::vector<std::ofstream> ofs;
   ofs.reserve(n);
-  for (int i = 0; i < n; i++) { ofs.emplace_back(std::format("auto_wsm_{}.cpp", i)); }
+  for (int i = 0; i < n; i++) { ofs.emplace_back(arts::format("auto_wsm_{}.cpp", i)); }
 
   for (auto& of : ofs) {
     of << R"--(//! auto-generated by make_auto_wsm.cpp
@@ -432,7 +433,7 @@ void scan_wsv_for_unused_variables(ArrayOfString& errors) {
   for (const auto& name : internal_workspace_variables() | std::views::keys) {
     if (used.contains(name)) continue;
 
-    errors.push_back(std::format(
+    errors.push_back(arts::format(
         R"(Workspace variable "{}" is neither input nor output of any workspace method.
 
 No method can write it and no method can read it, so it is unreachable from the
@@ -454,20 +455,20 @@ void various_checks_or_throw() {
       bool is_wsg        = internal_workspace_groups().contains(wsmr.return_type);
       bool is_wsg_friend = workspace_group_friends().contains(wsmr.return_type);
       if (not is_workspace and not is_wsg and not is_wsg_friend) {
-        errors.push_back(std::format(
+        errors.push_back(arts::format(
             "Method {} has a return type.  Its return type \"{}\" is not void or Workspace, and it is not a workspace group (or friend of one).",
             name,
             wsmr.return_type));
       }
 
       if (wsmr.return_desc.empty()) {
-        errors.push_back(std::format("Method {} has a return type.  It lacks a return description.", name));
+        errors.push_back(arts::format("Method {} has a return type.  It lacks a return description.", name));
       }
     }
   }
 
   if (not errors.empty()) {
-    throw std::runtime_error(std::format("Errors found in workspace methods:\n\n{:n}", errors));
+    throw std::runtime_error(arts::format("Errors found in workspace methods:\n\n{:n}", errors));
   }
 }
 }  // namespace

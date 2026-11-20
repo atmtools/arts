@@ -566,6 +566,6 @@ L_out : ~pyarts3.arts.Stokvec
 )");
 
 } catch (std::exception &e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize rtepack\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize rtepack\n{}", e.what()));
 }
 }  // namespace Python

@@ -468,10 +468,10 @@ vdisort::main_data vdisort_solver(const setup& c, mistake mk = mistake::none) {
                      std::abs(v.mu()[N + i] + q.mu[i]),
                      std::abs(v.weights()[i] - q.weights[i])});
   require(node < 1e-14,
-          std::format("VDISORT's double-Gauss streams and weights must equal RT3's for nmu = {}; they differ by up "
-                      "to {:.1e}",
-                      N,
-                      node));
+          arts::format("VDISORT's double-Gauss streams and weights must equal RT3's for nmu = {}; they differ by up "
+                       "to {:.1e}",
+                       N,
+                       node));
   return v;
 }
 
@@ -701,11 +701,11 @@ rt3::result richardson(const setup& c) {
     if (c.set_index[l] < 0) continue;
     const Numeric tau = (transport_set(c.sets[c.set_index[l]], c).extinction + c.gas[l]) * c.dz(l);
     require(doublings(tau, richardson_max_delta_tau / 2) == doublings(tau, richardson_max_delta_tau) + 1,
-            std::format("The Richardson extrapolation needs exactly one more doubling at max_delta_tau = {:.1e} "
-                        "than at {:.1e}; a layer of optical thickness {} does not get it",
-                        richardson_max_delta_tau / 2,
-                        richardson_max_delta_tau,
-                        tau));
+            arts::format("The Richardson extrapolation needs exactly one more doubling at max_delta_tau = {:.1e} "
+                         "than at {:.1e}; a layer of optical thickness {} does not get it",
+                         richardson_max_delta_tau / 2,
+                         richardson_max_delta_tau,
+                         tau));
   }
   auto a             = c;
   a.max_delta_tau    = richardson_max_delta_tau;
@@ -724,32 +724,32 @@ rt3::result richardson(const setup& c) {
 }
 
 std::string format(const deviation& d) {
-  return std::format("I {:9.3e}  Q {:9.3e}  U {:9.3e}  V {:9.3e}  F {:9.3e}",
-                     d.stokes[0],
-                     d.stokes[1],
-                     d.stokes[2],
-                     d.stokes[3],
-                     d.flux);
-}
-
-void report(std::string_view what, const deviation& d, Numeric tol, std::string_view note = {}) {
-  std::cout << std::format("{:<58} {}  tolerance {:.1e}{}\n", what, format(d), tol, note);
-  require(d.max() <= tol,
-          std::format("{}: VDISORT and RT3 must agree to max |difference| / max |I| (radiances) and / max |F| "
-                      "(fluxes) <= {:.1e}; got {:.3e} for I, {:.3e} for Q, {:.3e} for U, {:.3e} for V and {:.3e} "
-                      "for the fluxes",
-                      what,
-                      tol,
+  return arts::format("I {:9.3e}  Q {:9.3e}  U {:9.3e}  V {:9.3e}  F {:9.3e}",
                       d.stokes[0],
                       d.stokes[1],
                       d.stokes[2],
                       d.stokes[3],
-                      d.flux));
+                      d.flux);
+}
+
+void report(std::string_view what, const deviation& d, Numeric tol, std::string_view note = {}) {
+  arts::println("{:<58} {}  tolerance {:.1e}{}", what, format(d), tol, note);
+  require(d.max() <= tol,
+          arts::format("{}: VDISORT and RT3 must agree to max |difference| / max |I| (radiances) and / max |F| "
+                       "(fluxes) <= {:.1e}; got {:.3e} for I, {:.3e} for Q, {:.3e} for U, {:.3e} for V and {:.3e} "
+                       "for the fluxes",
+                       what,
+                       tol,
+                       d.stokes[0],
+                       d.stokes[1],
+                       d.stokes[2],
+                       d.stokes[3],
+                       d.flux));
   require(d.beyond <= 1e-14,
-          std::format("{}: VDISORT's Stokes components beyond RT3's nstokes must stay 0 (<= 1e-14 of max |I|), got "
-                      "{:.3e}",
-                      what,
-                      d.beyond));
+          arts::format("{}: VDISORT's Stokes components beyond RT3's nstokes must stay 0 (<= 1e-14 of max |I|), got "
+                       "{:.3e}",
+                       what,
+                       d.beyond));
 }
 
 struct comparison {
@@ -767,12 +767,12 @@ deviation check(std::string_view what, const setup& c, const comparison& x) {
   report(what,
          d,
          direct_tolerance(c, dd),
-         std::format("{}; |Q|,|U|,|V| / |I| = {:.1e}, {:.1e}, {:.1e}",
-                     dd.any ? std::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c))
-                            : std::string{", no doubling"},
-                     p[0],
-                     p[1],
-                     p[2]));
+         arts::format("{}; |Q|,|U|,|V| / |I| = {:.1e}, {:.1e}, {:.1e}",
+                      dd.any ? arts::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c))
+                             : std::string{", no doubling"},
+                      p[0],
+                      p[1],
+                      p[2]));
   if (dd.any)
     report("    RT3 Richardson-extrapolated to max_delta_tau = 0",
            compare(c, richardson(c), x.v),
@@ -781,7 +781,7 @@ deviation check(std::string_view what, const setup& c, const comparison& x) {
 }
 
 deviation check(std::string_view what, const setup& c) {
-  return check(std::format("{} (nmu {}, nstokes {})", what, c.nmu, c.nstokes), c, run(c));
+  return check(arts::format("{} (nmu {}, nstokes {})", what, c.nmu, c.nstokes), c, run(c));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -878,12 +878,12 @@ void test_fourier_builder() {
         for (Index a = 0; a < 4; a++)
           for (Index b = 0; b < 4; b++)
             diff = std::max(diff, std::abs(m.C[0, io, ii][a, b] - rayleigh_m0(mu[io], mu[ii])[a, b]));
-    std::cout << std::format(
-        "{:<58} max |C^0 - P_closed| {:9.3e}  tolerance 1.0e-13\n", "V0 (a) m = 0 Rayleigh, all 4 x 4 elements", diff);
+    arts::println(
+        "{:<58} max |C^0 - P_closed| {:9.3e}  tolerance 1.0e-13", "V0 (a) m = 0 Rayleigh, all 4 x 4 elements", diff);
     require(diff <= 1e-13,
-            std::format("The m = 0 Fourier coefficient of the Rayleigh lab-frame matrix must equal the closed form to "
-                        "1e-13 (16 azimuth samples), got {:.3e}",
-                        diff));
+            arts::format("The m = 0 Fourier coefficient of the Rayleigh lab-frame matrix must equal the closed form to "
+                         "1e-13 (16 azimuth samples), got {:.3e}",
+                         diff));
   }
 
   {
@@ -914,24 +914,24 @@ void test_fourier_builder() {
           }
         }
       }
-      std::cout << std::format(
+      arts::println(
           "{:<58} max |dev| / max |I| {:9.3e}  tolerance 1.0e-13; max |U| / max |I| {:.2f}\n"
-          "    the same from vdisort::combine_beam_phase_matrices: {:.3e}  tolerance 1.0e-13\n",
-          std::format("V0 (b) Rayleigh beam column vs dipole, phi0 = {}", phi0),
+          "    the same from vdisort::combine_beam_phase_matrices: {:.3e}  tolerance 1.0e-13",
+          arts::format("V0 (b) Rayleigh beam column vs dipole, phi0 = {}", phi0),
           d_derived / scale,
           u_scale / scale,
           d_library / scale);
       require(u_scale > 0.1 * scale, "V0 (b): the single-scattering U must be large enough to pin its sign");
       require(d_derived <= 1e-13 * scale,
-              std::format("The single-scattering beam column synthesised from the combined beam operator must equal "
-                          "the dipole column to 1e-13 of max I (mu0 = 0.6, phi0 = {}), got {:.3e}",
-                          phi0,
-                          d_derived / scale));
+              arts::format("The single-scattering beam column synthesised from the combined beam operator must equal "
+                           "the dipole column to 1e-13 of max I (mu0 = 0.6, phi0 = {}), got {:.3e}",
+                           phi0,
+                           d_derived / scale));
       require(d_library <= 1e-13 * scale,
-              std::format("vdisort::combine_beam_phase_matrices must give the dipole column to 1e-13 of max I "
-                          "(mu0 = 0.6, phi0 = {}), got {:.3e}",
-                          phi0,
-                          d_library / scale));
+              arts::format("vdisort::combine_beam_phase_matrices must give the dipole column to 1e-13 of max I "
+                           "(mu0 = 0.6, phi0 = {}), got {:.3e}",
+                           phi0,
+                           d_library / scale));
     }
     Numeric d_operator = 0.0;
     for (Index x = 0; x < static_cast<Index>(derived.size()); x++)
@@ -939,9 +939,9 @@ void test_fourier_builder() {
         for (Index c = 0; c < 4; c++)
           d_operator = std::max(d_operator, std::abs(derived.data_handle()[x][a, c] - library.data_handle()[x][a, c]));
     require(d_operator == 0.0,
-            std::format("vdisort::combine_beam_phase_matrices must equal the combination derived here exactly, they "
-                        "differ by {:.3e}",
-                        d_operator));
+            arts::format("vdisort::combine_beam_phase_matrices must equal the combination derived here exactly, they "
+                         "differ by {:.3e}",
+                         d_operator));
   }
 
   {
@@ -960,9 +960,9 @@ void test_fourier_builder() {
         }
       }
     }
-    std::cout << std::format("{:<58} max |dC|, |dS| / max |C| {:9.3e}  (printed)\n",
-                             "V0 (c) Mie C^m, S^m: RT3's 32 samples vs 1024 midpoints",
-                             d / top);
+    arts::println("{:<58} max |dC|, |dS| / max |C| {:9.3e}  (printed)",
+                  "V0 (c) Mie C^m, S^m: RT3's 32 samples vs 1024 midpoints",
+                  d / top);
   }
 }
 
@@ -987,7 +987,7 @@ setup rayleigh_layer() {
 void test_rayleigh() {
   const auto c = rayleigh_layer();
   const auto x = run(c);
-  check(std::format("R1 Rayleigh tau 0.5 omega 0.95 mu0 0.6 A 0.1 (nmu {})", c.nmu), c, x);
+  check(arts::format("R1 Rayleigh tau 0.5 omega 0.95 mu0 0.6 A 0.1 (nmu {})", c.nmu), c, x);
 
   Numeric top = 0.0, m3 = 0.0;
   for (const auto* t : {&x.r.up, &x.r.down}) {
@@ -1013,15 +1013,14 @@ void test_rayleigh() {
       }
     }
   }
-  std::cout << std::format(
-      "    m = 3: RT3 max |c_3| / max |c_0| {:.1e}; VDISORT input max |C^3|, |S^3| / max |C^0| {:.1e}\n",
-      m3 / top,
-      in3 / in0);
+  arts::println("    m = 3: RT3 max |c_3| / max |c_0| {:.1e}; VDISORT input max |C^3|, |S^3| / max |C^0| {:.1e}",
+                m3 / top,
+                in3 / in0);
   require(m3 <= 1e-12 * top and in3 <= 1e-13 * in0,
-          std::format("The m = 3 mode of Rayleigh scattering must vanish: RT3 output {:.1e} (<= 1e-12) and VDISORT "
-                      "input {:.1e} (<= 1e-13), relative to m = 0",
-                      m3 / top,
-                      in3 / in0));
+          arts::format("The m = 3 mode of Rayleigh scattering must vanish: RT3 output {:.1e} (<= 1e-12) and VDISORT "
+                       "input {:.1e} (<= 1e-13), relative to m = 0",
+                       m3 / top,
+                       in3 / in0));
 }
 
 /* R2: Evans' mietest (runmietest, Evans and Stephens 1991): tau 1,
@@ -1077,23 +1076,23 @@ setup multilayer(Index nmu) {
 void test_multilayer() {
   const auto c = multilayer(8);
   const auto x = run(c);
-  check(std::format("R3 Rayleigh/Mie/gas, solar + thermal 3 um, A 0.25 (nmu {})", c.nmu), c, x);
+  check(arts::format("R3 Rayleigh/Mie/gas, solar + thermal 3 um, A 0.25 (nmu {})", c.nmu), c, x);
 
   // The thermal source alone, which must be a sizeable part of the solar + thermal radiance
   auto t        = c;
   t.direct_flux = 0.0;
   const auto y  = run(t);
-  check(std::format("R3 thermal source only (nmu {})", t.nmu), t, y);
+  check(arts::format("R3 thermal source only (nmu {})", t.nmu), t, y);
   Numeric th = 0.0, all = 0.0;
   for (Index k = 0; k < static_cast<Index>(y.r.up.size()); k++) {
     th  = std::max(th, std::abs(y.r.up.data_handle()[k]));
     all = std::max(all, std::abs(x.r.up.data_handle()[k]));
   }
-  std::cout << std::format("    thermal-only max |I_up| / solar + thermal max |I_up|: {:.2f}\n", th / all);
+  arts::println("    thermal-only max |I_up| / solar + thermal max |I_up|: {:.2f}", th / all);
   require(th > 0.1 * all and th < 0.9 * all,
-          std::format("R3: both sources must matter, i.e. the thermal-only max |I_up| must be 0.1 to 0.9 of the "
-                      "solar + thermal one; got {:.2f}",
-                      th / all));
+          arts::format("R3: both sources must matter, i.e. the thermal-only max |I_up| must be 0.1 to 0.9 of the "
+                       "solar + thermal one; got {:.2f}",
+                       th / all));
 }
 
 /* R4: VDISORT's beam azimuth phi0 = 1.1 on R2.  VDISORT's radiance at
@@ -1109,11 +1108,10 @@ void test_beam_azimuth() {
   for (auto [map, what] : {std::pair{azimuth_map::sense, "VDISORT at phi0 - psi (azimuth sense)"},
                            std::pair{azimuth_map::beam_sign, "VDISORT at psi - phi0 (phi0 sign)"}}) {
     const auto d = compare(c, x.r, x.v, map);
-    std::cout << std::format(
-        "    deliberately wrong: {:<40} {}  ({:.0f} x tolerance)\n", what, format(d), d.max() / tol);
+    arts::println("    deliberately wrong: {:<40} {}  ({:.0f} x tolerance)", what, format(d), d.max() / tol);
     require(
         d.max() > 100 * tol,
-        std::format("R4 must detect {} by more than 100 times the tolerance {:.1e}, got {:.3e}", what, tol, d.max()));
+        arts::format("R4 must detect {} by more than 100 times the tolerance {:.1e}, got {:.3e}", what, tol, d.max()));
   }
 }
 
@@ -1145,7 +1143,7 @@ void test_stream_sweep() {
         top        = std::max(top, stripped_degree(s.legendre));
       }
       c.aziorder = std::min(c.aziorder, top);
-      check(std::format("R6 {} stream sweep, degree <= {}", c.nlay() == 1 ? "R2" : "R3", degree), c);
+      check(arts::format("R6 {} stream sweep, degree <= {}", c.nlay() == 1 ? "R2" : "R3", degree), c);
     }
   }
 }
@@ -1165,24 +1163,24 @@ void test_convergence() {
     const auto dd   = rt3_doubling(c, mdt);
     const auto d    = compare(c, rt3::solve(rt3_problem(c)), v);
     err.push_back(d.max());
-    report(std::format("R7 R3 convergence, max_delta_tau {:.0e}", mdt),
+    report(arts::format("R7 R3 convergence, max_delta_tau {:.0e}", mdt),
            d,
            direct_tolerance(c, dd),
-           std::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c)));
+           arts::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c)));
   }
   const Numeric halving = err[0] / err[1];
-  std::cout << std::format("    difference ratio for max_delta_tau 1e-5 / 5e-6: {:.3f}\n", halving);
+  arts::println("    difference ratio for max_delta_tau 1e-5 / 5e-6: {:.3f}", halving);
   require(halving > 1.9 and halving < 2.1,
-          std::format("Halving max_delta_tau adds one doubling to every layer, so the VDISORT-RT3 difference must "
-                      "halve (ratio 1.9 to 2.1); got {:.3f}",
-                      halving));
+          arts::format("Halving max_delta_tau adds one doubling to every layer, so the VDISORT-RT3 difference must "
+                       "halve (ratio 1.9 to 2.1); got {:.3f}",
+                       halving));
   for (std::size_t i : {std::size_t{0}, std::size_t{2}}) {
     const Numeric ratio = err[i] / err[i + (i == 0 ? 2 : 1)];
-    std::cout << std::format("    difference ratio per decade of max_delta_tau: {:.2f}\n", ratio);
+    arts::println("    difference ratio per decade of max_delta_tau: {:.2f}", ratio);
     require(ratio > 4.0 and ratio < 25.0,
-            std::format("The VDISORT-RT3 difference must fall like RT3's first-order doubling error, by a factor "
-                        "4 to 25 per decade of max_delta_tau; got {:.2f}",
-                        ratio));
+            arts::format("The VDISORT-RT3 difference must fall like RT3's first-order doubling error, by a factor "
+                         "4 to 25 per decade of max_delta_tau; got {:.2f}",
+                         ratio));
   }
 }
 
@@ -1202,15 +1200,15 @@ void test_mistakes() {
                  mistake::beam_epsilon,
                  mistake::swapped_systems}) {
     const auto d = compare(c, r, vdisort_solver(c, m));
-    std::cout << std::format(
-        "    deliberately wrong VDISORT input: {:<40} {}  ({:.0f} x tolerance)\n", name(m), format(d), d.max() / tol);
+    arts::println(
+        "    deliberately wrong VDISORT input: {:<40} {}  ({:.0f} x tolerance)", name(m), format(d), d.max() / tol);
     require(
         d.max() > 100 * tol,
-        std::format("R8 must detect the VDISORT input error \"{}\" by more than 100 times the tolerance {:.1e}, got "
-                    "{:.3e}",
-                    name(m),
-                    tol,
-                    d.max()));
+        arts::format("R8 must detect the VDISORT input error \"{}\" by more than 100 times the tolerance {:.1e}, got "
+                     "{:.3e}",
+                     name(m),
+                     tol,
+                     d.max()));
   }
 }
 
@@ -1243,12 +1241,12 @@ void test_delta_m() {
   for (Index l = 0; l < isize(s.legendre); l++)
     for (Index k = 0; k < 6; k++)
       dev = std::max(dev, std::abs(s.legendre[l].data[k] - (l < isize(mie) ? mie[l].data[k] : 0.0)));
-  std::cout << std::format("    R9 scaled set: f = {}, k' = {:.6f}, omega' = {:.6f}; max |scaled - Mie| {:.1e}\n",
-                           f,
-                           s.extinction,
-                           s.scattering / s.extinction,
-                           dev);
-  require(dev < 1e-14, std::format("R9: RT3's delta-M algebra must recover the Mie series, got {:.1e}", dev));
+  arts::println("    R9 scaled set: f = {}, k' = {:.6f}, omega' = {:.6f}; max |scaled - Mie| {:.1e}",
+                f,
+                s.extinction,
+                s.scattering / s.extinction,
+                dev);
+  require(dev < 1e-14, arts::format("R9: RT3's delta-M algebra must recover the Mie series, got {:.1e}", dev));
   check("R9 R3 with a forward peak f = 1/4, RT3 delta-M", c);
 }
 
@@ -1301,10 +1299,10 @@ void test_user_angles() {
     const auto v  = vdisort_solver(c);
     const auto dd = rt3_doubling(c, c.max_delta_tau);
     const auto d  = compare_user_angles(c, r, v);
-    report(std::format("R10 {} at {} angles between the streams", c.nlay() == 1 ? "R2" : "R3", isize(c.extra_mu)),
+    report(arts::format("R10 {} at {} angles between the streams", c.nlay() == 1 ? "R2" : "R3", isize(c.extra_mu)),
            d,
            direct_tolerance(c, dd),
-           std::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c)));
+           arts::format(" = {:.2f} {}", d.max() / error_scale(c, dd.delta), error_scale_name(c)));
     report("    RT3 Richardson-extrapolated to max_delta_tau = 0",
            compare_user_angles(c, richardson(c), v),
            richardson_tolerance(c));
@@ -1347,7 +1345,7 @@ evans_case read_evans(const std::string& script) {
     // An RT4 script as the equivalent RT3 problem: thermal, m = 0, randomly oriented particles
     const auto r4 = evans::read_rt4_settings(sc);
     require(r4.units == 'T' and r4.polarization == "VH" and r4.nstokes == 2,
-            std::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", script));
+            arts::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", script));
     e.brightness = true;
     e.settings   = {.nstokes            = r4.nstokes,
                     .nmu                = r4.nmu,
@@ -1371,9 +1369,9 @@ evans_case read_evans(const std::string& script) {
       }
   }
   const auto& st = e.settings;
-  require(
-      st.quad == 'G' and st.ground_type != 'S' and not st.delta_m,
-      std::format("{}: only Gauss quadrature, a Lambertian or Fresnel ground and no delta-M are handled here", script));
+  require(st.quad == 'G' and st.ground_type != 'S' and not st.delta_m,
+          arts::format("{}: only Gauss quadrature, a Lambertian or Fresnel ground and no delta-M are handled here",
+                       script));
 
   const auto levels = evans::read_layers(sc.files.at(st.layer_file));
   const auto T = [&](Numeric t) { return evans::exact_temperature_of_5digit(st.wavelength, t, planck_c1, planck_c2); };
@@ -1397,7 +1395,7 @@ evans_case read_evans(const std::string& script) {
     if (file.empty()) continue;
     if (not set_of.contains(file)) {
       require(sc.files.contains(legendre_of.contains(file) ? legendre_of[file] : file),
-              std::format("{}: the scattering file {} is not a Legendre series (RT3 format)", script, file));
+              arts::format("{}: the scattering file {} is not a Legendre series (RT3 format)", script, file));
       const auto f = evans::read_scattering(sc.files.at(legendre_of.contains(file) ? legendre_of[file] : file));
       set_of[file] = isize(c.sets);
       c.sets.push_back({.extinction = f.extinction, .scattering = f.scattering, .legendre = legendre(f.legendre)});
@@ -1422,13 +1420,13 @@ using row_solution = std::function<Vector4(const evans::row&)>;
 Index level_of(const evans_case& e, Numeric z) {
   for (Index l = 0; l < isize(e.c.height); l++)
     if (std::abs(e.c.height[l] - z) < 1e-9) return l;
-  throw std::runtime_error(std::format("{}: no level at Z = {}", e.name, z));
+  throw std::runtime_error(arts::format("{}: no level at Z = {}", e.name, z));
 }
 
 Index stream_of(const Vector& mu, Numeric m) {
   for (Index i = 0; i < isize(mu); i++)
     if (std::abs(mu[i] - std::abs(m)) < 6e-6) return i;
-  throw std::runtime_error(std::format("No stream at MU = {}", m));
+  throw std::runtime_error(arts::format("No stream at MU = {}", m));
 }
 
 //! VDISORT at Evans' streams (user angles, formal solution) and fluxes, for a solved problem
@@ -1544,15 +1542,15 @@ Numeric max_of(const table_deviation& d) {
 }
 
 table_deviation print_deviation(std::string_view what, const table_deviation& d, Numeric tol = -1.0) {
-  std::cout << std::format("    {:<62} I {:8.2e}  Q {:8.2e}  U {:8.2e}  V {:8.2e}  F {:8.2e}{}\n",
-                           what,
-                           d.stokes[0],
-                           d.stokes[1],
-                           d.stokes[2],
-                           d.stokes[3],
-                           d.flux,
-                           tol < 0 ? "" : std::format("  tolerance {:.0e}", tol));
-  require(tol < 0 or max_of(d) <= tol, std::format("{}: {:.2e} exceeds the tolerance {:.0e}", what, max_of(d), tol));
+  arts::println("    {:<62} I {:8.2e}  Q {:8.2e}  U {:8.2e}  V {:8.2e}  F {:8.2e}{}",
+                what,
+                d.stokes[0],
+                d.stokes[1],
+                d.stokes[2],
+                d.stokes[3],
+                d.flux,
+                tol < 0 ? "" : arts::format("  tolerance {:.0e}", tol));
+  require(tol < 0 or max_of(d) <= tol, arts::format("{}: {:.2e} exceeds the tolerance {:.0e}", what, max_of(d), tol));
   return d;
 }
 
@@ -1580,9 +1578,9 @@ table_deviation print_deviation(std::string_view what, const table_deviation& d,
 void test_evans_settings() {
   for (const std::string script : {"runmietest", "runtesta"}) {
     const auto e = read_evans(script);
-    std::cout << std::format(
+    arts::println(
         "E {} (Evans' benchmark): {} layer(s), nstokes {}, Gauss nmu {}, aziorder {}, source code {}, "
-        "mu0 {:.6f}\n",
+        "mu0 {:.6f}",
         script,
         e.c.nlay(),
         e.settings.nstokes,
@@ -1611,7 +1609,7 @@ void test_evans_settings() {
       evans_case g = e;
       g.mu         = polradtran::get_quadrature(nmu, polradtran::quadrature_type::gauss).mu;
       const auto d = print_deviation(
-          std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu),
+          arts::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu),
           deviation_from(g, rt3_at_table(g, nmu, polradtran::quadrature_type::gauss, 1e-7), v_at(g), rows_on(g, g.mu)));
       require(max_of(d) < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
       previous = max_of(d);
@@ -1623,7 +1621,7 @@ void test_evans_settings() {
       g.mu         = polradtran::get_quadrature(nmu, polradtran::quadrature_type::double_gauss).mu;
       setup c      = e.c;
       c.nmu        = nmu;
-      print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
+      print_deviation(arts::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
                       deviation_from(g,
                                      rt3_at_table(g, nmu, polradtran::quadrature_type::double_gauss, 1e-7),
                                      vdisort_at_table(vdisort_solver(c), g, c),
@@ -1677,9 +1675,9 @@ Numeric brightness_deviation(const evans_case& e, const row_solution& a, const s
      doubling error at every level, stream and direction. */
 void test_evans_rt4_settings() {
   const auto e = read_evans("runtestr");
-  std::cout << std::format(
+  arts::println(
       "E runtestr (Evans' RT4 benchmark): {} layer(s), nstokes {}, Gauss nmu {}, Fresnel n = {}{:+}i, "
-      "brightness temperatures in V and H\n",
+      "brightness temperatures in V and H",
       e.c.nlay(),
       e.settings.nstokes,
       e.settings.nmu,
@@ -1687,8 +1685,7 @@ void test_evans_rt4_settings() {
       e.c.fresnel->imag());
   const auto    evans = rt3_at_table(e, e.settings.nmu, polradtran::quadrature_type::gauss, 1e-6);
   const Numeric rt3_k = brightness_deviation(e, evans, e.table);
-  std::cout << std::format(
-      "    {:<62} {:.4f} K (tolerance 0.01 K)\n", "RT3 at Evans' settings vs his RT4 table", rt3_k);
+  arts::println("    {:<62} {:.4f} K (tolerance 0.01 K)", "RT3 at Evans' settings vs his RT4 table", rt3_k);
   require(rt3_k <= 0.01 + 1e-9, "RT3 at Evans' settings must reproduce his RT4 table to 0.01 K");
 
   // VDISORT at Evans' angles, 16 and 32 streams
@@ -1710,12 +1707,11 @@ void test_evans_rt4_settings() {
     }
     return d;
   }();
-  std::cout << std::format(
-      "    {:<62} {:.4f} K (tolerance 0.01 K)\n", "VDISORT, 16 vs 32 streams, at Evans' angles", converged);
+  arts::println("    {:<62} {:.4f} K (tolerance 0.01 K)", "VDISORT, 16 vs 32 streams, at Evans' angles", converged);
   require(converged <= 0.01, "VDISORT's radiances at Evans' angles must be converged in the streams to 0.01 K");
-  std::cout << std::format("    {:<62} {:.4f} K\n",
-                           "VDISORT (32 streams) at Evans' angles vs his table",
-                           brightness_deviation(e, v, radiances));
+  arts::println("    {:<62} {:.4f} K",
+                "VDISORT (32 streams) at Evans' angles vs his table",
+                brightness_deviation(e, v, radiances));
 
   // RT3 with Gauss quadrature approaches VDISORT at RT3's nodes
   Numeric previous = 1e9;
@@ -1731,8 +1727,7 @@ void test_evans_rt4_settings() {
       const auto b = brightness_vh(vd(r)[0], vd(r)[1], e.settings.wavelength, false);
       d            = std::max({d, std::abs(a[0] - b[0]), std::abs(a[1] - b[1])});
     }
-    std::cout << std::format(
-        "    {:<62} {:.4f} K\n", std::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu), d);
+    arts::println("    {:<62} {:.4f} K", arts::format("RT3 Gauss nmu {:2} vs VDISORT, at RT3's nodes", nmu), d);
     require(d < previous, "RT3 with Gauss quadrature must approach VDISORT as nmu grows");
     previous = d;
   }
@@ -1747,7 +1742,7 @@ void test_evans_rt4_settings() {
         if (std::abs(x.mu) != 2.0 and x.phi == 0.0) r.push_back(x);  // m = 0: one azimuth
       return r;
     }();
-    print_deviation(std::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
+    print_deviation(arts::format("RT3 double-Gauss nmu {:2} vs VDISORT on the same streams", nmu),
                     deviation_from(g,
                                    rt3_at_table(g, nmu, polradtran::quadrature_type::double_gauss, 1e-7),
                                    vdisort_at_table(vdisort_solver(c), g, c),

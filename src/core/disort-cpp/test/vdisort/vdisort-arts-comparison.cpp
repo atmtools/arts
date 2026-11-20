@@ -197,10 +197,10 @@ radiance rt4_radiance(const rt4::result& res) {
 Numeric report(std::string_view what, const Vector4& d, Index ns, Numeric tol, Numeric scale) {
   Numeric worst = 0.0;
   for (Index s = 0; s < ns; s++) worst = std::max(worst, d[s]);
-  std::cout << std::format("{:<48} I {:9.3e}  Q {:9.3e}", what, d[0], d[1]);
-  if (ns > 2) std::cout << std::format("  U {:9.3e}  V {:9.3e}", d[2], d[3]);
-  std::cout << std::format("  = {:5.2f} max_delta_tau / mu0; tolerance {:.2e}\n", worst / scale, tol);
-  require(worst <= tol, std::format("{}: the solvers must agree to {:.2e} of max I, got {:.3e}", what, tol, worst));
+  arts::print("{:<48} I {:9.3e}  Q {:9.3e}", what, d[0], d[1]);
+  if (ns > 2) arts::print("  U {:9.3e}  V {:9.3e}", d[2], d[3]);
+  arts::println("  = {:5.2f} max_delta_tau / mu0; tolerance {:.2e}", worst / scale, tol);
+  require(worst <= tol, arts::format("{}: the solvers must agree to {:.2e} of max I, got {:.3e}", what, tol, worst));
   return worst;
 }
 
@@ -325,15 +325,15 @@ void test_thermal(const atmosphere& a) {
   for (bool fresnel : {false, true}) {
     const std::string surf = fresnel ? "Fresnel 3+0.2i" : "Lambertian 0.3";
     const auto        r    = thermal(a, mdt, fresnel);
-    std::cout << std::format(
+    arts::println(
         "Thermal, {}, max_delta_tau {:.0e}: RT4 layer phase matrices differ from VDISORT's by {:.2e} (relative); "
-        "max |Q_up| / max |I_up| = {:.2e}\n",
+        "max |Q_up| / max |I_up| = {:.2e}",
         surf,
         mdt,
         r.input,
         r.q);
     require(r.input <= 1e-12,
-            std::format("RT4's layer phase matrices must equal VDISORT's to 1e-12 (relative), got {:.2e}", r.input));
+            arts::format("RT4's layer phase matrices must equal VDISORT's to 1e-12 (relative), got {:.2e}", r.input));
     report("    RT3 vs VDISORT", r.rt3_vdisort, 2, tol, mdt);
     report("    RT4 vs RT3 (identical doubling)", r.rt4_rt3, 2, 1e-8, mdt);
     report("    RT4 vs VDISORT", r.rt4_vdisort, 2, tol, mdt);
@@ -343,11 +343,11 @@ void test_thermal(const atmosphere& a) {
   const auto    coarse = thermal(a, 1e-6, false);
   const auto    fine   = thermal(a, 1e-7, false);
   const Numeric ratio  = coarse.rt3_vdisort[0] / fine.rt3_vdisort[0];
-  std::cout << std::format("Thermal, Lambertian: RT3 - VDISORT ratio for max_delta_tau 1e-6 / 1e-7: {:.2f}\n", ratio);
+  arts::println("Thermal, Lambertian: RT3 - VDISORT ratio for max_delta_tau 1e-6 / 1e-7: {:.2f}", ratio);
   require(ratio > 5.0 and ratio < 20.0,
-          std::format("The RT3 - VDISORT difference must fall like RT3's first-order doubling error, by a factor 5 to "
-                      "20 per decade of max_delta_tau; got {:.2f}",
-                      ratio));
+          arts::format("The RT3 - VDISORT difference must fall like RT3's first-order doubling error, by a factor 5 to "
+                       "20 per decade of max_delta_tau; got {:.2f}",
+                       ratio));
 }
 
 void test_solar(const atmosphere& a, Numeric max_delta_tau) {
@@ -391,19 +391,19 @@ void test_solar(const atmosphere& a, Numeric max_delta_tau) {
   const auto r3 = rt3_radiance(rt3::solve(p3), psi);
 
   const auto d = deviation(r3, rv);
-  std::cout << std::format("Solar (mu0 {}) and thermal, Lambertian 0.3, {} Fourier modes, max_delta_tau {:.0e}\n",
-                           mu0,
-                           aziorder + 1,
-                           max_delta_tau);
+  arts::println("Solar (mu0 {}) and thermal, Lambertian 0.3, {} Fourier modes, max_delta_tau {:.0e}",
+                mu0,
+                aziorder + 1,
+                max_delta_tau);
   report("    RT3 vs VDISORT, 6 azimuths", d, 4, 10 * max_delta_tau / mu0, max_delta_tau / mu0);
 
   Vector4 top{};
   for (Index x = 0; x < static_cast<Index>(rv.up.size()) / 4; x++)
     for (Index s = 0; s < 4; s++) top[s] = std::max(top[s], std::abs(rv.up.data_handle()[4 * x + s]));
-  std::cout << std::format("    max |Q|, |U|, |V| / max |I| (upward) = {:.2e}, {:.2e}, {:.2e}\n",
-                           top[1] / top[0],
-                           top[2] / top[0],
-                           top[3] / top[0]);
+  arts::println("    max |Q|, |U|, |V| / max |I| (upward) = {:.2e}, {:.2e}, {:.2e}",
+                top[1] / top[0],
+                top[2] / top[0],
+                top[3] / top[0]);
   require(top[1] > 1e-3 * top[0] and top[2] > 1e-3 * top[0] and top[3] > 1e-6 * top[0],
           "The solar comparison must exercise Q, U and V");
 }

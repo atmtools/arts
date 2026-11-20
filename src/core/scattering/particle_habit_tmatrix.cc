@@ -12,21 +12,21 @@
 namespace scattering {
 namespace {
 void check_grid(const Vector& grid, const char* name) {
-  if (grid.empty()) throw std::invalid_argument(std::format("{} must not be empty", name));
+  if (grid.empty()) throw std::invalid_argument(arts::format("{} must not be empty", name));
   Numeric previous = 0;
   for (Numeric x : grid) {
     if (!std::isfinite(x) || x <= previous)
-      throw std::invalid_argument(std::format("{} must be positive and strictly increasing", name));
+      throw std::invalid_argument(arts::format("{} must be positive and strictly increasing", name));
     previous = x;
   }
 }
 
 //! An angle grid of gridded ARO data, whose interpolation needs it strictly increasing
 void check_angles(const Vector& grid, const char* name) {
-  if (grid.empty()) throw std::invalid_argument(std::format("{} must not be empty", name));
+  if (grid.empty()) throw std::invalid_argument(arts::format("{} must not be empty", name));
   for (Size i = 0; i < grid.size(); ++i)
     if (!std::isfinite(grid[i]) || (i > 0 && grid[i] <= grid[i - 1]))
-      throw std::invalid_argument(std::format("{} must be finite and strictly increasing", name));
+      throw std::invalid_argument(arts::format("{} must be finite and strictly increasing", name));
 }
 
 //! The shape of every diameter: the aspect ratio and coefficients of one entry for all, or of one entry each
@@ -47,19 +47,19 @@ class Shapes {
       : aspect_ratio(aspect_ratio_), coefficients(coefficients_), shape(shape_), degree(degree_) {
     if (aspect_ratio.size() != 1 and aspect_ratio.size() != diameters)
       throw std::invalid_argument(
-          std::format("aspect_ratio has {} elements for {} diameters; it must have 1 or one per diameter",
-                      aspect_ratio.size(),
-                      diameters));
+          arts::format("aspect_ratio has {} elements for {} diameters; it must have 1 or one per diameter",
+                       aspect_ratio.size(),
+                       diameters));
     if (coefficients.size() > 1 and coefficients.size() != diameters)
       throw std::invalid_argument(
-          std::format("coefficients has {} elements for {} diameters; it must have 0, 1 or one per diameter",
-                      coefficients.size(),
-                      diameters));
+          arts::format("coefficients has {} elements for {} diameters; it must have 0, 1 or one per diameter",
+                       coefficients.size(),
+                       diameters));
     if (shape != ParticleShape::generalized_chebyshev and not coefficients.empty())
       throw std::invalid_argument("coefficients are only for generalized Chebyshev particles");
     if (shape != ParticleShape::chebyshev and degree != 0)
       throw std::invalid_argument(
-          std::format("degree is {}; it is only for Chebyshev particles and must be 0 for the others", degree));
+          arts::format("degree is {}; it is only for Chebyshev particles and must be 0 for the others", degree));
   }
 
   [[nodiscard]] Numeric aspect(Size i) const { return aspect_ratio[aspect_ratio.size() == 1 ? 0 : i]; }
@@ -111,19 +111,19 @@ std::vector<Numeric> check(const Vector&        t_grid,
   check_grid(diameters, "diameters");
   if (refractive_index.nrows() != t_grid.ncols() || refractive_index.ncols() != f_grid.ncols())
     throw std::invalid_argument(
-        std::format("refractive_index has shape ({}, {}); it must be (temperature, frequency), ({}, {})",
-                    refractive_index.nrows(),
-                    refractive_index.ncols(),
-                    t_grid.size(),
-                    f_grid.size()));
+        arts::format("refractive_index has shape ({}, {}); it must be (temperature, frequency), ({}, {})",
+                     refractive_index.nrows(),
+                     refractive_index.ncols(),
+                     t_grid.size(),
+                     f_grid.size()));
   for (auto row : refractive_index)
     for (Complex m : row)
       if (!std::isfinite(m.real()) || !std::isfinite(m.imag()) || m.real() <= 0 || m.imag() < 0)
         throw std::invalid_argument("refractive_index must be finite with real > 0 and imaginary >= 0");
   if (!std::isfinite(density) || density <= 0)
-    throw std::invalid_argument(std::format("density is {}; it must be finite and positive", density));
+    throw std::invalid_argument(arts::format("density is {}; it must be finite and positive", density));
   if (!std::isfinite(accuracy) || accuracy <= 0)
-    throw std::invalid_argument(std::format("accuracy is {}; it must be finite and positive", accuracy));
+    throw std::invalid_argument(arts::format("accuracy is {}; it must be finite and positive", accuracy));
   // The shapes are checked as by the solver, before any solver call
   std::vector<Numeric> dmax_ratio(diameters.size());
   for (Size i = 0; i < diameters.size(); ++i) dmax_ratio[i] = shapes.dmax_ratio(i);

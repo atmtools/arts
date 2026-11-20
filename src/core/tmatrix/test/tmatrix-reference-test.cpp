@@ -41,7 +41,7 @@ Printed printed(const std::string& token) {
 
 std::string slurp(const std::string& path) {
   std::ifstream in(path);
-  if (not in) throw std::runtime_error(std::format("cannot read {}", path));
+  if (not in) throw std::runtime_error(arts::format("cannot read {}", path));
   return {std::istreambuf_iterator<char>(in), {}};
 }
 
@@ -55,7 +55,7 @@ std::vector<std::string> lines(const std::string& text) {
 //! The printed value after a label, such as "R1="
 Printed after(const std::string& line, const std::string& label) {
   const auto at = line.find(label);
-  if (at == std::string::npos) throw std::runtime_error(std::format("no {} in \"{}\"", label, line));
+  if (at == std::string::npos) throw std::runtime_error(arts::format("no {} in \"{}\"", label, line));
   std::istringstream is(line.substr(at + label.size()));
   std::string        token;
   is >> token;
@@ -87,17 +87,17 @@ void published_fixed(const std::string& path, EquivalentRadius equivalent) {
                                               .beta            = 52})};
   const auto       port    = fixed_port(c, geometry);
   const auto&      r       = port.results[0];
-  const auto       name    = std::format("{} ({})", path.substr(path.find_last_of('/') + 1), c.describe());
+  const auto       name    = arts::format("{} ({})", path.substr(path.find_last_of('/') + 1), c.describe());
   Numeric          worst_s = 0.0, worst_z = 0.0;
 
   std::smatch match;
   if (std::regex_search(text, match, std::regex(R"(NMAX=\s*(\d+))")))
-    require(r.order == std::stoi(match[1]), std::format("{}: n_max {} against {}", name, r.order, match[1].str()));
+    require(r.order == std::stoi(match[1]), arts::format("{}: n_max {} against {}", name, r.order, match[1].str()));
   if (std::regex_search(text, match, std::regex(R"(RAT=\s*(\S+))"))) {
     // The volume- over the surface-equivalent radius, in closed form
     const auto rat = printed(match[1]);
     require(std::abs(c.factor() - rat.value) <= rat.half + rounding,
-            std::format("{}: radius ratio {} against {}", name, c.factor(), rat.value));
+            arts::format("{}: radius ratio {} against {}", name, c.factor(), rat.value));
   }
   const std::regex amplitude(R"(S([12])([12])=\s*(\S+) \+ i\*\s*(\S+))");
   Size             elements = 0;
@@ -122,9 +122,9 @@ void published_fixed(const std::string& path, EquivalentRadius equivalent) {
       worst_z = std::max(worst_z, std::abs(r.phase[a, b] - arts_sign(a, b) * z.value) / (port.phase[0] + z.half));
     }
   }
-  require(worst_s <= 1.0, std::format("{}: amplitude at {:.2f} of its tolerance", name, worst_s));
-  require(worst_z <= 1.0, std::format("{}: phase matrix at {:.2f} of its tolerance", name, worst_z));
-  std::println("{}: amplitude {:.3f} and phase {:.3f} of their tolerances", name, worst_s, worst_z);
+  require(worst_s <= 1.0, arts::format("{}: amplitude at {:.2f} of its tolerance", name, worst_s));
+  require(worst_z <= 1.0, arts::format("{}: phase matrix at {:.2f} of its tolerance", name, worst_z));
+  arts::println("{}: amplitude {:.3f} and phase {:.3f} of their tolerances", name, worst_s, worst_z);
 }
 
 /** tmd.lp.f and tmq.lp.f: randomly oriented oblate spheroids of axis ratio 2, LAM = 0.5, DDELT = 0.001, NDGS = 2,
@@ -143,7 +143,7 @@ void published_random(const std::string& path, Complex m) {
     const Index   nodes = static_cast<Index>(after(all[i + 2], "AVERAGING =").value);
     Size          k     = i + 3;
     while (k < all.size() and not all[k].starts_with("CEXT=")) ++k;
-    if (k == all.size()) throw std::runtime_error(std::format("{}: no cross sections after R1=", file));
+    if (k == all.size()) throw std::runtime_error(arts::format("{}: no cross sections after R1=", file));
     const Printed cext = after(all[k], "CEXT="), csca = after(all[k], "CSCA="), w = after(all[k], "W="),
                   cos = after(all[k], "<COS>=");
 
@@ -164,11 +164,11 @@ void published_random(const std::string& path, Complex m) {
     const auto         port = random_port(c, d, 19);
     const auto&        r    = port.result;
     const auto&        e    = port.mean.expansion;
-    const auto         name = std::format("{} reff={}", file, reff.value);
+    const auto         name = arts::format("{} reff={}", file, reff.value);
 
     const auto check = [&name](const char* what, Numeric got, Printed ref, Numeric bound) {
       require(std::abs(got - ref.value) <= bound + ref.half,
-              std::format("{}: {} {} against {}, beyond {:.1e}", name, what, got, ref.value, bound + ref.half));
+              arts::format("{}: {} {} against {}, beyond {:.1e}", name, what, got, ref.value, bound + ref.half));
     };
     // The roots of the power law's radii, to the precision of double and of the original's ZEROIN
     check("r_1", port.nodes.lower, r1, rounding * r1.value);
@@ -188,7 +188,7 @@ void published_random(const std::string& path, Complex m) {
       std::istringstream row(all[j]);
       Index              degree;
       if (not(row >> degree)) break;
-      require(degree == static_cast<Index>(l) and l < e.size(), std::format("{}: coefficients of degree {}", name, l));
+      require(degree == static_cast<Index>(l) and l < e.size(), arts::format("{}: coefficients of degree {}", name, l));
       if (l >= e.size()) break;
       for (const Vector* x : {&e.alpha1, &e.alpha2, &e.alpha3, &e.alpha4, &e.beta1, &e.beta2}) {
         std::string token;
@@ -199,7 +199,7 @@ void published_random(const std::string& path, Complex m) {
       }
     }
     require(l > 2 and worst <= 1.0,
-            std::format("{}: {} expansion coefficients at {:.2f} of their tolerance", name, l, worst));
+            arts::format("{}: {} expansion coefficients at {:.2f} of their tolerance", name, l, worst));
 
     // The scattering matrix, F11, F22, F33, F44, F12, F34 as printed, F34 in Mishchenko's convention
     while (j < all.size() and all[j].find("F11") == std::string::npos) ++j;
@@ -217,14 +217,14 @@ void published_random(const std::string& path, Complex m) {
       }
     }
     require(angles == 19 and worst_f <= 1.0,
-            std::format("{}: scattering matrix at {} angles at {:.2f} of its tolerance", name, angles, worst_f));
-    std::println("{}: {} expansion coefficients at {:.3f} and scattering matrix at {:.3f} of their tolerances",
-                 name,
-                 l,
-                 worst,
-                 worst_f);
+            arts::format("{}: scattering matrix at {} angles at {:.2f} of its tolerance", name, angles, worst_f));
+    arts::println("{}: {} expansion coefficients at {:.3f} and scattering matrix at {:.3f} of their tolerances",
+                  name,
+                  l,
+                  worst,
+                  worst_f);
   }
-  require(blocks == 2, std::format("{}: two size distributions printed", file));
+  require(blocks == 2, arts::format("{}: two size distributions printed", file));
 }
 }  // namespace
 
@@ -238,14 +238,14 @@ int main(int argc, char** argv) try {
     compare("fixed " + r.particle.describe(), fixed_port(r.particle, geometries), r.results());
   }
   for (const auto& r : fortran_random)
-    compare(std::format("random {} distribution={} nk={} ndgs={}",
-                        r.particle.describe(),
-                        r.distribution.kind,
-                        r.distribution.size_quadrature,
-                        r.particle.surface_quadrature),
+    compare(arts::format("random {} distribution={} nk={} ndgs={}",
+                         r.particle.describe(),
+                         r.distribution.kind,
+                         r.distribution.size_quadrature,
+                         r.particle.surface_quadrature),
             random_port(r.particle, r.distribution, static_cast<Index>(r.phase.size())),
             r.result());
-  std::println("{} fixed and {} random recorded cases", fortran_fixed.size(), fortran_random.size());
+  arts::println("{} fixed and {} random recorded cases", fortran_fixed.size(), fortran_random.size());
   require(not fortran_fixed.empty() and not fortran_random.empty(), "recorded cases of both orientations");
 
   published_fixed(published + "/tmatrix_ampld.ref", EquivalentRadius::volume);
@@ -253,8 +253,8 @@ int main(int argc, char** argv) try {
   published_random(published + "/tmatrix_tmd.ref", {1.53, 0.008});
   published_random(published + "/tmatrix_tmq.ref", {1.33, 0.001});
 
-  if (failures) throw std::runtime_error(std::format("{} comparisons failed", failures));
+  if (failures) throw std::runtime_error(arts::format("{} comparisons failed", failures));
 } catch (const std::exception& e) {
-  std::println(stderr, "{}", e.what());
+  arts::println(stderr, "{}", e.what());
   return 1;
 }

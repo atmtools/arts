@@ -2,6 +2,7 @@
 
 #include <arts_conversions.h>
 #include <arts_omp.h>
+#include <format_tags.h>
 #include <mystring.h>
 
 #include <map>
@@ -63,8 +64,8 @@ void print_report() {
     }
   }
 
-  std::println("| Method | Average Time | Min Time | Max Time | # Calls |");
-  std::println("|---|---|---|---|---|");
+  arts::println("| Method | Average Time | Min Time | Max Time | # Calls |");
+  arts::println("|---|---|---|---|---|");
   for (const auto& [name, times] : merged) {
     Numeric total = 0.0;
     Numeric max   = std::numeric_limits<Numeric>::lowest();
@@ -81,7 +82,7 @@ void print_report() {
     const auto [um, m] = Conversion::metric_prefix(min);
     const auto [ux, x] = Conversion::metric_prefix(max);
 
-    std::println("| {} | {:.2f} {}s | {:.2f} {}s | {:.2f} {}s | {} |", name, a, ua, m, um, x, ux, times.size());
+    arts::println("| {} | {:.2f} {}s | {:.2f} {}s | {:.2f} {}s | {} |", name, a, ua, m, um, x, ux, times.size());
   }
 }
 }  // namespace arts

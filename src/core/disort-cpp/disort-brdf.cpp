@@ -103,12 +103,12 @@ surface_reflection combine_fourier_modes(const surface_reflection& first,
   disort_common::check_surface_weight(first_weight);
   disort_common::check_surface_weight(second_weight);
   if (first.directions() != second.directions() or first.streams() != second.streams())
-    throw std::invalid_argument(std::format(
+    throw std::invalid_argument(arts::format(
         "Surface reflections can only be combined on the same directions, got {:B,} and {:B,} (modes, out, in)",
         first.brdf().shape(),
         second.brdf().shape()));
   if (not(first.beam_mu() == second.beam_mu() or (std::isnan(first.beam_mu()) and std::isnan(second.beam_mu()))))
-    throw std::invalid_argument(std::format(
+    throw std::invalid_argument(arts::format(
         "Surface reflections can only be combined for the same beam, got the beam cosines {} and {} (NaN: none)",
         first.beam_mu(),
         second.beam_mu()));

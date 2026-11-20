@@ -18,7 +18,7 @@ std::set<SpeciesIsotopologueInfo> read_split_species(const std::filesystem::path
       xml_read_from_file(entry.path().string(), info);
 
       if (species_set.count(info) > 0) {
-        throw std::runtime_error(std::format("Duplicate species isotopologue info found: {}", info.name()));
+        throw std::runtime_error(arts::format("Duplicate species isotopologue info found: {}", info.name()));
       }
 
       species_set.insert(info);
@@ -38,8 +38,8 @@ std::set<SpeciesIsotopologueInfo> read_split_species(const std::filesystem::path
  * in the build.  Reproduced on three independent Linux builders, see
  * olemke/arts Actions run 38897484091. */
 void write_header(std::ostream& os, const std::set<SpeciesIsotopologueInfo>& data) {
-  std::print(os,
-             R"(#pragma once
+  arts::print(os,
+              R"(#pragma once
 
 #include <isotopologues_class.h>
 #include <species.h>
@@ -55,25 +55,25 @@ inline constexpr std::array Isotopologues{{)");
     while (done <= spec_index) {
       const auto spec = static_cast<SpeciesEnum>(done);
 
-      std::println(os,
-                   R"(
+      arts::println(os,
+                    R"(
   Isotope{{.spec="{}"_spec}},)",
-                   spec);
+                    spec);
       done++;
     }
 
-    if (info.code.empty()) { throw std::runtime_error(std::format("Empty isotopologue code for {}", info.name())); }
+    if (info.code.empty()) { throw std::runtime_error(arts::format("Empty isotopologue code for {}", info.name())); }
 
     if (nonstd::isdigit(info.code.front())) {
-      std::println(os,
-                   R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv, .mass={}, .builtin_ratio={}, .gi={}}},)",
-                   info.species,
-                   info.code,
-                   info.mass,
-                   info.default_ratio,
-                   info.degeneracy);
+      arts::println(os,
+                    R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv, .mass={}, .builtin_ratio={}, .gi={}}},)",
+                    info.species,
+                    info.code,
+                    info.mass,
+                    info.default_ratio,
+                    info.degeneracy);
     } else {
-      std::println(os, R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv}},)", info.species, info.code);
+      arts::println(os, R"(  Isotope{{.spec="{}"_spec, .isotname="{}"sv}},)", info.species, info.code);
     }
   }
 
@@ -81,22 +81,22 @@ inline constexpr std::array Isotopologues{{)");
   while (good_enum(specrest)) {
     const auto spec = static_cast<SpeciesEnum>(done);
 
-    std::println(os,
-                 R"(
+    arts::println(os,
+                  R"(
   Isotope{{.spec="{}"_spec}},)",
-                 spec);
+                  spec);
     done++;
     specrest = static_cast<SpeciesEnum>(done);
   }
 
-  std::println(os, R"(}};
+  arts::println(os, R"(}};
 }} // namespace Species)");
 }
 }  // namespace
 
 int main(int argc, char** argv) try {
   if (argc != 2) {
-    std::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
+    arts::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -104,7 +104,7 @@ int main(int argc, char** argv) try {
   auto                        species = read_split_species(path / "isotopologues/");
 
   if (species.empty()) {
-    std::println(stderr, "No species isotopologue info found in {}/{}", argv[1], "isotopologues/");
+    arts::println(stderr, "No species isotopologue info found in {}/{}", argv[1], "isotopologues/");
     return EXIT_FAILURE;
   }
 
@@ -113,9 +113,9 @@ int main(int argc, char** argv) try {
 
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
-  std::println(stderr, "Error: {}", e.what());
+  arts::println(stderr, "Error: {}", e.what());
   return EXIT_FAILURE;
 } catch (...) {
-  std::println(stderr, "An unknown error occurred.");
+  arts::println(stderr, "An unknown error occurred.");
   return EXIT_FAILURE;
 }

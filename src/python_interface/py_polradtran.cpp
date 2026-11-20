@@ -65,6 +65,6 @@ and :doc:`dev.rt4` for their conventions.
       ":math:`[(1 - R1) B, -R2 B, 0, 0]`, also when RT3's thermal is false.  RT3 does not allow it with a direct "
       "beam.";
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize polradtran\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize polradtran\n{}", e.what()));
 }
 }  // namespace Python

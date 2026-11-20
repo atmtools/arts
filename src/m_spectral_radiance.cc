@@ -746,7 +746,7 @@ void spectral_radClearskyEmissionFrequencyDependentPropagation(const Workspace& 
       spectral_rad_jac[joker, f] = single_rad_jac;
     } catch (std::exception& e) {
 #pragma omp critical
-      if (error.empty()) { error = std::format("Fail at index {}:\n{}", f, e.what()); }
+      if (error.empty()) { error = arts::format("Fail at index {}:\n{}", f, e.what()); }
     }
   }
 

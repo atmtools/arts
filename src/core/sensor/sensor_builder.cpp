@@ -68,7 +68,7 @@ struct BoreGeometry {
 
 //! The name of the sensor: the given name, or one after its number of channels if the given name is empty
 String sensor_name(const Builder& builder, const String& name) {
-  return name.empty() ? std::format("sensor-with-{}-channels", builder.channels.size()) : name;
+  return name.empty() ? arts::format("sensor-with-{}-channels", builder.channels.size()) : name;
 }
 
 Sensor build(const Builder&                   builder,
@@ -116,11 +116,11 @@ but the side of the scan of a bare line of sight is not known.  Build the sensor
       try {
         return antenna_sensor(builder.antenna, channels, responses, placement.pos, placement.los, ell);
       } catch (const std::exception& e) {
-        throw std::runtime_error(std::format(R"(Sensor "{}", placement {}:
+        throw std::runtime_error(arts::format(R"(Sensor "{}", placement {}:
 {})",
-                                             name,
-                                             iplace,
-                                             e.what()));
+                                              name,
+                                              iplace,
+                                              e.what()));
       }
     }());
     if (sensor.elements.size() != npixels * channels.size())

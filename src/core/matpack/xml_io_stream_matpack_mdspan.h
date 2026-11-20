@@ -53,7 +53,7 @@ template <arts_xml_ioable T, Size N> struct xml_io_stream<matpack::data_t<T, N>>
                "type",
                inner::type_name,
                "shape",
-               std::format("{}", x.shape()),
+               arts::format("{}", x.shape()),
                "version",
                codeversion};
     tag.write_to_stream(os);
@@ -65,7 +65,7 @@ template <arts_xml_ioable T, Size N> struct xml_io_stream<matpack::data_t<T, N>>
         for (auto& v : x | by_elem) inner::write(os, v, pbofs);
     } else {
       if constexpr (xml_io_parseable<T>)
-        std::println(os, "{:IO}", x);
+        arts::println(os, "{:IO}", x);
       else
         for (auto& v : x | by_elem) inner::write(os, v, pbofs);
     }
@@ -148,8 +148,15 @@ template <arts_xml_ioable T, Size... N> struct xml_io_stream<matpack::cdata_t<T,
                     const matpack::cdata_t<T, N...>& x,
                     bofstream*                       pbofs = nullptr,
                     std::string_view                 name  = ""sv) try {
-    XMLTag tag{
-        type_name, "name", name, "rank", sizeof...(N), "type", inner::type_name, "shape", std::format("{}", x.shape())};
+    XMLTag tag{type_name,
+               "name",
+               name,
+               "rank",
+               sizeof...(N),
+               "type",
+               inner::type_name,
+               "shape",
+               arts::format("{}", x.shape())};
     tag.write_to_stream(os);
 
     if (pbofs) {
@@ -159,7 +166,7 @@ template <arts_xml_ioable T, Size... N> struct xml_io_stream<matpack::cdata_t<T,
         for (auto& v : x.data) inner::write(os, v, pbofs);
     } else {
       if constexpr (xml_io_parseable<T>)
-        std::println(os, R"({:IO})", x);
+        arts::println(os, "{:IO}", x);
       else
         for (auto& v : x.data) inner::write(os, v, pbofs);
     }
@@ -174,7 +181,7 @@ template <arts_xml_ioable T, Size... N> struct xml_io_stream<matpack::cdata_t<T,
     tag.check_name(type_name);
     tag.check_attribute("type", inner::type_name);
     tag.check_attribute("rank", sizeof...(N));
-    tag.check_attribute("shape", std::format("{}", x.shape()));
+    tag.check_attribute("shape", arts::format("{}", x.shape()));
 
     if (pbifs) {
       if constexpr (xml_io_binary<T>)

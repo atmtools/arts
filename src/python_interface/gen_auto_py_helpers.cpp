@@ -23,9 +23,9 @@ String rawify(const String& x) {
   std::string out{};
 
   for (std::string line; std::getline(os, line);) {
-    out += std::format(R"(R"-x-({})-x-" "\n"
+    out += arts::format(R"(R"-x-({})-x-" "\n"
 )",
-                       line);
+                        line);
   }
 
   return out;
@@ -43,18 +43,18 @@ String as_pyarts(const String& x) try {
   };
 
   if (found_in_options(x) or found_in(wsgs) or found_in(group_friends))
-    return std::format(":class:`~pyarts3.arts.{}`", x);
-  if (found_in(wsms)) return std::format(":func:`~pyarts3.workspace.Workspace.{}`", x);
-  if (found_in(wsvs)) return std::format(":attr:`~pyarts3.workspace.Workspace.{}`", x);
+    return arts::format(":class:`~pyarts3.arts.{}`", x);
+  if (found_in(wsms)) return arts::format(":func:`~pyarts3.workspace.Workspace.{}`", x);
+  if (found_in(wsvs)) return arts::format(":attr:`~pyarts3.workspace.Workspace.{}`", x);
 
-  throw std::invalid_argument(std::format(R"("{0}"  is not a valid group, method, or workspace variable.
+  throw std::invalid_argument(arts::format(R"("{0}"  is not a valid group, method, or workspace variable.
 
 If it is a GIN or GOUT, consider representing it as ``{0}`` instead?
 If it is an old or deleted method or variable or group, please remove it from the documentation! 
 )",
-                                          x));
+                                           x));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Could not convert \"{}\" to pyarts:\n{}", x, std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Could not convert \"{}\" to pyarts:\n{}", x, std::string_view(e.what())));
 }
 }  // namespace
 
@@ -116,7 +116,7 @@ String unwrap_stars(const String& x) try {
 
   return out;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Could not unwrap stars: {}", std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Could not unwrap stars: {}", std::string_view(e.what())));
 }
 
 String get_agenda_io(const String& x) try {
@@ -127,42 +127,42 @@ String get_agenda_io(const String& x) try {
   auto& ag = wsas.at(x);
 
   if (not ag.output.empty()) {
-    out += std::format(R"(
+    out += arts::format(R"(
 .. rubric:: Agenda output
 
 .. hlist::
     :columns: {}
 
 )",
-                       1 + (ag.output.size() > 3));
+                        1 + (ag.output.size() > 3));
 
     for (auto& varname : ag.output) {
-      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+      out += arts::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
 )",
-                         varname);
+                          varname);
     }
   }
 
   if (not ag.input.empty()) {
-    out += std::format(R"(
+    out += arts::format(R"(
 .. rubric:: Agenda input
 
 .. hlist::
     :columns: {}
 
 )",
-                       1 + (ag.input.size() > 3));
+                        1 + (ag.input.size() > 3));
 
     for (auto& varname : ag.input) {
-      out += std::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
+      out += arts::format(R"(    * :attr:`~pyarts3.workspace.Workspace.{}`
 )",
-                         varname);
+                          varname);
     }
   }
 
   return out;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Could not get agenda IO for \"{}\":\n{}", x, std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Could not get agenda IO for \"{}\":\n{}", x, std::string_view(e.what())));
 }
 
 namespace {
@@ -184,13 +184,13 @@ String short_doc(const String& x) try {
   if (found_in(wsms)) return until_first_newline(wsms.at(x).desc);
   if (found_in(wsvs)) return until_first_newline(wsvs.at(x).desc);
 
-  throw std::invalid_argument(std::format(R"("{0}" is not a valid group, method, or workspace variable.
+  throw std::invalid_argument(arts::format(R"("{0}" is not a valid group, method, or workspace variable.
 If it If it is a GIN or GOUT, consider representing it as ``{0}`` instead?",
 If it is an old or deleted method or variable or group, please remove it from the documentation!
 )",
-                                          x));
+                                           x));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Could not get short doc for \"{}\":\n{}", x, std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Could not get short doc for \"{}\":\n{}", x, std::string_view(e.what())));
 }
 
 namespace {
@@ -203,7 +203,7 @@ String compose_generic_groups(const String& grps) {
   for (auto group : split(grps, ",")) {
     trim(group);
     if (not out.empty()) out += " | ";
-    out += std::format("~pyarts3.arts.{}", group);
+    out += arts::format("~pyarts3.arts.{}", group);
   }
   return out;
 }
@@ -218,7 +218,7 @@ String to_defval_str(const Wsv& wsv, const std::string_view x) try {
   while (not out.empty() and out.back() == ' ') out.pop_back();
 
   if (group == "String" and (out.empty() or (out.front() not_eq '"' and out.back() not_eq '"'))) {
-    return std::format("{1}\"{0}\"{1}", out, x);
+    return arts::format("{1}\"{0}\"{1}", out, x);
   }
 
   if (group == "Agenda") { return unwrap_stars(wsv.get<Agenda>().sphinx_list("#. "sv)); }
@@ -226,18 +226,18 @@ String to_defval_str(const Wsv& wsv, const std::string_view x) try {
   if (out.size() == 0) {
     if (group.starts_with("Array") or group == "Vector" or group == "Matrix" or group == "Tensor3" or
         group == "Tensor4" or group == "Tensor5" or group == "Tensor6" or group == "Tensor7")
-      return std::format("{0}[]{0}", x);
+      return arts::format("{0}[]{0}", x);
 
-    if (group == "Numeric" or group == "Index") return std::format("{0}0{0}", x);
+    if (group == "Numeric" or group == "Index") return arts::format("{0}0{0}", x);
 
-    return std::format("{1}pyarts3.arts.{0}(){1}", group, x);
+    return arts::format("{1}pyarts3.arts.{0}(){1}", group, x);
   }
 
-  return std::format("{1}{0}{1}", out, x);
+  return arts::format("{1}{0}{1}", out, x);
 } catch (std::bad_variant_access&) {
   throw std::runtime_error("Cannot convert to defval string");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in to_defval_str: {}\n", std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Error in to_defval_str: {}\n", std::string_view(e.what())));
 }
 
 String method_docs(const String& name) try {
@@ -270,7 +270,7 @@ String method_docs(const String& name) try {
         "    Group-invariant checks on read-only inputs still apply.\n";
   }
 
-  out += std::format("\nAuthor{}: {:,}", method.author.size() > 1 ? "s"sv : ""sv, method.author);
+  out += arts::format("\nAuthor{}: {:,}", method.author.size() > 1 ? "s"sv : ""sv, method.author);
   fix();
 
   std::vector<String> metamethods =
@@ -278,7 +278,7 @@ String method_docs(const String& name) try {
       stdv::transform([](auto&& m) -> String { return m.name; }) | stdr::to<std::vector<String>>();
   stdr::sort(metamethods);
   out += metamethods.empty() ? ""s
-                             : std::format(
+                             : arts::format(
                                    R"(
 .. rubric:: Used by wrapper method{0}
 
@@ -289,7 +289,7 @@ String method_docs(const String& name) try {
                                    metamethods.size() > 1 ? "s"sv : ""sv,
                                    hlist_num_cols(metamethods),
                                    metamethods | stdv::transform([](const auto& m) {
-                                     return std::format("\n    * :func:`~pyarts3.workspace.Workspace.{}`", m);
+                                     return arts::format("\n    * :func:`~pyarts3.workspace.Workspace.{}`", m);
                                    }) | stdr::to<std::vector<String>>());
   fix();
 
@@ -298,26 +298,26 @@ String method_docs(const String& name) try {
     const String io       = is_input(varname) ? "INOUT" : "OUT";
     const auto&  wsv      = wsvs.at(varname);
     const auto&  grpname  = wsv.type;
-    out                  += std::format(R"(
+    out                  += arts::format(R"(
 {0} : ~pyarts3.arts.{1}, optional
     {2} Defaults to :attr:`self.{0} <pyarts3.workspace.Workspace.{0}>`. **[{3}]**)",
-                                        varname,
-                                        grpname,
-                                        unwrap_stars(short_doc(varname)),
-                                        io);
+                                         varname,
+                                         grpname,
+                                         unwrap_stars(short_doc(varname)),
+                                         io);
   }
 
   for (std::size_t i = 0; i < method.gout.size(); i++) {
     const auto&  varname  = method.gout[i];
     const String io       = is_ginput(varname) ? "INOUT" : "OUT";
     const auto&  grpname  = compose_generic_groups(method.gout_type[i]);
-    out                  += std::format(R"(
+    out                  += arts::format(R"(
 {0} : {1}
     {2}  Defaults to create and/or use ``self.{0}``. **[{3}]**)",
-                                        varname,
-                                        grpname,
-                                        unwrap_stars(until_first_newline(method.gout_desc[i])),
-                                        io);
+                                         varname,
+                                         grpname,
+                                         unwrap_stars(until_first_newline(method.gout_desc[i])),
+                                         io);
   }
 
   for (auto&& varname : method.in) {
@@ -325,12 +325,12 @@ String method_docs(const String& name) try {
 
     const auto& wsv      = wsvs.at(varname);
     const auto& grpname  = wsv.type;
-    out                 += std::format(R"(
+    out                 += arts::format(R"(
 {0} : ~pyarts3.arts.{1}, optional
     {2} Defaults to :attr:`self.{0} <pyarts3.workspace.Workspace.{0}>`. **[IN]**)",
-                                       varname,
-                                       grpname,
-                                       unwrap_stars(short_doc(varname)));
+                                        varname,
+                                        grpname,
+                                        unwrap_stars(short_doc(varname)));
   }
 
   for (std::size_t i = 0; i < method.gin.size(); i++) {
@@ -340,32 +340,32 @@ String method_docs(const String& name) try {
     const auto&  defval     = method.gin_value[i];
     const bool   has_defval = bool(defval);
     const String opt{has_defval ? ", optional" : ""};
-    const String optval{has_defval ? std::format(" Defaults to {}", to_defval_str(*defval, "``"sv)) : ""};
-    out += std::format(R"(
+    const String optval{has_defval ? arts::format(" Defaults to {}", to_defval_str(*defval, "``"sv)) : ""};
+    out += arts::format(R"(
 {0} : {1}{2}
     {3}{4} **[IN]**)",
-                       varname,
-                       grpname,
-                       opt,
-                       unwrap_stars(until_first_newline(method.gin_desc[i])),
-                       optval);
+                        varname,
+                        grpname,
+                        opt,
+                        unwrap_stars(until_first_newline(method.gin_desc[i])),
+                        optval);
   }
 
   if (method.return_type != "void") {
-    out += std::format(
+    out += arts::format(
         R"(
 Returns
 -------
 opt : {0}
     {1})",
-        std::format("~pyarts3.arts.{}{}", method.return_type == "Workspace" ? "Cxx"sv : ""sv, method.return_type),
+        arts::format("~pyarts3.arts.{}{}", method.return_type == "Workspace" ? "Cxx"sv : ""sv, method.return_type),
         unwrap_stars(until_first_newline(method.return_desc)));
   }
 
   fix();
 
   if (auto ptr = wsadoc.find(name); ptr != wsadoc.end()) {
-    out += std::format(R"(
+    out += arts::format(R"(
 
 .. rubric:: Valid options
 
@@ -373,39 +373,39 @@ These are the valid options for the ``{}`` method.
 Each ``option`` is described first.  The listed method calls then give the order of its agenda calls.
 
 )",
-                       name);
+                        name);
 
     for (auto& [opt, doc] : ptr->second) {
-      out += std::format(R"(
+      out += arts::format(R"(
 
 .. rubric:: ``{}(option="{}")``
 
 {}
 
 )",
-                         name,
-                         opt,
-                         unwrap_stars(doc));
+                          name,
+                          opt,
+                          unwrap_stars(doc));
     }
     fix();
   }
 
   if (wsms_extra.find(name) != wsms_extra.end()) {
-    out += std::format(R"(
+    out += arts::format(R"(
 
 .. rubric:: Extra
 
 {}
 
 )",
-                       unwrap_stars(wsms_extra.at(name)));
+                        unwrap_stars(wsms_extra.at(name)));
   }
 
   return rawify(out);
 } catch (std::out_of_range& e) {
-  throw std::runtime_error(std::format("Cannot find: \"{}\"", name));
+  throw std::runtime_error(arts::format("Cannot find: \"{}\"", name));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in method_docs({}): {}", name, std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Error in method_docs({}): {}", name, std::string_view(e.what())));
 }
 
 String variable_used_by(const String& name) {
@@ -478,10 +478,10 @@ String variable_used_by(const String& name) {
   const auto to_wsain = stdv::filter([&usedocs](const String& x) { return stdr::none_of(usedocs.ag_out, Cmp::eq(x)); });
 
   const auto to_attr = stdv::transform(
-      [](const String& x) -> String { return std::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x); });
+      [](const String& x) -> String { return arts::format("    * :attr:`~pyarts3.workspace.Workspace.{}`", x); });
 
   const auto to_func = stdv::transform(
-      [](const String& x) -> String { return std::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x); });
+      [](const String& x) -> String { return arts::format("    * :func:`~pyarts3.workspace.Workspace.{}`", x); });
 
   const auto wsmout   = usedocs.wsm_out | to_wsmout | to_vstring;
   const auto wsminout = usedocs.wsm_out | to_wsminout | to_vstring;
@@ -492,7 +492,7 @@ String variable_used_by(const String& name) {
 
   const auto to_str = [to_vstring](auto& arr, auto& f, const std::string_view& m) -> std::string {
     if (arr.empty()) return ""s;
-    return std::format(R"(
+    return arts::format(R"(
 
 .. rubric:: {3}{2}
 
@@ -501,13 +501,13 @@ String variable_used_by(const String& name) {
 
 {1:n}
 )",
-                       hlist_num_cols(arr),
-                       arr | f | to_vstring,
-                       arr.size() > 1 ? "s"sv : ""sv,
-                       m);
+                        hlist_num_cols(arr),
+                        arr | f | to_vstring,
+                        arr.size() > 1 ? "s"sv : ""sv,
+                        m);
   };
 
-  return std::format(
+  return arts::format(
       R"({}{}{}{}{}{}{}
 
 )",

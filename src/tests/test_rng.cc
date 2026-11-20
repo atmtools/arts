@@ -5,7 +5,7 @@
 
 int main() {
   auto x = random_numbers<1, std::uniform_int_distribution>(10, 0, 20);
-  std::cout << std::format("{}", x) << '\n';
+  arts::println("{}", x);
   Matrix y = random_numbers<2>({2, 3}, 0.0, 1.0);
-  std::cout << std::format("{}", y) << '\n';
+  arts::println("{}", y);
 }

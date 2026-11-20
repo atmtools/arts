@@ -112,7 +112,7 @@ void test_9a() try {
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 
   compare("test_9a", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-9a:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-9a:\n{}", e.what())); }
 
 void test_9b() try {
   const AscendingGrid tau_arr{1., 3., 6., 10., 15., 21.};
@@ -231,7 +231,7 @@ void test_9b() try {
   //  flat_print(flux_down_diffuse, flux_down_diffuse_);
 
   compare("test_9b", dis, taus, phis, u, u0, flux_down_diffuse, flux_down_direct, flux_up, false);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-9b:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-9b:\n{}", e.what())); }
 }  // namespace
 
 int main() try {

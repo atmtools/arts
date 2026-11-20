@@ -17,7 +17,7 @@ void xml_io_stream<Numeric>::write(std::ostream& os, const Numeric& n, bofstream
   if (pbofs)
     xml_io_stream<Numeric>::put({&n, 1}, pbofs);
   else
-    std::println(os, "{}", n);
+    arts::println(os, "{}", n);
 
   tag.write_to_end_stream(os);
 }
@@ -59,7 +59,7 @@ void xml_io_stream<std::complex<Numeric>>::write(std::ostream&                os
   if (pbofs)
     xml_io_stream<std::complex<Numeric>>::put({&n, 1}, pbofs);
   else
-    std::println(os, "{} {}", n.real(), n.imag());
+    arts::println(os, "{} {}", n.real(), n.imag());
 
   tag.write_to_end_stream(os);
 }
@@ -100,7 +100,7 @@ void xml_io_stream<Index>::write(std::ostream& os, const Index& n, bofstream* pb
   if (pbofs)
     xml_io_stream<Index>::put({&n, 1}, pbofs);
   else
-    std::println(os, "{}", n);
+    arts::println(os, "{}", n);
 
   tag.write_to_end_stream(os);
 }
@@ -148,7 +148,7 @@ void xml_io_stream<Size>::write(std::ostream& os, const Size& n, bofstream* pbof
   if (pbofs)
     xml_io_stream<Size>::put({&n, 1}, pbofs);
   else
-    std::println(os, "{}", n);
+    arts::println(os, "{}", n);
 
   tag.write_to_end_stream(os);
 }
@@ -191,7 +191,7 @@ void xml_io_stream<String>::write(std::ostream& os_xml, const String& str, bofst
 
   open_tag.write_to_stream(os_xml);
 
-  std::print(os_xml, R"("{}")", str);
+  arts::print(os_xml, R"("{}")", str);
 
   close_tag.name = "/String";
   close_tag.write_to_stream(os_xml);
@@ -258,7 +258,7 @@ void xml_io_stream<bool>::read(std::istream& is, bool& n, bifstream*) {
 void xml_io_stream<bool>::write(std::ostream& os, const bool& n, bofstream*, std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
-  std::println(os, "{}", Index{n});
+  arts::println(os, "{}", Index{n});
   tag.write_to_end_stream(os);
 }
 

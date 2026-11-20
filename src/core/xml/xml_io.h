@@ -62,7 +62,7 @@ template <arts_xml_ioable T> String xml_read_from_file(const String& filename, T
   xml_read_from_file_base(xml_file, type);
   return xml_file;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Cannot read file: \"{}\":\n{}", filename, e.what()));
+  throw std::runtime_error(arts::format("Cannot read file: \"{}\":\n{}", filename, e.what()));
 }
 
 //! Extends data from XML file
@@ -83,7 +83,7 @@ template <arts_xml_extendable T> String xml_extend_from_file(const String& filen
   return xml_file;
 } catch (const std::exception& e) {
   throw std::runtime_error(
-      std::format("Cannot extend file: \"{}\" containing {}:\n{}", filename, xml_io_stream_name_v<T>, e.what()));
+      arts::format("Cannot extend file: \"{}\" containing {}:\n{}", filename, xml_io_stream_name_v<T>, e.what()));
 }
 
 //! Appends data from XML file
@@ -104,7 +104,7 @@ template <arts_xml_appendable T> String xml_append_from_file(const String& filen
   return xml_file;
 } catch (const std::exception& e) {
   throw std::runtime_error(
-      std::format("Cannot append file: \"{}\" containing {}:\n{}", filename, xml_io_stream_name_v<T>, e.what()));
+      arts::format("Cannot append file: \"{}\" containing {}:\n{}", filename, xml_io_stream_name_v<T>, e.what()));
 }
 
 //! Write data to XML file

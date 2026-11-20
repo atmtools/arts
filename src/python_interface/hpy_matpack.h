@@ -290,7 +290,7 @@ void gridded_data_interface(py::class_<matpack::gridded_data_t<T, Grids...>>& c)
           auto gridname = gd.attr("gridnames").attr("__getitem__")(i);
           auto grid     = gd.attr("grids").attr("__getitem__")(i);
 
-          const auto n = gridname ? gridname : py::str(std::format("dim{}", i).c_str());
+          const auto n = gridname ? gridname : py::str(arts::format("dim{}", i).c_str());
           out["dims"].attr("append")(n);
           out["coords"][n]         = py::dict{};
           out["coords"][n]["data"] = grid;

@@ -422,21 +422,21 @@ of the tau-range covered by the ray path.
   // Add information about all automatically generated code
   for (auto& [name, record] : wsa_data) {
     if (record.enum_desc.size() != record.enum_options.size())
-      throw std::runtime_error(std::format("Agenda {} has {} enum_options but {} enum_desc, it needs one per option",
-                                           name,
-                                           record.enum_options.size(),
-                                           record.enum_desc.size()));
+      throw std::runtime_error(arts::format("Agenda {} has {} enum_options but {} enum_desc, it needs one per option",
+                                            name,
+                                            record.enum_options.size(),
+                                            record.enum_desc.size()));
 
-    record.desc += std::format(R"(
+    record.desc += arts::format(R"(
 .. rubric:: Execution and customization
 
 )");
 
     if (not record.enum_options.empty()) {
-      record.desc += std::format("See *{}Set* for builtin options that selects execution options.\n", name);
+      record.desc += arts::format("See *{}Set* for builtin options that selects execution options.\n", name);
     }
 
-    record.desc += std::format(R"(
+    record.desc += arts::format(R"(
 You can execute *{0}* directly from the workspace by calling *{0}Execute*.
 
 As all agendas in ARTS, it is also customizable via its operator helper class: *{1}*.
@@ -444,8 +444,8 @@ See it, *{0}SetOperator*, and *{0}ExecuteOperator* for more details.
 
 Also see the :func:`~pyarts3.workspace.arts_agenda` decorator for how to fully define an agenda in python.
 )",
-                               name,
-                               record.named_operator.empty() ? name + "Operator" : record.named_operator);
+                                name,
+                                record.named_operator.empty() ? name + "Operator" : record.named_operator);
 
     // The output size constraints are documented where the agenda is documented.
     // They cannot be added here because reading them needs the workspace variables,

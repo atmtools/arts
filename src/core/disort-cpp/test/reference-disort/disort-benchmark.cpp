@@ -123,8 +123,7 @@ void print_result(const std::string_view name, std::vector<double> elapsed) {
   stdr::sort(elapsed);
   const double median = elapsed[elapsed.size() / 2];
   const double mean   = std::reduce(elapsed.begin(), elapsed.end()) / static_cast<double>(elapsed.size());
-  std::cout << std::format(
-      "{:<27} median {:9.3f} ms, mean {:9.3f} ms, minimum {:9.3f} ms\n", name, median, mean, elapsed.front());
+  arts::println("{:<27} median {:9.3f} ms, mean {:9.3f} ms, minimum {:9.3f} ms", name, median, mean, elapsed.front());
 }
 }  // namespace
 
@@ -146,7 +145,7 @@ int main(const int argc, char** argv) try {
   stdr::sort(cpp_sorted);
   stdr::sort(c_sorted);
   const double ratio = cpp_sorted[cpp_sorted.size() / 2] / c_sorted[c_sorted.size() / 2];
-  std::cout << std::format("CPP-DISORT / cDISORT median ratio: {:.3f} (checksum {:.9g})\n", ratio, checksum);
+  arts::println("CPP-DISORT / cDISORT median ratio: {:.3f} (checksum {:.9g})", ratio, checksum);
   return 0;
 } catch (const std::exception& error) {
   std::cerr << error.what() << '\n';

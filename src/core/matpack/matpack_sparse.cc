@@ -407,7 +407,10 @@ void Sparse::resize(Index r, Index c) {
 
   \return Output stream.
 */
-std::ostream& operator<<(std::ostream& os, const Sparse& M) { return os << std::format("{}", M); }
+std::ostream& operator<<(std::ostream& os, const Sparse& M) {
+  arts::print(os, "{}", M);
+  return os;
+}
 
 // General matrix functions
 
@@ -742,10 +745,10 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml, const Sparse& sparse, bo
   data_tag.add_attribute("nelem", sparse.nnz());
 
   sparse_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   row_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   ArrayOfIndex rowind(sparse.nnz()), colind(sparse.nnz());
   Vector       data(sparse.nnz());
@@ -758,15 +761,15 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml, const Sparse& sparse, bo
       //FIXME: It should be the longer lines
       *pbofs << rowind[i];
     else
-      std::println(os_xml, "{}", rowind[i]);
+      arts::println(os_xml, "{}", rowind[i]);
   }
 
   close_tag.name = "/RowIndex";
   close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   col_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   // Write column indices.
 
@@ -775,15 +778,15 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml, const Sparse& sparse, bo
       //FIXME: It should be the longer lines
       *pbofs << colind[i];
     else
-      std::println(os_xml, "{}", colind[i]);
+      arts::println(os_xml, "{}", colind[i]);
   }
 
   close_tag.name = "/ColIndex";
   close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   data_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
   xml_set_stream_precision(os_xml);
 
   // Write data.
@@ -792,17 +795,17 @@ void xml_io_stream<Sparse>::write(std::ostream& os_xml, const Sparse& sparse, bo
     if (pbofs)
       *pbofs << data[i];
     else
-      std::print(os_xml, "{} ", data[i]);
+      arts::print(os_xml, "{} ", data[i]);
   }
-  std::println(os_xml);
+  arts::println(os_xml);
   close_tag.name = "/SparseData";
   close_tag.write_to_stream(os_xml);
-  std::println(os_xml);
+  arts::println(os_xml);
 
   close_tag.name = type_name;
   close_tag.write_to_end_stream(os_xml);
 
-  std::println(os_xml);
+  arts::println(os_xml);
 }
 
 void xml_io_stream<Sparse>::read(std::istream& is_xml, Sparse& sparse, bifstream* pbifs) {

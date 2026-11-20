@@ -41,7 +41,7 @@ int failures = 0;
 
 void require(bool ok, const std::string& what) {
   if (not ok) {
-    std::println("FAIL {}", what);
+    arts::println("FAIL {}", what);
     ++failures;
   }
 }
@@ -100,8 +100,8 @@ void sphere(Numeric r, Complex m, Numeric tilt) {
                              std::abs(K.W()) / K.A(),
                              std::abs(a.Q()) / K.A()});
   }
-  std::println("sphere r={} m={} tilt {}: phase {:.1e}, cross sections {:.1e}", r, m.real(), tilt, phase, cross);
-  require(phase <= accuracy and cross <= accuracy, std::format("sphere r={} tilt {} against Mie", r, tilt));
+  arts::println("sphere r={} m={} tilt {}: phase {:.1e}, cross sections {:.1e}", r, m.real(), tilt, phase, cross);
+  require(phase <= accuracy and cross <= accuracy, arts::format("sphere r={} tilt {} against Mie", r, tilt));
 }
 
 //! 2. A uniform tilt distribution against random orientation
@@ -147,8 +147,8 @@ void uniform(Numeric r, const tmatrix::Shape& shape) {
                              std::abs(K.W()) / K.A(),
                              std::abs(a.Q()) / K.A()});
   }
-  const auto name = std::format("uniform tilt {} {} {}", shape.kind(), shape.degree(), shape.parameter());
-  std::println("{}: phase {:.1e}, cross sections {:.1e}", name, phase, cross);
+  const auto name = arts::format("uniform tilt {} {} {}", shape.kind(), shape.degree(), shape.parameter());
+  arts::println("{}: phase {:.1e}, cross sections {:.1e}", name, phase, cross);
   require(phase <= accuracy and cross <= accuracy, name);
 }
 
@@ -253,7 +253,7 @@ void exact(Numeric tilt, Numeric r, Numeric accuracy) {
   // for the phase and extinction, M n_theta n_phi phase matrices for the absorption
   const Numeric average  = 16 * epsilon * std::sqrt(static_cast<Numeric>(M));
   const Numeric integral = 16 * epsilon * std::sqrt(static_cast<Numeric>(M * n_theta * n_phi));
-  std::println(
+  arts::println(
       "exact tilt {} nmax {}: phase {:.1e}, extinction {:.1e} (bound {:.1e}), absorption {:.1e} (bound {:.1e}), "
       "transmission {:.1e}",
       tilt,
@@ -265,7 +265,7 @@ void exact(Numeric tilt, Numeric r, Numeric accuracy) {
       integral,
       transmission);
   require(worst_Z <= average and worst_K <= average and worst_a <= integral and transmission <= 16 * epsilon,
-          std::format("exact quadratures at tilt {}", tilt));
+          arts::format("exact quadratures at tilt {}", tilt));
 }
 
 //! 5. Mirror symmetry of the azimuthal average, and no absorption without loss
@@ -284,7 +284,7 @@ void symmetry() {
     absorption = std::max(absorption, std::abs(aro.absorption[i].I()) / aro.extinction[i].A());
   }
   mirror /= largest(aro.phase);
-  std::println("mirror symmetry {:.1e}, lossless absorption {:.1e}", mirror, absorption);
+  arts::println("mirror symmetry {:.1e}, lossless absorption {:.1e}", mirror, absorption);
   require(mirror <= 64 * epsilon, "mirror symmetry of the azimuthal average");
   require(absorption <= accuracy, "a lossless particle absorbs");
 }
@@ -303,8 +303,8 @@ int main() try {
   for (Numeric tilt : {0.0, 90.0}) exact(tilt, 1.8, 1e-3);
   exact(40.0, 3.0, 1e-2);
   symmetry();
-  if (failures) throw std::runtime_error(std::format("{} comparisons failed", failures));
+  if (failures) throw std::runtime_error(arts::format("{} comparisons failed", failures));
 } catch (const std::exception& e) {
-  std::println(stderr, "{}", e.what());
+  arts::println(stderr, "{}", e.what());
   return 1;
 }

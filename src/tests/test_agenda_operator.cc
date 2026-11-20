@@ -38,6 +38,6 @@ int main() try {
   }
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
-  std::println(stderr, "Agenda operator regression: {}", error.what());
+  arts::println(stderr, "Agenda operator regression: {}", error.what());
   return EXIT_FAILURE;
 }

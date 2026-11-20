@@ -22,7 +22,7 @@ void CallbackOperator::operator()(Workspace& ws_in) const try {
   // so its value is assigned to the output of the calling workspace
   for (auto& n : outputs) ws_in.share(n).assign(ws.share(n));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in callback operator:\n{}\n{}", *this, e.what()));
+  throw std::runtime_error(arts::format("Error in callback operator:\n{}\n{}", *this, e.what()));
 }
 
 void xml_io_stream<CallbackOperator>::write(std::ostream&           os,

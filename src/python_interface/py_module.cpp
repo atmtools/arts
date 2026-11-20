@@ -155,6 +155,6 @@ NB_MODULE(arts, m) try {
   py::set_leak_warnings(false);
   py::set_implicit_cast_warnings(false);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize module\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize module\n{}", e.what()));
 }
 }  // namespace Python

@@ -108,13 +108,13 @@ std::pair<CoupledType, radiances> coupled_size(AscendingGrid         freq_grid,
     const bool correct = freq_grid.back() <= freq_grid_second.front();
 
     if (not correct) {
-      throw std::runtime_error(std::format(R"(Incorrectly overlapping frequency grids.
+      throw std::runtime_error(arts::format(R"(Incorrectly overlapping frequency grids.
       
 original:  {:Bs,}
 extension: {:Bs,}
 )",
-                                           freq_grid,
-                                           freq_grid_second));
+                                            freq_grid,
+                                            freq_grid_second));
     }
 
     const bool coupled = freq_grid.back() == freq_grid_second.front();
@@ -125,13 +125,13 @@ extension: {:Bs,}
     const bool correct = alt_grid.back() >= alt_grid_second.front();
 
     if (not correct) {
-      throw std::runtime_error(std::format(R"(Incorrectly overlapping altitude grids.
+      throw std::runtime_error(arts::format(R"(Incorrectly overlapping altitude grids.
 
 original:  {:Bs,}
 extension: {:Bs,}
 )",
-                                           alt_grid,
-                                           alt_grid_second));
+                                            alt_grid,
+                                            alt_grid_second));
     }
 
     if (alt_grid.back() != alt_grid_second.front()) {
@@ -180,13 +180,13 @@ std::pair<CoupledType, fluxes> coupled_size(AscendingGrid         freq_grid,
     const bool correct = freq_grid.back() <= freq_grid_second.front();
 
     if (not correct) {
-      throw std::runtime_error(std::format(R"(Incorrectly overlapping frequency grids.
+      throw std::runtime_error(arts::format(R"(Incorrectly overlapping frequency grids.
       
 original:  {:Bs,}
 extension: {:Bs,}
 )",
-                                           freq_grid,
-                                           freq_grid_second));
+                                            freq_grid,
+                                            freq_grid_second));
     }
 
     const bool coupled = freq_grid.back() == freq_grid_second.front();
@@ -197,13 +197,13 @@ extension: {:Bs,}
     const bool correct = alt_grid.back() >= alt_grid_second.front();
 
     if (not correct) {
-      throw std::runtime_error(std::format(R"(Incorrectly overlapping altitude grids.
+      throw std::runtime_error(arts::format(R"(Incorrectly overlapping altitude grids.
       
 original:  {:Bs,}
 extension: {:Bs,}
 )",
-                                           alt_grid,
-                                           alt_grid_second));
+                                            alt_grid,
+                                            alt_grid_second));
     }
 
     if (alt_grid.back() != alt_grid_second.front()) {
@@ -632,7 +632,7 @@ void main_data::solve_for_coefs() {
         }
       }
 
-      if (LHSB.solve(RHS)) throw std::runtime_error(std::format("Disort failed to converge for Fourier mode {}.", m));
+      if (LHSB.solve(RHS)) throw std::runtime_error(arts::format("Disort failed to converge for Fourier mode {}.", m));
       for (Index l = 0; l < NLayers; ++l) {
         for (Index eigen = 0; eigen < NQuad; ++eigen) {
           const Numeric coefficient = RHS[l * NQuad + eigen];
@@ -685,7 +685,9 @@ void main_data::solve_for_coefs() {
       }
     }
 
-    if (LHSB.solve(RHS)) { throw std::runtime_error(std::format("Disort failed to converge for Fourier mode {}.", m)); }
+    if (LHSB.solve(RHS)) {
+      throw std::runtime_error(arts::format("Disort failed to converge for Fourier mode {}.", m));
+    }
 
     for (Index l = 0; l < NLayers; ++l) {
       for (Index eigen = 0; eigen < NQuad; ++eigen) {

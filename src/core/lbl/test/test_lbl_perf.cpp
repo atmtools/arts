@@ -241,7 +241,7 @@ Numeric lbl_data_line_hitran_s(const std::vector<lbl::line>& lines) {
 
 Numeric lbl_voigt_lte_calculate(
     PropmatVector& pm, PropmatMatrix& dpm, const AbsorptionBand& bnd, const Vector& fs, const AtmPoint& atm) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_calculate; threads: {}", arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("lbl_voigt_lte_calculate; threads: {}", arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte;
 
@@ -267,7 +267,7 @@ Numeric lbl_voigt_lte_calculate(
 
 Numeric lbl_voigt_lte_mirror_calculate(
     PropmatVector& pm, PropmatMatrix& dpm, const AbsorptionBand& bnd, const Vector& fs, const AtmPoint& atm) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_mirror_calculate; threads: {}", arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("lbl_voigt_lte_mirror_calculate; threads: {}", arts_omp_get_max_threads()));
 
   using namespace lbl::voigt::lte_mirror;
 
@@ -295,7 +295,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manylines(Matrix&                          
                                                const std::vector<lbl::flat_band_data>& flat,
                                                const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}", arts_omp_get_max_threads()));
+      arts::format("lbl_voigt_lte_matrix_prepare_manylines; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
@@ -307,7 +307,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manylines_jac(Matrix&                      
                                                    const AtmPoint&                         atm,
                                                    const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manylines_jac; threads: {}", arts_omp_get_max_threads()));
+      arts::format("lbl_voigt_lte_matrix_prepare_manylines_jac; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
@@ -318,7 +318,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands(Matrix&                          
                                                const std::vector<lbl::flat_band_data>& flat,
                                                const AtmPoint&                         atm) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}", arts_omp_get_max_threads()));
+      arts::format("lbl_voigt_lte_matrix_prepare_manybands; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, ZeemanPolarization::no);
 
@@ -330,7 +330,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(Matrix&                      
                                                    const AtmPoint&                         atm,
                                                    const JacobianTargets&                  jac_targets) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_prepare_manybands_jac; threads: {}", arts_omp_get_max_threads()));
+      arts::format("lbl_voigt_lte_matrix_prepare_manybands_jac; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::prepare(mat, atm, flat, jac_targets, ZeemanPolarization::no);
 
@@ -338,7 +338,7 @@ Numeric lbl_voigt_lte_matrix_prepare_manybands_jac(Matrix&                      
 }
 
 Numeric lbl_voigt_lte_matrix_prepare_sort(Matrix& mat) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_prepare_sort; mat-shape: {:B,}", mat.shape()));
+  ARTS_NAMED_TIME_REPORT(arts::format("lbl_voigt_lte_matrix_prepare_sort; mat-shape: {:B,}", mat.shape()));
 
   lbl::voigt::lte::matrix::sort(mat);
 
@@ -346,7 +346,7 @@ Numeric lbl_voigt_lte_matrix_prepare_sort(Matrix& mat) {
 }
 
 Numeric lbl_voigt_lte_matrix_sumup(ComplexVectorView a, const ConstMatrixView mat, const ConstVectorView f) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup; threads: {}", arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("lbl_voigt_lte_matrix_sumup; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f);
 
@@ -354,7 +354,8 @@ Numeric lbl_voigt_lte_matrix_sumup(ComplexVectorView a, const ConstMatrixView ma
 }
 
 Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff(ComplexVectorView a, const ConstMatrixView mat, const ConstVectorView f) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff; threads: {}", arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(
+      arts::format("lbl_voigt_lte_matrix_sumup_inf_cutoff; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f, std::numeric_limits<Numeric>::infinity());
 
@@ -365,7 +366,7 @@ Numeric lbl_voigt_lte_matrix_sumup_jac(ComplexMatrixView        a,
                                        const ConstMatrixView    mat,
                                        const ConstVectorView    f,
                                        const std::vector<bool>& df) {
-  ARTS_NAMED_TIME_REPORT(std::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}", arts_omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("lbl_voigt_lte_matrix_sumup_jac; threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f, df);
 
@@ -377,7 +378,7 @@ Numeric lbl_voigt_lte_matrix_sumup_inf_cutoff_jac(ComplexMatrixView        a,
                                                   const ConstVectorView    f,
                                                   const std::vector<bool>& df) {
   ARTS_NAMED_TIME_REPORT(
-      std::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}", arts_omp_get_max_threads()));
+      arts::format("lbl_voigt_lte_matrix_sumup_inf_cutoff_jac threads: {}", arts_omp_get_max_threads()));
 
   lbl::voigt::lte::matrix::sumup(a, mat, f, std::numeric_limits<Numeric>::infinity(), df);
 
@@ -583,6 +584,6 @@ int main() {
     arts_omp_set_num_threads(cores);
   }
 
-  std::println(std::cerr, "Prevent optimizing away: {}", buf);
+  arts::println(std::cerr, "Prevent optimizing away: {}", buf);
   arts::print_report();
 }
