@@ -33,7 +33,7 @@ std::format_context::iterator vformat_to(std::format_context::iterator out,
 
 //! As std::format, with the format string checked at compile time
 template <typename... Args> std::string format(std::format_string<Args...> fmt, Args&&... args) {
-  return vformat(fmt.get(), std::make_format_args(args...));
+  return arts::vformat(fmt.get(), std::make_format_args(args...));
 }
 
 //! As std::vprint_unicode, followed by a newline if newline is true, compiled once
@@ -44,32 +44,32 @@ void vprint(std::ostream& os, std::string_view fmt, std::format_args args, bool 
 
 //! As std::print
 template <typename... Args> void print(std::format_string<Args...> fmt, Args&&... args) {
-  vprint(stdout, fmt.get(), std::make_format_args(args...));
+  arts::vprint(stdout, fmt.get(), std::make_format_args(args...));
 }
 
 //! As std::print
 template <typename... Args> void print(std::FILE* stream, std::format_string<Args...> fmt, Args&&... args) {
-  vprint(stream, fmt.get(), std::make_format_args(args...));
+  arts::vprint(stream, fmt.get(), std::make_format_args(args...));
 }
 
 //! As std::print
 template <typename... Args> void print(std::ostream& os, std::format_string<Args...> fmt, Args&&... args) {
-  vprint(os, fmt.get(), std::make_format_args(args...));
+  arts::vprint(os, fmt.get(), std::make_format_args(args...));
 }
 
 //! As std::println
 template <typename... Args> void println(std::format_string<Args...> fmt, Args&&... args) {
-  vprint(stdout, fmt.get(), std::make_format_args(args...), true);
+  arts::vprint(stdout, fmt.get(), std::make_format_args(args...), true);
 }
 
 //! As std::println
 template <typename... Args> void println(std::FILE* stream, std::format_string<Args...> fmt, Args&&... args) {
-  vprint(stream, fmt.get(), std::make_format_args(args...), true);
+  arts::vprint(stream, fmt.get(), std::make_format_args(args...), true);
 }
 
 //! As std::println
 template <typename... Args> void println(std::ostream& os, std::format_string<Args...> fmt, Args&&... args) {
-  vprint(os, fmt.get(), std::make_format_args(args...), true);
+  arts::vprint(os, fmt.get(), std::make_format_args(args...), true);
 }
 
 //! As std::println, only the newline
