@@ -463,10 +463,10 @@ def test_radiance():
     data["altitude"] = np.asarray(field["t"].data.grids[0])
     data["pressure"] = np.array([field["p"](z, 0.0, 0.0) for z in data["altitude"]])
     frequency = np.linspace(3e11, 3e13, 10)
-    nodes, weights = np.polynomial.legendre.leggauss(3)
-    mu = (nodes[::-1] + 1) / 2
+    nodes, weights = arts.math.pdleggauss(6)
+    mu = np.asarray(nodes)[::-1]
     data["zenith"] = np.rad2deg(np.arccos(np.r_[mu, -mu[::-1]]))
-    data["zenith_weights"] = np.r_[weights[::-1], weights] / 2
+    data["zenith_weights"] = np.r_[np.asarray(weights)[::-1], weights]
     radiance = np.zeros((len(frequency), len(data["pressure"]), 6))
     for angle in range(3):
         # The original 10-km maximum ray step produces a different vertical

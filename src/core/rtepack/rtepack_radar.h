@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsTransmittanceOption.h>
 #include <matpack.h>
 
 #include <span>

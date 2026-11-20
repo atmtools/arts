@@ -1,4 +1,7 @@
-"""Hydrostatic pressure against analytic ideal-gas columns; no external data."""
+"""Hydrostatic pressure against analytic ideal-gas columns; no external data.
+
+The analytic pressures are tabulated, as confirmed with independent code.
+"""
 
 import numpy as np
 import pyarts3 as pa
@@ -32,8 +35,13 @@ def column(altitudes, temperatures, option, fixed=False):
 # height above p0. Include off-grid points and extrapolation at both ends.
 z = np.linspace(Z0, Z0 + 4000, 41)
 query = np.array([Z0 - 100, Z0, Z0 + 175, z[-1], z[-1] + 100])
-for temperature in (100.0, 273.15, 1000.0):
-    expected = P0 * np.exp(-G * (query - Z0) / (R * temperature))
+# The isothermal pressures at the query altitudes
+ISOTHERMAL = {
+    100.0: [93129.48671222404, 90000.0, 84774.31410078214, 22932.66431582699, 22162.04406668891],
+    273.15: [91133.30959413995, 90000.0, 88050.51526861604, 54557.84299563394, 53879.376174030556],
+    1000.0: [90308.1570205921, 90000.0, 89463.2532728118, 78498.92509633604, 78231.06452121817],
+}
+for temperature, expected in ISOTHERMAL.items():
     for fixed in (False, True):
         pressure = column(z, np.full(z.size, temperature), 'HypsometricEquation', fixed)
         actual = np.array([pressure(h, 0.0, 0.0) for h in query])
@@ -41,11 +49,11 @@ for temperature in (100.0, 273.15, 1000.0):
         assert np.all(np.diff(actual) < 0)
 
 # Positive temperature increasing with altitude (an inversion). Integrating
-# dp/p = -g dz/(R T) gives the independent closed form below. Both available
-# discretizations should approach it under vertical refinement.
+# dp/p = -g dz/(R T) gives a closed form, whose pressure at the top is below.
+# Both available discretizations should approach it under vertical refinement.
 lapse = 0.01
 height = 4000.0
-expected = P0 * (1 + lapse * height / 220.0)**(-G / (R * lapse))
+expected = 50845.87603278451
 for option in ('HypsometricEquation', 'HydrostaticEquation'):
     errors = []
     for layers in (40, 80, 160):

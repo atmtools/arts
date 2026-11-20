@@ -370,7 +370,7 @@ opt : {0}
 .. rubric:: Valid options
 
 These are the valid options for the ``{}`` method.
-The listed method calls describe the order of the agenda calls for each ``option``.
+Each ``option`` is described first.  The listed method calls then give the order of its agenda calls.
 
 )",
                        name);

@@ -29,23 +29,40 @@
 #include <algorithm>
 #include <cmath>
 #include <istream>
+#include <numeric>
 #include <ostream>
 #include <vector>
+
+#include "matpack_sparse_eigen.h"
 
 // Simple member Functions
 // ----------------
 
 //! Returns true if variable size is zero.
-bool Sparse::empty() const { return (matrix.rows() == 0 || matrix.cols() == 0); }
+bool Sparse::empty() const { return (nr == 0 || nc == 0); }
 
 //! Returns the number of rows.
-Index Sparse::nrows() const { return matrix.rows(); }
+Index Sparse::nrows() const { return nr; }
 
 //! Returns the number of columns.
-Index Sparse::ncols() const { return matrix.cols(); }
+Index Sparse::ncols() const { return nc; }
 
 //! Returns the number of nonzero elements.
-Index Sparse::nnz() const { return matrix.nonZeros(); }
+Index Sparse::nnz() const { return static_cast<Index>(vals.size()); }
+
+std::span<const int>     Sparse::row_starts() const { return row_start; }
+std::span<const int>     Sparse::column_indices() const { return col_index; }
+std::span<const Numeric> Sparse::values() const { return vals; }
+std::span<Numeric>       Sparse::values() { return vals; }
+
+namespace {
+//! The position of column c in row r, and whether the element is stored there
+std::pair<Index, bool> find_element(std::span<const int> row_start, std::span<const int> col_index, Index r, Index c) {
+  const auto first = col_index.begin() + row_start[r], last = col_index.begin() + row_start[r + 1];
+  const auto it = std::lower_bound(first, last, static_cast<int>(c));
+  return {it - col_index.begin(), it != last and *it == c};
+}
+}  // namespace
 
 // Index Operators
 // ---------------
@@ -71,7 +88,13 @@ Numeric& Sparse::rw(Index r, Index c) {
   assert(r < nrows());
   assert(c < ncols());
 
-  return matrix.coeffRef((int)r, (int)c);
+  const auto [k, found] = find_element(row_start, col_index, r, c);
+  if (not found) {
+    col_index.insert(col_index.begin() + k, static_cast<int>(c));
+    vals.insert(vals.begin() + k, 0.0);
+    for (Index i = r + 1; i <= nr; i++) row_start[i]++;
+  }
+  return vals[k];
 }
 
 //! Plain index operator.
@@ -84,7 +107,7 @@ Numeric& Sparse::rw(Index r, Index c) {
   \return The data element with these indices.
 
 */
-Numeric Sparse::operator[](Index r, Index c) const { return matrix.coeff((int)r, (int)c); }
+Numeric Sparse::operator[](Index r, Index c) const { return ro(r, c); }
 
 //! Read only index operator.
 /*!
@@ -108,7 +131,8 @@ Numeric Sparse::ro(Index r, Index c) const {
   assert(r < nrows());
   assert(c < ncols());
 
-  return matrix.coeff((int)r, (int)c);
+  const auto [k, found] = find_element(row_start, col_index, r, c);
+  return found ? vals[k] : 0.0;
 }
 
 // Constructors
@@ -119,9 +143,7 @@ Numeric Sparse::ro(Index r, Index c) const {
   \author Stefan Buehler <sbuehler@ltu.se>
   \date   Tue Jul 15 15:05:40 2003
 */
-Sparse::Sparse() : matrix(0, 0) {
-  // Nothing to do here
-}
+Sparse::Sparse() = default;
 
 Sparse::Sparse(const Sparse& other)                = default;
 Sparse::Sparse(Sparse&& other) noexcept            = default;
@@ -133,8 +155,15 @@ Sparse& Sparse::operator=(Sparse&& other) noexcept = default;
   \param r Row dimension of new sparse matrix.
   \param c Column dimension of new sparse matrix.
 */
-Sparse::Sparse(Index r, Index c) : matrix((int)r, (int)c) {
-  // Nothing to do here.
+Sparse::Sparse(Index r, Index c) : nr(r), nc(c), row_start(r + 1, 0) {}
+
+Sparse::Sparse(
+    Index r, Index c, std::vector<int> row_starts, std::vector<int> column_indices, std::vector<Numeric> values)
+    : nr(r), nc(c), row_start(std::move(row_starts)), col_index(std::move(column_indices)), vals(std::move(values)) {
+  assert(static_cast<Index>(row_start.size()) == nr + 1);
+  assert(row_start.front() == 0);
+  assert(static_cast<Size>(row_start.back()) == col_index.size());
+  assert(col_index.size() == vals.size());
 }
 
 Sparse Sparse::diagonal(StridedConstVectorView v) {
@@ -150,7 +179,7 @@ Vector Sparse::diagonal() const {
   Index  m = std::min(nrows(), ncols());
   Vector diag(m);
 
-  for (int i = 0; i < m; i++) { diag[i] = matrix.coeff(i, i); }
+  for (Index i = 0; i < m; i++) { diag[i] = ro(i, i); }
   return diag;
 }
 
@@ -168,10 +197,7 @@ Sparse::operator Matrix() const {
   Matrix A(m, n);
   A = 0.0;
 
-  for (int i = 0; i < m; i++) {
-    Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(matrix, i);
-    for (; it; ++it) { A[it.row(), it.col()] = it.value(); }
-  }
+  for (const auto [row, col, value] : *this | by_elem) A[row, col] = value;
   return A;
 }
 
@@ -186,7 +212,7 @@ Sparse::operator Matrix() const {
   \return Reference to the resulting sum.
 */
 Sparse& Sparse::operator+=(const Sparse& A) {
-  matrix += A.matrix;
+  *this = matpack::from_eigen(matpack::eigen_map(*this) + matpack::eigen_map(A));
   return *this;
 }
 
@@ -202,7 +228,7 @@ Sparse& Sparse::operator+=(const Sparse& A) {
 */
 
 Sparse& Sparse::operator-=(const Sparse& A) {
-  matrix -= A.matrix;
+  *this = matpack::from_eigen(matpack::eigen_map(*this) - matpack::eigen_map(A));
   return *this;
 }
 
@@ -214,7 +240,7 @@ Sparse& Sparse::operator-=(const Sparse& A) {
   \return Reference to the scaled sparse matrix object.
 */
 Sparse& Sparse::operator*=(Numeric x) {
-  matrix = matrix * x;
+  for (Numeric& v : vals) v *= x;
   return *this;
 }
 
@@ -226,7 +252,7 @@ Sparse& Sparse::operator*=(Numeric x) {
   \return Reference to the scaled sparse matrix object.
 */
 Sparse& Sparse::operator/=(Numeric x) {
-  matrix = matrix / x;
+  for (Numeric& v : vals) v /= x;
   return *this;
 }
 
@@ -240,38 +266,37 @@ Sparse& Sparse::operator/=(Numeric x) {
   \param row_indices The row indices corresponding to the values.
   \param column_indices The column indices corresponding to the values.
 */
-void Sparse::list_elements(Vector& values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const {
-  Index m, n;
-  m = nrows();
-  n = ncols();
-  Matrix A(m, n);
-  A = 0.0;
-
-  values.resize(nnz());
+void Sparse::list_elements(Vector& element_values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const {
+  element_values.resize(nnz());
   row_indices.resize(nnz());
   column_indices.resize(nnz());
 
   Index j = 0;
-  for (int i = 0; i < m; i++) {
-    Eigen::SparseMatrix<double, Eigen::RowMajor>::InnerIterator it(matrix, i);
-    for (; it; ++it) {
-      values[j]         = it.value();
-      row_indices[j]    = it.row();
-      column_indices[j] = it.col();
-      j++;
-    }
+  for (const auto [row, col, value] : *this | by_elem) {
+    element_values[j] = value;
+    row_indices[j]    = row;
+    column_indices[j] = col;
+    j++;
   }
 }
 
-Numeric* Sparse::get_element_pointer() { return matrix.valuePtr(); }
-int*     Sparse::get_column_index_pointer() { return matrix.innerIndexPtr(); }
-int*     Sparse::get_row_start_pointer() { return matrix.outerIndexPtr(); }
+Numeric* Sparse::get_element_pointer() { return vals.data(); }
+int*     Sparse::get_column_index_pointer() { return col_index.data(); }
+int*     Sparse::get_row_start_pointer() { return row_start.data(); }
 
 //! Reduce matrix to the row range [offset, offset + nrows]
 void Sparse::split(Index offset, Index nrows_block) {
-  Eigen::SparseMatrix<Numeric, Eigen::RowMajor> block_copy(
-      matrix.block((int)offset, 0, (int)nrows_block, (int)ncols()));
-  matrix.swap(block_copy);
+  assert(0 <= offset and offset + nrows_block <= nr);
+
+  const int first = row_start[offset], last = row_start[offset + nrows_block];
+
+  std::vector<int> starts(nrows_block + 1);
+  for (Index i = 0; i <= nrows_block; i++) starts[i] = row_start[offset + i] - first;
+
+  row_start = std::move(starts);
+  col_index = std::vector<int>(col_index.begin() + first, col_index.begin() + last);
+  vals      = std::vector<Numeric>(vals.begin() + first, vals.begin() + last);
+  nr        = nrows_block;
 }
 
 //! Insert row function
@@ -292,9 +317,27 @@ void Sparse::insert_row(Index r, Vector v) {
   assert(r < nrows());
   assert(v.size() == static_cast<Size>(ncols()));
 
-  for (int i = 0; i < ncols(); i++) {
-    if (v[i] != 0) matrix.coeffRef((int)r, i) = v[i];
+  // The stored elements of the row, overwritten or extended by the non-zero elements of v
+  std::vector<int>     cols;
+  std::vector<Numeric> row_vals;
+  Index                k = row_start[r];
+  for (Index i = 0; i < nc; i++) {
+    const bool stored = k < row_start[r + 1] and col_index[k] == i;
+    if (v[i] != 0 or stored) {
+      cols.push_back(static_cast<int>(i));
+      row_vals.push_back(v[i] != 0 ? v[i] : vals[k]);
+    }
+    if (stored) k++;
   }
+
+  const int first = row_start[r], last = row_start[r + 1];
+  col_index.erase(col_index.begin() + first, col_index.begin() + last);
+  col_index.insert(col_index.begin() + first, cols.begin(), cols.end());
+  vals.erase(vals.begin() + first, vals.begin() + last);
+  vals.insert(vals.begin() + first, row_vals.begin(), row_vals.end());
+
+  const int change = static_cast<int>(cols.size()) - (last - first);
+  for (Index i = r + 1; i <= nr; i++) row_start[i] += change;
 }
 
 //! Insert vector of elements with given row and column indices.
@@ -313,12 +356,27 @@ void Sparse::insert_elements(Index                  nelems,
                              const ArrayOfIndex&    rowind,
                              const ArrayOfIndex&    colind,
                              StridedConstVectorView data) {
-  typedef Eigen::Triplet<Numeric> T;
-  std::vector<T>                  tripletList(nelems);
+  // As Eigen's setFromTriplets: replaces the elements, and sums duplicates in their order
+  std::vector<Index> order(nelems);
+  std::iota(order.begin(), order.end(), Index{0});
+  std::ranges::stable_sort(
+      order, [&](Index a, Index b) { return std::pair{rowind[a], colind[a]} < std::pair{rowind[b], colind[b]}; });
 
-  for (Index i = 0; i < nelems; i++) { tripletList[i] = T((int)rowind[i], (int)colind[i], data[i]); }
-
-  matrix.setFromTriplets(tripletList.begin(), tripletList.end());
+  row_start.assign(nr + 1, 0);
+  col_index.clear();
+  vals.clear();
+  for (Index n = 0; n < nelems; n++) {
+    const Index i = order[n];
+    assert(0 <= rowind[i] and rowind[i] < nr and 0 <= colind[i] and colind[i] < nc);
+    if (n > 0 and rowind[order[n - 1]] == rowind[i] and colind[order[n - 1]] == colind[i]) {
+      vals.back() += data[i];
+    } else {
+      col_index.push_back(static_cast<int>(colind[i]));
+      vals.push_back(data[i]);
+      row_start[rowind[i] + 1]++;
+    }
+  }
+  std::partial_sum(row_start.begin(), row_start.end(), row_start.begin());
 }
 
 //! Resize function.
@@ -335,7 +393,11 @@ void Sparse::resize(Index r, Index c) {
   assert(0 <= r);
   assert(0 <= c);
 
-  matrix.resize((int)r, (int)c);
+  nr = r;
+  nc = c;
+  row_start.assign(r + 1, 0);
+  col_index.clear();
+  vals.clear();
 }
 
 //! Output operator for Sparse.
@@ -345,10 +407,7 @@ void Sparse::resize(Index r, Index c) {
 
   \return Output stream.
 */
-std::ostream& operator<<(std::ostream& os, const Sparse& M) {
-  os << M.matrix;
-  return os;
-}
+std::ostream& operator<<(std::ostream& os, const Sparse& M) { return os << std::format("{}", M); }
 
 // General matrix functions
 
@@ -369,7 +428,8 @@ void abs(Sparse& A, const Sparse& B) {
   assert(A.nrows() == B.nrows());
   assert(A.ncols() == B.ncols());
 
-  A.matrix = B.matrix.cwiseAbs();
+  A = B;
+  for (Numeric& v : A.values()) v = std::abs(v);
 }
 
 //! Sparse matrix - Vector multiplication.
@@ -403,7 +463,7 @@ void mult(StridedVectorView y, const Sparse& M, StridedConstVectorView x) {
   data = const_cast<Numeric*>(y.data_handle());
   ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
-  y_map = M.matrix * x_map;
+  y_map = matpack::eigen_map(M) * x_map;
 }
 
 //! Sparse matrix - Vector multiplication.
@@ -437,7 +497,7 @@ void transpose_mult(StridedVectorView y, const Sparse& M, StridedConstVectorView
   data = const_cast<Numeric*>(y.data_handle());
   ColumnMap y_map(data, y.size(), Stride(1, y.stride(0)));
 
-  y_map = x_map * M.matrix;
+  y_map = x_map * matpack::eigen_map(M);
 }
 
 //! SparseMatrix - Matrix multiplication.
@@ -484,7 +544,7 @@ void mult(StridedMatrixView A, const Sparse& B, const StridedConstMatrixView& C)
   Stride    a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
-  A_map = B.matrix * C_map;
+  A_map = matpack::eigen_map(B) * C_map;
 }
 
 //! Matrix - SparseMatrix multiplication.
@@ -531,7 +591,7 @@ void mult(StridedMatrixView A, const StridedConstMatrixView& B, const Sparse& C)
   Stride    a_stride(row_stride, column_stride);
   MatrixMap A_map(data, A.nrows(), A.ncols(), a_stride);
 
-  A_map = B_map * C.matrix;
+  A_map = B_map * matpack::eigen_map(C);
 }
 
 //! Transpose of sparse matrix
@@ -551,7 +611,7 @@ void transpose(Sparse& A, const Sparse& B) {
   assert(A.nrows() == B.ncols());
   assert(A.ncols() == B.nrows());
 
-  A.matrix = B.matrix.transpose();
+  A = matpack::from_eigen(matpack::eigen_map(B).transpose());
 }
 
 //! Sparse - Sparse multiplication.
@@ -576,7 +636,7 @@ void mult(Sparse& A, const Sparse& B, const Sparse& C) {
   assert(A.ncols() == C.ncols());
   assert(B.ncols() == C.nrows());
 
-  A.matrix = B.matrix * C.matrix;
+  A = matpack::from_eigen(matpack::eigen_map(B) * matpack::eigen_map(C));
 }
 
 //! Sparse - Sparse addition.
@@ -599,8 +659,7 @@ void add(Sparse& A, const Sparse& B, const Sparse& C) {
   assert(B.ncols() == C.ncols());
   assert(B.nrows() == C.nrows());
 
-  A.resize(B.nrows(), B.ncols());
-  A.matrix = B.matrix + C.matrix;
+  A = matpack::from_eigen(matpack::eigen_map(B) + matpack::eigen_map(C));
 }
 
 //! Sparse identity matrix
@@ -613,7 +672,11 @@ void add(Sparse& A, const Sparse& B, const Sparse& C) {
 */
 void id_mat(Sparse& A) {
   assert(A.ncols() == A.nrows());
-  A.matrix.setIdentity();
+  const Index      n = A.nrows();
+  std::vector<int> starts(n + 1), cols(n);
+  std::iota(starts.begin(), starts.end(), 0);
+  std::iota(cols.begin(), cols.end(), 0);
+  A = Sparse(n, n, std::move(starts), std::move(cols), std::vector<Numeric>(n, 1.0));
 }
 
 //! Sparse - Sparse subtraction.
@@ -632,13 +695,21 @@ void id_mat(Sparse& A) {
   \date   2009-09-03
 */
 void sub(Sparse& A, const Sparse& B, const Sparse& C) {
-  A.resize(B.nrows(), B.ncols());
-
   // Check dimensions
   assert(B.ncols() == C.ncols());
   assert(B.nrows() == C.nrows());
 
-  A.matrix = B.matrix - C.matrix;
+  A = matpack::from_eigen(matpack::eigen_map(B) - matpack::eigen_map(C));
+}
+
+Sparse matpack::from_eigen(eigen_sparse x) {
+  x.makeCompressed();
+  const Index nnz = x.nonZeros();
+  return Sparse(x.rows(),
+                x.cols(),
+                std::vector<int>(x.outerIndexPtr(), x.outerIndexPtr() + x.rows() + 1),
+                std::vector<int>(x.innerIndexPtr(), x.innerIndexPtr() + nnz),
+                std::vector<Numeric>(x.valuePtr(), x.valuePtr() + nnz));
 }
 
 Range get_rowindex_for_mblock(const Sparse& sensor_response, const Index& mblock_index) {

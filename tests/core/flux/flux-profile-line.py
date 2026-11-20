@@ -43,15 +43,10 @@ ndown = 120
 ws.ray_path_observersFieldProfilePseudo2D(nup=nup, ndown=ndown, nlimb=nlimb)
 # Generate the ray path field based on observer's agenda
 ws.ray_path_fieldFromObserverAgenda()
+# The atmospheric profile and its altitude grid
+ws.atm_profileFromGrid()
 # Calculate spectral flux profile using the ray path and atmospheric data
-ws.spectral_flux_profileFromPathField(
-    alt_grid=ws.atm_field["t"].data.grids[0]
-)
-
-# Atmospheric point definition along the ray path
-ws.atm_profile = [
-    ws.atm_field(x, 0, 0) for x in ws.atm_field["t"].data.grids[0]
-]
+ws.spectral_flux_profileFromPathField()
 
 # Integrate line flux profile for NLTE calculation
 ws.nlte_line_flux_profileIntegrate()

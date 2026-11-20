@@ -69,13 +69,13 @@ ws.atm_field[ssa] = A.GriddedField3(
 ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.0)]
 
 # ARTS2 polarization index 5 is [I,Q]/2 on receive and [I,Q] on transmit.
-# The helper creates one standard SensorObsel per range bin, so the radar
+# The helper creates one observation element per range bin, so the radar
 # result can be used directly as an OEM measurement vector.
 range_bins = np.arange(0.0, 20.001e3, 500.0)
 ws.freq_grid = [94e9]
-ws.measurement_sensorInit()
+ws.measurement_sensorsInit()
 ws.radar_range_limits = np.empty((0, 2))
-ws.measurement_sensorAddSimpleRadar(
+ws.measurement_sensorsAddSimpleRadar(
     pos=[20e3, 0.0, 0.0],
     los=[180.0, 0.0],
     pol=[0.5, 0.5, 0.0, 0.0],
@@ -124,8 +124,8 @@ ws.rte_option = "linsrc"
 k2 = 0.93
 ws.measurement_vecFromRadarSingleScattering(**common, unit="Ze", k2=k2)
 ze = np.asarray(ws.measurement_vec).copy()
-wavelength = A.constants.c / ws.freq_grid[0]
-ze_factor = 4e18 * wavelength**4 / (np.pi**4 * k2)
+# The ratio of Ze to the native unit at 94 GHz and k2 = 0.93
+ze_factor = 4568240.390230553
 assert np.allclose(ze[interior], ze_factor * native[interior], rtol=2e-13)
 
 ws.measurement_vecFromRadarSingleScattering(
@@ -167,7 +167,7 @@ ws.jac_targetsAddAtmosphere(target=extinction, d=step)
 ws.jac_targetsFinalize()
 ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
 jac = np.asarray(ws.measurement_jac).copy()
-assert jac.shape == (len(ws.measurement_sensor), altitude.size)
+assert jac.shape == (len(ws.measurement_vec), altitude.size)
 assert np.all(np.isfinite(jac))
 
 iz = int(np.argmin(np.abs(altitude - 10e3)))
@@ -219,15 +219,20 @@ old.atm_field[number_density] = A.GriddedField3(
     grids=[fine_altitude, *old.atm_field["t"].data.grids[1:]],
 )
 
-# The droplet uses the same Liebe (1993) water model as ARTS2 and as the
-# automatic radar k2.  Preserve the original frequency, temperatures, diameter
-# and angular grid.
+# Refractive index of the Liebe (1993) water model, as Atmlab eps_water_liebe93.m,
+# at 94 GHz and the temperatures.  Its relaxation-frequency coefficient is 146,
+# not epswater93.m's 146.4.  Preserve the original frequency, temperatures,
+# diameter and angular grid.
 temperatures = np.array([268.15, 273.15, 278.15])
-permittivity = A.physics.permittivity_water_liebe93(94e9, temperatures)
+refractive_index = np.array([
+    [2.8187175235199935 + 1.2817648423646295j],
+    [2.912634187415942 + 1.4209001868972941j],
+    [3.019683217851814 + 1.564364171605902j],
+])
 habit = A.ParticleHabit.sphere(
     temperatures, [94e9], [50e-6],
     A.IrregularZenithAngleGrid(np.arange(181.0)),
-    np.sqrt(permittivity)[:, None], 1000.0,
+    refractive_index, 1000.0,
 )
 particle = habit[0]
 np.testing.assert_allclose(particle.properties.mass, 1000 * np.pi / 6 * (50e-6)**3)
@@ -238,7 +243,7 @@ np.testing.assert_array_equal(particle.forwardscatter_matrix, phase[:, :, 0, :])
 sparse = A.ParticleHabit.sphere(
     temperatures, [94e9], [50e-6],
     A.IrregularZenithAngleGrid([30.0, 90.0, 150.0]),
-    np.sqrt(permittivity)[:, None], 1000.0,
+    refractive_index, 1000.0,
 )[0]
 np.testing.assert_array_equal(sparse.backscatter_matrix, particle.backscatter_matrix)
 np.testing.assert_array_equal(sparse.forwardscatter_matrix, particle.forwardscatter_matrix)
@@ -262,9 +267,9 @@ old.ray_path_observer_agendaSetGeometric(
     max_step_option="step", add_crossings=1, remove_non_atm=1
 )
 old.freq_grid = [94e9]
-old.measurement_sensorInit()
+old.measurement_sensorsInit()
 old.radar_range_limits = np.empty((0, 2))
-old.measurement_sensorAddSimpleRadar(
+old.measurement_sensorsAddSimpleRadar(
     pos=[100e3, 0.0, 0.0],
     los=[180.0, 0.0],
     pol=[0.5, 0.5, 0.0, 0.0],
@@ -336,7 +341,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 assert np.nanmax(old.measurement_vec) < particle_peak
 old_aux = np.asarray(old.radar_aux)
-assert old_aux.shape == (4, len(old.measurement_sensor))
+assert old_aux.shape == (4, sum(len(s.elements) for s in old.measurement_sensors))
 assert np.nanmax(old_aux[2]) > 0.0
 assert np.nanmax(old_aux[3]) > 0.0
 
@@ -352,7 +357,7 @@ old.measurement_vecFromRadarSingleScattering(
 )
 old_jac = np.asarray(old.measurement_jac).copy()
 nh2o = np.asarray(old.atm_field["H2O"].data.data).size
-assert old_jac.shape[0] == len(old.measurement_sensor)
+assert old_jac.shape[0] == sum(len(s.elements) for s in old.measurement_sensors)
 assert np.all(np.isfinite(old_jac))
 assert np.max(np.abs(old_jac[:, :nh2o])) > 0.0
 assert np.max(np.abs(old_jac[:, nh2o:])) > 0.0

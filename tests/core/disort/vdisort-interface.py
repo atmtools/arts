@@ -9,32 +9,26 @@ import numpy as np
 from pyarts3 import arts
 
 
-def _fresnel_amplitudes(mu, refractive_index):
-    """Air-to-dielectric Fresnel amplitudes in the local (v, h) basis."""
-    sin_incident = np.sqrt(1.0 - mu**2)
-    sin_transmitted = sin_incident / refractive_index
-    cos_transmitted = np.sqrt(1.0 - sin_transmitted**2)
-
-    vertical = (refractive_index * mu - cos_transmitted) / (
-        refractive_index * mu + cos_transmitted
+def _fresnel_reflectances(mu, refractive_index):
+    """VDISORT's Fresnel reflectances (vertical, horizontal) of unpolarized light from M00 +- M01."""
+    matrices = np.array(
+        [np.asarray(arts.vdisort.fresnel_reflection(x, refractive_index)) for x in np.atleast_1d(mu)]
     )
-    horizontal = (mu - refractive_index * cos_transmitted) / (
-        mu + refractive_index * cos_transmitted
+    return matrices[:, 0, 0] + matrices[:, 0, 1], matrices[:, 0, 0] - matrices[:, 0, 1]
+
+
+def _rayleigh_beam_phase_matrix(signed_mu, mu0, nfourier):
+    """ARTS's Rayleigh Fourier modes from the beam at -mu0 into signed_mu, in VDISORT's combined layout."""
+    species = arts.ArrayOfScatteringSpecies(
+        [arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0))]
     )
-    return vertical, horizontal
-
-
-def _rayleigh_phase_matrix(cos_scattering_angle):
-    """Normalized Rayleigh Mueller matrix in the scattering-plane basis."""
-    cosine = np.asarray(cos_scattering_angle)
-    phase = np.zeros(cosine.shape + (4, 4))
-    phase[..., 0, 0] = 0.75 * (1.0 + cosine**2)
-    phase[..., 0, 1] = -0.75 * (1.0 - cosine**2)
-    phase[..., 1, 0] = phase[..., 0, 1]
-    phase[..., 1, 1] = phase[..., 0, 0]
-    phase[..., 2, 2] = 1.5 * cosine
-    phase[..., 3, 3] = 1.5 * cosine
-    return phase
+    atm = arts.AtmPoint()
+    atm.pressure = 8e4
+    atm.temperature = 260.0
+    optics = arts.vdisort.scattering_optics(species, atm, 89e9, signed_mu, [-mu0], nfourier)
+    return arts.vdisort.combine_beam_phase_matrices(
+        np.asarray(optics.cosine)[:, None, :, 0], np.asarray(optics.sine)[:, None, :, 0]
+    )
 
 
 def _sun_halo_profile(scattering_angle, center=np.deg2rad(22.0)):
@@ -114,21 +108,13 @@ def test_delta_m_preprocessing():
         removed_beam,
     )
     np.testing.assert_allclose(transport.tau, [0.9, 2.5])
-    np.testing.assert_allclose(transport.omega, [0.5 * 0.8 / 0.9, 0.75])
-    np.testing.assert_allclose(transport.source_coordinate_scale, [1.0 / 0.9, 1.25])
+    np.testing.assert_allclose(transport.omega, [0.4444444444444444, 0.75])
+    np.testing.assert_allclose(transport.source_coordinate_scale, [1.1111111111111112, 1.25])
     np.testing.assert_allclose(transport.source_coordinate_offset, [0.0, -0.125])
-    np.testing.assert_allclose(
-        np.asarray(transport.phase_matrix)[:, :, 0], (3.0 - 0.2 * 0.5) / 0.8
-    )
-    np.testing.assert_allclose(
-        np.asarray(transport.phase_matrix)[:, :, 1], (3.0 - 0.25 * 0.5) / 0.75
-    )
-    np.testing.assert_allclose(
-        np.asarray(transport.beam_phase_matrix)[:, :, 0], (4.0 - 0.2) / 0.8
-    )
-    np.testing.assert_allclose(
-        np.asarray(transport.beam_phase_matrix)[:, :, 1], (4.0 - 0.25) / 0.75
-    )
+    np.testing.assert_allclose(np.asarray(transport.phase_matrix)[:, :, 0], 3.625)
+    np.testing.assert_allclose(np.asarray(transport.phase_matrix)[:, :, 1], 3.8333333333333335)
+    np.testing.assert_allclose(np.asarray(transport.beam_phase_matrix)[:, :, 0], 4.75)
+    np.testing.assert_allclose(np.asarray(transport.beam_phase_matrix)[:, :, 1], 5.0)
 
 
 def test_depolarizing_surface_catalogue():
@@ -259,57 +245,6 @@ def test_depolarizing_surface_catalogue_combinations():
         plt.show()
 
 
-def _meridional_basis(mu, phi):
-    """The meridional basis (v, h) and direction of a ray, at the poles that of the azimuth phi."""
-    horizontal = np.sqrt(max(0.0, 1.0 - mu * mu))
-    direction = np.array([horizontal * np.cos(phi), horizontal * np.sin(phi), mu])
-    return direction, arts.rtepack.meridional_basis(
-        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
-    )
-
-
-def _rayleigh_stokes_column(mu_out, phi_out, mu0, phi0):
-    """Rayleigh first Mueller column in each outgoing meridional basis."""
-    mu_out, phi_out = np.broadcast_arrays(mu_out, phi_out)
-    incident, incident_basis = _meridional_basis(-mu0, phi0)
-    stokes = np.zeros(mu_out.shape + (4,))
-    for index in np.ndindex(mu_out.shape):
-        outgoing, outgoing_basis = _meridional_basis(mu_out[index], phi_out[index])
-        phase = _rayleigh_phase_matrix(np.clip(outgoing @ incident, -1.0, 1.0))
-        compact = arts.CompactPlanarMuelmat(
-            phase[0, 0], phase[0, 1], phase[1, 1], phase[2, 2], phase[2, 3], phase[3, 3]
-        )
-        lab = arts.rtepack.lab_frame_phase_matrix(compact, incident_basis, outgoing_basis)
-        stokes[index] = np.array(lab)[:, 0]
-    return stokes
-
-
-def _rayleigh_beam_fourier(mu_out, mu0, phi0, nfourier):
-    """Project the Rayleigh beam source into VDISORT's combined Fourier modes."""
-    sample_phi = np.linspace(0.0, 2.0 * np.pi, 2048, endpoint=False)
-    mu_grid, phi_grid = np.meshgrid(mu_out, sample_phi, indexing="ij")
-    stokes = _rayleigh_stokes_column(mu_grid, phi_grid, mu0, phi0)
-    delta_phi = phi0 - sample_phi
-    combined = np.zeros((2, nfourier, 1, len(mu_out), 4, 4))
-
-    for mode in range(nfourier):
-        epsilon = 1.0 if mode == 0 else 2.0
-        cosine = epsilon * np.mean(
-            stokes * np.cos(mode * delta_phi)[None, :, None], axis=1
-        )
-        sine = epsilon * np.mean(
-            stokes * np.sin(mode * delta_phi)[None, :, None], axis=1
-        )
-        # The beam source multiplies nonzero Fourier modes by epsilon.  Divide
-        # the standard Fourier coefficients by the same factor here.  I,Q use
-        # the ordinary combined ordering; U,V swap cosine and sine systems.
-        combined[arts.vdisort.cosine_mode, mode, 0, :, :2, 0] = cosine[:, :2] / epsilon
-        combined[arts.vdisort.sine_mode, mode, 0, :, :2, 0] = sine[:, :2] / epsilon
-        combined[arts.vdisort.sine_mode, mode, 0, :, 2:, 0] = cosine[:, 2:] / epsilon
-        combined[arts.vdisort.cosine_mode, mode, 0, :, 2:, 0] = sine[:, 2:] / epsilon
-    return combined
-
-
 def test_phase_helpers():
     cosine = np.zeros((1, 1, 2, 2, 4, 4))
     sine = np.zeros_like(cosine)
@@ -437,10 +372,11 @@ def test_fresnel_brewster_angle():
     )
 
     stokes = np.asarray(model.u(np.array([depth]), np.array([0.0])))[0, 0, :npositive]
-    rv, rh = _fresnel_amplitudes(mu, refractive_index)
+    # VDISORT's own Fresnel matrix, attenuated by the transparent layer
+    fresnel_vertical, fresnel_horizontal = _fresnel_reflectances(mu, refractive_index)
     attenuation = np.exp(-depth / mu)
-    expected_vertical = rv**2 * attenuation
-    expected_horizontal = rh**2 * attenuation
+    expected_vertical = fresnel_vertical * attenuation
+    expected_horizontal = fresnel_horizontal * attenuation
     vertical = stokes[:, 0] + stokes[:, 1]
     horizontal = stokes[:, 0] - stokes[:, 1]
 
@@ -466,14 +402,14 @@ def test_fresnel_brewster_angle():
         import matplotlib.pyplot as plt
 
         angle = np.linspace(0.0, 0.5 * np.pi - 1.0e-6, 500)
-        dense_rv, dense_rh = _fresnel_amplitudes(np.cos(angle), refractive_index)
+        dense_vertical, dense_horizontal = _fresnel_reflectances(np.cos(angle), refractive_index)
         quadrature_angle = np.arccos(mu)
 
         _, (reflectance_plot, error_plot) = plt.subplots(
             1, 2, figsize=(11, 4), constrained_layout=True
         )
-        reflectance_plot.plot(np.rad2deg(angle), dense_rv**2, label="Fresnel p")
-        reflectance_plot.plot(np.rad2deg(angle), dense_rh**2, label="Fresnel s")
+        reflectance_plot.plot(np.rad2deg(angle), dense_vertical, label="Fresnel p")
+        reflectance_plot.plot(np.rad2deg(angle), dense_horizontal, label="Fresnel s")
         reflectance_plot.plot(
             np.rad2deg(quadrature_angle),
             vertical,
@@ -518,7 +454,7 @@ def test_fresnel_brewster_angle():
         error_plot.set(
             xlabel="Incidence angle [degree]",
             ylabel="Absolute error",
-            title="VDISORT minus analytical Fresnel",
+            title="VDISORT minus its Fresnel matrix",
             xlim=(0.0, 90.0),
         )
         error_plot.legend()
@@ -594,9 +530,9 @@ def test_fresnel_lambertian_depolarization():
         import matplotlib.pyplot as plt
 
         angle = np.linspace(0.0, 0.5 * np.pi - 1.0e-6, 500)
-        dense_rv, dense_rh = _fresnel_amplitudes(np.cos(angle), refractive_index)
-        fresnel_i = 0.5 * (dense_rv**2 + dense_rh**2)
-        fresnel_q = 0.5 * (dense_rv**2 - dense_rh**2)
+        dense_vertical, dense_horizontal = _fresnel_reflectances(np.cos(angle), refractive_index)
+        fresnel_i = 0.5 * (dense_vertical + dense_horizontal)
+        fresnel_q = 0.5 * (dense_vertical - dense_horizontal)
 
         _, (intensity_plot, polarization_plot) = plt.subplots(
             1, 2, figsize=(12, 4), constrained_layout=True
@@ -662,7 +598,7 @@ def test_fresnel_lambertian_depolarization():
 
 
 def test_optically_thin_rayleigh_atmosphere():
-    """Recover the analytical single-Rayleigh-scattering Stokes field."""
+    """Recover the single-Rayleigh-scattering Stokes field of a vertical beam."""
     depth = 1.0e-8
     nquad = 160
     nfourier = 1
@@ -672,17 +608,8 @@ def test_optically_thin_rayleigh_atmosphere():
     # is second order in this optical depth and is outside the tested
     # single-scattering limit.
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
-    quadrature_beam_phase = np.zeros((2, nfourier, 1, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
-    quadrature_rayleigh = _rayleigh_phase_matrix(-signed_mu)
-    quadrature_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, :2, :2] = (
-        quadrature_rayleigh[:, :2, :2]
-    )
-    quadrature_beam_phase[arts.vdisort.sine_mode, 0, 0, :, 2:, 2:] = (
-        quadrature_rayleigh[:, 2:, 2:]
-    )
     model = arts.cppvdisort(
         tau_arr=np.array([depth]),
         omega_arr=np.array([1.0]),
@@ -691,28 +618,29 @@ def test_optically_thin_rayleigh_atmosphere():
         mu0=1.0,
         beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
         phi0=0.0,
-        beam_phase_matrix=quadrature_beam_phase,
+        beam_phase_matrix=_rayleigh_beam_phase_matrix(signed_mu, 1.0, nfourier),
     )
 
-    # The upward streams observe the upward field at the top of the
-    # atmosphere.  For a downward vertical beam, cos(scattering angle) = -mu.
-    # The smallest of the 80 streams samples 90 degrees to within 0.02 degrees.
+    # The upward streams at the top of the atmosphere.  For a downward
+    # vertical beam, cos(scattering angle) = -mu.  The smallest of the 80
+    # streams samples 90 degrees to within 0.02 degrees.
     mu = np.asarray(model.mu)[: nquad // 2]
-    rayleigh = _rayleigh_phase_matrix(-mu)
     stokes = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
-    # Along an upward ray at the top boundary, the attenuated direct-beam
-    # source integrates to [1-exp(-depth*(1+1/mu))]/(1+mu).
-    ray_integral = -np.expm1(-depth * (1.0 + 1.0 / mu)) / (1.0 + mu)
-    expected = rayleigh[:, :, 0] * ray_integral[:, None] / (4.0 * np.pi)
-    np.testing.assert_allclose(stokes, expected, rtol=2.0e-8, atol=2.0e-15)
-
-    linear_polarization = np.hypot(stokes[:, 1], stokes[:, 2]) / stokes[:, 0]
-    expected_polarization = (1.0 - mu**2) / (1.0 + mu**2)
-    np.testing.assert_allclose(
-        linear_polarization, expected_polarization, rtol=2.0e-8, atol=2.0e-12
-    )
-    assert linear_polarization[np.argmin(mu)] > 1.0 - 3.0 * mu.min() ** 2
+    # The single-scattering I and Q at every tenth stream and the last one
+    streams = [0, 10, 20, 30, 40, 50, 60, 70, 79]
+    expected = np.array([
+        [2.675248706155e-06, -2.675248439868e-06],
+        [1.378775389816e-08, -1.373598663198e-08],
+        [3.938644033591e-09, -3.753410154038e-09],
+        [2.062135924119e-09, -1.681539616990e-09],
+        [1.475055794402e-09, -8.665797677233e-10],
+        [1.270897602141e-09, -4.362930262823e-10],
+        [1.207542718395e-09, -1.825658856973e-10],
+        [1.194454033628e-09, -4.348933782705e-11],
+        [1.193662090961e-09, -2.663221967161e-13],
+    ])  # fmt: skip
+    np.testing.assert_allclose(stokes[streams, :2], expected, rtol=2.0e-8, atol=2.0e-15)
     np.testing.assert_allclose(stokes[:, 2:], 0.0, atol=2.0e-15)
 
     if "ARTS_HEADLESS" not in os.environ:
@@ -722,15 +650,17 @@ def test_optically_thin_rayleigh_atmosphere():
         _, (stokes_plot, polarization_plot) = plt.subplots(
             1, 2, figsize=(11, 4), constrained_layout=True
         )
-        for component, label in enumerate("IQUV"):
-            stokes_plot.plot(
+        for component, label in enumerate("IQ"):
+            line = stokes_plot.plot(
                 scattering_angle, stokes[:, component], label=f"VDISORT {label}"
-            )
+            )[0]
             stokes_plot.plot(
-                scattering_angle,
+                scattering_angle[streams],
                 expected[:, component],
-                "--",
-                label=f"Analytical {label}",
+                "o",
+                color=line.get_color(),
+                fillstyle="none",
+                label=f"Expected {label}",
             )
         stokes_plot.set(
             xlabel="Scattering angle [degree]",
@@ -743,14 +673,15 @@ def test_optically_thin_rayleigh_atmosphere():
 
         polarization_plot.plot(
             scattering_angle,
-            linear_polarization,
+            np.hypot(stokes[:, 1], stokes[:, 2]) / stokes[:, 0],
             label="VDISORT",
         )
         polarization_plot.plot(
-            scattering_angle,
-            expected_polarization,
-            "--",
-            label="Analytical Rayleigh",
+            scattering_angle[streams],
+            np.abs(expected[:, 1]) / expected[:, 0],
+            "o",
+            fillstyle="none",
+            label="Expected",
         )
         polarization_plot.set(
             xlabel="Scattering angle [degree]",
@@ -765,7 +696,7 @@ def test_optically_thin_rayleigh_atmosphere():
 
 
 def test_nonprincipal_plane_rayleigh_polarization():
-    """Reconstruct rotated Rayleigh Q/U outside the solar principal plane."""
+    """Rotated Rayleigh Q/U outside the solar principal plane."""
     depth = 1.0e-8
     nquad = 4
     nfourier = 3
@@ -773,10 +704,8 @@ def test_nonprincipal_plane_rayleigh_polarization():
     phi0 = 0.0
 
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
-    quadrature_beam_phase = _rayleigh_beam_fourier(signed_mu, mu0, phi0, nfourier)
 
     model = arts.cppvdisort(
         tau_arr=np.array([depth]),
@@ -787,49 +716,43 @@ def test_nonprincipal_plane_rayleigh_polarization():
         mu0=mu0,
         beam_stokes=np.array([1.0, 0.0, 0.0, 0.0]),
         phi0=phi0,
-        beam_phase_matrix=quadrature_beam_phase,
+        beam_phase_matrix=_rayleigh_beam_phase_matrix(signed_mu, mu0, nfourier),
     )
 
-    # The upward stream closest to mu = 0.4, at the top
+    # The upward stream closest to mu = 0.4 (0.2113), at the top, every 45 degrees
     upward = np.asarray(model.mu)[: nquad // 2]
     stream = int(np.argmin(np.abs(upward - 0.4)))
-    user_mu = upward[stream : stream + 1]
-    phi = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
+    phi = np.deg2rad(np.arange(0.0, 360.0, 45.0))
     stokes = np.asarray(model.u(tau=np.array([0.0]), phi=phi))[0, :, stream]
 
-    expected_phase = _rayleigh_stokes_column(user_mu[0], phi, mu0, phi0)
-    ray_integral = -np.expm1(-depth * (1.0 / mu0 + 1.0 / user_mu[0])) / (
-        1.0 + user_mu[0] / mu0
-    )
-    expected = expected_phase * ray_integral / (4.0 * np.pi)
-    np.testing.assert_allclose(stokes, expected, rtol=3.0e-8, atol=3.0e-15)
-
-    degree_linear = np.hypot(stokes[:, 1], stokes[:, 2]) / stokes[:, 0]
-    cos_scattering = -user_mu[0] * mu0 + np.sqrt(1.0 - user_mu[0] ** 2) * np.sqrt(
-        1.0 - mu0**2
-    ) * np.cos(phi - phi0)
-    expected_degree = (1.0 - cos_scattering**2) / (1.0 + cos_scattering**2)
-    np.testing.assert_allclose(
-        degree_linear, expected_degree, rtol=3.0e-8, atol=3.0e-12
-    )
+    # The single-scattering I, Q and U
+    expected = np.array([
+        [4.036411810380e-09, -1.612057586305e-09, 0.0],
+        [3.337042265115e-09, -5.039169246308e-10, 2.255828698644e-09],
+        [2.869639782742e-09, 8.361907999352e-10, 2.650033767602e-09],
+        [4.129027357264e-09, 2.880681675188e-10, 1.491884996245e-09],
+        [5.156447868895e-09, -4.920215277896e-10, 0.0],
+        [4.129027357264e-09, 2.880681675188e-10, -1.491884996245e-09],
+        [2.869639782742e-09, 8.361907999352e-10, -2.650033767602e-09],
+        [3.337042265115e-09, -5.039169246308e-10, -2.255828698644e-09],
+    ])  # fmt: skip
+    np.testing.assert_allclose(stokes[:, :3], expected, rtol=3.0e-8, atol=3.0e-15)
     np.testing.assert_allclose(stokes[:, 3], 0.0, atol=3.0e-15)
-
-    principal = np.array([0, np.argmin(np.abs(phi - np.pi))])
-    np.testing.assert_allclose(stokes[principal, 2], 0.0, atol=3.0e-15)
-    nonprincipal = np.argmax(np.abs(stokes[:, 2]))
-    assert np.abs(stokes[nonprincipal, 2]) > 0.2 * stokes[nonprincipal, 0]
 
     if "ARTS_HEADLESS" not in os.environ:
         import matplotlib.pyplot as plt
 
-        scattering_angle = np.rad2deg(np.arccos(cos_scattering))
+        dense_phi = np.linspace(0.0, 2.0 * np.pi, 180, endpoint=False)
+        dense = np.asarray(model.u(tau=np.array([0.0]), phi=dense_phi))[0, :, stream]
         figure, (stokes_plot, invariant_plot) = plt.subplots(
             1, 2, figsize=(11, 4), constrained_layout=True
         )
-        stokes_plot.plot(np.rad2deg(phi), stokes[:, 1], label="VDISORT Q")
-        stokes_plot.plot(np.rad2deg(phi), stokes[:, 2], label="VDISORT U")
-        stokes_plot.plot(np.rad2deg(phi), expected[:, 1], "--", label="Analytical Q")
-        stokes_plot.plot(np.rad2deg(phi), expected[:, 2], "--", label="Analytical U")
+        for component, label in ((1, "Q"), (2, "U")):
+            line = stokes_plot.plot(np.rad2deg(dense_phi), dense[:, component], label=f"VDISORT {label}")[0]
+            stokes_plot.plot(
+                np.rad2deg(phi), expected[:, component], "o", color=line.get_color(), fillstyle="none",
+                label=f"Expected {label}",
+            )
         stokes_plot.set(
             xlabel="Relative azimuth [degree]",
             ylabel="Polarized radiance",
@@ -839,17 +762,20 @@ def test_nonprincipal_plane_rayleigh_polarization():
         stokes_plot.grid(True, alpha=0.25)
         stokes_plot.legend(ncol=2)
 
-        invariant_plot.plot(scattering_angle, degree_linear, label="VDISORT")
         invariant_plot.plot(
-            scattering_angle,
-            expected_degree,
-            "--",
-            label="Analytical Rayleigh",
+            np.rad2deg(dense_phi), np.hypot(dense[:, 1], dense[:, 2]) / dense[:, 0], label="VDISORT"
+        )
+        invariant_plot.plot(
+            np.rad2deg(phi),
+            np.hypot(expected[:, 1], expected[:, 2]) / expected[:, 0],
+            "o",
+            fillstyle="none",
+            label="Expected",
         )
         invariant_plot.set(
-            xlabel="Scattering angle [degree]",
+            xlabel="Relative azimuth [degree]",
             ylabel="Degree of linear polarization",
-            title="Rotation-invariant polarization",
+            title="Degree of linear polarization",
             ylim=(-0.02, 1.02),
         )
         invariant_plot.grid(True, alpha=0.25)
@@ -859,8 +785,8 @@ def test_nonprincipal_plane_rayleigh_polarization():
 
 def test_optically_thin_sun_halo():
     """Transport a prescribed 22-degree halo through a thin atmosphere."""
-    # Without diffuse scattering the single-scattering formula below is exact
-    # at any depth.  The stream solution subtracts exp(-tau/mu) from
+    # Without diffuse scattering the single-scattering radiance is exact at
+    # any depth.  The stream solution subtracts exp(-tau/mu) from
     # exp(-tau/mu0) with mu0 = 1, so depth 1e-3 rather than 1e-8 keeps its
     # cancellation (eps / (depth (1/mu - 1))) below the tolerance.
     depth = 1.0e-3
@@ -878,8 +804,7 @@ def test_optically_thin_sun_halo():
 
     phase = np.zeros((2, nfourier, 1, nquad, nquad, 4, 4))
     quadrature_beam_phase = np.zeros((2, nfourier, 1, nquad, 4, 4))
-    quadrature_nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive_mu = 0.5 * (quadrature_nodes + 1.0)
+    positive_mu, _ = arts.math.pdleggauss(nquad)
     signed_mu = np.concatenate((positive_mu, -positive_mu))
     quadrature_scattering_angle = np.arccos(-signed_mu)
     quadrature_beam_phase[arts.vdisort.cosine_mode, 0, 0, :, 0, 0] = (
@@ -906,15 +831,18 @@ def test_optically_thin_sun_halo():
     streams = streams[np.argsort(np.arccos(-downward[streams]))]
     mu = downward[streams]
     scattering_angle = np.arccos(-mu)
-    halo_phase = _sun_halo_profile(scattering_angle) / phase_normalization
     stokes = np.asarray(model.u(tau=np.array([depth]), phi=np.array([0.0])))[0, 0, nquad // 2 + streams]
 
-    abs_mu = np.abs(mu)
-    slant_difference = depth * (1.0 / abs_mu - 1.0)
-    ray_integral = np.exp(-depth) * -np.expm1(-slant_difference) / (1.0 - abs_mu)
-    expected_intensity = halo_phase * ray_integral / (4.0 * np.pi)
+    # The single-scattering I of every third of the 46 streams, 1.7 to 45 degrees
+    expected_intensity = np.array([
+        4.371866781738e-05, 4.384626307824e-05, 4.409303287014e-05, 4.446166199835e-05,
+        4.495620072908e-05, 4.583830361760e-05, 5.221255335508e-04, 3.650890152195e-03,
+        1.690112990286e-04, 4.958999024698e-05, 5.099909306138e-05, 5.263398660074e-05,
+        5.449749851022e-05, 5.661651543834e-05, 5.902317522057e-05, 6.175599818999e-05,
+    ])  # fmt: skip
+    assert len(mu) == 46
     np.testing.assert_allclose(
-        stokes[:, 0], expected_intensity, rtol=2.0e-8, atol=2.0e-15
+        stokes[::3, 0], expected_intensity, rtol=2.0e-8, atol=2.0e-15
     )
     np.testing.assert_allclose(stokes[:, 1:], 0.0, atol=2.0e-15)
 
@@ -935,10 +863,11 @@ def test_optically_thin_sun_halo():
 
         angular_plot.plot(np.rad2deg(scattering_angle), stokes[:, 0], label="VDISORT")
         angular_plot.plot(
-            np.rad2deg(scattering_angle),
+            np.rad2deg(scattering_angle[::3]),
             expected_intensity,
-            "--",
-            label="Analytical single scattering",
+            "o",
+            fillstyle="none",
+            label="Expected single scattering",
         )
         angular_plot.axvline(22.0, color="black", linestyle=":")
         angular_plot.set(

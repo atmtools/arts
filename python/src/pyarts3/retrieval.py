@@ -330,10 +330,7 @@ def _factor_covariance(value, size, name, tolerance, max_dense_elements):
             raise ValueError(
                 f"{name} must have shape ({size}, {size}) or ({size},) variances"
             )
-        value = arts.CovarianceMatrix()
-        value.blocks = [
-            arts.Block(arts.Range(0, size), arts.Range(0, size), (0, 0), payload)
-        ]
+        value = arts.CovarianceMatrix(payload)
     try:
         value.validate(
             expected_size=size,

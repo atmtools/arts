@@ -32,11 +32,11 @@ std::runtime_error catch_errors(std::exception& e, const std::string_view contex
 }
 
 namespace {
-std::atomic<bool> show_cpp_error_location_ {
+std::atomic<bool> show_cpp_error_location_{
 #ifdef NDEBUG
-  false
+    false
 #else
-  true
+    true
 #endif
 };
 }  // namespace

@@ -297,6 +297,21 @@ auto bind_bulk_scattering_properties(py::module_& m, const std::string& name) {
 
 void py_scattering_species(py::module_& m) try {
   py::class_<ScatteringTroSpectralVector> stsv(m, "ScatteringTroSpectralVector");
+  stsv.def(py::init<>())
+      .def(
+          "__init__",
+          [](ScatteringTroSpectralVector*              s,
+             std::optional<CompactPlanarMuelmatMatrix> phase_matrix,
+             CompactPlanarPropmatVector                extinction_matrix,
+             CompactPlanarStokvecVector                absorption_vector) {
+            new (s) ScatteringTroSpectralVector{.phase_matrix      = std::move(phase_matrix),
+                                                .extinction_matrix = std::move(extinction_matrix),
+                                                .absorption_vector = std::move(absorption_vector)};
+          },
+          "phase_matrix"_a.none(),
+          "extinction_matrix"_a,
+          "absorption_vector"_a,
+          "From the bulk Legendre series [f, l] on Y_l0, and the extinction and absorption [f]");
   stsv.def_rw("phase_matrix", &ScatteringTroSpectralVector::phase_matrix, "Phase matrix\n\n.. :class:`object`")
       .def_rw("extinction_matrix",
               &ScatteringTroSpectralVector::extinction_matrix,

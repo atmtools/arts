@@ -149,4 +149,11 @@ void calculate(PropmatVectorView        pm,
     }
   }
 }
+
+bool adds_nlte(const AbsorptionBands& bnds, const SpeciesEnum species) {
+  return stdr::any_of(bnds, [species](const auto& bnd) {
+    return bnd.second.lineshape == LineByLineLineshape::VP_LINE_NLTE and
+           (species == bnd.first.isot.spec or species == SpeciesEnum::Bath);
+  });
+}
 }  // namespace lbl

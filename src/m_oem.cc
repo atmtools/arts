@@ -22,6 +22,7 @@
 #include <config.h>
 #include <debug.h>
 #include <jacobian.h>
+#include <matpack_sparse_eigen.h>
 #include <oem_settings.h>
 #include <workspace.h>
 
@@ -313,7 +314,7 @@ void oemCalc(const Workspace&                 ws,
              OptimalEstimationData&           data,
              AtmField&                        atm_field,
              AbsorptionBands&                 abs_bands,
-             ArrayOfSensorObsel&              measurement_sensor,
+             ArrayOfSensor&                   measurement_sensors,
              SurfaceField&                    surf_field,
              SubsurfaceField&                 subsurf_field,
              const JacobianTargets&           jac_targets,
@@ -395,7 +396,7 @@ void oemCalc(const Workspace&                 ws,
     inversion_iterate_agendaExecute(ws,
                                     atm_field,
                                     abs_bands,
-                                    measurement_sensor,
+                                    measurement_sensors,
                                     surf_field,
                                     subsurf_field,
                                     measurement_vec_fit,
@@ -463,7 +464,7 @@ void oemCalc(const Workspace&                 ws,
                           model_state_vec,
                           &atm_field,
                           &abs_bands,
-                          &measurement_sensor,
+                          &measurement_sensors,
                           &surf_field,
                           &subsurf_field,
                           &jac_targets,
@@ -533,9 +534,8 @@ BlockMatrix basis_precision(const BlockMatrix& basis, const BlockMatrix& weighte
   const Index r = basis.ncols();
   if (weighted.is_sparse()) {
     assert(basis.is_sparse());
-    auto out    = std::make_shared<Sparse>(r, r);
-    out->matrix = basis.sparse().matrix.transpose() * weighted.sparse().matrix;
-    return out;
+    return std::make_shared<Sparse>(
+        matpack::from_eigen(matpack::eigen_map(basis.sparse()).transpose() * matpack::eigen_map(weighted.sparse())));
   }
   auto out = std::make_shared<Matrix>(r, r);
   basis.multiply_right(transpose(*out), transpose(weighted.dense()));
@@ -565,19 +565,19 @@ CovarianceMatrix measurement_covariance_projection(const BlockMatrix& C, const C
         const auto r0 = block.get_row_range().offset, c0 = block.get_column_range().offset;
         const auto [i, j] = block.get_indices();
         for (const auto [row, col, value] : block.get_sparse() | by_elem) {
-          entries.emplace_back(r0 + row, c0 + col, value);
-          if (i != j) entries.emplace_back(c0 + col, r0 + row, value);
+          entries.emplace_back(static_cast<int>(r0 + row), static_cast<int>(c0 + col), value);
+          if (i != j) entries.emplace_back(static_cast<int>(c0 + col), static_cast<int>(r0 + row), value);
         }
       }
-      Sparse matrix(m, m);
-      matrix.matrix.setFromTriplets(entries.begin(), entries.end());
+      matpack::eigen_sparse matrix_eigen(m, m);
+      matrix_eigen.setFromTriplets(entries.begin(), entries.end());
+      const Sparse matrix = matpack::from_eigen(std::move(matrix_eigen));
       weighted.resize(q, m);
       mult(weighted, C.sparse(), matrix);
     }
     if (weighted.nrows() == q) {
-      auto sparse    = std::make_shared<Sparse>(q, q);
-      sparse->matrix = weighted.matrix * C.sparse().matrix.transpose();
-      values         = std::move(sparse);
+      values = std::make_shared<Sparse>(
+          matpack::from_eigen(matpack::eigen_map(weighted) * matpack::eigen_map(C.sparse()).transpose()));
     }
   }
   if (not values.not_null()) {
@@ -654,12 +654,12 @@ void oemMeasurementBasisCalc(OptimalEstimationData& data) {
       const Numeric sigma = std::sqrt((*diagonal)[i]);
       const Numeric value = (amplitude[i] / sigma / norm[group[i]]) / sigma;
       if (not std::isfinite(value)) arts::user_error("Measurement basis exceeds numerical range.");
-      entries.emplace_back(group[i], i, value);
+      entries.emplace_back(static_cast<int>(group[i]), static_cast<int>(i), value);
     }
-    auto sparse = std::make_shared<Sparse>(q, m);
-    sparse->matrix.setFromTriplets(entries.begin(), entries.end());
+    matpack::eigen_sparse sparse(q, m);
+    sparse.setFromTriplets(entries.begin(), entries.end());
     data.uncheck();
-    measurement_basis_mat = std::move(sparse);
+    measurement_basis_mat = std::make_shared<Sparse>(matpack::from_eigen(std::move(sparse)));
   } else {
     // J = T R. C = T^T Se^-1 retains all state-dependent likelihood terms,
     // including information carried by noise correlations outside each group.
@@ -835,9 +835,7 @@ void oemBasisReduce(OptimalEstimationData& data,
           if constexpr (std::same_as<T, Matrix>)
             return std::make_shared<Matrix>((*matrix)[Range(0, rows), Range(0, cols)]);
           else {
-            auto out    = std::make_shared<Sparse>(rows, cols);
-            out->matrix = matrix->matrix.topLeftCorner(rows, cols);
-            return out;
+            return std::make_shared<Sparse>(matpack::from_eigen(matpack::eigen_map(*matrix).topLeftCorner(rows, cols)));
           }
         },
         basis.data);
@@ -856,7 +854,7 @@ void oemCalcReduced(const Workspace&                 ws,
                     OptimalEstimationData&           data,
                     AtmField&                        atm_field,
                     AbsorptionBands&                 abs_bands,
-                    ArrayOfSensorObsel&              measurement_sensor,
+                    ArrayOfSensor&                   measurement_sensors,
                     SurfaceField&                    surf_field,
                     SubsurfaceField&                 subsurf_field,
                     const JacobianTargets&           jac_targets,
@@ -1017,7 +1015,7 @@ void oemCalcReduced(const Workspace&                 ws,
                                  model_state_vec,
                                  &atm_field,
                                  &abs_bands,
-                                 &measurement_sensor,
+                                 &measurement_sensors,
                                  &surf_field,
                                  &subsurf_field,
                                  &jac_targets,
@@ -1203,14 +1201,14 @@ void oemRestoreApriori(AbsorptionBands&             abs_bands,
                        SurfaceField&                surf_field,
                        SubsurfaceField&             subsurf_field,
                        AtmField&                    atm_field,
-                       ArrayOfSensorObsel&          measurement_sensor,
+                       ArrayOfSensor&               measurement_sensors,
                        const OptimalEstimationData& data,
                        const JacobianTargets&       jac_targets) {
   if (not jac_targets.is_finalized() or data.model_state_vec_apriori.empty() or
       data.model_state_vec_apriori.size() != jac_targets.x_size())
     arts::user_error("Restoring the prior requires initialized OEM data and matching finalized targets.");
   UpdateModelStates(
-      abs_bands, surf_field, subsurf_field, atm_field, measurement_sensor, jac_targets, data.model_state_vec_apriori);
+      abs_bands, surf_field, subsurf_field, atm_field, measurement_sensors, jac_targets, data.model_state_vec_apriori);
 }
 
 void oemMeasurementCovmatNormalization(OptimalEstimationData& data) {

@@ -7,7 +7,7 @@ import pyarts3 as pyarts
 ws = pyarts.workspace.Workspace()
 
 ws.abs_bands = pyarts.arts.AbsorptionBands()
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.subsurf_field = pyarts.arts.SubsurfaceField()
 ws.surf_fieldPlanet(option="Earth")
 ws.atm_fieldRead(

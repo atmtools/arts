@@ -19,6 +19,7 @@ target_include_directories(make_molparam_map PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 arts_generate(make_molparam_map
   ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_hitran_species_map.h
+  DEPENDS ${ARTS_CAT_DATA_COMPILE_FILES}
   COMMENT "Generating automatic HITRAN species map"
 )
 
@@ -29,5 +30,6 @@ target_include_directories(make_jpl_data PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 arts_generate(make_jpl_data
   ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_jpl_species_map.h
+  DEPENDS ${ARTS_CAT_DATA_COMPILE_FILES}
   COMMENT "Generating automatic JPL species map"
 )

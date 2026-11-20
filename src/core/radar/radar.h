@@ -1,7 +1,10 @@
 #pragma once
 
 #include <atm.h>
-#include <enums.h>
+#include <enumsRadarAuxiliary.h>
+#include <enumsRadarRangeMode.h>
+#include <enumsRadarUnit.h>
+#include <enumsTransmittanceOption.h>
 #include <jacobian.h>
 #include <path_point.h>
 #include <rtepack.h>

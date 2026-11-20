@@ -14,7 +14,7 @@ def check_kernel(option):
     ws.surf_field["t"] = 280.0
     ws.atm_fieldInit(toa=0.0)
     ws.abs_bands = arts.AbsorptionBands()
-    ws.measurement_sensorSimple(pos=[0, 0, 0], los=[180, 0])
+    ws.measurement_sensorsSimple(pos=[0, 0, 0], los=[180, 0])
     ws.spectral_rad_transform_operatorSet(option="1")
     ws.jac_targetsInit()
     ws.jac_targetsAddSurface(target="t")
@@ -29,10 +29,10 @@ def check_kernel(option):
 
     seen = []
 
-    def forward(local):
-        nf = len(local.get("freq_grid"))
-        nx = local.get("jac_targets").x_size()
-        temperature = float(local.get("surf_field")["t"].data)
+    def forward(freq_grid, targets, pos, los, atm, surf, subsurf):
+        nf = len(freq_grid)
+        nx = targets.x_size()
+        temperature = float(surf["t"].data)
         seen.append((nx, temperature))
         if temperature == 7:
             raise RuntimeError("deliberate value-only failure")
@@ -41,20 +41,10 @@ def check_kernel(option):
         derivative = np.zeros((nx, nf, 4))
         if nx:
             derivative[0, :, 0] = 2 * temperature
-        local.get("spectral_rad").value = arts.StokvecVector(radiance)
-        local.get("spectral_rad_jac").value = arts.StokvecMatrix(derivative)
-        local.get("ray_path").clear()
-        local.get("ray_path").append(arts.PropagationPathPoint())
+        return (arts.StokvecVector(radiance), arts.StokvecMatrix(derivative),
+                arts.ArrayOfPropagationPathPoint([arts.PropagationPathPoint()]))
 
-    callback = arts.CallbackOperator(
-        forward,
-        ["freq_grid", "jac_targets", "surf_field"],
-        ["spectral_rad", "spectral_rad_jac", "ray_path"],
-    )
-    agenda = arts.Agenda("spectral_rad_observer_agenda")
-    agenda.add(arts.Method("analytical_radiance", callback))
-    agenda.finalize(True)
-    ws.spectral_rad_observer_agenda = agenda
+    ws.spectral_rad_observer_agendaSetOperator(f=forward)
 
     def evaluate(with_jacobian, temperature, offset, slope):
         ws.model_state_vec = [temperature, offset, slope]
@@ -100,13 +90,7 @@ def check_kernel(option):
     # Independently eliminate the offset from the normal equations for identity
     # covariances. The positive root of 3*T**3 - 67*T - 6 is the MAP minimum.
     for name in ("model_state_covmat", "measurement_vec_error_covmat"):
-        covariance = arts.CovarianceMatrix()
-        covariance.blocks = [
-            arts.Block(
-                arts.Range(0, 3), arts.Range(0, 3), (0, 0), arts.Matrix(np.eye(3))
-            )
-        ]
-        setattr(ws.oem, name, covariance)
+        setattr(ws.oem, name, arts.CovarianceMatrix(np.eye(3)))
     ws.oem.model_state_vec_apriori = [3, 2, 0.5]
     ws.oem.uncheck()
     ws.oem.model_state_vec = []
@@ -132,5 +116,5 @@ def check_kernel(option):
     )
 
 
-for kernel in ("LowMemory", "HighPerformance"):
+for kernel in ("LowMemory", "HighPerformance", "Indexed"):
     check_kernel(kernel)

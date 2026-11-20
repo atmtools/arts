@@ -30,22 +30,13 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
                                  Index                           local_jac_target,
                                  Numeric                         local_jac_step) {
   const AscendingGrid freq_grid{frequency};
-  PropmatVector       gas;
-  StokvecVector       src;
-  PropmatMatrix       gas_jac;
-  StokvecMatrix       src_jac;
-  spectral_propmat_agendaExecute(ws,
-                                 gas,
-                                 src,
-                                 gas_jac,
-                                 src_jac,
-                                 freq_grid,
-                                 Vector3{0.0, 0.0, 0.0},
-                                 jac_targets,
-                                 {},
-                                 point,
-                                 atm,
-                                 spectral_propmat_agenda);
+  SpectralPropmat     gas_pm;
+  spectral_propmat_agendaExecute(
+      ws, gas_pm, freq_grid, Vector3{0.0, 0.0, 0.0}, jac_targets, {}, point, atm, spectral_propmat_agenda);
+  PropmatVector&       gas     = gas_pm.K;
+  StokvecVector&       src     = gas_pm.nlte;
+  const PropmatMatrix& gas_jac = gas_pm.dK;
+  const StokvecMatrix& src_jac = gas_pm.dnlte;
 
   if (local_jac_target >= 0) {
     if (static_cast<Size>(local_jac_target) >= jac_targets.target_count())

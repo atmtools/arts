@@ -31,6 +31,9 @@ for error in errors:
 assert len(errors) == 0, (
     f"Found {len(errors)} signatures with remaining '::' in them.\n\n"
     "This means that there are missing type information when creating the python signature in the C++ bindings.\n\n"
-    "The types are not defined in the python interface.\n\n"
+    "The types are not defined in the python interface.  Two reasons that we have seen before for this are:  "
+    "1) the types are not bound (e.g., not using 'bind_vector', but using the 'std::vector<>' or 'Array<>'), "
+    "or 2) there is a missing include (e.g., one of the many '#include <nanobind/stl/XYZ.h>' is missing).  "
+    "There could be other reasons we are not aware of for this to happen.\n\n"
     f"Please investigate the above and correct these signatures.\nErrors:\n{msg}"
 )

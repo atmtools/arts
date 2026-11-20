@@ -73,7 +73,7 @@ void test_limb_finder(Size n) {
     path::set_geometric_extremes(x, atm_field, surf_field);
     path::fill_geometric_stepwise(x, surf_field, 10e3);
     path::keep_only_atm(x);
-    const Numeric computed_tangent_altitude = path::find_geometric_limb(x, surf_field).pos[0];
+    const Numeric computed_tangent_altitude = path::find_geometric_limb(x, surf_field)->pos[0];
     if (nonstd::abs(tangent_altitude - computed_tangent_altitude) > 1.0)
       arts::user_error(
           "More than 1 meter difference between set and estimated tangent altitude: {}"

@@ -208,7 +208,8 @@ ArrayOfPropagationPathPoint& fill_geometric_crossings(ArrayOfPropagationPathPoin
  * @param surf_field The surface field (as the WSV)
  * @return The geometric limb as a path point 
  */
-PropagationPathPoint find_geometric_limb(const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field);
+std::optional<PropagationPathPoint> find_geometric_limb(const ArrayOfPropagationPathPoint& path,
+                                                        const SurfaceField&                surf_field);
 
 /** Find the two intersections of a line with an ellipsoid at a given altitude
  * 

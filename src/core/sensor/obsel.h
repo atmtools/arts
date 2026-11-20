@@ -1,12 +1,10 @@
 #pragma once
 
-#include <enumsSensorKeyType.h>
 #include <matpack.h>
 #include <rtepack.h>
 #include <xml.h>
 
-#include <boost/container_hash/hash.hpp>
-#include <memory>
+#include <span>
 
 #include "matpack_mdspan_helpers_grid_t.h"
 
@@ -93,177 +91,53 @@ class SparseStokvecMatrix {
   [[nodiscard]] std::vector<SparseStokvec>::const_iterator end() const;
 
   explicit operator StokvecMatrix() const;
+
+  friend SparseStokvecMatrix embed(
+      SparseStokvecMatrix&& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
 };
 
-class Obsel {
-  //! Frequency grid, must be ascending
-  std::shared_ptr<const AscendingGrid> f{std::shared_ptr<const AscendingGrid>(new AscendingGrid{})};
+/** The weights are scaled by one common factor.
+ *
+ * After calling this method, the I of the summed weights is the I of pol.
+ * When either has no I, the magnitudes of their summed Q, U, and V agree
+ * instead.  The polarization of the weights is not changed, so it is an
+ * error to ask for a polarized pol when the weights have no polarization.
+ *
+ * @param w The weights to scale
+ * @param pol The summed weights to scale to. The default is [1, 0, 0, 0].
+ */
+void normalize(SparseStokvecMatrix& w, Stokvec pol = {1., 0., 0., 0.});
 
-  //! Position and line of sight grid of the sensor
-  std::shared_ptr<const PosLosVector> poslos{std::shared_ptr<const PosLosVector>(new PosLosVector{})};
+//! The weights of geometry ip dotted with i at every frequency, summed
+[[nodiscard]] Numeric sumup(const SparseStokvecMatrix& w, const Stokvec& i, Size ip);
 
-  //! poslos x frequency sparse matrix of Stokvec weights
-  SparseStokvecMatrix w{};
+//! The weights of geometry ip dotted with the spectral radiance i, summed
+[[nodiscard]] Numeric sumup(const SparseStokvecMatrix& w, const StokvecConstVectorView& i, Size ip);
 
- public:
-  Obsel();
-  Obsel(const Obsel&);
-  Obsel(Obsel&&) noexcept;
-  Obsel& operator=(const Obsel&);
-  Obsel& operator=(Obsel&&) noexcept;
+//! Adds the weights of geometry ip dotted with each row of the spectral radiance Jacobian j to out
+void sumup(VectorView out, const SparseStokvecMatrix& w, const StokvecConstMatrixView& j, Size ip);
 
-  Obsel(std::shared_ptr<const AscendingGrid> fs, std::shared_ptr<const PosLosVector> pl, SparseStokvecMatrix ws);
-  Obsel(const AscendingGrid& fs, const PosLosVector& pl, SparseStokvecMatrix ws);
+//! The weights w, all of one geometry, dotted with the spectral radiance i, summed
+[[nodiscard]] Numeric sumup(std::span<const SparseStokvec> w, const StokvecConstVectorView& i);
 
-  void check() const;
+//! Adds the weights w, all of one geometry, dotted with each row of the spectral radiance Jacobian j to out
+void sumup(VectorView out, std::span<const SparseStokvec> w, const StokvecConstMatrixView& j);
 
-  [[nodiscard]] bool same_freqs(const Obsel& other) const;
+/** The weights placed in a larger matrix of nrows by ncols
+ *
+ *  Row i moves to row i + row_offset, and column j to column col_map[j], which
+ *  must increase with j so the weights stay sorted.
+ */
+[[nodiscard]] SparseStokvecMatrix embed(
+    const SparseStokvecMatrix& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
 
-  [[nodiscard]] bool same_freqs(const AscendingGrid& other) const;
-
-  [[nodiscard]] bool same_freqs(const std::shared_ptr<const AscendingGrid>& other) const;
-
-  [[nodiscard]] bool same_poslos(const Obsel& other) const;
-
-  [[nodiscard]] bool same_poslos(const std::shared_ptr<const PosLosVector>& other) const;
-
-  [[nodiscard]] bool same_poslos(const PosLosVector& other) const;
-
-  [[nodiscard]] const auto& f_grid_ptr() const { return f; }
-  [[nodiscard]] const auto& poslos_grid_ptr() const { return poslos; }
-
-  [[nodiscard]] const AscendingGrid&       f_grid() const { return *f; }
-  [[nodiscard]] const PosLosVector&        poslos_grid() const { return *poslos; }
-  [[nodiscard]] const SparseStokvecMatrix& weight_matrix() const { return w; }
-
-  void set_f_grid_ptr(std::shared_ptr<const AscendingGrid> n);
-
-  void set_poslos_grid_ptr(std::shared_ptr<const PosLosVector> n);
-
-  void set_weight_matrix(SparseStokvecMatrix n);
-
-  //! Constant indicating that the frequency or poslos is not found in the grid
-  constexpr static Index dont_have = -1;
-
-  friend std::ostream& operator<<(std::ostream& os, const Obsel& obsel);
-
-  /** The weights are renormalized to the new value.
-   * 
-   * After calling this method, the sum of all weights dot-producted with the
-   * polarization will be equal to the new value.
-   *
-   * @param pol The polarization that is sampled for the sum. The default is [1, 0, 0, 0].
-   */
-  void normalize(Stokvec pol = {1., 0., 0., 0.});
-
-  [[nodiscard]] Numeric sumup(const Stokvec& i, Index ip) const;
-  [[nodiscard]] Numeric sumup(const StokvecVectorView& i, Index ip) const;
-  void                  sumup(VectorView out, const StokvecMatrixView& j, Index ip) const;
-
-  /** The geometric weight of each frequency at one poslos
-   *
-   * The weight of a polarization selector is the smallest total weight of
-   * physical receivers (|pol| <= I) whose signed sum gives it, that is
-   * max(|I|, sqrt(Q^2 + U^2 + V^2)).  This equals I for physical selectors,
-   * but is also positive for the pure Q, U, and V difference selectors, whose
-   * I weight is zero.  Use it to average scalar quantities over the sensor
-   * element independently of its polarization.
-   *
-   * @param out The weights [f_grid().size()]
-   * @param ip The poslos index
-   */
-  void geometry_weights(VectorView out, Index ip) const;
-
-  [[nodiscard]] Size   flat_size(const SensorKeyType& key) const;
-  void                 flat(VectorView x, const SensorKeyType& key) const;
-  [[nodiscard]] Vector flat(const SensorKeyType& key) const;
-
-  [[nodiscard]] Index find(const Vector3&, const Vector2&) const;
-  [[nodiscard]] Index find(const AscendingGrid& freq_grid) const;
-};
-
-std::ostream& operator<<(std::ostream& os, const Array<Obsel>& obsel);
+//! As embed above, but reusing the memory of w
+[[nodiscard]] SparseStokvecMatrix embed(
+    SparseStokvecMatrix&& w, Size nrows, Size ncols, Size row_offset, std::span<const Size> col_map);
 }  // namespace sensor
-
-struct SensorKey {
-  SensorKeyType type{};
-
-  Index sensor_elem{};
-
-  Index measurement_elem{};
-
-  bool operator==(const SensorKey& other) const;
-};
-
-template <> struct std::hash<SensorKey> {
-  static std::size_t operator()(const SensorKey& g) {
-    std::size_t seed = 0;
-    boost::hash_combine(seed, std::hash<SensorKeyType>{}(g.type));
-    boost::hash_combine(seed, std::hash<Index>{}(g.sensor_elem));
-    boost::hash_combine(seed, std::hash<Index>{}(g.measurement_elem));
-    return seed;
-  }
-};
-
-template <> struct std::formatter<SensorKey> {
-  format_tags tags{};
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const SensorKey& v, FmtContext& ctx) const {
-    return tags.format(ctx, v.type, tags.sep(), v.sensor_elem, tags.sep(), v.measurement_elem);
-  }
-};
 
 using SensorPosLos       = sensor::PosLos;
 using SensorPosLosVector = sensor::PosLosVector;
-using SensorObsel        = sensor::Obsel;
-using ArrayOfSensorObsel = Array<SensorObsel>;
-
-struct SensorSimulationsCache {
-  const AscendingGrid&      freq_grid;
-  const SensorPosLosVector& poslos_grid;
-  const Size                iposlos;
-};
-
-using SensorSimulations = std::vector<SensorSimulationsCache>;
-
-void unflatten(ArrayOfSensorObsel& sensor, const ConstVectorView& x, const SensorObsel& v, const SensorKeyType& key);
-
-/** Make the sensor obsels exhaustive.
- * 
- * Exhaustive means that all poslos and frequency points are present
- * in every obsel.  This generally makes sensors that have a small
- * continous grid of frequencies and mostly overlapping observation
- * geometries.
- * 
- * @param obsels An existing list of observation elements to make exhaustive
- */
-void make_exhaustive(std::span<SensorObsel> obsels);
-
-/** Make the sensor obsels exclusive.
- * 
- * Exclusive means that all observation elements are completely 
- * independent of each other.  This can improve simulation speed
- * when there are sparse number of grids or when the elements have
- * very different observation geometries.
- *  
- * @param obsels An existing list of observation elements to make exclusive
- */
-void make_exclusive(std::span<SensorObsel> obsels);
-
-void collect_frequency_grids(std::span<SensorObsel> obsels);
-
-std::vector<const AscendingGrid*> unique_frequency_grids(const std::span<const SensorObsel>& obsels);
-
-std::vector<const SensorPosLosVector*> unique_poslos_grids(const std::span<const SensorObsel>& obsels);
-
-SensorSimulations collect_simulations(const std::span<const SensorObsel>& obsels);
 
 template <> struct std::formatter<SensorPosLos> {
   format_tags tags{};
@@ -323,27 +197,6 @@ template <> struct std::formatter<sensor::SparseStokvecMatrix> {
   }
 };
 
-template <> struct std::formatter<SensorObsel> {
-  format_tags tags{};
-
-  [[nodiscard]] constexpr auto& inner_fmt() { return *this; }
-  [[nodiscard]] constexpr auto& inner_fmt() const { return *this; }
-
-  constexpr std::format_parse_context::iterator parse(std::format_parse_context& ctx) {
-    return parse_format_tags(tags, ctx);
-  }
-
-  template <class FmtContext> FmtContext::iterator format(const SensorObsel& v, FmtContext& ctx) const {
-    return tags.format(ctx,
-                       "Obsel:\n  frequency grid:           "sv,
-                       v.f_grid(),
-                       "\n  pos-los grid:                   "sv,
-                       v.poslos_grid(),
-                       "\n  weights:                        "sv,
-                       v.weight_matrix());
-  }
-};
-
 template <> struct xml_io_stream<SensorPosLos> {
   static constexpr std::string_view type_name = "SensorPosLos"sv;
 
@@ -354,14 +207,6 @@ template <> struct xml_io_stream<SensorPosLos> {
   static void put(std::span<const SensorPosLos> x, bofstream*);
   static void get(std::span<SensorPosLos> x, bifstream*);
   static void parse(std::span<SensorPosLos> x, std::istream&);
-};
-
-template <> struct xml_io_stream_name<SensorKey> {
-  static constexpr std::string_view name = "SensorKey"sv;
-};
-
-template <> struct xml_io_stream_aggregate<SensorKey> {
-  static constexpr bool value = true;
 };
 
 template <> struct xml_io_stream<sensor::SparseStokvec> {
@@ -388,23 +233,4 @@ template <> struct xml_io_stream<sensor::SparseStokvecMatrix> {
                     std::string_view                   name  = ""sv);
 
   static void read(std::istream& is, sensor::SparseStokvecMatrix& x, bifstream* pbifs = nullptr);
-};
-
-template <> struct xml_io_stream<SensorObsel> {
-  static constexpr std::string_view type_name = "SensorObsel"sv;
-
-  static void write(std::ostream& os, const SensorObsel& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
-
-  static void read(std::istream& is, SensorObsel& x, bifstream* pbifs = nullptr);
-};
-
-template <> struct xml_io_stream<ArrayOfSensorObsel> {
-  static constexpr std::string_view type_name = "ArrayOfSensorObsel"sv;
-
-  static void write(std::ostream&             os,
-                    const ArrayOfSensorObsel& x,
-                    bofstream*                pbofs = nullptr,
-                    std::string_view          name  = ""sv);
-
-  static void read(std::istream& is, ArrayOfSensorObsel& x, bifstream* pbifs = nullptr);
 };

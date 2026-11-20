@@ -6,6 +6,8 @@ import pickle
 import numpy as np
 import pyarts3 as pyarts
 
+from oem_synthetic_helper import workspace
+
 arts = pyarts.arts
 
 # Named diagnostics expose enum status, integer iterations, and owned history/messages.
@@ -146,86 +148,6 @@ def test_validation():
         initial_damping=200, maximum_damping=200)
     np.testing.assert_array_equal([getattr(changed, field) for field in FIELDS], [
                                   getattr(replacement, field) for field in FIELDS])
-
-
-def covariance(values):
-    matrix = arts.Matrix(values)
-    size = np.asarray(matrix).shape[0]
-    result = arts.CovarianceMatrix()
-    result.blocks = [
-        arts.Block(arts.Range(0, size), arts.Range(0, size), (0, 0), matrix)
-    ]
-    return result
-
-
-def workspace(nonlinear=False):
-    ws = pyarts.Workspace()
-    ws.oem = arts.OptimalEstimationData()
-    for variable, group in (
-        ("model_state_vec", arts.Vector),
-        ("measurement_vec_fit", arts.Vector),
-        ("measurement_jac", arts.Matrix),
-        ("atm_field", arts.AtmField),
-        ("abs_bands", arts.AbsorptionBands),
-        ("measurement_sensor", arts.ArrayOfSensorObsel),
-        ("surf_field", arts.SurfaceField),
-        ("subsurf_field", arts.SubsurfaceField),
-        ("jac_targets", arts.JacobianTargets),
-    ):
-        setattr(ws, variable, group())
-
-    # Only target dimensions are used by the synthetic forward model. Creating
-    # tiny temperature grids satisfies the public agenda's target-size checks.
-    size = 1 if nonlinear else 2
-    ws.surf_field.ellipsoid = [1, 1]
-    ws.atm_field[arts.AtmKey.t] = arts.GriddedField3(
-        name="Synthetic state metadata",
-        data=np.ones((size, 1, 1)),
-        grid_names=["Altitude", "Latitude", "Longitude"],
-        grids=[np.arange(size, dtype=float), [0], [0]],
-    )
-    ws.jac_targetsAddTemperature()
-    ws.jac_targetsFinalize()
-
-    if nonlinear:
-        ws.oem.model_state_vec = [0.1]
-        ws.oem.model_state_vec_apriori = [1]
-        ws.oem.measurement_vec = [4]
-        ws.oem.model_state_covmat = covariance([[4]])
-        ws.oem.measurement_vec_error_covmat = covariance([[0.25]])
-    else:
-        ws.oem.model_state_vec_apriori = [0.5, -0.25]
-        ws.oem.measurement_vec = [2, -1, 1.5]
-        ws.oem.model_state_covmat = covariance([[4, 1], [1, 2]])
-        ws.oem.measurement_vec_error_covmat = covariance(
-            [[1, 0.2, 0], [0.2, 2, 0.3], [0, 0.3, 0.5]]
-        )
-    jacobian = np.array([[1, 2], [2, -1], [1, 1]], dtype=float)
-
-    def forward(local):
-        state = np.asarray(local.get("model_state_vec"))
-        if nonlinear:
-            fit = np.array([state[0] ** 2])
-            derivative = np.array([[2 * state[0]]])
-        else:
-            fit = jacobian @ state + [0.25, -0.5, 1]
-            derivative = jacobian
-        if not local.get("jac_targets").x_size():
-            derivative = np.empty((0, 0))
-        # Preserve the existing output objects shared with the outer workspace.
-        local.get("measurement_vec_fit").value = arts.Vector(fit)
-        local.get("measurement_jac").value = arts.Matrix(derivative)
-
-    callback = arts.CallbackOperator(
-        forward,
-        ["model_state_vec", "jac_targets"],
-        ["measurement_vec_fit", "measurement_jac"],
-    )
-    agenda = arts.Agenda("inversion_iterate_agenda")
-    agenda.add(arts.Method("synthetic_forward_model", callback))
-    agenda.finalize(True)
-    ws.inversion_iterate_agenda = agenda
-    return ws
 
 
 def retrieve(method, settings, nonlinear=False, max_iter=40, stop_dx=1e-9):

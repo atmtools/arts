@@ -329,7 +329,9 @@ bool pressure_is_increasing(const std::span<const Point> &atm);
  * 
  * The atmospheric profile is defined between two iterators.  These
  * must be contiguous in memory with begin < end.
- * 
+ *
+ * The pressure is interpolated in logarithm, so it must be positive.
+ *
  * @param atm A span of atmospheric points
  * @param altitudes The altitude grid
  * @param altitude_extrapolation The way that extrapolation should be done

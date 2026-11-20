@@ -74,6 +74,9 @@ class Wsv {
   [[nodiscard]] Wsv shared() const { return *this; }
   [[nodiscard]] Wsv copied() const;
 
+  //! Copy-assign the value of x to the shared value of this, which must be of the same type
+  void assign(const Wsv& x) const;
+
   //! Write to an existing stream (only the type is written, nothing about Wsv)
   std::ostream& write_to_stream(std::ostream&, bofstream*, const std::string&) const;
 

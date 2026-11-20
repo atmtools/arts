@@ -1,8 +1,8 @@
 #pragma once
 
 #include <artstime.h>
-#include <enums.h>
 #include <enumsFieldComponent.h>
+#include <enumsHydrostaticPressureOption.h>
 #include <matpack.h>
 #include <xml.h>
 

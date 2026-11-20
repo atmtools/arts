@@ -57,15 +57,9 @@ void spectral_rad_pathClearskyEmission(const Workspace&                   ws,
   ArrayOfAscendingGrid freq_grid_path;
   ArrayOfVector3       freq_wind_shift_jac_path;
   freq_grid_pathFromPath(freq_grid_path, freq_wind_shift_jac_path, freq_grid, ray_path, atm_path);
-  ArrayOfPropmatVector spectral_propmat_path;
-  ArrayOfStokvecVector spectral_nlte_srcvec_path;
-  ArrayOfPropmatMatrix spectral_propmat_jac_path;
-  ArrayOfStokvecMatrix spectral_nlte_srcvec_jac_path;
+  ArrayOfSpectralPropmat spectral_propmat_path;
   spectral_propmat_pathFromPath(ws,
                                 spectral_propmat_path,
-                                spectral_nlte_srcvec_path,
-                                spectral_propmat_jac_path,
-                                spectral_nlte_srcvec_jac_path,
                                 spectral_propmat_agenda,
                                 freq_grid_path,
                                 freq_wind_shift_jac_path,
@@ -73,24 +67,10 @@ void spectral_rad_pathClearskyEmission(const Workspace&                   ws,
                                 ray_path,
                                 atm_path);
   TransmittanceMatrix spectral_tramat_path;
-  spectral_tramat_pathFromPath(spectral_tramat_path,
-                               spectral_propmat_path,
-                               spectral_propmat_jac_path,
-                               ray_path,
-                               atm_path,
-                               surf_field,
-                               {},
-                               rte_option,
-                               0);
+  spectral_tramat_pathFromPath(
+      spectral_tramat_path, spectral_propmat_path, ray_path, atm_path, surf_field, {}, rte_option, 0);
   SourceVector spectral_rad_srcvec_path;
-  spectral_rad_srcvec_pathFromPropmat(spectral_rad_srcvec_path,
-                                      spectral_propmat_path,
-                                      spectral_nlte_srcvec_path,
-                                      spectral_propmat_jac_path,
-                                      spectral_nlte_srcvec_jac_path,
-                                      freq_grid_path,
-                                      atm_path,
-                                      {});
+  spectral_rad_srcvec_pathFromPropmat(spectral_rad_srcvec_path, spectral_propmat_path, freq_grid_path, atm_path, {});
   spectral_rad_pathStepByStepEmissionForwardOnly(
       spectral_rad_path, spectral_tramat_path, spectral_rad_srcvec_path, spectral_rad_bkg);
 }

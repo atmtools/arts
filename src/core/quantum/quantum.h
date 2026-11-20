@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <enumsQuantumNumberType.h>
 #include <format_tags.h>
 #include <isotopologues.h>
 #include <mystring.h>

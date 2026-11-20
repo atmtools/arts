@@ -59,7 +59,7 @@ mag = {uf: mag_u, vf: mag_v, wf: mag_w}
 
 pos = [110e3, 0, 0]
 los = [160.0, 0.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 for fc in [uf, vf, wf]:
     ws.oemInit()

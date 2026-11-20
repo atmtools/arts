@@ -62,14 +62,7 @@ polarization_basis meridional_basis(const Vector3& k, const Vector3& h_pole);
  *  @param to   The basis of the output Stokes vector
  *  @return     The Mueller matrix taking the Stokes vector from one to the other
  */
-constexpr muelmat basis_rotation(const polarization_basis& from, const polarization_basis& to) {
-  const Vector3 k_from = cross(from.first, from.second), k_to = cross(to.first, to.second);
-  const Vector3 dk = k_from - k_to;
-  if (dot(dk, dk) > 1e-18)
-    arts::user_error("The polarization bases belong to different propagation directions, {} and {}", k_from, k_to);
-  const auto [c2, s2] = detail::rotation_angle(from, to);
-  return stokes_rotation(c2, s2);
-}
+muelmat basis_rotation(const polarization_basis& from, const polarization_basis& to);
 
 /** The rotations of a scattering-plane matrix to the bases of two rays
  *

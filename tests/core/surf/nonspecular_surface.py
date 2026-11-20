@@ -55,7 +55,7 @@ M_spec    = rtepack.fresnel_reflectance_specular(Rv, Rh, k_in_n, n_s)
 M_plain   = rtepack.fresnel_reflectance(Rv, Rh)
 
 # [0,0] element is (|Rv|^2 + |Rh|^2) / 2 regardless of geometry
-expected_00 = 0.5 * (abs(Rv)**2 + abs(Rh)**2)
+expected_00 = 0.585
 assert abs(float(M_nonspec[0, 0]) - expected_00) < 1e-12, (
     f"M_nonspec[0,0]={float(M_nonspec[0,0]):.6e} != {expected_00:.6e}"
 )
@@ -67,7 +67,7 @@ assert abs(float(M_plain[0, 0]) - expected_00) < 1e-12, (
 )
 
 # [1,0] and [0,1] measure polarisation difference: (|Rv|^2 - |Rh|^2) / 2
-expected_10 = 0.5 * (abs(Rv)**2 - abs(Rh)**2)
+expected_10 = 0.225
 assert abs(float(M_plain[1, 0]) - expected_10) < 1e-12, (
     f"M_plain[1,0]={float(M_plain[1,0]):.6e} != {expected_10:.6e}"
 )
@@ -174,29 +174,15 @@ source = np.array([1.0, 0.3, -0.2, 0.4])
 Rv5, Rh5 = complex(0.6, 0.1), complex(-0.7, 0.05)
 
 
-def enu_frame(lat_deg, lon_deg):
-    la, lo = np.deg2rad(lat_deg), np.deg2rad(lon_deg)
-    east = np.array([-np.sin(lo), np.cos(lo), 0.0])
-    north = np.array([-np.sin(la) * np.cos(lo), -np.sin(la) * np.sin(lo), np.cos(la)])
-    up = np.array([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)])
-    return east, north, up
-
-
-def to_ecef(frame, v):
-    return v[0] * frame[0] + v[1] * frame[1] + v[2] * frame[2]
-
-
-def to_enu(frame, v):
-    return np.array([v @ frame[0], v @ frame[1], v @ frame[2]])
-
-
 def local_scene(lat0):
     lats = lat0 + delta * np.arange(-2, 3)
     lons = delta * np.arange(-2, 3)
     field = pyarts.arts.GeodeticField2(
         name="h", grid_names=["Latitude", "Longitude"], grids=[lats, lons], data=np.zeros((5, 5)).tolist()
     )
-    frame = enu_frame(lat0, 0.0)
+    def to_ecef(v):
+        return np.array(pyarts.arts.geodetic.enu2ecef(v, lat0, 0.0))
+
     tilt, zenith, azimuth = np.deg2rad(75.0), np.deg2rad(30.0), np.deg2rad(120.0)
     n_enu = np.array([0.0, np.sin(tilt), np.cos(tilt)])
     k_out_enu = np.array([np.sin(zenith) * np.sin(azimuth), np.sin(zenith) * np.cos(azimuth), np.cos(zenith)])
@@ -209,8 +195,8 @@ def local_scene(lat0):
             Rh5,
             pyarts.arts.Vector2([lat0, 0.0]),
             100.0,
-            pyarts.arts.Vector3(to_ecef(frame, n_enu)),
-            pyarts.arts.Vector3(to_ecef(frame, k_out_enu)),
+            pyarts.arts.Vector3(to_ecef(n_enu)),
+            pyarts.arts.Vector3(to_ecef(k_out_enu)),
             sphere,
             field,
         )
@@ -219,18 +205,17 @@ def local_scene(lat0):
 
     # The reflection by the facet that turns the patch's ray into k_out, with every
     # direction in P's east-north-up frame, and with them in ECEF
-    pos_P = (R_planet + 100.0) * frame[2]
-    up_j = enu_frame(lats[3], 0.0)[2]
-    k_inc = pos_P - R_planet * up_j
+    pos_P = np.array(pyarts.arts.geodetic.geodetic2ecef([100.0, lat0, 0.0], sphere))
+    k_inc = pos_P - np.array(pyarts.arts.geodetic.geodetic2ecef([0.0, lats[3], 0.0], sphere))
     k_inc /= np.linalg.norm(k_inc)
-    k_inc_enu = to_enu(frame, k_inc)
+    k_inc_enu = np.array(pyarts.arts.geodetic.ecef2enu(k_inc, lat0, 0.0))
     facet = (k_out_enu - k_inc_enu) / np.linalg.norm(k_out_enu - k_inc_enu)
     local = np.array(
         rtepack.fresnel_reflectance_nonspecular(Rv5, Rh5, k_inc_enu, k_out_enu, facet)
     ) @ source
     earth_axis = np.array(
         rtepack.fresnel_reflectance_nonspecular(
-            Rv5, Rh5, k_inc, to_ecef(frame, k_out_enu), to_ecef(frame, facet)
+            Rv5, Rh5, k_inc, to_ecef(k_out_enu), to_ecef(facet)
         )
     ) @ source
     return L / L[0], local / local[0], earth_axis / earth_axis[0]

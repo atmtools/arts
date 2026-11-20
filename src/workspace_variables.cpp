@@ -234,7 +234,7 @@ the paths cover, and NaN for gates that no path reaches.
   wsv_data["radar_range_limits"] = {
       .desc = R"--(Range-gate limits for active-radar measurements.
 
-The matrix has one row per element of *measurement_sensor* and two columns
+The matrix has one row per element of *measurement_sensors* and two columns
 holding the lower and upper edge.  The coordinate represented by the limits is
 selected by the radar forward method (altitude, one-way distance, or
 round-trip time).
@@ -358,6 +358,17 @@ For more information, see :doc:`user.atm_field`.
       .inner_dims = {"NFREQ"},
   };
 
+  wsv_data["freq_grid_profile"] = {
+      .desc = R"--(The frequency grid of a propagation profile.
+
+It is *freq_grid* with points added beyond both ends, so that the profile
+also covers the frequencies that the wind shifts *freq_grid* to along a path.
+See *ProfileFromAltitude*.
+)--",
+      .type = "AscendingGrid",
+      .dims = {"NFREQ_PROFILE"},
+  };
+
   wsv_data["freq_wind_shift_jac"] = {
       .desc =
           R"--(The frequency wind shift Jacobian.
@@ -409,77 +420,6 @@ The order is
       .dims = {"NALT", "NFREQ"},
   };
 
-  wsv_data["spectral_nlte_srcvec"] = {
-      .desc =
-          R"--(The part of the source vector that is due to non-LTE.
-
-This is closely related to *spectral_propmat*.
-
-Given the level source term:
-
-.. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
-
-this variable holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
-column of :math:`\mathbf{K}`, which is from the *spectral_propmat* variable.
-:math:`B` is the Planck function.  The ellipsis denotes other terms that can
-come from more sources, such as scattering and/or transmitting equipment.
-
-The unit is in *spectral_rad* per meter.
-)--",
-      .type = "StokvecVector",
-      .dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_nlte_srcvec* with regards to *jac_targets*.
-
-The units are *spectral_rad_jac* per meter.
-)--",
-      .type = "StokvecMatrix",
-      .dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac_path"] = {
-      .desc       = R"--(Additional non-LTE derivative along the propagation path
-)--",
-      .type       = "ArrayOfStokvecMatrix",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_jac_profile"] = {
-      .desc       = R"--(Additional non-LTE derivative in a propagation profile
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfStokvecMatrix",
-      .dims       = {"NALT"},
-      .inner_dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_path"] = {
-      .desc       = R"--(Additional non-LTE along the propagation path
-)--",
-      .type       = "ArrayOfStokvecVector",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_nlte_srcvec_profile"] = {
-      .desc       = R"--(Additional non-LTE in a propagation profile
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfStokvecVector",
-      .dims       = {"NALT"},
-      .inner_dims = {"NFREQ"},
-  };
-
   wsv_data["spectral_phamat_spectral"] = {
       .desc =
           R"--(The spectral phase matrix of totally random orientation particles at a single point along a path using spectral representation
@@ -502,69 +442,53 @@ Each element is the coefficient on the orthonormal Y_l0 of the scattering-plane 
 
   wsv_data["spectral_propmat"] = {
       .desc =
-          R"--(This contains the fully polarized propagation matrix for the current path point.
+          R"--(The propagation of the current path point: the propagation matrix, the non-LTE source and their derivatives.
 
-The propagation matrix can be used to computed the transmission matrix as:
+The propagation matrix, ``K``, is fully polarized.  It can be used to compute the transmission matrix as:
 
 .. math:: \mathbf{T} = \exp\left(-\mathbf{K} r\right),
 
 where :math:`\mathbf{K}` is the propagation matrix, and :math:`r` is some distance
-over which it is considered constant.
+over which it is considered constant.  The unit is [1 / m].
 
-The unit is [1 / m].
+The non-LTE source, ``nlte``, is the part of the source vector that is due to non-LTE.
+Given the level source term:
+
+.. math:: \vec{J} = \mathbf{K}^{-1} \left(\vec{\alpha}B + \vec{J}_n + \cdots\right),
+
+it holds :math:`\vec{J}_n`.  Here, :math:`\vec{\alpha}` is the first
+column of :math:`\mathbf{K}` and :math:`B` is the Planck function.  The ellipsis
+denotes other terms that can come from more sources, such as scattering and/or
+transmitting equipment.  The unit is in *spectral_rad* per meter.
+
+The derivatives, ``dK`` and ``dnlte``, are the partial derivatives of the two with
+regards to *jac_targets*.  Their units are those above per unit of the target.
+
+There is a non-LTE source only if ``nlte_on`` is true, see *SpectralPropmat*.
 )--",
-      .type = "PropmatVector",
-      .dims = {"NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac"] = {
-      .desc =
-          R"--(Partial derivative of the *spectral_propmat* with regards to *jac_targets*.
-
-The units depend on what is set in *jac_targets* [1 / m / jacobian target's unit].
-)--",
-      .type = "PropmatMatrix",
-      .dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac_path"] = {
-      .desc       = R"--(Propagation derivative matrices along the propagation path
-)--",
-      .type       = "ArrayOfPropmatMatrix",
-      .dims       = {"NPATH"},
-      .inner_dims = {"NTARGET", "NFREQ"},
-  };
-
-  wsv_data["spectral_propmat_jac_profile"] = {
-      .desc       = R"--(Propagation derivative matrices in a propagation profile
-
-.. note::
-    Polarization is considered but if the profile is polarized,
-    using it in anyways will yield invalid results.
-)--",
-      .type       = "ArrayOfPropmatMatrix",
-      .dims       = {"NALT"},
-      .inner_dims = {"NTARGET", "NFREQ"},
+      .type = "SpectralPropmat",
+      .dims = {"NFREQ", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_path"] = {
-      .desc       = R"--(Propagation matrices along the propagation path
+      .desc       = R"--(The propagation along the propagation path, as *spectral_propmat* for each point
 )--",
-      .type       = "ArrayOfPropmatVector",
+      .type       = "ArrayOfSpectralPropmat",
       .dims       = {"NPATH"},
-      .inner_dims = {"NFREQ"},
+      .inner_dims = {"NFREQ", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_profile"] = {
-      .desc       = R"--(Propagation matrices in a propagation profile
+      .desc =
+          R"--(The propagation in a propagation profile, as *spectral_propmat* for each altitude, on *freq_grid_profile*
 
 .. note::
     Polarization is considered but if the profile is polarized,
     using it in anyways will yield invalid results.
 )--",
-      .type       = "ArrayOfPropmatVector",
+      .type       = "ArrayOfSpectralPropmat",
       .dims       = {"NALT"},
-      .inner_dims = {"NFREQ"},
+      .inner_dims = {"NFREQ_PROFILE", "NTARGET"},
   };
 
   wsv_data["spectral_propmat_scat"] = {
@@ -849,7 +773,7 @@ position in the target count, as well as the number of parameters
 it contributes to the *model_state_vec*.  It must know these
 things because it is able to map data between the *model_state_vec*
 and the actual model field, e.g., the *atm_field*, the *surf_field*,
-the *subsurf_field*, the *abs_bands*, the *measurement_sensor*, etc.
+the *subsurf_field*, the *abs_bands*, the *measurement_sensors*, etc.
 )--",
       .type          = "JacobianTargets",
       .default_value = " ",
@@ -906,7 +830,7 @@ This is otherwise the same as *measurement_jac*.  See it for more details.
 
 This is the core variable describing the measured data, or the model of measured data.  It is the vector that is used in the inversion process to retrieve a model state vector.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 The notation in ARTS, for the purpose of *oemCalc*, is that
 
@@ -933,7 +857,7 @@ These are:
   wsv_data["measurement_vec_error"] = {
       .desc = R"(The error *measurement_vec*.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 See *measurement_vec* for more details.
 In that notation, this is :math:`\vec{y}_\epsilon`.
@@ -952,7 +876,7 @@ In that notation, this is :math:`\vec{y}_\epsilon`.
   wsv_data["measurement_vec_fit"] = {
       .desc          = R"(As *measurement_vec*, but fitted to the model.
 
-This must often be the same size as *measurement_sensor*.
+This must often be the same size as *measurement_sensors*.
 
 See *measurement_vec* for more details.
 In that notation, and in the notation of *oemCalc*,
@@ -1096,40 +1020,17 @@ Units: degrees
 
   //! Sensors
 
-  wsv_data["measurement_sensor"] = {
-      .desc = R"(A list of sensor elements that fully describe one or more observing sensor(s).
+  wsv_data["measurement_sensors"] = {
+      .desc = R"(A list of sensors that fully describe the measurement.
 
-Size is number of elements of the sensor(s).  These should correspond to what the
-sensor actually measures, e.g., the number of channels in a spectrometer,
-separate elements as a function of polarization, time, etc.
-
-The frequency grid is shared between multiple sensor elements, so that the frequency grid
-identifies a sensor.  Two sensor elements are considered to be from the same sensor if they
-share the same frequency grid.  This is important for the inversion process,
-as it is used to determine how to compute the *measurement_jac* and *measurement_vec_error_covmat*.
-See *measurement_sensor_meta* for more information about how the sensor elements are structured.
-
-The size of this variable should be the same as *measurement_vec*.
+Each *Sensor* has one frequency grid and one list of geometries, at which the
+radiance is simulated, and a list of observation elements that weight that
+radiance into the values of the measurement.  The elements of the sensors, in
+order, are the elements of *measurement_vec*.  A sensor is the unit of the
+sensor parameters of the inversion process: a sensor Jacobian target changes
+the frequency grid or the geometries of one sensor.
 )",
-      .type = "ArrayOfSensorObsel",
-      .dims = {"NMEAS"},
-  };
-
-  wsv_data["measurement_sensor_meta"] = {
-      .desc = R"(Metadata describing each sensor's block in *measurement_vec*.
-
-Each element corresponds to one ``measurement_sensorAdd*`` call and
-describes how its contiguous block of *measurement_sensor* /
-*measurement_vec* entries maps to a structured gridded field.
-
-The start index of each block is not stored explicitly; it is the
-cumulative sum of ``count()`` from preceding elements.
-
-An entry can carry the observation time of its block. This is used to retain
-the acquisition-time grouping independently of the flattened measurement
-vector ordering.
-)",
-      .type = "ArrayOfSensorMetaInfo",
+      .type = "ArrayOfSensor",
   };
 
   //! Solar input
@@ -1353,7 +1254,7 @@ See *spectral_propmat* for more information.
       .desc =
           R"--(A non-LTE source vector Jacobian at a single *freq* point.
 
-See *spectral_propmat_jac* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "StokvecVector",
       .dims = {"NTARGET"},
@@ -1371,7 +1272,7 @@ See *spectral_propmat* for more information.
       .desc =
           R"--(A propagation matrix Jacobian at a single *freq* point.
 
-See *spectral_propmat_jac* for more information.
+See *spectral_propmat* for more information.
 )--",
       .type = "PropmatVector",
       .dims = {"NTARGET"},

@@ -276,6 +276,29 @@ bool is_ellipsoid_spherical(Vector2 ellipsoid);
 */
 Vector3 los2enu(Vector2 los);
 
+/** Rotates an ECEF direction to the local east-north-up frame
+
+    The frame is that of the geodetic latitude and longitude, with up along
+    the ellipsoid normal.
+
+    @param[in]  decef  A direction in ECEF (dx,dy,dz)
+    @param[in]  lat    Geodetic latitude [deg]
+    @param[in]  lon    Longitude [deg]
+    @return     The direction in ENU (de,dn,du)
+*/
+Vector3 ecef2enu(Vector3 decef, Numeric lat, Numeric lon);
+
+/** Rotates a direction in the local east-north-up frame to ECEF
+
+    The inverse of ecef2enu.
+
+    @param[in]  enu  A direction in ENU (de,dn,du)
+    @param[in]  lat  Geodetic latitude [deg]
+    @param[in]  lon  Longitude [deg]
+    @return     The direction in ECEF (dx,dy,dz)
+*/
+Vector3 enu2ecef(Vector3 enu, Numeric lat, Numeric lon);
+
 /** Reverses a line-of-sight
 
     The new LOS is the one for going in the beckward direction.

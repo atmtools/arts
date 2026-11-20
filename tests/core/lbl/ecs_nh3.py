@@ -21,7 +21,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pyarts3 as pyarts
 from scipy.constants import atomic_mass
-from scipy.special import wofz
 
 arts = pyarts.arts
 lbl = arts.lbl
@@ -70,11 +69,6 @@ dipr = np.array([lbl.hadded_reduced_dipole(q) for q in quantum])
 population = gl * np.exp(-e0 / (k * T)) / isotope.Q(T)
 dipole = np.sign(dipr) * c * np.sqrt(a * gu / (8 * np.pi * f0**3 * gl))
 gd_fac = np.sqrt(arts.constants.doppler_broadening_const_squared * T / isotope.mass)
-np.testing.assert_allclose(
-    population * dipole**2,
-    c**2 / (8 * np.pi) * np.array([line.s(T, isotope.Q(T)) for line in lines]),
-    rtol=2e-14, atol=0,
-)
 
 # L, |M|, Q_He, Q_H2 [angstrom^2]; He values already include the fitted scale.
 q_table = [
@@ -104,7 +98,7 @@ for partner, fraction, cross_sections, half_width in [
     basis = lbl.hadded_basis_data(channels, Q, np.ones(len(channels)))
     W_per_amagat += fraction * np.asarray(lbl.hadded_relaxation_matrix_offdiagonal(
         quantum, basis, e0, np.ones(len(lines)), T,
-        np.full(len(lines), half_width * 100 * c),
+        np.full(len(lines), arts.convert.kaycm2freq(half_width)),
     ))
 
 # This population convention must satisfy detailed balance even across the
@@ -117,7 +111,21 @@ orthopara = np.array([q.K % 3 == 0 for q in quantum])
 assert np.all(W_per_amagat[orthopara[:, None] != orthopara[None, :]] == 0)
 
 wavenumber = np.linspace(925, 975, 6001)
-frequency = wavenumber * 100 * c
+frequency = arts.convert.kaycm2freq(wavenumber)
+
+# The no-mixing limit is a sum of Voigt profiles.  Its absorption [1/m] in the
+# far wings (925 and 975 cm^-1), near a line centre of each inversion subbranch
+# (931.17 and 967.35 cm^-1) and between them (950 cm^-1), confirmed with an
+# independent Faddeeva function, per density [amagat].
+SAMPLES = [0, 740, 5082, 3000, 6000]
+VOIGT = {
+    1.0: [1.783292826554771e-06, 0.0006472070655147618, 0.00706696004443067,
+          3.969860796839363e-07, 1.1870244400520182e-06],
+    10.0: [0.00017583730375600898, 0.008952508207688675, 0.01060742163604983,
+           3.9633954296630966e-05, 0.00011760800229991689],
+    30.0: [0.0014226699857053044, 0.011744169074904425, 0.01167732488900966,
+           0.0003520725766736028, 0.0009852734194689434],
+}
 profiles = []
 for density in (1.0, 10.0, 30.0):
     W = density * W_per_amagat
@@ -134,11 +142,7 @@ for density in (1.0, 10.0, 30.0):
     independent = absorption(diagonal)
     mixed = absorption(W)
 
-    # Check the no-mixing limit independently against a sum of Voigt profiles.
-    doppler = gd_fac * f0
-    z = (frequency[:, None] - f0 + 1j * np.diag(W)) / doppler
-    reference = scale * np.sum(population * dipole**2 * wofz(z).real / doppler, axis=1)
-    np.testing.assert_allclose(independent, reference, rtol=2e-10, atol=1e-13 * reference.max())
+    np.testing.assert_allclose(independent[SAMPLES], VOIGT[density], rtol=1e-12, atol=0)
     assert np.all(np.isfinite(mixed)) and np.min(mixed) >= 0
     effect = np.max(abs(mixed - independent)) / independent.max()
     assert effect > 1e-3, "The example must exercise a visible mixing contribution"

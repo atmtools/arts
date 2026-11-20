@@ -3,28 +3,6 @@ import numpy as np
 from pyarts3 import arts
 
 
-def _expected_fresnel_matrix(Rv: complex, Rh: complex) -> np.ndarray:
-    rv = np.abs(Rv) ** 2
-    rh = np.abs(Rh) ** 2
-    rmean = 0.5 * (rv + rh)
-    rdiff = 0.5 * (rv - rh)
-    a = Rh * np.conjugate(Rv)
-    b = Rv * np.conjugate(Rh)
-    c = 0.5 * np.real(a + b)
-    d = 0.5 * np.imag(a - b)
-
-    expected = np.zeros((4, 4), dtype=np.float64)
-    expected[0, 0] = rmean
-    expected[1, 0] = rdiff
-    expected[0, 1] = rdiff
-    expected[1, 1] = rmean
-    expected[2, 2] = c
-    expected[2, 3] = d
-    expected[3, 2] = -d
-    expected[3, 3] = c
-    return expected
-
-
 def _to_array(value) -> np.ndarray:
     return np.asarray(value)
 
@@ -37,7 +15,15 @@ Rv = 0.3 + 0.2j
 Rh = -0.1 + 0.7j
 
 actual = _to_array(arts.rtepack.fresnel_reflectance(Rv, Rh))
-expected = _expected_fresnel_matrix(Rv, Rh)
+# |Rv|^2 = 0.13, |Rh|^2 = 0.5 and Rh conj(Rv) = 0.11 + 0.23j
+expected = np.array(
+    [
+        [0.315, -0.185, 0.0, 0.0],
+        [-0.185, 0.315, 0.0, 0.0],
+        [0.0, 0.0, 0.11, 0.23],
+        [0.0, 0.0, -0.23, 0.11],
+    ]
+)
 
 print("Fresnel reflectance matrix (expected):\n", expected)
 print("Fresnel reflectance matrix (actual):\n", actual)
@@ -73,7 +59,15 @@ k_inc = [0.0, 0.0, -1.0]
 specular = _to_array(
     arts.rtepack.fresnel_reflectance_specular(Rv, Rh, k_inc, n_surface)
 )
-fresnel = _expected_fresnel_matrix(Rv, Rh)
+# |Rv|^2 = 0.25, |Rh|^2 = 0.26 and Rh conj(Rv) = 0.19 + 0.17j
+fresnel = np.array(
+    [
+        [0.255, -0.005, 0.0, 0.0],
+        [-0.005, 0.255, 0.0, 0.0],
+        [0.0, 0.0, 0.19, 0.17],
+        [0.0, 0.0, -0.17, 0.19],
+    ]
+)
 
 # On a flat surface the planes of incidence and the meridional planes coincide, so the
 # reflection between the meridional bases of the two rays is the Fresnel matrix itself

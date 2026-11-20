@@ -60,6 +60,17 @@ macro (SETUP_ARTS_CAT_DATA)
       message(STATUS "Found arts-cat-data in ${ARTS_CAT_DATA_DIR}")
     endif()
   endif ()
+
+  # The arts-cat-data files that the code generators read when compiling ARTS.
+  # A generator that reads any of them depends on all of them, so that adding,
+  # removing or changing such a file regenerates the code.
+  file(GLOB ARTS_CAT_DATA_COMPILE_FILES
+       CONFIGURE_DEPENDS
+       ${ARTS_CAT_DATA_DIR}/species/*.xml
+       ${ARTS_CAT_DATA_DIR}/isotopologues/*.xml
+       ${ARTS_CAT_DATA_DIR}/partition-functions/*.xml
+       ${ARTS_CAT_DATA_DIR}/hitran/*.xml
+       ${ARTS_CAT_DATA_DIR}/jpl/*.xml)
 endmacro ()
 
 

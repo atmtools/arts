@@ -310,7 +310,7 @@ void disort_test01(void)
 
     DTAUC(1) = UTAU(2);
 
-    sprintf(ds.header,"Test Case No. 1%.1s:  Isotropic Scattering, Ref. VH1, Table 12:  b =%9.5f, a =%5.2f",abc+icas-1,UTAU(2),SSALB(1));
+    snprintf(ds.header, sizeof(ds.header),"Test Case No. 1%.1s:  Isotropic Scattering, Ref. VH1, Table 12:  b =%9.5f, a =%5.2f",abc+icas-1,UTAU(2),SSALB(1));
 
     c_disort_out_alloc(&ds,&out);
     c_disort(&ds,&out);
@@ -455,7 +455,7 @@ void disort_test02(void)
         break;
       }
 
-      sprintf(ds.header,"Test Case No. 2%.1s, Rayleigh Scattering, Ref. SW, Table 1:  tau =%5.2f, mu0 =%9.6f, ss-albedo =%4.2f",
+      snprintf(ds.header, sizeof(ds.header),"Test Case No. 2%.1s, Rayleigh Scattering, Ref. SW, Table 1:  tau =%5.2f, mu0 =%9.6f, ss-albedo =%4.2f",
                         abc+icas-1,UTAU(2),ds.bc.umu0,SSALB(1));
 
       c_disort_out_alloc(&ds,&out);
@@ -581,7 +581,7 @@ void disort_test03(void)
 
     DTAUC(1) = UTAU(2);
 
-    sprintf(ds.header,"Test Case No. 3%.1s, Henyey-Greenstein Scattering, Ref. VH2, Table 37, g = %3.2f, b =%9.5f, a =%5.2f",
+    snprintf(ds.header, sizeof(ds.header),"Test Case No. 3%.1s, Henyey-Greenstein Scattering, Ref. VH2, Table 37, g = %3.2f, b =%9.5f, a =%5.2f",
                       abc+icas-1,gg,UTAU(2),SSALB(1));
 
     c_disort_out_alloc(&ds,&out);
@@ -655,7 +655,7 @@ void disort_test04(void)
   ds.flag.brdf_type = BRDF_NONE;
 
   for (icas = 1; icas <= ncase; icas++) {
-    sprintf(title,"Test Case No. 4%.1s, Haze-L Scattering, Ref. GS, Table ",abc+icas-1);
+    snprintf(title, sizeof(title),"Test Case No. 4%.1s, Haze-L Scattering, Ref. GS, Table ",abc+icas-1);
     switch(icas) {
       case 1:
         ds.nphi = 1;
@@ -684,7 +684,7 @@ void disort_test04(void)
         PHI(1)   = 0.0;
 
         ds.bc.umu0  = 1.0;
-        sprintf(ds.header,"%s 12",title);
+        snprintf(ds.header, sizeof(ds.header),"%s 12",title);
 
         /* Correct answers */
         good.rad[0].rfldir=3.14159,    good.rad[1].rfldir=1.90547,    good.rad[2].rfldir=1.15573;
@@ -722,7 +722,7 @@ void disort_test04(void)
         PHI(1)   = 0.0;
 
         ds.bc.umu0  = 1.0;
-        sprintf(ds.header,"%s 13",title);
+        snprintf(ds.header, sizeof(ds.header),"%s 13",title);
 
         /* Correct answers */
         good.rad[0].rfldir=3.14159,    good.rad[1].rfldir=1.90547,    good.rad[2].rfldir=1.15573;
@@ -763,7 +763,7 @@ void disort_test04(void)
         PHI(3)   = 180.0;
 
         ds.bc.umu0  =   0.5;
-        sprintf(ds.header,"%s 14-16",title);
+        snprintf(ds.header, sizeof(ds.header),"%s 14-16",title);
 
         /* Correct answers */
         good.rad[0].rfldir=1.57080,    good.rad[1].rfldir=5.77864E-01,good.rad[2].rfldir=2.12584E-01;
@@ -868,14 +868,14 @@ void disort_test05(void)
   ds.bc.fluor  =  0.;
 
   for (icas = 1; icas <= ncase; icas++) {
-    sprintf(title,"Test Case No. 5%.1s, Cloud C.1 Scattering, Ref. GS, Table ",abc+icas-1);
+    snprintf(title, sizeof(title),"Test Case No. 5%.1s, Cloud C.1 Scattering, Ref. GS, Table ",abc+icas-1);
     switch(icas) {
       case 1:
         UTAU(1)  =  0.0;
         UTAU(2)  = 32.0;
         UTAU(3)  = 64.0;
         SSALB(1) =  1.0;
-        sprintf(ds.header,"%s 19",title);
+        snprintf(ds.header, sizeof(ds.header),"%s 19",title);
 
         /* Correct answers */
         good.rad[0].rfldir=3.14159,good.rad[1].rfldir=3.97856E-14,good.rad[2].rfldir=5.03852E-28;
@@ -891,7 +891,7 @@ void disort_test05(void)
         UTAU(2)  = 12.8;
         UTAU(3)  = 48.0;
         SSALB(1) =  0.9;
-        sprintf(ds.header,"%s 20",title);
+        snprintf(ds.header, sizeof(ds.header),"%s 20",title);
 
         /* Correct answers */
         good.rad[0].rfldir=1.28058E-01,good.rad[1].rfldir=8.67322E-06,good.rad[2].rfldir=4.47729E-21;
@@ -977,7 +977,7 @@ void disort_test06(void)
   ds.flag.brdf_type = BRDF_NONE;
 
   for (icas = 1; icas <= ncase; icas++) {
-    sprintf(title,"Test Case No. 6%.1s: No Scattering; Source = Beam",abc+icas-1);
+    snprintf(title, sizeof(title),"Test Case No. 6%.1s: No Scattering; Source = Beam",abc+icas-1);
 
     switch(icas) {
       case 1:
@@ -1009,7 +1009,7 @@ void disort_test06(void)
         DTAUC(1)  = 0.;
         ds.bc.albedo = 0.;
 
-        sprintf(ds.header,"%s; Bottom Albedo = %.0f",title,ds.bc.albedo);
+        snprintf(ds.header, sizeof(ds.header),"%s; Bottom Albedo = %.0f",title,ds.bc.albedo);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,good.rad[1].rfldir=100.,
@@ -1048,7 +1048,7 @@ void disort_test06(void)
 
         DTAUC(1) = 1.0;
 
-        sprintf(ds.header,"%s; Bottom Albedo = %.0f",title,ds.bc.albedo);
+        snprintf(ds.header, sizeof(ds.header),"%s; Bottom Albedo = %.0f",title,ds.bc.albedo);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1091,7 +1091,7 @@ void disort_test06(void)
 	ds.flag.brdf_type = BRDF_HAPKE;
         ds.bc.albedo = .5;
 
-        sprintf(ds.header,"%s; Bottom Albedo=%3.1f Lambert",title,ds.bc.albedo);
+        snprintf(ds.header, sizeof(ds.header),"%s; Bottom Albedo=%3.1f Lambert",title,ds.bc.albedo);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1131,7 +1131,7 @@ void disort_test06(void)
 
         DTAUC(1) = 1.;
 
-        sprintf(ds.header,"%s; Bottom Albedo = Non-Lambert",title);
+        snprintf(ds.header, sizeof(ds.header),"%s; Bottom Albedo = Non-Lambert",title);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1176,7 +1176,7 @@ void disort_test06(void)
 
         ds.bc.ttemp  =   0.;
         ds.bc.btemp  = 300.;
-        sprintf(ds.header,"%s, Bottom Emission; Bott Alb = Non-Lambert",title);
+        snprintf(ds.header, sizeof(ds.header),"%s, Bottom Emission; Bott Alb = Non-Lambert",title);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1222,7 +1222,7 @@ void disort_test06(void)
         ds.bc.fisot  = 100./M_PI;
         ds.bc.ttemp  = 250.;
         ds.bc.btemp  = 300.;
-        sprintf(ds.header,"%s, Bottom+Top Emission; Bott Alb = Non-Lambert",title);
+        snprintf(ds.header, sizeof(ds.header),"%s, Bottom+Top Emission; Bott Alb = Non-Lambert",title);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1267,7 +1267,7 @@ void disort_test06(void)
 
         ds.bc.ttemp  = 250.;
         ds.bc.btemp  = 300.;
-        sprintf(ds.header,"%s, Bottom+Top+Internal Emission; Bott Alb = Non-Lambert",title);
+        snprintf(ds.header, sizeof(ds.header),"%s, Bottom+Top+Internal Emission; Bott Alb = Non-Lambert",title);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir= 1.35335E+01;
@@ -1312,7 +1312,7 @@ void disort_test06(void)
 
         ds.bc.ttemp  = 250.0;
         ds.bc.btemp  = 300.0;
-        sprintf(ds.header,"%s, Bottom+Top+Internal Emission; Bott Alb = Non-Lambert",title);
+        snprintf(ds.header, sizeof(ds.header),"%s, Bottom+Top+Internal Emission; Bott Alb = Non-Lambert",title);
 
         /* Correct answers */
         good.rad[0].rfldir=100.,       good.rad[1].rfldir=1.35335E+01,good.rad[2].rfldir= 2.06115E-07;
@@ -1378,7 +1378,7 @@ void disort_test07(void)
   ds.flag.brdf_type = BRDF_NONE;
 
   for (icas = 1; icas <= ncase; icas++) {
-    sprintf(title,"Test Case No. 7%.1s",abc+icas-1);
+    snprintf(title, sizeof(title),"Test Case No. 7%.1s",abc+icas-1);
     switch(icas) {
       case 1:
         ds.flag.ibcnd  = GENERAL_BC;
@@ -1431,7 +1431,7 @@ void disort_test07(void)
         ds.bc.btemp    =   0.;
         ds.bc.temis    =   1.;
 	ds.bc.fluor    =   0.;
-        sprintf(ds.header,"%s: Absorption + Scattering, Internal Thermal Sources; Ref. KS, Table I, tau = %3.1f, a = %3.1f, g = %4.2f",
+        snprintf(ds.header, sizeof(ds.header),"%s: Absorption + Scattering, Internal Thermal Sources; Ref. KS, Table I, tau = %3.1f, a = %3.1f, g = %4.2f",
                title,DTAUC(1),SSALB(1),gg);
 
         /* Correct answers */
@@ -1485,7 +1485,7 @@ void disort_test07(void)
         ds.bc.btemp    = 0.;
         ds.bc.temis    = 1.;
 	ds.bc.fluor    =   0.;
-        sprintf(ds.header,"%s: Absorption + Scattering, Internal Thermal Sources; Ref. KS, Table II, tau = %5.1f, a = %4.2f, g = %4.2f",
+        snprintf(ds.header, sizeof(ds.header),"%s: Absorption + Scattering, Internal Thermal Sources; Ref. KS, Table II, tau = %5.1f, a = %4.2f, g = %4.2f",
                 title,DTAUC(1),SSALB(1),gg);
 
         /* Correct answers */
@@ -1551,7 +1551,7 @@ void disort_test07(void)
         ds.bc.temis    =     1.;
         ds.bc.albedo   =     0.;
 	ds.bc.fluor    =   0.;
-        sprintf(ds.header,"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = %.0f",title,ds.bc.albedo);
+        snprintf(ds.header, sizeof(ds.header),"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = %.0f",title,ds.bc.albedo);
 
         /* Correct answers */
         good.rad[0].rfldir= 100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1602,7 +1602,7 @@ void disort_test07(void)
 	ds.bc.fluor  =   0.;
 	ds.flag.brdf_type = BRDF_HAPKE;
 
-        sprintf(ds.header,"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = %.0f",title,ds.bc.albedo);
+        snprintf(ds.header, sizeof(ds.header),"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = %.0f",title,ds.bc.albedo);
 
         /* Correct answers */
         good.rad[0].rfldir= 100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1649,7 +1649,7 @@ void disort_test07(void)
         PHI(1)      =     0.;
         PHI(2)      =    90.;
 
-        sprintf(ds.header,"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = BDR Function",title);
+        snprintf(ds.header, sizeof(ds.header),"%s: Absorption + Henyey-Greenstein Scattering, All Sources, Bottom Albedo = BDR Function",title);
 
         /* Correct answers */
         good.rad[0].rfldir= 100.,       good.rad[1].rfldir=3.67879E+01,good.rad[2].rfldir=1.35335E+01;
@@ -1758,7 +1758,7 @@ void disort_test08(void)
         UTAU(1)  = .0;
         UTAU(2)  = .25;
         UTAU(3)  = .5;
-        sprintf(ds.header,"Test Case No. 8a:  Ref. OS, Table 1, Line 4 (Two Inhomogeneous Layers)");
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 8a:  Ref. OS, Table 1, Line 4 (Two Inhomogeneous Layers)");
 
         /* Correct answers */
         good.rad[0].rfldir=0.,         good.rad[1].rfldir=0.,         good.rad[2].rfldir=0.;
@@ -1777,7 +1777,7 @@ void disort_test08(void)
         UTAU(1)  = .0;
         UTAU(2)  = .25;
         UTAU(3)  = .5;
-        sprintf(ds.header,"Test Case No. 8b:  Ref. OS, Table 1, Line 1 (Two Inhomogeneous Layers)");
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 8b:  Ref. OS, Table 1, Line 1 (Two Inhomogeneous Layers)");
 
         /* Correct answers */
         good.rad[0].rfldir=0.,         good.rad[1].rfldir=0.,         good.rad[2].rfldir=0.;
@@ -1796,7 +1796,7 @@ void disort_test08(void)
         UTAU(1)  = 0.;
         UTAU(2)  = 1.;
         UTAU(3)  = 3.;
-        sprintf(ds.header,"Test Case No. 8c:  Ref. OS, Table 1, Line 13 (Two Inhomogeneous Layers)");
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 8c:  Ref. OS, Table 1, Line 13 (Two Inhomogeneous Layers)");
 
         /* Correct answers */
         good.rad[0].rfldir=0.,         good.rad[1].rfldir=0.,         good.rad[2].rfldir=0.;
@@ -1912,7 +1912,7 @@ void disort_test09(void)
         }
 
         ds.bc.albedo  = 0.;
-        sprintf(ds.header,"Test Case No. 9a:  Ref. DGIS, Tables VI-VII, beta=l=0 (multiple inhomogeneous layers)");
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 9a:  Ref. DGIS, Tables VI-VII, beta=l=0 (multiple inhomogeneous layers)");
 
         /* Correct answers */
         good.rad[0].rfldir=0.,         good.rad[1].rfldir=0.,         good.rad[2].rfldir=0.,         good.rad[3].rfldir=0.,         good.rad[4].rfldir=0.;
@@ -1964,7 +1964,7 @@ void disort_test09(void)
           }
         }
 
-        sprintf(ds.header,"Test Case No. 9b:  Ref. DGIS, Tables VI-VII, beta=0,l=%1d (multiple inhomogeneous layers)",ds.nmom);
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 9b:  Ref. DGIS, Tables VI-VII, beta=0,l=%1d (multiple inhomogeneous layers)",ds.nmom);
 
         /* Correct answers */
         good.rad[0].rfldir=0.,         good.rad[1].rfldir=0.,         good.rad[2].rfldir=0.,         good.rad[3].rfldir=0.,         good.rad[4].rfldir=0.;
@@ -2023,7 +2023,7 @@ void disort_test09(void)
         ds.bc.btemp   = 700.0;
         ds.bc.ttemp   = 550.0;
         ds.bc.temis   = 1.0;
-        sprintf(ds.header,"Test Case No. 9c:  Generalization of 9A to include all possible complexity");
+        snprintf(ds.header, sizeof(ds.header),"Test Case No. 9c:  Generalization of 9A to include all possible complexity");
 
         /* Correct answers */
         good.rad[0].rfldir=1.57080E+00,good.rad[1].rfldir=1.92354E-01,good.rad[2].rfldir=2.35550E-02;good.rad[3].rfldir=9.65131E-06,good.rad[4].rfldir=9.03133E-19;
@@ -2155,7 +2155,7 @@ void disort_test10(void)
   ds_good.umu[2-1] = -0.211324871;
   ds_good.umu[3-1] =  0.211324871;
   ds_good.umu[4-1] =  0.788675129;
-  sprintf(ds_good.header,"Test Case No. 10a:  like 9c, ds.flag.usrang = TRUE");
+  snprintf(ds_good.header, sizeof(ds_good.header),"Test Case No. 10a:  like 9c, ds.flag.usrang = TRUE");
 
   c_disort(&ds_good,&good);
 
@@ -2191,7 +2191,7 @@ void disort_test10(void)
   ds_out.phi[1-1] =  60.;
   ds_out.phi[2-1] = 120.;
 
-  sprintf(ds_out.header,"Test Case No. 10b:  like 9C, ds.flag.usrang = FALSE");
+  snprintf(ds_out.header, sizeof(ds_out.header),"Test Case No. 10b:  like 9C, ds.flag.usrang = FALSE");
 
   c_disort(&ds_out,&out);
 
@@ -2292,7 +2292,7 @@ void disort_test11(void)
   ds_good.utau[3-1] =  .5;
   ds_good.utau[4-1] = 1.;
 
-  sprintf(ds_good.header,"Test Case No. 11a: One Isotropic-Scattering Layer");
+  snprintf(ds_good.header, sizeof(ds_good.header),"Test Case No. 11a: One Isotropic-Scattering Layer");
 
   c_disort(&ds_good,&good);
 
@@ -2324,7 +2324,7 @@ void disort_test11(void)
     c_getmom(ISOTROPIC,0.,ds_out.nmom,&ds_out.pmom[0+(lc-1)*(ds_out.nmom_nstr+1)]);
   }
   
-  sprintf(ds_out.header,"Test Case No. 11b: Same as 11a but treated as multiple layers");
+  snprintf(ds_out.header, sizeof(ds_out.header),"Test Case No. 11b: Same as 11a but treated as multiple layers");
 
   c_disort(&ds_out,&out);
 
@@ -2426,7 +2426,7 @@ void disort_test12(void)
   ds_good.bc.fluor    = 0.;
 
 
-  sprintf(ds_good.header,"Test Case No. 12a:  Overhead Beam Striking Absorbing/Scattering Medium");
+  snprintf(ds_good.header, sizeof(ds_good.header),"Test Case No. 12a:  Overhead Beam Striking Absorbing/Scattering Medium");
 
   c_disort(&ds_good,&good);
 
@@ -2462,7 +2462,7 @@ void disort_test12(void)
   ds_out.bc.albedo   = 1.;
   ds_out.bc.fluor    = 0.;
 
-  sprintf(ds_out.header,"Test Case No. 12b: Same as 12a but uses shortcut for absorption optical depth > 10");
+  snprintf(ds_out.header, sizeof(ds_out.header),"Test Case No. 12b: Same as 12a but uses shortcut for absorption optical depth > 10");
 
   c_disort(&ds_out,&out);
 
@@ -2544,7 +2544,7 @@ void disort_test13(void)
 
   ds.bc.fbeam  =  0.;
 
-  sprintf(ds.header,"Test Case No. 13a:  Albedo and Transmissivity from Shortcut, Single Layer");
+  snprintf(ds.header, sizeof(ds.header),"Test Case No. 13a:  Albedo and Transmissivity from Shortcut, Single Layer");
 
   c_disort(&ds,&out);
 
@@ -2586,7 +2586,7 @@ void disort_test13(void)
   ds.bc.fbeam = 1./ds.bc.umu0;
   ds.bc.fisot = 0.;
 
-  sprintf(ds.header,"Test Case No. 13b:  Albedo and Transmissivity by Regular Method, Single Layer");
+  snprintf(ds.header, sizeof(ds.header),"Test Case No. 13b:  Albedo and Transmissivity by Regular Method, Single Layer");
 
   c_disort(&ds,&out);
 
@@ -2620,7 +2620,7 @@ void disort_test13(void)
 
   UMU(1)   = .5;
 
-  sprintf(ds.header,"Test Case No. 13c:  Albedo and Transmissivity from Shortcut, Multiple Layer");
+  snprintf(ds.header, sizeof(ds.header),"Test Case No. 13c:  Albedo and Transmissivity from Shortcut, Multiple Layer");
 
   c_disort(&ds,&out);
 
@@ -2662,7 +2662,7 @@ void disort_test13(void)
   ds.bc.fbeam = 1./ds.bc.umu0;
   ds.bc.fisot = 0.;
 
-  sprintf(ds.header,"Test Case No. 13d:  Albedo and Transmissivity by Regular Method, Multiple Layer");
+  snprintf(ds.header, sizeof(ds.header),"Test Case No. 13d:  Albedo and Transmissivity by Regular Method, Multiple Layer");
 
   c_disort(&ds,&out);
 
@@ -2769,7 +2769,7 @@ void disort_test14(void)
   ds_ds.phi[1-1] =  60.;
   ds_ds.phi[2-1] = 120.;
 
-  sprintf(ds_ds.header,"Test Case No. 14a: disort() as in 10b");
+  snprintf(ds_ds.header, sizeof(ds_ds.header),"Test Case No. 14a: disort() as in 10b");
 
   c_disort(&ds_ds,&ds_out);
 
@@ -2816,7 +2816,7 @@ void disort_test14(void)
   twostr_ds.utau[2-1] =  2.1;
   twostr_ds.utau[3-1] = 21.;
 
-  sprintf(twostr_ds.header,"Test Case No. 14b: twostr() instead of disort()");
+  snprintf(twostr_ds.header, sizeof(twostr_ds.header),"Test Case No. 14b: twostr() instead of disort()");
 
   c_twostr(&twostr_ds,&twostr_out,deltam,gg,ierror,radius);
 

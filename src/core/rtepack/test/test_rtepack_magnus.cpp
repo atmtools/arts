@@ -9,6 +9,15 @@
 #include <vector>
 
 namespace {
+//! A path with the propagation matrices K and their derivatives dK, without a non-LTE source
+ArrayOfSpectralPropmat as_path(const std::vector<PropmatVector>& K, const std::vector<PropmatMatrix>& dK) {
+  ArrayOfSpectralPropmat pm(K.size());
+  for (Size i = 0; i < K.size(); i++) {
+    pm[i].K  = K[i];
+    pm[i].dK = dK[i];
+  }
+  return pm;
+}
 constexpr Numeric tol           = 2e-10;
 constexpr Numeric stability_tol = 5e-13;
 
@@ -821,7 +830,7 @@ bool test_transmittance_matrix() {
   dr[1, 0, 0] = -0.03;
 
   rtepack::TransmittanceMatrix tm;
-  tm.init(K, dK, distance, dr, TransmittanceOption::magop);
+  tm.init(as_path(K, dK), distance, dr, TransmittanceOption::magop);
   tm.check(2, 1, 1, "test_rtepack_magnus");
 
   // The path is stored observer-to-background, while radiation propagates
@@ -851,7 +860,7 @@ bool test_transmittance_matrix() {
   }
 
   rtepack::TransmittanceMatrix linsrc_tm;
-  linsrc_tm.init(K, dK, distance, dr, TransmittanceOption::magop_linsrc);
+  linsrc_tm.init(as_path(K, dK), distance, dr, TransmittanceOption::magop_linsrc);
   linsrc_tm.check(2, 1, 1, "test_rtepack_magnus_linsrc");
 
   const Muelmat expected_l = tr.linsrc() * (Muelmat::id() - (r / 12.0) * rtepack::to_muelmat(k0 - k1));
@@ -876,7 +885,7 @@ bool test_transmittance_matrix() {
   }
 
   rtepack::TransmittanceMatrix linprop_tm;
-  linprop_tm.init(K, dK, distance, dr, TransmittanceOption::linprop);
+  linprop_tm.init(as_path(K, dK), distance, dr, TransmittanceOption::linprop);
   const rtepack::tran ordinary_tr{k1, k0, r};
   const Muelmat       ordinary_t = ordinary_tr();
   const Muelmat       ordinary_l = ordinary_tr.linsrc_linprop(ordinary_t, k1, k0, r);

@@ -804,6 +804,9 @@ absorption line in the *abs_bands* variable.
 The top of the atmosphere is the last value of the altitude grid.
 
 All atmospheric points in the profile must contain the same set of parameters.
+
+The pressure is interpolated in logarithm, as by default when it is read
+by *atm_fieldAppendBaseData*, so it must be positive.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"atm_field"},
@@ -1130,10 +1133,7 @@ The calculations are in parallel if the program is not in parallel already.
 Also outputs the *freq_grid_path* as a side effect (of wind).
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path"},
+      .out            = {"spectral_propmat_path"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1158,18 +1158,8 @@ albeit at least 3 points are added if any point is added.
 Note that the input 
 )--",
       .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path",
-                         "freq_grid_path",
-                         "freq_wind_shift_jac_path",
-                         "ray_path",
-                         "atm_path"},
+      .out            = {"spectral_propmat_path", "freq_grid_path", "freq_wind_shift_jac_path", "ray_path", "atm_path"},
       .in             = {"spectral_propmat_path",
-                         "spectral_nlte_srcvec_path",
-                         "spectral_propmat_jac_path",
-                         "spectral_nlte_srcvec_jac_path",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
                          "ray_path",
@@ -1205,7 +1195,7 @@ Note that the input
 
 The derivative transformation for wind parameters is also returned.
 
-See *spectral_propmat_jacWindFix* for use of the wind shift data.
+See *spectral_propmatWindFix* for use of the wind shift data.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid_path", "freq_wind_shift_jac_path"},
@@ -1221,18 +1211,9 @@ The outer dimension of the output arrays are the size of the species selection l
 are as per *spectral_propmat_pathFromPath*.
 )--",
       .author         = {"Richard Larsson"},
-      .gout           = {"spectral_propmat_path_species_split",
-                         "spectral_nlte_srcvec_path_species_split",
-                         "spectral_propmat_jac_path_species_split",
-                         "spectral_nlte_srcvec_jac_path_species_split"},
-      .gout_type      = {"ArrayOfArrayOfPropmatVector",
-                         "ArrayOfArrayOfStokvecVector",
-                         "ArrayOfArrayOfPropmatMatrix",
-                         "ArrayOfArrayOfStokvecMatrix"},
-      .gout_desc      = {R"--(Propagation matrix for selected species)--",
-                         R"--(Non-LTE source vector for selected species)--",
-                         R"--(Jacobian of propagation matrix for selected species)--",
-                         R"--(Jacobian of non-LTE source vector for selected species)--"},
+      .gout           = {"spectral_propmat_path_species_split"},
+      .gout_type      = {"ArrayOfArrayOfSpectralPropmat"},
+      .gout_desc      = {R"--(The propagation along the path for each selected species)--"},
       .in             = {"spectral_propmat_agenda",
                          "freq_grid_path",
                          "freq_wind_shift_jac_path",
@@ -1333,7 +1314,7 @@ where:
     - *spectral_propmat_path*
     - The propagation matrix along the path.
   * - :math:`\vec{S}`
-    - *spectral_nlte_srcvec_path*
+    - *spectral_propmat_path* ``nlte``
     - The non-LTE source vector along the path.
   * - :math:`\frac{\partial \vec{J}}{\partial x}`
     - *spectral_rad_srcvec_path* dJ
@@ -1343,10 +1324,10 @@ where:
     - ``None`` - this is computed locally
     - The Jacobian of the Planck function with respect to the *jac_targets*.  Only tempertature is supported.
   * - :math:`\frac{\partial \mathbf{K}}{\partial x}`
-    - *spectral_propmat_jac_path*
+    - *spectral_propmat_path* ``dK``
     - The Jacobian of the propagation matrix with respect to the *jac_targets*.
   * - :math:`\frac{\partial \vec{S}}{\partial x}`
-    - *spectral_nlte_srcvec_jac_path*
+    - *spectral_propmat_path* ``dnlte``
     - The Jacobian of the non-LTE source vector with respect to the *jac_targets*.
   * - :math:`x`
     - *jac_targets*
@@ -1364,13 +1345,7 @@ The output dimensions are:
 )--",
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad_srcvec_path"},
-      .in     = {"spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "spectral_propmat_jac_path",
-                 "spectral_nlte_srcvec_jac_path",
-                 "freq_grid_path",
-                 "atm_path",
-                 "jac_targets"},
+      .in     = {"spectral_propmat_path", "freq_grid_path", "atm_path", "jac_targets"},
   };
 
   wsm_data["abs_predef_dataAddWaterMTCKD400"] = {
@@ -1501,14 +1476,8 @@ thus not fail.
     want to debug your results, but not if you want to use them.
 )--",
       .author    = {"Stefan Buehler, Oliver Lemke"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "select_species",
-                    "jac_targets",
-                    "freq_grid",
-                    "atm_point",
-                    "abs_cia_data"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "select_species", "jac_targets", "freq_grid", "atm_point", "abs_cia_data"},
       .gin       = {"T_extrapolfac", "ignore_errors"},
       .gin_type  = {"Numeric", "Index"},
       .gin_value = {Numeric{0.5}, Index{0}},
@@ -1534,14 +1503,8 @@ i.e., does not overwrite the propagation matrix *spectral_propmat*,
 but adds further contributions.
 )--",
       .author = {"Patrick Eriksson"},
-      .out    = {"spectral_propmat", "spectral_propmat_jac"},
-      .in     = {"spectral_propmat",
-                 "spectral_propmat_jac",
-                 "freq_grid",
-                 "select_species",
-                 "jac_targets",
-                 "atm_point",
-                 "ray_point"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "freq_grid", "select_species", "jac_targets", "atm_point", "ray_point"},
   };
 
   wsm_data["spectral_propmatAddPredefined"] = {
@@ -1718,14 +1681,8 @@ Available models
     - :cite:t:`Ellison2007`
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat", "spectral_propmat_jac"},
-      .in     = {"spectral_propmat",
-                 "spectral_propmat_jac",
-                 "abs_predef_data",
-                 "select_species",
-                 "jac_targets",
-                 "freq_grid",
-                 "atm_point"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "abs_predef_data", "select_species", "jac_targets", "freq_grid", "atm_point"},
   };
 
   wsm_data["spectral_propmatAddXsecFit"] = {
@@ -1736,14 +1693,8 @@ This broadens the cross section data from *abs_xfit_data* and
 interpolates it onto the current *freq_grid*.
 )--",
       .author    = {"Oliver Lemke"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "select_species",
-                    "jac_targets",
-                    "freq_grid",
-                    "atm_point",
-                    "abs_xfit_data"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "select_species", "jac_targets", "freq_grid", "atm_point", "abs_xfit_data"},
       .gin       = {"force_p", "force_t"},
       .gin_type  = {"Numeric", "Numeric"},
       .gin_value = {Numeric{-1}, Numeric{-1}},
@@ -1832,12 +1783,12 @@ This method must be used inside *spectral_propmat_scat_agenda* and then be calle
 
   wsm_data["spectral_propmatInit"] = {
       .desc =
-          R"--(Initialize *spectral_propmat*, *spectral_nlte_srcvec*, and their derivatives to zeroes.
+          R"--(Initialize *spectral_propmat* to zeroes on *freq_grid* for *jac_targets*, without a non-LTE source.
 
 This method must be used inside *spectral_propmat_agenda* and then be called first.
 )--",
       .author = {"Oliver Lemke", "Richard Larsson"},
-      .out    = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .out    = {"spectral_propmat"},
       .in     = {"jac_targets", "freq_grid"},
   };
 
@@ -2266,9 +2217,6 @@ The Jacobian variable is all 0s, the background is [1 0 0 0] everywhere
                     "freq_grid_path",
                     "atm_path",
                     "spectral_propmat_path",
-                    "spectral_nlte_srcvec_path",
-                    "spectral_propmat_jac_path",
-                    "spectral_nlte_srcvec_jac_path",
                     "surf_field",
                     "atm_field"},
       .gin       = {"hse_derivative"},
@@ -2328,33 +2276,6 @@ The refractive index lives under the *SurfacePropertyTag* key "scalar refractive
                          "spectral_rad_observer_agenda",
                          "spectral_rad_closed_surface_agenda",
                          "spectral_surf_refl_agenda"},
-      .pass_workspace = true,
-  };
-
-  wsm_data["spectral_rad_jacAddSensorJacobianPerturbations"] = {
-      .desc   = R"--(Adds sensor properties to the *spectral_rad_jac*.
-
-This is done via perturbation based on the input delta values to the sensor
-Jacobian targets and a callback to *spectral_rad_observer_agenda* with
-a modified *jac_targets*, making it safe to use this method inside
-*spectral_rad_observer_agenda*.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_rad_jac"},
-      .in =
-          {
-              "spectral_rad_jac",
-              "spectral_rad",
-              "measurement_sensor",
-              "freq_grid",
-              "jac_targets",
-              "obs_pos",
-              "obs_los",
-              "atm_field",
-              "surf_field",
-              "subsurf_field",
-              "spectral_rad_observer_agenda",
-          },
       .pass_workspace = true,
   };
 
@@ -2563,7 +2484,7 @@ Brewster angle.
       .gin_desc  = {"Maximum nearest-atlas-cell distance [degrees], or a negative value to disable nearest lookup."},
   };
 
-  wsm_data["spectral_propmat_jacWindFix"] = {
+  wsm_data["spectral_propmatWindFix"] = {
       .desc   = R"--(Fix for the wind field derivative.
 
 The *spectral_propmat_agenda* will set the wind derivatives to 
@@ -2573,8 +2494,8 @@ meaning no *oemCalc* or other functionality that requires the Jacobian
 matrix to be calculated will work.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
-      .in     = {"spectral_propmat_jac", "spectral_nlte_srcvec_jac", "freq_grid", "jac_targets", "freq_wind_shift_jac"},
+      .out    = {"spectral_propmat"},
+      .in     = {"spectral_propmat", "freq_grid", "jac_targets", "freq_wind_shift_jac"},
   };
 
   wsm_data["spectral_propmatAddLines"] = {
@@ -2583,11 +2504,8 @@ matrix to be calculated will work.
 See :doc:`concept.absorption.lbl` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_nlte_srcvec", "spectral_propmat_jac", "spectral_nlte_srcvec_jac"},
+      .out       = {"spectral_propmat"},
       .in        = {"spectral_propmat",
-                    "spectral_nlte_srcvec",
-                    "spectral_propmat_jac",
-                    "spectral_nlte_srcvec_jac",
                     "freq_grid",
                     "jac_targets",
                     "select_species",
@@ -2609,20 +2527,14 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .out       = {"spectral_propmat"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
-                    "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "freq_grid",
-                    "jac_targets",
-                    "select_species",
-                    "abs_bands",
-                    "atm_point",
-                    "ray_point"},
-      .gin       = {"no_negative_absorption"},
+      .gout_desc =
+          {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
+           "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
+      .in  = {"spectral_propmat", "freq_grid", "jac_targets", "select_species", "abs_bands", "atm_point", "ray_point"},
+      .gin = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
       .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
@@ -2636,20 +2548,14 @@ See :doc:`concept.absorption.lbl` for details.
 This is only for LTE lines in Voigt.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
+      .out       = {"spectral_propmat"},
       .gout      = {"spectral_dispersion", "spectral_dispersion_jac"},
       .gout_type = {"Vector", "Matrix"},
-      .gout_desc = {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
-                    "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "freq_grid",
-                    "jac_targets",
-                    "select_species",
-                    "abs_bands",
-                    "atm_point",
-                    "ray_point"},
-      .gin       = {"no_negative_absorption"},
+      .gout_desc =
+          {"Refractivity, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat* [-]",
+           "Refractivity Jacobian matrix, n - 1, from the main component, i.e., -c imag(A) / (4 pi f) of the complex *Propmat*"},
+      .in  = {"spectral_propmat", "freq_grid", "jac_targets", "select_species", "abs_bands", "atm_point", "ray_point"},
+      .gin = {"no_negative_absorption"},
       .gin_type  = {"Index"},
       .gin_value = {Index{1}},
       .gin_desc  = {"Turn off to allow individual absorbers to have negative absorption"},
@@ -2842,14 +2748,8 @@ This is only for LTE lines in Voigt.
 See :doc:`concept.absorption.lookup` for details.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"spectral_propmat", "spectral_propmat_jac"},
-      .in        = {"spectral_propmat",
-                    "spectral_propmat_jac",
-                    "freq_grid",
-                    "jac_targets",
-                    "select_species",
-                    "abs_lookup_data",
-                    "atm_point"},
+      .out       = {"spectral_propmat"},
+      .in        = {"spectral_propmat", "freq_grid", "jac_targets", "select_species", "abs_lookup_data", "atm_point"},
       .gin       = {"no_negative_absorption",
                     "p_interp_order",
                     "t_interp_order",
@@ -3069,7 +2969,7 @@ building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
+      .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
   };
 
   const auto jac2oem = [&wsm_data](const std::string& name) {
@@ -3121,23 +3021,16 @@ Order 1 means linear:   :math:`y = y_0 + a + b t`
 and so on.  The derivatives that are added to the *model_state_vec* are
 those with regards to a, b, etc..
 
-.. note::
-
-    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
-    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
-    to all the different *SensorObsel* that they add to the *measurement_sensor*.
-    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
-    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
-    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+The GIN ``sensor_elem`` is the index of the sensor in *measurement_sensors*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jac_targets"},
-      .in        = {"jac_targets", "measurement_sensor"},
+      .in        = {"jac_targets", "measurement_sensors"},
       .gin       = {"t", "sensor_elem", "polyorder"},
       .gin_type  = {"Vector", "Index", "Index"},
       .gin_value = {std::nullopt, std::nullopt, Index{0}},
       .gin_desc  = {"The grid of :math:`y`.  As :math:`t` above.",
-                    "The sensor element whose frequency grid to use",
+                    "The index of the sensor in *measurement_sensors*",
                     "The order of the polynomial fit.  Maximum :math:`n` above."},
   };
   wsm_data["oemAddErrorPolyFit"] = jac2oem("jac_targetsAddErrorPolyFit");
@@ -3154,24 +3047,18 @@ and so on, where :math:`t` is :math:`f_0` mapped to :math:`[-1, 1]` over the
 grid.  So all coefficients are frequency shifts, :math:`a` at the centre of
 the grid and :math:`a \pm b` at its edges.  The derivatives that are added
 to the *model_state_vec* are those with regards to a, b, etc..
+*measurement_jacAddSensorJacobianPerturbations* computes them.
 
-.. note::
-
-    The rule for the ``sensor_elem`` GIN is a bit complex.  Generally, methods such
-    as *measurement_sensorAddSimple* will simply add a single unique frequency grid
-    to all the different *SensorObsel* that they add to the *measurement_sensor*.
-    The GIN ``sensor_elem`` is 0 for the first unique frequency grid, 1 for the second,
-    and so on.  See *ArrayOfSensorObsel* member methods in python for help identifying
-    and manipulating how many unique frequency grids are available in *measurement_sensor*.
+The GIN ``sensor_elem`` is the index of the sensor in *measurement_sensors*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"jac_targets"},
-      .in        = {"jac_targets", "measurement_sensor"},
+      .in        = {"jac_targets", "measurement_sensors"},
       .gin       = {"d", "sensor_elem", "polyorder"},
       .gin_type  = {"Numeric", "Index", "Index"},
       .gin_value = {Numeric{0.1}, std::nullopt, Index{0}},
       .gin_desc  = {"The perturbation used in methods that cannot compute derivatives analytically",
-                    "The sensor element whose frequency grid to use",
+                    "The index of the sensor in *measurement_sensors*",
                     "The order of the polynomial fit"},
   };
   wsm_data["oemAddSensorFrequencyPolyOffset"] = jac2oem("jac_targetsAddSensorFrequencyPolyOffset");
@@ -3435,19 +3322,19 @@ be computed from the line strength, or simply read from the Hitran data.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {},
-      .gin       = {"file", "frequency_range", "file_formatter", "line_strength_option", "compute_zeeman_parameters"},
-      .gin_type  = {"String", "Vector2", "ArrayOfString", "String", "Index"},
+      .gin       = {"file", "frequency_range", "file_formatter", "line_strength_option", "zeeman_option"},
+      .gin_type  = {"String", "Vector2", "ArrayOfString", "String", "String"},
       .gin_value = {std::nullopt,
                     Vector2{-std::numeric_limits<Numeric>::infinity(), std::numeric_limits<Numeric>::infinity()},
                     ArrayOfString{"par"},
                     String{"S"},
-                    Index{1}},
+                    String{"Compute"}},
       .gin_desc =
           {"Filename",
            "Frequency range selection",
            "The order of file format types.  See *HitranFileFormatType* for valid options",
            "Whether the Hitran line strength or the Hitran Einstein coefficient is used, the latter has historically been less reliable",
-           "Compute the Zeeman parameters from the HITRAN data (will not activate Zeeman calculations, this must be done manually afterwards)"},
+           "How the Zeeman g-factors are set.  See *HitranZeemanOption* for valid options.  This does not turn on the Zeeman effect"},
   };
 
   wsm_data["abs_bandsReadJPL"] = {
@@ -3457,14 +3344,28 @@ be computed from the line strength, or simply read from the Hitran data.
 The JPL file is assumed to have each line record
 filling up one line of text.
 
-The builtin JPL map is used to find species.  This set of species can
-be extended during compilation only.
+The species tag of each line record selects the isotopologue, the
+reference temperature of the intensity, and the partition function
+at that temperature.  If ``jpl_species`` is empty, the builtin JPL
+species information is used, which is defined at compilation.
+Otherwise, only ``jpl_species`` is used.  The latter allows reading
+files with other species tags than JPL's, or with intensities at
+another reference temperature, such as line lists in the JPL format
+whose intensities are at 296 K.
 
-This is still a WIP and most species are missing.  They will be added
-as we need them.
+The line strengths reproduce the intensities of the file at the
+reference temperature.  At other temperatures, they follow the
+partition function of the isotopologue in ARTS.
+
+Upper state degeneracies above 999 that are written with a letter
+for the hundreds, A = 10, so that A32 is 1032, are only read if
+``parse_letters`` is set.  An upper state degeneracy with an asterisk
+is read as unknown.  This changes the sign of both the Einstein
+coefficient and the upper state degeneracy, so the line strength is
+unchanged.
 
 Note also that quantum numbers are not yet supported in the JPL data,
-and thus all lines and bands will be unable to use features that 
+and thus all lines and bands will be unable to use features that
 relies on quantum numbers, such as line mixing, Zeeman parameters, etc.
 
 As JPL provides no pressure broadening data, a default 25 kHz/Pa
@@ -3474,10 +3375,12 @@ exponent of 0.75.
       .author    = {"Richard Larsson"},
       .out       = {"abs_bands"},
       .in        = {},
-      .gin       = {"file"},
-      .gin_type  = {"String"},
-      .gin_value = {std::nullopt},
-      .gin_desc  = {"Filename"},
+      .gin       = {"file", "jpl_species", "parse_letters"},
+      .gin_type  = {"String", "ArrayOfJplSpeciesInfo", "Index"},
+      .gin_value = {std::nullopt, ArrayOfJplSpeciesInfo{}, Index{0}},
+      .gin_desc  = {"Filename",
+                    "The JPL species information to use instead of the builtin one, if not empty",
+                    "Set to 1 to read upper state degeneracies with a letter for the hundreds, e.g., A32->1032"},
   };
 
   wsm_data["abs_bandsCheckEcs"] = {
@@ -3796,7 +3699,9 @@ Points are added where the ray path crosses any of the three grids in pure geome
       .desc =
           R"--(Fill the path with with points that crosses the *alt_grid*
 
-Also checks that only crossings of the *alt_grid* are in *ray_path* upon exit.
+Also checks that every point of *ray_path* inside *alt_grid* is a crossing of it upon exit.
+Points outside *alt_grid*, such as an observer above it, are kept as they are.  See
+*ray_pathRemoveOutsideAltitudeGrid* to remove them.
 
 The intent is to use this only with methods that work on altitude profiles.
 )--",
@@ -3846,11 +3751,23 @@ These only matter for polarized radiative transfer.
 
   wsm_data["ray_pathAddLimbPoint"] = {
       .desc =
-          R"--(Add the limb point to the ray path
+          R"--(Add the limb point to the ray path if the limb point exists and is not already in the ray path.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"ray_path"},
       .in     = {"ray_path", "surf_field"},
+  };
+
+  wsm_data["ray_pathRemoveOutsideAltitudeGrid"] = {
+      .desc =
+          R"--(Remove the points of the ray path that are outside *alt_grid*.
+
+The last point of the path is its background.  It is kept if no point is inside *alt_grid*,
+so that a ray that misses the atmosphere keeps its one point.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"ray_path"},
+      .in     = {"ray_path", "alt_grid"},
   };
 
   wsm_data["ray_pathRemoveNonAtm"] = {
@@ -4535,6 +4452,20 @@ See *SpeciesIsotope* for valid ``species``
                     "On or off"},
   };
 
+  wsm_data["abs_bandsSetCutoff"] = {
+      .desc      = R"--(Set the line-by-line cutoff of all bands
+
+See *LineByLineCutoffType* for valid ``option``.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"abs_bands"},
+      .in        = {"abs_bands"},
+      .gin       = {"option", "value"},
+      .gin_type  = {"String", "Numeric"},
+      .gin_value = {std::nullopt, std::numeric_limits<Numeric>::infinity()},
+      .gin_desc  = {"The type of cutoff", "The cutoff value [Hz], e.g., the distance from the line center for ByLine"},
+  };
+
   wsm_data["ray_pointPastGeometric"] = {
       .desc =
           R"--(Gets the previous geometric point along *ray_path*
@@ -4614,7 +4545,7 @@ The core calculations happens inside the *spectral_rad_operator*.
 )--",
       .author         = {"Richard Larsson"},
       .out            = {"measurement_vec"},
-      .in             = {"measurement_sensor", "spectral_rad_operator", "ray_path_observer_agenda"},
+      .in             = {"measurement_sensors", "spectral_rad_operator", "ray_path_observer_agenda"},
       .pass_workspace = true,
   };
 
@@ -4626,15 +4557,17 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
 
 .. tip::
 
-   The default kernel is a low memory option.  It also has the lowest
-   startup cost.  If your calculations are slow and requires multiple
-   calls to the *spectral_rad_observer_agenda*, consider switching to
-   the "High Performance" kernel, which is :math:`O(N+M)` compared to
-   the low-memory option :math:`O(N \times M)`.
+   The kernels trade memory for speed.  See *MeasurementVectorSumupKernel*
+   for estimates of the memory and the work of each kernel from the sizes
+   of *measurement_sensors* and *jac_targets*, and for how they grow with
+   the number of cores.
+
+The derivatives with regards to the sensor targets of *jac_targets* are
+left as zero, see *measurement_jacAddSensorJacobianPerturbations*.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_vec", "measurement_jac"},
-      .in        = {"measurement_sensor",
+      .in        = {"measurement_sensors",
                     "jac_targets",
                     "atm_field",
                     "surf_field",
@@ -4643,8 +4576,40 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
                     "spectral_rad_observer_agenda"},
       .gin       = {"kernel"},
       .gin_type  = {"String"},
-      .gin_value = {String{"Low Memory"}},
+      .gin_value = {String{"Indexed"}},
       .gin_desc  = {"The kernel to use for the spectral radiance calculations.  See type information for options."},
+      .pass_workspace = true,
+  };
+
+  wsm_data["measurement_jacAddSensorJacobianPerturbations"] = {
+      .desc =
+          R"--(Adds the derivatives with regards to the sensor targets of *jac_targets* to *measurement_jac*.
+
+Each sensor target changes the frequency grid or the geometries of one sensor
+in *measurement_sensors* by a polynomial offset.  For each coefficient of the
+polynomial, that sensor is perturbed by the target's perturbation times the
+term of the coefficient and simulated again by *measurement_vecFromSensor*,
+without Jacobian targets.  Its change from *measurement_vec*, divided by the
+perturbation, is the derivative.
+
+*measurement_vec* must be the result of *measurement_vecFromSensor* for the
+same *measurement_sensors*, so call this method directly after it.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"measurement_jac"},
+      .in             = {"measurement_jac",
+                         "measurement_vec",
+                         "measurement_sensors",
+                         "jac_targets",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "spectral_rad_transform_operator",
+                         "spectral_rad_observer_agenda"},
+      .gin            = {"kernel"},
+      .gin_type       = {"String"},
+      .gin_value      = {String{"Indexed"}},
+      .gin_desc       = {"The kernel of *measurement_vecFromSensor* for the perturbed sensors."},
       .pass_workspace = true,
   };
 
@@ -4684,89 +4649,71 @@ The core calculations happens inside the *spectral_rad_observer_agenda*.
       .desc             = "Applies transformations to the measurement sensor state Jacobian\n",
       .author           = {"Richard Larsson"},
       .out              = {"measurement_jac"},
-      .in               = {"measurement_jac", "model_state_vec", "measurement_sensor", "jac_targets"},
+      .in               = {"measurement_jac", "model_state_vec", "measurement_sensors", "jac_targets"},
       .size_constraints = false,
   };
 
-  wsm_data["measurement_sensorFromModelState"] = {
+  wsm_data["measurement_sensorsFromModelState"] = {
       .desc =
-          R"--(Update *measurement_sensor* from *model_state_vec*.
+          R"--(Update *measurement_sensors* from *model_state_vec*.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor"},
-      .in     = {"measurement_sensor", "model_state_vec", "model_state_targets"},
+      .out    = {"measurement_sensors"},
+      .in     = {"measurement_sensors", "model_state_vec", "model_state_targets"},
   };
 
-  wsm_data["measurement_sensorInit"] = {
+  wsm_data["measurement_sensorsInit"] = {
       .desc =
-          R"--(Initialize *measurement_sensor* and *measurement_sensor_meta* to empty.
+          R"--(Initialize *measurement_sensors* to empty.
 )--",
       .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
+      .out    = {"measurement_sensors"},
   };
 
-  wsm_data["measurement_sensorFromPredefined"] = {
-      .desc =
-          R"--(Create a code-defined, predefined instrument using the ARTS3 sensor builder.
-
-The method replaces *measurement_sensor* and *measurement_sensor_meta*.  It
-constructs the selected heterodyne channels, applies their channel-specific
-polarizations, and uses a pencil-beam antenna at ``pos`` and ``los``.
-
-See *PredefinedSensor* for the available sensor styles and their descriptions.
-The optional ``channels`` list contains one-based instrument channel numbers.
-An empty list selects all channels.
-
-The integer ``n`` controls sampling for parametric channel definitions. Sensors
-with compiled tabulated responses use their fixed frequency grids instead.
-)--",
-      .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .gin       = {"pos", "los", "sensor", "n", "channels"},
-      .gin_type  = {"Vector3", "Vector2", "PredefinedSensor", "Index", "Vector"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{5}, Vector{}},
-      .gin_desc  = {"Observer position [altitude, latitude, longitude]",
-                    "Observer line of sight [zenith, azimuth]",
-                    "Code-defined sensor style; see *PredefinedSensor*",
-                    "Frequency samples per parametric baseband interval",
-                    "Optional one-based instrument channel selection"},
-  };
-
-  wsm_data["measurement_sensorAddSimple"] = {
+  wsm_data["measurement_sensorsAddSimple"] = {
       .desc =
           R"--(Adds a sensor with a dirac channel opening around the frequency grid.
 
 All elements share position, line-of-sight, and frequency grid.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "pol"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "String"},
+      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddGaussianZenith"] = {
+  wsm_data["measurement_sensorsAddGaussianZenith"] = {
       .desc =
-          R"--(Add a sensor to *measurement_sensor* that has a Gaussian zenith response.
+          R"--(Add a sensor to *measurement_sensors* that has a Gaussian zenith response.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "pol", "dzen_grid", "std_zen"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric"},
-      .gin_value = {std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), std::nullopt, std::nullopt},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement",
-                    "The delta zenith grid for the Gaussian response",
-                    "The standard deviation for the Gaussian response"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "dzen_grid", "std_zen", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "Numeric", "String"},
+      .gin_value = {std::nullopt,
+                    std::nullopt,
+                    rtepack::to_stokvec(PolarizationChoice::I),
+                    std::nullopt,
+                    std::nullopt,
+                    String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The delta zenith grid for the Gaussian response",
+           "The standard deviation for the Gaussian response",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddSimpleGaussian"] = {
+  wsm_data["measurement_sensorsAddSimpleGaussian"] = {
       .desc =
           R"--(Adds a sensor with a Gaussian channel opening around the frequency grid.
 
@@ -4778,24 +4725,26 @@ The I component's distribution is normalized to 1 or 0 by itself, while
 the Q, U, and V components' hypotenuse are normalized to 1 or 0 together.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"std", "pos", "los", "pol"},
-      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I)},
-      .gin_desc  = {"The standard deviations of the channels",
-                    "A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The polarization whose dot-product with the spectral radiance becomes the measurement"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "freq_grid"},
+      .gin       = {"std", "pos", "los", "pol", "name"},
+      .gin_type  = {"Numeric", "Vector3", "Vector2", "Stokvec", "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, rtepack::to_stokvec(PolarizationChoice::I), String{}},
+      .gin_desc =
+          {"The standard deviations of the channels",
+           "A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The polarization whose dot-product with the spectral radiance becomes the measurement",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
   {
-    auto& this_       = wsm_data["measurement_sensorAddVectorGaussian"];
-    this_             = wsm_data.at("measurement_sensorAddSimpleGaussian");
+    auto& this_       = wsm_data["measurement_sensorsAddVectorGaussian"];
+    this_             = wsm_data.at("measurement_sensorsAddSimpleGaussian");
     this_.gin_type[0] = "Vector";
   }
 
-  wsm_data["measurement_sensorAddRawSensor"] = {
+  wsm_data["measurement_sensorsAddRawSensor"] = {
       .desc =
           R"--(Adds sensor elements from a raw perturbation of the sensor
 
@@ -4822,24 +4771,48 @@ The quoted strings must be used as the grid names of the gridded field.
     is that the order of the dimensions do not change from the one above.
 )--",
       .author    = {"Richard Larsson"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "freq_grid"},
+      .gin       = {"pos", "los", "raw_sensor_perturbation", "normalize", "name"},
       .gin_type  = {"Vector3",
                     "Vector2",
                     "SortedGriddedField1,SortedGriddedField2,SortedGriddedField3,"
                     "SortedGriddedField4,SortedGriddedField5,SortedGriddedField6,"
                     "StokvecSortedGriddedField1,StokvecSortedGriddedField2,StokvecSortedGriddedField3,"
                     "StokvecSortedGriddedField4,StokvecSortedGriddedField5,StokvecSortedGriddedField6",
-                    "Index"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}},
-      .gin_desc  = {"A position [alt, lat, lon]",
-                    "A line of sight [zenith, azimuth]",
-                    "The sensor perturbation grid",
-                    "Whether or not to normalize the perturbation to 1.0 for each element"},
+                    "Index",
+                    "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, Index{0}, String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A line of sight [zenith, azimuth]",
+           "The sensor perturbation grid",
+           "Whether or not to normalize the perturbation to 1.0 for each element",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
-  wsm_data["measurement_sensorAddCamera"] = {
+  wsm_data["measurement_sensorsAddSensorBuilder"] = {
+      .desc =
+          R"--(Adds the sensor that a *SensorBuilder* builds at one position and bore line of sight.
+
+The antenna of the builder samples its lines of sight around the bore line of
+sight on the ellipsoid of *surf_field*.  The elements are ordered by pixel of
+the antenna and then by channel, as the meta of the sensor.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "surf_field"},
+      .gin       = {"pos", "los", "sensor_builder", "name"},
+      .gin_type  = {"Vector3", "Vector2", "SensorBuilder", "String"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}},
+      .gin_desc =
+          {"A position [alt, lat, lon]",
+           "A bore line of sight [zenith, azimuth]",
+           "The channels and the antenna of the sensor",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
+  };
+
+  wsm_data["measurement_sensorsAddCamera"] = {
       .desc =
           R"--(Adds a simple thin-lens camera model to the measurement sensor.
 
@@ -4871,13 +4844,31 @@ A Dirac weight is assigned per pixel per frequency channel, yielding
 ``n_h x n_w x nfreq`` observation elements.  All observation elements share
 the same frequency grid and the same PosLos grid (one entry per pixel).
 )--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor", "measurement_sensor_meta"},
-      .in     = {"measurement_sensor", "measurement_sensor_meta", "freq_grid"},
-      .gin =
-          {"pos", "los", "pol", "n_h", "n_w", "ccd_h", "ccd_w", "focal_length", "aperture_diameter", "focus_distance"},
-      .gin_type =
-          {"Vector3", "Vector2", "Stokvec", "Index", "Index", "Numeric", "Numeric", "Numeric", "Numeric", "Numeric"},
+      .author    = {"Richard Larsson"},
+      .out       = {"measurement_sensors"},
+      .in        = {"measurement_sensors", "freq_grid"},
+      .gin       = {"pos",
+                    "los",
+                    "pol",
+                    "n_h",
+                    "n_w",
+                    "ccd_h",
+                    "ccd_w",
+                    "focal_length",
+                    "aperture_diameter",
+                    "focus_distance",
+                    "name"},
+      .gin_type  = {"Vector3",
+                    "Vector2",
+                    "Stokvec",
+                    "Index",
+                    "Index",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "String"},
       .gin_value = {std::nullopt,
                     std::nullopt,
                     rtepack::to_stokvec(PolarizationChoice::I),
@@ -4887,32 +4878,20 @@ the same frequency grid and the same PosLos grid (one entry per pixel).
                     std::nullopt,
                     std::nullopt,
                     std::nullopt,
-                    std::nullopt},
-      .gin_desc  = {"Observer position [alt, lat, lon]",
-                    "Central pixel line of sight [zenith, azimuth]",
-                    "Polarization Stokes weight per pixel",
-                    "Number of pixels along the CCD height (rows)",
-                    "Number of pixels along the CCD width (columns)",
-                    "Physical height of the CCD in meters",
-                    "Physical width of the CCD in meters",
-                    "Focal length of the lens in meters",
-                    "Diameter of the lens aperture in meters",
-                    "Distance to the in-focus plane in meters (must be > focal_length)"},
-  };
-
-  wsm_data["measurement_sensor_metaFromMeasurementVec"] = {
-      .desc =
-          R"--(Fill *measurement_sensor_meta* gridded field data from *measurement_vec*.
-
-Each element in *measurement_sensor_meta* describes a contiguous block of
-*measurement_vec*.  This method copies those slices into the data tensor
-of each gridded field, making the structured per-sensor data directly
-accessible.  The start index of each block is derived from the cumulative
-``count()`` of preceding elements.
-)--",
-      .author = {"Richard Larsson"},
-      .out    = {"measurement_sensor_meta"},
-      .in     = {"measurement_sensor_meta", "measurement_vec"},
+                    std::nullopt,
+                    String{}},
+      .gin_desc =
+          {"Observer position [alt, lat, lon]",
+           "Central pixel line of sight [zenith, azimuth]",
+           "Polarization Stokes weight per pixel",
+           "Number of pixels along the CCD height (rows)",
+           "Number of pixels along the CCD width (columns)",
+           "Physical height of the CCD in meters",
+           "Physical width of the CCD in meters",
+           "Focal length of the lens in meters",
+           "Diameter of the lens aperture in meters",
+           "Distance to the in-focus plane in meters (must be > focal_length)",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
   wsm_data["sun_pathFromObserverAgenda"] = {
@@ -5154,7 +5133,7 @@ Then fills it with the perturbations from the *jac_targets*.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"model_state_vec"},
-      .in     = {"model_state_vec", "measurement_sensor", "jac_targets"},
+      .in     = {"model_state_vec", "measurement_sensors", "jac_targets"},
   };
 
   wsm_data["model_state_vecFromAtmosphere"] = {
@@ -5201,13 +5180,7 @@ the level before and one for the level after.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"spectral_tramat_path"},
-      .in        = {"spectral_propmat_path",
-                    "spectral_propmat_jac_path",
-                    "ray_path",
-                    "atm_path",
-                    "surf_field",
-                    "jac_targets",
-                    "rte_option"},
+      .in        = {"spectral_propmat_path", "ray_path", "atm_path", "surf_field", "jac_targets", "rte_option"},
       .gin       = {"hse_derivative"},
       .gin_type  = {"Index"},
       .gin_value = {Index{0}},
@@ -5222,6 +5195,34 @@ This uses a step-by-step solver to propagate background radiation along the path
       .author = {"Richard Larsson"},
       .out    = {"spectral_rad", "spectral_rad_jac_path"},
       .in     = {"spectral_tramat_path", "spectral_rad_srcvec_path", "spectral_rad_bkg"},
+  };
+
+  wsm_data["spectral_radStepByStepEmissionFromPropmat"] = {
+      .desc      = R"--(Gets the spectral radiance from the propagation matrices along the path.
+
+The result is that of *spectral_tramat_pathFromPath*,
+*spectral_rad_srcvec_pathFromPropmat*, *spectral_radStepByStepEmission* and
+*spectral_rad_jacFromBackground* in turn.  This method computes the
+transmission and the source along the path for a few frequencies at a time
+instead, and keeps them for no more than those frequencies.  What it works on
+then fits in the cache of the processor, and it does not need the memory of
+*spectral_tramat_path* and *spectral_rad_srcvec_path* for all frequencies.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_rad", "spectral_rad_jac", "spectral_rad_jac_path"},
+      .in        = {"spectral_propmat_path",
+                    "freq_grid_path",
+                    "ray_path",
+                    "atm_path",
+                    "surf_field",
+                    "jac_targets",
+                    "rte_option",
+                    "spectral_rad_bkg",
+                    "spectral_rad_bkg_jac"},
+      .gin       = {"hse_derivative"},
+      .gin_type  = {"Index"},
+      .gin_value = {Index{0}},
+      .gin_desc  = {"Flag to compute the hypsometric distance derivatives"},
   };
 
   wsm_data["spectral_radCumulativeTransmission"] = {
@@ -5310,8 +5311,8 @@ calculation is performed. Use this before preparing the next measurement's
 retrieval from the same physical prior.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor"},
-      .in     = {"oem", "abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensor", "jac_targets"},
+      .out    = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors"},
+      .in     = {"oem", "abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors", "jac_targets"},
   };
   wsm_data["oemClearAuxiliary"] = {
       .desc = "Release recomputable products and caches in oem; retain inputs, current state, bases and diagnostics.\n",
@@ -5517,11 +5518,11 @@ system (reduced dimensions for oemCalcReduced).
 
 )",
       .author           = {"Patrick Eriksson"},
-      .out              = {"oem", "atm_field", "abs_bands", "measurement_sensor", "surf_field", "subsurf_field"},
+      .out              = {"oem", "atm_field", "abs_bands", "measurement_sensors", "surf_field", "subsurf_field"},
       .in               = {"oem",
                            "atm_field",
                            "abs_bands",
-                           "measurement_sensor",
+                           "measurement_sensors",
                            "surf_field",
                            "subsurf_field",
                            "jac_targets",
@@ -5841,7 +5842,7 @@ success discards cached inverses.  Other existing correlations are preserved.
 )",
       .author           = {"Richard Larsson"},
       .out              = {"measurement_vec_error", "measurement_jac_error"},
-      .in               = {"measurement_sensor", "model_state_targets", "jac_targets", "model_state_vec"},
+      .in               = {"measurement_sensors", "model_state_targets", "jac_targets", "model_state_vec"},
       .size_constraints = false,
   };
 
@@ -6137,7 +6138,7 @@ This is WIP and should not be used.
 )",
       .author = {"Richard Larsson"},
       .out    = {"disort_settings"},
-      .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "spectral_nlte_srcvec_path", "freq_grid"},
+      .in     = {"disort_settings", "atm_path", "spectral_propmat_path", "freq_grid"},
   };
   wsm_data["vdisort_settingsLayerNonThermalEmissionLinearInTau"] =
       vdisort_method("disort_settingsLayerNonThermalEmissionLinearInTau");
@@ -6612,7 +6613,7 @@ this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
 )",
       .author = {"Richard Larsson"},
       .out    = {"oem", "jac_targets"},
-      .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensor"},
+      .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
       .size_constraints = false,
   };
 
@@ -6696,7 +6697,7 @@ of the sensor element at ``idx`` at the chosen ``pol`` polarization.
       .gout      = {"ray_path_observers_weights"},
       .gout_type = {"Vector"},
       .gout_desc = {"The weights for the ray path field"},
-      .in        = {"measurement_sensor"},
+      .in        = {"measurement_sensors"},
       .gin       = {"idx", "pol"},
       .gin_type  = {"Index", "Stokvec"},
       .gin_value = {Index{0}, Stokvec{1.0, 0.0, 0.0, 0.0}},
@@ -6768,25 +6769,74 @@ Additional work is requires if proper coverage of the limb is required
       .desc =
           R"(Turns profile data into path data.
 
-Only valid when local spectral properties are identical in all directions.
-Neither polarization nor wind calculations are possible with this method.
+A point of *ray_path* at an altitude of *alt_grid* takes the atmospheric
+point of that altitude from *atm_profile*, but with the wind of *atm_field*
+at its own position.  Its frequency grid is *freq_grid*
+shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
+the non-LTE source vectors and their derivatives of that altitude are
+interpolated linearly from *freq_grid_profile* to the shifted frequencies.
+The frequency derivatives of the wind targets are then turned into wind
+derivatives by *spectral_propmatWindFix*.
+
+The input ``f_extrapolfac`` limits the extrapolation beyond *freq_grid_profile*.
+If *freq_grid_profile* is :math:`[f_0, f_1, \cdots, f_{n-1}, f_n]`, then
+this method throws an error if a shifted frequency :math:`f` is
+
+.. math::
+
+    f < f_0 - \Delta f_e \left(f_1 - f_0\right)
+
+or
+
+.. math::
+
+    f > f_n + \Delta f_e \left(f_n - f_{n-1}\right)
+
+where :math:`\Delta f_e` is ``f_extrapolfac``.  Set it to an infinite value to
+extrapolate linearly to any frequency.
+
+Only valid when local spectral properties are identical in all directions,
+and when the atmosphere, except for its wind, is the same at all latitudes
+and longitudes.  Polarization is not possible with this method.
+
+A point inside *alt_grid* but between its altitudes, such as the tangent
+point of a limb path, is not in the profile.  Its atmospheric point and
+frequency grid are those of *atm_pathFromPath* and *freq_grid_pathFromPath*.
+Its propagation matrices, non-LTE source vectors and their derivatives are
+those of the two altitudes of *alt_grid* around it, each interpolated to its
+frequencies as above, and then interpolated linearly in altitude.  The error
+of this falls with the spacing of *alt_grid*, which can be finer than the grid
+of *atm_field* as long as it contains the altitudes of the other points of
+the path.
+
+The profile does not cover a point outside *alt_grid*, so its propagation
+matrices, non-LTE source vectors and their derivatives are zero.  Its
+atmospheric point and frequency grid are those of *atm_pathFromPath* and
+*freq_grid_pathFromPath*.  The same holds for a path of fewer than two points,
+which has no layer to propagate through.  Its point needs no altitude of
+*alt_grid*, so a ray that misses the atmosphere needs none either.
+
+.. note::
+    The transmission of a layer depends on the propagation matrices at both
+    of its ends, so a layer from a point outside *alt_grid* to a point inside
+    it still absorbs.  *ray_pathRemoveOutsideAltitudeGrid* removes the points
+    outside *alt_grid* from *ray_path*.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"spectral_propmat_path",
-                 "spectral_nlte_srcvec_path",
-                 "spectral_propmat_jac_path",
-                 "spectral_nlte_srcvec_jac_path",
-                 "atm_path",
-                 "freq_grid_path",
-                 "freq_wind_shift_jac_path"},
-      .in     = {"freq_grid",
-                 "alt_grid",
-                 "ray_path",
-                 "atm_profile",
-                 "spectral_propmat_profile",
-                 "spectral_propmat_jac_profile",
-                 "spectral_nlte_srcvec_profile",
-                 "spectral_nlte_srcvec_jac_profile"},
+      .author    = {"Richard Larsson"},
+      .out       = {"spectral_propmat_path", "atm_path", "freq_grid_path", "freq_wind_shift_jac_path"},
+      .in        = {"freq_grid",
+                    "freq_grid_profile",
+                    "alt_grid",
+                    "ray_path",
+                    "atm_field",
+                    "jac_targets",
+                    "atm_profile",
+                    "spectral_propmat_profile"},
+      .gin       = {"f_extrapolfac"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{0.5}},
+      .gin_desc =
+          {R"--(Frequency extrapolation factor (relative to grid spacing). :math:`\Delta f_e` in text above.)--"},
   };
 
   wsm_data["CoupledAtmosphereAndSubsurfaceDisortSettings"] = {
@@ -6814,18 +6864,37 @@ respective internal altitude grids will contain the surface elevation as a grid 
 
   wsm_data["ProfileFromAltitude"] = {
       .desc =
-          R"(Turns profile data into path data.
+          R"(Computes the propagation matrices of a profile, once per altitude of *alt_grid*.
+
+The atmosphere of the profile, *atm_profile*, is *atm_field* at *alt_grid*,
+*lat* and *lon*, but without wind.  *alt_grid* must cover the atmosphere from
+the surface of *surf_field* at *lat* and *lon* to the top of *atm_field*.  The
+propagation matrices, the non-LTE source vectors and their derivatives are
+computed for it by *spectral_propmat_agenda* on *freq_grid_profile*.
+*Profile2Path* turns them into path data, with the wind of *atm_field* at each
+point of the path.
+
+*freq_grid_profile* is *freq_grid* with points added beyond both ends, so that
+*Profile2Path* can shift *freq_grid* by the wind.  The largest shift is by the
+strongest wind of *atm_field* at the altitudes of the profile, as if it blew
+along the line of sight.  For a
+wind speed :math:`v`, the added points continue the spacing at either end of
+*freq_grid* until they cover :math:`f_0 \left(1 - v / c\right)` below its first
+frequency :math:`f_0` and :math:`f_n \left(1 + v / c\right)` above its last
+frequency :math:`f_n`.  Without wind, *freq_grid_profile* is *freq_grid*.
+
+The derivatives of the wind targets are kept as frequency derivatives, as they
+are before *spectral_propmatWindFix* turns them into wind derivatives.  This
+undoes *spectral_propmatWindFix*, so *spectral_propmat_agenda* must apply it,
+as it must to give wind derivatives at all.
 
 Only valid when local spectral properties are identical in all directions.
-Neither polarization nor wind calculations are possible with this method.
+Polarization is not possible with this method.
 )",
-      .author         = {"Richard Larsson"},
-      .out            = {"atm_profile",
-                         "spectral_propmat_profile",
-                         "spectral_propmat_jac_profile",
-                         "spectral_nlte_srcvec_profile",
-                         "spectral_nlte_srcvec_jac_profile"},
-      .in             = {"spectral_propmat_agenda", "jac_targets", "alt_grid", "atm_field", "freq_grid", "lat", "lon"},
+      .author = {"Richard Larsson"},
+      .out    = {"atm_profile", "freq_grid_profile", "spectral_propmat_profile"},
+      .in =
+          {"spectral_propmat_agenda", "jac_targets", "alt_grid", "atm_field", "surf_field", "freq_grid", "lat", "lon"},
       .pass_workspace = true,
   };
 
@@ -6923,29 +6992,31 @@ added without changing the interface.
       .pass_workspace = true,
   };
 
-  wsm_data["measurement_sensorAddSimpleRadar"] = {
+  wsm_data["measurement_sensorsAddSimpleRadar"] = {
       .desc      = R"--(Adds range-resolved pencil-beam radar observation elements.
 
 For every frequency in *freq_grid*, one observation element is appended for
 every interval in ``range_bins``.  The ordering is frequency first and range
 bin second, matching the ARTS2 ``yRadar`` convention.  All generated elements
 share their frequency and position/LOS grids.  The matching limits are
-appended to *radar_range_limits*, and *measurement_sensor_meta* receives one
-range grid per frequency.
+appended to *radar_range_limits*.  Each frequency is appended to
+*measurement_sensors* as its own sensor, with the range grid as its meta.
 
 The receiving polarization is a Stokes dot-product vector.  For example,
 ``[0.5, 0.5, 0, 0]`` is the old ARTS polarization index 5 (vertical linear).
 )--",
       .author    = {"Patrick Eriksson", "OpenAI Codex"},
-      .out       = {"measurement_sensor", "measurement_sensor_meta", "radar_range_limits"},
-      .in        = {"measurement_sensor", "measurement_sensor_meta", "radar_range_limits", "freq_grid"},
-      .gin       = {"pos", "los", "pol", "range_bins"},
-      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid"},
-      .gin_value = {std::nullopt, std::nullopt, Stokvec{0.5, 0.5, 0.0, 0.0}, std::nullopt},
-      .gin_desc  = {"Radar position [altitude, latitude, longitude].",
-                    "Radar viewing direction [zenith, azimuth].",
-                    "Receiving-polarization Stokes weights.",
-                    "Common range-bin edges."},
+      .out       = {"measurement_sensors", "radar_range_limits"},
+      .in        = {"measurement_sensors", "radar_range_limits", "freq_grid"},
+      .gin       = {"pos", "los", "pol", "range_bins", "name"},
+      .gin_type  = {"Vector3", "Vector2", "Stokvec", "AscendingGrid", "String"},
+      .gin_value = {std::nullopt, std::nullopt, Stokvec{0.5, 0.5, 0.0, 0.0}, std::nullopt, String{}},
+      .gin_desc =
+          {"Radar position [altitude, latitude, longitude].",
+           "Radar viewing direction [zenith, azimuth].",
+           "Receiving-polarization Stokes weights.",
+           "Common range-bin edges.",
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
   };
 
   wsm_data["measurement_vecFromRadarSingleScattering"] = {
@@ -6954,13 +7025,13 @@ The receiving polarization is a Stokes dot-product vector.  For example,
 This is the ARTS3 counterpart of the ARTS2 ``yRadar`` and
 ``iyRadarSingleScat`` workflow.  It calculates particle backscatter and
 two-way polarized attenuation by gases and particles along the propagation
-paths of *measurement_sensor*.  Surface clutter and multiple scattering are
+paths of *measurement_sensors*.  Surface clutter and multiple scattering are
 not included.
 
-Each element of *measurement_sensor* is paired with the corresponding row of
+Each element of *measurement_sensors* is paired with the corresponding row of
 *radar_range_limits*.  This keeps *measurement_vec* and *measurement_jac* in
 the standard retrieval layout: one sensor observation element produces one
-measurement.  Use *measurement_sensorAddSimpleRadar* for the common
+measurement.  Use *measurement_sensorsAddSimpleRadar* for the common
 frequency/polarization/range-bin arrangement.
 
 ``range_mode`` may be ``"Altitude"`` [m], ``"Distance"`` [m one way],
@@ -7000,7 +7071,7 @@ and V selectors.
 )--",
       .author   = {"Patrick Eriksson", "OpenAI Codex"},
       .out      = {"measurement_vec", "measurement_jac", "radar_aux", "radar_time"},
-      .in       = {"measurement_sensor",
+      .in       = {"measurement_sensors",
                    "radar_range_limits",
                    "jac_targets",
                    "atm_field",
@@ -7067,7 +7138,7 @@ and atmospheric state chosen by the caller.
       .author         = {"Patrick Eriksson", "OpenAI Codex"},
       .out            = {"model_state_vec", "measurement_vec_fit", "measurement_jac", "atm_field"},
       .in             = {"measurement_vec",
-                         "measurement_sensor",
+                         "measurement_sensors",
                          "radar_range_limits",
                          "jac_targets",
                          "surf_field",
@@ -7190,7 +7261,7 @@ rotations.  Scattering directions use uniform solid-angle importance sampling.
 
 This is the observer-level interface used by *spectral_rad_observer_agenda* and
 therefore by *measurement_vecFromSensor*. Frequency, polarization, and antenna
-weighting are owned by *measurement_sensor*, so this method deliberately uses
+weighting are owned by *measurement_sensors*, so this method deliberately uses
 a pencil beam internally. One Monte Carlo calculation is performed for every
 frequency in *freq_grid*.
 

@@ -51,12 +51,12 @@ void abs_bandsFromModelState(AbsorptionBands&       abs_bands,
   for (auto& target : model_state_targets.line) { target.update_model(abs_bands, model_state_vec); }
 }
 
-void measurement_sensorFromModelState(ArrayOfSensorObsel&    measurement_sensor,
-                                      const Vector&          model_state_vec,
-                                      const JacobianTargets& model_state_targets) {
+void measurement_sensorsFromModelState(ArrayOfSensor&         measurement_sensors,
+                                       const Vector&          model_state_vec,
+                                       const JacobianTargets& model_state_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : model_state_targets.sensor) { target.update_model(measurement_sensor, model_state_vec); }
+  for (auto& target : model_state_targets.sensor) { target.update_model(measurement_sensors, model_state_vec); }
 }
 
 ////// Update the model state vector from the fields
@@ -93,12 +93,12 @@ void model_state_vecFromBands(Vector&                model_state_vec,
   for (auto& target : jac_targets.line) { target.update_state(model_state_vec, abs_bands); }
 }
 
-void model_state_vecFromSensor(Vector&                   model_state_vec,
-                               const ArrayOfSensorObsel& measurement_sensor,
-                               const JacobianTargets&    jac_targets) {
+void model_state_vecFromSensor(Vector&                model_state_vec,
+                               const ArrayOfSensor&   measurement_sensors,
+                               const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
-  for (auto& target : jac_targets.sensor) { target.update_state(model_state_vec, measurement_sensor); }
+  for (auto& target : jac_targets.sensor) { target.update_state(model_state_vec, measurement_sensors); }
 }
 
 ///// Update the measurement Jacobian from the model state vector
@@ -139,10 +139,10 @@ void measurement_jacBandTransformation(Matrix&                measurement_jac,
   for (auto& target : jac_targets.line) { target.update_jac(measurement_jac, model_state_vec, field); }
 }
 
-void measurement_jacSensorTransformation(Matrix&                   measurement_jac,
-                                         const Vector&             model_state_vec,
-                                         const ArrayOfSensorObsel& field,
-                                         const JacobianTargets&    jac_targets) {
+void measurement_jacSensorTransformation(Matrix&                measurement_jac,
+                                         const Vector&          model_state_vec,
+                                         const ArrayOfSensor&   field,
+                                         const JacobianTargets& jac_targets) {
   ARTS_TIME_REPORT
 
   for (auto& target : jac_targets.sensor) { target.update_jac(measurement_jac, model_state_vec, field); }

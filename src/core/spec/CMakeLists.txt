@@ -26,6 +26,7 @@ target_include_directories(make_species_enum PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 arts_generate(make_species_enum
   ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_species_enum_info.cc auto_species_enum_info.h auto_isotopologues.cc auto_partition_functions.h
+  DEPENDS ${ARTS_CAT_DATA_COMPILE_FILES}
   COMMENT "Generating automatic species enumeration"
 )
 
@@ -36,5 +37,6 @@ target_include_directories(species_enum_info_gen PUBLIC ${CMAKE_CURRENT_SOURCE_D
 arts_generate(make_species
   ARGS ${ARTS_CAT_DATA_DIR}
   OUTPUT auto_isotopologues.h
+  DEPENDS ${ARTS_CAT_DATA_COMPILE_FILES}
   COMMENT "Generating automatic isotopologues"
 )

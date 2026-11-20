@@ -30,7 +30,7 @@ ws.ray_path_observer_agendaSetGeometric()
 
 
 def set_sensor(freq_grid):
-    ws.measurement_sensorSimpleGaussian(
+    ws.measurement_sensorsSimpleGaussian(
         freq_grid=freq_grid, std=1, pos=pos, los=los, pol="I"
     )
 
@@ -46,6 +46,7 @@ def jacobian(with_t, polyorder=None):
         )
     ws.jac_targetsFinalize()
     ws.measurement_vecFromSensor()
+    ws.measurement_jacAddSensorJacobianPerturbations()
     return np.array(ws.measurement_vec), np.array(ws.measurement_jac)
 
 

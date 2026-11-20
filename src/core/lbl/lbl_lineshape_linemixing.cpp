@@ -1,7 +1,6 @@
 #include "lbl_lineshape_linemixing.h"
 
 #include <arts_constants.h>
-#include <enums.h>
 
 namespace lbl::linemixing {
 Numeric species_data::Q(const Rational J, const Numeric T, const Numeric T0, const Numeric energy) const {

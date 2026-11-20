@@ -186,6 +186,7 @@ def download_folder_zip(rel_path, basedir, baseurl):
             archive_root = next(iter(top_levels))
             target_prefix = archive_root + rel_path.rstrip("/") + "/"
 
+            extracted_files = []
             for member in z.namelist():
                 if not member.startswith(target_prefix):
                     continue
@@ -198,7 +199,11 @@ def download_folder_zip(rel_path, basedir, baseurl):
                 os.makedirs(os.path.dirname(final_path), exist_ok=True)
                 with z.open(member) as src, open(final_path, "wb") as dst:
                     shutil.copyfileobj(src, dst)
-        logging.info(f"Downloaded and extracted {rel_path}")
+                extracted_files.append(os.path.join(rel_path, inner))
+        logging.info(
+            "Downloaded and extracted:\n%s",
+            "\n".join(extracted_files),
+        )
         return True
     except Exception as e:
         logging.error(f"Failed to extract ZIP for {rel_path}: {e}")

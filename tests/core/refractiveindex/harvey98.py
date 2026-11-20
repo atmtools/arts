@@ -2,7 +2,7 @@ import numpy as np
 import pyarts3 as pyarts
 
 # ARTS2 reference case: 0.488 micrometres, 283.15 K, liquid-water density.
-frequency = pyarts.arts.constants.c / (0.488e-6)
+frequency = pyarts.arts.convert.wavelen2freq(0.488e-6)
 reference_index = 1.33821937010893
 
 n = pyarts.arts.physics.refractive_index_water_visible_nir_harvey98(
@@ -18,7 +18,7 @@ wavelengths = np.array([0.488, 0.589, 1.0]) * 1e-6
 temperatures = np.array([[283.15], [300.0]])
 densities = np.array([[1000.0], [997.0]])
 indices = pyarts.arts.physics.refractive_index_water_visible_nir_harvey98(
-    frequency=pyarts.arts.constants.c / wavelengths,
+    frequency=pyarts.arts.convert.wavelen2freq(wavelengths),
     temperature=temperatures,
     density=densities,
 )
@@ -27,7 +27,7 @@ assert np.all(np.isfinite(indices))
 
 try:
     pyarts.arts.physics.refractive_index_water_visible_nir_harvey98(
-        frequency=pyarts.arts.constants.c / (2.0e-6),
+        frequency=pyarts.arts.convert.wavelen2freq(2.0e-6),
         temperature=283.15,
         density=1000.0,
     )

@@ -93,10 +93,8 @@ target_include_directories(fastwigxj
 
 target_link_libraries(fastwigxj wigxjpf)
     
-set_target_properties(fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
-
 if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-    target_compile_options(fastwigxj PRIVATE -Wno-shadow)
+    target_compile_options(fastwigxj PRIVATE -march=native -Wno-shadow)
 endif()
 
 
@@ -119,14 +117,18 @@ target_include_directories(hashing_fastwigxj
 
 target_link_libraries(hashing_fastwigxj wigxjpf)
 
-set_target_properties(hashing_fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    target_compile_options(hashing_fastwigxj PRIVATE -march=native)
+endif()
 
 
 add_executable(hash_fastwigxj src/hash_js.cc)
 
 target_link_libraries(hash_fastwigxj hashing_fastwigxj)
 
-set_target_properties(hash_fastwigxj PROPERTIES COMPILE_FLAGS "-fPIC ${CMAKE_C_FLAGS} -march=native")
+if (NOT CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    target_compile_options(hash_fastwigxj PRIVATE -march=native)
+endif()
 
 if(FASTWIGNER LESS 1)
   message (SEND_ERROR "ERROR:  FASTWIGNER must be positive if active")

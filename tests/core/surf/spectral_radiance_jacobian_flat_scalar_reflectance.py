@@ -54,7 +54,7 @@ ws.surf_field["flat scalar reflectance"] = rs
 
 pos = [110e3, 0, 0]
 los = [160.0, 30.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 ws.oemInit()
 ws.oemAddSurface(

@@ -3,10 +3,7 @@
 #include <workspace.h>
 
 void spectral_propmat_pathFromPath(const Workspace                   &ws,
-                                   ArrayOfPropmatVector              &spectral_propmat_path,
-                                   ArrayOfStokvecVector              &spectral_nlte_srcvec_path,
-                                   ArrayOfPropmatMatrix              &spectral_propmat_jac_path,
-                                   ArrayOfStokvecMatrix              &spectral_nlte_srcvec_jac_path,
+                                   ArrayOfSpectralPropmat            &spectral_propmat_path,
                                    const Agenda                      &spectral_propmat_agenda,
                                    const ArrayOfAscendingGrid        &freq_grid_path,
                                    const ArrayOfVector3              &freq_wind_shift_jac_path,
@@ -17,9 +14,6 @@ void spectral_propmat_pathFromPath(const Workspace                   &ws,
 
   const Size np = ray_path.size();
   spectral_propmat_path.resize(np);
-  spectral_nlte_srcvec_path.resize(np);
-  spectral_propmat_jac_path.resize(np);
-  spectral_nlte_srcvec_jac_path.resize(np);
 
   String error{};
 
@@ -28,9 +22,6 @@ void spectral_propmat_pathFromPath(const Workspace                   &ws,
     try {
       spectral_propmat_agendaExecute(ws,
                                      spectral_propmat_path[ip],
-                                     spectral_nlte_srcvec_path[ip],
-                                     spectral_propmat_jac_path[ip],
-                                     spectral_nlte_srcvec_jac_path[ip],
                                      freq_grid_path[ip],
                                      freq_wind_shift_jac_path[ip],
                                      jac_targets,
@@ -49,10 +40,7 @@ void spectral_propmat_pathFromPath(const Workspace                   &ws,
 ARTS_METHOD_ERROR_CATCH
 
 void spectral_propmat_pathAddAdaptiveHalfPath(const Workspace             &ws,
-                                              ArrayOfPropmatVector        &spectral_propmat_path,
-                                              ArrayOfStokvecVector        &spectral_nlte_srcvec_path,
-                                              ArrayOfPropmatMatrix        &spectral_propmat_jac_path,
-                                              ArrayOfStokvecMatrix        &spectral_nlte_srcvec_jac_path,
+                                              ArrayOfSpectralPropmat      &spectral_propmat_path,
                                               ArrayOfAscendingGrid        &freq_grid_path,
                                               ArrayOfVector3              &freq_wind_shift_jac_path,
                                               ArrayOfPropagationPathPoint &ray_path,
@@ -78,14 +66,11 @@ void spectral_propmat_pathAddAdaptiveHalfPath(const Workspace             &ws,
   ArrayOfAtmPoint             nap;
   ArrayOfAscendingGrid        nfgp;
   ArrayOfVector3              nfwsjp;
-  ArrayOfPropmatVector        nspp;
-  ArrayOfStokvecVector        nsnsp;
-  ArrayOfPropmatMatrix        nspjp;
-  ArrayOfStokvecMatrix        nsnsjp;
+  ArrayOfSpectralPropmat      nspp;
 
   for (Size ip = 0; ip < ray_path.size() - 1; ip++) {
-    const auto   &p0  = spectral_propmat_path[ip];
-    const auto   &p1  = spectral_propmat_path[ip + 1];
+    const auto   &p0  = spectral_propmat_path[ip].K;
+    const auto   &p1  = spectral_propmat_path[ip + 1].K;
     const auto   &rp0 = ray_path[ip];
     const auto   &rp1 = ray_path[ip + 1];
     const Numeric r   = path::distance(rp0.pos, rp1.pos, ellipsoid);
@@ -111,16 +96,12 @@ void spectral_propmat_pathAddAdaptiveHalfPath(const Workspace             &ws,
       if (not nrp.empty()) {
         atm_pathFromPath(nap, nrp, atm_field);
         freq_grid_pathFromPath(nfgp, nfwsjp, freq_grid, nrp, nap);
-        spectral_propmat_pathFromPath(
-            ws, nspp, nsnsp, nspjp, nsnsjp, spectral_propmat_agenda, nfgp, nfwsjp, jac_targets, nrp, nap);
+        spectral_propmat_pathFromPath(ws, nspp, spectral_propmat_agenda, nfgp, nfwsjp, jac_targets, nrp, nap);
         ray_path.insert_range(ray_path.begin() + ip + 1, nrp);
         atm_path.insert_range(atm_path.begin() + ip + 1, nap);
         freq_grid_path.insert_range(freq_grid_path.begin() + ip + 1, nfgp);
         freq_wind_shift_jac_path.insert_range(freq_wind_shift_jac_path.begin() + ip + 1, nfwsjp);
         spectral_propmat_path.insert_range(spectral_propmat_path.begin() + ip + 1, nspp);
-        spectral_nlte_srcvec_path.insert_range(spectral_nlte_srcvec_path.begin() + ip + 1, nsnsp);
-        spectral_propmat_jac_path.insert_range(spectral_propmat_jac_path.begin() + ip + 1, nspjp);
-        spectral_nlte_srcvec_jac_path.insert_range(spectral_nlte_srcvec_jac_path.begin() + ip + 1, nsnsjp);
         ip += nrp.size();
       }
     }
@@ -128,32 +109,22 @@ void spectral_propmat_pathAddAdaptiveHalfPath(const Workspace             &ws,
 }
 ARTS_METHOD_ERROR_CATCH
 
-void spectral_propmat_path_species_splitFromPath(
-    const Workspace                   &ws,
-    ArrayOfArrayOfPropmatVector       &spectral_propmat_path_species_split,
-    ArrayOfArrayOfStokvecVector       &spectral_nlte_srcvec_path_species_split,
-    ArrayOfArrayOfPropmatMatrix       &spectral_propmat_jac_path_species_split,
-    ArrayOfArrayOfStokvecMatrix       &spectral_nlte_srcvec_jac_path_species_split,
-    const Agenda                      &spectral_propmat_agenda,
-    const ArrayOfAscendingGrid        &freq_grid_path,
-    const ArrayOfVector3              &freq_wind_shift_jac_path,
-    const JacobianTargets             &jac_targets,
-    const ArrayOfPropagationPathPoint &ray_path,
-    const ArrayOfAtmPoint             &atm_path,
-    const ArrayOfSpeciesEnum          &select_species_list) try {
+void spectral_propmat_path_species_splitFromPath(const Workspace                   &ws,
+                                                 ArrayOfArrayOfSpectralPropmat     &spectral_propmat_path_species_split,
+                                                 const Agenda                      &spectral_propmat_agenda,
+                                                 const ArrayOfAscendingGrid        &freq_grid_path,
+                                                 const ArrayOfVector3              &freq_wind_shift_jac_path,
+                                                 const JacobianTargets             &jac_targets,
+                                                 const ArrayOfPropagationPathPoint &ray_path,
+                                                 const ArrayOfAtmPoint             &atm_path,
+                                                 const ArrayOfSpeciesEnum          &select_species_list) try {
   ARTS_TIME_REPORT
 
   const Size ns = select_species_list.size();
   const Size np = ray_path.size();
 
   spectral_propmat_path_species_split.resize(ns);
-  spectral_nlte_srcvec_path_species_split.resize(ns);
-  spectral_propmat_jac_path_species_split.resize(ns);
-  spectral_nlte_srcvec_jac_path_species_split.resize(ns);
   for (auto &s : spectral_propmat_path_species_split) s.resize(np);
-  for (auto &s : spectral_nlte_srcvec_path_species_split) s.resize(np);
-  for (auto &s : spectral_propmat_jac_path_species_split) s.resize(np);
-  for (auto &s : spectral_nlte_srcvec_jac_path_species_split) s.resize(np);
 
   String error{};
 
@@ -163,9 +134,6 @@ void spectral_propmat_path_species_splitFromPath(
       try {
         spectral_propmat_agendaExecute(ws,
                                        spectral_propmat_path_species_split[is][ip],
-                                       spectral_nlte_srcvec_path_species_split[is][ip],
-                                       spectral_propmat_jac_path_species_split[is][ip],
-                                       spectral_nlte_srcvec_jac_path_species_split[is][ip],
                                        freq_grid_path[ip],
                                        freq_wind_shift_jac_path[ip],
                                        jac_targets,

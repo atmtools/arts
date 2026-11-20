@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ranges>
+#include <set>
 #include <string>
 
 #include "pydocs.h"
@@ -11,6 +12,13 @@
 #include "workspace_groups.h"
 
 namespace {
+//! The headers of the group friends; auto_wsg.h only includes those of the groups
+void include_friends(std::ostream& os) {
+  std::set<std::string> files;
+  for (const auto& [group, wsg] : workspace_group_friends()) files.insert(wsg.file);
+  for (const auto& file : files) std::println(os, "#include <{}>", file);
+}
+
 void implement_convert_const_py_object() try {
   const auto& wsgs = internal_workspace_groups();
 
@@ -315,6 +323,9 @@ void groups(const std::string& fname) try {
 #include <hpy_vector.h>
 )--");
 
+  include_friends(hos);
+  std::println(hos);
+
   for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
     std::println(hos, "NB_MAKE_OPAQUE(Array<{}>);\n", group);
     if (wsg.map_type) std::println(hos, "NB_MAKE_OPAQUE({});\n", group);
@@ -396,7 +407,11 @@ void groupdocs(const std::string& fname) try {
   std::print(osh, R"(#pragma once
 
 #include <auto_wsg.h>
+)");
 
+  include_friends(osh);
+
+  std::print(osh, R"(
 template <typename T>
 struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
 )");

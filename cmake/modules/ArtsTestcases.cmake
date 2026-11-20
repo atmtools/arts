@@ -23,12 +23,6 @@ macro (ARTS_TEST_RUN_PYFILE TESTNAME PYFILE)
   set(TESTNAME_LONG pyarts.${TESTNAME}.${TESTNAME_LONG})
 
   get_filename_component(CFILESUBDIR ${PYFILE} DIRECTORY)
-  add_custom_target(
-    make_dir_${TESTNAME}_${TESTNAME_LONG}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${CFILESUBDIR}
-    COMMENT "Creating target directory for \"${PYFILE}\""
-  )
-  add_dependencies(check-deps make_dir_${TESTNAME}_${TESTNAME_LONG})
 
   if (PYFILE MATCHES "\.ipynb$")
     add_test(
@@ -74,6 +68,23 @@ macro (COLLECT_TEST_SUBDIR SUBDIR)
       message(STATUS "Build settings don't support ${PYFILE}, skipping.")
     endif()
   endforeach()
+
+  # Copy the tree to where the tests run and the documentation reads it,
+  # only for files that are missing or changed
+  file(GLOB_RECURSE TREE_FILES CONFIGURE_DEPENDS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${SUBDIR}/*)
+  list(FILTER TREE_FILES EXCLUDE REGEX "(__pycache__|\\.ipynb_checkpoints|\\.DS_Store)")
+  set(TREE_COPIES)
+  foreach(TREE_FILE ${TREE_FILES})
+    add_custom_command(
+      OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/${TREE_FILE}
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/${TREE_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${TREE_FILE}
+      DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/${TREE_FILE}
+      COMMENT "Copying ${TREE_FILE}"
+    )
+    list(APPEND TREE_COPIES ${CMAKE_CURRENT_BINARY_DIR}/${TREE_FILE})
+  endforeach()
+  add_custom_target(copy_${SUBDIR} DEPENDS ${TREE_COPIES})
+  add_dependencies(check-deps copy_${SUBDIR})
 endmacro ()
 
 macro (SETUP_ARTS_CHECKS)

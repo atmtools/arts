@@ -18,6 +18,7 @@ add_library(lbl STATIC
   lbl_temperature_model.cpp
   lbl_voigt.cpp
   lbl_zeeman.cpp
+  lbl_zeeman_hyperfine.cpp
 )
 
 target_link_libraries(lbl PUBLIC matpack atm jacobian Faddeeva partfun predef quantum surface wigner util arts_options FastFloat::fast_float)

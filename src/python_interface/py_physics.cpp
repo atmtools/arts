@@ -136,6 +136,62 @@ Returns
 B : Numeric or numpy.ndarray
     Planck function [W/(m² Hz sr)]
 )--");
+
+  physics.def(
+      "invplanck",
+      [](py::object radiance, py::object frequency) {
+        return vectorize([](Numeric i, Numeric f) { return invplanck(i, f); }, radiance, frequency);
+      },
+      "radiance"_a,
+      "frequency"_a,
+      R"--(Calculates the Planck brightness temperature, the inverse of :func:`planck`.
+
+.. math::
+    T = \frac{h\nu}{k} \frac{1}{\ln\left(1 + \frac{2h\nu^3}{c^2 I}\right)},
+
+where :math:`I` is the radiance and :math:`\nu` is the frequency.
+
+Parameters
+----------
+radiance : Numeric or numpy.ndarray
+    Radiance [W/(m² Hz sr)]
+
+frequency : Numeric or numpy.ndarray
+    Frequency [Hz]
+
+Returns
+-------
+T : Numeric or numpy.ndarray
+    Planck brightness temperature [K]
+)--");
+
+  physics.def(
+      "invrayjean",
+      [](py::object radiance, py::object frequency) {
+        return vectorize([](Numeric i, Numeric f) { return invrayjean(i, f); }, radiance, frequency);
+      },
+      "radiance"_a,
+      "frequency"_a,
+      R"--(Calculates the Rayleigh-Jeans brightness temperature.
+
+.. math::
+    T = \frac{c^2}{2k\nu^2} I,
+
+where :math:`I` is the radiance and :math:`\nu` is the frequency.
+
+Parameters
+----------
+radiance : Numeric or numpy.ndarray
+    Radiance [W/(m² Hz sr)]
+
+frequency : Numeric or numpy.ndarray
+    Frequency [Hz]
+
+Returns
+-------
+T : Numeric or numpy.ndarray
+    Rayleigh-Jeans brightness temperature [K]
+)--");
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize physics\n{}", e.what()));
 }

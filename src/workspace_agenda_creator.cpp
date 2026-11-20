@@ -91,7 +91,6 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
     case Emission:
       agenda.add("ray_path_observer_agendaExecute");
       agenda.add("spectral_radClearskyEmission");
-      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
       break;
     case EmissionAdaptiveHalfsteps:
       agenda.add("ray_path_observer_agendaExecute");
@@ -103,16 +102,16 @@ Agenda get_spectral_rad_observer_agenda(const std::string_view option) {
       agenda.add("spectral_propmat_pathAddAdaptiveHalfPath");
       agenda.add("spectral_radSetToBackground");
       agenda.add("spectral_radSinglePathEmissionFrequencyLoop");
-      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
       break;
-    case EmissionNoSensor:
+    case EmissionProfile2Path:
       agenda.add("ray_path_observer_agendaExecute");
-      agenda.add("spectral_radClearskyEmission");
+      agenda.add("ray_pointBackground");
+      agenda.add("spectral_rad_bkgAgendasAtEndOfPath");
+      agenda.add("Profile2Path");
+      agenda.add("spectral_radStepByStepEmissionFromPropmat");
+      agenda.add("spectral_rad_jacAddPathPropagation");
       break;
-    case MonteCarlo:
-      agenda.add("spectral_radMonteCarlo");
-      agenda.add("spectral_rad_jacAddSensorJacobianPerturbations");
-      break;
+    case MonteCarlo: agenda.add("spectral_radMonteCarlo"); break;
   }
 
   return std::move(agenda).finalize(false);
@@ -183,6 +182,7 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
     case LowMemory:
       agenda.add("measurement_vec_errorFromModelState");
       agenda.add("measurement_vecFromSensor", SetWsv("kernel", "Low Memory"s));
+      agenda.add("measurement_jacAddSensorJacobianPerturbations", SetWsv("kernel", "Low Memory"s));
       agenda.add("measurement_jacTransformations");
       agenda.add("measurement_vecAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
@@ -190,6 +190,15 @@ Agenda get_measurement_inversion_agenda(const std::string_view option) {
     case HighPerformance:
       agenda.add("measurement_vec_errorFromModelState");
       agenda.add("measurement_vecFromSensor", SetWsv("kernel", "High Performance"s));
+      agenda.add("measurement_jacAddSensorJacobianPerturbations", SetWsv("kernel", "High Performance"s));
+      agenda.add("measurement_jacTransformations");
+      agenda.add("measurement_vecAddError");
+      agenda.add("measurement_vec_fitFromMeasurement");
+      break;
+    case Indexed:
+      agenda.add("measurement_vec_errorFromModelState");
+      agenda.add("measurement_vecFromSensor", SetWsv("kernel", "Indexed"s));
+      agenda.add("measurement_jacAddSensorJacobianPerturbations", SetWsv("kernel", "Indexed"s));
       agenda.add("measurement_jacTransformations");
       agenda.add("measurement_vecAddError");
       agenda.add("measurement_vec_fitFromMeasurement");
@@ -320,6 +329,7 @@ Agenda get_ray_path_observer_agenda(const std::string_view option) {
                  SetWsv("surf_search_accuracy", Numeric{0.1}),
                  SetWsv("surf_safe_search", Index{1}));
       agenda.add("ray_pathAddGeometricAltitudeGridCrossings");
+      agenda.add("ray_pathRemoveOutsideAltitudeGrid");
       break;
     case GeometricDefault: {
       Agenda out;

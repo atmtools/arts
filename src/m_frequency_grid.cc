@@ -7,8 +7,10 @@ void wind_shift(VectorView                  freq_grid,
                 const PropagationPathPoint& ray_point) {
   constexpr Numeric c = Constant::speed_of_light;
 
+  // The line-of-sight of a path point is the direction of propagation, towards the observer.  Gas moving
+  // along it approaches the observer, so a line is seen at a higher frequency than in the frame of the gas
   const auto& [u, v, w] = atm_point.wind;
-  const auto [za, aa]   = path::mirror(ray_point.los);
+  const auto [za, aa]   = ray_point.los;
 
   const Numeric u2v2 = u * u + v * v;
   const Numeric w2   = w * w;
@@ -99,12 +101,14 @@ void freqWindShift(Numeric&                    frequency,
   wind_shift(VectorView{frequency}, freq_wind_shift_jac, atm_point, ray_point);
 }
 
-void spectral_propmat_jacWindFix(PropmatMatrix&         spectral_propmat_jac,
-                                 StokvecMatrix&         source_vector_nonlte_jacobian,
-                                 const AscendingGrid&   freq_grid,
-                                 const JacobianTargets& jac_targets,
-                                 const Vector3&         freq_wind_shift_jac) {
+void spectral_propmatWindFix(SpectralPropmat&       spectral_propmat,
+                             const AscendingGrid&   freq_grid,
+                             const JacobianTargets& jac_targets,
+                             const Vector3&         freq_wind_shift_jac) {
   ARTS_TIME_REPORT
+
+  PropmatMatrix& spectral_propmat_jac          = spectral_propmat.dK;
+  StokvecMatrix& source_vector_nonlte_jacobian = spectral_propmat.dnlte;
 
   using enum AtmKey;
 

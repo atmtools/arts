@@ -21,6 +21,8 @@
 
 #include <debug.h>
 
+#include <bit>
+#include <cstdint>
 #include <cstring>
 #include <stdexcept>
 
@@ -152,8 +154,16 @@ binistream::Float binistream::readFloat(FType ft) {
 
   // Compatible system, let the hardware do the conversion
   switch (ft) {
-    case Single: return *(float *)in;
-    case Double: return *(double *)in;
+    case Single: {
+      float f;
+      std::memcpy(&f, in, sizeof(f));
+      return f;
+    }
+    case Double: {
+      double d;
+      std::memcpy(&d, in, sizeof(d));
+      return d;
+    }
   }
 
   // User tried to read a (yet) unsupported floating-point type. Bail out.
@@ -161,14 +171,7 @@ binistream::Float binistream::readFloat(FType ft) {
 }
 
 namespace {
-void swap_endian(double *d) {
-  auto *val = reinterpret_cast<uint64_t *>(d);
-  // Using this is much faster than swapping bytes manually
-  *val = ((((*val) >> 56) & 0x00000000000000FF) | (((*val) >> 40) & 0x000000000000FF00) |
-          (((*val) >> 24) & 0x0000000000FF0000) | (((*val) >> 8) & 0x00000000FF000000) |
-          (((*val) << 8) & 0x000000FF00000000) | (((*val) << 24) & 0x0000FF0000000000) |
-          (((*val) << 40) & 0x00FF000000000000) | (((*val) << 56) & 0xFF00000000000000));
-}
+void swap_endian(double *d) { *d = std::bit_cast<double>(std::byteswap(std::bit_cast<std::uint64_t>(*d))); }
 }  // namespace
 
 void binistream::readDoubleArray(double *d, unsigned long size) {

@@ -91,47 +91,27 @@ void abs_speciesDefineAll(  // WS Output:
 //======================================================================
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_propmatInit(  //WS Output
-    PropmatVector& spectral_propmat,
-    StokvecVector& source_vector_nonlte,
-    PropmatMatrix& spectral_propmat_jac,
-    StokvecMatrix& source_vector_nonlte_jacobian,
-    //WS Input
-    const JacobianTargets& jac_targets,
-    const AscendingGrid&   freq_grid) {
+void spectral_propmatInit(SpectralPropmat&       spectral_propmat,
+                          const JacobianTargets& jac_targets,
+                          const AscendingGrid&   freq_grid) {
   ARTS_TIME_REPORT
 
-  const Index nf = freq_grid.size();
-  const Index nq = jac_targets.target_count();
+  if (freq_grid.empty()) arts::user_error("No frequencies");
 
-  if (not nf) arts::user_error("No frequencies");
-
-  // Set size of spectral_propmat and reset its values
-  spectral_propmat.resize(nf);
-  spectral_propmat = Propmat{0.0};
-
-  // Set size of source_vector_nonlte and reset its values
-  source_vector_nonlte.resize(nf);
-  source_vector_nonlte = Stokvec{0.0};
-
-  // Set size of spectral_propmat_jac and reset its values
-  spectral_propmat_jac.resize(nq, nf);
-  spectral_propmat_jac = Propmat{0.0};
-
-  // Set size of source_vector_nonlte_jacobian and reset its values
-  source_vector_nonlte_jacobian.resize(nq, nf);
-  source_vector_nonlte_jacobian = Stokvec{0.0};
+  spectral_propmat.init(freq_grid.size(), jac_targets.target_count());
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_propmatAddFaraday(PropmatVector&              spectral_propmat,
-                                PropmatMatrix&              spectral_propmat_jac,
+void spectral_propmatAddFaraday(SpectralPropmat&            spectral_propmat_,
                                 const AscendingGrid&        freq_grid,
                                 const SpeciesEnum&          select_abs_species,
                                 const JacobianTargets&      jac_targets,
                                 const AtmPoint&             atm_point,
                                 const PropagationPathPoint& path_point) {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   constexpr SpeciesEnum electrons_key = "free_electrons"_spec;
 
@@ -255,7 +235,7 @@ void spectral_propmat_agendaAuto(const Workspace& ws,
   //spectral_propmatAddFaraday
   if (any_species.FreeElectrons) { agenda.add("spectral_propmatAddFaraday"); }
 
-  agenda.add("spectral_propmat_jacWindFix");
+  agenda.add("spectral_propmatWindFix");
 
   // Extra check (should really never ever fail when species exist)
   spectral_propmat_agenda = std::move(agenda).finalize(true);

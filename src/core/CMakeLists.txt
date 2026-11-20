@@ -102,6 +102,7 @@ target_link_libraries(artscore INTERFACE
 target_include_directories(artscore INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
 
 if(ENABLE_PCH)
-  target_precompile_headers(artscore PRIVATE <matpack.h>)
+  # Reused by the other targets that link matpack, see ArtsPrecompiledHeaders.cmake
+  target_precompile_headers(matpack PRIVATE <matpack.h>)
 endif()
 

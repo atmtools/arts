@@ -1416,6 +1416,29 @@ void test_sort() {
     }
   }
 }
+
+//! Ranges iterate over the first dimension, so their size must be that extent
+void test_range_size() {
+  const auto check = [](const auto& x, Size n) {
+    if (static_cast<Size>(stdr::size(x)) != n or static_cast<Size>(stdr::distance(x)) != n)
+      arts::user_error("Range size {} and distance {} differ from {}", stdr::size(x), stdr::distance(x), n);
+  };
+
+  Matrix  m(2, 5, 1.0);
+  Tensor3 t(3, 2, 5, 1.0);
+  check(Vector(4, 1.0), 4);
+  check(m, 2);
+  check(MatrixView{m}, 2);
+  check(ConstMatrixView{m}, 2);
+  check(m[Range(0, 2), Range(1, 3)], 2);
+  check(t, 3);
+  check(Matrix33{}, 3);
+
+  // lower_bound must search the rows, not the elements
+  m[1, 0]       = 3.0;
+  const auto it = stdr::lower_bound(ConstMatrixView{m}, 2.0, {}, [](const auto& v) { return v[0]; });
+  if (it.pos != 1) arts::user_error("lower_bound over rows found row {}, expected 1", it.pos);
+}
 }  // namespace
 
 #define EXECUTE_TEST(X)                                                       \
@@ -1440,6 +1463,7 @@ int main() try {
   EXECUTE_TEST(test_einsum)
   EXECUTE_TEST(test_print)
   EXECUTE_TEST(test_sort)
+  EXECUTE_TEST(test_range_size)
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {

@@ -40,9 +40,9 @@ def calculate(temperature, jacobian=False):
         ws.jac_targetsAddTemperature()
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines(no_negative_absorption=False)
-    absorption = np.array(ws.spectral_propmat)[:, 0]
+    absorption = np.array(ws.spectral_propmat.K)[:, 0]
     if jacobian:
-        return absorption, np.array(ws.spectral_propmat_jac)[0, :, 0]
+        return absorption, np.array(ws.spectral_propmat.dK)[0, :, 0]
     return absorption
 
 

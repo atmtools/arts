@@ -3,8 +3,11 @@
 #include <xml_io_base.h>
 #include <xml_io_stream_core.h>
 
+#include <print>
+
 std::ostream& operator<<(std::ostream& os, const ScatteringSpeciesProperty& ssp) {
-  return os << ssp.species_name << "_" << ssp.pproperty;
+  std::print(os, "{}", ssp);
+  return os;
 }
 
 ScatteringSpeciesProperty ScatteringSpeciesProperty::from_string(const std::string_view in) {

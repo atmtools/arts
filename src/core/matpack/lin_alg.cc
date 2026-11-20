@@ -406,6 +406,27 @@ void diagonalize_inplace(MatrixView P, VectorView WR, VectorView WI, MatrixView 
   diagonalize_inplace(P, WR, WI, A, wo);
 }
 
+void diagonalize_symmetric(MatrixView P, VectorView W, ConstMatrixView A) {
+  const Index n = A.ncols();
+  if (n != A.nrows() or P.shape() != A.shape() or static_cast<Index>(W.size()) != n)
+    arts::user_error("Symmetric diagonalization requires a square matrix and matching output dimensions.");
+  if (n == 0) return;
+
+  // A is symmetric, so its row-major data is also its column-major data
+  P = A;
+
+  char                 jobz = 'V', uplo = 'U';
+  int                  n_int = static_cast<int>(n), lwork = 3 * n_int, info = 0;
+  std::vector<Numeric> work(lwork);
+
+  lapack::dsyev_(&jobz, &uplo, &n_int, P.data_handle(), &n_int, W.data_handle(), work.data(), &lwork, &info);
+
+  if (info != 0) arts::user_error("DSYEV failed while diagonalizing a {}x{} matrix (INFO={})", n, n, info);
+
+  // LAPACK returns the eigenvectors as columns of a column-major matrix
+  inplace_transpose(P);
+}
+
 //! Matrix Diagonalization
 /*!
  * Return P and W from A in the statement diag(P^-1*A*P)-W == 0.
@@ -849,7 +870,7 @@ void linreg(Vector& p, ConstVectorView x, ConstVectorView y) {
   p[0] = s3 / Numeric(n) - p[1] * xm;
 }
 
-Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) noexcept {
+Numeric lsf(VectorView x, ConstMatrixView A, ConstVectorView y, bool residual) {
   // Size of the problem
   const Index n = x.size();
   Matrix      AT, ATA(n, n);

@@ -25,8 +25,7 @@ inline constexpr Numeric SPEED_OF_LIGHT = Constant::speed_of_light;
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_propmatAddCIA(  // WS Output:
-    PropmatVector& spectral_propmat,
-    PropmatMatrix& spectral_propmat_jac,
+    SpectralPropmat& spectral_propmat_,
     // WS Input:
     const SpeciesEnum&     select_species,
     const JacobianTargets& jac_targets,
@@ -37,6 +36,9 @@ void spectral_propmatAddCIA(  // WS Output:
     const Numeric& T_extrapolfac,
     const Index&   ignore_errors) {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   if (f_grid.empty()) return;
 

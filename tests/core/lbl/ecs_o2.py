@@ -32,7 +32,7 @@ def calc(ws, lineshape=None):
     ws.spectral_propmatInit()
     ws.spectral_propmatAddLines()
     ws.spectral_propmatAddPredefined()
-    return 1.0 * ws.spectral_propmat[:, 0]
+    return 1.0 * ws.spectral_propmat.K[:, 0]
 
 
 ws.WignerInit()

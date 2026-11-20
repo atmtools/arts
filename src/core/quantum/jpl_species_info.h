@@ -1,6 +1,6 @@
 #pragma once
 
-#include <enums.h>
+#include <array.h>
 #include <isotopologues.h>
 
 struct JplSpeciesInfo {
@@ -11,6 +11,8 @@ struct JplSpeciesInfo {
   Numeric QT0;
   Numeric T0;
 };
+
+using ArrayOfJplSpeciesInfo = Array<JplSpeciesInfo>;
 
 template <> struct std::formatter<JplSpeciesInfo> {
   format_tags tags;

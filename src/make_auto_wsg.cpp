@@ -289,6 +289,23 @@ void wsv_implement_copied(std::ostream& os) {
   std::println(os, "  }}\n\n  throw std::logic_error(\"bad copy\");\n}}");
 }
 
+void wsv_implement_assign(std::ostream& os) {
+  std::println(os, R"(void Wsv::assign(const Wsv& x) const {{
+  if (not holds_same(x))
+    throw std::runtime_error(std::format(R"--(Cannot assign "{{}}" to "{{}}")--", x.type_name(), type_name()));
+  if (data == x.data) return;
+
+  switch(index) {{)");
+
+  auto grps = groups();
+
+  for (size_t i = 0; i < grps.size(); ++i) {
+    std::println(os, R"(    case {1}: get_unsafe<{0}>() = x.get_unsafe<{0}>(); return;)", grps[i], i);
+  }
+
+  std::println(os, "  }}\n\n  throw std::logic_error(\"bad assign\");\n}}");
+}
+
 void wsv_implement_from_named_type(std::ostream& os) {
   std::println(os, "Wsv Wsv::from_named_type(const std::string_view x) {{");
 
@@ -443,6 +460,7 @@ int main() try {
   wsv_implement_includes(wsv_impl_file6);
 
   wsv_implement_copied(wsv_impl_file1);
+  wsv_implement_assign(wsv_impl_file1);
   wsv_implement_from_named_type(wsv_impl_file2);
   wsv_implement_type_name(wsv_impl_file3);
   wsv_implement_vformat(wsv_impl_file4);

@@ -48,17 +48,17 @@ def run():
     ws.spectral_rad_transform_operatorSet(option="Tb")
     ws.max_stepsize = 10e3
     ws.ray_path_observer_agendaSetGeometric(add_limb=1)
-    radius = float(ws.surf_field.ellipsoid[0])
     pos = [600e3, 0.0, 0.0]
 
     def los(tangent_altitude):
-        zenith = 180 - np.rad2deg(np.arcsin(
-            (radius + tangent_altitude) / (radius + pos[0])))
-        return [zenith, 90.0]  # East-looking limb: sensitive to eastward wind.
+        # The observer's line of sight mirrors the tangent point's [za, aa].
+        zenith = arts.geodetic.geometric_tangent_zenith(
+            pos, ws.surf_field.ellipsoid, tangent_altitude, -90.0)
+        return [180.0 - zenith, 90.0]  # East-looking limb: sensitive to eastward wind.
 
     ws.ray_pathGeometric(pos=pos, los=los(60e3), add_limb=1)
     np.testing.assert_allclose(min(p.pos[0] for p in ws.ray_path), 60e3, atol=1e-3, rtol=0)
-    ws.measurement_sensorSimple(pos=pos, los=los(60e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(60e3))
     ws.oemInit()
     ws.oemAddWindField(component="u", matrix=[[PRIOR_STD**2]])
     ws.jac_targetsFinalize()
@@ -84,10 +84,10 @@ def run():
 
     # Demonstrate why an instrument also viewing deeper layers has a wide band.
     ws.atm_field["wind_u"] = PRIOR_WIND
-    ws.measurement_sensorSimple(pos=pos, los=los(30e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(30e3))
     ws.measurement_vecFromSensor()
     deeper_spectrum = np.array(ws.measurement_vec)
-    ws.measurement_sensorSimple(pos=pos, los=los(60e3))
+    ws.measurement_sensorsSimple(pos=pos, los=los(60e3))
     ws.measurement_vec = observations
     ws.measurement_jac = jacobian
 

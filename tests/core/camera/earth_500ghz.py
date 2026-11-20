@@ -55,9 +55,7 @@ ws.ReadCatalogData()
 
 # Apply frequency cutoff to speed up calculations
 cutoff = pa.arts.convert.kaycm2freq(25)
-for band in ws.abs_bands:
-    ws.abs_bands[band].cutoff = "ByLine"
-    ws.abs_bands[band].cutoff_value = cutoff
+ws.abs_bandsSetCutoff(option="ByLine", value=cutoff)
 
 # Automatically set up the methods to compute absorption coefficients
 ws.spectral_propmat_agendaAuto()
@@ -76,8 +74,8 @@ ws.atm_fieldRead(
 pos = [moon_dist, 0.0, 0.0]    # altitude = Moon distance
 los = [180.0, 0.0]              # zenith=180 = looking straight down
 
-ws.measurement_sensorInit()
-ws.measurement_sensorAddCamera(
+ws.measurement_sensorsInit()
+ws.measurement_sensorsAddCamera(
     pos=pos,
     los=los,
     n_h=n_h,
@@ -89,21 +87,20 @@ ws.measurement_sensorAddCamera(
     focus_distance=focus_distance,
 )
 
-print(f"Sensor elements: {len(ws.measurement_sensor)}")
+print(f"Sensor elements: {len(ws.measurement_sensors[0].elements)}")
 
 # 4. Run forward model
 ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.max_stepsize = 1000.0
 ws.ray_path_observer_agendaSetGeometric()
 
-n_total = len(ws.measurement_sensor)
+n_total = len(ws.measurement_sensors[0].elements)
 print(f"Running forward model for {n_total} sensor elements ({n_h}x{n_w} pixels x {len(ws.freq_grid)} freq)...")
 
 ws.measurement_vecFromSensor(kernel="High Performance")
 
-# 5. Fill meta from measurement_vec and extract the camera image
-ws.measurement_sensor_metaFromMeasurementVec()
-camera_gf = ws.measurement_sensor_meta[0].data
+# 5. Give measurement_vec the structure of the camera's meta and extract the image
+camera_gf = ws.measurement_sensors[0].reshape(ws.measurement_vec)
 
 # camera_gf.data is shaped (n_h, n_w, n_freq); grids give angular offsets
 image_data = np.array(camera_gf.data)[:, :, 0]
@@ -113,6 +110,26 @@ col_offsets = np.array(camera_gf.grids[1])  # col angular offsets (degrees)
 print(f"Camera image shape: {image_data.shape}")
 print(f"Row offset range: [{row_offsets[0]:.4f}, {row_offsets[-1]:.4f}] deg")
 print(f"Col offset range: [{col_offsets[0]:.4f}, {col_offsets[-1]:.4f}] deg")
+
+# Checks of the image
+row_grid, col_grid = np.meshgrid(row_offsets, col_offsets, indexing="ij")
+offset = np.hypot(row_grid, col_grid)
+space = offset > 1.05 * earth_angular_radius_deg
+disk = offset < 0.95 * earth_angular_radius_deg
+
+# Pixels missing the Earth see the cosmic background
+assert np.allclose(
+    image_data[space], pa.arts.constants.cosmic_microwave_background_temperature
+)
+
+# The Earth is warm but no warmer than its warmest emitter, and it is limb darkened
+assert np.all(image_data[disk] > 200.0)
+assert np.all(image_data[disk] < max(np.max(ws.atm_field["t"].data.data), 288.0))
+assert np.isclose(image_data[n_h // 2, n_w // 2], image_data.max(), rtol=0, atol=1e-6)
+
+# The image is mirror symmetric (not transpose symmetric, Earth is flattened)
+assert np.allclose(image_data, image_data[::-1, :], atol=1e-6)
+assert np.allclose(image_data, image_data[:, ::-1], atol=1e-6)
 
 # 6. Visualization
 col_grid, row_grid = np.meshgrid(col_offsets, row_offsets)

@@ -1,13 +1,6 @@
 #pragma once
 
-#include <debug.h>
-#include <matpack.h>
-#include <xml.h>
-#include <xml_io_stream.h>
-
-#include <functional>
-
-#include "operators_numeric_unary.h"
+#include <functional.h>
 
 #ifndef _MSC_VER
 #if defined(__clang__)

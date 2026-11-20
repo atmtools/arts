@@ -31,12 +31,13 @@ import matplotlib as _matplotlib
 from . import AbsorptionBands
 from . import AbsorptionLookupTables
 from . import ArrayOfPropagationPathPoint
-from . import ArrayOfSensorObsel
+from . import ArrayOfSensor
 from . import AscendingGrid
 from . import AtmField
 from . import AziGrid
 from . import CIARecord
 from . import CIARecords
+from . import CameraAntenna
 from . import DisortRadiance
 from . import FluxComponentsProfile
 from . import GeodeticField2
@@ -57,7 +58,7 @@ from . import StokvecVector
 from . import SubsurfaceField
 from . import Sun
 from . import SurfaceField
-from . import SensorObsel
+from . import Sensor
 from . import VDisortRadiance
 from . import Vector
 from . import ZenGrid

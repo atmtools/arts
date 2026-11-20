@@ -61,7 +61,7 @@ ws.atm_field[pyarts.arts.SpeciesEnum.O2].lon_upp = "Nearest"
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 # %% Jacobian
 

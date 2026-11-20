@@ -82,14 +82,10 @@ ws.scat_species = []
 def constant_nlte(freq, wind_jac, jac, species, path_point, atm):
     local = pyarts.Workspace()
     local.spectral_propmatInit(freq_grid=freq, jac_targets=jac)
-    local.spectral_propmat[:, 0] = alpha
-    local.spectral_nlte_srcvec[:] = nlte_emission
-    return (
-        local.spectral_propmat,
-        local.spectral_nlte_srcvec,
-        local.spectral_propmat_jac,
-        local.spectral_nlte_srcvec_jac,
-    )
+    local.spectral_propmat.K[:, 0] = alpha
+    local.spectral_propmat.nlte[:] = nlte_emission
+    local.spectral_propmat.nlte_on = True
+    return (local.spectral_propmat,)
 
 
 ws.spectral_propmat_agendaSetOperator(f=constant_nlte)

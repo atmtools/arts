@@ -39,7 +39,7 @@ ws.ray_path_observer_agendaSetGeometric()
 # %% Set up a sensor with Gaussian standard deviation channel widths on individual frequency ranges
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_sensorSimpleGaussian(std=1e5, pos=pos, los=los, pol="RC")
+ws.measurement_sensorsSimpleGaussian(std=1e5, pos=pos, los=los, pol="RC")
 
 # %% Core calculations
 ws.measurement_vecFromSensor()

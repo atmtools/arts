@@ -21,10 +21,7 @@ template <typename F> void entries(const Block& block, F&& f) {
     for (Index i = 0; i < matrix.nrows(); ++i)
       for (Index j = 0; j < matrix.ncols(); ++j) f(i, j, matrix[i, j]);
   } else {
-    const auto& matrix = block.get_sparse().matrix;
-    for (Index i = 0; i < matrix.outerSize(); ++i)
-      for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator it(matrix, i); it; ++it)
-        f(it.row(), it.col(), it.value());
+    for (const auto [row, col, value] : block.get_sparse() | by_elem) f(row, col, value);
   }
 }
 

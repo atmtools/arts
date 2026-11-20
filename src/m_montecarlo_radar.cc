@@ -61,13 +61,9 @@ void MCRadar(const Workspace&                ws,
                                   PropmatMatrix&              propmat_jac,
                                   const PropagationPathPoint& point,
                                   const AtmPoint&             atm_point) {
-    StokvecVector srcvec;
-    StokvecMatrix srcvec_jac;
+    SpectralPropmat spectral_propmat;
     spectral_propmat_agendaExecute(ws,
-                                   propmat,
-                                   srcvec,
-                                   propmat_jac,
-                                   srcvec_jac,
+                                   spectral_propmat,
                                    freq_grid,
                                    Vector3{0.0, 0.0, 0.0},
                                    jac_targets,
@@ -75,6 +71,8 @@ void MCRadar(const Workspace&                ws,
                                    point,
                                    atm_point,
                                    spectral_propmat_agenda);
+    propmat     = spectral_propmat.K;
+    propmat_jac = spectral_propmat.dK;
   };
 
   // The mean is weighted by the antenna gain of every sampled direction, so a
@@ -163,8 +161,8 @@ void MCRadar(const Workspace&                ws,
                                         squared_sum[ib][s] - 2.0 * mean * squared_weight_signal_sum[ib][s] +
                                             mean * mean * squared_weight_sum) /
                                (weight_sum * weight_sum);
-      radar_signal[ib][s] = factor * mean;
-      radar_error[ib][s]  = factor * std::sqrt(variance);
+      radar_signal[ib][s]    = factor * mean;
+      radar_error[ib][s]     = factor * std::sqrt(variance);
     }
   }
 }

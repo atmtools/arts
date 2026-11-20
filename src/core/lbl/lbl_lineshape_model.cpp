@@ -253,10 +253,10 @@ std::istream& operator>>(std::istream& is, species_model& x) {
   x.data.reserve(n);
 
   for (Size i = 0; i < n; i++) {
-    LineShapeModelVariable var;
+    std::string            var;
     lbl::temperature::data temp_data;
     is >> var >> temp_data;
-    x.data[var] = temp_data;
+    x.data[to<LineShapeModelVariable>(var)] = temp_data;
   }
 
   return is;
@@ -267,9 +267,9 @@ std::istream& operator>>(std::istream& is, std::unordered_map<SpeciesEnum, speci
   is >> n;
   x.reserve(n);
   for (Size i = 0; i < n; i++) {
-    SpeciesEnum spec;
+    std::string spec;
     is >> spec;
-    is >> x[spec];
+    is >> x[to<SpeciesEnum>(spec)];
   }
 
   return is;
@@ -355,14 +355,13 @@ void xml_io_stream<lbl::line_shape::species_model>::read(std::istream&          
   tag.get_attribute_value("nelem", n);
 
   for (Index i = 0; i < n; ++i) {
-    Index                  m{};
-    LineShapeModelVariable var;
-    LineShapeModelType     temptype;
-    Vector                 v{};
+    Index       m{};
+    std::string var, temptype;
+    Vector      v{};
     is >> var >> temptype >> m;
     v.resize(m);
     for (Index j = 0; j < m; ++j) { is >> double_imanip() >> v[j]; }
-    x.data[var] = lbl::temperature::data{temptype, std::move(v)};
+    x.data[to<LineShapeModelVariable>(var)] = lbl::temperature::data{to<LineShapeModelType>(temptype), std::move(v)};
   }
 
   tag.read_from_stream(is);

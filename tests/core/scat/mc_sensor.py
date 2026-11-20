@@ -1,4 +1,4 @@
-"""Monte Carlo integration with sensor weighting and time-tagged metadata."""
+"""Monte Carlo integration with sensor weighting and metadata."""
 
 import numpy as np
 import pyarts3 as pyarts
@@ -23,16 +23,13 @@ ws.spectral_rad_surface_agendaSet(option="Blackbody")
 @pyarts.arts_agenda(ws=ws, fix=False)
 def spectral_rad_observer_agenda(ws):
     ws.spectral_radMonteCarlo(mc_seed=9182, mc_min_iter=8, mc_max_iter=8)
-    ws.spectral_rad_jacAddSensorJacobianPerturbations()
 
 
 freq = A.AscendingGrid([220e9, 230e9])
 pos = [20e3, 0.0, 0.0]
-ws.measurement_sensorInit()
-ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[180.0, 0.0])
-ws.measurement_sensor_meta[-1].time = A.Time("2001-01-01 00:00:00")
-ws.measurement_sensorAddSimple(freq_grid=freq, pos=pos, los=[0.0, 0.0])
-ws.measurement_sensor_meta[-1].time = A.Time("2001-01-01 00:01:00")
+ws.measurement_sensorsInit()
+ws.measurement_sensorsAddSimple(freq_grid=freq, pos=pos, los=[180.0, 0.0])
+ws.measurement_sensorsAddSimple(freq_grid=freq, pos=pos, los=[0.0, 0.0])
 
 surface_temperature_step = 0.5
 ws.jac_targetsAddSurface(target="t", d=surface_temperature_step)
@@ -48,13 +45,12 @@ expected_jac = [
     for f in freq
 ] + [0.0, 0.0]
 assert np.allclose(np.asarray(ws.measurement_jac)[:, 0], expected_jac)
-assert len(ws.measurement_sensor_meta) == 2
-assert all(meta.count == 2 for meta in ws.measurement_sensor_meta)
-assert ws.measurement_sensor_meta[0].time != ws.measurement_sensor_meta[1].time
+assert len(ws.measurement_sensors) == 2
+assert all(len(sensor.elements) == 2 for sensor in ws.measurement_sensors)
 
-ws.measurement_sensor_metaFromMeasurementVec()
-assert np.allclose(np.asarray(ws.measurement_sensor_meta[0].data.data), expected_surface)
-assert np.allclose(np.asarray(ws.measurement_sensor_meta[1].data.data), expected_space)
+surface, space = ws.measurement_sensors.split(ws.measurement_vec)
+assert np.allclose(np.asarray(ws.measurement_sensors[0].reshape(surface).data), expected_surface)
+assert np.allclose(np.asarray(ws.measurement_sensors[1].reshape(space).data), expected_space)
 
 # A scattering-property target is perturbed through AtmField in model-state
 # space.  Common random numbers make repeating the stochastic Jacobian exactly
@@ -72,10 +68,12 @@ ws.jac_targetsAddSensorFrequencyPolyOffset(d=1e6, sensor_elem=0)
 ws.jac_targetsFinalize()
 
 ws.measurement_vecFromSensor()
+ws.measurement_jacAddSensorJacobianPerturbations()
 scattering_jac = np.asarray(ws.measurement_jac).copy()
 assert np.all(np.isfinite(scattering_jac))
 assert np.any(scattering_jac != 0.0)
 assert np.any(scattering_jac[:2, 1] != 0.0)
 assert np.all(scattering_jac[2:, 1] == 0.0)
 ws.measurement_vecFromSensor()
+ws.measurement_jacAddSensorJacobianPerturbations()
 assert np.array_equal(scattering_jac, np.asarray(ws.measurement_jac))

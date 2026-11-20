@@ -1,3 +1,4 @@
+#include <arts_conversions.h>
 #include <arts_omp.h>
 #include <geodetic.h>
 #include <workspace.h>
@@ -50,10 +51,14 @@ surf_field:
   spectral_surf_refl.resize(nf);
   spectral_surf_refl_jac.resize(jac_targets.target_count(), nf);
 
-  const auto [Rv, Rh] = fresnel(
-      n1,
-      n2,
-      std::acos(dot(geodetic_los2ecef(pos, los, ell).second, geodetic_los2ecef(pos, surf_point.normal, ell).second)));
+  // Incidence angle [deg] from the normal; the path los and the surface normal
+  // are in opposite senses, so the angle between them is not the incidence angle
+  const Numeric theta = Conversion::rad2deg(std::acos(std::clamp(
+      std::abs(dot(geodetic_los2ecef(pos, los, ell).second, geodetic_los2ecef(pos, surf_point.normal, ell).second)),
+      Numeric{0},
+      Numeric{1})));
+
+  const auto [Rv, Rh] = fresnel(n1, n2, theta);
 
   const Muelmat R        = rtepack::fresnel_reflectance(Rv, Rh);
   spectral_surf_refl     = R;
@@ -61,10 +66,7 @@ surf_field:
 
   for (auto& target : jac_targets.surf) {
     if (target.type == refraction_target) {
-      const auto [Rv2, Rh2] = fresnel(n1,
-                                      n2 + 1e-3,
-                                      std::acos(dot(geodetic_los2ecef(pos, los, ell).second,
-                                                    geodetic_los2ecef(pos, surf_point.normal, ell).second)));
+      const auto [Rv2, Rh2] = fresnel(n1, n2 + 1e-3, theta);
 
       const Muelmat dR = 1000. * (rtepack::fresnel_reflectance(Rv2, Rh2) - R);
 

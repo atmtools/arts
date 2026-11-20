@@ -109,18 +109,10 @@ void band_shape_helper(std::vector<single_shape>& lines,
                        const Numeric              fmax,
                        const ZeemanPolarization   pol);
 
-constexpr std::pair<Index, Index> find_offset_and_count_of_frequency_range(const std::span<const single_shape> lines,
-                                                                           Numeric                             f,
-                                                                           Numeric                             cutoff) {
-  if (cutoff < std::numeric_limits<Numeric>::infinity()) {
-    auto low = stdr::lower_bound(lines, f - cutoff, {}, &single_shape::f0);
-    auto upp = stdr::upper_bound(lines, f + cutoff, {}, &single_shape::f0);
-
-    return {std::distance(lines.begin(), low), std::distance(low, upp)};
-  }
-
-  return {0, lines.size()};
-}
+//! The first line within cutoff of f, and the number of lines within it, all lines without a cutoff
+std::pair<Index, Index> find_offset_and_count_of_frequency_range(const std::span<const single_shape> lines,
+                                                                 Numeric                             f,
+                                                                 Numeric                             cutoff);
 
 namespace detail {
 constexpr auto frequency_span(const auto& list, const Size start, const Size count) {
@@ -314,9 +306,8 @@ struct ComputeData {
   std::vector<single_shape> lines{};  //! Line shapes; save for reuse, assume moved from
   std::vector<line_pos>     pos{};    //! Save for reuse, size of line shapes
 
-  Size              filtered_line{std::numeric_limits<Size>::max()};  //! filter is for this and filtered_spec
-  SpeciesEnum       filtered_spec{SpeciesEnum::unused};               //! filter is for this and filtered_spec
-  std::vector<Size> filter;  //! Filter for line parameters; resized all the time but reserves size of line shapes
+  //! Positions in lines and pos of the line of a line target; reset by set_filter, reserves size of line shapes
+  std::vector<Size> filter;
 
   ComplexVector cut{};     //! Size of line shapes
   ComplexVector dz{};      //! Size of line shapes
@@ -394,6 +385,7 @@ struct ComputeData {
                       const ZeemanPolarization pol,
                       const SpeciesEnum        target_spec);
 
+  //! Sets filter to the positions of the line of the key for the current pos
   void set_filter(const line_key& key);
 
   //! Sets dshape and ds and dz and dcut and dshape

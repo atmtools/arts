@@ -32,7 +32,7 @@ ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.abs_species = []
 ws.abs_bands = {}
 ws.spectral_propmat_agendaAuto()
-ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
+ws.spectral_rad_observer_agendaSet(option="Emission")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 
@@ -52,7 +52,7 @@ ws.fourier_mode_dimension = 1
 ws.legendre_polynomial_dimension = 1
 ws.quadrature_dimension = 10
 
-ws.measurement_sensorSimple(pos=pos, los=los, pol="RC")
+ws.measurement_sensorsSimple(pos=pos, los=los, pol="RC")
 
 ws.jac_targetsFinalize()
 

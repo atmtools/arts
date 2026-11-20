@@ -56,15 +56,11 @@ void py_agenda(py::module_& m) try {
   cbd.def(
          "__init__",
          [](CallbackOperator*                      cb,
-            const std::function<void(Workspace&)>& f,
+            const std::function<void(Workspace*)>& f,
             const std::vector<std::string>&        i,
             const std::vector<std::string>&        o) {
-           new (cb) CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) {
-                                       py::gil_scoped_acquire gil{};
-                                       f(ws);
-                                     }),
-                                     i,
-                                     o);
+           // A pointer is passed to Python by reference, a Workspace& would be copied
+           new (cb) CallbackOperator(CallbackOperator::func_t([f](Workspace& ws) { f(&ws); }), i, o);
          },
          "f"_a,
          "inputs"_a  = std::vector<std::string>{},
@@ -247,16 +243,6 @@ so Copy(a, out=b) will not even see the b variable.
           [](Agenda& a, Workspace& ws) { a.execute(ws); },
           "ws"_a,
           "Executes the agenda on the provided workspace")
-      .def(
-          "par_tasks",
-          [](Agenda& a, Workspace& ws) { return a.par_tasks(ws); },
-          "ws"_a,
-          "Returns a list of agendas to show their potential for parallel execution (used by par_execute)")
-      .def(
-          "par_execute",
-          [](Agenda& a, Workspace& ws) { a.par_execute(ws); },
-          "ws"_a,
-          "Executes the agenda on the provided workspace in parallel")
       .def(
           "finalize",
           [](Agenda& a, bool fix) { a.finalize(fix); },

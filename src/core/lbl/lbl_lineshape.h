@@ -22,4 +22,7 @@ void calculate(PropmatVectorView        pm,
                const AtmPoint&          atm,
                const Vector2            los,
                const bool               no_negative_absorption);
+
+//! Whether calculate adds to the non-LTE source for species, which it does for a band of a non-LTE line shape
+[[nodiscard]] bool adds_nlte(const AbsorptionBands& bnds, const SpeciesEnum species);
 }  // namespace lbl

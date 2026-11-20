@@ -47,12 +47,11 @@ void py_lookup(py::module_& m) try {
          const Index&                  f_interp_order,
          const Numeric&                extpolfac,
          const py::kwargs&) {
-        PropmatVector   spectral_propmat(f.size());
-        PropmatMatrix   spectral_propmat_jac(0, f.size());
+        SpectralPropmat spectral_propmat;
+        spectral_propmat.init(f.size(), 0);
         JacobianTargets jac_targets{};
 
         spectral_propmatAddLookup(spectral_propmat,
-                                  spectral_propmat_jac,
                                   f,
                                   jac_targets,
                                   spec,
@@ -65,7 +64,7 @@ void py_lookup(py::module_& m) try {
                                   f_interp_order,
                                   extpolfac);
 
-        return spectral_propmat;
+        return std::move(spectral_propmat.K);
       },
       "f"_a,
       "atm"_a,

@@ -53,6 +53,17 @@ void py_lbl(py::module_& m) try {
                   &lbl::line_key::ls_coeff,
                   "The line shape coefficient\n\n.. :class:`~pyarts3.arts.LineShapeModelCoefficient`");
   line_key.def_rw("var", &lbl::line_key::var, "The variable\n\n.. :class:`~pyarts3.arts.LineByLineVariable`");
+  line_key.def(
+      "get_value",
+      [](const lbl::line_key& self, const AbsorptionBands& bands) { return self.get_value(bands); },
+      "bands"_a,
+      "The value of the keyed parameter in the bands");
+  line_key.def(
+      "set_value",
+      [](const lbl::line_key& self, AbsorptionBands& bands, Numeric value) { self.get_value(bands) = value; },
+      "bands"_a,
+      "value"_a,
+      "Set the value of the keyed parameter in the bands");
   line_key.doc() = "A key for a line";
 
   py::class_<lbl::temperature::data> tm(m, "TemperatureModel");
@@ -65,9 +76,25 @@ void py_lbl(py::module_& m) try {
           "The type of the model\n\n.. :class:`~pyarts3.arts.LineShapeModelType`")
       .def_prop_rw(
           "data",
-          [](lbl::temperature::data& self) { return self.X(); },
+          [](const lbl::temperature::data& self) {
+            py::object x = py::module_::import_("numpy").attr("array")(py::cast(self.X()));
+            x.attr("setflags")("write"_a = false);
+            return x;
+          },
           [](lbl::temperature::data& self, const Vector& x) { self = lbl::temperature::data{self.Type(), x}; },
-          "The coefficients\n\n.. :class:`~pyarts3.arts.Vector`")
+          "A read-only copy of the coefficients; assign all of them or index the model by "
+          ":class:`~pyarts3.arts.LineShapeModelCoefficient` to change them\n\n.. :class:`numpy.ndarray`")
+      .def(
+          "__getitem__",
+          [](const lbl::temperature::data& self, LineShapeModelCoefficient coeff) { return self.X(coeff); },
+          "coeff"_a,
+          "The coefficient")
+      .def(
+          "__setitem__",
+          [](lbl::temperature::data& self, LineShapeModelCoefficient coeff, Numeric value) { self.X(coeff) = value; },
+          "coeff"_a,
+          "value"_a,
+          "Set the coefficient")
 
       .doc() = "Temperature model";
 
@@ -1050,26 +1077,14 @@ No density, stimulated-emission, or abundance factor is applied here.)");
          const LinemixingEcsData&    abs_ecs_data,
          const Index&                no_negative_absorption,
          const py::kwargs&) {
-        PropmatVector   spectral_propmat(f.size());
-        StokvecVector   nlte_vector(f.size());
-        PropmatMatrix   spectral_propmat_jac(0, f.size());
-        StokvecMatrix   nlte_matrix(0, f.size());
+        SpectralPropmat spectral_propmat;
+        spectral_propmat.init(f.size(), 0);
         JacobianTargets jac_targets{};
 
-        spectral_propmatAddLines(spectral_propmat,
-                                 nlte_vector,
-                                 spectral_propmat_jac,
-                                 nlte_matrix,
-                                 f,
-                                 jac_targets,
-                                 spec,
-                                 self,
-                                 abs_ecs_data,
-                                 atm,
-                                 path_point,
-                                 no_negative_absorption);
+        spectral_propmatAddLines(
+            spectral_propmat, f, jac_targets, spec, self, abs_ecs_data, atm, path_point, no_negative_absorption);
 
-        return spectral_propmat;
+        return std::move(spectral_propmat.K);
       },
       "f"_a,
       "atm"_a,

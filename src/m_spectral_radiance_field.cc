@@ -28,18 +28,12 @@ auto spectral_propmat_profileFromAtm(const Workspace&       ws,
 #pragma omp parallel for if (!arts_omp_in_parallel())
   for (Size ip = 0; ip < np; ip++) {
     try {
-      spectral_propmat_agendaExecute(ws,
-                                     out.k[ip],
-                                     out.s[ip],
-                                     out.dk[ip],
-                                     out.ds[ip],
-                                     freq_grid,
-                                     {},
-                                     {},
-                                     {},
-                                     {},
-                                     atm_profile[ip],
-                                     spectral_propmat_agenda);
+      SpectralPropmat pm;
+      spectral_propmat_agendaExecute(ws, pm, freq_grid, {}, {}, {}, {}, atm_profile[ip], spectral_propmat_agenda);
+      out.k[ip]  = std::move(pm.K);
+      out.s[ip]  = std::move(pm.nlte);
+      out.dk[ip] = std::move(pm.dK);
+      out.ds[ip] = std::move(pm.dnlte);
     } catch (const std::runtime_error& e) {
 #pragma omp critical
       if (error.empty()) error = e.what();

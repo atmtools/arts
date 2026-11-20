@@ -12,90 +12,90 @@
 #include "hpy_arts.h"
 #include "hpy_numpy.h"
 namespace Python {
+namespace {
+template <typename> using as_object = py::object;
+
+template <typename R, typename... Args>
+py::class_<CustomOperator<R, Args...>>& defaults_to_python(py::class_<CustomOperator<R, Args...>>& cop, auto... py_args)
+    requires(sizeof...(Args) == sizeof...(py_args)) {
+  using self_t    = CustomOperator<R, Args...>;
+  using func_t    = self_t::func_t;
+  using structs_t = xml_io_stream_functional<func_t>::structs_t;
+
+  // The structs are kept as they are (not wrapped as Python callables), so they can be saved.
+  // These must come before the callable, as the structs are themselves callable.
+  if constexpr (not std::same_as<void, structs_t>) {
+    [&cop]<typename... Ts>(std::type_identity<std::variant<Ts...>>) {
+      (cop.def("__init__", [](self_t* op, const Ts& x) { new (op) self_t{.f = x}; }, "f"_a), ...);
+      (py::implicitly_convertible<Ts, self_t>(), ...);
+    }(std::type_identity<structs_t>{});
+  }
+
+  cop.def(
+      "__init__",
+      [](self_t* op, func_t f) {
+        new (op) self_t([f = std::move(f)](Args... args) {
+          py::gil_scoped_acquire gil{};
+          return f(args...);
+        });
+      },
+      "f"_a);
+  py::implicitly_convertible<func_t, self_t>();
+
+  if constexpr ((std::same_as<Args, Numeric> and ...)) {
+    // Purely numeric operators also take numpy arrays, element by element
+    cop.def(
+        "__call__",
+        [](const self_t& self, as_object<Args>... args) {
+          return vectorize([op = &self](Args... x) { return (*op)(x...); }, args...);
+        },
+        py_args...);
+  } else {
+    cop.def("__call__", [](const self_t& self, Args... args) { return self(args...); }, py_args...);
+  }
+
+  generic_interface(cop);
+  return cop;
+}
+}  // namespace
+
 void py_operators(py::module_& m) {
+  py::class_<WaterEquivalentPressureMK05> mk05(m, "WaterEquivalentPressureMK05");
+  generic_interface(mk05);
+  mk05.def(
+          "__init__",
+          [](WaterEquivalentPressureMK05* x, bool only_liquid) { new (x) WaterEquivalentPressureMK05{only_liquid}; },
+          "only_liquid"_a)
+      .def_rw("only_liquid",
+              &WaterEquivalentPressureMK05::only_liquid,
+              "Use the pressure over liquid water also below 0 C, otherwise over ice.\n\n.. :class:`bool`")
+      .def(
+          "__call__",
+          [](const WaterEquivalentPressureMK05& self, py::object t) {
+            return vectorize([&self](Numeric t) { return self(t); }, t);
+          },
+          "t"_a,
+          "The water equivalent saturation pressure [Pa] at the temperature [K]");
+  mk05.doc() = "Water equivalent saturation pressure [Pa] from temperature [K], by Murphy and Koop (2005)";
+
   py::class_<NumericUnaryOperator> nuop(m, "NumericUnaryOperator");
-  nuop.def("__init__",
-           [](NumericUnaryOperator* op, NumericUnaryOperator::func_t f) {
-             new (op) NumericUnaryOperator([f = std::move(f)](Numeric x) {
-               py::gil_scoped_acquire gil{};
-               return f(x);
-             });
-           })
-      .def("__call__", [](NumericUnaryOperator& f, py::object x) { return vectorize(f.f, x); }, "x"_a);
-  generic_interface(nuop);
-  py::implicitly_convertible<NumericUnaryOperator::func_t, NumericUnaryOperator>();
+  defaults_to_python(nuop, "x"_a);
 
   py::class_<ExtSSACallback> esop(m, "ExtSSACallback");
-  esop.def("__init__",
-           [](ExtSSACallback* op, ExtSSACallback::func_t f) {
-             new (op) ExtSSACallback([f = std::move(f)](Numeric x, const AtmPoint& atm_point) {
-               py::gil_scoped_acquire gil{};
-               return f(x, atm_point);
-             });
-           })
-      .def(
-          "__call__",
-          [](ExtSSACallback& f, Numeric x, const AtmPoint& y) { return f.f(x, y); },
-          "frequency"_a,
-          "atm_point"_a)
-      .doc() = "A callback to get [extinction, ssa] from a single scattering albedo and extinction field.";
-  generic_interface(esop);
-  py::implicitly_convertible<ExtSSACallback::func_t, ExtSSACallback>();
+  defaults_to_python(esop, "frequency"_a, "atm_point"_a);
+  esop.doc() = "A callback to get [extinction, ssa] from a single scattering albedo and extinction field.";
 
   py::class_<NumericBinaryOperator> nbop(m, "NumericBinaryOperator");
-  nbop.def("__init__",
-           [](NumericBinaryOperator* op, NumericBinaryOperator::func_t f) {
-             new (op) NumericBinaryOperator([f = std::move(f)](Numeric x, Numeric y) {
-               py::gil_scoped_acquire gil{};
-               return f(x, y);
-             });
-           })
-      .def(
-          "__call__",
-          [](NumericBinaryOperator& f, py::object x, py::object y) { return vectorize(f.f, x, y); },
-          "x"_a,
-          "y"_a);
-  generic_interface(nbop);
-  py::implicitly_convertible<NumericBinaryOperator::func_t, NumericBinaryOperator>();
+  defaults_to_python(nbop, "x"_a, "y"_a);
 
   py::class_<NumericTernaryOperator> ntop(m, "NumericTernaryOperator");
-  ntop.def("__init__",
-           [](NumericTernaryOperator* op, NumericTernaryOperator::func_t f) {
-             new (op) NumericTernaryOperator([f = std::move(f)](Numeric x, Numeric y, Numeric z) {
-               py::gil_scoped_acquire gil{};
-               return f(x, y, z);
-             });
-           })
-      .def(
-          "__call__",
-          [](NumericTernaryOperator& f, py::object x, py::object y, py::object z) { return vectorize(f.f, x, y, z); },
-          "x"_a,
-          "y"_a,
-          "z"_a);
-  generic_interface(ntop);
-  py::implicitly_convertible<NumericTernaryOperator::func_t, NumericTernaryOperator>();
+  defaults_to_python(ntop, "x"_a, "y"_a, "z"_a);
 
   py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
-  sgstro
-      .def("__init__",
-           [](ScatteringGeneralSpectralTROFunc* op, ScatteringGeneralSpectralTROFunc::func_t f) {
-             new (op) ScatteringGeneralSpectralTROFunc([f = std::move(f)](const AtmPoint& x, const Vector& y, Index z) {
-               py::gil_scoped_acquire gil{};
-               return f(x, y, z);
-             });
-           })
-      .def(
-          "__call__",
-          [](ScatteringGeneralSpectralTROFunc& f, py::object x, py::object y, py::object z) {
-            return vectorize(f.f, x, y, z);
-          },
-          "x"_a,
-          "y"_a,
-          "z"_a);
+  defaults_to_python(sgstro, "atm_point"_a, "f_grid"_a, "degree"_a);
   sgstro.doc() = "A callback to get the bulk scattering properties of a species.";
-  generic_interface(sgstro);
-  py::implicitly_convertible<ScatteringGeneralSpectralTROFunc::func_t, ScatteringGeneralSpectralTROFunc>();
 
+  // Indirect operators
   py::class_<SpectralRadianceTransformOperator> srtop(m, "SpectralRadianceTransformOperator");
   srtop.def(py::init_implicit<const std::string_view&>())
       .def("__init__",

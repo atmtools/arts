@@ -2,7 +2,7 @@
 """This module contains functions to interact with ARTS."""
 
 from pyarts3 import arts  # noqa
-from pyarts3.workspace import Workspace, arts_agenda, in_parallel  # noqa
+from pyarts3.workspace import Workspace, arts_agenda  # noqa
 from pyarts3.workspace.callback import callback_operator  # noqa
 
 def __getattr__(attr):

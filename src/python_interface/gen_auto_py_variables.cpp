@@ -25,12 +25,14 @@ std::string variable(const std::string& name, const WorkspaceVariableRecord& wsv
   const auto&        wsgs = internal_workspace_groups();
   std::ostringstream os;
 
+  // The setter takes the value by copy, as a shared pointer could point into another object, such
+  // as an element of another workspace variable, that the workspace does not keep alive
   std::print(os,
              R"(  ws.def_prop_rw("{0}", [](Workspace& w) -> {1} {{
     auto v = w.share_or<{2}>("{0}");{3}
     return v;
-  }}, [](Workspace& w, {1} val) -> void {{
-    w.set("{0}", Wsv{{std::move(val){5}}});{4}
+  }}, [](Workspace& w, {6} val) -> void {{
+    w.set("{0}", Wsv{{{5}}});{4}
   }})",
              name,
              share_type(wsv.type),
@@ -45,7 +47,9 @@ std::string variable(const std::string& name, const WorkspaceVariableRecord& wsv
     ws_val.set_name("{0}");
     ws_val.finalize();)",
                                                   name),
-             wsgs.at(wsv.type).value_type ? ".val"sv : ""sv);
+             wsgs.at(wsv.type).value_type ? "std::move(val).val"s
+                                          : std::format("std::make_shared<{}>(std::move(val))", wsv.type),
+             wsgs.at(wsv.type).value_type ? share_type(wsv.type) : wsv.type);
 
   os << ", R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
@@ -73,6 +77,7 @@ void variables(const int nfiles) {
 
   for (int i = 0; i < nfiles; i++) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>
+#include <workspace_method_class.h>
 
 #include <nanobind/stl/shared_ptr.h>
 

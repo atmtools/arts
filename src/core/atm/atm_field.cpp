@@ -879,6 +879,14 @@ AtmField Atm::atm_from_profile(const std::span<const Point>     &atm,
 
   if (N != atm.size()) arts::user_error("Inconsistent altitude grid size: {} != {}", N, atm.size());
 
+  for (Size i = 0; i < N; i++) {
+    if (not(atm[i].pressure > 0))
+      arts::user_error(
+          "The pressure must be positive, as it is interpolated in logarithm, but it is {} Pa at point {} of the profile",
+          atm[i].pressure,
+          i);
+  }
+
   GeodeticField3 gf3{};
   gf3.grid<0>()     = altitudes;
   gf3.grid<1>()     = Vector{0.0};
@@ -921,6 +929,9 @@ AtmField Atm::atm_from_profile(const std::span<const Point>     &atm,
       out[key]      = data;
     }
   }
+
+  // Pressure falls exponentially with altitude, so it is interpolated in logarithm, as when it is read from file
+  out[AtmKey::p].log_interpolation = true;
 
   if (std::isnan(top_of_atmosphere)) {
     out.top_of_atmosphere = altitudes.back();

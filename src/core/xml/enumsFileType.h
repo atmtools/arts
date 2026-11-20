@@ -69,16 +69,44 @@ template <int i = 0> constexpr std::string_view toString(FileType x) requires(i 
 }
 
 template <> constexpr FileType to<FileType>(const std::string_view x) {
-  using namespace enumstrs;
-  using namespace enumtyps;
-  if (const auto i = stdr::distance(stdr::begin(FileTypeNames<0>), stdr::find(FileTypeNames<0>, x)); i < 3)
-    return FileTypeTypes[i];
-  if (const auto i = stdr::distance(stdr::begin(FileTypeNames<1>), stdr::find(FileTypeNames<1>, x)); i < 3)
-    return FileTypeTypes[i];
-  if (const auto i = stdr::distance(stdr::begin(FileTypeNames<2>), stdr::find(FileTypeNames<2>, x)); i < 3)
-    return FileTypeTypes[i];
-  if (const auto i = stdr::distance(stdr::begin(FileTypeNames<3>), stdr::find(FileTypeNames<3>, x)); i < 3)
-    return FileTypeTypes[i];
+  switch (enumhash(x)) {
+    case enumhash("ascii"sv):
+      if (x == "ascii"sv) return FileType::ascii;
+      break;
+    case enumhash("zascii"sv):
+      if (x == "zascii"sv) return FileType::zascii;
+      break;
+    case enumhash("binary"sv):
+      if (x == "binary"sv) return FileType::binary;
+      break;
+    case enumhash("ASCII"sv):
+      if (x == "ASCII"sv) return FileType::ascii;
+      break;
+    case enumhash("ZASCII"sv):
+      if (x == "ZASCII"sv) return FileType::zascii;
+      break;
+    case enumhash("BINARY"sv):
+      if (x == "BINARY"sv) return FileType::binary;
+      break;
+    case enumhash("Ascii"sv):
+      if (x == "Ascii"sv) return FileType::ascii;
+      break;
+    case enumhash("Zip"sv):
+      if (x == "Zip"sv) return FileType::zascii;
+      break;
+    case enumhash("Binary"sv):
+      if (x == "Binary"sv) return FileType::binary;
+      break;
+    case enumhash("text"sv):
+      if (x == "text"sv) return FileType::ascii;
+      break;
+    case enumhash("zip"sv):
+      if (x == "zip"sv) return FileType::zascii;
+      break;
+    case enumhash("bin"sv):
+      if (x == "bin"sv) return FileType::binary;
+      break;
+  }
   throw std::runtime_error(std::format(R"-x-(Bad input "{}"
 
 See https://atmtools.github.io/arts-docs-master/pyarts3.arts.FileType.html for valid options.
@@ -89,10 +117,6 @@ See https://atmtools.github.io/arts-docs-master/pyarts3.arts.FileType.html for v
 namespace enumsize {
 inline constexpr std::size_t FileTypeSize = 3;
 }
-
-std::ostream& operator<<(std::ostream& os, const FileType x);
-
-std::istream& operator>>(std::istream& is, FileType& x);
 
 template <> struct std::formatter<FileType> {
   format_tags tags;

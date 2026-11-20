@@ -395,6 +395,16 @@ original TELSEM atlas file.
 )--",
   };
 
+  wsg_data["SensorBuilder"] = {
+      .file = "sensor_builder.h",
+      .desc = R"--(An instrument: its channels and its antenna pattern.
+
+Each channel has a frequency response and a polarization response.  Placing
+the instrument at sensor positions and bore lines of sight gives the *Sensor*
+of those geometries.
+)--",
+  };
+
   wsg_data["SubsurfaceField"] = {
       .file = "subsurf.h",
       .desc =
@@ -518,15 +528,6 @@ When converted to a :class:`~numpy.ndarray` this will look
 like a 4-dimensional array with the last dimension of size 4.
 )",
       .dim_size = {"{}.npages()", "{}.nrows()", "{}.ncols()"},
-  };
-
-  wsg_data["PropmatMatrix"] = {
-      .file     = "rtepack.h",
-      .desc     = R"(A matrix of *Propmat*.
-
-The python mapping allows treating this as a 3-dimensional :class:`~numpy.ndarray` with size 7 as columns.
-)",
-      .dim_size = {"{}.nrows()", "{}.ncols()"},
   };
 
   wsg_data["CompactPlanarMuelmatMatrix"] = {
@@ -1094,6 +1095,24 @@ of this term multiplied by a negative distance.
 )--",
   };
 
+  wsg_data["SpectralPropmat"] = {
+      .file                 = "rtepack.h",
+      .desc                 = R"--(The propagation of one point at several frequencies.
+
+It holds the propagation matrix ``K`` and the non-LTE source ``nlte``, with one
+value per frequency, and their derivatives ``dK`` and ``dnlte``, with one row per
+Jacobian target and one column per frequency.
+
+``nlte_on`` tells if there is a non-LTE source.  While it is false, ``nlte`` and
+``dnlte`` are all zeros, and the methods that compute the source of the radiative
+transfer do not use them.  Set it to true when writing a non-LTE source.
+)--",
+      .dim_size             = {"{}.shape()[0]", "{}.shape()[1]"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has all its values on the same frequencies and both derivatives for the same targets.",
+      .invariant_printables = {"{}.K.shape()", "{}.dK.shape()", "{}.nlte.shape()", "{}.dnlte.shape()"},
+  };
+
   wsg_data["SourceVector"] = {
       .file                 = "rtepack.h",
       .desc                 = R"--(Source vector and derivatives.
@@ -1135,7 +1154,6 @@ of this term multiplied by a negative distance.
   add_select_options(wsg_data,
                      {
                          "InterpolationExtrapolation",
-                         "PredefinedSensor",
                          "SpeciesEnum",
                          "TransmittanceOption",
                          "AtmKey",
@@ -1154,8 +1172,8 @@ of this term multiplied by a negative distance.
   add_arrays_of(wsg_data,
                 {
                     "AtmPoint",
-                    "SensorObsel",
-                    "SensorMetaInfo",
+                    "SpectralPropmat",
+                    "Sensor",
                     "SpeciesTag",
                     "SpeciesEnum",
                     "QuantumLevelIdentifier",
@@ -1164,20 +1182,17 @@ of this term multiplied by a negative distance.
                     "SubsurfacePoint",
                     "PropmatVector",
                     "StokvecVector",
-                    "PropmatMatrix",
                     "CompactPlanarMuelmatMatrix",
-                    "StokvecMatrix",
-                    "ArrayOfPropmatVector",
-                    "ArrayOfStokvecVector",
-                    "ArrayOfPropmatMatrix",
-                    "ArrayOfStokvecMatrix",
+                    "ArrayOfSpectralPropmat",
                     "PropagationPathPoint",
                     "ArrayOfPropagationPathPoint",
                     "ArrayOfArrayOfPropagationPathPoint",
                     "Vector3",
                     "AscendingGrid",
                 },
-                {"optproperties.h", "sensor_meta_info.h"});
+                {"optproperties.h"});
+
+  add_arrays_of(wsg_data, {"JplSpeciesInfo"}, {"jpl_species_info.h"});
 
   return wsg_data;
 }

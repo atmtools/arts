@@ -140,14 +140,16 @@ void abs_predef_dataAddWaterMTCKD430(PredefinedModelData& abs_predef_data,
 }
 
 /* Workspace method: Doxygen documentation will be auto-generated */
-void spectral_propmatAddPredefined(PropmatVector&             spectral_propmat,
-                                   PropmatMatrix&             spectral_propmat_jac,
+void spectral_propmatAddPredefined(SpectralPropmat&           spectral_propmat_,
                                    const PredefinedModelData& abs_predef_data,
                                    const SpeciesEnum&         select_species,
                                    const JacobianTargets&     jac_targets,
                                    const AscendingGrid&       f_grid,
                                    const AtmPoint&            atm_point) {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   for (auto& [isot, data] : abs_predef_data) {
     if (select_species != SpeciesEnum::Bath and isot.spec != select_species) continue;

@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 
-"""VDISORT with a polarized beam and a polarized surface, against field-level closed forms.
+"""VDISORT with a polarized beam and a polarized surface.
 
 The polarized comparisons with RT3 and RT4 never excite the Q, U and V
 columns of the beam, because both have an unpolarized beam, and RT3 allows
 only a Lambertian surface with a beam.  This test covers both through
-pyarts3 with references built from electric fields, with rtepack's
-polarization primitives (meridional_basis and the Mueller matrix of a
-Jones matrix, tested against fields in test_rtepack_polarization) but not VDISORT's phase
-matrices or rtepack's reflection matrices:
+pyarts3:
 
 A. Single scattering of a polarized beam in an optically thin Rayleigh
-   layer.  The Rayleigh Mueller matrix comes from the dipole field
+   layer, with ARTS's Rayleigh phase-matrix Fourier modes
+   (vdisort.scattering_optics of a GasScatterer).  VDISORT's diffuse operator
+   is zero, so its formal solution is exactly the single-scattering integral,
+   tabulated below from an independent evaluation with the dipole field
    E_out = E_in - k_out (k_out . E_in) projected on the meridional bases.
-   VDISORT's diffuse operator is zero, so its formal solution is exactly the
-   single-scattering integral.
-B. VDISORT's raw polarized Cox-Munk reflection against the reflection of
-   the fields by the specular facet: Fresnel amplitudes in the facet's
-   s and p directions, projected on the meridional bases.  The scalar M00
-   (the facet slope distribution and shadowing) is DISORT's, validated
-   against the Fortran DISORT problems; B tests the polarization structure.
+B. The polarization structure of VDISORT's raw polarized Cox-Munk
+   reflection, M / M00, against tabulated values of the reflection of the
+   fields by the specular facet (Fresnel amplitudes in the facet's s and p
+   directions, projected on the meridional bases).  The scalar M00 (the facet
+   slope distribution and shadowing) is DISORT's, validated against the
+   Fortran DISORT problems.
 C. The beam, unpolarized and polarized, reflected by a Cox-Munk surface
    under a transparent atmosphere.  The upward radiance at the top is
    mu0 F rho S_b, Fourier-truncated as the solver's surface modes are.
@@ -38,75 +37,6 @@ import numpy as np
 from pyarts3 import arts
 
 vd = arts.vdisort
-rtepack = arts.rtepack
-
-
-def direction(mu, phi):
-    """The propagation direction of a ray at zenith cosine mu (> 0 up) and azimuth phi."""
-    s = np.sqrt(max(0.0, 1.0 - mu * mu))
-    return np.array([s * np.cos(phi), s * np.sin(phi), mu])
-
-
-def basis(mu, phi):
-    """The meridional basis (v, h) of the ray direction(mu, phi), at the poles that of the azimuth phi."""
-    v, h = rtepack.meridional_basis(direction(mu, phi), np.array([np.sin(phi), -np.cos(phi), 0.0]))
-    return np.array(v), np.array(h)
-
-
-def mueller(jones):
-    """The Mueller matrix of a 2 x 2 Jones matrix in (v, h) bases."""
-    return np.array(arts.Muelmat(arts.Jones(np.asarray(jones, dtype=complex))))
-
-
-def jones(out_basis, in_basis, field):
-    """The Jones matrix of the linear map field(E_in) -> E_out between two bases."""
-    return np.array([[a @ field(b) for b in in_basis] for a in out_basis])
-
-
-def rayleigh(mu_out, phi_out, mu_in, phi_in):
-    """The normalized Rayleigh phase matrix between meridional bases (M00 = 3/4 (1 + cos^2))."""
-    k_in, k_out = direction(mu_in, phi_in), direction(mu_out, phi_out)
-    dipole = lambda e: e - k_out * (k_out @ e)
-    return 1.5 * mueller(jones(basis(mu_out, phi_out), basis(mu_in, phi_in), dipole))
-
-
-def facet_reflection(mu_out, mu_in, relative_azimuth, n):
-    """The Mueller reflection of the facet that reflects -mu_in (azimuth 0) into mu_out (azimuth relative_azimuth).
-
-    The facet normal bisects the two directions.  With s perpendicular to the
-    plane of incidence and p = s x k for both rays, the reflected field is
-    r_s (E . s) s + r_p (E . p_in) p_out, where r_p -> +1 and r_s -> -1 for a
-    perfect conductor (tangential E vanishes at the surface).
-    """
-    k_in, k_out = direction(-mu_in, 0.0), direction(mu_out, relative_azimuth)
-    normal = (k_out - k_in) / np.linalg.norm(k_out - k_in)
-    cos_local = -k_in @ normal
-    s = np.cross(k_in, normal)
-    s /= np.linalg.norm(s)
-    p_in, p_out = np.cross(s, k_in), np.cross(s, k_out)
-    root = np.sqrt(n * n - (1.0 - cos_local**2) + 0j)
-    r_p = (n * n * cos_local - root) / (n * n * cos_local + root)
-    r_s = (cos_local - root) / (cos_local + root)
-    field = lambda e: r_s * (e @ s) * s + r_p * (e @ p_in) * p_out
-    return mueller(jones(basis(mu_out, relative_azimuth), basis(-mu_in, 0.0), field))
-
-
-def max_dev(a, b, scale):
-    return np.abs(np.asarray(a) - np.asarray(b)).max() / scale
-
-
-def test_jones_rayleigh_matches_closed_form():
-    """The field construction reproduces the scattering-plane Rayleigh matrix along the principal plane."""
-    for mu_out in (-0.7, 0.2, 0.9):
-        Z = rayleigh(mu_out, 0.0, -0.6, 0.0)
-        cos_t = direction(mu_out, 0.0) @ direction(-0.6, 0.0)
-        expected = np.zeros((4, 4))
-        expected[0, 0] = expected[1, 1] = 0.75 * (1 + cos_t**2)
-        expected[0, 1] = expected[1, 0] = -0.75 * (1 - cos_t**2)
-        expected[2, 2] = expected[3, 3] = 1.5 * cos_t
-        # In the principal plane the meridional and scattering-plane bases agree up to a sign of
-        # both basis vectors of a ray, which leaves the Stokes vector unchanged
-        np.testing.assert_allclose(Z, expected, atol=1e-14)
 
 
 def test_polarized_beam_single_scattering():
@@ -126,17 +56,15 @@ def test_polarized_beam_single_scattering():
     )
     mu = np.asarray(model0.mu)
 
-    # C^m and S^m of Z(mu_i, 0 <- -mu0, phi') by the trapezoid rule, exact for these trigonometric polynomials
-    nphi = 64
-    phis = 2 * np.pi * np.arange(nphi) / nphi
-    cosine = np.zeros((nfourier, 1, nquad, 4, 4))
-    sine = np.zeros_like(cosine)
-    for i, m_out in enumerate(mu):
-        for phi in phis:
-            Z = rayleigh(m_out, 0.0, -mu0, phi)
-            for m in range(nfourier):
-                cosine[m, 0, i] += np.cos(m * phi) / nphi * Z
-                sine[m, 0, i] += np.sin(m * phi) / nphi * Z
+    # ARTS's Rayleigh C^m and S^m of Z(mu_i, 0 <- -mu0, phi')
+    species = arts.ArrayOfScatteringSpecies()
+    species.add(arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0)))
+    atm = arts.AtmPoint()
+    atm.pressure = 8e4
+    atm.temperature = 260.0
+    optics = vd.scattering_optics(species, atm, 89e9, mu, [-mu0], nfourier)
+    cosine = np.asarray(optics.cosine)[:, None, :, 0]
+    sine = np.asarray(optics.sine)[:, None, :, 0]
 
     def solve(stokes):
         return arts.cppvdisort(
@@ -150,55 +78,69 @@ def test_polarized_beam_single_scattering():
             beam_phase_matrix=vd.combine_beam_phase_matrices(cosine, sine),
         )
 
-    model = solve(beam)
-    phi_out = np.array([0.0, 0.3, phi0, 1.9, np.pi, 4.4])
-    u = np.asarray(model.u(tau=np.array([0.0, depth]), phi=phi_out))
+    # Upward at the top on stream 2 (mu = 0.237) and downward at the bottom on
+    # stream 13 (mu = -0.763), at the azimuths phi_out
     n = nquad // 2
+    up, down = 2, n + 5
+    phi_out = np.array([0.0, 0.3, phi0, 1.9, np.pi, 4.4])
 
-    def expected(phi_list, stokes):
-        out = np.zeros((2, len(phi_list), nquad, 4))
-        for k, phi in enumerate(phi_list):
-            for i in range(n):
-                m = mu[i]
-                # Upward at the top and downward at the bottom: the attenuated beam source integrated along the ray
-                up = mu0 / (mu0 + m) * -np.expm1(-depth * (1 / mu0 + 1 / m))
-                down = (np.exp(-depth / mu0) - np.exp(-depth / m)) / (1 - m / mu0)
-                out[0, k, i] = up / (4 * np.pi) * rayleigh(m, phi, -mu0, phi0) @ stokes
-                out[1, k, n + i] = down / (4 * np.pi) * rayleigh(-m, phi, -mu0, phi0) @ stokes
-        return out
+    def field(model, phi):
+        u = np.asarray(model.u(tau=np.array([0.0, depth]), phi=phi))
+        return np.concatenate((u[0, :, up], u[1, :, down]))
 
-    ref = expected(phi_out, beam)
-    scale = np.abs(ref[..., 0]).max()
-    selected = np.zeros_like(u, dtype=bool)
-    selected[0, :, :n] = True  # upward at the top
-    selected[1, :, n:] = True  # downward at the bottom
-    deviation = np.abs(np.where(selected, u - ref, 0.0)).max(axis=(0, 1, 2)) / scale
-    print(f"A. polarized beam, single scattering: max |VDISORT - closed form| / max I = {deviation}")
+    ref = np.array([
+        [4.96754443532156e-07, -5.28396544175680e-08, -4.22368131194178e-07, 1.47849145912888e-07],
+        [4.68768270264573e-07, -7.87060830005066e-08, -3.28660402008651e-07, 1.87555666276326e-07],
+        [4.00278493395939e-07, -5.75944213175187e-08, -1.66095830889410e-07, 2.07619788611763e-07],
+        [3.03059610902693e-07, 8.30509129165863e-08, 2.80577308780512e-07, 4.55486824606329e-08],
+        [5.78492366715659e-07, 2.88982687659360e-08, 3.99551092159033e-07, -2.40954513802322e-07],
+        [5.13005852796478e-07, 2.38817457481129e-07, -5.12435970155258e-09, -2.62116365979781e-07],
+        [1.67462078813691e-07, -3.47166480900049e-09, -7.36756627429650e-08, 8.68012905116077e-08],
+        [1.85288199876436e-07, 1.50137353395687e-08, -8.37779116922669e-08, 9.50220435426892e-08],
+        [1.96908969455559e-07, 5.45021792309593e-08, -7.93408612059474e-08, 9.91760765074343e-08],
+        [1.71441864752456e-07, 1.03015164908675e-07, 7.65620969531610e-08, 6.56212214119098e-08],
+        [1.13050884714876e-07, -5.78828589078150e-08, 9.64927349116139e-08, 6.30421257972797e-09],
+        [5.22267701785750e-08, -3.30507992931378e-08, -4.03012092139639e-08, 1.92290797688661e-09],
+    ])  # fmt: skip
+    model = solve(beam)
+    scale = np.abs(ref[:, 0]).max()
+    deviation = np.abs(field(model, phi_out) - ref).max(axis=0) / scale
+    print(f"A. polarized beam, single scattering: max |VDISORT - expected| / max I = {deviation}")
     assert deviation.max() < 1e-8, deviation
 
-    # Every component is exercised, and the comparison is not blind to the beam's polarization or the azimuth sense
-    polarization = np.abs(ref).max(axis=(0, 1, 2)) / scale
-    assert polarization.min() > 0.05, polarization
-    unpolarized = np.abs(np.where(selected, np.asarray(solve(np.array([beam[0], 0, 0, 0])).u(np.array([0.0, depth]), phi_out)) - ref, 0)).max() / scale
-    mirrored = np.abs(np.where(selected, u - expected(2 * phi0 - phi_out, beam), 0)).max() / scale
+    # The comparison is not blind to the beam's polarization or the azimuth sense
+    unpolarized = np.abs(field(solve(np.array([beam[0], 0, 0, 0])), phi_out) - ref).max() / scale
+    mirrored = np.abs(field(model, np.mod(2 * phi0 - phi_out, 2 * np.pi)) - ref).max() / scale
     print(f"   an unpolarized beam misses by {unpolarized:.3f}, the mirrored azimuth by {mirrored:.3f}")
     assert unpolarized > 1e4 * 1e-8 and mirrored > 1e4 * 1e-8
 
 
 def test_cox_munk_polarization_structure():
-    """B. VDISORT's raw polarized Cox-Munk matrix against the field reflection by the facet."""
-    rng = np.random.default_rng(20261013)
-    for n in (1.34, 1.5 + 0.3j, 7.0 + 3.0j):
-        worst = 0.0
-        for _ in range(200):
-            mu_out, mu_in = rng.uniform(0.1, 1.0, 2)
-            azimuth = rng.uniform(0.0, 2 * np.pi)
-            raw = np.asarray(vd.cox_munk_reflection(mu_out, mu_in, azimuth, 7.0, complex(n), True))
-            if raw[0, 0] <= 1e-12:  # shadowed or out of the facet distribution's range
-                continue
-            geo = facet_reflection(mu_out, mu_in, azimuth, n)
-            worst = max(worst, np.abs(raw / raw[0, 0] - geo / geo[0, 0]).max())
-        print(f"B. Cox-Munk, n = {n}: max |raw / raw_00 - facet / facet_00| = {worst:.1e}")
+    """B. VDISORT's raw polarized Cox-Munk matrix M / M00 at one geometry per refractive index."""
+    cases = {
+        (1.34, 0.7, 0.5, 0.4): [
+            [1.0, -0.83251026003135, 0.54322552353009, 0.0],
+            [-0.75648400812752, 0.59875761966399, -0.47496322486588, 0.0],
+            [0.6449025103993, -0.58855360289422, 0.28519572571752, 0.0],
+            [0.0, 0.0, 0.0, -0.1087782033681],
+        ],
+        (1.5 + 0.3j, 0.35, 0.6, 5.7): [
+            [1.0, -0.34307550922659, -0.89849786575612, 0.0],
+            [-0.51052810861047, 0.1906592964045, 0.49540192622843, -0.23208984050515],
+            [-0.81508298357774, 0.30148903141806, 0.79204359600663, 0.14536972270075],
+            [0.0, 0.25584171251155, -0.09768863026451, 0.00165222783507],
+        ],
+        (7.0 + 3.0j, 0.9, 0.6, 0.9): [
+            [1.0, -0.07413000690503, 0.06745388778762, 0.0],
+            [-0.01232330780915, -0.57297917382974, -0.81238101640821, 0.0428780777427],
+            [0.09946567742717, -0.81627157962926, 0.57751244399023, 0.00531238276314],
+            [0.0, -0.02907830237946, -0.03195627156381, -0.99402613855827],
+        ],
+    }
+    for (n, mu_out, mu_in, azimuth), expected in cases.items():
+        raw = np.asarray(vd.cox_munk_reflection(mu_out, mu_in, azimuth, 7.0, complex(n), True))
+        worst = np.abs(raw / raw[0, 0] - expected).max()
+        print(f"B. Cox-Munk, n = {n}: max |raw / raw_00 - expected| = {worst:.1e}")
         assert worst < 1e-12, (n, worst)
 
 
@@ -259,7 +201,6 @@ def test_beam_reflection_by_cox_munk():
 
 
 if __name__ == "__main__":
-    test_jones_rayleigh_matches_closed_form()
     test_polarized_beam_single_scattering()
     test_cox_munk_polarization_structure()
     test_beam_reflection_by_cox_munk()

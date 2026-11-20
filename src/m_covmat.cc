@@ -221,20 +221,20 @@ void oemMeasurementCovmatConstant(OptimalEstimationData& data, const Numeric& va
 // Retrieval code.  This wraps Jacobian and Covmat code.
 ////////////////////////////////////////////////////////////////////////////////
 
-void oemFinalizeDiagonal(OptimalEstimationData&    oem,
-                         JacobianTargets&          jac_targets,
-                         const AtmField&           atm_field,
-                         const SurfaceField&       surf_field,
-                         const SubsurfaceField&    subsurf_field,
-                         const AbsorptionBands&    abs_bands,
-                         const ArrayOfSensorObsel& measurement_sensor) {
+void oemFinalizeDiagonal(OptimalEstimationData& oem,
+                         JacobianTargets&       jac_targets,
+                         const AtmField&        atm_field,
+                         const SurfaceField&    surf_field,
+                         const SubsurfaceField& subsurf_field,
+                         const AbsorptionBands& abs_bands,
+                         const ArrayOfSensor&   measurement_sensors) {
   ARTS_TIME_REPORT
   oem.uncheck();
   CovarianceMatrix model_state_covmat;
   if (oem.covmat_diagonal_blocks.empty())
     arts::user_error("No pending covariance blocks; add targets before finalizing.");
 
-  jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensor);
+  jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensors);
 
   for (auto& key_data : oem.covmat_diagonal_blocks) {
     std::visit(
@@ -289,12 +289,10 @@ void correlate_atmosphere(CovarianceMatrix&      covariance,
     });
     if (it == blocks.end()) arts::user_error("Missing marginal covariance for target {}", target.type);
     if (it->is_sparse()) {
-      const auto& matrix = it->get_sparse().matrix;
-      for (Index row = 0; row < matrix.outerSize(); ++row)
-        for (Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator entry(matrix, row); entry; ++entry) {
-          if (entry.row() != entry.col() and entry.value() != 0)
-            arts::user_error("Marginal covariance must be diagonal for target {}", target.type);
-        }
+      for (const auto [row, col, value] : it->get_sparse() | by_elem) {
+        if (row != col and value != 0)
+          arts::user_error("Marginal covariance must be diagonal for target {}", target.type);
+      }
     } else {
       const auto& matrix = it->get_dense();
       for (Index i = 0; i < matrix.nrows(); ++i)

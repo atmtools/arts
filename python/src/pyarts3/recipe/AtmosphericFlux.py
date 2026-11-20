@@ -68,9 +68,7 @@ class AtmosphericFlux:
 
         self.ws.ReadCatalogData()
 
-        for band in self.ws.abs_bands:
-            self.ws.abs_bands[band].cutoff = "ByLine"
-            self.ws.abs_bands[band].cutoff_value = 750e9
+        self.ws.abs_bandsSetCutoff(option="ByLine", value=750e9)
 
         if remove_lines_percentile is not None:
             self.ws.abs_bands.keep_hitran_s(remove_lines_percentile)

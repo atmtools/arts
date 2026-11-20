@@ -45,31 +45,50 @@ def snapshot(ws, include_bath=True):
     )
 
 
-def check_average(ws, weights, species):
-    unchanged = snapshot(ws, include_bath=False)
-    expected = {}
-    total = sum(weights)
-    for isot, partners in ws.abs_ecs_data.items():
-        for field in FIELDS:
-            active = [
-                (weight / total, getattr(partners[partner], field))
-                for weight, partner in zip(weights, species)
-                if weight > 0
-            ]
-            expected[str(isot), field] = (
-                str(active[0][1].type),
-                [
-                    sum(weight * float(model.data[i]) for weight, model in active)
-                    for i in range(len(active[0][1].data))
-                ],
-            )
+# The 0.21 O2 and 0.79 N2 mean of the preset coefficients, confirmed with
+# independent code.  The CO2 isotopologues share their coefficients.
+CO2_MEAN = {
+    "scaling": ("T1", [5251.138953450777, 0.7765]),
+    "beta": ("T0", [0.00779]),
+    "lambda_": ("T1", [0.8121, -0.007101999999999997]),
+    "collisional_distance": ("T0", [2.242e-10]),
+}
+O2_N2_MEAN = {
+    "CO2-626": CO2_MEAN,
+    "CO2-628": CO2_MEAN,
+    "CO2-636": CO2_MEAN,
+    "O2-66": {
+        "scaling": ("T0", [1.0]),
+        "beta": ("T0", [0.567]),
+        "lambda_": ("T0", [0.39]),
+        "collisional_distance": ("T0", [6.1e-11]),
+    },
+}
 
+
+def coefficients_of(ws, partner):
+    """The coefficients of a partner, for an average that only it contributes to"""
+    return {
+        str(isot): {
+            field: (
+                str(getattr(partners[partner], field).type),
+                [float(x) for x in getattr(partners[partner], field).data],
+            )
+            for field in FIELDS
+        }
+        for isot, partners in ws.abs_ecs_data.items()
+    }
+
+
+def check_average(ws, weights, species, expected):
+    unchanged = snapshot(ws, include_bath=False)
     ws.abs_ecs_dataAddMeanAir(vmrs=weights, species=species)
     assert snapshot(ws, include_bath=False) == unchanged
+    assert sorted(str(isot) for isot in ws.abs_ecs_data) == sorted(expected)
     for isot, partners in ws.abs_ecs_data.items():
         for field in FIELDS:
             actual = getattr(partners[AIR], field)
-            model_type, coefficients = expected[str(isot), field]
+            model_type, coefficients = expected[str(isot)][field]
             assert str(actual.type) == model_type
             assert len(actual.data) == len(coefficients)
             for actual_value, expected_value in zip(actual.data, coefficients):
@@ -91,7 +110,7 @@ def fails_without_mutation(ws, weights, species):
 
 def rollback_workspace():
     ws = preset_workspace()
-    check_average(ws, [0.21, 0.79], [O2, N2])
+    check_average(ws, [0.21, 0.79], [O2, N2], O2_N2_MEAN)
     # Distinct existing bath values expose partial updates before a later error.
     for partners in ws.abs_ecs_data.values():
         partners[AIR].scaling = arts.TemperatureModel("T0", [321.0])
@@ -99,9 +118,11 @@ def rollback_workspace():
 
 
 ws = preset_workspace()
-check_average(ws, [0.21, 0.79], [O2, N2])
-check_average(ws, [1.00001], [O2])  # Accepted roundoff is normalized away.
-check_average(ws, [1.0, 0.0], [O2, HE])  # No data are needed for an absent partner.
+check_average(ws, [0.21, 0.79], [O2, N2], O2_N2_MEAN)
+# Accepted roundoff is normalized away.
+check_average(ws, [1.00001], [O2], coefficients_of(ws, O2))
+# No data are needed for an absent partner.
+check_average(ws, [1.0, 0.0], [O2, HE], coefficients_of(ws, O2))
 
 for weights, species in (
     ([], []),

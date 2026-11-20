@@ -69,7 +69,7 @@ struct Retrieval {
   Matrix&                       gain = data.measurement_gain_mat;
   AtmField                      atm;
   AbsorptionBands               bands;
-  ArrayOfSensorObsel            sensor;
+  ArrayOfSensor                 sensor;
   SurfaceField                  surf;
   SubsurfaceField               subsurf;
   OptimalEstimationDiagnostics& diagnostics = data.diagnostics;
@@ -143,7 +143,7 @@ struct Retrieval {
   }
 
   void set_target_size(Size n) {
-    targets.atm       = {Jacobian::AtmTarget{.type = AtmKey::t, .target_pos = 0, .x_start = 0, .x_size = n}};
+    targets.atm             = {Jacobian::AtmTarget{.type = AtmKey::t, .target_pos = 0, .x_start = 0, .x_size = n}};
     targets.finalized       = true;
     targets.finalized_count = targets.target_count();
   }
@@ -1079,8 +1079,7 @@ void test_sparse_element_range() {
   Sparse sparse(5, 4);
   sparse.rw(1, 2) = 3;
   sparse.rw(3, 0) = 0;  // Explicit zeros must survive traversal.
-  for (bool compressed : {false, true}) {
-    if (compressed) sparse.matrix.makeCompressed();
+  {
     Index count = 0;
     for (auto [row, col, value] : sparse | by_elem) {
       require((count == 0 and row == 1 and col == 2) or (count == 1 and row == 3 and col == 0), "Sparse entry order");

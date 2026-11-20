@@ -1,9 +1,11 @@
 #pragma once
 
 #include <xml.h>
+#include <xml_io_stream_functional.h>
 
-#include "functional_atm.h"
 #include "functional_atm_field.h"
+#include "functional_atm_mag_field.h"
+#include "functional_atm_pressure_field.h"
 #include "functional_gravity.h"
 
 using NumericTernary = std::function<Numeric(Numeric, Numeric, Numeric)>;
@@ -27,15 +29,15 @@ template <> struct xml_io_stream_name<NumericTernary> {
 };
 
 template <> struct xml_io_stream_functional<NumericTernary> {
-  using func_t    = Numeric (*)(Numeric, Numeric, Numeric);
-  using structs_t = std::variant<Atm::IGRF,
-                                 Atm::SchmidthLegendre,
-                                 Atm::HydrostaticPressure,
-                                 Atm::MagnitudeField,
-                                 Atm::External,
-                                 EllipsoidGravity>;
+  using func_t = Numeric (*)(Numeric, Numeric, Numeric);
+  using structs_t =
+      std::variant<Atm::IGRF, Atm::SchmidthLegendre, Atm::HydrostaticPressure, Atm::MagnitudeField, EllipsoidGravity>;
   static constexpr std::array<func_t*, 0> funcs{};
 };
+
+//! The XML IO is defined in functional_numeric_ternary.cpp, the only place it is instantiated
+template <> struct xml_io_stream<NumericTernary> : xml_io_stream_function_declaration<NumericTernary> {};
+extern template struct xml_io_stream_function_declaration<NumericTernary>;
 
 template <> struct std::formatter<NumericTernary> {
   format_tags tags;

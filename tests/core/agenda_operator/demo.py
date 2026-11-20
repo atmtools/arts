@@ -19,10 +19,7 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
         the atmospheric state
 
     it outputs:
-        propmat
-        source-vec
-        propmat-jacobian
-        source-vec-jacobian
+        the propagation: propmat, source-vec and their jacobians
 
     The below demonstrates an incredibly easy way to set up these calculations.
 
@@ -31,13 +28,8 @@ def interface_function(freq, wind_jac, jac, species, path_point, atm):
     """
     ws = pyarts.Workspace()
     ws.spectral_propmatInit(freq_grid=freq, jac_targets=jac)
-    ws.spectral_propmat[:, 0] = 1
-    return (
-        ws.spectral_propmat,
-        ws.spectral_nlte_srcvec,
-        ws.spectral_propmat_jac,
-        ws.spectral_nlte_srcvec_jac,
-    )
+    ws.spectral_propmat.K[:, 0] = 1
+    return (ws.spectral_propmat,)
 
 
 ws = pyarts.Workspace()
@@ -51,5 +43,5 @@ ws.atm_point
 ws.spectral_propmat_agendaExecute()
 
 assert np.allclose(
-    ws.spectral_propmat, [[1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]]
+    ws.spectral_propmat.K, [[1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0]]
 )

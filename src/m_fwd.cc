@@ -3,9 +3,9 @@
 #include <fwd.h>
 #include <fwd_path.h>
 #include <fwd_spectral_radiance.h>
-#include <obsel.h>
 #include <path_point.h>
 #include <rtepack.h>
+#include <sensor.h>
 #include <workspace.h>
 
 #include <algorithm>
@@ -231,36 +231,38 @@ void spectral_rad_fieldFromOperatorPath(const Workspace&                ws,
 
 void measurement_vecFromOperatorPath(const Workspace&                ws,
                                      Vector&                         measurement_vec,
-                                     const ArrayOfSensorObsel&       measurement_vec_sensor,
+                                     const ArrayOfSensor&            measurement_vec_sensor,
                                      const SpectralRadianceOperator& spectral_rad_operator,
                                      const Agenda&                   ray_path_observer_agenda) try {
   ARTS_TIME_REPORT
 
-  measurement_vec.resize(measurement_vec_sensor.size());
+  measurement_vec.resize(measurement_size(measurement_vec_sensor));
   measurement_vec = 0.0;
-  if (measurement_vec_sensor.empty()) return;
+  if (measurement_vec.empty()) return;
 
-  //! Check the observational elements that their dimensions are correct
-  for (auto& obsel : measurement_vec_sensor) obsel.check();
+  //! Check the sensors that their dimensions are correct
+  for (auto& sensor : measurement_vec_sensor) sensor.check();
 
-  const SensorSimulations simulations = collect_simulations(measurement_vec_sensor);
+  Size start = 0;
+  for (auto& sensor : measurement_vec_sensor) {
+    for (Size iposlos = 0; iposlos < sensor.geometry.size(); iposlos++) {
+      const auto& poslos = sensor.geometry[iposlos];
 
-  for (auto& [freq_grid, poslos_grid, iposlos] : simulations) {
-    const auto& poslos = poslos_grid[iposlos];
+      ArrayOfPropagationPathPoint ray_path;
 
-    ArrayOfPropagationPathPoint ray_path;
+      ray_path_observer_agendaExecute(ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
 
-    ray_path_observer_agendaExecute(ws, ray_path, poslos.pos, poslos.los, ray_path_observer_agenda);
+      const StokvecVector spectral_rad{
+          std::from_range,
+          sensor.freq_grid | stdv::transform([path = spectral_rad_operator.from_path(ray_path), &spectral_rad_operator](
+                                                 Numeric f) { return spectral_rad_operator(f, path); })};
 
-    const StokvecVector spectral_rad{
-        std::from_range,
-        freq_grid | stdv::transform([path = spectral_rad_operator.from_path(ray_path),
-                                     &spectral_rad_operator](Numeric f) { return spectral_rad_operator(f, path); })};
-
-    for (Size iv = 0; iv < measurement_vec_sensor.size(); ++iv) {
-      const SensorObsel& obsel = measurement_vec_sensor[iv];
-      if (obsel.same_freqs(freq_grid)) { measurement_vec[iv] += obsel.sumup(spectral_rad, iposlos); }
+      for (Size ie = 0; ie < sensor.elements.size(); ++ie) {
+        measurement_vec[start + ie] += sensor::sumup(sensor.elements[ie], spectral_rad, iposlos);
+      }
     }
+
+    start += sensor.elements.size();
   }
 }
 ARTS_METHOD_ERROR_CATCH

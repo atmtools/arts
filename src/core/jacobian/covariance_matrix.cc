@@ -144,6 +144,12 @@ Block &Block::operator=(const Block &)     = default;
 Block &Block::operator=(Block &&) noexcept = default;
 Block::~Block()                            = default;
 CovarianceMatrix::CovarianceMatrix() : preparation_(std::make_shared<CovariancePreparation>()) {}
+CovarianceMatrix::CovarianceMatrix(BlockMatrix matrix) : CovarianceMatrix() {
+  const Index n = matrix.nrows();
+  if (n != matrix.ncols())
+    arts::user_error("A covariance matrix must be square, got {} by {}", matrix.nrows(), matrix.ncols());
+  add_correlation(Block(Range(0, n), Range(0, n), {0, 0}, std::move(matrix)));
+}
 CovarianceMatrix::CovarianceMatrix(const CovarianceMatrix &other)
     : preparation_(std::make_shared<CovariancePreparation>()) {
   std::lock_guard lock(other.preparation_->mutex);

@@ -14,6 +14,7 @@
 #include "rtepack_scattering.h"
 #include "rtepack_source.h"
 #include "rtepack_spectral_matrix.h"
+#include "rtepack_spectral_propmat.h"
 #include "rtepack_stokes_vector.h"
 #include "rtepack_surface.h"
 #include "rtepack_transmission.h"

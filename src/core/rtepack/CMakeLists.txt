@@ -8,6 +8,7 @@ add_library(rtepack STATIC
   rtepack_rtestep.cc
   rtepack_scattering.cc
   rtepack_source.cc
+  rtepack_spectral_propmat.cc
   rtepack_stokes_vector.cc
   rtepack_surface.cc
   rtepack_transmission.cc

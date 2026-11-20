@@ -63,10 +63,8 @@ def mie_drops():
     says how well it represents the gridded data, and its normalisation must suit the 1e-6 tolerance of
     the solvers' phase-function check.
     """
-    x, _ = A.math.leggauss(NATIVE_ANGLES)
-    angles = np.degrees(np.arccos(np.asarray(x)[::-1]))
     t_grid, f_grid = [220.0, 250.0, 280.0, 310.0], [FREQUENCY]
-    habit = A.ParticleHabit.liquid_sphere(t_grid, f_grid, [1.5e-3], A.IrregularZenithAngleGrid(angles))
+    habit = A.ParticleHabit.liquid_sphere(t_grid, f_grid, [1.5e-3], A.GaussLegendreGrid(NATIVE_ANGLES))
     habit, reports = habit.to_tro_spectral_with_report(t_grid, f_grid, MIE_DEGREE)
     (report,) = reports
     assert np.abs(np.asarray(report.normalisation_error)).max() < 1e-7, np.asarray(report.normalisation_error)
@@ -92,10 +90,7 @@ def path(species):
         atm[drops] = 30.0 * np.exp(-(((z - 2500.0) / 1500.0) ** 2))
         atm_path.append(atm)
         propmat.append(A.PropmatVector(np.array([[5e-5 * np.exp(-z / 2000.0), 0, 0, 0, 0, 0, 0]])))
-    s = A.ArrayOfScatteringSpecies()
-    for x in species:
-        s.add(x)
-    return ray_path, atm_path, propmat, s
+    return ray_path, atm_path, propmat, A.ArrayOfScatteringSpecies(species)
 
 
 def solve(species, surface, nstokes, beam=None, phi=(0.0,)):

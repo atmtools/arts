@@ -316,8 +316,13 @@ void band_shape_helper(std::vector<single_shape>& lines,
       }
       break;
     case ByLine: {
-      auto [iline, active_lines] = bnd.active_lines(fmin, fmax);
-      for (auto& line : active_lines) { lines_push_back(lines, pos, qid, line, atm, pol, iline++); }
+      //! The lines of a band are not required to be sorted, so every line is checked
+      const Numeric flow = fmin - bnd.get_cutoff_frequency();
+      const Numeric fupp = fmax + bnd.get_cutoff_frequency();
+      for (Size iline = 0; iline < bnd.size(); iline++) {
+        const auto& line = bnd.lines[iline];
+        if (line.f0 >= flow and line.f0 <= fupp) lines_push_back(lines, pos, qid, line, atm, pol, iline);
+      }
     } break;
   }
 

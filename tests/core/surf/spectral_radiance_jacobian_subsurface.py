@@ -31,13 +31,13 @@ ws.spectral_rad_transform_operatorSet(option="Tb")
 ws.abs_species = []
 ws.abs_bands = {}
 ws.spectral_propmat_agendaAuto()
-ws.spectral_rad_observer_agendaSet(option="EmissionNoSensor")
+ws.spectral_rad_observer_agendaSet(option="Emission")
 ws.ray_path_observer_agendaSetGeometric()
 ws.atm_fieldInit(toa=0.0)
 
 ws.jac_targetsInit()
 ws.jac_targetsAddSubsurface(target="t")
-ws.measurement_sensor = []
+ws.measurement_sensors = []
 ws.jac_targetsFinalize()
 
 ws.ray_point.pos = [0, 0, 0]

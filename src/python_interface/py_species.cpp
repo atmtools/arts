@@ -232,13 +232,28 @@ Returns
       .def_rw("ratio", &HitranSpeciesInfo::ratio, "The isotopologue ratio\n\n.. :class:`float`");
 
   py::class_<JplSpeciesInfo> jsinfo(m, "JplSpeciesInfo");
-  jsinfo.doc() = "Information about a JPL species";
   generic_interface(jsinfo);
-  jsinfo.def_rw("id", &JplSpeciesInfo::id, "The JPL species ID\n\n.. :class:`int`")
-      .def_rw("spec", &JplSpeciesInfo::spec, "The species\n\n.. :class:`~pyarts3.arts.SpeciesIsotope")
-      .def_rw("has_qn", &JplSpeciesInfo::has_qn, "The JPL species index\n\n.. :class:`bool`")
+  jsinfo
+      .def(
+          "__init__",
+          [](JplSpeciesInfo* self, Index id, const SpeciesIsotope& spec, Numeric QT0, Numeric T0, bool has_qn) {
+            new (self) JplSpeciesInfo{.id = id, .spec = spec, .has_qn = has_qn, .QT0 = QT0, .T0 = T0};
+          },
+          "id"_a,
+          "spec"_a,
+          "QT0"_a,
+          "T0"_a,
+          "has_qn"_a = false,
+          "Information about the species of a JPL species tag")
+      .def_rw("id", &JplSpeciesInfo::id, "The JPL species ID\n\n.. :class:`int`")
+      .def_rw("spec", &JplSpeciesInfo::spec, "The species\n\n.. :class:`~pyarts3.arts.SpeciesIsotope`")
+      .def_rw("has_qn", &JplSpeciesInfo::has_qn, "Whether the quantum numbers are supported\n\n.. :class:`bool`")
       .def_rw("QT0", &JplSpeciesInfo::QT0, "The partition function at the reference temperature\n\n.. :class:`float`")
       .def_rw("T0", &JplSpeciesInfo::T0, "The reference temperature\n\n.. :class:`float`");
+
+  auto ajsinfo = py::bind_vector<ArrayOfJplSpeciesInfo, py::rv_policy::reference_internal>(m, "ArrayOfJplSpeciesInfo");
+  vector_interface(ajsinfo);
+  generic_interface(ajsinfo);
 } catch (std::exception& e) {
   throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize species\n{}", e.what()));
 }

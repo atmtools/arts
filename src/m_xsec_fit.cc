@@ -53,8 +53,7 @@ ARTS_METHOD_ERROR_CATCH
 
 /* Workspace method: Doxygen documentation will be auto-generated */
 void spectral_propmatAddXsecFit(  // WS Output:
-    PropmatVector& spectral_propmat,
-    PropmatMatrix& spectral_propmat_jac,
+    SpectralPropmat& spectral_propmat_,
     // WS Input:
     const SpeciesEnum&     select_species,
     const JacobianTargets& jac_targets,
@@ -64,6 +63,9 @@ void spectral_propmatAddXsecFit(  // WS Output:
     const Numeric&         force_p,
     const Numeric&         force_t) {
   ARTS_TIME_REPORT
+
+  PropmatVector& spectral_propmat     = spectral_propmat_.K;
+  PropmatMatrix& spectral_propmat_jac = spectral_propmat_.dK;
 
   // Jacobian overhead START
   // Jacobian vectors START

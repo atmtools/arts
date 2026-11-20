@@ -1,6 +1,7 @@
 #include "arts_options.h"
 
 #include <auto_species_enum_info.h>
+#include <enums-common-helper.h>
 #include <mystring.h>
 
 #include <algorithm>
@@ -8,6 +9,7 @@
 #include <format>
 #include <limits>
 #include <ranges>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -215,7 +217,8 @@ dielectric factor, and :math:`\beta` is the native return.
 )",
       .values_and_desc = {Value{"unit", "1", "Backscatter coefficient [1 / (m sr)]"},
                           Value{"Ze", "ze", "Equivalent reflectivity factor [mm :math:`^{6}` / m :math:`^{3}`]"},
-                          Value{"dBZe", "dbze", "Equivalent reflectivity factor in decibels, :math:`10 \\log_{10} Z_e`"}},
+                          Value{
+                              "dBZe", "dbze", "Equivalent reflectivity factor in decibels, :math:`10 \\log_{10} Z_e`"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -224,47 +227,31 @@ dielectric factor, and :math:`\beta` is the native return.
 )",
       .values_and_desc = {Value{"Altitude", "Altitude [m]"},
                           Value{"Distance", "One-way geometric distance from the radar [m]"},
-                          Value{"RoundTripTime", "Round-trip time from the radar, including path group refractive indices [s]"},
-                          Value{"Legacy", "The ARTS2 rule: Altitude if the largest limit exceeds 1, otherwise RoundTripTime"}},
+                          Value{"RoundTripTime",
+                                "Round-trip time from the radar, including path group refractive indices [s]"},
+                          Value{"Legacy",
+                                "The ARTS2 rule: Altitude if the largest limit exceeds 1, otherwise RoundTripTime"}},
   });
 
   opts.emplace_back(EnumeratedOption{
-      .name            = "RadarAuxiliary",
-      .desc            = R"(Auxiliary quantities of a radar simulation.
-)",
-      .values_and_desc = {
-          Value{"RadiativeBackground",
-                "Radiative background",
-                "Type of the path end: 0 for space, 1 for the surface, and 2 otherwise"},
-          Value{"Backscattering", "backscattering", "Gate-averaged backscatter without attenuation, in the unit of the measurement"},
-          Value{"AbsSpeciesExtinction",
-                "Abs species extinction",
-                "Gate-averaged extinction by absorbing species [1 / m]"},
-          Value{"ParticleExtinction",
-                "Particle extinction",
-                "Gate-averaged particle extinction, after any extinction scaling [1 / m]"},
-      },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name = "PredefinedSensor",
-      .desc =
-          R"(Code-defined satellite sensor channel configurations.
-
-Each option identifies a complete instrument channel set, including channel
-centers, mixer offsets, bandwidths, and polarization.  These definitions are
-compiled into ARTS and require no external sensor-response data files.
+      .name = "RadarAuxiliary",
+      .desc = R"(Auxiliary quantities of a radar simulation.
 )",
       .values_and_desc =
-          {Value{"AMSUA", "AMSU-A", "The 15-channel Advanced Microwave Sounding Unit A instrument."},
-           Value{"AMSUB", "AMSU-B", "The 5-channel Advanced Microwave Sounding Unit B instrument."},
-           Value{"ICI", "IceCloudImager", "The 11-channel Ice Cloud Imager instrument."},
-           Value{"HIRS", "NOAA14HIRS", "The 19-channel NOAA-14 High-resolution Infrared Radiation Sounder."},
-           Value{"AVHRR", "NOAA19AVHRR", "The 3-channel NOAA-19 Advanced Very High Resolution Radiometer response."},
-           Value{"MVIRI", "MET2MVIRI", "The 3-channel Meteosat-2 Visible and Infrared Imager response."},
-           Value{"SEVIRI",
-                 "MET9SEVIRI",
-                 "The 12-channel Meteosat-9 Spinning Enhanced Visible and Infrared Imager response."}},
+          {
+              Value{"RadiativeBackground",
+                    "Radiative background",
+                    "Type of the path end: 0 for space, 1 for the surface, and 2 otherwise"},
+              Value{"Backscattering",
+                    "backscattering",
+                    "Gate-averaged backscatter without attenuation, in the unit of the measurement"},
+              Value{"AbsSpeciesExtinction",
+                    "Abs species extinction",
+                    "Gate-averaged extinction by absorbing species [1 / m]"},
+              Value{"ParticleExtinction",
+                    "Particle extinction",
+                    "Gate-averaged particle extinction, after any extinction scaling [1 / m]"},
+          },
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -358,6 +345,19 @@ if good cases, so we have provide this selection mechanism to make them match.
   });
 
   opts.emplace_back(EnumeratedOption{
+      .name = "HitranZeemanOption",
+      .desc =
+          R"(The way the Zeeman g-factors are set when reading Hitran data.
+
+Reading the g-factors does not turn on the Zeeman effect.
+)",
+      .values_and_desc = {Value{"None", "No g-factors, they are all 0"},
+                          Value{"Compute", "Compute the g-factors, throw if they cannot be computed for a line"},
+                          Value{"ComputeOrZero",
+                                "Compute the g-factors, set them to 0 if they cannot be computed for a line"}},
+  });
+
+  opts.emplace_back(EnumeratedOption{
       .name = "HitranFileFormatType",
       .desc =
           R"(A file format used to generate an entry in a Hitran-format file.
@@ -376,21 +376,6 @@ The standard HAPI separator of comma (",") is presumed between fields.
               Value{"statepp", "qnspp", "The lower state"},
               Value{"unknown", "X", "Skip this field"},
           },
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name            = "GridType",
-      .desc            = R"(Type of Lagrange interpolation weights.
-)",
-      .values_and_desc = {Value{"Standard", "1-to-1 interpolation grid"},
-                          Value{"Cyclic", "Cyclic interpolation grid"},
-                          Value{"Log", "Natural logarithm interpolation grid"},
-                          Value{"Log10", "10-base logarithm interpolation grid"},
-                          Value{"Log2", "2-base logarithm interpolation grid"},
-                          Value{"SinDeg", "Sine in degrees interpolation grid, grid only defined [-90, 90]"},
-                          Value{"SinRad", "Sine in radians interpolation grid, grid only defined [-PI/2, PI/2]"},
-                          Value{"CosDeg", "Cosine in degrees interpolation grid, grid only defined [0, 180]"},
-                          Value{"CosRad", "Cosine in radians interpolation grid, grid only defined [0,  PI]"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -447,25 +432,105 @@ values in relevant calculations.  Or it might simply disable a functionality.
       .desc =
           R"(The kernel to use for summing up the measurement vectors.
 
-This is used when summing up *measurement_vec* and *measurement_jac*.
+This is used when summing up *measurement_vec* and *measurement_jac* from
+the observation elements in *measurement_sensors*.  Every kernel calls
+*spectral_rad_observer_agenda* once per geometry of each sensor, and gives the
+same result up to the rounding of the sums.  The kernels differ in what they
+keep in memory and in what they do besides the agenda calls.
 
-Tthe observation elements in *measurement_sensor*.  The kernel choice is
-just a trade-off between memory and performance.  The "low memory" option will
-never allocate more than one *StokvecVector* and *StokvecMatrix* per core.
-The "high performance" option will allocate as many *StokvecVector* and
-*StokvecMatrix* as needed for the full observation geometry.
+The estimates below use, for each sensor in *measurement_sensors*:
 
-The low memory computation time is :math:`O(MN)`, where :math:`M` is the number
-of frequency grids times the number of observation geometries, and :math:`N` is
-the number of observation elements in *measurement_sensor*.  It will only ever
-allocate memory proportional to :math:`N`.
+- :math:`G`: its geometries, the agenda calls it makes.
+- :math:`F`: its frequencies.
+- :math:`E`: its elements.
+- :math:`W`: its non-zero weights.
+- :math:`P`: its pairs of element and geometry where the element has weights.
+  At most :math:`W`; for an antenna, the elements times the geometries the
+  antenna samples per placement.
 
-The high performance computation time is :math:`O(M+N)`.  It will allocate
-memory proportional to :math:`MN`.  You should generally use this option
-unless you run into memory constraints.
+The ``report()`` of *measurement_sensors* lists :math:`G`, :math:`F`,
+:math:`E`, and :math:`W` of each sensor.  :math:`J` is ``x_size()`` of
+*jac_targets*, the number of columns of *measurement_jac*.  :math:`C` is the
+number of cores used, at most the total number of geometries.  A number takes
+8 bytes, and a Stokes vector 32 bytes.
+
+All kernels keep *measurement_vec* and *measurement_jac*, :math:`8(J+1)` bytes
+per element of all sensors.  Each agenda call also uses the working memory of
+*spectral_rad_observer_agenda*, on every core that runs one, which comes on top
+of the estimates below.  It depends on the agenda, and often dominates.
+
+"Low Memory" keeps, on each core, the spectral radiance and its Jacobian of
+the geometry the core simulates: :math:`32(J+1)F` bytes per core.  Besides the
+agenda calls, it searches the weights of every element for every geometry,
+:math:`GE` searches per sensor, and it sums the weights, :math:`W(J+1)`
+products per sensor, one core at a time.  It uses the least memory, but its
+searches can dominate when a sensor has both many geometries and many
+elements, and the agenda calls are cheap.
+
+"High Performance" keeps the spectral radiance and its Jacobian of every
+geometry of every sensor: :math:`32(J+1)GF` bytes per sensor.  It sums the
+weights after all agenda calls, in parallel over the elements.  It is the
+fastest kernel when this memory is available and the summing is heavy, such as
+for a single geometry with wide channels, or for many elements sharing each
+geometry.
+
+"Indexed", the default, keeps what "Low Memory" keeps, :math:`32(J+1)F` bytes
+per core.  Before the agenda calls, it lists for each geometry the elements
+with weights there, and where those weights are.  The list of a sensor takes
+about :math:`24P + 8(G+E)` bytes, and building it reads each weight once.  Each
+core sums the elements of its geometry after its agenda call.  An element with
+weights at that geometry only is written directly.  For each of the other
+elements, the core keeps its contribution, :math:`8(J+1)` bytes, and adds it to
+*measurement_vec* and *measurement_jac* one core at a time: :math:`P(J+1)`
+additions per sensor.
+
+How the kernels grow with the number of cores :math:`C` follows from the
+above.  Let :math:`A` be the time of all agenda calls on one core, :math:`B`
+the time of the :math:`W(J+1)` products of summing the weights on one core,
+and :math:`S` the time of what a kernel does one core at a time.  Sums are over
+all sensors, :math:`F` in a per-core term is that of the sensor with the most
+frequencies, and :math:`E_g` is the most elements with weights at one
+geometry.
+
+- "Low Memory": memory :math:`32(J+1)FC` bytes, linear in :math:`C`.  Its
+  :math:`S` is its :math:`GE` searches and :math:`B`, so its time is about
+  :math:`\max((A + S)/C, S)`.  It stops gaining from more cores at about
+  :math:`C = A/S`.
+- "Indexed": memory :math:`(32F + 8E_g)(J+1)C` bytes plus its lists, linear in
+  :math:`C` and a little steeper than "Low Memory".  Its :math:`S` is its
+  :math:`P(J+1)` additions, so its time is about :math:`\max((A + B + S)/C,
+  S)`, plus reading every weight once for the lists.  It stops gaining at about
+  :math:`C = (A + B)/S`, later than "Low Memory", as its :math:`S` is smaller.
+- "High Performance": memory :math:`32(J+1)GF` bytes, constant in :math:`C`.
+  It has no :math:`S`, so its time is about :math:`(A + B)/C`, and it keeps
+  gaining from more cores.
+
+At most one core per geometry shares :math:`A`, and for "High Performance" at
+most one core per element shares :math:`B`.  With a single geometry in all of
+*measurement_sensors*, no kernel shares :math:`A` among the cores, though the
+methods of the agenda may use them themselves, and the time is about
+:math:`A + B` for "Low Memory" and "Indexed" and :math:`A + B/C` for "High
+Performance".  The working memory of the agenda grows by one agenda call per
+core for all kernels.  Memory bandwidth, which the cores share, is left out.
+
+For example, take an antenna that samples 381 geometries per placement, at 13
+placements, with 20 channels of 10 frequencies, so :math:`G = 4953`,
+:math:`F = 200`, :math:`E = 260`, and :math:`P = 260 \cdot 381 = 99060`.  With
+:math:`J = 500` and :math:`C = 16`:
+
+- *measurement_jac*: :math:`8 \cdot 500 \cdot 260` bytes, about 1 MB.
+- "Low Memory": :math:`16 \cdot 32 \cdot 501 \cdot 200` bytes, about 51 MB.
+- "High Performance": :math:`32 \cdot 501 \cdot 4953 \cdot 200` bytes, about 15.9 GB.
+- "Indexed": the 51 MB of "Low Memory", about 2.4 MB of list, and
+  :math:`16 \cdot 8 \cdot 501 \cdot 20` bytes, about 1.3 MB, of contributions,
+  as 20 elements have weights at each geometry.
+
+Each further core adds about 3.2 MB to "Low Memory", 3.3 MB to "Indexed", and
+nothing to "High Performance".
 )",
       .values_and_desc = {Value{"LowMem", "Low Memory", "Use the low memory kernel"},
-                          Value{"HighPerf", "High Performance", "Use the high performance kernel"}},
+                          Value{"HighPerf", "High Performance", "Use the high performance kernel"},
+                          Value{"Indexed", "Indexed", "Use the indexed kernel"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -517,12 +582,22 @@ of the partition function values.  The layout of the data is otherwise the same 
 with the first column being the temperature grid and the second column being
 the partition function values.  The first column must be in increasing order,
 and the difference between consecutive values must be constant.
+
+.. rubric:: LogInterp
+
+The layout of the data is the same as for the interp-type, but the logarithm of the
+partition function is interpolated linearly in the logarithm of the temperature.
+Between two grid points, the partition function is thus a power law of the temperature.
+This reproduces the rotational partition function of a rigid rotor, which goes as
+:math:`T` or :math:`T^{3/2}`, also on a coarse grid, such as the one of the JPL catalog.
+Outside the grid, the power law of the nearest pair of grid points is used.
+All temperatures and partition function values must be positive.
 )",
       .values_and_desc = {Value{"Interp", "Interpolate the data"},
                           Value{"Constant", "Use constant value"},
                           Value{"Coeff", "Use as polynomial coefficients"},
-                          Value{"StaticInterp",
-                                "Interpolate the data, the temperature grid is known at compile time."}},
+                          Value{"StaticInterp", "Interpolate the data, the temperature grid is known at compile time."},
+                          Value{"LogInterp", "Interpolate the logarithm of the data in the logarithm of temperature"}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -795,15 +870,6 @@ where:
 )",
       .values_and_desc = {Value{"HydrostaticEquation", "Piece-wise linearly decaying with altitude."},
                           Value{"HypsometricEquation", "Piece-wise exponentially decaying with altitude."}},
-  });
-
-  opts.emplace_back(EnumeratedOption{
-      .name            = "AbsorptionBandSortingOption",
-      .desc            = R"(What kind of sorting should the bands be sorted by?
-)",
-      .values_and_desc = {Value{"IntegratedIntensity", "By the total absorption strength of the band."},
-                          Value{"FrontFrequency", "By the lowest frequency of the first line."},
-                          Value{"None", "Do not change the sorting."}},
   });
 
   opts.emplace_back(EnumeratedOption{
@@ -1317,23 +1383,52 @@ template <int i={0}> constexpr std::string_view toString({1} x)  requires(i >= 0
 }}
 
 template<> constexpr {1} to<{1}>(const std::string_view x) {{
-  using namespace enumstrs;
-  using namespace enumtyps;)",
+  switch (enumhash(x)) {{)",
       preferred_print,
       name,
       n - 1);
 
-  for (std::size_t i = 0; i < n - 1; i++) {
-    out += std::format(
-        R"(
-  if (const auto i = stdr::distance(stdr::begin({0}Names<{1}>),
-                                    stdr::find({0}Names<{1}>, x));
-                     i < {2})
-    return {0}Types[i];)",
-        name,
-        i,
-        m);
+  /* Emit one case per distinct key hash.  head() guarantees that a key
+   * maps to at most one enumerator; keys are visited in name-array
+   * order and inserted once, preserving the old first-match-wins scan
+   * order.  Keys sharing a hash are chained under a single case label;
+   * the full-string comparison decides, so collisions are harmless. */
+  {
+    std::vector<std::pair<std::string_view, std::string_view>> keys;
+    std::set<std::string_view>                                 seen;
+    for (std::size_t i = 0; i < n - 1; i++) {
+      for (const auto& v : values_and_desc) {
+        if (seen.insert(v[i]).second) keys.emplace_back(v[i], v[0]);
+      }
+    }
+
+    std::vector<std::vector<std::size_t>> groups;
+    for (std::size_t k = 0; k < keys.size(); k++) {
+      const auto h = enumhash(keys[k].first);
+      auto       g = stdr::find_if(groups, [&](const auto& group) { return enumhash(keys[group.front()].first) == h; });
+      if (g == groups.end()) {
+        groups.push_back({k});
+      } else {
+        g->push_back(k);
+      }
+    }
+
+    for (const auto& group : groups) {
+      out += std::format(R"(
+    case enumhash("{0}"sv):)",
+                         keys[group.front()].first);
+      for (const auto k : group) {
+        out += std::format(R"(
+      if (x == "{0}"sv) return {1}::{2};)",
+                           keys[k].first,
+                           name,
+                           keys[k].second);
+      }
+      out += "\n      break;";
+    }
   }
+
+  out += "\n  }\n";
   out += std::format(
       R"(
   throw std::runtime_error(std::format(R"-x-(Bad input "{{}}"
@@ -1343,10 +1438,6 @@ See https://atmtools.github.io/arts-docs-master/pyarts3.arts.{0}.html for valid 
 }}
 
 namespace enumsize {{ inline constexpr std::size_t {0}Size = {2}; }}
-
-std::ostream& operator<<(std::ostream &os, const {0} x);
-
-std::istream& operator>>(std::istream &is, {0}& x);
 
 template<> struct std::formatter<{0}> {{
   format_tags tags;
@@ -1429,26 +1520,13 @@ std::string EnumeratedOption::impl() const {
 
   out += std::format(
       R"(
-std::ostream &operator<<(std::ostream &os, const {0} x) {{
-  std::print(os, "{{}}", toString<{1}>(x));
-  return os;
-}}
-
-std::istream &operator>>(std::istream &is, {0}& x) {{
-  std::string s;
-  is >> s;
-  x = to<{0}>(s);
-  return is;
-}}
-
 std::string_view enumdocs<{0}>::str() noexcept {{
-  return R"-ENUMDOC-({2})-ENUMDOC-"sv;
+  return R"-ENUMDOC-({1})-ENUMDOC-"sv;
 }}
 
 static_assert(arts_formattable<{0}>, "Not good: {0}");
 )",
       name,
-      preferred_print,
       docs());
 
   return out;

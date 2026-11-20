@@ -23,9 +23,7 @@ class SingleSpeciesAbsorption:
         self.ws.abs_speciesSet(species=[species])
         self.ws.ReadCatalogData()
         if cutoff is not None:
-            for band in self.ws.abs_bands:
-                self.ws.abs_bands[band].cutoff = "ByLine"
-                self.ws.abs_bands[band].cutoff_value = cutoff
+            self.ws.abs_bandsSetCutoff(option="ByLine", value=cutoff)
         self.ws.spectral_propmat_agendaAuto()
         self.ws.ray_point = pyarts.arts.PropagationPathPoint()
 
@@ -57,4 +55,4 @@ class SingleSpeciesAbsorption:
             atm_point=atm_point,
         )
 
-        return 1.0 * self.ws.spectral_propmat[:, 0]
+        return 1.0 * self.ws.spectral_propmat.K[:, 0]

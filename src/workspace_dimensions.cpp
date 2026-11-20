@@ -16,6 +16,7 @@ std::unordered_map<std::string, WorkspaceDimensionRecord> internal_workspace_dim
   std::unordered_map<std::string, WorkspaceDimensionRecord> wsd_data;
 
   wsd_data["NFREQ"]            = {.desc = "number of frequency points"};
+  wsd_data["NFREQ_PROFILE"]    = {.desc = "number of frequency points of a propagation profile"};
   wsd_data["NPATH"]            = {.desc = "number of path points"};
   wsd_data["NTARGET"]          = {.desc = "number of Jacobian targets"};
   wsd_data["NSTATE"]           = {.desc = "size of the model state vector"};

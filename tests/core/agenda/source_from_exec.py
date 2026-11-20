@@ -42,11 +42,6 @@ def callback_from_exec():
     pass
 
 
-@pyarts.in_parallel(ws=ws)
-def in_parallel_from_exec(ws):
-    ws.abs_speciesSet(species=["H2O"])
-
-
 def undecorated(ws):
     ws.abs_bandsFromModelState()
 
@@ -167,8 +162,6 @@ with tempfile.TemporaryDirectory() as directory:
     assert agenda.methods[0].name == "abs_bandsFromModelState"
 
     assert isinstance(namespace["callback_from_exec"], pyarts.arts.CallbackOperator)
-
-    assert namespace["ws"].abs_species == ["H2O"]
 
     # The fallback finds what inspect cannot, both for a function at the top
     # level of the executed source and for an indented one.

@@ -17,5 +17,6 @@ NB_MAKE_OPAQUE(std::vector<Jacobian::SubsurfaceTarget>);
 NB_MAKE_OPAQUE(std::vector<Jacobian::LineTarget>);
 NB_MAKE_OPAQUE(std::vector<Jacobian::SensorTarget>);
 NB_MAKE_OPAQUE(std::vector<Jacobian::ErrorTarget>);
+NB_MAKE_OPAQUE(std::vector<sensor::SparseStokvecMatrix>);
 NB_MAKE_OPAQUE(lbl::line_shape::species_model::map_t);
 NB_MAKE_OPAQUE(lbl::line_shape::model::map_t);

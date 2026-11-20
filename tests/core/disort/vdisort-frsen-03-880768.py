@@ -16,8 +16,7 @@ SINE = arts.vdisort.sine_mode
 
 
 def _double_gauss_mu(nquad):
-    nodes, _ = np.polynomial.legendre.leggauss(nquad // 2)
-    positive = 0.5 * (nodes + 1.0)
+    positive, _ = arts.math.pdleggauss(nquad)
     return np.concatenate((positive, -positive))
 
 
@@ -65,20 +64,14 @@ def test_layered_single_scattering_recurrence():
     user_mu = np.asarray(model.mu)[: nquad // 2]
     result = np.asarray(model.u(tau=np.array([0.0]), phi=np.array([0.0])))[0, 0, : nquad // 2]
 
-    expected = np.zeros_like(user_mu)
-    tops = np.concatenate(([0.0], interfaces[:-1]))
-    for top, bottom, layer_omega, layer_phase in zip(
-        tops, interfaces, omega, phase_value, strict=True
-    ):
-        extinction = 1.0 / mu0 + 1.0 / user_mu
-        expected += (
-            layer_omega
-            * layer_phase
-            * (np.exp(-top * extinction) - np.exp(-bottom * extinction))
-            / (4.0 * np.pi * user_mu * extinction)
-        )
+    # Eqs. (136)--(141) at every fourth stream
+    streams = slice(None, None, 4)
+    expected = np.array([
+        0.0194600111596, 0.0205669825598, 0.0340002380516, 0.0340276399165,
+        0.0289611859261, 0.0245711714007, 0.0216716093366, 0.0200914159407,
+    ])  # fmt: skip
 
-    np.testing.assert_allclose(result[:, 0], expected, rtol=3.0e-9, atol=2.0e-14)
+    np.testing.assert_allclose(result[streams, 0], expected, rtol=3.0e-9, atol=2.0e-14)
     np.testing.assert_allclose(result[:, 1:], 0.0, atol=2.0e-14)
 
     if "ARTS_HEADLESS" not in os.environ:
@@ -89,7 +82,7 @@ def test_layered_single_scattering_recurrence():
             1, 2, figsize=(11, 4), constrained_layout=True
         )
         radiance_plot.plot(zenith, result[:, 0], label="VDISORT")
-        radiance_plot.plot(zenith, expected, "--", label="Eqs. 136--141")
+        radiance_plot.plot(zenith[streams], expected, "o", fillstyle="none", label="Eqs. 136--141")
         radiance_plot.set(
             xlabel="Upward zenith angle [degree]",
             ylabel="Radiance I",
@@ -98,12 +91,12 @@ def test_layered_single_scattering_recurrence():
         radiance_plot.grid(True, alpha=0.25)
         radiance_plot.legend()
         error_plot.semilogy(
-            zenith, np.maximum(np.abs(result[:, 0] - expected), 1.0e-18)
+            zenith[streams], np.maximum(np.abs(result[streams, 0] - expected), 1.0e-18), "o-"
         )
         error_plot.set(
             xlabel="Upward zenith angle [degree]",
             ylabel="Absolute error",
-            title="VDISORT minus analytical recurrence",
+            title="VDISORT minus Eqs. 136--141",
         )
         error_plot.grid(True, which="both", alpha=0.25)
         plt.show()
@@ -269,24 +262,6 @@ def test_b2_zero_decouples_circular_polarization():
         plt.show()
 
 
-def _local_basis(mu, phi):
-    direction = np.array(
-        [
-            np.sqrt(max(0.0, 1.0 - mu * mu)) * np.cos(phi),
-            np.sqrt(max(0.0, 1.0 - mu * mu)) * np.sin(phi),
-            mu,
-        ]
-    )
-    vertical, horizontal = arts.rtepack.meridional_basis(
-        direction, np.array([np.sin(phi), -np.cos(phi), 0.0])
-    )
-    return direction, np.array(vertical), np.array(horizontal)
-
-
-def _mueller_from_real_jones(jones):
-    return 1.5 * np.array(arts.Muelmat(arts.Jones(np.asarray(jones, dtype=complex))))
-
-
 def test_figure_3_cox_munk_reflection():
     """Reproduce paper Figure 3 from its analytic 5 m/s ocean BPrDF."""
     nquad = 96
@@ -382,57 +357,16 @@ def test_figure_3_cox_munk_reflection():
         plt.show()
 
 
-def _rayleigh_lab_matrix(mu_out, phi_out, mu_in, phi_in):
-    _, out_v, out_h = _local_basis(mu_out, phi_out)
-    _, in_v, in_h = _local_basis(mu_in, phi_in)
-    jones = np.array(
-        [
-            [np.dot(out_v, in_v), np.dot(out_v, in_h)],
-            [np.dot(out_h, in_v), np.dot(out_h, in_h)],
-        ]
+def _rayleigh_optics(mu_out, mu_in, nfourier):
+    """ARTS's ordinary Fourier coefficients of Rayleigh scattering between signed cosines."""
+    species = arts.ArrayOfScatteringSpecies(
+        [arts.GasScatterer(arts.ConstantGasScattering(1e-30), arts.RayleighGasScattering(0.0))]
     )
-    return _mueller_from_real_jones(jones)
-
-
-def _rayleigh_fourier(mu_out, mu_in, nfourier, samples=128):
-    """Numerically form the ordinary Fourier matrices, then combine them."""
-    phi = 2.0 * np.pi * np.arange(samples) / samples
-    cosine = np.zeros((nfourier, 1, len(mu_out), len(mu_in), 4, 4))
-    sine = np.zeros_like(cosine)
-    for outgoing, out_mu in enumerate(mu_out):
-        for incoming, in_mu in enumerate(mu_in):
-            matrices = np.array(
-                [_rayleigh_lab_matrix(out_mu, 0.0, in_mu, angle) for angle in phi]
-            )
-            for mode in range(nfourier):
-                epsilon = 1.0 if mode == 0 else 2.0
-                cosine[mode, 0, outgoing, incoming] = epsilon * np.mean(
-                    matrices * np.cos(mode * phi)[:, None, None], axis=0
-                )
-                sine[mode, 0, outgoing, incoming] = epsilon * np.mean(
-                    matrices * np.sin(mode * phi)[:, None, None], axis=0
-                )
-    return np.asarray(arts.vdisort.combine_phase_matrices(cosine, sine))
-
-
-def _rayleigh_beam_fourier(mu_out, mu0, nfourier, samples=128):
-    """Project an unpolarized beam using VDISORT's combined-vector layout."""
-    phi = 2.0 * np.pi * np.arange(samples) / samples
-    out = np.zeros((2, nfourier, 1, len(mu_out), 4, 4))
-    for outgoing, out_mu in enumerate(mu_out):
-        column = np.array(
-            [_rayleigh_lab_matrix(out_mu, angle, -mu0, 0.0)[:, 0] for angle in phi]
-        )
-        delta = -phi
-        for mode in range(nfourier):
-            epsilon = 1.0 if mode == 0 else 2.0
-            cosine = epsilon * np.mean(column * np.cos(mode * delta)[:, None], axis=0)
-            sine = epsilon * np.mean(column * np.sin(mode * delta)[:, None], axis=0)
-            out[COSINE, mode, 0, outgoing, :2, 0] = cosine[:2] / epsilon
-            out[SINE, mode, 0, outgoing, :2, 0] = sine[:2] / epsilon
-            out[SINE, mode, 0, outgoing, 2:, 0] = cosine[2:] / epsilon
-            out[COSINE, mode, 0, outgoing, 2:, 0] = sine[2:] / epsilon
-    return out
+    atm = arts.AtmPoint()
+    atm.pressure = 8e4
+    atm.temperature = 260.0
+    optics = arts.vdisort.scattering_optics(species, atm, 89e9, mu_out, mu_in, nfourier)
+    return np.asarray(optics.cosine)[:, None], np.asarray(optics.sine)[:, None]
 
 
 def test_multiple_scattering_rayleigh_principal_plane():
@@ -441,8 +375,9 @@ def test_multiple_scattering_rayleigh_principal_plane():
     nfourier = 3
     mu0 = 0.6
     quadrature_mu = _double_gauss_mu(nquad)
-    phase = _rayleigh_fourier(quadrature_mu, quadrature_mu, nfourier)
-    beam = _rayleigh_beam_fourier(quadrature_mu, mu0, nfourier)
+    phase = arts.vdisort.combine_phase_matrices(*_rayleigh_optics(quadrature_mu, quadrature_mu, nfourier))
+    beam_cosine, beam_sine = _rayleigh_optics(quadrature_mu, [-mu0], nfourier)
+    beam = arts.vdisort.combine_beam_phase_matrices(beam_cosine[:, :, :, 0], beam_sine[:, :, :, 0])
 
     model = arts.cppvdisort(
         tau_arr=np.array([0.32]),

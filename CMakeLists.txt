@@ -337,13 +337,15 @@ endif ()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-  # auto_isotopologues.h resolves each of its 340 species names at compile
-  # time with a linear constexpr scan over 2x120 string_views, about 1.09M
-  # steps for the whole array -- just past the default -fconstexpr-steps of
-  # 1048576.  GCC's equivalent -fconstexpr-ops-limit default (33.5M) and
-  # MSVC's /constexpr:steps default (100M) already cover it, so only Clang
-  # needs the headroom.  The margin is deliberately modest, a runaway
-  # constexpr loop still stops quickly.
+  # auto_isotopologues.h constant-folds one large array; each entry's
+  # "_spec literal resolves its species name with a constexpr hash lookup
+  # (see enumhash in enums-common-helper.h), which is cheap, but the rest
+  # of the isotopologue bookkeeping still adds up.  Keep some headroom
+  # over the default -fconstexpr-steps of 1048576.  GCC's equivalent
+  # -fconstexpr-ops-limit default (33.5M) and MSVC's /constexpr:steps
+  # default (100M) already cover it, so only Clang needs the bump.
+  # The margin is deliberately modest, a runaway constexpr loop still
+  # stops quickly.
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconstexpr-steps=4000000")
 endif ()
 
@@ -357,6 +359,7 @@ if (CMAKE_GENERATOR STREQUAL "Xcode")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor")
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /utf-8")
   ARTS_ADD_COMPILER_FLAG (wd4834)
 else ()
   ARTS_ADD_COMPILER_FLAG (W)
@@ -624,6 +627,10 @@ else()
 endif()
 
 add_subdirectory (src)
+if (ENABLE_PCH)
+  include (ArtsPrecompiledHeaders)
+  arts_reuse_matpack_pch (${CMAKE_CURRENT_SOURCE_DIR}/src)
+endif ()
 add_subdirectory (doc)
 add_subdirectory (python)
 add_subdirectory (testdata)

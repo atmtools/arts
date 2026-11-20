@@ -37,6 +37,105 @@ void spectral_radStepByStepEmission(StokvecVector&             spectral_rad,
 }
 ARTS_METHOD_ERROR_CATCH
 
+void spectral_radStepByStepEmissionFromPropmat(StokvecVector&                     spectral_rad,
+                                               StokvecMatrix&                     spectral_rad_jac,
+                                               StokvecTensor3&                    spectral_rad_jac_path,
+                                               const ArrayOfSpectralPropmat&      spectral_propmat_path,
+                                               const ArrayOfAscendingGrid&        freq_grid_path,
+                                               const ArrayOfPropagationPathPoint& ray_path,
+                                               const ArrayOfAtmPoint&             atm_path,
+                                               const SurfaceField&                surf_field,
+                                               const JacobianTargets&             jac_targets,
+                                               const TransmittanceOption&         rte_option,
+                                               const StokvecVector&               spectral_rad_bkg,
+                                               const StokvecMatrix&               spectral_rad_bkg_jac,
+                                               const Index&                       hse_derivative) try {
+  ARTS_TIME_REPORT
+
+  //! The frequencies of a block, few enough that its transmission and source along the path stay in cache
+  constexpr Size block = 8;
+
+  const Size np = ray_path.size();
+  const Size nf = spectral_rad_bkg.size();
+  const Size nq = jac_targets.target_count();
+
+  if (np == 0) arts::user_error("*ray_path* is empty");
+
+  if (not arr::same_size(ray_path, atm_path, freq_grid_path, spectral_propmat_path))
+    arts::user_error("The path variables must have one entry per point of *ray_path*, {}", np);
+
+  if (not all_same_shape({nf}, std::span{freq_grid_path}))
+    arts::user_error("The path variables must have the {} frequencies of *spectral_rad_bkg*", nf);
+
+  if (stdr::any_of(spectral_propmat_path, [nf, nq](const SpectralPropmat& point) {
+        return not point.ok() or point.shape() != std::array{static_cast<Index>(nf), static_cast<Index>(nq)};
+      }))
+    arts::user_error("*spectral_propmat_path* must have {} frequencies and {} derivatives at every point", nf, nq);
+
+  const Index it = jac_targets.target_position(AtmKey::t);
+
+  //! The layer lengths and their temperature derivatives, as by spectral_tramat_pathFromPath
+  const Vector r = distance(ray_path, surf_field.ellipsoid);
+  Tensor3      dr(2, r.size(), nq, 0.0);
+  if (hse_derivative and it >= 0) {
+    for (Size ip = 0; ip < r.size(); ip++) {
+      dr[0, ip, it] = r[ip] / (2.0 * atm_path[ip].temperature);
+      dr[1, ip, it] = r[ip] / (2.0 * atm_path[ip + 1].temperature);
+    }
+  }
+
+  const Vector ts{std::from_range, atm_path | stdv::transform(&AtmPoint::temperature)};
+
+  spectral_rad = spectral_rad_bkg;
+  spectral_rad_jac_path.resize(nf, np, nq);
+  spectral_rad_jac_path = 0.0;
+  spectral_rad_jac.resize(spectral_rad_bkg_jac.shape());
+
+  //! The path variables of a block, and its transmission and source along the path
+  ArrayOfSpectralPropmat pm(np);
+  ArrayOfAscendingGrid   freq(np);
+  TransmittanceMatrix    tramat;
+  SourceVector           srcvec;
+
+  for (Size f0 = 0; f0 < nf; f0 += block) {
+    const Range fs{f0, std::min(block, nf - f0)};
+
+    for (Size ip = 0; ip < np; ip++) {
+      const SpectralPropmat& point = spectral_propmat_path[ip];
+
+      pm[ip].K       = point.K[fs];
+      pm[ip].dK      = point.dK[joker, fs];
+      pm[ip].nlte_on = point.nlte_on;
+      freq[ip]       = freq_grid_path[ip].vec()[fs];
+
+      //! Without a non-LTE source, the source needs neither it nor its derivatives
+      if (point.nlte_on) {
+        pm[ip].nlte  = point.nlte[fs];
+        pm[ip].dnlte = point.dnlte[joker, fs];
+      }
+    }
+
+    tramat.init(pm, r, dr, rte_option);
+    srcvec.init(pm, freq, ts, it);
+    rte_emission(spectral_rad[fs], spectral_rad_jac_path[fs, joker, joker], tramat, srcvec);
+
+    //! The background derivatives as seen through the path, as by spectral_rad_jacFromBackground
+    if (nq != 0) {
+      const auto background_transmittance = tramat.P[joker, np - 1];
+      for (Index i = 0; i < spectral_rad_jac.nrows(); i++) {
+        const auto b = spectral_rad_bkg_jac[i, fs];
+        auto       s = spectral_rad_jac[i, fs];
+        std::transform(background_transmittance.begin(),
+                       background_transmittance.end(),
+                       b.begin(),
+                       s.begin(),
+                       std::multiplies<>());
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
 void spectral_radCumulativeTransmission(StokvecVector&             spectral_rad,
                                         StokvecTensor3&            spectral_rad_jac_path,
                                         const TransmittanceMatrix& spectral_tramat_path,
@@ -321,10 +420,7 @@ void spectral_radSinglePathEmissionFrequencyLoop(StokvecVector&                 
                                                  const ArrayOfPropagationPathPoint& ray_path,
                                                  const ArrayOfAscendingGrid&        freq_grid_path,
                                                  const ArrayOfAtmPoint&             atm_path,
-                                                 const ArrayOfPropmatVector&        spectral_propmat_path,
-                                                 const ArrayOfStokvecVector&        spectral_nlte_srcvec_path,
-                                                 const ArrayOfPropmatMatrix&        spectral_propmat_jac_path,
-                                                 const ArrayOfStokvecMatrix&        spectral_nlte_srcvec_jac_path,
+                                                 const ArrayOfSpectralPropmat&      spectral_propmat_path,
                                                  const SurfaceField&                surf_field,
                                                  const AtmField&                    atm_field,
                                                  const Index&                       hse_derivative) try {
@@ -369,11 +465,11 @@ void spectral_radSinglePathEmissionFrequencyLoop(StokvecVector&                 
       Stokvec& single_rad = spectral_rad[f];
       for (Size i = 0; i < N; i++) {
         single_freq_path[i]        = freq_grid_path[i][f];
-        single_propmat_path[i]     = spectral_propmat_path[i][f];
-        single_nlte_srcvec_path[i] = spectral_nlte_srcvec_path[i][f];
+        single_propmat_path[i]     = spectral_propmat_path[i].K[f];
+        single_nlte_srcvec_path[i] = spectral_propmat_path[i].nlte[f];
 
-        single_propmat_jac_path[i]     = spectral_propmat_jac_path[i][joker, f];
-        single_nlte_srcvec_jac_path[i] = spectral_nlte_srcvec_jac_path[i][joker, f];
+        single_propmat_jac_path[i]     = spectral_propmat_path[i].dK[joker, f];
+        single_nlte_srcvec_jac_path[i] = spectral_propmat_path[i].dnlte[joker, f];
       }
 
       single_rad_jac = spectral_rad_jac[joker, f];

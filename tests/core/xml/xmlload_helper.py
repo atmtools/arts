@@ -3,7 +3,18 @@ import os
 import pyarts3 as pyarts
 
 
-def recursexml(file, X=pyarts.arts):
+def xml_files(path):
+    """All XML files below path, sorted, skipping hidden, 3rdparty and build items"""
+    if os.path.isdir(path) and not os.path.basename(path).startswith("."):
+        for item in sorted(os.listdir(path)):
+            if item == "3rdparty" or "build" in item:
+                continue
+            yield from xml_files(os.path.join(path, item))
+    elif path.endswith(".xml"):
+        yield path
+
+
+def recursexml(file):
     print(f"Loading {file}")
     try:
         pyarts.xml.load(file)
@@ -14,14 +25,5 @@ def recursexml(file, X=pyarts.arts):
 
 
 def recurse(path):
-    if os.path.isdir(path) and not os.path.basename(path).startswith("."):
-        items = os.listdir(path)
-        items.sort()
-        for item in items:
-            if item == "3rdparty":
-                continue
-            if "build" in item:
-                continue
-            recurse(os.path.join(path, item))
-    elif path.endswith(".xml"):
-        recursexml(path)
+    for file in xml_files(path):
+        recursexml(file)

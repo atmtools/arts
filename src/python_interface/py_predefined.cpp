@@ -981,13 +981,13 @@ void py_predefined(py::module_& m) try {
              const AtmPoint&            atm,
              const SpeciesEnum&         spec,
              const py::kwargs&) {
-            PropmatVector   spectral_propmat(f.size());
-            PropmatMatrix   spectral_propmat_jac(0, f.size());
+            SpectralPropmat spectral_propmat;
+            spectral_propmat.init(f.size(), 0);
             JacobianTargets jac_targets{};
 
-            spectral_propmatAddPredefined(spectral_propmat, spectral_propmat_jac, self, spec, jac_targets, f, atm);
+            spectral_propmatAddPredefined(spectral_propmat, self, spec, jac_targets, f, atm);
 
-            return spectral_propmat;
+            return std::move(spectral_propmat.K);
           },
           "f"_a,
           "atm"_a,

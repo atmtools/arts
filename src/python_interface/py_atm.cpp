@@ -17,10 +17,108 @@
 #include <unordered_map>
 
 #include "hpy_arts.h"
+#include "hpy_numpy.h"
 #include "python_interface.h"
 
 namespace Python {
+namespace {
+//! The functional data as a function of altitude, latitude, and longitude, element by element for numpy arrays
+template <typename T> void atm_functional_call(py::class_<T> &c) {
+  c.def(
+      "__call__",
+      [](const T &self, py::object alt, py::object lat, py::object lon) {
+        return vectorize([&self](Numeric al, Numeric la, Numeric lo) { return self(al, la, lo); }, alt, lat, lon);
+      },
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      "The value at the altitude [m], latitude [deg], and longitude [deg]");
+}
+
+void py_atm_functional(py::module_ &m) {
+  py::class_<Atm::IGRF> igrf(m, "AtmIGRF");
+  generic_interface(igrf);
+  igrf.def(
+          "__init__",
+          [](Atm::IGRF *x, Time time, FieldComponent component) { new (x) Atm::IGRF{time, component}; },
+          "time"_a,
+          "component"_a)
+      .def_rw("time", &Atm::IGRF::time, "The time of the IGRF model.\n\n.. :class:`~pyarts3.arts.Time`")
+      .def_rw("component",
+              &Atm::IGRF::component,
+              "The magnetic field component [T].\n\n.. :class:`~pyarts3.arts.FieldComponent`");
+  atm_functional_call(igrf);
+  igrf.doc() = "A magnetic field component from the IGRF model";
+
+  py::class_<Atm::SchmidthLegendre> sl(m, "AtmSchmidthLegendre");
+  generic_interface(sl);
+  sl.def_static("from_igrf",
+                &Atm::from,
+                "igrf"_a,
+                "The coefficients of the IGRF model at its time.\n\n.. :class:`~pyarts3.arts.AtmSchmidthLegendre`")
+      .def_rw("gh",
+              &Atm::SchmidthLegendre::gh,
+              "The g and h coefficients that affect the field component, in the order of the IGRF model [nT].\n\n"
+              ".. :class:`~pyarts3.arts.Vector`")
+      .def_rw("N",
+              &Atm::SchmidthLegendre::N,
+              "The number of rows of the triangular g and h matrices, the largest degree plus one.\n\n.. :class:`int`")
+      .def_rw("r0", &Atm::SchmidthLegendre::r0, "The reference radius [m].\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("ell", &Atm::SchmidthLegendre::ell, "The ellipsoid [m].\n\n.. :class:`~pyarts3.arts.Vector2`")
+      .def_rw("component",
+              &Atm::SchmidthLegendre::component,
+              "The magnetic field component [T].\n\n.. :class:`~pyarts3.arts.FieldComponent`")
+      .def("coefficients",
+           &Atm::SchmidthLegendre::coefficients,
+           "The g and h coefficients as lower triangular matrices, NaN where not in ``gh``");
+  atm_functional_call(sl);
+  sl.doc() = "A magnetic field component from Schmidt semi-normalized spherical harmonics coefficients";
+
+  py::class_<Atm::MagnitudeField> mf(m, "AtmMagnitudeField");
+  generic_interface(mf);
+  mf.def_rw("magnitude",
+            &Atm::MagnitudeField::magnitude,
+            "The magnitude of the (u, v, w) field.\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw(
+          "theta",
+          &Atm::MagnitudeField::theta,
+          "The geocentric latitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw(
+          "phi",
+          &Atm::MagnitudeField::phi,
+          "The geocentric longitude of the direction of the (u, v, w) field [deg].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw("component",
+              &Atm::MagnitudeField::component,
+              "The field component.\n\n.. :class:`~pyarts3.arts.FieldComponent`");
+  atm_functional_call(mf);
+  mf.doc() = "A vector field component from the magnitude and direction of the field";
+
+  py::class_<Atm::HydrostaticPressure> hp(m, "AtmHydrostaticPressure");
+  generic_interface(hp);
+  hp.def(py::init<Tensor3, const GeodeticField2 &, AscendingGrid, HydrostaticPressureOption>(),
+         "grad_p"_a,
+         "pre0"_a,
+         "alt"_a,
+         "option"_a,
+         "Pressure from the pressure at the lowest altitude and the inverse scale heights at the altitudes")
+      .def_rw(
+          "grad_p",
+          &Atm::HydrostaticPressure::grad_p,
+          "The inverse scale height, :math:`g / (R T)`, at the altitudes [1/m].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw("pre",
+              &Atm::HydrostaticPressure::pre,
+              "The pressure at the altitudes [Pa].\n\n.. :class:`~pyarts3.arts.GeodeticField3`")
+      .def_rw("option",
+              &Atm::HydrostaticPressure::option,
+              "The hydrostatic step.\n\n.. :class:`~pyarts3.arts.HydrostaticPressureOption`");
+  atm_functional_call(hp);
+  hp.doc() = "Pressure [Pa] that is hydrostatic between the altitudes of a grid";
+}
+}  // namespace
+
 void py_atm(py::module_ &m) try {
+  py_atm_functional(m);
+
   py::class_<Atm::Data> atmdata(m, "AtmData");
   generic_interface(atmdata);
   atmdata.def(py::init_implicit<GeodeticField3>())

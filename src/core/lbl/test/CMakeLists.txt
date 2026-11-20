@@ -16,3 +16,8 @@ add_executable(test_lbl_ecs_hadded test_lbl_ecs_hadded.cpp)
 target_link_libraries(test_lbl_ecs_hadded PRIVATE lbl)
 add_test(NAME cpp.fast.lbl.ecs.hadded COMMAND test_lbl_ecs_hadded)
 add_dependencies(check-deps test_lbl_ecs_hadded)
+
+add_executable(test_lbl_zeeman_hyperfine test_lbl_zeeman_hyperfine.cpp)
+target_link_libraries(test_lbl_zeeman_hyperfine PRIVATE lbl)
+add_test(NAME cpp.fast.lbl.zeeman.hyperfine COMMAND test_lbl_zeeman_hyperfine)
+add_dependencies(check-deps test_lbl_zeeman_hyperfine)

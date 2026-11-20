@@ -1,8 +1,8 @@
 """Evans' PolRadTran benchmarks with ARTS's RT3, RT4 and VDISORT, plotted.
 
-Evans' four scripts in 3rdparty/polradtran (runmietest, runtesta, runtestr,
-runtestc) define the problems and hold his expected outputs, the tables.  The
-problems are read from the scripts and solved by
+Evans' scripts in 3rdparty/polradtran (runmietest, runtesta, runtestr) define
+the problems and hold his expected outputs, the tables.  The problems are read
+from the scripts and solved by
 
 - ARTS's RT3 and RT4 (pyarts3.arts.rt3, rt4) at Evans' settings;
 - VDISORT (pyarts3.arts.cppvdisort) on its own double-Gauss streams;
@@ -22,11 +22,11 @@ at the horizon poorly, so it converges slowly (about like 1 / nmu).  So:
   grows.  At Evans' number it is his table, so VDISORT differs from the
   tables by their quadrature error, not by its own.
 
-runtestc (horizontally oriented ice columns) has direction-dependent
-extinction, which only RT4 represents; it is solved by RT4 alone.
+runtestc (horizontally oriented ice columns, RT4 only) is checked against
+Evans' table by the C++ test polradtran-rt4-arts.
 
 VDISORT is evaluated on its streams (64 per hemisphere); its values at
-Evans' angles are cubic Lagrange interpolations in mu, checked against 128
+Evans' angles are cubic Lagrange interpolations in mu, checked against 32
 streams.  Without ARTS_HEADLESS the solutions and differences are plotted.
 """
 
@@ -41,7 +41,7 @@ POLRADTRAN = Path(__file__).resolve().parents[3] / "3rdparty" / "polradtran"
 HEADLESS = "ARTS_HEADLESS" in os.environ
 
 # Exact SI radiation constants in Evans' units: 2 h c^2 [W m-2 sr-1 um^4], h c / k [um K]
-H, C, K = 6.62607015e-34, 299792458.0, 1.380649e-23
+H, C, K = A.constants.h, A.constants.c, A.constants.k
 C1, C2 = 2 * H * C * C * 1e24, H * C / K * 1e6
 
 
@@ -113,40 +113,6 @@ def read_legendre(text):
     ext, sca, degree = float(lines[0].split()[0]), float(lines[1].split()[0]), int(lines[3].split()[0])
     coef = np.array([[float(t) for t in lines[4 + l].split()[1:7]] for l in range(degree + 1)])
     return ext, sca, coef
-
-
-def read_rt4_scattering(text, ns):
-    """An RT4 scattering file (GET_SCAT_FILE): extinction [2, n, ns, ns], absorption [2, n, ns],
-    phase [2 out, 2 in, n out, n in, ns, ns]; hemisphere 0 is mu > 0 in the file, propagating down."""
-    lines = [l for l in text.splitlines() if l.strip() and l.strip()[0] != "C"]
-    n, naz = (int(t) for t in lines[0].split()[:2])
-    assert naz == 0
-    x = np.array([float(t) for l in lines[1:] for t in l.split()])
-    pos = 0
-
-    def take(k):
-        nonlocal pos
-        pos += k
-        return x[pos - k : pos]
-
-    phase = np.zeros((2, 2, n, n, ns, ns))
-    for l1 in range(2):
-        for j1 in range(n):
-            for l2 in range(2):
-                for j2 in range(n):
-                    take(3)
-                    phase[l2, l1, j2, j1] = take(16).reshape(4, 4)[:ns, :ns]
-    extinction = np.zeros((2, n, ns, ns))
-    for l in range(2):
-        for j in range(n):
-            take(1)
-            extinction[l, j] = take(16).reshape(4, 4)[:ns, :ns]
-    absorption = np.zeros((2, n, ns))
-    for l in range(2):
-        for j in range(n):
-            take(1)
-            absorption[l, j] = take(4)[:ns]
-    return extinction, absorption, phase
 
 
 def answers(run):
@@ -223,68 +189,36 @@ def read_case(name):
         source = legendre_of.get(f, f)
         if source in s["files"]:
             case["legendre"][f] = read_legendre(s["files"][source])
-    case["randomly_oriented"] = all(f == "" or f in case["legendre"] for f in case["files"])
     return case
 
 
 ###############################################################################
-# Phase matrices from a Legendre series, by vector geometry
+# Evans' Legendre series as an ARTS scattering species
 ###############################################################################
 
 
-def _direction(mu, phi):
-    s = np.sqrt(np.maximum(0.0, 1.0 - mu * mu))
-    return np.stack(np.broadcast_arrays(s * np.cos(phi), s * np.sin(phi), mu), -1)
+#: Any atmospheric point: the species of an Evans series does not depend on it
+ATM = A.AtmPoint()
 
 
-def _rotation(normal, mu, phi):
-    """The Stokes rotation from the meridional basis of (mu, phi) to the scattering plane of normal."""
-    mu, phi = np.broadcast_arrays(mu, phi)
-    s = np.sqrt(np.maximum(0.0, 1.0 - mu * mu))
-    ev = np.stack([mu * np.cos(phi), mu * np.sin(phi), -s], -1)
-    eh = np.stack([-np.sin(phi), np.cos(phi), np.zeros_like(phi)], -1)
-    par = np.cross(normal, _direction(mu, phi))
-    c, d = np.sum(par * ev, -1), np.sum(par * eh, -1)
-    L = np.zeros(c.shape + (4, 4))
-    L[..., 0, 0] = L[..., 3, 3] = 1.0
-    L[..., 1, 1] = L[..., 2, 2] = c * c - d * d
-    L[..., 1, 2] = 2 * c * d
-    L[..., 2, 1] = -2 * c * d
-    return L
+def species(ext, sca, coef):
+    """An RT3 scattering file as an ARTS scattering species, for the optics of VDISORT and RT4.
 
-
-def lab_frame(coef, mu_in, phi_in, mu_out):
-    """Z(mu_out, 0 <- mu_in, phi_in) of the series coef (F11, F12, F33, F34, F22, F44), normalised to 1 over 4 pi."""
-    mu_in, phi_in, mu_out = np.broadcast_arrays(mu_in, phi_in, mu_out)
-    ki, ko = _direction(mu_in, phi_in), _direction(mu_out, 0.0 * mu_out)
-    normal = np.cross(ki, ko)
-    norm = np.linalg.norm(normal, axis=-1)
-    fallback = np.stack([-np.sin(phi_in), np.cos(phi_in), np.zeros_like(phi_in)], -1)
-    normal = np.where((norm < 1e-12)[..., None], fallback, normal / np.maximum(norm, 1e-300)[..., None])
-    x = np.clip(np.sum(ki * ko, -1), -1.0, 1.0)
-    f = [np.polynomial.legendre.legval(x, coef[:, k]) for k in range(6)]
-    F = np.zeros(x.shape + (4, 4))
-    F[..., 0, 0], F[..., 0, 1], F[..., 1, 0], F[..., 1, 1] = f[0], f[1], f[1], f[4]
-    F[..., 2, 2], F[..., 2, 3], F[..., 3, 2], F[..., 3, 3] = f[2], f[3], -f[3], f[5]
-    Lo = _rotation(normal, mu_out, 0.0 * mu_out)
-    Li = _rotation(normal, mu_in, phi_in)
-    return np.swapaxes(Lo, -1, -2) @ F @ Li
-
-
-def fourier_modes(coef, mu_out, mu_in, nfourier, nstokes, nphi=32):
-    """Ordinary C^m, S^m [m, out, in, 4, 4] = (1 / 2 pi) int Z(mu_out, 0; mu_in, phi) {cos, sin}(m phi) dphi.
-
-    The trapezoid rule on nphi samples is exact for a series of degree L and m < nfourier if L + m < nphi
-    (here at most 13 + 8)."""
+    Evans' series F = sum_l c_l P_l, with c_0 = 1 for F11, is ARTS's series on the orthonormal
+    Y_l0 = sqrt((2 l + 1) / 4 pi) P_l for the scattering coefficient sca: a_l = sca c_l / sqrt(4 pi (2 l + 1))."""
     degree = coef.shape[0] - 1
-    assert degree + nfourier - 1 < nphi, "too few azimuth samples for an exact transform"
-    phi = 2 * np.pi * np.arange(nphi) / nphi
-    Z = lab_frame(coef, mu_in[None, :, None], phi[None, None, :], mu_out[:, None, None])  # [out, in, phi, 4, 4]
-    Z[..., nstokes:, :] = 0.0
-    Z[..., :, nstokes:] = 0.0
-    m = np.arange(nfourier)[:, None]
-    cos, sin = np.cos(m * phi) / nphi, np.sin(m * phi) / nphi
-    return np.einsum("mk,oikab->moiab", cos, Z), np.einsum("mk,oikab->moiab", sin, Z)
+    a = sca * coef[:, RTEPACK_ORDER] / np.sqrt(4 * np.pi * (2 * np.arange(degree + 1) + 1))[:, None]
+
+    def bulk(atm, f, n):
+        phase = np.zeros((len(f), n + 1, 6))
+        phase[:, : min(n, degree) + 1] = a[: n + 1]
+        return A.ScatteringTroSpectralVector(
+            phase_matrix=A.CompactPlanarMuelmatMatrix(phase),
+            extinction_matrix=A.CompactPlanarPropmatVector(np.tile([ext, 0.0, 0.0], (len(f), 1))),
+            absorption_vector=A.CompactPlanarStokvecVector(np.tile([ext - sca, 0.0], (len(f), 1))),
+        )
+
+    return A.ArrayOfScatteringSpecies([A.ScatteringGeneralSpectralTRO(bulk, degree)])
 
 
 ###############################################################################
@@ -304,8 +238,7 @@ def layers(case):
 def vdisort(case, nmu):
     """VDISORT on nmu double-Gauss streams per hemisphere, in Evans' units (5-digit Planck function, per um).
     Returns the signed streams (> 0 upward) and the radiance [level, psi = 0, 90, 180 deg, stream, 4]."""
-    nodes, _ = np.polynomial.legendre.leggauss(nmu)
-    pos = 0.5 * (nodes + 1.0)
+    pos = np.asarray(A.math.pdleggauss(2 * nmu)[0])
     mu = np.concatenate((pos, -pos))
     nq, nf, lam = 2 * nmu, case["aziorder"] + 1, case["wavelength"]
     lay = layers(case)
@@ -317,13 +250,21 @@ def vdisort(case, nmu):
     S = np.zeros_like(C)
     Cb = np.zeros((nf, nl, nq, 4, 4))
     Sb = np.zeros_like(Cb)
-    for l, (_, _, coef) in enumerate(lay):
-        if coef is None:
+    freq = A.constants.c / (lam * 1e-6)
+    for l, name in enumerate(case["files"]):
+        if not name:
             continue
-        C[:, l], S[:, l] = fourier_modes(coef, mu, mu, nf, case["nstokes"])
+        sp = species(*case["legendre"][name])
+        o = A.vdisort.scattering_optics(sp, ATM, freq, mu, mu, nf)
+        C[:, l], S[:, l] = o.cosine, o.sine
         if case["flux"] > 0:
-            c, s = fourier_modes(coef, mu, np.array([-case["mu0"]]), nf, case["nstokes"])
-            Cb[:, l], Sb[:, l] = c[:, :, 0], s[:, :, 0]
+            o = A.vdisort.scattering_optics(sp, ATM, freq, mu, [-case["mu0"]], nf)
+            Cb[:, l], Sb[:, l] = np.asarray(o.cosine)[:, :, 0], np.asarray(o.sine)[:, :, 0]
+    # Evans' number of Stokes components
+    ns = case["nstokes"]
+    for modes in (C, S, Cb, Sb):
+        modes[..., ns:, :] = 0.0
+        modes[..., :, ns:] = 0.0
 
     B = planck5(lam, case["temperature"]) if case["thermal"] else np.zeros(nl + 1)
     source = np.zeros((nl, 2, 4))
@@ -339,14 +280,13 @@ def vdisort(case, nmu):
     b_bottom = np.zeros((2, nf, nmu, 4))
     Bs = planck5(lam, case["ground_t"])
     # The surface's reflection between the streams, and of the beam if there is one
-    streams = np.asarray(A.math.pdleggauss(nq)[0])
     mu0 = case["mu0"] if case["flux"] > 0 else np.nan
     if case["fresnel"] is not None:
         b_bottom[0, 0, :, 0] = Bs
-        surface = A.vdisort.fresnel_fourier_modes(case["fresnel"], nf, streams, streams, mu0)
+        surface = A.vdisort.fresnel_fourier_modes(case["fresnel"], nf, pos, pos, mu0)
     else:
         b_bottom[0, 0, :, 0] = Bs if case["thermal"] else 0.0
-        surface = A.vdisort.lambertian_fourier_modes(case["albedo"], nf, streams, streams, mu0)
+        surface = A.vdisort.lambertian_fourier_modes(case["albedo"], nf, pos, pos, mu0)
 
     kwargs = {}
     if case["flux"] > 0:
@@ -379,11 +319,8 @@ def vdisort_at(solution, mus, level, k):
     out = []
     for m in np.atleast_1d(mus):
         values = u[level, k, :n] if m < 0 else u[level, k, n:]  # Evans' mu < 0 is upwelling, VDISORT's mu > 0
-        x = abs(m)
-        j = np.clip(np.searchsorted(pos, x) - 2, 0, n - 4)
-        xs = pos[j : j + 4]
-        w = [np.prod([(x - xs[b]) / (xs[a] - xs[b]) for b in range(4) if b != a]) for a in range(4)]
-        out.append(sum(w[a] * values[j + a] for a in range(4)))
+        lag = A.interp.Lagrange(pos, abs(m), 3)
+        out.append(np.asarray(lag.data) @ values[lag.indx])
     return np.array(out)
 
 
@@ -437,23 +374,6 @@ def rt3(case, nmu, quad, max_delta_tau=1e-7):
     return mus, value
 
 
-def rt4_optics_from_legendre(coef, ext, sca, mu, ns):
-    """RT4 optics on the streams mu of a randomly oriented series: the azimuthal mean of k_s Z / (4 pi)."""
-    signed = np.concatenate((-mu, mu))  # RT4 hemisphere 0 propagates down
-    c0, _ = fourier_modes(coef, signed, signed, 1, ns)
-    n = len(mu)
-    phase = np.zeros((2, 2, n, n, ns, ns))
-    for ho in range(2):
-        for hi in range(2):
-            phase[ho, hi] = sca / (4 * np.pi) * c0[0, ho * n : (ho + 1) * n, hi * n : (hi + 1) * n, :ns, :ns]
-    extinction = np.zeros((2, n, ns, ns))
-    for s in range(ns):
-        extinction[:, :, s, s] = ext
-    absorption = np.zeros((2, n, ns))
-    absorption[:, :, 0] = ext - sca
-    return extinction, absorption, phase
-
-
 def rt4(case):
     """ARTS's RT4 at Evans' settings: (level, mu) -> [I, Q] per um, with Evans' optics."""
     lam, ns = case["wavelength"], case["nstokes"]
@@ -467,13 +387,8 @@ def rt4(case):
             index.append(-1)
             continue
         if name not in made:
-            if name in case["legendre"]:
-                ext, sca, coef = case["legendre"][name]
-                o = rt4_optics_from_legendre(coef, ext, sca, mu, ns)
-            else:
-                o = read_rt4_scattering((POLRADTRAN / name).read_text(), ns)
             made[name] = len(optics)
-            optics.append(A.rt4.LayerOptics(*o))
+            optics.append(A.rt4.scattering_optics(species(*case["legendre"][name]), ATM, f, mu, ns))
         index.append(made[name])
     ground = A.polradtran.FresnelSurface(case["fresnel"]) if case["fresnel"] is not None else A.polradtran.LambertianSurface(case["albedo"])
     p = A.rt4.Problem(
@@ -540,7 +455,7 @@ def radiance_rows(case):
 
 
 results = {}
-for name in ("runmietest", "runtesta", "runtestr", "runtestc"):
+for name in ("runmietest", "runtesta", "runtestr"):
     case = read_case(name)
     unit = "K" if case["brightness"] else "of max I"
     print(f"{name}: {case['program']}, nstokes {case['nstokes']}, {case['quad']} nmu {case['nmu']}, "
@@ -556,68 +471,65 @@ for name in ("runmietest", "runtesta", "runtestr", "runtestc"):
     assert d <= (0.01 + 1e-9 if case["brightness"] else 2e-6)
     res["arts"] = evans
 
-    if case["randomly_oriented"]:
-        if case["program"] == "rt4":
-            rt3_evans = rt3(case, case["nmu"], "gauss", 1e-6)
-            d = table_deviation(case, rt3_evans[1])
-            print(f"    ARTS RT3 at Evans' settings vs his RT4 table: {d:.2e} {unit}")
-            assert d <= 0.01 + 1e-9
-        v64, v32 = vdisort(case, 64), vdisort(case, 32)
-        res["vdisort"] = v64
-        vfun = lambda sol: (lambda level, k, m: vdisort_at(sol, [m], level, k)[0])  # noqa: E731
-        rows = radiance_rows(case)
-        # VDISORT at Evans' angles: 32 against 64 streams bounds the error of the 64-stream interpolation
-        conv = 0.0
-        for r in rows:
-            a = as_table(case, r, vfun(v64)(level_of(case, r[0]), int(round(r[1] / 90)), r[2]))
-            b = as_table(case, r, vfun(v32)(level_of(case, r[0]), int(round(r[1] / 90)), r[2]))
-            conv = max(conv, np.max(np.abs(a - b)))
-        scale = 1.0 if case["brightness"] else max(abs(r[3][0]) for r in rows)
-        conv /= scale
-        print(f"    VDISORT at Evans' angles, 32 vs 64 streams: {conv:.2e} {unit}")
-        d_interp = table_deviation(case, vfun(v64), rows)
-        print(f"    VDISORT (64 streams) at Evans' angles vs his table: {d_interp:.2e} {unit}")
-        res["vdisort_vs_table"] = d_interp
+    if case["program"] == "rt4":
+        rt3_evans = rt3(case, case["nmu"], "gauss", 1e-6)
+        d = table_deviation(case, rt3_evans[1])
+        print(f"    ARTS RT3 at Evans' settings vs his RT4 table: {d:.2e} {unit}")
+        assert d <= 0.01 + 1e-9
+    v64, v32 = vdisort(case, 64), vdisort(case, 32)
+    res["vdisort"] = v64
+    vfun = lambda sol: (lambda level, k, m: vdisort_at(sol, [m], level, k)[0])  # noqa: E731
+    rows = radiance_rows(case)
+    # VDISORT at Evans' angles: 32 against 64 streams bounds the error of the 64-stream interpolation
+    conv = 0.0
+    for r in rows:
+        a = as_table(case, r, vfun(v64)(level_of(case, r[0]), int(round(r[1] / 90)), r[2]))
+        b = as_table(case, r, vfun(v32)(level_of(case, r[0]), int(round(r[1] / 90)), r[2]))
+        conv = max(conv, np.max(np.abs(a - b)))
+    scale = 1.0 if case["brightness"] else max(abs(r[3][0]) for r in rows)
+    conv /= scale
+    print(f"    VDISORT at Evans' angles, 32 vs 64 streams: {conv:.2e} {unit}")
+    d_interp = table_deviation(case, vfun(v64), rows)
+    print(f"    VDISORT (64 streams) at Evans' angles vs his table: {d_interp:.2e} {unit}")
+    res["vdisort_vs_table"] = d_interp
 
-        # RT3 and VDISORT on the same double-Gauss streams
-        same = 0.0
-        for nmu in (8, 16):
-            mus, f3 = rt3(case, nmu, "double_gauss")
-            mu_v, u_v = vdisort(case, nmu)
-            scale = max(abs(u_v[..., 0]).max(), 1e-300)
-            for level in range(len(case["height"])):
-                for k in range(3 if case["aziorder"] > 0 else 1):
-                    for j in range(nmu):
-                        for sign, idx in ((-1, j), (1, nmu + j)):  # Evans' -mu is VDISORT's up stream j
-                            a = f3(level, k, sign * mus[j])[: case["nstokes"]]
-                            b = u_v[level, k, idx, : case["nstokes"]]
-                            same = max(same, np.max(np.abs(a - b)) / scale)
-        print(f"    ARTS RT3 and VDISORT on the same double-Gauss streams (8, 16): {same:.2e} of max I")
-        assert same <= 2e-6
-        res["same_streams"] = same
+    # RT3 and VDISORT on the same double-Gauss streams
+    same = 0.0
+    for nmu in (8, 16):
+        mus, f3 = rt3(case, nmu, "double_gauss")
+        mu_v, u_v = vdisort(case, nmu)
+        scale = max(abs(u_v[..., 0]).max(), 1e-300)
+        for level in range(len(case["height"])):
+            for k in range(3 if case["aziorder"] > 0 else 1):
+                for j in range(nmu):
+                    for sign, idx in ((-1, j), (1, nmu + j)):  # Evans' -mu is VDISORT's up stream j
+                        a = f3(level, k, sign * mus[j])[: case["nstokes"]]
+                        b = u_v[level, k, idx, : case["nstokes"]]
+                        same = max(same, np.max(np.abs(a - b)) / scale)
+    print(f"    ARTS RT3 and VDISORT on the same double-Gauss streams (8, 16): {same:.2e} of max I")
+    assert same <= 2e-6
+    res["same_streams"] = same
 
-        # RT3 with Gauss quadrature approaches VDISORT
-        sweep = []
-        for nmu in (4, 6, 8, 12, 16):
-            if case["nstokes"] * nmu > 64 or 4 * nmu - 3 < max(c.shape[0] - 1 for _, _, c in case["legendre"].values()):
-                continue
-            mus, f3 = rt3(case, nmu, "gauss")
-            gauss_rows = [(z, 90.0 * k, s * m, np.zeros(case["nstokes"] if not case["brightness"] else 2))
-                          for z in case["height"] for k in range(3 if case["aziorder"] > 0 else 1) for s in (-1, 1) for m in mus]
-            d = 0.0
-            sc = 1.0 if case["brightness"] else max(abs(r[3][0]) for r in rows)  # max I of the table, as above
-            for r in gauss_rows:
-                level, k = level_of(case, r[0]), int(round(r[1] / 90))
-                a = as_table(case, r, f3(level, k, r[2])[: case["nstokes"]])
-                b = as_table(case, r, vdisort_at(v64, [r[2]], level, k)[0][: case["nstokes"]])
-                d = max(d, np.max(np.abs(a - b)) / sc)
-            sweep.append((nmu, d))
-            print(f"    ARTS RT3 Gauss nmu {nmu:2d} vs VDISORT at RT3's nodes: {d:.2e} {unit}")
-        assert all(b[1] < a[1] for a, b in zip(sweep, sweep[1:])), "RT3 with Gauss quadrature must approach VDISORT"
-        assert conv <= 0.1 * sweep[-1][1], "VDISORT at Evans' angles must be 10 times more accurate than the smallest difference shown"
-        res["sweep"] = sweep
-    else:
-        print("    oriented particles: VDISORT and RT3 do not apply (direction-dependent extinction)")
+    # RT3 with Gauss quadrature approaches VDISORT
+    sweep = []
+    for nmu in (4, 6, 8, 12, 16):
+        if case["nstokes"] * nmu > 64 or 4 * nmu - 3 < max(c.shape[0] - 1 for _, _, c in case["legendre"].values()):
+            continue
+        mus, f3 = rt3(case, nmu, "gauss")
+        gauss_rows = [(z, 90.0 * k, s * m, np.zeros(case["nstokes"] if not case["brightness"] else 2))
+                      for z in case["height"] for k in range(3 if case["aziorder"] > 0 else 1) for s in (-1, 1) for m in mus]
+        d = 0.0
+        sc = 1.0 if case["brightness"] else max(abs(r[3][0]) for r in rows)  # max I of the table, as above
+        for r in gauss_rows:
+            level, k = level_of(case, r[0]), int(round(r[1] / 90))
+            a = as_table(case, r, f3(level, k, r[2])[: case["nstokes"]])
+            b = as_table(case, r, vdisort_at(v64, [r[2]], level, k)[0][: case["nstokes"]])
+            d = max(d, np.max(np.abs(a - b)) / sc)
+        sweep.append((nmu, d))
+        print(f"    ARTS RT3 Gauss nmu {nmu:2d} vs VDISORT at RT3's nodes: {d:.2e} {unit}")
+    assert all(b[1] < a[1] for a, b in zip(sweep, sweep[1:])), "RT3 with Gauss quadrature must approach VDISORT"
+    assert conv <= 0.1 * sweep[-1][1], "VDISORT at Evans' angles must be 10 times more accurate than the smallest difference shown"
+    res["sweep"] = sweep
     results[name] = res
 
 
@@ -634,16 +546,14 @@ if not HEADLESS:
             rows = [r for r in radiance_rows(case) if r[0] == z and r[1] == phi]
             mu_t = np.array([r[2] for r in rows])
             level, k = level_of(case, z), int(round(phi / 90))
-            if "vdisort" in res:
-                mu_v, u_v = res["vdisort"]
-                n = len(mu_v) // 2
-                x = np.concatenate((-mu_v[:n][::-1], mu_v[:n]))  # Evans' sign: upwelling negative
-                vals = np.concatenate((u_v[level, k, :n][::-1], u_v[level, k, n:]))
-                y = np.array([as_table(case, (z, phi, xx, np.zeros(4)), vv) for xx, vv in zip(x, vals)])
+            mu_v, u_v = res["vdisort"]
+            n = len(mu_v) // 2
+            x = np.concatenate((-mu_v[:n][::-1], mu_v[:n]))  # Evans' sign: upwelling negative
+            vals = np.concatenate((u_v[level, k, :n][::-1], u_v[level, k, n:]))
+            y = np.array([as_table(case, (z, phi, xx, np.zeros(4)), vv) for xx, vv in zip(x, vals)])
             for s, label in enumerate(labels):
                 ax = axes[s, col]
-                if "vdisort" in res:
-                    ax.plot(x, y[:, s], "-", color="C0", lw=1.5, label="VDISORT (64 double-Gauss streams)")
+                ax.plot(x, y[:, s], "-", color="C0", lw=1.5, label="VDISORT (64 double-Gauss streams)")
                 ax.plot(mu_t, [r[3][s] for r in rows], "o", mfc="none", color="k", ms=7, label="Evans' table")
                 arts_values = [as_table(case, r, res["arts"][1](level, k, r[2]))[s] for r in rows]
                 ax.plot(mu_t, arts_values, ".", color="C3", ms=5, label=f"ARTS {case['program'].upper()} at Evans' settings")
@@ -657,30 +567,29 @@ if not HEADLESS:
         axes[0, 0].legend(fontsize=7)
         fig.suptitle(f"{name}: solutions")
 
-        if "sweep" in res:
-            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4), constrained_layout=True)
-            nmu, d = np.array(res["sweep"]).T
-            ax1.loglog(nmu, d, "o-", label="ARTS RT3, Gauss quadrature, vs VDISORT")
-            ax1.loglog(nmu, d[0] * nmu[0] / nmu, "k:", label="1 / nmu")
-            ax1.axvline(case["nmu"], color="gray", ls="--", label=f"Evans' table (nmu {case['nmu']})")
-            if case["brightness"]:
-                ax1.text(0.03, 0.05, f"RT3 and VDISORT on the same double-Gauss streams: {res['same_streams']:.1e} of max I",
-                         transform=ax1.transAxes, color="C2", fontsize=8)
-            else:
-                ax1.axhline(res["same_streams"], color="C2", label="RT3 and VDISORT on the same double-Gauss streams")
-            ax1.set(xlabel="RT3 streams per hemisphere", ylabel=f"max difference ({'K' if case['brightness'] else 'of max I'})",
-                    title=f"{name}: the table is a Gauss-quadrature solution")
-            ax1.legend(fontsize=7)
-            ax1.grid(True, which="both", alpha=0.3)
-            rows = radiance_rows(case)
-            diffs = []
-            for r in rows:
-                level, k = level_of(case, r[0]), int(round(r[1] / 90))
-                v = as_table(case, r, vdisort_at(res["vdisort"], [r[2]], level, k)[0])
-                diffs.append((r[2], (r[3][: len(v)] - v)[0]))
-            m, dd = np.array(diffs).T
-            ax2.plot(m, dd, "o", mfc="none")
-            ax2.set(xlabel="mu (< 0 upwelling)", ylabel=f"table - VDISORT, {labels[0]}",
-                    title="Evans' table minus VDISORT, every level and azimuth")
-            ax2.grid(True, alpha=0.3)
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4), constrained_layout=True)
+        nmu, d = np.array(res["sweep"]).T
+        ax1.loglog(nmu, d, "o-", label="ARTS RT3, Gauss quadrature, vs VDISORT")
+        ax1.loglog(nmu, d[0] * nmu[0] / nmu, "k:", label="1 / nmu")
+        ax1.axvline(case["nmu"], color="gray", ls="--", label=f"Evans' table (nmu {case['nmu']})")
+        if case["brightness"]:
+            ax1.text(0.03, 0.05, f"RT3 and VDISORT on the same double-Gauss streams: {res['same_streams']:.1e} of max I",
+                     transform=ax1.transAxes, color="C2", fontsize=8)
+        else:
+            ax1.axhline(res["same_streams"], color="C2", label="RT3 and VDISORT on the same double-Gauss streams")
+        ax1.set(xlabel="RT3 streams per hemisphere", ylabel=f"max difference ({'K' if case['brightness'] else 'of max I'})",
+                title=f"{name}: the table is a Gauss-quadrature solution")
+        ax1.legend(fontsize=7)
+        ax1.grid(True, which="both", alpha=0.3)
+        rows = radiance_rows(case)
+        diffs = []
+        for r in rows:
+            level, k = level_of(case, r[0]), int(round(r[1] / 90))
+            v = as_table(case, r, vdisort_at(res["vdisort"], [r[2]], level, k)[0])
+            diffs.append((r[2], (r[3][: len(v)] - v)[0]))
+        m, dd = np.array(diffs).T
+        ax2.plot(m, dd, "o", mfc="none")
+        ax2.set(xlabel="mu (< 0 upwelling)", ylabel=f"table - VDISORT, {labels[0]}",
+                title="Evans' table minus VDISORT, every level and azimuth")
+        ax2.grid(True, alpha=0.3)
     plt.show()

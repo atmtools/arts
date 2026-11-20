@@ -644,20 +644,20 @@ ArrayOfPropagationPathPoint& fill_geometric_crossings(ArrayOfPropagationPathPoin
   return path;
 }
 
-PropagationPathPoint find_geometric_limb(const ArrayOfPropagationPathPoint& path, const SurfaceField& surf_field) {
+std::optional<PropagationPathPoint> find_geometric_limb(const ArrayOfPropagationPathPoint& path,
+                                                        const SurfaceField&                surf_field) {
   const auto pre_limb_point =
-      std::adjacent_find(path.begin(), path.end(), [](const PropagationPathPoint& p1, const PropagationPathPoint& p2) {
+      stdr::adjacent_find(path, [](const PropagationPathPoint& p1, const PropagationPathPoint& p2) {
         return (p1.los[0] >= 90 and p2.los[0] < 90) or (p1.los[0] < 90 and p2.los[0] >= 90);
       });
 
-  if (pre_limb_point == path.end() or pre_limb_point == path.end() - 1)
-    arts::user_error("Needs at least one point before limb point");
+  if (pre_limb_point == path.end() or pre_limb_point == path.end() - 1) return std::nullopt;
   const auto post_limb_point = pre_limb_point + 1;
 
   const auto    post_ecef = geodetic2ecef(post_limb_point->pos, surf_field.ellipsoid);
   const auto    pre_ecef  = geodetic2ecef(pre_limb_point->pos, surf_field.ellipsoid);
   const Numeric distance  = ecef_distance(pre_ecef, post_ecef);
-  if (distance == 0) arts::user_error("Distance between points is zero: {:B,} and {:B,}.", post_ecef, pre_ecef);
+  if (distance == 0) return std::nullopt;
 
   const Vector3 decef{(post_ecef[0] - pre_ecef[0]) / distance,
                       (post_ecef[1] - pre_ecef[1]) / distance,
@@ -681,15 +681,18 @@ PropagationPathPoint find_geometric_limb(const ArrayOfPropagationPathPoint& path
 }
 
 ArrayOfPropagationPathPoint& fill_geometric_limb(ArrayOfPropagationPathPoint& x, const SurfaceField& surf_field) {
-  const auto limb    = find_geometric_limb(x, surf_field);
+  const auto limb = find_geometric_limb(x, surf_field);
+
+  if (not limb.has_value()) return x;
+
   const auto min_pos = stdr::min_element(x, [](const auto& a, const auto& b) { return a.pos[0] < b.pos[0]; });
 
   if (min_pos == x.end() - 1) {
-    x.push_back(limb);
+    x.push_back(*limb);
   } else if ((min_pos + 1)->pos[0] < (min_pos - 1)->pos[0]) {
-    x.insert(min_pos + 1, limb);
+    x.insert(min_pos + 1, *limb);
   } else {
-    x.insert(min_pos, limb);
+    x.insert(min_pos, *limb);
   }
 
   return x;

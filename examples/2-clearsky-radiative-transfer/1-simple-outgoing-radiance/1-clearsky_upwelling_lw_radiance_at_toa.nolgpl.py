@@ -50,9 +50,7 @@ ws.ReadCatalogData()
 # a cutoff of 25 Kayser is necessary. We set it here for all species, because it
 # also speeds up the calculation.
 cutoff = pa.arts.convert.kaycm2freq(25)
-for band in ws.abs_bands:
-    ws.abs_bands[band].cutoff = "ByLine"
-    ws.abs_bands[band].cutoff_value = cutoff
+ws.abs_bandsSetCutoff(option="ByLine", value=cutoff)
 
 # Remove 90% of the lines to speed up the calculation
 ws.abs_bands.keep_hitran_s(approximate_percentile=90)
@@ -88,7 +86,7 @@ ws.spectral_propmat_pathFromPath()
 # Absorption coefficient [1/m] at every path point and frequency.
 K = np.array(
     [
-        [ws.spectral_propmat_path[ip][f][0] for f in range(nf)]
+        [ws.spectral_propmat_path[ip].K[f][0] for f in range(nf)]
         for ip in range(len(ws.ray_path))
     ]
 )  # shape [np, nf]

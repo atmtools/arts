@@ -379,6 +379,55 @@ ebu : ~pyarts3.arts.Vector3
   Pointing (de,dn,du)
 )");
 
+  geo.def("ecef2enu",
+          &ecef2enu,
+          "decef"_a,
+          "lat"_a,
+          "lon"_a,
+          R"(Rotates an ECEF direction to the local east-north-up frame
+
+The frame is that of the geodetic latitude and longitude, with up along the
+ellipsoid normal.
+
+Parameters
+----------
+decef : ~pyarts3.arts.Vector3
+  A direction in ECEF (dx,dy,dz)
+lat : float
+  Geodetic latitude [deg]
+lon : float
+  Longitude [deg]
+
+Returns
+-------
+enu : ~pyarts3.arts.Vector3
+  The direction in ENU (de,dn,du)
+)");
+
+  geo.def("enu2ecef",
+          &enu2ecef,
+          "enu"_a,
+          "lat"_a,
+          "lon"_a,
+          R"(Rotates a direction in the local east-north-up frame to ECEF
+
+The inverse of :func:`ecef2enu`.
+
+Parameters
+----------
+enu : ~pyarts3.arts.Vector3
+  A direction in ENU (de,dn,du)
+lat : float
+  Geodetic latitude [deg]
+lon : float
+  Longitude [deg]
+
+Returns
+-------
+decef : ~pyarts3.arts.Vector3
+  The direction in ECEF (dx,dy,dz)
+)");
+
   geo.def("poslos_at_distance",
           &poslos_at_distance,
           "ecef"_a,

@@ -75,7 +75,7 @@ ws.atm_field[pyarts.arts.AtmKey.temperature].lon_upp = "Nearest"
 
 pos = [100e3, 0, 0]
 los = [180.0, 0.0]
-ws.measurement_sensorSimple(pos=pos, los=los)
+ws.measurement_sensorsSimple(pos=pos, los=los)
 
 # %% Jacobian
 
@@ -85,14 +85,6 @@ ws.oemAddTemperature(matrix=np.diag(np.ones((5)) * 10))
 ws.jac_targetsFinalize()
 
 model_statec_vector_targets = [vmrs, temps]
-
-# %% Retrieval agenda
-
-@pyarts.workspace.arts_agenda(ws=ws, fix=True)
-def inversion_iterate_agenda(ws):
-    ws.UpdateModelStates()
-    ws.measurement_vecFromSensor()
-    ws.measurement_vec_fitFromMeasurement()
 
 # %% Conditional helper
 

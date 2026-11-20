@@ -4,9 +4,9 @@ vdisort_settings_agendaSetup and vdisort_settings_agendaExecute build
 VDISORT's input from ARTS data, and vdisort_spectral_rad_fieldCalc maps its
 output onto the radiance field.  Three references check them:
 
-1. Clear sky: the exact solution of the transfer equation through layers whose
-   Planck function is linear in optical depth, recomputed here from the path's
-   own propagation matrices and temperatures.  The sky is given a polarization
+1. Clear sky: ARTS's linear-in-tau transmission (rtepack.tran) and Planck
+   function (physics.planck), layer by layer through the path's own
+   propagation matrices and temperatures.  The sky is given a polarization
    to check Q, U and V; the blackbody surface keeps them zero upward.  The top
    layer has no absorption, so min_optical_depth sets its optical thickness.
    The solver writes the source as c0 + c1 tau in the global optical depth tau,
@@ -15,11 +15,11 @@ output onto the radiance field.  Three references check them:
    by layer, so theirs is 16 eps per layer times the sky's value.
 
 2. Single scattering of the sun by an optically thin Henyey-Greenstein layer:
-   the first-order closed form in the scattering angle between the beam,
-   which propagates away from the sun, and the propagation direction (zenith,
-   azimuth) of the field.  This pins the field's grids to propagation
-   directions and the beam to the sun's position.  Higher orders are below
-   q / (1 - q) of the largest first-order radiance, with
+   a table of the first-order radiance, per unit solar source, on two layers,
+   all azimuths and four streams, and Q = U = V = 0 everywhere.  The sun's
+   zenith and azimuth are tabulated too.  This pins the field's grids to
+   propagation directions and the beam to the sun's position.  Higher orders
+   are below q / (1 - q) of the largest first-order radiance, with
    q = omega tau mean|P| / mu_min.
 
 3. Evans' doubling-adding RT3 (polradtran) on the same path, through
@@ -64,15 +64,6 @@ ATMOSPHERE = {
 }
 
 
-def profile(values):
-    field = A.GeodeticField3(
-        grids=[Z[::-1], [0.0], [0.0]],
-        grid_names=["altitude", "latitude", "longitude"],
-        data=np.asarray(values, dtype=float)[::-1].reshape(len(Z), 1, 1),
-    )
-    return field
-
-
 def workspace(species, gas=True, fields={}):
     """A workspace with the atmosphere (fields replace its profiles) and a path down through its levels."""
     ws = pa.Workspace()
@@ -83,13 +74,13 @@ def workspace(species, gas=True, fields={}):
     ws.spectral_propmat_agendaAuto()
     ws.surf_fieldPlanet(option="Earth")
     ws.surf_field[A.SurfaceKey("t")] = T_SURF
-    ws.atm_field.top_of_atmosphere = Z[0]
+    profile = [A.AtmPoint() for _ in Z]
     for key, values in {**ATMOSPHERE, **fields}.items():
         if isinstance(key, str) and key in ("H2O", "O2"):
             key = A.SpeciesEnum(key)
-        ws.atm_field[key] = profile(values)
-        ws.atm_field[key].alt_low = "Linear"
-        ws.atm_field[key].alt_upp = "Linear"
+        for point, value in zip(profile, values):
+            point[key] = value
+    ws.atm_fieldFromProfile(atm_profile=profile[::-1], alt_grid=Z[::-1], altitude_extrapolation="Linear")
     ws.scat_species = species
     ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
@@ -113,28 +104,10 @@ def field(ws, azimuths=(0.0,)):
     return np.asarray(f.data), np.cos(np.radians(np.asarray(f.zen_grid))), np.asarray(f.azi_grid)
 
 
-def planck(f, t):
-    h, k, c = A.constants.h, A.constants.k, A.constants.c
-    return 2 * h * f**3 / c**2 / np.expm1(h * f / (k * t))
-
-
 def sun(ws):
     ws.sunBlackbody()
     ws.sun.latitude = 20.0
     ws.sun.longitude = 35.0
-
-
-def sun_direction():
-    """Zenith and azimuth [deg] of the far sun seen from (lat, lon) = (0, 0)."""
-    lat, lon = np.radians(20.0), np.radians(35.0)
-    up, east, north = np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)
-    return np.degrees(np.arccos(up)), np.degrees(np.arctan2(east, north))
-
-
-def unit(zenith, azimuth):
-    """A direction [north, east, up] from ARTS's zenith and azimuth (clockwise from north) [deg]."""
-    z, a = np.radians(zenith), np.radians(azimuth)
-    return np.stack(np.broadcast_arrays(np.sin(z) * np.cos(a), np.sin(z) * np.sin(a), np.cos(z)), axis=-1)
 
 
 # %% 1. Clear sky against the exact layered solution
@@ -163,35 +136,47 @@ ws.atm_pathFromPath()
 ws.freq_grid_pathFromPath()
 ws.spectral_propmat_pathFromPath()
 temperature = np.array([p.temperature for p in ws.atm_path])
-absorption = np.array([[pm[iv][0] for iv in range(len(FREQ))] for pm in ws.spectral_propmat_path])
+absorption = np.array([[pm.K[iv][0] for iv in range(len(FREQ))] for pm in ws.spectral_propmat_path])
 assert (absorption[:2] == 0).all() and (absorption[2:] > 0).all(), "the top layer must be empty and no other"
 
+K = [pm.K for pm in ws.spectral_propmat_path]
+dz = -np.diff(Z)
+
+
+def evolve(I, iv, mu, start, end):
+    """ARTS's linear-in-tau step through the layer between levels start and end, J = [B, 0, 0, 0]."""
+    l = min(start, end)
+    k1, k2 = K[l][iv], K[l + 1][iv]
+    if l == 0:  # the empty top layer, min_optical_depth thick
+        k1 = k2 = A.Propmat(MIN_TAU / dz[l])
+    t = A.rtepack.tran(k1, k2, dz[l] / mu)
+    return np.asarray(t()) @ (I - J[start]) + np.asarray(t.linsrc()) @ (J[start] - J[end]) + J[end]
+
+
 for iv, f in enumerate(FREQ):
-    dtau = np.maximum(-np.diff(Z) * 0.5 * (absorption[1:, iv] + absorption[:-1, iv]), MIN_TAU)
-    tau = np.concatenate(([0.0], np.cumsum(dtau)))
-    B = planck(f, temperature)
-    c1 = np.diff(B) / dtau
-    c0 = B[:-1] - c1 * tau[:-1]
+    B = np.asarray(A.physics.planck(f, temperature))
+    J = np.zeros((len(Z), 4))
+    J[:, 0] = B
     exact = np.zeros(data.shape[1:2] + (len(m), 4))
     for k, mk in enumerate(m):
         mu = abs(mk)
-        e = np.exp(-dtau / mu)
-        rise = -np.diff(B) * mu * np.expm1(-dtau / mu) / dtau  # (B_b - B_t) mu (1 - e) / dtau
         if mk < 0:  # downward from the sky
             I = cmb[iv] * POLARIZATION
-            for l in range(len(dtau)):
-                I = I * e[l]
-                I[0] += B[l + 1] - B[l] * e[l] - rise[l]
+            for l in range(len(dz)):
+                I = evolve(I, iv, mu, l, l + 1)
                 exact[l, k] = I
         else:  # upward from the blackbody surface; the field omits the top level
-            I = np.array([planck(f, T_SURF), 0.0, 0.0, 0.0])
+            I = np.array([A.physics.planck(f, T_SURF), 0.0, 0.0, 0.0])
             exact[-1, k] = I
-            for l in reversed(range(1, len(dtau))):
-                I = I * e[l]
-                I[0] += B[l] - B[l + 1] * e[l] + rise[l]
+            for l in reversed(range(1, len(dz))):
+                I = evolve(I, iv, mu, l + 1, l)
                 exact[l - 1, k] = I
-    largest = np.r_[np.abs(c0) + np.abs(c1) * (tau[1:] + 1.0), planck(f, T_SURF), cmb[iv]].max()
-    tolerance = 16 * EPS * np.r_[largest, len(dtau) * np.abs(cmb[iv] * POLARIZATION[1:])]
+    # VDISORT's source c0 + c1 tau in its global optical depth
+    tau = np.concatenate(([0.0], np.asarray(ws.vdisort_settings.optical_thicknesses)[iv]))
+    c1 = np.diff(B) / np.diff(tau)
+    c0 = B[:-1] - c1 * tau[:-1]
+    largest = np.r_[np.abs(c0) + np.abs(c1) * (tau[1:] + 1.0), A.physics.planck(f, T_SURF), cmb[iv]].max()
+    tolerance = 16 * EPS * np.r_[largest, len(dz) * np.abs(cmb[iv] * POLARIZATION[1:])]
     error = np.abs(data[iv, :, 0] - exact).max(axis=(0, 1))
     print(f"clear sky {f / 1e9:g} GHz: |VDISORT - exact| per Stokes {error}, tolerance {tolerance}")
     assert (error <= tolerance).all(), f"clear sky {f / 1e9:g} GHz: {error} > {tolerance}"
@@ -219,32 +204,52 @@ ws.vdisort_settings_agendaSetup(
     sun_setting="Sun",
     surf_setting="None",
 )
-data, m, azi = field(ws, AZIMUTHS)
+data, m, _ = field(ws, AZIMUTHS)
 s = ws.vdisort_settings
 
-# The settings' sun is in the direction of the sun, to its parallax over the Earth's radius (below 0.0025 deg)
+# The settings' sun is in the direction of the far sun at (lat, lon) = (20, 35) deg seen from (0, 0), zenith and
+# azimuth (clockwise from north) in deg, to its parallax over the Earth's radius (below 0.0025 deg)
 sza, saa = np.asarray(s.solar_zenith_angle), np.asarray(s.solar_azimuth_angle)
-assert np.allclose(sza, sun_direction()[0], atol=2.5e-3) and np.allclose(saa, sun_direction()[1], atol=2.5e-3), (sza, saa)
+assert np.allclose(sza, 39.668454, atol=2.5e-3) and np.allclose(saa, 57.602310, atol=2.5e-3), (sza, saa)
 
-legendre = (2 * np.arange(LEGENDRE) + 1) * G ** np.arange(LEGENDRE)
-zenith = np.degrees(np.arccos(m))
+# The first-order radiance / solar source on LAYERS, all AZIMUTHS and the STREAMS (zenith 40.3, 84.2, 95.8 and
+# 139.7 deg), in units of 1e-6, and its largest value anywhere
+LAYERS, STREAMS = [1, 5], [2, 6, 9, 13]
+FIRST_ORDER = 1e-6 * np.array([
+    [
+        [0.010191, 0.107855, 0.041419, 0.013608],
+        [0.009232, 0.084825, 0.032181, 0.010093],
+        [0.009334, 0.087715, 0.034436, 0.010718],
+        [0.011488, 0.137990, 0.056879, 0.019673],
+        [0.016591, 0.347024, 0.166860, 0.088875],
+        [0.016929, 0.373119, 0.182686, 0.103991],
+        [0.013158, 0.186817, 0.077640, 0.029570],
+    ],
+    [
+        [0.001699, 0.017976, 0.144965, 0.047629],
+        [0.001539, 0.014137, 0.112632, 0.035326],
+        [0.001556, 0.014619, 0.120526, 0.037514],
+        [0.001915, 0.022998, 0.199077, 0.068857],
+        [0.002765, 0.057837, 0.584009, 0.311064],
+        [0.002821, 0.062187, 0.639400, 0.363970],
+        [0.002193, 0.031136, 0.271739, 0.103496],
+    ],
+])  # fmt: skip
+LARGEST = 3.187539e-6
+MEAN_ABS_P = 1.0002  # mean of |P| over cos(angle) of the series truncated to LEGENDRE terms
+assert np.isclose(np.degrees(np.arccos(m[STREAMS])), [40.29133, 84.16484, 95.83516, 139.70867], rtol=0, atol=1e-5).all()
+
 for iv, f in enumerate(FREQ):
     tau = np.asarray(s.optical_thicknesses)[iv]
     assert np.allclose(np.asarray(s.single_scattering_albedo)[iv], ALBEDO, rtol=1e-14, atol=0)
-    F0, mu0, total = np.asarray(s.solar_source)[iv, 0], np.cos(np.radians(sza[iv])), tau[-1]
-    beam = unit(180.0 - sza[iv], saa[iv] + 180.0)
-    cos_angle = unit(zenith[None, :], azi[:, None]) @ beam  # [azimuth, zenith]
-    J = ALBEDO * F0 / (4 * np.pi) * np.polynomial.legendre.legval(cos_angle, legendre)
-    mu = np.abs(m)
-    t = tau[:, None, None]
-    down = mu0 / (mu0 - mu) * np.exp(-t / mu0) * -np.expm1(-t * (1 / mu - 1 / mu0))
-    up = mu0 / (mu0 + mu) * np.exp(-t / mu0) * -np.expm1(-(total - t) * (1 / mu0 + 1 / mu))
-    first = J * np.where(m < 0, down, up)  # [layer, azimuth, zenith]
+    F0, total = np.asarray(s.solar_source)[iv, 0], tau[-1]
 
-    grid = np.linspace(-1, 1, 20001)
-    q = ALBEDO * total * np.abs(np.polynomial.legendre.legval(grid, legendre)).mean() / mu.min()
-    scale = np.abs(first).max()
-    error = np.abs(data[iv] - np.concatenate((first[..., None], np.zeros(first.shape + (3,))), axis=-1)).max() / scale
+    q = ALBEDO * total * MEAN_ABS_P / np.abs(m).min()
+    scale = F0 * LARGEST
+    error = max(
+        np.abs(data[iv][np.ix_(LAYERS, range(len(AZIMUTHS)), STREAMS)][..., 0] - F0 * FIRST_ORDER).max(),
+        np.abs(data[iv][..., 1:]).max(),
+    ) / scale
     print(f"single scattering {f / 1e9:g} GHz: |VDISORT - first order| / max = {error:.2e}, tolerance {q / (1 - q):.2e}")
     assert error <= q / (1 - q), f"single scattering {f / 1e9:g} GHz: {error} > {q / (1 - q)}"
 
@@ -262,10 +267,8 @@ def henyey_greenstein():
 
 def mie_drops():
     """Liquid drops as a Legendre series, converted from gridded Mie data."""
-    x, _ = A.math.leggauss(4000)
-    angles = np.degrees(np.arccos(np.asarray(x)[::-1]))
     t_grid = [220.0, 250.0, 280.0, 310.0]
-    habit = A.ParticleHabit.liquid_sphere(t_grid, FREQ, [1.5e-3], A.IrregularZenithAngleGrid(angles))
+    habit = A.ParticleHabit.liquid_sphere(t_grid, FREQ, [1.5e-3], A.GaussLegendreGrid(4000))
     habit, reports = habit.to_tro_spectral_with_report(t_grid, FREQ, 64)
     for report in reports:
         assert np.abs(np.asarray(report.normalisation_error)).max() < 1e-7
@@ -289,13 +292,12 @@ def against_rt3(name, ws, aziorder, azimuths, ground, thermal, minimum):
         max_delta_tau=MAX_DELTA_TAU,
         normalisation_tolerance=1e-6,
     )
-    h, k, c = A.constants.h, A.constants.k, A.constants.c
     for iv, f in enumerate(FREQ):
-        # The sky temperature of the downward boundary, by inverting Planck's law
+        # The sky temperature of the downward boundary
         sky = np.asarray(s.downward_boundary_condition)[iv, 0, 0, 0, 0]
-        sky_temperature = h * f / k / np.log1p(2 * h * f**3 / (c**2 * sky)) if sky > 0 else 0.0
+        sky_temperature = A.physics.invplanck(sky, f) if sky > 0 else 0.0
         problem = A.rt3.problem_from_path(
-            ws.ray_path, ws.atm_path, ws.spectral_propmat_path, ws.freq_grid, iv, ws.scat_species,
+            ws.ray_path, ws.atm_path, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv, ws.scat_species,
             settings, ground, T_SURF, sky_temperature,
         )  # fmt: skip
         problem.thermal = thermal

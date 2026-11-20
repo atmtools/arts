@@ -174,14 +174,13 @@ Returns
          const Numeric        T_extrapolfac,
          const Index          ignore_errors,
          const py::kwargs&) {
-        PropmatVector   spectral_propmat(f.size());
-        PropmatMatrix   spectral_propmat_jac(0, f.size());
+        SpectralPropmat spectral_propmat;
+        spectral_propmat.init(f.size(), 0);
         JacobianTargets jac_targets{};
 
-        spectral_propmatAddCIA(
-            spectral_propmat, spectral_propmat_jac, spec, jac_targets, f, atm, self, T_extrapolfac, ignore_errors);
+        spectral_propmatAddCIA(spectral_propmat, spec, jac_targets, f, atm, self, T_extrapolfac, ignore_errors);
 
-        return spectral_propmat;
+        return std::move(spectral_propmat.K);
       },
       "f"_a,
       "atm"_a,

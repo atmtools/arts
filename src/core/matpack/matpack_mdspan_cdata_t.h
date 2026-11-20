@@ -128,22 +128,46 @@ template <typename T, Size... dims> struct [[nodiscard]] cdata_t {
   }
 
   template <typename U> constexpr cdata_t& operator+=(U&& x) {
-    view() += std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] += x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a += b; }) {
+      for (T& a : data) a += x;
+    } else {
+      view() += std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator-=(U&& x) {
-    view() -= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] -= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a -= b; }) {
+      for (T& a : data) a -= x;
+    } else {
+      view() -= std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator*=(U&& x) {
-    view() *= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] *= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a *= b; }) {
+      for (T& a : data) a *= x;
+    } else {
+      view() *= std::forward<U>(x);
+    }
     return *this;
   }
 
   template <typename U> constexpr cdata_t& operator/=(U&& x) {
-    view() /= std::forward<U>(x);
+    if constexpr (std::same_as<std::remove_cvref_t<U>, cdata_t>) {
+      for (Size i = 0; i < ndata; i++) data[i] /= x.data[i];
+    } else if constexpr (requires(T& a, const std::remove_cvref_t<U>& b) { a /= b; }) {
+      for (T& a : data) a /= x;
+    } else {
+      view() /= std::forward<U>(x);
+    }
     return *this;
   }
 
@@ -258,6 +282,10 @@ template <any_cdata T> constexpr T normalized(T x) {
   return x;
 }
 }  // namespace matpack
+
+//! Ranges iterate over the first dimension, so their size is extent(0), not the member size() element count
+template <typename T, Size... dims> inline constexpr bool stdr::disable_sized_range<matpack::cdata_t<T, dims...>> =
+    sizeof...(dims) > 1;
 
 template <typename T, Size... dims> struct std::formatter<matpack::cdata_t<T, dims...>> {
   std::formatter<matpack::view_t<const T, sizeof...(dims)>> fmt;

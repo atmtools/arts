@@ -25,6 +25,9 @@ struct WorkspaceAgendaInternalRecord {
   std::vector<std::string> output{};
   std::vector<std::string> input{};
   std::vector<std::string> enum_options{};
+
+  //! The description of each of enum_options, in the same order.  Shown before the methods of the option in the docs.
+  std::vector<std::string> enum_desc{};
   std::string              enum_default{};
 
   /*! Whether the sizes of the outputs are verified after the agenda has run.
@@ -87,6 +90,8 @@ template <> struct std::formatter<WorkspaceAgendaInternalRecord> {
                        wair.input,
                        "\n  .enum_options="sv,
                        wair.enum_options,
+                       "\n  .enum_desc="sv,
+                       wair.enum_desc,
                        "\n  .enum_default="sv,
                        wair.enum_default,
                        "\n  .output_constraints="sv,

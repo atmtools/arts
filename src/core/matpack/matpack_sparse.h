@@ -21,34 +21,16 @@
 #ifndef matpackII_h
 #define matpackII_h
 
+#include <xml.h>
+#include <xml_io_stream.h>
+
 #include <iosfwd>
 #include <optional>
 #include <ranges>
+#include <span>
 #include <tuple>
 #include <utility>
-
-#ifndef _MSC_VER
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma GCC diagnostic ignored "-Wconversion"
-#pragma GCC diagnostic ignored "-Wfloat-conversion"
-#if defined(__clang__)
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-dtor"
-#pragma GCC diagnostic ignored "-Wdeprecated-copy-with-user-provided-dtor"
-#else
-#pragma GCC diagnostic ignored "-Wclass-memaccess"
-#endif
-#endif
-
-#include <Eigen/Core>
-#include <Eigen/SparseCore>
-
-#ifndef _MSC_VER
-#pragma GCC diagnostic pop
-#endif
-
-#include <xml.h>
-#include <xml_io_stream.h>
+#include <vector>
 
 #include "array.h"
 #include "matpack_mdspan_data_t.h"
@@ -56,10 +38,11 @@
 //! The Sparse class.
 /*!
 
-  Wrapper class for Eigen sparse matrices. The storage format used
-  is compressed row storage. Thus inserting of elements in a single
-  row ordered by column index is performed in constant time, if the
-  rows are themselves inserted in increasing order.
+  A sparse matrix in compressed row storage.  The elements of row r are at
+  [row_starts()[r], row_starts()[r + 1]) of column_indices() and values(), with
+  ascending and unique columns in each row.  This is the storage of an Eigen
+  row-major sparse matrix, and matpack_sparse_eigen.h maps it as one where Eigen
+  is needed, so that Eigen is not needed where the matrix is merely used.
 
 */
 
@@ -69,6 +52,17 @@ struct Sparse {
   // Constructors:
   Sparse();
   Sparse(Index r, Index c);
+
+  /** A matrix from its compressed row storage
+   *
+   * @param r The number of rows
+   * @param c The number of columns
+   * @param row_starts The start of each row in the other two, and their size last, so r + 1 elements
+   * @param column_indices The ascending and unique columns of the elements of each row
+   * @param values The values of the elements
+   */
+  Sparse(Index r, Index c, std::vector<int> row_starts, std::vector<int> column_indices, std::vector<Numeric> values);
+
   Sparse(const Sparse& other);
   Sparse(Sparse&& other) noexcept;
   Sparse& operator=(const Sparse& other);
@@ -123,17 +117,31 @@ struct Sparse {
   explicit operator Matrix() const;
 
   // Matrix data access
-  void list_elements(Vector& values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const;
+  void list_elements(Vector& element_values, ArrayOfIndex& row_indices, ArrayOfIndex& column_indices) const;
 
   Numeric* get_element_pointer();
   int*     get_column_index_pointer();
   int*     get_row_start_pointer();
 
+  //! The start of each row in column_indices() and values(), and their size last
+  [[nodiscard]] std::span<const int> row_starts() const;
+
+  //! The ascending and unique columns of the elements of each row
+  [[nodiscard]] std::span<const int> column_indices() const;
+
+  //! The values of the elements
+  [[nodiscard]] std::span<const Numeric> values() const;
+  [[nodiscard]] std::span<Numeric>       values();
+
   // Friends:
   friend std::ostream& operator<<(std::ostream& os, const Sparse& v);
 
-  //! The actual matrix.
-  Eigen::SparseMatrix<Numeric, Eigen::RowMajor> matrix;
+ private:
+  Index                nr{0};
+  Index                nc{0};
+  std::vector<int>     row_start{0};
+  std::vector<int>     col_index;
+  std::vector<Numeric> vals;
 };
 
 // Functions for general matrix operations
@@ -174,6 +182,62 @@ using ArrayOfSparse = Array<Sparse>;
 
 std::ostream& operator<<(std::ostream& os, const ArrayOfSparse& a);
 
+// Stored entries only, including explicit zeros. Structural changes invalidate
+// iterators; changing an existing value through the range is allowed.
+namespace matpack {
+template <bool Const> class sparse_element_range : public std::ranges::view_interface<sparse_element_range<Const>> {
+  using source_type = std::conditional_t<Const, const Sparse, Sparse>;
+  source_type* source;
+
+ public:
+  explicit sparse_element_range(source_type& value) : source(&value) {}
+  // The storage is fetched once, so that iterating does not call the out-of-line accessors
+  class iterator {
+    using value_pointer = std::conditional_t<Const, const Numeric*, Numeric*>;
+    using reference     = std::conditional_t<Const, const Numeric&, Numeric&>;
+
+    const int*    starts{};
+    const int*    cols{};
+    value_pointer vals{};
+    Index         nrows{};
+    Index         row{};
+    Index         pos{};
+
+    void skip_finished_rows() {
+      while (row < nrows and pos >= starts[row + 1]) ++row;
+    }
+
+   public:
+    using difference_type  = std::ptrdiff_t;
+    using value_type       = std::tuple<Index, Index, Numeric>;
+    using iterator_concept = std::input_iterator_tag;
+    iterator()             = default;
+    explicit iterator(source_type& value)
+        : starts(value.row_starts().data()),
+          cols(value.column_indices().data()),
+          vals(value.values().data()),
+          nrows(value.nrows()) {
+      skip_finished_rows();
+    }
+    auto      operator*() const { return std::tuple<Index, Index, reference>{row, cols[pos], vals[pos]}; }
+    iterator& operator++() {
+      ++pos;
+      skip_finished_rows();
+      return *this;
+    }
+    void operator++(int) { ++*this; }
+    bool operator==(std::default_sentinel_t) const { return row >= nrows; }
+  };
+  iterator                begin() const { return iterator{*source}; }
+  std::default_sentinel_t end() const { return {}; }
+};
+}  // namespace matpack
+
+inline auto operator|(Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<false>{value}; }
+inline auto operator|(const Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<true>{value}; }
+void        operator|(Sparse&&, matpack::elemwise_r)       = delete;
+void        operator|(const Sparse&&, matpack::elemwise_r) = delete;
+
 template <> struct std::formatter<Sparse> {
   format_tags tags;
 
@@ -185,82 +249,22 @@ template <> struct std::formatter<Sparse> {
   }
 
   template <class FmtContext> FmtContext::iterator format(const Sparse& v, FmtContext& ctx) const {
-    using Iter = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
-
     std::string_view first = tags.sep();
     std::string_view sep   = ""sv;
 
     tags.add_if_bracket(ctx, "["sv);
 
-    for (int k = 0; k < v.matrix.outerSize(); ++k) {
-      for (Iter it(v.matrix, k); it; ++it) {
-        tags.format(ctx, std::exchange(sep, first));
-        tags.add_if_bracket(ctx, "["sv);
-        tags.format(ctx, it.row(), sep, it.col(), sep, it.value());
-        tags.add_if_bracket(ctx, "]"sv);
-      }
+    for (const auto [row, col, value] : v | by_elem) {
+      tags.format(ctx, std::exchange(sep, first));
+      tags.add_if_bracket(ctx, "["sv);
+      tags.format(ctx, row, sep, col, sep, value);
+      tags.add_if_bracket(ctx, "]"sv);
     }
 
     tags.add_if_bracket(ctx, "]"sv);
     return ctx.out();
   }
 };
-
-// Stored entries only, including explicit zeros. Structural changes invalidate
-// iterators; changing an existing value through the range is allowed.
-namespace matpack {
-template <bool Const> class sparse_element_range : public std::ranges::view_interface<sparse_element_range<Const>> {
-  using source_type = std::conditional_t<Const, const Sparse, Sparse>;
-  source_type* source;
-
- public:
-  explicit sparse_element_range(source_type& value) : source(&value) {}
-  class iterator {
-    using inner_type = Eigen::SparseMatrix<Numeric, Eigen::RowMajor>::InnerIterator;
-    source_type*                      matrix{};
-    Index                             row{};
-    mutable std::optional<inner_type> inner;
-    void                              next_row() {
-      while (row < matrix->nrows()) {
-        inner.emplace(matrix->matrix, row);
-        if (*inner) return;
-        ++row;
-      }
-      inner.reset();
-    }
-
-   public:
-    using difference_type  = std::ptrdiff_t;
-    using value_type       = std::tuple<Index, Index, Numeric>;
-    using iterator_concept = std::input_iterator_tag;
-    iterator()             = default;
-    explicit iterator(source_type& value) : matrix(&value) { next_row(); }
-    auto operator*() const {
-      if constexpr (std::is_const_v<source_type>)
-        return std::tuple<Index, Index, const Numeric&>{inner->row(), inner->col(), inner->value()};
-      else
-        return std::tuple<Index, Index, Numeric&>{inner->row(), inner->col(), inner->valueRef()};
-    }
-    iterator& operator++() {
-      ++*inner;
-      if (not *inner) {
-        ++row;
-        next_row();
-      }
-      return *this;
-    }
-    void operator++(int) { ++*this; }
-    bool operator==(std::default_sentinel_t) const { return not inner.has_value(); }
-  };
-  iterator                begin() const { return iterator{*source}; }
-  std::default_sentinel_t end() const { return {}; }
-};
-}  // namespace matpack
-
-inline auto operator|(Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<false>{value}; }
-inline auto operator|(const Sparse& value, matpack::elemwise_r) { return matpack::sparse_element_range<true>{value}; }
-void        operator|(Sparse&&, matpack::elemwise_r)       = delete;
-void        operator|(const Sparse&&, matpack::elemwise_r) = delete;
 
 template <> struct xml_io_stream<Sparse> {
   static constexpr std::string_view type_name = "Sparse"sv;

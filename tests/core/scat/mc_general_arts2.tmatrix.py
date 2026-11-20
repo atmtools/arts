@@ -25,23 +25,16 @@ REFRACTIVE_INDEX = np.array([
 FREQUENCIES = [229e9, 231e9]
 TEMPERATURES = [214.0, 225.0]
 ANGLES = np.arange(0.0, 181.0, 10.0)
-C = 299792458.0
 # ARTS2 scattering data use Mishchenko's Stokes convention, whose U is the
 # negative of ARTS's.  The legacy layout below holds them that way: D Z D with
 # D = diag(1, 1, -1, 1) takes ARTS's phase matrices to ARTS2's.
 D = np.diag([1.0, 1.0, -1.0, 1.0])
 
 
-def generate(legacy_numerics=False, quadrature=10):
+def generate(quadrature=10):
     # Match the historical integration in theta and relative azimuth, both
     # 0..180 degrees, with sin(theta) and a factor 2 for the other azimuth half.
-    if legacy_numerics and quadrature == 10:
-        # Original arts_math.py printed its quadrature to eight decimal places.
-        x = np.array([.14887434, .43339539, .67940957, .86506337, .97390653])
-        w = np.array([.29552422, .26926672, .21908636, .14945135, .06667134])
-        x, w = np.r_[x, -x], np.r_[w, w]
-    else:
-        x, w = np.polynomial.legendre.leggauss(quadrature)
+    x, w = np.polynomial.legendre.leggauss(quadrature)
     theta = 90 * (1 + x)
     weights = 2 * (np.pi / 2)**2 * w[:, None] * \
         w[None, :] * np.sin(np.deg2rad(theta))[:, None]
@@ -60,35 +53,25 @@ def generate(legacy_numerics=False, quadrature=10):
     phase = np.empty((2, 2, nz, nz, nz, 1, 16))
     extinction = np.empty((2, 2, nz, 1, 3))
     absorption = np.empty((2, 2, nz, 1, 2))
-    orders = []
     for fi, frequency in enumerate(FREQUENCIES):
-        wavelength = C / frequency
-        radius = 100e-6
-        unit = 1.0
-        if legacy_numerics:
-            # arts_scat stored wavelength in float32 micrometres before calling
-            # the double-precision solver, then converted amplitudes back to SI.
-            wavelength = float(np.float32(wavelength * 1e6))
-            radius, unit = 100., 1e-6
+        wavelength = A.convert.freq2wavelen(frequency)
         for ti, _ in enumerate(TEMPERATURES):
             m = REFRACTIVE_INDEX[fi, ti]
-            results = A.tmatrix.fixed_batch(radius, wavelength, A.tmatrix.Shape.spheroid(1.5), m.real, m.imag,
+            results = A.tmatrix.fixed_batch(100e-6, wavelength, A.tmatrix.Shape.spheroid(1.5), m.real, m.imag,
                                             geometries, accuracy=.001)
-            orders.append(int(results[0].order))
-            phase[fi, ti] = (np.array([D @ np.asarray(r.phase) @ D
-                             for r in results[:nphase]]) * unit**2).reshape(nz, nz, nz, 1, 16)
+            phase[fi, ti] = np.array([D @ np.asarray(r.phase) @ D
+                                      for r in results[:nphase]]).reshape(nz, nz, nz, 1, 16)
             # Optical theorem: directional extinction, not the orientation-
             # averaged scalar cross section returned by the T-matrix solve.
             for zi, r in enumerate(results[nphase:nphase + nz]):
-                s = np.asarray(r.amplitude) * unit
-                lam = wavelength * unit
-                k = A.Propmat([lam * (s[0, 0] + s[1, 1]).imag,
-                               lam * (s[0, 0] - s[1, 1]).imag,
-                               0., 0., 0., 0., lam * (s[1, 1] - s[0, 0]).real])
+                s = np.asarray(r.amplitude)
+                k = A.Propmat([wavelength * (s[0, 0] + s[1, 1]).imag,
+                               wavelength * (s[0, 0] - s[1, 1]).imag,
+                               0., 0., 0., 0., wavelength * (s[1, 1] - s[0, 0]).real])
                 extinction[fi, ti, zi, 0] = np.asarray(k)[[0, 1, 6]]
             # Integrate column 0 at fixed outgoing direction, as in arts_scat;
             # subtract scattering out of thermal equilibrium from K[:,0].
-            z = np.array([D @ np.asarray(r.phase) @ D for r in results[nphase + nz:]]) * unit**2
+            z = np.array([D @ np.asarray(r.phase) @ D for r in results[nphase + nz:]])
             z = z.reshape(nz, quadrature, quadrature, 4, 4)
             scattering = np.einsum('ij,zijc->zc', weights, z[..., :, 0])
             for zi in range(nz):
@@ -100,13 +83,13 @@ def generate(legacy_numerics=False, quadrature=10):
     ssd.description = (
         "ARTS3 T-matrix MC particle: equal-volume radius 100 um, oblate spheroid "
         "aspect ratio 1.5, alpha=beta=0, accuracy=0.001, original REFICE material. "
-        f"Legacy numerics: {legacy_numerics}; absorption quadrature: {quadrature}. "
+        f"Absorption quadrature: {quadrature}. "
         "Full angular grid evaluated directly."
     )
     ssd.f_grid, ssd.T_grid = FREQUENCIES, TEMPERATURES
     ssd.za_grid, ssd.aa_grid = ANGLES, ANGLES
     ssd.pha_mat_data, ssd.ext_mat_data, ssd.abs_vec_data = phase, extinction, absorption
-    return ssd, orders
+    return ssd
 
 
 def main():
@@ -246,7 +229,7 @@ def main():
     pnd_full[13:20, 23:40, 23:41] = pnd
     ws.atm_field[number_density] = field(pnd_full)
 
-    legacy, _ = generate()
+    legacy = generate()
     meta = A.ScatteringMetaData()
     # This is a one-particle population; size metadata only identifies its sole bin.
     meta.mass = 1.0
@@ -283,18 +266,14 @@ def main():
         mc_max_scatorder=30,
     )
 
+    def to_rj(stokes):
+        """The Rayleigh-Jeans brightness temperature [K] of a Stokes vector"""
+        return A.physics.invrayjean(np.asarray(stokes), common["frequency"])
+
     def check(reference):
         ws.MCGeneral(**common)
-        rj = (
-            np.asarray(ws.mc_spectral_rad)
-            * A.constants.c**2
-            / (2.0 * A.constants.k * common["frequency"] ** 2)
-        )
-        error = (
-            np.asarray(ws.mc_error)
-            * A.constants.c**2
-            / (2.0 * A.constants.k * common["frequency"] ** 2)
-        )
+        rj = to_rj(ws.mc_spectral_rad)
+        error = to_rj(ws.mc_error)
         accepted = np.abs(rj[:2] - reference) <= 4.0 * error[:2]
         assert np.all(accepted), (
             f"ARTS2 I/Q={np.asarray(reference)} K; "

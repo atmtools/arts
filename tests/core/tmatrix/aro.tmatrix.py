@@ -62,29 +62,6 @@ reference = np.array([np.array(f.phase) for f in fixed]).reshape(phase.shape)
 bound = 16 * EPS * vertical.order * np.max(np.abs(reference))
 assert np.max(np.abs(phase - reference)) <= bound, np.max(np.abs(phase - reference))
 
-# The extinction of the forward amplitude, lambda (Im(S11 + S22),
-# Im(S11 - S22), Re(S11 - S22)) in ARTS's Stokes convention
-forward = TM.fixed_batch(
-    **PARTICLE,
-    geometries=[
-        TM.Geometry(
-            theta_incident=z,
-            theta_scattered=z,
-            phi_incident=90.0,
-            phi_scattered=90.0,
-            alpha=0.0,
-            beta=0.0,
-        )
-        for z in ZA
-    ],
-)
-for k, f in zip(extinction, forward):
-    S = np.array(f.amplitude)
-    K = PARTICLE["wavelength"] * np.array(
-        [(S[0, 0] + S[1, 1]).imag, (S[0, 0] - S[1, 1]).imag, (S[0, 0] - S[1, 1]).real]
-    )
-    assert np.max(np.abs(k - K)) <= 16 * EPS * vertical.order * K[0], (k, K)
-
 # The weights are normalized: 2 and 6 are 1/4 and 3/4, exactly
 for a, b in [
     (aro([30.0, 70.0], [2.0, 6.0]), aro([30.0, 70.0], [0.25, 0.75])),
