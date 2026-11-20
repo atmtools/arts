@@ -19,7 +19,7 @@ void expect_close(const std::string_view label,
                   const Numeric          expected,
                   const Numeric          tolerance = 5.0e-10) {
   if (not std::isfinite(actual) or std::abs(actual - expected) > tolerance * std::max(1.0, std::abs(expected)))
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         "{}: expected {:.17g}, got {:.17g} (difference {:.3g})", label, expected, actual, actual - expected));
 }
 

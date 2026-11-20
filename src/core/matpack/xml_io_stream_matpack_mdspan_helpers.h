@@ -72,7 +72,7 @@ template <arts_xml_ioable T, arts_xml_ioable... Grids> struct xml_io_stream_grid
 
     parse(is, gf, pbifs, tag);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+    throw std::runtime_error(arts::format("Error reading {}:\n{}", type_name.data(), e.what()));
   }
 };
 

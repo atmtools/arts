@@ -33,7 +33,7 @@ int failures = 0;
 
 void require(bool ok, const std::string& what) {
   if (not ok) {
-    std::println("FAIL {}", what);
+    arts::println("FAIL {}", what);
     ++failures;
   }
 }
@@ -43,7 +43,7 @@ Numeric relative(Numeric a, Numeric b) { return std::abs(a - b) / std::abs(b); }
 void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
   const auto sphere =
       shape == ParticleShape::chebyshev ? tmatrix::Shape::chebyshev(degree, 0.0) : tmatrix::Shape::spheroid(1.0);
-  const std::string name = std::format("sphere r={} m=({}, {}) {} {}", r, m.real(), m.imag(), shape, degree);
+  const std::string name = arts::format("sphere r={} m=({}, {}) {} {}", r, m.real(), m.imag(), shape, degree);
 
   // Random orientation: the six elements of F C_sca / (4 pi) at the scattering angles
   constexpr Index angles = 37;
@@ -67,7 +67,7 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
     for (Index e = 0; e < 6; ++e)
       worst = std::max(worst, std::abs(t.phase[i].data[e] * scale - F[i].data[e]) / tol_random);
   require(worst <= 1.0,
-          std::format("{}: random-orientation scattering matrix at {:.2f} of its tolerance", name, worst));
+          arts::format("{}: random-orientation scattering matrix at {:.2f} of its tolerance", name, worst));
 
   // Fixed orientation: the Mueller matrix of the T-matrix's Jones matrix is the laboratory-frame
   // phase matrix that ARTS builds from Mie's F (rtepack::lab_frame_phase_matrix), element by
@@ -125,9 +125,9 @@ void sphere(Numeric r, Complex m, ParticleShape shape, Index degree) {
         worst_fixed = std::max(worst_fixed, std::abs(fixed[i].phase[a, b] - Z[a, b]) / (accuracy * f11max));
   }
   require(worst_fixed <= 1.0,
-          std::format("{}: fixed-orientation phase matrix at {:.2f} of its tolerance", name, worst_fixed));
+          arts::format("{}: fixed-orientation phase matrix at {:.2f} of its tolerance", name, worst_fixed));
 
-  std::println("{}: random {:.3f} and fixed {:.3f} of their tolerances", name, worst, worst_fixed);
+  arts::println("{}: random {:.3f} and fixed {:.3f} of their tolerances", name, worst, worst_fixed);
 }
 }  // namespace
 
@@ -139,8 +139,8 @@ int main() try {
                                    std::pair{ParticleShape::chebyshev, Index{2}},
                                    std::pair{ParticleShape::chebyshev, Index{3}}})
         sphere(r, m, shape, degree);
-  if (failures) throw std::runtime_error(std::format("{} comparisons failed", failures));
+  if (failures) throw std::runtime_error(arts::format("{} comparisons failed", failures));
 } catch (const std::exception& e) {
-  std::println(stderr, "{}", e.what());
+  arts::println(stderr, "{}", e.what());
   return 1;
 }

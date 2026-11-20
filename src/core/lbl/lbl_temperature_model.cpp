@@ -35,7 +35,7 @@ std::istream& operator>>(std::istream& is, temperature::data& x) try {
   for (auto& v : x.x) is >> double_imanip() >> v;
   return is;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading LineShapeTemperatureModel:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading LineShapeTemperatureModel:\n{}", e.what()));
 }
 
 LineShapeModelType data::Type() const { return t; }
@@ -112,7 +112,7 @@ void xml_io_stream<lbl::temperature::data>::read(std::istream& is, lbl::temperat
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name, e.what()));
+  throw std::runtime_error(arts::format("Error reading {}:\n{}", type_name, e.what()));
 }
 
 namespace {
@@ -127,16 +127,16 @@ std::string metric_unit_x0(const Numeric x, const std::optional<LineShapeModelVa
       case D0:
       case G2:
       case D2:
-      case FVC:    return std::format("{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
-      case ETA:    return std::format("{}", x);
-      case DV:     return std::format("{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
-      case G:      return std::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
-      case Y:      return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
+      case FVC:    return arts::format("{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
+      case ETA:    return arts::format("{}", x);
+      case DV:     return arts::format("{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+      case G:      return arts::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+      case Y:      return arts::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
       case unused: break;
     }
   }
 
-  return std::format("{}", x);
+  return arts::format("{}", x);
 }
 
 std::string metric_unit_x1(const Numeric x, LineShapeModelType t, const std::optional<LineShapeModelVariable>& type) {
@@ -157,13 +157,13 @@ std::string metric_unit_x1(const Numeric x, LineShapeModelType t, const std::opt
           case T2:
           case T5:
           case DPL:
-          case POLY: return std::format("{}", x);
+          case POLY: return arts::format("{}", x);
           case T3:
           case T4:
-          case AER:  return std::format("{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
+          case AER:  return arts::format("{:.2f}{}{}Hz/Pa", v, c == ' ' ? ""sv : " "sv, c);
         }
         break;
-      case ETA: return std::format("{}", x);
+      case ETA: return arts::format("{}", x);
       case DV:
         switch (t) {
           case T0:
@@ -171,10 +171,10 @@ std::string metric_unit_x1(const Numeric x, LineShapeModelType t, const std::opt
           case T2:
           case T5:
           case DPL:
-          case POLY: return std::format("{}", x);
-          case T3:   return std::format("{:.2f}{}{}Hz/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
+          case POLY: return arts::format("{}", x);
+          case T3:   return arts::format("{:.2f}{}{}Hz/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
           case T4:
-          case AER:  return std::format("{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+          case AER:  return arts::format("{:.2f}{}{}Hz/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
         }
         break;
       case G:
@@ -184,10 +184,10 @@ std::string metric_unit_x1(const Numeric x, LineShapeModelType t, const std::opt
           case T2:
           case T5:
           case DPL:
-          case POLY: return std::format("{}", x);
-          case T3:   return std::format("{:.2f}{}{}/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
+          case POLY: return arts::format("{}", x);
+          case T3:   return arts::format("{:.2f}{}{}/Pa^2/K", v, c == ' ' ? ""sv : " "sv, c);
           case T4:
-          case AER:  return std::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
+          case AER:  return arts::format("{:.2f}{}{}/Pa^2", v, c == ' ' ? ""sv : " "sv, c);
         }
         break;
       case Y:
@@ -197,16 +197,16 @@ std::string metric_unit_x1(const Numeric x, LineShapeModelType t, const std::opt
           case T2:
           case T5:
           case DPL:
-          case POLY: return std::format("{}", x);
-          case T3:   return std::format("{:.2f}{}{}/Pa/K", v, c == ' ' ? ""sv : " "sv, c);
+          case POLY: return arts::format("{}", x);
+          case T3:   return arts::format("{:.2f}{}{}/Pa/K", v, c == ' ' ? ""sv : " "sv, c);
           case T4:
-          case AER:  return std::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
+          case AER:  return arts::format("{:.2f}{}{}/Pa", v, c == ' ' ? ""sv : " "sv, c);
         }
       case unused: break;
     }
   }
 
-  return std::format("{}", x);
+  return arts::format("{}", x);
 }
 }  // namespace
 
@@ -214,29 +214,29 @@ std::string to_educational_string(const lbl::temperature::data& data, std::optio
   switch (data.Type()) {
     using enum LineShapeModelType;
     using enum LineShapeModelCoefficient;
-    case T0: return std::format("{}", metric_unit_x0(data.X(X0), type));
+    case T0: return arts::format("{}", metric_unit_x0(data.X(X0), type));
     case T1:
-      return std::format(
+      return arts::format(
           "{} * std::pow(T0 / T, {})", metric_unit_x0(data.X(X0), type), metric_unit_x1(data.X(X1), data.Type(), type));
     case T2:
-      return std::format("{} * std::pow(T0 / T, {}) * (1 + {} * std::log(T / T0))",
-                         metric_unit_x0(data.X(X0), type),
-                         metric_unit_x1(data.X(X1), data.Type(), type),
-                         data.X(X2));
+      return arts::format("{} * std::pow(T0 / T, {}) * (1 + {} * std::log(T / T0))",
+                          metric_unit_x0(data.X(X0), type),
+                          metric_unit_x1(data.X(X1), data.Type(), type),
+                          data.X(X2));
     case T3:
-      return std::format(
+      return arts::format(
           "{} + {} * (T - T0)", metric_unit_x0(data.X(X0), type), metric_unit_x1(data.X(X1), data.Type(), type));
     case T4:
-      return std::format("({0} + {1} * (T0 / T - 1)) * std::pow(T0 / T, {2})",
-                         metric_unit_x0(data.X(X0), type),
-                         metric_unit_x1(data.X(X1), data.Type(), type),
-                         data.X(X2));
+      return arts::format("({0} + {1} * (T0 / T - 1)) * std::pow(T0 / T, {2})",
+                          metric_unit_x0(data.X(X0), type),
+                          metric_unit_x1(data.X(X1), data.Type(), type),
+                          data.X(X2));
     case T5:
-      return std::format("{} * std::pow(T0 / T, 0.25 + 1.5 * {})",
-                         metric_unit_x0(data.X(X0), type),
-                         metric_unit_x1(data.X(X1), data.Type(), type));
+      return arts::format("{} * std::pow(T0 / T, 0.25 + 1.5 * {})",
+                          metric_unit_x0(data.X(X0), type),
+                          metric_unit_x1(data.X(X1), data.Type(), type));
     case AER:
-      return std::format(
+      return arts::format(
           "(T < 250.0) ? "
           "{0} + (T - 200.0) * ({1} - {0}) / (250.0 - 200.0) : "
           "(T > 296.0) ? "
@@ -247,24 +247,24 @@ std::string to_educational_string(const lbl::temperature::data& data, std::optio
           metric_unit_x0(data.X(X2), type),
           metric_unit_x0(data.X(X3), type));
     case DPL:
-      return std::format("{} * std::pow(T0 / T, {}) + {} * std::pow(T0 / T, {})",
-                         metric_unit_x0(data.X(X0), type),
-                         metric_unit_x1(data.X(X1), data.Type(), type),
-                         metric_unit_x0(data.X(X2), type),
-                         metric_unit_x1(data.X(X3), data.Type(), type));
+      return arts::format("{} * std::pow(T0 / T, {}) + {} * std::pow(T0 / T, {})",
+                          metric_unit_x0(data.X(X0), type),
+                          metric_unit_x1(data.X(X1), data.Type(), type),
+                          metric_unit_x0(data.X(X2), type),
+                          metric_unit_x1(data.X(X3), data.Type(), type));
     case POLY: {
       std::string      s{};
       Size             i{};
       std::string      res{""};
       std::string_view x = ""sv;
       for (auto& v : data.X()) {
-        res += std::format("{}{}{}{}",
-                           std::exchange(x, " + "sv),
-                           metric_unit_x0(v, type),
-                           i == 0   ? ""s
-                           : i == 1 ? "/K"s
-                                    : std::format("/K^{}", i),
-                           s);
+        res += arts::format("{}{}{}{}",
+                            std::exchange(x, " + "sv),
+                            metric_unit_x0(v, type),
+                            i == 0   ? ""s
+                            : i == 1 ? "/K"s
+                                     : arts::format("/K^{}", i),
+                            s);
         s   += " * T";
         i++;
       }

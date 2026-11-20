@@ -17,13 +17,13 @@ const Stokvec unpolarized{1.0, 0.0, 0.0, 0.0};
 
 void assert_close(Numeric actual, Numeric expected, Numeric tol, std::string_view name) {
   if (std::abs(actual - expected) > tol)
-    throw std::runtime_error(std::format("{} mismatch: actual {} expected {}", name, actual, expected));
+    throw std::runtime_error(arts::format("{} mismatch: actual {} expected {}", name, actual, expected));
 }
 
 void assert_stokvec(Stokvec actual, Stokvec expected, Numeric tol, std::string_view name) {
   for (Size i = 0; i < 4; ++i) {
     if (std::abs(actual[i] - expected[i]) > tol)
-      throw std::runtime_error(std::format("{} mismatch at {}:\nactual {} expected {}", name, i, actual, expected));
+      throw std::runtime_error(arts::format("{} mismatch at {}:\nactual {} expected {}", name, i, actual, expected));
   }
 }
 
@@ -65,20 +65,20 @@ void test_single_beams_have_one_pixel() try {
   for (const auto& antenna : antennas) {
     const auto pixels = sensor::antenna_pixels(antenna);
     if (pixels.size() != 1 or pixels.rows.size() != 1 or pixels.cols.size() != 1)
-      throw std::runtime_error(std::format("Antenna {} must have one pixel", antenna.index()));
+      throw std::runtime_error(arts::format("Antenna {} must have one pixel", antenna.index()));
     assert_close(pixels.rows[0], 0.0, 0.0, "pixel row offset");
     assert_close(pixels.cols[0], 0.0, 0.0, "pixel column offset");
 
     const auto sensor =
         sensor::antenna_sensor(antenna, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
     if (sensor.elements.size() != pixels.size())
-      throw std::runtime_error(std::format("Antenna {} must give one element per pixel, got {} for {}",
-                                           antenna.index(),
-                                           sensor.elements.size(),
-                                           pixels.size()));
+      throw std::runtime_error(arts::format("Antenna {} must give one element per pixel, got {} for {}",
+                                            antenna.index(),
+                                            sensor.elements.size(),
+                                            pixels.size()));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_single_beams_have_one_pixel failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_single_beams_have_one_pixel failed:\n{}", e.what()));
 }
 
 /** The pixels of a thin-lens camera look through the centre of the lens, inverted, in CCD coordinates
@@ -98,7 +98,7 @@ void test_camera_pixel_directions() try {
       ::sensor::antenna_sensor(camera, ::sensor::DiracChannel{100.0e9}, unpolarized, pos, {90.0, 0.0}, ell);
 
   if (camera.pixels().size() != n_rows * n_cols or sensor.elements.size() != n_rows * n_cols)
-    throw std::runtime_error(std::format("Expected {} pixels and elements", n_rows * n_cols));
+    throw std::runtime_error(arts::format("Expected {} pixels and elements", n_rows * n_cols));
   if (sensor.geometry.size() != n_rows * n_cols)
     throw std::runtime_error("A pencil-beam pixel samples one line of sight");
 
@@ -110,16 +110,16 @@ void test_camera_pixel_directions() try {
 
       const Size k = i * n_cols + j;
       if (sensor.elements[k].size() != 1 or sensor.elements[k].vector().front().irow != k)
-        throw std::runtime_error(std::format("Pixel ({}, {}) must weight its own line of sight", i, j));
+        throw std::runtime_error(arts::format("Pixel ({}, {}) must weight its own line of sight", i, j));
       const Vector2 los = sensor.geometry[k].los;
-      assert_close(los[0], Conversion::acosd(-dy / v), 1e-12, std::format("zenith of pixel ({}, {})", i, j));
-      assert_close(los[1], Conversion::atan2d(-dx, d_i), 1e-12, std::format("azimuth of pixel ({}, {})", i, j));
+      assert_close(los[0], Conversion::acosd(-dy / v), 1e-12, arts::format("zenith of pixel ({}, {})", i, j));
+      assert_close(los[1], Conversion::atan2d(-dx, d_i), 1e-12, arts::format("azimuth of pixel ({}, {})", i, j));
       assert_close(camera.grid.rows[i], Conversion::atan2d(dy, d_i), 1e-12, "row offset");
       assert_close(camera.grid.cols[j], Conversion::atan2d(dx, d_i), 1e-12, "column offset");
     }
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_camera_pixel_directions failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_camera_pixel_directions failed:\n{}", e.what()));
 }
 
 //! A nadir camera receives one field direction in all its pixels, as in test_polarization_is_carried_around_nadir
@@ -137,10 +137,10 @@ void test_camera_carries_polarization_at_nadir() try {
     assert_stokvec(w / w.I(),
                    {1.0, cosd(2.0 * a), sind(2.0 * a), 0.0},
                    1e-3,
-                   std::format("northward field in the pixel towards azimuth {}", a));
+                   arts::format("northward field in the pixel towards azimuth {}", a));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_camera_carries_polarization_at_nadir failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_camera_carries_polarization_at_nadir failed:\n{}", e.what()));
 }
 
 //! Each pixel of a camera has the camera's beam, centred on the pixel
@@ -166,7 +166,7 @@ void test_camera_pixels_have_the_beam() try {
     assert_close(total, 1.0, 1e-12, "beam weights of a pixel");
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_camera_pixels_have_the_beam failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_camera_pixels_have_the_beam failed:\n{}", e.what()));
 }
 
 void test_gaussian_rejects_nonpositive_std() try {
@@ -179,7 +179,7 @@ void test_gaussian_rejects_nonpositive_std() try {
 
   if (not threw) throw std::runtime_error("Gaussian antenna must reject a nonpositive std");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_rejects_nonpositive_std failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_rejects_nonpositive_std failed:\n{}", e.what()));
 }
 
 void test_gaussian_airy_is_frequency_dependent() try {
@@ -194,7 +194,7 @@ void test_gaussian_airy_is_frequency_dependent() try {
   if (low_weight[0] <= high_weight[0])
     throw std::runtime_error("Higher frequency Gaussian Airy sample must be narrower");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_airy_is_frequency_dependent failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_airy_is_frequency_dependent failed:\n{}", e.what()));
 }
 
 //! The beam weight of each sample is its gain times the solid angle of its cell: the cap inside the first
@@ -205,8 +205,8 @@ void test_cells_are_spherical_caps_and_bands() try {
       sensor::antenna_sensor(gaussian, sensor::DiracChannel{100.0e9}, unpolarized, pos, {45.0, 30.0}, ell);
 
   if (gaussian_beam.geometry.size() != 4) {
-    throw std::runtime_error(std::format("Expected zero-zenith azimuth collapse to leave 4 LOS samples, got {}",
-                                         gaussian_beam.geometry.size()));
+    throw std::runtime_error(arts::format("Expected zero-zenith azimuth collapse to leave 4 LOS samples, got {}",
+                                          gaussian_beam.geometry.size()));
   }
 
   const Numeric center = cap(0.5);
@@ -217,7 +217,7 @@ void test_cells_are_spherical_caps_and_bands() try {
     assert_close(gaussian_beam.elements.front()[i, 0][0], band / total, 1e-12, "gaussian band sample");
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_cells_are_spherical_caps_and_bands failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_cells_are_spherical_caps_and_bands failed:\n{}", e.what()));
 }
 
 /** The Gaussian Airy beam has the half-power width of the Airy pattern of its aperture
@@ -247,7 +247,7 @@ void test_gaussian_airy_half_power_width() try {
     assert_close(beam.elements.front()[i, 0][0], band / total, 1e-12, "airy sample at the half-power offset");
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_airy_half_power_width failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_airy_half_power_width failed:\n{}", e.what()));
 }
 
 void test_two_azimuths_split_the_band() try {
@@ -256,7 +256,7 @@ void test_two_azimuths_split_the_band() try {
 
   if (beam.geometry.size() != 3) {
     throw std::runtime_error(
-        std::format("Expected degenerate azimuth collapse to leave 3 LOS samples, got {}", beam.geometry.size()));
+        arts::format("Expected degenerate azimuth collapse to leave 3 LOS samples, got {}", beam.geometry.size()));
   }
 
   const Numeric center = cap(0.5);
@@ -266,7 +266,7 @@ void test_two_azimuths_split_the_band() try {
   assert_close(beam.elements.front()[1, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 0");
   assert_close(beam.elements.front()[2, 0][0], wing / total, 1e-12, "gaussian wing at azimuth 180");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_two_azimuths_split_the_band failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_two_azimuths_split_the_band failed:\n{}", e.what()));
 }
 
 /** The beam reproduces the second moment of a 2D Gaussian
@@ -298,7 +298,7 @@ void test_gaussian_second_moment() try {
   assert_close(total, 1.0, 1e-12, "gaussian beam weights sum");
   assert_close(m2 / expected, 1.0, 2e-3, "gaussian beam second moment relative to the analytic");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_second_moment failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_second_moment failed:\n{}", e.what()));
 }
 
 //! Each frequency of the channel keeps its channel weight; the beam is normalized per frequency.  The channel
@@ -313,10 +313,10 @@ void test_gaussian_airy_keeps_the_channel_weights() try {
     Numeric marginal = 0.0;
     for (Size i = 0; i < beam.geometry.size(); i++) marginal += beam.elements.front()[i, j][0];
     const Numeric expected = (j == 0 or j + 1 == beam.freq_grid.size()) ? 1.0 / 18.0 : 1.0 / 9.0;
-    assert_close(marginal, expected, 1e-12, std::format("airy frequency marginal at {} Hz", beam.freq_grid[j]));
+    assert_close(marginal, expected, 1e-12, arts::format("airy frequency marginal at {} Hz", beam.freq_grid[j]));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_airy_keeps_the_channel_weights failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_airy_keeps_the_channel_weights failed:\n{}", e.what()));
 }
 
 //! A cross-track scanner turns its linear polarization by scan_rotation times the signed scan angle
@@ -335,7 +335,9 @@ void test_scan_rotation() try {
 
   const sensor::Polarization fixed{.state = {1.0, 1.0, 0.0, 0.0}};
   assert_stokvec(fixed.at(30.0), {1.0, 1.0, 0.0, 0.0}, 0.0, "no scan rotation");
-} catch (const std::exception& e) { throw std::runtime_error(std::format("test_scan_rotation failed:\n{}", e.what())); }
+} catch (const std::exception& e) {
+  throw std::runtime_error(arts::format("test_scan_rotation failed:\n{}", e.what()));
+}
 
 /** A nadir-looking antenna receives one field direction in all its lines of sight
  *
@@ -360,10 +362,10 @@ void test_polarization_is_carried_around_nadir() try {
     assert_stokvec(w / w.I(),
                    {1.0, cosd(2.0 * a), sind(2.0 * a), 0.0},
                    1e-3,
-                   std::format("northward field in the line of sight towards azimuth {}", a));
+                   arts::format("northward field in the line of sight towards azimuth {}", a));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_polarization_is_carried_around_nadir failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_polarization_is_carried_around_nadir failed:\n{}", e.what()));
 }
 
 void test_normalize_keeps_the_polarization() try {
@@ -383,7 +385,7 @@ void test_normalize_keeps_the_polarization() try {
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) throw std::runtime_error("Normalizing unpolarized weights to a polarization must throw");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_normalize_keeps_the_polarization failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_normalize_keeps_the_polarization failed:\n{}", e.what()));
 }
 
 void test_gaussian_airy_rejects_nonpositive_frequencies() try {
@@ -396,7 +398,7 @@ void test_gaussian_airy_rejects_nonpositive_frequencies() try {
 
   if (not threw) throw std::runtime_error("Gaussian Airy antenna must reject nonpositive channel frequencies");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_gaussian_airy_rejects_nonpositive_frequencies failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_gaussian_airy_rejects_nonpositive_frequencies failed:\n{}", e.what()));
 }
 }  // namespace
 
@@ -418,6 +420,6 @@ int main() try {
   test_gaussian_airy_rejects_nonpositive_frequencies();
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
-  std::println(stderr, "Test failed:\n{}", e.what());
+  arts::println(stderr, "Test failed:\n{}", e.what());
   return EXIT_FAILURE;
 }

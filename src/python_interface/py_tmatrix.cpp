@@ -107,11 +107,11 @@ physical definitions, and :doc:`dev.tmatrix` for build and implementation detail
                   "deformation"_a,
                   "A Chebyshev particle r_0 (1 + deformation cos(degree theta)), with degree at least 1 and a "
                   "deformation of magnitude below 1.")
-      .def_static("generalized_chebyshev",
-                  &tmatrix::Shape::generalized_chebyshev,
-                  "coefficients"_a,
-                  "A generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)) of the coefficients c_0, "
-                  "..., c_N, such as a distorted water drop, with 1 + c_0 > sum_{n >= 1} |c_n|.")
+      .def_static(
+          "generalized_chebyshev",
+          &tmatrix::Shape::generalized_chebyshev,
+          "coefficients"_a,
+          R"(A generalized Chebyshev particle :math:`r_0 (1 + c_0 + \sum_n c_n \cos(n \theta))` of the coefficients :math:`c_0, \ldots, c_N`, such as a distorted water drop, with :math:`1 + c_0 > \sum_{n \geq 1} |c_n|`.)")
       .def_prop_ro("kind", &tmatrix::Shape::kind, "The kind of shape.\n\n.. :class:`~pyarts3.arts.ParticleShape`")
       .def_prop_ro("parameter",
                    &tmatrix::Shape::parameter,

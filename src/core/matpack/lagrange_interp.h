@@ -584,7 +584,7 @@ constexpr order_t check_limit(const std::span<const Numeric>&         xi,
                                        : xi.back() - extrapolation_limit * (xi[n - 2] - xi.back());
 
     if (xmax_lim < xmax or xmin_lim > xmin) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           R"(Extrapolation limit ({0}) yields limits to the extrapolation of the grid that are outside the input grid.
 
 These limits are computed from the input grid: [{9}, {10}, ... {11}, {12}]
@@ -612,18 +612,18 @@ The actual minimum value is {8}
   } else {
     if (transform::cycle(xi.front()) != xi.front() or transform::cycle(xi.back()) != xi.back()) {
       throw std::runtime_error(
-          std::format("The grid cycles.  This is not allowed.\n\n"
-                      "The grid covers [{}, {}] but the limits cycle to {} and {}, respectively.",
-                      xi.front(),
-                      xi.back(),
-                      transform::cycle(xi.front()),
-                      transform::cycle(xi.back())));
+          arts::format("The grid cycles.  This is not allowed.\n\n"
+                       "The grid covers [{}, {}] but the limits cycle to {} and {}, respectively.",
+                       xi.front(),
+                       xi.back(),
+                       transform::cycle(xi.front()),
+                       transform::cycle(xi.back())));
     }
   }
 
   return retval;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error in check_limit for {}:\n{}", info, e.what()));
+  throw std::runtime_error(arts::format("Error in check_limit for {}:\n{}", info, e.what()));
 }
 
 template <grid_transformer transform, matpack::ranked_md<1> Orig, matpack::ranked_md<1> New>

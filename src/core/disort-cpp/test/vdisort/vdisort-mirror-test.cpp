@@ -131,7 +131,7 @@ int main() try {
     scale      = std::max(scale, std::abs(a.data_handle()[n]));
     difference = std::max(difference, std::abs(a.data_handle()[n] - b.data_handle()[n]));
   }
-  std::cout << std::format("downward rows changed by 1e-9: radiance changed by {:.3e} of max\n", difference / scale);
+  arts::println("downward rows changed by 1e-9: radiance changed by {:.3e} of max", difference / scale);
   require(difference > 0.0, "An asymmetric phase matrix must not take the half-size eigenproblem");
   require(difference < 1e-8 * scale, "The half-size and full eigensolutions must agree");
   std::cout << "vdisort mirror test passed\n";

@@ -216,26 +216,6 @@ fast-but-accurate computations, some IEEE rules will be ignored. For now only
 complex computations are IEEE incompatible running this mode of build.
 
 
-Optional features
------------------
-
-Precompiled headers: PCH can speed up builds significantly. However, it hampers
-the ability for ccache to properly skip unnecessary compilations, potentially
-increasing rebuild times. Tests have shown that it only speeds up the build
-considerably for Clang, but not for GCC.
-
-```
-cmake --preset=default-clang-conda -DENABLE_PCH=1 ..
-```
-
-If you enable PCH and also use ccache, you need to set the `CCACHE_SLOPPINESS`
-environment variable properly:
-
-```
-export CCACHE_SLOPPINESS=pch_defines,time_macros
-```
-
-
 Disabling features
 ------------------
 
@@ -245,12 +225,26 @@ Disable OpenMP: `-DNO_OPENMP=1`
 
 Disable the built-in documentation server: `-DNO_DOCSERVER=1`
 
+Disable precompiled headers: `-DENABLE_PCH=0`. Most targets reuse one
+precompiled `matpack.h`. A build without it checks that every file includes
+what it uses.
+
 
 ccache support
 --------------
 
 The build utilizes ccache automatically when available, it can be
 turned off with the option `-DENABLE_CCACHE=0`
+
+With precompiled headers, the build gives ccache the settings it needs for
+them: `pch_defines,time_macros` is added to the sloppiness that ccache is
+configured with when CMake runs, and Clang compiles with
+`-Xclang -fno-pch-timestamp`. With GCC, ccache cannot help once the
+precompiled header is rebuilt in an existing build directory, for instance
+after a branch switch that touches a header that `matpack.h` includes: every
+file that uses the precompiled header is then compiled again. If you often
+switch between such branches in one build directory, `-DENABLE_PCH=0` may
+rebuild faster.
 
 For details see https://ccache.samba.org/
 

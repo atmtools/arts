@@ -43,7 +43,7 @@ class Wsv {
 
   //! Safely share into the variant
   template <WorkspaceGroup T> [[nodiscard]] std::shared_ptr<T> share() const {
-    if (not holds<T>()) throw std::runtime_error(std::format(R"(Casting "{}" to "{}")", name<T>, type_name()));
+    if (not holds<T>()) throw std::runtime_error(arts::format(R"(Casting "{}" to "{}")", name<T>, type_name()));
     return share_unsafe<T>();
   }
 
@@ -55,7 +55,7 @@ class Wsv {
 
   //! Safely reference into the variant
   template <WorkspaceGroup T> [[nodiscard]] T& get() const {
-    if (not holds<T>()) throw std::runtime_error(std::format(R"(Casting "{}" to "{}")", name<T>, type_name()));
+    if (not holds<T>()) throw std::runtime_error(arts::format(R"(Casting "{}" to "{}")", name<T>, type_name()));
     return get_unsafe<T>();
   }
 

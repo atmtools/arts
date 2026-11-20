@@ -16,7 +16,7 @@ void test_expm() {
     auto rng2 = RandomNumberGenerator{}.get(-A, A);
 
     const Propmat k{rng(), rng2(), rng2(), rng2(), rng2(), rng2(), rng2()};
-    std::println("{:B,}", k);
+    arts::println("{:B,}", k);
 
     Matrix k_expm  = to_matrix(k);
     k_expm        *= -1;
@@ -27,7 +27,7 @@ void test_expm() {
     auto mmat  = Matrix(m);
     mmat      -= t_expm;
 
-    std::println("{:B,}\n{:B,}\n{:B,}\n", t_expm, Matrix(m), mmat);
+    arts::println("{:B,}\n{:B,}\n{:B,}\n", t_expm, Matrix(m), mmat);
   }
 }
 
@@ -71,8 +71,8 @@ void test_dexpm() {
   for (Size i = 0; i < 4; i++) {
     for (Size j = 0; j < 4; j++) { m[i][j] /= dt[0][i][j] * x * 2.0; }
   }
-  std::cout << std::format("{}", dt) << '\n';
-  std::cout << std::format("{}", m) << '\n';
+  arts::println("{}", dt);
+  arts::println("{}", m);
 }
 
 void test_inv() {
@@ -122,7 +122,7 @@ void test_inv() {
   for (Size i = 0; i < 4; i++) {
     for (Size j = 0; j < 4; j++) { inv_k[i][j] /= m[i][j]; }
   }
-  std::print(std::cout, "{}\n", inv_k);
+  arts::print("{}\n", inv_k);
 }
 
 //! The compact scattering-plane Mueller matrix: its layout, and products that are those of the full matrix

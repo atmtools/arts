@@ -12,17 +12,17 @@ This has some main uses:
    more consistent.  And it allows us to specialize the formatting for each
    object using the python ``__format__`` interface to control some aspects of
    how the output looks.
-2. Calls to ``std::format`` inside the C++ code can be used to format strings
+2. Calls to ``arts::format`` inside the C++ code can be used to format strings
    consistently.  This is especially useful for logging and debugging,
-   and our experience using it in XML IO code with ``std::print`` shows
-   that it is significantly faster than the old stream-based solution to 
+   and our experience using it in XML IO code shows that it is
+   significantly faster than the old stream-based solution to
    text manipulation.
 
 How is it implemented?
 ----------------------
 
 Most ARTS classes should provide a ``std::formatter<T>`` specialization to allow
-formatting of the class using ``std::format`` and its ilks.
+formatting of the class using ``arts::format``, ``std::format`` and their ilks.
 The only exceptions are those groups that are marked as ``value_type`` in the
 workspace groups definition.
 
@@ -104,6 +104,37 @@ If your class's ``MetaData`` is ``format_tags tags;`` then the following is the 
 
 The above ensures that there exists at most one ``tags`` object for each class, and that
 the ``tags`` object is the only object that needs to be passed around to ensure compatibility.
+
+Formatting in the C++ code
+--------------------------
+
+Use ``arts::format`` instead of ``std::format`` to create strings in the C++
+code, and ``arts::print`` and ``arts::println`` instead of ``std::print`` and
+``std::println`` to write them to ``stdout``, a ``std::FILE*`` or a
+``std::ostream``.  They take the same arguments and check the format string at
+compile time in the same way:
+
+.. code-block:: cpp
+  :caption: Formatting in the C++ code
+
+  const std::string s = arts::format("{} has {} elements", name, v.size());
+  arts::println(os, "{:IO}", v);
+
+These format with ``arts::vformat`` and ``arts::vprint``, and
+``arts::vformat_to`` writes to a ``std::format_context``.  All are compiled
+once, in ``format_tags.cpp``.  ``std::format``, ``std::vformat``,
+``std::format_to``, ``std::print`` and ``std::println`` instead compile the
+whole formatting machinery of the standard library in every file that calls
+them, which makes the build considerably slower.
+
+Write formatted text to a stream with ``arts::print(os, ...)`` or
+``arts::println(os, ...)``, not with ``os << arts::format(...)``.
+
+Inside a formatter, ``tags.format`` writes builtin values, such as ``Numeric``
+and ``Index``, with ``format_tags::single_format``.  These have specializations
+for ``std::format_context`` in ``format_tags.h`` that are also compiled once.
+A formatter that writes another builtin type, such as ``float``, should add a
+specialization for it next to the others.
 
 What formatter options are available?
 -------------------------------------

@@ -536,38 +536,38 @@ void Point::check() {
 
   std::vector<std::string> errors;
 
-  if (not(pressure >= 0.0)) { errors.emplace_back(std::format(" - Bad pressure: {}", pressure)); }
+  if (not(pressure >= 0.0)) { errors.emplace_back(arts::format(" - Bad pressure: {}", pressure)); }
 
-  if (not(temperature >= 0.0)) { errors.emplace_back(std::format(" - Bad temperature: {}", temperature)); }
+  if (not(temperature >= 0.0)) { errors.emplace_back(arts::format(" - Bad temperature: {}", temperature)); }
 
   if (stdr::any_of(wind, isnan)) {
-    errors.emplace_back(std::format(" - Bad wind field [wind_u, wind_v, wind_w]: {:B,}", wind));
+    errors.emplace_back(arts::format(" - Bad wind field [wind_u, wind_v, wind_w]: {:B,}", wind));
   }
 
   if (stdr::any_of(mag, isnan)) {
-    errors.emplace_back(std::format(" - Bad magnetic field [mag_u, mag_v, mag_w]: {:B,}", mag));
+    errors.emplace_back(arts::format(" - Bad magnetic field [mag_u, mag_v, mag_w]: {:B,}", mag));
   }
 
   if (stdr::any_of(specs | stdv::values, isnan) or stdr::any_of(specs | stdv::values, Cmp::lt(0.0))) {
-    errors.emplace_back(std::format(" - Bad species VMR: {:NB,}", specs));
+    errors.emplace_back(arts::format(" - Bad species VMR: {:NB,}", specs));
   }
 
   if (stdr::any_of(isots | stdv::values, isnan) or stdr::any_of(isots | stdv::values, Cmp::lt(0.0))) {
-    errors.emplace_back(std::format(" - Bad isotopologue ratio: {:NB,}", isots));
+    errors.emplace_back(arts::format(" - Bad isotopologue ratio: {:NB,}", isots));
   }
 
   if (stdr::any_of(nlte | stdv::values, isnan) or stdr::any_of(nlte | stdv::values, Cmp::lt(0.0))) {
-    errors.emplace_back(std::format(" - Bad non-LTE ratio: {:NB,}", nlte));
+    errors.emplace_back(arts::format(" - Bad non-LTE ratio: {:NB,}", nlte));
   }
 
   if (stdr::any_of(ssprops | stdv::values, isnan)) {
-    errors.emplace_back(std::format(" - Bad scattering species property: {:NB,}", ssprops));
+    errors.emplace_back(arts::format(" - Bad scattering species property: {:NB,}", ssprops));
   }
 
   if (not errors.empty()) {
-    throw std::runtime_error(std::format("Invalid AtmPoint:\n {}", errors | stdv::transform([](const std::string &s) {
-                                                                     return s + '\n';
-                                                                   }) | stdr::to<std::vector<String>>()));
+    throw std::runtime_error(arts::format("Invalid AtmPoint:\n {}", errors | stdv::transform([](const std::string &s) {
+                                                                      return s + '\n';
+                                                                    }) | stdr::to<std::vector<String>>()));
   }
 }
 
@@ -799,7 +799,7 @@ namespace {
 Numeric point_at_error(const Data &data, const Numeric alt, const Numeric lat, const Numeric lon, const auto &key) try {
   return data.at(alt, lat, lon);
 } catch (std::exception &e) {
-  throw std::runtime_error(std::format("Error while getting value for key {}: {}", key, e.what()));
+  throw std::runtime_error(arts::format("Error while getting value for key {}: {}", key, e.what()));
 }
 }  // namespace
 
@@ -842,9 +842,9 @@ ARTS_METHOD_ERROR_CATCH
 
 std::string std::formatter<AtmKeyVal>::to_string(const AtmKeyVal &v) const {
   std::string out;
-  return std::visit(
-      [fmt = tags.get_format_args()](const auto &val) { return std::vformat(fmt.c_str(), std::make_format_args(val)); },
-      v);
+  return std::visit([fmt = tags.get_format_args()](
+                        const auto &val) { return arts::vformat(fmt.c_str(), std::make_format_args(val)); },
+                    v);
 }
 
 bool Atm::pressure_is_increasing(const std::span<const Point> &atm) {
@@ -913,7 +913,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point>     &atm,
         gf3.data[N - 1 - i, 0, 0] = atm[i][key];
       }
 
-      gf3.data_name = std::format("{}", key);
+      gf3.data_name = arts::format("{}", key);
       data.data     = gf3;
       out[key]      = data;
     }
@@ -924,7 +924,7 @@ AtmField Atm::atm_from_profile(const std::span<const Point>     &atm,
         gf3.data[i, 0, 0] = atm[i][key];
       }
 
-      gf3.data_name = std::format("{}", key);
+      gf3.data_name = arts::format("{}", key);
       data.data     = gf3;
       out[key]      = data;
     }
@@ -1047,7 +1047,7 @@ Longitude must be within -180 to 180 degrees.
   for (auto key : keys()) {
     const auto &atm_data = operator[](key);
 
-    gf3.data_name = std::format("{}", key);
+    gf3.data_name = arts::format("{}", key);
 
     std::string error;
 

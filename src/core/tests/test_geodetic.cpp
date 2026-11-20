@@ -38,11 +38,11 @@ void update_stats(Stats& s, const Vector3& old_pos, const Vector3& new_pos) {
 
 void print_stats(const Stats& s, std::string_view label) {
   if (s.count == 0) {
-    std::println("{}: no samples", label);
+    arts::println("{}: no samples", label);
     return;
   }
   const auto n = static_cast<Numeric>(s.count);
-  std::println(R"({}:
+  arts::println(R"({}:
   max_dh   = {:.6e} m
   max_dlat = {:.6e} deg
   max_dlon = {:.6e} deg
@@ -50,14 +50,14 @@ void print_stats(const Stats& s, std::string_view label) {
   avg_dlat = {:.6e} deg
   avg_dlon = {:.6e} deg
   samples  = {})",
-               label,
-               s.max_dh,
-               s.max_dlat,
-               s.max_dlon,
-               s.avg_dh / n,
-               s.avg_dlat / n,
-               s.avg_dlon / n,
-               s.count);
+                label,
+                s.max_dh,
+                s.max_dlat,
+                s.max_dlon,
+                s.avg_dh / n,
+                s.avg_dlat / n,
+                s.avg_dlon / n,
+                s.count);
 }
 
 struct LosStats {
@@ -83,22 +83,22 @@ void update_los_stats(LosStats& s, const Vector2& old_los, const Vector2& new_lo
 
 void print_los_stats(const LosStats& s, std::string_view label) {
   if (s.count == 0) {
-    std::println("{}: no samples", label);
+    arts::println("{}: no samples", label);
     return;
   }
   const auto n = static_cast<Numeric>(s.count);
-  std::println(R"({}:
+  arts::println(R"({}:
   max_dza  = {:.6e} deg
   max_daa  = {:.6e} deg
   avg_dza  = {:.6e} deg
   avg_daa  = {:.6e} deg
   samples  = {})",
-               label,
-               s.max_dza,
-               s.max_daa,
-               s.avg_dza / n,
-               s.avg_daa / n,
-               s.count);
+                label,
+                s.max_dza,
+                s.max_daa,
+                s.avg_dza / n,
+                s.avg_daa / n,
+                s.count);
 }
 
 inline constexpr Numeric POLELATZZZ = 90 - 1e-8;
@@ -384,7 +384,7 @@ int main() {
     }
   }
 
-  std::println("=== Accuracy comparison (old vs new ecef2geodetic) ===");
+  arts::println("=== Accuracy comparison (old vs new ecef2geodetic) ===");
   print_stats(stats_wgs84_low, "WGS-84 overall (low altitude <=100km)");
   print_stats(stats_wgs84_high, "WGS-84 overall (high altitude >100km)");
   print_stats(stats_poles_low, "Near-pole (low altitude <=100km)");
@@ -394,7 +394,7 @@ int main() {
   print_stats(stats_sphere_low, "Sphere (low altitude <=100km)");
   print_stats(stats_sphere_high, "Sphere (high altitude >100km)");
 
-  std::println("=== Round-trip error (original geodetic vs ecef2geodetic) ===");
+  arts::println("=== Round-trip error (original geodetic vs ecef2geodetic) ===");
   print_stats(stats_wgs84_rt_low, "WGS-84 round-trip (low altitude <=100km)");
   print_stats(stats_wgs84_rt_high, "WGS-84 round-trip (high altitude >100km)");
   print_stats(stats_poles_rt_low, "Near-pole round-trip (low altitude <=100km)");
@@ -404,7 +404,7 @@ int main() {
   print_stats(stats_sphere_rt_low, "Sphere round-trip (low altitude <=100km)");
   print_stats(stats_sphere_rt_high, "Sphere round-trip (high altitude >100km)");
 
-  std::println("=== LOS accuracy comparison (ecef2geodetic_los_old vs ecef2geodetic_los) ===");
+  arts::println("=== LOS accuracy comparison (ecef2geodetic_los_old vs ecef2geodetic_los) ===");
   print_los_stats(stats_los_low, "LOS (low altitude <=100km)");
   print_los_stats(stats_los_high, "LOS (high altitude >100km)");
   print_los_stats(stats_los_poles_low, "Near-pole LOS (low altitude <=100km)");
@@ -414,7 +414,7 @@ int main() {
   print_los_stats(stats_los_at_zenith_low, "LOS at zenith/nadir (low altitude <=100km)");
   print_los_stats(stats_los_at_zenith_high, "LOS at zenith/nadir (high altitude >100km)");
 
-  std::println("=== LOS round-trip error (geodetic_los2ecef -> ecef2geodetic_los) ===");
+  arts::println("=== LOS round-trip error (geodetic_los2ecef -> ecef2geodetic_los) ===");
   print_los_stats(stats_los_rt_low, "LOS round-trip (low altitude <=100km)");
   print_los_stats(stats_los_rt_high, "LOS round-trip (high altitude >100km)");
   print_los_stats(stats_los_poles_rt_low, "Near-pole LOS round-trip (low altitude <=100km)");

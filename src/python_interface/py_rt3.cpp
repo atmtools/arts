@@ -345,6 +345,6 @@ emission and no beam: set ``direct_flux``, ``direct_mu`` and ``thermal`` on
 the result for other sources.  See :doc:`dev.rt3`.
 )");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize rt3\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize rt3\n{}", e.what()));
 }
 }  // namespace Python

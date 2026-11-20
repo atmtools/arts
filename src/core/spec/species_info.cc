@@ -2,13 +2,13 @@
 
 #include <double_imanip.h>
 
-String SpeciesIsotopologueInfo::name() const { return std::format("{}-{}", species, code); }
+String SpeciesIsotopologueInfo::name() const { return arts::format("{}-{}", species, code); }
 
 void xml_io_stream<SpeciesIsotopologueInfo>::write(std::ostream&                  os,
                                                    const SpeciesIsotopologueInfo& v,
                                                    bofstream*,
                                                    std::string_view) {
-  std::println(
+  arts::println(
       os, R"(<{0}> {1} {2} {3} {4} {5} </{0}>)", type_name, v.species, v.code, v.mass, v.default_ratio, v.degeneracy);
 }
 
@@ -16,8 +16,8 @@ void xml_io_stream<SpeciesIsotopologueInfo>::read(std::istream& is, SpeciesIsoto
   std::string val{};
   is >> val;
 
-  if (val != std::format("<{}>", type_name)) {
-    throw std::runtime_error(std::format("Expected opening tag <{}>, but got '{}'", type_name, val));
+  if (val != arts::format("<{}>", type_name)) {
+    throw std::runtime_error(arts::format("Expected opening tag <{}>, but got '{}'", type_name, val));
   }
 
   is >> val;
@@ -29,9 +29,9 @@ void xml_io_stream<SpeciesIsotopologueInfo>::read(std::istream& is, SpeciesIsoto
 
   is >> val;
 
-  if (val != std::format("</{}>", type_name)) {
-    throw std::runtime_error(std::format("Expected closing tag </{}>, but got '{}'", type_name, val));
+  if (val != arts::format("</{}>", type_name)) {
+    throw std::runtime_error(arts::format("Expected closing tag </{}>, but got '{}'", type_name, val));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}: {}", type_name, e.what()));
+  throw std::runtime_error(arts::format("Error reading {}: {}", type_name, e.what()));
 }

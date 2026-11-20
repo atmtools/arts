@@ -297,7 +297,7 @@ void test_flat() try {
   std::cout << "fb abs-rel ungridded: " << fb3_rel << '\n';
   std::cout << "ft abs-max ungridded: " << ft3_abs << '\n';
   std::cout << "ft abs-rel ungridded: " << ft3_rel << '\n';
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-test:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-test:\n{}", e.what())); }
 
 void handle_opt(const char* c, bool& print, Index& N) {
   std::string s = c;

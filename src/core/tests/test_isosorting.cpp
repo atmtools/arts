@@ -15,7 +15,7 @@ int main() {
   printing.push_back((anybad)->FullName());
   if ((anybad + 1) != last) printing.push_back((anybad + 1)->FullName());
 
-  std::print(R"(The isotopologues are not sorted.
+  arts::print(R"(The isotopologues are not sorted.
 
 Several internal methods assume that they must be sorted.
 
@@ -23,7 +23,7 @@ The offending species is in the list:
 
 {:B,qN}
 )",
-             printing);
+              printing);
 
   return 1;
 }

@@ -27,29 +27,29 @@ std::string variable(const std::string& name, const WorkspaceVariableRecord& wsv
 
   // The setter takes the value by copy, as a shared pointer could point into another object, such
   // as an element of another workspace variable, that the workspace does not keep alive
-  std::print(os,
-             R"(  ws.def_prop_rw("{0}", [](Workspace& w) -> {1} {{
+  arts::print(os,
+              R"(  ws.def_prop_rw("{0}", [](Workspace& w) -> {1} {{
     auto v = w.share_or<{2}>("{0}");{3}
     return v;
   }}, [](Workspace& w, {6} val) -> void {{
     w.set("{0}", Wsv{{{5}}});{4}
   }})",
-             name,
-             share_type(wsv.type),
-             wsv.type,
-             (wsv.type != "Agenda") ? ""s
-                                    : std::format(R"(
+              name,
+              share_type(wsv.type),
+              wsv.type,
+              (wsv.type != "Agenda") ? ""s
+                                     : arts::format(R"(
     v->set_name("{}");)",
-                                                  name),
-             (wsv.type != "Agenda") ? ""s
-                                    : std::format(R"(
+                                                    name),
+              (wsv.type != "Agenda") ? ""s
+                                     : arts::format(R"(
     auto& ws_val = w.get<Agenda>("{0}");
     ws_val.set_name("{0}");
     ws_val.finalize();)",
-                                                  name),
-             wsgs.at(wsv.type).value_type ? "std::move(val).val"s
-                                          : std::format("std::make_shared<{}>(std::move(val))", wsv.type),
-             wsgs.at(wsv.type).value_type ? share_type(wsv.type) : wsv.type);
+                                                    name),
+              wsgs.at(wsv.type).value_type ? "std::move(val).val"s
+                                           : arts::format("std::make_shared<{}>(std::move(val))", wsv.type),
+              wsgs.at(wsv.type).value_type ? share_type(wsv.type) : wsv.type);
 
   os << ", R\"-x-(" << unwrap_stars(wsv.desc) << "\n\n";
 
@@ -73,7 +73,7 @@ void variables(const int nfiles) {
   const auto& wsvs = workspace_variables();
 
   std::vector<std::ofstream> ofs(nfiles);
-  for (int i = 0; i < nfiles; i++) { ofs[i].open(std::format("py_auto_wsv_{}.cpp", i)); }
+  for (int i = 0; i < nfiles; i++) { ofs[i].open(arts::format("py_auto_wsv_{}.cpp", i)); }
 
   for (int i = 0; i < nfiles; i++) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>

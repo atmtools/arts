@@ -206,7 +206,7 @@ std::pair<Size, Size> measurement_element(std::span<const Sensor> sensors, Size 
 String cost_report(std::span<const Sensor> sensors) {
   constexpr std::string_view row = "{:>6}  {:<20}  {:>9}  {:<16}  {:>12}  {:>11}  {:>15}  {:>10}\n";
 
-  String out = std::format(
+  String out = arts::format(
       row, "Sensor", "Name", "Elements", "Meta shape", "Agenda calls", "Frequencies", "Spectral points", "Weights");
 
   Size total_elements = 0, total_calls = 0, total_points = 0, total_weights = 0;
@@ -218,9 +218,9 @@ String cost_report(std::span<const Sensor> sensors) {
     Size       weights = 0;
     for (const auto& w : s.elements) weights += w.size();
 
-    const String shape = std::visit([](const auto& gf) { return std::format("{:B,}", gf.shape()); }, s.meta);
+    const String shape = std::visit([](const auto& gf) { return arts::format("{:B,}", gf.shape()); }, s.meta);
 
-    out += std::format(row, i, s.name(), s.elements.size(), shape, calls, s.freq_grid.size(), points, weights);
+    out += arts::format(row, i, s.name(), s.elements.size(), shape, calls, s.freq_grid.size(), points, weights);
 
     total_elements += s.elements.size();
     total_calls    += calls;
@@ -228,7 +228,7 @@ String cost_report(std::span<const Sensor> sensors) {
     total_weights  += weights;
   }
 
-  out += std::format(row, "Total", "", total_elements, "", total_calls, "", total_points, total_weights);
+  out += arts::format(row, "Total", "", total_elements, "", total_calls, "", total_points, total_weights);
 
   // Geometries that more than one sensor simulates: each such sensor makes its own agenda call
   std::vector<std::pair<std::array<Numeric, 5>, Size>> geometries;
@@ -251,7 +251,7 @@ String cost_report(std::span<const Sensor> sensors) {
   }
 
   if (shared != 0)
-    out += std::format(
+    out += arts::format(
         "\nGeometries simulated by more than one sensor: {}, costing {} agenda calls more than simulating each once.\n",
         shared,
         extra_calls);

@@ -261,7 +261,7 @@ Vector4 deviation(const field& a, const field& b) {
 }
 
 std::string format(const Vector4& d) {
-  return std::format("I {:9.3e}  Q {:9.3e}  U {:9.3e}  V {:9.3e}", d[0], d[1], d[2], d[3]);
+  return arts::format("I {:9.3e}  Q {:9.3e}  U {:9.3e}  V {:9.3e}", d[0], d[1], d[2], d[3]);
 }
 
 Numeric max_I(const field& f) {
@@ -280,7 +280,7 @@ void test_corrections() {
   const auto    ref   = reference(64, tau);
   const auto    check = reference(48, tau);
   const auto    self  = deviation(check, ref);
-  std::cout << std::format("tau 1, reference 48 vs 64 streams:          {}\n", format(self));
+  arts::println("tau 1, reference 48 vs 64 streams:          {}", format(self));
   // 48 streams truncate the series at 1e-4 of the phase function, 64 at 1e-6
   require(self[0] < 3e-5 and std::max({self[1], self[2], self[3]}) < 1e-6,
           "The reference must converge in the number of streams");
@@ -288,10 +288,10 @@ void test_corrections() {
   Vector4 polarization{};
   for (const auto& x : ref | by_elem)
     for (Index s = 1; s < 4; s++) polarization[s] = std::max(polarization[s], std::abs(x[s]) / max_I(ref));
-  std::cout << std::format("tau 1, reference max |Q|, |U|, |V| / max I:  {:.2e}, {:.2e}, {:.2e}\n",
-                           polarization[1],
-                           polarization[2],
-                           polarization[3]);
+  arts::println("tau 1, reference max |Q|, |U|, |V| / max I:  {:.2e}, {:.2e}, {:.2e}",
+                polarization[1],
+                polarization[2],
+                polarization[3]);
   require(polarization[1] > 1e-2 and polarization[2] > 1e-2 and polarization[3] > 1e-5,
           "Every Stokes component must be exercised");
 
@@ -299,13 +299,13 @@ void test_corrections() {
   for (const Index nquad : {8, 12, 16, 24}) {
     const auto x = delta_m(nquad, tau);
     const auto u = deviation(x.uncorrected, ref), c = deviation(x.corrected, ref);
-    std::cout << std::format(
-        "NQuad {:2d}, f = {:.2e}: delta-M          {}\n", nquad, delta_m_split(layer_series(), nquad).f, format(u));
-    std::cout << std::format("                     with TMS and IMS {}\n", format(c));
+    arts::println(
+        "NQuad {:2d}, f = {:.2e}: delta-M          {}", nquad, delta_m_split(layer_series(), nquad).f, format(u));
+    arts::println("                     with TMS and IMS {}", format(c));
     require(c[0] < u[0] / 100 and c[1] < u[1] / 1.5 and c[2] < u[2] / 1.5 and c[3] <= 1.01 * u[3],
-            std::format("NQuad {}: the corrections must improve I, Q and U and not worsen V", nquad));
+            arts::format("NQuad {}: the corrections must improve I, Q and U and not worsen V", nquad));
     require(c[0] < previous[0] and c[1] < previous[1] and c[2] < 2 * previous[2],
-            std::format("NQuad {}: the corrected error must fall with NQuad", nquad));
+            arts::format("NQuad {}: the corrected error must fall with NQuad", nquad));
     previous = c;
   }
 }
@@ -324,10 +324,10 @@ void test_thin_layer() {
     for (Index k = 0; k < tms_only.nrows(); k++)
       for (Index i = 0; i < tms_only.ncols(); i++) tms_only[k, i] -= x.ims[k, i];
     const auto u = deviation(x.uncorrected, ref), t = deviation(tms_only, ref);
-    std::cout << std::format("tau 0.02, NQuad {:2d}: delta-M          {}\n", nquad, format(u));
-    std::cout << std::format("                    with TMS         {}\n", format(t));
+    arts::println("tau 0.02, NQuad {:2d}: delta-M          {}", nquad, format(u));
+    arts::println("                    with TMS         {}", format(t));
     require(t[0] < u[0] / 100 and t[1] < u[1] / 10 and t[2] < u[2] / 10,
-            std::format("NQuad {}: TMS must remove most of the single-scattering error in I, Q and U", nquad));
+            arts::format("NQuad {}: TMS must remove most of the single-scattering error in I, Q and U", nquad));
   }
 }
 }  // namespace

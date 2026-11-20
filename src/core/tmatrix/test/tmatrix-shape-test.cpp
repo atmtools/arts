@@ -38,9 +38,9 @@ void compare(ParticleShape shape, Index degree, Numeric eps, Numeric tolerance) 
                              ? tmatrix::maximum_dimension(1.0, tmatrix::Shape::spheroid(eps))
                              : tmatrix::maximum_dimension(1.0, tmatrix::Shape::cylinder(eps));
   const Numeric error  = std::abs(numeric / closed - 1.0);
-  std::println("{} {} eps={}: maximum dimension {:.15f}, relative error {:.1e}", shape, degree, eps, numeric, error);
+  arts::println("{} {} eps={}: maximum dimension {:.15f}, relative error {:.1e}", shape, degree, eps, numeric, error);
   if (error > tolerance) {
-    std::println("FAIL {} {} eps={}: {} against {}", shape, degree, eps, numeric, closed);
+    arts::println("FAIL {} {} eps={}: {} against {}", shape, degree, eps, numeric, closed);
     ++failures;
   }
 }
@@ -74,19 +74,19 @@ void surface_radius(Index n, Numeric eps) {
   const Numeric q      = std::cbrt(volume) / std::sqrt(0.5 * area);
   const Numeric result = tmatrix::solver::volume_to_surface_radius(p, 1e-12);
   const Numeric error  = std::abs(result / q - 1.0);
-  std::println("chebyshev {} eps={}: radius ratio {:.15f}, relative error {:.1e}, quadratures agree to {:.1e}",
-               n,
-               eps,
-               result,
-               error,
-               change);
+  arts::println("chebyshev {} eps={}: radius ratio {:.15f}, relative error {:.1e}, quadratures agree to {:.1e}",
+                n,
+                eps,
+                result,
+                error,
+                change);
   if (not(change <= 16 * std::numeric_limits<Numeric>::epsilon() and error <= 1e-13)) {
-    std::println("FAIL chebyshev {} eps={}: radius ratio {} against {}", n, eps, result, q);
+    arts::println("FAIL chebyshev {} eps={}: radius ratio {} against {}", n, eps, result, q);
     ++failures;
   }
   try {
     tmatrix::solver::volume_to_surface_radius(p, 1e-15);
-    std::println("FAIL chebyshev {} eps={}: an area to 1e-16 did not throw", n, eps);
+    arts::println("FAIL chebyshev {} eps={}: an area to 1e-16 did not throw", n, eps);
     ++failures;
   } catch (const std::exception&) {}
 }
@@ -130,15 +130,15 @@ void generalized_chebyshev(Index n, Numeric eps) {
     volume += 0.5 * w[i] * a * a * a;
   }
   const bool mirror = solver::mirror_symmetric(general) == (n % 2 == 0);
-  std::println("generalized chebyshev c_{}={}: surface {:.1e}, d_max {:.1e}, radius ratio {:.1e}, volume {:.1e}",
-               n,
-               eps,
-               surface,
-               dmax,
-               ratio,
-               std::abs(volume - 1.0));
+  arts::println("generalized chebyshev c_{}={}: surface {:.1e}, d_max {:.1e}, radius ratio {:.1e}, volume {:.1e}",
+                n,
+                eps,
+                surface,
+                dmax,
+                ratio,
+                std::abs(volume - 1.0));
   if (not(surface <= 16 * ulp and dmax <= 1e-13 and ratio <= 1e-13 and std::abs(volume - 1.0) <= 16 * ulp and mirror)) {
-    std::println("FAIL generalized chebyshev c_{}={}", n, eps);
+    arts::println("FAIL generalized chebyshev c_{}={}", n, eps);
     ++failures;
   }
 }
@@ -161,14 +161,14 @@ void spheroid_radius(Numeric eps) {
   const Numeric fine = area(400), change = std::abs(area(200) / fine - 1.0);
   const Numeric q = 1.0 / std::sqrt(0.5 * fine), result = tmatrix::solver::volume_to_surface_radius(p, 1e-12);
   const Numeric error = std::abs(result / q - 1.0);
-  std::println("spheroid eps={:.17g}: radius ratio {:.15f}, relative error {:.1e}, quadratures agree to {:.1e}",
-               eps,
-               result,
-               error,
-               change);
+  arts::println("spheroid eps={:.17g}: radius ratio {:.15f}, relative error {:.1e}, quadratures agree to {:.1e}",
+                eps,
+                result,
+                error,
+                change);
   if (not(change <= 16 * std::numeric_limits<Numeric>::epsilon() and
           error <= 16 * std::numeric_limits<Numeric>::epsilon())) {
-    std::println("FAIL spheroid eps={}: radius ratio {} against {}", eps, result, q);
+    arts::println("FAIL spheroid eps={}: radius ratio {} against {}", eps, result, q);
     ++failures;
   }
 }
@@ -184,8 +184,8 @@ int main() try {
     for (Numeric eps : {-0.15, 0.1}) generalized_chebyshev(degree, eps);
   constexpr Numeric ulp = std::numeric_limits<Numeric>::epsilon();
   for (Numeric eps : {0.5, 1.0 - ulp / 2, 1.0, 1.0 + ulp, 1.0 + 1e-8, 1.7}) spheroid_radius(eps);
-  if (failures) throw std::runtime_error(std::format("{} comparisons failed", failures));
+  if (failures) throw std::runtime_error(arts::format("{} comparisons failed", failures));
 } catch (const std::exception& e) {
-  std::println(stderr, "{}", e.what());
+  arts::println(stderr, "{}", e.what());
   return 1;
 }

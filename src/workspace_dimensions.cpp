@@ -113,7 +113,7 @@ struct Ref {
 };
 
 //! The name of the local that holds a dimension read out of the elements of an array
-std::string inner_ref_name(const std::string& sym) { return std::format("{}_DIM_", sym); }
+std::string inner_ref_name(const std::string& sym) { return arts::format("{}_DIM_", sym); }
 
 /*! Attaches the declaration a reference needs, to the first check that reads it.
  *
@@ -172,12 +172,12 @@ void collect_inner_refs(std::unordered_map<std::string, Ref>& refs,
       if (sym.empty() or refs.contains(sym)) continue;
 
       const auto var  = access(name);
-      const auto read = subst(esize[i], std::format("{}.front()", var));
+      const auto read = subst(esize[i], arts::format("{}.front()", var));
 
       refs[sym] = {.var       = name,
                    .expr      = inner_ref_name(sym),
                    .decl_name = inner_ref_name(sym),
-                   .decl_expr = std::format("{}.empty() ? Size{{0}} : static_cast<Size>({})", var, read)};
+                   .decl_expr = arts::format("{}.empty() ? Size{{0}} : static_cast<Size>({})", var, read)};
     }
   }
 }
@@ -186,7 +186,7 @@ std::string dim_with_desc(const std::string& sym) {
   const auto& wsds = internal_workspace_dimensions();
   const auto  ptr  = wsds.find(sym);
   if (ptr == wsds.end()) return sym;
-  return std::format("{} ({})", sym, ptr->second.desc);
+  return arts::format("{} ({})", sym, ptr->second.desc);
 }
 
 std::string join(const std::vector<std::string>& v, std::string_view sep, std::string_view last_sep) {
@@ -226,7 +226,7 @@ std::optional<SizeCheck> inner_shape_check(const std::string&                   
 
   const auto elem = element_group(wsv.type);
   if (elem.empty()) {
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         R"(Workspace variable "{}" names inner dimensions but its group "{}" holds no elements that are shaped.
 
 Inner dimensions say that every element of an array has the same shape, so they
@@ -243,7 +243,7 @@ need an ArrayOf whose element group declares dim_size.  They are not available f
 
   const auto& esize = internal_workspace_groups().at(elem).dim_size;
   if (wsv.inner_dims.size() != esize.size()) {
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         R"(Workspace variable "{}" names {} inner dimension(s) but its elements of group "{}" have {}.
 
 The whole shape of an element is compared at once, so every one of its dimensions must be named.
@@ -279,17 +279,17 @@ The whole shape of an element is compared at once, so every one of its dimension
   SizeCheck check;
   // Qualified, because the generated code is compiled wherever the method lives
   // and cannot rely on the element group pulling matpack in by argument lookup
-  check.test = std::format("matpack::all_same_shape({{{}}}, {})", join(shape, ", ", ", "), access(name));
+  check.test = arts::format("matpack::all_same_shape({{{}}}, {})", join(shape, ", ", ", "), access(name));
 
-  const auto shape_text = std::format("every element of *{}* has the shape ({})", name, join(syms, ", ", ", "));
+  const auto shape_text = arts::format("every element of *{}* has the shape ({})", name, join(syms, ", ", ", "));
   check.constraint = ref_vars.empty() ? shape_text + ", the same for all of them."
-                                      : std::format("{}, matching {}.",
-                                                    shape_text,
-                                                    join(ref_vars | std::views::transform([](const std::string& v) {
-                                                           return std::format("*{}*", v);
-                                                         }) | std::ranges::to<std::vector<std::string>>(),
-                                                         ", ",
-                                                         " and "));
+                                      : arts::format("{}, matching {}.",
+                                                     shape_text,
+                                                     join(ref_vars | std::views::transform([](const std::string& v) {
+                                                            return arts::format("*{}*", v);
+                                                          }) | std::ranges::to<std::vector<std::string>>(),
+                                                          ", ",
+                                                          " and "));
 
   for (const auto& sym : needed) declare_ref(check, refs.at(sym), declared);
 
@@ -333,7 +333,7 @@ void check_workspace_dimensions() {
   for (const auto& [name, wsv] : internal_workspace_variables()) {
     const auto outer_rank = std::max(wsgs.at(wsv.type).dim_size.size(), wsv.dim_size.size());
     if (not wsv.dims.empty() and wsv.dims.size() != outer_rank) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           R"(Workspace variable "{}" names {} dimension(s) but its group "{}" provides {} size expression(s).
 
 Provide one dimension entry per size expression, in the same order.
@@ -349,13 +349,13 @@ Use an empty string for an intentionally unnamed dimension, or omit dims entirel
       if (sym.empty()) continue;
       if (not wsds.contains(sym)) {
         throw std::runtime_error(
-            std::format(R"(Workspace variable "{}" names the unknown dimension "{}".)", name, sym));
+            arts::format(R"(Workspace variable "{}" names the unknown dimension "{}".)", name, sym));
       }
     }
 
     const auto readable = readable_dims(wsv);
     if (readable != wsv.dims.size()) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           R"(Workspace variable "{}" names {} dimension(s) but its group "{}" can read {}.
 
 A dimension inside the elements of an array belongs in inner_dims, not in dims.
@@ -371,13 +371,13 @@ A dimension inside the elements of an array belongs in inner_dims, not in dims.
     for (const auto& sym : wsv.inner_dims) {
       if (not wsds.contains(sym)) {
         throw std::runtime_error(
-            std::format(R"(Workspace variable "{}" names the unknown inner dimension "{}".)", name, sym));
+            arts::format(R"(Workspace variable "{}" names the unknown inner dimension "{}".)", name, sym));
       }
     }
 
     const auto elem = element_group(wsv.type);
     if (elem.empty()) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           R"(Workspace variable "{}" names inner dimensions but its group "{}" holds no elements that are shaped.
 
 Inner dimensions say that every element of an array has the same shape, so they
@@ -394,7 +394,7 @@ need an ArrayOf whose element group declares dim_size.  They are not available f
 
     const auto rank = wsgs.at(elem).dim_size.size();
     if (wsv.inner_dims.size() != rank) {
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           R"(Workspace variable "{}" names {} inner dimension(s) but its elements of group "{}" have {}.
 
 The whole shape of an element is compared at once, so every one of its dimensions must be named.
@@ -429,7 +429,7 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
   for (auto& [sym, ref] : refs) {
     if (not ref.decl_name.empty()) continue;
     ref.decl_name = inner_ref_name(sym);
-    ref.decl_expr = std::format("static_cast<Size>({})", ref.expr);
+    ref.decl_expr = arts::format("static_cast<Size>({})", ref.expr);
     ref.expr      = ref.decl_name;
   }
 
@@ -464,7 +464,7 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
       const auto expr  = subst(tmpl, access(name));
       const auto label = subst(tmpl, name);
 
-      tests.push_back(std::format("static_cast<Size>({}) == {}", expr, ptr->second.expr));
+      tests.push_back(arts::format("static_cast<Size>({}) == {}", expr, ptr->second.expr));
       syms.push_back(sym);
       ref_vars.push_back(ptr->second.var);
       printables.emplace_back(label, expr);
@@ -488,7 +488,7 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
     keep_first(printables);
 
     const auto refs_text = join(ref_vars | std::views::transform([](const std::string& v) {
-                                  return std::format("*{}*", v);
+                                  return arts::format("*{}*", v);
                                 }) | std::ranges::to<std::vector<std::string>>(),
                                 ", ",
                                 " and ");
@@ -504,13 +504,13 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
     // Naming the whole shape reads better than listing the dimensions, but only
     // says everything when every dimension of the variable takes part
     if (all_covered and tests.size() > 1) {
-      check.constraint = std::format("*{}* has the shape ({}), matching {}.", name, join(syms, ", ", ", "), refs_text);
+      check.constraint = arts::format("*{}* has the shape ({}), matching {}.", name, join(syms, ", ", ", "), refs_text);
 
       // Reported whole rather than one dimension per line: what is wrong with a
       // shape is usually which axes were swapped, which only the whole shape shows
       const auto tuple = [](const std::vector<std::string>& v) {
         std::vector<std::string> fields(v.size(), "{}");
-        return std::format(R"(std::format("[{}]", {}))", join(fields, ", ", ", "), join(v, ", ", ", "));
+        return arts::format(R"(arts::format("[{}]", {}))", join(fields, ", ", ", "), join(v, ", ", ", "));
       };
 
       std::vector<std::string> actual;
@@ -519,15 +519,15 @@ std::vector<SizeCheck> size_checks(const std::vector<std::vector<std::string>>& 
 
       printables.clear();
       printables.emplace_back("expected", tuple(ref_exprs));
-      printables.emplace_back(std::format("{}.shape()", name), tuple(actual));
+      printables.emplace_back(arts::format("{}.shape()", name), tuple(actual));
     } else {
       check.constraint =
-          std::format("*{}* matches {} in {}.",
-                      name,
-                      refs_text,
-                      join(syms | std::views::transform(dim_with_desc) | std::ranges::to<std::vector<std::string>>(),
-                           ", ",
-                           " and "));
+          arts::format("*{}* matches {} in {}.",
+                       name,
+                       refs_text,
+                       join(syms | std::views::transform(dim_with_desc) | std::ranges::to<std::vector<std::string>>(),
+                            ", ",
+                            " and "));
     }
 
     check.printables = std::move(printables);
@@ -599,7 +599,7 @@ std::vector<SizeCheck> method_input_invariants(const WorkspaceMethodInternalReco
 
     SizeCheck check;
     check.test       = subst_all(rec.invariant, access(name));
-    check.constraint = std::format("On input, *{}* {}", name, rec.invariant_desc);
+    check.constraint = arts::format("On input, *{}* {}", name, rec.invariant_desc);
     for (const auto& expr : rec.invariant_printables) {
       check.printables.emplace_back(subst_all(expr, name), subst_all(expr, access(name)));
     }
@@ -629,15 +629,15 @@ std::string size_check_code(const std::vector<SizeCheck>& checks, std::string_vi
 
   // Scoped, so the locals a check declares cannot collide with those of the next
   // list written beside it, and so the accumulator lives no longer than it is used
-  std::string out = std::format("{}{{\n", indent);
+  std::string out = arts::format("{}{{\n", indent);
 
   for (const auto& check : checks) {
     for (const auto& [name, expr] : check.locals) {
-      out += std::format("{}  const Size {} = {};\n", indent, name, expr);
+      out += arts::format("{}  const Size {} = {};\n", indent, name, expr);
     }
   }
 
-  out += std::format("{}  std::string _err;\n", indent);
+  out += arts::format("{}  std::string _err;\n", indent);
 
   for (const auto& check : checks) {
     // The message is a format string, so anything that looks like a field must be escaped
@@ -650,18 +650,18 @@ std::string size_check_code(const std::vector<SizeCheck>& checks, std::string_vi
     std::size_t width = 0;
     for (const auto& [label, expr] : check.printables) width = std::max(width, label.size());
 
-    out += std::format("{}  if (not ({}))\n{}    _err += std::format(R\"ERR(\n{}\n", indent, check.test, indent, msg);
+    out += arts::format("{}  if (not ({}))\n{}    _err += arts::format(R\"ERR(\n{}\n", indent, check.test, indent, msg);
 
     for (const auto& [label, expr] : check.printables) {
-      out += std::format("\n{}:{} {{}}\n", label, std::string(width - label.size(), ' '));
+      out += arts::format("\n{}:{} {{}}\n", label, std::string(width - label.size(), ' '));
     }
 
     out += ")ERR\"";
-    for (const auto& [label, expr] : check.printables) out += std::format(", {}", expr);
+    for (const auto& [label, expr] : check.printables) out += arts::format(", {}", expr);
     out += ");\n";
   }
 
-  out += std::format("{}  if (not _err.empty()) throw std::runtime_error(_err);\n{}}}\n", indent, indent);
+  out += arts::format("{}  if (not _err.empty()) throw std::runtime_error(_err);\n{}}}\n", indent, indent);
 
   return out;
 }
@@ -669,8 +669,8 @@ std::string size_check_code(const std::vector<SizeCheck>& checks, std::string_vi
 std::string size_check_docs(const std::vector<SizeCheck>& checks) {
   if (checks.empty()) return {};
 
-  std::string out = std::format("\n.. rubric:: Constraint{}\n\n", checks.size() > 1 ? "s" : "");
-  for (const auto& c : checks) out += std::format("#. {}\n", c.constraint);
+  std::string out = arts::format("\n.. rubric:: Constraint{}\n\n", checks.size() > 1 ? "s" : "");
+  for (const auto& c : checks) out += arts::format("#. {}\n", c.constraint);
   return out + "\n";
 }
 
@@ -681,7 +681,7 @@ std::string variable_dimension_docs(const std::string& name) {
   const auto dimension_link = [](const std::string& sym) {
     if (sym.empty()) return std::string{"unnamed"};
     if (not internal_workspace_dimensions().contains(sym)) return sym;
-    return std::format(":ref:`{} <wsd-{}>`", sym, sym);
+    return arts::format(":ref:`{} <wsd-{}>`", sym, sym);
   };
 
   const auto* wsv = find_wsv(name);
@@ -692,7 +692,7 @@ std::string variable_dimension_docs(const std::string& name) {
   auto all = wsv->dims;
   all.insert(all.end(), wsv->inner_dims.begin(), wsv->inner_dims.end());
 
-  return std::format(
+  return arts::format(
       "\n.. rubric:: Effective local shape\n\n[{}]\n",
       join(all | std::views::transform(dimension_link) | std::ranges::to<std::vector<std::string>>(), ", ", ", "));
 }
@@ -701,7 +701,7 @@ std::string group_invariant_docs(const std::string& group) {
   const auto* rec = find_group(group);
   if (rec == nullptr or rec->invariant.empty()) return {};
 
-  const auto  text = std::format("A variable ``x`` of this group {}", subst_all(rec->invariant_desc, "x"));
+  const auto  text = arts::format("A variable ``x`` of this group {}", subst_all(rec->invariant_desc, "x"));
   std::string out  = "\n.. tip::\n\n    ";
   for (const char c : text) {
     out += c;
@@ -719,11 +719,11 @@ std::string group_dimension_docs(const std::string& group) {
   // Written against a variable called "x", since the expressions are templates
   // that a variable's own name is substituted into
   auto reads = sizes |
-               std::views::transform([](const std::string& expr) { return std::format("``{}``", subst(expr, "x")); }) |
+               std::views::transform([](const std::string& expr) { return arts::format("``{}``", subst(expr, "x")); }) |
                std::ranges::to<std::vector<std::string>>();
 
-  return std::format("\n.. rubric:: Sizes\n\nA variable ``x`` of this group may name {} dimension{}, read as {}.\n",
-                     sizes.size(),
-                     sizes.size() > 1 ? "s" : "",
-                     join(reads, ", ", " and "));
+  return arts::format("\n.. rubric:: Sizes\n\nA variable ``x`` of this group may name {} dimension{}, read as {}.\n",
+                      sizes.size(),
+                      sizes.size() > 1 ? "s" : "",
+                      join(reads, ", ", " and "));
 }

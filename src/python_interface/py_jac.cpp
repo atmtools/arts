@@ -291,6 +291,6 @@ state.
   jacs.def("x_size", &JacobianTargets::x_size, "The size of the model state vector.");
   jacs.def("target_count", &JacobianTargets::target_count, "The number of targets added to the Jacobian.");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize jac\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize jac\n{}", e.what()));
 }
 }  // namespace Python

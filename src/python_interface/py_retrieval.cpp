@@ -84,7 +84,7 @@ void py_retrieval(py::module_& m) try {
         name,
         [field](OptimalEstimationData& value) -> T& { return value.*field; },
         [field, name](OptimalEstimationData& value, const T& replacement) {
-          value.require_unchecked(std::format("replace member '{}'", name));
+          value.require_unchecked(arts::format("replace member '{}'", name));
           value.*field = replacement;
         },
         py::for_getter(py::rv_policy::reference_internal),
@@ -437,6 +437,6 @@ which can hide a remaining distance to the minimum.
   jtt.def_rw("value", &JacobianTargetType::target, "Target\n\n.. :class:`object`");
   generic_interface(jtt);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize retrieval\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize retrieval\n{}", e.what()));
 }
 }  // namespace Python

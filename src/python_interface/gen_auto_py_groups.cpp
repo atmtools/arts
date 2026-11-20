@@ -16,14 +16,14 @@ namespace {
 void include_friends(std::ostream& os) {
   std::set<std::string> files;
   for (const auto& [group, wsg] : workspace_group_friends()) files.insert(wsg.file);
-  for (const auto& file : files) std::println(os, "#include <{}>", file);
+  for (const auto& file : files) arts::println(os, "#include <{}>", file);
 }
 
 void implement_convert_const_py_object() try {
   const auto& wsgs = internal_workspace_groups();
 
   std::ofstream os("py_auto_wsg_convert.cpp");
-  std::println(os, R"--(#include <py_auto_wsg.h>
+  arts::println(os, R"--(#include <py_auto_wsg.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
@@ -39,38 +39,38 @@ bool convert_ref(Wsv& wsv, const py::object * const x) {{
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
       if (group == "Numeric"sv) {
-        std::println(os,
-                     R"(  if (py::isinstance<ValueHolder<Numeric>>(*x)) {{
+        arts::println(os,
+                      R"(  if (py::isinstance<ValueHolder<Numeric>>(*x)) {{
     wsv = Numeric{{py::float_(*x)}};
     return true;
   }})");
       } else if (group == "String"sv) {
-        std::println(os,
-                     R"( if (py::isinstance<ValueHolder<String>>(*x)) {{
+        arts::println(os,
+                      R"( if (py::isinstance<ValueHolder<String>>(*x)) {{
     wsv = String{{py::str(*x).c_str()}};
     return true;
   }})");
       } else if (group == "Index") {
-        std::println(os,
-                     R"(  if (py::isinstance<ValueHolder<Index>>(*x)) {{
+        arts::println(os,
+                      R"(  if (py::isinstance<ValueHolder<Index>>(*x)) {{
     wsv = Index{{py::int_(*x)}};
     return true;
   }})");
       } else {
-        std::print(os, "static_assert(false, \"Missing custom code for {0}\");", group);
+        arts::print(os, "static_assert(false, \"Missing custom code for {0}\");", group);
       }
     } else {
-      std::println(os,
-                   R"(  if (py::isinstance<{0}>(*x)) {{
+      arts::println(os,
+                    R"(  if (py::isinstance<{0}>(*x)) {{
     wsv = py::cast<std::shared_ptr<{0}>>(*x, false);
     return true;
   }})",
-                   group);
+                    group);
     }
   }
 
-  std::println(os,
-               R"--(  return false;}}
+  arts::println(os,
+                R"--(  return false;}}
 
 bool convert_cast(Wsv& wsv, const py::object * const x) {{
   py::gil_scoped_acquire gil{{}};
@@ -79,27 +79,27 @@ bool convert_cast(Wsv& wsv, const py::object * const x) {{
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
-      std::print(os,
-                 R"(
+      arts::print(os,
+                  R"(
   ValueHolder<{0}> _val{0}{{}};
   if (py::try_cast(*x, _val{0}, true)) {{
     wsv = std::move(_val{0}.val);
     return true;
   }})",
-                 group);
+                  group);
     } else {
-      std::print(os,
-                 R"(
+      arts::print(os,
+                  R"(
   {0} _val{0}{{}};
   if (py::try_cast(*x, _val{0}, true)) {{
     wsv = _val{0};
     return true;
   }})",
-                 group);
+                  group);
     }
   }
 
-  std::print(os, "\n  return false;\n}}\n");
+  arts::print(os, "\n  return false;\n}}\n");
   os << R"(
 Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool output) {
   py::gil_scoped_acquire gil;
@@ -112,7 +112,7 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
       switch (allowed[i]) {
 )";
   for (const auto& [group, wsg] : wsgs) {
-    std::println(
+    arts::println(
         os, "        case WorkspaceGroupInfo<{0}>::index: reason += WorkspaceGroupInfo<{0}>::name; break;", group);
   }
   os << R"(
@@ -133,12 +133,12 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
   // Preserve identity, including the shared scalar held by ValueHolder.
   for (const auto& [group, wsg] : wsgs) {
     if (wsg.value_type)
-      std::println(
+      arts::println(
           os,
           "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<ValueHolder<{0}>>(*x)) return Wsv(std::shared_ptr<{0}>(py::cast<ValueHolder<{0}>&>(*x, false).val));",
           group);
     else
-      std::println(
+      arts::println(
           os,
           "  if (accepts(WorkspaceGroupInfo<{0}>::index) and py::isinstance<{0}>(*x)) return Wsv(py::cast<std::shared_ptr<{0}>>(*x, false));",
           group);
@@ -154,11 +154,12 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
   for (const auto& [group, wsg] : wsgs) {
     os << "    case WorkspaceGroupInfo<" << group << ">::index: {\n";
     if (wsg.value_type) {
-      std::println(os,
-                   "      ValueHolder<{0}> value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value.val));",
-                   group);
+      arts::println(
+          os,
+          "      ValueHolder<{0}> value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value.val));",
+          group);
     } else {
-      std::println(os, "      {0} value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value));", group);
+      arts::println(os, "      {0} value; if (py::try_cast(*x, value, true)) return Wsv(std::move(value));", group);
     }
     os << "      break;\n    }\n";
   }
@@ -170,13 +171,13 @@ Wsv from_allowed(const py::object* x, std::span<const std::size_t> allowed, bool
 } // namespace Python
 )";
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in implement_convert_const_py_object: {}", e.what());
+  arts::println(stderr, "Error in implement_convert_const_py_object: {}", e.what());
   throw;
 }
 
 void implement_from_const_py_object() try {
   std::ofstream os("py_auto_wsg_from_const_py_object.cpp");
-  std::println(os, R"--(#include <py_auto_wsg.h>
+  arts::println(os, R"--(#include <py_auto_wsg.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
@@ -194,7 +195,7 @@ Wsv from(const py::object * const x) {{
 }}  // namespace Python
 )--");
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in implement_from_const_py_object: {}", e.what());
+  arts::println(stderr, "Error in implement_from_const_py_object: {}", e.what());
   throw;
 }
 
@@ -202,7 +203,7 @@ void implement_from_py_object() try {
   const auto& wsgs = internal_workspace_groups();
 
   std::ofstream os("py_auto_wsg_from_py_object.cpp");
-  std::println(os, R"--(#include <py_auto_wsg.h>
+  arts::println(os, R"--(#include <py_auto_wsg.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
@@ -217,32 +218,32 @@ Wsv from(py::object * const x) {{
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
-      std::println(os,
-                   R"(  if (py::isinstance<ValueHolder<{0}>>(*x))
+      arts::println(os,
+                    R"(  if (py::isinstance<ValueHolder<{0}>>(*x))
     return py::cast<ValueHolder<{0}>>(py::object(x->attr("value")), false).val;)",
-                   group);
+                    group);
     } else {
-      std::println(os,
-                   R"(  if (py::isinstance<{0}>(*x))
+      arts::println(os,
+                    R"(  if (py::isinstance<{0}>(*x))
     return py::cast<std::shared_ptr<{0}>>(*x, false);)",
-                   group);
+                    group);
     }
   }
 
-  std::println(os, R"--(
+  arts::println(os, R"--(
   
   throw std::runtime_error("Cannot convert pure python object to workspace variable.");
 }}
 }}  // namespace Python
 )--");
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in implement_from_py_object: {}", e.what());
+  arts::println(stderr, "Error in implement_from_py_object: {}", e.what());
   throw;
 }
 
 void implement_string_type() try {
   std::ofstream os("py_auto_wsg_string_type.cpp");
-  std::println(os, R"--(#include <py_auto_wsg.h>
+  arts::println(os, R"--(#include <py_auto_wsg.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
@@ -257,7 +258,7 @@ std::string type(const py::object * const x) {{
 }}  // namespace Python
 )--");
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in implement_string_type: {}", e.what());
+  arts::println(stderr, "Error in implement_string_type: {}", e.what());
   throw;
 }
 
@@ -266,7 +267,7 @@ void implement_to_py_wsv() try {
 
   std::ofstream os("py_auto_wsg_to_py_wsv.cpp");
 
-  std::println(os, R"--(#include <py_auto_wsg.h>
+  arts::println(os, R"--(#include <py_auto_wsg.h>
 #include <nanobind/stl/shared_ptr.h>
 #include <nanobind/nanobind.h>
 
@@ -278,25 +279,25 @@ py::object to_py(const Wsv& wsv) {{
 
   for (auto& [group, wsg] : wsgs) {
     if (wsg.value_type) {
-      std::println(
+      arts::println(
           os,
           "    case WorkspaceGroupInfo<{0}>::index:\n      return py::cast<ValueHolder<{0}>>(wsv.share<{0}>());",
           group);
     } else {
-      std::println(
+      arts::println(
           os,
           "    case WorkspaceGroupInfo<{0}>::index:\n      return py::cast<std::shared_ptr<{0}>>(wsv.share<{0}>());",
           group);
     }
   }
 
-  std::println(os, R"--(  }}
+  arts::println(os, R"--(  }}
   return py::none();
 }}
 }}  // namespace Python
 )--");
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in implement_to_py_wsv: {}", e.what());
+  arts::println(stderr, "Error in implement_to_py_wsv: {}", e.what());
   throw;
 }
 
@@ -311,7 +312,7 @@ void groups(const std::string& fname) try {
 
   std::ofstream hos(fname + ".h");
 
-  std::println(hos, R"--(#pragma once
+  arts::println(hos, R"--(#pragma once
 
 #include <auto_wsg.h>
 #include <span>
@@ -324,14 +325,14 @@ void groups(const std::string& fname) try {
 )--");
 
   include_friends(hos);
-  std::println(hos);
+  arts::println(hos);
 
   for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
-    std::println(hos, "NB_MAKE_OPAQUE(Array<{}>);\n", group);
-    if (wsg.map_type) std::println(hos, "NB_MAKE_OPAQUE({});\n", group);
+    arts::println(hos, "NB_MAKE_OPAQUE(Array<{}>);\n", group);
+    if (wsg.map_type) arts::println(hos, "NB_MAKE_OPAQUE({});\n", group);
   }
 
-  std::println(hos, R"--(
+  arts::println(hos, R"--(
 namespace Python {{
 namespace py = nanobind;
 
@@ -394,7 +395,7 @@ std::string type(const std::variant<std::shared_ptr<T>...> * const x)  {{
 }}  // namespace Python
 )--");
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in groups: {}", e.what());
+  arts::println(stderr, "Error in groups: {}", e.what());
   throw;
 }
 
@@ -404,49 +405,49 @@ void groupdocs(const std::string& fname) try {
   std::ofstream osh(fname + ".h");
   std::ofstream osc(fname + ".cpp");
 
-  std::print(osh, R"(#pragma once
+  arts::print(osh, R"(#pragma once
 
 #include <auto_wsg.h>
 )");
 
   include_friends(osh);
 
-  std::print(osh, R"(
+  arts::print(osh, R"(
 template <typename T>
 struct PythonWorkspaceGroupInfo {{static std::string_view desc() = delete;}};
 )");
 
-  std::println(osc, R"(#include "py_auto_wsgdocs.h"
+  arts::println(osc, R"(#include "py_auto_wsgdocs.h"
 )");
 
   for (auto& [group, wsg] : std::array{wsgs, workspace_group_friends()} | stdv::join) {
-    const auto info = unwrap_stars(std::format("{}\n{}{}{}",
-                                               wsg.desc,
-                                               group_dimension_docs(group),
-                                               group_invariant_docs(group),
-                                               Python::group_generics_inout(group),
-                                               Python::group_workspace_types(group)));
+    const auto info = unwrap_stars(arts::format("{}\n{}{}{}",
+                                                wsg.desc,
+                                                group_dimension_docs(group),
+                                                group_invariant_docs(group),
+                                                Python::group_generics_inout(group),
+                                                Python::group_workspace_types(group)));
 
-    std::println(osh,
+    arts::println(osh,
 
-                 R"(template <>
+                  R"(template <>
 struct PythonWorkspaceGroupInfo<{0}> {{
   static std::string_view desc();
 }};
 )",
-                 group);
+                  group);
 
-    std::println(osc,
-                 R"(std::string_view PythonWorkspaceGroupInfo<{0}>::desc() {{
+    arts::println(osc,
+                  R"(std::string_view PythonWorkspaceGroupInfo<{0}>::desc() {{
   return
   R"-PYARTSDOCSAUTO-({1})-PYARTSDOCSAUTO-"sv;
 }}
 )",
-                 group,
-                 info);
+                  group,
+                  info);
   }
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in groupdocs: {}", e.what());
+  arts::println(stderr, "Error in groupdocs: {}", e.what());
   throw;
 }
 
@@ -455,7 +456,7 @@ void agenda_operators() try {
 
   std::ofstream cpp("py_auto_agenda_operators.cpp");
 
-  std::println(cpp, R"(#include <python_interface.h>
+  arts::println(cpp, R"(#include <python_interface.h>
 
 #include <hpy_arts.h>
 #include <nanobind/stl/function.h>
@@ -476,9 +477,9 @@ void py_auto_agenda_operators(py::module_& m) {{
     vars.reserve(ag.input.size());
     params.reserve(ag.input.size());
     for (auto&& v : ag.input) {
-      input.push_back(std::format("const {}& {}", wsv.at(v).type, v));
-      vars.push_back(std::format(R"("{}"_a)", v));
-      params += std::format(
+      input.push_back(arts::format("const {}& {}", wsv.at(v).type, v));
+      vars.push_back(arts::format(R"("{}"_a)", v));
+      params += arts::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
      {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
@@ -489,7 +490,7 @@ void py_auto_agenda_operators(py::module_& m) {{
 
     retval.reserve(ag.output.size());
     for (auto&& v : ag.output) {
-      retval += std::format(
+      retval += arts::format(
           R"({0} : :class:`~pyarts3.arts.{1}`
      {2} See also :attr:`~pyarts3.workspace.Workspace.{0}`.
 )",
@@ -501,8 +502,8 @@ void py_auto_agenda_operators(py::module_& m) {{
     const std::string op = ag.named_operator.empty() ? (name + "Operator") : ag.named_operator;
     if (auto [_, new_] = seen.insert(op); not new_) continue;
 
-    std::print(cpp,
-               R"(
+    arts::print(cpp,
+                R"(
   py::class_<{7}> {0}_operator(m, "{7}");
     {0}_operator.def("__init__",
             []({7}* op, {7}::func_t f) {{
@@ -567,24 +568,24 @@ Failure to follow these rules will result in a runtime error.
       You need to make sure that the operator is thread safe.
 )-x-";
 )",
-               name,
-               input,
-               ag.input,
-               vars,
-               params,
-               retval,
-               ag.output,
-               op);
+                name,
+                input,
+                ag.input,
+                vars,
+                params,
+                retval,
+                ag.output,
+                op);
   }
 
-  std::println(cpp, "}}}}\n");
-} catch (const std::exception& e) { std::println(stderr, "Error in agenda_operators: {}", e.what()); }
+  arts::println(cpp, "}}}}\n");
+} catch (const std::exception& e) { arts::println(stderr, "Error in agenda_operators: {}", e.what()); }
 
 void wsv_implicit() try {
   std::ofstream cpp("py_auto_wsg_wsv_implicit.cpp");
   std::ofstream hpp("py_auto_wsg_wsv_implicit.h");
 
-  std::println(hpp, R"(#pragma once
+  arts::println(hpp, R"(#pragma once
 
 #include <python_interface.h>
 
@@ -593,26 +594,26 @@ void wsv_implicit(py::class_<Wsv>& wsv);
 }}  // namespace Python
 )");
 
-  std::println(cpp, R"(#include <python_interface.h>
+  arts::println(cpp, R"(#include <python_interface.h>
 #include <nanobind/stl/shared_ptr.h>
 
 namespace Python {{
 void wsv_implicit(py::class_<Wsv>& wsv) {{)");
 
   for (auto& group : internal_workspace_groups()) {
-    std::println(
+    arts::println(
         cpp,
         R"(wsv.def( "__init__", [] (Wsv* v, {0}<{1}>& a) {{ new (v) Wsv{{ std::move(a) }}; }}, "a"_a.noconvert());)",
         group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
         group.first);
-    std::println(cpp,
-                 R"(py::implicitly_convertible<{0}<{1}>, Wsv>();)",
-                 group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
-                 group.first);
+    arts::println(cpp,
+                  R"(py::implicitly_convertible<{0}<{1}>, Wsv>();)",
+                  group.second.value_type ? "ValueHolder"sv : "std::shared_ptr"sv,
+                  group.first);
   }
 
   cpp << "}\n}  // namespace Python\n";
-} catch (const std::exception& e) { std::println(stderr, "Error in wsv_implicit: {}", e.what()); }
+} catch (const std::exception& e) { arts::println(stderr, "Error in wsv_implicit: {}", e.what()); }
 }  // namespace
 
 int main() try {
@@ -621,6 +622,6 @@ int main() try {
   agenda_operators();
   wsv_implicit();
 } catch (const std::exception& e) {
-  std::println(stderr, "Error: {}", e.what());
+  arts::println(stderr, "Error: {}", e.what());
   return EXIT_FAILURE;
 }

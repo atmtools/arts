@@ -6,7 +6,7 @@
 #include <print>
 
 std::ostream& operator<<(std::ostream& os, const ScatteringSpeciesProperty& ssp) {
-  std::print(os, "{}", ssp);
+  arts::print(os, "{}", ssp);
   return os;
 }
 
@@ -14,7 +14,7 @@ ScatteringSpeciesProperty ScatteringSpeciesProperty::from_string(const std::stri
   std::string_view s   = in;
   const auto       pos = s.find_last_of('_');
   if (pos == std::string_view::npos) {
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         R"-x-(Bad input "{}"
 
 Must be of the form "<species_name>_<particulate_property>"

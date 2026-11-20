@@ -342,7 +342,7 @@ void measurement_sensorsAddSimpleRadar(ArrayOfSensor&       measurement_sensors,
     }
 
     SortedGriddedField1 meta;
-    meta.data_name     = name.empty() ? std::format("sensor-{}", measurement_sensors.size() + 1) : name;
+    meta.data_name     = name.empty() ? arts::format("sensor-{}", measurement_sensors.size() + 1) : name;
     meta.gridname<0>() = "range";
     Vector centers(nbins);
     for (Size ib = 0; ib < nbins; ++ib) centers[ib] = std::midpoint(range_bins[ib], range_bins[ib + 1]);

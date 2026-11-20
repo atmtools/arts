@@ -150,7 +150,7 @@ void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&              
 #pragma omp critical
       {
         if (error.empty()) {
-          error = std::format("Error in parallel-for. Index i={} (range: 0<=i<{}):\n{}\n", i, N, e.what());
+          error = arts::format("Error in parallel-for. Index i={} (range: 0<=i<{}):\n{}\n", i, N, e.what());
         }
       }
     }

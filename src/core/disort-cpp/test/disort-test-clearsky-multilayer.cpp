@@ -1650,5 +1650,5 @@ int main() {
     dis.gridded_u(disort_intensities[iv].view_as(N, 1, NQuad), {0.0});
   }
 
-  std::cout << std::format("arts = {:B,}\n", disort_intensities);
+  arts::println("arts = {:B,}", disort_intensities);
 }

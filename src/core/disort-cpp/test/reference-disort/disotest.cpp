@@ -150,7 +150,7 @@ void run_case(const std::string_view   name,
             std::isfinite(values.dfdt)))
       arts::user_error("{} produced a non-finite flux", name);
   }
-  std::cout << std::format("{} completed\n", name);
+  arts::println("{} completed", name);
 }
 
 void disort_test06() {
@@ -208,8 +208,8 @@ void disort_test06() {
       const Numeric output_tau = test.optical_depth == 0.0 ? 0.0 : test.output_tau[level];
       const auto    flux       = dis.flux(flux_data, output_tau);
       expect_reference(
-          std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], 7e-5);
-      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+          arts::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], 7e-5);
+      expect_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                        flux.down_diffuse,
                        reference.diffuse_down[level],
                        1e-3);
@@ -217,11 +217,11 @@ void disort_test06() {
       // hotspot, 6h's DFDT at the surface (a small difference of large terms) differs by 0.4%
       const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
       expect_reference(
-          std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
+          arts::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
       expect_reference(
-          std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
+          arts::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
     }
-    std::cout << std::format("test_{} completed\n", test.name);
+    arts::println("test_{} completed", test.name);
   }
 }
 
@@ -270,24 +270,24 @@ void disort_test07() {
       const auto flux = dis.flux(flux_data, output_tau[level]);
       if (case_index == 1) {
         expect_small_reference(
-            std::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level]);
+            arts::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level]);
         expect_small_reference(
-            std::format("{} diffuse-down flux [{}]", c.name, level), flux.down_diffuse, reference.diffuse_down[level]);
-        expect_small_reference(std::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level]);
-        expect_small_reference(std::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level]);
+            arts::format("{} diffuse-down flux [{}]", c.name, level), flux.down_diffuse, reference.diffuse_down[level]);
+        expect_small_reference(arts::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level]);
+        expect_small_reference(arts::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level]);
       } else {
         constexpr Numeric tolerance = 2e-3;
         expect_reference(
-            std::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level], tolerance);
-        expect_reference(std::format("{} diffuse-down flux [{}]", c.name, level),
+            arts::format("{} direct flux [{}]", c.name, level), flux.down_direct, reference.direct[level], tolerance);
+        expect_reference(arts::format("{} diffuse-down flux [{}]", c.name, level),
                          flux.down_diffuse,
                          reference.diffuse_down[level],
                          tolerance);
-        expect_reference(std::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level], tolerance);
-        expect_reference(std::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level], tolerance);
+        expect_reference(arts::format("{} up flux [{}]", c.name, level), flux.up, reference.up[level], tolerance);
+        expect_reference(arts::format("{} DFDT [{}]", c.name, level), flux.dfdt, reference.dfdt[level], tolerance);
       }
     }
-    std::cout << std::format("test_{} completed\n", c.name);
+    arts::println("test_{} completed", c.name);
   }
 }
 

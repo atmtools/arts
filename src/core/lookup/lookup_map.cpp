@@ -98,7 +98,7 @@ table::table(const SpeciesEnum&                   species,
           for (Size ifreq = 0; ifreq < f_grid->size(); ++ifreq) { xsec[it, iw, ip, ifreq] = pm[ifreq].A() * inv_nd; }
         } catch (std::runtime_error& e) {
 #pragma omp critical
-          error += std::format("ERROR:\n{}\n\n", e.what());
+          error += arts::format("ERROR:\n{}\n\n", e.what());
         }
       }
     }

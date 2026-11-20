@@ -125,13 +125,13 @@ file : str
 
   const auto return_doc = [] {
     if constexpr (WorkspaceGroup<U>) {
-      return std::format(R"(
+      return arts::format(R"(
 Returns
 -------
 artstype : pyarts3.arts.{}
     The variable created from the file.
 )",
-                         WorkspaceGroupInfo<U>::name);
+                          WorkspaceGroupInfo<U>::name);
     } else {
       return std::string{};
     }
@@ -228,27 +228,27 @@ template <typename T> void value_holder_interface(py::class_<ValueHolder<T>>& c)
 template <typename T, class... E> void str_interface(py::class_<T, E...>& c) {
   c.def("__format__", [](const T& x, std::string fmt) {
     if constexpr (std::formattable<T, char>) {
-      fmt = std::format("{}{}{}", "{:"sv, fmt, "}"sv);
-      return std::vformat(fmt, std::make_format_args(x));
+      fmt = arts::format("{}{}{}", "{:"sv, fmt, "}"sv);
+      return arts::vformat(fmt, std::make_format_args(x));
     } else {
       if (not fmt.empty()) throw std::format_error("Not formattable");
-      return std::format("{}", x);
+      return arts::format("{}", x);
     }
   });
 
   c.def("__str__", [](const T& x) {
     if constexpr (std::formattable<T, char>) {
-      return std::format("{:B,}", x);
+      return arts::format("{:B,}", x);
     } else {
-      return std::format("{}", x);
+      return arts::format("{}", x);
     }
   });
 
   c.def("__repr__", [](const T& x) {
     if constexpr (std::formattable<T, char>) {
-      return std::format("{:sB,}", x);
+      return arts::format("{:sB,}", x);
     } else {
-      return std::format("{}", x);
+      return arts::format("{}", x);
     }
   });
 }

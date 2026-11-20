@@ -66,7 +66,7 @@ void require_error(const std::function<void()>& f, const std::string& what) {
   try {
     f();
   } catch (const std::exception&) { threw = true; }
-  require(threw, std::format("Expected an error: {}", what));
+  require(threw, arts::format("Expected an error: {}", what));
 }
 
 void test_tro_backscatter_expansion() {
@@ -198,14 +198,14 @@ void test_rayleigh() {
         }
       }
     }
-    std::cout << std::format(
+    arts::println(
         "V1 Rayleigh GasScatterer, m = 0..3, 16 streams, +-0.35, +-1 and the beam -0.6: max |C^m, S^m - closed "
-        "form| {:.1e} (tolerance 1e-13)\n",
+        "form| {:.1e} (tolerance 1e-13)",
         d);
     require(d <= 1e-13,
-            std::format("V1: the Fourier coefficients of ARTS's Rayleigh GasScatterer must equal the dipole closed "
-                        "forms to 1e-13, got {:.2e}",
-                        d));
+            arts::format("V1: the Fourier coefficients of ARTS's Rayleigh GasScatterer must equal the dipole closed "
+                         "forms to 1e-13, got {:.2e}",
+                         d));
   }
 
   require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, Vector{0.0}, mu, 2, 1e-3); }, "mu = 0");
@@ -343,21 +343,21 @@ void test_lab_frame(const mie_case& c) {
     sense   = std::max(sense, max_diff(Za, vdisort_test::lab_frame(F, ci, 0.0, co, rad(daa))) / scale);
     flipped = std::max(flipped, max_diff(Za, vdisort_test::lab_frame(F_flip, ci, 0.0, co, -rad(daa))) / scale);
   }
-  std::cout << std::format(
+  arts::println(
       "V2 ARTS laboratory frame vs vector geometry, Mie F12 / F11 = {:.2f}, F34 / F11 = {:.3f} at 69 deg, 300 "
       "generic directions:\n"
       "    mu = cos(za), phi = -aa, same F:   max |dZ| / max |Z| {:.1e} (tolerance 1e-10)\n"
       "    phi = +aa (other azimuth sense):   max |dZ| / max |Z| {:.1e}\n"
-      "    F34 negated:                       max |dZ| / max |Z| {:.1e}\n",
+      "    F34 negated:                       max |dZ| / max |Z| {:.1e}",
       ref.F12() / ref.F11(),
       ref.F34() / ref.F11(),
       right,
       sense,
       flipped);
   require(right <= 1e-10,
-          std::format("V2: ARTS's laboratory-frame phase matrix must equal the vector-geometry phase matrix of the "
-                      "same F with mu = cos(za) and phi = -aa to 1e-10, got {:.2e}",
-                      right));
+          arts::format("V2: ARTS's laboratory-frame phase matrix must equal the vector-geometry phase matrix of the "
+                       "same F with mu = cos(za) and phi = -aa to 1e-10, got {:.2e}",
+                       right));
   require(sense > 1e-2 and flipped > 1e-2,
           "V2: the other azimuth sense and a negated F34 must both miss ARTS's phase matrix by more than 1e-2");
 
@@ -370,9 +370,9 @@ void test_lab_frame(const mie_case& c) {
     const auto Zv       = vdisort_test::lab_frame(F, std::cos(rad(z0)), 0.0, std::cos(rad(z0)), -rad(daa));
     Numeric    diagonal = 0.0;
     for (Index i = 1; i < 4; i++) diagonal = std::max(diagonal, std::abs(Za[i, i] / Za[0, 0] - Zv[i, i] / Zv[0, 0]));
-    std::cout << std::format(
+    arts::println(
         "V2 forward pair za {} deg, daa {} deg: Z22 / Z11 = {:+.6f}, Z33 / Z11 = {:+.6f} (vector geometry {:+.6f}, "
-        "{:+.6f}); diagonal ratios differ by {:.1e} (tolerance 1e-5); all elements by {:.1e} of max |Z|\n",
+        "{:+.6f}); diagonal ratios differ by {:.1e} (tolerance 1e-5); all elements by {:.1e} of max |Z|",
         z0,
         daa,
         Za[1, 1] / Za[0, 0],
@@ -381,12 +381,13 @@ void test_lab_frame(const mie_case& c) {
         Zv[2, 2] / Zv[0, 0],
         diagonal,
         max_diff(Za, Zv) / max_abs(Zv));
-    require(diagonal <= 1e-5,
-            std::format("V2: ARTS's phase matrix must keep the diagonal of F for (near) forward scattering (za {} deg, "
-                        "daa {} deg); the diagonal ratios differ by {:.2e}",
-                        z0,
-                        daa,
-                        diagonal));
+    require(
+        diagonal <= 1e-5,
+        arts::format("V2: ARTS's phase matrix must keep the diagonal of F for (near) forward scattering (za {} deg, "
+                     "daa {} deg); the diagonal ratios differ by {:.2e}",
+                     z0,
+                     daa,
+                     diagonal));
   }
 }
 
@@ -425,15 +426,15 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
       }
     }
   }
-  std::cout << std::format(
+  arts::println(
       "V3 vdisort::scattering_optics (ARTS's laboratory-frame Fourier modes) vs the Fourier coefficients of the "
       "vector-geometry phase matrix, Mie Legendre series of degree 40, m = 0..3, 8 streams and the beam -0.6: max "
-      "|dC|, |dS| / max |C| {:.1e} (tolerance 1e-10)\n",
+      "|dC|, |dS| / max |C| {:.1e} (tolerance 1e-10)",
       d / scale);
   require(d <= 1e-10 * scale,
-          std::format("V3: VDISORT's Fourier coefficients must be those of the vector-geometry phase matrix to 1e-10, "
-                      "got {:.2e}",
-                      d / scale));
+          arts::format("V3: VDISORT's Fourier coefficients must be those of the vector-geometry phase matrix to 1e-10, "
+                       "got {:.2e}",
+                       d / scale));
 }
 
 //! V4: main_data_from_path against its inputs
@@ -467,7 +468,7 @@ void test_path() {
     tau += (gas + sca) * (alt[l] - alt[l + 1]);
     dev  = std::max({dev, std::abs(v.tau()[l] - tau) / tau, std::abs(v.omega()[l] - sca / (gas + sca))});
   }
-  require(dev < 1e-14, std::format("V4: tau and omega from the path data, deviation {:.1e}", dev));
+  require(dev < 1e-14, arts::format("V4: tau and omega from the path data, deviation {:.1e}", dev));
 
   // Gas-only layer and an empty species array: no scattering, the thermal source alone
   const auto g = vdisort::main_data_from_path(ray_path,
@@ -506,7 +507,7 @@ void test_path() {
                                            2.7);
       },
       "a layer without optical thickness");
-  std::cout << std::format("V4 path builder: tau and omega to {:.1e}, gas-only, 2 error paths\n", dev);
+  arts::println("V4 path builder: tau and omega to {:.1e}, gas-only, 2 error paths", dev);
 }
 /* The orthonormal associated Legendre functions Pn_l^m(x), l = m .. L, with
    Pn_l^m(x)^2 integrating to 1 / (2 pi) over x in [-1, 1] (Y_lm without the
@@ -563,18 +564,18 @@ void test_forward_peaked_hg() {
         }
       }
     }
-    std::cout << std::format(
+    arts::println(
         "V6 Henyey-Greenstein g = {}, 16 streams and the beam, m = 0..3: max |C^m_11 - addition theorem| / max {:.1e}, "
-        "max |S^m_11| / max {:.1e} (tolerance 1e-10); {:.3f} s\n",
+        "max |S^m_11| / max {:.1e} (tolerance 1e-10); {:.3f} s",
         g,
         d / scale,
         sine / scale,
         time);
     require(d <= 1e-10 * scale and sine <= 1e-10 * scale,
-            std::format("V6: the Fourier modes of Henyey-Greenstein scattering with g = {} must be those of the "
-                        "addition theorem to 1e-10, got {:.2e}",
-                        g,
-                        d / scale));
+            arts::format("V6: the Fourier modes of Henyey-Greenstein scattering with g = {} must be those of the "
+                         "addition theorem to 1e-10, got {:.2e}",
+                         g,
+                         d / scale));
   }
 }
 
@@ -637,9 +638,9 @@ void test_aro_data() {
       }
     }
   }
-  std::cout << std::format(
+  arts::println(
       "V5 ARO data (Rayleigh's laboratory frame on 1 deg grids) vs GasScatterer, m = 0, 1, 4 streams: max |dC|, |dS| / "
-      "max |C| {:.1e} (tolerance 1e-3); extinction {:.1e}\n",
+      "max |C| {:.1e} (tolerance 1e-3); extinction {:.1e}",
       d / scale,
       std::abs(f.extinction - g.extinction) / g.extinction);
   require(d <= 1e-3 * scale and std::abs(f.extinction - g.extinction) <= 1e-14 * g.extinction,

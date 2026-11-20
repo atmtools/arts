@@ -50,7 +50,7 @@ void atm_fieldSetDataImpl(AtmField                         &atm_field,
 
   // The latitude and longitude grids of the data are ranged on the way in, the
   // altitude grid needs no range
-  field = GeodeticField3{.data_name  = std::format("{}", key),
+  field = GeodeticField3{.data_name  = arts::format("{}", key),
                          .data       = data.data,
                          .grid_names = {"alt", "lat", "lon"},
                          .grids      = {data.grid<0>(), LatGrid{data.grid<1>()}, LonGrid{data.grid<2>()}}};
@@ -100,14 +100,14 @@ std::variant<T...> xml_read_from_file_variant(const std::variant<T...> &_, const
       xml_read_from_file(filename, x);
       return x;
     } catch (std::exception &e) {
-      error = std::format("Group {} reports:\n{}", xml_io_stream<myT>::type_name, e.what());
+      error = arts::format("Group {} reports:\n{}", xml_io_stream<myT>::type_name, e.what());
     }
 
     if constexpr (I + 1 < N) { return xml_read_from_file_variant<I + 1, T...>(_, filename); }
 
-    throw std::runtime_error(std::format("Could not read valid data from file: {}\nTried all groups in {}",
-                                         filename,
-                                         xml_io_stream<std::variant<T...>>::type_name));
+    throw std::runtime_error(arts::format("Could not read valid data from file: {}\nTried all groups in {}",
+                                          filename,
+                                          xml_io_stream<std::variant<T...>>::type_name));
   } catch (std::exception &e) { arts::user_error("{}\n\n{}", e.what(), error); }
 }
 
@@ -119,7 +119,7 @@ template <typename T> void append_data(
     const Index                        &replace_existing_,
     const Index                        &ignore_missing_,
     const std::unordered_map<T, Index> &keys,
-    const auto                         &to_string = [](const auto &x) { return std::format("{}", x); })
+    const auto                         &to_string = [](const auto &x) { return arts::format("{}", x); })
     requires(std::same_as<typename std::decay_t<decltype(to_string(T{}))>, String>) {
   const String my_base        = complete_basename(basename);
   const bool   ignore_missing = static_cast<bool>(ignore_missing_);
@@ -131,7 +131,7 @@ template <typename T> void append_data(
   std::vector<std::string> error{};
 
   for (const auto &[key, _] : keys) {
-    String filename = std::format("{}{}.xml", my_base, to_string(key));
+    String filename = arts::format("{}{}.xml", my_base, to_string(key));
 
     if (replace or not atm_field.contains(key)) {
       if (find_xml_file_existence(filename)) {
@@ -150,7 +150,7 @@ template <typename T> void append_data(
       } else {
       error:
         if (error.empty()) error.emplace_back("Missing species / files:");
-        error.emplace_back(std::format("  {}", filename));
+        error.emplace_back(arts::format("  {}", filename));
       }
     }
   }
@@ -246,7 +246,7 @@ void atm_fieldAppendBaseData(AtmField     &atm_field,
   for (auto &key : enumtyps::AtmKeyTypes) { ++keys[key]; }
 
   append_data(atm_field, basename, extrapolation, 0, replace_existing, 1, keys, [](const AtmKey &x) {
-    return std::format("{}", x);
+    return arts::format("{}", x);
   });
 
   using enum AtmKey;
@@ -355,7 +355,7 @@ void atm_fieldAppendLineLevelData(AtmField              &atm_field,
               replace_existing,
               0,
               keys,
-              [](const QuantumLevelIdentifier &x) { return std::format("{}", x); });
+              [](const QuantumLevelIdentifier &x) { return arts::format("{}", x); });
 }
 
 void atm_fieldAppendTagsSpeciesData(AtmField                &atm_field,

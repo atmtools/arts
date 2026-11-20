@@ -60,7 +60,7 @@ void test_sensor_builder_meta_has_placement_axis() try {
       arts::user_error("Element {} must weight its placement's line of sight and its channel's frequencies", i);
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_sensor_builder_meta_has_placement_axis failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_sensor_builder_meta_has_placement_axis failed:\n{}", e.what()));
 }
 
 void test_sensor_builder_rejects_mismatched_geometry_counts() try {
@@ -77,7 +77,8 @@ void test_sensor_builder_rejects_mismatched_geometry_counts() try {
 
   if (not threw) arts::user_error("Builder must reject mismatching position and LOS counts");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_sensor_builder_rejects_mismatched_geometry_counts failed:\n{}", e.what()));
+  throw std::runtime_error(
+      arts::format("test_sensor_builder_rejects_mismatched_geometry_counts failed:\n{}", e.what()));
 }
 
 void test_unflatten_updates_the_sensor() try {
@@ -106,7 +107,7 @@ void test_unflatten_updates_the_sensor() try {
   assert_close(sensor.freq_grid[0], 101.0, 0.0, "updated frequency");
   assert_close(sensor.flat(SensorKeyType::freq)[0], 101.0, 0.0, "flat frequency");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_unflatten_updates_the_sensor failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_unflatten_updates_the_sensor failed:\n{}", e.what()));
 }
 
 //! The measurement elements of the sensors, in order, are the elements of the measurement vector
@@ -134,7 +135,7 @@ void test_measurement_elements() try {
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) arts::user_error("A measurement element beyond the sensors must be refused");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_measurement_elements failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_measurement_elements failed:\n{}", e.what()));
 }
 
 //! The index lists, for each geometry, the elements with weights there and where those weights are
@@ -204,7 +205,7 @@ void test_geometry_index() try {
     if (not threw) arts::user_error("A weight at geometry {} and frequency {} must be refused", g, f);
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_geometry_index failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_geometry_index failed:\n{}", e.what()));
 }
 
 void test_sensor_builder_polarization_per_channel() try {
@@ -233,7 +234,7 @@ void test_sensor_builder_polarization_per_channel() try {
     assert_close(mapped.front().polarization.state[i], horizontal.polarization.state[i], 0.0, "mapped polarization");
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_sensor_builder_polarization_per_channel failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_sensor_builder_polarization_per_channel failed:\n{}", e.what()));
 }
 
 //! A cross-track scan: the boresight is in the plane across the flight direction, and the polarization turns with
@@ -273,7 +274,7 @@ void test_sensor_builder_cross_track() try {
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) arts::user_error("A scan-dependent polarization needs a scan geometry");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_sensor_builder_cross_track failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_sensor_builder_cross_track failed:\n{}", e.what()));
 }
 }  // namespace
 
@@ -329,7 +330,7 @@ void test_sensor_builder_with_camera() try {
   } catch (const std::runtime_error&) { threw = true; }
   if (not threw) arts::user_error("A cross-track scan of a camera must be refused");
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("test_sensor_builder_with_camera failed:\n{}", e.what()));
+  throw std::runtime_error(arts::format("test_sensor_builder_with_camera failed:\n{}", e.what()));
 }
 
 int main() try {
@@ -343,6 +344,6 @@ int main() try {
   test_sensor_builder_with_camera();
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
-  std::println(stderr, "test_sensor_builder failed:\n{}", e.what());
+  arts::println(stderr, "test_sensor_builder failed:\n{}", e.what());
   return EXIT_FAILURE;
 }

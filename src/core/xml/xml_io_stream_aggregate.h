@@ -44,6 +44,6 @@ template <xml_io_aggregratable T> struct xml_io_stream<T> {
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot read {}:\n{}", type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot read {}:\n{}", type_name, e.what()));
   }
 };

@@ -209,7 +209,7 @@ struct Data {
     auto *out = self.template get_if<T>();
 
     if (out == nullptr) {
-      throw std::invalid_argument(std::format(
+      throw std::invalid_argument(arts::format(
           "Expected type {} not in data.  Instead type {} found.", Data{T{}}.data_type(), self.data_type()));
     }
     return *out;

@@ -301,7 +301,7 @@ bool find_file(ArrayOfString&         matches,
   else {
     for (const auto& path : paths) {
       for (const auto& ext : extensions) {
-        const String fullpath{std::format("{}/{}{}", expand_path(path), efilename, ext)};
+        const String fullpath{arts::format("{}/{}{}", expand_path(path), efilename, ext)};
 
         if (file_exists(fullpath)) {
           if (std::find(matches.begin(), matches.end(), fullpath) == matches.end()) matches.push_back(fullpath);

@@ -21,6 +21,6 @@ void py_constants(py::module_& m) try {
   PythonInterfaceConstant(doppler_broadening_const_squared);
   PythonInterfaceConstant(cosmic_microwave_background_temperature);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize constant\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize constant\n{}", e.what()));
 }
 }  // namespace Python

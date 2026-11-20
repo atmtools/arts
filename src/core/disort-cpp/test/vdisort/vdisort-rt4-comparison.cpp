@@ -480,10 +480,10 @@ vdisort::main_data vdisort_solver(const setup& c,
                      std::abs(v.mu()[N + i] + c.s.mu[i]),
                      std::abs(v.weights()[i] - c.s.w[i])});
   require(node < 1e-14,
-          std::format("VDISORT's double-Gauss streams and weights must equal RT4's for nmu = {}; they differ by up "
-                      "to {:.1e}",
-                      N,
-                      node));
+          arts::format("VDISORT's double-Gauss streams and weights must equal RT4's for nmu = {}; they differ by up "
+                       "to {:.1e}",
+                       N,
+                       node));
   return v;
 }
 
@@ -675,11 +675,11 @@ rt4::result richardson(const setup& c) {
     if (c.optics_index[l] < 0) continue;
     const Numeric tau = (c.kp(l) + c.gas[l]) * c.dz(l);
     require(doublings(tau, richardson_max_delta_tau / 2) == doublings(tau, richardson_max_delta_tau) + 1,
-            std::format("The Richardson extrapolation needs exactly one more doubling at max_delta_tau = {:.1e} "
-                        "than at {:.1e}; a layer of optical thickness {} does not get it",
-                        richardson_max_delta_tau / 2,
-                        richardson_max_delta_tau,
-                        tau));
+            arts::format("The Richardson extrapolation needs exactly one more doubling at max_delta_tau = {:.1e} "
+                         "than at {:.1e}; a layer of optical thickness {} does not get it",
+                         richardson_max_delta_tau / 2,
+                         richardson_max_delta_tau,
+                         tau));
   }
   auto a             = c;
   a.max_delta_tau    = richardson_max_delta_tau;
@@ -698,14 +698,14 @@ rt4::result richardson(const setup& c) {
 }
 
 void report(std::string_view what, deviation d, Numeric tol, std::string_view note = {}) {
-  std::cout << std::format("{:<66} I {:9.3e}  Q {:9.3e}  tolerance {:.1e}{}\n", what, d.I, d.Q, tol, note);
+  arts::println("{:<66} I {:9.3e}  Q {:9.3e}  tolerance {:.1e}{}", what, d.I, d.Q, tol, note);
   require(d.max() <= tol,
-          std::format("{}: VDISORT and RT4 must agree to max |difference| / max |I| <= {:.1e}, got {:.3e} for I "
-                      "and {:.3e} for Q",
-                      what,
-                      tol,
-                      d.I,
-                      d.Q));
+          arts::format("{}: VDISORT and RT4 must agree to max |difference| / max |I| <= {:.1e}, got {:.3e} for I "
+                       "and {:.3e} for Q",
+                       what,
+                       tol,
+                       d.I,
+                       d.Q));
 }
 
 struct comparison {
@@ -729,8 +729,8 @@ deviation check(std::string_view what, const setup& c, const rt4::result& r, con
   report(what,
          d,
          direct_tolerance(dd),
-         dd.any ? std::format(" = {:.2f} delta; max|Q|/max|I| {:.1e}", d.max() / dd.delta, qi)
-                : std::format(", no doubling; max|Q|/max|I| {:.1e}", qi));
+         dd.any ? arts::format(" = {:.2f} delta; max|Q|/max|I| {:.1e}", d.max() / dd.delta, qi)
+                : arts::format(", no doubling; max|Q|/max|I| {:.1e}", qi));
   if (dd.any)
     report("    RT4 Richardson-extrapolated to max_delta_tau = 0",
            compare(richardson(c), v, first),
@@ -740,7 +740,7 @@ deviation check(std::string_view what, const setup& c, const rt4::result& r, con
 
 deviation check(std::string_view what, const setup& c) {
   const auto x = run(c);
-  return check(std::format("{} (nmu {})", what, c.s.nmu), c, x.r, x.f, 0);
+  return check(arts::format("{} (nmu {})", what, c.s.nmu), c, x.r, x.f, 0);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -839,14 +839,14 @@ void test_numerical_phase_matrix() {
             for (Index a = 0; a < 4; a++)
               for (Index b = 0; b < 4; b++)
                 diff = std::max(diff, std::abs(num[ho, hi, io, ii][a, b] - ref[ho, hi, io, ii][a, b]));
-    std::cout << std::format("{:<66} max |P_num - P_closed| {:9.3e}  tolerance 1.0e-12\n",
-                             "C7 numerical azimuthal mean of Rayleigh, all 4 x 4 elements",
-                             diff);
+    arts::println("{:<66} max |P_num - P_closed| {:9.3e}  tolerance 1.0e-12",
+                  "C7 numerical azimuthal mean of Rayleigh, all 4 x 4 elements",
+                  diff);
     require(diff <= 1e-12,
-            std::format("The numerical azimuthal mean of the Rayleigh lab-frame matrix must equal the m = 0 closed "
-                        "form to 1e-12 (nphi = {}), got {:.3e}",
-                        nphi,
-                        diff));
+            arts::format("The numerical azimuthal mean of the Rayleigh lab-frame matrix must equal the m = 0 closed "
+                         "form to 1e-12 (nphi = {}), got {:.3e}",
+                         nphi,
+                         diff));
   }
 
   setup             c;
@@ -872,17 +872,17 @@ void test_numerical_phase_matrix() {
     }
   }
   const Numeric renorm = renormalize(Z, c.s, sigma);
-  std::cout << std::format(
+  arts::println(
       "    polarized HG g = 0.7: mirror asymmetry {:.1e} and [I, Q]-[U, V] coupling {:.1e} (relative to max Z); "
-      "per-stream renormalisation up to {:.1e}\n",
+      "per-stream renormalisation up to {:.1e}",
       asym / zmax,
       cross_block / zmax,
       renorm);
   require(asym <= 1e-13 * zmax and cross_block <= 1e-13 * zmax,
-          std::format("The numerical m = 0 polarized HG matrix must be mirror symmetric and have no [I, Q] - [U, V] "
-                      "coupling to 1e-13 relative; got {:.1e} and {:.1e}",
-                      asym / zmax,
-                      cross_block / zmax));
+          arts::format("The numerical m = 0 polarized HG matrix must be mirror symmetric and have no [I, Q] - [U, V] "
+                       "coupling to 1e-13 relative; got {:.1e} and {:.1e}",
+                       asym / zmax,
+                       cross_block / zmax));
 
   c.height       = Vector{2.0, 1.0, 0.0};
   c.temperature  = Vector{210.0, 240.0, 280.0};
@@ -914,18 +914,17 @@ void test_nonreciprocal() {
   for (auto m :
        {mistake::stream_transpose, mistake::stokes_transpose, mistake::full_transpose, mistake::quadrant_exchange}) {
     const auto d = compare(r, vdisort_streams(vdisort_solver(c, m), c.nstokes), 0);
-    std::cout << std::format(
-        "    deliberately wrong VDISORT phase: {:<44} I {:9.3e}  Q {:9.3e}  ({:.0f} x tolerance)\n",
-        name(m),
-        d.I,
-        d.Q,
-        d.max() / tol);
+    arts::println("    deliberately wrong VDISORT phase: {:<44} I {:9.3e}  Q {:9.3e}  ({:.0f} x tolerance)",
+                  name(m),
+                  d.I,
+                  d.Q,
+                  d.max() / tol);
     require(d.max() > 100 * tol,
-            std::format("C8 must detect a {} of the VDISORT phase matrix by more than 100 times the tolerance {:.1e}, "
-                        "got {:.3e}",
-                        name(m),
-                        tol,
-                        d.max()));
+            arts::format("C8 must detect a {} of the VDISORT phase matrix by more than 100 times the tolerance {:.1e}, "
+                         "got {:.3e}",
+                         name(m),
+                         tol,
+                         d.max()));
   }
 }
 
@@ -957,18 +956,17 @@ void test_discrete_surface() {
   const Numeric tol = direct_tolerance(rt4_doubling(c, c.max_delta_tau));
   for (auto m : {mistake::stream_transpose, mistake::stokes_transpose}) {
     const auto d = compare(r, vdisort_streams(vdisort_solver(c, mistake::none, m), c.nstokes), 0);
-    std::cout << std::format(
-        "    deliberately wrong VDISORT surface: {:<42} I {:9.3e}  Q {:9.3e}  ({:.0f} x tolerance)\n",
-        name(m),
-        d.I,
-        d.Q,
-        d.max() / tol);
+    arts::println("    deliberately wrong VDISORT surface: {:<42} I {:9.3e}  Q {:9.3e}  ({:.0f} x tolerance)",
+                  name(m),
+                  d.I,
+                  d.Q,
+                  d.max() / tol);
     require(d.max() > 100 * tol,
-            std::format("C9 must detect a {} of the VDISORT surface by more than 100 times the tolerance {:.1e}, got "
-                        "{:.3e}",
-                        name(m),
-                        tol,
-                        d.max()));
+            arts::format("C9 must detect a {} of the VDISORT surface by more than 100 times the tolerance {:.1e}, got "
+                         "{:.3e}",
+                         name(m),
+                         tol,
+                         d.max()));
   }
 }
 
@@ -992,24 +990,24 @@ void test_convergence() {
     const auto dd   = rt4_doubling(c, mdt);
     const auto d    = compare(rt4::solve(rt4_problem(c)), v, 0);
     err.push_back(d.max());
-    report(std::format("C11 C5 convergence, max_delta_tau {:.0e}", mdt),
+    report(arts::format("C11 C5 convergence, max_delta_tau {:.0e}", mdt),
            d,
            direct_tolerance(dd),
-           std::format(" = {:.2f} delta", d.max() / dd.delta));
+           arts::format(" = {:.2f} delta", d.max() / dd.delta));
   }
   const Numeric halving = err[0] / err[1];
-  std::cout << std::format("    difference ratio for max_delta_tau 1e-5 / 5e-6: {:.3f}\n", halving);
+  arts::println("    difference ratio for max_delta_tau 1e-5 / 5e-6: {:.3f}", halving);
   require(halving > 1.9 and halving < 2.1,
-          std::format("Halving max_delta_tau adds one doubling to every layer, so the VDISORT-RT4 difference must "
-                      "halve (ratio 1.9 to 2.1); got {:.3f}",
-                      halving));
+          arts::format("Halving max_delta_tau adds one doubling to every layer, so the VDISORT-RT4 difference must "
+                       "halve (ratio 1.9 to 2.1); got {:.3f}",
+                       halving));
   for (std::size_t i : {std::size_t{0}, std::size_t{2}}) {
     const Numeric ratio = err[i] / err[i + (i == 0 ? 2 : 1)];
-    std::cout << std::format("    difference ratio per decade of max_delta_tau: {:.2f}\n", ratio);
+    arts::println("    difference ratio per decade of max_delta_tau: {:.2f}", ratio);
     require(ratio > 4.0 and ratio < 25.0,
-            std::format("The VDISORT-RT4 difference must fall like RT4's first-order doubling error, by a factor "
-                        "4 to 25 per decade of max_delta_tau; got {:.2f}",
-                        ratio));
+            arts::format("The VDISORT-RT4 difference must fall like RT4's first-order doubling error, by a factor "
+                         "4 to 25 per decade of max_delta_tau; got {:.2f}",
+                         ratio));
   }
 }
 
@@ -1040,8 +1038,8 @@ void test_extra_angles() {
         {"Lambertian A = 0.3", polradtran::lambertian_surface{.albedo = 0.3}}}) {
     const auto c = extra_angle_setup(g);
     const auto x = run(c);
-    check(std::format("Extra-angle setup, {}: quadrature streams", what), c, x.r, x.f, 0);
-    check(std::format("Extra-angle setup, {}: mu = 0.35, 1 (user angles)", what),
+    check(arts::format("Extra-angle setup, {}: quadrature streams", what), c, x.r, x.f, 0);
+    check(arts::format("Extra-angle setup, {}: mu = 0.35, 1 (user angles)", what),
           c,
           x.r,
           vdisort_extra_angles(x.v, c),
@@ -1082,9 +1080,9 @@ void test_extra_angles() {
                          {},
                          vdisort_surface(c, upward));
   } catch (const std::exception&) { refused = true; }
-  std::cout << std::format("{:<66} {}\n",
-                           "Extra-angle setup, Fresnel 3+0.2i: upward without its downward partner",
-                           refused ? "refused, as required" : "NOT REFUSED");
+  arts::println("{:<66} {}",
+                "Extra-angle setup, Fresnel 3+0.2i: upward without its downward partner",
+                refused ? "refused, as required" : "NOT REFUSED");
   require(refused, "VDISORT must refuse an upward user angle over a Fresnel surface without its downward partner");
 }
 

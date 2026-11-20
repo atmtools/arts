@@ -17,7 +17,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded(
     if constexpr (requires { spec.get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid); }) {
       return spec.get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, za_scat_grid);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for TRO Gridded for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("Method not implemented for TRO Gridded for species:\n{:N}", spec));
     }
 
     std::unreachable();
@@ -46,7 +46,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_gridded_derivative(
                   }) {
       return spec.get_bulk_scattering_properties_tro_gridded_derivative(atm_point, f_grid, za_scat_grid, target);
     } else {
-      throw std::runtime_error(std::format("TRO-gridded derivatives are not implemented for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("TRO-gridded derivatives are not implemented for species:\n{:N}", spec));
     }
     std::unreachable();
   };
@@ -63,7 +63,7 @@ ScatteringTroSpectralVector ArrayOfScatteringSpecies::get_bulk_scattering_proper
     if constexpr (requires { spec.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree); }) {
       return spec.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, degree);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for TRO Spectral for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("Method not implemented for TRO Spectral for species:\n{:N}", spec));
     }
 
     std::unreachable();
@@ -92,7 +92,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded(
       return spec.get_bulk_scattering_properties_aro_gridded(
           atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for ARO Gridded for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("Method not implemented for ARO Gridded for species:\n{:N}", spec));
     }
 
     std::unreachable();
@@ -125,7 +125,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_gridded_derivative(
       return spec.get_bulk_scattering_properties_aro_gridded_derivative(
           atm_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid, target);
     } else {
-      throw std::runtime_error(std::format("ARO-gridded derivatives are not implemented for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("ARO-gridded derivatives are not implemented for species:\n{:N}", spec));
     }
     std::unreachable();
   };
@@ -146,7 +146,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_spectral(
                   }) {
       return spec.get_bulk_scattering_properties_aro_spectral(atm_point, f_grid, za_inc_grid, degree, order);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for ARO Spectral for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("Method not implemented for ARO Spectral for species:\n{:N}", spec));
     }
 
     std::unreachable();
@@ -177,7 +177,7 @@ ArrayOfScatteringSpecies::get_bulk_scattering_properties_aro_fourier(const AtmPo
                   }) {
       return spec.get_bulk_scattering_properties_aro_fourier(atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
     } else {
-      throw std::runtime_error(std::format("Method not implemented for ARO Fourier modes for species:\n{:N}", spec));
+      throw std::runtime_error(arts::format("Method not implemented for ARO Fourier modes for species:\n{:N}", spec));
     }
 
     std::unreachable();

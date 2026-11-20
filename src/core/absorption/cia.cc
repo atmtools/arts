@@ -427,5 +427,5 @@ void xml_io_stream<CIARecord>::read(std::istream& is, CIARecord& x, bifstream* p
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(arts::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }

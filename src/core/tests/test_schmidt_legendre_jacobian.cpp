@@ -48,12 +48,12 @@ int main() {
         max_w     = std::max(max_w, std::abs(dfdx));
       }
 
-      std::println("pos {:B,}, component {}: {} derivatives, max |derivative| {:.3e}, max |error| {:.3e}",
-                   pos,
-                   component,
-                   w.size(),
-                   max_w,
-                   max_error);
+      arts::println("pos {:B,}, component {}: {} derivatives, max |derivative| {:.3e}, max |error| {:.3e}",
+                    pos,
+                    component,
+                    w.size(),
+                    max_w,
+                    max_error);
 
       if (max_error > 1e-9 * max_w) arts::user_error("The derivatives do not match the finite differences");
     }

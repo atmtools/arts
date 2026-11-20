@@ -353,7 +353,7 @@ std::vector<table_entry> evaluate_table(const rt3::result&         r,
     Index level = -1;
     for (Index l = 0; l < size(height); l++)
       if (std::abs(height[l] - row.z) < 5e-4) level = l;
-    require(level >= 0, std::format("no level at Z = {}", row.z));
+    require(level >= 0, arts::format("no level at Z = {}", row.z));
 
     const bool flux = std::abs(row.mu) > 1.5;
     const bool upw  = row.mu < 0.0;
@@ -361,7 +361,7 @@ std::vector<table_entry> evaluate_table(const rt3::result&         r,
     if (not flux) {
       for (Index k = 0; k < size(r.mu); k++)
         if (std::abs(r.mu[k] - std::abs(row.mu)) < 5.000001e-6) i = k;
-      require(i >= 0, std::format("no stream at printed mu = {}", row.mu));
+      require(i >= 0, arts::format("no stream at printed mu = {}", row.mu));
     }
     const Tensor4 rad = flux ? Tensor4{} : rt3::azimuth_radiance(upw ? r.up : r.down, Vector{row.phi_deg * pi / 180.0});
 
@@ -412,27 +412,25 @@ table_deviation compare_table(const std::vector<table_entry>& entries) {
     }
     d.entries++;
     if (dev > tol)
-      std::cout << std::format(
-          "    Stokes {}: RT3 {:.6e}, table {:.6e}, tolerance {:.2e}\n", e.stokes, e.got, e.ref, tol);
+      arts::println("    Stokes {}: RT3 {:.6e}, table {:.6e}, tolerance {:.2e}", e.stokes, e.got, e.ref, tol);
   }
   return d;
 }
 
 void report_table(std::string_view name, const table_deviation& d) {
-  std::cout << std::format(
-      "{:<64} {} entries, max |dev| / tolerance {:.2f}; in print half-units: I, Q {:.2f}, U, V {:.2f}\n",
-      name,
-      d.entries,
-      d.worst,
-      d.worst_iq,
-      d.worst_uv);
-  std::cout << std::format(
+  arts::println("{:<64} {} entries, max |dev| / tolerance {:.2f}; in print half-units: I, Q {:.2f}, U, V {:.2f}",
+                name,
+                d.entries,
+                d.worst,
+                d.worst_iq,
+                d.worst_uv);
+  arts::println(
       "    OUTPUT_FILE's REAL*4 sum emulated: max |dev| {:.2f} print half-units; the {} entries that are "
-      "REAL*4 noise (zero by symmetry) to {:.1e} relative\n",
+      "REAL*4 noise (zero by symmetry) to {:.1e} relative",
       d.real4,
       d.noise,
       d.real4_noise);
-  require(d.worst <= 1.0, std::format("{}: deviation exceeds the tolerance", name));
+  require(d.worst <= 1.0, arts::format("{}: deviation exceeds the tolerance", name));
 }
 
 /** (a) RT3's quadratures against their defining exactness, as for RT4. */
@@ -461,7 +459,7 @@ void test_quadrature() {
       worst = std::max(worst, std::abs(moment(L, 2 * k) - 1.0 / static_cast<Numeric>(2 * k + 1)));
     require(L.mu[n - 1] == 1.0, "Lobatto must include mu = 1");
   }
-  std::cout << std::format("{:<64} max moment error {:9.3e}\n", "(a) quadrature exactness G/D/L", worst);
+  arts::println("{:<64} max moment error {:9.3e}", "(a) quadrature exactness G/D/L", worst);
   require(worst < 1e-13, "quadrature moments are not exact");
 }
 
@@ -563,9 +561,9 @@ void test_testa() {
       Numeric worst = 0.0;
       for (const auto& e : entries)
         if (e.stokes == 0 and e.ref != 0.0) worst = std::max(worst, std::abs(e.got - e.ref) / e.ref);
-      std::cout << std::format(
+      arts::println(
           "    with the true temperatures (exact Planck constants) I differs from the table "
-          "by up to {:.1e} relative\n",
+          "by up to {:.1e} relative",
           worst);
     }
   }
@@ -682,13 +680,13 @@ void test_gas_only() {
         }
         require(zero, "gas-only thermal: m > 0, U and V must vanish and Fresnel emission must have Q > 0");
         if (ns == 4 or ns == 1)
-          std::cout << std::format("{:<64} max rel dev {:9.3e}, flux {:9.3e}\n",
-                                   std::format("(d) gas-only thermal, {:.0e} Hz, {}, nstokes {}",
-                                               frequency,
-                                               lambert ? "Lambertian A = 0.3 (D)" : "Fresnel 3+0.2i (G + 2 extra)",
-                                               ns),
-                                   dev,
-                                   dev_flux);
+          arts::println("{:<64} max rel dev {:9.3e}, flux {:9.3e}",
+                        arts::format("(d) gas-only thermal, {:.0e} Hz, {}, nstokes {}",
+                                     frequency,
+                                     lambert ? "Lambertian A = 0.3 (D)" : "Fresnel 3+0.2i (G + 2 extra)",
+                                     ns),
+                        dev,
+                        dev_flux);
         require(dev < 1e-12 and dev_flux < 1e-12, "gas-only thermal closed form");
       }
     }
@@ -798,10 +796,9 @@ void test_single_scattering() {
       }
       dev /= scale;
       if (ns >= 3) require(u_scale > 0.1 * scale, "the single-scattering U must be large enough to pin its sign");
-      std::cout << std::format(
-          "{:<64} max |dev| / max |I| {:9.3e}\n",
-          std::format("(e) thin Rayleigh layer, tau {:.0e}, nstokes {}, vs vector geometry", tau, ns),
-          dev);
+      arts::println("{:<64} max |dev| / max |I| {:9.3e}",
+                    arts::format("(e) thin Rayleigh layer, tau {:.0e}, nstokes {}, vs vector geometry", tau, ns),
+                    dev);
       if (ns == 4) devs.push_back(dev);
       require(dev < 10.0 * tau, "single scattering: deviation exceeds 10 tau");
     }
@@ -851,10 +848,10 @@ void test_delta_m_identity() {
                       std::abs(plain.down.data_handle()[x] - scaled.down.data_handle()[x])});
   }
   const Numeric tol = 10.0 * std::numeric_limits<Numeric>::epsilon() / p.max_delta_tau;
-  std::cout << std::format("{:<64} max |dev| / max |I| {:9.3e} (tolerance {:.1e})\n",
-                           "(f) delta-M with f = 0 (degree 11 < M = 16)",
-                           dev / scale,
-                           tol);
+  arts::println("{:<64} max |dev| / max |I| {:9.3e} (tolerance {:.1e})",
+                "(f) delta-M with f = 0 (degree 11 < M = 16)",
+                dev / scale,
+                tol);
   require(dev < tol * scale, "delta-M with f = 0 must not change the result");
 }
 
@@ -893,9 +890,9 @@ void test_direct_beam() {
       const Numeric direct = F * std::exp(-tau / mu0);
       dev                  = std::max(dev, std::abs(r.down_flux[l, 0] - diffuse - direct) / direct);
     }
-    std::cout << std::format("{:<64} max rel dev {:9.3e}\n",
-                             std::format("(g) direct beam F exp(-tau / mu0){}", dm ? ", delta-M scaled tau" : ""),
-                             dev);
+    arts::println("{:<64} max rel dev {:9.3e}",
+                  arts::format("(g) direct beam F exp(-tau / mu0){}", dm ? ", delta-M scaled tau" : ""),
+                  dev);
     require(dev < 1e-13, "direct beam attenuation");
   }
 }
@@ -904,10 +901,10 @@ void expect_throw(std::string_view what, const std::function<void()>& f) {
   try {
     f();
   } catch (const std::exception&) {
-    std::cout << std::format("    {:<50} throws\n", what);
+    arts::println("    {:<50} throws", what);
     return;
   }
-  throw std::runtime_error(std::format("{} did not throw", what));
+  throw std::runtime_error(arts::format("{} did not throw", what));
 }
 
 /** (h) Error paths; each must throw before the Fortran code (which would
@@ -1101,13 +1098,13 @@ void test_kirchhoff(Index nstokes, Index nmu, Index aziorder, Index nlay) {
   }
   const Numeric tau  = (sigma + kabs + 5e-5) * 1000.0;
   const Numeric tol  = std::ldexp(16 * std::numeric_limits<Numeric>::epsilon(), std::ilogb(tau / p.max_delta_tau) + 1);
-  const auto    name = std::format("isothermal Kirchhoff, nstokes {}, nmu {}, aziorder {}, {} layers, {} sets",
-                                   nstokes,
-                                   nmu,
-                                   aziorder,
-                                   nlay,
-                                   p.scattering_sets.size());
-  std::cout << std::format("{:<84} I - B {:.2e}, Q, U, V {:.2e} of B (tolerance {:.1e})\n", name, dI, dP, tol);
+  const auto    name = arts::format("isothermal Kirchhoff, nstokes {}, nmu {}, aziorder {}, {} layers, {} sets",
+                                    nstokes,
+                                    nmu,
+                                    aziorder,
+                                    nlay,
+                                    p.scattering_sets.size());
+  arts::println("{:<84} I - B {:.2e}, Q, U, V {:.2e} of B (tolerance {:.1e})", name, dI, dP, tol);
   require(dI <= tol and dP <= tol, name + ": not I = B, Q = U = V = 0");
 }
 
@@ -1141,10 +1138,10 @@ void test_extra_angles(const rt3::problem& base) {
         }
       }
     }
-    const auto name = std::format("extra angles with {}: the nodes, and the extra angle on node {}",
-                                  quad == polradtran::quadrature_type::lobatto ? "lobatto" : "double_gauss",
-                                  node);
-    std::cout << std::format("{:<84} {:.2e} and {:.2e} of max I\n", name, dnodes / scale, dextra / scale);
+    const auto name = arts::format("extra angles with {}: the nodes, and the extra angle on node {}",
+                                   quad == polradtran::quadrature_type::lobatto ? "lobatto" : "double_gauss",
+                                   node);
+    arts::println("{:<84} {:.2e} and {:.2e} of max I", name, dnodes / scale, dextra / scale);
     // Rounding, amplified by 2^n for the n doublings of the scattering layer
     const Numeric tau = p.scattering_sets[0].extinction * std::abs(p.height[1] - p.height[2]);
     const Numeric tol = std::ldexp(16 * std::numeric_limits<Numeric>::epsilon(), std::ilogb(tau / p.max_delta_tau) + 1);

@@ -309,7 +309,7 @@ see :attr:`~pyarts3.arts.sensors.Channel.polarization`.)")
           "reshape",
           [](const Sensor& self, const Vector& y) {
             if (y.size() != self.elements.size())
-              throw std::invalid_argument(std::format(
+              throw std::invalid_argument(arts::format(
                   "Sensor \"{}\" has {} elements, got {} values", self.name(), self.elements.size(), y.size()));
 
             SensorMetaInfo out = self.meta;
@@ -336,9 +336,9 @@ See :meth:`~pyarts3.arts.ArrayOfSensor.split` for the part of each sensor.)")
           [](const Sensor& self, const StokvecVector& spectral_rad) {
             if (self.geometry.size() != 1)
               throw std::invalid_argument(
-                  std::format("Sensor \"{}\" has {} geometries, so it needs the spectral radiance of each of them",
-                              self.name(),
-                              self.geometry.size()));
+                  arts::format("Sensor \"{}\" has {} geometries, so it needs the spectral radiance of each of them",
+                               self.name(),
+                               self.geometry.size()));
             return self.extract(StokvecMatrix{spectral_rad.view_as(1, spectral_rad.size())});
           },
           "spectral_rad"_a,
@@ -366,7 +366,7 @@ sensor with one geometry.)")
       [](const ArrayOfSensor& self, const Vector& y) {
         if (y.size() != measurement_size(self))
           throw std::invalid_argument(
-              std::format("The sensors have {} elements, got {} values", measurement_size(self), y.size()));
+              arts::format("The sensors have {} elements, got {} values", measurement_size(self), y.size()));
 
         std::vector<Vector> out;
         out.reserve(self.size());
@@ -785,7 +785,7 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
              const Vector2&              ell,
              const String&               name) {
             if (pos.size() != los.size()) {
-              throw std::invalid_argument(std::format(
+              throw std::invalid_argument(arts::format(
                   "Sensor builder expects matching position and LOS counts. Got {} positions and {} LOS values.",
                   pos.size(),
                   los.size()));
@@ -957,6 +957,6 @@ response is the sum over the sidebands.  The polarization is kept.)")
   shdfr.doc() = "A staged heterodyne mixer and filter response builder.";
   generic_interface(shdfr);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize sensors\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize sensors\n{}", e.what()));
 }
 }  // namespace Python

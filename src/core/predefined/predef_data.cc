@@ -50,7 +50,7 @@ ModelVariant model_data(const std::string_view name) {
 
   if (name == "MT_CKD430::WaterData") { return ModelVariant{.data = MT_CKD430::WaterData{}}; }
 
-  throw std::runtime_error(std::format(R"(Unknown model name: "{}". Are all models defined?)", name));
+  throw std::runtime_error(arts::format(R"(Unknown model name: "{}". Are all models defined?)", name));
 }
 }  // namespace Absorption::PredefinedModel
 

@@ -75,7 +75,7 @@ void filename_xml(const String& filename) {
 */
 void filename_xml_with_index(String& filename, const Index& file_index, const Index&) {
   if ("" == filename) arts::user_error("Must have filename");
-  filename = std::format("{}.{}.xml", filename, file_index);
+  filename = arts::format("{}.{}.xml", filename, file_index);
 }
 
 String complete_basename(const String& basename) {

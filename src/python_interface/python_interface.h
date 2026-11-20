@@ -71,11 +71,11 @@ const T& select_in(const ValueHolder<T>* const x, const Workspace& ws, const cha
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <WorkspaceGroup T> const T& select_gin(const T* const x, const char* const name) {
-  return x ? *x : throw std::runtime_error(std::format("Unknown input: \"{}\"", name));
+  return x ? *x : throw std::runtime_error(arts::format("Unknown input: \"{}\"", name));
 }
 
 template <WorkspaceGroup T> const T& select_gin(const ValueHolder<T>* const x, const char* const name) {
-  return x ? static_cast<const T&>(*x) : throw std::runtime_error(std::format("Unknown input: \"{}\"", name));
+  return x ? static_cast<const T&>(*x) : throw std::runtime_error(arts::format("Unknown input: \"{}\"", name));
 }
 
 template <WorkspaceGroup T> const T& select_gin(const T* const x, const T& defval) { return x ? *x : defval; }

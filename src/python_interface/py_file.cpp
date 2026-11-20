@@ -26,8 +26,8 @@ void enum_FileType(py::module_& m) {
   py::class_<FileType> _gFileType(m, "FileType");
   _gFileType.doc() = PythonWorkspaceGroupInfo<FileType>::desc();
   xml_interface(_gFileType);
-  _gFileType.def("__str__", [](const FileType& x) { return std::format("{}", x); });
-  _gFileType.def("__repr__", [](const FileType& x) { return std::format("\"{}\"", x); });
+  _gFileType.def("__str__", [](const FileType& x) { return arts::format("{}", x); });
+  _gFileType.def("__repr__", [](const FileType& x) { return arts::format("\"{}\"", x); });
   _gFileType.def(py::init<>());
   _gFileType.def(py::init<FileType>());
   _gFileType.def("__init__", [](FileType* y, const std::string& x) { new (y) FileType{to<FileType>(x)}; });
@@ -163,6 +163,6 @@ str or None
 )",
       "filename"_a);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize files\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize files\n{}", e.what()));
 }
 }  // namespace Python

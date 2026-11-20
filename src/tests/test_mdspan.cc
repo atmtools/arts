@@ -1064,16 +1064,16 @@ void test_eigen() {
 
 void test_data() {
   matpack::data_t<Numeric, 3> x(4, 2, 3, 2.1);
-  std::print("{}\n\n", x);
-  std::print("{}\n\n", x[0]);
-  std::print("{}\n\n", x[0][0]);
-  std::print("{}\n\n", x[0][0][0]);
+  arts::print("{}\n\n", x);
+  arts::print("{}\n\n", x[0]);
+  arts::print("{}\n\n", x[0][0]);
+  arts::print("{}\n\n", x[0][0][0]);
   x[0][0][0] += 1;
-  std::print("{}\n\n", x);
+  arts::print("{}\n\n", x);
 
   auto y = std::move(x).flatten();
-  std::print("{}\n\n", y);
-  std::print("{}\n\n", x);
+  arts::print("{}\n\n", y);
+  arts::print("{}\n\n", x);
 
   matpack::data_t<Numeric, 1> z;
   z.swap(y);
@@ -1285,14 +1285,14 @@ void test_lapack_vector_mult() {
 void test_grid() {
   AscendingGrid x{1, 2, 3, 4, 5, 6, 7, 8};
 
-  std::print("{}\n", x);
+  arts::print("{}\n", x);
 
-  std::print("{}\n", x);
+  arts::print("{}\n", x);
 
   Vector xtmp = std::move(x).vec();
   xtmp.emplace_back(10);
   x = std::move(xtmp);
-  std::print("{}\n", x);
+  arts::print("{}\n", x);
 
   bool set_low;
   xtmp = std::move(x).vec();
@@ -1317,9 +1317,9 @@ void test_grid() {
   x = std::move(xtmp);
 
   Vector z{1, 2, 3, 4, 5, 6, 7, 9, 20};
-  std::print(std::cout, "{:B,}\n", x);
-  std::print(std::cout, "{:B,}\n", z);
-  std::print("{}\n", x);
+  arts::print("{:B,}\n", x);
+  arts::print("{:B,}\n", z);
+  arts::print("{}\n", x);
 }
 
 void test_einsum() {
@@ -1353,13 +1353,13 @@ void test_print() {
   auto test = [](auto... sz) {
     Vector x{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
     auto   v = std::move(x).reshape(sz...);
-    std::print("x = np.array(\n{:B,}\n)\n", v);
-    std::print("assert np.all(np.equal(x.shape, (");
-    (std::print("{}, ", sz), ...);
-    std::print(")))\n\n");
+    arts::print("x = np.array(\n{:B,}\n)\n", v);
+    arts::print("assert np.all(np.equal(x.shape, (");
+    (arts::print("{}, ", sz), ...);
+    arts::print(")))\n\n");
   };
 
-  std::print("import numpy as np\n\n");
+  arts::print("import numpy as np\n\n");
   test(16);
   test(4, 4);
   test(2, 2, 4);
@@ -1379,10 +1379,10 @@ void test_sort() {
     Vector x = matpack::uniform_grid(1.0, N, 1.0);
     stdr::shuffle(x, g);
 
-    std::println("{:B,}", x);
+    arts::println("{:B,}", x);
 
     matpack::sort(x);
-    std::println("{:B,}", x);
+    arts::println("{:B,}", x);
     if (not stdr::is_sorted(x)) arts::user_error("Not sorted: {:B,}", x);
   }
 
@@ -1391,12 +1391,12 @@ void test_sort() {
     Matrix          x = matpack::uniform_grid(1.0, N, 1.0).reshape(N / 10, M);
     stdr::shuffle(x.elem_begin(), x.elem_end(), g);
 
-    std::println("{:B,}", x);
+    arts::println("{:B,}", x);
 
     for (Index i = 0; i < M; i++) {
       matpack::sort(x, {}, [i](VectorView a) { return a[i]; });
       if (not stdr::is_sorted(x[joker, i])) arts::user_error("Not sorted at pivot {}\n{:B,}", i, x);
-      std::println("{:B,}", x);
+      arts::println("{:B,}", x);
     }
   }
 
@@ -1405,13 +1405,13 @@ void test_sort() {
     Tensor3         x = matpack::uniform_grid(1.0, M * M * M, 1.0).reshape(M, M, M);
     stdr::shuffle(x.elem_begin(), x.elem_end(), g);
 
-    std::println("{:B,}", x);
+    arts::println("{:B,}", x);
 
     for (Index i = 0; i < M; i++) {
       for (Index j = 0; j < M; j++) {
         matpack::sort(x, {}, [i, j](MatrixView a) { return a[i, j]; });
         if (not stdr::is_sorted(x[joker, i, j])) arts::user_error("Not sorted at pivot {} {}\n{:B,}", i, j, x);
-        std::println("{:B,} - pivot {} {}", x, i, j);
+        arts::println("{:B,} - pivot {} {}", x, i, j);
       }
     }
   }
@@ -1467,6 +1467,6 @@ int main() try {
 
   return EXIT_SUCCESS;
 } catch (std::exception& e) {
-  std::print(std::cerr, "ERROR: See below\n\n{}\n\nERROR: See above\n", e.what());
+  arts::print(std::cerr, "ERROR: See below\n\n{}\n\nERROR: See above\n", e.what());
   return EXIT_FAILURE;
 }

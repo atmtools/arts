@@ -279,7 +279,7 @@ std::istream& operator>>(std::istream& is, model& x) try {
   is >> double_imanip() >> x.T0;
   return is >> x.single_models;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
 void model::clear_zeroes() {
@@ -300,7 +300,7 @@ template <> std::optional<std::string> to_helper_string<lbl::line_shape::species
 
   std::string_view x = ""sv;
   for (const auto& [key, value] : map) {
-    out += std::format("{}{}: {}", std::exchange(x, "; "sv), key, to_educational_string(value, key));
+    out += arts::format("{}{}: {}", std::exchange(x, "; "sv), key, to_educational_string(value, key));
   }
 
   return out;
@@ -329,7 +329,7 @@ void xml_io_stream<lbl::line_shape::model>::read(std::istream& is, lbl::line_sha
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading LineShapeModel:\n{}", e.what()));
 }
 
 void xml_io_stream<lbl::line_shape::species_model>::write(std::ostream&                         os,
@@ -339,7 +339,7 @@ void xml_io_stream<lbl::line_shape::species_model>::write(std::ostream&         
   XMLTag tag(type_name, "name", name, "nelem", x.data.size());
   tag.write_to_stream(os);
 
-  for (auto& [key, elem] : x.data) { std::println(os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X()); }
+  for (auto& [key, elem] : x.data) { arts::println(os, "{} {} {} {:IO}", key, elem.Type(), elem.X().size(), elem.X()); }
 
   tag.write_to_end_stream(os);
 }
@@ -367,5 +367,5 @@ void xml_io_stream<lbl::line_shape::species_model>::read(std::istream&          
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading LineShapeModel:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading LineShapeModel:\n{}", e.what()));
 }

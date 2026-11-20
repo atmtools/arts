@@ -133,6 +133,6 @@ void py_matpack(py::module_& m) try {
   gr4.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<AziGrid>());
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
 }
 }  // namespace Python

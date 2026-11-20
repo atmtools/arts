@@ -73,21 +73,21 @@ struct xml_io_stream<std::unordered_map<Key, T>> {
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot extend {}<{}, {}>:\n{}",
-                                         type_name,
-                                         xml_io_stream<Key>::type_name,
-                                         xml_io_stream<T>::type_name,
-                                         e.what()));
+    throw std::runtime_error(arts::format("Cannot extend {}<{}, {}>:\n{}",
+                                          type_name,
+                                          xml_io_stream<Key>::type_name,
+                                          xml_io_stream<T>::type_name,
+                                          e.what()));
   }
 
   static void read(std::istream& is, std::unordered_map<Key, T>& n, bifstream* pbifs = nullptr) try {
     n.clear();
     extend(is, n, pbifs);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot read {}<{}, {}>:\n{}",
-                                         type_name,
-                                         xml_io_stream<Key>::type_name,
-                                         xml_io_stream<T>::type_name,
-                                         e.what()));
+    throw std::runtime_error(arts::format("Cannot read {}<{}, {}>:\n{}",
+                                          type_name,
+                                          xml_io_stream<Key>::type_name,
+                                          xml_io_stream<T>::type_name,
+                                          e.what()));
   }
 };

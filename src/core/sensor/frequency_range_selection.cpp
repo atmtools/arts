@@ -43,7 +43,7 @@ bool is_in_closed_interval(Numeric x, Numeric low, Numeric high) {
 
 void assert_frange(const Vector2& sideband) {
   if (sideband[0] > sideband[1] or is_close(sideband[0], sideband[1]) or sideband[0] < 0) {
-    throw std::invalid_argument(std::format(
+    throw std::invalid_argument(arts::format(
         "Frequency range must be unique, sorted, and non-negative.  Got: [{}, {}].", sideband[0], sideband[1]));
   }
 }
@@ -55,7 +55,7 @@ void assert_bandpass_ranges(const std::span<const Vector2>& bandpasses) {
 }
 
 void assert_lo_nonnegative(const Numeric& LO) {
-  if (LO < 0) { throw std::invalid_argument(std::format("LO frequency must be non-negative.  Got: {}.", LO)); }
+  if (LO < 0) { throw std::invalid_argument(arts::format("LO frequency must be non-negative.  Got: {}.", LO)); }
 }
 
 void assert_clocks(const std::span<const Numeric>& clocks) {
@@ -71,9 +71,9 @@ void assert_weighted_bandpass(const SortedGriddedField1& bandpass_filter) {
 
   if (grid.size() != bandpass_filter.data.size()) {
     throw std::invalid_argument(
-        std::format("Bandpass filter grid and data must have the same size.  Got {} grid points and {} weights.",
-                    grid.size(),
-                    bandpass_filter.data.size()));
+        arts::format("Bandpass filter grid and data must have the same size.  Got {} grid points and {} weights.",
+                     grid.size(),
+                     bandpass_filter.data.size()));
   }
 
   for (Size i = 1; i < grid.size(); i++) {
@@ -189,10 +189,10 @@ HeterodyneFrequencyRange::HeterodyneFrequencyRange(const std::span<const Numeric
 
   if (N != bandpasses.size()) {
     throw std::invalid_argument(
-        std::format("Number of clock frequencies and bandpasses must match.  Got: {} clock "
-                    "frequencies and {} bandpasses.",
-                    clocks.size(),
-                    bandpasses.size()));
+        arts::format("Number of clock frequencies and bandpasses must match.  Got: {} clock "
+                     "frequencies and {} bandpasses.",
+                     clocks.size(),
+                     bandpasses.size()));
   }
 
   assert_bandpass_ranges(bandpasses);
@@ -209,7 +209,7 @@ HeterodyneFrequencyRange::HeterodyneFrequencyRange(Numeric clock_frequency, cons
 
 void HeterodyneFrequencyRange::apply_lowpass(Numeric upper_frequency) {
   if (upper_frequency < 0) {
-    throw std::invalid_argument(std::format("Lowpass cutoff must be non-negative.  Got: {}.", upper_frequency));
+    throw std::invalid_argument(arts::format("Lowpass cutoff must be non-negative.  Got: {}.", upper_frequency));
   }
 
   apply_interval_clip(response_paths, 0.0, upper_frequency);
@@ -218,7 +218,7 @@ void HeterodyneFrequencyRange::apply_lowpass(Numeric upper_frequency) {
 
 void HeterodyneFrequencyRange::apply_highpass(Numeric lower_frequency) {
   if (lower_frequency < 0) {
-    throw std::invalid_argument(std::format("Highpass cutoff must be non-negative.  Got: {}.", lower_frequency));
+    throw std::invalid_argument(arts::format("Highpass cutoff must be non-negative.  Got: {}.", lower_frequency));
   }
 
   apply_interval_clip(response_paths, lower_frequency, inf);

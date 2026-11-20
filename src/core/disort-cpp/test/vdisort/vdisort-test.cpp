@@ -42,7 +42,7 @@ two_stream_solution analytic_two_stream(const Complex phase,
   const Complex top_up = (bottom_up - full[1] * top_down) / full[0];
   const auto    at_tau = propagator(tau);
   return {.up = at_tau[0] * top_up + at_tau[1] * top_down, .down = at_tau[2] * top_up + at_tau[3] * top_down};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in analytic_two_stream:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in analytic_two_stream:\n{}", e.what())); }
 
 void expect_close(const Numeric actual, const Numeric expected, const std::string_view what) {
   const Numeric scale = 1.0 + std::abs(expected);
@@ -79,7 +79,7 @@ vdisort::main_data make_vdisort(const Index                 nquad,
                                    std::move(beam_phase),
                                    std::move(source_scale),
                                    std::move(source_offset));
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_vdisort:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_vdisort:\n{}", e.what())); }
 
 vdisort::main_data make_native_two_stream(const Numeric              depth,
                                           const Numeric              omega,
@@ -104,7 +104,9 @@ vdisort::main_data make_native_two_stream(const Numeric              depth,
                             0.5,
                             rtepack::stokvec{},
                             0.0);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_native_two_stream:\n{}", e.what())); }
+} catch (std::exception& e) {
+  throw std::runtime_error(arts::format("Error in make_native_two_stream:\n{}", e.what()));
+}
 
 void test_analytic_iq_two_stream() try {
   constexpr Numeric      depth = 0.8;
@@ -137,7 +139,7 @@ void test_analytic_iq_two_stream() try {
     expect_close(field.u0[1].Q(), 0.5 * (plus.down.real() - minus.down.real()), "analytic I/Q downward Q");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-analytic-iq-two-stream:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-analytic-iq-two-stream:\n{}", e.what()));
 }
 
 void test_analytic_uv_two_stream() try {
@@ -173,7 +175,7 @@ void test_analytic_uv_two_stream() try {
     expect_close(field.u0[1].V(), expected.down.imag(), "analytic U/V downward V");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-analytic-uv-two-stream:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-analytic-uv-two-stream:\n{}", e.what()));
 }
 
 void test_analytic_polarized_beam_two_stream() try {
@@ -225,7 +227,7 @@ void test_analytic_polarized_beam_two_stream() try {
       for (Index s = 0; s < 4; ++s) expect_close(field.u0[i][s], expected(i, s, tau), "analytic polarized beam source");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-analytic-polarized-beam-two-stream:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-analytic-polarized-beam-two-stream:\n{}", e.what()));
 }
 
 void test_polarized_absorption() try {
@@ -259,7 +261,7 @@ void test_polarized_absorption() try {
     expect_close(field.intensities[1][s], top[s] * std::exp(-tau / mu), "downward absorbing Stokes");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-polarized-absorption:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-polarized-absorption:\n{}", e.what()));
 }
 
 void test_scalar_limit() try {
@@ -337,7 +339,7 @@ void test_scalar_limit() try {
       expect_close(vector_user.intensities[i].V(), 0.0, "user-angle scalar-limit V");
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-scalar-limit:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-scalar-limit:\n{}", e.what())); }
 
 void test_scalar_linear_source_limit() try {
   constexpr Index     nquad = 4;
@@ -378,7 +380,7 @@ void test_scalar_linear_source_limit() try {
     expect_close(vector_flux.dfdt, scalar_flux.dfdt, "linear-source DFDT");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-scalar-linear-source-limit:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-scalar-linear-source-limit:\n{}", e.what()));
 }
 
 void test_affine_source_coordinate() try {
@@ -451,7 +453,7 @@ void test_affine_source_coordinate() try {
                        physical_user[level, azimuth, user][stokes],
                        "affine source-coordinate user radiance");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-affine-source-coordinate:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-affine-source-coordinate:\n{}", e.what()));
 }
 
 void test_conservative_reflecting_source_limit() try {
@@ -498,7 +500,7 @@ void test_conservative_reflecting_source_limit() try {
                    "conservative reflecting source scalar limit");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-conservative-reflecting-source-limit:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-conservative-reflecting-source-limit:\n{}", e.what()));
 }
 
 void test_vector_source() try {
@@ -526,7 +528,7 @@ void test_vector_source() try {
                  (1.0 - omega) * source_function[s] * (1.0 - std::exp(-tau / mu)),
                  "downward vector source function");
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-vector-source:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-vector-source:\n{}", e.what())); }
 
 void test_polarized_brdf() try {
   constexpr Index nquad = 2;
@@ -559,7 +561,7 @@ void test_polarized_brdf() try {
   const Numeric reflected_factor = Constant::pi * mu * reflectance;
   expect_close(field.u0[0][0], reflected_factor * std::exp(-depth / mu), "polarized BRDF I");
   expect_close(field.u0[0][1], 0.2 * reflected_factor * std::exp(-depth / mu), "polarized BRDF Q");
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-polarized-brdf:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-polarized-brdf:\n{}", e.what())); }
 
 void test_complex_uv_eigenmodes() try {
   constexpr Index nquad = 2;
@@ -588,7 +590,7 @@ void test_complex_uv_eigenmodes() try {
       if (not std::isfinite(value)) arts::user_error("Complex-eigenmode test produced {}", value);
     }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-complex-uv-eigenmodes:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-complex-uv-eigenmodes:\n{}", e.what()));
 }
 
 void test_bulk_quadrature_equivalence() try {
@@ -677,7 +679,7 @@ void test_bulk_quadrature_equivalence() try {
     expect_close(ungridded_dfdt[level], pointwise.dfdt, "ungridded/pointwise DFDT");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-bulk-quadrature-equivalence:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-bulk-quadrature-equivalence:\n{}", e.what()));
 }
 
 void test_delta_m_correction_api_overlap() try {
@@ -777,7 +779,7 @@ void test_delta_m_correction_api_overlap() try {
       }
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-delta-m-correction-api-overlap:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-delta-m-correction-api-overlap:\n{}", e.what()));
 }
 
 void test_combined_matrix_transform() try {
@@ -789,7 +791,7 @@ void test_combined_matrix_transform() try {
   expect_close(native_combined[vdisort::cosine_mode, 1, 0, 0, 0][0, 2], -5.0, "native Eq. 81 cosine sign");
   expect_close(native_combined[vdisort::sine_mode, 1, 0, 0, 0][0, 2], 5.0, "native Eq. 81 sine sign");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-combined-matrix-transform:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-combined-matrix-transform:\n{}", e.what()));
 }
 
 void test_spectral_phase_matrix_split() try {
@@ -801,7 +803,7 @@ void test_spectral_phase_matrix_split() try {
   expect_close(split.cosine[1, 2][3, 1], 4.5, "spectral phase cosine coefficient");
   expect_close(split.sine[1, 2][3, 1], 0.75, "spectral phase sine coefficient");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-spectral-phase-matrix-split:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-spectral-phase-matrix-split:\n{}", e.what()));
 }
 
 void test_combined_surface_models() try {
@@ -859,7 +861,7 @@ void test_combined_surface_models() try {
                              (1.0 - cox_fraction) * lambert_beam.beam_brdf()[alpha, mode, i][so, si],
                          "Cox-Munk/Lambertian beam mixture");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-combined-surface-models:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-combined-surface-models:\n{}", e.what()));
 }
 
 void test_scalar_and_polarized_cox_munk_overlap() try {
@@ -881,7 +883,7 @@ void test_scalar_and_polarized_cox_munk_overlap() try {
   if (std::abs(absorbing_fresnel[2, 3]) <= 1.0e-12)
     arts::user_error("A complex refractive index produced no Fresnel U/V phase coupling");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-scalar-and-polarized-cox-munk-overlap:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-scalar-and-polarized-cox-munk-overlap:\n{}", e.what()));
 }
 
 void test_delta_m_preprocessing() try {
@@ -928,7 +930,7 @@ void test_delta_m_preprocessing() try {
     expect_close(transport.beam_phase_matrix[1, 1, layer, 1][0, 0], expected_beam, "delta-M transport beam phase");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-delta-m-preprocessing:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-delta-m-preprocessing:\n{}", e.what()));
 }
 
 void test_depolarizing_surface_catalogue() try {
@@ -977,7 +979,7 @@ void test_depolarizing_surface_catalogue() try {
               0.091, 0.02, 0.01, 1.5 * Constant::pi / 180.0, modes, outgoing, incoming, beam_mu, nazimuth),
           "depolarizing Ross-Li embedding");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-depolarizing-surface-catalogue:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-depolarizing-surface-catalogue:\n{}", e.what()));
 }
 
 void test_eigenvalue_direction_check() try {
@@ -993,7 +995,7 @@ void test_eigenvalue_direction_check() try {
   } catch (const std::exception&) { return; }
   arts::user_error("VDISORT accepted an eigenspectrum without a valid propagation-direction split");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-eigenvalue-direction-check:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-eigenvalue-direction-check:\n{}", e.what()));
 }
 }  // namespace
 
@@ -1052,7 +1054,7 @@ void test_specular_reflection_both_systems() try {
     if (not(largest > 0.01)) arts::user_error("The reflected radiance must not vanish");
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-specular-reflection-both-systems:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-specular-reflection-both-systems:\n{}", e.what()));
 }
 
 int main() try {

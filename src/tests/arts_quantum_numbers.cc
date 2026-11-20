@@ -10,7 +10,7 @@ int main(int argc, char** argv) try {
     s += argv[i];
     s += " ";
   }
-  std::println("Read: {}", QuantumIdentifier(s));
+  arts::println("Read: {}", QuantumIdentifier(s));
   return EXIT_SUCCESS;
 } catch (std::runtime_error& e) {
   std::cerr << e.what() << '\n';

@@ -22,7 +22,7 @@ void rejects(const std::function<void()>& operation, std::string_view name) {
   try {
     operation();
   } catch (const std::exception&) { return; }
-  throw std::runtime_error(std::format("Accepted invalid covariance: {}", name));
+  throw std::runtime_error(arts::format("Accepted invalid covariance: {}", name));
 }
 
 Matrix matrix(Index rows, Index cols, std::initializer_list<Numeric> values) {

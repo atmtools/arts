@@ -192,7 +192,7 @@ void abs_bandsSaveSplit(const AbsorptionBands& abs_bands, const String& dir) try
   for (auto& [key, band] : abs_bands) { isotopologues_data[key.isot][key] = band; }
 
   for (const auto& [isot, bands] : isotopologues_data) {
-    xml_write_to_file((p / std::format("{}.xml", isot)).string(), bands, FileType::ascii, 0);
+    xml_write_to_file((p / arts::format("{}.xml", isot)).string(), bands, FileType::ascii, 0);
   }
 }
 ARTS_METHOD_ERROR_CATCH
@@ -452,7 +452,7 @@ void abs_bandsCheckEcs(const AbsorptionBands& abs_bands, const LinemixingEcsData
       if (not abs_ecs_data.contains(band_key.isot))
         arts::user_error("No ECS data for isotopologue {}; see e.g. *abs_ecs_dataAddMakarov2020*", band_key.isot);
     } catch (std::exception& e) {
-      throw std::runtime_error(std::format("Invalid ECS band {}:\n{}", band_key, e.what()));
+      throw std::runtime_error(arts::format("Invalid ECS band {}:\n{}", band_key, e.what()));
     }
   }
 }

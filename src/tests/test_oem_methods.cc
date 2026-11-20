@@ -31,7 +31,7 @@ void require(bool condition, std::string_view message) {
 
 void close(Numeric actual, Numeric expected, Numeric tolerance, std::string_view name) {
   if (not std::isfinite(actual) or std::abs(actual - expected) > tolerance) {
-    throw std::runtime_error(std::format("{}: got {}, expected {} (tolerance {})", name, actual, expected, tolerance));
+    throw std::runtime_error(arts::format("{}: got {}, expected {} (tolerance {})", name, actual, expected, tolerance));
   }
 }
 
@@ -257,7 +257,7 @@ void test_diagonal_covariances(std::string_view method) {
             r.normalization = Vector{2, std::sqrt(2.)};
         }
         r.run(method);
-        const String context = std::format(
+        const String context = arts::format(
             "diagonal {} prior_sparse={} noise_sparse={} scaled={}", method, sparse_prior, sparse_noise, scaled);
         require(r.diagnostics.errors.empty(), context);
         require(r.diagnostics.status == OptimalEstimationStatus::Converged or
@@ -542,7 +542,7 @@ void test_lm_outcomes() {
     // Damping exhaustion must stay bounded, including any trial and
     // restoration of the accepted physical state.
     require(over_damped.calls <= 5,
-            std::format("Huge damping needlessly retried an exhausted step ({} agenda calls)", over_damped.calls));
+            arts::format("Huge damping needlessly retried an exhausted step ({} agenda calls)", over_damped.calls));
 
     for (const Numeric tolerance : {1e-12, 1e-16, 1e-20}) {
       Retrieval tight;
@@ -601,12 +601,12 @@ void check_no_repeated_evaluations(const Retrieval& r) {
 
 void check_evaluation_count(const Retrieval& r, Index total, Index jacobians, std::string_view context) {
   require(r.calls == total and r.jacobian_calls == jacobians,
-          std::format("{}: got {} agenda calls ({} with Jacobian), expected {} ({})",
-                      context,
-                      r.calls,
-                      r.jacobian_calls,
-                      total,
-                      jacobians));
+          arts::format("{}: got {} agenda calls ({} with Jacobian), expected {} ({})",
+                       context,
+                       r.calls,
+                       r.jacobian_calls,
+                       total,
+                       jacobians));
   check_no_repeated_evaluations(r);
 }
 
@@ -632,7 +632,7 @@ void test_evaluation_reuse() {
         check_evaluation_count(r,
                                2 + final_jacobian - cached,
                                1 + final_jacobian - cached,
-                               std::format("{} (clear={}, cached={})", method, clear, cached));
+                               arts::format("{} (clear={}, cached={})", method, clear, cached));
         close(r.surf.ellipsoid[0], r.x[0], 0, "Physical inout at returned state");
         Vector expected_fit;
         Matrix expected_jacobian;
@@ -647,7 +647,7 @@ void test_evaluation_reuse() {
     stationary.jac.resize(0, 0);
     stationary.run(method);
     close(stationary.diagnostics.status, OptimalEstimationStatus::Converged, 0, "Cached exact-start convergence");
-    check_evaluation_count(stationary, 1, 1, std::format("{} exact starting solution", method));
+    check_evaluation_count(stationary, 1, 1, arts::format("{} exact starting solution", method));
 
     if (not method.starts_with("li")) {
       Retrieval nonlinear;
@@ -678,7 +678,7 @@ void test_evaluation_reuse() {
       // Jacobian can be obtained together because Rodgers' stopping criterion
       // uses the state displacement and previous normal equations only.
       check_evaluation_count(
-          continuing, 3 + not clear, 2 + not clear, std::format("{} continuing iteration (clear={})", method, clear));
+          continuing, 3 + not clear, 2 + not clear, arts::format("{} continuing iteration (clear={})", method, clear));
       require(continuing.evaluations[1].with_jacobian,
               "Continuing GN iteration first requested an unnecessary value-only call");
       close(continuing.evaluations[1].state[0], 161.0 / 65, 1e-12, "Continuing GN Jacobian state");
@@ -784,13 +784,13 @@ void test_failed_evaluation_invalidates_cache() {
 void test_named_settings() {
   OptimalEstimationDiagnostics diagnostic{
       OptimalEstimationStatus::Converged, 1.5, 0.25, 0.125, 3, Vector{10, 5}, {"test warning"}};
-  require(std::format("{}", diagnostic).find("final_cost=0.25") != std::string::npos,
+  require(arts::format("{}", diagnostic).find("final_cost=0.25") != std::string::npos,
           "Diagnostics must print field names");
   std::stringstream diagnostic_xml;
   xml_io_stream<OptimalEstimationDiagnostics>::write(diagnostic_xml, diagnostic);
   OptimalEstimationDiagnostics diagnostic_copy;
   xml_io_stream<OptimalEstimationDiagnostics>::read(diagnostic_xml, diagnostic_copy);
-  require(std::format("{}", diagnostic_copy) == std::format("{}", diagnostic), "Diagnostics XML round trip");
+  require(arts::format("{}", diagnostic_copy) == arts::format("{}", diagnostic), "Diagnostics XML round trip");
 
   const LevenbergMarquardtSettings printable{.initial_damping           = 8,
                                              .decrease_factor           = 3,
@@ -798,7 +798,7 @@ void test_named_settings() {
                                              .maximum_damping           = 120,
                                              .damping_threshold         = 2,
                                              .convergence_damping_limit = 1};
-  require(std::format("{}", printable) == printable.repr(), "Named LM formatter");
+  require(arts::format("{}", printable) == printable.repr(), "Named LM formatter");
   std::stringstream xml;
   xml_io_stream<LevenbergMarquardtSettings>::write(xml, printable);
   require(xml.str().find("<LevenbergMarquardtSettings") != std::string::npos, "LM XML type name");
@@ -824,7 +824,7 @@ template <typename Configure> void rejects_before_agenda(std::string_view method
   try {
     r.run(method);
   } catch (const std::exception&) { rejected = true; }
-  require(rejected, std::format("Invalid {} configuration was accepted", method));
+  require(rejected, arts::format("Invalid {} configuration was accepted", method));
   require(r.calls == 0, "Invalid configuration executed the agenda");
 }
 
@@ -892,7 +892,7 @@ template <typename Operation> void rejects_with(Operation operation, std::string
   try {
     operation();
   } catch (const std::exception&) { return; }
-  throw std::runtime_error(std::format("Expected a failure: {}", what));
+  throw std::runtime_error(arts::format("Expected a failure: {}", what));
 }
 
 using SolverVector = invlib::Vector<invlib::VectorArchetype<Numeric>>;
@@ -1581,6 +1581,6 @@ int main(int argc, char** argv) try {
   }
   return EXIT_SUCCESS;
 } catch (const std::exception& error) {
-  std::println(stderr, "OEM regression ({}): {}", argc > 1 ? argv[1] : "", error.what());
+  arts::println(stderr, "OEM regression ({}): {}", argc > 1 ? argv[1] : "", error.what());
   return EXIT_FAILURE;
 }

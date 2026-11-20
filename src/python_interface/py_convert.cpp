@@ -75,6 +75,6 @@ These all should work with any array-like type
       "x"_a,
       "Returns a suitable metric prefix for the given value x, also returns the scaled value");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize convert\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize convert\n{}", e.what()));
 }
 }  // namespace Python

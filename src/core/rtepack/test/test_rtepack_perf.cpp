@@ -129,7 +129,7 @@ Numeric test_transmittance_matrix_init_constant(const std::vector<PropmatVector>
                                                 const Tensor3&                    dr) {
   const ArrayOfSpectralPropmat pm = as_path(K, dK);
 
-  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_constant; threads {}", omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("test_transmittance_matrix_init_constant; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
@@ -145,7 +145,7 @@ Numeric test_transmittance_matrix_init_linsrc(const std::vector<PropmatVector>& 
                                               const Tensor3&                    dr) {
   const ArrayOfSpectralPropmat pm = as_path(K, dK);
 
-  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linsrc; threads {}", omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("test_transmittance_matrix_init_linsrc; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
@@ -161,7 +161,7 @@ Numeric test_transmittance_matrix_init_linprop(const std::vector<PropmatVector>&
                                                const Tensor3&                    dr) {
   const ArrayOfSpectralPropmat pm = as_path(K, dK);
 
-  ARTS_NAMED_TIME_REPORT(std::format("test_transmittance_matrix_init_linprop; threads {}", omp_get_max_threads()));
+  ARTS_NAMED_TIME_REPORT(arts::format("test_transmittance_matrix_init_linprop; threads {}", omp_get_max_threads()));
 
   Numeric                      sum{};
   rtepack::TransmittanceMatrix tm;
@@ -228,6 +228,6 @@ int main() {
     arts_omp_set_num_threads(x);
   }
 
-  std::println(std::cerr, "Prevent optimizing away: {}", buf);
+  arts::println(std::cerr, "Prevent optimizing away: {}", buf);
   arts::print_report();
 }

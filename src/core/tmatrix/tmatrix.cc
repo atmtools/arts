@@ -67,22 +67,23 @@ Shape::Shape(ParticleShape kind, Numeric parameter, Index degree, Vector coeffic
 Shape Shape::spheroid(Numeric aspect_ratio) {
   if (not(std::isfinite(aspect_ratio) and aspect_ratio > 0))
     throw std::invalid_argument(
-        std::format("The spheroid's aspect ratio is {}; it must be finite and positive", aspect_ratio));
+        arts::format("The spheroid's aspect ratio is {}; it must be finite and positive", aspect_ratio));
   return {ParticleShape::spheroid, aspect_ratio, 0, {}};
 }
 
 Shape Shape::cylinder(Numeric diameter_to_length) {
   if (not(std::isfinite(diameter_to_length) and diameter_to_length > 0))
-    throw std::invalid_argument(std::format(
+    throw std::invalid_argument(arts::format(
         "The cylinder's diameter-to-length ratio is {}; it must be finite and positive", diameter_to_length));
   return {ParticleShape::cylinder, diameter_to_length, 0, {}};
 }
 
 Shape Shape::chebyshev(Index degree, Numeric deformation) {
-  if (degree < 1) throw std::invalid_argument(std::format("The Chebyshev degree is {}; it must be at least 1", degree));
+  if (degree < 1)
+    throw std::invalid_argument(arts::format("The Chebyshev degree is {}; it must be at least 1", degree));
   if (not(std::isfinite(deformation) and std::abs(deformation) < 1))
     throw std::invalid_argument(
-        std::format("The Chebyshev deformation is {}; it must be finite with magnitude below 1", deformation));
+        arts::format("The Chebyshev deformation is {}; it must be finite with magnitude below 1", deformation));
   return {ParticleShape::chebyshev, deformation, degree, {}};
 }
 
@@ -93,7 +94,7 @@ Shape Shape::generalized_chebyshev(Vector coefficients) {
   Numeric margin = 1.0 + coefficients[0];
   for (Size n = 1; n < coefficients.size(); ++n) margin -= std::abs(coefficients[n]);
   if (not(std::isfinite(margin) and margin > 0))
-    throw std::invalid_argument(std::format(
+    throw std::invalid_argument(arts::format(
         "1 + c_0 - sum_{{n >= 1}} |c_n| of the generalized Chebyshev coefficients is {}; it must be finite and "
         "positive",
         margin));
@@ -304,9 +305,9 @@ AzimuthallyRandomResult azimuthally_random(Numeric          radius,
   for (Numeric aa : delta_aa) require(std::isfinite(aa), "delta_aa must be finite");
   if (tilt_angles.empty() or tilt_angles.size() != tilt_weights.size())
     throw std::invalid_argument(
-        std::format("tilt_angles has {} elements and tilt_weights {}; they must have the same, nonzero, number",
-                    tilt_angles.size(),
-                    tilt_weights.size()));
+        arts::format("tilt_angles has {} elements and tilt_weights {}; they must have the same, nonzero, number",
+                     tilt_angles.size(),
+                     tilt_weights.size()));
   Numeric total = 0.0;
   for (Size i = 0; i < tilt_angles.size(); ++i) {
     require(std::isfinite(tilt_angles[i]) && tilt_angles[i] >= 0 && tilt_angles[i] <= 180,

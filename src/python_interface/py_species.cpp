@@ -29,8 +29,8 @@ std::string docs_isotopes() {
 
   const auto isotrat = Species::isotopologue_ratiosInitFromBuiltin();
 
-  std::print(os,
-             R"(The valid isotopologues are:
+  arts::print(os,
+              R"(The valid isotopologues are:
 
 .. list-table::
   :header-rows: 1
@@ -43,18 +43,18 @@ std::string docs_isotopes() {
 )");
 
   for (auto& x : Species::Isotopologues) {
-    std::print(os,
-               R"(  * - {}
+    arts::print(os,
+                R"(  * - {}
     - {}
     - {}
     - {}
     - {}
 )",
-               x.FullName(),
-               x.mass,
-               x.gi,
-               isotrat[x],
-               x.is_joker() ? "Joker" : (x.is_predefined() ? "Predefined" : "Normal"));
+                x.FullName(),
+                x.mass,
+                x.gi,
+                isotrat[x],
+                x.is_joker() ? "Joker" : (x.is_predefined() ? "Predefined" : "Normal"));
   }
 
   os << '\n';
@@ -86,7 +86,7 @@ void py_species(py::module_& m) try {
 
   py::class_<SpeciesIsotope> siso(m, "SpeciesIsotope");
   generic_interface(siso);
-  siso.doc() = std::format("{}\n\n{}\n\n", PythonWorkspaceGroupInfo<SpeciesIsotope>::desc(), docs_isotopes());
+  siso.doc() = arts::format("{}\n\n{}\n\n", PythonWorkspaceGroupInfo<SpeciesIsotope>::desc(), docs_isotopes());
   siso.def(
           "__init__",
           [](SpeciesIsotope* self, Index i) {
@@ -94,7 +94,7 @@ void py_species(py::module_& m) try {
               auto x = Species::Isotopologues.at(i);
               new (self) SpeciesIsotope(x);
             } catch (std::exception& e) {
-              throw std::runtime_error(std::format("No species index {}. Error:\n{}", i, e.what()));
+              throw std::runtime_error(arts::format("No species index {}. Error:\n{}", i, e.what()));
             }
           },
           "isot"_a = 0,
@@ -106,7 +106,7 @@ void py_species(py::module_& m) try {
               auto x = SpeciesIsotope::from_name(Species::update_isot_name(name));
               new (self) SpeciesIsotope(x);
             } catch (std::exception& e) {
-              throw std::runtime_error(std::format("No species with name {}. Error:\n{}", name, e.what()));
+              throw std::runtime_error(arts::format("No species with name {}. Error:\n{}", name, e.what()));
             }
           },
           "name"_a)
@@ -255,6 +255,6 @@ Returns
   vector_interface(ajsinfo);
   generic_interface(ajsinfo);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize species\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize species\n{}", e.what()));
 }
 }  // namespace Python

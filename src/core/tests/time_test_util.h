@@ -35,13 +35,13 @@ inline void print_time_points() {
     auto sum = std::accumulate(times.begin(), times.end(), 0LL);
 
     if (times.size() == 1)
-      std::print("{}: {} μs\n", name, *min);
+      arts::print("{}: {} μs\n", name, *min);
     else
-      std::print("{}: min = {} μs, max = {} μs, avg = {} μs, run {} times\n",
-                 name,
-                 *min,
-                 *max,
-                 sum / times.size(),
-                 times.size());
+      arts::print("{}: min = {} μs, max = {} μs, avg = {} μs, run {} times\n",
+                  name,
+                  *min,
+                  *max,
+                  sum / times.size(),
+                  times.size());
   }
 }

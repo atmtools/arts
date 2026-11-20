@@ -105,7 +105,7 @@ struct case_spec {
 std::string describe(const case_spec& c) {
   constexpr const char* layouts[] = {"mixed", "gas", "thin", "thick", "shared"};
   constexpr const char* quads[]   = {"gauss", "double_gauss", "lobatto"};
-  return std::format(
+  return arts::format(
       "nstokes {}, nmu {} + {}, {}, aziorder {}, src_code {}, delta_m {}, ground '{}', {} layers {}, "
       "max_delta_tau {:.0e}",
       c.nstokes,
@@ -402,7 +402,7 @@ void check_fft1dr_format() {
     rt3::fft1dr(inverse, rt3::fft_direction::inverse, fft);
     worst = std::max(worst, differ(values(inverse), values(direct)).second);
   }
-  std::cout << std::format("fft1dr against the direct sums of its format: within {:.2e} of the largest value\n", worst);
+  arts::println("fft1dr against the direct sums of its format: within {:.2e} of the largest value", worst);
   if (worst > 1e-12) throw std::runtime_error("fft1dr does not give its documented format");
 }
 
@@ -440,9 +440,9 @@ void check_large_fft() {
     }
     worst = std::max(worst, differ(values(q0), values(q2)).second);
   }
-  std::cout << std::format(
+  arts::println(
       "SCATTERING and DIRECT_SCATTERING with 1024 and 4096 azimuths: the m = 0 P11 through fft1dr within {:.2e} "
-      "of the mean\n",
+      "of the mean",
       worst);
   if (not(worst <= 1e-12)) throw std::runtime_error("the m = 0 mode through fft1dr differs from the mean");
 }
@@ -456,7 +456,7 @@ void check_makephase_limits() {
       Vector phase(4 * nmax);
       rt3::makephase(phase);
     } catch (const std::exception&) { threw = true; }
-    if (not threw) throw std::runtime_error(std::format("makephase with nmax {} did not throw", nmax));
+    if (not threw) throw std::runtime_error(arts::format("makephase with nmax {} did not throw", nmax));
   }
 }
 
@@ -520,7 +520,7 @@ int main() try {
       const auto [count, rel] = differ(values(a), b);
       worst                   = std::max(worst, rel);
       worst_of_tolerance      = std::max(worst_of_tolerance, rel / case_tolerance);
-      if (not(rel <= case_tolerance)) bad += std::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
+      if (not(rel <= case_tolerance)) bad += arts::format(" {}: {} differ, max rel {:.3e};", name, count, rel);
     };
     check("up_rad", cpp.up_rad, f77.up_rad);
     check("down_rad", cpp.down_rad, f77.down_rad);
@@ -529,13 +529,13 @@ int main() try {
     check("mu_values", cpp.mu_values, f77.mu_values);
     if (not bad.empty()) {
       failed++;
-      std::cout << std::format("Differs by more than {:.2e}: {}:{}\n", case_tolerance, describe(all[i]), bad);
+      arts::println("Differs by more than {:.2e}: {}:{}", case_tolerance, describe(all[i]), bad);
     }
   }
 
-  std::cout << std::format(
+  arts::println(
       "One rt3_workdata reused over all {} cases (of different sizes), and one with every array NaN, against a "
-      "fresh one per case: {} values differ\n",
+      "fresh one per case: {} values differ",
       all.size(),
       reuse_differ);
   if (reuse_differ > 0) throw std::runtime_error("reusing an rt3_workdata changes the results");
@@ -563,9 +563,9 @@ int main() try {
   } catch (const std::exception&) { threw = true; }
   if (not threw) throw std::runtime_error("a solar source over a Fresnel ground did not throw");
 
-  std::cout << std::format(
+  arts::println(
       "C++ RADTRAN against the Fortran's outputs: {} of {} cases within {:.0e} plus the rounding amplified by "
-      "their doublings (largest relative difference {:.2e}, at most {:.2f} of a case's tolerance)\n",
+      "their doublings (largest relative difference {:.2e}, at most {:.2f} of a case's tolerance)",
       all.size() - failed,
       all.size(),
       tolerance,

@@ -110,6 +110,6 @@ void py_path(py::module_& m) try {
       "ell"_a,
       "Calculate the distance between two positions");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize path\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize path\n{}", e.what()));
 }
 }  // namespace Python

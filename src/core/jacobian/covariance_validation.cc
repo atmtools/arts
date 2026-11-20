@@ -44,7 +44,7 @@ Layout layout(const std::vector<Block>& blocks, std::string_view name, const Lay
     const auto row    = block.get_row_range();
     const auto col    = block.get_column_range();
     const auto fail   = [&](std::string_view reason) {
-      throw std::runtime_error(std::format("{} block ({}, {}): {}.", name, i, j, reason));
+      throw std::runtime_error(arts::format("{} block ({}, {}): {}.", name, i, j, reason));
     };
     if (i < 0 or j < i) fail("indices must identify an upper triangular block");
     if (not block.not_null()) fail("matrix is null");
@@ -61,16 +61,16 @@ Layout layout(const std::vector<Block>& blocks, std::string_view name, const Lay
     }
     entries(block, [&](Index r, Index c, Numeric value) {
       if (not std::isfinite(value))
-        throw std::runtime_error(std::format("{} block ({}, {}), coordinate ({}, {}): non-finite value {}.",
-                                             name,
-                                             i,
-                                             j,
-                                             row.offset + r,
-                                             col.offset + c,
-                                             value));
+        throw std::runtime_error(arts::format("{} block ({}, {}), coordinate ({}, {}): non-finite value {}.",
+                                              name,
+                                              i,
+                                              j,
+                                              row.offset + r,
+                                              col.offset + c,
+                                              value));
     });
   }
-  if (result.diagonal.empty()) throw std::runtime_error(std::format("{} needs diagonal blocks.", name));
+  if (result.diagonal.empty()) throw std::runtime_error(arts::format("{} needs diagonal blocks.", name));
 
   std::vector<std::pair<Index, const Block*>> ordered(result.diagonal.begin(), result.diagonal.end());
   std::ranges::sort(ordered, {}, [](const auto& item) { return item.second->get_row_range().offset; });
@@ -78,7 +78,7 @@ Layout layout(const std::vector<Block>& blocks, std::string_view name, const Lay
   for (const auto& [index, block] : ordered) {
     const auto row = block->get_row_range();
     if (not covariance and row.offset != end)
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "{} diagonal block {}: diagonal ranges must cover [0, n) without gaps or overlaps; expected offset {}, got {}.",
           name,
           index,
@@ -95,7 +95,7 @@ Layout layout(const std::vector<Block>& blocks, std::string_view name, const Lay
     if (row == reference.diagonal.end() or col == reference.diagonal.end() or
         not same_range(block->get_row_range(), row->second->get_row_range()) or
         not same_range(block->get_column_range(), col->second->get_column_range()))
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "{} block ({}, {}): ranges must match the corresponding covariance diagonal blocks.", name, i, j));
   }
   return result;
@@ -108,19 +108,19 @@ void check_diagonals(const Layout& layout, std::string_view name, Numeric tolera
       const auto value = element(*block, i, i);
       if (value <= 0)
         throw std::runtime_error(
-            std::format("{} diagonal block {}, coordinate ({}, {}): variance must be strictly positive, got {}.",
-                        name,
-                        index,
-                        start + i,
-                        start + i,
-                        value));
+            arts::format("{} diagonal block {}, coordinate ({}, {}): variance must be strictly positive, got {}.",
+                         name,
+                         index,
+                         start + i,
+                         start + i,
+                         value));
     }
     entries(*block, [&](Index i, Index j, Numeric value) {
       if (i == j) return;
       const long double scale = std::sqrt(static_cast<long double>(element(*block, i, i))) *
                                 std::sqrt(static_cast<long double>(element(*block, j, j)));
       if (std::abs(static_cast<long double>(value) - element(*block, j, i)) / scale > tolerance)
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(arts::format(
             "{} diagonal block {}, coordinate ({}, {}): matrix is not symmetric within relative_tolerance {} after variance scaling.",
             name,
             index,
@@ -185,7 +185,7 @@ void check_component(const Component& component,
     starts[index]  = size;
     size          += covariance.diagonal.at(index)->nrows();
     if (has_precision and not precision.diagonal.contains(index))
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "Inverse covariance is incomplete: missing diagonal block {} in the component starting at block {}.",
           index,
           first));
@@ -198,7 +198,7 @@ void check_component(const Component& component,
         for (Index i = 0; i < c.nrows(); ++i) {
           const long double product = static_cast<long double>(element(c, i, i)) * element(p, i, i);
           if (not std::isfinite(product) or std::abs(product - 1) > tolerance)
-            throw std::runtime_error(std::format(
+            throw std::runtime_error(arts::format(
                 "Inverse covariance block {}, coordinate {}: covariance times inverse is {}, expected 1 within relative_tolerance {}.",
                 index,
                 c.get_row_range().offset + i,
@@ -211,7 +211,7 @@ void check_component(const Component& component,
   }
 
   if (size > max_dense_elements / size)
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         "Covariance component starting at block {} needs a {} by {} dense factorization, exceeding max_dense_elements {}. Increase the explicit validation limit only if sufficient memory is available.",
         first,
         size,
@@ -236,7 +236,7 @@ void check_component(const Component& component,
         const auto scale      = scales[row] * scales[col];
         const auto normalized = static_cast<Numeric>(inverse ? value * scale : value / scale);
         if (not std::isfinite(normalized))
-          throw std::runtime_error(std::format(
+          throw std::runtime_error(arts::format(
               "{} covariance component starting at block {}: scaled coordinate ({}, {}) exceeds numerical range.",
               inverse ? "Inverse" : "",
               first,
@@ -250,20 +250,20 @@ void check_component(const Component& component,
   };
   const Dense correlation = assemble(component.covariance, false);
   if (Eigen::LLT<Dense>(correlation).info() != Eigen::Success)
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         "Covariance component starting at diagonal block {} is not positive definite after variance scaling (Cholesky factorization failed).",
         first));
   if (has_precision) {
     const Dense inverse = assemble(component.precision, true);
     if (Eigen::LLT<Dense>(inverse).info() != Eigen::Success)
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "Inverse covariance component starting at diagonal block {} is not positive definite (Cholesky factorization failed).",
           first));
     const Dense   residual = correlation * inverse - Dense::Identity(size, size);
     const Numeric error    = residual.cwiseAbs().maxCoeff();
     const Numeric limit    = tolerance * static_cast<Numeric>(size);
     if (not std::isfinite(error) or error > limit)
-      throw std::runtime_error(std::format(
+      throw std::runtime_error(arts::format(
           "Inverse covariance component starting at block {} is inconsistent: maximum variance-scaled identity residual {} exceeds {}. The stored inverse may be stale or omit correlations.",
           first,
           error,
@@ -282,7 +282,7 @@ void CovarianceMatrix::validate_unlocked(Index   expected_size,
   const auto covariance = layout(correlations_, "Covariance");
   if (expected_size >= 0 and covariance.size != expected_size)
     throw std::runtime_error(
-        std::format("Covariance size {} does not match expected_size {}.", covariance.size, expected_size));
+        arts::format("Covariance size {} does not match expected_size {}.", covariance.size, expected_size));
   check_diagonals(covariance, "Covariance", relative_tolerance);
   Layout precision;
   if (not inverses_.empty()) {

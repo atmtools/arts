@@ -32,7 +32,7 @@ template <typename... Ts> requires((arts_xml_ioable<Ts> and ...)) struct xml_io_
         std::apply([&os, &pbofs](const Ts&... args) { (xml_io_stream<Ts>::write(os, args, pbofs), ...); }, n);
     } else {
       if constexpr (all_parse)
-        std::println(os, "{:IO}", n);
+        arts::println(os, "{:IO}", n);
       else
         std::apply([&os, &pbofs](const Ts&... args) { (xml_io_stream<Ts>::write(os, args, pbofs), ...); }, n);
     }
@@ -64,7 +64,7 @@ template <typename... Ts> requires((arts_xml_ioable<Ts> and ...)) struct xml_io_
     }
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot read {}<{:,}>:\n{}", type_name, std::array{xml_io_stream<Ts>::type_name...}, e.what()));
+        arts::format("Cannot read {}<{:,}>:\n{}", type_name, std::array{xml_io_stream<Ts>::type_name...}, e.what()));
   }
 };
 
@@ -99,7 +99,7 @@ struct xml_io_stream<std::pair<A, B>> {
       }
     } else {
       if constexpr (all_parse) {
-        std::println(os, "{:IO}", n);
+        arts::println(os, "{:IO}", n);
       } else {
         xml_io_stream<Decayed<A>>::write(os, n.first, pbofs);
         xml_io_stream<Decayed<B>>::write(os, n.second, pbofs);

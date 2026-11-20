@@ -82,14 +82,14 @@ std::string generic_selection(const std::string&  name,
   }
   const auto storage = allowed.empty()
                            ? std::string{}
-                           : std::format("        static constexpr std::array _{0}_allowed{{{1}}};\n", name, allowed);
-  auto       conversion = std::format("from_allowed(_{0}, {1}, {2})",
-                                      name,
-                                      allowed.empty() ? "{}" : "_" + name + "_allowed",
-                                      output ? "true" : "false");
+                           : arts::format("        static constexpr std::array _{0}_allowed{{{1}}};\n", name, allowed);
+  auto       conversion = arts::format("from_allowed(_{0}, {1}, {2})",
+                                       name,
+                                       allowed.empty() ? "{}" : "_" + name + "_allowed",
+                                       output ? "true" : "false");
   if (not default_value.empty())
-    conversion = std::format("(_{0} and not _{0}->is_none()) ? {1} : {2}", name, conversion, default_value);
-  return storage + std::format("        auto {0} = {1};\n", name, conversion);
+    conversion = arts::format("(_{0} and not _{0}->is_none()) ? {1} : {2}", name, conversion, default_value);
+  return storage + arts::format("        auto {0} = {1};\n", name, conversion);
 }
 
 bool uses_variadic(const std::string& v) {
@@ -103,7 +103,7 @@ std::string method_gout_selection(const WorkspaceMethodInternalRecord& wsm) {
     if (wsm.gout_type[i] == "Any" or uses_variadic(wsm.gout_type[i])) {
       os << generic_selection(wsm.gout[i], wsm.gout_type[i], true);
     } else {
-      std::println(os, R"(        {1}& {0} = select_gout<{1}>(_{0}, _ws, "{0}");)", wsm.gout[i], wsm.gout_type[i]);
+      arts::println(os, R"(        {1}& {0} = select_gout<{1}>(_{0}, _ws, "{0}");)", wsm.gout[i], wsm.gout_type[i]);
     }
   }
 
@@ -119,7 +119,7 @@ std::string method_gin_selection(const std::string& name, const WorkspaceMethodI
     if (stdr::find(wsm.gout, wsm.gin[i]) != wsm.gout.end()) continue;
     if (wsm.gin_type[i] == "Any" or uses_variadic(wsm.gin_type[i])) {
       const auto fallback =
-          has_default ? std::format("workspace_methods().at(\"{}\").defs.at(\"_{}\")", name, wsm.gin[i]) : "";
+          has_default ? arts::format("workspace_methods().at(\"{}\").defs.at(\"_{}\")", name, wsm.gin[i]) : "";
       os << generic_selection(wsm.gin[i],
                               wsm.gin_type[i],
                               false,
@@ -127,8 +127,8 @@ std::string method_gin_selection(const std::string& name, const WorkspaceMethodI
                               wsm.python_generic_sorting.empty() ? ArrayOfIndex{} : wsm.python_generic_sorting[i]);
     } else {
       if (has_default) {
-        std::println(os,
-                     R"x(        static const {2} _{0}_default = [] -> {2} {{
+        arts::println(os,
+                      R"x(        static const {2} _{0}_default = [] -> {2} {{
             try {{
               return workspace_methods().at("{1}").defs.at("_{0}").get<{2}>();
             }} catch(...) {{
@@ -137,11 +137,11 @@ Failed to initialize "{1}" default value "_{0}")");
             }}
           }}();
         const {2}& {0} = select_gin<{2}>(_{0}, _{0}_default);)x",
-                     wsm.gin[i],
-                     name,
-                     wsm.gin_type[i]);
+                      wsm.gin[i],
+                      name,
+                      wsm.gin_type[i]);
       } else {
-        std::println(os, R"x(        const {1}& {0} = select_gin<{1}>(_{0}, "{0}");)x", wsm.gin[i], wsm.gin_type[i]);
+        arts::println(os, R"x(        const {1}& {0} = select_gin<{1}>(_{0}, "{0}");)x", wsm.gin[i], wsm.gin_type[i]);
       }
     }
   }
@@ -155,18 +155,18 @@ std::string method_argument_selection(const std::string& name, const WorkspaceMe
   std::ostringstream os;
 
   for (auto& t : wsm.out) {
-    std::println(os,
-                 R"x(        {2}& {0} = select_{1}out<{2}>(_{0}, _ws, "{0}");)x",
-                 t,
-                 stdr::any_of(wsm.in, Cmp::eq(t)) ? "in"sv : ""sv,
-                 wsvs.at(t).type);
+    arts::println(os,
+                  R"x(        {2}& {0} = select_{1}out<{2}>(_{0}, _ws, "{0}");)x",
+                  t,
+                  stdr::any_of(wsm.in, Cmp::eq(t)) ? "in"sv : ""sv,
+                  wsvs.at(t).type);
   }
 
   os << method_gout_selection(wsm);
 
   for (auto& t : wsm.in) {
     if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
-    std::println(os, R"x(        const {1}& {0} = select_in<{1}>(_{0}, _ws, "{0}");)x", t, wsvs.at(t).type);
+    arts::println(os, R"x(        const {1}& {0} = select_in<{1}>(_{0}, _ws, "{0}");)x", t, wsvs.at(t).type);
   }
 
   os << method_gin_selection(name, wsm);
@@ -253,11 +253,12 @@ Size max_varlen(const WorkspaceMethodInternalRecord& wsm) {
 
 std::string method_error(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
   std::ostringstream os;
-  os << std::format(R"(        throw std::runtime_error(
-          std::format(R"-WSM-(Cannot execute method:
+  arts::print(os,
+              R"(        throw std::runtime_error(
+          arts::format(R"-WSM-(Cannot execute method:
 
   {}()",
-                    name);
+              name);
 
   const auto               spaces      = std::string(name.size() + 1 + 2, ' ');
   const Size               largest_var = max_varlen(wsm);
@@ -267,8 +268,8 @@ std::string method_error(const std::string& name, const WorkspaceMethodInternalR
   for (auto& t : wsm.out) {
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
-    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
+    arts::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(arts::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
   }
 
   for (std::size_t i = 0; i < wsm.gout.size(); i++) {
@@ -276,13 +277,13 @@ std::string method_error(const std::string& name, const WorkspaceMethodInternalR
     auto& tt = wsm.gout_type[i];
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arts::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
     if (tt == "Any") {
-      arg.push_back(std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string("None"))", t));
+      arg.push_back(arts::format(R"(_{0} ? arts::format("User-provided {{}}", type(_{0})) : std::string("None"))", t));
     } else if (uses_variadic(tt)) {
-      arg.push_back(std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string("None"))", t));
+      arg.push_back(arts::format(R"(_{0} ? arts::format("User-provided {{}}", type(_{0})) : std::string("None"))", t));
     } else {
-      arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, tt));
+      arg.push_back(arts::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, tt));
     }
   }
 
@@ -290,8 +291,8 @@ std::string method_error(const std::string& name, const WorkspaceMethodInternalR
     if (stdr::any_of(wsm.out, Cmp::eq(t))) continue;
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
-    arg.push_back(std::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
+    arts::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arg.push_back(arts::format(R"(_{0} ? "User-provided {1}"sv : "self.{0}"sv)", t, workspace_variables().at(t).type));
   }
 
   for (std::size_t i = 0; i < wsm.gin.size(); i++) {
@@ -300,28 +301,28 @@ std::string method_error(const std::string& name, const WorkspaceMethodInternalR
     auto& tt = wsm.gin_type[i];
     if (not first) os << ",\n" << spaces;
     first = false;
-    std::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
+    arts::print(os, R"({1} {0}: {{}})", std::string(largest_var - t.size(), ' '), t);
 
     if (tt == "Any") {
-      arg.push_back(
-          std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
-                      t,
-                      v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
+      arg.push_back(arts::format(
+          R"(_{0} ? arts::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+          t,
+          v ? arts::format("{}", to_defval_str(*v, ""sv)) : "None"));
     } else if (uses_variadic(tt)) {
-      arg.push_back(
-          std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
-                      t,
-                      v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
+      arg.push_back(arts::format(
+          R"(_{0} ? arts::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+          t,
+          v ? arts::format("{}", to_defval_str(*v, ""sv)) : "None"));
     } else {
-      arg.push_back(
-          std::format(R"(_{0} ? std::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
-                      t,
-                      v ? std::format("{}", to_defval_str(*v, ""sv)) : "None"));
+      arg.push_back(arts::format(
+          R"(_{0} ? arts::format("User-provided {{}}", type(_{0})) : std::string(R"-WSMVAR-({1})-WSMVAR-"))",
+          t,
+          v ? arts::format("{}", to_defval_str(*v, ""sv)) : "None"));
     }
   }
 
   os << ")\n\n{})-WSM-\", ";
-  for (auto& a : arg) { os << std::format("{},\n           ", a); }
+  for (auto& a : arg) { arts::print(os, "{},\n           ", a); }
   os << "indent(e.what(), \"    \")));\n";
   return os.str();
 }
@@ -342,7 +343,7 @@ std::string method_argument_documentation(const WorkspaceMethodInternalRecord& w
     auto&& tt = wsm.gout_type[i];
     if (not first) os << ",\n    ";
     first = false;
-    std::print(os, R"("{}"_a{}.none() = py::none())", t, tt == "Any" ? ""sv : ".noconvert()"sv);
+    arts::print(os, R"("{}"_a{}.none() = py::none())", t, tt == "Any" ? ""sv : ".noconvert()"sv);
   }
 
   for (const auto& t : wsm.in) {
@@ -368,7 +369,7 @@ std::string method_argument_documentation(const WorkspaceMethodInternalRecord& w
 }
 
 std::string method_adapter(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
-  return std::format(
+  return arts::format(
       R"-x-({5} py_wsm_{0}({1}) {{
     try {{
 {2}{3}
@@ -417,11 +418,11 @@ std::string method_generic_signature(const std::string& name, const WorkspaceMet
     if (stdr::find(wsm.gout, wsm.gin[i]) == wsm.gout.end()) argument(wsm.gin[i], wsm.gin_type[i]);
   }
   signature += ") -> " + (wsm.return_type == "void" ? std::string{"None"} : "pyarts3.arts." + wsm.return_type);
-  return std::format("    py::sig(\"{}\"),\n", signature);
+  return arts::format("    py::sig(\"{}\"),\n", signature);
 }
 
 std::string method(const std::string& name, const WorkspaceMethodInternalRecord& wsm) {
-  return std::format(
+  return arts::format(
       R"-x-(  ws.def("{0}", &py_wsm_{0},
     {1}
 {2},
@@ -438,7 +439,7 @@ void methods(int nfiles) {
   const auto& wsms = internal_workspace_methods();
 
   std::vector<std::ofstream> ofs(nfiles);
-  for (int i = 0; i < nfiles; i++) { ofs[i].open(std::format("py_auto_wsm_{}.cpp", i)); }
+  for (int i = 0; i < nfiles; i++) { ofs[i].open(arts::format("py_auto_wsm_{}.cpp", i)); }
 
   for (int i = 0; i < nfiles; i++) {
     select_ofstream(ofs, i) << R"--(#include <python_interface.h>

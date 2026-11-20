@@ -83,10 +83,10 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField&    
         }
 
         throw std::runtime_error(
-            std::format("Unsupported types or type mismatch {} and {}, "
-                        "please use GeodeticField3 or Numeric for NonLTE",
-                        data.data_type(),
-                        x.data_type()));
+            arts::format("Unsupported types or type mismatch {} and {}, "
+                         "please use GeodeticField3 or Numeric for NonLTE",
+                         data.data_type(),
+                         x.data_type()));
       }
     }
 
@@ -102,9 +102,9 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField&    
       }
 
       throw std::runtime_error(
-          std::format("Unsupported type: {}\n"
-                      "Please use GeodeticField3 or Numeric for NonLTE",
-                      data.data_type()));
+          arts::format("Unsupported type: {}\n"
+                       "Please use GeodeticField3 or Numeric for NonLTE",
+                       data.data_type()));
     }
 
     for (auto& [key, data] : out) {
@@ -121,10 +121,10 @@ std::unordered_map<QuantumLevelIdentifier, AtmData> from_lte(const AtmField&    
       }
 
       throw std::runtime_error(
-          std::format("Unsupported types or type mismatch {} and {}, "
-                      "please use GeodeticField3 or Numeric for NonLTE",
-                      data.data_type(),
-                      x.data_type()));
+          arts::format("Unsupported types or type mismatch {} and {}, "
+                       "please use GeodeticField3 or Numeric for NonLTE",
+                       data.data_type(),
+                       x.data_type()));
     }
   }
 

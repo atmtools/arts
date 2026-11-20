@@ -47,7 +47,7 @@ void require_error(const std::function<void()>& f, const std::string& what) {
   try {
     f();
   } catch (const std::exception&) { threw = true; }
-  require(threw, std::format("Expected an error: {}", what));
+  require(threw, arts::format("Expected an error: {}", what));
 }
 
 constexpr Numeric cross_section = 1e-30;  // m^2
@@ -127,17 +127,17 @@ void test_rayleigh() {
                        std::abs(o.absorption[h0, i, 1])});
       }
     }
-    std::cout << std::format(
+    arts::println(
         "A1 Rayleigh GasScatterer: max |phase - closed form| / (sigma / 4 pi) {:.2e} (tolerance {:.2e}); K, a "
-        "{:.1e}, mu = 1 included\n",
+        "{:.1e}, mu = 1 included",
         dz / (sigma / (4 * pi)),
         tol / (sigma / (4 * pi)),
         dk / sigma);
     require(dz <= tol,
-            std::format("A1: the RT4 phase quadrants of ARTS's Rayleigh GasScatterer must equal sigma / (4 pi) times "
-                        "the m = 0 closed form to {:.2e}, got {:.2e}",
-                        tol,
-                        dz));
+            arts::format("A1: the RT4 phase quadrants of ARTS's Rayleigh GasScatterer must equal sigma / (4 pi) times "
+                         "the m = 0 closed form to {:.2e}, got {:.2e}",
+                         tol,
+                         dz));
     require(dk <= 1e-14 * sigma, "A1: the extinction must be sigma on the diagonal and the absorption zero");
   }
 
@@ -198,16 +198,16 @@ void test_forward_peaked_hg() {
         }
       }
     }
-    std::cout << std::format(
+    arts::println(
         "A3 Henyey-Greenstein g = {}, 8 double-Gauss streams and mu = 1: max |phase_II - addition theorem| / max "
-        "{:.1e} (tolerance 1e-10)\n",
+        "{:.1e} (tolerance 1e-10)",
         g,
         d / scale);
     require(d <= 1e-10 * scale,
-            std::format("A3: RT4's azimuthal mean of Henyey-Greenstein scattering with g = {} must be that of the "
-                        "addition theorem to 1e-10, got {:.2e}",
-                        g,
-                        d / scale));
+            arts::format("A3: RT4's azimuthal mean of Henyey-Greenstein scattering with g = {} must be that of the "
+                         "addition theorem to 1e-10, got {:.2e}",
+                         g,
+                         d / scale));
   }
 }
 
@@ -262,7 +262,7 @@ void test_path() {
                     std::abs(p.temperature[l] - d.atm_path[l].temperature)});
   for (Index l = 0; l < 3; l++)
     dev = std::max(dev, std::abs(p.gas_extinction[l] - 1e-4 * (1.5 + static_cast<Numeric>(l))) / 1e-4);
-  require(dev < 1e-14, std::format("A2: heights, temperatures and midpoint gas extinction, deviation {:.1e}", dev));
+  require(dev < 1e-14, arts::format("A2: heights, temperatures and midpoint gas extinction, deviation {:.1e}", dev));
   require(p.optics.size() == 3 and p.layer_optics_index == ArrayOfIndex({0, 1, 2}),
           "A2: every layer with Rayleigh scattering must have its own optics set");
 
@@ -286,7 +286,7 @@ void test_path() {
     sk                = std::max(sk, std::abs(ref));
   }
   require(m <= 1e-15 * scale and mk <= 1e-15 * sk,
-          std::format("A2: layer optics must be the mean of the level optics, {:.1e} and {:.1e}", m / scale, mk / sk));
+          arts::format("A2: layer optics must be the mean of the level optics, {:.1e} and {:.1e}", m / scale, mk / sk));
 
   // Without species every layer is gas-only
   const auto g = rt4::problem_from_path(d.ray_path,

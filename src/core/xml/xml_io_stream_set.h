@@ -43,13 +43,13 @@ template <arts_xml_ioable T> requires(std::is_default_constructible_v<T>) struct
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot extend {}<{}>:\n{}", type_name, xml_io_stream<T>::type_name, e.what()));
+        arts::format("Cannot extend {}<{}>:\n{}", type_name, xml_io_stream<T>::type_name, e.what()));
   }
 
   static void read(std::istream& is, std::set<T>& n, bifstream* pbifs = nullptr) try {
     n.clear();
     extend(is, n, pbifs);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot read {}<{}>:\n{}", type_name, xml_io_stream<T>::type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot read {}<{}>:\n{}", type_name, xml_io_stream<T>::type_name, e.what()));
   }
 };
