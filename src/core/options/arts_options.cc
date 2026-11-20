@@ -1090,16 +1090,15 @@ See :doc:`concept.tmatrix` for the definitions.
 An aspect ratio, and for Chebyshev particles a degree, complete the shape.
 See :doc:`concept.tmatrix` for the definitions.
 )",
-      .values_and_desc = {Value{"spheroid", "A spheroid; the aspect ratio is its horizontal-to-rotational axis ratio"},
-                          Value{"cylinder",
-                                "A finite circular cylinder; the aspect ratio is its diameter-to-length ratio"},
-                          Value{"chebyshev",
-                                "A Chebyshev particle r_0 (1 + e cos(n theta)) of degree n >= 1; the aspect ratio is "
-                                "its deformation e, |e| < 1"},
-                          Value{"generalized_chebyshev",
-                                "A generalized Chebyshev particle r_0 (1 + c_0 + sum_n c_n cos(n theta)), e.g. a "
-                                "distorted water drop; its coefficients c_0, ..., c_N are given, and the aspect "
-                                "ratio is not used"}},
+      .values_and_desc =
+          {Value{"spheroid", "A spheroid; the aspect ratio is its horizontal-to-rotational axis ratio"},
+           Value{"cylinder", "A finite circular cylinder; the aspect ratio is its diameter-to-length ratio"},
+           Value{
+               "chebyshev",
+               R"(A Chebyshev particle :math:`r_0 (1 + e \cos(n \theta))` of degree :math:`n \geq 1`; the aspect ratio is its deformation :math:`e`, :math:`|e| < 1`)"},
+           Value{
+               "generalized_chebyshev",
+               R"(A generalized Chebyshev particle :math:`r_0 (1 + c_0 + \sum_n c_n \cos(n \theta))`, e.g. a distorted water drop; its coefficients :math:`c_0, \ldots, c_N` are given, and the aspect ratio is not used)"}},
   });
 
   opts.emplace_back(EnumeratedOption{
