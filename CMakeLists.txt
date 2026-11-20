@@ -63,7 +63,7 @@ option (ENABLE_CXX26 "Turn on C++26 (use is risky, there are known issues)" OFF)
 option (ENABLE_IPO "Turn on IPO (experimental)" OFF)
 option (ENABLE_MPI "Turn on MPI" OFF)
 option (ENABLE_ARTS_PROFILING "Turn on the profiling macro" OFF)
-option (ENABLE_PCH "Turn on precomnpiled headers" OFF)
+option (ENABLE_PCH "Turn on precompiled headers" ON)
 option (ENABLE_CDISORT "Turn on cdisort" ON)
 option (ENABLE_TMATRIX "Build the T-matrix solver (licensed for not-for-profit research)" OFF)
 option (ENABLE_PYARTS_STUBS "Turn on python stub generation for pyarts library" ON)
@@ -190,7 +190,33 @@ endif (NO_ASSERT)
 if (ENABLE_CCACHE)
   find_program(CCACHE_FOUND ccache)
   if (CCACHE_FOUND)
-    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set (ARTS_CCACHE ${CCACHE_FOUND})
+    if (ENABLE_PCH)
+      # ccache refuses every compilation that uses a precompiled header unless
+      # its sloppiness includes pch_defines and time_macros.  They are added to
+      # the sloppiness that ccache is configured with when CMake runs.
+      execute_process (COMMAND ${CCACHE_FOUND} --get-config sloppiness
+                       OUTPUT_VARIABLE ARTS_CCACHE_SLOPPINESS
+                       OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+      string (REPLACE " " "" ARTS_CCACHE_SLOPPINESS "${ARTS_CCACHE_SLOPPINESS}")
+      string (REPLACE "," ";" ARTS_CCACHE_SLOPPINESS "${ARTS_CCACHE_SLOPPINESS}")
+      list (APPEND ARTS_CCACHE_SLOPPINESS pch_defines time_macros)
+      list (REMOVE_DUPLICATES ARTS_CCACHE_SLOPPINESS)
+      list (JOIN ARTS_CCACHE_SLOPPINESS "," ARTS_CCACHE_SLOPPINESS)
+      set (ARTS_CCACHE ${CMAKE_COMMAND} -E env CCACHE_SLOPPINESS=${ARTS_CCACHE_SLOPPINESS} ${CCACHE_FOUND})
+      message (STATUS "ccache sloppiness for precompiled headers: ${ARTS_CCACHE_SLOPPINESS}")
+
+      # Clang writes the time stamps of the headers into a precompiled header,
+      # and then ccache cannot reuse it once a checkout has touched the headers
+      add_compile_options ("$<$<COMPILE_LANG_AND_ID:CXX,AppleClang,Clang>:SHELL:-Xclang -fno-pch-timestamp>")
+    endif ()
+    # A launcher that the user has chosen is kept
+    if (NOT CMAKE_C_COMPILER_LAUNCHER)
+      set (CMAKE_C_COMPILER_LAUNCHER ${ARTS_CCACHE})
+    endif ()
+    if (NOT CMAKE_CXX_COMPILER_LAUNCHER)
+      set (CMAKE_CXX_COMPILER_LAUNCHER ${ARTS_CCACHE})
+    endif ()
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
   endif (CCACHE_FOUND)
 endif ()
@@ -612,10 +638,10 @@ endif()
 
 if (ENABLE_PCH)
   message (STATUS "Precompiled headers enabled")
-  if (CCACHE_FOUND)
-    message (STATUS "Make sure you set CCACHE_SLOPPINES properly for PCH:
-   export CCACHE_SLOPPINESS=pch_defines,time_macros")
-  endif()
+  # GCC compiles a file without a precompiled header that it cannot use, and
+  # only warns.  As an error, it catches every target that the reuse set up by
+  # ArtsPrecompiledHeaders.cmake does not fit
+  add_compile_options ("$<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Werror=invalid-pch>")
 else()
   message (STATUS "Precompiled headers disabled")
 endif()

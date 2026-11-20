@@ -42,6 +42,11 @@ target_link_libraries(auto_partfun PUBLIC matpack binio xml_partfun)
 target_include_directories(auto_partfun PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(auto_partfun PUBLIC ${ARTS_SOURCE_DIR}/src)
 
+# The generated sources include only configtypes.h and a few standard headers.
+# With the precompiled matpack.h forced on them, every one of them would be
+# compiled again whenever a header that matpack.h includes changes.
+set_target_properties(auto_partfun PROPERTIES DISABLE_PRECOMPILE_HEADERS ON)
+
 if (IPO_SUPPORTED)
     set_property(TARGET auto_partfun PROPERTY INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
