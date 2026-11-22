@@ -6,35 +6,35 @@ void xml_io_stream<SpeciesEnumInfo>::write(std::ostream& os, const SpeciesEnumIn
   }
 
   if (v.shortname.find(' ') != std::string::npos) {
-    throw std::runtime_error(std::format("Shortname cannot contain spaces: '{}'", v.shortname));
+    throw std::runtime_error(arts::format("Shortname cannot contain spaces: '{}'", v.shortname));
   }
 
   if (v.longname.find(' ') != std::string::npos) {
-    throw std::runtime_error(std::format("Longname cannot contain spaces: '{}'", v.longname));
+    throw std::runtime_error(arts::format("Longname cannot contain spaces: '{}'", v.longname));
   }
 
-  std::println(os, R"(<{0}> {3} {1} {2} </{0}>)"sv, type_name, v.shortname, v.longname, v.enum_value);
+  arts::println(os, R"(<{0}> {3} {1} {2} </{0}>)"sv, type_name, v.shortname, v.longname, v.enum_value);
 }
 
 void xml_io_stream<SpeciesEnumInfo>::read(std::istream& is, SpeciesEnumInfo& v, bifstream*) try {
   std::string val{};
   is >> val;
 
-  if (val != std::format("<{}>", type_name)) {
-    throw std::runtime_error(std::format("Expected opening tag <{}>, but got '{}'", type_name, val));
+  if (val != arts::format("<{}>", type_name)) {
+    throw std::runtime_error(arts::format("Expected opening tag <{}>, but got '{}'", type_name, val));
   }
 
   is >> v.enum_value >> v.shortname >> v.longname;
 
   if (v.enum_value < 1) {
-    throw std::runtime_error(std::format("Enum value must be positive, but got {}", v.enum_value));
+    throw std::runtime_error(arts::format("Enum value must be positive, but got {}", v.enum_value));
   }
 
   is >> val;
 
-  if (val != std::format("</{}>", type_name)) {
-    throw std::runtime_error(std::format("Expected closing tag </{}>, but got '{}'", type_name, val));
+  if (val != arts::format("</{}>", type_name)) {
+    throw std::runtime_error(arts::format("Expected closing tag </{}>, but got '{}'", type_name, val));
   }
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}: {}", type_name, e.what()));
+  throw std::runtime_error(arts::format("Error reading {}: {}", type_name, e.what()));
 }

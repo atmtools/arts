@@ -35,7 +35,7 @@ func_body make_cpp_string_interp(const Matrix& data) {
     if (Tv[i] <= Tv[i - 1]) throw std::runtime_error("Temperature grid must be increasing");
   }
 
-  return {.data = std::format(
+  return {.data = arts::format(
               R"(
 inline constexpr std::array<Numeric, {0}> coef{{ {1:,} }};
 inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};
@@ -43,22 +43,22 @@ inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};
               q.size(),
               q,
               Tv),
-          .main     = std::format(R"(
+          .main     = arts::format(R"(
   const Index i_low =
       std::distance(grid.cbegin(), std::lower_bound(grid.cbegin(), grid.cend(), T));
   const Size i = std::min<Size>(i_low - (i_low > 0), Size{{{}}});
 
   return coef[i] + (T - grid[i]) * (coef[i + 1] - coef[i]) / (grid[i + 1] - grid[i]);
 )",
-                                  q.size() - 2),
-          .deriv    = std::format(R"(
+                                   q.size() - 2),
+          .deriv    = arts::format(R"(
   const Index i_low =
       std::distance(grid.cbegin(), std::lower_bound(grid.cbegin(), grid.cend(), T));
   const Size i = std::min<Size>(i_low - (i_low > 0), Size{{{}}});
 
   return (coef[i + 1] - coef[i]) / (grid[i + 1] - grid[i]);
 )",
-                                  q.size() - 2),
+                                   q.size() - 2),
           .includes = {"<algorithm>", "<array>"}};
 }
 
@@ -67,13 +67,13 @@ func_body make_cpp_string_coeff(const Matrix& data) {
 
   const auto q = data[joker, 0];
 
-  return {.data = std::format(
+  return {.data = arts::format(
               R"(
 inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 )",
               q.size(),
               q),
-          .main     = std::format(R"(
+          .main     = arts::format(R"(
   Numeric result = Q[0];
   Numeric TN     = 1.0;
 
@@ -84,8 +84,8 @@ inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 
   return result;
 )",
-                                  q.size()),
-          .deriv    = std::format(R"(
+                                   q.size()),
+          .deriv    = arts::format(R"(
   Numeric result = Q[1];
   Numeric TN     = 1.0;
 
@@ -96,14 +96,15 @@ inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 
   return result;
 )",
-                                  q.size()),
+                                   q.size()),
           .includes = {"<array>"}};
 }
 
 func_body make_cpp_string_const(const Matrix& data) {
   assert(data.size() == 1);
 
-  return {.data = "", .main = std::format(R"( return {0}; )", data[0, 0]), .deriv = R"( return 0.0; )", .includes = {}};
+  return {
+      .data = "", .main = arts::format(R"( return {0}; )", data[0, 0]), .deriv = R"( return 0.0; )", .includes = {}};
 }
 
 func_body make_cpp_string_static_interp(const Matrix& data) {
@@ -118,13 +119,13 @@ func_body make_cpp_string_static_interp(const Matrix& data) {
       throw std::runtime_error("Temperature grid must be equidistant");
   }
 
-  return {.data = std::format(
+  return {.data = arts::format(
               R"(
 inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 )",
               q.size(),
               q),
-          .main     = std::format(R"(
+          .main     = arts::format(R"(
   const Numeric Tx = (T - {1}) * {0};
   const Size iTx   = static_cast<Size>(Tx);
   const Size i     = (iTx > {2}) ? {2} : iTx;
@@ -132,19 +133,19 @@ inline constexpr std::array<Numeric, {0}> Q{{ {1:,} }};
 
   return Q[i] + To * (Q[i + 1] - Q[i]);
 )",
-                                  r_dT,
-                                  Tv[0],
-                                  Tv.size() - 2),
-          .deriv    = std::format(R"(
+                                   r_dT,
+                                   Tv[0],
+                                   Tv.size() - 2),
+          .deriv    = arts::format(R"(
   const Numeric Tx = (T - {1}) * {0};
   const Size iTx   = static_cast<Size>(Tx);
   const Size i     = (iTx > {2}) ? {2} : iTx;
 
   return (Q[i + 1] - Q[i]) * {0};
 )",
-                                  r_dT,
-                                  Tv[0],
-                                  Tv.size() - 2),
+                                   r_dT,
+                                   Tv[0],
+                                   Tv.size() - 2),
           .includes = {"<array>"}};
 }
 
@@ -162,7 +163,7 @@ func_body make_cpp_string_log_interp(const Matrix& data) {
   Vector n(Tv.size() - 1);
   for (Size i = 0; i < n.size(); i++) n[i] = std::log(q[i + 1] / q[i]) / std::log(Tv[i + 1] / Tv[i]);
 
-  return {.data = std::format(
+  return {.data = arts::format(
               R"(
 inline constexpr std::array<Numeric, {0}> coef{{ {1:,} }};
 inline constexpr std::array<Numeric, {0}> grid{{ {2:,} }};
@@ -260,9 +261,9 @@ head_data make_header_data(const std::string_view filename) {
 std::string make_cpp_string_impl(const std::string_view filename, const func_body& body) {
   std::string includes{"#include <configtypes.h>\n\n"};
 
-  for (const auto& include : body.includes) { includes += std::format("#include {}\n", include); }
+  for (const auto& include : body.includes) { includes += arts::format("#include {}\n", include); }
 
-  return std::format(R"(//! auto-generated file
+  return arts::format(R"(//! auto-generated file
 
 {4}
 
@@ -274,11 +275,11 @@ Numeric {0}(Numeric T [[maybe_unused]]) noexcept {{{2}}}
 Numeric d{0}(Numeric T [[maybe_unused]]) noexcept {{{3}}}
 }}  // namespace PartitionFunctions
 )",
-                     make_call_signature(filename),
-                     body.data,
-                     body.main,
-                     body.deriv,
-                     includes);
+                      make_call_signature(filename),
+                      body.data,
+                      body.main,
+                      body.deriv,
+                      includes);
 }
 
 std::string make_cpp_string(const std::string_view filename, const PartitionFunctionsData& data) {
@@ -306,9 +307,9 @@ std::string make_h_string(std::map<SpeciesEnum, std::vector<std::pair<std::strin
     const auto&            v       = data[spec];
     const std::string_view specstr = toString<0>(spec);
 
-    exists += std::format("inline constexpr std::array<std::string_view, {0}> has{1}{{", v.size(), specstr);
+    exists += arts::format("inline constexpr std::array<std::string_view, {0}> has{1}{{", v.size(), specstr);
 
-    compute += std::format(
+    compute += arts::format(
         R"(template<Derivatives deriv>
 Numeric compute{0}(Numeric T [[maybe_unused]], const std::string_view isot [[maybe_unused]]) {{
   using enum Derivatives;
@@ -318,17 +319,17 @@ Numeric compute{0}(Numeric T [[maybe_unused]], const std::string_view isot [[may
     for (Size i = 0; i < v.size(); i++) {
       auto& [isot, call] = v[i];
 
-      exists += std::format(R"( "{}"sv,
+      exists += arts::format(R"( "{}"sv,
 )",
-                            isot);
+                             isot);
 
-      calls += std::format(
+      calls += arts::format(
           R"(Numeric  {0}(Numeric T) noexcept;
 Numeric d{0}(Numeric T) noexcept;
 )",
           call);
 
-      compute += std::format(
+      compute += arts::format(
           R"(
   if (isot == std::get<{0}>(has{1})) {{
     if constexpr (deriv == No)  return  {2}(T);
@@ -341,15 +342,15 @@ Numeric d{0}(Numeric T) noexcept;
     }
     exists += "};\n\n";
 
-    compute += std::format(
+    compute += arts::format(
         R"(
-  throw std::out_of_range(std::format("unknown isotopologue '{}-{{}}'", isot));
+  throw std::out_of_range(arts::format("unknown isotopologue '{}-{{}}'", isot));
 }}
 )",
         spec);
   }
 
-  return std::format(
+  return arts::format(
       R"(//! auto-generated file
 
 #pragma once
@@ -401,7 +402,7 @@ int main(int argn, char** argv) try {
 
   std::vector<std::string> xmlfiles;
   std::ifstream            in{argv[1]};
-  if (!in) throw std::runtime_error(std::format("Failed to open list file: {}", argv[1]));
+  if (!in) throw std::runtime_error(arts::format("Failed to open list file: {}", argv[1]));
 
   std::string line;
   while (std::getline(in, line)) {

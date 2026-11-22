@@ -145,6 +145,6 @@ void py_basic(py::module_& m) try {
   generic_interface(any);
   any.def("__init__", [](Any* a, const py::args&, const py::kwargs&) { new (a) Any{}; }, "Anything is allowed.");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize basic\n{}", e.what()));
 }
 }  // namespace Python

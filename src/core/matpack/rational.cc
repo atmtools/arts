@@ -108,14 +108,14 @@ void xml_io_stream<Rational>::write(std::ostream&    os_xml,
                                     const Rational&  rational,
                                     bofstream*       pbofs,
                                     std::string_view name) {
-  std::println(os_xml, R"(<{0} name="{1}">)", type_name, name);
+  arts::println(os_xml, R"(<{0} name="{1}">)", type_name, name);
 
   if (pbofs)
     *pbofs << rational;
   else
     os_xml << rational;
 
-  std::println(os_xml, R"(</{0}>)", type_name);
+  arts::println(os_xml, R"(</{0}>)", type_name);
 }
 
 void xml_io_stream<Rational>::read(std::istream& is_xml, Rational& rational, bifstream* pbifs) {

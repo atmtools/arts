@@ -1199,6 +1199,6 @@ blackbody at ``sky_temperature``.  A beam has the Stokes irradiance
 )");
   // VDISORT PYTHON INTERFACE END
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize disort\n{}", e.what()));
 }
 }  // namespace Python

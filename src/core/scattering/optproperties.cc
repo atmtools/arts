@@ -507,7 +507,7 @@ void xml_io_stream<SingleScatteringData>::read(std::istream&         is_xml,
 
   chk_scat_data(ssdata);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(arts::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }
 
 void xml_io_stream<ScatteringMetaData>::write(std::ostream&             os,
@@ -544,5 +544,5 @@ void xml_io_stream<ScatteringMetaData>::read(std::istream& is, ScatteringMetaDat
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading {}:\n{}", type_name.data(), e.what()));
+  throw std::runtime_error(arts::format("Error reading {}:\n{}", type_name.data(), e.what()));
 }

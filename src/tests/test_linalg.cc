@@ -276,10 +276,10 @@ void test_solve_linear_system(Index ntests, Index dim, bool verbose) {
 
     if (verbose) {
       cout << '\n';
-      cout << "A:" << '\n' << std::format("{}", A) << '\n' << '\n';
-      cout << "x0:" << '\n' << std::format("{}", x0) << '\n' << '\n';
-      cout << "x:" << '\n' << std::format("{}", x) << '\n' << '\n';
-      cout << "Permutation Vector:" << '\n' << std::format("{}", indx) << '\n';
+      arts::println("A:\n{}\n", A);
+      arts::println("x0:\n{}\n", x0);
+      arts::println("x:\n{}\n", x);
+      arts::println("Permutation Vector:\n{}", indx);
       cout << '\n';
     }
   }
@@ -330,9 +330,9 @@ void test_inv(Index ntests, Index dim, bool verbose = false) {
 
     if (verbose) {
       cout << '\n';
-      cout << "A:" << '\n' << std::format("{}", A) << '\n' << '\n';
-      cout << "Ainv:" << '\n' << std::format("{}", Ainv) << '\n' << '\n';
-      cout << "A*Ainv:" << '\n' << std::format("{}", I) << '\n' << '\n';
+      arts::println("A:\n{}\n", A);
+      arts::println("Ainv:\n{}\n", Ainv);
+      arts::println("A*Ainv:\n{}\n", I);
     }
   }
 }

@@ -51,9 +51,10 @@ for the message outside of the `if`.
 A message without arguments is used as it is, so braces in it are printed
 as they are written.
 
-Each call with arguments formats its message with `std::format`.  Prefer
-making these calls in source files rather than in header files, as they
-increase compilation times.
+Each call with arguments formats its message with `arts::vformat` (see
+:doc:`dev.classes.formatter`).  Prefer making these calls in source files
+rather than in header files, as a call in a header is compiled again in every
+file that includes it.
 
 ARTS_METHOD_ERROR_CATCH
 -----------------------
@@ -79,15 +80,16 @@ functions that failed, followed by the error:
 Guide to a valid use of the formatting string
 ---------------------------------------------
 
-The formatting string should be a valid format string for the `std::format`
-function.  This means that you need to use `{}` for each of the arguments that
-you want to insert.  You may add extra formatting options to the `{}`, these
-depend on the type you are formatting.
+The formatting string should be a valid format string for the `arts::format`
+function, which takes the same format strings as `std::format`.  This means
+that you need to use `{}` for each of the arguments that you want to insert.
+You may add extra formatting options to the `{}`, these depend on the type you
+are formatting.
 
 The formatting string of `arts::user_error` must use every argument.  A call
 with an argument that the string does not use does not compile.
 
 .. code-block:: c++
 
-    std::format("I have {} apple(s), {} orange(s), and {} argument(s)", 1, 2, 3);
+    arts::format("I have {} apple(s), {} orange(s), and {} argument(s)", 1, 2, 3);
     // Should give the string: "I have 1 apple(s), 2 orange(s), and 3 argument(s)"

@@ -38,7 +38,7 @@ void abs_xfit_dataReadSpeciesSplitCatalog(XsecRecords&             abs_xfit_data
   abs_xfit_data.clear();
   for (auto& species_name : unique_species) {
     XsecRecord xsec_coeffs;
-    String     filename{std::format("{}{}-XFIT.xml", tmpbasename, species_name)};
+    String     filename{arts::format("{}{}-XFIT.xml", tmpbasename, species_name)};
 
     if (not find_xml_file_existence(filename)) {
       if (ignore_missing) continue;

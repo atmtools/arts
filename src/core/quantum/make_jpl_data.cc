@@ -16,14 +16,14 @@ std::vector<JplSpeciesInfo> read(const std::filesystem::path& path) {
 
   stdr::sort(out, {}, &JplSpeciesInfo::id);
   auto it = stdr::adjacent_find(out, {}, &JplSpeciesInfo::id);
-  if (it != out.end()) { throw std::runtime_error(std::format("Duplicate ID found in JPL data: {}", it->id)); }
+  if (it != out.end()) { throw std::runtime_error(arts::format("Duplicate ID found in JPL data: {}", it->id)); }
 
   return out;
 }
 
 void write_header(std::ostream& os, const std::vector<JplSpeciesInfo>& data) {
-  std::println(os,
-               R"(#pragma once
+  arts::println(os,
+                R"(#pragma once
 
 #include <array>
 
@@ -31,26 +31,26 @@ void write_header(std::ostream& os, const std::vector<JplSpeciesInfo>& data) {
 
 namespace Jpl {{
 inline constexpr std::array<JplSpeciesInfo, {}> jpl_data{{)",
-               data.size());
+                data.size());
 
   for (const auto& [id, spec, has_qn, QT0, T0] : data) {
-    std::println(os,
-                 R"(   JplSpeciesInfo{{ .id={0}, .spec="{1}"_isot, .has_qn={2}, .QT0={3}, .T0={4} }}, )",
-                 id,
-                 spec,
-                 has_qn,
-                 QT0,
-                 T0);
+    arts::println(os,
+                  R"(   JplSpeciesInfo{{ .id={0}, .spec="{1}"_isot, .has_qn={2}, .QT0={3}, .T0={4} }}, )",
+                  id,
+                  spec,
+                  has_qn,
+                  QT0,
+                  T0);
   }
 
-  std::println(os, R"(}};
+  arts::println(os, R"(}};
 }}  // namespace Jpl)");
 }
 }  // namespace
 
 int main(int argc, char** argv) try {
   if (argc != 2) {
-    std::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
+    arts::println(stderr, "Usage: {} <arts-cat-data>", argv[0]);
     return EXIT_FAILURE;
   }
 
@@ -63,6 +63,6 @@ int main(int argc, char** argv) try {
 
   return EXIT_SUCCESS;
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in main: {}", e.what());
+  arts::println(stderr, "Error in main: {}", e.what());
   return EXIT_FAILURE;
 }

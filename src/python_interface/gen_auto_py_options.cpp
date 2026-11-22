@@ -13,14 +13,14 @@ namespace {
 void enum_option(std::ostream& os, const EnumeratedOption& wso) try {
   if (wso.values_and_desc.empty()) { throw std::runtime_error("No values for enum class " + wso.name); }
 
-  std::print(os,
-             R"-x-(
+  arts::print(os,
+              R"-x-(
 void enum_{0}(py::module_& m) {{
   py::class_<{0}> _g{0}(m, "{0}");
   _g{0}.doc() = PythonWorkspaceGroupInfo<{0}>::desc();
   xml_interface(_g{0});
-  _g{0}.def("__str__", [](const {0}& x){{return std::format("{{}}", x);}});
-  _g{0}.def("__repr__", [](const {0}& x){{return std::format("\"{{}}\"", x);}});
+  _g{0}.def("__str__", [](const {0}& x){{return arts::format("{{}}", x);}});
+  _g{0}.def("__repr__", [](const {0}& x){{return arts::format("\"{{}}\"", x);}});
   _g{0}.def(py::init<>());
   _g{0}.def(py::init<{0}>());
   _g{0}.def("__init__", []({0} *y, const std::string& x){{
@@ -38,23 +38,23 @@ void enum_{0}(py::module_& m) {{
   _g{0}.def(py::self > py::self, "`self > other`");
   _g{0}.def_static("get_options", [] {{return enumtyps::{0}Types;}}, "Get a list of all options");
   _g{0}.def_static("get_options_as_strings", [] (Size i) {{)-x-",
-             wso.name);
+              wso.name);
 
   for (Size i = 0; i < wso.values_and_desc.front().size() - 1; i++) {
-    std::print(os,
-               R"-x-(
+    arts::print(os,
+                R"-x-(
     if (i == {1}) return enumstrs::{0}Names<{1}>;)-x-",
-               wso.name,
-               i);
+                wso.name,
+                i);
   }
-  std::println(os,
-               R"-x-(
+  arts::println(os,
+                R"-x-(
     throw std::invalid_argument("Valid input [0, {1})");
   }},
   "i"_a=Size{{{0}}},
   "Get a list of all options as strings");)-x-",
-               wso.preferred_print,
-               wso.values_and_desc.front().size() - 1);
+                wso.preferred_print,
+                wso.values_and_desc.front().size() - 1);
 
   constexpr std::array       pykeywords{"None"sv, "any"sv, "all"sv, "print"sv, "lambda"sv};
   constexpr std::string_view ignore_str = "-+={§±!@#$%^&*()-+=]}[{\\|'\";:?/.>,<`~}] ";
@@ -78,18 +78,18 @@ void enum_{0}(py::module_& m) {{
 
       if (stdr::any_of(pykeywords, Cmp::eq(x))) { os << '_'; }
 
-      std::print(os,
-                 R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
+      arts::print(os,
+                  R"-x-(", [](py::object&){{return {}::{};}}, R"-ENUMDOC-({})-ENUMDOC-");
 )-x-",
-                 wso.name,
-                 value.front(),
-                 unwrap_stars(value.back()));
+                  wso.name,
+                  value.front(),
+                  unwrap_stars(value.back()));
     }
   }
 
   os << "}\n";
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in enum_option: {}", e.what());
+  arts::println(stderr, "Error in enum_option: {}", e.what());
   throw;
 }
 
@@ -123,17 +123,17 @@ void enum_options(const std::string& fname) try {
   for (auto& opt : wsos) { cc << "  enum_" << opt.name << "(m);\n"; }
   cc << R"-x-(} catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("DEV ERROR:\nCannot initialize automatic options\n{}", std::string_view(e.what())));
+      arts::format("DEV ERROR:\nCannot initialize automatic options\n{}", std::string_view(e.what())));
 }
 }  // namespace Python
 )-x-";
 } catch (const std::exception& e) {
-  std::println(stderr, "Error in enum_options: {}", e.what());
+  arts::println(stderr, "Error in enum_options: {}", e.what());
   throw;
 }
 }  // namespace
 
 int main() try { enum_options("py_auto_options"); } catch (const std::exception& e) {
-  std::println(stderr, "Error in main: {}", e.what());
+  arts::println(stderr, "Error in main: {}", e.what());
   return 1;
 }

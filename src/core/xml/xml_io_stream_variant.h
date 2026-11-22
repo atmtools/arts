@@ -27,7 +27,7 @@ template <Size I = 0, typename... Ts> std::variant<Ts...> variant_type_init(cons
   if constexpr (I + 1 < sizeof...(Ts)) {
     return variant_type_init<I + 1, Ts...>(x);
   } else {
-    throw std::runtime_error(std::format(R"(Cannot understand the variant type: "{}")", x));
+    throw std::runtime_error(arts::format(R"(Cannot understand the variant type: "{}")", x));
   }
 }
 
@@ -88,6 +88,6 @@ struct xml_io_stream<std::variant<Ts...>> {
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot read {}<{:,}>:\n{}", type_name, std::array{xml_io_stream<Ts>::type_name...}, e.what()));
+        arts::format("Cannot read {}<{:,}>:\n{}", type_name, std::array{xml_io_stream<Ts>::type_name...}, e.what()));
   }
 };

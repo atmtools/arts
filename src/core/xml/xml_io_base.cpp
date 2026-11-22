@@ -41,13 +41,13 @@ static inline std::string quotation_mark_original{"\""};
   \param expected_name Expected tag name
 */
 void XMLTag::check_name(const std::string_view& expected_name) {
-  if (name != expected_name) xml_parse_error(std::format("Tag <{}> expected but <{}> found.", expected_name, name));
+  if (name != expected_name) xml_parse_error(arts::format("Tag <{}> expected but <{}> found.", expected_name, name));
 }
 void XMLTag::check_end_name(const std::string_view& expected_name) {
-  if (name.empty()) { xml_parse_error(std::format("Tag </{}> expected but nothing found.", expected_name, name)); }
+  if (name.empty()) { xml_parse_error(arts::format("Tag </{}> expected but nothing found.", expected_name, name)); }
 
   if (name.front() != '/' or std::string_view{name.begin() + 1, name.end()} != expected_name)
-    xml_parse_error(std::format("Tag </{}> expected but <{}> found.", expected_name, name));
+    xml_parse_error(arts::format("Tag </{}> expected but <{}> found.", expected_name, name));
 }
 
 /*! Adds a String attribute to tag
@@ -78,15 +78,15 @@ void XMLTag::add_attribute(const std::string_view& aname, const std::string_view
   \param value Attribute value
 */
 void XMLTag::add_attribute(const std::string_view& aname, const Index& value) {
-  add_attribute(aname, std::format("{}", value));
+  add_attribute(aname, arts::format("{}", value));
 }
 
 void XMLTag::add_attribute(const std::string_view& aname, const Size& value) {
-  add_attribute(aname, std::format("{}", value));
+  add_attribute(aname, arts::format("{}", value));
 }
 
 void XMLTag::add_attribute(const std::string_view& aname, const Numeric& value) {
-  add_attribute(aname, std::format("{}", value));
+  add_attribute(aname, arts::format("{}", value));
 }
 
 //! Checks whether attribute has the expected value
@@ -104,9 +104,9 @@ void XMLTag::check_attribute(const std::string_view& aname, const std::string_vi
   get_attribute_value(aname, actual_value);
 
   if (actual_value == "*not found*") {
-    xml_parse_error(std::format("Required attribute {} does not exist", aname));
+    xml_parse_error(arts::format("Required attribute {} does not exist", aname));
   } else if (actual_value != value) {
-    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
+    xml_parse_error(arts::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
@@ -116,7 +116,7 @@ void XMLTag::check_attribute(const std::string_view& aname, const Size& value) {
   get_attribute_value(aname, actual_value);
 
   if (actual_value != value) {
-    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
+    xml_parse_error(arts::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
@@ -126,7 +126,7 @@ void XMLTag::check_attribute(const std::string_view& aname, const Index& value) 
   get_attribute_value(aname, actual_value);
 
   if (actual_value != value) {
-    xml_parse_error(std::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
+    xml_parse_error(arts::format(R"(Attribute {} has value "{}" but "{}" was expected.)", aname, actual_value, value));
   }
 }
 
@@ -154,7 +154,7 @@ void XMLTag::get_attribute_value(const std::string_view& aname, String& value, s
 } catch (const std::out_of_range&) {
   // If the attribute does not exist, set value to *not found*
   if (def.empty())
-    value = std::format("*{} not found*", aname);
+    value = arts::format("*{} not found*", aname);
   else
     value = String{def};
   // and do not throw an exception
@@ -176,7 +176,7 @@ void XMLTag::get_attribute_value(const std::string_view& aname, Index& value) {
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> value;
-  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
+  if (strstr.fail()) { xml_parse_error(arts::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
 void XMLTag::get_attribute_value(const std::string_view& aname, Size& value) {
@@ -186,7 +186,7 @@ void XMLTag::get_attribute_value(const std::string_view& aname, Size& value) {
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> value;
-  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
+  if (strstr.fail()) { xml_parse_error(arts::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
 void XMLTag::get_attribute_value(const std::string_view& aname, Numeric& value) {
@@ -196,7 +196,7 @@ void XMLTag::get_attribute_value(const std::string_view& aname, Numeric& value) 
   get_attribute_value(aname, attribute_value);
   strstr.str(attribute_value);
   strstr >> double_imanip() >> value;
-  if (strstr.fail()) { xml_parse_error(std::format("Cannot parse value of {0} from <{1}>", aname, name)); }
+  if (strstr.fail()) { xml_parse_error(arts::format("Cannot parse value of {0} from <{1}>", aname, name)); }
 }
 
 //! Reads next XML tag
@@ -225,7 +225,7 @@ void XMLTag::read_from_stream(std::istream& is) {
 
     if (ch != '\0') token = ch + token;
 
-    xml_parse_error(std::format("'<' expected but '{}' found.", token));
+    xml_parse_error(arts::format("'<' expected but '{}' found.", token));
   }
 
   is.get(tag, '>');
@@ -308,17 +308,17 @@ void XMLTag::read_from_stream(std::istream& is) {
   \param os Output stream
 */
 void XMLTag::write_to_stream(std::ostream& os) {
-  std::print(os, "<{}", name);
+  arts::print(os, "<{}", name);
 
   for (auto& [an, av] : attribs) {
     if (av.empty() or an.empty()) continue;
-    std::print(os, R"( {}="{}")", an, av);
+    arts::print(os, R"( {}="{}")", an, av);
   }
 
-  std::println(os, ">");
+  arts::println(os, ">");
 }
 
-void XMLTag::write_to_end_stream(std::ostream& os) { std::println(os, "</{}>", name); }
+void XMLTag::write_to_end_stream(std::ostream& os) { arts::println(os, "</{}>", name); }
 
 ////////////////////////////////////////////////////////////////////////////
 //   Functions to open and read XML files
@@ -555,7 +555,7 @@ void xml_read_header_from_stream(std::istream& is, FileType& ftype, NumericType&
   tag.get_attribute_value("version", version);
   if (version > ARTS_XML_VERSION) {
     throw std::runtime_error(
-        std::format(R"(Bad version in "arts"-tag.  Compiled version number: {}, got {})", ARTS_XML_VERSION, version));
+        arts::format(R"(Bad version in "arts"-tag.  Compiled version number: {}, got {})", ARTS_XML_VERSION, version));
   }
 
   // Check file format
@@ -612,7 +612,7 @@ void xml_read_footer_from_stream(std::istream& is) {
 void xml_write_header_to_stream(std::ostream& os, FileType ftype) {
   XMLTag tag;
 
-  std::println(os, "<?xml version=\"1.0\"?>");
+  arts::println(os, "<?xml version=\"1.0\"?>");
 
   tag.name = "arts";
   switch (ftype) {

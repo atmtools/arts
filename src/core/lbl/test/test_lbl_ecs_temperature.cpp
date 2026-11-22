@@ -33,13 +33,13 @@ void compare(
     require(std::isfinite(actual[i].real()) and std::isfinite(actual[i].imag()) and
                 std::isfinite(expected[i].real()) and std::isfinite(expected[i].imag()) and
                 std::abs(actual[i] - expected[i]) <= tolerance,
-            std::format("{}[{}]: analytic={}, reference={}, error={}, tolerance={}",
-                        context,
-                        i,
-                        actual[i],
-                        expected[i],
-                        std::abs(actual[i] - expected[i]),
-                        tolerance));
+            arts::format("{}[{}]: analytic={}, reference={}, error={}, tolerance={}",
+                         context,
+                         i,
+                         actual[i],
+                         expected[i],
+                         std::abs(actual[i] - expected[i]),
+                         tolerance));
   }
 }
 
@@ -238,7 +238,7 @@ Request requested_derivatives(const Fixture& fixture, const AtmPoint& atm) {
               [](Fixture& data, AtmPoint&, Numeric delta) { data.band.lines[1].e0 += delta; });
   for (const auto species : {SpeciesEnum::Nitrogen, SpeciesEnum::Oxygen, SpeciesEnum::CarbonDioxide}) {
     atmosphere_target(species,
-                      std::format("VMR {}", species),
+                      arts::format("VMR {}", species),
                       species == SpeciesEnum::CarbonDioxide ? 1e-5 : (atm.pressure < 1e3 ? 7.5e-4 : 1e-4),
                       [species](Fixture&, AtmPoint& state, Numeric delta) { state[species] += delta; });
   }
@@ -282,7 +282,7 @@ Request requested_derivatives(const Fixture& fixture, const AtmPoint& atm) {
           step = coefficient == LineShapeModelCoefficient::X0 ? shift_step
                                                               : shift_step / (1 + std::abs(atm.temperature - 296));
         }
-        request.parameters.push_back({std::format("{} {} {}", species, variable, coefficient),
+        request.parameters.push_back({arts::format("{} {} {}", species, variable, coefficient),
                                       step,
                                       [species, variable, coefficient](Fixture& data, AtmPoint&, Numeric delta) {
                                         data.band.lines[1].ls.single_models.at(species).data.at(variable).X(
@@ -403,7 +403,7 @@ void derivative_case(const Fixture& fixture, Numeric temperature, Numeric pressu
   const auto base       = evaluate(fixture, atm, grid, &request.targets);
   const auto plain      = evaluate(fixture, atm, grid, nullptr, &base.sort);
   const auto absorption = calculate(fixture, atm, grid, &request.targets);
-  const auto context    = std::format("{} T={} P={}", fixture.name, temperature, pressure);
+  const auto context    = arts::format("{} T={} P={}", fixture.name, temperature, pressure);
   const Size n = base.pop.size(), count = request.parameters.size();
   require(base.dW.npages() == static_cast<Index>(count) and base.dW.nrows() == static_cast<Index>(n) and
               base.dW.ncols() == static_cast<Index>(n),
@@ -435,7 +435,7 @@ void derivative_case(const Fixture& fixture, Numeric temperature, Numeric pressu
       parameter.perturb(low_fixture, low_atm, -step);
       const auto high  = evaluate(high_fixture, high_atm, grid, nullptr, &base.sort);
       const auto low   = evaluate(low_fixture, low_atm, grid, nullptr, &base.sort);
-      const auto label = context + std::format(" {} h={}", parameter.name, step);
+      const auto label = context + arts::format(" {} h={}", parameter.name, step);
       Samples    pop, pop_fd, dip, dip_fd;
       for (Size i = 0; i < n; ++i) {
         pop.push_back(base.dpop[target, i]);

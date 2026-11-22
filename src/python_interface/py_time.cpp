@@ -119,6 +119,6 @@ void py_time(py::module_& m) try {
   generic_interface(a2);
   vector_interface(a2);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize time\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize time\n{}", e.what()));
 }
 }  // namespace Python

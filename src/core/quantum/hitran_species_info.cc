@@ -10,7 +10,7 @@ void xml_io_stream<HitranSpeciesInfo>::write(std::ostream&            os,
                                              std::string_view name) try {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os);
-  std::println(os, "{}", x);
+  arts::println(os, "{}", x);
   tag.write_to_end_stream(os);
 }
 ARTS_METHOD_ERROR_CATCH

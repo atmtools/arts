@@ -89,7 +89,7 @@ void test_meridional_basis() {
       const Vector3 vxh    = cross(v, h);
       const Numeric errors = std::max(
           {std::abs(dot(v, v) - 1), std::abs(dot(h, h) - 1), std::abs(dot(v, h)), hypot(vxh - k), std::abs(h[2])});
-      require(errors < tol and dot(v, z) >= 0, std::format("meridional basis at mu {} phi {}: {}", mu, phi, errors));
+      require(errors < tol and dot(v, z) >= 0, arts::format("meridional basis at mu {} phi {}: {}", mu, phi, errors));
     }
   }
   const Vector3 h_pole{std::sin(0.4), -std::cos(0.4), 0};
@@ -97,7 +97,7 @@ void test_meridional_basis() {
     const auto [v, h] = rtepack::meridional_basis(Vector3{0, 0, mu}, h_pole);
     const auto limit  = rtepack::meridional_basis(direction(mu * (1 - 1e-14), 0.4), x);
     require(hypot(h - h_pole) < tol and hypot(h - limit.second) < 1e-6 and hypot(v - limit.first) < 1e-6,
-            std::format("the pole at mu {} must be the limit along the meridian of h_pole", mu));
+            arts::format("the pole at mu {} must be the limit along the meridian of h_pole", mu));
   }
 }
 
@@ -117,12 +117,12 @@ void test_meridional_basis_near_pole() {
       for (const Numeric polar : {theta, Constant::pi - theta}) {
         const auto [v, h] = rtepack::meridional_basis(ray(polar, phi), x);
         require(hypot(h - meridian) <= 4 * eps,
-                std::format("a ray {} rad off the pole at azimuth {} has h {}, not its meridian's", theta, phi, h));
+                arts::format("a ray {} rad off the pole at azimuth {} has h {}, not its meridian's", theta, phi, h));
       }
     }
     for (const Numeric polar : {0.0, 1e-16, 1e-300, Constant::pi}) {
       const auto [v, h] = rtepack::meridional_basis(ray(polar, phi), x);
-      require(h == x, std::format("a ray at {} rad, along +-z in double precision, has h {}, not h_pole", polar, h));
+      require(h == x, arts::format("a ray at {} rad, along +-z in double precision, has h {}, not h_pole", polar, h));
     }
   }
 }
@@ -149,11 +149,11 @@ void test_scattering_plane_near_forward() {
       const Numeric error            = std::max(
           {std::abs(got[0] - c_in), std::abs(got[1] - s_in), std::abs(got[2] - c_out), std::abs(got[3] - s_out)});
       require(error <= 16 * eps / std::sin(Theta),
-              std::format("{} {} rad from {}: the scattering plane is off by {}",
-                          side > 0 ? "forward" : "backward",
-                          Theta,
-                          side > 0 ? "forward" : "backward",
-                          error));
+              arts::format("{} {} rad from {}: the scattering plane is off by {}",
+                           side > 0 ? "forward" : "backward",
+                           Theta,
+                           side > 0 ? "forward" : "backward",
+                           error));
     }
   }
 }
@@ -168,7 +168,7 @@ void test_basis_rotation() {
       const polarization_basis to{std::cos(psi) * v + std::sin(psi) * h, std::cos(psi) * h - std::sin(psi) * v};
       const auto               M = rtepack::basis_rotation(from, to);
       const Numeric            d = deviation(M, from, to, [](Field E) { return E; });
-      require(d < tol, std::format("basis rotation by {} at mu {}: {}", psi, mu, d));
+      require(d < tol, arts::format("basis rotation by {} at mu {}: {}", psi, mu, d));
     }
   }
 
@@ -193,7 +193,7 @@ void test_jones() {
     };
     const rtepack::muelmat M = rtepack::to_muelmat(J);
     const Numeric          d = deviation(M, in, out, map);
-    require(d < tol, std::format("Jones matrix {}: {}", trial, d));
+    require(d < tol, arts::format("Jones matrix {}: {}", trial, d));
 
     // Back to J up to a global phase r: J_back = r J with |r| = 1
     const rtepack::jones J_back{M};
@@ -208,14 +208,14 @@ void test_jones() {
     Numeric       worst = std::abs(std::abs(r) - 1.0);
     for (Index i = 0; i < 2; i++)
       for (Index j = 0; j < 2; j++) worst = std::max(worst, std::abs(J_back[i, j] - r * J[i, j]) / std::sqrt(norm));
-    require(worst < 1e-12, std::format("Jones matrix {} from its Mueller matrix: {}", trial, worst));
+    require(worst < 1e-12, arts::format("Jones matrix {} from its Mueller matrix: {}", trial, worst));
 
     // The product of Jones matrices is the product of their Mueller matrices
     const rtepack::jones   K{random_complex(), random_complex(), random_complex(), random_complex()};
     const rtepack::muelmat MK      = rtepack::to_muelmat(J * K) - rtepack::to_muelmat(J) * rtepack::to_muelmat(K);
     Numeric                product = 0.0;
     for (const Numeric e : MK.data) product = std::max(product, std::abs(e));
-    require(product < tol * 10, std::format("Jones product {}: {}", trial, product));
+    require(product < tol * 10, arts::format("Jones product {}: {}", trial, product));
 
     // The inverse undoes J, the determinant multiplies, and the sum and difference are those of the maps, each to
     // the rounding of its terms
@@ -232,13 +232,13 @@ void test_jones() {
         identity   = std::max(identity, std::abs(I[i, j] - (i == j ? 1.0 : 0.0)));
         difference = std::max(difference, std::abs(D[i, j] - J[i, j]));
       }
-    require(identity <= 8 * eps * modulus(J) * modulus(Ji), std::format("Jones inverse {}: {}", trial, identity));
+    require(identity <= 8 * eps * modulus(J) * modulus(Ji), arts::format("Jones inverse {}: {}", trial, identity));
     require(std::abs(rtepack::det(J * K) - rtepack::det(J) * rtepack::det(K)) <=
                 8 * eps * modulus(J) * modulus(J) * modulus(K) * modulus(K),
-            std::format("Jones determinant {}", trial));
-    require(difference <= 4 * eps * (modulus(J) + modulus(K)), std::format("Jones sum {}: {}", trial, difference));
-    require(modulus(N) == 0.0 and modulus(Z) == 0.0, std::format("Jones difference {}", trial));
-    require(rtepack::trace(J) == J[0, 0] + J[1, 1], std::format("Jones trace {}", trial));
+            arts::format("Jones determinant {}", trial));
+    require(difference <= 4 * eps * (modulus(J) + modulus(K)), arts::format("Jones sum {}: {}", trial, difference));
+    require(modulus(N) == 0.0 and modulus(Z) == 0.0, arts::format("Jones difference {}", trial));
+    require(rtepack::trace(J) == J[0, 0] + J[1, 1], arts::format("Jones trace {}", trial));
   }
 
   // The basis rotation and the diagonal Jones matrices
@@ -303,7 +303,7 @@ void test_lab_frame_phase_matrix() {
         const Numeric            rayleigh  = check(in, out, cos_theta, 1.0);
         const Numeric            mie       = check(in, out, Complex{0.3, -0.8}, Complex{-0.5, 0.6});
         require(rayleigh < tol and mie < tol,
-                std::format("phase matrix mu_in {} mu_out {} phi {}: {} {}", mu_in, mu_out, phi, rayleigh, mie));
+                arts::format("phase matrix mu_in {} mu_out {} phi {}: {} {}", mu_in, mu_out, phi, rayleigh, mie));
       }
     }
   }
@@ -323,7 +323,7 @@ void test_lab_frame_phase_matrix() {
         rtepack::meridional_basis(-1.0 * cross(in.first, in.second), Vector3{-h_pole[0], -h_pole[1], 0});
     const Numeric f = check(in, forward, Complex{0.7, 0.2}, Complex{0.7, 0.2});
     const Numeric r = check(in, backward, Complex{-0.4, 0.1}, Complex{0.4, -0.1});
-    require(f < tol and r < tol, std::format("forward and backward at mu {}: {} {}", mu, f, r));
+    require(f < tol and r < tol, arts::format("forward and backward at mu {}: {} {}", mu, f, r));
   }
 }
 
@@ -361,13 +361,13 @@ void test_facet_reflection() {
             deviation(rtepack::fresnel_reflectance_nonspecular(Rv, Rh, k_in, k_out, n), in, out, dielectric);
         const Numeric c =
             deviation(rtepack::fresnel_reflectance_nonspecular(1.0, -1.0, k_in, k_out, n), in, out, mirror);
-        require(d < tol and c < tol, std::format("facet mu_in {} mu_out {} phi {}: {} {}", mu_in, mu_out, phi, d, c));
+        require(d < tol and c < tol, arts::format("facet mu_in {} mu_out {} phi {}: {} {}", mu_in, mu_out, phi, d, c));
 
         // Not blind to V: the mirror with V negated once more, as ARTS's surface RT once did, fails
         const rtepack::muelmat flip{1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1};
         const Numeric          f =
             deviation(flip * rtepack::fresnel_reflectance_nonspecular(1.0, -1.0, k_in, k_out, n), in, out, mirror);
-        require(f > 1e-2, std::format("facet mu_in {} mu_out {} phi {}: a negated V must fail", mu_in, mu_out, phi));
+        require(f > 1e-2, arts::format("facet mu_in {} mu_out {} phi {}: a negated V must fail", mu_in, mu_out, phi));
       }
     }
   }
@@ -377,7 +377,7 @@ void test_facet_reflection() {
   const auto             R = rtepack::fresnel_reflectance(1.0, -1.0);
   const auto             r = rtepack::reflection(I, R, rtepack::stokvec{0.0, 0.0, 0.0, 0.0});
   require(r[0] == 1.0 and r[1] == 0.1 and r[2] == -0.2 and r[3] == -0.3,
-          std::format("A mirror at normal incidence reverses U and V, got {}", r));
+          arts::format("A mirror at normal incidence reverses U and V, got {}", r));
 }
 }  // namespace
 

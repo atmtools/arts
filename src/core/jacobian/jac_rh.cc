@@ -43,7 +43,7 @@ lon.size(): {}
 
   return out;
 } catch (std::invalid_argument& e) {
-  throw std::runtime_error(std::format("Error in rhfwd for key {}:\n{}", self_key, e.what()));
+  throw std::runtime_error(arts::format("Error in rhfwd for key {}:\n{}", self_key, e.what()));
 }
 
 Vector rhinv::operator()(ConstVectorView x, const AtmField& atm) const try {
@@ -82,7 +82,7 @@ lon.size(): {}
 
   return out;
 } catch (std::invalid_argument& e) {
-  throw std::runtime_error(std::format("Error in rhinv for key {}:\n{}", self_key, e.what()));
+  throw std::runtime_error(arts::format("Error in rhinv for key {}:\n{}", self_key, e.what()));
 }
 
 Matrix rhinv::operator()(ConstMatrixView dy, ConstVectorView x, const AtmField& atm) const try {
@@ -127,7 +127,7 @@ dy.shape(): {:B,}
 
   return out;
 } catch (std::invalid_argument& e) {
-  throw std::runtime_error(std::format("Error in rhinv for key {}:\n{}", self_key, e.what()));
+  throw std::runtime_error(arts::format("Error in rhinv for key {}:\n{}", self_key, e.what()));
 }
 
 void make_rhfit(Jacobian::AtmTarget& x, const AtmField&, const NumericUnaryOperator& unary_op, const bool self_fix) {

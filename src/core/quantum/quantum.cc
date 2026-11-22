@@ -216,7 +216,8 @@ Identifier::Identifier(std::string_view s_) try {
   isot  = SpeciesIsotope::from_name(next(s));
   state = state_from(s);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Cannot construct QuantumIdentifier from \"{}\", got error:\n{}", s_, e.what()));
+  throw std::runtime_error(
+      arts::format("Cannot construct QuantumIdentifier from \"{}\", got error:\n{}", s_, e.what()));
 }
 
 Level level_from(std::string_view s) {
@@ -242,7 +243,7 @@ LevelIdentifier::LevelIdentifier(const std::string_view s_) try {
   state              = level_from(s);
 } catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("Cannot construct QuantumLevelIdentifier from \"{}\", got error:\n{}", s_, e.what()));
+      arts::format("Cannot construct QuantumLevelIdentifier from \"{}\", got error:\n{}", s_, e.what()));
 }
 
 Identifier::Identifier(const SpeciesIsotope s) : isot(s), state{} {}
@@ -671,7 +672,7 @@ void xml_io_stream<QuantumLevel>::write(std::ostream&       os_xml,
                                         std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os_xml);
-  std::println(os_xml, "{:IO}", qns);
+  arts::println(os_xml, "{:IO}", qns);
   tag.write_to_end_stream(os_xml);
 }
 
@@ -700,7 +701,7 @@ void xml_io_stream<QuantumState>::write(std::ostream&       os_xml,
                                         std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os_xml);
-  std::println(os_xml, "{:IO}", qns);
+  arts::println(os_xml, "{:IO}", qns);
   tag.write_to_end_stream(os_xml);
 }
 
@@ -722,7 +723,7 @@ void xml_io_stream<QuantumIdentifier>::write(std::ostream&            os_xml,
                                              std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os_xml);
-  std::println(os_xml, "{:IO}", qns);
+  arts::println(os_xml, "{:IO}", qns);
   tag.write_to_end_stream(os_xml);
 }
 
@@ -746,7 +747,7 @@ void xml_io_stream<QuantumLevelIdentifier>::write(std::ostream&                 
                                                   std::string_view name) {
   XMLTag tag(type_name, "name", name);
   tag.write_to_stream(os_xml);
-  std::println(os_xml, "{:IO}", qns);
+  arts::println(os_xml, "{:IO}", qns);
   tag.write_to_end_stream(os_xml);
 }
 

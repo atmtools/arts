@@ -168,28 +168,28 @@ void require(bool condition, const std::string& message) {
 void test_reference_levels() {
   for (const level& x : reference) {
     const QuantumIdentifier qid{
-        std::format("{} ElecStateLabel X X Omega {} {} kronigParity {} {} v 0 0 F {} {} J {} {}",
-                    x.isot,
-                    x.Omega,
-                    x.Omega,
-                    x.ef,
-                    x.ef,
-                    x.F,
-                    x.F,
-                    x.J,
-                    x.J)};
+        arts::format("{} ElecStateLabel X X Omega {} {} kronigParity {} {} v 0 0 F {} {} J {} {}",
+                     x.isot,
+                     x.Omega,
+                     x.Omega,
+                     x.ef,
+                     x.ef,
+                     x.F,
+                     x.F,
+                     x.J,
+                     x.J)};
     const auto d = lbl::zeeman::GetAdvancedModel(qid);
-    require(d.has_value(), std::format("{} F={} J={} |Omega|={} {}: not computed", x.isot, x.F, x.J, x.Omega, x.ef));
+    require(d.has_value(), arts::format("{} F={} J={} |Omega|={} {}: not computed", x.isot, x.F, x.J, x.Omega, x.ef));
     require(std::abs(d->gu - x.g) <= 1e-12 and std::abs(d->gl - x.g) <= 1e-12,
-            std::format("{} F={} J={} |Omega|={} {}: g = {} and {}, reference {}",
-                        x.isot,
-                        x.F,
-                        x.J,
-                        x.Omega,
-                        x.ef,
-                        d->gu,
-                        d->gl,
-                        x.g));
+            arts::format("{} F={} J={} |Omega|={} {}: g = {} and {}, reference {}",
+                         x.isot,
+                         x.F,
+                         x.J,
+                         x.Omega,
+                         x.ef,
+                         d->gu,
+                         d->gl,
+                         x.g));
   }
 }
 

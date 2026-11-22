@@ -85,7 +85,7 @@ void py_global(py::module_& m) try {
           },
           "The licence and notice files of the component by file name, as compiled in\n\n.. :class:`dict[str, str]`")
       .def("__repr__",
-           [](const arts::bundled_component& c) { return std::format("BundledComponent({}: {})", c.name, c.spdx); })
+           [](const arts::bundled_component& c) { return arts::format("BundledComponent({}: {})", c.name, c.spdx); })
       .doc() = "Code from another project that this build of ARTS compiles in";
 
   global.def(
@@ -314,13 +314,13 @@ The default is :class:`True` for debug builds and :class:`False` otherwise.
 .. :class:`bool`)")
       .def("__repr__",
            [](const global_data&) {
-             return std::format(R"(Global state of ARTS:
+             return arts::format(R"(Global state of ARTS:
 
 is_lgpl: {}
 has_sht: {}
 )",
-                                global_data::is_lgpl,
-                                global_data::has_sht);
+                                 global_data::is_lgpl,
+                                 global_data::has_sht);
            })
       .doc() = "A set of global data that we might need from ARTS inside pyarts";
 
@@ -352,6 +352,6 @@ report : dict
     The timing report described above.
 )");
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize global\n{}", e.what()));
 }
 }  // namespace Python

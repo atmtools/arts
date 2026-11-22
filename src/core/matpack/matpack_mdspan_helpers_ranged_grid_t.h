@@ -42,12 +42,12 @@ template <Index ll_, Index ul_, lim il_ = lim::incl, lim iu_ = lim::incl> class 
     if (grid.empty()) return;
 
     if (not is_valid(grid.front()) or not is_valid(grid.back())) {
-      throw std::runtime_error(std::format("Wrong range. Expected range {}{}, {}{}, got:\n{:B,}",
-                                           include_lower ? '[' : '(',
-                                           lower_limit,
-                                           upper_limit,
-                                           include_upper ? ']' : ')',
-                                           grid));
+      throw std::runtime_error(arts::format("Wrong range. Expected range {}{}, {}{}, got:\n{:B,}",
+                                            include_lower ? '[' : '(',
+                                            lower_limit,
+                                            upper_limit,
+                                            include_upper ? ']' : ')',
+                                            grid));
     }
   }
 

@@ -19,7 +19,7 @@ void require(bool condition, std::string_view message) {
 void near(
     Numeric actual, Numeric expected, std::string_view message, Numeric relative = 2e-13, Numeric absolute = 2e-14) {
   if (not std::isfinite(actual) or std::abs(actual - expected) > absolute + relative * std::abs(expected))
-    throw std::runtime_error(std::format("{}: got {}, expected {}", message, actual, expected));
+    throw std::runtime_error(arts::format("{}: got {}, expected {}", message, actual, expected));
 }
 
 nh3::rotational_line line(Index Ju, Index Jl, Index K, nh3::inversion lower = symmetric) {

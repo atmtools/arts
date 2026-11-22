@@ -169,20 +169,20 @@ void test40() {
   std::cout << "Diagonal A:\n" << A << "\n";
 
   Vector b = matpack::uniform_grid(1, 3, 1), c(3);
-  std::cout << "b:\n" << std::format("{}", b) << "\n";
+  arts::println("b:\n{}", b);
 
   mult(c, A, b);
-  std::cout << "c = A*b (should be [11,44,99]):\n" << std::format("{}", c) << "\n";
+  arts::println("c = A*b (should be [11,44,99]):\n{}", c);
 
   Matrix D(3, 2);
   D[joker, 0]  = b;
   D[joker, 1]  = b;
   D[joker, 1] *= 2;
-  std::cout << "D:\n" << std::format("{}", D) << "\n";
+  arts::println("D:\n{}", D);
 
   Matrix E(3, 2);
   mult(E, A, D);
-  std::cout << "E = A*D (should be [11,22],[44,88],[99,198]):\n" << std::format("{}", E) << "\n";
+  arts::println("E = A*D (should be [11,22],[44,88],[99,198]):\n{}", E);
 }
 
 void test41() {
@@ -261,7 +261,7 @@ void test44() {
   for (Index i = 0; i < 9; i++) B.rw(r[i], c[i]) = (Numeric)(i + 1);
 
   std::cout << "B[" << B.nrows() << "," << B.ncols() << "]:\n" << B << "\n";
-  std::cout << "v:\n" << std::format("{}", v) << "\n";
+  arts::println("v:\n{}", v);
 
   B.insert_row(3, v);
 

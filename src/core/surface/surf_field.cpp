@@ -307,7 +307,7 @@ Vector2 Field::normal(Numeric lat, Numeric lon, Numeric alt) const try {
   return from_xyz_dxyz(xyz, dxyz);
 } catch (std::exception &e) {
   throw std::runtime_error(
-      std::format("Cannot find a normal to the surface at position {} {}\n{}", lat, lon, indent(e.what())));
+      arts::format("Cannot find a normal to the surface at position {} {}\n{}", lat, lon, indent(e.what())));
 }
 
 Numeric Data::at(const Numeric lat, const Numeric lon) const { return interpolation_function(lat, lon)(*this); }

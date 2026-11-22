@@ -20,7 +20,7 @@ int main(int /* argc */, char* /* argv */[]) {
 
   xml_read_from_file("outfile.xml", w);
 
-  std::cout << std::format("{}", w) << '\n';
+  arts::println("{}", w);
 
   return (EXIT_SUCCESS);
 }

@@ -49,7 +49,7 @@ void py_zeeman(py::module_& m) try {
           "deta_dw", &lbl::zeeman::magnetic_angles::deta_dw, "Derivative of eta with respect to w\n\n.. :class:`float`")
       .def("__repr__",
            [](const lbl::zeeman::magnetic_angles& x) {
-             return std::format(
+             return arts::format(
                  "MagneticAngles(B = ({}, {}, {}), LOS = ({}, {})):\n"
                  "  theta: {} deg\n"
                  "  eta:   {} deg",
@@ -116,6 +116,6 @@ void py_zeeman(py::module_& m) try {
           py::arg("magnetic"),
           py::arg("line_of_sight"));
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize Zeeman\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize Zeeman\n{}", e.what()));
 }
 }  // namespace Python

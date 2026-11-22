@@ -219,11 +219,11 @@ void low_memory(const Workspace                         &ws,
         } catch (const std::exception &e) {
 #pragma omp critical
           if (error.empty())
-            error = std::format(R"(Sensor "{}", geometry {}:
+            error = arts::format(R"(Sensor "{}", geometry {}:
 {})",
-                                sensor.name(),
-                                ip,
-                                e.what());
+                                 sensor.name(),
+                                 ip,
+                                 e.what());
         }
       }
 
@@ -287,11 +287,11 @@ void high_performance(const Workspace                         &ws,
         } catch (const std::exception &e) {
 #pragma omp critical
           if (error.empty())
-            error = std::format(R"(Sensor "{}", geometry {}:
+            error = arts::format(R"(Sensor "{}", geometry {}:
 {})",
-                                sensor.name(),
-                                ip,
-                                e.what());
+                                 sensor.name(),
+                                 ip,
+                                 e.what());
         }
       }
     }
@@ -423,11 +423,11 @@ void indexed(const Workspace                         &ws,
         } catch (const std::exception &e) {
 #pragma omp critical
           if (error.empty())
-            error = std::format(R"(Sensor "{}", geometry {}:
+            error = arts::format(R"(Sensor "{}", geometry {}:
 {})",
-                                sensor.name(),
-                                ip,
-                                e.what());
+                                 sensor.name(),
+                                 ip,
+                                 e.what());
         }
       }
 

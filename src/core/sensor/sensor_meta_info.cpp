@@ -31,7 +31,7 @@ constexpr std::array<std::string_view, std::variant_size_v<SensorMetaInfo>> type
 template <Size I = 0>
 void read_alternative(std::string_view type_tag, std::istream& is, SensorMetaInfo& x, bifstream* pbifs) {
   if constexpr (I == std::variant_size_v<SensorMetaInfo>) {
-    throw std::runtime_error(std::format("Unknown SensorMetaInfo type: \"{}\"", type_tag));
+    throw std::runtime_error(arts::format("Unknown SensorMetaInfo type: \"{}\"", type_tag));
   } else if (type_tag == type_tags[I]) {
     std::variant_alternative_t<I, SensorMetaInfo> gf;
     xml_read_from_stream(is, gf, pbifs);
@@ -67,5 +67,5 @@ void xml_io_stream<SensorMetaInfo>::read(std::istream& is, SensorMetaInfo& x, bi
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading SensorMetaInfo:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error reading SensorMetaInfo:\n{}", e.what()));
 }

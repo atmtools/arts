@@ -40,7 +40,7 @@ void test_fixed() {
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
 
-  test_timer_t test_fixed_time{std::format("test_fixed N={} {}-{}", N, name1, name2)};
+  test_timer_t test_fixed_time{arts::format("test_fixed N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -65,7 +65,7 @@ void test_fixed() {
   std::vector<lag_t<N, Transformer2>> lags22(coords2.size());
 
   {
-    test_timer_t timer(std::format("make_lags fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("make_lags fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       lags11[i] = lag_t<N, Transformer1>(grid1, coords1[i], ascending_grid_t{});
@@ -74,7 +74,7 @@ void test_fixed() {
   }
 
   {
-    test_timer_t timer(std::format("make_lags fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("make_lags fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     lags12 = make_lags<N, Transformer1>(grid1, coords1, 0.0, "grid1");
     lags22 = make_lags<N, Transformer2>(grid2, coords2, 0.0, "grid2");
@@ -84,7 +84,7 @@ void test_fixed() {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) { res += interp(data, lags11[i], lags21[j]); }
@@ -95,7 +95,7 @@ void test_fixed() {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) { res += interp(data, lags12[i], lags22[j]); }
@@ -106,7 +106,7 @@ void test_fixed() {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, lags11, lags21));
   }
@@ -115,7 +115,7 @@ void test_fixed() {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, lags12, lags22));
   }
@@ -124,7 +124,7 @@ void test_fixed() {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, lags11, lags21));
   }
@@ -133,7 +133,7 @@ void test_fixed() {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, lags12, lags22));
   }
@@ -142,7 +142,7 @@ void test_fixed() {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) {
@@ -155,7 +155,7 @@ void test_fixed() {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) {
@@ -168,7 +168,7 @@ void test_fixed() {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, reinterpweights(lags11, lags21), lags11, lags21));
   }
@@ -177,7 +177,7 @@ void test_fixed() {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, reinterpweights(lags12, lags22), lags12, lags22));
   }
@@ -186,7 +186,7 @@ void test_fixed() {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp-itw fixed 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, flat_interpweights(lags11, lags21), lags11, lags21));
   }
@@ -195,23 +195,23 @@ void test_fixed() {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp-itw fixed all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, flat_interpweights(lags12, lags22), lags12, lags22));
   }
 
   if (not all_close(results_interp) or not all_close(results_reinterp) or not all_close(results_flat_interp)) {
-    throw std::runtime_error(std::format(R"(Results are not close for {}-{} with N={}
+    throw std::runtime_error(arts::format(R"(Results are not close for {}-{} with N={}
 
 interp:      {:B,}
 reinterp:    {:B,},
 flat_interp: {:B,})",
-                                         name1,
-                                         name2,
-                                         N,
-                                         results_interp,
-                                         results_reinterp,
-                                         results_flat_interp));
+                                          name1,
+                                          name2,
+                                          N,
+                                          results_interp,
+                                          results_reinterp,
+                                          results_flat_interp));
   }
 }
 
@@ -222,7 +222,7 @@ void test_runtime(Size N) {
   constexpr auto name1 = transform_name<Transformer1>();
   constexpr auto name2 = transform_name<Transformer2>();
 
-  test_timer_t test_fixed_time{std::format("test_runtime N={} {}-{}", N, name1, name2)};
+  test_timer_t test_fixed_time{arts::format("test_runtime N={} {}-{}", N, name1, name2)};
 
   const Vector grid1{-120, -90, -60, -30, 0, 30, 60, 90, 120};
   const Vector grid2{120, 90, 60, 30, 0, -30, -60, -90, -120};
@@ -247,7 +247,7 @@ void test_runtime(Size N) {
   std::vector<lag_t<-1, Transformer2>> lags22(coords2.size());
 
   {
-    test_timer_t timer(std::format("make_lags dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("make_lags dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       lags11[i] = lag_t<-1, Transformer1>(grid1, coords1[i], N, ascending_grid_t{});
@@ -256,7 +256,7 @@ void test_runtime(Size N) {
   }
 
   {
-    test_timer_t timer(std::format("make_lags dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("make_lags dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     lags12 = make_lags<Transformer1>(grid1, coords1, N, 0.0, "grid1");
     lags22 = make_lags<Transformer2>(grid2, coords2, N, 0.0, "grid2");
@@ -266,7 +266,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) { res += interp(data, lags11[i], lags21[j]); }
@@ -277,7 +277,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) { res += interp(data, lags12[i], lags22[j]); }
@@ -288,7 +288,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, lags11, lags21));
   }
@@ -297,7 +297,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, lags12, lags22));
   }
@@ -306,7 +306,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, lags11, lags21));
   }
@@ -315,7 +315,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, lags12, lags22));
   }
@@ -324,7 +324,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) {
@@ -337,7 +337,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_interp.emplace_back();
 
-    test_timer_t timer(std::format("interp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("interp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     for (Size i = 0; i < coords1.size(); ++i) {
       for (Size j = 0; j < coords2.size(); ++j) {
@@ -350,7 +350,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, reinterpweights(lags11, lags21), lags11, lags21));
   }
@@ -359,7 +359,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_reinterp.emplace_back();
 
-    test_timer_t timer(std::format("reinterp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("reinterp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(reinterp(data, reinterpweights(lags12, lags22), lags12, lags22));
   }
@@ -368,7 +368,7 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp-itw dynamic 1-by-1 linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, flat_interpweights(lags11, lags21), lags11, lags21));
   }
@@ -377,23 +377,23 @@ void test_runtime(Size N) {
   {
     Numeric& res = results_flat_interp.emplace_back();
 
-    test_timer_t timer(std::format("flat_interp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
+    test_timer_t timer(arts::format("flat_interp-itw dynamic all-in-one linear order {}, {}-{}", N, name1, name2));
 
     res = sum(flat_interp(data, flat_interpweights(lags12, lags22), lags12, lags22));
   }
 
   if (not all_close(results_interp) or not all_close(results_reinterp) or not all_close(results_flat_interp)) {
-    throw std::runtime_error(std::format(R"(Results are not close for {}-{} with N={}
+    throw std::runtime_error(arts::format(R"(Results are not close for {}-{} with N={}
 
 interp:      {:B,}
 reinterp:    {:B,},
 flat_interp: {:B,})",
-                                         name1,
-                                         name2,
-                                         N,
-                                         results_interp,
-                                         results_reinterp,
-                                         results_flat_interp));
+                                          name1,
+                                          name2,
+                                          N,
+                                          results_interp,
+                                          results_reinterp,
+                                          results_flat_interp));
   }
 }
 

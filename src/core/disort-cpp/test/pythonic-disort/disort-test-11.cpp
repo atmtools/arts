@@ -96,18 +96,18 @@ void check_test_11a_reference(const std::string_view   name,
   // eigensolver and math-library roundoff: MSVC was observed to deviate from
   // the PythonicDISORT 1.8 reference by 5.3e-8 (vs 8e-10 with clang), just
   // above the default tolerance, so these checks use 1e-7.
-  require_scalar_close(std::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.856452063, 1e-7);
-  require_scalar_close(std::format("{} u[0,0,7]", name), u[0, 0, 7], -9729770.523956602, 1e-7);
-  require_scalar_close(std::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.580526929, 1e-7);
-  require_scalar_close(std::format("{} u[2,1,3]", name), u[2, 1, 3], -7252730.532491753, 1e-7);
-  require_scalar_close(std::format("{} u[4,2,15]", name), u[4, 2, 15], -8972940.78886143, 1e-7);
-  require_scalar_close(std::format("{} u0[0,0]", name), u0[0, 0], -2900902.502881967, 1e-7);
+  require_scalar_close(arts::format("{} u[0,0,0]", name), u[0, 0, 0], -2900902.856452063, 1e-7);
+  require_scalar_close(arts::format("{} u[0,0,7]", name), u[0, 0, 7], -9729770.523956602, 1e-7);
+  require_scalar_close(arts::format("{} u[0,0,8]", name), u[0, 0, 8], -2394710.580526929, 1e-7);
+  require_scalar_close(arts::format("{} u[2,1,3]", name), u[2, 1, 3], -7252730.532491753, 1e-7);
+  require_scalar_close(arts::format("{} u[4,2,15]", name), u[4, 2, 15], -8972940.78886143, 1e-7);
+  require_scalar_close(arts::format("{} u0[0,0]", name), u0[0, 0], -2900902.502881967, 1e-7);
   // This comparatively small outgoing value is the residual of source terms
   // amplified by 1 / (1 - omega) = 1e6.  Eigensolver and math-library
   // roundoff therefore loses about two additional relative digits here.
-  require_scalar_close(std::format("{} u0[0,15]", name), u0[0, 15], -16747.492504802656, 5e-6);
-  require_scalar_close(std::format("{} u0[1,6]", name), u0[1, 6], -10275993.25714884, 1e-7);
-  require_scalar_close(std::format("{} u0[2,15]", name), u0[2, 15], -8972940.767176796, 1e-7);
+  require_scalar_close(arts::format("{} u0[0,15]", name), u0[0, 15], -16747.492504802656, 5e-6);
+  require_scalar_close(arts::format("{} u0[1,6]", name), u0[1, 6], -10275993.25714884, 1e-7);
+  require_scalar_close(arts::format("{} u0[2,15]", name), u0[2, 15], -8972940.767176796, 1e-7);
 
   const auto [up, down_diffuse, down_direct, dfdt] = compute_flux(dis, taus);
   static_cast<void>(dfdt);
@@ -188,7 +188,7 @@ void test_11a_1layer() try {
                         .reshape(5)};
 
   check_test_11a_reference("test_11a-1layer", dis, taus, phis);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-11a-1layer:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-11a-1layer:\n{}", e.what())); }
 
 void test_11a_multilayer() try {
   const AscendingGrid tau_arr{0.5, 1., 1.5, 2., 2.5, 3., 3.5, 4., 4.5, 5., 5.5, 6., 6.5, 7., 7.5, 8.};
@@ -253,7 +253,7 @@ void test_11a_multilayer() try {
                         .reshape(5)};
 
   check_test_11a_reference("test_11a-multilayer", dis, taus, phis);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test-11a-multilayer:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test-11a-multilayer:\n{}", e.what())); }
 
 void test_11b_identical_layer_invariance() try {
   const auto one_layer  = identical_atmosphere(AscendingGrid{8.0});
@@ -282,7 +282,7 @@ void test_11b_identical_layer_invariance() try {
       require_close("one layer vs identical sublayers, IMS", ims_one, ims_many, 2e-13);
     }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11b-identical-layer-invariance:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11b-identical-layer-invariance:\n{}", e.what()));
 }
 
 void test_11c_heterogeneous_delta_scaling() try {
@@ -313,7 +313,7 @@ void test_11c_heterogeneous_delta_scaling() try {
                         1.0 * (1.0 - omega[0] * f[0]) + 2.0 * (1.0 - omega[1] * f[1]) + 3.0 * (1.0 - omega[2] * f[2])};
   require_close("cumulative delta-scaled optical depth", dis.scaled_tau(), expected, 1e-14);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11c-heterogeneous-delta-scaling:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11c-heterogeneous-delta-scaling:\n{}", e.what()));
 }
 
 //! FIXME: This test is wrong because TMS works but the checks are for full DISORT where we have not confirmed it
@@ -338,7 +338,7 @@ void test_11d_removable_correction_singularities() try {
   ims_singular.IMS(ims, 0.37, 1.1);
   require_finite("IMS at mu == scaled_mu0", ims);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11d-removable-correction-singularities:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11d-removable-correction-singularities:\n{}", e.what()));
 }
 
 void test_11e_current_pythonic_disort_correction() try {
@@ -392,7 +392,7 @@ void test_11e_current_pythonic_disort_correction() try {
           .reshape(4, 3, 2)};
   require_close("heterogeneous DISORT NT correction", correction, expected, 3e-13);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11e-current-pythonic-disort-correction:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11e-current-pythonic-disort-correction:\n{}", e.what()));
 }
 
 void test_11f_disort_user_angle_formal_solution() try {
@@ -421,7 +421,7 @@ void test_11f_disort_user_angle_formal_solution() try {
   dis.u_user_corr(user, ims, tms, tau, phi, arbitrary_mu);
   require_finite("corrected formal user-angle solution", user.intensities);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11f-disort-user-angle-formal-solution:\n{}", e.what()));
 }
 
 void test_11g_gridded_correction_cache_equivalence() try {
@@ -456,7 +456,7 @@ void test_11g_gridded_correction_cache_equivalence() try {
     }
   require_close("cached gridded Pythonic IMS", cached_ims, point_ims, 2e-13);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11g-gridded-correction-cache-equivalence:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11g-gridded-correction-cache-equivalence:\n{}", e.what()));
 }
 
 void test_11h_delta_scaled_source_equivalence() try {
@@ -551,7 +551,7 @@ void test_11h_delta_scaled_source_equivalence() try {
                          2e-12);
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test-11h-delta-scaled-source-equivalence:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test-11h-delta-scaled-source-equivalence:\n{}", e.what()));
 }
 
 void test_11i_full_bulk_flux_equivalence() {

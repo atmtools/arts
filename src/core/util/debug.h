@@ -114,7 +114,7 @@ void show_cpp_error_location(bool show);
 template <std::formattable<char>... Args>
 [[noreturn]] void user_error(const located_format<std::type_identity_t<Args>...> fmt, const Args&... args)
     requires(sizeof...(Args) > 0) {
-  user_error(std::vformat(fmt.fmt.get(), std::make_format_args(args...)), fmt.location);
+  user_error(arts::vformat(fmt.fmt.get(), std::make_format_args(args...)), fmt.location);
 }
 }  // namespace arts
 

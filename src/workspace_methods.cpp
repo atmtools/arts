@@ -58,7 +58,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name) const
     return doc;
   }
 
-  doc += std::format("{} {}(", return_type, name);
+  doc += arts::format("{} {}(", return_type, name);
 
   bool first = true;
   if (pass_workspace) {
@@ -69,13 +69,13 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name) const
   for (auto& str : out) {
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      doc += std::format("{}{}& {}", comma(first, spaces), wsv_ptr->second.type, str);
+      doc += arts::format("{}{}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
     auto wsa_ptr = wsa.find(str);
     if (wsa_ptr != wsa.end()) {
-      doc += std::format("{}Agenda& {}", comma(first, spaces), str);
+      doc += arts::format("{}Agenda& {}", comma(first, spaces), str);
       continue;
     }
 
@@ -84,7 +84,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name) const
 
   for (std::size_t i = 0; i < gout.size(); ++i) {
     const auto type  = generic_type(gout_type[i], true);
-    doc             += std::format("{}{}{} {}", comma(first, spaces), type, type == gout_type[i] ? "&" : "", gout[i]);
+    doc             += arts::format("{}{}{} {}", comma(first, spaces), type, type == gout_type[i] ? "&" : "", gout[i]);
   }
 
   for (auto& str : in) {
@@ -92,7 +92,7 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name) const
 
     auto wsv_ptr = wsv.find(str);
     if (wsv_ptr != wsv.end()) {
-      doc += std::format("{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
+      doc += arts::format("{}const {}& {}", comma(first, spaces), wsv_ptr->second.type, str);
       continue;
     }
 
@@ -102,25 +102,25 @@ std::string WorkspaceMethodInternalRecord::header(const std::string& name) const
   for (std::size_t i = 0; i < gin.size(); ++i) {
     if (stdr::find(gout, gin[i]) != gout.end()) continue;
     const auto type = generic_type(gin_type[i]);
-    doc += std::format("{}{}{} {}", comma(first, spaces), "const " + type, type == gin_type[i] ? "&" : "", gin[i]);
+    doc += arts::format("{}{}{} {}", comma(first, spaces), "const " + type, type == gin_type[i] ? "&" : "", gin[i]);
   }
 
   doc += ")";
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(R"(Error in meta-function header("{}"):
+  throw std::runtime_error(arts::format(R"(Error in meta-function header("{}"):
 
 {}
 )",
-                                       name,
-                                       std::string_view(e.what())));
+                                        name,
+                                        std::string_view(e.what())));
 }
 
 std::string WorkspaceMethodInternalRecord::call(const std::string& name) const try {
   const std::string spaces(return_type.size() + 2, ' ');
 
-  std::string doc = std::format("  {}(\n      ", name);
+  std::string doc = arts::format("  {}(\n      ", name);
 
   bool first = true;
   if (pass_workspace) {
@@ -128,26 +128,27 @@ std::string WorkspaceMethodInternalRecord::call(const std::string& name) const t
     first  = false;
   }
 
-  for (auto& str : out) { doc += std::format("{}{}", comma(first, spaces), str); }
+  for (auto& str : out) { doc += arts::format("{}{}", comma(first, spaces), str); }
 
-  for (const auto& i : gout) { doc += std::format("{}{}", comma(first, spaces), i); }
+  for (const auto& i : gout) { doc += arts::format("{}{}", comma(first, spaces), i); }
 
   for (auto& str : in) {
     if (std::any_of(out.begin(), out.end(), [&str](auto& var) { return str == var; })) continue;
 
-    doc += std::format("{}{}", comma(first, spaces), str);
+    doc += arts::format("{}{}", comma(first, spaces), str);
   }
 
   for (const auto& i : gin) {
     if (stdr::find(gout, i) != gout.end()) continue;
-    doc += std::format("{}{}", comma(first, spaces), i);
+    doc += arts::format("{}{}", comma(first, spaces), i);
   }
 
   doc += ");";
 
   return doc;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Cannot create call of method \"{}\":\n\n{}", name, std::string_view(e.what())));
+  throw std::runtime_error(
+      arts::format("Cannot create call of method \"{}\":\n\n{}", name, std::string_view(e.what())));
 }
 
 namespace {
@@ -155,7 +156,7 @@ void add_agenda_methods(UniqueMap<std::string, WorkspaceMethodInternalRecord>& w
   for (auto& [agname, ag] : internal_workspace_agendas()) {
     if (wsm_data.contains(agname + "Execute") or wsm_data.contains(agname + "Set") or
         wsm_data.contains(agname + "ExecuteOperator") or wsm_data.contains(agname + "SetOperator"))
-      throw std::runtime_error(std::format(R"(
+      throw std::runtime_error(arts::format(R"(
 
 The following methods are predefined.  Do not manually define these:
 
@@ -166,7 +167,7 @@ The following methods are predefined.  Do not manually define these:
 
 Remove the manual definition of these methods from workspace_methods.cpp.
 )",
-                                           agname));
+                                            agname));
 
     const std::string op = ag.named_operator.empty() ? (agname + "Operator") : ag.named_operator;
 
@@ -187,8 +188,8 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "ExecuteOperator"] = {
-        .desc =
-            std::format("Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n", agname, op),
+        .desc = arts::format(
+            "Executes an operator emulating *{0}*, see it, and also *{1}*, for more details\n", agname, op),
         .author           = {"``Automatically Generated``"},
         .out              = ag.output,
         .in               = ag.input,
@@ -200,7 +201,7 @@ Remove the manual definition of these methods from workspace_methods.cpp.
     };
 
     wsm_data[agname + "SetOperator"] = {
-        .desc = std::format(
+        .desc = arts::format(
             "Set *{0}* to exclusively use provided external operator.  See *{1}* for more details.\n", agname, op),
         .author    = {"``Automatically Generated``"},
         .out       = {agname},
@@ -230,21 +231,21 @@ void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_dat
     if (not wsmr.python_generic_sorting.empty()) {
       if (wsmr.python_generic_sorting.size() != wsmr.gin.size())
         throw std::runtime_error(
-            std::format("{}: python_generic_sorting must be empty or have one entry per gin.", method));
+            arts::format("{}: python_generic_sorting must be empty or have one entry per gin.", method));
       for (std::size_t i = 0; i < wsmr.gin.size(); ++i) {
         const auto& order = wsmr.python_generic_sorting[i];
         if (order.empty()) continue;
         const auto& type = wsmr.gin_type.at(i);
         const auto  n    = split(type, ",").size();
         if (type == "Any" or n < 2 or order.size() != n or stdr::find(wsmr.gout, wsmr.gin[i]) != wsmr.gout.end())
-          throw std::runtime_error(std::format(
+          throw std::runtime_error(arts::format(
               "{} gin '{}': python_generic_sorting requires a permutation of all alternatives of an input-only Generic (not Any).",
               method,
               wsmr.gin[i]));
         std::vector<bool> seen(n, false);
         for (const Index position : order) {
           if (position < 0 or static_cast<std::size_t>(position) >= n or seen[position])
-            throw std::runtime_error(std::format(
+            throw std::runtime_error(arts::format(
                 "{} gin '{}': python_generic_sorting must contain each zero-based position 0..{} exactly once.",
                 method,
                 wsmr.gin[i],
@@ -260,30 +261,30 @@ void fix(std::unordered_map<std::string, WorkspaceMethodInternalRecord>& wsm_dat
         for (auto alternative : split(type, ",")) {
           trim(alternative);
           if (not valid_wsg(alternative)) {
-            throw std::runtime_error(
-                std::format("{} {}[{}]: '{}' is not a workspace group. Check the spelling and register new "
-                            "workspace groups in src/workspace_groups.cpp. Arrays need their own ArrayOf... "
-                            "workspace-group registration (see add_arrays_of); an element group is not enough. "
-                            "Enums need add_select_options registration; declaring them in arts-options is not enough. "
-                            "Types in workspace_group_friends.cpp are not "
-                            "automatically workspace groups: register the type as a workspace group if it must "
-                            "be stored in Wsv or used in Generic. Regenerate auto_wsg.h after registration.",
-                            method,
-                            kind,
-                            i,
-                            alternative));
+            throw std::runtime_error(arts::format(
+                "{} {}[{}]: '{}' is not a workspace group. Check the spelling and register new "
+                "workspace groups in src/workspace_groups.cpp. Arrays need their own ArrayOf... "
+                "workspace-group registration (see add_arrays_of); an element group is not enough. "
+                "Enums need add_select_options registration; declaring them in arts-options is not enough. "
+                "Types in workspace_group_friends.cpp are not "
+                "automatically workspace groups: register the type as a workspace group if it must "
+                "be stored in Wsv or used in Generic. Regenerate auto_wsg.h after registration.",
+                method,
+                kind,
+                i,
+                alternative));
           }
 
           if (not previous.empty() and previous >= alternative) {
             throw std::runtime_error(
-                std::format("{} {}[{}]: '{}' appears after '{}'. List Generic alternatives once each in "
-                            "strict alphabetical order (WorkspaceGroupInfo index order). Fix the declaration "
-                            "or its shared key-list helper; metadata is not sorted automatically.",
-                            method,
-                            kind,
-                            i,
-                            alternative,
-                            previous));
+                arts::format("{} {}[{}]: '{}' appears after '{}'. List Generic alternatives once each in "
+                             "strict alphabetical order (WorkspaceGroupInfo index order). Fix the declaration "
+                             "or its shared key-list helper; metadata is not sorted automatically.",
+                             method,
+                             kind,
+                             i,
+                             alternative,
+                             previous));
           }
           previous = alternative;
         }
@@ -299,7 +300,7 @@ std::unordered_map<std::string, WorkspaceMethodInternalRecord> internal_workspac
      ones.  Add one after each DISORT method that VDISORT also has. */
   const auto vdisort_method = [&wsm_data](const std::string& disort_name) {
     WorkspaceMethodInternalRecord r  = wsm_data.at(disort_name);
-    r.desc                          += std::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
+    r.desc                          += arts::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
     for (auto& x : r.out)
       if (x.starts_with("disort_")) x = "v" + x;
     for (auto& x : r.in)
@@ -2974,14 +2975,14 @@ building of an actual Jacobian matrix.
 
   const auto jac2oem = [&wsm_data](const std::string& name) {
     auto v  = wsm_data.at(name);
-    v.desc += std::format(R"(
+    v.desc += arts::format(R"(
 This method wraps *{}* together with adding the covariance matrices,
 to ``oem.covmat_diagonal_blocks`` for assembly by *oemFinalizeDiagonal*.
 
 The input covariance matrices must fit the size of the later computed model state
 represented by *jac_targets*. The inverse block is optional.
 )",
-                          name);
+                           name);
     v.out.insert(v.out.begin() + 1, "oem");
     v.in.insert(v.in.begin() + 1, "oem");
     v.size_constraints = false;
@@ -7307,7 +7308,7 @@ source derivatives, without modifying global catalogue state.
     const std::string meta = "spectral_propmat_agendaAuto";
     if (wsm_data.contains(meta)) {
       throw std::runtime_error(
-          std::format("Method name collision: \"{}\" already exists in the workspace methods", meta));
+          arts::format("Method name collision: \"{}\" already exists in the workspace methods", meta));
     }
 
     std::vector<std::string> gin{"use_abs_lookup_data"};
@@ -7328,16 +7329,16 @@ source derivatives, without modifying global catalogue state.
 
         for (Size i = 0; i < x.gin.size(); i++) {
           if (auto ptr = stdr::find(gin, x.gin[i]); ptr != gin.end()) {
-            gin_desc[ptr - gin.begin()] += std::format(", *{}*", method);
+            gin_desc[ptr - gin.begin()] += arts::format(", *{}*", method);
           } else {
             gin.emplace_back(x.gin[i]);
             gin_type.emplace_back(x.gin_type[i]);
-            gin_desc.emplace_back(std::format("See *{}*", method));
+            gin_desc.emplace_back(arts::format("See *{}*", method));
             gin_value.emplace_back(x.gin_value[i]);
           }
         }
       } catch (std::out_of_range&) {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(arts::format(
             R"(Missing method: "{}",
 cannot generate automatic method signature for "{}"
 )",
@@ -7381,7 +7382,7 @@ for more information.
   for (auto& m : internal_meta_methods()) {
     if (wsm_data.contains(m.name)) {
       throw std::runtime_error(
-          std::format("Method name collision: \"{}\" already exists in the workspace methods", m.name));
+          arts::format("Method name collision: \"{}\" already exists in the workspace methods", m.name));
     }
     wsm_data[m.name] = m.create(wsm_data);
   }
@@ -7389,7 +7390,7 @@ for more information.
   fix(wsm_data);
   return wsm_data;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
+  throw std::runtime_error(arts::format("Cannot create workspace methods:\n\n{}", std::string_view(e.what())));
 }
 }  // namespace
 

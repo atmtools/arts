@@ -82,7 +82,7 @@ template <typename R, typename... Ts> struct xml_io_stream_function<std::functio
     tag.write_to_end_stream(os);
   } catch (const std::exception& e) {
     throw std::runtime_error(
-        std::format("Cannot write {} (with mangled-name: '{}')\n{}", type_name, f.target_type().name(), e.what()));
+        arts::format("Cannot write {} (with mangled-name: '{}')\n{}", type_name, f.target_type().name(), e.what()));
   }
 
   static void read(std::istream& is, std::function<R(Ts...)>& f, bifstream* pbifs = nullptr) try {
@@ -112,14 +112,14 @@ template <typename R, typename... Ts> struct xml_io_stream_function<std::functio
           throw std::runtime_error("Cannot read function structs");
         }
       } else {
-        throw std::runtime_error(std::format("Unknown type tag: {}", type));
+        throw std::runtime_error(arts::format("Unknown type tag: {}", type));
       }
     }
 
     tag.read_from_stream(is);
     tag.check_end_name(type_name);
   } catch (const std::exception& e) {
-    throw std::runtime_error(std::format("Cannot read {}\n{}", type_name, e.what()));
+    throw std::runtime_error(arts::format("Cannot read {}\n{}", type_name, e.what()));
   }
 };
 

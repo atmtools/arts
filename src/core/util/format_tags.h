@@ -5,6 +5,7 @@
 #include <concepts>
 #include <format>
 #include <functional>
+#include <iosfwd>
 #include <iterator>
 #include <map>
 #include <optional>
@@ -20,6 +21,63 @@
 #include "aggregate_helper.h"
 
 using namespace std::literals;
+
+namespace arts {
+//! As std::vformat, compiled once instead of in every file that formats
+std::string vformat(std::string_view fmt, std::format_args args);
+
+//! As std::vformat_to, compiled once instead of in every file that formats
+std::format_context::iterator vformat_to(std::format_context::iterator out,
+                                         std::string_view              fmt,
+                                         std::format_args              args);
+
+//! As std::format, with the format string checked at compile time
+template <typename... Args> std::string format(std::format_string<Args...> fmt, Args&&... args) {
+  return arts::vformat(fmt.get(), std::make_format_args(args...));
+}
+
+//! As std::vprint_unicode, followed by a newline if newline is true, compiled once
+void vprint(std::FILE* stream, std::string_view fmt, std::format_args args, bool newline = false);
+
+//! As std::vprint_unicode, followed by a newline if newline is true, compiled once
+void vprint(std::ostream& os, std::string_view fmt, std::format_args args, bool newline = false);
+
+//! As std::print
+template <typename... Args> void print(std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(stdout, fmt.get(), std::make_format_args(args...));
+}
+
+//! As std::print
+template <typename... Args> void print(std::FILE* stream, std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(stream, fmt.get(), std::make_format_args(args...));
+}
+
+//! As std::print
+template <typename... Args> void print(std::ostream& os, std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(os, fmt.get(), std::make_format_args(args...));
+}
+
+//! As std::println
+template <typename... Args> void println(std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(stdout, fmt.get(), std::make_format_args(args...), true);
+}
+
+//! As std::println
+template <typename... Args> void println(std::FILE* stream, std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(stream, fmt.get(), std::make_format_args(args...), true);
+}
+
+//! As std::println
+template <typename... Args> void println(std::ostream& os, std::format_string<Args...> fmt, Args&&... args) {
+  arts::vprint(os, fmt.get(), std::make_format_args(args...), true);
+}
+
+//! As std::println, only the newline
+void println(std::FILE* stream);
+
+//! As std::println, only the newline
+void println(std::ostream& os);
+}  // namespace arts
 
 template <typename T> std::optional<std::string> to_helper_string(const T&) { return std::nullopt; }
 
@@ -106,9 +164,9 @@ struct format_tags {
   template <std::formattable<char> T> [[nodiscard]] std::string vformat(const T& x) const requires(no_raw_chars<T>)
   try {
     if constexpr (arts_formattable<T>)
-      return std::vformat(get_format_args(), std::make_format_args(x));
+      return arts::vformat(get_format_args(), std::make_format_args(x));
     else
-      return std::format("{}"sv, x);
+      return arts::format("{}"sv, x);
   } catch (std::exception& e) {
     throw std::runtime_error("Error in vformat with fmt-string: " + get_format_args() + "\n" + e.what());
   }
@@ -122,6 +180,23 @@ struct format_tags {
 template <> void format_tags::add_if_bracket(std::format_context& ctx, std::string_view x) const;
 
 template <> std::string format_tags::vformat(const std::string& x) const;
+
+/* The builtin values that formatters write, formatted once in format_tags.cpp instead of in every
+ * file that formats.  A formatter that writes another builtin type through format_tags::format
+ * needs a specialization here as well. */
+template <> void format_tags::single_format(std::format_context& ctx, const Numeric& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const Index& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const Size& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const int& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const bool& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const std::string& x) const;
+
+template <> void format_tags::single_format(std::format_context& ctx, const std::string_view& x) const;
 
 template <> std::string format_tags::vformat(const std::string_view& x) const;
 
@@ -197,7 +272,10 @@ struct arts_formattable_compat_format_tags {
   }
 
   template <class FmtContext> FmtContext::iterator format(const auto& v, FmtContext& ctx) const {
-    return std::format_to(ctx.out(), "{}", v);
+    if constexpr (std::same_as<FmtContext, std::format_context>)
+      return arts::vformat_to(ctx.out(), "{}", std::make_format_args(v));
+    else
+      return std::format_to(ctx.out(), "{}", v);
   }
 };
 

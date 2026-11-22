@@ -207,7 +207,7 @@ void py_psd(py::module_& m) try {
       "Binned PSD returning a fixed particle concentration defined over a sequence of size bins with particle number zeros outside of size bins and temperature range.";
 
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize scattering species:\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize scattering species:\n{}", e.what()));
 };
 
 }  // namespace Python

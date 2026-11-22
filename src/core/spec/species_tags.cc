@@ -91,7 +91,7 @@ SpeciesTag parse_tag(std::string_view text) {
   try {
     species = spec(species_key, orig);
   } catch (std::exception&) {
-    throw std::runtime_error(std::format(
+    throw std::runtime_error(arts::format(
         "Error parsing species in tag \"{}\".\n\n"
         "Unknown species \"{}\".  Valid species are:\n{:Bq,}\n\n"
         "Check the documentation for valid species, or add the species to arts-cat-data and recompile ARTS.",
@@ -113,7 +113,7 @@ SpeciesTag parse_tag(std::string_view text) {
       try {
         tag.cia_2nd_species = spec(cia_key, orig);
       } catch (std::exception&) {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(arts::format(
             "Error parsing second species in tag \"{}\".\n\n"
             "Unknown species \"{}\".  Valid species are:\n{:Bq,}\n\n"
             "Check the documentation for valid species, or add the species to arts-cat-data and recompile ARTS.",
@@ -131,7 +131,7 @@ SpeciesTag parse_tag(std::string_view text) {
       try {
         tag.spec_ind = isot(species, tag_key, orig);
       } catch (std::exception&) {
-        throw std::runtime_error(std::format(
+        throw std::runtime_error(arts::format(
             "Error parsing isotopologue in tag \"{}\".\n\n"
             "Species {} has no isotopologue \"{}\".  Valid isotopologues of species {} are:\n{:Bq,}\n\n"
             "Check the documentation for valid isotopologues, or add the isotopologue to arts-cat-data and recompile ARTS.",
@@ -157,7 +157,7 @@ Tag::Tag(std::string_view text) : Tag(parse_tag(text)) {}
  * 
  * \return The tag name as a string.
  */
-String Tag::Name() const { return std::format("{}", *this); }
+String Tag::Name() const { return arts::format("{}", *this); }
 }  // namespace Species
 
 SpeciesTagTypeStatus::SpeciesTagTypeStatus(const ArrayOfSpeciesTag& abs_species) {

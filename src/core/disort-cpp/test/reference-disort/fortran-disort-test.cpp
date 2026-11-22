@@ -63,15 +63,15 @@ void run_isotropic_case(const disort_test::reference::single_layer_case& test) {
   for (Index level = 0; level < 2; ++level) {
     dis.u_user(user, tau[level], 0.0, disort_test::reference::problem_1_user_mu);
     for (Index angle = 0; angle < 6; ++angle)
-      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
 
     const auto values = dis.flux(flux, tau[level]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -105,14 +105,14 @@ void run_rayleigh_case(const disort_test::reference::single_layer_case& test) {
     const Numeric tau = level == 0 ? 0.0 : test.depth;
     dis.u_user(user, tau, 0.0, disort_test::reference::problem_2_user_mu);
     for (Index angle = 0; angle < 6; ++angle)
-      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
     const auto values = dis.flux(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -148,14 +148,14 @@ void run_henyey_greenstein_case(const disort_test::reference::single_layer_case&
     const Numeric tau = level == 0 ? 0.0 : test.depth;
     dis.u_user_corr(user, ims, tms, tau, 0.0, disort_test::reference::problem_3_user_mu);
     for (Index angle = 0; angle < 6; ++angle)
-      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
     const auto values = dis.flux(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -194,16 +194,16 @@ void run_haze_l_case(const disort_test::reference::haze_l_case& test) {
                       test.azimuth[p],
                       disort_test::reference::problem_4_user_mu);
       for (Index angle = 0; angle < 6; ++angle)
-        expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, p, level, angle),
+        expect_reference(arts::format("{} radiance [{}, {}, {}]", test.name, p, level, angle),
                          user.intensities[angle],
                          test.radiance[p, level, angle]);
     }
   for (Index level = 0; level < 3; ++level) {
     const auto values = dis.flux(flux, disort_test::reference::problem_4_output_tau[level]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -235,15 +235,15 @@ void run_cloud_c1_case(const disort_test::reference::scalar_case& test) {
   for (Index level = 0; level < 3; ++level) {
     dis.u_user_corr(user, ims, tms, test.tau[level], 0.0, disort_test::reference::problem_5_user_mu);
     for (Index angle = 0; angle < 6; ++angle)
-      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle],
                        2e-4);
     const auto values = dis.flux(flux, test.tau[level]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -281,15 +281,15 @@ void run_problem_8_case(const disort_test::reference::layered_isotropic_case& te
     const Numeric tau = test.output_tau[level];
     dis.u_user(user, tau, disort_test::reference::problem_8_azimuth, disort_test::reference::problem_8_user_mu);
     for (Index angle = 0; angle < 4; ++angle)
-      expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                        user.intensities[angle],
                        test.radiance[level, angle]);
 
     const auto values = dis.flux(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
 }
 
@@ -404,7 +404,7 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
                    disort_test::reference::problem_9_user_mu,
                    user_surface);
       for (Index angle = 0; angle < 4; ++angle)
-        expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+        expect_reference(arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                          user.intensities[angle],
                          test.radiance[azimuth, level, angle],
                          test.thermal ? 1e-3 : 7e-5);
@@ -413,13 +413,13 @@ void run_problem_9_case(const disort_test::reference::general_multilayer_case& t
   for (Index level = 0; level < 5; ++level) {
     const Numeric tau    = test.output_tau[level];
     const auto    values = dis.flux(flux, tau);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
-    expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+    expect_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                      values.down_diffuse,
                      test.diffuse_down[level],
                      test.thermal ? 1e-3 : 7e-5);
     expect_reference(
-        std::format("{} up flux [{}]", test.name, level), values.up, test.up[level], test.thermal ? 1e-3 : 7e-5);
+        arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level], test.thermal ? 1e-3 : 7e-5);
   }
 }
 
@@ -468,7 +468,7 @@ void test_problem_10() {
           disort::brdf::lambertian_fourier_modes(
               test.surface_albedo, 1, magnitudes(disort_test::reference::problem_10_user_mu), streams, test.beam_mu));
       for (Index angle = 0; angle < nquad; ++angle)
-        expect_reference(std::format("Problem 10 formal/quadrature [{}, {}, {}]", phi, tau, angle),
+        expect_reference(arts::format("Problem 10 formal/quadrature [{}, {}, {}]", phi, tau, angle),
                          formal.intensities[angle],
                          quadrature.intensities[user_to_quadrature[angle]],
                          2e-6);
@@ -485,7 +485,7 @@ void test_problem_10() {
             disort_test::reference::problem_10_output_tau[level],
             disort_test::reference::problem_10_azimuth[azimuth]);
       for (Index angle = 0; angle < nquad; ++angle)
-        expect_reference(std::format("Problem 10 pointwise/bulk [{}, {}, {}]", level, azimuth, angle),
+        expect_reference(arts::format("Problem 10 pointwise/bulk [{}, {}, {}]", level, azimuth, angle),
                          bulk[level, azimuth, angle],
                          quadrature.intensities[angle],
                          2e-12);
@@ -542,7 +542,7 @@ void test_problem_11() {
       one_layer.u_user(one_user, tau, phi, disort_test::reference::problem_11_user_mu, user_surface);
       subdivided.u_user(subdivided_user, tau, phi, disort_test::reference::problem_11_user_mu, user_surface);
       for (Index angle = 0; angle < 4; ++angle)
-        expect_reference(std::format("Problem 11 radiance [{}, {}, {}]", phi, tau, angle),
+        expect_reference(arts::format("Problem 11 radiance [{}, {}, {}]", phi, tau, angle),
                          subdivided_user.intensities[angle],
                          one_user.intensities[angle],
                          2e-10);
@@ -551,10 +551,11 @@ void test_problem_11() {
   for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
     const auto one  = one_layer.flux(one_flux, tau);
     const auto many = subdivided.flux(subdivided_flux, tau);
-    expect_reference(std::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-10);
-    expect_reference(std::format("Problem 11 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-10);
-    expect_reference(std::format("Problem 11 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-10);
-    expect_reference(std::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-10);
+    expect_reference(arts::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-10);
+    expect_reference(
+        arts::format("Problem 11 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-10);
+    expect_reference(arts::format("Problem 11 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-10);
+    expect_reference(arts::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-10);
   }
 }
 
@@ -621,17 +622,17 @@ void test_problem_12() {
                            disort_test::reference::problem_12_user_mu,
                            user_surface);
     for (Index angle = 0; angle < 4; ++angle)
-      expect_reference(std::format("Problem 12 radiance [{}, {}]", tau, angle),
+      expect_reference(arts::format("Problem 12 radiance [{}, {}]", tau, angle),
                        subdivided_user.intensities[angle],
                        one_user.intensities[angle],
                        2e-9);
 
     const auto one  = one_layer.flux(one_flux, tau);
     const auto many = subdivided.flux(subdivided_flux, tau);
-    expect_reference(std::format("Problem 12 upward flux [{}]", tau), many.up, one.up, 2e-9);
-    expect_reference(std::format("Problem 12 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-9);
-    expect_reference(std::format("Problem 12 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-12);
-    expect_reference(std::format("Problem 12 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-9);
+    expect_reference(arts::format("Problem 12 upward flux [{}]", tau), many.up, one.up, 2e-9);
+    expect_reference(arts::format("Problem 12 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-9);
+    expect_reference(arts::format("Problem 12 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-12);
+    expect_reference(arts::format("Problem 12 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-9);
   }
 }
 
@@ -701,8 +702,8 @@ void test_problem_13() {
     const Numeric     incident_flux = problem_13_beam * problem_13_beam_mu;
     const auto        top           = dis.flux(flux, 0.0);
     const auto        bottom        = dis.flux(flux, test.cumulative_tau.back());
-    expect_reference(std::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
-    expect_reference(std::format("{} transmission", test.name),
+    expect_reference(arts::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
+    expect_reference(arts::format("{} transmission", test.name),
                      (bottom.down_direct + bottom.down_diffuse) / incident_flux,
                      test.transmission);
   }
@@ -725,11 +726,11 @@ void test_raw_brdfs_and_fourier_helper() {
   for (Index mode = 0; mode < 4; ++mode)
     for (Index i = 0; i < 2; ++i) {
       for (Index j = 0; j < 2; ++j)
-        expect_reference(std::format("constant BRDF Fourier mode {}", mode),
+        expect_reference(arts::format("constant BRDF Fourier mode {}", mode),
                          modes.brdf()[mode, i, j],
                          mode == 0 ? reflectance : 0.0,
                          2e-13);
-      expect_reference(std::format("constant BRDF beam Fourier mode {}", mode),
+      expect_reference(arts::format("constant BRDF beam Fourier mode {}", mode),
                        modes.beam_brdf()[mode, i],
                        mode == 0 ? reflectance : 0.0,
                        2e-13);
@@ -743,11 +744,11 @@ void test_raw_brdfs_and_fourier_helper() {
   for (Index mode = 0; mode < 4; ++mode)
     for (Index i = 0; i < 2; ++i) {
       for (Index j = 0; j < 2; ++j)
-        expect_reference(std::format("combined scalar BRDF mode {}", mode),
+        expect_reference(arts::format("combined scalar BRDF mode {}", mode),
                          combined.brdf()[mode, i, j],
                          cox_fraction * cox.brdf()[mode, i, j] + (1.0 - cox_fraction) * lambert.brdf()[mode, i, j],
                          2e-13);
-      expect_reference(std::format("combined scalar BRDF beam mode {}", mode),
+      expect_reference(arts::format("combined scalar BRDF beam mode {}", mode),
                        combined.beam_brdf()[mode, i],
                        cox_fraction * cox.beam_brdf()[mode, i] + (1.0 - cox_fraction) * lambert.beam_brdf()[mode, i],
                        2e-13);
@@ -779,7 +780,7 @@ void test_problem_14() {
     const auto raw = problem_14_raw(test.type);
     for (Index azimuth = 0; azimuth < 3; ++azimuth)
       for (Index angle = 0; angle < 4; ++angle)
-        expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
+        expect_reference(arts::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
                          problem_14_beam_mu * raw(problem_14_user_mu[angle], problem_14_beam_mu, test.azimuth[azimuth]),
                          test.radiance[azimuth, angle],
                          2e-5);
@@ -814,7 +815,7 @@ void test_problem_14() {
     for (Index azimuth = 0; azimuth < 3; ++azimuth) {
       dis.u_user(user, 0.0, test.azimuth[azimuth], problem_14_user_mu, user_surface);
       for (Index angle = 0; angle < 4; ++angle)
-        expect_reference(std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle),
+        expect_reference(arts::format("{} solver radiance [{}, {}]", test.name, azimuth, angle),
                          user.intensities[angle],
                          test.radiance[azimuth, angle],
                          2e-5);
@@ -822,10 +823,10 @@ void test_problem_14() {
 
     disort::flux_data flux;
     const auto        values = dis.flux(flux, 0.0);
-    expect_reference(std::format("{} direct flux", test.name), values.down_direct, test.direct);
-    expect_reference(std::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
-    expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
-    expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
+    expect_reference(arts::format("{} direct flux", test.name), values.down_direct, test.direct);
+    expect_reference(arts::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
+    expect_reference(arts::format("{} upward flux", test.name), values.up, test.up, 2e-5);
+    expect_reference(arts::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
   }
 }
 
@@ -877,7 +878,7 @@ void test_problem_15() {
                         problem_15_user_mu,
                         user_surface);
         for (Index angle = 0; angle < std::ssize(problem_15_user_mu); ++angle)
-          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+          expect_reference(arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                            user.intensities[angle],
                            test.radiance[azimuth, level, angle]);
       }
@@ -886,11 +887,11 @@ void test_problem_15() {
     disort::flux_data flux;
     for (Index level = 0; level < std::ssize(problem_15_output_tau); ++level) {
       const auto values = dis.flux(flux, problem_15_output_tau[level]);
-      expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+      expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
       expect_reference(
-          std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-      expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
-      expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
+          arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+      expect_reference(arts::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
+      expect_reference(arts::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
     }
   }
 }
@@ -911,7 +912,7 @@ void test_problem_17() {
     const auto scaling = disort::delta_m_plus(moments, problem_17_streams);
 
     expect_reference(
-        std::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
+        arts::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
 
     const disort::main_data dis(problem_17_streams,
                                 problem_17_streams,
@@ -929,7 +930,7 @@ void test_problem_17() {
                                 0.0,
                                 scaling.moments);
 
-    expect_reference(std::format("{} scaled depth", test.name),
+    expect_reference(arts::format("{} scaled depth", test.name),
                      dis.scaled_tau().back(),
                      test.depth * (1.0 - scaling.fraction[0]),
                      2e-13);
@@ -940,7 +941,7 @@ void test_problem_17() {
       for (Index azimuth = 0; azimuth < std::ssize(problem_17_azimuth); ++azimuth) {
         dis.u_user(user, output_tau[level], problem_17_azimuth[azimuth], problem_17_user_mu);
         for (Index angle = 0; angle < std::ssize(problem_17_user_mu); ++angle)
-          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth),
+          expect_reference(arts::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth),
                            user.intensities[angle],
                            test.radiance[level, angle, azimuth]);
       }

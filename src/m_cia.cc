@@ -180,7 +180,7 @@ void abs_cia_dataReadFromCIA(  // WS Output:
 
       for (Size dir = 0; !found && dir < subfolders.size(); dir++) {
         ArrayOfString files;
-        checked_dirs.push_back(std::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
+        checked_dirs.push_back(arts::format("{}/{}{}/", catalogpath, subfolders[dir], cia_name));
         try {
           files = list_directory(*(checked_dirs.end() - 1));
         } catch (const std::runtime_error& e) { continue; }
@@ -237,7 +237,7 @@ void abs_cia_dataReadFromXML(  // WS Output:
     SpeciesEnumPair species_key{.spec1 = abs_specie.Spec(), .spec2 = abs_specie.cia_2nd_species};
 
     // If this species pair is not in the map, it was not present in the input file
-    if (not abs_cia_data.contains(species_key)) { missing_tags.push_back(std::format("{}", species_key)); }
+    if (not abs_cia_data.contains(species_key)) { missing_tags.push_back(arts::format("{}", species_key)); }
   }
 
   if (missing_tags.size()) arts::user_error("The following CIA tag(s) are missing in input file: {:B,}", missing_tags);
@@ -257,7 +257,7 @@ void abs_cia_dataReadSpeciesSplitCatalog(CIARecords&              abs_cia_data,
   std::vector<SpeciesEnumPair> specs{};
   for (auto& tag : abs_species) {
     if (tag.type == SpeciesTagType::Cia) {
-      names.emplace_back(std::format("{}-CIA-{}", toString<1>(tag.Spec()), toString<1>(tag.cia_2nd_species)));
+      names.emplace_back(arts::format("{}-CIA-{}", toString<1>(tag.Spec()), toString<1>(tag.cia_2nd_species)));
       specs.emplace_back(SpeciesEnumPair{.spec1 = tag.Spec(), .spec2 = tag.cia_2nd_species});
     }
   }

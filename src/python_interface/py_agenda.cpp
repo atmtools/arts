@@ -144,10 +144,10 @@ void py_agenda(py::module_& m) try {
             if (map.contains("errors")) return;
             map.emplace("errors", Wsv{actual_error});
           } else {
-            throw std::runtime_error(std::format("Could not read {}/{} files as a workspace group:\n{:B,}",
-                                                 actual_error.size(),
-                                                 files.size(),
-                                                 actual_error));
+            throw std::runtime_error(arts::format("Could not read {}/{} files as a workspace group:\n{:B,}",
+                                                  actual_error.size(),
+                                                  files.size(),
+                                                  actual_error));
           }
         }
       },
@@ -264,6 +264,6 @@ so Copy(a, out=b) will not even see the b variable.
   generic_interface(va);
   vector_interface(va);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize agendas\n{}", e.what()));
 }
 }  // namespace Python

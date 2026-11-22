@@ -16,7 +16,7 @@
         "CMAKE_INSTALL_PREFIX": "$env{HOME}/arts_install",
         "CMAKE_PREFIX_PATH": "$env{CONDA_PREFIX}",
         "ENABLE_ARTS_LGPL": "0",
-        "ENABLE_PCH": "0",
+        "ENABLE_PCH": "1",
         "FASTWIGNER": "0",
         "NO_OPENMP": "0",
         "SPHINX_JOBS": "auto",

@@ -23,13 +23,13 @@ template <typename T, typename... Ts> void vector_interface(py::class_<Array<T>,
   if constexpr (arts_xml_ioable<T>) {
     const auto return_doc = [] {
       if constexpr (WorkspaceGroup<Vec>) {
-        return std::format(R"(
+        return arts::format(R"(
 Returns
 -------
 artstype : pyarts3.arts.{}
     The variable created from the file.
 )",
-                           WorkspaceGroupInfo<Vec>::name);
+                            WorkspaceGroupInfo<Vec>::name);
       } else {
         return std::string{};
       }
@@ -238,7 +238,7 @@ template <typename Value> void value_holder_vector_interface(py::class_<Array<Va
               auto s = v.begin() + std::min(start, v.size());
               auto e = v.begin() + std::min(end, v.size());
               auto p = std::find(s, e, value);
-              if (p == e) throw std::invalid_argument(std::format("{} is not in list", value));
+              if (p == e) throw std::invalid_argument(arts::format("{} is not in list", value));
               return Index{std::distance(v.begin(), p)};
             },
             "value"_a,

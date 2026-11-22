@@ -404,7 +404,7 @@ std::istream& operator>>(std::istream& is, model& m) try {
   m.on = static_cast<bool>(i);
   return is;
 } catch (const std::exception& e) {
-  throw std::runtime_error(std::format("Error reading Zeeman model data: {}", e.what()));
+  throw std::runtime_error(arts::format("Error reading Zeeman model data: {}", e.what()));
 }
 
 magnetic_angles::magnetic_angles(const Vector3 mag, const Vector2 los)

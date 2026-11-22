@@ -850,7 +850,7 @@ void equivalent_values(ComplexTensor3View              eqv_str,
       eqv_val[i] = com_data.eqv_vals;
     } catch (std::exception& e) {
 #pragma omp critical
-      err += std::format("{}\n", e.what());
+      err += arts::format("{}\n", e.what());
     }
   }
 

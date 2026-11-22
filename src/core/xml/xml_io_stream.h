@@ -89,7 +89,7 @@ concept xml_io_binary = arts_xml_ioable<T> and requires(std::span<const T, 1> a)
 } and requires(std::span<T> a) { xml_io_stream<T>::get(a, nullptr); };
 
 //! Test if parsing contiguous is possible
-// For most types this means doing the reverse of std::println(os, "{:IO}", x).
+// For most types this means doing the reverse of arts::println(os, "{:IO}", x).
 // This is not an explicit demand since, e.g., Numeric cannot, being builtin
 template <typename T>
 concept xml_io_parseable = requires(std::span<T> b, std::istream& is) { xml_io_stream<T>::parse(b, is); };

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <format_tags.h>
+
 #include <format>
 #include <unordered_map>
 
@@ -8,7 +10,7 @@ template <std::formattable<char> Key, typename T> struct UniqueMap {
   std::unordered_map<Key, T> map;
 
   T& operator[](const Key& key) {
-    if (map.contains(key)) { throw std::runtime_error(std::format("Duplicate key in UniqueMap: {}", key)); }
+    if (map.contains(key)) { throw std::runtime_error(arts::format("Duplicate key in UniqueMap: {}", key)); }
 
     return map[key];
   }

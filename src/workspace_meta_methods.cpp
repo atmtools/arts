@@ -28,7 +28,7 @@ std::vector<WorkspaceMethodInternalMetaRecord> internal_meta_methods_creator() {
 
     WorkspaceMethodInternalMetaRecord r  = *stdr::find(wsm_meta, disort_name, &WorkspaceMethodInternalMetaRecord::name);
     r.name                               = to_vdisort(r.name);
-    r.desc                              += std::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
+    r.desc                              += arts::format("\nThe VDISORT counterpart of *{}*.\n", disort_name);
     for (auto& x : r.methods) x = to_vdisort(x);
     for (auto& x : r.out) x = to_vdisort(x);
     return r;
@@ -420,7 +420,7 @@ WorkspaceMethodInternalRecord WorkspaceMethodInternalMetaRecord::create(
     wsm.desc += "  - *" + m + "*\n";
 
     const auto ptr = wsms.find(m);
-    if (ptr == wsms.end()) { throw std::runtime_error(std::format(R"(Method "{}" not found)", m)); }
+    if (ptr == wsms.end()) { throw std::runtime_error(arts::format(R"(Method "{}" not found)", m)); }
 
     const auto& wm = ptr->second;
 
@@ -531,7 +531,8 @@ Equivalent (mostly) Python code:
 
   return wsm;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error creating meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
+  throw std::runtime_error(
+      arts::format("Error creating meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
 }
 
 std::string WorkspaceMethodInternalMetaRecord::call(
@@ -550,15 +551,15 @@ std::string WorkspaceMethodInternalMetaRecord::call(
 
   for (Size i = 0; i < preset_gin.size(); i++) {
     const auto t = preset_gin_value[i].type_name();
-    std::println(code,
-                 R"(  static const {0}& {1} =
+    arts::println(code,
+                  R"(  static const {0}& {1} =
     stdr::find_if(_wsmmeta, [](auto& _wsmmeta_var) {{
       return _wsmmeta_var.name=="{2}";
     }}) -> preset_gin_value[{3}].get_unsafe<{0}>();)",
-                 t,
-                 preset_gin[i],
-                 name,
-                 i);
+                  t,
+                  preset_gin[i],
+                  name,
+                  i);
   }
 
   for (const auto& m : methods) {
@@ -590,5 +591,5 @@ std::string WorkspaceMethodInternalMetaRecord::call(
   return code.str();
 } catch (std::exception& e) {
   throw std::runtime_error(
-      std::format("Error creating call for meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
+      arts::format("Error creating call for meta-function \"{}\":\n\n{}", name, std::string_view(e.what())));
 }

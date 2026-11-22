@@ -87,12 +87,12 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "init",
           [](Workspace& w, const std::string& n, const std::string& t) {
-            if (w.contains(n)) throw std::domain_error(std::format(R"(Workspace variable "{}" already exists.)", n));
+            if (w.contains(n)) throw std::domain_error(arts::format(R"(Workspace variable "{}" already exists.)", n));
 
             try {
               w.set(n, Wsv::from_named_type(t));
             } catch (std::exception& e) {
-              throw std::runtime_error(std::format("Error setting '{}'\n{}", n, e.what()));
+              throw std::runtime_error(arts::format("Error setting '{}'\n{}", n, e.what()));
             }
           },
           "name"_a,
@@ -101,15 +101,15 @@ void py_workspace(py::class_<Workspace>& ws) try {
       .def(
           "set",
           [](Workspace& w, const std::string& n, const py::object* const x) {
-            if (not w.contains(n)) throw std::domain_error(std::format("Workspace variable \"{}\" does not exist", n));
+            if (not w.contains(n)) throw std::domain_error(arts::format("Workspace variable \"{}\" does not exist", n));
 
             Wsv wsv = from(x);
 
             if (not wsv.holds_same(w.share(n)))
-              throw std::domain_error(std::format(R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
-                                                  n,
-                                                  w.share(n).type_name(),
-                                                  wsv.type_name()));
+              throw std::domain_error(arts::format(R"(Type mismatch: "{}" is of type "{}", cannot be set to "{}")",
+                                                   n,
+                                                   w.share(n).type_name(),
+                                                   wsv.type_name()));
 
             w.overwrite(n, wsv);
 
@@ -152,6 +152,6 @@ void py_workspace(py::class_<Workspace>& ws) try {
   py_auto_wsv(ws);
   py_auto_wsm(ws);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize workspace\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize workspace\n{}", e.what()));
 }
 }  // namespace Python

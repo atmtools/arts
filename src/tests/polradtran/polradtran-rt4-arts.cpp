@@ -47,7 +47,7 @@ constexpr Numeric planck_c2 = Constant::h * Constant::c / Constant::k * 1e6;
 
 std::string read_file(const fs::path& file) {
   std::ifstream in(file);
-  require(in.good(), std::format("Cannot read {}", file.string()));
+  require(in.good(), arts::format("Cannot read {}", file.string()));
   std::stringstream ss;
   ss << in.rdbuf();
   return ss.str();
@@ -77,12 +77,12 @@ rt4::layer_optics read_rt4_scattering(const std::string& text, Index nmu, char q
   for (std::size_t k = 1; k < lines.size(); k++) rest += lines[k] + '\n';
   std::istringstream tokens(rest);
   require(n == nmu and not q.empty() and q.front() == quad and naz == 0,
-          std::format("Scattering file with nmu {}, aziorder {} and quadrature {}; expected nmu {}, aziorder 0 and {}",
-                      n,
-                      naz,
-                      q,
-                      nmu,
-                      quad));
+          arts::format("Scattering file with nmu {}, aziorder {} and quadrature {}; expected nmu {}, aziorder 0 and {}",
+                       n,
+                       naz,
+                       q,
+                       nmu,
+                       quad));
 
   rt4::layer_optics o{.extinction = Tensor4(2, nmu, ns, ns, 0.0),
                       .absorption = Tensor3(2, nmu, ns, 0.0),
@@ -149,7 +149,7 @@ Numeric run(const fs::path& folder, const std::string& name) {
   const auto s  = evans::read_script(folder / name);
   const auto st = evans::read_rt4_settings(s);
   require(st.units == 'T' and st.polarization == "VH" and st.nstokes == 2,
-          std::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", name));
+          arts::format("{}: only EBB temperatures in V and H with nstokes 2 are handled", name));
   const auto quad = st.quad == 'L'   ? polradtran::quadrature_type::lobatto
                     : st.quad == 'G' ? polradtran::quadrature_type::gauss
                                      : polradtran::quadrature_type::double_gauss;
@@ -205,7 +205,7 @@ Numeric run(const fs::path& folder, const std::string& name) {
     Index l = -1;
     for (Index k = 0; k <= nlay; k++)
       if (std::abs(p.height[k] - row.z) < 1e-9) l = k;
-    require(l >= 0, std::format("{}: no level at Z = {}", name, row.z));
+    require(l >= 0, arts::format("{}: no level at Z = {}", name, row.z));
     std::array<Numeric, 2> iq{};
     bool                   flux = std::abs(row.mu) == 2.0;
     if (flux) {
@@ -216,16 +216,16 @@ Numeric run(const fs::path& folder, const std::string& name) {
       Index j = -1;
       for (Index k = 0; k < static_cast<Index>(r.mu.size()); k++)
         if (std::abs(r.mu[k] - std::abs(row.mu)) < 6e-6) j = k;
-      require(j >= 0, std::format("{}: no stream at MU = {}", name, row.mu));
+      require(j >= 0, arts::format("{}: no stream at MU = {}", name, row.mu));
       const auto& rad = row.mu < 0 ? r.up : r.down;
       for (Index k = 0; k < 2; k++) iq[k] = rad[l, j, k];
     }
     const auto t = brightness_vh(iq[0] / per_um, iq[1] / per_um, st.wavelength, flux);
     for (Index k = 0; k < 2; k++) worst = std::max(worst, std::abs(t[k] - row.iquv[k]) / row.unit[k]);
   }
-  std::cout << std::format(
+  arts::println(
       "{}: RT4 (ARTS) with Evans' optics, {} {} streams, {} layers: {} brightness temperatures within {:.2f} unit(s) "
-      "of the last printed digit (0.01 K) of his table (tolerance 1)\n",
+      "of the last printed digit (0.01 K) of his table (tolerance 1)",
       name,
       st.nmu,
       st.quad == 'L' ? "Lobatto" : "Gauss",

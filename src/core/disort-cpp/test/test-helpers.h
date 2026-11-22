@@ -92,8 +92,7 @@ inline void compare(const std::string_view   name,
   const auto [flux_up_arts, flux_down_diffuse_arts, flux_down_direct_arts, dfdt_arts] = compute_flux(dis, taus);
   static_cast<void>(dfdt_arts);
 
-  std::print(std::cout,
-             R"(
+  arts::print(R"(
 u_arts:
 {0:B,}
 {5:B,}
@@ -114,16 +113,16 @@ flux_down_direct_arts:
 {4:B,}
 {9:B,}
 )",
-             u_arts.view_as(u_arts.size()),
-             u0_arts.view_as(u0_arts.size()),
-             flux_up_arts,
-             flux_down_diffuse_arts,
-             flux_down_direct_arts,
-             u.view_as(u.size()),
-             u0.view_as(u0.size()),
-             flux_up,
-             flux_down_diffuse,
-             flux_down_direct);
+              u_arts.view_as(u_arts.size()),
+              u0_arts.view_as(u0_arts.size()),
+              flux_up_arts,
+              flux_down_diffuse_arts,
+              flux_down_direct_arts,
+              u.view_as(u.size()),
+              u0.view_as(u0.size()),
+              flux_up,
+              flux_down_diffuse,
+              flux_down_direct);
 
   if (not is_good(u_arts, u)) arts::user_error("Failed u in test {}", name);
   if (not is_good(u0_arts, u0)) arts::user_error("Failed u0 in test {}", name);
@@ -139,7 +138,5 @@ inline void flat_print(const auto& a, const auto& b) {
   const auto av = a.flat_view();
   const auto bv = b.flat_view();
 
-  for (Index i = 0; i < a.size(); i++) {
-    std::cout << std::format("{} {} {} {}\n", i, av[i], bv[i], bv[i] / av[i] - 1);
-  }
+  for (Index i = 0; i < a.size(); i++) { arts::println("{} {} {} {}", i, av[i], bv[i], bv[i] / av[i] - 1); }
 }

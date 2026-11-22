@@ -134,14 +134,14 @@ void py_surf(py::module_ &m) try {
           [](const SurfaceData &surf, const Vector &latv, const Vector &lonv) {
             const Size N = latv.size();
             if (N != lonv.size())
-              throw std::logic_error(std::format(R"(Not same size:
+              throw std::logic_error(arts::format(R"(Not same size:
   lat: {:B,} (size: {})
   lon: {:B,} (size: {})
 )",
-                                                 latv,
-                                                 latv.size(),
-                                                 lonv,
-                                                 lonv.size()));
+                                                  latv,
+                                                  latv.size(),
+                                                  lonv,
+                                                  lonv.size()));
 
             Vector out(N);
             for (Size i = 0; i < N; i++) { out[i] = surf.at(latv[i], lonv[i]); }
@@ -203,7 +203,7 @@ void py_surf(py::module_ &m) try {
           "__getitem__",
           [](SurfacePoint &surf, const SurfaceKeyVal &x) {
             if (not surf.contains(x)) {
-              const auto error_message = std::format("{}", x);
+              const auto error_message = arts::format("{}", x);
               throw py::key_error(error_message.c_str());
             }
             return surf[x];
@@ -218,7 +218,7 @@ void py_surf(py::module_ &m) try {
          "__getitem__",
          [](SurfaceField &surf, const SurfaceKeyVal &x) -> Surf::Data & {
            if (not surf.contains(x)) {
-             const auto error_message = std::format("{}", x);
+             const auto error_message = arts::format("{}", x);
              throw py::key_error(error_message.c_str());
            }
            return surf[x];
@@ -237,14 +237,14 @@ void py_surf(py::module_ &m) try {
           [](const SurfaceField &surf, const Vector &latv, const Vector &lonv) {
             const Size N = latv.size();
             if (N != lonv.size())
-              throw std::logic_error(std::format(R"(Not same size:
+              throw std::logic_error(arts::format(R"(Not same size:
   lat: {:B,} (size: {})
   lon: {:B,} (size: {})
 )",
-                                                 latv,
-                                                 latv.size(),
-                                                 lonv,
-                                                 lonv.size()));
+                                                  latv,
+                                                  latv.size(),
+                                                  lonv,
+                                                  lonv.size()));
 
             Array<SurfacePoint> out(N);
             for (Size i = 0; i < N; i++) { out[i] = surf.at(latv[i], lonv[i]); }
@@ -294,17 +294,17 @@ void py_surf(py::module_ &m) try {
       [](const SubsurfaceField &atm, const Vector &hv, const Vector &latv, const Vector &lonv) {
         const Size N = hv.size();
         if (latv.size() != lonv.size() or N != latv.size())
-          throw std::logic_error(std::format(R"(Not same size:
+          throw std::logic_error(arts::format(R"(Not same size:
   h:   {:B,} (size: {})
   lat: {:B,} (size: {})
   lon: {:B,} (size: {})
 )",
-                                             hv,
-                                             hv.size(),
-                                             latv,
-                                             latv.size(),
-                                             lonv,
-                                             lonv.size()));
+                                              hv,
+                                              hv.size(),
+                                              latv,
+                                              latv.size(),
+                                              lonv,
+                                              lonv.size()));
         ArrayOfSubsurfacePoint out;
         out.reserve(N);
         for (Size i = 0; i < N; i++) out.emplace_back(atm.at(hv[i], latv[i], lonv[i]));
@@ -320,7 +320,7 @@ void py_surf(py::module_ &m) try {
           "__getitem__",
           [](SubsurfaceField &surf, const SubsurfaceKeyVal &x) -> SubsurfaceData & {
             if (not surf.contains(x)) {
-              const auto error_message = std::format("{}", x);
+              const auto error_message = arts::format("{}", x);
               throw py::key_error(error_message.c_str());
             }
             return surf[x];
@@ -338,7 +338,7 @@ void py_surf(py::module_ &m) try {
              "Properties of the subsurface point\n\n.. :class:`dict[SubsurfacePropertyTag, Numeric]`");
   ssp.def("__getitem__", [](SubsurfacePoint &self, const SubsurfaceKeyVal &key) {
     if (self.contains(key)) return self[key];
-    throw py::key_error(std::format("{}", key).c_str());
+    throw py::key_error(arts::format("{}", key).c_str());
   });
   ssp.def("__setitem__", [](SubsurfacePoint &self, const SubsurfaceKeyVal &key, Numeric x) { self[key] = x; });
   ssp.def("__contains__", [](const SubsurfacePoint &self, const SubsurfaceKeyVal &x) { return self.contains(x); });
@@ -411,6 +411,6 @@ void py_surf(py::module_ &m) try {
   generic_interface(assp);
   vector_interface(assp);
 } catch (std::exception &e) {
-  throw std::runtime_error(std::format("DEV ERROR:\nCannot initialize surf\n{}", e.what()));
+  throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize surf\n{}", e.what()));
 }
 }  // namespace Python

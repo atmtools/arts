@@ -120,11 +120,11 @@ void Agenda::finalize(bool fix) try {
   const auto [rut, fut]                     = missing_outputs(must_out, ins_first, outs_first, in_then_out);
 
   std::string error{};
-  if (not rin.empty()) error += std::format("Required input(s) {:B,} are instead output(s)\n", rin);
-  if (not rut.empty()) error += std::format("Required output(s) {:B,} are instead input(s)\n", rut);
+  if (not rin.empty()) error += arts::format("Required input(s) {:B,} are instead output(s)\n", rin);
+  if (not rut.empty()) error += arts::format("Required output(s) {:B,} are instead input(s)\n", rut);
   if (not fix) {
-    if (not fin.empty()) error += std::format("Must use {:B,} - set fix to ignore this error\n", fin);
-    if (not fut.empty()) error += std::format("Must set {:B,} - set fix to ignore this error\n", fut);
+    if (not fin.empty()) error += arts::format("Must use {:B,} - set fix to ignore this error\n", fin);
+    if (not fut.empty()) error += arts::format("Must set {:B,} - set fix to ignore this error\n", fut);
   }
   if (not error.empty()) throw std::runtime_error(error);
 
@@ -146,12 +146,12 @@ void Agenda::finalize(bool fix) try {
 
   checked = true;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(R"(Cannot finalize agenda "{}"
+  throw std::runtime_error(arts::format(R"(Cannot finalize agenda "{}"
 
 {}
 )",
-                                       name,
-                                       e.what()));
+                                        name,
+                                        e.what()));
 }
 
 void Agenda::set_name(const std::string& v, bool finalize_fix) {
@@ -168,7 +168,7 @@ void Agenda::share_workspace(Workspace& out, const Workspace& in) const try {
     if (not out.contains(str)) out.set(str, in.share(str));
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(
+  throw std::runtime_error(arts::format(
       R"(
 Cannot share workspace for "{}"
 
@@ -214,7 +214,7 @@ void Agenda::copy_workspace(Workspace& out, const Workspace& in) const try {
   handle.set(name);
   agenda_add_inner_logic(out, in, handle);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(
+  throw std::runtime_error(arts::format(
       R"(
 Cannot copy workspace for "{}"
 
@@ -236,7 +236,7 @@ void Agenda::copy_only_workspace(Workspace& out, const Workspace& in) const try 
     }
   }
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format(
+  throw std::runtime_error(arts::format(
       R"(
 Cannot copy only workspace in Agenda "{}"
 
@@ -254,10 +254,10 @@ void Agenda::execute(Workspace& ws) const {
     try {
       method(ws);
     } catch (std::exception& e) {
-      throw std::runtime_error(std::format(R"(Error executing method "{}":
+      throw std::runtime_error(arts::format(R"(Error executing method "{}":
 {})",
-                                           method.get_name(),
-                                           e.what()));
+                                            method.get_name(),
+                                            e.what()));
     }
   }
 }
@@ -279,11 +279,11 @@ Agenda::Agenda(std::string                     n,
 std::string Agenda::sphinx_list(const std::string_view prep) const {
   std::string out{};
 
-  for (auto& item : share) { out += std::format("{}Shares the global *{}*\n", prep, item); }
+  for (auto& item : share) { out += arts::format("{}Shares the global *{}*\n", prep, item); }
 
-  for (auto& item : copy) { out += std::format("{}Copies the global *{}*\n", prep, item); }
+  for (auto& item : copy) { out += arts::format("{}Copies the global *{}*\n", prep, item); }
 
-  for (auto& method : methods) { out += std::format("{}{}\n", prep, method.sphinx_list_item()); }
+  for (auto& method : methods) { out += arts::format("{}{}\n", prep, method.sphinx_list_item()); }
 
   return out;
 }
@@ -299,7 +299,7 @@ void Agenda::change_default(const std::string_view name, Wsv value) {
     }
   }
 
-  arts::user_error(std::format(R"(Agenda "{}" does not have a default input "{}")", this->name, name));
+  arts::user_error(arts::format(R"(Agenda "{}" does not have a default input "{}")", this->name, name));
 }
 
 void xml_io_stream<Agenda>::write(std::ostream& os, const Agenda& x, bofstream* pbofs, std::string_view name) {

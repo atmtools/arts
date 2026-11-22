@@ -60,7 +60,7 @@ Numeric scalar_phase_mode(const ConstVectorView& moments,
               Legendre::assoc_legendre(degree, m, outgoing_mu) * Legendre::assoc_legendre(degree, m, incident_mu);
   }
   return result;
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_phase_mode:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in scalar_phase_mode:\n{}", e.what())); }
 
 scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
                                        const Numeric          physical_omega,
@@ -156,7 +156,7 @@ scalar_vdisort_model make_scalar_model(const Numeric          physical_depth,
           .beam_intensity      = has_beam ? beam_intensity : 0.0,
           .delta_m_fraction    = delta_m_fraction,
           .optical_depth_scale = optical_depth_scale};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_scalar_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_scalar_model:\n{}", e.what())); }
 
 Numeric phi1_negative(const Numeric x) { return x == 0.0 ? 1.0 : -std::expm1(-x) / x; }
 
@@ -253,7 +253,7 @@ Vector scalar_delta_m_correction(const scalar_vdisort_model& model,
   }
   return correction;
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in scalar_delta_m_correction:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in scalar_delta_m_correction:\n{}", e.what()));
 }
 
 void run_problem_1_case(const disort_test::reference::single_layer_case& test) try {
@@ -275,24 +275,24 @@ void run_problem_1_case(const disort_test::reference::single_layer_case& test) t
   for (Index level = 0; level < 2; ++level) {
     model.solver.u_user(user, output_tau[level], 0.0, user_mu, model.user_phase, model.user_beam_phase);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
-      const auto label = std::format("{} radiance [{}, {}]", test.name, level, angle);
+      const auto label = arts::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle]);
       expect_unpolarized(label, user.intensities[angle]);
     }
 
     const auto values = model.solver.flux(flux, output_tau[level]);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+      expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_1:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_1:\n{}", e.what())); }
 
 void test_problem_1() try {
   for (const auto& test : disort_test::reference::problem_1) run_problem_1_case(test);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_1:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_1:\n{}", e.what())); }
 
 void run_problem_2_case(const disort_test::reference::single_layer_case& test) try {
   const auto& user_mu = disort_test::reference::problem_2_user_mu;
@@ -314,24 +314,24 @@ void run_problem_2_case(const disort_test::reference::single_layer_case& test) t
   for (Index level = 0; level < 2; ++level) {
     model.solver.u_user(user, output_tau[level], 0.0, user_mu, model.user_phase, model.user_beam_phase);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
-      const auto label = std::format("{} radiance [{}, {}]", test.name, level, angle);
+      const auto label = arts::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle]);
       expect_unpolarized(label, user.intensities[angle]);
     }
 
     const auto values = model.solver.flux(flux, output_tau[level]);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
+      expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), values.down_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), values.down_diffuse, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), values.up, test.up[level]);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_2:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_2:\n{}", e.what())); }
 
 void test_problem_2() try {
   for (const auto& test : disort_test::reference::problem_2) run_problem_2_case(test);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_2:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_2:\n{}", e.what())); }
 
 void run_problem_3_case(const disort_test::reference::single_layer_case& test) try {
   constexpr Index nquad   = disort_test::reference::problem_3_streams;
@@ -386,32 +386,32 @@ void run_problem_3_case(const disort_test::reference::single_layer_case& test) t
     const Vector correction = scalar_delta_m_correction(model, physical_tau, 0.0, user_mu);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
       const auto polarized = polarized_tms[angle] + polarized_ims[angle];
-      expect_reference(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
+      expect_reference(arts::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
                        polarized.I(),
                        correction[angle],
                        2e-7);
-      expect_unpolarized(std::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
+      expect_unpolarized(arts::format("{} polarized delta-M scalar reduction [{}, {}]", test.name, level, angle),
                          polarized);
-      const auto label = std::format("{} radiance [{}, {}]", test.name, level, angle);
+      const auto label = arts::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle]);
       expect_unpolarized(label, user.intensities[angle]);
     }
 
     const auto scaled_flux = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+      expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
     const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_3:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_3:\n{}", e.what())); }
 
 void test_problem_3() try {
   for (const auto& test : disort_test::reference::problem_3) run_problem_3_case(test);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_3:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_3:\n{}", e.what())); }
 
 void run_problem_4_case(const disort_test::reference::haze_l_case& test) try {
   constexpr Index nquad          = disort_test::reference::problem_4_streams;
@@ -441,7 +441,7 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) try {
       for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
         auto intensity    = user[level, azimuth, angle];
         intensity.I()    += correction[angle];
-        const auto label  = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+        const auto label  = arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
         expect_reference(label, intensity.I(), test.radiance[azimuth, level, angle]);
         expect_unpolarized(label, intensity);
       }
@@ -454,19 +454,19 @@ void run_problem_4_case(const disort_test::reference::haze_l_case& test) try {
     const Numeric scaled_tau   = model.optical_depth_scale * physical_tau;
     const auto    scaled_flux  = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+      expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
     const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_4:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_4:\n{}", e.what())); }
 
 void test_problem_4() try {
   for (const auto& test : disort_test::reference::problem_4) run_problem_4_case(test);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_4:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_4:\n{}", e.what())); }
 
 void run_problem_5_case(const disort_test::reference::scalar_case& test) try {
   constexpr Index nquad          = disort_test::reference::problem_5_streams;
@@ -492,27 +492,27 @@ void run_problem_5_case(const disort_test::reference::scalar_case& test) try {
     const Vector correction = scalar_delta_m_correction(model, physical_tau, 0.0, user_mu);
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
       user.intensities[angle].I() += correction[angle];
-      const auto label             = std::format("{} radiance [{}, {}]", test.name, level, angle);
+      const auto label             = arts::format("{} radiance [{}, {}]", test.name, level, angle);
       expect_reference(label, user.intensities[angle].I(), test.radiance[level, angle], 2e-4);
       expect_unpolarized(label, user.intensities[angle]);
     }
 
     const auto scaled_flux = model.solver.flux(flux, scaled_tau);
     for (Index stream = 0; stream < static_cast<Index>(flux.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
+      expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux.u0[stream]);
     const Numeric physical_direct = model.mu0 * model.beam_intensity * std::exp(-physical_tau / model.mu0);
     const Numeric diffuse_down    = scaled_flux.down_diffuse - (physical_direct - scaled_flux.down_direct);
-    expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+    expect_reference(arts::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
     expect_reference(
-        std::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
-    expect_reference(std::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
+        arts::format("{} diffuse-down flux [{}]", test.name, level), diffuse_down, test.diffuse_down[level]);
+    expect_reference(arts::format("{} up flux [{}]", test.name, level), scaled_flux.up, test.up[level]);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_5:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_5:\n{}", e.what())); }
 
 void test_problem_5() try {
   run_problem_5_case(disort_test::reference::problem_5a);
   run_problem_5_case(disort_test::reference::problem_5b);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_5:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_5:\n{}", e.what())); }
 
 Numeric band_blackbody_radiance(const Numeric temperature,
                                 const Numeric wavenumber_low,
@@ -533,7 +533,7 @@ Numeric band_blackbody_radiance(const Numeric temperature,
   return Constant::sigma * std::pow(temperature, 4) * Constant::inv_pi * integral /
          (Math::pow2(Constant::pi) * Math::pow2(Constant::pi) / 15.0);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in band_blackbody_radiance:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in band_blackbody_radiance:\n{}", e.what()));
 }
 
 //! The cosines of the upward streams of nquad streams
@@ -557,7 +557,7 @@ vdisort::surface_reflection scalar_surface(const disort::brdf::RawFunction& raw,
   Vector abs_mu_out{mu_out};
   stdr::transform(abs_mu_out, abs_mu_out.begin(), [](const Numeric mu) { return std::abs(mu); });
   return vdisort::brdf::depolarizing_fourier_modes(raw, number_of_modes, abs_mu_out, streams, mu0, 100);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in scalar_surface:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in scalar_surface:\n{}", e.what())); }
 
 //! A scalar BRDF's reflection between nquad streams, for the beam cosine mu0; none without a BRDF
 vdisort::surface_reflection stream_surface(const disort::brdf::RawFunction& raw,
@@ -567,7 +567,7 @@ vdisort::surface_reflection stream_surface(const disort::brdf::RawFunction& raw,
   if (not raw) return {};
   const Vector streams = upward_streams(nquad);
   return scalar_surface(raw, number_of_modes, streams, streams, mu0);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in stream_surface:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in stream_surface:\n{}", e.what())); }
 
 vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_source_case& test) try {
   constexpr Index nquad   = 16;
@@ -630,7 +630,7 @@ vdisort::main_data make_problem_6_model(const disort_test::reference::thermal_so
                                    test.beam_mu,
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_6_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_6_model:\n{}", e.what())); }
 
 void test_problem_6() try {
   for (Index case_index = 0; case_index < static_cast<Index>(disort_test::reference::problem_6.size()); ++case_index) {
@@ -642,9 +642,10 @@ void test_problem_6() try {
       const Numeric tau  = test.optical_depth == 0.0 ? 0.0 : test.output_tau[level];
       const auto    flux = model.flux(flux_data, tau);
       for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
-      expect_reference(std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
-      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+        expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+      expect_reference(
+          arts::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
+      expect_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                        flux.down_diffuse,
                        reference.diffuse_down[level],
                        1e-3);
@@ -652,12 +653,12 @@ void test_problem_6() try {
       // 6h's DFDT at the surface (a small difference of large terms) differs by 0.4%
       const Numeric thermal_brdf_tolerance = case_index >= 5 ? 1e-2 : 1e-3;
       expect_reference(
-          std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
+          arts::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], thermal_brdf_tolerance);
       expect_reference(
-          std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
+          arts::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], thermal_brdf_tolerance);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_6:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_6:\n{}", e.what())); }
 
 vdisort::main_data make_problem_7_model(const disort_test::reference::scattering_thermal_case& test) try {
   constexpr Index nstokes = vdisort::stokes_dimension;
@@ -723,7 +724,7 @@ vdisort::main_data make_problem_7_model(const disort_test::reference::scattering
                                    Vector{test.beam, 0.0, 0.0, 0.0},
                                    0.0,
                                    std::move(beam_phase));
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_7_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_7_model:\n{}", e.what())); }
 
 void expect_small_reference(const std::string_view name,
                             const Numeric          actual,
@@ -744,30 +745,32 @@ void test_problem_7() try {
     for (Index level = 0; level < static_cast<Index>(output_tau.size()); ++level) {
       const auto flux = model.flux(flux_data, output_tau[level]);
       for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+        expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
 
       if (case_index == 1) {
         expect_small_reference(
-            std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
-        expect_small_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+            arts::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level]);
+        expect_small_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                                flux.down_diffuse,
                                reference.diffuse_down[level]);
-        expect_small_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level]);
-        expect_small_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level]);
+        expect_small_reference(arts::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level]);
+        expect_small_reference(arts::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level]);
       } else {
         constexpr Numeric tolerance = 2e-3;
-        expect_reference(
-            std::format("{} direct flux [{}]", test.name, level), flux.down_direct, reference.direct[level], tolerance);
-        expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+        expect_reference(arts::format("{} direct flux [{}]", test.name, level),
+                         flux.down_direct,
+                         reference.direct[level],
+                         tolerance);
+        expect_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                          flux.down_diffuse,
                          reference.diffuse_down[level],
                          tolerance);
-        expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], tolerance);
-        expect_reference(std::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], tolerance);
+        expect_reference(arts::format("{} up flux [{}]", test.name, level), flux.up, reference.up[level], tolerance);
+        expect_reference(arts::format("{} DFDT [{}]", test.name, level), flux.dfdt, reference.dfdt[level], tolerance);
       }
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_7:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_7:\n{}", e.what())); }
 
 struct problem_8_model {
   vdisort::main_data         solver;
@@ -807,7 +810,7 @@ problem_8_model make_problem_8_model(const disort_test::reference::layered_isotr
                                           Vector(4, 0.0),
                                           0.0);
   return {.solver = std::move(solver), .user_phase = std::move(user_phase)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_8_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_8_model:\n{}", e.what())); }
 
 void test_problem_8() try {
   for (const auto& test : disort_test::reference::problem_8) {
@@ -823,8 +826,8 @@ void test_problem_8() try {
                           model.user_phase,
                           {});
       for (Index angle = 0; angle < static_cast<Index>(user.intensities.size()); ++angle) {
-        expect_unpolarized(std::format("{} radiance [{}, {}]", test.name, level, angle), user.intensities[angle]);
-        expect_reference(std::format("{} radiance [{}, {}]", test.name, level, angle),
+        expect_unpolarized(arts::format("{} radiance [{}, {}]", test.name, level, angle), user.intensities[angle]);
+        expect_reference(arts::format("{} radiance [{}, {}]", test.name, level, angle),
                          user.intensities[angle].I(),
                          test.radiance[level, angle],
                          2e-4);
@@ -832,14 +835,14 @@ void test_problem_8() try {
 
       const auto flux = model.solver.flux(flux_data, tau);
       for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
-      expect_reference(std::format("{} direct flux [{}]", test.name, level), flux.down_direct, test.direct[level]);
+        expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+      expect_reference(arts::format("{} direct flux [{}]", test.name, level), flux.down_direct, test.direct[level]);
       expect_reference(
-          std::format("{} diffuse-down flux [{}]", test.name, level), flux.down_diffuse, test.diffuse_down[level]);
-      expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, test.up[level]);
+          arts::format("{} diffuse-down flux [{}]", test.name, level), flux.down_diffuse, test.diffuse_down[level]);
+      expect_reference(arts::format("{} up flux [{}]", test.name, level), flux.up, test.up[level]);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_8:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_8:\n{}", e.what())); }
 
 struct problem_9_model {
   vdisort::main_data              solver;
@@ -864,7 +867,7 @@ Matrix problem_9_moments(const disort_test::reference::general_multilayer_case& 
             std::pow(disort_test::reference::problem_9c_asymmetry[layer], static_cast<Numeric>(degree));
   }
   return moments;
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in problem_9_moments:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in problem_9_moments:\n{}", e.what())); }
 
 problem_9_model make_problem_9_model(const disort_test::reference::general_multilayer_case& test,
                                      const Index                                            nquad,
@@ -962,7 +965,7 @@ problem_9_model make_problem_9_model(const disort_test::reference::general_multi
           .user_phase      = std::move(user_phase),
           .user_beam_phase = std::move(user_beam_phase),
           .user_surface    = std::move(user_surface)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_9_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_9_model:\n{}", e.what())); }
 
 void test_problem_9() try {
   for (const auto& test : disort_test::reference::problem_9) {
@@ -984,8 +987,8 @@ void test_problem_9() try {
       for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
         for (Index angle = 0; angle < static_cast<Index>(disort_test::reference::problem_9_user_mu.size()); ++angle) {
           const auto intensity = user[level, azimuth, angle];
-          expect_unpolarized(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle), intensity);
-          expect_reference(std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
+          expect_unpolarized(arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle), intensity);
+          expect_reference(arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle),
                            intensity.I(),
                            test.radiance[azimuth, level, angle],
                            test.thermal ? 1e-3 : reference_tolerance);
@@ -996,18 +999,18 @@ void test_problem_9() try {
     for (Index level = 0; level < static_cast<Index>(test.output_tau.size()); ++level) {
       const auto flux = model.solver.flux(flux_data, test.output_tau[level]);
       for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-        expect_unpolarized(std::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
+        expect_unpolarized(arts::format("{} flux field [{}, {}]", test.name, level, stream), flux_data.u0[stream]);
       const Numeric tolerance = test.thermal ? 1e-3 : reference_tolerance;
       expect_reference(
-          std::format("{} direct flux [{}]", test.name, level), flux.down_direct, test.direct[level], tolerance);
-      expect_reference(std::format("{} diffuse-down flux [{}]", test.name, level),
+          arts::format("{} direct flux [{}]", test.name, level), flux.down_direct, test.direct[level], tolerance);
+      expect_reference(arts::format("{} diffuse-down flux [{}]", test.name, level),
                        flux.down_diffuse,
                        test.diffuse_down[level],
                        tolerance);
-      expect_reference(std::format("{} up flux [{}]", test.name, level), flux.up, test.up[level], tolerance);
+      expect_reference(arts::format("{} up flux [{}]", test.name, level), flux.up, test.up[level], tolerance);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_9:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_9:\n{}", e.what())); }
 
 void test_problem_10() try {
   const auto& test  = disort_test::reference::problem_9[2];
@@ -1032,7 +1035,7 @@ void test_problem_10() try {
                           model.user_surface);
 
       for (Index angle = 0; angle < disort_test::reference::problem_10_streams; ++angle) {
-        const auto    label   = std::format("Problem 10 radiance [tau={}, phi={}, angle={}]", tau, phi, angle);
+        const auto    label   = arts::format("Problem 10 radiance [tau={}, phi={}, angle={}]", tau, phi, angle);
         const Numeric user_mu = disort_test::reference::problem_10_user_mu[angle];
         const Index   stream =
             static_cast<Index>(std::min_element(model.solver.mu().begin(),
@@ -1054,7 +1057,7 @@ void test_problem_10() try {
     expect_reference("Problem 10 upward flux", flux_after.up, flux_before.up, 1e-12);
     expect_reference("Problem 10 DFDT", flux_after.dfdt, flux_before.dfdt, 1e-12);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_10:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_10:\n{}", e.what())); }
 
 problem_9_model make_problem_11_model(const bool subdivided) try {
   constexpr Index nquad   = disort_test::reference::problem_11_streams;
@@ -1108,7 +1111,7 @@ problem_9_model make_problem_11_model(const bool subdivided) try {
                                             disort_test::reference::problem_11_user_mu,
                                             upward_streams(nquad),
                                             disort_test::reference::problem_11_beam_mu)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_11_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_11_model:\n{}", e.what())); }
 
 void test_problem_11() try {
   auto one_layer  = make_problem_11_model(false);
@@ -1134,7 +1137,7 @@ void test_problem_11() try {
                                {},
                                subdivided.user_surface);
       for (Index angle = 0; angle < static_cast<Index>(one_user.intensities.size()); ++angle) {
-        const auto label = std::format("Problem 11 radiance [phi={}, tau={}, angle={}]", phi, tau, angle);
+        const auto label = arts::format("Problem 11 radiance [phi={}, tau={}, angle={}]", phi, tau, angle);
         expect_unpolarized(label, one_user.intensities[angle]);
         expect_unpolarized(label, subdivided_user.intensities[angle]);
         for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
@@ -1147,18 +1150,18 @@ void test_problem_11() try {
   for (const Numeric tau : disort_test::reference::problem_11_output_tau) {
     const auto one  = one_layer.solver.flux(one_flux_data, tau);
     const auto many = subdivided.solver.flux(subdivided_flux_data, tau);
-    expect_reference(std::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-7);
-    expect_reference(std::format("Problem 11 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-7);
-    expect_reference(std::format("Problem 11 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-7);
-    expect_reference(std::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-7);
+    expect_reference(arts::format("Problem 11 upward flux [{}]", tau), many.up, one.up, 2e-7);
+    expect_reference(arts::format("Problem 11 diffuse-down flux [{}]", tau), many.down_diffuse, one.down_diffuse, 2e-7);
+    expect_reference(arts::format("Problem 11 direct-down flux [{}]", tau), many.down_direct, one.down_direct, 2e-7);
+    expect_reference(arts::format("Problem 11 DFDT [{}]", tau), many.dfdt, one.dfdt, 2e-7);
     for (Index stream = 0; stream < static_cast<Index>(one_flux_data.u0.size()); ++stream) {
-      expect_unpolarized(std::format("Problem 11 one-layer flux field [{}, {}]", tau, stream),
+      expect_unpolarized(arts::format("Problem 11 one-layer flux field [{}, {}]", tau, stream),
                          one_flux_data.u0[stream]);
-      expect_unpolarized(std::format("Problem 11 subdivided flux field [{}, {}]", tau, stream),
+      expect_unpolarized(arts::format("Problem 11 subdivided flux field [{}, {}]", tau, stream),
                          subdivided_flux_data.u0[stream]);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_11:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_11:\n{}", e.what())); }
 
 scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
   constexpr Index   nquad               = disort_test::reference::problem_12_streams;
@@ -1254,7 +1257,7 @@ scalar_vdisort_model make_problem_12_model(const bool subdivided) try {
                                                 disort_test::reference::problem_12_user_mu,
                                                 upward_streams(nquad),
                                                 disort_test::reference::problem_12_beam_mu)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_12_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_12_model:\n{}", e.what())); }
 
 void test_problem_12() try {
   auto        one_layer  = make_problem_12_model(false);
@@ -1288,7 +1291,7 @@ void test_problem_12() try {
     for (Index angle = 0; angle < static_cast<Index>(user_mu.size()); ++angle) {
       one_user.intensities[angle].I()        += one_correction[angle];
       subdivided_user.intensities[angle].I() += subdivided_correction[angle];
-      const auto label = std::format("Problem 12 radiance [tau={}, angle={}]", physical_tau, angle);
+      const auto label = arts::format("Problem 12 radiance [tau={}, angle={}]", physical_tau, angle);
       expect_unpolarized(label, one_user.intensities[angle]);
       expect_unpolarized(label, subdivided_user.intensities[angle]);
       for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
@@ -1297,20 +1300,20 @@ void test_problem_12() try {
 
     const auto one  = one_layer.solver.flux(one_flux_data, scaled_tau);
     const auto many = subdivided.solver.flux(subdivided_flux_data, scaled_tau);
-    expect_reference(std::format("Problem 12 upward flux [{}]", physical_tau), many.up, one.up, 2e-7);
+    expect_reference(arts::format("Problem 12 upward flux [{}]", physical_tau), many.up, one.up, 2e-7);
     expect_reference(
-        std::format("Problem 12 diffuse-down flux [{}]", physical_tau), many.down_diffuse, one.down_diffuse, 2e-7);
+        arts::format("Problem 12 diffuse-down flux [{}]", physical_tau), many.down_diffuse, one.down_diffuse, 2e-7);
     expect_reference(
-        std::format("Problem 12 direct-down flux [{}]", physical_tau), many.down_direct, one.down_direct, 2e-12);
-    expect_reference(std::format("Problem 12 DFDT [{}]", physical_tau), many.dfdt, one.dfdt, 2e-7);
+        arts::format("Problem 12 direct-down flux [{}]", physical_tau), many.down_direct, one.down_direct, 2e-12);
+    expect_reference(arts::format("Problem 12 DFDT [{}]", physical_tau), many.dfdt, one.dfdt, 2e-7);
     for (Index stream = 0; stream < static_cast<Index>(one_flux_data.u0.size()); ++stream) {
-      expect_unpolarized(std::format("Problem 12 one-layer flux field [{}, {}]", physical_tau, stream),
+      expect_unpolarized(arts::format("Problem 12 one-layer flux field [{}, {}]", physical_tau, stream),
                          one_flux_data.u0[stream]);
-      expect_unpolarized(std::format("Problem 12 subdivided flux field [{}, {}]", physical_tau, stream),
+      expect_unpolarized(arts::format("Problem 12 subdivided flux field [{}, {}]", physical_tau, stream),
                          subdivided_flux_data.u0[stream]);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_12:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_12:\n{}", e.what())); }
 
 vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_transmission_reference& test) try {
   constexpr Index   nquad   = disort_test::reference::problem_13_streams;
@@ -1374,7 +1377,7 @@ vdisort::main_data make_problem_13_model(const disort_test::reference::albedo_tr
                                    Vector{disort_test::reference::problem_13_beam, 0.0, 0.0, 0.0},
                                    0.0,
                                    std::move(beam_phase));
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_13_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_13_model:\n{}", e.what())); }
 
 void test_problem_13_boundary_limits() try {
   using namespace disort_test::reference;
@@ -1414,7 +1417,7 @@ void test_problem_13_boundary_limits() try {
   expect_reference("Problem 13 absorbing direct transmission", bottom.down_direct, bottom_beam, 2e-12);
   expect_reference("Problem 13 absorbing diffuse transmission", bottom.down_diffuse, 0.0, 2e-12);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test_problem_13_boundary_limits:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test_problem_13_boundary_limits:\n{}", e.what()));
 }
 
 void test_problem_13() try {
@@ -1426,16 +1429,17 @@ void test_problem_13() try {
     vdisort::flux_data flux_data;
     const auto         top = solver.flux(flux_data, 0.0);
     for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-      expect_unpolarized(std::format("Problem 13 top flux field [{}, {}]", test.name, stream), flux_data.u0[stream]);
+      expect_unpolarized(arts::format("Problem 13 top flux field [{}, {}]", test.name, stream), flux_data.u0[stream]);
     const auto bottom = solver.flux(flux_data, solver.tau().back());
     for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-      expect_unpolarized(std::format("Problem 13 bottom flux field [{}, {}]", test.name, stream), flux_data.u0[stream]);
-    expect_reference(std::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
-    expect_reference(std::format("{} transmission", test.name),
+      expect_unpolarized(arts::format("Problem 13 bottom flux field [{}, {}]", test.name, stream),
+                         flux_data.u0[stream]);
+    expect_reference(arts::format("{} albedo", test.name), top.up / incident_flux, test.albedo);
+    expect_reference(arts::format("{} transmission", test.name),
                      (bottom.down_direct + bottom.down_diffuse) / incident_flux,
                      test.transmission);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_13:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_13:\n{}", e.what())); }
 
 disort::brdf::RawFunction problem_14_raw(const disort_test::reference::brdf_type type) {
   using enum disort_test::reference::brdf_type;
@@ -1490,7 +1494,7 @@ problem_9_model make_problem_14_model(const disort::brdf::RawFunction& raw) try 
           .user_beam_phase = std::move(user_beam_phase),
           .user_surface =
               scalar_surface(raw, nmodes, user_mu, upward_streams(nquad), disort_test::reference::problem_14_beam_mu)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_14_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_14_model:\n{}", e.what())); }
 
 void update_scalar_brdf(problem_9_model&                 model,
                         const disort::brdf::RawFunction& raw,
@@ -1502,7 +1506,7 @@ void update_scalar_brdf(problem_9_model&                 model,
   model.user_surface = scalar_surface(raw, nmodes, user_mu, streams, mu0);
   model.solver.solve_for_coefs();
   model.solver.rad_field();
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in update_scalar_brdf:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in update_scalar_brdf:\n{}", e.what())); }
 
 void test_problem_14() try {
   using namespace disort_test::reference;
@@ -1513,7 +1517,7 @@ void test_problem_14() try {
     if (case_index != 0) update_scalar_brdf(model, raw, problem_14_streams, problem_14_user_mu, problem_14_beam_mu);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth)
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle)
-        expect_reference(std::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
+        expect_reference(arts::format("{} raw radiance [{}, {}]", test.name, azimuth, angle),
                          problem_14_beam_mu * raw(problem_14_user_mu[angle], problem_14_beam_mu, test.azimuth[azimuth]),
                          test.radiance[azimuth, angle],
                          2e-5);
@@ -1524,7 +1528,7 @@ void test_problem_14() try {
         user, tau, test.azimuth, problem_14_user_mu, model.user_phase, model.user_beam_phase, {}, model.user_surface);
     for (Index azimuth = 0; azimuth < static_cast<Index>(test.azimuth.size()); ++azimuth) {
       for (Index angle = 0; angle < static_cast<Index>(problem_14_user_mu.size()); ++angle) {
-        const auto label = std::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
+        const auto label = arts::format("{} solver radiance [{}, {}]", test.name, azimuth, angle);
         expect_unpolarized(label, user[0, azimuth, angle]);
         expect_reference(label, user[0, azimuth, angle].I(), test.radiance[azimuth, angle], 2e-5);
       }
@@ -1533,18 +1537,18 @@ void test_problem_14() try {
     vdisort::flux_data flux_data;
     const auto         values = model.solver.flux(flux_data, 0.0);
     for (Index stream = 0; stream < static_cast<Index>(flux_data.u0.size()); ++stream)
-      expect_unpolarized(std::format("{} flux field [{}]", test.name, stream), flux_data.u0[stream]);
-    expect_reference(std::format("{} direct flux", test.name), values.down_direct, test.direct);
-    expect_reference(std::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
-    expect_reference(std::format("{} upward flux", test.name), values.up, test.up, 2e-5);
-    expect_reference(std::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
+      expect_unpolarized(arts::format("{} flux field [{}]", test.name, stream), flux_data.u0[stream]);
+    expect_reference(arts::format("{} direct flux", test.name), values.down_direct, test.direct);
+    expect_reference(arts::format("{} diffuse-down flux", test.name), values.down_diffuse, test.diffuse_down);
+    expect_reference(arts::format("{} upward flux", test.name), values.up, test.up, 2e-5);
+    expect_reference(arts::format("{} DFDT", test.name), values.dfdt, test.dfdt, 2e-5);
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_14:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_14:\n{}", e.what())); }
 
 disort::brdf::RawFunction problem_15_raw(const disort_test::reference::brdf_type type) try {
   if (type == disort_test::reference::brdf_type::cox_munk) return disort::brdf::CoxMunk{.shadowing = true};
   return problem_14_raw(type);
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in problem_15_raw:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in problem_15_raw:\n{}", e.what())); }
 
 problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
                                       const Matrix&                    transport_moments,
@@ -1606,7 +1610,7 @@ problem_9_model make_problem_15_model(const disort::brdf::RawFunction& raw,
           .user_phase      = std::move(user_phase),
           .user_beam_phase = std::move(user_beam_phase),
           .user_surface = scalar_surface(raw, nmodes, problem_15_user_mu, upward_streams(nquad), problem_15_beam_mu)};
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in make_problem_15_model:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in make_problem_15_model:\n{}", e.what())); }
 
 void test_problem_15() try {
   using namespace disort_test::reference;
@@ -1686,7 +1690,7 @@ void test_problem_15() try {
         const auto corr = correction.evaluate(problem_15_output_tau[level], azimuth, model.user_beam_phase);
         for (Index angle = 0; angle < static_cast<Index>(problem_15_user_mu.size()); ++angle) {
           auto       intensity = user[level, azimuth, angle] + corr[angle];
-          const auto label     = std::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
+          const auto label     = arts::format("{} radiance [{}, {}, {}]", test.name, azimuth, level, angle);
           expect_unpolarized(label, intensity);
           expect_reference(label, intensity.I(), test.radiance[azimuth, level, angle]);
         }
@@ -1700,14 +1704,14 @@ void test_problem_15() try {
       const Numeric physical_direct =
           problem_15_beam_mu * problem_15_beam * std::exp(-physical_tau / problem_15_beam_mu);
       const Numeric physical_diffuse = values.down_diffuse - (physical_direct - values.down_direct);
-      expect_reference(std::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
+      expect_reference(arts::format("{} direct flux [{}]", test.name, level), physical_direct, test.direct[level]);
       expect_reference(
-          std::format("{} diffuse-down flux [{}]", test.name, level), physical_diffuse, test.diffuse_down[level]);
-      expect_reference(std::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
-      expect_reference(std::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
+          arts::format("{} diffuse-down flux [{}]", test.name, level), physical_diffuse, test.diffuse_down[level]);
+      expect_reference(arts::format("{} upward flux [{}]", test.name, level), values.up, test.up[level]);
+      expect_reference(arts::format("{} DFDT [{}]", test.name, level), values.dfdt, test.dfdt[level], 2e-6);
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_15:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_15:\n{}", e.what())); }
 
 void test_problem_17() try {
   using namespace disort_test::reference;
@@ -1724,7 +1728,7 @@ void test_problem_17() try {
     moments[0]         = *phase_moments[case_index];
     const auto scaling = disort::delta_m_plus(moments, problem_17_streams);
     expect_reference(
-        std::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
+        arts::format("{} delta-M-plus fraction", test.name), scaling.fraction[0], expected_fraction[case_index], 2e-5);
 
     Vector removed_peak_moments{scaling.moments[0]};
     auto   model = make_scalar_model(test.depth,
@@ -1738,7 +1742,7 @@ void test_problem_17() try {
                                      scaling.fraction[0],
                                      0.0,
                                      &removed_peak_moments);
-    expect_reference(std::format("{} scaled depth", test.name),
+    expect_reference(arts::format("{} scaled depth", test.name),
                      model.solver.tau().back(),
                      test.depth * (1.0 - scaling.fraction[0]),
                      2e-13);
@@ -1752,14 +1756,14 @@ void test_problem_17() try {
     for (Index level = 0; level < static_cast<Index>(physical_tau.size()); ++level) {
       for (Index azimuth = 0; azimuth < static_cast<Index>(problem_17_azimuth.size()); ++azimuth) {
         for (Index angle = 0; angle < static_cast<Index>(problem_17_user_mu.size()); ++angle) {
-          const auto label = std::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth);
+          const auto label = arts::format("{} radiance [{}, {}, {}]", test.name, level, angle, azimuth);
           expect_reference(label, user[level, azimuth, angle].I(), test.radiance[level, angle, azimuth]);
           expect_unpolarized(label, user[level, azimuth, angle]);
         }
       }
     }
   }
-} catch (std::exception& e) { throw std::runtime_error(std::format("Error in test_problem_17:\n{}", e.what())); }
+} catch (std::exception& e) { throw std::runtime_error(arts::format("Error in test_problem_17:\n{}", e.what())); }
 
 void test_polarized_delta_m_correction() try {
   rtepack::muelmat removed{0.0};
@@ -1802,17 +1806,17 @@ void test_polarized_delta_m_correction() try {
   const rtepack::muelmat ims_operator = 2.0 * removed - removed * removed;
   const rtepack::stokvec expected     = -scalar * ims_chi(tau, -user_mu, mu0 / (1.0 - omega_f)) * (ims_operator * beam);
   for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
-    expect_reference(std::format("Separated polarized delta-M TMS Stokes {}", stokes), tms[0][stokes], 0.0, 2e-12);
+    expect_reference(arts::format("Separated polarized delta-M TMS Stokes {}", stokes), tms[0][stokes], 0.0, 2e-12);
     expect_reference(
-        std::format("Separated polarized delta-M IMS Stokes {}", stokes), ims[0][stokes], expected[stokes], 2e-12);
+        arts::format("Separated polarized delta-M IMS Stokes {}", stokes), ims[0][stokes], expected[stokes], 2e-12);
     expect_reference(
-        std::format("Polarized delta-M IMS Stokes {}", stokes), actual[0][stokes], expected[stokes], 2e-12);
+        arts::format("Polarized delta-M IMS Stokes {}", stokes), actual[0][stokes], expected[stokes], 2e-12);
   }
 
   rtepack::stokvec_vector pythonic_ims;
   correction.IMS(pythonic_ims, tau, 0, vdisort::ims_convention::pythonic_disort);
   for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes)
-    expect_reference(std::format("Pythonic polarized delta-M IMS Stokes {}", stokes),
+    expect_reference(arts::format("Pythonic polarized delta-M IMS Stokes {}", stokes),
                      pythonic_ims[0][stokes],
                      -expected[stokes],
                      2e-12);
@@ -1824,11 +1828,11 @@ void test_polarized_delta_m_correction() try {
   correction.TMS(bottom_tms, depth, 0, {});
   correction.IMS(bottom_ims, depth, 0);
   for (Index stokes = 0; stokes < vdisort::stokes_dimension; ++stokes) {
-    expect_reference(std::format("Gridded polarized delta-M TMS Stokes {}", stokes),
+    expect_reference(arts::format("Gridded polarized delta-M TMS Stokes {}", stokes),
                      gridded_tms[0, 0, 0][stokes],
                      bottom_tms[0][stokes],
                      2e-12);
-    expect_reference(std::format("Gridded polarized delta-M IMS Stokes {}", stokes),
+    expect_reference(arts::format("Gridded polarized delta-M IMS Stokes {}", stokes),
                      gridded_ims[0, 0, 0][stokes],
                      bottom_ims[0][stokes],
                      2e-12);
@@ -1836,7 +1840,7 @@ void test_polarized_delta_m_correction() try {
   if (std::abs(actual[0].Q()) == 0.0 or std::abs(actual[0].U()) == 0.0 or std::abs(actual[0].V()) == 0.0)
     arts::user_error("Polarized delta-M IMS failed to generate all polarized Stokes components: {}", actual[0]);
 } catch (std::exception& e) {
-  throw std::runtime_error(std::format("Error in test_polarized_delta_m_correction:\n{}", e.what()));
+  throw std::runtime_error(arts::format("Error in test_polarized_delta_m_correction:\n{}", e.what()));
 }
 }  // namespace
 
