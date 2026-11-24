@@ -25,6 +25,8 @@
 
 bool AtmPoint::zero_wind() const noexcept { return stdr::all_of(wind, Cmp::eq<0>()); }
 
+Vector3 AtmPoint::effective_wind() const noexcept { return {wind[0] + rot_u, wind[1], wind[2]}; }
+
 bool AtmPoint::zero_mag() const noexcept { return stdr::all_of(mag, Cmp::eq<0>()); }
 
 bool Atm::is_wind(const Atm::KeyVal &key) {
@@ -135,6 +137,7 @@ Numeric AtmPoint::operator[](AtmKey x) const {
     case AtmKey::mag_u:  return mag[0];
     case AtmKey::mag_v:  return mag[1];
     case AtmKey::mag_w:  return mag[2];
+    case AtmKey::rot_u:  return rot_u;
   }
   std::unreachable();
 }
@@ -157,6 +160,7 @@ Numeric &AtmPoint::operator[](AtmKey x) {
     case AtmKey::mag_u:  return mag[0];
     case AtmKey::mag_v:  return mag[1];
     case AtmKey::mag_w:  return mag[2];
+    case AtmKey::rot_u:  return rot_u;
   }
   std::unreachable();
 }
@@ -547,6 +551,8 @@ void Point::check() {
   if (stdr::any_of(mag, isnan)) {
     errors.emplace_back(arts::format(" - Bad magnetic field [mag_u, mag_v, mag_w]: {:B,}", mag));
   }
+
+  if (std::isnan(rot_u)) { errors.emplace_back(arts::format(" - Bad rotation rot_u: {}", rot_u)); }
 
   if (stdr::any_of(specs | stdv::values, isnan) or stdr::any_of(specs | stdv::values, Cmp::lt(0.0))) {
     errors.emplace_back(arts::format(" - Bad species VMR: {:NB,}", specs));
@@ -1148,6 +1154,9 @@ std::string std::formatter<AtmPoint>::to_string(const AtmPoint &v) const {
                                  sep,
                                  R"("wind": )"sv,
                                  v.wind,
+                                 sep,
+                                 R"("rot_u": )"sv,
+                                 v.rot_u,
                                  sep);
 
   if (tags.short_str) {

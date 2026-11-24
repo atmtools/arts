@@ -34,6 +34,7 @@ def get_label(x, unit=''):
             case pyarts.arts.AtmKey.mag_u: return f"Magnetic field U [{unit}T]"
             case pyarts.arts.AtmKey.mag_v: return f"Magnetic field V [{unit}T]"
             case pyarts.arts.AtmKey.mag_w: return f"Magnetic field W [{unit}T]"
+            case pyarts.arts.AtmKey.rot_u: return f"Rotation U [{unit}m/s]"
 
     if isinstance(x, pyarts.arts.SpeciesEnum) or isinstance(x, pyarts.arts.SpeciesIsotope):
         return f"{x} [{vmr_scale(unit)}]"

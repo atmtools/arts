@@ -5,8 +5,8 @@ import itertools
 """
 Tests the internal wind jacobi with some limits considered
 
-Note that the perturbations cannot be tested for all zeroes as
-nor for both u and v zero. 
+The shift is linear in the wind, so the perturbations agree with the
+Jacobian for any wind, also when it is zero or vertical.
 """
 
 
@@ -14,7 +14,7 @@ ws = pyarts.Workspace()
 
 dx = 1e-2
 
-u = [10, 1, dx]
+u = [10, 1, dx, 0]
 v = [10, 1, 0]
 w = [10, 1, 0]
 z = [30, 0, 90, 180]
@@ -50,9 +50,7 @@ for e in itertools.product(u, v, w, z, a, f):
     print(f"Jacobian: {df}")
     print(f"Perturbed: {df_p}")
     print(f"Test {COUNT}")
-    assert np.allclose(df_p, df, rtol=1e-4) or np.allclose(
-        df @ df, df_p @ df_p, rtol=1e-12
-    )
+    assert np.allclose(df_p, df, rtol=1e-4)
     print()
 
     COUNT += 1

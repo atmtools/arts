@@ -89,6 +89,9 @@ The core operations on ``atm_point`` are:
 - ``atm_point.temperature``: The local :attr:`~pyarts3.arts.AtmPoint.temperature` [K] as a :class:`float`.
 - ``atm_point.mag``: The local magnetic field (:attr:`~pyarts3.arts.AtmPoint.mag`) as a :class:`~pyarts3.arts.Vector3` [T].
 - ``atm_point.wind``: The local wind field (:attr:`~pyarts3.arts.AtmPoint.wind`) as a :class:`~pyarts3.arts.Vector3` [m/s].
+- ``atm_point.rot_u``: The local eastward speed of the rotation of the planet (:attr:`~pyarts3.arts.AtmPoint.rot_u`) as a :class:`float` [m/s].
+  It is kept apart from the wind, which is relative to the rotating planet, and the two are added together for the Doppler shift.
+  See :func:`~pyarts3.workspace.Workspace.atm_fieldRigidPlanetRotation`.
 
 Shorthand graph for ``atm_point``:
 
@@ -105,6 +108,7 @@ Shorthand graph for ``atm_point``:
     "temperature" [ label = "atm_point.temperature" shape = "ellipse" ];
     "mag" [ label = "atm_point.mag" shape = "ellipse" ];
     "wind" [ label = "atm_point.wind" shape = "ellipse" ];
+    "rot_u" [ label = "atm_point.rot_u" shape = "ellipse" ];
     "float" [ label = "float" ];
     "Vector3" [ label = "Vector3" ];
     "Named data" -> "Access Operator" [ arrowhead = "none" ];
@@ -112,9 +116,11 @@ Shorthand graph for ``atm_point``:
     "Named data" -> "pressure" [ arrowhead = "none" ];
     "Named data" -> "mag" [ arrowhead = "none" ];
     "Named data" -> "wind" [ arrowhead = "none" ];
+    "Named data" -> "rot_u" [ arrowhead = "none" ];
     "Access Operator" -> "float";
     "pressure" -> "float";
     "temperature" -> "float";
+    "rot_u" -> "float";
     "mag" -> "Vector3";
     "wind" -> "Vector3";
   }
@@ -135,7 +141,8 @@ Each type of key is meant to represent a different type of atmospheric data.
 The following types of keys are available:
 
 - :class:`~pyarts3.arts.AtmKey`: Basic atmospheric data.
-  Defines temperature [K], pressure [Pa], wind [m/s], and magnetic [T] components.
+  Defines temperature [K], pressure [Pa], wind [m/s], and magnetic [T] components,
+  and the rotation of the planet [m/s].
 - :class:`~pyarts3.arts.SpeciesEnum`: Content of species.
   This most often means "volume mixing ratio" (VMR) but for historical reasons there are exceptions.
   VMRs need not sum up to 1 for practical reasons.
@@ -164,7 +171,7 @@ Shorthand graph for ``key`` of different types:
     "b2" [ label = "SpeciesIsotope" shape = "ellipse" ];
     "b3" [ label = "QuantumLevelIdentifier" shape = "ellipse" ];
     "b4" [ label = "ScatteringSpeciesProperty" shape = "ellipse" ];
-    "c0" [ label = "T, P, Mag, Wind" ];
+    "c0" [ label = "T, P, Mag, Wind, Rot" ];
     "c1" [ label = "VMR of O2, H2O, N2, CO2, ..." ];
     "c2" [ label = "Isotopologue ratios of O2-66, O2-67, H2O-161, H2O-162, ..." ];
     "c3" [ label = "Energy level distributions" ];

@@ -93,6 +93,23 @@ void py_atm_functional(py::module_ &m) {
   atm_functional_call(mf);
   mf.doc() = "A vector field component from the magnitude and direction of the field";
 
+  py::class_<Atm::RigidPlanetRotation> rpr(m, "AtmRigidPlanetRotation");
+  generic_interface(rpr);
+  rpr.def(
+         "__init__",
+         [](Atm::RigidPlanetRotation *x, Numeric period, Vector2 ell) {
+           new (x) Atm::RigidPlanetRotation{.period = period, .ell = ell};
+         },
+         "period"_a,
+         "ell"_a)
+      .def_rw("period",
+              &Atm::RigidPlanetRotation::period,
+              "The rotation period [s], negative for a retrograde rotation.\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw("ell", &Atm::RigidPlanetRotation::ell, "The ellipsoid [m].\n\n.. :class:`~pyarts3.arts.Vector2`");
+  atm_functional_call(rpr);
+  rpr.doc() =
+      "The eastward speed [m/s] of a rigidly rotating planet: its angular speed times the distance from its axis";
+
   py::class_<Atm::HydrostaticPressure> hp(m, "AtmHydrostaticPressure");
   generic_interface(hp);
   hp.def(py::init<Tensor3, const GeodeticField2 &, AscendingGrid, HydrostaticPressureOption>(),
@@ -356,6 +373,9 @@ do_scattering : bool
       .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("mag", &AtmPoint::mag, "Magnetic field [T]\n\n.. :class:`~pyarts3.arts.Vector3`")
       .def_rw("wind", &AtmPoint::wind, "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
+      .def_rw("rot_u",
+              &AtmPoint::rot_u,
+              "Eastward speed of the rotation [m/s], added to the wind for the Doppler shift\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("nlte",
               &AtmPoint::nlte,
               "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.Numeric]`")

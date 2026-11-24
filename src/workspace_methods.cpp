@@ -1087,9 +1087,22 @@ the existing ECS data unchanged.
       .desc =
           R"--(Applies wind shift to the *freq_grid* for the local frequency grid.
 
-Also sets *freq_wind_shift_jac*.
+The gas of *atm_point* moves with the wind and the rotation of the planet,
+:math:`\vec{v} = \left[u + u_{rot}, v, w\right]` with :math:`u_{rot}` its
+``rot_u``, see *atm_fieldRigidPlanetRotation*.  Each frequency is scaled by
 
-If the wind is 0 or nan, the *freq_grid* remains unchanged.
+.. math::
+    \eta = 1 - \frac{\vec{v} \cdot \hat{n}}{c},
+
+where :math:`\hat{n}` is the line-of-sight of *ray_point*, the direction of
+propagation, in the local east, north and up.
+
+Also sets *freq_wind_shift_jac* to
+:math:`\frac{1}{\eta} \frac{\partial \eta}{\partial \left[u, v, w\right]} = -\frac{\hat{n}}{\eta c}`,
+which is valid for any wind, also zero.
+
+If the wind and rotation are 0, the *freq_grid* remains unchanged.  If they
+are NaN, it remains unchanged and *freq_wind_shift_jac* is 0.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"freq_grid", "freq_wind_shift_jac"},
@@ -4077,13 +4090,13 @@ the first 5 dimensions are computed in parallel.
       .pass_workspace = true,
   };
 
-  wsm_data["atm_fieldWindIncludePlanetRotation"] = {
-      .desc      = R"(Add planetary rotation to the wind field u-component.
+  wsm_data["atm_fieldRigidPlanetRotation"] = {
+      .desc      = R"(Sets the rotation of the planet, ``rot_u`` of *atm_field*, to that of a rigid body.
 
-This is added as 
+The rotation is the eastward speed
 
 .. math::
-    \delta u = \frac{2 \pi}{R} \left(\frac{a}{\sqrt{1 - e^2 \sin^2\theta}} + z\right) \cos\theta,
+    u_{rot} = \frac{2 \pi}{R} \left(\frac{a}{\sqrt{1 - e^2 \sin^2\theta}} + z\right) \cos\theta,
 
 where
 :math:`R` is the rotation period of the planet,
@@ -4091,6 +4104,18 @@ where
 :math:`a` is the equatorial radius of the planet,
 :math:`e` is the eccentricity of the planet, and
 :math:`z` is the altitude.
+This is the distance from the axis of the planet times its angular speed,
+at every latitude and altitude, also when the rest of *atm_field* is a
+profile.  It replaces any ``rot_u`` of *atm_field* by a
+:class:`~pyarts3.arts.AtmRigidPlanetRotation`, with the ellipsoid of
+*surf_field*, which can be saved with *atm_field*.
+
+The rotation is added to the wind for the Doppler shift, see
+*freq_gridWindShift*, so the wind is that relative to the rotating planet.
+The wind is what *jac_targetsAddWindField* retrieves.  The rotation cannot
+be retrieved.
+
+A negative period is a retrograde rotation.
 )",
       .author    = {"Patrick Eriksson", "Richard Larsson"},
       .out       = {"atm_field"},
@@ -4115,6 +4140,7 @@ data.  The base data file names are of the form
 - "<...>mag_u.xml"
 - "<...>mag_v.xml"
 - "<...>mag_w.xml"
+- "<...>rot_u.xml"
 
 If any of these files are found, they are appended to the atmospheric field.
 
@@ -6771,9 +6797,9 @@ Additional work is requires if proper coverage of the limb is required
           R"(Turns profile data into path data.
 
 A point of *ray_path* at an altitude of *alt_grid* takes the atmospheric
-point of that altitude from *atm_profile*, but with the wind of *atm_field*
-at its own position.  Its frequency grid is *freq_grid*
-shifted by that wind, see *freq_gridWindShift*.  The propagation matrices,
+point of that altitude from *atm_profile*, but with the wind and rotation of
+*atm_field* at its own position.  Its frequency grid is *freq_grid*
+shifted by that wind and rotation, see *freq_gridWindShift*.  The propagation matrices,
 the non-LTE source vectors and their derivatives of that altitude are
 interpolated linearly from *freq_grid_profile* to the shifted frequencies.
 The frequency derivatives of the wind targets are then turned into wind
@@ -6797,8 +6823,8 @@ where :math:`\Delta f_e` is ``f_extrapolfac``.  Set it to an infinite value to
 extrapolate linearly to any frequency.
 
 Only valid when local spectral properties are identical in all directions,
-and when the atmosphere, except for its wind, is the same at all latitudes
-and longitudes.  Polarization is not possible with this method.
+and when the atmosphere, except for its wind and rotation, is the same at
+all latitudes and longitudes.  Polarization is not possible with this method.
 
 A point inside *alt_grid* but between its altitudes, such as the tangent
 point of a limb path, is not in the profile.  Its atmospheric point and
@@ -6868,17 +6894,17 @@ respective internal altitude grids will contain the surface elevation as a grid 
           R"(Computes the propagation matrices of a profile, once per altitude of *alt_grid*.
 
 The atmosphere of the profile, *atm_profile*, is *atm_field* at *alt_grid*,
-*lat* and *lon*, but without wind.  *alt_grid* must cover the atmosphere from
-the surface of *surf_field* at *lat* and *lon* to the top of *atm_field*.  The
-propagation matrices, the non-LTE source vectors and their derivatives are
-computed for it by *spectral_propmat_agenda* on *freq_grid_profile*.
-*Profile2Path* turns them into path data, with the wind of *atm_field* at each
-point of the path.
+*lat* and *lon*, but without wind and rotation.  *alt_grid* must cover the
+atmosphere from the surface of *surf_field* at *lat* and *lon* to the top of
+*atm_field*.  The propagation matrices, the non-LTE source vectors and their
+derivatives are computed for it by *spectral_propmat_agenda* on
+*freq_grid_profile*.  *Profile2Path* turns them into path data, with the wind
+and rotation of *atm_field* at each point of the path.
 
 *freq_grid_profile* is *freq_grid* with points added beyond both ends, so that
-*Profile2Path* can shift *freq_grid* by the wind.  The largest shift is by the
-strongest wind of *atm_field* at the altitudes of the profile, as if it blew
-along the line of sight.  For a
+*Profile2Path* can shift *freq_grid* by the wind and rotation.  The largest
+shift is by the strongest wind and rotation of *atm_field* at the altitudes of
+the profile, as if they blew along the line of sight.  For a
 wind speed :math:`v`, the added points continue the spacing at either end of
 *freq_grid* until they cover :math:`f_0 \left(1 - v / c\right)` below its first
 frequency :math:`f_0` and :math:`f_n \left(1 + v / c\right)` above its last

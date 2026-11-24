@@ -410,7 +410,8 @@ values in relevant calculations.  Or it might simply disable a functionality.
                           Value{"wind_w", "WindW", "Wind field W-component [m/s]"},
                           Value{"mag_u", "MagU", "Magnetic field U-component [T]"},
                           Value{"mag_v", "MagV", "Magnetic field V-component [T]"},
-                          Value{"mag_w", "MagW", "Magnetic field W-component [T]"}},
+                          Value{"mag_w", "MagW", "Magnetic field W-component [T]"},
+                          Value{"rot_u", "RotU", "Rotation U-component [m/s], added to wind_u for the Doppler shift"}},
   });
 
   opts.emplace_back(EnumeratedOption{

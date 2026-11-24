@@ -521,6 +521,13 @@ void Targets::finalize(const AtmField&        atm_field,
     }
   });
 
+  if (stdr::any_of(atm, Cmp::eq(AtmKey::rot_u), &AtmTarget::type))
+    arts::user_error(R"(rot_u cannot be a target.
+
+The rotation of the planet is added to the wind for the Doppler shift, but it
+is not retrieved.  Retrieve the wind, which is relative to the rotation.
+)");
+
   for (auto& t : atm) {
     if (not overlaps(atm, t)) continue;
 

@@ -75,6 +75,9 @@ struct Point {
   Vector3 wind{0, 0, 0};
   Vector3 mag{0, 0, 0};
 
+  //! The eastward speed of the rotation of the planet, kept apart from wind, see effective_wind
+  Numeric rot_u{0};
+
   Point(const IsoRatioOption);
   Point(Numeric pressure, Numeric temperature);
   Point();
@@ -141,6 +144,9 @@ struct Point {
   [[nodiscard]] static constexpr Index nother() { return static_cast<Index>(enumsize::AtmKeySize); }
 
   [[nodiscard]] bool zero_wind() const noexcept;
+
+  //! The wind with the rotation added, the motion that shifts the frequencies
+  [[nodiscard]] Vector3 effective_wind() const noexcept;
 
   [[nodiscard]] bool zero_mag() const noexcept;
 
