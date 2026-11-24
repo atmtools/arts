@@ -295,7 +295,7 @@ void ProfileFromAltitude(const Workspace&        ws,
                                                  }),
                                                  0.0,
                                                  [](Numeric a, Numeric b) { return std::max(a, b); });
-  freq_grid_profile = wind_extended(freq_grid, max_wind_speed);
+  freq_grid_profile            = wind_extended(freq_grid, max_wind_speed);
 
   // The profile is of a still atmosphere, Profile2Path takes the wind and rotation of each path point from atm_field
   for (AtmPoint& atm_point : atm_profile) {

@@ -14,9 +14,8 @@ void wind_shift(VectorView                  freq_grid,
   const auto [za, aa] = ray_point.los;
 
   // The direction of propagation in the local east, north and up, the frame of the wind
-  const Vector3 los{Conversion::sind(za) * Conversion::sind(aa),
-                    Conversion::sind(za) * Conversion::cosd(aa),
-                    Conversion::cosd(za)};
+  const Vector3 los{
+      Conversion::sind(za) * Conversion::sind(aa), Conversion::sind(za) * Conversion::cosd(aa), Conversion::cosd(za)};
 
   const Numeric fac = 1.0 - dot(wind, los) / c;
 
@@ -42,7 +41,7 @@ ray_point.los:   {:B,}
 
   // fac is linear in the wind, so its derivative is the same for any wind.  The rotation is not a variable
   // of the wind, so the derivatives with respect to wind_u, wind_v and wind_w are those of fac
-  freq_wind_shift_jac = los;
+  freq_wind_shift_jac  = los;
   freq_wind_shift_jac /= -c * fac;
 }
 }  // namespace

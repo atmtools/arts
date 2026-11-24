@@ -29,7 +29,7 @@ template <> struct xml_io_stream_name<NumericTernary> {
 };
 
 template <> struct xml_io_stream_functional<NumericTernary> {
-  using func_t = Numeric (*)(Numeric, Numeric, Numeric);
+  using func_t    = Numeric (*)(Numeric, Numeric, Numeric);
   using structs_t = std::variant<Atm::IGRF,
                                  Atm::SchmidthLegendre,
                                  Atm::HydrostaticPressure,

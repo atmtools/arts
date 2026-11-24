@@ -373,9 +373,10 @@ do_scattering : bool
       .def_rw("pressure", &AtmPoint::pressure, "Pressure [Pa]\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("mag", &AtmPoint::mag, "Magnetic field [T]\n\n.. :class:`~pyarts3.arts.Vector3`")
       .def_rw("wind", &AtmPoint::wind, "Wind field [m/s]\n\n.. :class:`~pyarts3.arts.Vector3`")
-      .def_rw("rot_u",
-              &AtmPoint::rot_u,
-              "Eastward speed of the rotation [m/s], added to the wind for the Doppler shift\n\n.. :class:`~pyarts3.arts.Numeric`")
+      .def_rw(
+          "rot_u",
+          &AtmPoint::rot_u,
+          "Eastward speed of the rotation [m/s], added to the wind for the Doppler shift\n\n.. :class:`~pyarts3.arts.Numeric`")
       .def_rw("nlte",
               &AtmPoint::nlte,
               "NLTE data\n\n.. :class:`dict[~pyarts3.arts.QuantumIdentifier, ~pyarts3.arts.Numeric]`")
