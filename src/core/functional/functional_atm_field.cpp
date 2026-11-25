@@ -1,5 +1,7 @@
 #include "functional_atm_field.h"
 
+#include <arts_constants.h>
+#include <arts_conversions.h>
 #include <geodetic.h>
 
 #include <utility>
@@ -47,5 +49,9 @@ std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt, Numeric la
   }
 
   return out;
+}
+
+Numeric RigidPlanetRotation::operator()(Numeric alt, Numeric lat, Numeric) const {
+  return Constant::two_pi / period * Conversion::cosd(lat) * (prime_vertical_radius(ell, lat) + alt);
 }
 }  // namespace Atm

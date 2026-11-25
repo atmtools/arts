@@ -881,6 +881,7 @@ void compute_derivative(PropmatVectorView        dpm,
         dsv[i] += {dsv_pm.A(), dsv_pm.B(), dsv_pm.C(), dsv_pm.D()};
       }
       break;
+    case rot_u: break;  // Not a target, see Jacobian::Targets::finalize
   }
 }
 

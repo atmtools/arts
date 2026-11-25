@@ -158,7 +158,7 @@ An atmospheric field holds two things:
 
 #. A virtual map of *AtmData*.  The available types of keys are:
 
-   #. *AtmKey* - holds basic data temperature, pressure, wind, and magnetic field.
+   #. *AtmKey* - holds basic data temperature, pressure, wind, magnetic field, and the rotation of the planet.
 
    #. *SpeciesEnum* - holds volume mixing ratios of absorption species.  Some species might have a different unit.
 
@@ -179,8 +179,9 @@ at a single altitude-latitude-longitude coordinate.
 It, like *AtmField* also acts like a map.  They keys are the same as for *AtmField*. However,
 the values are simply the *Numeric* data at that point in the atmosphere.
 
-Always holds an acceptable representation of temperature, pressure, wind, and magnetic field,
-although these might be 0 or NaN.
+Always holds an acceptable representation of temperature, pressure, wind, magnetic field,
+and the rotation of the planet, although these might be 0 or NaN.  The wind and the rotation
+are kept apart, and are added together for the Doppler shift, see *freq_gridWindShift*.
 
 See *AtmField* for the type of data that the atmospheric point can
 contain.

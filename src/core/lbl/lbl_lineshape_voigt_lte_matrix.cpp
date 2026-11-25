@@ -632,6 +632,7 @@ void prepare_with_atmjac_line(MatrixView&             mat,
               case wind_u: [[fallthrough]];
               case wind_v: [[fallthrough]];
               case wind_w: break;
+              case rot_u:  break;  // Not a target, see Jacobian::Targets::finalize
             }
           } else if constexpr (std::same_as<T, SpeciesEnum>) {
             const Numeric drx = jac == absorber ? Constant::inv_sqrt_pi * isotr : 0.0;

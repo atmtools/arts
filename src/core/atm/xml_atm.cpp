@@ -15,6 +15,7 @@ void xml_io_stream<AtmPoint>::read(std::istream& is, AtmPoint& v, bifstream* pbi
   xml_read_from_stream(is, v.temperature, pbifs);
   xml_read_from_stream(is, v.wind, pbifs);
   xml_read_from_stream(is, v.mag, pbifs);
+  xml_read_from_stream(is, v.rot_u, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
@@ -32,6 +33,7 @@ void xml_io_stream<AtmPoint>::write(std::ostream& os, const AtmPoint& v, bofstre
   xml_write_to_stream(os, v.temperature, pbofs, "temperature"sv);
   xml_write_to_stream(os, v.wind, pbofs, "wind field"sv);
   xml_write_to_stream(os, v.mag, pbofs, "magnetic field"sv);
+  xml_write_to_stream(os, v.rot_u, pbofs, "rotation"sv);
 
   tag.write_to_end_stream(os);
 }

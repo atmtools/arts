@@ -1325,6 +1325,7 @@ void compute_derivative(PropmatVectorView        dpm,
             zeeman::scale(com_data.npm, com_data.dscl[i] * com_data.shape[i] + com_data.scl[i] * com_data.dshape[i]);
       }
       return;
+    case rot_u: return;  // Not a target, see Jacobian::Targets::finalize
   }
 }
 
@@ -1585,6 +1586,7 @@ void compute_derivative(ComplexVectorView dp,
       std::transform(
           f_grid.begin(), f_grid.end(), dp.begin(), dp.begin(), [&shp](auto f, auto d) { return shp.df(f) + d; });
     } break;
+    case rot_u: break;  // Not a target, see Jacobian::Targets::finalize
   }
 }
 

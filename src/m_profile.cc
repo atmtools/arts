@@ -10,13 +10,12 @@
 namespace {
 constexpr std::array wind_keys{AtmKey::wind_u, AtmKey::wind_v, AtmKey::wind_w};
 
-//! The wind of atm_field at pos, zero for the components it does not contain
-Vector3 wind_at(const AtmField& atm_field, const Vector3& pos) {
-  Vector3 wind{0.0, 0.0, 0.0};
+//! Sets the wind and rotation of atm_point to those of atm_field at pos, zero for the keys it does not contain
+void set_motion(AtmPoint& atm_point, const AtmField& atm_field, const Vector3& pos) {
   for (Size i = 0; i < wind_keys.size(); i++) {
-    if (atm_field.contains(wind_keys[i])) wind[i] = atm_field[wind_keys[i]].at(pos);
+    atm_point.wind[i] = atm_field.contains(wind_keys[i]) ? atm_field[wind_keys[i]].at(pos) : 0.0;
   }
-  return wind;
+  atm_point.rot_u = atm_field.contains(AtmKey::rot_u) ? atm_field[AtmKey::rot_u].at(pos) : 0.0;
 }
 
 /*! freq_grid with points added beyond both ends, so that it covers the shift by a wind of speed max_wind_speed
@@ -215,10 +214,10 @@ void Profile2Path(ArrayOfSpectralPropmat&            spectral_propmat_path,
       const Size ip = ips[i];
       if (ip == outside) continue;
 
-      // A point at an altitude of the profile has the atmosphere of the profile, but with its own wind
+      // A point at an altitude of the profile has the atmosphere of the profile, but with its own wind and rotation
       if (ip != between) {
-        atm_path[i]      = atm_profile[ip];
-        atm_path[i].wind = wind_at(atm_field, ray_path[i].pos);
+        atm_path[i] = atm_profile[ip];
+        set_motion(atm_path[i], atm_field, ray_path[i].pos);
 
         freq_gridWindShift(freq_grid_path[i] = freq_grid, freq_wind_shift_jac_path[i], atm_path[i], ray_path[i]);
       }
@@ -289,15 +288,20 @@ void ProfileFromAltitude(const Workspace&        ws,
 
   atm_pathFromPath(atm_profile, ray_path, atm_field);
 
-  // The largest shift is by the strongest wind of the profile, as if it blew along the line of sight
-  const Numeric max_wind_speed = stdr::fold_left(
-      atm_profile | stdv::transform([](const AtmPoint& p) { return std::hypot(p.wind[0], p.wind[1], p.wind[2]); }),
-      0.0,
-      [](Numeric a, Numeric b) { return std::max(a, b); });
-  freq_grid_profile = wind_extended(freq_grid, max_wind_speed);
+  // The largest shift is by the strongest wind and rotation of the profile, as if they blew along the line of sight
+  const Numeric max_wind_speed = stdr::fold_left(atm_profile | stdv::transform([](const AtmPoint& p) {
+                                                   const Vector3 wind = p.effective_wind();
+                                                   return std::hypot(wind[0], wind[1], wind[2]);
+                                                 }),
+                                                 0.0,
+                                                 [](Numeric a, Numeric b) { return std::max(a, b); });
+  freq_grid_profile            = wind_extended(freq_grid, max_wind_speed);
 
-  // The profile is of a still atmosphere, Profile2Path takes the wind of each path point from atm_field
-  for (AtmPoint& atm_point : atm_profile) atm_point.wind = {0.0, 0.0, 0.0};
+  // The profile is of a still atmosphere, Profile2Path takes the wind and rotation of each path point from atm_field
+  for (AtmPoint& atm_point : atm_profile) {
+    atm_point.wind  = {0.0, 0.0, 0.0};
+    atm_point.rot_u = 0.0;
+  }
 
   // The propagation matrices are computed without wind.  With a wind shift Jacobian of one, spectral_propmatWindFix
   // multiplies the frequency derivatives of the wind targets by the frequency, which is undone below to keep them

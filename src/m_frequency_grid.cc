@@ -8,36 +8,27 @@ void wind_shift(VectorView                  freq_grid,
   constexpr Numeric c = Constant::speed_of_light;
 
   // The line-of-sight of a path point is the direction of propagation, towards the observer.  Gas moving
-  // along it approaches the observer, so a line is seen at a higher frequency than in the frame of the gas
-  const auto& [u, v, w] = atm_point.wind;
-  const auto [za, aa]   = ray_point.los;
+  // along it approaches the observer, so a line is seen at a higher frequency than in the frame of the gas.
+  // The gas moves with the wind and the rotation of the planet.
+  const Vector3 wind  = atm_point.effective_wind();
+  const auto [za, aa] = ray_point.los;
 
-  const Numeric u2v2 = u * u + v * v;
-  const Numeric w2   = w * w;
-  const Numeric f2   = u2v2 + w2;
-  const Numeric f    = std::sqrt(f2);
-  const Numeric za_f = f == w ? 0.0 : std::acos(w / f);
-  const Numeric aa_f = std::atan2(u, v);
-  const Numeric za_p = Conversion::deg2rad(za);
-  const Numeric aa_p = Conversion::deg2rad(aa);
-  const Numeric scl  = f2 * std::sqrt(f2 - w2);
-  const Numeric czaf = std::cos(za_f);
-  const Numeric szaf = std::sin(za_f);
-  const Numeric czap = std::cos(za_p);
-  const Numeric szap = std::sin(za_p);
-  const Numeric caa  = std::cos(aa_f - aa_p);
-  const Numeric saa  = std::sin(aa_p - aa_f);
-  const Numeric dp   = czaf * czap + szaf * szap * caa;
-  const Numeric fac  = 1.0 - (f * dp) / c;
+  // The direction of propagation in the local east, north and up, the frame of the wind
+  const Vector3 los{
+      Conversion::sind(za) * Conversion::sind(aa), Conversion::sind(za) * Conversion::cosd(aa), Conversion::cosd(za)};
+
+  const Numeric fac = 1.0 - dot(wind, los) / c;
 
   if (fac <= 0)
     arts::user_error(R"(Negative frequency scaling factor: {}
 
-atm_point.wind: {:B,}
-ray_point.los:  {:B,}
+atm_point.wind:  {:B,}
+atm_point.rot_u: {}
+ray_point.los:   {:B,}
 )",
                      fac,
                      atm_point.wind,
+                     atm_point.rot_u,
                      ray_point.los);
 
   //! Zero shift if nan
@@ -46,38 +37,12 @@ ray_point.los:  {:B,}
     return;
   }
 
-  // shift the frequency grid
-  {
-    stdr::transform(freq_grid, freq_grid.begin(), [fac](const Numeric& f) { return fac * f; });
-  }
+  stdr::transform(freq_grid, freq_grid.begin(), [fac](const Numeric& f) { return fac * f; });
 
-  {
-    const Numeric df_du    = (f == 0) ? 1.0 : u / f;
-    const Numeric dczaf_du = (f2 == 0) ? 0.0 : (-w * df_du / f2);
-    const Numeric dszaf_du = (f2 == w2) ? 0.0 : (w2 * df_du / scl);
-    const Numeric dcaa_du  = (u2v2 == 0) ? 0.0 : (v * saa / u2v2);
-    const Numeric ddp_du   = czap * dczaf_du + szap * caa * dszaf_du + szap * szaf * dcaa_du;
-    freq_wind_shift_jac[0] = -(dp * df_du + f * ddp_du) / c;
-  }
-
-  {
-    const Numeric df_dv    = (f == 0) ? 1.0 : v / f;
-    const Numeric dczaf_dv = (f2 == 0) ? 0.0 : (-w * df_dv / f2);
-    const Numeric dszaf_dv = (f2 == w2) ? 0.0 : (w2 * df_dv / scl);
-    const Numeric dcaa_dv  = (u2v2 == 0) ? 0.0 : (-u * saa / u2v2);
-    const Numeric ddp_dv   = czap * dczaf_dv + szap * caa * dszaf_dv + szap * szaf * dcaa_dv;
-    freq_wind_shift_jac[1] = -(dp * df_dv + f * ddp_dv) / c;
-  }
-
-  {
-    const Numeric df_dw    = (f == 0) ? 1.0 : w / f;
-    const Numeric dczaf_dw = (f2 == 0) ? 0.0 : (-w * df_dw / f2 + 1.0 / f);
-    const Numeric dszaf_dw = (scl == 0) ? 0.0 : ((w2 * df_dw - f * w) / scl);
-    const Numeric ddp_dw   = czap * dczaf_dw + szap * caa * dszaf_dw;
-    freq_wind_shift_jac[2] = -(dp * df_dw + f * ddp_dw) / c;
-  }
-
-  freq_wind_shift_jac /= fac;
+  // fac is linear in the wind, so its derivative is the same for any wind.  The rotation is not a variable
+  // of the wind, so the derivatives with respect to wind_u, wind_v and wind_w are those of fac
+  freq_wind_shift_jac  = los;
+  freq_wind_shift_jac /= -c * fac;
 }
 }  // namespace
 
