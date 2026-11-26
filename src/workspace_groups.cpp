@@ -415,6 +415,10 @@ A sub-surface field effectively holds two things:
 
 #. A *Numeric* of the deepest depth of the subsurface.  Unit: m
 
+The vertical coordinate of the subsurface is the altitude relative to the
+local surface, i.e., the surface elevation of the *SurfaceField*: it is 0 at
+the surface and negative below it.  The deepest depth is in this coordinate.
+
 #. A map of *SubsurfaceData*.  The available types of keys are:
 
    #. *SubsurfaceKey*

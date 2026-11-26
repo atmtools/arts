@@ -159,6 +159,7 @@ struct Data {
   [[nodiscard]] bool ok() const;
 };
 
+//! The subsurface; its vertical coordinate is the altitude relative to the local surface, 0 there and negative below
 struct Field final {
   std::unordered_map<SubsurfaceKey, Data>         other;
   std::unordered_map<SubsurfacePropertyTag, Data> props;

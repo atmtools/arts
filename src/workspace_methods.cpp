@@ -6786,10 +6786,15 @@ Additional work is requires if proper coverage of the limb is required
   wsm_data["subsurf_profileFromPath"] = {
       .desc =
           R"(Extract a subsurface profile from a ray path.
+
+The ray path is at altitudes, while *subsurf_field* is a function of the
+altitude relative to the local surface, the surface elevation of
+*surf_field*.  The profile at a ray path point is therefore the subsurface
+field at the altitude of the point minus the surface elevation there.
 )",
       .author = {"Richard Larsson"},
       .out    = {"subsurf_profile"},
-      .in     = {"subsurf_field", "ray_path"},
+      .in     = {"subsurf_field", "surf_field", "ray_path"},
   };
 
   wsm_data["Profile2Path"] = {

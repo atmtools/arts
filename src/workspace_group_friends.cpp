@@ -380,7 +380,8 @@ This includes:
           R"--(A spectral sub-surface field.
 
 It holds parameters of the subsurface for the methods that use them, as
-functions of frequency and position.  It is a map of *SubsurfaceSpectralPropertyTag*
+functions of frequency and position.  The vertical position is the altitude
+relative to the local surface, as for *SubsurfaceField*.  It is a map of *SubsurfaceSpectralPropertyTag*
 to *SubsurfaceSpectralData*.  See each method for the properties it needs.
 )--",
   };

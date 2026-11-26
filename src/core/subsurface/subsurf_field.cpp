@@ -155,8 +155,8 @@ Limits find_limits(const Numeric &) { return {}; }
 Limits find_limits(const FunctionalData &) { return {}; }
 
 Limits find_limits(const GeodeticField3 &gf3) {
-  return {.alt_low = gf3.grid<0>().back(),
-          .alt_upp = gf3.grid<0>().front(),
+  return {.alt_low = gf3.grid<0>().front(),
+          .alt_upp = gf3.grid<0>().back(),
           .lat_low = gf3.grid<1>().front(),
           .lat_upp = gf3.grid<1>().back(),
           .lon_low = gf3.grid<2>().front(),

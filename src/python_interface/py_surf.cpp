@@ -415,7 +415,7 @@ void py_surf(py::module_ &m) try {
       "alt"_a,
       "lat"_a,
       "lon"_a,
-      "Get a point of data at the position");
+      "Get a point of data at the position, with alt relative to the local surface (negative below it)");
   ssf.def(
       "__call__",
       [](const SubsurfaceField &atm, const Vector &hv, const Vector &latv, const Vector &lonv) {

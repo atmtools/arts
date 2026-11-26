@@ -28,11 +28,13 @@ template <> struct hash<SubsurfaceSpectralPropertyTag> {
 }  // namespace std
 
 namespace Subsurface {
-//! A function of frequency [Hz], altitude [m], latitude [deg], and longitude [deg]
+//! A function of frequency [Hz], altitude relative to the local surface [m], latitude [deg], and longitude [deg]
 using SpectralFunctionalData = NumericQuaternaryOperator;
 using SpectralFieldData      = std::variant<SpectralGeodeticField4, Numeric, SpectralFunctionalData>;
 
 /** One parameter of the subsurface as a function of frequency and position
+ *
+ * The altitude is relative to the local surface, as for SubsurfaceField.
  *
  * Gridded data is interpolated linearly in frequency, altitude, latitude and
  * longitude, and frequency is the slowest dimension of its flat view.
