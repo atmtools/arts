@@ -100,6 +100,20 @@ struct SpectralData {
   [[nodiscard]] bool ok() const;
 };
 
+//! The parameters of a spectral subsurface field at one position, each as values on a frequency grid
+struct SpectralPoint {
+  std::unordered_map<SubsurfaceSpectralPropertyTag, Vector> props;
+
+  Vector       &operator[](const SubsurfaceSpectralPropertyTag &key);
+  const Vector &operator[](const SubsurfaceSpectralPropertyTag &key) const;
+
+  [[nodiscard]] bool contains(const SubsurfaceSpectralPropertyTag &key) const;
+
+  [[nodiscard]] std::vector<SubsurfaceSpectralPropertyTag> keys() const;
+
+  [[nodiscard]] Size size() const;
+};
+
 //! Parameters of the subsurface as functions of frequency and position, for the methods that use them
 struct SpectralField {
   std::unordered_map<SubsurfaceSpectralPropertyTag, SpectralData> props;
@@ -112,9 +126,16 @@ struct SpectralField {
   [[nodiscard]] std::vector<SubsurfaceSpectralPropertyTag> keys() const;
 
   [[nodiscard]] Size size() const;
+
+  //! The parameters at each frequency of freq_grid at a position
+  [[nodiscard]] SpectralPoint at(const AscendingGrid &freq_grid,
+                                 const Numeric        alt,
+                                 const Numeric        lat,
+                                 const Numeric        lon) const;
 };
 }  // namespace Subsurface
 
+using SubsurfaceSpectralPoint = Subsurface::SpectralPoint;
 using SubsurfaceSpectralData  = Subsurface::SpectralData;
 using SubsurfaceSpectralField = Subsurface::SpectralField;
 
@@ -182,6 +203,22 @@ template <> struct std::formatter<SubsurfaceSpectralField> {
   }
 
   template <class FmtContext> FmtContext::iterator format(const SubsurfaceSpectralField &v, FmtContext &ctx) const {
+    if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
+    return tags.format(ctx, R"("Prop": )"sv, v.props);
+  }
+};
+
+template <> struct std::formatter<SubsurfaceSpectralPoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext> FmtContext::iterator format(const SubsurfaceSpectralPoint &v, FmtContext &ctx) const {
     if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
     return tags.format(ctx, R"("Prop": )"sv, v.props);
   }

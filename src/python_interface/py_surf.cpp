@@ -320,7 +320,42 @@ void py_surf(py::module_ &m) try {
         return out;
       },
       "Available keys");
+  surfsf.def(
+      "__call__",
+      [](const SurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric lat, Numeric lon) { return field.at(freq_grid, lat, lon); },
+      "freq_grid"_a,
+      "lat"_a,
+      "lon"_a,
+      "Get the parameters at each frequency of a grid at a position");
   generic_interface(surfsf);
+
+  py::class_<SurfaceSpectralPoint> surfsp(m, "SurfaceSpectralPoint");
+  surfsp.def(py::init<>());
+  surfsp.def_rw("props",
+              &SurfaceSpectralPoint::props,
+              "The parameters, as values on a frequency grid\n\n.. :class:`dict[SurfaceSpectralPropertyTag, Vector]`");
+  surfsp.def("__setitem__", [](SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+      .def(
+          "__getitem__",
+          [](SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x) -> Vector & {
+            if (not point.contains(x)) {
+              const auto error_message = arts::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return point[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__contains__", [](const SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x) { return point.contains(x); });
+  surfsp.def(
+      "keys",
+      [](const SurfaceSpectralPoint &point) {
+        // Array<SurfaceSpectralPropertyTag> is opaque without a binding, so the keys are returned as a list
+        py::list out;
+        for (auto &key : point.keys()) out.append(py::cast(key));
+        return out;
+      },
+      "Available keys");
+  generic_interface(surfsp);
   py::implicitly_convertible<String, SurfaceField>();
 
   pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")
@@ -669,7 +704,43 @@ void py_surf(py::module_ &m) try {
         return out;
       },
       "Available keys");
+  sssf.def(
+      "__call__",
+      [](const SubsurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) { return field.at(freq_grid, alt, lat, lon); },
+      "freq_grid"_a,
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      "Get the parameters at each frequency of a grid at a position");
   generic_interface(sssf);
+
+  py::class_<SubsurfaceSpectralPoint> sssp(m, "SubsurfaceSpectralPoint");
+  sssp.def(py::init<>());
+  sssp.def_rw("props",
+              &SubsurfaceSpectralPoint::props,
+              "The parameters, as values on a frequency grid\n\n.. :class:`dict[SubsurfaceSpectralPropertyTag, Vector]`");
+  sssp.def("__setitem__", [](SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+      .def(
+          "__getitem__",
+          [](SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x) -> Vector & {
+            if (not point.contains(x)) {
+              const auto error_message = arts::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return point[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__contains__", [](const SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x) { return point.contains(x); });
+  sssp.def(
+      "keys",
+      [](const SubsurfaceSpectralPoint &point) {
+        // Array<SubsurfaceSpectralPropertyTag> is opaque without a binding, so the keys are returned as a list
+        py::list out;
+        for (auto &key : point.keys()) out.append(py::cast(key));
+        return out;
+      },
+      "Available keys");
+  generic_interface(sssp);
 
   auto assp = py::bind_vector<Array<SubsurfacePoint>, py::rv_policy::reference_internal>(m, "ArrayOfSubsurfacePoint");
   generic_interface(assp);

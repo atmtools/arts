@@ -299,6 +299,25 @@ bool SpectralData::ok() const {
   return true;
 }
 
+Vector &SpectralPoint::operator[](const SurfaceSpectralPropertyTag &key) { return props[key]; }
+
+const Vector &SpectralPoint::operator[](const SurfaceSpectralPropertyTag &key) const {
+  const auto ptr = props.find(key);
+  if (ptr == props.end()) arts::user_error("The spectral surface point has no {}", key);
+  return ptr->second;
+}
+
+bool SpectralPoint::contains(const SurfaceSpectralPropertyTag &key) const { return props.contains(key); }
+
+std::vector<SurfaceSpectralPropertyTag> SpectralPoint::keys() const {
+  std::vector<SurfaceSpectralPropertyTag> out;
+  out.reserve(props.size());
+  for (const auto &key : props | stdv::keys) out.push_back(key);
+  return out;
+}
+
+Size SpectralPoint::size() const { return props.size(); }
+
 SpectralData &SpectralField::operator[](const SurfaceSpectralPropertyTag &key) { return props[key]; }
 
 const SpectralData &SpectralField::operator[](const SurfaceSpectralPropertyTag &key) const {
@@ -317,6 +336,13 @@ std::vector<SurfaceSpectralPropertyTag> SpectralField::keys() const {
 }
 
 Size SpectralField::size() const { return props.size(); }
+
+SpectralPoint SpectralField::at(const AscendingGrid &freq_grid, const Numeric lat, const Numeric lon) const {
+  SpectralPoint out;
+  out.props.reserve(props.size());
+  for (const auto &[key, data] : props) out.props[key] = data.at(freq_grid, lat, lon);
+  return out;
+}
 }  // namespace Surf
 
 static_assert(spectral_field<SurfaceSpectralField, SurfaceSpectralPropertyTag, Numeric, Numeric>,

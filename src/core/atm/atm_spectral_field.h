@@ -94,6 +94,20 @@ struct SpectralData {
   [[nodiscard]] bool ok() const;
 };
 
+//! The parameters of a spectral atmosphere field at one position, each as values on a frequency grid
+struct SpectralPoint {
+  std::unordered_map<AtmSpectralPropertyTag, Vector> props;
+
+  Vector       &operator[](const AtmSpectralPropertyTag &key);
+  const Vector &operator[](const AtmSpectralPropertyTag &key) const;
+
+  [[nodiscard]] bool contains(const AtmSpectralPropertyTag &key) const;
+
+  [[nodiscard]] std::vector<AtmSpectralPropertyTag> keys() const;
+
+  [[nodiscard]] Size size() const;
+};
+
 //! Parameters of the atmosphere as functions of frequency and position, for the methods that use them
 struct SpectralField {
   std::unordered_map<AtmSpectralPropertyTag, SpectralData> props;
@@ -106,9 +120,16 @@ struct SpectralField {
   [[nodiscard]] std::vector<AtmSpectralPropertyTag> keys() const;
 
   [[nodiscard]] Size size() const;
+
+  //! The parameters at each frequency of freq_grid at a position
+  [[nodiscard]] SpectralPoint at(const AscendingGrid &freq_grid,
+                                 const Numeric        alt,
+                                 const Numeric        lat,
+                                 const Numeric        lon) const;
 };
 }  // namespace Atm
 
+using AtmSpectralPoint = Atm::SpectralPoint;
 using AtmSpectralData  = Atm::SpectralData;
 using AtmSpectralField = Atm::SpectralField;
 
@@ -175,6 +196,22 @@ template <> struct std::formatter<AtmSpectralField> {
   }
 
   template <class FmtContext> FmtContext::iterator format(const AtmSpectralField &v, FmtContext &ctx) const {
+    if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
+    return tags.format(ctx, R"("Prop": )"sv, v.props);
+  }
+};
+
+template <> struct std::formatter<AtmSpectralPoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext> FmtContext::iterator format(const AtmSpectralPoint &v, FmtContext &ctx) const {
     if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
     return tags.format(ctx, R"("Prop": )"sv, v.props);
   }

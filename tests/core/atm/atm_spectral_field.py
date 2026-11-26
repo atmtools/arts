@@ -123,6 +123,22 @@ try:
 except KeyError:
     pass
 
+# The parameters at one position, on a frequency grid
+point = field(pyarts.arts.AscendingGrid(fs), *pos)
+assert isinstance(point, pyarts.arts.AtmSpectralPoint)
+assert len(point.keys()) == 2 and all(isinstance(k, pyarts.arts.AtmSpectralPropertyTag) for k in point.keys())
+for key in field.keys():
+    assert key in point
+    assert all(np.asarray(point[key]) == np.asarray(field[key](pyarts.arts.AscendingGrid(fs), *pos)))
+try:
+    point["density"]
+    raise AssertionError("Expected a KeyError")
+except KeyError:
+    pass
+point.savexml("AtmSpectralPoint.xml")
+loaded_point = pyarts.arts.AtmSpectralPoint.fromxml("AtmSpectralPoint.xml")
+assert all(np.array_equal(loaded_point[k], point[k]) for k in point.keys())
+
 # XML round trip
 field.savexml("atm_spectral_field.xml")
 loaded = pyarts.arts.AtmSpectralField.fromxml("atm_spectral_field.xml")

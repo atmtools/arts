@@ -203,3 +203,26 @@ void xml_io_stream<AtmSpectralPropertyTag>::read(std::istream& is, AtmSpectralPr
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
+
+void xml_io_stream<AtmSpectralPoint>::write(std::ostream&           os,
+                                            const AtmSpectralPoint& x,
+                                            bofstream*              pbofs,
+                                            std::string_view        name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+
+  xml_write_to_stream(os, x.props, pbofs);
+
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<AtmSpectralPoint>::read(std::istream& is, AtmSpectralPoint& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.props, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

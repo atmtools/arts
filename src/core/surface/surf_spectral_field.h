@@ -88,6 +88,20 @@ struct SpectralData {
   [[nodiscard]] bool ok() const;
 };
 
+//! The parameters of a spectral surface field at one position, each as values on a frequency grid
+struct SpectralPoint {
+  std::unordered_map<SurfaceSpectralPropertyTag, Vector> props;
+
+  Vector       &operator[](const SurfaceSpectralPropertyTag &key);
+  const Vector &operator[](const SurfaceSpectralPropertyTag &key) const;
+
+  [[nodiscard]] bool contains(const SurfaceSpectralPropertyTag &key) const;
+
+  [[nodiscard]] std::vector<SurfaceSpectralPropertyTag> keys() const;
+
+  [[nodiscard]] Size size() const;
+};
+
 //! Parameters of the surface as functions of frequency and position, for the methods that use them
 struct SpectralField {
   std::unordered_map<SurfaceSpectralPropertyTag, SpectralData> props;
@@ -100,9 +114,13 @@ struct SpectralField {
   [[nodiscard]] std::vector<SurfaceSpectralPropertyTag> keys() const;
 
   [[nodiscard]] Size size() const;
+
+  //! The parameters at each frequency of freq_grid at a position
+  [[nodiscard]] SpectralPoint at(const AscendingGrid &freq_grid, const Numeric lat, const Numeric lon) const;
 };
 }  // namespace Surf
 
+using SurfaceSpectralPoint = Surf::SpectralPoint;
 using SurfaceSpectralData  = Surf::SpectralData;
 using SurfaceSpectralField = Surf::SpectralField;
 
@@ -154,6 +172,22 @@ template <> struct std::formatter<SurfaceSpectralField> {
   }
 
   template <class FmtContext> FmtContext::iterator format(const SurfaceSpectralField &v, FmtContext &ctx) const {
+    if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
+    return tags.format(ctx, R"("Prop": )"sv, v.props);
+  }
+};
+
+template <> struct std::formatter<SurfaceSpectralPoint> {
+  format_tags tags;
+
+  [[nodiscard]] constexpr auto &inner_fmt() { return *this; }
+  [[nodiscard]] constexpr auto &inner_fmt() const { return *this; }
+
+  constexpr std::format_parse_context::iterator parse(std::format_parse_context &ctx) {
+    return parse_format_tags(tags, ctx);
+  }
+
+  template <class FmtContext> FmtContext::iterator format(const SurfaceSpectralPoint &v, FmtContext &ctx) const {
     if (tags.short_str) return tags.format(ctx, R"("Prop": )"sv, v.props.size());
     return tags.format(ctx, R"("Prop": )"sv, v.props);
   }

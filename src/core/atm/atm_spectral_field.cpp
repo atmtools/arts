@@ -313,6 +313,25 @@ bool SpectralData::ok() const {
   return true;
 }
 
+Vector &SpectralPoint::operator[](const AtmSpectralPropertyTag &key) { return props[key]; }
+
+const Vector &SpectralPoint::operator[](const AtmSpectralPropertyTag &key) const {
+  const auto ptr = props.find(key);
+  if (ptr == props.end()) arts::user_error("The spectral atmosphere point has no {}", key);
+  return ptr->second;
+}
+
+bool SpectralPoint::contains(const AtmSpectralPropertyTag &key) const { return props.contains(key); }
+
+std::vector<AtmSpectralPropertyTag> SpectralPoint::keys() const {
+  std::vector<AtmSpectralPropertyTag> out;
+  out.reserve(props.size());
+  for (const auto &key : props | stdv::keys) out.push_back(key);
+  return out;
+}
+
+Size SpectralPoint::size() const { return props.size(); }
+
 SpectralData &SpectralField::operator[](const AtmSpectralPropertyTag &key) { return props[key]; }
 
 const SpectralData &SpectralField::operator[](const AtmSpectralPropertyTag &key) const {
@@ -331,6 +350,16 @@ std::vector<AtmSpectralPropertyTag> SpectralField::keys() const {
 }
 
 Size SpectralField::size() const { return props.size(); }
+
+SpectralPoint SpectralField::at(const AscendingGrid &freq_grid,
+                                const Numeric        alt,
+                                const Numeric        lat,
+                                const Numeric        lon) const {
+  SpectralPoint out;
+  out.props.reserve(props.size());
+  for (const auto &[key, data] : props) out.props[key] = data.at(freq_grid, alt, lat, lon);
+  return out;
+}
 }  // namespace Atm
 
 static_assert(spectral_field<AtmSpectralField, AtmSpectralPropertyTag, Numeric, Numeric, Numeric>,

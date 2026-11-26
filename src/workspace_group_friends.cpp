@@ -309,6 +309,15 @@ This includes:
 )",
   };
 
+  wsg_data["AtmSpectralPoint"] = {
+      .file = "atm.h",
+      .desc = R"--(The parameters of a *AtmSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
+  };
+
   wsg_data["AtmSpectralField"] = {
       .file = "atm.h",
       .desc =
@@ -339,6 +348,15 @@ This includes:
    The operator takes frequency, altitude, latitude, and longitude.
 #. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
 )",
+  };
+
+  wsg_data["SurfaceSpectralPoint"] = {
+      .file = "surf.h",
+      .desc = R"--(The parameters of a *SurfaceSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
   };
 
   wsg_data["SurfaceSpectralField"] = {
@@ -372,6 +390,15 @@ This includes:
    The operator takes frequency, latitude, and longitude.
 #. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
 )",
+  };
+
+  wsg_data["SubsurfaceSpectralPoint"] = {
+      .file = "subsurf.h",
+      .desc = R"--(The parameters of a *SubsurfaceSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
   };
 
   wsg_data["SubsurfaceSpectralField"] = {

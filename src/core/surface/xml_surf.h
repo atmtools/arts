@@ -72,3 +72,14 @@ template <> struct xml_io_stream<SurfaceSpectralPropertyTag> {
 
   static void read(std::istream& is, SurfaceSpectralPropertyTag& x, bifstream* pbifs = nullptr);
 };
+
+template <> struct xml_io_stream<SurfaceSpectralPoint> {
+  static constexpr std::string_view type_name = "SurfaceSpectralPoint"sv;
+
+  static void write(std::ostream&               os,
+                    const SurfaceSpectralPoint& x,
+                    bofstream*                  pbofs = nullptr,
+                    std::string_view            name  = ""sv);
+
+  static void read(std::istream& is, SurfaceSpectralPoint& x, bifstream* pbifs = nullptr);
+};

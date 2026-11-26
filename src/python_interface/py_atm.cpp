@@ -395,7 +395,43 @@ extrapolation : InterpolationExtrapolation
         return out;
       },
       "Available keys");
+  atmsf.def(
+      "__call__",
+      [](const AtmSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) { return field.at(freq_grid, alt, lat, lon); },
+      "freq_grid"_a,
+      "alt"_a,
+      "lat"_a,
+      "lon"_a,
+      "Get the parameters at each frequency of a grid at a position");
   generic_interface(atmsf);
+
+  py::class_<AtmSpectralPoint> atmsp(m, "AtmSpectralPoint");
+  atmsp.def(py::init<>());
+  atmsp.def_rw("props",
+              &AtmSpectralPoint::props,
+              "The parameters, as values on a frequency grid\n\n.. :class:`dict[AtmSpectralPropertyTag, Vector]`");
+  atmsp.def("__setitem__", [](AtmSpectralPoint &point, const AtmSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+      .def(
+          "__getitem__",
+          [](AtmSpectralPoint &point, const AtmSpectralPropertyTag &x) -> Vector & {
+            if (not point.contains(x)) {
+              const auto error_message = arts::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return point[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__contains__", [](const AtmSpectralPoint &point, const AtmSpectralPropertyTag &x) { return point.contains(x); });
+  atmsp.def(
+      "keys",
+      [](const AtmSpectralPoint &point) {
+        // Array<AtmSpectralPropertyTag> is opaque without a binding, so the keys are returned as a list
+        py::list out;
+        for (auto &key : point.keys()) out.append(py::cast(key));
+        return out;
+      },
+      "Available keys");
+  generic_interface(atmsp);
 
   fld.def(
       "regrid",

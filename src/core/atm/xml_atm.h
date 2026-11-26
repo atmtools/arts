@@ -63,3 +63,14 @@ template <> struct xml_io_stream<AtmSpectralPropertyTag> {
 
   static void read(std::istream& is, AtmSpectralPropertyTag& x, bifstream* pbifs = nullptr);
 };
+
+template <> struct xml_io_stream<AtmSpectralPoint> {
+  static constexpr std::string_view type_name = "AtmSpectralPoint"sv;
+
+  static void write(std::ostream&           os,
+                    const AtmSpectralPoint& x,
+                    bofstream*              pbofs = nullptr,
+                    std::string_view        name  = ""sv);
+
+  static void read(std::istream& is, AtmSpectralPoint& x, bifstream* pbifs = nullptr);
+};
