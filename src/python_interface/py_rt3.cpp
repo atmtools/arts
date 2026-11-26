@@ -256,7 +256,7 @@ and sum_m c_m sin(m phi) for U, V, as rt3.f's OUTPUT_FILE does.)");
          R"(The RT3 scattering set of ARTS scattering species at one atmospheric point.
 
 The species give their totally randomly oriented (TRO) Legendre series up to
-``degree`` themselves (``get_bulk_scattering_properties_tro_spectral``);
+``degree`` themselves (``tro_spectral``);
 gridded particle data must be converted to a Legendre series first
 (``ParticleHabit.to_tro_spectral_with_report``).  The series is
 normalised so that ``legendre[0].F11 == 1``.  ``extinction`` is K11 and

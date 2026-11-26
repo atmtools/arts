@@ -657,11 +657,8 @@ void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights, Numeric, Nume
   weights.emplace_back(0, 1.0);
 }
 
-void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
-                  const FunctionalData                   &f,
-                  Numeric                                 alt,
-                  Numeric                                 lat,
-                  Numeric                                 lon) {
+void flat_weight_(
+    std::vector<std::pair<Index, Numeric>> &weights, const FunctionalData &f, Numeric alt, Numeric lat, Numeric lon) {
   weights.append_range(ternary::get_w(f.f, alt, lat, lon));
 }
 }  // namespace
@@ -1258,4 +1255,5 @@ static_assert(std::same_as<typename AtmField::KeyVal, AtmKeyVal>,
               "The order of arguments in the template of which Field inherits from is "
               "wrong.  KeyVal must be defined in the same way for this to work.");
 
-static_assert(field<AtmField, AtmKeyVal, Numeric, Numeric, Numeric>, "The atmospheric field must satisfy the field concepts");
+static_assert(field<AtmField, AtmKeyVal, Numeric, Numeric, Numeric>,
+              "The atmospheric field must satisfy the field concepts");

@@ -165,8 +165,12 @@ void test_rayleigh() {
 
 //! A3: forward-peaked Henyey-Greenstein against the addition theorem
 void test_forward_peaked_hg() {
-  const auto atm = air(8e4, 260.0);
-  const auto q   = polradtran::get_quadrature(8, polradtran::quadrature_type::double_gauss);
+  const auto hg_ext = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
+  const auto hg_ssa = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
+  auto       atm    = air(8e4, 260.0);
+  atm[hg_ext]       = 1e-4;
+  atm[hg_ssa]       = 0.9;
+  const auto q      = polradtran::get_quadrature(8, polradtran::quadrature_type::double_gauss);
   Vector     mu(q.mu.size() + 1);
   std::ranges::copy(q.mu, mu.begin());
   mu[q.mu.size()]     = 1.0;
@@ -175,8 +179,7 @@ void test_forward_peaked_hg() {
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;
-    species.add(HenyeyGreensteinScatterer{
-        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
+    species.add(HenyeyGreensteinScatterer{hg_ext, hg_ssa, g});
     const auto o = rt4::scattering_optics(species, atm, 89e9, mu, 1);
 
     const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));

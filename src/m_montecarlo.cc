@@ -24,6 +24,7 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
                                  Numeric                         frequency,
                                  const PropagationPathPoint&     point,
                                  const AtmPoint&                 atm,
+                                 const AtmSpectralPoint&         atm_spectral,
                                  const ArrayOfScatteringSpecies& scattering_species,
                                  const Agenda&                   spectral_propmat_agenda,
                                  const JacobianTargets&          jac_targets,
@@ -52,10 +53,10 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
     // observer agendas mirror their external LOS when constructing the path.
     const Numeric za = point.los[0];
     auto za_grid     = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{za}));
-    const auto bulk  = scattering_species.get_bulk_scattering_properties_aro_gridded(
-        atm, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
-    particle_ext = bulk.extinction_matrix[0, 0, 0].expand();
-    particle_abs = bulk.absorption_vector[0, 0, 0].expand();
+    const auto bulk  = scattering_species.aro_gridded(
+        atm, atm_spectral, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
+    particle_ext     = bulk.extinction_matrix[0, 0, 0].expand();
+    particle_abs     = bulk.absorption_vector[0, 0, 0].expand();
   }
 
   const Stokvec absorption = Stokvec{gas[0].A(), gas[0].B(), gas[0].C(), gas[0].D()} + particle_abs;
@@ -124,6 +125,7 @@ struct Collision {
   bool                 happened{false};
   PropagationPathPoint point{};
   AtmPoint             atm{};
+  AtmSpectralPoint     atm_spectral{};
   PolarizedOptics      optics{};
   PropagationPathPoint end{};
   Muelmat              conditional_transport{Muelmat::id()};
@@ -135,6 +137,7 @@ Collision next_collision(const Workspace&                ws,
                          const Vector3&                  pos,
                          const Vector2&                  los,
                          const AtmField&                 atm_field,
+                         const AtmSpectralField&         atm_spectral_field,
                          const SurfaceField&             surf_field,
                          const ArrayOfScatteringSpecies& scattering_species,
                          const Agenda&                   ray_path_observer_agenda,
@@ -148,6 +151,9 @@ Collision next_collision(const Workspace&                ws,
   if (path.size() == 1) return {.end = path.back()};
 
   const auto    atm         = forward_atm_path(path, atm_field);
+  const auto    spectral_at = [&atm_spectral_field, freq_grid = AscendingGrid{frequency}](const Vector3& p) {
+    return atm_spectral_field.at(freq_grid, p[0], p[1], p[2]);
+  };
   const auto    distances   = path::distance(path, surf_field.ellipsoid);
   auto          uniform     = rng.get<std::uniform_real_distribution>(0.0, 1.0);
   const Numeric target      = -std::log(std::max(uniform(), std::numeric_limits<Numeric>::min()));
@@ -157,6 +163,7 @@ Collision next_collision(const Workspace&                ws,
                                                frequency,
                                                path[0],
                                                atm[0],
+                                               spectral_at(path[0].pos),
                                                scattering_species,
                                                spectral_propmat_agenda,
                                                jac_targets,
@@ -168,6 +175,7 @@ Collision next_collision(const Workspace&                ws,
                                              frequency,
                                              path[i],
                                              atm[i],
+                                             spectral_at(path[i].pos),
                                              scattering_species,
                                              spectral_propmat_agenda,
                                              jac_targets,
@@ -178,10 +186,12 @@ Collision next_collision(const Workspace&                ws,
       const Numeric x           = std::clamp((target - tau) / dtau, 0.0, 1.0);
       auto          point       = interpolate(path[i - 1], path[i], x);
       auto          atm_point   = atm_field.at(point.pos);
+      auto          atm_spectral = spectral_at(point.pos);
       auto          optics      = polarized_optics(ws,
                                                    frequency,
                                                    point,
                                                    atm_point,
+                                                   atm_spectral,
                                                    scattering_species,
                                                    spectral_propmat_agenda,
                                                    jac_targets,
@@ -194,6 +204,7 @@ Collision next_collision(const Workspace&                ws,
       return {.happened              = true,
               .point                 = point,
               .atm                   = std::move(atm_point),
+              .atm_spectral          = std::move(atm_spectral),
               .optics                = optics,
               .end                   = path.back(),
               .conditional_transport = conditional};
@@ -210,6 +221,7 @@ Collision next_collision(const Workspace&                ws,
 
 Muelmat phase_weight(const ArrayOfScatteringSpecies& species,
                      const AtmPoint&                 atm,
+                     const AtmSpectralPoint&         atm_spectral,
                      Numeric                         frequency,
                      const Vector2&                  old_los,
                      const Vector2&                  new_los,
@@ -222,8 +234,8 @@ Muelmat phase_weight(const ArrayOfScatteringSpecies& species,
   while (delta_aa < -180.0) delta_aa += 360.0;
   while (delta_aa > 180.0) delta_aa -= 360.0;
   auto za = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{outgoing[0]}));
-  const auto bulk = species.get_bulk_scattering_properties_aro_gridded(
-      atm, AscendingGrid{frequency}, Vector{incoming[0]}, Vector{delta_aa}, za);
+  const auto bulk =
+      species.aro_gridded(atm, atm_spectral, AscendingGrid{frequency}, Vector{incoming[0]}, Vector{delta_aa}, za);
   if (not bulk.phase_matrix) arts::user_error("MCGeneral failed to transform the phase matrix to the laboratory frame");
   return (4.0 * Constant::pi / scattering_coefficient) * (*bulk.phase_matrix)[0, 0, 0, 0, 0];
 }
@@ -235,6 +247,7 @@ void MCGeneral(const Workspace&                ws,
                Stokvec&                        mc_error,
                Index&                          mc_iteration_count,
                const AtmField&                 atm_field,
+               const AtmSpectralField&         atm_spectral_field,
                const SurfaceField&             surf_field,
                const SubsurfaceField&          subsurf_field,
                const ArrayOfScatteringSpecies& scattering_species,
@@ -282,6 +295,7 @@ void MCGeneral(const Workspace&                ws,
                                             pos,
                                             los,
                                             atm_field,
+                                            atm_spectral_field,
                                             surf_field,
                                             scattering_species,
                                             ray_path_observer_agenda,
@@ -313,7 +327,8 @@ void MCGeneral(const Workspace&                ws,
       if (++order > mc_max_scatorder) break;
 
       const Vector2 new_los = isotropic_los(rng);
-      weight = weight * phase_weight(scattering_species, collision.atm, frequency, los, new_los, scattering);
+      weight = weight * phase_weight(
+          scattering_species, collision.atm, collision.atm_spectral, frequency, los, new_los, scattering);
       pos    = collision.point.pos;
       los    = new_los;
     }
@@ -351,6 +366,7 @@ void MCGeneral(const Workspace&                ws,
                Stokvec&                        mc_error,
                Index&                          mc_iteration_count,
                const AtmField&                 atm_field,
+               const AtmSpectralField&         atm_spectral_field,
                const SurfaceField&             surf_field,
                const SubsurfaceField&          subsurf_field,
                const ArrayOfScatteringSpecies& scattering_species,
@@ -373,6 +389,7 @@ void MCGeneral(const Workspace&                ws,
             mc_error,
             mc_iteration_count,
             atm_field,
+            atm_spectral_field,
             surf_field,
             subsurf_field,
             scattering_species,
@@ -404,6 +421,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
                             const Vector3&                  obs_pos,
                             const Vector2&                  obs_los,
                             const AtmField&                 atm_field,
+                            const AtmSpectralField&         atm_spectral_field,
                             const SurfaceField&             surf_field,
                             const SubsurfaceField&          subsurf_field,
                             const ArrayOfScatteringSpecies& scat_species,
@@ -444,6 +462,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
               error,
               iterations,
               atm,
+              atm_spectral_field,
               surf,
               subsurf,
               scat_species,

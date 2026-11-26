@@ -318,17 +318,6 @@ made for.  The point does not hold that grid.
 )--",
   };
 
-  wsg_data["AtmSpectralField"] = {
-      .file = "atm.h",
-      .desc =
-          R"--(A spectral atmospheric field.
-
-It holds parameters of the atmosphere for the methods that use them, as
-functions of frequency and position.  It is a map of *AtmSpectralPropertyTag*
-to *AtmSpectralData*.  See each method for the properties it needs.
-)--",
-  };
-
   wsg_data["AtmSpectralPropertyTag"] = {
       .file = "atm.h",
       .desc = R"--(A custom property tag for spectral atmospheric fields data.

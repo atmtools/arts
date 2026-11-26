@@ -148,6 +148,17 @@ temperature (if possible), latitude in the sky of the planet,
 longitude in the sky of the planet and the type)-x-",
   };
 
+  wsg_data["AtmSpectralField"] = {
+      .file = "atm.h",
+      .desc =
+          R"--(A spectral atmospheric field.
+
+It holds parameters of the atmosphere for the methods that use them, as
+functions of frequency and position.  It is a map of *AtmSpectralPropertyTag*
+to *AtmSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
   wsg_data["AtmField"] = {
       .file = "atm.h",
       .desc = R"--(An atmospheric field.

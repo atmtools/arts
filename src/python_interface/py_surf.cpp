@@ -206,9 +206,7 @@ void py_surf(py::module_ &m) try {
       .def(py::init_implicit<Surf::SpectralFunctionalData>())
       .def(
           "__init__",
-          [](Surf::SpectralData *a, const GriddedField3 &v) {
-            new (a) Surf::SpectralData(SpectralGeodeticField3(v));
-          },
+          [](Surf::SpectralData *a, const GriddedField3 &v) { new (a) Surf::SpectralData(SpectralGeodeticField3(v)); },
           "v"_a,
           "Initialize with a gridded field")
       .def_rw(
@@ -250,9 +248,7 @@ void py_surf(py::module_ &m) try {
           "Set the extrapolation for all dimensions")
       .def(
           "__call__",
-          [](const Surf::SpectralData &d, Numeric frq, Numeric lat, Numeric lon) {
-            return d.at(frq, lat, lon);
-          },
+          [](const Surf::SpectralData &d, Numeric frq, Numeric lat, Numeric lon) { return d.at(frq, lat, lon); },
           "frq"_a,
           "lat"_a,
           "lon"_a,
@@ -277,25 +273,26 @@ void py_surf(py::module_ &m) try {
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a frequency and position")
-      .def_prop_ro(
-          "data_type", &Surf::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
+      .def_prop_ro("data_type", &Surf::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
   py::implicitly_convertible<Surf::SpectralFunctionalData::func_t, Surf::SpectralData>();
   py::implicitly_convertible<GriddedField3, Surf::SpectralData>();
   generic_interface(surfsd);
 
   py::class_<SurfaceSpectralPropertyTag> surfsptag(m, "SurfaceSpectralPropertyTag");
   surfsptag.def_rw("name",
-                &SurfaceSpectralPropertyTag::name,
-                "Name of the spectral surface property\n\n.. :class:`~pyarts3.arts.String`");
+                   &SurfaceSpectralPropertyTag::name,
+                   "Name of the spectral surface property\n\n.. :class:`~pyarts3.arts.String`");
   surfsptag.def(py::init_implicit<String>());
   generic_interface(surfsptag);
 
   py::class_<SurfaceSpectralField> surfsf(m, "SurfaceSpectralField");
   surfsf.def(py::init<>());
-  surfsf.def_rw("props",
-              &SurfaceSpectralField::props,
-              "Properties of the spectral surface field\n\n.. :class:`dict[SurfaceSpectralPropertyTag, SurfaceSpectralData]`");
-  surfsf.def("__setitem__",
+  surfsf.def_rw(
+      "props",
+      &SurfaceSpectralField::props,
+      "Properties of the spectral surface field\n\n.. :class:`dict[SurfaceSpectralPropertyTag, SurfaceSpectralData]`");
+  surfsf
+      .def("__setitem__",
            [](SurfaceSpectralField &field, const SurfaceSpectralPropertyTag &x, const SurfaceSpectralData &data) {
              field[x] = data;
            })
@@ -322,7 +319,9 @@ void py_surf(py::module_ &m) try {
       "Available keys");
   surfsf.def(
       "__call__",
-      [](const SurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric lat, Numeric lon) { return field.at(freq_grid, lat, lon); },
+      [](const SurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric lat, Numeric lon) {
+        return field.at(freq_grid, lat, lon);
+      },
       "freq_grid"_a,
       "lat"_a,
       "lon"_a,
@@ -331,10 +330,13 @@ void py_surf(py::module_ &m) try {
 
   py::class_<SurfaceSpectralPoint> surfsp(m, "SurfaceSpectralPoint");
   surfsp.def(py::init<>());
-  surfsp.def_rw("props",
-              &SurfaceSpectralPoint::props,
-              "The parameters, as values on a frequency grid\n\n.. :class:`dict[SurfaceSpectralPropertyTag, Vector]`");
-  surfsp.def("__setitem__", [](SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+  surfsp.def_rw(
+      "props",
+      &SurfaceSpectralPoint::props,
+      "The parameters, as values on a frequency grid\n\n.. :class:`dict[SurfaceSpectralPropertyTag, Vector]`");
+  surfsp
+      .def("__setitem__",
+           [](SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
       .def(
           "__getitem__",
           [](SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x) -> Vector & {
@@ -345,7 +347,8 @@ void py_surf(py::module_ &m) try {
             return point[x];
           },
           py::rv_policy::reference_internal)
-      .def("__contains__", [](const SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x) { return point.contains(x); });
+      .def("__contains__",
+           [](const SurfaceSpectralPoint &point, const SurfaceSpectralPropertyTag &x) { return point.contains(x); });
   surfsp.def(
       "keys",
       [](const SurfaceSpectralPoint &point) {
@@ -676,13 +679,14 @@ void py_surf(py::module_ &m) try {
 
   py::class_<SubsurfaceSpectralField> sssf(m, "SubsurfaceSpectralField");
   sssf.def(py::init<>());
-  sssf.def_rw("props",
-              &SubsurfaceSpectralField::props,
-              "Properties of the spectral subsurface field\n\n.. :class:`dict[SubsurfaceSpectralPropertyTag, SubsurfaceSpectralData]`");
+  sssf.def_rw(
+      "props",
+      &SubsurfaceSpectralField::props,
+      "Properties of the spectral subsurface field\n\n.. :class:`dict[SubsurfaceSpectralPropertyTag, SubsurfaceSpectralData]`");
   sssf.def("__setitem__",
-           [](SubsurfaceSpectralField &field, const SubsurfaceSpectralPropertyTag &x, const SubsurfaceSpectralData &data) {
-             field[x] = data;
-           })
+           [](SubsurfaceSpectralField             &field,
+              const SubsurfaceSpectralPropertyTag &x,
+              const SubsurfaceSpectralData        &data) { field[x] = data; })
       .def(
           "__getitem__",
           [](SubsurfaceSpectralField &field, const SubsurfaceSpectralPropertyTag &x) -> SubsurfaceSpectralData & {
@@ -693,8 +697,9 @@ void py_surf(py::module_ &m) try {
             return field[x];
           },
           py::rv_policy::reference_internal)
-      .def("__contains__",
-           [](const SubsurfaceSpectralField &field, const SubsurfaceSpectralPropertyTag &x) { return field.contains(x); });
+      .def("__contains__", [](const SubsurfaceSpectralField &field, const SubsurfaceSpectralPropertyTag &x) {
+        return field.contains(x);
+      });
   sssf.def(
       "keys",
       [](const SubsurfaceSpectralField &field) {
@@ -706,7 +711,9 @@ void py_surf(py::module_ &m) try {
       "Available keys");
   sssf.def(
       "__call__",
-      [](const SubsurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) { return field.at(freq_grid, alt, lat, lon); },
+      [](const SubsurfaceSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) {
+        return field.at(freq_grid, alt, lat, lon);
+      },
       "freq_grid"_a,
       "alt"_a,
       "lat"_a,
@@ -716,10 +723,13 @@ void py_surf(py::module_ &m) try {
 
   py::class_<SubsurfaceSpectralPoint> sssp(m, "SubsurfaceSpectralPoint");
   sssp.def(py::init<>());
-  sssp.def_rw("props",
-              &SubsurfaceSpectralPoint::props,
-              "The parameters, as values on a frequency grid\n\n.. :class:`dict[SubsurfaceSpectralPropertyTag, Vector]`");
-  sssp.def("__setitem__", [](SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+  sssp.def_rw(
+      "props",
+      &SubsurfaceSpectralPoint::props,
+      "The parameters, as values on a frequency grid\n\n.. :class:`dict[SubsurfaceSpectralPropertyTag, Vector]`");
+  sssp.def(
+          "__setitem__",
+          [](SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
       .def(
           "__getitem__",
           [](SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x) -> Vector & {
@@ -730,7 +740,9 @@ void py_surf(py::module_ &m) try {
             return point[x];
           },
           py::rv_policy::reference_internal)
-      .def("__contains__", [](const SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x) { return point.contains(x); });
+      .def("__contains__", [](const SubsurfaceSpectralPoint &point, const SubsurfaceSpectralPropertyTag &x) {
+        return point.contains(x);
+      });
   sssp.def(
       "keys",
       [](const SubsurfaceSpectralPoint &point) {

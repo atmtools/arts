@@ -41,7 +41,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Test temperature interpolation.
   ///
   auto point      = AtmPoint{1e4, 290.0};
-  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, f_grid);
+  auto bulk_props = scattering_habit.tro_gridded(point, f_grid);
 
   auto pm     = bulk_props.phase_matrix.value();
   using SSD   = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Gridded>;
@@ -80,7 +80,7 @@ bool test_calculate_bulk_properties_tro_gridded() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_gridded(point, new_f_grid);
+  bulk_props        = scattering_habit.tro_gridded(point, new_f_grid);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;
@@ -136,7 +136,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test temperature interpolation.
   ///
   auto point      = AtmPoint{1e4, 290.0};
-  auto bulk_props = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, f_grid, l);
+  auto bulk_props = scattering_habit.tro_spectral(point, f_grid, l);
 
   auto pm   = bulk_props.phase_matrix.value();
   using SSD = scattering::SingleScatteringData<scattering::Format::TRO, scattering::Representation::Spectral>;
@@ -173,7 +173,7 @@ bool test_calculate_bulk_properties_tro_spectral() {
   /// Test frequency interpolation
   ///
   Vector new_f_grid = {f_grid[1]};
-  bulk_props        = scattering_habit.get_bulk_scattering_properties_tro_spectral(point, new_f_grid, l);
+  bulk_props        = scattering_habit.tro_spectral(point, new_f_grid, l);
 
   /// Ensure relative errors are small.
   Index f_ind = 1;

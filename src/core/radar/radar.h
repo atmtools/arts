@@ -150,6 +150,7 @@ struct Optics {
 [[nodiscard]] Optics optics(const ArrayOfPropagationPathPoint& path,
                             Size                               np,
                             const AtmField&                    atm_field,
+                            const AtmSpectralField&            atm_spectral_field,
                             const AscendingGrid&               freq_grid,
                             const ArrayOfScatteringSpecies&    scattering_species,
                             const JacobianTargets&             jac_targets,

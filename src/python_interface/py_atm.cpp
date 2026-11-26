@@ -270,9 +270,7 @@ extrapolation : InterpolationExtrapolation
       .def(py::init_implicit<Atm::SpectralFunctionalData>())
       .def(
           "__init__",
-          [](Atm::SpectralData *a, const GriddedField4 &v) {
-            new (a) Atm::SpectralData(SpectralGeodeticField4(v));
-          },
+          [](Atm::SpectralData *a, const GriddedField4 &v) { new (a) Atm::SpectralData(SpectralGeodeticField4(v)); },
           "v"_a,
           "Initialize with a gridded field")
       .def_rw(
@@ -352,25 +350,26 @@ extrapolation : InterpolationExtrapolation
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a frequency and position")
-      .def_prop_ro(
-          "data_type", &Atm::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
+      .def_prop_ro("data_type", &Atm::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
   py::implicitly_convertible<Atm::SpectralFunctionalData::func_t, Atm::SpectralData>();
   py::implicitly_convertible<GriddedField4, Atm::SpectralData>();
   generic_interface(atmsd);
 
   py::class_<AtmSpectralPropertyTag> atmsptag(m, "AtmSpectralPropertyTag");
   atmsptag.def_rw("name",
-                &AtmSpectralPropertyTag::name,
-                "Name of the spectral atmospheric property\n\n.. :class:`~pyarts3.arts.String`");
+                  &AtmSpectralPropertyTag::name,
+                  "Name of the spectral atmospheric property\n\n.. :class:`~pyarts3.arts.String`");
   atmsptag.def(py::init_implicit<String>());
   generic_interface(atmsptag);
 
   py::class_<AtmSpectralField> atmsf(m, "AtmSpectralField");
   atmsf.def(py::init<>());
-  atmsf.def_rw("props",
-              &AtmSpectralField::props,
-              "Properties of the spectral atmospheric field\n\n.. :class:`dict[AtmSpectralPropertyTag, AtmSpectralData]`");
-  atmsf.def("__setitem__",
+  atmsf.def_rw(
+      "props",
+      &AtmSpectralField::props,
+      "Properties of the spectral atmospheric field\n\n.. :class:`dict[AtmSpectralPropertyTag, AtmSpectralData]`");
+  atmsf
+      .def("__setitem__",
            [](AtmSpectralField &field, const AtmSpectralPropertyTag &x, const AtmSpectralData &data) {
              field[x] = data;
            })
@@ -397,7 +396,9 @@ extrapolation : InterpolationExtrapolation
       "Available keys");
   atmsf.def(
       "__call__",
-      [](const AtmSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) { return field.at(freq_grid, alt, lat, lon); },
+      [](const AtmSpectralField &field, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) {
+        return field.at(freq_grid, alt, lat, lon);
+      },
       "freq_grid"_a,
       "alt"_a,
       "lat"_a,
@@ -408,9 +409,11 @@ extrapolation : InterpolationExtrapolation
   py::class_<AtmSpectralPoint> atmsp(m, "AtmSpectralPoint");
   atmsp.def(py::init<>());
   atmsp.def_rw("props",
-              &AtmSpectralPoint::props,
-              "The parameters, as values on a frequency grid\n\n.. :class:`dict[AtmSpectralPropertyTag, Vector]`");
-  atmsp.def("__setitem__", [](AtmSpectralPoint &point, const AtmSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
+               &AtmSpectralPoint::props,
+               "The parameters, as values on a frequency grid\n\n.. :class:`dict[AtmSpectralPropertyTag, Vector]`");
+  atmsp
+      .def("__setitem__",
+           [](AtmSpectralPoint &point, const AtmSpectralPropertyTag &x, const Vector &v) { point[x] = v; })
       .def(
           "__getitem__",
           [](AtmSpectralPoint &point, const AtmSpectralPropertyTag &x) -> Vector & {
@@ -421,7 +424,8 @@ extrapolation : InterpolationExtrapolation
             return point[x];
           },
           py::rv_policy::reference_internal)
-      .def("__contains__", [](const AtmSpectralPoint &point, const AtmSpectralPropertyTag &x) { return point.contains(x); });
+      .def("__contains__",
+           [](const AtmSpectralPoint &point, const AtmSpectralPropertyTag &x) { return point.contains(x); });
   atmsp.def(
       "keys",
       [](const AtmSpectralPoint &point) {

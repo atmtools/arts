@@ -287,7 +287,7 @@ vdisort_test::tro_matrix series_of(const mie_case& c) {
 
 //! ARTS's laboratory-frame Z for the incident propagation zenith za_in, za_out and aa_out - aa_in [deg]
 rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_aa, Numeric za_out) {
-  const auto bulk = c.species.get_bulk_scattering_properties_aro_gridded(
+  const auto bulk = c.species.aro_gridded(
       c.atm,
       Vector{mie_frequency},
       Vector{za_in},
@@ -299,7 +299,7 @@ rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_
 //! The scattering matrix of the species at cos(Theta), via its TRO data at that exact angle
 vdisort_test::tro_matrix tro_of(const mie_case& c, Numeric sign34 = 1.0) {
   return [&c, sign34](Numeric cos_theta) {
-    const auto bulk = c.species.get_bulk_scattering_properties_tro_gridded(
+    const auto bulk = c.species.tro_gridded(
         c.atm,
         Vector{mie_frequency},
         std::make_shared<scattering::ZenithAngleGrid>(
@@ -535,13 +535,16 @@ void test_forward_peaked_hg() {
   Vector mu_in(17);
   mu_in[Range(0, 16)] = mu;
   mu_in[16]           = -0.6;
-  const auto      atm = air(9e4, 270.0);
-  constexpr Index NF  = 4;
+  const auto hg_ext = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
+  const auto hg_ssa = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
+  auto       atm    = air(9e4, 270.0);
+  atm[hg_ext]       = 1e-4;
+  atm[hg_ssa]       = 0.9;
+  constexpr Index NF = 4;
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;
-    species.add(HenyeyGreensteinScatterer{
-        ExtSSACallback{[](Numeric, const AtmPoint&) { return std::pair<Numeric, Numeric>{1e-4, 0.9}; }}, g});
+    species.add(HenyeyGreensteinScatterer{hg_ext, hg_ssa, g});
 
     const auto start = std::chrono::steady_clock::now();
     const auto f     = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, NF, 1e-10);
@@ -601,12 +604,12 @@ void test_aro_data() {
   const Vector delta = nlinspace(-180.0, 180.0, 361);
 
   const auto aro_species = [&](const Vector& za_scat, Numeric extinction_change) {
-    auto bulk = gas.get_bulk_scattering_properties_aro_gridded(
-        atm,
-        Vector{50e9},
-        streams,
-        delta,
-        std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
+    auto bulk =
+        gas.aro_gridded(atm,
+                        Vector{50e9},
+                        streams,
+                        delta,
+                        std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)));
     bulk.extinction_matrix[0, 0, 1].A() *= 1.0 + extinction_change;
     const auto& pm                       = *bulk.phase_matrix;
     ARO         ssd(scattering::ParticleProperties{.name = "rayleigh", .mass = 1e-12, .d_veq = 1e-6, .d_max = 1e-6},

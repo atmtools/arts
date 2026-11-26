@@ -114,6 +114,7 @@ bool at_pole(const Numeric za) { return std::abs(std::sin(za * Constant::pi / 18
 Optics optics(const ArrayOfPropagationPathPoint& path,
               const Size                         np,
               const AtmField&                    atm_field,
+              const AtmSpectralField&            atm_spectral_field,
               const AscendingGrid&               freq_grid,
               const ArrayOfScatteringSpecies&    scattering_species,
               const JacobianTargets&             jac_targets,
@@ -178,10 +179,11 @@ Optics optics(const ArrayOfPropagationPathPoint& path,
     const auto receive_za_grid =
         std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(receive_za));
 
-    const auto bulk_out = scattering_species.get_bulk_scattering_properties_aro_gridded(
-        atm_path[ip], freq_grid, transmit_za, delta_aa, receive_za_grid);
-    const auto bulk_ret = scattering_species.get_bulk_scattering_properties_aro_gridded(
-        atm_path[ip], freq_grid, receive_za, Vector{0.0}, transmit_za_grid);
+    const auto spectral_point = atm_spectral_field.at(freq_grid, path[ip].pos[0], path[ip].pos[1], path[ip].pos[2]);
+    const auto bulk_out       = scattering_species.aro_gridded(
+        atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid);
+    const auto bulk_ret = scattering_species.aro_gridded(
+        atm_path[ip], spectral_point, freq_grid, receive_za, Vector{0.0}, transmit_za_grid);
     if (not bulk_out.phase_matrix.has_value())
       arts::user_error("Radar single scattering requires phase matrices from all scattering species");
 
@@ -200,10 +202,10 @@ Optics optics(const ArrayOfPropagationPathPoint& path,
     out.dK_out[ip] = std::move(gas_out_jac);
     out.dK_ret[ip] = std::move(gas_ret_jac);
     for (const auto& target : jac_targets.atm) {
-      const auto dbulk_out = scattering_species.get_bulk_scattering_properties_aro_gridded_derivative(
-          atm_path[ip], freq_grid, transmit_za, delta_aa, receive_za_grid, target.type);
-      const auto dbulk_ret = scattering_species.get_bulk_scattering_properties_aro_gridded_derivative(
-          atm_path[ip], freq_grid, receive_za, Vector{0.0}, transmit_za_grid, target.type);
+      const auto dbulk_out = scattering_species.aro_gridded_derivative(
+          atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid, target.type);
+      const auto dbulk_ret = scattering_species.aro_gridded_derivative(
+          atm_path[ip], spectral_point, freq_grid, receive_za, Vector{0.0}, transmit_za_grid, target.type);
       if (not dbulk_out.phase_matrix) arts::user_error("Radar derivatives require scattering phase matrices");
 
       const auto& dphase = *dbulk_out.phase_matrix;

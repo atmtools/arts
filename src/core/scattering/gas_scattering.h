@@ -10,6 +10,7 @@
 
 #include "bulk_scattering_properties.h"
 #include "general_tro_spectral.h"
+#include "scattering_medium.h"
 
 /*!
   \file   gas_scattering.h
@@ -28,7 +29,8 @@ CompactPlanarMuelmat calc_rayleighPhaMat(const Numeric& theta_rad, const Numeric
 namespace scattering {
 
 struct AirSimpleGasScattering {
-  [[nodiscard]] Numeric operator()(Numeric frequency, const AtmPoint& atm_point) const;
+  //! The scattering cross-section of air at a frequency [m^2]
+  [[nodiscard]] Numeric operator()(Numeric frequency) const;
 };
 
 struct ConstantGasScattering {
@@ -37,7 +39,8 @@ struct ConstantGasScattering {
   ConstantGasScattering() = default;
   explicit ConstantGasScattering(Numeric cross_section);
 
-  [[nodiscard]] Numeric operator()(Numeric frequency, const AtmPoint& atm_point) const;
+  //! The scattering cross-section [m^2]
+  [[nodiscard]] Numeric operator()(Numeric frequency) const;
 };
 
 using GasScatteringCoefficient = std::variant<AirSimpleGasScattering, ConstantGasScattering>;
@@ -66,41 +69,28 @@ struct GasScatterer {
   GasScatterer() = default;
   GasScatterer(GasScatteringCoefficient coefficient, GasScatteringPhaseMatrix phase_matrix);
 
-  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
-  get_bulk_scattering_properties_tro_gridded(const AtmPoint&,
-                                             const Vector&                    f_grid,
-                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
+  /* The explicit methods take the number density of the gas [m^-3]: every property is the cross-section times it.
+     The template wrappers take the point of a medium and its number density from gas_number_density.  Gas
+     scattering has no spectral properties, so they do not read the spectral point. */
 
-  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded>
-  get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoint&,
-                                                        const Vector&,
-                                                        std::shared_ptr<ZenithAngleGrid>,
-                                                        const AtmKeyVal&) const;
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(
+      Numeric number_density, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  [[nodiscard]] ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint&,
-                                                                                        const Vector& f_grid,
-                                                                                        Index         degree) const;
+  [[nodiscard]] ScatteringTroSpectralVector tro_spectral(Numeric       number_density,
+                                                         const Vector& f_grid,
+                                                         Index         degree) const;
 
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
-  get_bulk_scattering_properties_aro_gridded(const AtmPoint&,
-                                             const Vector&                    f_grid,
-                                             const Vector&                    za_inc_grid,
-                                             const Vector&                    delta_aa_grid,
-                                             std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
-
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded>
-  get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoint&,
-                                                        const Vector&,
-                                                        const Vector&,
-                                                        const Vector&,
-                                                        std::shared_ptr<ZenithAngleGrid>,
-                                                        const AtmKeyVal&) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
+      Numeric                          number_density,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
   /** The SHT of degree and order of the laboratory-frame phase matrix over the scattering directions, per
    *  incidence zenith angle [deg]: the closed form sampled exactly on the SHT's own grid and transformed */
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral>
-  get_bulk_scattering_properties_aro_spectral(
-      const AtmPoint&, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral> aro_spectral(
+      Numeric number_density, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix, exactly
    *
@@ -112,12 +102,88 @@ struct GasScatterer {
    * @param za_scat_grid The scattering zenith angles [deg], ascending
    * @param max_mode The highest mode, >= 0
    */
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier>
-  get_bulk_scattering_properties_aro_fourier(const AtmPoint&,
-                                             const Vector& f_grid,
-                                             const Vector& za_inc_grid,
-                                             const Vector& za_scat_grid,
-                                             Index         max_mode) const;
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(Numeric       number_density,
+                                                                                           const Vector& f_grid,
+                                                                                           const Vector& za_inc_grid,
+                                                                                           const Vector& za_scat_grid,
+                                                                                           Index max_mode) const;
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
+    return tro_gridded(gas_number_density(point), f_grid, std::move(za_scat_grid));
+  }
+
+  //! The properties are proportional to the number density, so their derivative is them times its relative derivative
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point&                     point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const medium_key<Point>&         target) const {
+    auto out  = tro_gridded(gas_number_density(point), f_grid, std::move(za_scat_grid));
+    out      *= gas_number_density_relative_derivative(point, target);
+    return out;
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] ScatteringTroSpectralVector tro_spectral(const Point& point,
+                                                         const SpectralPoint&,
+                                                         const Vector& f_grid,
+                                                         Index         degree) const {
+    return tro_spectral(gas_number_density(point), f_grid, degree);
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
+      const Point&                     point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
+    return aro_gridded(gas_number_density(point), f_grid, za_inc_grid, delta_aa_grid, std::move(za_scat_grid));
+  }
+
+  //! The properties are proportional to the number density, so their derivative is them times its relative derivative
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      const Point&                     point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const medium_key<Point>&         target) const {
+    auto out  = aro_gridded(gas_number_density(point), f_grid, za_inc_grid, delta_aa_grid, std::move(za_scat_grid));
+    out      *= gas_number_density_relative_derivative(point, target);
+    return out;
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral> aro_spectral(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector& f_grid,
+      const Vector& za_inc_grid,
+      Index         degree,
+      Index         order) const {
+    return aro_spectral(gas_number_density(point), f_grid, za_inc_grid, degree, order);
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(const Point& point,
+                                                                                           const SpectralPoint&,
+                                                                                           const Vector& f_grid,
+                                                                                           const Vector& za_inc_grid,
+                                                                                           const Vector& za_scat_grid,
+                                                                                           Index max_mode) const {
+    return aro_fourier(gas_number_density(point), f_grid, za_inc_grid, za_scat_grid, max_mode);
+  }
 };
 
 }  // namespace scattering

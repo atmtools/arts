@@ -32,8 +32,7 @@ scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
 
   if (scattering_species.species.empty()) return no_scattering(degree);
 
-  const auto bulk =
-      scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, Vector{frequency}, degree);
+  const auto    bulk       = scattering_species.tro_spectral(atm_point, Vector{frequency}, degree);
   const Numeric extinction = bulk.extinction_matrix[0].A();
   const Numeric scattering = extinction - bulk.absorption_vector[0].I();
 

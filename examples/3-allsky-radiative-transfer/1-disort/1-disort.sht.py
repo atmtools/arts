@@ -84,7 +84,7 @@ point = AtmPoint()
 point["t"] = 280
 point[rain_first_moment] = 1e-4
 
-bulk_props = rain.get_bulk_scattering_properties_tro_spectral(point, f_grid, 1)
+bulk_props = rain.tro_spectral(point, f_grid, 1)
 
 # %% Grids and Planet
 p_grid = load(prefix + "p_grid.xml")

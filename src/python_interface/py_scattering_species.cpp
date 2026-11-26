@@ -344,15 +344,15 @@ void py_scattering_species(py::module_& m) try {
   sgstro.def(py::init<ScatteringGeneralSpectralTROFunc, Index>(), "f"_a, "degree"_a);
   sgstro.def_rw("f",
                 &ScatteringGeneralSpectralTRO::f,
-                "The bulk Legendre series as a function of the atmospheric point, the frequency grid and the "
-                "degree\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
+                "The bulk Legendre series as a function of the point (an AtmPoint or a SubsurfacePoint), the "
+                "frequency grid and the degree\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTROFunc`");
   sgstro.def_rw("degree",
                 &ScatteringGeneralSpectralTRO::degree,
                 "The degree of the series when the caller does not choose it, as for the azimuthal Fourier modes; "
                 "unset while negative\n\n.. :class:`int`");
-  sgstro.def("get_bulk_scattering_properties_aro_fourier",
-             &ScatteringGeneralSpectralTRO::get_bulk_scattering_properties_aro_fourier,
-             "atm_point"_a,
+  sgstro.def("aro_fourier",
+             &ScatteringGeneralSpectralTRO::aro_fourier,
+             "point"_a,
              "f_grid"_a,
              "za_inc_grid"_a,
              "za_scat_grid"_a,
@@ -361,6 +361,25 @@ void py_scattering_species(py::module_& m) try {
              "degree, at exactly the given zenith angles [deg]");
   sgstro.doc() = "Scattering general spectral TRO";
   str_interface(sgstro);
+
+  py::class_<CallbackScatteringSpecies> css(m, "CallbackScatteringSpecies");
+  css.def(py::init<>());
+  css.def(py::init_implicit<ScatteringGeneralSpectralTRO>());
+  css.def_rw(
+      "callback",
+      &CallbackScatteringSpecies::callback,
+      "The callback, one type per representation of the bulk properties\n\n.. :class:`~pyarts3.arts.ScatteringGeneralSpectralTRO`");
+  css.def(
+      "tro_spectral",
+      [](const CallbackScatteringSpecies& s, const scattering::MediumPoint& point, const Vector& f_grid, Index degree) {
+        return std::visit([&](const auto& p) { return s.tro_spectral(p, f_grid, degree); }, point);
+      },
+      "point"_a,
+      "f_grid"_a,
+      "degree"_a,
+      "The bulk Legendre series to degree at a point, an AtmPoint or a SubsurfacePoint");
+  css.doc() = "A scattering species given by a user's callback";
+  str_interface(css);
 
   //
   // ScatSpeciesProperty
@@ -444,47 +463,52 @@ void py_scattering_species(py::module_& m) try {
           "cross_section"_a,
           "Create a constant-cross-section model with an isotropic phase matrix.")
       .def(
-          "get_bulk_scattering_properties_tro_gridded",
+          "tro_gridded",
           [](const GasScatterer&         scatterer,
              const AtmPoint&             atm_point,
              const Vector&               f_grid,
              scattering::ZenithAngleGrid za_grid) {
-            return BulkScatteringPropertiesTROGridded{scatterer.get_bulk_scattering_properties_tro_gridded(
+            return BulkScatteringPropertiesTROGridded{scatterer.tro_gridded(
                 atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
           "za_grid"_a,
           "Get bulk scattering properties")
-      .def("get_bulk_scattering_properties_tro_spectral",
-           &GasScatterer::get_bulk_scattering_properties_tro_spectral,
-           "atm_point"_a,
-           "f_grid"_a,
-           "degree"_a,
-           "Get bulk scattering properties")
+      .def(
+          "tro_spectral",
+          [](const GasScatterer& scatterer, const AtmPoint& atm_point, const Vector& f_grid, Index degree) {
+            return scatterer.tro_spectral(atm_point, f_grid, degree);
+          },
+          "atm_point"_a,
+          "f_grid"_a,
+          "degree"_a,
+          "Get bulk scattering properties")
       .doc() = "A molecular gas-scattering species";
 
   py::class_<HenyeyGreensteinScatterer>(m, "HenyeyGreensteinScatterer")
-      .def(py::init<ExtSSACallback, Numeric>(), "func"_a, "g"_a)
       .def(py::init<>())
-      .def(py::init<ScatteringSpeciesProperty, ScatteringSpeciesProperty, Numeric>())
+      .def(py::init<ScatteringSpeciesProperty, ScatteringSpeciesProperty, Numeric>(),
+           "extinction_field"_a,
+           "ssa_field"_a,
+           "g"_a)
       .def(
-          "get_bulk_scattering_properties_tro_spectral",
+          "tro_spectral",
           [](const HenyeyGreensteinScatterer& hg, const AtmPoint& atm_point, const Vector& f_grid, Index l) {
-            return hg.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, l);
+            return hg.tro_spectral(atm_point, f_grid, l);
           },
           "atm_point"_a,
           "f_grid"_a,
           "l"_a,
           "Get bulk scattering properties")
       .def(
-          "get_bulk_scattering_properties_tro_gridded",
+          "tro_gridded",
           [](const HenyeyGreensteinScatterer& hg,
              const AtmPoint&                  atm_point,
              const Vector&                    f_grid,
              scattering::ZenithAngleGrid      za_grid) {
-            return BulkScatteringPropertiesTROGridded{hg.get_bulk_scattering_properties_tro_gridded(
-                atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
+            return BulkScatteringPropertiesTROGridded{
+                hg.tro_gridded(atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
@@ -543,41 +567,41 @@ void py_scattering_species(py::module_& m) try {
       .def(py::init_implicit<std::vector<ScatteringSpecies>>())
       .def("add", &ArrayOfScatteringSpecies::add, "Add scattering species")
       .def(
-          "get_bulk_scattering_properties_tro_spectral",
+          "tro_spectral",
           [](const ArrayOfScatteringSpecies& aoss, const AtmPoint& atm_point, const Vector& f_grid, Index l) {
-            return aoss.get_bulk_scattering_properties_tro_spectral(atm_point, f_grid, l);
+            return aoss.tro_spectral(atm_point, f_grid, l);
           },
           "atm_point"_a,
           "f_grid"_a,
           "l"_a,
           "Get bulk scattering properties")
       .def(
-          "get_bulk_scattering_properties_tro_gridded",
+          "tro_gridded",
           [](const ArrayOfScatteringSpecies& aoss,
              const AtmPoint&                 atm_point,
              const Vector&                   f_grid,
              scattering::ZenithAngleGrid     za_grid) {
-            return BulkScatteringPropertiesTROGridded{aoss.get_bulk_scattering_properties_tro_gridded(
-                atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
+            return BulkScatteringPropertiesTROGridded{
+                aoss.tro_gridded(atm_point, f_grid, std::make_shared<scattering::ZenithAngleGrid>(std::move(za_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
           "za_grid"_a,
           "Get bulk scattering properties")
       .def(
-          "get_bulk_scattering_properties_aro_gridded",
+          "aro_gridded",
           [](const ArrayOfScatteringSpecies& aoss,
              const AtmPoint&                 atm_point,
              const Vector&                   f_grid,
              const Vector&                   za_inc_grid,
              const Vector&                   delta_aa_grid,
              scattering::ZenithAngleGrid     za_scat_grid) {
-            return BulkScatteringPropertiesAROGridded{aoss.get_bulk_scattering_properties_aro_gridded(
-                atm_point,
-                f_grid,
-                za_inc_grid,
-                delta_aa_grid,
-                std::make_shared<scattering::ZenithAngleGrid>(std::move(za_scat_grid)))};
+            return BulkScatteringPropertiesAROGridded{
+                aoss.aro_gridded(atm_point,
+                                 f_grid,
+                                 za_inc_grid,
+                                 delta_aa_grid,
+                                 std::make_shared<scattering::ZenithAngleGrid>(std::move(za_scat_grid)))};
           },
           "atm_point"_a,
           "f_grid"_a,
@@ -586,16 +610,13 @@ void py_scattering_species(py::module_& m) try {
           "za_scat_grid"_a,
           "Get bulk scattering properties")
       .def(
-          "get_bulk_scattering_properties_aro_fourier",
+          "aro_fourier",
           [](const ArrayOfScatteringSpecies& aoss,
              const AtmPoint&                 atm_point,
              const Vector&                   f_grid,
              const Vector&                   za_inc_grid,
              const Vector&                   za_scat_grid,
-             Index                           max_mode) {
-            return aoss.get_bulk_scattering_properties_aro_fourier(
-                atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode);
-          },
+             Index max_mode) { return aoss.aro_fourier(atm_point, f_grid, za_inc_grid, za_scat_grid, max_mode); },
           "atm_point"_a,
           "f_grid"_a,
           "za_inc_grid"_a,
@@ -844,14 +865,14 @@ The reports are on each particle's own grids, before regridding.)")
            py::arg("psd"),
            py::arg("mass_size_rel_a") = -1.0,
            py::arg("mass_size_rel_b") = -1.0)
-      .def("get_bulk_scattering_properties_tro_spectral",
-           &ScatteringHabit::get_bulk_scattering_properties_tro_spectral,
+      .def("tro_spectral",
+           &ScatteringHabit::tro_spectral,
            "point"_a,
            "f_grid"_a,
            "degree"_a,
            "The bulk Legendre series to degree; every particle must hold a TRO Legendre series of at least that degree")
-      .def("get_bulk_scattering_properties_aro_fourier",
-           &ScatteringHabit::get_bulk_scattering_properties_aro_fourier,
+      .def("aro_fourier",
+           &ScatteringHabit::aro_fourier,
            "point"_a,
            "f_grid"_a,
            "za_inc_grid"_a,

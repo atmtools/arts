@@ -56,8 +56,7 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   }
   if (not ZenGrid::is_sorted(za)) arts::user_error("RT4 stream cosines mu must be distinct");
 
-  const auto bulk =
-      scattering_species.get_bulk_scattering_properties_aro_fourier(atm_point, Vector{frequency}, za, za, 0);
+  const auto bulk = scattering_species.aro_fourier(atm_point, Vector{frequency}, za, za, 0);
   if (not bulk.phase_matrix.has_value())
     arts::user_error(
         "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "

@@ -15,7 +15,7 @@
  * propagation paths into rt3::scattering_set and rt3::problem.  RT3 takes
  * the scattering matrix of totally randomly oriented (TRO) particles as
  * Legendre series, and gets them from the species' own Legendre series
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral).
+ * (ArrayOfScatteringSpecies::tro_spectral).
  *
  * Stokes and sign conventions.  ARTS's TRO scattering matrix is stored as
  * [F11, F12, F22, F33, F34, F44] in the scattering-plane basis with
@@ -38,7 +38,7 @@ namespace polradtran::rt3 {
 /** The scattering set of scattering species at one atmospheric point.
  *
  * The species give their Legendre series to degree themselves
- * (ArrayOfScatteringSpecies::get_bulk_scattering_properties_tro_spectral,
+ * (ArrayOfScatteringSpecies::tro_spectral,
  * coefficients a_l on the orthonormal Y_l0); these are the Legendre
  * coefficients c_l = a_l sqrt((2 l + 1) / 4 pi) of F = sum_l c_l P_l.
  * Species that cannot give them (gridded particle data, ARO data) are an

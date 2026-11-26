@@ -325,8 +325,8 @@ void test_path() {
 
   // A species whose phase-function integral is 3/4 of its scattering coefficient
   ArrayOfScatteringSpecies mismatched;
-  mismatched.add(
-      ScatteringGeneralSpectralTRO{ScatteringGeneralSpectralTROFunc{[](const AtmPoint&, const Vector& f, Index degree) {
+  mismatched.add(ScatteringGeneralSpectralTRO{
+      ScatteringGeneralSpectralTROFunc{[](const scattering::MediumPoint&, const Vector& f, Index degree) {
         ScatteringTroSpectralVector v{
             .phase_matrix      = CompactPlanarMuelmatMatrix(f.size(), degree + 1, CompactPlanarMuelmat{}),
             .extinction_matrix = CompactPlanarPropmatVector(f.size(), CompactPlanarPropmat{1e-4}),

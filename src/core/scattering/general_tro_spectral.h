@@ -5,6 +5,7 @@
 #include <rtepack.h>
 
 #include "bulk_scattering_properties.h"
+#include "scattering_medium.h"
 
 /** The bulk Legendre series of totally randomly oriented scatterers, as solvers take it
  *
@@ -43,15 +44,19 @@ struct ScatteringTroSpectralVector {
                                        std::shared_ptr<const scattering::ZenithAngleGrid> za_scat_grid_new) const;
 };
 
-using ScatteringGeneralSpectralTROFunc =
-    CustomOperator<ScatteringTroSpectralVector, const AtmPoint&, const Vector&, Index>;
+using ScatteringGeneralSpectralTROFunc = CustomOperator<ScatteringTroSpectralVector,
+                                                      const scattering::MediumPoint&,
+                                                      const scattering::SpectralMediumPoint&,
+                                                      const Vector&,
+                                                      Index>;
 
 /** A scattering species given by a user's function of its TRO Legendre series
  *
- * f(atm_point, f_grid, degree) must give the bulk Legendre series to degree
- * at f_grid (see ScatteringTroSpectralVector), with the extinction and
- * absorption at f_grid; get_bulk_scattering_properties_tro_spectral throws
- * if it gives anything else.
+ * f(point, spectral_point, f_grid, degree) must give the bulk Legendre series
+ * to degree at f_grid (see ScatteringTroSpectralVector), with the extinction
+ * and absorption at f_grid; tro_spectral throws if it gives anything else.
+ * The points are those of whichever medium it is called in, the spectral
+ * point at f_grid, and f deals with the media it supports.
  *
  * degree is where the series is truncated when the caller does not choose
  * it, as for the azimuthal Fourier modes; it is unset while negative.
@@ -61,9 +66,10 @@ struct ScatteringGeneralSpectralTRO {
   Index                            degree{-1};
 
   [[nodiscard]]
-  ScatteringTroSpectralVector get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
-                                                                          const Vector&   f_grid,
-                                                                          Index           degree) const;
+  ScatteringTroSpectralVector tro_spectral(const scattering::MediumPoint&         point,
+                                           const scattering::SpectralMediumPoint& spectral_point,
+                                           const Vector&                          f_grid,
+                                           Index                                  degree) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix of the series to degree
    *
@@ -71,12 +77,13 @@ struct ScatteringGeneralSpectralTRO {
    * series is evaluated exactly at the given zenith angles [deg].
    */
   [[nodiscard]]
-  scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
-  get_bulk_scattering_properties_aro_fourier(const AtmPoint& atm_point,
-                                             const Vector&   f_grid,
-                                             const Vector&   za_inc_grid,
-                                             const Vector&   za_scat_grid,
-                                             Index           max_mode) const;
+  scattering::BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier> aro_fourier(
+      const scattering::MediumPoint&         point,
+      const scattering::SpectralMediumPoint& spectral_point,
+      const Vector&                          f_grid,
+      const Vector&                          za_inc_grid,
+      const Vector&                          za_scat_grid,
+      Index                                  max_mode) const;
 };
 
 template <> struct std::formatter<ScatteringTroSpectralVector> {

@@ -284,6 +284,19 @@ For more information, see :doc:`user.atm_field`.
       .type = "AtmField",
   };
 
+  wsv_data["atm_spectral_field"] = {
+      .desc          = R"--(The spectral atmospheric field.
+
+It holds the parameters of the atmosphere that depend on frequency, such as
+the spectral properties of scattering species.  The methods that evaluate
+scattering species take it at each position on the frequencies they use.
+
+See *AtmSpectralField*.
+)--",
+      .type          = "AtmSpectralField",
+      .default_value = "AtmSpectralField()",
+  };
+
   wsv_data["atm_path"] = {
       .desc = R"--(Atmospheric points along the propagation path.
 

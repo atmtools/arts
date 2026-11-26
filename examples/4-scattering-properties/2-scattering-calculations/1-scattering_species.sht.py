@@ -104,13 +104,13 @@ scattering_species.add(hg_rain)
 # both are converted to gridded representation.
 atm_pt = ws.atm_field(11e3, 0.0, 0.0)
 f_grid = np.array([89e9])
-bsp = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_pt, f_grid, 32)
+bsp = scattering_species.tro_spectral(atm_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
 
 za_scat_grid = pyarts.arts.ScatteringTroSpectralVector.to_gridded(
     pm_spectral
 ).get_za_scat_grid()
-bsp = scattering_species.get_bulk_scattering_properties_tro_gridded(
+bsp = scattering_species.tro_gridded(
     atm_pt, f_grid, za_scat_grid
 )
 pm_gridded = bsp.phase_matrix
@@ -130,13 +130,13 @@ ax.legend()
 # Similarly, we can extract the phase function for rain by calculating the
 # bulk-scattering properties at a lower point in the atmosphere.
 atm_pt = ws.atm_field(4e3, 0.0, 0.0)
-bsp = scattering_species.get_bulk_scattering_properties_tro_spectral(atm_pt, f_grid, 32)
+bsp = scattering_species.tro_spectral(atm_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
 
 za_scat_grid = pyarts.arts.ScatteringTroSpectralVector.to_gridded(
     pm_spectral
 ).get_za_scat_grid()
-bsp = scattering_species.get_bulk_scattering_properties_tro_gridded(
+bsp = scattering_species.tro_gridded(
     atm_pt, f_grid, za_scat_grid
 )
 pm_gridded = bsp.phase_matrix

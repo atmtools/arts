@@ -47,7 +47,7 @@ levels = [level(20.0), level(200.0)]
 
 
 def series(species, point):
-    bulk = species.get_bulk_scattering_properties_tro_spectral(point, [FREQ], L - 1)
+    bulk = species.tro_spectral(point, [FREQ], L - 1)
     a = np.asarray(bulk.phase_matrix)[0, :, 0]
     sigma = np.asarray(bulk.extinction_matrix)[0, 0] - np.asarray(bulk.absorption_vector)[0, 0]
     return a, sigma, bulk.phase_matrix

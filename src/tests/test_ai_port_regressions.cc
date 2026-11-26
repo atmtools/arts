@@ -176,6 +176,11 @@ void radar_gates() {
   atmosphere.top_of_atmosphere = 2000.0;
   atmosphere[AtmKey::p]        = 1e5;
   atmosphere[AtmKey::t]        = 250.0;
+  constexpr Numeric extinction = 1e-8;
+  const auto        hg_ext     = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
+  const auto        hg_ssa     = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
+  atmosphere[hg_ext]           = extinction;
+  atmosphere[hg_ssa]           = 1.0;
   SurfaceField surface;
   surface.ellipsoid = Vector2{6371e3, 6371e3};
   const auto gas    = [] {
@@ -207,9 +212,7 @@ void radar_gates() {
     return agenda;
   };
   ArrayOfScatteringSpecies species;
-  constexpr Numeric        extinction = 1e-8;
-  species.species.emplace_back(HenyeyGreensteinScatterer{
-      ExtSSACallback{[extinction](Numeric, const AtmPoint&) { return std::pair{extinction, 1.0}; }}, 0.0});
+  species.species.emplace_back(HenyeyGreensteinScatterer{hg_ext, hg_ssa, 0.0});
   MCAntenna antenna;
   antenna.set_pencil_beam();
   const AscendingGrid bins{100.0, 200.0, 400.0};

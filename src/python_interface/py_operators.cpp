@@ -5,6 +5,7 @@
 #include <nanobind/stl/pair.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/string_view.h>
+#include <nanobind/stl/variant.h>
 #include <nanobind/stl/vector.h>
 #include <operators.h>
 
@@ -81,10 +82,6 @@ void py_operators(py::module_& m) {
   py::class_<NumericUnaryOperator> nuop(m, "NumericUnaryOperator");
   defaults_to_python(nuop, "x"_a);
 
-  py::class_<ExtSSACallback> esop(m, "ExtSSACallback");
-  defaults_to_python(esop, "frequency"_a, "atm_point"_a);
-  esop.doc() = "A callback to get [extinction, ssa] from a single scattering albedo and extinction field.";
-
   py::class_<NumericBinaryOperator> nbop(m, "NumericBinaryOperator");
   defaults_to_python(nbop, "x"_a, "y"_a);
 
@@ -95,8 +92,9 @@ void py_operators(py::module_& m) {
   defaults_to_python(nqop, "w"_a, "x"_a, "y"_a, "z"_a);
 
   py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
-  defaults_to_python(sgstro, "atm_point"_a, "f_grid"_a, "degree"_a);
-  sgstro.doc() = "A callback to get the bulk scattering properties of a species.";
+  defaults_to_python(sgstro, "point"_a, "f_grid"_a, "degree"_a);
+  sgstro.doc() =
+      "A callback to get the bulk Legendre series of a species at a point, an AtmPoint or a SubsurfacePoint.";
 
   // Indirect operators
   py::class_<SpectralRadianceTransformOperator> srtop(m, "SpectralRadianceTransformOperator");

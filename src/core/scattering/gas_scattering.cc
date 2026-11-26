@@ -82,33 +82,21 @@ rtepack::compact_planar_muelmat normalized_phase_matrix(const GasScatteringPhase
       phase_matrix);
 }
 
-Numeric scattering_coefficient(const GasScatteringCoefficient& coefficient,
-                               Numeric                         frequency,
-                               const AtmPoint&                 atm_point) {
-  return std::visit([&](const auto& model) { return model(frequency, atm_point); }, coefficient);
-}
-
-/** The relative derivative of the scattering coefficient, which is proportional to number density */
-Numeric relative_derivative(const AtmPoint& atm_point, const AtmKeyVal& target) {
-  if (target == AtmKeyVal{AtmKey::p}) return 1.0 / atm_point.pressure;
-  if (target == AtmKeyVal{AtmKey::t}) return -1.0 / atm_point.temperature;
-  return 0.0;
+//! The scattering coefficient, the cross-section times the number density of the gas
+Numeric scattering_coefficient(const GasScatteringCoefficient& coefficient, Numeric frequency, Numeric number_density) {
+  return std::visit([frequency](const auto& model) { return model(frequency); }, coefficient) * number_density;
 }
 
 }  // namespace
 
-Numeric AirSimpleGasScattering::operator()(Numeric frequency, const AtmPoint& atm_point) const {
-  return air_simple_cross_section(frequency) * number_density(atm_point.pressure, atm_point.temperature);
-}
+Numeric AirSimpleGasScattering::operator()(Numeric frequency) const { return air_simple_cross_section(frequency); }
 
 ConstantGasScattering::ConstantGasScattering(Numeric cross_section_) : cross_section(cross_section_) {
   if (cross_section < 0.0)
     arts::user_error("The gas-scattering cross-section must be non-negative, is {}", cross_section);
 }
 
-Numeric ConstantGasScattering::operator()(Numeric, const AtmPoint& atm_point) const {
-  return cross_section * number_density(atm_point.pressure, atm_point.temperature);
-}
+Numeric ConstantGasScattering::operator()(Numeric) const { return cross_section; }
 
 RayleighGasScattering::RayleighGasScattering(Numeric depolarization_factor_)
     : depolarization_factor(depolarization_factor_) {
@@ -119,8 +107,8 @@ RayleighGasScattering::RayleighGasScattering(Numeric depolarization_factor_)
 GasScatterer::GasScatterer(GasScatteringCoefficient coefficient_, GasScatteringPhaseMatrix phase_matrix_)
     : coefficient(std::move(coefficient_)), phase_matrix(std::move(phase_matrix_)) {}
 
-BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get_bulk_scattering_properties_tro_gridded(
-    const AtmPoint& atm_point, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
+BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::tro_gridded(
+    Numeric number_density, const Vector& f_grid, std::shared_ptr<ZenithAngleGrid> za_scat_grid) const {
   if (not za_scat_grid) arts::user_error("A scattering zenith-angle grid is required");
 
   auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
@@ -131,7 +119,7 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get
 
   const auto angles = grid_vector(*za_scat_grid);
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    const Numeric coefficient_per_m = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    const Numeric coefficient_per_m = scattering_coefficient(coefficient, f_grid[iv], number_density);
     extinction[0, iv].A()           = coefficient_per_m;
     for (Size ia = 0; ia < angles.size(); ++ia) {
       const auto normalized = normalized_phase_matrix(phase_matrix, Conversion::deg2rad(angles[ia]));
@@ -144,19 +132,9 @@ BulkScatteringProperties<Format::TRO, Representation::Gridded> GasScatterer::get
           .absorption_vector = std::move(absorption)};
 }
 
-BulkScatteringProperties<Format::TRO, Representation::Gridded>
-GasScatterer::get_bulk_scattering_properties_tro_gridded_derivative(const AtmPoint&                  atm_point,
-                                                                    const Vector&                    f_grid,
-                                                                    std::shared_ptr<ZenithAngleGrid> za_scat_grid,
-                                                                    const AtmKeyVal&                 target) const {
-  auto out  = get_bulk_scattering_properties_tro_gridded(atm_point, f_grid, std::move(za_scat_grid));
-  out      *= relative_derivative(atm_point, target);
-  return out;
-}
-
-ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spectral(const AtmPoint& atm_point,
-                                                                                      const Vector&   f_grid,
-                                                                                      Index           degree) const {
+ScatteringTroSpectralVector GasScatterer::tro_spectral(Numeric       number_density,
+                                                       const Vector& f_grid,
+                                                       Index         degree) const {
   if (degree < 0) arts::user_error("The Legendre degree must be non-negative, is {}", degree);
 
   CompactPlanarMuelmatMatrix phase(f_grid.size(), degree + 1, CompactPlanarMuelmat{});
@@ -164,7 +142,7 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
   CompactPlanarStokvecVector absorption(f_grid.size());
 
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    const Numeric k    = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    const Numeric k    = scattering_coefficient(coefficient, f_grid[iv], number_density);
     const Numeric amp  = 0.5 * Constant::inv_sqrt_pi * k;
     extinction[iv].A() = k;
 
@@ -204,8 +182,8 @@ ScatteringTroSpectralVector GasScatterer::get_bulk_scattering_properties_tro_spe
           .absorption_vector = std::move(absorption)};
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get_bulk_scattering_properties_aro_gridded(
-    const AtmPoint&                  atm_point,
+BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::aro_gridded(
+    Numeric                          number_density,
     const Vector&                    f_grid,
     const Vector&                    za_inc_grid,
     const Vector&                    delta_aa_grid,
@@ -219,7 +197,7 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
   AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
   Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], number_density);
     scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 
@@ -240,37 +218,22 @@ BulkScatteringProperties<Format::ARO, Representation::Gridded> GasScatterer::get
           .absorption_vector = absorption.to_lab_frame(za_inc_ptr)};
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Gridded>
-GasScatterer::get_bulk_scattering_properties_aro_gridded_derivative(const AtmPoint&                  atm_point,
-                                                                    const Vector&                    f_grid,
-                                                                    const Vector&                    za_inc_grid,
-                                                                    const Vector&                    delta_aa_grid,
-                                                                    std::shared_ptr<ZenithAngleGrid> za_scat_grid,
-                                                                    const AtmKeyVal&                 target) const {
-  auto out = get_bulk_scattering_properties_aro_gridded(
-      atm_point, f_grid, za_inc_grid, delta_aa_grid, std::move(za_scat_grid));
-  out *= relative_derivative(atm_point, target);
-  return out;
-}
-
-BulkScatteringProperties<Format::ARO, Representation::Spectral>
-GasScatterer::get_bulk_scattering_properties_aro_spectral(
-    const AtmPoint& atm_point, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
+BulkScatteringProperties<Format::ARO, Representation::Spectral> GasScatterer::aro_spectral(
+    Numeric number_density, const Vector& f_grid, const Vector& za_inc_grid, Index degree, Index order) const {
   auto sht = sht::provider.get_instance_lm(degree, order);
-  return get_bulk_scattering_properties_aro_gridded(atm_point,
-                                                    f_grid,
-                                                    za_inc_grid,
-                                                    *sht->get_aa_grid_ptr(),
-                                                    std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
+  return aro_gridded(number_density,
+                     f_grid,
+                     za_inc_grid,
+                     *sht->get_aa_grid_ptr(),
+                     std::make_shared<ZenithAngleGrid>(sht->get_zenith_angle_grid()))
       .to_spectral(degree, order);
 }
 
-BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get_bulk_scattering_properties_aro_fourier(
-    const AtmPoint& atm_point,
-    const Vector&   f_grid,
-    const Vector&   za_inc_grid,
-    const Vector&   za_scat_grid,
-    Index           max_mode) const {
+BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::aro_fourier(Numeric       number_density,
+                                                                                         const Vector& f_grid,
+                                                                                         const Vector& za_inc_grid,
+                                                                                         const Vector& za_scat_grid,
+                                                                                         Index         max_mode) const {
   auto                                                       t_grid_ptr = std::make_shared<Vector>(Vector{0.0});
   auto                                                       f_grid_ptr = std::make_shared<Vector>(f_grid);
   auto                                                       za_inc_ptr = std::make_shared<Vector>(za_inc_grid);
@@ -278,7 +241,7 @@ BulkScatteringProperties<Format::ARO, Representation::Fourier> GasScatterer::get
   AbsorptionVectorData<Format::TRO, Representation::Gridded> absorption{t_grid_ptr, f_grid_ptr};
   Vector                                                     scale(f_grid.size());
   for (Size iv = 0; iv < f_grid.size(); ++iv) {
-    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], atm_point);
+    extinction[0, iv].A() = scattering_coefficient(coefficient, f_grid[iv], number_density);
     scale[iv]             = extinction[0, iv].A() / (4.0 * Constant::pi);
   }
 

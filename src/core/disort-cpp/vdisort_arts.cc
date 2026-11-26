@@ -72,8 +72,7 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   // int Z11 dOmega at the incidence angles
   const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
   const auto [za_scat, sca] = zenith_angle_grid(mu_out);
-  const auto lab            = scattering_species.get_bulk_scattering_properties_aro_fourier(
-      atm_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
+  const auto lab = scattering_species.aro_fourier(atm_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
   if (not lab.phase_matrix.has_value())
     arts::user_error(
         "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "

@@ -32,7 +32,7 @@
  * Relation to ARTS.  ARTS's scattering data take the propagation directions
  * (za, aa), with aa clockwise seen from above.  ARTS's laboratory-frame
  * phase matrix (ArrayOfScatteringSpecies::
- * get_bulk_scattering_properties_aro_gridded) is the phase matrix of the
+ * aro_gridded) is the phase matrix of the
  * basis above with mu = cos(za) and phi = -aa, element by element, with the
  * same I, Q, U and V (tested against vector geometry in
  * cpp.fast.vdisort-arts-test).  So VDISORT uses ARTS's laboratory-frame
@@ -68,7 +68,7 @@ struct fourier_optics {
  * ARTS's laboratory-frame phase matrix from the incident za = acos(mu_i) to
  * the scattered za = acos(mu_o) at delta_aa = aa_scat - aa_inc = phi.
  * Everything comes from the species' azimuthal Fourier modes at exactly
- * these zenith angles (get_bulk_scattering_properties_aro_fourier): the
+ * these zenith angles (aro_fourier): the
  * modes, the extinction and absorption, and the phase integral
  * sigma = int Z11 dOmega.  They are exact for GasScatterer and
  * HenyeyGreensteinScatterer, and for particle habits from their Legendre

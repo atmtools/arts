@@ -359,6 +359,7 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
                                           const JacobianTargets&                           jac_targets,
                                           const AscendingGrid&                             freq_grid,
                                           const AtmField&                                  atm_field,
+                                          const AtmSpectralField&                          atm_spectral_field,
                                           const SurfaceField&                              surf_field,
                                           const ArrayOfScatteringSpecies&                  scattering_species,
                                           const Agenda&              spectral_propmat_and_atm_path_agenda,
@@ -393,8 +394,9 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
       StokvecVector       spectral_rad_bkg;
       const StokvecMatrix spectral_rad_bkg_jac(0, nf);
 
-      const auto& ray_point = ray_path[ip];
-      const auto  atm_point = atm_field.at(ray_point.pos);
+      const auto& ray_point      = ray_path[ip];
+      const auto  atm_point      = atm_field.at(ray_point.pos);
+      const auto  spectral_point = atm_spectral_field.at(freq_grid, ray_point.pos[0], ray_point.pos[1], ray_point.pos[2]);
 
       for (Size isun = 0; isun < nsuns; ++isun) {
         auto        sun_path = ray_path_suns_path[ip][isun];
@@ -423,8 +425,8 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
         while (delta_aa > 180.0) delta_aa -= 360.0;
         auto za_scat_grid =
             std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{outgoing[0]}));
-        const auto bulk = scattering_species.get_bulk_scattering_properties_aro_gridded(
-            atm_point, freq_grid, Vector{incoming[0]}, Vector{delta_aa}, std::move(za_scat_grid));
+        const auto bulk = scattering_species.aro_gridded(
+            atm_point, spectral_point, freq_grid, Vector{incoming[0]}, Vector{delta_aa}, std::move(za_scat_grid));
         if (not bulk.phase_matrix) arts::user_error("The scattering species returned no phase matrix");
 
         for (Size iv = 0; iv < nf; ++iv) {

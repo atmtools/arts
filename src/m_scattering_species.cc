@@ -34,15 +34,20 @@ void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(PropmatVector&        
                                                           StokvecVector&                  spectral_absvec_scat,
                                                           CompactPlanarMuelmatMatrix&     spectral_phamat_spectral,
                                                           const AscendingGrid&            freq_grid,
+                                                          const PropagationPathPoint&     ray_point,
                                                           const AtmPoint&                 atm_point,
+                                                          const AtmSpectralField&         atm_spectral_field,
                                                           const ArrayOfScatteringSpecies& scattering_species) try {
   const Index L = spectral_phamat_spectral.ncols();
 
   if (L < 1) arts::user_error("Need at least one Legendre coefficient");
   if (scattering_species.species.empty()) arts::user_error("No scattering species");
 
-  const auto [phase_matrix_opt, extinction_matrix, absorption_vector] =
-      scattering_species.get_bulk_scattering_properties_tro_spectral(atm_point, freq_grid, L - 1);
+  const auto [phase_matrix_opt, extinction_matrix, absorption_vector] = scattering_species.tro_spectral(
+      atm_point,
+      atm_spectral_field.at(freq_grid, ray_point.pos[0], ray_point.pos[1], ray_point.pos[2]),
+      freq_grid,
+      L - 1);
 
   if (not phase_matrix_opt.has_value()) arts::user_error("No phase matrix");
 
@@ -50,7 +55,7 @@ void spectral_propmat_scatAddSpectralScatteringSpeciesTRO(PropmatVector&        
 
   if (not same_shape(phase_matrix, spectral_phamat_spectral) or
       not same_shape(extinction_matrix, absorption_vector, spectral_propmat_scat, spectral_absvec_scat))
-    arts::user_error(R"(Shape mismatch in return from scattering_species.get_bulk_scattering_properties_tro_spectral():
+    arts::user_error(R"(Shape mismatch in return from scattering_species.tro_spectral():
 
 Phase matrix shape (must match):
   phase_matrix.shape(): [OUTPUT]    {0:B,}
@@ -125,10 +130,16 @@ void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&              
                                                   ArrayOfStokvecVector&              spectral_absvec_scat_path,
                                                   ArrayOfCompactPlanarMuelmatMatrix& spectral_phamat_spectral_path,
                                                   const ArrayOfAscendingGrid&        freq_grid_path,
+                                                  const ArrayOfPropagationPathPoint& ray_path,
                                                   const ArrayOfAtmPoint&             atm_path,
                                                   const Index&                       legendre_degree,
                                                   const Agenda& spectral_propmat_scat_spectral_agenda) try {
   const Size N = freq_grid_path.size();
+  if (ray_path.size() != N or atm_path.size() != N)
+    arts::user_error("There are {} frequency grids, {} path points and {} atmospheric points",
+                     N,
+                     ray_path.size(),
+                     atm_path.size());
 
   spectral_propmat_scat_path.resize(N);
   spectral_absvec_scat_path.resize(N);
@@ -143,6 +154,7 @@ void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&              
                                                    spectral_absvec_scat_path[i],
                                                    spectral_phamat_spectral_path[i],
                                                    freq_grid_path[i],
+                                                   ray_path[i],
                                                    atm_path[i],
                                                    legendre_degree,
                                                    spectral_propmat_scat_spectral_agenda);

@@ -73,7 +73,7 @@ or planetary atmospheres and for visible/near-infrared water or steam.
           R"--(Gets the scattering propagation matrix, the scattering absorption vector, and the scattering spectral phase matrix.
 )--",
       .output       = {"spectral_propmat_scat", "spectral_absvec_scat", "spectral_phamat_spectral"},
-      .input        = {"freq_grid", "atm_point", "legendre_degree"},
+      .input        = {"freq_grid", "ray_point", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_desc =
           {R"--(The scattering of *scat_species* as totally randomly oriented particles, see *spectral_propmat_scatAddSpectralScatteringSpeciesTRO*.)--"},

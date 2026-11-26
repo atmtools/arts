@@ -16,6 +16,7 @@ void MCRadar(const Workspace&                ws,
              StokvecVector&                  radar_error,
              Vector&                         radar_time,
              const AtmField&                 atm_field,
+             const AtmSpectralField&         atm_spectral_field,
              const SurfaceField&             surf_field,
              const ArrayOfScatteringSpecies& scattering_species,
              const MCAntenna&                mc_antenna,
@@ -118,7 +119,7 @@ void MCRadar(const Workspace&                ws,
     if (samples.empty()) continue;
 
     const radar::Optics optics =
-        radar::optics(ray_path, np, atm_field, freq_grid, scattering_species, jac_targets, pext_scaling, gas);
+        radar::optics(ray_path, np, atm_field, atm_spectral_field, freq_grid, scattering_species, jac_targets, pext_scaling, gas);
     radar::single_scattering(
         signal, signal_jac, tx_rotation * mc_y_tx, optics, range.layer, samples, nbins, rte_option);
 
