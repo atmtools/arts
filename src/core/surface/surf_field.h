@@ -9,7 +9,9 @@
 #include <limits>
 #include <type_traits>
 #include <unordered_map>
+#include <utility>
 #include <variant>
+#include <vector>
 
 struct SurfacePropertyTag {
   String name;
@@ -128,8 +130,8 @@ struct Data {
 
   [[nodiscard]] VectorView flat_view();
 
-  //! Flat weights for the positions on the surface
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 4> flat_weights(const Numeric &lat, const Numeric &lon) const;
+  //! Flat weights for the positions on the surface, into weights, which is cleared first to reuse its allocation
+  void flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Numeric &lat, const Numeric &lon) const;
 
   [[nodiscard]] Numeric at(const Numeric lat, const Numeric lon) const;
 

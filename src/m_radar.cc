@@ -133,6 +133,7 @@ RadarResult radar_forward(const Workspace&                       ws,
   Vector            scalar_weight_sum(ny, 0.0);
   Vector            time_coverage(ny, 0.0);
 
+  std::vector<std::pair<Index, Numeric>> state_weights;
   for (const auto& simulation : simulations) {
     if (simulation.samples.empty()) continue;
 
@@ -240,7 +241,7 @@ RadarResult radar_forward(const Workspace&                       ws,
     for (const auto& target : jac_targets.atm) {
       const auto& field = atm_field[target.type];
       for (Size jp = 0; jp < simulation.np; ++jp) {
-        const auto state_weights = field.flat_weight(ray_path[jp].pos);
+        field.flat_weight(state_weights, ray_path[jp].pos);
         for (Size ig = 0; ig < ngate; ++ig) {
           if (coverage[ig] == 0.0) continue;
 

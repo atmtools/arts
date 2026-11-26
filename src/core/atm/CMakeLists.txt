@@ -1,5 +1,6 @@
 add_library(atm STATIC
   atm_field.cpp
+  atm_spectral_field.cpp
   xml_atm.cpp
 )
 

@@ -7,12 +7,17 @@
 
 void subsurf_profileFromPath(ArrayOfSubsurfacePoint&            subsurf_profile,
                              const SubsurfaceField&             subsurf_field,
+                             const SurfaceField&                surf_field,
                              const ArrayOfPropagationPathPoint& ray_path) {
   ARTS_TIME_REPORT
 
   const auto to_vec3 = stdv::transform([](const auto& p) { return p.pos; });
 
-  const auto extract = stdv::transform([&](Vector3 pos) { return subsurf_field.at(pos[0], pos[1], pos[2]); });
+  // The subsurface field is a function of the altitude relative to the local surface
+  const auto extract = stdv::transform([&](Vector3 pos) {
+    const Numeric h = surf_field.single_value(SurfaceKey::h, pos[1], pos[2]);
+    return subsurf_field.at(pos[0] - h, pos[1], pos[2]);
+  });
 
   subsurf_profile = ray_path | to_vec3 | extract | stdr::to<ArrayOfSubsurfacePoint>();
 }

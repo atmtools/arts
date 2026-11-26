@@ -106,15 +106,16 @@ void spectral_radSurfaceBlackbody(StokvecVector&              spectral_rad,
 
   spectral_rad_jacEmpty(spectral_rad_jac, freq_grid, jac_targets);
 
+  std::vector<std::pair<Index, Numeric>> weights;
   for (auto& target : jac_targets.surf) {
     if (target.type == SurfaceKey::t) {
       const auto& data = surf_field[target.type];
 
-      const auto ws = data.flat_weights(ray_point.pos[1], ray_point.pos[2]);
+      data.flat_weight(weights, ray_point.pos[1], ray_point.pos[2]);
 
       for (Size i = 0; i < freq_grid.size(); i++) {
         const Numeric dBdt = dplanck_dt(freq_grid[i], t);
-        for (const auto& w : ws) { spectral_rad_jac[w.first + target.x_start, i] += w.second * Stokvec{dBdt}; }
+        for (const auto& w : weights) { spectral_rad_jac[w.first + target.x_start, i] += w.second * Stokvec{dBdt}; }
       }
     }
   }

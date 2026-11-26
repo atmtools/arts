@@ -107,3 +107,117 @@ void xml_io_stream<SubsurfacePropertyTag>::read(std::istream& is, SubsurfaceProp
   tag.read_from_stream(is);
   tag.check_end_name(type_name);
 }
+
+void xml_io_stream<SubsurfaceSpectralField>::write(std::ostream&                  os,
+                                                   const SubsurfaceSpectralField& x,
+                                                   bofstream*                     pbofs,
+                                                   std::string_view               name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+
+  xml_write_to_stream(os, x.props, pbofs);
+
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<SubsurfaceSpectralField>::read(std::istream& is, SubsurfaceSpectralField& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.props, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<SubsurfaceSpectralData>::write(std::ostream&                 os,
+                                                  const SubsurfaceSpectralData& v,
+                                                  bofstream*                    pbofs,
+                                                  std::string_view              name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+
+  xml_write_to_stream(os, v.data, pbofs, "Data"sv);
+  xml_write_to_stream(os, v.frq_upp, pbofs, "frq_upp"sv);
+  xml_write_to_stream(os, v.frq_low, pbofs, "frq_low"sv);
+  xml_write_to_stream(os, v.alt_upp, pbofs, "alt_upp"sv);
+  xml_write_to_stream(os, v.alt_low, pbofs, "alt_low"sv);
+  xml_write_to_stream(os, v.lat_upp, pbofs, "lat_upp"sv);
+  xml_write_to_stream(os, v.lat_low, pbofs, "lat_low"sv);
+  xml_write_to_stream(os, v.lon_upp, pbofs, "lon_upp"sv);
+  xml_write_to_stream(os, v.lon_low, pbofs, "lon_low"sv);
+
+  xml_write_to_stream(os, v.log_interpolation, pbofs, "log_interpolation"sv);
+
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<SubsurfaceSpectralData>::read(std::istream& is, SubsurfaceSpectralData& v, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, v.data, pbifs);
+  xml_read_from_stream(is, v.frq_upp, pbifs);
+  xml_read_from_stream(is, v.frq_low, pbifs);
+  xml_read_from_stream(is, v.alt_upp, pbifs);
+  xml_read_from_stream(is, v.alt_low, pbifs);
+  xml_read_from_stream(is, v.lat_upp, pbifs);
+  xml_read_from_stream(is, v.lat_low, pbifs);
+  xml_read_from_stream(is, v.lon_upp, pbifs);
+  xml_read_from_stream(is, v.lon_low, pbifs);
+
+  xml_read_from_stream(is, v.log_interpolation, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<SubsurfaceSpectralPropertyTag>::write(std::ostream&                        os,
+                                                         const SubsurfaceSpectralPropertyTag& x,
+                                                         bofstream*                           pbofs,
+                                                         std::string_view                     name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+
+  xml_write_to_stream(os, x.name, pbofs);
+
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<SubsurfaceSpectralPropertyTag>::read(std::istream&                  is,
+                                                        SubsurfaceSpectralPropertyTag& x,
+                                                        bifstream*                     pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.name, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}
+
+void xml_io_stream<SubsurfaceSpectralPoint>::write(std::ostream&                  os,
+                                                   const SubsurfaceSpectralPoint& x,
+                                                   bofstream*                     pbofs,
+                                                   std::string_view               name) {
+  XMLTag tag(type_name, "name", name);
+  tag.write_to_stream(os);
+
+  xml_write_to_stream(os, x.props, pbofs);
+
+  tag.write_to_end_stream(os);
+}
+
+void xml_io_stream<SubsurfaceSpectralPoint>::read(std::istream& is, SubsurfaceSpectralPoint& x, bifstream* pbifs) {
+  XMLTag tag;
+  tag.read_from_stream(is);
+  tag.check_name(type_name);
+
+  xml_read_from_stream(is, x.props, pbifs);
+
+  tag.read_from_stream(is);
+  tag.check_end_name(type_name);
+}

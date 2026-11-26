@@ -46,10 +46,11 @@ Matrix interpweights(const latlags& b, const lonlags& c) {
       c);
 }
 
-std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
-                                                   const Numeric         alt,
-                                                   const Numeric         lat,
-                                                   const Numeric         lon) {
+void flat_weight(std::vector<std::pair<Index, Numeric>>& weights,
+                 const GeodeticField3&                   gf3,
+                 const Numeric                           alt,
+                 const Numeric                           lat,
+                 const Numeric                           lon) {
   if (not gf3.ok())
     arts::user_error(
         "The atmospheric field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
@@ -61,21 +62,18 @@ std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
   using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
 
-  return std::visit(
-      [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
+  std::visit(
+      [&weights, NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
           const ALT& al, const LAT& la, const LON& lo) {
-        const auto                             x = interpweights(al, la, lo);
-        std::vector<std::pair<Index, Numeric>> out;
-        out.reserve(al.size() * NN);
+        const auto x = interpweights(al, la, lo);
 
         for (Index i = 0; i < al.size(); i++) {
           for (Index j = 0; j < la.size(); j++) {
             for (Index k = 0; k < lo.size(); k++) {
-              out.emplace_back(al.indx[i] * NN + la.indx[j] * N + lo.indx[k], x[i, j, k]);
+              weights.emplace_back(al.indx[i] * NN + la.indx[j] * N + lo.indx[k], x[i, j, k]);
             }
           }
         }
-        return out;
       },
       nalt == 1 ? altlags{gf3.grid<0>().lag<0, id>(alt)} : altlags{gf3.grid<0>().lag<1, id>(alt)},
       nlat == 1 ? latlags{gf3.grid<1>().lag<0, id>(lat)} : latlags{gf3.grid<1>().lag<1, id>(lat)},

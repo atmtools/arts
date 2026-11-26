@@ -91,6 +91,9 @@ void py_operators(py::module_& m) {
   py::class_<NumericTernaryOperator> ntop(m, "NumericTernaryOperator");
   defaults_to_python(ntop, "x"_a, "y"_a, "z"_a);
 
+  py::class_<NumericQuaternaryOperator> nqop(m, "NumericQuaternaryOperator");
+  defaults_to_python(nqop, "w"_a, "x"_a, "y"_a, "z"_a);
+
   py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
   defaults_to_python(sgstro, "atm_point"_a, "f_grid"_a, "degree"_a);
   sgstro.doc() = "A callback to get the bulk scattering properties of a species.";

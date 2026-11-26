@@ -3,7 +3,9 @@
 #include <debug.h>
 #include <matpack.h>
 
+#include <utility>
 #include <variant>
+#include <vector>
 
 namespace Atm::interp {
 using namespace lagrange_interp;
@@ -82,8 +84,10 @@ Numeric get(const std::function<Numeric(Numeric, Numeric, Numeric)>& fd,
   return fd(alt, lat, lon);
 }
 
-std::vector<std::pair<Index, Numeric>> flat_weight(const GeodeticField3& gf3,
-                                                   const Numeric         alt,
-                                                   const Numeric         lat,
-                                                   const Numeric         lon);
+//! Flat weights of the gridded data at the position, appended to weights
+void flat_weight(std::vector<std::pair<Index, Numeric>>& weights,
+                 const GeodeticField3&                   gf3,
+                 const Numeric                           alt,
+                 const Numeric                           lat,
+                 const Numeric                           lon);
 }  // namespace Atm::interp

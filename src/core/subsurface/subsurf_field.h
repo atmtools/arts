@@ -6,6 +6,9 @@
 #include <operators.h>
 
 #include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
 
 struct SubsurfacePropertyTag {
   String name;
@@ -145,16 +148,18 @@ struct Data {
 
   [[nodiscard]] VectorView flat_view();
 
-  //! Flat weights for the positions in an atmosphere
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(const Numeric alt,
-                                                                     const Numeric lat,
-                                                                     const Numeric lon) const;
+  //! Flat weights for the positions in the subsurface, into weights, which is cleared first to reuse its allocation
+  void flat_weight(std::vector<std::pair<Index, Numeric>> &weights,
+                   const Numeric                           alt,
+                   const Numeric                           lat,
+                   const Numeric                           lon) const;
 
-  [[nodiscard]] std::array<std::pair<Index, Numeric>, 8> flat_weight(const Vector3 pos) const;
+  void flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Vector3 pos) const;
 
   [[nodiscard]] bool ok() const;
 };
 
+//! The subsurface; its vertical coordinate is the altitude relative to the local surface, 0 there and negative below
 struct Field final {
   std::unordered_map<SubsurfaceKey, Data>         other;
   std::unordered_map<SubsurfacePropertyTag, Data> props;

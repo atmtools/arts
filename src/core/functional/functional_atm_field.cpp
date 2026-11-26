@@ -34,7 +34,8 @@ std::vector<std::pair<Index, Numeric>> MagnitudeField::w(Numeric alt, Numeric la
     arts::user_error(
         "MagnitudeField grids do not match: {:Bs,} != {:Bs,} != {:Bs,}", magnitude.grids, theta.grids, phi.grids);
 
-  std::vector<std::pair<Index, Numeric>> out = interp::flat_weight(magnitude, alt, lat, lon);
+  std::vector<std::pair<Index, Numeric>> out;
+  interp::flat_weight(out, magnitude, alt, lat, lon);
 
   switch (component) {
     case FieldComponent::u:

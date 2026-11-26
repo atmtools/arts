@@ -2,6 +2,7 @@
 
 #include <debug.h>
 #include <enumsSubsurfaceKey.h>
+#include <field_concepts.h>
 #include <lagrange_interp.h>
 
 #include <utility>
@@ -154,8 +155,8 @@ Limits find_limits(const Numeric &) { return {}; }
 Limits find_limits(const FunctionalData &) { return {}; }
 
 Limits find_limits(const GeodeticField3 &gf3) {
-  return {.alt_low = gf3.grid<0>().back(),
-          .alt_upp = gf3.grid<0>().front(),
+  return {.alt_low = gf3.grid<0>().front(),
+          .alt_upp = gf3.grid<0>().back(),
           .lat_low = gf3.grid<1>().front(),
           .lat_upp = gf3.grid<1>().back(),
           .lon_low = gf3.grid<2>().front(),
@@ -281,10 +282,11 @@ std::optional<Numeric> get_optional_limit(const Data &data, const Numeric alt, c
   return std::nullopt;
 }
 
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
-                                                      const Numeric         alt,
-                                                      const Numeric         lat,
-                                                      const Numeric         lon) {
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
+                  const GeodeticField3                   &gf3,
+                  const Numeric                           alt,
+                  const Numeric                           lat,
+                  const Numeric                           lon) {
   if (not gf3.ok())
     arts::user_error(
         "The subsurface field data shape {:B,} does not match its grid sizes {:B,}", gf3.data.shape(), gf3.shape());
@@ -296,22 +298,18 @@ std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &gf3,
   using id = lagrange_interp::grid_identity;
   using lc = lagrange_interp::loncross;
 
-  return std::visit(
-      [NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
+  std::visit(
+      [&weights, NN = nlat * nlon, N = nlon]<typename ALT, typename LAT, typename LON>(
           const ALT &al, const LAT &la, const LON &lo) {
-        const auto                               x = interpweights(al, la, lo);
-        constexpr std::pair<Index, Numeric>      v0{0, 0.0};
-        std::array<std::pair<Index, Numeric>, 8> out{v0, v0, v0, v0, v0, v0, v0, v0};
+        const auto x = interpweights(al, la, lo);
 
-        Index m = 0;
         for (Index i = 0; i < al.size(); i++) {
           for (Index j = 0; j < la.size(); j++) {
-            for (Index k = 0; k < lo.size(); k++, ++m) {
-              out[m] = {{al.indx[i] * NN + la.indx[j] * N + lo.indx[k]}, x[i, j, k]};
+            for (Index k = 0; k < lo.size(); k++) {
+              weights.emplace_back(al.indx[i] * NN + la.indx[j] * N + lo.indx[k], x[i, j, k]);
             }
           }
         }
-        return out;
       },
       nalt == 1 ? altlags{gf3.grid<0>().lag<0, id>(alt)} : altlags{gf3.grid<0>().lag<1, id>(alt)},
       nlat == 1 ? latlags{gf3.grid<1>().lag<0, id>(lat)} : latlags{gf3.grid<1>().lag<1, id>(lat)},
@@ -358,33 +356,32 @@ VectorView Data::flat_view() {
 }
 
 namespace {
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const GeodeticField3 &data,
-                                                      Numeric               alt,
-                                                      Numeric               lat,
-                                                      Numeric               lon) {
-  return interp::flat_weight_(data, alt, lat, lon);
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
+                  const GeodeticField3                   &data,
+                  Numeric                                 alt,
+                  Numeric                                 lat,
+                  Numeric                                 lon) {
+  interp::flat_weight_(weights, data, alt, lat, lon);
 }
 
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(Numeric, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v0{0, 0.0};
-  constexpr std::pair<Index, Numeric> v1{0, 1.0};
-  return {v1, v0, v0, v0, v0, v0, v0, v0};
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights, Numeric, Numeric, Numeric, Numeric) {
+  weights.emplace_back(0, 1.0);
 }
 
-std::array<std::pair<Index, Numeric>, 8> flat_weight_(const FunctionalData &, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v0{0, 0.0};
-  return {v0, v0, v0, v0, v0, v0, v0, v0};
-}
+//! Functional data has no stored values
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &, const FunctionalData &, Numeric, Numeric, Numeric) {}
 }  // namespace
 
-std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(const Numeric alt,
-                                                           const Numeric lat,
-                                                           const Numeric lon) const {
-  return std::visit([&](auto &v) { return flat_weight_(v, alt, lat, lon); }, data);
+void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights,
+                       const Numeric                           alt,
+                       const Numeric                           lat,
+                       const Numeric                           lon) const {
+  weights.clear();
+  std::visit([&](auto &v) { flat_weight_(weights, v, alt, lat, lon); }, data);
 }
 
-std::array<std::pair<Index, Numeric>, 8> Data::flat_weight(const Vector3 pos) const {
-  return flat_weight(pos[0], pos[1], pos[2]);
+void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Vector3 pos) const {
+  flat_weight(weights, pos[0], pos[1], pos[2]);
 }
 
 bool Data::ok() const {
@@ -497,3 +494,5 @@ std::string std::formatter<SubsurfaceField>::to_string(const SubsurfaceField &v)
 
   return tags.bracket ? ("{" + out + "}") : out;
 }
+
+static_assert(field<SubsurfaceField, SubsurfaceKeyVal, Numeric, Numeric, Numeric>, "The subsurface field must satisfy the field concepts");

@@ -309,6 +309,132 @@ This includes:
 )",
   };
 
+  wsg_data["AtmSpectralPoint"] = {
+      .file = "atm.h",
+      .desc = R"--(The parameters of a *AtmSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
+  };
+
+  wsg_data["AtmSpectralField"] = {
+      .file = "atm.h",
+      .desc =
+          R"--(A spectral atmospheric field.
+
+It holds parameters of the atmosphere for the methods that use them, as
+functions of frequency and position.  It is a map of *AtmSpectralPropertyTag*
+to *AtmSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
+  wsg_data["AtmSpectralPropertyTag"] = {
+      .file = "atm.h",
+      .desc = R"--(A custom property tag for spectral atmospheric fields data.
+
+These tags are the keys of an *AtmSpectralField*.  They are free-form.
+Please see individual atmospheric models/methods for keys that are relevant to run them.
+)--",
+  };
+
+  wsg_data["AtmSpectralData"] = {
+      .file = "atm.h",
+      .desc = R"(A data structure for spectral atmospheric field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *SpectralGeodeticField4*, or *NumericQuaternaryOperator*.
+   The operator takes frequency, altitude, latitude, and longitude.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
+  wsg_data["SurfaceSpectralPoint"] = {
+      .file = "surf.h",
+      .desc = R"--(The parameters of a *SurfaceSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
+  };
+
+  wsg_data["SurfaceSpectralField"] = {
+      .file = "surf.h",
+      .desc =
+          R"--(A spectral surface field.
+
+It holds parameters of the surface for the methods that use them, as
+functions of frequency and position.  It is a map of *SurfaceSpectralPropertyTag*
+to *SurfaceSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
+  wsg_data["SurfaceSpectralPropertyTag"] = {
+      .file = "surf.h",
+      .desc = R"--(A custom property tag for spectral surface fields data.
+
+These tags are the keys of a *SurfaceSpectralField*.  They are a type of
+their own, distinct from *SurfacePropertyTag*, but equally free-form.
+Please see individual surface models/methods for keys that are relevant to run them.
+)--",
+  };
+
+  wsg_data["SurfaceSpectralData"] = {
+      .file = "surf.h",
+      .desc = R"(A data structure for spectral surface field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *SpectralGeodeticField3*, or *NumericTernaryOperator*.
+   The operator takes frequency, latitude, and longitude.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
+  wsg_data["SubsurfaceSpectralPoint"] = {
+      .file = "subsurf.h",
+      .desc = R"--(The parameters of a *SubsurfaceSpectralField* at one position.
+
+Each parameter is a *Vector* of its values on the frequency grid the point was
+made for.  The point does not hold that grid.
+)--",
+  };
+
+  wsg_data["SubsurfaceSpectralField"] = {
+      .file = "subsurf.h",
+      .desc =
+          R"--(A spectral sub-surface field.
+
+It holds parameters of the subsurface for the methods that use them, as
+functions of frequency and position.  The vertical position is the altitude
+relative to the local surface, as for *SubsurfaceField*.  It is a map of *SubsurfaceSpectralPropertyTag*
+to *SubsurfaceSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
+  wsg_data["SubsurfaceSpectralPropertyTag"] = {
+      .file = "subsurf.h",
+      .desc = R"--(A custom property tag for spectral subsurface fields data.
+
+These tags are the keys of a *SubsurfaceSpectralField*.  They are a type of
+their own, distinct from *SubsurfacePropertyTag*, but equally free-form.
+Please see individual subsurface models/methods for keys that are relevant to run them.
+)--",
+  };
+
+  wsg_data["SubsurfaceSpectralData"] = {
+      .file = "subsurf.h",
+      .desc = R"(A data structure for spectral subsurface field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *SpectralGeodeticField4*, or *NumericQuaternaryOperator*.
+   The operator takes frequency, altitude, latitude, and longitude.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
   wsg_data["SubsurfaceData"] = {
       .file = "subsurf.h",
       .desc = R"(A data structure for subsurface field information.
@@ -675,6 +801,59 @@ Both the data and the grid may be named.  The grids are not sorted.
       .invariant            = "{}.ok()",
       .invariant_desc       = "has grids whose sizes are the shape of its data.",
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["SpectralGeodeticField3"] = {
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 3-dimensional grid of *Numeric*.
+
+The grids are frequency x latitude x longitude.
+The types are *FreqGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
+)--",
+      .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["SpectralGeodeticField4"] = {
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 4-dimensional grid of *Numeric*.
+
+The grids are frequency x altitude x latitude x longitude.
+The types are *FreqGrid* x *AscendingGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
+)--",
+      .dim_size             = {"{}.data.nbooks()", "{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["FreqGrid"] = {
+      .file = "matpack.h",
+      .desc =
+          R"--(A 1-dimensional vector of *Numeric* frequencies that are guaranteed to be positive.
+
+In addition, the values are sorted in ascending order.
+
+The python mapping allows treating this as a :class:`~numpy.ndarray`.  But because it has to be sorted in ascending order,
+modifying the values are not allowed.
+)--",
+      .dim_size = {"{}.size()"},
+  };
+
+  wsg_data["NumericQuaternaryOperator"] = {
+      .file = "operators.h",
+      .desc = R"--(A simple functional type.
+
+This type will work as a function pointer that takes four *Numeric*
+to produce a single *Numeric*.
+
+.. math::
+
+    m = f(w, x, y, z)
+
+)--",
   };
 
   wsg_data["GeodeticField3"] = {
