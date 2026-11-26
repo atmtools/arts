@@ -3,6 +3,7 @@
 #include <xml.h>
 
 #include "atm_field.h"
+#include "atm_spectral_field.h"
 
 template <> struct xml_io_stream<AtmPoint> {
   static constexpr std::string_view type_name = "AtmPoint"sv;
@@ -28,4 +29,37 @@ template <> struct xml_io_stream<AtmData> {
   static void write(std::ostream& os, const AtmData& x, bofstream* pbofs = nullptr, std::string_view name = ""sv);
 
   static void read(std::istream& is, AtmData& x, bifstream* pbifs = nullptr);
+};
+
+template <> struct xml_io_stream<AtmSpectralField> {
+  static constexpr std::string_view type_name = "AtmSpectralField"sv;
+
+  static void write(std::ostream&           os,
+                    const AtmSpectralField& x,
+                    bofstream*              pbofs = nullptr,
+                    std::string_view        name  = ""sv);
+
+  static void read(std::istream& is, AtmSpectralField& x, bifstream* pbifs = nullptr);
+};
+
+template <> struct xml_io_stream<AtmSpectralData> {
+  static constexpr std::string_view type_name = "AtmSpectralData"sv;
+
+  static void write(std::ostream&          os,
+                    const AtmSpectralData& x,
+                    bofstream*             pbofs = nullptr,
+                    std::string_view       name  = ""sv);
+
+  static void read(std::istream& is, AtmSpectralData& x, bifstream* pbifs = nullptr);
+};
+
+template <> struct xml_io_stream<AtmSpectralPropertyTag> {
+  static constexpr std::string_view type_name = "AtmSpectralPropertyTag"sv;
+
+  static void write(std::ostream&                 os,
+                    const AtmSpectralPropertyTag& x,
+                    bofstream*                    pbofs = nullptr,
+                    std::string_view              name  = ""sv);
+
+  static void read(std::istream& is, AtmSpectralPropertyTag& x, bifstream* pbifs = nullptr);
 };

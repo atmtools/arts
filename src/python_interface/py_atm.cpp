@@ -264,6 +264,136 @@ extrapolation : InterpolationExtrapolation
   auto fld = py::class_<AtmField>(m, "AtmField");
   generic_interface(fld);
 
+  py::class_<AtmSpectralData> atmsd(m, "AtmSpectralData");
+  atmsd.def(py::init_implicit<SpectralGeodeticField4>())
+      .def(py::init_implicit<Numeric>())
+      .def(py::init_implicit<Atm::SpectralFunctionalData>())
+      .def(
+          "__init__",
+          [](Atm::SpectralData *a, const GriddedField4 &v) {
+            new (a) Atm::SpectralData(SpectralGeodeticField4(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
+      .def_rw(
+          "data",
+          &Atm::SpectralData::data,
+          "The data.\n\n.. :class:`~pyarts3.arts.SpectralGeodeticField4`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericQuaternaryOperator`")
+      .def_rw("frq_upp",
+              &Atm::SpectralData::frq_upp,
+              "Upper frequency limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("frq_low",
+              &Atm::SpectralData::frq_low,
+              "Lower frequency limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("alt_upp",
+              &Atm::SpectralData::alt_upp,
+              "Upper altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("alt_low",
+              &Atm::SpectralData::alt_low,
+              "Lower altitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_upp",
+              &Atm::SpectralData::lat_upp,
+              "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Atm::SpectralData::lat_low,
+              "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Atm::SpectralData::lon_upp,
+              "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Atm::SpectralData::lon_low,
+              "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def(
+          "set_extrapolation",
+          [](Atm::SpectralData &self, InterpolationExtrapolation x) {
+            self.frq_upp = x;
+            self.frq_low = x;
+            self.alt_upp = x;
+            self.alt_low = x;
+            self.lat_upp = x;
+            self.lat_low = x;
+            self.lon_upp = x;
+            self.lon_low = x;
+          },
+          "extrapolation"_a,
+          "Set the extrapolation for all dimensions")
+      .def(
+          "__call__",
+          [](const Atm::SpectralData &d, Numeric frq, Numeric alt, Numeric lat, Numeric lon) {
+            return d.at(frq, alt, lat, lon);
+          },
+          "frq"_a,
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data at a frequency and position")
+      .def(
+          "__call__",
+          [](const Atm::SpectralData &d, const AscendingGrid &freq_grid, Numeric alt, Numeric lat, Numeric lon) {
+            return d.at(freq_grid, alt, lat, lon);
+          },
+          "freq_grid"_a,
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data at each frequency of a grid at a position")
+      .def(
+          "ws",
+          [](const Atm::SpectralData &d, Numeric frq, Numeric alt, Numeric lat, Numeric lon) {
+            std::vector<std::pair<Index, Numeric>> weights;
+            d.flat_weight(weights, frq, alt, lat, lon);
+            return weights;
+          },
+          "frq"_a,
+          "alt"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the weights of neighbors at a frequency and position")
+      .def_prop_ro(
+          "data_type", &Atm::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
+  py::implicitly_convertible<Atm::SpectralFunctionalData::func_t, Atm::SpectralData>();
+  py::implicitly_convertible<GriddedField4, Atm::SpectralData>();
+  generic_interface(atmsd);
+
+  py::class_<AtmSpectralPropertyTag> atmsptag(m, "AtmSpectralPropertyTag");
+  atmsptag.def_rw("name",
+                &AtmSpectralPropertyTag::name,
+                "Name of the spectral atmospheric property\n\n.. :class:`~pyarts3.arts.String`");
+  atmsptag.def(py::init_implicit<String>());
+  generic_interface(atmsptag);
+
+  py::class_<AtmSpectralField> atmsf(m, "AtmSpectralField");
+  atmsf.def(py::init<>());
+  atmsf.def_rw("props",
+              &AtmSpectralField::props,
+              "Properties of the spectral atmospheric field\n\n.. :class:`dict[AtmSpectralPropertyTag, AtmSpectralData]`");
+  atmsf.def("__setitem__",
+           [](AtmSpectralField &field, const AtmSpectralPropertyTag &x, const AtmSpectralData &data) {
+             field[x] = data;
+           })
+      .def(
+          "__getitem__",
+          [](AtmSpectralField &field, const AtmSpectralPropertyTag &x) -> AtmSpectralData & {
+            if (not field.contains(x)) {
+              const auto error_message = arts::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return field[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__contains__",
+           [](const AtmSpectralField &field, const AtmSpectralPropertyTag &x) { return field.contains(x); });
+  atmsf.def(
+      "keys",
+      [](const AtmSpectralField &field) {
+        // Array<AtmSpectralPropertyTag> is opaque without a binding, so the keys are returned as a list
+        py::list out;
+        for (auto &key : field.keys()) out.append(py::cast(key));
+        return out;
+      },
+      "Available keys");
+  generic_interface(atmsf);
+
   fld.def(
       "regrid",
       [](AtmField                        &atm,

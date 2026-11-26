@@ -199,6 +199,125 @@ void py_surf(py::module_ &m) try {
   fld.def("keys", &SurfaceField::keys, "Available keys");
   fld.def("single_value", &SurfaceField::single_value, "key"_a, "lat"_a, "lon"_a, "Get a single value at a position");
   generic_interface(fld);
+
+  py::class_<SurfaceSpectralData> surfsd(m, "SurfaceSpectralData");
+  surfsd.def(py::init_implicit<SpectralGeodeticField3>())
+      .def(py::init_implicit<Numeric>())
+      .def(py::init_implicit<Surf::SpectralFunctionalData>())
+      .def(
+          "__init__",
+          [](Surf::SpectralData *a, const GriddedField3 &v) {
+            new (a) Surf::SpectralData(SpectralGeodeticField3(v));
+          },
+          "v"_a,
+          "Initialize with a gridded field")
+      .def_rw(
+          "data",
+          &Surf::SpectralData::data,
+          "The data.\n\n.. :class:`~pyarts3.arts.SpectralGeodeticField3`\n\n.. :class:`~pyarts3.arts.Numeric`\n\n.. :class:`~pyarts3.arts.NumericTernaryOperator`")
+      .def_rw("frq_upp",
+              &Surf::SpectralData::frq_upp,
+              "Upper frequency limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("frq_low",
+              &Surf::SpectralData::frq_low,
+              "Lower frequency limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_upp",
+              &Surf::SpectralData::lat_upp,
+              "Upper latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lat_low",
+              &Surf::SpectralData::lat_low,
+              "Lower latitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_upp",
+              &Surf::SpectralData::lon_upp,
+              "Upper longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("lon_low",
+              &Surf::SpectralData::lon_low,
+              "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def(
+          "set_extrapolation",
+          [](Surf::SpectralData &self, InterpolationExtrapolation x) {
+            self.frq_upp = x;
+            self.frq_low = x;
+            self.lat_upp = x;
+            self.lat_low = x;
+            self.lon_upp = x;
+            self.lon_low = x;
+          },
+          "extrapolation"_a,
+          "Set the extrapolation for all dimensions")
+      .def(
+          "__call__",
+          [](const Surf::SpectralData &d, Numeric frq, Numeric lat, Numeric lon) {
+            return d.at(frq, lat, lon);
+          },
+          "frq"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data at a frequency and position")
+      .def(
+          "__call__",
+          [](const Surf::SpectralData &d, const AscendingGrid &freq_grid, Numeric lat, Numeric lon) {
+            return d.at(freq_grid, lat, lon);
+          },
+          "freq_grid"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the data at each frequency of a grid at a position")
+      .def(
+          "ws",
+          [](const Surf::SpectralData &d, Numeric frq, Numeric lat, Numeric lon) {
+            std::vector<std::pair<Index, Numeric>> weights;
+            d.flat_weight(weights, frq, lat, lon);
+            return weights;
+          },
+          "frq"_a,
+          "lat"_a,
+          "lon"_a,
+          "Get the weights of neighbors at a frequency and position")
+      .def_prop_ro(
+          "data_type", &Surf::SpectralData::data_type, "The data type\n\n.. :class:`~pyarts3.arts.String`");
+  py::implicitly_convertible<Surf::SpectralFunctionalData::func_t, Surf::SpectralData>();
+  py::implicitly_convertible<GriddedField3, Surf::SpectralData>();
+  generic_interface(surfsd);
+
+  py::class_<SurfaceSpectralPropertyTag> surfsptag(m, "SurfaceSpectralPropertyTag");
+  surfsptag.def_rw("name",
+                &SurfaceSpectralPropertyTag::name,
+                "Name of the spectral surface property\n\n.. :class:`~pyarts3.arts.String`");
+  surfsptag.def(py::init_implicit<String>());
+  generic_interface(surfsptag);
+
+  py::class_<SurfaceSpectralField> surfsf(m, "SurfaceSpectralField");
+  surfsf.def(py::init<>());
+  surfsf.def_rw("props",
+              &SurfaceSpectralField::props,
+              "Properties of the spectral surface field\n\n.. :class:`dict[SurfaceSpectralPropertyTag, SurfaceSpectralData]`");
+  surfsf.def("__setitem__",
+           [](SurfaceSpectralField &field, const SurfaceSpectralPropertyTag &x, const SurfaceSpectralData &data) {
+             field[x] = data;
+           })
+      .def(
+          "__getitem__",
+          [](SurfaceSpectralField &field, const SurfaceSpectralPropertyTag &x) -> SurfaceSpectralData & {
+            if (not field.contains(x)) {
+              const auto error_message = arts::format("{}", x);
+              throw py::key_error(error_message.c_str());
+            }
+            return field[x];
+          },
+          py::rv_policy::reference_internal)
+      .def("__contains__",
+           [](const SurfaceSpectralField &field, const SurfaceSpectralPropertyTag &x) { return field.contains(x); });
+  surfsf.def(
+      "keys",
+      [](const SurfaceSpectralField &field) {
+        // Array<SurfaceSpectralPropertyTag> is opaque without a binding, so the keys are returned as a list
+        py::list out;
+        for (auto &key : field.keys()) out.append(py::cast(key));
+        return out;
+      },
+      "Available keys");
+  generic_interface(surfsf);
   py::implicitly_convertible<String, SurfaceField>();
 
   pnt.def_rw("temperature", &SurfacePoint::temperature, "Temperature [K]\n\n.. :class:`~pyarts3.arts.Numeric`")

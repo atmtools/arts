@@ -309,6 +309,71 @@ This includes:
 )",
   };
 
+  wsg_data["AtmSpectralField"] = {
+      .file = "atm.h",
+      .desc =
+          R"--(A spectral atmospheric field.
+
+It holds parameters of the atmosphere for the methods that use them, as
+functions of frequency and position.  It is a map of *AtmSpectralPropertyTag*
+to *AtmSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
+  wsg_data["AtmSpectralPropertyTag"] = {
+      .file = "atm.h",
+      .desc = R"--(A custom property tag for spectral atmospheric fields data.
+
+These tags are the keys of an *AtmSpectralField*.  They are free-form.
+Please see individual atmospheric models/methods for keys that are relevant to run them.
+)--",
+  };
+
+  wsg_data["AtmSpectralData"] = {
+      .file = "atm.h",
+      .desc = R"(A data structure for spectral atmospheric field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *SpectralGeodeticField4*, or *NumericQuaternaryOperator*.
+   The operator takes frequency, altitude, latitude, and longitude.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
+  wsg_data["SurfaceSpectralField"] = {
+      .file = "surf.h",
+      .desc =
+          R"--(A spectral surface field.
+
+It holds parameters of the surface for the methods that use them, as
+functions of frequency and position.  It is a map of *SurfaceSpectralPropertyTag*
+to *SurfaceSpectralData*.  See each method for the properties it needs.
+)--",
+  };
+
+  wsg_data["SurfaceSpectralPropertyTag"] = {
+      .file = "surf.h",
+      .desc = R"--(A custom property tag for spectral surface fields data.
+
+These tags are the keys of a *SurfaceSpectralField*.  They are a type of
+their own, distinct from *SurfacePropertyTag*, but equally free-form.
+Please see individual surface models/methods for keys that are relevant to run them.
+)--",
+  };
+
+  wsg_data["SurfaceSpectralData"] = {
+      .file = "surf.h",
+      .desc = R"(A data structure for spectral surface field information.
+
+This includes:
+
+#. A data field that is one of *Numeric*, *SpectralGeodeticField3*, or *NumericTernaryOperator*.
+   The operator takes frequency, latitude, and longitude.
+#. *InterpolationExtrapolation* flags indicating how to extrapolate the data field in its interpolation routine.
+)",
+  };
+
   wsg_data["SubsurfaceSpectralField"] = {
       .file = "subsurf.h",
       .desc =
@@ -705,6 +770,19 @@ The grid is a combination of 1 *Vector* and 1 *ArrayOfString*
 Both the data and the grid may be named.  The grids are not sorted.
 )--",
       .dim_size             = {"{}.data.nrows()", "{}.data.ncols()"},
+      .invariant            = "{}.ok()",
+      .invariant_desc       = "has grids whose sizes are the shape of its data.",
+      .invariant_printables = {"{}.shape()", "{}.data.shape()"},
+  };
+
+  wsg_data["SpectralGeodeticField3"] = {
+      .file                 = "matpack.h",
+      .desc                 = R"--(A 3-dimensional grid of *Numeric*.
+
+The grids are frequency x latitude x longitude.
+The types are *FreqGrid* x *LatGrid* x *LonGrid*.  The grids are all sorted.
+)--",
+      .dim_size             = {"{}.data.npages()", "{}.data.nrows()", "{}.data.ncols()"},
       .invariant            = "{}.ok()",
       .invariant_desc       = "has grids whose sizes are the shape of its data.",
       .invariant_printables = {"{}.shape()", "{}.data.shape()"},
