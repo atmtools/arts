@@ -4,6 +4,7 @@
 #include <arts_conversions.h>
 #include <debug.h>
 #include <enumsSurfaceKey.h>
+#include <field_concepts.h>
 #include <lagrange_interp.h>
 #include <mystring.h>
 
@@ -401,20 +402,17 @@ bool Field::constant_value(const KeyVal &key) const {
 }
 
 namespace {
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const Numeric &, const Numeric &, const Numeric &) {
-  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  return {v1, v0, v0, v0};
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights, const Numeric &, const Numeric &, const Numeric &) {
+  weights.emplace_back(0, 1.0);
 }
 
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const FunctionalData &, const Numeric &, const Numeric &) {
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-  return {v0, v0, v0, v0};
-}
+//! Functional data has no stored values
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &, const FunctionalData &, const Numeric &, const Numeric &) {}
 
-std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GeodeticField2 &v,
-                                                       const Numeric        &lat,
-                                                       const Numeric        &lon) {
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
+                  const GeodeticField2                   &v,
+                  const Numeric                          &lat,
+                  const Numeric                          &lon) {
   using LonLag = lagrange_interp::lag_t<1, lagrange_interp::loncross>;
   using LatLag = lagrange_interp::lag_t<1>;
 
@@ -422,41 +420,39 @@ std::array<std::pair<Index, Numeric>, 4> flat_weights_(const GeodeticField2 &v,
   const bool d1   = v.shape()[0] == 1;
   const bool d2   = slon == 1;
 
-  constexpr auto v1 = std::pair<Index, Numeric>{0, 1.};
-  constexpr auto v0 = std::pair<Index, Numeric>{0, 0.};
-
-  if (d1 and d2) { return {v1, v0, v0, v0}; }
+  if (d1 and d2) {
+    weights.emplace_back(0, 1.0);
+    return;
+  }
 
   if (d1) {
     const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
-    return {std::pair<Index, Numeric>{wlon.indx[0], wlon.data[0]},
-            std::pair<Index, Numeric>{wlon.indx[1], wlon.data[1]},
-            v0,
-            v0};
+    weights.emplace_back(wlon.indx[0], wlon.data[0]);
+    weights.emplace_back(wlon.indx[1], wlon.data[1]);
+    return;
   }
 
   if (d2) {
     const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
-    return {std::pair<Index, Numeric>{wlat.indx[0], wlat.data[0]},
-            std::pair<Index, Numeric>{wlat.indx[1], wlat.data[1]},
-            v0,
-            v0};
+    weights.emplace_back(wlat.indx[0], wlat.data[0]);
+    weights.emplace_back(wlat.indx[1], wlat.data[1]);
+    return;
   }
 
   const LatLag wlat(v.grid<0>(), lat, lagrange_interp::ascending_grid_t{});
   const LonLag wlon(v.grid<1>(), lon, lagrange_interp::ascending_grid_t{});
   auto         sz = [slon](auto lat_pos, auto lon_pos) { return lat_pos * slon + lon_pos; };
 
-  return {std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[0]), wlat.data[0] * wlon.data[0]},
-          std::pair<Index, Numeric>{sz(wlat.indx[0], wlon.indx[1]), wlat.data[0] * wlon.data[1]},
-          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[0]), wlat.data[1] * wlon.data[0]},
-          std::pair<Index, Numeric>{sz(wlat.indx[1], wlon.indx[1]), wlat.data[1] * wlon.data[1]}};
+  weights.emplace_back(sz(wlat.indx[0], wlon.indx[0]), wlat.data[0] * wlon.data[0]);
+  weights.emplace_back(sz(wlat.indx[0], wlon.indx[1]), wlat.data[0] * wlon.data[1]);
+  weights.emplace_back(sz(wlat.indx[1], wlon.indx[0]), wlat.data[1] * wlon.data[0]);
+  weights.emplace_back(sz(wlat.indx[1], wlon.indx[1]), wlat.data[1] * wlon.data[1]);
 }
 }  // namespace
 
-//! Flat weights for the positions in an atmosphere
-std::array<std::pair<Index, Numeric>, 4> Data::flat_weights(const Numeric &lat, const Numeric &lon) const {
-  return std::visit([&](auto &v) { return flat_weights_(v, lat, lon); }, data);
+void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Numeric &lat, const Numeric &lon) const {
+  weights.clear();
+  std::visit([&](auto &v) { flat_weight_(weights, v, lat, lon); }, data);
 }
 
 bool Data::ok() const {
@@ -541,3 +537,5 @@ bool operator==(const SurfacePropertyTag &lhs, const SurfaceKeyVal &rhs) { retur
 static_assert(std::same_as<typename SurfaceField::KeyVal, SurfaceKeyVal>,
               "The order of arguments in the template of which Field inherits from is "
               "wrong.  KeyVal must be defined in the same way for this to work.");
+
+static_assert(field<SurfaceField, SurfaceKeyVal, Numeric, Numeric>, "The surface field must satisfy the field concepts");

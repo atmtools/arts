@@ -332,11 +332,12 @@ void single_rad_jacAddPathPropagation(StokvecVector&                     single_
 
   const Size np = ray_path.size();
 
+  std::vector<std::pair<Index, Numeric>> weights;
   for (auto& atm_block : jac_targets.atm) {
     const auto& data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
-      const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto local   = single_rad_jac_path[ip];
+      data.flat_weight(weights, ray_path[ip].pos);
+      const auto local = single_rad_jac_path[ip];
 
       for (auto& w : weights) {
         if (w.second != 0.0) {

@@ -60,13 +60,14 @@ void spectral_rad_jacAddPathPropagation(StokvecMatrix                     &spect
   if (nt == 0) return;
 
   //! The derivative part from the atmosphere
+  std::vector<std::pair<Index, Numeric>> weights;
   for (auto &atm_block : jac_targets.atm) {
     if (not atm_field.contains(atm_block.type))
       arts::user_error("No {} in atm_field but in jac_targets", atm_block.type);
     const auto &data = atm_field[atm_block.type];
     for (Size ip = 0; ip < np; ip++) {
-      const auto weights = data.flat_weight(ray_path[ip].pos);
-      const auto local   = spectral_rad_jac_path[joker, ip, atm_block.target_pos];
+      data.flat_weight(weights, ray_path[ip].pos);
+      const auto local = spectral_rad_jac_path[joker, ip, atm_block.target_pos];
 
       for (auto &w : weights) {
         if (w.second != 0.0) {

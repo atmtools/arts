@@ -152,7 +152,11 @@ void py_surf(py::module_ &m) try {
           "Get the data at a list of points")
       .def(
           "ws",
-          [](const Surf::Data &d, Numeric lat, Numeric lon) { return d.flat_weights(lat, lon); },
+          [](const Surf::Data &d, Numeric lat, Numeric lon) {
+            std::vector<std::pair<Index, Numeric>> weights;
+            d.flat_weight(weights, lat, lon);
+            return weights;
+          },
           "lat"_a,
           "lon"_a,
           "Get the weights of neighbors at a position")
@@ -397,7 +401,11 @@ void py_surf(py::module_ &m) try {
           "Get a point of data at the position")
       .def(
           "ws",
-          [](const Subsurface::Data &d, Numeric alt, Numeric lat, Numeric lon) { return d.flat_weight(alt, lat, lon); },
+          [](const Subsurface::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            std::vector<std::pair<Index, Numeric>> weights;
+            d.flat_weight(weights, alt, lat, lon);
+            return weights;
+          },
           "alt"_a,
           "lat"_a,
           "lon"_a,

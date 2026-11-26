@@ -203,7 +203,11 @@ void py_atm(py::module_ &m) try {
           "Get a point of data at the position")
       .def(
           "ws",
-          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) { return d.flat_weight(alt, lat, lon); },
+          [](const Atm::Data &d, Numeric alt, Numeric lat, Numeric lon) {
+            std::vector<std::pair<Index, Numeric>> weights;
+            d.flat_weight(weights, alt, lat, lon);
+            return weights;
+          },
           "alt"_a,
           "lat"_a,
           "lon"_a,

@@ -5,6 +5,7 @@
 #include <configtypes.h>
 #include <debug.h>
 #include <enumsFieldComponent.h>
+#include <field_concepts.h>
 #include <functional_atm_field_interp.h>
 #include <hitran_species.h>
 #include <isotopologues.h>
@@ -644,29 +645,37 @@ VectorView Data::flat_view() {
 }
 
 namespace {
-std::vector<std::pair<Index, Numeric>> flat_weight_(const GeodeticField3 &data, Numeric alt, Numeric lat, Numeric lon) {
-  return interp::flat_weight(data, alt, lat, lon);
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
+                  const GeodeticField3                   &data,
+                  Numeric                                 alt,
+                  Numeric                                 lat,
+                  Numeric                                 lon) {
+  interp::flat_weight(weights, data, alt, lat, lon);
 }
 
-std::vector<std::pair<Index, Numeric>> flat_weight_(Numeric, Numeric, Numeric, Numeric) {
-  constexpr std::pair<Index, Numeric> v1{0, 1.0};
-  return {v1};
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights, Numeric, Numeric, Numeric, Numeric) {
+  weights.emplace_back(0, 1.0);
 }
 
-std::vector<std::pair<Index, Numeric>> flat_weight_(const FunctionalData &f, Numeric alt, Numeric lat, Numeric lon) {
-  return ternary::get_w(f.f, alt, lat, lon);
+void flat_weight_(std::vector<std::pair<Index, Numeric>> &weights,
+                  const FunctionalData                   &f,
+                  Numeric                                 alt,
+                  Numeric                                 lat,
+                  Numeric                                 lon) {
+  weights.append_range(ternary::get_w(f.f, alt, lat, lon));
 }
 }  // namespace
 
-//! Flat weights for the positions in an atmosphere
-std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Numeric alt,
-                                                         const Numeric lat,
-                                                         const Numeric lon) const {
-  return std::visit([&](auto &v) { return flat_weight_(v, alt, lat, lon); }, data);
+void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights,
+                       const Numeric                           alt,
+                       const Numeric                           lat,
+                       const Numeric                           lon) const {
+  weights.clear();
+  std::visit([&](auto &v) { flat_weight_(weights, v, alt, lat, lon); }, data);
 }
 
-std::vector<std::pair<Index, Numeric>> Data::flat_weight(const Vector3 pos) const {
-  return flat_weight(pos[0], pos[1], pos[2]);
+void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Vector3 pos) const {
+  flat_weight(weights, pos[0], pos[1], pos[2]);
 }
 
 bool Data::ok() const {
@@ -1240,3 +1249,5 @@ std::string std::formatter<AtmField>::to_string(const AtmField &v) const {
 static_assert(std::same_as<typename AtmField::KeyVal, AtmKeyVal>,
               "The order of arguments in the template of which Field inherits from is "
               "wrong.  KeyVal must be defined in the same way for this to work.");
+
+static_assert(field<AtmField, AtmKeyVal, Numeric, Numeric, Numeric>, "The atmospheric field must satisfy the field concepts");

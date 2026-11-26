@@ -189,13 +189,13 @@ void spectral_radSurfaceReflectance(const Workspace&            ws,
     }
   }
 
+  std::vector<std::pair<Index, Numeric>> weights;
   for (auto& target : jac_targets.surf) {
-    const SurfaceData& data = surf_field[target.type];
-    const auto         ws   = data.flat_weights(lat, lon);
+    surf_field[target.type].flat_weight(weights, lat, lon);
 
 #pragma omp parallel for if (not arts_omp_in_parallel())
     for (Size i = 0; i < NF; i++) {
-      for (const auto& [j, w] : ws) {
+      for (const auto& [j, w] : weights) {
         spectral_rad_jac[j + target.x_start, i] +=
             w * rtepack::dreflection(
                     spectral_rad[i], spectral_surf_refl_jac[target.target_pos, i], spectral_rad_surface[i]);
