@@ -4,6 +4,7 @@
 #include <field_concepts.h>
 #include <lagrange_interp.h>
 
+#include <cmath>
 #include <optional>
 #include <string_view>
 #include <utility>
@@ -132,26 +133,37 @@ std::optional<spatial_lags> spatial(const SpectralData           &d,
 }
 
 //! The spatially interpolated data at the frequency index k
-Numeric spatial_value(const SpectralGeodeticField3 &field, const Index k, const spatial_lags &s) {
+Numeric spatial_value(const SpectralGeodeticField3 &field, const Index k, const spatial_lags &s, const bool log) {
   return std::visit(
-      [data = field.data[k]](const auto &a, const auto &b) { return lagrange_interp::interp(data, a, b); },
+      [data = field.data[k], log](const auto &a, const auto &b) {
+        return log ? lagrange_interp::interp<lagrange_interp::log_transform>(data, a, b)
+                   : lagrange_interp::interp(data, a, b);
+      },
       s.lat,
       s.lon);
 }
 
 //! The frequency interpolation of the spatially interpolated data, value(k) at frequency index k
-Numeric frequency_value(const lags<grid_identity> &f, const auto &value) {
+Numeric frequency_value(const lags<grid_identity> &f, const auto &value, const bool log) {
   return std::visit(
-      [&value](const auto &l) {
+      [&value, log](const auto &l) {
         Numeric out = 0.0;
         for (Size j = 0; j < l.size(); j++) {
           // The term is its own expression, so that it is not contracted with the sum
-          const Numeric term  = l.data[j] * value(l.indx[j]);
+          const Numeric term  = l.data[j] * (log ? std::log(value(l.indx[j])) : value(l.indx[j]));
           out                += term;
         }
-        return out;
+        return log ? std::exp(out) : out;
       },
       f);
+}
+
+//! The derivative of the log-interpolated value v = exp(sum w ln x) by a stored x is w v / x
+void log_scale(std::vector<std::pair<Index, Numeric>> &weights, const ConstVectorView x) {
+  Numeric ln_v = 0.0;
+  for (const auto &[j, w] : weights) ln_v += w * std::log(x[j]);
+  const Numeric v = std::exp(ln_v);
+  for (auto &[j, w] : weights) w *= v / x[j];
 }
 
 //! The number of stored values per frequency
@@ -168,7 +180,8 @@ Numeric SpectralData::at(const Numeric frq, const Numeric lat, const Numeric lon
           const auto                    f     = frequency(*this, field, frq);
           const auto                    s     = spatial(*this, field, lat, lon);
           if (not f or not s) return 0.0;
-          return frequency_value(*f, [&](Index k) { return spatial_value(field, k, *s); });
+          return frequency_value(
+              *f, [&](Index k) { return spatial_value(field, k, *s, log_interpolation); }, log_interpolation);
         } else if constexpr (std::same_as<T, Numeric>) {
           return x;
         } else {
@@ -191,12 +204,12 @@ Vector SpectralData::at(const AscendingGrid &freq_grid, const Numeric lat, const
           Vector values;
           if (s) {
             values.resize(field.grid<0>().size());
-            for (Size k = 0; k < values.size(); k++) values[k] = spatial_value(field, k, *s);
+            for (Size k = 0; k < values.size(); k++) values[k] = spatial_value(field, k, *s, log_interpolation);
           }
 
           for (Size i = 0; i < freq_grid.size(); i++) {
             const auto f = frequency(*this, field, freq_grid[i]);
-            out[i]       = (f and s) ? frequency_value(*f, [&values](Index k) { return values[k]; }) : 0.0;
+            out[i] = (f and s) ? frequency_value(*f, [&values](Index k) { return values[k]; }, log_interpolation) : 0.0;
           }
         } else if constexpr (std::same_as<T, Numeric>) {
           out = x;
@@ -242,6 +255,8 @@ void SpectralData::flat_weight(std::vector<std::pair<Index, Numeric>> &weights,
               *f,
               s->lat,
               s->lon);
+
+          if (log_interpolation) log_scale(weights, field.data.view_as(field.data.size()));
         } else if constexpr (std::same_as<T, Numeric>) {
           weights.emplace_back(0, 1.0);
         }

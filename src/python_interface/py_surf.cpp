@@ -233,6 +233,9 @@ void py_surf(py::module_ &m) try {
       .def_rw("lon_low",
               &Surf::SpectralData::lon_low,
               "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("log_interpolation",
+              &Surf::SpectralData::log_interpolation,
+              "Interpolate the logarithm of the data, which must then be positive\n\n.. :class:`bool`")
       .def(
           "set_extrapolation",
           [](Surf::SpectralData &self, InterpolationExtrapolation x) {
@@ -574,6 +577,9 @@ void py_surf(py::module_ &m) try {
       .def_rw("lon_low",
               &Subsurface::SpectralData::lon_low,
               "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("log_interpolation",
+              &Subsurface::SpectralData::log_interpolation,
+              "Interpolate the logarithm of the data, which must then be positive\n\n.. :class:`bool`")
       .def(
           "set_extrapolation",
           [](Subsurface::SpectralData &self, InterpolationExtrapolation x) {

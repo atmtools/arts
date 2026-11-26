@@ -672,6 +672,14 @@ void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights,
                        const Numeric                           lon) const {
   weights.clear();
   std::visit([&](auto &v) { flat_weight_(weights, v, alt, lat, lon); }, data);
+  // The derivative of the log-interpolated value v = exp(sum w ln x) by a stored x is w v / x
+  if (log_interpolation and std::holds_alternative<GeodeticField3>(data)) {
+    const ConstVectorView x    = flat_view();
+    Numeric               ln_v = 0.0;
+    for (const auto &[j, w] : weights) ln_v += w * std::log(x[j]);
+    const Numeric v = std::exp(ln_v);
+    for (auto &[j, w] : weights) w *= v / x[j];
+  }
 }
 
 void Data::flat_weight(std::vector<std::pair<Index, Numeric>> &weights, const Vector3 pos) const {

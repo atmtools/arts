@@ -148,6 +148,8 @@ void xml_io_stream<SurfaceSpectralData>::write(std::ostream&              os,
   xml_write_to_stream(os, v.lon_upp, pbofs, "lon_upp"sv);
   xml_write_to_stream(os, v.lon_low, pbofs, "lon_low"sv);
 
+  xml_write_to_stream(os, v.log_interpolation, pbofs, "log_interpolation"sv);
+
   tag.write_to_end_stream(os);
 }
 
@@ -163,6 +165,8 @@ void xml_io_stream<SurfaceSpectralData>::read(std::istream& is, SurfaceSpectralD
   xml_read_from_stream(is, v.lat_low, pbifs);
   xml_read_from_stream(is, v.lon_upp, pbifs);
   xml_read_from_stream(is, v.lon_low, pbifs);
+
+  xml_read_from_stream(is, v.log_interpolation, pbifs);
 
   tag.read_from_stream(is);
   tag.check_end_name(type_name);

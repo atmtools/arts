@@ -303,6 +303,9 @@ extrapolation : InterpolationExtrapolation
       .def_rw("lon_low",
               &Atm::SpectralData::lon_low,
               "Lower longitude limit\n\n.. :class:`~pyarts3.arts.InterpolationExtrapolation`")
+      .def_rw("log_interpolation",
+              &Atm::SpectralData::log_interpolation,
+              "Interpolate the logarithm of the data, which must then be positive\n\n.. :class:`bool`")
       .def(
           "set_extrapolation",
           [](Atm::SpectralData &self, InterpolationExtrapolation x) {

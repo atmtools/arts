@@ -38,7 +38,8 @@ using SpectralFieldData      = std::variant<SpectralGeodeticField4, Numeric, Spe
  * longitude, and frequency is the slowest dimension of its flat view.
  * Outside a grid, the extrapolation of that side of that dimension applies:
  * None throws, Zero gives zero, Nearest uses the edge of the grid, and Linear
- * extrapolates linearly.
+ * extrapolates linearly.  With log_interpolation, the logarithm of the data is
+ * interpolated instead, in all dimensions.
  *
  * See field_concepts.h for the flat weights.
  */
@@ -52,6 +53,8 @@ struct SpectralData {
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
+  //! Interpolate the logarithm of the data, which must then be positive
+  bool log_interpolation{false};
 
   SpectralData();
   SpectralData(const SpectralData &);

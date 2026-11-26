@@ -19,9 +19,7 @@ struct AtmSpectralPropertyTag {
 
 namespace std {
 template <> struct hash<AtmSpectralPropertyTag> {
-  static std::size_t operator()(const AtmSpectralPropertyTag &pp) noexcept {
-    return std::hash<String>{}(pp.name);
-  }
+  static std::size_t operator()(const AtmSpectralPropertyTag &pp) noexcept { return std::hash<String>{}(pp.name); }
 };
 }  // namespace std
 
@@ -36,7 +34,8 @@ using SpectralFieldData      = std::variant<SpectralGeodeticField4, Numeric, Spe
  * longitude, and frequency is the slowest dimension of its flat view.
  * Outside a grid, the extrapolation of that side of that dimension applies:
  * None throws, Zero gives zero, Nearest uses the edge of the grid, and Linear
- * extrapolates linearly.
+ * extrapolates linearly.  With log_interpolation, the logarithm of the data is
+ * interpolated instead, in all dimensions.
  *
  * See field_concepts.h for the flat weights.
  */
@@ -50,6 +49,8 @@ struct SpectralData {
   InterpolationExtrapolation lat_low{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_upp{InterpolationExtrapolation::None};
   InterpolationExtrapolation lon_low{InterpolationExtrapolation::None};
+  //! Interpolate the logarithm of the data, which must then be positive
+  bool log_interpolation{false};
 
   SpectralData();
   SpectralData(const SpectralData &);
@@ -121,8 +122,7 @@ template <> struct std::formatter<AtmSpectralPropertyTag> {
     return parse_format_tags(tags, ctx);
   }
 
-  template <class FmtContext>
-  FmtContext::iterator format(const AtmSpectralPropertyTag &v, FmtContext &ctx) const {
+  template <class FmtContext> FmtContext::iterator format(const AtmSpectralPropertyTag &v, FmtContext &ctx) const {
     const std::string_view quote = tags.quote();
     return tags.format(ctx, quote, v.name, quote);
   }
