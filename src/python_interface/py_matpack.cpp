@@ -132,6 +132,15 @@ void py_matpack(py::module_& m) try {
   generic_interface(gr4);
   gr4.def(py::init_implicit<Vector>());
   v1.def(py::init_implicit<AziGrid>());
+
+  py::class_<FreqGrid> gr6(m, "FreqGrid");
+  matpack_grid_interface(gr6);
+  generic_interface(gr6);
+  gr6.def(py::init_implicit<Vector>());
+  gr6.def("__init__", [](FreqGrid* v, const AscendingGrid& a) { new (v) FreqGrid(a); }, "grid"_a);
+  py::implicitly_convertible<AscendingGrid, FreqGrid>();
+  v1.def(py::init_implicit<FreqGrid>());
+  g1.def(py::init_implicit<FreqGrid>());
 } catch (std::exception& e) {
   throw std::runtime_error(arts::format("DEV ERROR:\nCannot initialize matpack\n{}", e.what()));
 }

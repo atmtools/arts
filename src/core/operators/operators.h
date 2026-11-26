@@ -27,9 +27,10 @@ template <typename R, typename... Args> struct CustomOperator {
 #endif
 #endif
 
-using NumericUnaryOperator   = CustomOperator<Numeric, Numeric>;
-using NumericBinaryOperator  = CustomOperator<Numeric, Numeric, Numeric>;
-using NumericTernaryOperator = CustomOperator<Numeric, Numeric, Numeric, Numeric>;
+using NumericUnaryOperator      = CustomOperator<Numeric, Numeric>;
+using NumericBinaryOperator     = CustomOperator<Numeric, Numeric, Numeric>;
+using NumericTernaryOperator    = CustomOperator<Numeric, Numeric, Numeric, Numeric>;
+using NumericQuaternaryOperator = CustomOperator<Numeric, Numeric, Numeric, Numeric, Numeric>;
 
 template <typename... WTs> struct std::formatter<CustomOperator<WTs...>> {
   format_tags tags;

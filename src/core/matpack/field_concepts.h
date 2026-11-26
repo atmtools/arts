@@ -24,10 +24,10 @@
  *   writes;
  * - ok(): whether the stored data is consistent.
  *
- * The data of a spectral field has frequency as an extra, first, coordinate.
- * Given a frequency grid in its place, it gives the parameter as one value per
- * frequency and the derivative as one list of flat weights per frequency, each
- * cleared first.
+ * The data of a spectral field has frequency as an extra, first, coordinate,
+ * so its flat weights are those of a frequency and a position.  Given a
+ * frequency grid in place of the frequency, at(freq_grid, x...) gives the
+ * parameter as one value per frequency.
  *
  * The concepts take the types of the coordinates, so the atmospheric and
  * subsurface fields are fields of Numeric, Numeric, Numeric (altitude,
@@ -52,12 +52,9 @@ concept field_data = requires(const std::remove_cvref_t<T>&           c,
 //! The data of a spectral field of the coordinates Coords... besides frequency, see field_concepts.h
 template <typename T, typename... Coords>
 concept spectral_field_data =
-    field_data<T, Numeric, Coords...> and requires(const std::remove_cvref_t<T>&                        c,
-                                                   std::vector<std::vector<std::pair<Index, Numeric>>>& weights,
-                                                   const AscendingGrid&                                 freq_grid,
-                                                   const Coords&... x) {
+    field_data<T, Numeric, Coords...> and
+    requires(const std::remove_cvref_t<T>& c, const AscendingGrid& freq_grid, const Coords&... x) {
       { c.at(freq_grid, x...) } -> std::same_as<Vector>;
-      { c.flat_weight(weights, freq_grid, x...) } -> std::same_as<void>;
     };
 
 //! A field of the coordinates Coords... with data by Key
