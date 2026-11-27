@@ -37,21 +37,24 @@ template <typename T, typename... Ts> void antenna_calls(py::class_<T, Ts...>& c
           const sensor::Channel& channel,
           const Vector3&         pos,
           const Vector2&         bore_los,
-          const Vector2&         ell) {
+          const Vector2&         ell,
+          const Numeric          roll) {
          if (channel.polarization.scan_rotation != 0.0) {
            throw std::runtime_error(
                "The channel's polarization turns with the scan, so it needs a scan angle: "
                "pass the response at the boresight, or use the sensor builder with a scan geometry");
          }
-         return self(std::span{&channel, 1}, std::span{&channel.polarization.state, 1}, pos, bore_los, ell);
+         return self(std::span{&channel, 1}, std::span{&channel.polarization.state, 1}, pos, bore_los, ell, roll);
        },
        "channel"_a,
        "pos"_a,
        "bore_los"_a,
        "ell"_a,
+       "roll"_a = 0.0,
        R"(The sensor of a channel through the antenna pattern, one element per pixel by row and then column.
 
-The channel's polarization must not depend on the scan.)")
+The channel's polarization must not depend on the scan.  ``roll`` [deg] turns the instrument about its
+boresight, from v towards h, as :meth:`~pyarts3.arts.sensors.Polarization.at` turns a response.)")
       .def(
           "__call__",
           [](const T&               self,
@@ -59,15 +62,21 @@ The channel's polarization must not depend on the scan.)")
              const Stokvec&         response,
              const Vector3&         pos,
              const Vector2&         bore_los,
-             const Vector2& ell) { return self(std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell); },
+             const Vector2&         ell,
+             const Numeric          roll) {
+            return self(std::span{&channel, 1}, std::span{&response, 1}, pos, bore_los, ell, roll);
+          },
           "channel"_a,
           "response"_a,
           "pos"_a,
           "bore_los"_a,
           "ell"_a,
+          "roll"_a = 0.0,
           R"(The sensor of a channel through the antenna pattern, one element per pixel by row and then column.
 
-``response`` is the channel's polarization response at the boresight, e.g. ``channel.polarization.at(scan_angle)``.)");
+``response`` is the channel's polarization response at the boresight, e.g. ``channel.polarization.at(scan_angle)``,
+in the frame of the instrument.  ``roll`` [deg] turns the instrument about its boresight, from v towards h, as
+:meth:`~pyarts3.arts.sensors.Polarization.at` turns a response.)");
 }
 }  // namespace
 
@@ -783,7 +792,8 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
              const std::vector<Vector3>& pos,
              const std::vector<Vector2>& los,
              const Vector2&              ell,
-             const String&               name) {
+             const String&               name,
+             const std::vector<Numeric>& roll) {
             if (pos.size() != los.size()) {
               throw std::invalid_argument(arts::format(
                   "Sensor builder expects matching position and LOS counts. Got {} positions and {} LOS values.",
@@ -791,28 +801,36 @@ The trapezoid rule within each piece, delta weights as they are, summed where pi
                   los.size()));
             }
 
-            return self(pos, los, ell, name);
+            return self(pos, los, ell, name, roll);
           },
           "pos"_a,
           "los"_a,
           "ell"_a,
           "name"_a = String{},
+          "roll"_a = std::vector<Numeric>{},
           R"(Build a sensor from paired position and bore-LOS sequences.
 
-Each ``pos[i]`` with ``los[i]`` is one placement of the instrument.  The elements
+Each ``pos[i]`` with ``los[i]`` is one placement of the instrument, rolled about its
+boresight by ``roll[i]`` [deg] if ``roll`` is given, see :ref:`Sec Sensor builder`.  The elements
 of the returned :class:`~pyarts3.arts.Sensor` are ordered by placement, then pixel
 of the antenna, then channel, and its meta has these axes.  The sensor is named ``name``, or
 after its number of channels if ``name`` is empty.)")
       .def(
           "__call__",
-          [](const sensor::Builder& self, const Vector3 pos, const Vector2 los, const Vector2 ell, const String& name) {
-            return self(std::span{&pos, 1}, std::span{&los, 1}, ell, name);
+          [](const sensor::Builder& self,
+             const Vector3          pos,
+             const Vector2          los,
+             const Vector2          ell,
+             const String&          name,
+             const Numeric          roll) {
+            return self(std::span{&pos, 1}, std::span{&los, 1}, ell, name, std::span{&roll, 1});
           },
           "pos"_a,
           "los"_a,
           "ell"_a,
           "name"_a = String{},
-          R"(Build a sensor from one position and bore LOS.)")
+          "roll"_a = 0.0,
+          R"(Build a sensor from one position and bore LOS, rolled about the boresight by ``roll`` [deg].)")
       .def(
           "__call__",
           [](const sensor::Builder& self, const SensorPosLosVector& poslos, const Vector2& ell, const String& name) {

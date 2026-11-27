@@ -1261,6 +1261,7 @@ transfer do not use them.  Set it to true when writing a non-LTE source.
                     "PropagationPathPoint",
                     "ArrayOfPropagationPathPoint",
                     "ArrayOfArrayOfPropagationPathPoint",
+                    "Vector2",
                     "Vector3",
                     "AscendingGrid",
                 },

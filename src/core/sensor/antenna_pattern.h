@@ -56,7 +56,8 @@ struct PencilBeamAntenna {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 };
 
 //! 2D gridded field of antenna gain on local zenith and azimuth offsets.
@@ -81,7 +82,8 @@ struct GriddedAntennaPattern {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 };
 
 //! A gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the boresight, sampled as GriddedAntennaPattern
@@ -105,7 +107,8 @@ struct GaussianAntenna {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 };
 
 /** A gain exp(-(offset / std)^2 / 2) of the angular offset [deg] from the boresight, sampled on a rectangular grid
@@ -133,7 +136,8 @@ struct GaussianRectangularAntenna {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 };
 
 /** A Gaussian gain with the half-power width of the Airy pattern of a circular aperture, sampled as GriddedAntennaPattern
@@ -162,7 +166,8 @@ struct GaussianAiryAntenna {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 
   [[nodiscard]] Numeric std(Numeric frequency) const;
 };
@@ -206,7 +211,8 @@ struct CameraAntenna {
                                   std::span<const Stokvec> responses,
                                   const Vector3&           pos,
                                   const Vector2&           bore_los,
-                                  const Vector2&           ell) const;
+                                  const Vector2&           ell,
+                                  Numeric                  roll) const;
 };
 
 /** Any antenna pattern
@@ -223,6 +229,14 @@ struct CameraAntenna {
  *  each frequency, times the polarization response carried from the boresight
  *  to that line of sight.  The kinds in BeamPattern are a single beam, one
  *  pixel at the boresight; a CameraAntenna has a grid of pixels.
+ *
+ *  The roll [deg] turns the whole instrument about its boresight, from v
+ *  towards h in the polarization basis of the boresight, as Polarization::at
+ *  turns a response: the responses, given in the instrument's frame, turn with
+ *  the directions of its pattern's offsets and of its pixels.  At roll 0 the
+ *  instrument's frame is that of the local zenith and azimuth at the boresight.
+ *  The beam of each pixel of a camera is laid out in the frame of the pixel's
+ *  line of sight, with or without a roll.
  */
 using AntennaPattern = std::variant<PencilBeamAntenna,
                                     GaussianAntenna,
@@ -240,7 +254,8 @@ using AntennaPattern = std::variant<PencilBeamAntenna,
                                     std::span<const Stokvec> responses,
                                     const Vector3&           pos,
                                     const Vector2&           bore_los,
-                                    const Vector2&           ell);
+                                    const Vector2&           ell,
+                                    Numeric                  roll = 0.0);
 
 //! The sensor of one channel through an antenna pattern, one element per pixel by row and then column
 [[nodiscard]] Sensor antenna_sensor(const AntennaPattern& antenna,
@@ -248,7 +263,8 @@ using AntennaPattern = std::variant<PencilBeamAntenna,
                                     const Stokvec&        response,
                                     const Vector3&        pos,
                                     const Vector2&        bore_los,
-                                    const Vector2&        ell);
+                                    const Vector2&        ell,
+                                    Numeric               roll = 0.0);
 
 //! Concept for antenna patterns: the layout of their pixels, and a sensor with one element per pixel and channel
 template <typename T>
@@ -257,9 +273,10 @@ concept AntennaPatternSelection = requires(const T&                 antenna,
                                            std::span<const Stokvec> responses,
                                            const Vector3&           pos,
                                            const Vector2&           bore_los,
-                                           const Vector2&           ell) {
+                                           const Vector2&           ell,
+                                           Numeric                  roll) {
   { antenna.pixels() } -> std::same_as<PixelGrid>;
-  { antenna(channels, responses, pos, bore_los, ell) } -> std::same_as<Sensor>;
+  { antenna(channels, responses, pos, bore_los, ell, roll) } -> std::same_as<Sensor>;
 };
 }  // namespace sensor
 

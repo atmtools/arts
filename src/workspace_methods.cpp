@@ -4898,23 +4898,28 @@ The quoted strings must be used as the grid names of the gridded field.
 
   wsm_data["measurement_sensorsAddSensorBuilder"] = {
       .desc =
-          R"--(Adds the sensor that a *SensorBuilder* builds at one position and bore line of sight.
+          R"--(Adds the sensor that a *SensorBuilder* builds at its placements.
 
-The antenna of the builder samples its lines of sight around the bore line of
-sight on the ellipsoid of *surf_field*.  The elements are ordered by pixel of
-the antenna and then by channel, as the meta of the sensor.
+Each position with its bore line of sight is one placement of the instrument,
+rolled about its boresight by its roll if ``roll`` is given.  The roll turns
+the whole instrument, its polarization responses and its antenna pattern, from
+v towards h in the polarization basis of the boresight.  The antenna samples
+its lines of sight around each bore line of sight on the ellipsoid of
+*surf_field*.  The elements are ordered by placement, then by pixel of the
+antenna and then by channel, as the meta of the sensor.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"measurement_sensors"},
       .in        = {"measurement_sensors", "surf_field"},
-      .gin       = {"pos", "los", "sensor_builder", "name"},
-      .gin_type  = {"Vector3", "Vector2", "SensorBuilder", "String"},
-      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}},
+      .gin       = {"pos", "los", "sensor_builder", "name", "roll"},
+      .gin_type  = {"ArrayOfVector3", "ArrayOfVector2", "SensorBuilder", "String", "Vector"},
+      .gin_value = {std::nullopt, std::nullopt, std::nullopt, String{}, Vector{}},
       .gin_desc =
-          {"A position [alt, lat, lon]",
-           "A bore line of sight [zenith, azimuth]",
+          {"The positions [alt, lat, lon]",
+           "The bore lines of sight [zenith, azimuth], one per position",
            "The channels and the antenna of the sensor",
-           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*"},
+           "The name of the sensor and of its meta, or empty to name it sensor-N, where N is its position in *measurement_sensors*",
+           "The roll of each placement about its boresight [deg], or empty for none"},
   };
 
   wsm_data["measurement_sensorsAddCamera"] = {
