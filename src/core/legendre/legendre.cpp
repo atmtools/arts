@@ -3,6 +3,7 @@
 #include <arts_conversions.h>
 #include <debug.h>
 
+#include <algorithm>
 #include <boost/math/special_functions/legendre.hpp>
 #include <cmath>
 
@@ -240,6 +241,54 @@ void legendre_polynomials(VectorView p, Numeric x) {
   if (n > 0) p[0] = 1.0;
   if (n > 1) p[1] = x;
   for (Index l = 1; l + 1 < n; l++) p[l + 1] = legendre_next(static_cast<unsigned>(l), x, p[l], p[l - 1]);
+}
+
+void wigner_d(VectorView d, Index m, Index n, Numeric theta) {
+  const auto  L  = static_cast<Index>(d.size());
+  const Index l0 = std::max(std::abs(m), std::abs(n));
+  d              = 0.0;
+  if (l0 >= L) return;
+
+  /* d^M_MN, M >= |N|, as sqrt(binomial(2 M, M + N)) cos^(M + N)(theta / 2) sin^(M - N)(theta / 2), the root first
+     and then the powers, which only decrease it.  The binomial coefficient is below 4^M, which a double holds to
+     M = 511; above, the root is the product of the sqrt((M - N + k) / k), k = 1, ..., M + N, each with a cosine. */
+  const Numeric c      = std::cos(0.5 * theta);
+  const Numeric s      = std::sin(0.5 * theta);
+  const auto    parity = [](Index k) { return k % 2 == 0 ? 1.0 : -1.0; };
+  const auto    first  = [&](Index M, Index N) {
+    Numeric v = 1.0;
+    if (M <= 511) {
+      for (Index k = 1; k <= M + N; k++) v *= static_cast<Numeric>(M - N + k) / static_cast<Numeric>(k);
+      v = std::sqrt(v);
+      for (Index k = 0; k < M + N; k++) v *= c;
+    } else {
+      for (Index k = 1; k <= M + N; k++) v *= c * std::sqrt(static_cast<Numeric>(M - N + k) / static_cast<Numeric>(k));
+    }
+    for (Index k = 0; k < M - N; k++) v *= s;
+    return parity(M - N) * v;
+  };
+  if (std::abs(m) >= std::abs(n))
+    d[l0] = m >= 0 ? first(m, n) : parity(m - n) * first(-m, -n);
+  else
+    d[l0] = n > 0 ? parity(m - n) * first(n, m) : first(-n, -m);
+
+  const Numeric x     = std::cos(theta);
+  Index         start = l0;
+  if (l0 == 0) {
+    if (L > 1) d[1] = x;
+    start = 1;
+  }
+  // The root of the d^(l+1) term of degree l is that of the d^(l-1) term of degree l + 1
+  const auto dm = static_cast<Numeric>(m), dn = static_cast<Numeric>(n);
+  const auto root   = [dm, dn](Numeric k) { return std::sqrt((k * k - dm * dm) * (k * k - dn * dn)); };
+  Numeric    root_l = root(static_cast<Numeric>(start));
+  for (Index l = start; l + 1 < L; l++) {
+    const auto    k         = static_cast<Numeric>(l);
+    const Numeric root_next = root(k + 1);
+    const Numeric b         = (2 * k + 1) * (k * (k + 1) * x - dm * dn);
+    d[l + 1]                = (b * d[l] - (k + 1) * root_l * d[l - 1]) / (k * root_next);
+    root_l                  = root_next;
+  }
 }
 
 Numeric factorial(Index i) { return boost::math::factorial<Numeric>(static_cast<unsigned>(i)); }

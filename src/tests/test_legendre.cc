@@ -1,8 +1,12 @@
+#include <arts_constants.h>
+
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <numeric>
 #include <ranges>
+#include <stdexcept>
 
 #include "debug.h"
 #include "legendre.h"
@@ -42,7 +46,75 @@ void polynomialstest() {
   }
 }
 
+//! Wigner's d^l_mn(theta) by its explicit sum, accurate for the small degrees it is used for here
+Numeric wigner_d_sum(Index l, Index m, Index n, Numeric theta) {
+  if (std::abs(m) > l or std::abs(n) > l) return 0.0;
+  const auto    f = [](Index k) { return Legendre::factorial(k); };
+  const Numeric c = std::cos(theta / 2), s = std::sin(theta / 2);
+  Numeric       sum = 0.0;
+  for (Index k = std::max<Index>(0, n - m); k <= std::min(l + n, l - m); k++)
+    sum += ((m - n + k) % 2 == 0 ? 1.0 : -1.0) * std::pow(c, static_cast<Numeric>(2 * l + n - m - 2 * k)) *
+           std::pow(s, static_cast<Numeric>(m - n + 2 * k)) / (f(l + n - k) * f(k) * f(m - n + k) * f(l - m - k));
+  return std::sqrt(f(l + m) * f(l - m) * f(l + n) * f(l - n)) * sum;
+}
+
+/* wigner_d against
+   - Wigner's explicit sum, every order |m|, |n| <= 5 to degree 12, relative to the largest value of the order pair
+     and, near the poles, where the functions vanish as powers of the angle, relative to each value;
+   - the Legendre polynomials, d^l_00 = P_l;
+   - the Schmidt functions to degree 150, d^l_0m = S^m_l / sqrt(2) for m > 0. */
+void wignerdtest() {
+  constexpr Index L = 13;
+  Vector          d(L);
+  for (Numeric theta : {0.0, 1e-6, 0.3, 1.1, Constant::pi / 2, 2.5, Constant::pi - 1e-6, Constant::pi}) {
+    const bool pole = std::sin(theta) < 1e-3;
+    for (Index m = -5; m <= 5; m++) {
+      for (Index n = -5; n <= 5; n++) {
+        Legendre::wigner_d(d, m, n, theta);
+        Numeric scale = 0.0;
+        for (Index l = 0; l < L; l++) scale = std::max(scale, std::abs(wigner_d_sum(l, m, n, theta)));
+        for (Index l = 0; l < L; l++) {
+          const Numeric ref   = wigner_d_sum(l, m, n, theta);
+          const Numeric error = std::abs(d[l] - ref);
+          if (error > 1e-13 * scale or (pole and error > 1e-12 * std::abs(ref)))
+            throw std::runtime_error(
+                arts::format("wigner_d({}, {}, {}, {}) = {}, but Wigner's sum is {}", l, m, n, theta, d[l], ref));
+        }
+      }
+    }
+  }
+
+  Vector p(40), d00(40);
+  for (Numeric x : {-1.0, -0.7, 0.0, 0.3, 1.0}) {
+    Legendre::legendre_polynomials(p, x);
+    Legendre::wigner_d(d00, 0, 0, std::acos(x));
+    for (Index l = 0; l < 40; l++)
+      if (std::abs(d00[l] - p[l]) > 1e-13) throw std::runtime_error("wigner_d(l, 0, 0) is not P_l");
+  }
+
+  constexpr Index N = 151;
+  Matrix          S(N, N), dS(N, N);
+  Vector          order(N);
+  for (Numeric theta : {0.01, 0.7, 1.9, 3.1}) {
+    Legendre::schmidt(S, dS, theta);
+    for (Index m = 0; m < N; m++) {
+      Legendre::wigner_d(order, 0, m, theta);
+      const Numeric scale = m == 0 ? 1.0 : Constant::inv_sqrt_2;
+      for (Index l = m; l < N; l++)
+        if (std::abs(order[l] - scale * S[l, m]) > 1e-12)
+          throw std::runtime_error(
+              arts::format("wigner_d({}, 0, {}, {}) = {} is not the Schmidt function {} over sqrt(2)",
+                           l,
+                           m,
+                           theta,
+                           order[l],
+                           S[l, m]));
+    }
+  }
+}
+
 int main() {
   sumlegtest();
   polynomialstest();
+  wignerdtest();
 }

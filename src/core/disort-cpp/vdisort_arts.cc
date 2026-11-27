@@ -43,48 +43,6 @@ void check_cosines(const Vector& mu, std::string_view name) {
     arts::user_error("The direction cosines {} must be in [-1, 0) or (0, 1]", name);
 }
 
-/* Wigner's d^l_mn(theta) at mu = cos(theta) for l = 0 .. d.size() - 1, m >= 0 and n = 0, 2 or -2: the
-   generalized spherical functions P^{m,n}_l(mu) of Lin et al. (2022, Eqs. 59-60).  They are 0 below
-   l0 = max(m, |n|), where
-     d^l0_mn = (-1)^(l0 - n) sqrt((2 l0)! / ((l0 + n)! (l0 - n)!)) cos^(l0 + n)(theta / 2) sin^(l0 - n)(theta / 2)
-   for l0 = m (and d^l0_mn = d^l0_nm (-1)^(m - n) = d^l0_{-n,-m} otherwise), and above it the recurrence
-     l sqrt(((l + 1)^2 - m^2) ((l + 1)^2 - n^2)) d^(l+1) = (2 l + 1) (l (l + 1) mu - m n) d^l
-                                                         - (l + 1) sqrt((l^2 - m^2) (l^2 - n^2)) d^(l-1)
-   gives them; for m = n = 0 they are the Legendre polynomials. */
-void wigner_d(VectorView d, Index m, Index n, Numeric mu) {
-  const auto  L  = static_cast<Index>(d.size());
-  const Index l0 = std::max(m, std::abs(n));
-  d              = 0.0;
-  if (l0 >= L) return;
-
-  const auto factorial = [](Index k) {
-    Numeric r = 1.0;
-    for (Index i = 2; i <= k; i++) r *= static_cast<Numeric>(i);
-    return r;
-  };
-  // d^M_MN for M >= |N|, with cos(theta / 2) and sin(theta / 2) from mu
-  const Numeric c = std::sqrt(0.5 * (1.0 + mu)), s = std::sqrt(0.5 * (1.0 - mu));
-  const auto    first = [&](Index M, Index N) {
-    return ((M - N) % 2 == 0 ? 1.0 : -1.0) * std::sqrt(factorial(2 * M) / (factorial(M + N) * factorial(M - N))) *
-           std::pow(c, static_cast<Numeric>(M + N)) * std::pow(s, static_cast<Numeric>(M - N));
-  };
-  d[l0] = m >= std::abs(n) ? first(m, n) : (n > 0 ? first(n, m) * ((m - n) % 2 == 0 ? 1.0 : -1.0) : first(-n, -m));
-
-  Index start = l0;
-  if (l0 == 0) {
-    if (L > 1) d[1] = mu;
-    start = 1;
-  }
-  const auto dm = static_cast<Numeric>(m), dn = static_cast<Numeric>(n);
-  for (Index l = start; l + 1 < L; l++) {
-    const auto    x = static_cast<Numeric>(l);
-    const Numeric a = x * std::sqrt(((x + 1) * (x + 1) - dm * dm) * ((x + 1) * (x + 1) - dn * dn));
-    const Numeric b = (2 * x + 1) * (x * (x + 1) * mu - dm * dn);
-    const Numeric e = (x + 1) * std::sqrt((x * x - dm * dm) * (x * x - dn * dn));
-    d[l + 1]        = (b * d[l] - e * d[l - 1]) / a;
-  }
-}
-
 /* The expansion coefficients ("Greek constants") of the scattering matrix in generalized spherical functions,
    Lin et al. (2022, Eqs. 62-67), to the degree of its Legendre moments,
      F11 = sum_l a1_l P^{0,0}_l,  F22 + F33 = sum_l (a2 + a3)_l P^{2,2}_l,  F22 - F33 = sum_l (a2 - a3)_l P^{2,-2}_l,
@@ -95,7 +53,8 @@ void wigner_d(VectorView d, Index m, Index n, Numeric mu) {
    L-node Gauss-Legendre rule integrates exactly.  Every P^{m,n}_l of these is a polynomial of degree l, and the
    moments are those of the scattering matrix to degree L - 1, so the coefficients are those of the scattering
    matrix itself; a truncated Legendre series of each element is not regular at 0 and 180 deg, and this
-   expansion is. */
+   expansion is.  P^{m,n}_l are here Wigner's d^l_mn (Legendre::wigner_d); the convention of Hovenier et al. (2004)
+   has the opposite sign of P^{0,2}_l, which cancels between b1, b2 and the functions they multiply. */
 struct greek_constants {
   Vector a1, a2, a3, a4, b1, b2;
 
@@ -119,9 +78,10 @@ struct greek_constants {
       Legendre::legendre_polynomials(p, x[k]);
       CompactPlanarMuelmat F{};
       for (Index l = 0; l < L; l++) F += (static_cast<Numeric>(2 * l + 1) * p[l]) * moments[l];
-      wigner_d(d22, 2, 2, x[k]);
-      wigner_d(d2m2, 2, -2, x[k]);
-      wigner_d(d02, 0, 2, x[k]);
+      const Numeric theta = std::acos(x[k]);
+      Legendre::wigner_d(d22, 2, 2, theta);
+      Legendre::wigner_d(d2m2, 2, -2, theta);
+      Legendre::wigner_d(d02, 0, 2, theta);
       for (Index l = 2; l < L; l++) {
         const Numeric h  = 0.5 * static_cast<Numeric>(2 * l + 1) * w[k];
         a2[l]           += h * (0.5 * (F.F22() + F.F33()) * d22[l] + 0.5 * (F.F22() - F.F33()) * d2m2[l]);
@@ -142,9 +102,10 @@ struct order_functions {
   order_functions(Index m, const Vector& mu, Index L) : P(mu.size(), L), R(mu.size(), L), T(mu.size(), L) {
     Vector plus(L), minus(L);
     for (Size j = 0; j < mu.size(); j++) {
-      wigner_d(P[j], m, 0, mu[j]);
-      wigner_d(plus, m, 2, mu[j]);
-      wigner_d(minus, m, -2, mu[j]);
+      const Numeric theta = std::acos(mu[j]);
+      Legendre::wigner_d(P[j], m, 0, theta);
+      Legendre::wigner_d(plus, m, 2, theta);
+      Legendre::wigner_d(minus, m, -2, theta);
       for (Index l = 0; l < L; l++) {
         R[j, l] = 0.5 * (plus[l] + minus[l]);
         T[j, l] = 0.5 * (plus[l] - minus[l]);

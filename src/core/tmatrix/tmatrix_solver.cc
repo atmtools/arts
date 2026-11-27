@@ -88,7 +88,7 @@ void spherical_bessel_y(Numeric x, Index nmax, auto&& y, auto&& dy) {
 }
 
 //! d^n_{0m}(theta) and tau^m_n(theta) into [nmax + 1, nmax + 1] from the Schmidt functions (Special functions)
-void wigner_d(Numeric theta, MatrixView d, MatrixView dd) {
+void wigner_d_table(Numeric theta, MatrixView d, MatrixView dd) {
   Legendre::schmidt(d, dd, theta);
   for (Index n = 1; n < d.nrows(); ++n) {
     for (Index m = 1; m <= n; ++m) {
@@ -426,7 +426,7 @@ Surface::Surface(const Particle& particle, Index nmax_, Index hemisphere)
     spherical_bessel_j(xi[i], nmax, ratio_x, j[i], dj[i]);
     spherical_bessel_y(xi[i], nmax, y[i], dy[i]);
     spherical_bessel_j(refractive_index * xi[i], nmax, ratio_z, J[i], dJ[i]);
-    wigner_d(std::acos(x[i]), d[i], dd[i]);
+    wigner_d_table(std::acos(x[i]), d[i], dd[i]);
   }
 }
 
@@ -729,7 +729,7 @@ class AngularFunctions {
       }
       return;
     }
-    wigner_d(theta, d, dd);
+    wigner_d_table(theta, d, dd);
     for (Index n = 1; n <= nmax; ++n)
       for (Index m = 0; m <= n; ++m) {
         pi[n, m]  = static_cast<Numeric>(m) * d[n, m] / s;
@@ -1192,38 +1192,25 @@ Expansion expansion(const TMatrix& T, Numeric scattering, Numeric wavelength) {
 }
 
 namespace {
-//! The scattering matrix at u = cos(Theta) in ARTS's Stokes convention; P is scratch of l_max + 1 (Scattering matrix from the expansion)
-CompactPlanarMuelmat scattering_matrix_at(const Expansion& expansion, Numeric u, VectorView P) {
+/* The scattering matrix at the scattering angle theta in ARTS's Stokes convention (Scattering matrix from the
+   expansion); scratch is [4, l_max + 1].  Mishchenko's generalized spherical functions are Wigner's,
+   P^l_22 = d^l_22, P^l_2-2 = d^l_2-2 and P^l_02 = -d^l_02. */
+CompactPlanarMuelmat scattering_matrix_at(const Expansion& expansion, Numeric theta, MatrixView scratch) {
   const Index lmax = expansion.alpha1.size() - 1;
-  Legendre::legendre_polynomials(P, u);
+  auto        P = scratch[0], d22 = scratch[1], d2m2 = scratch[2], d02 = scratch[3];
+  Legendre::legendre_polynomials(P, std::cos(theta));
+  Legendre::wigner_d(d22, 2, 2, theta);
+  Legendre::wigner_d(d2m2, 2, -2, theta);
+  Legendre::wigner_d(d02, 0, 2, theta);
 
   Numeric f11 = 0.0, f44 = 0.0, f2 = 0.0, f3 = 0.0, f12 = 0.0, f34 = 0.0;
-  Numeric p22 = 0.25 * (1.0 + u) * (1.0 + u), p2m2 = 0.25 * (1.0 - u) * (1.0 - u);
-  Numeric p02          = 0.25 * std::sqrt(6.0) * (u * u - 1.0);
-  Numeric p22_previous = 0.0, p2m2_previous = 0.0, p02_previous = 0.0;
   for (Index l = 0; l <= lmax; ++l) {
     f11 += expansion.alpha1[l] * P[l];
     f44 += expansion.alpha4[l] * P[l];
-    if (l < 2) continue;
-
-    f2  += (expansion.alpha2[l] + expansion.alpha3[l]) * p22;
-    f3  += (expansion.alpha2[l] - expansion.alpha3[l]) * p2m2;
-    f12 += expansion.beta1[l] * p02;
-    f34 += expansion.beta2[l] * p02;
-
-    // The generalized spherical functions of degree l + 1
-    const Numeric dl      = static_cast<Numeric>(l);
-    const Numeric pl1     = static_cast<Numeric>(2 * l + 1);
-    const Numeric pl2     = dl * (dl + 1.0) * u;
-    const Numeric pl3     = (dl + 1.0) * (dl * dl - 4.0);
-    const Numeric pl4     = 1.0 / (dl * ((dl + 1.0) * (dl + 1.0) - 4.0));
-    const Numeric next22  = (pl1 * (pl2 - 4.0) * p22 - pl3 * p22_previous) * pl4;
-    const Numeric next2m2 = (pl1 * (pl2 + 4.0) * p2m2 - pl3 * p2m2_previous) * pl4;
-    const Numeric next02 =
-        (pl1 * u * p02 - std::sqrt(dl * dl - 4.0) * p02_previous) / std::sqrt((dl + 1.0) * (dl + 1.0) - 4.0);
-    p22_previous  = std::exchange(p22, next22);
-    p2m2_previous = std::exchange(p2m2, next2m2);
-    p02_previous  = std::exchange(p02, next02);
+    f2  += (expansion.alpha2[l] + expansion.alpha3[l]) * d22[l];
+    f3  += (expansion.alpha2[l] - expansion.alpha3[l]) * d2m2[l];
+    f12 -= expansion.beta1[l] * d02[l];
+    f34 -= expansion.beta2[l] * d02[l];
   }
 
   // In ARTS's Stokes convention, whose U is the negative of Mishchenko's: F34 changes sign
@@ -1233,21 +1220,21 @@ CompactPlanarMuelmat scattering_matrix_at(const Expansion& expansion, Numeric u,
 
 CompactPlanarMuelmatVector scattering_matrix(const Expansion& expansion, Index angles) {
   CompactPlanarMuelmatVector F(angles);
-  Vector                     P(expansion.alpha1.size());
+  Matrix                     scratch(4, expansion.alpha1.size());
   for (Index j = 0; j < angles; ++j)
-    F[j] =
-        scattering_matrix_at(expansion, std::cos(pi * static_cast<Numeric>(j) / static_cast<Numeric>(angles - 1)), P);
+    F[j] = scattering_matrix_at(expansion, pi * static_cast<Numeric>(j) / static_cast<Numeric>(angles - 1), scratch);
   return F;
 }
 
 CompactPlanarMuelmatVector legendre_series(const Expansion& expansion) {
   // a_l = 2 pi int F Y_l0 du, Y_l0 = sqrt((2 l + 1) / 4 pi) P_l(u), by the l_max + 1 node Gauss-Legendre rule
   const Index                n = expansion.alpha1.size();
-  Vector                     u(n), w(n), F_P(n), P(n);
+  Vector                     u(n), w(n), P(n);
+  Matrix                     scratch(4, n);
   CompactPlanarMuelmatVector a(n);
   Legendre::GaussLegendre(u, w);
   for (Index i = 0; i < n; ++i) {
-    const CompactPlanarMuelmat F = scattering_matrix_at(expansion, u[i], F_P);
+    const CompactPlanarMuelmat F = scattering_matrix_at(expansion, std::acos(u[i]), scratch);
     Legendre::legendre_polynomials(P, u[i]);
     for (Index l = 0; l < n; ++l)
       a[l] += (2.0 * pi * w[i] * std::sqrt(static_cast<Numeric>(2 * l + 1) / (4.0 * pi)) * P[l]) * F;
