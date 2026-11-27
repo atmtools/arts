@@ -2269,6 +2269,23 @@ where :math:`T_s` is the surface temperature extracted at the input *ray_point*.
       .in     = {"freq_grid", "surf_field", "jac_targets", "ray_point"},
   };
 
+  wsm_data["spectral_radSurfaceDepolarization"] = {
+      .desc   = R"--(Depolarizes the radiance leaving the surface.
+
+The linear polarization, Q and U, of *spectral_rad* is scaled by
+:math:`1 - D`, with :math:`D` the "depolarization factor" of
+*surf_spectral_field* at *ray_point* at each frequency.  :math:`D = 0` keeps
+the radiance and :math:`D = 1` leaves it unpolarized.  In the basis of the
+facet, where a Fresnel surface gives no U, this scales Q.
+
+The derivatives in *spectral_rad_jac* are scaled alike, and the derivative by a
+spectral surface target of the factor is added.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_rad", "spectral_rad_jac"},
+      .in     = {"spectral_rad", "spectral_rad_jac", "freq_grid", "surf_spectral_field", "jac_targets", "ray_point"},
+  };
+
   wsm_data["spectral_radSurfaceReflectance"] = {
       .desc =
           R"--(Set surface spectral radiance to use sub-surface emission and Fresnel reflectance.
@@ -6192,6 +6209,186 @@ A description of the options is given below.
     };
   }
   wsm_data["vdisort_settings_agendaSetup"] = vdisort_method("disort_settings_agendaSetup");
+
+  wsm_data["vdisort_settingsSubsurfaceInit"] = {
+      .desc   = R"--(Initialize *vdisort_settings* for the subsurface along *ray_path*.
+
+VDISORT reflects only at its surface, so the subsurface is solved upside down.
+*ray_path* starts at the interface to the space above and descends.  VDISORT's
+top is its deepest point, and VDISORT's surface is the interface, which then
+reflects back into the subsurface, while the sky enters through it as the
+radiance beneath VDISORT's surface.  The altitude grid of the settings is the
+depth below the interface, deepest first.
+
+The radiances within the subsurface are those divided by the square of its
+real refractive index.  A flat interface transmits these with one minus its
+reflectance, and the sources within are the Planck radiances themselves.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in =
+          {"freq_grid", "ray_path", "quadrature_dimension", "legendre_polynomial_dimension", "fourier_mode_dimension"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceOpticalThickness"] = {
+      .desc      = R"--(Sets the optical thickness of the upside-down subsurface from its absorption.
+
+The absorption coefficient is :math:`4\pi f \mathrm{Im}(n)/c`, with the complex
+refractive index :math:`n = \sqrt{n'^2 (1 + i \tan\delta)}` of the
+"refractive index" :math:`n'` and "loss tangent" :math:`\tan\delta` of
+*subsurf_spectral_field* at the points of *ray_path*.  Each layer has the mean
+of its two points times its thickness.
+
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings", "ray_path", "surf_field", "subsurf_spectral_field"},
+      .gin       = {"min_optical_depth"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{1e-11}},
+      .gin_desc =
+          {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
+      .desc   = R"--(Use a source function of the upside-down subsurface that changes linearly in optical thickness.
+
+The source at each point is the Planck radiance at the temperature of
+*subsurf_profile*.  Set the optical thickness first.
+
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "subsurf_profile", "freq_grid"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceDeepEmissionByTemperature"] = {
+      .desc =
+          R"--(The radiation from below the deepest level of the subsurface is the Planck radiance at its temperature.
+
+The deepest level is the top of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "freq_grid", "subsurf_profile"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceInterfaceFresnel"] = {
+      .desc   = R"--(The interface reflects radiation back into the subsurface by Fresnel's equations.
+
+The interface is the surface of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*.  Seen from within, the space above has the
+index :math:`1/\mathrm{Re}(n)`, with :math:`n` the complex refractive index of
+*subsurf_spectral_field* at the first point of *ray_path*, see
+*vdisort_settingsSubsurfaceOpticalThickness*.  The absorption of the subsurface
+is in its optical thickness, so the interface is that of the real index.
+
+Set the sun first.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings", "ray_path", "surf_field", "subsurf_spectral_field"},
+  };
+
+  wsm_data["vdisort_settingsSubsurfaceIsotropicSky"] = {
+      .desc      = R"--(Isotropic blackbody radiation of the sky enters the subsurface through the interface.
+
+The sky is the radiance beneath the surface of the upside-down column, see
+*vdisort_settingsSubsurfaceInit*, which VDISORT transmits with one minus the
+reflectance of the interface.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"vdisort_settings"},
+      .in        = {"vdisort_settings", "freq_grid"},
+      .gin       = {"sky_temperature"},
+      .gin_type  = {"Numeric"},
+      .gin_value = {Numeric{Constant::cosmic_microwave_background_temperature}},
+      .gin_desc  = {"The temperature of the sky [K]"},
+  };
+
+  wsm_data["subsurf_vdisort_settings_agendaSetup"] = {
+      .desc      = R"--(Setup for VDISORT subsurface calculations.
+
+This method allows setting up *subsurf_vdisort_settings_agenda* by named
+options.  The subsurface has no scattering yet.  The optical thickness is always
+that of *vdisort_settingsSubsurfaceOpticalThickness*; every other step can be
+left out with its "None" option.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"subsurf_vdisort_settings_agenda"},
+      .gin       = {"layer_emission_setting",
+                    "deep_setting",
+                    "interface_setting",
+                    "sky_setting",
+                    "sky_temperature",
+                    "min_optical_depth"},
+      .gin_type  = {"String", "String", "String", "String", "Numeric", "Numeric"},
+      .gin_value = {String{"LinearInTau"},
+                    String{"Thermal"},
+                    String{"Fresnel"},
+                    String{"Isotropic"},
+                    Numeric{Constant::cosmic_microwave_background_temperature},
+                    Numeric{1e-11}},
+      .gin_desc =
+          {"Layer emission settings, see *settings_agenda_setup_layer_emission_type*",
+           "Settings of the radiation from below the deepest level, see *subsurf_settings_agenda_setup_deep_type*",
+           "Interface settings, see *subsurf_settings_agenda_setup_interface_type*",
+           "Sky settings, see *subsurf_settings_agenda_setup_sky_type*",
+           "The temperature of the isotropic sky [K]",
+           "The minimum increase in optical thickness per level"},
+  };
+
+  wsm_data["spectral_radSubsurfaceVDisort"] = {
+      .desc           = R"--(The radiance that leaves the subsurface along *ray_point*, by VDISORT.
+
+The facet at *ray_point* has the normal of *surf_field*, so it is tilted by
+the slopes of the elevation.  The outgoing ray has the zenith angle
+:math:`\theta` from the facet normal, and within the subsurface the refracted
+angle :math:`\theta'` with :math:`\sin\theta = \mathrm{Re}(n)\sin\theta'`, with
+:math:`n` the complex refractive index at the interface (see
+*vdisort_settingsSubsurfaceOpticalThickness*).
+
+The radiance is the sum of two parts, each in the facet's basis (p, s) with
+s across the plane of incidence:
+
+1. The radiance within the subsurface that propagates towards the interface at
+   :math:`\theta'`, transmitted with one minus the Fresnel reflectance of each
+   polarization.  It is VDISORT's along a path into the subsurface from
+   *ray_point* through the depths of ``depth_profile``, set up by
+   *subsurf_vdisort_settings_agenda* (see *vdisort_settingsSubsurfaceInit*).
+2. The radiance of *spectral_rad_observer_agenda* along the specular direction
+   of the facet, reflected by the Fresnel reflectance.  This is the sky, with
+   the sun when it is in that direction.
+
+The sum is rotated into the basis of the outgoing ray.
+
+The derivatives are those of the reflected radiance by the targets of
+*spectral_rad_observer_agenda*.  Derivatives by surface, subsurface and
+spectral subsurface targets are not implemented.
+)--",
+      .author         = {"Richard Larsson"},
+      .out            = {"spectral_rad", "spectral_rad_jac"},
+      .in             = {"freq_grid",
+                         "atm_field",
+                         "surf_field",
+                         "subsurf_field",
+                         "subsurf_spectral_field",
+                         "jac_targets",
+                         "ray_point",
+                         "quadrature_dimension",
+                         "fourier_mode_dimension",
+                         "legendre_polynomial_dimension",
+                         "spectral_rad_observer_agenda",
+                         "subsurf_vdisort_settings_agenda"},
+      .gin            = {"depth_profile"},
+      .gin_type       = {"DescendingGrid"},
+      .gin_value      = {std::nullopt},
+      .gin_desc       = {"The depths of the path into the subsurface, relative to *ray_point* [m]"},
+      .pass_workspace = true,
+  };
 
   {
     const auto& other                                 = wsm_data.at("disort_settingsSubsurfaceScalarAbsorption");

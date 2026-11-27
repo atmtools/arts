@@ -140,4 +140,25 @@ Numeric refractive_index_water_visible_nir_harvey98(Numeric frequency,
  */
 Complex permittivity_water_liebe93(Numeric frequency, Numeric temperature, bool check_validity = true);
 
+/** The complex refractive index of a dielectric of refractive index n' and loss tangent tan(delta)
+ *
+ * n' is the square root of the real permittivity, eps' = n'^2, and the
+ * permittivity is eps = eps' (1 + i tan(delta)), with the positive imaginary
+ * part of permittivity_water_liebe93.  The index is its square root, with
+ * Im(n) >= 0.
+ *
+ * @param refractive_index n' = sqrt(eps') [-]
+ * @param loss_tangent tan(delta) = eps'' / eps' [-]
+ * @return The complex refractive index
+ */
+Complex dielectric_refractive_index(Numeric refractive_index, Numeric loss_tangent);
+
+/** The power absorption coefficient of a medium: 4 pi f Im(n) / c [m^-1]
+ *
+ * @param frequency Frequency [Hz]
+ * @param refractive_index The complex refractive index, Im(n) >= 0 for absorption
+ * @return The absorption coefficient [m^-1]
+ */
+Numeric refractive_index_absorption_coefficient(Numeric frequency, Complex refractive_index);
+
 #endif  // physics_h

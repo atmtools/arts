@@ -144,6 +144,15 @@ Numeric refractive_index_water_visible_nir_harvey98(const Numeric frequency,
   return std::sqrt((1.0 + 2.0 * lorentz_lorenz) / (1.0 - lorentz_lorenz));
 }
 
+Complex dielectric_refractive_index(const Numeric refractive_index, const Numeric loss_tangent) {
+  const Numeric real_permittivity = refractive_index * refractive_index;
+  return std::sqrt(Complex{real_permittivity, real_permittivity * loss_tangent});
+}
+
+Numeric refractive_index_absorption_coefficient(const Numeric frequency, const Complex refractive_index) {
+  return 4.0 * Constant::pi * frequency * refractive_index.imag() / Constant::speed_of_light;
+}
+
 Complex permittivity_water_liebe93(const Numeric frequency, const Numeric temperature, const bool check_validity) {
   if (check_validity) {
     if (not(temperature >= 233.15 and temperature <= 373.15))

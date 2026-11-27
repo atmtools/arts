@@ -396,6 +396,19 @@ output of this Agenda is just that setting.
                                                             "legendre_polynomial_dimension"},
                                          .named_operator = "VDisortSettingsAgendaOperator"};
 
+  wsa_data["subsurf_vdisort_settings_agenda"] = {
+      .desc           = R"--(An agenda for setting up VDISORT for the subsurface.
+
+See *subsurf_vdisort_settings_agendaSetup* for prepared agenda settings.
+
+The subsurface is solved upside down.  VDISORT's top is the deepest point of
+*ray_path*, which starts at the interface to the space above and descends,
+and VDISORT's surface is that interface.  See *vdisort_settingsSubsurfaceInit*.
+)--",
+      .output         = {"vdisort_settings"},
+      .input          = wsa_data.at("vdisort_settings_agenda").input,
+      .named_operator = wsa_data.at("vdisort_settings_agenda").named_operator};
+
   wsa_data["vdisort_settings_downwelling_wrapper_agenda"] = {
       .desc         = R"--(An wrapper agenda for calling *vdisort_settings_agenda*.
 
