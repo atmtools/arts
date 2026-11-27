@@ -136,10 +136,8 @@ void spectral_propmat_scat_pathFromSpectralAgenda(const Workspace&              
                                                   const Agenda& spectral_propmat_scat_spectral_agenda) try {
   const Size N = freq_grid_path.size();
   if (ray_path.size() != N or atm_path.size() != N)
-    arts::user_error("There are {} frequency grids, {} path points and {} atmospheric points",
-                     N,
-                     ray_path.size(),
-                     atm_path.size());
+    arts::user_error(
+        "There are {} frequency grids, {} path points and {} atmospheric points", N, ray_path.size(), atm_path.size());
 
   spectral_propmat_scat_path.resize(N);
   spectral_absvec_scat_path.resize(N);

@@ -37,6 +37,8 @@
 namespace polradtran::rt3 {
 /** The scattering set of scattering species at one atmospheric point.
  *
+ * atm_spectral_point is the spectral point of the atmosphere there, at frequency.
+ *
  * The species give their Legendre series to degree themselves
  * (ArrayOfScatteringSpecies::tro_spectral,
  * coefficients a_l on the orthonormal Y_l0); these are the Legendre
@@ -63,6 +65,7 @@ namespace polradtran::rt3 {
  */
 scattering_set scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  Index                           degree,
                                  Numeric                         normalisation_tolerance);
@@ -104,13 +107,15 @@ struct path_settings {
  * scattering_optics(): mean extinction, mean scattering, and the
  * scattering-weighted mean of the two normalised series, which is the
  * normalised series of the mean phase matrix.  A layer whose mean extinction
- * is zero is gas-only.
+ * is zero is gas-only.  The spectral points of
+ * scattering_optics() are atm_spectral_field at the positions of ray_path.
  *
  * The problem has thermal emission and no direct beam; set direct_flux,
  * direct_mu and thermal on the result for other sources.
  */
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const ArrayOfAtmPoint&             atm_path,
+                          const AtmSpectralField&            atm_spectral_field,
                           const ArrayOfPropmatVector&        spectral_propmat_path,
                           const AscendingGrid&               freq_grid,
                           Index                              freq_index,

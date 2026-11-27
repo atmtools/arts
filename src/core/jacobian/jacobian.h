@@ -260,6 +260,38 @@ struct ErrorTarget {
   void update_jac(MatrixView dy, cv x, cv y) const;
 };
 
+/** The class that deals with Jacobian targets that are part of a spectral field object
+ *
+ * The target is the data of one property of the field (AtmSpectralField,
+ * SurfaceSpectralField or SubsurfaceSpectralField), and its model state is
+ * the flat view of that data, so frequency is its slowest dimension.  The
+ * flat weights of the data map the property at a frequency and position to
+ * the model state.
+ *
+ * As for all targets, we need to know where in a local list the target is
+ * (target_pos), where in the global list the target starts (x_start), and how
+ * many global elements the target takes up (x_size).
+ *
+ * The targets have no transformations, so the field and the model state are
+ * the same numbers.
+ */
+template <typename Tag, typename Field> struct SpectralTarget {
+  Tag type;
+
+  Numeric d{};
+
+  Size target_pos{std::numeric_limits<Size>::max()};
+  Size x_start{std::numeric_limits<Size>::max()};
+  Size x_size{std::numeric_limits<Size>::max()};
+
+  void update_model(Field& y, cv x) const;
+  void update_state(VectorView x, const Field& y) const;
+};
+
+using AtmSpectralTarget        = SpectralTarget<AtmSpectralPropertyTag, AtmSpectralField>;
+using SurfaceSpectralTarget    = SpectralTarget<SurfaceSpectralPropertyTag, SurfaceSpectralField>;
+using SubsurfaceSpectralTarget = SpectralTarget<SubsurfaceSpectralPropertyTag, SubsurfaceSpectralField>;
+
 template <typename T>
 concept target_type = requires(T a) {
   { a.target_pos } -> std::same_as<Size&>;
@@ -268,23 +300,37 @@ concept target_type = requires(T a) {
   a.type;
 };
 
-//! True if the target shares its model state with other targets, either as an overlap or as the original
-template <target_type T> [[nodiscard]] bool overlaps(const std::vector<T>& targets, const T& t) {
-  return t.overlap or std::ranges::any_of(targets, [&t](const T& o) { return o.overlap and o.overlap_key == t.type; });
+//! True if the target takes its model state from another target; targets that cannot overlap never do
+template <target_type T> [[nodiscard]] bool is_overlap(const T& t) {
+  if constexpr (requires { t.overlap; }) return t.overlap;
+  return false;
 }
 
-//! True if the target transforms between the field and the model state
+//! True if the target shares its model state with other targets, either as an overlap or as the original
+template <target_type T> [[nodiscard]] bool overlaps(const std::vector<T>& targets, const T& t) {
+  if constexpr (requires { t.overlap_key; }) {
+    return t.overlap or
+           std::ranges::any_of(targets, [&t](const T& o) { return o.overlap and o.overlap_key == t.type; });
+  }
+  return false;
+}
+
+//! True if the target transforms between the field and the model state; targets without transformations never do
 template <target_type T> [[nodiscard]] bool has_transformation(const T& t) {
-  return t.transform_state or t.inverse_state or t.inverse_jacobian;
+  if constexpr (requires { t.transform_state; }) return t.transform_state or t.inverse_state or t.inverse_jacobian;
+  return false;
 }
 
 struct Targets final {
-  std::vector<AtmTarget>        atm;
-  std::vector<SurfaceTarget>    surf;
-  std::vector<SubsurfaceTarget> subsurf;
-  std::vector<LineTarget>       line;
-  std::vector<SensorTarget>     sensor;
-  std::vector<ErrorTarget>      error;
+  std::vector<AtmTarget>                atm;
+  std::vector<AtmSpectralTarget>        atm_spectral;
+  std::vector<SurfaceTarget>            surf;
+  std::vector<SurfaceSpectralTarget>    surf_spectral;
+  std::vector<SubsurfaceTarget>         subsurf;
+  std::vector<SubsurfaceSpectralTarget> subsurf_spectral;
+  std::vector<LineTarget>               line;
+  std::vector<SensorTarget>             sensor;
+  std::vector<ErrorTarget>              error;
 
   bool finalized{false};
 
@@ -294,8 +340,11 @@ struct Targets final {
   //! Calls f on each list of targets, in model state order
   void for_each_list(this auto&& self, auto&& f) {
     f(self.atm);
+    f(self.atm_spectral);
     f(self.surf);
+    f(self.surf_spectral);
     f(self.subsurf);
+    f(self.subsurf_spectral);
     f(self.line);
     f(self.sensor);
     f(self.error);
@@ -311,11 +360,14 @@ struct Targets final {
   void throwing_check(Size xsize) const;
 
   //! Sets the sizes and x-positions of the targets.
-  void finalize(const AtmField&        atm_field,
-                const SurfaceField&    surf_field,
-                const SubsurfaceField& subsurf_field,
-                const AbsorptionBands& abs_bands,
-                const ArrayOfSensor&   measurement_sensors);
+  void finalize(const AtmField&                atm_field,
+                const AtmSpectralField&        atm_spectral_field,
+                const SurfaceField&            surf_field,
+                const SurfaceSpectralField&    surf_spectral_field,
+                const SubsurfaceField&         subsurf_field,
+                const SubsurfaceSpectralField& subsurf_spectral_field,
+                const AbsorptionBands&         abs_bands,
+                const ArrayOfSensor&           measurement_sensors);
 
   AtmTarget&        emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
   AtmTarget&        emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
@@ -327,12 +379,19 @@ struct Targets final {
   SurfaceTarget&    emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
   SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
   SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
+  AtmSpectralTarget&        emplace_back(const AtmSpectralPropertyTag& t, Numeric d = 0.0);
+  SurfaceSpectralTarget&    emplace_back(const SurfaceSpectralPropertyTag& t, Numeric d = 0.0);
+  SubsurfaceSpectralTarget& emplace_back(const SubsurfaceSpectralPropertyTag& t, Numeric d = 0.0);
   ErrorTarget&      emplace_back(ErrorKey&& t, Numeric d = 0.0);
   ErrorTarget&      emplace_back(const ErrorKey& t, Numeric d = 0.0);
 
   [[nodiscard]] std::vector<AtmTarget>::const_iterator        find(const AtmKeyVal& t) const;
   [[nodiscard]] std::vector<SurfaceTarget>::const_iterator    find(const SurfaceKeyVal& t) const;
   [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<AtmSpectralTarget>::const_iterator        find(const AtmSpectralPropertyTag& t) const;
+  [[nodiscard]] std::vector<SurfaceSpectralTarget>::const_iterator    find(const SurfaceSpectralPropertyTag& t) const;
+  [[nodiscard]] std::vector<SubsurfaceSpectralTarget>::const_iterator find(
+      const SubsurfaceSpectralPropertyTag& t) const;
   [[nodiscard]] std::vector<LineTarget>::const_iterator       find(const LblLineKey& t) const;
   [[nodiscard]] std::vector<SensorTarget>::const_iterator     find(const SensorKey& t) const;
   [[nodiscard]] std::vector<ErrorTarget>::const_iterator      find(const ErrorKey& t) const;
@@ -340,6 +399,9 @@ struct Targets final {
   [[nodiscard]] Index target_position(const AtmKeyVal& t) const;
   [[nodiscard]] Index target_position(const SurfaceKeyVal& t) const;
   [[nodiscard]] Index target_position(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] Index target_position(const AtmSpectralPropertyTag& t) const;
+  [[nodiscard]] Index target_position(const SurfaceSpectralPropertyTag& t) const;
+  [[nodiscard]] Index target_position(const SubsurfaceSpectralPropertyTag& t) const;
   [[nodiscard]] Index target_position(const LblLineKey& t) const;
   [[nodiscard]] Index target_position(const SensorKey& t) const;
   [[nodiscard]] Index target_position(const ErrorKey& t) const;
@@ -349,30 +411,50 @@ struct Targets final {
 };
 
 struct TargetType {
-  using variant_t = std::variant<AtmKeyVal, SurfaceKeyVal, SubsurfaceKeyVal, LblLineKey, SensorKey, ErrorKey>;
+  using variant_t = std::variant<AtmKeyVal,
+                                 AtmSpectralPropertyTag,
+                                 SurfaceKeyVal,
+                                 SurfaceSpectralPropertyTag,
+                                 SubsurfaceKeyVal,
+                                 SubsurfaceSpectralPropertyTag,
+                                 LblLineKey,
+                                 SensorKey,
+                                 ErrorKey>;
   variant_t target;
 
   template <class AtmKeyValFunc,
+            class AtmSpectralFunc,
             class SurfaceKeyValFunc,
+            class SurfaceSpectralFunc,
             class SubsurfaceKeyValFunc,
+            class SubsurfaceSpectralFunc,
             class LblLineKeyFunc,
             class SensorKeyFunc,
             class ErrorKeyFunc>
-  [[nodiscard]] constexpr auto apply(const AtmKeyValFunc&        ifatm,
-                                     const SurfaceKeyValFunc&    ifsurf,
-                                     const SubsurfaceKeyValFunc& ifsubsurf,
-                                     const LblLineKeyFunc&       ifline,
-                                     const SensorKeyFunc&        ifsensor,
-                                     const ErrorKeyFunc&         iferror) const {
+  [[nodiscard]] constexpr auto apply(const AtmKeyValFunc&          ifatm,
+                                     const AtmSpectralFunc&        ifatm_spectral,
+                                     const SurfaceKeyValFunc&      ifsurf,
+                                     const SurfaceSpectralFunc&    ifsurf_spectral,
+                                     const SubsurfaceKeyValFunc&   ifsubsurf,
+                                     const SubsurfaceSpectralFunc& ifsubsurf_spectral,
+                                     const LblLineKeyFunc&         ifline,
+                                     const SensorKeyFunc&          ifsensor,
+                                     const ErrorKeyFunc&           iferror) const {
     return std::visit(
         [&](const auto& t) {
           using T = std::decay_t<decltype(t)>;
           if constexpr (std::same_as<T, AtmKeyVal>) {
             return ifatm(t);
+          } else if constexpr (std::same_as<T, AtmSpectralPropertyTag>) {
+            return ifatm_spectral(t);
           } else if constexpr (std::same_as<T, SurfaceKeyVal>) {
             return ifsurf(t);
+          } else if constexpr (std::same_as<T, SurfaceSpectralPropertyTag>) {
+            return ifsurf_spectral(t);
           } else if constexpr (std::same_as<T, SubsurfaceKeyVal>) {
             return ifsubsurf(t);
+          } else if constexpr (std::same_as<T, SubsurfaceSpectralPropertyTag>) {
+            return ifsubsurf_spectral(t);
           } else if constexpr (std::same_as<T, LblLineKey>) {
             return ifline(t);
           } else if constexpr (std::same_as<T, SensorKey>) {
@@ -425,8 +507,15 @@ template <> struct std::formatter<JacobianTargetType> {
 
   template <class FmtContext> FmtContext::iterator format(const JacobianTargetType& jtt, FmtContext& ctx) const {
     jtt.apply([this, &ctx](const AtmKeyVal& key) { tags.format(ctx, "AtmKeyVal::"sv, key); },
+              [this, &ctx](const AtmSpectralPropertyTag& key) { tags.format(ctx, "AtmSpectralPropertyTag::"sv, key); },
               [this, &ctx](const SurfaceKeyVal& key) { tags.format(ctx, "SurfaceKeyVal::"sv, key); },
+              [this, &ctx](const SurfaceSpectralPropertyTag& key) {
+                tags.format(ctx, "SurfaceSpectralPropertyTag::"sv, key);
+              },
               [this, &ctx](const SubsurfaceKeyVal& key) { tags.format(ctx, "SubsurfaceKeyVal::"sv, key); },
+              [this, &ctx](const SubsurfaceSpectralPropertyTag& key) {
+                tags.format(ctx, "SubsurfaceSpectralPropertyTag::"sv, key);
+              },
               [this, &ctx](const LblLineKey& key) { tags.format(ctx, "LblLineKey::"sv, key); },
               [this, &ctx](const SensorKey& key) { tags.format(ctx, "SensorKey::"sv, key); },
               [this, &ctx](const ErrorKey& key) { tags.format(ctx, "ErrorKey::"sv, key); });
@@ -484,9 +573,15 @@ template <> struct std::formatter<JacobianTargets> {
 
     if (not v.atm.empty()) { tags.format(ctx, R"("atm": )"sv, v.atm, sep); }
 
+    if (not v.atm_spectral.empty()) { tags.format(ctx, R"("atm_spectral": )"sv, v.atm_spectral, sep); }
+
     if (not v.surf.empty()) { tags.format(ctx, R"("surf": )"sv, v.surf, sep); }
 
+    if (not v.surf_spectral.empty()) { tags.format(ctx, R"("surf_spectral": )"sv, v.surf_spectral, sep); }
+
     if (not v.subsurf.empty()) { tags.format(ctx, R"("subsurf": )"sv, v.subsurf, sep); }
+
+    if (not v.subsurf_spectral.empty()) { tags.format(ctx, R"("subsurf_spectral": )"sv, v.subsurf_spectral, sep); }
 
     if (not v.line.empty()) tags.format(ctx, R"("line": )"sv, v.line, sep);
 
@@ -526,6 +621,18 @@ template <> struct xml_io_stream_name<Jacobian::SubsurfaceTarget> {
   static constexpr std::string_view name = "SubsurfaceTarget"sv;
 };
 
+template <> struct xml_io_stream_name<Jacobian::AtmSpectralTarget> {
+  static constexpr std::string_view name = "AtmSpectralTarget"sv;
+};
+
+template <> struct xml_io_stream_name<Jacobian::SurfaceSpectralTarget> {
+  static constexpr std::string_view name = "SurfaceSpectralTarget"sv;
+};
+
+template <> struct xml_io_stream_name<Jacobian::SubsurfaceSpectralTarget> {
+  static constexpr std::string_view name = "SubsurfaceSpectralTarget"sv;
+};
+
 template <> struct xml_io_stream_name<Jacobian::SensorTarget> {
   static constexpr std::string_view name = "SensorTarget"sv;
 };
@@ -551,6 +658,10 @@ template <> struct xml_io_stream_aggregate<Jacobian::SurfaceTarget> {
 };
 
 template <> struct xml_io_stream_aggregate<Jacobian::SubsurfaceTarget> {
+  static constexpr bool value = true;
+};
+
+template <typename Tag, typename Field> struct xml_io_stream_aggregate<Jacobian::SpectralTarget<Tag, Field>> {
   static constexpr bool value = true;
 };
 

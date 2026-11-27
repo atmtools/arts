@@ -365,7 +365,7 @@ def _rayleigh_optics(mu_out, mu_in, nfourier):
     atm = arts.AtmPoint()
     atm.pressure = 8e4
     atm.temperature = 260.0
-    optics = arts.vdisort.scattering_optics(species, atm, 89e9, mu_out, mu_in, nfourier)
+    optics = arts.vdisort.scattering_optics(species, atm, arts.AtmSpectralPoint(), 89e9, mu_out, mu_in, nfourier)
     return np.asarray(optics.cosine)[:, None], np.asarray(optics.sine)[:, None]
 
 

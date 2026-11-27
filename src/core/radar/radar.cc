@@ -180,8 +180,8 @@ Optics optics(const ArrayOfPropagationPathPoint& path,
         std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(receive_za));
 
     const auto spectral_point = atm_spectral_field.at(freq_grid, path[ip].pos[0], path[ip].pos[1], path[ip].pos[2]);
-    const auto bulk_out       = scattering_species.aro_gridded(
-        atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid);
+    const auto bulk_out =
+        scattering_species.aro_gridded(atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid);
     const auto bulk_ret = scattering_species.aro_gridded(
         atm_path[ip], spectral_point, freq_grid, receive_za, Vector{0.0}, transmit_za_grid);
     if (not bulk_out.phase_matrix.has_value())
@@ -201,20 +201,25 @@ Optics optics(const ArrayOfPropagationPathPoint& path,
 
     out.dK_out[ip] = std::move(gas_out_jac);
     out.dK_ret[ip] = std::move(gas_ret_jac);
-    for (const auto& target : jac_targets.atm) {
-      const auto dbulk_out = scattering_species.aro_gridded_derivative(
-          atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid, target.type);
-      const auto dbulk_ret = scattering_species.aro_gridded_derivative(
-          atm_path[ip], spectral_point, freq_grid, receive_za, Vector{0.0}, transmit_za_grid, target.type);
-      if (not dbulk_out.phase_matrix) arts::user_error("Radar derivatives require scattering phase matrices");
+    // The spectral targets give the derivative at each frequency by the property at that frequency
+    const auto add_derivatives = [&](const auto& targets) {
+      for (const auto& target : targets) {
+        const auto dbulk_out = scattering_species.aro_gridded_derivative(
+            atm_path[ip], spectral_point, freq_grid, transmit_za, delta_aa, receive_za_grid, target.type);
+        const auto dbulk_ret = scattering_species.aro_gridded_derivative(
+            atm_path[ip], spectral_point, freq_grid, receive_za, Vector{0.0}, transmit_za_grid, target.type);
+        if (not dbulk_out.phase_matrix) arts::user_error("Radar derivatives require scattering phase matrices");
 
-      const auto& dphase = *dbulk_out.phase_matrix;
-      for (Size iv = 0; iv < nf; ++iv) {
-        out.dK_out[ip][target.target_pos, iv] += pext_scaling * dbulk_out.extinction_matrix[0, iv, 0].expand();
-        out.dK_ret[ip][target.target_pos, iv] += pext_scaling * dbulk_ret.extinction_matrix[0, iv, 0].expand();
-        out.dZ[ip][target.target_pos, iv]      = dphase[0, iv, 0, 0, 0];
+        const auto& dphase = *dbulk_out.phase_matrix;
+        for (Size iv = 0; iv < nf; ++iv) {
+          out.dK_out[ip][target.target_pos, iv] += pext_scaling * dbulk_out.extinction_matrix[0, iv, 0].expand();
+          out.dK_ret[ip][target.target_pos, iv] += pext_scaling * dbulk_ret.extinction_matrix[0, iv, 0].expand();
+          out.dZ[ip][target.target_pos, iv]      = dphase[0, iv, 0, 0, 0];
+        }
       }
-    }
+    };
+    add_derivatives(jac_targets.atm);
+    add_derivatives(jac_targets.atm_spectral);
   }
 
   return out;

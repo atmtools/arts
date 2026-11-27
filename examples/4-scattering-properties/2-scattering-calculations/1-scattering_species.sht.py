@@ -35,12 +35,9 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # the single-scattering albed (SSA). The ice extinction and SSA thus become
 # atmospheric fields. Below we define scattering-species-property object that
 # identify these fields.
-ice_extinction = pyarts.arts.ScatteringSpeciesProperty(
-    "ice", pyarts.arts.ParticulateProperty("Extinction")
-)
-ice_ssa = pyarts.arts.ScatteringSpeciesProperty(
-    "ice", pyarts.arts.ParticulateProperty("SingleScatteringAlbedo")
-)
+ice_extinction = "ice extinction"
+ice_ssa = "ice ssa"
+ice_g = "ice g"
 
 # We then define a GriddedField3 representing the ice extinction and
 # single-scattering albedo and add it to ``atm_field`` of the workspace.
@@ -48,44 +45,51 @@ grids = ws.atm_field["t"].data.grids
 z = grids[0]
 ice_extinction_profile = np.zeros_like(z)
 ice_extinction_profile[(z > 5e3) * (z < 15e3)] = 1.0
-ice_extinction_profile = pyarts.arts.GriddedField3(
-    data=ice_extinction_profile[..., None, None], grids=grids
+ice_extinction_profile = pyarts.arts.SpectralGeodeticField4(
+    data=ice_extinction_profile[None, ..., None, None],
+    grid_names=["frequency", "altitude", "latitude", "longitude"],
+    grids=[[89e9], *grids],
 )
-ws.atm_field[ice_extinction] = ice_extinction_profile
+ws.atm_spectral_field[ice_extinction] = ice_extinction_profile
 
 ice_ssa_profile = np.zeros_like(z)
 ice_ssa_profile[(z > 5e3) * (z < 15e3)] = 0.5
-ice_ssa_profile = pyarts.arts.GriddedField3(
-    data=ice_ssa_profile[..., None, None], grids=grids
+ice_ssa_profile = pyarts.arts.SpectralGeodeticField4(
+    data=ice_ssa_profile[None, ..., None, None],
+    grid_names=["frequency", "altitude", "latitude", "longitude"],
+    grids=[[89e9], *grids],
 )
-ws.atm_field[ice_ssa] = ice_ssa_profile
+ws.atm_spectral_field[ice_ssa] = ice_ssa_profile
+ws.atm_spectral_field[ice_g] = 0.5
 
 # %% Rain
-rain_extinction = pyarts.arts.ScatteringSpeciesProperty(
-    "rain", pyarts.arts.ParticulateProperty("Extinction")
-)
-rain_ssa = pyarts.arts.ScatteringSpeciesProperty(
-    "rain", pyarts.arts.ParticulateProperty("SingleScatteringAlbedo")
-)
+rain_extinction = "rain extinction"
+rain_ssa = "rain ssa"
+rain_g = "rain g"
 
 rain_extinction_profile = np.zeros_like(z)
 rain_extinction_profile[z < 5e3] = 1.0
-rain_extinction_profile = pyarts.arts.GriddedField3(
-    data=rain_extinction_profile[..., None, None], grids=grids
+rain_extinction_profile = pyarts.arts.SpectralGeodeticField4(
+    data=rain_extinction_profile[None, ..., None, None],
+    grid_names=["frequency", "altitude", "latitude", "longitude"],
+    grids=[[89e9], *grids],
 )
-ws.atm_field[rain_extinction] = rain_extinction_profile
+ws.atm_spectral_field[rain_extinction] = rain_extinction_profile
 
 rain_ssa_profile = np.zeros_like(z)
 rain_ssa_profile[z < 5e3] = 0.5
-rain_ssa_profile = pyarts.arts.GriddedField3(
-    data=rain_ssa_profile[..., None, None], grids=grids
+rain_ssa_profile = pyarts.arts.SpectralGeodeticField4(
+    data=rain_ssa_profile[None, ..., None, None],
+    grid_names=["frequency", "altitude", "latitude", "longitude"],
+    grids=[[89e9], *grids],
 )
-ws.atm_field[rain_ssa] = rain_ssa_profile
+ws.atm_spectral_field[rain_ssa] = rain_ssa_profile
+ws.atm_spectral_field[rain_g] = 0.0
 
 # %% Create the scattering species
 
-hg_ice = HenyeyGreensteinScatterer(ice_extinction, ice_ssa, 0.5)
-hg_rain = HenyeyGreensteinScatterer(rain_extinction, rain_ssa, 0.0)
+hg_ice = HenyeyGreensteinScatterer(ice_extinction, ice_ssa, ice_g)
+hg_rain = HenyeyGreensteinScatterer(rain_extinction, rain_ssa, rain_g)
 scattering_species = ArrayOfScatteringSpecies()
 scattering_species.add(hg_ice)
 scattering_species.add(hg_rain)
@@ -104,14 +108,15 @@ scattering_species.add(hg_rain)
 # both are converted to gridded representation.
 atm_pt = ws.atm_field(11e3, 0.0, 0.0)
 f_grid = np.array([89e9])
-bsp = scattering_species.tro_spectral(atm_pt, f_grid, 32)
+spectral_pt = ws.atm_spectral_field(f_grid, 11e3, 0.0, 0.0)
+bsp = scattering_species.tro_spectral(atm_pt, spectral_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
 
 za_scat_grid = pyarts.arts.ScatteringTroSpectralVector.to_gridded(
     pm_spectral
 ).get_za_scat_grid()
 bsp = scattering_species.tro_gridded(
-    atm_pt, f_grid, za_scat_grid
+    atm_pt, spectral_pt, f_grid, za_scat_grid
 )
 pm_gridded = bsp.phase_matrix
 
@@ -130,14 +135,15 @@ ax.legend()
 # Similarly, we can extract the phase function for rain by calculating the
 # bulk-scattering properties at a lower point in the atmosphere.
 atm_pt = ws.atm_field(4e3, 0.0, 0.0)
-bsp = scattering_species.tro_spectral(atm_pt, f_grid, 32)
+spectral_pt = ws.atm_spectral_field(f_grid, 4e3, 0.0, 0.0)
+bsp = scattering_species.tro_spectral(atm_pt, spectral_pt, f_grid, 32)
 pm_spectral = bsp.phase_matrix
 
 za_scat_grid = pyarts.arts.ScatteringTroSpectralVector.to_gridded(
     pm_spectral
 ).get_za_scat_grid()
 bsp = scattering_species.tro_gridded(
-    atm_pt, f_grid, za_scat_grid
+    atm_pt, spectral_pt, f_grid, za_scat_grid
 )
 pm_gridded = bsp.phase_matrix
 

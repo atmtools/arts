@@ -394,9 +394,10 @@ void spectral_rad_scat_pathSunsFirstOrder(const Workspace&                      
       StokvecVector       spectral_rad_bkg;
       const StokvecMatrix spectral_rad_bkg_jac(0, nf);
 
-      const auto& ray_point      = ray_path[ip];
-      const auto  atm_point      = atm_field.at(ray_point.pos);
-      const auto  spectral_point = atm_spectral_field.at(freq_grid, ray_point.pos[0], ray_point.pos[1], ray_point.pos[2]);
+      const auto& ray_point = ray_path[ip];
+      const auto  atm_point = atm_field.at(ray_point.pos);
+      const auto  spectral_point =
+          atm_spectral_field.at(freq_grid, ray_point.pos[0], ray_point.pos[1], ray_point.pos[2]);
 
       for (Size isun = 0; isun < nsuns; ++isun) {
         auto        sun_path = ray_path_suns_path[ip][isun];

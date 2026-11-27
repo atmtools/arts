@@ -49,24 +49,26 @@ ws.ray_path_observer_agendaSetGeometric(
 # A scalar, isotropic scatterer makes the native backscatter coefficient
 # exactly extinction * single-scattering-albedo / (4 pi).  This checks the
 # same normalization on which ARTS2 TestIyActive's -30 dBZe case depends.
-extinction = A.ScatteringSpeciesProperty(
-    "cloud", A.ParticulateProperty.Extinction
-)
-ssa = A.ScatteringSpeciesProperty(
-    "cloud", A.ParticulateProperty.SingleScatteringAlbedo
-)
 grids = ws.atm_field["t"].data.grids
 altitude = np.asarray(grids[0])
 cloud = (altitude >= 5e3) & (altitude <= 15e3)
 extinction_value = 1e-4
 ssa_value = 0.8
-ws.atm_field[extinction] = A.GriddedField3(
-    data=np.where(cloud, extinction_value, 0.0)[:, None, None], grids=grids
-)
-ws.atm_field[ssa] = A.GriddedField3(
-    data=np.where(cloud, ssa_value, 0.0)[:, None, None], grids=grids
-)
-ws.scat_species = [A.HenyeyGreensteinScatterer(extinction, ssa, 0.0)]
+
+
+def spectral(values):
+    """A spectral field of values on the altitude grid, the same at all frequencies"""
+    return A.SpectralGeodeticField4(
+        data=values[None, :, None, None],
+        grid_names=["frequency", "altitude", "latitude", "longitude"],
+        grids=[[94e9], *grids],
+    )
+
+
+ws.atm_spectral_field["extinction"] = spectral(np.where(cloud, extinction_value, 0.0))
+ws.atm_spectral_field["ssa"] = spectral(np.where(cloud, ssa_value, 0.0))
+ws.atm_spectral_field["g"] = 0.0
+ws.scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 
 # ARTS2 polarization index 5 is [I,Q]/2 on receive and [I,Q] on transmit.
 # The helper creates one observation element per range bin, so the radar
@@ -163,7 +165,7 @@ assert np.allclose(
 ws.radar_range_limits = np.column_stack((range_bins[:-1], range_bins[1:]))
 step = 1e-6
 ws.jac_targetsInit()
-ws.jac_targetsAddAtmosphere(target=extinction, d=step)
+ws.jac_targetsAddAtmosphereSpectral(target="extinction", d=step)
 ws.jac_targetsFinalize()
 ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
 jac = np.asarray(ws.measurement_jac).copy()
@@ -171,20 +173,21 @@ assert jac.shape == (len(ws.measurement_vec), altitude.size)
 assert np.all(np.isfinite(jac))
 
 iz = int(np.argmin(np.abs(altitude - 10e3)))
-base_extinction = np.asarray(ws.atm_field[extinction].data.data).copy()
+base_extinction = np.asarray(ws.atm_spectral_field["extinction"].data.data).copy()
 ws.jac_targetsOff()
 
 plus = base_extinction.copy()
-plus[iz, 0, 0] += step
-ws.atm_field[extinction].data.data = plus
+plus[0, iz, 0, 0] += step
+ws.atm_spectral_field["extinction"].data.data = plus
 ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
 y_plus = np.asarray(ws.measurement_vec).copy()
 
 minus = base_extinction.copy()
-minus[iz, 0, 0] -= step
-ws.atm_field[extinction].data.data = minus
+minus[0, iz, 0, 0] -= step
+ws.atm_spectral_field["extinction"].data.data = minus
 ws.measurement_vecFromRadarSingleScattering(**common, unit="1")
 y_minus = np.asarray(ws.measurement_vec).copy()
+ws.atm_spectral_field["extinction"].data.data = base_extinction
 
 explicit = (y_plus - y_minus) / (2.0 * step)
 assert np.allclose(jac[:, iz], explicit, rtol=2e-10, atol=1e-15)

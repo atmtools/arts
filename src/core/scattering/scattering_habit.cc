@@ -549,7 +549,9 @@ BulkScatteringProperties<Format::ARO, Representation::Fourier> ScatteringHabit::
 Vector ScatteringHabit::number_densities(Numeric temperature, const ScatteringSpeciesMap& ssprops) const {
   const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
   auto       pnd   = std::visit(
-      [&](const auto& p) { return scattering::number_densities(p, temperature, ssprops, sizes, mass_size_rel_a, mass_size_rel_b); },
+      [&](const auto& p) {
+        return scattering::number_densities(p, temperature, ssprops, sizes, mass_size_rel_a, mass_size_rel_b);
+      },
       psd);
   if (pnd.size() != static_cast<Size>(particle_habit.size())) arts::user_error("PSD and particle-habit sizes differ.");
   return pnd;
@@ -560,7 +562,8 @@ PSDData ScatteringHabit::number_densities_with_derivatives(Numeric              
   const auto sizes = particle_habit.get_sizes(std::visit([](const auto& p) { return p.get_size_parameter(); }, psd));
   auto       pnd   = std::visit(
       [&](const auto& p) {
-        return scattering::number_densities_with_derivatives(p, temperature, ssprops, sizes, mass_size_rel_a, mass_size_rel_b);
+        return scattering::number_densities_with_derivatives(
+            p, temperature, ssprops, sizes, mass_size_rel_a, mass_size_rel_b);
       },
       psd);
   if (pnd.values.size() != static_cast<Size>(particle_habit.size()))

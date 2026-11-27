@@ -9,8 +9,8 @@ void ArrayOfScatteringSpecies::prepare_scattering_data(scattering::ScatteringDat
 
 template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
 BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>
-ArrayOfScatteringSpecies::tro_gridded(const Point&                              point,
-    const SpectralPoint& spectral_point,
+ArrayOfScatteringSpecies::tro_gridded(const Point&                                 point,
+                                      const SpectralPoint&                         spectral_point,
                                       const Vector&                                f_grid,
                                       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const {
   if (species.size() == 0) return {std::nullopt, {}, {}};
@@ -35,13 +35,14 @@ ArrayOfScatteringSpecies::tro_gridded(const Point&                              
   return bsp;
 }
 
-template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
+template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint, typename Key>
+requires(std::same_as<Key, scattering::medium_key<Point>> or std::same_as<Key, scattering::spectral_medium_key<Point>>)
 BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>
-ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&                              point,
-    const SpectralPoint& spectral_point,
+ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&                                 point,
+                                                 const SpectralPoint&                         spectral_point,
                                                  const Vector&                                f_grid,
                                                  std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
-                                                 const scattering::medium_key<Point>&                             target) const {
+                                                 const Key&                                   target) const {
   if (species.empty()) arts::user_error("Cannot differentiate an empty scattering-species array");
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded> {
@@ -58,10 +59,10 @@ ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&                   
 }
 
 template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
-ScatteringTroSpectralVector ArrayOfScatteringSpecies::tro_spectral(const Point& point,
-    const SpectralPoint& spectral_point,
-                                                                   const Vector&   f_grid,
-                                                                   Index           degree) const {
+ScatteringTroSpectralVector ArrayOfScatteringSpecies::tro_spectral(const Point&         point,
+                                                                   const SpectralPoint& spectral_point,
+                                                                   const Vector&        f_grid,
+                                                                   Index                degree) const {
   if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor = [&](const auto& spec) -> ScatteringTroSpectralVector {
@@ -81,8 +82,8 @@ ScatteringTroSpectralVector ArrayOfScatteringSpecies::tro_spectral(const Point& 
 
 template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>
-ArrayOfScatteringSpecies::aro_gridded(const Point&                              point,
-    const SpectralPoint& spectral_point,
+ArrayOfScatteringSpecies::aro_gridded(const Point&                                 point,
+                                      const SpectralPoint&                         spectral_point,
                                       const Vector&                                f_grid,
                                       const Vector&                                za_inc_grid,
                                       const Vector&                                delta_aa_grid,
@@ -91,7 +92,9 @@ ArrayOfScatteringSpecies::aro_gridded(const Point&                              
 
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded> {
-    if constexpr (requires { spec.aro_gridded(point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid); }) {
+    if constexpr (requires {
+                    spec.aro_gridded(point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
+                  }) {
       return spec.aro_gridded(point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid);
     } else {
       throw std::runtime_error(arts::format("Method not implemented for ARO Gridded for species:\n{:N}", spec));
@@ -109,22 +112,25 @@ ArrayOfScatteringSpecies::aro_gridded(const Point&                              
   return bsp;
 }
 
-template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
+template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint, typename Key>
+requires(std::same_as<Key, scattering::medium_key<Point>> or std::same_as<Key, scattering::spectral_medium_key<Point>>)
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>
-ArrayOfScatteringSpecies::aro_gridded_derivative(const Point&                              point,
-    const SpectralPoint& spectral_point,
+ArrayOfScatteringSpecies::aro_gridded_derivative(const Point&                                 point,
+                                                 const SpectralPoint&                         spectral_point,
                                                  const Vector&                                f_grid,
                                                  const Vector&                                za_inc_grid,
                                                  const Vector&                                delta_aa_grid,
                                                  std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
-                                                 const scattering::medium_key<Point>&                             target) const {
+                                                 const Key&                                   target) const {
   if (species.empty()) arts::user_error("Cannot differentiate an empty scattering-species array");
   const auto visitor =
       [&](const auto& spec) -> BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded> {
     if constexpr (requires {
-                    spec.aro_gridded_derivative(point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid, target);
+                    spec.aro_gridded_derivative(
+                        point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid, target);
                   }) {
-      return spec.aro_gridded_derivative(point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid, target);
+      return spec.aro_gridded_derivative(
+          point, spectral_point, f_grid, za_inc_grid, delta_aa_grid, za_scat_grid, target);
     } else {
       throw std::runtime_error(arts::format("ARO-gridded derivatives are not implemented for species:\n{:N}", spec));
     }
@@ -167,12 +173,12 @@ ArrayOfScatteringSpecies::aro_spectral(const Point&         point,
 
 template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
 BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>
-ArrayOfScatteringSpecies::aro_fourier(const Point& point,
-    const SpectralPoint& spectral_point,
-                                      const Vector&   f_grid,
-                                      const Vector&   za_inc_grid,
-                                      const Vector&   za_scat_grid,
-                                      Index           max_mode) const {
+ArrayOfScatteringSpecies::aro_fourier(const Point&         point,
+                                      const SpectralPoint& spectral_point,
+                                      const Vector&        f_grid,
+                                      const Vector&        za_inc_grid,
+                                      const Vector&        za_scat_grid,
+                                      Index                max_mode) const {
   if (species.size() == 0) return {.phase_matrix = std::nullopt, .extinction_matrix = {}, .absorption_vector = {}};
 
   const auto visitor =
@@ -195,38 +201,52 @@ ArrayOfScatteringSpecies::aro_fourier(const Point& point,
   return bsp;
 }
 
-#define ARTS_INSTANTIATE_ARRAY_OF_SCATTERING_SPECIES(Point, SpectralPoint)                                          \
-  template BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>                    \
-  ArrayOfScatteringSpecies::tro_gridded(                                                                             \
-      const Point&, const SpectralPoint&, const Vector&, std::shared_ptr<scattering::ZenithAngleGrid>) const;        \
-  template BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>                    \
-  ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&,                                                     \
-                                                   const SpectralPoint&,                                             \
-                                                   const Vector&,                                                    \
-                                                   std::shared_ptr<scattering::ZenithAngleGrid>,                     \
-                                                   const scattering::medium_key<Point>&) const;                      \
-  template ScatteringTroSpectralVector ArrayOfScatteringSpecies::tro_spectral(                                       \
-      const Point&, const SpectralPoint&, const Vector&, Index) const;                                               \
-  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>                    \
-  ArrayOfScatteringSpecies::aro_gridded(const Point&,                                                                \
-                                        const SpectralPoint&,                                                        \
-                                        const Vector&,                                                               \
-                                        const Vector&,                                                               \
-                                        const Vector&,                                                               \
-                                        std::shared_ptr<scattering::ZenithAngleGrid>) const;                         \
-  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>                    \
-  ArrayOfScatteringSpecies::aro_gridded_derivative(const Point&,                                                     \
-                                                   const SpectralPoint&,                                             \
-                                                   const Vector&,                                                    \
-                                                   const Vector&,                                                    \
-                                                   const Vector&,                                                    \
-                                                   std::shared_ptr<scattering::ZenithAngleGrid>,                     \
-                                                   const scattering::medium_key<Point>&) const;                      \
-  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>                   \
-  ArrayOfScatteringSpecies::aro_spectral(                                                                            \
-      const Point&, const SpectralPoint&, const Vector&, const Vector&, Index, Index) const;                          \
-  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>                    \
-  ArrayOfScatteringSpecies::aro_fourier(                                                                             \
+#define ARTS_INSTANTIATE_ARRAY_OF_SCATTERING_SPECIES(Point, SpectralPoint)                                    \
+  template BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::tro_gridded(                                                                      \
+      const Point&, const SpectralPoint&, const Vector&, std::shared_ptr<scattering::ZenithAngleGrid>) const; \
+  template BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&,                                              \
+                                                   const SpectralPoint&,                                      \
+                                                   const Vector&,                                             \
+                                                   std::shared_ptr<scattering::ZenithAngleGrid>,              \
+                                                   const scattering::medium_key<Point>&) const;               \
+  template BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::tro_gridded_derivative(const Point&,                                              \
+                                                   const SpectralPoint&,                                      \
+                                                   const Vector&,                                             \
+                                                   std::shared_ptr<scattering::ZenithAngleGrid>,              \
+                                                   const scattering::spectral_medium_key<Point>&) const;      \
+  template ScatteringTroSpectralVector ArrayOfScatteringSpecies::tro_spectral(                                \
+      const Point&, const SpectralPoint&, const Vector&, Index) const;                                        \
+  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::aro_gridded(const Point&,                                                         \
+                                        const SpectralPoint&,                                                 \
+                                        const Vector&,                                                        \
+                                        const Vector&,                                                        \
+                                        const Vector&,                                                        \
+                                        std::shared_ptr<scattering::ZenithAngleGrid>) const;                  \
+  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::aro_gridded_derivative(const Point&,                                              \
+                                                   const SpectralPoint&,                                      \
+                                                   const Vector&,                                             \
+                                                   const Vector&,                                             \
+                                                   const Vector&,                                             \
+                                                   std::shared_ptr<scattering::ZenithAngleGrid>,              \
+                                                   const scattering::medium_key<Point>&) const;               \
+  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>             \
+  ArrayOfScatteringSpecies::aro_gridded_derivative(const Point&,                                              \
+                                                   const SpectralPoint&,                                      \
+                                                   const Vector&,                                             \
+                                                   const Vector&,                                             \
+                                                   const Vector&,                                             \
+                                                   std::shared_ptr<scattering::ZenithAngleGrid>,              \
+                                                   const scattering::spectral_medium_key<Point>&) const;      \
+  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral>            \
+  ArrayOfScatteringSpecies::aro_spectral(                                                                     \
+      const Point&, const SpectralPoint&, const Vector&, const Vector&, Index, Index) const;                  \
+  template BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Fourier>             \
+  ArrayOfScatteringSpecies::aro_fourier(                                                                      \
       const Point&, const SpectralPoint&, const Vector&, const Vector&, const Vector&, Index) const;
 
 ARTS_INSTANTIATE_ARRAY_OF_SCATTERING_SPECIES(AtmPoint, AtmSpectralPoint)

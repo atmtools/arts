@@ -17,13 +17,13 @@ point = A.AtmPoint()
 point.pressure = 101325.0
 point.temperature = 288.15
 angles = A.IrregularZenithAngleGrid([0.0, 90.0, 180.0])
-bulk = gas.tro_gridded(point, [frequency], angles)
+bulk = gas.tro_gridded(point, A.AtmSpectralPoint(), [frequency], angles)
 
 point_twice_pressure = A.AtmPoint()
 point_twice_pressure.pressure = 2.0 * point.pressure
 point_twice_pressure.temperature = point.temperature
 bulk_twice_pressure = gas.tro_gridded(
-    point_twice_pressure, [frequency], angles
+    point_twice_pressure, A.AtmSpectralPoint(), [frequency], angles
 )
 assert np.allclose(
     np.asarray(bulk_twice_pressure.extinction_matrix),
@@ -36,7 +36,7 @@ with TemporaryDirectory() as directory:
     pyarts.xml.save(A.ArrayOfScatteringSpecies([gas]), str(filename))
     restored = pyarts.xml.load(str(filename))
     restored_bulk = restored.tro_gridded(
-        point, [frequency], angles
+        point, A.AtmSpectralPoint(), [frequency], angles
     )
     assert np.allclose(
         np.asarray(restored_bulk.extinction_matrix),

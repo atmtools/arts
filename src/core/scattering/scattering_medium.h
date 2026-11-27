@@ -23,16 +23,19 @@ concept medium_point = std::same_as<T, AtmPoint> or std::same_as<T, SubsurfacePo
 
 //! The spectral point of the medium of Point: AtmSpectralPoint for AtmPoint, SubsurfaceSpectralPoint for SubsurfacePoint
 template <typename T, typename Point>
-concept spectral_medium_point =
-    (std::same_as<Point, AtmPoint> and std::same_as<T, AtmSpectralPoint>) or
-    (std::same_as<Point, SubsurfacePoint> and std::same_as<T, SubsurfaceSpectralPoint>);
+concept spectral_medium_point = (std::same_as<Point, AtmPoint> and std::same_as<T, AtmSpectralPoint>) or
+                                (std::same_as<Point, SubsurfacePoint> and std::same_as<T, SubsurfaceSpectralPoint>);
 
 //! The key of a derivative target in the medium of Point
-template <medium_point Point>
-using medium_key = std::conditional_t<std::same_as<Point, AtmPoint>, AtmKeyVal, SubsurfaceKeyVal>;
+template <medium_point Point> using medium_key =
+    std::conditional_t<std::same_as<Point, AtmPoint>, AtmKeyVal, SubsurfaceKeyVal>;
 
 //! The scattering species properties of a point, by property
 using ScatteringSpeciesMap = AtmPoint::ScatteringSpeciesMap;
+
+//! The key of a spectral derivative target in the medium of Point, a property of its spectral field
+template <medium_point Point> using spectral_medium_key =
+    std::conditional_t<std::same_as<Point, AtmPoint>, AtmSpectralPropertyTag, SubsurfaceSpectralPropertyTag>;
 
 //! The point of any medium, as a callback takes it: whichever medium it is called in
 using MediumPoint = std::variant<AtmPoint, SubsurfacePoint>;

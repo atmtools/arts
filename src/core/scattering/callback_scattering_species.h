@@ -40,7 +40,9 @@ struct CallbackScatteringSpecies {
                                                          Index                degree) const {
     return std::visit(
         [&]<typename T>(const T& c) -> ScatteringTroSpectralVector {
-          if constexpr (requires { c.tro_spectral(MediumPoint{point}, SpectralMediumPoint{spectral_point}, f_grid, degree); }) {
+          if constexpr (requires {
+                          c.tro_spectral(MediumPoint{point}, SpectralMediumPoint{spectral_point}, f_grid, degree);
+                        }) {
             return c.tro_spectral(MediumPoint{point}, SpectralMediumPoint{spectral_point}, f_grid, degree);
           } else {
             not_given<T>("its TRO Legendre series");

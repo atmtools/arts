@@ -48,9 +48,11 @@ void check_settings(const ArrayOfSensor&            sensors,
   if (settings.pext_scaling < 0.0 or settings.pext_scaling > 2.0)
     arts::user_error("pext_scaling must be between 0 and 2; got {}", settings.pext_scaling);
   if (scattering_species.species.empty()) arts::user_error("Radar single scattering requires scattering species");
-  if (not jac_targets.surf.empty() or not jac_targets.subsurf.empty() or not jac_targets.line.empty() or
-      not jac_targets.sensor.empty() or not jac_targets.error.empty())
-    arts::user_error("The radar forward model currently supports atmospheric Jacobian targets only");
+  if (not jac_targets.surf.empty() or not jac_targets.surf_spectral.empty() or not jac_targets.subsurf.empty() or
+      not jac_targets.subsurf_spectral.empty() or not jac_targets.line.empty() or not jac_targets.sensor.empty() or
+      not jac_targets.error.empty())
+    arts::user_error(
+        "The radar forward model currently supports atmospheric and spectral atmospheric Jacobian targets only");
 }
 
 RadarRangeMode resolved_range_mode(const RadarRangeMode mode, const Matrix& limits) {
@@ -163,16 +165,15 @@ RadarResult radar_forward(const Workspace&                       ws,
       propmat     = spectral_propmat.K;
       propmat_jac = spectral_propmat.dK;
     };
-    const radar::Optics optics = radar::optics(
-        ray_path,
-        simulation.np,
-        atm_field,
-        atm_spectral_field,
-        frequency,
-        scattering_species,
-        jac_targets,
-        settings.pext_scaling,
-        gas);
+    const radar::Optics optics = radar::optics(ray_path,
+                                               simulation.np,
+                                               atm_field,
+                                               atm_spectral_field,
+                                               frequency,
+                                               scattering_species,
+                                               jac_targets,
+                                               settings.pext_scaling,
+                                               gas);
 
     StokvecMatrix  signal;
     StokvecTensor4 signal_jac;
@@ -259,6 +260,28 @@ RadarResult radar_forward(const Workspace&                       ws,
           const auto&   element_weights = instrument.elements[iy - simulation.start];
           const Numeric local           = ::sensor::sumup(element_weights, bin, iposlos);
           for (const auto& [index, weight] : state_weights) out.jacobian[iy, target.x_start + index] += weight * local;
+        }
+      }
+    }
+
+    // The derivative by a spectral target at a frequency maps to the state by the weights at that frequency
+    for (const auto& target : jac_targets.atm_spectral) {
+      const auto& field = atm_spectral_field[target.type];
+      for (Size jp = 0; jp < simulation.np; ++jp) {
+        const Vector3& pos = ray_path[jp].pos;
+        for (Size iv = 0; iv < nf; ++iv) {
+          field.flat_weight(state_weights, frequency[iv], pos[0], pos[1], pos[2]);
+          for (Size ig = 0; ig < ngate; ++ig) {
+            if (coverage[ig] == 0.0) continue;
+
+            const Size iy                 = simulation.gates[ig];
+            bin                           = 0.0;
+            bin[iv]                       = factor[iv] * signal_jac[ig, jp, target.target_pos, iv];
+            const auto&   element_weights = instrument.elements[iy - simulation.start];
+            const Numeric local           = ::sensor::sumup(element_weights, bin, iposlos);
+            for (const auto& [index, weight] : state_weights)
+              out.jacobian[iy, target.x_start + index] += weight * local;
+          }
         }
       }
     }
@@ -432,11 +455,11 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
                                           Vector&                         measurement_vec_fit,
                                           Matrix&                         measurement_jac,
                                           AtmField&                       atm_field,
+                                          AtmSpectralField&               atm_spectral_field,
                                           const Vector&                   measurement_vec,
                                           const ArrayOfSensor&            measurement_sensors,
                                           const Matrix&                   radar_range_limits,
                                           const JacobianTargets&          jac_targets,
-                                          const AtmSpectralField&         atm_spectral_field,
                                           const SurfaceField&             surf_field,
                                           const ArrayOfScatteringSpecies& scattering_species,
                                           const Agenda&                   ray_path_observer_agenda,
@@ -471,8 +494,9 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
   check_settings(measurement_sensors, radar_range_limits, jac_targets, scattering_species, settings);
   if (measurement_vec.size() != ny)
     arts::user_error("measurement_vec has {} elements but there are {} radar observations", measurement_vec.size(), ny);
-  if (nx == 0 or jac_targets.atm.empty())
-    arts::user_error("Radar onion peeling requires at least one finalized atmospheric Jacobian target");
+  if (nx == 0 or (jac_targets.atm.empty() and jac_targets.atm_spectral.empty()))
+    arts::user_error(
+        "Radar onion peeling requires at least one finalized atmospheric or spectral atmospheric Jacobian target");
   if (state_min > state_max) arts::user_error("state_min ({}) exceeds state_max ({})", state_min, state_max);
   if (max_step <= 0.0) arts::user_error("max_step must be positive, got {}", max_step);
   if (tolerance <= 0.0) arts::user_error("tolerance must be positive, got {}", tolerance);
@@ -485,6 +509,13 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
   model_state_vec.resize(nx);
   model_state_vec = 0.0;
   for (const auto& target : jac_targets.atm) target.update_state(model_state_vec, atm_field);
+  for (const auto& target : jac_targets.atm_spectral) target.update_state(model_state_vec, atm_spectral_field);
+
+  //! The fields of the model state
+  const auto update_model = [&]() {
+    for (const auto& target : jac_targets.atm) target.update_model(atm_field, model_state_vec);
+    for (const auto& target : jac_targets.atm_spectral) target.update_model(atm_spectral_field, model_state_vec);
+  };
 
   // The paths are traced for every update, since the path agenda may depend
   // on the atmosphere that is being peeled.
@@ -562,7 +593,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
       Numeric step             = residual / derivative;
       step                     = std::clamp(step, -max_step, max_step);
       model_state_vec[ix_best] = std::clamp(model_state_vec[ix_best] + step, state_min, state_max);
-      for (const auto& target : jac_targets.atm) target.update_model(atm_field, model_state_vec);
+      update_model();
       calculate();
     }
     if (not converged) {
@@ -602,7 +633,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
               "Radar onion peeling encountered a zero/non-finite derivative for gate {} and state {}", iy, ix);
         Numeric step        = std::clamp(residual / derivative, -max_step, max_step);
         model_state_vec[ix] = std::clamp(model_state_vec[ix] + step, state_min, state_max);
-        for (const auto& target : jac_targets.atm) target.update_model(atm_field, model_state_vec);
+        update_model();
         calculate();
       }
     }
@@ -613,7 +644,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
 
   // Ensure the returned field, fit, and Jacobian all represent precisely the
   // returned state, ready for a subsequent OEM calculation.
-  for (const auto& target : jac_targets.atm) target.update_model(atm_field, model_state_vec);
+  update_model();
   calculate();
 }
 ARTS_METHOD_ERROR_CATCH

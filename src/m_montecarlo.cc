@@ -53,10 +53,10 @@ PolarizedOptics polarized_optics(const Workspace&                ws,
     // observer agendas mirror their external LOS when constructing the path.
     const Numeric za = point.los[0];
     auto za_grid     = std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{za}));
-    const auto bulk  = scattering_species.aro_gridded(
-        atm, atm_spectral, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
-    particle_ext     = bulk.extinction_matrix[0, 0, 0].expand();
-    particle_abs     = bulk.absorption_vector[0, 0, 0].expand();
+    const auto bulk =
+        scattering_species.aro_gridded(atm, atm_spectral, freq_grid, Vector{za}, Vector{0.0}, std::move(za_grid));
+    particle_ext = bulk.extinction_matrix[0, 0, 0].expand();
+    particle_abs = bulk.absorption_vector[0, 0, 0].expand();
   }
 
   const Stokvec absorption = Stokvec{gas[0].A(), gas[0].B(), gas[0].C(), gas[0].D()} + particle_abs;
@@ -187,16 +187,16 @@ Collision next_collision(const Workspace&                ws,
       auto          point       = interpolate(path[i - 1], path[i], x);
       auto          atm_point   = atm_field.at(point.pos);
       auto          atm_spectral = spectral_at(point.pos);
-      auto          optics      = polarized_optics(ws,
-                                                   frequency,
-                                                   point,
-                                                   atm_point,
-                                                   atm_spectral,
-                                                   scattering_species,
-                                                   spectral_propmat_agenda,
-                                                   jac_targets,
-                                                   local_jac_target,
-                                                   local_jac_step);
+      auto          optics       = polarized_optics(ws,
+                                                    frequency,
+                                                    point,
+                                                    atm_point,
+                                                    atm_spectral,
+                                                    scattering_species,
+                                                    spectral_propmat_agenda,
+                                                    jac_targets,
+                                                    local_jac_target,
+                                                    local_jac_step);
       const Numeric ds          = x * distances[i - 1];
       const Numeric partial_tau = 0.5 * (previous.extinction.A() + optics.extinction.A()) * ds;
       const Muelmat partial     = rtepack::tran(previous.extinction, optics.extinction, ds)();
@@ -327,8 +327,9 @@ void MCGeneral(const Workspace&                ws,
       if (++order > mc_max_scatorder) break;
 
       const Vector2 new_los = isotropic_los(rng);
-      weight = weight * phase_weight(
-          scattering_species, collision.atm, collision.atm_spectral, frequency, los, new_los, scattering);
+      weight =
+          weight *
+          phase_weight(scattering_species, collision.atm, collision.atm_spectral, frequency, los, new_los, scattering);
       pos    = collision.point.pos;
       los    = new_los;
     }
@@ -447,14 +448,18 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   MCAntenna pencil;
   pencil.set_pencil_beam();
 
-  const auto run = [&](Stokvec&               out,
-                       const Numeric          frequency,
-                       const Index            seed,
-                       const AtmField&        atm,
-                       const SurfaceField&    surf,
-                       const SubsurfaceField& subsurf,
-                       const Index            local_target = -1,
-                       const Numeric          local_step   = 0.0) {
+  if (not jac_targets.surf_spectral.empty() or not jac_targets.subsurf_spectral.empty())
+    arts::user_error("Monte Carlo radiances use no spectral surface or subsurface field, so they cannot be targets");
+
+  const auto run = [&](Stokvec&                out,
+                       const Numeric           frequency,
+                       const Index             seed,
+                       const AtmField&         atm,
+                       const AtmSpectralField& atm_spectral,
+                       const SurfaceField&     surf,
+                       const SubsurfaceField&  subsurf,
+                       const Index             local_target = -1,
+                       const Numeric           local_step   = 0.0) {
     Stokvec error;
     Index   iterations;
     MCGeneral(ws,
@@ -462,7 +467,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
               error,
               iterations,
               atm,
-              atm_spectral_field,
+              atm_spectral,
               surf,
               subsurf,
               scat_species,
@@ -486,7 +491,13 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   };
 
   for (Size i = 0; i < freq_grid.size(); ++i) {
-    run(spectral_rad[i], freq_grid[i], mc_seed + static_cast<Index>(i), atm_field, surf_field, subsurf_field);
+    run(spectral_rad[i],
+        freq_grid[i],
+        mc_seed + static_cast<Index>(i),
+        atm_field,
+        atm_spectral_field,
+        surf_field,
+        subsurf_field);
   }
 
   const auto finite_difference = [&]<typename Target, typename Field>(const Target& target, const Field& field) {
@@ -504,12 +515,15 @@ void spectral_radMonteCarlo(const Workspace&                ws,
 
       for (Size i = 0; i < freq_grid.size(); ++i) {
         Stokvec value;
+        const Index seed = mc_seed + static_cast<Index>(i);
         if constexpr (std::same_as<Field, AtmField>) {
-          run(value, freq_grid[i], mc_seed + static_cast<Index>(i), perturbed, surf_field, subsurf_field);
+          run(value, freq_grid[i], seed, perturbed, atm_spectral_field, surf_field, subsurf_field);
+        } else if constexpr (std::same_as<Field, AtmSpectralField>) {
+          run(value, freq_grid[i], seed, atm_field, perturbed, surf_field, subsurf_field);
         } else if constexpr (std::same_as<Field, SurfaceField>) {
-          run(value, freq_grid[i], mc_seed + static_cast<Index>(i), atm_field, perturbed, subsurf_field);
+          run(value, freq_grid[i], seed, atm_field, atm_spectral_field, perturbed, subsurf_field);
         } else {
-          run(value, freq_grid[i], mc_seed + static_cast<Index>(i), atm_field, surf_field, perturbed);
+          run(value, freq_grid[i], seed, atm_field, atm_spectral_field, surf_field, perturbed);
         }
         spectral_rad_jac[target.x_start + j, i] = (value - spectral_rad[i]) / target.d;
       }
@@ -517,6 +531,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   };
 
   for (const auto& target : jac_targets.atm) finite_difference(target, atm_field);
+  for (const auto& target : jac_targets.atm_spectral) finite_difference(target, atm_spectral_field);
   for (const auto& target : jac_targets.surf) finite_difference(target, surf_field);
   for (const auto& target : jac_targets.subsurf) finite_difference(target, subsurf_field);
 
@@ -533,6 +548,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
           freq_grid[i],
           mc_seed + static_cast<Index>(i),
           atm_field,
+          atm_spectral_field,
           surf_field,
           subsurf_field,
           static_cast<Index>(target.target_pos),

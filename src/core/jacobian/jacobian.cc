@@ -29,7 +29,7 @@ Size Targets::x_size() const {
   Size n = 0;
   for_each_list([&n](const auto& targets) {
     for (auto& t : targets) {
-      if (not t.overlap) n += t.x_size;
+      if (not is_overlap(t)) n += t.x_size;
     }
   });
   return n;
@@ -69,8 +69,11 @@ void Targets::throwing_check(Size xsize) const {
   };
 
   check(atm, "atmospheric");
+  check(atm_spectral, "spectral atmospheric");
   check(surf, "surface");
+  check(surf_spectral, "spectral surface");
   check(subsurf, "subsurface");
+  check(subsurf_spectral, "spectral subsurface");
   check(line, "line");
   check(sensor, "sensor");
   check(error, "error");
@@ -86,6 +89,18 @@ std::vector<SurfaceTarget>::const_iterator Targets::find(const SurfaceKeyVal& t)
 
 std::vector<SubsurfaceTarget>::const_iterator Targets::find(const SubsurfaceKeyVal& t) const {
   return stdr::find_if(subsurf, [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<AtmSpectralTarget>::const_iterator Targets::find(const AtmSpectralPropertyTag& t) const {
+  return stdr::find_if(atm_spectral, [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<SurfaceSpectralTarget>::const_iterator Targets::find(const SurfaceSpectralPropertyTag& t) const {
+  return stdr::find_if(surf_spectral, [&t](const auto& target) { return target.type == t; });
+}
+
+std::vector<SubsurfaceSpectralTarget>::const_iterator Targets::find(const SubsurfaceSpectralPropertyTag& t) const {
+  return stdr::find_if(subsurf_spectral, [&t](const auto& target) { return target.type == t; });
 }
 
 std::vector<LineTarget>::const_iterator Targets::find(const LblLineKey& t) const {
@@ -115,6 +130,21 @@ Index Targets::target_position(const SubsurfaceKeyVal& t) const {
   return it != subsurf.end() ? it->target_pos : -1;
 }
 
+Index Targets::target_position(const AtmSpectralPropertyTag& t) const {
+  const auto it = find(t);
+  return it != atm_spectral.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const SurfaceSpectralPropertyTag& t) const {
+  const auto it = find(t);
+  return it != surf_spectral.end() ? it->target_pos : -1;
+}
+
+Index Targets::target_position(const SubsurfaceSpectralPropertyTag& t) const {
+  const auto it = find(t);
+  return it != subsurf_spectral.end() ? it->target_pos : -1;
+}
+
 Index Targets::target_position(const LblLineKey& t) const {
   const auto it = find(t);
   return it != line.end() ? it->target_pos : -1;
@@ -134,8 +164,11 @@ bool TargetType::operator==(const TargetType&) const = default;
 
 std::string TargetType::type() const {
   return apply([](auto&) { return "AtmKeyVal"s; },
+               [](auto&) { return "AtmSpectralPropertyTag"s; },
                [](auto&) { return "SurfaceKeyVal"s; },
+               [](auto&) { return "SurfaceSpectralPropertyTag"s; },
                [](auto&) { return "SubsurfaceKeyVal"s; },
+               [](auto&) { return "SubsurfaceSpectralPropertyTag"s; },
                [](auto&) { return "LblLineKey"s; },
                [](auto&) { return "SensorKey"s; },
                [](auto&) { return "ErrorKey"s; });
@@ -146,6 +179,9 @@ std::string TargetType::type() const {
 ////////////////////////////////////////////////////////////////////////
 
 namespace {
+//! The transformation of a target that has none, which is empty
+template <typename Field> using no_transformation = std::function<Vector(ConstVectorView, const Field&)>;
+
 template <typename Func, typename Key, typename Field>
 void update_x(VectorView x, ConstVectorView y, Func&& transform_state, const Key& type, const Field& field) {
   if (transform_state) {
@@ -287,6 +323,15 @@ void SubsurfaceTarget::update_model(SubsurfaceField& subsurf, ConstVectorView x)
   update_field(subsurf[type].flat_view(), x[Range(x_start, x_size)], inverse_state, type, subsurf);
 }
 
+template <typename Tag, typename Field>
+void SpectralTarget<Tag, Field>::update_model(Field& field, ConstVectorView x) const {
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
+
+  if (not field.contains(type)) arts::user_error("The spectral field does not contain {}", type);
+
+  update_field(field[type].flat_view(), x[Range(x_start, x_size)], no_transformation<Field>{}, type, field);
+}
+
 void LineTarget::update_model(AbsorptionBands& bands, ConstVectorView x) const {
   if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
 
@@ -393,6 +438,19 @@ void SubsurfaceTarget::update_state(VectorView x, const SubsurfaceField& subsurf
 
   update_x(x[Range(x_start, x_size)], subsurf[type].flat_view(), transform_state, type, subsurf);
 }
+
+template <typename Tag, typename Field>
+void SpectralTarget<Tag, Field>::update_state(VectorView x, const Field& field) const {
+  if (x.size() < (x_start + x_size)) arts::user_error("Model state vector is too small.");
+
+  if (not field.contains(type)) arts::user_error("The spectral field does not contain {}", type);
+
+  update_x(x[Range(x_start, x_size)], field[type].flat_view(), no_transformation<Field>{}, type, field);
+}
+
+template struct SpectralTarget<AtmSpectralPropertyTag, AtmSpectralField>;
+template struct SpectralTarget<SurfaceSpectralPropertyTag, SurfaceSpectralField>;
+template struct SpectralTarget<SubsurfaceSpectralPropertyTag, SubsurfaceSpectralField>;
 
 void LineTarget::update_state(VectorView x, const AbsorptionBands& bands) const {
   if (overlap) return;
@@ -508,11 +566,14 @@ void SensorTarget::update_jac(MatrixView dy, ConstVectorView x, const ArrayOfSen
   }
 }
 
-void Targets::finalize(const AtmField&        atm_field,
-                       const SurfaceField&    surf_field,
-                       const SubsurfaceField& subsurf_field,
-                       const AbsorptionBands& abs_bands,
-                       const ArrayOfSensor&   measurement_sensors) {
+void Targets::finalize(const AtmField&                atm_field,
+                       const AtmSpectralField&        atm_spectral_field,
+                       const SurfaceField&            surf_field,
+                       const SurfaceSpectralField&    surf_spectral_field,
+                       const SubsurfaceField&         subsurf_field,
+                       const SubsurfaceSpectralField& subsurf_spectral_field,
+                       const AbsorptionBands&         abs_bands,
+                       const ArrayOfSensor&           measurement_sensors) {
   for_each_list([](const auto& targets) {
     for (auto& t : targets) {
       if (overlaps(targets, t) and has_transformation(t))
@@ -569,13 +630,18 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
     for (Size i = 0; i < targets.size(); i++) {
       auto& t = targets[i];
 
-      if (t.overlap) {
-        const auto f = stdr::find(targets, t.overlap_key, &std::remove_cvref_t<decltype(t)>::type);
-        if (static_cast<Index>(i) <= stdr::distance(targets.begin(), f))
-          arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
-        t.x_start = f->x_start;
-        t.x_size  = f->x_size;
-      } else {
+      if constexpr (requires { t.overlap_key; }) {
+        if (t.overlap) {
+          const auto f = stdr::find(targets, t.overlap_key, &std::remove_cvref_t<decltype(t)>::type);
+          if (static_cast<Index>(i) <= stdr::distance(targets.begin(), f))
+            arts::user_error("Overlap target {} not found prior in targets.", t.overlap_key);
+          t.x_start = f->x_start;
+          t.x_size  = f->x_size;
+          continue;
+        }
+      }
+
+      {
         t.x_start  = last_size;
         t.x_size   = field_size(t);
         last_size += t.x_size;
@@ -584,8 +650,13 @@ atm_fieldAbsoluteMagneticField or atm_fieldAbsoluteWindField first.
   };
 
   position(atm, [&](const AtmTarget& t) { return atm_field[t.type].flat_view().size(); });
+  position(atm_spectral, [&](const AtmSpectralTarget& t) { return atm_spectral_field[t.type].flat_view().size(); });
   position(surf, [&](const SurfaceTarget& t) { return surf_field[t.type].flat_view().size(); });
+  position(surf_spectral,
+           [&](const SurfaceSpectralTarget& t) { return surf_spectral_field[t.type].flat_view().size(); });
   position(subsurf, [&](const SubsurfaceTarget& t) { return subsurf_field[t.type].flat_view().size(); });
+  position(subsurf_spectral,
+           [&](const SubsurfaceSpectralTarget& t) { return subsurf_spectral_field[t.type].flat_view().size(); });
   position(line, [](const LineTarget&) -> Size { return 1; });
 
   //! Sensor and error targets get their sizes from their polynomial models
@@ -626,6 +697,24 @@ SubsurfaceTarget& Targets::emplace_back(SubsurfaceKeyVal&& t, Numeric d) {
   const auto n = target_count();
   finalized    = false;
   return subsurf.emplace_back(std::move(t), d, n);
+}
+
+AtmSpectralTarget& Targets::emplace_back(const AtmSpectralPropertyTag& t, Numeric d) {
+  const auto n = target_count();
+  finalized    = false;
+  return atm_spectral.emplace_back(t, d, n);
+}
+
+SurfaceSpectralTarget& Targets::emplace_back(const SurfaceSpectralPropertyTag& t, Numeric d) {
+  const auto n = target_count();
+  finalized    = false;
+  return surf_spectral.emplace_back(t, d, n);
+}
+
+SubsurfaceSpectralTarget& Targets::emplace_back(const SubsurfaceSpectralPropertyTag& t, Numeric d) {
+  const auto n = target_count();
+  finalized    = false;
+  return subsurf_spectral.emplace_back(t, d, n);
 }
 
 LineTarget& Targets::emplace_back(LblLineKey&& t, Numeric d) {
@@ -680,8 +769,11 @@ void xml_io_stream<JacobianTargets>::write(std::ostream&          os,
   tag.write_to_stream(os);
 
   xml_write_to_stream(os, x.atm, pbofs, "atm");
+  xml_write_to_stream(os, x.atm_spectral, pbofs, "atm_spectral");
   xml_write_to_stream(os, x.surf, pbofs, "surf");
+  xml_write_to_stream(os, x.surf_spectral, pbofs, "surf_spectral");
   xml_write_to_stream(os, x.subsurf, pbofs, "subsurf");
+  xml_write_to_stream(os, x.subsurf_spectral, pbofs, "subsurf_spectral");
   xml_write_to_stream(os, x.line, pbofs, "line");
   xml_write_to_stream(os, x.sensor, pbofs, "sensor");
   xml_write_to_stream(os, x.error, pbofs, "error");
@@ -700,8 +792,11 @@ void xml_io_stream<JacobianTargets>::read(std::istream& is, JacobianTargets& x, 
   x.finalized = fin != 0;
 
   xml_read_from_stream(is, x.atm, pbifs);
+  xml_read_from_stream(is, x.atm_spectral, pbifs);
   xml_read_from_stream(is, x.surf, pbifs);
+  xml_read_from_stream(is, x.surf_spectral, pbifs);
   xml_read_from_stream(is, x.subsurf, pbifs);
+  xml_read_from_stream(is, x.subsurf_spectral, pbifs);
   xml_read_from_stream(is, x.line, pbifs);
   xml_read_from_stream(is, x.sensor, pbifs);
   xml_read_from_stream(is, x.error, pbifs);

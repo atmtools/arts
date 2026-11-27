@@ -318,15 +318,6 @@ made for.  The point does not hold that grid.
 )--",
   };
 
-  wsg_data["AtmSpectralPropertyTag"] = {
-      .file = "atm.h",
-      .desc = R"--(A custom property tag for spectral atmospheric fields data.
-
-These tags are the keys of an *AtmSpectralField*.  They are free-form.
-Please see individual atmospheric models/methods for keys that are relevant to run them.
-)--",
-  };
-
   wsg_data["AtmSpectralData"] = {
       .file = "atm.h",
       .desc = R"(A data structure for spectral atmospheric field information.
@@ -348,27 +339,6 @@ made for.  The point does not hold that grid.
 )--",
   };
 
-  wsg_data["SurfaceSpectralField"] = {
-      .file = "surf.h",
-      .desc =
-          R"--(A spectral surface field.
-
-It holds parameters of the surface for the methods that use them, as
-functions of frequency and position.  It is a map of *SurfaceSpectralPropertyTag*
-to *SurfaceSpectralData*.  See each method for the properties it needs.
-)--",
-  };
-
-  wsg_data["SurfaceSpectralPropertyTag"] = {
-      .file = "surf.h",
-      .desc = R"--(A custom property tag for spectral surface fields data.
-
-These tags are the keys of a *SurfaceSpectralField*.  They are a type of
-their own, distinct from *SurfacePropertyTag*, but equally free-form.
-Please see individual surface models/methods for keys that are relevant to run them.
-)--",
-  };
-
   wsg_data["SurfaceSpectralData"] = {
       .file = "surf.h",
       .desc = R"(A data structure for spectral surface field information.
@@ -387,28 +357,6 @@ This includes:
 
 Each parameter is a *Vector* of its values on the frequency grid the point was
 made for.  The point does not hold that grid.
-)--",
-  };
-
-  wsg_data["SubsurfaceSpectralField"] = {
-      .file = "subsurf.h",
-      .desc =
-          R"--(A spectral sub-surface field.
-
-It holds parameters of the subsurface for the methods that use them, as
-functions of frequency and position.  The vertical position is the altitude
-relative to the local surface, as for *SubsurfaceField*.  It is a map of *SubsurfaceSpectralPropertyTag*
-to *SubsurfaceSpectralData*.  See each method for the properties it needs.
-)--",
-  };
-
-  wsg_data["SubsurfaceSpectralPropertyTag"] = {
-      .file = "subsurf.h",
-      .desc = R"--(A custom property tag for spectral subsurface fields data.
-
-These tags are the keys of a *SubsurfaceSpectralField*.  They are a type of
-their own, distinct from *SubsurfacePropertyTag*, but equally free-form.
-Please see individual subsurface models/methods for keys that are relevant to run them.
 )--",
   };
 

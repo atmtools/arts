@@ -92,9 +92,10 @@ void py_operators(py::module_& m) {
   defaults_to_python(nqop, "w"_a, "x"_a, "y"_a, "z"_a);
 
   py::class_<ScatteringGeneralSpectralTROFunc> sgstro(m, "ScatteringGeneralSpectralTROFunc");
-  defaults_to_python(sgstro, "point"_a, "f_grid"_a, "degree"_a);
+  defaults_to_python(sgstro, "point"_a, "spectral_point"_a, "f_grid"_a, "degree"_a);
   sgstro.doc() =
-      "A callback to get the bulk Legendre series of a species at a point, an AtmPoint or a SubsurfacePoint.";
+      "A callback to get the bulk Legendre series of a species at a point, an AtmPoint or a SubsurfacePoint, and "
+      "its spectral point, an AtmSpectralPoint or a SubsurfaceSpectralPoint.";
 
   // Indirect operators
   py::class_<SpectralRadianceTransformOperator> srtop(m, "SpectralRadianceTransformOperator");

@@ -12,7 +12,7 @@ bool test_binned_psd() {
   auto point = AtmPoint{1e4, 300};
 
   Vector sizes   = {0.05, 0.3, 0.75, 1.1};
-  Vector pnd     = psd.evaluate(point, sizes, 1.0, 1.0);
+  Vector pnd     = psd.evaluate(point.temperature, point.ssprops, sizes, 1.0, 1.0);
   Vector pnd_ref = {0.0, 1.0, 2.0, 0.0};
 
   auto err = max_error(pnd, pnd_ref);

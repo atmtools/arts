@@ -56,6 +56,8 @@ struct fourier_optics {
 
 /** The phase-matrix Fourier coefficients of scattering species at one atmospheric point.
  *
+ * atm_spectral_point is the spectral point of the atmosphere there, at frequency.
+ *
  * mu_out, mu_in: signed direction cosines (> 0 upward), each in [-1, 0) or
  *   (0, 1], e.g. VDISORT's streams (upward first) and, for the direct beam,
  *   mu_in = {-mu0}.
@@ -89,6 +91,7 @@ struct fourier_optics {
  */
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  const Vector&                   mu_out,
                                  const Vector&                   mu_in,
@@ -157,7 +160,8 @@ struct path_settings {
  * is the mean of the A elements of the unpolarized gas propagation matrix
  * (spectral_propmat_path, per metre, without particles) at its two levels,
  * and polarized gas propagation matrices are rejected; the frequency is
- * freq_grid[freq_index].
+ * freq_grid[freq_index].  The spectral points are atm_spectral_field at the
+ * positions of ray_path.
  *
  * The particle optics of a layer are the mean of its two levels'
  * scattering_optics() on VDISORT's streams: mean extinction, mean
@@ -177,6 +181,7 @@ struct path_settings {
  */
 main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
                               const ArrayOfAtmPoint&             atm_path,
+                              const AtmSpectralField&            atm_spectral_field,
                               const ArrayOfPropmatVector&        spectral_propmat_path,
                               const AscendingGrid&               freq_grid,
                               Index                              freq_index,

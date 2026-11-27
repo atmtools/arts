@@ -43,7 +43,7 @@ Target: {}
                        target.type);
   }
 
-  if (not target.overlap) {
+  if (not Jacobian::is_overlap(target)) {
     covmat.add_correlation({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, matrix});
     if (inverse.not_null())
       covmat.add_correlation_inverse({colrow, colrow, IndexPair{target.target_pos, target.target_pos}, inverse});
@@ -185,6 +185,54 @@ void model_state_covmatAdd(CovarianceMatrix&      model_state_covmat,
 
   if (not found) arts::user_error("No target found for sensor target : {}", new_target);
 }
+
+void model_state_covmatAdd(CovarianceMatrix&             model_state_covmat,
+                           const JacobianTargets&        jac_targets,
+                           const AtmSpectralPropertyTag& new_target,
+                           const BlockMatrix&            matrix,
+                           const BlockMatrix&            inverse) {
+  ARTS_TIME_REPORT
+
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
+
+  const auto target = jac_targets.find(new_target);
+  if (target == jac_targets.atm_spectral.end())
+    arts::user_error("No target found for spectral target : {}", new_target);
+
+  add_diagonal_covmat(model_state_covmat, *target, matrix, inverse);
+}
+
+void model_state_covmatAdd(CovarianceMatrix&                 model_state_covmat,
+                           const JacobianTargets&            jac_targets,
+                           const SurfaceSpectralPropertyTag& new_target,
+                           const BlockMatrix&                matrix,
+                           const BlockMatrix&                inverse) {
+  ARTS_TIME_REPORT
+
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
+
+  const auto target = jac_targets.find(new_target);
+  if (target == jac_targets.surf_spectral.end())
+    arts::user_error("No target found for spectral target : {}", new_target);
+
+  add_diagonal_covmat(model_state_covmat, *target, matrix, inverse);
+}
+
+void model_state_covmatAdd(CovarianceMatrix&                    model_state_covmat,
+                           const JacobianTargets&               jac_targets,
+                           const SubsurfaceSpectralPropertyTag& new_target,
+                           const BlockMatrix&                   matrix,
+                           const BlockMatrix&                   inverse) {
+  ARTS_TIME_REPORT
+
+  if (not jac_targets.is_finalized()) arts::user_error("Jacobian targets not finalized.");
+
+  const auto target = jac_targets.find(new_target);
+  if (target == jac_targets.subsurf_spectral.end())
+    arts::user_error("No target found for spectral target : {}", new_target);
+
+  add_diagonal_covmat(model_state_covmat, *target, matrix, inverse);
+}
 }  // namespace
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -221,20 +269,31 @@ void oemMeasurementCovmatConstant(OptimalEstimationData& data, const Numeric& va
 // Retrieval code.  This wraps Jacobian and Covmat code.
 ////////////////////////////////////////////////////////////////////////////////
 
-void oemFinalizeDiagonal(OptimalEstimationData& oem,
-                         JacobianTargets&       jac_targets,
-                         const AtmField&        atm_field,
-                         const SurfaceField&    surf_field,
-                         const SubsurfaceField& subsurf_field,
-                         const AbsorptionBands& abs_bands,
-                         const ArrayOfSensor&   measurement_sensors) {
+void oemFinalizeDiagonal(OptimalEstimationData&         oem,
+                         JacobianTargets&               jac_targets,
+                         const AtmField&                atm_field,
+                         const AtmSpectralField&        atm_spectral_field,
+                         const SurfaceField&            surf_field,
+                         const SurfaceSpectralField&    surf_spectral_field,
+                         const SubsurfaceField&         subsurf_field,
+                         const SubsurfaceSpectralField& subsurf_spectral_field,
+                         const AbsorptionBands&         abs_bands,
+                         const ArrayOfSensor&           measurement_sensors) {
   ARTS_TIME_REPORT
   oem.uncheck();
   CovarianceMatrix model_state_covmat;
   if (oem.covmat_diagonal_blocks.empty())
     arts::user_error("No pending covariance blocks; add targets before finalizing.");
 
-  jac_targetsFinalize(jac_targets, atm_field, surf_field, subsurf_field, abs_bands, measurement_sensors);
+  jac_targetsFinalize(jac_targets,
+                      atm_field,
+                      atm_spectral_field,
+                      surf_field,
+                      surf_spectral_field,
+                      subsurf_field,
+                      subsurf_spectral_field,
+                      abs_bands,
+                      measurement_sensors);
 
   for (auto& key_data : oem.covmat_diagonal_blocks) {
     std::visit(

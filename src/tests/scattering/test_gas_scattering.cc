@@ -22,7 +22,7 @@ bool test_constant_isotropic() {
 
   const scattering::GasScatterer gas{scattering::ConstantGasScattering{cross_section},
                                      scattering::IsotropicGasScattering{}};
-  auto                           bulk = gas.tro_gridded(point, frequencies, std::move(angles));
+  auto                           bulk = gas.tro_gridded(point, AtmSpectralPoint{}, frequencies, std::move(angles));
 
   if (not close(bulk.extinction_matrix[0, 0].A(), expected)) return false;
   if (bulk.absorption_vector[0, 0].I() != 0.0) return false;
@@ -44,7 +44,7 @@ bool test_air_simple_rayleigh() {
       std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(Vector{0.0, 90.0, 180.0}));
 
   const scattering::GasScatterer gas{scattering::AirSimpleGasScattering{}, scattering::RayleighGasScattering{0.0}};
-  auto                           bulk = gas.tro_gridded(point, frequencies, std::move(angles));
+  auto                           bulk = gas.tro_gridded(point, AtmSpectralPoint{}, frequencies, std::move(angles));
 
   const Numeric wavelength_um     = Conversion::freq2wavelen(frequencies[0]) * 1e6;
   const Numeric inv_wavelength_sq = 1.0 / Math::pow2(wavelength_um);
@@ -63,7 +63,7 @@ bool test_air_simple_rayleigh() {
 
   // The species must also provide the spectral TRO representation consumed by
   // the scattering-species agenda and DISORT.
-  const auto spectral = gas.tro_spectral(point, frequencies, 2);
+  const auto spectral = gas.tro_spectral(point, AtmSpectralPoint{}, frequencies, 2);
   if (not close(spectral.extinction_matrix[0].A(), expected)) return false;
   if (spectral.absorption_vector[0].I() != 0.0) return false;
   if (not spectral.phase_matrix or spectral.phase_matrix->ncols() != 3) return false;
@@ -89,8 +89,8 @@ bool test_rayleigh_sht_to_fourier() {
   const Index    M = 3;
 
   const scattering::GasScatterer gas{scattering::ConstantGasScattering{1e-30}, scattering::RayleighGasScattering{0.0}};
-  const auto                     sht   = gas.aro_spectral(point, frequencies, za_inc, 8, 8);
-  const auto                     exact = gas.aro_fourier(point, frequencies, za_inc, za_scat, M);
+  const auto                     sht   = gas.aro_spectral(point, AtmSpectralPoint{}, frequencies, za_inc, 8, 8);
+  const auto                     exact = gas.aro_fourier(point, AtmSpectralPoint{}, frequencies, za_inc, za_scat, M);
   const auto                     modes = sht.phase_matrix->to_fourier(
       std::make_shared<scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)), M);
 

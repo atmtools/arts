@@ -1199,16 +1199,27 @@ void oemSetApriori(OptimalEstimationData& data, Vector& model_state_vec) {
 
 void oemRestoreApriori(AbsorptionBands&             abs_bands,
                        SurfaceField&                surf_field,
+                       SurfaceSpectralField&        surf_spectral_field,
                        SubsurfaceField&             subsurf_field,
+                       SubsurfaceSpectralField&     subsurf_spectral_field,
                        AtmField&                    atm_field,
+                       AtmSpectralField&            atm_spectral_field,
                        ArrayOfSensor&               measurement_sensors,
                        const OptimalEstimationData& data,
                        const JacobianTargets&       jac_targets) {
   if (not jac_targets.is_finalized() or data.model_state_vec_apriori.empty() or
       data.model_state_vec_apriori.size() != jac_targets.x_size())
     arts::user_error("Restoring the prior requires initialized OEM data and matching finalized targets.");
-  UpdateModelStates(
-      abs_bands, surf_field, subsurf_field, atm_field, measurement_sensors, jac_targets, data.model_state_vec_apriori);
+  UpdateModelStates(abs_bands,
+                    surf_field,
+                    surf_spectral_field,
+                    subsurf_field,
+                    subsurf_spectral_field,
+                    atm_field,
+                    atm_spectral_field,
+                    measurement_sensors,
+                    jac_targets,
+                    data.model_state_vec_apriori);
 }
 
 void oemMeasurementCovmatNormalization(OptimalEstimationData& data) {

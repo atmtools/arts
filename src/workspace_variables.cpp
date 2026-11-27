@@ -671,6 +671,31 @@ For more information, see :doc:`user.surf_field`.
       .type = "SurfaceField",
   };
 
+  wsv_data["surf_spectral_field"] = {
+      .desc          = R"--(The spectral surface field.
+
+It holds the parameters of the surface that depend on frequency, for the
+methods that use them.
+
+See *SurfaceSpectralField*.
+)--",
+      .type          = "SurfaceSpectralField",
+      .default_value = "SurfaceSpectralField()",
+  };
+
+  wsv_data["subsurf_spectral_field"] = {
+      .desc          = R"--(The spectral sub-surface field.
+
+It holds the parameters of the subsurface that depend on frequency, for the
+methods that use them.  Its vertical position is the altitude relative to the
+local surface, as for *subsurf_field*.
+
+See *SubsurfaceSpectralField*.
+)--",
+      .type          = "SubsurfaceSpectralField",
+      .default_value = "SubsurfaceSpectralField()",
+  };
+
   wsv_data["tessem_neth"] = {
       .desc = R"--(TESSEM neural network for horizontal-polarization emissivity.)--",
       .type = "TessemNN",

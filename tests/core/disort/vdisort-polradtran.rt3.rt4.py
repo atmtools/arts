@@ -37,8 +37,6 @@ MAX_DELTA_TAU = 1e-7
 NATIVE_ANGLES = 4000  # the Mie habit's scattering-angle grid
 MIE_DEGREE = 64  # the degree of the Mie habit's Legendre series
 
-hg_ext = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.Extinction)
-hg_ssa = A.ScatteringSpeciesProperty("hg", A.ParticulateProperty.SingleScatteringAlbedo)
 drops = A.ScatteringSpeciesProperty("drops", A.ParticulateProperty.NumberDensity)
 
 
@@ -53,7 +51,7 @@ def isotropic():
 def henyey_greenstein():
     # RT3 keeps Legendre degrees up to 2 nmu - 3 = 13 (rt3.max_legendre_degree); with g = 0.2 the
     # terms it drops of p and p cos(Theta) are below 1e-8 of p, so all solvers see the same matrix
-    return A.HenyeyGreensteinScatterer(hg_ext, hg_ssa, 0.2)
+    return A.HenyeyGreensteinScatterer("extinction", "ssa", "g")
 
 
 def mie_drops():
@@ -73,7 +71,11 @@ def mie_drops():
 
 
 def path(species):
-    """Six levels from 6 km down, an exponential atmosphere and gas absorption, and the species."""
+    """Six levels from 6 km down, an exponential atmosphere, its spectral field and gas absorption, and the species."""
+    spectral = A.AtmSpectralField()
+    spectral["extinction"] = lambda f, z, lat, lon: 2e-4 * np.exp(-(((z - 3000.0) / 1000.0) ** 2))
+    spectral["ssa"] = 0.9
+    spectral["g"] = 0.2
     ray_path = A.ArrayOfPropagationPathPoint()
     atm_path = A.ArrayOfAtmPoint()
     propmat = A.ArrayOfPropmatVector()
@@ -85,12 +87,10 @@ def path(species):
         atm = A.AtmPoint()
         atm.pressure = 1e5 * np.exp(-z / 8000.0)
         atm.temperature = 290.0 - 0.01 * z
-        atm[hg_ext] = 2e-4 * np.exp(-(((z - 3000.0) / 1000.0) ** 2))
-        atm[hg_ssa] = 0.9
         atm[drops] = 30.0 * np.exp(-(((z - 2500.0) / 1500.0) ** 2))
         atm_path.append(atm)
         propmat.append(A.PropmatVector(np.array([[5e-5 * np.exp(-z / 2000.0), 0, 0, 0, 0, 0, 0]])))
-    return ray_path, atm_path, propmat, A.ArrayOfScatteringSpecies(species)
+    return ray_path, atm_path, spectral, propmat, A.ArrayOfScatteringSpecies(species)
 
 
 def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
@@ -99,7 +99,7 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
     Returns the solutions by solver, their [level, azimuth, stream, stokes]
     radiances by solver, and mu0.
     """
-    ray_path, atm_path, propmat, species = path(species)
+    ray_path, atm_path, spectral, propmat, species = path(species)
     freq_grid = A.AscendingGrid([FREQUENCY])
     kind, value = surface
     surf = {
@@ -109,7 +109,7 @@ def solve(species, surface, nstokes, beam=None, phi=(0.0,)):
     flux, mu0 = beam if beam else (0.0, 1.0)
     aziorder = 7 if beam else 0
     phi_rad = np.radians(phi)
-    args = (ray_path, atm_path, propmat, freq_grid, 0, species)
+    args = (ray_path, atm_path, spectral, propmat, freq_grid, 0, species)
 
     v = A.vdisort.main_data_from_path(
         *args,

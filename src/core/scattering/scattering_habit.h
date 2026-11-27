@@ -134,6 +134,18 @@ class ScatteringHabit {
                                   std::move(za_scat_grid));
   }
 
+  //! The habit reads no spectral property, so its derivative by one is zero
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    return tro_gridded_derivative(
+        point.temperature, scattering_species_properties(point), 0.0, {}, f_grid, std::move(za_scat_grid));
+  }
+
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] ScatteringTroSpectralVector tro_spectral(const Point& point,
                                                          const SpectralPoint&,
@@ -143,13 +155,12 @@ class ScatteringHabit {
   }
 
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(
-      const Point& point,
-      const SpectralPoint&,
-      const Vector& f_grid,
-      const Vector& za_inc_grid,
-      const Vector& za_scat_grid,
-      Index         max_mode) const {
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Fourier> aro_fourier(const Point& point,
+                                                                                           const SpectralPoint&,
+                                                                                           const Vector& f_grid,
+                                                                                           const Vector& za_inc_grid,
+                                                                                           const Vector& za_scat_grid,
+                                                                                           Index max_mode) const {
     return aro_fourier(
         point.temperature, scattering_species_properties(point), f_grid, za_inc_grid, za_scat_grid, max_mode);
   }
@@ -183,6 +194,26 @@ class ScatteringHabit {
                                   scattering_species_properties(point),
                                   temperature_derivative(target),
                                   scattering_species_property_derivatives(target),
+                                  f_grid,
+                                  za_inc_grid,
+                                  delta_aa_grid,
+                                  std::move(za_scat_grid));
+  }
+
+  //! The habit reads no spectral property, so its derivative by one is zero
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    return aro_gridded_derivative(point.temperature,
+                                  scattering_species_properties(point),
+                                  0.0,
+                                  {},
                                   f_grid,
                                   za_inc_grid,
                                   delta_aa_grid,

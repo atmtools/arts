@@ -120,13 +120,26 @@ struct GasScatterer {
   //! The properties are proportional to the number density, so their derivative is them times its relative derivative
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
-      const Point&                     point,
+      const Point& point,
       const SpectralPoint&,
       const Vector&                    f_grid,
       std::shared_ptr<ZenithAngleGrid> za_scat_grid,
       const medium_key<Point>&         target) const {
     auto out  = tro_gridded(gas_number_density(point), f_grid, std::move(za_scat_grid));
     out      *= gas_number_density_relative_derivative(point, target);
+    return out;
+  }
+
+  //! Gas scattering reads no spectral property, so its derivative by one is zero
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point& point,
+      const SpectralPoint&,
+      const Vector&                    f_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    auto out  = tro_gridded(gas_number_density(point), f_grid, std::move(za_scat_grid));
+    out      *= 0.0;
     return out;
   }
 
@@ -140,7 +153,7 @@ struct GasScatterer {
 
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded(
-      const Point&                     point,
+      const Point& point,
       const SpectralPoint&,
       const Vector&                    f_grid,
       const Vector&                    za_inc_grid,
@@ -152,7 +165,7 @@ struct GasScatterer {
   //! The properties are proportional to the number density, so their derivative is them times its relative derivative
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
-      const Point&                     point,
+      const Point& point,
       const SpectralPoint&,
       const Vector&                    f_grid,
       const Vector&                    za_inc_grid,
@@ -164,14 +177,28 @@ struct GasScatterer {
     return out;
   }
 
+  //! Gas scattering reads no spectral property, so its derivative by one is zero
   template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
-  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral> aro_spectral(
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
       const Point& point,
       const SpectralPoint&,
-      const Vector& f_grid,
-      const Vector& za_inc_grid,
-      Index         degree,
-      Index         order) const {
+      const Vector&                    f_grid,
+      const Vector&                    za_inc_grid,
+      const Vector&                    delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid> za_scat_grid,
+      const spectral_medium_key<Point>&) const {
+    auto out  = aro_gridded(gas_number_density(point), f_grid, za_inc_grid, delta_aa_grid, std::move(za_scat_grid));
+    out      *= 0.0;
+    return out;
+  }
+
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Spectral> aro_spectral(const Point& point,
+                                                                                             const SpectralPoint&,
+                                                                                             const Vector& f_grid,
+                                                                                             const Vector& za_inc_grid,
+                                                                                             Index         degree,
+                                                                                             Index order) const {
     return aro_spectral(gas_number_density(point), f_grid, za_inc_grid, degree, order);
   }
 

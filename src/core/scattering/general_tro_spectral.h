@@ -45,10 +45,10 @@ struct ScatteringTroSpectralVector {
 };
 
 using ScatteringGeneralSpectralTROFunc = CustomOperator<ScatteringTroSpectralVector,
-                                                      const scattering::MediumPoint&,
-                                                      const scattering::SpectralMediumPoint&,
-                                                      const Vector&,
-                                                      Index>;
+                                                        const scattering::MediumPoint&,
+                                                        const scattering::SpectralMediumPoint&,
+                                                        const Vector&,
+                                                        Index>;
 
 /** A scattering species given by a user's function of its TRO Legendre series
  *

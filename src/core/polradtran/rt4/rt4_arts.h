@@ -39,6 +39,8 @@
 namespace polradtran::rt4 {
 /** The particle optics of scattering species at one atmospheric point on RT4's streams.
  *
+ * atm_spectral_point is the spectral point of the atmosphere there, at frequency.
+ *
  * mu: [nmu_total] the distinct stream cosines of one hemisphere, each in
  *   (0, 1]: RT4's quadrature nodes followed by the extra angles, as in
  *   problem.  The same values are used in both hemispheres.
@@ -79,6 +81,7 @@ namespace polradtran::rt4 {
  */
 layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                const AtmPoint&                 atm_point,
+                               const AtmSpectralPoint&         atm_spectral_point,
                                Numeric                         frequency,
                                const Vector&                   mu,
                                Index                           nstokes);
@@ -117,9 +120,13 @@ struct path_settings {
  * problem unchanged.  The streams are RT4's own quadrature.  RT4 still
  * requires the optics to be mirror symmetric between
  * the hemispheres (solve() checks it).
+ *
+ * The spectral points of scattering_optics() are atm_spectral_field at the
+ * positions of ray_path.
  */
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const ArrayOfAtmPoint&             atm_path,
+                          const AtmSpectralField&            atm_spectral_field,
                           const ArrayOfPropmatVector&        spectral_propmat_path,
                           const AscendingGrid&               freq_grid,
                           Index                              freq_index,

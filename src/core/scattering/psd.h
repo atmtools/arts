@@ -32,7 +32,8 @@ struct MonodispersePSD {
   //! evaluate gives the number density [m^-3] of the one particle
   static constexpr bool size_density = false;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /*** Single-moment modified gamma distribution
@@ -85,7 +86,8 @@ struct MGDSingleMoment {
                                 const Numeric&              scat_species_a,
                                 const Numeric&              scat_species_b) const;
 
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /** Modified-gamma distribution constrained by particle mass density.
@@ -110,7 +112,8 @@ struct MGDMass {
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 enum class MGDTwoMomentType : char { MassMeanSize, MassNumberDensity };
@@ -134,7 +137,8 @@ struct MGDTwoMoment {
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /** Delanoe et al. (2014) normalized ice PSD. */
@@ -167,7 +171,8 @@ struct DelanoeEtAl14 {
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /** Field et al. (2007) tropical or midlatitude ice PSD. */
@@ -187,7 +192,8 @@ struct FieldEtAl07 {
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /** McFarquhar and Heymsfield (1997) cloud-ice PSD. */
@@ -206,7 +212,8 @@ struct McFarquharHeymsfield97 {
   //! evaluate gives the density per unit size [m^-3 / unit of the size parameter] at each size
   static constexpr bool size_density = true;
   [[nodiscard]] Vector  evaluate(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /*** Binned PSD
@@ -230,13 +237,14 @@ struct BinnedPSD {
   //! evaluate gives the count of the bin each size falls in, a number density [m^-3] per particle
   static constexpr bool size_density = false;
 
-  [[nodiscard]] Vector evaluate(Numeric                     temperature,
+  [[nodiscard]] Vector evaluate(Numeric temperature,
                                 const ScatteringSpeciesMap& /*ssprops*/,
-                                const Vector&               particle_sizes,
+                                const Vector& particle_sizes,
                                 const Numeric& /*scat_species_a*/,
                                 const Numeric& /*scat_species_b*/) const;
 
-  [[nodiscard]] PSDData evaluate_with_derivatives(Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
+  [[nodiscard]] PSDData evaluate_with_derivatives(
+      Numeric, const ScatteringSpeciesMap&, const Vector&, Numeric, Numeric) const;
 };
 
 /** The widths that turn a density per unit size into the number density each size stands for
@@ -252,9 +260,12 @@ Vector size_bin_widths(const Vector& sizes);
  * The PSD's values times size_bin_widths if it gives a density per unit
  * size (PSD::size_density), else its values.
  */
-template <typename PSD>
-Vector number_densities(
-    const PSD& psd, Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) {
+template <typename PSD> Vector number_densities(const PSD&                  psd,
+                                                Numeric                     temperature,
+                                                const ScatteringSpeciesMap& ssprops,
+                                                const Vector&               sizes,
+                                                Numeric                     a,
+                                                Numeric                     b) {
   Vector out = psd.evaluate(temperature, ssprops, sizes, a, b);
   if constexpr (PSD::size_density) {
     const Vector w = size_bin_widths(sizes);
@@ -264,8 +275,12 @@ Vector number_densities(
 }
 
 //! number_densities and their derivatives
-template <typename PSD> PSDData number_densities_with_derivatives(
-    const PSD& psd, Numeric temperature, const ScatteringSpeciesMap& ssprops, const Vector& sizes, Numeric a, Numeric b) {
+template <typename PSD> PSDData number_densities_with_derivatives(const PSD&                  psd,
+                                                                  Numeric                     temperature,
+                                                                  const ScatteringSpeciesMap& ssprops,
+                                                                  const Vector&               sizes,
+                                                                  Numeric                     a,
+                                                                  Numeric                     b) {
   PSDData out = psd.evaluate_with_derivatives(temperature, ssprops, sizes, a, b);
   if constexpr (PSD::size_density) {
     const Vector w = size_bin_widths(sizes);

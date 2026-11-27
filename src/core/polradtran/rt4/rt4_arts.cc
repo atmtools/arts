@@ -21,6 +21,7 @@ bool all_zero(const layer_optics& o) {
 
 layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                const AtmPoint&                 atm_point,
+                               const AtmSpectralPoint&         atm_spectral_point,
                                Numeric                         frequency,
                                const Vector&                   mu,
                                Index                           nstokes) {
@@ -56,7 +57,7 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
   }
   if (not ZenGrid::is_sorted(za)) arts::user_error("RT4 stream cosines mu must be distinct");
 
-  const auto bulk = scattering_species.aro_fourier(atm_point, Vector{frequency}, za, za, 0);
+  const auto bulk = scattering_species.aro_fourier(atm_point, atm_spectral_point, Vector{frequency}, za, za, 0);
   if (not bulk.phase_matrix.has_value())
     arts::user_error(
         "RT4 needs the phase matrix of every scattering species; the bulk scattering properties have "
@@ -101,6 +102,7 @@ layer_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_specie
 
 problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
                           const ArrayOfAtmPoint&             atm_path,
+                          const AtmSpectralField&            atm_spectral_field,
                           const ArrayOfPropmatVector&        spectral_propmat_path,
                           const AscendingGrid&               freq_grid,
                           Index                              freq_index,
@@ -135,8 +137,15 @@ problem problem_from_path(const ArrayOfPropagationPathPoint& ray_path,
 
   std::vector<layer_optics> level;
   level.reserve(nlev);
-  for (const auto& atm : atm_path)
-    level.push_back(scattering_optics(scattering_species, atm, p.frequency, mu, settings.nstokes));
+  for (Index i = 0; i < nlev; i++) {
+    const Vector3& pos = ray_path[i].pos;
+    level.push_back(scattering_optics(scattering_species,
+                                      atm_path[i],
+                                      atm_spectral_field.at(AscendingGrid{p.frequency}, pos[0], pos[1], pos[2]),
+                                      p.frequency,
+                                      mu,
+                                      settings.nstokes));
+  }
 
   for (Index l = 0; l < nlay; l++) {
     layer_optics o  = level[l];

@@ -43,6 +43,32 @@ void subsurf_fieldFromModelState(SubsurfaceField&       subsurf_field,
   for (auto& target : model_state_targets.subsurf) { target.update_model(subsurf_field, model_state_vec); }
 }
 
+void atm_spectral_fieldFromModelState(AtmSpectralField&      atm_spectral_field,
+                                      const Vector&          model_state_vec,
+                                      const JacobianTargets& model_state_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : model_state_targets.atm_spectral) { target.update_model(atm_spectral_field, model_state_vec); }
+}
+
+void surf_spectral_fieldFromModelState(SurfaceSpectralField&  surf_spectral_field,
+                                       const Vector&          model_state_vec,
+                                       const JacobianTargets& model_state_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : model_state_targets.surf_spectral) { target.update_model(surf_spectral_field, model_state_vec); }
+}
+
+void subsurf_spectral_fieldFromModelState(SubsurfaceSpectralField& subsurf_spectral_field,
+                                          const Vector&            model_state_vec,
+                                          const JacobianTargets&   model_state_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : model_state_targets.subsurf_spectral) {
+    target.update_model(subsurf_spectral_field, model_state_vec);
+  }
+}
+
 void abs_bandsFromModelState(AbsorptionBands&       abs_bands,
                              const Vector&          model_state_vec,
                              const JacobianTargets& model_state_targets) {
@@ -83,6 +109,30 @@ void model_state_vecFromSubsurface(Vector&                model_state_vec,
   ARTS_TIME_REPORT
 
   for (auto& target : jac_targets.subsurf) { target.update_state(model_state_vec, subsurf_field); }
+}
+
+void model_state_vecFromAtmosphereSpectral(Vector&                 model_state_vec,
+                                           const AtmSpectralField& atm_spectral_field,
+                                           const JacobianTargets&  jac_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jac_targets.atm_spectral) { target.update_state(model_state_vec, atm_spectral_field); }
+}
+
+void model_state_vecFromSurfaceSpectral(Vector&                     model_state_vec,
+                                        const SurfaceSpectralField& surf_spectral_field,
+                                        const JacobianTargets&      jac_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jac_targets.surf_spectral) { target.update_state(model_state_vec, surf_spectral_field); }
+}
+
+void model_state_vecFromSubsurfaceSpectral(Vector&                        model_state_vec,
+                                           const SubsurfaceSpectralField& subsurf_spectral_field,
+                                           const JacobianTargets&         jac_targets) {
+  ARTS_TIME_REPORT
+
+  for (auto& target : jac_targets.subsurf_spectral) { target.update_state(model_state_vec, subsurf_spectral_field); }
 }
 
 void model_state_vecFromBands(Vector&                model_state_vec,

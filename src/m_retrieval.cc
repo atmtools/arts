@@ -26,6 +26,48 @@ void oemAddSubsurface(JacobianTargets&                                          
                                                                                      .second = inverse};
 }
 
+void oemAddAtmosphereSpectral(JacobianTargets&              jac_targets,
+                              OptimalEstimationData&        oem,
+                              const AtmSpectralPropertyTag& target,
+                              const Numeric&                d,
+                              const BlockMatrix&            matrix,
+                              const BlockMatrix&            inverse) {
+  ARTS_TIME_REPORT
+  oem.uncheck();
+
+  jac_targetsAddAtmosphereSpectral(jac_targets, target, d);
+  oem.covmat_diagonal_blocks[JacobianTargetType{jac_targets.atm_spectral.back().type}] = {.first  = matrix,
+                                                                                          .second = inverse};
+}
+
+void oemAddSurfaceSpectral(JacobianTargets&                  jac_targets,
+                           OptimalEstimationData&            oem,
+                           const SurfaceSpectralPropertyTag& target,
+                           const Numeric&                    d,
+                           const BlockMatrix&                matrix,
+                           const BlockMatrix&                inverse) {
+  ARTS_TIME_REPORT
+  oem.uncheck();
+
+  jac_targetsAddSurfaceSpectral(jac_targets, target, d);
+  oem.covmat_diagonal_blocks[JacobianTargetType{jac_targets.surf_spectral.back().type}] = {.first  = matrix,
+                                                                                           .second = inverse};
+}
+
+void oemAddSubsurfaceSpectral(JacobianTargets&                     jac_targets,
+                              OptimalEstimationData&               oem,
+                              const SubsurfaceSpectralPropertyTag& target,
+                              const Numeric&                       d,
+                              const BlockMatrix&                   matrix,
+                              const BlockMatrix&                   inverse) {
+  ARTS_TIME_REPORT
+  oem.uncheck();
+
+  jac_targetsAddSubsurfaceSpectral(jac_targets, target, d);
+  oem.covmat_diagonal_blocks[JacobianTargetType{jac_targets.subsurf_spectral.back().type}] = {.first  = matrix,
+                                                                                              .second = inverse};
+}
+
 void oemAddSurface(JacobianTargets&                                          jac_targets,
                    OptimalEstimationData&                                    oem,
                    const Generic<const SurfaceKey, const SurfacePropertyTag> key,

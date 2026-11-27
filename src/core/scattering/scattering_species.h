@@ -52,13 +52,15 @@ struct ArrayOfScatteringSpecies {
       const Vector&                                f_grid,
       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
+  template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint, typename Key>
+  requires(std::same_as<Key, scattering::medium_key<Point>> or
+           std::same_as<Key, scattering::spectral_medium_key<Point>>)
   [[nodiscard]] BulkScatteringProperties<scattering::Format::TRO, scattering::Representation::Gridded>
   tro_gridded_derivative(const Point&                                 point,
                          const SpectralPoint&                         spectral_point,
                          const Vector&                                f_grid,
                          std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
-                         const scattering::medium_key<Point>&         target) const;
+                         const Key&                                   target) const;
 
   template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] ScatteringTroSpectralVector tro_spectral(const Point&         point,
@@ -75,7 +77,9 @@ struct ArrayOfScatteringSpecies {
       const Vector&                                delta_aa_grid,
       std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid) const;
 
-  template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
+  template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint, typename Key>
+  requires(std::same_as<Key, scattering::medium_key<Point>> or
+           std::same_as<Key, scattering::spectral_medium_key<Point>>)
   [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Gridded>
   aro_gridded_derivative(const Point&                                 point,
                          const SpectralPoint&                         spectral_point,
@@ -83,7 +87,7 @@ struct ArrayOfScatteringSpecies {
                          const Vector&                                za_inc_grid,
                          const Vector&                                delta_aa_grid,
                          std::shared_ptr<scattering::ZenithAngleGrid> za_scat_grid,
-                         const scattering::medium_key<Point>&         target) const;
+                         const Key&                                   target) const;
 
   template <scattering::medium_point Point, scattering::spectral_medium_point<Point> SpectralPoint>
   [[nodiscard]] BulkScatteringProperties<scattering::Format::ARO, scattering::Representation::Spectral> aro_spectral(

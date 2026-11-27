@@ -46,6 +46,7 @@ void check_cosines(const Vector& mu, std::string_view name) {
 
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
                                  const AtmPoint&                 atm_point,
+                                 const AtmSpectralPoint&         atm_spectral_point,
                                  Numeric                         frequency,
                                  const Vector&                   mu_out,
                                  const Vector&                   mu_in,
@@ -72,7 +73,8 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
   // int Z11 dOmega at the incidence angles
   const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
   const auto [za_scat, sca] = zenith_angle_grid(mu_out);
-  const auto lab = scattering_species.aro_fourier(atm_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
+  const auto lab =
+      scattering_species.aro_fourier(atm_point, atm_spectral_point, Vector{frequency}, za_inc, za_scat, nfourier - 1);
   if (not lab.phase_matrix.has_value())
     arts::user_error(
         "VDISORT needs the phase matrix of every scattering species; the bulk scattering properties "
@@ -203,6 +205,7 @@ fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView
 
 main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
                               const ArrayOfAtmPoint&             atm_path,
+                              const AtmSpectralField&            atm_spectral_field,
                               const ArrayOfPropmatVector&        spectral_propmat_path,
                               const AscendingGrid&               freq_grid,
                               Index                              freq_index,
@@ -265,9 +268,17 @@ main_data main_data_from_path(const ArrayOfPropagationPathPoint& ray_path,
 
   std::vector<fourier_optics> level;
   level.reserve(nlev);
-  for (const auto& atm : atm_path)
-    level.push_back(
-        scattering_optics(scattering_species, atm, frequency, mu, mu_in, NF, settings.normalisation_tolerance));
+  for (Index i = 0; i < nlev; i++) {
+    const Vector3& pos = ray_path[i].pos;
+    level.push_back(scattering_optics(scattering_species,
+                                      atm_path[i],
+                                      atm_spectral_field.at(AscendingGrid{frequency}, pos[0], pos[1], pos[2]),
+                                      frequency,
+                                      mu,
+                                      mu_in,
+                                      NF,
+                                      settings.normalisation_tolerance));
+  }
 
   Vector                   tau(nlay), omega(nlay);
   rtepack::muelmat_tensor4 C(NF, nlay, NQ, NQ, rtepack::muelmat{0.0}), S = C;

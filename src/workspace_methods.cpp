@@ -1761,7 +1761,9 @@ which are required to derive the Gaussian forward-peak width.
                  "spectral_absvec_scat",
                  "spectral_phamat_spectral",
                  "freq_grid",
-                 "ray_point", "atm_point", "atm_spectral_field",
+                 "ray_point",
+                 "atm_point",
+                 "atm_spectral_field",
                  "scat_species"},
   };
 
@@ -1769,9 +1771,9 @@ which are required to derive the Gaussian forward-peak width.
       .desc =
           R"--(Compute *spectral_propmat_scat_path* and co for a path.
 )--",
-      .author         = {"Richard Larsson"},
-      .out            = {"spectral_propmat_scat_path", "spectral_absvec_scat_path", "spectral_phamat_spectral_path"},
-      .in             = {"freq_grid_path", "ray_path", "atm_path", "legendre_degree", "spectral_propmat_scat_spectral_agenda"},
+      .author = {"Richard Larsson"},
+      .out    = {"spectral_propmat_scat_path", "spectral_absvec_scat_path", "spectral_phamat_spectral_path"},
+      .in     = {"freq_grid_path", "ray_path", "atm_path", "legendre_degree", "spectral_propmat_scat_spectral_agenda"},
       .pass_workspace = true,
   };
 
@@ -2983,7 +2985,15 @@ building of an actual Jacobian matrix.
 )--",
       .author = {"Richard Larsson"},
       .out    = {"jac_targets"},
-      .in     = {"jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
+      .in     = {"jac_targets",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "abs_bands",
+                 "measurement_sensors"},
   };
 
   const auto jac2oem = [&wsm_data](const std::string& name) {
@@ -3240,6 +3250,57 @@ See *SpeciesEnum* for valid ``species``
                     "The perturbation used in methods that cannot compute derivatives analytically"},
   };
   wsm_data["oemAddSubsurface"] = jac2oem("jac_targetsAddSubsurface");
+
+  wsm_data["jac_targetsAddAtmosphereSpectral"] = {
+      .desc      = R"--(Sets a spectral atmospheric target.
+
+The target is one property of *atm_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"AtmSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddAtmosphereSpectral"] = jac2oem("jac_targetsAddAtmosphereSpectral");
+
+  wsm_data["jac_targetsAddSurfaceSpectral"] = {
+      .desc      = R"--(Sets a spectral surface target.
+
+The target is one property of *surf_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SurfaceSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddSurfaceSpectral"] = jac2oem("jac_targetsAddSurfaceSpectral");
+
+  wsm_data["jac_targetsAddSubsurfaceSpectral"] = {
+      .desc      = R"--(Sets a spectral subsurface target.
+
+The target is one property of *subsurf_spectral_field*, and its model state is the flat data
+of that property, frequency slowest.
+)--",
+      .author    = {"Richard Larsson"},
+      .out       = {"jac_targets"},
+      .in        = {"jac_targets"},
+      .gin       = {"target", "d"},
+      .gin_type  = {"SubsurfaceSpectralPropertyTag", "Numeric"},
+      .gin_value = {std::nullopt, Numeric{0.1}},
+      .gin_desc  = {"The target of interest",
+                    "The perturbation used in methods that cannot compute derivatives analytically"},
+  };
+  wsm_data["oemAddSubsurfaceSpectral"] = jac2oem("jac_targetsAddSubsurfaceSpectral");
 
   wsm_data["jac_targetsAddSpeciesIsotopologueRatio"] = {
       .desc      = R"--(Set isotopologue ratio derivative
@@ -5091,7 +5152,8 @@ supports gas, particulate, and mixed scattering species.
                          "suns",
                          "jac_targets",
                          "freq_grid",
-                         "atm_field", "atm_spectral_field",
+                         "atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "scat_species",
                          "spectral_propmat_and_atm_path_agenda",
@@ -5125,6 +5187,54 @@ supports gas, particulate, and mixed scattering species.
       .author = {"Richard Larsson"},
       .out    = {"subsurf_field"},
       .in     = {"subsurf_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["atm_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *atm_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"atm_spectral_field"},
+      .in     = {"atm_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromAtmosphereSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *atm_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "atm_spectral_field", "jac_targets"},
+  };
+
+  wsm_data["surf_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *surf_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"surf_spectral_field"},
+      .in     = {"surf_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromSurfaceSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *surf_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "surf_spectral_field", "jac_targets"},
+  };
+
+  wsm_data["subsurf_spectral_fieldFromModelState"] = {
+      .desc   = R"--(Sets *subsurf_spectral_field* to the state of the model.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"subsurf_spectral_field"},
+      .in     = {"subsurf_spectral_field", "model_state_vec", "model_state_targets"},
+  };
+
+  wsm_data["model_state_vecFromSubsurfaceSpectral"] = {
+      .desc   = R"--(Sets *model_state_vec*'s part of *subsurf_spectral_field*.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"model_state_vec"},
+      .in     = {"model_state_vec", "subsurf_spectral_field", "jac_targets"},
   };
 
   wsm_data["abs_bandsFromModelState"] = {
@@ -5338,8 +5448,24 @@ calculation is performed. Use this before preparing the next measurement's
 retrieval from the same physical prior.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors"},
-      .in     = {"oem", "abs_bands", "surf_field", "subsurf_field", "atm_field", "measurement_sensors", "jac_targets"},
+      .out    = {"abs_bands",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "measurement_sensors"},
+      .in     = {"oem",
+                 "abs_bands",
+                 "surf_field",
+                 "surf_spectral_field",
+                 "subsurf_field",
+                 "subsurf_spectral_field",
+                 "atm_field",
+                 "atm_spectral_field",
+                 "measurement_sensors",
+                 "jac_targets"},
   };
   wsm_data["oemClearAuxiliary"] = {
       .desc = "Release recomputable products and caches in oem; retain inputs, current state, bases and diagnostics.\n",
@@ -6623,7 +6749,7 @@ supplying an already constructed numerical problem without resetting targets.
   };
 
   wsm_data["oemFinalizeDiagonal"] = {
-      .desc   = R"(Finalize the retrieval setup.
+      .desc             = R"(Finalize the retrieval setup.
 
 Calls *jac_targetsFinalize* to determine target sizes and state-vector offsets,
 then adds the per-target covariance blocks collected in oem.covmat_diagonal_blocks by the oemAdd methods.
@@ -6638,9 +6764,18 @@ If target offsets are needed to calculate the prior or a forward model before
 this step, call *jac_targetsFinalize* first. This only finalizes the mapping;
 *oemFinalizeDiagonal* completes and checks the numerical retrieval setup.
 )",
-      .author = {"Richard Larsson"},
-      .out    = {"oem", "jac_targets"},
-      .in     = {"oem", "jac_targets", "atm_field", "surf_field", "subsurf_field", "abs_bands", "measurement_sensors"},
+      .author           = {"Richard Larsson"},
+      .out              = {"oem", "jac_targets"},
+      .in               = {"oem",
+                           "jac_targets",
+                           "atm_field",
+                           "atm_spectral_field",
+                           "surf_field",
+                           "surf_spectral_field",
+                           "subsurf_field",
+                           "subsurf_spectral_field",
+                           "abs_bands",
+                           "measurement_sensors"},
       .size_constraints = false,
   };
 
@@ -6962,7 +7097,8 @@ added without changing the interface.
 )--",
       .author         = {"Richard Larsson", "OpenAI Codex"},
       .out            = {"radar_signal", "radar_error", "radar_time"},
-      .in             = {"atm_field", "atm_spectral_field",
+      .in             = {"atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "scat_species",
                          "mc_antenna",
@@ -7106,7 +7242,8 @@ and V selectors.
       .in       = {"measurement_sensors",
                    "radar_range_limits",
                    "jac_targets",
-                   "atm_field", "atm_spectral_field",
+                   "atm_field",
+                   "atm_spectral_field",
                    "surf_field",
                    "scat_species",
                    "ray_path_observer_agenda",
@@ -7141,7 +7278,7 @@ and V selectors.
   };
 
   wsm_data["model_state_vecFromRadarOnionPeeling"] = {
-      .desc           = R"--(Retrieve an atmospheric radar profile by analytical onion peeling.
+      .desc      = R"--(Retrieve an atmospheric radar profile by analytical onion peeling.
 
 Range gates are processed from the sensor outwards.  At each gate, the
 strongest not-yet-peeled atmospheric state coordinate is updated by a bounded
@@ -7167,73 +7304,73 @@ This formulation is not restricted to the old two-species liquid/ice layout;
 phase selection may instead be expressed by the scattering-species properties
 and atmospheric state chosen by the caller.
               )--",
-      .author         = {"Patrick Eriksson", "OpenAI Codex"},
-      .out            = {"model_state_vec", "measurement_vec_fit", "measurement_jac", "atm_field"},
-      .in             = {"measurement_vec",
-                         "measurement_sensors",
-                         "radar_range_limits",
-                         "jac_targets",
-                         "atm_spectral_field", "surf_field",
-                         "scat_species",
-                         "ray_path_observer_agenda",
-                         "spectral_propmat_agenda",
-                         "rte_option"},
-      .gin            = {"transmitted_stokes",
-                         "range_mode",
-                         "unit",
-                         "ze_tref",
-                         "k2",
-                         "dbze_min",
-                         "pext_scaling",
-                         "measurement_noise_floor",
-                         "state_min",
-                         "state_max",
-                         "max_step",
-                         "tolerance",
-                         "max_iterations",
-                         "max_sweeps"},
-      .gin_type       = {"Stokvec",
-                         "RadarRangeMode",
-                         "RadarUnit",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Numeric",
-                         "Index",
-                         "Index"},
-      .gin_value      = {Stokvec{1.0, 1.0, 0.0, 0.0},
-                         RadarRangeMode::Legacy,
-                         RadarUnit::unit,
-                         Numeric{273.15},
-                         Numeric{-1.0},
-                         Numeric{-99.0},
-                         Numeric{1.0},
-                         Numeric{-1e99},
-                         Numeric{0.0},
-                         Numeric{1e99},
-                         Numeric{1e99},
-                         Numeric{1e-6},
-                         Index{12},
-                         Index{8}},
-      .gin_desc       = {"Transmitted Stokes vector; its I component must equal one.",
-                         "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
-                         "Forward and observation unit: 1, Ze, or dBZe.",
-                         "Liquid-water reference temperature [K] for automatic k2.",
-                         "Reference dielectric factor squared; negative selects Liebe-93.",
-                         "Lower clipping value for dBZe.",
-                         "Multiplicative factor for particulate extinction (0 to 2).",
-                         "Measurements at or below this value are ignored.",
-                         "Lower bound in model-state coordinates.",
-                         "Upper bound in model-state coordinates.",
-                         "Maximum absolute Newton step in model-state coordinates.",
-                         "Relative gate-fit convergence tolerance.",
-                         "Maximum Newton iterations per gate.",
-                         "Maximum repeated outward sweeps for interpolating state grids."},
+      .author    = {"Patrick Eriksson", "OpenAI Codex"},
+      .out       = {"model_state_vec", "measurement_vec_fit", "measurement_jac", "atm_field", "atm_spectral_field"},
+      .in        = {"measurement_vec",
+                    "measurement_sensors",
+                    "radar_range_limits",
+                    "jac_targets",
+                    "surf_field",
+                    "scat_species",
+                    "ray_path_observer_agenda",
+                    "spectral_propmat_agenda",
+                    "rte_option"},
+      .gin       = {"transmitted_stokes",
+                    "range_mode",
+                    "unit",
+                    "ze_tref",
+                    "k2",
+                    "dbze_min",
+                    "pext_scaling",
+                    "measurement_noise_floor",
+                    "state_min",
+                    "state_max",
+                    "max_step",
+                    "tolerance",
+                    "max_iterations",
+                    "max_sweeps"},
+      .gin_type  = {"Stokvec",
+                    "RadarRangeMode",
+                    "RadarUnit",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Numeric",
+                    "Index",
+                    "Index"},
+      .gin_value = {Stokvec{1.0, 1.0, 0.0, 0.0},
+                    RadarRangeMode::Legacy,
+                    RadarUnit::unit,
+                    Numeric{273.15},
+                    Numeric{-1.0},
+                    Numeric{-99.0},
+                    Numeric{1.0},
+                    Numeric{-1e99},
+                    Numeric{0.0},
+                    Numeric{1e99},
+                    Numeric{1e99},
+                    Numeric{1e-6},
+                    Index{12},
+                    Index{8}},
+      .gin_desc  = {"Transmitted Stokes vector; its I component must equal one.",
+                    "Range coordinate: Altitude, Distance, RoundTripTime, or Legacy.",
+                    "Forward and observation unit: 1, Ze, or dBZe.",
+                    "Liquid-water reference temperature [K] for automatic k2.",
+                    "Reference dielectric factor squared; negative selects Liebe-93.",
+                    "Lower clipping value for dBZe.",
+                    "Multiplicative factor for particulate extinction (0 to 2).",
+                    "Measurements at or below this value are ignored.",
+                    "Lower bound in model-state coordinates.",
+                    "Upper bound in model-state coordinates.",
+                    "Maximum absolute Newton step in model-state coordinates.",
+                    "Relative gate-fit convergence tolerance.",
+                    "Maximum Newton iterations per gate.",
+                    "Maximum repeated outward sweeps for interpolating state grids."},
       .pass_workspace = true,
   };
 
@@ -7248,7 +7385,8 @@ rotations.  Scattering directions use uniform solid-angle importance sampling.
 )--",
       .author         = {"Cory Davis", "Patrick Eriksson", "OpenAI Codex"},
       .out            = {"mc_spectral_rad", "mc_error", "mc_iteration_count"},
-      .in             = {"atm_field", "atm_spectral_field",
+      .in             = {"atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
                          "scat_species",
@@ -7309,7 +7447,8 @@ source derivatives, without modifying global catalogue state.
                          "jac_targets",
                          "obs_pos",
                          "obs_los",
-                         "atm_field", "atm_spectral_field",
+                         "atm_field",
+                         "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
                          "scat_species",

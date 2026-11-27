@@ -42,13 +42,14 @@ struct HenyeyGreensteinScatterer {
       const Vector&                    f_grid,
       std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
 
-  //! The derivative, from the derivatives of the extinction and the single scattering albedo at each frequency
+  //! The derivative, from the derivatives of the extinction, the single scattering albedo and g at each frequency
   [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
       const Vector&                    extinction,
       const Vector&                    ssa,
       const Vector&                    g,
       const Vector&                    d_extinction,
       const Vector&                    d_ssa,
+      const Vector&                    d_g,
       const Vector&                    f_grid,
       std::shared_ptr<ZenithAngleGrid> zenith_angle_grid) const;
 
@@ -64,13 +65,14 @@ struct HenyeyGreensteinScatterer {
       const Vector&                    delta_aa_grid,
       std::shared_ptr<ZenithAngleGrid> za_scat_grid) const;
 
-  //! The derivative, from the derivatives of the extinction and the single scattering albedo at each frequency
+  //! The derivative, from the derivatives of the extinction, the single scattering albedo and g at each frequency
   [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
       const Vector&                    extinction,
       const Vector&                    ssa,
       const Vector&                    g,
       const Vector&                    d_extinction,
       const Vector&                    d_ssa,
+      const Vector&                    d_g,
       const Vector&                    f_grid,
       const Vector&                    za_inc_grid,
       const Vector&                    delta_aa_grid,
@@ -84,7 +86,7 @@ struct HenyeyGreensteinScatterer {
                                                                                              const Vector& f_grid,
                                                                                              const Vector& za_inc_grid,
                                                                                              Index         degree,
-                                                                                             Index order) const;
+                                                                                             Index         order) const;
 
   /** The azimuthal Fourier modes m = 0..max_mode of the laboratory-frame phase matrix, exactly
    *
@@ -131,6 +133,32 @@ struct HenyeyGreensteinScatterer {
                                   spectral_property(spectral_point, g_name, f_grid.size()),
                                   zero,
                                   zero,
+                                  zero,
+                                  f_grid,
+                                  std::move(zenith_angle_grid));
+  }
+
+  /** The derivative at each frequency by the spectral property target at that frequency
+   *
+   * The properties at a frequency depend only on the extinction, single
+   * scattering albedo and g at that frequency.  The derivative by any other
+   * spectral property is zero.
+   */
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::TRO, Representation::Gridded> tro_gridded_derivative(
+      const Point&,
+      const SpectralPoint&              spectral_point,
+      const Vector&                     f_grid,
+      std::shared_ptr<ZenithAngleGrid>  zenith_angle_grid,
+      const spectral_medium_key<Point>& target) const {
+    const Vector one(f_grid.size(), 1.0), zero(f_grid.size(), 0.0);
+    const auto   by = [&](const String& name) -> const Vector& { return target.name == name ? one : zero; };
+    return tro_gridded_derivative(spectral_property(spectral_point, extinction_name, f_grid.size()),
+                                  spectral_property(spectral_point, ssa_name, f_grid.size()),
+                                  spectral_property(spectral_point, g_name, f_grid.size()),
+                                  by(extinction_name),
+                                  by(ssa_name),
+                                  by(g_name),
                                   f_grid,
                                   std::move(zenith_angle_grid));
   }
@@ -180,6 +208,31 @@ struct HenyeyGreensteinScatterer {
                                   spectral_property(spectral_point, g_name, f_grid.size()),
                                   zero,
                                   zero,
+                                  zero,
+                                  f_grid,
+                                  za_inc_grid,
+                                  delta_aa_grid,
+                                  std::move(za_scat_grid));
+  }
+
+  //! The derivative at each frequency by the spectral property target at that frequency, see tro_gridded_derivative
+  template <medium_point Point, spectral_medium_point<Point> SpectralPoint>
+  [[nodiscard]] BulkScatteringProperties<Format::ARO, Representation::Gridded> aro_gridded_derivative(
+      const Point&,
+      const SpectralPoint&              spectral_point,
+      const Vector&                     f_grid,
+      const Vector&                     za_inc_grid,
+      const Vector&                     delta_aa_grid,
+      std::shared_ptr<ZenithAngleGrid>  za_scat_grid,
+      const spectral_medium_key<Point>& target) const {
+    const Vector one(f_grid.size(), 1.0), zero(f_grid.size(), 0.0);
+    const auto   by = [&](const String& name) -> const Vector& { return target.name == name ? one : zero; };
+    return aro_gridded_derivative(spectral_property(spectral_point, extinction_name, f_grid.size()),
+                                  spectral_property(spectral_point, ssa_name, f_grid.size()),
+                                  spectral_property(spectral_point, g_name, f_grid.size()),
+                                  by(extinction_name),
+                                  by(ssa_name),
+                                  by(g_name),
                                   f_grid,
                                   za_inc_grid,
                                   delta_aa_grid,

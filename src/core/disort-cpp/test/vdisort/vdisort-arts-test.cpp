@@ -184,7 +184,7 @@ void test_rayleigh() {
   mu_in[mu.size()] = -0.6;  // a beam
 
   {
-    const auto f = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, 4, 1e-12);
+    const auto f = vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, mu, mu_in, 4, 1e-12);
     require(std::abs(f.extinction - sigma) < 1e-14 * sigma and std::abs(f.scattering - sigma) < 1e-14 * sigma,
             "V1: Rayleigh extinction and scattering must be sigma");
     Numeric d = 0.0;
@@ -208,9 +208,13 @@ void test_rayleigh() {
                          d));
   }
 
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, Vector{0.0}, mu, 2, 1e-3); }, "mu = 0");
-  require_error([&] { (void)vdisort::scattering_optics(species, atm, 50e9, mu, mu, 0, 1e-3); }, "nfourier 0");
-  const auto none = vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, 50e9, mu, mu, 2, 1e-3);
+  require_error(
+      [&] { (void)vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, Vector{0.0}, mu, 2, 1e-3); },
+      "mu = 0");
+  require_error([&] { (void)vdisort::scattering_optics(species, atm, AtmSpectralPoint{}, 50e9, mu, mu, 0, 1e-3); },
+                "nfourier 0");
+  const auto none =
+      vdisort::scattering_optics(ArrayOfScatteringSpecies{}, atm, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
   require(none.extinction == 0.0 and
               stdr::all_of(none.cosine | by_elem,
                            [](const auto& z) { return stdr::all_of(z | by_elem, [](Numeric x) { return x == 0.0; }); }),
@@ -289,6 +293,7 @@ vdisort_test::tro_matrix series_of(const mie_case& c) {
 rtepack::muelmat arts_lab_frame(const mie_case& c, Numeric za_in, Numeric delta_aa, Numeric za_out) {
   const auto bulk = c.species.aro_gridded(
       c.atm,
+      AtmSpectralPoint{},
       Vector{mie_frequency},
       Vector{za_in},
       Vector{delta_aa},
@@ -301,6 +306,7 @@ vdisort_test::tro_matrix tro_of(const mie_case& c, Numeric sign34 = 1.0) {
   return [&c, sign34](Numeric cos_theta) {
     const auto bulk = c.species.tro_gridded(
         c.atm,
+        AtmSpectralPoint{},
         Vector{mie_frequency},
         std::make_shared<scattering::ZenithAngleGrid>(
             scattering::IrregularZenithAngleGrid(Vector{Conversion::rad2deg(std::acos(cos_theta))})));
@@ -400,7 +406,8 @@ void test_fourier_against_vector_geometry(const mie_case& c) {
   mu_in[8]           = -0.6;
 
   constexpr Index NF = 4, N = 512;
-  const auto      f = vdisort::scattering_optics(c.spectral_species, c.atm, mie_frequency, mu, mu_in, NF, 1e-9);
+  const auto      f =
+      vdisort::scattering_optics(c.spectral_species, c.atm, AtmSpectralPoint{}, mie_frequency, mu, mu_in, NF, 1e-9);
 
   // sigma = 2 pi int F11 dx = sqrt(4 pi) a_0 of the series
   const Numeric sigma = 1e9 * std::sqrt(4 * pi) * c.series[0, 0, 0].F11();
@@ -457,8 +464,17 @@ void test_path() {
   const AscendingGrid freq_grid{Vector{89e9}};
 
   const vdisort::path_settings s{.nquad = 8, .nfourier = 1};
-  const auto                   v = vdisort::main_data_from_path(
-      ray_path, atm_path, propmat, freq_grid, 0, species, s, vdisort::lambertian_surface{.albedo = 0.3}, 290.0, 2.7);
+  const auto                   v = vdisort::main_data_from_path(ray_path,
+                                                                atm_path,
+                                                                AtmSpectralField{},
+                                                                propmat,
+                                                                freq_grid,
+                                                                0,
+                                                                species,
+                                                                s,
+                                                                vdisort::lambertian_surface{.albedo = 0.3},
+                                                                290.0,
+                                                                2.7);
 
   Numeric tau = 0.0, dev = 0.0;
   for (Index l = 0; l < 2; l++) {
@@ -473,6 +489,7 @@ void test_path() {
   // Gas-only layer and an empty species array: no scattering, the thermal source alone
   const auto g = vdisort::main_data_from_path(ray_path,
                                               atm_path,
+                                              AtmSpectralField{},
                                               propmat,
                                               freq_grid,
                                               0,
@@ -487,8 +504,17 @@ void test_path() {
   bad[1][0].V() = 1e-7;
   require_error(
       [&] {
-        (void)vdisort::main_data_from_path(
-            ray_path, atm_path, bad, freq_grid, 0, species, s, vdisort::lambertian_surface{}, 290.0, 2.7);
+        (void)vdisort::main_data_from_path(ray_path,
+                                           atm_path,
+                                           AtmSpectralField{},
+                                           bad,
+                                           freq_grid,
+                                           0,
+                                           species,
+                                           s,
+                                           vdisort::lambertian_surface{},
+                                           290.0,
+                                           2.7);
       },
       "a polarized gas propagation matrix");
   auto zero = propmat;
@@ -497,6 +523,7 @@ void test_path() {
       [&] {
         (void)vdisort::main_data_from_path(ray_path,
                                            atm_path,
+                                           AtmSpectralField{},
                                            zero,
                                            freq_grid,
                                            0,
@@ -535,19 +562,19 @@ void test_forward_peaked_hg() {
   Vector mu_in(17);
   mu_in[Range(0, 16)] = mu;
   mu_in[16]           = -0.6;
-  const auto hg_ext = ScatteringSpeciesProperty{"hg", ParticulateProperty::Extinction};
-  const auto hg_ssa = ScatteringSpeciesProperty{"hg", ParticulateProperty::SingleScatteringAlbedo};
-  auto       atm    = air(9e4, 270.0);
-  atm[hg_ext]       = 1e-4;
-  atm[hg_ssa]       = 0.9;
-  constexpr Index NF = 4;
+  const auto      atm = air(9e4, 270.0);
+  constexpr Index NF  = 4;
 
   for (const Numeric g : {0.9, 0.95, 0.99}) {
     ArrayOfScatteringSpecies species;
-    species.add(HenyeyGreensteinScatterer{hg_ext, hg_ssa, g});
+    species.add(HenyeyGreensteinScatterer{"extinction", "ssa", "g"});
+    AtmSpectralPoint spectral;
+    spectral[AtmSpectralPropertyTag{"extinction"}] = Vector{1e-4};
+    spectral[AtmSpectralPropertyTag{"ssa"}]        = Vector{0.9};
+    spectral[AtmSpectralPropertyTag{"g"}]          = Vector{g};
 
     const auto start = std::chrono::steady_clock::now();
-    const auto f     = vdisort::scattering_optics(species, atm, 50e9, mu, mu_in, NF, 1e-10);
+    const auto f     = vdisort::scattering_optics(species, atm, spectral, 50e9, mu, mu_in, NF, 1e-10);
     const auto time  = std::chrono::duration<double>(std::chrono::steady_clock::now() - start).count();
 
     const auto L = static_cast<Index>(std::ceil(std::log(1e-17) / std::log(g)));
@@ -606,6 +633,7 @@ void test_aro_data() {
   const auto aro_species = [&](const Vector& za_scat, Numeric extinction_change) {
     auto bulk =
         gas.aro_gridded(atm,
+                        AtmSpectralPoint{},
                         Vector{50e9},
                         streams,
                         delta,
@@ -630,8 +658,8 @@ void test_aro_data() {
   };
 
   const auto [species, a] = aro_species(with_streams(0.0, 180.0), 0.0);
-  const auto f            = vdisort::scattering_optics(species, a, 50e9, mu, mu, 2, 1e-3);
-  const auto g            = vdisort::scattering_optics(gas, atm, 50e9, mu, mu, 2, 1e-3);
+  const auto f            = vdisort::scattering_optics(species, a, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
+  const auto g            = vdisort::scattering_optics(gas, atm, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
   Numeric    d = 0.0, scale = 0.0;
   for (Index m = 0; m < 2; m++) {
     for (Index o = 0; o < 4; o++) {
@@ -652,13 +680,13 @@ void test_aro_data() {
   require_error(
       [&] {
         const auto [s2, a2] = aro_species(with_streams(1.0, 179.0), 0.0);
-        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+        (void)vdisort::scattering_optics(s2, a2, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
       },
       "ARO data without all scattering zenith angles have no phase integral");
   require_error(
       [&] {
         const auto [s2, a2] = aro_species(with_streams(0.0, 180.0), 0.1);
-        (void)vdisort::scattering_optics(s2, a2, 50e9, mu, mu, 2, 1e-3);
+        (void)vdisort::scattering_optics(s2, a2, AtmSpectralPoint{}, 50e9, mu, mu, 2, 1e-3);
       },
       "an extinction that depends on the direction");
 }
