@@ -895,6 +895,79 @@ void vdisort_settingsSubsurfaceOpticalThickness(VDisortSettings&                
   }
 }
 
+void vdisort_settingsSubsurfaceScatteringSpecies(VDisortSettings&                   vdisort_settings,
+                                                 const ArrayOfPropagationPathPoint& ray_path,
+                                                 const ArrayOfSubsurfacePoint&      subsurf_profile,
+                                                 const SurfaceField&                surf_field,
+                                                 const SubsurfaceSpectralField&     subsurf_spectral_field,
+                                                 const ArrayOfScatteringSpecies&    subsurf_scat_species) try {
+  ARTS_TIME_REPORT
+
+  const Size  N  = vdisort_settings.layer_count();
+  const Size  nv = vdisort_settings.frequency_count();
+  const Index L  = vdisort_settings.legendre_polynomial_dimension;
+
+  if (ray_path.size() != N + 1 or subsurf_profile.size() != N + 1)
+    arts::user_error(
+        "*ray_path* and *subsurf_profile* must have one more point than *vdisort_settings* has layers, {}, but have "
+        "{} and {}",
+        N,
+        ray_path.size(),
+        subsurf_profile.size());
+  if (L < 1) arts::user_error("Must have at least one Legendre mode to use the Legendre coefficients.");
+
+  // The bulk Legendre series, extinction and absorption of the species at every point of ray_path
+  const auto&                              freq_grid = vdisort_settings.freq_grid;
+  std::vector<ScatteringTroSpectralVector> bulk(N + 1);
+  for (Size i = 0; i <= N; i++) {
+    bulk[i] = subsurf_scat_species.tro_spectral(
+        subsurf_profile[i],
+        subsurface_spectral_point(subsurf_spectral_field, surf_field, freq_grid, ray_path[i]),
+        freq_grid,
+        L - 1);
+    if (not bulk[i].phase_matrix or bulk[i].phase_matrix->nrows() != static_cast<Index>(nv) or
+        bulk[i].phase_matrix->ncols() != L or bulk[i].extinction_matrix.size() != nv or
+        bulk[i].absorption_vector.size() != nv)
+      arts::user_error("The subsurface scattering species give no Legendre series of [{}, {}] at point {}", nv, L, i);
+  }
+
+  Vector invfac(L);
+  for (Index l = 0; l < L; l++) invfac[l] = 1.0 / std::sqrt(2 * l + 1);
+
+  vdisort_settings.legendre_coefficients.resize(nv, N, L);
+  for (Size iv = 0; iv < nv; iv++) {
+    Numeric previous = 0.0;
+    for (Size j = 0; j < N; j++) {
+      const Size    deeper = upside_down(N, j), shallower = upside_down(N, j + 1);
+      const Numeric thickness = ray_path[shallower].altitude() - ray_path[deeper].altitude();
+
+      // The species add their extinction to the absorption of the subsurface, and scatter what they do not absorb
+      const Numeric extinction =
+          thickness * std::midpoint(bulk[deeper].extinction_matrix[iv].A(), bulk[shallower].extinction_matrix[iv].A());
+      const Numeric absorption =
+          thickness * std::midpoint(bulk[deeper].absorption_vector[iv].I(), bulk[shallower].absorption_vector[iv].I());
+      const Numeric layer = vdisort_settings.optical_thicknesses[iv, j] - previous + extinction;
+      const Numeric ssa   = (extinction - absorption) / layer;
+      vdisort_settings.single_scattering_albedo[iv, j] = std::isnormal(ssa) ? ssa : 0.0;
+      previous                                         = vdisort_settings.optical_thicknesses[iv, j];
+      vdisort_settings.optical_thicknesses[iv, j] =
+          (j == 0 ? 0.0 : vdisort_settings.optical_thicknesses[iv, j - 1]) + layer;
+
+      // The coefficient on Y_l0 of the layer is the mean of its two points, normalized so that F11 is 1 at degree 0
+      auto c = vdisort_settings.legendre_coefficients[iv, j];
+      for (Index l = 0; l < L; l++)
+        c[l] = invfac[l] * (0.5 * ((*bulk[deeper].phase_matrix)[iv, l] + (*bulk[shallower].phase_matrix)[iv, l]));
+      if (const Numeric f11 = c[0].F11(); std::isnormal(f11)) {
+        for (auto& F : c) F /= f11;
+      } else {
+        c          = CompactPlanarMuelmat{};
+        c[0].F11() = 1.0;
+      }
+    }
+  }
+}
+ARTS_METHOD_ERROR_CATCH
+
 void vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau(VDisortSettings&              vdisort_settings,
                                                                const ArrayOfSubsurfacePoint& subsurf_profile,
                                                                const AscendingGrid&          freq_grid) {
@@ -1081,6 +1154,7 @@ Use "ScatteringSpecies" or "None".
 }
 
 void subsurf_vdisort_settings_agendaSetup(Agenda&        subsurf_vdisort_settings_agenda,
+                                          const String&  scattering_setting,
                                           const String&  layer_emission_setting,
                                           const String&  deep_setting,
                                           const String&  interface_setting,
@@ -1093,9 +1167,24 @@ void subsurf_vdisort_settings_agendaSetup(Agenda&        subsurf_vdisort_setting
   agenda.add("jac_targetsOff");
   agenda.add("subsurf_profileFromPath");
   agenda.add("vdisort_settingsSubsurfaceInit");
-  agenda.add("vdisort_settingsNoLegendre");
-  agenda.add("vdisort_settingsNoSingleScatteringAlbedo");
   agenda.add("vdisort_settingsSubsurfaceOpticalThickness", SetWsv("min_optical_depth", min_optical_depth));
+  // The species add to the optical thickness of the absorption, so they come after it
+  switch (to<settings_agenda_setup_scattering_type>(scattering_setting)) {
+    using enum settings_agenda_setup_scattering_type;
+    case None:
+      agenda.add("vdisort_settingsNoLegendre");
+      agenda.add("vdisort_settingsNoSingleScatteringAlbedo");
+      break;
+    case ScatteringSpecies: agenda.add("vdisort_settingsSubsurfaceScatteringSpecies"); break;
+    case ScatteringSpeciesDeltaMPlus:
+      arts::user_error(R"(VDISORT has no delta-M-plus scaling.
+
+scattering_setting: "{}"
+
+Use "ScatteringSpecies" or "None".
+)",
+                       scattering_setting);
+  }
   // Since we have the optical thickness, we can set the thermal emission
   switch (to<settings_agenda_setup_layer_emission_type>(layer_emission_setting)) {
     using enum settings_agenda_setup_layer_emission_type;

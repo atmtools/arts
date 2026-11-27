@@ -6251,6 +6251,30 @@ See *vdisort_settingsSubsurfaceInit* for the upside-down column.
           {"The minimum increase in optical thickness per level.  The DISORT algorithm employed is numerically unstable if the change between levels is too small."},
   };
 
+  wsm_data["vdisort_settingsSubsurfaceScatteringSpecies"] = {
+      .desc   = R"--(Adds the scattering of *subsurf_scat_species* to the upside-down subsurface.
+
+The species are evaluated at the points of *subsurf_profile* and the spectral
+points of *subsurf_spectral_field* along *ray_path*, as totally randomly
+oriented particles.  Each layer adds the mean extinction of its two points
+times its thickness to its optical thickness, and its single scattering albedo
+is the extinction the species do not absorb over the whole optical thickness.
+Its Legendre coefficients are the mean of the two points, normalized so that
+F11 is 1 at degree 0.
+
+Set the optical thickness of the absorption first, and the emission after.
+See *vdisort_settingsSubsurfaceInit* for the upside-down column.
+)--",
+      .author = {"Richard Larsson"},
+      .out    = {"vdisort_settings"},
+      .in     = {"vdisort_settings",
+                 "ray_path",
+                 "subsurf_profile",
+                 "surf_field",
+                 "subsurf_spectral_field",
+                 "subsurf_scat_species"},
+  };
+
   wsm_data["vdisort_settingsSubsurfaceLayerThermalEmissionLinearInTau"] = {
       .desc   = R"--(Use a source function of the upside-down subsurface that changes linearly in optical thickness.
 
@@ -6313,27 +6337,30 @@ reflectance of the interface.
       .desc      = R"--(Setup for VDISORT subsurface calculations.
 
 This method allows setting up *subsurf_vdisort_settings_agenda* by named
-options.  The subsurface has no scattering yet.  The optical thickness is always
-that of *vdisort_settingsSubsurfaceOpticalThickness*; every other step can be
-left out with its "None" option.
+options.  The optical thickness of the absorption is always that of
+*vdisort_settingsSubsurfaceOpticalThickness*; every other step can be left out
+with its "None" option.
 )--",
       .author    = {"Richard Larsson"},
       .out       = {"subsurf_vdisort_settings_agenda"},
-      .gin       = {"layer_emission_setting",
+      .gin       = {"scattering_setting",
+                    "layer_emission_setting",
                     "deep_setting",
                     "interface_setting",
                     "sky_setting",
                     "sky_temperature",
                     "min_optical_depth"},
-      .gin_type  = {"String", "String", "String", "String", "Numeric", "Numeric"},
-      .gin_value = {String{"LinearInTau"},
+      .gin_type  = {"String", "String", "String", "String", "String", "Numeric", "Numeric"},
+      .gin_value = {String{"None"},
+                    String{"LinearInTau"},
                     String{"Thermal"},
                     String{"Fresnel"},
                     String{"Isotropic"},
                     Numeric{Constant::cosmic_microwave_background_temperature},
                     Numeric{1e-11}},
       .gin_desc =
-          {"Layer emission settings, see *settings_agenda_setup_layer_emission_type*",
+          {"Scattering settings, see *settings_agenda_setup_scattering_type*",
+           "Layer emission settings, see *settings_agenda_setup_layer_emission_type*",
            "Settings of the radiation from below the deepest level, see *subsurf_settings_agenda_setup_deep_type*",
            "Interface settings, see *subsurf_settings_agenda_setup_interface_type*",
            "Sky settings, see *subsurf_settings_agenda_setup_sky_type*",

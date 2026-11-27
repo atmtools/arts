@@ -6,6 +6,7 @@
 #include <physics_funcs.h>
 #include <rtepack.h>
 #include <subsurface_methods.h>
+#include <vdisort_arts.h>
 #include <vdisort_settings.h>
 #include <workspace.h>
 
@@ -250,10 +251,6 @@ void spectral_radSubsurfaceVDisort(const Workspace&               ws,
                                          fourier_mode_dimension,
                                          legendre_polynomial_dimension,
                                          subsurf_vdisort_settings_agenda);
-  if (stdr::any_of(vdisort_settings.single_scattering_albedo | by_elem, Cmp::gt(0.0)))
-    arts::user_error(
-        "Scattering within the subsurface needs its phase matrices at the refracted angle, which are not "
-        "implemented");
 
   const ComplexVector n = subsurface_refractive_index(
       subsurface_spectral_point(subsurf_spectral_field, surf_field, freq_grid, subsurf_path.front()), nf);
@@ -271,14 +268,12 @@ void spectral_radSubsurfaceVDisort(const Workspace&               ws,
   spectral_rad.resize(nf);
   spectral_rad_jac.resize(jac_targets.x_size(), nf);
 
-  vdisort::main_data               dis = vdisort_settings.init();
-  const vdisort::phase_matrix_data phase(2,
-                                         vdisort_settings.fourier_mode_dimension,
-                                         vdisort_settings.layer_count(),
-                                         1,
-                                         vdisort_settings.quadrature_dimension,
-                                         rtepack::muelmat{0.0});
-  const Numeric                    sin2 = 1.0 - mu * mu;
+  vdisort::main_data dis  = vdisort_settings.init();
+  const Numeric      sin2 = 1.0 - mu * mu;
+  const Index        NF   = vdisort_settings.fourier_mode_dimension;
+  const Index        NL   = vdisort_settings.layer_count();
+  const Index        NQ   = vdisort_settings.quadrature_dimension;
+  const Index        L    = vdisort_settings.legendre_polynomial_dimension;
 
   String error;
 #pragma omp parallel for if (not arts_omp_in_parallel()) firstprivate(dis)
@@ -291,14 +286,29 @@ void spectral_radSubsurfaceVDisort(const Workspace&               ws,
         arts::user_error("The subsurface refractive index {} cannot refract the ray, at {} deg from the normal",
                          nr,
                          Conversion::acosd(mu));
-      const Numeric        mu_inside = std::sqrt(1.0 - sin2 / (nr * nr));
-      vdisort::user_u_data data;
+      const Numeric mu_inside = std::sqrt(1.0 - sin2 / (nr * nr));
       vdisort_settings.set(dis, iv);
-      dis.u_user(data,
-                 vdisort_settings.optical_thicknesses[iv, vdisort_settings.layer_count() - 1],
-                 0.0,
-                 Vector{-mu_inside},
-                 phase);
+
+      // The phase matrices of the layers from VDISORT's streams into the refracted ray, as VDisortSettings::set makes
+      // those between the streams
+      const Vector             user_mu{-mu_inside};
+      const Vector             streams{dis.mu()};
+      rtepack::muelmat_tensor4 C(NF, NL, 1, NQ, rtepack::muelmat{0.0}), S = C;
+      for (Index l = 0; l < NL; l++) {
+        if (vdisort_settings.single_scattering_albedo[iv, l] == 0.0) continue;
+        const auto optics = vdisort::legendre_fourier_optics(
+            vdisort_settings.legendre_coefficients[iv, l, Range(0, L)], user_mu, streams, NF);
+        for (Index m = 0; m < NF; m++) {
+          for (Index i = 0; i < NQ; i++) {
+            C[m, l, 0, i] = optics.cosine[m, 0, i];
+            S[m, l, 0, i] = optics.sine[m, 0, i];
+          }
+        }
+      }
+
+      vdisort::user_u_data data;
+      dis.u_user(
+          data, vdisort_settings.optical_thicknesses[iv, NL - 1], 0.0, user_mu, vdisort::combine_phase_matrices(C, S));
       const Stokvec& inside = data.intensities[0];
 
       // The interface transmits each polarization with one minus its reflectance, which is the same from

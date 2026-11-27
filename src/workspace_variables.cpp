@@ -188,6 +188,15 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfScatteringSpecies",
   };
 
+  wsv_data["subsurf_scat_species"] = {
+      .desc = R"--(The scattering species of the subsurface
+
+They are evaluated at the points of the subsurface and its spectral points,
+see *vdisort_settingsSubsurfaceScatteringSpecies*.
+)--",
+      .type = "ArrayOfScatteringSpecies",
+  };
+
   wsv_data["mc_antenna"] = {
       .desc = R"--(Transmit and receive antenna pattern for Monte Carlo calculations.
 )--",

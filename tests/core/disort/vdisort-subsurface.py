@@ -196,3 +196,41 @@ sun = np.asarray(ws.sun.spectrum)[:, 0] / np.pi
 rv, rh = reflectances(theta)
 assert np.allclose(with_sun[:, 0] - without[:, 0], 0.5 * (rv + rh) * (sun - BC), rtol=1e-9)
 assert np.allclose(with_sun[:, 1] - without[:, 1], 0.5 * (rv - rh) * (sun - BC), rtol=1e-9)
+ws.spectral_rad_space_agendaSet(option="UniformCosmicBackground")
+
+# %% Scattering by the species of the subsurface, a Henyey-Greenstein scatterer of its own properties
+ws.subsurf_spectral_field["scattering extinction"] = spectral(np.array([60.0, 90.0]), [[0.0], [0.0], [0.0]], ["alt", "lat", "lon"])
+ws.subsurf_spectral_field["single scattering albedo"] = spectral(np.array([0.9, 0.8]), [[0.0], [0.0], [0.0]], ["alt", "lat", "lon"])
+ws.subsurf_spectral_field["asymmetry parameter"] = spectral(np.array([0.6, 0.4]), [[0.0], [0.0], [0.0]], ["alt", "lat", "lon"])
+ws.subsurf_scat_species = [
+    A.HenyeyGreensteinScatterer("scattering extinction", "single scattering albedo", "asymmetry parameter")
+]
+ws.legendre_polynomial_dimension = 16
+
+# In equilibrium with a sky of its own temperature the radiance within is Planck's, whatever the scattering, so the
+# outgoing radiance is Kirchhoff's
+ws.subsurf_vdisort_settings_agendaSetup(scattering_setting="ScatteringSpecies", sky_temperature=T0)
+for theta in [0.0, 35.0, 60.0]:
+    got = radiance(theta)
+    assert np.allclose(got, expected(theta, B0), rtol=1e-9, atol=1e-30), (theta, got, expected(theta, B0))
+
+# Away from it, the radiance within along the refracted ray is VDISORT's on its stream when the ray is along one
+ws.subsurf_vdisort_settings_agendaSetup(
+    scattering_setting="ScatteringSpecies", layer_emission_setting="None", sky_setting="None"
+)
+radiance(0.0)
+ws.ray_pathFromPointAndDepth(depth_profile=DEPTH)
+ws.subsurf_vdisort_settings_agendaExecute()
+assert np.all(np.asarray(ws.vdisort_settings.single_scattering_albedo) > 0.3)
+ws.vdisort_spectral_rad_fieldCalc(azi_grid=[0.0])
+zenith = np.asarray(ws.vdisort_spectral_rad_field.zen_grid)
+stream = int(np.argmax(zenith))  # the stream most nearly towards the interface, propagating at 180 - zenith from it
+streams = np.asarray(ws.vdisort_spectral_rad_field.data)[:, -1, 0, stream]
+for iv in range(len(FREQ)):
+    theta = np.degrees(np.arcsin(n.real[iv] * np.sin(np.radians(180.0 - zenith[stream]))))
+    got = radiance(theta)[iv]
+    rv, rh = reflectances(theta)
+    mean, diff = 0.5 * (rv[iv] + rh[iv]), 0.5 * (rv[iv] - rh[iv])
+    # got = [[1 - mean, -diff], [-diff, 1 - mean]] (I, Q)_within + (mean, diff) B_c
+    inside = np.linalg.solve([[1 - mean, -diff], [-diff, 1 - mean]], got[:2] - np.array([mean, diff]) * BC[iv])
+    assert np.allclose(inside, streams[iv, :2], rtol=1e-9), (iv, inside, streams[iv])
