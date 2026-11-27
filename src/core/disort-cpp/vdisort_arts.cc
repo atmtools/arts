@@ -8,9 +8,9 @@
 #include <physics_funcs.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
-#include <memory>
 #include <numeric>
 #include <string_view>
 #include <type_traits>
@@ -42,6 +42,116 @@ void check_cosines(const Vector& mu, std::string_view name) {
   if (stdr::any_of(mu, [](Numeric x) { return not(std::abs(x) <= 1.0 and x != 0.0); }))
     arts::user_error("The direction cosines {} must be in [-1, 0) or (0, 1]", name);
 }
+
+/* Wigner's d^l_mn(theta) at mu = cos(theta) for l = 0 .. d.size() - 1, m >= 0 and n = 0, 2 or -2: the
+   generalized spherical functions P^{m,n}_l(mu) of Lin et al. (2022, Eqs. 59-60).  They are 0 below
+   l0 = max(m, |n|), where
+     d^l0_mn = (-1)^(l0 - n) sqrt((2 l0)! / ((l0 + n)! (l0 - n)!)) cos^(l0 + n)(theta / 2) sin^(l0 - n)(theta / 2)
+   for l0 = m (and d^l0_mn = d^l0_nm (-1)^(m - n) = d^l0_{-n,-m} otherwise), and above it the recurrence
+     l sqrt(((l + 1)^2 - m^2) ((l + 1)^2 - n^2)) d^(l+1) = (2 l + 1) (l (l + 1) mu - m n) d^l
+                                                         - (l + 1) sqrt((l^2 - m^2) (l^2 - n^2)) d^(l-1)
+   gives them; for m = n = 0 they are the Legendre polynomials. */
+void wigner_d(VectorView d, Index m, Index n, Numeric mu) {
+  const auto  L  = static_cast<Index>(d.size());
+  const Index l0 = std::max(m, std::abs(n));
+  d              = 0.0;
+  if (l0 >= L) return;
+
+  const auto factorial = [](Index k) {
+    Numeric r = 1.0;
+    for (Index i = 2; i <= k; i++) r *= static_cast<Numeric>(i);
+    return r;
+  };
+  // d^M_MN for M >= |N|, with cos(theta / 2) and sin(theta / 2) from mu
+  const Numeric c = std::sqrt(0.5 * (1.0 + mu)), s = std::sqrt(0.5 * (1.0 - mu));
+  const auto    first = [&](Index M, Index N) {
+    return ((M - N) % 2 == 0 ? 1.0 : -1.0) * std::sqrt(factorial(2 * M) / (factorial(M + N) * factorial(M - N))) *
+           std::pow(c, static_cast<Numeric>(M + N)) * std::pow(s, static_cast<Numeric>(M - N));
+  };
+  d[l0] = m >= std::abs(n) ? first(m, n) : (n > 0 ? first(n, m) * ((m - n) % 2 == 0 ? 1.0 : -1.0) : first(-n, -m));
+
+  Index start = l0;
+  if (l0 == 0) {
+    if (L > 1) d[1] = mu;
+    start = 1;
+  }
+  const auto dm = static_cast<Numeric>(m), dn = static_cast<Numeric>(n);
+  for (Index l = start; l + 1 < L; l++) {
+    const auto    x = static_cast<Numeric>(l);
+    const Numeric a = x * std::sqrt(((x + 1) * (x + 1) - dm * dm) * ((x + 1) * (x + 1) - dn * dn));
+    const Numeric b = (2 * x + 1) * (x * (x + 1) * mu - dm * dn);
+    const Numeric e = (x + 1) * std::sqrt((x * x - dm * dm) * (x * x - dn * dn));
+    d[l + 1]        = (b * d[l] - e * d[l - 1]) / a;
+  }
+}
+
+/* The expansion coefficients ("Greek constants") of the scattering matrix in generalized spherical functions,
+   Lin et al. (2022, Eqs. 62-67), to the degree of its Legendre moments,
+     F11 = sum_l a1_l P^{0,0}_l,  F22 + F33 = sum_l (a2 + a3)_l P^{2,2}_l,  F22 - F33 = sum_l (a2 - a3)_l P^{2,-2}_l,
+     F44 = sum_l a4_l P^{0,0}_l,  F12 = sum_l b1_l P^{0,2}_l,      F34 = sum_l b2_l P^{0,2}_l,
+   with a2, a3, b1 and b2 zero below degree 2.  The moments give F = sum_l (2 l + 1) beta_l P_l of degree
+   L - 1 = moments.size() - 1, so a1_l = (2 l + 1) beta_l,11 and a4_l = (2 l + 1) beta_l,44, and the others are
+   (2 l + 1) / 2 int F P^{m,n}_l dcos(Theta), whose integrands are polynomials of degree at most 2 L - 2 that the
+   L-node Gauss-Legendre rule integrates exactly.  Every P^{m,n}_l of these is a polynomial of degree l, and the
+   moments are those of the scattering matrix to degree L - 1, so the coefficients are those of the scattering
+   matrix itself; a truncated Legendre series of each element is not regular at 0 and 180 deg, and this
+   expansion is. */
+struct greek_constants {
+  Vector a1, a2, a3, a4, b1, b2;
+
+  explicit greek_constants(const CompactPlanarMuelmatConstVectorView& moments)
+      : a1(moments.size(), 0.0),
+        a2(moments.size(), 0.0),
+        a3(moments.size(), 0.0),
+        a4(moments.size(), 0.0),
+        b1(moments.size(), 0.0),
+        b2(moments.size(), 0.0) {
+    const auto L = static_cast<Index>(moments.size());
+    for (Index l = 0; l < L; l++) {
+      a1[l] = static_cast<Numeric>(2 * l + 1) * moments[l].F11();
+      a4[l] = static_cast<Numeric>(2 * l + 1) * moments[l].F44();
+    }
+    if (L < 3) return;
+
+    Vector x(L), w(L), p(L), d22(L), d2m2(L), d02(L);
+    Legendre::GaussLegendre(x, w);
+    for (Index k = 0; k < L; k++) {
+      Legendre::legendre_polynomials(p, x[k]);
+      CompactPlanarMuelmat F{};
+      for (Index l = 0; l < L; l++) F += (static_cast<Numeric>(2 * l + 1) * p[l]) * moments[l];
+      wigner_d(d22, 2, 2, x[k]);
+      wigner_d(d2m2, 2, -2, x[k]);
+      wigner_d(d02, 0, 2, x[k]);
+      for (Index l = 2; l < L; l++) {
+        const Numeric h  = 0.5 * static_cast<Numeric>(2 * l + 1) * w[k];
+        a2[l]           += h * (0.5 * (F.F22() + F.F33()) * d22[l] + 0.5 * (F.F22() - F.F33()) * d2m2[l]);
+        a3[l]           += h * (0.5 * (F.F22() + F.F33()) * d22[l] - 0.5 * (F.F22() - F.F33()) * d2m2[l]);
+        b1[l]           += h * F.F12() * d02[l];
+        b2[l]           += h * F.F34() * d02[l];
+      }
+    }
+  }
+};
+
+/* The generalized spherical functions of Fourier order m in the matrix P^m_l(mu) of Lin et al. (2022, Eq. 59),
+     P^m_l = [[P, 0, 0, 0], [0, R, -T, 0], [0, -T, R, 0], [0, 0, 0, P]],
+   P = P^{m,0}_l, R = (P^{m,2}_l + P^{m,-2}_l) / 2 and T = (P^{m,2}_l - P^{m,-2}_l) / 2, [direction, l] */
+struct order_functions {
+  Matrix P, R, T;
+
+  order_functions(Index m, const Vector& mu, Index L) : P(mu.size(), L), R(mu.size(), L), T(mu.size(), L) {
+    Vector plus(L), minus(L);
+    for (Size j = 0; j < mu.size(); j++) {
+      wigner_d(P[j], m, 0, mu[j]);
+      wigner_d(plus, m, 2, mu[j]);
+      wigner_d(minus, m, -2, mu[j]);
+      for (Index l = 0; l < L; l++) {
+        R[j, l] = 0.5 * (plus[l] + minus[l]);
+        T[j, l] = 0.5 * (plus[l] - minus[l]);
+      }
+    }
+  }
+};
 }  // namespace
 
 fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_species,
@@ -165,38 +275,49 @@ fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView
                      .cosine     = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0}),
                      .sine       = rtepack::muelmat_tensor3(nfourier, no, ni, rtepack::muelmat{0.0})};
 
-  const auto [za_inc, inc]  = zenith_angle_grid(mu_in);
-  const auto [za_scat, sca] = zenith_angle_grid(mu_out);
-
-  // P(Theta) = sum_l (2 l + 1) beta_l P_l(cos Theta); its phase integral is 4 pi
-  Vector scaled(nleg);
-  for (Index l = 0; l < nleg; l++) scaled[l] = static_cast<Numeric>(2 * l + 1);
-  const auto scattering_matrix = [&moments, &scaled, p = Vector(nleg)](
-                                     Numeric theta, rtepack::compact_planar_muelmat_matrix& F) mutable {
-    Legendre::legendre_polynomials(p, std::clamp(std::cos(theta), -1.0, 1.0));
-    rtepack::compact_planar_muelmat value{};
-    for (Size l = 0; l < p.size(); l++) value += scaled[l] * moments[l] * p[l];
-    F[0, 0] = value;
-  };
-
-  const auto one   = std::make_shared<const Vector>(Vector{0.0});
-  const auto modes = scattering::tro_lab_frame_fourier_modes(
-      one,
-      one,
-      std::make_shared<const Vector>(za_inc),
-      std::make_shared<const scattering::ZenithAngleGrid>(scattering::IrregularZenithAngleGrid(za_scat)),
-      nfourier - 1,
-      Matrix(1, 1, 4.0 * Constant::pi),
-      scattering_matrix);
-
-  // VDISORT's coefficients are (1 / 2 pi) int P cos(m phi) dphi: C_0 and half of C_m and S_m for m > 0, as in
-  // scattering_optics
-  for (Index m = 0; m < nfourier; m++) {
-    const Numeric scale = m == 0 ? 1.0 : 0.5;
+  /* The addition theorem of the generalized spherical functions (Lin et al. 2022, Eqs. 56-58),
+       A^m = sum_{l=m}^{L-1} P^m_l(mu_out) Lambda_l P^m_l(mu_in),
+       Lambda_l = [[a1, b1, 0, 0], [b1, a2, 0, 0], [0, 0, a3, b2], [0, 0, -b2, a4]]_l,
+     gives VDISORT's coefficients (1 / 2 pi) int P cos(m phi) dphi and (1 / 2 pi) int P sin(m phi) dphi, phi the
+     azimuth of incidence less that of scattering: C^m = (A^m + D A^m D) / 2, the elements of A^m in the I, Q and
+     the U, V blocks, and S^m = (D A^m - A^m D) / 2, its other elements with the sign of their row in D,
+     D = diag(1, 1, -1, -1). */
+  const greek_constants g(moments);
+  for (Index m = 0; m < std::min(nfourier, nleg); m++) {
+    const order_functions fo(m, mu_out, nleg), fi(m, mu_in, nleg);
     for (Index o = 0; o < no; o++) {
       for (Index i = 0; i < ni; i++) {
-        out.cosine[m, o, i] = scale * modes[0, 0, inc[i], sca[o], m, 0];
-        out.sine[m, o, i]   = scale * modes[0, 0, inc[i], sca[o], m, 1];
+        std::array<Numeric, 16> A{};
+        for (Index l = m; l < nleg; l++) {
+          const Numeric p_o = fo.P[o, l], R_o = fo.R[o, l], T_o = fo.T[o, l];
+          const Numeric p_i = fi.P[i, l], R_i = fi.R[i, l], T_i = fi.T[i, l];
+          const Numeric a1 = g.a1[l], a2 = g.a2[l], a3 = g.a3[l], a4 = g.a4[l], b1 = g.b1[l], b2 = g.b2[l];
+          A[0]  += p_o * a1 * p_i;
+          A[1]  += p_o * b1 * R_i;
+          A[2]  -= p_o * b1 * T_i;
+          A[4]  += R_o * b1 * p_i;
+          A[5]  += R_o * a2 * R_i + T_o * a3 * T_i;
+          A[6]  -= R_o * a2 * T_i + T_o * a3 * R_i;
+          A[7]  -= T_o * b2 * p_i;
+          A[8]  -= T_o * b1 * p_i;
+          A[9]  -= T_o * a2 * R_i + R_o * a3 * T_i;
+          A[10] += T_o * a2 * T_i + R_o * a3 * R_i;
+          A[11] += R_o * b2 * p_i;
+          A[13] += p_o * b2 * T_i;
+          A[14] -= p_o * b2 * R_i;
+          A[15] += p_o * a4 * p_i;
+        }
+        rtepack::muelmat C{0.0}, S{0.0};
+        for (Index r = 0; r < 4; r++) {
+          for (Index q = 0; q < 4; q++) {
+            if ((r < 2) == (q < 2))
+              C[r, q] = A[r * 4 + q];
+            else
+              S[r, q] = (r < 2 ? 1.0 : -1.0) * A[r * 4 + q];
+          }
+        }
+        out.cosine[m, o, i] = C;
+        out.sine[m, o, i]   = S;
       }
     }
   }

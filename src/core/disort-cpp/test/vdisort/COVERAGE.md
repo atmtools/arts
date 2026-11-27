@@ -450,6 +450,7 @@ ARTS-native input builders `vdisort_arts.h`, `rt3_arts.h` and `rt4_arts.h`
 | V4: the path builder | its inputs |
 | V5: gridded ARO data (Rayleigh's laboratory frame on a grid) | `GasScatterer`'s exact modes, to the interpolation error of the grid |
 | V6: Henyey-Greenstein, m = 0..3, diffuse and beam | the addition theorem |
+| V7: `legendre_fourier_optics` (VDISORT's phase matrices from Legendre moments, as `VDisortSettings` and the subsurface user angle make them): Mie series of degree 40 and its first 8 moments, Rayleigh with more modes than degrees, 8 Henyey-Greenstein moments 1e-4 deg from forward and backward scattering; m = 0..4, diffuse, beam and mu = +-1 | Fourier modes of the geometry's Z (`lab-frame.h`) of the series' expansion in generalized spherical functions to the same degree (Lin et al. 2022, Eqs. 62-67), from the untruncated matrix and Wigner's explicit sum |
 | thermal, 89 GHz, Rayleigh + Mie cloud + gas, Lambertian / Fresnel | RT3 vs VDISORT: their doubling error |
 | same | RT4's layer phase matrices vs VDISORT's (both the species' Fourier modes): rounding |
 | same | RT4 vs RT3 (identical doubling; Fourier modes against Legendre series): rounding |

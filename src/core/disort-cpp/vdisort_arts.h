@@ -109,9 +109,14 @@ fourier_optics scattering_optics(const ArrayOfScatteringSpecies& scattering_spec
  *   scattering_optics.
  *
  * Returns the ordinary Fourier coefficients C^m and S^m of the
- * laboratory-frame phase matrix in the basis of scattering_optics, made by
- * the same azimuthal integration (scattering::tro_lab_frame_fourier_modes);
- * extinction and scattering are 0.
+ * laboratory-frame phase matrix in the basis of scattering_optics, in closed
+ * form as VDISORT has them (Lin et al. 2022, Eqs. 56-67): the expansion of
+ * the scattering matrix in generalized spherical functions to degree
+ * nleg - 1, whose coefficients the moments give exactly, and the addition
+ * theorem of those functions.  That expansion is regular at 0 and 180 deg,
+ * where the truncated series of each element is not, so it is the phase
+ * matrix whose modes these are; the two differ by the truncation of the
+ * series.  Extinction and scattering are 0.
  */
 fourier_optics legendre_fourier_optics(const CompactPlanarMuelmatConstVectorView& moments,
                                        const Vector&                              mu_out,
