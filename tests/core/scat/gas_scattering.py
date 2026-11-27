@@ -69,7 +69,7 @@ ws.ray_path_suns_pathFromPathObserver(just_hit=1)
 
 
 def calculate(species):
-    ws.scat_species = [species]
+    ws.atm_scat_species = [species]
     ws.spectral_radClearskyScattering()
     return np.asarray(ws.spectral_rad).copy()[0]
 

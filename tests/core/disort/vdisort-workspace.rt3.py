@@ -95,7 +95,7 @@ def workspace(species, gas=True, spectral={}):
     ws.atm_fieldFromProfile(atm_profile=profile[::-1], alt_grid=Z[::-1], altitude_extrapolation="Linear")
     for key, values in {**HENYEY_GREENSTEIN, **spectral}.items():
         ws.atm_spectral_field[key] = spectral_profile(values)
-    ws.scat_species = species
+    ws.atm_scat_species = species
     ws.spectral_propmat_scat_spectral_agendaSet(option="FromSpeciesTRO")
 
     path = A.ArrayOfPropagationPathPoint()
@@ -312,7 +312,7 @@ def against_rt3(name, ws, aziorder, azimuths, ground, thermal, minimum):
         sky_temperature = A.physics.invplanck(sky, f) if sky > 0 else 0.0
         problem = A.rt3.problem_from_path(
             ws.ray_path, ws.atm_path, ws.atm_spectral_field, [pm.K for pm in ws.spectral_propmat_path], ws.freq_grid, iv,
-            ws.scat_species,
+            ws.atm_scat_species,
             settings, ground, T_SURF, sky_temperature,
         )  # fmt: skip
         problem.thermal = thermal

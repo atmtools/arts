@@ -1752,7 +1752,7 @@ which are required to derive the Gaussian forward-peak width.
 
   wsm_data["spectral_propmat_scatAddSpectralScatteringSpeciesTRO"] = {
       .desc =
-          R"--(Adds *scat_species* results for totally random oriented spectral calculations to
+          R"--(Adds *atm_scat_species* results for totally random oriented spectral calculations to
 *spectral_propmat_scat* and co.
 )--",
       .author = {"Richard Larsson"},
@@ -1764,7 +1764,7 @@ which are required to derive the Gaussian forward-peak width.
                  "ray_point",
                  "atm_point",
                  "atm_spectral_field",
-                 "scat_species"},
+                 "atm_scat_species"},
   };
 
   wsm_data["spectral_propmat_scat_pathFromSpectralAgenda"] = {
@@ -5139,10 +5139,10 @@ Hence, a temperature of 0 means 0s the edges of the *freq_grid*.
 
   wsm_data["spectral_rad_scat_pathSunsFirstOrder"] = {
       .desc =
-          R"--(Compute first-order solar scattering from *scat_species* along *ray_path*.
+          R"--(Compute first-order solar scattering from *atm_scat_species* along *ray_path*.
 
 Unlike *spectral_rad_scat_pathSunsFirstOrderRayleigh*, both the scattering
-coefficient and the polarized phase matrix come from *scat_species*.  This
+coefficient and the polarized phase matrix come from *atm_scat_species*.  This
 supports gas, particulate, and mixed scattering species.
 )--",
       .author         = {"Richard Larsson"},
@@ -5155,7 +5155,7 @@ supports gas, particulate, and mixed scattering species.
                          "atm_field",
                          "atm_spectral_field",
                          "surf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "spectral_propmat_and_atm_path_agenda",
                          "rte_option"},
       .gin            = {"hse_derivative"},
@@ -6066,11 +6066,11 @@ Supply observations with *oemSetMeasurement* before calling this method.
       .gin_desc  = {"The value of the covariance matrix diagonal"},
   };
 
-  wsm_data["scat_speciesInit"] = {
+  wsm_data["atm_scat_speciesInit"] = {
       .desc   = R"(Initialize scattering species.
 )",
       .author = {"Richard Larsson"},
-      .out    = {"scat_species"},
+      .out    = {"atm_scat_species"},
   };
 
   wsm_data["disort_settingsDownwellingObserver"] = {
@@ -7100,7 +7100,7 @@ added without changing the interface.
       .in             = {"atm_field",
                          "atm_spectral_field",
                          "surf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "mc_antenna",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
@@ -7226,7 +7226,7 @@ complete range-gated calculation, including gas and particle attenuation and
 particle backscatter.  The perturbation stored on each target is used; a
 scale-aware default is selected when it is zero.  Gas propagation derivatives
 come from *spectral_propmat_agenda*, scattering derivatives come from
-*scat_species*, and their ordered two-way transmission product is propagated
+*atm_scat_species*, and their ordered two-way transmission product is propagated
 analytically through rtepack.  There is no production finite-difference loop.
 
 The auxiliary quantities are listed by *RadarAuxiliary*.  They are returned
@@ -7245,7 +7245,7 @@ and V selectors.
                    "atm_field",
                    "atm_spectral_field",
                    "surf_field",
-                   "scat_species",
+                   "atm_scat_species",
                    "ray_path_observer_agenda",
                    "spectral_propmat_agenda",
                    "rte_option"},
@@ -7290,7 +7290,7 @@ standard radar forward model.
 
 Unlike the ARTS2 implementation, this method does not create or consume a
 large dBZe/temperature inversion table.  Scattering properties are evaluated
-directly through *scat_species*.  *jac_targets* defines the retrieved state,
+directly through *atm_scat_species*.  *jac_targets* defines the retrieved state,
 including its grids and transformations.  All targets must currently be
 atmospheric targets.  The returned *model_state_vec*, updated *atm_field*,
 *measurement_vec_fit*, and *measurement_jac* are mutually consistent and can
@@ -7311,7 +7311,7 @@ and atmospheric state chosen by the caller.
                     "radar_range_limits",
                     "jac_targets",
                     "surf_field",
-                    "scat_species",
+                    "atm_scat_species",
                     "ray_path_observer_agenda",
                     "spectral_propmat_agenda",
                     "rte_option"},
@@ -7389,7 +7389,7 @@ rotations.  Scattering directions use uniform solid-angle importance sampling.
                          "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "mc_antenna",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
@@ -7451,7 +7451,7 @@ source derivatives, without modifying global catalogue state.
                          "atm_spectral_field",
                          "surf_field",
                          "subsurf_field",
-                         "scat_species",
+                         "atm_scat_species",
                          "ray_path_observer_agenda",
                          "spectral_propmat_agenda",
                          "spectral_rad_space_agenda",

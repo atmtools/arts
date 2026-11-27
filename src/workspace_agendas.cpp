@@ -76,7 +76,7 @@ or planetary atmospheres and for visible/near-infrared water or steam.
       .input        = {"freq_grid", "ray_point", "atm_point", "legendre_degree"},
       .enum_options = {"FromSpeciesTRO"},
       .enum_desc =
-          {R"--(The scattering of *scat_species* as totally randomly oriented particles, see *spectral_propmat_scatAddSpectralScatteringSpeciesTRO*.)--"},
+          {R"--(The scattering of *atm_scat_species* as totally randomly oriented particles, see *spectral_propmat_scatAddSpectralScatteringSpeciesTRO*.)--"},
       .enum_default = "FromSpeciesTRO",
   };
 

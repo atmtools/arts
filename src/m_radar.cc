@@ -30,7 +30,6 @@ struct Settings {
 
 void check_settings(const ArrayOfSensor&            sensors,
                     const Matrix&                   limits,
-                    const JacobianTargets&          jac_targets,
                     const ArrayOfScatteringSpecies& scattering_species,
                     const Settings&                 settings) {
   const Size ny = measurement_size(sensors);
@@ -48,11 +47,6 @@ void check_settings(const ArrayOfSensor&            sensors,
   if (settings.pext_scaling < 0.0 or settings.pext_scaling > 2.0)
     arts::user_error("pext_scaling must be between 0 and 2; got {}", settings.pext_scaling);
   if (scattering_species.species.empty()) arts::user_error("Radar single scattering requires scattering species");
-  if (not jac_targets.surf.empty() or not jac_targets.surf_spectral.empty() or not jac_targets.subsurf.empty() or
-      not jac_targets.subsurf_spectral.empty() or not jac_targets.line.empty() or not jac_targets.sensor.empty() or
-      not jac_targets.error.empty())
-    arts::user_error(
-        "The radar forward model currently supports atmospheric and spectral atmospheric Jacobian targets only");
 }
 
 RadarRangeMode resolved_range_mode(const RadarRangeMode mode, const Matrix& limits) {
@@ -427,7 +421,7 @@ void measurement_vecFromRadarSingleScattering(const Workspace&                ws
                           .dbze_min     = dbze_min,
                           .pext_scaling = pext_scaling,
                           .rte_option   = rte_option};
-  check_settings(measurement_sensors, radar_range_limits, jac_targets, scattering_species, settings);
+  check_settings(measurement_sensors, radar_range_limits, scattering_species, settings);
 
   const auto simulations = prepare_simulations(
       ws, measurement_sensors, radar_range_limits, settings.range_mode, surf_field, ray_path_observer_agenda);
@@ -491,7 +485,7 @@ void model_state_vecFromRadarOnionPeeling(const Workspace&                ws,
                           .dbze_min     = dbze_min,
                           .pext_scaling = pext_scaling,
                           .rte_option   = rte_option};
-  check_settings(measurement_sensors, radar_range_limits, jac_targets, scattering_species, settings);
+  check_settings(measurement_sensors, radar_range_limits, scattering_species, settings);
   if (measurement_vec.size() != ny)
     arts::user_error("measurement_vec has {} elements but there are {} radar observations", measurement_vec.size(), ny);
   if (nx == 0 or (jac_targets.atm.empty() and jac_targets.atm_spectral.empty()))

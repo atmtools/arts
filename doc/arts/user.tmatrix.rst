@@ -130,7 +130,7 @@ For example, a single-size ice population can be set up as follows::
     number = A.ScatteringSpeciesProperty(
         "ice", A.ParticulateProperty.NumberDensity)
     psd = A.MonodispersePSD(number, 250.0, 280.0)
-    ws.scat_species = [A.ScatteringHabit(
+    ws.atm_scat_species = [A.ScatteringHabit(
         habit, psd, density * np.pi / 6, 3.0)]
 
 The constant refractive index above is illustrative; supply the material model

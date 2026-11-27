@@ -40,7 +40,7 @@ def spectral(values):
 ws.atm_spectral_field["extinction"] = spectral(np.where(cloud, 1e-4, 0.0))
 ws.atm_spectral_field["ssa"] = spectral(np.where(cloud, 0.8, 0.0))
 ws.atm_spectral_field["g"] = 0.0
-ws.scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
+ws.atm_scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 
 ws.mc_antenna.set_gaussian_fwhm(0.6, 0.6)
 kwargs = dict(

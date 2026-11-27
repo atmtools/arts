@@ -249,7 +249,7 @@ This method simply is a convenience wrapper for that use case.
 
   wsm_meta.push_back(WorkspaceMethodInternalMetaRecord{
       .name    = "spectral_radClearskyScattering",
-      .desc    = "Computes clearsky spectral radiances with first-order solar scattering from scat_species",
+      .desc    = "Computes clearsky spectral radiances with first-order solar scattering from atm_scat_species",
       .author  = {"Richard Larsson"},
       .methods = {"ray_pointBackground",
                   "spectral_rad_bkgAgendasAtEndOfPath",

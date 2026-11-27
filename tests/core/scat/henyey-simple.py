@@ -98,14 +98,14 @@ for manual in [False, True]:
                 hspec = pyarts.arts.HenyeyGreensteinScatterer("extinction", "ssa", "g")
 
                 if manual:
-                    ws.scat_species = [hspec]
+                    ws.atm_scat_species = [hspec]
                 else:
                     def python_func(atm, spectral, f, index):
                         return hspec.tro_spectral(
                             atm, spectral, f, index
                         )
 
-                    ws.scat_species = [
+                    ws.atm_scat_species = [
                         pyarts.arts.ScatteringGeneralSpectralTRO(python_func)
                     ]
 

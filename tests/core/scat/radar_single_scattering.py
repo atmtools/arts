@@ -68,7 +68,7 @@ def spectral(values):
 ws.atm_spectral_field["extinction"] = spectral(np.where(cloud, extinction_value, 0.0))
 ws.atm_spectral_field["ssa"] = spectral(np.where(cloud, ssa_value, 0.0))
 ws.atm_spectral_field["g"] = 0.0
-ws.scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
+ws.atm_scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 
 # ARTS2 polarization index 5 is [I,Q]/2 on receive and [I,Q] on transmit.
 # The helper creates one observation element per range bin, so the radar
@@ -256,7 +256,7 @@ liquid = A.ParticleHabit.liquid_sphere(
 np.testing.assert_allclose(liquid.properties.mass, particle.properties.mass)
 np.testing.assert_array_equal(liquid.backscatter_matrix, np.asarray(liquid.phase_matrix)[:, :, -1, :])
 np.testing.assert_array_equal(liquid.forwardscatter_matrix, np.asarray(liquid.phase_matrix)[:, :, 0, :])
-old.scat_species = [
+old.atm_scat_species = [
     A.ScatteringHabit(
         habit,
         A.MonodispersePSD(number_density, 0.0, 400.0),

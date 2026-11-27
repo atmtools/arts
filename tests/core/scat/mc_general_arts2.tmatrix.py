@@ -237,7 +237,7 @@ def main():
     meta.diameter_max = 1.0
     habit = A.ParticleHabit.from_legacy_aro([legacy], [meta])
     psd = A.MonodispersePSD(number_density, 0.0, 400.0)
-    ws.scat_species = [A.ScatteringHabit(habit, psd, 1.0, 1.0)]
+    ws.atm_scat_species = [A.ScatteringHabit(habit, psd, 1.0, 1.0)]
 
     ws.abs_speciesSet(species=["O2-PWR98", "N2-SelfContStandardType", "H2O-PWR98"])
     # These predefined models have no fitted catalog payload; register their model

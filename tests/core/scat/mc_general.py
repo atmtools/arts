@@ -28,7 +28,7 @@ common = dict(
 )
 
 # With no extinction every history reaches the same blackbody boundary.
-ws.scat_species = []
+ws.atm_scat_species = []
 ws.MCGeneral(**common)
 surface = np.asarray(ws.mc_spectral_rad)
 assert ws.mc_iteration_count == 32
@@ -54,7 +54,7 @@ def spectral(values):
 ws.atm_spectral_field["extinction"] = spectral(np.where(cloud, 2e-4, 0.0))
 ws.atm_spectral_field["ssa"] = spectral(np.where(cloud, 0.8, 0.0))
 ws.atm_spectral_field["g"] = 0.2
-ws.scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
+ws.atm_scat_species = [A.HenyeyGreensteinScatterer("extinction", "ssa", "g")]
 
 scattering = common | {"mc_min_iter": 128, "mc_max_iter": 128}
 ws.MCGeneral(**scattering)
@@ -80,7 +80,7 @@ alpha = 1e-2
 nlte_emission = np.array([2e-13, -3e-14, 4e-14, -5e-14])
 temperature = 250.0
 ws.atm_field["t"].data.data[:] = temperature
-ws.scat_species = []
+ws.atm_scat_species = []
 
 
 def constant_nlte(freq, wind_jac, jac, species, path_point, atm):

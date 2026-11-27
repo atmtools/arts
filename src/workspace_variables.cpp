@@ -182,8 +182,8 @@ When Bath is selected, all species are used.  Otherwise, this variable should co
       .type = "ArrayOfSpeciesEnum",
   };
 
-  wsv_data["scat_species"] = {
-      .desc = R"--(The scattering species
+  wsv_data["atm_scat_species"] = {
+      .desc = R"--(The scattering species of the atmosphere
 )--",
       .type = "ArrayOfScatteringSpecies",
   };

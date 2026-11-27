@@ -425,7 +425,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
                             const AtmSpectralField&         atm_spectral_field,
                             const SurfaceField&             surf_field,
                             const SubsurfaceField&          subsurf_field,
-                            const ArrayOfScatteringSpecies& scat_species,
+                            const ArrayOfScatteringSpecies& atm_scat_species,
                             const Agenda&                   ray_path_observer_agenda,
                             const Agenda&                   spectral_propmat_agenda,
                             const Agenda&                   spectral_rad_space_agenda,
@@ -448,9 +448,6 @@ void spectral_radMonteCarlo(const Workspace&                ws,
   MCAntenna pencil;
   pencil.set_pencil_beam();
 
-  if (not jac_targets.surf_spectral.empty() or not jac_targets.subsurf_spectral.empty())
-    arts::user_error("Monte Carlo radiances use no spectral surface or subsurface field, so they cannot be targets");
-
   const auto run = [&](Stokvec&                out,
                        const Numeric           frequency,
                        const Index             seed,
@@ -470,7 +467,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
               atm_spectral,
               surf,
               subsurf,
-              scat_species,
+              atm_scat_species,
               pencil,
               ray_path_observer_agenda,
               spectral_propmat_agenda,

@@ -53,7 +53,7 @@ truth[[0, -1]] = 0.0
 ws.atm_spectral_field[extinction] = spectral(truth)
 ws.atm_spectral_field["generated-cloud ssa"] = spectral(np.full(altitude.size, 0.82))
 ws.atm_spectral_field["generated-cloud g"] = 0.15
-ws.scat_species = [
+ws.atm_scat_species = [
     A.HenyeyGreensteinScatterer(extinction, "generated-cloud ssa", "generated-cloud g")
 ]
 
