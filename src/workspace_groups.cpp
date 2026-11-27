@@ -110,7 +110,13 @@ does not change the global workspace while minimizing the number of variables th
 
   wsg_data["ArrayOfScatteringSpecies"] = {
       .file = "scattering/scattering_species.h",
-      .desc = "Represents species of scattering particles in the atmosphere.",
+      .desc =
+          R"--(Species of scatterers, of the atmosphere (*atm_scat_species*) or the subsurface (*subsurf_scat_species*).
+
+Each species is evaluated at a point of its medium and the spectral point at the same position, an *AtmPoint* with an
+*AtmSpectralPoint* or a *SubsurfacePoint* with a *SubsurfaceSpectralPoint*.  The bulk scattering properties are the
+sums over the species.
+)--",
   };
 
   wsg_data["ScatteringSpeciesProperty"] = {

@@ -30,17 +30,17 @@ ws.atm_fieldIGRF(time="2000-03-11 14:39:37")
 # %% Add a field of scattering species properties
 #
 # For this example, we will use scatterers with a Henyey-Greenstein phase
-# function to represent ice particles. We will use two *scattering species
-# properties* to represent the scattering species *ice*: The extinction and
-# the single-scattering albed (SSA). The ice extinction and SSA thus become
-# atmospheric fields. Below we define scattering-species-property object that
-# identify these fields.
+# function to represent ice particles. We will use three spectral properties
+# to represent the scattering species *ice*: the extinction, the
+# single-scattering albedo (SSA) and the asymmetry parameter g. They become
+# properties of the spectral atmospheric field. Below we define the names
+# that identify them.
 ice_extinction = "ice extinction"
 ice_ssa = "ice ssa"
 ice_g = "ice g"
 
-# We then define a GriddedField3 representing the ice extinction and
-# single-scattering albedo and add it to ``atm_field`` of the workspace.
+# We then define a SpectralGeodeticField4 representing the ice extinction and
+# single-scattering albedo and add it to ``atm_spectral_field`` of the workspace.
 grids = ws.atm_field["t"].data.grids
 z = grids[0]
 ice_extinction_profile = np.zeros_like(z)

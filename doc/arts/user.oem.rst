@@ -80,6 +80,44 @@ the discarded products will be recomputed as needed. Basis selection needs
 a spectrum, so rerun ``oemBasisCalc`` before selecting modes again.
 ``ws.oem.clear()`` instead resets the entire object, including its inputs.
 
+Retrieving spectral properties
+==============================
+
+A property of a spectral field (:ref:`Sec Atmospheric field`,
+:ref:`Sec Surface field`, :ref:`Sec Subsurface field`) is a target of its own.
+``oemAddAtmosphereSpectral``, ``oemAddSurfaceSpectral`` and
+``oemAddSubsurfaceSpectral`` add one property of
+:attr:`~pyarts3.workspace.Workspace.atm_spectral_field`,
+:attr:`~pyarts3.workspace.Workspace.surf_spectral_field` or
+:attr:`~pyarts3.workspace.Workspace.subsurf_spectral_field` with its
+covariance block, as the ``jac_targetsAdd...Spectral`` methods do without one.
+
+The state of such a target is the data of the property: one value for a
+constant, or all values of gridded data, frequency slowest.  To retrieve a
+property per frequency, give it as gridded data on the frequencies to
+retrieve.  A property given as a function has no state.  Here the loss
+tangent of the subsurface, the same at all positions, is retrieved at two
+frequencies:
+
+.. code-block:: python
+
+   ws.subsurf_spectral_field["loss tangent"] = pyarts.arts.SpectralGeodeticField4(
+       data=np.full((2, 1, 1, 1), 0.008),
+       grid_names=["frequency", "altitude", "latitude", "longitude"],
+       grids=[[280e9, 490e9], [0.0], [0.0], [0.0]],
+   )
+   ws.oemAddSubsurfaceSpectral(target="loss tangent", matrix=np.diag([1e-6, 1e-6]))
+
+``model_state_vecFromData`` writes these states into
+``model_state_vec``, and ``UpdateModelStates`` writes ``model_state_vec``
+back into the spectral fields, as for the other targets.  Spectral targets
+have no transformations.
+
+A method computes the derivatives by the properties it reads, as its
+description states.  Examples are the scattering species' derivatives by
+their spectral properties (see :doc:`user.scattering_species`) and
+``spectral_radSurfaceDepolarization``'s by its depolarization factor.
+
 Checking manually edited data
 =============================
 

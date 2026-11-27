@@ -12,6 +12,7 @@ Build configuration and implementation details are in :doc:`devs`.
    user.atm_field
    user.surf_field
    user.subsurf_field
+   user.scattering_species
    user.sensors
    user.sensor_builder
    user.oem

@@ -4,6 +4,7 @@ The subsurface
 ##############
 
 The subsurface of ARTS is always fully 3D with coordinates of altitude, geodetic latitude, and longitude.
+The altitude is relative to the local surface: it is 0 at the elevation of the surface field and negative below it.
 
 The subsurface in ARTS is represented by three key components:
 the subsurface field, the subsurface field data, and the subsurface point.
@@ -40,7 +41,7 @@ A subsurface field is represented by the class :class:`~pyarts3.arts.SubsurfaceF
 The subsurface field holds a collection of subsurface field data, :class:`~pyarts3.arts.SubsurfaceData`,
 that can be accessed and modified through a :class:`dict`-like interface.
 A subsurface field has a minimum altitude, :attr:`~pyarts3.arts.SubsurfaceField.bottom_depth`, below which it is considered undefined.
-It has no maximum altitude, instead relying on an external ellipsoid and elevation field to define the surface of the planet above it.
+It has no maximum altitude: its top is the surface of the planet, which an external ellipsoid and elevation field define.
 The ellipsoid and the elevation field are (often) part of the :class:`~pyarts3.arts.SurfaceField` class
 and are described in :ref:`Sec Surface Field`.
 The subsurface field can be called as if it were a function taking altitude, geodetic latitude, and longitude 
@@ -343,3 +344,37 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as subsurface 
   Any kind of python function-like object can be used as
   a :class:`~pyarts3.arts.NumericTernaryOperator`.  It must simply take three floats and return another float.
   If you want to pass in a custom class all you need is to define ``__call__(self, alt, lat, lon)`` for it.
+
+The spectral subsurface field
+*****************************
+
+Some properties depend on frequency as well as position.  They are held in a field of their own,
+:class:`~pyarts3.arts.SubsurfaceSpectralField`, of which the workspace has :attr:`~pyarts3.workspace.Workspace.subsurf_spectral_field`.
+It maps names, :class:`~pyarts3.arts.SubsurfaceSpectralPropertyTag`, to :class:`~pyarts3.arts.SubsurfaceSpectralData`.
+The names are free-form; the methods and models that use a property name it.
+Its altitude is that of the subsurface field, relative to the local surface.
+
+A property is one of these data types:
+
+- :class:`~pyarts3.arts.Numeric`: the same at all frequencies and positions.
+- :class:`~pyarts3.arts.SpectralGeodeticField4`: data on grids of frequency [Hz], altitude, geodetic latitude, and longitude, in that order.
+  It is interpolated linearly in all dimensions, or, with ``log_interpolation``, its logarithm is.
+  Outside a grid, the extrapolation of that side of that dimension applies
+  (``frq_upp``, ``frq_low``, ``alt_upp``, ``alt_low``, ``lat_upp``, ``lat_low``, ``lon_upp`` and ``lon_low``); by default it is an error, except for grids of a single value, which are used as they are.
+- :class:`~pyarts3.arts.NumericQuaternaryOperator`: a function of frequency, altitude, geodetic latitude, and longitude.
+
+Called with a frequency grid and a position, ``subsurf_spectral_field(freq_grid, alt, lat, lon)`` gives a :class:`~pyarts3.arts.SubsurfaceSpectralPoint`:
+every property as a vector on the frequency grid.  Methods evaluate the field like this at each position they use,
+on the frequencies they compute.
+
+.. code-block:: python
+
+  import pyarts3 as pyarts
+
+  subsurf_spectral_field = pyarts.arts.SubsurfaceSpectralField()
+  subsurf_spectral_field["refractive index"] = 1.7
+  subsurf_spectral_field["loss tangent"] = lambda f, alt, lat, lon: 0.008 * (1 - alt)
+  subsurf_spectral_point = subsurf_spectral_field([280e9, 490e9], -0.5, 0.0, 0.0)
+  subsurf_spectral_point["loss tangent"]  # [0.012, 0.012]
+
+Properties of the spectral field can be retrieved, see :doc:`user.oem`.

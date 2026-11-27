@@ -150,8 +150,8 @@ Collision next_collision(const Workspace&                ws,
   if (path.empty()) arts::user_error("The ray-path agenda returned an empty path");
   if (path.size() == 1) return {.end = path.back()};
 
-  const auto    atm         = forward_atm_path(path, atm_field);
-  const auto    spectral_at = [&atm_spectral_field, freq_grid = AscendingGrid{frequency}](const Vector3& p) {
+  const auto atm         = forward_atm_path(path, atm_field);
+  const auto spectral_at = [&atm_spectral_field, freq_grid = AscendingGrid{frequency}](const Vector3& p) {
     return atm_spectral_field.at(freq_grid, p[0], p[1], p[2]);
   };
   const auto    distances   = path::distance(path, surf_field.ellipsoid);
@@ -183,9 +183,9 @@ Collision next_collision(const Workspace&                ws,
                                              local_jac_step);
     const Numeric dtau    = 0.5 * (previous.extinction.A() + current.extinction.A()) * distances[i - 1];
     if (dtau > 0.0 and tau + dtau >= target) {
-      const Numeric x           = std::clamp((target - tau) / dtau, 0.0, 1.0);
-      auto          point       = interpolate(path[i - 1], path[i], x);
-      auto          atm_point   = atm_field.at(point.pos);
+      const Numeric x            = std::clamp((target - tau) / dtau, 0.0, 1.0);
+      auto          point        = interpolate(path[i - 1], path[i], x);
+      auto          atm_point    = atm_field.at(point.pos);
       auto          atm_spectral = spectral_at(point.pos);
       auto          optics       = polarized_optics(ws,
                                                     frequency,
@@ -197,10 +197,10 @@ Collision next_collision(const Workspace&                ws,
                                                     jac_targets,
                                                     local_jac_target,
                                                     local_jac_step);
-      const Numeric ds          = x * distances[i - 1];
-      const Numeric partial_tau = 0.5 * (previous.extinction.A() + optics.extinction.A()) * ds;
-      const Muelmat partial     = rtepack::tran(previous.extinction, optics.extinction, ds)();
-      conditional               = conditional * (std::exp(partial_tau) * partial);
+      const Numeric ds           = x * distances[i - 1];
+      const Numeric partial_tau  = 0.5 * (previous.extinction.A() + optics.extinction.A()) * ds;
+      const Muelmat partial      = rtepack::tran(previous.extinction, optics.extinction, ds)();
+      conditional                = conditional * (std::exp(partial_tau) * partial);
       return {.happened              = true,
               .point                 = point,
               .atm                   = std::move(atm_point),
@@ -330,8 +330,8 @@ void MCGeneral(const Workspace&                ws,
       weight =
           weight *
           phase_weight(scattering_species, collision.atm, collision.atm_spectral, frequency, los, new_los, scattering);
-      pos    = collision.point.pos;
-      los    = new_los;
+      pos = collision.point.pos;
+      los = new_los;
     }
 
     sum += sample;
@@ -511,7 +511,7 @@ void spectral_radMonteCarlo(const Workspace&                ws,
       target.update_model(perturbed, perturbed_state);
 
       for (Size i = 0; i < freq_grid.size(); ++i) {
-        Stokvec value;
+        Stokvec     value;
         const Index seed = mc_seed + static_cast<Index>(i);
         if constexpr (std::same_as<Field, AtmField>) {
           run(value, freq_grid[i], seed, perturbed, atm_spectral_field, surf_field, subsurf_field);

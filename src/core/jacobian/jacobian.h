@@ -369,32 +369,32 @@ struct Targets final {
                 const AbsorptionBands&         abs_bands,
                 const ArrayOfSensor&           measurement_sensors);
 
-  AtmTarget&        emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
-  AtmTarget&        emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
-  LineTarget&       emplace_back(LblLineKey&& t, Numeric d = 0.0);
-  LineTarget&       emplace_back(const LblLineKey& t, Numeric d = 0.0);
-  SensorTarget&     emplace_back(SensorKey&& t, Numeric d = 0.0);
-  SensorTarget&     emplace_back(const SensorKey& t, Numeric d = 0.0);
-  SurfaceTarget&    emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
-  SurfaceTarget&    emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
-  SubsurfaceTarget& emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
-  SubsurfaceTarget& emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
+  AtmTarget&                emplace_back(AtmKeyVal&& t, Numeric d = 0.0);
+  AtmTarget&                emplace_back(const AtmKeyVal& t, Numeric d = 0.0);
+  LineTarget&               emplace_back(LblLineKey&& t, Numeric d = 0.0);
+  LineTarget&               emplace_back(const LblLineKey& t, Numeric d = 0.0);
+  SensorTarget&             emplace_back(SensorKey&& t, Numeric d = 0.0);
+  SensorTarget&             emplace_back(const SensorKey& t, Numeric d = 0.0);
+  SurfaceTarget&            emplace_back(SurfaceKeyVal&& t, Numeric d = 0.0);
+  SurfaceTarget&            emplace_back(const SurfaceKeyVal& t, Numeric d = 0.0);
+  SubsurfaceTarget&         emplace_back(SubsurfaceKeyVal&& t, Numeric d = 0.0);
+  SubsurfaceTarget&         emplace_back(const SubsurfaceKeyVal& t, Numeric d = 0.0);
   AtmSpectralTarget&        emplace_back(const AtmSpectralPropertyTag& t, Numeric d = 0.0);
   SurfaceSpectralTarget&    emplace_back(const SurfaceSpectralPropertyTag& t, Numeric d = 0.0);
   SubsurfaceSpectralTarget& emplace_back(const SubsurfaceSpectralPropertyTag& t, Numeric d = 0.0);
-  ErrorTarget&      emplace_back(ErrorKey&& t, Numeric d = 0.0);
-  ErrorTarget&      emplace_back(const ErrorKey& t, Numeric d = 0.0);
+  ErrorTarget&              emplace_back(ErrorKey&& t, Numeric d = 0.0);
+  ErrorTarget&              emplace_back(const ErrorKey& t, Numeric d = 0.0);
 
-  [[nodiscard]] std::vector<AtmTarget>::const_iterator        find(const AtmKeyVal& t) const;
-  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator    find(const SurfaceKeyVal& t) const;
-  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator find(const SubsurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<AtmTarget>::const_iterator                find(const AtmKeyVal& t) const;
+  [[nodiscard]] std::vector<SurfaceTarget>::const_iterator            find(const SurfaceKeyVal& t) const;
+  [[nodiscard]] std::vector<SubsurfaceTarget>::const_iterator         find(const SubsurfaceKeyVal& t) const;
   [[nodiscard]] std::vector<AtmSpectralTarget>::const_iterator        find(const AtmSpectralPropertyTag& t) const;
   [[nodiscard]] std::vector<SurfaceSpectralTarget>::const_iterator    find(const SurfaceSpectralPropertyTag& t) const;
   [[nodiscard]] std::vector<SubsurfaceSpectralTarget>::const_iterator find(
       const SubsurfaceSpectralPropertyTag& t) const;
-  [[nodiscard]] std::vector<LineTarget>::const_iterator       find(const LblLineKey& t) const;
-  [[nodiscard]] std::vector<SensorTarget>::const_iterator     find(const SensorKey& t) const;
-  [[nodiscard]] std::vector<ErrorTarget>::const_iterator      find(const ErrorKey& t) const;
+  [[nodiscard]] std::vector<LineTarget>::const_iterator   find(const LblLineKey& t) const;
+  [[nodiscard]] std::vector<SensorTarget>::const_iterator find(const SensorKey& t) const;
+  [[nodiscard]] std::vector<ErrorTarget>::const_iterator  find(const ErrorKey& t) const;
 
   [[nodiscard]] Index target_position(const AtmKeyVal& t) const;
   [[nodiscard]] Index target_position(const SurfaceKeyVal& t) const;

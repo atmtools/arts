@@ -139,7 +139,7 @@ bool test_henyey_greenstein_lab_frame() {
   spectral[AtmSpectralPropertyTag{"extinction"}] = Vector{2e-3};
   spectral[AtmSpectralPropertyTag{"ssa"}]        = Vector{0.7};
   spectral[AtmSpectralPropertyTag{"g"}]          = Vector{g};
-  const auto                      f = [g](Numeric c) {
+  const auto f                                   = [g](Numeric c) {
     return std::array{henyey_greenstein(g, c), 0.0, hg_ratio(c) * henyey_greenstein(g, c)};
   };
 

@@ -416,3 +416,42 @@ An example of using :class:`~pyarts3.arts.NumericTernaryOperator` as atmospheric
   These functions are generally faster than manually created :class:`~pyarts3.arts.NumericTernaryOperator` in python.
   They have 3 advantages: 1) C++ is faster than python, 2) there is no python wrapper overhead for the function call,
   and 3) we can know if these methods are safe for parallel execution, so we do not need to engage the python GIL.
+
+The spectral atmospheric field
+******************************
+
+Some properties depend on frequency as well as position.  They are held in a field of their own,
+:class:`~pyarts3.arts.AtmSpectralField`, of which the workspace has :attr:`~pyarts3.workspace.Workspace.atm_spectral_field`.
+It maps names, :class:`~pyarts3.arts.AtmSpectralPropertyTag`, to :class:`~pyarts3.arts.AtmSpectralData`.
+The names are free-form; the methods and models that use a property name it.
+The scattering species, for example, take their spectral properties from it, see :doc:`user.scattering_species`.
+
+A property is one of these data types:
+
+- :class:`~pyarts3.arts.Numeric`: the same at all frequencies and positions.
+- :class:`~pyarts3.arts.SpectralGeodeticField4`: data on grids of frequency [Hz], altitude, geodetic latitude, and longitude, in that order.
+  It is interpolated linearly in all dimensions, or, with ``log_interpolation``, its logarithm is.
+  Outside a grid, the extrapolation of that side of that dimension applies
+  (``frq_upp``, ``frq_low``, ``alt_upp``, ``alt_low``, ``lat_upp``, ``lat_low``, ``lon_upp`` and ``lon_low``); by default it is an error, except for grids of a single value, which are used as they are.
+- :class:`~pyarts3.arts.NumericQuaternaryOperator`: a function of frequency, altitude, geodetic latitude, and longitude.
+
+Called with a frequency grid and a position, ``atm_spectral_field(freq_grid, alt, lat, lon)`` gives a :class:`~pyarts3.arts.AtmSpectralPoint`:
+every property as a vector on the frequency grid.  Methods evaluate the field like this at each position they use,
+on the frequencies they compute.
+
+.. code-block:: python
+
+  import numpy as np
+  import pyarts3 as pyarts
+
+  atm_spectral_field = pyarts.arts.AtmSpectralField()
+  atm_spectral_field["ice g"] = 0.5
+  atm_spectral_field["ice extinction"] = pyarts.arts.SpectralGeodeticField4(
+      data=np.full((2, 3, 1, 1), 1e-4),
+      grid_names=["frequency", "altitude", "latitude", "longitude"],
+      grids=[[89e9, 183e9], [0.0, 5e3, 10e3], [0.0], [0.0]],
+  )
+  atm_spectral_point = atm_spectral_field([89e9, 183e9], 2e3, 0.0, 0.0)
+  atm_spectral_point["ice extinction"]  # [1e-4, 1e-4]
+
+Properties of the spectral field can be retrieved, see :doc:`user.oem`.
